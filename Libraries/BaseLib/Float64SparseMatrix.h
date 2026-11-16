@@ -66,6 +66,16 @@ int		Float64SparseSolve(CFloat64SparseMatrix* pcA, float64* pafX, float64* pafB,
 //multiplying by A and A' in turn).  The residual is |A'(b - A x)|.
 int		Float64SparseLeastSquares(CFloat64SparseMatrix* pcA, float64* pafX, float64* pafB, float64 fTolerance, int iMaxIterations);
 
+//The same answer directly: A'A is made (CFloat64SkylineMatrix), its unknowns numbered by reverse Cuthill-McKee so its envelope is
+//narrow, and Cholesky factored.  Exact but for rounding, in about the unknowns times the envelope's width squared; better than
+//conjugate gradients where the system is a mesh's (a chart's UVs), as they need about as many iterations as there are
+//unknowns.  pafX gets the answer.  False if A's columns aren't independent.
+bool	Float64SparseLeastSquaresDirect(CFloat64SparseMatrix* pcA, float64* pafX, float64* pafB);
+
+//Each column's place in an order that keeps columns sharing a row near each other (reverse Cuthill-McKee): from a column of
+//least neighbours at the far side of each connected group, breadth first, neighbours fewest first, then reversed.
+void	Float64SparseColumnOrder(CArrayLargeInt* paiPlaces, CFloat64SparseMatrix* pcA);
+
 
 #endif // __FLOAT64_SPARSE_MATRIX_H__
 

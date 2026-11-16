@@ -19,6 +19,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Float64SparseMatrix.h"
+#include "Float64SkylineMatrix.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -380,5 +381,373 @@ int Float64SparseLeastSquares(CFloat64SparseMatrix* pcA, float64* pafX, float64*
 	afRows.Kill();
 	afColumns.Kill();
 	return -1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The entries row by row: paiStarts[r] to paiStarts[r + 1] in paiEntries
+// are row r's.
+//
+//////////////////////////////////////////////////////////////////////////
+static void Float64SparseRows(CFloat64SparseMatrix* pcA, CArrayLargeInt* paiStarts, CArrayLargeInt* paiEntries)
+{
+	CArrayLargeInt	aiFilled;
+	lsize			uiEntry;
+	int				iRow;
+
+	paiStarts->Resize((lsize)pcA->NumRows() + 1);
+	paiStarts->SetArrayValues(0);
+	for (uiEntry = 0; uiEntry < pcA->NumEntries(); uiEntry++)
+	{
+		iRow = pcA->maiRows.GetValue(uiEntry);
+		paiStarts->SetValue((lsize)iRow + 1, paiStarts->GetValue((lsize)iRow + 1) + 1);
+	}
+	for (iRow = 0; iRow < pcA->NumRows(); iRow++)
+	{
+		paiStarts->SetValue((lsize)iRow + 1, paiStarts->GetValue((lsize)iRow + 1) + paiStarts->GetValue((lsize)iRow));
+	}
+	aiFilled.Init();
+	aiFilled.Resize((lsize)pcA->NumRows());
+	aiFilled.SetArrayValues(0);
+	paiEntries->Resize(pcA->NumEntries());
+	for (uiEntry = 0; uiEntry < pcA->NumEntries(); uiEntry++)
+	{
+		iRow = pcA->maiRows.GetValue(uiEntry);
+		paiEntries->SetValue((lsize)(paiStarts->GetValue((lsize)iRow) + aiFilled.GetValue((lsize)iRow)), (int)uiEntry);
+		aiFilled.SetValue((lsize)iRow, aiFilled.GetValue((lsize)iRow) + 1);
+	}
+	aiFilled.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each column's neighbours (the other columns in its rows), each once:
+// paiStarts[c] to paiStarts[c + 1] in paiNeighbours.
+//
+//////////////////////////////////////////////////////////////////////////
+static void Float64SparseNeighbours(CFloat64SparseMatrix* pcA, CArrayLargeInt* paiStarts, CArrayLargeInt* paiNeighbours)
+{
+	CArrayLargeInt	aiRowStarts;
+	CArrayLargeInt	aiEntries;
+	CArrayLargeInt	aiPairs;  //Column, neighbour.
+	CArrayLargeInt	aiMark;
+	CArrayLargeInt	aiPlaces;  //Where each column's next neighbour goes; once filled, where the next column's start.
+	CArrayLargeInt	aiAll;
+	int				iRow;
+	int				iColumn;
+	int				iOther;
+	int				i;
+	int				j;
+	lsize			uiPair;
+
+	aiRowStarts.Init();
+	aiEntries.Init();
+	Float64SparseRows(pcA, &aiRowStarts, &aiEntries);
+	aiPairs.Init();
+	for (iRow = 0; iRow < pcA->NumRows(); iRow++)
+	{
+		for (i = aiRowStarts.GetValue((lsize)iRow); i < aiRowStarts.GetValue((lsize)iRow + 1); i++)
+		{
+			iColumn = pcA->maiColumns.GetValue((lsize)aiEntries.GetValue((lsize)i));
+			for (j = aiRowStarts.GetValue((lsize)iRow); j < aiRowStarts.GetValue((lsize)iRow + 1); j++)
+			{
+				iOther = pcA->maiColumns.GetValue((lsize)aiEntries.GetValue((lsize)j));
+				if (iOther != iColumn)
+				{
+					aiPairs.Add(iColumn);
+					aiPairs.Add(iOther);
+				}
+			}
+		}
+	}
+	aiEntries.Kill();
+	aiRowStarts.Kill();
+
+	//Counted into place, then each column's repeats taken out by marking the neighbours it has.
+	aiPlaces.Init();
+	aiPlaces.Resize((lsize)pcA->NumColumns() + 1);
+	aiPlaces.SetArrayValues(0);
+	for (uiPair = 0; uiPair < aiPairs.NumElements(); uiPair += 2)
+	{
+		iColumn = aiPairs.GetValue(uiPair);
+		aiPlaces.SetValue((lsize)iColumn + 1, aiPlaces.GetValue((lsize)iColumn + 1) + 1);
+	}
+	for (iColumn = 0; iColumn < pcA->NumColumns(); iColumn++)
+	{
+		aiPlaces.SetValue((lsize)iColumn + 1, aiPlaces.GetValue((lsize)iColumn + 1) + aiPlaces.GetValue((lsize)iColumn));
+	}
+	aiAll.Init();
+	aiAll.Resize(aiPairs.NumElements() / 2);
+	for (uiPair = 0; uiPair < aiPairs.NumElements(); uiPair += 2)
+	{
+		iColumn = aiPairs.GetValue(uiPair);
+		aiAll.SetValue((lsize)aiPlaces.GetValue((lsize)iColumn), aiPairs.GetValue(uiPair + 1));
+		aiPlaces.SetValue((lsize)iColumn, aiPlaces.GetValue((lsize)iColumn) + 1);
+	}
+
+	paiStarts->Resize((lsize)pcA->NumColumns() + 1);
+	paiNeighbours->ReInit();
+	aiMark.Init();
+	aiMark.Resize((lsize)pcA->NumColumns());
+	aiMark.SetArrayValues(-1);
+	i = 0;
+	for (iColumn = 0; iColumn < pcA->NumColumns(); iColumn++)
+	{
+		paiStarts->SetValue((lsize)iColumn, (int)paiNeighbours->NumElements());
+		for (; i < aiPlaces.GetValue((lsize)iColumn); i++)
+		{
+			iOther = aiAll.GetValue((lsize)i);
+			if (aiMark.GetValue((lsize)iOther) != iColumn)
+			{
+				aiMark.SetValue((lsize)iOther, iColumn);
+				paiNeighbours->Add(iOther);
+			}
+		}
+	}
+	paiStarts->SetValue((lsize)pcA->NumColumns(), (int)paiNeighbours->NumElements());
+	aiAll.Kill();
+	aiPlaces.Kill();
+	aiMark.Kill();
+	aiPairs.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A column's number of neighbours.
+//
+//////////////////////////////////////////////////////////////////////////
+static int Float64SparseDegree(CArrayLargeInt* paiStarts, int iColumn)
+{
+	return paiStarts->GetValue((lsize)iColumn + 1) - paiStarts->GetValue((lsize)iColumn);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Breadth first from iStart, each column marked iMark in paiReached as
+// it's added to paiOrder, a column's new neighbours added fewest
+// neighbours first.  Returns the last column reached, at the far side.
+//
+//////////////////////////////////////////////////////////////////////////
+static int Float64SparseBreadthFirst(CArrayLargeInt* paiOrder, CArrayLargeInt* paiReached, int iMark, int iStart, CArrayLargeInt* paiStarts, CArrayLargeInt* paiNeighbours)
+{
+	lsize	uiHead;
+	lsize	uiAdded;
+	lsize	j;
+	int		iColumn;
+	int		iNeighbour;
+	int		iEarlier;
+	int		i;
+
+	uiHead = paiOrder->NumElements();
+	paiOrder->Add(iStart);
+	paiReached->SetValue((lsize)iStart, iMark);
+	iColumn = iStart;
+	for (; uiHead < paiOrder->NumElements(); uiHead++)
+	{
+		iColumn = paiOrder->GetValue(uiHead);
+		uiAdded = paiOrder->NumElements();
+		for (i = paiStarts->GetValue((lsize)iColumn); i < paiStarts->GetValue((lsize)iColumn + 1); i++)
+		{
+			iNeighbour = paiNeighbours->GetValue((lsize)i);
+			if (paiReached->GetValue((lsize)iNeighbour) != iMark)
+			{
+				paiReached->SetValue((lsize)iNeighbour, iMark);
+				paiOrder->Add(iNeighbour);
+				for (j = paiOrder->NumElements() - 1; j > uiAdded; j--)
+				{
+					iEarlier = paiOrder->GetValue(j - 1);
+					if (Float64SparseDegree(paiStarts, iEarlier) <= Float64SparseDegree(paiStarts, iNeighbour))
+					{
+						break;
+					}
+					paiOrder->SetValue(j, iEarlier);
+					paiOrder->SetValue(j - 1, iNeighbour);
+				}
+			}
+		}
+	}
+	return iColumn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For each connected group: from its column of fewest neighbours, a
+// breadth first walk finds a column at its far side, the walk from there
+// is the group's order (Cuthill-McKee); all reversed at the end.
+//
+//////////////////////////////////////////////////////////////////////////
+void Float64SparseColumnOrder(CArrayLargeInt* paiPlaces, CFloat64SparseMatrix* pcA)
+{
+	CArrayLargeInt	aiStarts;
+	CArrayLargeInt	aiNeighbours;
+	CArrayLargeInt	aiOrder;
+	CArrayLargeInt	aiReached;  //1 once a trial walk reaches a column, 2 once it's placed.
+	lsize			uiFirst;
+	int				iNumColumns;
+	int				iColumn;
+	int				iStart;
+	int				iDegree;
+	int				iLeast;
+
+	iNumColumns = pcA->NumColumns();
+	aiStarts.Init();
+	aiNeighbours.Init();
+	Float64SparseNeighbours(pcA, &aiStarts, &aiNeighbours);
+	aiOrder.Init();
+	aiReached.Init();
+	aiReached.Resize((lsize)iNumColumns);
+	aiReached.SetArrayValues(0);
+	while ((int)aiOrder.NumElements() < iNumColumns)
+	{
+		iStart = -1;
+		iLeast = 0;
+		for (iColumn = 0; iColumn < iNumColumns; iColumn++)
+		{
+			iDegree = Float64SparseDegree(&aiStarts, iColumn);
+			if ((aiReached.GetValue((lsize)iColumn) != 2) && ((iStart < 0) || (iDegree < iLeast)))
+			{
+				iStart = iColumn;
+				iLeast = iDegree;
+			}
+		}
+
+		//A trial walk to the far side, taken back off; marks made by it are 1, so they don't stop the real walk (2).
+		uiFirst = aiOrder.NumElements();
+		iStart = Float64SparseBreadthFirst(&aiOrder, &aiReached, 1, iStart, &aiStarts, &aiNeighbours);
+		aiOrder.Resize(uiFirst);
+		Float64SparseBreadthFirst(&aiOrder, &aiReached, 2, iStart, &aiStarts, &aiNeighbours);
+	}
+
+	paiPlaces->Resize((lsize)iNumColumns);
+	for (iColumn = 0; iColumn < iNumColumns; iColumn++)
+	{
+		paiPlaces->SetValue((lsize)aiOrder.GetValue((lsize)iColumn), iNumColumns - 1 - iColumn);
+	}
+	aiReached.Kill();
+	aiOrder.Kill();
+	aiNeighbours.Kill();
+	aiStarts.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A'A is the sum over A's rows of each row's outer product with itself,
+// A'b of each row times its b.  A row's entries are merged first, so a
+// column given twice in it adds.
+//
+//////////////////////////////////////////////////////////////////////////
+bool Float64SparseLeastSquaresDirect(CFloat64SparseMatrix* pcA, float64* pafX, float64* pafB)
+{
+	CArrayLargeInt			aiPlaces;
+	CArrayLargeInt			aiRowStarts;
+	CArrayLargeInt			aiEntries;
+	CArrayLargeInt			aiFirsts;
+	CArrayLargeInt			aiRowPlaces;
+	CArrayLargeFloat64		afRowValues;
+	CArrayLargeFloat64		afRight;
+	CFloat64SkylineMatrix	cNormal;
+	lsize					uiEntry;
+	int						iNumColumns;
+	int						iRow;
+	int						iPlace;
+	int						iLeast;
+	int						i;
+	int						j;
+	bool					bSolved;
+
+	iNumColumns = pcA->NumColumns();
+	aiPlaces.Init();
+	Float64SparseColumnOrder(&aiPlaces, pcA);
+	aiRowStarts.Init();
+	aiEntries.Init();
+	Float64SparseRows(pcA, &aiRowStarts, &aiEntries);
+
+	//Each place's first: the least place in any row it's in.
+	aiFirsts.Init();
+	aiFirsts.Resize((lsize)iNumColumns);
+	for (i = 0; i < iNumColumns; i++)
+	{
+		aiFirsts.SetValue((lsize)i, i);
+	}
+	for (iRow = 0; iRow < pcA->NumRows(); iRow++)
+	{
+		iLeast = iNumColumns;
+		for (i = aiRowStarts.GetValue((lsize)iRow); i < aiRowStarts.GetValue((lsize)iRow + 1); i++)
+		{
+			iPlace = aiPlaces.GetValue((lsize)pcA->maiColumns.GetValue((lsize)aiEntries.GetValue((lsize)i)));
+			iLeast = (iPlace < iLeast) ? iPlace : iLeast;
+		}
+		for (i = aiRowStarts.GetValue((lsize)iRow); i < aiRowStarts.GetValue((lsize)iRow + 1); i++)
+		{
+			iPlace = aiPlaces.GetValue((lsize)pcA->maiColumns.GetValue((lsize)aiEntries.GetValue((lsize)i)));
+			if (iLeast < aiFirsts.GetValue((lsize)iPlace))
+			{
+				aiFirsts.SetValue((lsize)iPlace, iLeast);
+			}
+		}
+	}
+
+	cNormal.Init(aiFirsts.GetData(), iNumColumns);
+	afRight.Init();
+	afRight.Resize((lsize)iNumColumns);
+	afRight.SetArrayValues(0.0);
+	aiRowPlaces.Init();
+	afRowValues.Init();
+	for (iRow = 0; iRow < pcA->NumRows(); iRow++)
+	{
+		aiRowPlaces.ReInit();
+		afRowValues.ReInit();
+		for (i = aiRowStarts.GetValue((lsize)iRow); i < aiRowStarts.GetValue((lsize)iRow + 1); i++)
+		{
+			uiEntry = (lsize)aiEntries.GetValue((lsize)i);
+			iPlace = aiPlaces.GetValue((lsize)pcA->maiColumns.GetValue(uiEntry));
+			for (j = 0; (j < (int)aiRowPlaces.NumElements()) && (aiRowPlaces.GetValue((lsize)j) != iPlace); j++)
+			{
+			}
+			if (j == (int)aiRowPlaces.NumElements())
+			{
+				aiRowPlaces.Add(iPlace);
+				afRowValues.Add(0.0);
+			}
+			afRowValues.SetValue((lsize)j, afRowValues.GetValue((lsize)j) + pcA->mafValues.GetValue(uiEntry));
+		}
+		for (i = 0; i < (int)aiRowPlaces.NumElements(); i++)
+		{
+			iPlace = aiRowPlaces.GetValue((lsize)i);
+			afRight.SetValue((lsize)iPlace, afRight.GetValue((lsize)iPlace) + (afRowValues.GetValue((lsize)i) * pafB[iRow]));
+			for (j = 0; j < (int)aiRowPlaces.NumElements(); j++)
+			{
+				if (aiRowPlaces.GetValue((lsize)j) <= iPlace)
+				{
+					cNormal.Add(iPlace, aiRowPlaces.GetValue((lsize)j), afRowValues.GetValue((lsize)i) * afRowValues.GetValue((lsize)j));
+				}
+			}
+		}
+	}
+
+	bSolved = cNormal.Factor();
+	if (bSolved)
+	{
+		cNormal.Solve(afRight.GetData(), afRight.GetData());
+		for (i = 0; i < iNumColumns; i++)
+		{
+			pafX[i] = afRight.GetValue((lsize)aiPlaces.GetValue((lsize)i));
+		}
+	}
+
+	afRowValues.Kill();
+	aiRowPlaces.Kill();
+	afRight.Kill();
+	cNormal.Kill();
+	aiFirsts.Kill();
+	aiEntries.Kill();
+	aiRowStarts.Kill();
+	aiPlaces.Kill();
+	return bSolved;
 }
 

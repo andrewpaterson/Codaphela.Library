@@ -1,4 +1,5 @@
 #include "BaseLib/Float64SparseMatrix.h"
+#include "BaseLib/Float64SkylineMatrix.h"
 #include "TestLib/Assert.h"
 
 
@@ -243,6 +244,168 @@ void TestFloat64SparseMatrixLeastSquares(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//     4 1 0 1
+//     1 5 2 0
+//     0 2 6 0
+//     1 0 0 7
+//
+// in a skyline (rows starting at columns 0, 0, 1 and 0), factored and
+// solved for (1, 2, 3, 4).  A matrix that isn't positive definite
+// doesn't factor.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFloat64SparseMatrixSkyline(void)
+{
+	CFloat64SkylineMatrix	cMatrix;
+	int						aiFirsts[4] = { 0, 0, 1, 0 };
+	int						aiTwoFirsts[2] = { 0, 0 };
+	float64					afB[4] = { 10, 17, 22, 29 };
+	float64					afX[4];
+
+	cMatrix.Init(aiFirsts, 4);
+	cMatrix.Add(0, 0, 4);
+	cMatrix.Add(1, 0, 1);
+	cMatrix.Add(1, 1, 5);
+	cMatrix.Add(2, 1, 2);
+	cMatrix.Add(2, 2, 6);
+	cMatrix.Add(3, 0, 1);
+	cMatrix.Add(3, 3, 7);
+	AssertDouble(1.0, cMatrix.Get(0, 3), 10);
+	AssertDouble(2.0, cMatrix.Get(1, 2), 10);
+	AssertDouble(0.0, cMatrix.Get(0, 2), 10);
+	AssertDouble(0.0, cMatrix.Get(3, 2), 10);
+	AssertTrue(cMatrix.Factor());
+	cMatrix.Solve(afX, afB);
+	AssertDouble(1.0, afX[0], 10);
+	AssertDouble(2.0, afX[1], 10);
+	AssertDouble(3.0, afX[2], 10);
+	AssertDouble(4.0, afX[3], 10);
+	cMatrix.Solve(afB, afB);
+	AssertDouble(4.0, afB[3], 10);
+	cMatrix.Kill();
+
+	cMatrix.Init(aiTwoFirsts, 2);
+	cMatrix.Add(0, 0, 1);
+	cMatrix.Add(1, 0, 2);
+	cMatrix.Add(1, 1, 1);
+	AssertFalse(cMatrix.Factor());
+	cMatrix.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Columns joined in a chain 0, 3, 1, 4, 2 (each row two of them): ordered
+// so neighbours in the chain are neighbours in the order.  And two
+// chains, 0, 2 and 1, 3: each is its own run.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFloat64SparseMatrixColumnOrder(void)
+{
+	CFloat64SparseMatrix	cMatrix;
+	CArrayLargeInt			aiPlaces;
+	int						aiChain[5] = { 0, 3, 1, 4, 2 };
+	int						i;
+	int						iApart;
+	bool					bNear;
+
+	cMatrix.Init(4, 5);
+	for (i = 0; i < 4; i++)
+	{
+		cMatrix.Add(i, aiChain[i], 1.0);
+		cMatrix.Add(i, aiChain[i + 1], -1.0);
+	}
+	aiPlaces.Init();
+	Float64SparseColumnOrder(&aiPlaces, &cMatrix);
+	AssertLSize(5, aiPlaces.NumElements());
+	bNear = true;
+	for (i = 0; i < 4; i++)
+	{
+		iApart = aiPlaces.GetValue((lsize)aiChain[i]) - aiPlaces.GetValue((lsize)aiChain[i + 1]);
+		bNear &= ((iApart == 1) || (iApart == -1));
+	}
+	AssertTrue(bNear);
+	cMatrix.Kill();
+
+	cMatrix.Init(2, 4);
+	cMatrix.Add(0, 0, 1.0);
+	cMatrix.Add(0, 2, 1.0);
+	cMatrix.Add(1, 1, 1.0);
+	cMatrix.Add(1, 3, 1.0);
+	Float64SparseColumnOrder(&aiPlaces, &cMatrix);
+	iApart = aiPlaces.GetValue(0) - aiPlaces.GetValue(2);
+	AssertTrue((iApart == 1) || (iApart == -1));
+	iApart = aiPlaces.GetValue(1) - aiPlaces.GetValue(3);
+	AssertTrue((iApart == 1) || (iApart == -1));
+	aiPlaces.Kill();
+	cMatrix.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The least squares answers of TestFloat64SparseMatrixLeastSquares
+// directly: the line through five points (its t column given in two
+// halves, which add) and 300 equations in 60 unknowns.  A matrix with a
+// column of zeros has no answer.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFloat64SparseMatrixLeastSquaresDirect(void)
+{
+	CFloat64SparseMatrix	cMatrix;
+	float64					afAnswer[60];
+	float64					afB[300];
+	float64					afX[60];
+	int						i;
+	int						j;
+	uint32					uiSeed;
+
+	cMatrix.Init(5, 2);
+	for (i = 0; i < 5; i++)
+	{
+		cMatrix.Add(i, 1, i * 0.5);
+		cMatrix.Add(i, 0, 1);
+		cMatrix.Add(i, 1, i * 0.5);
+	}
+	afB[0] = 1;
+	afB[1] = 3;
+	afB[2] = 4;
+	afB[3] = 8;
+	afB[4] = 9;
+	AssertTrue(Float64SparseLeastSquaresDirect(&cMatrix, afX, afB));
+	AssertDouble(0.8, afX[0], 10);
+	AssertDouble(2.1, afX[1], 10);
+	cMatrix.Kill();
+
+	uiSeed = 1;
+	cMatrix.Init(300, 60);
+	for (i = 0; i < 60; i++)
+	{
+		cMatrix.Add(i, i, 1);
+		afAnswer[i] = TestFloat64SparseNext(&uiSeed) * 10.0;
+	}
+	for (i = 60; i < 300; i++)
+	{
+		for (j = 0; j < 3; j++)
+		{
+			cMatrix.Add(i, (int)((TestFloat64SparseNext(&uiSeed) + 1.0) * 29.99), TestFloat64SparseNext(&uiSeed));
+		}
+	}
+	cMatrix.Multiply(afB, afAnswer);
+	AssertTrue(Float64SparseLeastSquaresDirect(&cMatrix, afX, afB));
+	AssertTrue(TestFloat64SparseWorst(afX, afAnswer, 60) < 1e-9);
+	cMatrix.Kill();
+
+	cMatrix.Init(2, 3);
+	cMatrix.Add(0, 0, 1);
+	cMatrix.Add(1, 2, 1);
+	AssertFalse(Float64SparseLeastSquaresDirect(&cMatrix, afX, afB));
+	cMatrix.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFloat64SparseMatrix(void)
@@ -252,6 +415,9 @@ void TestFloat64SparseMatrix(void)
 	TestFloat64SparseMatrixMultiply();
 	TestFloat64SparseMatrixSolve();
 	TestFloat64SparseMatrixLeastSquares();
+	TestFloat64SparseMatrixSkyline();
+	TestFloat64SparseMatrixColumnOrder();
+	TestFloat64SparseMatrixLeastSquaresDirect();
 
 	TestStatistics();
 }
