@@ -35,6 +35,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 // A face's corners' positions and normals, and its UVs in texels.  False
 // if it has no UVs, or no area in 3D or in texels.
 //
+// A point on the face is its corners weighted, and each corner's weight
+// changes evenly across the texels (MeshBakeDraw's afWeights): by
+// (y[j] - y[l]) / twice the area for a texel across and (x[l] - x[j]) for
+// one down, j and l the corners after it.  So a texel across or down is
+// the same step in the world everywhere on the face.
+//
 //////////////////////////////////////////////////////////////////////////
 struct SMeshBakeFace
 {
@@ -44,6 +50,8 @@ struct SMeshBakeFace
 	float32			afY[NUM_FACE_CORNERS];
 	float32			fTwiceArea;  //In texels, signed.
 	float32			fWidth;  //Of a texel, in world units.
+	SFloat32Vec3	sAcross;  //How far, in the world, a point on the face moves for a texel across,
+	SFloat32Vec3	sDown;  //and for a texel down.
 };
 
 
@@ -63,6 +71,8 @@ static bool MeshBakeFace(SMeshBakeFace* psDest, CMesh* pcMesh, CMeshUVLayer* pcL
 	float32				fArea3D;
 	int					iNormal;
 	int					k;
+	int					j;
+	int					l;
 
 	psUVFace = pcLayer->mcFaces.Get((lsize)iFace);
 	piCorners = pcMesh->GetFaceCorners(iFace);
@@ -88,6 +98,15 @@ static bool MeshBakeFace(SMeshBakeFace* psDest, CMesh* pcMesh, CMeshUVLayer* pcL
 		return false;
 	}
 	psDest->fWidth = sqrtf(fArea3D / fabsf(psDest->fTwiceArea));
+	psDest->sAcross.Init(0, 0, 0);
+	psDest->sDown.Init(0, 0, 0);
+	for (k = 0; k < NUM_FACE_CORNERS; k++)
+	{
+		j = (k + 1) % NUM_FACE_CORNERS;
+		l = (k + 2) % NUM_FACE_CORNERS;
+		psDest->sAcross += psDest->asPositions[k] * ((psDest->afY[j] - psDest->afY[l]) / psDest->fTwiceArea);
+		psDest->sDown += psDest->asPositions[k] * ((psDest->afX[l] - psDest->afX[j]) / psDest->fTwiceArea);
+	}
 
 	sCross /= fArea3D;
 	for (k = 0; k < NUM_FACE_CORNERS; k++)
@@ -106,12 +125,58 @@ static bool MeshBakeFace(SMeshBakeFace* psDest, CMesh* pcMesh, CMeshUVLayer* pcL
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void SMeshBakeSettings::Init(void)
+{
+	iSamples = 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A texel's sample: the mean of the texture's at iSamples by iSamples
+// points spread evenly across it, each as wide as its share of the texel.
+// A texture that can't average itself over a texel (an edge a ramp or a
+// mask makes) is averaged here.  A mean is kept as each sample moves it
+// its share of the way: the first all the way, the second half...
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshBakeTexel(SSolidSample* psTexel, SMeshBakeFace* psFace, CSolidTexture* pcTexture, SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, SMeshBakeSettings* psSettings)
+{
+	SSolidSample	sSample;
+	SFloat32Vec3	sPosition;
+	float32			fAcross;
+	float32			fDown;
+	int				iSamples;
+	int				x;
+	int				y;
+
+	iSamples = psSettings->iSamples;
+	psTexel->Init();
+	for (y = 0; y < iSamples; y++)
+	{
+		fDown = (((float32)y + 0.5f) / (float32)iSamples) - 0.5f;
+		for (x = 0; x < iSamples; x++)
+		{
+			fAcross = (((float32)x + 0.5f) / (float32)iSamples) - 0.5f;
+			sPosition = *psPosition + (psFace->sAcross * fAcross) + (psFace->sDown * fDown);
+			pcTexture->Sample(&sPosition, psNormal, psFace->fWidth / (float32)iSamples, &sSample);
+			psTexel->Blend(&sSample, 1.0f / (float32)((y * iSamples) + x + 1));
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The texels whose centres a face covers (its barycentric weights all at
 // least nothing, either way round), each its texture's colour there.
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshBakeDraw(SMeshBakeFace* psFace, CSolidTexture* pcTexture, ARGB32 uiTint, int iWidth, int iHeight, CArrayLargeUint32* pauiColours, CArrayLargeInt* paiCovered)
+static void MeshBakeDraw(SMeshBakeFace* psFace, CSolidTexture* pcTexture, SMeshBakeSettings* psSettings, ARGB32 uiTint, int iWidth, int iHeight, CArrayLargeUint32* pauiColours, CArrayLargeInt* paiCovered)
 {
+	SSolidSample	sTexel;
 	SFloat32Vec3	sPosition;
 	SFloat32Vec3	sNormal;
 	float32			fMinX;
@@ -184,7 +249,8 @@ static void MeshBakeDraw(SMeshBakeFace* psFace, CSolidTexture* pcTexture, ARGB32
 				sNormal /= fLength;
 			}
 			uiTexel = ((lsize)y * (lsize)iWidth) + (lsize)x;
-			pauiColours->SetValue(uiTexel, Modulate32BitColours(pcTexture->Colour(&sPosition, &sNormal, psFace->fWidth), uiTint));
+			MeshBakeTexel(&sTexel, psFace, pcTexture, &sPosition, &sNormal, psSettings);
+			pauiColours->SetValue(uiTexel, Modulate32BitColours(sTexel.Colour(), uiTint));
 			paiCovered->SetValue(uiTexel, 1);
 		}
 	}
@@ -246,8 +312,9 @@ static void MeshBakeDilate(int iWidth, int iHeight, CArrayLargeUint32* pauiColou
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight, ARGB32* pauiTints)
+Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight, ARGB32* pauiTints, SMeshBakeSettings* psSettings)
 {
+	SMeshBakeSettings	sOneSample;
 	Ptr<CImage>			pImage;
 	CMeshUVLayer*		pcLayer;
 	SMeshBakeFace		sFace;
@@ -264,6 +331,11 @@ Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 		return NULL;
 	}
 	pcLayer = pcMesh->mcUVs.mcLayers.Get((size)iLayer);
+	if (psSettings == NULL)
+	{
+		sOneSample.Init();
+		psSettings = &sOneSample;
+	}
 
 	uiNumTexels = (lsize)iWidth * (lsize)iHeight;
 	auiColours.Init();
@@ -277,7 +349,7 @@ Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 	{
 		if (MeshBakeFace(&sFace, pcMesh, pcLayer, iFace, iWidth, iHeight))
 		{
-			MeshBakeDraw(&sFace, pcTexture, (pauiTints != NULL) ? pauiTints[iFace] : Set32BitColour((uint8)255, (uint8)255, (uint8)255), iWidth, iHeight, &auiColours, &aiCovered);
+			MeshBakeDraw(&sFace, pcTexture, psSettings, (pauiTints != NULL) ? pauiTints[iFace] : Set32BitColour((uint8)255, (uint8)255, (uint8)255), iWidth, iHeight, &auiColours, &aiCovered);
 		}
 	}
 	MeshBakeDilate(iWidth, iHeight, &auiColours, &aiCovered);
@@ -307,6 +379,7 @@ void CMeshBake::Init(Ptr<CSolidTexture> pTexture)
 	PreInit();
 	CMeshModifier::Init();
 	mpTexture = pTexture;
+	miSamples = MESH_BAKE_SAMPLES;
 	PostInit();
 }
 
@@ -320,6 +393,7 @@ void CMeshBake::Class(void)
 	CMeshModifier::Class();
 	M_Pointer(mpTexture);
 	M_Pointer(mpImage);
+	U_SInt(miSamples);
 }
 
 
@@ -360,7 +434,9 @@ static void MeshBakeTints(CArrayLargeUint32* pauiDest, CMesh* pcMesh)
 //////////////////////////////////////////////////////////////////////////
 //
 // Level 0 at the layout's size, then each level half the one before
-// (rounded up) to 1 by 1, every one baked from the texture.
+// (rounded up) to 1 by 1, every one baked from the texture.  Level 0 is
+// one sample a texel; each level after has twice as many each way, up to
+// miSamples, so a texel twice as wide is still made of samples as fine.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMesh> CMeshBake::Modify(Ptr<CMesh> pMesh)
@@ -370,6 +446,7 @@ Ptr<CMesh> CMeshBake::Modify(Ptr<CMesh> pMesh)
 	CMaterialImage*		pcDiffuse;
 	CMeshUVLayer*		pcLayer;
 	CArrayLargeUint32	auiTints;
+	SMeshBakeSettings	sSettings;
 	int					iWidth;
 	int					iHeight;
 
@@ -382,7 +459,8 @@ Ptr<CMesh> CMeshBake::Modify(Ptr<CMesh> pMesh)
 	iHeight = pcLayer->miLayoutHeight;
 	auiTints.Init();
 	MeshBakeTints(&auiTints, &pMesh);
-	mpImage = BakeMeshTexture(&pMesh, 0, &mpTexture, iWidth, iHeight, auiTints.GetData());
+	sSettings.Init();
+	mpImage = BakeMeshTexture(&pMesh, 0, &mpTexture, iWidth, iHeight, auiTints.GetData(), &sSettings);
 	if (mpImage.IsNull())
 	{
 		auiTints.Kill();
@@ -397,7 +475,11 @@ Ptr<CMesh> CMeshBake::Modify(Ptr<CMesh> pMesh)
 	{
 		iWidth = (iWidth + 1) / 2;
 		iHeight = (iHeight + 1) / 2;
-		pcDiffuse->mapLevels.Add(BakeMeshTexture(&pMesh, 0, &mpTexture, iWidth, iHeight, auiTints.GetData()));
+		if ((sSettings.iSamples * 2) <= miSamples)
+		{
+			sSettings.iSamples *= 2;
+		}
+		pcDiffuse->mapLevels.Add(BakeMeshTexture(&pMesh, 0, &mpTexture, iWidth, iHeight, auiTints.GetData(), &sSettings));
 	}
 	auiTints.Kill();
 

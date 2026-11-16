@@ -1,4 +1,5 @@
 #include <math.h>
+#include <string.h>
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/MemoryFile.h"
@@ -161,8 +162,44 @@ void TestMeshBakeSample(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A unit square at z = 0.25 whose UVs are the middle half of a 16 by 16
-// image, texels 4 to 11 each way: a texel there is the checker at its
+// A unit square at z = 0.25, two faces, whose UVs are the middle half of
+// an image: u is a quarter and half its x, v a quarter and half its y.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestBakeSquare(CMesh* pcMesh)
+{
+	CMeshUVLayer*	pcLayer;
+	SMeshUVFace*	psUVFace;
+
+	pcMesh->Init();
+	pcMesh->mcUVs.mbInUse = true;
+	pcMesh->mcUVs.AddLayer(pcMesh->GetConnectivity());
+	pcMesh->AddCorner(0, 0, 0.25f);
+	pcMesh->AddCorner(1, 0, 0.25f);
+	pcMesh->AddCorner(1, 1, 0.25f);
+	pcMesh->AddCorner(0, 1, 0.25f);
+	pcMesh->AddUV(0.25f, 0.25f);
+	pcMesh->AddUV(0.75f, 0.25f);
+	pcMesh->AddUV(0.75f, 0.75f);
+	pcMesh->AddUV(0.25f, 0.75f);
+	pcMesh->AddFace(0, 1, 2);
+	pcMesh->AddFace(0, 2, 3);
+	pcLayer = pcMesh->mcUVs.mcLayers.Get(0);
+	psUVFace = pcLayer->mcFaces.Get(0);
+	psUVFace->aiUVs[0] = 0;
+	psUVFace->aiUVs[1] = 1;
+	psUVFace->aiUVs[2] = 2;
+	psUVFace = pcLayer->mcFaces.Get(1);
+	psUVFace->aiUVs[0] = 0;
+	psUVFace->aiUVs[1] = 2;
+	psUVFace->aiUVs[2] = 3;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The square in a 16 by 16 image is texels 4 to 11 each way: a texel there
+// is the checker at its
 // centre's point on the square (x = (u - 0.25) * 2), averaged over its
 // width (an eighth of the square), and every texel round it is its
 // nearest covered texel's.  Tinted, a face's texels are its tint times
@@ -174,8 +211,6 @@ void TestMeshBakeSquare(void)
 	Ptr<CSolidChecker>	pChecker;
 	Ptr<CImage>			pImage;
 	CMesh				cMesh;
-	CMeshUVLayer*		pcLayer;
-	SMeshUVFace*		psUVFace;
 	SFloat32Vec3		sPoint;
 	SFloat32Vec3		sNormal;
 	ARGB32				auiTints[2];
@@ -183,28 +218,7 @@ void TestMeshBakeSquare(void)
 	int					y;
 	bool				bSame;
 
-	cMesh.Init();
-	cMesh.mcUVs.mbInUse = true;
-	cMesh.mcUVs.AddLayer(cMesh.GetConnectivity());
-	cMesh.AddCorner(0, 0, 0.25f);
-	cMesh.AddCorner(1, 0, 0.25f);
-	cMesh.AddCorner(1, 1, 0.25f);
-	cMesh.AddCorner(0, 1, 0.25f);
-	cMesh.AddUV(0.25f, 0.25f);
-	cMesh.AddUV(0.75f, 0.25f);
-	cMesh.AddUV(0.75f, 0.75f);
-	cMesh.AddUV(0.25f, 0.75f);
-	cMesh.AddFace(0, 1, 2);
-	cMesh.AddFace(0, 2, 3);
-	pcLayer = cMesh.mcUVs.mcLayers.Get(0);
-	psUVFace = pcLayer->mcFaces.Get(0);
-	psUVFace->aiUVs[0] = 0;
-	psUVFace->aiUVs[1] = 1;
-	psUVFace->aiUVs[2] = 2;
-	psUVFace = pcLayer->mcFaces.Get(1);
-	psUVFace->aiUVs[0] = 0;
-	psUVFace->aiUVs[1] = 2;
-	psUVFace->aiUVs[2] = 3;
+	TestBakeSquare(&cMesh);
 
 	pChecker = OMalloc<CSolidChecker>(0.5f, Set32BitColour((uint8)10, (uint8)20, (uint8)30), Set32BitColour((uint8)240, (uint8)200, (uint8)160));
 	pImage = BakeMeshTexture(&cMesh, 0, &pChecker, 16, 16);
@@ -246,6 +260,84 @@ void TestMeshBakeSquare(void)
 	pImage = BakeMeshTexture(&cMesh, 0, &pChecker, 16, 16, auiTints);
 	AssertInt(Set32BitColour((uint8)240, (uint8)0, (uint8)0), TestBakeTexel(&pImage, 9, 5));
 	AssertInt(Set32BitColour((uint8)240, (uint8)200, (uint8)160), TestBakeTexel(&pImage, 5, 9));
+	cMesh.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A texture that doesn't average itself over a texel: black before
+// x = mfEdge and white from it, whatever the width.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestSolidStep : public CSolidTexture
+{
+CONSTRUCTABLE(CTestSolidStep);
+DESTRUCTABLE(CTestSolidStep);
+public:
+	float32	mfEdge;
+
+	void Init(float32 fEdge)
+	{
+		PreInit();
+		CSolidTexture::Init();
+		mfEdge = fEdge;
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+		CSolidTexture::Class();
+		U_Float32(mfEdge);
+	}
+
+protected:
+	void TextureSample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample) override
+	{
+		psSample->InitValue((psPosition->x < mfEdge) ? 0.0f : 1.0f);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The square in a 4 by 4 image is texels 1 and 2 each way, each half the
+// square wide: texel 2 is x from 0.5 to 1, and a step at 0.65 crosses it.
+// One sample, at its centre (0.75), is past the step: white.  Two each
+// way are at 0.625 and 0.875: half white.  Four are at 0.5625, 0.6875,
+// 0.8125 and 0.9375: three quarters white, near the 0.7 that is the
+// truth.  A texel the step doesn't cross is the same however many.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshBakeSamples(void)
+{
+	Ptr<CTestSolidStep>	pStep;
+	Ptr<CImage>			pImage;
+	CMesh				cMesh;
+	SMeshBakeSettings	sSettings;
+
+	TestBakeSquare(&cMesh);
+	pStep = OMalloc<CTestSolidStep>(0.65f);
+
+	sSettings.Init();
+	AssertInt(1, sSettings.iSamples);
+	pImage = BakeMeshTexture(&cMesh, 0, &pStep, 4, 4, NULL, &sSettings);
+	AssertInt(0, Get8BitRedColour(TestBakeTexel(&pImage, 1, 1)));
+	AssertInt(255, Get8BitRedColour(TestBakeTexel(&pImage, 2, 1)));
+	AssertInt(TestBakeTexel(&BakeMeshTexture(&cMesh, 0, &pStep, 4, 4), 2, 2), TestBakeTexel(&pImage, 2, 2));
+
+	sSettings.iSamples = 2;
+	pImage = BakeMeshTexture(&cMesh, 0, &pStep, 4, 4, NULL, &sSettings);
+	AssertInt(0, Get8BitRedColour(TestBakeTexel(&pImage, 1, 1)));
+	AssertInt(128, Get8BitRedColour(TestBakeTexel(&pImage, 2, 1)));
+	AssertInt(128, Get8BitRedColour(TestBakeTexel(&pImage, 2, 2)));
+
+	sSettings.iSamples = 4;
+	pImage = BakeMeshTexture(&cMesh, 0, &pStep, 4, 4, NULL, &sSettings);
+	AssertInt(0, Get8BitRedColour(TestBakeTexel(&pImage, 1, 2)));
+	AssertInt(191, Get8BitRedColour(TestBakeTexel(&pImage, 2, 1)));
+	AssertInt(191, Get8BitGreenColour(TestBakeTexel(&pImage, 2, 2)));
+	AssertInt(191, Get8BitRedColour(TestBakeTexel(&pImage, 3, 3)));  //Its nearest covered texel's.
 	cMesh.Kill();
 }
 
@@ -339,6 +431,65 @@ void TestMeshBakeModifier(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A box baked with a texture that doesn't average itself: level 0 is one
+// sample a texel, level 1 two each way, level 2 four, and so are the
+// levels after, as four is the most.  With the most at one, every level
+// is one sample.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshBakeModifierSamples(void)
+{
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMeshBake>		pBake;
+	Ptr<CMesh>			pMesh;
+	Ptr<CTestSolidStep>	pStep;
+	Ptr<CImage>			pLevel;
+	Ptr<CImage>			pExpected;
+	CMaterialImage*		pcDiffuse;
+	SMeshBakeSettings	sSettings;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sZ;
+	SFloat32Vec3		sStart;
+	size				i;
+	int					iMost;
+
+	sX.Init(2, 0, 0);
+	sY.Init(0, 1, 0);
+	sZ.Init(0, 0, 0.5f);
+	sStart.Init(-1, -0.5f, -0.25f);
+	pStep = OMalloc<CTestSolidStep>(0.3f);
+	for (iMost = MESH_BAKE_SAMPLES; iMost >= 1; iMost -= (MESH_BAKE_SAMPLES - 1))
+	{
+		pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+		pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 1, 1, 1);
+		pEditor->AddModifier<CMeshUnwrap>(32.0f);
+		pBake = pEditor->AddModifier<CMeshBake>(pStep);
+		AssertInt(MESH_BAKE_SAMPLES, pBake->miSamples);
+		pBake->miSamples = iMost;
+		pMesh = pEditor->GetOutput();
+		pcDiffuse = pMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse);
+		AssertTrue(pcDiffuse->mapLevels.NumElements() >= 4);
+
+		sSettings.Init();
+		pLevel = pcDiffuse->mpImage;
+		for (i = 0; i < 4; i++)
+		{
+			pExpected = BakeMeshTexture(&pMesh, 0, &pStep, (int)pLevel->GetWidth(), (int)pLevel->GetHeight(), NULL, &sSettings);
+			AssertInt(0, memcmp(pExpected->GetData(), pLevel->GetData(), pLevel->GetWidth() * pLevel->GetHeight() * 3));
+			pLevel = pcDiffuse->mapLevels.Get(i);
+			if ((sSettings.iSamples * 2) <= iMost)
+			{
+				sSettings.iSamples *= 2;
+			}
+		}
+		AssertInt(iMost, sSettings.iSamples);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshBake(void)
@@ -350,8 +501,10 @@ void TestMeshBake(void)
 	TestMeshBakeChecker();
 	TestMeshBakeSample();
 	TestMeshBakeSquare();
+	TestMeshBakeSamples();
 	ObjectsFlush();
 	TestMeshBakeModifier();
+	TestMeshBakeModifierSamples();
 	ObjectsDiscard();
 	ObjectsKill(false);
 	DataIOKill();

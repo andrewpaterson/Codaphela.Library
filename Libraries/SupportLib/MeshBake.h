@@ -28,19 +28,38 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "SolidTexture.h"
 
 
+//The most samples each way in a texel a CMeshBake takes.
+#define MESH_BAKE_SAMPLES	4
+
+
+//How a bake makes a texel of a texture.
+struct SMeshBakeSettings
+{
+	int		iSamples;  //Each way across the texel, spread evenly: the texel is their mean.
+
+	void	Init(void);  //One sample, at the texel's centre.
+};
+
+
 //A texture iWidth by iHeight texels of pcTexture on pcMesh's faces, through UV layer iLayer (UnwrapPlan.txt, Bake).  Each
 //texel whose centre is inside a face's UV triangle is the texture's colour at the point and normal its barycentric position
 //gives (the corners' normals if the mesh has them, the face's if not), averaged over the face's texel width; then every texel
 //no face covers takes the colour of the nearest one that is, so filtering at a seam or a gutter finds the chart's colour, not
 //the background's.  Rows are from the top, a texel's row v times iHeight, as the renderers sample.  With pauiTints (a colour
 //for each face) each face's texels are its tint times the texture.  An 8 bit red, green, blue image; NULL if the mesh hasn't
-//the layer.  A mip level is the same at half the size, as finer levels are never shrunk.
-Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight, ARGB32* pauiTints = NULL);
+//the layer.  A mip level is the same at half the size, as finer levels are never shrunk.  Without psSettings a texel is one
+//sample.
+Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight, ARGB32* pauiTints = NULL, SMeshBakeSettings* psSettings = NULL);
 
 
 //Bakes mpTexture onto the mesh through UV layer 0 at the layer's layout size (as CMeshUnwrap makes it), every mip level, and
 //gives every face one material whose diffuse image (and its levels) it is, its colour white so the image is the colour.  Each
 //face's own material's diffuse colour tints its texels, so the texture is all its colour.  mpImage is the last level 0 baked.
+//
+//Level 0 is one sample a texel.  A texture's noise averages itself over a texel, but an edge a ramp or a mask makes of it
+//doesn't, and coarse levels of such a texture are wrong (a marble's veins fade and the whole lightens, TexturePlan.txt,
+//Filtering).  So each level after has twice the samples each way, up to miSamples: with 4, about two and a half times the
+//work of one sample everywhere, for coarse levels 4 to 10 times nearer the truth.
 class CMeshBake : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshBake);
@@ -48,6 +67,7 @@ DESTRUCTABLE(CMeshBake);
 public:
 	Ptr<CSolidTexture>	mpTexture;
 	Ptr<CImage>			mpImage;
+	int					miSamples;  //The most each way in a texel.
 
 	void		Init(Ptr<CSolidTexture> pTexture);
 	void		Class(void) override;

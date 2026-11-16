@@ -417,6 +417,51 @@ void TestNoiseCellular(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The greatest change in a cell's number between one point and the next
+// of five hundred along a line, two thousandths of a unit apart, at a
+// width.
+//
+//////////////////////////////////////////////////////////////////////////
+static float32 TestNoiseCellularStep(float32 fWidth)
+{
+	SCellularNoise	sNoise;
+	SFloat32Vec3	sPoint;
+	float32			fLast;
+	float32			fGreatest;
+	int				i;
+
+	fGreatest = 0.0f;
+	fLast = 0.0f;
+	for (i = 0; i < 500; i++)
+	{
+		sPoint.Init(0.3f + ((float32)i * 0.0016f), 1.7f + ((float32)i * 0.0010f), -2.2f + ((float32)i * 0.0006f));
+		CellularNoise(&sNoise, &sPoint, 5, fWidth);
+		if (i > 0)
+		{
+			fGreatest = maxf(fGreatest, fabsf(sNoise.fCell - fLast));
+		}
+		fLast = sNoise.fCell;
+	}
+	return fGreatest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// At a point a cell's number steps at the cell's edge.  Over a width it
+// doesn't: a texel on the edge between two cells is partly each, so the
+// number crosses from one's to the other's in the texel's width.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestNoiseCellularEdges(void)
+{
+	AssertTrue(TestNoiseCellularStep(0.0f) > 0.15f);
+	AssertTrue(TestNoiseCellularStep(0.05f) < 0.03f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestNoise(void)
@@ -430,6 +475,7 @@ void TestNoise(void)
 	TestNoiseFractalValues();
 	TestNoiseFractalFiltered();
 	TestNoiseCellular();
+	TestNoiseCellularEdges();
 
 	TestStatistics();
 }

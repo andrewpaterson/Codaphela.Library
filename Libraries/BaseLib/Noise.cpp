@@ -296,27 +296,32 @@ float32 FractalNoise(EFractalNoise eKind, SFloat32Vec3* psPosition, uint32 uiSee
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// The nearest two points to the position among those of the lattice cubes
-// within iReach cubes of its own.  A cube's point is its hash's three ten
-// bit numbers, as fractions of the cube.
-//
-//////////////////////////////////////////////////////////////////////////
-static void CellularNoiseSearch(SCellularNoise* psNoise, int32* paiNearest, SFloat32Vec3* psPosition, int32* paiCube, int32 iReach, uint32 uiSeed)
+//A point a cellular search found: where it is from the position, how far that is squared, and whose lattice cube's it is.
+struct SCellularPoint
 {
 	SFloat32Vec3	sOffset;
 	float32			fSquared;
+	int32			aiCube[3];
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The nearest two points to the position, nearest first, among those of
+// the lattice cubes within iReach cubes of its own.  A cube's point is
+// its hash's three ten bit numbers, as fractions of the cube.
+//
+//////////////////////////////////////////////////////////////////////////
+static void CellularNoiseSearch(SCellularPoint* pasNearest, SFloat32Vec3* psPosition, int32* paiCube, int32 iReach, uint32 uiSeed)
+{
+	SCellularPoint	sPoint;
 	uint32			uiHash;
 	int32			x;
 	int32			y;
 	int32			z;
 
-	psNoise->fNearest = NOISE_FURTHEST;
-	psNoise->fSecond = NOISE_FURTHEST;
-	paiNearest[0] = paiCube[0];
-	paiNearest[1] = paiCube[1];
-	paiNearest[2] = paiCube[2];
+	pasNearest[0].fSquared = NOISE_FURTHEST;
+	pasNearest[1].fSquared = NOISE_FURTHEST;
 	for (z = paiCube[2] - iReach; z <= paiCube[2] + iReach; z++)
 	{
 		for (y = paiCube[1] - iReach; y <= paiCube[1] + iReach; y++)
@@ -324,25 +329,35 @@ static void CellularNoiseSearch(SCellularNoise* psNoise, int32* paiNearest, SFlo
 			for (x = paiCube[0] - iReach; x <= paiCube[0] + iReach; x++)
 			{
 				uiHash = NoiseHash(x, y, z, uiSeed);
-				sOffset.Init((float32)x + ((float32)(uiHash & 0x3FF) / 1024.0f) - psPosition->x, (float32)y + ((float32)((uiHash >> 10) & 0x3FF) / 1024.0f) - psPosition->y, (float32)z + ((float32)((uiHash >> 20) & 0x3FF) / 1024.0f) - psPosition->z);
-				fSquared = Float32Vec3Dot(&sOffset, &sOffset);
-				if (fSquared < psNoise->fNearest)
+				sPoint.sOffset.Init((float32)x + ((float32)(uiHash & 0x3FF) / 1024.0f) - psPosition->x, (float32)y + ((float32)((uiHash >> 10) & 0x3FF) / 1024.0f) - psPosition->y, (float32)z + ((float32)((uiHash >> 20) & 0x3FF) / 1024.0f) - psPosition->z);
+				sPoint.fSquared = Float32Vec3Dot(&sPoint.sOffset, &sPoint.sOffset);
+				sPoint.aiCube[0] = x;
+				sPoint.aiCube[1] = y;
+				sPoint.aiCube[2] = z;
+				if (sPoint.fSquared < pasNearest[0].fSquared)
 				{
-					psNoise->fSecond = psNoise->fNearest;
-					psNoise->fNearest = fSquared;
-					paiNearest[0] = x;
-					paiNearest[1] = y;
-					paiNearest[2] = z;
+					pasNearest[1] = pasNearest[0];
+					pasNearest[0] = sPoint;
 				}
-				else if (fSquared < psNoise->fSecond)
+				else if (sPoint.fSquared < pasNearest[1].fSquared)
 				{
-					psNoise->fSecond = fSquared;
+					pasNearest[1] = sPoint;
 				}
 			}
 		}
 	}
-	psNoise->fNearest = sqrtf(psNoise->fNearest);
-	psNoise->fSecond = sqrtf(psNoise->fSecond);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A point's cell's own number, 0 to 1, from a hash that isn't the one
+// that placed it.
+//
+//////////////////////////////////////////////////////////////////////////
+static float32 CellularNoiseCell(SCellularPoint* psPoint, uint32 uiSeed)
+{
+	return (float32)(NoiseHash(psPoint->aiCube[0], psPoint->aiCube[1], psPoint->aiCube[2], ~uiSeed) >> 8) / 16777216.0f;
 }
 
 
@@ -353,15 +368,24 @@ static void CellularNoiseSearch(SCellularNoise* psNoise, int32* paiNearest, SFlo
 // block searched, as no point outside it can then be nearer.  Otherwise
 // (a few times in a hundred) the block a cube bigger each way is searched.
 //
+// The edge between the two nearest points' cells is the plane half way
+// between them.  A texel within half its width of that plane is partly in
+// the second cell (a half of it when it's on the plane), so its cell's
+// number is that share of the second's: cells' edges are as soft as the
+// texel is wide, not stepped.
+//
 //////////////////////////////////////////////////////////////////////////
 void CellularNoise(SCellularNoise* psNoise, SFloat32Vec3* psPosition, uint32 uiSeed, float32 fWidth)
 {
+	SCellularPoint	asNearest[2];
 	SFloat32Vec3	sFloor;
 	SFloat32Vec3	sIn;
+	SFloat32Vec3	sBetween;
 	float32			fEdge;
+	float32			fReach;
+	float32			fShare;
 	float32			fKept;
 	int32			aiCube[3];
-	int32			aiNearest[3];
 	int32			iReach;
 
 	sFloor.Init(floorf(psPosition->x), floorf(psPosition->y), floorf(psPosition->z));
@@ -374,11 +398,23 @@ void CellularNoise(SCellularNoise* psNoise, SFloat32Vec3* psPosition, uint32 uiS
 	do
 	{
 		iReach++;
-		CellularNoiseSearch(psNoise, aiNearest, psPosition, aiCube, iReach, uiSeed);
+		CellularNoiseSearch(asNearest, psPosition, aiCube, iReach, uiSeed);
+		fReach = (float32)iReach + fEdge;
 	}
-	while (psNoise->fSecond > ((float32)iReach + fEdge));
+	while (asNearest[1].fSquared > (fReach * fReach));
 
-	psNoise->fCell = (float32)(NoiseHash(aiNearest[0], aiNearest[1], aiNearest[2], ~uiSeed) >> 8) / 16777216.0f;
+	psNoise->fNearest = sqrtf(asNearest[0].fSquared);
+	psNoise->fSecond = sqrtf(asNearest[1].fSquared);
+	psNoise->fCell = CellularNoiseCell(&asNearest[0], uiSeed);
+	if (fWidth > 0.0f)
+	{
+		sBetween = asNearest[1].sOffset - asNearest[0].sOffset;
+		fShare = 0.5f - ((asNearest[1].fSquared - asNearest[0].fSquared) / (2.0f * sBetween.Magnitude() * fWidth));
+		if (fShare > 0.0f)
+		{
+			psNoise->fCell += (CellularNoiseCell(&asNearest[1], uiSeed) - psNoise->fCell) * fShare;
+		}
+	}
 
 	fKept = NoiseKept(fWidth);
 	psNoise->fNearest = InterpolateFloat(NOISE_MEAN_NEAREST, psNoise->fNearest, fKept);

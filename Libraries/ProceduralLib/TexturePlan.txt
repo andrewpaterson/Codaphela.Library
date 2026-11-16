@@ -3,7 +3,7 @@ Texture generator plan
 
 Making the solid textures a bake reads (SupportLib/UnwrapPlan.txt, Bake): noise, the operators that combine textures, and
 materials built from them.  It comes before the virtual texture (SupportLib/VirtualTexturePlan.txt), whose pages are baked from
-these and whose design needs to know what a texel holds and what one costs to make.  Steps 1 to 27 are built (see Steps).  What is decided
+these and whose design needs to know what a texel holds and what one costs to make.  Steps 1 to 31 are built (see Steps).  What is decided
 and what is only proposed is said at each point.
 
 
@@ -132,17 +132,14 @@ A material is a function that builds a graph (MakeSolidMarble(seed) returning it
 ordinary objects, saved and edited as they are.
 
 
-Filtering and operators that aren't straight (proposed)
--------------------------------------------------------
+Filtering and operators that aren't straight (built: steps 28 to 30)
+-------------------------------------------------------------------
 Noise is filtered by its width.  But a ramp of a filtered noise isn't the filtered ramp of the noise: a hard key in a ramp, a
-mask's edge, min and max all put back detail finer than the texel, which flickers at coarse levels.  Two remedies, both wanted:
+mask's edge, min and max all put back detail finer than the texel, and the mean moves too.  Two remedies were proposed:
 
-  Soft keys      A ramp's step is made no sharper than the input's change across the texel (the width times the input's
-                 slope, which gradient noise gives), as CSolidChecker's box filter does for its edges.
-  More samples   The bake takes several samples in a texel (a grid of n by n within it) and averages, where one isn't
-                 enough.  How many is a setting on the bake, 1 as now by default.
-
-Step 28 measures which is needed where: each level against the level below it shrunk, which they should match.
+  Soft keys      A ramp's step made no sharper than the input's change across the texel.  Measured, and not built (step 29).
+  More samples   The bake takes several samples in a texel and averages.  Built (step 30): one at level 0, twice as many
+                 each way at each level after, up to four.
 
 
 Height (proposed)
@@ -234,11 +231,41 @@ Warp and the first materials (SolidMaterials.h: each a function building a graph
 27. Rust: steel and rust, the rust where a ridged noise is high.  Done.
     All four looked right in the gallery the first time they were drawn; the numbers in them are that first guess.
 
-Filtering and cost measured
-28. Each material's mip levels against the finer level shrunk.
-29. Soft keys in the ramp and mask, where the measure shows flicker.
-30. Several samples in a texel in the bake, where soft keys aren't enough.
-31. The cost of a texel of each material, for the virtual texture (can a page be baked when it's first wanted?).
+Filtering and cost measured (TestSolidFiltering; TEXTURE_FILTER_REPORT in the environment prints its tables)
+28. Each material's mip levels against the truth.  Done.  A texel's truth is the mean of 64 samples across it; the error
+    is the root mean square, over 144 texels on a plane and red, green and blue (0 to 1), of how far a bake is from that.
+    One sample a texel, at widths of a 64th of a unit, a 32nd ... a half:
+      Checker, saw   0 (they average themselves exactly)
+      Noise (sum)    0.001 0.002 0.003 0.006 0.012 0.020
+      Cells (cell)   0.016 0.019 0.026 0.050 0.083 0.096   (0.046 0.073 0.095 ... before step 29)
+      Marble         0.003 0.007 0.020 0.039 0.060 0.091
+      Wood           0.025 0.030 0.033 0.030 0.021 0.010
+      Stone          0.017 0.039 0.062 0.079 0.077 0.097
+      Rust           0.005 0.012 0.023 0.044 0.067 0.100
+    The generators are near the truth.  The materials are a tenth of the whole range out at coarse levels: partly edges a
+    ramp or a mask puts back, mostly the mean moving (a marble's veins fade, so coarse levels are paler than fine ones).
+29. Softening, where the measure shows flicker.  Done for cells: the edge between the two nearest points' cells is the
+    plane half way between them, and a texel within half its width of it is partly the second cell, so a cell's number
+    crosses an edge in a texel's width (CellularNoise; a third of the error at fine levels).  Soft keys in the ramp were
+    measured and not built.  They would average the ramp over the values its input takes across the texel, which mends
+    one case: a steep key on an input that changes evenly (stone's cracks, 0.020 at the finest level).  The other edges
+    aren't that: a saw's fall through a ramp (wood's rings, 0.024) and a ramp of a cell's number (stone's patches, 0.027)
+    are two values with nothing between, and soft keys need the input's slope, two more samples of it for every ramp.
+    Step 30 mends all of them for less.
+30. Several samples in a texel in the bake.  Done: SMeshBakeSettings' iSamples each way, spread evenly across the texel
+    (a texel across or down is the same step in the world all over a face), each as wide as its share, their mean the
+    texel.  CMeshBake's level 0 is one sample; each level after has twice as many each way, up to miSamples (4), so
+    coarse levels are made of samples as fine as level 0's.  The errors as it bakes its levels:
+      Marble         0.003 0.002 0.001 0.002 0.005 0.014
+      Wood           0.025 0.012 0.006 0.009 0.012 0.010
+      Stone          0.017 0.008 0.004 0.008 0.016 0.022
+      Rust           0.005 0.003 0.001 0.003 0.006 0.011
+    for about two and a half times the samples (level 0's again for each of levels 1 and 2, little after).  Level 0's
+    own errors are detail finer than a texel (wood's grain) and hard edges, as any texture's finest level has.
+31. The cost of a sample of each material at a 64th of a unit, in microseconds, Release x64 on this machine: a noise of
+    six octaves 0.16, cells 0.12, marble 0.46, wood 0.42, stone 0.72, rust 0.30.  A page of 128 by 128 texels with its
+    share of coarser levels (2.5 times) is 5 to 30 milliseconds on one thread: a page can be baked when it's first
+    wanted if a frame needn't wait for it, which the virtual texture's baking in the background is for.
 
 Height
 32. The bake's tilted normal: the height sampled at the point and two beside it on the surface.

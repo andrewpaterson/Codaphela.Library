@@ -143,14 +143,14 @@ static void TestSolidMaterial(const char* szName, Ptr<CSolidTexture> (*fMake)(ui
 	for (i = 0; i < 50; i++)
 	{
 		sPoint.Init(((float32)i * 0.137f) - 3.0f, ((float32)i * 0.071f) + 0.2f, (float32)i * -0.093f);
-		pMaterial->Sample(&sPoint, &sNormal, 0.01f, &sSample);
+		pMaterial->Sample(&sPoint, &sNormal, 0.0f, &sSample);
 		pafChannels = sSample.Channels();
 		for (j = 0; j < SOLID_SAMPLE_CHANNELS; j++)
 		{
 			AssertTrue((pafChannels[j] >= 0.0f) && (pafChannels[j] <= 1.0f));
 		}
 		AssertFloat(1.0f, sSample.sColour.w, 6);
-		AssertFloat(sSample.Value(), TestSolidValueAt(pSame, sPoint.x, sPoint.y, sPoint.z), 2);
+		AssertFloat(sSample.Value(), TestSolidValueAt(pSame, sPoint.x, sPoint.y, sPoint.z), 6);
 		fDifferent += fabsf(sSample.Value() - TestSolidValueAt(pOther, sPoint.x, sPoint.y, sPoint.z));
 	}
 	AssertTrue(fDifferent > 0.5f);

@@ -21,6 +21,7 @@ void TestShapeScene(void);
 void TestSolidGenerators(void);
 void TestSolidOperators(void);
 void TestSolidMaterials(void);
+void TestSolidFiltering(void);
 
 
 int __cdecl main(void)
@@ -46,6 +47,7 @@ int __cdecl main(void)
 	TestSolidGenerators();
 	TestSolidOperators();
 	TestSolidMaterials();
+	TestSolidFiltering();
 
 	MemoryKill();
 	TypeConverterKill();
