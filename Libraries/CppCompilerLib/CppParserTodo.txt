@@ -261,6 +261,31 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        As it was planned: (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's
        user-defined literals), the noexcept operator.
     9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  A dynamic_cast<T&> that fails traps (the user), there being nothing to throw until exceptions are decided.  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.
+       Part 1 DONE 2026-11-16 (dd64c57d2): typeid, dynamic_cast<T&>.
+       Virtual inheritance, as the user chose (question 9), Itanium style:
+       - Layout: a class's own part is its non-virtual bases (each only its own part), its vtable pointer (a class with a
+         virtual base always has one) and its fields.  The virtual bases follow, each once, in the order of a depth-first
+         left-to-right walk with a virtual base after its own (CCPPClass::macVirtualBases, also the order they are made).
+         A class as a non-virtual base takes its own part's bytes (miOwnBytes); a complete object all of them.
+       - Vtables: before each part's header (offset to top, type info) the offsets from the part's subobject to each of
+         its class's virtual bases, the first nearest.  A class with a first non-virtual base at 0 shares its vtable
+         pointer, and its virtual bases start with that base's, so the base finds its offsets in the class's part.  A
+         virtual base's part has the final overriders from every class on the paths to it, each called through a thunk
+         that moves this to its class.  A class's vtable (all its parts) is written for the class as a complete object.
+       - Reaching a virtual base from a pointer: the vtable pointer, then the offset in its part's header; a path
+         through a virtual base is that and then the non-virtual part below it (CCPP65IRFrontEnd::BaseAddress).
+       - Constructors and destructors of a class with virtual bases are written twice: the complete one (its label as
+         now, so vtables and calls that make whole objects are as they were) makes the virtual bases first and destroys
+         them last; the base one (label and B) takes a hidden pointer to a table (Itanium's VTT, cut down): a
+         construction vtable (the class's parts as the class has them, at the offsets the complete object puts them),
+         then the tables of its direct non-virtual bases that have virtual bases.  Each complete class writes, per
+         subobject that has virtual bases, its table (_C__4_<offset>) and construction vtable (_C__5_<offset>).  So
+         while a base is made or destroyed its virtual calls are its own and its virtual bases are where they are.
+       - Classes without virtual bases are as they were, so nothing that compiles now changes.
+       Order of the work, a commit each: (a) layout, vtable offsets, conversions and members through a virtual base,
+       complete and base constructors and destructors, construction vtables; (b) virtual functions through virtual
+       bases (thunks), dynamic_cast and typeid across them; (c) copying and assignment, member pointers; (d) the
+       layouts against MSVC's (sizes and offsets of the cases' classes), more cases.
     10. (M) B1, namespaces to the standard (added 2026-11-16, at the user's word, from 70 cases of N4140's namespace and lookup
        paragraphs, each checked with the Microsoft compiler: the conformance test's Stage10 group).  DONE 2026-11-16, 70 of 70, in
        three commits: the two wrong lookups (CCPPScope::Find with FindDeclared, FindNominated and NominationLevel for directives;
@@ -320,7 +345,7 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     7. thread_local (stage 7): static storage, as there is one thread; or per process if the kernal will run several?  Done for now as static storage.
     11. A static local object whose class needs a destructor is refused (stage 7): destroying it when the program ends needs its destructor registered when it is made (as atexit does), which the start-up code has no list for.  Add one?
     8. typeid(x).name() (stage 9): what string, if any (the C++ name, the label, or ""), given it is data every polymorphic class carries.  Done for now as "": a name would be a string in every polymorphic class's type info, which every unit writes alike (COMDAT), whether or not the program asks for it.
-    9. Virtual inheritance (stage 9): lay classes out as MSVC does (a virtual base pointer in the object), as the plan says, or as the Itanium ABI does (virtual base offsets in the vtable), which is usually smaller?
+    9. Virtual inheritance (stage 9): lay classes out as MSVC does (a virtual base pointer in the object), as the plan says, or as the Itanium ABI does (virtual base offsets in the vtable), which is usually smaller?  The user, 2026-11-16: Itanium style.
 
 
 Decisions (made 2026-11-15)
