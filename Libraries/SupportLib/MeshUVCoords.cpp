@@ -36,6 +36,8 @@ void CMeshUVLayer::Init(void)
 {
 	mcUVs.Init();
 	mcFaces.Init();
+	miLayoutWidth = 0;
+	miLayoutHeight = 0;
 }
 
 
@@ -77,6 +79,8 @@ bool CMeshUVLayer::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcUVs.Read(pcFile));
 	ReturnOnFalse(mcFaces.Read(pcFile));
+	ReturnOnFalse(pcFile->ReadSInt(&miLayoutWidth));
+	ReturnOnFalse(pcFile->ReadSInt(&miLayoutHeight));
 	return true;
 }
 
@@ -89,6 +93,8 @@ bool CMeshUVLayer::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(mcUVs.Write(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));
+	ReturnOnFalse(pcFile->WriteSInt(miLayoutWidth));
+	ReturnOnFalse(pcFile->WriteSInt(miLayoutHeight));
 	return true;
 }
 

@@ -49,9 +49,9 @@ enum EMeshUnwrapFlatten
 
 //Gives a mesh UV layer 0 (UnwrapPlan.txt): its faces cut into charts (meCharts), each laid flat (meFlatten), turned to its
 //smallest bounding rectangle, and the charts packed into a layout of texels at mfTexelsPerUnit texels to a unit of the mesh,
-//its sides whole pages.  The UVs are each corner's place in the layout, 0 to 1 across it; a face anticlockwise seen from
-//outside is anticlockwise in UV, u to the right and v up.  Corners of one chart share their UVs, and a corner on a seam has one
-//for each chart it's in.
+//its sides whole pages; the layer keeps the layout's size (miLayoutWidth and miLayoutHeight) as its texture's.  The UVs are
+//each corner's place in the layout, 0 to 1 across it; a face anticlockwise seen from outside is anticlockwise in UV, u to the
+//right and v up.  Corners of one chart share their UVs, and a corner on a seam has one for each chart it's in.
 //
 //Laid flat across its normal, a chart is stretched where its faces slope from it (by 1 / cos of the angle along the slope), and
 //can't fold, as no face is a right angle from it.  LSCM then keeps its faces' angles, but can fold one that's very curved or

@@ -25,7 +25,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MESH_BAKE_H__
 #include "Image.h"
 #include "MeshModifier.h"
-#include "MeshUnwrap.h"
 #include "SolidTexture.h"
 
 
@@ -33,24 +32,24 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //texel whose centre is inside a face's UV triangle is the texture's colour at the point and normal its barycentric position
 //gives (the corners' normals if the mesh has them, the face's if not), averaged over the face's texel width; then every texel
 //no face covers takes the colour of the nearest one that is, so filtering at a seam or a gutter finds the chart's colour, not
-//the background's.  Rows are from the top, a texel's row v times iHeight, as the renderers sample.  An 8 bit red, green, blue
-//image; NULL if the mesh hasn't the layer.  A mip level is the same at half the size, as finer levels are never shrunk.
-Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight);
+//the background's.  Rows are from the top, a texel's row v times iHeight, as the renderers sample.  With pauiTints (a colour
+//for each face) each face's texels are its tint times the texture.  An 8 bit red, green, blue image; NULL if the mesh hasn't
+//the layer.  A mip level is the same at half the size, as finer levels are never shrunk.
+Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight, ARGB32* pauiTints = NULL);
 
 
-//Bakes mpTexture onto the mesh at the size of mpUnwrap's layout (UV layer 0, made by mpUnwrap before it on the stack), and gives
-//every face one material whose diffuse image it is, its colour white so the image is the colour.  The mesh's own materials are
-//replaced: the texture is all its colour.  mpImage is the last image baked.
+//Bakes mpTexture onto the mesh through UV layer 0 at the layer's layout size (as CMeshUnwrap makes it), every mip level, and
+//gives every face one material whose diffuse image (and its levels) it is, its colour white so the image is the colour.  Each
+//face's own material's diffuse colour tints its texels, so the texture is all its colour.  mpImage is the last level 0 baked.
 class CMeshBake : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshBake);
 DESTRUCTABLE(CMeshBake);
 public:
 	Ptr<CSolidTexture>	mpTexture;
-	Ptr<CMeshUnwrap>	mpUnwrap;
 	Ptr<CImage>			mpImage;
 
-	void		Init(Ptr<CSolidTexture> pTexture, Ptr<CMeshUnwrap> pUnwrap);
+	void		Init(Ptr<CSolidTexture> pTexture);
 	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;

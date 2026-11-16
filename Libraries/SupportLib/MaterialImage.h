@@ -71,6 +71,7 @@ CONSTRUCTABLE(CMaterialImage);
 DESTRUCTABLE(CMaterialImage);
 public:
 	Ptr<CImage>	mpImage;
+	CArrayImage	mapLevels;  //mpImage's smaller mip levels, each half the one before (rounded up), to 1 by 1; none if it has none.
 	CChars		mszImageName;
 	EUVAddress	meAddressU;
 	EUVAddress	meAddressV;

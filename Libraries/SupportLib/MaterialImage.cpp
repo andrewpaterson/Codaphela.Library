@@ -33,6 +33,7 @@ void CMaterialImage::Init(void)
 	PreInit();
 
 	mpImage = NULL;
+	mapLevels.Init();
 	mszImageName.Init();
 	meAddressU = UVA_Tile;
 	meAddressV = UVA_Tile;
@@ -62,6 +63,7 @@ void CMaterialImage::Free(void)
 void CMaterialImage::Class(void)
 {
 	M_Pointer(mpImage);
+	M_Embedded(mapLevels);
 	U_String(mszImageName);
 	U_Enum(meAddressU);
 	U_Enum(meAddressV);

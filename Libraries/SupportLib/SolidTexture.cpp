@@ -31,6 +31,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CSolidTexture::Init(void)
 {
 	PreInit();
+	msOrigin.Init(0, 0, 0);
+	masAxes[0].Init(1, 0, 0);
+	masAxes[1].Init(0, 1, 0);
+	masAxes[2].Init(0, 0, 1);
+	mfScale = 1.0f;
 	PostInit();
 }
 
@@ -41,6 +46,9 @@ void CSolidTexture::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CSolidTexture::Class(void)
 {
+	U_3Float32(msOrigin);
+	U_3Float32Array(masAxes, 3);
+	U_Float32(mfScale);
 }
 
 
@@ -50,5 +58,38 @@ void CSolidTexture::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CSolidTexture::Free(void)
 {
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSolidTexture::Place(SFloat32Vec3* psOrigin, SFloat32Vec3* psXAxis, SFloat32Vec3* psYAxis, float32 fScale)
+{
+	msOrigin = *psOrigin;
+	masAxes[0] = *psXAxis;
+	masAxes[0].Normalize();
+	Float32Vec3Cross(&masAxes[2], &masAxes[0], psYAxis);
+	masAxes[2].Normalize();
+	Float32Vec3Cross(&masAxes[1], &masAxes[2], &masAxes[0]);
+	mfScale = fScale;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ARGB32 CSolidTexture::Colour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth)
+{
+	SFloat32Vec3	sOffset;
+	SFloat32Vec3	sPosition;
+	SFloat32Vec3	sNormal;
+
+	sOffset = *psPosition - msOrigin;
+	sPosition.Init(Float32Vec3Dot(&sOffset, &masAxes[0]) / mfScale, Float32Vec3Dot(&sOffset, &masAxes[1]) / mfScale, Float32Vec3Dot(&sOffset, &masAxes[2]) / mfScale);
+	sNormal.Init(Float32Vec3Dot(psNormal, &masAxes[0]), Float32Vec3Dot(psNormal, &masAxes[1]), Float32Vec3Dot(psNormal, &masAxes[2]));
+	return TextureColour(&sPosition, &sNormal, fWidth / mfScale);
 }
 

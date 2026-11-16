@@ -32,16 +32,29 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //(UnwrapPlan.txt, Bake).  Its scale is in world units, so how a surface looks doesn't depend on how it's unwrapped or how many
 //texels it has.  fWidth is how wide, in world units, the texel being baked is: a texture whose detail is finer than that gives
 //its average over it rather than one point's colour, so a coarse mip level is the finer levels' blur, not their noise.
+//
+//Its placement is where it sits in the world: its origin, its axes (units at right angles, right handed) and how many world
+//units one of its own is.  A point's colour is the texture's own (TextureColour) at ((point - origin) . axis) / scale for each
+//axis, its normal turned the same way and the width divided by the scale.  It starts at the world's origin, along the world's
+//axes, at scale 1.
 class CSolidTexture : public CObject
 {
 CONSTRUCTABLE(CSolidTexture);
 DESTRUCTABLE(CSolidTexture);
 public:
+	SFloat32Vec3	msOrigin;
+	SFloat32Vec3	masAxes[3];
+	float32			mfScale;
+
 	void			Init(void);
 	void			Class(void) override;
 	void			Free(void) override;
 
-	virtual ARGB32	Colour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth) = 0;
+	void			Place(SFloat32Vec3* psOrigin, SFloat32Vec3* psXAxis, SFloat32Vec3* psYAxis, float32 fScale);  //Z is X cross Y; Y is made at right angles to X, both units.
+	ARGB32			Colour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth);  //At a point in the world.
+
+protected:
+	virtual ARGB32	TextureColour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth) = 0;  //At a point in its own space.
 };
 
 

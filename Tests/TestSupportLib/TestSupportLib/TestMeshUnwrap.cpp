@@ -13,7 +13,7 @@
 //////////////////////////////////////////////////////////////////////////
 //
 // Every face has UVs, none is turned over or outside, no two overlap, and
-// the layout is whole pages.
+// the layout is whole pages, its size on the layer.
 //
 //////////////////////////////////////////////////////////////////////////
 static void AssertUnwrapped(CMesh* pcMesh, CMeshUnwrap* pcUnwrap)
@@ -26,6 +26,8 @@ static void AssertUnwrapped(CMesh* pcMesh, CMeshUnwrap* pcUnwrap)
 	AssertTrue(pcUnwrap->miLayoutWidth > 0);
 	AssertInt(0, pcUnwrap->miLayoutWidth % MESH_UNWRAP_PAGE);
 	AssertInt(0, pcUnwrap->miLayoutHeight % MESH_UNWRAP_PAGE);
+	AssertInt(pcUnwrap->miLayoutWidth, pcMesh->mcUVs.mcLayers.Get(0)->miLayoutWidth);
+	AssertInt(pcUnwrap->miLayoutHeight, pcMesh->mcUVs.mcLayers.Get(0)->miLayoutHeight);
 }
 
 

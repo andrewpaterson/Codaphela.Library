@@ -43,6 +43,8 @@ class CMeshUVLayer
 public:
 	CArrayLargeFloat32Vec2	mcUVs;
 	CArrayMeshFaceUV	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
+	int					miLayoutWidth;  //When the UVs are a layout (CMeshUnwrap's), the texels 0 to 1 spans: its texture's size.
+	int					miLayoutHeight;  //0 when they aren't.
 	
 	void	Init(void);
 	void 	Kill(void);

@@ -42,8 +42,10 @@ public:
 	void	Init(float32 fSize, ARGB32 uiColour1, ARGB32 uiColour2);
 	void	Class(void) override;
 
-	ARGB32	Colour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth) override;
-	float32	Mix(SFloat32Vec3* psPosition, float32 fWidth);  //How much of muiColour2, 0 to 1.
+	float32	Mix(SFloat32Vec3* psPosition, float32 fWidth);  //How much of muiColour2, 0 to 1, at a point in its own space.
+
+protected:
+	ARGB32	TextureColour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth) override;
 };
 
 

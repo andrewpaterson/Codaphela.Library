@@ -765,6 +765,8 @@ Ptr<CMesh> CMeshUnwrap::Modify(Ptr<CMesh> pMesh)
 	pOutput->mcUVs.mbInUse = true;
 	pcLayer = pOutput->mcUVs.EnsureLayerExists(0, pOutput->GetConnectivity());
 	pcLayer->mcUVs.ReInit();
+	pcLayer->miLayoutWidth = miLayoutWidth;
+	pcLayer->miLayoutHeight = miLayoutHeight;
 	for (iChart = 0; iChart < iNumCharts; iChart++)
 	{
 		fX = (float32)sUVs.maiPlaces.GetValue((lsize)iChart * 2);

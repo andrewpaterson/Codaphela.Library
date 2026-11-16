@@ -27,6 +27,16 @@ The user's decisions (2026-11-15)
     The UVs are made ready for the virtual texture now, but the first textures are ordinary images, one for each mesh, drawn
     by the renderers as they are; the virtual texture's paging comes after, in its own plan.
 
+  After steps 1 to 8 (2026-11-16), asked one at a time:
+    The layout's size is kept on the UV layer (CMeshUVLayer's miLayoutWidth and miLayoutHeight, saved with it), not read
+    from the CMeshUnwrap before a bake.  Done.
+    Solid textures have a placement: an origin, axes and scale in the world.  Done.
+    Every mip level is baked now (CMaterialImage's mapLevels), though neither renderer reads them yet.  Done.
+    A bake keeps a face's old colour: its material's diffuse colour tints its texels.  Done.
+    Grown charts by LSCM stay the default.
+    The solver is to be made faster, and TestMeshUnwrap runs on the W65C816 again with coarser meshes there.
+    ARAP is to be built (step 8).
+    The textured scene's three hundredths allowance stays; FMA stays on.
 
 What there is
 -------------

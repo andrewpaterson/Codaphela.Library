@@ -103,7 +103,7 @@ float32 CSolidChecker::Mix(SFloat32Vec3* psPosition, float32 fWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ARGB32 CSolidChecker::Colour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth)
+ARGB32 CSolidChecker::TextureColour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth)
 {
 	float32	fMix;
 	float32	fKeep;

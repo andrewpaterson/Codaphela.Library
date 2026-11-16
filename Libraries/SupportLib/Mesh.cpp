@@ -393,6 +393,8 @@ void CMesh::CopyUVsFrom(CMesh* pcSource)
 	{
 		pcFrom = pcSource->mcUVs.mcLayers.Get(uiLayer);
 		pcTo = mcUVs.EnsureLayerExists(uiLayer, &mcConnectivity);
+		pcTo->miLayoutWidth = pcFrom->miLayoutWidth;
+		pcTo->miLayoutHeight = pcFrom->miLayoutHeight;
 		for (i = 0; i < pcFrom->mcUVs.NumElements(); i++)
 		{
 			pcTo->mcUVs.Add(pcFrom->mcUVs.Get(i));

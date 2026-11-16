@@ -138,13 +138,12 @@ static void TestShapeSceneAdd(Ptr<CScene> pScene, Ptr<CShape> pShape, float32 fS
 static void TestShapeSceneAddTextured(Ptr<CScene> pScene, Ptr<CShape> pShape, Ptr<CSolidTexture> pTexture, float32 fTexelsPerUnit)
 {
 	Ptr<CMeshEditor>	pEditor;
-	Ptr<CMeshUnwrap>	pUnwrap;
 
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshShapeEditor>(pShape, 0.05f, 0.4f);
 	pEditor->AddModifier<CMeshShapeNormals>(pShape);
-	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(fTexelsPerUnit);
-	pEditor->AddModifier<CMeshBake>(pTexture, pUnwrap);
+	pEditor->AddModifier<CMeshUnwrap>(fTexelsPerUnit);
+	pEditor->AddModifier<CMeshBake>(pTexture);
 	TestShapeSceneInstance(pScene, pEditor);
 }
 

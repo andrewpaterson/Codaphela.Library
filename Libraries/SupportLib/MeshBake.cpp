@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayUint32.h"
 #include "StandardLib/Objects.h"
+#include "ColourARGB32.h"
 #include "Material.h"
 #include "MeshBake.h"
 
@@ -109,7 +110,7 @@ static bool MeshBakeFace(SMeshBakeFace* psDest, CMesh* pcMesh, CMeshUVLayer* pcL
 // least nothing, either way round), each its texture's colour there.
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshBakeDraw(SMeshBakeFace* psFace, CSolidTexture* pcTexture, int iWidth, int iHeight, CArrayLargeUint32* pauiColours, CArrayLargeInt* paiCovered)
+static void MeshBakeDraw(SMeshBakeFace* psFace, CSolidTexture* pcTexture, ARGB32 uiTint, int iWidth, int iHeight, CArrayLargeUint32* pauiColours, CArrayLargeInt* paiCovered)
 {
 	SFloat32Vec3	sPosition;
 	SFloat32Vec3	sNormal;
@@ -183,7 +184,7 @@ static void MeshBakeDraw(SMeshBakeFace* psFace, CSolidTexture* pcTexture, int iW
 				sNormal /= fLength;
 			}
 			uiTexel = ((lsize)y * (lsize)iWidth) + (lsize)x;
-			pauiColours->SetValue(uiTexel, pcTexture->Colour(&sPosition, &sNormal, psFace->fWidth));
+			pauiColours->SetValue(uiTexel, Modulate32BitColours(pcTexture->Colour(&sPosition, &sNormal, psFace->fWidth), uiTint));
 			paiCovered->SetValue(uiTexel, 1);
 		}
 	}
@@ -245,7 +246,7 @@ static void MeshBakeDilate(int iWidth, int iHeight, CArrayLargeUint32* pauiColou
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight)
+Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight, ARGB32* pauiTints)
 {
 	Ptr<CImage>			pImage;
 	CMeshUVLayer*		pcLayer;
@@ -276,7 +277,7 @@ Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 	{
 		if (MeshBakeFace(&sFace, pcMesh, pcLayer, iFace, iWidth, iHeight))
 		{
-			MeshBakeDraw(&sFace, pcTexture, iWidth, iHeight, &auiColours, &aiCovered);
+			MeshBakeDraw(&sFace, pcTexture, (pauiTints != NULL) ? pauiTints[iFace] : Set32BitColour((uint8)255, (uint8)255, (uint8)255), iWidth, iHeight, &auiColours, &aiCovered);
 		}
 	}
 	MeshBakeDilate(iWidth, iHeight, &auiColours, &aiCovered);
@@ -301,12 +302,11 @@ Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBake::Init(Ptr<CSolidTexture> pTexture, Ptr<CMeshUnwrap> pUnwrap)
+void CMeshBake::Init(Ptr<CSolidTexture> pTexture)
 {
 	PreInit();
 	CMeshModifier::Init();
 	mpTexture = pTexture;
-	mpUnwrap = pUnwrap;
 	PostInit();
 }
 
@@ -319,28 +319,73 @@ void CMeshBake::Class(void)
 {
 	CMeshModifier::Class();
 	M_Pointer(mpTexture);
-	M_Pointer(mpUnwrap);
 	M_Pointer(mpImage);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each face's material's diffuse colour, white for a face without one.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshBakeTints(CArrayLargeUint32* pauiDest, CMesh* pcMesh)
+{
+	Ptr<CMaterial>		pMaterial;
+	CImageColourARGB*	pcColour;
+	ARGB32				uiTint;
+	int					iMaterial;
+	int					iFace;
+
+	for (iFace = 0; iFace < pcMesh->NumFaces(); iFace++)
+	{
+		uiTint = Set32BitColour((uint8)255, (uint8)255, (uint8)255);
+		if (pcMesh->mcMaterials.InUse() && ((lsize)iFace < pcMesh->mcMaterials.mcFaces.NumElements()))
+		{
+			iMaterial = pcMesh->mcMaterials.mcFaces.GetValue((lsize)iFace);
+			if ((iMaterial >= 0) && ((size)iMaterial < pcMesh->mcMaterials.mapMaterials.NumElements()))
+			{
+				pMaterial = pcMesh->mcMaterials.mapMaterials.Get((size)iMaterial);
+				if (pMaterial.IsNotNull())
+				{
+					pcColour = &pMaterial->msProperties.mcDiffuseColour;
+					uiTint = Set32BitColour(pcColour->mfRed, pcColour->mfGreen, pcColour->mfBlue);
+				}
+			}
+		}
+		pauiDest->Add(uiTint);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Level 0 at the layout's size, then each level half the one before
+// (rounded up) to 1 by 1, every one baked from the texture.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMesh> CMeshBake::Modify(Ptr<CMesh> pMesh)
 {
-	Ptr<CMesh>		pOutput;
-	Ptr<CMaterial>	pMaterial;
-	CMaterialImage*	pcDiffuse;
+	Ptr<CMesh>			pOutput;
+	Ptr<CMaterial>		pMaterial;
+	CMaterialImage*		pcDiffuse;
+	CMeshUVLayer*		pcLayer;
+	CArrayLargeUint32	auiTints;
+	int					iWidth;
+	int					iHeight;
 
-	if (mpTexture.IsNull() || mpUnwrap.IsNull() || (pMesh->NumFaces() == 0))
+	if (mpTexture.IsNull() || (pMesh->NumFaces() == 0) || !pMesh->mcUVs.InUse() || (pMesh->mcUVs.mcLayers.NumElements() == 0))
 	{
 		return pMesh;
 	}
-	mpImage = BakeMeshTexture(&pMesh, 0, &mpTexture, mpUnwrap->miLayoutWidth, mpUnwrap->miLayoutHeight);
+	pcLayer = pMesh->mcUVs.mcLayers.Get(0);
+	iWidth = pcLayer->miLayoutWidth;
+	iHeight = pcLayer->miLayoutHeight;
+	auiTints.Init();
+	MeshBakeTints(&auiTints, &pMesh);
+	mpImage = BakeMeshTexture(&pMesh, 0, &mpTexture, iWidth, iHeight, auiTints.GetData());
 	if (mpImage.IsNull())
 	{
+		auiTints.Kill();
 		return pMesh;
 	}
 
@@ -348,6 +393,13 @@ Ptr<CMesh> CMeshBake::Modify(Ptr<CMesh> pMesh)
 	pMaterial->msProperties.mcDiffuseColour.Init(1.0f, 1.0f, 1.0f, 1.0f);
 	pcDiffuse = pMaterial->GetImage(MI_Diffuse);
 	pcDiffuse->mpImage = mpImage;
+	while ((iWidth > 1) || (iHeight > 1))
+	{
+		iWidth = (iWidth + 1) / 2;
+		iHeight = (iHeight + 1) / 2;
+		pcDiffuse->mapLevels.Add(BakeMeshTexture(&pMesh, 0, &mpTexture, iWidth, iHeight, auiTints.GetData()));
+	}
+	auiTints.Kill();
 
 	pOutput = OMalloc<CMesh>();
 	pOutput->CopyFrom(&pMesh);
