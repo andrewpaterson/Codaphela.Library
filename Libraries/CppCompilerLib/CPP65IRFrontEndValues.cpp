@@ -49,16 +49,14 @@ bool CCPP65IRFrontEnd::Expression(CCPPSyntax* pcExpression, SCPP65IRValue* psVal
 bool CCPP65IRFrontEnd::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue)
 {
 	CCPPBoundConversion		cBound;
-	CCPPSyntaxIdExpression*	pcFunction;
+	bool					bAddress;
 
-	pcFunction = mpcUnit->FunctionNameFor(pcExpression, psTo);
-	if (pcFunction)
+	if (!OverloadAddress(pcExpression, psTo, psValue, &bAddress))
 	{
-		if (!FunctionAddress(pcFunction, psTo->psBase, psValue))
-		{
-			return false;
-		}
-		psValue->psType = psTo;
+		return false;
+	}
+	if (bAddress)
+	{
 		return true;
 	}
 	if (!Value(pcExpression, psValue))
@@ -77,6 +75,39 @@ bool CCPP65IRFrontEnd::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// f, &f or &Class::f wanted as a psTo, a pointer to a function or to a
+// member function: the address of the overload of psTo's type, with
+// *pbAddress set.  *pbAddress is clear for any other expression or type.
+// Returns false after an Unsupported.  [over.over] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::OverloadAddress(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue, bool* pbAddress)
+{
+	CCPPSyntaxIdExpression*	pcName;
+
+	pcName = mpcUnit->FunctionNameFor(pcExpression, psTo);
+	*pbAddress = pcName != NULL;
+	if (pcName)
+	{
+		if (!FunctionAddress(pcName, psTo->psBase, psValue))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		psValue->psType = psTo;
+		return true;
+	}
+	pcName = mpcUnit->MemberFunctionNameFor(pcExpression, psTo);
+	if (pcName && MemberAddress(pcName, psTo->psBase, psValue, pbAddress))
+	{
+		//A member of a base is converted to a member of the class psTo is for.
+		return Convert(psValue, psTo);
+	}
+	return !*pbAddress;
 }
 
 
@@ -495,7 +526,7 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 		return Unsupported(__FILE__, __LINE__);
 	}
 	psValue->sValue = FunctionSymbol(pcFound);
-	psValue->psType = mpcTypes->Pointer(FunctionType(pcFound));
+	psValue->psType = mpcTypes->Pointer(mpcUnit->FunctionType(pcFound));
 	return true;
 }
 
@@ -503,13 +534,13 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 //////////////////////////////////////////////////////////////////////////
 //
 // &Class::member: a pointer to a member
-// function is its address (a thunk that calls through the vtable for a
+// function (the one of psTarget's type if it is overloaded) is its address (a thunk that calls through the vtable for a
 // virtual one) and a pointer to a field its offset.  Returns false with
 // *pbMember clear if the name isn't a non-static member (it may be a static
 // one), and with it set after an Unsupported.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue, bool* pbMember)
+bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65IRValue* psValue, bool* pbMember)
 {
 	CCPPSyntaxName*		pcName;
 	CCPPClass*		pcClass;
@@ -520,6 +551,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue
 	CChars				szThunk;
 	int64				lliName;
 	int					iOffset;
+	bool				bOverloaded;
 
 	*pbMember = false;
 	pcName = pcId->mpcName;
@@ -530,19 +562,14 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue
 		return false;
 	}
 
-	pcFound = NULL;
-	pcFoundClass = pcClass;
-	if (!MemberFunction(pcClass, lliName, &pcFound, &pcFoundClass))
+	pcFound = mpcUnit->GetBinder()->FindMemberFunction(pcClass, lliName, psTarget, &pcFoundClass, &bOverloaded);
+	if (bOverloaded)
 	{
 		*pbMember = true;
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (pcFound)
 	{
-		if (pcFound->mbStatic)
-		{
-			return false;
-		}
 		*pbMember = true;
 		if (pcFound->mbVirtual)
 		{
@@ -556,7 +583,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue
 			sSymbol = FunctionSymbol(pcFound);
 		}
 		psValue->sValue = ConvertIR(sSymbol, IRType(IRTK_Pointer), IRType(IRTK_I32), false);
-		psValue->psType = mpcTypes->MemberPointer(pcFoundClass, FunctionType(pcFound));
+		psValue->psType = mpcTypes->MemberPointer(pcFoundClass, mpcUnit->FunctionType(pcFound));
 		return true;
 	}
 
@@ -568,49 +595,6 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue
 	*pbMember = true;
 	psValue->sValue = mpcFunction->AddInteger(IRType(IRTK_I32), iOffset);
 	psValue->psType = mpcTypes->MemberPointer(pcClass, psField->psType);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The member function of the name in pcClass, or else in its bases (the
-// first that has one), and the class it is in.  Returns false for an overloaded name.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::MemberFunction(CCPPClass* pcClass, int64 lliName, CCPPFunction** ppcFound, CCPPClass** ppcClass)
-{
-	CCPPFunction*		pcFunction;
-	size				ui;
-
-	*ppcFound = NULL;
-	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
-	{
-		if ((pcFunction->mpcClass == pcClass) && (pcFunction->meKind == CPPFK_Function) && !pcFunction->mpcTemplate)
-		{
-			if (*ppcFound)
-			{
-				return false;
-			}
-			*ppcFound = pcFunction;
-		}
-	}
-	if (*ppcFound)
-	{
-		*ppcClass = pcClass;
-		return true;
-	}
-	for (ui = 0; ui < pcClass->macBases.NumElements(); ui++)
-	{
-		if (!MemberFunction(pcClass->macBases.Get(ui)->pcClass, lliName, ppcFound, ppcClass))
-		{
-			return false;
-		}
-		if (*ppcFound)
-		{
-			return true;
-		}
-	}
 	return true;
 }
 
@@ -1296,7 +1280,7 @@ bool CCPP65IRFrontEnd::FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCP
 		return Unsupported(__FILE__, __LINE__);
 	}
 	psValue->sValue = FunctionSymbol(pcFunction);
-	psValue->psType = mpcTypes->Pointer(FunctionType(pcFunction));
+	psValue->psType = mpcTypes->Pointer(mpcUnit->FunctionType(pcFunction));
 	return true;
 }
 

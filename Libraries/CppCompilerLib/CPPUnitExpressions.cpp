@@ -204,6 +204,31 @@ CCPPSyntaxIdExpression* CCPPUnit::FunctionNameFor(CCPPSyntax* pcExpression, SCPP
 
 //////////////////////////////////////////////////////////////////////////
 //
+// &Class::f when the value is for psTo, a pointer to a member function:
+// the member is the overload of f with psTo's function type.  NULL for any
+// other expression or type.  [over.over] 1
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPPUnit::MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo)
+{
+	CCPPSyntax*	pcOperand;
+
+	pcExpression = SkipParentheses(pcExpression);
+	if (!pcExpression || !psTo || !psTo->IsMemberPointer() || !psTo->psBase->IsFunction() || (pcExpression->GetKind() != CPPS_UnaryExpression) || (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator != CT_BitwiseAnd))
+	{
+		return NULL;
+	}
+	pcOperand = SkipParentheses(((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand);
+	if ((pcOperand->GetKind() != CPPS_IdExpression) || !((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
+	{
+		return NULL;
+	}
+	return (CCPPSyntaxIdExpression*)pcOperand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a name that isn't a function's is ambiguous: lookup finds two
 // different things where it finds it (CCPPScope::IsAmbiguous, or for a
 // name qualified by a namespace IsAmbiguousMember).

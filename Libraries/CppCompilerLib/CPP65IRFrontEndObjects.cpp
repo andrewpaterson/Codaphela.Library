@@ -28,10 +28,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// c ? x : y of a class.  Two objects that are where they are (lvalues)
-// give the address of one of them (a phi); otherwise the one worked out is
-// made at psInto (the object being initialised) or a temporary, which both
-// make.
+// c ? x : y of a class (CCPPUnit::ConditionalClass).  Two objects that are
+// where they are (lvalues) give the address of one of them (a phi), a
+// derived one's base's; otherwise the one worked out is made at psInto (the
+// object being initialised) or a temporary, which both make.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRPlace* psInto, SCPP65IRValue* psValue)
@@ -45,14 +45,18 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	SCPP65IRPlace	sTrue;
 	SCPP65IRPlace	sFalse;
 	SCPP65IRPlace	sPlace;
+	SCPP65Type*		psType;
+	CCPPClass*		pcClass;
 	bool			bLvalue;
 
 	psTrue = mpcUnit->ValueTypeOf(pcConditional->mpcTrue);
 	psFalse = mpcUnit->ValueTypeOf(pcConditional->mpcFalse);
-	if (!psTrue || (psTrue != psFalse) || !psTrue->IsClass())
+	pcClass = (psTrue && psFalse) ? mpcUnit->ConditionalClass(psTrue, psFalse) : NULL;
+	if (!pcClass)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
+	psType = (psTrue->pcClass == pcClass) ? psTrue : psFalse;
 
 	bLvalue = !psInto && IsObjectLvalue(pcConditional->mpcTrue) && IsObjectLvalue(pcConditional->mpcFalse);
 	if (!bLvalue)
@@ -61,7 +65,7 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 		{
 			sPlace = *psInto;
 		}
-		else if (!Temporary(psTrue, &sPlace, true))
+		else if (!Temporary(psType, &sPlace, true))
 		{
 			return false;
 		}
@@ -80,6 +84,10 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	{
 		return false;
 	}
+	if (bLvalue)
+	{
+		sTrue.sAddress = AddressAt(sTrue.sAddress, BaseOffset(psTrue->pcClass, pcClass));
+	}
 	pcTrueEnd = mpcBlock;
 	JumpTo(pcEnd);
 	StartBlock(pcFalse);
@@ -87,9 +95,13 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	{
 		return false;
 	}
+	if (bLvalue)
+	{
+		sFalse.sAddress = AddressAt(sFalse.sAddress, BaseOffset(psFalse->pcClass, pcClass));
+	}
 	miConditional--;
 	JumpTo(pcEnd);
-	psValue->psType = psTrue;
+	psValue->psType = psType;
 	if (bLvalue)
 	{
 		psValue->sValue = Phi(pcEnd, IRType(IRTK_Pointer), pcTrueEnd, sTrue.sAddress, mpcBlock, sFalse.sAddress);
@@ -135,15 +147,16 @@ bool CCPP65IRFrontEnd::IsObjectLvalue(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An expression of a class type, or a reference to one.
+// An expression of pcClass, a class derived from it, or a reference to
+// one: an object that is one of pcClass's as it is.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::IsObjectExpression(CCPPSyntax* pcExpression)
+bool CCPP65IRFrontEnd::IsObjectOf(CCPPSyntax* pcExpression, CCPPClass* pcClass)
 {
 	SCPP65Type*	psType;
 
 	psType = mpcUnit->ValueTypeOf(pcExpression);
-	return psType && psType->IsClass();
+	return psType && psType->IsClass() && mpcUnit->IsDerived(psType->pcClass, pcClass, NULL);
 }
 
 
@@ -646,7 +659,8 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	SCPP65IRValue					sZero;
 	CArraySyntax					apcArguments;
 	CCPPSyntaxConstructExpression*	pcConstruct;
-	CCPPClass*					pcClass;
+	CCPPClass*						pcClass;
+	CCPPFunction*					pcConversion;
 	SCPP65IRValue					sMade;
 	int								i;
 	bool							bResult;
@@ -786,6 +800,11 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		{
 			return CopyConstruct(psPlace, pcInitialiser);
 		}
+		pcConversion = mpcUnit->GetBinder()->ConversionToClass(pcClass, pcInitialiser, pcInitialiser);
+		if (pcConversion)
+		{
+			return ConvertToObject(psPlace, pcConversion, pcInitialiser);
+		}
 		apcArguments.Init();
 		apcArguments.Add(pcInitialiser);
 		bResult = ConstructClass(psPlace, pcClass, &apcArguments);
@@ -793,6 +812,39 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		return bResult;
 	}
 	return ConstructClass(psPlace, pcClass, papcArguments);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// = object of another class: its conversion function's result made at the
+// place (as a call's that returns the class is), or the object a
+// reference it returns refers to copied there.  [over.match.copy]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ConvertToObject(SCPP65IRPlace* psPlace, CCPPFunction* pcConversion, CCPPSyntax* pcSource)
+{
+	SCPP65IRValue	sMade;
+	CCPPClass*		pcClass;
+	bool			bResult;
+
+	pcClass = psPlace->psType->pcClass;
+	msElide = psPlace->sAddress;
+	bResult = Call(pcConversion, FunctionSymbol(pcConversion), NULL, &mapcNone, &sMade, pcSource, false, pcConversion->mpcClass, true, IRNone());
+	msElide = IRNone();
+	if (!bResult)
+	{
+		return false;
+	}
+	if (sMade.psType->IsClass() && sMade.sValue.Equals(psPlace->sAddress))
+	{
+		return true;
+	}
+	if (!pcClass->IsTriviallyCopyable())
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	return CopyBytes(psPlace, &sMade);
 }
 
 

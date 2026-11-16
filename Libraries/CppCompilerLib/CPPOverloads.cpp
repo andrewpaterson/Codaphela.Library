@@ -303,18 +303,20 @@ bool CCPPOverloads::HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65
 		return false;
 	}
 	pcFound = FindAddressedFunction(pcFunction->mpcName, pcFunction->mpcName->mpcSymbol->mlliName, psPointer->psBase, pcFunction, &bOverloaded);
-	return pcFound && psPointer->psBase->Equals(mpcUnit->GetTypes()->Function(pcFound->mpsReturn, &pcFound->mapsParameters, pcFound->mbVariadic));
+	return pcFound && psPointer->psBase->Equals(mpcUnit->FunctionType(pcFound));
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The static member function of the name in the class, or else in its bases (the
-// first base that has one).  *pbOverloaded is set when the name has several and
-// psTarget does not pick one.
+// The static (bStatic) or non-static member function of the name in the
+// class, or else in its bases (the first base that has one), and the class
+// it is in (*ppcClass, if wanted): the one of psTarget's type, or the only
+// one.  *pbOverloaded is set when the name has several and psTarget
+// doesn't pick one.  [over.over] 1
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPOverloads::FindStaticFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, bool* pbOverloaded)
+CCPPFunction* CCPPOverloads::FindMemberFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, bool bStatic, CCPPClass** ppcClass, bool* pbOverloaded)
 {
 	CCPPFunction*		pcFunction;
 	CCPPFunction*		pcFound;
@@ -325,12 +327,13 @@ CCPPFunction* CCPPOverloads::FindStaticFunction(CCPPClass* pcClass, int64 lliNam
 	*pbOverloaded = false;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if ((pcFunction->mpcClass == pcClass) && pcFunction->mbStatic && (pcFunction->meKind == CPPFK_Function) && !pcFunction->mpcTemplate)
+		if ((pcFunction->mpcClass == pcClass) && (pcFunction->mbStatic == bStatic) && (pcFunction->meKind == CPPFK_Function) && !pcFunction->mpcTemplate)
 		{
-			if (psTarget && psTarget->Equals(mpcUnit->GetTypes()->Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic)))
+			if (psTarget && psTarget->Equals(mpcUnit->FunctionType(pcFunction)))
 			{
+				pcFound = pcFunction;
 				*pbOverloaded = false;
-				return pcFunction;
+				break;
 			}
 			*pbOverloaded |= (pcFound != NULL);
 			pcFound = pcFunction;
@@ -338,11 +341,15 @@ CCPPFunction* CCPPOverloads::FindStaticFunction(CCPPClass* pcClass, int64 lliNam
 	}
 	if (pcFound)
 	{
-		return pcFound;
+		if (ppcClass)
+		{
+			*ppcClass = pcClass;
+		}
+		return *pbOverloaded ? NULL : pcFound;
 	}
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
-		pcFound = FindStaticFunction(pcClass->macBases.Get(i)->pcClass, lliName, psTarget, pbOverloaded);
+		pcFound = FindMemberFunction(pcClass->macBases.Get(i)->pcClass, lliName, psTarget, bStatic, ppcClass, pbOverloaded);
 		if (pcFound || *pbOverloaded)
 		{
 			return pcFound;
@@ -1066,7 +1073,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	}
 	if (pcClass && mpcUnit->CompleteClass(pcClass, pcNode))
 	{
-		pcFound = FindStaticFunction(pcClass, lliName, psTarget, pbOverloaded);
+		pcFound = FindMemberFunction(pcClass, lliName, psTarget, true, NULL, pbOverloaded);
 	}
 	if (pcFound || bQualified)
 	{
@@ -1083,7 +1090,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	{
 		if (!pcFunction->mpcClass && !pcFunction->mpcTemplate && (!pcName || apcNamespaces.Takes(pcFunction->mpcNamespace, DeclarationToken(pcFunction))))
 		{
-			if (psTarget && psTarget->Equals(mpcUnit->GetTypes()->Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic)))
+			if (psTarget && psTarget->Equals(mpcUnit->FunctionType(pcFunction)))
 			{
 				pcFound = pcFunction;
 				*pbOverloaded = false;
@@ -1261,6 +1268,15 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 		if (pcConversion)
 		{
 			return (ConversionRank(psParameter, pcConversion->mpsReturn, NULL, false) >= CPPCR_Promotion) ? CPPCR_UserDefinedExact : CPPCR_UserDefined;
+		}
+	}
+	if (bUserDefined && psParameter->IsClass() && psArgument->IsClass() && (!bReference || psParameter->bConst))
+	{
+		//An object of another class with a conversion function to the parameter's class.  [over.match.copy]
+		pcConversion = FindConversion(psArgument->pcClass, psParameter->Unqualified(), false, pcArgument);
+		if (pcConversion && pcConversion->mpsReturn->WithoutReference()->IsClass() && mpcUnit->IsDerived(pcConversion->mpsReturn->WithoutReference()->pcClass, psParameter->pcClass, NULL))
+		{
+			return CPPCR_UserDefinedExact;
 		}
 	}
 	return CPPCR_None;

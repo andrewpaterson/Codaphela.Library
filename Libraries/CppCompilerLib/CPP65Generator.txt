@@ -413,9 +413,10 @@ Supported
   and __builtin_nan("") (double; their f forms float; math.h's HUGE_VAL, INFINITY and
   NAN) are constants, also in data and constant expressions; NaNs are quiet.
 - c ? x : y with x and y of the same enum is that enum (not an int), so it picks an
-  enum overload.  With objects of the same class it makes an object (as a call does:
-  where the object it initialises is, or in a temporary) copied or made from the
-  operand picked; an lvalue result is a copy too.
+  enum overload.  With objects of the same class, or of a class and one derived from
+  it (the result is of the base), two lvalues give the lvalue picked (the base in a
+  derived one); otherwise it makes an object (as a call does: where the object it
+  initialises is, or in a temporary) copied or made from the operand picked.
 - A temporary made in the right of && or ||, or in the second or third operand of
   ?:, has a guard in the frame too: cleared before the branch that may skip it, set
   when it is made, and checked when the temporaries of the full expression are
@@ -460,7 +461,8 @@ Supported
   object, a field in a const member function, or *p or p->field with p declared
   const T* (or this in a const member function), worked out from the declarations.  An enum is an int but a type of its own: an int does not convert
   to it.  A cast to a pointer to a function chooses an overloaded function
-  ((FConvert)&Convert).  using Base::f; in a class makes Base's f overloads of the
+  ((FConvert)&Convert), and a pointer to a member function an overloaded member
+  (int (S::*p)(long) = &S::f).  using Base::f; in a class makes Base's f overloads of the
   class's own (using CPointer::operator =;), unless one of the class's own has the
   same parameters.  using Base::Base; inherits Base's constructors (not its default,
   copy or move constructors, constructor templates, or ones the class declares with
@@ -834,9 +836,12 @@ Operators on objects call the left operand's member operator, or a free operator
 function (declared, a friend, or an instance of a function template, such as
 template<class M> SVec<M> operator * (M, const SVec<M>&)): binary operators, unary
 + - ~ & and !, and comparisons (their result is tested).  object->member calls the
-object's operator-> (which must return a pointer) and uses the pointer.  Conversion
-functions (operator T, all named opConvert, told apart by their result) convert an
-object to a scalar type: the one whose result converts best (see ValueFor) in an
+object's operator-> (which must return a pointer, or an object whose operator-> is
+used in turn) and uses the pointer.  Conversion functions (operator T, labelled
+opConvert and the type converted to: _B__opConvert_PKc__K is B's operator const
+char*() const) convert an object to a scalar type, or to an object of another class
+that is initialised from it (A a = b; take(b) for take(A)), and a reference to its
+result (int& r = b): the one whose result converts best (see ValueFor) in an
 initialiser, an assignment, an argument, a return or a cast, and, when it is a
 condition, the one to bool, else to another scalar.  explicit ones are only used by
 casts and conditions.  Friend functions declared in a class are free functions.

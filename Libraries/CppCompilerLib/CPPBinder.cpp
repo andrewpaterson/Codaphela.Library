@@ -772,6 +772,19 @@ CCPPFunction* CCPPBinder::FindAddressedFunction(CCPPSyntaxName* pcName, int64 ll
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The non-static member function &Class::name means (the one of psTarget's
+// type if it has several, CCPPOverloads::FindMemberFunction) and the class
+// it is in.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::FindMemberFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, CCPPClass** ppcClass, bool* pbOverloaded)
+{
+	return mcOverloads.FindMemberFunction(pcClass, lliName, psTarget, false, ppcClass, pbOverloaded);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The allocation function new Type (or new Type[count], bArray) calls with
 // papcArguments, its size (CCPPUnit::NewSize) then its placement arguments:
 // the class's own operator new (or a base's), or one of the program's
@@ -881,6 +894,33 @@ CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray)
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The conversion function an object of pcClass is copy initialised from
+// pcSource by: when pcSource is an object of another class (not derived
+// from pcClass) that none of pcClass's constructors takes, its operator T
+// whose T is pcClass (or derived from it, or a reference to one), or NULL.
+// [over.match.copy] 1
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode)
+{
+	SCPP65Type*		psSource;
+	SCPP65Type*		psResult;
+	CCPPFunction*	pcFunction;
+
+	psSource = mpcUnit->TypeOf(pcSource);
+	psSource = psSource ? psSource->WithoutReference() : NULL;
+	if (!psSource || !psSource->IsClass() || mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL) || mcOverloads.HasConvertingConstructor(pcClass, psSource, pcSource))
+	{
+		return NULL;
+	}
+	pcFunction = mcOverloads.FindConversion(psSource->pcClass, pcClass->mpsType, false, pcNode);
+	psResult = pcFunction ? pcFunction->mpsReturn->WithoutReference() : NULL;
+	return (psResult && psResult->IsClass() && mpcUnit->IsDerived(psResult->pcClass, pcClass, NULL)) ? pcFunction : NULL;
 }
 
 

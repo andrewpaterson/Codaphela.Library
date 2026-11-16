@@ -302,8 +302,8 @@ protected:
 	bool			ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruct, SCPP65IRValue* psValue);
 	bool			FunctionName(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue);
 	bool			FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65IRValue* psValue);
-	bool			MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue, bool* pbMember);
-	bool			MemberFunction(CCPPClass* pcClass, int64 lliName, CCPPFunction** ppcFound, CCPPClass** ppcClass);
+	bool			MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65IRValue* psValue, bool* pbMember);
+	bool			OverloadAddress(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue, bool* pbAddress);
 	bool			MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary, SIRReference* psObject, SCPP65Type** ppsMember);
 	bool			MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue);
 	bool			MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRPlace* psPlace);
@@ -323,7 +323,7 @@ protected:
 	bool			ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRPlace* psInto, SCPP65IRValue* psValue);
 	bool			IsObjectLvalue(CCPPSyntax* pcExpression);
 	bool			IsObjectCall(CCPPSyntax* pcExpression);
-	bool			IsObjectExpression(CCPPSyntax* pcExpression);
+	bool			IsObjectOf(CCPPSyntax* pcExpression, CCPPClass* pcClass);
 	bool			InheritedConstructorCall(SCPP65IRPlace* psBase);
 	bool			ConditionValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIRBlock* pcFalse);
@@ -374,6 +374,7 @@ protected:
 	bool			StoreVtables(SIRReference sObject, CCPPClass* pcClass);
 	void			DescribeVtable(CArrayTemplate<SCPPVtableEntry>* pasEntries, CCPPClass* pcClass, uint32 uiSymbol);
 	bool			Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser);
+	bool			ConvertToObject(SCPP65IRPlace* psPlace, CCPPFunction* pcConversion, CCPPSyntax* pcSource);
 	bool			ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass, CArraySyntax* papcArguments);
 	bool			Destroy(SIRReference sAddress, SCPP65Type* psType);
 	SIRReference	Phi(CIRBlock* pcBlock, SIRType sType, CIRBlock* pcFrom1, SIRReference sValue1, CIRBlock* pcFrom2, SIRReference sValue2);
@@ -407,7 +408,6 @@ protected:
 	bool			AssignMembers(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource, CCPPSyntax* pcSource);
 	bool			AssignParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
 	bool			AssignPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
-	SCPP65Type*		FunctionType(CCPPFunction* pcFunction);
 	int				BaseOffset(CCPPClass* pcDerived, CCPPClass* pcBase);
 	void			CopyPieces(SIRReference sDest, SIRReference sSource, int iBytes);
 	void			ZeroBytes(SIRReference sAddress, int iBytes);

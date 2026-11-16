@@ -376,6 +376,7 @@ public:
 
 	CCPPFunction*			DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate = NULL, CChars* pszArguments = NULL);
 	CCPPFunction*			DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments);
+	SCPP65Type*				FunctionType(CCPPFunction* pcFunction);
 	bool					IsAllocationFunction(int64 lliName);
 	bool					IsDefinedWhereDeclared(CCPPSyntaxName* pcName);
 	bool					ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
@@ -608,6 +609,7 @@ public:
 	bool					IsFunctionName(CCPPSyntaxIdExpression* pcId);
 	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
+	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
 	CCPPSyntax*				ImplicitZero(void);
 	CCPPSyntax*				ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType);
@@ -676,6 +678,7 @@ public:
 	//Objects and copies.  CPPUnitObjects.cpp
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
+	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
 	SCPP65Type*				CastClassType(CCPPSyntax* pcExpression);
 	CCPPClass*			ObjectClass(CCPPSyntax* pcExpression);
 	bool					IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass);

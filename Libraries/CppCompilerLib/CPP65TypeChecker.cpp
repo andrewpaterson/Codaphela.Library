@@ -81,7 +81,8 @@ SCPP65Type* CCPP65TypeChecker::Value(CCPPSyntax* pcExpression, SCPP65Type** ppsD
 //
 // The type of an expression's value where a psTo is wanted (NULL when it isn't
 // known): a function's name for a pointer to a function is the overload of that
-// type, and an object is converted by its conversion function to psTo (only an
+// type (&Class::f for a pointer to a member function the member of that type),
+// and an object is converted by its conversion function to psTo (only an
 // explicit one when bExplicit).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -89,11 +90,17 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 {
 	CCPPBoundConversion			cBound;
 	CCPPSyntaxIdExpression*		pcFunctionName;
+	SCPP65Type*					psMember;
 
 	pcFunctionName = mpcUnit->FunctionNameFor(pcExpression, psTo);
 	if (pcFunctionName)
 	{
 		return FunctionAddress(pcFunctionName, pcFunctionName->mpcName->mpcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
+	}
+	pcFunctionName = mpcUnit->MemberFunctionNameFor(pcExpression, psTo);
+	if (pcFunctionName && MemberAddress(pcFunctionName, psTo->psBase, &psMember))
+	{
+		return psMember;
 	}
 
 	mpcUnit->GetBinder()->BindConversion(pcExpression, psTo, bExplicit, &cBound);
@@ -541,7 +548,7 @@ SCPP65Type* CCPP65TypeChecker::FunctionAddress(CCPPSyntax* pcNode, int64 lliName
 		Error(pcNode, "The function has not been declared");
 		return NULL;
 	}
-	return mpcTypes->Pointer(mpcTypes->Function(pcFound->mpsReturn, &pcFound->mapsParameters, pcFound->mbVariadic));
+	return mpcTypes->Pointer(mpcUnit->FunctionType(pcFound));
 }
 
 
@@ -569,24 +576,29 @@ SCPP65Type* CCPP65TypeChecker::FunctionTemplateAddress(CCPPSyntaxIdExpression* p
 	{
 		return NULL;
 	}
-	return mpcTypes->Pointer(mpcTypes->Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic));
+	return mpcTypes->Pointer(mpcUnit->FunctionType(pcFunction));
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// &Class::member: a pointer to a member function or to a field, its type in *ppsType
-// (NULL after an error).  A member of a base is a pointer to a member of the base.
-// Returns false if the name is not a non-static member of the class or its bases.
+// &Class::member: a pointer to a member function (the one of psTarget's
+// type if it is overloaded) or to a field, its type in *ppsType (NULL after
+// an error).  A member of a base is a pointer to a member of the base.
+// Returns false if the name is not a non-static member of the class or its
+// bases.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type** ppsType)
+bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65Type** ppsType)
 {
 	CCPPSyntaxName*		pcName;
-	CCPPClass*		pcClass;
-	SCPPField*		psField;
+	CCPPClass*			pcClass;
+	CCPPClass*			pcFoundClass;
+	CCPPFunction*		pcFunction;
+	SCPPField*			psField;
 	int64				lliName;
 	int					iOffset;
+	bool				bOverloaded;
 
 	pcName = pcId->mpcName;
 	mpcUnit->BeginQuiet();
@@ -602,8 +614,15 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type**
 	{
 		return true;
 	}
-	if (MemberFunctionAddress(pcClass, lliName, ppsType, pcId))
+	pcFunction = mpcUnit->GetBinder()->FindMemberFunction(pcClass, lliName, psTarget, &pcFoundClass, &bOverloaded);
+	if (bOverloaded)
 	{
+		Error(pcId, "The address of an overloaded function needs the type of the function it is for");
+		return true;
+	}
+	if (pcFunction)
+	{
+		*ppsType = mpcTypes->MemberPointer(pcFoundClass, mpcUnit->FunctionType(pcFunction));
 		return true;
 	}
 
@@ -615,53 +634,6 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type**
 	*ppsType = mpcTypes->MemberPointer(pcClass, psField->psType);
 	return true;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The pointer to the member function of the name in the class, or else in its bases
-// (see MemberAddress).  Returns false if there is none.  The address of an
-// overloaded one is not supported yet.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65TypeChecker::MemberFunctionAddress(CCPPClass* pcClass, int64 lliName, SCPP65Type** ppsType, CCPPSyntax* pcNode)
-{
-	CCPPFunction*		pcFunction;
-	CCPPFunction*		pcFound;
-	size				i;
-
-	pcFound = NULL;
-	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
-	{
-		if ((pcFunction->mpcClass == pcClass) && (pcFunction->meKind == CPPFK_Function) && !pcFunction->mpcTemplate)
-		{
-			if (pcFound)
-			{
-				Error(pcNode, "The address of an overloaded function is not supported by the compiler yet");
-				return true;
-			}
-			pcFound = pcFunction;
-		}
-	}
-	if (!pcFound)
-	{
-		for (i = 0; i < pcClass->macBases.NumElements(); i++)
-		{
-			if (MemberFunctionAddress(pcClass->macBases.Get(i)->pcClass, lliName, ppsType, pcNode))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	if (pcFound->mbStatic)
-	{
-		return false;
-	}
-	*ppsType = mpcTypes->MemberPointer(pcClass, mpcTypes->Function(pcFound->mpsReturn, &pcFound->mapsParameters, pcFound->mbVariadic));
-	return true;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -721,7 +693,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		{
 			pcId = (CCPPSyntaxIdExpression*)pcOperand;
 			pcSymbol = pcId->mpcName->mpcSymbol;
-			if (pcId->mpcName->IsQualifiedByClass() && MemberAddress(pcId, &psType))
+			if (pcId->mpcName->IsQualifiedByClass() && MemberAddress(pcId, NULL, &psType))
 			{
 				return psType;
 			}
@@ -1120,27 +1092,32 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 
 //////////////////////////////////////////////////////////////////////////
 //
-// c ? x : y with objects of the same class: an object made from the operand the
-// condition picks.
+// c ? x : y with objects of the same class, or one derived from the other's
+// (CCPPUnit::ConditionalClass): an object of the class made from the
+// operand the condition picks.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse)
 {
-	psTrue = psTrue->WithoutReference();
-	psFalse = psFalse->WithoutReference();
-	if (!psTrue->IsClass() || !psFalse->IsClass() || (psTrue->pcClass != psFalse->pcClass))
+	CCPPClass*		pcClass;
+	SCPP65Type*		psType;
+
+	pcClass = mpcUnit->ConditionalClass(psTrue, psFalse);
+	if (!pcClass)
 	{
 		Error(pcConditional, "c ? x : y with objects of different types is not supported by the compiler yet");
 		return NULL;
 	}
-	if (!mpcUnit->CompleteClass(psTrue->pcClass, pcConditional) ||
+	psTrue = psTrue->WithoutReference();
+	psType = (psTrue->pcClass == pcClass) ? psTrue : psFalse->WithoutReference();
+	if (!mpcUnit->CompleteClass(pcClass, pcConditional) ||
 		!Condition(pcConditional->mpcCondition) ||
-		!Construct(psTrue, NULL, pcConditional->mpcTrue, pcConditional->mpcTrue) ||
-		!Construct(psTrue, NULL, pcConditional->mpcFalse, pcConditional->mpcFalse))
+		!Construct(psType, NULL, pcConditional->mpcTrue, pcConditional->mpcTrue) ||
+		!Construct(psType, NULL, pcConditional->mpcFalse, pcConditional->mpcFalse))
 	{
 		return NULL;
 	}
-	return psTrue;
+	return psType;
 }
 
 
@@ -2503,7 +2480,8 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	SCPP65Type*						psSource;
 	CArraySyntax					apcArguments;
 	CCPPSyntaxConstructExpression*	pcConstruct;
-	CCPPClass*					pcClass;
+	CCPPClass*						pcClass;
+	CCPPFunction*					pcConversion;
 	int								i;
 	bool							bResult;
 	bool							bBraced;
@@ -2606,6 +2584,15 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		if (psSource && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
 		{
 			bResult = mpcUnit->IsMadeObject(pcInitialiser, pcClass) ? (Value(pcInitialiser) != NULL) : CopyConstruct(pcClass, pcInitialiser, pcNode);
+			apcArguments.Kill();
+			return bResult;
+		}
+
+		//= an object of another class whose conversion function makes one.  [over.match.copy]
+		pcConversion = mpcUnit->GetBinder()->ConversionToClass(pcClass, pcInitialiser, pcNode);
+		if (pcConversion)
+		{
+			bResult = ObjectCall(pcInitialiser, pcConversion, NULL, pcNode) != NULL;
 			apcArguments.Kill();
 			return bResult;
 		}

@@ -63,7 +63,8 @@ CCPPFunction* CCPPMangler::FirstOfName(int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Functions are _name, operators _opName.  Members are _Class__name, constructors
+// Functions are _name, operators _opName and conversion functions
+// _opConvert_Type.  Members are _Class__name, constructors
 // _Class__0 and destructors _Class__1; the vtable is _Class__2.  A template
 // instance's class is Class__T and its arguments, mangled.  An overloaded member
 // has its parameters on the end, as a function that is not a member always does,
@@ -89,6 +90,12 @@ void CCPPMangler::AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction)
 	else
 	{
 		AppendFunctionName(&szName, pcFunction->mlliName);
+		if (pcFunction->mlliName == CPP_CONVERSION_NAME)
+		{
+			//Conversion functions have no parameters; they differ by what they convert to: opConvert_PKc is operator const char*.
+			szName.Append('_');
+			AppendType(&szName, pcFunction->mpsReturn);
+		}
 	}
 
 	//main, and the global operator new and delete the generator calls by name, are just their names.

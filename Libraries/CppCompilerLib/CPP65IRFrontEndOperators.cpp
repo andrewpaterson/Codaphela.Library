@@ -71,7 +71,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
 		bMember = false;
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass() &&
-			MemberAddress((CCPPSyntaxIdExpression*)pcOperand, psValue, &bMember))
+			MemberAddress((CCPPSyntaxIdExpression*)pcOperand, NULL, psValue, &bMember))
 		{
 			return true;
 		}

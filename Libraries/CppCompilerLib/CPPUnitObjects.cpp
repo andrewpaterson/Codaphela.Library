@@ -165,6 +165,30 @@ bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class of c ? x : y with objects: x's and y's if they are the same,
+// otherwise the one the other is derived from (the derived one is converted
+// to its base).  NULL if they aren't both objects, or neither class is the
+// other's base.  [expr.cond] 4
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse)
+{
+	psTrue = psTrue->WithoutReference();
+	psFalse = psFalse->WithoutReference();
+	if (!psTrue->IsClass() || !psFalse->IsClass())
+	{
+		return NULL;
+	}
+	if (IsDerived(psTrue->pcClass, psFalse->pcClass, NULL))
+	{
+		return psFalse->pcClass;
+	}
+	return IsDerived(psFalse->pcClass, psTrue->pcClass, NULL) ? psTrue->pcClass : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The class a cast, (Class)x or static_cast<Class>(x), makes a temporary object of,
 // or NULL for any other expression.
 //

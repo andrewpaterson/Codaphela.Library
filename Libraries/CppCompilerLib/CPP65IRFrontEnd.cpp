@@ -1592,17 +1592,6 @@ bool CCPP65IRFrontEnd::VerifyIR(CIRFunction* pcFunction, const char* szFile, int
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The function type of pcFunction (what a pointer to it points to).
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65IRFrontEnd::FunctionType(CCPPFunction* pcFunction)
-{
-	return mpcTypes->Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // How far into an object of pcDerived its base psBase is; 0 if psBase isn't
 // a base of it (or either is NULL).
 //

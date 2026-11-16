@@ -34,23 +34,21 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		psTo;
-	CCPPSyntax*		pcFunction;
+	bool			bAddress;
 
 	psTo = mpcUnit->GetDeclarators()->GetTypeIdType(pcTypeId);
 	if (!psTo || psTo->IsClass() || psTo->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	pcFunction = mpcUnit->FunctionNameFor(pcOperand, psTo);
-	if (pcFunction)
+
+	//(FPointer)&f and (MPointer)&Class::f choose the overload of f with the pointer's type; (void*)&f is the function's address.
+	if (!OverloadAddress(pcOperand, psTo, psValue, &bAddress))
 	{
-		//(FPointer)&f chooses the overload of f with the pointer's type.  (MPointer)&Class::f is a member pointer
-		//converted below, (void*)&f the function's address.
-		if (!FunctionAddress((CCPPSyntaxIdExpression*)pcFunction, psTo->psBase, psValue))
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
-		psValue->psType = psTo;
+		return false;
+	}
+	if (bAddress)
+	{
 		return true;
 	}
 	if (!Value(pcOperand, psValue))

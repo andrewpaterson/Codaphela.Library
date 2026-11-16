@@ -94,8 +94,7 @@ protected:
 	SCPP65Type*		IdExpression(CCPPSyntaxIdExpression* pcId);
 	SCPP65Type*		FunctionAddress(CCPPSyntax* pcNode, int64 lliName, SCPP65Type* psTarget);
 	SCPP65Type*		FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId);
-	bool			MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type** ppsType);
-	bool			MemberFunctionAddress(CCPPClass* pcClass, int64 lliName, SCPP65Type** ppsType, CCPPSyntax* pcNode);
+	bool			MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65Type** ppsType);
 	SCPP65Type*		ThisExpression(CCPPSyntax* pcThis);
 
 	SCPP65Type*		UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary);

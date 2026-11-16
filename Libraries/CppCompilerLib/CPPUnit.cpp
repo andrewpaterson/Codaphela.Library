@@ -1352,6 +1352,17 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function's type: its return type, parameters and whether it is variadic.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::FunctionType(CCPPFunction* pcFunction)
+{
+	return mcTypes.Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a function's name is operator new, new[], delete or delete[],
 // which as a class's members are static whether or not they are declared
 // so.  [class.free] 1

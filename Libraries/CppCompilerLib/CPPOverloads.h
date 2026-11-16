@@ -122,7 +122,7 @@ public:
 	CCPPFunction*			ConversionInstance(CCPPTemplate* pcTemplate, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	void					NoFunctionMatches(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type** apsArguments, size uiArguments, CCPPSyntax* pcNode);
 	bool					HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65Type* psPointer);
-	CCPPFunction*			FindStaticFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, bool* pbOverloaded);
+	CCPPFunction*			FindMemberFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, bool bStatic, CCPPClass** ppcClass, bool* pbOverloaded);
 	CCPPFunction*			FindOperator(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, ECPPCalledObject eObject);
 	CCPPScope*				CurrentLookupScope(void);
 	CCPPFunction*			FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
