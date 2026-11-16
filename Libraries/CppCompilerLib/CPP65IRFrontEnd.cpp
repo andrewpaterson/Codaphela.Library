@@ -39,6 +39,19 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+// return &function; the body of a closure's conversion to a pointer to a
+// function, whose address is its invoker's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ReturnAddressOf(CCPPFunction* pcFunction)
+{
+	mpcBlock->Return(IRType(IRTK_Pointer), FunctionSymbol(pcFunction));
+	return Terminated();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
@@ -185,7 +198,15 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 		mpcExit = NewBlock();
 		bResult = StoreVtables(msThis, pcFunction->mpcClass);
 	}
-	bResult = bResult && (!pcFunction->mpcDefinition || Statement(pcFunction->mpcDefinition->mpcBody)) && DestroyLiving(0);
+	if (pcFunction->mpcAddressOf)
+	{
+		//A closure's conversion to a pointer to a function.
+		bResult = bResult && ReturnAddressOf(pcFunction->mpcAddressOf);
+	}
+	else
+	{
+		bResult = bResult && (!pcFunction->mpcDefinition || Statement(pcFunction->mpcDefinition->mpcBody)) && DestroyLiving(0);
+	}
 	if (bResult && mpcExit)
 	{
 		JumpTo(mpcExit);
@@ -231,6 +252,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 		MarkFunctionSymbol(pcFunction, mpcFunction->muiSymbol);
 	}
 	msThis = IRNone();
+	msClosure = IRNone();
 	msResult = IRNone();
 	msElide = IRNone();
 	mpcValue = NULL;
@@ -938,7 +960,35 @@ bool CCPP65IRFrontEnd::Parameters(void)
 	}
 	aiFirst.Kill();
 	asByAddress.Kill();
+	ClosureThis();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In a lambda's operator(), this is the closure, which its captures are
+// read from (msClosure); this in its body is the enclosing object's, kept
+// in the closure if it captures it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::ClosureThis(void)
+{
+	SCPPLambda*			psLambda;
+	SCPPLambdaCapture*	psCapture;
+
+	psLambda = mpcUnit->BodyLambda(mpcCPPFunction);
+	if (!psLambda || msThis.IsNone())
+	{
+		return;
+	}
+	msClosure = msThis;
+	msThis = IRNone();
+	psCapture = mpcUnit->FindLambdaCapture(psLambda, NULL);
+	if (psCapture)
+	{
+		msThis = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(msClosure, psLambda->pcClass->macFields.Get(psCapture->uiField)->iOffset));
+	}
 }
 
 

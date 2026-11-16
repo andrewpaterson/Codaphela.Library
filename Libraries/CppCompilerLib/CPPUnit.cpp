@@ -278,6 +278,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcPackSymbols.Init();
 	mapcHiddenSymbols.Init();
 	mcRangeFors.Init(true);
+	mapsLambdas.Init();
 	mapcQueue.Init();
 	muiQueueNext = 0;
 	mapcFailed.Init();
@@ -363,6 +364,7 @@ void CCPPUnit::Kill(void)
 	}
 	mapcHiddenSymbols.Kill();
 	mcRangeFors.Kill();
+	FreeLambdas();
 	mapcConstantTypes.Kill();
 	mapcQueue.Kill();
 	mapcFailed.Kill();
@@ -963,6 +965,29 @@ bool CCPPUnit::ReportError(CCPPSyntax* pcNode, const char* szMessage)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An error reported (as ReportError) unless the same one is already there
+// for the place: for what is worked out once and asked about again, whose
+// error must be there however often it is asked, and however often what
+// was asked only quietly took its errors away.  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ReportOnce(CCPPSyntax* pcNode, const char* szMessage)
+{
+	size	i;
+
+	for (i = 0; pcNode && (i < mcErrors.NumErrors()); i++)
+	{
+		if ((mcErrors.GetToken(i) == pcNode->miFirstToken) && strstr(mcErrors.Get(i), szMessage))
+		{
+			return false;
+		}
+	}
+	return ReportError(pcNode, szMessage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // ReportError at a token.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1391,14 +1416,14 @@ SCPP65Type* CCPPUnit::ReturnedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPS
 //////////////////////////////////////////////////////////////////////////
 //
 // The return statements of a function's body, in order: not those of a
-// class inside it.
+// class or a lambda inside it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::FindReturns(CCPPSyntax* pcNode, CArraySyntax* papcReturns)
 {
 	size	i;
 
-	if (!pcNode || (pcNode->GetKind() == CPPS_ClassSpecifier))
+	if (!pcNode || (pcNode->GetKind() == CPPS_ClassSpecifier) || (pcNode->GetKind() == CPPS_LambdaExpression))
 	{
 		return;
 	}
@@ -2577,6 +2602,11 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 
 	if (!pcNode)
 	{
+		return true;
+	}
+	if (pcNode->GetKind() == CPPS_LambdaExpression)
+	{
+		//Its body's locals are its closure's operator()'s.
 		return true;
 	}
 

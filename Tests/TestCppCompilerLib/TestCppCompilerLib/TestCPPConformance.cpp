@@ -63,9 +63,7 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Stage2, "", ""),
 	CONFORMANCE_GROUP(Stage3, "", ""),
 	CONFORMANCE_GROUP(Stage4, "", ""),
-	CONFORMANCE_GROUP(Stage5,
-		"LambdaPlain(C) LambdaCaptures(C) LambdaDefaultCaptures(C) LambdaMutable(C) LambdaToFunctionPointer(C) LambdaThis(C) LambdaAsTemplateArgument(C) LambdaReturnType(C) LambdaNested(C) LambdaCopiedAndStored(C) LambdaCapturesObject(C) LambdaGeneric(C) LambdaInitCapture(C) ",
-		"LambdaPlain(C) LambdaCaptures(C) LambdaDefaultCaptures(C) LambdaMutable(C) LambdaToFunctionPointer(C) LambdaThis(C) LambdaAsTemplateArgument(C) LambdaReturnType(C) LambdaNested(C) LambdaCopiedAndStored(C) LambdaCapturesObject(C) LambdaGeneric(C) LambdaInitCapture(C) "),
+	CONFORMANCE_GROUP(Stage5, "", ""),
 	CONFORMANCE_GROUP(Stage6,
 		"Sfinae(C) SfinaeMemberDetection(C) SfinaeDefaultArgument(C) TemplateTemplateParameter(C) MemberClassTemplate(C) ArrayBoundDeduced(C) ArraySpecialisation(W) PointerTemplateArgument(C) PackSizeof(C) ForwardingPack(C) PackExpandedExpression(C) PackInInitialiser(C) PackBases(C) PackTemplateArguments(C) PackNonType(W) PackMembers(C) VariableTemplate(C) TypeTraitsClasses(C) TypeTraitsRelations(C) TypeTraitsTrivial(C) UnderlyingType(W) DependentTemplateName(C) TemplateConversionOperator(C) PartialOrdering(W) MemberSpecialisation(W) TemplateStaticMember(C) VariadicClass(W) ",
 		"Sfinae(C) SfinaeMemberDetection(C) SfinaeDefaultArgument(C) TemplateTemplateParameter(C) MemberClassTemplate(C) ArrayBoundDeduced(C) ArraySpecialisation(W) PointerTemplateArgument(C) PackSizeof(C) ForwardingPack(C) PackExpandedExpression(C) PackInInitialiser(C) PackBases(C) PackTemplateArguments(C) PackNonType(W) PackMembers(C) VariableTemplate(C) TypeTraitsClasses(C) TypeTraitsRelations(C) TypeTraitsTrivial(C) UnderlyingType(W) DependentTemplateName(C) TemplateConversionOperator(C) PartialOrdering(W) MemberSpecialisation(W) TemplateStaticMember(C) VariadicClass(W) "),
@@ -122,7 +120,7 @@ static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECP
 
 	szErrors.Init();
 	bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, false, &szErrors);
-	if (!bBuilt && strstr(szErrors.Text(), "SoftFloat"))
+	if (!bBuilt && strstr(szErrors.Text(), "_Soft"))
 	{
 		pcBuilder->Kill();
 		pcBuilder->Init();

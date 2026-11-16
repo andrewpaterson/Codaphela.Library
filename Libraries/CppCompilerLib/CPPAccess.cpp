@@ -331,7 +331,7 @@ bool CCPPAccess::IsInMemberOf(CCPPSymbol* pcClass, CCPPSyntax* pcNode)
 			return true;
 		}
 	}
-	pcFunction = mpcUnit->GetContext()->GetFunction();
+	pcFunction = mpcUnit->OuterFunction();
 	for (pcParent = (pcFunction && pcFunction->mpcClass) ? pcFunction->mpcClass->mpcSpecifier : NULL; pcParent; pcParent = pcParent->mpcParent)
 	{
 		if ((pcParent->GetKind() == CPPS_ClassSpecifier) && (((CCPPSyntaxClassSpecifier*)pcParent)->mpcSymbol == pcClass))
@@ -425,7 +425,7 @@ bool CCPPAccess::IsFriendFunction(CCPPSyntaxDeclarator* pcDeclarator)
 	CCPPFunction*	pcFunction;
 	int64			lliName;
 
-	pcFunction = mpcUnit->GetContext()->GetFunction();
+	pcFunction = mpcUnit->OuterFunction();
 	if (!pcFunction || !pcDeclarator || !pcDeclarator->GetName())
 	{
 		return false;
@@ -445,7 +445,7 @@ bool CCPPAccess::IsInDerivedFrom(CCPPSyntaxClassSpecifier* pcClass)
 {
 	CCPPFunction*	pcFunction;
 
-	pcFunction = mpcUnit->GetContext()->GetFunction();
+	pcFunction = mpcUnit->OuterFunction();
 	return pcFunction && pcFunction->mpcClass && HasBase(pcFunction->mpcClass, pcClass);
 }
 

@@ -112,6 +112,7 @@ public:
 	bool							mbExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
 	bool							mbConstThis;	//A const member function: an overload of the same function without const.
 	bool							mbConstexpr;	//Declared constexpr: its value may be worked out when the program is compiled.
+	CCPPFunction*					mpcAddressOf;	//What a closure's conversion to a pointer to a function gives the address of (its invoker), or NULL.
 	ECPPRefQualifier				meRefQualifier;	//Declared & or &&: an overload of the same function declared the other.
 	bool							mbImplicit;		//A constructor or destructor the compiler wrote.
 	bool							mbDeleted;		//= delete: it is an overload like any other, and an error if it is the one chosen.

@@ -158,7 +158,8 @@ protected:
 	CIRFunction*			mpcFunction;
 	CIRBlock*				mpcBlock;
 	CCPPFunction*			mpcCPPFunction;
-	SIRReference			msThis;				//A member function's this, IRNone in others.
+	SIRReference			msThis;				//A member function's this, IRNone in others; in a lambda's body the enclosing object's, if it captures it.
+	SIRReference			msClosure;			//A lambda's operator(): the closure it is called on, IRNone in others.
 	SIRReference			msResult;			//Where a function that returns an object makes it, IRNone in others.
 	SIRReference			msElide;			//Where the next call that returns an object makes it, instead of a temporary.
 	CCPPSyntax*				mpcValue;			//The expression Value last started on (where a conversion's error is).
@@ -244,6 +245,9 @@ protected:
 	SIRReference	Offset(int iBytes);
 	SIRReference	AddressAt(SIRReference sAddress, int iOffset);
 	bool			Parameters(void);
+	void			ClosureThis(void);
+	bool			LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpression* pcSyntax);
+	bool			ReturnAddressOf(CCPPFunction* pcFunction);
 	void			AddPieces(int iBytes);
 	int				PieceCount(int iBytes);
 	int				PieceBytes(int iLeft);

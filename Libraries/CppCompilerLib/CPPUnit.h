@@ -60,6 +60,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65TypeChecker.h"
 #include "CPPCompileStatistics.h"
 #include "CPPCompileOptions.h"
+#include "CPPLambda.h"
 
 
 class CCTString;
@@ -218,6 +219,7 @@ protected:
 	CArrayCPPSymbols		mapcPackSymbols;	//The symbols made for function parameter packs' elements.
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
+	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
@@ -371,6 +373,30 @@ public:
 	CCPPSymbol*				NewHiddenVariable(const char* szName, CCPPSyntaxRangeForStatement* pcFor);
 	CCPPSyntaxIdExpression*	NewHiddenName(CCPPSymbol* pcSymbol, CCPPSyntax* pcParent);
 	bool					RangeForLocals(CCPPSyntaxRangeForStatement* pcFor);
+	SCPPLambda*				GetLambda(CCPPSyntaxLambdaExpression* pcSyntax);
+	SCPP65Type*				LambdaType(CCPPSyntaxLambdaExpression* pcSyntax);
+	bool					LambdaCaptures(SCPPLambda* psLambda);
+	bool					UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode);
+	bool					UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode);
+	bool					IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
+	bool					IsThisMember(CCPPSymbol* pcSymbol);
+	SCPPLambdaCapture*		FindLambdaCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol);
+	bool					AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax* pcInitialiser, bool bReference, bool bOwn, CCPPSyntax* pcNode);
+	bool					AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode);
+	size					AddClosureField(SCPPLambda* psLambda, SCPP65Type* psType);
+	bool					LayoutClosure(SCPPLambda* psLambda);
+	bool					LambdaCall(SCPPLambda* psLambda);
+	CCPPFunction*			LambdaFunction(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters);
+	CCPPFunction*			AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, CArrayCPP65Types* papsParameters, SCPP65Type* psReturn);
+	void					GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArguments);
+	SCPPLambda*				WritingLambda(void);
+	SCPPLambda*				BodyLambda(CCPPFunction* pcFunction);
+	bool					LambdaError(SCPPLambda* psLambda, CCPPSyntax* pcNode, const char* szMessage);
+	bool					ReportOnce(CCPPSyntax* pcNode, const char* szMessage);
+	SCPPLambdaCapture*		FindCapture(CCPPSymbol* pcSymbol);
+	CCPPFunction*			OuterFunction(void);
+	CCPPClass*				ThisClass(void);
+	void					FreeLambdas(void);
 	bool					RangeIterators(CCPPSyntaxRangeForStatement* pcFor, SCPP65Type** ppsBegin, SCPP65Type** ppsEnd, CCPPFunction** ppcBegin, CCPPFunction** ppcEnd, bool* pbMember);
 	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);

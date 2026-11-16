@@ -49,6 +49,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	miTemplateArguments = 0;
 	mcTypeIdArguments.Init(true);
 	mbNoGreater = false;
+	mbLambdaDeclarator = false;
 	mbMemberName = false;
 	miClassDepth = 0;
 	mbDeclaringTemplate = false;

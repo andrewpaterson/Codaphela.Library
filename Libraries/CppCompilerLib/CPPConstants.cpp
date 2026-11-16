@@ -758,7 +758,7 @@ bool CCPPConstants::CheckBody(CCPPSyntax* pcNode)
 	CCPPSyntaxInitDeclarator*		pcInit;
 	size							i;
 
-	if (!pcNode || (pcNode->GetKind() == CPPS_ClassSpecifier))
+	if (!pcNode || (pcNode->GetKind() == CPPS_ClassSpecifier) || (pcNode->GetKind() == CPPS_LambdaExpression))
 	{
 		return true;
 	}

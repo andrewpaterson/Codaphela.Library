@@ -311,6 +311,10 @@ void CCPPParser::ParseQualifiers(CArraySyntax* papcQualifiers, CCPPSyntax* pcPar
 		else if (bRefQualifiers && ((eToken == CT_BitwiseAnd) || (eToken == CT_LogicalAnd)))
 		{
 		}
+		else if (bRefQualifiers && mbLambdaDeclarator && (eToken == CT_mutable))
+		{
+			//A lambda's (parameters) mutable.  [expr.prim.lambda] 1
+		}
 		else
 		{
 			return;

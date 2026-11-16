@@ -663,8 +663,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 			return pcParentheses;
 
 		case CT_OpenSquareBracket:
-			Error("Lambda expressions are not supported.");
-			return NULL;
+			return ParseLambdaExpression(pcParent);
 
 		case CT_static_cast:
 		case CT_dynamic_cast:
@@ -763,6 +762,175 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 
 	Error("Expected an expression.");
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// [captures] (parameters) mutable noexcept -> type { body }, the parameters
+// and what follows them optional.  The captures are read where the lambda
+// is (an init-capture's initialiser is the enclosing function's); an
+// init-capture's name and the parameters are in scope in the body, which
+// is read as a function's.  [expr.prim.lambda]
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxExpression* CCPPParser::ParseLambdaExpression(CCPPSyntax* pcParent)
+{
+	CCPPSyntaxLambdaExpression*		pcLambda;
+	CCPPSyntaxLambdaCapture*		pcCapture;
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPSyntaxDeclarator*			pcDeclarator;
+	CCPPSyntaxFunctionSuffix*		pcSuffix;
+	CCPPScope*						pcSaved;
+	size							i;
+	bool							bDeclaringTemplate;
+	bool							bNoGreater;
+	bool							bLambdaDeclarator;
+
+	pcLambda = mpcMemory->Create<CCPPSyntaxLambdaExpression>(pcParent);
+	pcLambda->miFirstToken = CurrentToken();
+	Expect(CT_OpenSquareBracket);
+	if (Is(CT_BitwiseAnd) && (IsAhead(1, CT_CloseSquareBracket) || IsAhead(1, CT_Comma)))
+	{
+		pcLambda->meDefault = CPPLC_Reference;
+		Next();
+	}
+	else if (Is(CT_Assignment))
+	{
+		pcLambda->meDefault = CPPLC_Copy;
+		Next();
+	}
+	while (!Is(CT_CloseSquareBracket))
+	{
+		if (((pcLambda->macpCaptures.NumElements() > 0) || (pcLambda->meDefault != CPPLC_None)) && !Expect(CT_Comma))
+		{
+			return NULL;
+		}
+		pcCapture = ParseLambdaCapture(pcLambda);
+		if (!pcCapture)
+		{
+			return NULL;
+		}
+		pcLambda->macpCaptures.Add(pcCapture);
+	}
+	Next();
+
+	//Its function call operator: auto, with no name, and the parameters (none when there are no parentheses).
+	pcDefinition = mpcMemory->Create<CCPPSyntaxFunctionDefinition>(pcLambda);
+	pcDefinition->miFirstToken = pcLambda->miFirstToken;
+	pcDefinition->mpcSpecifiers = mpcMemory->Create<CCPPSyntaxDeclSpecifiers>(pcDefinition);
+	pcDefinition->mpcSpecifiers->muiTypeKeywords = CPPTK_AUTO;
+	pcDefinition->mpcSpecifiers->SetTokens(pcLambda->miFirstToken, PreviousToken());
+	pcDeclarator = mpcMemory->Create<CCPPSyntaxDeclarator>(pcDefinition);
+	pcDeclarator->miFirstToken = CurrentToken();
+	pcDefinition->mpcDeclarator = pcDeclarator;
+	pcLambda->mpcDefinition = pcDefinition;
+	if (Is(CT_OpenRoundBracket))
+	{
+		bLambdaDeclarator = mbLambdaDeclarator;
+		mbLambdaDeclarator = true;
+		pcSuffix = ParseFunctionSuffix(pcDeclarator, NULL);
+		mbLambdaDeclarator = bLambdaDeclarator;
+		if (!pcSuffix)
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		pcSuffix = mpcMemory->Create<CCPPSyntaxFunctionSuffix>(pcDeclarator);
+		pcSuffix->SetTokens(CurrentToken(), CurrentToken() - 1);
+		pcSuffix->mpcScope = PushScope(CPPSC_Function, NULL);
+		PopScope(pcSuffix->mpcScope);
+	}
+	pcDeclarator->macpSuffixes.Add(pcSuffix);
+	pcDeclarator->miLastToken = PreviousToken();
+	pcDefinition->mpcScope = pcSuffix->mpcScope;
+
+	//The body, with the parameters and the init-captures' names in scope.
+	pcSaved = mpcScope;
+	mpcScope = pcSuffix->mpcScope;
+	for (i = 0; i < pcLambda->macpCaptures.NumElements(); i++)
+	{
+		pcCapture = (CCPPSyntaxLambdaCapture*)pcLambda->macpCaptures.GetPtr(i);
+		if (pcCapture->mpcInitializer)
+		{
+			pcCapture->mpcSymbol = Declare(((CCTIdentifier*)mpcTokeniser->Get(pcCapture->miName))->miIdentifier, pcCapture->miName, CPPSK_Variable, pcCapture, mpcScope);
+		}
+	}
+	bDeclaringTemplate = mbDeclaringTemplate;
+	mbDeclaringTemplate = false;
+	bNoGreater = mbNoGreater;
+	mbNoGreater = false;
+	pcDefinition->mpcBody = Is(CT_OpenCurlyBracket) ? ParseCompoundStatement(pcDefinition, true) : NULL;
+	mbNoGreater = bNoGreater;
+	mbDeclaringTemplate = bDeclaringTemplate;
+	mpcScope = pcSaved;
+	if (!pcDefinition->mpcBody)
+	{
+		Error("Expected the lambda's body.");
+		return NULL;
+	}
+	pcDefinition->meBody = CPPFB_Body;
+	pcDefinition->SetTokens(pcLambda->miFirstToken, PreviousToken());
+	pcLambda->miLastToken = PreviousToken();
+	return pcLambda;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One capture: this, name or &name (an expression of the variable, read
+// here), or name = initialiser and &name = initialiser.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxLambdaCapture* CCPPParser::ParseLambdaCapture(CCPPSyntaxLambdaExpression* pcLambda)
+{
+	CCPPSyntaxLambdaCapture*	pcCapture;
+	CCPPSyntaxExpression*		pcName;
+
+	pcCapture = mpcMemory->Create<CCPPSyntaxLambdaCapture>(pcLambda);
+	pcCapture->miFirstToken = CurrentToken();
+	if (Accept(CT_this))
+	{
+		pcCapture->meKind = CPPLC_This;
+		pcCapture->miLastToken = PreviousToken();
+		return pcCapture;
+	}
+	pcCapture->meKind = Accept(CT_BitwiseAnd) ? CPPLC_Reference : CPPLC_Copy;
+	if (!IsIdentifier())
+	{
+		Error("Expected a name to capture.");
+		return NULL;
+	}
+	pcCapture->miName = CurrentToken();
+	if (IsAhead(1, CT_Assignment))
+	{
+		Next();
+		Next();
+		pcCapture->mpcInitializer = ParseInitializerClause(pcCapture);
+		if (!pcCapture->mpcInitializer)
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		pcName = ParsePrimaryExpression(pcCapture);
+		if (!pcName || (pcName->GetKind() != CPPS_IdExpression))
+		{
+			Error("Expected a name to capture.");
+			return NULL;
+		}
+		pcCapture->mpcName = (CCPPSyntaxIdExpression*)pcName;
+	}
+	if (Is(CT_Elipsis))
+	{
+		Error("Capturing a pack is not supported by the compiler yet.");
+		return NULL;
+	}
+	pcCapture->miLastToken = PreviousToken();
+	return pcCapture;
 }
 
 

@@ -104,7 +104,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 	X(TypeTraitExpression) \
 	X(PackExpansionExpression) \
 	X(NoexceptExpression) \
-	X(LazyDeclaration)
+	X(LazyDeclaration) \
+	X(LambdaExpression) \
+	X(LambdaCapture)
 
 
 #define CPP_SYNTAX_ENUM(N)	CPPS_##N,

@@ -285,9 +285,9 @@ CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCP
 				return pcBindings->mpcClass;
 			}
 		}
-		if (!pcContext && mcContext.GetFunction())
+		if (!pcContext && OuterFunction())
 		{
-			pcContext = mcContext.GetFunction()->mpcClass;
+			pcContext = OuterFunction()->mpcClass;
 		}
 		pcClass = pcContext ? FindBaseInstance(pcContext, pcTemplate) : NULL;
 		if (pcClass)

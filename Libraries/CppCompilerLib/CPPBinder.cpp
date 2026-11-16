@@ -188,7 +188,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 			return;
 		}
 	}
-	pcMember = mpcUnit->GetContext()->GetFunction();
+	pcMember = mpcUnit->OuterFunction();
 
 	//f<Arguments>(...) and f(...) for a function template; in a member function it may be a member template.
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
@@ -366,6 +366,11 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	{
 		return true;
 	}
+	if (psType->pcClass->mpsLambda && psType->pcClass->mpsLambda->bGeneric)
+	{
+		//A generic lambda's operator() for these arguments.
+		mpcUnit->GenericLambdaCall(psType->pcClass->mpsLambda, pcBound->mpapcArguments);
+	}
 
 	pcBound->mlliName = mpcUnit->GetOperatorName(CT_OpenRoundBracket, false);
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
@@ -418,7 +423,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	bool						bVirtual;
 
 	pcCallee = pcBound->mpcCallee;
-	pcIn = mpcUnit->GetContext()->GetFunction();
+	pcIn = mpcUnit->OuterFunction();
 	pcClass = NULL;
 	pcObject = NULL;
 	bArrow = false;
@@ -988,8 +993,20 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	pcBound->mpcClass = NULL;
 	pcBound->mpsField = NULL;
 	pcBound->miOffset = 0;
+	pcBound->mpsCapture = NULL;
 	pcSymbol = pcId->mpcName->mpcSymbol;
 	pcBound->mpcSymbol = pcSymbol;
+
+	//In a lambda's body, what it captures is its closure's.
+	pcBound->mpsCapture = (pcId->mpcName->macpComponents.NumElements() == 1) ? mpcUnit->FindCapture(pcSymbol) : NULL;
+	if (pcBound->mpsCapture)
+	{
+		pcBound->meWhat = CPPBN_Capture;
+		pcBound->mpcClass = mpcUnit->WritingLambda()->pcClass;
+		pcBound->mpsField = pcBound->mpcClass->macFields.Get(pcBound->mpsCapture->uiField);
+		pcBound->miOffset = pcBound->mpsField->iOffset;
+		return;
+	}
 	if (mpcUnit->IsFunctionName(pcId))
 	{
 		pcBound->meWhat = CPPBN_FunctionName;
@@ -1009,7 +1026,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		}
 		else if (pcSymbol)
 		{
-			pcIn = mpcUnit->GetContext()->GetFunction();
+			pcIn = mpcUnit->OuterFunction();
 			pcMemberClass = (pcIn && pcIn->mpcClass && pcIn->mpcClass->mpcTemplate) ? pcIn->mpcClass : NULL;
 		}
 		if (pcMemberClass)
@@ -1051,8 +1068,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	}
 
 	//A field of this; a name in a template that the parser could not resolve may be one too.
-	pcIn = mpcUnit->GetContext()->GetFunction();
-	pcClass = pcIn ? pcIn->mpcClass : NULL;
+	pcClass = mpcUnit->ThisClass();
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass)
 	{
 		pcBound->mpsField = pcClass->FindFieldSymbol(pcSymbol, &pcBound->miOffset);

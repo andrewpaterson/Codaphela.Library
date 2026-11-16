@@ -19,6 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CTReservedWord.h"
+#include "CPPLambda.h"
 #include "CPPMangler.h"
 
 
@@ -184,6 +185,12 @@ bool CCPPMangler::IsOverloaded(CCPPFunction* pcFunction)
 {
 	CCPPFunction*	pcOther;
 
+	if (pcFunction->mpcClass && pcFunction->mpcClass->mpsLambda && pcFunction->mpcClass->mpsLambda->bGeneric)
+	{
+		//A generic lambda's operator() is made for each call's arguments, one after another: its label has its
+		//parameters from the first, or a call written before the second was made would name the first by another label.
+		return true;
+	}
 	for (pcOther = FirstOfName(pcFunction->mlliName); pcOther; pcOther = pcOther->mpcNextOfName)
 	{
 		if ((pcOther != pcFunction) && (pcOther->mpcClass == pcFunction->mpcClass) && (pcOther->meKind == pcFunction->meKind) && !pcOther->mpcTemplate)

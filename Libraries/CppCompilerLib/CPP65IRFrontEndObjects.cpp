@@ -162,6 +162,7 @@ bool CCPP65IRFrontEnd::IsObjectCall(CCPPSyntax* pcExpression)
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_CallExpression:
+	case CPPS_LambdaExpression:
 		return true;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
@@ -1078,6 +1079,60 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Makes a lambda's closure at psPlace: each field from what it captures,
+// where the lambda is: a copy (constructed as a variable is from its
+// initialiser), the address of what it refers to, or this.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpression* pcSyntax)
+{
+	SCPPLambda*			psLambda;
+	SCPPLambdaCapture*	psCapture;
+	SCPPField*			psField;
+	SCPP65IRPlace		sField;
+	SCPP65IRPlace		sReferred;
+	SIRReference		sAddress;
+	size				i;
+
+	psLambda = mpcUnit->GetLambda(pcSyntax);
+	if (!psLambda)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	for (i = 0; i < psLambda->asCaptures.NumElements(); i++)
+	{
+		psCapture = psLambda->asCaptures.Get(i);
+		psField = psLambda->pcClass->macFields.Get(psCapture->uiField);
+		sField.sAddress = AddressAt(psPlace->sAddress, psField->iOffset);
+		sField.psType = psField->psType;
+		sField.psBitField = NULL;
+		if (psCapture->bThis)
+		{
+			if (msThis.IsNone())
+			{
+				return Unsupported(__FILE__, __LINE__);
+			}
+			mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), msThis, sField.sAddress);
+		}
+		else if (psCapture->bReference)
+		{
+			if (!Place(psCapture->pcInitialiser, &sReferred) || !ReferenceAddress(&sReferred, psField->psType, &sAddress))
+			{
+				return false;
+			}
+			mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sAddress, sField.sAddress);
+		}
+		else if (!Construct(&sField, NULL, psCapture->pcInitialiser))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An expression of a class type: its address (an object used as a value is
 // its address).  Objects named, pointed at or indexed are where they are;
 // a call that returns one and Class(arguments) make a temporary (or the
@@ -1098,6 +1153,30 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 
 	switch (pcExpression->GetKind())
 	{
+	case CPPS_LambdaExpression:
+		//Its closure, made where the object it initialises is (msElide), or as a temporary.
+		psType = mpcUnit->TypeOf(pcExpression);
+		if (!psType || !psType->IsClass())
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		if (!msElide.IsNone())
+		{
+			sPlace.sAddress = msElide;
+			sPlace.psType = psType;
+			msElide = IRNone();
+		}
+		else if (!Temporary(psType, &sPlace, true))
+		{
+			return false;
+		}
+		if (!LambdaObject(&sPlace, (CCPPSyntaxLambdaExpression*)pcExpression))
+		{
+			return false;
+		}
+		psValue->sValue = sPlace.sAddress;
+		psValue->psType = psType;
+		return true;
 	case CPPS_IdExpression:
 	case CPPS_MemberExpression:
 	case CPPS_SubscriptExpression:

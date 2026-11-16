@@ -159,6 +159,9 @@
     <ClCompile Include="CPPUnitRangeFor.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPUnitLambdas.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPUnitCheck.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -529,6 +532,12 @@
       <Filter>Source\Syntax</Filter>
     </ClCompile>
     <ClCompile Include="CPPSyntaxTypeidExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxLambdaExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxLambdaCapture.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
     <ClCompile Include="CPPSyntaxTypeTraitExpression.cpp">
@@ -1028,6 +1037,9 @@
     <ClInclude Include="CPPConstants.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
+    <ClInclude Include="CPPLambda.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
     <ClInclude Include="CPPUnitData.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
@@ -1317,6 +1329,12 @@
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxTypeidExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxLambdaExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxLambdaCapture.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxTypeTraitExpression.h">

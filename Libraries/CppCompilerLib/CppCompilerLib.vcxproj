@@ -291,6 +291,7 @@
     <ClCompile Include="CPPUnitFloat.cpp" />
     <ClCompile Include="CPPUnitObjects.cpp" />
     <ClCompile Include="CPPUnitRangeFor.cpp" />
+    <ClCompile Include="CPPUnitLambdas.cpp" />
     <ClCompile Include="CPPUnitCheck.cpp" />
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPClass.cpp" />
@@ -329,6 +330,8 @@
     <ClCompile Include="CPPSyntaxUsingDeclaration.cpp" />
     <ClCompile Include="CPPSyntaxUnaryExpression.cpp" />
     <ClCompile Include="CPPSyntaxTypeidExpression.cpp" />
+    <ClCompile Include="CPPSyntaxLambdaExpression.cpp" />
+    <ClCompile Include="CPPSyntaxLambdaCapture.cpp" />
     <ClCompile Include="CPPSyntaxTypeTraitExpression.cpp" />
     <ClCompile Include="CPPSyntaxTypeParameter.cpp" />
     <ClCompile Include="CPPSyntaxTypeId.cpp" />
@@ -562,6 +565,7 @@
     <ClInclude Include="CPPMangler.h" />
     <ClInclude Include="CPPContext.h" />
     <ClInclude Include="CPPConstants.h" />
+    <ClInclude Include="CPPLambda.h" />
     <ClInclude Include="CPPUnitData.h" />
     <ClInclude Include="CPPDeclarators.h" />
     <ClInclude Include="CPPDeduction.h" />
@@ -593,6 +597,8 @@
     <ClInclude Include="CPPSyntaxUsingDeclaration.h" />
     <ClInclude Include="CPPSyntaxUnaryExpression.h" />
     <ClInclude Include="CPPSyntaxTypeidExpression.h" />
+    <ClInclude Include="CPPSyntaxLambdaExpression.h" />
+    <ClInclude Include="CPPSyntaxLambdaCapture.h" />
     <ClInclude Include="CPPSyntaxTypeTraitExpression.h" />
     <ClInclude Include="CPPSyntaxTypeParameter.h" />
     <ClInclude Include="CPPSyntaxTypeId.h" />

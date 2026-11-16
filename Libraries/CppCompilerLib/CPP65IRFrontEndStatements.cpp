@@ -1116,7 +1116,7 @@ bool CCPP65IRFrontEnd::FindCases(CCPPSyntax* pcNode, CIRBlock** ppcDefault)
 	SCPP65IRCase*	psCase;
 	size			ui;
 
-	if (!pcNode || (pcNode->GetKind() == CPPS_SwitchStatement))
+	if (!pcNode || (pcNode->GetKind() == CPPS_SwitchStatement) || (pcNode->GetKind() == CPPS_LambdaExpression))
 	{
 		return true;
 	}

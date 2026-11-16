@@ -89,6 +89,8 @@ enum ECPPClassState
 
 //A class and its layout: the bases in order (an empty base takes no space), then the vtable pointer if no base
 //has one, then the fields.  A class is laid out when it is first needed whole.  mpcBase is the first base.
+struct SCPPLambda;
+
 class CCPPClass
 {
 public:
@@ -115,6 +117,7 @@ public:
 	CChars						mszArguments;		//The instance's template arguments, mangled for its label.
 	bool						mbExternInstance;	//extern template class Name<Arguments>; names it: its members defined outside it
 													//that aren't inline are another unit's (CCPPUnit::IsInstantiatedElsewhere).
+	SCPPLambda*					mpsLambda;			//The lambda this is the closure of, or NULL (CCPPUnit::GetLambda).
 	bool						mbPlaceholder;		//It stands for a template's type parameter, whose symbol is its: a class with
 													//nothing in it, written as the parameter's name (CCPPUnit::PlaceholderClass).
 

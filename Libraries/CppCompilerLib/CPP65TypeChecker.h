@@ -57,6 +57,7 @@ public:
 	void			VisitSubscriptExpression(CCPPSyntaxSubscriptExpression* pcNode) override;
 	void			VisitMemberExpression(CCPPSyntaxMemberExpression* pcNode) override;
 	void			VisitThisExpression(CCPPSyntaxThisExpression* pcNode) override;
+	void			VisitLambdaExpression(CCPPSyntaxLambdaExpression* pcNode) override;
 	void			VisitCastExpression(CCPPSyntaxCastExpression* pcNode) override;
 	void			VisitNamedCastExpression(CCPPSyntaxNamedCastExpression* pcNode) override;
 	void			VisitConstructExpression(CCPPSyntaxConstructExpression* pcNode) override;

@@ -145,7 +145,7 @@ Part A plan (2026-11-15)
   Feature-test macros (__cpp_raw_strings, __cpp_user_defined_literals and the rest) are defined with the item that makes each true, starting here.
   Tests: a group for each item in TestPreprocessor and TestCppTokeniser, and TestCPP816 cases for raw strings and character literals, which reach generated code.
 
-Part B plan (2026-11-15; stages 0 to 4 done 2026-11-16)
+Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
   The notes on B1 to B18 above were checked by compiling about 190 small programs for the W65C816 with hcp65build, one a feature (they became stage 0's cases).  "Compiles" is all that most of them show: only where a negative array size could prove it was what the code means checked.  This plan replaces the Order above for Part B.
 
   What the notes had wrong:
@@ -197,7 +197,16 @@ Part B plan (2026-11-15; stages 0 to 4 done 2026-11-16)
        - A constexpr global is its value as data, with no start up code (CCPPConstants::AppendData): its bytes as the interpreter made them, a pointer in them the label of what it points into (a variable, a function, or a string the unit's data then has).  So it has its value before any dynamic initialisation runs, as [basic.start.static] 2 asks (ConstexprInitialisedFirst, ConstexprPointerData).  A const global that isn't constexpr is made as before.
        Nothing of the stage is left.
        As it was planned: (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
-    5. (L) B12.  Lambdas: the parser, closure classes, captures, the conversion to a function pointer; then generic lambdas and init-captures (B-3).
+    5. Done 2026-11-16 (the conformance test's Stage5 group: 16 of 16 on both targets).
+       - The parser makes a lambda a CCPPSyntaxLambdaExpression: its default capture, its captures (CCPPSyntaxLambdaCapture: a name, &name, this, name = initialiser) and its operator() as a function definition of its own (specifiers auto, a declarator with no name and the parameters, mutable among their qualifiers, the body).  An init-capture's name and the parameters are in scope in the body.  The new kinds are after the old ones, so a kind's number is what it was.
+       - A closure is an unnamed class made the first time its lambda is typed in the function it is in (CCPPUnit::GetLambda, CPPUnitLambdas.cpp; SCPPLambda in CPPLambda.h): a field for each capture, laid out as a class's are, with the destructor its fields need.  What it captures is what it names, and with a default capture what its body uses of the enclosing function's (a variable, or this, through a member or this itself); a lambda inside it counts as its body.  Without a default, a use of what it doesn't capture is an error.
+       - Its operator() is const unless the lambda is mutable, and returns what its body does, as auto f() does (ResolveReturn).  A name in the body that it captures is its field (CPPBN_Capture: the binder, the type checker's place, the front end's FieldAt from msClosure); this and the enclosing class's members are the enclosing object's, kept in the closure (ThisClass, OuterFunction: lookup, access and this are the enclosing member function's).
+       - A closure is made where its lambda is (CCPP65IRFrontEnd::LambdaObject): a copy constructed as a variable is from its initialiser, the address of what is captured by reference, or this.
+       - A lambda that captures nothing converts to a pointer to a function: a conversion whose body is the address of a static invoker with the same body (CCPPFunction::mpcAddressOf).
+       - A generic lambda's operator() is made for each call's arguments, each auto parameter what auto is from its argument (GenericLambdaCall); its label always has its parameters, as its instances come one after another.
+       - The walks over a function's body (its locals, returns, cases, a constexpr function's checks) stop at a lambda: its body is its closure's.
+       Not done: a lambda in a default argument or a class member's initialiser; capturing an array or a pack; *this (C++17); a const integer used and not captured is refused (the standard lets it be used, as it isn't odr-used); the IDE's semantic pass doesn't check a lambda's body on its own.
+       As it was planned: (L) B12.  Lambdas: the parser, closure classes, captures, the conversion to a function pointer; then generic lambdas and init-captures (B-3).
     6. (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array deduction, packs everywhere and sizeof..., variable templates, the missing type traits.
     7. (M, many small) B5 and B9.  Objects: static locals that need a guard, postfix ++ and -- on objects, operator-> returning an object, conversion functions to classes and references, pointers to overloaded members, temporaries bound to references, new[] with initialisers and two dimensions, placement new with more arguments, ?: on different class types, extern locals, thread_local.  Each is on its own and can go between other stages.
     8. (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's user-defined literals), the noexcept operator.
@@ -223,6 +232,7 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     3. Signed overflow in a constant expression: the standard says it is no constant (an error), but the IR's add doesn't say whether it is signed, so the interpreter wraps as the code would at run time.  Making it an error needs the front end to mark signed arithmetic.  Worth doing?
     4. The interpreter's limits: 1,000,000 instructions and 512 calls deep for one constant, as [implimits] suggests (CCPPCompileOptions::muiConstantSteps and muiConstantDepth).  Are those right for the IDE, and for a compiler that runs on the W65C816 one day?
     5. Lambdas in inline functions and templates in headers: a closure class is the unit's own, so each unit that uses one has its own copy of its operator()'s code.  Is the size acceptable, or should closures share code across units?
+    10. A const integer of the enclosing function used in a lambda that doesn't capture it is refused ("The lambda doesn't capture the variable"), though the standard lets it be used, as it is a constant.  Rare; worth the work?
     6. Static locals with a first-time guard (stage 7): the targets have one thread, but interrupts and the kernal.  Is a plain "done" flag enough, or must the first initialisation be safe against being entered again from an interrupt?
     7. thread_local (stage 7): static storage, as there is one thread; or per process if the kernal will run several?
     8. typeid(x).name() (stage 9): what string, if any (the C++ name, the label, or ""), given it is data every polymorphic class carries.

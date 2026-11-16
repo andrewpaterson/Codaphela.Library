@@ -59,7 +59,15 @@ bool CCPPUnit::IsConstPointer(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsConstThis(void)
 {
-	return mcContext.GetFunction() && mcContext.GetFunction()->mbConstThis;
+	CCPPFunction*	pcFunction;
+
+	//In a lambda's body, this is the enclosing member function's.
+	pcFunction = mcContext.GetFunction();
+	while (BodyLambda(pcFunction))
+	{
+		pcFunction = BodyLambda(pcFunction)->pcEnclosing;
+	}
+	return pcFunction && pcFunction->mbConstThis;
 }
 
 

@@ -1075,8 +1075,8 @@ static int ParseErrors(char* szSource, char* szDeclared, CChars* pszErrors)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Lambdas, compound literals and template template parameters are
-// errors.  Parsing goes on after them.
+// Compound literals and template template parameters are errors.
+// Parsing goes on after them.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppParserUnsupported(void)
@@ -1087,7 +1087,6 @@ void TestCppParserUnsupported(void)
 	AssertFalse(sParsed.Init("\
 int f(int n)\n\
 {\n\
-	auto g = [n](int x) { return x + n; };\n\
 	return n;\n\
 }\n\
 struct P { int x; };\n\
@@ -1098,21 +1097,17 @@ int h(void)\n\
 }\n\
 template<template<class> class T> class X { };\n\
 int k = 1;"));
-	AssertInt(3, sParsed.iErrors);
-	AssertInt(3, (int)sParsed.cTree.NumErrors());
-	AssertString("Parsed.cpp (3, 11): Lambda expressions are not supported. [[]", sParsed.cTree.GetError(0));
-	AssertInt(sParsed.FindToken("[", 0), sParsed.cTree.GetErrorToken(0));
-	AssertString("Parsed.cpp (9, 11): Compound literals are not C++. [{]", sParsed.cTree.GetError(1));
-	AssertString("Parsed.cpp (12, 10): Template template parameters are not supported. [template]", sParsed.cTree.GetError(2));
-	AssertInt(sParsed.FindToken("template", 1), sParsed.cTree.GetErrorToken(2));
+	AssertInt(2, sParsed.iErrors);
+	AssertInt(2, (int)sParsed.cTree.NumErrors());
+	AssertString("Parsed.cpp (8, 11): Compound literals are not C++. [{]", sParsed.cTree.GetError(0));
+	AssertString("Parsed.cpp (11, 10): Template template parameters are not supported. [template]", sParsed.cTree.GetError(1));
+	AssertInt(sParsed.FindToken("template", 1), sParsed.cTree.GetErrorToken(1));
 
 	//The statements after the errors are parsed; the bad ones are kept as their tokens.
 	sz.Init();
 	AssertString("\
 int f(int n)\n\
 {\n\
-	auto g = [n](int x) { return x + n; }\n\
-	;\n\
 	return n;\n\
 }\n\
 struct P\n\
@@ -1129,8 +1124,88 @@ template<template<class> class T> class X { };\n\
 int k = 1;\n", sParsed.Print(&sz));
 	sz.Kill();
 
-	AssertPointer(sParsed.GetSymbol("n", 0), sParsed.GetSymbol("n", 3));
+	AssertPointer(sParsed.GetSymbol("n", 0), sParsed.GetSymbol("n", 1));
 	AssertInt(CPPSK_Variable, sParsed.GetSymbol("k", 0)->meKind);
+	sParsed.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Lambdas: the default capture and the captures, the parameters with
+// mutable and a trailing return type among what follows them, and the
+// body.  A simple capture names the enclosing function's variable; an
+// init-capture declares a variable of the lambda's, in scope in its body
+// with the parameters.  [expr.prim.lambda]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserLambdas(void)
+{
+	SParsedText		sParsed;
+	CChars			sz;
+
+	AssertTrue(sParsed.Init("\
+struct S { int v; int f() { auto g = [this]() { return v; }; return g(); } };\n\
+int h(int n)\n\
+{\n\
+	int a = 1, b = 2;\n\
+	auto f = [n](int x) { return x + n; };\n\
+	auto g = [=, &b]() mutable -> int { b += a; return b; };\n\
+	auto k = [&] { a++; };\n\
+	auto m = [c = a + 1, &d = b](auto y) { return c + d + y; };\n\
+	return f(1) + g() + m(2) + [](int p, int q) { return p * q; }(2, 3);\n\
+}"));
+	AssertInt(0, sParsed.iErrors);
+
+	sz.Init();
+	AssertString("\
+struct S\n\
+{\n\
+	int v;\n\
+	int f()\n\
+	{\n\
+		auto g = [this]()\n\
+		{\n\
+			return v;\n\
+		};\n\
+		return g();\n\
+	}\n\
+};\n\
+int h(int n)\n\
+{\n\
+	int a = 1, b = 2;\n\
+	auto f = [n](int x)\n\
+	{\n\
+		return x + n;\n\
+	};\n\
+	auto g = [=, &b]() mutable -> int\n\
+	{\n\
+		b += a;\n\
+		return b;\n\
+	};\n\
+	auto k = [&]()\n\
+	{\n\
+		a++;\n\
+	};\n\
+	auto m = [c = a + 1, &d = b](auto y)\n\
+	{\n\
+		return c + d + y;\n\
+	};\n\
+	return f(1) + g() + m(2) + [](int p, int q)\n\
+	{\n\
+		return p * q;\n\
+	}(2, 3);\n\
+}\n", sParsed.Print(&sz));
+	sz.Kill();
+
+	//n in the capture and in the body is h's parameter; c is the lambda's own, a variable.
+	AssertPointer(sParsed.GetSymbol("n", 0), sParsed.GetSymbol("n", 1));
+	AssertPointer(sParsed.GetSymbol("n", 0), sParsed.GetSymbol("n", 2));
+	AssertInt(CPPSK_Variable, sParsed.GetSymbol("c", 0)->meKind);
+	AssertPointer(sParsed.GetSymbol("c", 0), sParsed.GetSymbol("c", 1));
+	AssertPointer(sParsed.GetSymbol("a", 0), sParsed.GetSymbol("a", 3));
+	AssertInt(CPPSK_Parameter, sParsed.GetSymbol("x", 0)->meKind);
+	AssertPointer(sParsed.GetSymbol("x", 0), sParsed.GetSymbol("x", 1));
 	sParsed.Kill();
 }
 
@@ -1896,6 +1971,7 @@ void TestCppParser(void)
 	TestCppParserOperators();
 	TestCppParserTreeWalk();
 	TestCppParserUnsupported();
+	TestCppParserLambdas();
 	TestCppParserErrors();
 	TestCppParserSkimmedErrors();
 	TestCppParserCyclicUsingDirectives();

@@ -184,8 +184,12 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
+		if (!mpcUnit->ThisClass())
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
 		psValue->sValue = msThis;
-		psValue->psType = mpcTypes->Pointer(mpcCPPFunction->mpcClass->mpsType);
+		psValue->psType = mpcTypes->Pointer(mpcUnit->ThisClass()->mpsType);
 		return true;
 	case CPPS_NewExpression:
 		return NewExpression((CCPPSyntaxNewExpression*)pcExpression, psValue);
@@ -822,6 +826,11 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		{
 			return VariablePlace(cBound.mpcVariable, psPlace);
 		}
+		if (cBound.meWhat == CPPBN_Capture)
+		{
+			//What a lambda captures is its closure's field (a reference's is what it refers to).
+			return !msClosure.IsNone() ? FieldAt(msClosure, cBound.mpsField, cBound.miOffset, psPlace) : Unsupported(__FILE__, __LINE__);
+		}
 		//A field of this, where there is one.
 		if ((cBound.meWhat != CPPBN_Field) || msThis.IsNone() || (pcId->mpcName->macpComponents.NumElements() != 1) || !mpcUnit->CompleteClass(cBound.mpcClass, NULL))
 		{
@@ -979,6 +988,16 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
 		{
 			return Unsupported(__FILE__, __LINE__);
+		}
+		psPlace->sAddress = sAddress.sValue;
+		psPlace->psType = sAddress.psType;
+		return true;
+
+	case CPPS_LambdaExpression:
+		//Its closure (a temporary), called at once: [](int a) { ... }(1).
+		if (!ObjectValue(pcExpression, &sAddress))
+		{
+			return false;
 		}
 		psPlace->sAddress = sAddress.sValue;
 		psPlace->psType = sAddress.psType;

@@ -56,6 +56,7 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 	mszArguments.Init();
 	mbExternInstance = false;
 	mbPlaceholder = false;
+	mpsLambda = NULL;
 }
 
 

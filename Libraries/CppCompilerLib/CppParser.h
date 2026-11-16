@@ -126,6 +126,7 @@ protected:
 	int						miTemplateArguments;	//Template arguments being parsed, nested; while above 0 each one's
 	CMapLongTemplate<bool>	mcTypeIdArguments;		//decision (type-id or not) is kept by its first token.
 	bool					mbNoGreater;			//In a template argument list, where '>' ends the argument.
+	bool					mbLambdaDeclarator;		//A lambda's parameters are being read: mutable is one of their qualifiers.
 	bool					mbMemberName;			//The name after . or ->, which is a member of a type the parser doesn't know.
 	int						miClassDepth;
 	bool					mbDeclaringTemplate;	//The declaration directly in a template declaration declares a template.
@@ -263,6 +264,8 @@ protected:
 	bool							IsPointerOperatorStart(void);
 	bool							IsMemberPointerAhead(void);
 	CCPPSyntaxFunctionSuffix*		ParseFunctionSuffix(CCPPSyntax* pcParent, CCPPScope* pcQualifierScope);
+	CCPPSyntaxExpression*			ParseLambdaExpression(CCPPSyntax* pcParent);
+	CCPPSyntaxLambdaCapture*		ParseLambdaCapture(CCPPSyntaxLambdaExpression* pcLambda);
 	CCPPSyntaxParameter*			ParseParameter(CCPPSyntax* pcParent);
 	CCPPSyntaxArraySuffix*			ParseArraySuffix(CCPPSyntax* pcParent);
 	CCPPSyntaxExceptionSpecification*	ParseExceptionSpecification(CCPPSyntax* pcParent);

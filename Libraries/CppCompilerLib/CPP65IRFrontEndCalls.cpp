@@ -423,7 +423,11 @@ bool CCPP65IRFrontEnd::ThisObject(CCPPFunction* pcFunction, CCPPSyntax* pcObject
 			return Unsupported(__FILE__, __LINE__);
 		}
 		*psObject = msThis;
-		pcObjectClass = mpcCPPFunction->mpcClass;
+		pcObjectClass = mpcUnit->ThisClass();
+		if (!pcObjectClass)
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
 	}
 	if (pcFunction)
 	{

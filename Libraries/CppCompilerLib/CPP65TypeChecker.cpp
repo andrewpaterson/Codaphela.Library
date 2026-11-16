@@ -265,6 +265,17 @@ void CCPP65TypeChecker::VisitThisExpression(CCPPSyntaxThisExpression* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A lambda: an object of its closure's class.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitLambdaExpression(CCPPSyntaxLambdaExpression* pcNode)
+{
+	mpsResult = mpcUnit->LambdaType(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitCastExpression(CCPPSyntaxCastExpression* pcNode)
@@ -640,12 +651,15 @@ bool CCPP65TypeChecker::MemberFunctionAddress(CCPPClass* pcClass, int64 lliName,
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ThisExpression(CCPPSyntax* pcThis)
 {
-	if (!mpcUnit->GetContext()->HasThis() || !mpcUnit->GetContext()->GetFunction() || !mpcUnit->GetContext()->GetFunction()->mpcClass)
+	CCPPClass*	pcClass;
+
+	pcClass = mpcUnit->GetContext()->HasThis() ? mpcUnit->ThisClass() : NULL;
+	if (!pcClass)
 	{
-		Error(pcThis, "this is only in member functions");
+		Error(pcThis, mpcUnit->WritingLambda() ? "The lambda doesn't capture this" : "this is only in member functions");
 		return NULL;
 	}
-	return mpcTypes->Pointer(mpcTypes->Qualified(mpcUnit->GetContext()->GetFunction()->mpcClass->mpsType, mpcUnit->IsConstThis(), false));
+	return mpcTypes->Pointer(mpcTypes->Qualified(pcClass->mpsType, mpcUnit->IsConstThis(), false));
 }
 
 
@@ -1888,6 +1902,15 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		if (cBound.meWhat == CPPBN_Variable)
 		{
 			return cBound.mpcVariable->mpsType->WithoutReference();
+		}
+		if (cBound.meWhat == CPPBN_Capture)
+		{
+			//What the closure holds: a copy, const unless the lambda is mutable, or a reference to it.
+			if (cBound.mpsField->psType->IsReference())
+			{
+				return cBound.mpsField->psType->psBase;
+			}
+			return FieldType(cBound.mpsField, mpcUnit->GetContext()->GetFunction()->mbConstThis, false);
 		}
 		if (cBound.meWhat != CPPBN_Field)
 		{

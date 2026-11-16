@@ -338,21 +338,23 @@ CCPPFunction* CCPPOverloads::FindOperator(CCPPClass* pcClass, int64 lliName, CAr
 CCPPScope* CCPPOverloads::CurrentLookupScope(void)
 {
 	CCPPSyntaxName*	pcName;
+	CCPPFunction*	pcFunction;
 
-	if (!mpcUnit->GetContext()->GetFunction())
+	pcFunction = mpcUnit->OuterFunction();
+	if (!pcFunction)
 	{
 		return mpcUnit->GetContext()->GetNamespace();
 	}
-	pcName = mpcUnit->GetContext()->GetFunction()->mpcDeclarator ? mpcUnit->GetContext()->GetFunction()->mpcDeclarator->GetName() : NULL;
+	pcName = pcFunction->mpcDeclarator ? pcFunction->mpcDeclarator->GetName() : NULL;
 	if (pcName && pcName->mpcLookup)
 	{
 		return pcName->mpcLookup;
 	}
-	if (mpcUnit->GetContext()->GetFunction()->mpcClass && mpcUnit->GetContext()->GetFunction()->mpcClass->mpcSymbol)
+	if (pcFunction->mpcClass && pcFunction->mpcClass->mpcSymbol)
 	{
-		return mpcUnit->GetContext()->GetFunction()->mpcClass->mpcSymbol->mpcScope;
+		return pcFunction->mpcClass->mpcSymbol->mpcScope;
 	}
-	return mpcUnit->GetContext()->GetFunction()->mpcNamespace;
+	return pcFunction->mpcNamespace;
 }
 
 
@@ -881,9 +883,9 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 		pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcNode);
 		mpcUnit->EndQuiet();
 	}
-	else if (mpcUnit->GetContext()->GetFunction() && mpcUnit->GetContext()->GetFunction()->mpcClass)
+	else if (mpcUnit->OuterFunction() && mpcUnit->OuterFunction()->mpcClass)
 	{
-		pcClass = mpcUnit->GetContext()->GetFunction()->mpcClass;
+		pcClass = mpcUnit->OuterFunction()->mpcClass;
 	}
 	if (pcClass && mpcUnit->CompleteClass(pcClass, pcNode))
 	{

@@ -107,6 +107,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxTypeTraitExpression.h"
 #include "CPPSyntaxPackExpansionExpression.h"
 #include "CPPSyntaxNoexceptExpression.h"
+#include "CPPSyntaxLambdaCapture.h"
+#include "CPPSyntaxLambdaExpression.h"
 
 
 #endif // __C_P_P_SYNTAXES_H__

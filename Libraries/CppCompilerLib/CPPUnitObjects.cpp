@@ -139,6 +139,7 @@ bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_CallExpression:
+	case CPPS_LambdaExpression:
 		return true;
 	case CPPS_ConditionalExpression:
 		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;

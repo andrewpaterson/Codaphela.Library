@@ -1217,6 +1217,25 @@ static const SConformanceCase gasConformanceStage5[] =
 		"int main() { int a = 1; auto f = [b = a + 1, &c = a]() { c = 10; return b; }; return f() + a; }\n"
 	},
 	{
+		"LambdaCombined", 127,
+		"int gd = 0;\n"
+		"struct T { int v; T(int a) : v(a) {} T(const T& o) : v(o.v) {} ~T() { gd++; } };\n"
+		"struct C { int k; int Run(int x) { auto outer = [this, x](int y) { auto inner = [&](int z) { return k * 100 + x * 10 + y + z; }; return inner(1); }; return outer(2); } };\n"
+		"template<class F> int Twice(F f, int a) { return f(f(a)); }\n"
+		"template<class T> int Sum(T a, T b) { auto add = [](T p, T q) { return p + q; }; return add(a, b); }\n"
+		"int Apply(int (*p)(int), int x) { return p(x); }\n"
+		"int main()\n"
+		"{\n"
+		"\tC c; c.k = 3;\n"
+		"\tint n = 5; auto inc = [n](int x) { return x + n; };\n"
+		"\tint got = 0;\n"
+		"\t{ T t(7); auto get = [t]() { return t.v; }; auto copy = get; got = copy(); }\n"
+		"\tauto generic = [](auto a, auto& b) { b = b + 1; return a + b; };\n"
+		"\tint m = 1; int g = generic(2, m); long gl = generic(10L, m);\n"
+		"\treturn (c.Run(4) == 343) + (Twice(inc, 1) == 11) * 2 + (Sum(2, 3) == 5) * 4 + (Apply([](int x) { return x * 3; }, 2) == 6) * 8 + (got == 7) * 16 + ((g == 4) && (gl == 13) && (m == 3)) * 32 + (gd == 3) * 64;\n"
+		"}\n"
+	},
+	{
 		"LambdaUsesUncaptured", CONFORMANCE_REFUSED,
 		"int main() { int a = 1; auto f = []() { return a; }; return f(); }\n"
 	},

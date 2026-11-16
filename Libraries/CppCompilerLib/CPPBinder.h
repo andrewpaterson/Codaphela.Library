@@ -30,6 +30,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPTemplate.h"
 #include "CPPOverloads.h"
 #include "CPPAccess.h"
+#include "CPPLambda.h"
 
 
 class CCPPUnit;
@@ -92,6 +93,7 @@ enum ECPPBoundName
 	CPPBN_FunctionTemplate,	//A function template: the address of an instance.
 	CPPBN_Variable,			//A local, a parameter, a global or a static member.
 	CPPBN_Field,			//A field of this.
+	CPPBN_Capture,			//A variable a lambda being written captures: its closure's field.
 };
 
 
@@ -106,6 +108,7 @@ public:
 	CCPPClass*		mpcClass;		//CPPBN_Field: the object's class (this's for a name alone)...
 	SCPPField*		mpsField;		//...its field (or a base's)...
 	int				miOffset;		//...and where it is in the object.
+	SCPPLambdaCapture*	mpsCapture;	//CPPBN_Capture: the capture (mpcClass is the closure's, mpsField its field).
 };
 
 
