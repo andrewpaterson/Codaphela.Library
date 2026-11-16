@@ -104,10 +104,12 @@ public:
 	void					GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName, CCPPOverloadScopes* papcNamespaces);
 	void					GetCallNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPOverloadScopes* papcNamespaces);
 	void					AddArgumentNamespaces(CArraySyntax* papcArguments, CCPPOverloadScopes* papcNamespaces);
+	void					AddOverloadSetNamespaces(CCPPSyntaxName* pcName, CCPPOverloadScopes* papcNamespaces);
 	void					AddAssociatedNamespaces(SCPP65Type* psType, CCPPOverloadScopes* papcNamespaces, int iDepth);
 	void					AddNamespaceOf(CCPPScope* pcScope, CCPPOverloadScopes* papcNamespaces);
 	void					NormaliseNamespaces(CCPPOverloadScopes* papcNamespaces);
 	int						DeclarationToken(CCPPFunction* pcFunction);
+	bool					IsCandidate(CCPPCandidates* pcCandidates, CCPPFunction* pcFunction);
 	bool					RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArguments, CArraySyntax* papcArguments, int* aiRanks);
 	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
 	bool					HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);

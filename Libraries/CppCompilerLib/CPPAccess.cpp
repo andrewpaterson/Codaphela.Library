@@ -83,6 +83,7 @@ bool CCPPAccess::CheckSymbol(CCPPSymbol* pcSymbol, CCPPClass* pcNaming, CCPPSynt
 bool CCPPAccess::Check(CCPPSyntax* pcDeclaration, CCPPClass* pcNaming, CCPPSyntax* pcNode)
 {
 	CCPPSyntaxClassSpecifier*	pcDeclaring;
+	CCPPSyntax*					pcUsing;
 	int							iDeclared;
 	bool						bAccessible;
 
@@ -90,6 +91,13 @@ bool CCPPAccess::Check(CCPPSyntax* pcDeclaration, CCPPClass* pcNaming, CCPPSynta
 	if (iDeclared == CPPA_None)
 	{
 		return true;
+	}
+
+	//A using-declaration of the member in the class it is named in (or a class between) gives it its own access.
+	pcUsing = pcNaming ? FindUsingDeclaration(pcNaming, pcDeclaration, pcDeclaring) : NULL;
+	if (pcUsing)
+	{
+		iDeclared = DeclaredAccess(pcUsing, &pcDeclaring);
 	}
 
 	if (pcNaming && pcNaming->mpcSpecifier && (AccessAs(pcNaming, pcDeclaring, iDeclared) != CPPA_None))
@@ -185,6 +193,63 @@ int CCPPAccess::DeclaredAccess(CCPPSyntax* pcDeclaration, CCPPSyntaxClassSpecifi
 
 	//A base of the class, or an attribute: not one of its members.
 	return CPPA_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The using-declaration of the member pcDeclaration declares, in pcClass or
+// in a base of it on the way to pcDeclaring (the member's class), nearest
+// first, or NULL: struct D : B { public: using B::p; } makes B's protected p
+// public in D.  [namespace.udecl] 19
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPAccess::FindUsingDeclaration(CCPPClass* pcClass, CCPPSyntax* pcDeclaration, CCPPSyntaxClassSpecifier* pcDeclaring)
+{
+	CCPPSyntaxDeclarator*	pcDeclarator;
+	CCPPSyntaxName*			pcName;
+	CCPPSyntax*				pcMember;
+	CCPPSyntax*				pcFound;
+	int64					lliName;
+	size					i;
+
+	if (!pcClass->mpcSpecifier || (pcClass->mpcSpecifier == pcDeclaring))
+	{
+		return NULL;
+	}
+	pcDeclarator = NULL;
+	if (pcDeclaration->GetKind() == CPPS_Declarator)
+	{
+		pcDeclarator = (CCPPSyntaxDeclarator*)pcDeclaration;
+	}
+	else if (pcDeclaration->GetKind() == CPPS_InitDeclarator)
+	{
+		pcDeclarator = ((CCPPSyntaxInitDeclarator*)pcDeclaration)->mpcDeclarator;
+	}
+	pcName = pcDeclarator ? pcDeclarator->GetName() : NULL;
+	if (!pcName || !pcName->GetLast())
+	{
+		return NULL;
+	}
+	lliName = mpcUnit->GetComponentName(pcName->GetLast());
+	for (i = 0; i < pcClass->mpcSpecifier->macpMembers.NumElements(); i++)
+	{
+		pcMember = pcClass->mpcSpecifier->macpMembers.GetPtr(i);
+		pcName = (pcMember->GetKind() == CPPS_UsingDeclaration) ? ((CCPPSyntaxUsingDeclaration*)pcMember)->mpcName : NULL;
+		if (pcName && pcName->GetLast() && (mpcUnit->GetComponentName(pcName->GetLast()) == lliName))
+		{
+			return pcMember;
+		}
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		pcFound = FindUsingDeclaration(pcClass->macBases.Get(i)->pcClass, pcDeclaration, pcDeclaring);
+		if (pcFound)
+		{
+			return pcFound;
+		}
+	}
+	return NULL;
 }
 
 

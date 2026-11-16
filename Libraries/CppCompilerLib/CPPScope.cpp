@@ -403,6 +403,18 @@ bool CCPPScope::IsUnnamedNamespace(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An inline namespace: one with a name that its parent's usings have, as
+// its members are visible there.  [namespace.def] 8
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::IsInlineNamespace(void)
+{
+	return (meKind == CPPSC_Namespace) && mpcOwner && mpcParent && (mpcParent->mapcUsings.Find(this) != ARRAY_ELEMENT_NOT_FOUND);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The namespace without a name directly in this one, or NULL.  It is always
 // among the usings, as its members are visible here.
 //

@@ -601,6 +601,10 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 		{
 			continue;
 		}
+		if (pcFunction->mbCLinkage && IsCandidate(&cCandidates, pcFunction))
+		{
+			continue;
+		}
 		uiLooked++;
 		if (pcFunction->TakesObject(eObject) && RankArguments(pcFunction, apsArguments, papcArguments, cCandidates.NextRanks()))
 		{
@@ -655,6 +659,42 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if a function of C linkage is a candidate already, declared in
+// another namespace: extern "C" functions of a name with the same
+// parameters are one function, so finding it twice isn't ambiguous.
+// [dcl.link] 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::IsCandidate(CCPPCandidates* pcCandidates, CCPPFunction* pcFunction)
+{
+	CCPPFunction*	pcOther;
+	size			i;
+	size			j;
+	bool			bSame;
+
+	for (i = 0; i < pcCandidates->NumElements(); i++)
+	{
+		pcOther = pcCandidates->GetFunction(i);
+		if (!pcOther || !pcOther->mbCLinkage || (pcOther->mapsParameters.NumElements() != pcFunction->mapsParameters.NumElements()))
+		{
+			continue;
+		}
+		bSame = true;
+		for (j = 0; bSame && (j < pcFunction->mapsParameters.NumElements()); j++)
+		{
+			bSame = pcOther->mapsParameters.GetPtr(j)->Same(pcFunction->mapsParameters.GetPtr(j));
+		}
+		if (bSame)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The token a function is first declared at, as a using-declaration's
 // overloads are those declared before it (CCPPOverloadScopes::Takes), or -1
 // if it isn't in this unit's tree (an import's).
@@ -703,17 +743,29 @@ void CCPPOverloads::GetOverloadNamespaces(CCPPSyntaxName* pcName, int64 lliName,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds the namespace pcScope is in, if it isn't there already.
+// Adds the namespace pcScope is in, with the namespaces an inline one is in
+// and the inline namespaces directly in it.  [basic.lookup.argdep] 2
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPOverloads::AddNamespaceOf(CCPPScope* pcScope, CCPPOverloadScopes* papcNamespaces)
 {
 	CCPPScope*	pcNamespace;
+	CCPPScope*	pcInline;
+	size		i;
 
 	pcNamespace = pcScope->GetEnclosingNamespace();
-	if (!papcNamespaces->Has(pcNamespace))
+	papcNamespaces->Add(pcNamespace);
+	for (i = 0; i < pcNamespace->mapcUsings.NumElements(); i++)
 	{
-		papcNamespaces->Add(pcNamespace);
+		pcInline = pcNamespace->mapcUsings.GetPtr(i);
+		if (pcInline->IsInlineNamespace() && (pcInline->mpcParent == pcNamespace))
+		{
+			papcNamespaces->Add(pcInline);
+		}
+	}
+	for (; pcNamespace->IsInlineNamespace(); pcNamespace = pcNamespace->mpcParent)
+	{
+		papcNamespaces->Add(pcNamespace->mpcParent);
 	}
 }
 
@@ -786,20 +838,60 @@ void CCPPOverloads::AddAssociatedNamespaces(SCPP65Type* psType, CCPPOverloadScop
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds the namespaces associated with the types of a call's arguments.
+// Adds the namespaces associated with the types of a call's arguments, and
+// for the name of a function those of its overloads' types.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPOverloads::AddArgumentNamespaces(CArraySyntax* papcArguments, CCPPOverloadScopes* papcNamespaces)
 {
-	size	i;
+	CCPPSyntaxIdExpression*	pcFunctionName;
+	size					i;
 
 	for (i = 0; papcArguments && (i < papcArguments->NumElements()); i++)
 	{
-		if (!mpcUnit->FunctionNameOf(papcArguments->GetPtr(i)))
+		pcFunctionName = mpcUnit->FunctionNameOf(papcArguments->GetPtr(i));
+		if (pcFunctionName)
+		{
+			AddOverloadSetNamespaces(pcFunctionName->mpcName, papcNamespaces);
+		}
+		else
 		{
 			AddAssociatedNamespaces(mpcUnit->TypeOf(papcArguments->GetPtr(i)), papcNamespaces, 0);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An argument that names a function (z(N::cb)) is associated with what its
+// overloads' parameter and return types are.  [basic.lookup.argdep] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPOverloads::AddOverloadSetNamespaces(CCPPSyntaxName* pcName, CCPPOverloadScopes* papcNamespaces)
+{
+	CCPPOverloadScopes	apcOverloads;
+	CCPPFunction*		pcFunction;
+	int64				lliName;
+	size				i;
+
+	lliName = pcName->mpcSymbol->mlliName;
+	apcOverloads.Init();
+	GetOverloadNamespaces(pcName, lliName, &apcOverloads);
+	NormaliseNamespaces(&apcOverloads);
+	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
+	{
+		if (pcFunction->mpcClass || pcFunction->mpcTemplate || !apcOverloads.Takes(pcFunction->mpcNamespace, DeclarationToken(pcFunction)))
+		{
+			continue;
+		}
+		AddAssociatedNamespaces(pcFunction->mpsReturn, papcNamespaces, 1);
+		for (i = 0; i < pcFunction->mapsParameters.NumElements(); i++)
+		{
+			AddAssociatedNamespaces(pcFunction->mapsParameters.GetPtr(i), papcNamespaces, 1);
+		}
+	}
+	apcOverloads.Kill();
 }
 
 

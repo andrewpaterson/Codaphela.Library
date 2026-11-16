@@ -65,6 +65,7 @@ public:
 protected:
 	bool	Refuse(CCPPSyntax* pcNode, const char* szMessage);
 	int		DeclaredAccess(CCPPSyntax* pcDeclaration, CCPPSyntaxClassSpecifier** ppcClass);
+	CCPPSyntax*	FindUsingDeclaration(CCPPClass* pcClass, CCPPSyntax* pcDeclaration, CCPPSyntaxClassSpecifier* pcDeclaring);
 	int		AccessAs(CCPPClass* pcClass, CCPPSyntaxClassSpecifier* pcDeclaring, int iDeclared);
 	bool	IsAccessible(CCPPClass* pcClass, CCPPSyntaxClassSpecifier* pcDeclaring, int iDeclared, CCPPSyntax* pcNode);
 	bool	IsAllowed(int iAccess, CCPPSyntaxClassSpecifier* pcClass, CCPPSyntax* pcNode);

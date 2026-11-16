@@ -107,6 +107,7 @@ public:
 	CCPPScope*		GetEnclosingNamespace(void);
 	CCPPScope*		GetNamespace(void);
 	bool			IsUnnamedNamespace(void);
+	bool			IsInlineNamespace(void);
 	CCPPScope*		FindUnnamedNamespace(void);
 	bool			IsInUnnamedNamespace(void);
 	bool			IsDependent(void);
