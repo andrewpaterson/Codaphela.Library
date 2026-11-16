@@ -121,6 +121,7 @@ void CTestWeakHolder::Free(void)
 //
 // A weak pointer doesn't keep its object: when the stack lets go it's
 // freed, and the weak pointer is NULL.  Nothing is weakly held after.
+// Printed, a weakly held object says how many weak froms it has.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestWeakPointerDoesNotKeep(void)
@@ -128,6 +129,7 @@ void TestWeakPointerDoesNotKeep(void)
 	Ptr<CTestWeakHolder>		pHolder;
 	Ptr<CTestObject>			pObject;
 	STestObjectFreedNotifier	sFreed;
+	CChars						sz;
 
 	ObjectsInit();
 	pHolder = OMalloc<CTestWeakHolder>();
@@ -137,6 +139,16 @@ void TestWeakPointerDoesNotKeep(void)
 	AssertTrue(pHolder->mwWeak.Get() == pObject);
 	AssertSize(1, gcObjects.GetWeakFroms()->NumWeakFroms(&pObject));
 	AssertSize(0, pObject->NumHeapFroms());
+	sz.Init();
+	pObject->PrintObject(&sz);
+	AssertTrue(sz.Contains(" Weak:1"));
+	sz.ReInit();
+	pObject->PrintWeakFroms(&sz);
+	AssertTrue(sz.Contains(" slot 0"));
+	sz.ReInit();
+	pHolder->PrintObject(&sz);
+	AssertFalse(sz.Contains(" Weak:"));
+	sz.Kill();
 
 	pObject = NULL;
 	AssertTrue(sFreed.bFreed);

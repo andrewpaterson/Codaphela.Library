@@ -59,6 +59,7 @@ void CBaseObject::DumpFroms(void)
 	CEmbeddedObject*	pcFromObject;
 	size				iLength;
 	CChars				szLine;
+	size				uiNumWeakFroms;
 
 	sz.Init();
 
@@ -91,7 +92,15 @@ void CBaseObject::DumpFroms(void)
 		sz.Append("], ");
 		sz.Append("Stack Froms [");
 		sz.Append(pcEmbedded->CEmbeddedObject::NumStackFroms());
-		sz.Append("]\n");
+		sz.Append("]");
+		uiNumWeakFroms = GetObjectsOrDefault()->GetWeakFroms()->NumWeakFroms(pcEmbedded);
+		if (uiNumWeakFroms > 0)
+		{
+			sz.Append(", Weak Froms [");
+			sz.Append(uiNumWeakFroms);
+			sz.Append("]");
+		}
+		sz.AppendNewLine();
 
 		for (j = 0; j < iNumHeapFroms; j++)
 		{
@@ -100,6 +109,7 @@ void CBaseObject::DumpFroms(void)
 			pcFromObject->PrintObject(&sz);
 			sz.AppendNewLine();
 		}
+		pcEmbedded->PrintWeakFroms(&sz);
 	}
 
 	sz.Append(&szLine);

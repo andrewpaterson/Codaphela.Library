@@ -39,6 +39,7 @@ char* CEmbeddedObject::PrintObject(CChars* psz)
 char* CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded, bool bPointerMemory)
 {
 	int		iDistToRoot;
+	size	uiNumWeakFroms;
 
 	if (bPointerMemory)
 	{
@@ -76,6 +77,12 @@ char* CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded, bool bPointerMem
 	psz->Append(CEmbeddedObject::NumHeapFroms());
 	psz->Append(",");
 	psz->Append(CEmbeddedObject::NumStackFroms());
+	uiNumWeakFroms = GetObjectsOrDefault()->GetWeakFroms()->NumWeakFroms(this);
+	if (uiNumWeakFroms > 0)
+	{
+		psz->Append(" Weak:");
+		psz->Append(uiNumWeakFroms);
+	}
 	if (bEmbedded)
 	{
 		psz->Append(")");
@@ -106,6 +113,30 @@ void CEmbeddedObject::DumpHeapFroms(void)
 		sz.AppendNewLine();
 	}
 	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each weak reference to this: its holder and the slot in it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::PrintWeakFroms(CChars* psz)
+{
+	CWeakFroms*	pcWeakFroms;
+	SWeakFrom*	psFrom;
+	size		i;
+
+	pcWeakFroms = GetObjectsOrDefault()->GetWeakFroms();
+	for (i = 0; i < pcWeakFroms->NumWeakFroms(this); i++)
+	{
+		psFrom = pcWeakFroms->GetWeakFrom(this, i);
+		psz->Append(" Weak from ");
+		psz->Append(PointerToString(psFrom->pcHolder));
+		psz->Append(" slot ");
+		psz->Append(psFrom->uiSlot);
+		psz->AppendNewLine();
+	}
 }
 
 

@@ -190,6 +190,7 @@ public:
 			bool				TestRemoveStackFrom(CPointer* pcPointer);
 
 			void				DumpHeapFroms(void);
+			void				PrintWeakFroms(CChars* psz);
 
 public:
 	virtual void				GetStackFroms(CArrayStackPointerE32* papcFroms);  //This object's stack froms and those of the objects embedded in it.
