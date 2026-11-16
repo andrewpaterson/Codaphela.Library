@@ -110,6 +110,7 @@ void TestTabbedContainerTabs(void)
 		Ptr<CCanvas>				pFile;
 		int32						iBarHeight;
 		int32						iEditorWidth;
+		SInt32Vec2					sNoWidth;
 		CTestTabbedContainerListener	cListener;
 
 		cNativeFactory.Init(&gcMemoryAllocator, 240, 100, NULL);
@@ -243,6 +244,18 @@ void TestTabbedContainerTabs(void)
 		pFileTab = pTabbed->AddTab("Again", pFile, NULL, true);
 		pTestWindow->Layout();
 		AssertTrue(pFileTab->GetPosition().x > pEditorTab->GetPosition().x);
+
+		//Laid out in no width (a tool window not shown yet) the selected tab past the edge stays where it is; in a
+		//width it doesn't fit in it goes to the front.
+		pTabbed->Select(pFileTab);
+		sNoWidth.Init(0, 100);
+		pTabbed->Layout(pTabbed->GetPosition(), sNoWidth);
+		AssertTrue(pTabbed->GetTab(2) == pFileTab);
+		sNoWidth.Init(pInputTab->GetActualSize().x + 4, 100);
+		pTabbed->Layout(pTabbed->GetPosition(), sNoWidth);
+		AssertTrue(pTabbed->GetTab(0) == pFileTab);
+		AssertTrue(pTabbed->MoveTab(pFileTab, 2));
+		pTestWindow->Layout();
 
 		//And back by index.
 		pTabbed->Select((size)0);

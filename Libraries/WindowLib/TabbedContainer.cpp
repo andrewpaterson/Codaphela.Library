@@ -849,7 +849,9 @@ void CTabbedContainer::TabDragged(Ptr<CTabComponent> pTab)
 //
 // With the overflow menu only the tabs that fit on the bar are on it; the
 // selected tab is moved to the front if it wouldn't fit.  Without it every
-// tab is on the bar however narrow it is.
+// tab is on the bar however narrow it is.  Laid out in no width (a tool
+// window not shown yet, a dock pane being made) no tab is moved: none
+// would fit, and the order would be lost for nothing.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
@@ -879,7 +881,7 @@ void CTabbedContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 			uiShown = 1;
 		}
 		uiSelected = mpSelected.IsNotNull() ? IndexOf(mpSelected) : 0;
-		if ((uiSelected != ARRAY_ELEMENT_NOT_FOUND) && (uiSelected >= uiShown))
+		if ((uiSelected != ARRAY_ELEMENT_NOT_FOUND) && (uiSelected >= uiShown) && (sAreaSize.x > 0))
 		{
 			MoveTab(mpSelected, 0);
 		}
@@ -897,7 +899,7 @@ void CTabbedContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 			PlaceTabs();
 		}
 		//The tabs past the edge are cut off; a selected one among them is moved to the front so it shows.
-		if (mbBarShown && mpSelected.IsNotNull())
+		if (mbBarShown && mpSelected.IsNotNull() && (sAreaSize.x > 0))
 		{
 			uiSelected = IndexOf(mpSelected);
 			iUsed = 0;
