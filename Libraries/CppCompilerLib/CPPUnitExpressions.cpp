@@ -485,6 +485,42 @@ CCPPSymbol* CCPPUnit::QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The value of a variable template's instance that is a const or
+// constexpr integer (size<long>): its initialiser, worked out with its
+// template's parameters its arguments.  False if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue)
+{
+	CCPPVariable*					pcVariable;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	bool							bResult;
+
+	pcVariable = VariableInstance(pcId->mpcName->mpcSymbol, pcId->mpcName->GetLast(), pcId);
+	if (!pcVariable || !pcVariable->mpsType->IsInteger())
+	{
+		return false;
+	}
+	pcInit = VariableDeclarator(pcVariable);
+	pcSimple = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+	if (!pcSimple->mpcSpecifiers || !(pcSimple->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)) || !pcInit->mpcInitializer)
+	{
+		return false;
+	}
+	mcContext.EnterBindings(pcVariable->mpcBindings);
+	bResult = Constant(pcInit->mpcInitializer, plliValue);
+	mcContext.LeaveBindings();
+	if (bResult)
+	{
+		*plliValue = ConstantOfType(pcVariable->mpsType, *plliValue);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The member of the kind eKind Class::Name names, where Class is a class, an instance of a class template, a typedef of
 // one or a template parameter, and in ppsClass the class that declares it: a member of an instance can depend on its
 // template arguments, so it is worked out with that class's bindings.  NULL if it isn't one.  A qualifier after a
@@ -1143,6 +1179,10 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		if (pcSymbol->meKind == CPPSK_Enumerator)
 		{
 			return EnumeratorValue(pcSymbol, plliValue);
+		}
+		if (pcSymbol->meKind == CPPSK_VariableTemplate)
+		{
+			return VariableTemplateValue(pcId, plliValue);
 		}
 		if (pcSymbol->meKind == CPPSK_ValueParameter)
 		{

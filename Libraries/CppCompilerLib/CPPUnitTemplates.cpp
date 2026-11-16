@@ -48,16 +48,42 @@ bool CCPPUnit::IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Defines each class template instance's static data members that a
-// template declaration outside the class defines, as the instance's data
-// (every unit that has the instance has it, and the link keeps one), with
-// the template's parameters its arguments.  Done when the unit's functions
-// are written, as an initialiser that isn't constant is a start up
-// routine; until no instance is left without them, as one may need more.
-// [temp.static]
+// The data of templates' instances, defined when the unit's functions are
+// written (as an initialiser that isn't a constant is a start up routine):
+// class template instances' static members (DefineInstanceStatics) and
+// variable templates' instances (DefineVariableInstances), until none is
+// left, as one's may need more.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::DefineInstanceStatics(void)
+bool CCPPUnit::DefineInstanceData(void)
+{
+	bool	bResult;
+	bool	bDefined;
+
+	bResult = true;
+	do
+	{
+		bDefined = DefineInstanceStatics(&bResult);
+		bDefined |= DefineVariableInstances(&bResult);
+		if (bDefined)
+		{
+			GenerateQueued();
+		}
+	} while (bDefined);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Defines each class template instance's static data members that a
+// template declaration outside the class defines and that aren't yet, as
+// the instance's data (every unit that has the instance has it, and the
+// link keeps one), with the template's parameters its arguments.  True if
+// it defined one; *pbResult false after an error.  [temp.static]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::DefineInstanceStatics(bool* pbResult)
 {
 	CCPPSyntaxTemplateDeclaration*	pcDeclaration;
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
@@ -67,39 +93,213 @@ bool CCPPUnit::DefineInstanceStatics(void)
 	size							i;
 	size							j;
 	bool							bDefined;
-	bool							bResult;
 
-	bResult = true;
-	do
+	bDefined = false;
+	for (i = 0; i < mapcStaticMemberTemplates.NumElements(); i++)
 	{
-		bDefined = false;
-		for (i = 0; i < mapcStaticMemberTemplates.NumElements(); i++)
+		pcDeclaration = (CCPPSyntaxTemplateDeclaration*)mapcStaticMemberTemplates.GetPtr(i);
+		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcDeclaration;
+		pcName = ((CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0))->mpcDeclarator->GetName();
+		pcOwner = GetComponentTemplate(pcName->GetQualifier());
+		for (j = 0; j < mapcClasses.NumElements(); j++)
 		{
-			pcDeclaration = (CCPPSyntaxTemplateDeclaration*)mapcStaticMemberTemplates.GetPtr(i);
-			pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcDeclaration;
-			pcName = ((CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0))->mpcDeclarator->GetName();
-			pcOwner = GetComponentTemplate(pcName->GetQualifier());
-			for (j = 0; j < mapcClasses.NumElements(); j++)
+			pcClass = mapcClasses.GetPtr(j);
+			if (!pcClass->mpcTemplate || (pcClass->mpcTemplate != pcOwner) || !pcClass->IsComplete() || pcClass->mbExternInstance || IsInstanceStaticDefined(pcClass, pcName))
 			{
-				pcClass = mapcClasses.GetPtr(j);
-				if (!pcClass->mpcTemplate || (pcClass->mpcTemplate != pcOwner) || !pcClass->IsComplete() || pcClass->mbExternInstance || IsInstanceStaticDefined(pcClass, pcName))
-				{
-					continue;
-				}
-				mcContext.EnterBindings(RenameBindings(pcClass, pcDeclaration));
-				mpcInstanceStatics = pcClass;
-				bResult &= GlobalDeclaration(pcSimple);
-				mpcInstanceStatics = NULL;
-				mcContext.LeaveBindings();
-				bDefined = true;
+				continue;
 			}
+			mcContext.EnterBindings(RenameBindings(pcClass, pcDeclaration));
+			mpcDefining = OwnStatic(pcClass, pcName->mpcSymbol);
+			*pbResult &= GlobalDeclaration(pcSimple);
+			mpcDefining = NULL;
+			mcContext.LeaveBindings();
+			bDefined = true;
 		}
-		if (bDefined)
+	}
+	return bDefined;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Defines each variable template instance that isn't yet, as its own data
+// (every unit that has the instance has it, and the link keeps one), with
+// its template's parameters its arguments, or as its explicit
+// specialisation.  True if it defined one; *pbResult false after an error.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::DefineVariableInstances(bool* pbResult)
+{
+	CCPPVariable*	pcVariable;
+	size			i;
+	bool			bDefined;
+
+	bDefined = false;
+	for (i = 0; i < mapcVariableInstances.NumElements(); i++)
+	{
+		pcVariable = mapcVariableInstances.GetPtr(i);
+		if (pcVariable->mbDefined)
 		{
-			GenerateQueued();
+			continue;
 		}
-	} while (bDefined);
-	return bResult;
+		mcContext.EnterBindings(pcVariable->mpcBindings);
+		mpcDefining = pcVariable;
+		*pbResult &= GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)pcVariable->mpcTemplate->mpcDefinition);
+		mpcDefining = NULL;
+		mcContext.LeaveBindings();
+		pcVariable->mbDefined = true;
+		bDefined = true;
+	}
+	return bDefined;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name a variable template's declaration declares (pi in
+// template<class T> T pi = T(3);, size<char> in an explicit
+// specialisation), or NULL if the declaration isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxName* CCPPUnit::VariableTemplateName(CCPPSyntaxSimpleDeclaration* pcSimple)
+{
+	CCPPSyntaxInitDeclarator*	pcInit;
+	CCPPSyntaxName*				pcName;
+
+	if ((pcSimple->macpDeclarators.NumElements() != 1) || (pcSimple->macpDeclarators.GetPtr(0)->GetKind() != CPPS_InitDeclarator))
+	{
+		return NULL;
+	}
+	pcInit = (CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0);
+	pcName = pcInit->mpcDeclarator ? pcInit->mpcDeclarator->GetName() : NULL;
+	if (!pcName || pcInit->mpcDeclarator->IsFunction() || !pcName->mpcSymbol || (pcName->mpcSymbol->meKind != CPPSK_VariableTemplate) || (pcName->macpComponents.NumElements() != 1))
+	{
+		return NULL;
+	}
+	return pcName;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The init-declarator a variable is declared by: its symbol's, or for a
+// variable template's instance its template's (or explicit
+// specialisation's), whose symbol all its instances share.  NULL if it
+// has none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxInitDeclarator* CCPPUnit::VariableDeclarator(CCPPVariable* pcVariable)
+{
+	CCPPSyntax*	pcDeclaration;
+
+	if (pcVariable->mpcTemplate)
+	{
+		return (CCPPSyntaxInitDeclarator*)((CCPPSyntaxSimpleDeclaration*)pcVariable->mpcTemplate->mpcDefinition)->macpDeclarators.GetPtr(0);
+	}
+	pcDeclaration = pcVariable->mpcSymbol ? pcVariable->mpcSymbol->mpcDeclaration : NULL;
+	return (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator)) ? (CCPPSyntaxInitDeclarator*)pcDeclaration : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The variable a variable template's name with its arguments (pi<int>)
+// names: its instance for the arguments, made the first time it is named,
+// of its explicit specialisation for them if it has one.  Defined with the
+// unit's data (DefineVariableInstances).  NULL after an error.
+// [temp.variable]
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPVariable* CCPPUnit::VariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
+{
+	CCPPTemplate*				pcTemplate;
+	CCPPTemplate*				pcSource;
+	CCPPTemplateArguments*		pcBindings;
+	CCPPSyntaxInitDeclarator*	pcInit;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPVariable*				pcVariable;
+	SCPP65Type*					psType;
+	CChars						szArguments;
+	size						i;
+
+	pcTemplate = GetTemplate(pcSymbol);
+	if (!pcTemplate || !pcComponent || !pcComponent->mbTemplateArguments)
+	{
+		Error(pcNode, "A variable template is named with its template arguments");
+		return NULL;
+	}
+	szArguments.Init();
+	pcBindings = BindArguments(pcTemplate->mpcDeclaration, &pcComponent->macpTemplateArguments, NULL, &szArguments, pcNode);
+	pcVariable = NULL;
+	for (i = 0; pcBindings && !pcVariable && (i < mapcVariableInstances.NumElements()); i++)
+	{
+		if ((mapcVariableInstances.GetPtr(i)->mpcSymbol == pcSymbol) && mapcVariableInstances.GetPtr(i)->mszArguments.Equals(&szArguments))
+		{
+			pcVariable = mapcVariableInstances.GetPtr(i);
+		}
+	}
+	if (!pcBindings || pcVariable)
+	{
+		szArguments.Kill();
+		return pcVariable;
+	}
+
+	pcSource = FindVariableSpecialisation(pcTemplate, &szArguments, pcNode);
+	pcBindings = pcSource ? NULL : pcBindings;
+	pcSource = pcSource ? pcSource : pcTemplate;
+	pcSimple = (CCPPSyntaxSimpleDeclaration*)pcSource->mpcDefinition;
+	pcInit = (CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0);
+	mcContext.EnterBindings(pcBindings);
+	psType = mcDeclarators.GetType(pcSimple->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+	mcContext.LeaveBindings();
+	if (psType)
+	{
+		pcVariable = AddVariable(&mapcGlobals, pcSymbol, psType, CPPVS_Global, 0);
+		pcVariable->mpcTemplate = pcSource;
+		pcVariable->mpcBindings = pcBindings;
+		pcVariable->mszArguments.Append(&szArguments);
+		mapcVariableInstances.Add(pcVariable);
+	}
+	szArguments.Kill();
+	return pcVariable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The explicit specialisation of a variable template for the mangled
+// arguments (template<> int size<char> = 9;), or NULL.  A specialisation's
+// arguments are worked out once.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPTemplate* CCPPUnit::FindVariableSpecialisation(CCPPTemplate* pcPrimary, CChars* pszArguments, CCPPSyntax* pcNode)
+{
+	CCPPTemplate*	pcTemplate;
+	size			i;
+
+	for (i = 0; i < mapcTemplates.NumElements(); i++)
+	{
+		pcTemplate = mapcTemplates.GetPtr(i);
+		if ((pcTemplate->mpcPrimary != pcPrimary) || (pcTemplate == pcPrimary) || !pcTemplate->mpcPattern)
+		{
+			continue;
+		}
+		if (!pcTemplate->mbArguments)
+		{
+			pcTemplate->mbArguments = true;
+			BeginQuiet();
+			if (!BindArguments(pcPrimary->mpcDeclaration, &pcTemplate->mpcPattern->macpTemplateArguments, NULL, &pcTemplate->mszArguments, pcNode))
+			{
+				pcTemplate->mszArguments.Clear();
+			}
+			EndQuiet();
+		}
+		if (!pcTemplate->mszArguments.Empty() && pcTemplate->mszArguments.Equals(pszArguments))
+		{
+			return pcTemplate;
+		}
+	}
+	return NULL;
 }
 
 
@@ -215,6 +415,19 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 		{
 			//template<class T> int S<T>::count = 3; is each instance's (DefineInstanceStatics).
 			mapcStaticMemberTemplates.Add(pcTemplateDeclaration);
+		}
+		else if (VariableTemplateName(pcSimple))
+		{
+			//template<class T> T pi = T(3); and template<> int size<char> = 9;
+			pcName = VariableTemplateName(pcSimple);
+			if (bExplicit)
+			{
+				Specialisation(pcName->mpcSymbol, pcTemplateDeclaration, pcSimple, pcName->GetLast());
+			}
+			else
+			{
+				NewTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcSimple, false);
+			}
 		}
 	}
 	else if (pcDeclaration->GetKind() == CPPS_FunctionDefinition)

@@ -477,9 +477,9 @@ SCPPConstantVariable* CCPPConstants::FindVariable(const char* szLabel)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A variable's initialiser (its declaration's, or for a static member the
-// one its class gave it) and its declaration's specifiers' flags; NULL if
-// it has none.
+// A variable's initialiser (its declaration's, a variable template
+// instance's its template's, or for a static member the one its class gave
+// it) and its declaration's specifiers' flags; NULL if it has none.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPConstants::VariableInitialiser(CCPPVariable* pcVariable, uint32* puiFlags)
@@ -489,8 +489,8 @@ CCPPSyntax* CCPPConstants::VariableInitialiser(CCPPVariable* pcVariable, uint32*
 	CCPPSyntax*						pcInitialiser;
 
 	*puiFlags = 0;
-	pcInit = pcVariable->mpcSymbol ? (CCPPSyntaxInitDeclarator*)pcVariable->mpcSymbol->mpcDeclaration : NULL;
-	if (!pcInit || (pcInit->GetKind() != CPPS_InitDeclarator))
+	pcInit = mpcUnit->VariableDeclarator(pcVariable);
+	if (!pcInit)
 	{
 		return NULL;
 	}
@@ -575,7 +575,9 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 	}
 	szInitialiser.Init();
 	NewName("__initialise", &szInitialiser);
+	mpcUnit->GetContext()->EnterBindings(pcVariable->mpcBindings);
 	pcIR = pcFrontEnd->ConstantInitialiser(szInitialiser.Text(), pcVariable->mpsType, pcInitialiser);
+	mpcUnit->GetContext()->LeaveBindings();
 	szInitialiser.Kill();
 	EndWriting();
 	if (!pcIR)

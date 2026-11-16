@@ -54,7 +54,7 @@ bool CCPPSymbol::IsType(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSymbol::IsTemplate(void)
 {
-	return (meKind == CPPSK_ClassTemplate) || (meKind == CPPSK_FunctionTemplate) || (meKind == CPPSK_AliasTemplate);
+	return (meKind == CPPSK_ClassTemplate) || (meKind == CPPSK_FunctionTemplate) || (meKind == CPPSK_AliasTemplate) || (meKind == CPPSK_VariableTemplate);
 }
 
 

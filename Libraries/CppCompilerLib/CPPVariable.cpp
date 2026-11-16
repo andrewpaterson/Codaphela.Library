@@ -43,5 +43,19 @@ void CCPPVariable::Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eS
 	mbCLinkage = bCLinkage;
 	mbRestrict = false;
 	mpcAnonymous = NULL;
+	mpcTemplate = NULL;
+	mpcBindings = NULL;
+	mszArguments.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPVariable::Kill(void)
+{
+	mszArguments.Kill();
 }
 

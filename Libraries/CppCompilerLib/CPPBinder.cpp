@@ -1103,7 +1103,11 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		}
 	}
 
-	//A local, a parameter, a global or a static member.
+	//A local, a parameter, a global or a static member; pi<int> a variable template's instance.
+	if (!pcBound->mpcVariable && pcSymbol && (pcSymbol->meKind == CPPSK_VariableTemplate))
+	{
+		pcBound->mpcVariable = mpcUnit->VariableInstance(pcSymbol, pcId->mpcName->GetLast(), pcId);
+	}
 	if (!pcBound->mpcVariable && pcSymbol)
 	{
 		pcBound->mpcVariable = mpcUnit->GetVariable(pcSymbol);

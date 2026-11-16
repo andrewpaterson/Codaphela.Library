@@ -344,6 +344,7 @@ ECPPHighlight CCPPHighlighter::GetIdentifierKind(CCPPTokeniser* pcTokeniser, CCP
 	case CPPSK_Function:
 	case CPPSK_FunctionTemplate:	return CPPH_Function;
 	case CPPSK_Variable:			return CPPH_Variable;
+	case CPPSK_VariableTemplate:	return CPPH_Variable;
 	case CPPSK_Field:				return CPPH_Field;
 	case CPPSK_Parameter:
 	case CPPSK_ValueParameter:		return CPPH_Parameter;

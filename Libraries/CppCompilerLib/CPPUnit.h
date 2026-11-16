@@ -252,7 +252,8 @@ protected:
 	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
 	CArraySyntax			mapcMemberSpecialisations;	//template<> R Class<Arguments>::f() { ... }, each given to its instance.
 	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
-	CCPPClass*				mpcInstanceStatics;	//The instance whose static members GlobalDeclaration is defining, or NULL.
+	CCPPVariable*			mpcDefining;		//The variable of a template's instance GlobalDeclaration is defining, or NULL.
+	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
 	int						miUnevaluated;		//How deep in operands that aren't evaluated (sizeof, decltype) the unit is.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
@@ -536,7 +537,14 @@ public:
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
 	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
 	bool					IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple);
-	bool					DefineInstanceStatics(void);
+	bool					DefineInstanceData(void);
+	bool					DefineInstanceStatics(bool* pbResult);
+	bool					DefineVariableInstances(bool* pbResult);
+	CCPPSyntaxName*			VariableTemplateName(CCPPSyntaxSimpleDeclaration* pcSimple);
+	CCPPVariable*			VariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
+	CCPPSyntaxInitDeclarator*	VariableDeclarator(CCPPVariable* pcVariable);
+	CCPPTemplate*			FindVariableSpecialisation(CCPPTemplate* pcPrimary, CChars* pszArguments, CCPPSyntax* pcNode);
+	bool					VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue);
 	bool					IsInstanceStaticDefined(CCPPClass* pcClass, CCPPSyntaxName* pcName);
 	CCPPVariable*			OwnStatic(CCPPClass* pcClass, CCPPSymbol* pcSymbol);
 	void					SpecialiseMembers(CCPPClass* pcClass);

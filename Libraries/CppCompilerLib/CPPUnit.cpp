@@ -284,7 +284,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapsLambdas.Init();
 	mapcMemberSpecialisations.Init();
 	mapcStaticMemberTemplates.Init();
-	mpcInstanceStatics = NULL;
+	mpcDefining = NULL;
+	mapcVariableInstances.Init();
 	miUnevaluated = 0;
 	mapcQueue.Init();
 	muiQueueNext = 0;
@@ -393,6 +394,7 @@ void CCPPUnit::Kill(void)
 	FreeLambdas();
 	mapcMemberSpecialisations.Kill();
 	mapcStaticMemberTemplates.Kill();
+	mapcVariableInstances.Kill();
 	mapcConstantTypes.Kill();
 	mapcQueue.Kill();
 	mapcFailed.Kill();
@@ -484,10 +486,10 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 		Declarations(&pcRoot->macpDeclarations);
 	}
 
-	//Functions generated when they are first called, which may call others, and the static members of class
-	//templates' instances.
+	//Functions generated when they are first called, which may call others, and the data of templates' instances:
+	//class templates' static members and variable templates' instances.
 	GenerateQueued();
-	DefineInstanceStatics();
+	DefineInstanceData();
 	ReportClassErrors();
 	ReportNamedInstances();
 	CheckContext();
@@ -1980,13 +1982,13 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		if ((lliName == -1) && pcName && pcName->IsQualifiedByClass())
 		{
 			//int CClass::siStatic = 0; defines a static data member, so the class is laid out.
-			pcClass = mpcInstanceStatics ? mpcInstanceStatics : GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
+			pcClass = mpcDefining ? mpcDefining->mpcClass : GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
 			if (pcClass)
 			{
 				CompleteClass(pcClass, pcInit);
 			}
 		}
-		pcVariable = pcInit->mpcSymbol ? (mpcInstanceStatics ? OwnStatic(mpcInstanceStatics, pcInit->mpcSymbol) : GetVariable(pcInit->mpcSymbol)) : NULL;
+		pcVariable = pcInit->mpcSymbol ? (mpcDefining ? mpcDefining : GetVariable(pcInit->mpcSymbol)) : NULL;
 		if (!pcInit->mpcSymbol || ((lliName == -1) && pcName && pcName->IsQualifiedByClass() && !(pcVariable && pcVariable->mpcClass)))
 		{
 			bResult &= Error(pcInit, "Only variables with simple names are supported by the compiler yet");
@@ -2053,7 +2055,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		AppendVariableLabel(&szLabel, pcVariable);
 		bConstantData = (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) != 0;
 		bBss = !bConstantData && IsBss(pcInitialiser, psType);
-		mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !pcVariable->mbInternal, mpcInstanceStatics ? ", comdat" : (HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL), bBss);
+		mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !pcVariable->mbInternal, mpcDefining ? ", comdat" : (HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL), bBss);
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
 		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
@@ -2235,6 +2237,7 @@ void CCPPUnit::FreeVariables(CArrayCPPVariables* papcVariables)
 
 	for (i = 0; i < papcVariables->NumElements(); i++)
 	{
+		papcVariables->GetPtr(i)->Kill();
 		free(papcVariables->GetPtr(i));
 	}
 	papcVariables->ReInit();

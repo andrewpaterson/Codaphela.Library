@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_P_P_VARIABLE_H__
 #define __C_P_P_VARIABLE_H__
+#include "BaseLib/Chars.h"
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "CPPSymbol.h"
@@ -40,6 +41,8 @@ class CCPPSyntax;
 
 
 //A variable that has been given storage: a global, a static data member, a static local, a parameter or a local.
+class CCPPTemplate;
+class CCPPTemplateArguments;
 class CCPPVariable
 {
 public:
@@ -55,8 +58,12 @@ public:
 	bool			mbUsed;
 	bool			mbRestrict;				//A global or parameter pointer declared __restrict.
 	CCPPClass*		mpcAnonymous;			//The anonymous union or struct declared in a function that this local is a member of.
+	CCPPTemplate*	mpcTemplate;			//A variable template's instance: the template (or explicit specialisation) it is of...
+	CCPPTemplateArguments*	mpcBindings;	//...its arguments bound (NULL for a specialisation's)...
+	CChars			mszArguments;			//...and mangled, for its label.
 
 	void	Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset, bool bCLinkage);
+	void	Kill(void);
 };
 
 

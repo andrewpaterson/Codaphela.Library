@@ -173,6 +173,12 @@ void CCPPMangler::AppendGlobalLabel(CChars* psz, CCPPVariable* pcVariable)
 		AppendScopeNames(psz, pcVariable->mpcSymbol->mpcScope->GetNamespace());
 	}
 	psz->Append(szIdentifier, iLength);
+	if (pcVariable->mszArguments.Length() > 0)
+	{
+		//A variable template's instance, as a class template's is.
+		psz->Append("__T");
+		psz->Append(&pcVariable->mszArguments);
+	}
 }
 
 

@@ -981,7 +981,7 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 	}
 	else
 	{
-		eKind = CPPSK_Variable;
+		eKind = IsDeclaringTemplate() ? CPPSK_VariableTemplate : CPPSK_Variable;
 	}
 
 	//A template's non-type parameter is in the template's scope, not the one enclosing it.
