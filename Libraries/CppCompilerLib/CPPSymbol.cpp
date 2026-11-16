@@ -44,7 +44,7 @@ void CCPPSymbol::Init(int64 lliName, ECPPSymbolKind eKind, CCPPSyntax* pcDeclara
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSymbol::IsType(void)
 {
-	return (meKind == CPPSK_Class) || (meKind == CPPSK_Enum) || (meKind == CPPSK_Typedef) || (meKind == CPPSK_ClassTemplate) || (meKind == CPPSK_AliasTemplate) || (meKind == CPPSK_TypeParameter) || (meKind == CPPSK_BuiltinType);
+	return (meKind == CPPSK_Class) || (meKind == CPPSK_Enum) || (meKind == CPPSK_Typedef) || (meKind == CPPSK_ClassTemplate) || (meKind == CPPSK_AliasTemplate) || (meKind == CPPSK_TypeParameter) || (meKind == CPPSK_BuiltinType) || (meKind == CPPSK_TemplateTemplateParameter);
 }
 
 
@@ -54,7 +54,7 @@ bool CCPPSymbol::IsType(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSymbol::IsTemplate(void)
 {
-	return (meKind == CPPSK_ClassTemplate) || (meKind == CPPSK_FunctionTemplate) || (meKind == CPPSK_AliasTemplate) || (meKind == CPPSK_VariableTemplate);
+	return (meKind == CPPSK_ClassTemplate) || (meKind == CPPSK_FunctionTemplate) || (meKind == CPPSK_AliasTemplate) || (meKind == CPPSK_VariableTemplate) || (meKind == CPPSK_TemplateTemplateParameter);
 }
 
 

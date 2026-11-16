@@ -1015,6 +1015,7 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 		psBinding->palliPack = NULL;
 		psBinding->bSelf = false;
 		psBinding->pcArgument = NULL;
+		psBinding->pcTemplate = NULL;
 
 		if (pcParameter->GetKind() == CPPS_TypeParameter)
 		{
@@ -1025,6 +1026,15 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 				//A pack (the last parameter) takes the rest of the explicit arguments, or else the deduced types.
 				bResult = BindTypePack(psBinding, &asArguments, i, papsDeduced, pszArguments);
 				break;
+			}
+			if (pcType->mpcTemplate)
+			{
+				bResult = BindTemplate(psBinding, psArgument ? psArgument->pcArgument : pcType->mpcDefault, pcNode, pszArguments);
+				if (!bResult)
+				{
+					break;
+				}
+				continue;
 			}
 			if (psArgument)
 			{
@@ -1153,6 +1163,46 @@ bool CCPPUnit::BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgume
 	{
 		mcMangler.AppendFunctionName(pszArguments, pcSymbol->mlliName);
 	}
+	pszArguments->Append('E');
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A template template parameter takes the class template its argument (or
+// default) names: Use<Box, long>'s C is Box.  Mangled as _Y, the template's
+// scopes and name, E.  [temp.arg.template]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CChars* pszArguments)
+{
+	CCPPSyntaxTypeId*			pcTypeId;
+	CCPPSyntaxTypeSpecifier*	pcType;
+	CCPPSyntaxName*				pcName;
+	char*						szName;
+	int							iLength;
+
+	pcTypeId = (pcArgument && (pcArgument->GetKind() == CPPS_TypeId)) ? (CCPPSyntaxTypeId*)pcArgument : NULL;
+	pcType = (pcTypeId && pcTypeId->mpcSpecifiers) ? pcTypeId->mpcSpecifiers->mpcType : NULL;
+	pcName = (pcType && (pcType->GetKind() == CPPS_NamedTypeSpecifier) && (!pcTypeId->mpcDeclarator || pcTypeId->mpcDeclarator->IsEmpty())) ? ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName : NULL;
+	if (pcName && pcName->mpcSymbol && (pcName->mpcSymbol->meKind == CPPSK_TemplateTemplateParameter))
+	{
+		//A template template parameter passed on: what it is bound to.
+		psBinding->pcTemplate = FindBinding(pcName->mpcSymbol) ? FindBinding(pcName->mpcSymbol)->pcTemplate : NULL;
+	}
+	else if (pcName && pcName->mpcSymbol && (pcName->mpcSymbol->meKind == CPPSK_ClassTemplate) && !pcName->GetLast()->mbTemplateArguments)
+	{
+		psBinding->pcTemplate = GetTemplate(pcName->mpcSymbol);
+	}
+	if (!psBinding->pcTemplate)
+	{
+		return Error(pcArgument ? pcArgument : pcNode, "The template argument must be a class template");
+	}
+	pszArguments->Append("_Y");
+	mcMangler.AppendScopeNames(pszArguments, psBinding->pcTemplate->mpcSymbol->mpcScope);
+	szName = mpcTokeniser->GetIdentifier(psBinding->pcTemplate->mpcSymbol->mlliName, &iLength);
+	pszArguments->Append(szName, iLength);
 	pszArguments->Append('E');
 	return true;
 }
@@ -1394,7 +1444,7 @@ CCPPTemplateArguments* CCPPUnit::BindAsItself(CCPPSyntaxTemplateDeclaration* pcD
 			{
 				break;
 			}
-			bBound = pcType->mpcSymbol != NULL;
+			bBound = pcType->mpcSymbol && !pcType->mpcTemplate;
 			if (bBound)
 			{
 				apsTypes.Add(PlaceholderClass(pcType->mpcSymbol)->mpsType);

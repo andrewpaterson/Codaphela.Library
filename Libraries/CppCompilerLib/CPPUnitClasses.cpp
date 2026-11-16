@@ -287,6 +287,17 @@ CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCP
 		psBinding = FindBinding(pcSymbol);
 		return (psBinding && psBinding->psType && psBinding->psType->IsClass()) ? psBinding->psType->pcClass : NULL;
 	}
+	if (pcSymbol->meKind == CPPSK_TemplateTemplateParameter)
+	{
+		//C<T>, C bound to a class template: its instance.
+		psBinding = FindBinding(pcSymbol);
+		if (!psBinding || !psBinding->pcTemplate || !pcComponent || !pcComponent->mbTemplateArguments)
+		{
+			Error(pcNode, "A template template parameter used outside an instantiation");
+			return NULL;
+		}
+		return InstantiateClass(psBinding->pcTemplate, &pcComponent->macpTemplateArguments, pcNode);
+	}
 	if (pcSymbol->meKind == CPPSK_ClassTemplate)
 	{
 		pcTemplate = GetTemplate(pcSymbol);

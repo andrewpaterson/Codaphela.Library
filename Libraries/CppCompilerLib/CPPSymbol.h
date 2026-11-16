@@ -43,6 +43,7 @@ enum ECPPSymbolKind
 	CPPSK_Label,
 	CPPSK_BuiltinType,			//Compiler types with identifier names, like __builtin_va_list.
 	CPPSK_VariableTemplate,		//template<class T> T pi = T(3);  [temp] 1
+	CPPSK_TemplateTemplateParameter,	//template<template<class> class C> ...: C, bound to a class template.  [temp.param] 1
 };
 
 

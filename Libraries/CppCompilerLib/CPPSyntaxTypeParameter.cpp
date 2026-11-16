@@ -33,6 +33,7 @@ void CCPPSyntaxTypeParameter::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 	miName = -1;
 	mpcDefault = NULL;
 	mpcSymbol = NULL;
+	mpcTemplate = NULL;
 }
 
 
@@ -42,6 +43,12 @@ void CCPPSyntaxTypeParameter::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxTypeParameter::PrettyPrint(CChars* pszDest, int iDepth)
 {
+	if (mpcTemplate)
+	{
+		pszDest->Append("template<");
+		PrintList(pszDest, &mpcTemplate->macpParameters, ", ", iDepth);
+		pszDest->Append("> ");
+	}
 	pszDest->Append(mbTypename ? "typename" : "class");
 	if (mbPack)
 	{
@@ -71,5 +78,6 @@ void CCPPSyntaxTypeParameter::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Token(&miName);
 	pcFields->Child(&mpcDefault);
 	pcFields->Symbol(&mpcSymbol);
+	pcFields->Child(&mpcTemplate);
 }
 

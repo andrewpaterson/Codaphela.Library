@@ -625,6 +625,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 					return psBinding->psType;
 				case CPPSK_Class:
 				case CPPSK_ClassTemplate:
+				case CPPSK_TemplateTemplateParameter:
 					pcClass = mpcUnit->GetNameClass(pcName, pcNode);
 					return pcClass ? pcClass->mpsType : NULL;
 				case CPPSK_BuiltinType:

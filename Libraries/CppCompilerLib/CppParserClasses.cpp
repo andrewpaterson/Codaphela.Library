@@ -601,6 +601,58 @@ CCPPSyntaxDeclaration* CCPPParser::ParseTemplateDeclaration(CCPPSyntax* pcParent
 
 //////////////////////////////////////////////////////////////////////////
 //
+// template<class> class C (= Default): a template parameter that is a class
+// template, with template parameters of its own, in a scope of their own.
+// [temp.param] 1
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPParser::ParseTemplateTemplateParameter(CCPPSyntax* pcParent)
+{
+	CCPPSyntaxTypeParameter*	pcType;
+	CCPPScope*					pcScope;
+	int64						lliName;
+	bool						bParameters;
+
+	pcType = mpcMemory->Create<CCPPSyntaxTypeParameter>(pcParent);
+	pcType->miFirstToken = CurrentToken();
+	pcType->mpcTemplate = mpcMemory->Create<CCPPSyntaxTemplateDeclaration>(pcType);
+	pcType->mpcTemplate->miFirstToken = CurrentToken();
+	Expect(CT_template);
+	pcScope = PushScope(CPPSC_Template, NULL);
+	pcType->mpcTemplate->mpcScope = pcScope;
+	bParameters = ParseTemplateParameters(pcType->mpcTemplate);
+	PopScope(pcScope);
+	pcType->mpcTemplate->miLastToken = PreviousToken();
+	if (!bParameters || (!Is(CT_class) && !Is(CT_typename)))
+	{
+		Error("Expected class after a template template parameter's parameters.");
+		return NULL;
+	}
+	pcType->mbTypename = Is(CT_typename);
+	Next();
+	pcType->mbPack = Accept(CT_Elipsis);
+	if (IsIdentifier())
+	{
+		pcType->miName = CurrentToken();
+		lliName = GetIdentifier();
+		Next();
+		pcType->mpcSymbol = Declare(lliName, pcType->miName, CPPSK_TemplateTemplateParameter, pcType, mpcScope);
+	}
+	if (Accept(CT_Assignment))
+	{
+		pcType->mpcDefault = ParseTypeId(pcType);
+		if (!pcType->mpcDefault)
+		{
+			return NULL;
+		}
+	}
+	pcType->miLastToken = PreviousToken();
+	return pcType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPParser::ParseTemplateParameters(CCPPSyntaxTemplateDeclaration* pcTemplate)
@@ -690,8 +742,7 @@ CCPPSyntax* CCPPParser::ParseTemplateParameter(CCPPSyntax* pcParent)
 
 	if (Is(CT_template))
 	{
-		Error("Template template parameters are not supported.");
-		return NULL;
+		return ParseTemplateTemplateParameter(pcParent);
 	}
 
 	pcValue = ParseParameter(pcParent);

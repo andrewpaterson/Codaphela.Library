@@ -1095,13 +1095,10 @@ int h(void)\n\
 	P p = (P){ 1 };\n\
 	return 0;\n\
 }\n\
-template<template<class> class T> class X { };\n\
 int k = 1;"));
-	AssertInt(2, sParsed.iErrors);
-	AssertInt(2, (int)sParsed.cTree.NumErrors());
+	AssertInt(1, sParsed.iErrors);
+	AssertInt(1, (int)sParsed.cTree.NumErrors());
 	AssertString("Parsed.cpp (8, 11): Compound literals are not C++. [{]", sParsed.cTree.GetError(0));
-	AssertString("Parsed.cpp (11, 10): Template template parameters are not supported. [template]", sParsed.cTree.GetError(1));
-	AssertInt(sParsed.FindToken("template", 1), sParsed.cTree.GetErrorToken(1));
 
 	//The statements after the errors are parsed; the bad ones are kept as their tokens.
 	sz.Init();
@@ -1120,12 +1117,45 @@ int h(void)\n\
 	;\n\
 	return 0;\n\
 }\n\
-template<template<class> class T> class X { };\n\
 int k = 1;\n", sParsed.Print(&sz));
 	sz.Kill();
 
 	AssertPointer(sParsed.GetSymbol("n", 0), sParsed.GetSymbol("n", 1));
 	AssertInt(CPPSK_Variable, sParsed.GetSymbol("k", 0)->meKind);
+	sParsed.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A template template parameter: its own parameters, and a default.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserTemplateTemplateParameter(void)
+{
+	SParsedText		sParsed;
+	CChars			sz;
+
+	AssertTrue(sParsed.Init("\
+template<class T> struct Box { T v; };\n\
+template<template<class> class C, class T, template<class U> class D = Box> struct Use { C<T> c; D<int> d; };"));
+	AssertInt(0, sParsed.iErrors);
+	AssertInt(CPPSK_TemplateTemplateParameter, sParsed.GetSymbol("C", 0)->meKind);
+
+	sz.Init();
+	AssertString("\
+template<class T>\n\
+struct Box\n\
+{\n\
+	T v;\n\
+};\n\
+template<template<class> class C, class T, template<class U> class D = Box>\n\
+struct Use\n\
+{\n\
+	C<T> c;\n\
+	D<int> d;\n\
+};\n", sParsed.Print(&sz));
+	sz.Kill();
 	sParsed.Kill();
 }
 
@@ -1971,6 +2001,7 @@ void TestCppParser(void)
 	TestCppParserOperators();
 	TestCppParserTreeWalk();
 	TestCppParserUnsupported();
+	TestCppParserTemplateTemplateParameter();
 	TestCppParserLambdas();
 	TestCppParserErrors();
 	TestCppParserSkimmedErrors();

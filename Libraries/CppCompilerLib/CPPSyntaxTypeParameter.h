@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPSyntaxTypeId;
+class CCPPSyntaxTemplateDeclaration;
 
 
 class CCPPSyntaxTypeParameter : public CCPPSyntax
@@ -34,6 +35,7 @@ public:
 	int32					miName;
 	CCPPSyntaxTypeId*		mpcDefault;
 	CCPPSymbol*				mpcSymbol;
+	CCPPSyntaxTemplateDeclaration*	mpcTemplate;	//template<class> class C: C's own parameters (its declaration has none).
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	CPP_SYNTAX_NODE(TypeParameter)

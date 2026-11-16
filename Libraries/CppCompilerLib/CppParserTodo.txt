@@ -208,7 +208,27 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        - The walks over a function's body (its locals, returns, cases, a constexpr function's checks) stop at a lambda: its body is its closure's.
        Not done: a lambda in a default argument or a class member's initialiser; capturing an array or a pack; *this (C++17); a const integer used and not captured is refused (the standard lets it be used, as it isn't odr-used); the IDE's semantic pass doesn't check a lambda's body on its own.
        As it was planned: (L) B12.  Lambdas: the parser, closure classes, captures, the conversion to a function pointer; then generic lambdas and init-captures (B-3).
-    6. (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array deduction, packs everywhere and sizeof..., variable templates, the missing type traits.
+    6. DONE 2026-11-16 (stage 6's 31 cases, 307 of 342 in all), in eleven commits:
+       - 1: the type traits <type_traits> is made of, and __underlying_type.
+       - 2: partial ordering of function templates (CCPPOverloads::MostSpecialised), explicit specialisations of class
+         templates' members, class templates' static members defined outside them (DefineInstanceStatics).
+       - 3: class template packs: non-type packs, pack expansions in template argument lists, specialisations ending in a pack,
+         sizeof... (CPPUnitPacks.cpp); a class template only declared is a template.
+       - 4: pack expansions anywhere: calls, constructions, initialiser lists, bases, mem-initialisers (CCPPSyntaxCopier,
+         CCPPUnit::ExpandArguments, ListElements).
+       - 5: arrays: T (&)[N] deduced (CCPPDeduction::StripDeclarator), A<T[N]> and A<T[]>.
+       - 6: pointer and reference template parameters (CPPBN_TemplateArgument).
+       - 7 and 8: SFINAE: the function's type in TemplateTakes, a plain function when the template can't be used, ellipsis
+         ranking, member templates only declared, members named in their class outside functions (MemberScopeClass).
+       - 9: member class templates (a template per class it is in, labels after their class's), conversion function templates
+         (DeduceConversion), typename C::template In<long> (QualifiedClass, MemberClass).
+       - 10: variable templates (CPPSK_VariableTemplate, CCPPUnit::VariableInstance, DefineInstanceData).
+       - 11: template template parameters (CPPSK_TemplateTemplateParameter, BindTemplate).
+       Not done: deducing a template template parameter from an argument; partial specialisations of member class templates and
+       of variable templates; a variable template as a static class member; pack expansion of a lambda's captures; deduction
+       through an alias template.
+       As it was planned: (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array
+       deduction, packs everywhere and sizeof..., variable templates, the missing type traits.
     7. (M, many small) B5 and B9.  Objects: static locals that need a guard, postfix ++ and -- on objects, operator-> returning an object, conversion functions to classes and references, pointers to overloaded members, temporaries bound to references, new[] with initialisers and two dimensions, placement new with more arguments, ?: on different class types, extern locals, thread_local.  Each is on its own and can go between other stages.
     8. (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's user-defined literals), the noexcept operator.
     9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  A dynamic_cast<T&> that fails traps (the user), there being nothing to throw until exceptions are decided.  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.

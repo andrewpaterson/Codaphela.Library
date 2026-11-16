@@ -32,6 +32,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 //A template parameter's value in an instantiation: a type, or a constant for a non-type parameter.
+class CCPPTemplate;
+
+
 struct SCPPBinding
 {
 	CCPPSymbol*						pcParameter;
@@ -39,6 +42,7 @@ struct SCPPBinding
 	int64							lliValue;
 	CArrayTemplatePtr<SCPP65Type>*	papsPack;	//A type parameter pack's types.
 	CArrayInt64*					palliPack;	//A non-type parameter pack's values.
+	CCPPTemplate*					pcTemplate;	//A template template parameter's class template.
 	CCPPSyntax*						pcArgument;	//A pointer or reference parameter's argument (&g, f or g), which its name
 												//stands for (CPPBN_TemplateArgument).
 	bool							bSelf;		//The parameter stands for itself (CCPPUnit::BindAsItself): its type is a

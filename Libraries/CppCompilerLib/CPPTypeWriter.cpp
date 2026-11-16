@@ -330,6 +330,10 @@ bool CCPPTypeWriter::ClassName(CCPPClass* pcClass, CChars* pszDest)
 		{
 			psBinding->pcArgument->PrettyPrint(pszDest, 0);
 		}
+		else if (psBinding->pcTemplate)
+		{
+			bResult &= QualifiedName(psBinding->pcTemplate->mpcSymbol, pszDest);
+		}
 		else
 		{
 			pszDest->Append(psBinding->lliValue);

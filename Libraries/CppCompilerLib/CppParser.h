@@ -256,6 +256,7 @@ protected:
 	void							ParseDeferredBodies(void);
 	CCPPSyntaxTypeSpecifier*		ParseEnumSpecifier(CCPPSyntax* pcParent, ECPPDeclarationContext eContext);
 	CCPPSyntaxDeclaration*			ParseTemplateDeclaration(CCPPSyntax* pcParent, ECPPDeclarationContext eContext);
+	CCPPSyntax*						ParseTemplateTemplateParameter(CCPPSyntax* pcParent);
 	bool							ParseTemplateParameters(CCPPSyntaxTemplateDeclaration* pcTemplate);
 	CCPPSyntax*						ParseTemplateParameter(CCPPSyntax* pcParent);
 

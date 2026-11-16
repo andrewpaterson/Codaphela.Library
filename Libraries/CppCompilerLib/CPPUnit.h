@@ -517,6 +517,7 @@ public:
 	bool					PackSize(CCPPSymbol* pcPack, int64* plliValue);
 	bool					IsEntityParameter(CCPPSyntaxParameter* pcParameter);
 	bool					BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgument, CChars* pszArguments);
+	bool					BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CChars* pszArguments);
 	bool					BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CArrayCPP65Types* papsDeduced, CChars* pszArguments);
 	bool					BindValuePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CChars* pszArguments);
 	void					AppendMangledValue(CChars* pszArguments, int64 lliValue);

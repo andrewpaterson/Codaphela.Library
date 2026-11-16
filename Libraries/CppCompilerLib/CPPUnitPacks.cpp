@@ -293,6 +293,7 @@ CCPPSymbol* CCPPUnit::PackElement(SCPPBinding* psPack, size k)
 	psBinding->palliPack = NULL;
 	psBinding->bSelf = false;
 	psBinding->pcArgument = NULL;
+	psBinding->pcTemplate = NULL;
 
 	psElement = masPackElements.Add();
 	psElement->pcBindings = pcBindings;
