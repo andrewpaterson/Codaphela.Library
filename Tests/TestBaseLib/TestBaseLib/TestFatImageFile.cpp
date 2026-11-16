@@ -63,6 +63,8 @@ void TestFatImageFilePut(void)
 	CDiskFile		cImage;
 	uint8			auiFirst[3000];
 	uint8			auiSecond[700];
+	void*			pvRead;
+	size			uiRead;
 	uint32			i;
 
 	for (i = 0; i < sizeof(auiFirst); i++)
@@ -118,6 +120,24 @@ void TestFatImageFilePut(void)
 	AssertTrue(cImage.Close());
 	cImage.Kill();
 	AssertFalse(FatPutFileOnImage("Output" _FS_ "NotFat.img", "\\boot.exe", auiSecond, sizeof(auiSecond)));
+
+	//Read back from the image file a sector at a time: what was put, whatever the name's case; nothing for a file, an
+	//image or a volume that isn't there.
+	pvRead = NULL;
+	uiRead = 0;
+	AssertTrue(FatGetFileFromImage(TEST_FAT_IMAGE_FILE, "\\Games\\Mod\\modplay.exe", &pvRead, &uiRead));
+	AssertSize(sizeof(auiSecond), uiRead);
+	AssertTrue((pvRead != NULL) && (memcmp(pvRead, auiSecond, sizeof(auiSecond)) == 0));
+	free(pvRead);
+	AssertTrue(FatGetFileFromImage(TEST_FAT_IMAGE_FILE, "\\song.mod", &pvRead, &uiRead));
+	AssertSize(sizeof(auiFirst), uiRead);
+	AssertTrue((pvRead != NULL) && (memcmp(pvRead, auiFirst, sizeof(auiFirst)) == 0));
+	free(pvRead);
+	AssertFalse(FatGetFileFromImage(TEST_FAT_IMAGE_FILE, "\\missing.exe", &pvRead, &uiRead));
+	AssertTrue(pvRead == NULL);
+	AssertSize(0, uiRead);
+	AssertFalse(FatGetFileFromImage("Output" _FS_ "Missing.img", "\\boot.exe", &pvRead, &uiRead));
+	AssertFalse(FatGetFileFromImage("Output" _FS_ "NotFat.img", "\\boot.exe", &pvRead, &uiRead));
 }
 
 

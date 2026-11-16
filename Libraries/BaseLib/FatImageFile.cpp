@@ -121,3 +121,100 @@ bool FatPutDiskFileOnImage(const char* szImage, const char* szName, const char* 
 	return bResult;
 }
 
+
+
+#define FAT_IMAGE_SECTOR_SIZE	512
+
+
+//A disk image file as a drive that can only be read, a sector at a time from the file.
+class CFatImageDrive : public CFileDrive
+{
+protected:
+	CDiskFile*	mpcImage;
+
+public:
+	void	Init(CDiskFile* pcImage, uint64 uiSize)
+	{
+		CFileDrive::Init(FAT_IMAGE_SECTOR_SIZE);
+		mpcImage = pcImage;
+		muiMaxSector = uiSize / FAT_IMAGE_SECTOR_SIZE;
+	}
+
+	void	Kill(void)
+	{
+		mpcImage = NULL;
+	}
+
+	bool	Read(uint64 uiSector, void* pvData)
+	{
+		return Read(uiSector, 1, pvData);
+	}
+
+	bool	Read(uint64 uiSector, uint32 uiNumSectors, void* pvData)
+	{
+		if (uiSector + uiNumSectors > muiMaxSector)
+		{
+			return false;
+		}
+		return mpcImage->Seek((filePos)(uiSector * FAT_IMAGE_SECTOR_SIZE), EFSO_SET) && (mpcImage->Read(pvData, (lsize)uiNumSectors * FAT_IMAGE_SECTOR_SIZE, 1) == 1);
+	}
+
+	bool	Write(uint64 uiSector, void* pvData)								{ return false; }
+	bool	Write(uint64 uiSector, uint32 uiNumSectors, void* pvData)			{ return false; }
+	bool	Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)		{ return false; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool FatGetFileFromImage(const char* szImage, const char* szName, void** ppvData, size* puiSize)
+{
+	CDiskFile		cImage;
+	CFatImageDrive	cDrive;
+	CFatVolume		cVolume;
+	CFatFile		cFile;
+	filePos			iSize;
+	lsize			uiRead;
+	uint8*			puiData;
+	bool			bResult;
+
+	*ppvData = NULL;
+	*puiSize = 0;
+	cImage.Init(szImage);
+	if (!cImage.Open(EFM_Read))
+	{
+		cImage.Kill();
+		return false;
+	}
+	iSize = cImage.Size();
+	cDrive.Init(&cImage, (iSize > 0) ? (uint64)iSize : 0);
+	puiData = NULL;
+	bResult = (iSize > 0) && (cVolume.Mount(&cDrive) == FAT_SUCCESS);
+	if (bResult)
+	{
+		cFile.Init(&cVolume);
+		bResult = cFile.Open(szName, FAT_FILE_ACCESS_READ) == FAT_SUCCESS;
+		if (bResult)
+		{
+			*puiSize = cFile.Size();
+			puiData = (uint8*)malloc((*puiSize > 0) ? *puiSize : 1);
+			uiRead = 0;
+			bResult = (*puiSize == 0) || ((cFile.Read(puiData, *puiSize, &uiRead) == FAT_SUCCESS) && (uiRead == *puiSize));
+			cFile.Close();
+		}
+	}
+	cVolume.Unmount();
+	cDrive.Kill();
+	cImage.Close();
+	cImage.Kill();
+	if (!bResult)
+	{
+		free(puiData);
+		*puiSize = 0;
+		return false;
+	}
+	*ppvData = puiData;
+	return true;
+}
