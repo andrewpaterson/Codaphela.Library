@@ -24,9 +24,6 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRInterpreter.h"
 
 
-#define IR_SOURCE(uiObject, uiByte)		(((uiObject) << 3) | (uint32)(uiByte))
-#define IR_SOURCE_OBJECT(uiSource)		((uiSource) >> 3)
-#define IR_SOURCE_BYTE(uiSource)		((uiSource) & 7)
 
 
 //////////////////////////////////////////////////////////////////////////

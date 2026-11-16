@@ -28,6 +28,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IR_INTERPRETER_DEPTH	512			//Calls inside calls.
 #define IR_VALUE_BYTES			8
 
+//A byte's source: which object's pointer it is a byte of, and which byte (SIRValue, SIRObject).
+#define IR_SOURCE(uiObject, uiByte)		(((uiObject) << 3) | (uint32)(uiByte))
+#define IR_SOURCE_OBJECT(uiSource)		((uiSource) >> 3)
+#define IR_SOURCE_BYTE(uiSource)		((uiSource) & 7)
+
 
 //A value being worked out: an integer's or a float's bits, or a pointer.  A pointer is an object and an offset in
 //it: the offset is the bits, and each of its bytes says which object's pointer it is a byte of and which byte, so a

@@ -23,6 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPUnit.h"
 #include "CPP65IRFrontEnd.h"
 #include "CPPConstants.h"
+#include "CPPUnitData.h"
 #include "CPPTypeWriter.h"
 
 
@@ -907,4 +908,139 @@ bool CCPPConstants::IsInitialisedMember(CCPPSyntaxFunctionDefinition* pcDefiniti
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes a constexpr variable's value as its data, if it was worked out
+// when it was defined (CheckVariable): its bytes as the interpreter made
+// them, and each pointer in them as the label of what it points into and
+// the offset.  So it has its value before any of the program runs, as a
+// constant initialisation must ([basic.start.static] 2), and needs no
+// start up routine.  False, with nothing written, if its value isn't
+// known or has a pointer that can't be data; it is then made at run time.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::AppendData(CCPPVariable* pcVariable, CCPPUnitData* pcData)
+{
+	SCPPConstantVariable*	psVariable;
+	SIRObject*				psObject;
+	CChars					szLabel;
+	CChars					szText;
+	size					i;
+	int						iPointerBytes;
+	bool					bResult;
+	int						iPass;
+
+	szLabel.Init();
+	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
+	psVariable = FindVariable(szLabel.Text());
+	szLabel.Kill();
+	if (!psVariable || (psVariable->uiObject == 0))
+	{
+		return false;
+	}
+	psObject = mcInterpreter.GetObject(psVariable->uiObject);
+	iPointerBytes = mpcUnit->GetTarget()->GetPointerBytes();
+
+	//Checked first (with no strings added), then written.
+	bResult = true;
+	szText.Init();
+	for (iPass = 0; bResult && (iPass < 2); iPass++)
+	{
+		szText.Clear();
+		for (i = 0; bResult && (i < psObject->uiSize); )
+		{
+			if (psObject->pauiSource[i] == 0)
+			{
+				szText.Append("\t\t.byte ");
+				szText.Append((int)(psObject->pucWritten[i] ? psObject->pucBytes[i] : 0));
+				szText.AppendNewLine();
+				i++;
+				continue;
+			}
+			bResult = PointerData(psObject, i, iPointerBytes, (iPass == 1) ? pcData : NULL, &szText);
+			i += (size)iPointerBytes;
+		}
+	}
+	if (bResult)
+	{
+		pcData->GetText()->Append(&szText);
+	}
+	szText.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer of iPointerBytes at uiOffset of an object's bytes as data:
+// the label of the variable, function or string it points into, and the
+// offset.  With pcData NULL it is only checked (a string isn't added to
+// the unit's).  False if the bytes aren't one whole pointer, or it points
+// into what has no label in the program.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::PointerData(SIRObject* psObject, size uiOffset, int iPointerBytes, CCPPUnitData* pcData, CChars* pszText)
+{
+	SIRObject*				psTarget;
+	SCPPConstantFunction*	psFunction;
+	uint32					uiTarget;
+	uint64					ulliOffset;
+	int						i;
+	int						iString;
+
+	if ((uiOffset + (size)iPointerBytes > psObject->uiSize) || ((iPointerBytes != 2) && (iPointerBytes != 4)))
+	{
+		return false;
+	}
+	uiTarget = IR_SOURCE_OBJECT(psObject->pauiSource[uiOffset]);
+	ulliOffset = 0;
+	for (i = 0; i < iPointerBytes; i++)
+	{
+		if (psObject->pauiSource[uiOffset + i] != IR_SOURCE(uiTarget, i))
+		{
+			return false;
+		}
+		ulliOffset |= ((uint64)psObject->pucBytes[uiOffset + i]) << (8 * i);
+	}
+
+	psTarget = mcInterpreter.GetObject(uiTarget);
+	if (psTarget->bDead || (psTarget->szName.Length() == 0) || ((psTarget->uiKind != IROB_Global) && (psTarget->uiKind != IROB_Function) && (psTarget->uiKind != IROB_Unknown)))
+	{
+		return false;
+	}
+	pszText->Append((iPointerBytes == 2) ? "\t\t.word " : "\t\t.long ");
+	if (psTarget->szName.StartsWith("__string"))
+	{
+		//A constant's string: the unit's own string, with the same bytes (AddString adds the zero at its end).
+		if ((psTarget->uiSize == 0) || (psTarget->pucBytes[psTarget->uiSize - 1] != 0))
+		{
+			return false;
+		}
+		iString = pcData ? pcData->AddString((char*)psTarget->pucBytes, psTarget->uiSize - 1) : 0;
+		pszText->Append("Str");
+		pszText->Append(iString);
+	}
+	else
+	{
+		if (pcData && (psTarget->uiKind == IROB_Function))
+		{
+			//A function's address in data: it must be written.
+			psFunction = FindFunction(psTarget->szName.Text());
+			if (psFunction)
+			{
+				mpcUnit->RequireFunction(psFunction->pcFunction);
+			}
+		}
+		pszText->Append(&psTarget->szName);
+	}
+	if (ulliOffset != 0)
+	{
+		pszText->Append('+');
+		pszText->Append((int64)ulliOffset);
+	}
+	pszText->AppendNewLine();
+	return true;
 }

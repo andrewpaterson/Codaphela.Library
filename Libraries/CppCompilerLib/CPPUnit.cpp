@@ -1860,6 +1860,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 	bool						bResult;
 	bool						bBss;
 	bool						bInitialise;
+	bool						bConstantData;
 
 	pcSpecifiers = pcDeclaration->mpcSpecifiers;
 	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_TYPEDEF))
@@ -1970,13 +1971,18 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 
 		szLabel.Init();
 		AppendVariableLabel(&szLabel, pcVariable);
-		bBss = IsBss(pcInitialiser, psType);
+		bConstantData = (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) != 0;
+		bBss = !bConstantData && IsBss(pcInitialiser, psType);
 		mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !pcVariable->mbInternal, HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL, bBss);
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
 		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
 		mcContext.NoThis();
-		if (bBss)
+		if (bConstantData && mpcConstants->AppendData(pcVariable, &mcData))
+		{
+			//A constexpr variable's value, worked out when it was defined: its data, with nothing to run.
+		}
+		else if (bBss)
 		{
 			mcData.AppendSpace(psType->iBytes);
 			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, psElement->IsClass(), psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL));

@@ -1127,6 +1127,24 @@ static const SConformanceCase gasConformanceStage4[] =
 		"int main() { N n; n.v = 1; return f(n); }\n"
 	},
 	{
+		"ConstexprInitialisedFirst", 5,
+		"struct P { int x; constexpr P(int a) : x(a) {} };\n"
+		"int read();\n"
+		"int g = read();\n"
+		"constexpr P gp(5);\n"
+		"int read() { return gp.x; }\n"
+		"int main() { return g; }\n"
+	},
+	{
+		"ConstexprPointerData", 447,
+		"int gv = 3;\n"
+		"constexpr int* gq = &gv;\n"
+		"constexpr const char* gs = \"hello\";\n"
+		"struct L { const char* s; int* p; int n; };\n"
+		"constexpr L gl = { \"ab\", &gv, 7 };\n"
+		"int main() { *gq = 4; return gv * 100 + gs[1] - 'e' + gl.s[1] - 'b' + *gl.p * 10 + gl.n; }\n"
+	},
+	{
 		"ConstexprRunTime", 93,
 		"constexpr int sq(int x) { return x * x; }\n"
 		"struct P { int x; constexpr P(int a) : x(a) {} constexpr int get() const { return x; } };\n"

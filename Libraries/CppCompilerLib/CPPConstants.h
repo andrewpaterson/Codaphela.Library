@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPUnit;
+class CCPPUnitData;
 class CCPP65IRFrontEnd;
 
 
@@ -85,6 +86,7 @@ public:
 	void			ClearReason(void);
 
 	bool			CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode);
+	bool			AppendData(CCPPVariable* pcVariable, CCPPUnitData* pcData);
 	bool			CheckDefinition(CCPPFunction* pcFunction);
 	bool			IsLiteralType(SCPP65Type* psType);
 	bool			IsConstantVariable(CCPPVariable* pcVariable);
@@ -105,6 +107,7 @@ protected:
 	void					AppendFunctionName(CCPPFunction* pcFunction, CChars* pszDest);
 	void					AppendRepeats(size uiRepeats);
 	CCPPSyntax*				VariableInitialiser(CCPPVariable* pcVariable, uint32* puiFlags);
+	bool					PointerData(SIRObject* psObject, size uiOffset, int iPointerBytes, CCPPUnitData* pcData, CChars* pszText);
 	bool					CheckBody(CCPPSyntax* pcNode);
 	bool					CheckConstructor(CCPPFunction* pcFunction);
 	bool					IsInitialisedMember(CCPPSyntaxFunctionDefinition* pcDefinition, int64 lliName);
