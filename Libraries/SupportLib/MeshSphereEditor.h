@@ -47,8 +47,8 @@ public:
 	void	SetFaceName(int iFaceName);
 	void	Class(void) override;
 
-	int		ExpectedFaceChunkSize(void);
-	int		ExpectedCornerChunkSize(void);
+	int		ExpectedFaceChunkSize(void) override;
+	int		ExpectedCornerChunkSize(void) override;
 
 	void	Generate(CMeshEditor* pcMeshEditor) override;
 };

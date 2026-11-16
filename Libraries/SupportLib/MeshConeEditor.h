@@ -48,8 +48,8 @@ public:
 	void	Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fTopRadius, float32 fBottomRadius, float32 fLength, int iWedgeSegments, int iTopCircleSegments, int iBottomCircleSegments, int iRingSegments);
 	void	Class(void) override;
 
-	int		ExpectedFaceChunkSize(void);
-	int		ExpectedCornerChunkSize(void);
+	int		ExpectedFaceChunkSize(void) override;
+	int		ExpectedCornerChunkSize(void) override;
 
 	void	Generate(CMeshEditor* pcMeshEditor) override;
 

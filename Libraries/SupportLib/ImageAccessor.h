@@ -44,7 +44,7 @@ protected:
 
 public:
 	void 				Init(CImage* pcImage, CChannelsAccessor* pcAccessor, bool bKillChannelAccessor);
-	virtual void		Kill(void);
+	virtual void		Kill(void) override;
 
 	virtual void*		Get(int32 x, int32 y);
 	virtual void		Set(int32 x, int32 y, void* pvData);

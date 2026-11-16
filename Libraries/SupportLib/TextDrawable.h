@@ -32,8 +32,8 @@ protected:
 public:
 			void		Init(size uiNumChars);
 
-	virtual bool		Load(CObjectReader* pcFile) =0;
-	virtual bool		Save(CObjectWriter* pcFile) =0;
+	virtual bool		Load(CObjectReader* pcFile) override =0;
+	virtual bool		Save(CObjectWriter* pcFile) override =0;
 };
 
 

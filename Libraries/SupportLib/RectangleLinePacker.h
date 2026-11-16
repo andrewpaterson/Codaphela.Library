@@ -39,16 +39,16 @@ protected:
 
 public:
 	void					Init(bool bLeftToRight = true, bool bPow2 = false, int32 iOutsideEdgeWidth = 0, int32 iInnerEdgeWidth = 0);
-	void					Kill(void);
+	void					Kill(void) override;
 
-	void					Pack(void);
+	void					Pack(void) override;
 
-	bool					AddRectangle(CInt32Rect* pcRect, void* pvUserData);
-	bool					AddRectangle(CSubImage* pcSubImage);
-	bool					AddRectangle(CImageCel* pcImageCel);
+	bool					AddRectangle(CInt32Rect* pcRect, void* pvUserData) override;
+	bool					AddRectangle(CSubImage* pcSubImage) override;
+	bool					AddRectangle(CImageCel* pcImageCel) override;
 
-	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
-	SInt32Vec2					GetPackedImageSize(void);
+	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) override;
+	SInt32Vec2					GetPackedImageSize(void) override;
 
 	int32					GetWidestRect(void);
 	int32					GetHighestRect(void);

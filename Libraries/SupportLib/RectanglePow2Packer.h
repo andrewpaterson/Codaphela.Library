@@ -34,16 +34,16 @@ protected:
 
 public:
 	void	Init(int32 iOutsideEdgeWidth, int32 iInnerEdgeWidth);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	void	Pack(void);
+	void	Pack(void) override;
 
-	bool	AddRectangle(CInt32Rect* pcRect, void* pvUserData);
-	bool	AddRectangle(CSubImage* pcSubImage);
-	bool	AddRectangle(CImageCel* pcImageCel);
+	bool	AddRectangle(CInt32Rect* pcRect, void* pvUserData) override;
+	bool	AddRectangle(CSubImage* pcSubImage) override;
+	bool	AddRectangle(CImageCel* pcImageCel) override;
 
-	void	GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
-	SInt32Vec2	GetPackedImageSize(void);
+	void	GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) override;
+	SInt32Vec2	GetPackedImageSize(void) override;
 
 private:
 	void		AdjustAttemptAreas(void);

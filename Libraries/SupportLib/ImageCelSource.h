@@ -42,7 +42,7 @@ public:
 	void			Init(SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders);
 	virtual void	Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask) =0;
 	virtual bool	NeedsMask(void);
-	void			Kill(void);
+	void			Kill(void) override;
 };
 
 

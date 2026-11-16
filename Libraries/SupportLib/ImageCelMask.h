@@ -45,11 +45,11 @@ public:
 	bool	Save(CObjectWriter* pcFile) override;
 	bool	Load(CObjectReader* pcFile) override;
 
-	void	CropTransparentBorders(void);
+	void	CropTransparentBorders(void) override;
 
-	void	GetAllChannels(CArrayChannel* pasChannels);
-	bool	MustFixDrawOpacity(void);
-	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft);
+	void	GetAllChannels(CArrayChannel* pasChannels) override;
+	bool	MustFixDrawOpacity(void) override;
+	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft) override;
 	uint16	GetMask(void);
 };
 

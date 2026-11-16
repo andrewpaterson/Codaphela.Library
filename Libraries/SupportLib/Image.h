@@ -148,8 +148,8 @@ public:
 	bool					Matches(CColourFormatHelper* pcHelper, bool bReverse = false);
 	bool					Matches(CArrayChannel* pasChannels);
 
-	void					Print(CChars* psz);
-	void					Dump(void);
+	void					Print(CChars* psz) override;
+	void					Dump(void) override;
 
 protected:
 	void					PrivateInit(void);

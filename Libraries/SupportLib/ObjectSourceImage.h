@@ -29,7 +29,7 @@ class CObjectSourceImage : public CObjectSingleSource
 CONSTRUCTABLE(CObjectSourceImage)
 public:
 	void		Init(CObjectConverter* pcConverter, const char* szFilename);
-	void		Kill(void);
+	void		Kill(void) override;
 };
 
 

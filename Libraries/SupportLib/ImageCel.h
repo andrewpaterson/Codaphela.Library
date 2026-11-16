@@ -55,8 +55,8 @@ public:
 			bool			Load(CObjectReader* pcFile) override;
 
 			void			Copy(CImageCel* pcSource);
-			void			Print(CChars* psz);
-			void			Dump(void);
+			void			Print(CChars* psz) override;
+			void			Dump(void) override;
 
 	//Remove these from CImageCel, create a new class CDividerCel and put them there.
 	virtual	void			CropTransparentBorders(void);

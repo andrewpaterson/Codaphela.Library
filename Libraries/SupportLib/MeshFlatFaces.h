@@ -34,8 +34,8 @@ DESTRUCTABLE(CMeshFlatFaces);
 public:
 	void 	Init(void);
 	void 	Class(void) override;
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile) override;
+	bool	Save(CFileWriter* pcFile) override;
 
 	void	GenerateNormals(CMesh* pcMesh);
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;

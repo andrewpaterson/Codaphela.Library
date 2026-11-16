@@ -49,8 +49,8 @@ public:
 	void	SetFlipFaces(bool bFlipFaces);
 	void	Class(void) override;
 
-	int		ExpectedFaceChunkSize(void);
-	int		ExpectedCornerChunkSize(void);
+	int		ExpectedFaceChunkSize(void) override;
+	int		ExpectedCornerChunkSize(void) override;
 
 	void	Generate(CMeshEditor* pcMeshEditor) override;
 

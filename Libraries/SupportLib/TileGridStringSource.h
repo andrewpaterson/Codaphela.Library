@@ -19,16 +19,16 @@ public:
 	void			Free(void) override;
 	void			Class(void) override;
 
-	bool			StartGeneration(void);
-	void			StopGeneration(void);
+	bool			StartGeneration(void) override;
+	void			StopGeneration(void) override;
 
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
 
 	CArrayChars*	GetStrings(void);
 
-	bool			Matches(CTileCelSource* pcTileCelSource, int x, int y);
-	SSizeVec2		GetSize(void);
+	bool			Matches(CTileCelSource* pcTileCelSource, int x, int y) override;
+	SSizeVec2		GetSize(void) override;
 };
 
 

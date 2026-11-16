@@ -101,7 +101,7 @@ public:
 	void			AddUV(float32 u, float32 v, size iLayer = 0);
 	void			AddNormal(float32 x, float32 y, float32 z);
 
-	void			Dump(void);
+	void			Dump(void) override;
 
 	CMeshConnectivity*	GetConnectivity(void);
 

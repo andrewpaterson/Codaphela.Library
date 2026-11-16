@@ -50,8 +50,8 @@ public:
 	void	SetZOffsets(int iZStartOffset, int iZEndOffset);
 	void	Class(void) override;
 
-	int		ExpectedFaceChunkSize(void);
-	int		ExpectedCornerChunkSize(void);
+	int		ExpectedFaceChunkSize(void) override;
+	int		ExpectedCornerChunkSize(void) override;
 
 	void	Generate(CMeshEditor* pcMeshEditor) override;
 	void	AddZStrip(CMeshEditor* pcMeshEditor, int iStartPosition1, int iStartPosition2, bool bFlipFaces);

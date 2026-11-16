@@ -70,8 +70,8 @@ public:
 	static lsize		GetLoopedFrame(lsize uiFrame, lsize uiNumFrames, lsize uiLoopFrame);
 	static bool		WrapPosition(float64* pfPosition, lsize uiNumFrames, lsize uiLoopFrame);
 
-	void			Print(CChars* psz);
-	void			Dump(void);
+	void			Print(CChars* psz) override;
+	void			Dump(void) override;
 };
 
 

@@ -63,7 +63,7 @@ public:
 	void			Init(EImageResample eResample, EPow2Style eStyle);
 	void			Init(EImageResample eResample, int iWidth, int iHeight);
 	void			Class(void) override;
-	Ptr<CImage>		Modify(Ptr<CImage> pImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage) override;
 };
 
 

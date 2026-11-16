@@ -38,12 +38,12 @@ protected:
 
 public:
 	void	Init(CImage* pcImage, CChannelsAccessorContiguous* pcAccessor, bool bKillChannelAccessor);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	void*	Get(int32 x, int32 y);
-	void	Set(int32 x, int32 y, void* pvData);
+	void*	Get(int32 x, int32 y) override;
+	void	Set(int32 x, int32 y, void* pvData) override;
 
-	void	SyncDataCache(void);
+	void	SyncDataCache(void) override;
 };
 
 

@@ -32,7 +32,7 @@ class CPixelOpacityBase : public CUnknown
 {
 CONSTRUCTABLE(CPixelOpacityBase);
 public:
-	virtual void Kill(void);
+	virtual void Kill(void) override;
 	virtual bool IsTransparent(int x, int y) =0;
 };
 
@@ -46,9 +46,9 @@ protected:
 
 public:
 	void	Init(CImage* pcImage);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	bool	IsTransparent(int x, int y);
+	bool	IsTransparent(int x, int y) override;
 };
 
 
@@ -61,9 +61,9 @@ protected:
 
 public:
 	void	Init(CImage* pcImage, SImageColour* psTransparentColour);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	bool	IsTransparent(int x, int y);
+	bool	IsTransparent(int x, int y) override;
 };
 
 
@@ -76,9 +76,9 @@ protected:
 
 public:
 	void	Init(CImage* pcSourceImage, CImage* pcMaskImage, short iMask);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	bool	IsTransparent(int x, int y);
+	bool	IsTransparent(int x, int y) override;
 };
 
 
@@ -91,9 +91,9 @@ protected:
 
 public:
 	void	Init(CImage* pcImage, SImageColour* psTransparentColour, CImage* pcMaskImage, short iMask);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	bool	IsTransparent(int x, int y);
+	bool	IsTransparent(int x, int y) override;
 };
 
 

@@ -45,8 +45,8 @@ public:
 
 	void	Generate(CMeshEditor* pcMeshEditor) override;
 
-	int		ExpectedFaceChunkSize(void);
-	int		ExpectedCornerChunkSize(void);
+	int		ExpectedFaceChunkSize(void) override;
+	int		ExpectedCornerChunkSize(void) override;
 
 	void	AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName);
 	void	AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName);

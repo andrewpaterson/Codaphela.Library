@@ -35,7 +35,7 @@ class CRectanglePacker : public CUnknown
 {
 CONSTRUCTABLE(CRectanglePacker);
 public:
-	virtual void	Kill(void) =0;
+	virtual void	Kill(void) override =0;
 
 	virtual void	Pack(void) =0;
 

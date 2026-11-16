@@ -45,7 +45,7 @@ public:
 
 	void 				Init(Ptr<CMesh> pMesh);
 	void 				Init(Ptr<CMeshEditor> pMesh);
-	void				Kill(void);
+	void				Kill(void) override;
 
 	void				ClearConnectivity(void);
 

@@ -108,8 +108,8 @@ public:
 	bool					HasChannels(size iFirst, ...);
 	bool					CanAccessSamples(void);
 
-	void					Print(CChars* psz);
-	void					Dump(void);
+	void					Print(CChars* psz) override;
+	void					Dump(void) override;
 
 protected:
 	void					PrivateInit(void);

@@ -35,7 +35,7 @@ public:
 	EChannel meHeightChannel;
 
 	void			Init(EChannel eHeightChannel);
-	Ptr<CImage>		Modify(Ptr<CImage> pImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage) override;
 	void			Class(void) override;
 };
 
@@ -48,7 +48,7 @@ public:
 	EChannel meHeightChannel;
 
 	void			Init(EChannel eHeightChannel);
-	Ptr<CImage>		Modify(Ptr<CImage> pImage);
+	Ptr<CImage>		Modify(Ptr<CImage> pImage) override;
 	void			Class(void) override;
 };
 

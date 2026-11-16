@@ -38,11 +38,11 @@ public:
 	void 	Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, CInt32Rect* pcRect);
 	void 	Init(Ptr<CImage> pSourceImage, SImageColour* psTransparent, int iLeft, int iTop, int iRight, int iBottom);
 
-	void	CropTransparentBorders(void);
+	void	CropTransparentBorders(void) override;
 
-	void	GetAllChannels(CArrayChannel* pasChannels);
-	bool	MustFixDrawOpacity(void);
-	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft);
+	void	GetAllChannels(CArrayChannel* pasChannels) override;
+	bool	MustFixDrawOpacity(void) override;
+	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft) override;
 };
 
 

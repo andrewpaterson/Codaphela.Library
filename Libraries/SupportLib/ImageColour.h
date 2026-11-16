@@ -50,7 +50,7 @@ class CImageColour : public CUnknown
 CONSTRUCTABLE(CImageColour);
 public:
 			void	Init(void);
-			void	Kill(void);
+			void	Kill(void) override;
 	
 	virtual float32	GetValue(EChannel eChannel) =0;
 	virtual void	GetChannels(CArraySize* pai) =0;
@@ -68,11 +68,11 @@ public:
 
 	void	Init(float32 r, float32 g, float32 b);
 
-	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArraySize* pai);
+	float32	GetValue(EChannel eChannel) override;
+	void	GetChannels(CArraySize* pai) override;
 
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile) override;
+	bool	Save(CFileWriter* pcFile) override;
 };
 
 
@@ -88,11 +88,11 @@ public:
 	void	Init(float32 a, float32 r, float32 g, float32 b);
 	void	Zero(void);
 
-	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArraySize* pai);
+	float32	GetValue(EChannel eChannel) override;
+	void	GetChannels(CArraySize* pai) override;
 	
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile) override;
+	bool	Save(CFileWriter* pcFile) override;
 };
 
 
@@ -104,11 +104,11 @@ public:
 
 	void	Init(float32 a);
 
-	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArraySize* pai);
+	float32	GetValue(EChannel eChannel) override;
+	void	GetChannels(CArraySize* pai) override;
 
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile) override;
+	bool	Save(CFileWriter* pcFile) override;
 };
 
 
@@ -120,11 +120,11 @@ public:
 
 	void	Init(float32 s);
 
-	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArraySize* pai);
+	float32	GetValue(EChannel eChannel) override;
+	void	GetChannels(CArraySize* pai) override;
 
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile) override;
+	bool	Save(CFileWriter* pcFile) override;
 };
 
 
@@ -138,11 +138,11 @@ public:
 
 	void	Init(float32 x, float32 y, float32 z);
 
-	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArraySize* pai);
+	float32	GetValue(EChannel eChannel) override;
+	void	GetChannels(CArraySize* pai) override;
 
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile) override;
+	bool	Save(CFileWriter* pcFile) override;
 };
 
 
@@ -155,8 +155,8 @@ public:
 	//Can't have a '1' combo and more than 3 is getting silly (You can chain them if needed).
 	void	Init(CImageColour* pc1, CImageColour* pc2);
 
-	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArraySize* pai);
+	float32	GetValue(EChannel eChannel) override;
+	void	GetChannels(CArraySize* pai) override;
 };
 
 

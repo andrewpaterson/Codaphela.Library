@@ -49,7 +49,7 @@ protected:
 public:
 	bool Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
 	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
-	void Kill(void);
+	void Kill(void) override;
 
 	void Copy(int iDestX, int iDestY, Ptr<CImageCel> pSourceCel);
 	void Copy(int iDestX, int iDestY, CInt32Rect* psSourceRect = NULL);

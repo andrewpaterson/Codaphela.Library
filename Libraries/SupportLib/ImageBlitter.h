@@ -56,7 +56,7 @@ protected:
 public:
 	void			Init(Ptr<CImageCel> pSource, Ptr<CImage> pDest);
 	bool			Configure(CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
-	void			Free(void);
+	void			Free(void) override;
 	void			Class(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;

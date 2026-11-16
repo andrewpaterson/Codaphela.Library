@@ -41,14 +41,14 @@ protected:
 
 public:
 	void						Init(int32 iOutsideEdgeWidth, int32 iInnerEdgeWidth);
-	void						Kill(void);
+	void						Kill(void) override;
 
-	void						Pack(void);
+	void						Pack(void) override;
 	void						Dump(void);
 
-	bool						AddRectangle(CInt32Rect* pcRect, void* pvUserData);
-	bool						AddRectangle(CSubImage* pcSubImage);
-	bool						AddRectangle(CImageCel* pcImageCel);
+	bool						AddRectangle(CInt32Rect* pcRect, void* pvUserData) override;
+	bool						AddRectangle(CSubImage* pcSubImage) override;
+	bool						AddRectangle(CImageCel* pcImageCel) override;
 
 	void						AddAttempt(int32 iMaxWidth, EPackRotation eRotation = PR_AsGiven, bool bRotateToFit = false);
 	void						AddHorizontalAttempt(void);
@@ -64,8 +64,8 @@ public:
 	int32						GetSourcesMaxWidth(void);
 	int32						GetSourcesMaxWidth(EPackRotation eRotation);
 
-	void						GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
-	SInt32Vec2						GetPackedImageSize(void);
+	void						GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) override;
+	SInt32Vec2						GetPackedImageSize(void) override;
 
 	CArrayPackSourceRectangle*	GetSourceRectangles(void);
 	int32						GetOutsideEdgeWidth(void);
