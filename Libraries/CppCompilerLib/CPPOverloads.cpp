@@ -1690,8 +1690,9 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 	CArrayCPP65Types			apsArguments;
 	CCPPDeduction				cDeduction;
 	CChars						szArguments;
-	CCPPTemplateArguments*				pcBindings;
+	CCPPTemplateArguments*		pcBindings;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPSyntaxParameter*		pcParameter;
 	SCPP65Type*					psArgument;
 	SCPP65Type*					psParameter;
@@ -1763,6 +1764,20 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 					aiRanks[i] = iRank;
 				}
 			}
+		}
+
+		//An argument f(...) takes is the worst match there is.  [over.ics.ellipsis]
+		for (i = pcSuffix ? pcSuffix->macpParameters.NumElements() : 0; aiRanks && !bPack && pcSuffix && pcSuffix->mbVariadic && (i < papcArguments->NumElements()); i++)
+		{
+			aiRanks[i] = CPPCR_Ellipsis;
+		}
+
+		//The function's type, what it returns too, must be one with these arguments, or it is passed over (SFINAE:
+		//typename EnableIf<B, int>::Type f(T) where B is false).  [temp.deduct] 8
+		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition;
+		if (bTakes && pcDefinition->mpcSpecifiers && pcDefinition->mpcSpecifiers->mpcType)
+		{
+			bTakes = mpcUnit->GetDeclarators()->GetType(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, pcNode) != NULL;
 		}
 		mpcUnit->GetContext()->LeaveBindings();
 		if (!pcTemplate->mpcClass)

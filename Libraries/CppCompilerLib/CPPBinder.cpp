@@ -194,6 +194,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 
 		//A function of the name that isn't a template's, and takes the arguments as they are, is the better match
 		//than any template's instance.  [over.match.best] 2.4
+		pcFunction = NULL;
 		if (!papcExplicit)
 		{
 			uiErrors = mpcUnit->GetErrors()->NumErrors();
@@ -213,6 +214,15 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		if (!pcTemplate)
 		{
 			mpcUnit->Error(pcCallee, "The function template has not been defined");
+			return;
+		}
+		if (pcFunction && !mcOverloads.TemplateTakes(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall, NULL))
+		{
+			//The template can't be used with the arguments (SFINAE: a default template argument or the function's
+			//type fails), so the function that takes them converted is.  [temp.deduct] 8
+			mpcUnit->Resolved(pcName, pcFunction);
+			pcBound->meHow = CPPBC_Function;
+			pcBound->mpcFunction = pcFunction;
 			return;
 		}
 		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
