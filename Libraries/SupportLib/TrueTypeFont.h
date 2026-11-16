@@ -125,18 +125,18 @@ public:
 	bool		Load(char* szFilename);
 	bool		Load(void* pvData, lsize uiSize);
 
-	int			NumGlyphs(void);
-	int			GetUnitsPerEm(void);
+	int			NumGlyphs(void) const;
+	int			GetUnitsPerEm(void) const;
 	int			GetAscender(void);
 	int			GetDescender(void);
 	int			GetLineGap(void);
 	void		GetBounds(int* piXMin, int* piYMin, int* piXMax, int* piYMax);
 	bool		GetName(int iNameID, CChars* psz);
 
-	bool		HasPost(void);
+	bool		HasPost(void) const;
 	int			GetUnderlinePosition(void);
 	int			GetUnderlineThickness(void);
-	bool		HasOS2(void);
+	bool		HasOS2(void) const;
 	int			GetStrikeoutPosition(void);
 	int			GetStrikeoutSize(void);
 	int			GetSubscriptYSize(void);
@@ -149,14 +149,14 @@ public:
 	bool		GetGlyphAdvanceWidth(int iGlyph, int* piAdvanceWidth);
 	bool		GetGlyphOutline(int iGlyph, CTrueTypeOutline* pcOutline);
 
-	bool		IsVariable(void);
-	size		NumAxes(void);
+	bool		IsVariable(void) const;
+	size		NumAxes(void) const;
 	STrueTypeAxis*	GetAxis(size uiAxis);
 	bool		SetAxis(const char* szTag, float32 fValue);
 	bool		SetAxisFixed(const char* szTag, STrueTypeFixed sValue);
 	float32		GetAxisValue(const char* szTag);
 	void		ResetAxes(void);
-	size		NumNamedInstances(void);
+	size		NumNamedInstances(void) const;
 	bool		GetNamedInstanceName(size uiInstance, CChars* psz);
 	bool		SetNamedInstance(size uiInstance);
 	bool		SetNamedInstance(const char* szName);
@@ -169,7 +169,7 @@ public:
 	bool		ReadInt16(lsize uiOffset, int16* pi);
 	bool		ReadUint32(lsize uiOffset, uint32* pui);
 	bool		IsInFile(lsize uiOffset, lsize uiLength);
-	uint8*		GetData(void);
+	uint8*		GetData(void) const;
 
 protected:
 	bool		Parse(void);

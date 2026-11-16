@@ -66,7 +66,7 @@ public:
 	void	Free(void) override;
 	void	Class(void) override;
 
-	float64	GetStrength(void);
+	float64	GetStrength(void) const;
 };
 
 

@@ -145,7 +145,7 @@ int CSoundModifierStack::NumModifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSound> CSoundModifierStack::GetSound(void)
+Ptr<CSound> CSoundModifierStack::GetSound(void) const
 {
 	return mpSound;
 }

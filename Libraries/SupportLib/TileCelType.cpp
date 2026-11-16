@@ -61,7 +61,7 @@ bool CTileCelType::IsPattern(char cPattern)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileCelType::IsNegative(void)
+bool CTileCelType::IsNegative(void) const
 {
 	return mbNot;
 }
@@ -71,7 +71,7 @@ bool CTileCelType::IsNegative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileCelType::NumCelTypes(void)
+size CTileCelType::NumCelTypes(void) const
 {
 	return maiCelTypes.NumElements();
 }

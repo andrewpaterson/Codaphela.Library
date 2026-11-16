@@ -37,7 +37,7 @@ public:
 	
 	size		NumElements(void) override;
 	void*		GetData(void) override;
-	uint16*		GetChars(void);
+	uint16*		GetChars(void) const;
 
 	void		Push(uint16 uiChar);
 

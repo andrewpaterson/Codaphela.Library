@@ -42,7 +42,7 @@ public:
 	bool	Save(CObjectWriter* pcFile) override;
 	bool	Load(CObjectReader* pcFile) override;
 
-	size	NumPlanes(void);
+	size	NumPlanes(void) const;
 	float32	Distance(SFloat32Vec3* psPosition) override;
 	void	Gradient(SFloat32Vec3* psDest, SFloat32Vec3* psPosition) override;
 	void	GetBounds(SFloat32Bounds* psDest) override;

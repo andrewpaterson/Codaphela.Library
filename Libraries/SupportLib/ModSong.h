@@ -77,18 +77,18 @@ public:
 
 	void					SetTitle(char* szTitle);
 	char*					GetTitle(void);
-	size					NumChannels(void);
-	size					NumSamples(void);
-	size					NumPatterns(void);
+	size					NumChannels(void) const;
+	size					NumSamples(void) const;
+	size					NumPatterns(void) const;
 
 	SModSample*				GetSample(size uiSample);  //1 to NumSamples.
 	Ptr<CSoundCel>			GetSampleCel(size uiSample);
-	Ptr<CSoundCelGroup>		GetSampleBank(void);
+	Ptr<CSoundCelGroup>		GetSampleBank(void) const;
 	void					SetSampleBank(Ptr<CSoundCelGroup> pSamples);
 
 	void					SetSongLength(size uiSongLength, size uiRestart);
-	size					GetSongLength(void);
-	size					GetRestart(void);
+	size					GetSongLength(void) const;
+	size					GetRestart(void) const;
 	void					SetOrder(size uiOrder, uint8 uiPattern);
 	uint8					GetOrder(size uiOrder);
 

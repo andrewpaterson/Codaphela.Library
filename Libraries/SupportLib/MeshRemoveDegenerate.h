@@ -44,7 +44,7 @@ public:
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 
-	size		NumRemoved(void);
+	size		NumRemoved(void) const;
 
 	static bool	IsDegenerate(CMesh* pcMesh, int iFace);
 };

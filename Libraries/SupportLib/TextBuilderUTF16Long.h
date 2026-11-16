@@ -37,7 +37,7 @@ public:
 
 	size		NumElements(void) override;
 	void*		GetData(void) override;
-	uint32*		GetChars(void);
+	uint32*		GetChars(void) const;
 
 	void		Push(uint32 uiChar);
 	bool		IsUTF16Long(void) override;

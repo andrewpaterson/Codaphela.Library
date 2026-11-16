@@ -225,7 +225,7 @@ void CImageCel::GetImageSourceBounds(CInt32Rect* pcReturn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CImageCel::GetSourceLeft(void)
+int32 CImageCel::GetSourceLeft(void) const
 {
 	return mcSubImage.GetSourceLeft();
 }
@@ -235,7 +235,7 @@ int32 CImageCel::GetSourceLeft(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CImageCel::GetSourceTop(void)
+int32 CImageCel::GetSourceTop(void) const
 {
 	return mcSubImage.GetSourceTop();
 }
@@ -479,7 +479,7 @@ void CImageCel::GetImageDestBounds(int32 x, int32 y, CInt32Rect* pcReturn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageCel::GetSourceImage(void)
+Ptr<CImage> CImageCel::GetSourceImage(void) const
 {
 	return mpSourceImage;
 }

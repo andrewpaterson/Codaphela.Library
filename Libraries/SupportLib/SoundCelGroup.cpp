@@ -192,7 +192,7 @@ Ptr<CSoundCel> CSoundCelGroup::GetCel(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSound> CSoundCelGroup::GetSound(void)
+Ptr<CSound> CSoundCelGroup::GetSound(void) const
 {
 	return mpSound;
 }

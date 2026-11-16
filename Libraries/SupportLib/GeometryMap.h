@@ -134,12 +134,12 @@ public:
 	bool				GetBounds(CInt32Rect* pcBounds);
 	void				AppendKey(CArrayTemplate<uint8>* pauiKey);
 	SFloat64Vec2*		GetPoint(size uiIndex);
-	size				NumCommands(void);
+	size				NumCommands(void) const;
 	SGeometryCommand*	GetCommand(size uiIndex);
 
 	bool				BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters) override;
 	void				SetViewport(Ptr<CImage> pViewport) override;
-	Ptr<CImage>			GetViewport(void);
+	Ptr<CImage>			GetViewport(void) const;
 
 protected:
 	SGeometryCommand*	AddShape(EGeometryCommand eType, float64 fLeft, float64 fTop, float64 fRight, float64 fBottom, ARGB32 sColour);

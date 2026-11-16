@@ -17,7 +17,7 @@ public:
 	void	Kill(void) override;
 	void	Print(CChars* psz) override;
 
-	char	GetChar(void);
+	char	GetChar(void) const;
 
 	bool	Matches(void* pvData) override;
 };

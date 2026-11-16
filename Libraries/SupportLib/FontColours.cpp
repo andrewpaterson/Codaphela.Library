@@ -207,7 +207,7 @@ Ptr<CFont> CFontColours::Recolour(ARGB32 sColour)
 // The number of colours made, not counting white.
 //
 //////////////////////////////////////////////////////////////////////////
-size CFontColours::NumColours(void)
+size CFontColours::NumColours(void) const
 {
 	return masColours.NumElements();
 }
@@ -217,7 +217,7 @@ size CFontColours::NumColours(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFont> CFontColours::GetWhite(void)
+Ptr<CFont> CFontColours::GetWhite(void) const
 {
 	return mpWhite;
 }

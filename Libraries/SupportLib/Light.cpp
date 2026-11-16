@@ -80,7 +80,7 @@ void CLight::Class(void)
 // the least.
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CLight::GetStrength(void)
+float64 CLight::GetStrength(void) const
 {
 	return mfIntensity * (0.299 * msColour.mfRed + 0.587 * msColour.mfGreen + 0.114 * msColour.mfBlue);
 }

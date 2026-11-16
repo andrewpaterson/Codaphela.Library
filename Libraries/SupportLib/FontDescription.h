@@ -105,12 +105,12 @@ public:
 	void				PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSubImage, int16 iStep, int32 iSourceGlyph = -1);
 	void				SetRasteriser(Ptr<CGlyphRasteriser> pRasteriser);
 	void				SetTurn(EFontTurn eTurn);
-	EFontTurn			GetTurn(void);
-	Ptr<CGlyphRasteriser>	GetRasteriser(void);
+	EFontTurn			GetTurn(void) const;
+	Ptr<CGlyphRasteriser>	GetRasteriser(void) const;
 	SGlyphDescription*	GetGlyph(uint8* puiBuffer, size uiLength);
 	SGlyphDescription*	GetGlyph(CUnicodeReader* pcUTFReader);
 	size				ReadKey(CUnicodeReader* pcUTFReader, uint8* puiKey, size uiMaxKeyLength);
-	size				NumGlyphs(void);
+	size				NumGlyphs(void) const;
 
 	bool				StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize);
 	bool				Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize);
@@ -120,29 +120,29 @@ public:
 	size 				CalculateWidth(char* szText);
 	size 				CalculateWidth(char* szText, size uiLength);
 	bool				IsWhitespace(uint16 c);
-	int32				GetImageWidth(void);
-	int32				GetImageHeight(void);
-	int16				GetAscent(void);
-	int16				GetDescent(void);
-	int16				GetLineHeight(void);
-	int16				GetTabSpaceCount(void);
-	int16				GetSpaceWidth(void);
+	int32				GetImageWidth(void) const;
+	int32				GetImageHeight(void) const;
+	int16				GetAscent(void) const;
+	int16				GetDescent(void) const;
+	int16				GetLineHeight(void) const;
+	int16				GetTabSpaceCount(void) const;
+	int16				GetSpaceWidth(void) const;
 	size				GetAverageWidth(void);
-	size				GetAverageHeight(void);
+	size				GetAverageHeight(void) const;
 	bool				IsFixedWidth(void);
 
 	void				SetUnderline(int16 iTop, int16 iThickness);
 	void				SetStrikeout(int16 iTop, int16 iThickness);
 	void				SetSuperscript(float32 fScale, int16 iShift);
 	void				SetSubscript(float32 fScale, int16 iShift);
-	int16				GetUnderlineTop(void);
-	int16				GetUnderlineThickness(void);
-	int16				GetStrikeoutTop(void);
-	int16				GetStrikeoutThickness(void);
-	float32				GetSuperscriptScale(void);
-	int16				GetSuperscriptShift(void);
-	float32				GetSubscriptScale(void);
-	int16				GetSubscriptShift(void);
+	int16				GetUnderlineTop(void) const;
+	int16				GetUnderlineThickness(void) const;
+	int16				GetStrikeoutTop(void) const;
+	int16				GetStrikeoutThickness(void) const;
+	float32				GetSuperscriptScale(void) const;
+	int16				GetSuperscriptShift(void) const;
+	float32				GetSubscriptScale(void) const;
+	int16				GetSubscriptShift(void) const;
 
 protected:
 	void				CalculateWidths(void);

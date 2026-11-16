@@ -359,7 +359,7 @@ void CVectorPath::CalculateBounds(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CVectorPath::NumSegments(void)
+size CVectorPath::NumSegments(void) const
 {
 	return masSegments.NumElements();
 }
@@ -379,7 +379,7 @@ SVectorSegment* CVectorPath::GetSegment(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CVectorPath::HasBounds(void)
+bool CVectorPath::HasBounds(void) const
 {
 	return mbBounds;
 }

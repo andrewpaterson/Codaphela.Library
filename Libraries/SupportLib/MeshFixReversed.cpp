@@ -69,7 +69,7 @@ Ptr<CMesh> CMeshFixReversed::Modify(Ptr<CMesh> pMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshFixReversed::NumFixed(void)
+size CMeshFixReversed::NumFixed(void) const
 {
 	return muiNumFixed;
 }

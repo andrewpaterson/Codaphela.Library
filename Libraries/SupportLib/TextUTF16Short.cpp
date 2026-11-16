@@ -16,7 +16,7 @@ void CTextUTF16Short::Init(size uiNumChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint16* CTextUTF16Short::GetChars(void)
+uint16* CTextUTF16Short::GetChars(void) const
 {
 	return (uint16*)RemapSinglePointer(this, sizeof(CTextUTF16Short));
 }
@@ -26,7 +26,7 @@ uint16* CTextUTF16Short::GetChars(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CTextUTF16Short::NumChars(void)
+size CTextUTF16Short::NumChars(void) const
 {
 	return muiNumChars;
 }

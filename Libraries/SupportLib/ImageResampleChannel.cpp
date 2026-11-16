@@ -164,7 +164,7 @@ bool CImageResampleChannel::IsSmallInteger(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageResampleChannel::IsFloat(void)
+bool CImageResampleChannel::IsFloat(void) const
 {
 	return mbFloat;
 }
@@ -175,7 +175,7 @@ bool CImageResampleChannel::IsFloat(void)
 // The smallest raw value.  -HUGE_VAL for floats.
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CImageResampleChannel::GetMinimum(void)
+float64 CImageResampleChannel::GetMinimum(void) const
 {
 	return mfMinimum;
 }
@@ -186,7 +186,7 @@ float64 CImageResampleChannel::GetMinimum(void)
 // The largest raw value.  HUGE_VAL for floats.
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CImageResampleChannel::GetMaximum(void)
+float64 CImageResampleChannel::GetMaximum(void) const
 {
 	return mfMaximum;
 }
@@ -196,7 +196,7 @@ float64 CImageResampleChannel::GetMaximum(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CImageResampleChannel::NumPixels(void)
+lsize CImageResampleChannel::NumPixels(void) const
 {
 	return muiNumPixels;
 }

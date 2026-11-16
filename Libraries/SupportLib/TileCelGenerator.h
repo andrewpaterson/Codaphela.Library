@@ -26,10 +26,10 @@ public:
 	bool					Load(CObjectReader* pcFile) override;
 	bool					Save(CObjectWriter* pcFile) override;
 
-	Ptr<CTileGridSource>	GetTileGridSource(void);
-	Ptr<CTileLayer>			GetTileLayer(void);
-	int						GetCelType(void);
-	CTileCelSource*			GetTileColourSource(void);
+	Ptr<CTileGridSource>	GetTileGridSource(void) const;
+	Ptr<CTileLayer>			GetTileLayer(void) const;
+	int						GetCelType(void) const;
+	CTileCelSource*			GetTileColourSource(void) const;
 
 	bool					Matches(int x, int y);
 	bool					Matches(CTileCelSource* pcSource);

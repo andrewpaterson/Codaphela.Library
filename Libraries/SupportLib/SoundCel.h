@@ -53,13 +53,13 @@ public:
 	void			Copy(CSoundCel* pcSource);
 	bool			IsValid(void);
 
-	Ptr<CSound>		GetSourceSound(void);
+	Ptr<CSound>		GetSourceSound(void) const;
 	CSound*			UnsafeGetSourceSound(void);  //Without making a Ptr, for a thread other than the objects' (see CSoundMixer).
-	lsize			GetFirstFrame(void);
-	lsize			GetNumFrames(void);
-	bool			HasLoop(void);
-	lsize			GetLoopFrame(void);
-	lsize			GetLoopNumFrames(void);
+	lsize			GetFirstFrame(void) const;
+	lsize			GetNumFrames(void) const;
+	bool			HasLoop(void) const;
+	lsize			GetLoopFrame(void) const;
+	lsize			GetLoopNumFrames(void) const;
 	void			SetLoopFrame(lsize uiLoopFrame);
 
 	float64			GetSample(lsize uiFrame, size uiChannelIndex);

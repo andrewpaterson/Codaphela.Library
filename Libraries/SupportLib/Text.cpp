@@ -110,7 +110,7 @@ void CText::AddUTF16(Ptr<CFont> pFont, uint16* szText, size uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CText::GetMalloc(void)
+CMallocator* CText::GetMalloc(void) const
 {
 	return mpcMalloc;
 }
@@ -213,7 +213,7 @@ CTextNewLine* CText::AllocateNewLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CText::NumRuns(void)
+size CText::NumRuns(void) const
 {
 	return macText.NumElements();
 }

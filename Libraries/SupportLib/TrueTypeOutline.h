@@ -47,8 +47,8 @@ public:
 	void			Kill(void);
 	void			Clear(void);
 
-	size			NumContours(void);
-	size			NumPoints(void);
+	size			NumContours(void) const;
+	size			NumPoints(void) const;
 	STrueTypePoint*	GetPoint(size iIndex);
 	size			GetContourStart(size iContour);
 	size			GetContourEnd(size iContour);

@@ -105,7 +105,7 @@ Ptr<CMesh> CMeshRemoveDegenerate::Modify(Ptr<CMesh> pMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshRemoveDegenerate::NumRemoved(void)
+size CMeshRemoveDegenerate::NumRemoved(void) const
 {
 	return muiNumRemoved;
 }

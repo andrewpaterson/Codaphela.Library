@@ -89,7 +89,7 @@ void CImageAccessor::Set(int32 x, int32 y, void* pvSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CImageAccessor::GetBufferSize(void)
+size CImageAccessor::GetBufferSize(void) const
 {
 	return mpcAccessor->GetBufferSize();
 }
@@ -212,7 +212,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageAccessor::IsEmpty(void)
+bool CImageAccessor::IsEmpty(void) const
 {
 	return mpcAccessor->GetAccessors()->NumElements()== 0;
 }
@@ -231,7 +231,7 @@ void CImageAccessor::SyncDataCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveType	CImageAccessor::GetType(void)
+EPrimitiveType	CImageAccessor::GetType(void) const
 {
 	return mpcAccessor->GetType();
 }
@@ -241,7 +241,7 @@ EPrimitiveType	CImageAccessor::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CImageAccessor::GetBitSize(void)
+size CImageAccessor::GetBitSize(void) const
 {
 	return mpcAccessor->GetBitSize();
 }
@@ -251,13 +251,13 @@ size CImageAccessor::GetBitSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CImageAccessor::GetByteSize(void)
+size CImageAccessor::GetByteSize(void) const
 {
 	return mpcAccessor->GetByteSize();
 }
 
 
-CChannelsAccessor* CImageAccessor::GetAccessor(void) { return mpcAccessor; }
-CImage* CImageAccessor::GetImage(void) { return mpcImage; }
-uint32 CImageAccessor::GetWidth(void) { return miWidth; }
+CChannelsAccessor* CImageAccessor::GetAccessor(void) const { return mpcAccessor; }
+CImage* CImageAccessor::GetImage(void) const { return mpcImage; }
+uint32 CImageAccessor::GetWidth(void) const { return miWidth; }
 

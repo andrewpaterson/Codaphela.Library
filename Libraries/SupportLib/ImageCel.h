@@ -70,12 +70,12 @@ public:
 			void			FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft);
 			CSubImage*		GetSubImage(void);
 			void			SetSubImage(CSubImage* pcSubImage);
-			Ptr<CImage>		GetSourceImage(void);
+			Ptr<CImage>		GetSourceImage(void) const;
 
 			void			GetImageDestBounds(int32 x, int32 y, CInt32Rect* pcReturn);
 			void			GetImageSourceBounds(CInt32Rect* pcReturn);
-			int32			GetSourceLeft(void);
-			int32			GetSourceTop(void);
+			int32			GetSourceLeft(void) const;
+			int32			GetSourceTop(void) const;
 
 			void			CopyParam(SImageCopy* psCopy, int32 iDestX, int32 iDestY, int32 iDestWith, int32 iDestHeight);
 };

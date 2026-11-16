@@ -697,7 +697,7 @@ SSizeVec2 CTileMapGenerator::GetMapSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSizeVec2 CTileMapGenerator::GetCelSize(void)
+SSizeVec2 CTileMapGenerator::GetCelSize(void) const
 {
 	return msCelSize;
 }
@@ -707,7 +707,7 @@ SSizeVec2 CTileMapGenerator::GetCelSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CTileMap> CTileMapGenerator::GetMap(void)
+Ptr<CTileMap> CTileMapGenerator::GetMap(void) const
 {
 	return mpMap;
 }

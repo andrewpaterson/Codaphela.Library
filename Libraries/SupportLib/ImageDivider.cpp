@@ -297,5 +297,5 @@ void CImageDivider::CopyCellsTo(Ptr<CArrayImageCel> pImageCels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CArrayImageCel> CImageDivider::GetDestImageCels(void) { return mpDestImageCels; }
+Ptr<CArrayImageCel> CImageDivider::GetDestImageCels(void) const { return mpDestImageCels; }
 

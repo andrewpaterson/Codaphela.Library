@@ -419,10 +419,10 @@ SInt32Vec2 CRectangleBestPacker::GetPackedImageSize(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayPackSourceRectangle* CRectangleBestPacker::GetSourceRectangles(void) {return &masSourceRectangles;}
-int32 CRectangleBestPacker::GetOutsideEdgeWidth(void) {return miOutsideEdgeWidth;}
-int32 CRectangleBestPacker::GetInnerEdgeWidth(void) {return miInnerEdgeWidth;}
+int32 CRectangleBestPacker::GetOutsideEdgeWidth(void) const {return miOutsideEdgeWidth;}
+int32 CRectangleBestPacker::GetInnerEdgeWidth(void) const {return miInnerEdgeWidth;}
 CArrayPackAttempt* CRectangleBestPacker::GetPackAttempts(void) {return &macPackAttempts;}
-int64 CRectangleBestPacker::GetSourceArea(void) {return miSourceArea;}
+int64 CRectangleBestPacker::GetSourceArea(void) const {return miSourceArea;}
 
 
 //////////////////////////////////////////////////////////////////////////

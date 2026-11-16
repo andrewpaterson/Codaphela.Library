@@ -147,17 +147,17 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	void			Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText);
-	SInt32Vec2		GetSize(void);
+	SInt32Vec2		GetSize(void) const;
 	void			ReplaceLines(size uiLine, CTextLayout* pcTail);
 	void			SetWidth(int32 iWidth);
-	int32			GetWidth(void);
+	int32			GetWidth(void) const;
 	void			SetTabWidth(int32 iTabWidth);
-	int32			GetTabWidth(void);
+	int32			GetTabWidth(void) const;
 	void			SetLineGaps(CArrayTextLayoutGap* pasGaps);
 
-	size			NumStops(void);
+	size			NumStops(void) const;
 	STextLayoutStop*	GetStop(size uiIndex);
-	size			NumLines(void);
+	size			NumLines(void) const;
 	STextLayoutLine*	GetLine(size uiIndex);
 
 protected:

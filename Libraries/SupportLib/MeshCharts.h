@@ -58,7 +58,7 @@ public:
 	void	Grow(CMesh* pcMesh, float32 fMaxAngle = MESH_CHARTS_ANGLE);
 	void	Regrow(CMesh* pcMesh, CArrayInt* paiCharts, float32 fMaxAngle);
 
-	int		NumCharts(void);
+	int		NumCharts(void) const;
 	int		NumFaces(int iChart);
 	int		GetFace(int iChart, int i);
 

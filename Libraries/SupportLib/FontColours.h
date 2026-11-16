@@ -55,8 +55,8 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	Ptr<CFont>		GetFont(ARGB32 sColour);
-	Ptr<CFont>		GetWhite(void);
-	size			NumColours(void);
+	Ptr<CFont>		GetWhite(void) const;
+	size			NumColours(void) const;
 
 protected:
 	Ptr<CFont>		Recolour(ARGB32 sColour);

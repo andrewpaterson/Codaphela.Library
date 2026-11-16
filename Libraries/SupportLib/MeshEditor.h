@@ -74,9 +74,9 @@ public:
 
 	Ptr<CMesh>	GetOutput(void);
 	void		ClearOutput(void);
-	size		NumStructureChanges(void);
-	size		NumShapeChanges(void);
-	size		NumModifierChanges(void);
+	size		NumStructureChanges(void) const;
+	size		NumShapeChanges(void) const;
+	size		NumModifierChanges(void) const;
 
 	void	RemoveModifiers(void);
 

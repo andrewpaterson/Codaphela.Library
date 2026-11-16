@@ -30,12 +30,12 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 
 	bool				IsFor(size iCelType, char* szPatternConstantName);
-	Ptr<CImageCel>		GetCel(void);
-	size				GetWeight(void);
+	Ptr<CImageCel>		GetCel(void) const;
+	size				GetWeight(void) const;
 
 	void				SetCallback(CelBrushSelectionCallback fCallback, void* pvCallbackData);
 	void				Callback(size x, size y);
-	char*				GetPatternName(void);
+	char*				GetPatternName(void) const;
 };
 
 

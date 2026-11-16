@@ -93,7 +93,7 @@ bool CTileLayer::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32 CTileLayer::GetLayerSizeX(void)
+int32 CTileLayer::GetLayerSizeX(void) const
 {
 	return (int32)msMapSize.x;
 }
@@ -103,7 +103,7 @@ int32 CTileLayer::GetLayerSizeX(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32 CTileLayer::GetLayerSizeY(void)
+int32 CTileLayer::GetLayerSizeY(void) const
 {
 	return (int32)msMapSize.y;
 }
@@ -113,7 +113,7 @@ int32 CTileLayer::GetLayerSizeY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSizeVec2 CTileLayer::GetCelSize(void)
+SSizeVec2 CTileLayer::GetCelSize(void) const
 {
 	return msCelSize;
 }
@@ -144,7 +144,7 @@ bool CTileLayer::IsIdentifier(int iIdentifier)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CTileLayer::GetIdentifier(void)
+int CTileLayer::GetIdentifier(void) const
 {
 	return miIdentifier;
 }

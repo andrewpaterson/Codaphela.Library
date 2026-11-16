@@ -63,7 +63,7 @@ bool CTileCelGenerator::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CTileGridSource> CTileCelGenerator::GetTileGridSource(void)
+Ptr<CTileGridSource> CTileCelGenerator::GetTileGridSource(void) const
 {
 	return mpTileGridSource;
 }
@@ -73,7 +73,7 @@ Ptr<CTileGridSource> CTileCelGenerator::GetTileGridSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CTileLayer> CTileCelGenerator::GetTileLayer(void)
+Ptr<CTileLayer> CTileCelGenerator::GetTileLayer(void) const
 {
 	return mpTileLayer;
 }
@@ -83,7 +83,7 @@ Ptr<CTileLayer> CTileCelGenerator::GetTileLayer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTileCelGenerator::GetCelType(void)
+int CTileCelGenerator::GetCelType(void) const
 {
 	return miCelType;
 }
@@ -113,7 +113,7 @@ bool CTileCelGenerator::Matches(CTileCelSource* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileCelSource* CTileCelGenerator::GetTileColourSource(void)
+CTileCelSource* CTileCelGenerator::GetTileColourSource(void) const
 {
 	return mpcTileCelSource;
 }

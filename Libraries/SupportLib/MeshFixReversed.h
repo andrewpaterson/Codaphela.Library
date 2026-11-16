@@ -41,7 +41,7 @@ public:
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 
-	size		NumFixed(void);
+	size		NumFixed(void) const;
 
 protected:
 	bool		IsReversed(CMesh* pcMesh, int iFace);

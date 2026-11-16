@@ -128,7 +128,7 @@ bool CSoundCel::IsValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSound> CSoundCel::GetSourceSound(void)
+Ptr<CSound> CSoundCel::GetSourceSound(void) const
 {
 	return mpSourceSound;
 }
@@ -149,7 +149,7 @@ CSound* CSoundCel::UnsafeGetSourceSound(void)
 // The cel's first frame in the source sound.
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CSoundCel::GetFirstFrame(void)
+lsize CSoundCel::GetFirstFrame(void) const
 {
 	return muiFirstFrame;
 }
@@ -159,7 +159,7 @@ lsize CSoundCel::GetFirstFrame(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CSoundCel::GetNumFrames(void)
+lsize CSoundCel::GetNumFrames(void) const
 {
 	return muiNumFrames;
 }
@@ -169,7 +169,7 @@ lsize CSoundCel::GetNumFrames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSoundCel::HasLoop(void)
+bool CSoundCel::HasLoop(void) const
 {
 	return muiLoopFrame != SOUND_CEL_NO_LOOP;
 }
@@ -181,7 +181,7 @@ bool CSoundCel::HasLoop(void)
 // reaches its end.  SOUND_CEL_NO_LOOP if it doesn't loop.
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CSoundCel::GetLoopFrame(void)
+lsize CSoundCel::GetLoopFrame(void) const
 {
 	return muiLoopFrame;
 }
@@ -193,7 +193,7 @@ lsize CSoundCel::GetLoopFrame(void)
 // doesn't loop.
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CSoundCel::GetLoopNumFrames(void)
+lsize CSoundCel::GetLoopNumFrames(void) const
 {
 	if (!HasLoop())
 	{

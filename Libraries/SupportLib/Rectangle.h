@@ -45,20 +45,20 @@ public:
 	void 	Init(CRectangle<V, M, N>* pcSource);
 	void 	Kill(void);
 	void	Copy(CRectangle<V, M, N>* pcSource);
-	M		GetLeft(void);
-	M		GetTop(void);
-	M		GetRight(void);
-	M		GetBottom(void);
-	M 		GetWidth(void);
-	M 		GetHeight(void);
-	N 		GetArea(void);
+	M		GetLeft(void) const;
+	M		GetTop(void) const;
+	M		GetRight(void) const;
+	M		GetBottom(void) const;
+	M 		GetWidth(void) const;
+	M 		GetHeight(void) const;
+	N 		GetArea(void) const;
 	void	SetWidth(M iWidth);
 	void	SetHeight(M iHeight);
 	void	SetSize(M iWidth, M iHeight);
 	void	SetPos(M x, M y);
 	void	Shrink(M iShrinkLeft, M iShrinkTop, M iShrinkRight, M iShrinkBottom);
 	void	ClipTo(CRectangle<V, M, N>* pcBounds);
-	bool	IsValid(void);
+	bool	IsValid(void) const;
 	bool	IsIn(M x, M y);
 	bool	IsIn(M iLeft, M iTop, M iRight, M iBottom);
 	bool	ContainsPoint(M x, M y);
@@ -175,7 +175,7 @@ void CRectangle<V, M, N>::Copy(CRectangle<V, M, N>* pcSource)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class V, class M, class N>
-M CRectangle<V, M, N>::GetLeft(void)
+M CRectangle<V, M, N>::GetLeft(void) const
 {
 	return msTopLeft.x;
 }
@@ -186,7 +186,7 @@ M CRectangle<V, M, N>::GetLeft(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class V, class M, class N>
-M CRectangle<V, M, N>::GetTop(void)
+M CRectangle<V, M, N>::GetTop(void) const
 {
 	return msTopLeft.y;
 }
@@ -197,7 +197,7 @@ M CRectangle<V, M, N>::GetTop(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class V, class M, class N>
-M CRectangle<V, M, N>::GetRight(void)
+M CRectangle<V, M, N>::GetRight(void) const
 {
 	return msBottomRight.x;
 }
@@ -208,7 +208,7 @@ M CRectangle<V, M, N>::GetRight(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class V, class M, class N>
-M CRectangle<V, M, N>::GetBottom(void)
+M CRectangle<V, M, N>::GetBottom(void) const
 {
 	return msBottomRight.y;
 }
@@ -219,7 +219,7 @@ M CRectangle<V, M, N>::GetBottom(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class V, class M, class N>
-M CRectangle<V, M, N>::GetWidth(void)
+M CRectangle<V, M, N>::GetWidth(void) const
 {
 	return msBottomRight.x - msTopLeft.x;
 }
@@ -230,7 +230,7 @@ M CRectangle<V, M, N>::GetWidth(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class V, class M, class N>
-M CRectangle<V, M, N>::GetHeight(void)
+M CRectangle<V, M, N>::GetHeight(void) const
 {
 	return msBottomRight.y - msTopLeft.y;
 }
@@ -241,7 +241,7 @@ M CRectangle<V, M, N>::GetHeight(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class V, class M, class N>
-N CRectangle<V, M, N>::GetArea(void)
+N CRectangle<V, M, N>::GetArea(void) const
 {
 	return (N)GetWidth() * (N)GetHeight();
 }
@@ -346,7 +346,7 @@ void CRectangle<V, M, N>::ClipTo(CRectangle<V, M, N>* pcBounds)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class V, class M, class N>
-bool CRectangle<V, M, N>::IsValid(void)
+bool CRectangle<V, M, N>::IsValid(void) const
 {
 	return (msTopLeft.x <= msBottomRight.x) && (msTopLeft.y <= msBottomRight.y);
 }

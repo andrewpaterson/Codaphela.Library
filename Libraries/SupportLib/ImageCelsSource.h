@@ -49,8 +49,8 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	Ptr<CImageSource>	GetImageSource(void);
-	CImageCelSource*	GetCelsSource(void);
+	Ptr<CImageSource>	GetImageSource(void) const;
+	CImageCelSource*	GetCelsSource(void) const;
 };
 
 

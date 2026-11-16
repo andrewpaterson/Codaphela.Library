@@ -49,7 +49,7 @@ public:
 	virtual void*		Get(int32 x, int32 y);
 	virtual void		Set(int32 x, int32 y, void* pvData);
 
-	size				GetBufferSize(void);
+	size				GetBufferSize(void) const;
 	virtual void		SyncDataCache(void);
 
 	void				Get(int32 x, int32 y, void* pvDest);
@@ -58,14 +58,14 @@ public:
 	void				SafeSet(int32 x, int32 y, void* pvData);
 
 	bool				MakeColour(SImageColour* psDest, CImageColour* pcColour);
-	bool				IsEmpty(void);
-	EPrimitiveType		GetType(void);
+	bool				IsEmpty(void) const;
+	EPrimitiveType		GetType(void) const;
 
-	size				GetBitSize(void);
-	size				GetByteSize(void);
-	CChannelsAccessor*	GetAccessor(void);
-	CImage*				GetImage(void);
-	uint32				GetWidth(void);
+	size				GetBitSize(void) const;
+	size				GetByteSize(void) const;
+	CChannelsAccessor*	GetAccessor(void) const;
+	CImage*				GetImage(void) const;
+	uint32				GetWidth(void) const;
 };
 
 

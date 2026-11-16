@@ -54,7 +54,7 @@ public:
 	void					ApplyAll(void);  //Better way.  CImageModifierStack has a list of images.  But then the cache is broken.  Need a cached image.
 
 	int						NumModifiers(void);
-	Ptr<CImage>				GetImage(void);
+	Ptr<CImage>				GetImage(void) const;
 };
 
 

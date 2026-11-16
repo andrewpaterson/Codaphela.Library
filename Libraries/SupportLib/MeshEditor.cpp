@@ -184,7 +184,7 @@ void CMeshEditor::ClearOutput(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshEditor::NumStructureChanges(void)
+size CMeshEditor::NumStructureChanges(void) const
 {
 	return muiStructureChanges;
 }
@@ -194,7 +194,7 @@ size CMeshEditor::NumStructureChanges(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshEditor::NumShapeChanges(void)
+size CMeshEditor::NumShapeChanges(void) const
 {
 	return muiShapeChanges;
 }
@@ -204,7 +204,7 @@ size CMeshEditor::NumShapeChanges(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshEditor::NumModifierChanges(void)
+size CMeshEditor::NumModifierChanges(void) const
 {
 	return mcModifiers.NumChanges();
 }

@@ -174,4 +174,4 @@ void CImageCelMask::FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CImageCelMask::GetMask(void) {return miMask;}
+uint16 CImageCelMask::GetMask(void) const {return miMask;}

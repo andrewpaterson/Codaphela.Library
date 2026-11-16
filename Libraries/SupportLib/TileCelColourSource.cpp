@@ -40,7 +40,7 @@ void CTileCelColourSource::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ARGB32 CTileCelColourSource::GetColour(void)
+ARGB32 CTileCelColourSource::GetColour(void) const
 {
 	return muiARGB;
 }

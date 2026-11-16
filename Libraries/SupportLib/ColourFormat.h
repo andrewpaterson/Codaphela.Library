@@ -111,17 +111,17 @@ public:
 
 	void			Init(EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
 
-	size			GetNumChannels(void);
+	size			GetNumChannels(void) const;
 
 	EChannel		GetChannel(size uiIndex);
 	EPrimitiveType	GetType(size uiIndex);
 
 	EChannel		GetColourChannel(size uiIndex);
 	EPrimitiveType	GetColourType(size uiIndex);
-	EPrimitiveType	GetAlphaType(void);
+	EPrimitiveType	GetAlphaType(void) const;
 
-	size			GetFirstColourIndex(void);
-	size			GetAlphaIndex(void);
+	size			GetFirstColourIndex(void) const;
+	size			GetAlphaIndex(void) const;
 };
 
 

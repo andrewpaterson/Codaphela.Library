@@ -160,7 +160,7 @@ size CSpriteMap::AddCel(Ptr<CImageCel> pCel)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CSpriteMap::NumSprites(void)
+size CSpriteMap::NumSprites(void) const
 {
 	return masSprites.NumElements();
 }
@@ -618,5 +618,5 @@ bool CSpriteMap::BlitSprites(int32 iLeft, int32 iTop, CInt32Rect* pcClip, bool b
 //////////////////////////////////////////////////////////////////////////
 void		CSpriteMap::SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) { mpCache = pCache; }
 void		CSpriteMap::SetViewport(Ptr<CImage> pViewport) { mpViewport = pViewport; }
-Ptr<CImage> CSpriteMap::GetViewport(void) { return mpViewport; }
+Ptr<CImage> CSpriteMap::GetViewport(void) const { return mpViewport; }
 

@@ -88,8 +88,8 @@ bool CImageSourceWithCelSources::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageSource> CImageSourceWithCelSources::GetImageSource(void) { return mpImageSource; }
-CImageCelSource* CImageSourceWithCelSources::GetCelsSource(void) { return mpcCelsSource; }
+Ptr<CImageSource> CImageSourceWithCelSources::GetImageSource(void) const { return mpImageSource; }
+CImageCelSource* CImageSourceWithCelSources::GetCelsSource(void) const { return mpcCelsSource; }
 
 
 //////////////////////////////////////////////////////////////////////////

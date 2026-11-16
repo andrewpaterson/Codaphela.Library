@@ -112,7 +112,7 @@ void CMeshModifierStack::AddModifier(Ptr<CMeshModifier> pModifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CMesh> CMeshModifierStack::GetSource(void)
+Ptr<CMesh> CMeshModifierStack::GetSource(void) const
 {
 	return mpSource;
 }
@@ -173,7 +173,7 @@ void CMeshModifierStack::ClearOutput(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMeshModifierStack::NumChanges(void)
+size CMeshModifierStack::NumChanges(void) const
 {
 	return muiChanges;
 }

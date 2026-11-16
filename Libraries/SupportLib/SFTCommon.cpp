@@ -116,7 +116,7 @@ bool SSFTCelRun::Write(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SSFTCelRun::IsStartOfRun(void)
+bool SSFTCelRun::IsStartOfRun(void) const
 {
 	return FixBool(uiFlags & 0x8000);
 }
@@ -126,7 +126,7 @@ bool SSFTCelRun::IsStartOfRun(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 SSFTCelRun::GetRunLength(void)
+uint16 SSFTCelRun::GetRunLength(void) const
 {
 	return uiRunLength;
 }
@@ -136,7 +136,7 @@ uint16 SSFTCelRun::GetRunLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 SSFTCelRun::GetSkipLength(void)
+uint16 SSFTCelRun::GetSkipLength(void) const
 {
 	return uiFlags & 0x7fff;
 }
@@ -146,7 +146,7 @@ uint16 SSFTCelRun::GetSkipLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SSFTCelRun::IsDone(void)
+bool SSFTCelRun::IsDone(void) const
 {
 	return (uiFlags == 0) && (uiRunLength == 0);
 }

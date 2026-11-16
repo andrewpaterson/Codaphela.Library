@@ -29,8 +29,8 @@ CONSTRUCTABLE(CTextUTF16Short);
 protected:
 public:
 	void		Init(size uiNumChars);
-	uint16*		GetChars(void);
-	size		NumChars(void);
+	uint16*		GetChars(void) const;
+	size		NumChars(void) const;
 	void		Copy(uint16* puiData);
 
 	bool		Load(CObjectReader* pcFile) override;

@@ -297,7 +297,7 @@ bool CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CInt32Rect* pcBounds, C
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CPackAttempt::GetWastedArea(void)
+int64 CPackAttempt::GetWastedArea(void) const
 {
 	return miArea - mpcRectanglePacker->GetSourceArea();
 }
@@ -326,7 +326,7 @@ void CPackAttempt::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangle
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CPackAttempt::GetPackedImageSize(void)
+SInt32Vec2 CPackAttempt::GetPackedImageSize(void) const
 {
 	SInt32Vec2	sSize;
 

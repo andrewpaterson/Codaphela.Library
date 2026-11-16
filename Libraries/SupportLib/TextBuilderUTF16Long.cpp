@@ -45,7 +45,7 @@ void* CTextBuilderUTF16Long::GetData(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint32* CTextBuilderUTF16Long::GetChars(void)
+uint32* CTextBuilderUTF16Long::GetChars(void) const
 {
 	return (uint32*)mauiUTF32.GetData();
 }

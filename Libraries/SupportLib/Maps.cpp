@@ -184,7 +184,7 @@ void CMaps::SetViewportPosition(SInt32Vec2	sViewportPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CMaps::GetViewportPosition(void)
+SInt32Vec2 CMaps::GetViewportPosition(void) const
 {
 	return msViewportPosition;
 }

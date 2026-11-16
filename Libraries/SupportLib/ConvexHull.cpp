@@ -117,7 +117,7 @@ bool CConvexHull::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CConvexHull::NumPlanes(void)
+size CConvexHull::NumPlanes(void) const
 {
 	return mcPlanes.NumElements();
 }

@@ -50,7 +50,7 @@ public:
 
 	size			NumCels(void);
 	Ptr<CSoundCel>	GetCel(size uiIndex);
-	Ptr<CSound>		GetSound(void);
+	Ptr<CSound>		GetSound(void) const;
 };
 
 

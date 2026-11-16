@@ -1485,7 +1485,7 @@ void CModPlayer::MixSamples(SModChannel* psChannel, SModMix* psMix, uint16 uiFir
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CModPlayer::IsFinished(void)
+bool CModPlayer::IsFinished(void) const
 {
 	return mbFinished;
 }
@@ -1496,7 +1496,7 @@ bool CModPlayer::IsFinished(void)
 // The order, row and tick last played.
 //
 //////////////////////////////////////////////////////////////////////////
-size CModPlayer::GetOrder(void)
+size CModPlayer::GetOrder(void) const
 {
 	return muiOrder;
 }
@@ -1506,7 +1506,7 @@ size CModPlayer::GetOrder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModPlayer::GetRow(void)
+size CModPlayer::GetRow(void) const
 {
 	return muiRow;
 }
@@ -1516,7 +1516,7 @@ size CModPlayer::GetRow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModPlayer::GetTick(void)
+size CModPlayer::GetTick(void) const
 {
 	return muiTick;
 }
@@ -1526,7 +1526,7 @@ size CModPlayer::GetTick(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModPlayer::GetSpeed(void)
+size CModPlayer::GetSpeed(void) const
 {
 	return muiSpeed;
 }
@@ -1536,7 +1536,7 @@ size CModPlayer::GetSpeed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModPlayer::GetTempo(void)
+size CModPlayer::GetTempo(void) const
 {
 	return muiTempo;
 }
@@ -1546,7 +1546,7 @@ size CModPlayer::GetTempo(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CModPlayer::GetFramesPlayed(void)
+lsize CModPlayer::GetFramesPlayed(void) const
 {
 	return muiFramesPlayed;
 }
@@ -1570,7 +1570,7 @@ SModChannel* CModPlayer::GetChannel(size uiChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModPlayer::NumChannels(void)
+size CModPlayer::NumChannels(void) const
 {
 	return mpcSong->NumChannels();
 }

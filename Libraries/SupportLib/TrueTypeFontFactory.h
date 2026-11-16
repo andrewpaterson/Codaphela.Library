@@ -71,9 +71,9 @@ public:
 	Ptr<CImage>				Rasterise(Ptr<CFontDescription> pDescription, CImageColourRGB* pcColour);
 	Ptr<CImage>				CreateImage(Ptr<CFontDescription> pDescription, EColourOrder eColourOrder);
 
-	size			NumCharacters(void);
-	int				GetAscent(void);
-	int				GetDescent(void);
+	size			NumCharacters(void) const;
+	int				GetAscent(void) const;
+	int				GetDescent(void) const;
 
 protected:
 	bool			AddCharacters(char* szUTF8Characters);

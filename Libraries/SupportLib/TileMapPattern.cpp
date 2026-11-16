@@ -136,7 +136,7 @@ bool CTileMapPattern::IsSource(char* szConstantSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileMapPattern::GetType(void)
+size CTileMapPattern::GetType(void) const
 {
 	return miType;
 }
@@ -146,7 +146,7 @@ size CTileMapPattern::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTileMapPattern::GetConstantName(void)
+char* CTileMapPattern::GetConstantName(void) const
 {
 	return mszConstantName;
 }
@@ -156,7 +156,7 @@ char* CTileMapPattern::GetConstantName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileMapPattern::GetWidth(void)
+size CTileMapPattern::GetWidth(void) const
 {
 	return miWidth;
 }
@@ -166,7 +166,7 @@ size CTileMapPattern::GetWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileMapPattern::GetHeight(void)
+size CTileMapPattern::GetHeight(void) const
 {
 	return miHeight;
 }
@@ -186,7 +186,7 @@ char CTileMapPattern::GetChar(size x, size y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileMapPattern::GetBX(void)
+size CTileMapPattern::GetBX(void) const
 {
 	return miBX;
 }
@@ -196,7 +196,7 @@ size CTileMapPattern::GetBX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileMapPattern::GetBY(void)
+size CTileMapPattern::GetBY(void) const
 {
 	return miBY;
 }

@@ -20,8 +20,8 @@ public:
 	void	AddCelType(int iCelType);
 
 	bool	IsPattern(char cPattern);
-	bool	IsNegative(void);
-	size	NumCelTypes(void);
+	bool	IsNegative(void) const;
+	size	NumCelTypes(void) const;
 	int		GetCelType(size iIndex);
 };
 

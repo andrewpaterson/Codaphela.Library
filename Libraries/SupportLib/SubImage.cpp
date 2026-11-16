@@ -118,7 +118,7 @@ void CSubImage::SetVerticalAlignment(int32 iAlignment)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetFullWidth(void)
+int32 CSubImage::GetFullWidth(void) const
 {
 	return msOffsetTopLeft.x + GetImageWidth() + msOffsetBottomRight.x;
 }
@@ -128,7 +128,7 @@ int32 CSubImage::GetFullWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetFullHeight(void)
+int32 CSubImage::GetFullHeight(void) const
 {
 	return msOffsetTopLeft.y + GetImageHeight() + msOffsetBottomRight.y;
 }
@@ -138,7 +138,7 @@ int32 CSubImage::GetFullHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetImageWidth(void)
+int32 CSubImage::GetImageWidth(void) const
 {
 	return mcImageRect.GetWidth();
 }
@@ -148,7 +148,7 @@ int32 CSubImage::GetImageWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetImageHeight(void)
+int32 CSubImage::GetImageHeight(void) const
 {
 	return mcImageRect.GetHeight();
 }
@@ -158,7 +158,7 @@ int32 CSubImage::GetImageHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CSubImage::GetFullSize(void)
+SInt32Vec2 CSubImage::GetFullSize(void) const
 {
 	SInt32Vec2	sSize;
 
@@ -171,7 +171,7 @@ SInt32Vec2 CSubImage::GetFullSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CSubImage::GetImageSize(void)
+SInt32Vec2 CSubImage::GetImageSize(void) const
 {
 	SInt32Vec2	sSize;
 
@@ -184,7 +184,7 @@ SInt32Vec2 CSubImage::GetImageSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetImageLeft(void)
+int32 CSubImage::GetImageLeft(void) const
 {
 	return msAlignment.x + msOffsetTopLeft.x;
 }
@@ -194,7 +194,7 @@ int32 CSubImage::GetImageLeft(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetImageTop(void)
+int32 CSubImage::GetImageTop(void) const
 {
 	return msAlignment.y + msOffsetTopLeft.y;
 }
@@ -204,7 +204,7 @@ int32 CSubImage::GetImageTop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetImageRight(void)
+int32 CSubImage::GetImageRight(void) const
 {
 	return msAlignment.x + msOffsetTopLeft.x + GetImageWidth();
 }
@@ -214,7 +214,7 @@ int32 CSubImage::GetImageRight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetImageBottom(void)
+int32 CSubImage::GetImageBottom(void) const
 {
 	return msAlignment.y + msOffsetTopLeft.y + GetImageHeight();
 }
@@ -224,7 +224,7 @@ int32 CSubImage::GetImageBottom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetFullLeft(void)
+int32 CSubImage::GetFullLeft(void) const
 {
 	return msAlignment.x;
 }
@@ -234,7 +234,7 @@ int32 CSubImage::GetFullLeft(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetFullTop(void)
+int32 CSubImage::GetFullTop(void) const
 {
 	return msAlignment.y;
 }
@@ -244,7 +244,7 @@ int32 CSubImage::GetFullTop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetFullRight(void)
+int32 CSubImage::GetFullRight(void) const
 {
 	return msAlignment.x + GetFullWidth();
 }
@@ -254,7 +254,7 @@ int32 CSubImage::GetFullRight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetFullBottom(void)
+int32 CSubImage::GetFullBottom(void) const
 {
 	return msAlignment.y + GetFullHeight();
 }
@@ -264,7 +264,7 @@ int32 CSubImage::GetFullBottom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSubImage::IsImageEmpty(void)
+bool CSubImage::IsImageEmpty(void) const
 {
 	if (GetImageWidth() != 0)
 	{
@@ -317,7 +317,7 @@ void CSubImage::GetFullSourceBounds(CInt32Rect* pcReturn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetSourceLeft(void)
+int32 CSubImage::GetSourceLeft(void) const
 {
 	return mcImageRect.msTopLeft.x - msOffsetTopLeft.x;
 }
@@ -327,7 +327,7 @@ int32 CSubImage::GetSourceLeft(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSubImage::GetSourceTop(void)
+int32 CSubImage::GetSourceTop(void) const
 {
 	return mcImageRect.msTopLeft.y - msOffsetTopLeft.y;
 }

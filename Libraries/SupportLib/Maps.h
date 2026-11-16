@@ -50,7 +50,7 @@ public:
 	bool		Load(CObjectReader* pcFile) override;
 
 	void		SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
-	SInt32Vec2	GetViewportPosition(void);
+	SInt32Vec2	GetViewportPosition(void) const;
 
 	void		AddMap(Ptr<CBaseMap> pMap);
 

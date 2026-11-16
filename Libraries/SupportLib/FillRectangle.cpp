@@ -40,7 +40,7 @@ void CFillRectangle::Init(short iMask, int iLeft, int iTop, int iRight, int iBot
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFillRectangle::IsFillRectangular(void)
+bool CFillRectangle::IsFillRectangular(void) const
 {
 	int	iExpected;
 

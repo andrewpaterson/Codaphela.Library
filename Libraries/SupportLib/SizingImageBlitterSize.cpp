@@ -124,7 +124,7 @@ bool CSizingImageBlitterSize::PopulateSizingTables(CSubImage* pcSubImage, int32 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32* CSizingImageBlitterSize::GetSizedSourceX(void)
+int32* CSizingImageBlitterSize::GetSizedSourceX(void) const
 {
 	return maiSizedSourceX.GetData();
 }
@@ -134,7 +134,7 @@ int32* CSizingImageBlitterSize::GetSizedSourceX(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32* CSizingImageBlitterSize::GetSizedSourceY(void)
+int32* CSizingImageBlitterSize::GetSizedSourceY(void) const
 {
 	return maiSizedSourceY.GetData();
 }
@@ -144,7 +144,7 @@ int32* CSizingImageBlitterSize::GetSizedSourceY(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32* CSizingImageBlitterSize::GetSizedDestX(void)
+int32* CSizingImageBlitterSize::GetSizedDestX(void) const
 {
 	return maiSizedDestX.GetData();
 }

@@ -68,7 +68,7 @@ bool CTileGridSource::IsNamed(char* szConstantName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTileGridSource::GetConstantName(void)
+char* CTileGridSource::GetConstantName(void) const
 {
 	return mszConstantName;
 }

@@ -252,7 +252,7 @@ void CMeshEditorWrapper::AddNormal(float32 x, float32 y, float32 z)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshEditorWrapper::NumFaces(void)
+int CMeshEditorWrapper::NumFaces(void) const
 {
 	return mpcMesh->NumFaces();
 }
@@ -262,7 +262,7 @@ int CMeshEditorWrapper::NumFaces(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshEditorWrapper::NumCorners(void)
+int CMeshEditorWrapper::NumCorners(void) const
 {
 	return mpcMesh->NumCorners();
 }
@@ -272,7 +272,7 @@ int CMeshEditorWrapper::NumCorners(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshEditorWrapper::NumNormals(void)
+int CMeshEditorWrapper::NumNormals(void) const
 {
 	return (int)mpcMesh->mcNormals.mcNormals.NumElements();
 }
@@ -282,7 +282,7 @@ int CMeshEditorWrapper::NumNormals(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshEditorWrapper::NumUVs(void)
+int CMeshEditorWrapper::NumUVs(void) const
 {
 	return mpcMesh->mcUVs.NumUVs();
 }

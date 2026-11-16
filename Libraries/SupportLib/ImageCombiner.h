@@ -90,7 +90,7 @@ public:
 	Ptr<CArrayImageCel>		GetCels(void);  //If something else is taking ownership of the cels (the normal case) then bKillDestCels must be false.
 
 private:
-	CRectanglePacker*	GetPacker(void);
+	CRectanglePacker*	GetPacker(void) const;
 	Ptr<CImage>			InitiailiseDestImage(SInt32Vec2 sSize);
 	void				CalculateChannels(void);
 	void				CalculateChannelsFromCels(void);

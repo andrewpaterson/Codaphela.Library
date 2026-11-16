@@ -79,8 +79,8 @@ public:
 	void			AddCorner(void);
 	CMFRet			AddFace(int iCorner1, int iCorner2, int iCorner3);  //NewEdges is zero, GenerateConnectivity returns it.
 
-	lsize			NumCorners(void);
-	lsize			NumFaces(void);
+	lsize			NumCorners(void) const;
+	lsize			NumFaces(void) const;
 	int*			GetFaceCorners(int iElementNum);
 	lsize			FaceChunkSize(void);
 	lsize			CornerChunkSize(void);
@@ -94,7 +94,7 @@ public:
 	SAdjFaces		GetAdjacentFaces(int iFaceNum);
 
 	int				GenerateConnectivity(void);  //Returns how many edges were new.
-	bool			IsGenerated(void);
+	bool			IsGenerated(void) const;
 
 protected:
 	void			KillCorners(void);

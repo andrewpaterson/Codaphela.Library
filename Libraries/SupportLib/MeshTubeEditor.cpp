@@ -83,7 +83,7 @@ void CMeshTubeEditor::SetFlipFaces(bool bFlipFaces)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshTubeEditor::NumProfilePoints(void)
+int CMeshTubeEditor::NumProfilePoints(void) const
 {
 	return ((miRingSegments - 1) + miCircleSegments) * 2;
 }

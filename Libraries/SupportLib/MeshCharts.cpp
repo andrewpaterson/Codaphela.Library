@@ -76,7 +76,7 @@ void CMeshCharts::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshCharts::NumCharts(void)
+int CMeshCharts::NumCharts(void) const
 {
 	return (int)masNormals.NumElements();
 }

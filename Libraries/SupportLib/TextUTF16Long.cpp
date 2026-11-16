@@ -26,7 +26,7 @@ uint32* CTextUTF16Long::GetChars(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CTextUTF16Long::NumChars(void)
+size CTextUTF16Long::NumChars(void) const
 {
 	return muiNumChars;
 }

@@ -34,7 +34,7 @@ void CTileCelCharSource::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CTileCelCharSource::GetChar(void)
+char CTileCelCharSource::GetChar(void) const
 {
 	return mc;
 }

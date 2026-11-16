@@ -219,5 +219,5 @@ void CImageCelBlitterCache::RemoveForgottenBlitters(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageCelBlitterCache::GetDestImage(void) { return mpDestImage; }
+Ptr<CImage> CImageCelBlitterCache::GetDestImage(void) const { return mpDestImage; }
 

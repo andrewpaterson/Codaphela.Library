@@ -104,7 +104,7 @@ void CTileCelBrush::Callback(size x, size y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTileCelBrush::GetPatternName(void)
+char* CTileCelBrush::GetPatternName(void) const
 {
 	return mszPatternName;
 }
@@ -124,7 +124,7 @@ bool CTileCelBrush::IsFor(size iCelType, char* szPatternConstantName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CTileCelBrush::GetCel(void)
+Ptr<CImageCel> CTileCelBrush::GetCel(void) const
 {
 	return mpCel;
 }
@@ -134,7 +134,7 @@ Ptr<CImageCel> CTileCelBrush::GetCel(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileCelBrush::GetWeight(void)
+size CTileCelBrush::GetWeight(void) const
 {
 	return miWeight;
 }

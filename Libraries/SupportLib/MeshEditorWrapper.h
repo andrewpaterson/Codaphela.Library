@@ -61,10 +61,10 @@ public:
 	void				AddUV(float32 u, float32 v);
 	void				AddNormal(float32 x, float32 y, float32 z);
 
-	int					NumFaces(void);
-	int					NumCorners(void);
-	int					NumNormals(void);
-	int					NumUVs(void);
+	int					NumFaces(void) const;
+	int					NumCorners(void) const;
+	int					NumNormals(void) const;
+	int					NumUVs(void) const;
 
 	SMeshNormalFace*	GetFaceNormal(int iFace);
 	SMeshUVFace*		GetUVFace(int iFace, int iLayer);

@@ -1217,7 +1217,7 @@ void CGeometryMap::SetViewport(Ptr<CImage> pViewport)
 }
 
 
-Ptr<CImage> CGeometryMap::GetViewport(void) { return mpViewport; }
-size CGeometryMap::NumCommands(void) { return masCommands.NumElements(); }
+Ptr<CImage> CGeometryMap::GetViewport(void) const { return mpViewport; }
+size CGeometryMap::NumCommands(void) const { return masCommands.NumElements(); }
 SGeometryCommand* CGeometryMap::GetCommand(size uiIndex) { return masCommands.Get(uiIndex); }
 

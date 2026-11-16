@@ -18,7 +18,7 @@ public:
 	void	Kill(void) override;
 	void	Print(CChars* psz) override;
 
-	ARGB32	GetColour(void);
+	ARGB32	GetColour(void) const;
 
 	bool	Matches(void* pvData) override;
 };

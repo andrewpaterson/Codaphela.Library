@@ -60,12 +60,12 @@ public:
 	void		Apply(void);
 
 	void		SetTime(float32 fTime);
-	float32		GetTime(void);
+	float32		GetTime(void) const;
 	void		SetSpeed(float32 fSpeed);
-	float32		GetSpeed(void);
+	float32		GetSpeed(void) const;
 	bool		IsFinished(void);
-	Ptr<CSceneAnimation>	GetAnimation(void);
-	Ptr<CInstance>			GetInstance(void);
+	Ptr<CSceneAnimation>	GetAnimation(void) const;
+	Ptr<CInstance>			GetInstance(void) const;
 	size					NumBound(void);
 };
 

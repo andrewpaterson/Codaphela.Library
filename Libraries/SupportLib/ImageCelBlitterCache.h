@@ -51,7 +51,7 @@ public:
 
 	Ptr<CImageBlitter>	CreateImageBlitter(Ptr<CImageCel> pCel);
 	Ptr<CImageBlitter>	CreateSizingImageBlitter(Ptr<CImageCel> pCel);
-	Ptr<CImage>			GetDestImage(void);
+	Ptr<CImage>			GetDestImage(void) const;
 
 	Ptr<CImageBlitter>	GetImageBlitter(Ptr<CImageCel> pCel);
 	bool				HasImageBlitter(Ptr<CImageCel> pCel);

@@ -483,7 +483,7 @@ bool CVectorRasteriser::Rasterise(CVectorPath* pcPath, int iLeft, int iTop, int 
 // from the top left.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CVectorRasteriser::GetCoverage(void)
+uint8* CVectorRasteriser::GetCoverage(void) const
 {
 	return mpuiResult;
 }
@@ -493,7 +493,7 @@ uint8* CVectorRasteriser::GetCoverage(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CVectorRasteriser::GetLeft(void)
+int CVectorRasteriser::GetLeft(void) const
 {
 	return miLeft;
 }
@@ -503,7 +503,7 @@ int CVectorRasteriser::GetLeft(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CVectorRasteriser::GetTop(void)
+int CVectorRasteriser::GetTop(void) const
 {
 	return miTop;
 }
@@ -513,7 +513,7 @@ int CVectorRasteriser::GetTop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CVectorRasteriser::GetWidth(void)
+int CVectorRasteriser::GetWidth(void) const
 {
 	return miWidth;
 }
@@ -523,7 +523,7 @@ int CVectorRasteriser::GetWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CVectorRasteriser::GetHeight(void)
+int CVectorRasteriser::GetHeight(void) const
 {
 	return miHeight;
 }

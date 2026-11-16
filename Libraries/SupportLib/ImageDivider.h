@@ -58,7 +58,7 @@ public:
 
 	void 					CopyCellsTo(Ptr<CArrayImageCel> pImageCels);
 
-	Ptr<CArrayImageCel>		GetDestImageCels(void);
+	Ptr<CArrayImageCel>		GetDestImageCels(void) const;
 
 private:
 	void	CropTransparentBorders(void);

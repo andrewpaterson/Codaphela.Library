@@ -70,11 +70,11 @@ public:
 
 	void					SetLazy(void);
 	void					SetLazyColour(Ptr<CFont> pWhite, ARGB32 sColour);
-	bool					IsLazy(void);
+	bool					IsLazy(void) const;
 	bool					HasPixels(SGlyphDescription* psDescription);
 	void					EnsurePixels(SGlyphDescription* psDescription);
-	Ptr<CFontDescription>	GetDescription(void);
-	Ptr<CImage>				GetImage(void);
+	Ptr<CFontDescription>	GetDescription(void) const;
+	Ptr<CImage>				GetImage(void) const;
 
 	bool					Is(char* szName);
 	char*					GetFontName(void);  //Not GetName, that is the object's name.

@@ -72,13 +72,13 @@ public:
 
 	void						SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) override;
 	void						SetViewport(Ptr<CImage> pViewport) override;
-	Ptr<CImage>					GetViewport(void);
+	Ptr<CImage>					GetViewport(void) const;
 
 	void						Clear(void);
 
 	bool						AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y);
 	void						RemoveSprites(size uiFirst);
-	size						NumSprites(void);
+	size						NumSprites(void) const;
 	SSprite*					GetSprite(size uiIndex);
 	size						NumCels(void);
 	Ptr<CImageCel>				GetCel(size uiCel);

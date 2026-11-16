@@ -19,9 +19,9 @@ public:
 
 	bool	PopulateSizingTables(CSubImage* pcSubImage, int32 iDestWidth, int32 iDestHeight);
 
-	int32*	GetSizedSourceX(void);
-	int32*	GetSizedSourceY(void);
-	int32*	GetSizedDestX(void);
+	int32*	GetSizedSourceX(void) const;
+	int32*	GetSizedSourceY(void) const;
+	int32*	GetSizedDestX(void) const;
 
 protected:
 	bool	Matches(int32 iDestWidth, int32 iDestHeight);

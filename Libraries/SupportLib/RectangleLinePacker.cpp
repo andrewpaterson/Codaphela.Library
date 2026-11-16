@@ -259,8 +259,8 @@ int32 CRectangleLinePacker::PackTopToBottom(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayPackedRectangle* CRectangleLinePacker::GetRectangles(void) {return &macRectangles;}
-int32 CRectangleLinePacker::GetOutsideEdgeWidth(void) {return miOutsideEdgeWidth;}
-int32 CRectangleLinePacker::GetInnerEdgeWidth(void) {return miInnerEdgeWidth;}
-bool CRectangleLinePacker::IsLeftToRight(void) {return mbLeftToRight;}
-SInt32Vec2 CRectangleLinePacker::GetSize(void) {return miSize;}
-bool CRectangleLinePacker::IsPow2(void) {return mbPow2;}
+int32 CRectangleLinePacker::GetOutsideEdgeWidth(void) const {return miOutsideEdgeWidth;}
+int32 CRectangleLinePacker::GetInnerEdgeWidth(void) const {return miInnerEdgeWidth;}
+bool CRectangleLinePacker::IsLeftToRight(void) const {return mbLeftToRight;}
+SInt32Vec2 CRectangleLinePacker::GetSize(void) const {return miSize;}
+bool CRectangleLinePacker::IsPow2(void) const {return mbPow2;}

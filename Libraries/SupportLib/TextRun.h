@@ -49,19 +49,19 @@ public:
 
 	bool			Load(CObjectReader* pcFile);
 	bool			Save(CObjectWriter* pcFile);
-	CMallocator*	GetMalloc(void);
+	CMallocator*	GetMalloc(void) const;
 	
 	void			Add(CTextElement* pcElement);
 	void			Start(void);
 	void			End(void);
 
-	CFont*			GetFont(void);
+	CFont*			GetFont(void) const;
 	void			SetBaselineShift(int16 iBaselineShift);
-	int16			GetBaselineShift(void);
+	int16			GetBaselineShift(void) const;
 	void			SetDecorations(uint8 uiDecorations, ARGB32 sColour);
-	uint8			GetDecorations(void);
-	ARGB32			GetDecorationColour(void);
-	size			NumElements(void);
+	uint8			GetDecorations(void) const;
+	ARGB32			GetDecorationColour(void) const;
+	size			NumElements(void) const;
 	CTextElement*	GetElement(size uiIndex);
 };
 

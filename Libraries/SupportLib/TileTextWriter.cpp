@@ -707,7 +707,7 @@ Ptr<CGlyph> CTileTextWriter::GetGlyph(Ptr<CFont> pFont, const char* szCharacter,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileTextWriter::GetTabWidth(void)
+size CTileTextWriter::GetTabWidth(void) const
 {
 	return muiTabWidth;
 }
@@ -717,7 +717,7 @@ size CTileTextWriter::GetTabWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ARGB32 CTileTextWriter::GetColour(void)
+ARGB32 CTileTextWriter::GetColour(void) const
 {
 	return msColour;
 }

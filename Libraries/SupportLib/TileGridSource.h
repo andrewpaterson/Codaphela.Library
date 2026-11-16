@@ -25,7 +25,7 @@ public:
 	virtual	void		StopGeneration(void) =0;
 
 			bool		IsNamed(char* szConstantName);
-			char*		GetConstantName(void);
+			char*		GetConstantName(void) const;
 
 	virtual	SSizeVec2	GetSize(void) =0;
 	virtual	bool		Matches(CTileCelSource* pcTileCelSource, int x, int y) =0;

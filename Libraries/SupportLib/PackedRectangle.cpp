@@ -172,7 +172,7 @@ void CPackedRectangle::Init(CInt32Rect* pcRect, void* pvUserData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CPackedRectangle::GetUserData(void)
+void* CPackedRectangle::GetUserData(void) const
 {
 	return mpvUserData;
 }
@@ -182,7 +182,7 @@ void* CPackedRectangle::GetUserData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackedRectangle::IsRotated(void)
+bool CPackedRectangle::IsRotated(void) const
 {
 	return mbRotated;
 }

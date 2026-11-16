@@ -281,7 +281,7 @@ Ptr<CImage> CTrueTypeFontFactory::Rasterise(Ptr<CFontDescription> pDescription, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueTypeFontFactory::NumCharacters(void)
+size CTrueTypeFontFactory::NumCharacters(void) const
 {
 	return macCharacters.NumElements();
 }
@@ -292,7 +292,7 @@ size CTrueTypeFontFactory::NumCharacters(void)
 // Pixels above the baseline, rounded up.
 //
 //////////////////////////////////////////////////////////////////////////
-int CTrueTypeFontFactory::GetAscent(void)
+int CTrueTypeFontFactory::GetAscent(void) const
 {
 	return miAscent;
 }
@@ -303,7 +303,7 @@ int CTrueTypeFontFactory::GetAscent(void)
 // Pixels below the baseline, rounded up.
 //
 //////////////////////////////////////////////////////////////////////////
-int CTrueTypeFontFactory::GetDescent(void)
+int CTrueTypeFontFactory::GetDescent(void) const
 {
 	return miDescent;
 }

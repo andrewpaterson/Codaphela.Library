@@ -55,7 +55,7 @@ public:
 	void	Generate(CMeshEditor* pcMeshEditor) override;
 
 protected:
-	int		NumProfilePoints(void);
+	int		NumProfilePoints(void) const;
 };
 
 

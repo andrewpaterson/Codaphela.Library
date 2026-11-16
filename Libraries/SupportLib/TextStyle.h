@@ -66,8 +66,8 @@ struct STextStyle
 
 	void		Init(void);
 	void		Init(bool bBold, bool bItalic, float32 fPixelSize, ARGB32 sColour);
-	EFontStyle	GetFontStyle(void);
-	uint8		GetDecorations(void);
+	EFontStyle	GetFontStyle(void) const;
+	uint8		GetDecorations(void) const;
 	bool		Equals(STextStyle* psOther);
 	bool		EqualsFont(STextStyle* psOther);
 };

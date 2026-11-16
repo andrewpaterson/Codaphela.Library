@@ -154,15 +154,15 @@ public:
 	Ptr<CSound>		RenderSong(EPrimitiveType eType = PT_int16, lsize uiMaxFrames = 0);
 	lsize			SkipTick(void);
 
-	bool			IsFinished(void);
-	size			GetOrder(void);
-	size			GetRow(void);
-	size			GetTick(void);
-	size			GetSpeed(void);
-	size			GetTempo(void);
-	lsize			GetFramesPlayed(void);
+	bool			IsFinished(void) const;
+	size			GetOrder(void) const;
+	size			GetRow(void) const;
+	size			GetTick(void) const;
+	size			GetSpeed(void) const;
+	size			GetTempo(void) const;
+	lsize			GetFramesPlayed(void) const;
 	SModChannel*	GetChannel(size uiChannel);
-	size			NumChannels(void);
+	size			NumChannels(void) const;
 
 	static int		GetFineTunedPeriod(int iPeriod, int iFineTune);
 	static int		GetArpeggioPeriod(int iPeriod, int iFineTune, int iSemitones);

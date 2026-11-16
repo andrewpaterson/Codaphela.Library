@@ -26,12 +26,12 @@ public:
 	bool	IsNamed(size iType, char* szConstantName);
 	bool	IsSource(char* szConstantSource);
 
-	size	GetType(void);
-	char*	GetConstantName(void);
-	size	GetWidth(void);
-	size	GetHeight(void);
-	size	GetBX(void);
-	size	GetBY(void);
+	size	GetType(void) const;
+	char*	GetConstantName(void) const;
+	size	GetWidth(void) const;
+	size	GetHeight(void) const;
+	size	GetBX(void) const;
+	size	GetBY(void) const;
 	char	GetChar(size x, size y);
 };
 

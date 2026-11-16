@@ -79,12 +79,12 @@ public:
 	bool						SetTile(size x, size y, Ptr<CImageCel> pTile);
 	bool						SetRowTiles(size y, size uiNumRows, uint32* auiTiles, size* auiRowLengths);
 	uint32						AddCel(Ptr<CImageCel> pCel);
-	size						GetCelVersion(void);
+	size						GetCelVersion(void) const;
 	Ptr<CImageCel>				GetTile(size uiIndex);
 	Ptr<CImageCel>				GetTile(size x, size y);
 	size						GetRowStart(size y);
 	size						GetRowEnd(size y);
-	size						NumStoredTiles(void);
+	size						NumStoredTiles(void) const;
 	size						NumCels(void);
 
 	bool						SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size uiIndices ...);

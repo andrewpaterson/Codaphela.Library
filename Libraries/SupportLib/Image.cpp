@@ -574,7 +574,7 @@ void CImage::SetSize(uint32 uiWidth, uint32 uiHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CImage::GetHeight(void)
+uint32 CImage::GetHeight(void) const
 {
 	if (IsChanging())
 	{
@@ -588,7 +588,7 @@ uint32 CImage::GetHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CImage::GetWidth(void)
+uint32 CImage::GetWidth(void) const
 {
 	if (IsChanging())
 	{
@@ -602,7 +602,7 @@ uint32 CImage::GetWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CImage::GetImageHeight(void)
+uint32 CImage::GetImageHeight(void) const
 {
 	return msSize.y;
 }
@@ -612,7 +612,7 @@ uint32 CImage::GetImageHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CImage::GetImageWidth(void)
+uint32 CImage::GetImageWidth(void) const
 {
 	return msSize.x;
 }
@@ -651,7 +651,7 @@ bool CImage::EndChange(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImage::IsChanging(void)
+bool CImage::IsChanging(void) const
 {
 	return mcChannels.IsChanging();
 }
@@ -813,7 +813,7 @@ void CImage::SetData(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CImage::GetData(void)
+void* CImage::GetData(void) const
 {
 	return mcChannels.GetData();
 }
@@ -833,7 +833,7 @@ lsize CImage::GetByteSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CImage::GetPixelSize(void)
+lsize CImage::GetPixelSize(void) const
 {
 	return mcChannels.GetSize();
 }
@@ -843,7 +843,7 @@ lsize CImage::GetPixelSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CImage::GetPixelByteStride(void)
+size CImage::GetPixelByteStride(void) const
 {
 	return mcChannels.GetByteStride();
 }
@@ -853,7 +853,7 @@ size CImage::GetPixelByteStride(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CImage::GetPixelBitStride(void)
+size CImage::GetPixelBitStride(void) const
 {
 	return mcChannels.GetBitStride();
 }
@@ -863,7 +863,7 @@ size CImage::GetPixelBitStride(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSizeVec2 CImage::GetDimension(void)
+SSizeVec2 CImage::GetDimension(void) const
 {
 	SSizeVec2	s;
 	s.Init(msSize.x, msSize.y);
@@ -1024,7 +1024,7 @@ bool CImage::HasChannels(size iFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CImage::NumChannels(void)
+size CImage::NumChannels(void) const
 {
 	return mcChannels.NumChannels();
 }

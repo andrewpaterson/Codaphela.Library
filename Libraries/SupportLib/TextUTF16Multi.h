@@ -30,11 +30,11 @@ CONSTRUCTABLE(CTextUTF16Multi);
 protected:
 public:
 	void	Init(size uiByteSize);
-	uint8*	GetChar(void);
+	uint8*	GetChar(void) const;
 	size	CharByteLength(void);
 	void	Copy(void* pviData);
 
-	size	ByteSize(void);
+	size	ByteSize(void) const;
 
 	bool	Load(CObjectReader* pcFile) override;
 	bool	Save(CObjectWriter* pcFile) override;

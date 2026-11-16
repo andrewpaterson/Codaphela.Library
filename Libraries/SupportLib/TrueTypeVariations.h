@@ -143,9 +143,9 @@ public:
 
 	void					Parse(void);
 
-	bool					IsVariable(void);
-	bool					IsVaried(void);
-	size					NumAxes(void);
+	bool					IsVariable(void) const;
+	bool					IsVaried(void) const;
+	size					NumAxes(void) const;
 	STrueTypeAxis*			GetAxis(size uiAxis);
 	size					FindAxis(const char* szTag);
 	bool					SetAxisValue(const char* szTag, STrueTypeFixed sValue);
@@ -153,12 +153,12 @@ public:
 	void					ResetAxes(void);
 	STrueTypeFixed			GetNormalisedCoordinate(size uiAxis);
 
-	size					NumNamedInstances(void);
+	size					NumNamedInstances(void) const;
 	bool					GetNamedInstanceName(size uiInstance, CChars* psz);
 	bool					SetNamedInstance(size uiInstance);
 	bool					SetNamedInstance(const char* szName);
 
-	bool					HasAdvanceDeltas(void);
+	bool					HasAdvanceDeltas(void) const;
 	int32					GetAdvanceDelta(int iGlyph);
 	int32					GetMetricDelta(ETrueTypeMetric eMetric);
 	bool					GetGlyphDeltas(int iGlyph, STrueTypePoint* pasPoints, size uiNumPoints, int* paiContourEnds, size uiNumContours, STrueTypeFixed* pasDeltaX, STrueTypeFixed* pasDeltaY);

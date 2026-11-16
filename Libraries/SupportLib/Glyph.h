@@ -51,8 +51,8 @@ public:
 	void			GetImageDestBounds(int x, int y, CInt32Rect* pcRectangle);
 	Ptr<CImage>		GetSourceImage(void);
 	CSubImage*		GetSubImage(void);
-	Ptr<CImageCel>	GetCel(void);
-	int16			GetStep(void);
+	Ptr<CImageCel>	GetCel(void) const;
+	int16			GetStep(void) const;
 
 	void			Print(CChars* psz) override;
 	void			Dump(void) override;

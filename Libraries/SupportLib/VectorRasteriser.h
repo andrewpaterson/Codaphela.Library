@@ -63,11 +63,11 @@ public:
 	bool		GetPixelBounds(CVectorPath* pcPath, int* piLeft, int* piTop, int* piRight, int* piBottom);
 
 	bool		Rasterise(CVectorPath* pcPath, int iLeft, int iTop, int iWidth, int iHeight);
-	uint8*		GetCoverage(void);
-	int			GetLeft(void);
-	int			GetTop(void);
-	int			GetWidth(void);
-	int			GetHeight(void);
+	uint8*		GetCoverage(void) const;
+	int			GetLeft(void) const;
+	int			GetTop(void) const;
+	int			GetWidth(void) const;
+	int			GetHeight(void) const;
 
 protected:
 	bool		RasterisePart(CVectorPath* pcPath, size uiStart, size uiEnd);

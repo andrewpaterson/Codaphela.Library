@@ -53,7 +53,7 @@ void STextStyle::Init(bool bBold, bool bItalic, float32 fPixelSize, ARGB32 sColo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFontStyle STextStyle::GetFontStyle(void)
+EFontStyle STextStyle::GetFontStyle(void) const
 {
 	return (EFontStyle)((bBold ? FS_Bold : FS_Regular) | (bItalic ? FS_Italic : FS_Regular));
 }
@@ -74,7 +74,7 @@ bool STextStyle::Equals(STextStyle* psOther)
 // TD_ flags.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 STextStyle::GetDecorations(void)
+uint8 STextStyle::GetDecorations(void) const
 {
 	return (bUnderline ? TD_Underline : 0) | (bOverline ? TD_Overline : 0) | (bStrikethrough ? TD_Strikethrough : 0);
 }

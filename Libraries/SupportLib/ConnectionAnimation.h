@@ -63,7 +63,7 @@ public:
 	void			Class(void) override;
 
 	SConnectionKey*	AddKey(SFloat4x4* psMatrix, float32 fTime);
-	size			NumKeys(void);
+	size			NumKeys(void) const;
 	SConnectionKey*	GetKey(size uiIndex);
 	float32			GetDuration(void);
 
@@ -94,7 +94,7 @@ public:
 	void	Class(void) override;
 
 	float32	GetDuration(void);
-	bool	IsSkeletal(void);
+	bool	IsSkeletal(void) const;
 	void	Apply(float32 fTime);
 };
 

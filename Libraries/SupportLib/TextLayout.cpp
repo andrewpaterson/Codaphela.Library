@@ -255,7 +255,7 @@ void CTextLayout::ReplaceLines(size uiLine, CTextLayout* pcTail)
 // text last laid out.
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CTextLayout::GetSize(void)
+SInt32Vec2 CTextLayout::GetSize(void) const
 {
 	return msSize;
 }
@@ -790,10 +790,10 @@ void CTextLayout::SetTabWidth(int32 iTabWidth)
 }
 
 
-int32 CTextLayout::GetTabWidth(void) { return miTabWidth; }
-int32 CTextLayout::GetWidth(void) { return miWidth; }
-size CTextLayout::NumStops(void) { return masStops.NumElements(); }
+int32 CTextLayout::GetTabWidth(void) const { return miTabWidth; }
+int32 CTextLayout::GetWidth(void) const { return miWidth; }
+size CTextLayout::NumStops(void) const { return masStops.NumElements(); }
 STextLayoutStop* CTextLayout::GetStop(size uiIndex) { return masStops.Get(uiIndex); }
-size CTextLayout::NumLines(void) { return masLines.NumElements(); }
+size CTextLayout::NumLines(void) const { return masLines.NumElements(); }
 STextLayoutLine* CTextLayout::GetLine(size uiIndex) { return masLines.Get(uiIndex); }
 

@@ -47,7 +47,7 @@ public:
 
 	void				AddUTF16(Ptr<CFont> pFont, uint16* szText, size uiLength);
 
-	CMallocator*		GetMalloc(void);
+	CMallocator*		GetMalloc(void) const;
 
 	CTextRun*			AllocateRun(CFont* pcFont);
 
@@ -57,7 +57,7 @@ public:
 
 	CTextNewLine*		AllocateNewLine(void);
 
-	size				NumRuns(void);
+	size				NumRuns(void) const;
 	CTextRun*			GetRun(size uiIndex);
 };
 

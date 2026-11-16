@@ -89,7 +89,7 @@ SConnectionKey* CConnectionAnimation::AddKey(SFloat4x4* psMatrix, float32 fTime)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CConnectionAnimation::NumKeys(void)
+size CConnectionAnimation::NumKeys(void) const
 {
 	return masKeys.NumElements();
 }
@@ -273,7 +273,7 @@ void CSceneAnimation::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSceneAnimation::IsSkeletal(void)
+bool CSceneAnimation::IsSkeletal(void) const
 {
 	return mpSkeleton.IsNotNull();
 }

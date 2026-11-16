@@ -86,7 +86,7 @@ bool CImageSource::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageSource::GetImage(void)
+Ptr<CImage> CImageSource::GetImage(void) const
 {
 	return mpImage;
 }

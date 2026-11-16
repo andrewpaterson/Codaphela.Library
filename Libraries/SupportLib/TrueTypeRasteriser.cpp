@@ -62,7 +62,7 @@ void CTrueTypeRasteriser::Kill(void)
 // Pixels per font unit.
 //
 //////////////////////////////////////////////////////////////////////////
-float32 CTrueTypeRasteriser::GetScale(void)
+float32 CTrueTypeRasteriser::GetScale(void) const
 {
 	return msPixelSize.ToFloat() / (float32)miUnitsPerEm;
 }

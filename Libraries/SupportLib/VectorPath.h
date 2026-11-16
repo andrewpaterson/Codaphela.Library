@@ -80,9 +80,9 @@ public:
 	void				Transform(bool bMirrorX, bool bMirrorY, float64 fRotation, float64 fScale, SFloat64Vec2* psTranslation);
 	void				CalculateBounds(void);
 
-	size				NumSegments(void);
+	size				NumSegments(void) const;
 	SVectorSegment*		GetSegment(size uiIndex);
-	bool				HasBounds(void);
+	bool				HasBounds(void) const;
 	SFloat64Vec2*		GetMinimum(void);
 	SFloat64Vec2*		GetMaximum(void);
 	bool				HasExposureOff(void);

@@ -188,7 +188,7 @@ uint32 CTileLayerCel::AddCel(Ptr<CImageCel> pCel)
 // AddCel gave before are no longer theirs.
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileLayerCel::GetCelVersion(void)
+size CTileLayerCel::GetCelVersion(void) const
 {
 	return muiCelVersion;
 }
@@ -537,7 +537,7 @@ size CTileLayerCel::GetRowEnd(size y)
 // The tiles the rows' runs hold (including the empty tiles inside runs).
 //
 //////////////////////////////////////////////////////////////////////////
-size CTileLayerCel::NumStoredTiles(void)
+size CTileLayerCel::NumStoredTiles(void) const
 {
 	return mauiTiles.NumElements();
 }

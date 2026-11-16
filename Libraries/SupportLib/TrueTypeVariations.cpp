@@ -451,7 +451,7 @@ void CTrueTypeVariations::KillItemVariationStore(STrueTypeItemVariationStore* ps
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeVariations::IsVariable(void)
+bool CTrueTypeVariations::IsVariable(void) const
 {
 	return masAxes.NumElements() > 0;
 }
@@ -463,7 +463,7 @@ bool CTrueTypeVariations::IsVariable(void)
 // outlines and metrics are varied.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeVariations::IsVaried(void)
+bool CTrueTypeVariations::IsVaried(void) const
 {
 	return mbVaried;
 }
@@ -473,7 +473,7 @@ bool CTrueTypeVariations::IsVaried(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueTypeVariations::NumAxes(void)
+size CTrueTypeVariations::NumAxes(void) const
 {
 	return masAxes.NumElements();
 }
@@ -596,7 +596,7 @@ STrueTypeFixed CTrueTypeVariations::GetNormalisedCoordinate(size uiAxis)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueTypeVariations::NumNamedInstances(void)
+size CTrueTypeVariations::NumNamedInstances(void) const
 {
 	return masInstances.NumElements();
 }
@@ -1096,7 +1096,7 @@ STrueTypeFixed CTrueTypeVariations::GetItemDelta(STrueTypeItemVariationStore* ps
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeVariations::HasAdvanceDeltas(void)
+bool CTrueTypeVariations::HasAdvanceDeltas(void) const
 {
 	return msHvarStore.uiOffset != 0;
 }

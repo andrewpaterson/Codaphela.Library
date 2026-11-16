@@ -546,7 +546,7 @@ bool CSound::EndChange(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSound::IsChanging(void)
+bool CSound::IsChanging(void) const
 {
 	return mcChannels.IsChanging();
 }
@@ -556,7 +556,7 @@ bool CSound::IsChanging(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CSound::GetNumFrames(void)
+lsize CSound::GetNumFrames(void) const
 {
 	if (IsChanging())
 	{
@@ -570,7 +570,7 @@ lsize CSound::GetNumFrames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CSound::GetSampleRate(void)
+uint32 CSound::GetSampleRate(void) const
 {
 	if (IsChanging())
 	{
@@ -585,7 +585,7 @@ uint32 CSound::GetSampleRate(void)
 // The length of the sound in seconds.
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CSound::GetDuration(void)
+float64 CSound::GetDuration(void) const
 {
 	if (muiSampleRate == 0)
 	{
@@ -859,7 +859,7 @@ void CSound::SetData(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CSound::GetData(void)
+void* CSound::GetData(void) const
 {
 	return mcChannels.GetData();
 }
@@ -889,7 +889,7 @@ CChannels* CSound::GetChannels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSound::GetFrameByteStride(void)
+size CSound::GetFrameByteStride(void) const
 {
 	return mcChannels.GetByteStride();
 }
@@ -899,7 +899,7 @@ size CSound::GetFrameByteStride(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSound::GetFrameBitStride(void)
+size CSound::GetFrameBitStride(void) const
 {
 	return mcChannels.GetBitStride();
 }
@@ -989,7 +989,7 @@ EPrimitiveType CSound::GetPrimitiveType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSound::NumChannels(void)
+size CSound::NumChannels(void) const
 {
 	return mcChannels.NumChannels();
 }

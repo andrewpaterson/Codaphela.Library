@@ -58,7 +58,7 @@ void CTrueTypeOutline::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueTypeOutline::NumContours(void)
+size CTrueTypeOutline::NumContours(void) const
 {
 	return maiContourEnds.NumElements();
 }
@@ -68,7 +68,7 @@ size CTrueTypeOutline::NumContours(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueTypeOutline::NumPoints(void)
+size CTrueTypeOutline::NumPoints(void) const
 {
 	return macPoints.NumElements();
 }

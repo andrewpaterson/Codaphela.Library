@@ -55,10 +55,10 @@ struct SSFTCelRun
 	bool	Read(CFileReader* pcFile);
 	bool	Write(CFileWriter* pcFile);
 
-	bool	IsStartOfRun(void);
-	uint16	GetRunLength(void);
-	uint16	GetSkipLength(void);
-	bool	IsDone(void);
+	bool	IsStartOfRun(void) const;
+	uint16	GetRunLength(void) const;
+	uint16	GetSkipLength(void) const;
+	bool	IsDone(void) const;
 };
 
 

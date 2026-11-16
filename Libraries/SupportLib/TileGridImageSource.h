@@ -26,7 +26,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
 
-	Ptr<CImage>		GetImage(void);
+	Ptr<CImage>		GetImage(void) const;
 	ARGB32			GetColour(int x, int y);
 
 	bool			Matches(CTileCelSource* pcTileCelSource, int x, int y) override;

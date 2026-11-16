@@ -65,7 +65,7 @@ bool CTileGridImageSource::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage>	CTileGridImageSource::GetImage(void)
+Ptr<CImage>	CTileGridImageSource::GetImage(void) const
 {
 	return mpImage;
 }

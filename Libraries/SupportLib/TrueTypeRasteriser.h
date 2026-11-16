@@ -54,7 +54,7 @@ public:
 	void			Init(CTrueTypeFont* pcFont, float32 fPixelSize);
 	void			Kill(void);
 
-	float32			GetScale(void);
+	float32			GetScale(void) const;
 	float32			GetAscent(void);
 	float32			GetDescent(void);
 	float32			GetLineHeight(void);

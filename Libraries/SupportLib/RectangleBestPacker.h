@@ -68,10 +68,10 @@ public:
 	SInt32Vec2						GetPackedImageSize(void) override;
 
 	CArrayPackSourceRectangle*	GetSourceRectangles(void);
-	int32						GetOutsideEdgeWidth(void);
-	int32						GetInnerEdgeWidth(void);
+	int32						GetOutsideEdgeWidth(void) const;
+	int32						GetInnerEdgeWidth(void) const;
 	CArrayPackAttempt*			GetPackAttempts(void);
-	int64						GetSourceArea(void);
+	int64						GetSourceArea(void) const;
 };
 
 

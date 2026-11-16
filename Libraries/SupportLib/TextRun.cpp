@@ -51,7 +51,7 @@ void CTextRun::SetBaselineShift(int16 iBaselineShift)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CTextRun::GetBaselineShift(void)
+int16 CTextRun::GetBaselineShift(void) const
 {
 	return miBaselineShift;
 }
@@ -69,8 +69,8 @@ void CTextRun::SetDecorations(uint8 uiDecorations, ARGB32 sColour)
 }
 
 
-uint8 CTextRun::GetDecorations(void) { return muiDecorations; }
-ARGB32 CTextRun::GetDecorationColour(void) { return msDecorationColour; }
+uint8 CTextRun::GetDecorations(void) const { return muiDecorations; }
+ARGB32 CTextRun::GetDecorationColour(void) const { return msDecorationColour; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,7 +136,7 @@ bool CTextRun::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CTextRun::GetMalloc(void)
+CMallocator* CTextRun::GetMalloc(void) const
 {
 	return mpcText->GetMalloc();
 }
@@ -174,7 +174,7 @@ void CTextRun::End(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CFont* CTextRun::GetFont(void)
+CFont* CTextRun::GetFont(void) const
 {
 	return mpcFont;
 }
@@ -184,7 +184,7 @@ CFont* CTextRun::GetFont(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CTextRun::NumElements(void)
+size CTextRun::NumElements(void) const
 {
 	return mapcText.NumElements();
 }

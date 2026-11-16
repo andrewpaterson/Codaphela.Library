@@ -403,9 +403,9 @@ bool CFont::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* pi
 // The metrics are the description's.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFontDescription> CFont::GetDescription(void) { return mpDescription; }
-Ptr<CImage> CFont::GetImage(void) { return mpImage; }
-bool CFont::IsLazy(void) { return mbLazy; }
+Ptr<CFontDescription> CFont::GetDescription(void) const { return mpDescription; }
+Ptr<CImage> CFont::GetImage(void) const { return mpImage; }
+bool CFont::IsLazy(void) const { return mbLazy; }
 bool CFont::Is(char* szName) { return mpDescription->Is(szName); }
 char* CFont::GetFontName(void) { return mpDescription->GetFontName(); }
 size CFont::CalculateWidth(char* szText) { return mpDescription->CalculateWidth(szText); }

@@ -44,7 +44,7 @@ public:
 	void 	Free(void) override;
 	void	Class(void) override;
 
-	lsize	NumParticles(void);
+	lsize	NumParticles(void) const;
 };
 
 

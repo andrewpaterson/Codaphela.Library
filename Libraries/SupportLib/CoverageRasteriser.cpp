@@ -382,7 +382,7 @@ void CCoverageRasteriser::Accumulate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CCoverageRasteriser::GetCoverage(void)
+uint8* CCoverageRasteriser::GetCoverage(void) const
 {
 	return mpuiCoverage;
 }
@@ -392,7 +392,7 @@ uint8* CCoverageRasteriser::GetCoverage(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCoverageRasteriser::GetWidth(void)
+int CCoverageRasteriser::GetWidth(void) const
 {
 	return miWidth;
 }
@@ -402,7 +402,7 @@ int CCoverageRasteriser::GetWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCoverageRasteriser::GetHeight(void)
+int CCoverageRasteriser::GetHeight(void) const
 {
 	return miHeight;
 }

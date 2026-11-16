@@ -51,7 +51,7 @@ public:
 	void					ApplyAll(void);  //The sound set is changed in place, so everything pointing to it sees the result.
 
 	int						NumModifiers(void);
-	Ptr<CSound>				GetSound(void);
+	Ptr<CSound>				GetSound(void) const;
 };
 
 

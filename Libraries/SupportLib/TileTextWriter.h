@@ -103,8 +103,8 @@ public:
 	bool		Write(const char* szText, CArrayTileTextSpan* pasSpans = NULL, CArrayTileTextLineRows* pauiLineRows = NULL);
 	bool		WriteRow(size y, const char* szLine, size uiLength, size uiLineStart = 0, CArrayTileTextSpan* pasSpans = NULL);
 
-	size		GetTabWidth(void);
-	ARGB32		GetColour(void);
+	size		GetTabWidth(void) const;
+	ARGB32		GetColour(void) const;
 
 protected:
 	bool		WriteRowTiles(const char* szLine, size uiLength, size uiLineStart, CArrayTileTextSpan* pasSpans, CArrayTileLayerTile* pauiTiles, size* puiColumns);

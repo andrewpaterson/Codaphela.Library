@@ -493,7 +493,7 @@ bool CTrueTypeFont::ChooseCmap(lsize uiCmapOffset, lsize uiCmapLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTrueTypeFont::NumGlyphs(void)
+int CTrueTypeFont::NumGlyphs(void) const
 {
 	return miNumGlyphs;
 }
@@ -503,7 +503,7 @@ int CTrueTypeFont::NumGlyphs(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTrueTypeFont::GetUnitsPerEm(void)
+int CTrueTypeFont::GetUnitsPerEm(void) const
 {
 	return miUnitsPerEm;
 }
@@ -602,10 +602,10 @@ void CTrueTypeFont::ParseOS2(void)
 
 
 //The post and OS/2 metrics, varied by MVAR in a variable font.
-bool CTrueTypeFont::HasPost(void) { return mbHasPost; }
+bool CTrueTypeFont::HasPost(void) const { return mbHasPost; }
 int CTrueTypeFont::GetUnderlinePosition(void) { return miUnderlinePosition + mcVariations.GetMetricDelta(TTM_UnderlineOffset); }
 int CTrueTypeFont::GetUnderlineThickness(void) { return miUnderlineThickness + mcVariations.GetMetricDelta(TTM_UnderlineSize); }
-bool CTrueTypeFont::HasOS2(void) { return mbHasOS2; }
+bool CTrueTypeFont::HasOS2(void) const { return mbHasOS2; }
 int CTrueTypeFont::GetStrikeoutPosition(void) { return miStrikeoutPosition + mcVariations.GetMetricDelta(TTM_StrikeoutOffset); }
 int CTrueTypeFont::GetStrikeoutSize(void) { return miStrikeoutSize + mcVariations.GetMetricDelta(TTM_StrikeoutSize); }
 int CTrueTypeFont::GetSubscriptYSize(void) { return miSubscriptYSize + mcVariations.GetMetricDelta(TTM_SubscriptYSize); }
@@ -1735,7 +1735,7 @@ void CTrueTypeFont::VaryComponents(int iGlyph, CArrayTrueTypeComponent* pasCompo
 // True if the font has variation axes (fvar).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeFont::IsVariable(void)
+bool CTrueTypeFont::IsVariable(void) const
 {
 	return mcVariations.IsVariable();
 }
@@ -1745,7 +1745,7 @@ bool CTrueTypeFont::IsVariable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueTypeFont::NumAxes(void)
+size CTrueTypeFont::NumAxes(void) const
 {
 	return mcVariations.NumAxes();
 }
@@ -1811,7 +1811,7 @@ void CTrueTypeFont::ResetAxes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrueTypeFont::NumNamedInstances(void)
+size CTrueTypeFont::NumNamedInstances(void) const
 {
 	return mcVariations.NumNamedInstances();
 }
@@ -1862,7 +1862,7 @@ CTrueTypeVariations* CTrueTypeFont::GetVariations(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CTrueTypeFont::GetData(void)
+uint8* CTrueTypeFont::GetData(void) const
 {
 	return mpuiData;
 }

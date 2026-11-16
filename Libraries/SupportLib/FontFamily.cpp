@@ -398,6 +398,6 @@ const char* FontStyleToString(EFontStyle eStyle)
 
 
 char* CFontFamily::GetFamilyName(void) { return mszName.Text(); }
-float32 CFontFamily::GetDefaultPixelSize(void) { return mfDefaultPixelSize; }
-size CFontFamily::NumSizes(void) { return masSizes.NumElements(); }
+float32 CFontFamily::GetDefaultPixelSize(void) const { return mfDefaultPixelSize; }
+size CFontFamily::NumSizes(void) const { return masSizes.NumElements(); }
 

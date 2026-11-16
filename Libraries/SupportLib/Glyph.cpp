@@ -155,6 +155,6 @@ void CGlyph::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CGlyph::GetSourceImage(void) {return mpCel->GetSourceImage();}
 CSubImage* CGlyph::GetSubImage(void) {return mpCel->GetSubImage();}
-Ptr<CImageCel> CGlyph::GetCel(void) {return mpCel;}
-int16 CGlyph::GetStep(void) {return miStep;}
+Ptr<CImageCel> CGlyph::GetCel(void) const {return mpCel;}
+int16 CGlyph::GetStep(void) const {return miStep;}
 

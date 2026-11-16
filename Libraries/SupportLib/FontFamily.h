@@ -79,8 +79,8 @@ public:
 	Ptr<CFont>			GetRunFont(STextStyle* psStyle, int16* piBaselineShift);
 
 	char*				GetFamilyName(void);  //Not GetName, that is the object's name.
-	float32				GetDefaultPixelSize(void);
-	size				NumSizes(void);
+	float32				GetDefaultPixelSize(void) const;
+	size				NumSizes(void) const;
 
 protected:
 	int32				GetSizeKey(float32 fPixelSize);

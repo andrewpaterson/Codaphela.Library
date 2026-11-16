@@ -231,7 +231,7 @@ CMeshFace* CMeshConnectivity::AddFace(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-lsize CMeshConnectivity::NumCorners(void)
+lsize CMeshConnectivity::NumCorners(void) const
 {
 	return muiNumCorners;
 }
@@ -241,7 +241,7 @@ lsize CMeshConnectivity::NumCorners(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CMeshConnectivity::NumFaces(void)
+lsize CMeshConnectivity::NumFaces(void) const
 {
 	return mcFaces.NumElements();
 }
@@ -442,7 +442,7 @@ int CMeshConnectivity::GenerateConnectivity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshConnectivity::IsGenerated(void)
+bool CMeshConnectivity::IsGenerated(void) const
 {
 	return (mcCorners.NumElements() == muiNumCorners) && (muiGeneratedFaces == mcFaces.NumElements());
 }

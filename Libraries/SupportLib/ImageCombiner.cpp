@@ -360,7 +360,7 @@ void CImageCombiner::UpdateChannels(CArrayChannel* pasSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CRectanglePacker* CImageCombiner::GetPacker(void)
+CRectanglePacker* CImageCombiner::GetPacker(void) const
 {
 	if (meLayout == ICL_Best)
 	{

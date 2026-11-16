@@ -95,31 +95,31 @@ public:
 	void 		SetAlignment(int32 iAlignment);
 	void 		SetHorizontalAlignment(int32 iAlignment);  //Left/Right alignment.
 	void 		SetVerticalAlignment(int32 iAlignment);  //Top/Bottom alignment.
-	bool		IsImageEmpty(void);
+	bool		IsImageEmpty(void) const;
 
 	//All the methods below are relative.  Add X and Y to the return to get a meaningful destination position.
-	int32		GetFullWidth(void);
-	int32		GetFullHeight(void);
-	int32		GetImageWidth(void);
-	int32		GetImageHeight(void);
-	SInt32Vec2	GetFullSize(void);
-	SInt32Vec2	GetImageSize(void);
+	int32		GetFullWidth(void) const;
+	int32		GetFullHeight(void) const;
+	int32		GetImageWidth(void) const;
+	int32		GetImageHeight(void) const;
+	SInt32Vec2	GetFullSize(void) const;
+	SInt32Vec2	GetImageSize(void) const;
 
-	int32		GetImageLeft(void);
-	int32		GetImageTop(void);
-	int32		GetImageRight(void);
-	int32		GetImageBottom(void);
+	int32		GetImageLeft(void) const;
+	int32		GetImageTop(void) const;
+	int32		GetImageRight(void) const;
+	int32		GetImageBottom(void) const;
 
-	int32		GetFullLeft(void);
-	int32		GetFullTop(void);
-	int32		GetFullRight(void);
-	int32		GetFullBottom(void);
+	int32		GetFullLeft(void) const;
+	int32		GetFullTop(void) const;
+	int32		GetFullRight(void) const;
+	int32		GetFullBottom(void) const;
 
 	void		GetFullDestBounds(int32 x, int32 y, CInt32Rect* pcDest);
 	SInt32Vec2	GetImageDestPos(int32 x, int32 y);
 	void		GetFullSourceBounds(CInt32Rect* pcReturn);
-	int32		GetSourceLeft(void);
-	int32		GetSourceTop(void);
+	int32		GetSourceLeft(void) const;
+	int32		GetSourceTop(void) const;
 	void		GetImageSourceBounds(CInt32Rect* pcReturn);
 	void		GetImageDestBounds(int32 x, int32 y, CInt32Rect* pcReturn);
 	void		AdjustImageRect(CSubImage* pcSubImage);

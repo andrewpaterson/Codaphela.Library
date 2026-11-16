@@ -41,10 +41,10 @@ public:
 	void			Kill(void);
 
 	bool			IsSmallInteger(void);  //An integer of 16 bits or fewer.  These can be read with GetIntegers.
-	bool			IsFloat(void);
-	float64			GetMinimum(void);
-	float64			GetMaximum(void);
-	lsize			NumPixels(void);
+	bool			IsFloat(void) const;
+	float64			GetMinimum(void) const;
+	float64			GetMaximum(void) const;
+	lsize			NumPixels(void) const;
 
 	void			GetIntegers(int32* paiDest);
 	void			SetIntegers(int32* paiSource);

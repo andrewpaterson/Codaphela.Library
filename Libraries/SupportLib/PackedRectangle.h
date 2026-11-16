@@ -78,8 +78,8 @@ public:
 	void	Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, void* pvUserData, bool bRotated = false);
 	void	Init(CInt32Rect* pcRect, void* pvUserData);
 
-	void*	GetUserData(void);
-	bool	IsRotated(void);
+	void*	GetUserData(void) const;
+	bool	IsRotated(void) const;
 };
 
 

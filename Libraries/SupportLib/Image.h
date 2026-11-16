@@ -95,14 +95,14 @@ public:
 	void					RemovePurpose(EImagePurpose ePurpose);
 
 	void					SetSize(uint32 uiWidth, uint32 uiHeight);
-	uint32					GetHeight(void);
-	uint32					GetWidth(void);
-	uint32					GetImageHeight(void);
-	uint32					GetImageWidth(void);
+	uint32					GetHeight(void) const;
+	uint32					GetWidth(void) const;
+	uint32					GetImageHeight(void) const;
+	uint32					GetImageWidth(void) const;
 	void 					ByteAlignChannels(void);
 	bool					RenameChannel(size iOldName, size iNewName);
 	bool 					EndChange(void);
-	bool					IsChanging(void);
+	bool					IsChanging(void) const;
 
 	Ptr<CImageCelBlitterCache>	GetBlitterCache(void);
 
@@ -112,13 +112,13 @@ public:
 	void					White(void);
 
 	void					SetData(void* pvData);
-	void*					GetData(void);
+	void*					GetData(void) const;
 	lsize					GetByteSize(void);
 	CChannels*				GetChannels(void);
-	lsize					GetPixelSize(void);
-	size					GetPixelByteStride(void);
-	size					GetPixelBitStride(void);
-	SSizeVec2				GetDimension(void);
+	lsize					GetPixelSize(void) const;
+	size					GetPixelByteStride(void) const;
+	size					GetPixelBitStride(void) const;
+	SSizeVec2				GetDimension(void) const;
 	
 	bool					IsSameFormat(Ptr<CImage> psOther);
 	bool					IsValid(int x, int y);
@@ -130,7 +130,7 @@ public:
 	void					GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes);
 	void					GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels);
 
-	size					NumChannels(void);
+	size					NumChannels(void) const;
 	const char*					GetChannelLongName(size iChannel);
 	const char*					GetChannelShortName(size iChannel);
 	bool					HasChannel(size iChannel);

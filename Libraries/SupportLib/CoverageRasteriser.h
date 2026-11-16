@@ -61,9 +61,9 @@ public:
 	void		AddLine(SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2);
 	void		Accumulate(void);
 
-	uint8*		GetCoverage(void);
-	int			GetWidth(void);
-	int			GetHeight(void);
+	uint8*		GetCoverage(void) const;
+	int			GetWidth(void) const;
+	int			GetHeight(void) const;
 
 protected:
 	void		AddRowLine(int iRow, SCoverageSubpixel x1, SCoverageSubpixel y1, SCoverageSubpixel x2, SCoverageSubpixel y2);

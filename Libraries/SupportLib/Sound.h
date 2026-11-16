@@ -73,11 +73,11 @@ public:
 	void					SetSampleRate(uint32 uiSampleRate);
 	void 					ByteAlignChannels(void);
 	bool 					EndChange(void);
-	bool					IsChanging(void);
+	bool					IsChanging(void) const;
 
-	lsize					GetNumFrames(void);
-	uint32					GetSampleRate(void);
-	float64					GetDuration(void);
+	lsize					GetNumFrames(void) const;
+	uint32					GetSampleRate(void) const;
+	float64					GetDuration(void) const;
 
 	void					Copy(Ptr<CSound> pSource);
 	void					CopyIntoInitialised(Ptr<CSound> pSource);
@@ -89,11 +89,11 @@ public:
 	bool					SetSamples(size uiChannelIndex, lsize uiFirstFrame, lsize uiNumFrames, float64* pfSource);
 
 	void					SetData(void* pvData);
-	void*					GetData(void);
+	void*					GetData(void) const;
 	lsize					GetByteSize(void);
 	CChannels*				GetChannels(void);
-	size					GetFrameByteStride(void);
-	size					GetFrameBitStride(void);
+	size					GetFrameByteStride(void) const;
+	size					GetFrameBitStride(void) const;
 
 	bool					IsSameFormat(Ptr<CSound> pOther);
 	bool					IsValid(lsize uiFrame);
@@ -103,7 +103,7 @@ public:
 	void					GetAllChannels(CArraySize* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
 	EPrimitiveType			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.
-	size					NumChannels(void);
+	size					NumChannels(void) const;
 	bool					HasChannel(size iChannel);
 	bool					HasChannels(size iFirst, ...);
 	bool					CanAccessSamples(void);

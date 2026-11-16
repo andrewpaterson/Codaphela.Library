@@ -44,7 +44,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	bool			Load(const char* szFilename);
-	bool			IsLoaded(void);
+	bool			IsLoaded(void) const;
 	CTrueTypeFont*	GetFont(void);
 	char*			GetFilename(void);
 };

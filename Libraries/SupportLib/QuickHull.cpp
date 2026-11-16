@@ -106,7 +106,7 @@ bool CQuickHull::Generate(SFloat32Vec3* psPoints, size uiStride, size uiNumPoint
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CQuickHull::NumFaces(void)
+size CQuickHull::NumFaces(void) const
 {
 	return mcFaces.NumElements();
 }
@@ -151,7 +151,7 @@ void CQuickHull::GetVertices(CArrayInt* paiPoints)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 CQuickHull::GetTolerance(void)
+float32 CQuickHull::GetTolerance(void) const
 {
 	return mfTolerance;
 }

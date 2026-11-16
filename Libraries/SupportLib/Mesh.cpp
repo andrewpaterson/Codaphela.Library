@@ -128,7 +128,7 @@ bool CMesh::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMesh::NumCorners(void)
+int CMesh::NumCorners(void) const
 {
 	return (int)mcConnectivity.NumCorners();
 }
@@ -138,7 +138,7 @@ int CMesh::NumCorners(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMesh::NumFaces(void)
+int CMesh::NumFaces(void) const
 {
 	return (int)mcConnectivity.NumFaces();
 }

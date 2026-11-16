@@ -68,10 +68,10 @@ public:
 	CTileCelCharSource*		AddCharSource(char c);
 
 	SSizeVec2				GetMapSize(void);
-	SSizeVec2				GetCelSize(void);
+	SSizeVec2				GetCelSize(void) const;
 
 	Ptr<CTileMap>			Generate(void);
-	Ptr<CTileMap>			GetMap(void);
+	Ptr<CTileMap>			GetMap(void) const;
 	Ptr<CTileCelBrush>		GetTileBrush(int iCelType, char* szPatternName);
 
 protected:

@@ -131,7 +131,7 @@ void CFontDescription::SetTurn(EFontTurn eTurn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFontTurn CFontDescription::GetTurn(void)
+EFontTurn CFontDescription::GetTurn(void) const
 {
 	return meTurn;
 }
@@ -232,7 +232,7 @@ void CFontDescription::SetRasteriser(Ptr<CGlyphRasteriser> pRasteriser)
 }
 
 
-Ptr<CGlyphRasteriser> CFontDescription::GetRasteriser(void) { return mpRasteriser; }
+Ptr<CGlyphRasteriser> CFontDescription::GetRasteriser(void) const { return mpRasteriser; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -419,16 +419,16 @@ bool CFontDescription::Is(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CFontDescription::NumGlyphs(void) { return macGlyphs.NumElements(); }
+size CFontDescription::NumGlyphs(void) const { return macGlyphs.NumElements(); }
 char* CFontDescription::GetFontName(void) { return mszName.Text(); }
-int32 CFontDescription::GetImageWidth(void) { return miImageWidth; }
-int32 CFontDescription::GetImageHeight(void) { return miImageHeight; }
-int16 CFontDescription::GetSpaceWidth(void) { return miSpaceWidth; }
-int16 CFontDescription::GetAscent(void) { return miAscent; }
-int16 CFontDescription::GetDescent(void) { return miDescent; }
-int16 CFontDescription::GetLineHeight(void) { return miAscent + miDescent; }
-int16 CFontDescription::GetTabSpaceCount(void) { return miTabSpaceCount; }
-size CFontDescription::GetAverageHeight(void) { return miAverageHeight; }
+int32 CFontDescription::GetImageWidth(void) const { return miImageWidth; }
+int32 CFontDescription::GetImageHeight(void) const { return miImageHeight; }
+int16 CFontDescription::GetSpaceWidth(void) const { return miSpaceWidth; }
+int16 CFontDescription::GetAscent(void) const { return miAscent; }
+int16 CFontDescription::GetDescent(void) const { return miDescent; }
+int16 CFontDescription::GetLineHeight(void) const { return miAscent + miDescent; }
+int16 CFontDescription::GetTabSpaceCount(void) const { return miTabSpaceCount; }
+size CFontDescription::GetAverageHeight(void) const { return miAverageHeight; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -545,12 +545,12 @@ void CFontDescription::SetSubscript(float32 fScale, int16 iShift)
 }
 
 
-int16 CFontDescription::GetUnderlineTop(void) { return miUnderlineTop; }
-int16 CFontDescription::GetUnderlineThickness(void) { return miUnderlineThickness; }
-int16 CFontDescription::GetStrikeoutTop(void) { return miStrikeoutTop; }
-int16 CFontDescription::GetStrikeoutThickness(void) { return miStrikeoutThickness; }
-float32 CFontDescription::GetSuperscriptScale(void) { return mfSuperscriptScale; }
-int16 CFontDescription::GetSuperscriptShift(void) { return miSuperscriptShift; }
-float32 CFontDescription::GetSubscriptScale(void) { return mfSubscriptScale; }
-int16 CFontDescription::GetSubscriptShift(void) { return miSubscriptShift; }
+int16 CFontDescription::GetUnderlineTop(void) const { return miUnderlineTop; }
+int16 CFontDescription::GetUnderlineThickness(void) const { return miUnderlineThickness; }
+int16 CFontDescription::GetStrikeoutTop(void) const { return miStrikeoutTop; }
+int16 CFontDescription::GetStrikeoutThickness(void) const { return miStrikeoutThickness; }
+float32 CFontDescription::GetSuperscriptScale(void) const { return mfSuperscriptScale; }
+int16 CFontDescription::GetSuperscriptShift(void) const { return miSuperscriptShift; }
+float32 CFontDescription::GetSubscriptScale(void) const { return mfSubscriptScale; }
+int16 CFontDescription::GetSubscriptShift(void) const { return miSubscriptShift; }
 

@@ -38,7 +38,7 @@ public:
 	void 				Free(void) override;
 	void				Class(void) override;
 
-	Ptr<CMaps>			GetMaps(void);
+	Ptr<CMaps>			GetMaps(void) const;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;

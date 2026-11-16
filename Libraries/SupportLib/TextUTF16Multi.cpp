@@ -16,7 +16,7 @@ void CTextUTF16Multi::Init(size uiByteSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint8* CTextUTF16Multi::GetChar(void)
+uint8* CTextUTF16Multi::GetChar(void) const
 {
 	return (uint8*)RemapSinglePointer(this, sizeof(CTextUTF16Multi));
 }
@@ -46,7 +46,7 @@ void CTextUTF16Multi::Copy(void* pviData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CTextUTF16Multi::ByteSize(void)
+size CTextUTF16Multi::ByteSize(void) const
 {
 	return muiNumChars;
 }

@@ -64,12 +64,12 @@ public:
 	int		NumModifiers(void);
 
 
-	Ptr<CMesh>	GetSource(void);
+	Ptr<CMesh>	GetSource(void) const;
 	Ptr<CMesh>	GetOutput(void);  //Kept until a modifier is added or Touch is called.
 	void		Touch(void);  //Call this when a modifier's settings have changed.
 	void		ClearOutput(void);
 	void		Flatten(void);  //The output becomes the new source and the modifiers are removed.
-	size		NumChanges(void);
+	size		NumChanges(void) const;
 
 protected:
 	void		Changed(void);

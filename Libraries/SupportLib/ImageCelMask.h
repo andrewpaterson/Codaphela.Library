@@ -50,7 +50,7 @@ public:
 	void	GetAllChannels(CArrayChannel* pasChannels) override;
 	bool	MustFixDrawOpacity(void) override;
 	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft) override;
-	uint16	GetMask(void);
+	uint16	GetMask(void) const;
 };
 
 

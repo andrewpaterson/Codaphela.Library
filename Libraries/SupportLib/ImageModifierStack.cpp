@@ -134,7 +134,7 @@ int CImageModifierStack::NumModifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageModifierStack::GetImage(void)
+Ptr<CImage> CImageModifierStack::GetImage(void) const
 {
 	return mpImage;
 }

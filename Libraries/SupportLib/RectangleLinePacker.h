@@ -56,11 +56,11 @@ public:
 	int32					PackTopToBottom(void);
 
 	CArrayPackedRectangle*	GetRectangles(void);
-	int32					GetOutsideEdgeWidth(void);
-	int32					GetInnerEdgeWidth(void);
-	bool					IsLeftToRight(void);
-	SInt32Vec2					GetSize(void);
-	bool					IsPow2(void);
+	int32					GetOutsideEdgeWidth(void) const;
+	int32					GetInnerEdgeWidth(void) const;
+	bool					IsLeftToRight(void) const;
+	SInt32Vec2					GetSize(void) const;
+	bool					IsPow2(void) const;
 };
 
 

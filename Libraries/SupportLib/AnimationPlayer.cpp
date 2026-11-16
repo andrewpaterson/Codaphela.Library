@@ -180,11 +180,11 @@ bool CAnimationPlayer::IsFinished(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 CAnimationPlayer::GetTime(void) { return mfTime; }
+float32 CAnimationPlayer::GetTime(void) const { return mfTime; }
 void CAnimationPlayer::SetSpeed(float32 fSpeed) { mfSpeed = fSpeed; }
-float32 CAnimationPlayer::GetSpeed(void) { return mfSpeed; }
-Ptr<CSceneAnimation> CAnimationPlayer::GetAnimation(void) { return mpAnimation; }
-Ptr<CInstance> CAnimationPlayer::GetInstance(void) { return mpInstance; }
+float32 CAnimationPlayer::GetSpeed(void) const { return mfSpeed; }
+Ptr<CSceneAnimation> CAnimationPlayer::GetAnimation(void) const { return mpAnimation; }
+Ptr<CInstance> CAnimationPlayer::GetInstance(void) const { return mpInstance; }
 
 
 //////////////////////////////////////////////////////////////////////////

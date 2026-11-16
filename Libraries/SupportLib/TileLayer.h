@@ -50,13 +50,13 @@ public:
 			bool	Save(CObjectWriter* pcFile) override;
 			bool	Load(CObjectReader* pcFile) override;
 
-			int32	GetLayerSizeX(void);
-			int32	GetLayerSizeY(void);
-			SSizeVec2	GetCelSize(void);
+			int32	GetLayerSizeX(void) const;
+			int32	GetLayerSizeY(void) const;
+			SSizeVec2	GetCelSize(void) const;
 			void	SetCelSize(SSizeVec2 sCelSize);
 
 			bool	IsIdentifier(int iIdentifier);
-			int		GetIdentifier(void);
+			int		GetIdentifier(void) const;
 
 	virtual	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) =0;
 	virtual	void	SetViewport(Ptr<CImage> pViewport) =0;

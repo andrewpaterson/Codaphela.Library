@@ -19,7 +19,7 @@ void CColourFormatHelper::Init(EColourFormat eFormat, EColourOrder eOrder, ERGBC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CColourFormatHelper::GetNumChannels(void)
+size CColourFormatHelper::GetNumChannels(void) const
 {
 	switch (meFormat)
 	{
@@ -312,7 +312,7 @@ EPrimitiveType CColourFormatHelper::GetColourType(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveType CColourFormatHelper::GetAlphaType(void)
+EPrimitiveType CColourFormatHelper::GetAlphaType(void) const
 {
 	switch (meAlphaBits)
 	{
@@ -335,7 +335,7 @@ EPrimitiveType CColourFormatHelper::GetAlphaType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CColourFormatHelper::GetFirstColourIndex(void)
+size CColourFormatHelper::GetFirstColourIndex(void) const
 {
 	switch (meFormat)
 	{
@@ -358,7 +358,7 @@ size CColourFormatHelper::GetFirstColourIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CColourFormatHelper::GetAlphaIndex(void)
+size CColourFormatHelper::GetAlphaIndex(void) const
 {
 	switch (meFormat)
 	{

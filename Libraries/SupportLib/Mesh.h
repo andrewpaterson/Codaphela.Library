@@ -57,8 +57,8 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
 	
-	int				NumCorners(void);
-	int				NumFaces(void);
+	int				NumCorners(void) const;
+	int				NumFaces(void) const;
 	int				NumEdges(void);
 	int				TestNumPositions(void);  //For testing.  NumCorners should always be equal to NumPositions.
 

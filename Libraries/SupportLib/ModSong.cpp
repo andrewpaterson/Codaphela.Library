@@ -129,7 +129,7 @@ char* CModSong::GetTitle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModSong::NumChannels(void)
+size CModSong::NumChannels(void) const
 {
 	return muiNumChannels;
 }
@@ -139,7 +139,7 @@ size CModSong::NumChannels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModSong::NumSamples(void)
+size CModSong::NumSamples(void) const
 {
 	return muiNumSamples;
 }
@@ -149,7 +149,7 @@ size CModSong::NumSamples(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModSong::NumPatterns(void)
+size CModSong::NumPatterns(void) const
 {
 	return muiNumPatterns;
 }
@@ -192,7 +192,7 @@ Ptr<CSoundCel> CModSong::GetSampleCel(size uiSample)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSoundCelGroup> CModSong::GetSampleBank(void)
+Ptr<CSoundCelGroup> CModSong::GetSampleBank(void) const
 {
 	return mpSamples;
 }
@@ -223,7 +223,7 @@ void CModSong::SetSongLength(size uiSongLength, size uiRestart)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CModSong::GetSongLength(void)
+size CModSong::GetSongLength(void) const
 {
 	return muiSongLength;
 }
@@ -234,7 +234,7 @@ size CModSong::GetSongLength(void)
 // The order the song goes back to after its last order.
 //
 //////////////////////////////////////////////////////////////////////////
-size CModSong::GetRestart(void)
+size CModSong::GetRestart(void) const
 {
 	return muiRestart;
 }

@@ -81,11 +81,11 @@ public:
 
 	bool			Generate(SFloat32Vec3* psPoints, size uiStride, size uiNumPoints);
 
-	size			NumFaces(void);
+	size			NumFaces(void) const;
 	SQuickHullFace*	GetFace(size uiFace);
 	int				GetCorner(SQuickHullFace* psFace, size uiCorner);  //A point's index.
 	void			GetVertices(CArrayInt* paiPoints);  //The points that are corners, each once, in order.
-	float32			GetTolerance(void);
+	float32			GetTolerance(void) const;
 
 protected:
 	SFloat32Vec3*	GetPoint(int iPoint);

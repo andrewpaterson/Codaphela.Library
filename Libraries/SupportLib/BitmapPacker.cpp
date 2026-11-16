@@ -360,7 +360,7 @@ void CBitmapPacker::Add(CBitRows* pcShape, int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBitmapPacker::GetHeight(void)
+int CBitmapPacker::GetHeight(void) const
 {
 	return mcSpace.miHeight;
 }
