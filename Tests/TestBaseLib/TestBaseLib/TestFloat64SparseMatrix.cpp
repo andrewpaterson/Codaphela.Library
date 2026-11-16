@@ -346,13 +346,15 @@ void TestFloat64SparseMatrixColumnOrder(void)
 //
 // The least squares answers of TestFloat64SparseMatrixLeastSquares
 // directly: the line through five points (its t column given in two
-// halves, which add) and 300 equations in 60 unknowns.  A matrix with a
-// column of zeros has no answer.
+// halves, which add), also factored once and solved twice, and 300
+// equations in 60 unknowns.  A matrix with a column of zeros has no
+// answer.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFloat64SparseMatrixLeastSquaresDirect(void)
 {
-	CFloat64SparseMatrix	cMatrix;
+	CFloat64SparseMatrix		cMatrix;
+	CFloat64SparseLeastSquares	cSolver;
 	float64					afAnswer[60];
 	float64					afB[300];
 	float64					afX[60];
@@ -375,6 +377,19 @@ void TestFloat64SparseMatrixLeastSquaresDirect(void)
 	AssertTrue(Float64SparseLeastSquaresDirect(&cMatrix, afX, afB));
 	AssertDouble(0.8, afX[0], 10);
 	AssertDouble(2.1, afX[1], 10);
+
+	//Factored once, then solved for the points and for them all 1 higher (a 1.8, b the same).
+	AssertTrue(cSolver.Init(&cMatrix));
+	cSolver.Solve(afX, afB);
+	AssertDouble(2.1, afX[1], 10);
+	for (i = 0; i < 5; i++)
+	{
+		afB[i] += 1.0;
+	}
+	cSolver.Solve(afX, afB);
+	AssertDouble(1.8, afX[0], 10);
+	AssertDouble(2.1, afX[1], 10);
+	cSolver.Kill();
 	cMatrix.Kill();
 
 	uiSeed = 1;

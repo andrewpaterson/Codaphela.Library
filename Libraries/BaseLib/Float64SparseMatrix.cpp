@@ -19,7 +19,6 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Float64SparseMatrix.h"
-#include "Float64SkylineMatrix.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -637,32 +636,28 @@ void Float64SparseColumnOrder(CArrayLargeInt* paiPlaces, CFloat64SparseMatrix* p
 //////////////////////////////////////////////////////////////////////////
 //
 // A'A is the sum over A's rows of each row's outer product with itself,
-// A'b of each row times its b.  A row's entries are merged first, so a
-// column given twice in it adds.
+// each row's entries merged first, so a column given twice in it adds.
 //
 //////////////////////////////////////////////////////////////////////////
-bool Float64SparseLeastSquaresDirect(CFloat64SparseMatrix* pcA, float64* pafX, float64* pafB)
+bool CFloat64SparseLeastSquares::Init(CFloat64SparseMatrix* pcA)
 {
-	CArrayLargeInt			aiPlaces;
-	CArrayLargeInt			aiRowStarts;
-	CArrayLargeInt			aiEntries;
-	CArrayLargeInt			aiFirsts;
-	CArrayLargeInt			aiRowPlaces;
-	CArrayLargeFloat64		afRowValues;
-	CArrayLargeFloat64		afRight;
-	CFloat64SkylineMatrix	cNormal;
-	lsize					uiEntry;
-	int						iNumColumns;
-	int						iRow;
-	int						iPlace;
-	int						iLeast;
-	int						i;
-	int						j;
-	bool					bSolved;
+	CArrayLargeInt	aiRowStarts;
+	CArrayLargeInt	aiEntries;
+	CArrayLargeInt	aiFirsts;
+	CArrayLargeInt	aiRowPlaces;
+	CArrayLargeFloat64	afRowValues;
+	lsize			uiEntry;
+	int				iNumColumns;
+	int				iRow;
+	int				iPlace;
+	int				iLeast;
+	int				i;
+	int				j;
 
+	mpcA = pcA;
 	iNumColumns = pcA->NumColumns();
-	aiPlaces.Init();
-	Float64SparseColumnOrder(&aiPlaces, pcA);
+	maiPlaces.Init();
+	Float64SparseColumnOrder(&maiPlaces, pcA);
 	aiRowStarts.Init();
 	aiEntries.Init();
 	Float64SparseRows(pcA, &aiRowStarts, &aiEntries);
@@ -679,12 +674,12 @@ bool Float64SparseLeastSquaresDirect(CFloat64SparseMatrix* pcA, float64* pafX, f
 		iLeast = iNumColumns;
 		for (i = aiRowStarts.GetValue((lsize)iRow); i < aiRowStarts.GetValue((lsize)iRow + 1); i++)
 		{
-			iPlace = aiPlaces.GetValue((lsize)pcA->maiColumns.GetValue((lsize)aiEntries.GetValue((lsize)i)));
+			iPlace = maiPlaces.GetValue((lsize)pcA->maiColumns.GetValue((lsize)aiEntries.GetValue((lsize)i)));
 			iLeast = (iPlace < iLeast) ? iPlace : iLeast;
 		}
 		for (i = aiRowStarts.GetValue((lsize)iRow); i < aiRowStarts.GetValue((lsize)iRow + 1); i++)
 		{
-			iPlace = aiPlaces.GetValue((lsize)pcA->maiColumns.GetValue((lsize)aiEntries.GetValue((lsize)i)));
+			iPlace = maiPlaces.GetValue((lsize)pcA->maiColumns.GetValue((lsize)aiEntries.GetValue((lsize)i)));
 			if (iLeast < aiFirsts.GetValue((lsize)iPlace))
 			{
 				aiFirsts.SetValue((lsize)iPlace, iLeast);
@@ -692,10 +687,7 @@ bool Float64SparseLeastSquaresDirect(CFloat64SparseMatrix* pcA, float64* pafX, f
 		}
 	}
 
-	cNormal.Init(aiFirsts.GetData(), iNumColumns);
-	afRight.Init();
-	afRight.Resize((lsize)iNumColumns);
-	afRight.SetArrayValues(0.0);
+	mcNormal.Init(aiFirsts.GetData(), iNumColumns);
 	aiRowPlaces.Init();
 	afRowValues.Init();
 	for (iRow = 0; iRow < pcA->NumRows(); iRow++)
@@ -705,7 +697,7 @@ bool Float64SparseLeastSquaresDirect(CFloat64SparseMatrix* pcA, float64* pafX, f
 		for (i = aiRowStarts.GetValue((lsize)iRow); i < aiRowStarts.GetValue((lsize)iRow + 1); i++)
 		{
 			uiEntry = (lsize)aiEntries.GetValue((lsize)i);
-			iPlace = aiPlaces.GetValue((lsize)pcA->maiColumns.GetValue(uiEntry));
+			iPlace = maiPlaces.GetValue((lsize)pcA->maiColumns.GetValue(uiEntry));
 			for (j = 0; (j < (int)aiRowPlaces.NumElements()) && (aiRowPlaces.GetValue((lsize)j) != iPlace); j++)
 			{
 			}
@@ -719,35 +711,79 @@ bool Float64SparseLeastSquaresDirect(CFloat64SparseMatrix* pcA, float64* pafX, f
 		for (i = 0; i < (int)aiRowPlaces.NumElements(); i++)
 		{
 			iPlace = aiRowPlaces.GetValue((lsize)i);
-			afRight.SetValue((lsize)iPlace, afRight.GetValue((lsize)iPlace) + (afRowValues.GetValue((lsize)i) * pafB[iRow]));
 			for (j = 0; j < (int)aiRowPlaces.NumElements(); j++)
 			{
 				if (aiRowPlaces.GetValue((lsize)j) <= iPlace)
 				{
-					cNormal.Add(iPlace, aiRowPlaces.GetValue((lsize)j), afRowValues.GetValue((lsize)i) * afRowValues.GetValue((lsize)j));
+					mcNormal.Add(iPlace, aiRowPlaces.GetValue((lsize)j), afRowValues.GetValue((lsize)i) * afRowValues.GetValue((lsize)j));
 				}
 			}
 		}
 	}
-
-	bSolved = cNormal.Factor();
-	if (bSolved)
-	{
-		cNormal.Solve(afRight.GetData(), afRight.GetData());
-		for (i = 0; i < iNumColumns; i++)
-		{
-			pafX[i] = afRight.GetValue((lsize)aiPlaces.GetValue((lsize)i));
-		}
-	}
-
 	afRowValues.Kill();
 	aiRowPlaces.Kill();
-	afRight.Kill();
-	cNormal.Kill();
 	aiFirsts.Kill();
 	aiEntries.Kill();
 	aiRowStarts.Kill();
-	aiPlaces.Kill();
+
+	mafRight.Init();
+	mafRight.Resize((lsize)iNumColumns);
+	mbFactored = mcNormal.Factor();
+	return mbFactored;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFloat64SparseLeastSquares::Kill(void)
+{
+	mafRight.Kill();
+	mcNormal.Kill();
+	maiPlaces.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A'b, put in the factored order, solved, and put back.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFloat64SparseLeastSquares::Solve(float64* pafX, float64* pafB)
+{
+	float64*	pafRight;
+	int			i;
+
+	mpcA->MultiplyTranspose(pafX, pafB);
+	pafRight = mafRight.GetData();
+	for (i = 0; i < mpcA->NumColumns(); i++)
+	{
+		pafRight[maiPlaces.GetValue((lsize)i)] = pafX[i];
+	}
+	mcNormal.Solve(pafRight, pafRight);
+	for (i = 0; i < mpcA->NumColumns(); i++)
+	{
+		pafX[i] = pafRight[maiPlaces.GetValue((lsize)i)];
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool Float64SparseLeastSquaresDirect(CFloat64SparseMatrix* pcA, float64* pafX, float64* pafB)
+{
+	CFloat64SparseLeastSquares	cSolver;
+	bool						bSolved;
+
+	bSolved = cSolver.Init(pcA);
+	if (bSolved)
+	{
+		cSolver.Solve(pafX, pafB);
+	}
+	cSolver.Kill();
 	return bSolved;
 }
 

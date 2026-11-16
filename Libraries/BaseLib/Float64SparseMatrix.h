@@ -22,6 +22,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "ArrayInt.h"
 #include "ArrayFloat64.h"
+#include "Float64SkylineMatrix.h"
 
 
 //A matrix most of whose numbers are zero, held as the others (its entries): each one's row, column and value, added in any
@@ -71,6 +72,22 @@ int		Float64SparseLeastSquares(CFloat64SparseMatrix* pcA, float64* pafX, float64
 //conjugate gradients where the system is a mesh's (a chart's UVs), as they need about as many iterations as there are
 //unknowns.  pafX gets the answer.  False if A's columns aren't independent.
 bool	Float64SparseLeastSquaresDirect(CFloat64SparseMatrix* pcA, float64* pafX, float64* pafB);
+
+//The same, factored once by Init (false if A's columns aren't independent) for Solve to answer for any b: A is kept, and mustn't
+//change or go before Kill.
+class CFloat64SparseLeastSquares
+{
+public:
+	CFloat64SparseMatrix*	mpcA;
+	CArrayLargeInt			maiPlaces;  //Each column's place in the factored order.
+	CFloat64SkylineMatrix	mcNormal;  //A'A in that order, factored.
+	CArrayLargeFloat64		mafRight;
+	bool					mbFactored;
+
+	bool	Init(CFloat64SparseMatrix* pcA);
+	void	Kill(void);
+	void	Solve(float64* pafX, float64* pafB);
+};
 
 //Each column's place in an order that keeps columns sharing a row near each other (reverse Cuthill-McKee): from a column of
 //least neighbours at the far side of each connected group, breadth first, neighbours fewest first, then reversed.
