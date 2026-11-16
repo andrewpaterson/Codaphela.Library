@@ -139,7 +139,7 @@ bool CImageCelMaskTransparent::MustFixDrawOpacity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMaskTransparent::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft)
+void CImageCelMaskTransparent::FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft)
 {
 	CPixelOpacityMaskTransparentColour	cOpacity;
 

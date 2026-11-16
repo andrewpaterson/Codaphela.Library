@@ -40,8 +40,8 @@ public:
 	void	Init(CImage* pcImage, CChannelsAccessorContiguous* pcAccessor, bool bKillChannelAccessor);
 	void	Kill(void);
 
-	void*	Get(int x, int y);
-	void	Set(int x, int y, void* pvData);
+	void*	Get(int32 x, int32 y);
+	void	Set(int32 x, int32 y, void* pvData);
 
 	void	SyncDataCache(void);
 };

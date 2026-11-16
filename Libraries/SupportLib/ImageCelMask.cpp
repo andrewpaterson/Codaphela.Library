@@ -160,7 +160,7 @@ bool CImageCelMask::MustFixDrawOpacity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMask::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft)
+void CImageCelMask::FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft)
 {
 	CPixelOpacityMask	cOpacity;
 

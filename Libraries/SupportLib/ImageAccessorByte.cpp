@@ -54,7 +54,7 @@ void CImageAccessorByte::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CImageAccessorByte::Get(int x, int y)
+void* CImageAccessorByte::Get(int32 x, int32 y)
 {
 	return &mpucImageData[x * miPixelStride + miOffset + y * miImageStride];
 }
@@ -64,7 +64,7 @@ void* CImageAccessorByte::Get(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorByte::Set(int x, int y, void* pvSource)
+void CImageAccessorByte::Set(int32 x, int32 y, void* pvSource)
 {
 	mpucImageData[x * miPixelStride + miOffset + y * miImageStride] = *(uint8*)pvSource;
 }

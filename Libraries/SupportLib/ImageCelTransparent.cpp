@@ -116,7 +116,7 @@ bool CImageCelTransparent::MustFixDrawOpacity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelTransparent::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft)
+void CImageCelTransparent::FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft)
 {
 	CPixelOpacityTransparentColour cOpacity;
 
