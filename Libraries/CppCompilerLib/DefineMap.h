@@ -42,9 +42,9 @@ public:
 	void		Kill(void);
 
 	CDefine*	AddDefine(CExternalString* pcName);
-	CDefine*	AddDefine(char* szName);
+	CDefine*	AddDefine(const char* szName);
 	CDefine*	Get(CExternalString* pcName);
-	CDefine*	Get(char* szName);
+	CDefine*	Get(const char* szName);
 	void		Remove(CExternalString* pcName);
 	void		Remove(char* szName);
 	size		NumDefines(void);

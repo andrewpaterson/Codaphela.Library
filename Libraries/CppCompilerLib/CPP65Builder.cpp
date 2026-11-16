@@ -476,7 +476,7 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 	{
 		return false;
 	}
-	pcConfig->AddDefine((char*)szDefine);
+	pcConfig->AddDefine(szDefine);
 
 	//And to the libraries of its project's sources in other directories (AddVisualStudioProject).
 	for (i = 0; i < maszOutsideProjects.NumElements(); i++)
@@ -487,7 +487,7 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 			pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)mpcTarget->GetConfigurationName()) : NULL;
 			if (pcConfig)
 			{
-				pcConfig->AddDefine((char*)szDefine);
+				pcConfig->AddDefine(szDefine);
 			}
 		}
 	}

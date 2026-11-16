@@ -34,8 +34,8 @@ public:
 
 	void Init(char* szName);
 	void Kill(void);
-	void AddDefine(char* szDefine);
-	void AddDefines(char* szDefines);
+	void AddDefine(const char* szDefine);
+	void AddDefines(const char* szDefines);
 };
 
 

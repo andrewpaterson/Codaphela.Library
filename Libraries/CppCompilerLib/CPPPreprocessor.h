@@ -178,8 +178,8 @@ public:
 
 	CDefine*			GetDefine(CExternalString* pcString);
 	CDefine*			GetDefine(char* szName);
-	CDefine* 			AddDefine(char* szDefine);
-	CDefine*			AddDefine(char* szDefine, char* szReplacement, CPPTokenMemory* pcTokenMemory);
+	CDefine* 			AddDefine(const char* szDefine);
+	CDefine*			AddDefine(const char* szDefine, const char* szReplacement, CPPTokenMemory* pcTokenMemory);
 	CDefine*			AddSpecialDefine(char* szDefine);
 	CDefine*			AddNumberDefine(char* szDefine, int64 lliValue);
 

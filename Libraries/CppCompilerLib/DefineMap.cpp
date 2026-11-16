@@ -196,7 +196,7 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 // defined.
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::AddDefine(char* szName)
+CDefine* CDefineMap::AddDefine(const char* szName)
 {
 	CExternalString		cExternalString;
 
@@ -220,7 +220,7 @@ CDefine* CDefineMap::Get(CExternalString* pcName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::Get(char* szName)
+CDefine* CDefineMap::Get(const char* szName)
 {
 	CExternalString		cExternalString;
 

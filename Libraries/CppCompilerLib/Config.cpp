@@ -49,7 +49,7 @@ void CConfig::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConfig::AddDefine(char* szDefine)
+void CConfig::AddDefine(const char* szDefine)
 {
 	maszDefines.Add(szDefine);
 }
@@ -59,7 +59,7 @@ void CConfig::AddDefine(char* szDefine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConfig::AddDefines(char* szDefines)
+void CConfig::AddDefines(const char* szDefines)
 {
 	CChars			szTemp;
 	CArrayChars		aszTemp;

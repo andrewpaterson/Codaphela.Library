@@ -1007,7 +1007,7 @@ CDefine* CCPPPreprocessor::AddNumberDefine(char* szDefine, int64 lliValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CCPPPreprocessor::AddDefine(char* szDefine)
+CDefine* CCPPPreprocessor::AddDefine(const char* szDefine)
 {
 	return mcDefines.AddDefine(szDefine);
 }
@@ -1027,7 +1027,7 @@ CSpecialOperator* CCPPPreprocessor::AddSpecialOperator(char* szSpecialOperator, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CCPPPreprocessor::AddDefine(char* szDefine, char* szReplacement, CPPTokenMemory* pcTokenMemory)
+CDefine* CCPPPreprocessor::AddDefine(const char* szDefine, const char* szReplacement, CPPTokenMemory* pcTokenMemory)
 {
 	CDefine*				pcDefine;
 	size						iLen;
