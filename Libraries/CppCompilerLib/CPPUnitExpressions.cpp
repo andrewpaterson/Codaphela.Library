@@ -461,8 +461,8 @@ CCPPSymbol* CCPPUnit::QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pc
 //
 // The member of the kind eKind Class::Name names, where Class is a class, an instance of a class template, a typedef of
 // one or a template parameter, and in ppsClass the class that declares it: a member of an instance can depend on its
-// template arguments, so it is worked out with that class's bindings.  NULL if it isn't one.  A qualifier the parser
-// couldn't resolve is found in the class before it (QualifiersClass): TEMPLATE::SizePolicy::NotFound.
+// template arguments, so it is worked out with that class's bindings.  NULL if it isn't one.  A qualifier after a
+// class is found in that class (QualifiersClass): TEMPLATE::SizePolicy::NotFound and W<int>::Type::N.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass)
@@ -501,7 +501,7 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 
 	uiErrors = mcErrors.NumErrors();
 	BeginQuiet();
-	pcClass = pcQualifier->mpcSymbol ? GetComponentClass(pcQualifier, NULL, pcNode) : QualifiersClass(pcName, pcNode);
+	pcClass = (pcQualifier->mpcSymbol && (pcName->macpComponents.NumElements() == 2)) ? GetComponentClass(pcQualifier, NULL, pcNode) : QualifiersClass(pcName, pcNode);
 	pcSymbol = (pcClass && CompleteClass(pcClass, pcNode)) ? pcClass->FindMemberSymbol(GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
@@ -511,10 +511,11 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The class pcName's qualifiers (its components before the last) name.  The parser leaves a name in a template that
-// depends on its arguments unresolved: such a component is the member typedef or class of that name of the class the
-// components before it name, worked out with the bindings of the class that declares it (in TEMPLATE::SizePolicy,
-// SizePolicy is a typedef of the class TEMPLATE is bound to, or of one of its bases).  NULL if one isn't a class.
+// The class pcName's qualifiers (its components before the last) name.  A component after a class is the member
+// typedef or class of that name of the class, worked out with the bindings of the class that declares it: in
+// TEMPLATE::SizePolicy, SizePolicy is a typedef of the class TEMPLATE is bound to, or of one of its bases (the parser
+// leaves it unresolved), and in W<int>::Type, Type is W<int>'s typedef, whatever W's T is (the parser found W's).
+// NULL if one isn't a class.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPUnit::QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
@@ -536,7 +537,7 @@ CCPPClass* CCPPUnit::QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 			pcClass = NULL;
 			continue;
 		}
-		if (pcComponent->mpcSymbol || !pcClass)
+		if (!pcClass)
 		{
 			pcClass = GetComponentClass(pcComponent, NULL, pcNode);
 		}
@@ -593,44 +594,6 @@ bool CCPPUnit::IsMemberPointerOperator(CCPPSyntax* pcExpression)
 	}
 	eOperator = ((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator;
 	return (eOperator == CT_MemberFunctionPointerIndirection) || (eOperator == CT_MemberByPointerFunctionPointerIndirection);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A symbol for an element of the function parameter pack being generated: a
-// variable with the pack's name, kept until the generator is killed.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPUnit::NewPackElement(CCPPSymbol* pcPack)
-{
-	CCPPSymbol*	pcSymbol;
-
-	pcSymbol = NewMalloc<CCPPSymbol>();
-	pcSymbol->Init(pcPack->mlliName, CPPSK_Variable, pcPack->mpcDeclaration, pcPack->mpcScope);
-	mapcPackSymbols.Add(pcSymbol);
-	mapcPackElements.Add(pcSymbol);
-	return pcSymbol;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a call's arguments expand a pack (f(args...)).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::HasPackExpansion(CArraySyntax* papcArguments)
-{
-	size	i;
-
-	for (i = 0; i < papcArguments->NumElements(); i++)
-	{
-		if (papcArguments->GetPtr(i)->GetKind() == CPPS_PackExpansionExpression)
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 
@@ -1235,6 +1198,10 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	case CPPS_SizeofExpression:
 		pcSizeof = (CCPPSyntaxSizeofExpression*)pcExpression;
+		if (pcSizeof->mbPack)
+		{
+			return PackSize(pcSizeof->mpcPackSymbol, plliValue);
+		}
 		if ((pcSizeof->meKeyword != CT_sizeof) && (pcSizeof->meKeyword != CT_alignof))
 		{
 			return false;

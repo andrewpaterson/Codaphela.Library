@@ -459,6 +459,7 @@ void CCPPSpecialisationMatch::Init(CCPPUnit* pcUnit, CCPPTemplate* pcSpecialisat
 		psBinding->psType = NULL;
 		psBinding->lliValue = 0;
 		psBinding->papsPack = NULL;
+		psBinding->palliPack = NULL;
 		psBinding->bSelf = false;
 	}
 	miScore = (pcSpecialisation->mpcDeclaration->macpParameters.NumElements() == 0) ? 1000 : 0;
@@ -479,45 +480,78 @@ void CCPPSpecialisationMatch::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the specialisation's pattern matches pcArguments.
+// Whether the specialisation's pattern matches pcArguments, with every one
+// of its type parameters deduced.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSpecialisationMatch::Match(CCPPTemplateArguments* pcArguments)
 {
-	return MatchPattern(&mpcSpecialisation->mpcPattern->macpTemplateArguments, pcArguments);
+	CCPPSymbol*		pcSymbol;
+	SCPPBinding*	psBinding;
+	size			i;
+
+	if (!MatchPattern(&mpcSpecialisation->mpcPattern->macpTemplateArguments, pcArguments))
+	{
+		return false;
+	}
+	for (i = 0; i < mpcDeduced->macBindings.NumElements(); i++)
+	{
+		psBinding = mpcDeduced->macBindings.Get(i);
+		pcSymbol = psBinding->pcParameter;
+		if (pcSymbol && (pcSymbol->meKind != CPPSK_ValueParameter) && !psBinding->psType && !psBinding->IsPack())
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a specialisation's template arguments (papcPattern) match an instance's
-// arguments.  The specialisation's parameters are deduced as they are met.  The score counts how much
+// Whether a specialisation's template arguments (papcPattern) match an
+// instance's arguments, each of a pack's elements an argument of its own
+// (FlattenArguments).  The specialisation's parameters are deduced as they
+// are met; a last pattern that expands one of its parameter packs (T...)
+// takes the rest of the arguments (MatchPack).  The score counts how much
 // of the arguments' structure the pattern names.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSpecialisationMatch::MatchPattern(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments)
 {
-	CCPPSyntax*		pcPattern;
-	SCPPBinding*	psArgument;
-	SCPPBinding*	psBinding;
-	CCPPSymbol*		pcSymbol;
-	size			i;
-	int64			lliValue;
+	CArrayCPPBindings	asArguments;
+	CCPPSyntax*			pcPattern;
+	SCPPBinding*		psArgument;
+	SCPPBinding*		psBinding;
+	SCPPBinding*		psPack;
+	CCPPSymbol*			pcSymbol;
+	size				i;
+	size				k;
+	int64				lliValue;
+	bool				bResult;
 
-	if (papcPattern->NumElements() != pcArguments->macBindings.NumElements())
-	{
-		return false;
-	}
-	for (i = 0; i < papcPattern->NumElements(); i++)
+	asArguments.Init();
+	FlattenArguments(pcArguments, &asArguments);
+	bResult = true;
+	for (i = 0, k = 0; bResult && (i < papcPattern->NumElements()); i++)
 	{
 		pcPattern = papcPattern->GetPtr(i);
-		psArgument = pcArguments->macBindings.Get(i);
+		if (IsPackExpansion(pcPattern))
+		{
+			psPack = ExpandedParameter(pcPattern);
+			bResult = psPack && (i + 1 == papcPattern->NumElements()) && MatchPack(psPack, &asArguments, k);
+			k = asArguments.NumElements();
+			continue;
+		}
+		if (k >= asArguments.NumElements())
+		{
+			bResult = false;
+			break;
+		}
+		psArgument = asArguments.Get(k++);
 		if (psArgument->psType)
 		{
-			if ((pcPattern->GetKind() != CPPS_TypeId) || !MatchType((CCPPSyntaxTypeId*)pcPattern, psArgument))
-			{
-				return false;
-			}
+			bResult = (pcPattern->GetKind() == CPPS_TypeId) && MatchType((CCPPSyntaxTypeId*)pcPattern, psArgument);
 			continue;
 		}
 
@@ -530,20 +564,126 @@ bool CCPPSpecialisationMatch::MatchPattern(CArraySyntax* papcPattern, CCPPTempla
 			psBinding->psType = NULL;
 			continue;
 		}
-		if (!mpcUnit->Constant(pcPattern, &lliValue) || (lliValue != psArgument->lliValue))
+		bResult = mpcUnit->Constant(pcPattern, &lliValue) && (lliValue == psArgument->lliValue);
+		miScore++;
+	}
+	bResult = bResult && (k == asArguments.NumElements());
+	asArguments.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instance's arguments one per element: a pack's types or values are
+// each an argument.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSpecialisationMatch::FlattenArguments(CCPPTemplateArguments* pcArguments, CArrayCPPBindings* pasArguments)
+{
+	SCPPBinding*	psBinding;
+	SCPPBinding*	psElement;
+	size			i;
+	size			j;
+
+	for (i = 0; i < pcArguments->macBindings.NumElements(); i++)
+	{
+		psBinding = pcArguments->macBindings.Get(i);
+		if (!psBinding->IsPack())
+		{
+			*pasArguments->Add() = *psBinding;
+			continue;
+		}
+		for (j = 0; j < psBinding->PackSize(); j++)
+		{
+			psElement = pasArguments->Add();
+			*psElement = *psBinding;
+			psElement->papsPack = NULL;
+			psElement->palliPack = NULL;
+			psElement->psType = psBinding->papsPack ? psBinding->papsPack->GetPtr(j) : NULL;
+			psElement->lliValue = psBinding->palliPack ? psBinding->palliPack->GetValue(j) : 0;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a pattern is a pack expansion: T... or N....
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSpecialisationMatch::IsPackExpansion(CCPPSyntax* pcPattern)
+{
+	return ((pcPattern->GetKind() == CPPS_TypeId) && ((CCPPSyntaxTypeId*)pcPattern)->mbPack) || (pcPattern->GetKind() == CPPS_PackExpansionExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The binding of the specialisation's parameter pack a pack expansion
+// expands, if that is all it is (T..., not T*...), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPBinding* CCPPSpecialisationMatch::ExpandedParameter(CCPPSyntax* pcPattern)
+{
+	CCPPSyntaxTypeId*		pcTypeId;
+	CCPPSyntaxTypeSpecifier*	pcType;
+	CCPPSyntax*				pcExpression;
+
+	if (pcPattern->GetKind() == CPPS_TypeId)
+	{
+		pcTypeId = (CCPPSyntaxTypeId*)pcPattern;
+		pcType = pcTypeId->mpcSpecifiers ? pcTypeId->mpcSpecifiers->mpcType : NULL;
+		if (!pcType || (pcType->GetKind() != CPPS_NamedTypeSpecifier) || (pcTypeId->mpcDeclarator && !pcTypeId->mpcDeclarator->IsEmpty()) || (pcTypeId->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
+		{
+			return NULL;
+		}
+		return mpcDeduced->FindOwn(((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol);
+	}
+	pcExpression = ((CCPPSyntaxPackExpansionExpression*)pcPattern)->mpcPattern->WithoutParentheses();
+	if (pcExpression->GetKind() != CPPS_IdExpression)
+	{
+		return NULL;
+	}
+	return mpcDeduced->FindOwn(((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The parameter pack psPack takes the arguments from uiFirst on: all
+// types for a type pack, all values for a non-type pack.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSpecialisationMatch::MatchPack(SCPPBinding* psPack, CArrayCPPBindings* pasArguments, size uiFirst)
+{
+	SCPPBinding*	psArgument;
+	bool			bTypes;
+	size			k;
+
+	bTypes = psPack->pcParameter && (psPack->pcParameter->meKind != CPPSK_ValueParameter);
+	if (bTypes)
+	{
+		psPack->papsPack = mpcUnit->NewPack();
+	}
+	else
+	{
+		psPack->palliPack = mpcUnit->NewValuePack();
+	}
+	for (k = uiFirst; k < pasArguments->NumElements(); k++)
+	{
+		psArgument = pasArguments->Get(k);
+		if ((psArgument->psType != NULL) != bTypes)
 		{
 			return false;
 		}
-		miScore++;
-	}
-
-	//Every parameter must be deduced.
-	for (i = 0; i < mpcDeduced->macBindings.NumElements(); i++)
-	{
-		pcSymbol = mpcDeduced->macBindings.Get(i)->pcParameter;
-		if (pcSymbol && (pcSymbol->meKind != CPPSK_ValueParameter) && !mpcDeduced->macBindings.Get(i)->psType)
+		if (bTypes)
 		{
-			return false;
+			psPack->papsPack->Add(psArgument->psType);
+		}
+		else
+		{
+			psPack->palliPack->Add(psArgument->lliValue);
 		}
 	}
 	return true;

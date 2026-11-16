@@ -31,6 +31,7 @@ void CCPPSyntaxSizeofExpression::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 	meKeyword = CT_sizeof;
 	mbPack = false;
 	miPack = -1;
+	mpcPackSymbol = NULL;
 	mpcType = NULL;
 	mpcOperand = NULL;
 }
@@ -72,6 +73,7 @@ void CCPPSyntaxSizeofExpression::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Enum(&meKeyword);
 	pcFields->Bool(&mbPack);
 	pcFields->Token(&miPack);
+	pcFields->Symbol(&mpcPackSymbol);
 	pcFields->Child(&mpcType);
 	pcFields->Child(&mpcOperand);
 }

@@ -274,6 +274,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcTemplates.Init();
 	mapcAllBindings.Init();
 	mapapsPacks.Init();
+	mapalliPacks.Init();
 	mapcPackElements.Init();
 	mapcPackSymbols.Init();
 	mapcHiddenSymbols.Init();
@@ -308,6 +309,7 @@ void CCPPUnit::Kill(void)
 	CCPPClass*				pcClass;
 	CCPPTemplateArguments*	pcBindings;
 	CArrayCPP65Types*		papsPack;
+	CArrayInt64*			palliPack;
 
 	mcTypeChecker.Kill();
 	SafeKill(mpcConstants);
@@ -355,6 +357,12 @@ void CCPPUnit::Kill(void)
 		SafeKill(papsPack);
 	}
 	mapapsPacks.Kill();
+	for (i = 0; i < mapalliPacks.NumElements(); i++)
+	{
+		palliPack = mapalliPacks.GetPtr(i);
+		SafeKill(palliPack);
+	}
+	mapalliPacks.Kill();
 	mapcPackElements.Kill();
 	for (i = 0; i < mapcPackSymbols.NumElements(); i++)
 	{

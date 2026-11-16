@@ -129,6 +129,7 @@ struct SCPPBuiltin
 
 
 typedef CArrayTemplatePtr<CArrayCPP65Types>	CArrayCPPPacks;
+typedef CArrayTemplatePtr<CArrayInt64>		CArrayCPPValuePacks;
 typedef CArrayTemplatePtr<CCPPSymbol>		CArrayCPPSymbols;
 
 
@@ -216,6 +217,7 @@ protected:
 	CArrayCPPTemplates	mapcTemplates;
 	CArrayCPPTemplateArguments	mapcAllBindings;
 	CArrayCPPPacks		mapapsPacks;		//The packs' types (NewPack).
+	CArrayCPPValuePacks	mapalliPacks;		//The non-type packs' values (NewValuePack).
 	CArrayCPPSymbols		mapcPackSymbols;	//The symbols made for function parameter packs' elements.
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
@@ -466,8 +468,19 @@ public:
 	CCPPTemplateArguments*			RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
 	CCPPTemplateArguments*			NewBindings(void);
 	CArrayCPP65Types*		NewPack(void);
+	CArrayInt64*			NewValuePack(void);
+	void					FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks);
+	bool					ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded);
+	SCPP65Type*				ExpandedArgumentType(SCPPExpandedArgument* psArgument);
+	bool					ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* plliValue);
+	bool					PackSize(CCPPSymbol* pcPack, int64* plliValue);
+	bool					BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CArrayCPP65Types* papsDeduced, CChars* pszArguments);
+	bool					BindValuePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CChars* pszArguments);
+	void					AppendMangledValue(CChars* pszArguments, int64 lliValue);
 	SCPPBinding*			PackBinding(CCPPSyntaxParameter* pcParameter);
 
+	void					DeclareClassTemplate(CCPPSyntaxElaboratedTypeSpecifier* pcSpecifier, CCPPSyntaxTemplateDeclaration* pcDeclaration);
+	void					DefineClassTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxClassSpecifier* pcSpecifier);
 	CCPPTemplate*			Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, CCPPSyntaxNameComponent* pcPattern);
 	CCPPTemplate*			OutsideMemberOwner(CCPPTemplate* pcPrimary, CCPPSyntaxNameComponent* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
 	CCPPTemplate*			FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode);

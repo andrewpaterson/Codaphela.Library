@@ -321,6 +321,12 @@ bool CCPPParser::ParseTemplateArguments(CCPPSyntaxNameComponent* pcComponent)
 			return false;
 		}
 
+		//T... and T*...: the abstract declarator took the ellipsis, which expands the whole argument.  [temp.variadic] 5
+		if ((pcArgument->GetKind() == CPPS_TypeId) && ((CCPPSyntaxTypeId*)pcArgument)->mpcDeclarator && ((CCPPSyntaxTypeId*)pcArgument)->mpcDeclarator->mbPack)
+		{
+			((CCPPSyntaxTypeId*)pcArgument)->mpcDeclarator->mbPack = false;
+			((CCPPSyntaxTypeId*)pcArgument)->mbPack = true;
+		}
 		if (Is(CT_Elipsis))
 		{
 			if (pcArgument->GetKind() == CPPS_TypeId)

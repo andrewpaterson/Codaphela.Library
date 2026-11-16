@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/ArrayInt64.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
@@ -36,13 +37,32 @@ struct SCPPBinding
 	CCPPSymbol*						pcParameter;
 	SCPP65Type*						psType;
 	int64							lliValue;
-	CArrayTemplatePtr<SCPP65Type>*	papsPack;	//A parameter pack's types.
+	CArrayTemplatePtr<SCPP65Type>*	papsPack;	//A type parameter pack's types.
+	CArrayInt64*					palliPack;	//A non-type parameter pack's values.
 	bool							bSelf;		//The parameter stands for itself (CCPPUnit::BindAsItself): its type is a
 												//placeholder that is written as its name, and its value isn't known.
+
+	bool	IsPack(void) { return (papsPack != NULL) || (palliPack != NULL); }
+	size	PackSize(void) { return papsPack ? papsPack->NumElements() : (palliPack ? palliPack->NumElements() : 0); }
 };
 
 
 typedef CArrayTemplate<SCPPBinding>	CArrayCPPBindings;
+typedef CArrayTemplatePtr<SCPPBinding>	CArrayCPPBindingPtrs;
+
+
+//A template argument once its pack expansions are expanded (CCPPUnit::ExpandTemplateArguments): an argument as
+//written (pcArgument), or one element of a pack expansion, which is its type or, for a non-type pack, its value.
+struct SCPPExpandedArgument
+{
+	CCPPSyntax*		pcArgument;	//As written, or the pack expansion the element is of.
+	SCPP65Type*		psType;		//An element's type, NULL for a value.
+	int64			lliValue;	//An element's value.
+	bool			bExpanded;	//An element of a pack expansion.
+};
+
+
+typedef CArrayTemplate<SCPPExpandedArgument>	CArrayCPPExpandedArguments;
 
 
 //The template arguments of an instantiation.  mpcOuter is the class instance a member template is in.  mpcClass
@@ -82,7 +102,8 @@ class CCPPTemplate
 public:
 	CCPPSymbol*						mpcSymbol;		//The template's name; for an outside member, the class's.
 	CCPPSyntaxTemplateDeclaration*	mpcDeclaration;
-	CCPPSyntax*						mpcDefinition;	//A class specifier or a function definition.
+	CCPPSyntax*						mpcDefinition;	//A class specifier or a function definition; a class template only declared
+													//so far, its elaborated type specifier (template<class T> struct S;).
 	bool							mbMember;
 	bool							mbMemberTemplate;
 	CCPPClass*						mpcClass;
@@ -101,6 +122,9 @@ public:
 
 	void	Init(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember, CCPPScope* pcNamespace);
 	void	Kill(void);
+
+	ECPPSyntax	DefinitionKind(void);
+	bool		IsDeclaredClass(void);
 };
 
 

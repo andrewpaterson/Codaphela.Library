@@ -203,8 +203,13 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 			}
 			else if (!bExplicit)
 			{
-				NewTemplate(pcSpecifier->mpcSymbol, pcTemplateDeclaration, pcSpecifier, false);
+				DefineClassTemplate(pcSpecifier->mpcSymbol, pcTemplateDeclaration, pcSpecifier);
 			}
+		}
+		else if (!bExplicit && pcSimple->mpcSpecifiers && pcSimple->mpcSpecifiers->mpcType && (pcSimple->mpcSpecifiers->mpcType->GetKind() == CPPS_ElaboratedTypeSpecifier) && (pcSimple->macpDeclarators.NumElements() == 0))
+		{
+			//template<class... T> struct Tuple; is a template its specialisations can specialise.
+			DeclareClassTemplate((CCPPSyntaxElaboratedTypeSpecifier*)pcSimple->mpcSpecifiers->mpcType, pcTemplateDeclaration);
 		}
 		else if (!bExplicit && IsStaticMemberDefinition(pcSimple))
 		{
@@ -266,6 +271,61 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 
 //////////////////////////////////////////////////////////////////////////
 //
+// template<class... T> struct Tuple; declares a class template: one its
+// specialisations can specialise before it is defined, or if it never is,
+// as a variadic template is often written.  Declared again, it is the
+// same template.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DeclareClassTemplate(CCPPSyntaxElaboratedTypeSpecifier* pcSpecifier, CCPPSyntaxTemplateDeclaration* pcDeclaration)
+{
+	CCPPSymbol*	pcSymbol;
+
+	pcSymbol = (pcSpecifier->mpcName && (pcSpecifier->mpcName->macpComponents.NumElements() == 1)) ? pcSpecifier->mpcName->mpcSymbol : NULL;
+	if (pcSymbol && !GetTemplate(pcSymbol))
+	{
+		NewTemplate(pcSymbol, pcDeclaration, pcSpecifier, false);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class template's definition: the template it declared before, if it
+// was, now with the definition's parameters and body, or else a new one.
+// Its instances made before (A<int>* p;) are of the definition, their
+// arguments bound to its parameters.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DefineClassTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxClassSpecifier* pcSpecifier)
+{
+	CCPPTemplate*	pcTemplate;
+	CCPPClass*		pcClass;
+	size			i;
+
+	pcTemplate = pcSymbol ? GetTemplate(pcSymbol) : NULL;
+	if (!pcTemplate || !pcTemplate->IsDeclaredClass())
+	{
+		NewTemplate(pcSymbol, pcDeclaration, pcSpecifier, false);
+		return;
+	}
+
+	pcTemplate->mpcDeclaration = pcDeclaration;
+	pcTemplate->mpcDefinition = pcSpecifier;
+	for (i = 0; i < mapcClasses.NumElements(); i++)
+	{
+		pcClass = mapcClasses.GetPtr(i);
+		if ((pcClass->mpcTemplate == pcTemplate) && !pcClass->mpcSpecifier)
+		{
+			pcClass->mpcSpecifier = pcSpecifier;
+			pcClass->mpcBindings = RenameBindings(pcClass, pcDeclaration);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Records a specialisation of the template pcSymbol names, which must be declared
 // before it.  pcPattern holds its template arguments (a function specialisation's
 // may have none: they are deduced from its parameters).
@@ -284,7 +344,7 @@ CCPPTemplate* CCPPUnit::Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateD
 	{
 		pcPrimary = GetTemplateByName(lliName, pcDefinition->GetKind(), ComponentLookup(pcPattern));
 	}
-	if (!pcPrimary || (pcPrimary->mpcDefinition->GetKind() != pcDefinition->GetKind()))
+	if (!pcPrimary || (pcPrimary->DefinitionKind() != pcDefinition->GetKind()))
 	{
 		return NULL;
 	}
@@ -644,7 +704,7 @@ CCPPTemplate* CCPPUnit::GetTemplateByName(int64 lliName, ECPPSyntax eDefinition,
 	for (i = 0; i < mapcTemplates.NumElements(); i++)
 	{
 		pcTemplate = mapcTemplates.GetPtr(i);
-		if (!pcTemplate->mbMember && (pcTemplate->mpcPrimary == pcTemplate) && pcTemplate->mpcSymbol && (pcTemplate->mpcSymbol->mlliName == lliName) && (pcTemplate->mpcDefinition->GetKind() == eDefinition))
+		if (!pcTemplate->mbMember && (pcTemplate->mpcPrimary == pcTemplate) && pcTemplate->mpcSymbol && (pcTemplate->mpcSymbol->mlliName == lliName) && (pcTemplate->DefinitionKind() == eDefinition))
 		{
 			if (pcTemplate->mpcSymbol->mpcScope->Encloses(pcLookup))
 			{
@@ -682,28 +742,29 @@ CCPPTemplate* CCPPUnit::GetComponentTemplate(CCPPSyntaxNameComponent* pcComponen
 //////////////////////////////////////////////////////////////////////////
 CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced)
 {
-	CCPPTemplateArguments*			pcBindings;
-	SCPPBinding*			psBinding;
-	CCPPSyntax*				pcParameter;
-	CCPPSyntax*				pcArgument;
+	CArrayCPPExpandedArguments	asArguments;
+	CCPPTemplateArguments*		pcBindings;
+	SCPPBinding*				psBinding;
+	SCPPExpandedArgument*		psArgument;
+	CCPPSyntax*					pcParameter;
 	CCPPSyntaxTypeParameter*	pcType;
-	CCPPSyntaxParameter*	pcValue;
-	SCPP65Type*				psType;
-	size					i;
-	size					j;
-	bool					bResult;
+	CCPPSyntaxParameter*		pcValue;
+	size						i;
+	bool						bResult;
 
+	asArguments.Init();
+	bResult = !papcArguments || ExpandTemplateArguments(papcArguments, &asArguments);
 	pcBindings = NewBindings();
-	bResult = true;
-	for (i = 0; i < pcTemplate->macpParameters.NumElements(); i++)
+	for (i = 0; bResult && (i < pcTemplate->macpParameters.NumElements()); i++)
 	{
 		pcParameter = pcTemplate->macpParameters.GetPtr(i);
-		pcArgument = (papcArguments && (i < papcArguments->NumElements())) ? papcArguments->GetPtr(i) : NULL;
+		psArgument = (i < asArguments.NumElements()) ? asArguments.Get(i) : NULL;
 		psBinding = pcBindings->macBindings.Add();
 		psBinding->psType = NULL;
 		psBinding->lliValue = 0;
 		psBinding->pcParameter = NULL;
 		psBinding->papsPack = NULL;
+		psBinding->palliPack = NULL;
 		psBinding->bSelf = false;
 
 		if (pcParameter->GetKind() == CPPS_TypeParameter)
@@ -713,43 +774,19 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 			if (pcType->mbPack)
 			{
 				//A pack (the last parameter) takes the rest of the explicit arguments, or else the deduced types.
-				psBinding->papsPack = NewPack();
-				pszArguments->Append("_J");
-				for (j = i; papcArguments && (j < papcArguments->NumElements()); j++)
-				{
-					pcArgument = papcArguments->GetPtr(j);
-					psType = (pcArgument->GetKind() == CPPS_TypeId) ? mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcArgument) : NULL;
-					if (!psType)
-					{
-						bResult = Error(pcArgument, "The template argument is not a type the compiler supports");
-						break;
-					}
-					psBinding->papsPack->Add(psType);
-				}
-				for (j = i; (!papcArguments || (i >= papcArguments->NumElements())) && papsDeduced && (j < papsDeduced->NumElements()); j++)
-				{
-					if (papsDeduced->GetPtr(j))
-					{
-						psBinding->papsPack->Add(papsDeduced->GetPtr(j));
-					}
-				}
-				for (j = 0; j < psBinding->papsPack->NumElements(); j++)
-				{
-					mcMangler.AppendType(pszArguments, psBinding->papsPack->GetPtr(j));
-				}
-				pszArguments->Append('E');
+				bResult = BindTypePack(psBinding, &asArguments, i, papsDeduced, pszArguments);
 				break;
 			}
-			if (pcArgument && (pcArgument->GetKind() == CPPS_TypeId))
+			if (psArgument)
 			{
 				//const int is a different argument to int (its type is const).
-				psBinding->psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcArgument);
+				psBinding->psType = ExpandedArgumentType(psArgument);
 			}
-			else if (!pcArgument && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
+			else if (papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
 			{
 				psBinding->psType = papsDeduced->GetPtr(i);
 			}
-			else if (!pcArgument && pcType->mpcDefault)
+			else if (pcType->mpcDefault)
 			{
 				//A default can use the parameters before it.
 				pcBindings->mpcOuter = mcContext.GetBindings();
@@ -760,7 +797,7 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 			}
 			if (!psBinding->psType)
 			{
-				bResult = Error(pcArgument ? pcArgument : pcNode, "The template argument is not a type the compiler supports");
+				bResult = Error(psArgument ? psArgument->pcArgument : pcNode, "The template argument is not a type the compiler supports");
 				break;
 			}
 			pszArguments->Append('_');
@@ -770,31 +807,121 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 		{
 			pcValue = (CCPPSyntaxParameter*)pcParameter;
 			psBinding->pcParameter = pcValue->mpcSymbol;
-			if (!pcArgument && palliDeduced && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
+			if (pcValue->mpcDeclarator && pcValue->mpcDeclarator->mbPack)
+			{
+				bResult = BindValuePack(psBinding, &asArguments, i, pszArguments);
+				break;
+			}
+			if (psArgument)
+			{
+				bResult = ExpandedArgumentValue(psArgument, &psBinding->lliValue);
+			}
+			else if (palliDeduced && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
 			{
 				psBinding->lliValue = palliDeduced->GetValue(i);
 			}
-			else if (!pcArgument && !pcValue->mpcDefault)
+			else if (!pcValue->mpcDefault)
 			{
 				bResult = Error(pcNode, "The template argument must be a constant");
-				break;
 			}
-			else if (!Constant(pcArgument ? pcArgument : pcValue->mpcDefault, &psBinding->lliValue))
+			else if (!Constant(pcValue->mpcDefault, &psBinding->lliValue))
 			{
-				bResult = ConstantError(pcArgument ? pcArgument : pcNode, "The template argument must be a constant");
+				bResult = ConstantError(pcNode, "The template argument must be a constant");
+			}
+			if (!bResult)
+			{
 				break;
 			}
 			pszArguments->Append("_L");
-			pszArguments->Append((psBinding->lliValue < 0) ? "n" : "");
-			pszArguments->Append((psBinding->lliValue < 0) ? -psBinding->lliValue : psBinding->lliValue);
+			AppendMangledValue(pszArguments, psBinding->lliValue);
 		}
 		else
 		{
 			bResult = Error(pcParameter, "This template parameter is not supported by the compiler yet");
-			break;
 		}
 	}
+	asArguments.Kill();
 	return bResult ? pcBindings : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A type parameter pack takes the expanded arguments from uiFirst on, all
+// types, or if there are none the deduced types from there.  Mangled as
+// _J, its types, E.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CArrayCPP65Types* papsDeduced, CChars* pszArguments)
+{
+	SCPP65Type*	psType;
+	size		j;
+
+	psBinding->papsPack = NewPack();
+	for (j = uiFirst; j < pasArguments->NumElements(); j++)
+	{
+		psType = ExpandedArgumentType(pasArguments->Get(j));
+		if (!psType)
+		{
+			return Error(pasArguments->Get(j)->pcArgument, "The template argument is not a type the compiler supports");
+		}
+		psBinding->papsPack->Add(psType);
+	}
+	for (j = uiFirst; (uiFirst >= pasArguments->NumElements()) && papsDeduced && (j < papsDeduced->NumElements()); j++)
+	{
+		if (papsDeduced->GetPtr(j))
+		{
+			psBinding->papsPack->Add(papsDeduced->GetPtr(j));
+		}
+	}
+	pszArguments->Append("_J");
+	for (j = 0; j < psBinding->papsPack->NumElements(); j++)
+	{
+		mcMangler.AppendType(pszArguments, psBinding->papsPack->GetPtr(j));
+	}
+	pszArguments->Append('E');
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A non-type parameter pack takes the expanded arguments from uiFirst on,
+// all constants.  Mangled as _J, L value E for each, E.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::BindValuePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CChars* pszArguments)
+{
+	int64	lliValue;
+	size	j;
+
+	psBinding->palliPack = NewValuePack();
+	pszArguments->Append("_J");
+	for (j = uiFirst; j < pasArguments->NumElements(); j++)
+	{
+		if (!ExpandedArgumentValue(pasArguments->Get(j), &lliValue))
+		{
+			return false;
+		}
+		psBinding->palliPack->Add(lliValue);
+		pszArguments->Append('L');
+		AppendMangledValue(pszArguments, lliValue);
+		pszArguments->Append('E');
+	}
+	pszArguments->Append('E');
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A template argument's value as it is mangled: n before a negative one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendMangledValue(CChars* pszArguments, int64 lliValue)
+{
+	pszArguments->Append((lliValue < 0) ? "n" : "");
+	pszArguments->Append((lliValue < 0) ? -lliValue : lliValue);
 }
 
 
@@ -806,31 +933,6 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 SCPPBinding* CCPPUnit::FindBinding(CCPPSymbol* pcParameter)
 {
 	return mcContext.GetBindings() ? mcContext.GetBindings()->Find(pcParameter) : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The binding of the template parameter pack a function parameter pack (Args ...
-// args) is declared with, or NULL if the parameter is not a pack.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPPBinding* CCPPUnit::PackBinding(CCPPSyntaxParameter* pcParameter)
-{
-	CCPPSyntaxTypeSpecifier*	pcType;
-	SCPPBinding*				psBinding;
-
-	if (!pcParameter->mpcDeclarator || !pcParameter->mpcDeclarator->mbPack || !pcParameter->mpcSpecifiers)
-	{
-		return NULL;
-	}
-	pcType = pcParameter->mpcSpecifiers->mpcType;
-	if (!pcType || (pcType->GetKind() != CPPS_NamedTypeSpecifier))
-	{
-		return NULL;
-	}
-	psBinding = FindBinding(((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol);
-	return (psBinding && psBinding->papsPack) ? psBinding : NULL;
 }
 
 
@@ -903,7 +1005,7 @@ CCPPClass* CCPPUnit::InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTemplateArgum
 		pcClass = NewClass(pcTemplate->mpcSymbol, pcTemplate->mpcSymbol->mlliName);
 	}
 	pcClass->mpcTemplate = pcTemplate;
-	pcClass->mpcSpecifier = (CCPPSyntaxClassSpecifier*)pcTemplate->mpcDefinition;
+	pcClass->mpcSpecifier = pcTemplate->IsDeclaredClass() ? NULL : (CCPPSyntaxClassSpecifier*)pcTemplate->mpcDefinition;
 	pcClass->mpcBindings = pcBindings;
 	pcBindings->mpcClass = pcClass;
 	pcClass->mszArguments.Append(pszArguments);
@@ -983,6 +1085,10 @@ CCPPTemplateArguments* CCPPUnit::BindAsItself(CCPPSyntaxTemplateDeclaration* pcD
 		}
 		else if (pcParameter->GetKind() == CPPS_Parameter)
 		{
+			if (((CCPPSyntaxParameter*)pcParameter)->mpcDeclarator && ((CCPPSyntaxParameter*)pcParameter)->mpcDeclarator->mbPack)
+			{
+				break;
+			}
 			apsTypes.Add(&mcTypes.msInt);
 			alliValues.Add(1);
 		}
@@ -1186,22 +1292,6 @@ CCPPTemplateArguments* CCPPUnit::NewBindings(void)
 	pcBindings->Init();
 	mapcAllBindings.Add(pcBindings);
 	return pcBindings;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A new empty list of a pack's types, kept until the generator is killed.
-//
-//////////////////////////////////////////////////////////////////////////
-CArrayCPP65Types* CCPPUnit::NewPack(void)
-{
-	CArrayCPP65Types*	papsPack;
-
-	papsPack = NewMalloc<CArrayCPP65Types>();
-	papsPack->Init();
-	mapapsPacks.Add(papsPack);
-	return papsPack;
 }
 
 

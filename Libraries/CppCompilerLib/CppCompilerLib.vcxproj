@@ -292,6 +292,7 @@
     <ClCompile Include="CPPUnitObjects.cpp" />
     <ClCompile Include="CPPUnitRangeFor.cpp" />
     <ClCompile Include="CPPUnitLambdas.cpp" />
+    <ClCompile Include="CPPUnitPacks.cpp" />
     <ClCompile Include="CPPUnitCheck.cpp" />
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPClass.cpp" />

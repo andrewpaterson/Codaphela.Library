@@ -1146,6 +1146,7 @@ CCPPSyntaxExpression* CCPPParser::ParseSizeofExpression(CCPPSyntax* pcParent)
 		}
 		pcSizeof->miPack = CurrentToken();
 		pcSymbol = mpcScope->Find(GetIdentifier());
+		pcSizeof->mpcPackSymbol = pcSymbol;
 		Resolve(CurrentToken(), pcSymbol, pcSymbol ? CPPTR_Reference : CPPTR_Unresolved);
 		Next();
 		if (!Expect(CT_CloseRoundBracket))

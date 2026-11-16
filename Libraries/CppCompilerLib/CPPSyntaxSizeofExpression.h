@@ -32,6 +32,7 @@ public:
 	ECppTokens				meKeyword;
 	bool					mbPack;
 	int32					miPack;
+	CCPPSymbol*				mpcPackSymbol;	//sizeof...'s pack.
 	CCPPSyntaxTypeId*		mpcType;
 	CCPPSyntaxExpression*	mpcOperand;
 

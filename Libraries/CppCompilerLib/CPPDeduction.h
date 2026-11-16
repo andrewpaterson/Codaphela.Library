@@ -86,6 +86,10 @@ public:
 protected:
 	bool					MatchPattern(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments);
 	bool					MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding* psArgument);
+	void					FlattenArguments(CCPPTemplateArguments* pcArguments, CArrayCPPBindings* pasArguments);
+	bool					IsPackExpansion(CCPPSyntax* pcPattern);
+	SCPPBinding*			ExpandedParameter(CCPPSyntax* pcPattern);
+	bool					MatchPack(SCPPBinding* psPack, CArrayCPPBindings* pasArguments, size uiFirst);
 };
 
 

@@ -298,13 +298,20 @@ bool CCPPTypeWriter::ClassName(CCPPClass* pcClass, CChars* pszDest)
 	for (i = 0; i < pcBindings->macBindings.NumElements(); i++)
 	{
 		psBinding = pcBindings->macBindings.Get(i);
-		if (psBinding->papsPack)
+		if (psBinding->IsPack())
 		{
-			for (j = 0; j < psBinding->papsPack->NumElements(); j++)
+			for (j = 0; j < psBinding->PackSize(); j++)
 			{
 				pszDest->Append(bFirst ? "" : ", ");
 				bFirst = false;
-				bResult &= AppendDeclaration(psBinding->papsPack->GetPtr(j), NULL, pszDest);
+				if (psBinding->papsPack)
+				{
+					bResult &= AppendDeclaration(psBinding->papsPack->GetPtr(j), NULL, pszDest);
+				}
+				else
+				{
+					pszDest->Append(psBinding->palliPack->GetValue(j));
+				}
 			}
 			continue;
 		}

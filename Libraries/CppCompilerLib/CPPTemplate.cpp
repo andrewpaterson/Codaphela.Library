@@ -159,3 +159,26 @@ void CCPPTemplate::Kill(void)
 	mszArguments.Kill();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What kind of template it is, by its definition: CPPS_ClassSpecifier for
+// a class template, defined or only declared, CPPS_FunctionDefinition for
+// a function template.
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPSyntax CCPPTemplate::DefinitionKind(void)
+{
+	return IsDeclaredClass() ? CPPS_ClassSpecifier : mpcDefinition->GetKind();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if it is a class template declared but not (yet) defined.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTemplate::IsDeclaredClass(void)
+{
+	return mpcDefinition && (mpcDefinition->GetKind() == CPPS_ElaboratedTypeSpecifier);
+}

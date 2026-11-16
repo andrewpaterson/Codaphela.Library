@@ -520,7 +520,7 @@ void CCPPUnit::CheckTemplatesAsThemselves(void)
 			continue;
 		}
 		pcTemplate->mbAsItself = true;
-		if (!pcTemplate->mpcDeclaration || (pcTemplate->mpcDeclaration->macpParameters.NumElements() == 0) || (pcTemplate->mpcPrimary != pcTemplate))
+		if (!pcTemplate->mpcDeclaration || (pcTemplate->mpcDeclaration->macpParameters.NumElements() == 0) || (pcTemplate->mpcPrimary != pcTemplate) || pcTemplate->IsDeclaredClass())
 		{
 			continue;
 		}
