@@ -42,7 +42,7 @@ public:
 	void				RemapWeak(size uiSlot, CEmbeddedObject* pcObject) override;
 	CEmbeddedObject*	GetWeak(size uiSlot) override;
 
-	void				PointTo(CEmbeddedObject* pcObject);  //Off its old object's weak froms, onto the new one's.
+	void				PointTo(CEmbeddedObject* pcObject);  //Off its old object's weak froms, onto the new one's (NULL for an object being freed).
 	void				Release(void);  //Off its object's weak froms, and NULL: its holder is being freed.
 	CEmbeddedObject*	Object(void);
 	bool				IsNull(void);

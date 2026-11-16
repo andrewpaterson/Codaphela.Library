@@ -48,7 +48,7 @@ public:
 	void				RemapWeak(size uiSlot, CEmbeddedObject* pcObject) override;
 	CEmbeddedObject*	GetWeak(size uiSlot) override;
 
-	size		Add(CEmbeddedObject* pcObject);  //Its index.  NULL isn't added.
+	size		Add(CEmbeddedObject* pcObject);  //Its index.  NULL, or an object being freed, isn't added.
 	size		Add(CPointer& pObject);
 	bool		Remove(CEmbeddedObject* pcObject);  //Its first entry.
 	void		RemoveAt(size uiIndex);

@@ -23,6 +23,7 @@ public:
 	CPointer	mpStrong;
 	Weak<>		mwWeak;
 	bool*		mpbWeakNullWhenFreed;
+	bool		mbPointStrongsWeakAtThisWhenFreed;
 
 	void	Init(bool* pbWeakNullWhenFreed = NULL);
 	void	Class(void) override;
@@ -83,6 +84,7 @@ void CTestWeakHolder::Init(bool* pbWeakNullWhenFreed)
 {
 	PreInit();
 	mpbWeakNullWhenFreed = pbWeakNullWhenFreed;
+	mbPointStrongsWeakAtThisWhenFreed = false;
 	PostInit();
 }
 
@@ -107,6 +109,10 @@ void CTestWeakHolder::Free(void)
 	if (mpbWeakNullWhenFreed)
 	{
 		*mpbWeakNullWhenFreed = mwWeak.IsNull();
+	}
+	if (mbPointStrongsWeakAtThisWhenFreed)
+	{
+		((CTestWeakHolder*)mpStrong.Object())->mwWeak = this;
 	}
 }
 
@@ -396,6 +402,35 @@ void TestWeakPointerHollow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A Free() pointing a weak reference at its dying object (itself) leaves
+// it NULL: the object's weak references were NULLed before Free ran.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestWeakPointerToObjectBeingFreed(void)
+{
+	Ptr<CTestWeakHolder>	pKept;
+	Ptr<CTestWeakHolder>	pDying;
+
+	ObjectsInit();
+	pKept = OMalloc<CTestWeakHolder>();
+	ORoot()->Add(pKept);
+	pDying = OMalloc<CTestWeakHolder>();
+	pDying->mpStrong = pKept;
+	pDying->mbPointStrongsWeakAtThisWhenFreed = true;
+
+	pDying = NULL;
+	AssertTrue(pKept->mwWeak.IsNull());
+	AssertSize(0, gcObjects.GetWeakFroms()->NumObjects());
+
+	ORoot()->Remove(pKept);
+	pKept = NULL;
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A weak array keeps nothing: an object freed leaves its entry NULL (the
 // array keeps its size), Compact takes the NULLs out; Remove moves the
 // last entry into the gap, its weak from with it, so freeing that object
@@ -481,6 +516,7 @@ void TestWeakPointer(void)
 	TestWeakPointerObjectsKill();
 	TestWeakPointerEmbedded();
 	TestWeakPointerHollow();
+	TestWeakPointerToObjectBeingFreed();
 	TestWeakPointerArray();
 
 	DataIOKill();

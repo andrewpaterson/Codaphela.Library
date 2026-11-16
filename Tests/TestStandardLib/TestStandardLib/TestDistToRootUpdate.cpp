@@ -10,6 +10,8 @@
 #include "StandardLib/IndexObject.h"
 #include "StandardLib/MapObject.h"
 #include "StandardLib/Array.h"
+#include "StandardLib/ArrayWeakObject.h"
+#include "StandardLib/WeakPointer.h"
 #include "TestLib/Assert.h"
 #include "ObjectTestClasses.h"
 
@@ -76,6 +78,23 @@ public:
 
 	void Init(void) { PreInit(); mcInner.Init(); PostInit(); }
 	void Class(void) override { M_Embedded(mcInner); M_Pointer(mpObject); }
+	void Free(void) override {}
+	bool Save(CObjectWriter* pcFile) override { return false; }
+	bool Load(CObjectReader* pcFile) override { return false; }
+};
+
+
+//Holds objects only weakly, in an array and a field: nothing it holds is kept by it (WeakReferencesPlan.txt).
+class CDistToRootWeakHolder : public CObject
+{
+CONSTRUCTABLE(CDistToRootWeakHolder);
+DESTRUCTABLE(CDistToRootWeakHolder);
+public:
+	CArrayWeakObject	maWeak;
+	Weak<CTestObject>	mwOne;
+
+	void Init(void) { PreInit(); maWeak.Init(); PostInit(); }
+	void Class(void) override { M_Embedded(maWeak); W_Pointer(mwOne); }
 	void Free(void) override {}
 	bool Save(CObjectWriter* pcFile) override { return false; }
 	bool Load(CObjectReader* pcFile) override { return false; }
@@ -873,13 +892,19 @@ M* RandomElement(CRandom* pcRandom, CArrayTemplatePtr<M>* papc)
 //
 // Random changes where nothing is held on the stack between steps, so
 // every object cut off from the root is freed.  The graph runs through
-// arrays, a set, an index and a map as well as object pointers.
+// arrays, a set, an index and a map as well as object pointers.  A holder
+// on the root holds objects weakly too (from a second random run, so the
+// changes are as they were): were a weak reference to keep anything, it
+// would be counted unattached.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDistToRootUpdateRandomFreeing(uint32 uiSeed, size uiSteps)
 {
 	CRandom							cRandom;
+	CRandom							cWeakRandom;
 	SDistToRootLiveObjects			sLive;
+	CDistToRootWeakHolder*			pcWeak;
+	size							uiWeakAdded;
 	size							uiStep;
 	int								iOperation;
 	size							uiWrong;
@@ -891,7 +916,15 @@ void TestDistToRootUpdateRandomFreeing(uint32 uiSeed, size uiSteps)
 
 	ObjectsInit();
 	cRandom.Init(uiSeed);
+	cWeakRandom.Init(uiSeed + 1000);
+	uiWeakAdded = 0;
 	{
+		{
+			Ptr<CDistToRootWeakHolder>	pWeak = OMalloc<CDistToRootWeakHolder>();
+
+			ORoot()->Add(pWeak);
+			pcWeak = &pWeak;
+		}
 		{
 			Ptr<CArrayObject>	pArray1 = OMalloc<CArrayObject>();
 			Ptr<CArrayObject>	pArray2 = OMalloc<CArrayObject>();
@@ -913,6 +946,25 @@ void TestDistToRootUpdateRandomFreeing(uint32 uiSeed, size uiSteps)
 			pcB = RandomElement(&cRandom, &sLive.apcObjects);
 			pcCollection = RandomElement(&cRandom, &sLive.apcCollections);
 			sprintf(szKey, "k%i", cRandom.Next(0, 9));
+
+			//Weak references to live objects (before the change, which may free them), and the NULLs of freed ones taken out now and then.
+			if (sLive.apcObjects.NumElements() > 0)
+			{
+				switch (cWeakRandom.Next(0, 3))
+				{
+				case 0:
+					pcWeak->maWeak.Add(RandomElement(&cWeakRandom, &sLive.apcObjects));
+					uiWeakAdded++;
+					break;
+				case 1:
+					pcWeak->mwOne = RandomElement(&cWeakRandom, &sLive.apcObjects);
+					uiWeakAdded++;
+					break;
+				case 2:
+					pcWeak->maWeak.Compact();
+					break;
+				}
+			}
 
 			iOperation = cRandom.Next(0, 14);
 			if ((pcA == NULL) || ((iOperation == 0) && (sLive.apcObjects.NumElements() < DIST_TO_ROOT_FREEING_MAX)))
@@ -1064,11 +1116,14 @@ void TestDistToRootUpdateRandomFreeing(uint32 uiSeed, size uiSteps)
 		AssertSize(0, uiWrong);
 		AssertSize(0, uiUnattached);
 		gcObjects.ValidateObjectsConsistency();
+		AssertTrue(uiWeakAdded > 0);
 
 		ORoot()->RemoveAll();
+		AssertSize(0, gcObjects.GetWeakFroms()->NumObjects());
 		AssertDistToRoot();
 		AssertLong(2, gcObjects.NumMemoryIndexes());
 	}
+	cWeakRandom.Kill();
 	cRandom.Kill();
 	ObjectsFlush();
 	ObjectsKill();

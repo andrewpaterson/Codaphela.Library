@@ -60,6 +60,11 @@ void CWeakPointer::RemapWeak(size uiSlot, CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CWeakPointer::PointTo(CEmbeddedObject* pcObject)
 {
+	//An object being freed has had its weak references NULLed already (a Free() reaching it for one), so one to it is NULL.
+	if (pcObject && pcObject->IsBeingFreed())
+	{
+		pcObject = NULL;
+	}
 	if (mpcObject == pcObject)
 	{
 		return;

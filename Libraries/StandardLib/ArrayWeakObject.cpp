@@ -115,7 +115,8 @@ size CArrayWeakObject::Add(CEmbeddedObject* pcObject)
 {
 	size	uiIndex;
 
-	if (pcObject == NULL)
+	//An object being freed has had its weak references NULLed already (a Free() reaching it for one).
+	if ((pcObject == NULL) || pcObject->IsBeingFreed())
 	{
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
