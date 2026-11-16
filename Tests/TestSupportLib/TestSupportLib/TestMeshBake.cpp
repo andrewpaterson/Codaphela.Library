@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/FileBasic.h"
@@ -431,10 +432,184 @@ void TestMeshBakeModifier(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A mid grey whose height rises mfSlope for each unit along x, and which
+// glows mfGlow.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestSolidRise : public CSolidTexture
+{
+CONSTRUCTABLE(CTestSolidRise);
+DESTRUCTABLE(CTestSolidRise);
+public:
+	float32	mfSlope;
+	float32	mfGlow;
+
+	void Init(float32 fSlope, float32 fGlow)
+	{
+		PreInit();
+		CSolidTexture::Init();
+		mfSlope = fSlope;
+		mfGlow = fGlow;
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+		CSolidTexture::Class();
+		U_Float32(mfSlope);
+		U_Float32(mfGlow);
+	}
+
+protected:
+	void TextureSample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample) override
+	{
+		psSample->InitValue(0.5f);
+		psSample->fHeight = mfSlope * psPosition->x;
+		psSample->fGlow = mfGlow;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The red of the texel at (9, 6) of the square baked 16 by 16 with a
+// height rising fSlope along x.
+//
+//////////////////////////////////////////////////////////////////////////
+static int TestBakeRelief(CMesh* pcMesh, float32 fSlope, float32 fGlow, float32 fRelief)
+{
+	SMeshBakeSettings	sSettings;
+
+	sSettings.Init();
+	sSettings.fRelief = fRelief;
+	sSettings.sLight.Init(-0.6f, 0.0f, 0.8f);
+	return Get8BitRedColour(TestBakeTexel(&BakeMeshTexture(pcMesh, 0, &OMalloc<CTestSolidRise>(fSlope, fGlow), 16, 16, NULL, &sSettings), 9, 6));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The square faces up, and the light is at (-0.6, 0, 0.8): 0.8 of it falls
+// on the smooth square.  A height rising 0.75 a unit along x tilts the
+// normal to (-0.6, 0, 0.8), square on to the light (1.0 of it), so the
+// grey is 1.2 times as bright; falling 0.75 it's tilted to (0.6, 0, 0.8)
+// (0.28 of the light), 0.48 times as bright.  A flat height, or no relief,
+// leaves the grey alone; half the relief is half the change; a texel that
+// glows is changed that much less.  A texture placed twice the size is
+// raised twice as far over twice the distance, and looks the same.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshBakeRelief(void)
+{
+	Ptr<CTestSolidRise>	pRise;
+	Ptr<CImage>			pImage;
+	CMesh				cMesh;
+	SMeshBakeSettings	sSettings;
+	SFloat32Vec3		sOrigin;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+
+	TestBakeSquare(&cMesh);
+	AssertInt(128, TestBakeRelief(&cMesh, 0.0f, 0.0f, 1.0f));
+	AssertInt(153, TestBakeRelief(&cMesh, 0.75f, 0.0f, 1.0f));
+	AssertInt(61, TestBakeRelief(&cMesh, -0.75f, 0.0f, 1.0f));
+	AssertInt(128, TestBakeRelief(&cMesh, 0.75f, 0.0f, 0.0f));
+	AssertInt(140, TestBakeRelief(&cMesh, 0.75f, 0.0f, 0.5f));
+	AssertInt(128, TestBakeRelief(&cMesh, -0.75f, 1.0f, 1.0f));
+	AssertInt(94, TestBakeRelief(&cMesh, -0.75f, 0.5f, 1.0f));
+
+	sSettings.Init();
+	AssertFloat(0.0f, sSettings.fRelief, 6);
+	sSettings.fRelief = 1.0f;
+	sSettings.sLight.Init(-0.6f, 0.0f, 0.8f);
+	pRise = OMalloc<CTestSolidRise>(0.75f, 0.0f);
+	sOrigin.Init(0, 0, 0);
+	sX.Init(1, 0, 0);
+	sY.Init(0, 1, 0);
+	pRise->Place(&sOrigin, &sX, &sY, 2.0f);
+	pImage = BakeMeshTexture(&cMesh, 0, &pRise, 16, 16, NULL, &sSettings);
+	AssertInt(153, Get8BitRedColour(TestBakeTexel(&pImage, 9, 6)));
+	AssertInt(153, Get8BitRedColour(TestBakeTexel(&pImage, 5, 10)));
+
+	//Turned a quarter about z, the height rises along the world's y, across the light: the normal is tilted to (0, -0.6, 0.8),
+	//neither towards the light nor from it but less up, 0.64 of the light, so the grey is 0.84 times as bright.
+	sX.Init(0, 1, 0);
+	sY.Init(-1, 0, 0);
+	pRise->Place(&sOrigin, &sX, &sY, 1.0f);
+	pImage = BakeMeshTexture(&cMesh, 0, &pRise, 16, 16, NULL, &sSettings);
+	AssertInt(107, Get8BitRedColour(TestBakeTexel(&pImage, 9, 6)));
+	cMesh.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertBakeNormal(int iX, int iY, int iZ, ARGB32 uiTexel)
+{
+	AssertTrue(abs(iX - (int)Get8BitRedColour(uiTexel)) <= 1);
+	AssertTrue(abs(iY - (int)Get8BitGreenColour(uiTexel)) <= 1);
+	AssertTrue(abs(iZ - (int)Get8BitBlueColour(uiTexel)) <= 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The normals baked beside the colours: each of x, y and z from -1 at 0 to
+// 1 at 255, in the mesh's space.  A flat height's are the square's own, up:
+// (128, 128, 255).  Rising 0.75 along x they're (-0.6, 0, 0.8): (51, 128,
+// 230); rising along y, (128, 51, 230).  A texel off the square has its
+// nearest's.  The colours are as they'd be without the normals.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshBakeNormals(void)
+{
+	Ptr<CTestSolidRise>	pRise;
+	Ptr<CImage>			pImage;
+	Ptr<CImage>			pNormals;
+	CMesh				cMesh;
+	SMeshBakeSettings	sSettings;
+	SFloat32Vec3		sOrigin;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+
+	TestBakeSquare(&cMesh);
+	sSettings.Init();
+
+	pImage = BakeMeshTexture(&cMesh, 0, &OMalloc<CTestSolidRise>(0.0f, 0.0f), 16, 16, NULL, &sSettings, pNormals);
+	AssertNotNull(&pNormals);
+	AssertInt(16, (int)pNormals->GetWidth());
+	AssertInt(16, (int)pNormals->GetHeight());
+	AssertBakeNormal(128, 128, 255, TestBakeTexel(&pNormals, 9, 6));
+	AssertBakeNormal(128, 128, 255, TestBakeTexel(&pNormals, 0, 0));
+	AssertInt(128, Get8BitRedColour(TestBakeTexel(&pImage, 9, 6)));
+
+	pRise = OMalloc<CTestSolidRise>(0.75f, 0.0f);
+	pImage = BakeMeshTexture(&cMesh, 0, &pRise, 16, 16, NULL, &sSettings, pNormals);
+	AssertBakeNormal(51, 128, 230, TestBakeTexel(&pNormals, 9, 6));
+	AssertBakeNormal(51, 128, 230, TestBakeTexel(&pNormals, 5, 10));
+	AssertBakeNormal(51, 128, 230, TestBakeTexel(&pNormals, 15, 15));
+	AssertInt(128, Get8BitRedColour(TestBakeTexel(&pImage, 9, 6)));
+
+	sOrigin.Init(0, 0, 0);
+	sX.Init(0, 1, 0);
+	sY.Init(-1, 0, 0);
+	pRise->Place(&sOrigin, &sX, &sY, 1.0f);
+	BakeMeshTexture(&cMesh, 0, &pRise, 16, 16, NULL, &sSettings, pNormals);
+	AssertBakeNormal(128, 51, 230, TestBakeTexel(&pNormals, 9, 6));
+
+	AssertNull(&BakeMeshTexture(&cMesh, 1, &pRise, 16, 16, NULL, &sSettings, pNormals));
+	cMesh.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A box baked with a texture that doesn't average itself: level 0 is one
 // sample a texel, level 1 two each way, level 2 four, and so are the
 // levels after, as four is the most.  With the most at one, every level
-// is one sample.
+// is one sample.  (Without relief, which takes two each way at least.)
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshBakeModifierSamples(void)
@@ -467,6 +642,7 @@ void TestMeshBakeModifierSamples(void)
 		pBake = pEditor->AddModifier<CMeshBake>(pStep);
 		AssertInt(MESH_BAKE_SAMPLES, pBake->miSamples);
 		pBake->miSamples = iMost;
+		pBake->mfRelief = 0.0f;
 		pMesh = pEditor->GetOutput();
 		pcDiffuse = pMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse);
 		AssertTrue(pcDiffuse->mapLevels.NumElements() >= 4);
@@ -490,6 +666,53 @@ void TestMeshBakeModifierSamples(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A bake starts with full relief from a unit light and no normals.  Asked
+// for them, the material's bump image is the normals at the layout's
+// size, with as many levels as the colours have.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshBakeModifierNormals(void)
+{
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMeshBake>		pBake;
+	Ptr<CMesh>			pMesh;
+	Ptr<CMaterial>		pMaterial;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sZ;
+	SFloat32Vec3		sStart;
+
+	sX.Init(2, 0, 0);
+	sY.Init(0, 1, 0);
+	sZ.Init(0, 0, 0.5f);
+	sStart.Init(-1, -0.5f, -0.25f);
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 1, 1, 1);
+	pEditor->AddModifier<CMeshUnwrap>(32.0f);
+	pBake = pEditor->AddModifier<CMeshBake>(OMalloc<CTestSolidRise>(0.75f, 0.0f));
+	AssertFloat(1.0f, pBake->mfRelief, 6);
+	AssertFloat(1.0f, pBake->msLight.Magnitude(), 5);
+	AssertFalse(pBake->mbNormals);
+
+	pMaterial = pEditor->GetOutput()->mcMaterials.mapMaterials.Get(0);
+	AssertNull(&pMaterial->GetImage(MI_Bump)->mpImage);
+	AssertNull(&pBake->mpNormals);
+
+	pBake->mbNormals = true;
+	pEditor->mcModifiers.Touch();
+	pMesh = pEditor->GetOutput();
+	pMaterial = pMesh->mcMaterials.mapMaterials.Get(0);
+	AssertNotNull(&pMaterial->GetImage(MI_Bump)->mpImage);
+	AssertTrue(&pMaterial->GetImage(MI_Bump)->mpImage == &pBake->mpNormals);
+	AssertInt((int)pBake->mpImage->GetWidth(), (int)pBake->mpNormals->GetWidth());
+	AssertInt((int)pBake->mpImage->GetHeight(), (int)pBake->mpNormals->GetHeight());
+	AssertSize(pMaterial->GetImage(MI_Diffuse)->mapLevels.NumElements(), pMaterial->GetImage(MI_Bump)->mapLevels.NumElements());
+	AssertTrue(pMaterial->GetImage(MI_Bump)->mapLevels.NumElements() > 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshBake(void)
@@ -502,9 +725,12 @@ void TestMeshBake(void)
 	TestMeshBakeSample();
 	TestMeshBakeSquare();
 	TestMeshBakeSamples();
+	TestMeshBakeRelief();
+	TestMeshBakeNormals();
 	ObjectsFlush();
 	TestMeshBakeModifier();
 	TestMeshBakeModifierSamples();
+	TestMeshBakeModifierNormals();
 	ObjectsDiscard();
 	ObjectsKill(false);
 	DataIOKill();

@@ -31,13 +31,27 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //The most samples each way in a texel a CMeshBake takes.
 #define MESH_BAKE_SAMPLES	4
 
+//Where a CMeshBake's relief is lit from, in the mesh's space: above, to the left and in front, z being up.
+#define MESH_BAKE_LIGHT_X	(-0.5f)
+#define MESH_BAKE_LIGHT_Y	(-0.6f)
+#define MESH_BAKE_LIGHT_Z	(0.62f)
+
 
 //How a bake makes a texel of a texture.
+//
+//Height (TexturePlan.txt, Height): where the texture's height rises across a texel the surface is tilted, as if it were
+//raised that far (Blinn's bump mapping).  The slope is found from the texel's own samples (so there are at least two each
+//way when it's wanted), never from its neighbours in the image, so it's right across seams.  fRelief shades the colour by
+//it: by how much more or less of the light at sLight the tilted surface faces than the smooth one does, times fRelief,
+//which is what the bumps would look like lit from there, left in the colour as a renderer lights the smooth surface.  A
+//texel that glows is shaded that much less.
 struct SMeshBakeSettings
 {
-	int		iSamples;  //Each way across the texel, spread evenly: the texel is their mean.
+	int				iSamples;  //Each way across the texel, spread evenly: the texel is their mean.
+	float32			fRelief;  //How strongly the texture's height shades its colour; 0 for not at all, 1 as the light would.
+	SFloat32Vec3	sLight;  //A unit, towards the light the relief is lit by, in the mesh's space.
 
-	void	Init(void);  //One sample, at the texel's centre.
+	void	Init(void);  //One sample, at the texel's centre; no relief.
 };
 
 
@@ -49,7 +63,12 @@ struct SMeshBakeSettings
 //for each face) each face's texels are its tint times the texture.  An 8 bit red, green, blue image; NULL if the mesh hasn't
 //the layer.  A mip level is the same at half the size, as finer levels are never shrunk.  Without psSettings a texel is one
 //sample.
+//
+//With pNormals it also gives the surface's normal at each texel, tilted by the texture's height: an 8 bit image of x, y and
+//z in the mesh's space, each from -1 at 0 to 1 at 255.  Every texel is its own, so the normals need no tangents and meet
+//across seams.
 Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight, ARGB32* pauiTints = NULL, SMeshBakeSettings* psSettings = NULL);
+Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture, int iWidth, int iHeight, ARGB32* pauiTints, SMeshBakeSettings* psSettings, Ptr<CImage>& pNormals);
 
 
 //Bakes mpTexture onto the mesh through UV layer 0 at the layer's layout size (as CMeshUnwrap makes it), every mip level, and
@@ -60,6 +79,11 @@ Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 //doesn't, and coarse levels of such a texture are wrong (a marble's veins fade and the whole lightens, TexturePlan.txt,
 //Filtering).  So each level after has twice the samples each way, up to miSamples: with 4, about two and a half times the
 //work of one sample everywhere, for coarse levels 4 to 10 times nearer the truth.
+//
+//The texture's height shades its colour (mfRelief, lit from msLight; SMeshBakeSettings says how), which takes two samples
+//each way at level 0 too; with no relief, or a texture with no height, the colour is the texture's own.  With mbNormals the
+//tilted normals are baked as well, the material's bump image and its levels (mpNormals the last level 0): neither renderer
+//reads them yet.
 class CMeshBake : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshBake);
@@ -67,7 +91,11 @@ DESTRUCTABLE(CMeshBake);
 public:
 	Ptr<CSolidTexture>	mpTexture;
 	Ptr<CImage>			mpImage;
+	Ptr<CImage>			mpNormals;
 	int					miSamples;  //The most each way in a texel.
+	float32				mfRelief;
+	SFloat32Vec3		msLight;  //A unit.
+	bool				mbNormals;
 
 	void		Init(Ptr<CSolidTexture> pTexture);
 	void		Class(void) override;

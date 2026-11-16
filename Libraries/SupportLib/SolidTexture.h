@@ -65,8 +65,9 @@ struct SSolidSample
 //
 //Its placement is where it sits in the world: its origin, its axes (units at right angles, right handed) and how many world
 //units one of its own is.  A point's sample is the texture's own (TextureSample) at ((point - origin) . axis) / scale for each
-//axis, its normal turned the same way and the width divided by the scale.  It starts at the world's origin, along the world's
-//axes, at scale 1.
+//axis (ToOwn), its normal turned the same way and the width divided by the scale; the sample's height, which the texture gives
+//in its own units, is multiplied by the scale, so a texture placed half the size is raised half as far and slopes as it did.
+//It starts at the world's origin, along the world's axes, at scale 1.
 class CSolidTexture : public CObject
 {
 CONSTRUCTABLE(CSolidTexture);
@@ -81,6 +82,8 @@ public:
 	void			Free(void) override;
 
 	void			Place(SFloat32Vec3* psOrigin, SFloat32Vec3* psXAxis, SFloat32Vec3* psYAxis, float32 fScale);  //Z is X cross Y; Y is made at right angles to X, both units.
+	void			ToOwn(SFloat32Vec3* psOwnPosition, SFloat32Vec3* psOwnNormal, SFloat32Vec3* psPosition, SFloat32Vec3* psNormal);  //A point and a normal in the world, in its own space.
+	void			FromOwn(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, SFloat32Vec3* psOwnPosition, SFloat32Vec3* psOwnNormal);  //And back.
 	void			Sample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample);  //At a point in the world.
 	ARGB32			Colour(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth);  //Its sample's colour there.
 

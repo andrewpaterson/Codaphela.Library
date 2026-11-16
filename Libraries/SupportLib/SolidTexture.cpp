@@ -195,17 +195,47 @@ void CSolidTexture::Place(SFloat32Vec3* psOrigin, SFloat32Vec3* psXAxis, SFloat3
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSolidTexture::Sample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample)
+void CSolidTexture::ToOwn(SFloat32Vec3* psOwnPosition, SFloat32Vec3* psOwnNormal, SFloat32Vec3* psPosition, SFloat32Vec3* psNormal)
 {
 	SFloat32Vec3	sOffset;
-	SFloat32Vec3	sPosition;
 	SFloat32Vec3	sNormal;
 
 	sOffset = *psPosition - msOrigin;
-	sPosition.Init(Float32Vec3Dot(&sOffset, &masAxes[0]) / mfScale, Float32Vec3Dot(&sOffset, &masAxes[1]) / mfScale, Float32Vec3Dot(&sOffset, &masAxes[2]) / mfScale);
-	sNormal.Init(Float32Vec3Dot(psNormal, &masAxes[0]), Float32Vec3Dot(psNormal, &masAxes[1]), Float32Vec3Dot(psNormal, &masAxes[2]));
+	sNormal = *psNormal;
+	psOwnPosition->Init(Float32Vec3Dot(&sOffset, &masAxes[0]) / mfScale, Float32Vec3Dot(&sOffset, &masAxes[1]) / mfScale, Float32Vec3Dot(&sOffset, &masAxes[2]) / mfScale);
+	psOwnNormal->Init(Float32Vec3Dot(&sNormal, &masAxes[0]), Float32Vec3Dot(&sNormal, &masAxes[1]), Float32Vec3Dot(&sNormal, &masAxes[2]));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSolidTexture::FromOwn(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, SFloat32Vec3* psOwnPosition, SFloat32Vec3* psOwnNormal)
+{
+	SFloat32Vec3	sOwnPosition;
+	SFloat32Vec3	sOwnNormal;
+
+	sOwnPosition = *psOwnPosition * mfScale;
+	sOwnNormal = *psOwnNormal;
+	*psPosition = msOrigin + (masAxes[0] * sOwnPosition.x) + (masAxes[1] * sOwnPosition.y) + (masAxes[2] * sOwnPosition.z);
+	*psNormal = (masAxes[0] * sOwnNormal.x) + (masAxes[1] * sOwnNormal.y) + (masAxes[2] * sOwnNormal.z);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSolidTexture::Sample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample)
+{
+	SFloat32Vec3	sPosition;
+	SFloat32Vec3	sNormal;
+
+	ToOwn(&sPosition, &sNormal, psPosition, psNormal);
 	psSample->Init();
 	TextureSample(&sPosition, &sNormal, fWidth / mfScale, psSample);
+	psSample->fHeight *= mfScale;
 }
 
 

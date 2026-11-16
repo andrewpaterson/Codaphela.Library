@@ -3,7 +3,7 @@ Texture generator plan
 
 Making the solid textures a bake reads (SupportLib/UnwrapPlan.txt, Bake): noise, the operators that combine textures, and
 materials built from them.  It comes before the virtual texture (SupportLib/VirtualTexturePlan.txt), whose pages are baked from
-these and whose design needs to know what a texel holds and what one costs to make.  Steps 1 to 31 are built (see Steps).  What is decided
+these and whose design needs to know what a texel holds and what one costs to make.  Steps 1 to 34 are built (see Steps).  What is decided
 and what is only proposed is said at each point.
 
 
@@ -142,16 +142,15 @@ mask's edge, min and max all put back detail finer than the texel, and the mean 
                  each way at each level after, up to four.
 
 
-Height (proposed)
------------------
-The bake turns height into a normal: at each texel it samples the height at the point and at two more a texel's width along the
-surface, and tilts the surface's normal by the slope between them (Blinn's bump mapping, 1978).  No image neighbours are used,
-so seams don't show.
+Height (built: steps 32 to 34)
+------------------------------
+The bake turns height into a normal: it finds how the height rises across each texel from the samples it takes there, and
+tilts the surface's normal by that slope (Blinn's bump mapping, 1978).  No image neighbours are used, so seams don't show.
 
 What it's for, in order:
-  Baked shading.  The colour is lit by the tilted normal from a fixed direction and darkened in its hollows as it's baked
-  (.werkkzeug's bump operator).  It needs nothing of the renderers and is most of the look.  It's wrong when the light moves,
-  and it is what the virtual texture's baked lighting (its step 6) does properly.
+  Baked shading.  The colour is lit by the tilted normal from a fixed direction as it's baked (.werkkzeug's bump operator).
+  It needs nothing of the renderers and is most of the look.  It's wrong when the light moves, and it is what the virtual
+  texture's baked lighting (its step 6) does properly.
   A normal image.  The tilted normals baked to the material's bump slot, in the mesh's own space (every texel is unique, so no
   tangent frames are needed, and none meet at seams).  Used when a renderer lights each pixel; neither does yet.
 
@@ -267,10 +266,20 @@ Filtering and cost measured (TestSolidFiltering; TEXTURE_FILTER_REPORT in the en
     share of coarser levels (2.5 times) is 5 to 30 milliseconds on one thread: a page can be baked when it's first
     wanted if a frame needn't wait for it, which the virtual texture's baking in the background is for.
 
-Height
-32. The bake's tilted normal: the height sampled at the point and two beside it on the surface.
-33. Baked shading: the colour lit by the tilted normal; glowing texels not darkened.
-34. The normal image on the material's bump slot, in the mesh's own space.
+Height (in the bake: SupportLib's MeshBake)
+32. The bake's tilted normal.  Done.  The height's slope on a face comes from the texel's own samples (the best fit
+    through their heights, so two each way at least), not from points a texel away as first planned: the samples are
+    there already, and it's right across seams as that was.  The normal less the slope, made a unit, is the tilted
+    normal.  A texture's height is in its own units, so CSolidTexture::Sample multiplies it by the texture's scale: a
+    texture placed half the size is raised half as far and slopes as it did.
+33. Baked shading.  Done: SMeshBakeSettings' fRelief and sLight.  The colour is times 1 + fRelief times how much more of
+    the light the tilted normal faces than the smooth one (so a flat height, or none, changes nothing, and it's the
+    change a renderer's own lighting of the smooth surface lacks); a texel that glows is changed that much less.
+    CMeshBake's mfRelief is 1 and its light above, to the left and in front.  Not done: darkening in hollows, which
+    is step 38's.
+34. The normal image.  Done: BakeMeshTexture gives it with the colours (x, y and z as bytes, in the mesh's space), and
+    CMeshBake with mbNormals puts it and its levels in the material's bump image.  Off unless asked for, as neither
+    renderer reads it.
 
 Structured patterns
 35. CSolidBricks: a lattice of boxes with mortar, rows offset, each brick its own value.

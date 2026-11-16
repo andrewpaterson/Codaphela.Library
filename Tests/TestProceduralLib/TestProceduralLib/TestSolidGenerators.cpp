@@ -13,7 +13,8 @@
 //////////////////////////////////////////////////////////////////////////
 //
 // A texture that is only a value gives it as an opaque grey and as the
-// height, and nothing else.
+// height (in its own units, so times its scale in the world's), and
+// nothing else.
 //
 //////////////////////////////////////////////////////////////////////////
 static void AssertSolidValue(float32 fExpected, Ptr<CSolidTexture> pTexture, float32 x, float32 y, float32 z, float32 fWidth, int iDecimals)
@@ -29,7 +30,7 @@ static void AssertSolidValue(float32 fExpected, Ptr<CSolidTexture> pTexture, flo
 	AssertFloat(fExpected, sSample.sColour.y, iDecimals);
 	AssertFloat(fExpected, sSample.sColour.z, iDecimals);
 	AssertFloat(1.0f, sSample.sColour.w, 6);
-	AssertFloat(fExpected, sSample.fHeight, iDecimals);
+	AssertFloat(fExpected * pTexture->mfScale, sSample.fHeight, iDecimals);
 	AssertFloat(fExpected, sSample.Value(), iDecimals);
 	AssertFloat(0.0f, sSample.fShine, 6);
 	AssertFloat(0.0f, sSample.fGloss, 6);
