@@ -46,10 +46,6 @@ static const char* gaszTestSupportLib65Excluded816[] =
 	"TestImageSFTWriter",
 	"TestRectangleBestPackerWithRotation",
 
-	//It passes when given longer, in 60.7G cycles (6.0G on the 65C64): LSCM's conjugate gradients, in soft float64, make
-	//about as many iterations as a chart has UVs, and every unwrap packs its charts' cells at four turns.
-	"TestMeshUnwrap",
-
 	//Its images are 33MB, more than the W65C816's 16MB.  It used all of its 4G instructions, 27.9G cycles, without finishing.
 	"TestSceneGoober",
 	"TestSceneGooberResave",

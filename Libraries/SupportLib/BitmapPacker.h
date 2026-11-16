@@ -65,7 +65,7 @@ public:
 	void	Kill(void);
 
 	bool	Fits(CBitRows* pcShape, int x, int y);
-	bool	Find(CBitRows* pcShape, int* px, int* py);  //False for a shape wider than the space.
+	bool	Find(CBitRows* pcShape, int* px, int* py, int iMostY = -1);  //False for a shape wider than the space, or with no place up to iMostY (-1 for anywhere).
 	void	Add(CBitRows* pcShape, int x, int y);
 	int		GetHeight(void);
 };

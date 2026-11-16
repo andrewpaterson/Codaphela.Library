@@ -281,10 +281,10 @@ bool CBitmapPacker::Fits(CBitRows* pcShape, int x, int y)
 //////////////////////////////////////////////////////////////////////////
 //
 // Above the space's rows everything fits, so a shape no wider than the
-// space always has a place.
+// space always has a place if it may go that high.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBitmapPacker::Find(CBitRows* pcShape, int* px, int* py)
+bool CBitmapPacker::Find(CBitRows* pcShape, int* px, int* py, int iMostY)
 {
 	CArrayLargeInt	aiSet;
 	int				x;
@@ -301,7 +301,11 @@ bool CBitmapPacker::Find(CBitRows* pcShape, int* px, int* py)
 	{
 		aiSet.Add(pcShape->CountRow(iRow));
 	}
-	for (y = 0; y <= mcSpace.miHeight; y++)
+	if ((iMostY < 0) || (iMostY > mcSpace.miHeight))
+	{
+		iMostY = mcSpace.miHeight;
+	}
+	for (y = 0; y <= iMostY; y++)
 	{
 		bRoom = true;
 		for (iRow = 0; (iRow < pcShape->miHeight) && (y + iRow < mcSpace.miHeight) && bRoom; iRow++)

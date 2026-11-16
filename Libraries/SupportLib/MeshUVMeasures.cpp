@@ -199,9 +199,54 @@ int CountMeshUVsOutside(CMesh* pcMesh, int iLayer)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether two triangles' bounding boxes overlap by more than fTolerance:
+// the separating axis test along u and v, with only compares.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool MeshUVBoxesOverlap(SFloat32Vec2** papsA, SFloat32Vec2** papsB, float64 fTolerance)
+{
+	float32	afMinA[2];
+	float32	afMaxA[2];
+	float32	afMinB[2];
+	float32	afMaxB[2];
+	int		k;
+
+	afMinA[0] = papsA[0]->x;
+	afMaxA[0] = papsA[0]->x;
+	afMinA[1] = papsA[0]->y;
+	afMaxA[1] = papsA[0]->y;
+	afMinB[0] = papsB[0]->x;
+	afMaxB[0] = papsB[0]->x;
+	afMinB[1] = papsB[0]->y;
+	afMaxB[1] = papsB[0]->y;
+	for (k = 1; k < 3; k++)
+	{
+		afMinA[0] = (papsA[k]->x < afMinA[0]) ? papsA[k]->x : afMinA[0];
+		afMaxA[0] = (papsA[k]->x > afMaxA[0]) ? papsA[k]->x : afMaxA[0];
+		afMinA[1] = (papsA[k]->y < afMinA[1]) ? papsA[k]->y : afMinA[1];
+		afMaxA[1] = (papsA[k]->y > afMaxA[1]) ? papsA[k]->y : afMaxA[1];
+		afMinB[0] = (papsB[k]->x < afMinB[0]) ? papsB[k]->x : afMinB[0];
+		afMaxB[0] = (papsB[k]->x > afMaxB[0]) ? papsB[k]->x : afMaxB[0];
+		afMinB[1] = (papsB[k]->y < afMinB[1]) ? papsB[k]->y : afMinB[1];
+		afMaxB[1] = (papsB[k]->y > afMaxB[1]) ? papsB[k]->y : afMaxB[1];
+	}
+	for (k = 0; k < 2; k++)
+	{
+		if ((afMaxA[k] <= afMinB[k] + fTolerance) || (afMaxB[k] <= afMinA[k] + fTolerance))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The separating axis test: two triangles' insides overlap unless, along
 // the line across one of their six edges, one lies all on one side of the
-// other, or touching it (within fTolerance).
+// other, or touching it (within about fTolerance: the line isn't made a
+// unit, so it's measured against the line's |x| + |y|, no root taken).
 //
 //////////////////////////////////////////////////////////////////////////
 static bool MeshUVTrianglesOverlap(SFloat32Vec2** papsA, SFloat32Vec2** papsB, float64 fTolerance)
@@ -218,6 +263,10 @@ static bool MeshUVTrianglesOverlap(SFloat32Vec2** papsA, SFloat32Vec2** papsB, f
 	int				iEdge;
 	int				k;
 
+	if (!MeshUVBoxesOverlap(papsA, papsB, fTolerance))
+	{
+		return false;
+	}
 	for (iTriangle = 0; iTriangle < 2; iTriangle++)
 	{
 		papsEdges = (iTriangle == 0) ? papsA : papsB;
@@ -242,7 +291,7 @@ static bool MeshUVTrianglesOverlap(SFloat32Vec2** papsA, SFloat32Vec2** papsB, f
 				fMinB = (fValue < fMinB) ? fValue : fMinB;
 				fMaxB = (fValue > fMaxB) ? fValue : fMaxB;
 			}
-			fValue = fTolerance * sqrt((fAcrossX * fAcrossX) + (fAcrossY * fAcrossY));
+			fValue = fTolerance * (fabs(fAcrossX) + fabs(fAcrossY));
 			if ((fMaxA <= fMinB + fValue) || (fMaxB <= fMinA + fValue))
 			{
 				return false;

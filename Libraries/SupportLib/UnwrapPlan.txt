@@ -34,7 +34,12 @@ The user's decisions (2026-11-15)
     Every mip level is baked now (CMaterialImage's mapLevels), though neither renderer reads them yet.  Done.
     A bake keeps a face's old colour: its material's diffuse colour tints its texels.  Done.
     Grown charts by LSCM stay the default.
-    The solver is to be made faster, and TestMeshUnwrap runs on the W65C816 again with coarser meshes there.
+    The solver is to be made faster, and TestMeshUnwrap runs on the W65C816 again with coarser meshes there.  Done: LSCM
+    solves directly (Float64SparseLeastSquaresDirect: A'A in a CFloat64SkylineMatrix, its unknowns in reverse Cuthill-McKee
+    order, Cholesky factored), charts are turned by their convex hulls' sides (the smallest rectangle has a side along one),
+    a turn of a chart's cells is only looked for below the best so far, and the UV overlap test checks bounding boxes
+    first and takes no roots.  TestMeshUnwrap: 12.5G cycles to 3.66G on the 65C64; on the W65C816 60.7G to 13.5G with
+    spheres of 16 by 8 and tori of 24 by 8 (half the faces), within its 4G instructions.
     ARAP is to be built (step 8).
     The textured scene's three hundredths allowance stays; FMA stays on.
 

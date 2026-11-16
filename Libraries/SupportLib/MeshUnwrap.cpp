@@ -31,9 +31,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshUnwrap.h"
 
 
-//The turns a chart's bounding rectangle is tried at, across a right angle, for the smallest.
-#define MESH_UNWRAP_TURNS	90
-
 //How many times charts that fold or overlap themselves laid flat are grown again, at half the angle each time.  A chart of
 //one face can't, which is where halving ends.
 #define MESH_UNWRAP_REGROWS	12
@@ -307,91 +304,159 @@ static void MeshUnwrapFolded(CArrayInt* paiDest, SMeshUnwrapUVs* psUVs, CMeshCha
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each chart turned to whichever of MESH_UNWRAP_TURNS turns across a right
-// angle gives the smallest bounding rectangle, moved to start at 0, 0,
-// and its size rounded up to whole texels.
+// UVs by u, then v.
+//
+//////////////////////////////////////////////////////////////////////////
+static int MeshUnwrapCompareUVs(const void* pvLeft, const void* pvRight)
+{
+	SFloat32Vec2*	psLeft;
+	SFloat32Vec2*	psRight;
+
+	psLeft = (SFloat32Vec2*)pvLeft;
+	psRight = (SFloat32Vec2*)pvRight;
+	if (psLeft->x != psRight->x)
+	{
+		return (psLeft->x < psRight->x) ? -1 : 1;
+	}
+	if (psLeft->y != psRight->y)
+	{
+		return (psLeft->y < psRight->y) ? -1 : 1;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether going from A to B to C turns left (anticlockwise).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool MeshUnwrapTurnsLeft(SFloat32Vec2* psA, SFloat32Vec2* psB, SFloat32Vec2* psC)
+{
+	return (((float64)psB->x - psA->x) * ((float64)psC->y - psA->y)) - (((float64)psB->y - psA->y) * ((float64)psC->x - psA->x)) > 0.0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The convex hull of iNumUVs UVs, anticlockwise, by Andrew's monotone
+// chain: sorted by u, the lower chain left to right then the upper right
+// to left, each point dropping those before it that don't turn left.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshUnwrapHull(CArrayLargeFloat32Vec2* pasHull, SFloat32Vec2* pasUVs, int iNumUVs)
+{
+	CArrayLargeFloat32Vec2	asSorted;
+	SFloat32Vec2*			psUV;
+	lsize					uiLower;
+	int						i;
+	int						iPass;
+
+	asSorted.Init();
+	for (i = 0; i < iNumUVs; i++)
+	{
+		asSorted.Add(&pasUVs[i]);
+	}
+	asSorted.QuickSort(&MeshUnwrapCompareUVs);
+
+	pasHull->ReInit();
+	for (iPass = 0; iPass < 2; iPass++)
+	{
+		uiLower = pasHull->NumElements();
+		for (i = 0; i < iNumUVs; i++)
+		{
+			psUV = asSorted.Get((lsize)((iPass == 0) ? i : (iNumUVs - 1 - i)));
+			while ((pasHull->NumElements() >= uiLower + 2) && !MeshUnwrapTurnsLeft(pasHull->Get(pasHull->NumElements() - 2), pasHull->Get(pasHull->NumElements() - 1), psUV))
+			{
+				pasHull->RemoveTail();
+			}
+			pasHull->Add(psUV);
+		}
+		pasHull->RemoveTail();  //Each chain's last point is the other's first.
+	}
+	asSorted.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each chart turned so its bounding rectangle is smallest, moved to start
+// at 0, 0, and its size rounded up to whole texels.  The smallest
+// rectangle round a shape has a side along an edge of its convex hull
+// (Freeman and Shapira), so only those directions are tried.
 //
 //////////////////////////////////////////////////////////////////////////
 static void MeshUnwrapOrient(SMeshUnwrapUVs* psUVs, int iNumCharts)
 {
-	SFloat32Vec2*	psUV;
-	float32			fCos;
-	float32			fSin;
-	float32			fBestCos;
-	float32			fBestSin;
-	float32			fBestArea;
-	float32			fArea;
-	float32			fU;
-	float32			fV;
-	float32			fMinU;
-	float32			fMinV;
-	float32			fMaxU;
-	float32			fMaxV;
-	int				iChart;
-	int				iTurn;
-	int				i;
-	int				iFirst;
-	int				iLast;
+	CArrayLargeFloat32Vec2	asHull;
+	SFloat32Vec2*			psUV;
+	SFloat32Vec2			sSide;
+	SFloat32Vec2			sBest;
+	float32					fBestArea;
+	float32					fArea;
+	float32					fLength;
+	float32					fU;
+	float32					fV;
+	float32					fMinU;
+	float32					fMinV;
+	float32					fMaxU;
+	float32					fMaxV;
+	int						iChart;
+	int						iFirst;
+	int						iLast;
+	int						iSide;
+	int						iNumSides;
+	int						i;
 
+	asHull.Init();
 	psUVs->maiSizes.Resize((lsize)iNumCharts * 2);
 	for (iChart = 0; iChart < iNumCharts; iChart++)
 	{
 		iFirst = psUVs->maiChartStarts.GetValue((lsize)iChart);
 		iLast = psUVs->maiChartStarts.GetValue((lsize)iChart + 1);
-		fBestCos = 1.0f;
-		fBestSin = 0.0f;
+		MeshUnwrapHull(&asHull, psUVs->masUVs.Get((lsize)iFirst), iLast - iFirst);
+
+		//sBest is the unit along the chosen side: a UV's turned u is along it, its v across it.
+		sBest.Init(1.0f, 0.0f);
 		fBestArea = -1.0f;
-		fMinU = 0.0f;
-		fMaxU = 0.0f;
-		fMinV = 0.0f;
-		fMaxV = 0.0f;
-		for (iTurn = 0; iTurn < MESH_UNWRAP_TURNS; iTurn++)
+		iNumSides = (int)asHull.NumElements();
+		for (iSide = 0; iSide < iNumSides; iSide++)
 		{
-			fCos = cosf((float32)iTurn * 1.5707963f / MESH_UNWRAP_TURNS);
-			fSin = sinf((float32)iTurn * 1.5707963f / MESH_UNWRAP_TURNS);
-			for (i = iFirst; i < iLast; i++)
+			sSide = *asHull.Get((lsize)((iSide + 1) % iNumSides)) - *asHull.Get((lsize)iSide);
+			fLength = sSide.Magnitude();
+			if (fLength <= 0.0f)
 			{
-				psUV = psUVs->masUVs.Get((lsize)i);
-				fU = (psUV->x * fCos) - (psUV->y * fSin);
-				fV = (psUV->x * fSin) + (psUV->y * fCos);
-				if (i == iFirst)
-				{
-					fMinU = fU;
-					fMaxU = fU;
-					fMinV = fV;
-					fMaxV = fV;
-				}
-				fMinU = (fU < fMinU) ? fU : fMinU;
-				fMaxU = (fU > fMaxU) ? fU : fMaxU;
-				fMinV = (fV < fMinV) ? fV : fMinV;
-				fMaxV = (fV > fMaxV) ? fV : fMaxV;
+				continue;
+			}
+			sSide /= fLength;
+			for (i = 0; i < iNumSides; i++)
+			{
+				psUV = asHull.Get((lsize)i);
+				fU = (psUV->x * sSide.x) + (psUV->y * sSide.y);
+				fV = (psUV->y * sSide.x) - (psUV->x * sSide.y);
+				fMinU = ((i == 0) || (fU < fMinU)) ? fU : fMinU;
+				fMaxU = ((i == 0) || (fU > fMaxU)) ? fU : fMaxU;
+				fMinV = ((i == 0) || (fV < fMinV)) ? fV : fMinV;
+				fMaxV = ((i == 0) || (fV > fMaxV)) ? fV : fMaxV;
 			}
 			fArea = (fMaxU - fMinU) * (fMaxV - fMinV);
 			if ((fBestArea < 0.0f) || (fArea < fBestArea))
 			{
 				fBestArea = fArea;
-				fBestCos = fCos;
-				fBestSin = fSin;
+				sBest = sSide;
 			}
 		}
 
 		for (i = iFirst; i < iLast; i++)
 		{
 			psUV = psUVs->masUVs.Get((lsize)i);
-			fU = (psUV->x * fBestCos) - (psUV->y * fBestSin);
-			fV = (psUV->x * fBestSin) + (psUV->y * fBestCos);
+			fU = (psUV->x * sBest.x) + (psUV->y * sBest.y);
+			fV = (psUV->y * sBest.x) - (psUV->x * sBest.y);
 			psUV->Init(fU, fV);
-			if (i == iFirst)
-			{
-				fMinU = fU;
-				fMaxU = fU;
-				fMinV = fV;
-				fMaxV = fV;
-			}
-			fMinU = (fU < fMinU) ? fU : fMinU;
-			fMaxU = (fU > fMaxU) ? fU : fMaxU;
-			fMinV = (fV < fMinV) ? fV : fMinV;
-			fMaxV = (fV > fMaxV) ? fV : fMaxV;
+			fMinU = ((i == iFirst) || (fU < fMinU)) ? fU : fMinU;
+			fMaxU = ((i == iFirst) || (fU > fMaxU)) ? fU : fMaxU;
+			fMinV = ((i == iFirst) || (fV < fMinV)) ? fV : fMinV;
+			fMaxV = ((i == iFirst) || (fV > fMaxV)) ? fV : fMaxV;
 		}
 		for (i = iFirst; i < iLast; i++)
 		{
@@ -409,6 +474,7 @@ static void MeshUnwrapOrient(SMeshUnwrapUVs* psUVs, int iNumCharts)
 			psUVs->maiSizes.SetValue(((lsize)iChart * 2) + 1, 1);
 		}
 	}
+	asHull.Kill();
 }
 
 
@@ -454,6 +520,7 @@ static void MeshUnwrapCoverCells(CBitRows* pcCells, SFloat32Vec2* pasCorners, in
 	SFloat32Vec2*	psA;
 	SFloat32Vec2*	psB;
 	float32			afEdges[2];
+	float32			afSlopes[NUM_FACE_CORNERS];  //Each side's u across its v, for where it crosses a row's edge.
 	float32			fMinV;
 	float32			fMaxV;
 	float32			fMinU;
@@ -470,6 +537,9 @@ static void MeshUnwrapCoverCells(CBitRows* pcCells, SFloat32Vec2* pasCorners, in
 	for (k = 0; k < NUM_FACE_CORNERS; k++)
 	{
 		MeshUnwrapInclude(pasCorners[k].y, &fMinV, &fMaxV, &bAny);
+		psA = &pasCorners[k];
+		psB = &pasCorners[(k + 1) % NUM_FACE_CORNERS];
+		afSlopes[k] = (psB->y != psA->y) ? ((psB->x - psA->x) / (psB->y - psA->y)) : 0.0f;
 	}
 	iLastRow = (int)(fMaxV / iCell);
 	iLastRow = (iLastRow < pcCells->miHeight) ? iLastRow : pcCells->miHeight - 1;
@@ -490,7 +560,7 @@ static void MeshUnwrapCoverCells(CBitRows* pcCells, SFloat32Vec2* pasCorners, in
 			{
 				if (((psA->y < afEdges[e]) && (psB->y > afEdges[e])) || ((psA->y > afEdges[e]) && (psB->y < afEdges[e])))
 				{
-					MeshUnwrapInclude(psA->x + ((psB->x - psA->x) * ((afEdges[e] - psA->y) / (psB->y - psA->y))), &fMinU, &fMaxU, &bAny);
+					MeshUnwrapInclude(psA->x + (afSlopes[k] * (afEdges[e] - psA->y)), &fMinU, &fMaxU, &bAny);
 				}
 			}
 		}
@@ -603,7 +673,8 @@ static void MeshUnwrapTurn(SMeshUnwrapUVs* psUVs, int iChart, int iTurn, int iCe
 // them) at each quarter turn, biggest first, where they first fit
 // (CBitmapPacker) across a layout as wide as the square root of their
 // area (or the narrowest way of the widest), its sides in whole pages;
-// the turn that reaches least high is kept.  Places are where each
+// the turn that reaches least high is kept, so each turn after the first
+// is only looked for below where it would reach as high.  Places are where each
 // chart's UVs start, in texels.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -624,6 +695,7 @@ static void MeshUnwrapPack(SMeshUnwrapUVs* psUVs, CMeshCharts* pcCharts, int iCe
 	int				iBest;
 	int				aiX[4];
 	int				aiY[4];
+	int				iMostY;  //How high a turn may go and still reach less high than the best so far.
 	int				i;
 	int				j;
 	int				x;
@@ -672,7 +744,9 @@ static void MeshUnwrapPack(SMeshUnwrapUVs* psUVs, CMeshCharts* pcCharts, int iCe
 		iBest = -1;
 		for (iTurn = 0; iTurn < 4; iTurn++)
 		{
-			if (cPacker.Find(&pacCells[(iChart * 4) + iTurn], &aiX[iTurn], &aiY[iTurn]) && ((iBest < 0) || ((aiY[iTurn] + pacCells[(iChart * 4) + iTurn].miHeight) < (aiY[iBest] + pacCells[(iChart * 4) + iBest].miHeight))))
+			pcCells = &pacCells[(iChart * 4) + iTurn];
+			iMostY = (iBest < 0) ? -1 : (aiY[iBest] + pacCells[(iChart * 4) + iBest].miHeight - pcCells->miHeight - 1);
+			if (((iBest < 0) || (iMostY >= 0)) && cPacker.Find(pcCells, &aiX[iTurn], &aiY[iTurn], iMostY))
 			{
 				iBest = iTurn;
 			}

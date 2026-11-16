@@ -176,7 +176,6 @@ static void MeshUVConformalAreas(SFloat32Vec2* pasUVs, SFloat32Vec3* pasPosition
 //////////////////////////////////////////////////////////////////////////
 //
 // Each UV not pinned is two columns, u then v; each triangle two rows.
-// The least squares answer starts from the UVs given.
 //
 //////////////////////////////////////////////////////////////////////////
 bool FlattenConformal(SFloat32Vec2* pasUVs, SFloat32Vec3* pasPositions, int iNumUVs, int* paiCorners, int iNumTriangles, float32 fTexelsPerUnit)
@@ -205,7 +204,6 @@ bool FlattenConformal(SFloat32Vec2* pasUVs, SFloat32Vec3* pasPositions, int iNum
 	}
 
 	aiColumns.Init();
-	afX.Init();
 	iNumColumns = 0;
 	for (i = 0; i < iNumUVs; i++)
 	{
@@ -216,11 +214,11 @@ bool FlattenConformal(SFloat32Vec2* pasUVs, SFloat32Vec3* pasPositions, int iNum
 		else
 		{
 			aiColumns.Add(iNumColumns);
-			afX.Add(pasUVs[i].x);
-			afX.Add(pasUVs[i].y);
 			iNumColumns += 2;
 		}
 	}
+	afX.Init();
+	afX.Resize((lsize)iNumColumns);
 	afB.Init();
 	afB.Resize((lsize)iNumTriangles * 2);
 	afB.SetArrayValues(0.0);
@@ -231,7 +229,7 @@ bool FlattenConformal(SFloat32Vec2* pasUVs, SFloat32Vec3* pasPositions, int iNum
 	}
 
 	bFlat = false;
-	if ((iNumColumns == 0) || (Float64SparseLeastSquares(&cMatrix, afX.GetData(), afB.GetData(), MESH_UV_CONFORMAL_TOLERANCE, iNumColumns * MESH_UV_CONFORMAL_ITERATIONS) >= 0))
+	if ((iNumColumns == 0) || Float64SparseLeastSquaresDirect(&cMatrix, afX.GetData(), afB.GetData()))
 	{
 		asUVs.Init();
 		for (i = 0; i < iNumUVs; i++)
