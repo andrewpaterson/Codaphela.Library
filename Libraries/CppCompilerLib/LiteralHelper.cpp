@@ -565,13 +565,15 @@ static void AddCharacter(SCharacterLiteral* psLiteral, uint32 uiCharacter)
 // as a universal character name: in a narrow literal it is its UTF-8
 // bytes, each a character of the literal (as a string has them), and in
 // the others it must be one code unit.  A numeric escape is a code unit
-// itself.  [lex.ccon]
+// itself, and so is a byte of the source that doesn't start UTF-8 (a
+// Latin-1 'é' is 0xE9, as a string has it).  [lex.ccon]
 //
 //////////////////////////////////////////////////////////////////////////
 ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength, SCharacterLiteral* psLiteral)
 {
 	const char*	sz;
 	const char*	szEnd;
+	const char*	szCharacter;
 	uint32		uiCharacter;
 	uint32		uiLargest;
 	bool		bCodePoint;
@@ -614,8 +616,9 @@ ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength,
 		}
 		else
 		{
-			bCodePoint = true;
+			szCharacter = sz;
 			uiCharacter = DecodeUTF8(&sz, szEnd);
+			bCodePoint = (sz != szCharacter + 1) || (uiCharacter < 0x80);
 		}
 
 		if (!bCodePoint || (uiCharacter < 0x80))

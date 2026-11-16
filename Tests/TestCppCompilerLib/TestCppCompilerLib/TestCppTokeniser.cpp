@@ -442,7 +442,8 @@ static void AssertCharacterLiteral(const char* szText, uint32 uiValue, const cha
 //////////////////////////////////////////////////////////////////////////
 void TestCppTokeniserCharacterLiterals(void)
 {
-	//é is U+00E9 (C3 A9), € is U+20AC (E2 82 AC) and the last is U+1F600 (F0 9F 98 80).
+	//é is U+00E9 (C3 A9), € is U+20AC (E2 82 AC) and the last is U+1F600 (F0 9F 98 80).  A byte that doesn't start
+	//UTF-8 (Latin-1's C0 and E9) is itself.
 	AssertCharacterLiteral("u8'a'", 'a', NULL);
 	AssertCharacterLiteral("L'\xC3\xA9'", 0xE9, NULL);
 	AssertCharacterLiteral("u'\xC3\xA9'", 0xE9, NULL);
@@ -455,6 +456,8 @@ void TestCppTokeniserCharacterLiterals(void)
 	AssertCharacterLiteral("'\\u00E9'", 0xC3A9, NULL);
 	AssertCharacterLiteral("'\\u0041'", 'A', NULL);
 	AssertCharacterLiteral("'\\xE9'", 0xE9, NULL);
+	AssertCharacterLiteral("'\xC0'", 0xC0, NULL);
+	AssertCharacterLiteral("'\xE9'", 0xE9, NULL);
 	AssertCharacterLiteral("L'ab'", ('a' << 8) | 'b', NULL);
 
 	AssertCharacterLiteral("u8'\xC3\xA9'", 0, "The character is more than one code unit of the character literal's encoding.");
