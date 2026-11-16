@@ -326,6 +326,10 @@ bool CCPPTypeWriter::ClassName(CCPPClass* pcClass, CChars* pszDest)
 			//A value parameter as itself: its name.
 			bResult &= ParameterName(psBinding->pcParameter, pszDest);
 		}
+		else if (psBinding->pcArgument)
+		{
+			psBinding->pcArgument->PrettyPrint(pszDest, 0);
+		}
 		else
 		{
 			pszDest->Append(psBinding->lliValue);

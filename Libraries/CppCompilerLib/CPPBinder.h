@@ -94,6 +94,7 @@ enum ECPPBoundName
 	CPPBN_Variable,			//A local, a parameter, a global or a static member.
 	CPPBN_Field,			//A field of this.
 	CPPBN_Capture,			//A variable a lambda being written captures: its closure's field.
+	CPPBN_TemplateArgument,	//A template's pointer or reference parameter: the expression its argument is (mpcArgument).
 };
 
 
@@ -109,6 +110,7 @@ public:
 	SCPPField*		mpsField;		//...its field (or a base's)...
 	int				miOffset;		//...and where it is in the object.
 	SCPPLambdaCapture*	mpsCapture;	//CPPBN_Capture: the capture (mpcClass is the closure's, mpsField its field).
+	CCPPSyntax*			mpcArgument;	//CPPBN_TemplateArgument.
 };
 
 

@@ -1027,6 +1027,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	CCPPClass*		pcClass;
 	CCPPClass*		pcEnumeratorClass;
 	CCPPClass*		pcMemberClass;
+	SCPPBinding*				psBinding;
 
 	pcBound->meWhat = CPPBN_Nothing;
 	pcBound->mpcVariable = NULL;
@@ -1034,6 +1035,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	pcBound->mpsField = NULL;
 	pcBound->miOffset = 0;
 	pcBound->mpsCapture = NULL;
+	pcBound->mpcArgument = NULL;
 	pcSymbol = pcId->mpcName->mpcSymbol;
 	pcBound->mpcSymbol = pcSymbol;
 
@@ -1050,6 +1052,15 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	if (mpcUnit->IsFunctionName(pcId))
 	{
 		pcBound->meWhat = CPPBN_FunctionName;
+		return;
+	}
+
+	//A pointer or reference parameter of the template being generated is its argument: P is &g, R is g.
+	psBinding = (pcSymbol && (pcSymbol->meKind == CPPSK_ValueParameter)) ? mpcUnit->FindBinding(pcSymbol) : NULL;
+	if (psBinding && psBinding->pcArgument)
+	{
+		pcBound->meWhat = CPPBN_TemplateArgument;
+		pcBound->mpcArgument = psBinding->pcArgument;
 		return;
 	}
 

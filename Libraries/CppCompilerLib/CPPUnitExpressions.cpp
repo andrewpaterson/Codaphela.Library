@@ -1087,7 +1087,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		if (pcSymbol->meKind == CPPSK_ValueParameter)
 		{
 			psBinding = FindBinding(pcSymbol);
-			if (!psBinding)
+			if (!psBinding || psBinding->pcArgument)
 			{
 				return false;
 			}

@@ -449,7 +449,8 @@ SCPP65Type* CCPP65TypeChecker::StringLiteral(CCPPSyntaxStringExpression* pcStrin
 //////////////////////////////////////////////////////////////////////////
 //
 // A name: the enclosing function's name (__func__ ...), an enumerator, a non-type
-// template parameter (its argument, at the parameter's type), a function or a
+// template parameter (its argument, at the parameter's type; a pointer or a
+// reference parameter's argument expression), a function or a
 // function template (their address), a static const member initialised in its
 // class (its value), or else a variable or a field.
 //
@@ -483,6 +484,8 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 		return FunctionAddress(pcId, cBound.mpcSymbol->mlliName, NULL);
 	case CPPBN_FunctionTemplate:
 		return FunctionTemplateAddress(pcId);
+	case CPPBN_TemplateArgument:
+		return Value(cBound.mpcArgument);
 	case CPPBN_Variable:
 		//SIZE::Max's value is the constant its class gives it: it needs no definition.  [class.static.data] 4
 		if (mpcUnit->IsConstantMember(cBound.mpcVariable) && mpcUnit->Constant(pcId, &lliValue))
@@ -1902,6 +1905,10 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		if (cBound.meWhat == CPPBN_Variable)
 		{
 			return cBound.mpcVariable->mpsType->WithoutReference();
+		}
+		if (cBound.meWhat == CPPBN_TemplateArgument)
+		{
+			return Place(cBound.mpcArgument);
 		}
 		if (cBound.meWhat == CPPBN_Capture)
 		{

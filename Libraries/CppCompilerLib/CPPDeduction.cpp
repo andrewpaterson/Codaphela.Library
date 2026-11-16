@@ -597,6 +597,7 @@ void CCPPSpecialisationMatch::Init(CCPPUnit* pcUnit, CCPPTemplate* pcSpecialisat
 		psBinding->papsPack = NULL;
 		psBinding->palliPack = NULL;
 		psBinding->bSelf = false;
+		psBinding->pcArgument = NULL;
 	}
 	miScore = (pcSpecialisation->mpcDeclaration->macpParameters.NumElements() == 0) ? 1000 : 0;
 }

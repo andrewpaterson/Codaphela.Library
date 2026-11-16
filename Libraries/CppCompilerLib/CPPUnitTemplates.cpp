@@ -766,6 +766,7 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 		psBinding->papsPack = NULL;
 		psBinding->palliPack = NULL;
 		psBinding->bSelf = false;
+		psBinding->pcArgument = NULL;
 
 		if (pcParameter->GetKind() == CPPS_TypeParameter)
 		{
@@ -812,6 +813,15 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 				bResult = BindValuePack(psBinding, &asArguments, i, pszArguments);
 				break;
 			}
+			if (psArgument && IsEntityParameter(pcValue))
+			{
+				bResult = BindEntity(psBinding, psArgument, pszArguments);
+				if (!bResult)
+				{
+					break;
+				}
+				continue;
+			}
 			if (psArgument)
 			{
 				bResult = ExpandedArgumentValue(psArgument, &psBinding->lliValue);
@@ -842,6 +852,61 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 	}
 	asArguments.Kill();
 	return bResult ? pcBindings : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a non-type template parameter is a pointer or a reference
+// (template<int* P>, template<int (*F)(int)>, template<int& R>): its
+// argument names an object or a function, not a value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsEntityParameter(CCPPSyntaxParameter* pcParameter)
+{
+	return pcParameter->mpcDeclarator && ((pcParameter->mpcDeclarator->NumPointers() > 0) || pcParameter->mpcDeclarator->mpcNested);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer or reference parameter takes its argument as it is written:
+// &g or f (a pointer: the address of a global or a function) or g (a
+// reference), which its name then stands for.  Mangled as _X, A for an
+// address, the global's label or the function's name, E.  [temp.arg.nontype]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgument, CChars* pszArguments)
+{
+	CCPPSyntax*		pcEntity;
+	CCPPSymbol*		pcSymbol;
+	CCPPVariable*	pcVariable;
+	bool			bAddress;
+
+	pcEntity = psArgument->bExpanded ? NULL : SkipParentheses(psArgument->pcArgument);
+	bAddress = pcEntity && (pcEntity->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcEntity)->meOperator == CT_BitwiseAnd);
+	if (bAddress)
+	{
+		pcEntity = SkipParentheses(((CCPPSyntaxUnaryExpression*)pcEntity)->mpcOperand);
+	}
+	pcSymbol = (pcEntity && (pcEntity->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcEntity)->mpcName->mpcSymbol : NULL;
+	pcVariable = pcSymbol ? GetVariable(pcSymbol) : NULL;
+	if (!(pcVariable && (pcVariable->meStorage == CPPVS_Global)) && !(pcSymbol && (pcSymbol->meKind == CPPSK_Function)))
+	{
+		return Error(psArgument->pcArgument, "The template argument must name a global or a function");
+	}
+	psBinding->pcArgument = psArgument->pcArgument;
+	pszArguments->Append(bAddress ? "_XA" : "_X");
+	if (pcVariable)
+	{
+		mcMangler.AppendGlobalLabel(pszArguments, pcVariable);
+	}
+	else
+	{
+		mcMangler.AppendFunctionName(pszArguments, pcSymbol->mlliName);
+	}
+	pszArguments->Append('E');
+	return true;
 }
 
 

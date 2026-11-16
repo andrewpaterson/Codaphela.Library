@@ -506,6 +506,8 @@ public:
 	SCPP65Type*				ExpandedArgumentType(SCPPExpandedArgument* psArgument);
 	bool					ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* plliValue);
 	bool					PackSize(CCPPSymbol* pcPack, int64* plliValue);
+	bool					IsEntityParameter(CCPPSyntaxParameter* pcParameter);
+	bool					BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgument, CChars* pszArguments);
 	bool					BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CArrayCPP65Types* papsDeduced, CChars* pszArguments);
 	bool					BindValuePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CChars* pszArguments);
 	void					AppendMangledValue(CChars* pszArguments, int64 lliValue);
