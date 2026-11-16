@@ -218,7 +218,9 @@ Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLi
 
 Open
 ----
-The scene's texel density, chosen by eye (step 3 makes it easy to try).
+The scene's texel density, chosen by eye (step 3 makes it easy to try).  First look (2026-11-16): WindowInputTester's
+isosurface tab, spheres of radius 1 with a quarter unit checker, looked "much better" to the user at 128 texels to the unit
+than at 64.
 How large a chart may be before it's split for packing (a chart wider than the virtual texture's page cache can't be drawn
 at its finest level all at once).
 
