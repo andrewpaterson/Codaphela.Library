@@ -19,7 +19,7 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
-#include "SupportLib/Image.h"
+#include "SupportLib/MaterialImage.h"
 #include "RasterMeshBuild.h"
 #include "RasterRenderer.h"
 
@@ -77,19 +77,19 @@ int32 CRasterRenderer::GetScale(void)
 // NULL for no image and one that can't be a texture.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CRasterTexture> CRasterRenderer::GetTexture(CImage* pcImage)
+Ptr<CRasterTexture> CRasterRenderer::GetTexture(CMaterialImage* pcImage)
 {
 	Ptr<CRasterTexture>	pTexture;
 	size				i;
 
-	if (pcImage == NULL)
+	if ((pcImage == NULL) || pcImage->mpImage.IsNull())
 	{
 		return pTexture;
 	}
 	for (i = 0; i < mapTextures.NumElements(); i++)
 	{
 		pTexture = mapTextures.Get(i);
-		if (pTexture->GetSource() == (uint64)pcImage->GetIndex())
+		if (pTexture->GetSource() == (uint64)pcImage->mpImage->GetIndex())
 		{
 			return pTexture;
 		}

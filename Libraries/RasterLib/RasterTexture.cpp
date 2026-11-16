@@ -25,26 +25,18 @@ along with Codaphela RasterLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Its texels are white, and GetTexels is where they go.  A texture is at
-// least one texel each way.
+// Level 0's texels are white, and GetTexels is where they go.  A texture
+// is at least one texel each way.
 //
 //////////////////////////////////////////////////////////////////////////
 void CRasterTexture::Init(int32 iWidth, int32 iHeight, uint64 uiSource)
 {
-	size	uiNumTexels;
-
 	PreInit();
 
-	miWidth = (iWidth > 0) ? iWidth : 1;
-	miHeight = (iHeight > 0) ? iHeight : 1;
-	miMaskX = ((miWidth & (miWidth - 1)) == 0) ? miWidth - 1 : -1;
-	miMaskY = ((miHeight & (miHeight - 1)) == 0) ? miHeight - 1 : -1;
 	muiSource = uiSource;
-
-	uiNumTexels = (size)miWidth * (size)miHeight;
 	mauiTexels.Init();
-	mauiTexels.Resize(uiNumTexels);
-	memset(mauiTexels.GetData(), 0xFF, uiNumTexels * sizeof(uint32));
+	masLevels.Init();
+	AddLevel(iWidth, iHeight);
 
 	PostInit();
 }
@@ -56,6 +48,7 @@ void CRasterTexture::Init(int32 iWidth, int32 iHeight, uint64 uiSource)
 //////////////////////////////////////////////////////////////////////////
 void CRasterTexture::Free(void)
 {
+	masLevels.Kill();
 	mauiTexels.Kill();
 }
 
@@ -67,10 +60,7 @@ void CRasterTexture::Free(void)
 void CRasterTexture::Class(void)
 {
 	U_Unknown(CArrayRasterTexel, mauiTexels);
-	U_Int32(miWidth);
-	U_Int32(miHeight);
-	U_Int32(miMaskX);
-	U_Int32(miMaskY);
+	U_Unknown(CArrayRasterTextureLevel, masLevels);
 	U_UInt64(muiSource);
 }
 
@@ -79,8 +69,32 @@ void CRasterTexture::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32* CRasterTexture::GetTexels(void) { return mauiTexels.GetData(); }
-int32 CRasterTexture::GetWidth(void) { return miWidth; }
-int32 CRasterTexture::GetHeight(void) { return miHeight; }
+uint32* CRasterTexture::AddLevel(int32 iWidth, int32 iHeight)
+{
+	SRasterTextureLevel*	psLevel;
+	size					uiNumTexels;
+
+	psLevel = masLevels.Add();
+	psLevel->uiStart = mauiTexels.NumElements();
+	psLevel->iWidth = (iWidth > 0) ? iWidth : 1;
+	psLevel->iHeight = (iHeight > 0) ? iHeight : 1;
+	psLevel->iMaskX = ((psLevel->iWidth & (psLevel->iWidth - 1)) == 0) ? psLevel->iWidth - 1 : -1;
+	psLevel->iMaskY = ((psLevel->iHeight & (psLevel->iHeight - 1)) == 0) ? psLevel->iHeight - 1 : -1;
+
+	uiNumTexels = (size)psLevel->iWidth * (size)psLevel->iHeight;
+	mauiTexels.Resize(psLevel->uiStart + uiNumTexels);
+	memset(mauiTexels.GetData() + psLevel->uiStart, 0xFF, uiNumTexels * sizeof(uint32));
+	return mauiTexels.GetData() + psLevel->uiStart;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CRasterTexture::NumLevels(void) { return (int32)masLevels.NumElements(); }
+uint32* CRasterTexture::GetTexels(int32 iLevel) { return mauiTexels.GetData() + Level(iLevel)->uiStart; }
+int32 CRasterTexture::GetWidth(int32 iLevel) { return Level(iLevel)->iWidth; }
+int32 CRasterTexture::GetHeight(int32 iLevel) { return Level(iLevel)->iHeight; }
 uint64 CRasterTexture::GetSource(void) { return muiSource; }
 

@@ -27,7 +27,7 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "VulkanFunctions.h"
 
 
-class CImage;
+class CMaterialImage;
 
 
 #define VULKAN_COLOUR_FORMAT			VK_FORMAT_B8G8R8A8_UNORM  //A pixel is a uint32 0xAARRGGBB, as CRasterTarget's are.
@@ -109,9 +109,9 @@ struct SVulkanDraw
 //A skinned mesh has its skin in storage buffers (AllocateSkin), and each frame its instances' palettes are added to the frame's
 //(AddPalette), which a draw finds by its offset (UseSkin).  A rigid mesh's draw uses a skin with nothing in it.
 //
-//GetTexture gives the texture of a CImage, made the first time it's asked for, as many meshes share an image, and kept until the
-//renderer is freed.  A texture has no mipmaps yet.  An image it can't make one of, or no image, is white.  At most
-//VULKAN_MAX_TEXTURES are made.
+//GetTexture gives the texture of a material image, made the first time it's asked for, as many meshes share an image, and kept
+//until the renderer is freed.  It has every mip level (CTextureLevels: the image's own where it has them, halved where it
+//hasn't), sampled trilinearly.  An image it can't make one of, or no image, is white.  At most VULKAN_MAX_TEXTURES are made.
 class CVulkanRenderer : public CRenderer
 {
 CONSTRUCTABLE(CVulkanRenderer);
@@ -168,7 +168,7 @@ public:
 
 	bool				CreateBuffer(SVulkanBuffer* psBuffer, VkDeviceSize uiSize, VkBufferUsageFlags uiUsage);
 	void				DestroyBuffer(SVulkanBuffer* psBuffer);
-	VkDescriptorSet		GetTexture(CImage* pcImage);
+	VkDescriptorSet		GetTexture(CMaterialImage* pcImage);
 	VkDescriptorSet		AllocateSkin(SVulkanBuffer* psVertices, SVulkanBuffer* psWeights);
 	void				FreeSkin(VkDescriptorSet hSkin);
 	void				ClearPalette(void);
@@ -192,18 +192,18 @@ protected:
 	bool				CreateDescriptors(void);
 	bool				CreateTextureDescriptors(void);
 	bool				CreateSkinDescriptors(void);
-	bool				CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int32 iHeight, uint32* puiTexels);
+	bool				CreateTexture(SVulkanTexture* psTexture, int32 iNumLevels, int32* paiWidths, int32* paiHeights, uint32* puiTexels);
 	void				DestroyTexture(SVulkanTexture* psTexture);
-	bool				Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iWidth, int32 iHeight);
+	bool				Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iNumLevels, int32* paiWidths, int32* paiHeights);
 	bool				CreatePipelines(void);
 	VkPipeline			CreatePipeline(VkShaderModule hVertex, VkShaderModule hFragment, bool bTransparent);
 	VkShaderModule		CreateShader(const uint32* puiCode, size uiSize);
 	bool				CreateTarget(int32 iWidth, int32 iHeight);
 	void				DestroyTarget(void);
-	bool				CreateImage(SVulkanImage* psImage, int32 iWidth, int32 iHeight, VkFormat eFormat, VkImageUsageFlags uiUsage, VkImageAspectFlags uiAspect);
+	bool				CreateImage(SVulkanImage* psImage, int32 iWidth, int32 iHeight, VkFormat eFormat, VkImageUsageFlags uiUsage, VkImageAspectFlags uiAspect, uint32 uiLevels = 1);
 	void				DestroyImage(SVulkanImage* psImage);
 	bool				AllocateMemory(VkDeviceMemory* phMemory, VkMemoryRequirements* psRequirements, VkMemoryPropertyFlags uiProperties);
-	void				Barrier(VkImage hImage, VkImageAspectFlags uiAspect, VkImageLayout eFrom, VkImageLayout eTo, VkAccessFlags uiFromAccess, VkAccessFlags uiToAccess, VkPipelineStageFlags uiFromStage, VkPipelineStageFlags uiToStage);
+	void				Barrier(VkImage hImage, VkImageAspectFlags uiAspect, VkImageLayout eFrom, VkImageLayout eTo, VkAccessFlags uiFromAccess, VkAccessFlags uiToAccess, VkPipelineStageFlags uiFromStage, VkPipelineStageFlags uiToStage, uint32 uiLevels = 1);
 };
 
 

@@ -25,7 +25,7 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 
 
 class CCookedMesh;
-class CImage;
+class CMaterialImage;
 class CMesh;
 class CRasterMesh;
 class CRasterRenderer;
@@ -48,13 +48,14 @@ class CRasterTexture;
 //
 //A submesh whose material has a diffuse image that's bytes is textured by it, and then the mesh has UVs, its cooked mesh's or
 //all 0 if it has none, as the Vulkan renderer draws it.  Given a renderer, its textures are the renderer's, shared with every
-//other mesh it draws; without one, the mesh has its own.  MakeRasterTexture is an image as a texture: NULL for one that isn't bytes.
+//other mesh it draws; without one, the mesh has its own.  MakeRasterTexture is a material image as a texture with every mip level
+//(CTextureLevels: its own levels where it has them, halved where it hasn't): NULL for one that isn't bytes.
 void				BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked);
 void				BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked, int32 iScale);
 void				BuildRasterMesh(CRasterMesh* pcRaster, CCookedMesh* pcCooked, int32 iScale, CRasterRenderer* pcRenderer);
 void				BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh);
 void				BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh, int32 iScale);
-Ptr<CRasterTexture>	MakeRasterTexture(CImage* pcImage);
+Ptr<CRasterTexture>	MakeRasterTexture(CMaterialImage* pcImage);
 
 
 #endif // __RASTER_MESH_BUILD_H__

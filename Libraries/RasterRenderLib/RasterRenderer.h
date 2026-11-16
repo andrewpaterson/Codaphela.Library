@@ -24,7 +24,7 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 #include "RenderLib/Renderer.h"
 
 
-class CImage;
+class CMaterialImage;
 
 
 //The raster renderer.  Everything it draws is in one scale, miScale of RasterLib's integer units to each of the scene's, so that
@@ -45,7 +45,7 @@ public:
 	void				Free(void) override;
 
 	int32				GetScale(void);
-	Ptr<CRasterTexture>	GetTexture(CImage* pcImage);
+	Ptr<CRasterTexture>	GetTexture(CMaterialImage* pcImage);
 };
 
 

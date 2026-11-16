@@ -23,9 +23,9 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 #include "BaseLib/FixedPoint.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Mesh.h"
-#include "SupportLib/Image.h"
+#include "SupportLib/Material.h"
 #include "RenderLib/CookedMesh.h"
-#include "RenderLib/ImageTexels.h"
+#include "RenderLib/TextureLevels.h"
 #include "RasterLib/RasterMesh.h"
 #include "RasterRenderer.h"
 #include "RasterMeshBuild.h"
@@ -107,14 +107,14 @@ static int32 FindRasterTexture(CRasterMesh* pcRaster, CCookedMesh* pcCooked, siz
 {
 	Ptr<CMaterial>		pMaterial;
 	Ptr<CRasterTexture>	pTexture;
-	CImage*				pcImage;
+	CMaterialImage*		pcImage;
 
 	pMaterial = pcCooked->mapMaterials.Get(uiSubmesh);
 	if (pMaterial.IsNull())
 	{
 		return RASTER_NO_TEXTURE;
 	}
-	pcImage = &pMaterial->GetImage(MI_Diffuse)->mpImage;
+	pcImage = pMaterial->GetImage(MI_Diffuse);
 	pTexture = (pcRenderer != NULL) ? pcRenderer->GetTexture(pcImage) : MakeRasterTexture(pcImage);
 	if (pTexture.IsNull())
 	{
@@ -333,19 +333,22 @@ void BuildRasterMesh(CRasterMesh* pcRaster, CMesh* pcMesh, int32 iScale)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CRasterTexture> MakeRasterTexture(CImage* pcImage)
+Ptr<CRasterTexture> MakeRasterTexture(CMaterialImage* pcImage)
 {
 	Ptr<CRasterTexture>	pTexture;
+	CTextureLevels		cLevels;
+	int32				iLevel;
 
-	if ((pcImage == NULL) || (pcImage->GetWidth() == 0) || (pcImage->GetHeight() == 0) || (pcImage->GetPrimitiveType() != PT_uint8))
+	if (cLevels.Init(pcImage))
 	{
-		return pTexture;
+		pTexture = OMalloc<CRasterTexture>(cLevels.GetWidth(0), cLevels.GetHeight(0), (uint64)pcImage->mpImage->GetIndex());
+		memcpy(pTexture->GetTexels(0), cLevels.GetTexels(0), (size)cLevels.GetWidth(0) * (size)cLevels.GetHeight(0) * sizeof(uint32));
+		for (iLevel = 1; iLevel < cLevels.NumLevels(); iLevel++)
+		{
+			memcpy(pTexture->AddLevel(cLevels.GetWidth(iLevel), cLevels.GetHeight(iLevel)), cLevels.GetTexels(iLevel), (size)cLevels.GetWidth(iLevel) * (size)cLevels.GetHeight(iLevel) * sizeof(uint32));
+		}
 	}
-	pTexture = OMalloc<CRasterTexture>((int32)pcImage->GetWidth(), (int32)pcImage->GetHeight(), (uint64)pcImage->GetIndex());
-	if (!GetImageTexels(pcImage, pTexture->GetTexels()))
-	{
-		pTexture = NULL;
-	}
+	cLevels.Kill();
 	return pTexture;
 }
 

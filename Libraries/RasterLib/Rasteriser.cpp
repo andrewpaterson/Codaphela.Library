@@ -123,6 +123,7 @@ void CRasteriser::Init(void)
 	masScreen.Init();
 	mbCullBackFaces = true;
 	mbPerspective = true;
+	meFilter = RF_Nearest;
 	mpcJobs = NULL;
 	masProjectJobs.Init();
 	masListJobs.Init();
@@ -157,6 +158,16 @@ void CRasteriser::Kill(void)
 void CRasteriser::SetCullBackFaces(bool bCullBackFaces)
 {
 	mbCullBackFaces = bCullBackFaces;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRasteriser::SetFilter(ERasterFilter eFilter)
+{
+	meFilter = eFilter;
 }
 
 
@@ -1594,6 +1605,13 @@ void CRasteriser::DrawTriangleRows(CRasterTarget* pcTarget, SRasterScreenVertex*
 // screen too.  aiDeltaU and aiDeltaV are the second and third corners'
 // differences from the first's times their aiUVDepth.
 //
+// Its mip level of detail (iLod, RASTER_LOD_BITS of fraction) is half
+// the log of its texels at level 0 over its pixels (each squared to the
+// other, as areas): a level coarser for each doubling of texels to a
+// pixel across.  With perspective it's for its corners' mean depth, and
+// each pixel's is moved a level for each doubling of its distance from
+// that (bLodByDepth): far pixels have more texels each.
+//
 //////////////////////////////////////////////////////////////////////////
 struct SRasterTextured
 {
@@ -1608,17 +1626,51 @@ struct SRasterTextured
 	int64	iU;
 	int64	iV;
 	bool	bConstantUV;
+	int32	iLod;
+	bool	bLodByDepth;
 };
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The log base 2 of a number, RASTER_LOD_BITS of fraction (0 for 0): its
+// highest bit and, as the fraction, the bits after it, which is near
+// enough the log between powers of two for picking a mip level.
 //
 //////////////////////////////////////////////////////////////////////////
-static void RasterTexturedInit(SRasterTextured* psTextured, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, SInt32Vec2* psUVA, SInt32Vec2* psUVB, SInt32Vec2* psUVC, SRasterEdge sArea, bool bPerspective)
+static FORCE_INLINE int32 RasterLog2(uint64 uiValue)
+{
+	uint64	uiHigh;
+	int32	iBit;
+	int32	iStep;
+
+	if (uiValue == 0)
+	{
+		return 0;
+	}
+	iBit = 0;
+	uiHigh = uiValue;
+	for (iStep = 32; iStep > 0; iStep >>= 1)
+	{
+		if ((uiHigh >> iStep) != 0)
+		{
+			uiHigh >>= iStep;
+			iBit += iStep;
+		}
+	}
+	return (iBit << RASTER_LOD_BITS) + (int32)(((uiValue << (63 - iBit)) >> (63 - RASTER_LOD_BITS)) & (RASTER_LOD_ONE - 1));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void RasterTexturedInit(SRasterTextured* psTextured, SRasterScreenVertex* psA, SRasterScreenVertex* psB, SRasterScreenVertex* psC, SInt32Vec2* psUVA, SInt32Vec2* psUVB, SInt32Vec2* psUVC, SRasterEdge sArea, bool bPerspective, CRasterTexture* pcTexture)
 {
 	int64	aiDU[2];
 	int64	aiDV[2];
+	int64	iCross;
 	uint64	uiMaxDelta;
 	uint64	uiMaxDepth;
 	int32	iWeightBits;
@@ -1683,6 +1735,44 @@ static void RasterTexturedInit(SRasterTextured* psTextured, SRasterScreenVertex*
 		psTextured->aiDeltaU[i] = aiDU[i] * psTextured->aiUVDepth[i + 1];
 		psTextured->aiDeltaV[i] = aiDV[i] * psTextured->aiUVDepth[i + 1];
 	}
+
+	//Twice its area in UV has RASTER_UV_BITS of fraction each way, on screen 4 (a subpixel's) each way.
+	iCross = (aiDU[0] * aiDV[1]) - (aiDU[1] * aiDV[0]);
+	psTextured->iLod = (RasterLog2((uint64)((iCross < 0) ? -iCross : iCross)) + RasterLog2((uint64)pcTexture->GetWidth()) + RasterLog2((uint64)pcTexture->GetHeight()) - ((2 * RASTER_UV_BITS) << RASTER_LOD_BITS)
+						- (RasterLog2(psTextured->uiArea) - (8 << RASTER_LOD_BITS))) / 2;
+	psTextured->bLodByDepth = bPerspective && (pcTexture->NumLevels() > 1);
+	if (psTextured->bLodByDepth)
+	{
+		psTextured->iLod += RasterLog2((uint64)(((int64)psA->iDepth + psB->iDepth + psC->iDepth) / 3));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The texel for UV (iU, iV) at a pixel iDepth deep, by eFilter.
+//
+//////////////////////////////////////////////////////////////////////////
+static FORCE_INLINE uint32 RasterTexturedSample(SRasterTextured* psTextured, CRasterTexture* pcTexture, ERasterFilter eFilter, int64 iU, int64 iV, int32 iDepth)
+{
+	int32	iLod;
+	int32	iLevel;
+
+	iLod = psTextured->iLod;
+	if (psTextured->bLodByDepth)
+	{
+		iLod -= RasterLog2((uint64)((iDepth > 0) ? iDepth : 1));
+	}
+	if (eFilter == RF_Trilinear)
+	{
+		return pcTexture->SampleTrilinear(iU, iV, iLod);
+	}
+	iLevel = (iLod + (RASTER_LOD_ONE / 2)) >> RASTER_LOD_BITS;
+	if (eFilter == RF_Bilinear)
+	{
+		return pcTexture->SampleBilinear(iU, iV, iLevel);
+	}
+	return pcTexture->SampleNearest(iU, iV, iLevel);
 }
 
 
@@ -1692,7 +1782,7 @@ static void RasterTexturedInit(SRasterTextured* psTextured, SRasterScreenVertex*
 // front of what's at *piDepth.
 //
 //////////////////////////////////////////////////////////////////////////
-static FORCE_INLINE void RasterTexturedPixel(SRasterTextured* psTextured, CRasterTexture* pcTexture, uint32* puiPixel, int32* piDepth, SRasterEdge s0, SRasterEdge s1, SRasterEdge s2, uint32 uiColour, bool bTransparent)
+static FORCE_INLINE void RasterTexturedPixel(SRasterTextured* psTextured, CRasterTexture* pcTexture, ERasterFilter eFilter, uint32* puiPixel, int32* piDepth, SRasterEdge s0, SRasterEdge s1, SRasterEdge s2, uint32 uiColour, bool bTransparent)
 {
 	int64	iW0;
 	int64	iW1;
@@ -1743,13 +1833,14 @@ static FORCE_INLINE void RasterTexturedPixel(SRasterTextured* psTextured, CRaste
 			iV += RasterDivideFloor(iW1 * psTextured->aiDeltaV[0] + iW2 * psTextured->aiDeltaV[1], (uint64)iWeighted, uiInverse);
 		}
 	}
-	RasterWritePixel(puiPixel, piDepth, iDepth, iShade, RasterModulate(uiColour, pcTexture->Sample(iU, iV)), bTransparent);
+	RasterWritePixel(puiPixel, piDepth, iDepth, iShade, RasterModulate(uiColour, RasterTexturedSample(psTextured, pcTexture, eFilter, iU, iV, iDepth)), bTransparent);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// As DrawTriangleRows, with uiColour times pcTexture's texel at each pixel.
+// As DrawTriangleRows, with uiColour times pcTexture's texel at each pixel
+// (by meFilter, at the pixel's mip level).
 // Each pixel is worked out from its weights: a textured pixel costs a divide
 // for its UV anyway.  psUVA, psUVB and psUVC are its corners' UVs.
 //
@@ -1840,7 +1931,7 @@ void CRasteriser::DrawTexturedTriangleRows(CRasterTarget* pcTarget, SRasterScree
 	sStepY1 = (psA->sPosition.x - psC->sPosition.x) * sOnePixel;
 	sStepY2 = (psB->sPosition.x - psA->sPosition.x) * sOnePixel;
 
-	RasterTexturedInit(&sTextured, psA, psB, psC, psUVA, psUVB, psUVC, sArea, mbPerspective);
+	RasterTexturedInit(&sTextured, psA, psB, psC, psUVA, psUVB, psUVC, sArea, mbPerspective, pcTexture);
 
 	bWide = (iMaxX - iMinX) >= RASTER_WIDE_PIXELS;
 	if (bWide)
@@ -1875,7 +1966,7 @@ void CRasteriser::DrawTexturedTriangleRows(CRasterTarget* pcTarget, SRasterScree
 		{
 			if ((s0.miRaw | s1.miRaw | s2.miRaw) >= 0)
 			{
-				RasterTexturedPixel(&sTextured, pcTexture, &puiPixelRow[x], &piDepthRow[x], s0 - sBias0, s1 - sBias1, s2 - sBias2, uiColour, bTransparent);
+				RasterTexturedPixel(&sTextured, pcTexture, meFilter, &puiPixelRow[x], &piDepthRow[x], s0 - sBias0, s1 - sBias1, s2 - sBias2, uiColour, bTransparent);
 			}
 			s0 += sStepX0;
 			s1 += sStepX1;

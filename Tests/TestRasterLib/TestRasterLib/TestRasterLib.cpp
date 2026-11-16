@@ -16,6 +16,7 @@ void TestRasterPosed(void);
 void TestRasterCamera(void);
 void TestRasteriser(void);
 void TestRasterTexture(void);
+void TestRasterMipmap(void);
 void TestRasterLights(void);
 void TestRenderScene(void);
 void TestRasterFrame(void);
@@ -39,6 +40,7 @@ int __cdecl main(void)
 	TestRasterCamera();
 	TestRasteriser();
 	TestRasterTexture();
+	TestRasterMipmap();
 	TestRasterLights();
 	TestRenderScene();
 	TestRasterFrame();

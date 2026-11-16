@@ -149,7 +149,7 @@ bool CVulkanRenderMesh::Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
 		psSubmesh->uiColour = pcCooked->HasColours() ? VULKAN_WHITE : psCooked->uiColour;
 		psSubmesh->bTransparent = psCooked->bTransparent;
 		pMaterial = pcCooked->mapMaterials.Get(i);
-		psSubmesh->hTexture = pcRenderer->GetTexture(pMaterial.IsNull() ? NULL : &pMaterial->GetImage(MI_Diffuse)->mpImage);
+		psSubmesh->hTexture = pcRenderer->GetTexture(pMaterial.IsNull() ? NULL : pMaterial->GetImage(MI_Diffuse));
 	}
 	return !pcCooked->IsSkinned() || MakeSkin(pcRenderer, pcCooked);
 }

@@ -21,6 +21,9 @@
     <ClCompile Include="ImageTexels.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="TextureLevels.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderFactory.h">
@@ -39,6 +42,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="ImageTexels.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureLevels.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

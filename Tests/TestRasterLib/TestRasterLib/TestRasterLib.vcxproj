@@ -233,6 +233,7 @@
     <ClCompile Include="TestRasterLights.cpp" />
     <ClCompile Include="TestRenderScene.cpp" />
     <ClCompile Include="TestRasterFrame.cpp" />
+    <ClCompile Include="TestRasterMipmap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />

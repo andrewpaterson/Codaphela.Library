@@ -22,8 +22,8 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "BaseLib/Logger.h"
 #include "StandardLib/ClassDefines.h"
-#include "SupportLib/Image.h"
-#include "RenderLib/ImageTexels.h"
+#include "SupportLib/MaterialImage.h"
+#include "RenderLib/TextureLevels.h"
 #include "VulkanShaders.h"
 #include "VulkanRenderer.h"
 
@@ -511,6 +511,7 @@ bool CVulkanRenderer::CreateTextureDescriptors(void)
 	VkDescriptorPoolCreateInfo		sPool;
 	VkSamplerCreateInfo				sSampler;
 	uint32							uiWhite;
+	int32							iOne;
 
 	memset(&sBinding, 0, sizeof(sBinding));
 	sBinding.binding = 0;
@@ -542,7 +543,8 @@ bool CVulkanRenderer::CreateTextureDescriptors(void)
 	sSampler.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	sSampler.magFilter = VK_FILTER_LINEAR;
 	sSampler.minFilter = VK_FILTER_LINEAR;
-	sSampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+	sSampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	sSampler.maxLod = VK_LOD_CLAMP_NONE;
 	sSampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	sSampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	sSampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -552,7 +554,8 @@ bool CVulkanRenderer::CreateTextureDescriptors(void)
 	}
 
 	uiWhite = 0xFFFFFFFF;
-	return CreateTexture(&msWhite, 1, 1, &uiWhite);
+	iOne = 1;
+	return CreateTexture(&msWhite, 1, &iOne, &iOne, &uiWhite);
 }
 
 
@@ -716,11 +719,13 @@ bool CVulkanRenderer::AddPalette(float32* paf4x4s, uint32 uiNumMatrices, uint32*
 // commands.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CVulkanRenderer::Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iWidth, int32 iHeight)
+bool CVulkanRenderer::Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iNumLevels, int32* paiWidths, int32* paiHeights)
 {
 	VkCommandBufferBeginInfo	sBegin;
 	VkBufferImageCopy			sCopy;
 	VkSubmitInfo				sSubmit;
+	VkDeviceSize				uiOffset;
+	int32						iLevel;
 	bool						bResult;
 
 	mcVulkan.vkResetCommandBuffer(mhCommands, 0);
@@ -729,15 +734,22 @@ bool CVulkanRenderer::Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int
 	sBegin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	mcVulkan.vkBeginCommandBuffer(mhCommands, &sBegin);
 
-	Barrier(psImage->hImage, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-	memset(&sCopy, 0, sizeof(sCopy));
-	sCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	sCopy.imageSubresource.layerCount = 1;
-	sCopy.imageExtent.width = (uint32)iWidth;
-	sCopy.imageExtent.height = (uint32)iHeight;
-	sCopy.imageExtent.depth = 1;
-	mcVulkan.vkCmdCopyBufferToImage(mhCommands, psPixels->hBuffer, psImage->hImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &sCopy);
-	Barrier(psImage->hImage, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+	Barrier(psImage->hImage, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, (uint32)iNumLevels);
+	uiOffset = 0;
+	for (iLevel = 0; iLevel < iNumLevels; iLevel++)
+	{
+		memset(&sCopy, 0, sizeof(sCopy));
+		sCopy.bufferOffset = uiOffset;
+		sCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		sCopy.imageSubresource.mipLevel = (uint32)iLevel;
+		sCopy.imageSubresource.layerCount = 1;
+		sCopy.imageExtent.width = (uint32)paiWidths[iLevel];
+		sCopy.imageExtent.height = (uint32)paiHeights[iLevel];
+		sCopy.imageExtent.depth = 1;
+		mcVulkan.vkCmdCopyBufferToImage(mhCommands, psPixels->hBuffer, psImage->hImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &sCopy);
+		uiOffset += (VkDeviceSize)paiWidths[iLevel] * paiHeights[iLevel] * sizeof(uint32);
+	}
+	Barrier(psImage->hImage, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, (uint32)iNumLevels);
 	mcVulkan.vkEndCommandBuffer(mhCommands);
 
 	memset(&sSubmit, 0, sizeof(sSubmit));
@@ -756,26 +768,33 @@ bool CVulkanRenderer::Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int
 // False, having made nothing, if it can't be made.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CVulkanRenderer::CreateTexture(SVulkanTexture* psTexture, int32 iWidth, int32 iHeight, uint32* puiTexels)
+bool CVulkanRenderer::CreateTexture(SVulkanTexture* psTexture, int32 iNumLevels, int32* paiWidths, int32* paiHeights, uint32* puiTexels)
 {
 	SVulkanBuffer				sPixels;
 	VkDescriptorSetAllocateInfo	sAllocate;
 	VkDescriptorImageInfo		sImageInfo;
 	VkWriteDescriptorSet		sWrite;
+	VkDeviceSize				uiBytes;
+	int32						iLevel;
 	bool						bResult;
 
 	memset(psTexture, 0, sizeof(SVulkanTexture));
-	if (!CreateImage(&psTexture->sImage, iWidth, iHeight, VULKAN_TEXTURE_FORMAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_IMAGE_ASPECT_COLOR_BIT))
+	if (!CreateImage(&psTexture->sImage, paiWidths[0], paiHeights[0], VULKAN_TEXTURE_FORMAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_IMAGE_ASPECT_COLOR_BIT, (uint32)iNumLevels))
 	{
 		return false;
 	}
-	if (!CreateBuffer(&sPixels, (VkDeviceSize)iWidth * iHeight * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT))
+	uiBytes = 0;
+	for (iLevel = 0; iLevel < iNumLevels; iLevel++)
+	{
+		uiBytes += (VkDeviceSize)paiWidths[iLevel] * paiHeights[iLevel] * sizeof(uint32);
+	}
+	if (!CreateBuffer(&sPixels, uiBytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT))
 	{
 		DestroyTexture(psTexture);
 		return false;
 	}
-	memcpy(sPixels.pvMapped, puiTexels, (size)iWidth * iHeight * sizeof(uint32));
-	bResult = Upload(&psTexture->sImage, &sPixels, iWidth, iHeight);
+	memcpy(sPixels.pvMapped, puiTexels, (size)uiBytes);
+	bResult = Upload(&psTexture->sImage, &sPixels, iNumLevels, paiWidths, paiHeights);
 	DestroyBuffer(&sPixels);
 
 	memset(&sAllocate, 0, sizeof(sAllocate));
@@ -821,20 +840,20 @@ void CVulkanRenderer::DestroyTexture(SVulkanTexture* psTexture)
 // White for no image, one that isn't bytes, or one that can't be made.
 //
 //////////////////////////////////////////////////////////////////////////
-VkDescriptorSet CVulkanRenderer::GetTexture(CImage* pcImage)
+VkDescriptorSet CVulkanRenderer::GetTexture(CMaterialImage* pcImage)
 {
 	SVulkanTextureEntry*	psEntry;
 	SVulkanTexture			sTexture;
-	uint32*					puiTexels;
+	CTextureLevels			cLevels;
 	OIndex					oiImage;
 	size					i;
 	bool					bResult;
 
-	if ((pcImage == NULL) || (pcImage->GetWidth() == 0) || (pcImage->GetHeight() == 0))
+	if ((pcImage == NULL) || pcImage->mpImage.IsNull() || (pcImage->mpImage->GetWidth() == 0) || (pcImage->mpImage->GetHeight() == 0))
 	{
 		return msWhite.hSet;
 	}
-	oiImage = pcImage->GetIndex();
+	oiImage = pcImage->mpImage->GetIndex();
 	for (i = 0; i < masTextures.NumElements(); i++)
 	{
 		psEntry = masTextures.Get(i);
@@ -848,9 +867,8 @@ VkDescriptorSet CVulkanRenderer::GetTexture(CImage* pcImage)
 		return msWhite.hSet;
 	}
 
-	puiTexels = (uint32*)malloc((size)pcImage->GetWidth() * pcImage->GetHeight() * sizeof(uint32));
-	bResult = (puiTexels != NULL) && GetImageTexels(pcImage, puiTexels) && CreateTexture(&sTexture, (int32)pcImage->GetWidth(), (int32)pcImage->GetHeight(), puiTexels);
-	free(puiTexels);
+	bResult = cLevels.Init(pcImage) && CreateTexture(&sTexture, cLevels.NumLevels(), cLevels.maiWidths.GetData(), cLevels.maiHeights.GetData(), cLevels.mauiTexels.GetData());
+	cLevels.Kill();
 	if (!bResult)
 	{
 		return msWhite.hSet;
@@ -1155,7 +1173,7 @@ void CVulkanRenderer::DestroyBuffer(SVulkanBuffer* psBuffer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CVulkanRenderer::CreateImage(SVulkanImage* psImage, int32 iWidth, int32 iHeight, VkFormat eFormat, VkImageUsageFlags uiUsage, VkImageAspectFlags uiAspect)
+bool CVulkanRenderer::CreateImage(SVulkanImage* psImage, int32 iWidth, int32 iHeight, VkFormat eFormat, VkImageUsageFlags uiUsage, VkImageAspectFlags uiAspect, uint32 uiLevels)
 {
 	VkImageCreateInfo		sCreate;
 	VkImageViewCreateInfo	sView;
@@ -1169,7 +1187,7 @@ bool CVulkanRenderer::CreateImage(SVulkanImage* psImage, int32 iWidth, int32 iHe
 	sCreate.extent.width = (uint32)iWidth;
 	sCreate.extent.height = (uint32)iHeight;
 	sCreate.extent.depth = 1;
-	sCreate.mipLevels = 1;
+	sCreate.mipLevels = uiLevels;
 	sCreate.arrayLayers = 1;
 	sCreate.samples = VK_SAMPLE_COUNT_1_BIT;
 	sCreate.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -1193,7 +1211,7 @@ bool CVulkanRenderer::CreateImage(SVulkanImage* psImage, int32 iWidth, int32 iHe
 	sView.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	sView.format = eFormat;
 	sView.subresourceRange.aspectMask = uiAspect;
-	sView.subresourceRange.levelCount = 1;
+	sView.subresourceRange.levelCount = uiLevels;
 	sView.subresourceRange.layerCount = 1;
 	if (mcVulkan.vkCreateImageView(mhDevice, &sView, NULL, &psImage->hView) < 0)
 	{
@@ -1266,7 +1284,7 @@ void CVulkanRenderer::DestroyTarget(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CVulkanRenderer::Barrier(VkImage hImage, VkImageAspectFlags uiAspect, VkImageLayout eFrom, VkImageLayout eTo, VkAccessFlags uiFromAccess, VkAccessFlags uiToAccess, VkPipelineStageFlags uiFromStage, VkPipelineStageFlags uiToStage)
+void CVulkanRenderer::Barrier(VkImage hImage, VkImageAspectFlags uiAspect, VkImageLayout eFrom, VkImageLayout eTo, VkAccessFlags uiFromAccess, VkAccessFlags uiToAccess, VkPipelineStageFlags uiFromStage, VkPipelineStageFlags uiToStage, uint32 uiLevels)
 {
 	VkImageMemoryBarrier	sBarrier;
 
@@ -1280,7 +1298,7 @@ void CVulkanRenderer::Barrier(VkImage hImage, VkImageAspectFlags uiAspect, VkIma
 	sBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	sBarrier.image = hImage;
 	sBarrier.subresourceRange.aspectMask = uiAspect;
-	sBarrier.subresourceRange.levelCount = 1;
+	sBarrier.subresourceRange.levelCount = uiLevels;
 	sBarrier.subresourceRange.layerCount = 1;
 	mcVulkan.vkCmdPipelineBarrier(mhCommands, uiFromStage, uiToStage, 0, 0, NULL, 0, NULL, 1, &sBarrier);
 }

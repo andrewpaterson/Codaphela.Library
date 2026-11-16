@@ -144,6 +144,7 @@ protected:
 	CArrayRasterLightMask		mauiPointLights;  //The point lights that may reach each instance this frame.
 	bool						mbCullBackFaces;
 	bool						mbPerspective;  //This frame's camera's, which says how a texture is drawn across a triangle.
+	ERasterFilter				meFilter;  //How texels make a pixel's colour: RF_Nearest unless SetFilter says.
 	CJobs*						mpcJobs;  //What draws instances (SetJobs), NULL to draw them on the caller's thread.
 	CArrayRasterProjectJob		masProjectJobs;
 	CArrayRasterListJob			masListJobs;
@@ -155,6 +156,7 @@ public:
 	void	Kill(void);
 
 	void			SetCullBackFaces(bool bCullBackFaces);
+	void			SetFilter(ERasterFilter eFilter);
 	void			SetJobs(CJobs* pcJobs);
 	CRasterLights*	GetLights(void);
 

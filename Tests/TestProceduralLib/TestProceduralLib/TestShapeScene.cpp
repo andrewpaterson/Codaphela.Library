@@ -32,22 +32,31 @@
 #define TEST_SHAPE_SCENE_WIDTH		128
 #define TEST_SHAPE_SCENE_HEIGHT		80
 #define TEST_SHAPE_SCENE_SCALE		1000
-#define TEST_SHAPE_SCENE_CHANNEL	8		//How far a channel may be from what was saved before its pixel counts as different.
+#define TEST_SHAPE_SCENE_CHANNEL	8		//How far a channel may be from what was saved before its pixel counts as different,
+#define TEST_SHAPE_SCENE_BLOCK		12		//and a textured scene's four by four block's mean.
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How many pixels differ from the saved frame by more than
-// TEST_SHAPE_SCENE_CHANNEL in any channel, or -1 if it can't be read.
-// Builds differ in floats' last bits (g++ contracts a * b + c into one
-// FMA instruction when it optimises, and Visual Studio needn't), so a
-// curve's corners and shading can move a little.
+// How many iBlock by iBlock blocks of pixels differ from the saved frame's
+// by more than iTolerance in the mean of any channel, or -1 if it can't be
+// read.  Builds differ in floats' last bits (g++ contracts a * b + c into
+// one FMA instruction when it optimises, and Visual Studio needn't), so a
+// curve's corners and shading can move a little; a textured surface's
+// charts can be grown differently, so its texels are laid out differently
+// and its mottle, where a mip level blends them, differs pixel for pixel
+// but not block for block.
 //
 //////////////////////////////////////////////////////////////////////////
-static int TestShapeSceneDifferences(const char* szExpected, uint32* puiPixels, int iNumPixels)
+static int TestShapeSceneDifferences(const char* szExpected, uint32* puiPixels, int iBlock, int iTolerance)
 {
 	CFileBasic	cFile;
 	uint32*		puiExpected;
+	int			iNumPixels;
+	int			iBlockX;
+	int			iBlockY;
+	int			x;
+	int			y;
 	int			i;
 	int			iChannel;
 	int			iDifferent;
@@ -55,6 +64,7 @@ static int TestShapeSceneDifferences(const char* szExpected, uint32* puiPixels, 
 	int			iActual;
 	lsize		uiRead;
 
+	iNumPixels = TEST_SHAPE_SCENE_WIDTH * TEST_SHAPE_SCENE_HEIGHT;
 	puiExpected = (uint32*)malloc(iNumPixels * sizeof(uint32));
 	cFile.Init(DiskFile(szExpected));
 	uiRead = 0;
@@ -71,16 +81,28 @@ static int TestShapeSceneDifferences(const char* szExpected, uint32* puiPixels, 
 	}
 
 	iDifferent = 0;
-	for (i = 0; i < iNumPixels; i++)
+	for (iBlockY = 0; iBlockY < TEST_SHAPE_SCENE_HEIGHT; iBlockY += iBlock)
 	{
-		for (iChannel = 0; iChannel < 4; iChannel++)
+		for (iBlockX = 0; iBlockX < TEST_SHAPE_SCENE_WIDTH; iBlockX += iBlock)
 		{
-			iExpected = (int)((puiExpected[i] >> (iChannel * 8)) & 0xFF);
-			iActual = (int)((puiPixels[i] >> (iChannel * 8)) & 0xFF);
-			if (abs(iExpected - iActual) > TEST_SHAPE_SCENE_CHANNEL)
+			for (iChannel = 0; iChannel < 4; iChannel++)
 			{
-				iDifferent++;
-				break;
+				iExpected = 0;
+				iActual = 0;
+				for (y = iBlockY; y < iBlockY + iBlock; y++)
+				{
+					for (x = iBlockX; x < iBlockX + iBlock; x++)
+					{
+						i = (y * TEST_SHAPE_SCENE_WIDTH) + x;
+						iExpected += (int)((puiExpected[i] >> (iChannel * 8)) & 0xFF);
+						iActual += (int)((puiPixels[i] >> (iChannel * 8)) & 0xFF);
+					}
+				}
+				if (abs(iExpected - iActual) > iTolerance * iBlock * iBlock)
+				{
+					iDifferent++;
+					break;
+				}
 			}
 		}
 	}
@@ -187,11 +209,12 @@ static Ptr<CCamera> TestShapeSceneCamera(SFloat32Vec3* psEye)
 //
 // pScene drawn by the raster renderer from psEye, 128 by 80, as it was
 // when first drawn and looked at (Input/<szName>.raw) but for
-// iPercentDifferent of its pixels.  Output/<szName>.raw is what was
-// drawn, ARGB32 rows from the top.
+// iPercentDifferent of its iBlock by iBlock blocks (each channel's mean
+// within iTolerance).  Output/<szName>.raw is what was drawn, ARGB32 rows
+// from the top.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestShapeSceneRender(Ptr<CScene> pScene, SFloat32Vec3* psEye, size uiInstances, const char* szName, int iPercentDifferent)
+static void TestShapeSceneRender(Ptr<CScene> pScene, SFloat32Vec3* psEye, size uiInstances, const char* szName, int iBlock, int iTolerance, int iPercentDifferent)
 {
 	CRasterRenderFactory	cFactory;
 	CRasteriser				cRasteriser;
@@ -244,10 +267,10 @@ static void TestShapeSceneRender(Ptr<CScene> pScene, SFloat32Vec3* psEye, size u
 	szFile.Init("Input" _FS_);
 	szFile.Append(szName);
 	szFile.Append(".raw");
-	iDifferent = TestShapeSceneDifferences(szFile.Text(), puiPixels, TEST_SHAPE_SCENE_WIDTH * TEST_SHAPE_SCENE_HEIGHT);
+	iDifferent = TestShapeSceneDifferences(szFile.Text(), puiPixels, iBlock, iTolerance);
 	szFile.Kill();
 	AssertTrue(iDifferent >= 0);
-	AssertTrue(iDifferent <= (TEST_SHAPE_SCENE_WIDTH * TEST_SHAPE_SCENE_HEIGHT * iPercentDifferent / 100));
+	AssertTrue(iDifferent <= ((TEST_SHAPE_SCENE_WIDTH / iBlock) * (TEST_SHAPE_SCENE_HEIGHT / iBlock) * iPercentDifferent / 100));
 
 	cTarget.Kill();
 	free(puiPixels);
@@ -304,7 +327,7 @@ void TestShapeSceneDraw(void)
 	TestShapeSceneAdd(pScene, OMalloc<CShapeSmoothUnion>(OMalloc<CSphere>(&sCentre, 0.8f), OMalloc<CSphere>(&sStart, 0.6f), 0.4f), 0.05f, 0.4f);
 
 	sEye.Init(1.5f, -9.0f, 6.0f);
-	TestShapeSceneRender(pScene, &sEye, 4, "ShapeScene", 1);
+	TestShapeSceneRender(pScene, &sEye, 4, "ShapeScene", 1, TEST_SHAPE_SCENE_CHANNEL, 1);
 	pUnion = NULL;
 	pScene = NULL;
 }
@@ -313,11 +336,14 @@ void TestShapeSceneDraw(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A box and five spheres smoothly joined, unwrapped at 64 texels to the
-// unit (grown charts by LSCM) and a checker of quarter unit cubes baked
-// onto them (Input/TexturedScene.raw), within three hundredths of its
-// pixels: builds whose floats differ (FMA) can pack the charts a cell
-// apart, so the checker's texels are on another grid and its edges move a
-// pixel.  The box is off the checker's planes: a face on one is evenly
+// unit (grown charts by ARAP) and a checker of quarter unit cubes baked
+// onto them at every mip level (Input/TexturedScene.raw), drawn from the
+// level a pixel's texels make, within three hundredths of its four by
+// four blocks: builds whose floats differ (FMA) grow and pack the charts
+// differently, so the checker's texels are laid out differently and its
+// mottle, where a level blends them, differs pixel for pixel.  The
+// spheres' squares are two or three pixels across, so they're mostly
+// mottle.  The box is off the checker's planes: a face on one is evenly
 // both colours, as a solid texture is there.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -356,7 +382,7 @@ void TestShapeSceneTextured(void)
 	TestShapeSceneAddTextured(pScene, pSpheres, pChecker, 64.0f);
 
 	sEye.Init(0.5f, -8.0f, 4.0f);
-	TestShapeSceneRender(pScene, &sEye, 2, "TexturedScene", 3);
+	TestShapeSceneRender(pScene, &sEye, 2, "TexturedScene", 4, TEST_SHAPE_SCENE_BLOCK, 3);
 	pSpheres = NULL;
 	pChecker = NULL;
 	pScene = NULL;
