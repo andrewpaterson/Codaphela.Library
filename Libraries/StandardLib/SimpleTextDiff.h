@@ -56,9 +56,9 @@ struct STextDiffBlock
 	lsize	uiFirstFragment;
 	lsize	uiNumFragments;
 
-	ETextDiffBlockType	GetType(void);
-	lsize				NumLines1(void);
-	lsize				NumLines2(void);
+	ETextDiffBlockType	GetType(void) const;
+	lsize				NumLines1(void) const;
+	lsize				NumLines2(void) const;
 };
 
 
@@ -88,14 +88,14 @@ public:
 	char*				GetTitle(void);
 	CTextContent*		GetContent1(void);
 	CTextContent*		GetContent2(void);
-	ETextDiffWhitespace	GetWhitespace(void);
-	ETextDiffHighlight	GetHighlight(void);
+	ETextDiffWhitespace	GetWhitespace(void) const;
+	ETextDiffHighlight	GetHighlight(void) const;
 
-	bool				IsIdentical(void);
-	lsize				NumBlocks(void);
+	bool				IsIdentical(void) const;
+	lsize				NumBlocks(void) const;
 	STextDiffBlock*		GetBlock(lsize uiBlock);
 	STextDiffFragment*	GetFragment(STextDiffBlock* psBlock, lsize uiFragment);
-	lsize				NumFragments(void);
+	lsize				NumFragments(void) const;
 
 	void				Print(CChars* psz);
 	void				Dump(void);

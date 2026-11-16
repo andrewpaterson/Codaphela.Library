@@ -442,11 +442,11 @@ void CChannelsAccessorCreatorParams::AddAccess(CChannelsAccessor* pcChannels)
 //////////////////////////////////////////////////////////////////////////
 CArrayChannelAccessor* CChannelsAccessorCreatorParams::GetAccessors(void) { return &macAccessors; }
 CArrayChannelAccess* CChannelsAccessorCreatorParams::GetAccesses(void) { return &masAccesses; }
-bool CChannelsAccessorCreatorParams::IsContiguous(void) { return mbContiguous; }
-bool CChannelsAccessorCreatorParams::IsSourceTypesSame(void) { return mbSourceTypesSame; }
-bool CChannelsAccessorCreatorParams::IsChannelByteAligned(void) { return mbChannelByteAligned; }
-bool CChannelsAccessorCreatorParams::IsAccessByteAligned(void) { return mbAccessByteAligned; }
-size CChannelsAccessorCreatorParams::GetBitSize(void) { return muiBitSize; }
-size CChannelsAccessorCreatorParams::GetByteSize(void) { return muiByteSize; }
-CChannels* CChannelsAccessorCreatorParams::GetChannels(void) { return mpcChannels; }
+bool CChannelsAccessorCreatorParams::IsContiguous(void) const { return mbContiguous; }
+bool CChannelsAccessorCreatorParams::IsSourceTypesSame(void) const { return mbSourceTypesSame; }
+bool CChannelsAccessorCreatorParams::IsChannelByteAligned(void) const { return mbChannelByteAligned; }
+bool CChannelsAccessorCreatorParams::IsAccessByteAligned(void) const { return mbAccessByteAligned; }
+size CChannelsAccessorCreatorParams::GetBitSize(void) const { return muiBitSize; }
+size CChannelsAccessorCreatorParams::GetByteSize(void) const { return muiByteSize; }
+CChannels* CChannelsAccessorCreatorParams::GetChannels(void) const { return mpcChannels; }
 

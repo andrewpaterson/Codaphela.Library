@@ -78,9 +78,9 @@ public:
 	void					KillAll(void) override;
 
 	void					EnsureSorted(void);
-	bool					IsSorted(void);
+	bool					IsSorted(void) const;
 	bool					CalculateIsSorted(void);
-	bool					IsMustSort(void);
+	bool					IsMustSort(void) const;
 
 protected:
 	void					PreFields(void) override;

@@ -44,7 +44,7 @@ public:
 	template<class M, class O>
 	void	Add(O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext));
 	bool	Remove(void* pvObject);
-	size	NumCalls(void);
+	size	NumCalls(void) const;
 
 	void	Call(void* pvContext);
 

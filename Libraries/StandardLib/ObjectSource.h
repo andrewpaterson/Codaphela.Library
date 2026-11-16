@@ -46,7 +46,7 @@ public:
 	virtual bool			IsNative(void);
 	virtual bool			IsMultiSource(void);
 
-			CAbstractFile*	GetFile(void);
+			CAbstractFile*	GetFile(void) const;
 
 	virtual CExternalObjectReader*	GetReader(void);
 };

@@ -61,9 +61,9 @@ public:
 
 	void				SetNext(CStackPointer* pcNext);
 	void				LinkBefore(CStackPointer* pcFirst);
-	size				NumPointers(void);
+	size				NumPointers(void) const;
 	CStackPointer*		FindLast(void);
-	CStackPointer*		GetNext(void);
+	CStackPointer*		GetNext(void) const;
 	
 	CStackPointer*		Remove(CPointer* pcPointer, CFreeList* pcFreeList, bool* pbRemoved);
 	CStackPointer*		Remove(CCollection* pcCollection, CFreeList* pcFreeList, bool* pbRemoved);
@@ -71,7 +71,7 @@ public:
 	void				ClearPointer(void);
 	CStackPointer*		ClearPointerGetNext(CEmbeddedObject* pcPointedTo);
 
-	EStackPointerType	GetType(void);
+	EStackPointerType	GetType(void) const;
 	SStackPointer*		Get(void);
 
 protected:

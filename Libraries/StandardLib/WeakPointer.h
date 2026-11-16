@@ -45,8 +45,8 @@ public:
 	void				PointTo(CEmbeddedObject* pcObject);  //Off its old object's weak froms, onto the new one's (NULL for an object being freed).
 	void				Release(void);  //Off its object's weak froms, and NULL: its holder is being freed.
 	CEmbeddedObject*	Object(void);
-	bool				IsNull(void);
-	bool				IsNotNull(void);
+	bool				IsNull(void) const;
+	bool				IsNotNull(void) const;
 	CWeakPointer*		This(void);
 
 private:

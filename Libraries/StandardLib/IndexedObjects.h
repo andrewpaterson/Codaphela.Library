@@ -42,7 +42,7 @@ public:
 	bool				Has(OIndex oi);
 	bool				Add(OIndex oi, CBaseObject* pvMemory);
 	bool				Remove(OIndex oi);
-	size				NumIndexed(void);
+	size				NumIndexed(void) const;
 
 	void				Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
 

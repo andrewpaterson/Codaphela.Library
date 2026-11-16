@@ -144,42 +144,42 @@ CClass* CUnmanagedClasses::AddClass(EPrimitiveType eType, const char* szName, si
 }
 
 
-CClass* CUnmanagedClasses::GetUndefined(void) { return mpcUndefined; }
-CClass* CUnmanagedClasses::GetVoidPointer(void) { return mpcVoidPointer; }
-CClass* CUnmanagedClasses::GetByte(void) { return mpcInt8; }
-CClass* CUnmanagedClasses::GetShort(void) { return mpcInt16; }
-CClass* CUnmanagedClasses::GetInt(void) { return mpcInt32; }
-CClass* CUnmanagedClasses::GetLong(void) { return mpcInt64; }
-CClass* CUnmanagedClasses::GetUByte(void) { return mpcUInt8; }
-CClass* CUnmanagedClasses::GetUShort(void) { return mpcUInt16; }
-CClass* CUnmanagedClasses::GetUInt(void) { return mpcUInt32; }
-CClass* CUnmanagedClasses::GetULong(void) { return mpcUInt64; }
-CClass* CUnmanagedClasses::GetFloat(void) { return mpcFloat32; }
-CClass* CUnmanagedClasses::GetDouble(void) { return mpcFloat64; }
-CClass* CUnmanagedClasses::GetFloat2(void) { return mpcM2float32; }
-CClass* CUnmanagedClasses::GetFloat3(void) { return mpcM3float32; }
-CClass* CUnmanagedClasses::GetFloat4(void) { return mpcM4float32; }
-CClass* CUnmanagedClasses::GetDouble2(void) { return mpcM2float64; }
-CClass* CUnmanagedClasses::GetDouble3(void) { return mpcM3float64; }
-CClass* CUnmanagedClasses::GetDouble4(void) { return mpcM4float64; }
-CClass* CUnmanagedClasses::GetInt2(void) { return mpcM2int32; }
-CClass* CUnmanagedClasses::GetInt3(void) { return mpcM3int32; }
-CClass* CUnmanagedClasses::GetInt4(void) { return mpcM4int32; }
-CClass* CUnmanagedClasses::GetFloat4x4(void) { return mpcM4x4float32; }
-CClass* CUnmanagedClasses::GetBool(void) { return mpcBool; }
-CClass* CUnmanagedClasses::GetVoid(void) { return mpcVoid; }
-CClass* CUnmanagedClasses::GetChar(void) { return mpcChar8; }
-CClass* CUnmanagedClasses::GetWidechar(void) { return mpcChar16; }
-CClass* CUnmanagedClasses::GetString(void) { return mpcString; }
-CClass* CUnmanagedClasses::GetStringImmutable(void) { return mpcStringImmutable; }
-CClass* CUnmanagedClasses::GetNumber(void) { return mpcNumber; }
-CClass* CUnmanagedClasses::GetDate(void) { return mpcDate; }
-CClass* CUnmanagedClasses::GetDateTime(void) { return mpcDateTime; }
-CClass* CUnmanagedClasses::GetBit(void) { return mpcBit; }
-CClass* CUnmanagedClasses::GetCrumb(void) { return mpcCrumb; }
-CClass* CUnmanagedClasses::GetTribble(void) { return mpcTribble; }
-CClass* CUnmanagedClasses::GetNybble(void) { return mpcNybble; }
-CClass* CUnmanagedClasses::GetNickle(void) { return mpcNickle; }
-CClass* CUnmanagedClasses::GetSixbits(void) { return mpcSixbits; }
-CClass* CUnmanagedClasses::GetEnum(void) { return mpcEnum; }
+CClass* CUnmanagedClasses::GetUndefined(void) const { return mpcUndefined; }
+CClass* CUnmanagedClasses::GetVoidPointer(void) const { return mpcVoidPointer; }
+CClass* CUnmanagedClasses::GetByte(void) const { return mpcInt8; }
+CClass* CUnmanagedClasses::GetShort(void) const { return mpcInt16; }
+CClass* CUnmanagedClasses::GetInt(void) const { return mpcInt32; }
+CClass* CUnmanagedClasses::GetLong(void) const { return mpcInt64; }
+CClass* CUnmanagedClasses::GetUByte(void) const { return mpcUInt8; }
+CClass* CUnmanagedClasses::GetUShort(void) const { return mpcUInt16; }
+CClass* CUnmanagedClasses::GetUInt(void) const { return mpcUInt32; }
+CClass* CUnmanagedClasses::GetULong(void) const { return mpcUInt64; }
+CClass* CUnmanagedClasses::GetFloat(void) const { return mpcFloat32; }
+CClass* CUnmanagedClasses::GetDouble(void) const { return mpcFloat64; }
+CClass* CUnmanagedClasses::GetFloat2(void) const { return mpcM2float32; }
+CClass* CUnmanagedClasses::GetFloat3(void) const { return mpcM3float32; }
+CClass* CUnmanagedClasses::GetFloat4(void) const { return mpcM4float32; }
+CClass* CUnmanagedClasses::GetDouble2(void) const { return mpcM2float64; }
+CClass* CUnmanagedClasses::GetDouble3(void) const { return mpcM3float64; }
+CClass* CUnmanagedClasses::GetDouble4(void) const { return mpcM4float64; }
+CClass* CUnmanagedClasses::GetInt2(void) const { return mpcM2int32; }
+CClass* CUnmanagedClasses::GetInt3(void) const { return mpcM3int32; }
+CClass* CUnmanagedClasses::GetInt4(void) const { return mpcM4int32; }
+CClass* CUnmanagedClasses::GetFloat4x4(void) const { return mpcM4x4float32; }
+CClass* CUnmanagedClasses::GetBool(void) const { return mpcBool; }
+CClass* CUnmanagedClasses::GetVoid(void) const { return mpcVoid; }
+CClass* CUnmanagedClasses::GetChar(void) const { return mpcChar8; }
+CClass* CUnmanagedClasses::GetWidechar(void) const { return mpcChar16; }
+CClass* CUnmanagedClasses::GetString(void) const { return mpcString; }
+CClass* CUnmanagedClasses::GetStringImmutable(void) const { return mpcStringImmutable; }
+CClass* CUnmanagedClasses::GetNumber(void) const { return mpcNumber; }
+CClass* CUnmanagedClasses::GetDate(void) const { return mpcDate; }
+CClass* CUnmanagedClasses::GetDateTime(void) const { return mpcDateTime; }
+CClass* CUnmanagedClasses::GetBit(void) const { return mpcBit; }
+CClass* CUnmanagedClasses::GetCrumb(void) const { return mpcCrumb; }
+CClass* CUnmanagedClasses::GetTribble(void) const { return mpcTribble; }
+CClass* CUnmanagedClasses::GetNybble(void) const { return mpcNybble; }
+CClass* CUnmanagedClasses::GetNickle(void) const { return mpcNickle; }
+CClass* CUnmanagedClasses::GetSixbits(void) const { return mpcSixbits; }
+CClass* CUnmanagedClasses::GetEnum(void) const { return mpcEnum; }
 

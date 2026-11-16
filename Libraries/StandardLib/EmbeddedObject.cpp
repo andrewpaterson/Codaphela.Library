@@ -195,7 +195,7 @@ void CEmbeddedObject::LogicalDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::IsNotEmbedded(void)
+bool CEmbeddedObject::IsNotEmbedded(void) const
 {
 	return mpcEmbedded == NULL;
 }
@@ -205,7 +205,7 @@ bool CEmbeddedObject::IsNotEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::IsEmbedded(void)
+bool CEmbeddedObject::IsEmbedded(void) const
 {
 	return mpcEmbedded != NULL;
 }
@@ -1174,7 +1174,7 @@ CEmbeddedObject* CEmbeddedObject::GetNesPointerFrom(size* piStart)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointer* CEmbeddedObject::GetFirstStackFrom(void)
+CStackPointer* CEmbeddedObject::GetFirstStackFrom(void) const
 {
 	return mpcStackFroms;
 }

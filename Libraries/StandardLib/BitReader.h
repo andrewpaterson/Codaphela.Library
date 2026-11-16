@@ -45,8 +45,8 @@ public:
 	void	AlignToByte(void);
 
 	bool	FillByte(void);
-	uint32	GetBits(void);
-	int		NumBits(void);
+	uint32	GetBits(void) const;
+	int		NumBits(void) const;
 	void	SkipBits(int iCount);
 };
 

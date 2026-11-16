@@ -110,7 +110,7 @@ bool CIndexedObjects::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedObjects::NumIndexed(void)
+size CIndexedObjects::NumIndexed(void) const
 {
 	return mcIndexes.NumElements();
 }

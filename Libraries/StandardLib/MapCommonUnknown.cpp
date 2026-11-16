@@ -58,7 +58,7 @@ void CMapCommonUnknown::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapCommonUnknown::IsKillElements(void)
+bool CMapCommonUnknown::IsKillElements(void) const
 {
 	return FixBool(muiFlags & MAP_COMMON_KILL_ELEMENT);
 }
@@ -68,7 +68,7 @@ bool CMapCommonUnknown::IsKillElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapCommonUnknown::IsOverwriteExisting(void)
+bool CMapCommonUnknown::IsOverwriteExisting(void) const
 {
 	return !(muiFlags & MAP_COMMON_NO_OVERWRITE);
 }

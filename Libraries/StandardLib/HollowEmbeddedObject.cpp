@@ -143,7 +143,7 @@ void CHollowEmbeddedObject::DoneKill(bool bAllocatedInObjects)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CHollowEmbeddedObject::GetHollowObject(void)
+CHollowObject* CHollowEmbeddedObject::GetHollowObject(void) const
 {
 	return (CHollowObject*)mpcEmbedded;
 }

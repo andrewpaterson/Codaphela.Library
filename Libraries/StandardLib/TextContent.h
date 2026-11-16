@@ -70,9 +70,9 @@ public:
 
 	char*				GetTitle(void);
 	char*				Text(void);
-	lsize				Length(void);
+	lsize				Length(void) const;
 
-	lsize				NumLines(void);
+	lsize				NumLines(void) const;
 	STextLine*			GetLine(lsize uiLine);
 	char*				GetLineText(lsize uiLine);
 	lsize				GetLineLength(lsize uiLine);

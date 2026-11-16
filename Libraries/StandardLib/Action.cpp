@@ -60,7 +60,7 @@ bool CAction::Remove(void* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CAction::NumCalls(void)
+size CAction::NumCalls(void) const
 {
 	return mcCalls.NumCalls();
 }

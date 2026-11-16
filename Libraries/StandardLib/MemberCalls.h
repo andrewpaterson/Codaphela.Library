@@ -42,7 +42,7 @@ public:
 	template<class O, class F>
 	void			Add(O* pcObject, F fFunction);
 	bool			Remove(void* pvObject);
-	size			NumCalls(void);
+	size			NumCalls(void) const;
 
 	void			Call(void* pvArgument, void* pvValue);
 

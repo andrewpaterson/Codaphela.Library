@@ -318,7 +318,7 @@ bool CArrayCommonUnknown::WriteElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CArrayCommonUnknown::NumElements(void)
+size CArrayCommonUnknown::NumElements(void) const
 {
 	if (!(muiFlags & ARRAY_COMMON_IGNORE_NULL))
 	{
@@ -1251,7 +1251,7 @@ bool CArrayCommonUnknown::PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnk
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::IsKillElements(void)
+bool CArrayCommonUnknown::IsKillElements(void) const
 {
 	return FixBool(muiFlags & ARRAY_COMMON_KILL_ELEMENT);
 }
@@ -1261,7 +1261,7 @@ bool CArrayCommonUnknown::IsKillElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::IsSorted(void)
+bool CArrayCommonUnknown::IsSorted(void) const
 {
 	return FixBool(muiFlags & ARRAY_COMMON_IS_PTR_SORTED);
 }
@@ -1304,7 +1304,7 @@ bool CArrayCommonUnknown::CalculateIsSorted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::IsMustSort(void)
+bool CArrayCommonUnknown::IsMustSort(void) const
 {
 	return FixBool(muiFlags & ARRAY_COMMON_SORT_POINTERS);
 }
@@ -1326,7 +1326,7 @@ void CArrayCommonUnknown::PointersChanged(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::IsEmpty(void)
+bool CArrayCommonUnknown::IsEmpty(void) const
 {
 	return NumElements() == 0;
 }
@@ -1336,7 +1336,7 @@ bool CArrayCommonUnknown::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::IsNotEmpty(void)
+bool CArrayCommonUnknown::IsNotEmpty(void) const
 {
 	return NumElements() != 0;
 }
@@ -1348,7 +1348,7 @@ bool CArrayCommonUnknown::IsNotEmpty(void)
 // its place: the other elements stay where they are.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::IsIgnoreNull(void)
+bool CArrayCommonUnknown::IsIgnoreNull(void) const
 {
 	return FixBool(muiFlags & ARRAY_COMMON_IGNORE_NULL);
 }

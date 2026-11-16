@@ -161,7 +161,7 @@ public:
 			bool					IsDirty(void) override;
 			bool					IsStored(void);
 			bool					IsInitialised(void) override;
-			bool					HasClass(void);
+			bool					HasClass(void) const;
 			CClass*					GetClass(void) override;
 			bool					IsKilled(void);
 			bool					IsNamed(const char* szName);
@@ -188,7 +188,7 @@ public:
 			void					StackFromAdded(void);
 			void					HeapFromAdded(CBaseObject* pcFrom);
 			bool					IsOlderThan(CBaseObject* pcObject);
-			uint32					GetWalkStamp(void);
+			uint32					GetWalkStamp(void) const;
 			void					SetWalkStamp(uint32 uiWalkStamp);
 	virtual bool					SetDistToRoot(int iDistToRoot) override;
 			CBaseObject*			StartHeapFromIteration(SHeapFromIterator* psIter);
@@ -268,12 +268,12 @@ protected:
 			bool					LoadHeapFroms(CObjectReader* pcFile);
 
 			bool					IsBaseObject(void) override;
-			size					NumHeapFromHolders(void);
+			size					NumHeapFromHolders(void) const;
 			void					SetNumEmbedded(size uiNumEmbedded);
 			void					ContainerPreInit(void);
 			void					ContainerPostInit(void);
 
-			size					NumEmbeddedFields(void);
+			size					NumEmbeddedFields(void) const;
 			CBaseObject*			GetEmbeddedField(size uiIndex);
 			bool					SaveEmbeddedObjectsManaged(CObjectWriter* pcFile);
 			bool					SavePointers(CObjectWriter* pcFile);

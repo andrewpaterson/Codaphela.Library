@@ -96,9 +96,9 @@ protected:
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	CBaseObject*		GetContained(size uiIndex);
-	size				NumPointerFields(void);
+	size				NumPointerFields(void) const;
 	CPointer*			GetPointerField(size uiIndex);
-	size				NumWeakPointerFields(void);
+	size				NumWeakPointerFields(void) const;
 	CWeakPointer*		GetWeakPointerField(size uiIndex);
 	CBaseObject*		IterateDirectlyEmbedded(size* puiIndex);
 	void				ValidateEmbeddedConsistency(void) override;

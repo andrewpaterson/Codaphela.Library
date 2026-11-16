@@ -124,7 +124,7 @@ CObject* CPrimitiveObject::Embedding(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveType CPrimitiveObject::GetClassType(void)
+EPrimitiveType CPrimitiveObject::GetClassType(void) const
 {
 	return (EPrimitiveType)muiClassType;
 }

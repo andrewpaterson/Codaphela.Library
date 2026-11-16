@@ -238,7 +238,7 @@ size CIndexUnknown::Remove(CUnknown* pvData)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-size CIndexUnknown::NumElements(void)
+size CIndexUnknown::NumElements(void) const
 {
 	return mcIndex.NumElements();
 }
@@ -322,7 +322,7 @@ bool CIndexUnknown::Load(CFileReader* pcFileReader)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexUnknown::IsKillElements(void)
+bool CIndexUnknown::IsKillElements(void) const
 {
 	return FixBool(muiFlags & INDEX_TREE_KILL_ELEMENT);
 }
@@ -332,7 +332,7 @@ bool CIndexUnknown::IsKillElements(void)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexUnknown::IsOverwriteExisting(void)
+bool CIndexUnknown::IsOverwriteExisting(void) const
 {
 	return !(muiFlags & INDEX_TREE_NO_OVERWRITE);
 }
@@ -342,7 +342,7 @@ bool CIndexUnknown::IsOverwriteExisting(void)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexUnknown::IsEmpty(void)
+bool CIndexUnknown::IsEmpty(void) const
 {
 	return NumElements() == 0;
 }
@@ -352,7 +352,7 @@ bool CIndexUnknown::IsEmpty(void)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexUnknown::IsNotEmpty(void)
+bool CIndexUnknown::IsNotEmpty(void) const
 {
 	return NumElements() != 0;
 }

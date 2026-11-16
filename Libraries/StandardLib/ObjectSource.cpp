@@ -68,7 +68,7 @@ bool CObjectSource::IsMultiSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAbstractFile* CObjectSource::GetFile(void)
+CAbstractFile* CObjectSource::GetFile(void) const
 {
 	return mpcFile;
 }

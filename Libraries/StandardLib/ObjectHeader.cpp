@@ -75,7 +75,7 @@ void CObjectIdentifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectIdentifier::IsNamed(void)
+bool CObjectIdentifier::IsNamed(void) const
 {
 	if (meType != OBJECT_POINTER_NAMED)
 	{
@@ -95,7 +95,7 @@ bool CObjectIdentifier::IsNamed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectIdentifier::IsIndexed(void)
+bool CObjectIdentifier::IsIndexed(void) const
 {
 	if (meType == OBJECT_POINTER_ID)
 	{
@@ -115,7 +115,7 @@ bool CObjectIdentifier::IsIndexed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectIdentifier::IsFat(void)
+bool CObjectIdentifier::IsFat(void) const
 {
 	return muiSize != OBJECT_IDENTIFIER_SIZE_NOT_SET;
 }
@@ -157,7 +157,7 @@ OIndex CObjectIdentifier::GetIndex()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CObjectIdentifier::GetType(void)
+const char* CObjectIdentifier::GetType(void) const
 {
 	if (meType == OBJECT_POINTER_ID)
 	{
@@ -182,7 +182,7 @@ const char* CObjectIdentifier::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CObjectIdentifier::GetFatSize(void)
+uint16 CObjectIdentifier::GetFatSize(void) const
 {
 	return muiSize;
 }

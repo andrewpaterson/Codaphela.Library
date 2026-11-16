@@ -40,7 +40,7 @@ public:
 	size		GetNameOffset(void) override;
 	CPointer*	GetPointer(CBaseObject* pcFieldContainer);
 	void		DoNotFreePointedTo(bool bValue);
-	bool		IsDoNotFreePointedTo(void);
+	bool		IsDoNotFreePointedTo(void) const;
 };
 
 

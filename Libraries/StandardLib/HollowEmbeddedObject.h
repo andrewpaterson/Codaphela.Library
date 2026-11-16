@@ -40,7 +40,7 @@ public:
 	bool				IsHollow(void) override;
 	CBaseObject*		Dehollow(void) override;
 	size				GetEmbeddedIndex(void);
-	CHollowObject*		GetHollowObject(void);
+	CHollowObject*		GetHollowObject(void) const;
 	CObjects*			GetObjectsThisIn(void) override;
 	void				ValidateConsistency(void) override;
 	bool				IsInitialised(void) override;

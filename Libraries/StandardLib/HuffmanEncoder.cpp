@@ -257,7 +257,7 @@ uint8* CHuffmanEncoder::GetLengths(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CHuffmanEncoder::GetNumSymbols(void)
+size CHuffmanEncoder::GetNumSymbols(void) const
 {
 	return miNumSymbols;
 }

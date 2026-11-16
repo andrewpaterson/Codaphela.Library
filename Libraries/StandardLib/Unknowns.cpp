@@ -528,7 +528,7 @@ bool CUnknowns::IsFreed(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CUnknowns::NumElements(void)
+size CUnknowns::NumElements(void) const
 {
 	return miNumElements;
 }
@@ -551,7 +551,7 @@ size CUnknowns::GetIterableListsHeadNumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CConstructors* CUnknowns::GetConstructors(void)
+CConstructors* CUnknowns::GetConstructors(void) const
 {
 	return mpcConstructors;
 }

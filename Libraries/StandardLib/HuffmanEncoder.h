@@ -41,7 +41,7 @@ public:
 	void	Write(CBitWriter* pcWriter, int iSymbol);
 	int		GetLength(int iSymbol);
 	uint8*	GetLengths(void);
-	size	GetNumSymbols(void);
+	size	GetNumSymbols(void) const;
 
 protected:
 	bool	BuildLengths(uint32* puiFrequencies, int iMaxBits);

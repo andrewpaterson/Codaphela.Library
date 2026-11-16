@@ -39,11 +39,11 @@ public:
 	void		Kill(void) override;
 
 	bool		IsArray(void) override;
-	size		GetLength(void);
+	size		GetLength(void) const;
 	bool		IsUnmanaged(void) override;
 	void*		GetData(CBaseObject* pcFieldContainer);
 	size		GetSizeOf(void) override;
-	EPrimitiveType	GetType(void);
+	EPrimitiveType	GetType(void) const;
 	size		GetNameOffset(void) override;
 };
 

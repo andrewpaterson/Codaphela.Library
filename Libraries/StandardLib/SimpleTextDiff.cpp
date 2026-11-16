@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ETextDiffBlockType STextDiffBlock::GetType(void)
+ETextDiffBlockType STextDiffBlock::GetType(void) const
 {
 	if (uiStartLine1 == uiEndLine1)
 	{
@@ -46,7 +46,7 @@ ETextDiffBlockType STextDiffBlock::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize STextDiffBlock::NumLines1(void)
+lsize STextDiffBlock::NumLines1(void) const
 {
 	return uiEndLine1 - uiStartLine1;
 }
@@ -56,7 +56,7 @@ lsize STextDiffBlock::NumLines1(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize STextDiffBlock::NumLines2(void)
+lsize STextDiffBlock::NumLines2(void) const
 {
 	return uiEndLine2 - uiStartLine2;
 }
@@ -128,7 +128,7 @@ CTextContent* CSimpleTextDiff::GetContent2(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ETextDiffWhitespace CSimpleTextDiff::GetWhitespace(void)
+ETextDiffWhitespace CSimpleTextDiff::GetWhitespace(void) const
 {
 	return meWhitespace;
 }
@@ -138,7 +138,7 @@ ETextDiffWhitespace CSimpleTextDiff::GetWhitespace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ETextDiffHighlight CSimpleTextDiff::GetHighlight(void)
+ETextDiffHighlight CSimpleTextDiff::GetHighlight(void) const
 {
 	return meHighlight;
 }
@@ -148,7 +148,7 @@ ETextDiffHighlight CSimpleTextDiff::GetHighlight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSimpleTextDiff::IsIdentical(void)
+bool CSimpleTextDiff::IsIdentical(void) const
 {
 	return macBlocks.NumElements() == 0;
 }
@@ -158,7 +158,7 @@ bool CSimpleTextDiff::IsIdentical(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CSimpleTextDiff::NumBlocks(void)
+lsize CSimpleTextDiff::NumBlocks(void) const
 {
 	return macBlocks.NumElements();
 }
@@ -188,7 +188,7 @@ STextDiffFragment* CSimpleTextDiff::GetFragment(STextDiffBlock* psBlock, lsize u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CSimpleTextDiff::NumFragments(void)
+lsize CSimpleTextDiff::NumFragments(void) const
 {
 	return macFragments.NumElements();
 }

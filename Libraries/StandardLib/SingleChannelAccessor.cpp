@@ -155,7 +155,7 @@ void CSingleChannelAccessor::GetNative(size iChannel, void* pvDest, lsize iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSingleChannelAccessor::IsByteAligned(void)
+bool CSingleChannelAccessor::IsByteAligned(void) const
 {
 	return (miChannelByteOffset != CHANNEL_NON_ALIGNED_BYTES) && (miChannelByteSize != CHANNEL_NON_ALIGNED_BYTES);
 }

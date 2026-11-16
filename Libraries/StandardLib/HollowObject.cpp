@@ -176,7 +176,7 @@ bool CHollowObject::IsObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowObject::IsFatHollow(void)
+bool CHollowObject::IsFatHollow(void) const
 {
 	return muiSize != OBJECT_IDENTIFIER_SIZE_NOT_SET;
 }
@@ -186,7 +186,7 @@ bool CHollowObject::IsFatHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CHollowObject::GetFatSize(void)
+uint16 CHollowObject::GetFatSize(void) const
 {
 	return muiSize;
 }

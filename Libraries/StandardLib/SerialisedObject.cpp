@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSerialisedObject::IsNamed(void)
+bool CSerialisedObject::IsNamed(void) const
 {
 	bool bNamed;
 
@@ -50,7 +50,7 @@ bool CSerialisedObject::IsNamed(void)
 ////
 ////
 ////////////////////////////////////////////////////////////////////////////
-bool CSerialisedObject::IsIndexed(void)
+bool CSerialisedObject::IsIndexed(void) const
 {
 	bool bIndexed;
 	bool bNamed;
@@ -75,7 +75,7 @@ bool CSerialisedObject::IsIndexed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSerialisedObject::IsVoid(void)
+bool CSerialisedObject::IsVoid(void) const
 {
 	return meType == OBJECT_POINTER_NULL;
 }
@@ -95,7 +95,7 @@ char* CSerialisedObject::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CSerialisedObject::GetIndex(void)
+OIndex CSerialisedObject::GetIndex(void) const
 {
 	return moi;
 }
@@ -105,7 +105,7 @@ OIndex CSerialisedObject::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CSerialisedObject::GetLength(void)
+lsize CSerialisedObject::GetLength(void) const
 {
 	return miLength;
 }

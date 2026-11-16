@@ -68,13 +68,13 @@ public:
 
 	CArrayChannelAccessor*	GetAccessors(void);
 	CArrayChannelAccess*	GetAccesses(void);
-	bool					IsContiguous(void);
-	bool					IsSourceTypesSame(void);
-	bool					IsChannelByteAligned(void);
-	bool					IsAccessByteAligned(void);
-	size					GetBitSize(void);
-	size					GetByteSize(void);
-	CChannels*				GetChannels(void);
+	bool					IsContiguous(void) const;
+	bool					IsSourceTypesSame(void) const;
+	bool					IsChannelByteAligned(void) const;
+	bool					IsAccessByteAligned(void) const;
+	size					GetBitSize(void) const;
+	size					GetByteSize(void) const;
+	CChannels*				GetChannels(void) const;
 
 protected:
 	bool	CalculateEmpty(void);

@@ -103,7 +103,7 @@ bool CUnmanagedField::IsArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CUnmanagedField::GetLength(void)
+size CUnmanagedField::GetLength(void) const
 {
 	return muiLength;
 }
@@ -125,7 +125,7 @@ size CUnmanagedField::GetSizeOf(void)
 // CBaseObject::SaveUnmanagedField).  U_Data has no class of its own.
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveType CUnmanagedField::GetType(void)
+EPrimitiveType CUnmanagedField::GetType(void) const
 {
 	return meType;
 }

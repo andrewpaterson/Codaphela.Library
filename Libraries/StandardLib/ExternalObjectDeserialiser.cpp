@@ -282,7 +282,7 @@ CDependentReadObject* CExternalObjectDeserialiser::GetObject(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CExternalObjectDeserialiser::NumPointers(void)
+size CExternalObjectDeserialiser::NumPointers(void) const
 {
 	return mcPointers.NumElements();
 }
@@ -302,7 +302,7 @@ CDependentReadPointer* CExternalObjectDeserialiser::GetPointer(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CExternalObjectDeserialiser::NumObjects(void)
+size CExternalObjectDeserialiser::NumObjects(void) const
 {
 	return mcReadObjects.NumElements();
 }

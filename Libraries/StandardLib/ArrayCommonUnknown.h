@@ -76,13 +76,13 @@ public:
 			bool				Load(CFileReader* pcFile) override;
 
 			//Most of these should be protected or virtual.
-			size				NumElements(void);
+			size				NumElements(void) const;
 			void				KillElements(bool bKill);
 
 			void				Sort(void);
-			bool				IsSorted(void);
+			bool				IsSorted(void) const;
 			bool				CalculateIsSorted(void);
-			bool				IsMustSort(void);
+			bool				IsMustSort(void) const;
 			void				PointersChanged(void);
 
 			bool				Contains(CUnknown* pcUnknown);
@@ -117,10 +117,10 @@ public:
 
 			void				PreserveOrder(bool bPreserveOrder);
 			void				TypeKnown(bool bTypeKnown);
-			bool				IsKillElements(void);
-			bool				IsEmpty(void);
-			bool				IsNotEmpty(void);
-			bool				IsIgnoreNull(void);
+			bool				IsKillElements(void) const;
+			bool				IsEmpty(void) const;
+			bool				IsNotEmpty(void) const;
+			bool				IsIgnoreNull(void) const;
 			bool				HaveSlotsMoved(void);
 			void				ClearSlotsMoved(void);
 

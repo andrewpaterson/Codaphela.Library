@@ -69,7 +69,7 @@ public:
 	CEmbeddedObject*	GetEmbeddedObject(size iMap) override;
 	CMapUnknownUnknown*	GetUnknownMap(void);
 
-	bool				IsSorted(void);
+	bool				IsSorted(void) const;
 	void				ValidateInternalConsistency(void) override;
 
 protected:

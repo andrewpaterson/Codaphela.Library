@@ -47,13 +47,13 @@ protected:
 	SSerialisedName		msName;
 
 public:
-	bool	IsNamed(void);
-	bool	IsIndexed(void);
-	bool	IsVoid(void);
+	bool	IsNamed(void) const;
+	bool	IsIndexed(void) const;
+	bool	IsVoid(void) const;
 
 	char*	GetName(void);
-	OIndex	GetIndex(void);
-	lsize	GetLength(void);
+	OIndex	GetIndex(void) const;
+	lsize	GetLength(void) const;
 	bool	SetLength(size iLength);
 };
 #pragma pack(pop)

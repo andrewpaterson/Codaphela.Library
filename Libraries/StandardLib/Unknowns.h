@@ -57,9 +57,9 @@ public:
 
 
 	template<class M>	void			AddConstructor(void);
-	template<class M>	M*				GetConstructor(void);
+	template<class M>	M*				GetConstructor(void) const;
 	template<class M>	M*				GetConstructor(size* puiSize);
-						CConstructors*	GetConstructors(void);
+						CConstructors*	GetConstructors(void) const;
 						bool			LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown);
 						bool			SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown);
 	template<class M>	bool			LoadKnownType(CFileReader* pcFile, CUnknown** ppcUnknown);
@@ -75,7 +75,7 @@ public:
 
 						//Debug stuff
 						void			DumpAllocationDetail(CUnknown* pcUnknown);
-						size			NumElements(void);
+						size			NumElements(void) const;
 						void			Dump(void);
 
 						size			GetIterableListsHeadNumElements(void);
@@ -236,7 +236,7 @@ void CUnknowns::AddConstructor(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CUnknowns::GetConstructor(void)
+M* CUnknowns::GetConstructor(void) const
 {
 	if (mpcConstructors)
 	{

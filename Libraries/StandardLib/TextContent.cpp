@@ -214,7 +214,7 @@ char* CTextContent::Text(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CTextContent::Length(void)
+lsize CTextContent::Length(void) const
 {
 	return mszText.Length();
 }
@@ -224,7 +224,7 @@ lsize CTextContent::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CTextContent::NumLines(void)
+lsize CTextContent::NumLines(void) const
 {
 	return macLines.NumElements();
 }

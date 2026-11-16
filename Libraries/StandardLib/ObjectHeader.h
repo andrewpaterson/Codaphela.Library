@@ -40,14 +40,14 @@ public:
 	void	Init(const char* szName, OIndex oi, uint16 uiSize);
 	void	Kill(void);
 
-	bool	IsNamed(void);
-	bool	IsIndexed(void);
-	bool	IsFat(void);
+	bool	IsNamed(void) const;
+	bool	IsIndexed(void) const;
+	bool	IsFat(void) const;
 
 	const char*	GetName(void);
 	OIndex	GetIndex();
-	const char*	GetType(void);
-	uint16	GetFatSize(void);
+	const char*	GetType(void) const;
+	uint16	GetFatSize(void) const;
 };
 
 

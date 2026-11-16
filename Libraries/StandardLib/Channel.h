@@ -39,7 +39,7 @@ public:
 	void	Init(size iChannel, EPrimitiveType eType, bool bReverse);
 	void	Init(size iChannel, EPrimitiveType eType, size iByteSize, size iBitSize, size iByteOffset, size iBitOffset, bool bReverse = false);
 
-	bool	Is8BitAligned(void);
+	bool	Is8BitAligned(void) const;
 };
 
 

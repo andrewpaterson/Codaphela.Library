@@ -283,7 +283,7 @@ void CPointer::UnsafeClearObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPointer::NumStackFroms(void)
+size CPointer::NumStackFroms(void) const
 {
 	if (mpcObject)
 	{
@@ -300,7 +300,7 @@ size CPointer::NumStackFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPointer::NumHeapFroms(void)
+size CPointer::NumHeapFroms(void) const
 {
 	if (mpcObject)
 	{
@@ -317,7 +317,7 @@ size CPointer::NumHeapFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPointer::NumEmbedded(void)
+size CPointer::NumEmbedded(void) const
 {
 	if (mpcObject)
 	{
@@ -334,7 +334,7 @@ size CPointer::NumEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPointer::NumPointerTos(void)
+size CPointer::NumPointerTos(void) const
 {
 	if (mpcObject)
 	{
@@ -441,7 +441,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::IsEmbeddingHeld(void)
+bool CPointer::IsEmbeddingHeld(void) const
 {
 	//An object attached to the root, or pointed to from the stack, cannot be freed by changing one of its own pointers.
 	//Anything else (e.g. after Return()) is only alive because nothing has tried to free it yet.
@@ -658,7 +658,7 @@ size CPointer::MorphInto(CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::IsHollow(void)
+bool CPointer::IsHollow(void) const
 {
 	if (mpcObject)
 	{
@@ -699,7 +699,7 @@ bool CPointer::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPointer::GetDistToRoot(void)
+int CPointer::GetDistToRoot(void) const
 {
 	return mpcObject ? mpcObject->GetDistToRoot() : UNATTACHED_DIST_TO_ROOT;
 }
@@ -709,7 +709,7 @@ int CPointer::GetDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CPointer::GetIndex(void)
+OIndex CPointer::GetIndex(void) const
 {
 	if (mpcObject)
 	{
@@ -726,7 +726,7 @@ OIndex CPointer::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPointer::GetName(void)
+char* CPointer::GetName(void) const
 {
 	if (mpcObject)
 	{
@@ -743,7 +743,7 @@ char* CPointer::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::IsNamed(void)
+bool CPointer::IsNamed(void) const
 {
 	if (mpcObject)
 	{
@@ -777,7 +777,7 @@ const char* CPointer::ClassName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CPointer::GetClass(void)
+CClass* CPointer::GetClass(void) const
 {
 	if (mpcObject)
 	{
@@ -794,7 +794,7 @@ CClass* CPointer::GetClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::IsDirty(void)
+bool CPointer::IsDirty(void) const
 {
 	if (mpcObject)
 	{
@@ -824,7 +824,7 @@ void CPointer::LogicalDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::IsEmbeddingAllocatedInObjects(void)
+bool CPointer::IsEmbeddingAllocatedInObjects(void) const
 {
 	if (mpcEmbedding)
 	{

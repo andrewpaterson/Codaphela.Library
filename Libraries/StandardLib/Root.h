@@ -60,7 +60,7 @@ public:
 						void			CreateSet(void);
 						void			NullifySet(void);
 						CSetObject*		TestGetSet(void);
-						bool			IsSetHollow(void);
+						bool			IsSetHollow(void) const;
 
 						void			Add(CPointer& pO1, CPointer& pO2);
 						void			Add(CPointer& pO1, CPointer& pO2, CPointer& pO3);

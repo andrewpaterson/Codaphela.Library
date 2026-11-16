@@ -124,8 +124,8 @@ public:
 	virtual void				RemovePointerTo(CEmbeddedObject* pcTo);
 			CBaseObject*		GetEmbeddingContainer(void);
 			bool				IsEmbeddingContainerAllocatedInObjects(void);
-			bool				IsEmbedded(void);
-			bool				IsNotEmbedded(void);
+			bool				IsEmbedded(void) const;
+			bool				IsNotEmbedded(void) const;
 	virtual bool				IsInitialised(void) =0;
 	virtual bool				IsRoot(void) =0;
 	virtual size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
@@ -166,7 +166,7 @@ public:
 			bool				UnlinkStackFrom(CCollection* pcCollection);
 			EFreeResult			RemoveStackFromTryFree(CPointer* pcPointer);
 	virtual size				NumStackFroms(void);
-			CStackPointer*		GetFirstStackFrom(void);
+			CStackPointer*		GetFirstStackFrom(void) const;
 
 			size				NumTotalFroms(void);
 			bool				ContainsFrom(CEmbeddedObject* pcBaseObject);

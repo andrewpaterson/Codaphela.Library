@@ -55,7 +55,7 @@ void CChannel::Init(size iChannel, EPrimitiveType eType, size iByteSize, size iB
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChannel::Is8BitAligned(void)
+bool CChannel::Is8BitAligned(void) const
 {
 	return ((miByteSize != CHANNEL_NON_ALIGNED_BYTES) && (miByteOffset != CHANNEL_NON_ALIGNED_BYTES));
 }

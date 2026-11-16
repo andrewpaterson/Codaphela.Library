@@ -52,7 +52,7 @@ void CField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClasses* CField::GetClasses(void)
+CClasses* CField::GetClasses(void) const
 {
 	return mpcContainingClass->GetClasses();
 }
@@ -72,7 +72,7 @@ char* CField::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CField::GetClass(void)
+CClass* CField::GetClass(void) const
 {
 	return mpcFieldClass;
 }
@@ -92,7 +92,7 @@ bool CField::IsArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CField::GetOffset(void)
+size CField::GetOffset(void) const
 {
 	return muiOffset;
 }

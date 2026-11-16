@@ -142,7 +142,7 @@ bool CBitReader::FillByte(void)
 // NumBits are zero.
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CBitReader::GetBits(void)
+uint32 CBitReader::GetBits(void) const
 {
 	return muiBits;
 }
@@ -152,7 +152,7 @@ uint32 CBitReader::GetBits(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBitReader::NumBits(void)
+int CBitReader::NumBits(void) const
 {
 	return miNumBits;
 }

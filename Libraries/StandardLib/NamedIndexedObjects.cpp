@@ -261,7 +261,7 @@ bool CNamedIndexedObjects::Add(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CNamedIndexedObjects::NumIndexed(void)
+size CNamedIndexedObjects::NumIndexed(void) const
 {
 	return mcMemoryIndexedObjects.NumIndexed();
 }
@@ -271,7 +271,7 @@ size CNamedIndexedObjects::NumIndexed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CNamedIndexedObjects::NumNames(void)
+size CNamedIndexedObjects::NumNames(void) const
 {
 	return mcMemoryNames.NumElements();
 }

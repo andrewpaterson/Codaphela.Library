@@ -126,12 +126,12 @@ public:
 						CPointer				Null(void);
 	template<class M>	Ptr<M>					Null(void);
 
-						size					NumMemoryIndexes(void);
-						size					NumMemoryNames(void);
-						int64					NumDatabaseIndexes(void);
-						int64					NumDatabaseNames(void);
+						size					NumMemoryIndexes(void) const;
+						size					NumMemoryNames(void) const;
+						int64					NumDatabaseIndexes(void) const;
+						int64					NumDatabaseNames(void) const;
 
-						CSequenceConnection*	GetIndexGenerator(void);
+						CSequenceConnection*	GetIndexGenerator(void) const;
 						CNamedIndexedObjects*	GetMemory(void);
 						bool					EvictInMemory(void);
 
@@ -144,9 +144,9 @@ public:
 						uint32					StartWalk(void);
 						void					TestSetWalkStamp(uint32 uiWalkStamp);
 
-						CStackPointers*			GetStackPointers(void);
+						CStackPointers*			GetStackPointers(void) const;
 						CClasses*				GetClasses(void);
-						CConstructors*			GetConstructors(void);
+						CConstructors*			GetConstructors(void) const;
 
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);
@@ -198,7 +198,7 @@ protected:
 						CBaseObject*			GetFromDatabase(OIndex oi);
 						CBaseObject*			GetFromDatabase(const char* szObjectName);
 						CBaseObject*			GetFromSources(const char* szObjectName);
-						OIndex					GetNextIndex(void);
+						OIndex					GetNextIndex(void) const;
 						
 						void					FreeInternal(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts);

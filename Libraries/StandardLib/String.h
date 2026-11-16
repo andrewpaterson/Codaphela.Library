@@ -54,7 +54,7 @@ public:
 	Ptr<CString>	AddOperator(Ptr<CString> pString);
 	Ptr<CString>	AddOperator(const char* sz);
 
-	size			Length(void) { return msz.Length(); }
+	size			Length(void) const;
 	Ptr<CString>	Set(const char* sz) { msz.Set(sz); D(); return this; }
 	Ptr<CString>	Set(Ptr<CString> pString);
 	Ptr<CString>	Set(CChars sz) { msz.Set(sz); D(); return this; }
@@ -126,7 +126,7 @@ public:
 	char*			Text(void) { return msz.Text(); }
 	char*			Text(size iIndex) { return msz.Text(iIndex); }
 	CChars*			GetChars(void);
-	bool			Empty(void) { return msz.Empty(); }
+	bool			Empty(void) const;
 	void			RemoveLastCharacter(void) { msz.RemoveLastCharacter(); D(); }
 	void			RemoveFromStart(size iNumChars) { msz.RemoveFromStart(iNumChars); D(); }
 	void			RemoveFromEnd(size iNumChars) { msz.RemoveFromEnd(iNumChars); D(); }

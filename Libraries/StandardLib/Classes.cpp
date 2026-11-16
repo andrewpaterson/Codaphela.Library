@@ -217,7 +217,7 @@ CPrimitiveClasses* CClasses::GetPrimitiveClasses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CClasses::GetPointer(void)
+CClass* CClasses::GetPointer(void) const
 {
 	return mpcPointer;
 }

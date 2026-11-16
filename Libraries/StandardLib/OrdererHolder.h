@@ -47,7 +47,7 @@ public:
 	void				AddFulfilment(const char* szName);
 	void				AddRequirement(const char* szName);
 
-	Ptr<CBaseObject>	GetObject(void);
+	Ptr<CBaseObject>	GetObject(void) const;
 	CArrayChars*		GetFulfilments(void);
 	CArrayChars*		GetRequirements(void);
 

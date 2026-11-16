@@ -84,10 +84,10 @@ public:
 	CPrimitiveField*		Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void* pvPrimitive, const char* szFieldName);
 	CEmbeddedObjectField*	Embedded(CBaseObject* pcThis, CBaseObject* pcObject, const char* szFieldName);
 
-	CClasses*				GetClasses(void);
+	CClasses*				GetClasses(void) const;
 	char*					GetName(void);
-	EPrimitiveType			GetType(void);
-	size					GetSizeOf(void);
+	EPrimitiveType			GetType(void) const;
+	size					GetSizeOf(void) const;
 
 	CField*					GetField(const char* szFieldName);
 
@@ -96,11 +96,11 @@ public:
 	void					Primitive(void);
 	void					Nes(void);
 
-	bool					IsComplete(void);
-	bool					IsUnmanaged(void);
-	bool					IsPrimitive(void);
-	bool					IsSystem(void);
-	bool					HasNes(void);
+	bool					IsComplete(void) const;
+	bool					IsUnmanaged(void) const;
+	bool					IsPrimitive(void) const;
+	bool					IsSystem(void) const;
+	bool					HasNes(void) const;
 
 	CArrayVoidPtr*			GetPointerFields(void);
 	CArrayVoidPtr*			GetWeakPointerFields(void);

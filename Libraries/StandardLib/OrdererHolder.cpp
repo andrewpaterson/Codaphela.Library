@@ -166,7 +166,7 @@ void COrdererHolder::AddRequirement(const char* szName)
 }
 
 
-Ptr<CBaseObject> COrdererHolder::GetObject(void) { return mpObject; }
+Ptr<CBaseObject> COrdererHolder::GetObject(void) const { return mpObject; }
 CArrayChars* COrdererHolder::GetFulfilments(void) { return &maszFulfilments; }
 CArrayChars* COrdererHolder::GetRequirements(void) { return &maszRequirements; }
 

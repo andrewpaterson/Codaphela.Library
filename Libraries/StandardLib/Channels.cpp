@@ -503,7 +503,7 @@ bool CChannels::IsChannelAdded(size iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChannels::IsChanging(void)
+bool CChannels::IsChanging(void) const
 {
 	return (mpsChangingDesc != NULL);
 }
@@ -944,7 +944,7 @@ void CChannels::FreeData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChannels::GetData(void)
+char* CChannels::GetData(void) const
 {
 	//Don't try and get the data whilst the data is changing...
 	if (IsChanging())
@@ -975,7 +975,7 @@ void CChannels::AllocateData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChannels::IsUserAllocated(void)
+bool CChannels::IsUserAllocated(void) const
 {
 	return (mpvUserData != NULL);
 }
@@ -985,7 +985,7 @@ bool CChannels::IsUserAllocated(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannels::GetNumChannels(void)
+size CChannels::GetNumChannels(void) const
 {
 	return masChannelOffsets.NumElements();
 }
@@ -1224,7 +1224,7 @@ bool CChannels::IsSameFormat(CChannels* psOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChannels::IsIgnored(void)
+bool CChannels::IsIgnored(void) const
 {
 	if (IsChanging())
 	{
@@ -1370,7 +1370,7 @@ bool CChannels::IsValid(lsize iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CChannels::GetSize(void)
+lsize CChannels::GetSize(void) const
 {
 	return miSize;
 }
@@ -1407,7 +1407,7 @@ CArrayChannelOffset* CChannels::GetChannelOffsets(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannels::GetByteStride(void)
+size CChannels::GetByteStride(void) const
 {
 	return miByteStride;
 }
@@ -1417,7 +1417,7 @@ size CChannels::GetByteStride(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannels::GetBitStride(void)
+size CChannels::GetBitStride(void) const
 {
 	return miBitStride;
 }
@@ -1489,7 +1489,7 @@ void CChannels::GetAllChannels(CArraySize* paiChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannels::NumChannels(void)
+size CChannels::NumChannels(void) const
 {
 	return masChannelOffsets.NumElements();
 }
@@ -1602,7 +1602,7 @@ void CChannels::GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChannels::IsOnlyBasicTypes(void)
+bool CChannels::IsOnlyBasicTypes(void) const
 {
 	return mbOnlyBasicTypes;
 }

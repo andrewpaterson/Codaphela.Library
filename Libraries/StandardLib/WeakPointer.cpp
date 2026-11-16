@@ -97,7 +97,7 @@ void CWeakPointer::Release(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CWeakPointer::Object(void) { return mpcObject; }
 CEmbeddedObject* CWeakPointer::GetWeak(size uiSlot) { return mpcObject; }
-bool CWeakPointer::IsNull(void) { return mpcObject == NULL; }
-bool CWeakPointer::IsNotNull(void) { return mpcObject != NULL; }
+bool CWeakPointer::IsNull(void) const { return mpcObject == NULL; }
+bool CWeakPointer::IsNotNull(void) const { return mpcObject != NULL; }
 CWeakPointer* CWeakPointer::This(void) { return this; }
 

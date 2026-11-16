@@ -42,7 +42,7 @@ public:
 	bool			IsFor(CAbstractFile* pcFile) override;
 	CObjectSource*	CreateSource(CAbstractFile* pcFile, const char* szFilename) override;
 	CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName) override;
-	bool			IsNative(void);
+	bool			IsNative(void) const;
 
 	OIndex			TestGetNewIndexFromOld(OIndex oiOld);
 

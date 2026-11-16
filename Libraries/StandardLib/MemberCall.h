@@ -128,7 +128,7 @@ struct SMemberCall
 	void	Init(O* pcObject, F fFunction, MemberCallThunk fCaller);
 
 	void	Clear(void);
-	bool	IsSet(void);
+	bool	IsSet(void) const;
 	void	Call(void* pvArgument, void* pvValue = NULL);
 	bool	Ask(void);
 	bool	IsOn(void* pvOther);
@@ -243,7 +243,7 @@ inline void SMemberCall::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline bool SMemberCall::IsSet(void)
+inline bool SMemberCall::IsSet(void) const
 {
 	return fThunk != NULL;
 }

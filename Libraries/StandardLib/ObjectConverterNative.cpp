@@ -172,7 +172,7 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, const char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectConverterNative::IsNative(void)
+bool CObjectConverterNative::IsNative(void) const
 {
 	return true;
 }

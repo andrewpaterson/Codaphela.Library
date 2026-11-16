@@ -518,7 +518,7 @@ void CBaseObject::DoneKill(bool bAllocatedInObjects)
 // (something may point only to one of those).
 //
 //////////////////////////////////////////////////////////////////////////
-size CBaseObject::NumHeapFromHolders(void)
+size CBaseObject::NumHeapFromHolders(void) const
 {
 	return muiNumEmbedded;
 }
@@ -1072,7 +1072,7 @@ void CBaseObject::EmbedIn(CBaseObject* pcContainer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CBaseObject::GetWalkStamp(void)
+uint32 CBaseObject::GetWalkStamp(void) const
 {
 	return muiWalkStamp;
 }
@@ -1255,7 +1255,7 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 // embedded in them), for the loops over them.
 //
 //////////////////////////////////////////////////////////////////////////
-size CBaseObject::NumEmbeddedFields(void)
+size CBaseObject::NumEmbeddedFields(void) const
 {
 	return mpcClass->GetEmbeddedObjectFields()->NumElements();
 }
@@ -1797,7 +1797,7 @@ CClasses* CBaseObject::GetClasses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::HasClass(void)
+bool CBaseObject::HasClass(void) const
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_CALLED_CLASS);
 }

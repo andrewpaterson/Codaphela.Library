@@ -94,7 +94,7 @@ EPrimitiveType CChannelsAccessor::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannelsAccessor::GetBitSize(void)
+size CChannelsAccessor::GetBitSize(void) const
 {
 	return miBitSize;
 }
@@ -104,7 +104,7 @@ size CChannelsAccessor::GetBitSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannelsAccessor::GetByteSize(void)
+size CChannelsAccessor::GetByteSize(void) const
 {
 	return miByteSize;
 }
@@ -114,7 +114,7 @@ size CChannelsAccessor::GetByteSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannelsAccessor::GetBufferSize(void)
+size CChannelsAccessor::GetBufferSize(void) const
 {
 	if (miBitSize % 8 == 0)
 	{
@@ -141,7 +141,7 @@ CArrayChannelAccessor* CChannelsAccessor::GetAccessors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChannels* CChannelsAccessor::GetChannels(void)
+CChannels* CChannelsAccessor::GetChannels(void) const
 {
 	return mpcChannels;
 }

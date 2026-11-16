@@ -46,8 +46,8 @@ public:
 		bool				Add(CBaseObject* pcObject);
 	bool				RemoveIndex(OIndex oi);
 	bool				RemoveName(const char* szName);
-	size				NumIndexed(void);
-	size				NumNames(void);
+	size				NumIndexed(void) const;
+	size				NumNames(void) const;
 
 	CIndexedObjects*	GetObjects(void);
 	CIndexTreeMemory*	GetNames(void);

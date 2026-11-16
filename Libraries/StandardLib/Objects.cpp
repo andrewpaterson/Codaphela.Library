@@ -1575,7 +1575,7 @@ CBaseObject* CObjects::GetFromSources(const char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CObjects::GetNextIndex(void)
+OIndex CObjects::GetNextIndex(void) const
 {
 	if (mpcSequenceConnection)
 	{
@@ -1789,7 +1789,7 @@ CPointer CObjects::Null(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CObjects::NumMemoryIndexes(void)
+size CObjects::NumMemoryIndexes(void) const
 {
 	return mcMemory.NumIndexed();
 }
@@ -1799,7 +1799,7 @@ size CObjects::NumMemoryIndexes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CObjects::NumMemoryNames(void)
+size CObjects::NumMemoryNames(void) const
 {
 	return mcMemory.NumNames();
 }
@@ -1809,7 +1809,7 @@ size CObjects::NumMemoryNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumDatabaseIndexes(void)
+int64 CObjects::NumDatabaseIndexes(void) const
 {
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
@@ -1836,7 +1836,7 @@ int64 CObjects::NumDatabaseIndexes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumDatabaseNames(void)
+int64 CObjects::NumDatabaseNames(void) const
 {
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
@@ -1863,7 +1863,7 @@ int64 CObjects::NumDatabaseNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSequenceConnection* CObjects::GetIndexGenerator(void)
+CSequenceConnection* CObjects::GetIndexGenerator(void) const
 {
 	return mpcSequenceConnection;
 }
@@ -2156,7 +2156,7 @@ void CObjects::AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointers* CObjects::GetStackPointers(void)
+CStackPointers* CObjects::GetStackPointers(void) const
 {
 	return mpcStackPointers;
 }
@@ -2176,7 +2176,7 @@ CClasses* CObjects::GetClasses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CConstructors* CObjects::GetConstructors(void)
+CConstructors* CObjects::GetConstructors(void) const
 {
 	return mpcUnknownsAllocatingFrom->GetConstructors();
 }

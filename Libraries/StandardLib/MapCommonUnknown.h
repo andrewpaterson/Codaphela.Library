@@ -46,8 +46,8 @@ public:
 	virtual size		GetSortedSize(void) =0;
 	virtual size		GetHoldingSize(void) =0;
 
-			bool 		IsKillElements(void);
-			bool 		IsOverwriteExisting(void);
+			bool 		IsKillElements(void) const;
+			bool 		IsOverwriteExisting(void) const;
 			bool 		IsEmpty(void);
 			bool 		IsNotEmpty(void);
 };

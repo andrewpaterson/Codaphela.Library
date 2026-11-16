@@ -45,8 +45,8 @@ public:
 	bool	Init(uint8* puiLengths, size iNumSymbols);
 	void	Kill(void);
 
-	bool	IsComplete(void);
-	bool	IsSingleCode(void);
+	bool	IsComplete(void) const;
+	bool	IsSingleCode(void) const;
 
 	bool	Decode(CBitReader* pcReader, int* piSymbol);
 

@@ -92,17 +92,17 @@ public:
 	CBaseObject*		BaseObject(void);
 	size				MorphInto(CEmbeddedObject* pcNew);
 
-	bool				IsHollow(void);
+	bool				IsHollow(void) const;
 	bool				Load(CObjectReader* pcFile);
-	int					GetDistToRoot(void);
-	OIndex				GetIndex(void);
-	char*				GetName(void);
-	bool				IsNamed(void);
+	int					GetDistToRoot(void) const;
+	OIndex				GetIndex(void) const;
+	char*				GetName(void) const;
+	bool				IsNamed(void) const;
 	const char*			ClassName(void);
-	CClass*				GetClass(void);
-	bool				IsDirty(void);
+	CClass*				GetClass(void) const;
+	bool				IsDirty(void) const;
 	void				LogicalDirty(void);
-	bool				IsEmbeddingAllocatedInObjects(void);
+	bool				IsEmbeddingAllocatedInObjects(void) const;
 	void				Kill(void);
 	void				AssignObject(CEmbeddedObject* pcObject);
 	CEmbeddedObject*	Dereference(void);
@@ -114,10 +114,10 @@ public:
 	CEmbeddedObject*	Return(void);
 	void				UnsafeClearObject(void);
 
-	size				NumStackFroms(void);
-	size				NumHeapFroms(void);
-	size				NumEmbedded(void);
-	size				NumPointerTos(void);
+	size				NumStackFroms(void) const;
+	size				NumHeapFroms(void) const;
+	size				NumEmbedded(void) const;
+	size				NumPointerTos(void) const;
 
 	void				DumpFroms(void);
 	void				DumpPointerTos(void);
@@ -125,7 +125,7 @@ public:
 
 protected:
 	void				PointTo(CEmbeddedObject* pcObject);
-	bool				IsEmbeddingHeld(void);
+	bool				IsEmbeddingHeld(void) const;
 };
 
 

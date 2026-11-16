@@ -140,7 +140,7 @@ bool CPointerLocations::Contains(void* pvPointer, ptr uiLocation)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPointerLocations::NumLocations(void)
+size CPointerLocations::NumLocations(void) const
 {
 	return muiNumLocations;
 }

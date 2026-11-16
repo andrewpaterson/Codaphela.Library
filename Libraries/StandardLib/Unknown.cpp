@@ -109,7 +109,7 @@ void CUnknown::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknowns* CUnknown::GetUnknownsThisIn(void)
+CUnknowns* CUnknown::GetUnknownsThisIn(void) const
 {
 	return mpcUnknownsThisIn;
 }

@@ -50,20 +50,20 @@ public:
 	void		Init(CClasses* pcClasses);
 	void		Kill(void);
 
-	CClass*		GetByte(void);
-	CClass*		GetShort(void);
-	CClass*		GetInt(void);
-	CClass*		GetLong(void);
-	CClass*		GetUByte(void);
-	CClass*		GetUShort(void);
-	CClass*		GetUInt(void);
-	CClass*		GetULong(void);
-	CClass*		GetFloat(void);
-	CClass*		GetDouble(void);
-	CClass*		GetBool(void);
-	CClass*		GetVoid(void);
-	CClass*		GetChar(void);
-	CClass*		GetWidechar(void);
+	CClass*		GetByte(void) const;
+	CClass*		GetShort(void) const;
+	CClass*		GetInt(void) const;
+	CClass*		GetLong(void) const;
+	CClass*		GetUByte(void) const;
+	CClass*		GetUShort(void) const;
+	CClass*		GetUInt(void) const;
+	CClass*		GetULong(void) const;
+	CClass*		GetFloat(void) const;
+	CClass*		GetDouble(void) const;
+	CClass*		GetBool(void) const;
+	CClass*		GetVoid(void) const;
+	CClass*		GetChar(void) const;
+	CClass*		GetWidechar(void) const;
 
 protected:
 	template<class M>

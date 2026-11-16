@@ -38,7 +38,7 @@ private:
 public:
 					CPrimitiveObject(EPrimitiveType eType);
 
-	EPrimitiveType	GetClassType(void);
+	EPrimitiveType	GetClassType(void) const;
 
 	void			SetEmbedding(CObject* pcEmbedding);
 	void			SetDirty(void);

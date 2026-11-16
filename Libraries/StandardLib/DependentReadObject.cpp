@@ -61,7 +61,7 @@ char* CDependentReadObject::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CDependentReadObject::GetOldIndex(void)
+OIndex CDependentReadObject::GetOldIndex(void) const
 {
 	return moi;
 }
@@ -91,7 +91,7 @@ void CDependentReadObject::SetExisting(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDependentReadObject::IsRead(void)
+bool CDependentReadObject::IsRead(void) const
 {
 	return FixBool(muiFlags & DEPENDENT_READ_OBJECT_FLAG_READ);
 }

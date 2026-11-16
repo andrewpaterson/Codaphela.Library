@@ -39,10 +39,10 @@ public:
 	void	Kill(void);
 
 	char*	GetName(void);
-	OIndex	GetOldIndex(void);
+	OIndex	GetOldIndex(void) const;
 	void	SetRead(void);
 	void	SetExisting(void);
-	bool	IsRead(void);
+	bool	IsRead(void) const;
 	bool	ExistsInObjects(void);
 };
 

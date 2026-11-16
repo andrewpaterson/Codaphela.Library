@@ -107,7 +107,7 @@ void CPointerField::DoNotFreePointedTo(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointerField::IsDoNotFreePointedTo(void)
+bool CPointerField::IsDoNotFreePointedTo(void) const
 {
 	return mbDoNoFreePointedTo;
 }

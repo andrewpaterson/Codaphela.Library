@@ -88,7 +88,7 @@ CStackPointer* CStackPointers::Add(CCollection* pcCollection)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CStackPointers::NumElements(void)
+size CStackPointers::NumElements(void) const
 {
 	return mcFreeList.NumElements();
 }

@@ -471,3 +471,7 @@ Ptr<CString> CString::AddOperator(const char* sz)
 	return pResult;
 }
 
+
+size CString::Length(void) const { return msz.Length(); }
+bool CString::Empty(void) const { return msz.Empty(); }
+

@@ -171,7 +171,7 @@ void CClass::System(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CClass::IsComplete(void)
+bool CClass::IsComplete(void) const
 {
 	return FixBool(muiFlags & CLASS_FLAGS_COMPLETE);
 }
@@ -181,7 +181,7 @@ bool CClass::IsComplete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CClass::IsUnmanaged(void)
+bool CClass::IsUnmanaged(void) const
 {
 	return FixBool(muiFlags & CLASS_FLAGS_UNMANAGED);
 }
@@ -191,7 +191,7 @@ bool CClass::IsUnmanaged(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CClass::IsPrimitive(void)
+bool CClass::IsPrimitive(void) const
 {
 	return FixBool(muiFlags & CLASS_FLAGS_PRIMITIVE);
 }
@@ -201,7 +201,7 @@ bool CClass::IsPrimitive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CClass::IsSystem(void)
+bool CClass::IsSystem(void) const
 {
 	return FixBool(muiFlags & CLASS_FLAGS_SYSTEM);
 }
@@ -211,7 +211,7 @@ bool CClass::IsSystem(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CClass::HasNes(void)
+bool CClass::HasNes(void) const
 {
 	return FixBool(muiFlags & CLASS_FLAGS_HAS_NES);
 }
@@ -521,7 +521,7 @@ void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClasses* CClass::GetClasses(void)
+CClasses* CClass::GetClasses(void) const
 {
 	return mpcClassesThisIn;
 }
@@ -541,7 +541,7 @@ char* CClass::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveType CClass::GetType(void)
+EPrimitiveType CClass::GetType(void) const
 {
 	return meType;
 }
@@ -551,7 +551,7 @@ EPrimitiveType CClass::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CClass::GetSizeOf(void)
+size CClass::GetSizeOf(void) const
 {
 	return muiSize;
 }

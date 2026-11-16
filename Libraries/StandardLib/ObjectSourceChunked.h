@@ -47,7 +47,7 @@ public:
 	bool			IsMultiSource(void) override;
 
 	char*			GetName(size iIndex);
-	size			NumNames(void);
+	size			NumNames(void) const;
 
 	CExternalObjectReader*	GetReader(void) override;
 };

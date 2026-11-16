@@ -62,7 +62,7 @@ public:
 	CClass*				Add(const char* szClassName, size uiSize, EPrimitiveType eType);
 	CClass*				Add(const char* szClassName, size uiSize);
 
-	CClass*				GetPointer(void);
+	CClass*				GetPointer(void) const;
 
 	CUnmanagedClasses*	GetUnmanagedClasses(void);
 	CPrimitiveClasses*	GetPrimitiveClasses(void);

@@ -256,7 +256,7 @@ CSetObject* CRoot::TestGetSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRoot::IsSetHollow(void)
+bool CRoot::IsSetHollow(void) const
 {
 	return mpObjects.IsHollow();
 }

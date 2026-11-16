@@ -37,8 +37,8 @@ public:
 			void				Kill(void) final;
 
 			bool				IsHollow(void) override;
-			bool				IsFatHollow(void);
-			uint16				GetFatSize(void);
+			bool				IsFatHollow(void) const;
+			uint16				GetFatSize(void) const;
 
 			bool				Save(CObjectWriter* pcFile) override;
 			bool				Load(CObjectReader* pcFile) override;

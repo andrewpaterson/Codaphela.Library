@@ -127,18 +127,18 @@ CClass* CPrimitiveClasses::AddVoid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CPrimitiveClasses::GetByte(void) { return mpcInt8; }
-CClass* CPrimitiveClasses::GetShort(void) { return mpcInt16; }
-CClass* CPrimitiveClasses::GetInt(void) { return mpcInt32; }
-CClass* CPrimitiveClasses::GetLong(void) { return mpcInt64; }
-CClass* CPrimitiveClasses::GetUByte(void) { return mpcUInt8; }
-CClass* CPrimitiveClasses::GetUShort(void) { return mpcUInt16; }
-CClass* CPrimitiveClasses::GetUInt(void) { return mpcUInt32; }
-CClass* CPrimitiveClasses::GetULong(void) { return mpcUInt64; }
-CClass* CPrimitiveClasses::GetFloat(void) { return mpcFloat32; }
-CClass* CPrimitiveClasses::GetDouble(void) { return mpcFloat64; }
-CClass* CPrimitiveClasses::GetBool(void) { return mpcBool; }
-CClass* CPrimitiveClasses::GetVoid(void) { return mpcVoid; }
-CClass* CPrimitiveClasses::GetChar(void) { return mpcChar8; }
-CClass* CPrimitiveClasses::GetWidechar(void) { return mpcChar16; }
+CClass* CPrimitiveClasses::GetByte(void) const { return mpcInt8; }
+CClass* CPrimitiveClasses::GetShort(void) const { return mpcInt16; }
+CClass* CPrimitiveClasses::GetInt(void) const { return mpcInt32; }
+CClass* CPrimitiveClasses::GetLong(void) const { return mpcInt64; }
+CClass* CPrimitiveClasses::GetUByte(void) const { return mpcUInt8; }
+CClass* CPrimitiveClasses::GetUShort(void) const { return mpcUInt16; }
+CClass* CPrimitiveClasses::GetUInt(void) const { return mpcUInt32; }
+CClass* CPrimitiveClasses::GetULong(void) const { return mpcUInt64; }
+CClass* CPrimitiveClasses::GetFloat(void) const { return mpcFloat32; }
+CClass* CPrimitiveClasses::GetDouble(void) const { return mpcFloat64; }
+CClass* CPrimitiveClasses::GetBool(void) const { return mpcBool; }
+CClass* CPrimitiveClasses::GetVoid(void) const { return mpcVoid; }
+CClass* CPrimitiveClasses::GetChar(void) const { return mpcChar8; }
+CClass* CPrimitiveClasses::GetWidechar(void) const { return mpcChar16; }
 

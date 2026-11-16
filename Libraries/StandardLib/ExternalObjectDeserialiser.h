@@ -84,11 +84,11 @@ protected:
 
 	CDependentReadObject*	GetObject(OIndex oi);
 		
-	size					NumPointers(void);
+	size					NumPointers(void) const;
 	CDependentReadPointer*	GetPointer(size iIndex);
 		
 	void					AddIndexRemap(OIndex oiNew, OIndex oiOld);
-	size					NumObjects(void);
+	size					NumObjects(void) const;
 };
 
 

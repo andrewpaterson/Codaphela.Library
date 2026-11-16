@@ -41,13 +41,13 @@ public:
 			void		Init(CClass* pcFieldClass, size uiOffset, CClass* pcContainingClass, const char* szName);
 			void		Kill(void) override;
 
-			CClasses*	GetClasses(void);
+			CClasses*	GetClasses(void) const;
 			char*		GetName(void);
-			CClass*		GetClass(void);
+			CClass*		GetClass(void) const;
 	virtual	size		GetSizeOf(void) =0;
 
 	virtual	bool		IsArray(void);
-			size		GetOffset(void);
+			size		GetOffset(void) const;
 	virtual	bool		IsPointer(void);
 	virtual	bool		IsPrimitive(void);
 	virtual	bool		IsUnmanaged(void);

@@ -143,7 +143,7 @@ void CHuffmanDecoder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHuffmanDecoder::IsComplete(void)
+bool CHuffmanDecoder::IsComplete(void) const
 {
 	return miUnused == 0;
 }
@@ -155,7 +155,7 @@ bool CHuffmanDecoder::IsComplete(void)
 // a single code of one bit.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHuffmanDecoder::IsSingleCode(void)
+bool CHuffmanDecoder::IsSingleCode(void) const
 {
 	return (miNumCodes == 1) && (maiCount[1] == 1);
 }

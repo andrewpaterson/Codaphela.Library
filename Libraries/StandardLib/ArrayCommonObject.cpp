@@ -188,7 +188,7 @@ void CArrayCommonObject::EnsureSorted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonObject::IsSorted(void)
+bool CArrayCommonObject::IsSorted(void) const
 {
 	return mcArray.IsSorted();
 }
@@ -208,7 +208,7 @@ bool CArrayCommonObject::CalculateIsSorted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonObject::IsMustSort(void)
+bool CArrayCommonObject::IsMustSort(void) const
 {
 	return mcArray.IsMustSort();
 }

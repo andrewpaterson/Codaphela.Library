@@ -94,7 +94,7 @@ bool CMemberCalls::Remove(void* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemberCalls::NumCalls(void)
+size CMemberCalls::NumCalls(void) const
 {
 	return masCalls.NumElements() - muiNumCleared;
 }

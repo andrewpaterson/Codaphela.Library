@@ -163,7 +163,7 @@ void CObject::EmbedEmbeddedObjectFields(void)
 // they were registered.  None before it has a class.
 //
 //////////////////////////////////////////////////////////////////////////
-size CObject::NumPointerFields(void)
+size CObject::NumPointerFields(void) const
 {
 	return mpcClass ? mpcClass->GetPointerFields()->NumElements() : 0;
 }
@@ -186,7 +186,7 @@ CPointer* CObject::GetPointerField(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CObject::NumWeakPointerFields(void)
+size CObject::NumWeakPointerFields(void) const
 {
 	return mpcClass ? mpcClass->GetWeakPointerFields()->NumElements() : 0;
 }

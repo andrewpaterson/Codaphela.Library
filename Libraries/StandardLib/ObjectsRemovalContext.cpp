@@ -150,7 +150,7 @@ void CObjectRemovalContext::Push(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectRemovalContext::IsBusy(void)
+bool CObjectRemovalContext::IsBusy(void) const
 {
 	return maapcRemovedObjects.NumElements() != 0;
 }

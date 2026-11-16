@@ -47,11 +47,11 @@ public:
 	virtual bool					IsContiguous(void);
 
 			EPrimitiveType			GetType(void);
-			size					GetBitSize(void);
-			size					GetByteSize(void);
-			size					GetBufferSize(void);
+			size					GetBitSize(void) const;
+			size					GetByteSize(void) const;
+			size					GetBufferSize(void) const;
 			CArrayChannelAccessor*	GetAccessors(void);
-			CChannels*				GetChannels(void);
+			CChannels*				GetChannels(void) const;
 };
 
 

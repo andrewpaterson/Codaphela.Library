@@ -81,11 +81,11 @@ public:
 
 	bool 					EndChange(void);
 
-	bool					IsChanging(void);
+	bool					IsChanging(void) const;
 	bool					IsSameFormat(CChannels* psOther);
 	bool					IsChannelRemoved(size iChannel);
 	bool					IsChannelAdded(size iChannel);
-	bool					IsIgnored(void);
+	bool					IsIgnored(void) const;
 
 	bool					Is8BitAligned(size iBitStart, size iBitLength);
 	size					CalculateByteStride(size iBitStride);
@@ -99,10 +99,10 @@ public:
 	void					White(void);
 	void					Dump(lsize iLineLength);
 
-	char*					GetData(void);
-	bool					IsUserAllocated(void);
+	char*					GetData(void) const;
+	bool					IsUserAllocated(void) const;
 	CChannel*				GetChannel(size iChannel);		
-	size					GetNumChannels(void);
+	size					GetNumChannels(void) const;
 	CChannel*				GetChannelAtIndex(size iIndex);
 	void					GetNative(lsize iPos, CChannel* pcChannel, void* pvDest);
 	void					SetNative(lsize iPos, CChannel* pcChannel, void* pvSource);
@@ -112,21 +112,21 @@ public:
 	bool					HasChannel(size iChannel1, size iChannel2);
 	bool					HasChannel(size iChannel1, size iChannel2, size iChannel3);
 	bool					HasChannels(size iFirst, ...);
-	lsize					GetSize(void);
+	lsize					GetSize(void) const;
 	lsize					GetByteSize(void);
 	CArrayChannelOffset*	GetChannelOffsets(void);
-	size					GetByteStride(void);
-	size					GetBitStride(void);
+	size					GetByteStride(void) const;
+	size					GetBitStride(void) const;
 	const char*				GetChannelLongName(size iChannel);
 	const char*				GetChannelShortName(size iChannel);
 
-	size					NumChannels(void);
+	size					NumChannels(void) const;
 	void					GetAllChannels(CArraySize* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
 	EPrimitiveType			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.
 	void					GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes);
 	void					GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels);
-	bool					IsOnlyBasicTypes(void);
+	bool					IsOnlyBasicTypes(void) const;
 
 	void					SetByteStride(size iByteStride);
 	void					SetBitStrideFromByteStride(void);

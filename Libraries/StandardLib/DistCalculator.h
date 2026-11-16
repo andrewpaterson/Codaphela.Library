@@ -66,11 +66,11 @@ public:
 			bool					RecalculateKnownHeldFromStack(CBaseObject* pcFromRemoved);
 			void					CalculateFromTouched(void);
 
-			size					NumTouched(void);
+			size					NumTouched(void) const;
 			CBaseObject*			GetTouched(size iIndex);
-			size					NumDetachedFromRoot(void);
+			size					NumDetachedFromRoot(void) const;
 			CBaseObject*			GetDetachedFromRoot(size iIndex);
-			size					NumCompletelyDetached(void);
+			size					NumCompletelyDetached(void) const;
 			CBaseObject*			GetCompletelyDetached(size iIndex);
 			CArrayBaseObjectPtr*	GetCompletelyDetachedArray(void);
 			bool					IsReachedFromStack(CBaseObject* pcObject);

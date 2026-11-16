@@ -37,7 +37,7 @@ public:
 	void	GetNative(size iChannel, void* pvDest, lsize iPos = 0);
 
 protected:
-	bool	IsByteAligned(void);
+	bool	IsByteAligned(void) const;
 	void*	GetElement(lsize iPos);
 };
 

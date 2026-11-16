@@ -780,7 +780,7 @@ void CMapObject::EnsureSorted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapObject::IsSorted(void)
+bool CMapObject::IsSorted(void) const
 {
 	return mbSorted;
 }

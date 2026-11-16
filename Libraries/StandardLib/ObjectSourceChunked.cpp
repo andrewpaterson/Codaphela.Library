@@ -140,7 +140,7 @@ char* CObjectSourceChunked::GetName(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CObjectSourceChunked::NumNames(void)
+size CObjectSourceChunked::NumNames(void) const
 {
 	return mcNames.NumElements();
 }

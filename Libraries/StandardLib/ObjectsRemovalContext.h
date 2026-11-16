@@ -42,7 +42,7 @@ public:
 
 	void					Push(CArrayBaseObjectPtr* papcKilled);
 
-	bool					IsBusy(void);
+	bool					IsBusy(void) const;
 
 	void					Clear(void);
 

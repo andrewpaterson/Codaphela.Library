@@ -55,7 +55,7 @@ public:
 	void	Add(void* pvPointer, ptr uiLocation);
 	bool	Remove(void* pvPointer, ptr uiLocation);
 	bool	Contains(void* pvPointer, ptr uiLocation);
-	size	NumLocations(void);
+	size	NumLocations(void) const;
 	size	NumLocations(void* pvPointer);
 
 	bool	StartIteration(SPointerLocationsIterator* psIter, void* pvPointer, ptr* puiLocation);

@@ -41,7 +41,7 @@ public:
 	CStackPointer*	Remove(CStackPointer* pcFirst, CCollection* pcCollection, bool* pbRemoved);
 	void			ClearAllPointers(void);
 
-	size			NumElements(void);
+	size			NumElements(void) const;
 	CStackPointer*	Get(size uiIndex);
 
 	CStackPointer*	StartIteration(SFreeListIterator* psIter);

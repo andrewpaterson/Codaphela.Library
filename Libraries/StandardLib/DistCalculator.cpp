@@ -169,7 +169,7 @@ void CDistCalculator::AddDetachedFromRoot(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDistCalculator::NumDetachedFromRoot(void)
+size CDistCalculator::NumDetachedFromRoot(void) const
 {
 	return mapcDetachedFromRoot.NumElements();
 }
@@ -199,7 +199,7 @@ void CDistCalculator::AddCompletelyDetached(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDistCalculator::NumCompletelyDetached(void)
+size CDistCalculator::NumCompletelyDetached(void) const
 {
 	return mapcCompletelyDetached.NumElements();
 }
@@ -268,7 +268,7 @@ void CDistCalculator::AddTouched(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDistCalculator::NumTouched(void)
+size CDistCalculator::NumTouched(void) const
 {
 	return mapcTouched.NumElements();
 }

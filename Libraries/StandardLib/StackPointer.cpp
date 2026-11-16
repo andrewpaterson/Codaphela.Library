@@ -98,7 +98,7 @@ void CStackPointer::LinkBefore(CStackPointer* pcFirst)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CStackPointer::NumPointers(void)
+size CStackPointer::NumPointers(void) const
 {
 	CStackPointer*	pcNext;
 	size			uiCount;
@@ -136,7 +136,7 @@ CStackPointer* CStackPointer::FindLast(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointer::GetNext(void)
+CStackPointer* CStackPointer::GetNext(void) const
 {
 	return mpcNext;
 }
@@ -267,7 +267,7 @@ CStackPointer* CStackPointer::ClearPointerGetNext(CEmbeddedObject* pcPointedTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EStackPointerType CStackPointer::GetType(void)
+EStackPointerType CStackPointer::GetType(void) const
 {
 	return msPointer.eType;
 }
