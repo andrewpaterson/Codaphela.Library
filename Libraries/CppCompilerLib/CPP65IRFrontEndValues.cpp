@@ -718,14 +718,18 @@ bool CCPP65IRFrontEnd::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, 
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::StringData(char* pcBytes, size uiLength, SCPP65IRValue* psValue)
 {
-	CChars	szLabel;
+	CChars		szLabel;
+	CIRGlobal*	pcGlobal;
 
 	if (mbConstants)
 	{
-		//A constant's string is data of its own module, which the interpreter reads.
+		//A constant's string is data of its own module, which the interpreter reads, with the zero byte the
+		//unit's data would end it with (CCPPUnitData::AddString).
 		szLabel.Init();
 		mpcUnit->GetConstants()->NewName("__string", &szLabel);
-		mcModule.AddGlobal(szLabel.Text(), 1, IRA_Local | IRA_Constant)->AddBytes((const uint8*)pcBytes, uiLength);
+		pcGlobal = mcModule.AddGlobal(szLabel.Text(), 1, IRA_Local | IRA_Constant);
+		pcGlobal->AddBytes((const uint8*)pcBytes, uiLength);
+		pcGlobal->AddZero(1);
 		psValue->sValue = mcModule.Symbol(szLabel.Text());
 		psValue->psType = mpcTypes->Pointer(&mpcTypes->msChar);
 		szLabel.Kill();
@@ -1017,6 +1021,11 @@ bool CCPP65IRFrontEnd::VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* ps
 		szLabel.Init();
 		mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
 		psPlace->sAddress = mcModule.Symbol(szLabel.Text());
+		if (mbConstants)
+		{
+			//The interpreter may ask what its data is.
+			mpcUnit->GetConstants()->NoteVariable(szLabel.Text(), pcVariable);
+		}
 		szLabel.Kill();
 		if (pcVariable->mbRestrict)
 		{

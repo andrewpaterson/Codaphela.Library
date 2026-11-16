@@ -41,6 +41,19 @@ struct SCPPConstantFunction
 
 
 typedef CArrayTemplate<SCPPConstantFunction>	CArrayCPPConstantFunctions;
+
+
+//A variable the IR of a constant names, and the interpreter's object of its value once it has been asked for.
+struct SCPPConstantVariable
+{
+	CChars			szLabel;
+	CCPPVariable*	pcVariable;
+	uint32			uiObject;		//0 until it has a value, and if it can't.
+	bool			bAsked;
+};
+
+
+typedef CArrayTemplate<SCPPConstantVariable>	CArrayCPPConstantVariables;
 typedef CArrayTemplatePtr<CCPP65IRFrontEnd>		CArrayCPPConstantFrontEnds;
 
 
@@ -58,6 +71,8 @@ protected:
 	CArrayCPPConstantFrontEnds	mapcFrontEnds;
 	size						muiWriting;			//How many of the front ends are writing a function now.
 	CArrayCPPConstantFunctions	masFunctions;
+	CArrayCPPConstantVariables	masVariables;
+	CArraySyntax				mapcWorking;		//The expressions being worked out: one asked for again inside itself is not a constant.
 	size						muiNames;			//Names made (NewName).
 	CChars						mszReason;			//Why the last expression asked for had no value.
 
@@ -68,16 +83,22 @@ public:
 	bool			Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* plliValue);
 	char*			GetReason(void);
 
+	bool			CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode);
+	bool			IsConstantVariable(CCPPVariable* pcVariable);
+
 	void			NoteFunction(const char* szLabel, CCPPFunction* pcFunction);
+	void			NoteVariable(const char* szLabel, CCPPVariable* pcVariable);
 	void			NewName(const char* szPrefix, CChars* pszName);
 
 	CIRFunction*	ConstantFunction(const char* szName, CIRModule** ppcModule) override;
-	CIRGlobal*		ConstantGlobal(const char* szName, CIRModule** ppcModule) override;
+	uint32			ConstantObject(const char* szName) override;
 
 protected:
 	CCPP65IRFrontEnd*		BeginWriting(void);
 	void					EndWriting(void);
 	SCPPConstantFunction*	FindFunction(const char* szLabel);
+	SCPPConstantVariable*	FindVariable(const char* szLabel);
+	CCPPSyntax*				VariableInitialiser(CCPPVariable* pcVariable, uint32* puiFlags);
 	bool					IsConstexpr(CCPPFunction* pcFunction);
 };
 

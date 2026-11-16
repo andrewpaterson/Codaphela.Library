@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
 #include "BaseLib/PointerFunctions.h"
 #include "CPPUnit.h"
 #include "CPP65IRFrontEnd.h"
@@ -38,6 +39,8 @@ void CCPPConstants::Init(CCPPUnit* pcUnit)
 	mapcFrontEnds.Init();
 	muiWriting = 0;
 	masFunctions.Init();
+	masVariables.Init();
+	mapcWorking.Init();
 	muiNames = 0;
 	mszReason.Init();
 }
@@ -57,6 +60,12 @@ void CCPPConstants::Kill(void)
 		masFunctions.Get(i)->szLabel.Kill();
 	}
 	masFunctions.Kill();
+	for (i = 0; i < masVariables.NumElements(); i++)
+	{
+		masVariables.Get(i)->szLabel.Kill();
+	}
+	masVariables.Kill();
+	mapcWorking.Kill();
 	for (i = 0; i < mapcFrontEnds.NumElements(); i++)
 	{
 		mapcFrontEnds.GetPtr(i)->Kill();
@@ -143,6 +152,11 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 	bool				bResult;
 
 	mszReason.Clear();
+	if (mapcWorking.Find(pcExpression) != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		mszReason.Append("It needs its own value");
+		return false;
+	}
 	pcFrontEnd = BeginWriting();
 	if (!pcFrontEnd)
 	{
@@ -151,7 +165,9 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 	}
 	szName.Init();
 	NewName("__constant", &szName);
+	mapcWorking.Add(pcExpression);
 	pcIR = pcFrontEnd->ConstantExpression(szName.Text(), pcExpression, psType);
+	mapcWorking.Pop();
 	szName.Kill();
 	EndWriting();
 	if (!pcIR)
@@ -281,10 +297,203 @@ CIRFunction* CCPPConstants::ConstantFunction(const char* szName, CIRModule** ppc
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The data of a variable that is a constant (ConstexprPlan.txt stage 5).
+// A constant's IR names a variable (the front end tells of each as it
+// writes the place of one), whose data the interpreter may then ask for.
 //
 //////////////////////////////////////////////////////////////////////////
-CIRGlobal* CCPPConstants::ConstantGlobal(const char* szName, CIRModule** ppcModule)
+void CCPPConstants::NoteVariable(const char* szLabel, CCPPVariable* pcVariable)
 {
+	SCPPConstantVariable*	psVariable;
+
+	if (FindVariable(szLabel))
+	{
+		return;
+	}
+	psVariable = masVariables.Add();
+	psVariable->szLabel.Init(szLabel);
+	psVariable->pcVariable = pcVariable;
+	psVariable->uiObject = 0;
+	psVariable->bAsked = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPConstantVariable* CCPPConstants::FindVariable(const char* szLabel)
+{
+	size	i;
+
+	for (i = 0; i < masVariables.NumElements(); i++)
+	{
+		if (masVariables.Get(i)->szLabel.Equals(szLabel))
+		{
+			return masVariables.Get(i);
+		}
+	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A variable's initialiser (its declaration's, or for a static member the
+// one its class gave it) and its declaration's specifiers' flags; NULL if
+// it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPConstants::VariableInitialiser(CCPPVariable* pcVariable, uint32* puiFlags)
+{
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPSyntax*						pcInitialiser;
+
+	*puiFlags = 0;
+	pcInit = pcVariable->mpcSymbol ? (CCPPSyntaxInitDeclarator*)pcVariable->mpcSymbol->mpcDeclaration : NULL;
+	if (!pcInit || (pcInit->GetKind() != CPPS_InitDeclarator))
+	{
+		return NULL;
+	}
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers)
+	{
+		*puiFlags = pcDeclaration->mpcSpecifiers->muiFlags;
+	}
+	pcInitialiser = pcInit->mpcInitializer;
+	return pcInitialiser ? pcInitialiser : pcVariable->mpcInClassInitialiser;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a variable's value can be read in a constant expression: one
+// declared constexpr, or a const integer or enum with an initialiser.
+// [expr.const] 2.7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::IsConstantVariable(CCPPVariable* pcVariable)
+{
+	SCPP65Type*	psType;
+	uint32		uiFlags;
+
+	if ((pcVariable->meStorage != CPPVS_Global) || !VariableInitialiser(pcVariable, &uiFlags))
+	{
+		return false;
+	}
+	if (uiFlags & CPPDS_CONSTEXPR)
+	{
+		return true;
+	}
+	psType = pcVariable->mpsType;
+	return psType->bConst && !psType->bVolatile && (psType->IsInteger() || (psType->eKind == CPP65TK_Bool));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object of a variable's value, worked out the first time it is asked
+// for by running its initialiser where the object is: its constructor,
+// what its list in braces gives each element, or the address a reference
+// is bound to.  The object is frozen once it has its value.  0 if the
+// symbol isn't such a variable, or its value can't be worked out
+// (mszReason says why).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CCPPConstants::ConstantObject(const char* szName)
+{
+	SCPPConstantVariable*	psVariable;
+	CCPP65IRFrontEnd*		pcFrontEnd;
+	CCPPVariable*			pcVariable;
+	CCPPSyntax*				pcInitialiser;
+	CIRFunction*			pcIR;
+	CChars					szInitialiser;
+	SIRValue				sObject;
+	SIRValue				sResult;
+	uint32					uiObject;
+	uint32					uiFlags;
+	size					uiVariable;
+	bool					bResult;
+
+	psVariable = FindVariable(szName);
+	if (!psVariable || psVariable->bAsked)
+	{
+		return psVariable ? psVariable->uiObject : 0;
+	}
+	psVariable->bAsked = true;
+	pcVariable = psVariable->pcVariable;
+	if (!IsConstantVariable(pcVariable))
+	{
+		return 0;
+	}
+	uiVariable = masVariables.GetIndex(psVariable);
+
+	pcInitialiser = VariableInitialiser(pcVariable, &uiFlags);
+	pcFrontEnd = BeginWriting();
+	if (!pcFrontEnd)
+	{
+		return 0;
+	}
+	szInitialiser.Init();
+	NewName("__initialise", &szInitialiser);
+	pcIR = pcFrontEnd->ConstantInitialiser(szInitialiser.Text(), pcVariable->mpsType, pcInitialiser);
+	szInitialiser.Kill();
+	EndWriting();
+	if (!pcIR)
+	{
+		mszReason.Append("Its initialiser uses what the compiler can't work out yet");
+		return 0;
+	}
+
+	uiObject = mcInterpreter.NewNamedObject(szName, (size)pcVariable->mpsType->iBytes);
+	sObject = mcInterpreter.PointerTo(uiObject, 0, pcFrontEnd->GetModule()->GetPointerSize(0));
+	bResult = mcInterpreter.Call(pcFrontEnd->GetModule(), pcIR, &sObject, 1, &sResult);
+	pcFrontEnd->GetModule()->RemoveFunction(pcIR);
+	if (!bResult)
+	{
+		mszReason.Clear();
+		mszReason.Append(mcInterpreter.GetError());
+		mcInterpreter.Forget(uiObject);
+		return 0;
+	}
+	mcInterpreter.Freeze(uiObject);
+	masVariables.Get(uiVariable)->uiObject = uiObject;
+	return uiObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A variable declared constexpr must be initialised with a constant
+// expression: its value is worked out when it is defined, and an error
+// where it can't be.  An initialiser the front end can't write for the
+// interpreter yet is let be: its start up routine makes it at run time,
+// as before.  [dcl.constexpr] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode)
+{
+	CChars		szLabel;
+	CChars		szMessage;
+	uint32		uiFlags;
+	bool		bResult;
+
+	if (!VariableInitialiser(pcVariable, &uiFlags))
+	{
+		return mpcUnit->ReportError(pcNode, "A constexpr variable needs an initialiser");
+	}
+	szLabel.Init();
+	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
+	NoteVariable(szLabel.Text(), pcVariable);
+	mszReason.Clear();
+	bResult = (ConstantObject(szLabel.Text()) != 0) || (strncmp(mszReason.Text(), "Its initialiser uses", 20) == 0);
+	szLabel.Kill();
+	if (!bResult)
+	{
+		szMessage.Init("A constexpr variable's initialiser must be a constant: ");
+		szMessage.Append(mszReason.Text());
+		mpcUnit->ReportError(pcNode, szMessage.Text());
+		szMessage.Kill();
+	}
+	return bResult;
 }

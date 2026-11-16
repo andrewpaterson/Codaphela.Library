@@ -52,6 +52,8 @@ void CIRInterpreter::Init(CIRInterpreterHost* pcHost)
 	masObjects.Init();
 	mszError.Init();
 	muiErrorSource = 0;
+	mszLastError.Init();
+	muiLastErrorSource = 0;
 	muiSteps = 0;
 	muiStepLimit = IR_INTERPRETER_STEPS;
 	muiDepth = 0;
@@ -77,6 +79,7 @@ void CIRInterpreter::Kill(void)
 		masObjects.Get(i)->szName.Kill();
 	}
 	masObjects.Kill();
+	mszLastError.Kill();
 	mszError.Kill();
 }
 
@@ -100,7 +103,7 @@ void CIRInterpreter::SetLimits(size uiSteps, size uiDepth)
 //////////////////////////////////////////////////////////////////////////
 char* CIRInterpreter::GetError(void)
 {
-	return mszError.Text();
+	return mszLastError.Text();
 }
 
 
@@ -110,7 +113,7 @@ char* CIRInterpreter::GetError(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CIRInterpreter::GetErrorSource(void)
 {
-	return muiErrorSource;
+	return muiLastErrorSource;
 }
 
 
@@ -198,6 +201,47 @@ void CIRInterpreter::FreeObject(SIRObject* psObject)
 uint32 CIRInterpreter::NewObject(size uiSize)
 {
 	return AddObject(IROB_Made, uiSize, true, 0, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object a symbol is, made by the host (CIRInterpreterHost::
+// ConstantObject) to be given its value: what is run may write it until
+// it is frozen.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRInterpreter::NewNamedObject(const char* szName, size uiSize)
+{
+	return AddObject(IROB_Global, uiSize, true, 0, szName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object has its value: from now on it is data that never changes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterpreter::Freeze(uint32 uiObject)
+{
+	masObjects.Get(uiObject)->bWritable = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object is no symbol's after all (its value couldn't be worked out):
+// a pointer to it is to nothing, and the symbol is asked for again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterpreter::Forget(uint32 uiObject)
+{
+	SIRObject*	psObject;
+
+	psObject = masObjects.Get(uiObject);
+	psObject->bDead = true;
+	psObject->szName.Clear();
+	FreeObject(psObject);
 }
 
 
@@ -331,13 +375,10 @@ uint32 CIRInterpreter::SymbolObject(CIRModule* pcModule, uint32 uiSymbol)
 	{
 		pcGlobal = pcModule->FindConstantData(uiSymbol);
 	}
-	if (!pcGlobal && mpcHost)
-	{
-		pcGlobal = mpcHost->ConstantGlobal(szName, &pcDefined);
-	}
 	if (!pcGlobal)
 	{
-		return AddObject(IROB_Unknown, 0, false, 0, szName);
+		uiObject = mpcHost ? mpcHost->ConstantObject(szName) : 0;
+		return (uiObject != 0) ? uiObject : AddObject(IROB_Unknown, 0, false, 0, szName);
 	}
 
 	//Its items, one after another.  The object is added first: an item may be its own address.
@@ -726,6 +767,7 @@ bool CIRInterpreter::CallInstruction(CIRModule* pcModule, CIRFunction* pcFunctio
 	SIRObject*		psObject;
 	CIRModule*		pcCalledModule;
 	CIRFunction*	pcCalled;
+	CChars			szName;
 	uint32			uiObject;
 	int				iSymbol;
 	bool			bResult;
@@ -741,17 +783,22 @@ bool CIRInterpreter::CallInstruction(CIRModule* pcModule, CIRFunction* pcFunctio
 		return Fail("It calls what isn't a function whose value can be worked out", ((uiObject != 0) && (psObject->szName.Length() > 0)) ? psObject->szName.Text() : NULL);
 	}
 
+	//The host writing the callee may work out other constants, which adds objects: psObject is not kept.
+	szName.Init(psObject->szName.Text());
 	pcCalledModule = pcModule;
-	iSymbol = pcModule->FindSymbol(psObject->szName.Text());
+	iSymbol = pcModule->FindSymbol(szName.Text());
 	pcCalled = (iSymbol >= 0) ? pcModule->FindFunction((uint32)iSymbol) : NULL;
 	if (!pcCalled && mpcHost)
 	{
-		pcCalled = mpcHost->ConstantFunction(psObject->szName.Text(), &pcCalledModule);
+		pcCalled = mpcHost->ConstantFunction(szName.Text(), &pcCalledModule);
 	}
 	if (!pcCalled)
 	{
-		return Fail("It calls what isn't a function whose value can be worked out", psObject->szName.Text());
+		Fail("It calls what isn't a function whose value can be worked out", szName.Text());
+		szName.Kill();
+		return false;
 	}
+	szName.Kill();
 
 	bResult = Run(pcCalledModule, pcCalled, pasPending, pasPendingTypes, &sResult);
 	pasPending->ReInit();
@@ -1055,35 +1102,53 @@ bool CIRInterpreter::Run(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRV
 //
 // The value a function returns for the arguments (each of its parameter's
 // type), if it can be worked out without running the program; else false,
-// and GetError says why and GetErrorSource where.
+// and GetError says why and GetErrorSource where.  It may be called while
+// a call is being run (the host making an object a symbol is): that call
+// goes on afterwards as it was, with what is left of the steps.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRInterpreter::Call(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue* pasArguments, size uiNumArguments, SIRValue* psResult)
 {
 	CArrayIRValues			asArguments;
 	CArrayTemplate<SIRType>	asTypes;
+	CChars					szOuterError;
 	SIRType					sType;
+	uint32					uiOuterSource;
 	size					i;
 	bool					bResult;
 
+	szOuterError.Init(mszError.Text());
+	uiOuterSource = muiErrorSource;
 	mszError.Clear();
 	muiErrorSource = 0;
-	muiSteps = 0;
-	muiDepth = 0;
-	if (uiNumArguments != pcFunction->masParameters.NumElements())
+	if (muiDepth == 0)
 	{
-		return Fail("It is called with the wrong number of arguments");
+		muiSteps = 0;
+	}
+
+	bResult = uiNumArguments == pcFunction->masParameters.NumElements();
+	if (!bResult)
+	{
+		Fail("It is called with the wrong number of arguments");
 	}
 	asArguments.Init();
 	asTypes.Init();
-	for (i = 0; i < uiNumArguments; i++)
+	for (i = 0; bResult && (i < uiNumArguments); i++)
 	{
 		asArguments.Add(&pasArguments[i]);
 		sType = pcFunction->TypeOf(*pcFunction->masParameters.Get(i));
 		asTypes.Add(&sType);
 	}
-	bResult = Run(pcModule, pcFunction, &asArguments, &asTypes, psResult);
+	bResult = bResult && Run(pcModule, pcFunction, &asArguments, &asTypes, psResult);
 	asArguments.Kill();
 	asTypes.Kill();
+
+	mszLastError.Clear();
+	mszLastError.Append(mszError.Text());
+	muiLastErrorSource = muiErrorSource;
+	mszError.Clear();
+	mszError.Append(szOuterError.Text());
+	muiErrorSource = uiOuterSource;
+	szOuterError.Kill();
 	return bResult;
 }

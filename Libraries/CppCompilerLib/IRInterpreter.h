@@ -80,8 +80,9 @@ public:
 	//value can be worked out (it isn't defined, or may not be called for a constant).
 	virtual CIRFunction*	ConstantFunction(const char* szName, CIRModule** ppcModule) =0;
 
-	//The global named, whose data is what it has all the time the program runs, and its module; NULL if there is none.
-	virtual CIRGlobal*		ConstantGlobal(const char* szName, CIRModule** ppcModule) =0;
+	//The object the symbol named is, made with NewNamedObject (and given its value, perhaps by calling the
+	//interpreter), if it is data whose value never changes; 0 if it isn't one.
+	virtual uint32			ConstantObject(const char* szName) =0;
 };
 
 
@@ -94,8 +95,10 @@ class CIRInterpreter
 protected:
 	CIRInterpreterHost*	mpcHost;
 	CArrayIRObjects		masObjects;			//Every object, by its number; 0 is no object.
-	CChars				mszError;
+	CChars				mszError;			//Why what is being run has no value.
 	uint32				muiErrorSource;		//The source token + 1 of the instruction that wasn't a constant, 0 for none.
+	CChars				mszLastError;		//Why the last Call had none (GetError).
+	uint32				muiLastErrorSource;
 	size				muiSteps;
 	size				muiStepLimit;
 	size				muiDepth;
@@ -110,6 +113,9 @@ public:
 	bool		Call(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue* pasArguments, size uiNumArguments, SIRValue* psResult);
 
 	uint32		NewObject(size uiSize);
+	uint32		NewNamedObject(const char* szName, size uiSize);
+	void		Freeze(uint32 uiObject);
+	void		Forget(uint32 uiObject);
 	SIRValue	PointerTo(uint32 uiObject, uint64 ulliOffset, int iPointerBytes);
 	uint32		ObjectOf(SIRValue* psPointer, int iPointerBytes);
 	SIRObject*	GetObject(uint32 uiObject);

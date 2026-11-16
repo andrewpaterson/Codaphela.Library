@@ -1960,6 +1960,11 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		}
 		pcVariable->mbDefined = true;
 		pcVariable->mpsType = psType;
+		if ((pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !mpcConstants->CheckVariable(pcVariable, pcInit))
+		{
+			bResult = false;
+			continue;
+		}
 
 		szLabel.Init();
 		AppendVariableLabel(&szLabel, pcVariable);

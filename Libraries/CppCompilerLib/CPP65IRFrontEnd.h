@@ -195,6 +195,7 @@ public:
 	bool			Body(CCPPFunction* pcFunction);
 	CIRFunction*	ConstantFunction(CCPPFunction* pcFunction);
 	CIRFunction*	ConstantExpression(const char* szLabel, CCPPSyntax* pcExpression, SCPP65Type* psType);
+	CIRFunction*	ConstantInitialiser(const char* szLabel, SCPP65Type* psType, CCPPSyntax* pcInitialiser);
 	CIRModule*		GetModule(void);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
 	void			InlineUnit(void);

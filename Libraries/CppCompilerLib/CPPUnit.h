@@ -520,6 +520,9 @@ public:
 
 
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
+	bool					FoldConstant(CCPPSyntax* pcExpression, int64* plliValue);
+	bool					RunConstant(CCPPSyntax* pcExpression, int64* plliValue);
+	bool					NamesConstexpr(CCPPSyntax* pcNode);
 	int64					ConstantOfType(SCPP65Type* psType, int64 lliValue);
 	bool					ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue);
 	SCPP65Type*				ConstantTypeOf(CCPPSyntax* pcExpression);

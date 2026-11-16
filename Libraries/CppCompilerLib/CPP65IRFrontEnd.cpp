@@ -472,6 +472,36 @@ CIRFunction* CCPP65IRFrontEnd::ConstantExpression(const char* szLabel, CCPPSynta
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A variable's initialiser as a function that makes its value where its
+// one argument points, as its start up routine would at its symbol, for
+// the interpreter; NULL if the front end can't write it.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRFunction* CCPP65IRFrontEnd::ConstantInitialiser(const char* szLabel, SCPP65Type* psType, CCPPSyntax* pcInitialiser)
+{
+	CCPPFunction	cFunction;
+	SCPP65IRPlace	sPlace;
+	bool			bResult;
+
+	memset(&cFunction, 0, sizeof(CCPPFunction));
+	cFunction.meKind = CPPFK_Function;
+	cFunction.mpsReturn = &mpcTypes->msVoid;
+	BeginWriting(&cFunction, szLabel, IRType(IRTK_None), IRA_Local);
+	sPlace.sAddress = mpcFunction->AddParameter(IRType(IRTK_Pointer));
+	sPlace.psType = psType;
+	mpcUnit->BeginQuiet();
+	bResult = Construct(&sPlace, NULL, pcInitialiser) && DestroyTemporaries(0);
+	mpcUnit->EndQuiet();
+	if (bResult)
+	{
+		mpcBlock->Return();
+	}
+	return FinishWriting(bResult, szLabel) ? mpcConstant : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CIRModule* CCPP65IRFrontEnd::GetModule(void)

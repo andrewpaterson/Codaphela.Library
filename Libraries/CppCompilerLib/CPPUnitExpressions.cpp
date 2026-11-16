@@ -856,11 +856,123 @@ bool CCPPUnit::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The value of a constant expression of an integer type: what the syntax
+// tree folds to (FoldConstant), or else what running it gives
+// (RunConstant).  False if it isn't a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
+{
+	return FoldConstant(pcExpression, plliValue) || RunConstant(pcExpression, plliValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the tree folder can't give: a member or an element of a constant
+// object, what a pointer or reference to one is, a cast of a floating
+// point constant.  Only an expression that names a constexpr variable or
+// function, or has a string, is run; its value is the interpreter's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
+{
+	SCPP65Type*	psType;
+
+	pcExpression = SkipParentheses(pcExpression);
+	if (!pcExpression)
+	{
+		return false;
+	}
+	switch (pcExpression->GetKind())
+	{
+	case CPPS_IdExpression:
+	case CPPS_MemberExpression:
+	case CPPS_SubscriptExpression:
+	case CPPS_CastExpression:
+		break;
+	case CPPS_NamedCastExpression:
+		if (((CCPPSyntaxNamedCastExpression*)pcExpression)->meCast == CT_dynamic_cast)
+		{
+			return false;
+		}
+		break;
+	case CPPS_UnaryExpression:
+		if (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator != CT_Multiply)
+		{
+			return false;
+		}
+		break;
+	default:
+		return false;
+	}
+	if (!NamesConstexpr(pcExpression))
+	{
+		return false;
+	}
+	psType = TypeOf(pcExpression);
+	if (!psType || !(psType->IsInteger() || (psType->eKind == CPP65TK_Bool)))
+	{
+		return false;
+	}
+	return mpcConstants->Value(pcExpression, psType, plliValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the expression names a variable or function declared constexpr,
+// or has a string literal: what only running it can give the value of.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::NamesConstexpr(CCPPSyntax* pcNode)
+{
+	CCPPSymbol*						pcSymbol;
+	CCPPSyntax*						pcDeclaration;
+	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
+	size							i;
+
+	if (!pcNode)
+	{
+		return false;
+	}
+	if (pcNode->GetKind() == CPPS_StringExpression)
+	{
+		return true;
+	}
+	if (pcNode->GetKind() == CPPS_IdExpression)
+	{
+		pcSymbol = ((CCPPSyntaxIdExpression*)pcNode)->mpcName->mpcSymbol;
+		pcDeclaration = pcSymbol ? pcSymbol->mpcDeclaration : NULL;
+		pcSpecifiers = NULL;
+		if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+		{
+			pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers;
+		}
+		else if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_FunctionDefinition))
+		{
+			pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;
+		}
+		return pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR);
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		if (NamesConstexpr(pcNode->GetChild(i)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Works out an integer constant expression.  Each value is kept as its
 // type keeps it (ConstantOfType): unsigned and narrow arithmetic wraps.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
+bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 {
 	CCPPToken*						pcToken;
 	CCPPSyntaxUnaryExpression*		pcUnary;
