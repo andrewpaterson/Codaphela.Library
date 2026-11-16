@@ -58,22 +58,22 @@ What it would be
            of a weak reference is freed, its weak references come off their objects' weak froms.
 
 
-Proposed (decisions for the user)
----------------------------------
-  1. Where weak froms are kept.  Proposed: a flag (OBJECT_FLAGS_WEAKLY_HELD, 0x1000, the container's like the others) and
+Decided (the user took each proposal, 2026-11-16)
+-------------------------------------------------
+  1. Where weak froms are kept: a flag (OBJECT_FLAGS_WEAKLY_HELD, 0x1000, the container's like the others) and
      a map in CObjects from object to its weak froms, so objects that are never weakly held pay one bit and the free path
      one flag test.  The other way is a pointer in every CEmbeddedObject, as mpsHub (four bytes on the 65 targets, eight
      on 64-bit hosts, in every object).
-  2. Eviction.  Proposed: weak references follow the object's identity, as Ptrs do.  An object replaced by a hollow while
+  2. Eviction: weak references follow the object's identity, as Ptrs do.  An object replaced by a hollow while
      strong holders keep it isn't freed: its weak references move to the hollow (and Get loads it, as a Ptr would), and
      move to the loaded object on Dehollow.  They're cleared only when the object is freed.  The other way clears them on
      eviction (a weak reference means "while it's in memory"), which suits caches but surprises anything else.
-  3. Saving.  Proposed: weak references aren't saved, and load as NULL, as U_Pointer.  They're for lookups that are rebuilt
+  3. Saving: weak references aren't saved, and load as NULL, as U_Pointer.  They're for lookups that are rebuilt
      in memory.  The other way saves the object's index and reconnects when both are loaded, which needs the reader to
      resolve weak froms as it does heap froms.
-  4. Use.  Proposed: Get() returning a Ptr only, no operator ->, so a weak reference is never used without something
+  4. Use: Get() returning a Ptr only, no operator ->, so a weak reference is never used without something
      strong holding its object for the length of the use.
-  5. Names.  Proposed: Weak<M>, W_Pointer, CArrayWeakObject / CArrayWeak<M>, CWeakPointerField.
+  5. Names: Weak<M>, W_Pointer, CArrayWeakObject / CArrayWeak<M>, CWeakPointerField.
 
 
 How it's done
