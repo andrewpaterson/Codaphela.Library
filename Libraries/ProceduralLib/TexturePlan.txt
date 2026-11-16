@@ -3,7 +3,7 @@ Texture generator plan
 
 Making the solid textures a bake reads (SupportLib/UnwrapPlan.txt, Bake): noise, the operators that combine textures, and
 materials built from them.  It comes before the virtual texture (SupportLib/VirtualTexturePlan.txt), whose pages are baked from
-these and whose design needs to know what a texel holds and what one costs to make.  Steps 1 to 21 are built (see Steps).  What is decided
+these and whose design needs to know what a texel holds and what one costs to make.  Steps 1 to 27 are built (see Steps).  What is decided
 and what is only proposed is said at each point.
 
 
@@ -128,7 +128,7 @@ CSolidOperators).  A texture can feed several operators (the graph isn't a tree)
                  CSolidCavity      From a CShape's distances near the point: dirt in hollows, wear on edges (step 38).
                                    A solid texture can do this where a 2D one never could, as the shape is to hand.
 
-A material is a function that builds a graph (MakeMarble(seed, ...) returning its top texture), not a class: the graph is
+A material is a function that builds a graph (MakeSolidMarble(seed) returning its top texture), not a class: the graph is
 ordinary objects, saved and edited as they are.
 
 
@@ -221,13 +221,18 @@ Point operators (each a CSolidOperator, whose Input samples an input at the oper
 21. A graph saved, loaded, and sampling the same.  Done: TestSolidGraphSaveLoad (a mask of a merge of two ramps and a flat,
     by a third ramp).
 
-Warp and the first materials
-22. Placement inside a parent: an input is sampled at its operator's point.
-23. CSolidWarp: the input sampled at a point moved by a second input.
-24. Marble: turbulence warping bands, through a ramp.
-25. Wood: rings round an axis, wobbled.
-26. Stone: a sum and cells, masked.
-27. Rust: a ridged mask between metal and oxide.
+Warp and the first materials (SolidMaterials.h: each a function building a graph)
+22. Placement inside a parent: an input is sampled at its operator's point.  Done with CSolidOperator::Input;
+    TestSolidPlacementInside.
+23. CSolidWarp: the input sampled at a point moved by a second input.  Done: each axis's move is the amount times how far
+    the second's value is from a half, doubled, the y and z values read far from the point so one noise bends every way.
+24. Marble: a wave of bands along x warped by a noise (0.9 of a unit: the bands are 0.7 apart, so they fold right over),
+    through a ramp pale for most of a band and dark at its crest.  Done.
+25. Wood: a saw of rings round z, eight to the unit, wobbled by a broad noise; a fine noise multiplies in grain.  Done.
+26. Stone: two noises through ramps, one or the other by cell, times dark sunk cracks along a second set of cells' edges
+    (themselves warped a little, so they aren't straight).  Done.
+27. Rust: steel and rust, the rust where a ridged noise is high.  Done.
+    All four looked right in the gallery the first time they were drawn; the numbers in them are that first guess.
 
 Filtering and cost measured
 28. Each material's mip levels against the finer level shrunk.

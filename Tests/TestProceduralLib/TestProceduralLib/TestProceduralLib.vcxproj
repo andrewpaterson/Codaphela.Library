@@ -239,6 +239,7 @@
     <ClCompile Include="TextureGallery.cpp" />
     <ClCompile Include="TestSolidGenerators.cpp" />
     <ClCompile Include="TestSolidOperators.cpp" />
+    <ClCompile Include="TestSolidMaterials.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />

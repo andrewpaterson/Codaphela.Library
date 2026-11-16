@@ -57,6 +57,12 @@
     <ClCompile Include="SolidMask.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="SolidWarp.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidMaterials.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h">
@@ -108,6 +114,12 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="SolidMask.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidWarp.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidMaterials.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

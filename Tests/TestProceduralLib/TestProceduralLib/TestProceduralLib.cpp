@@ -20,6 +20,7 @@ void TestMeshShapeNormals(void);
 void TestShapeScene(void);
 void TestSolidGenerators(void);
 void TestSolidOperators(void);
+void TestSolidMaterials(void);
 
 
 int __cdecl main(void)
@@ -44,6 +45,7 @@ int __cdecl main(void)
 	TestShapeScene();
 	TestSolidGenerators();
 	TestSolidOperators();
+	TestSolidMaterials();
 
 	MemoryKill();
 	TypeConverterKill();

@@ -36,6 +36,8 @@
     <ClCompile Include="SolidAdjust.cpp" />
     <ClCompile Include="SolidMerge.cpp" />
     <ClCompile Include="SolidMask.cpp" />
+    <ClCompile Include="SolidWarp.cpp" />
+    <ClCompile Include="SolidMaterials.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h" />
@@ -55,6 +57,8 @@
     <ClInclude Include="SolidAdjust.h" />
     <ClInclude Include="SolidMerge.h" />
     <ClInclude Include="SolidMask.h" />
+    <ClInclude Include="SolidWarp.h" />
+    <ClInclude Include="SolidMaterials.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9878AEFF-411B-415E-995B-BA59059726E1}</ProjectGuid>
