@@ -150,7 +150,6 @@ public:
 
 
 typedef CMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
-typedef CArrayTemplatePtr<CArraySyntax>	CArrayCPPArguments;
 
 
 //Says what the calls, names and members of a unit's expressions are, in one place, for the type checker and the
@@ -172,7 +171,6 @@ protected:
 	CCPPAccess			mcAccess;		//Says whether what was chosen may be named where it is.
 	CMapCPPBoundCalls	mcBound;
 	CMapCPPBoundCalls	mcOperators;	//By left operand.
-	CArrayCPPArguments	mapapcExpanded;	//The arguments of the calls with a pack expanded, kept until the unit is done.
 
 public:
 	void	Init(CCPPUnit* pcUnit);
@@ -200,7 +198,6 @@ public:
 	bool			KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
 
 protected:
-	CArraySyntax*	ExpandPack(CCPPSyntaxCallExpression* pcCall);
 	ECPPCalledObject	CalledObject(CCPPSyntax* pcObject, bool bArrow);
 	void	Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	void	ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);

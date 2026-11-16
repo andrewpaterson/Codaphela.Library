@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_SYMBOL_H__
 #define __C_P_P_SYMBOL_H__
 #include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
 enum ECPPSymbolKind
@@ -82,6 +83,9 @@ public:
 	bool	IsClass(void);
 	bool	IsFunction(void);
 };
+
+
+typedef CArrayTemplatePtr<CCPPSymbol>	CArrayCPPSymbols;
 
 
 #endif // __C_P_P_SYMBOL_H__

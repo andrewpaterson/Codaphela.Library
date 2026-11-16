@@ -827,7 +827,7 @@ bool CCPPParser::ParseMemberInitializers(CCPPSyntaxFunctionDefinition* pcFunctio
 		{
 			return false;
 		}
-		Accept(CT_Elipsis);
+		pcInitializer->mbPack = Accept(CT_Elipsis);
 		pcInitializer->miLastToken = PreviousToken();
 		pcFunction->macpMemberInitializers.Add(pcInitializer);
 		if (!Accept(CT_Comma))

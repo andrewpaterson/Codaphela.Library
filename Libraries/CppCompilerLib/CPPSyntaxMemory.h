@@ -41,6 +41,7 @@ public:
 	void							Rollback(size uiSyntaxes);
 
 	template<class M>	M*			Create(CCPPSyntax* pcParent);
+						CCPPSyntax*	CreateKind(ECPPSyntax eKind, CCPPSyntax* pcParent);
 };
 
 

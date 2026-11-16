@@ -130,7 +130,33 @@ struct SCPPBuiltin
 
 typedef CArrayTemplatePtr<CArrayCPP65Types>	CArrayCPPPacks;
 typedef CArrayTemplatePtr<CArrayInt64>		CArrayCPPValuePacks;
-typedef CArrayTemplatePtr<CCPPSymbol>		CArrayCPPSymbols;
+
+
+//A template parameter pack's element as a parameter of its own (CCPPUnit::PackElement), in the bindings it is bound in.
+struct SCPPPackElement
+{
+	CCPPTemplateArguments*	pcBindings;
+	CCPPSymbol*				pcPack;
+	size					uiIndex;
+	CCPPSymbol*				pcElement;
+};
+
+
+typedef CArrayTemplate<SCPPPackElement>	CArrayCPPPackElements;
+
+
+//An argument list with its pack expansions expanded, for the bindings and function it was expanded in
+//(CCPPUnit::ExpandArguments).  papcExpanded is NULL if it couldn't be.
+struct SCPPExpandedArguments
+{
+	CArraySyntax*			papcArguments;
+	CCPPTemplateArguments*	pcBindings;
+	CCPPFunction*			pcIn;
+	CArraySyntax*			papcExpanded;
+};
+
+
+typedef CArrayTemplate<SCPPExpandedArguments>	CArrayCPPExpandedArgumentLists;
 
 
 //A remembered TypeOf: the type of an expression with some template arguments.
@@ -218,7 +244,9 @@ protected:
 	CArrayCPPTemplateArguments	mapcAllBindings;
 	CArrayCPPPacks		mapapsPacks;		//The packs' types (NewPack).
 	CArrayCPPValuePacks	mapalliPacks;		//The non-type packs' values (NewValuePack).
-	CArrayCPPSymbols		mapcPackSymbols;	//The symbols made for function parameter packs' elements.
+	CArrayCPPSymbols		mapcPackSymbols;	//The symbols made for function and template parameter packs' elements.
+	CArrayCPPPackElements	masPackElements;	//Template parameter packs' elements in each bindings (PackElement).
+	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
 	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
@@ -469,7 +497,11 @@ public:
 	CCPPTemplateArguments*			NewBindings(void);
 	CArrayCPP65Types*		NewPack(void);
 	CArrayInt64*			NewValuePack(void);
-	void					FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks);
+	CCPPSymbol*				FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks);
+	bool					ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArraySyntax* papcExpanded);
+	CArraySyntax*			ExpandArguments(CArraySyntax* papcArguments);
+	CArraySyntax*			ListElements(CCPPSyntax* pcList);
+	CCPPSymbol*				PackElement(SCPPBinding* psPack, size k);
 	bool					ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded);
 	SCPP65Type*				ExpandedArgumentType(SCPPExpandedArgument* psArgument);
 	bool					ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* plliValue);
@@ -488,6 +520,8 @@ public:
 	bool					CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					CompleteObjectClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode);
+	bool					AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier);
+	bool					AddPackBases(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
 	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
@@ -534,6 +568,7 @@ public:
 
 	CCPPSymbol*				NewPackElement(CCPPSymbol* pcPack);
 	bool					HasPackExpansion(CArraySyntax* papcArguments);
+	CCPPSyntax*				ExpansionPattern(CCPPSyntax* pcNode);
 
 	bool					IsBuiltin(int64 lliName);
 	const SCPPBuiltin*	FindBuiltin(int64 lliName);

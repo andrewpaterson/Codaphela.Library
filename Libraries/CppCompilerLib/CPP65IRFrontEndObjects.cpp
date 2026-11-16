@@ -337,7 +337,11 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	int								iOffset;
 
 	//An implicit constructor has no definition, so no member initialisers.
-	papcInitialisers = pcFunction ? &pcFunction->macpMemberInitializers : &mapcNone;
+	papcInitialisers = pcFunction ? mpcUnit->ExpandArguments(&pcFunction->macpMemberInitializers) : &mapcNone;
+	if (!papcInitialisers)
+	{
+		return false;
+	}
 	pcClass = mpcCPPFunction->mpcClass;
 	if (msThis.IsNone() || !mpcUnit->CompleteClass(pcClass, NULL))
 	{
@@ -379,11 +383,11 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		{
 			if (pcFound->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer)
 			{
-				papcArguments = &((CCPPSyntaxParenthesisedInitializer*)pcFound->mpcInitializer)->macpElements;
+				papcArguments = mpcUnit->ListElements(pcFound->mpcInitializer);
 			}
 			else if (pcFound->mpcInitializer->GetKind() == CPPS_InitializerList)
 			{
-				papcArguments = &((CCPPSyntaxInitializerList*)pcFound->mpcInitializer)->macpElements;
+				papcArguments = mpcUnit->ListElements(pcFound->mpcInitializer);
 			}
 		}
 		sPlace.sAddress = AddressAt(msThis, psBase->iOffset);
@@ -464,11 +468,11 @@ bool CCPP65IRFrontEnd::DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMember
 	{
 		if (pcMember->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer)
 		{
-			papcArguments = &((CCPPSyntaxParenthesisedInitializer*)pcMember->mpcInitializer)->macpElements;
+			papcArguments = mpcUnit->ListElements(pcMember->mpcInitializer);
 		}
 		else if (pcMember->mpcInitializer->GetKind() == CPPS_InitializerList)
 		{
-			papcArguments = &((CCPPSyntaxInitializerList*)pcMember->mpcInitializer)->macpElements;
+			papcArguments = mpcUnit->ListElements(pcMember->mpcInitializer);
 		}
 	}
 	sPlace.sAddress = msThis;
@@ -676,13 +680,13 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	{
 		if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
 		{
-			papcArguments = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
+			papcArguments = mpcUnit->ListElements(pcInitialiser);
 			pcInitialiser = NULL;
 			bValueInitialise = papcArguments->NumElements() == 0;
 		}
 		else if (pcInitialiser->GetKind() == CPPS_InitializerList)
 		{
-			papcArguments = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+			papcArguments = mpcUnit->ListElements(pcInitialiser);
 			pcInitialiser = NULL;
 			bValueInitialise = papcArguments->NumElements() == 0;
 		}
@@ -794,7 +798,8 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	size					ui;
 	size					uiArgument;
 
-	if (!mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, mpcCPPFunction->mpcDefinition, &cBound, false))
+	papcArguments = mpcUnit->ExpandArguments(papcArguments);
+	if (!papcArguments || !mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, mpcCPPFunction->mpcDefinition, &cBound, false))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

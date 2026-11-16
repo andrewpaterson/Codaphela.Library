@@ -276,6 +276,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapapsPacks.Init();
 	mapalliPacks.Init();
 	mapcPackElements.Init();
+	masPackElements.Init();
+	masExpandedArguments.Init();
 	mapcPackSymbols.Init();
 	mapcHiddenSymbols.Init();
 	mcRangeFors.Init(true);
@@ -310,6 +312,7 @@ void CCPPUnit::Kill(void)
 	CCPPTemplateArguments*	pcBindings;
 	CArrayCPP65Types*		papsPack;
 	CArrayInt64*			palliPack;
+	CArraySyntax*			papcExpanded;
 
 	mcTypeChecker.Kill();
 	SafeKill(mpcConstants);
@@ -364,6 +367,17 @@ void CCPPUnit::Kill(void)
 	}
 	mapalliPacks.Kill();
 	mapcPackElements.Kill();
+	masPackElements.Kill();
+	for (i = 0; i < masExpandedArguments.NumElements(); i++)
+	{
+		papcExpanded = masExpandedArguments.Get(i)->papcExpanded;
+		if (papcExpanded)
+		{
+			papcExpanded->Kill();
+			free(papcExpanded);
+		}
+	}
+	masExpandedArguments.Kill();
 	for (i = 0; i < mapcPackSymbols.NumElements(); i++)
 	{
 		free(mapcPackSymbols.GetPtr(i));
@@ -2056,7 +2070,6 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise)
 {
 	int64						lliValue;
-	CCPPSyntaxInitializerList*	pcList;
 	CArraySyntax*				papcElements;
 	size						i;
 	CArrayUint8					auiBytes;
@@ -2070,7 +2083,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 	}
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psType->IsScalar())
 	{
-		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+		papcElements = ListElements(pcInitialiser);
 		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
 		if (pcInitialiser && !CheckBracedValue(pcInitialiser, psType))
 		{
@@ -2102,14 +2115,14 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 		}
 		else if (pcInitialiser->GetKind() == CPPS_InitializerList)
 		{
-			pcList = (CCPPSyntaxInitializerList*)pcInitialiser;
-			if (pcList->macpElements.NumElements() > (size)psType->iCount)
+			papcElements = ListElements(pcInitialiser);
+			if (papcElements->NumElements() > (size)psType->iCount)
 			{
 				return Error(pcInitialiser, "Too many initialisers for the array");
 			}
-			for (i = 0; i < pcList->macpElements.NumElements(); i++)
+			for (i = 0; i < papcElements->NumElements(); i++)
 			{
-				bResult &= GlobalInitialiser(psType->psBase, pcList->macpElements.GetPtr(i), pcNode, pbInitialise);
+				bResult &= GlobalInitialiser(psType->psBase, papcElements->GetPtr(i), pcNode, pbInitialise);
 			}
 		}
 		else
@@ -2293,7 +2306,7 @@ CCPPSyntax* CCPPUnit::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* p
 
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger())
 	{
-		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+		papcElements = ListElements(pcInitialiser);
 		if ((papcElements->NumElements() == 1) && (papcElements->GetPtr(0)->GetKind() == CPPS_StringExpression) && (StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
 		{
 			return papcElements->GetPtr(0);

@@ -57,7 +57,6 @@ void CCPPBinder::Init(CCPPUnit* pcUnit)
 	mcAccess.Init(pcUnit);
 	mcBound.Init(true);
 	mcOperators.Init(true);
-	mapapcExpanded.Init();
 }
 
 
@@ -67,14 +66,6 @@ void CCPPBinder::Init(CCPPUnit* pcUnit)
 //////////////////////////////////////////////////////////////////////////
 void CCPPBinder::Kill(void)
 {
-	size	i;
-
-	for (i = 0; i < mapapcExpanded.NumElements(); i++)
-	{
-		mapapcExpanded.GetPtr(i)->Kill();
-		free(mapapcExpanded.GetPtr(i));
-	}
-	mapapcExpanded.Kill();
 	mcOperators.Kill();
 	mcBound.Kill();
 	mcOverloads.Kill();
@@ -101,8 +92,8 @@ void CCPPBinder::CheckAccess(CCPPBoundCall* pcBound, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 //
 // What the call is, in *pcBound.  False if it can't be made (CPPBC_Failed).  Its
-// arguments are the bound call's: the node's own, or with a function parameter
-// pack's args... expanded, which the binder makes once and keeps.  bReport when the
+// arguments are the bound call's: the node's own, or with their pack expansions
+// expanded (CCPPUnit::ExpandArguments).  bReport when the
 // errors of a call that failed before are wanted again (the type checker's, which
 // ReportTypeOf reports); without it a failure is as it was remembered.
 //
@@ -126,7 +117,7 @@ bool CCPPBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, 
 	pcBound->Init();
 	pcBound->mpcBindings = mpcUnit->GetContext()->GetBindings();
 	pcBound->mpcIn = mpcUnit->GetContext()->GetFunction();
-	pcBound->mpapcArguments = mpcUnit->HasPackExpansion(&pcCall->macpArguments) ? ExpandPack(pcCall) : &pcCall->macpArguments;
+	pcBound->mpapcArguments = mpcUnit->ExpandArguments(&pcCall->macpArguments);
 	if (pcBound->mpapcArguments)
 	{
 		Resolve(pcCall, pcBound);
@@ -1002,74 +993,6 @@ ECPPCalledObject CCPPBinder::CalledObject(CCPPSyntax* pcObject, bool bArrow)
 		return CPPCalledObject(mpcUnit->IsConstPointer(pcObject));
 	}
 	return CPPCalledObject(mpcUnit->IsConstObject(pcObject), mpcUnit->IsRvalue(pcObject));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// f(args...): the call's arguments with args... replaced by a name for each of the
-// function parameter pack's elements, in an array the binder keeps.  The call node's
-// own arguments are left as they are: the same call is in instances with other
-// packs.  Only the function parameter pack itself can be expanded: NULL, with an
-// error, for another.
-//
-//////////////////////////////////////////////////////////////////////////
-CArraySyntax* CCPPBinder::ExpandPack(CCPPSyntaxCallExpression* pcCall)
-{
-	CArraySyntax*				papcArguments;
-	CArrayCPPSymbols*			papcElements;
-	CCPPSyntax*					pcArgument;
-	CCPPSyntax*					pcPattern;
-	CCPPSyntaxIdExpression*		pcId;
-	CCPPSyntaxName*				pcName;
-	CCPPSyntaxNameComponent*	pcComponent;
-	CCPPSyntaxNameComponent*	pcLast;
-	CCPPSyntaxMemory*			pcMemory;
-	CCPPSymbol*					pcPack;
-	size						i;
-	size						j;
-
-	mpcUnit->GetStatistics()->Count(CPPCC_PackExpansions);
-	papcArguments = NewMalloc<CArraySyntax>();
-	papcArguments->Init();
-	mapapcExpanded.Add(papcArguments);
-	pcMemory = mpcUnit->GetTree()->GetMemory();
-	pcPack = mpcUnit->GetContext()->GetPackParameter();
-	papcElements = mpcUnit->GetPackElements();
-	for (i = 0; i < pcCall->macpArguments.NumElements(); i++)
-	{
-		pcArgument = pcCall->macpArguments.GetPtr(i);
-		if (pcArgument->GetKind() != CPPS_PackExpansionExpression)
-		{
-			papcArguments->Add(pcArgument);
-			continue;
-		}
-		pcPattern = ((CCPPSyntaxPackExpansionExpression*)pcArgument)->mpcPattern->WithoutParentheses();
-		if (!pcPack || (pcPattern->GetKind() != CPPS_IdExpression) || (((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol != pcPack))
-		{
-			mpcUnit->Error(pcArgument, "Only a function parameter pack can be expanded by the compiler yet");
-			return NULL;
-		}
-		pcLast = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast();
-		for (j = 0; j < papcElements->NumElements(); j++)
-		{
-			mpcUnit->GetStatistics()->Count(CPPCC_PackExpansionNodes, 3);
-			pcId = pcMemory->Create<CCPPSyntaxIdExpression>(pcCall);
-			pcId->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
-			pcName = pcMemory->Create<CCPPSyntaxName>(pcId);
-			pcName->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
-			pcName->mpcSymbol = papcElements->GetPtr(j);
-			pcComponent = pcMemory->Create<CCPPSyntaxNameComponent>(pcName);
-			pcComponent->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
-			pcComponent->meKind = pcLast->meKind;
-			pcComponent->miName = pcLast->miName;
-			pcComponent->mpcSymbol = pcName->mpcSymbol;
-			pcName->macpComponents.Add(pcComponent);
-			pcId->mpcName = pcName;
-			papcArguments->Add(pcId);
-		}
-	}
-	return papcArguments;
 }
 
 

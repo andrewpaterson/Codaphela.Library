@@ -1504,24 +1504,6 @@ int CCPPSyntaxBlockReading::Token(uint16 uiToken)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A node of the kind, in pcMemory, with no parent yet.
-//
-//////////////////////////////////////////////////////////////////////////
-static CCPPSyntax* CPPSyntaxBlockCreate(CCPPSyntaxMemory* pcMemory, ECPPSyntax eKind)
-{
-	switch (eKind)
-	{
-#define CPP_SYNTAX_CREATE(N)	case CPPS_##N: return pcMemory->Create<CCPPSyntax##N>(NULL);
-	CPP_SYNTAX_KINDS(CPP_SYNTAX_CREATE)
-#undef CPP_SYNTAX_CREATE
-	default:
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Reads a block (CCPPSyntaxBlockWriter::Write) into pcTree, its tokens
 // from iFirstToken, its externals found from pcGlobal: its declaration,
 // whose parent is pcParent, or NULL if the block is wrong or an external
@@ -1588,7 +1570,7 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 	//Every node is made before any record that refers to one is read.
 	for (i = 0; (i < uiNodes) && !cReading.mbError; i++)
 	{
-		pcNode = CPPSyntaxBlockCreate(pcTree->GetMemory(), (ECPPSyntax)cReading.U8());
+		pcNode = pcTree->GetMemory()->CreateKind((ECPPSyntax)cReading.U8(), NULL);
 		cReading.mbError |= !pcNode;
 		cReading.mapcNodes.Add(pcNode);
 	}

@@ -101,3 +101,20 @@ void CCPPSyntaxMemory::Rollback(size uiSyntaxes)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A node of the kind, or NULL if there is no such kind.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPSyntaxMemory::CreateKind(ECPPSyntax eKind, CCPPSyntax* pcParent)
+{
+	switch (eKind)
+	{
+#define CPP_SYNTAX_CREATE(N)	case CPPS_##N: return Create<CCPPSyntax##N>(pcParent);
+	CPP_SYNTAX_KINDS(CPP_SYNTAX_CREATE)
+#undef CPP_SYNTAX_CREATE
+	default:
+		return NULL;
+	}
+}

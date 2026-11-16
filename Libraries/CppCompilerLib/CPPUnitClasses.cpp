@@ -370,8 +370,6 @@ CCPPClass* CCPPUnit::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
 	CCPPSyntaxBaseSpecifier*	pcBaseSpecifier;
-	CCPPClass*				pcBaseClass;
-	SCPPBase*					psBase;
 	size						i;
 	bool						bResult;
 
@@ -399,21 +397,77 @@ bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 			bResult = Error(pcBaseSpecifier, "Virtual inheritance is not supported by the compiler yet");
 			continue;
 		}
-		pcBaseClass = GetNameClass(pcBaseSpecifier->mpcName, pcBaseSpecifier);
-		if (!pcBaseClass)
-		{
-			bResult = Error(pcBaseSpecifier, "This base class is not supported by the compiler yet");
-			continue;
-		}
-		bResult &= ResolveBases(pcBaseClass, pcBaseSpecifier);
-		psBase = pcClass->macBases.Add();
-		psBase->pcClass = pcBaseClass;
-		psBase->iOffset = 0;
-		psBase->eAccess = (pcBaseSpecifier->meAccess != CPPA_None) ? pcBaseSpecifier->meAccess : ((pcClass->mpcSpecifier->meKey == CT_class) ? CPPA_Private : CPPA_Public);
+		bResult &= pcBaseSpecifier->mbPack ? AddPackBases(pcClass, pcBaseSpecifier) : AddBase(pcClass, pcBaseSpecifier);
 	}
 	pcClass->mpcBase = (pcClass->macBases.NumElements() > 0) ? pcClass->macBases.Get(0)->pcClass : NULL;
 	pcClass->meState = CPPCS_BasesKnown;
 	mcContext.LeaveBindings();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class a base specifier names is a base of pcClass, its bases found.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier)
+{
+	CCPPClass*	pcBaseClass;
+	SCPPBase*	psBase;
+	bool		bResult;
+
+	pcBaseClass = GetNameClass(pcBaseSpecifier->mpcName, pcBaseSpecifier);
+	if (!pcBaseClass)
+	{
+		return Error(pcBaseSpecifier, "This base class is not supported by the compiler yet");
+	}
+	bResult = ResolveBases(pcBaseClass, pcBaseSpecifier);
+	psBase = pcClass->macBases.Add();
+	psBase->pcClass = pcBaseClass;
+	psBase->iOffset = 0;
+	psBase->eAccess = (pcBaseSpecifier->meAccess != CPPA_None) ? pcBaseSpecifier->meAccess : ((pcClass->mpcSpecifier->meKey == CT_class) ? CPPA_Private : CPPA_Public);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// : T... has a base for each of the type pack's classes, in order, the
+// pack's parameter bound to one at a time.  [temp.variadic] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::AddPackBases(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier)
+{
+	CArrayCPPBindingPtrs	apsPacks;
+	SCPPBinding*			psPack;
+	size					uiElements;
+	size					j;
+	size					k;
+	bool					bResult;
+
+	apsPacks.Init();
+	FindPacks(pcBaseSpecifier->mpcName, &apsPacks);
+	bResult = (apsPacks.NumElements() > 0) || Error(pcBaseSpecifier, "The pack expansion names no parameter pack");
+	uiElements = bResult ? apsPacks.GetPtr(0)->PackSize() : 0;
+	for (j = 0; bResult && (j < apsPacks.NumElements()); j++)
+	{
+		bResult = (apsPacks.GetPtr(j)->papsPack && (apsPacks.GetPtr(j)->PackSize() == uiElements)) || Error(pcBaseSpecifier, "This base class is not supported by the compiler yet");
+	}
+	for (k = 0; bResult && (k < uiElements); k++)
+	{
+		for (j = 0; j < apsPacks.NumElements(); j++)
+		{
+			psPack = apsPacks.GetPtr(j);
+			psPack->psType = psPack->papsPack->GetPtr(k);
+		}
+		bResult = AddBase(pcClass, pcBaseSpecifier);
+		for (j = 0; j < apsPacks.NumElements(); j++)
+		{
+			apsPacks.GetPtr(j)->psType = NULL;
+		}
+	}
+	apsPacks.Kill();
 	return bResult;
 }
 

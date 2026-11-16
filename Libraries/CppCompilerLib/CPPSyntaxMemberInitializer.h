@@ -31,6 +31,7 @@ class CCPPSyntaxMemberInitializer : public CCPPSyntax
 public:
 	CCPPSyntaxName*			mpcName;
 	CCPPSyntax*				mpcInitializer;
+	bool					mbPack;			//T()..., a pack expansion: one for each of T's classes.
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	CPP_SYNTAX_NODE(MemberInitializer)

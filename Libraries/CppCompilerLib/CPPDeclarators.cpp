@@ -229,7 +229,7 @@ int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser)
 	}
 	if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{
-		return (int)((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements.NumElements();
+		return (int)mpcUnit->ListElements(pcInitialiser)->NumElements();
 	}
 	if (pcInitialiser->GetKind() == CPPS_StringExpression)
 	{

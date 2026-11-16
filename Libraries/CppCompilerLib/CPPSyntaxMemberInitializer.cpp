@@ -30,6 +30,7 @@ void CCPPSyntaxMemberInitializer::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPar
 	CCPPSyntax::Init(pcTree, pcParent);
 	mpcName = NULL;
 	mpcInitializer = NULL;
+	mbPack = false;
 }
 
 
@@ -41,6 +42,10 @@ void CCPPSyntaxMemberInitializer::PrettyPrint(CChars* pszDest, int iDepth)
 {
 	PrintNode(pszDest, mpcName, iDepth);
 	PrintNode(pszDest, mpcInitializer, iDepth);
+	if (mbPack)
+	{
+		pszDest->Append("...");
+	}
 }
 
 
@@ -52,5 +57,6 @@ void CCPPSyntaxMemberInitializer::VisitFields(CCPPSyntaxFields* pcFields)
 {
 	pcFields->Child(&mpcName);
 	pcFields->Child(&mpcInitializer);
+	pcFields->Bool(&mbPack);
 }
 

@@ -1263,13 +1263,9 @@ CArraySyntax* CCPPUnit::ConstructElements(CCPPSyntaxConstructExpression* pcConst
 	CCPPSyntax*	pcInitialiser;
 
 	pcInitialiser = pcConstruct->mpcInitializer;
-	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
+	if (pcInitialiser && ((pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) || (pcInitialiser->GetKind() == CPPS_InitializerList)))
 	{
-		return &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
-	}
-	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList))
-	{
-		return &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+		return ListElements(pcInitialiser);
 	}
 	return NULL;
 }
