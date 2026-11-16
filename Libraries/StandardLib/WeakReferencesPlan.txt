@@ -1,0 +1,125 @@
+Weak references plan
+====================
+
+A weak reference points at an object without keeping it: the object system frees the object when nothing strong
+reaches it, as now, and every weak reference to it becomes NULL.  Today there are only Ptrs, which keep their objects,
+and raw pointers (U_Pointer), which don't but dangle.  Wherever something has had to find objects without keeping them
+it has been built by hand: raw pointer lists on both sides, each side's Free() unhooking the other, and care about the
+order a batch is freed in.  This plan is the one general version.
+
+
+Why now
+-------
+  The renderers' texture caches (RasterRenderLib's CRasterRenderer::mapTextures, VulkanLib's CVulkanRenderer::masTextures)
+  hold every texture they make, so a texture outlives the meshes that drew with it: a mesh baked again and again leaks a
+  texture each time.  The cache must find textures by their image without keeping them.
+  SupportLib's blitter cache already does this by hand: CImageCelBlitterCache::mapcCels and CImageCel::mapcBlitterCaches
+  are raw lists, and CImageCel::Free / CImageCelBlitterCache::Free unhook each other (ForgetCel only NULLs a slot, because
+  CObject::FreeInternal has freed embedded collections before the object's own Free runs).
+  Listeners (CListener, CListenerCall) unhook each other too, but a listener is a mix-in, not a CObject, so they're out of
+  scope.
+
+
+What there is
+-------------
+  Froms.  Every CEmbeddedObject records what points at it: mapHeapFromObjects, mapHeapFromCollections (each pointed-at
+  object once per pointer), mpcStackFroms and, past HEAP_FROM_HUB_MIN_FROMS, mpsHub.  The distance walks (CDistToRootCalculator,
+  CDistToStackCalculator) read only these, through GetHeapFroms and the GetClosest* scans.  A pointer is a CPointer
+  (Ptr<M>): PointTo adds the new from before taking the old one off.
+  Fields.  Class() registers pointer fields (M_Pointer -> CClass::Pointer -> CPointerField) and embedded objects and
+  collections (M_Embedded).  U_Pointer is a raw pointer the object system ignores; it loads as NULL.
+  Freeing.  An object goes when no path from the root or the stack reaches it.  A batch (CObjects::RemoveBatch, from
+  RemoveInKillOrder, FreeAllInKillOrder) is: SaveStoredDirty, DoneKill (OBJECT_FLAGS_FREED set, the destruction callback),
+  FreeInternal (each object's Free, embedded objects first), RemoveAllPointerTos, RemoveAllHeapFroms, KillObjects.  Nes
+  pointers order the batch.  An object not allocated in Objects is killed alone by KillInternal's other branch
+  (FreeInternal and ClearPointerTos in Nes order, then its froms).
+  Hollows.  Killing a stored object that is still held (Kill, eviction) replaces it with a hollow (ReplaceWithHollow) and
+  its holders point at the hollow; loading it (Dehollow) remaps them onto the loaded object (CObjectRemapFrom::Remap,
+  MorphInto, AddHeapPointerForRemap).
+  Flags.  muiFlags is 16 bits, an embedded object's are its container's (but CALLED_CONSTRUCTOR and CALLED_CLASS).  0x02,
+  0x1000, 0x2000, 0x4000 and 0x8000 are unused.
+
+
+What it would be
+----------------
+  Weak<M>  A field like Ptr<M> that registers itself with its object as a weak from, not a heap from.  Declared in Class()
+           by W_Pointer(name) (CClass::WeakPointer -> CWeakPointerField), so the object system knows where it is.  Only a
+           CObject field: no weak locals (a weak reference on the stack has no use; take a Ptr to use the object).
+           Get() is a Ptr<M> to its object (NULL once it's freed), which is how it's used: the Ptr keeps the object while
+           it's used.  Assigning (a Ptr, an object, NULL, another Weak) takes it off its old object and onto the new.
+  CArrayWeakObject (and a typed CArrayWeak<M>)  A collection whose entries are weak.  An entry whose object is freed
+           becomes NULL; NULLs are skipped when iterating and taken out by Compact, Add and Remove (not during a free, so
+           nothing iterating it, or freeing, sees it change size).  Embedded by M_Embedded like the other collections.
+  Weak froms  What a weak reference registers on its object: the Weak field, or the weak collection and its slot.  Kept
+           apart from the heap and stack froms, so no distance walk or from scan sees them: a weak reference can't keep
+           anything, by construction rather than by care in each walk.
+  Clearing  When an object is freed, every weak reference to it (or to an object embedded in it) is set to NULL, before
+           any Free() in the batch runs, so no Free() can reach a dying object through a weak reference.  When the holder
+           of a weak reference is freed, its weak references come off their objects' weak froms.
+
+
+Proposed (decisions for the user)
+---------------------------------
+  1. Where weak froms are kept.  Proposed: a flag (OBJECT_FLAGS_WEAKLY_HELD, 0x1000, the container's like the others) and
+     a map in CObjects from object to its weak froms, so objects that are never weakly held pay one bit and the free path
+     one flag test.  The other way is a pointer in every CEmbeddedObject, as mpsHub (four bytes on the 65 targets, eight
+     on 64-bit hosts, in every object).
+  2. Eviction.  Proposed: weak references follow the object's identity, as Ptrs do.  An object replaced by a hollow while
+     strong holders keep it isn't freed: its weak references move to the hollow (and Get loads it, as a Ptr would), and
+     move to the loaded object on Dehollow.  They're cleared only when the object is freed.  The other way clears them on
+     eviction (a weak reference means "while it's in memory"), which suits caches but surprises anything else.
+  3. Saving.  Proposed: weak references aren't saved, and load as NULL, as U_Pointer.  They're for lookups that are rebuilt
+     in memory.  The other way saves the object's index and reconnects when both are loaded, which needs the reader to
+     resolve weak froms as it does heap froms.
+  4. Use.  Proposed: Get() returning a Ptr only, no operator ->, so a weak reference is never used without something
+     strong holding its object for the length of the use.
+  5. Names.  Proposed: Weak<M>, W_Pointer, CArrayWeakObject / CArrayWeak<M>, CWeakPointerField.
+
+
+How it's done
+-------------
+  Clearing in a batch (RemoveBatch, so RemoveInKillOrder and FreeAllInKillOrder): a new step ClearWeakFroms(papcObjectPts)
+  after DoneKill and before FreeInternal: for each object (and each embedded object) with the flag, set each weak from's
+  pointer or slot to NULL and drop its entry.  RemoveAllPointerTos gains the other side: each dying object's Weak fields
+  and weak collections come off their objects' weak froms (skipping objects in the batch, already cleared).
+  Clearing alone (KillInternal's branch for objects not in Objects): the same two steps around FreeInternal.
+  Hollows: ReplaceWithHollow moves the old object's weak froms onto the hollow; CObjectRemapFrom::Remap (and MorphInto)
+  move the hollow's onto the loaded object, embedded objects by index as heap froms are.
+  Saving: CWeakPointerField is skipped by the writer; the reader leaves it NULL.  The file format doesn't change.
+  Validation: ValidateConsistency checks each weak from's holder points back, the flag matches the map, no freed object
+  is weakly held, and the weak froms never appear among the heap or stack froms.
+  Printing: Dump and PrintObject list weak froms apart from the others.
+
+
+Steps
+-----
+Each with its tests in TestStandardLib (Release x64, Debug 32-bit, Size16, ASan) and TestStandardLib65 on both targets
+(StandardLib runs there).  The distance tests (TestDistToRootUpdate's BFS oracle, its speed tests) are run at each step.
+
+1. Weak froms on objects: the flag, the map in CObjects, add/remove/clear, cleared in RemoveBatch before FreeInternal and
+   in KillInternal's other branch.  Tested through a test-only holder.
+2. Weak<M> and W_Pointer: assignment, Get, holder freed unhooks, not saved.  Tests: a weak field doesn't keep its object;
+   with a strong holder too, dropping that frees it and the weak is NULL; a cycle (A holds B, B weakly A) is freed whole;
+   reassigning moves the weak from; a weak to an embedded object is cleared with its container; a holder and its object
+   freed in one batch, each Free seeing NULL; a holder freed first leaves no weak from behind; ObjectsKill with weak
+   references both ways; saved and loaded, the weak is NULL.
+3. Hollows: eviction moves weak froms to the hollow, Dehollow to the loaded object (by name and by index, embedded
+   objects too).  Tests beside TestDehollowfication's.
+4. CArrayWeakObject and CArrayWeak<M>: entries NULLed by frees, skipped, compacted outside frees.  Tests: many objects
+   freed in one batch, an entry freed while its array is iterated by a Free, Compact.
+5. Validation and printing.
+6. The distance oracle with weak edges: TestDistToRootUpdate's random graphs get weak edges, which the BFS oracle ignores;
+   what's freed must match.  Speed tests unchanged within noise.
+7. The renderers' texture caches as CArrayWeak lookups (the plan in the conversation of 2026-11-16: CRasterTexture and a
+   new CVulkanTexture held by Ptr by the meshes that draw with them; the renderers find them weakly).
+8. If the user wants: the blitter cache's raw lists and Forget calls replaced by weak references.
+
+Separately (not weak references): the window factory as an object that native canvases hold by Nes Ptr, which fixes the
+open "native factory killed before ObjectsKill" order bug the same way Vulkan textures will hold their renderer.
+
+
+Open
+----
+Weak maps (weak keys or weak values), if a lookup by key turns out to need one; the texture caches don't (a linear find
+over a weak array, as they do now).
+Threads: the object system isn't thread safe; weak references don't change that.
