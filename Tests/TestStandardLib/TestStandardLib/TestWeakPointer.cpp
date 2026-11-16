@@ -8,6 +8,7 @@
 #include "StandardLib/Objects.h"
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/WeakPointer.h"
+#include "StandardLib/ArrayWeakObject.h"
 #include "TestLib/Assert.h"
 #include "ObjectTestClasses.h"
 #include "EmbeddedObjectTestClasses.h"
@@ -27,6 +28,51 @@ public:
 	void	Class(void) override;
 	void	Free(void) override;
 };
+
+
+//Holds objects weakly in an array.
+class CTestWeakArrayHolder : public CObject
+{
+CONSTRUCTABLE(CTestWeakArrayHolder)
+DESTRUCTABLE(CTestWeakArrayHolder)
+public:
+	CArrayWeakObject	maWeak;
+
+	void	Init(void);
+	void	Class(void) override;
+	void	Free(void) override;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestWeakArrayHolder::Init(void)
+{
+	PreInit();
+	maWeak.Init();
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestWeakArrayHolder::Class(void)
+{
+	M_Embedded(maWeak);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestWeakArrayHolder::Free(void)
+{
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -350,6 +396,74 @@ void TestWeakPointerHollow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A weak array keeps nothing: an object freed leaves its entry NULL (the
+// array keeps its size), Compact takes the NULLs out; Remove moves the
+// last entry into the gap, its weak from with it, so freeing that object
+// later NULLs the right entry.  Freeing the holder takes its entries off
+// the objects, which live on.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestWeakPointerArray(void)
+{
+	Ptr<CTestWeakArrayHolder>	pHolder;
+	Ptr<CTestObject>			apObjects[4];
+	CWeakFroms*					pcWeakFroms;
+	CArrayWeakObject*			pcArray;
+	size						i;
+
+	ObjectsInit();
+	pcWeakFroms = gcObjects.GetWeakFroms();
+	pHolder = OMalloc<CTestWeakArrayHolder>();
+	ORoot()->Add(pHolder);
+	pcArray = &pHolder->maWeak;
+	for (i = 0; i < 4; i++)
+	{
+		apObjects[i] = OMalloc<CTestObject>();
+		AssertSize(i, pcArray->Add(apObjects[i]));
+	}
+	AssertSize(4, pcWeakFroms->NumObjects());
+	AssertTrue(pcWeakFroms->Contains(&apObjects[2], pcArray, 2));
+
+	apObjects[1] = NULL;
+	AssertSize(4, pcArray->NumElements());
+	AssertTrue(pcArray->Get(1).IsNull());
+	AssertTrue(pcArray->Get(2) == apObjects[2]);
+
+	pcArray->Compact();
+	AssertSize(3, pcArray->NumElements());
+	AssertTrue(pcArray->Contains(&apObjects[0]));
+	AssertTrue(pcArray->Contains(&apObjects[2]));
+	AssertTrue(pcArray->Contains(&apObjects[3]));
+	AssertTrue(pcArray->Get(1) == apObjects[3]);
+	AssertTrue(pcWeakFroms->Contains(&apObjects[3], pcArray, 1));
+	AssertSize(3, pcWeakFroms->NumObjects());
+
+	AssertTrue(pcArray->Remove(&apObjects[0]));
+	AssertSize(2, pcArray->NumElements());
+	AssertTrue(pcArray->Get(0) == apObjects[2]);
+	AssertTrue(pcWeakFroms->Contains(&apObjects[2], pcArray, 0));
+	AssertSize(0, pcWeakFroms->NumWeakFroms(&apObjects[0]));
+	apObjects[2] = NULL;
+	AssertTrue(pcArray->Get(0).IsNull());
+	AssertTrue(pcArray->Get(1) == apObjects[3]);
+
+	pcArray->Add(apObjects[0]);
+	ORoot()->Remove(pHolder);
+	pHolder = NULL;
+	AssertSize(0, pcWeakFroms->NumObjects());
+	AssertInt((int32)0x07070707, apObjects[0]->mi);
+
+	for (i = 0; i < 4; i++)
+	{
+		apObjects[i] = NULL;
+	}
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestWeakPointer(void)
@@ -367,6 +481,7 @@ void TestWeakPointer(void)
 	TestWeakPointerObjectsKill();
 	TestWeakPointerEmbedded();
 	TestWeakPointerHollow();
+	TestWeakPointerArray();
 
 	DataIOKill();
 	TypesKill();

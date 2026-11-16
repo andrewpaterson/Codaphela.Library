@@ -71,6 +71,7 @@ void CObjects::ValidateObjectsConsistency(void)
 		ValidateIndexedObjects(&apcObjects);
 		ClearValidationFlags(&apcObjects);
 		ValidateObjectInternals(&apcObjects);
+		mcWeakFroms.ValidateConsistency();
 
 		apcObjects.Kill();
 	}

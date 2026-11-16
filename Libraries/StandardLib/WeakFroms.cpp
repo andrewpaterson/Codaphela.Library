@@ -20,6 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/Logger.h"
+#include "BaseObject.h"
 #include "WeakFroms.h"
 
 
@@ -218,5 +220,46 @@ bool CWeakFroms::Contains(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size
 		}
 	}
 	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWeakFroms::ValidateConsistency(void)
+{
+	SMapIterator		sIterator;
+	CEmbeddedObject*	pcObject;
+	CArrayWeakFrom*		pacFroms;
+	SWeakFrom*			psFrom;
+	CBaseObject*		pcContainer;
+	bool				bExists;
+	size				i;
+	CChars				szObject;
+
+	bExists = mcObjects.StartIteration(&sIterator, (void**)&pcObject, (void**)&pacFroms);
+	while (bExists)
+	{
+		pcContainer = pcObject->GetEmbeddingContainer();
+		if (((pcContainer->GetFlags() & OBJECT_FLAGS_WEAKLY_HELD) == 0) || (pcContainer->GetFlags() & OBJECT_FLAGS_FREED))
+		{
+			szObject.Init();
+			pcObject->PrintObject(&szObject);
+			gcLogger.Error2(__METHOD__, " Weakly held object [", szObject.Text(), "] isn't flagged weakly held, or is freed.", NULL);
+			szObject.Kill();
+		}
+		for (i = 0; i < pacFroms->NumElements(); i++)
+		{
+			psFrom = pacFroms->Get(i);
+			if (psFrom->pcHolder->GetWeak(psFrom->uiSlot) != pcObject)
+			{
+				szObject.Init();
+				pcObject->PrintObject(&szObject);
+				gcLogger.Error2(__METHOD__, " A weak reference to [", szObject.Text(), "] doesn't point at it.", NULL);
+				szObject.Kill();
+			}
+		}
+		bExists = mcObjects.Iterate(&sIterator, (void**)&pcObject, (void**)&pacFroms);
+	}
 }
 

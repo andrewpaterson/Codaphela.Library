@@ -567,6 +567,9 @@
     <ClInclude Include="WeakPointerField.h">
       <Filter>Source\Object\Object\Remove</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayWeakObject.h">
+      <Filter>Source\Object\Object\Remove</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -951,6 +954,9 @@
       <Filter>Source\Object\Object\Remove</Filter>
     </ClCompile>
     <ClCompile Include="WeakPointerField.cpp">
+      <Filter>Source\Object\Object\Remove</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayWeakObject.cpp">
       <Filter>Source\Object\Object\Remove</Filter>
     </ClCompile>
   </ItemGroup>

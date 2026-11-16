@@ -33,8 +33,9 @@ class CEmbeddedObject;
 class CWeakHolder
 {
 public:
-	virtual void	ClearWeak(size uiSlot) =0;  //Its object is being freed: NULL it, and do nothing else.
-	virtual void	RemapWeak(size uiSlot, CEmbeddedObject* pcObject) =0;  //Its object is replaced by pcObject: point at it, and do nothing else.
+	virtual void				ClearWeak(size uiSlot) =0;  //Its object is being freed: NULL it, and do nothing else.
+	virtual void				RemapWeak(size uiSlot, CEmbeddedObject* pcObject) =0;  //Its object is replaced by pcObject: point at it, and do nothing else.
+	virtual CEmbeddedObject*	GetWeak(size uiSlot) =0;  //What it points at, for validation.
 };
 
 
@@ -70,6 +71,7 @@ public:
 	SWeakFrom*		GetWeakFrom(CEmbeddedObject* pcObject, size uiIndex);
 	size			NumObjects(void);
 	bool			Contains(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
+	void			ValidateConsistency(void);  //Every holder points back at its object, whose container has OBJECT_FLAGS_WEAKLY_HELD and isn't freed.
 };
 
 
