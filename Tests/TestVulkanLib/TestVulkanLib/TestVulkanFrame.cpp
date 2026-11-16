@@ -21,7 +21,9 @@
 #include "RasterLib/RasterTarget.h"
 #include "RasterRenderLib/RasterFrame.h"
 #include "RasterRenderLib/RasterRenderFactory.h"
+#include "SupportLib/MaterialImage.h"
 #include "VulkanLib/VulkanFrame.h"
+#include "VulkanLib/VulkanTexture.h"
 #include "VulkanLib/VulkanRenderFactory.h"
 #include "TestLib/Assert.h"
 
@@ -671,6 +673,50 @@ void TestVulkanFrameTexture(CVulkanRenderFactory* pcFactory)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The renderer finds its textures without keeping them: asked twice for
+// one image it gives the same texture, and when the last holder goes it's
+// freed, its image and descriptor set given back.  So more textures than
+// VULKAN_MAX_TEXTURES, made and dropped one after another, are all made.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestVulkanFrameTexturesFreed(CVulkanRenderFactory* pcFactory)
+{
+	Ptr<CVulkanRenderer>	pRenderer;
+	Ptr<CMaterialImage>		pImage;
+	Ptr<CVulkanTexture>		pFirst;
+	Ptr<CVulkanTexture>		pSecond;
+	size					uiMade;
+	size					i;
+
+	pRenderer = pcFactory->CreateRenderer();
+	pImage = OMalloc<CMaterialImage>();
+	pImage->mpImage = OMalloc<CImage>((uint32)4, (uint32)4, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	pFirst = pRenderer->GetTexture(&pImage);
+	pSecond = pRenderer->GetTexture(&pImage);
+	AssertTrue(pFirst.IsNotNull());
+	AssertTrue(pFirst == pSecond);
+	AssertTrue(pFirst->GetSet() != pRenderer->GetWhite());
+	AssertSize(1, pRenderer->NumTextures());
+	pFirst = NULL;
+	pSecond = NULL;
+	AssertSize(0, pRenderer->NumTextures());
+
+	uiMade = 0;
+	for (i = 0; i < VULKAN_MAX_TEXTURES + 10; i++)
+	{
+		pImage = OMalloc<CMaterialImage>();
+		pImage->mpImage = OMalloc<CImage>((uint32)2, (uint32)2, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		pFirst = pRenderer->GetTexture(&pImage);
+		uiMade += pFirst.IsNotNull() ? 1 : 0;
+		pFirst = NULL;
+	}
+	AssertSize(VULKAN_MAX_TEXTURES + 10, uiMade);
+	AssertSize(0, pRenderer->NumTextures());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // With no camera there's nothing to draw.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -722,6 +768,8 @@ void TestVulkanFrame(void)
 		TestVulkanFrameLikeRaster(&cFactory);
 		ObjectsFlush();
 		TestVulkanFrameTexture(&cFactory);
+		ObjectsFlush();
+		TestVulkanFrameTexturesFreed(&cFactory);
 		ObjectsFlush();
 		TestVulkanFrameSkinned(&cFactory);
 		ObjectsFlush();

@@ -24,6 +24,9 @@
     <ClCompile Include="VulkanRenderMesh.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="VulkanTexture.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanFrame.h">
@@ -42,6 +45,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="VulkanShaders.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanTexture.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

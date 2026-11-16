@@ -23,7 +23,9 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "RenderLib/CookedMesh.h"
 #include "RenderLib/RenderMesh.h"
+#include "StandardLib/Array.h"
 #include "VulkanRenderer.h"
+#include "VulkanTexture.h"
 
 
 //Some of a mesh's triangles, drawn in one colour (0xAARRGGBB) times their vertices' and their texture's, and transparent or not.
@@ -46,6 +48,9 @@ typedef CArrayTemplate<SVulkanSubmesh>	CArrayVulkanSubmesh;
 //with no UVs has them all 0.  A skinned mesh has its skin in storage buffers too, with the set that gives them to the shaders, and
 //is drawn where its instance's palette poses it (see CVulkanFrame).  Its buffers are destroyed when it's freed, as nothing is in flight between frames (see
 //CVulkanRenderer).
+typedef CArray<CVulkanTexture>	CArrayVulkanTexture;
+
+
 class CVulkanRenderMesh : public CRenderMesh
 {
 CONSTRUCTABLE(CVulkanRenderMesh);
@@ -61,6 +66,7 @@ protected:
 	VkDescriptorSet		mhSkin;
 	uint32				muiNumMatrices;
 	CArrayVulkanSubmesh	masSubmeshes;
+	CArrayVulkanTexture	mapTextures;  //Those its submeshes are drawn with, which it holds.
 	bool				mbMade;
 
 public:

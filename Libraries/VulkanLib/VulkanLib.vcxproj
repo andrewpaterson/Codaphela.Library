@@ -24,6 +24,7 @@
     <ClCompile Include="VulkanRenderer.cpp" />
     <ClCompile Include="VulkanRenderFactory.cpp" />
     <ClCompile Include="VulkanRenderMesh.cpp" />
+    <ClCompile Include="VulkanTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanFrame.h" />
@@ -32,6 +33,7 @@
     <ClInclude Include="VulkanRenderFactory.h" />
     <ClInclude Include="VulkanRenderMesh.h" />
     <ClInclude Include="VulkanShaders.h" />
+    <ClInclude Include="VulkanTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Mesh.vert" />

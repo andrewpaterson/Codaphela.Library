@@ -21,6 +21,7 @@ along with Codaphela RasterRenderLib.  If not, see <http://www.gnu.org/licenses/
 #ifndef __RASTER_RENDERER_H__
 #define __RASTER_RENDERER_H__
 #include "RasterLib/RasterMesh.h"
+#include "StandardLib/ArrayWeakObject.h"
 #include "RenderLib/Renderer.h"
 
 
@@ -31,13 +32,15 @@ class CMaterialImage;
 //meshes are drawn together at their true sizes (see SRasterInstance).
 //
 //GetTexture is the texture an image is drawn with, made the first time it's asked for and shared by every mesh after that.
+//The meshes hold their textures; the renderer only finds them, weakly (WeakReferencesPlan.txt), so a texture is freed when the
+//last mesh drawn with it goes.
 class CRasterRenderer : public CRenderer
 {
 CONSTRUCTABLE(CRasterRenderer);
 DESTRUCTABLE(CRasterRenderer);
 protected:
 	int32				miScale;
-	CArrayRasterTexture	mapTextures;
+	CArrayWeakObject	maTextures;
 
 public:
 	void				Init(int32 iScale);
@@ -46,6 +49,7 @@ public:
 
 	int32				GetScale(void);
 	Ptr<CRasterTexture>	GetTexture(CMaterialImage* pcImage);
+	size				NumTextures(void);  //Those some mesh still holds.
 };
 
 

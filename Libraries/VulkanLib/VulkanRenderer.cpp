@@ -26,6 +26,7 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "RenderLib/TextureLevels.h"
 #include "VulkanShaders.h"
 #include "VulkanRenderer.h"
+#include "VulkanTexture.h"
 
 
 #define VULKAN_VALIDATION_LAYER		"VK_LAYER_KHRONOS_validation"
@@ -105,7 +106,7 @@ void CVulkanRenderer::Init(void)
 	mhTexturePool = VK_NULL_HANDLE;
 	mhSampler = VK_NULL_HANDLE;
 	memset(&msWhite, 0, sizeof(msWhite));
-	masTextures.Init();
+	maTextures.Init();
 	mhSkinLayout = VK_NULL_HANDLE;
 	mhSkinPool = VK_NULL_HANDLE;
 	ClearVulkanBuffer(&msPalette);
@@ -143,6 +144,7 @@ void CVulkanRenderer::Class(void)
 	U_Pointer(mhDevice);
 	U_String(mszDeviceName);
 	U_Bool(mbReady);
+	M_Embedded(maTextures);
 }
 
 
@@ -153,17 +155,12 @@ void CVulkanRenderer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CVulkanRenderer::Free(void)
 {
-	size	i;
-
+	//Its textures hold it (Nes), so they've been freed before it.
 	if (mhDevice)
 	{
 		mcVulkan.vkDeviceWaitIdle(mhDevice);
 		DestroyTarget();
 		DestroyBuffer(&msFrameData);
-		for (i = 0; i < masTextures.NumElements(); i++)
-		{
-			DestroyTexture(&masTextures.Get(i)->sTexture);
-		}
 		DestroyTexture(&msWhite);
 		DestroyBuffer(&msPalette);
 		DestroyBuffer(&msNoSkin);
@@ -189,7 +186,6 @@ void CVulkanRenderer::Free(void)
 		}
 		mcVulkan.vkDestroyInstance(mhInstance, NULL);
 	}
-	masTextures.Kill();
 	mszDeviceName.Kill();
 	mcVulkan.Kill();
 	CRenderer::Free();
@@ -531,6 +527,7 @@ bool CVulkanRenderer::CreateTextureDescriptors(void)
 	sPoolSize.descriptorCount = VULKAN_MAX_TEXTURES + 1;
 	memset(&sPool, 0, sizeof(sPool));
 	sPool.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	sPool.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;  //A texture gives its set back when it's freed.
 	sPool.maxSets = VULKAN_MAX_TEXTURES + 1;
 	sPool.poolSizeCount = 1;
 	sPool.pPoolSizes = &sPoolSize;
@@ -831,6 +828,10 @@ bool CVulkanRenderer::CreateTexture(SVulkanTexture* psTexture, int32 iNumLevels,
 void CVulkanRenderer::DestroyTexture(SVulkanTexture* psTexture)
 {
 	DestroyImage(&psTexture->sImage);
+	if (psTexture->hSet && mhTexturePool)
+	{
+		mcVulkan.vkFreeDescriptorSets(mhDevice, mhTexturePool, 1, &psTexture->hSet);
+	}
 	psTexture->hSet = VK_NULL_HANDLE;
 }
 
@@ -840,43 +841,64 @@ void CVulkanRenderer::DestroyTexture(SVulkanTexture* psTexture)
 // White for no image, one that isn't bytes, or one that can't be made.
 //
 //////////////////////////////////////////////////////////////////////////
-VkDescriptorSet CVulkanRenderer::GetTexture(CMaterialImage* pcImage)
+Ptr<CVulkanTexture> CVulkanRenderer::GetTexture(CMaterialImage* pcImage)
 {
-	SVulkanTextureEntry*	psEntry;
-	SVulkanTexture			sTexture;
-	CTextureLevels			cLevels;
-	OIndex					oiImage;
-	size					i;
-	bool					bResult;
+	Ptr<CVulkanTexture>	pTexture;
+	SVulkanTexture		sTexture;
+	CTextureLevels		cLevels;
+	OIndex				oiImage;
+	size				i;
+	bool				bResult;
 
 	if ((pcImage == NULL) || pcImage->mpImage.IsNull() || (pcImage->mpImage->GetWidth() == 0) || (pcImage->mpImage->GetHeight() == 0))
 	{
-		return msWhite.hSet;
+		return pTexture;
 	}
 	oiImage = pcImage->mpImage->GetIndex();
-	for (i = 0; i < masTextures.NumElements(); i++)
+	maTextures.Compact();
+	for (i = 0; i < maTextures.NumElements(); i++)
 	{
-		psEntry = masTextures.Get(i);
-		if (psEntry->oiImage == oiImage)
+		pTexture = maTextures.Get(i);
+		if (pTexture->GetImageIndex() == oiImage)
 		{
-			return psEntry->sTexture.hSet;
+			return pTexture;
 		}
 	}
-	if (masTextures.NumElements() >= VULKAN_MAX_TEXTURES)
+	pTexture = NULL;
+	if (maTextures.NumElements() >= VULKAN_MAX_TEXTURES)
 	{
-		return msWhite.hSet;
+		return pTexture;
 	}
 
 	bResult = cLevels.Init(pcImage) && CreateTexture(&sTexture, cLevels.NumLevels(), cLevels.maiWidths.GetData(), cLevels.maiHeights.GetData(), cLevels.mauiTexels.GetData());
 	cLevels.Kill();
-	if (!bResult)
+	if (bResult)
 	{
-		return msWhite.hSet;
+		pTexture = OMalloc<CVulkanTexture>(Ptr<CVulkanRenderer>(this), oiImage, &sTexture);
+		maTextures.Add(pTexture);
 	}
-	psEntry = masTextures.Add();
-	psEntry->oiImage = oiImage;
-	psEntry->sTexture = sTexture;
-	return sTexture.hSet;
+	return pTexture;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+VkDescriptorSet CVulkanRenderer::GetWhite(void)
+{
+	return msWhite.hSet;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CVulkanRenderer::NumTextures(void)
+{
+	maTextures.Compact();
+	return maTextures.NumElements();
 }
 
 

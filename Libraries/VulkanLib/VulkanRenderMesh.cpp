@@ -46,6 +46,7 @@ void CVulkanRenderMesh::Init(Ptr<CVulkanRenderer> pRenderer, CCookedMesh* pcCook
 	mhSkin = VK_NULL_HANDLE;
 	muiNumMatrices = 0;
 	masSubmeshes.Init();
+	mapTextures.Init();
 	mbMade = pRenderer->IsReady() && (pcCooked->NumTriangles() > 0) && Make(&pRenderer, pcCooked);
 
 	PostInit();
@@ -69,6 +70,7 @@ void CVulkanRenderMesh::Class(void)
 	U_Pointer(mhSkin);
 	U_UInt32(muiNumMatrices);
 	U_Unknown(CArrayVulkanSubmesh, masSubmeshes);
+	M_Embedded(mapTextures);
 	U_Bool(mbMade);
 }
 
@@ -106,12 +108,13 @@ void CVulkanRenderMesh::Free(void)
 //////////////////////////////////////////////////////////////////////////
 bool CVulkanRenderMesh::Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
 {
-	SVulkanSubmesh*	psSubmesh;
-	SCookedSubmesh*	psCooked;
-	Ptr<CMaterial>	pMaterial;
-	uint32*			puiColours;
-	size			uiNumVertices;
-	size			i;
+	SVulkanSubmesh*		psSubmesh;
+	SCookedSubmesh*		psCooked;
+	Ptr<CMaterial>		pMaterial;
+	Ptr<CVulkanTexture>	pTexture;
+	uint32*				puiColours;
+	size				uiNumVertices;
+	size				i;
 
 	uiNumVertices = pcCooked->NumVertices();
 	if (!pcRenderer->CreateBuffer(&msPositions, uiNumVertices * sizeof(SFloat32Vec3), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) ||
@@ -149,7 +152,16 @@ bool CVulkanRenderMesh::Make(CVulkanRenderer* pcRenderer, CCookedMesh* pcCooked)
 		psSubmesh->uiColour = pcCooked->HasColours() ? VULKAN_WHITE : psCooked->uiColour;
 		psSubmesh->bTransparent = psCooked->bTransparent;
 		pMaterial = pcCooked->mapMaterials.Get(i);
-		psSubmesh->hTexture = pcRenderer->GetTexture(pMaterial.IsNull() ? NULL : pMaterial->GetImage(MI_Diffuse));
+		pTexture = pcRenderer->GetTexture(pMaterial.IsNull() ? NULL : pMaterial->GetImage(MI_Diffuse));
+		if (pTexture.IsNotNull())
+		{
+			mapTextures.Add(pTexture);
+			psSubmesh->hTexture = pTexture->GetSet();
+		}
+		else
+		{
+			psSubmesh->hTexture = pcRenderer->GetWhite();
+		}
 	}
 	return !pcCooked->IsSkinned() || MakeSkin(pcRenderer, pcCooked);
 }

@@ -34,7 +34,7 @@ void CRasterRenderer::Init(int32 iScale)
 
 	CRenderer::Init();
 	miScale = iScale;
-	mapTextures.Init();
+	maTextures.Init();
 
 	PostInit();
 }
@@ -48,7 +48,7 @@ void CRasterRenderer::Class(void)
 {
 	CRenderer::Class();
 	U_Int32(miScale);
-	M_Embedded(mapTextures);
+	M_Embedded(maTextures);
 }
 
 
@@ -86,9 +86,10 @@ Ptr<CRasterTexture> CRasterRenderer::GetTexture(CMaterialImage* pcImage)
 	{
 		return pTexture;
 	}
-	for (i = 0; i < mapTextures.NumElements(); i++)
+	maTextures.Compact();
+	for (i = 0; i < maTextures.NumElements(); i++)
 	{
-		pTexture = mapTextures.Get(i);
+		pTexture = maTextures.Get(i);
 		if (pTexture->GetSource() == (uint64)pcImage->mpImage->GetIndex())
 		{
 			return pTexture;
@@ -97,8 +98,19 @@ Ptr<CRasterTexture> CRasterRenderer::GetTexture(CMaterialImage* pcImage)
 	pTexture = MakeRasterTexture(pcImage);
 	if (pTexture.IsNotNull())
 	{
-		mapTextures.Add(pTexture);
+		maTextures.Add(pTexture);
 	}
 	return pTexture;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CRasterRenderer::NumTextures(void)
+{
+	maTextures.Compact();
+	return maTextures.NumElements();
 }
 

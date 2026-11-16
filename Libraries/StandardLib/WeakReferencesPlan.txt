@@ -114,6 +114,20 @@ Each with its tests in TestStandardLib (Release x64, Debug 32-bit, Size16, ASan)
    new CVulkanTexture held by Ptr by the meshes that draw with them; the renderers find them weakly).
 8. If the user wants: the blitter cache's raw lists and Forget calls replaced by weak references.
 
+Done (2026-11-16), steps 1 to 7:
+  Weak froms are CWeakFroms in CObjects (CWeakHolder and slot, keyed by object) behind OBJECT_FLAGS_WEAKLY_HELD; NULLed in
+  RemoveBatch after DoneKill, in FreeAllInKillOrder, and first in KillInternal's branch for objects not in Objects, always
+  before any Free() of the objects going.  Weak<M> (CWeakPointer) and W_Pointer (CWeakPointerField); CObject::ClearPointerTos
+  takes them off their objects.  CObjectRemapFrom::RemapEmbedded moves weak froms with every remap (eviction to a hollow,
+  loading, fat hollows), holders pointed at the new object (RemapWeak).  CArrayWeakObject (no typed CArrayWeak<M>: Get's Ptr<>
+  assigns to a Ptr<M>).  CWeakFroms::ValidateConsistency from ValidateObjectsConsistency.  A weak reference made to an object
+  being freed is NULL: the random distance test found it (making one to an object freed that step), and a Free() pointing a
+  weak reference at another dying object would do the same.  Tests: TestWeakPointer, and TestDistToRootUpdateRandomFreeing's
+  weak holder (nothing is ever kept by one).  Step 7: CRasterRenderer and CVulkanRenderer find textures in a CArrayWeakObject;
+  CRasterMesh and CVulkanRenderMesh hold them; CVulkanTexture is a CObject holding its renderer by Nes Ptr, freeing its image
+  and descriptor set (the pool now frees sets) in Free.  Printing (Dump) of weak froms isn't done.  TestStandardLib65 can't run
+  to show the 65 targets: the current compiler stops at TestMapObject.cpp:1859 (a protected member), before these tests.
+
 Separately (not weak references): the window factory as an object that native canvases hold by Nes Ptr, which fixes the
 open "native factory killed before ObjectsKill" order bug the same way Vulkan textures will hold their renderer.
 

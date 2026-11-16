@@ -23,11 +23,13 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/IndexedGeneral.h"
+#include "StandardLib/ArrayWeakObject.h"
 #include "RenderLib/Renderer.h"
 #include "VulkanFunctions.h"
 
 
 class CMaterialImage;
+class CVulkanTexture;
 
 
 #define VULKAN_COLOUR_FORMAT			VK_FORMAT_B8G8R8A8_UNORM  //A pixel is a uint32 0xAARRGGBB, as CRasterTarget's are.
@@ -66,17 +68,6 @@ struct SVulkanTexture
 };
 
 
-//A texture made from a CImage, found by its object index.
-struct SVulkanTextureEntry
-{
-	OIndex			oiImage;
-	SVulkanTexture	sTexture;
-};
-
-
-typedef CArrayTemplate<SVulkanTextureEntry>	CArrayVulkanTextureEntry;
-
-
 //What the shaders are given for a frame, laid out as they have it (std140).  See Shaders/Mesh.vert.
 struct SVulkanFrameData
 {
@@ -109,13 +100,15 @@ struct SVulkanDraw
 //A skinned mesh has its skin in storage buffers (AllocateSkin), and each frame its instances' palettes are added to the frame's
 //(AddPalette), which a draw finds by its offset (UseSkin).  A rigid mesh's draw uses a skin with nothing in it.
 //
-//GetTexture gives the texture of a material image, made the first time it's asked for, as many meshes share an image, and kept
-//until the renderer is freed.  It has every mip level (CTextureLevels: the image's own where it has them, halved where it
-//hasn't), sampled trilinearly.  An image it can't make one of, or no image, is white.  At most VULKAN_MAX_TEXTURES are made.
+//GetTexture gives the texture of a material image (CVulkanTexture), made the first time it's asked for, as many meshes share an
+//image.  The meshes drawn with it hold it and the renderer only finds it (weakly), so it's freed with the last of them.  It has
+//every mip level (CTextureLevels: the image's own where it has them, halved where it hasn't), sampled trilinearly.  An image it
+//can't make one of, or no image, is drawn white.  At most VULKAN_MAX_TEXTURES are held at once.
 class CVulkanRenderer : public CRenderer
 {
 CONSTRUCTABLE(CVulkanRenderer);
 DESTRUCTABLE(CVulkanRenderer);
+friend class CVulkanTexture;
 protected:
 	CVulkanFunctions					mcVulkan;
 	VkInstance							mhInstance;
@@ -136,7 +129,7 @@ protected:
 	VkDescriptorPool					mhTexturePool;
 	VkSampler							mhSampler;
 	SVulkanTexture						msWhite;
-	CArrayVulkanTextureEntry			masTextures;
+	CArrayWeakObject					maTextures;  //CVulkanTextures, found by their images; the meshes drawn with them hold them.
 	VkDescriptorSetLayout				mhSkinLayout;
 	VkDescriptorPool					mhSkinPool;
 	SVulkanBuffer						msPalette;
@@ -168,7 +161,9 @@ public:
 
 	bool				CreateBuffer(SVulkanBuffer* psBuffer, VkDeviceSize uiSize, VkBufferUsageFlags uiUsage);
 	void				DestroyBuffer(SVulkanBuffer* psBuffer);
-	VkDescriptorSet		GetTexture(CMaterialImage* pcImage);
+	Ptr<CVulkanTexture>	GetTexture(CMaterialImage* pcImage);  //NULL for none: the mesh is drawn with GetWhite.
+	VkDescriptorSet		GetWhite(void);
+	size				NumTextures(void);  //Those some mesh still holds.
 	VkDescriptorSet		AllocateSkin(SVulkanBuffer* psVertices, SVulkanBuffer* psWeights);
 	void				FreeSkin(VkDescriptorSet hSkin);
 	void				ClearPalette(void);

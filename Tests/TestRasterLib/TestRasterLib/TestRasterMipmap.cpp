@@ -8,6 +8,8 @@
 #include "RenderLib/TextureLevels.h"
 #include "RasterLib/Rasteriser.h"
 #include "RasterLib/RasterTexture.h"
+#include "RasterLib/RasterMesh.h"
+#include "RasterRenderLib/RasterRenderer.h"
 #include "TestLib/Assert.h"
 
 
@@ -418,6 +420,84 @@ void TestRasterMipmapMaterialLevels(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A material image of iSize by iSize red texels.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CMaterialImage> TestMipmapMaterialImage(uint32 uiSize)
+{
+	Ptr<CMaterialImage>	pMaterialImage;
+	uint8*				puiData;
+	uint32				i;
+
+	pMaterialImage = OMalloc<CMaterialImage>();
+	pMaterialImage->mpImage = OMalloc<CImage>(uiSize, uiSize, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	puiData = (uint8*)pMaterialImage->mpImage->GetData();
+	for (i = 0; i < uiSize * uiSize * 3; i++)
+	{
+		puiData[i] = ((i % 3) == 0) ? 255 : 0;
+	}
+	return pMaterialImage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The renderer finds its textures without keeping them: asked twice for
+// one image it gives the same texture; a mesh holding it keeps it; when
+// the last holder goes it's freed, and asked again the renderer makes
+// another.  An image baked again and again (a new image each time, the
+// old mesh dropped for a new one) leaves one texture, not one a bake.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMipmapTexturesFreed(void)
+{
+	Ptr<CRasterRenderer>	pRenderer;
+	Ptr<CMaterialImage>		pImage;
+	Ptr<CRasterTexture>		pFirst;
+	Ptr<CRasterTexture>		pSecond;
+	Ptr<CRasterMesh>		pMesh;
+	OIndex					oiFirst;
+	int						i;
+
+	pRenderer = OMalloc<CRasterRenderer>(1000);
+	pImage = TestMipmapMaterialImage(4);
+	pFirst = pRenderer->GetTexture(&pImage);
+	pSecond = pRenderer->GetTexture(&pImage);
+	AssertTrue(pFirst.IsNotNull());
+	AssertTrue(pFirst == pSecond);
+	AssertSize(1, pRenderer->NumTextures());
+	AssertInt(3, pFirst->NumLevels());
+
+	pMesh = OMalloc<CRasterMesh>();
+	pMesh->AddTexture(pFirst);
+	oiFirst = pFirst->GetIndex();
+	pFirst = NULL;
+	pSecond = NULL;
+	AssertSize(1, pRenderer->NumTextures());
+	pMesh = NULL;
+	AssertSize(0, pRenderer->NumTextures());
+
+	pFirst = pRenderer->GetTexture(&pImage);
+	AssertTrue(pFirst->GetIndex() != oiFirst);
+	pFirst = NULL;
+
+	for (i = 0; i < 20; i++)
+	{
+		Ptr<CRasterMesh>	pNext;
+
+		pImage = TestMipmapMaterialImage(8);
+		pNext = OMalloc<CRasterMesh>();
+		pNext->AddTexture(pRenderer->GetTexture(&pImage));
+		pMesh = pNext;
+		AssertSize(1, pRenderer->NumTextures());
+	}
+	pMesh = NULL;
+	AssertSize(0, pRenderer->NumTextures());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMipmap(void)
@@ -433,6 +513,7 @@ void TestRasterMipmap(void)
 	TestRasterMipmapChoice();
 	TestRasterMipmapHalve();
 	TestRasterMipmapMaterialLevels();
+	TestRasterMipmapTexturesFreed();
 
 	ObjectsKill(false);
 	NumberKill();
