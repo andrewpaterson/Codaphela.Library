@@ -30,7 +30,7 @@ void CMemoryCacheAllocation::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryCacheAllocation::HasOverlaps(void)
+bool CMemoryCacheAllocation::HasOverlaps(void) const
 {
 	return mapEvictedCacheDescriptors.IsNotEmpty();
 }
@@ -50,7 +50,7 @@ SMemoryCacheDescriptor* CMemoryCacheAllocation::Get(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryCacheAllocation::NumElements(void)
+size CMemoryCacheAllocation::NumElements(void) const
 {
 	return mapEvictedCacheDescriptors.NumElements();
 }

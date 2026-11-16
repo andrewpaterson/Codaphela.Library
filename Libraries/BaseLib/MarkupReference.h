@@ -54,7 +54,7 @@ public:
 	void 			Kill(void) override;
 
 	bool			Is(const char* szName);
-	CMarkupTag*		GetRootTag(void);
+	CMarkupTag*		GetRootTag(void) const;
 	size			Print(CChars* psz, size iDepth, size iLine) override;
 };
 

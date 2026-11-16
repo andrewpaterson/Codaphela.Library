@@ -49,7 +49,7 @@ public:
 	size					CalculateFileSize(CIndexTreeFileDataCallback* pcCallback);
 	size					WriteToBuffer(void* pvBuffer, size iBufferSize, CIndexTreeFileDataCallback* pcCallback);
 
-	bool					HasFile(void);
+	bool					HasFile(void) const;
 	bool					HasOnlyFileNodes(void);
 	bool					HasChildWithFlags(size uiFlags);
 	bool					ConvertToFileNode(CIndexTreeNodeFile* pcNode);

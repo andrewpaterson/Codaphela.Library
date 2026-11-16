@@ -56,9 +56,9 @@ public:
 	bool				Parse(const char* szText);
 	char*				GetError(void);
 
-	size				NumSegments(void);
+	size				NumSegments(void) const;
 	SIntelHexSegment*	GetSegment(size uiIndex);
-	bool				IsEmpty(void);
+	bool				IsEmpty(void) const;
 	uint32				GetLowAddress(void);
 	uint64				GetEndAddress(void);
 	bool				Get(uint32 uiAddress, uint8* puiByte);

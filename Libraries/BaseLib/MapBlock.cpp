@@ -379,7 +379,7 @@ size CMapBlock::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMapBlock::GetSortedSize(void)
+size CMapBlock::GetSortedSize(void) const
 {
 	return mapArray.GetSortedSize();
 }

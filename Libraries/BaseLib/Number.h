@@ -127,26 +127,26 @@ public:
 	void		SetFirstNonZerotDigit(int16 iDigit);  //Valid: 26 -> 1, not 0, -1 -> -16.
 	void		SetLastNonZeroDigit(int16 iDigit);  //Inclusive of this digit.  First always >= Last.
 	void		SetSign(int16 iSign);
-	int16		GetSign(void);
+	int16		GetSign(void) const;
 	void		SetFlag(int16 iFlag);
 	void		SetPositive(bool bPositive);
 	void		ClearFlag(int16 iFlags);
-	int16		GetMaxWholeNumbers(void);
-	int16		GetMaxDecimals(void);
+	int16		GetMaxWholeNumbers(void) const;
+	int16		GetMaxDecimals(void) const;
 	int16		GetFirstNonZeroDigit(void);  //GetFirstNonZeroDigit
 	int16		GetLastNonZeroDigit(void);  //GetLastNonZeroDigit
 	int16		GetDecimals(void);
 	int16		GetWholeNumbers(void);
 	size		GetDigitsBetween(void);
-	bool		IsNAN(void);
-	bool		IsUnderflow(void);
-	bool		IsOverflow(void);
-	bool		IsNegative(void);
+	bool		IsNAN(void) const;
+	bool		IsUnderflow(void) const;
+	bool		IsOverflow(void) const;
+	bool		IsNegative(void) const;
 	bool		IsPositive(void);
-	bool		IsPositiveOrZero(void);
+	bool		IsPositiveOrZero(void) const;
 	bool		IsClean(void);
-	bool		IsDivisionByZero(void);
-	bool		IsError(void);
+	bool		IsDivisionByZero(void) const;
+	bool		IsError(void) const;
 	void		AddBinaryOne(int16 iBinaryExponent);
 	void		SetDigit(int16 iDigit, char cValue);
 	void		SetDigitUnsafe(int16 iDigit, char cValue);
@@ -158,7 +158,7 @@ public:
 	int16		PrivateFindNonZero(bool bDown);
 	char		GetNibble(int16 iPosition);
 	void		SetNibble(int16 iPosition, char cValue);
-	int16		NumWords(void);
+	int16		NumWords(void) const;
 	int16		MinimumPosition(void);
 	void		PrivateZeroPositions(int16 iHigh, int16 iLow);
 	void		PrivateShiftNibbles(int16 iShift, int16 iFirst, int16 iLast);
@@ -270,7 +270,7 @@ public:
 	void		Dump(void);
 	void		Dump(bool bNewLine);
 
-	size		ByteSize(void);
+	size		ByteSize(void) const;
 };
 
 

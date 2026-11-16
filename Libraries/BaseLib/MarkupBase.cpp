@@ -38,7 +38,7 @@ void CMarkupBase::Init(EMarkupType eType, CMarkupTag* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupBase::IsTag(void)
+bool CMarkupBase::IsTag(void) const
 {
 	return meType == MUT_Tag;
 }
@@ -48,7 +48,7 @@ bool CMarkupBase::IsTag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupBase::IsText(void)
+bool CMarkupBase::IsText(void) const
 {
 	return meType == MUT_Text;
 }
@@ -58,7 +58,7 @@ bool CMarkupBase::IsText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupBase::IsRefDoc(void)
+bool CMarkupBase::IsRefDoc(void) const
 {
 	return meType == MUT_RefDoc;
 }
@@ -68,7 +68,7 @@ bool CMarkupBase::IsRefDoc(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupBase::IsRefText(void)
+bool CMarkupBase::IsRefText(void) const
 {
 	return meType == MUT_RefText;
 }
@@ -78,7 +78,7 @@ bool CMarkupBase::IsRefText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupBase::IsNamedRef(void)
+bool CMarkupBase::IsNamedRef(void) const
 {
 	return meType == MUT_NamedRef;
 }
@@ -88,7 +88,7 @@ bool CMarkupBase::IsNamedRef(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CMarkupBase::GetLine(void)
+lsize CMarkupBase::GetLine(void) const
 {
 	return miLine;
 }
@@ -98,7 +98,7 @@ lsize CMarkupBase::GetLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CMarkupBase::GetColumn(void)
+lsize CMarkupBase::GetColumn(void) const
 {
 	return miColumn;
 }

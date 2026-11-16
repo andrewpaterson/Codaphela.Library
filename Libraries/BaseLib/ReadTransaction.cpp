@@ -38,7 +38,7 @@ void CReadTransaction::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CReadTransaction::GetSnapshot(void)
+int64 CReadTransaction::GetSnapshot(void) const
 {
 	return miSnapshot;
 }

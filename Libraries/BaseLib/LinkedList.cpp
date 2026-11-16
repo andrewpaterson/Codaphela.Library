@@ -141,7 +141,7 @@ void CLinkedList::InsertAfterNode(SLLNode* psExistingNode, SLLNode* psNewNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLNode* CLinkedList::GetHead(void)
+SLLNode* CLinkedList::GetHead(void) const
 {
 	return mpsHead;
 }
@@ -151,7 +151,7 @@ SLLNode* CLinkedList::GetHead(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLNode* CLinkedList::GetTail(void)
+SLLNode* CLinkedList::GetTail(void) const
 {
 	return mpsTail;
 }

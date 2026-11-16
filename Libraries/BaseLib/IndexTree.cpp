@@ -118,7 +118,7 @@ void* CIndexTree::Realloc(void* pv, lsize uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTree::SizeofNode(void)
+size CIndexTree::SizeofNode(void) const
 {
 	return mtSizeofNode;
 }
@@ -138,7 +138,7 @@ size CIndexTree::SizeofDataNode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTree::SizeofNodePtr(void)
+size CIndexTree::SizeofNodePtr(void) const
 {
 	return mtSizeofNodePtr;
 }
@@ -413,7 +413,7 @@ void CIndexTree::GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeDataOrderer* CIndexTree::GetDataOrderer(void)
+CIndexTreeDataOrderer* CIndexTree::GetDataOrderer(void) const
 {
 	return mpcDataOrderer;
 }
@@ -423,7 +423,7 @@ CIndexTreeDataOrderer* CIndexTree::GetDataOrderer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CIndexTree::GetMalloc(void)
+CMallocator* CIndexTree::GetMalloc(void) const
 {
 	return mpcMalloc;
 }

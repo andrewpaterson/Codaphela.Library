@@ -16,10 +16,10 @@ public:
 	void*	Realloc(void* pv, lsize iMemSize);
 	void	Free(void* pv);
 
-	bool	IsMallocInitialised(void);
+	bool	IsMallocInitialised(void) const;
 	bool	IsMalloc(CMallocator* pcMalloc);
 
-	CMallocator*	GetMallocator(void);
+	CMallocator*	GetMallocator(void) const;
 };
 
 

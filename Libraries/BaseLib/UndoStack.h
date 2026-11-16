@@ -86,8 +86,8 @@ public:
 	void	MoveTo(size uiIndex);
 	size	FindId(size uiId);
 
-	size	NumSnapshots(void);
-	size	GetCurrent(void);
+	size	NumSnapshots(void) const;
+	size	GetCurrent(void) const;
 	size	GetCurrentId(void);
 	size	GetId(size uiIndex);
 	size*	GetMarks(size uiIndex);

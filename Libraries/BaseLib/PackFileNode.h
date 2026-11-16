@@ -40,9 +40,9 @@ public:
 
 	filePos		FilePos(void);
 	filePos		Size(void);
-	bool		IsNameWritten(void);
+	bool		IsNameWritten(void) const;
 
-	bool		IsInitialised(void);
+	bool		IsInitialised(void) const;
 	void		SetFilePos(filePos iFilePos);
 	void		IncreaseSize(filePos iSize);
 };

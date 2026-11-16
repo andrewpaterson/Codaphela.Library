@@ -350,7 +350,7 @@ bool CIndexTreeEvicting::Flush(uint8* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::IsWriteThrough(void)
+bool CIndexTreeEvicting::IsWriteThrough(void) const
 {
 	return mcIndexTree.IsWriteThrough();
 }
@@ -410,13 +410,13 @@ bool CIndexTreeEvicting::ValidateIndexTree(bool bReadNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::HasDiagnosticCallback(void)
+bool CIndexTreeEvicting::HasDiagnosticCallback(void) const
 {
 	return mcIndexTree.HasDiagnosticCallback();
 }
 
 
-CIndexTreeDataOrderer* CIndexTreeEvicting::GetDataOrderer(void)
+CIndexTreeDataOrderer* CIndexTreeEvicting::GetDataOrderer(void) const
 {
 	return mcIndexTree.GetDataOrderer();
 }
@@ -559,7 +559,7 @@ void CIndexTreeEvicting::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeEvicting::GetRoot(void)
+CIndexTreeNodeFile* CIndexTreeEvicting::GetRoot(void) const
 {
 	return mcIndexTree.GetRoot();
 }
@@ -647,7 +647,7 @@ lsize CIndexTreeEvicting::GetUserMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeEvicting::GetRootFlags(void)
+size CIndexTreeEvicting::GetRootFlags(void) const
 {
 	return mcIndexTree.GetRoot()->GetFlags();
 }

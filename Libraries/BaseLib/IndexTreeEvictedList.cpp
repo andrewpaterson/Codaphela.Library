@@ -39,7 +39,7 @@ bool CIndexTreeEvictedList::IndexTreeNodeEvicted(void* pvKey, size iKeySize, voi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeEvictedList::NumElements(void)
+size CIndexTreeEvictedList::NumElements(void) const
 {
 	return mcKeys.NumElements();
 }

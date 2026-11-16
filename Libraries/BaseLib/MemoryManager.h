@@ -45,10 +45,10 @@ public:
 	SMMNode*	Iterate(SMMNode* psNode);
 
 	uint32		GetNumAllocations(bool bIncludeUnused);
-	uint32		GetUnusedAllocationSize(void);
-	uint32		GetUsedAllocationSize(void);
-	uint32		GetRemaingTailSize(void);
-	uint32		GetTotalSize(void);
+	uint32		GetUnusedAllocationSize(void) const;
+	uint32		GetUsedAllocationSize(void) const;
+	uint32		GetRemaingTailSize(void) const;
+	uint32		GetTotalSize(void) const;
 
 protected:
 	void*		AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnusedNodeSize, uint32 uiAllocateSize);

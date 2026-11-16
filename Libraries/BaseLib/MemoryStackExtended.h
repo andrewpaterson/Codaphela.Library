@@ -56,9 +56,9 @@ public:
 	lsize			GetTotalMemory(void);
 	lsize			GetUsedMemory(void);
 	CMemoryStack*	GetStack(size iIndex);
-	size			NumStacks(void);
-	size			NumElements(void);
-	size			NumSpares(void);
+	size			NumStacks(void) const;
+	size			NumElements(void) const;
+	size			NumSpares(void) const;
 
 protected:
 	CMemoryStack*	AddChunk(void);

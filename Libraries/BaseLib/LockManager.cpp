@@ -27,7 +27,7 @@ void CLockEntry::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLockEntry::IsUnused(void)
+bool CLockEntry::IsUnused(void) const
 {
 	return (masHolders.NumElements() == 0) && (masWaiters.NumElements() == 0);
 }

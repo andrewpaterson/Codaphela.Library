@@ -88,7 +88,7 @@ public:
 	void					Free(void* pv);
 	lsize					Size(void* pv);
 
-	lsize					NumAllocations(void);
+	lsize					NumAllocations(void) const;
 	lsize					AllocatedBytes(void);
 	lsize					PeakBytes(void);
 	lsize					LargestFree(void);

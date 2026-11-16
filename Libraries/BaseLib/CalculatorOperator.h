@@ -41,8 +41,8 @@ public:
 	void Kill(void);
 
 	char*			GetSymbol(void);
-	ECalcOperator	GetOperator(void);
-	uint16			GetPrecedence(void);
+	ECalcOperator	GetOperator(void) const;
+	uint16			GetPrecedence(void) const;
 };
 
 

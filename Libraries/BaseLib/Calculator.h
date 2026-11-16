@@ -67,16 +67,16 @@ public:
 	void						Print(CChars* psz, CCalcObjectArray* papcExpressions);
 	void						Print(CChars* psz, CCalcObject* pcExpression);
 	void						Print(CChars* psz);
-	bool						HasError(void);
+	bool						HasError(void) const;
 	char*						GetError(void);
 	void						ClearError(void);
 
-	CArrayCalculatorOperators*	GetOperators(void);
-	CCalculatorOperator*		GetAssignment(void);
+	CArrayCalculatorOperators*	GetOperators(void) const;
+	CCalculatorOperator*		GetAssignment(void) const;
 	CCalculatorVariables*		GetVariables(void);
 	CCalculatorError*			GetErrors(void);
-	CCalculatorSymbols*			GetSymbols(void);
-	bool						IsSkipWhitespace(void);
+	CCalculatorSymbols*			GetSymbols(void) const;
+	bool						IsSkipWhitespace(void) const;
 
 	void						Add(CCalcVariableDefinition* pcVariableDefinition);
 	void						Add(CCalcExpression* pcExpression);

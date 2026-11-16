@@ -37,7 +37,7 @@ public:
 	lsize						GetSize(void* pvData);
 	lsize						NumElements(void);
 	lsize						NumElements(lsize iSize);
-	bool						IsEmpty(void);
+	bool						IsEmpty(void) const;
 
 	void*						StartIteration(void);
 	void*						Iterate(void* psCurrent);
@@ -47,11 +47,11 @@ public:
 	void*						GetNext(void* psCurrent);
 	void*						GetPrev(void* psCurrent);
 
-	lsize						GetDescriptorSize(void);
+	lsize						GetDescriptorSize(void) const;
 
 	void						Deallocate(void* pvData);
 
-	lsize						GetCacheSize(void);
+	lsize						GetCacheSize(void) const;
 	lsize						GetAllocatedSize(void);
 
 	bool						ValidateCache(void);
@@ -79,7 +79,7 @@ protected:
 
 	void*						GetData(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 	SMemoryCacheDescriptor*		GetDescriptorNoRemap(void* pvData);
-	SMemoryCacheDescriptor*		GetCache(void);
+	SMemoryCacheDescriptor*		GetCache(void) const;
 	bool						CanCache(lsize uiDataSize);
 
 	void						Deallocate(SMemoryCacheDescriptor* psCacheBasedDescriptor);

@@ -165,7 +165,7 @@ int ComparePackFileOffset(const void* arg1, const void* arg2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CFiles::GetNumPackFiles(void)
+size CFiles::GetNumPackFiles(void) const
 {
 	return mcPackFilesArray.NumElements();
 }

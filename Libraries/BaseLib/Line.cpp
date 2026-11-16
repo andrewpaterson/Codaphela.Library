@@ -83,7 +83,7 @@ bool CLine::InitOrthogonal(SInt32Vec2* psStart, SInt32Vec2* psEnd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CLine::GetMinimumX(void)
+int32 CLine::GetMinimumX(void) const
 {
 	return (msStart.x < msEnd.x) ? msStart.x : msEnd.x;
 }
@@ -93,7 +93,7 @@ int32 CLine::GetMinimumX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CLine::GetMinimumY(void)
+int32 CLine::GetMinimumY(void) const
 {
 	return (msStart.y < msEnd.y) ? msStart.y : msEnd.y;
 }
@@ -103,7 +103,7 @@ int32 CLine::GetMinimumY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CLine::GetMaximumX(void)
+int32 CLine::GetMaximumX(void) const
 {
 	return (msStart.x > msEnd.x) ? msStart.x : msEnd.x;
 }
@@ -113,7 +113,7 @@ int32 CLine::GetMaximumX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CLine::GetMaximumY(void)
+int32 CLine::GetMaximumY(void) const
 {
 	return (msStart.y > msEnd.y) ? msStart.y : msEnd.y;
 }
@@ -148,7 +148,7 @@ void CLine::GetBoundingBox(SInt32Vec2* psPosition, SInt32Vec2* psDimension)
 // to the nearest whole number (Logicim used the x length for both axes).
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CLine::GetLength(void)
+int32 CLine::GetLength(void) const
 {
 	float64	x;
 	float64	y;
@@ -208,7 +208,7 @@ bool CLine::IsPositionOn(int32 x, int32 y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLine::IsEastWest(void)
+bool CLine::IsEastWest(void) const
 {
 	return (meDirection == LD_West) || (meDirection == LD_East);
 }
@@ -218,7 +218,7 @@ bool CLine::IsEastWest(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLine::IsNorthSouth(void)
+bool CLine::IsNorthSouth(void) const
 {
 	return (meDirection == LD_North) || (meDirection == LD_South);
 }
@@ -229,7 +229,7 @@ bool CLine::IsNorthSouth(void)
 // The x of a vertical line.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CLine::GetX(void)
+int32 CLine::GetX(void) const
 {
 	if (msStart.x != msEnd.x)
 	{
@@ -244,7 +244,7 @@ int32 CLine::GetX(void)
 // The y of a horizontal line.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CLine::GetY(void)
+int32 CLine::GetY(void) const
 {
 	if (msStart.y != msEnd.y)
 	{
@@ -446,5 +446,5 @@ void CLine::Dump(void)
 
 SInt32Vec2* CLine::GetStart(void) { return &msStart; }
 SInt32Vec2* CLine::GetEnd(void) { return &msEnd; }
-ELineDirection CLine::GetDirection(void) { return meDirection; }
+ELineDirection CLine::GetDirection(void) const { return meDirection; }
 

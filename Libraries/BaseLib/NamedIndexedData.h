@@ -88,8 +88,8 @@ public:
 	int64			NumDataCached(lsize iSize);
 	int64			NumNames(void);
 	int64			NumNamesCached(void);
-	bool			IsCaching(void);
-	bool			IsWriteThrough(void);
+	bool			IsCaching(void) const;
+	bool			IsWriteThrough(void) const;
 
 	bool			ValidateIdentifiers(void);
 	bool			ValidateNameToOidToName(void);

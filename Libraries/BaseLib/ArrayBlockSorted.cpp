@@ -805,7 +805,7 @@ size CArrayBlockSorted::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CArrayBlockSorted::GetSortedSize(void)
+size CArrayBlockSorted::GetSortedSize(void) const
 {
 	return maSortedArray.NumElements();
 }
@@ -982,7 +982,7 @@ bool CArrayBlockSorted::IsSorted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataCompare CArrayBlockSorted::GetCompare(void)
+DataCompare CArrayBlockSorted::GetCompare(void) const
 {
 	return mfCompare;
 }

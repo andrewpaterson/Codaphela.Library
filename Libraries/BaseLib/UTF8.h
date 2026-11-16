@@ -52,7 +52,7 @@ public:
 	size	GetPosition(void) override;
 
 protected:
-	size	GetUTF8ElementLength(void);
+	size	GetUTF8ElementLength(void) const;
 };
 
 

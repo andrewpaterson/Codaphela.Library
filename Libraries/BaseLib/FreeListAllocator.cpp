@@ -101,7 +101,7 @@ void* CFreeListAllocator::Realloc(void* pv, lsize uiSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-const char* CFreeListAllocator::GetName(void)
+const char* CFreeListAllocator::GetName(void) const
 {
 	return "CFreeListAllocator";
 }

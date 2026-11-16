@@ -103,7 +103,7 @@ size SCSVRowEditable::IndexOf(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size SCSVRowEditable::NumCells(void)
+size SCSVRowEditable::NumCells(void) const
 {
 	return aszData.NumElements();
 }
@@ -251,7 +251,7 @@ void CCSVFileEditable::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCSVFileEditable::NumRows(void)
+size CCSVFileEditable::NumRows(void) const
 {
 	return masCSVRows.NumElements();
 }

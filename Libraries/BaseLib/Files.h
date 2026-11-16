@@ -45,7 +45,7 @@ public:
 	bool					Init(const char* szDirectory, const char* szPackFilesExtension);
 	void					Kill(void);
 
-	size					GetNumPackFiles(void);
+	size					GetNumPackFiles(void) const;
 	CAbstractFile*			GetFile(const char* szFullName);
 
 	CFileIteratorReturn*	StartIteration(CFileIterator* pcIter);

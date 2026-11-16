@@ -51,9 +51,9 @@ public:
 	void					SetFreeListSizeLimit(size uiFreeListSizeLimit);
 	SMemoryFreeListParams*	GetFreeListParamsForSize(size iElementSize);
 	size					GetFreeListParamsIndexForSize(size iElementSize);
-	size					GetFreeListSizeLimit(void);
-	size					GetMaxFreeListElementSize(void);
-	size					NumParams(void);
+	size					GetFreeListSizeLimit(void) const;
+	size					GetMaxFreeListElementSize(void) const;
+	size					NumParams(void) const;
 
 private:
 	void					InitFreeListParams(void);

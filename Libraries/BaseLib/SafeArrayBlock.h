@@ -20,11 +20,11 @@ public:
 	void 	Finalise(void);
 	void 	Kill(void);
 
-	size	NumElements(void);
-	bool	IsEmpty(void);
-	bool	IsNotEmpty(void);
-	size	AllocatedElements(void);
-	size 	ElementSize(void);
+	size	NumElements(void) const;
+	bool	IsEmpty(void) const;
+	bool	IsNotEmpty(void) const;
+	size	AllocatedElements(void) const;
+	size 	ElementSize(void) const;
 
 	void	Add(void* pvData);
 	size	AddGetIndex(void* pvData);

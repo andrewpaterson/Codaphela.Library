@@ -123,15 +123,15 @@ void CTextEditing::SetSingleLine(bool bSingleLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextEditing::IsEditable(void) { return mbEditable; }
-bool CTextEditing::IsSingleLine(void) { return mbSingleLine; }
-size CTextEditing::GetTabWidth(void) { return muiTabWidth; }
-size CTextEditing::GetCaretPosition(void) { return muiCaret; }
-size CTextEditing::GetAnchorPosition(void) { return IsSelected() ? muiAnchor : muiCaret; }  //Where the selection started, the caret if nothing is selected.
-bool CTextEditing::IsCaretAtRowEnd(void) { return mbCaretAtRowEnd; }
-size CTextEditing::GetCaretRow(void) { return mpcView->FindRow(muiCaret, mbCaretAtRowEnd); }  //Only when the view has rows.
-int32 CTextEditing::GetCaretX(void) { return mpcView->GetPositionX(muiCaret, mbCaretAtRowEnd); }  //Only when the view has rows.
-bool CTextEditing::IsSelected(void) { return (muiAnchor != MAX_SIZE) && (muiAnchor != muiCaret); }
+bool CTextEditing::IsEditable(void) const { return mbEditable; }
+bool CTextEditing::IsSingleLine(void) const { return mbSingleLine; }
+size CTextEditing::GetTabWidth(void) const { return muiTabWidth; }
+size CTextEditing::GetCaretPosition(void) const { return muiCaret; }
+size CTextEditing::GetAnchorPosition(void) const { return IsSelected() ? muiAnchor : muiCaret; }  //Where the selection started, the caret if nothing is selected.
+bool CTextEditing::IsCaretAtRowEnd(void) const { return mbCaretAtRowEnd; }
+size CTextEditing::GetCaretRow(void) const { return mpcView->FindRow(muiCaret, mbCaretAtRowEnd); }  //Only when the view has rows.
+int32 CTextEditing::GetCaretX(void) const { return mpcView->GetPositionX(muiCaret, mbCaretAtRowEnd); }  //Only when the view has rows.
+bool CTextEditing::IsSelected(void) const { return (muiAnchor != MAX_SIZE) && (muiAnchor != muiCaret); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -248,8 +248,8 @@ void CTextEditing::Select(size uiStart, size uiEnd)
 // The document's, for finding words and lines in its text.
 //
 //////////////////////////////////////////////////////////////////////////
-CTextNavigation* CTextEditing::GetNavigation(void) { return mpcNavigation; }
-CTextEditingView* CTextEditing::GetView(void) { return mpcView; }  //What shows the text, for an input to ask it to show its caret.
+CTextNavigation* CTextEditing::GetNavigation(void) const { return mpcNavigation; }
+CTextEditingView* CTextEditing::GetView(void) const { return mpcView; }  //What shows the text, for an input to ask it to show its caret.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -604,7 +604,7 @@ size STextBox::BottomRow(void) { return (uiAnchorRow < uiCaretRow) ? uiCaretRow 
 size STextBox::NumRows(void) { return BottomRow() - TopRow() + 1; }
 int32 STextBox::Left(void) { return (iAnchorX < iCaretX) ? iAnchorX : iCaretX; }
 int32 STextBox::Right(void) { return (iAnchorX < iCaretX) ? iCaretX : iAnchorX; }
-bool STextBox::HasWidth(void) { return iAnchorX != iCaretX; }
+bool STextBox::HasWidth(void) const { return iAnchorX != iCaretX; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -726,7 +726,7 @@ void CTextEditing::MoveBoxCorner(ETextBoxMove eMove)
 }
 
 
-bool CTextEditing::IsBox(void) { return mbBox; }
+bool CTextEditing::IsBox(void) const { return mbBox; }
 STextBox* CTextEditing::GetBox(void) { return &msBox; }  //The box's corners, while there is a box.
 
 

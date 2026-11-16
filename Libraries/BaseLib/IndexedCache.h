@@ -59,8 +59,8 @@ public:
 	lsize						NumCached(void);
 	lsize						NumCached(lsize iSize);
 
-	lsize						GetIndexCacheDescritorSize(void);
-	lsize						GetCacheSize(void);
+	lsize						GetIndexCacheDescritorSize(void) const;
+	lsize						GetCacheSize(void) const;
 	lsize						GetAllocatedSize(void);
 	bool						CanCache(lsize uiDataSize);
 

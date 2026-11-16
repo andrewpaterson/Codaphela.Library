@@ -65,7 +65,7 @@ public:
 	size					NumElements(void);
 	lsize					ByteSize(void);
 	CMemoryFreeListParams*	GetFreeListParams(void);
-	size					GetDefaultAlignment(void);
+	size					GetDefaultAlignment(void) const;
 
 	SMemory					StartIteration(SMemoryIterator* psIterator);
 	SMemory					Iterate(SMemoryIterator* psIterator);

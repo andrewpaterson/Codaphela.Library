@@ -812,7 +812,7 @@ void CNumber::SetPositive(bool bPositive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CNumber::GetSign(void)
+int16 CNumber::GetSign(void) const
 {
 	if (IsNegative())
 	{
@@ -902,7 +902,7 @@ bool CNumber::IsEven(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNumber::IsDivisionByZero(void)
+bool CNumber::IsDivisionByZero(void) const
 {
 	return mcFlags & NUMBER_FLAGS_DIVISION_BY_ZERO;
 }
@@ -912,7 +912,7 @@ bool CNumber::IsDivisionByZero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNumber::IsError(void)
+bool CNumber::IsError(void) const
 {
 	if (IsOverflow())
 	{
@@ -974,7 +974,7 @@ int16 CNumber::GetDecimals(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CNumber::GetMaxWholeNumbers(void)
+int16 CNumber::GetMaxWholeNumbers(void) const
 {
 	return mcMaxWholeNumbers;
 }
@@ -984,7 +984,7 @@ int16 CNumber::GetMaxWholeNumbers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CNumber::GetMaxDecimals(void)
+int16 CNumber::GetMaxDecimals(void) const
 {
 	return mcMaxDecimals;
 }
@@ -1530,7 +1530,7 @@ size CNumber::GetDigitsBetween(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNumber::IsNAN(void)
+bool CNumber::IsNAN(void) const
 {
 	return mcFlags & NUMBER_FLAGS_NAN;
 }
@@ -1540,7 +1540,7 @@ bool CNumber::IsNAN(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNumber::IsUnderflow(void)
+bool CNumber::IsUnderflow(void) const
 {
 	return mcFlags & NUMBER_FLAGS_UNDERFLOW;
 }
@@ -1550,7 +1550,7 @@ bool CNumber::IsUnderflow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNumber::IsOverflow(void)
+bool CNumber::IsOverflow(void) const
 {
 	return mcFlags & NUMBER_FLAGS_OVERFLOW;
 }
@@ -1560,7 +1560,7 @@ bool CNumber::IsOverflow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNumber::IsNegative(void)
+bool CNumber::IsNegative(void) const
 {
 	return FixBool(mcFlags & NUMBER_FLAGS_NEGATIVE);
 }
@@ -1580,7 +1580,7 @@ bool CNumber::IsPositive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNumber::IsPositiveOrZero(void)
+bool CNumber::IsPositiveOrZero(void) const
 {
 	return !IsNegative();
 }
@@ -4097,7 +4097,7 @@ void CNumber::SetNibble(int16 iPosition, char cValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CNumber::NumWords(void)
+int16 CNumber::NumWords(void) const
 {
 	return NUMBER_WORDS(mcMaxWholeNumbers, mcMaxDecimals);
 }
@@ -4379,7 +4379,7 @@ void CNumber::Dump(bool bNewLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CNumber::ByteSize(void)
+size CNumber::ByteSize(void) const
 {
 	return NUMBER_SIZE(mcMaxWholeNumbers, mcMaxDecimals);
 }

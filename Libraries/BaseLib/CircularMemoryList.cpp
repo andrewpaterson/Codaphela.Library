@@ -323,7 +323,7 @@ void CCircularMemoryList::Deallocate(SMemoryCacheDescriptor* psCacheBasedDescrip
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CCircularMemoryList::GetCacheSize(void)
+lsize CCircularMemoryList::GetCacheSize(void) const
 {
 	return mpsDetail->muiCacheSize;
 }
@@ -441,7 +441,7 @@ lsize CCircularMemoryList::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CCircularMemoryList::GetDescriptorSize(void)
+lsize CCircularMemoryList::GetDescriptorSize(void) const
 {
 	return miDescriptorSize;
 }
@@ -479,7 +479,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::GetDescriptorNoRemap(void* pvCacheB
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CCircularMemoryList::GetCache(void)
+SMemoryCacheDescriptor* CCircularMemoryList::GetCache(void) const
 {
 	return mpvCache;
 }
@@ -527,7 +527,7 @@ lsize CCircularMemoryList::NumElements(lsize iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCircularMemoryList::IsEmpty(void)
+bool CCircularMemoryList::IsEmpty(void) const
 {
 	return mpsDetail == NULL || mpsDetail->mpsTail == NULL;
 }

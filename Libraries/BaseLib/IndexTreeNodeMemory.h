@@ -19,7 +19,7 @@ public:
 	CIndexTreeNodeMemory*	GetNode(size i);
 	CIndexTreeNodeMemory**	GetNodes(void);
 	size					NumValidIndexes(void);
-	CIndexTreeNodeMemory*	GetParent(void);
+	CIndexTreeNodeMemory*	GetParent(void) const;
 
 	void					RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
 	void					RemapvDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeDataOrderer* pcDataOrderer);

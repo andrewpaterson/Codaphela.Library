@@ -24,7 +24,7 @@ public:
 
 	OIndex	GetNext(void) override;
 	OIndex	PeekNext(void) override;
-	OIndex	GetEnd(void);
+	OIndex	GetEnd(void) const;
 	OIndex	ReserveRange(OIndex iCount);
 	bool	AdvanceTo(OIndex oiNext);
 

@@ -632,7 +632,7 @@ bool CDurableFile::Truncate(lsize iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFile::IsSync(void)
+bool CDurableFile::IsSync(void) const
 {
 	if (mpcController != NULL)
 	{
@@ -649,7 +649,7 @@ bool CDurableFile::IsSync(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFile::IsDurable(void)
+bool CDurableFile::IsDurable(void) const
 {
 	if (mpcController != NULL)
 	{
@@ -666,7 +666,7 @@ bool CDurableFile::IsDurable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFile::IsBegun(void)
+bool CDurableFile::IsBegun(void) const
 {
 	if (mpcController != NULL)
 	{

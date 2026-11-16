@@ -510,7 +510,7 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::CStringLength(const char* szStrin
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-typename TEXT::Count CCharsBase<STRING, TEXT>::Length(void)
+typename TEXT::Count CCharsBase<STRING, TEXT>::Length(void) const
 {
 	//Don't include the zero char at the end of the string.
 	if (mcText.IsEmpty() || IsFakeEmpty())
@@ -1215,7 +1215,7 @@ char* CCharsBase<STRING, TEXT>::Text(Count iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-bool CCharsBase<STRING, TEXT>::Empty(void)
+bool CCharsBase<STRING, TEXT>::Empty(void) const
 {
 	if (Length() == 0)
 	{
@@ -3289,7 +3289,7 @@ void CCharsBase<STRING, TEXT>::InitEmpty(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class STRING, class TEXT>
-bool CCharsBase<STRING, TEXT>::IsFakeEmpty(void)
+bool CCharsBase<STRING, TEXT>::IsFakeEmpty(void) const
 {
 	return mcText.GetData() == gszEmptyString;
 }

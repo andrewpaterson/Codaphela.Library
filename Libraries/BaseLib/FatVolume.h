@@ -65,9 +65,9 @@ public:
 	EFatCode				FindFirstFATEntry(const char* szParentPath, uint8 uiAttributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	EFatCode				FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	EFatCode				CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, const char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry);
-	fatEntry				GetEndOfClusterMarker(void);
-	fatEntry				GetBadClusterMarker(void);
-	fatEntry				GetClusterEntryMask(void);
+	fatEntry				GetEndOfClusterMarker(void) const;
+	fatEntry				GetBadClusterMarker(void) const;
+	fatEntry				GetClusterEntryMask(void) const;
 	uint32					GetEntryCluster(SFatRawDirectoryEntry* psEntry);
 
 	EFatCode				ValidateFatCache(SFatCache sCache);
@@ -75,33 +75,33 @@ public:
 	void					FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
 
 	//Getters
-	uint32					GetClusterSize(void) { return muiBytesPerCluster; }
-	uint32					GetID(void);
-	uint32					GetFatSize(void);
-	uint32					GetFirstDataSector(void);
-	uint32					GetNoOfSectors(void);
-	uint32					GetNoOfDataSectors(void);
-	uint32					GetNumClusters(void);
-	uint32					GetNoOfReservedSectors(void) { return muiNoOfReservedSectors; }
-	uint32					GetNextFreeCluster(void);
-	uint32					GetTotalFreeClusters(void);
-	uint32					GetFileSystemInfoSector(void);
-	uint16					GetRootDirectorySectors(void);
-	uint16					GetSectorSize(void) { return muiBytesPerSector; }
-	uint16					NumSectorsPerCluster(void) { return muiNoOfSectorsPerCluster; }
+	uint32					GetClusterSize(void) const { return muiBytesPerCluster; }
+	uint32					GetID(void) const;
+	uint32					GetFatSize(void) const;
+	uint32					GetFirstDataSector(void) const;
+	uint32					GetNoOfSectors(void) const;
+	uint32					GetNoOfDataSectors(void) const;
+	uint32					GetNumClusters(void) const;
+	uint32					GetNoOfReservedSectors(void) const { return muiNoOfReservedSectors; }
+	uint32					GetNextFreeCluster(void) const;
+	uint32					GetTotalFreeClusters(void) const;
+	uint32					GetFileSystemInfoSector(void) const;
+	uint16					GetRootDirectorySectors(void) const;
+	uint16					GetSectorSize(void) const { return muiBytesPerSector; }
+	uint16					NumSectorsPerCluster(void) const { return muiNoOfSectorsPerCluster; }
 	uint32					BytesToSectors(uint32 uiBytes) { return uiBytes >> muiBytesPerSectorShift; }
 	uint32					OffsetInSector(uint32 uiBytes) { return uiBytes & ((uint32)muiBytesPerSector - 1); }
 	uint32					BytesToClusters(uint32 uiBytes) { return uiBytes >> muiBytesPerClusterShift; }
 	uint32					OffsetInCluster(uint32 uiBytes) { return uiBytes & (muiBytesPerCluster - 1); }
 	uint32					SectorsToClusters(uint32 uiSectors) { return uiSectors >> muiSectorsPerClusterShift; }
-	bool					IsUseLongFilenames(void);
-	EFatFileSystemType		GetFileSystemType(void);
-	uint8					GetNoOfFatTables(void);
+	bool					IsUseLongFilenames(void) const;
+	EFatFileSystemType		GetFileSystemType(void) const;
+	uint8					GetNoOfFatTables(void) const;
 	char*					GetLabel(void);
-	CFileDrive*				GetFileDrive(void);
-	uint32					GetRootCluster(void);
-	uint32					GetRootSector(void);
-	uint32					GetPageSize(void);
+	CFileDrive*				GetFileDrive(void) const;
+	uint32					GetRootCluster(void) const;
+	uint32					GetRootSector(void) const;
+	uint32					GetPageSize(void) const;
 	CFatInfoSectorCache*	GetSectorCache(void);
 	
 protected:
@@ -141,7 +141,7 @@ protected:
 	void					SetNextFreeCluster(uint32 uiCluster);
 	void					SetTotalFreeClusters(uint32 uiTotalFreeClusters);
 	uint32					FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint16 uiStep);
-	bool					HasNextFreeCluser(void);
+	bool					HasNextFreeCluser(void) const;
 	uint16					CalculateClusterStepSize(uint32 uiPageSize);
 	EFatCode				WrapAllocate(uint32 uiStartCluster, uint32 uiLastFatEntry, bool* pbWrappedAround, uint32* puiClusterIndex, uint32* puiOffsetInSector, uint32* puiFirstClusterSector);
 	EFatCode				InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiCluster, bool bZero);
@@ -180,7 +180,7 @@ protected:
 	void					ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery);
 
 	EFatCode				EraseClusterChainContents(fatEntry uiCluster);
-	uint32					GetRootDirectorySector(void);
+	uint32					GetRootDirectorySector(void) const;
 	bool					HasNoMoreEntries(SFatFileSystemQuery* psQuery);
 	EFatCode				TerminalQueryEntry(SFatFileSystemQuery* psQuery);
 	uint32					CalculateQuerySector(SFatFileSystemQuery* psQuery);

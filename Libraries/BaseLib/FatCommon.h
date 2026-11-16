@@ -146,9 +146,9 @@ struct SFatDirectoryEntry
 	SFatRawDirectoryEntry	sRaw;
 
 	//Decoded from sRaw when asked for (mktime is slow on the 65C64s).
-	time_t	GetCreateTime(void);
-	time_t	GetModifyTime(void);
-	time_t	GetAccessTime(void);
+	time_t	GetCreateTime(void) const;
+	time_t	GetModifyTime(void) const;
+	time_t	GetAccessTime(void) const;
 };
 
 

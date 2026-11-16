@@ -197,7 +197,7 @@ bool CFileBasic::Flush(void)
 //  Description  : Seeks to an offset relative to an origin within the file.
 // 
 //////////////////////////////////////////////////////////////////////////
-bool CFileBasic::IsOpen(void)
+bool CFileBasic::IsOpen(void) const
 {
 	if (mpcFile != NULL)
 	{
@@ -219,7 +219,7 @@ bool CFileBasic::IsOpen(void)
 //  Description  : gets the length (in bytes) of the file
 // 
 //////////////////////////////////////////////////////////////////////////
-filePos CFileBasic::GetFileLength(void)
+filePos CFileBasic::GetFileLength(void) const
 {
 	return mpcFile->Size();
 }
@@ -294,7 +294,7 @@ bool CFileBasic::Delete(void)
 // 
 // 
 //////////////////////////////////////////////////////////////////////////
-const char* CFileBasic::GetFilename(void)
+const char* CFileBasic::GetFilename(void) const
 {
 	return mpcFile->GetFilename();
 }

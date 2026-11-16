@@ -193,7 +193,7 @@ bool CIndexBlock::Remove(uint8* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CIndexBlock::NumElements(void)
+size CIndexBlock::NumElements(void) const
 {
 	return mcIndex.NumElements();
 }

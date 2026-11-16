@@ -285,7 +285,7 @@ bool CArrayBit::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-lsize CArrayBit::NumElements(void)
+lsize CArrayBit::NumElements(void) const
 {
 	return miNumBits;
 }
@@ -295,7 +295,7 @@ lsize CArrayBit::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayBit::IsLarge(void)
+bool CArrayBit::IsLarge(void) const
 {
 	return miNumBits > sizeof(uint32)*3*8;
 }

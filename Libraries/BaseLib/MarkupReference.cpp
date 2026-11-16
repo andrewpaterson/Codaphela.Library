@@ -109,7 +109,7 @@ bool CMarkupRefDoc::Is(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupRefDoc::GetRootTag(void)
+CMarkupTag* CMarkupRefDoc::GetRootTag(void) const
 {
 	return mpcRef->mpcDoc->GetRootTag();
 }

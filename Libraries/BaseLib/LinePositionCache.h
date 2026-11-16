@@ -37,7 +37,7 @@ public:
 	void		Init(int32 iKey);
 	void		Kill(void);
 
-	int32		GetKey(void);
+	int32		GetKey(void) const;
 	CArrayLine*	GetLines(void);
 };
 

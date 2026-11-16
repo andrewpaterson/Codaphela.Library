@@ -58,7 +58,7 @@ public:
 	void	Text(const char* szText);
 	void	Comment(const char* szText);
 
-	bool	IsComplete(void);
+	bool	IsComplete(void) const;
 	char*	GetText(void);
 	bool	Write(const char* szFilename);
 

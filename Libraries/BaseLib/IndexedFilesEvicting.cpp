@@ -231,7 +231,7 @@ lsize CIndexedFilesEvicting::NumCached(lsize iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedFilesEvicting::NumFiles(void)
+size CIndexedFilesEvicting::NumFiles(void) const
 {
 	return mcDataFiles.NumFiles();
 }
@@ -732,6 +732,6 @@ bool CIndexedFilesEvicting::ValidateCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFilesEvicting::IsCaching(void) { return mbCaching; }
-bool CIndexedFilesEvicting::IsWriteThrough(void) { return meWriteThrough == IWT_Yes; }
+bool CIndexedFilesEvicting::IsCaching(void) const { return mbCaching; }
+bool CIndexedFilesEvicting::IsWriteThrough(void) const { return meWriteThrough == IWT_Yes; }
 

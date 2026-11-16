@@ -58,7 +58,7 @@ void CCalcVariableDefinition::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCalcVariableDefinition::GetName(void)
+char* CCalcVariableDefinition::GetName(void) const
 {
 	return mpcVariable->Get();
 }
@@ -68,7 +68,7 @@ char* CCalcVariableDefinition::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalcExpression* CCalcVariableDefinition::GetExpression(void)
+CCalcExpression* CCalcVariableDefinition::GetExpression(void) const
 {
 	return mpcExpression;
 }

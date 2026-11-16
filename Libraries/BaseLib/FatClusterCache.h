@@ -39,12 +39,12 @@ public:
 	bool	Flush(void);
 
 	void	Clear(void);
-	uint8*	GetCache(void);
+	uint8*	GetCache(void) const;
 
 	bool	IsSectorDirty(uint16 iSectorIndex);
 	bool	IsSectorCached(uint16 iSectorIndex);
 
-	uint16	GetSectorsPerCluster(void);
+	uint16	GetSectorsPerCluster(void) const;
 
 protected:
 	void	Invalidate(SClusterCache* psCluster);

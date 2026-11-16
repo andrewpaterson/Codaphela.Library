@@ -52,7 +52,7 @@ public:
 
 	M*		Get(Count iIndex);
 	M*		SafeGet(Count iIndex);
-	M*		GetData(void);
+	M*		GetData(void) const;
 	Count	GetIndex(M* pvData);
 	M*		Tail(void);
 	M&						operator[](Count iIndex);
@@ -367,7 +367,7 @@ typename BLOCK::Count CArrayTemplateBase<M, BLOCK>::GetIndex(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class BLOCK>
-M* CArrayTemplateBase<M, BLOCK>::GetData(void)
+M* CArrayTemplateBase<M, BLOCK>::GetData(void) const
 {
 	return (M*)BLOCK::GetData();
 }

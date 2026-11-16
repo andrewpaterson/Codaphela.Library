@@ -22,7 +22,7 @@ public:
 	bool			Free(void* pv) override;
 	size			FreeMultiple(CArrayVoidPtr* pav) override;
 
-	const char*		GetName(void);
+	const char*		GetName(void) const;
 
 	bool			Read(CFileReader* pcFileReader) override;
 	bool			Write(CFileWriter* pcFileWriter) override;

@@ -42,7 +42,7 @@ void CCalculatorError::SetError(const char* szError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculatorError::HasError(void)
+bool CCalculatorError::HasError(void) const
 {
 	return !mszError.Empty();
 }

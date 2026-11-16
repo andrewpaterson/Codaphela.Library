@@ -50,7 +50,7 @@ public:
 	bool			Read(CFileReader* pcFileReader);
 	bool			Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* pcDataFree);
 
-	bool			IsCaseSensitive(void);
+	bool			IsCaseSensitive(void) const;
 	void			SetCaseSensitive(bool bCaseSensitive);
 
 	void			GetKeysAsString(CChars* pszDest, char* szSeparator);

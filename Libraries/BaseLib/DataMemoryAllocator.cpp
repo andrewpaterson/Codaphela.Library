@@ -107,7 +107,7 @@ size CDataMemoryAllocator::FreeMultiple(CArrayVoidPtr* pav)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-const char* CDataMemoryAllocator::GetName(void)
+const char* CDataMemoryAllocator::GetName(void) const
 {
 	return "CDataMemoryAllocator";
 }

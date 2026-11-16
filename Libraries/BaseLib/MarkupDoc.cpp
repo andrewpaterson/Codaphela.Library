@@ -70,7 +70,7 @@ void CMarkupDoc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupDoc::GetRootTag(void)
+CMarkupTag* CMarkupDoc::GetRootTag(void) const
 {
 	return mpcRootTag;
 }
@@ -238,7 +238,7 @@ void CMarkupDoc::AddReference(CMarkupReference* pcRef)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkup* CMarkupDoc::GetMarkup(void)
+CMarkup* CMarkupDoc::GetMarkup(void) const
 {
 	return mpcMarkup;
 }
@@ -260,7 +260,7 @@ void CMarkupDoc::AddComment(const char* szText, lsize uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMarkupDoc::NumComments(void)
+size CMarkupDoc::NumComments(void) const
 {
 	return maszComments.NumElements();
 }

@@ -242,7 +242,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeForData(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::GetRoot(void)
+CIndexTreeNodeMemory* CIndexTreeMemory::GetRoot(void) const
 {
 	return mpcRoot;
 }
@@ -1077,7 +1077,7 @@ bool CIndexTreeMemory::ReadData(CFileReader* pcFileReader, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeMemory::NumElements(void)
+size CIndexTreeMemory::NumElements(void) const
 {
 	return miSize;
 }
@@ -1373,7 +1373,7 @@ void SIndexTreeMemoryIterator::Kill(void)
 // Whether the iteration has not ended (or been killed).
 //
 //////////////////////////////////////////////////////////////////////////
-bool SIndexTreeMemoryIterator::IsLive(void)
+bool SIndexTreeMemoryIterator::IsLive(void) const
 {
 	return acKey.IsEmbedded() || acKey.IsArray();
 }

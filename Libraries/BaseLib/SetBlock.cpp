@@ -307,7 +307,7 @@ size CSetBlock::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSetBlock::GetSortedSize(void)
+size CSetBlock::GetSortedSize(void) const
 {
 	return mapArray.GetSortedSize();
 }

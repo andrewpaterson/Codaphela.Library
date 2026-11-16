@@ -39,7 +39,7 @@ struct SSparseNode
 
 	//Element data follows node.
 
-	SSparseNode** GetParentPointer(void);
+	SSparseNode** GetParentPointer(void) const;
 };
 
 
@@ -84,7 +84,7 @@ public:
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-inline SSparseNode** SSparseNode::GetParentPointer(void)
+inline SSparseNode** SSparseNode::GetParentPointer(void) const
 {
 	if (psParent)
 	{

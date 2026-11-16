@@ -155,7 +155,7 @@ OIndex CSequence::PeekNext(void)
 // One past the last index this sequence may hand out.
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CSequence::GetEnd(void)
+OIndex CSequence::GetEnd(void) const
 {
 	return moiEnd;
 }

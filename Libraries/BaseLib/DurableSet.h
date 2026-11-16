@@ -44,7 +44,7 @@ public:
 	void			Init(const char* szMarkStartFile, const char* szMarkRewriteFile);
 	void			Kill(void);
 
-	bool			HasBegun(void);
+	bool			HasBegun(void) const;
 	void			SetSync(bool bSync);
 
 	bool			Recover(void);

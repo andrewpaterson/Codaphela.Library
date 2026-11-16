@@ -42,8 +42,8 @@ public:
 	void		Init(void* pvInitialMem, lsize iInitialLength);
 	void		Kill(void) override;
 
-	void*		GetBufferPointer(void);
-	lsize		GetBufferSize(void);
+	void*		GetBufferPointer(void) const;
+	lsize		GetBufferSize(void) const;
 	void		SetBufferPointer(void* pvBuffer);
 	void		SetBufferSize(lsize iBufferSize);
 

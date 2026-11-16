@@ -49,7 +49,7 @@ public:
 	bool				HasKey(const void* pvKey, size iKeySize);
 
 	size				NumElements(void);
-	size				GetSortedSize(void);
+	size				GetSortedSize(void) const;
 	size				GetHoldingSize(void);
 	size				NonNullElements(void);
 

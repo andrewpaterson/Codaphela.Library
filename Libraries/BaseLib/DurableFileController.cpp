@@ -251,13 +251,13 @@ CDurableFile* CDurableFileController::GetFile(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFileController::IsBegun(void) { return mcDurableSet.HasBegun(); }
+bool CDurableFileController::IsBegun(void) const { return mcDurableSet.HasBegun(); }
 
 char* CDurableFileController::GetDirectory(void) { return mszDirectory.Text(); }
 
 char* CDurableFileController::GetRewriteDirectory(void) { return mszRewriteDirectory.Text(); }
 
-bool CDurableFileController::IsDurable(void) { return mbDurable; }
+bool CDurableFileController::IsDurable(void) const { return mbDurable; }
 
 CDurableSet* CDurableFileController::GetDurableSet(void) { return &mcDurableSet; }
 
@@ -277,7 +277,7 @@ void CDurableFileController::SetSync(EDurableSync eSync)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFileController::IsSync(void)
+bool CDurableFileController::IsSync(void) const
 {
 	return mbSync;
 }

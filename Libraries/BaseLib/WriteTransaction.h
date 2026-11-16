@@ -23,8 +23,8 @@ public:
 	lsize	uiDataSize;
 	void*	mpvData;			//NULL when uiDataSize is 0.
 
-	char*	GetName(void);
-	void*	GetData(void);
+	char*	GetName(void) const;
+	void*	GetData(void) const;
 	void	FreeData(void);
 };
 
@@ -73,11 +73,11 @@ public:
 
 	bool	Commit(void);
 	void	Abort(void);
-	bool	IsActive(void);
-	bool	HasDied(void);
+	bool	IsActive(void) const;
+	bool	HasDied(void) const;
 	bool	Restart(void);
-	int64	GetStartNumber(void);
-	int		GetThread(void);
+	int64	GetStartNumber(void) const;
+	int		GetThread(void) const;
 
 	bool	Lock(OIndex oi, ELockMode eMode);
 

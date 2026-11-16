@@ -50,7 +50,7 @@ public:
 	void*		Get(int iOffset);
 	void		Set(void* pvMem, size iSize);
 	filePos		Size(void);
-	filePos		Length(void);
+	filePos		Length(void) const;
 
 	int			Compare(void* pvOther, size iSize);
 };

@@ -16,7 +16,7 @@ void CFileDrive::Init(uint32 uiSectorSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CFileDrive::GetTotalSectors(void)
+uint64 CFileDrive::GetTotalSectors(void) const
 {
 	return muiMaxSector - 1;
 }
@@ -26,7 +26,7 @@ uint64 CFileDrive::GetTotalSectors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFileDrive::GetSectorSize(void)
+uint32 CFileDrive::GetSectorSize(void) const
 {
 	return muiSectorSize;
 }

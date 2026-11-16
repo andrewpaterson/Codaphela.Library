@@ -178,7 +178,7 @@ CArrayCalculatorOperators* CCalculatorSymbols::GetOperators(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalculatorOperator* CCalculatorSymbols::GetAssignment(void)
+CCalculatorOperator* CCalculatorSymbols::GetAssignment(void) const
 {
 	return mpcAssignment;
 }
@@ -188,7 +188,7 @@ CCalculatorOperator* CCalculatorSymbols::GetAssignment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CCalculatorSymbols::GetMaxPrecedence(void)
+uint16 CCalculatorSymbols::GetMaxPrecedence(void) const
 {
 	return muiMaxPrecedence;
 }

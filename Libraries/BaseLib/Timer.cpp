@@ -113,3 +113,10 @@ void CTimer::HumanReadable(CChars* psz)
 	}
 }
 
+
+float CTimer::GetUpdateTimeInSeconds(void) const { return mfUpdateTime; }
+float CTimer::GetUpdatesPerSecond(void) const { return mfUpdatesPerSecond; }
+float CTimer::GetTotalTimeInSeconds(void) const { return mfTotalTime; }
+int64 CTimer::GetUpdateTimeInMillieconds(void) const { return miUpdateTime; }
+int64 CTimer::GetTotalTimeInMillieconds(void) const { return miTotalTime; }
+

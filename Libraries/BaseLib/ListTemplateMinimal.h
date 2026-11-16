@@ -26,8 +26,8 @@ public:
 	M*		Get(size iIndex);
 	M*		Get(size iIndex, size* piSize);
 	M*		Add(const M* pv, size iSize);
-	size		NumElements(void);
-	size		AllocatedElements(void);
+	size		NumElements(void) const;
+	size		AllocatedElements(void) const;
 };
 
 
@@ -129,7 +129,7 @@ M* CListTemplateMinimal<M>::Add(const M* pv, size iSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-size CListTemplateMinimal<M>::NumElements(void)
+size CListTemplateMinimal<M>::NumElements(void) const
 {
 	return miUsedElements;
 }
@@ -140,7 +140,7 @@ size CListTemplateMinimal<M>::NumElements(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-size CListTemplateMinimal<M>::AllocatedElements(void)
+size CListTemplateMinimal<M>::AllocatedElements(void) const
 {
 	return miNumElements;
 }

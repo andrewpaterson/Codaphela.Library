@@ -60,7 +60,7 @@ public:
 	void			SetOverwrite(bool bOverwrite);
 
 	size			NumElements(void);
-	size			GetSortedSize(void);
+	size			GetSortedSize(void) const;
 	size			GetHoldingSize(void);
 	void*			GetInSorted(size iIndex);
 	void*			GetInHolding(size iArray, size iIndex);
@@ -73,7 +73,7 @@ public:
 	size			Sort(void);
 	bool			IsSorted(void);
 
-	DataCompare		GetCompare(void);
+	DataCompare		GetCompare(void) const;
 
 protected:
 	bool			AddIntoHoldingArrays(void* pv, bool* pbUpdateSortedArray);

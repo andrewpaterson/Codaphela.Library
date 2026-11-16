@@ -21,11 +21,11 @@ public:
 
 	virtual bool								Write(CFileWriter* pcFileWrite);
 
-			CLifeInit<CMallocator>				GetMalloc(void);
-			EIndexKeyReverse					GetKeyReverse(void);
-			size								GetMaxDataSize(void);
-			size								GetMaxKeySize(void);
-			CLifeInit<CIndexTreeDataOrderer>	GetDataOrderer(void);
+			CLifeInit<CMallocator>				GetMalloc(void) const;
+			EIndexKeyReverse					GetKeyReverse(void) const;
+			size								GetMaxDataSize(void) const;
+			size								GetMaxKeySize(void) const;
+			CLifeInit<CIndexTreeDataOrderer>	GetDataOrderer(void) const;
 
 protected:
 	virtual bool					Read(CFileReader* pcFileReader);

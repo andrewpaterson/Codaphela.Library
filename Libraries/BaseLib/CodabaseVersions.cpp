@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CVersion::GetName(void)
+char* CVersion::GetName(void) const
 {
 	return (char*)RemapSinglePointer(this, sizeof(CVersion));
 }
@@ -18,7 +18,7 @@ char* CVersion::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CVersion::GetData(void)
+void* CVersion::GetData(void) const
 {
 	return RemapSinglePointer(this, sizeof(CVersion) + iNameLength + 1);
 }

@@ -52,14 +52,14 @@ public:
 public:
 			void 	Init(EMarkupType eType, CMarkupTag* pcParent);
 
-			bool 	IsTag(void);
-			bool 	IsText(void);
-			bool	IsRefDoc(void);
-			bool	IsRefText(void);
-			bool	IsNamedRef(void);
+			bool 	IsTag(void) const;
+			bool 	IsText(void) const;
+			bool	IsRefDoc(void) const;
+			bool	IsRefText(void) const;
+			bool	IsNamedRef(void) const;
 
-			lsize	GetLine(void);
-			lsize	GetColumn(void);
+			lsize	GetLine(void) const;
+			lsize	GetColumn(void) const;
 			void	SetLineAndColumn(lsize iLine, lsize iColumn);
 
 			void	ReplaceIllegalChars(CChars* pszMutableSource);

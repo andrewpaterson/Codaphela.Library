@@ -25,7 +25,7 @@ void CIndexedCacheResult::Succeed(void* pvCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedCacheResult::IsCached(void)
+bool CIndexedCacheResult::IsCached(void) const
 {
 	return mpvCache != NULL;
 }
@@ -35,7 +35,7 @@ bool CIndexedCacheResult::IsCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexedCacheResult::GetCache(void)
+void* CIndexedCacheResult::GetCache(void) const
 {
 	return mpvCache;
 }

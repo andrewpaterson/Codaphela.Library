@@ -47,12 +47,12 @@ public:
 
 	void					SetDiagnosticCallback(CIndexTreeFileDiagnosticCallback* pcCallback);
 
-	bool					IsWriteThrough(void);
+	bool					IsWriteThrough(void) const;
 	bool					IsFlushed(void);
 	bool					ValidateIndexTree(void);
 	bool					ValidateIndexTree(bool bReadNodes);
-	bool					HasDiagnosticCallback(void);
-	CIndexTreeDataOrderer*	GetDataOrderer(void);
+	bool					HasDiagnosticCallback(void) const;
+	CIndexTreeDataOrderer*	GetDataOrderer(void) const;
 
 	int64					NumElements(void);
 
@@ -74,7 +74,7 @@ protected:
 	void					DebugKey(CChars* pszDest, uint8* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed);
 
 	bool					EvictNodeWithObject(CIndexTreeNodeFile* pcNode);
-	CIndexTreeNodeFile*		GetRoot(void);
+	CIndexTreeNodeFile*		GetRoot(void) const;
 	CIndexTreeNodeFile*		GetMemoryNode(uint8* pvKey, size iKeySize);
 	bool					EvictNode(CIndexTreeNodeFile* pcNode);
 	size					GetNodeKey(CIndexTreeNodeFile* pcNode, uint8* pvDestKey, size iDestKeySize);
@@ -82,7 +82,7 @@ protected:
 
 	lsize					GetSystemMemorySize(void);
 	lsize					GetUserMemorySize(void);
-	size					GetRootFlags(void);
+	size					GetRootFlags(void) const;
 
 	size					PotentiallyEvict(uint8* pvKey, size iKeySize);
 	bool					GetWithoutEviction(uint8* pvKey, size iKeySize, void* pvObject, size* piDataSize, size uiMaxDataSize);

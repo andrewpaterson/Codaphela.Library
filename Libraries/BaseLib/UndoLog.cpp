@@ -453,7 +453,7 @@ void CUndoLog::RemoveAt(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CUndoLog::NumSteps(void) { return masSteps.NumElements(); }
+size CUndoLog::NumSteps(void) const { return masSteps.NumElements(); }
 SUndoLogStep* CUndoLog::Get(size uiIndex) { return masSteps.Get(uiIndex); }
 bool CUndoLog::IsUndone(size uiIndex) { return masSteps.Get(uiIndex)->uiUndone != 0; }
 bool CUndoLog::IsRename(size uiIndex) { return masSteps.Get(uiIndex)->bRename; }

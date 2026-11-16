@@ -45,7 +45,7 @@ public:
 	bool				Has(const void* pvData, size iDataSize);
 
 	size				NumElements(void);
-	size				GetSortedSize(void);
+	size				GetSortedSize(void) const;
 	size				GetHoldingSize(void);
 
 	CArrayBlockSorted*	GetArray(void);

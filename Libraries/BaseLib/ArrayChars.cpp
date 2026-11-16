@@ -628,7 +628,7 @@ char* CArrayChars::GetText(size iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayChars::NumElements(void)
+size CArrayChars::NumElements(void) const
 {
 	return mcArray.NumElements();
 }

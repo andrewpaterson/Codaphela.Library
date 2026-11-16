@@ -49,7 +49,7 @@ struct STextDocumentChange
 	size				uiLines;  //How many line feeds were put in or taken out.
 	bool				bLineStart;  //Put in at the start of line uiLine, or whole lines taken out.
 
-	size	Length(void);
+	size	Length(void) const;
 	size	LastLine(void);
 };
 
@@ -99,18 +99,18 @@ public:
 	void					Remove(size uiStart, size uiEnd);
 
 	char*					Text(void);
-	size					Length(void);
-	size					GetChangeCount(void);
+	size					Length(void) const;
+	size					GetChangeCount(void) const;
 	CTextNavigation*		GetNavigation(void);
 
-	size					NumLines(void);
+	size					NumLines(void) const;
 	size					GetLineStart(size uiLine);
 	size					GetLineEnd(size uiLine);
 	size					FindLine(size uiPosition);
 	CArrayTextLineStart*	GetLineStarts(void);
 
 	void					SetUndoable(bool bUndoable);
-	bool					IsUndoable(void);
+	bool					IsUndoable(void) const;
 	CTextUndo*				GetUndo(void);
 	void					BeginEdit(size uiCaret, size uiAnchor);
 	void					StartEdit(size uiCaret, size uiAnchor);

@@ -164,7 +164,7 @@ void CTextParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextParser::IsEmpty(void)
+bool CTextParser::IsEmpty(void) const
 {
 	return miTextLen <= 0;
 }
@@ -2774,7 +2774,7 @@ lsize CTextParser::Column(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CTextParser::Length(void)
+lsize CTextParser::Length(void) const
 {
 	return (lsize)(mszEndOfText - mszStartOfText) + 1;
 }
@@ -2962,7 +2962,7 @@ void CTextParser::PrintPositionMultilineParser(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextParser::IsOutside(void)
+bool CTextParser::IsOutside(void) const
 {
 	return mbOutsideText;
 }

@@ -193,7 +193,7 @@ void* CIndexedCache::Iterate(void* psCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CIndexedCache::GetIndexCacheDescritorSize(void)
+lsize CIndexedCache::GetIndexCacheDescritorSize(void) const
 {
 	return mcCache.GetDescriptorSize();
 }
@@ -203,7 +203,7 @@ lsize CIndexedCache::GetIndexCacheDescritorSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CIndexedCache::GetCacheSize(void)
+lsize CIndexedCache::GetCacheSize(void) const
 {
 	return mcCache.GetCacheSize();
 }

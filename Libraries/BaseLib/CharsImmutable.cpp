@@ -182,7 +182,7 @@ char* CCharsImmutable::Text(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CCharsImmutable::Length(void)
+size CCharsImmutable::Length(void) const
 {
 	if (mbMallocated)
 	{
@@ -219,7 +219,7 @@ void CCharsImmutable::Set(const char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::Empty(void)
+bool CCharsImmutable::Empty(void) const
 {
 	if (Length() == 0)
 	{

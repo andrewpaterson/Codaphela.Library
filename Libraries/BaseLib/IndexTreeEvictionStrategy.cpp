@@ -55,7 +55,7 @@ bool CIndexTreeEvictionStrategy::EvictNode(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeEvictionStrategy::GetRootNode(void)
+CIndexTreeNodeFile* CIndexTreeEvictionStrategy::GetRootNode(void) const
 {
 	return mpcIndexTree->GetRoot();
 }

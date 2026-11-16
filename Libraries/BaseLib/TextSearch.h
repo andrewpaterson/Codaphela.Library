@@ -47,11 +47,11 @@ public:
 
 	size	Find(const char* szText, size uiLength, size uiFrom = 0);
 	size	Count(const char* szText, size uiLength);
-	bool	IsEmpty(void);
-	size	Length(void);
+	bool	IsEmpty(void) const;
+	size	Length(void) const;
 	char*	GetPattern(void);
-	bool	IsMatchCase(void);
-	bool	IsWholeWords(void);
+	bool	IsMatchCase(void) const;
+	bool	IsWholeWords(void) const;
 
 protected:
 	bool	IsAt(const char* szText, size uiLength, size uiPosition);

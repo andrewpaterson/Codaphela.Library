@@ -16,7 +16,7 @@ struct SFatCache
 	//Inline: the compilers inline them where they are used (the W65C816's FAT assembly has no copies).
 	void	Clear(void) { pvCachedSector = NULL; uiTimeStamp = 0xffffffff; }
 	uint8*	Get(void) { return (uint8*)pvCachedSector; }
-	bool	IsValid(void) { return pvCachedSector != NULL; }
+	bool	IsValid(void) const { return pvCachedSector != NULL; }
 }; 
 
 
@@ -29,7 +29,7 @@ public:
 	bool	mbDirty;
 
 	void	Init(uint32 uiInfoSector, uint64 uiCreationStamp);
-	void*	GetCache(void);
+	void*	GetCache(void) const;
 	void	Lock(void);
 	bool	Unlock(void);
 	void	Dirty(void);

@@ -771,7 +771,7 @@ size CChunkFile::StackDepth(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CChunkFile::NumIndicesRead(void)
+size CChunkFile::NumIndicesRead(void) const
 {
 	return muiIndicesRead;
 }

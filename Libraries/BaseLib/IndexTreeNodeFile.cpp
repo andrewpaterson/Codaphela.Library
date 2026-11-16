@@ -755,7 +755,7 @@ bool CIndexTreeNodeFile::HasChildWithFlags(size uiFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNodeFile::HasFile(void)
+bool CIndexTreeNodeFile::HasFile(void) const
 {
 	return mcFileIndex.HasFile();
 }

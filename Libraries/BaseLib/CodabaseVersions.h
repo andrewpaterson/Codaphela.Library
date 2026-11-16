@@ -18,8 +18,8 @@ public:
 	int32		iNameLength;
 	lsize		uiDataSize;
 
-	char*	GetName(void);
-	void*	GetData(void);
+	char*	GetName(void) const;
+	void*	GetData(void) const;
 };
 
 

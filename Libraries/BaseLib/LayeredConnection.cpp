@@ -60,7 +60,7 @@ void CLayeredConnection::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSequence* CLayeredConnection::GetSequence(void)
+CSequence* CLayeredConnection::GetSequence(void) const
 {
 	return mpcSequence;
 }
@@ -70,7 +70,7 @@ CSequence* CLayeredConnection::GetSequence(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLayeredConnection::NumLayers(void)
+size CLayeredConnection::NumLayers(void) const
 {
 	return mapcLayers.NumElements();
 }

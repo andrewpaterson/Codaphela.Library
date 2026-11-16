@@ -16,7 +16,7 @@ public:
 
 	bool	IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
 	
-	size	NumElements(void);
+	size	NumElements(void) const;
 	void*	GetKey(size iIndex, size* piKeySize = NULL);
 	void*	GetData(size iIndex, size* piDataSize = NULL);
 	void	Clear(void);

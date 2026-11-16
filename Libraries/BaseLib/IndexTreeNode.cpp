@@ -50,7 +50,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeNode::GetDataSize(void)
+size CIndexTreeNode::GetDataSize(void) const
 {
 	if (!HasData())
 	{
@@ -67,7 +67,7 @@ size CIndexTreeNode::GetDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeNode::GetDataPtr(void)
+void* CIndexTreeNode::GetDataPtr(void) const
 {
 	if (!HasData())
 	{
@@ -84,7 +84,7 @@ void* CIndexTreeNode::GetDataPtr(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeDataNode* CIndexTreeNode::GetNodeData(void)
+CIndexTreeDataNode* CIndexTreeNode::GetNodeData(void) const
 {
 	if (!HasData())
 	{
@@ -135,7 +135,7 @@ size CIndexTreeNode::SizeofNodeAndData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeNode::SizeofNodePtr(void)
+size CIndexTreeNode::SizeofNodePtr(void) const
 {
 	return mpcIndexTree->SizeofNodePtr();
 }
@@ -162,7 +162,7 @@ void* CIndexTreeNode::GetNodesMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTreeNode::GetParent(void)
+CIndexTreeNode* CIndexTreeNode::GetParent(void) const
 {
 	return mpcParent;
 }
@@ -172,7 +172,7 @@ CIndexTreeNode* CIndexTreeNode::GetParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeNode::GetIndexInParent(void)
+size CIndexTreeNode::GetIndexInParent(void) const
 {
 	return muiIndexInParent;
 }
@@ -182,7 +182,7 @@ size CIndexTreeNode::GetIndexInParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeNode::GetFlags(void)
+size CIndexTreeNode::GetFlags(void) const
 {
 	return msFlags;
 }
@@ -192,7 +192,7 @@ size CIndexTreeNode::GetFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeNode::GetTransientFlags(void)
+size CIndexTreeNode::GetTransientFlags(void) const
 {
 	return msFlags & INDEX_TREE_NODE_TRANSIENT_FLAGS;
 }
@@ -202,7 +202,7 @@ size CIndexTreeNode::GetTransientFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTree* CIndexTreeNode::GetIndexTree(void)
+CIndexTree* CIndexTreeNode::GetIndexTree(void) const
 {
 	return mpcIndexTree;
 }
@@ -373,7 +373,7 @@ void CIndexTreeNode::ClearLastNodes(size uiNewLastIndex, uint8 iClearValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeNode::NumIndexes(void)
+size CIndexTreeNode::NumIndexes(void) const
 {
 	if (!HasNodes())
 	{
@@ -426,7 +426,7 @@ size CIndexTreeNode::GetAdditionalIndexes(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::IsEmpty(void)
+bool CIndexTreeNode::IsEmpty(void) const
 {
 	if (HasData())
 	{
@@ -441,7 +441,7 @@ bool CIndexTreeNode::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::IsDirty(void)
+bool CIndexTreeNode::IsDirty(void) const
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DIRTY_NODE);
 }
@@ -451,7 +451,7 @@ bool CIndexTreeNode::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::IsPathDirty(void)
+bool CIndexTreeNode::IsPathDirty(void) const
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DIRTY_PATH);
 }
@@ -461,7 +461,7 @@ bool CIndexTreeNode::IsPathDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::IsDeleted(void)
+bool CIndexTreeNode::IsDeleted(void) const
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DELETED_NODE);
 }
@@ -471,7 +471,7 @@ bool CIndexTreeNode::IsDeleted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::IsPathDeleted(void)
+bool CIndexTreeNode::IsPathDeleted(void) const
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DELETED_PATH);
 }
@@ -481,7 +481,7 @@ bool CIndexTreeNode::IsPathDeleted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::IsMagic(void)
+bool CIndexTreeNode::IsMagic(void) const
 {
 	return muiMagic == INDEX_TREE_NODE_MAGIC;
 }
@@ -512,7 +512,7 @@ void CIndexTreeNode::ClearFlags(size sFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeNode::GetFirstIndex(void)
+size CIndexTreeNode::GetFirstIndex(void) const
 {
 	return muiFirstIndex;
 }
@@ -522,7 +522,7 @@ size CIndexTreeNode::GetFirstIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeNode::GetLastIndex(void)
+size CIndexTreeNode::GetLastIndex(void) const
 {
 	return muiLastIndex;
 }
@@ -532,7 +532,7 @@ size CIndexTreeNode::GetLastIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::HasNodes(void)
+bool CIndexTreeNode::HasNodes(void) const
 {
 	return !FixBool(msFlags & INDEX_TREE_NODE_FLAG_NODES_EMPTY);
 }
@@ -542,7 +542,7 @@ bool CIndexTreeNode::HasNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::HasData(void)
+bool CIndexTreeNode::HasData(void) const
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DATA);
 }
@@ -562,7 +562,7 @@ void CIndexTreeNode::SetData(bool bHasData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeNode::NumAllocatedNodes(void)
+size CIndexTreeNode::NumAllocatedNodes(void) const
 {
 	return NumIndexes();
 }

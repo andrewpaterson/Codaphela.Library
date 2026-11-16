@@ -23,10 +23,10 @@ public:
 
 	void				GenerateBad(void);
 
-	CIndexTreeNode*		GetNode(void);
+	CIndexTreeNode*		GetNode(void) const;
 
 	void				GetKey(void* pc, size* piKeySize);
-	size				GetKeySize(void);
+	size				GetKeySize(void) const;
 };
 
 

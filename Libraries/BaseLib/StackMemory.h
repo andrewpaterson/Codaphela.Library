@@ -20,7 +20,7 @@ public:
 	void*	Init(void);
 	void*	Init(lsize iSize);
 	void	Kill(void);
-	size	GetStackSize(void);
+	size	GetStackSize(void) const;
 	void*	GetStackData(void);
 };
 
@@ -80,7 +80,7 @@ void CStackMemory<I>::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<size I>
-size CStackMemory<I>::GetStackSize(void)
+size CStackMemory<I>::GetStackSize(void) const
 {
 	return I;
 }

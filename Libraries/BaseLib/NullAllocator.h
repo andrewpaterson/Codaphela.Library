@@ -13,7 +13,7 @@ public:
 	void*		Realloc(void* pv, lsize iMemSize) override;
 	bool		Free(void* pv) override;
 
-	const char*	GetName(void);
+	const char*	GetName(void) const;
 
 	bool		IsLocal(void) override;
 	size		SizeOffset(void) override;

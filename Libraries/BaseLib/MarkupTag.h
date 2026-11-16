@@ -53,7 +53,7 @@ public:
 	void				Init(CMarkupTag* pcParent);
 	void				Init(const char* szName, CMarkupTag* pcParent);
 	void				Kill(void) override;
-	bool				IsEmpty(void);
+	bool				IsEmpty(void) const;
 	bool				GetAttribute(const char* szAttribute, void** ppvData, uint* puiType = NULL);
 	void*				GetAttribute(size uiIndex, uint* puiType, char** szName = NULL);
 	char*				GetAttribute(const char* szAttribute);
@@ -63,7 +63,7 @@ public:
 	bool				GetBoolAttribute(const char* szAttribute, bool* pbValue);
 	bool				GetFloat32Attribute(const char* szAttribute, float32* pfValue);
 	bool				GetFloat64Attribute(const char* szAttribute, float64* pfValue);
-	size				GetNumAttributes(void);
+	size				GetNumAttributes(void) const;
 	CMarkupTag*			GetTag(const char* szTagName, STagIterator* psIter = NULL);
 	CMarkupTag*			GetTag(const char* szTagName, size iTagNumber);
 	CMarkupTag*			GetNextTag(STagIterator* psIter);
@@ -89,7 +89,7 @@ public:
 	bool				AddNullAttribute(char* szAttribute, bool bAllowDuplicates);
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
-	CMallocator*		GetMalloc(void);
+	CMallocator*		GetMalloc(void) const;
 	void				Print(CChars* psz) override;
 	size				Print(CChars* psz, size iDepth, size iLine) override;
 	void				Dump(void);

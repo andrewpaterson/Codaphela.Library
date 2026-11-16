@@ -49,7 +49,7 @@ public:
 	void			Init(CMarkup* pcMarkup);
 	void			Kill(void);
 
-	CMarkupTag*		GetRootTag(void);
+	CMarkupTag*		GetRootTag(void) const;
 	CMarkupTag*		SetRootTag(char* szTagName);
 
 	CMarkupTag*		AppendTag(CMarkupTag* pcCurrent, char* szTagName, lsize iLine, lsize iColumn);
@@ -60,10 +60,10 @@ public:
 
 	void			AddSubstitute(CMarkupSubstitute* pcSubstitute);
 
-	CMarkup*		GetMarkup(void);
+	CMarkup*		GetMarkup(void) const;
 
 	void			AddComment(const char* szText, lsize uiLength);
-	size			NumComments(void);
+	size			NumComments(void) const;
 	char*			GetComment(size uiIndex);
 
 	size			Print(CChars* psz);

@@ -44,9 +44,9 @@ public:
 
 	void	Add(int iRow, int iColumn, float64 fValue);
 
-	int		NumRows(void);
-	int		NumColumns(void);
-	lsize	NumEntries(void);
+	int		NumRows(void) const;
+	int		NumColumns(void) const;
+	lsize	NumEntries(void) const;
 	float64	Get(int iRow, int iColumn);  //Looks at every entry.
 
 	void	Multiply(float64* pafDest, float64* pafVector);  //A x: x has NumColumns numbers, Dest NumRows.

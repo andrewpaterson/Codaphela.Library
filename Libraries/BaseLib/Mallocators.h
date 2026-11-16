@@ -22,7 +22,7 @@ public:
 	bool			Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc);
 
 protected:
-	bool			IsInitialised(void);
+	bool			IsInitialised(void) const;
 };
 
 

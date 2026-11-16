@@ -14,7 +14,7 @@ public:
 	void	Kill(void);
 
 	void	SetError(const char* szError);
-	bool	HasError(void);
+	bool	HasError(void) const;
 	char*	GetError(void);
 
 	bool	UseUserError(void);

@@ -298,7 +298,7 @@ lsize CIndexedDataCommon::NumDataCached(lsize iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedDataCommon::NumFiles(void)
+size CIndexedDataCommon::NumFiles(void) const
 {
 	return mcData.NumFiles();
 }
@@ -329,7 +329,7 @@ int64 CIndexedDataCommon::NumDatas(lsize uiDataSize)
 //
 //////////////////////////////////////////////////////////////////////////
 lsize CIndexedDataCommon::TestGetCachedObjectSize(OIndex oi) { return  mcData.TestGetCachedObjectSize(oi); }
-bool CIndexedDataCommon::IsCaching(void) { return mcData.IsCaching();  }
-bool CIndexedDataCommon::IsWriteThrough(void) { return meWriteThrough == IWT_Yes; }
+bool CIndexedDataCommon::IsCaching(void) const { return mcData.IsCaching();  }
+bool CIndexedDataCommon::IsWriteThrough(void) const { return meWriteThrough == IWT_Yes; }
 bool CIndexedDataCommon::IsFlushed(void) { return mcData.IsFlushed(); }
 

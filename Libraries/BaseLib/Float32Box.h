@@ -39,7 +39,7 @@ public:
 
 	float32	Distance(SFloat32Vec3* psPosition);
 	bool	Contains(SFloat32Vec3* psPosition);
-	float32	Volume(void);
+	float32	Volume(void) const;
 	void	GetCorner(SFloat32Vec3* psDest, int iCorner);  //Bit i of iCorner set is the far end of axis i.
 	void	GetBounds(SFloat32Bounds* psDest);
 };

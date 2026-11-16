@@ -52,8 +52,8 @@ public:
 	bool					Init(CAbstractFile* pcFile, EPackFileMode eMode);
 	void					Kill(void);
 
-	bool					IsWriteMode(void);
-	bool					IsReadMode(void);
+	bool					IsWriteMode(void) const;
+	bool					IsReadMode(void) const;
 
 	CPackFile*				WriteOpen(const char* szFilename);
 	CPackFile*				ReadOpen(const char* szFilename);
@@ -70,7 +70,7 @@ public:
 
 	bool					Unpack(const char* szDirectory);
 	void					FixParents(void);
-	const char*					GetFilename(void);
+	const char*					GetFilename(void) const;
 
 protected:
 	bool					BeginRead(void);

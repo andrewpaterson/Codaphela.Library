@@ -88,7 +88,7 @@ void CIndexedDataDescriptor::Init(lsize uiFileDataSize, CFilePosIndex* pcFilePos
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CIndexedDataDescriptor::GetFileDataSize(void)
+lsize CIndexedDataDescriptor::GetFileDataSize(void) const
 {
 	return msFileDescriptor.muiDataSize;
 }
@@ -98,7 +98,7 @@ lsize CIndexedDataDescriptor::GetFileDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CIndexedDataDescriptor::GetCacheDataSize(void)
+lsize CIndexedDataDescriptor::GetCacheDataSize(void) const
 {
 	return muiCacheDataSize;
 }
@@ -108,7 +108,7 @@ lsize CIndexedDataDescriptor::GetCacheDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CIndexedDataDescriptor::GetDataSize(void)
+lsize CIndexedDataDescriptor::GetDataSize(void) const
 {
 	if (mpvCache != NULL)
 	{
@@ -151,7 +151,7 @@ void CIndexedDataDescriptor::ClearCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataDescriptor::HasFile(void)
+bool CIndexedDataDescriptor::HasFile(void) const
 {
 	return msFileDescriptor.mcFileIndex.HasFile();
 }
@@ -161,7 +161,7 @@ bool CIndexedDataDescriptor::HasFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataDescriptor::IsCached(void)
+bool CIndexedDataDescriptor::IsCached(void) const
 {
 	return FixBool(mpvCache);
 }
@@ -171,7 +171,7 @@ bool CIndexedDataDescriptor::IsCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexedDataDescriptor::GetCache(void)
+void* CIndexedDataDescriptor::GetCache(void) const
 {
 	return mpvCache;
 }
@@ -235,7 +235,7 @@ CFileDataIndex CIndexedDataDescriptor::GetFileDataIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDataDescriptor::GetFileIndex(void) { return msFileDescriptor.mcFileIndex.miFile; }
-filePos CIndexedDataDescriptor::GetPositionInFile(void) { return msFileDescriptor.mcFileIndex.mulliFilePos; }
+int CIndexedDataDescriptor::GetFileIndex(void) const { return msFileDescriptor.mcFileIndex.miFile; }
+filePos CIndexedDataDescriptor::GetPositionInFile(void) const { return msFileDescriptor.mcFileIndex.mulliFilePos; }
 CFilePosIndex* CIndexedDataDescriptor::GetFilePosIndex(void) { return &msFileDescriptor.mcFileIndex; }
 

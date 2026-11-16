@@ -60,7 +60,7 @@ void CIndexTreeChildNode::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeChildNode::IsValid(void)
+bool CIndexTreeChildNode::IsValid(void) const
 {
 	return (iType == INDEX_TREE_FILE_NODE_MEMORY) || (iType == INDEX_TREE_FILE_NODE_FILE);
 }
@@ -70,7 +70,7 @@ bool CIndexTreeChildNode::IsValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeChildNode::IsMemory(void)
+bool CIndexTreeChildNode::IsMemory(void) const
 {
 	return (iType == INDEX_TREE_FILE_NODE_MEMORY);
 }
@@ -80,7 +80,7 @@ bool CIndexTreeChildNode::IsMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeChildNode::IsUnallocated(void)
+bool CIndexTreeChildNode::IsUnallocated(void) const
 {
 	return (iType == INDEX_TREE_FILE_NODE_UNALLOCATED);
 }
@@ -90,7 +90,7 @@ bool CIndexTreeChildNode::IsUnallocated(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeChildNode::IsFile(void)
+bool CIndexTreeChildNode::IsFile(void) const
 {
 	return (iType == INDEX_TREE_FILE_NODE_FILE);
 }

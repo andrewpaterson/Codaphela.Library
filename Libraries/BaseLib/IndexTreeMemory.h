@@ -24,7 +24,7 @@ struct SIndexTreeMemoryIterator
 
 	void	Init(void);
 	void	Kill(void);
-	bool	IsLive(void);
+	bool	IsLive(void) const;
 };
 
 
@@ -80,7 +80,7 @@ public:
 	void					FindAll(CArrayVoidPtr* papvElements);
 	size					GetKey(void* pvData, uint8* pvDestKey, size iDestKeySize);
 
-	size					NumElements(void);
+	size					NumElements(void) const;
 	void					SetDataFreeCallback(CDataFree* pcDataFree);  //For testing
 	void					SetDataIOCallback(CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);  //For testing
 
@@ -111,7 +111,7 @@ public:
 	bool					ReadData(CFileReader* pcFileReader, void* pvData) override;
 
 	bool					ValidateIndexTree(void);
-	CIndexTreeNodeMemory*	GetRoot(void);
+	CIndexTreeNodeMemory*	GetRoot(void) const;
 
 	size					CountListSize(void);
 	size					NonNullElements(void);

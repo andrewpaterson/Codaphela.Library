@@ -221,7 +221,7 @@ size CTextUndo::FindRedo(void) { return mcStack.FindRedo(false); }
 size CTextUndo::FindId(size uiId) { return mcStack.FindId(uiId); }
 size CTextUndo::GetCurrentId(void) { return mcStack.GetCurrentId(); }
 void CTextUndo::SetTypingPause(int32 iMilliseconds) { miTypingPause = iMilliseconds; }
-bool CTextUndo::IsEditStarted(void) { return mbEditStarted; }
+bool CTextUndo::IsEditStarted(void) const { return mbEditStarted; }
 
 
 //////////////////////////////////////////////////////////////////////////

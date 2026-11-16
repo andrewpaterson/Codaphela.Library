@@ -327,7 +327,7 @@ void CIndexTreeNodeMemory::SetChildrensParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeNodeMemory::GetParent(void)
+CIndexTreeNodeMemory* CIndexTreeNodeMemory::GetParent(void) const
 {
 	return (CIndexTreeNodeMemory*)CIndexTreeNode::GetParent();
 }

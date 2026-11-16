@@ -48,7 +48,7 @@ public:
 	void				FreeRow(SCSVRowImmutable* psCSVRow);
 	void 				ReadAllLines(void);
 	void 				Dump(void);
-	size				NumRows(void);
+	size				NumRows(void) const;
 	SCSVRowImmutable*	Get(size iRowNum);
 };
 

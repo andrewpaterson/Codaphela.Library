@@ -99,7 +99,7 @@ public:
 	void			MarkUndone(size uiIndex);
 	void			MarkRedone(size uiIndex);
 
-	size			NumSteps(void);
+	size			NumSteps(void) const;
 	SUndoLogStep*	Get(size uiIndex);
 	bool			IsUndone(size uiIndex);
 	bool			IsRename(size uiIndex);

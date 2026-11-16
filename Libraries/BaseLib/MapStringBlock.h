@@ -54,7 +54,7 @@ public:
 
 	char*			GetKeyForData(void* psData);
 
-	bool			IsCaseSensitive(void);
+	bool			IsCaseSensitive(void) const;
 	void			SetCaseSensitive(bool bCaseSensitive);
 
 	void			GetKeysAsString(CChars* pszDest, char* szSeparator);

@@ -106,7 +106,7 @@ void CMarkupTag::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::IsEmpty(void)
+bool CMarkupTag::IsEmpty(void) const
 {
 	return macBases.NumElements() == 0;
 }
@@ -148,7 +148,7 @@ bool CMarkupTag::GetAttribute(const char* szAttribute, void** ppvData, uint* pui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMarkupTag::GetNumAttributes(void)
+size CMarkupTag::GetNumAttributes(void) const
 {
 	return mcAttributes.NumElements();
 }
@@ -933,7 +933,7 @@ bool CMarkupTag::Swap(CMarkupBase* pcNew, CMarkupBase* pcOld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CMarkupTag::GetMalloc(void)
+CMallocator* CMarkupTag::GetMalloc(void) const
 {
 	return mpcDoc->GetMarkup()->GetMemory();
 }

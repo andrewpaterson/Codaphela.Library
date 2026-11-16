@@ -53,8 +53,8 @@ void CFileIteratorReturn::InsertInName(size iIndex, const char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFileIteratorReturnType CFileIteratorReturn::GetType(void) { return meType; }
+EFileIteratorReturnType CFileIteratorReturn::GetType(void) const { return meType; }
 char* CFileIteratorReturn::GetFullName(void) { return mszFullName.Text(); }
-CBaseFileNode* CFileIteratorReturn::GetNode(void) { return mpsNode; }
-uint32 CFileIteratorReturn::GetFileRank(void) { return miFileRank; }
+CBaseFileNode* CFileIteratorReturn::GetNode(void) const { return mpsNode; }
+uint32 CFileIteratorReturn::GetFileRank(void) const { return miFileRank; }
 

@@ -65,7 +65,7 @@ public:
 	void			Kill(void);
 
 	void			BeginEdit(size uiCaret, size uiAnchor);
-	bool			IsEditStarted(void);
+	bool			IsEditStarted(void) const;
 	void			Typed(char c, size uiAt);
 	ETextUndoKeep	Keep(char* szText, size uiCaret, size uiAnchor);
 	void			DropEdit(void);

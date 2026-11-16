@@ -159,7 +159,7 @@ void CMemoryStack::Rollback(SStackMark* psMark)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-lsize CMemoryStack::GetTotalMemory(void)
+lsize CMemoryStack::GetTotalMemory(void) const
 {
 	return miMemorySize;
 }
@@ -169,7 +169,7 @@ lsize CMemoryStack::GetTotalMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-lsize CMemoryStack::GetUsedMemory(void)
+lsize CMemoryStack::GetUsedMemory(void) const
 {
 	return miUsedMemory;
 }
@@ -179,7 +179,7 @@ lsize CMemoryStack::GetUsedMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-lsize CMemoryStack::GetRemainingMemory(void)
+lsize CMemoryStack::GetRemainingMemory(void) const
 {
 	return miMemorySize - miUsedMemory;
 }
@@ -189,7 +189,7 @@ lsize CMemoryStack::GetRemainingMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryStack::GetData(void)
+void* CMemoryStack::GetData(void) const
 {
 	return mpvMemory;
 }
@@ -199,7 +199,7 @@ void* CMemoryStack::GetData(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CMemoryStack::NumElements(void)
+size CMemoryStack::NumElements(void) const
 {
 	return miElements;
 }

@@ -48,22 +48,22 @@ public:
 
 	SInt32Vec2*		GetStart(void);
 	SInt32Vec2*		GetEnd(void);
-	ELineDirection	GetDirection(void);
+	ELineDirection	GetDirection(void) const;
 
-	int32			GetMinimumX(void);
-	int32			GetMinimumY(void);
-	int32			GetMaximumX(void);
-	int32			GetMaximumY(void);
+	int32			GetMinimumX(void) const;
+	int32			GetMinimumY(void) const;
+	int32			GetMaximumX(void) const;
+	int32			GetMaximumY(void) const;
 	void			GetCenter(SInt32Vec2* psCenter);
 	void			GetBoundingBox(SInt32Vec2* psPosition, SInt32Vec2* psDimension);
-	int32			GetLength(void);
+	int32			GetLength(void) const;
 
 	bool			IsPositionOn(SInt32Vec2* ps);
 	bool			IsPositionOn(int32 x, int32 y);
-	bool			IsEastWest(void);
-	bool			IsNorthSouth(void);
-	int32			GetX(void);
-	int32			GetY(void);
+	bool			IsEastWest(void) const;
+	bool			IsNorthSouth(void) const;
+	int32			GetX(void) const;
+	int32			GetY(void) const;
 
 	ELineOverlap	GetOverlap(CLine* pcOther, bool bEndInclusive);
 	ELineOverlap	Touches(CLine* pcOther);

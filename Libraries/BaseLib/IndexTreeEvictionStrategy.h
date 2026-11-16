@@ -21,7 +21,7 @@ public:
 
 protected:
 			bool					EvictNode(CIndexTreeNodeFile* pcNode);
-			CIndexTreeNodeFile*		GetRootNode(void);
+			CIndexTreeNodeFile*		GetRootNode(void) const;
 };
 
 

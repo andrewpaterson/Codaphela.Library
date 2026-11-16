@@ -264,7 +264,7 @@ void CCSVFileImmutable::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCSVFileImmutable::NumRows(void)
+size CCSVFileImmutable::NumRows(void) const
 {
 	return mapsCSVRows.NumElements();
 }

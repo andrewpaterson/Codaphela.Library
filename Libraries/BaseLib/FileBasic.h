@@ -47,15 +47,15 @@ public:
 
 	bool		Delete(void);
 
-	bool		IsOpen(void);
-	filePos		GetFileLength(void);
+	bool		IsOpen(void) const;
+	filePos		GetFileLength(void) const;
 	filePos		GetFilePos(void);
 	filePos		Tell(void);
 	filePos		Size(void);  //Same as GetFileLength.
 
 	bool		Truncate(filePos iSize);
 
-	const char*		GetFilename(void);
+	const char*		GetFilename(void) const;
 
 	//Generally you shouldn't use these.  Use WriteData instead.
 	lsize		Write(const void* pvSource, lsize iSize, lsize iCount) override;

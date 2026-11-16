@@ -50,18 +50,18 @@ public:
 	void 			Init(lsize uiDataSize, void* pvCache);
 	void 			Init(lsize uiFileDataSize, CFilePosIndex* pcFilePosIndex, lsize uiCacheDataSize, void* pvCache);
 
-	lsize			GetFileDataSize(void);
-	lsize			GetCacheDataSize(void);
-	lsize			GetDataSize(void);
+	lsize			GetFileDataSize(void) const;
+	lsize			GetCacheDataSize(void) const;
+	lsize			GetDataSize(void) const;
 	void			Cache(void* pvCache, lsize uiDataSize);
 	void			ClearCache(void);
-	bool			HasFile(void);
-	bool			IsCached(void);
-	void*			GetCache(void);
+	bool			HasFile(void) const;
+	bool			IsCached(void) const;
+	void*			GetCache(void) const;
 	void			SetIndexes(int iFileIndex, filePos iIndexInFile);
-	int				GetFileIndex(void);
+	int				GetFileIndex(void) const;
 
-	filePos			GetPositionInFile(void);
+	filePos			GetPositionInFile(void) const;
 	CFileDataIndex	GetFileDataIndex(void);
 	CFilePosIndex*	GetFilePosIndex(void);
 	bool			Update(CIndexedDataDescriptor* pcNew);

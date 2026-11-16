@@ -28,9 +28,9 @@ public:
 	bool	MustKill(void);
 	bool	MustFree(void);
 
-	bool	IsInitialised(void);
-	bool	HasLifeCycleObject(void);
-	bool	IsKilled(void);
+	bool	IsInitialised(void) const;
+	bool	HasLifeCycleObject(void) const;
+	bool	IsKilled(void) const;
 };
 
 
@@ -47,7 +47,7 @@ public:
 
 	void	ConfigureLife(CLife<M>* pcLife, M** ppcLifeCycleObject);
 
-	M*		GetLife(void);
+	M*		GetLife(void) const;
 	bool	MustKill(void);
 	bool	MustFree(void);
 };
@@ -173,7 +173,7 @@ void CLifeInit<M>::ConfigureLife(CLife<M>* pcLife, M** ppcLifeCycleObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-M* CLifeInit<M>::GetLife(void)
+M* CLifeInit<M>::GetLife(void) const
 {
 	return mpcLifeCycleObject;
 }
@@ -258,7 +258,7 @@ bool CLife<M>::MustFree(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-bool CLife<M>::IsInitialised(void)
+bool CLife<M>::IsInitialised(void) const
 {
 	return (mcFlags & ~0x000000FF) == LIFE_CYCLE_INITIALISED;
 }
@@ -269,7 +269,7 @@ bool CLife<M>::IsInitialised(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-bool CLife<M>::HasLifeCycleObject(void)
+bool CLife<M>::HasLifeCycleObject(void) const
 {
 	if (mppcLifeCycleObject != NULL)
 	{
@@ -284,7 +284,7 @@ bool CLife<M>::HasLifeCycleObject(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-bool CLife<M>::IsKilled(void)
+bool CLife<M>::IsKilled(void) const
 {
 	return (mcFlags & ~0x000000FF) == LIFE_CYCLE_KILLED;
 }

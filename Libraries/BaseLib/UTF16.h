@@ -55,7 +55,7 @@ public:
     size    GetPosition(void) override;
 
 protected:
-    size	GetUTF16ElementLength(void);
+    size	GetUTF16ElementLength(void) const;
 };
 
 

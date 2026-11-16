@@ -16,9 +16,9 @@ public:
 	void						Init(uint32 uiSize);
 	void						Kill(void);
 
-	bool						HasOverlaps(void);
+	bool						HasOverlaps(void) const;
 	SMemoryCacheDescriptor*		Get(size iIndex);
-	size						NumElements(void);
+	size						NumElements(void) const;
 
 	CArrayVoidPtr*				GetEvictedArray(void);
 

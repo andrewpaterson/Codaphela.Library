@@ -38,7 +38,7 @@ public:
 	float32	Distance(SFloat32Vec3* psPosition);
 	bool	Contains(SFloat32Vec3* psPosition);
 	bool	Contains(SFloat32Triangle* psTriangle);  //All its corners.
-	float32	Volume(void);
+	float32	Volume(void) const;
 	float32	IntersectionVolume(SFloat32Sphere* psOther);
 	void	GetBounds(SFloat32Bounds* psDest);
 };

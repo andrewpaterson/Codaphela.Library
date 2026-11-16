@@ -40,8 +40,8 @@ public:
 
 	void		Add(int32 y);
 
-	int32		GetX(void);
-	size		NumYs(void);
+	int32		GetX(void) const;
+	size		NumYs(void) const;
 	int32		GetY(size uiIndex);
 };
 
@@ -65,7 +65,7 @@ public:
 	void				Add(SInt32Vec2* ps);
 	void				Add(int32 x, int32 y);
 
-	size				NumColumns(void);
+	size				NumColumns(void) const;
 	CPositionColumn*	GetColumn(size uiIndex);
 	size				NumPositions(void);
 	void				CalculatePositions(CArrayInt32Vec2* pasPositions);

@@ -36,12 +36,12 @@ public:
 
 	bool			Flush(bool bClearCache);
 	bool			IsFlushed(void);
-	bool			IsCaching(void);
-	bool			IsWriteThrough(void);
+	bool			IsCaching(void) const;
+	bool			IsWriteThrough(void) const;
 
 	lsize			NumCached(void);
 	lsize			NumCached(lsize iSize);
-	size			NumFiles(void);
+	size			NumFiles(void) const;
 	int64			NumDatas(void);
 	int64			NumDatas(lsize iDataSize);
 

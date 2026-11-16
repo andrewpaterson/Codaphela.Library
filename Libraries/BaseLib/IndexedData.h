@@ -58,7 +58,7 @@ public:
 	bool			Flush(void);
 	bool			Flush(bool bClearDataCache) override;
 
-	bool			IsDurable(void);
+	bool			IsDurable(void) const;
 	bool			IsFlushed(void);
 
 	int64			NumIndices(void) override;
@@ -71,10 +71,10 @@ public:
 
 	bool			FlushKey(OIndex oi);
 
-	CDurableFileController* GetDurableFileControl(void);
+	CDurableFileController* GetDurableFileControl(void) const;
 	lsize			GetIndiciesSystemMemorySize(void);
 	lsize			GetDataSystemMemorySize(void);
-	size			GetRootFlags(void);
+	size			GetRootFlags(void) const;
 
 	void			DumpIndex(void);
 

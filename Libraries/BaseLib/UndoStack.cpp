@@ -380,8 +380,8 @@ void CUndoStack::SetMarks(SUndoSnapshot* psSnapshot, size* pauiMarks)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CUndoStack::NumSnapshots(void) { return masSnapshots.NumElements(); }
-size CUndoStack::GetCurrent(void) { return muiCurrent; }
+size CUndoStack::NumSnapshots(void) const { return masSnapshots.NumElements(); }
+size CUndoStack::GetCurrent(void) const { return muiCurrent; }
 bool CUndoStack::IsSelectionOnly(size uiIndex) { return masSnapshots.Get(uiIndex)->bSelectionOnly; }
 size CUndoStack::GetId(size uiIndex) { return masSnapshots.Get(uiIndex)->uiId; }
 size* CUndoStack::GetMarks(size uiIndex) { return masSnapshots.Get(uiIndex)->auiMarks; }

@@ -79,7 +79,7 @@ public:
 	bool		WriteChunkEnd(const char* szChunkName);
 
 	size		StackDepth(void);
-	size		NumIndicesRead(void);
+	size		NumIndicesRead(void) const;
 	filePos		ChunkSize(void);
 	filePos		ChunkStart(void);
 	

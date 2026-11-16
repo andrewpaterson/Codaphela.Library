@@ -55,12 +55,12 @@ public:
 	size			NumFiles(void);
 	CDurableFile*	GetFile(size iIndex);
 
-	bool			IsBegun(void);
+	bool			IsBegun(void) const;
 	char*			GetDirectory(void);
 	char*			GetRewriteDirectory(void);
-	bool			IsDurable(void);
+	bool			IsDurable(void) const;
 	void			SetSync(EDurableSync eSync);
-	bool			IsSync(void);
+	bool			IsSync(void) const;
 	CDurableSet*	GetDurableSet(void);
 };
 

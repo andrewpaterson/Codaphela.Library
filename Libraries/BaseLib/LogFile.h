@@ -52,10 +52,10 @@ public:
 	void					Dump(void);
 	size					GetNumWrites(void);
 	lsize					GetWriteSize(size iIndex);
-	size					GetNumCommands(void);
+	size					GetNumCommands(void) const;
 	CLogFileCommandWrite*	GetWriteData(size iWrite);
 	bool					TestFindHoles(size iWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, lsize iLength);
-	bool					IsBegun(void);
+	bool					IsBegun(void) const;
 	void					SetSync(bool bSync);
 
 protected:

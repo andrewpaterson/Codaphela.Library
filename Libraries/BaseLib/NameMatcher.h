@@ -70,7 +70,7 @@ public:
 	void	Init(const char* szPattern);
 	void	Kill(void);
 
-	bool	IsEmpty(void);
+	bool	IsEmpty(void) const;
 	char*	GetPattern(void);
 	bool	Match(const char* szName, SNameMatch* psDest);
 	bool	Match(const char* szName, size uiLength, const char* szPattern, size uiPatternLength, SNameMatch* psDest);

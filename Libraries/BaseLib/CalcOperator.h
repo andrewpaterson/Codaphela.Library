@@ -84,10 +84,10 @@ public:
 	bool			IsOperator(void) override;
 	bool			IsVariableDefinition(void) override;
 
-	bool			IsUnary(void);
-	bool			IsBinary(void);
+	bool			IsUnary(void) const;
+	bool			IsBinary(void) const;
 
-	ECalcOperator	GetOperator(void);
+	ECalcOperator	GetOperator(void) const;
 	void			SetOperator(ECalcOperator eOp);
 
 	void			Print(CChars* psz) override;

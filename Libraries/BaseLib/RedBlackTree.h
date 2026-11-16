@@ -92,8 +92,8 @@ public:
 	void			RemoveElement(void* pvElement);
 	void			RemoveAll(void);
 
-	size			NumElements(void);
-	bool			IsEmpty(void);
+	size			NumElements(void) const;
+	bool			IsEmpty(void) const;
 
 	void*			StartIteration(SRedBlackTreeIterator* psIter);
 	void*			StartIteration(SRedBlackTreeIterator* psIter, void* pvStartKey, void* pvEndKey);

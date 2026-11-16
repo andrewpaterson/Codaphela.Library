@@ -191,7 +191,7 @@ bool CSetString::Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* p
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSetString::IsCaseSensitive(void)
+bool CSetString::IsCaseSensitive(void) const
 {
 	return mfCompare == (DataCompare)&StringCompare;
 }

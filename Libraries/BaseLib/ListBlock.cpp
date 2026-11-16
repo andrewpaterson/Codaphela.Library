@@ -47,7 +47,7 @@ void CListBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CListBlock::NumElements(void)
+size CListBlock::NumElements(void) const
 {
 	return mapIndices.NumElements();
 }
@@ -67,7 +67,7 @@ size CListBlock::NumBlocks(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CListBlock::NumElementsFromFreeList(void)
+size CListBlock::NumElementsFromFreeList(void) const
 {
 	return mcFreeList.NumElements();
 }
@@ -77,7 +77,7 @@ size CListBlock::NumElementsFromFreeList(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CListBlock::IsEmpty(void)
+bool CListBlock::IsEmpty(void) const
 {
 	return mapIndices.IsEmpty();
 }
@@ -87,7 +87,7 @@ bool CListBlock::IsEmpty(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CListBlock::IsNotEmpty(void)
+bool CListBlock::IsNotEmpty(void) const
 {
 	return mapIndices.IsNotEmpty();
 }
@@ -97,7 +97,7 @@ bool CListBlock::IsNotEmpty(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CListBlock::ElementSize(void)
+size CListBlock::ElementSize(void) const
 {
 	return mcFreeList.GetElementSize();
 }

@@ -29,7 +29,7 @@ void CIndexTreeDataNode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeDataNode::GetDataSize(void)
+size CIndexTreeDataNode::GetDataSize(void) const
 {
 	return muiDataSize;
 }

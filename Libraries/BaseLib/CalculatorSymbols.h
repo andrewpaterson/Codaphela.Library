@@ -45,9 +45,9 @@ public:
 	bool						SetOperator(const char* szSymbol, ECalcOperator eOp, uint16 uiPrecedence);
 
 	CArrayCalculatorOperators*	GetOperators(void);
-	CCalculatorOperator*		GetAssignment(void);
+	CCalculatorOperator*		GetAssignment(void) const;
 
-	uint16						GetMaxPrecedence(void);
+	uint16						GetMaxPrecedence(void) const;
 };
 
 

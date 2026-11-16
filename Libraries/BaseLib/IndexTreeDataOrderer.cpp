@@ -124,7 +124,7 @@ bool CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTreeDataOrderer::GetFirstTreeNode(void)
+CIndexTreeNode* CIndexTreeDataOrderer::GetFirstTreeNode(void) const
 {
 	SLLNode*				psNode;
 	CIndexTreeDataNode*		pcDataNode;
@@ -149,7 +149,7 @@ CIndexTreeNode* CIndexTreeDataOrderer::GetFirstTreeNode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTreeDataOrderer::GetLastTreeNode(void)
+CIndexTreeNode* CIndexTreeDataOrderer::GetLastTreeNode(void) const
 {
 	SLLNode*				psNode;
 	CIndexTreeDataNode*		pcDataNode;

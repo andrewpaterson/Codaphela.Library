@@ -54,7 +54,7 @@ public:
 	bool			Init(const char* szText, STextParserConfig* psConfig);
 	bool			Init(const char* szText, lsize iTextLen, STextParserConfig* psConfig);
 	void 			Kill(void);
-	bool			IsEmpty(void);
+	bool			IsEmpty(void) const;
 
 	void			SetStringParser(TextParserParseString fParseString);
 	void			SetIdentifierParser(TextParserParseIdentifier fParseIdentifier);
@@ -81,7 +81,7 @@ public:
 
 	lsize			Line(void);
 	lsize			Column(void);
-	lsize			Length(void);
+	lsize			Length(void) const;
 	lsize			RemainingLength(void);
 	lsize			UsedLength(void);
 	lsize			SearchLength(void);
@@ -146,7 +146,7 @@ public:
 	void			PrintPositionSingleLineParser(CChars* pszDest);
 	void			PrintPositionMultilineParser(CChars* pszDest);
 
-	bool			IsOutside(void);
+	bool			IsOutside(void) const;
 	char			Current(void);
 	char			Current(int iIndex);
 	const char*		Start(void);

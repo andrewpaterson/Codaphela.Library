@@ -123,7 +123,7 @@ bool SFloat32Sphere::Contains(SFloat32Triangle* psTriangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 SFloat32Sphere::Volume(void)
+float32 SFloat32Sphere::Volume(void) const
 {
 	return ((4.0f / 3.0f) * N_PI) * fRadius * fRadius * fRadius;
 }

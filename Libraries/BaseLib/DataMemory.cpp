@@ -779,7 +779,7 @@ uint64 CDataMemory::GetTotalAllocations(void)
 //////////////////////////////////////////////////////////////////////////
 CFreeList* CDataMemory::TestGetFreeListsHead(void) { return mcFreeLists.GetHead(); }
 void* CDataMemory::TestGetLargeListsHead(void) { return mcLargeList.GetHead(); }
-CMemoryFreeListParams* CDataMemory::GetFreeListParams(void) { return mpcFreeListParams; }
+CMemoryFreeListParams* CDataMemory::GetFreeListParams(void) const { return mpcFreeListParams; }
 size CDataMemory::NumFreeLists(void) { return mcFreeLists.NumElements(); }
 
 

@@ -44,7 +44,7 @@ void CLineRow::Kill(void)
 }
 
 
-int32 CLineRow::GetKey(void) { return miKey; }
+int32 CLineRow::GetKey(void) const { return miKey; }
 CArrayLine* CLineRow::GetLines(void) { return &macLines; }
 
 

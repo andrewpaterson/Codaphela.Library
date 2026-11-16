@@ -36,7 +36,7 @@ public:
 	int64			NumIndices(void);
 	lsize			NumIndicesCached(void);
 	lsize			NumIndicesCached(size iSize);
-	int64			NumDatas(void);
+	int64			NumDatas(void) const;
 	bool			IsFlushed(void);
 
 	bool			Evict(OIndex oi);
@@ -54,7 +54,7 @@ public:
 	bool			GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 
 	lsize			GetSystemMemorySize(void);
-	size			GetRootFlags(void);
+	size			GetRootFlags(void) const;
 
 	void			Dump(void);
 	bool			ValidateIndex(void);

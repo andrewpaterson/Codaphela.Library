@@ -185,7 +185,7 @@ bool CMallocators::Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
 // Reading and writing mallocators doesn't need the global memory itself.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMallocators::IsInitialised(void)
+bool CMallocators::IsInitialised(void) const
 {
 	if (!mbInitialised)
 	{

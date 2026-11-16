@@ -46,11 +46,11 @@ public:
 	SStackMark	Mark(void);
 	void		Rollback(SStackMark* psMark);
 
-	lsize		GetTotalMemory(void);
-	lsize		GetUsedMemory(void);
-	lsize		GetRemainingMemory(void);
-	void*		GetData(void);
-	size		NumElements(void);
+	lsize		GetTotalMemory(void) const;
+	lsize		GetUsedMemory(void) const;
+	lsize		GetRemainingMemory(void) const;
+	void*		GetData(void) const;
+	size		NumElements(void) const;
 };
 
 

@@ -18,12 +18,12 @@ public:
 	void	Init(size iElementSize, uint16 iAlignment, int16 iOffset);
 	void	Kill(void);
 
-	size	NumElements(void);
-	bool	IsEmpty(void);
-	bool	IsNotEmpty(void);
-	size 	ElementSize(void);
+	size	NumElements(void) const;
+	bool	IsEmpty(void) const;
+	bool	IsNotEmpty(void) const;
+	size 	ElementSize(void) const;
 	size	NumBlocks(void);
-	size	NumElementsFromFreeList(void);
+	size	NumElementsFromFreeList(void) const;
 
 	void*	Add(void);
 	void*	Add(void* pvData);

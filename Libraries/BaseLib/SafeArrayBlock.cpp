@@ -82,7 +82,7 @@ void CSafeArrayBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CSafeArrayBlock::NumElements(void)
+size CSafeArrayBlock::NumElements(void) const
 {
 	return c.NumElements();
 }
@@ -92,7 +92,7 @@ size CSafeArrayBlock::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSafeArrayBlock::IsEmpty(void)
+bool CSafeArrayBlock::IsEmpty(void) const
 {
 	return c.IsEmpty();
 }
@@ -102,7 +102,7 @@ bool CSafeArrayBlock::IsEmpty(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSafeArrayBlock::IsNotEmpty(void)
+bool CSafeArrayBlock::IsNotEmpty(void) const
 {
 	return c.IsNotEmpty();
 }
@@ -112,7 +112,7 @@ bool CSafeArrayBlock::IsNotEmpty(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CSafeArrayBlock::AllocatedElements(void)
+size CSafeArrayBlock::AllocatedElements(void) const
 {
 	return c.AllocatedElements();
 }
@@ -122,7 +122,7 @@ size CSafeArrayBlock::AllocatedElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CSafeArrayBlock::ElementSize(void)
+size CSafeArrayBlock::ElementSize(void) const
 {
 	return c.ElementSize();
 }

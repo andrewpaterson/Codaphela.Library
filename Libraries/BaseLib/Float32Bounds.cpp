@@ -66,7 +66,7 @@ void SFloat32Bounds::Init(SFloat32Vec3* psPoints, size uiStride, size uiNumPoint
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SFloat32Bounds::IsEmpty(void)
+bool SFloat32Bounds::IsEmpty(void) const
 {
 	return (sMinimum.x > sMaximum.x) || (sMinimum.y > sMaximum.y) || (sMinimum.z > sMaximum.z);
 }

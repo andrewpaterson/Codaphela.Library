@@ -57,7 +57,7 @@ char gaszFatAttributes[][10] = {"READ_ONLY",
 //
 //
 //////////////////////////////////////////////////////////////////////////
-time_t SFatDirectoryEntry::GetCreateTime(void)
+time_t SFatDirectoryEntry::GetCreateTime(void) const
 {
 	return (time_t)FatDecodeDateTime(sRaw.uEntry.sFatRawCommon.uiCreateDate, sRaw.uEntry.sFatRawCommon.uiCreateTime);
 }
@@ -67,7 +67,7 @@ time_t SFatDirectoryEntry::GetCreateTime(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-time_t SFatDirectoryEntry::GetModifyTime(void)
+time_t SFatDirectoryEntry::GetModifyTime(void) const
 {
 	return (time_t)FatDecodeDateTime(sRaw.uEntry.sFatRawCommon.uiModifyDate, sRaw.uEntry.sFatRawCommon.uiModifyTime);
 }
@@ -77,7 +77,7 @@ time_t SFatDirectoryEntry::GetModifyTime(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-time_t SFatDirectoryEntry::GetAccessTime(void)
+time_t SFatDirectoryEntry::GetAccessTime(void) const
 {
 	return (time_t)FatDecodeDateTime(sRaw.uEntry.sFatRawCommon.uiAccessDate, 0);
 }

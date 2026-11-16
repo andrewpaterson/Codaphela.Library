@@ -44,7 +44,7 @@ public:
 	void 		ReInit(void);
 	void 		Kill(void);
 
-	size		NumElements(void);
+	size		NumElements(void) const;
 	CChars*	 	Add(CChars cChars);
 	CChars*		Add(CChars* pcChars);
 	CChars*	 	Add(const char* szString);

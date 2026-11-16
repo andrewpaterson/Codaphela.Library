@@ -74,7 +74,7 @@ bool CBaseFileNode::Is(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseFileNode::IsDirectory(void)
+bool CBaseFileNode::IsDirectory(void) const
 {
 	return meType == FNT_Directory;
 }
@@ -84,7 +84,7 @@ bool CBaseFileNode::IsDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseFileNode::IsFile(void)
+bool CBaseFileNode::IsFile(void) const
 {
 	return meType == FNT_File;
 }
@@ -95,7 +95,7 @@ bool CBaseFileNode::IsFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseFileNode* CBaseFileNode::GetParent(void)
+CBaseFileNode* CBaseFileNode::GetParent(void) const
 {
 	return mpcParent;
 }

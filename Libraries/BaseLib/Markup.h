@@ -54,7 +54,7 @@ public:
 	void					Deallocated(CMarkupNamedRef* pc);
 
 	CMarkupTag*				SetRootTag(char* szTagName);
-	CMarkupTag*				GetRootTag(void);
+	CMarkupTag*				GetRootTag(void) const;
 	CMarkupSubstitute*		GetSubstitute(char* szName);
 
 	CDataMemoryAllocator*	GetMemory(void);

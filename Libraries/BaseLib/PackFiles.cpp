@@ -83,7 +83,7 @@ void CPackFiles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFiles::IsWriteMode(void)
+bool CPackFiles::IsWriteMode(void) const
 {
 	return meMode == PFM_Write;
 }
@@ -93,7 +93,7 @@ bool CPackFiles::IsWriteMode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFiles::IsReadMode(void)
+bool CPackFiles::IsReadMode(void) const
 {
 	return meMode == PFM_Read;
 }
@@ -1041,7 +1041,7 @@ void CPackFiles::StopIteration(CPackFileIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CPackFiles::GetFilename(void)
+const char* CPackFiles::GetFilename(void) const
 {
 	return mcFile.GetFilename();
 }

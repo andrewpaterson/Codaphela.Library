@@ -391,7 +391,7 @@ const char* CMemoryFile::GetFilename(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryFile::GetBufferPointer(void)
+void* CMemoryFile::GetBufferPointer(void) const
 {
 	return mcArray.GetData();
 }
@@ -401,7 +401,7 @@ void* CMemoryFile::GetBufferPointer(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-lsize CMemoryFile::GetBufferSize(void)
+lsize CMemoryFile::GetBufferSize(void) const
 {
 	return mcArray.NumElements();
 }

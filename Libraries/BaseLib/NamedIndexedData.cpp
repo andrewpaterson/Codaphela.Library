@@ -931,7 +931,7 @@ int64 CNamedIndexedData::NumNamesCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::IsCaching(void)
+bool CNamedIndexedData::IsCaching(void) const
 {
 	return mcData.IsCaching();
 }
@@ -941,7 +941,7 @@ bool CNamedIndexedData::IsCaching(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::IsWriteThrough(void)
+bool CNamedIndexedData::IsWriteThrough(void) const
 {
 	return mcData.IsWriteThrough();
 }

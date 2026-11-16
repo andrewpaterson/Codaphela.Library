@@ -10,11 +10,11 @@ private:
 public:
 	void	Init(void* pvData, lsize uiDataSize);
 	void	Init(const char* szName, int iNameLength, void* pvData, lsize uiDataSize);
-	char*	GetName(void);
-	void*	GetData(void);
-	int		GetNameLength(void);
-	int		GetHeaderSize(void);
-	bool	HasName(void);
+	char*	GetName(void) const;
+	void*	GetData(void) const;
+	int		GetNameLength(void) const;
+	int		GetHeaderSize(void) const;
+	bool	HasName(void) const;
 };
 
 

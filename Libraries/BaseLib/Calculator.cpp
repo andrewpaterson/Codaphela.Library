@@ -460,7 +460,7 @@ void CCalculator::SetError(const char* szError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculator::HasError(void)
+bool CCalculator::HasError(void) const
 {
 	return mcErrors.HasError();
 }
@@ -530,7 +530,7 @@ void CCalculator::ClearError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayCalculatorOperators* CCalculator::GetOperators(void)
+CArrayCalculatorOperators* CCalculator::GetOperators(void) const
 {
 	return mpcSymbols->GetOperators();
 }
@@ -540,7 +540,7 @@ CArrayCalculatorOperators* CCalculator::GetOperators(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalculatorOperator* CCalculator::GetAssignment(void)
+CCalculatorOperator* CCalculator::GetAssignment(void) const
 {
 	return mpcSymbols->GetAssignment();
 }
@@ -560,7 +560,7 @@ CCalculatorVariables* CCalculator::GetVariables(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalculatorSymbols* CCalculator::GetSymbols(void)
+CCalculatorSymbols* CCalculator::GetSymbols(void) const
 {
 	return mpcSymbols;
 }
@@ -570,7 +570,7 @@ CCalculatorSymbols* CCalculator::GetSymbols(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculator::IsSkipWhitespace(void)
+bool CCalculator::IsSkipWhitespace(void) const
 {
 	return mbSkipWhitespace;
 }

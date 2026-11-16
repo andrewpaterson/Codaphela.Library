@@ -217,7 +217,7 @@ filePos CNaiveFile::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CNaiveFile::Length(void)
+filePos CNaiveFile::Length(void) const
 {
 	return miSize;
 }

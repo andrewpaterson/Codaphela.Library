@@ -63,7 +63,7 @@ void CFloat64SparseMatrix::Add(int iRow, int iColumn, float64 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFloat64SparseMatrix::NumRows(void)
+int CFloat64SparseMatrix::NumRows(void) const
 {
 	return miNumRows;
 }
@@ -73,7 +73,7 @@ int CFloat64SparseMatrix::NumRows(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFloat64SparseMatrix::NumColumns(void)
+int CFloat64SparseMatrix::NumColumns(void) const
 {
 	return miNumColumns;
 }
@@ -83,7 +83,7 @@ int CFloat64SparseMatrix::NumColumns(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CFloat64SparseMatrix::NumEntries(void)
+lsize CFloat64SparseMatrix::NumEntries(void) const
 {
 	return mafValues.NumElements();
 }

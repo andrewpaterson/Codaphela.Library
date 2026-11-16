@@ -326,7 +326,7 @@ size CUTF16::PeekUTFBytes(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF16::GetUTF16ElementLength(void)
+size CUTF16::GetUTF16ElementLength(void) const
 {
     uint16  c;
     uint16  c2;

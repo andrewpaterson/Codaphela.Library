@@ -111,7 +111,7 @@ void CNameMatcher::Kill(void)
 // their lengths.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNameMatcher::IsEmpty(void)
+bool CNameMatcher::IsEmpty(void) const
 {
 	return mszPattern.Empty();
 }

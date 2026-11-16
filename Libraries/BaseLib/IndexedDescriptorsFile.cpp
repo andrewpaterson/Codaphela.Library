@@ -175,7 +175,7 @@ lsize CIndexedDescriptorsFile::NumIndicesCached(size iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedDescriptorsFile::NumDatas(void)
+int64 CIndexedDescriptorsFile::NumDatas(void) const
 {
 	return mpcIndexedData->NumDatas();
 }
@@ -283,7 +283,7 @@ lsize CIndexedDescriptorsFile::GetSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedDescriptorsFile::GetRootFlags(void)
+size CIndexedDescriptorsFile::GetRootFlags(void) const
 {
 	return mcIndexTree.GetRootFlags();
 }

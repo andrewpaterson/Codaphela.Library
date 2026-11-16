@@ -19,9 +19,9 @@ public:
 	void						ClearNext(void);
 	void						ClearPrev(void);
 
-	lsize						GetSize(void);
-	SMemoryCacheDescriptor*		GetNext(void);
-	SMemoryCacheDescriptor*		GetPrev(void);
+	lsize						GetSize(void) const;
+	SMemoryCacheDescriptor*		GetNext(void) const;
+	SMemoryCacheDescriptor*		GetPrev(void) const;
 
 	bool						IsSize(lsize iSize);
 	bool						IsNext(SMemoryCacheDescriptor* psDesc);

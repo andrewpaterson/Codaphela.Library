@@ -468,7 +468,7 @@ CIndexedFile* CIndexTreeFile::GetFile(int iFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::GetRoot(void)
+CIndexTreeNodeFile* CIndexTreeFile::GetRoot(void) const
 {
 	return mpcRoot;
 }
@@ -1609,7 +1609,7 @@ lsize CIndexTreeFile::GetSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeFile::IsWriteThrough(void)
+bool CIndexTreeFile::IsWriteThrough(void) const
 {
 	if (meWriteThrough == IWT_Yes)
 	{
@@ -1631,7 +1631,7 @@ bool CIndexTreeFile::IsWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeFile::HasDiagnosticCallback(void)
+bool CIndexTreeFile::HasDiagnosticCallback(void) const
 {
 	return mpcDiagnosticCallback != NULL;
 }
@@ -1641,7 +1641,7 @@ bool CIndexTreeFile::HasDiagnosticCallback(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDurableFileController* CIndexTreeFile::GetController(void)
+CDurableFileController* CIndexTreeFile::GetController(void) const
 {
 	return mpcDurableFileControl;
 }
@@ -2068,7 +2068,7 @@ void SIndexTreeFileIterator::Kill(void)
 // Whether the iteration has not ended (or been killed).
 //
 //////////////////////////////////////////////////////////////////////////
-bool SIndexTreeFileIterator::IsLive(void)
+bool SIndexTreeFileIterator::IsLive(void) const
 {
 	return acKey.IsEmbedded() || acKey.IsArray();
 }

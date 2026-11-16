@@ -30,7 +30,7 @@ struct SIndexTreeFileIterator
 
 	void	Init(void);
 	void	Kill(void);
-	bool	IsLive(void);
+	bool	IsLive(void) const;
 };
 
 
@@ -92,9 +92,9 @@ public:
 	bool					ValidateParentIndex(void);
 
 	uint32					NumElements(void);
-	bool					IsWriteThrough(void);
-	bool					HasDiagnosticCallback(void);
-	CDurableFileController* GetController(void);
+	bool					IsWriteThrough(void) const;
+	bool					HasDiagnosticCallback(void) const;
+	CDurableFileController* GetController(void) const;
 
 	void					Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
 	void					Dump(void) override;
@@ -107,7 +107,7 @@ protected:
 	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, size uiIndexInParent, uint8 uiDataSize, uint8 uiFirstIndex, uint8 uiLastIndex);
 	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, size uiIndexInParent, uint8 uiDataSize);
 
-	CIndexTreeNodeFile*		GetRoot(void);
+	CIndexTreeNodeFile*		GetRoot(void) const;
 	CIndexTreeNodeFile*		GetNode(uint8* pvKey, size iKeySize);
 	CIndexTreeNodeFile*		GetMemoryNode(uint8* pvKey, size iKeySize);
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);

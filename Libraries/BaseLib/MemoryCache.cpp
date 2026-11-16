@@ -319,7 +319,7 @@ lsize CMemoryCache::NumElements(lsize iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CMemoryCache::GetDescriptorSize(void)
+lsize CMemoryCache::GetDescriptorSize(void) const
 {
 	return mcMemoryList.GetDescriptorSize();
 }
@@ -329,7 +329,7 @@ lsize CMemoryCache::GetDescriptorSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CMemoryCache::GetCacheSize(void)
+lsize CMemoryCache::GetCacheSize(void) const
 {
 	return mcMemoryList.GetCacheSize();
 }
@@ -339,7 +339,7 @@ lsize CMemoryCache::GetCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryCache::GetCache(void)
+void* CMemoryCache::GetCache(void) const
 {
 	return mpvCache;
 }

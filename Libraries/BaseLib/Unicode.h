@@ -82,9 +82,9 @@ public:
 	uint16	GetUTF8ElementUint16(uint32 uiCodePoint);
 	uint32	GetUTF8ElementUint32(uint32 uiCodePoint);
 
-	size	GetError(void);
+	size	GetError(void) const;
 
-	uint16	GetZWJCodePoint(void);
+	uint16	GetZWJCodePoint(void) const;
 };
 
 

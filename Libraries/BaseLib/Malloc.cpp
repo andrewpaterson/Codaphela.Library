@@ -61,7 +61,7 @@ void* CMalloc::Realloc(void* pv, lsize uiSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMalloc::IsMallocInitialised(void)
+bool CMalloc::IsMallocInitialised(void) const
 {
 	return FixBool(mpcMalloc);
 }
@@ -81,7 +81,7 @@ bool CMalloc::IsMalloc(CMallocator* pcMalloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CMalloc::GetMallocator(void)
+CMallocator* CMalloc::GetMallocator(void) const
 {
 	return mpcMalloc;
 }

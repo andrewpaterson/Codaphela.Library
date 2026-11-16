@@ -59,7 +59,7 @@ public:
 	void	RemoveAt(size iIndex, bool bPreserveOrder = true);
 	size	IndexOf(void* pvElement);
 	bool	Remove(void* pvElement);
-	size	NumElements(void);
+	size	NumElements(void) const;
 	bool	FindInSorted(void* pvElement, DataCompare fCompare, size* piIndex);
 	void*	InsertAt(size iIndex, lsize iElementSize);
 	size	InsertIntoSorted(DataCompare fCompare, void* pvElement, bool bOverwriteExisting, lsize iElementSize);

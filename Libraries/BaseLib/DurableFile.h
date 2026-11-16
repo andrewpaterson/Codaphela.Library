@@ -72,9 +72,9 @@ public:
 	bool		Recommit(void);
 	void		Abort(void);
 
-	bool		IsDurable(void);
-	bool		IsSync(void);
-	bool		IsBegun(void);
+	bool		IsDurable(void) const;
+	bool		IsSync(void) const;
+	bool		IsBegun(void) const;
 
 	lsize		Write(filePos iDistance, const void* pvSource, lsize iSize, lsize iCount);
 	lsize		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, lsize iSize, lsize iCount);

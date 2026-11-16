@@ -68,7 +68,7 @@ public:
 	void	Fake(const char* szString, Count iStartInclusive, Count iEndExclusive);
 	STRING*	ReInit(void);
 
-	Count	Length(void);
+	Count	Length(void) const;
 	void	Set(const char* szString);
 	void	Set(STRING szString);
 	void	Set(STRING* psz);
@@ -123,7 +123,7 @@ public:
 	void	Minimize(void);
 	char*	Text(void);
 	char*	Text(Count iIndex);
-	bool	Empty(void);
+	bool	Empty(void) const;
 	void	LeftAlign(STRING szString, char cPadCharacter, Count iWidth);
 	void	LeftAlign(const char* szString, char cPadCharacter, Count iWidth);
 	void	RightAlign(STRING szString, char cPadCharacter, Count iWidth);
@@ -213,7 +213,7 @@ protected:
 	void	CleanIfEmpty(void);
 	void	InitEmpty(void);
 	bool	KeepsArray(void);
-	bool	IsFakeEmpty(void);
+	bool	IsFakeEmpty(void) const;
 	Count	CStringLength(const char* szString);
 	void	Unfake(void);
 	void	UnfakeIfFakeEmpty(void);

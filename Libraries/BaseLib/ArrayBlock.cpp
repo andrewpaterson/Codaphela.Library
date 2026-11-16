@@ -2009,7 +2009,7 @@ void CArrayBlockBase<SIZE>::QuickSort(DataCompare fCompare) { ::QuickSort(fCompa
 template<class SIZE>
 void CArrayBlockBase<SIZE>::TimSort(DataCompare fCompare) { ::TimSort(fCompare, mpvArray, miElementSize, miUsedElements); }
 template<class SIZE>
-void* CArrayBlockBase<SIZE>::GetData(void) { return mpvArray; }
+void* CArrayBlockBase<SIZE>::GetData(void) const { return mpvArray; }
 template<class SIZE>
 typename SIZE::Count CArrayBlockBase<SIZE>::ChunkSize(void) { return miChunkSize; }
 template<class SIZE>
@@ -2019,15 +2019,15 @@ void CArrayBlockBase<SIZE>::FakeSetUsedElements(Count iUsedElements) { miUsedEle
 template<class SIZE>
 void CArrayBlockBase<SIZE>::SetAllocateSize(Count iSize) { miChunkSize = iSize; }
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::ElementSize(void) { return miElementSize; }
+typename SIZE::Count CArrayBlockBase<SIZE>::ElementSize(void) const { return miElementSize; }
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::NumElements(void) { return miUsedElements; }
+typename SIZE::Count CArrayBlockBase<SIZE>::NumElements(void) const { return miUsedElements; }
 template<class SIZE>
-typename SIZE::Count CArrayBlockBase<SIZE>::AllocatedElements(void) { return miNumElements; }
+typename SIZE::Count CArrayBlockBase<SIZE>::AllocatedElements(void) const { return miNumElements; }
 template<class SIZE>
-bool CArrayBlockBase<SIZE>::IsEmpty(void) { return miUsedElements == 0; }
+bool CArrayBlockBase<SIZE>::IsEmpty(void) const { return miUsedElements == 0; }
 template<class SIZE>
-bool CArrayBlockBase<SIZE>::IsNotEmpty(void) { return miUsedElements != 0; }
+bool CArrayBlockBase<SIZE>::IsNotEmpty(void) const { return miUsedElements != 0; }
 
 
 //The only instances: ArrayBlock.h declares them extern.

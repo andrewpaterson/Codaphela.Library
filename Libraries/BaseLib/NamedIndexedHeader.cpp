@@ -50,7 +50,7 @@ void CNamedIndexedHeader::Init(void* pvData, lsize uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CNamedIndexedHeader::GetName(void)
+char* CNamedIndexedHeader::GetName(void) const
 {
 	if (miNameLength > 0)
 	{
@@ -67,7 +67,7 @@ char* CNamedIndexedHeader::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNamedIndexedHeader::GetNameLength(void)
+int CNamedIndexedHeader::GetNameLength(void) const
 {
 	return (int)miNameLength;
 }
@@ -77,7 +77,7 @@ int CNamedIndexedHeader::GetNameLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CNamedIndexedHeader::GetData(void)
+void* CNamedIndexedHeader::GetData(void) const
 {
 	return RemapSinglePointer(this, GetHeaderSize());
 }
@@ -87,7 +87,7 @@ void* CNamedIndexedHeader::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNamedIndexedHeader::GetHeaderSize(void)
+int CNamedIndexedHeader::GetHeaderSize(void) const
 {
 	if (miNameLength == 0)
 	{
@@ -104,7 +104,7 @@ int CNamedIndexedHeader::GetHeaderSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedHeader::HasName(void)
+bool CNamedIndexedHeader::HasName(void) const
 {
 	return (miNameLength > 0);
 }

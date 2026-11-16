@@ -730,7 +730,7 @@ EFatCode CFatFile::StepToClusterOfPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatFile::IsFat32Volume(void)
+bool CFatFile::IsFat32Volume(void) const
 {
 	return mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32;
 }
@@ -901,7 +901,7 @@ EFatCode CFatFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CFatFile::GetShortFileName(void)
+const char* CFatFile::GetShortFileName(void) const
 {
 	if (mszName[0] == '\0')
 	{
@@ -920,8 +920,8 @@ const char* CFatFile::GetShortFileName(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatFile::Size(void) { return msFile.uiFileSize; }
 uint32 CFatFile::Tell(void) { return msFile.uiFilePosition; }
-bool CFatFile::IsBusy(void) { return msFile.bBusy; }
-uint8 CFatFile::GetAccessFlags(void) { return msFile.uiAccessFlags; }
+bool CFatFile::IsBusy(void) const { return msFile.bBusy; }
+uint8 CFatFile::GetAccessFlags(void) const { return msFile.uiAccessFlags; }
 
 #endif // __W65C816_ASSEMBLY__
 

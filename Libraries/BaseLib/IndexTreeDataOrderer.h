@@ -36,8 +36,8 @@ public:
 			bool				StartIteration(SDataOrderIterator* psIter, uint8* pvDestKey, size* piKeySize, size iDestKeySize, void* pvDestData, size* piDataSize, size iDestDataSize);
 			bool				Iterate(SDataOrderIterator* psIter, uint8* pvDestKey, size* piKeySize, size iDestKeySize, void* pvDestData, size* piDataSize, size iDestDataSize);
 
-			CIndexTreeNode*		GetFirstTreeNode(void);
-			CIndexTreeNode*		GetLastTreeNode(void);
+			CIndexTreeNode*		GetFirstTreeNode(void) const;
+			CIndexTreeNode*		GetLastTreeNode(void) const;
 			void				RemapNode(CIndexTreeDataNode* psOldNode, CIndexTreeDataNode* psNewNode);
 
 protected:

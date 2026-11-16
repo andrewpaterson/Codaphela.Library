@@ -22,7 +22,7 @@ public:
 	void	Init(CCodabase* pcCodabase, int64 iSnapshot);
 	void	Kill(void) override;
 
-	int64	GetSnapshot(void);
+	int64	GetSnapshot(void) const;
 
 	bool	Get(OIndex oi, void* pvData) override;
 	bool	Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize) override;

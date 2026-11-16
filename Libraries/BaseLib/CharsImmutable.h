@@ -67,9 +67,9 @@ public:
 	void	Dump(void);
 
 	char*	Text(void);
-	size	Length(void);
+	size	Length(void) const;
 	void	Set(const char* sz);
-	bool	Empty(void);
+	bool	Empty(void) const;
 
 	bool	Equals(const char* szString);
 	bool	Equals(const char* szString, size iLen);

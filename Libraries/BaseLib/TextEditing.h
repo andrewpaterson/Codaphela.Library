@@ -115,7 +115,7 @@ struct STextBox
 	size	NumRows(void);
 	int32	Left(void);
 	int32	Right(void);
-	bool	HasWidth(void);
+	bool	HasWidth(void) const;
 };
 
 
@@ -184,22 +184,22 @@ public:
 
 	void		Reset(void);
 	void		SetEditable(bool bEditable);
-	bool		IsEditable(void);
+	bool		IsEditable(void) const;
 	void		SetTabWidth(size uiTabWidth);
-	size		GetTabWidth(void);
+	size		GetTabWidth(void) const;
 	void		SetSingleLine(bool bSingleLine);
-	bool		IsSingleLine(void);
-	CTextNavigation*	GetNavigation(void);
-	CTextEditingView*	GetView(void);
+	bool		IsSingleLine(void) const;
+	CTextNavigation*	GetNavigation(void) const;
+	CTextEditingView*	GetView(void) const;
 
-	size		GetCaretPosition(void);
-	size		GetAnchorPosition(void);
-	bool		IsCaretAtRowEnd(void);
-	size		GetCaretRow(void);
-	int32		GetCaretX(void);
+	size		GetCaretPosition(void) const;
+	size		GetAnchorPosition(void) const;
+	bool		IsCaretAtRowEnd(void) const;
+	size		GetCaretRow(void) const;
+	int32		GetCaretX(void) const;
 	void		SetCaretPosition(size uiPosition);
 	void		MoveCaret(size uiPosition, bool bSelect, bool bRowEnd = false, bool bKeepUpDown = false);
-	bool		IsSelected(void);
+	bool		IsSelected(void) const;
 	bool		GetSelection(size* puiStart, size* puiEnd);
 	void		AnchorSelection(void);
 	void		Select(size uiStart, size uiEnd);
@@ -244,7 +244,7 @@ public:
 	void		BoxSelectHome(void);
 	void		BoxSelectEnd(void);
 	void		MoveBoxCaret(size uiRow, int32 x);
-	bool		IsBox(void);
+	bool		IsBox(void) const;
 	STextBox*	GetBox(void);
 	void		GetBoxRanges(CArrayTextRange* pasDest);
 	void		SelectAll(void);

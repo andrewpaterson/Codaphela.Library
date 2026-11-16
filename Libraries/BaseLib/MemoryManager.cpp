@@ -454,7 +454,7 @@ uint32 CMemoryManager::GetNumAllocations(bool bIncludeUnused)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMemoryManager::GetUnusedAllocationSize(void)
+uint32 CMemoryManager::GetUnusedAllocationSize(void) const
 {
 	SMMNode*	psNode;
 	uint32		uiSize;
@@ -477,7 +477,7 @@ uint32 CMemoryManager::GetUnusedAllocationSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMemoryManager::GetUsedAllocationSize(void)
+uint32 CMemoryManager::GetUsedAllocationSize(void) const
 {
 	SMMNode*	psNode;
 	uint32		uiSize;
@@ -500,7 +500,7 @@ uint32 CMemoryManager::GetUsedAllocationSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMemoryManager::GetRemaingTailSize(void)
+uint32 CMemoryManager::GetRemaingTailSize(void) const
 {
 	SMMNode* psNode;
 
@@ -520,7 +520,7 @@ uint32 CMemoryManager::GetRemaingTailSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMemoryManager::GetTotalSize(void)
+uint32 CMemoryManager::GetTotalSize(void) const
 {
 	return (uint32)((ptr)mpvHeapEnd - (ptr)mpvHeapStart + 1);
 }

@@ -23,7 +23,7 @@ public:
 
 	CFreeList*		GetFreeList(void);
 
-	const char*		GetName(void);
+	const char*		GetName(void) const;
 
 	bool			Read(CFileReader* pcFileReader) override;
 	bool			Write(CFileWriter* pcFileWriter) override;

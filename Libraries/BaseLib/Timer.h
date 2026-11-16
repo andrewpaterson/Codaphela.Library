@@ -43,12 +43,12 @@ public:
 	void Reset(void);
 	void Kill(void);
 
-	float GetUpdateTimeInSeconds(void) { return mfUpdateTime; }
-	float GetUpdatesPerSecond(void) { return mfUpdatesPerSecond; }
-	float GetTotalTimeInSeconds(void) { return mfTotalTime; }
+	float GetUpdateTimeInSeconds(void) const;
+	float GetUpdatesPerSecond(void) const;
+	float GetTotalTimeInSeconds(void) const;
 
-	int64 GetUpdateTimeInMillieconds(void) { return miUpdateTime; }
-	int64 GetTotalTimeInMillieconds(void) { return miTotalTime; }
+	int64 GetUpdateTimeInMillieconds(void) const;
+	int64 GetTotalTimeInMillieconds(void) const;
 
 	void HumanReadable(CChars* psz);
 };

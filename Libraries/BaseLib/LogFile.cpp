@@ -1068,7 +1068,7 @@ bool CLogFile::TestFindHoles(size uiWriteIndex, CArrayIntAndPointer* papvOverlap
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFile::IsBegun(void)
+bool CLogFile::IsBegun(void) const
 {
 	return mbBegun;
 }
@@ -1494,7 +1494,7 @@ lsize CLogFile::GetWriteSize(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogFile::GetNumCommands(void)
+size CLogFile::GetNumCommands(void) const
 {
 	return macCommands.NumElements();
 }

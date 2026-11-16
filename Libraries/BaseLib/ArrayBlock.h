@@ -119,11 +119,11 @@ public:
 	void	SetAllocateSize(Count iSize);
 	void	FakeSetUsedElements(Count iUsedElements);
 
-	Count	NumElements(void);
-	bool	IsEmpty(void);
-	bool	IsNotEmpty(void);
-	Count	AllocatedElements(void);
-	Count	ElementSize(void);
+	Count	NumElements(void) const;
+	bool	IsEmpty(void) const;
+	bool	IsNotEmpty(void) const;
+	Count	AllocatedElements(void) const;
+	Count	ElementSize(void) const;
 
 	void*	Add(void);
 	void*	Add(void* pvData);
@@ -137,7 +137,7 @@ public:
 	void*	Get(Count iIndex);
 	void*	SafeGet(Count iIndex);
 	Count	GetAdjustedIndex(Count iIndex);
-	void*	GetData(void);
+	void*	GetData(void) const;
 	void	GetHeader(SArrayHeaderBase<SIZE>* psHeader);
 	Count	GetIndex(void* pvData);
 	void*	Tail(void);

@@ -360,7 +360,7 @@ void CRedBlackTree::RemoveAll(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CRedBlackTree::NumElements(void)
+size CRedBlackTree::NumElements(void) const
 {
 	return miNumElements;
 }
@@ -370,7 +370,7 @@ size CRedBlackTree::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRedBlackTree::IsEmpty(void)
+bool CRedBlackTree::IsEmpty(void) const
 {
 	return miNumElements == 0;
 }

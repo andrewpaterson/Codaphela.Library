@@ -14,7 +14,7 @@ public:
 	void		Init(size uiDataSize);
 	void		Kill(void);
 
-	size		GetDataSize(void);
+	size		GetDataSize(void) const;
 	void		SetDataSize(size uiDataSize);
 	SLLNode*	GetListNode(void);
 };

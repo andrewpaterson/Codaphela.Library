@@ -44,7 +44,7 @@ public:
 	char*		IterateName(SChunkFilenameIterator* psIter);
 	bool		StopIteration(SChunkFilenameIterator* psIter);
 
-	CChunkFile* GetChunkFile(void);
+	CChunkFile* GetChunkFile(void) const;
 
 protected:
 	bool		WriteChunkBegin(void);

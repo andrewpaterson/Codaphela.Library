@@ -51,7 +51,7 @@ char* CCalculatorOperator::GetSymbol(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECalcOperator CCalculatorOperator::GetOperator(void)
+ECalcOperator CCalculatorOperator::GetOperator(void) const
 {
 	return meOperator;
 }
@@ -61,7 +61,7 @@ ECalcOperator CCalculatorOperator::GetOperator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CCalculatorOperator::GetPrecedence(void)
+uint16 CCalculatorOperator::GetPrecedence(void) const
 {
 	return miPrecedence;
 }

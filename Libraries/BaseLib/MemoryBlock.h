@@ -14,9 +14,9 @@ public:
 	void	Init(void);
 	void	Init(CMallocator* pcMalloc);
 	void	Kill(void);
-	void*	GetMemory(void);
+	void*	GetMemory(void) const;
 	void*	Allocate(size uiSize);
-	size	GetSize(void);
+	size	GetSize(void) const;
 
 protected:	
 	void*	Malloc(lsize uiSize);

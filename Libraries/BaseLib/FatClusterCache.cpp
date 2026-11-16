@@ -429,7 +429,7 @@ void CFatClusterCache::Invalidate(SClusterCache* psCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CFatClusterCache::GetCache(void)
+uint8* CFatClusterCache::GetCache(void) const
 {
 	return msCluster.pvCache;
 }
@@ -473,7 +473,7 @@ bool CFatClusterCache::IsSectorCached(uint16 iSectorIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatClusterCache::GetSectorsPerCluster(void)
+uint16 CFatClusterCache::GetSectorsPerCluster(void) const
 {
 	return muiSectorsPerCluster;
 }

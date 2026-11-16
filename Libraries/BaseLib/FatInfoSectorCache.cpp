@@ -24,7 +24,7 @@ void CFatSectorCache::Init(uint32 uiInfoSector, uint64 uiCreationStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CFatSectorCache::GetCache(void)
+void* CFatSectorCache::GetCache(void) const
 {
 	return RemapSinglePointer(this, sizeof(CFatSectorCache));
 }

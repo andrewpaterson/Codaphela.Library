@@ -318,8 +318,8 @@ uint32 CUnicode::GetUTF16ElementUint32(uint32 uiCodePoint)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUnicode::GetError(void) { return muiError; }
-uint16 CUnicode::GetZWJCodePoint(void) { return muiZWJ; }
+size CUnicode::GetError(void) const { return muiError; }
+uint16 CUnicode::GetZWJCodePoint(void) const { return muiZWJ; }
 
 
 //////////////////////////////////////////////////////////////////////////

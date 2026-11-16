@@ -506,7 +506,7 @@ size CIndexedFiles::NumFiles(lsize uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedFiles::NumFiles(void)
+size CIndexedFiles::NumFiles(void) const
 {
 	return mcFiles.NumElements();
 }
@@ -617,7 +617,7 @@ bool CIndexedFiles::Delete(CFileDataIndex* pcDataIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFiles::IsDurable(void)
+bool CIndexedFiles::IsDurable(void) const
 {
 	return mpcDurableFileControl->IsDurable();
 }

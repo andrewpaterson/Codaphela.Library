@@ -42,7 +42,7 @@ public:
 
 	void	Init(void);
 	void	Kill(void);
-	bool	IsUnused(void);
+	bool	IsUnused(void) const;
 };
 
 

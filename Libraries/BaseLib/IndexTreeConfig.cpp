@@ -198,9 +198,9 @@ bool CIndexTreeConfig::Read(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CMallocator> CIndexTreeConfig::GetMalloc(void) { return mcMalloc; }
-EIndexKeyReverse CIndexTreeConfig::GetKeyReverse(void) { return meKeyReverse; }
-size CIndexTreeConfig::GetMaxDataSize(void) { return miMaxDataSize; }
-size CIndexTreeConfig::GetMaxKeySize(void) { return miMaxKeySize; }
-CLifeInit<CIndexTreeDataOrderer> CIndexTreeConfig::GetDataOrderer(void) { return mcDataOrderer; }
+CLifeInit<CMallocator> CIndexTreeConfig::GetMalloc(void) const { return mcMalloc; }
+EIndexKeyReverse CIndexTreeConfig::GetKeyReverse(void) const { return meKeyReverse; }
+size CIndexTreeConfig::GetMaxDataSize(void) const { return miMaxDataSize; }
+size CIndexTreeConfig::GetMaxKeySize(void) const { return miMaxKeySize; }
+CLifeInit<CIndexTreeDataOrderer> CIndexTreeConfig::GetDataOrderer(void) const { return mcDataOrderer; }
 

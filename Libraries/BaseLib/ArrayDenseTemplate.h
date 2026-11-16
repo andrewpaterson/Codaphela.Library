@@ -43,13 +43,13 @@ struct SDenseNode
 	SDenseNode*		psRightNode; //NULL must always be marked as DENSE_NODE_RIGHT_ELEMENT
 
 	void 			Set(size iLeftCount, bool bLeftElement, bool bRightElement);
-	size  			GetLeftCount(void);
+	size  			GetLeftCount(void) const;
 	void  			SetLeftCount(size iLeftCount);
-	SDenseNode*		GetRight(void);
-	SDenseNode*		GetLeft(void);
-	SDenseNode**	GetParentPointer(void);
-	bool			IsLeftElement(void);
-	bool			IsRightElement(void);
+	SDenseNode*		GetRight(void) const;
+	SDenseNode*		GetLeft(void) const;
+	SDenseNode**	GetParentPointer(void) const;
+	bool			IsLeftElement(void) const;
+	bool			IsRightElement(void) const;
 	void 			SetRightElement(bool bRightElement);
 	void 			SetLeftElement(bool bLeftElement);
 };
@@ -136,7 +136,7 @@ void SDenseNode::Set(size iLeftCount, bool bLeftElement, bool bRightElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size SDenseNode::GetLeftCount(void)
+size SDenseNode::GetLeftCount(void) const
 {
 	return iFlags & DENSE_NODE_LEFT_COUNT_MASK;
 }
@@ -157,7 +157,7 @@ void SDenseNode::SetLeftCount(size iLeftCount)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SDenseNode::IsLeftElement(void)
+bool SDenseNode::IsLeftElement(void) const
 {
 	return iFlags & DENSE_NODE_LEFT_ELEMENT;
 }
@@ -167,7 +167,7 @@ bool SDenseNode::IsLeftElement(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SDenseNode::IsRightElement(void)
+bool SDenseNode::IsRightElement(void) const
 {
 	return iFlags & DENSE_NODE_RIGHT_ELEMENT;
 }
@@ -197,7 +197,7 @@ void SDenseNode::SetLeftElement(bool bLeftElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SDenseNode* SDenseNode::GetRight(void)
+SDenseNode* SDenseNode::GetRight(void) const
 {
 	return psRightNode;  //Or psNode... it's all the same, ask the node what you got back.
 }
@@ -207,7 +207,7 @@ SDenseNode* SDenseNode::GetRight(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SDenseNode** SDenseNode::GetParentPointer(void)
+SDenseNode** SDenseNode::GetParentPointer(void) const
 {
 	if (psParent)
 	{
@@ -228,7 +228,7 @@ SDenseNode** SDenseNode::GetParentPointer(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SDenseNode* SDenseNode::GetLeft(void)
+SDenseNode* SDenseNode::GetLeft(void) const
 {
 	return psLeftNode;
 }

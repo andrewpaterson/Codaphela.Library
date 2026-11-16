@@ -49,37 +49,37 @@ public:
 
 	void				SetData(const void* pvObject, size uiSize);
 
-	size				GetDataSize(void);
-	CIndexTreeDataNode* GetNodeData(void);
-	void*				GetDataPtr(void);
-	bool				HasData(void);
+	size				GetDataSize(void) const;
+	CIndexTreeDataNode* GetNodeData(void) const;
+	void*				GetDataPtr(void) const;
+	bool				HasData(void) const;
 	void				SetData(bool bHasData);
 
 	void*				GetNodesMemory(void);
 
-	CIndexTreeNode*		GetParent(void);
-	size				GetIndexInParent(void);
-	size				GetFlags(void);
-	size				GetTransientFlags(void);
-	CIndexTree*			GetIndexTree(void);
+	CIndexTreeNode*		GetParent(void) const;
+	size				GetIndexInParent(void) const;
+	size				GetFlags(void) const;
+	size				GetTransientFlags(void) const;
+	CIndexTree*			GetIndexTree(void) const;
 
-	size				NumIndexes(void);
+	size				NumIndexes(void) const;
 	static size		NumIndexes(size uiFirstIndex, size uiLastIndex);
 	size				GetAdditionalIndexes(size uiIndex);
 
-	bool				IsEmpty(void);
-	bool				IsDirty(void);
-	bool				IsPathDirty(void);
-	bool				IsDeleted(void);
-	bool				IsPathDeleted(void);
-	bool				IsMagic(void);
+	bool				IsEmpty(void) const;
+	bool				IsDirty(void) const;
+	bool				IsPathDirty(void) const;
+	bool				IsDeleted(void) const;
+	bool				IsPathDeleted(void) const;
+	bool				IsMagic(void) const;
 
 	bool				HasFlags(size sFlags);
 	void				ClearFlags(size sFlags);
-	size				GetFirstIndex(void);
-	size				GetLastIndex(void);
-	bool				HasNodes(void);
-	size				NumAllocatedNodes(void);
+	size				GetFirstIndex(void) const;
+	size				GetLastIndex(void) const;
+	bool				HasNodes(void) const;
+	size				NumAllocatedNodes(void) const;
 	bool				ContainsIndex(size uiIndex);
 	void				SetNodesEmpty(bool bEmpty);
 	void				SetDirtyNode(bool bDirty);
@@ -95,7 +95,7 @@ public:
 
 	size				SizeofNodeAndData(void);  //Rename to SizeofNode.
 	size				SizeofNode(void);  //Remove this.
-	size				SizeofNodePtr(void);
+	size				SizeofNodePtr(void) const;
 
 	void				Print(CChars* psz, bool bHex);
 	char*				GetFlagsString(CChars* psz);

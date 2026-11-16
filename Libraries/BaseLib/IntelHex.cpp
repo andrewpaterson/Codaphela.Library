@@ -389,7 +389,7 @@ char* CIntelHex::GetError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIntelHex::NumSegments(void)
+size CIntelHex::NumSegments(void) const
 {
 	return macSegments.NumElements();
 }
@@ -409,7 +409,7 @@ SIntelHexSegment* CIntelHex::GetSegment(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIntelHex::IsEmpty(void)
+bool CIntelHex::IsEmpty(void) const
 {
 	return macSegments.NumElements() == 0;
 }

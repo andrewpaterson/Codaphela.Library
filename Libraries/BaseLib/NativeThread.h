@@ -26,7 +26,7 @@ public:
 	bool	Start(NativeThreadFunction fFunction, void* pvData);
 	void	Join(void);
 	void	Detach(void);
-	bool	IsStarted(void);
+	bool	IsStarted(void) const;
 };
 
 

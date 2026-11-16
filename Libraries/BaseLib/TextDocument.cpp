@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size STextDocumentChange::Length(void) { return uiEnd - uiStart; }
+size STextDocumentChange::Length(void) const { return uiEnd - uiStart; }
 size STextDocumentChange::LastLine(void) { return uiLine + uiLines; }  //The line uiEnd is on, for text taken out.
 
 
@@ -226,10 +226,10 @@ void CTextDocument::Changed(STextDocumentChange* psChange)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CTextDocument::Text(void) { return mszText.Text(); }
-size CTextDocument::Length(void) { return mszText.Length(); }
-size CTextDocument::GetChangeCount(void) { return muiChangeCount; }  //Each edit ended counts one more, so the text's owner can tell it changed since it last looked.
+size CTextDocument::Length(void) const { return mszText.Length(); }
+size CTextDocument::GetChangeCount(void) const { return muiChangeCount; }  //Each edit ended counts one more, so the text's owner can tell it changed since it last looked.
 CTextNavigation* CTextDocument::GetNavigation(void) { return &mcNavigation; }
-size CTextDocument::NumLines(void) { return mauiLineStarts.NumElements(); }
+size CTextDocument::NumLines(void) const { return mauiLineStarts.NumElements(); }
 CArrayTextLineStart* CTextDocument::GetLineStarts(void) { return &mauiLineStarts; }
 
 
@@ -341,7 +341,7 @@ void CTextDocument::SetUndoable(bool bUndoable)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextDocument::IsUndoable(void) { return mbUndoable; }
+bool CTextDocument::IsUndoable(void) const { return mbUndoable; }
 CTextUndo* CTextDocument::GetUndo(void) { return &mcUndo; }
 void CTextDocument::BeginEdit(size uiCaret, size uiAnchor) { mcUndo.BeginEdit(uiCaret, uiAnchor); }
 

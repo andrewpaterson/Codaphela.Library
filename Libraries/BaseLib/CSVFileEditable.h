@@ -37,7 +37,7 @@ struct SCSVRowEditable
 	void 		Kill(void);
 	void 		Dump(void);
 	size	 	IndexOf(char* szString);
-	size		NumCells(void);
+	size		NumCells(void) const;
 	CChars*		Get(size iIndex);
 };
 
@@ -59,7 +59,7 @@ public:
 	bool 				ReadLine(filePos iFileOffset, SCSVRowEditable* psCSVRow);
 	void 				ReadAllLines(void);
 	void 				Dump(void);
-	size				NumRows(void);
+	size				NumRows(void) const;
 	SCSVRowEditable*	Get(size iRowNum);
 };
 

@@ -64,7 +64,7 @@ void* CNullAllocator::Realloc(void* pv, lsize uiSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-const char* CNullAllocator::GetName(void)
+const char* CNullAllocator::GetName(void) const
 {
 	return "CNullAllocator";
 }

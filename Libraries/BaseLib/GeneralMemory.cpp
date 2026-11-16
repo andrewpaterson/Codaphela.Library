@@ -891,6 +891,6 @@ uint64 CGeneralMemory::GetTotalAllocations(void)
 CFreeList* CGeneralMemory::TestGetFreeListsHead(void) { return mcFreeLists.GetHead(); }
 void* CGeneralMemory::TestGetLargeListsHead(void) { return mcLargeList.GetHead(); }
 CMemoryFreeListParams* CGeneralMemory::GetFreeListParams(void) { return &mcFreeListParams; }
-size CGeneralMemory::GetDefaultAlignment(void) { return miDefaultAlignment; }
+size CGeneralMemory::GetDefaultAlignment(void) const { return miDefaultAlignment; }
 size CGeneralMemory::NumFreeLists(void) { return mcFreeLists.NumElements(); }
 

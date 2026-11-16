@@ -44,7 +44,7 @@ public:
 
 	char*		Text(void);
 	char*		Text(lsize iOffset);
-	lsize		Length(void);
+	lsize		Length(void) const;
 
 	void		PassifyNewlines(void);
 	void		Dump(void);

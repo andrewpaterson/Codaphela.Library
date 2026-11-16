@@ -56,9 +56,9 @@ public:
 	void	Deallocate(void* pvCache);
 	lsize	NumElements(void);
 	lsize	NumElements(lsize iSize);
-	lsize	GetDescriptorSize(void);
-	lsize	GetCacheSize(void);
-	void*	GetCache(void);
+	lsize	GetDescriptorSize(void) const;
+	lsize	GetCacheSize(void) const;
+	void*	GetCache(void) const;
 	lsize	GetAllocatedSize(void);
 	bool	CanCache(lsize uiDataSize);
 	bool	ValidateCache(void);

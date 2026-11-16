@@ -215,7 +215,7 @@ CMarkupTag* CMarkup::SetRootTag(char* szTagName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkup::GetRootTag(void)
+CMarkupTag* CMarkup::GetRootTag(void) const
 {
 	return mpcDoc->GetRootTag();
 }

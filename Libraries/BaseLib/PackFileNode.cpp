@@ -96,7 +96,7 @@ filePos CPackFileNode::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFileNode::IsNameWritten(void)
+bool CPackFileNode::IsNameWritten(void) const
 {
 	return mbNameWritten;
 }
@@ -106,7 +106,7 @@ bool CPackFileNode::IsNameWritten(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFileNode::IsInitialised(void)
+bool CPackFileNode::IsInitialised(void) const
 {
 	return muiFilePos != 0;
 }

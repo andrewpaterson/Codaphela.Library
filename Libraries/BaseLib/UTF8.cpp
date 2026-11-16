@@ -370,7 +370,7 @@ size CUTF8::PeekUTFBytes(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF8::GetUTF8ElementLength(void)
+size CUTF8::GetUTF8ElementLength(void) const
 {
 	uint8	c;
 	uint8	c2;

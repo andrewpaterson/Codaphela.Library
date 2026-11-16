@@ -63,7 +63,7 @@ public:
 	void*					Grow(void* pvInitial, lsize iSize);
 	size					NumElements(void);
 	lsize					ByteSize(void);
-	CMemoryFreeListParams*	GetFreeListParams(void);
+	CMemoryFreeListParams*	GetFreeListParams(void) const;
 
 	SMemory					StartIteration(SMemoryIterator* psIterator);
 	SMemory					Iterate(SMemoryIterator* psIterator);

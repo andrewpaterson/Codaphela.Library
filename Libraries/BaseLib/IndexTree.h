@@ -46,9 +46,9 @@ public:
 	virtual bool					Remove(uint8* pvKey, size iKeySize) =0;
 	virtual bool					HasKey(uint8* pvKey, size iKeySize) =0;
 
-			size					SizeofNode(void);
+			size					SizeofNode(void) const;
 			size					SizeofDataNode(void);
-			size					SizeofNodePtr(void);
+			size					SizeofNodePtr(void) const;
 			EIndexKeyReverse		ReverseKeys(void);
 
 			size					CalculateRootNodeSize(void);
@@ -57,8 +57,8 @@ public:
 			void					GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey);
 	virtual void					Dump(void) =0;
 
-			CIndexTreeDataOrderer*	GetDataOrderer(void);
-			CMallocator*			GetMalloc(void);
+			CIndexTreeDataOrderer*	GetDataOrderer(void) const;
+			CMallocator*			GetMalloc(void) const;
 
 protected:
 			void*					Malloc(lsize uiSize);

@@ -113,7 +113,7 @@ size CMemoryAllocator::FreeMultiple(CArrayVoidPtr* pav)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-const char* CMemoryAllocator::GetName(void)
+const char* CMemoryAllocator::GetName(void) const
 {
 	return "CMemoryAllocator";
 }

@@ -333,7 +333,7 @@ lsize CTrueMallocator::Size(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CTrueMallocator::NumAllocations(void)
+lsize CTrueMallocator::NumAllocations(void) const
 {
 	return muiNumAllocations;
 }

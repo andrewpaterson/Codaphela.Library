@@ -59,7 +59,7 @@ public:
 	void	Init(CMallocator* pcMalloc);
 	void	Kill(void);
 	void	Copy(CTreeTemplate* pcTreeSrc);
-	size	NumElements(void);
+	size	NumElements(void) const;
 	lsize	ByteSize(void);
 
 	//Create the root node
@@ -96,7 +96,7 @@ public:
 	M* 		TraversePath(size* auiPos, size uiLevel);
 
 	size	GetNumChildren(M* psPos);
-	M* 		GetRoot(void);
+	M* 		GetRoot(void) const;
 	M* 		GetDown(M* psPos);
 	M* 		GetUp(M* psPos);
 	M* 		GetRight(M* psPos);
@@ -644,7 +644,7 @@ size CTreeTemplate<M>::GetNumChildren(M *psParent)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CTreeTemplate<M>::GetRoot(void)
+M* CTreeTemplate<M>::GetRoot(void) const
 {
 	return HeaderGetData<STNode, M>(mpsRoot);
 }
@@ -684,7 +684,7 @@ M* CTreeTemplate<M>::GetChildNum(M* psParent, size iChildNum)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-size CTreeTemplate<M>::NumElements(void)
+size CTreeTemplate<M>::NumElements(void) const
 {
 	return miNumElements;
 }

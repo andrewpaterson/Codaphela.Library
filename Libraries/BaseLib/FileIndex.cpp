@@ -40,7 +40,7 @@ void CFilePosIndex::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFilePosIndex::HasFile(void)
+bool CFilePosIndex::HasFile(void) const
 {
 	return miFile != MAX_UINT32;
 }
@@ -128,7 +128,7 @@ void CFileDataIndex::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFileDataIndex::HasFile(void)
+bool CFileDataIndex::HasFile(void) const
 {
 	return miFile != MAX_UINT32;
 }

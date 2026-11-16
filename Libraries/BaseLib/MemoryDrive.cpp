@@ -178,7 +178,7 @@ bool CMemoryDrive::Erase(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryDrive::GetMemory(void)
+void* CMemoryDrive::GetMemory(void) const
 {
 	return mpvData;
 }

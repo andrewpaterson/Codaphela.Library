@@ -38,7 +38,7 @@ public:
 	void	Init(SFloat32Vec3* psMinimum, SFloat32Vec3* psMaximum);
 	void	Init(SFloat32Vec3* psPoints, size uiStride, size uiNumPoints);
 
-	bool	IsEmpty(void);
+	bool	IsEmpty(void) const;
 	void	Add(SFloat32Vec3* psPosition);
 	void	Add(SFloat32Bounds* psBounds);
 

@@ -19,8 +19,8 @@ public:
 			void			Init(CIndexedDataEvictionCallback* pcIndexedDataEvictionCallback);
 	virtual void			Kill(void) =0;
 
-			bool			IsCaching(void);
-			bool			IsWriteThrough(void);
+			bool			IsCaching(void) const;
+			bool			IsWriteThrough(void) const;
 			bool			IsFlushed(void);
 	
 			bool			Add(OIndex oi, void* pvData, lsize uiDataSize);
@@ -43,7 +43,7 @@ public:
 			int64			NumDatas(void);
 			lsize			NumDataCached(void);
 			lsize			NumDataCached(lsize iSize);
-			size			NumFiles(void);
+			size			NumFiles(void) const;
 			int64			NumDatas(lsize uiDataSize);
 
 			bool			Remove(OIndex oi);

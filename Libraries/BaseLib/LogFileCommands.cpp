@@ -17,7 +17,7 @@ void CLogFileCommand::Init(ELogFileCommand eCommand)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFileCommand::IsWrite(void)
+bool CLogFileCommand::IsWrite(void) const
 {
 	return eCommand == LFC_Write;
 }
@@ -27,7 +27,7 @@ bool CLogFileCommand::IsWrite(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFileCommand::IsOpen(void)
+bool CLogFileCommand::IsOpen(void) const
 {
 	return eCommand == LFC_Open;
 }
@@ -37,7 +37,7 @@ bool CLogFileCommand::IsOpen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFileCommand::IsClose(void)
+bool CLogFileCommand::IsClose(void) const
 {
 	return eCommand == LFC_Close;
 }
@@ -47,7 +47,7 @@ bool CLogFileCommand::IsClose(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFileCommand::IsDelete(void)
+bool CLogFileCommand::IsDelete(void) const
 {
 	return eCommand == LFC_Delete;
 }
@@ -57,7 +57,7 @@ bool CLogFileCommand::IsDelete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFileCommand::IsTruncate(void)
+bool CLogFileCommand::IsTruncate(void) const
 {
 	return eCommand == LFC_Truncate;
 }
@@ -67,7 +67,7 @@ bool CLogFileCommand::IsTruncate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CLogFileCommand::GetType(void)
+const char* CLogFileCommand::GetType(void) const
 {
 	switch (eCommand)
 	{
@@ -177,7 +177,7 @@ bool CLogFileCommandWrite::Write(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLogFileCommandWrite::GetData(void)
+void* CLogFileCommandWrite::GetData(void) const
 {
 	return RemapSinglePointer(this, sizeof(CLogFileCommandWrite));
 }

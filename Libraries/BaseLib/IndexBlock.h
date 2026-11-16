@@ -39,7 +39,7 @@ public:
 
 	bool	HasKey(uint8* pvKey, size iKeySize);
 
-	size	NumElements(void);
+	size	NumElements(void) const;
 	void	SetDataFreeCallback(CDataFree* pcDataFree);
 	void	Dump(void);
 

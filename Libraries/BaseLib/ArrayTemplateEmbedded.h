@@ -73,7 +73,7 @@ public:
 						M*		Add(M* pvData);
 						void	AddPtr(void* pv);
 
-						size 	ByteSize(void);
+						size 	ByteSize(void) const;
 						size	EmbeddedSize(void);
 
 						M*		Get(size iIndex);
@@ -95,12 +95,12 @@ public:
 
 						size	Resize(size iNumElements);
 
-						bool	IsEmpty(void);
-						bool	IsNotEmpty(void);
-						bool	IsEmbedded(void);
-						bool	IsArray(void);
+						bool	IsEmpty(void) const;
+						bool	IsNotEmpty(void) const;
+						bool	IsEmbedded(void) const;
+						bool	IsArray(void) const;
 
-						size	NumElements(void);
+						size	NumElements(void) const;
 
 						bool	Remove(M* pvElement, bool bPreserveOrder = true);
 						void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
@@ -179,7 +179,7 @@ void CArrayTemplateEmbedded<M, I>::ReInit(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-bool CArrayTemplateEmbedded<M, I>::IsEmbedded(void)
+bool CArrayTemplateEmbedded<M, I>::IsEmbedded(void) const
 {
 	return muiFlags & ARRAY_EMBEDDED_FLAG_EMBEDDED;
 }
@@ -190,7 +190,7 @@ bool CArrayTemplateEmbedded<M, I>::IsEmbedded(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-bool CArrayTemplateEmbedded<M, I>::IsArray(void)
+bool CArrayTemplateEmbedded<M, I>::IsArray(void) const
 {
 	return muiFlags & ARRAY_EMBEDDED_FLAG_ARRAY;
 }
@@ -300,7 +300,7 @@ void CArrayTemplateEmbedded<M, I>::AddPtr(void* pv)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-size CArrayTemplateEmbedded<M, I>::ByteSize(void)
+size CArrayTemplateEmbedded<M, I>::ByteSize(void) const
 {
 	if (IsEmbedded())
 	{
@@ -582,7 +582,7 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(M* pvData, size iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-bool CArrayTemplateEmbedded<M, I>::IsEmpty(void)
+bool CArrayTemplateEmbedded<M, I>::IsEmpty(void) const
 {
 	return NumElements() == 0;
 }
@@ -593,7 +593,7 @@ bool CArrayTemplateEmbedded<M, I>::IsEmpty(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-bool CArrayTemplateEmbedded<M, I>::IsNotEmpty(void)
+bool CArrayTemplateEmbedded<M, I>::IsNotEmpty(void) const
 {
 	return NumElements() != 0;
 }
@@ -604,7 +604,7 @@ bool CArrayTemplateEmbedded<M, I>::IsNotEmpty(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-size CArrayTemplateEmbedded<M, I>::NumElements(void)
+size CArrayTemplateEmbedded<M, I>::NumElements(void) const
 {
 	if (IsEmbedded())
 	{

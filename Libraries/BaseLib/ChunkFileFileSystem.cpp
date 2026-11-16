@@ -512,7 +512,7 @@ bool CChunkFileFileSystem::StopIteration(SChunkFilenameIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChunkFile* CChunkFileFileSystem::GetChunkFile(void)
+CChunkFile* CChunkFileFileSystem::GetChunkFile(void) const
 {
 	return mpcChunkFile;
 }

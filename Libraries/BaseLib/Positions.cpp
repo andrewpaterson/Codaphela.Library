@@ -54,8 +54,8 @@ void CPositionColumn::Add(int32 y)
 }
 
 
-int32 CPositionColumn::GetX(void) { return miX; }
-size CPositionColumn::NumYs(void) { return maiYs.NumElements(); }
+int32 CPositionColumn::GetX(void) const { return miX; }
+size CPositionColumn::NumYs(void) const { return maiYs.NumElements(); }
 int32 CPositionColumn::GetY(size uiIndex) { return maiYs.GetValue(uiIndex); }
 
 
@@ -213,6 +213,6 @@ void CPositions::CalculatePositions(CArrayInt32Vec2* pasPositions)
 }
 
 
-size CPositions::NumColumns(void) { return macColumns.NumElements(); }
+size CPositions::NumColumns(void) const { return macColumns.NumElements(); }
 CPositionColumn* CPositions::GetColumn(size uiIndex) { return macColumns.Get(uiIndex); }
 

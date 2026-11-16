@@ -84,7 +84,7 @@ void CIndexTreeRecursor::GetKey(void* pc, size* piKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeRecursor::GetKeySize(void)
+size CIndexTreeRecursor::GetKeySize(void) const
 {
 	return macKey.NumElements();
 }
@@ -94,5 +94,5 @@ size CIndexTreeRecursor::GetKeySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTreeRecursor::GetNode(void) {	return mpcCurrent; }
+CIndexTreeNode* CIndexTreeRecursor::GetNode(void) const {	return mpcCurrent; }
 

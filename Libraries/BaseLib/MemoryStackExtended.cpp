@@ -162,7 +162,7 @@ CMemoryStack* CMemoryStackExtended::AddChunk(void)
 // The chunks kept by Recycle.
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryStackExtended::NumSpares(void)
+size CMemoryStackExtended::NumSpares(void) const
 {
 	return mcSpares.NumElements();
 }
@@ -359,7 +359,7 @@ CMemoryStack* CMemoryStackExtended::GetStack(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryStackExtended::NumStacks(void)
+size CMemoryStackExtended::NumStacks(void) const
 {
 	return mcStacks.NumElements();
 }
@@ -369,7 +369,7 @@ size CMemoryStackExtended::NumStacks(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryStackExtended::NumElements(void)
+size CMemoryStackExtended::NumElements(void) const
 {
 	return muiElements;
 }

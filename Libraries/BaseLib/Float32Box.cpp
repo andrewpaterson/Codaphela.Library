@@ -118,7 +118,7 @@ bool SFloat32Box::Contains(SFloat32Vec3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 SFloat32Box::Volume(void)
+float32 SFloat32Box::Volume(void) const
 {
 	return 8.0f * afHalfLengths[0] * afHalfLengths[1] * afHalfLengths[2];
 }

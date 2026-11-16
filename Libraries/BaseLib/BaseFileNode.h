@@ -26,9 +26,9 @@ public:
 	char*					GetName(void);
 	char*					GetFullName(CChars* pszDest);
 	bool					Is(const char* szName);
-	bool					IsDirectory(void);
-	bool					IsFile(void);
-	CBaseFileNode*			GetParent(void);
+	bool					IsDirectory(void) const;
+	bool					IsFile(void) const;
+	CBaseFileNode*			GetParent(void) const;
 };
 
 

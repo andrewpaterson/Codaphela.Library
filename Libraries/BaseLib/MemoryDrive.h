@@ -21,7 +21,7 @@ public:
 
 	bool    Erase(void);
 
-	void*	GetMemory(void);
+	void*	GetMemory(void) const;
 };
 
 

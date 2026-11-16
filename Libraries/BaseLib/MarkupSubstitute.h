@@ -48,8 +48,8 @@ public:
 	virtual void RemoveAndKill(void);  //Remove a reference and kill the MarkupSubText if the reference count goes to zero.
 
 			bool Is(const char* szName);
-			bool IsText(void);
-			bool IsDoc(void);
+			bool IsText(void) const;
+			bool IsDoc(void) const;
 };
 
 

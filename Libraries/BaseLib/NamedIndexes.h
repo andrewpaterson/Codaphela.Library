@@ -72,7 +72,7 @@ public:
 
 	lsize	GetSystemMemorySize(void);
 	lsize	GetUserMemorySize(void);
-	size	GetRootFlags(void);
+	size	GetRootFlags(void) const;
 
 
 	void	DumpIndex(void);

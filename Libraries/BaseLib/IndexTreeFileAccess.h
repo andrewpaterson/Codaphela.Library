@@ -20,7 +20,7 @@ public:
 	CIndexTreeIterator* CreateIterator(void) override;
 	void				FreeIterator(CIndexTreeIterator* pcIter) override;
 
-	CIndexTreeFile*		GetTree(void);
+	CIndexTreeFile*		GetTree(void) const;
 
 protected:
 	bool	Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize) override;

@@ -504,7 +504,7 @@ lsize CNamedIndexes::GetUserMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CNamedIndexes::GetRootFlags(void)
+size CNamedIndexes::GetRootFlags(void) const
 {
 	return mcIndexTree.GetRoot()->GetFlags();
 }

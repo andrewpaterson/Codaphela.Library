@@ -39,7 +39,7 @@ bool CIndexedDataEvictedList::IndexEvicted(OIndex oi, void* pvData, lsize iDataS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedDataEvictedList::NumElements(void)
+size CIndexedDataEvictedList::NumElements(void) const
 {
 	return mcKeys.NumElements();
 }

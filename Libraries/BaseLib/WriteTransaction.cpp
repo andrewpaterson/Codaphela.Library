@@ -12,7 +12,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CWriteRecord::GetName(void)
+char* CWriteRecord::GetName(void) const
 {
 	return (char*)RemapSinglePointer(this, sizeof(CWriteRecord));
 }
@@ -22,7 +22,7 @@ char* CWriteRecord::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CWriteRecord::GetData(void)
+void* CWriteRecord::GetData(void) const
 {
 	return mpvData;
 }
@@ -115,7 +115,7 @@ void CWriteTransaction::Abort(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::IsActive(void)
+bool CWriteTransaction::IsActive(void) const
 {
 	return mbActive;
 }
@@ -125,7 +125,7 @@ bool CWriteTransaction::IsActive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::HasDied(void)
+bool CWriteTransaction::HasDied(void) const
 {
 	return mbDied;
 }
@@ -153,7 +153,7 @@ bool CWriteTransaction::Restart(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CWriteTransaction::GetStartNumber(void)
+int64 CWriteTransaction::GetStartNumber(void) const
 {
 	return miStartNumber;
 }
@@ -163,7 +163,7 @@ int64 CWriteTransaction::GetStartNumber(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CWriteTransaction::GetThread(void)
+int CWriteTransaction::GetThread(void) const
 {
 	return miThread;
 }

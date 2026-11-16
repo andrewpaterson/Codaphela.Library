@@ -58,14 +58,14 @@ public:
 	int64			NumDatas(void);
 	int64			NumDatas(lsize iDataSize);
 	size			NumFiles(lsize iDataSize);
-	size			NumFiles(void);
+	size			NumFiles(void) const;
 
 	bool			Read(CFileDataIndex* pcDataIndex, void* pvData);
 	bool			Delete(CFileDataIndex* pcDataIndex);
 	CFileDataIndex	WriteNew(const void* pvData, lsize iDataSize);
 	bool			WriteExisting(CFileDataIndex* pcDataIndex, const void* pvData, lsize iDataSize);
 
-	bool			IsDurable(void);
+	bool			IsDurable(void) const;
 	
 	void			Dump(void);
 };

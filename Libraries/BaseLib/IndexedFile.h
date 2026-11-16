@@ -52,7 +52,7 @@ public:
 	bool			Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, const char* szFilename, const char* szRewriteName, lsize uiDataSize, uint32 uiFileNum);
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
-	bool			IsFull(void);
+	bool			IsFull(void) const;
 
 	filePos			Write(const void* pvData);
 	bool			Write(filePos iIndex, const void* pvData);
@@ -64,15 +64,15 @@ public:
 	bool			Delete(filePos iIndex);
 	bool			Delete(filePos iIndex, lsize iCount);
 
-	size			GetFileIndex(void);
+	size			GetFileIndex(void) const;
 	bool			IsFileIndex(size uiFileIndex);
 
 	CFileBasic*		DumpGetPrimaryFile(void);
 	const char*			GetFilename(void);
-	uint32			GetFileNumber(void);
+	uint32			GetFileNumber(void) const;
 	char*			GetRewriteName(void);
-	lsize			GetDataSize(void);
-	filePos			NumDatas(void);
+	lsize			GetDataSize(void) const;
+	filePos			NumDatas(void) const;
 	filePos			GetUsedDataIndices(CArrayBit* pab);
 
 	filePos			GetFileSize(void);

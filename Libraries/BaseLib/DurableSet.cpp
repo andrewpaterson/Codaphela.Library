@@ -688,7 +688,7 @@ void CDurableSet::SetSync(bool bSync)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableSet::HasBegun(void)
+bool CDurableSet::HasBegun(void) const
 {
 	return mbBegun;
 }

@@ -80,7 +80,7 @@ filePos CIndexedFile::CalculateNumDatas(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::IsFull(void)
+bool CIndexedFile::IsFull(void) const
 {
 	if (miNumDatas >= 0xffffff)  //16 million.
 	{
@@ -401,12 +401,12 @@ filePos CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexedFile::GetFileIndex(void) { return muiFileIndex; }
-uint32 CIndexedFile::GetFileNumber(void) { return muiFileNumber; }
+size CIndexedFile::GetFileIndex(void) const { return muiFileIndex; }
+uint32 CIndexedFile::GetFileNumber(void) const { return muiFileNumber; }
 bool CIndexedFile::IsFileIndex(size uiFileIndex) { return muiFileIndex == uiFileIndex; }
 const char* CIndexedFile::GetFilename(void) { return mcFile.GetFilename(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
-lsize CIndexedFile::GetDataSize(void) { return muiDataSize; }
-filePos	CIndexedFile::NumDatas(void) { return miNumDatas; }
+lsize CIndexedFile::GetDataSize(void) const { return muiDataSize; }
+filePos	CIndexedFile::NumDatas(void) const { return miNumDatas; }
 filePos	CIndexedFile::GetFileSize(void) { return mcFile.Size(); };
 

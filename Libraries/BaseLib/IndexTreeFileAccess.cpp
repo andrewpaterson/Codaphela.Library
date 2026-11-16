@@ -184,7 +184,7 @@ void CIndexTreeFileAccess::FreeIterator(CIndexTreeIterator* pcIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeFile* CIndexTreeFileAccess::GetTree(void)
+CIndexTreeFile* CIndexTreeFileAccess::GetTree(void) const
 {
 	return mpcTree;
 }

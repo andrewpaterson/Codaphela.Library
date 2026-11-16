@@ -921,7 +921,7 @@ uint32 CFatVolume::FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint
 //
 //
 //////////////////////////////////////////////////////////////////////////
-fatEntry CFatVolume::GetEndOfClusterMarker(void)
+fatEntry CFatVolume::GetEndOfClusterMarker(void) const
 {
 	switch (meFileSystem)
 	{
@@ -942,7 +942,7 @@ fatEntry CFatVolume::GetEndOfClusterMarker(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-fatEntry CFatVolume::GetBadClusterMarker(void)
+fatEntry CFatVolume::GetBadClusterMarker(void) const
 {
 	switch (meFileSystem)
 	{
@@ -963,7 +963,7 @@ fatEntry CFatVolume::GetBadClusterMarker(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-fatEntry CFatVolume::GetClusterEntryMask(void)
+fatEntry CFatVolume::GetClusterEntryMask(void) const
 {
 	switch (meFileSystem)
 	{
@@ -1001,7 +1001,7 @@ uint32 CFatVolume::GetEntryCluster(SFatRawDirectoryEntry* psEntry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::HasNextFreeCluser(void)
+bool CFatVolume::HasNextFreeCluser(void) const
 {
 	if (muiNextFreeCluster != 0xFFFFFFFF)
 	{
@@ -1781,7 +1781,7 @@ uint8 CFatVolume::FatLongEntryChecksum(char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetPageSize(void)
+uint32 CFatVolume::GetPageSize(void) const
 {
 	return mpcDevice->GetPageSize();
 }
@@ -2083,7 +2083,7 @@ const char* FindNextPathItem(const char* szPath, char* szCurrentLevelPath)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetRootDirectorySector(void)
+uint32 CFatVolume::GetRootDirectorySector(void) const
 {
 	return GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
 }
@@ -3239,23 +3239,23 @@ EFatCode CFatVolume::Rename(const char* szOriginalFilename, const char* szNewFil
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetID(void) { return muiID; }
-uint32 CFatVolume::GetFatSize(void) { return muiFatSize; }
-uint32 CFatVolume::GetRootCluster(void) { return muiRootCluster; }
-uint32 CFatVolume::GetRootSector(void) { return muiRootSector; }
-uint32 CFatVolume::GetFirstDataSector(void) { return muiFirstDataSector; }
-uint32 CFatVolume::GetNoOfSectors(void) { return muiNoOfSectors; }
-uint32 CFatVolume::GetNoOfDataSectors(void) { return muiNoOfDataSectors; }
-uint32 CFatVolume::GetNumClusters(void) { return muiNoOfClusters; }
-uint32 CFatVolume::GetNextFreeCluster(void) { return muiNextFreeCluster; }
-uint32 CFatVolume::GetTotalFreeClusters(void) { return muiTotalFreeClusters; }
-uint32 CFatVolume::GetFileSystemInfoSector(void) { return muiFileSystemInfoSector; }
-uint16 CFatVolume::GetRootDirectorySectors(void) { return muiRootDirectorySectors; }
-bool CFatVolume::IsUseLongFilenames(void) { return mbUseLongFilenames; }
-EFatFileSystemType CFatVolume::GetFileSystemType(void) { return meFileSystem; }
-uint8 CFatVolume::GetNoOfFatTables(void) { return muiNoOfFatTables; }
+uint32 CFatVolume::GetID(void) const { return muiID; }
+uint32 CFatVolume::GetFatSize(void) const { return muiFatSize; }
+uint32 CFatVolume::GetRootCluster(void) const { return muiRootCluster; }
+uint32 CFatVolume::GetRootSector(void) const { return muiRootSector; }
+uint32 CFatVolume::GetFirstDataSector(void) const { return muiFirstDataSector; }
+uint32 CFatVolume::GetNoOfSectors(void) const { return muiNoOfSectors; }
+uint32 CFatVolume::GetNoOfDataSectors(void) const { return muiNoOfDataSectors; }
+uint32 CFatVolume::GetNumClusters(void) const { return muiNoOfClusters; }
+uint32 CFatVolume::GetNextFreeCluster(void) const { return muiNextFreeCluster; }
+uint32 CFatVolume::GetTotalFreeClusters(void) const { return muiTotalFreeClusters; }
+uint32 CFatVolume::GetFileSystemInfoSector(void) const { return muiFileSystemInfoSector; }
+uint16 CFatVolume::GetRootDirectorySectors(void) const { return muiRootDirectorySectors; }
+bool CFatVolume::IsUseLongFilenames(void) const { return mbUseLongFilenames; }
+EFatFileSystemType CFatVolume::GetFileSystemType(void) const { return meFileSystem; }
+uint8 CFatVolume::GetNoOfFatTables(void) const { return muiNoOfFatTables; }
 char* CFatVolume::GetLabel(void) { return mszLabel.Text(); }
-CFileDrive* CFatVolume::GetFileDrive(void) { return mpcDevice; }
+CFileDrive* CFatVolume::GetFileDrive(void) const { return mpcDevice; }
 CFatInfoSectorCache* CFatVolume::GetSectorCache(void) { return &mcSectorCache; }
 
 #endif // __W65C816_ASSEMBLY__

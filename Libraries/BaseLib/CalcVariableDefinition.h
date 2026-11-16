@@ -36,8 +36,8 @@ public:
 	void				Kill(void) override;
 	void				Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression, bool bPrintSpace);
 	void				Print(CChars* psz) override;
-	char*				GetName(void);
-	CCalcExpression*	GetExpression(void);
+	char*				GetName(void) const;
+	CCalcExpression*	GetExpression(void) const;
 
 	bool				IsExpression(void) override;
 	bool				IsOperator(void) override;

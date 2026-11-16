@@ -939,7 +939,7 @@ bool CFreeList::Contains(void* pvData, bool bIsAllocated)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CFreeList::NumElements(void)
+size CFreeList::NumElements(void) const
 {
 	return muiNumElements;
 }
@@ -949,7 +949,7 @@ size CFreeList::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFreeList::HasElements(void)
+bool CFreeList::HasElements(void) const
 {
 	return muiNumElements != 0;
 }
@@ -1053,9 +1053,9 @@ void* CFreeList::GetLastNodeElement(SFNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CFreeList::GetElementSize(void) { return muiElementSize; }
-size CFreeList::GetElementStride(void) {return muiStride; }
+size CFreeList::GetElementSize(void) const { return muiElementSize; }
+size CFreeList::GetElementStride(void) const {return muiStride; }
 size CFreeList::GetNumAllocatedChunks(void) { return mcList.NumElements(); }
-uint8 CFreeList::GetOffset(void) { return muiOffset; }
-uint8 CFreeList::GetAlignment(void) { return muiAlignment; }
+uint8 CFreeList::GetOffset(void) const { return muiOffset; }
+uint8 CFreeList::GetAlignment(void) const { return muiAlignment; }
 

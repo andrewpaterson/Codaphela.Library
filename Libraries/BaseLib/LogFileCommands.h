@@ -22,13 +22,13 @@ public:
 
 	void	Init(ELogFileCommand eCommand);
 
-	bool	IsWrite(void);
-	bool	IsOpen(void);
-	bool	IsClose(void);
-	bool	IsDelete(void);
-	bool	IsTruncate(void);
+	bool	IsWrite(void) const;
+	bool	IsOpen(void) const;
+	bool	IsClose(void) const;
+	bool	IsDelete(void) const;
+	bool	IsTruncate(void) const;
 
-	const char*	GetType(void);
+	const char*	GetType(void) const;
 };
 
 
@@ -53,7 +53,7 @@ public:
 	void	Init(filePos iPosition, void* pvSource, lsize iSize);
 
 	bool	Write(CAbstractFile* pcFile);
-	void*	GetData(void);
+	void*	GetData(void) const;
 };
 
 

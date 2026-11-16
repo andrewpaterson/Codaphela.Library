@@ -34,8 +34,8 @@ public:
 	bool			AddReadOnly(CDataReader* pcLayer, CSequenceConnection* pcLayerSequence);
 	void			Kill(void) override;
 
-	CSequence*		GetSequence(void);
-	size			NumLayers(void);
+	CSequence*		GetSequence(void) const;
+	size			NumLayers(void) const;
 
 	bool	Add(OIndex oi, void* pvData, lsize uiDataSize) override;
 	bool	Add(OIndex oi, const char* szName, void* pvData, lsize uiDataSize) override;

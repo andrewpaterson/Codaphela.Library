@@ -17,9 +17,9 @@ public:
 			void	Init(uint32 iType);
 	virtual void	Kill(void);
 
-			size	GetDataSize(void);
+			size	GetDataSize(void) const;
 			void*	GetData(void);
-			size	GetKeySize(void);
+			size	GetKeySize(void) const;
 			uint8*	GetKey(void);
 
 	virtual bool	Iterate(void) =0;

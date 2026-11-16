@@ -106,7 +106,7 @@ bool CMarkupSubstitute::Is(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupSubstitute::IsText(void)
+bool CMarkupSubstitute::IsText(void) const
 {
 	return meType == MST_Text;
 }
@@ -116,7 +116,7 @@ bool CMarkupSubstitute::IsText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupSubstitute::IsDoc(void)
+bool CMarkupSubstitute::IsDoc(void) const
 {
 	return meType == MST_Doc;
 }

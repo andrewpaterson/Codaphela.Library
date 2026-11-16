@@ -420,7 +420,7 @@ bool CMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CMemoryFreeListParams::GetMaxFreeListElementSize(void)
+size CMemoryFreeListParams::GetMaxFreeListElementSize(void) const
 {
 	return muiFreeListSizeLimit - miHeaderSize;
 }
@@ -430,6 +430,6 @@ size CMemoryFreeListParams::GetMaxFreeListElementSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CMemoryFreeListParams::GetFreeListSizeLimit(void) { return muiFreeListSizeLimit; }
-size CMemoryFreeListParams::NumParams(void) { return mcParams.NumElements(); }
+size CMemoryFreeListParams::GetFreeListSizeLimit(void) const { return muiFreeListSizeLimit; }
+size CMemoryFreeListParams::NumParams(void) const { return mcParams.NumElements(); }
 

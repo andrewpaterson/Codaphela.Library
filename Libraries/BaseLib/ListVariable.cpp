@@ -298,7 +298,7 @@ void CListVariable::PrivateFree(SPointerAndSize* psType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CListVariable::NumElements(void)
+size CListVariable::NumElements(void) const
 {
 	return mcArray.NumElements();
 }

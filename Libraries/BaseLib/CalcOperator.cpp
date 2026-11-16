@@ -236,7 +236,7 @@ bool CCalcOperator::IsVariableDefinition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcOperator::IsBinary(void)
+bool CCalcOperator::IsBinary(void) const
 {
 	switch (meOp)
 	{
@@ -270,7 +270,7 @@ bool CCalcOperator::IsBinary(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcOperator::IsUnary(void)
+bool CCalcOperator::IsUnary(void) const
 {
 	switch (meOp)
 	{
@@ -292,7 +292,7 @@ bool CCalcOperator::IsUnary(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECalcOperator CCalcOperator::GetOperator(void)
+ECalcOperator CCalcOperator::GetOperator(void) const
 {
 	return meOp;
 }

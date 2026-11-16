@@ -265,7 +265,7 @@ char* CMapStringBlock::GetKeyForData(void* psData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::IsCaseSensitive(void)
+bool CMapStringBlock::IsCaseSensitive(void) const
 {
 	return mfKeyCompare == (DataCompare)&StringCompare;
 }

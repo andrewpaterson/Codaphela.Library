@@ -311,7 +311,7 @@ void CXMLWriter::AppendEscaped(const char* szText, bool bAttribute)
 // Whether every element begun has ended.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CXMLWriter::IsComplete(void)
+bool CXMLWriter::IsComplete(void) const
 {
 	return maszOpen.NumElements() == 0;
 }

@@ -65,11 +65,11 @@ public:
 	bool	Read(CFileReader* pcFileReader);
 	bool	Write(CFileWriter* pcFileWriter);
 
-	lsize	NumElements(void);
+	lsize	NumElements(void) const;
 	void*	GetData(void);
 	lsize	ByteSize(lsize iNumBits);
 
-	bool	IsLarge(void);
+	bool	IsLarge(void) const;
 
 	void	Print(CChars* psz);
 	void	Dump(void);

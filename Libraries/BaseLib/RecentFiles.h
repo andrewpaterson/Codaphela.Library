@@ -48,7 +48,7 @@ public:
 	bool	Remove(const char* szFile);
 	void	Clear(void);
 	size	Find(const char* szFile);
-	size	NumFiles(void);
+	size	NumFiles(void) const;
 	char*	GetFile(size uiIndex);
 	void	SetOpen(const char* szFile);
 	char*	GetOpen(void);

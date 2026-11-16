@@ -40,7 +40,7 @@ void CMemoryBlock::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryBlock::GetMemory(void)
+void* CMemoryBlock::GetMemory(void) const
 {
 	return mpvMem;
 }
@@ -78,7 +78,7 @@ void* CMemoryBlock::Allocate(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemoryBlock::GetSize(void)
+size CMemoryBlock::GetSize(void) const
 {
 	return mtSize;
 }

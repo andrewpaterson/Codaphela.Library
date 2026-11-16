@@ -39,8 +39,8 @@ public:
 
 	uint32		Tell(void);
 	uint32		Size(void);
-	bool		IsBusy(void);
-	uint8		GetAccessFlags(void);
+	bool		IsBusy(void) const;
+	uint8		GetAccessFlags(void) const;
 
 	EFatCode	AllocateClusters(uint32 bytes);
 	uint32		CalculateFirstCluster(void);
@@ -50,13 +50,13 @@ protected:
 	uint32		FatFileGetUniqueId(void);
 	EFatCode	WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource);
 
-	bool		IsFat32Volume(void);
+	bool		IsFat32Volume(void) const;
 	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead, uint8* puiDestination);
 	EFatCode	StepToClusterOfPosition(void);
 
 	EFatCode	FlushCacheUpdateAccess(void);
 
-	const char*		GetShortFileName(void);
+	const char*		GetShortFileName(void) const;
 	EFatCode	ValidateCanRead(void);
 	EFatCode	ValidateCanWrite(void);
 

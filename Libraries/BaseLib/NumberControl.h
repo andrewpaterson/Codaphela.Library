@@ -55,7 +55,7 @@ public:
 	void		Remove(void);
 	void		Remove(int iNumToRemove);
 
-	int			NumElements(void);
+	int			NumElements(void) const;
 };
 
 

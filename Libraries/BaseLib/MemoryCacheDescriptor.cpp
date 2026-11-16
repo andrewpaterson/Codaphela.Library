@@ -81,7 +81,7 @@ void SMemoryCacheDescriptor::ClearPrev(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize SMemoryCacheDescriptor::GetSize(void)
+lsize SMemoryCacheDescriptor::GetSize(void) const
 {
 	return miSize;
 }
@@ -121,7 +121,7 @@ bool SMemoryCacheDescriptor::IsNext(SMemoryCacheDescriptor* psDesc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* SMemoryCacheDescriptor::GetNext(void)
+SMemoryCacheDescriptor* SMemoryCacheDescriptor::GetNext(void) const
 {
 	return mpsNext;
 }
@@ -131,7 +131,7 @@ SMemoryCacheDescriptor* SMemoryCacheDescriptor::GetNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* SMemoryCacheDescriptor::GetPrev(void)
+SMemoryCacheDescriptor* SMemoryCacheDescriptor::GetPrev(void) const
 {
 	return mpsPrev;
 }

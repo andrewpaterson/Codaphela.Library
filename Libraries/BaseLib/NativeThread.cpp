@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNativeThread::IsStarted(void)
+bool CNativeThread::IsStarted(void) const
 {
 	return mbStarted;
 }
