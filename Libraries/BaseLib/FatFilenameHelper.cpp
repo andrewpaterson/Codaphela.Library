@@ -74,8 +74,10 @@ int CompareFatLongName(uint16* puiName1, uint16* puiName2)
 //////////////////////////////////////////////////////////////////////////
 EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, uint16* auiLongFilename, uint8* auiShortName)
 {
-	bool bLongFilename;
-	bool bMatch;
+	bool	bLongFilename;
+	bool	bMatch;
+	char	szUpper[13];
+	size	i;
 
 	bLongFilename = false;
 	if (GetFatShortNameForEntry(szConstructedShortFileName, szCurrentLevelPath, 1) == FAT_INVALID_FILENAME)
@@ -86,8 +88,18 @@ EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructed
 		}
 		bLongFilename = true;
 
-		//No short name was made: one of zeros never matches an entry (a zero first character ends the directory).
-		memset(szConstructedShortFileName, 0, 11);
+		//A name that is a short name but for its case is that short name (FAT's names don't care about case): it is made
+		//from the name in upper case.  Otherwise no short name is made: one of zeros never matches an entry (a zero
+		//first character ends the directory).
+		for (i = 0; (i < 12) && (szCurrentLevelPath[i] != '\0'); i++)
+		{
+			szUpper[i] = (char)toupper(szCurrentLevelPath[i]);
+		}
+		szUpper[i] = '\0';
+		if ((szCurrentLevelPath[i] != '\0') || (GetFatShortNameForEntry(szConstructedShortFileName, szUpper, 1) != FAT_SUCCESS))
+		{
+			memset(szConstructedShortFileName, 0, 11);
+		}
 		bMatch = CompareFatLongName(puiTargetFileLongName, auiLongFilename) || CompareFatShortName(szConstructedShortFileName, (char*)auiShortName);
 	}
 	else

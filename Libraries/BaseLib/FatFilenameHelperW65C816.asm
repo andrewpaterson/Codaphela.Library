@@ -307,13 +307,56 @@ _MatchesFatFileName__FPbPbPcPtPcPtPh:
 		ldx F_STRING
 		jsr Copy32
 		jsr LongName
-		; No short name was made: one of zeros never matches an entry (a zero first character ends the directory).
+		; A name that is a short name but for its case is that short name: it is made from the name in upper case (at
+		; F_NAME, up to 12 characters).  Otherwise no short name is made: one of zeros never matches an entry (a zero
+		; first character ends the directory).
+		ldy 0
+		tyx
+		sep m
+MatchesUpperChar:
+		lda [[D + MF_PATH]:24 + Y]
+		beq MatchesUpperEnd
+		cpy 12
+		beq MatchesNoShort
+		cmp 'a'
+		bcc MatchesUpperPut
+		cmp 'z' + 1
+		bcs MatchesUpperPut
+		and 0xDF
+MatchesUpperPut:
+		sta [D + F_NAME + X]
+		iny
+		inx
+		bra MatchesUpperChar
+MatchesUpperEnd:
+		sta [D + F_NAME + X]
+		rep m
+		; GetFatShortNameForEntry(szConstructedShortFileName, szUpper, 1)
+		pea 1
+		pea 0
+		tdc
+		clc
+		adc F_NAME
+		pha
+		pei [D + MF_SHORT + 2]
+		pei [D + MF_SHORT]
+		jsl _GetFatShortNameForEntry__FPcPKcb
+		ply
+		ply
+		ply
+		ply
+		ply
+		cmp FAT_SUCCESS
+		beq MatchesLong
+MatchesNoShort:
+		rep m
 		lda 0
 		ldy 9
 MatchesClear:
 		sta [[D + MF_SHORT]:24 + Y]
 		dey
 		bpl MatchesClear
+MatchesLong:
 		; CompareFatLongName(puiTargetFileLongName, auiLongFilename) || CompareFatShortName(...)
 		pei [D + MF_LONG + 2]
 		pei [D + MF_LONG]
