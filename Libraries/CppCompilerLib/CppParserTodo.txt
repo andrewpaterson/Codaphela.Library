@@ -50,7 +50,7 @@ Right now the highlighting is only spans checked by tests.
 6. C++ compliance: preprocessor and tokeniser to C++17, code generators to C++14
 -----------------------------------------------------------------------------------
 
-Part A is done (2026-11-15: the "Part A plan" below says how, step by step).  Part B is not started: it has a plan ("Part B plan" below, 2026-11-15, checked by compiling) and its notes (2026-11-07) were found by reading the code; nothing was built or run, so check each item against the code before relying on it.  The parser calls itself C++14 and the preprocessor defines __cplusplus as 201402L.  "C++14 compliance" for the generators includes the C++98/03 that is still missing, not only the C++11 and C++14 features.  Almost all of the generator work is in the shared front end (CPP65Generator*, CPP65TypeChecker, CPP65IRFrontEnd*); CIR65Backend and CIRW65C816Backend only see IR, except for exceptions.  Sizes are relative: S, M, L, XL.
+Part A is done (2026-11-15: the "Part A plan" below says how, step by step).  Part B is under way (started 2026-11-15): "Part B plan" below says what each stage did, and its notes (2026-11-07) were found by reading the code, so check an item not done yet against the code before relying on it.  The parser calls itself C++14 and the preprocessor defines __cplusplus as 201402L.  "C++14 compliance" for the generators includes the C++98/03 that is still missing, not only the C++11 and C++14 features.  Almost all of the generator work is in the shared front end (CPP65Generator*, CPP65TypeChecker, CPP65IRFrontEnd*); CIR65Backend and CIRW65C816Backend only see IR, except for exceptions.  Sizes are relative: S, M, L, XL.
 
 Already done in the preprocessor and tokeniser: __has_include and __has_include_next, _Pragma, __VA_ARGS__ (with the ", ##" comma rule), digit separators, binary literals, hex floats (0x1p-3 pp-numbers, read by strtold), u8 character literals, digraphs and alternative tokens, and no trigraphs (C++17 removed them).
 
@@ -145,7 +145,7 @@ Part A plan (2026-11-15)
   Feature-test macros (__cpp_raw_strings, __cpp_user_defined_literals and the rest) are defined with the item that makes each true, starting here.
   Tests: a group for each item in TestPreprocessor and TestCppTokeniser, and TestCPP816 cases for raw strings and character literals, which reach generated code.
 
-Part B plan (2026-11-15, not started)
+Part B plan (2026-11-15; stages 0 to 3 done 2026-11-16, stage 4 under way)
   The notes on B1 to B18 above were checked by compiling about 190 small programs for the W65C816 with hcp65build, one a feature (they became stage 0's cases).  "Compiles" is all that most of them show: only where a negative array size could prove it was what the code means checked.  This plan replaces the Order above for Part B.
 
   What the notes had wrong:
@@ -189,7 +189,8 @@ Part B plan (2026-11-15, not started)
        - for (declaration : range) is made of three variables the program can't name and the expressions on them, which are syntax like any other (CCPPUnit::GetRangeFor, CPPUnitRangeFor.cpp; CCPP65IRFrontEnd::RangeForStatement).  Not done: a range that is an object made for the statement (for (x : make())), which needs a reference to keep a temporary alive (stage 7), and a list in braces (stage 8).
        - *object and ++object, --object had never been an object's operators: they are (postfix ++ and -- are stage 7's).
        As it was planned: (M) B11, B16 and parts of B17: auto, decltype, trailing return types, range-for, alias templates, nullptr_t.
-    4. (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
+    4. Under way.  Done 2026-11-16: the IR interpreter (CIRInterpreter, ConstexprPlan.txt stage 3) and calls of constexpr functions as constants (CCPPConstants, stage 4).  Left: constant objects (stage 5), floating point (6), refusing a constexpr variable that isn't a constant and the definition's checks (8), constant data for globals (7, measured first).
+       As it was planned: (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
     5. (L) B12.  Lambdas: the parser, closure classes, captures, the conversion to a function pointer; then generic lambdas and init-captures (B-3).
     6. (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array deduction, packs everywhere and sizeof..., variable templates, the missing type traits.
     7. (M, many small) B5 and B9.  Objects: static locals that need a guard, postfix ++ and -- on objects, operator-> returning an object, conversion functions to classes and references, pointers to overloaded members, temporaries bound to references, new[] with initialisers and two dimensions, placement new with more arguments, ?: on different class types, extern locals, thread_local.  Each is on its own and can go between other stages.

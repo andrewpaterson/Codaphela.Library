@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "CPPUnit.h"
 #include "CPP65IRFrontEnd.h"
+#include "CPPConstants.h"
 
 
 //The IR front end's values and places: an expression's value, loads and stores, constants and strings, variables,
@@ -719,6 +720,18 @@ void CCPP65IRFrontEnd::StringData(char* pcBytes, size uiLength, SCPP65IRValue* p
 {
 	CChars	szLabel;
 
+	if (mbConstants)
+	{
+		//A constant's string is data of its own module, which the interpreter reads.
+		szLabel.Init();
+		mpcUnit->GetConstants()->NewName("__string", &szLabel);
+		mcModule.AddGlobal(szLabel.Text(), 1, IRA_Local | IRA_Constant)->AddBytes((const uint8*)pcBytes, uiLength);
+		psValue->sValue = mcModule.Symbol(szLabel.Text());
+		psValue->psType = mpcTypes->Pointer(&mpcTypes->msChar);
+		szLabel.Kill();
+		return;
+	}
+
 	if (uiLength > 0)
 	{
 		mauiStringBytes.InsertBlockAfterEnd((uint8*)pcBytes, uiLength);
@@ -1256,9 +1269,17 @@ SIRReference CCPP65IRFrontEnd::FunctionSymbol(CCPPFunction* pcFunction)
 	CChars			szLabel;
 	SIRReference	sSymbol;
 
-	mpcUnit->RequireFunction(pcFunction);
 	szLabel.Init();
 	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction);
+	if (mbConstants)
+	{
+		//A constant's call is run when the program is compiled: the function is only asked for there.
+		mpcUnit->GetConstants()->NoteFunction(szLabel.Text(), pcFunction);
+	}
+	else
+	{
+		mpcUnit->RequireFunction(pcFunction);
+	}
 	sSymbol = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	MarkFunctionSymbol(pcFunction, sSymbol.Index());

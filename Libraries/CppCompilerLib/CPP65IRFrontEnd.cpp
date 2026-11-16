@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IROptimiser.h"
 #include "IR65Backend.h"
 #include "CPP65IRFrontEnd.h"
+#include "CPPConstants.h"
 
 
 //The IR front end: a function's IR from its syntax tree (Body), written for the back end (FinishWriting); IR types,
@@ -40,8 +41,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit)
+void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 {
+	mbConstants = bConstants;
+	mpcConstant = NULL;
 	muiAttempts = 0;
 	mpcUnit = pcUnit;
 	mpcTypes = pcUnit->GetTypes();
@@ -56,7 +59,7 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit)
 	mbProfiledCaller = false;
 	mcModule.Init();
 	mcModule.AddDefaultSpace(pcUnit->GetTarget()->GetPointerBytes());
-	mpcBackend = pcUnit->GetTarget()->NewBackend();
+	mpcBackend = bConstants ? NULL : pcUnit->GetTarget()->NewBackend();
 	mcPipeline.Init();
 	pcUnit->GetTarget()->BuildPipeline(&mcPipeline);
 	masWritten.Init();
@@ -148,7 +151,7 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 	bool					bResult;
 
 	muiAttempts++;
-	if (muiAttempts > mpcUnit->GetOptions()->muiFunctionLimit)
+	if (!mbConstants && (muiAttempts > mpcUnit->GetOptions()->muiFunctionLimit))
 	{
 		return false;
 	}
@@ -284,6 +287,11 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	size					uiLength;
 	uint32					uiFingerprint;
 
+	if (mbConstants)
+	{
+		return FinishConstant(bResult);
+	}
+
 	//Instructions the optimiser adds have no source of their own.
 	mcModule.muiSource = 0;
 	bResult = bResult && !mbUnsupported;
@@ -363,7 +371,25 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		//As the generator's EndFunction leaves it.
 		mpcUnit->GetContext()->EndFunction();
 	}
-	if (!bResult && mpcFunction)
+	mbUnsupported = !bResult;
+	EndWriting();
+	if (bResult)
+	{
+		mcModule.Count(CPPCC_Functions);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function being written is done with: one that failed is taken out
+// of the module.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::EndWriting(void)
+{
+	if (mbUnsupported && mpcFunction)
 	{
 		mcModule.RemoveFunction(mpcFunction);
 	}
@@ -372,11 +398,85 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	mpcFunction = NULL;
 	mpcBlock = NULL;
 	mpcCPPFunction = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ends a function written for a constant (mbConstants): it is kept as it
+// was written, with its slots still memory, which is what the interpreter
+// runs; nothing is optimised or generated and the unit is given nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FinishConstant(bool bResult)
+{
+	mcModule.muiSource = 0;
+	bResult = bResult && !mbUnsupported;
 	if (bResult)
 	{
-		mcModule.Count(CPPCC_Functions);
+		Finish();
+		bResult = VerifyIR(mpcFunction, __FILE__, __LINE__);
 	}
+	mpcConstant = bResult ? mpcFunction : NULL;
+	mbUnsupported = !bResult;
+	EndWriting();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The IR of a function (set up as Body's is) for the interpreter, or NULL
+// if the front end can't write it.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRFunction* CCPP65IRFrontEnd::ConstantFunction(CCPPFunction* pcFunction)
+{
+	return Body(pcFunction) ? mpcConstant : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An expression as a function of no arguments that returns its value as a
+// psType, for the interpreter; NULL if the front end can't write it.  It
+// is written where it is met: what it names is what is in scope there.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRFunction* CCPP65IRFrontEnd::ConstantExpression(const char* szLabel, CCPPSyntax* pcExpression, SCPP65Type* psType)
+{
+	CCPPFunction	cFunction;
+	SCPP65IRValue	sValue;
+	SIRType			sType;
+	bool			bResult;
+
+	if (!IsSupportedType(psType) || !psType->IsScalar())
+	{
+		return NULL;
+	}
+	memset(&cFunction, 0, sizeof(CCPPFunction));
+	cFunction.meKind = CPPFK_Function;
+	cFunction.mpsReturn = psType;
+	sType = ReturnIRType(psType);
+	BeginWriting(&cFunction, szLabel, sType, IRA_Local);
+	mpcUnit->BeginQuiet();
+	bResult = ValueFor(pcExpression, psType, &sValue) && ConvertImplicit(&sValue, psType, pcExpression) && DestroyTemporaries(0);
+	mpcUnit->EndQuiet();
+	if (bResult)
+	{
+		mpcBlock->Return(sType, ConvertIR(sValue.sValue, IRTypeOf(psType), sType, psType->bSigned && (psType->eKind == CPP65TK_Integer)));
+	}
+	return FinishWriting(bResult, szLabel) ? mpcConstant : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIRModule* CCPP65IRFrontEnd::GetModule(void)
+{
+	return &mcModule;
 }
 
 
@@ -485,7 +585,7 @@ void CCPP65IRFrontEnd::NoFloats(void)
 {
 	int		iToken;
 
-	if (!mpcUnit->HasNoFloats() || mbFloatReported)
+	if (!mpcUnit->HasNoFloats() || mbFloatReported || mbConstants)
 	{
 		return;
 	}

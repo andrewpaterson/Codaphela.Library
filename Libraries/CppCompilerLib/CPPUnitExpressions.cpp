@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
 #include "CPPUnit.h"
+#include "CPPConstants.h"
 #include "CPPSemanticPass.h"
 #include "CPPTypeWriter.h"
 #include "LiteralHelper.h"
@@ -1079,6 +1080,9 @@ bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	case CPPS_TypeTraitExpression:
 		return TypeTrait((CCPPSyntaxTypeTraitExpression*)pcExpression, plliValue);
 
+	case CPPS_CallExpression:
+		return ConstexprCall((CCPPSyntaxCallExpression*)pcExpression, plliValue);
+
 	case CPPS_SizeofExpression:
 		pcSizeof = (CCPPSyntaxSizeofExpression*)pcExpression;
 		if ((pcSizeof->meKeyword != CT_sizeof) && (pcSizeof->meKeyword != CT_alignof))
@@ -1173,6 +1177,40 @@ SCPP65Type* CCPPUnit::ConstantTypeOf(CCPPSyntax* pcExpression)
 	psType = TypeOf(pcExpression);
 	mapcConstantTypes.RemoveTail();
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of a call of a constexpr function that gives an integer, if
+// it has one: worked out by running it (CCPPConstants).  A call of any
+// other function is no constant, and isn't looked at.  [expr.const] 2.2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue)
+{
+	CCPPBoundCall				cBound;
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	SCPP65Type*					psType;
+	size						uiErrors;
+	bool						bBound;
+
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	bBound = mcBinder.Bind(pcCall, &cBound, false);
+	EndQuiet();
+	mcErrors.Truncate(uiErrors);
+	pcDefinition = (bBound && cBound.mpcFunction) ? cBound.mpcFunction->mpcDefinition : NULL;
+	if (!pcDefinition || !pcDefinition->mpcSpecifiers || !(pcDefinition->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR))
+	{
+		return false;
+	}
+	psType = TypeOf(pcCall);
+	if (!psType || !(psType->IsInteger() || (psType->eKind == CPP65TK_Bool)))
+	{
+		return false;
+	}
+	return mpcConstants->Value(pcCall, psType, plliValue);
 }
 
 

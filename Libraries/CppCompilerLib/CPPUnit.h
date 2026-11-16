@@ -179,6 +179,7 @@ struct SCPPFunctionScope
 
 
 class CCPP65IRFrontEnd;
+class CCPPConstants;
 class CCTInt;
 class CCPPSemanticPass;
 
@@ -236,6 +237,7 @@ protected:
 	int						miStatics;			//Static locals in the unit.
 	int						miLabels;
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//Writes every function body as IR.
+	CCPPConstants*			mpcConstants;		//Works out the constants that take running the IR (constexpr).
 	CCPP65TypeChecker		mcTypeChecker;		//Works out expressions' types (TypeOf).
 	CIRImports*				mpcImports;			//Other units' functions the IR inliner may use (SetImports), NULL for none.
 	size					muiImportsTurn;		//The unit's turn with them (CIRImports::BeginTurn).
@@ -261,6 +263,7 @@ public:
 	CCPP65Types*			GetTypes(void) { return &mcTypes; }
 	CCPPContext*			GetContext(void) { return &mcContext; }
 	CCPPBinder*				GetBinder(void) { return &mcBinder; }
+	CCPPConstants*			GetConstants(void) { return mpcConstants; }
 	CCPPDeclarators*		GetDeclarators(void) { return &mcDeclarators; }
 	CCPPMangler*			GetMangler(void) { return &mcMangler; }
 	CCPPUnitData*			GetData(void) { return &mcData; }
@@ -518,6 +521,7 @@ public:
 
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
 	int64					ConstantOfType(SCPP65Type* psType, int64 lliValue);
+	bool					ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue);
 	SCPP65Type*				ConstantTypeOf(CCPPSyntax* pcExpression);
 	bool					BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue);
 	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);

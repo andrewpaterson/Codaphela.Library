@@ -179,6 +179,8 @@ protected:
 	CArrayTemplate<size>	mauiStringLengths;
 	size					muiFirstString;		//The generator's number for the first of them.
 	bool					mbUnsupported;		//Something the front end can't write yet: the function is an error.
+	bool					mbConstants;		//It writes the IR of constant expressions (CCPPConstants): no code is generated and the unit is told nothing.
+	CIRFunction*			mpcConstant;		//The last function FinishConstant kept.
 	bool					mbFloatReported;	//The function's floating point (CCPPUnit::SetNoFloats) has been reported.
 	const char*				mszUnsupportedFile;	//The front end's file (no directory) and line that last left a function to the generator.
 	int						miUnsupportedLine;
@@ -186,11 +188,14 @@ protected:
 	size					muiAttempts;		//Bodies asked for; only the first CCPPCompileOptions::muiFunctionLimit may be written.
 
 public:
-	void			Init(CCPPUnit* pcUnit);
+	void			Init(CCPPUnit* pcUnit, bool bConstants = false);
 	void			Kill(void);
 	void			SetStatistics(CCPPCompileStatistics* pcStatistics);
 
 	bool			Body(CCPPFunction* pcFunction);
+	CIRFunction*	ConstantFunction(CCPPFunction* pcFunction);
+	CIRFunction*	ConstantExpression(const char* szLabel, CCPPSyntax* pcExpression, SCPP65Type* psType);
+	CIRModule*		GetModule(void);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
 	void			InlineUnit(void);
 	bool			FinishUnit(void);
@@ -215,6 +220,8 @@ public:
 protected:
 	void			BeginWriting(CCPPFunction* pcFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes);
 	bool			FinishWriting(bool bResult, const char* szLabel);
+	bool			FinishConstant(bool bResult);
+	void			EndWriting(void);
 	void			OptimiserWarnings(CChars* pszWarnings);
 	bool			GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode, CIRWrittenFunction** ppcWritten);
 	void			FreeWritten(SCPP65IRWritten* psWritten);
