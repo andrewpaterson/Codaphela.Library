@@ -3,6 +3,7 @@
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Logger.h"
 #include "CppCompilerLib/Project.h"
 #include "CppCompilerLib/VisualStudioProject.h"
 #include "TestLib/Assert.h"
@@ -243,10 +244,14 @@ void TestMissingIncludeDirectory(void)
 	CLibrary*			pcLibrary;
 	CConfig*			pcConfig;
 	CTranslationUnit*	pcTU1;
+	SLogConfig			sLogConfig;
 
 	cProject.Init(true);
 
+	//The error it logs is the one wanted: silent, so a Debug build doesn't break on it.
+	sLogConfig = gcLogger.SetSilent();
 	AssertFalse(cProject.AddIncludeDirectory("NoSuchDirectory", false, false));
+	gcLogger.SetConfig(&sLogConfig);
 	pcLibrary = cProject.AddLibrary("Test", ".", false);
 	pcLibrary->AddHeaderFile("TestHeader2.h");
 	pcTU1 = pcLibrary->AddTranslationUnit("TestUnit4.cpp", true);
