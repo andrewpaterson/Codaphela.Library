@@ -71,6 +71,7 @@ void TestFloat32Plane(void);
 void TestFloat32Sphere(void);
 void TestFloat32Symmetric3x3(void);
 void TestFloat64SparseMatrix(void);
+void TestNoise(void);
 void TestFloat32Triangle(void);
 void TestFloat64Vec3(void);
 void TestIntVec4(void);
@@ -252,6 +253,7 @@ int __cdecl main(void)
 	TestFloat32Sphere();
 	TestFloat32Symmetric3x3();
 	TestFloat64SparseMatrix();
+	TestNoise();
 	TestFloat32Triangle();
 	TestIntVec4();
 	TestInt16Vec4();

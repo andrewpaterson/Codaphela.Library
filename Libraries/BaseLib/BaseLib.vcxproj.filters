@@ -1791,6 +1791,9 @@
     <ClInclude Include="Float64SkylineMatrix.h">
       <Filter>Source\Math</Filter>
     </ClInclude>
+    <ClInclude Include="Noise.h">
+      <Filter>Source\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -3009,6 +3012,9 @@
       <Filter>Source\Math</Filter>
     </ClCompile>
     <ClCompile Include="Float64SkylineMatrix.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Noise.cpp">
       <Filter>Source\Math</Filter>
     </ClCompile>
   </ItemGroup>

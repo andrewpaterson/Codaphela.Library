@@ -870,6 +870,9 @@
     <ClCompile Include="TestFloat64SparseMatrix.cpp">
       <Filter>Source\Math</Filter>
     </ClCompile>
+    <ClCompile Include="TestNoise.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestIndexTreeObject.h">

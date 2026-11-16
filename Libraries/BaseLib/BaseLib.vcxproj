@@ -655,6 +655,7 @@
     <ClInclude Include="Float32Symmetric3x3.h" />
     <ClInclude Include="Float64SparseMatrix.h" />
     <ClInclude Include="Float64SkylineMatrix.h" />
+    <ClInclude Include="Noise.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
@@ -1063,6 +1064,7 @@
     <ClCompile Include="Float32Symmetric3x3.cpp" />
     <ClCompile Include="Float64SparseMatrix.cpp" />
     <ClCompile Include="Float64SkylineMatrix.cpp" />
+    <ClCompile Include="Noise.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BaseLib.ruleset" />

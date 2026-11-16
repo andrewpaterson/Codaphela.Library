@@ -431,6 +431,7 @@
     <ClCompile Include="WordKey.cpp" />
     <ClCompile Include="TestFloat32Symmetric3x3.cpp" />
     <ClCompile Include="TestFloat64SparseMatrix.cpp" />
+    <ClCompile Include="TestNoise.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArrayTemplateTestClasses.h" />
