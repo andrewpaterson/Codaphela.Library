@@ -145,7 +145,7 @@ Part A plan (2026-11-15)
   Feature-test macros (__cpp_raw_strings, __cpp_user_defined_literals and the rest) are defined with the item that makes each true, starting here.
   Tests: a group for each item in TestPreprocessor and TestCppTokeniser, and TestCPP816 cases for raw strings and character literals, which reach generated code.
 
-Part B plan (2026-11-15; stages 0 to 3 done 2026-11-16, stage 4 under way)
+Part B plan (2026-11-15; stages 0 to 4 done 2026-11-16)
   The notes on B1 to B18 above were checked by compiling about 190 small programs for the W65C816 with hcp65build, one a feature (they became stage 0's cases).  "Compiles" is all that most of them show: only where a negative array size could prove it was what the code means checked.  This plan replaces the Order above for Part B.
 
   What the notes had wrong:
@@ -189,7 +189,12 @@ Part B plan (2026-11-15; stages 0 to 3 done 2026-11-16, stage 4 under way)
        - for (declaration : range) is made of three variables the program can't name and the expressions on them, which are syntax like any other (CCPPUnit::GetRangeFor, CPPUnitRangeFor.cpp; CCPP65IRFrontEnd::RangeForStatement).  Not done: a range that is an object made for the statement (for (x : make())), which needs a reference to keep a temporary alive (stage 7), and a list in braces (stage 8).
        - *object and ++object, --object had never been an object's operators: they are (postfix ++ and -- are stage 7's).
        As it was planned: (M) B11, B16 and parts of B17: auto, decltype, trailing return types, range-for, alias templates, nullptr_t.
-    4. Under way.  Done 2026-11-16: the IR interpreter (CIRInterpreter, ConstexprPlan.txt stage 3) and calls of constexpr functions as constants (CCPPConstants, stage 4).  Left: constant objects (stage 5), floating point (6), refusing a constexpr variable that isn't a constant and the definition's checks (8), constant data for globals (7, measured first).
+    4. Done 2026-11-16 (the conformance test's Stage4 group: 26 of 26 on both targets).  ConstexprPlan.txt says what each of its stages did.
+       - CIRInterpreter runs the generic IR, memory as objects and pointers as an object and an offset (IRInterpreter.cpp, TestIRInterpreter.cpp); IRFoldInteger is the optimiser's folding and the interpreter's arithmetic both.
+       - CCPPConstants writes a constant as IR with front ends of its own that generate nothing, and the constexpr functions it calls and the variables it reads when the interpreter asks for them.  CCPPUnit::Constant is the tree folder, then a constexpr call (ConstexprCall), then running what names something constexpr (RunConstant).
+       - A constexpr variable is worked out when it is defined, and its definition is an error if it can't be; a constexpr function's definition is checked as [dcl.constexpr] 3 and 4 say.
+       Left: constant data for globals (they are still made by start up code; not needed for compliance), the trail of calls in an error and the limits as compile options, and a test that a floating point constant agrees with the same value worked out at run time (the conformance test would need soft float linked).
+       As it was planned: (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
        As it was planned: (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
     5. (L) B12.  Lambdas: the parser, closure classes, captures, the conversion to a function pointer; then generic lambdas and init-captures (B-3).
     6. (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array deduction, packs everywhere and sizeof..., variable templates, the missing type traits.

@@ -111,6 +111,7 @@ public:
 	bool							mbCLinkage;		//Declared in extern "C": its label is only its name.
 	bool							mbExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
 	bool							mbConstThis;	//A const member function: an overload of the same function without const.
+	bool							mbConstexpr;	//Declared constexpr: its value may be worked out when the program is compiled.
 	ECPPRefQualifier				meRefQualifier;	//Declared & or &&: an overload of the same function declared the other.
 	bool							mbImplicit;		//A constructor or destructor the compiler wrote.
 	bool							mbDeleted;		//= delete: it is an overload like any other, and an error if it is the one chosen.

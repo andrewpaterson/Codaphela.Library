@@ -1068,6 +1068,41 @@ static const SConformanceCase gasConformanceStage4[] =
 		"int main() { return sizeof(a); }\n"
 	},
 	{
+		"ConstexprVirtual", CONFORMANCE_REFUSED,
+		"struct B { constexpr virtual int f() const { return 1; } };\n"
+		"int main() { B b; return b.f(); }\n"
+	},
+	{
+		"ConstexprGoto", CONFORMANCE_REFUSED,
+		"constexpr int f(int n) { if (n) { goto out; } n = 2; out: return n; }\n"
+		"char a[f(1)];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprStaticLocal", CONFORMANCE_REFUSED,
+		"constexpr int f(int n) { static int s = 1; return n + s; }\n"
+		"char a[f(1)];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprUninitialised", CONFORMANCE_REFUSED,
+		"constexpr int f(int n) { int r; r = n; return r; }\n"
+		"char a[f(1)];\n"
+		"int main() { return sizeof(a); }\n"
+	},
+	{
+		"ConstexprConstructorMissesMember", CONFORMANCE_REFUSED,
+		"struct P { int x; int y; constexpr P(int a) : x(a) {} };\n"
+		"constexpr P gp(1);\n"
+		"int main() { return gp.x; }\n"
+	},
+	{
+		"ConstexprNonLiteralParameter", CONFORMANCE_REFUSED,
+		"struct N { int v; ~N() {} };\n"
+		"constexpr int f(N n) { return 1; }\n"
+		"int main() { N n; n.v = 1; return f(n); }\n"
+	},
+	{
 		"ConstexprRunTime", 93,
 		"constexpr int sq(int x) { return x * x; }\n"
 		"struct P { int x; constexpr P(int a) : x(a) {} constexpr int get() const { return x; } };\n"

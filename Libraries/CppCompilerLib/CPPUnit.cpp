@@ -1665,6 +1665,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		pcFunction->mbPure |= bPure;
 		pcFunction->mbCLinkage |= mcContext.IsCLinkage() && !pcClass;
 		pcFunction->mbExplicit |= (uiFlags & CPPDS_EXPLICIT) != 0;
+		pcFunction->mbConstexpr |= (uiFlags & CPPDS_CONSTEXPR) != 0;
 		return pcFunction;
 	}
 
@@ -1685,6 +1686,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcFunction->mbVirtual = (uiFlags & CPPDS_VIRTUAL) != 0;
 	pcFunction->mbPure = bPure;
 	pcFunction->mbInline = (uiFlags & (CPPDS_INLINE | CPPDS_CONSTEXPR)) != 0;
+	pcFunction->mbConstexpr = (uiFlags & CPPDS_CONSTEXPR) != 0;
 	pcFunction->mpcTemplate = pcTemplate;
 	pcFunction->mbCLinkage = mcContext.IsCLinkage() && !pcClass;
 	pcFunction->mbExplicit = (uiFlags & CPPDS_EXPLICIT) != 0;
@@ -2304,6 +2306,10 @@ bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* p
 	{
 		//A body skipped in a system header.
 		return true;
+	}
+	if (!mpcConstants->CheckDefinition(pcFunction))
+	{
+		return false;
 	}
 	pcFunction->mbInline = pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & (CPPDS_INLINE | CPPDS_CONSTEXPR));
 	if (pcFunction->mbInline)

@@ -1,7 +1,18 @@
 constexpr: constant expressions worked out by running the IR
 ==============================================================
 
-Plan only (2026-11-15), not started.  It is stage 4 of Part B in CppParserTodo.txt (section 6), planned on its own at the user's word: "run the IR at compile time but plan this step out all on its own".  Found by reading the code and by compiling small programs with hcp65build; check each statement about the code before relying on it.
+Done 2026-11-16 but for what "Where it stands" says.  The rest of this file is the plan as it was written (2026-11-15).
+
+Where it stands (2026-11-16)
+  1. The table: the conformance test's Stage4 group (TestCPPConformanceCases.h), 26 cases, refused ones included.
+  2. Not done as planned: no front end state was gathered into an object.  CCPPConstants has front ends of its own (CCPP65IRFrontEnd in constant mode: no back end, nothing optimised or given to the unit), as many as are writing at once, and the unit puts the C++ function being written aside (CCPPUnit::EnterFunctionScope).  So no listing could change.
+  3. Done: CIRInterpreter (IRInterpreter.cpp), IRFoldInteger shared with the optimiser, TestIRInterpreter.cpp.  Overflow wraps; floats are the host's.
+  4. Done: CCPPUnit::ConstexprCall, CCPPConstants::Value and ConstantFunction.
+  5. Done: constant objects (CCPPConstants::ConstantObject, CCPP65IRFrontEnd::ConstantInitialiser), read back through RunConstant.  A constexpr variable is worked out when it is defined (CheckVariable).
+  6. Done but for the soft float test, which needs the conformance test to link soft float.
+  7. Not done: globals are still made by start up code.  Not needed for compliance.
+  8. Partly: each failure has a reason, and the definition's checks are CCPPConstants::CheckDefinition.  The trail of calls and the limits as compile options are not done.
+  It is stage 4 of Part B in CppParserTodo.txt (section 6), planned on its own at the user's word: "run the IR at compile time but plan this step out all on its own".  Found by reading the code and by compiling small programs with hcp65build; check each statement about the code before relying on it.
 
 
 Where things are

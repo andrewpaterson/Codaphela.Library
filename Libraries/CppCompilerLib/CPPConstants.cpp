@@ -497,3 +497,278 @@ bool CCPPConstants::CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode)
 	}
 	return bResult;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What [dcl.constexpr] 3 and 4 ask of a constexpr function's definition,
+// whether or not it is ever called for a constant: it isn't virtual, it
+// returns and takes literal types, its body has no goto, try, static or
+// thread_local variable or variable left uninitialised, and a constructor
+// initialises every member that has no constructor of its own.  An
+// instance of a template that doesn't is only not constexpr ([dcl.constexpr]
+// 6), so instances aren't checked.  A class being laid out (a constexpr
+// member of it) is taken to be literal.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::CheckDefinition(CCPPFunction* pcFunction)
+{
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	size							i;
+
+	pcDefinition = pcFunction->mpcDefinition;
+	if (!pcFunction->mbConstexpr || !pcDefinition || pcFunction->mpcTemplate || (pcFunction->mpcClass && pcFunction->mpcClass->mpcTemplate))
+	{
+		return true;
+	}
+	if (pcFunction->mbVirtual)
+	{
+		return mpcUnit->ReportError(pcDefinition, "A constexpr function can't be virtual");
+	}
+	if (pcFunction->meKind == CPPFK_Destructor)
+	{
+		return mpcUnit->ReportError(pcDefinition, "A destructor can't be constexpr");
+	}
+	if ((pcFunction->meKind == CPPFK_Function) && !IsLiteralType(pcFunction->mpsReturn))
+	{
+		return mpcUnit->ReportError(pcDefinition, "A constexpr function must return a literal type");
+	}
+	for (i = 0; i < pcFunction->mapsParameters.NumElements(); i++)
+	{
+		if (!IsLiteralType(pcFunction->mapsParameters.GetPtr(i)))
+		{
+			return mpcUnit->ReportError(pcDefinition, "A constexpr function's parameters must be of literal types");
+		}
+	}
+	if ((pcFunction->meKind == CPPFK_Constructor) && !CheckConstructor(pcFunction))
+	{
+		return false;
+	}
+	return CheckBody(pcDefinition->mpcBody);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if objects of the type can be constants: void, scalars, references,
+// arrays of literal types, and a class with no destructor to run whose
+// members and bases are literal, that is an aggregate or has a constexpr
+// constructor.  [basic.types] 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::IsLiteralType(SCPP65Type* psType)
+{
+	CCPPClass*		pcClass;
+	CCPPFunction*	pcFunction;
+	size			i;
+	bool			bConstructor;
+
+	if (!psType || psType->IsReference() || !psType->IsClass())
+	{
+		return !psType || !psType->IsArray() || IsLiteralType(psType->psBase);
+	}
+	pcClass = psType->pcClass;
+	if (!pcClass->IsComplete() && pcClass->mpcSpecifier && !pcClass->IsBeingMade())
+	{
+		//A class is laid out when it is first needed whole: this is such a need.
+		mpcUnit->CompleteClass(pcClass, NULL);
+	}
+	if (!pcClass->IsComplete())
+	{
+		return true;
+	}
+	if (pcClass->NeedsDestructor())
+	{
+		return false;
+	}
+	bConstructor = !pcClass->mbConstructors;
+	for (i = 0; !bConstructor && (i < pcClass->mapcMembers.NumElements()); i++)
+	{
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		bConstructor = (pcFunction->meKind == CPPFK_Constructor) && pcFunction->mbConstexpr && (pcFunction != pcClass->GetCopier(false, false)) && (pcFunction != pcClass->GetCopier(false, true));
+	}
+	if (!bConstructor)
+	{
+		return false;
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		if (!IsLiteralType(pcClass->macBases.Get(i)->pcClass->mpsType))
+		{
+			return false;
+		}
+	}
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		if (!IsLiteralType(pcClass->macFields.Get(i)->psType))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a constexpr function's body may not have.  A class defined in it
+// is its own.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::CheckBody(CCPPSyntax* pcNode)
+{
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	size							i;
+
+	if (!pcNode || (pcNode->GetKind() == CPPS_ClassSpecifier))
+	{
+		return true;
+	}
+	switch (pcNode->GetKind())
+	{
+	case CPPS_GotoStatement:
+		return mpcUnit->ReportError(pcNode, "A constexpr function can't have goto");
+	case CPPS_TryStatement:
+		return mpcUnit->ReportError(pcNode, "A constexpr function can't have try");
+	case CPPS_SimpleDeclaration:
+		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcNode;
+		if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_TYPEDEF))
+		{
+			return true;
+		}
+		if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_THREAD_LOCAL)))
+		{
+			return mpcUnit->ReportError(pcNode, "A constexpr function can't have a static or thread_local variable");
+		}
+		for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
+		{
+			pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
+			if ((pcInit->GetKind() == CPPS_InitDeclarator) && !pcInit->mpcInitializer && pcInit->mpcDeclarator && !pcInit->mpcDeclarator->IsFunction() &&
+				NeedsInitialiser(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit))
+			{
+				return mpcUnit->ReportError(pcInit, "A variable in a constexpr function must be initialised");
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		if (!CheckBody(pcNode->GetChild(i)))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a variable or member declared so, with no initialiser, is left
+// with no value: what isn't an object (whose constructor gives it one) or
+// an array of them.  False if its type can't be worked out here.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::NeedsInitialiser(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psType;
+	size		uiErrors;
+
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	mpcUnit->BeginQuiet();
+	psType = mpcUnit->GetDeclarators()->GetType(pcSpecifiers, pcDeclarator, pcNode);
+	mpcUnit->EndQuiet();
+	mpcUnit->GetErrors()->Truncate(uiErrors);
+	while (psType && psType->IsArray())
+	{
+		psType = psType->psBase;
+	}
+	return psType && !psType->IsClass() && !psType->IsReference();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A constexpr constructor initialises every member that needs a value:
+// with a member initialiser or its default one.  One that delegates to
+// another of its class's, and a union's, are left be.  [dcl.constexpr] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::CheckConstructor(CCPPFunction* pcFunction)
+{
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPSyntaxClassSpecifier*		pcSpecifier;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxName*					pcName;
+	CCPPSyntax*						pcMember;
+	CChars							szMessage;
+	size							i;
+	size							j;
+
+	pcDefinition = pcFunction->mpcDefinition;
+	pcSpecifier = pcFunction->mpcClass->mpcSpecifier;
+	if (!pcSpecifier || pcFunction->mpcClass->mbUnion || IsInitialisedMember(pcDefinition, pcFunction->mpcClass->mlliName))
+	{
+		return true;
+	}
+	for (i = 0; i < pcSpecifier->macpMembers.NumElements(); i++)
+	{
+		pcMember = pcSpecifier->macpMembers.GetPtr(i);
+		if (pcMember->GetKind() != CPPS_SimpleDeclaration)
+		{
+			continue;
+		}
+		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcMember;
+		if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_TYPEDEF | CPPDS_STATIC | CPPDS_FRIEND)))
+		{
+			continue;
+		}
+		for (j = 0; j < pcDeclaration->macpDeclarators.NumElements(); j++)
+		{
+			pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(j);
+			if ((pcInit->GetKind() != CPPS_InitDeclarator) || pcInit->mpcInitializer || !pcInit->mpcDeclarator || pcInit->mpcDeclarator->IsFunction())
+			{
+				continue;
+			}
+			pcName = pcInit->mpcDeclarator->GetName();
+			if (!pcName || IsInitialisedMember(pcDefinition, mpcUnit->GetComponentName(pcName->GetLast())) || !NeedsInitialiser(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit))
+			{
+				continue;
+			}
+			szMessage.Init("A constexpr constructor must initialise every member [");
+			mpcUnit->AppendTokensText(pcName->GetLast()->miName, pcName->GetLast()->miName, &szMessage);
+			szMessage.Append("]");
+			mpcUnit->ReportError(pcDefinition, szMessage.Text());
+			szMessage.Kill();
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the constructor's member initialisers name the member (or the
+// class, for one that delegates).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::IsInitialisedMember(CCPPSyntaxFunctionDefinition* pcDefinition, int64 lliName)
+{
+	CCPPSyntaxMemberInitializer*	pcInitialiser;
+	size							i;
+
+	for (i = 0; i < pcDefinition->macpMemberInitializers.NumElements(); i++)
+	{
+		pcInitialiser = (CCPPSyntaxMemberInitializer*)pcDefinition->macpMemberInitializers.GetPtr(i);
+		if (pcInitialiser->mpcName && (mpcUnit->GetComponentName(pcInitialiser->mpcName->GetLast()) == lliName))
+		{
+			return true;
+		}
+	}
+	return false;
+}

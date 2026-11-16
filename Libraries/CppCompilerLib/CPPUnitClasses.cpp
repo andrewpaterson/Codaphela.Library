@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "CTIdentifier.h"
 #include "CPPUnit.h"
+#include "CPPConstants.h"
 
 
 //The generator's classes: finding and making them, laying them out, their members and what making or destroying one needs.
@@ -815,6 +816,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			return true;
 		}
 		pcFunction->SetDefinition(pcDefinition);
+		mpcConstants->CheckDefinition(pcFunction);
 		return true;
 
 	case CPPS_SimpleDeclaration:

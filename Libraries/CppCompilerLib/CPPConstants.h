@@ -84,6 +84,8 @@ public:
 	char*			GetReason(void);
 
 	bool			CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode);
+	bool			CheckDefinition(CCPPFunction* pcFunction);
+	bool			IsLiteralType(SCPP65Type* psType);
 	bool			IsConstantVariable(CCPPVariable* pcVariable);
 
 	void			NoteFunction(const char* szLabel, CCPPFunction* pcFunction);
@@ -99,6 +101,10 @@ protected:
 	SCPPConstantFunction*	FindFunction(const char* szLabel);
 	SCPPConstantVariable*	FindVariable(const char* szLabel);
 	CCPPSyntax*				VariableInitialiser(CCPPVariable* pcVariable, uint32* puiFlags);
+	bool					CheckBody(CCPPSyntax* pcNode);
+	bool					CheckConstructor(CCPPFunction* pcFunction);
+	bool					IsInitialisedMember(CCPPSyntaxFunctionDefinition* pcDefinition, int64 lliName);
+	bool					NeedsInitialiser(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode);
 	bool					IsConstexpr(CCPPFunction* pcFunction);
 };
 
