@@ -1071,8 +1071,6 @@
     <None Include="FunctionCaller_ThisMultiCall.inl" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="gpl.txt" />
-    <None Include="lgpl.txt" />
     <None Include="TimSort.inl" />
     <None Include="TypeConverter_Mapping.inl" />
     <None Include="LibraryBreakdown.txt" />

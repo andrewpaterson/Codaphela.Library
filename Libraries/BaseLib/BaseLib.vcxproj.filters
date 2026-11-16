@@ -88,9 +88,6 @@
     <Filter Include="Source\File\Copy">
       <UniqueIdentifier>{4f5039fe-7a3c-4288-8e21-539dcd785499}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\License">
-      <UniqueIdentifier>{7a5e0a20-0e05-4522-b96a-dcf4304888bb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Math">
       <UniqueIdentifier>{3611c317-81f0-42ee-bc62-4ae33c574090}</UniqueIdentifier>
     </Filter>
@@ -3016,12 +3013,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="gpl.txt">
-      <Filter>Source\License</Filter>
-    </None>
-    <None Include="lgpl.txt">
-      <Filter>Source\License</Filter>
-    </None>
     <None Include="TypeConverter_Mapping.inl">
       <Filter>Source\Data\Types\Converter</Filter>
     </None>
