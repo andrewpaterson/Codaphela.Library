@@ -185,6 +185,25 @@ void CCPPUnitData::AppendZeros(int iBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The address iOffset into pszLabel's data: a pointer, or a reference, of
+// iBytes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnitData::AppendAddress(CChars* pszLabel, int iOffset, int iBytes)
+{
+	mszData.Append((iBytes == 2) ? "\t\t.word " : "\t\t.long ");
+	mszData.Append(pszLabel);
+	if (iOffset != 0)
+	{
+		mszData.Append('+');
+		mszData.Append(iOffset);
+	}
+	mszData.AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A start up routine's entry in the init (or fini) table, kept only while the global's data section is.
 //
 //////////////////////////////////////////////////////////////////////////

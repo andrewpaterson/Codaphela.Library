@@ -58,7 +58,7 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	}
 	psType = (psTrue->pcClass == pcClass) ? psTrue : psFalse;
 
-	bLvalue = !psInto && IsObjectLvalue(pcConditional->mpcTrue) && IsObjectLvalue(pcConditional->mpcFalse);
+	bLvalue = !psInto && mpcUnit->IsObjectLvalue(pcConditional->mpcTrue) && mpcUnit->IsObjectLvalue(pcConditional->mpcFalse);
 	if (!bLvalue)
 	{
 		if (psInto)
@@ -112,36 +112,6 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	}
 	StartBlock(pcEnd);
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An expression of a class type that is an object where it is (named,
-// pointed at, indexed, or a reference to one), not one to be made.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::IsObjectLvalue(CCPPSyntax* pcExpression)
-{
-	SCPP65Type*	psType;
-
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
-	psType = mpcUnit->TypeOf(pcExpression);
-	if (psType && psType->IsReference())
-	{
-		return true;
-	}
-	switch (pcExpression->GetKind())
-	{
-	case CPPS_IdExpression:
-	case CPPS_MemberExpression:
-	case CPPS_SubscriptExpression:
-		return true;
-	case CPPS_UnaryExpression:
-		return ((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator == CT_Multiply;
-	default:
-		return false;
-	}
 }
 
 
@@ -1485,7 +1455,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 // A temporary of psType holding pcValue, for a reference to bind to.  It
 // is in the function's frame, so it outlasts the call; an object, made
 // from the value by its class's constructor, is destroyed at the end of
-// the full expression.
+// the full expression (or a local reference's scope, ExtendTemporary).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, SCPP65IRPlace* psPlace)

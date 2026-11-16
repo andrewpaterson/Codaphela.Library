@@ -548,6 +548,64 @@ bool CCPPUnit::GenerateAfterTurn(CCPP65Assembly* pcDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A global reference (pszLabel's) that pcInitialiser binds to a temporary
+// (const long& r = 7, BindsToTemporary): the temporary is a global of its
+// own, pszBound (pszLabel and __Bound), made from the initialiser and
+// destroyed as a global of its type is.  Its data goes before the
+// reference's, which is its address, or its base's *piOffset into it.
+// pszBound is left empty for any other initialiser.  False (and *pbResult cleared) after an error.
+// [class.temporary] 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset, bool* pbResult)
+{
+	SCPP65Type*	psType;
+	CCPPSyntax*	pcValue;
+	bool		bClass;
+
+	pcValue = pcInitialiser;
+	if (pcValue && (pcValue->GetKind() == CPPS_ParenthesisedInitializer) && (ListElements(pcValue)->NumElements() == 1))
+	{
+		pcValue = ListElements(pcValue)->GetPtr(0);
+	}
+	if (!pcValue || (pcValue->GetKind() == CPPS_InitializerList))
+	{
+		return true;
+	}
+	psType = psReference->psBase->Unqualified();
+	if (!BindsToTemporary(psReference, pcValue))
+	{
+		//const S& r = make() and const S& r = D(): the object made for the reference, which may be of a class derived from S.
+		psType = TypeOf(pcValue);
+		if (!psReference->psBase->IsClass() || !psType || !psType->IsClass() || IsObjectLvalue(pcValue))
+		{
+			return true;
+		}
+	}
+
+	bClass = psType->IsClass();
+	if (bClass && !CompleteObjectClass(psType->pcClass, pcInitialiser))
+	{
+		*pbResult = false;
+		return false;
+	}
+	*piOffset = 0;
+	if (bClass && (psType->pcClass != psReference->psBase->pcClass))
+	{
+		IsDerived(psType->pcClass, psReference->psBase->pcClass, piOffset);
+	}
+	pszBound->Append(pszLabel);
+	pszBound->Append("__Bound");
+	mcData.BeginData(pszBound, DataAlignment(psType, bClass), bGlobal, szOptions, false);
+	mcData.AppendZeros(psType->iBytes);
+	*pbResult &= GlobalStartUpRoutines(psType, pcInitialiser, pszBound, true, bClass && (psType->pcClass->mpcDestructor != NULL));
+	mcData.NextStartUp();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A global's R_Initialise and R_Finalise are written by the IR front end (CCPP65IRFrontEnd::GlobalRoutine).  bConstruct when it needs constructing, bDestroy when it needs
 // destroying.
 //
@@ -1970,6 +2028,9 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 	bool						bBss;
 	bool						bInitialise;
 	bool						bConstantData;
+	const char*					szOptions;
+	CChars						szBound;
+	int							iBound;
 
 	pcSpecifiers = pcDeclaration->mpcSpecifiers;
 	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_TYPEDEF))
@@ -2082,7 +2143,15 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		AppendVariableLabel(&szLabel, pcVariable);
 		bConstantData = (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) != 0;
 		bBss = !bConstantData && IsBss(pcInitialiser, psType);
-		mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !pcVariable->mbInternal, mpcDefining ? ", comdat" : (HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL), bBss);
+		szOptions = mpcDefining ? ", comdat" : (HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
+		szBound.Init();
+		if (psType->IsReference() && !BoundTemporary(psType, pcInitialiser, &szLabel, !pcVariable->mbInternal, szOptions, &szBound, &iBound, &bResult))
+		{
+			szBound.Kill();
+			szLabel.Kill();
+			continue;
+		}
+		mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !pcVariable->mbInternal, szOptions, bBss);
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
 		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
@@ -2090,6 +2159,11 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		if (bConstantData && mpcConstants->AppendData(pcVariable, &mcData))
 		{
 			//A constexpr variable's value, worked out when it was defined: its data, with nothing to run.
+		}
+		else if (szBound.Length() > 0)
+		{
+			//A reference to the temporary it is bound to (BoundTemporary).
+			mcData.AppendAddress(&szBound, iBound, psType->iBytes);
 		}
 		else if (bBss)
 		{
@@ -2108,6 +2182,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, true, psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL));
 		}
 		mcData.NextStartUp();
+		szBound.Kill();
 		szLabel.Kill();
 	}
 	return bResult;

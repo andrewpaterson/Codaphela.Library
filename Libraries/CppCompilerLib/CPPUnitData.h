@@ -48,6 +48,7 @@ public:
 	void		AppendSpace(int iBytes);
 	void		AppendData(int iBytes, int64 lliValue);
 	void		AppendZeros(int iBytes);
+	void		AppendAddress(CChars* pszLabel, int iOffset, int iBytes);
 	void		AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData);
 	int			GetStartUp(void) { return miStartUps; }
 	void		NextStartUp(void) { miStartUps++; }

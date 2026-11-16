@@ -177,7 +177,7 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        - T&& is a type of its own (SCPP65Type::bRvalue; O in a label where T& is R), and a reference to a reference is one reference (CCPP65Types::Reference).
        - What kind of value an expression is: CCPPUnit::IsRvalue, from what it is declared to give (DeclaredTypeOf: the reference a call or a cast gives, which TypeOf takes away).  A local object is an rvalue where it is returned (IsReturnedLocal).
        - Overloads: T&& takes only an rvalue and T& (of what isn't an object) only an lvalue; an object with no name goes to T&& before const T& (CPPCR_RvalueToConst).  T&& of a template's own T is U& for an lvalue (CCPPDeduction::ForwardedType), no longer the argument's type made const.  Left as they were, and not the standard's: an array or a function is a const pointer there, and T& takes an object with no name, as MSVC lets it.
-       - References to values: const T& and T&& of a value are a temporary (CCPPUnit::BindsToTemporary), for an argument and for a local reference, and const Class& of what a Class is made from.  A global's or a field's reference to a value is still refused, as its temporary must outlast the frame (stage 7), and so is a local reference to an object made for it.
+       - References to values: const T& and T&& of a value are a temporary (CCPPUnit::BindsToTemporary), for an argument and for a local reference, and const Class& of what a Class is made from.  A global's reference to a value, and a local reference to an object made for it, were stage 7's.
        - static_cast<T&&>(x) and (T&)x are x (CCPP65TypeChecker::ReferenceCast, CCPP65IRFrontEnd::ReferenceCastPlace).
        - Copies the compiler writes: an object with no copy of its own is copied part by part, each by its class's move where the source is going and it has one (CCPPClass::GetPartCopier), and assigned part by part too (AssignParts: object = object copied the bytes whatever its fields' operator= said).  A class that declares a move and no copy can't be copied (IsCopyDeleted).
        - void f() & and void f() && (CCPPFunction::meRefQualifier, CCPPBinder::CalledObject).
@@ -187,7 +187,7 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        - auto for a variable is what its initialiser makes it (CCPPDeclarators::AutoType, DeduceAuto), asked where every variable's type was (GetType).  decltype (DecltypeType) is from the value category stage 2 gave.  decltype(nullptr) was already a type of its own.
        - auto f() -> type has its parameters in scope in the type; auto f() { } and decltype(auto) f() { } take the type of their first return (CCPPUnit::ResolveReturn).  The unit can put the function being written aside to make another's parameters and locals (EnterFunctionScope), which stages 4 and 5 will want too.
        - template<class T> using Name = type (AliasTemplateType).  Not done: deducing a template's argument through an alias (f(Alias<T>&)).
-       - for (declaration : range) is made of three variables the program can't name and the expressions on them, which are syntax like any other (CCPPUnit::GetRangeFor, CPPUnitRangeFor.cpp; CCPP65IRFrontEnd::RangeForStatement).  Not done: a range that is an object made for the statement (for (x : make())), which needs a reference to keep a temporary alive (stage 7), and a list in braces (stage 8).
+       - for (declaration : range) is made of three variables the program can't name and the expressions on them, which are syntax like any other (CCPPUnit::GetRangeFor, CPPUnitRangeFor.cpp; CCPP65IRFrontEnd::RangeForStatement).  Not done: a list in braces (stage 8).  A range that is an object made for the statement (for (x : make())) was stage 7's.
        - *object and ++object, --object had never been an object's operators: they are (postfix ++ and -- are stage 7's).
        As it was planned: (M) B11, B16 and parts of B17: auto, decltype, trailing return types, range-for, alias templates, nullptr_t.
     4. Done 2026-11-16 (the conformance test's Stage4 group: 26 of 26 on both targets).  ConstexprPlan.txt says what each of its stages did.
@@ -229,7 +229,27 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        through an alias template.
        As it was planned: (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array
        deduction, packs everywhere and sizeof..., variable templates, the missing type traits.
-    7. (M, many small) B5 and B9.  Objects: static locals that need a guard, postfix ++ and -- on objects, operator-> returning an object, conversion functions to classes and references, pointers to overloaded members, temporaries bound to references, new[] with initialisers and two dimensions, placement new with more arguments, ?: on different class types, extern locals, thread_local.  Each is on its own and can go between other stages.
+    7. DONE 2026-11-16 (stage 7's 22 of 23 cases, 324 of 344 in all), in five commits:
+       - 1: extern locals (CCPPUnit::ExternLocal), thread_local as static storage, static locals with a first-time guard
+         (G<n>_name, CCPP65IRFrontEnd::GuardedStaticLocal).
+       - 2: postfix ++ and -- on objects (operator++(int) given CCPPUnit::ImplicitZero), operator-> chains (CPP_MAX_ARROWS).
+       - 3: the forms of new and delete: allocation functions chosen by overload with the placement arguments
+         (CCPPBinder::FindAllocation, the reserved placement form IsReservedPlacement), a class's own operator delete
+         (FindDeallocation), new T[n][N], new T[n]() and new T[n]{...}; implicit arguments with values
+         (CCPPSyntaxImplicitArgument, CCPPUnit::ImplicitValue).
+       - 4: conversion functions to classes (CCPPBinder::ConversionToClass; their labels carry the type converted to),
+         &Class::f of an overloaded member (CCPPOverloads::FindMemberFunction), ?: with a base and a derived class
+         (CCPPUnit::ConditionalClass).
+       - 5: temporaries bound to references: a local reference keeps its temporary to the end of its scope
+         (CCPP65IRFrontEnd::ExtendTemporary), and so range-for over an object made for it; a global reference's temporary is
+         a global of its own (CCPPUnit::BoundTemporary, _r__Bound).
+       Not done: FunctionTryBlock waits for exceptions (B2); a static local object whose class needs a destructor (question
+       11); a temporary bound through another reference or a field (const int& r = S(1).v), which is refused; the W65C816
+       links a duplicate label without complaint (found when two conversion functions had one).
+       As it was planned: (M, many small) B5 and B9.  Objects: static locals that need a guard, postfix ++ and -- on objects,
+       operator-> returning an object, conversion functions to classes and references, pointers to overloaded members,
+       temporaries bound to references, new[] with initialisers and two dimensions, placement new with more arguments, ?: on
+       different class types, extern locals, thread_local.
     8. (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's user-defined literals), the noexcept operator.
     9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  A dynamic_cast<T&> that fails traps (the user), there being nothing to throw until exceptions are decided.  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.
     10. (M) B1, namespaces to the standard (added 2026-11-16, at the user's word, from 70 cases of N4140's namespace and lookup

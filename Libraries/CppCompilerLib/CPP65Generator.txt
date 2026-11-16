@@ -686,11 +686,17 @@ References
 A reference is the address of what it refers to, 4 bytes.  Using one loads the
 address and works on what it points at.  A reference parameter is passed the
 argument's address; a function returning a reference leaves the address in A; a
-reference variable or field is bound to its initialiser's address.  The initialiser
-must be an lvalue (temporaries are not supported yet).  A const reference parameter
-also takes a value with no address, or one of another type (const long& of a char):
-the caller makes a temporary in its frame and passes that.  Only a const reference
-does: int& of a literal is an error, and an overload that can't take it isn't chosen.
+reference variable or field is bound to its initialiser's address.  A const reference
+(or T&&) also takes a value with no address, or one of another type (const long& of a
+char): a parameter's caller makes a temporary in its frame and passes that.  A local
+reference bound to a temporary (const S& r = make(); const int& i = 4) keeps it: the
+temporary is destroyed when the reference's scope is left, as a local object is, not
+at the end of the full expression.  A global reference's temporary is a global of its
+own (_r__Bound), made and destroyed as one is, and the reference's data is its
+address (its base's in it, for const S& r = D()).  A temporary bound through another
+reference or a field (const S& r = S(1).Self(), const int& r = S(1).v) is not
+supported.  Only a const reference binds to a temporary: int& of a literal is an
+error, and an overload that can't take it isn't chosen.
 
 
 Operators

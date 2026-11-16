@@ -1540,6 +1540,34 @@ static const SConformanceCase gasConformanceStage7[] =
 		"int main() { int a = 2; H h(a); a = 3; return h.r * 100 + gr * 10 + (int)gt; }\n"
 	},
 	{
+		"ReferenceTemporaryScopes", 110,
+		"long gOrder = 0;\n"
+		"struct S { int v; S(int a) : v(a) {} ~S() { gOrder = gOrder * 10 + v; } };\n"
+		"struct D : S { D() : S(5) {} };\n"
+		"int f(int n) { S a(1); const S& r = S(2); S&& q = S(3); const S& d = D(); for (int i = 0; i < n; i++) { const S& w = S(7); if (i == 1) break; } return r.v + q.v + d.v; }\n"
+		"int main() { int x = f(3); return (gOrder == 775321) * 100 + x; }\n"
+	},
+	{
+		"GlobalReferenceTemporaries", 3467,
+		"int gDead = 0;\n"
+		"struct S { int v; S(int a) : v(a) {} ~S() { gDead++; } };\n"
+		"struct C { int c; C() : c(8) {} };\n"
+		"struct D : C, S { D() : S(6) {} };\n"
+		"S make() { return S(3); }\n"
+		"const S& g1 = make();\n"
+		"const S& g2 = 4;\n"
+		"const S& g3 = D();\n"
+		"const long& g4 = 7;\n"
+		"int main() { return g1.v * 1000 + g2.v * 100 + g3.v * 10 + (int)g4 + gDead * 10000; }\n"
+	},
+	{
+		"RangeForTemporary", 1231,
+		"int gDead = 0;\n"
+		"struct L { int a[3]; L() { a[0] = 1; a[1] = 2; a[2] = 3; } ~L() { gDead++; } int* begin() { return a; } int* end() { return a + 3; } };\n"
+		"L make() { return L(); }\n"
+		"int main() { int t = 0; for (int x : make()) { t = t * 10 + x + gDead * 5; } return t * 10 + gDead; }\n"
+	},
+	{
 		"NewArrayForms", 3457,
 		"#ifdef _WIN64\n"
 		"typedef unsigned long long size_t;\n"

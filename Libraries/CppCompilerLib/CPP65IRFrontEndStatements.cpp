@@ -188,6 +188,33 @@ void CCPP65IRFrontEnd::AddLiving(SCPP65IRPlace* psPlace)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A local reference bound to a temporary its initialiser made (at
+// sReferred) keeps it: it is destroyed when the reference's scope is left,
+// not at the end of the full expression.  [class.temporary] 6
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::ExtendTemporary(SIRReference sReferred)
+{
+	SCPP65IRTemporary*	psTemporary;
+	SCPP65IRPlace		sPlace;
+	size				ui;
+
+	for (ui = masTemporaries.NumElements(); ui > 0; ui--)
+	{
+		psTemporary = masTemporaries.Get(ui - 1);
+		if (!psTemporary->bConditional && psTemporary->sPlace.sAddress.Equals(sReferred))
+		{
+			sPlace = psTemporary->sPlace;
+			masTemporaries.RemoveAt(ui - 1);
+			AddLiving(&sPlace);
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Destroys the objects declared since uiLiving (the last first) and
 // forgets them: the end of their scope.
 //
@@ -415,7 +442,8 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 			return false;
 		}
 
-		//Each initialiser is a full expression.  A reference to a temporary would keep it alive (not supported).
+		//Each initialiser is a full expression.  A temporary a reference is bound to through another (const S& r =
+		//S(1).Self()) would be destroyed at its end, as one bound through a field (const int& r = S(1).v) mustn't.
 		if (pcVariable->mpsType->IsReference() && (masTemporaries.NumElements() > uiTemporaries))
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -547,9 +575,9 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	{
 		if (mpcUnit->BindsToTemporary(psPlace->psType, pcInitialiser))
 		{
-			//const int& r = 3 and int&& r = 3: a temporary that lasts as long as the function's frame, which is
-			//as long as a local reference does.  A global's, or a field's, would outlast it.
-			if (!bInFrame || psPlace->psType->psBase->IsClass())
+			//const int& r = 3, int&& r = 3 and const S& r = 3: a temporary in the function's frame, which lasts as
+			//long as a local reference does.  A global's, or a field's, would outlast it.
+			if (!bInFrame)
 			{
 				return Unsupported(__FILE__, __LINE__);
 			}
@@ -562,6 +590,10 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		else if (!Place(pcInitialiser, &sReferred) || !ReferenceAddress(&sReferred, psPlace->psType, &sValue.sValue))
 		{
 			return false;
+		}
+		if (bInFrame)
+		{
+			ExtendTemporary(sReferred.sAddress);
 		}
 		sValue.psType = psPlace->psType;
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sValue.sValue, psPlace->sAddress);
@@ -1086,7 +1118,7 @@ bool CCPP65IRFrontEnd::RangeForVariable(CCPPSyntaxRangeForStatement* pcFor, CCPP
 		return false;
 	}
 
-	//A reference to a temporary would keep it alive (not supported).
+	//A temporary a reference is bound to through another, or through a field, is not supported (see Declaration).
 	if (sPlace.psType->IsReference() && (masTemporaries.NumElements() > uiTemporaries))
 	{
 		return Unsupported(__FILE__, __LINE__);

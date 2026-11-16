@@ -686,7 +686,7 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 			//for the call (not an object lvalue of the parameter's class: a call's, Class(...)'s, or one a converting
 			//constructor or conversion function makes) is the parameter, which the called function destroys, so it's
 			//made in a temporary the caller doesn't destroy.
-			if (!IsObjectLvalue(pcArgument) || !IsObjectOf(pcArgument, psParameter->pcClass))
+			if (!mpcUnit->IsObjectLvalue(pcArgument) || !IsObjectOf(pcArgument, psParameter->pcClass))
 			{
 				if (!Temporary(psParameter, &sCopy, false) || !Construct(&sCopy, NULL, pcArgument))
 				{

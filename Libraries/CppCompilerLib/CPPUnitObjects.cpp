@@ -219,6 +219,36 @@ SCPP65Type* CCPPUnit::CastClassType(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An expression of a class type that is an object where it is (named,
+// pointed at, indexed, or a reference to one), not one to be made.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsObjectLvalue(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	pcExpression = SkipParentheses(pcExpression);
+	psType = TypeOf(pcExpression);
+	if (psType && psType->IsReference())
+	{
+		return true;
+	}
+	switch (pcExpression->GetKind())
+	{
+	case CPPS_IdExpression:
+	case CPPS_MemberExpression:
+	case CPPS_SubscriptExpression:
+		return true;
+	case CPPS_UnaryExpression:
+		return ((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator == CT_Multiply;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type of the place a reference to the expression would refer to, or
 // NULL if it is a value with no address (a literal, a sum, a call's int).
 //

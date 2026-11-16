@@ -261,6 +261,7 @@ protected:
 	bool			JumpStatement(CCPPSyntax* pcStatement, CIRBlock* pcBreak, CIRBlock* pcContinue);
 	bool			ScopedStatement(CCPPSyntax* pcStatement);
 	void			AddLiving(SCPP65IRPlace* psPlace);
+	void			ExtendTemporary(SIRReference sReferred);
 	bool			LeaveScope(size uiLiving);
 	bool			DestroyLiving(size uiLiving);
 	bool			FullExpression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
@@ -321,7 +322,6 @@ protected:
 	bool			Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP65IRValue* psRight, SIRReference* psCondition);
 	bool			ConditionalExpression(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRValue* psValue);
 	bool			ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRPlace* psInto, SCPP65IRValue* psValue);
-	bool			IsObjectLvalue(CCPPSyntax* pcExpression);
 	bool			IsObjectCall(CCPPSyntax* pcExpression);
 	bool			IsObjectOf(CCPPSyntax* pcExpression, CCPPClass* pcClass);
 	bool			InheritedConstructorCall(SCPP65IRPlace* psBase);
