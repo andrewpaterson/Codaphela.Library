@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Objects.h"
 #include "MeshUVMeasures.h"
 #include "MeshUVConformal.h"
+#include "MeshUVRigid.h"
 #include "BitmapPacker.h"
 #include "MeshUnwrap.h"
 
@@ -242,11 +243,11 @@ static void MeshUnwrapChartCorners(CArrayLargeInt* paiDest, SMeshUnwrapUVs* psUV
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each chart laid flat again by LSCM, from where it's laid across its
-// normal.
+// Each chart laid flat again by LSCM from where it's laid across its
+// normal, and by ARAP from there for MUF_Rigid.
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshUnwrapConformal(SMeshUnwrapUVs* psUVs, CMesh* pcMesh, CMeshCharts* pcCharts, float32 fTexelsPerUnit)
+static void MeshUnwrapConformal(SMeshUnwrapUVs* psUVs, CMesh* pcMesh, CMeshCharts* pcCharts, float32 fTexelsPerUnit, EMeshUnwrapFlatten eFlatten)
 {
 	CArrayLargeInt			aiCorners;
 	CArrayLargeFloat32Vec3	asPositions;
@@ -267,7 +268,10 @@ static void MeshUnwrapConformal(SMeshUnwrapUVs* psUVs, CMesh* pcMesh, CMeshChart
 			asPositions.Add(pcMesh->GetPosition(psUVs->maiUVCorners.GetValue((lsize)i)));
 		}
 		MeshUnwrapChartCorners(&aiCorners, psUVs, pcCharts, iChart);
-		FlattenConformal(psUVs->masUVs.Get((lsize)iFirst), asPositions.Get(0), iLast - iFirst, aiCorners.Get(0), pcCharts->NumFaces(iChart), fTexelsPerUnit);
+		if (FlattenConformal(psUVs->masUVs.Get((lsize)iFirst), asPositions.Get(0), iLast - iFirst, aiCorners.Get(0), pcCharts->NumFaces(iChart), fTexelsPerUnit) && (eFlatten == MUF_Rigid))
+		{
+			FlattenRigid(psUVs->masUVs.Get((lsize)iFirst), asPositions.Get(0), iLast - iFirst, aiCorners.Get(0), pcCharts->NumFaces(iChart), fTexelsPerUnit);
+		}
 	}
 	asPositions.Kill();
 	aiCorners.Kill();
@@ -816,9 +820,9 @@ Ptr<CMesh> CMeshUnwrap::Modify(Ptr<CMesh> pMesh)
 	for (iRegrow = 0; iRegrow <= MESH_UNWRAP_REGROWS; iRegrow++)
 	{
 		MeshUnwrapFlatten(&sUVs, &pMesh, &cCharts, mfTexelsPerUnit);
-		if (meFlatten == MUF_Conformal)
+		if (meFlatten != MUF_Projected)
 		{
-			MeshUnwrapConformal(&sUVs, &pMesh, &cCharts, mfTexelsPerUnit);
+			MeshUnwrapConformal(&sUVs, &pMesh, &cCharts, mfTexelsPerUnit, meFlatten);
 		}
 		MeshUnwrapFolded(&aiFolded, &sUVs, &cCharts);
 		if ((aiFolded.NumElements() == 0) || (iRegrow == MESH_UNWRAP_REGROWS))

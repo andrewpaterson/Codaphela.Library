@@ -62,6 +62,7 @@ void TestMeshUVMeasures(void);
 void TestBitmapPacker(void);
 void TestMeshUVConformal(void);
 void TestMeshUnwrap(void);
+void TestMeshUnwrapFlattening(void);
 void TestMeshBake(void);
 void TestMeshConnectivity(void);
 void TestMeshModifierStack(void);
@@ -164,6 +165,7 @@ int __cdecl main(void)
 	TestBitmapPacker();
 	TestMeshUVConformal();
 	TestMeshUnwrap();
+	TestMeshUnwrapFlattening();
 	TestMeshBake();
 	TestMeshConnectivity();
 	TestMeshModifierStack();

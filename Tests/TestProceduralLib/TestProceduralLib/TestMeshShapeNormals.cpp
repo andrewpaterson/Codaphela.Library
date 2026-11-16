@@ -250,10 +250,14 @@ void TestMeshShapeNormalsCreases(void)
 //
 // The five spheres meshed, given the shape's normals and unwrapped last
 // (as the modifiers that rebuild faces refuse a mesh with UVs), in box
-// charts, grown charts and grown charts by LSCM: every face has UVs, none
-// turned over, outside or overlapping, and its normals kept.  Box charts
-// stretch a face's angles up to 1.7 times, grown ones laid across their
-// normals 7.4 times, by LSCM 1.1 times.
+// charts, grown charts, and grown charts by LSCM and by ARAP: every face
+// has UVs, none turned over, outside or overlapping, and its normals
+// kept.  Box charts stretch a face's angles up to 1.7 times, grown ones
+// laid across their normals 7.4 times, by LSCM 1.1 times, by ARAP 1.32;
+// ARAP's texels per area are 0.76 to 1.20 of the density, LSCM's 0.63
+// to 1.44.  (Those are Release x64's.  Debug grows 41 charts, not 50, as
+// its floats differ: some more curved, so by ARAP up to 1.92 times and
+// 0.52 to 1.23, by LSCM 0.56 to 1.80.)
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshShapeNormalsUnwrapped(void)
@@ -264,7 +268,8 @@ void TestMeshShapeNormalsUnwrapped(void)
 	Ptr<CMesh>			pMesh;
 	SFloat32Vec3		asCentres[5];
 	SMeshUVStretch		sStretch;
-	float32				afWorst[3];
+	float32				afWorst[4];
+	float32				afSpread[4];  //The most texels per area over the least.
 	int					i;
 
 	asCentres[0].Init(-1.5f, 0.2f, 0);
@@ -278,12 +283,12 @@ void TestMeshShapeNormalsUnwrapped(void)
 		pShape = OMalloc<CShapeSmoothUnion>(pShape, OMalloc<CSphere>(&asCentres[i], 1.0f), 0.5f);
 	}
 
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 4; i++)
 	{
 		pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 		pEditor->AddModifier<CMeshShapeEditor>(pShape, 0.05f, 0.8f);
 		pEditor->AddModifier<CMeshShapeNormals>(pShape);
-		pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f, (i == 0) ? MUC_Box : MUC_Grown, (i == 2) ? MUF_Conformal : MUF_Projected);
+		pUnwrap = pEditor->AddModifier<CMeshUnwrap>(64.0f, (i == 0) ? MUC_Box : MUC_Grown, (i < 2) ? MUF_Projected : ((i == 2) ? MUF_Conformal : MUF_Rigid));
 		pMesh = pEditor->GetOutput();
 		AssertTrue(pMesh->mcNormals.InUse());
 		AssertTrue(pUnwrap->miNumCharts >= 6);
@@ -293,10 +298,14 @@ void TestMeshShapeNormalsUnwrapped(void)
 		AssertInt(0, CountMeshUVOverlaps(&pMesh, 0));
 		MeasureMeshUVStretch(&sStretch, &pMesh, 0, (float32)pUnwrap->miLayoutWidth, (float32)pUnwrap->miLayoutHeight, 64.0f);
 		afWorst[i] = sStretch.fWorstAngle;
+		afSpread[i] = sStretch.fMostArea / sStretch.fLeastArea;
 	}
 	AssertTrue(afWorst[0] < 2.0f);
 	AssertTrue(afWorst[1] > 4.0f);
 	AssertTrue(afWorst[2] < 1.25f);
+	AssertTrue(afWorst[3] < 2.0f);
+	AssertTrue(afSpread[3] < afSpread[2]);
+	AssertTrue(afSpread[3] < 2.5f);
 }
 
 

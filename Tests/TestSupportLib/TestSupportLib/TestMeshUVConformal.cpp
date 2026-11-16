@@ -3,6 +3,7 @@
 #include "SupportLib/MeshEditor.h"
 #include "SupportLib/MeshSphereEditor.h"
 #include "SupportLib/MeshUVConformal.h"
+#include "SupportLib/MeshUVRigid.h"
 #include "SupportLib/MeshUVMeasures.h"
 #include "TestLib/Assert.h"
 
@@ -11,7 +12,8 @@
 //
 // A flat chart, a 4 by 4 grid of squares a quarter of a unit across on
 // a tilted plane, started from its UVs skewed, squeezed and bent: by
-// LSCM it's its own shape again, at 10 texels to the unit, anticlockwise.
+// LSCM it's its own shape again, at 10 texels to the unit, anticlockwise;
+// by ARAP from the skewed UVs, nearly (ten rounds, within a hundredth).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshUVConformalFlat(void)
@@ -69,6 +71,20 @@ void TestMeshUVConformalFlat(void)
 	AssertFloat(1.0f, sStretch.fMostArea, 3);
 	sDiagonal = asUVs[24] - asUVs[0];
 	AssertFloat(10.0f * 1.4142136f, sDiagonal.Magnitude(), 3);
+
+	//By ARAP straight from the skewed UVs, the same.
+	for (j = 0; j < 5; j++)
+	{
+		for (i = 0; i < 5; i++)
+		{
+			asUVs[(j * 5) + i].Init((0.5f * i) + (0.3f * j), (1.5f * j) + (0.05f * i * j));
+		}
+	}
+	AssertTrue(FlattenRigid(asUVs, asPositions, 25, aiCorners, 32, 10.0f));
+	MeasureUVTriangleStretch(&sStretch, asUVs, asPositions, aiCorners, 32, 10.0f);
+	AssertFloat(1.0f, sStretch.fWorstAngle, 2);
+	AssertFloat(1.0f, sStretch.fLeastArea, 2);
+	AssertFloat(1.0f, sStretch.fMostArea, 2);
 }
 
 
@@ -80,7 +96,8 @@ void TestMeshUVConformalFlat(void)
 // kept (up to 1.23 times, 1.11 on average, as its triangles are coarse
 // and those round the pole thin), and so its areas aren't: a conformal
 // map of a hemisphere onto a disc is four times as dense at its rim as at
-// its pole (it's 0.51 to 2.04 times the density).
+// its pole (it's 0.51 to 2.04 times the density).  ARAP from there evens
+// that out (0.73 to 1.30) for its angles (up to 1.48 times).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshUVConformalHemisphere(void)
@@ -175,6 +192,15 @@ void TestMeshUVConformalHemisphere(void)
 		fArea += sNormal.Magnitude() * 0.5;
 	}
 	AssertFloat(1.0f, (float32)(fUVArea / (fArea * 400.0)), 3);
+
+	//By ARAP from there: its areas nearer the density, its angles a little less kept.
+	AssertTrue(FlattenRigid(asUVs.Get(0), asPositions.Get(0), (int)asUVs.NumElements(), aiCorners.Get(0), iNumTriangles, 20.0f));
+	MeasureUVTriangleStretch(&sStretch, asUVs.Get(0), asPositions.Get(0), aiCorners.Get(0), iNumTriangles, 20.0f);
+	AssertInt(0, CountUVTrianglesTurned(asUVs.Get(0), aiCorners.Get(0), iNumTriangles));
+	AssertInt(0, CountUVTriangleOverlaps(asUVs.Get(0), aiCorners.Get(0), iNumTriangles));
+	AssertTrue(sStretch.fLeastArea > 0.7f);
+	AssertTrue(sStretch.fMostArea < 1.35f);
+	AssertTrue(sStretch.fWorstAngle < 1.6f);
 
 	asUVs.Kill();
 	asPositions.Kill();

@@ -43,7 +43,8 @@ enum EMeshUnwrapCharts
 enum EMeshUnwrapFlatten
 {
 	MUF_Projected,	//Across its normal.
-	MUF_Conformal,	//By LSCM (FlattenConformal), from there: angles kept; the default.
+	MUF_Conformal,	//By LSCM (FlattenConformal), from there: angles kept.
+	MUF_Rigid,		//By ARAP (FlattenRigid) from LSCM's: areas kept too, so texel density is even; the default.
 };
 
 
@@ -55,7 +56,7 @@ enum EMeshUnwrapFlatten
 //
 //Laid flat across its normal, a chart is stretched where its faces slope from it (by 1 / cos of the angle along the slope), and
 //can't fold, as no face is a right angle from it.  LSCM then keeps its faces' angles, but can fold one that's very curved or
-//isn't a disc.  A chart that folds or overlaps itself (round a torus's inside) has its faces grown again at half the angle,
+//isn't a disc, and lets its texels per area spread; ARAP from there keeps areas too.  A chart that folds or overlaps itself (round a torus's inside) has its faces grown again at half the angle,
 //until no chart does.  Charts are packed as the cells (miGutter texels square) their triangles cover, a cell of gutter round
 //them, each at whichever quarter turn reaches least high where it first fits (CBitmapPacker), so charts fit into each other's
 //hollows; not yet onto pages.  A layout's size and how many charts it has are kept (miLayoutWidth and so on) once it has been
@@ -76,7 +77,7 @@ public:
 	int					miLayoutHeight;
 	int					miNumCharts;
 
-	void		Init(float32 fTexelsPerUnit, EMeshUnwrapCharts eCharts = MUC_Grown, EMeshUnwrapFlatten eFlatten = MUF_Conformal);
+	void		Init(float32 fTexelsPerUnit, EMeshUnwrapCharts eCharts = MUC_Grown, EMeshUnwrapFlatten eFlatten = MUF_Rigid);
 	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;

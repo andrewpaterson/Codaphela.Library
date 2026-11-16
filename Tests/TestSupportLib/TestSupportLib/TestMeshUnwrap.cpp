@@ -251,6 +251,37 @@ void TestMeshUnwrapConformal(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A sphere in grown charts by ARAP (the default): clean, its texels per
+// area kept nearer the density than LSCM keeps them (0.77 to 1.48 there,
+// 0.88 to 1.14 here), its angles a little less kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshUnwrapRigid(void)
+{
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMeshUnwrap>	pUnwrap;
+	Ptr<CMesh>			pMesh;
+	SFloat32Vec3		sAxis;
+	SFloat32Vec3		sCentre;
+	SMeshUVStretch		sStretch;
+
+	sAxis.Init(0, 0, 1);
+	sCentre.Init(0.3f, -0.2f, 0.1f);
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddModifier<CMeshSphereEditor>(&sAxis, &sCentre, 1.0f, TEST_MESH_UNWRAP_SPHERE);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(100.0f);
+	pMesh = pEditor->GetOutput();
+	AssertInt(MUF_Rigid, pUnwrap->meFlatten);
+	AssertUnwrapped(&pMesh, &pUnwrap);
+	MeasureMeshUVStretch(&sStretch, &pMesh, 0, (float32)pUnwrap->miLayoutWidth, (float32)pUnwrap->miLayoutHeight, 100.0f);
+	AssertTrue(sStretch.fLeastArea > 0.85f);
+	AssertTrue(sStretch.fMostArea < 1.2f);
+	AssertTrue(sStretch.fWorstAngle < 1.3f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMeshUnwrap(void)
@@ -264,8 +295,29 @@ void TestMeshUnwrap(void)
 	TestMeshUnwrapCurved();
 	ObjectsFlush();
 	TestMeshUnwrapGrown();
-	ObjectsFlush();
+	ObjectsDiscard();
+	ObjectsKill(false);
+	DataIOKill();
+
+	TestStatistics();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Apart from the charts' tests, so each runs in its own program on the
+// 65 targets, within its instructions.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshUnwrapFlattening(void)
+{
+	BeginTests();
+
+	DataIOInit();
+	ObjectsInit();
 	TestMeshUnwrapConformal();
+	ObjectsFlush();
+	TestMeshUnwrapRigid();
 	ObjectsDiscard();
 	ObjectsKill(false);
 	DataIOKill();

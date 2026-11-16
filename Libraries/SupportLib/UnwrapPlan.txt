@@ -3,7 +3,7 @@ Texture unwrapping plan
 
 Giving a mesh that has no UVs (an isosurface, a procedural mesh) a UV layer, so it can have a texture of its own, and baking that
 texture.  The aim is a single megatexture, as Rage's: every surface its own texels, nothing tiled (VirtualTexturePlan.txt).
-Steps 1 to 7 are built (see Steps).  What is decided and what is only proposed is said at each point.
+Steps 1 to 8 are built (see Steps).  What is decided and what is only proposed is said at each point.
 
 
 The user's decisions (2026-11-15)
@@ -40,7 +40,7 @@ The user's decisions (2026-11-15)
     a turn of a chart's cells is only looked for below the best so far, and the UV overlap test checks bounding boxes
     first and takes no roots.  TestMeshUnwrap: 12.5G cycles to 3.66G on the 65C64; on the W65C816 60.7G to 13.5G with
     spheres of 16 by 8 and tori of 24 by 8 (half the faces), within its 4G instructions.
-    ARAP is to be built (step 8).
+    ARAP is to be built (step 8).  Done, and the default.
     The textured scene's three hundredths allowance stays; FMA stays on.
 
 What there is
@@ -204,11 +204,14 @@ Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLi
    the faces cover.  The textured scene is within three hundredths of its pixels, as builds whose floats differ (FMA) can
    pack charts a cell apart and move the checker's edges a pixel.
 8. ARAP, if texel density inside charts matters.
-   Not built (2026-11-15): LSCM's texels per area across a chart are 0.77 to 1.48 of the density on a sphere, 0.84 to 1.16 on
-   a torus and 0.63 to 1.44 on the five sphere isosurface, at the 60 degree chart angle; a smaller angle makes more, flatter
-   charts with less spread.  ARAP would bring them nearer 1 for several LSCM sized solves a chart (its local and global
-   steps), and TestMeshUnwrap is already the slowest test on the 65 targets.  Whether that spread shows waits for textures
-   being looked at at the scene's density (Open).
+   Done (2026-11-16, the user asked for it): FlattenRigid (MeshUVRigid), Liu et al.'s local/global ARAP from LSCM's UVs, ten
+   rounds.  Each triangle's map's gradients are linear in its corners' UVs, so the global step is a least squares problem
+   (two rows a triangle, weighted by the root of its area, one UV pinned) whose matrix never changes: it's factored once
+   (CFloat64SparseLeastSquares) and solved for u and v each round.  A triangle's nearest turn is the unit along (J00 + J11,
+   J10 - J01) of its map J, no SVD.  CMeshUnwrap's MUF_Rigid, now the default.  Texels per area: a sphere's 0.77 to 1.48 by
+   LSCM, 0.88 to 1.14 by ARAP (angles 1.11 to 1.21 times); the isosurface's 0.63 to 1.44, 0.76 to 1.20 (angles 1.10 to
+   1.32); the hemisphere's 0.51 to 2.04, 0.73 to 1.30.  A flat chart from skewed UVs comes back within a hundredth.  On the
+   65 targets the flattening tests are a program of their own (TestMeshUnwrapFlattening), within their instructions.
 9. The virtual texture (VirtualTexturePlan.txt): layouts placed at instances' addresses, pages baked on demand.
 10. Loaded textures: a mesh's own UVs kept, tiling materials on a second layer.
 
@@ -216,8 +219,6 @@ Each with its tests, in TestSupportLib (those of isosurfaces in TestProceduralLi
 Open
 ----
 The scene's texel density, chosen by eye (step 3 makes it easy to try).
-Whether LSCM's spread of texels per area inside a chart (0.63 to 1.44 of the density on the isosurface) shows, which is
-whether step 8's ARAP, or a smaller chart angle, is wanted.
 How large a chart may be before it's split for packing (a chart wider than the virtual texture's page cache can't be drawn
 at its finest level all at once).
 
