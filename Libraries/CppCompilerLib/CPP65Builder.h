@@ -160,7 +160,7 @@ typedef CArrayTemplate<SCPP65UnitReport>	CArrayCPP65UnitReports;
 //Builds a program for a target (SetTarget, before anything is added: the 65C64 unless set, or the W65C816, whose
 //sections are kept inside 64KB banks and only the vectors and their stubs are in bank 0).  Each part is an object: the start up, C++ sources given as text, assembly, and the
 //translation units of a project.  They are linked in the order they were added (the project's units last, when
-//Link compiles them) with the text at CPP65_PROGRAM_ADDRESS, ending below CPP65_HEAP_ADDRESS.  A project library
+//Link compiles them) with the text at CPP65_PROGRAM_ADDRESS (unless SetTextAddress), ending below CPP65_HEAP_ADDRESS.  A project library
 //can instead be linked as a library, so only the units something uses are linked.  A label no object
 //defines is stubbed with stp (unless SetStubMissing(false)), so a call to it stops the program; NumMissing and
 //GetMissing list them.  Functions, globals and string literals nothing uses are left out (unless
@@ -180,6 +180,7 @@ protected:
 	CCPPTarget*						mpcTarget;
 	size							muiUnits;
 	uint32							muiLimit;
+	uint32							muiTextAddress;
 	bool							mbCompiled;
 	bool							mbStubMissing;
 	bool							mbRemoveUnused;
@@ -264,6 +265,7 @@ public:
 	void			SetRemoveUnused(bool bRemoveUnused);
 	void			SetLazy(uint32 uiSectorSize, uint32 uiFirstSector);
 	void			SetLimit(uint32 uiLimit);
+	void			SetTextAddress(uint32 uiTextAddress);
 
 	bool			AddStartUp(void);
 	bool			AddSource(const char* szName, const char* szSource);

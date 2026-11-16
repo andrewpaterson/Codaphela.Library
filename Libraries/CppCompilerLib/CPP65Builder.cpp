@@ -49,6 +49,7 @@ void CCPP65Builder::Init(void)
 	mpcTarget = GetCPPTarget(CPPT_65C64);
 	muiUnits = 0;
 	muiLimit = CPP65_HEAP_ADDRESS;
+	muiTextAddress = CPP65_PROGRAM_ADDRESS;
 	mbCompiled = false;
 	mbStubMissing = true;
 	mbRemoveUnused = true;
@@ -1035,6 +1036,19 @@ void CCPP65Builder::SetLimit(uint32 uiLimit)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Where the program's code starts (CPP65_PROGRAM_ADDRESS unless set): for
+// a program that runs somewhere else, such as a ROM image copied into a
+// higher bank.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetTextAddress(uint32 uiTextAddress)
+{
+	muiTextAddress = uiTextAddress;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The lazy units' sectors, to write to the drive from the first sector given to
 // SetLazy.
 //
@@ -1231,7 +1245,7 @@ bool CCPP65Builder::LinkObjects(void)
 	{
 		mcLinker.AddLibrary(&macLinkLibraries.Get(i)->cObjects);
 	}
-	mcLinker.SetAddress(ASK65_Text, CPP65_PROGRAM_ADDRESS);
+	mcLinker.SetAddress(ASK65_Text, muiTextAddress);
 	mcLinker.SetLimit(muiLimit);
 	mcLinker.SetBankSize(mpcTarget->GetBankSize());
 	if (mpcTarget->GetStubOpcode() >= 0)
