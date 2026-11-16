@@ -27,9 +27,21 @@ struct SToolTipsTest
 	Ptr<CCanvas>			pPlain;
 	Ptr<CToolTips>			pToolTips;
 
+	static Ptr<CWinRefWindowFactory>	NewFactory(char* szImagePath = NULL);
 	void Init(CWinRefWindowFactory* pcFactory);
 	void Kill(void);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The factory for SToolTipsTest's window.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CWinRefWindowFactory> SToolTipsTest::NewFactory(char* szImagePath)
+{
+	return OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, szImagePath);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,7 +52,6 @@ void SToolTipsTest::Init(CWinRefWindowFactory* pcFactory)
 {
 	CPointer	pNull;
 
-	pcFactory->Init(&gcMemoryAllocator, 300, 200, NULL);
 	pWindow = OMalloc<CWindow>("Tool Tips Window", pcFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 	ORoot()->Add(pWindow);
 	pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
@@ -94,13 +105,14 @@ void SToolTipsTest::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void TestToolTipsWait(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SToolTipsTest	sTest;
 		int64			iNow;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SToolTipsTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		AssertInt(TOOL_TIPS_DELAY, sTest.pToolTips->GetDelay());
 		AssertLong(-1, sTest.pToolTips->GetWait(0));
 
@@ -160,7 +172,7 @@ void TestToolTipsWait(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -173,13 +185,14 @@ void TestToolTipsWait(void)
 //////////////////////////////////////////////////////////////////////////
 void TestToolTipsDismiss(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SToolTipsTest	sTest;
 		int64			iNow;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SToolTipsTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 
 		iNow = 1000;
 		sTest.pToolTips->PointerMoved(sTest.pTipped, iNow);
@@ -226,7 +239,7 @@ void TestToolTipsDismiss(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -239,14 +252,15 @@ void TestToolTipsDismiss(void)
 //////////////////////////////////////////////////////////////////////////
 void TestToolTipsWindow(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SToolTipsTest	sTest;
 		Ptr<CToolTips>	pToolTips;
 		int32			iBelow;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SToolTipsTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		iBelow = 50 + sTest.pTheme->GetMetric(TM_ToolTipOffset) + 4;
 
 		sTest.pWindow->PointerMoved(50, 50);
@@ -290,7 +304,7 @@ void TestToolTipsWindow(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

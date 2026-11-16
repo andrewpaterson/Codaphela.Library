@@ -43,9 +43,9 @@ Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasWriteImageRGB(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasWriteImage";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasWriteImage";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -72,14 +72,14 @@ void TestCanvasWriteImageRGB(void)
 
 		cRandom.Init(2345);
 
-		cNativeFactory.Init(&gcMemoryAllocator, 320, 200, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 320, 200, szDirectory);
 
 		pRoot = ORoot();
 
 		pMaps = OMalloc<CMaps>();
 
 		pTick = OMalloc<CTickTestCanvas>(&cData, pMaps, 25);
-		pTestWindow = OMalloc<CWindow>("Space Crusade", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Space Crusade", &pNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		gcObjects.ValidateObjectsConsistency();
 
 		pTestWindow->GetColourFormat(&cHelper);
@@ -119,7 +119,7 @@ void TestCanvasWriteImageRGB(void)
 
 		gcObjects.EnableValidation();
 
-		cNativeFactory.Kill();
+		pNativeFactory = NULL;
 
 		szExpectedDirectory.Init(szDirectory);
 		szExpectedDirectory.Replace("Output", "Input");
@@ -141,16 +141,15 @@ void TestCanvasWriteImageRGB(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasWriteImageBGRX(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasWriteImage";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasWriteImage";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
-	cNativeFactory.Init(&gcMemoryAllocator, 320, 200, szDirectory);
-
 	ObjectsInit();
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 320, 200, szDirectory);
 	{
 		Ptr<CWindow>				pTestWindow;
 		Ptr<CCanvas>				pCanvas;
@@ -177,7 +176,7 @@ void TestCanvasWriteImageBGRX(void)
 		pMaps = OMalloc<CMaps>();
 
 		pTick = OMalloc<CTickTestCanvas>(&cData, pMaps, 25);
-		pTestWindow = OMalloc<CWindow>("Space Crusade", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGBX, CCO_BGR, CRGB_24bit, ARGB_8bit);
+		pTestWindow = OMalloc<CWindow>("Space Crusade", &pNativeFactory, pTick, (CPointer)NULL, CFT_RGBX, CCO_BGR, CRGB_24bit, ARGB_8bit);
 		gcObjects.ValidateObjectsConsistency();
 
 		pTestWindow->GetColourFormat(&cHelper);
@@ -223,7 +222,7 @@ void TestCanvasWriteImageBGRX(void)
 		AssertDirectory(szExpectedDirectory.Text(), szDirectory);
 		szExpectedDirectory.Kill();
 	}
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 
 	AssertSize(2, gcObjects.NumMemoryIndexes());  //Root and root-set.
 	ObjectsFlush();
@@ -239,16 +238,15 @@ void TestCanvasWriteImageBGRX(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasImageConvert2(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasWriteImage";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasWriteImage";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
-	cNativeFactory.Init(&gcMemoryAllocator, 320, 200, szDirectory);
-
 	ObjectsInit();
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 320, 200, szDirectory);
 	{
 		Ptr<CWindow>				pTestWindow;
 		Ptr<CCanvas>				pCanvas;
@@ -274,7 +272,7 @@ void TestCanvasImageConvert2(void)
 		pMaps = OMalloc<CMaps>();
 
 		pTick = OMalloc<CTickTestCanvas>(&cData, pMaps, 25);
-		pTestWindow = OMalloc<CWindow>("Space Crusade", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGBX, CCO_BGR, CRGB_24bit, ARGB_8bit);
+		pTestWindow = OMalloc<CWindow>("Space Crusade", &pNativeFactory, pTick, (CPointer)NULL, CFT_RGBX, CCO_BGR, CRGB_24bit, ARGB_8bit);
 		gcObjects.ValidateObjectsConsistency();
 
 		pTestWindow->GetColourFormat(&cHelper);
@@ -321,7 +319,7 @@ void TestCanvasImageConvert2(void)
 	}
 
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 
 	AssertSize(2, gcObjects.NumMemoryIndexes());  //Root and root-set.
 	ObjectsFlush();
@@ -382,15 +380,17 @@ void TestCanvasImageConvert(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void RenderCanvasDrawFrames(CWinRefWindowFactory* pcFactory, char* szDirectory, size uiNumFrames, SInt32Vec2* asMapsSizes, SInt32Vec2* asImageSizes, SInt32Vec2* asViewports, bool bClearWindow)
+void RenderCanvasDrawFrames(bool bNativeImage, char* szDirectory, size uiNumFrames, SInt32Vec2* asMapsSizes, SInt32Vec2* asImageSizes, SInt32Vec2* asViewports, bool bClearWindow)
 {
-	CFileUtil	cFileUtil;
+	CFileUtil					cFileUtil;
+	Ptr<CWinRefWindowFactory>	pFactory;
 
 	//A maps canvas (a tile map with sprites over it) aligned to the top left and an image canvas aligned to the top right
 	//of the same fill container, so they sit side by side.  Frame 0 is shown, then the canvases
 	//are given each following size in turn and painted again.  Changing a canvas's size recreates its native canvas.
 	//If asViewports is not NULL the maps viewport is moved before each frame too.
 	//If bClearWindow is true the window is given a canvas draw that clears it to black before each frame.
+	//If bNativeImage is false the native canvases have no image (CNoImageRefWindowFactory).
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
@@ -416,7 +416,14 @@ void RenderCanvasDrawFrames(CWinRefWindowFactory* pcFactory, char* szDirectory, 
 		CColourFormatHelper			cHelper;
 		size						i;
 
-		pcFactory->Init(&gcMemoryAllocator, 48, 32, szDirectory);
+		if (bNativeImage)
+		{
+			pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 48, 32, szDirectory);
+		}
+		else
+		{
+			pFactory = OMalloc<CNoImageRefWindowFactory>(&gcMemoryAllocator, 48, 32, szDirectory);
+		}
 		pFloorPlanImage = ReadSpaceImage("SpaceCrusade", "FloorPlan.png");
 		cRandom.Init(2345);
 
@@ -426,7 +433,7 @@ void RenderCanvasDrawFrames(CWinRefWindowFactory* pcFactory, char* szDirectory, 
 		{
 			pWindowDraw = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0, 0, 0));
 		}
-		pTestWindow = OMalloc<CWindow>("Canvas Draw Frames", pcFactory, pTick, pWindowDraw, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Canvas Draw Frames", &pFactory, pTick, pWindowDraw, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		//Rooted so that pointing to the window's (and the generator's) many objects doesn't make the objects work out
 		//again which of them are still on the stack.
 		ORoot()->Add(pTestWindow);
@@ -504,7 +511,7 @@ void RenderCanvasDrawFrames(CWinRefWindowFactory* pcFactory, char* szDirectory, 
 		AssertTrue(ORoot()->RemoveAll());
 
 		gcObjects.EnableValidation();
-		pcFactory->Kill();
+		pFactory = NULL;
 	}
 	AssertSize(2, gcObjects.NumMemoryIndexes());  //Root and root-set.
 	ObjectsFlush();
@@ -518,18 +525,16 @@ void RenderCanvasDrawFrames(CWinRefWindowFactory* pcFactory, char* szDirectory, 
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasDrawWithoutNativeImage(void)
 {
-	CWinRefWindowFactory		cImageFactory;
-	CNoImageRefWindowFactory	cNoImageFactory;
-	CFileUtil					cFileUtil;
-	SInt32Vec2					asMapsSizes[3] = { SInt32Vec2(20, 16), SInt32Vec2(24, 20), SInt32Vec2(24, 20) };
-	SInt32Vec2					asImageSizes[3] = { SInt32Vec2(-1, -1), SInt32Vec2(16, 14), SInt32Vec2(16, 14) };
-	SInt32Vec2					asViewports[3] = { SInt32Vec2(0, 0), SInt32Vec2(0, 0), SInt32Vec2(3, 2) };
+	CFileUtil	cFileUtil;
+	SInt32Vec2	asMapsSizes[3] = { SInt32Vec2(20, 16), SInt32Vec2(24, 20), SInt32Vec2(24, 20) };
+	SInt32Vec2	asImageSizes[3] = { SInt32Vec2(-1, -1), SInt32Vec2(16, 14), SInt32Vec2(16, 14) };
+	SInt32Vec2	asViewports[3] = { SInt32Vec2(0, 0), SInt32Vec2(0, 0), SInt32Vec2(3, 2) };
 
 	//Without a native image the canvas draws blit into an image of their own, resize it when the canvas changes size
 	//and copy it onto the canvas.  That must give exactly the frames drawing straight into the native image does.
 	//The last frame keeps the same size but moves the viewport so the reused image must be drawn into again.
-	RenderCanvasDrawFrames(&cImageFactory, "Output" _FS_ "CanvasDrawNativeImage", 3, asMapsSizes, asImageSizes, asViewports, false);
-	RenderCanvasDrawFrames(&cNoImageFactory, "Output" _FS_ "CanvasDrawNoNativeImage", 3, asMapsSizes, asImageSizes, asViewports, false);
+	RenderCanvasDrawFrames(true, "Output" _FS_ "CanvasDrawNativeImage", 3, asMapsSizes, asImageSizes, asViewports, false);
+	RenderCanvasDrawFrames(false, "Output" _FS_ "CanvasDrawNoNativeImage", 3, asMapsSizes, asImageSizes, asViewports, false);
 
 	AssertFile("Output" _FS_ "CanvasDrawNativeImage" _FS_ "Frame0.png", "Output" _FS_ "CanvasDrawNoNativeImage" _FS_ "Frame0.png");
 	AssertFile("Output" _FS_ "CanvasDrawNativeImage" _FS_ "Frame1.png", "Output" _FS_ "CanvasDrawNoNativeImage" _FS_ "Frame1.png");
@@ -546,20 +551,17 @@ void TestCanvasDrawWithoutNativeImage(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasDrawResize(void)
 {
-	CWinRefWindowFactory	cResizedFactory;
-	CWinRefWindowFactory	cFreshFactory;
-	CWinRefWindowFactory	cUnclearedFactory;
-	CFileUtil				cFileUtil;
-	SInt32Vec2				asMapsSizes[3] = { SInt32Vec2(20, 16), SInt32Vec2(24, 20), SInt32Vec2(20, 16) };
-	SInt32Vec2				asImageSizes[3] = { SInt32Vec2(-1, -1), SInt32Vec2(20, 16), SInt32Vec2(-1, -1) };
+	CFileUtil	cFileUtil;
+	SInt32Vec2	asMapsSizes[3] = { SInt32Vec2(20, 16), SInt32Vec2(24, 20), SInt32Vec2(20, 16) };
+	SInt32Vec2	asImageSizes[3] = { SInt32Vec2(-1, -1), SInt32Vec2(20, 16), SInt32Vec2(-1, -1) };
 
 	//Resizing a canvas gives it a new image so every blitter made for the old image, the sprites' included, must be remade.
 	//A frame after resizing must therefore be exactly the frame drawn at that size from the start.  The window clears
 	//itself each frame so nothing is left behind where the canvases were before they shrank.
 	//Clearing happens before the canvases are drawn, so a single frame is the same whether the window clears or not.
-	RenderCanvasDrawFrames(&cResizedFactory, "Output" _FS_ "CanvasDrawResized", 3, asMapsSizes, asImageSizes, NULL, true);
-	RenderCanvasDrawFrames(&cFreshFactory, "Output" _FS_ "CanvasDrawFresh", 1, &asMapsSizes[1], &asImageSizes[1], NULL, true);
-	RenderCanvasDrawFrames(&cUnclearedFactory, "Output" _FS_ "CanvasDrawUncleared", 1, &asMapsSizes[1], &asImageSizes[1], NULL, false);
+	RenderCanvasDrawFrames(true, "Output" _FS_ "CanvasDrawResized", 3, asMapsSizes, asImageSizes, NULL, true);
+	RenderCanvasDrawFrames(true, "Output" _FS_ "CanvasDrawFresh", 1, &asMapsSizes[1], &asImageSizes[1], NULL, true);
+	RenderCanvasDrawFrames(true, "Output" _FS_ "CanvasDrawUncleared", 1, &asMapsSizes[1], &asImageSizes[1], NULL, false);
 
 	AssertFile("Output" _FS_ "CanvasDrawFresh" _FS_ "Frame0.png", "Output" _FS_ "CanvasDrawResized" _FS_ "Frame1.png");
 	AssertFile("Output" _FS_ "CanvasDrawResized" _FS_ "Frame0.png", "Output" _FS_ "CanvasDrawResized" _FS_ "Frame2.png");
@@ -577,10 +579,10 @@ void TestCanvasDrawResize(void)
 //////////////////////////////////////////////////////////////////////////
 size DrawBorderCanvasInFormat(EColourOrder eCanvasOrder)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasMismatchedFormat";
-	size					uiNonBlack;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasMismatchedFormat";
+	size						uiNonBlack;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -600,9 +602,9 @@ size DrawBorderCanvasInFormat(EColourOrder eCanvasOrder)
 		size					i;
 		CColourFormatHelper		cFormat;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 24, 16, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 24, 16, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Mismatched Format", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Mismatched Format", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -636,7 +638,7 @@ size DrawBorderCanvasInFormat(EColourOrder eCanvasOrder)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -663,9 +665,9 @@ void TestCanvasMismatchedFormat(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasNested(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasNested";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasNested";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -692,9 +694,9 @@ void TestCanvasNested(void)
 		int32					y;
 		size					uiWrong;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 32, 24, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 32, 24, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Nested Canvas", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Nested Canvas", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 
@@ -758,7 +760,7 @@ void TestCanvasNested(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -774,9 +776,9 @@ void TestCanvasNested(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasTransparent(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasTransparent";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasTransparent";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -797,10 +799,10 @@ void TestCanvasTransparent(void)
 		uint8*					puiPixel;
 		CColourFormatHelper		cFormat;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 12, 4, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pWindowDraw = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)255, 0, 0));
-		pTestWindow = OMalloc<CWindow>("Transparent Canvas", &cNativeFactory, pTick, pWindowDraw, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Transparent Canvas", &pNativeFactory, pTick, pWindowDraw, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pWindowFill = OMalloc<CFillContainer>(pTestWindow);
@@ -877,7 +879,7 @@ void TestCanvasTransparent(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -891,9 +893,9 @@ void TestCanvasTransparent(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasResizeReleasesOldCels(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasResizeReleasesOldCels";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasResizeReleasesOldCels";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -911,9 +913,9 @@ void TestCanvasResizeReleasesOldCels(void)
 		size					i;
 		size					uiObjectsAfterFirstPair;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 48, 32, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 48, 32, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Resize Releases Old Cels", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Resize Releases Old Cels", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 
@@ -963,7 +965,7 @@ void TestCanvasResizeReleasesOldCels(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -979,7 +981,7 @@ void TestCanvasResizeReleasesOldCels(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasWindowColourFormat(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	ObjectsInit();
 	{
@@ -992,9 +994,9 @@ void TestCanvasWindowColourFormat(void)
 		CColourFormatHelper		cFormat;
 		CColourFormatHelper		cCopyFormat;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 12, 4, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pOwner = OMalloc<CWindow>("Owner", &cNativeFactory, pTick, pNull, CFT_RGBX, CCO_BGR, CRGB_24bit, ARGB_8bit);
+		pOwner = OMalloc<CWindow>("Owner", &pNativeFactory, pTick, pNull, CFT_RGBX, CCO_BGR, CRGB_24bit, ARGB_8bit);
 		ORoot()->Add(pOwner);
 		pOwner->GetColourFormat(&cFormat);
 		AssertInt(CFT_RGBX, cFormat.meFormat);
@@ -1003,7 +1005,7 @@ void TestCanvasWindowColourFormat(void)
 		AssertInt(ARGB_8bit, cFormat.meAlphaBits);
 		AssertInt(CCO_BGR, pOwner->GetColourOrder());
 
-		pCopy = OMalloc<CWindow>("Copy", &cNativeFactory, pTick, pNull, &cFormat);
+		pCopy = OMalloc<CWindow>("Copy", &pNativeFactory, pTick, pNull, &cFormat);
 		ORoot()->Add(pCopy);
 		pCopy->GetColourFormat(&cCopyFormat);
 		AssertInt(CFT_RGBX, cCopyFormat.meFormat);
@@ -1025,7 +1027,7 @@ void TestCanvasWindowColourFormat(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 }
@@ -1039,9 +1041,9 @@ void TestCanvasWindowColourFormat(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasOutlivesKilledWindow(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasOutlivesKilledWindow";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasOutlivesKilledWindow";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -1055,9 +1057,9 @@ void TestCanvasOutlivesKilledWindow(void)
 		Ptr<CTickTestRefWindow>	pTick;
 		SDataTestRefWindow		cData;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 12, 4, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Killed Window", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Killed Window", &pNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pWindowFill = OMalloc<CFillContainer>(pTestWindow);
@@ -1082,7 +1084,7 @@ void TestCanvasOutlivesKilledWindow(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -1100,9 +1102,9 @@ void TestCanvasOutlivesKilledWindow(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasImageDrawFollowsTransparency(void)
 {
-	CNoImageRefWindowFactory	cNativeFactory;
-	CFileUtil					cFileUtil;
-	char						szDirectory[] = "Output" _FS_ "CanvasImageDrawFollowsTransparency";
+	Ptr<CNoImageRefWindowFactory>	pNativeFactory;
+	CFileUtil						cFileUtil;
+	char							szDirectory[] = "Output" _FS_ "CanvasImageDrawFollowsTransparency";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -1118,9 +1120,9 @@ void TestCanvasImageDrawFollowsTransparency(void)
 		SDataTestRefWindow		cData;
 		uint8*					puiPixels;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 12, 4, szDirectory);
+		pNativeFactory = OMalloc<CNoImageRefWindowFactory>(&gcMemoryAllocator, 12, 4, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Image Draw Transparency", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Image Draw Transparency", &pNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pWindowFill = OMalloc<CFillContainer>(pTestWindow);
@@ -1153,7 +1155,7 @@ void TestCanvasImageDrawFollowsTransparency(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -1172,6 +1174,14 @@ CONSTRUCTABLE(CCountingCanvasFactory);
 public:
 	CCanvas*	mpcCounted;
 	int			miCreates;
+
+	void Class(void) override
+	{
+		CWinRefWindowFactory::Class();
+
+		U_Pointer(mpcCounted);
+		U_SInt(miCreates);
+	}
 
 	CNativeCanvas* CreateNativeCanvas(CCanvas* pcCanvas) override
 	{
@@ -1193,17 +1203,17 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasZeroAreaHasNoNativeCanvas(void)
 {
-	CCountingCanvasFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasZeroArea";
+	Ptr<CCountingCanvasFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasZeroArea";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 16, 16, szDirectory);
-	cFactory.mpcCounted = NULL;
-	cFactory.miCreates = 0;
+	pFactory = OMalloc<CCountingCanvasFactory>(&gcMemoryAllocator, 16, 16, szDirectory);
+	pFactory->mpcCounted = NULL;
+	pFactory->miCreates = 0;
 	{
 		Ptr<CWindow>				pWindow;
 		Ptr<CFillContainer>			pFill;
@@ -1213,7 +1223,7 @@ void TestCanvasZeroAreaHasNoNativeCanvas(void)
 		CPointer					pNull;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Zero Area", &cFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Zero Area", &pFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 
 		pFill = OMalloc<CFillContainer>(pWindow);
@@ -1222,25 +1232,25 @@ void TestCanvasZeroAreaHasNoNativeCanvas(void)
 		pCanvas->SetDesiredSize(0, 0);
 		pCanvas->SetAlignment(CSH_Left, CSV_Top);
 		pFill->AddComponent(pCanvas);
-		cFactory.mpcCounted = &pCanvas;
+		pFactory->mpcCounted = &pCanvas;
 
 		pWindow->Paint();
 		pWindow->Paint();
 		pWindow->Paint();
-		AssertInt(0, cFactory.miCreates);
+		AssertInt(0, pFactory->miCreates);
 		AssertNull(pCanvas->GetNativeCanvas());
 		AssertTrue(pCanvas->GetImageOrNull().IsNull());
 
 		pCanvas->SetDesiredSize(4, 3);
 		pWindow->Paint();
 		pWindow->Paint();
-		AssertInt(1, cFactory.miCreates);
+		AssertInt(1, pFactory->miCreates);
 		AssertNotNull(pCanvas->GetNativeCanvas());
 
 		pCanvas->SetDesiredSize(0, 3);
 		pWindow->Paint();
 		pWindow->Paint();
-		AssertInt(1, cFactory.miCreates);
+		AssertInt(1, pFactory->miCreates);
 		AssertNull(pCanvas->GetNativeCanvas());
 
 		pCanvas = NULL;
@@ -1250,7 +1260,7 @@ void TestCanvasZeroAreaHasNoNativeCanvas(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -1266,15 +1276,15 @@ void TestCanvasZeroAreaHasNoNativeCanvas(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasDrawBoxCutToCanvas(void)
 {
-	CWinRefWindowFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasDrawBoxCut";
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasDrawBoxCut";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 16, 16, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 16, 16, szDirectory);
 	{
 		Ptr<CWindow>				pWindow;
 		Ptr<CFillContainer>			pFill;
@@ -1292,7 +1302,7 @@ void TestCanvasDrawBoxCutToCanvas(void)
 		bool						bGreen;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Box Cut", &cFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Box Cut", &pFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 
 		pFill = OMalloc<CFillContainer>(pWindow);
@@ -1341,7 +1351,7 @@ void TestCanvasDrawBoxCutToCanvas(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -1433,18 +1443,18 @@ Ptr<CCanvas> CreateClippedContent(Ptr<CWindow> pWindow, EClippedContent eContent
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasClippedContent(EClippedContent eContent)
 {
-	CWinRefWindowFactory	cWholeFactory;
-	CWinRefWindowFactory	cScrolledFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasClipped";
-	SInt32Vec2				asScrolls[] = { { 0, 0 }, { 10, 7 }, { 16, 14 }, { 3, 12 }, { 0, 0 } };
+	Ptr<CWinRefWindowFactory>	pWholeFactory;
+	Ptr<CWinRefWindowFactory>	pScrolledFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasClipped";
+	SInt32Vec2					asScrolls[] = { { 0, 0 }, { 10, 7 }, { 16, 14 }, { 3, 12 }, { 0, 0 } };
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cWholeFactory.Init(&gcMemoryAllocator, 64, 48, szDirectory);
-	cScrolledFactory.Init(&gcMemoryAllocator, CLIPPED_VIEW_WIDTH, CLIPPED_VIEW_HEIGHT, szDirectory);
+	pWholeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 48, szDirectory);
+	pScrolledFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, CLIPPED_VIEW_WIDTH, CLIPPED_VIEW_HEIGHT, szDirectory);
 	{
 		Ptr<CWindow>				pWhole;
 		Ptr<CWindow>				pScrolled;
@@ -1476,7 +1486,7 @@ void TestCanvasClippedContent(EClippedContent eContent)
 
 		//The content drawn whole, at its top left, as the reference.  The windows are cleared before each paint as what is
 		//behind a transparent canvas shows through it.
-		pWhole = OMalloc<CWindow>("Whole", &cWholeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWhole = OMalloc<CWindow>("Whole", &pWholeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWhole);
 		pFill = OMalloc<CFillContainer>(pWhole);
 		pWhole->SetContainer(pFill);
@@ -1490,7 +1500,7 @@ void TestCanvasClippedContent(EClippedContent eContent)
 		pWholeImage = pWhole->GetCanvas()->GetImageOrNull();
 		puiWhole = (uint8*)pWholeImage->GetData();
 
-		pScrolled = OMalloc<CWindow>("Scrolled", &cScrolledFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pScrolled = OMalloc<CWindow>("Scrolled", &pScrolledFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pScrolled);
 		pFill = OMalloc<CFillContainer>(pScrolled);
 		pScrolled->SetContainer(pFill);
@@ -1579,8 +1589,8 @@ void TestCanvasClippedContent(EClippedContent eContent)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cScrolledFactory.Kill();
-	cWholeFactory.Kill();
+	pScrolledFactory = NULL;
+	pWholeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -1596,15 +1606,15 @@ void TestCanvasClippedContent(EClippedContent eContent)
 //////////////////////////////////////////////////////////////////////////
 void TestCanvasScrolledOutOfSight(void)
 {
-	CWinRefWindowFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasOutOfSight";
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasOutOfSight";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, CLIPPED_VIEW_WIDTH, CLIPPED_VIEW_HEIGHT, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, CLIPPED_VIEW_WIDTH, CLIPPED_VIEW_HEIGHT, szDirectory);
 	{
 		Ptr<CWindow>				pWindow;
 		Ptr<CFillContainer>			pFill;
@@ -1618,7 +1628,7 @@ void TestCanvasScrolledOutOfSight(void)
 		SInt32Vec2					sVec;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Out Of Sight", &cFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Out Of Sight", &pFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pFill = OMalloc<CFillContainer>(pWindow);
 		pWindow->SetContainer(pFill);
@@ -1667,7 +1677,7 @@ void TestCanvasScrolledOutOfSight(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -1706,16 +1716,16 @@ Ptr<CCanvas> CreateFillCanvas(Ptr<CWindow> pWindow, ARGB32 sColour, bool bSolid)
 
 void DrawSolidFills(bool bSolid, uint8 auiWindows[SOLID_SCROLLS][SOLID_WINDOW_WIDTH * SOLID_WINDOW_HEIGHT * 3])
 {
-	CWinRefWindowFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CanvasSolidFills";
-	SInt32Vec2				asScrolls[SOLID_SCROLLS] = { { 0, 0 }, { 8, 16 }, { 3, 5 } };
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CanvasSolidFills";
+	SInt32Vec2					asScrolls[SOLID_SCROLLS] = { { 0, 0 }, { 8, 16 }, { 3, 5 } };
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, SOLID_WINDOW_WIDTH, SOLID_WINDOW_HEIGHT, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, SOLID_WINDOW_WIDTH, SOLID_WINDOW_HEIGHT, szDirectory);
 	{
 		Ptr<CWindow>				pWindow;
 		Ptr<CFillContainer>			pFill;
@@ -1733,7 +1743,7 @@ void DrawSolidFills(bool bSolid, uint8 auiWindows[SOLID_SCROLLS][SOLID_WINDOW_WI
 		size						uiScroll;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Solid Fills", &cFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Solid Fills", &pFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pFill = OMalloc<CFillContainer>(pWindow);
 		pWindow->SetContainer(pFill);
@@ -1789,7 +1799,7 @@ void DrawSolidFills(bool bSolid, uint8 auiWindows[SOLID_SCROLLS][SOLID_WINDOW_WI
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 

@@ -98,7 +98,7 @@ void CreateTestCheckBoxes(Ptr<CWindow> pWindow, STestCheckBoxes* psBoxes)
 //////////////////////////////////////////////////////////////////////////
 void TestCheckBoxClicks(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -111,8 +111,8 @@ void TestCheckBoxClicks(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
-		pTestWindow = OMalloc<CWindow>("Check Box Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 100, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Check Box Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		CreateTestCheckBoxes(pTestWindow, &sBoxes);
@@ -174,10 +174,10 @@ void TestCheckBoxClicks(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -218,9 +218,9 @@ bool CheckBoxFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
 //////////////////////////////////////////////////////////////////////////
 void TestCheckBoxFrames(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "CheckBoxFrames";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "CheckBoxFrames";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -231,9 +231,9 @@ void TestCheckBoxFrames(void)
 		STestCheckBoxes				sBoxes;
 		CChars						szExpectedDirectory;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 230, 76, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 230, 76, szDirectory);
 		pTick = OMalloc<CScriptFramesTick>(CheckBoxFrames, &sBoxes);
-		pTestWindow = OMalloc<CWindow>("Check Box Frames", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x2B, 0x2D, 0x30)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Check Box Frames", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x2B, 0x2D, 0x30)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		CreateTestCheckBoxes(pTestWindow, &sBoxes);
 
@@ -252,10 +252,10 @@ void TestCheckBoxFrames(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 

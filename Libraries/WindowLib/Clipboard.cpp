@@ -35,7 +35,8 @@ void CClipboard::Init(Ptr<CWindow> pWindow)
 	PreInit();
 
 	mpWindow = pWindow;
-	mpcNativeClipboard = pWindow->GetFactory()->CreateNativeClipboard(this);
+	mpFactory = pWindow->GetFactory();
+	mpcNativeClipboard = mpFactory->CreateNativeClipboard(this);
 	mbDetached = false;
 	mszText.Init();
 
@@ -68,6 +69,7 @@ void CClipboard::Free(void)
 void CClipboard::Class(void)
 {
 	U_Pointer(mpcNativeClipboard);
+	Nes(M_Pointer(mpFactory));
 	Nes(M_Pointer(mpWindow));
 	M_Pointer(mpHistory);
 	M_Pointer(mpShared);

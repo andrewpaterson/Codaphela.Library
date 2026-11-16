@@ -41,8 +41,8 @@ static uint32 GetWindowPixel(Ptr<CWindow> pWindow, int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void TestCaretBlinkTextArea(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 	const char*				szDirectory;
 
 	//The reference windows save each frame they present.
@@ -62,8 +62,8 @@ void TestCaretBlinkTextArea(void)
 		uint32				uiCaret;
 
 		uiCaret = 0xCED0D6;
-		cNativeFactory.Init(&gcMemoryAllocator, 120, 40, (char*)szDirectory);
-		pTestWindow = OMalloc<CWindow>("Caret Window", &cNativeFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0, (uint8)0, (uint8)0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 120, 40, (char*)szDirectory);
+		pTestWindow = OMalloc<CWindow>("Caret Window", &pNativeFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0, (uint8)0, (uint8)0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		pText = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), GenerateMenuFont(pTestWindow), "Hello");
@@ -142,10 +142,10 @@ void TestCaretBlinkTextArea(void)
 		pTestWindow = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 

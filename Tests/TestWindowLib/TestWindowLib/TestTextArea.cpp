@@ -188,7 +188,7 @@ void TestTextAreaLayout(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaWordWrap(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -202,9 +202,9 @@ void TestTextAreaWordWrap(void)
 		CPointer				pNull;
 		int32					iWidth;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFont = ReadLabelFont();
@@ -302,8 +302,8 @@ void TestTextAreaWordWrap(void)
 		pTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 
@@ -317,11 +317,11 @@ void TestTextAreaWordWrap(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaFillContainer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "TextAreaFillContainer";
-	int32					iWidth;
-	int32					iHeight;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "TextAreaFillContainer";
+	int32						iWidth;
+	int32						iHeight;
 
 	iWidth = 200;
 	iHeight = 160;
@@ -343,11 +343,11 @@ void TestTextAreaFillContainer(void)
 		CChars					szExpectedDirectory;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		//The text area is transparent, it is drawn over the window's background.
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)40, 60, 110));
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -393,8 +393,8 @@ void TestTextAreaFillContainer(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -408,8 +408,8 @@ void TestTextAreaFillContainer(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaNoWordWrapFillContainer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 	const char*				szDirectory;
 
 	szDirectory = "Output" _FS_ "TextAreaNoWordWrapFill";
@@ -427,9 +427,9 @@ void TestTextAreaNoWordWrapFillContainer(void)
 		CPointer				pNull;
 		int32					iTextWidth;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, (char*)szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -462,8 +462,8 @@ void TestTextAreaNoWordWrapFillContainer(void)
 		pTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -476,7 +476,7 @@ void TestTextAreaNoWordWrapFillContainer(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaSpans(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -492,9 +492,9 @@ void TestTextAreaSpans(void)
 		SInt32Vec2				sArea;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFont = ReadLabelFont();
@@ -575,8 +575,8 @@ void TestTextAreaSpans(void)
 		pTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 
@@ -589,9 +589,9 @@ void TestTextAreaSpans(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaSpansFillContainer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "TextAreaSpans";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "TextAreaSpans";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -608,10 +608,10 @@ void TestTextAreaSpansFillContainer(void)
 		int						aiInsets[4];
 		CChars					szExpectedDirectory;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 160, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 160, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -656,8 +656,8 @@ void TestTextAreaSpansFillContainer(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -705,7 +705,7 @@ void AddTextAreaWordSpan(Ptr<CTextArea> pTextArea, const char* szText, const cha
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaStyles(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -721,9 +721,9 @@ void TestTextAreaStyles(void)
 		ARGB32					sRed;
 		int32					iBoldWider;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFamily = CreateTextAreaFamily(16.0f);
@@ -792,8 +792,8 @@ void TestTextAreaStyles(void)
 		pTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 
@@ -805,9 +805,9 @@ void TestTextAreaStyles(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaStylesFillContainer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "TextAreaStyles";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "TextAreaStyles";
 	const char*				szText;
 
 	cFileUtil.RemoveDir(szDirectory);
@@ -826,10 +826,10 @@ void TestTextAreaStylesFillContainer(void)
 		CChars					szExpectedDirectory;
 		STextStyleOverride		sOverride;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 240, 160, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 240, 160, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -892,8 +892,8 @@ void TestTextAreaStylesFillContainer(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -906,7 +906,7 @@ void TestTextAreaStylesFillContainer(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaScripts(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -926,9 +926,9 @@ void TestTextAreaScripts(void)
 		int32					iAscent;
 		int32					iDescent;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFamily = CreateTextAreaFamily(16.0f);
@@ -985,8 +985,8 @@ void TestTextAreaScripts(void)
 		pTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 
@@ -998,9 +998,9 @@ void TestTextAreaScripts(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaScriptsFillContainer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "TextAreaScripts";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "TextAreaScripts";
 	const char*				szText;
 
 	cFileUtil.RemoveDir(szDirectory);
@@ -1021,10 +1021,10 @@ void TestTextAreaScriptsFillContainer(void)
 		STextStyleOverride		sSubscript;
 		STextStyleOverride		sOverride;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 240, 120, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 240, 120, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -1084,8 +1084,8 @@ void TestTextAreaScriptsFillContainer(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1100,9 +1100,9 @@ void TestTextAreaScriptsFillContainer(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaDecorationsFillContainer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "TextAreaDecorations";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "TextAreaDecorations";
 	const char*				szText;
 	const char*				szFound;
 
@@ -1125,10 +1125,10 @@ void TestTextAreaDecorationsFillContainer(void)
 		SInt32Vec2				sSize;
 		SInt32Vec2				sDecoratedSize;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 260, 180, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 260, 180, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -1207,8 +1207,8 @@ void TestTextAreaDecorationsFillContainer(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1246,9 +1246,9 @@ void AddTextAreaLinesSpan(Ptr<CTextArea> pTextArea, const char* szText, const ch
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaUnderlineOverlineFillContainer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "TextAreaUnderlineOverline";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "TextAreaUnderlineOverline";
 	const char*				szText;
 	const char*				szFound;
 
@@ -1268,10 +1268,10 @@ void TestTextAreaUnderlineOverlineFillContainer(void)
 		CChars					szExpectedDirectory;
 		STextStyleOverride		sOverride;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 380, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 380, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -1375,8 +1375,8 @@ void TestTextAreaUnderlineOverlineFillContainer(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1409,8 +1409,8 @@ Ptr<CFontFamily> CreateMonoTextAreaFamily(float32 fDefaultPixelSize)
 //////////////////////////////////////////////////////////////////////////
 void DrawMonoTextArea(char* szDirectory, bool bTiles, int32 iGapRows)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -1425,10 +1425,10 @@ void DrawMonoTextArea(char* szDirectory, bool bTiles, int32 iGapRows)
 		const char*				szText;
 		STextStyleOverride		sOverride;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 320, 140, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 320, 140, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -1484,7 +1484,7 @@ void DrawMonoTextArea(char* szDirectory, bool bTiles, int32 iGapRows)
 		pTick = NULL;
 		pBackground = NULL;
 	}
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1534,8 +1534,8 @@ void DrawAppendedTextArea(char* szDirectory, bool bAppend, bool bTiles, bool bWr
 {
 	static const char*		aszPieces[] = { "int Sum(int* aiValues,", " int iCount)\n{", "\n\tint iTotal = 0;\r\n", "    return", " iTotal;\n}\n", "Main.cpp (2/400) and some more words to wrap", " and more" };
 	static uint8			auiGreens[] = { 0xBC, 0x9C, 0xBC, 0x86, 0xBC, 0xCE, 0x9C };
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -1551,10 +1551,10 @@ void DrawAppendedTextArea(char* szDirectory, bool bAppend, bool bTiles, bool bWr
 		size					i;
 		size					uiStart;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 320, 220, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 320, 220, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -1609,7 +1609,7 @@ void DrawAppendedTextArea(char* szDirectory, bool bAppend, bool bTiles, bool bWr
 		pTick = NULL;
 		pBackground = NULL;
 	}
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

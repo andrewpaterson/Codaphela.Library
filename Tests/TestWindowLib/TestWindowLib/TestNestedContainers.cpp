@@ -104,11 +104,11 @@ bool OverflowsContainerBounds(CComponent* pcComponent, CContainer* pcContainer)
 //////////////////////////////////////////////////////////////////////////
 void TestNestedContainersLabels(char* szDirectory, bool bClipsChildren)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char*					aszFlowText[3] = { "One", "Two", "Three" };
-	char*					aszGridText[3] = { "Alpha", "Beta", "Gamma" };
-	int						aiInsets[4] = { 3, 3, 3, 3 };  //Top, Right, Bottom, Left.
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char*						aszFlowText[3] = { "One", "Two", "Three" };
+	char*						aszGridText[3] = { "Alpha", "Beta", "Gamma" };
+	int							aiInsets[4] = { 3, 3, 3, 3 };  //Top, Right, Bottom, Left.
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -139,10 +139,10 @@ void TestNestedContainersLabels(char* szDirectory, bool bClipsChildren)
 		CChars					szExpectedDirectory;
 		size					i;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 100, 44, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 100, 44, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)40, 60, 110));
-		pTestWindow = OMalloc<CWindow>("Nested Containers", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Nested Containers", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFont = ReadLabelFont();
@@ -298,8 +298,8 @@ void TestNestedContainersLabels(char* szDirectory, bool bClipsChildren)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 

@@ -256,7 +256,7 @@ void Click(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuItemColumns(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -273,8 +273,8 @@ void TestMenuItemColumns(void)
 		int32					iHeight;
 		int32					iItemHeight;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		CreateTestMenus(pTestWindow, &sMenus);
 		pTestWindow->Layout();
@@ -337,10 +337,10 @@ void TestMenuItemColumns(void)
 		pTestWindow = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -350,7 +350,7 @@ void TestMenuItemColumns(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuBarPointer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -368,8 +368,8 @@ void TestMenuBarPointer(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		CreateTestMenus(pTestWindow, &sMenus);
@@ -507,10 +507,10 @@ void TestMenuBarPointer(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -520,7 +520,7 @@ void TestMenuBarPointer(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuBarKeys(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -532,8 +532,8 @@ void TestMenuBarKeys(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		CreateTestMenus(pTestWindow, &sMenus);
@@ -622,10 +622,10 @@ void TestMenuBarKeys(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -690,9 +690,9 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestMenuBarFrames(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "MenuBarFrames";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "MenuBarFrames";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -703,9 +703,9 @@ void TestMenuBarFrames(void)
 		STestMenus				sMenus;
 		CChars					szExpectedDirectory;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 260, 200, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 260, 200, szDirectory);
 		pTick = OMalloc<CMenuFramesTick>(&sMenus);
-		pTestWindow = OMalloc<CWindow>("Menu Frames", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Menu Frames", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		CreateTestMenus(pTestWindow, &sMenus);
 
@@ -725,10 +725,10 @@ void TestMenuBarFrames(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -742,8 +742,8 @@ void TestMenuBarFrames(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPopupDraw(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 	const char*				szDirectory;
 
 	szDirectory = "Output" _FS_ "PopupDraw";
@@ -758,8 +758,8 @@ void TestPopupDraw(void)
 		SInsets					sInsets;
 		uint8*					puiPixel;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 100, 40, (char*)szDirectory);
-		pTestWindow = OMalloc<CWindow>("Popup Window", &cNativeFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 100, 40, (char*)szDirectory);
+		pTestWindow = OMalloc<CWindow>("Popup Window", &pNativeFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pContent = OMalloc<CIconComponent>(pTestWindow, Ptr<CImageCel>(), 20, 10);
 		pTestWindow->Layout();
@@ -786,10 +786,10 @@ void TestPopupDraw(void)
 		pTestWindow = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -807,7 +807,7 @@ void TestPopupDraw(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuContextMenu(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -833,8 +833,8 @@ void TestMenuContextMenu(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
@@ -990,10 +990,10 @@ void TestMenuContextMenu(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -1007,7 +1007,7 @@ void TestMenuContextMenu(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuTreeContextMenu(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -1027,8 +1027,8 @@ void TestMenuTreeContextMenu(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Tree Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Tree Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		pStyle = pTheme->GetMenuStyle();
@@ -1096,7 +1096,7 @@ void TestMenuTreeContextMenu(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1152,7 +1152,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestMenuEnabledAndShortcuts(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -1170,8 +1170,8 @@ void TestMenuEnabledAndShortcuts(void)
 		szLog.Init();
 		cListener.Init(&szLog);
 		cOpening.Init();
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		pStyle = pTheme->GetMenuStyle();
@@ -1237,10 +1237,10 @@ void TestMenuEnabledAndShortcuts(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -1254,7 +1254,7 @@ void TestMenuEnabledAndShortcuts(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuItemShortcutFromCommand(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -1269,8 +1269,8 @@ void TestMenuItemShortcutFromCommand(void)
 		Ptr<CWindowInputSource>		pInputSource;
 		CComponentInput				cComponentInput;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		pStyle = pTheme->GetMenuStyle();
@@ -1317,10 +1317,10 @@ void TestMenuItemShortcutFromCommand(void)
 		pTestWindow = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -1333,7 +1333,7 @@ void TestMenuItemShortcutFromCommand(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuItemAndRowEnabledAgree(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>		pTestWindow;
@@ -1346,8 +1346,8 @@ void TestMenuItemAndRowEnabledAgree(void)
 		Ptr<CFont>			pDim;
 		CPointer			pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		pStyle = pTheme->GetMenuStyle();
@@ -1390,10 +1390,10 @@ void TestMenuItemAndRowEnabledAgree(void)
 		pTestWindow = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -1418,7 +1418,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestMenuCommandItems(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>		pTestWindow;
@@ -1435,8 +1435,8 @@ void TestMenuCommandItems(void)
 		szLog.Init();
 		cCommand.mpszLog = &szLog;
 		cCommand.mbCanBuild = true;
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 
@@ -1484,10 +1484,10 @@ void TestMenuCommandItems(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -1500,7 +1500,7 @@ void TestMenuCommandItems(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuItemClickEvent(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -1521,8 +1521,8 @@ void TestMenuItemClickEvent(void)
 		cMenuListener.Init(&szLog);
 		cItemListener.Init(&szLog);
 		cItemListener.mszPrefix = "Item:";
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		pStyle = pTheme->GetMenuStyle();
@@ -1576,10 +1576,10 @@ void TestMenuItemClickEvent(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -1592,7 +1592,7 @@ void TestMenuItemClickEvent(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuOpener(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -1605,8 +1605,8 @@ void TestMenuOpener(void)
 		CPointer					pNull;
 
 		cOpener.Init();
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		pStyle = pTheme->GetMenuStyle();
@@ -1642,7 +1642,7 @@ void TestMenuOpener(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1654,7 +1654,7 @@ void TestMenuOpener(void)
 //////////////////////////////////////////////////////////////////////////
 void TestMenuPopupMaximumHeight(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -1665,8 +1665,8 @@ void TestMenuPopupMaximumHeight(void)
 		CChars					szItem;
 		int32					i;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Menu Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		pMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
@@ -1724,10 +1724,10 @@ void TestMenuPopupMaximumHeight(void)
 		pTestWindow = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 

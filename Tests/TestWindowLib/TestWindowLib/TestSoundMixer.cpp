@@ -386,15 +386,15 @@ static lsize NumTestFramesWritten(CSoundMixer* pcMixer)
 //////////////////////////////////////////////////////////////////////////
 void TestSoundMixerWindow(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CTestSoundFactory		cSoundFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "SoundMixerWindow";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CTestSoundFactory			cSoundFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "SoundMixerWindow";
 
 	//The reference window writes each frame it paints here.
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
-	cNativeFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory);
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory);
 	cSoundFactory.Init(&gcMemoryAllocator);
 	{
 		Ptr<CWindow>				pWindow;
@@ -404,7 +404,7 @@ void TestSoundMixerWindow(void)
 		lsize						uiWritten;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 2);
-		pWindow = OMalloc<CWindow>("Sound Window", &cNativeFactory, &cSoundFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Sound Window", &pNativeFactory, &cSoundFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		AssertTrue(pWindow->GetSoundMixer().IsNotNull());
 		AssertInt(SOUND_MIXER_DEFAULT_SAMPLE_RATE, pWindow->GetSoundMixer()->GetSampleRate());
@@ -427,14 +427,14 @@ void TestSoundMixerWindow(void)
 
 		//A window without a sound factory has no mixer.
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Quiet Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Quiet Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		AssertTrue(pWindow->GetSoundMixer().IsNull());
 		pWindow = NULL;
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
 	cSoundFactory.Kill();
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -474,19 +474,19 @@ static bool WaitSoundWindow(Ptr<CWindow> pWindow, size uiWait, int64 iMillisecon
 //////////////////////////////////////////////////////////////////////////
 void TestSoundMixerWindowWaits(void)
 {
-	CWaitTestRefWindowFactory	cNativeFactory;
-	CTestSoundFactory			cSoundFactory;
-	CFileUtil					cFileUtil;
-	char						szDirectory[] = "Output" _FS_ "SoundMixerWindowWaits";
-	int16						aiSamples[1000];
-	lsize						i;
-	STestSoundWaiting			sWaiting;
+	Ptr<CWaitTestRefWindowFactory>	pNativeFactory;
+	CTestSoundFactory				cSoundFactory;
+	CFileUtil						cFileUtil;
+	char							szDirectory[] = "Output" _FS_ "SoundMixerWindowWaits";
+	int16							aiSamples[1000];
+	lsize							i;
+	STestSoundWaiting				sWaiting;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 	sWaiting.uiBefore = 0;
 	sWaiting.uiAfter = 0;
-	cNativeFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory, WaitSoundWindow, &sWaiting);
+	pNativeFactory = OMalloc<CWaitTestRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory, WaitSoundWindow, &sWaiting);
 	cSoundFactory.Init(&gcMemoryAllocator);
 	{
 		Ptr<CWindow>				pWindow;
@@ -499,7 +499,7 @@ void TestSoundMixerWindowWaits(void)
 			aiSamples[i] = 1000;
 		}
 		pTick = OMalloc<CCountingTick>(0, 0, -1);
-		pWindow = OMalloc<CWindow>("Sound Window", &cNativeFactory, &cSoundFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Sound Window", &pNativeFactory, &cSoundFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 
 		//A looping voice never finishes.
@@ -517,7 +517,7 @@ void TestSoundMixerWindowWaits(void)
 	}
 	AssertTrue(ORoot()->RemoveAll());
 	cSoundFactory.Kill();
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	cFileUtil.RemoveDir(szDirectory);
 }
 

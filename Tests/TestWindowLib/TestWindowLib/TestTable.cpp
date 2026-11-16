@@ -103,7 +103,7 @@ static SInt32Vec2 CellCentre(Ptr<CTable> pTable, int32 iRow, int32 iColumn)
 //////////////////////////////////////////////////////////////////////////
 void TestTableCells(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>		pTestWindow;
@@ -118,8 +118,8 @@ void TestTableCells(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Table Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Table Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		pTable = CreateTestTable(pTestWindow, &cListener);
@@ -227,7 +227,7 @@ void TestTableCells(void)
 		pTestWindow->Kill();
 		szLog.Kill();
 	}
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -240,7 +240,7 @@ void TestTableCells(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTableEditing(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>		pTestWindow;
@@ -254,8 +254,8 @@ void TestTableEditing(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Table Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Table Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		pTable = CreateTestTable(pTestWindow, &cListener);
@@ -391,7 +391,7 @@ void TestTableEditing(void)
 		pTestWindow->Kill();
 		szLog.Kill();
 	}
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -405,7 +405,7 @@ void TestTableEditing(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTableRows(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>		pTestWindow;
@@ -421,8 +421,8 @@ void TestTableRows(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Table Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Table Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTable = CreateTestTable(pTestWindow, &cListener);
 		for (i = 0; i < 3; i++)
@@ -513,7 +513,7 @@ void TestTableRows(void)
 		pTestWindow->Kill();
 		szLog.Kill();
 	}
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

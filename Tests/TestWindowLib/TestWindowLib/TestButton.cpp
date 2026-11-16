@@ -95,7 +95,7 @@ Ptr<CWindowTheme> CreateButtonTheme(Ptr<CFont> pFont, Ptr<CButtonImages> pImages
 //////////////////////////////////////////////////////////////////////////
 void TestButtonInput(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -122,9 +122,9 @@ void TestButtonInput(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 60, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 60, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Button Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Button Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 		pFocus = pTestWindow->GetFocus();
@@ -299,10 +299,10 @@ void TestButtonInput(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -314,7 +314,7 @@ void TestButtonInput(void)
 //////////////////////////////////////////////////////////////////////////
 void TestButtonDefault(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -339,9 +339,9 @@ void TestButtonDefault(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 60, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 60, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Default Button Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Default Button Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 		pFocus = pTestWindow->GetFocus();
@@ -440,10 +440,10 @@ void TestButtonDefault(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -529,9 +529,9 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestButtonStates(char* szName, Ptr<CButtonImages>(*ReadImages)(CColourFormatHelper*), Ptr<CButtonImages>(*ReadDefaultImages)(CColourFormatHelper*), ARGB32 sBackground, bool bReturnOver)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	CChars					szDirectory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	CChars						szDirectory;
 
 	szDirectory.Init("Output" _FS_);
 	szDirectory.Append(szName);
@@ -551,10 +551,10 @@ void TestButtonStates(char* szName, Ptr<CButtonImages>(*ReadImages)(CColourForma
 		SInt32Vec2				sPosition;
 		SInt32Vec2				sSize;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 120, 60, szDirectory.Text());
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 120, 60, szDirectory.Text());
 		//The tick is allocated, not on the stack, because the window is rooted and stack objects can't be under the root.
 		pTick = OMalloc<CButtonStatesTick>(bReturnOver);
-		pTestWindow = OMalloc<CWindow>("Button States", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(sBackground), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Button States", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(sBackground), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 
@@ -597,10 +597,10 @@ void TestButtonStates(char* szName, Ptr<CButtonImages>(*ReadImages)(CColourForma
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory.Text());
 	szDirectory.Kill();
 }
@@ -616,9 +616,9 @@ void TestButtonStates(char* szName, Ptr<CButtonImages>(*ReadImages)(CColourForma
 //////////////////////////////////////////////////////////////////////////
 void TestButtonIcons(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "ButtonIcons";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "ButtonIcons";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -645,9 +645,9 @@ void TestButtonIcons(void)
 		int32					iMoonWidth;
 		int32					iCaptionWidth;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 60, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 60, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Button Icons", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Button Icons", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 
@@ -741,10 +741,10 @@ void TestButtonIcons(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 

@@ -74,7 +74,7 @@ char* TreeRows(Ptr<CTreeContainer> pTree, CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void TestTreeNodes(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -102,9 +102,9 @@ void TestTreeNodes(void)
 		szLog.Init();
 		sz.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Tree Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Tree Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pTheme = CreateTestTheme(ReadLabelFont());
@@ -266,7 +266,7 @@ void TestTreeNodes(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

@@ -36,7 +36,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestSplitContainerShares(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pWindow;
@@ -53,9 +53,9 @@ void TestSplitContainerShares(void)
 		int32						iRoom;
 
 		cListener.miChanges = 0;
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Split Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Split Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
 		iSash = pTheme->GetMetric(TM_DockSashSize);
@@ -179,7 +179,7 @@ void TestSplitContainerShares(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

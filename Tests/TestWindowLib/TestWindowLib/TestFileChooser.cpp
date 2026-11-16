@@ -155,13 +155,13 @@ static bool IsPathIn(const char* szPath, const char* szDirectory, const char* sz
 //////////////////////////////////////////////////////////////////////////
 void TestFileChooserBrowse(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "FileChooser";
-	char					szSub[] = "Output" _FS_ "FileChooser" _FS_ "Sub";
-	char					szStart[] = "Output" _FS_ "FileChooser" _FS_ "b.txt";
-	CChars					szFull;
-	CChars					szFullSub;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "FileChooser";
+	char						szSub[] = "Output" _FS_ "FileChooser" _FS_ "Sub";
+	char						szStart[] = "Output" _FS_ "FileChooser" _FS_ "b.txt";
+	CChars						szFull;
+	CChars						szFullSub;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -193,9 +193,9 @@ void TestFileChooserBrowse(void)
 		Ptr<CImageCel>				pFolderIcon;
 		Ptr<CImageCel>				pFileIcon;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("File Chooser Owner", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("File Chooser Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		sLook.pcTheme = &pTheme;
@@ -386,7 +386,7 @@ void TestFileChooserBrowse(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	szFullSub.Kill();
 	szFull.Kill();
 	cFileUtil.RemoveDir(szDirectory);

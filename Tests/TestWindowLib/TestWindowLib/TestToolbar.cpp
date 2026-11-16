@@ -44,7 +44,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestToolbarLayout(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pWindow;
@@ -66,8 +66,8 @@ void TestToolbarLayout(void)
 
 		szLog.Init();
 		cCommands.mpszLog = &szLog;
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 100, NULL);
-		pWindow = OMalloc<CWindow>("Toolbar Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 100, (char*)NULL);
+		pWindow = OMalloc<CWindow>("Toolbar Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
 		iThickness = pTheme->GetMetric(TM_ToolbarThickness);
@@ -132,7 +132,7 @@ void TestToolbarLayout(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -145,7 +145,7 @@ void TestToolbarLayout(void)
 //////////////////////////////////////////////////////////////////////////
 void TestToolbarVertical(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pWindow;
@@ -164,8 +164,8 @@ void TestToolbarVertical(void)
 
 		szLog.Init();
 		cCommands.mpszLog = &szLog;
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 300, NULL);
-		pWindow = OMalloc<CWindow>("Stripe Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 300, (char*)NULL);
+		pWindow = OMalloc<CWindow>("Stripe Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
 		pTheme->SetMetric(TM_ToolbarThickness, 40);
@@ -209,7 +209,7 @@ void TestToolbarVertical(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -223,7 +223,7 @@ void TestToolbarVertical(void)
 //////////////////////////////////////////////////////////////////////////
 void TestToolbarCommandToolTips(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pWindow;
@@ -241,8 +241,8 @@ void TestToolbarCommandToolTips(void)
 
 		szLog.Init();
 		cCommands.mpszLog = &szLog;
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 100, NULL);
-		pWindow = OMalloc<CWindow>("Toolbar Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 100, (char*)NULL);
+		pWindow = OMalloc<CWindow>("Toolbar Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
 
@@ -298,7 +298,7 @@ void TestToolbarCommandToolTips(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -312,7 +312,7 @@ void TestToolbarCommandToolTips(void)
 //////////////////////////////////////////////////////////////////////////
 void TestToolbarCommandStates(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pWindow;
@@ -329,8 +329,8 @@ void TestToolbarCommandStates(void)
 		cCommands.mpszLog = &szLog;
 		cCommands.mbOn = false;
 		cCommands.mbCanStep = true;
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 100, NULL);
-		pWindow = OMalloc<CWindow>("Toolbar Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 100, (char*)NULL);
+		pWindow = OMalloc<CWindow>("Toolbar Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
 
@@ -388,7 +388,7 @@ void TestToolbarCommandStates(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

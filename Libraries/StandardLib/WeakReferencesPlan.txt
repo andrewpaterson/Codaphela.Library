@@ -133,8 +133,10 @@ Done later (2026-11-16): printing, PrintObject's " Weak:n" and Dump's weak froms
   ForgetBlitterCache, NumBlitterCaches, CImageCelBlitterCache::mapcCels and RemoveCelDuringFree are gone, and both Free()s
   are empty.  TestImageDraw's blitter cache tests count the cel's weak froms instead.
 
-Separately (not weak references): the window factory as an object that native canvases hold by Nes Ptr, which fixes the
-open "native factory killed before ObjectsKill" order bug the same way Vulkan textures will hold their renderer.
+Separately (not weak references), done 2026-11-16: the window factory is an object (CNativeWindowFactory : CObject) that
+CWindow, CCanvas and CClipboard hold by Nes Ptr, as Vulkan textures hold their renderer, which fixes the "native factory
+killed before ObjectsKill" order bug.  Apps OMalloc it after ObjectsInit and root it; tests hold it on the stack and let
+go of it.  Nothing calls its Kill.  Test: TestRefWindowFactoryOutlivesWindows.
 
 
 Open

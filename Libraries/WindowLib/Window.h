@@ -65,6 +65,7 @@ DESTRUCTABLE(CWindow);
 protected:
 	CChars						mszWindowTitle;
 	CNativeWindow*				mpcNativeWindow;
+	Ptr<CNativeWindowFactory>	mpFactory;  //Made mpcNativeWindow.  Nes: freed after the window.
 	Ptr<CCanvas>				mpCanvas;
 	Ptr<CWindowTick>			mpWindowTick;
 	bool						mbTicking;

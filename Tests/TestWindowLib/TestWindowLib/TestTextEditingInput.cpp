@@ -15,23 +15,23 @@
 //A text edited through the input actions of a canvas in a window.
 struct STestEditingInput
 {
-	CWinRefWindowFactory	cFactory;
-	SDataTestRefWindow		cData;
-	Ptr<CWindow>			pWindow;
-	Ptr<CTickTestRefWindow>	pTick;
-	Ptr<CCanvas>			pCanvas;
-	CTextDocument			cDocument;
-	CTestTextEditingView	cView;
-	CTextEditing			cEditing;
-	CTextEditingInput		cInput;
+	Ptr<CWinRefWindowFactory>	pFactory;
+	SDataTestRefWindow			cData;
+	Ptr<CWindow>				pWindow;
+	Ptr<CTickTestRefWindow>		pTick;
+	Ptr<CCanvas>				pCanvas;
+	CTextDocument				cDocument;
+	CTestTextEditingView		cView;
+	CTextEditing				cEditing;
+	CTextEditingInput			cInput;
 
 	void	Init(const char* szText, bool bMultiLine)
 	{
 		CPointer	pNull;
 
-		cFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Editing Input", &cFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Editing Input", &pFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pCanvas = OMalloc<CCanvas>(pWindow, OMalloc<CBoxFillCanvasDraw>(Set32BitColour(0.0f, 0.0f, 0.0f)));
 		pWindow->SetContainer(pCanvas);
@@ -53,7 +53,7 @@ struct STestEditingInput
 		ORoot()->Remove(pWindow);
 		pWindow = NULL;
 		pTick = NULL;
-		cFactory.Kill();
+		pFactory = NULL;
 	}
 
 	bool	Command(EComponentInputCommand eCommand, int x = 0, int y = 0, bool bControl = false)

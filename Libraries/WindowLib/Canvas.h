@@ -31,6 +31,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CNativeCanvas;
+class CNativeWindowFactory;
 class CContainer;
 class CCanvas : public CComponent
 {
@@ -39,6 +40,7 @@ DESTRUCTABLE(CCanvas);
 friend class CNativeCanvas;
 protected:
 	CNativeCanvas*		mpcNativeCanvas;
+	Ptr<CNativeWindowFactory>	mpFactory;  //Made mpcNativeCanvas.  Nes: freed after the canvas, which can outlive its window.
 	Ptr<CImage>			mpNativeImage;  //The native canvas's pixels as an image, when it has one (CNativeCanvas::SetImage).  Held here, not by the native canvas, so the image is in the object graph.
 	CColourFormatHelper	mcFormat;  //As made; GetColourFormat and GetAlphaBits give the format with opacity while it is transparent.
 	Ptr<CCanvasDraw>	mpCanvasDraw;

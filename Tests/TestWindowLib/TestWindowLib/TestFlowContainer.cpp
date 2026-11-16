@@ -61,9 +61,9 @@ void AssertFlowContainerObjectsRemoved(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerBasicOnHeap(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "FlowContainerBasic";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "FlowContainerBasic";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -83,11 +83,11 @@ void TestFlowContainerBasicOnHeap(void)
 		CInt32Rect				cBounds;
 		SInt32Vec2				sVec;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 96, 30, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 30, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pDraw1 = OMalloc<CBorderCanvasDraw>(Set32BitColour(1.0f, 0, 0));
@@ -141,9 +141,9 @@ void TestFlowContainerBasicOnHeap(void)
 		ORoot()->Remove(pTestWindow);
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -154,9 +154,9 @@ void TestFlowContainerBasicOnHeap(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerBasicOnStack(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "FlowContainerBasic";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "FlowContainerBasic";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -176,10 +176,10 @@ void TestFlowContainerBasicOnStack(void)
 		CInt32Rect			cBounds;
 		SInt32Vec2			sVec;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 96, 30, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 30, szDirectory);
 
 		cTick.Init(&cData, 1);
-		cTestWindow.Init("Reference Test Window", &cNativeFactory, &cTick, NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		cTestWindow.Init("Reference Test Window", &pNativeFactory, &cTick, NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 
 		cDraw1.Init(Set32BitColour(1.0f, 0, 0));
 		cCanvas1.Init(&cTestWindow, &cDraw1);
@@ -236,9 +236,9 @@ void TestFlowContainerBasicOnStack(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -248,14 +248,15 @@ void TestFlowContainerBasicOnStack(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerRightCenteredContinue(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	size					uiStartObjects;
-	char					szDirectory[] = "Output" _FS_ "FlowContainerRightCenteredContinue";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	size						uiStartObjects;
+	char						szDirectory[] = "Output" _FS_ "FlowContainerRightCenteredContinue";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 24, szDirectory);
 	uiStartObjects = gcObjects.NumMemoryIndexes();
 	{
 		Ptr<CWindow>							pTestWindow;
@@ -280,10 +281,9 @@ void TestFlowContainerRightCenteredContinue(void)
 		CPointer*								pcWindowPointer;
 		SStackPointer*							psStackPointer;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 96, 24, szDirectory);
 
 		cTick.Init(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		AssertSize(5, pTestWindow.NumHeapFroms());
 		apcHeapFroms.Init();
 		pTestWindow->GetHeapFroms(&apcHeapFroms);
@@ -387,9 +387,9 @@ void TestFlowContainerRightCenteredContinue(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -400,14 +400,15 @@ void TestFlowContainerRightCenteredContinue(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerRightTopContinue(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	size					uiStartObjects;
-	char					szDirectory[] = "Output" _FS_ "FlowContainerRightTopContinue";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	size						uiStartObjects;
+	char						szDirectory[] = "Output" _FS_ "FlowContainerRightTopContinue";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 24, szDirectory);
 	uiStartObjects = gcObjects.NumMemoryIndexes();
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -423,10 +424,9 @@ void TestFlowContainerRightTopContinue(void)
 		CRandom					cRandom;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 96, 24, szDirectory);
 
 		cTick.Init(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		AssertSize(5, pTestWindow.NumHeapFroms());
 
 
@@ -477,9 +477,9 @@ void TestFlowContainerRightTopContinue(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -490,14 +490,15 @@ void TestFlowContainerRightTopContinue(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerRightBottomContinue(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	size					uiStartObjects;
-	char					szDirectory[] = "Output" _FS_ "FlowContainerRightBottomContinue";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	size						uiStartObjects;
+	char						szDirectory[] = "Output" _FS_ "FlowContainerRightBottomContinue";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 24, szDirectory);
 	uiStartObjects = gcObjects.NumMemoryIndexes();
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -513,10 +514,9 @@ void TestFlowContainerRightBottomContinue(void)
 		CRandom					cRandom;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 96, 24, szDirectory);
 
 		cTick.Init(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		AssertSize(5, pTestWindow.NumHeapFroms());
 
 
@@ -567,9 +567,9 @@ void TestFlowContainerRightBottomContinue(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -580,14 +580,15 @@ void TestFlowContainerRightBottomContinue(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerRightTopWrap(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	size					uiStartObjects;
-	char					szDirectory[] = "Output" _FS_ "FlowContainerRightTopWrap";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	size						uiStartObjects;
+	char						szDirectory[] = "Output" _FS_ "FlowContainerRightTopWrap";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 32, 96, szDirectory);
 	uiStartObjects = gcObjects.NumMemoryIndexes();
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -603,10 +604,9 @@ void TestFlowContainerRightTopWrap(void)
 		CRandom					cRandom;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 32, 96, szDirectory);
 
 		cTick.Init(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, &cTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		AssertSize(5, pTestWindow.NumHeapFroms());
 
 
@@ -657,9 +657,9 @@ void TestFlowContainerRightTopWrap(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -670,13 +670,14 @@ void TestFlowContainerRightTopWrap(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainer(char* szDirectory, int32 iWidth, int32 iHeight, uint32 iRandomSeed, EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eV, EContainerStyleHorizontal eH)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	size					uiStartObjects;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	size						uiStartObjects;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 	uiStartObjects = gcObjects.NumMemoryIndexes();
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -692,10 +693,9 @@ void TestFlowContainer(char* szDirectory, int32 iWidth, int32 iHeight, uint32 iR
 		CRandom					cRandom;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFlow = OMalloc<CFlowContainer>(pTestWindow);
@@ -747,9 +747,9 @@ void TestFlowContainer(char* szDirectory, int32 iWidth, int32 iHeight, uint32 iR
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -880,13 +880,14 @@ void TestFlowLongContainerDownRightWrap(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerPositions(char* szDirectory, int32 iWidth, int32 iHeight, EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eV, EContainerStyleHorizontal eH, size uiNumComponents, SInt32Vec2* asDesiredSizes, SInt32Vec2* asExpectedPositions, SInt32Vec2* asExpectedSizes, EContainerStyleHorizontal* aeHorizontal = NULL, EContainerStyleVertical* aeVertical = NULL, int* paiInsets = NULL)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	size					uiStartObjects;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	size						uiStartObjects;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 	uiStartObjects = gcObjects.NumMemoryIndexes();
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -900,10 +901,9 @@ void TestFlowContainerPositions(char* szDirectory, int32 iWidth, int32 iHeight, 
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFlow = OMalloc<CFlowContainer>(pTestWindow);
@@ -957,9 +957,9 @@ void TestFlowContainerPositions(char* szDirectory, int32 iWidth, int32 iHeight, 
 		AssertSize(uiStartObjects, gcObjects.NumMemoryIndexes());
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1070,10 +1070,10 @@ void TestFlowContainerRightComponentAlignmentWrap(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerInsets(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "FlowContainerInsets";
-	int						aiInsets[4] = { 2, 3, 4, 5 };  //Top, Right, Bottom, Left.
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "FlowContainerInsets";
+	int							aiInsets[4] = { 2, 3, 4, 5 };  //Top, Right, Bottom, Left.
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -1092,10 +1092,10 @@ void TestFlowContainerInsets(void)
 		size					i;
 		SInt32Vec2				asDesired[3] = { SInt32Vec2(10, 10), SInt32Vec2(20, 20), SInt32Vec2(5, 16) };
 
-		cNativeFactory.Init(&gcMemoryAllocator, 96, 30, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 30, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFlow = OMalloc<CFlowContainer>(pTestWindow);
@@ -1165,9 +1165,9 @@ void TestFlowContainerInsets(void)
 		pFlow = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1209,14 +1209,15 @@ void TestFlowContainerLeftBottomWrapInsets(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerNested(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	size					uiStartObjects;
-	char					szDirectory[] = "Output" _FS_ "FlowContainerNested";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	size						uiStartObjects;
+	char						szDirectory[] = "Output" _FS_ "FlowContainerNested";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 30, szDirectory);
 	uiStartObjects = gcObjects.NumMemoryIndexes();
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -1235,10 +1236,9 @@ void TestFlowContainerNested(void)
 		CInt32Rect				cBounds;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 96, 30, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pOuterFlow = OMalloc<CFlowContainer>(pTestWindow);
@@ -1333,9 +1333,9 @@ void TestFlowContainerNested(void)
 		AssertSize(uiStartObjects, gcObjects.NumMemoryIndexes());
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1346,8 +1346,8 @@ void TestFlowContainerNested(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerDarkForest(char* szDirectory, int32 iWidth, int32 iHeight, EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eV, EContainerStyleHorizontal eH, size uiNumComponents, SDarkForestComponent* asComponents)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -1367,10 +1367,10 @@ void TestFlowContainerDarkForest(char* szDirectory, int32 iWidth, int32 iHeight,
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 
@@ -1428,9 +1428,9 @@ void TestFlowContainerDarkForest(char* szDirectory, int32 iWidth, int32 iHeight,
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1544,9 +1544,9 @@ void TestFlowContainerDarkForestImagesRightTopContinuePastEdge(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerWrapIgnoresUnsizedComponent(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "FlowContainerWrapIgnoresUnsizedComponent";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "FlowContainerWrapIgnoresUnsizedComponent";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -1563,9 +1563,9 @@ void TestFlowContainerWrapIgnoresUnsizedComponent(void)
 		Ptr<CCanvas>			pLast;
 		SInt32Vec2				sVec;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 30, 30, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 30, 30, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Unsized Component", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Unsized Component", &pNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFlow = OMalloc<CFlowContainer>(pTestWindow);
@@ -1606,8 +1606,8 @@ void TestFlowContainerWrapIgnoresUnsizedComponent(void)
 		pTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1620,7 +1620,7 @@ void TestFlowContainerWrapIgnoresUnsizedComponent(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFlowContainerNestedGrid(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -1634,9 +1634,9 @@ void TestFlowContainerNestedGrid(void)
 		Ptr<CCanvas>			pAfter;
 		SInt32Vec2				sVec;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Flow Container", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Flow Container", &pNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFlow = OMalloc<CFlowContainer>(pTestWindow);
@@ -1684,9 +1684,9 @@ void TestFlowContainerNestedGrid(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
+	pNativeFactory = NULL;
 	AssertFlowContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 }
 
 

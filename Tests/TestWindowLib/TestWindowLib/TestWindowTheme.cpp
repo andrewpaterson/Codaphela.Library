@@ -87,7 +87,7 @@ static void ReadSetThemeValues(Ptr<CWindowTheme> pTheme)
 //////////////////////////////////////////////////////////////////////////
 void TestWindowThemeUnset(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -99,9 +99,9 @@ void TestWindowThemeUnset(void)
 		size						uiUnsetReads;
 		char						szLog[1024];
 
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Theme Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Theme Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pTheme = OMalloc<CWindowTheme>(Ptr<CFont>());
@@ -139,7 +139,7 @@ void TestWindowThemeUnset(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -182,7 +182,7 @@ void TestWindowThemeChanged(void)
 //////////////////////////////////////////////////////////////////////////
 void TestWindowThemeJewelComplete(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -194,9 +194,9 @@ void TestWindowThemeJewelComplete(void)
 		size						uiUnsetReads;
 		size						i;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Jewel Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Jewel Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		uiUnsetReads = CWindowTheme::GetTotalUnsetReads();
@@ -236,7 +236,7 @@ void TestWindowThemeJewelComplete(void)
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	gcObjects.ValidateObjectsConsistency();
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

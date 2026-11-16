@@ -105,7 +105,7 @@ Ptr<CTextField> CreateTestTextField(Ptr<CWindow> pWindow, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 void TestTextFieldEditing(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -121,8 +121,8 @@ void TestTextFieldEditing(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
-		pTestWindow = OMalloc<CWindow>("Text Field Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 100, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Text Field Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		pField = CreateTestTextField(pTestWindow, "");
@@ -170,7 +170,7 @@ void TestTextFieldEditing(void)
 		szClipboard.Kill();
 
 		//Every window's clipboard is the same one, as a system's is.
-		pOtherWindow = OMalloc<CWindow>("Other Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pOtherWindow = OMalloc<CWindow>("Other Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pOtherWindow);
 		szClipboard.Init();
 		AssertTrue(pOtherWindow->GetClipboard()->GetText(&szClipboard));
@@ -231,10 +231,10 @@ void TestTextFieldEditing(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -246,7 +246,7 @@ void TestTextFieldEditing(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextFieldUndo(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -259,8 +259,8 @@ void TestTextFieldUndo(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
-		pTestWindow = OMalloc<CWindow>("Text Field Undo Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 100, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Text Field Undo Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pField = CreateTestTextField(pTestWindow, "");
 		pField->SetTypingPause(1000000);
@@ -358,10 +358,10 @@ void TestTextFieldUndo(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -374,7 +374,7 @@ void TestTextFieldUndo(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextFieldPointer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -386,8 +386,8 @@ void TestTextFieldPointer(void)
 		int32					iTextLeft;
 		int32					iY;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
-		pTestWindow = OMalloc<CWindow>("Text Field Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 100, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Text Field Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pField = CreateTestTextField(pTestWindow, "Hello World");
 		pTestWindow->Layout();
@@ -482,10 +482,10 @@ void TestTextFieldPointer(void)
 		pTestWindow = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -529,9 +529,9 @@ bool TextFieldFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
 //////////////////////////////////////////////////////////////////////////
 void TestTextFieldFrames(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "TextFieldFrames";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "TextFieldFrames";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -542,9 +542,9 @@ void TestTextFieldFrames(void)
 		STextFieldFrames			sFrames;
 		CChars						szExpectedDirectory;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 240, 60, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 240, 60, szDirectory);
 		pTick = OMalloc<CScriptFramesTick>(TextFieldFrames, &sFrames);
-		pTestWindow = OMalloc<CWindow>("Text Field Frames", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x2B, 0x2D, 0x30)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Field Frames", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x2B, 0x2D, 0x30)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		sFrames.pField = CreateTestTextField(pTestWindow, "Clock frequency");
 
@@ -563,10 +563,10 @@ void TestTextFieldFrames(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -591,7 +591,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestTextFieldEditCommands(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -605,8 +605,8 @@ void TestTextFieldEditCommands(void)
 		size					uiStart;
 		size					uiEnd;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
-		pTestWindow = OMalloc<CWindow>("Text Field Edit Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 100, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Text Field Edit Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pField = CreateTestTextField(pTestWindow, "");
 		pField->SetTypingPause(1000000);
@@ -676,7 +676,7 @@ void TestTextFieldEditCommands(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -689,15 +689,15 @@ void TestTextFieldEditCommands(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextFieldSharedEditing(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>	pTestWindow;
 		Ptr<CTextField>	pField;
 		CPointer		pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 100, NULL);
-		pTestWindow = OMalloc<CWindow>("Text Field Shared Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 100, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Text Field Shared Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pField = CreateTestTextField(pTestWindow, "  ab cd");
 		pField->SetTypingPause(1000000);
@@ -742,7 +742,7 @@ void TestTextFieldSharedEditing(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

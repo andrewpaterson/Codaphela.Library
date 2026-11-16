@@ -172,7 +172,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestComponentInputWinRawDevices(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -189,9 +189,9 @@ void TestComponentInputWinRawDevices(void)
 		CComponentInput				cComponentInput;
 
 		szLog.Init();
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Input Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Input Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
 		pTestWindow->SetContainer(pGrid);
@@ -326,10 +326,10 @@ void TestComponentInputWinRawDevices(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -342,7 +342,7 @@ void TestComponentInputWinRawDevices(void)
 //////////////////////////////////////////////////////////////////////////
 void TestComponentInputWinRawTypingLayout(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -358,9 +358,9 @@ void TestComponentInputWinRawTypingLayout(void)
 		CComponentInput				cComponentInput;
 
 		szLog.Init();
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Typing Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Typing Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		pTestWindow->SetCheckLayoutCache(false);
 		ORoot()->Add(pTestWindow);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
@@ -438,10 +438,10 @@ void TestComponentInputWinRawTypingLayout(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 

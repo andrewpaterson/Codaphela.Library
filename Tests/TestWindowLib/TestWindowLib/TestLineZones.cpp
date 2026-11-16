@@ -112,7 +112,7 @@ void TestLineZonesClickGutter(Ptr<CWindow> pWindow, Ptr<CCodeEditor> pEditor, si
 //////////////////////////////////////////////////////////////////////////
 void TestLineZonesShow(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -128,9 +128,9 @@ void TestLineZonesShow(void)
 		CInt32Rect					cGap;
 		SInt32Vec2					sCaption;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 400, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 400, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Line Zones Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Line Zones Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -214,7 +214,7 @@ void TestLineZonesShow(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -229,7 +229,7 @@ void TestLineZonesShow(void)
 //////////////////////////////////////////////////////////////////////////
 void TestLineZonesOutOfDate(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -243,9 +243,9 @@ void TestLineZonesOutOfDate(void)
 		Ptr<CLineZone>				pZone;
 		CTestLineZoneSource			cSource;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 400, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 400, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Line Zones Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Line Zones Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -337,7 +337,7 @@ void TestLineZonesOutOfDate(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -350,7 +350,7 @@ void TestLineZonesOutOfDate(void)
 //////////////////////////////////////////////////////////////////////////
 void TestLineZonesFollowEditsAtOnce(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -363,9 +363,9 @@ void TestLineZonesFollowEditsAtOnce(void)
 		Ptr<CLineZones>				pZones;
 		CTestLineZoneSource			cSource;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 400, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 400, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Line Zones Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Line Zones Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -407,7 +407,7 @@ void TestLineZonesFollowEditsAtOnce(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

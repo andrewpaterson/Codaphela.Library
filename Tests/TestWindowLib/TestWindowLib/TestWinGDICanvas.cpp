@@ -85,12 +85,21 @@ static void AssertGDIPixels(const char* szExpected, Ptr<CCanvas> pCanvas)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static Ptr<CWinGDIWindowFactory> NewGDIFactory(void)
+{
+	return OMalloc<CWinGDIWindowFactory>(&gcMemoryAllocator, GetModuleHandle(NULL), (HINSTANCE)NULL, SW_HIDE, "TestWinGDICanvas");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static Ptr<CWindow> NewGDITestWindow(CWinGDIWindowFactory* pcFactory)
 {
 	Ptr<CWindow>	pWindow;
 	CPointer		pNull;
 
-	pcFactory->Init(&gcMemoryAllocator, GetModuleHandle(NULL), NULL, SW_HIDE, "TestWinGDICanvas");
 	pWindow = OMalloc<CWindow>("GDI Canvas Window", pcFactory, OMalloc<CCountingTick>(0, 0, -1), pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 	ORoot()->Add(pWindow);
 	return pWindow;
@@ -107,7 +116,7 @@ static Ptr<CWindow> NewGDITestWindow(CWinGDIWindowFactory* pcFactory)
 //////////////////////////////////////////////////////////////////////////
 void TestWinGDICanvasBoxesAndPixels(void)
 {
-	CWinGDIWindowFactory	cFactory;
+	Ptr<CWinGDIWindowFactory>	pFactory;
 
 	ObjectsInit();
 	{
@@ -115,7 +124,8 @@ void TestWinGDICanvasBoxesAndPixels(void)
 		Ptr<CCanvas>	pCanvas;
 		CInt32Rect		cRect;
 
-		pWindow = NewGDITestWindow(&cFactory);
+		pFactory = NewGDIFactory();
+		pWindow = NewGDITestWindow(&pFactory);
 		pCanvas = NewGDICanvas(pWindow, 6, 4, false);
 		AssertGDIPixels("00000000 00000000 00000000 00000000 00000000 00000000 "
 						"00000000 00000000 00000000 00000000 00000000 00000000 "
@@ -178,7 +188,7 @@ void TestWinGDICanvasBoxesAndPixels(void)
 		pWindow = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill(false);
 }
@@ -194,7 +204,7 @@ void TestWinGDICanvasBoxesAndPixels(void)
 //////////////////////////////////////////////////////////////////////////
 void TestWinGDICanvasComposites(void)
 {
-	CWinGDIWindowFactory	cFactory;
+	Ptr<CWinGDIWindowFactory>	pFactory;
 
 	ObjectsInit();
 	{
@@ -205,7 +215,8 @@ void TestWinGDICanvasComposites(void)
 		CInt32Rect		cRect;
 		CInt32Rect		cClip;
 
-		pWindow = NewGDITestWindow(&cFactory);
+		pFactory = NewGDIFactory();
+		pWindow = NewGDITestWindow(&pFactory);
 
 		//A three by two source, its right column another colour.
 		pSource = NewGDICanvas(pWindow, 3, 2, false);
@@ -253,7 +264,7 @@ void TestWinGDICanvasComposites(void)
 		pWindow = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill(false);
 }
@@ -266,7 +277,7 @@ void TestWinGDICanvasComposites(void)
 //////////////////////////////////////////////////////////////////////////
 void TestWinGDICanvasImages(void)
 {
-	CWinGDIWindowFactory	cFactory;
+	Ptr<CWinGDIWindowFactory>	pFactory;
 
 	ObjectsInit();
 	{
@@ -277,7 +288,8 @@ void TestWinGDICanvasImages(void)
 		uint8*			puiData;
 		int				i;
 
-		pWindow = NewGDITestWindow(&cFactory);
+		pFactory = NewGDIFactory();
+		pWindow = NewGDITestWindow(&pFactory);
 		pCanvas = NewGDICanvas(pWindow, 4, 2, false);
 
 		//Red, green, blue, white.
@@ -310,7 +322,7 @@ void TestWinGDICanvasImages(void)
 		pWindow = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill(false);
 }
@@ -325,7 +337,7 @@ void TestWinGDICanvasImages(void)
 //////////////////////////////////////////////////////////////////////////
 void TestWinGDICanvasInOrder(void)
 {
-	CWinGDIWindowFactory	cFactory;
+	Ptr<CWinGDIWindowFactory>	pFactory;
 
 	ObjectsInit();
 	{
@@ -339,7 +351,8 @@ void TestWinGDICanvasInOrder(void)
 		int				i;
 		bool			bInOrder;
 
-		pWindow = NewGDITestWindow(&cFactory);
+		pFactory = NewGDIFactory();
+		pWindow = NewGDITestWindow(&pFactory);
 		pCanvas = NewGDICanvas(pWindow, 64, 64, false);
 		pYellow = NewGDICanvas(pWindow, 64, 1, false);
 		cRect.Init(0, 0, 63, 0);
@@ -384,7 +397,7 @@ void TestWinGDICanvasInOrder(void)
 		pWindow = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill(false);
 }

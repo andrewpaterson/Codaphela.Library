@@ -63,6 +63,7 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 void CCanvas::InitCanvas(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 {
 	mpcNativeCanvas = NULL;
+	mpFactory = NULL;
 	CComponent::Init(pWindow);
 
 	mpCanvasDraw = pDraw;
@@ -102,6 +103,7 @@ void CCanvas::Class(void)
 	CComponent::Class();
 
 	U_Pointer(mpcNativeCanvas);
+	Nes(M_Pointer(mpFactory));
 	U_Data(CColourFormatHelper, mcFormat);
 	M_Pointer(mpNativeImage);
 	M_Pointer(mpCanvasDraw);
@@ -422,6 +424,7 @@ void CCanvas::CreateNativeCanvas(void)
 	}
 
 	pcFactory = mpWindow->GetFactory();
+	mpFactory = pcFactory;
 	mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
 }
 

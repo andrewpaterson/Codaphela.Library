@@ -19,7 +19,7 @@
 //////////////////////////////////////////////////////////////////////////
 void TestProgressBarFraction(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pWindow;
@@ -30,9 +30,9 @@ void TestProgressBarFraction(void)
 		CPointer					pNull;
 		SInt32Vec2					sSize;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 20, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 20, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Progress Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Progress Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pFill = OMalloc<CFillContainer>(pWindow);
 		pWindow->SetContainer(pFill);
@@ -76,7 +76,7 @@ void TestProgressBarFraction(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

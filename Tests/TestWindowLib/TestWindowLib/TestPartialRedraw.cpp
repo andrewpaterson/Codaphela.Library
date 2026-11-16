@@ -209,15 +209,15 @@ static void AssertUndamagedIfStill(CDamageArea* pcDamage, Ptr<CCanvas> pCanvas, 
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawDamage(void)
 {
-	CWinRefWindowFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "PartialRedrawDamage";
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "PartialRedrawDamage";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 64, 48, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 48, szDirectory);
 	{
 		SDamageWindow		sWindow;
 		CDamageArea*		pcDamage;
@@ -231,7 +231,7 @@ void TestPartialRedrawDamage(void)
 		CPointer			pNull;
 		SWindowInputEvent	sMovement;
 
-		CreateDamageWindow(&sWindow, &cFactory);
+		CreateDamageWindow(&sWindow, &pFactory);
 
 		//Everything appears at the first paint; nothing has changed at the second.
 		sWindow.pWindow->Paint();
@@ -336,7 +336,7 @@ void TestPartialRedrawDamage(void)
 		KillDamageWindow(&sWindow);
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -380,15 +380,15 @@ static void CreatePartialWindow(SDamageWindow* psWindow, CWinRefWindowFactory* p
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawMatchesFull(void)
 {
-	CWinRefWindowFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "PartialRedrawMatches";
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "PartialRedrawMatches";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 64, 48, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 48, szDirectory);
 	{
 		SDamageWindow			sWindow;
 		Ptr<CCanvas>			pPopupContent;
@@ -397,7 +397,7 @@ void TestPartialRedrawMatchesFull(void)
 		CInt32Rect				cArea;
 		CPointer				pNull;
 
-		CreatePartialWindow(&sWindow, &cFactory);
+		CreatePartialWindow(&sWindow, &pFactory);
 		pcNative = (CWinRefWindow*)sWindow.pWindow->GetNativeWindow();
 		pcPresented = pcNative->GetPresented();
 
@@ -457,7 +457,7 @@ void TestPartialRedrawMatchesFull(void)
 		KillDamageWindow(&sWindow);
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -474,20 +474,20 @@ void TestPartialRedrawMatchesFull(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawVerifyFindsStale(void)
 {
-	CWinRefWindowFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "PartialRedrawStale";
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "PartialRedrawStale";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 64, 48, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 48, szDirectory);
 	{
 		SDamageWindow			sWindow;
 		SLogConfig				sLogConfig;
 
-		CreatePartialWindow(&sWindow, &cFactory);
+		CreatePartialWindow(&sWindow, &pFactory);
 		sWindow.pWindow->Paint();
 		AssertSize(0, sWindow.pWindow->GetRedrawMismatches());
 
@@ -507,7 +507,7 @@ void TestPartialRedrawVerifyFindsStale(void)
 		KillDamageWindow(&sWindow);
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -522,10 +522,10 @@ void TestPartialRedrawVerifyFindsStale(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawDialogLikeOwner(void)
 {
-	CWinRefWindowFactory	cFactory;
+	Ptr<CWinRefWindowFactory>	pFactory;
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 	{
 		Ptr<CWindow>		pOwner;
 		Ptr<CWindowTheme>	pTheme;
@@ -534,7 +534,7 @@ void TestPartialRedrawDialogLikeOwner(void)
 		Ptr<CDialog>		pPartial;
 		CPointer			pNull;
 
-		pOwner = OMalloc<CWindow>("Dialog Owner", &cFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pOwner = OMalloc<CWindow>("Dialog Owner", &pFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pOwner);
 		pTheme = CJewelTheme::CreateDarkTheme(pOwner, GenerateMenuFont(pOwner));
 		sLook.pcTheme = &pTheme;
@@ -560,7 +560,7 @@ void TestPartialRedrawDialogLikeOwner(void)
 		pOwner = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 }
@@ -625,12 +625,12 @@ static void CreatePartCanvasWindow(SDamageWindow* psWindow, CWinRefWindowFactory
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawCanvasPart(void)
 {
-	CWinRefWindowFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "PartialRedrawPart";
-	ARGB32					sRed;
-	ARGB32					sGreen;
-	ARGB32					sTranslucent;
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "PartialRedrawPart";
+	ARGB32						sRed;
+	ARGB32						sGreen;
+	ARGB32						sTranslucent;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -639,7 +639,7 @@ void TestPartialRedrawCanvasPart(void)
 	sTranslucent = Set32BitColour(1.0f, 0, 0, 0.5f);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 40, 20, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 40, 20, szDirectory);
 	{
 		SDamageWindow			sWindow;
 		Ptr<CBoxFillCanvasDraw>	pDraw;
@@ -651,7 +651,7 @@ void TestPartialRedrawCanvasPart(void)
 		uint32					uiOverBlue;
 
 		pDraw = OMalloc<CBoxFillCanvasDraw>(sRed);
-		CreatePartCanvasWindow(&sWindow, &cFactory, pDraw, false);
+		CreatePartCanvasWindow(&sWindow, &pFactory, pDraw, false);
 		pcNative = (CWinRefWindow*)sWindow.pWindow->GetNativeWindow();
 		uiRed = GetWindowPixel(sWindow.pWindow, 15, 5);
 
@@ -688,7 +688,7 @@ void TestPartialRedrawCanvasPart(void)
 
 		//A translucent fill over the window's blue: the part drawn again is cleared first, or it would be drawn over itself.
 		pDraw = OMalloc<CBoxFillCanvasDraw>(sTranslucent);
-		CreatePartCanvasWindow(&sWindow, &cFactory, pDraw, true);
+		CreatePartCanvasWindow(&sWindow, &pFactory, pDraw, true);
 		uiOverBlue = GetWindowPixel(sWindow.pWindow, 5, 5);
 		sWindow.pFirst->InvalidateArea(&cLeft);
 		sWindow.pWindow->Paint();
@@ -699,7 +699,7 @@ void TestPartialRedrawCanvasPart(void)
 		KillDamageWindow(&sWindow);
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -716,15 +716,15 @@ void TestPartialRedrawCanvasPart(void)
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawTextArea(void)
 {
-	CWinRefWindowFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "PartialRedrawTextArea";
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "PartialRedrawTextArea";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 96, 32, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 32, szDirectory);
 	{
 		Ptr<CWindow>			pWindow;
 		Ptr<CTickTestRefWindow>	pTick;
@@ -735,7 +735,7 @@ void TestPartialRedrawTextArea(void)
 		uint32					uiUnselected;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Text", &cFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Text", &pFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pFill = OMalloc<CFillContainer>(pWindow);
 		pWindow->SetContainer(pFill);
@@ -783,7 +783,7 @@ void TestPartialRedrawTextArea(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -850,15 +850,15 @@ static void AssertPresentedLines(Ptr<CWindow> pWindow, Ptr<CTextArea> pTextArea,
 //////////////////////////////////////////////////////////////////////////
 void TestPartialRedrawTextAreaRows(void)
 {
-	CWinRefWindowFactory	cFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "PartialRedrawTextAreaRows";
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "PartialRedrawTextAreaRows";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 160, 140, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 160, 140, szDirectory);
 	{
 		Ptr<CWindow>			pWindow;
 		Ptr<CTickTestRefWindow>	pTick;
@@ -872,7 +872,7 @@ void TestPartialRedrawTextAreaRows(void)
 
 		sRed = Set32BitColour(1.0f, 0, 0);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>("Rows", &cFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Rows", &pFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pFill = OMalloc<CFillContainer>(pWindow);
 		pWindow->SetContainer(pFill);
@@ -946,7 +946,7 @@ void TestPartialRedrawTextAreaRows(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 

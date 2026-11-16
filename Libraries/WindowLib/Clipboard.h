@@ -41,12 +41,14 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //machine has on their clipboard, nor depend on it.
 class CWindow;
 class CNativeClipboard;
+class CNativeWindowFactory;
 class CClipboard : public CObject
 {
 CONSTRUCTABLE(CClipboard);
 DESTRUCTABLE(CClipboard);
 protected:
 	CNativeClipboard*	mpcNativeClipboard;  //NULL if the factory couldn't make one, then nothing is copied or pasted.
+	Ptr<CNativeWindowFactory>	mpFactory;  //Made mpcNativeClipboard.  Nes: freed after the clipboard.
 	Ptr<CWindow>		mpWindow;
 	Ptr<CClipboardHistory>	mpHistory;  //Its own, NULL until it is wanted or while it shares another's.
 	Ptr<CClipboard>			mpShared;  //The clipboard whose history it shares, NULL for its own.

@@ -105,7 +105,7 @@ int32 CodeEditorLineTop(Ptr<CTextArea> pTextArea, size uiLine)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorGutter(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -118,9 +118,9 @@ void TestCodeEditorGutter(void)
 		int32						iCell;
 		int32						iLine;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -170,7 +170,7 @@ void TestCodeEditorGutter(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -183,7 +183,7 @@ void TestCodeEditorGutter(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorLineComponents(bool bTiles)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -200,9 +200,9 @@ void TestCodeEditorLineComponents(bool bTiles)
 		int32						iGap;
 		int32						iTop;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -301,7 +301,7 @@ void TestCodeEditorLineComponents(bool bTiles)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -313,7 +313,7 @@ void TestCodeEditorLineComponents(bool bTiles)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorScrollPane(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -330,9 +330,9 @@ void TestCodeEditorScrollPane(void)
 		CInt32Rect					cCaret;
 		int32						iCaretTop;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont());
 		pScroll = OMalloc<CScrollPane>(pTestWindow, pTheme);
@@ -383,7 +383,7 @@ void TestCodeEditorScrollPane(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -397,7 +397,7 @@ void TestCodeEditorScrollPane(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorGutterMarks(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -413,9 +413,9 @@ void TestCodeEditorGutterMarks(void)
 		int32						iTop;
 		int32						iLeft;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -484,7 +484,7 @@ void TestCodeEditorGutterMarks(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -498,7 +498,7 @@ void TestCodeEditorGutterMarks(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorScrolledSideways(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -518,9 +518,9 @@ void TestCodeEditorScrolledSideways(void)
 		int32						iTop;
 		CInt32Rect					cGap;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pScroll = OMalloc<CScrollPane>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()));
 		pTestWindow->SetContainer(pScroll);
@@ -585,7 +585,7 @@ void TestCodeEditorScrolledSideways(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -598,7 +598,7 @@ void TestCodeEditorScrolledSideways(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorChangeBars(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -610,9 +610,9 @@ void TestCodeEditorChangeBars(void)
 		Ptr<CTextArea>				pGutter;
 		SCodeEditorChangeBar*		psBar;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -687,7 +687,7 @@ void TestCodeEditorChangeBars(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -700,7 +700,7 @@ void TestCodeEditorChangeBars(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorChangeBarsPainted(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -711,9 +711,9 @@ void TestCodeEditorChangeBarsPainted(void)
 		Ptr<CCodeEditor>			pEditor;
 		Ptr<CTextArea>				pGutter;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -764,7 +764,7 @@ void TestCodeEditorChangeBarsPainted(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -778,7 +778,7 @@ void TestCodeEditorChangeBarsPainted(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorChangeBarClicks(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -795,9 +795,9 @@ void TestCodeEditorChangeBarClicks(void)
 		int32						iTop;
 		int32						iLeft;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -865,7 +865,7 @@ void TestCodeEditorChangeBarClicks(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -880,7 +880,7 @@ void TestCodeEditorChangeBarClicks(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorGlyphs(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -899,9 +899,9 @@ void TestCodeEditorGlyphs(void)
 		int32						iTop;
 		int32						iLeft;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -993,7 +993,7 @@ void TestCodeEditorGlyphs(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1005,9 +1005,9 @@ void TestCodeEditorGlyphs(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorChangeBarsDrawn(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char*					szDirectory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char*						szDirectory;
 
 	szDirectory = (char*)"Output" _FS_ "CodeEditorChangeBars";
 	cFileUtil.RemoveDir(szDirectory);
@@ -1020,9 +1020,9 @@ void TestCodeEditorChangeBarsDrawn(void)
 		Ptr<CFillContainer>			pFill;
 		Ptr<CCodeEditor>			pEditor;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 120, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 120, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -1043,9 +1043,9 @@ void TestCodeEditorChangeBarsDrawn(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
+	pNativeFactory = NULL;
 	AssertDirectory("Input" _FS_ "CodeEditorChangeBars", szDirectory);
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1060,7 +1060,7 @@ void TestCodeEditorChangeBarsDrawn(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorClickBeyondText(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -1075,9 +1075,9 @@ void TestCodeEditorClickBeyondText(void)
 		int32						iRight;
 		int32						iBottom;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pScroll = OMalloc<CScrollPane>(pTestWindow, CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont()));
 		pTestWindow->SetContainer(pScroll);
@@ -1124,7 +1124,7 @@ void TestCodeEditorClickBeyondText(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1139,7 +1139,7 @@ void TestCodeEditorClickBeyondText(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCodeEditorLineSelection(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -1157,9 +1157,9 @@ void TestCodeEditorLineSelection(void)
 		int32						iNumber;
 		int32						iCode;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Code Editor Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Code Editor Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -1293,7 +1293,7 @@ void TestCodeEditorLineSelection(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

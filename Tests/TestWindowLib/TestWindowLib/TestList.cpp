@@ -78,7 +78,7 @@ static Ptr<CCanvas> CreateListItem(Ptr<CWindow> pWindow, int32 iWidth, int32 iHe
 //////////////////////////////////////////////////////////////////////////
 void TestListInput(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -98,9 +98,9 @@ void TestListInput(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 100, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 100, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("List Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("List Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 
@@ -335,10 +335,10 @@ void TestListInput(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -353,8 +353,8 @@ void TestListInput(void)
 //////////////////////////////////////////////////////////////////////////
 void TestListDraw(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 	const char*				szDirectory;
 
 	szDirectory = "Output" _FS_ "ListDraw";
@@ -372,9 +372,9 @@ void TestListDraw(void)
 		uint8*					puiPixels;
 		uint8*					puiPixel;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 100, 40, (char*)szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 100, 40, (char*)szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("List Draw Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("List Draw Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pList = OMalloc<CListContainer>(pTestWindow, CreateTestTheme(Ptr<CFont>()));
@@ -422,10 +422,10 @@ void TestListDraw(void)
 		pTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -439,7 +439,7 @@ void TestListDraw(void)
 //////////////////////////////////////////////////////////////////////////
 void TestListKeysScroll(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -451,9 +451,9 @@ void TestListKeysScroll(void)
 		SInt32Vec2				sVec;
 		int32					i;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 100, 50, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 100, 50, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("List Keys Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("List Keys Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pScrollPane = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
@@ -517,7 +517,7 @@ void TestListKeysScroll(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

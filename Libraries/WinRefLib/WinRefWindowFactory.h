@@ -34,6 +34,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CWinRefWindowFactory : public CNativeWindowFactory
 {
 CONSTRUCTABLE(CWinRefWindowFactory);
+DESTRUCTABLE(CWinRefWindowFactory);
 protected:
 	CInt32Rect		mcWindowBounds;
 	CChars			mszImagePath;
@@ -44,7 +45,8 @@ protected:
 
 public:
 	void				Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight, char* szImagePath);
-	void				Kill(void);
+	void				Class(void) override;
+	void				Free(void) override;
 
 	void				SetScreenArea(CInt32Rect* pcArea);
 	bool				GetScreenArea(CInt32Rect* pcDest);

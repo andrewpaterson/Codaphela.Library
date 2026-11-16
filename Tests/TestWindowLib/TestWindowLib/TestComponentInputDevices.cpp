@@ -23,7 +23,7 @@
 //////////////////////////////////////////////////////////////////////////
 void TestComponentInputKeyboard(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -39,9 +39,9 @@ void TestComponentInputKeyboard(void)
 		CComponentInput				cComponentInput;
 
 		szLog.Init();
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Input Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Input Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
 		pTestWindow->SetContainer(pGrid);
@@ -283,10 +283,10 @@ void TestComponentInputKeyboard(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -296,7 +296,7 @@ void TestComponentInputKeyboard(void)
 //////////////////////////////////////////////////////////////////////////
 void TestComponentInputMouse(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -312,9 +312,9 @@ void TestComponentInputMouse(void)
 		CComponentInput				cComponentInput;
 
 		szLog.Init();
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Input Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Input Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
 		pTestWindow->SetContainer(pGrid);
@@ -406,10 +406,10 @@ void TestComponentInputMouse(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -423,7 +423,7 @@ void TestComponentInputMouse(void)
 //////////////////////////////////////////////////////////////////////////
 void TestComponentInputShortcutText(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -433,8 +433,8 @@ void TestComponentInputShortcutText(void)
 		CComponentInput				cComponentInput;
 		CChars						szKeys;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
-		pTestWindow = OMalloc<CWindow>("Input Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Input Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		cDevices.Init();
 		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
@@ -477,10 +477,10 @@ void TestComponentInputShortcutText(void)
 		pTestWindow = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 

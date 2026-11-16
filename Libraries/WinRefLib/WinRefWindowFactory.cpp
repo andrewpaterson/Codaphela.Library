@@ -30,6 +30,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight, char* szImagePath)
 {
+	PreInit();
+
 	CNativeWindowFactory::Init(pcMallocator);
 	mcWindowBounds.Init(iWidth, iHeight);
 	mszImagePath.Init(szImagePath);
@@ -37,6 +39,8 @@ void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 i
 	mcScreen.Init();
 	miMaxWait = -1;
 	muiFrameInterval = 1;
+
+	PostInit();
 }
 
 
@@ -44,12 +48,29 @@ void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindowFactory::Kill(void)
+void CWinRefWindowFactory::Class(void)
+{
+	CNativeWindowFactory::Class();
+
+	U_Data(CInt32Rect, mcWindowBounds);
+	U_String(mszImagePath);
+	U_String(mszClipboardText);
+	U_Unknown(CWinRefScreen, mcScreen);
+	U_Int64(miMaxWait);
+	U_UInt32(muiFrameInterval);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindowFactory::Free(void)
 {
 	mcScreen.Kill();
 	mszClipboardText.Kill();
 	mszImagePath.Kill();
-	CNativeWindowFactory::Kill();
+	CNativeWindowFactory::Free();
 }
 
 

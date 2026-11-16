@@ -71,18 +71,18 @@ struct SScreenWindow
 //////////////////////////////////////////////////////////////////////////
 void TestRefWindowScreenCheck(void)
 {
-	CWinRefWindowFactory	cFactory;
-	SLogConfig				sLogConfig;
+	Ptr<CWinRefWindowFactory>	pFactory;
+	SLogConfig					sLogConfig;
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 64, 48, NULL);
-	cFactory.SetCheckPresents(true);
-	AssertTrue(cFactory.GetScreen()->IsWatching());
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 48, (char*)NULL);
+	pFactory->SetCheckPresents(true);
+	AssertTrue(pFactory->GetScreen()->IsWatching());
 	{
 		SScreenWindow	sWindow;
 		Ptr<CImage>		pImage;
 
-		sWindow.Init("Checked", &cFactory, Set32BitColour(0, 0, 1.0f), 1);
+		sWindow.Init("Checked", &pFactory, Set32BitColour(0, 0, 1.0f), 1);
 		sWindow.pWindow->Paint();
 		AssertInt(64, sWindow.GetNative()->GetShown()->GetWidth());
 		AssertInt(48, sWindow.GetNative()->GetShown()->GetHeight());
@@ -91,7 +91,7 @@ void TestRefWindowScreenCheck(void)
 		sWindow.pWindow->Paint();
 		sWindow.pBox->SetDesiredSize(30, 20);
 		sWindow.pWindow->Paint();
-		AssertSize(0, cFactory.GetScreen()->NumMismatches());
+		AssertSize(0, pFactory->GetScreen()->NumMismatches());
 
 		//Drawn but not presented: the paint after finds nothing changed and shows nothing.
 		pImage = sWindow.pWindow->GetCanvas()->GetImageOrNull();
@@ -100,14 +100,14 @@ void TestRefWindowScreenCheck(void)
 		sLogConfig = gcLogger.SetSilent();
 		sWindow.pWindow->Paint();
 		gcLogger.SetConfig(&sLogConfig);
-		AssertSize(1, cFactory.GetScreen()->NumMismatches());
+		AssertSize(1, pFactory->GetScreen()->NumMismatches());
 		sWindow.pWindow->Paint();
-		AssertSize(1, cFactory.GetScreen()->NumMismatches());
+		AssertSize(1, pFactory->GetScreen()->NumMismatches());
 
 		sWindow.Kill();
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 }
@@ -121,18 +121,18 @@ void TestRefWindowScreenCheck(void)
 //////////////////////////////////////////////////////////////////////////
 static void HashWindowPresents(const char* szFileName, EWinRefHashArea eArea)
 {
-	CWinRefWindowFactory	cFactory;
-	CInt32Rect				cScreen;
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CInt32Rect					cScreen;
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 64, 48, NULL);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 48, (char*)NULL);
 	cScreen.Init(0, 0, 80, 60);
-	cFactory.SetScreenArea(&cScreen);
-	AssertTrue(cFactory.SetHashPresents(szFileName, eArea));
+	pFactory->SetScreenArea(&cScreen);
+	AssertTrue(pFactory->SetHashPresents(szFileName, eArea));
 	{
 		SScreenWindow	sWindow;
 
-		sWindow.Init("Hashed", &cFactory, Set32BitColour(0, 0, 1.0f), 1);
+		sWindow.Init("Hashed", &pFactory, Set32BitColour(0, 0, 1.0f), 1);
 		AssertTrue(sWindow.pWindow->Show());
 		sWindow.pBox->Invalidate();
 		sWindow.pWindow->Paint();
@@ -142,7 +142,7 @@ static void HashWindowPresents(const char* szFileName, EWinRefHashArea eArea)
 		sWindow.Kill();
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 }
@@ -279,51 +279,51 @@ static void AssertScreenShows(CWinRefScreen* pcScreen, int32 x, int32 y, CWinRef
 //////////////////////////////////////////////////////////////////////////
 void TestRefWindowScreenStacking(void)
 {
-	CWinRefWindowFactory	cFactory;
-	CInt32Rect				cScreen;
-	CInt32Rect				cTool;
+	Ptr<CWinRefWindowFactory>	pFactory;
+	CInt32Rect					cScreen;
+	CInt32Rect					cTool;
 
 	ObjectsInit();
-	cFactory.Init(&gcMemoryAllocator, 64, 48, NULL);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 48, (char*)NULL);
 	cScreen.Init(0, 0, 64, 48);
-	cFactory.SetScreenArea(&cScreen);
-	cFactory.SetCheckPresents(true);
+	pFactory->SetScreenArea(&cScreen);
+	pFactory->SetCheckPresents(true);
 	{
 		SScreenWindow	sMain;
 		Ptr<CWindow>	pTool;
 		CPointer		pNull;
 		CWinRefWindow*	pcTool;
 
-		sMain.Init("Main", &cFactory, Set32BitColour(1.0f, 0, 0), 1);
-		pTool = OMalloc<CWindow>("Tool", &cFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour(0, 1.0f, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		sMain.Init("Main", &pFactory, Set32BitColour(1.0f, 0, 0), 1);
+		pTool = OMalloc<CWindow>("Tool", &pFactory, pNull, OMalloc<CClearCanvasDraw>(Set32BitColour(0, 1.0f, 0)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTool);
 		cTool.Init(30, 20, 50, 35);
 		AssertTrue(pTool->ShowOwned(sMain.pWindow, &cTool));
 		AssertTrue(sMain.pWindow->Show());
 		pcTool = (CWinRefWindow*)pTool->GetNativeWindow();
 
-		AssertScreenShows(cFactory.GetScreen(), 2, 30, sMain.GetNative(), 2, 30);
-		AssertScreenShows(cFactory.GetScreen(), 35, 25, pcTool, 5, 5);
+		AssertScreenShows(pFactory->GetScreen(), 2, 30, sMain.GetNative(), 2, 30);
+		AssertScreenShows(pFactory->GetScreen(), 35, 25, pcTool, 5, 5);
 
 		sMain.pWindow->Invalidate();
 		sMain.pWindow->Paint();
-		AssertScreenShows(cFactory.GetScreen(), 35, 25, pcTool, 5, 5);
+		AssertScreenShows(pFactory->GetScreen(), 35, 25, pcTool, 5, 5);
 
 		sMain.pWindow->Raise();
-		AssertScreenShows(cFactory.GetScreen(), 35, 25, sMain.GetNative(), 35, 25);
+		AssertScreenShows(pFactory->GetScreen(), 35, 25, sMain.GetNative(), 35, 25);
 
 		pTool->Raise();
-		AssertScreenShows(cFactory.GetScreen(), 35, 25, pcTool, 5, 5);
+		AssertScreenShows(pFactory->GetScreen(), 35, 25, pcTool, 5, 5);
 		pTool->CloseOwned();
-		AssertScreenShows(cFactory.GetScreen(), 35, 25, sMain.GetNative(), 35, 25);
-		AssertSize(0, cFactory.GetScreen()->NumMismatches());
+		AssertScreenShows(pFactory->GetScreen(), 35, 25, sMain.GetNative(), 35, 25);
+		AssertSize(0, pFactory->GetScreen()->NumMismatches());
 
 		ORoot()->Remove(pTool);
 		pTool = NULL;
 		sMain.Kill();
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cFactory.Kill();
+	pFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 }
@@ -338,7 +338,6 @@ static int64 TimeShow(CWinRefWindowFactory* pcFactory, int32 iTicks)
 {
 	int64	iStart;
 
-	ObjectsInit();
 	{
 		SScreenWindow	sWindow;
 
@@ -350,8 +349,6 @@ static int64 TimeShow(CWinRefWindowFactory* pcFactory, int32 iTicks)
 		sWindow.Kill();
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	ObjectsFlush();
-	ObjectsKill();
 	return iStart;
 }
 
@@ -365,26 +362,29 @@ static int64 TimeShow(CWinRefWindowFactory* pcFactory, int32 iTicks)
 //////////////////////////////////////////////////////////////////////////
 void TestRefWindowScreenWait(void)
 {
-	CWinRefWindowFactory	cFactory;
-	int64					iTime;
+	Ptr<CWinRefWindowFactory>	pFactory;
+	int64						iTime;
 
-	cFactory.Init(&gcMemoryAllocator, 64, 48, NULL);
-	AssertLong(-1, cFactory.GetMaxWait());
+	ObjectsInit();
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 48, (char*)NULL);
+	AssertLong(-1, pFactory->GetMaxWait());
 
-	cFactory.SetWaitForEvents(true, 20);
-	AssertLong(20, cFactory.GetMaxWait());
-	iTime = TimeShow(&cFactory, 5);
+	pFactory->SetWaitForEvents(true, 20);
+	AssertLong(20, pFactory->GetMaxWait());
+	iTime = TimeShow(&pFactory, 5);
 	AssertTrue(iTime >= 4 * 20);
 	AssertTrue(iTime < 2000);
 
-	cFactory.SetWaitForEvents(false);
-	AssertLong(-1, cFactory.GetMaxWait());
-	iTime = TimeShow(&cFactory, 5);
+	pFactory->SetWaitForEvents(false);
+	AssertLong(-1, pFactory->GetMaxWait());
+	iTime = TimeShow(&pFactory, 5);
 	AssertTrue(iTime < 4 * 20);
 
-	cFactory.SetWaitForEvents(true);
-	AssertLong(WIN_REF_MAX_WAIT, cFactory.GetMaxWait());
-	cFactory.Kill();
+	pFactory->SetWaitForEvents(true);
+	AssertLong(WIN_REF_MAX_WAIT, pFactory->GetMaxWait());
+	pFactory = NULL;
+	ObjectsFlush();
+	ObjectsKill();
 }
 
 
@@ -395,19 +395,21 @@ void TestRefWindowScreenWait(void)
 //////////////////////////////////////////////////////////////////////////
 void TestRefWindowScreenFrameInterval(void)
 {
-	CWinRefWindowFactory	cFactory;
+	Ptr<CWinRefWindowFactory>	pFactory;
 
-	cFactory.Init(&gcMemoryAllocator, 64, 48, NULL);
-	AssertTrue(cFactory.IsFrameSaved(0));
-	AssertTrue(cFactory.IsFrameSaved(1));
-	cFactory.SetFrameInterval(3);
-	AssertTrue(cFactory.IsFrameSaved(0));
-	AssertFalse(cFactory.IsFrameSaved(1));
-	AssertFalse(cFactory.IsFrameSaved(2));
-	AssertTrue(cFactory.IsFrameSaved(3));
-	cFactory.SetFrameInterval(0);
-	AssertTrue(cFactory.IsFrameSaved(1));
-	cFactory.Kill();
+	ObjectsInit();
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 48, (char*)NULL);
+	AssertTrue(pFactory->IsFrameSaved(0));
+	AssertTrue(pFactory->IsFrameSaved(1));
+	pFactory->SetFrameInterval(3);
+	AssertTrue(pFactory->IsFrameSaved(0));
+	AssertFalse(pFactory->IsFrameSaved(1));
+	AssertFalse(pFactory->IsFrameSaved(2));
+	AssertTrue(pFactory->IsFrameSaved(3));
+	pFactory->SetFrameInterval(0);
+	AssertTrue(pFactory->IsFrameSaved(1));
+	pFactory = NULL;
+	ObjectsKill();
 }
 
 

@@ -42,6 +42,7 @@ typedef CArrayTemplatePtr<CX11Window>	CArrayX11WindowPtr;
 class CX11WindowFactory : public CNativeWindowFactory
 {
 CONSTRUCTABLE(CX11WindowFactory);
+DESTRUCTABLE(CX11WindowFactory);
 protected:
 	_XDisplay*		mpsDisplay;
 	int				miScreen;
@@ -55,8 +56,10 @@ protected:
 	int				miSharedCompletionEvent;  //The event type the X server sends when it has read a window's shared pixels.
 
 public:
-	bool			Init(CMallocator* pcMallocator, const char* szDisplayName);
-	void			Kill(void);
+	void			Init(CMallocator* pcMallocator, const char* szDisplayName);
+	void			Class(void) override;
+	void			Free(void) override;
+	bool			IsOpen(void);  //False if the display couldn't be opened, then it makes no windows.
 
 	CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) override;
 	CNativeCanvas*	CreateNativeCanvas(CCanvas* pcCanvas) override;
@@ -80,6 +83,9 @@ public:
 	void			ExecuteEvents(void);
 	void			WaitForEvents(int64 iMilliseconds);
 	X11ID			InternAtom(const char* szName);
+
+protected:
+	bool			OpenDisplay(const char* szDisplayName);
 };
 
 

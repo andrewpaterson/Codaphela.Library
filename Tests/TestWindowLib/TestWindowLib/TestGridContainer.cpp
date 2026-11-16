@@ -45,9 +45,9 @@ struct SGridTestComponent
 //////////////////////////////////////////////////////////////////////////
 void TestGridContainerLayout(char* szDirectory, int32 iWidth, int32 iHeight, size uiNumComponents, SGridTestComponent* asComponents, uint32 iRandomSeed, int32 iExpectedRequiredWidth, int32 iExpectedRequiredHeight)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	CRandom					cRandom;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	CRandom						cRandom;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -72,9 +72,9 @@ void TestGridContainerLayout(char* szDirectory, int32 iWidth, int32 iHeight, siz
 
 		AssertTrue(uiNumComponents <= 9);
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Grid Container", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Grid Container", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 
@@ -129,7 +129,7 @@ void TestGridContainerLayout(char* szDirectory, int32 iWidth, int32 iHeight, siz
 		szExpectedDirectory.Kill();
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -549,9 +549,9 @@ Ptr<CCanvas> CreateGridTestCanvas(Ptr<CWindow> pWindow, int32 iWidth, int32 iHei
 //////////////////////////////////////////////////////////////////////////
 void TestGridContainerAddAndRemove(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "GridContainerAddAndRemove";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "GridContainerAddAndRemove";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -570,9 +570,9 @@ void TestGridContainerAddAndRemove(void)
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 20, 20, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 20, 20, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Grid Container", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Grid Container", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
 		pTestWindow->SetContainer(pGrid);
@@ -629,7 +629,7 @@ void TestGridContainerAddAndRemove(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -643,9 +643,9 @@ void TestGridContainerAddAndRemove(void)
 //////////////////////////////////////////////////////////////////////////
 void TestGridContainerNotAtOrigin(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "GridContainerNotAtOrigin";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "GridContainerNotAtOrigin";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -664,9 +664,9 @@ void TestGridContainerNotAtOrigin(void)
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 30, 20, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 30, 20, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Grid Container", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Grid Container", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		//The grid is inside a fill container with insets, so it is laid out in the 25 x 17 area at 5, 3 and every cell must
@@ -703,7 +703,7 @@ void TestGridContainerNotAtOrigin(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -733,9 +733,9 @@ void AssertContainerBounds(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom,
 //////////////////////////////////////////////////////////////////////////
 void TestGridContainerActualBounds(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "GridContainerActualBounds";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "GridContainerActualBounds";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -753,9 +753,9 @@ void TestGridContainerActualBounds(void)
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 30, 20, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 30, 20, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Grid Container", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Grid Container", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		//A container's actual bounds are the area its parent gave it, insets included and not clipped.  Its container
@@ -803,7 +803,7 @@ void TestGridContainerActualBounds(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -817,9 +817,9 @@ void TestGridContainerActualBounds(void)
 //////////////////////////////////////////////////////////////////////////
 void TestGridContainerRelayout(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "GridContainerRelayout";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "GridContainerRelayout";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -836,9 +836,9 @@ void TestGridContainerRelayout(void)
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 40, 10, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 40, 10, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Grid Container", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Grid Container", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
 		pTestWindow->SetContainer(pGrid);
@@ -892,7 +892,7 @@ void TestGridContainerRelayout(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 
@@ -910,7 +910,7 @@ void TestGridContainerRelayout(void)
 //////////////////////////////////////////////////////////////////////////
 void TestGridContainerNestedGridHeight(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	ObjectsInit();
 	{
@@ -925,9 +925,9 @@ void TestGridContainerNestedGridHeight(void)
 		Ptr<CCanvas>			pTall;
 		SInt32Vec2				sVec;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Grid Container", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Grid Container", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pOuter = OMalloc<CGridContainer>(pTestWindow);
@@ -977,7 +977,7 @@ void TestGridContainerNestedGridHeight(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 }
@@ -992,7 +992,7 @@ void TestGridContainerNestedGridHeight(void)
 //////////////////////////////////////////////////////////////////////////
 void TestGridContainerInsets(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	ObjectsInit();
 	{
@@ -1005,9 +1005,9 @@ void TestGridContainerInsets(void)
 		CPointer				pNull;
 		SInt32Vec2				sVec;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 40, 30, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 40, 30, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Grid Insets", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Grid Insets", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pGrid = OMalloc<CGridContainer>(pTestWindow);
@@ -1042,7 +1042,7 @@ void TestGridContainerInsets(void)
 		pTick = NULL;
 	}
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	ObjectsFlush();
 	ObjectsKill();
 }

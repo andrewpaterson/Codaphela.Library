@@ -27,6 +27,26 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //What the native window and sound factories share: the host's objects they make are allocated with the mallocator
 //they are given (NativeMalloc) and killed and freed with it (NativeFree).
+template<class Class>
+Class* NativeFactoryMalloc(CMallocator* pcMallocator)
+{
+	Class*	pcInstance;
+
+	pcInstance = (Class*)pcMallocator->Malloc(sizeof(Class));
+	New<Class>(pcInstance);
+	return pcInstance;
+}
+
+
+template<class Class>
+bool NativeFactoryFree(CMallocator* pcMallocator, Class* pcInstance)
+{
+	pcInstance->Kill();
+	return pcMallocator->Free(pcInstance);
+}
+
+
+//The sound factory's base.  The window factory is a CObject (CNativeWindowFactory) and uses the two functions above.
 class CNativeFactory : public CConstructable
 {
 CONSTRUCTABLE(CNativeFactory);
@@ -41,18 +61,13 @@ protected:
 	template<class Class>
 	Class* NativeMalloc(void)
 	{
-		Class*	pcInstance;
-
-		pcInstance = (Class*)mpcMallocator->Malloc(sizeof(Class));
-		New<Class>(pcInstance);
-		return pcInstance;
+		return NativeFactoryMalloc<Class>(mpcMallocator);
 	}
 
 	template<class Class>
 	bool NativeFree(Class* pcInstance)
 	{
-		pcInstance->Kill();
-		return mpcMallocator->Free(pcInstance);
+		return NativeFactoryFree(mpcMallocator, pcInstance);
 	}
 };
 

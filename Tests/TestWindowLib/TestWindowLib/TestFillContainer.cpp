@@ -48,8 +48,8 @@ struct SFillTestComponent
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainerPositions(char* szDirectory, int32 iWidth, int32 iHeight, int* paiInsets, size uiNumComponents, SFillTestComponent* asComponents)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -69,10 +69,10 @@ void TestFillContainerPositions(char* szDirectory, int32 iWidth, int32 iHeight, 
 
 		AssertTrue(uiNumComponents <= 4);
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -115,9 +115,9 @@ void TestFillContainerPositions(char* szDirectory, int32 iWidth, int32 iHeight, 
 		pFill = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertFillContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -219,9 +219,9 @@ void TestFillContainerOverlayAlignmentsInsets(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainerRequiredSize(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "FillContainerRequiredSize";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "FillContainerRequiredSize";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -238,10 +238,10 @@ void TestFillContainerRequiredSize(void)
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 96, 30, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 30, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -289,9 +289,9 @@ void TestFillContainerRequiredSize(void)
 		pFill = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertFillContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -302,9 +302,9 @@ void TestFillContainerRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainerImageCanvasDesiredSize(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "FillContainerImageCanvasDesiredSize";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "FillContainerImageCanvasDesiredSize";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -321,10 +321,10 @@ void TestFillContainerImageCanvasDesiredSize(void)
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 96, 30, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 96, 30, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -368,9 +368,9 @@ void TestFillContainerImageCanvasDesiredSize(void)
 		pImage = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertFillContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -381,8 +381,8 @@ void TestFillContainerImageCanvasDesiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainerDarkForest(char* szDirectory, int32 iWidth, int32 iHeight, int* paiInsets, size uiNumComponents, SDarkForestComponent* asComponents, SInt32Vec2* asExpectedPositions, bool bClipsChildren = true)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -405,10 +405,10 @@ void TestFillContainerDarkForest(char* szDirectory, int32 iWidth, int32 iHeight,
 
 		AssertTrue(uiNumComponents <= 16);
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 
@@ -470,9 +470,9 @@ void TestFillContainerDarkForest(char* szDirectory, int32 iWidth, int32 iHeight,
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertFillContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -631,10 +631,10 @@ void TestFillContainerDarkForestLargerThanAreaUnclipped(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainerClipFindComponent(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "FillContainerClipFindComponent";
-	int						aiInsets[4] = { 4, 4, 4, 4 };  //Top, Right, Bottom, Left.
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "FillContainerClipFindComponent";
+	int							aiInsets[4] = { 4, 4, 4, 4 };  //Top, Right, Bottom, Left.
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -650,10 +650,10 @@ void TestFillContainerClipFindComponent(void)
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 42, 16, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 42, 16, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -698,9 +698,9 @@ void TestFillContainerClipFindComponent(void)
 		pFill = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertFillContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -726,9 +726,9 @@ void TestFillContainerDarkForestCenterPastWindowEdges(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainerImageCanvasPartialDesiredSize(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "FillContainerImageCanvasPartialDesiredSize";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "FillContainerImageCanvasPartialDesiredSize";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -744,10 +744,10 @@ void TestFillContainerImageCanvasPartialDesiredSize(void)
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 30, 20, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 30, 20, szDirectory);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTestWindow->GetColourFormat(&cHelper);
 
@@ -790,9 +790,9 @@ void TestFillContainerImageCanvasPartialDesiredSize(void)
 		pDraw = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertFillContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -806,7 +806,7 @@ void TestFillContainerImageCanvasPartialDesiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainerHitAsWholeAndSizedByContent(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -819,10 +819,10 @@ void TestFillContainerHitAsWholeAndSizedByContent(void)
 		SInt32Vec2				sVec;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 42, 16, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 42, 16, (char*)NULL);
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Reference Test Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Reference Test Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pOuter = OMalloc<CFillContainer>(pTestWindow);
@@ -871,9 +871,9 @@ void TestFillContainerHitAsWholeAndSizedByContent(void)
 		pOuter = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertFillContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 }
 
 
@@ -929,7 +929,7 @@ void TestFillContainerInsetsInit(void)
 //////////////////////////////////////////////////////////////////////////
 void TestFillContainerNestedGrid(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -941,9 +941,9 @@ void TestFillContainerNestedGrid(void)
 		Ptr<CCanvas>			pTall;
 		SInt32Vec2				sVec;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Fill Container", &cNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Fill Container", &pNativeFactory, pTick, (CPointer)NULL, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -970,9 +970,9 @@ void TestFillContainerNestedGrid(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
+	pNativeFactory = NULL;
 	AssertFillContainerObjectsRemoved();
 
-	cNativeFactory.Kill();
 }
 
 

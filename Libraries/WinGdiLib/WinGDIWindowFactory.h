@@ -16,6 +16,7 @@ typedef void (*WinGDIRawInputFunc)(void* pvContext, void* pvRawInput);
 class CWinGDIWindowFactory : public CNativeWindowFactory
 {
 CONSTRUCTABLE(CWinGDIWindowFactory);
+DESTRUCTABLE(CWinGDIWindowFactory);
 protected:
 	CChars					mszWindowClass;
 	HINSTANCE				mhInstance;
@@ -27,7 +28,8 @@ protected:
 
 public:
 	void			Init(CMallocator* pcMallocator, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass);
-	void			Kill(void);
+	void			Class(void) override;
+	void			Free(void) override;
 
 	CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) override;
 	CNativeCanvas*	CreateNativeCanvas(CCanvas* pcCanvas) override;

@@ -76,7 +76,7 @@ void AssertLabelObjectsRemoved(void)
 //////////////////////////////////////////////////////////////////////////
 void TestLabelRequiredSize(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -87,9 +87,9 @@ void TestLabelRequiredSize(void)
 		SInt32Vec2				sSize;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Label Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Label Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFont = ReadLabelFont();
@@ -140,8 +140,8 @@ void TestLabelRequiredSize(void)
 		pTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 
@@ -167,9 +167,9 @@ struct SLabelTestComponent
 //////////////////////////////////////////////////////////////////////////
 void TestLabelFillContainerAlignments(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "LabelFillContainerAlignments";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "LabelFillContainerAlignments";
 	SLabelTestComponent		asLabels[6] = {
 		{ "Top Left",		CSH_Left,		CSV_Top },
 		{ "Top Right",		CSH_Right,		CSV_Top },
@@ -200,11 +200,11 @@ void TestLabelFillContainerAlignments(void)
 		CPointer				pNull;
 		size					i;
 
-		cNativeFactory.Init(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, iHeight, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		//The labels are transparent, they are drawn over the window's background.
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)40, 60, 110));
-		pTestWindow = OMalloc<CWindow>("Label Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Label Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -268,8 +268,8 @@ void TestLabelFillContainerAlignments(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -282,9 +282,9 @@ void TestLabelFillContainerAlignments(void)
 //////////////////////////////////////////////////////////////////////////
 void TestLabelRedraw(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "LabelRedraw";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "LabelRedraw";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -301,11 +301,11 @@ void TestLabelRedraw(void)
 		CChars					szFrame;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 80, 24, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 80, 24, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 3);
 		//The labels are transparent, they are drawn over the window's background.
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)40, 60, 110));
-		pTestWindow = OMalloc<CWindow>("Label Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Label Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pFill = OMalloc<CFillContainer>(pTestWindow);
@@ -336,8 +336,8 @@ void TestLabelRedraw(void)
 		szFrame0.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 

@@ -39,8 +39,8 @@ void AssertTextAreaBackground(ETextAreaBackground eType, size uiStart, size uiEn
 //////////////////////////////////////////////////////////////////////////
 void AssertTextAreaBackgroundsDrawn(char* szDirectory, const char* szText, void(*fAddBackgrounds)(Ptr<CTextArea> pTextArea))
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -53,10 +53,10 @@ void AssertTextAreaBackgroundsDrawn(char* szDirectory, const char* szText, void(
 		SDataTestRefWindow		cData;
 		CChars					szExpectedDirectory;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 320, 140, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 320, 140, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		pBackground = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)30, 31, 34));
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pBackground, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -81,8 +81,8 @@ void AssertTextAreaBackgroundsDrawn(char* szDirectory, const char* szText, void(
 		AssertDirectory(szExpectedDirectory.Text(), szDirectory);
 		szExpectedDirectory.Kill();
 	}
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -142,9 +142,9 @@ void TestTextAreaBackgroundsDraw(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaBackgroundsAdd(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
-	cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 	{
 		Ptr<CWindow>			pTestWindow;
 		Ptr<CTextArea>			pTextArea;
@@ -153,7 +153,7 @@ void TestTextAreaBackgroundsAdd(void)
 		CPointer				pNull;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "aaa\nbbb");
 		pTestWindow->SetContainer(pTextArea);
@@ -198,8 +198,8 @@ void TestTextAreaBackgroundsAdd(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 
@@ -211,9 +211,9 @@ void TestTextAreaBackgroundsAdd(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaBackgroundsEdit(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
-	cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 	{
 		Ptr<CWindow>			pTestWindow;
 		Ptr<CTextArea>			pTextArea;
@@ -222,7 +222,7 @@ void TestTextAreaBackgroundsEdit(void)
 		CPointer				pNull;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		//Lines: aaa 0-2, bbb 4-6, ccc 8-10, ddd 12-14.
@@ -300,8 +300,8 @@ void TestTextAreaBackgroundsEdit(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 
@@ -314,9 +314,9 @@ void TestTextAreaBackgroundsEdit(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaBackgroundsCaretLine(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
-	cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 	{
 		Ptr<CWindow>			pTestWindow;
 		Ptr<CTextArea>			pTextArea;
@@ -325,7 +325,7 @@ void TestTextAreaBackgroundsCaretLine(void)
 		CPointer				pNull;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		//Lines: aaa 0-2, bbb 4-6, ccc 8-10, ddd 12-14.  Off until it is shown.
@@ -369,8 +369,8 @@ void TestTextAreaBackgroundsCaretLine(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 
@@ -406,10 +406,10 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaBackgroundsDocumentListener(void)
 {
-	CWinRefWindowFactory			cNativeFactory;
+	Ptr<CWinRefWindowFactory>		pNativeFactory;
 	CTestTextAreaDocumentListener	cListener;
 
-	cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+	pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 	{
 		Ptr<CWindow>			pTestWindow;
 		Ptr<CTextArea>			pTextArea;
@@ -418,7 +418,7 @@ void TestTextAreaBackgroundsDocumentListener(void)
 		CPointer				pNull;
 
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Text Area Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Text Area Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), CreateMonoTextAreaFamily(15.0f), "aaa\nbbb\nccc");
@@ -449,8 +449,8 @@ void TestTextAreaBackgroundsDocumentListener(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 

@@ -165,7 +165,7 @@ void TestClipboardHistoryClipboard(void)
 		AssertString("set", pHistory->GetText(2));
 
 		//Another window: the same system clipboard, its own history.
-		pOtherWindow = OMalloc<CWindow>("Other Window", &cWindow.cFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pOtherWindow = OMalloc<CWindow>("Other Window", &cWindow.pFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pOtherWindow);
 		AssertTrue(pOtherWindow->GetClipboard()->GetHistory() != pHistory);
 		pOtherWindow->GetClipboard()->SetText("other");

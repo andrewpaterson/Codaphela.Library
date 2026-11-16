@@ -102,9 +102,26 @@ bool CWaitTestRefWindow::IsStuck(void) { return mbStuck; }
 //////////////////////////////////////////////////////////////////////////
 void CWaitTestRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight, char* szImagePath, WaitTestScript fScript, void* pvContext)
 {
+	PreInit();
+
 	CWinRefWindowFactory::Init(pcMallocator, iWidth, iHeight, szImagePath);
 	mfScript = fScript;
 	mpvContext = pvContext;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWaitTestRefWindowFactory::Class(void)
+{
+	CWinRefWindowFactory::Class();
+
+	U_Pointer(mfScript);
+	U_Pointer(mpvContext);
 }
 
 

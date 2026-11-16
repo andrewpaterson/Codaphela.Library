@@ -50,6 +50,7 @@ protected:
 
 public:
 	void			Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight, char* szImagePath, WaitTestScript fScript, void* pvContext);
+	void			Class(void) override;
 	CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) override;
 };
 

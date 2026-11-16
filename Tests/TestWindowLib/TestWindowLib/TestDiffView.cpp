@@ -55,10 +55,10 @@ void AddTestDiffShape(CArrayDiffDividerShape* pasShapes, float64 fLeftTop, float
 //////////////////////////////////////////////////////////////////////////
 void TestDiffDividerShapes(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char*					szDirectory;
-	SDiffViewColours		sColours;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char*						szDirectory;
+	SDiffViewColours			sColours;
 
 	szDirectory = (char*)"Output" _FS_ "DiffDivider";
 	cFileUtil.RemoveDir(szDirectory);
@@ -79,9 +79,9 @@ void TestDiffDividerShapes(void)
 		Ptr<CDiffDividerDraw>		pDraw;
 		CArrayDiffDividerShape		asShapes;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 48, 240, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 48, 240, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Diff Divider Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Diff Divider Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -111,9 +111,9 @@ void TestDiffDividerShapes(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
+	pNativeFactory = NULL;
 	AssertDirectory("Input" _FS_ "DiffDivider", szDirectory);
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -127,9 +127,9 @@ void TestDiffDividerShapes(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDiffViewShown(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char*					szDirectory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char*						szDirectory;
 
 	szDirectory = (char*)"Output" _FS_ "DiffView";
 	cFileUtil.RemoveDir(szDirectory);
@@ -144,9 +144,9 @@ void TestDiffViewShown(void)
 		Ptr<CTextArea>				pLeft;
 		Ptr<CTextArea>				pRight;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 760, 220, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 760, 220, szDirectory);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Diff View Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Diff View Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -221,9 +221,9 @@ void TestDiffViewShown(void)
 		pTestWindow = NULL;
 		pTick = NULL;
 	}
+	pNativeFactory = NULL;
 	AssertDirectory("Input" _FS_ "DiffView", szDirectory);
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -258,7 +258,7 @@ void AppendTestDiffLines(CChars* psz, const char* szPrefix, size uiStart, size u
 //////////////////////////////////////////////////////////////////////////
 void TestDiffViewScrolling(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -277,9 +277,9 @@ void TestDiffViewScrolling(void)
 		SDiffDividerShape*			psShape;
 		SInt32Vec2					sVec;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 200, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Diff View Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Diff View Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFill = OMalloc<CFillContainer>(pTestWindow);
 		pTestWindow->SetContainer(pFill);
@@ -398,8 +398,8 @@ void TestDiffViewScrolling(void)
 		pTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertLabelObjectsRemoved();
-	cNativeFactory.Kill();
 }
 
 

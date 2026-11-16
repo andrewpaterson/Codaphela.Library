@@ -93,7 +93,7 @@ Ptr<CCanvas> CreateTabbedPage(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void TestTabbedContainerTabs(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -113,9 +113,9 @@ void TestTabbedContainerTabs(void)
 		SInt32Vec2					sNoWidth;
 		CTestTabbedContainerListener	cListener;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 240, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 240, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Tabbed Window", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Tabbed Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont());
@@ -276,7 +276,7 @@ void TestTabbedContainerTabs(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -288,7 +288,7 @@ void TestTabbedContainerTabs(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTabbedContainerLookRedrawn(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -302,9 +302,9 @@ void TestTabbedContainerLookRedrawn(void)
 		CInt32Rect					cInputTab;
 		CInt32Rect					cEditorTab;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 240, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 240, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Tabbed Window", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0.0f, 0.0f)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Tabbed Window", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour(0.0f, 0.0f, 0.0f)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		pTestWindow->SetPartialRedraw(true);
 		ORoot()->Add(pTestWindow);
 
@@ -340,7 +340,7 @@ void TestTabbedContainerLookRedrawn(void)
 	}
 
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

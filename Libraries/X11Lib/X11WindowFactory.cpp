@@ -74,14 +74,27 @@ static int X11ErrorHandler(Display* psDisplay, XErrorEvent* psError)
 // then.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayName)
+void CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayName)
+{
+    PreInit();
+
+    CNativeWindowFactory::Init(pcMallocator);
+    OpenDisplay(szDisplayName);
+
+    PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CX11WindowFactory::OpenDisplay(const char* szDisplayName)
 {
     Bool    bDetectable;
     int     iOpcode;
     int     iEvent;
     int     iError;
-
-    CNativeWindowFactory::Init(pcMallocator);
 
     mpcInput = NULL;
     mapcWindows.Init();
@@ -122,7 +135,28 @@ bool CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayNam
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CX11WindowFactory::Kill(void)
+void CX11WindowFactory::Class(void)
+{
+    CNativeWindowFactory::Class();
+
+    U_Pointer(mpsDisplay);
+    U_SInt(miScreen);
+    U_Data(X11ID, mulDeleteWindowAtom);
+    U_Data(X11ID, mulProtocolsAtom);
+    U_Pointer(mpcInput);
+    U_Unknown(CArrayX11WindowPtr, mapcWindows);
+    U_Unknown(CX11Selection, mcSelection);
+    U_Bool(mbSharedMemoryAvailable);
+    U_Bool(mbSharedMemory);
+    U_SInt(miSharedCompletionEvent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11WindowFactory::Free(void)
 {
     mcSelection.Kill();
     if (mpsDisplay)
@@ -131,7 +165,17 @@ void CX11WindowFactory::Kill(void)
         mpsDisplay = NULL;
     }
     mapcWindows.Kill();
-    CNativeWindowFactory::Kill();
+    CNativeWindowFactory::Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CX11WindowFactory::IsOpen(void)
+{
+    return mpsDisplay != NULL;
 }
 
 

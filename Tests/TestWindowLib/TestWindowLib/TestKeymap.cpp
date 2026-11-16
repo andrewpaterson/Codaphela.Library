@@ -185,7 +185,7 @@ public:
 class CKeymapTestWindow
 {
 public:
-	CWinRefWindowFactory		cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 	Ptr<CWindow>				pWindow;
 	Ptr<CTickTestRefWindow>		pTick;
 	SDataTestRefWindow			cData;
@@ -198,7 +198,7 @@ public:
 
 	void Init(CChars* pszLog)
 	{
-		cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 		Init(pszLog, pTick);
 	}
@@ -208,7 +208,7 @@ public:
 	{
 		CPointer	pNull;
 
-		pWindow = OMalloc<CWindow>("Keymap Window", &cNativeFactory, pWindowTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Keymap Window", &pNativeFactory, pWindowTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pGrid = OMalloc<CGridContainer>(pWindow);
 		pWindow->SetContainer(pGrid);
@@ -238,10 +238,10 @@ public:
 		pGrid = NULL;
 		pEditor = NULL;
 		pField = NULL;
+		pNativeFactory = NULL;
 		AssertSize(0, gcObjects.NumFreeObjects());
 		AssertTrue(ORoot()->RemoveAll());
 		AssertSize(2, gcObjects.NumMemoryIndexes());
-		cNativeFactory.Kill();
 	}
 
 	void FocusEditor(void) { pWindow->GetFocus()->SetFocus(pEditor); }
@@ -895,7 +895,7 @@ void TestKeymapDialog(void)
 	Ptr<CGridContainer>			pGrid;
 
 	szLog.Init();
-	cTest.cNativeFactory.Init(&gcMemoryAllocator, 64, 32, NULL);
+	cTest.pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
 	pOwnerTick = OMalloc<CScriptFramesTick>(&KeymapDialogOwnerFrames, &cDialog);
 	cTest.Init(&szLog, pOwnerTick);
 	AssertTrue(cTest.cInput.BindKeys("Control+Q", CIC_Copy, COMPONENT_INPUT_EDITOR_CONTEXT));
@@ -905,7 +905,7 @@ void TestKeymapDialog(void)
 	cDialog.pcDevices = &cTest.cDevices;
 	cDialog.bModal = false;
 	pDialogTick = OMalloc<CScriptFramesTick>(&KeymapDialogFrames, &cDialog);
-	cDialog.pDialog = OMalloc<CWindow>("Keymap Dialog", &cTest.cNativeFactory, pDialogTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x2B, 0x2D, 0x30)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+	cDialog.pDialog = OMalloc<CWindow>("Keymap Dialog", &cTest.pNativeFactory, pDialogTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x2B, 0x2D, 0x30)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 	ORoot()->Add(cDialog.pDialog);
 	pGrid = OMalloc<CGridContainer>(cDialog.pDialog);
 	cDialog.pDialog->SetContainer(pGrid);

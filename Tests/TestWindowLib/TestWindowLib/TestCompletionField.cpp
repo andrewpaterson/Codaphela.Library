@@ -100,7 +100,7 @@ Ptr<CCompletionField> CreateTestCompletionField(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void TestCompletionFieldCompleting(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -115,8 +115,8 @@ void TestCompletionFieldCompleting(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Completion Field Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Completion Field Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		pField = CreateTestCompletionField(pTestWindow);
@@ -230,10 +230,10 @@ void TestCompletionFieldCompleting(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 

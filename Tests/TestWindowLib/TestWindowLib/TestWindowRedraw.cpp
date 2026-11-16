@@ -120,15 +120,15 @@ static bool StopAtFirstWait(Ptr<CWindow> pWindow, size uiWait, int64 iMillisecon
 //////////////////////////////////////////////////////////////////////////
 void TestWindowRedrawIdle(void)
 {
-	CWaitTestRefWindowFactory	cFactory;
-	SRedrawTestData				sData;
-	char						szDirectory[] = "Output" _FS_ "WindowRedraw";
+	Ptr<CWaitTestRefWindowFactory>	pFactory;
+	SRedrawTestData					sData;
+	char							szDirectory[] = "Output" _FS_ "WindowRedraw";
 
-	cFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory, StopAtFirstWait, &sData);
+	pFactory = OMalloc<CWaitTestRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory, StopAtFirstWait, &sData);
 	{
 		Ptr<CWindow>	pWindow;
 
-		pWindow = NewRedrawTestWindow(&cFactory, &sData, 0, 0, 30);
+		pWindow = NewRedrawTestWindow(&pFactory, &sData, 0, 0, 30);
 		AssertTrue(pWindow->Show());
 		AssertSize(1, GetWaitWindow(pWindow)->NumWaits());
 		AssertLong(-1, sData.aiWaits[0]);
@@ -138,7 +138,7 @@ void TestWindowRedrawIdle(void)
 		AssertFalse(pWindow->IsContinuous());
 		KillRedrawTestWindow(pWindow, &sData);
 	}
-	cFactory.Kill();
+	pFactory = NULL;
 }
 
 
@@ -173,16 +173,16 @@ static bool InvalidateThenWait(Ptr<CWindow> pWindow, size uiWait, int64 iMillise
 //////////////////////////////////////////////////////////////////////////
 void TestWindowRedrawFrameRate(void)
 {
-	CWaitTestRefWindowFactory	cFactory;
-	SRedrawTestData				sData;
-	char						szDirectory[] = "Output" _FS_ "WindowRedraw";
+	Ptr<CWaitTestRefWindowFactory>	pFactory;
+	SRedrawTestData					sData;
+	char							szDirectory[] = "Output" _FS_ "WindowRedraw";
 
-	cFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory, InvalidateThenWait, &sData);
+	pFactory = OMalloc<CWaitTestRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory, InvalidateThenWait, &sData);
 	{
 		Ptr<CWindow>	pWindow;
 
 		//Four frames a second: the paint waits for the rest of its 250ms.
-		pWindow = NewRedrawTestWindow(&cFactory, &sData, 0, 0, 4);
+		pWindow = NewRedrawTestWindow(&pFactory, &sData, 0, 0, 4);
 		AssertTrue(pWindow->Show());
 		AssertLong(-1, sData.aiWaits[0]);
 		AssertInt(1, sData.aiDraws[1]);
@@ -194,7 +194,7 @@ void TestWindowRedrawFrameRate(void)
 		KillRedrawTestWindow(pWindow, &sData);
 
 		//No frame rate.
-		pWindow = NewRedrawTestWindow(&cFactory, &sData, 0, 0, 0);
+		pWindow = NewRedrawTestWindow(&pFactory, &sData, 0, 0, 0);
 		AssertTrue(pWindow->Show());
 		AssertInt(2, sData.aiDraws[1]);
 		AssertInt(1, sData.aiLayouts[1]);
@@ -202,7 +202,7 @@ void TestWindowRedrawFrameRate(void)
 		AssertSize(2, GetWaitWindow(pWindow)->NumWaits());
 		KillRedrawTestWindow(pWindow, &sData);
 	}
-	cFactory.Kill();
+	pFactory = NULL;
 }
 
 
@@ -233,15 +233,15 @@ static bool SleepUntilIdle(Ptr<CWindow> pWindow, size uiWait, int64 iMillisecond
 //////////////////////////////////////////////////////////////////////////
 void TestWindowRedrawRequestTick(void)
 {
-	CWaitTestRefWindowFactory	cFactory;
-	SRedrawTestData				sData;
-	char						szDirectory[] = "Output" _FS_ "WindowRedraw";
+	Ptr<CWaitTestRefWindowFactory>	pFactory;
+	SRedrawTestData					sData;
+	char							szDirectory[] = "Output" _FS_ "WindowRedraw";
 
-	cFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory, SleepUntilIdle, &sData);
+	pFactory = OMalloc<CWaitTestRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory, SleepUntilIdle, &sData);
 	{
 		Ptr<CWindow>	pWindow;
 
-		pWindow = NewRedrawTestWindow(&cFactory, &sData, 2, 20, 30);
+		pWindow = NewRedrawTestWindow(&pFactory, &sData, 2, 20, 30);
 		AssertTrue(pWindow->Show());
 		AssertLong(20, sData.aiWaits[0]);
 		AssertInt(1, sData.aiTicks[0]);
@@ -254,7 +254,7 @@ void TestWindowRedrawRequestTick(void)
 		AssertSize(3, GetWaitWindow(pWindow)->NumWaits());
 		KillRedrawTestWindow(pWindow, &sData);
 	}
-	cFactory.Kill();
+	pFactory = NULL;
 }
 
 
@@ -312,16 +312,16 @@ static bool GiveInputs(Ptr<CWindow> pWindow, size uiWait, int64 iMilliseconds, v
 //////////////////////////////////////////////////////////////////////////
 void TestWindowRedrawInput(void)
 {
-	CWaitTestRefWindowFactory	cFactory;
-	SRedrawTestData				sData;
-	char						szDirectory[] = "Output" _FS_ "WindowRedraw";
-	SInt32Vec2					sSize;
+	Ptr<CWaitTestRefWindowFactory>	pFactory;
+	SRedrawTestData					sData;
+	char							szDirectory[] = "Output" _FS_ "WindowRedraw";
+	SInt32Vec2						sSize;
 
-	cFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory, GiveInputs, &sData);
+	pFactory = OMalloc<CWaitTestRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory, GiveInputs, &sData);
 	{
 		Ptr<CWindow>	pWindow;
 
-		pWindow = NewRedrawTestWindow(&cFactory, &sData, 0, 0, 0);
+		pWindow = NewRedrawTestWindow(&pFactory, &sData, 0, 0, 0);
 
 		//The events go no further than the window: there is no component input to translate them.
 		pWindow->Deactivate();
@@ -360,7 +360,7 @@ void TestWindowRedrawInput(void)
 
 		KillRedrawTestWindow(pWindow, &sData);
 	}
-	cFactory.Kill();
+	pFactory = NULL;
 }
 
 
@@ -372,15 +372,15 @@ void TestWindowRedrawInput(void)
 //////////////////////////////////////////////////////////////////////////
 void TestWindowRedrawContinuous(void)
 {
-	CWaitTestRefWindowFactory	cFactory;
-	SRedrawTestData				sData;
-	char						szDirectory[] = "Output" _FS_ "WindowRedraw";
+	Ptr<CWaitTestRefWindowFactory>	pFactory;
+	SRedrawTestData					sData;
+	char							szDirectory[] = "Output" _FS_ "WindowRedraw";
 
-	cFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory, SleepUntilIdle, &sData);
+	pFactory = OMalloc<CWaitTestRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory, SleepUntilIdle, &sData);
 	{
 		Ptr<CWindow>	pWindow;
 
-		pWindow = NewRedrawTestWindow(&cFactory, &sData, 0, 0, 30);
+		pWindow = NewRedrawTestWindow(&pFactory, &sData, 0, 0, 30);
 		sData.pTick->miStop = 3;
 		pWindow->SetContinuous(true);
 		AssertTrue(pWindow->IsContinuous());
@@ -391,7 +391,7 @@ void TestWindowRedrawContinuous(void)
 		AssertInt(1, sData.pCounter->miLayouts);
 		KillRedrawTestWindow(pWindow, &sData);
 	}
-	cFactory.Kill();
+	pFactory = NULL;
 }
 
 
@@ -404,17 +404,17 @@ void TestWindowRedrawContinuous(void)
 //////////////////////////////////////////////////////////////////////////
 void TestWindowRedrawPresentBeforePaint(void)
 {
-	CWinRefWindowFactory	cFactory;
-	char					szDirectory[] = "Output" _FS_ "WindowRedraw";
+	Ptr<CWinRefWindowFactory>	pFactory;
+	char						szDirectory[] = "Output" _FS_ "WindowRedraw";
 
-	cFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory);
+	pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory);
 	{
 		Ptr<CWindow>			pWindow;
 		Ptr<CCountingTick>		pTick;
 		CPointer				pNull;
 
 		pTick = OMalloc<CCountingTick>(0, 0, -1);
-		pWindow = OMalloc<CWindow>("Present Window", &cFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>("Present Window", &pFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		AssertFalse(pWindow->GetNativeWindow()->Present());
 		pWindow->Paint();
@@ -422,7 +422,7 @@ void TestWindowRedrawPresentBeforePaint(void)
 		ORoot()->Remove(pWindow);
 		pTick = NULL;
 	}
-	cFactory.Kill();
+	pFactory = NULL;
 }
 
 
@@ -435,11 +435,11 @@ void TestWindowRedrawPresentBeforePaint(void)
 //////////////////////////////////////////////////////////////////////////
 void TestWindowRedrawLayoutCache(void)
 {
-	CWaitTestRefWindowFactory	cFactory;
-	SRedrawTestData				sData;
-	char						szDirectory[] = "Output" _FS_ "WindowRedraw";
+	Ptr<CWaitTestRefWindowFactory>	pFactory;
+	SRedrawTestData					sData;
+	char							szDirectory[] = "Output" _FS_ "WindowRedraw";
 
-	cFactory.Init(&gcMemoryAllocator, 64, 32, szDirectory, NULL, NULL);
+	pFactory = OMalloc<CWaitTestRefWindowFactory>(&gcMemoryAllocator, 64, 32, szDirectory, (WaitTestScript)NULL, (void*)NULL);
 	{
 		Ptr<CWindow>					pWindow;
 		Ptr<CLayoutCountComponent>		pCounter;
@@ -448,7 +448,7 @@ void TestWindowRedrawLayoutCache(void)
 		Ptr<CLabel>						pLabel;
 		Ptr<CComponent>					pFill;
 
-		pWindow = NewRedrawTestWindow(&cFactory, &sData, 0, 0, 30);
+		pWindow = NewRedrawTestWindow(&pFactory, &sData, 0, 0, 30);
 		pCounter = sData.pCounter;
 		pFill = pCounter->GetParent();
 
@@ -549,7 +549,7 @@ void TestWindowRedrawLayoutCache(void)
 		pCounter = NULL;
 		KillRedrawTestWindow(pWindow, &sData);
 	}
-	cFactory.Kill();
+	pFactory = NULL;
 }
 
 

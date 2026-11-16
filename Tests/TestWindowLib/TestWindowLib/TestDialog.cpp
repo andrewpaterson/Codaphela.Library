@@ -189,9 +189,9 @@ bool DialogOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
 //////////////////////////////////////////////////////////////////////////
 void TestDialogModal(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "DialogFrames";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "DialogFrames";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -203,12 +203,12 @@ void TestDialogModal(void)
 		CTestDialog					cDialog;
 		CChars						szExpectedDirectory;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, szDirectory);
 		pTick = OMalloc<CScriptFramesTick>(DialogOwnerFrames, &cDialog);
-		pTestWindow = OMalloc<CWindow>("Dialog Owner", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Dialog Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pDialogTick = OMalloc<CScriptFramesTick>(DialogFrames, &cDialog);
-		cDialog.Init(pTestWindow, &cNativeFactory, pDialogTick);
+		cDialog.Init(pTestWindow, &pNativeFactory, pDialogTick);
 
 		pTestWindow->Show();
 
@@ -226,10 +226,10 @@ void TestDialogModal(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -296,7 +296,7 @@ bool DialogTabOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
 
 void TestDialogTab(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -304,12 +304,12 @@ void TestDialogTab(void)
 		Ptr<CScriptFramesTick>		pDialogTick;
 		CTestDialog					cDialog;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CScriptFramesTick>(DialogTabOwnerFrames, &cDialog);
-		pTestWindow = OMalloc<CWindow>("Dialog Owner", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Dialog Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pDialogTick = OMalloc<CScriptFramesTick>(DialogTabFrames, &cDialog);
-		cDialog.Init(pTestWindow, &cNativeFactory, pDialogTick);
+		cDialog.Init(pTestWindow, &pNativeFactory, pDialogTick);
 
 		pTestWindow->Show();
 
@@ -320,10 +320,10 @@ void TestDialogTab(void)
 		pDialogTick = NULL;
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -349,15 +349,15 @@ public:
 
 void TestWindowCloseApprover(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>		pTestWindow;
 		CPointer			pNull;
 		CTestCloseApprover	cApprover;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 100, 50, NULL);
-		pTestWindow = OMalloc<CWindow>("Close Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 100, 50, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Close Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 
 		AssertTrue(pTestWindow->ApproveClose());
@@ -379,7 +379,7 @@ void TestWindowCloseApprover(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -411,7 +411,7 @@ public:
 
 void TestWindowPost(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>	pTestWindow;
@@ -419,8 +419,8 @@ void TestWindowPost(void)
 		CTestPosted		cPosted;
 		int64			iNow;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 100, 50, NULL);
-		pTestWindow = OMalloc<CWindow>("Post Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 100, 50, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Post Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		cPosted.miFirst = 0;
 		cPosted.miSecond = 0;
@@ -471,7 +471,7 @@ void TestWindowPost(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -513,7 +513,7 @@ static void InitTestDialogLook(SDialogLook* psLook, Ptr<CWindowTheme> pTheme)
 //////////////////////////////////////////////////////////////////////////
 void TestDialogButtons(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -522,8 +522,8 @@ void TestDialogButtons(void)
 		Ptr<CTestDialogParts>	pDialog;
 		CPointer				pNull;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Dialog Owner", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Dialog Owner", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		InitTestDialogLook(&sLook, pTheme);
@@ -572,7 +572,7 @@ void TestDialogButtons(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -674,16 +674,16 @@ bool MessageDialogOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContex
 //////////////////////////////////////////////////////////////////////////
 void TestMessageDialog(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
 		Ptr<CScriptFramesTick>		pTick;
 		CTestMessageDialog			cTest;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CScriptFramesTick>(MessageDialogOwnerFrames, &cTest);
-		pTestWindow = OMalloc<CWindow>("Message Owner", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Message Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		cTest.pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
 		InitTestDialogLook(&cTest.sLook, cTest.pTheme);
@@ -699,7 +699,7 @@ void TestMessageDialog(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

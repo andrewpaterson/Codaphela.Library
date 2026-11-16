@@ -22,7 +22,7 @@ Ptr<CFont> GenerateMenuFont(Ptr<CWindow> pWindow);
 //////////////////////////////////////////////////////////////////////////
 void TestStatusBarLayout(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pWindow;
@@ -39,8 +39,8 @@ void TestStatusBarLayout(void)
 		CInt32Rect				cZoom;
 		int32					iGap;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 100, NULL);
-		pWindow = OMalloc<CWindow>("Status Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 100, (char*)NULL);
+		pWindow = OMalloc<CWindow>("Status Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
 		iGap = pTheme->GetMetric(TM_StatusFieldGap);
@@ -87,7 +87,7 @@ void TestStatusBarLayout(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -100,7 +100,7 @@ void TestStatusBarLayout(void)
 //////////////////////////////////////////////////////////////////////////
 void TestStatusBarMessage(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pWindow;
@@ -110,8 +110,8 @@ void TestStatusBarMessage(void)
 		CPointer				pNull;
 		int64					iNow;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 400, 100, NULL);
-		pWindow = OMalloc<CWindow>("Status Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 100, (char*)NULL);
+		pWindow = OMalloc<CWindow>("Status Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
 
@@ -155,7 +155,7 @@ void TestStatusBarMessage(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

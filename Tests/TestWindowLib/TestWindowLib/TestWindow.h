@@ -14,17 +14,17 @@
 //its own into the window is NULL again, kills it: that checks nothing of the window is left behind.
 struct STestWindow
 {
-	CWinRefWindowFactory	cFactory;
-	SDataTestRefWindow		cData;
-	Ptr<CTickTestRefWindow>	pTick;
-	Ptr<CWindow>			pWindow;
+	Ptr<CWinRefWindowFactory>	pFactory;
+	SDataTestRefWindow			cData;
+	Ptr<CTickTestRefWindow>		pTick;
+	Ptr<CWindow>				pWindow;
 
 	//pDraw draws the window's canvas before its components, a null pointer for nothing.
 	void	Init(const char* szTitle, int32 iWidth, int32 iHeight, Ptr<CCanvasDraw> pDraw)
 	{
-		cFactory.Init(&gcMemoryAllocator, iWidth, iHeight, NULL);
+		pFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, iHeight, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pWindow = OMalloc<CWindow>(szTitle, &cFactory, pTick, pDraw, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pWindow = OMalloc<CWindow>(szTitle, &pFactory, pTick, pDraw, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 	}
 
@@ -40,7 +40,7 @@ struct STestWindow
 		pTick = NULL;
 		AssertSize(0, gcObjects.NumFreeObjects());
 		AssertTrue(ORoot()->RemoveAll());
-		cFactory.Kill();
+		pFactory = NULL;
 	}
 };
 

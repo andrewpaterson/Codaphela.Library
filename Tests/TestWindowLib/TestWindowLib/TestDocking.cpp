@@ -164,7 +164,7 @@ static SInt32Vec2 GuideCentre(Ptr<CDockArea> pArea, EDockTargetKind eKind, EDock
 //////////////////////////////////////////////////////////////////////////
 void TestDockingTabbedContainer(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>				pTestWindow;
@@ -182,9 +182,9 @@ void TestDockingTabbedContainer(void)
 		Ptr<CComponent>				pTaken;
 		int32						iBarHeight;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 200, 100, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
-		pTestWindow = OMalloc<CWindow>("Dock Tabs", &cNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Dock Tabs", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont());
 
@@ -257,7 +257,7 @@ void TestDockingTabbedContainer(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -277,9 +277,21 @@ struct SDockTest
 	Ptr<CDockPane>				pFirstDoc;
 	Ptr<CDockPane>				pSecondDoc;
 
-	void Init(CWinRefWindowFactory* pcFactory, char* szImagePath = NULL);
+	static Ptr<CWinRefWindowFactory>	NewFactory(char* szImagePath = NULL);
+	void Init(CWinRefWindowFactory* pcFactory);
 	void Kill(void);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The factory for SDockTest's window.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CWinRefWindowFactory> SDockTest::NewFactory(char* szImagePath)
+{
+	return OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 800, 600, szImagePath);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -289,12 +301,11 @@ struct SDockTest
 // documents.
 //
 //////////////////////////////////////////////////////////////////////////
-void SDockTest::Init(CWinRefWindowFactory* pcFactory, char* szImagePath)
+void SDockTest::Init(CWinRefWindowFactory* pcFactory)
 {
 	CPointer	pNull;
 	SDockPlace	sPlace;
 
-	pcFactory->Init(&gcMemoryAllocator, 800, 600, szImagePath);
 	pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
 	pWindow = OMalloc<CWindow>("Docking", pcFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 	ORoot()->Add(pWindow);
@@ -349,7 +360,7 @@ void SDockTest::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingDefaults(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest				sTest;
@@ -363,7 +374,8 @@ void TestDockingDefaults(void)
 		CInt32Rect				cScreen;
 		int32					iWellWidth;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 
 		AssertInt(DPS_Docked, sTest.pExplorer->GetState());
 		AssertInt(DPS_Docked, sTest.pFirstDoc->GetState());
@@ -448,7 +460,7 @@ void TestDockingDefaults(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -461,7 +473,7 @@ void TestDockingDefaults(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingHideFloatAutoHide(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest					sTest;
@@ -471,7 +483,8 @@ void TestDockingHideFloatAutoHide(void)
 		CInt32Rect					cBounds;
 		CInt32Rect					cRect;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		pOutputGroup = sTest.pOutput->GetGroup();
 
 		//Explorer hidden: the well takes its place.  It was beside the well and Output.  Shown, it goes back on the left at
@@ -610,7 +623,7 @@ void TestDockingHideFloatAutoHide(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -623,14 +636,15 @@ void TestDockingHideFloatAutoHide(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingPaneVisible(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest		sTest;
 		Ptr<CDockGroup>	pOutputGroup;
 		CInt32Rect		cRect;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		pOutputGroup = sTest.pOutput->GetGroup();
 		AssertTrue(sTest.pErrors->GetGroup() == pOutputGroup);
 
@@ -675,7 +689,7 @@ void TestDockingPaneVisible(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -687,7 +701,7 @@ void TestDockingPaneVisible(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingDrag(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest					sTest;
@@ -703,7 +717,8 @@ void TestDockingDrag(void)
 		Ptr<CDockFloatingWindow>	pFloating;
 		Ptr<CComponent>				pDocParent;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		pArea = sTest.pManager->GetArea();
 		pOutputGroup = sTest.pOutput->GetGroup();
 
@@ -859,7 +874,7 @@ void TestDockingDrag(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -872,7 +887,7 @@ void TestDockingDrag(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingDragSmall(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest					sTest;
@@ -886,7 +901,8 @@ void TestDockingDragSmall(void)
 		int32						iFullHeight;
 		int32						iSmallHeight;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		pOutputGroup = sTest.pOutput->GetGroup();
 		iSmallHeight = sTest.pTheme->GetMetric(TM_DockFrameBorder) * 2 + sTest.pTheme->GetMetric(TM_DockTitleBarHeight);
 
@@ -953,7 +969,7 @@ void TestDockingDragSmall(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -966,7 +982,7 @@ void TestDockingDragSmall(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingDragOnHeader(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest					sTest;
@@ -978,7 +994,8 @@ void TestDockingDragOnHeader(void)
 		SInt32Vec2					sStart;
 		Ptr<CDockArea>				pArea;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		pArea = sTest.pManager->GetArea();
 		pOutputGroup = sTest.pOutput->GetGroup();
 		pPropertiesGroup = sTest.pProperties->GetGroup();
@@ -1058,7 +1075,7 @@ void TestDockingDragOnHeader(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1071,7 +1088,7 @@ void TestDockingDragOnHeader(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingNarrowToolTabs(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest				sTest;
@@ -1091,7 +1108,8 @@ void TestDockingNarrowToolTabs(void)
 		int32					y;
 		size					i;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		sPlace.WithPane("Output");
 		sTest.pManager->AddPane("Find", "Find Results", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
 		sTest.pManager->AddPane("Watch", "Watch Window", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
@@ -1169,7 +1187,7 @@ void TestDockingNarrowToolTabs(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1234,9 +1252,9 @@ static Ptr<CDockSplit> GetRootSplit(Ptr<CDockManager> pManager)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingSplitsMerged(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	CTextFile				cFile;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	CTextFile					cFile;
 
 	cFileUtil.MakeDir("Output" _FS_ "Docking");
 	{
@@ -1251,7 +1269,8 @@ void TestDockingSplitsMerged(void)
 		Ptr<CDockGroup>			pExplorerGroup;
 		SDockPlace				sPlace;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		sPlace.Hidden();
 		pLeft = sTest.pManager->AddPane("Left", "Left", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
 		pTop = sTest.pManager->AddPane("Top", "Top", NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace);
@@ -1356,7 +1375,7 @@ void TestDockingSplitsMerged(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1369,7 +1388,7 @@ void TestDockingSplitsMerged(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingTitlesAndColours(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest					sTest;
@@ -1378,7 +1397,8 @@ void TestDockingTitlesAndColours(void)
 		CInt32Rect					cRect;
 		ARGB32						sColour;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 
 		sTest.pManager->Activate(sTest.pExplorer);
 		sTest.pExplorer->SetTitle("Explorer 2");
@@ -1420,7 +1440,7 @@ void TestDockingTitlesAndColours(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1434,7 +1454,7 @@ void TestDockingTitlesAndColours(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingMenus(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest				sTest;
@@ -1445,7 +1465,8 @@ void TestDockingMenus(void)
 		CInt32Rect				cBounds;
 		size					i;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		pGroup = sTest.pOutput->GetGroup();
 		pMenu = pGroup->GetMenu(sTest.pErrors);
 		pOtherMenu = pGroup->GetMenu(sTest.pOutput);
@@ -1496,7 +1517,7 @@ void TestDockingMenus(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1509,14 +1530,15 @@ void TestDockingMenus(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingDocumentMenuItems(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest				sTest;
 		Ptr<CDockGroup>			pGroup;
 		Ptr<CMenuContainer>		pMenu;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		AssertTrue(sTest.pManager->GetMenuPane().IsNull());
 
 		pGroup = sTest.pFirstDoc->GetGroup();
@@ -1546,7 +1568,7 @@ void TestDockingDocumentMenuItems(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1558,14 +1580,15 @@ void TestDockingDocumentMenuItems(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingKeys(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest				sTest;
 		CInt32Rect				cBounds;
 		Ptr<CComponent>			pTarget;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 
 		//The focus on the Second.cpp's tab, in the dock area.
 		sTest.pFirstDoc->GetGroup()->GetTab(sTest.pSecondDoc)->GetActualBounds(&cBounds);
@@ -1613,7 +1636,7 @@ void TestDockingKeys(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1627,7 +1650,7 @@ void TestDockingKeys(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingBehaviour(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest				sTest;
@@ -1644,7 +1667,8 @@ void TestDockingBehaviour(void)
 		Ptr<CDockGroup>			pOutputGroup;
 		SInt32Vec2				sStart;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 
 		//The last tab of a narrow tool group, selected, comes to the front where it shows.
 		sPlace.WithPane("Output");
@@ -1731,7 +1755,7 @@ void TestDockingBehaviour(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1743,9 +1767,9 @@ void TestDockingBehaviour(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingScreen(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	CTextFile				cFile;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	CTextFile					cFile;
 
 	cFileUtil.MakeDir("Output" _FS_ "Docking");
 	{
@@ -1753,7 +1777,8 @@ void TestDockingScreen(void)
 		CInt32Rect				cRect;
 		CInt32Rect				cScreen;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 
 		//Without a screen nothing is moved.
 		cRect.Init(900, 600, 1200, 900);
@@ -1764,7 +1789,7 @@ void TestDockingScreen(void)
 
 		//On a 1000 x 700 screen it is moved back onto it, and shrunk to fit.
 		cScreen.Init(0, 0, 1000, 700);
-		cNativeFactory.SetScreenArea(&cScreen);
+		pNativeFactory->SetScreenArea(&cScreen);
 		cRect.Init(900, 600, 1200, 900);
 		sTest.pManager->Float(sTest.pProperties, &cRect);
 		sTest.pManager->FindFloating(sTest.pProperties)->GetRectangle(&cRect);
@@ -1802,7 +1827,7 @@ void TestDockingScreen(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1844,9 +1869,9 @@ bool FloatingDialogFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingDialogOverFloating(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "DockingDialog";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "DockingDialog";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -1860,7 +1885,9 @@ void TestDockingDialogOverFloating(void)
 		SFloatingDialogCheck		sCheck;
 		CPointer					pNull;
 
-		sTest.Init(&cNativeFactory, szDirectory);
+		pNativeFactory = SDockTest::NewFactory(szDirectory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		cRect.Init(100, 100, 400, 400);
 		sTest.pManager->Float(sTest.pProperties, &cRect);
 		cRect.Init(450, 100, 700, 400);
@@ -1874,7 +1901,7 @@ void TestDockingDialogOverFloating(void)
 		sCheck.bMainEnabled = true;
 		sCheck.bFloatingEnabled = true;
 		pDialogTick = OMalloc<CScriptFramesTick>(FloatingDialogFrames, &sCheck);
-		pDialog = OMalloc<CWindow>("Dialog", &cNativeFactory, pDialogTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pDialog = OMalloc<CWindow>("Dialog", &pNativeFactory, pDialogTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pDialog);
 		AssertTrue(pDialog->ShowModal(pFloating->GetWindow()));
 		AssertInt(1, sCheck.iFrames);
@@ -1895,7 +1922,7 @@ void TestDockingDialogOverFloating(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 	cFileUtil.RemoveDir(szDirectory);
 }
 
@@ -1908,7 +1935,7 @@ void TestDockingDialogOverFloating(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingMoveToWindow(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest					sTest;
@@ -1919,7 +1946,8 @@ void TestDockingMoveToWindow(void)
 		Ptr<CWindow>				pFloatingWindow;
 		CInt32Rect					cRect;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		pTabbed = OMalloc<CTabbedContainer>(sTest.pWindow, sTest.pTheme);
 		pShown = CreateTabbedPage(sTest.pWindow);
 		pNotShown = CreateTabbedPage(sTest.pWindow);
@@ -1952,7 +1980,7 @@ void TestDockingMoveToWindow(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -1965,8 +1993,8 @@ void TestDockingMoveToWindow(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingLayoutFile(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 
 	cFileUtil.MakeDir("Output" _FS_ "Docking");
 	{
@@ -1977,7 +2005,8 @@ void TestDockingLayoutFile(void)
 		CInt32Rect				cBounds;
 		Ptr<CDockPane>			pThird;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		pThird = sTest.pManager->AddPane("Doc:Third.cpp", "Third.cpp", NULL, CreateTabbedPage(sTest.pWindow), DPK_Document);
 		cRect.Init(500, 100, 760, 400);
 		sTest.pManager->Float(sTest.pProperties, &cRect);
@@ -2030,7 +2059,7 @@ void TestDockingLayoutFile(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -2042,8 +2071,8 @@ void TestDockingLayoutFile(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingLayoutFileAreaEdge(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
 
 	cFileUtil.MakeDir("Output" _FS_ "Docking");
 	{
@@ -2055,7 +2084,8 @@ void TestDockingLayoutFileAreaEdge(void)
 		Ptr<CDockFloatingWindow>	pFloating;
 
 		//Dragged as a drop does it: the group floats, then its floating window's root is docked.
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		sTest.pManager->FloatGroup(sTest.pOutput->GetGroup());
 		AssertSize(1, sTest.pManager->NumFloating());
 		pFloating = sTest.pManager->GetFloating(0);
@@ -2095,7 +2125,7 @@ void TestDockingLayoutFileAreaEdge(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -2108,14 +2138,15 @@ void TestDockingLayoutFileAreaEdge(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingFloatingInput(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest				sTest;
 		CComponentInput			cInput;
 		Ptr<CWindow>			pFloatingWindow;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		AssertNull(sTest.pWindow->GetComponentInput());
 		sTest.pManager->Float(sTest.pProperties);
 		AssertSize(1, sTest.pManager->NumFloating());
@@ -2133,7 +2164,7 @@ void TestDockingFloatingInput(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2168,7 +2199,7 @@ static Ptr<CDockPane> AddTestDoc(SDockTest* psTest, const char* szID)
 
 void TestDockingCloseMultiple(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		SDockTest				sTest;
@@ -2181,7 +2212,8 @@ void TestDockingCloseMultiple(void)
 		CChars					szTabs;
 
 		szTabs.Init();
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		pThird = AddTestDoc(&sTest, "Doc:Third.cpp");
 		pFourth = AddTestDoc(&sTest, "Doc:Fourth.cpp");
 		pGroup = sTest.pFirstDoc->GetGroup();
@@ -2249,7 +2281,7 @@ void TestDockingCloseMultiple(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 
@@ -2263,8 +2295,8 @@ void TestDockingCloseMultiple(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDockingFloatGroupBack(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	int						iEdge;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	int							iEdge;
 
 	for (iEdge = 0; iEdge < 2; iEdge++)
 	{
@@ -2275,7 +2307,8 @@ void TestDockingFloatGroupBack(void)
 		CInt32Rect				cBefore;
 		CInt32Rect				cAfter;
 
-		sTest.Init(&cNativeFactory);
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
 		if (iEdge == 1)
 		{
 			sTest.pManager->FloatGroup(sTest.pOutput->GetGroup());
@@ -2322,7 +2355,7 @@ void TestDockingFloatGroupBack(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

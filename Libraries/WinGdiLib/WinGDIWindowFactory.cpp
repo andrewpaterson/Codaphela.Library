@@ -10,6 +10,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindowFactory::Init(CMallocator* pcMallocator, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass)
 {
+    PreInit();
+
     CNativeWindowFactory::Init(pcMallocator);
 
     mszWindowClass.Init(szWindowClass);
@@ -19,6 +21,8 @@ void CWinGDIWindowFactory::Init(CMallocator* pcMallocator, HINSTANCE hInstance, 
     memset(&mhWnd, 0, sizeof(HWND));
     mfRawInput = NULL;
     mpvRawInputContext = NULL;
+
+    PostInit();
 }
 
 
@@ -26,10 +30,28 @@ void CWinGDIWindowFactory::Init(CMallocator* pcMallocator, HINSTANCE hInstance, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindowFactory::Kill(void)
+void CWinGDIWindowFactory::Class(void)
+{
+    CNativeWindowFactory::Class();
+
+    U_String(mszWindowClass);
+    U_Pointer(mhInstance);
+    U_Pointer(mhPrevInstance);
+    U_Pointer(mhWnd);
+    U_SInt(miCmdShow);
+    U_Pointer(mfRawInput);
+    U_Pointer(mpvRawInputContext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindowFactory::Free(void)
 {
     mszWindowClass.Kill();
-    CNativeWindowFactory::Kill();
+    CNativeWindowFactory::Free();
 }
 
 

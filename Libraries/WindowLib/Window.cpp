@@ -101,6 +101,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	mbVerifyRedraw = gbDefaultVerifyRedraw;
 	muiRedrawMismatches = 0;
 
+	mpFactory = pcFactory;
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
 	CComponent::Init(this);
 
@@ -182,6 +183,7 @@ void CWindow::Class(void)
 	U_String(mszWindowTitle);
 
 	U_Pointer(mpcNativeWindow);
+	Nes(M_Pointer(mpFactory));
 	M_Pointer(mpCanvas);
 	M_Pointer(mpCaretBacking);
 	M_Pointer(mpCommands);
@@ -1580,7 +1582,7 @@ Ptr<CCommandSet>		CWindow::GetCommands(void) { return mpCommands; }
 void					CWindow::SetToolTips(Ptr<CToolTips> pToolTips) { mpToolTips = pToolTips; }  //Made for this window; NULL shows none.
 Ptr<CToolTips>			CWindow::GetToolTips(void) { return mpToolTips; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
-CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcNativeWindow->GetFactory(); }  //The native window was made by the factory.
+CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcNativeWindow->GetFactory(); }  //The native window was made by the factory.  mpFactory only keeps it.  A window that isn't in Objects can have let go of mpFactory before its Free.
 EColourOrder			CWindow::GetColourOrder(void) { return mpCanvas->GetColourOrder(); }
 
 

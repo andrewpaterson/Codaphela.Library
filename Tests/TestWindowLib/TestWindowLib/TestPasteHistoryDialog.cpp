@@ -305,7 +305,7 @@ bool PasteOverDialogOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvCont
 //////////////////////////////////////////////////////////////////////////
 void TestPasteHistoryDialogOverDialog(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -315,9 +315,9 @@ void TestPasteHistoryDialogOverDialog(void)
 		cTest.iFormTicks = 0;
 		cTest.iChooserTicks = 0;
 		cTest.szPasted.Init();
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
 		pTick = OMalloc<CScriptFramesTick>(PasteOverDialogOwnerFrames, &cTest);
-		pTestWindow = OMalloc<CWindow>("Paste Owner", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Paste Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		cTest.pOwner = pTestWindow;
 		cTest.pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
@@ -337,7 +337,7 @@ void TestPasteHistoryDialogOverDialog(void)
 
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
-	cNativeFactory.Kill();
+	pNativeFactory = NULL;
 }
 
 

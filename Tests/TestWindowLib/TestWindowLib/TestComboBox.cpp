@@ -84,7 +84,7 @@ Ptr<CComboBox> CreateTestComboBox(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void TestComboBoxChoosing(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
 
 	{
 		Ptr<CWindow>			pTestWindow;
@@ -99,8 +99,8 @@ void TestComboBoxChoosing(void)
 
 		szLog.Init();
 		cListener.Init(&szLog);
-		cNativeFactory.Init(&gcMemoryAllocator, 300, 200, NULL);
-		pTestWindow = OMalloc<CWindow>("Combo Box Window", &cNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Combo Box Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		pFocus = pTestWindow->GetFocus();
 		pCombo = CreateTestComboBox(pTestWindow);
@@ -193,10 +193,10 @@ void TestComboBoxChoosing(void)
 		szLog.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 }
 
 
@@ -238,9 +238,9 @@ bool ComboBoxFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
 //////////////////////////////////////////////////////////////////////////
 void TestComboBoxFrames(void)
 {
-	CWinRefWindowFactory	cNativeFactory;
-	CFileUtil				cFileUtil;
-	char					szDirectory[] = "Output" _FS_ "ComboBoxFrames";
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+	CFileUtil					cFileUtil;
+	char						szDirectory[] = "Output" _FS_ "ComboBoxFrames";
 
 	cFileUtil.RemoveDir(szDirectory);
 	cFileUtil.MakeDir(szDirectory);
@@ -251,9 +251,9 @@ void TestComboBoxFrames(void)
 		SComboBoxFrames				sFrames;
 		CChars						szExpectedDirectory;
 
-		cNativeFactory.Init(&gcMemoryAllocator, 160, 190, szDirectory);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 160, 190, szDirectory);
 		pTick = OMalloc<CScriptFramesTick>(ComboBoxFrames, &sFrames);
-		pTestWindow = OMalloc<CWindow>("Combo Box Frames", &cNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x2B, 0x2D, 0x30)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		pTestWindow = OMalloc<CWindow>("Combo Box Frames", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x2B, 0x2D, 0x30)), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pTestWindow);
 		sFrames.pCombo = CreateTestComboBox(pTestWindow);
 		sFrames.pCombo->SetDesiredSize(120, -1);
@@ -273,10 +273,10 @@ void TestComboBoxFrames(void)
 		szExpectedDirectory.Kill();
 	}
 
+	pNativeFactory = NULL;
 	AssertSize(0, gcObjects.NumFreeObjects());
 	AssertTrue(ORoot()->RemoveAll());
 	AssertSize(2, gcObjects.NumMemoryIndexes());
-	cNativeFactory.Kill();
 	cFileUtil.RemoveDir(szDirectory);
 }
 
