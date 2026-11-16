@@ -149,7 +149,8 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
   The notes on B1 to B18 above were checked by compiling about 190 small programs for the W65C816 with hcp65build, one a feature (they became stage 0's cases).  "Compiles" is all that most of them show: only where a negative array size could prove it was what the code means checked.  This plan replaces the Order above for Part B.
 
   What the notes had wrong:
-    - Namespaces (B1) are done: nested ones, aliases, anonymous and inline ones, using, and argument dependent lookup compile.
+    - Namespaces (B1) were thought done: nested ones, aliases, anonymous and inline ones, using, and argument dependent lookup compile.  Seventy cases
+      of the standard's paragraphs (2026-11-16) found fourteen it doesn't do: stage 10.
     - const is in types (B6) where it could be proved: const overloads of members and of pointer parameters, a specialisation for const T, and the errors for writing through const.
     - These compile already: defaulted functions of simple classes, a variadic function calling itself, variadic class templates, brace initialisation, default member initialisers, inherited and delegating constructors, alignas, explicit conversion operators, member function templates, constructor templates, partial ordering, explicit specialisation of a member.
 
@@ -211,6 +212,28 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
     7. (M, many small) B5 and B9.  Objects: static locals that need a guard, postfix ++ and -- on objects, operator-> returning an object, conversion functions to classes and references, pointers to overloaded members, temporaries bound to references, new[] with initialisers and two dimensions, placement new with more arguments, ?: on different class types, extern locals, thread_local.  Each is on its own and can go between other stages.
     8. (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's user-defined literals), the noexcept operator.
     9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  A dynamic_cast<T&> that fails traps (the user), there being nothing to throw until exceptions are decided.  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.
+    10. (M) B1, namespaces to the standard (added 2026-11-16, at the user's word, from 70 cases of N4140's namespace and lookup
+       paragraphs, each checked with the Microsoft compiler: the conformance test's Stage10 group).  56 work; the 14 that don't:
+       Wrong code, with no error:
+         - A using-declaration takes only the overloads declared before it (7.3.3/11): with N::f(char) declared after using N::f, f('a')
+           calls it (UsingDeclarationOnlyEarlierOverloads).
+         - A using-directive's names are as if declared in the nearest namespace that encloses both it and the namespace it names
+           (7.3.4/2): in B::g() { using namespace A; return i; } i is B::i, and A::i is used (UsingDirectiveNearestEnclosing).
+       Accepted, and must be refused:
+         - An ambiguous name, when it is used: two using-directives' x (UsingDirectiveAmbiguityUsed, 7.3.4/6), B::x through two of B's
+           using-directives (QualifiedAmbiguous, 3.4.3.2/2), an unnamed namespace's x beside a global x (UnnamedAmbiguousWithGlobal).
+           One is chosen now.
+         - A::f defined in a namespace that doesn't enclose A (DefinedInNonEnclosing, 7.3.1.2/2).
+         - A namespace alias defined again as another namespace (AliasRedefinedDifferent, 7.3.2/3).
+         - A using-declaration that names a namespace (UsingDeclarationOfNamespace, 7.3.3/6), or one that conflicts with a declaration
+           of the scope (using A::x where ::x is declared, UsingDeclarationConflicts, 7.3.3/14).
+         - (p)(s) doesn't look in s's namespaces: the parentheses stop argument dependent lookup (ADLSuppressedByParentheses, 3.4.2/1).
+       Refused, and should not be:
+         - Argument dependent lookup: a class of an inline namespace has the enclosing namespace too (InlineADL, 3.4.2/2), and a
+           function argument's parameter types' namespaces are associated (ADLFunctionArgument, 3.4.2/2).
+         - A using-declaration in a class gives the member the access of where it is written (UsingDeclarationAccess, 7.3.3/19).
+         - extern "C" functions of one name declared in two namespaces are one function, so a call found through both is not
+           ambiguous (ExternCSameFunction, 7.5/6).
     Then, when all of the above is done, come back to the user for: exceptions (B2), and the language support headers (B-4) and how much of the library.
 
   Why this order: wrong code with no error first; rvalue references before what is built on them (moves, forwarding, the library's move and forward); auto before lambdas; constexpr before the templates that lean on it.  Stages 6, 7 and 9 depend on little and can move.

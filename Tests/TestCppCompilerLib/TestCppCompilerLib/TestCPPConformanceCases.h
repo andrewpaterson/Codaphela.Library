@@ -1832,3 +1832,495 @@ static const SConformanceCase gasConformanceStage9[] =
 		"int main() { D d; d.v = 2; A* a = &d; B* b = &d; return a->f() * 10 + b->f() + d.v * 100; }\n"
 	},
 };
+
+//Stage 10: namespaces, and the lookup they change, as C++14 has them (N4140 [basic.namespace], [namespace.udecl],
+//[namespace.udir], [basic.lookup]): each case is a paragraph, its number over it, and was checked with the Microsoft
+//compiler (C++14, /permissive-).
+static const SConformanceCase gasConformanceStage10[] =
+{
+	//7.3.1/2
+	{
+		"ExtendNamespace", 3,
+		"namespace N { int a = 1; }\n"
+		"namespace N { int b = 2; }\n"
+		"int main() { return N::a + N::b; }\n"
+	},
+	//7.3.1.2/2
+	{
+		"MemberDefinedOutside", 4,
+		"namespace N { int f(); }\n"
+		"int N::f() { return 4; }\n"
+		"int main() { return N::f(); }\n"
+	},
+	//7.3.1.2/2
+	{
+		"NestedMemberDefinedInEnclosing", 5,
+		"namespace A { namespace B { int g(); } int B::g() { return 5; } }\n"
+		"int main() { return A::B::g(); }\n"
+	},
+	//7.3.1.2/2
+	{
+		"DefinedInNonEnclosing", CONFORMANCE_REFUSED,
+		"namespace A { int f(); }\n"
+		"namespace C { int A::f() { return 1; } }\n"
+		"int main() { return A::f(); }\n"
+	},
+	//7.3.1/4
+	{
+		"NamespaceInBlockScope", CONFORMANCE_REFUSED,
+		"int main() { namespace X { int v = 1; } return 0; }\n"
+	},
+	//7.3.1
+	{
+		"SameNameDifferentNamespaces", 12,
+		"namespace A { int v = 1; }\n"
+		"namespace B { int v = 2; }\n"
+		"int main() { return A::v * 10 + B::v; }\n"
+	},
+	//7.3.1/2
+	{
+		"OverloadsAcrossReopen", 12,
+		"namespace N { int f(int) { return 1; } }\n"
+		"namespace N { int f(char) { return 2; } }\n"
+		"int main() { return N::f(1) * 10 + N::f('a'); }\n"
+	},
+	//3.4.1/6
+	{
+		"MemberDefinitionLooksInNamespace", 3,
+		"namespace N { int k = 3; int f(); }\n"
+		"int N::f() { return k; }\n"
+		"int main() { return N::f(); }\n"
+	},
+	//3.4.1/8
+	{
+		"MemberDefinitionParameterType", 5,
+		"namespace N { struct T { int v; }; struct S { int f(T t); }; }\n"
+		"int N::S::f(T t) { return t.v; }\n"
+		"int main() { N::S s; N::T t; t.v = 5; return s.f(t); }\n"
+	},
+	//8.3.6
+	{
+		"DefaultArgumentInNamespace", 4,
+		"namespace N { int d = 4; int f(int x = d) { return x; } }\n"
+		"int main() { return N::f(); }\n"
+	},
+	//7.3.1
+	{
+		"TypedefInNamespace", 3,
+		"namespace N { typedef int I; }\n"
+		"int main() { N::I x = 3; return x; }\n"
+	},
+	//3.3.10
+	{
+		"InnerHidesOuter", 2,
+		"namespace A { int f() { return 1; } namespace B { int f(int) { return 2; } int g() { return f(5); } } }\n"
+		"int main() { return A::B::g(); }\n"
+	},
+	//3.3.10
+	{
+		"InnerHidesOuterRefused", CONFORMANCE_REFUSED,
+		"namespace A { int f() { return 1; } namespace B { int f(int) { return 2; } int g() { return f(); } } }\n"
+		"int main() { return A::B::g(); }\n"
+	},
+	//9.4.2
+	{
+		"StaticMemberDefinedOutside", 5,
+		"namespace N { struct S { static int s; }; }\n"
+		"int N::S::s = 5;\n"
+		"int main() { return N::S::s; }\n"
+	},
+	//14.7.3
+	{
+		"TemplateSpecialisedInNamespace", 12,
+		"namespace N { template<class T> struct X { enum { v = 1 }; }; template<> struct X<int> { enum { v = 2 }; }; }\n"
+		"int main() { return N::X<char>::v * 10 + N::X<int>::v; }\n"
+	},
+	//7.2
+	{
+		"EnumClassInNamespace", 2,
+		"namespace N { enum class E { a = 1, b = 2 }; }\n"
+		"int main() { return (int)N::E::b; }\n"
+	},
+	//7.3.1 (C++17 only)
+	{
+		"NestedNamespaceDefinitionCpp17", CONFORMANCE_REFUSED,
+		"namespace A::B { int v = 1; }\n"
+		"int main() { return A::B::v; }\n"
+	},
+	//7.3.1.1
+	{
+		"UnnamedInNamed", 7,
+		"namespace N { namespace { int h() { return 7; } } }\n"
+		"int main() { return N::h(); }\n"
+	},
+	//7.3.1.1/3.4.1
+	{
+		"UnnamedAmbiguousWithGlobal", CONFORMANCE_REFUSED,
+		"int x = 1;\n"
+		"namespace { int x = 2; }\n"
+		"int main() { return x; }\n"
+	},
+	//7.3.1.1
+	{
+		"UnnamedReopened", 3,
+		"namespace { int a = 1; }\n"
+		"namespace { int b = 2; }\n"
+		"int main() { return a + b; }\n"
+	},
+	//7.3.1.1
+	{
+		"UnnamedQualifiedGlobal", 2,
+		"int x = 1;\n"
+		"namespace { int y = 2; }\n"
+		"int main() { return ::y; }\n"
+	},
+	//7.3.1.2/3
+	{
+		"FriendFoundByADL", 9,
+		"namespace N { struct S { friend int fr(S) { return 9; } }; }\n"
+		"int main() { N::S s; return fr(s); }\n"
+	},
+	//7.3.1.2/3
+	{
+		"FriendNotFoundByQualifiedLookup", CONFORMANCE_REFUSED,
+		"namespace N { struct S { friend int fr2() { return 1; } }; }\n"
+		"int main() { return N::fr2(); }\n"
+	},
+	//7.3.1.2/3
+	{
+		"FriendThenDeclared", 3,
+		"namespace N { struct S { friend int fr3(); }; int fr3(); }\n"
+		"int N::fr3() { return 3; }\n"
+		"int main() { return N::fr3(); }\n"
+	},
+	//7.3.1/7
+	{
+		"InlineReopened", 3,
+		"namespace N { inline namespace V { int a = 1; } }\n"
+		"namespace N { inline namespace V { int b = 2; } }\n"
+		"int main() { return N::a + N::b; }\n"
+	},
+	//7.3.1/8
+	{
+		"InlineSpecialisedFromEnclosing", 2,
+		"namespace N { inline namespace V { template<class T> int f(T) { return 1; } } template<> int f<int>(int) { return 2; } }\n"
+		"int main() { return N::f(0); }\n"
+	},
+	//3.4.2/2
+	{
+		"InlineADL", 4,
+		"namespace N { inline namespace V { struct S {}; } int g(S) { return 4; } }\n"
+		"int main() { return g(N::S()); }\n"
+	},
+	//7.3.1/8
+	{
+		"InlineNested", 5,
+		"namespace N { inline namespace A { inline namespace B { int z = 5; } } }\n"
+		"int main() { return N::z; }\n"
+	},
+	//7.3.1/8
+	{
+		"InlineUsingDirective", 6,
+		"namespace N { inline namespace V { int w = 6; } }\n"
+		"using namespace N;\n"
+		"int main() { return w; }\n"
+	},
+	//7.3.2
+	{
+		"AliasOfAlias", 6,
+		"namespace A { int v = 6; }\n"
+		"namespace B = A;\n"
+		"namespace C = B;\n"
+		"int main() { return C::v; }\n"
+	},
+	//7.3.2
+	{
+		"AliasInBlock", 6,
+		"namespace A { int v = 6; }\n"
+		"int main() { namespace X = A; return X::v; }\n"
+	},
+	//7.3.2/3
+	{
+		"AliasRedefinedSame", 1,
+		"namespace A { int v = 1; }\n"
+		"namespace B = A;\n"
+		"namespace B = A;\n"
+		"int main() { return B::v; }\n"
+	},
+	//7.3.2/3
+	{
+		"AliasRedefinedDifferent", CONFORMANCE_REFUSED,
+		"namespace A { int v = 1; }\n"
+		"namespace D { int v = 2; }\n"
+		"namespace B = A;\n"
+		"namespace B = D;\n"
+		"int main() { return B::v; }\n"
+	},
+	//7.3.2
+	{
+		"AliasQualifiedTarget", 4,
+		"namespace A { namespace B { int v = 4; } }\n"
+		"namespace Z = ::A::B;\n"
+		"int main() { return Z::v; }\n"
+	},
+	//7.3.3
+	{
+		"UsingDeclarationBlock", 2,
+		"namespace N { int f() { return 2; } }\n"
+		"int main() { using N::f; return f(); }\n"
+	},
+	//7.3.3/11
+	{
+		"UsingDeclarationOnlyEarlierOverloads", 1,
+		"namespace N { int f(int) { return 1; } }\n"
+		"using N::f;\n"
+		"namespace N { int f(char) { return 2; } }\n"
+		"int main() { return f('a'); }\n"
+	},
+	//7.3.3/15
+	{
+		"UsingDeclarationInClass", 12,
+		"struct B { int f(int) { return 1; } };\n"
+		"struct D : B { using B::f; int f(char) { return 2; } };\n"
+		"int main() { D d; return d.f(1) * 10 + d.f('a'); }\n"
+	},
+	//7.3.3
+	{
+		"UsingDeclarationIntoNamespace", 3,
+		"namespace A { int x = 3; }\n"
+		"namespace B { using A::x; }\n"
+		"int main() { return B::x; }\n"
+	},
+	//7.3.3
+	{
+		"UsingDeclarationClassType", 4,
+		"namespace A { struct S { int v; }; }\n"
+		"using A::S;\n"
+		"int main() { S s; s.v = 4; return s.v; }\n"
+	},
+	//7.3.3/6
+	{
+		"UsingDeclarationOfNamespace", CONFORMANCE_REFUSED,
+		"namespace A { namespace B { int v = 1; } }\n"
+		"using A::B;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.3.3/14
+	{
+		"UsingDeclarationConflicts", CONFORMANCE_REFUSED,
+		"namespace A { int x = 1; }\n"
+		"int x = 2;\n"
+		"using A::x;\n"
+		"int main() { return x; }\n"
+	},
+	//7.3.3
+	{
+		"UsingDeclarationEnumerator", 7,
+		"namespace A { enum E { e1 = 7 }; }\n"
+		"using A::e1;\n"
+		"int main() { return e1; }\n"
+	},
+	//7.3.3/13
+	{
+		"UsingDeclarationWithLocalOverload", 12,
+		"namespace A { int f(int) { return 1; } }\n"
+		"int f(char) { return 2; }\n"
+		"using A::f;\n"
+		"int main() { return f(1) * 10 + f('c'); }\n"
+	},
+	//7.3.3/19
+	{
+		"UsingDeclarationAccess", 5,
+		"struct B { protected: int p() { return 5; } };\n"
+		"struct D : B { public: using B::p; };\n"
+		"int main() { D d; return d.p(); }\n"
+	},
+	//12.9
+	{
+		"InheritingConstructors", 6,
+		"struct B { int v; B(int x) : v(x) {} };\n"
+		"struct D : B { using B::B; };\n"
+		"int main() { D d(6); return d.v; }\n"
+	},
+	//7.3.3
+	{
+		"UsingDeclarationTemplate", 6,
+		"namespace N { template<class T> T id(T x) { return x; } }\n"
+		"using N::id;\n"
+		"int main() { return id(6); }\n"
+	},
+	//7.3.4/4
+	{
+		"UsingDirectiveTransitive", 3,
+		"namespace A { int a = 1; }\n"
+		"namespace B { using namespace A; int b = 2; }\n"
+		"using namespace B;\n"
+		"int main() { return a + b; }\n"
+	},
+	//7.3.4
+	{
+		"UsingDirectiveBlock", 1,
+		"namespace A { int a = 1; }\n"
+		"int main() { using namespace A; return a; }\n"
+	},
+	//7.3.4/6
+	{
+		"UsingDirectiveAmbiguityUnused", 3,
+		"namespace A { int x = 1; }\n"
+		"namespace B { int x = 2; }\n"
+		"using namespace A;\n"
+		"using namespace B;\n"
+		"int main() { return A::x + B::x; }\n"
+	},
+	//7.3.4/6
+	{
+		"UsingDirectiveAmbiguityUsed", CONFORMANCE_REFUSED,
+		"namespace A { int x = 1; }\n"
+		"namespace B { int x = 2; }\n"
+		"using namespace A;\n"
+		"using namespace B;\n"
+		"int main() { return x; }\n"
+	},
+	//7.3.4/2
+	{
+		"UsingDirectiveNearestEnclosing", 5,
+		"namespace A { int i = 4; }\n"
+		"namespace B { int i = 5; int g() { using namespace A; return i; } }\n"
+		"int main() { return B::g(); }\n"
+	},
+	//7.3.4/6
+	{
+		"UsingDirectiveOverloadsMerge", 12,
+		"namespace A { int f(int) { return 1; } }\n"
+		"namespace B { int f(char) { return 2; } }\n"
+		"using namespace A;\n"
+		"using namespace B;\n"
+		"int main() { return f(1) * 10 + f('c'); }\n"
+	},
+	//7.3.4/2
+	{
+		"UsingDirectiveLaterMembers", 8,
+		"namespace A { int a = 1; }\n"
+		"using namespace A;\n"
+		"namespace A { int later = 8; }\n"
+		"int main() { return later; }\n"
+	},
+	//7.3.4
+	{
+		"UsingDirectiveTemplateExplicitArgs", 6,
+		"namespace N { template<class T> T id(T x) { return x; } }\n"
+		"using namespace N;\n"
+		"int main() { return id<int>(6); }\n"
+	},
+	//3.4.3.2/2
+	{
+		"QualifiedThroughDirective", 7,
+		"namespace A { int a = 7; }\n"
+		"namespace B { using namespace A; }\n"
+		"int main() { return B::a; }\n"
+	},
+	//3.4.3.2/2
+	{
+		"QualifiedOwnHidesNominated", 2,
+		"namespace A { int x = 1; }\n"
+		"namespace B { using namespace A; int x = 2; }\n"
+		"int main() { return B::x; }\n"
+	},
+	//3.4.3.2/2
+	{
+		"QualifiedAmbiguous", CONFORMANCE_REFUSED,
+		"namespace A { int x = 1; }\n"
+		"namespace C { int x = 2; }\n"
+		"namespace B { using namespace A; using namespace C; }\n"
+		"int main() { return B::x; }\n"
+	},
+	//3.4.3.2/2
+	{
+		"QualifiedThroughDirectiveNested", 8,
+		"namespace A { int a = 8; }\n"
+		"namespace C { using namespace A; }\n"
+		"namespace B { using namespace C; }\n"
+		"int main() { return B::a; }\n"
+	},
+	//3.4.3/4
+	{
+		"GlobalQualifier", 12,
+		"int v = 1;\n"
+		"namespace N { int v = 2; int f() { return ::v * 10 + v; } }\n"
+		"int main() { return N::f(); }\n"
+	},
+	//3.4.3
+	{
+		"GlobalQualifiedNamespace", 3,
+		"namespace N { int f() { return 3; } }\n"
+		"int main() { return ::N::f(); }\n"
+	},
+	//3.4.2
+	{
+		"ADLOperator", 7,
+		"namespace N { struct V { int v; }; int operator+(V a, V b) { return a.v + b.v; } }\n"
+		"int main() { N::V a; N::V b; a.v = 3; b.v = 4; return a + b; }\n"
+	},
+	//3.4.2/2
+	{
+		"ADLTemplateArgument", 8,
+		"template<class T> struct W {};\n"
+		"namespace N { struct S {}; int k(W<S>) { return 8; } }\n"
+		"int main() { return k(W<N::S>()); }\n"
+	},
+	//3.4.2/2
+	{
+		"ADLBaseClass", 9,
+		"namespace N { struct B {}; int m(const B&) { return 9; } }\n"
+		"struct D : N::B {};\n"
+		"int main() { D d; return m(d); }\n"
+	},
+	//3.4.2/1
+	{
+		"ADLSuppressedByParentheses", CONFORMANCE_REFUSED,
+		"namespace N { struct S {}; int p(S) { return 1; } }\n"
+		"int main() { N::S s; return (p)(s); }\n"
+	},
+	//3.4.2/2
+	{
+		"ADLEnum", 3,
+		"namespace N { enum E { a }; int q(E) { return 3; } }\n"
+		"int main() { return q(N::a); }\n"
+	},
+	//3.4.2/2
+	{
+		"ADLPointer", 4,
+		"namespace N { struct S {}; int r(S*) { return 4; } }\n"
+		"int main() { N::S s; return r(&s); }\n"
+	},
+	//3.4.2/3
+	{
+		"ADLBlockDeclarationStops", 2,
+		"namespace N { struct S {}; int t(S) { return 1; } }\n"
+		"int t(N::S, int i = 0) { return 2; }\n"
+		"int main() { int t(N::S, int); N::S s; return t(s, 0); }\n"
+	},
+	//3.4.2/3
+	{
+		"ADLMemberFunctionStops", 3,
+		"namespace N { struct S {}; int u(S) { return 1; } }\n"
+		"struct C { int u(N::S) { return 3; } int go() { N::S s; return u(s); } };\n"
+		"int main() { C c; return c.go(); }\n"
+	},
+	//3.4.2/2
+	{
+		"ADLFunctionArgument", 5,
+		"namespace N { struct S {}; int z(void (*)(S)) { return 5; } void cb(S) {} }\n"
+		"int main() { return z(N::cb); }\n"
+	},
+	//7.5/6
+	{
+		"ExternCSameFunction", 6,
+		"namespace A { extern \"C\" int cf(); }\n"
+		"namespace B { extern \"C\" int cf(); }\n"
+		"extern \"C\" int cf() { return 6; }\n"
+		"using namespace A;\n"
+		"using namespace B;\n"
+		"int main() { return cf(); }\n"
+	},
+};
