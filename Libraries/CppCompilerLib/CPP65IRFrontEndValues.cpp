@@ -829,6 +829,17 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			psPlace->psType = sAddress.psType;
 			return true;
 		}
+		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//*object: what its operator's reference refers to, or the object it returns.
+			if (!OperatorExpression(CT_Multiply, pcUnary->mpcOperand, NULL, &sAddress))
+			{
+				return false;
+			}
+			psPlace->sAddress = sAddress.sValue;
+			psPlace->psType = sAddress.psType->WithoutReference();
+			return sAddress.psType->IsReference() || sAddress.psType->IsClass() || Unsupported(__FILE__, __LINE__);
+		}
 		if (!Value(pcUnary->mpcOperand, &sPointer))
 		{
 			return false;

@@ -827,6 +827,43 @@ bool CCPPBinder::TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papcArgu
 
 //////////////////////////////////////////////////////////////////////////
 //
+// begin or end of a range-for's range (pcRange, an object): the member of
+// that name of pcClass that takes nothing, or with no class the function
+// of that name that takes the range, of the namespaces around and those
+// its type is of.  NULL, quietly, if there is none.  [stmt.ranged] 1
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::BindRangeFunction(int64 lliName, CCPPClass* pcClass, CCPPSyntax* pcRange, CCPPSyntax* pcNode)
+{
+	CArraySyntax	apcArguments;
+	CCPPFunction*	pcFunction;
+	size			uiErrors;
+
+	apcArguments.Init();
+	if (pcClass)
+	{
+		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		mpcUnit->BeginQuiet();
+		pcFunction = mcOverloads.FindFunction(pcClass, lliName, CPPFK_Function, &apcArguments, true, pcNode, CalledObject(pcRange, false));
+		mpcUnit->EndQuiet();
+		mpcUnit->GetErrors()->Truncate(uiErrors);
+	}
+	else
+	{
+		apcArguments.Add(pcRange);
+		pcFunction = mcOverloads.FindFreeOperator(lliName, &apcArguments, pcNode);
+	}
+	apcArguments.Kill();
+	if (pcFunction && !mcAccess.CheckFunction(pcFunction, pcClass, pcNode))
+	{
+		return NULL;
+	}
+	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The object a member function is called on, for the choice among const
 // and & and && overloads: pcObject (what a pointer points to with
 // bArrow), or the function's own when there is none.

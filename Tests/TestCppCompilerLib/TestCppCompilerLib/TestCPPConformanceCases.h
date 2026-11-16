@@ -888,6 +888,23 @@ static const SConformanceCase gasConformanceStage3[] =
 		"int main() { int a[5] = { 1, 2, 3, 4, 5 }; int s = 0; for (int x : a) { if (x == 2) { continue; } if (x == 5) { break; } s += x; } return s; }\n"
 	},
 	{
+		"RangeForObjects", 430,
+		"int g = 0;\n"
+		"struct It { int* p; It(int* a) : p(a) {} ~It() { g++; } bool operator!=(const It& o) const { return p != o.p; } It& operator++() { p++; return *this; } int& operator*() const { return *p; } };\n"
+		"struct V { int a[4]; It begin() { return It(a); } It end() { return It(a + 4); } };\n"
+		"struct W { int v; W(int a) : v(a) {} ~W() { g += 100; } };\n"
+		"template<class C> int Sum(C& c) { int s = 0; for (auto& x : c) { s += x; } return s; }\n"
+		"int main() { V v; int i = 0; for (int& x : v) { x = ++i; } int s = 0; for (const auto& x : v) { if (x == 2) continue; if (x == 4) break; W w(x); s += w.v; } int a[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } }; for (auto& row : a) { for (int x : row) { s += x * 10; } } int t = Sum(v); return s + t + g; }\n"
+	},
+	{
+		"DereferenceObject", 474,
+		"struct It { int i; int operator*() const { return i * 2; } };\n"
+		"struct Ref { int v; int& operator*() { return v; } };\n"
+		"struct P { int x; };\n"
+		"struct Obj { P p; P& operator*() { return p; } };\n"
+		"int main() { It b; b.i = 2; int y = *b; Ref r; r.v = 1; *r = 5; int& q = *r; q += 2; Obj o; o.p.x = 3; (*o).x += 1; P c = *o; return y + *r * 10 + c.x * 100; }\n"
+	},
+	{
 		"AliasTemplate", 61,
 		"template<class T> struct Box { T v; };\n"
 		"template<class T> using B = Box<T>;\n"

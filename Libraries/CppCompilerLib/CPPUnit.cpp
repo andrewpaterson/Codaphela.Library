@@ -273,6 +273,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapapsPacks.Init();
 	mapcPackElements.Init();
 	mapcPackSymbols.Init();
+	mapcHiddenSymbols.Init();
+	mcRangeFors.Init(true);
 	mapcQueue.Init();
 	muiQueueNext = 0;
 	mapcFailed.Init();
@@ -351,6 +353,12 @@ void CCPPUnit::Kill(void)
 		free(mapcPackSymbols.GetPtr(i));
 	}
 	mapcPackSymbols.Kill();
+	for (i = 0; i < mapcHiddenSymbols.NumElements(); i++)
+	{
+		free(mapcHiddenSymbols.GetPtr(i));
+	}
+	mapcHiddenSymbols.Kill();
+	mcRangeFors.Kill();
 	mapcConstantTypes.Kill();
 	mapcQueue.Kill();
 	mapcFailed.Kill();
@@ -2591,6 +2599,11 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 
 			AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Local, 0);
 		}
+	}
+
+	if ((pcNode->GetKind() == CPPS_RangeForStatement) && !RangeForLocals((CCPPSyntaxRangeForStatement*)pcNode))
+	{
+		return false;
 	}
 
 	bResult = true;

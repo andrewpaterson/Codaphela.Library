@@ -263,6 +263,10 @@ protected:
 	bool			WhileStatement(CCPPSyntaxWhileStatement* pcWhile);
 	bool			DoStatement(CCPPSyntaxDoStatement* pcDo);
 	bool			ForStatement(CCPPSyntaxForStatement* pcFor);
+	bool			RangeForStatement(CCPPSyntaxRangeForStatement* pcFor);
+	bool			VariablePlace(CCPPSymbol* pcSymbol, SCPP65IRPlace* psPlace);
+	bool			RangeIterator(CCPPSymbol* pcSymbol, CCPPFunction* pcFunction, bool bMember, CCPPSyntax* pcRange, bool bEnd);
+	bool			RangeForVariable(CCPPSyntaxRangeForStatement* pcFor, CCPPSyntax* pcElement);
 	bool			SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch);
 	bool			FindCases(CCPPSyntax* pcNode, CIRBlock** ppcDefault);
 	bool			CaseStatement(CCPPSyntaxCaseStatement* pcCase);

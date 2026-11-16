@@ -671,6 +671,11 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	case CT_LogicalNot:
 		return ConditionValue(pcUnary);
 	case CT_Multiply:
+		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//*object: the object's operator.
+			return OperatorExpression(CT_Multiply, pcUnary->mpcOperand, NULL, pcUnary);
+		}
 		return Load(Place(pcUnary), pcUnary);
 	case CT_BitwiseAnd:
 		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
@@ -756,6 +761,11 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 {
 	SCPP65Type*	psType;
 
+	if (!pcUnary->mbPostfix && mpcUnit->IsObject(pcUnary->mpcOperand))
+	{
+		//++object and --object: the object's operator.
+		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary);
+	}
 	psType = Place(pcUnary->mpcOperand);
 	if (!psType || !CanChange(psType, pcUnary))
 	{
@@ -1895,6 +1905,11 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		if (pcUnary->meOperator != CT_Multiply)
 		{
 			break;
+		}
+		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//*object: what its operator's reference refers to, or the object it returns.
+			return ResultPlace(Result(pcExpression), pcExpression);
 		}
 		psType = Value(pcUnary->mpcOperand);
 		if (!psType)

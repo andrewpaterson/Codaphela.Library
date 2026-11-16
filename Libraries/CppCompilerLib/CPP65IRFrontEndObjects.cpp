@@ -1108,10 +1108,16 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		{
 		case CT_Multiply:
 			break;
+		case CT_Increment:
+		case CT_Decrement:
+			if (((CCPPSyntaxUnaryExpression*)pcExpression)->mbPostfix)
+			{
+				return Unsupported(__FILE__, __LINE__);
+			}
 		case CT_Subtract:
 		case CT_Add:
 		case CT_BitwiseNot:
-			//-object, +object, ~object: the object's operator.
+			//-object, +object, ~object, ++object, --object: the object's operator.
 			return OperatorExpression(((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand, NULL, psValue);
 		default:
 			return Unsupported(__FILE__, __LINE__);

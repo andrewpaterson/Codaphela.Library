@@ -144,6 +144,24 @@ struct SCPPTypeOf
 typedef CMapLongTemplate<SCPPTypeOf>		CMapCPPTypeOfs;
 
 
+//What a range-for statement is made of (CCPPUnit::GetRangeFor): the variables the compiler makes for it, and the
+//expressions on them.
+struct SCPPRangeFor
+{
+	CCPPSymbol*					pcRange;		//auto&& __range = range.
+	CCPPSymbol*					pcBegin;		//auto __begin = begin.
+	CCPPSymbol*					pcEnd;			//auto __end = end.
+	CCPPSyntaxIdExpression*		pcRangeOfBegin;	//__range, as what begin is of.
+	CCPPSyntaxIdExpression*		pcRangeOfEnd;	//__range, as what end is of.
+	CCPPSyntaxBinaryExpression*	pcCondition;	//__begin != __end.
+	CCPPSyntaxUnaryExpression*	pcIncrement;	//++__begin.
+	CCPPSyntaxUnaryExpression*	pcElement;		//*__begin.
+};
+
+
+typedef CMapLongTemplate<SCPPRangeFor>	CMapCPPRangeFors;
+
+
 //The function being written, put aside while another's parameters and locals are made (CCPPUnit::EnterFunctionScope).
 struct SCPPFunctionScope
 {
@@ -197,6 +215,8 @@ protected:
 	CArrayCPPTemplateArguments	mapcAllBindings;
 	CArrayCPPPacks		mapapsPacks;		//The packs' types (NewPack).
 	CArrayCPPSymbols		mapcPackSymbols;	//The symbols made for function parameter packs' elements.
+	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
+	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
@@ -344,6 +364,11 @@ public:
 	void					EndFunction(CCPPFunction* pcFunction);
 	void					AppendUnsupported(CChars* psz);
 	bool					AllocateLocals(CCPPSyntax* pcNode);
+	SCPPRangeFor*			GetRangeFor(CCPPSyntaxRangeForStatement* pcFor);
+	CCPPSymbol*				NewHiddenVariable(const char* szName, CCPPSyntaxRangeForStatement* pcFor);
+	CCPPSyntaxIdExpression*	NewHiddenName(CCPPSymbol* pcSymbol, CCPPSyntax* pcParent);
+	bool					RangeForLocals(CCPPSyntaxRangeForStatement* pcFor);
+	bool					RangeIterators(CCPPSyntaxRangeForStatement* pcFor, SCPP65Type** ppsBegin, SCPP65Type** ppsEnd, CCPPFunction** ppcBegin, CCPPFunction** ppcEnd, bool* pbMember);
 	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);

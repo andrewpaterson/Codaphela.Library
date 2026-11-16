@@ -156,6 +156,9 @@
     <ClCompile Include="CPPUnitObjects.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPUnitRangeFor.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPUnitCheck.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>

@@ -47,6 +47,21 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_LogicalNot:
 		return ConditionValue(pcUnary, psValue);
 	case CT_Multiply:
+		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//*object: the object's operator, and what a reference it returns refers to.
+			if (!OperatorExpression(CT_Multiply, pcUnary->mpcOperand, NULL, psValue))
+			{
+				return false;
+			}
+			if (!psValue->psType->IsReference())
+			{
+				return true;
+			}
+			sPlace.sAddress = psValue->sValue;
+			sPlace.psType = psValue->psType->psBase;
+			return Load(&sPlace, psValue);
+		}
 		if (!Place(pcUnary, &sPlace))
 		{
 			return false;
@@ -156,6 +171,11 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 	SCPP65IRValue	sNew;
 	SCPP65Type*		psType;
 
+	if (!pcUnary->mbPostfix && mpcUnit->IsObject(pcUnary->mpcOperand))
+	{
+		//++object and --object: the object's operator.
+		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, psValue);
+	}
 	if (!Place(pcUnary->mpcOperand, &sPlace) || !Load(&sPlace, &sOld))
 	{
 		return false;

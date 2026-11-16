@@ -182,7 +182,13 @@ Part B plan (2026-11-15, not started)
        - void f() & and void f() && (CCPPFunction::meRefQualifier, CCPPBinder::CalledObject).
        Not done here: Forward<Args>(args)... needs a pack's pattern expanded (stage 6; the case ForwardingPack is in that group now).
        As it was planned: (L) B10.  Rvalue references as a type of their own: collapsing, & and && overloads, move constructors and assignment (and the implicit ones, and when they are deleted), xvalues, ref-qualified members.
-    3. (M) B11, B16 and parts of B17: auto, decltype, trailing return types, range-for, alias templates, nullptr_t.
+    3. Done 2026-11-16 (the conformance test's Stage3 group: 22 of 22 on both targets).
+       - auto for a variable is what its initialiser makes it (CCPPDeclarators::AutoType, DeduceAuto), asked where every variable's type was (GetType).  decltype (DecltypeType) is from the value category stage 2 gave.  decltype(nullptr) was already a type of its own.
+       - auto f() -> type has its parameters in scope in the type; auto f() { } and decltype(auto) f() { } take the type of their first return (CCPPUnit::ResolveReturn).  The unit can put the function being written aside to make another's parameters and locals (EnterFunctionScope), which stages 4 and 5 will want too.
+       - template<class T> using Name = type (AliasTemplateType).  Not done: deducing a template's argument through an alias (f(Alias<T>&)).
+       - for (declaration : range) is made of three variables the program can't name and the expressions on them, which are syntax like any other (CCPPUnit::GetRangeFor, CPPUnitRangeFor.cpp; CCPP65IRFrontEnd::RangeForStatement).  Not done: a range that is an object made for the statement (for (x : make())), which needs a reference to keep a temporary alive (stage 7), and a list in braces (stage 8).
+       - *object and ++object, --object had never been an object's operators: they are (postfix ++ and -- are stage 7's).
+       As it was planned: (M) B11, B16 and parts of B17: auto, decltype, trailing return types, range-for, alias templates, nullptr_t.
     4. (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
     5. (L) B12.  Lambdas: the parser, closure classes, captures, the conversion to a function pointer; then generic lambdas and init-captures (B-3).
     6. (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array deduction, packs everywhere and sizeof..., variable templates, the missing type traits.

@@ -92,6 +92,8 @@ bool CCPP65IRFrontEnd::StatementOf(CCPPSyntax* pcStatement)
 		return SwitchStatement((CCPPSyntaxSwitchStatement*)pcStatement);
 	case CPPS_CaseStatement:
 		return CaseStatement((CCPPSyntaxCaseStatement*)pcStatement);
+	case CPPS_RangeForStatement:
+		return RangeForStatement((CCPPSyntaxRangeForStatement*)pcStatement);
 	case CPPS_ReturnStatement:
 		return ReturnStatement((CCPPSyntaxReturnStatement*)pcStatement);
 	case CPPS_BreakStatement:
@@ -817,6 +819,214 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 	JumpTo(pcTest);
 	StartBlock(pcEnd);
 	return LeaveScope(uiLiving);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// for (declaration : range) statement, as what it is made of
+// (CCPPUnit::GetRangeFor): the range, the iterators, and the loop on them.
+// The variable it declares is made each time round, before the statement
+// and in its scope: break and continue leave it as they leave the
+// statement.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::RangeForStatement(CCPPSyntaxRangeForStatement* pcFor)
+{
+	SCPPRangeFor*	psRangeFor;
+	SCPP65IRPlace	sRange;
+	SCPP65Type*		psBegin;
+	SCPP65Type*		psEnd;
+	CCPPFunction*	pcBegin;
+	CCPPFunction*	pcEnd;
+	CIRBlock*		pcTest;
+	CIRBlock*		pcBody;
+	CIRBlock*		pcNext;
+	CIRBlock*		pcAfter;
+	SCPP65IRJump*	psJump;
+	SCPP65IRValue	sValue;
+	size			uiLiving;
+	size			uiEach;
+	bool			bMember;
+	bool			bResult;
+
+	psRangeFor = mpcUnit->GetRangeFor(pcFor);
+	uiLiving = masLiving.NumElements();
+	if (!VariablePlace(psRangeFor->pcRange, &sRange) || !LocalInitialiser(&sRange, pcFor->mpcRange, true))
+	{
+		return false;
+	}
+	if (!mpcUnit->RangeIterators(pcFor, &psBegin, &psEnd, &pcBegin, &pcEnd, &bMember))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	if (!RangeIterator(psRangeFor->pcBegin, pcBegin, bMember, psRangeFor->pcRangeOfBegin, false) || !RangeIterator(psRangeFor->pcEnd, pcEnd, bMember, psRangeFor->pcRangeOfEnd, true))
+	{
+		return false;
+	}
+
+	pcTest = NewBlock();
+	pcBody = NewBlock();
+	pcNext = NewBlock();
+	pcAfter = NewBlock();
+	JumpTo(pcTest);
+	StartBlock(pcTest);
+	if (!FullCondition(psRangeFor->pcCondition, pcBody, pcAfter))
+	{
+		return false;
+	}
+	StartBlock(pcBody);
+	uiEach = masLiving.NumElements();
+	psJump = masJumps.Add();
+	psJump->uiLiving = uiEach;
+	psJump->pcBreak = pcAfter;
+	psJump->pcContinue = pcNext;
+	bResult = RangeForVariable(pcFor, psRangeFor->pcElement) && ScopedStatement(pcFor->mpcBody);
+	masJumps.Pop();
+	if (!bResult || !LeaveScope(uiEach))
+	{
+		return false;
+	}
+	JumpTo(pcNext);
+	StartBlock(pcNext);
+	if (!FullExpression(psRangeFor->pcIncrement, &sValue))
+	{
+		return false;
+	}
+	JumpTo(pcTest);
+	StartBlock(pcAfter);
+	return LeaveScope(uiLiving);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a local variable is, from its symbol.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::VariablePlace(CCPPSymbol* pcSymbol, SCPP65IRPlace* psPlace)
+{
+	CCPPVariable*	pcVariable;
+	SIRReference*	psAddress;
+
+	pcVariable = mpcUnit->GetVariable(pcSymbol);
+	psAddress = pcVariable ? mcAddresses.Get((int64)(size)pcVariable) : NULL;
+	if (!psAddress)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	psPlace->sAddress = *psAddress;
+	psPlace->psType = pcVariable->mpsType;
+	psPlace->psBitField = NULL;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives a range-for's __begin or __end (pcSymbol) its value: for an array
+// its first element's address or the one after its last (bEnd), and for
+// an object what pcFunction returns, called on the range (pcRange) or
+// with it.  An iterator that is an object is made where the variable is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::RangeIterator(CCPPSymbol* pcSymbol, CCPPFunction* pcFunction, bool bMember, CCPPSyntax* pcRange, bool bEnd)
+{
+	SCPP65IRPlace	sPlace;
+	SCPP65IRPlace	sArray;
+	SCPP65IRValue	sValue;
+	CArraySyntax	apcArguments;
+	bool			bResult;
+
+	if (!VariablePlace(pcSymbol, &sPlace))
+	{
+		return false;
+	}
+	if (!pcFunction)
+	{
+		if (!Place(pcRange, &sArray) || !sArray.psType->IsArray())
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		sValue.sValue = bEnd ? AddressAt(sArray.sAddress, sArray.psType->iCount * sArray.psType->psBase->iBytes) : sArray.sAddress;
+		sValue.psType = sPlace.psType;
+		Store(&sPlace, &sValue);
+		return true;
+	}
+	if (pcFunction->mpsReturn->IsReference() || pcFunction->mbStatic)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+
+	apcArguments.Init();
+	if (!bMember)
+	{
+		apcArguments.Add(pcRange);
+	}
+	if (sPlace.psType->IsClass())
+	{
+		msElide = sPlace.sAddress;
+	}
+	bResult = Call(pcFunction, FunctionSymbol(pcFunction), NULL, &apcArguments, &sValue, bMember ? pcRange : NULL, false, bMember ? pcFunction->mpcClass : NULL, bMember && pcFunction->mbVirtual);
+	msElide = IRNone();
+	apcArguments.Kill();
+	if (!bResult)
+	{
+		return false;
+	}
+	if (sPlace.psType->IsClass())
+	{
+		if (!sValue.psType->IsClass() || !sValue.sValue.Equals(sPlace.sAddress))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		AddLiving(&sPlace);
+		return true;
+	}
+	if (!ConvertImplicit(&sValue, sPlace.psType, pcRange))
+	{
+		return false;
+	}
+	Store(&sPlace, &sValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The variable a range-for declares, made from pcElement (*__begin) as a
+// local with that initialiser is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::RangeForVariable(CCPPSyntaxRangeForStatement* pcFor, CCPPSyntax* pcElement)
+{
+	SCPP65IRPlace	sPlace;
+	size			uiTemporaries;
+
+	if (!VariablePlace(pcFor->mpcDeclarator->GetName()->mpcSymbol, &sPlace))
+	{
+		return false;
+	}
+	uiTemporaries = masTemporaries.NumElements();
+	if (ElementType(sPlace.psType)->IsClass())
+	{
+		if (!Construct(&sPlace, NULL, pcElement))
+		{
+			return false;
+		}
+		AddLiving(&sPlace);
+	}
+	else if (!LocalInitialiser(&sPlace, pcElement, true))
+	{
+		return false;
+	}
+
+	//A reference to a temporary would keep it alive (not supported).
+	if (sPlace.psType->IsReference() && (masTemporaries.NumElements() > uiTemporaries))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	return DestroyTemporaries(uiTemporaries);
 }
 
 
