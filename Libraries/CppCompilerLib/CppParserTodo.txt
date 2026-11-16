@@ -305,7 +305,15 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        cast from a base's pointer or reference down to a derived class didn't move it back to the derived object.
        Stage 7 cases CopyKeepsDerivedVtable, AssignToBaseSubobject, AssignMembersToBaseSubobject, StaticCastToDerived;
        stage 9 VirtualBaseCopyConstructors, CopyFromSubobject, BaseCopyConstructor, Assignment, StaticCastRefused.
-       Left for (d): the layouts against MSVC's.
+       (d) DONE 2026-11-17: the layouts.  MSVC's are another scheme (a virtual base pointer in the object), so the
+       comparison is with the Itanium ABI's, g++ -m32 in WSL (4 byte ints and pointers, as the 65C64): diamonds, a virtual
+       base with no vtable, an empty one, two virtual bases, virtual and non-virtual bases of one class, all the same
+       sizes and offsets (TestCPP65GeneratorVirtualBaseLayouts keeps them).  The one difference: Itanium makes a nearly
+       empty virtual base (only a vtable pointer) a primary base that shares the class's pointer, which saves its 4
+       bytes; here it has its own place after the class's part (struct B : virtual A { int b; } with A only virtual
+       functions is 12 bytes, not 8).  Left so: it would complicate primary bases, construction vtables and thunks for
+       4 bytes in classes that are rare, and nothing links with g++'s code.  Classes without virtual bases are MSVC's
+       layouts as before.
        Order of the work, a commit each: (a) layout, vtable offsets, conversions and members through a virtual base,
        complete and base constructors and destructors, construction vtables; (b) virtual functions through virtual
        bases (thunks), dynamic_cast and typeid across them; (c) copying and assignment, member pointers; (d) the

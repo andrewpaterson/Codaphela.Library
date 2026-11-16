@@ -3835,6 +3835,44 @@ void TestCPP65GeneratorEnumClass(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Classes with virtual bases are laid out as the Itanium ABI lays them out
+// (the sizes and offsets are g++ -m32's), but that a nearly empty virtual
+// base (only a vtable pointer) isn't a primary base sharing the class's
+// pointer: those are the compiler's own (CppParserTodo.txt stage 9 (d)).
+// main returns the first check that fails.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorVirtualBaseLayouts(void)
+{
+	AssertInt(0, TestCPP65Main(
+		"#define OFF(d, T) (int)((char*)static_cast<T*>(&d) - (char*)&d)\n"
+		"#define FIELD(d, f) (int)((char*)&d.f - (char*)&d)\n"
+		"namespace Diamond { struct A { int a; virtual int f() { return 1; } }; struct B : virtual A { int b; }; struct C : virtual A { int c; }; struct D : B, C { int d; }; }\n"
+		"namespace Plain { struct A { int a; }; struct B : virtual A { int b; }; }\n"
+		"namespace Empty { struct E { }; struct B : virtual E { int b; }; }\n"
+		"namespace Mixed { struct A { int a; }; struct B : virtual A { int b; }; struct C : A { int c; }; struct D : B, C { int d; }; }\n"
+		"namespace Two { struct A { int a; }; struct V { int v; virtual int g() { return 2; } }; struct B : virtual A, virtual V { int b; }; struct D : B { int d; }; }\n"
+		"namespace Nearly { struct A { virtual int f() { return 1; } }; struct B : virtual A { int b; }; }\n"
+		"namespace Deep { struct A { virtual int f() { return 1; } }; struct B : virtual A { }; struct C : virtual B { int f() override { return 3; } }; struct D : virtual C, virtual A { int v; }; }\n"
+		"int main()\n"
+		"{\n"
+		"	Diamond::D d; Plain::B p; Empty::B e; Mixed::D m; Two::D t; Nearly::B n; Deep::D x;\n"
+		"	if ((sizeof(Diamond::A) != 8) || (sizeof(Diamond::B) != 16) || (sizeof(Diamond::C) != 16) || (sizeof(Diamond::D) != 28)) return 1;\n"
+		"	if ((OFF(d, Diamond::A) != 20) || (OFF(d, Diamond::B) != 0) || (OFF(d, Diamond::C) != 8)) return 2;\n"
+		"	if ((FIELD(d, a) != 24) || (FIELD(d, b) != 4) || (FIELD(d, c) != 12) || (FIELD(d, d) != 16)) return 3;\n"
+		"	if ((sizeof(Plain::B) != 12) || (OFF(p, Plain::A) != 8) || (FIELD(p, b) != 4)) return 4;\n"
+		"	if ((sizeof(Empty::B) != 8) || (OFF(e, Empty::E) != 0) || (FIELD(e, b) != 4)) return 5;\n"
+		"	if ((sizeof(Mixed::B) != 12) || (sizeof(Mixed::D) != 24) || (OFF(m, Mixed::C) != 8) || (FIELD(m, c) != 12) || (FIELD(m, d) != 16)) return 6;\n"
+		"	if ((sizeof(Two::B) != 20) || (sizeof(Two::D) != 24) || (OFF(t, Two::A) != 12) || (OFF(t, Two::V) != 16) || (FIELD(t, v) != 20) || (FIELD(t, d) != 8)) return 7;\n"
+		"	if ((sizeof(Nearly::B) != 12) || (OFF(n, Nearly::A) != 8)) return 8;\n"
+		"	if ((sizeof(Deep::D) != 20) || (OFF(x, Deep::A) != 8) || (OFF(x, Deep::B) != 12) || (OFF(x, Deep::C) != 16) || (FIELD(x, v) != 4)) return 9;\n"
+		"	return 0;\n"
+		"}\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Generator(void)
@@ -3884,6 +3922,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorErrors();
 	TestCPP65GeneratorListing();
 	TestCPP65GeneratorEnumClass();
+	TestCPP65GeneratorVirtualBaseLayouts();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	NumberKill();
