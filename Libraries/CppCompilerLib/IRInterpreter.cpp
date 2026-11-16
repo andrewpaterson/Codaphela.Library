@@ -1,0 +1,1089 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppCompilerLib
+
+Codaphela CppCompilerLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppCompilerLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
+#include <string.h>
+#include "IRFunction.h"
+#include "IRInterpreter.h"
+
+
+#define IR_SOURCE(uiObject, uiByte)		(((uiObject) << 3) | (uint32)(uiByte))
+#define IR_SOURCE_OBJECT(uiSource)		((uiSource) >> 3)
+#define IR_SOURCE_BYTE(uiSource)		((uiSource) & 7)
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A value that is no pointer.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIRValue::Set(uint64 ulliValue)
+{
+	ulliBits = ulliValue;
+	memset(auiSource, 0, sizeof(auiSource));
+	bPointer = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterpreter::Init(CIRInterpreterHost* pcHost)
+{
+	mpcHost = pcHost;
+	masObjects.Init();
+	mszError.Init();
+	muiErrorSource = 0;
+	muiSteps = 0;
+	muiStepLimit = IR_INTERPRETER_STEPS;
+	muiDepth = 0;
+	muiDepthLimit = IR_INTERPRETER_DEPTH;
+	muiFrames = 0;
+
+	//Object 0 is no object.
+	AddObject(IROB_Unknown, 0, false, 0, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterpreter::Kill(void)
+{
+	size	i;
+
+	for (i = 0; i < masObjects.NumElements(); i++)
+	{
+		FreeObject(masObjects.Get(i));
+		masObjects.Get(i)->szName.Kill();
+	}
+	masObjects.Kill();
+	mszError.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many instructions may be run before a value is given up on, and how
+// deep calls may go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterpreter::SetLimits(size uiSteps, size uiDepth)
+{
+	muiStepLimit = uiSteps;
+	muiDepthLimit = uiDepth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CIRInterpreter::GetError(void)
+{
+	return mszError.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRInterpreter::GetErrorSource(void)
+{
+	return muiErrorSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Why there is no value: the first reason is the one kept.  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::Fail(const char* szReason, const char* szDetail)
+{
+	if (mszError.Length() == 0)
+	{
+		mszError.Append(szReason);
+		if (szDetail)
+		{
+			mszError.Append(" [");
+			mszError.Append(szDetail);
+			mszError.Append("]");
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes a value of the type is in memory and as an argument.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIRInterpreter::ValueBytes(CIRModule* pcModule, SIRType sType)
+{
+	return sType.Is(IRTK_I1) ? 1 : pcModule->GetSize(sType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRInterpreter::AddObject(EIRObjectKind eKind, size uiSize, bool bWritable, size uiFrame, const char* szName)
+{
+	SIRObject*	psObject;
+
+	psObject = masObjects.Add();
+	psObject->uiKind = (uint8)eKind;
+	psObject->bWritable = bWritable;
+	psObject->bDead = false;
+	psObject->uiFrame = uiFrame;
+	psObject->szName.Init(szName ? szName : "");
+	psObject->uiSize = uiSize;
+	psObject->pucBytes = NULL;
+	psObject->pucWritten = NULL;
+	psObject->pauiSource = NULL;
+	if (uiSize > 0)
+	{
+		psObject->pucBytes = (uint8*)calloc(uiSize, 1);
+		psObject->pucWritten = (uint8*)calloc(uiSize, 1);
+		psObject->pauiSource = (uint32*)calloc(uiSize, sizeof(uint32));
+	}
+	return (uint32)(masObjects.NumElements() - 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterpreter::FreeObject(SIRObject* psObject)
+{
+	free(psObject->pucBytes);
+	free(psObject->pucWritten);
+	free(psObject->pauiSource);
+	psObject->pucBytes = NULL;
+	psObject->pucWritten = NULL;
+	psObject->pauiSource = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object of uiSize bytes to be worked out: none of it has a value yet,
+// and what is run may write it (a variable its constructor makes).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRInterpreter::NewObject(size uiSize)
+{
+	return AddObject(IROB_Made, uiSize, true, 0, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SIRObject* CIRInterpreter::GetObject(uint32 uiObject)
+{
+	return masObjects.Get(uiObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if every byte of the object has a value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::IsWritten(uint32 uiObject)
+{
+	SIRObject*	psObject;
+	size		i;
+
+	psObject = masObjects.Get(uiObject);
+	for (i = 0; i < psObject->uiSize; i++)
+	{
+		if (!psObject->pucWritten[i])
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointer to the byte at ulliOffset of an object.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRValue CIRInterpreter::PointerTo(uint32 uiObject, uint64 ulliOffset, int iPointerBytes)
+{
+	SIRValue	sValue;
+	int			i;
+
+	sValue.Set((iPointerBytes < 8) ? (ulliOffset & ((((uint64)1) << (8 * iPointerBytes)) - 1)) : ulliOffset);
+	if (uiObject != 0)
+	{
+		for (i = 0; i < iPointerBytes; i++)
+		{
+			sValue.auiSource[i] = IR_SOURCE(uiObject, i);
+		}
+		sValue.bPointer = true;
+	}
+	return sValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object a value points into if it is a whole pointer of
+// iPointerBytes, in order; 0 if it is not (null, an integer, or part of a
+// pointer).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRInterpreter::ObjectOf(SIRValue* psPointer, int iPointerBytes)
+{
+	uint32	uiObject;
+	int		i;
+
+	if (!psPointer->bPointer)
+	{
+		return 0;
+	}
+	uiObject = IR_SOURCE_OBJECT(psPointer->auiSource[0]);
+	for (i = 0; i < iPointerBytes; i++)
+	{
+		if (psPointer->auiSource[i] != IR_SOURCE(uiObject, i))
+		{
+			return 0;
+		}
+	}
+	return uiObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object a symbol is: a function, or a global with the data it has
+// when the program starts, made the first time it is named.  A symbol
+// nothing defines is an object nothing can be done with but have its
+// address.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRInterpreter::SymbolObject(CIRModule* pcModule, uint32 uiSymbol)
+{
+	char*			szName;
+	CIRModule*		pcDefined;
+	CIRGlobal*		pcGlobal;
+	SIRDataItem*	psItem;
+	SIRObject*		psObject;
+	SIRValue		sPointer;
+	uint32			uiObject;
+	uint32			uiTarget;
+	size			i;
+	size			uiOffset;
+	int				iBytes;
+	int				j;
+
+	szName = pcModule->GetSymbolName(uiSymbol);
+	for (i = 1; i < masObjects.NumElements(); i++)
+	{
+		psObject = masObjects.Get(i);
+		if (((psObject->uiKind == IROB_Global) || (psObject->uiKind == IROB_Function) || (psObject->uiKind == IROB_Unknown)) && psObject->szName.Equals(szName))
+		{
+			return (uint32)i;
+		}
+	}
+
+	pcDefined = pcModule;
+	if (pcModule->FindFunction(uiSymbol) || (mpcHost && mpcHost->ConstantFunction(szName, &pcDefined)))
+	{
+		return AddObject(IROB_Function, 0, false, 0, szName);
+	}
+	pcGlobal = pcModule->FindGlobal(uiSymbol);
+	if (pcGlobal && !(pcGlobal->muiAttributes & IRA_Constant))
+	{
+		pcGlobal = NULL;
+	}
+	if (!pcGlobal)
+	{
+		pcGlobal = pcModule->FindConstantData(uiSymbol);
+	}
+	if (!pcGlobal && mpcHost)
+	{
+		pcGlobal = mpcHost->ConstantGlobal(szName, &pcDefined);
+	}
+	if (!pcGlobal)
+	{
+		return AddObject(IROB_Unknown, 0, false, 0, szName);
+	}
+
+	//Its items, one after another.  The object is added first: an item may be its own address.
+	uiObject = AddObject(IROB_Global, pcGlobal->Size(pcDefined), false, 0, szName);
+	uiOffset = 0;
+	for (i = 0; i < pcGlobal->masItems.NumElements(); i++)
+	{
+		psItem = pcGlobal->masItems.Get(i);
+		switch (psItem->uiKind)
+		{
+		case IRDK_Value:
+			iBytes = ValueBytes(pcDefined, psItem->sType);
+			for (j = 0; j < iBytes; j++)
+			{
+				masObjects.Get(uiObject)->pucBytes[uiOffset + j] = (uint8)(psItem->ulliValue >> (8 * j));
+			}
+			uiOffset += iBytes;
+			break;
+		case IRDK_Symbol:
+			iBytes = ValueBytes(pcDefined, psItem->sType);
+			uiTarget = SymbolObject(pcDefined, (uint32)psItem->ulliValue);
+			sPointer = PointerTo(uiTarget, (uint64)psItem->lliOffset, iBytes);
+			psObject = masObjects.Get(uiObject);
+			for (j = 0; j < iBytes; j++)
+			{
+				psObject->pucBytes[uiOffset + j] = (uint8)(sPointer.ulliBits >> (8 * j));
+				psObject->pauiSource[uiOffset + j] = sPointer.auiSource[j];
+			}
+			uiOffset += iBytes;
+			break;
+		case IRDK_Bytes:
+			memcpy(masObjects.Get(uiObject)->pucBytes + uiOffset, pcGlobal->macBytes.GetData() + psItem->uiStart, psItem->uiLength);
+			uiOffset += psItem->uiLength;
+			break;
+		default:
+			uiOffset += (size)psItem->ulliValue;
+			break;
+		}
+	}
+	psObject = masObjects.Get(uiObject);
+	if (psObject->uiSize > 0)
+	{
+		memset(psObject->pucWritten, 1, psObject->uiSize);
+	}
+	return uiObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object and offset a load or a store of uiBytes through an address
+// is of, if it may be done.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::Place(SIRValue* psAddress, int iPointerBytes, size uiBytes, bool bWrite, SIRObject** ppsObject, size* puiOffset)
+{
+	uint32		uiObject;
+	SIRObject*	psObject;
+
+	uiObject = ObjectOf(psAddress, iPointerBytes);
+	if (uiObject == 0)
+	{
+		return Fail((psAddress->ulliBits == 0) && !psAddress->bPointer ? "It reads or writes through a null pointer" : "It reads or writes through a pointer made from a number");
+	}
+	psObject = masObjects.Get(uiObject);
+	if ((psObject->uiKind == IROB_Function) || (psObject->uiKind == IROB_Unknown))
+	{
+		return Fail(bWrite ? "It writes what isn't a constant" : "It reads what isn't a constant", psObject->szName.Text());
+	}
+	if (psObject->bDead)
+	{
+		return Fail("It reads or writes a local of a function that has returned");
+	}
+	if ((psAddress->ulliBits > psObject->uiSize) || (uiBytes > psObject->uiSize - (size)psAddress->ulliBits))
+	{
+		return Fail("It reads or writes outside an object", (psObject->szName.Length() > 0) ? psObject->szName.Text() : NULL);
+	}
+	if (bWrite && !psObject->bWritable)
+	{
+		return Fail("It writes what can't be changed", (psObject->szName.Length() > 0) ? psObject->szName.Text() : NULL);
+	}
+	*ppsObject = psObject;
+	*puiOffset = (size)psAddress->ulliBits;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::Load(CIRModule* pcModule, SIRType sType, SIRValue* psAddress, int iAddressBytes, SIRValue* psResult)
+{
+	SIRObject*	psObject;
+	size		uiOffset;
+	int			iBytes;
+	int			i;
+
+	iBytes = ValueBytes(pcModule, sType);
+	if (!Place(psAddress, iAddressBytes, (size)iBytes, false, &psObject, &uiOffset))
+	{
+		return false;
+	}
+	psResult->Set(0);
+	for (i = 0; i < iBytes; i++)
+	{
+		if (!psObject->pucWritten[uiOffset + i])
+		{
+			return Fail("It reads a variable that has no value yet");
+		}
+		psResult->ulliBits |= ((uint64)psObject->pucBytes[uiOffset + i]) << (8 * i);
+		psResult->auiSource[i] = psObject->pauiSource[uiOffset + i];
+		psResult->bPointer |= psResult->auiSource[i] != 0;
+	}
+	if (sType.Is(IRTK_I1))
+	{
+		psResult->ulliBits &= 1;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::Store(CIRModule* pcModule, SIRType sType, SIRValue* psValue, SIRValue* psAddress, int iAddressBytes)
+{
+	SIRObject*	psObject;
+	size		uiOffset;
+	int			iBytes;
+	int			i;
+
+	iBytes = ValueBytes(pcModule, sType);
+	if (!Place(psAddress, iAddressBytes, (size)iBytes, true, &psObject, &uiOffset))
+	{
+		return false;
+	}
+	for (i = 0; i < iBytes; i++)
+	{
+		psObject->pucBytes[uiOffset + i] = (uint8)(psValue->ulliBits >> (8 * i));
+		psObject->pucWritten[uiOffset + i] = 1;
+		psObject->pauiSource[uiOffset + i] = psValue->auiSource[i];
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What an operand is: a temporary's value, a constant, or a symbol's
+// address.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::ValueOf(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue* pasTemporaries, SIRReference sReference, SIRValue* psValue)
+{
+	switch (sReference.Kind())
+	{
+	case IRRK_Temporary:
+		*psValue = pasTemporaries[sReference.Index()];
+		return true;
+	case IRRK_Constant:
+		psValue->Set(pcFunction->GetConstant(sReference)->ulliBits);
+		return true;
+	case IRRK_Symbol:
+		*psValue = PointerTo(SymbolObject(pcModule, sReference.Index()), 0, pcModule->GetPointerSize(0));
+		return true;
+	default:
+		return Fail("It is not IR that can be run");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An integer instruction (IRFoldInteger's arithmetic).  A pointer's bits
+// are its offset, so what is done to pointers as integers is done here to
+// what they are: equal if they are the same place, ordered and subtracted
+// inside one object, moved by adding a number; a conversion keeps the
+// bytes it keeps.  Anything else makes a number of a pointer, which is no
+// constant.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::Integer(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* psLeft, SIRValue* psRight, SIRValue* psResult)
+{
+	SIRType	sType;
+	SIRType	sFrom;
+	uint64	ulliResult;
+	uint32	uiLeft;
+	uint32	uiRight;
+	uint16	uiOpcode;
+	int		iBits;
+	int		iBytes;
+	int		i;
+	bool	bComparison;
+
+	uiOpcode = psInstruction->uiOpcode;
+	sType = psInstruction->sType;
+	sFrom = pcFunction->TypeOf(psInstruction->asArguments[0]);
+	iBits = sType.IsPointer() ? 8 * pcModule->GetPointerSize(sType.uiSpace) : sType.IntegerBits();
+	bComparison = IsIRIntegerComparison(uiOpcode);
+	if (psLeft->bPointer || psRight->bPointer)
+	{
+		iBytes = ValueBytes(pcModule, bComparison ? sType : sFrom);
+		uiLeft = ObjectOf(psLeft, iBytes);
+		uiRight = ObjectOf(psRight, iBytes);
+		if (bComparison && ((uiOpcode == IRO_Eq) || (uiOpcode == IRO_Ne)) && (uiLeft != uiRight))
+		{
+			//Two objects, or an object and null, are not the same place.
+			if (((uiLeft == 0) && (psLeft->bPointer || (psLeft->ulliBits != 0))) || ((uiRight == 0) && (psRight->bPointer || (psRight->ulliBits != 0))))
+			{
+				return Fail("It compares a pointer with a number");
+			}
+			psResult->Set(uiOpcode == IRO_Ne);
+			return true;
+		}
+		if ((bComparison || (uiOpcode == IRO_Sub)) && (uiLeft != 0) && (uiLeft == uiRight))
+		{
+			//Inside one object the offsets say it all.
+		}
+		else if (((uiOpcode == IRO_Add) && ((uiLeft != 0) != (uiRight != 0)) && !(psLeft->bPointer && psRight->bPointer)) || ((uiOpcode == IRO_Sub) && (uiLeft != 0) && !psRight->bPointer))
+		{
+			if (!IRFoldInteger(uiOpcode, sType, sFrom, iBits, psLeft->ulliBits, psRight->ulliBits, &ulliResult))
+			{
+				return Fail("It is not IR that can be run");
+			}
+			*psResult = PointerTo((uiLeft != 0) ? uiLeft : uiRight, IRTruncate(sType, ulliResult), iBytes);
+			return true;
+		}
+		else if ((uiOpcode == IRO_Copy) || (uiOpcode == IRO_ZExt) || (uiOpcode == IRO_Trunc) || (uiOpcode == IRO_PtrToI) || (uiOpcode == IRO_IToPtr))
+		{
+			//The bytes kept are the bytes they were.
+			*psResult = *psLeft;
+			iBytes = ValueBytes(pcModule, sType);
+			psResult->ulliBits = (iBytes < 8) ? (psLeft->ulliBits & ((((uint64)1) << (8 * iBytes)) - 1)) : psLeft->ulliBits;
+			psResult->bPointer = false;
+			for (i = 0; i < IR_VALUE_BYTES; i++)
+			{
+				if (i >= iBytes)
+				{
+					psResult->auiSource[i] = 0;
+				}
+				psResult->bPointer |= psResult->auiSource[i] != 0;
+			}
+			return true;
+		}
+		else
+		{
+			return Fail(bComparison ? "It compares pointers to different objects" : "It uses a pointer as a number");
+		}
+	}
+
+	if (!IRFoldInteger(uiOpcode, sType, sFrom, iBits, psLeft->ulliBits, psRight->ulliBits, &ulliResult))
+	{
+		if ((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv) || (uiOpcode == IRO_SRem) || (uiOpcode == IRO_URem))
+		{
+			return Fail("It divides by zero, or the least number by -1");
+		}
+		if ((uiOpcode == IRO_Shl) || (uiOpcode == IRO_LShr) || (uiOpcode == IRO_AShr))
+		{
+			return Fail("It shifts by the width of the number or more");
+		}
+		return Fail("It is not IR that can be run");
+	}
+	psResult->Set(bComparison ? (ulliResult & 1) : IRTruncate(sType, ulliResult));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A floating point instruction, worked out with the host's float and
+// double.
+//
+//////////////////////////////////////////////////////////////////////////
+static double IRInterpreterFloat(SIRType sType, uint64 ulliBits)
+{
+	float	fValue;
+	double	dValue;
+	uint32	uiBits;
+
+	if (sType.Is(IRTK_F32))
+	{
+		uiBits = (uint32)ulliBits;
+		memcpy(&fValue, &uiBits, sizeof(fValue));
+		return fValue;
+	}
+	memcpy(&dValue, &ulliBits, sizeof(dValue));
+	return dValue;
+}
+
+
+static uint64 IRInterpreterFloatBits(SIRType sType, double dValue)
+{
+	float	fValue;
+	uint64	ulliBits;
+	uint32	uiBits;
+
+	if (sType.Is(IRTK_F32))
+	{
+		fValue = (float)dValue;
+		memcpy(&uiBits, &fValue, sizeof(uiBits));
+		return uiBits;
+	}
+	memcpy(&ulliBits, &dValue, sizeof(ulliBits));
+	return ulliBits;
+}
+
+
+bool CIRInterpreter::Float(CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* psLeft, SIRValue* psRight, SIRValue* psResult)
+{
+	SIRType	sType;
+	SIRType	sFrom;
+	double	a;
+	double	b;
+	double	dLimit;
+	int		iBits;
+
+	sType = psInstruction->sType;
+	sFrom = pcFunction->TypeOf(psInstruction->asArguments[0]);
+	if (psLeft->bPointer || psRight->bPointer)
+	{
+		return Fail("It uses a pointer as a number");
+	}
+	a = sFrom.IsFloat() ? IRInterpreterFloat(sFrom, psLeft->ulliBits) : 0.0;
+	b = IRInterpreterFloat(sType, psRight->ulliBits);
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_FAdd:	psResult->Set(IRInterpreterFloatBits(sType, sType.Is(IRTK_F32) ? (double)((float)a + (float)b) : a + b));	break;
+	case IRO_FSub:	psResult->Set(IRInterpreterFloatBits(sType, sType.Is(IRTK_F32) ? (double)((float)a - (float)b) : a - b));	break;
+	case IRO_FMul:	psResult->Set(IRInterpreterFloatBits(sType, sType.Is(IRTK_F32) ? (double)((float)a * (float)b) : a * b));	break;
+	case IRO_FDiv:
+		if (b == 0.0)
+		{
+			return Fail("It divides by zero");
+		}
+		psResult->Set(IRInterpreterFloatBits(sType, sType.Is(IRTK_F32) ? (double)((float)a / (float)b) : a / b));
+		break;
+	case IRO_FNeg:	psResult->Set(IRInterpreterFloatBits(sType, -a));	break;
+	case IRO_FEq:	psResult->Set(a == b);	break;
+	case IRO_FNe:	psResult->Set(a != b);	break;
+	case IRO_FLt:	psResult->Set(a < b);	break;
+	case IRO_FLe:	psResult->Set(a <= b);	break;
+	case IRO_FGt:	psResult->Set(a > b);	break;
+	case IRO_FGe:	psResult->Set(a >= b);	break;
+	case IRO_FOrdered:		psResult->Set((a == a) && (b == b));	break;
+	case IRO_FUnordered:	psResult->Set((a != a) || (b != b));	break;
+	case IRO_SIToF:	psResult->Set(IRInterpreterFloatBits(sType, (double)IRSignExtend(sFrom, psLeft->ulliBits)));	break;
+	case IRO_UIToF:	psResult->Set(IRInterpreterFloatBits(sType, (double)IRTruncate(sFrom, psLeft->ulliBits)));	break;
+	case IRO_FToSI:
+	case IRO_FToUI:
+		//A value its type can't hold is no value.  [conv.fpint] 1
+		iBits = sType.IntegerBits();
+		dLimit = 18446744073709551616.0;
+		for (; iBits < 64; iBits++)
+		{
+			dLimit /= 2.0;
+		}
+		if ((a != a) || ((psInstruction->uiOpcode == IRO_FToSI) ? ((a >= dLimit / 2.0) || (a < -dLimit / 2.0)) : ((a >= dLimit) || (a <= -1.0))))
+		{
+			return Fail("It converts a floating point number to an integer that can't hold it");
+		}
+		psResult->Set(IRTruncate(sType, (psInstruction->uiOpcode == IRO_FToSI) ? (uint64)(int64)a : (uint64)a));
+		break;
+	case IRO_FExt:
+	case IRO_FTrunc:
+		psResult->Set(IRInterpreterFloatBits(sType, a));
+		break;
+	default:
+		return Fail("It is not IR that can be run");
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call: the function a symbol or a pointer names, run with the
+// arguments the arg instructions before it gave.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::CallInstruction(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* pasTemporaries, CArrayIRValues* pasPending, CArrayTemplate<SIRType>* pasPendingTypes)
+{
+	SIRValue		sCallee;
+	SIRValue		sResult;
+	SIRObject*		psObject;
+	CIRModule*		pcCalledModule;
+	CIRFunction*	pcCalled;
+	uint32			uiObject;
+	int				iSymbol;
+	bool			bResult;
+
+	if (!ValueOf(pcModule, pcFunction, pasTemporaries, psInstruction->asArguments[0], &sCallee))
+	{
+		return false;
+	}
+	uiObject = ObjectOf(&sCallee, pcModule->GetPointerSize(pcFunction->TypeOf(psInstruction->asArguments[0]).uiSpace));
+	psObject = masObjects.Get(uiObject);
+	if ((uiObject == 0) || (psObject->uiKind != IROB_Function) || (sCallee.ulliBits != 0))
+	{
+		return Fail("It calls what isn't a function whose value can be worked out", ((uiObject != 0) && (psObject->szName.Length() > 0)) ? psObject->szName.Text() : NULL);
+	}
+
+	pcCalledModule = pcModule;
+	iSymbol = pcModule->FindSymbol(psObject->szName.Text());
+	pcCalled = (iSymbol >= 0) ? pcModule->FindFunction((uint32)iSymbol) : NULL;
+	if (!pcCalled && mpcHost)
+	{
+		pcCalled = mpcHost->ConstantFunction(psObject->szName.Text(), &pcCalledModule);
+	}
+	if (!pcCalled)
+	{
+		return Fail("It calls what isn't a function whose value can be worked out", psObject->szName.Text());
+	}
+
+	bResult = Run(pcCalledModule, pcCalled, pasPending, pasPendingTypes, &sResult);
+	pasPending->ReInit();
+	pasPendingTypes->ReInit();
+	if (bResult && psInstruction->sResult.IsTemporary())
+	{
+		pasTemporaries[psInstruction->sResult.Index()] = sResult;
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One instruction.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::Step(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* pasTemporaries, uint32 uiArguments, CArrayTemplate<size>* pauiArgumentOffsets,
+						  CArrayIRValues* pasPending, CArrayTemplate<SIRType>* pasPendingTypes, size uiFrame)
+{
+	SIROpcode*	psOpcode;
+	SIRValue	sLeft;
+	SIRValue	sRight;
+	SIRValue	sResult;
+	SIRType		sType;
+	uint64		ulliIndex;
+	uint32		uiObject;
+	int			iPointerBytes;
+
+	psOpcode = GetIROpcode(psInstruction->uiOpcode);
+	if (!psOpcode || (psInstruction->uiOpcode >= IRO_NumGeneric))
+	{
+		return Fail("It is not IR that can be run");
+	}
+	if (psInstruction->uiOpcode == IRO_Call)
+	{
+		return CallInstruction(pcModule, pcFunction, psInstruction, pasTemporaries, pasPending, pasPendingTypes);
+	}
+
+	sLeft.Set(0);
+	sRight.Set(0);
+	if (!psInstruction->asArguments[0].IsNone() && !ValueOf(pcModule, pcFunction, pasTemporaries, psInstruction->asArguments[0], &sLeft))
+	{
+		return false;
+	}
+	if (!psInstruction->asArguments[1].IsNone() && !ValueOf(pcModule, pcFunction, pasTemporaries, psInstruction->asArguments[1], &sRight))
+	{
+		return false;
+	}
+
+	sType = psInstruction->sType;
+	iPointerBytes = pcModule->GetPointerSize(sType.IsPointer() ? sType.uiSpace : 0);
+	sResult.Set(0);
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Slot:
+		sResult = PointerTo(AddObject(IROB_Slot, (size)sLeft.ulliBits, true, uiFrame, NULL), 0, iPointerBytes);
+		break;
+	case IRO_ArgAddress:
+		ulliIndex = sLeft.ulliBits;
+		if (ulliIndex >= pauiArgumentOffsets->NumElements())
+		{
+			return Fail("It takes the address of an argument it wasn't given");
+		}
+		sResult = PointerTo(uiArguments, *pauiArgumentOffsets->Get((size)ulliIndex), iPointerBytes);
+		break;
+	case IRO_PtrAdd:
+		uiObject = ObjectOf(&sLeft, iPointerBytes);
+		if (((uiObject == 0) && sLeft.bPointer) || sRight.bPointer)
+		{
+			return Fail("It uses a pointer as a number");
+		}
+		sResult = PointerTo(uiObject, sLeft.ulliBits + (uint64)IRSignExtend(pcFunction->TypeOf(psInstruction->asArguments[1]), sRight.ulliBits), iPointerBytes);
+		break;
+	case IRO_SpaceCast:
+		//The same place, in a pointer of another width: its object's again.
+		uiObject = ObjectOf(&sLeft, pcModule->GetPointerSize(pcFunction->TypeOf(psInstruction->asArguments[0]).uiSpace));
+		if ((uiObject == 0) && sLeft.bPointer)
+		{
+			return Fail("It uses a pointer as a number");
+		}
+		sResult = PointerTo(uiObject, sLeft.ulliBits, iPointerBytes);
+		break;
+	case IRO_Load:
+		if (psInstruction->uiFlags & IRF_Volatile)
+		{
+			return Fail("It reads a volatile variable");
+		}
+		if (!Load(pcModule, sType, &sLeft, pcModule->GetPointerSize(pcFunction->TypeOf(psInstruction->asArguments[0]).uiSpace), &sResult))
+		{
+			return false;
+		}
+		break;
+	case IRO_Store:
+		if (psInstruction->uiFlags & IRF_Volatile)
+		{
+			return Fail("It writes a volatile variable");
+		}
+		return Store(pcModule, sType, &sLeft, &sRight, pcModule->GetPointerSize(pcFunction->TypeOf(psInstruction->asArguments[1]).uiSpace));
+	case IRO_Arg:
+		pasPending->Add(&sLeft);
+		pasPendingTypes->Add(&sType);
+		return true;
+	default:
+		if (sType.IsFloat() || pcFunction->TypeOf(psInstruction->asArguments[0]).IsFloat())
+		{
+			if (!Float(pcFunction, psInstruction, &sLeft, &sRight, &sResult))
+			{
+				return false;
+			}
+		}
+		else if (!Integer(pcModule, pcFunction, psInstruction, &sLeft, &sRight, &sResult))
+		{
+			return false;
+		}
+		break;
+	}
+	if (psInstruction->sResult.IsTemporary())
+	{
+		pasTemporaries[psInstruction->sResult.Index()] = sResult;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call that has returned: its slots and its arguments are gone, and a
+// pointer to one of them is to nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterpreter::EndFrame(size uiFrame, uint32 uiFirstObject)
+{
+	SIRObject*	psObject;
+	size		i;
+
+	for (i = uiFirstObject; i < masObjects.NumElements(); i++)
+	{
+		psObject = masObjects.Get(i);
+		if (((psObject->uiKind == IROB_Slot) || (psObject->uiKind == IROB_Arguments)) && (psObject->uiFrame == uiFrame))
+		{
+			psObject->bDead = true;
+			FreeObject(psObject);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs a function with its arguments: its blocks from the first, each
+// one's phis (all read before any is written), instructions and jump,
+// until it returns.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::Run(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRValues* pasArguments, CArrayTemplate<SIRType>* pasArgumentTypes, SIRValue* psResult)
+{
+	SIRValue*				pasTemporaries;
+	SIRValue*				pasPhis;
+	CArrayIRValues			asPending;
+	CArrayTemplate<SIRType>	asPendingTypes;
+	CArrayTemplate<size>	auiOffsets;
+	CIRBlock*				pcBlock;
+	CIRBlock*				pcPrevious;
+	SIRPhi*					psPhi;
+	SIRPhiArgument*			psPhiArgument;
+	SIRValue				sValue;
+	SIRValue				sAddress;
+	size					uiFrame;
+	size					uiOffset;
+	size					i;
+	size					uiMaxPhis;
+	uint32					uiFirstObject;
+	uint32					uiArguments;
+	bool					bResult;
+
+	if (pasArguments->NumElements() < pcFunction->masParameters.NumElements())
+	{
+		return Fail("It is called with too few arguments");
+	}
+	if (muiDepth >= muiDepthLimit)
+	{
+		return Fail("Its calls go too deep to be worked out");
+	}
+	muiDepth++;
+	uiFrame = ++muiFrames;
+	uiFirstObject = (uint32)masObjects.NumElements();
+
+	//The arguments where the caller put them, each its own size and the first lowest; a parameter is also its value.
+	auiOffsets.Init();
+	uiOffset = 0;
+	for (i = 0; i < pasArguments->NumElements(); i++)
+	{
+		auiOffsets.Add(&uiOffset);
+		uiOffset += ValueBytes(pcModule, *pasArgumentTypes->Get(i));
+	}
+	uiArguments = AddObject(IROB_Arguments, uiOffset, true, uiFrame, NULL);
+	bResult = true;
+	for (i = 0; bResult && (i < pasArguments->NumElements()); i++)
+	{
+		sAddress = PointerTo(uiArguments, *auiOffsets.Get(i), pcModule->GetPointerSize(0));
+		bResult = Store(pcModule, *pasArgumentTypes->Get(i), pasArguments->Get(i), &sAddress, pcModule->GetPointerSize(0));
+	}
+
+	uiMaxPhis = 0;
+	for (i = 0; i < pcFunction->NumBlocks(); i++)
+	{
+		if (pcFunction->GetBlock(i)->masPhis.NumElements() > uiMaxPhis)
+		{
+			uiMaxPhis = pcFunction->GetBlock(i)->masPhis.NumElements();
+		}
+	}
+	pasTemporaries = (SIRValue*)calloc(pcFunction->NumTemporaries() + 1, sizeof(SIRValue));
+	pasPhis = (SIRValue*)calloc(uiMaxPhis + 1, sizeof(SIRValue));
+	for (i = 0; i < pcFunction->masParameters.NumElements(); i++)
+	{
+		pasTemporaries[pcFunction->masParameters.Get(i)->Index()] = *pasArguments->Get(i);
+	}
+
+	asPending.Init();
+	asPendingTypes.Init();
+	psResult->Set(0);
+	pcPrevious = NULL;
+	pcBlock = pcFunction->GetEntry();
+	while (bResult && pcBlock)
+	{
+		for (i = 0; bResult && (i < pcBlock->masPhis.NumElements()); i++)
+		{
+			psPhi = pcBlock->masPhis.Get(i);
+			psPhiArgument = pcPrevious ? pcBlock->FindPhiArgument(psPhi, pcPrevious) : NULL;
+			bResult = psPhiArgument ? ValueOf(pcModule, pcFunction, pasTemporaries, psPhiArgument->sValue, &pasPhis[i]) : Fail("It is not IR that can be run");
+		}
+		for (i = 0; bResult && (i < pcBlock->masPhis.NumElements()); i++)
+		{
+			pasTemporaries[pcBlock->masPhis.Get(i)->sResult.Index()] = pasPhis[i];
+		}
+
+		for (i = 0; bResult && (i < pcBlock->masInstructions.NumElements()); i++)
+		{
+			if (++muiSteps > muiStepLimit)
+			{
+				bResult = Fail("It takes too long to work out");
+			}
+			else
+			{
+				bResult = Step(pcModule, pcFunction, pcBlock->masInstructions.Get(i), pasTemporaries, uiArguments, &auiOffsets, &asPending, &asPendingTypes, uiFrame);
+			}
+			if (!bResult && (muiErrorSource == 0))
+			{
+				muiErrorSource = pcBlock->masInstructions.Get(i)->uiSource;
+			}
+		}
+		if (!bResult)
+		{
+			break;
+		}
+
+		pcPrevious = pcBlock;
+		switch (pcBlock->msJump.uiKind)
+		{
+		case IRJ_Jump:
+			pcBlock = pcBlock->msJump.pcThen;
+			break;
+		case IRJ_Branch:
+			bResult = ValueOf(pcModule, pcFunction, pasTemporaries, pcBlock->msJump.sArgument, &sValue);
+			pcBlock = (sValue.ulliBits & 1) ? pcBlock->msJump.pcThen : pcBlock->msJump.pcElse;
+			break;
+		case IRJ_Return:
+			if (!pcBlock->msJump.sArgument.IsNone())
+			{
+				bResult = ValueOf(pcModule, pcFunction, pasTemporaries, pcBlock->msJump.sArgument, psResult);
+			}
+			pcBlock = NULL;
+			break;
+		default:
+			bResult = Fail("It reaches where the program can't go on");
+			if (muiErrorSource == 0)
+			{
+				muiErrorSource = pcBlock->msJump.uiSource;
+			}
+			break;
+		}
+		if (bResult && (++muiSteps > muiStepLimit))
+		{
+			bResult = Fail("It takes too long to work out");
+		}
+	}
+
+	asPending.Kill();
+	asPendingTypes.Kill();
+	auiOffsets.Kill();
+	free(pasTemporaries);
+	free(pasPhis);
+	EndFrame(uiFrame, uiFirstObject);
+	muiDepth--;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value a function returns for the arguments (each of its parameter's
+// type), if it can be worked out without running the program; else false,
+// and GetError says why and GetErrorSource where.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::Call(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue* pasArguments, size uiNumArguments, SIRValue* psResult)
+{
+	CArrayIRValues			asArguments;
+	CArrayTemplate<SIRType>	asTypes;
+	SIRType					sType;
+	size					i;
+	bool					bResult;
+
+	mszError.Clear();
+	muiErrorSource = 0;
+	muiSteps = 0;
+	muiDepth = 0;
+	if (uiNumArguments != pcFunction->masParameters.NumElements())
+	{
+		return Fail("It is called with the wrong number of arguments");
+	}
+	asArguments.Init();
+	asTypes.Init();
+	for (i = 0; i < uiNumArguments; i++)
+	{
+		asArguments.Add(&pasArguments[i]);
+		sType = pcFunction->TypeOf(*pcFunction->masParameters.Get(i));
+		asTypes.Add(&sType);
+	}
+	bResult = Run(pcModule, pcFunction, &asArguments, &asTypes, psResult);
+	asArguments.Kill();
+	asTypes.Kill();
+	return bResult;
+}

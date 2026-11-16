@@ -193,6 +193,7 @@ bool		IsIRIntegerConversion(uint16 uiOpcode);
 bool		IsIRPure(uint16 uiOpcode);
 bool		IsIRMayTrap(uint16 uiOpcode);
 bool		IsIRCommutative(uint16 uiOpcode);
+bool		IRFoldInteger(uint16 uiOpcode, SIRType sType, SIRType sFrom, int iBits, uint64 a, uint64 b, uint64* pulliResult);
 
 
 #endif // __I_R_OPCODE_H__

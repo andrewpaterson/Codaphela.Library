@@ -393,6 +393,9 @@
     <ClCompile Include="IRInliner.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRInterpreter.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRInterprocedural.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -1173,6 +1176,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRInliner.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRInterpreter.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRInterprocedural.h">

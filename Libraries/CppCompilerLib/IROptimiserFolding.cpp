@@ -40,8 +40,6 @@ bool CIRFoldingPasses::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 	SIRType		sFrom;
 	uint64		a;
 	uint64		b;
-	int64		sa;
-	int64		sb;
 	int			iBits;
 
 	psOpcode = GetIROpcode(psInstruction->uiOpcode);
@@ -60,91 +58,9 @@ bool CIRFoldingPasses::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 		return false;
 	}
 	a = mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits;
-	sa = IRSignExtend(sFrom, a);
-	b = 0;
-	sb = 0;
-	if (psOpcode->NumOperands() == 2)
-	{
-		b = mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits;
-		sb = IRSignExtend(sType, b);
-	}
+	b = (psOpcode->NumOperands() == 2) ? mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits : 0;
 	iBits = sType.IsPointer() ? 8 * mpcModule->GetPointerSize(sType.uiSpace) : sType.IntegerBits();
-
-	switch (psInstruction->uiOpcode)
-	{
-	case IRO_Add:		*pulliResult = a + b;	break;
-	case IRO_Sub:		*pulliResult = a - b;	break;
-	case IRO_Mul:		*pulliResult = a * b;	break;
-	case IRO_And:		*pulliResult = a & b;	break;
-	case IRO_Or:		*pulliResult = a | b;	break;
-	case IRO_Xor:		*pulliResult = a ^ b;	break;
-	case IRO_Neg:		*pulliResult = (uint64)-(int64)a;	break;
-	case IRO_Not:		*pulliResult = ~a;	break;
-	case IRO_Copy:		*pulliResult = a;	break;
-	case IRO_SDiv:
-	case IRO_SRem:
-		if ((sb == 0) || ((sb == -1) && (sa == (int64)(((uint64)1) << (iBits - 1)) * ((iBits == 64) ? 1 : -1))))
-		{
-			return false;
-		}
-		*pulliResult = (psInstruction->uiOpcode == IRO_SDiv) ? (uint64)(sa / sb) : (uint64)(sa % sb);
-		break;
-	case IRO_UDiv:
-	case IRO_URem:
-		if (b == 0)
-		{
-			return false;
-		}
-		*pulliResult = (psInstruction->uiOpcode == IRO_UDiv) ? a / b : a % b;
-		break;
-	case IRO_Shl:
-	case IRO_LShr:
-	case IRO_AShr:
-		if (b >= (uint64)iBits)
-		{
-			return false;
-		}
-		if (psInstruction->uiOpcode == IRO_Shl)
-		{
-			*pulliResult = a << b;
-		}
-		else if (psInstruction->uiOpcode == IRO_LShr)
-		{
-			*pulliResult = a >> b;
-		}
-		else
-		{
-			*pulliResult = (uint64)(sa >> b);
-		}
-		break;
-	case IRO_Eq:
-	case IRO_Ne:
-	case IRO_ULt:
-	case IRO_ULe:
-	case IRO_UGt:
-	case IRO_UGe:
-	case IRO_SLt:
-	case IRO_SLe:
-	case IRO_SGt:
-	case IRO_SGe:
-		*pulliResult = IRCompareIntegers(psInstruction->uiOpcode, sType, a, b);
-		break;
-	case IRO_SExt:	*pulliResult = (uint64)sa;	break;
-	case IRO_ZExt:
-	case IRO_Trunc:
-	case IRO_PtrToI:
-	case IRO_IToPtr:
-		*pulliResult = a;
-		break;
-	default:
-		return false;
-	}
-	if (sType.IsPointer() && (iBits < 64))
-	{
-		//A pointer is as wide as its space (IRTruncate doesn't know the module's sizes).
-		*pulliResult &= (((uint64)1) << iBits) - 1;
-	}
-	return true;
+	return IRFoldInteger(psInstruction->uiOpcode, sType, sFrom, iBits, a, b, pulliResult);
 }
 
 

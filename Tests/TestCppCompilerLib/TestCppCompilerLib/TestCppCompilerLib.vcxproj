@@ -236,6 +236,7 @@
     <ClCompile Include="TestCppErrors.cpp" />
     <ClCompile Include="TestIR.cpp" />
     <ClCompile Include="TestIRInterprocedural.cpp" />
+    <ClCompile Include="TestIRInterpreter.cpp" />
     <ClCompile Include="TestIR65Backend.cpp" />
     <ClCompile Include="TestIRW65C816Backend.cpp" />
     <ClCompile Include="TestCPPW65C816.cpp" />

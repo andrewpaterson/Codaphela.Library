@@ -310,3 +310,97 @@ bool IsIRCommutative(uint16 uiOpcode)
 {
 	return (IRProperties(uiOpcode) & IROP_Commutative) != 0;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What one integer instruction gives for constant operands: a op b, or a
+// conversion of a from sFrom, in sType (iBits wide; a pointer is as wide
+// as its space).  False if it has no value (a division by zero, a shift
+// by the width or more) or isn't an integer instruction.  The optimiser
+// folds with it and the interpreter runs with it, so they can't disagree.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IRFoldInteger(uint16 uiOpcode, SIRType sType, SIRType sFrom, int iBits, uint64 a, uint64 b, uint64* pulliResult)
+{
+	int64	sa;
+	int64	sb;
+
+	sa = IRSignExtend(sFrom, a);
+	sb = IRSignExtend(sType, b);
+	switch (uiOpcode)
+	{
+	case IRO_Add:		*pulliResult = a + b;	break;
+	case IRO_Sub:		*pulliResult = a - b;	break;
+	case IRO_Mul:		*pulliResult = a * b;	break;
+	case IRO_And:		*pulliResult = a & b;	break;
+	case IRO_Or:		*pulliResult = a | b;	break;
+	case IRO_Xor:		*pulliResult = a ^ b;	break;
+	case IRO_Neg:		*pulliResult = (uint64)-(int64)a;	break;
+	case IRO_Not:		*pulliResult = ~a;	break;
+	case IRO_Copy:		*pulliResult = a;	break;
+	case IRO_SDiv:
+	case IRO_SRem:
+		if ((sb == 0) || ((sb == -1) && (sa == (int64)(((uint64)1) << (iBits - 1)) * ((iBits == 64) ? 1 : -1))))
+		{
+			return false;
+		}
+		*pulliResult = (uiOpcode == IRO_SDiv) ? (uint64)(sa / sb) : (uint64)(sa % sb);
+		break;
+	case IRO_UDiv:
+	case IRO_URem:
+		if (b == 0)
+		{
+			return false;
+		}
+		*pulliResult = (uiOpcode == IRO_UDiv) ? a / b : a % b;
+		break;
+	case IRO_Shl:
+	case IRO_LShr:
+	case IRO_AShr:
+		if (b >= (uint64)iBits)
+		{
+			return false;
+		}
+		if (uiOpcode == IRO_Shl)
+		{
+			*pulliResult = a << b;
+		}
+		else if (uiOpcode == IRO_LShr)
+		{
+			*pulliResult = a >> b;
+		}
+		else
+		{
+			*pulliResult = (uint64)(sa >> b);
+		}
+		break;
+	case IRO_Eq:
+	case IRO_Ne:
+	case IRO_ULt:
+	case IRO_ULe:
+	case IRO_UGt:
+	case IRO_UGe:
+	case IRO_SLt:
+	case IRO_SLe:
+	case IRO_SGt:
+	case IRO_SGe:
+		*pulliResult = IRCompareIntegers(uiOpcode, sType, a, b);
+		break;
+	case IRO_SExt:	*pulliResult = (uint64)sa;	break;
+	case IRO_ZExt:
+	case IRO_Trunc:
+	case IRO_PtrToI:
+	case IRO_IToPtr:
+		*pulliResult = a;
+		break;
+	default:
+		return false;
+	}
+	if (sType.IsPointer() && (iBits < 64))
+	{
+		//A pointer is as wide as its space (IRTruncate doesn't know the module's sizes).
+		*pulliResult &= (((uint64)1) << iBits) - 1;
+	}
+	return true;
+}
