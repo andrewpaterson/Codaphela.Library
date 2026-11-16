@@ -115,6 +115,7 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 	CCPPSyntaxName*				pcName;
 	CCPPSyntax*					pcTemplateParameter;
 	SCPP65Type*					psArgument;
+	SCPP65Type*					psArray;
 	size						j;
 	size						k;
 	size						uiPointers;
@@ -122,6 +123,18 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 
 	DeduceMemberPointer(pcParameter->mpcDeclarator, papsArguments->GetPtr(i));
 	pcType = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->mpcType : NULL;
+	psArray = NULL;
+	if (pcParameter->mpcDeclarator && HasArray(pcParameter->mpcDeclarator) && papsArguments->GetPtr(i))
+	{
+		//T (&a)[N] of an array: N is its bound and T its element's type.  [temp.deduct.type] 8
+		//The argument as the array it is, not the pointer it decays to.
+		psArgument = papcArguments ? mpcUnit->PlaceTypeOf(papcArguments->GetPtr(i)) : NULL;
+		psArray = StripDeclarator(pcParameter->mpcDeclarator, psArgument ? psArgument : papsArguments->GetPtr(i));
+		if (!psArray)
+		{
+			return true;
+		}
+	}
 	if (!pcType || (pcType->GetKind() != CPPS_NamedTypeSpecifier))
 	{
 		return true;
@@ -168,6 +181,15 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 			}
 			return false;
 		}
+		if (psArray)
+		{
+			psArray = WithoutParameterQualifiers(pcParameter, psArray);
+			if (!mapsDeduced.GetPtr(j))
+			{
+				mapsDeduced.SetPtr(j, psArray);
+			}
+			return true;
+		}
 		psArgument = papsArguments->GetPtr(i);
 		if (bForwarding)
 		{
@@ -191,10 +213,9 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 		{
 			psArgument = psArgument->IsPointer() ? psArgument->psBase : NULL;
 		}
-		if (psArgument && pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
+		if (psArgument)
 		{
-			//const T (const T*, const T&) takes T without the const it has.
-			psArgument = mpcUnit->GetTypes()->Qualified(psArgument, psArgument->bConst && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST), psArgument->bVolatile && !(pcParameter->mpcSpecifiers->muiFlags & CPPDS_VOLATILE));
+			psArgument = WithoutParameterQualifiers(pcParameter, psArgument);
 		}
 		if (psArgument && !mapsDeduced.GetPtr(j))
 		{
@@ -202,6 +223,121 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// const T (const T*, const T&) takes T without the const it has: psType
+// without the const and volatile the parameter's specifiers have.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeduction::WithoutParameterQualifiers(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType)
+{
+	uint32	uiFlags;
+
+	uiFlags = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->muiFlags : 0;
+	if (!(uiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
+	{
+		return psType;
+	}
+	return mpcUnit->GetTypes()->Qualified(psType, psType->bConst && !(uiFlags & CPPDS_CONST), psType->bVolatile && !(uiFlags & CPPDS_VOLATILE));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the declarator, or one nested in it, has an array suffix.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeduction::HasArray(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	size	i;
+
+	for (i = 0; i < pcDeclarator->macpSuffixes.NumElements(); i++)
+	{
+		if (pcDeclarator->macpSuffixes.GetPtr(i)->GetKind() == CPPS_ArraySuffix)
+		{
+			return true;
+		}
+	}
+	return pcDeclarator->mpcNested && HasArray(pcDeclarator->mpcNested);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type a parameter's specifiers name, from psType, the type of its
+// argument: what its declarator adds taken off outside in (a nested
+// declarator, the array suffixes, then the pointers and references, last
+// first), each array bound a template parameter names deduced (DeduceBound).
+// A reference takes nothing off an argument that isn't one (an lvalue).
+// NULL if the argument doesn't have that form.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeduction::StripDeclarator(CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type* psType)
+{
+	CCPPSyntaxPointerOperator*	pcOperator;
+	CCPPSyntax*					pcSuffix;
+	size						i;
+
+	if (pcDeclarator->mpcNested)
+	{
+		psType = StripDeclarator(pcDeclarator->mpcNested, psType);
+	}
+	for (i = 0; psType && (i < pcDeclarator->macpSuffixes.NumElements()); i++)
+	{
+		pcSuffix = pcDeclarator->macpSuffixes.GetPtr(i);
+		psType = psType->WithoutReference();
+		if ((pcSuffix->GetKind() != CPPS_ArraySuffix) || !psType->IsArray())
+		{
+			return NULL;
+		}
+		DeduceBound(((CCPPSyntaxArraySuffix*)pcSuffix)->mpcSize, psType->iCount);
+		psType = psType->psBase;
+	}
+	for (i = pcDeclarator->NumPointers(); psType && (i > 0); i--)
+	{
+		pcOperator = pcDeclarator->GetPointer(i - 1);
+		if (pcOperator->meKind == CPPP_Pointer)
+		{
+			psType = psType->IsPointer() ? psType->psBase : NULL;
+		}
+		else if ((pcOperator->meKind == CPPP_Reference) || (pcOperator->meKind == CPPP_RValueReference))
+		{
+			psType = psType->WithoutReference();
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An array bound the template's non-type parameter is the name of takes
+// the argument's bound (iCount; an unknown one deduces nothing).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDeduction::DeduceBound(CCPPSyntax* pcSize, int iCount)
+{
+	CCPPSymbol*	pcSymbol;
+	CCPPSyntax*	pcTemplateParameter;
+	size		j;
+
+	pcSymbol = (pcSize && (iCount > 0)) ? GetArgumentSymbol(pcSize) : NULL;
+	for (j = 0; pcSymbol && (j < mpcTemplate->mpcDeclaration->macpParameters.NumElements()); j++)
+	{
+		pcTemplateParameter = mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
+		if ((pcTemplateParameter->GetKind() == CPPS_Parameter) && (((CCPPSyntaxParameter*)pcTemplateParameter)->mpcSymbol == pcSymbol) && !mapsDeduced.GetPtr(j))
+		{
+			mapsDeduced.SetPtr(j, &mpcUnit->GetTypes()->msInt);
+			malliDeduced.SetValue(j, iCount);
+		}
+	}
 }
 
 
@@ -692,10 +828,44 @@ bool CCPPSpecialisationMatch::MatchPack(SCPPBinding* psPack, CArrayCPPBindings* 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a type pattern (T, T*, const T, T&, a class template instance X<T>, or a
-// type naming none of the specialisation's parameters) matches a type argument.
-// Pointers and references are matched outside in, then const at the top level, then
-// the type named.
+// Whether an array bound in a pattern matches an array's (iCount, 0 for an
+// unknown bound): none matches only an unknown bound; one of the
+// specialisation's parameters takes a known one; a constant must equal it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSpecialisationMatch::MatchBound(CCPPSyntax* pcSize, int iCount)
+{
+	CCPPSymbol*		pcSymbol;
+	SCPPBinding*	psBinding;
+	int64			lliValue;
+
+	if (!pcSize)
+	{
+		return iCount == 0;
+	}
+	if (iCount == 0)
+	{
+		return false;
+	}
+	pcSize = mpcUnit->SkipParentheses(pcSize);
+	pcSymbol = (pcSize->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcSize)->mpcName->mpcSymbol : NULL;
+	psBinding = pcSymbol ? mpcDeduced->FindOwn(pcSymbol) : NULL;
+	if (psBinding)
+	{
+		psBinding->lliValue = iCount;
+		psBinding->psType = NULL;
+		return true;
+	}
+	return mpcUnit->Constant(pcSize, &lliValue) && (lliValue == iCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a type pattern (T, T*, const T, T&, T[N], T[], a class template instance
+// X<T>, or a type naming none of the specialisation's parameters) matches a type
+// argument.  Array bounds, pointers and references are matched outside in, then
+// const at the top level, then the type named.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSpecialisationMatch::MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding* psArgument)
@@ -703,6 +873,7 @@ bool CCPPSpecialisationMatch::MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding
 	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
 	CCPPSyntaxDeclarator*			pcDeclarator;
 	CCPPSyntaxPointerOperator*		pcOperator;
+	CCPPSyntax*						pcSuffix;
 	CCPPSyntaxNamedTypeSpecifier*	pcNamed;
 	CCPPSyntaxNameComponent*		pcComponent;
 	SCPPBinding*					psBinding;
@@ -714,12 +885,23 @@ bool CCPPSpecialisationMatch::MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding
 
 	pcSpecifiers = pcPattern->mpcSpecifiers;
 	pcDeclarator = pcPattern->mpcDeclarator;
-	if (!pcSpecifiers || (pcDeclarator && (pcDeclarator->macpSuffixes.NumElements() > 0 || pcDeclarator->mpcNested)))
+	if (!pcSpecifiers || (pcDeclarator && pcDeclarator->mpcNested))
 	{
 		return false;
 	}
 
+	//T[N] matches an array, N taking its bound, and T[] an array of unknown bound.  Outermost first.
 	psType = psArgument->psType;
+	for (i = 0; pcDeclarator && (i < pcDeclarator->macpSuffixes.NumElements()); i++)
+	{
+		pcSuffix = pcDeclarator->macpSuffixes.GetPtr(i);
+		if ((pcSuffix->GetKind() != CPPS_ArraySuffix) || !psType->IsArray() || !MatchBound(((CCPPSyntaxArraySuffix*)pcSuffix)->mpcSize, psType->iCount))
+		{
+			return false;
+		}
+		psType = psType->psBase;
+		miScore++;
+	}
 	for (i = pcDeclarator ? pcDeclarator->NumPointers() : 0; i > 0; i--)
 	{
 		pcOperator = pcDeclarator->GetPointer(i - 1);

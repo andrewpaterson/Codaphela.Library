@@ -55,6 +55,10 @@ public:
 protected:
 	void				DeduceParameters(CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments);
 	bool				DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, size i);
+	SCPP65Type*			WithoutParameterQualifiers(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType);
+	bool				HasArray(CCPPSyntaxDeclarator* pcDeclarator);
+	SCPP65Type*			StripDeclarator(CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type* psType);
+	void				DeduceBound(CCPPSyntax* pcSize, int iCount);
 	bool				IsForwardingReference(CCPPSyntaxParameter* pcParameter);
 	SCPP65Type*			ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcArgument);
 	void				DeduceMemberPointer(CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type* psArgument);
@@ -86,6 +90,7 @@ public:
 protected:
 	bool					MatchPattern(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments);
 	bool					MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding* psArgument);
+	bool					MatchBound(CCPPSyntax* pcSize, int iCount);
 	void					FlattenArguments(CCPPTemplateArguments* pcArguments, CArrayCPPBindings* pasArguments);
 	bool					IsPackExpansion(CCPPSyntax* pcPattern);
 	SCPPBinding*			ExpandedParameter(CCPPSyntax* pcPattern);

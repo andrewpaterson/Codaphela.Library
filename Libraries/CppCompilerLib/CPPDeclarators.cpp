@@ -144,7 +144,12 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			psType = mpcUnit->GetTypes()->Pointer(psType);
 			continue;
 		}
-		if (!pcArray->mpcSize)
+		if (!pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && pcDeclarator->mpcParent && (pcDeclarator->mpcParent->GetKind() == CPPS_TypeId) && !pcInitialiser)
+		{
+			//A<int[]>: an array of unknown bound, an incomplete type, its count 0.  [dcl.array] 5
+			lliCount = 0;
+		}
+		else if (!pcArray->mpcSize)
 		{
 			lliCount = ((i == 1) && !pcDeclarator->mpcNested) ? GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType)) : 0;
 			if (lliCount <= 0)

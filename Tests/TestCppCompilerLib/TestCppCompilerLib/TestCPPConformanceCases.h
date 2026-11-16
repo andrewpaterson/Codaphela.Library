@@ -1438,6 +1438,20 @@ static const SConformanceCase gasConformanceStage6[] =
 		"int main() { S<int>::count++; return S<int>::count * 10 + S<char>::count; }\n"
 	},
 	{
+		"TemplateDeclaredBeforeDefined", 5,
+		"template<class T> struct A;\n"
+		"A<int>* gp;\n"
+		"template<class T> struct A { T x; };\n"
+		"int main() { A<int> a; a.x = 4; gp = &a; return gp->x + sizeof(A<char>); }\n"
+	},
+	{
+		"TypedefOfInstanceQualifier", 67,
+		"struct X { enum { V = 6 }; };\n"
+		"template<class T> struct L { enum { N = T::V }; };\n"
+		"template<class T> struct W { typedef L<T> Type; struct In { enum { M = 7 }; }; };\n"
+		"int main() { return W<X>::Type::N * 10 + W<X>::In::M; }\n"
+	},
+	{
 		"VariadicClass", 3,
 		"template<class... T> struct Tuple;\n"
 		"template<> struct Tuple<> { enum { N = 0 }; };\n"
