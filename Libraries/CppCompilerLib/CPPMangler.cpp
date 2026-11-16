@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "CTReservedWord.h"
 #include "CPPLambda.h"
+#include "CPPTemplate.h"
 #include "CPPMangler.h"
 
 
@@ -264,7 +265,8 @@ void CCPPMangler::AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, 
 //////////////////////////////////////////////////////////////////////////
 //
 // Class, or Class__T and the template arguments, after the classes and
-// namespaces it is in (Outer__Class).  A class without a name is the unit,
+// namespaces it is in (Outer__Class), or for a member class template's
+// instance after the class that has it.  A class without a name is the unit,
 // Unnamed and its number.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -280,7 +282,13 @@ void CCPPMangler::AppendClassName(CChars* psz, CCPPClass* pcClass)
 		psz->Append((int)mpapcClasses->Find(pcClass));
 		return;
 	}
-	if (pcClass->mpcSymbol)
+	if (pcClass->mpcTemplate && pcClass->mpcTemplate->mpcPrimary->mpcClass)
+	{
+		//A member class template's instance is its class's (P<char>::Q<long>), which may be an instance too.
+		AppendClassName(psz, pcClass->mpcTemplate->mpcPrimary->mpcClass);
+		psz->Append("__");
+	}
+	else if (pcClass->mpcSymbol)
 	{
 		AppendScopeNames(psz, pcClass->mpcSymbol->mpcScope);
 	}

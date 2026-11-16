@@ -192,18 +192,21 @@ bool CCPPOverloads::IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, i
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The conversion function (operator T, its class's own or a base's) that converts
-// an object of pcClass to psTo best: by its result's conversion to psTo (see
-// ConversionRank; a condition is a conversion to bool).  explicit ones only when
+// The conversion function (operator T, its class's own or a base's, or a
+// conversion template's instance) that converts an object of pcClass to psTo
+// best: by its result's conversion to psTo (see ConversionRank; a condition is
+// a conversion to bool).  explicit ones only when
 // bExplicit (a cast or a condition).  NULL, quietly, if none converts.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPOverloads::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode)
 {
-	CCPPFunction*	pcFunction;
-	CCPPFunction*	pcBest;
-	int				iRank;
-	int				iBest;
+	CArrayCPPTemplates	apcTemplates;
+	CCPPFunction*		pcFunction;
+	CCPPFunction*		pcBest;
+	int					iRank;
+	int					iBest;
+	size				i;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindConversion);
 	if (!mpcUnit->CompleteClass(pcClass, pcNode))
@@ -225,7 +228,60 @@ CCPPFunction* CCPPOverloads::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo
 			iBest = iRank;
 		}
 	}
+
+	//A conversion template's instance for the type, which a function as good as it is preferred to.  [over.match.best] 1.6
+	apcTemplates.Init();
+	GetMemberTemplates(pcClass, CPP_CONVERSION_NAME, 0, &apcTemplates);
+	for (i = 0; (iBest < CPPCR_Exact) && (i < apcTemplates.NumElements()); i++)
+	{
+		pcFunction = ConversionInstance(apcTemplates.GetPtr(i), psTo, pcNode);
+		if (!pcFunction || (pcFunction->mbExplicit && !bExplicit))
+		{
+			continue;
+		}
+		iRank = ConversionRank(psTo, pcFunction->mpsReturn, NULL, false);
+		if (iRank > iBest)
+		{
+			pcBest = pcFunction;
+			iBest = iRank;
+		}
+	}
+	apcTemplates.Kill();
 	return pcBest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instance of a conversion function template that converts to psTo:
+// its template parameters deduced from the type (CCPPDeduction::
+// DeduceConversion).  NULL, quietly, if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPOverloads::ConversionInstance(CCPPTemplate* pcTemplate, SCPP65Type* psTo, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxDeclarator*	pcDeclarator;
+	CCPPSyntaxTypeId*		pcType;
+	CCPPTemplateArguments*	pcBindings;
+	CCPPDeduction			cDeduction;
+	CCPPFunction*			pcFunction;
+	CChars					szArguments;
+
+	mpcUnit->BeginTrial();
+	pcFunction = NULL;
+	pcDeclarator = mpcUnit->DefineMemberTemplate(pcTemplate, pcNode) ? pcTemplate->FunctionDeclarator() : NULL;
+	pcType = (pcDeclarator && pcDeclarator->GetName()) ? pcDeclarator->GetName()->GetLast()->mpcConversionType : NULL;
+	if (pcType)
+	{
+		cDeduction.Init(mpcUnit, pcTemplate);
+		cDeduction.DeduceConversion(pcType, psTo);
+		szArguments.Init();
+		pcBindings = mpcUnit->BindArguments(pcTemplate->mpcDeclaration, NULL, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues());
+		pcFunction = pcBindings ? mpcUnit->InstanceOfFunction(pcTemplate, pcBindings, &szArguments, pcNode) : NULL;
+		szArguments.Kill();
+		cDeduction.Kill();
+	}
+	return mpcUnit->EndTrial() ? pcFunction : NULL;
 }
 
 

@@ -49,13 +49,14 @@ public:
 	void				Kill(void);
 
 	void				Deduce(CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments);
+	void				DeduceConversion(CCPPSyntaxTypeId* pcType, SCPP65Type* psTo);
 	CArrayCPP65Types*	GetTypes(void) { return &mapsDeduced; }
 	CArrayInt64*		GetValues(void) { return &malliDeduced; }
 
 protected:
 	void				DeduceParameters(CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments);
 	bool				DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, size i);
-	SCPP65Type*			WithoutParameterQualifiers(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType);
+	SCPP65Type*			WithoutQualifiersOf(CCPPSyntaxDeclSpecifiers* pcSpecifiers, SCPP65Type* psType);
 	bool				HasArray(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*			StripDeclarator(CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type* psType);
 	void				DeduceBound(CCPPSyntax* pcSize, int iCount);

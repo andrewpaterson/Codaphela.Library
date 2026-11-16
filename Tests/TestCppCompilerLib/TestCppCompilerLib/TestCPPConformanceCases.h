@@ -1438,6 +1438,11 @@ static const SConformanceCase gasConformanceStage6[] =
 		"int main() { S<int>::count++; return S<int>::count * 10 + S<char>::count; }\n"
 	},
 	{
+		"MemberClassTemplateTwoOuters", 1444,
+		"template<class A> struct P { template<class B> struct Q { int f() { return sizeof(A) * 10 + sizeof(B); } }; };\n"
+		"int main() { P<char>::Q<long> a; P<long>::Q<long> b; return a.f() * 100 + b.f(); }\n"
+	},
+	{
 		"TemplateDeclaredBeforeDefined", 5,
 		"template<class T> struct A;\n"
 		"A<int>* gp;\n"

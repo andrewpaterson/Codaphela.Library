@@ -638,6 +638,15 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 					break;
 				}
 			}
+			else
+			{
+				//typename C::template In<long>, C bound to a class.
+				pcClass = mpcUnit->QualifiedClass(pcName, pcNode);
+				if (pcClass)
+				{
+					return pcClass->mpsType;
+				}
+			}
 		}
 		mpcUnit->Error(pcNode, "This type is not supported by the compiler yet");
 		return NULL;

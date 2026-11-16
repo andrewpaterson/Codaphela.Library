@@ -74,6 +74,51 @@ void CCPPDeduction::Deduce(CArrayCPP65Types* papsArguments, CArraySyntax* papcAr
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Deduces a conversion function template's parameter from the type it is
+// to convert to: operator T() to long has T long, operator T*() to char*
+// T char.  Converting to what isn't a reference, the type is taken without
+// its reference and its own const.  [temp.deduct.conv]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDeduction::DeduceConversion(CCPPSyntaxTypeId* pcType, SCPP65Type* psTo)
+{
+	CCPPSyntaxDeclarator*		pcDeclarator;
+	CCPPSyntaxTypeSpecifier*	pcSpecifier;
+	CCPPSymbol*					pcSymbol;
+	CCPPSyntax*					pcParameter;
+	SCPP65Type*					psType;
+	ECPPPointer					eOuter;
+	size						j;
+
+	pcDeclarator = pcType->mpcDeclarator;
+	pcSpecifier = pcType->mpcSpecifiers ? pcType->mpcSpecifiers->mpcType : NULL;
+	if (!pcSpecifier || (pcSpecifier->GetKind() != CPPS_NamedTypeSpecifier))
+	{
+		return;
+	}
+	pcSymbol = ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifier)->mpcName->mpcSymbol;
+
+	eOuter = (pcDeclarator && (pcDeclarator->NumPointers() > 0)) ? pcDeclarator->GetPointer(pcDeclarator->NumPointers() - 1)->meKind : CPPP_Pointer;
+	psType = ((eOuter == CPPP_Reference) || (eOuter == CPPP_RValueReference)) ? psTo : psTo->WithoutReference()->Unqualified();
+	psType = pcDeclarator ? StripDeclarator(pcDeclarator, psType) : psType;
+	if (!psType)
+	{
+		return;
+	}
+	psType = WithoutQualifiersOf(pcType->mpcSpecifiers, psType);
+	for (j = 0; j < mpcTemplate->mpcDeclaration->macpParameters.NumElements(); j++)
+	{
+		pcParameter = mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
+		if ((pcParameter->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol == pcSymbol) && !mapsDeduced.GetPtr(j))
+		{
+			mapsDeduced.SetPtr(j, psType);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Deduces from each of a function suffix's parameters that has an argument
 // type in papsArguments, until a parameter pack takes the rest.
 //
@@ -183,7 +228,7 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 		}
 		if (psArray)
 		{
-			psArray = WithoutParameterQualifiers(pcParameter, psArray);
+			psArray = WithoutQualifiersOf(pcParameter->mpcSpecifiers, psArray);
 			if (!mapsDeduced.GetPtr(j))
 			{
 				mapsDeduced.SetPtr(j, psArray);
@@ -215,7 +260,7 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 		}
 		if (psArgument)
 		{
-			psArgument = WithoutParameterQualifiers(pcParameter, psArgument);
+			psArgument = WithoutQualifiersOf(pcParameter->mpcSpecifiers, psArgument);
 		}
 		if (psArgument && !mapsDeduced.GetPtr(j))
 		{
@@ -229,14 +274,14 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 //////////////////////////////////////////////////////////////////////////
 //
 // const T (const T*, const T&) takes T without the const it has: psType
-// without the const and volatile the parameter's specifiers have.
+// without the const and volatile the specifiers have.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPDeduction::WithoutParameterQualifiers(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType)
+SCPP65Type* CCPPDeduction::WithoutQualifiersOf(CCPPSyntaxDeclSpecifiers* pcSpecifiers, SCPP65Type* psType)
 {
 	uint32	uiFlags;
 
-	uiFlags = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->muiFlags : 0;
+	uiFlags = pcSpecifiers ? pcSpecifiers->muiFlags : 0;
 	if (!(uiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
 	{
 		return psType;

@@ -386,7 +386,15 @@ CCPPClass* CCPPUnit::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent*
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPUnit::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 {
-	return GetComponentClass(pcName->GetLast(), pcName->mpcSymbol, pcNode);
+	CCPPSymbol*	pcSymbol;
+
+	//P<char>::Q<long>: P<char>'s member class template's instance.
+	pcSymbol = pcName->mpcSymbol;
+	if (pcName->GetQualifier() && pcSymbol && (pcSymbol->meKind == CPPSK_ClassTemplate) && pcSymbol->mpcScope && (pcSymbol->mpcScope->meKind == CPPSC_Class))
+	{
+		return QualifiedClass(pcName, pcNode);
+	}
+	return GetComponentClass(pcName->GetLast(), pcSymbol, pcNode);
 }
 
 

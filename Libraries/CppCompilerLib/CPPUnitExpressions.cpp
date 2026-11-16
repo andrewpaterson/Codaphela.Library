@@ -537,8 +537,78 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class a qualified name the parser couldn't resolve names: typename
+// C::In or typename C::template In<long>, with C bound to a class, is that
+// class's member (MemberClass).  NULL if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::QualifiedClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
+{
+	CCPPClass*	pcClass;
+
+	pcClass = (pcName->macpComponents.NumElements() > 1) ? QualifiersClass(pcName, pcNode) : NULL;
+	return pcClass ? MemberClass(pcClass, pcName->GetLast(), pcNode) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The member typedef or class of pcClass a name component names, worked out
+// with the bindings of the class that declares it, or the instance of its
+// member class template (In<long>, its arguments as they are where the name
+// is).  NULL if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
+{
+	CCPPClass*		pcDeclaring;
+	CCPPSymbol*		pcMember;
+	CCPPTemplate*	pcTemplate;
+	SCPP65Type*		psType;
+	int64			lliName;
+
+	if (!CompleteClass(pcClass, pcNode))
+	{
+		return NULL;
+	}
+	lliName = GetComponentName(pcComponent);
+	pcDeclaring = NULL;
+	pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_ClassTemplate, &pcDeclaring);
+	if (pcMember)
+	{
+		pcTemplate = pcComponent->mbTemplateArguments ? MemberClassTemplate(pcMember, pcDeclaring) : NULL;
+		return pcTemplate ? InstantiateClass(pcTemplate, &pcComponent->macpTemplateArguments, pcNode) : NULL;
+	}
+	pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_Typedef, &pcDeclaring);
+	if (!pcMember)
+	{
+		pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_Class, &pcDeclaring);
+	}
+	if (!pcMember)
+	{
+		return NULL;
+	}
+	mcContext.EnterBindings(pcDeclaring->mpcBindings);
+	if (pcMember->meKind == CPPSK_Typedef)
+	{
+		psType = mcDeclarators.GetSymbolType(pcMember, pcNode);
+		pcClass = (psType && psType->IsClass()) ? psType->pcClass : NULL;
+	}
+	else
+	{
+		pcClass = GetComponentClass(pcComponent, pcMember, pcNode);
+	}
+	mcContext.LeaveBindings();
+	return pcClass;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The class pcName's qualifiers (its components before the last) name.  A component after a class is the member
-// typedef or class of that name of the class, worked out with the bindings of the class that declares it: in
+// typedef, class or class template instance of that name of the class (MemberClass): in
 // TEMPLATE::SizePolicy, SizePolicy is a typedef of the class TEMPLATE is bound to, or of one of its bases (the parser
 // leaves it unresolved), and in W<int>::Type, Type is W<int>'s typedef, whatever W's T is (the parser found W's).
 // NULL if one isn't a class.
@@ -547,11 +617,7 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 CCPPClass* CCPPUnit::QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 {
 	CCPPSyntaxNameComponent*	pcComponent;
-	CCPPClass*				pcClass;
-	CCPPClass*				pcDeclaring;
-	CCPPSymbol*					pcMember;
-	SCPP65Type*					psType;
-	int64						lliName;
+	CCPPClass*					pcClass;
 	size						i;
 
 	pcClass = NULL;
@@ -563,39 +629,7 @@ CCPPClass* CCPPUnit::QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 			pcClass = NULL;
 			continue;
 		}
-		if (!pcClass)
-		{
-			pcClass = GetComponentClass(pcComponent, NULL, pcNode);
-		}
-		else
-		{
-			if (!CompleteClass(pcClass, pcNode))
-			{
-				return NULL;
-			}
-			lliName = GetComponentName(pcComponent);
-			pcDeclaring = NULL;
-			pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_Typedef, &pcDeclaring);
-			if (!pcMember)
-			{
-				pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_Class, &pcDeclaring);
-			}
-			if (!pcMember)
-			{
-				return NULL;
-			}
-			mcContext.EnterBindings(pcDeclaring->mpcBindings);
-			if (pcMember->meKind == CPPSK_Typedef)
-			{
-				psType = mcDeclarators.GetSymbolType(pcMember, pcNode);
-				pcClass = (psType && psType->IsClass()) ? psType->pcClass : NULL;
-			}
-			else
-			{
-				pcClass = GetComponentClass(pcComponent, pcMember, pcNode);
-			}
-			mcContext.LeaveBindings();
-		}
+		pcClass = pcClass ? MemberClass(pcClass, pcComponent, pcNode) : GetComponentClass(pcComponent, NULL, pcNode);
 		if (!pcClass)
 		{
 			return NULL;
