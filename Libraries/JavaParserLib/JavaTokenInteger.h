@@ -16,7 +16,7 @@ enum EJavaTokenIntegerType
 
 class CJavaTokenInteger : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaTokenInteger);
+NAMED_CLASS(CJavaTokenInteger);
 protected:
 	int64				miValue;
 	EJavaTokenIntegerType	meType;

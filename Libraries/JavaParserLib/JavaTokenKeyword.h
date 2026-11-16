@@ -62,7 +62,7 @@ enum EJavaTokenKeyword
 class CJavaTokenKeywordDefinition;
 class CJavaTokenKeyword : public CJavaToken
 {
-CONSTRUCTABLE(CJavaTokenKeyword);
+NAMED_CLASS(CJavaTokenKeyword);
 protected:
 	CJavaTokenKeywordDefinition*	mpcKeyword;
 

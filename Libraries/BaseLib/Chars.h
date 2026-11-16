@@ -223,13 +223,13 @@ protected:
 //The names the strings are known by.  A large string also appends a natural one.
 class CChars : public CCharsBase<CChars, CArrayChar>
 {
-CONSTRUCTABLE(CChars)
+NAMED_CLASS(CChars)
 };
 
 
 class CLargeChars : public CCharsBase<CLargeChars, CArrayLargeChar>
 {
-CONSTRUCTABLE(CLargeChars)
+NAMED_CLASS(CLargeChars)
 public:
 	using CCharsBase<CLargeChars, CArrayLargeChar>::Append;
 

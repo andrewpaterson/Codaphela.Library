@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class SIntVec4 : public SVec4<int, longint>
 {
-CONSTRUCTABLE(SIntVec4);
+NAMED_CLASS(SIntVec4);
 public:
 			SIntVec4() {};
 			SIntVec4(int x, int y, int z, int w);

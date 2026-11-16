@@ -25,7 +25,7 @@
 
 class CJavaSyntaxVariableDeclaration : public CJavaSyntaxStatement
 {
-CONSTRUCTABLE(CJavaSyntaxVariableDeclaration);
+NAMED_CLASS(CJavaSyntaxVariableDeclaration);
 protected:
 	CJavaModifiers						mcModifiers;
 

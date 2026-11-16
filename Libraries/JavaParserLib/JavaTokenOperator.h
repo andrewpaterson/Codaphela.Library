@@ -72,7 +72,7 @@ enum EJavaTokenOperator
 class CJavaTokenOperatorDefinition;
 class CJavaTokenOperator : public CJavaToken
 {
-CONSTRUCTABLE(CJavaTokenOperator);
+NAMED_CLASS(CJavaTokenOperator);
 protected:
 	CJavaTokenOperatorDefinition*	mpcOperator;
 

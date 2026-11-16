@@ -5,7 +5,7 @@
 
 class CJavaSyntaxMethodCall : public CJavaSyntaxExpressionCommon
 {
-CONSTRUCTABLE(CJavaSyntaxMethodCall);
+NAMED_CLASS(CJavaSyntaxMethodCall);
 protected:
 
 public:

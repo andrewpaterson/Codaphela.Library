@@ -18,7 +18,7 @@ enum EJavaTokenScope
 class CJavaTokenScopeDefinition;
 class CJavaTokenScope : public CJavaToken
 {
-CONSTRUCTABLE(CJavaTokenScope);
+NAMED_CLASS(CJavaTokenScope);
 protected:
 	CJavaTokenScopeDefinition*	mpcScope;
 

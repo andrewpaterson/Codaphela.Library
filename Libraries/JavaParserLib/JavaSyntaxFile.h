@@ -9,7 +9,7 @@
 
 class CJavaSyntaxFile : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxFile);
+NAMED_CLASS(CJavaSyntaxFile);
 protected:
 	CChars					mszFilename;
 

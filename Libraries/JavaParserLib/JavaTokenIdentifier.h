@@ -7,7 +7,7 @@
 
 class CJavaTokenIdentifier : public CJavaToken
 {
-CONSTRUCTABLE(CJavaTokenIdentifier);
+NAMED_CLASS(CJavaTokenIdentifier);
 protected:
 	char*	mszIdentifier;
 	int		miLength;

@@ -9,7 +9,7 @@
 
 class CJavaSyntaxError : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxError);
+NAMED_CLASS(CJavaSyntaxError);
 public:
 	char*	GetType(void) override;
 	void	TypePrint(CChars* pszDest, int iDepth) override;

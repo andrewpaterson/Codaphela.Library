@@ -6,7 +6,7 @@
 class CJavaSyntaxGeneric;
 class CJavaSyntaxType : public CJavaSyntaxTypeCommon
 {
-CONSTRUCTABLE(CJavaSyntaxType);
+NAMED_CLASS(CJavaSyntaxType);
 protected:
 	CJavaSyntaxGeneric*		mpcGeneric;
 

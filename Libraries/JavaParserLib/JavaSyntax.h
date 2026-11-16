@@ -7,7 +7,7 @@
 class CJavaSyntaxTree;
 class CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntax);
+NAMED_CLASS(CJavaSyntax);
 protected:
 	CJavaSyntaxTree*	mpcTree;
 	CJavaSyntax*		mpcParent;

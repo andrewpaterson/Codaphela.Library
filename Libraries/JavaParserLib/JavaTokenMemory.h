@@ -25,7 +25,7 @@ typedef CArrayTemplatePtr<CJavaToken>	CTokenPtrArray;
 
 class CJavaTokenMemory
 {
-CONSTRUCTABLE(CJavaTokenMemory);
+NAMED_CLASS(CJavaTokenMemory);
 protected:
 	CMemoryStackExtended	mcStack;
 	CTokenPtrArray			mapcTokens;

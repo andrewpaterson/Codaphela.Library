@@ -6,7 +6,7 @@
 
 class CJavaSyntaxEnum : public CJavaSyntaxClassCommon
 {
-CONSTRUCTABLE(CJavaSyntaxEnum);
+NAMED_CLASS(CJavaSyntaxEnum);
 protected:
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);

@@ -6,7 +6,7 @@
 
 class CJavaTokenAnnotation : public CJavaToken
 {
-CONSTRUCTABLE(CJavaTokenAnnotation);
+NAMED_CLASS(CJavaTokenAnnotation);
 protected:
 	char*	mszAnnotation;
 	int		miLength;

@@ -5,7 +5,7 @@
 
 class CJavaSyntaxArrayValueExpression : public CJavaSyntaxExpressionCommon
 {
-CONSTRUCTABLE(CJavaSyntaxArrayValueExpression);
+NAMED_CLASS(CJavaSyntaxArrayValueExpression);
 protected:
 
 public:

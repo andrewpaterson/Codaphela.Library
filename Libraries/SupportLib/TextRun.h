@@ -34,7 +34,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CText;
 class CTextRun
 {
-CONSTRUCTABLE(CTextRun)
+NAMED_CLASS(CTextRun)
 protected:
 	CFont*					mpcFont;  //Not a Ptr<CFont> because CTextRun does not extend CObject.
 	CText*					mpcText;  //Ditto Ptr<CText>

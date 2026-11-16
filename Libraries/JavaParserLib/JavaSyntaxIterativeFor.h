@@ -5,7 +5,7 @@
 //for {? : ?} { ... }
 class CJavaSyntaxIterativeFor : public CJavaSyntaxStatement
 {
-	CONSTRUCTABLE(CJavaSyntaxIterativeFor);
+	NAMED_CLASS(CJavaSyntaxIterativeFor);
 protected:
 
 public:

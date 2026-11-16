@@ -7,7 +7,7 @@
 
 class CJavaSyntaxVariableCommon : public CJavaSyntaxStatement
 {
-CONSTRUCTABLE(CJavaSyntaxVariableCommon);
+NAMED_CLASS(CJavaSyntaxVariableCommon);
 protected:
 
 public:

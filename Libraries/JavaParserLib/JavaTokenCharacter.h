@@ -16,7 +16,7 @@ enum EJavaTokenCharacterType
 
 class CJavaTokenCharacter : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaTokenCharacter);
+NAMED_CLASS(CJavaTokenCharacter);
 protected:
 	char16				mc;
 	EJavaTokenCharacterType	meType;

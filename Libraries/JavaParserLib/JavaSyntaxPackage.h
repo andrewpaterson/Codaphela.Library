@@ -7,7 +7,7 @@
 
 class CJavaSyntaxPackage : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxPackage);
+NAMED_CLASS(CJavaSyntaxPackage);
 protected:
 	CIdentifierArray	mapcIdentifiers;
 

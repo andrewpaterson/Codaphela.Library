@@ -8,7 +8,7 @@
 //Everything in a Class- or Code Block is a statement.
 class  CJavaSyntaxStatement : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxStatement);
+NAMED_CLASS(CJavaSyntaxStatement);
 protected:
 public:
 			void 				Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);

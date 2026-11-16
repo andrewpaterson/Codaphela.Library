@@ -7,7 +7,7 @@
 
 class CJavaSyntaxGeneric : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxGeneric);
+NAMED_CLASS(CJavaSyntaxGeneric);
 protected:
 	CTypeCommonArray	mapcGenerics;
 

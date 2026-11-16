@@ -8,7 +8,7 @@
 
 class CJavaSyntaxClass : public CJavaSyntaxClassCommon
 {
-CONSTRUCTABLE(CJavaSyntaxClass);
+NAMED_CLASS(CJavaSyntaxClass);
 protected:
 	CJavaSyntaxType*		mpcType;
 	CJavaSyntaxClassBlock*	mpcBlock;

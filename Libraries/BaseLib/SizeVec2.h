@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class SSizeVec2  : public SVec2<size, ulongint>
 {
-CONSTRUCTABLE(SSizeVec2);
+NAMED_CLASS(SSizeVec2);
 public:
 	using SVec2<size, ulongint>::SVec2;
 	using SVec2<size, ulongint>::operator=;

@@ -51,17 +51,25 @@ public:
 #define CONSTRUCTABLE_MACRO(c) CONSTRUCTABLE(c)
 
 
-#define CONSTRUCTABLE(c) \
+//A CConstructable's name and size: it overrides CConstructable's ClassName and ClassSize.
+#define CONSTRUCTABLE(c) CLASS_NAME_FUNCTIONS(c, override)
+
+
+//The same for a class that isn't a CConstructable (a value type, as CChars and SFloat32Vec3): the functions are its own.
+#define NAMED_CLASS(c) CLASS_NAME_FUNCTIONS(c, )
+
+
+#define CLASS_NAME_FUNCTIONS(c, OVERRIDE) \
 public:\
 static const char* StaticClassName(void)\
 {\
 	return #c;\
 }\
-const char* ClassName(void)\
+const char* ClassName(void) OVERRIDE\
 {\
 	return #c;\
 }\
-size ClassSize(void)\
+size ClassSize(void) OVERRIDE\
 {\
 	return sizeof(c);\
 }

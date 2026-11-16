@@ -16,7 +16,7 @@ enum EJavaTokenFloatType
 
 class CJavaTokenFloat : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaTokenFloat);
+NAMED_CLASS(CJavaTokenFloat);
 protected:
 	float64					mfValue;
 	EJavaTokenFloatType		meType;

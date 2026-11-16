@@ -7,7 +7,7 @@
 
 class CJavaSyntaxNew : public CJavaSyntaxExpressionCommon
 {
-CONSTRUCTABLE(CJavaSyntaxNew);
+NAMED_CLASS(CJavaSyntaxNew);
 protected:
 	CJavaSyntaxType*	mpcType;
 	CExpressionArray	mapcArguments;

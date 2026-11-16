@@ -12,7 +12,7 @@
 
 class CJavaSyntaxLiteral : public CJavaSyntaxExpressionCommon
 {
-CONSTRUCTABLE(CJavaSyntaxLiteral);
+NAMED_CLASS(CJavaSyntaxLiteral);
 protected:
 	CJavaTokenLiteral*	mpcLiteral;
 

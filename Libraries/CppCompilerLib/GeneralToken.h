@@ -36,7 +36,7 @@ static TOKEN* Construct(void* pvMem)\
 
 
 #define CPP_TOKEN_CONSTRUCT(TOKEN)\
-CONSTRUCTABLE(TOKEN)\
+NAMED_CLASS(TOKEN)\
 static TOKEN* Construct(void* pvMem)\
 {\
 	return new(pvMem) TOKEN();\

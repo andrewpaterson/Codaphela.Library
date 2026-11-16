@@ -8,7 +8,7 @@
 #define DATA_TYPE_IO_DEFINITION(CLASS_TYPE, C_PRIMITIVE, WRITE_FUNC, READ_FUNC) \
 struct CLASS_TYPE \
 { \
-CONSTRUCTABLE(CLASS_TYPE) \
+NAMED_CLASS(CLASS_TYPE) \
  \
 	C_PRIMITIVE	mVal; \
  \
@@ -44,7 +44,7 @@ DATA_TYPE_IO_DEFINITION(SIOFloat64, float64, WriteFloat, ReadFloat)
 
 struct SIOVoid
 {
-CONSTRUCTABLE(SIOVoid);
+NAMED_CLASS(SIOVoid);
 	bool Save(CFileWriter* pcFileWriter)
 	{
 		return true;
@@ -59,7 +59,7 @@ CONSTRUCTABLE(SIOVoid);
 
 struct SIOData
 {
-CONSTRUCTABLE(SIOData);
+NAMED_CLASS(SIOData);
 	bool Save(CFileWriter* pcFileWriter)
 	{
 		return pcFileWriter->WriteData(this, 1); 

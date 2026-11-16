@@ -6,7 +6,7 @@
 
 class CJavaTokenBoolean : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaTokenBoolean);
+NAMED_CLASS(CJavaTokenBoolean);
 protected:
 	bool	mbValue;
 

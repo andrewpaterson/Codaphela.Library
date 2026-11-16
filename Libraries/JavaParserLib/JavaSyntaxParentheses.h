@@ -5,7 +5,7 @@
 
 class CJavaSyntaxParentheses : public CJavaSyntaxExpressionCommon
 {
-CONSTRUCTABLE(CJavaSyntaxParentheses);
+NAMED_CLASS(CJavaSyntaxParentheses);
 protected:
 	CJavaSyntaxExpressionCommon*	mpcExpression;
 

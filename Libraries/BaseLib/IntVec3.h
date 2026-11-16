@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class SIntVec3 : public SVec3<int, longint>
 {
-CONSTRUCTABLE(SIntVec3);
+NAMED_CLASS(SIntVec3);
 public:
 	using SVec3<int, longint>::SVec3;
 	using SVec3<int, longint>::operator=;

@@ -23,7 +23,7 @@
 
 class CJavaSyntaxClassCommon : public CJavaSyntaxStatement
 {
-CONSTRUCTABLE(CJavaSyntaxClassCommon);
+NAMED_CLASS(CJavaSyntaxClassCommon);
 protected:
 	CJavaModifiers	mcModifiers;
 

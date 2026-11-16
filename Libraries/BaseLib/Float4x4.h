@@ -33,7 +33,7 @@ class SFloat32Vec4;
 class SQuaternion;
 class SFloat4x4
 {
-CONSTRUCTABLE(SFloat4x4);
+NAMED_CLASS(SFloat4x4);
 public:
 	SFloat32Vec4		x;
 	SFloat32Vec4		y;

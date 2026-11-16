@@ -8,7 +8,7 @@
 
 class CJavaSyntaxVariableInitialiser : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxVariableInitialiser);
+NAMED_CLASS(CJavaSyntaxVariableInitialiser);
 protected:
 	CJavaSyntaxValueExpression*			mpcSingleValueExpression;
 	CJavaSyntaxArrayValueExpression*	mpcArrayValueExpression;

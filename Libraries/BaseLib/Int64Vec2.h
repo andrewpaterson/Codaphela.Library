@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class SInt64Vec2  : public SVec2<int64, int64>
 {
-CONSTRUCTABLE(SInt64Vec2);
+NAMED_CLASS(SInt64Vec2);
 public:
 	using SVec2<int64, int64>::SVec2;
 	using SVec2<int64, int64>::operator=;

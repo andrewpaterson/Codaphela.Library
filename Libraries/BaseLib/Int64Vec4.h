@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class SInt64Vec4 : public SVec4<int64, int64>
 {
-CONSTRUCTABLE(SInt64Vec4);
+NAMED_CLASS(SInt64Vec4);
 public:
 			SInt64Vec4() {};
 			SInt64Vec4(int64 x, int64 y, int64 z, int64 w);

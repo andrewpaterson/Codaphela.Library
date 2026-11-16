@@ -31,7 +31,7 @@ class SFloat64Vec3;
 class SDouble4x4;
 class SFloat64Vec4 : public SVec4<float64, float128>
 {
-CONSTRUCTABLE(SFloat64Vec4);
+NAMED_CLASS(SFloat64Vec4);
 public:
 			SFloat64Vec4() {};
 			SFloat64Vec4(float64 x, float64 y, float64 z, float64 w);

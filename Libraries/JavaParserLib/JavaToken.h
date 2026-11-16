@@ -8,7 +8,7 @@
 
 class CJavaToken
 {
-CONSTRUCTABLE(CJavaToken);
+NAMED_CLASS(CJavaToken);
 protected:
 	CJavaToken*		mpcNext;
 	STextPosition	msPos;

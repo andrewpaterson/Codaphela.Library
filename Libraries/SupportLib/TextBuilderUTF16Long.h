@@ -27,7 +27,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CTextBuilderUTF16Long : public CTextBuilderUTFCommon
 {
-CONSTRUCTABLE(CTextBuilderUTF16Long)
+NAMED_CLASS(CTextBuilderUTF16Long)
 protected:
 	CArrayUint32	mauiUTF32;
 

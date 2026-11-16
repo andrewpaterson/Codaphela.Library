@@ -9,7 +9,7 @@
 
 class CJavaSyntaxMismatch : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxMismatch);
+NAMED_CLASS(CJavaSyntaxMismatch);
 public:
 	char*	GetType(void) override;
 	void	TypePrint(CChars* pszDest, int iDepth) override;

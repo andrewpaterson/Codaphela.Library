@@ -6,7 +6,7 @@
 
 class CJavaSyntaxTypeCommon : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxTypeCommon);
+NAMED_CLASS(CJavaSyntaxTypeCommon);
 protected:
 	CJavaTokenIdentifier*	mpcName;
 

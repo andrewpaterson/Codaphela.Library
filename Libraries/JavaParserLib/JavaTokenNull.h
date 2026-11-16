@@ -6,7 +6,7 @@
 
 class CJavaTokenNull : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaTokenNull);
+NAMED_CLASS(CJavaTokenNull);
 public:
 	void 	Init(STextPosition* psPosition);
 	void 	Kill(void);

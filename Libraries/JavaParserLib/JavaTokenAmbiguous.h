@@ -18,7 +18,7 @@ enum ECJavaTokenAmbiguous
 class CCJavaTokenAmbiguousDefinition;
 class CCJavaTokenAmbiguous : public CJavaToken
 {
-CONSTRUCTABLE(CCJavaTokenAmbiguous);
+NAMED_CLASS(CCJavaTokenAmbiguous);
 protected:
 	CCJavaTokenAmbiguousDefinition*	mpcDefinition;
 

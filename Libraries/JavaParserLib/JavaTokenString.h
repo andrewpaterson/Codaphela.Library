@@ -16,7 +16,7 @@ enum EJavaTokenStringType
 
 class CJavaTokenString : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaTokenString);
+NAMED_CLASS(CJavaTokenString);
 protected:
 	void*					msz;
 	EJavaTokenStringType	meType;

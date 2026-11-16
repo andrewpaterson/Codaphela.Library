@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class SInt32Vec3 : public SVec3<int32, int64>
 {
-CONSTRUCTABLE(SInt32Vec3);
+NAMED_CLASS(SInt32Vec3);
 public:
 	using SVec3<int32, int64>::SVec3;
 	using SVec3<int32, int64>::operator=;

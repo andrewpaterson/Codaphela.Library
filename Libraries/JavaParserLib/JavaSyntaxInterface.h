@@ -7,7 +7,7 @@
 
 class CJavaSyntaxInterface : public CJavaSyntaxClassCommon
 {
-CONSTRUCTABLE(CJavaSyntaxInterface);
+NAMED_CLASS(CJavaSyntaxInterface);
 protected:
 	CJavaSyntaxType*	mpcType;
 	bool				mbAbstract;

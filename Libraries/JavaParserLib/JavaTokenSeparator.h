@@ -23,7 +23,7 @@ enum EJavaTokenSeparator
 class CJavaTokenSeparatorDefinition;
 class CJavaTokenSeparator : public CJavaToken
 {
-CONSTRUCTABLE(CJavaTokenSeparator);
+NAMED_CLASS(CJavaTokenSeparator);
 protected:
 	CJavaTokenSeparatorDefinition*	mpcSeparator;
 

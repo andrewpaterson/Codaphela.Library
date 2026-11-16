@@ -29,7 +29,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CTextBuilderUTFCommon : public CKillable
 {
-CONSTRUCTABLE(CTextBuilderUTFCommon)
+NAMED_CLASS(CTextBuilderUTFCommon)
 public:
 			void		Init(void);
 			void		Kill(void) override;  //This should do nothing.

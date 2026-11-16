@@ -6,7 +6,7 @@
 class CJavaSyntaxType;
 class CJavaSyntaxExtent : public CJavaSyntaxTypeCommon
 {
-CONSTRUCTABLE(CJavaSyntaxExtent);
+NAMED_CLASS(CJavaSyntaxExtent);
 protected:
 	bool				mbWildCard;
 	CJavaSyntaxType*	mpcExtends;

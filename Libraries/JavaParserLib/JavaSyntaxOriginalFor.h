@@ -5,7 +5,7 @@
 //for {? ; ? ; ? , ?} { ... }
 class CJavaSyntaxOriginalFor : public CJavaSyntaxStatement
 {
-CONSTRUCTABLE(CJavaSyntaxOriginalFor);
+NAMED_CLASS(CJavaSyntaxOriginalFor);
 protected:
 
 public:

@@ -30,7 +30,7 @@ typedef CArrayTemplatePtr<CJavaSyntax>	CSyntaxPtrArray;
 
 class CJavaSyntaxMemory
 {
-CONSTRUCTABLE(CJavaSyntaxMemory);
+NAMED_CLASS(CJavaSyntaxMemory);
 protected:
 	CMemoryStackExtended	mcStack;
 	CSyntaxPtrArray			mapcSyntaxes;

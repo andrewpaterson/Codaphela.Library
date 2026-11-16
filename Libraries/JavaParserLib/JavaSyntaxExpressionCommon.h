@@ -6,7 +6,7 @@
 
 class CJavaSyntaxExpressionCommon : public CJavaSyntaxStatement
 {
-CONSTRUCTABLE(CJavaSyntaxExpressionCommon);
+NAMED_CLASS(CJavaSyntaxExpressionCommon);
 protected:
 
 public:

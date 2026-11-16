@@ -6,7 +6,7 @@
 
 class CJavaSyntaxOperator : public CJavaSyntaxExpressionCommon
 {
-CONSTRUCTABLE(CJavaSyntaxOperator);
+NAMED_CLASS(CJavaSyntaxOperator);
 protected:
 	CJavaTokenOperator*		mpcTokenOperator;
 

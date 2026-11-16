@@ -17,7 +17,7 @@ enum EJavaTokenLiteralType
 
 class CJavaTokenLiteral : public CJavaToken
 {
-CONSTRUCTABLE(CJavaTokenLiteral);
+NAMED_CLASS(CJavaTokenLiteral);
 protected:
 	EJavaTokenLiteralType	meLiteralType;
 

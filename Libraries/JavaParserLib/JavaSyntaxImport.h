@@ -7,7 +7,7 @@
 
 class CJavaSyntaxImport : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxImport);
+NAMED_CLASS(CJavaSyntaxImport);
 protected:
 	CIdentifierArray	mapcIdentifiers;
 	bool									mbStatic;

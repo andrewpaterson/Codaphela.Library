@@ -15,7 +15,7 @@
 
 class CJavaSyntaxClassBlock : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxClassBlock);
+NAMED_CLASS(CJavaSyntaxClassBlock);
 protected:
 	CStatementArray		mapcStatements;
 		

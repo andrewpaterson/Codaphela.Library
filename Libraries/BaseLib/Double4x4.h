@@ -32,7 +32,7 @@ class SFloat64Vec3;
 class SFloat64Vec4;
 class SDouble4x4
 {
-CONSTRUCTABLE(SDouble4x4);
+NAMED_CLASS(SDouble4x4);
 public:
 	SFloat64Vec4		x;
 	SFloat64Vec4		y;
