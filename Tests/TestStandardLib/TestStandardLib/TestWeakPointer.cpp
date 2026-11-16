@@ -284,17 +284,21 @@ void TestWeakPointerFreedTogether(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Weak references left both ways at ObjectsKill are cleared with their
-// objects.
+// objects, before any Free runs.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestWeakPointerObjectsKill(void)
 {
 	Ptr<CTestWeakHolder>	pA;
 	Ptr<CTestWeakHolder>	pB;
+	bool					bANull;
+	bool					bBNull;
 
 	ObjectsInit();
-	pA = OMalloc<CTestWeakHolder>();
-	pB = OMalloc<CTestWeakHolder>();
+	bANull = false;
+	bBNull = false;
+	pA = OMalloc<CTestWeakHolder>(&bANull);
+	pB = OMalloc<CTestWeakHolder>(&bBNull);
 	ORoot()->Add(pA);
 	ORoot()->Add(pB);
 	pA->mwWeak = pB;
@@ -304,6 +308,8 @@ void TestWeakPointerObjectsKill(void)
 	AssertSize(2, gcObjects.GetWeakFroms()->NumObjects());
 	ObjectsFlush();
 	ObjectsKill();
+	AssertTrue(bANull);
+	AssertTrue(bBNull);
 }
 
 

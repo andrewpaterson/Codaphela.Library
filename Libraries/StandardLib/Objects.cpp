@@ -901,6 +901,8 @@ void CObjects::FreeAllInKillOrder(bool bDeallocate)
 	cKillOrder.Init(&apcDependents);
 	papcNes = cKillOrder.Calculate();
 
+	//Every Object is going, so no Free() may reach one through a weak reference.
+	ClearWeakFroms(&apcAll);
 	FreeInternal(&apcDependents);
 	FreeInternal(papcNes);
 	DoneKill(&apcAll);
