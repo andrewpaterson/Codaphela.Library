@@ -532,6 +532,12 @@ void TestCppSemanticPassRecordedEnum(void)
 	AssertString("", szKinds.Text());
 	AssertFalse(TestCppSemanticPassRecord("enum class S { A };\nenum E { B };\nint F(S s, E e) { return (int)(s + e); }\n", "E", &szKinds));
 
+	//What is wrong in an arm of ?: is said (it was typed quietly, and the error lost).
+	AssertFalse(TestCppSemanticPassRecord("enum class S { A };\nint F(bool b) { return b ? (int)(S::A + 1) : 0; }\n", NULL, &szKinds));
+	AssertTrue(TestCppSemanticPassRecord("enum class S { A };\nint F(bool b) { return b ? (int)S::A + 1 : 0; }\n", NULL, &szKinds));
+	AssertTrue(TestCppSemanticPassRecord("enum E { A };\nint F(bool b) { return b ? A + 1 : 0; }\n", "E", &szKinds));
+	AssertString("2", szKinds.Text());
+
 	szKinds.Kill();
 }
 

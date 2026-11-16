@@ -1058,6 +1058,15 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 	psFalse = mpcUnit->TypeOf(pcConditional->mpcFalse);
 	if (!psTrue || !psFalse)
 	{
+		//TypeOf says nothing of what is wrong: the arm that can't be typed is typed again here, for its error.
+		if (!psTrue)
+		{
+			Value(pcConditional->mpcTrue);
+		}
+		if (!psFalse)
+		{
+			Value(pcConditional->mpcFalse);
+		}
 		return NULL;
 	}
 	if (mpcUnit->IsObject(pcConditional->mpcTrue) || mpcUnit->IsObject(pcConditional->mpcFalse))
