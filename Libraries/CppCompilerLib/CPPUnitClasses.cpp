@@ -468,6 +468,95 @@ bool CCPPUnit::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// template<> int S<char>::f() { ... }: S<char>'s f is this, not the one
+// its class template has.  Kept, and given to the instance it is of when
+// it is laid out, or now if it has been.  [temp.expl.spec] 16
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition)
+{
+	CCPPClass*	pcClass;
+	size		i;
+
+	mapcMemberSpecialisations.Add(pcDefinition);
+	for (i = 0; i < mapcClasses.NumElements(); i++)
+	{
+		pcClass = mapcClasses.GetPtr(i);
+		if (pcClass->mpcTemplate && pcClass->IsComplete())
+		{
+			SpecialiseMember(pcClass, pcDefinition);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The explicit specialisations of members that are of the instance.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SpecialiseMembers(CCPPClass* pcClass)
+{
+	size	i;
+
+	for (i = 0; i < mapcMemberSpecialisations.NumElements(); i++)
+	{
+		SpecialiseMember(pcClass, (CCPPSyntaxFunctionDefinition*)mapcMemberSpecialisations.GetPtr(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// If the explicit specialisation is of a member of the instance (its
+// class template, and arguments that make the same instance), the member
+// is defined by it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SpecialiseMember(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition* pcDefinition)
+{
+	CCPPSyntaxNameComponent*	pcQualifier;
+	CCPPTemplate*				pcOwner;
+	CCPPFunction*				pcFunction;
+	CChars						szArguments;
+	bool						bSame;
+
+	pcQualifier = pcDefinition->mpcDeclarator->GetName()->GetQualifier();
+	pcOwner = pcQualifier ? GetComponentTemplate(pcQualifier) : NULL;
+	if (!pcOwner || (pcOwner != pcClass->mpcTemplate->mpcPrimary) || !pcQualifier->mbTemplateArguments)
+	{
+		return;
+	}
+	szArguments.Init();
+	BeginQuiet();
+	bSame = BindArguments(pcOwner->mpcDeclaration, &pcQualifier->macpTemplateArguments, NULL, &szArguments, pcDefinition, NULL) && szArguments.Equals(&pcClass->mszArguments);
+	EndQuiet();
+	szArguments.Kill();
+	if (!bSame)
+	{
+		return;
+	}
+
+	mcContext.EnterBindings(pcClass->mpcBindings);
+	BeginQuiet();
+	pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
+	EndQuiet();
+	mcContext.LeaveBindings();
+	if (pcFunction && (pcDefinition->meBody == CPPFB_Body))
+	{
+		pcFunction->mpcDefinition = pcDefinition;
+		pcFunction->mpcBindings = pcClass->mpcBindings;
+		pcFunction->mbInline = true;
+		if (pcFunction->mbCalled)
+		{
+			RequireFunction(pcFunction);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An instance of a class template gets its function defined outside the template
 // (pcMember).  Its template parameters are new names for the class's.  A function
 // called before its definition was seen is generated now, as C++ instantiates it
@@ -585,6 +674,12 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 				DefineOutsideMember(pcClass, pcMember);
 			}
 		}
+	}
+
+	//Its members a template<> definition specialises for it.
+	if (pcClass->mpcTemplate)
+	{
+		SpecialiseMembers(pcClass);
 	}
 
 	//A destructor is needed to destroy the bases or the fields.

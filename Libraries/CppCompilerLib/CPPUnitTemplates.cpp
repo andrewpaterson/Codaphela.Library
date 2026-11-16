@@ -27,11 +27,128 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the declaration defines a static data member of a class
+// template: its declarator's name is qualified by the class template.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple)
+{
+	CCPPSyntaxInitDeclarator*	pcInit;
+	CCPPSyntaxName*				pcName;
+
+	if ((pcSimple->macpDeclarators.NumElements() != 1) || (pcSimple->macpDeclarators.GetPtr(0)->GetKind() != CPPS_InitDeclarator))
+	{
+		return false;
+	}
+	pcInit = (CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0);
+	pcName = pcInit->mpcDeclarator ? pcInit->mpcDeclarator->GetName() : NULL;
+	return pcName && !pcInit->mpcDeclarator->IsFunction() && pcName->IsQualifiedByClass() && pcName->GetQualifier() && pcName->GetQualifier()->mbTemplateArguments && GetComponentTemplate(pcName->GetQualifier());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Defines each class template instance's static data members that a
+// template declaration outside the class defines, as the instance's data
+// (every unit that has the instance has it, and the link keeps one), with
+// the template's parameters its arguments.  Done when the unit's functions
+// are written, as an initialiser that isn't constant is a start up
+// routine; until no instance is left without them, as one may need more.
+// [temp.static]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::DefineInstanceStatics(void)
+{
+	CCPPSyntaxTemplateDeclaration*	pcDeclaration;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntaxName*					pcName;
+	CCPPTemplate*					pcOwner;
+	CCPPClass*						pcClass;
+	size							i;
+	size							j;
+	bool							bDefined;
+	bool							bResult;
+
+	bResult = true;
+	do
+	{
+		bDefined = false;
+		for (i = 0; i < mapcStaticMemberTemplates.NumElements(); i++)
+		{
+			pcDeclaration = (CCPPSyntaxTemplateDeclaration*)mapcStaticMemberTemplates.GetPtr(i);
+			pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcDeclaration;
+			pcName = ((CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0))->mpcDeclarator->GetName();
+			pcOwner = GetComponentTemplate(pcName->GetQualifier());
+			for (j = 0; j < mapcClasses.NumElements(); j++)
+			{
+				pcClass = mapcClasses.GetPtr(j);
+				if (!pcClass->mpcTemplate || (pcClass->mpcTemplate != pcOwner) || !pcClass->IsComplete() || pcClass->mbExternInstance || IsInstanceStaticDefined(pcClass, pcName))
+				{
+					continue;
+				}
+				mcContext.EnterBindings(RenameBindings(pcClass, pcDeclaration));
+				mpcInstanceStatics = pcClass;
+				bResult &= GlobalDeclaration(pcSimple);
+				mpcInstanceStatics = NULL;
+				mcContext.LeaveBindings();
+				bDefined = true;
+			}
+		}
+		if (bDefined)
+		{
+			GenerateQueued();
+		}
+	} while (bDefined);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the instance's static member the name is of is defined, or it
+// has none of the name (it can't be).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsInstanceStaticDefined(CCPPClass* pcClass, CCPPSyntaxName* pcName)
+{
+	CCPPVariable*	pcVariable;
+
+	pcVariable = OwnStatic(pcClass, pcName->mpcSymbol);
+	return !pcVariable || pcVariable->mbDefined;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class's own static data member of the symbol (each instance of a
+// class template has one, all of the symbol), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPVariable* CCPPUnit::OwnStatic(CCPPClass* pcClass, CCPPSymbol* pcSymbol)
+{
+	CCPPVariable*	pcVariable;
+	size			i;
+
+	for (i = 0; i < mapcGlobals.NumElements(); i++)
+	{
+		pcVariable = mapcGlobals.GetPtr(i);
+		if ((pcVariable->mpcClass == pcClass) && (pcVariable->mpcSymbol == pcSymbol))
+		{
+			return pcVariable;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Records a template declaration: a class template, a function template, a member
 // function of a class template defined outside it, a member template defined outside
 // its class (template<class M> template<class N> ... for a class template), or an
-// explicit or partial specialisation of a class or function template.  Explicit
-// specialisations of members are ignored until used.
+// explicit or partial specialisation of a class or function template, or an
+// explicit specialisation of a class template's member function
+// (MemberSpecialisation).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration)
@@ -89,6 +206,11 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 				NewTemplate(pcSpecifier->mpcSymbol, pcTemplateDeclaration, pcSpecifier, false);
 			}
 		}
+		else if (!bExplicit && IsStaticMemberDefinition(pcSimple))
+		{
+			//template<class T> int S<T>::count = 3; is each instance's (DefineInstanceStatics).
+			mapcStaticMemberTemplates.Add(pcTemplateDeclaration);
+		}
 	}
 	else if (pcDeclaration->GetKind() == CPPS_FunctionDefinition)
 	{
@@ -121,6 +243,11 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 			{
 				pcTemplate->mlliName = GetFunctionName(pcName->GetLast());
 			}
+		}
+		else if (pcName && pcName->IsQualifiedByClass() && bExplicit && !pcClassTemplate)
+		{
+			//template<> int S<char>::f() { ... }
+			MemberSpecialisation(pcFunction);
 		}
 		else if (pcName && (pcName->macpComponents.NumElements() == 1) && bExplicit && !pcClassTemplate)
 		{

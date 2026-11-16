@@ -220,6 +220,9 @@ protected:
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
 	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
+	CArraySyntax			mapcMemberSpecialisations;	//template<> R Class<Arguments>::f() { ... }, each given to its instance.
+	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
+	CCPPClass*				mpcInstanceStatics;	//The instance whose static members GlobalDeclaration is defining, or NULL.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
@@ -474,6 +477,13 @@ public:
 	bool					ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
+	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
+	bool					IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple);
+	bool					DefineInstanceStatics(void);
+	bool					IsInstanceStaticDefined(CCPPClass* pcClass, CCPPSyntaxName* pcName);
+	CCPPVariable*			OwnStatic(CCPPClass* pcClass, CCPPSymbol* pcSymbol);
+	void					SpecialiseMembers(CCPPClass* pcClass);
+	void					SpecialiseMember(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition* pcDefinition);
 	void					DefineOutsideMembers(CCPPTemplate* pcMember);
 	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);
 	bool					ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit);

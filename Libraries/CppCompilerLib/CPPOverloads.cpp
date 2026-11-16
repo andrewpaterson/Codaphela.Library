@@ -1471,7 +1471,8 @@ void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpress
 // SMemberCall::Init's overloads differ only in their function's type; of those,
 // the ones whose arguments convert best (as plain overloads are ranked), as
 // CObjects::Get<M>(OIndex) and Get<M>(const char*) differ only in their
-// parameter's type.  Then the first whose const matches the object's
+// parameter's type, and of those the most specialised (MostSpecialised:
+// f(T*) before f(T) for a pointer).  Then the first whose const matches the object's
 // (eObject) is chosen, or else the first.  pcCall is NULL to choose by the number
 // of arguments alone.
 //
@@ -1521,6 +1522,10 @@ CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, 
 			apcChosen.Add(cTaken.GetTemplate(i));
 		}
 	}
+	if ((uiArguments > 0) && (apcChosen.NumElements() > 1))
+	{
+		MostSpecialised(&apcChosen, uiArguments, pcCall);
+	}
 	papcChosen = (apcChosen.NumElements() > 0) ? &apcChosen : papcCandidates;
 
 	pcTemplate = (papcChosen->NumElements() > 0) ? papcChosen->GetPtr(0) : NULL;
@@ -1535,6 +1540,138 @@ CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, 
 	cTaken.Kill();
 	apcChosen.Kill();
 	return pcTemplate;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Keeps only the templates no other is more specialised than, as a call
+// whose arguments they take equally well uses the most specialised.
+// [temp.func.order], [over.match.best] 1.6
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPOverloads::MostSpecialised(CArrayCPPTemplates* papcTemplates, size uiArguments, CCPPSyntax* pcNode)
+{
+	CArrayCPPTemplates	apcKept;
+	CCPPTemplate*		pcTemplate;
+	CCPPTemplate*		pcOther;
+	size				i;
+	size				j;
+	bool				bLess;
+
+	apcKept.Init();
+	for (i = 0; i < papcTemplates->NumElements(); i++)
+	{
+		pcTemplate = papcTemplates->GetPtr(i);
+		bLess = false;
+		for (j = 0; !bLess && (j < papcTemplates->NumElements()); j++)
+		{
+			pcOther = papcTemplates->GetPtr(j);
+			bLess = (pcOther != pcTemplate) && AtLeastAsSpecialised(pcOther, pcTemplate, uiArguments, pcNode) && !AtLeastAsSpecialised(pcTemplate, pcOther, uiArguments, pcNode);
+		}
+		if (!bLess)
+		{
+			apcKept.Add(pcTemplate);
+		}
+	}
+	if (apcKept.NumElements() > 0)
+	{
+		papcTemplates->ReInit();
+		for (i = 0; i < apcKept.NumElements(); i++)
+		{
+			papcTemplates->Add(apcKept.GetPtr(i));
+		}
+	}
+	apcKept.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcFirst is at least as specialised as pcSecond for a call's
+// first uiArguments parameters: pcSecond's template parameters can be
+// deduced from pcFirst's parameter types, with pcFirst's own template
+// parameters standing for types of their own (BindAsItself), so that
+// pcSecond's parameters are then those types.  [temp.deduct.partial]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::AtLeastAsSpecialised(CCPPTemplate* pcFirst, CCPPTemplate* pcSecond, size uiArguments, CCPPSyntax* pcNode)
+{
+	CArrayCPP65Types		apsFirst;
+	CArrayCPP65Types		apsSecond;
+	CCPPTemplateArguments*	pcBindings;
+	CCPPDeduction			cDeduction;
+	CChars					szArguments;
+	size					i;
+	bool					bResult;
+
+	mpcUnit->BeginTrial();
+	apsFirst.Init();
+	apsSecond.Init();
+	szArguments.Init();
+	pcBindings = mpcUnit->BindAsItself(pcFirst->mpcDeclaration, &szArguments, pcNode);
+	bResult = pcBindings && TemplateParameterTypes(pcFirst, pcBindings, uiArguments, &apsFirst);
+	szArguments.Clear();
+	if (bResult)
+	{
+		cDeduction.Init(mpcUnit, pcSecond);
+		cDeduction.Deduce(&apsFirst, NULL);
+		pcBindings = mpcUnit->BindArguments(pcSecond->mpcDeclaration, NULL, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues());
+		cDeduction.Kill();
+		bResult = pcBindings && TemplateParameterTypes(pcSecond, pcBindings, uiArguments, &apsSecond) && (apsSecond.NumElements() == apsFirst.NumElements());
+	}
+	for (i = 0; bResult && (i < apsFirst.NumElements()); i++)
+	{
+		//A parameter taken by value takes its argument's type without its own const.  [temp.deduct.partial] 7
+		bResult = apsSecond.GetPtr(i)->WithoutReference()->Unqualified()->Same(apsFirst.GetPtr(i)->WithoutReference()->Unqualified());
+	}
+	szArguments.Kill();
+	apsSecond.Kill();
+	apsFirst.Kill();
+	return mpcUnit->EndTrial() && bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The types of a function template's first uiArguments parameters with
+// its template parameters bound as pcBindings says.  False if one can't be
+// worked out (a pack is the end of them).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::TemplateParameterTypes(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, size uiArguments, CArrayCPP65Types* papsTypes)
+{
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	SCPP65Type*					psType;
+	size						i;
+	bool						bResult;
+
+	pcSuffix = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
+	if (!pcSuffix)
+	{
+		return false;
+	}
+	pcBindings->mpcOuter = mpcUnit->GetContext()->GetBindings();
+	mpcUnit->GetContext()->EnterBindings(pcBindings);
+	bResult = true;
+	for (i = 0; bResult && (i < uiArguments) && (i < pcSuffix->macpParameters.NumElements()); i++)
+	{
+		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
+		if ((pcParameter->GetKind() != CPPS_Parameter) || (pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack))
+		{
+			break;
+		}
+		psType = mpcUnit->GetDeclarators()->GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+		bResult = psType != NULL;
+		if (bResult)
+		{
+			papsTypes->Add(psType);
+		}
+	}
+	mpcUnit->GetContext()->LeaveBindings();
+	pcBindings->mpcOuter = NULL;
+	return bResult;
 }
 
 
