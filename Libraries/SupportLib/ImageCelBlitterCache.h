@@ -28,23 +28,17 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCel.h"
 #include "ImageBlitter.h"
 #include "ImageRowBlitterFactory.h"
-#include "BaseLib/ArrayTemplatePtr.h"
 
 
-typedef CArrayTemplatePtr<CImageCel>	CArrayImageCelPtr;
-
-
-//The blitters that draw onto one destination image.  A blitter does not keep its cel alive and neither does the cache.
-//When a cel is freed it tells every cache holding a blitter for it to forget it, and when a cache is freed it tells
-//every cel it holds a blitter for to forget it, so whichever of the two is freed first the other is never left
-//pointing at it.  A forgotten blitter is only removed the next time the cache is used, never while something is being freed.
+//The blitters that draw onto one destination image, one for each cel.  A blitter holds its cel weakly (WeakReferencesPlan.txt),
+//so neither it nor the cache keeps the cel alive: once the cel is freed its blitter's cel is NULL, and the blitter is taken out
+//the next time the cache is used (never while something is being freed).
 class CImageCelBlitterCache : public CObject
 {
 CONSTRUCTABLE(CImageCelBlitterCache);
 DESTRUCTABLE(CImageCelBlitterCache);
 protected:
-	CArray<CImageBlitter>		maBlitters;  //The blitter for the cel at the same index in mapcCels.
-	CArrayImageCelPtr			mapcCels;    //Not references.  NULL where the cel has been freed.
+	CArray<CImageBlitter>		maBlitters;
 	Ptr<CImage>					mpDestImage;
 
 public:
@@ -64,8 +58,6 @@ public:
 	size				NumImageBlitters(void);
 
 	bool				Matches(Ptr<CImage> pImage);
-
-	void				RemoveCelDuringFree(CImageCel* pcCel);  //Only called by CImageCel::Free.
 
 protected:
 	size				FindCel(CImageCel* pcCel);

@@ -1662,14 +1662,14 @@ void TestImageDrawBlitterCacheCelFreedFirst(void)
 	Ptr<CImageCelBlitterCache>	pCache;
 	uint32						uiStart;
 
-	//A blitter does not keep its cel alive, so a cel can be freed while the image it was drawn onto lives on.
-	//The cache forgets the cel's blitter and only removes it the next time the cache is used.
+	//A blitter holds its cel weakly, so a cel can be freed while the image it was drawn onto lives on.  The blitter's
+	//cel is then NULL and the cache only removes it the next time the cache is used.
 	uiStart = (uint32)gcObjects.NumMemoryIndexes();
 	pDest = CreateDrawDest();
 	pCel = CreateDrawCel();
 	pCache = pDest->GetBlitterCache();
 	AssertTrue(pCache->CreateImageBlitter(pCel).IsNotNull());
-	AssertSize(1, pCel->NumBlitterCaches());
+	AssertSize(1, gcObjects.GetWeakFroms()->NumWeakFroms(pCel.Object()));
 	AssertSize(uiStart + 5, gcObjects.NumMemoryIndexes());  //Destination, cache, blitter, cel and its image.
 
 	pCel = NULL;
@@ -1699,21 +1699,21 @@ void TestImageDrawBlitterCacheDestinationFreedFirst(void)
 	Ptr<CImageCel>	pCel;
 	uint32			uiStart;
 
-	//When the destination is freed its cache and blitters go with it, and the cel forgets the cache.  The cel can then
-	//be drawn onto another image and freed without touching the freed cache.
+	//When the destination is freed its cache and blitters go with it, and their weak references come off the cel.  The cel
+	//can then be drawn onto another image and freed without touching the freed cache.
 	uiStart = (uint32)gcObjects.NumMemoryIndexes();
 	pDest = CreateDrawDest();
 	pCel = CreateDrawCel();
 	AssertTrue(pDest->GetBlitterCache()->CreateImageBlitter(pCel).IsNotNull());
-	AssertSize(1, pCel->NumBlitterCaches());
+	AssertSize(1, gcObjects.GetWeakFroms()->NumWeakFroms(pCel.Object()));
 
 	pDest = NULL;
-	AssertSize(0, pCel->NumBlitterCaches());
+	AssertSize(0, gcObjects.GetWeakFroms()->NumWeakFroms(pCel.Object()));
 	AssertSize(uiStart + 2, gcObjects.NumMemoryIndexes());  //Just the cel and its image.
 
 	pDest = CreateDrawDest();
 	AssertTrue(pDest->GetBlitterCache()->CreateImageBlitter(pCel).IsNotNull());
-	AssertSize(1, pCel->NumBlitterCaches());
+	AssertSize(1, gcObjects.GetWeakFroms()->NumWeakFroms(pCel.Object()));
 	pCel = NULL;
 	AssertSize(0, pDest->GetBlitterCache()->NumImageBlitters());
 
@@ -1741,11 +1741,11 @@ void TestImageDrawBlitterCacheSharedCel(void)
 	AssertTrue(pDest1->GetBlitterCache()->CreateImageBlitter(pCel).IsNotNull());
 	AssertTrue(pDest2->GetBlitterCache()->CreateImageBlitter(pCel).IsNotNull());
 	AssertTrue(pDest2->GetBlitterCache()->CreateImageBlitter(pCel).IsNotNull());  //The same blitter again.
-	AssertSize(2, pCel->NumBlitterCaches());
+	AssertSize(2, gcObjects.GetWeakFroms()->NumWeakFroms(pCel.Object()));
 	AssertSize(1, pDest2->GetBlitterCache()->NumImageBlitters());
 
 	pDest1 = NULL;
-	AssertSize(1, pCel->NumBlitterCaches());
+	AssertSize(1, gcObjects.GetWeakFroms()->NumWeakFroms(pCel.Object()));
 
 	pCel = NULL;
 	AssertSize(0, pDest2->GetBlitterCache()->NumImageBlitters());
@@ -1766,7 +1766,7 @@ void TestImageDrawBlitterCacheCelKilled(void)
 	Ptr<CImageCel>	pOtherPointer;
 	uint32			uiStart;
 
-	//Killing a cel outright, while other pointers still point at it, also makes the caches forget it.
+	//Killing a cel outright, while other pointers still point at it, also NULLs its blitters' weak references.
 	uiStart = (uint32)gcObjects.NumMemoryIndexes();
 	pDest = CreateDrawDest();
 	pCel = CreateDrawCel();

@@ -13,9 +13,9 @@ Why now
   The renderers' texture caches (RasterRenderLib's CRasterRenderer::mapTextures, VulkanLib's CVulkanRenderer::masTextures)
   hold every texture they make, so a texture outlives the meshes that drew with it: a mesh baked again and again leaks a
   texture each time.  The cache must find textures by their image without keeping them.
-  SupportLib's blitter cache already does this by hand: CImageCelBlitterCache::mapcCels and CImageCel::mapcBlitterCaches
-  are raw lists, and CImageCel::Free / CImageCelBlitterCache::Free unhook each other (ForgetCel only NULLs a slot, because
-  CObject::FreeInternal has freed embedded collections before the object's own Free runs).
+  SupportLib's blitter cache did this by hand: CImageCelBlitterCache::mapcCels and CImageCel::mapcBlitterCaches were raw
+  lists, and CImageCel::Free / CImageCelBlitterCache::Free unhooked each other (ForgetCel only NULLed a slot, because
+  CObject::FreeInternal has freed embedded collections before the object's own Free runs).  Step 8 replaced them.
   Listeners (CListener, CListenerCall) unhook each other too, but a listener is a mix-in, not a CObject, so they're out of
   scope.
 
@@ -125,8 +125,13 @@ Done (2026-11-16), steps 1 to 7:
   weak reference at another dying object would do the same.  Tests: TestWeakPointer, and TestDistToRootUpdateRandomFreeing's
   weak holder (nothing is ever kept by one).  Step 7: CRasterRenderer and CVulkanRenderer find textures in a CArrayWeakObject;
   CRasterMesh and CVulkanRenderMesh hold them; CVulkanTexture is a CObject holding its renderer by Nes Ptr, freeing its image
-  and descriptor set (the pool now frees sets) in Free.  Printing (Dump) of weak froms isn't done.  TestStandardLib65 can't run
+  and descriptor set (the pool now frees sets) in Free.  TestStandardLib65 can't run
   to show the 65 targets: the current compiler stops at TestMapObject.cpp:1859 (a protected member), before these tests.
+Done later (2026-11-16): printing, PrintObject's " Weak:n" and Dump's weak froms listed apart (step 5's last part).  Step 8:
+  CImageBlitter holds its cel as Weak<CImageCel> mwSourceCel; CImageCelBlitterCache finds a cel's blitter by the blitter's
+  cel and drops blitters whose cel is NULL the next time it's used.  CImageCel::mapcBlitterCaches, AddBlitterCache,
+  ForgetBlitterCache, NumBlitterCaches, CImageCelBlitterCache::mapcCels and RemoveCelDuringFree are gone, and both Free()s
+  are empty.  TestImageDraw's blitter cache tests count the cel's weak froms instead.
 
 Separately (not weak references): the window factory as an object that native canvases hold by Nes Ptr, which fixes the
 open "native factory killed before ObjectsKill" order bug the same way Vulkan textures will hold their renderer.

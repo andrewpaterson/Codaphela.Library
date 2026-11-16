@@ -11,7 +11,6 @@ void CImageCelBlitterCache::Init(Ptr<CImage> pDestImage)
 	PreInit();
 
 	maBlitters.Init();
-	mapcCels.Init();
 	mpDestImage = pDestImage;
 
 	PostInit();
@@ -25,7 +24,6 @@ void CImageCelBlitterCache::Init(Ptr<CImage> pDestImage)
 void CImageCelBlitterCache::Class(void)
 {
 	M_Embedded(maBlitters);
-	U_Unknown(CArrayImageCelPtr, mapcCels);
 	M_Pointer(mpDestImage);
 }
 
@@ -36,22 +34,6 @@ void CImageCelBlitterCache::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageCelBlitterCache::Free(void)
 {
-	size			i;
-	CImageCel*		pcCel;
-	size			uiNumElements;
-
-	//maBlitters has already been freed so only the cels are touched.  A cel still listed has not been freed yet,
-	//because a freed cel sets its entry to NULL.
-	uiNumElements = mapcCels.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcCel = *mapcCels.Get(i);
-		if (pcCel)
-		{
-			pcCel->ForgetBlitterCache(this);
-		}
-	}
-	mapcCels.Kill();
 }
 
 
@@ -102,7 +84,6 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateSizingImageBlitter(Ptr<CImageCel
 Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel, bool bAllowSizing)
 {
 	Ptr<CImageBlitter>	pImageBlitter;
-	CImageCel*			pcCel;
 	bool				bValid;
 
 	ValidatePtr(pCel);
@@ -129,10 +110,7 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 		return NULL;
 	}
 
-	pcCel = (CImageCel*)pCel.Object();
 	maBlitters.Add(pImageBlitter);
-	mapcCels.Add(pcCel);
-	pcCel->AddBlitterCache(this);
 
 	return pImageBlitter;
 }
@@ -173,7 +151,7 @@ bool CImageCelBlitterCache::HasImageBlitter(Ptr<CImageCel> pCel)
 size CImageCelBlitterCache::NumImageBlitters(void)
 {
 	RemoveForgottenBlitters();
-	return mapcCels.NumElements();
+	return maBlitters.NumElements();
 }
 
 
@@ -198,33 +176,22 @@ bool CImageCelBlitterCache::Matches(Ptr<CImage> pImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelBlitterCache::RemoveCelDuringFree(CImageCel* pcCel)
-{
-	size			uiIndex;
-	CImageCel**		ppcCel;
-
-	//The cel is being freed.  Its blitter is not removed here because that would free the blitter while the cel is
-	//still being freed, so it is only marked and removed the next time this cache is used.
-	uiIndex = FindCel(pcCel);
-	if (uiIndex != ARRAY_ELEMENT_NOT_FOUND)
-	{
-		ppcCel = mapcCels.Get(uiIndex);
-		*ppcCel = NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 size CImageCelBlitterCache::FindCel(CImageCel* pcCel)
 {
+	size	i;
+
 	if (pcCel == NULL)
 	{
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
-	return mapcCels.Find(pcCel);
+	for (i = 0; i < maBlitters.NumElements(); i++)
+	{
+		if (maBlitters.Get(i)->GetCel().Object() == pcCel)
+		{
+			return i;
+		}
+	}
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -236,13 +203,12 @@ void CImageCelBlitterCache::RemoveForgottenBlitters(void)
 {
 	size	i;
 
-	i = mapcCels.NumElements();
+	i = maBlitters.NumElements();
 	while (i > 0)
 	{
 		i--;
-		if (*mapcCels.Get(i) == NULL)
+		if (maBlitters.Get(i)->GetCel().IsNull())
 		{
-			mapcCels.RemoveAt(i);
 			maBlitters.RemoveAt(i);
 		}
 	}

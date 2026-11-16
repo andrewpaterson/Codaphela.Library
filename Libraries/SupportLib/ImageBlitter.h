@@ -24,6 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
+#include "StandardLib/WeakPointer.h"
 #include "ColourFormat.h"
 #include "ImageCel.h"
 #include "ImageBlitterFormat.h"
@@ -42,7 +43,7 @@ DESTRUCTABLE(CImageBlitter);
 protected:
 	CArrayOffsetImageRowBlitter		macRowBlitters;
 
-	CImageCel*						mpcSourceCel;		//Not a reference.  Whoever uses this blitter must keep the cel alive.
+	Weak<CImageCel>					mwSourceCel;		//Weak (WeakReferencesPlan.txt): whoever draws with this blitter keeps the cel, and once it's freed this is NULL.
 	Ptr<CImage>						mpDestImage;
 
 	CImageBlitterFormat				mcFormat;
@@ -68,6 +69,7 @@ public:
 	void			EnableSizing(CImageRowBlitterFactory* pcBlitterCache);
 
 protected:
+	CImageCel*		SourceCel(void);
 	bool			PopulateColourFormat(CImageBlitterFormat* pcFormat);
 	bool			PopulateOpacityFormat(CImageBlitterFormat* pcFormat);
 	bool			CreateImageRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
