@@ -308,6 +308,8 @@ protected:
 	bool			MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary, SIRReference* psObject, SCPP65Type** ppsMember);
 	bool			MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue);
 	bool			MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRPlace* psPlace);
+	bool			ImplicitArgument(CCPPSyntaxImplicitArgument* pcArgument, SCPP65IRValue* psValue);
+	bool			LiteralCall(CCPPSyntax* pcLiteral, SCPP65IRValue* psValue);
 	void			StringData(char* pcBytes, size uiLength, SCPP65IRValue* psValue);
 	bool			Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace);
 	bool			IsReferenceCast(CCPPSyntax* pcExpression);
@@ -374,6 +376,7 @@ protected:
 	bool			StoreVtables(SIRReference sObject, CCPPClass* pcClass);
 	void			DescribeVtable(CArrayTemplate<SCPPVtableEntry>* pasEntries, CCPPClass* pcClass, uint32 uiSymbol);
 	bool			Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser);
+	bool			InitializerList(SCPP65IRPlace* psPlace, SCPP65Type* psElement, CArraySyntax* papcElements);
 	bool			ConvertToObject(SCPP65IRPlace* psPlace, CCPPFunction* pcConversion, CCPPSyntax* pcSource);
 	bool			ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass, CArraySyntax* papcArguments);
 	bool			Destroy(SIRReference sAddress, SCPP65Type* psType);

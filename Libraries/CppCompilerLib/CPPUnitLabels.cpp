@@ -19,6 +19,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CTReservedWord.h"
+#include "CTIdentifier.h"
+#include "CTUserLiteral.h"
 #include "CPPUnit.h"
 
 
@@ -40,6 +42,11 @@ int64 CCPPUnit::GetFunctionName(CCPPSyntaxNameComponent* pcComponent)
 	if (pcComponent && (pcComponent->meKind == CPPNC_Conversion))
 	{
 		return CPP_CONVERSION_NAME;
+	}
+	if (pcComponent && (pcComponent->meKind == CPPNC_Literal))
+	{
+		pcToken = mpcTokeniser->Get(pcComponent->miName);
+		return CPP_LITERAL_NAME(pcToken->IsUserString() ? ((CCTUserLiteral*)pcToken)->miSuffix : ((CCTIdentifier*)pcToken)->miIdentifier);
 	}
 	if (!pcComponent || (pcComponent->meKind != CPPNC_Operator))
 	{

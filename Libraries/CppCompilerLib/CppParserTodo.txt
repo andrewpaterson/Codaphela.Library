@@ -250,7 +250,16 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        operator-> returning an object, conversion functions to classes and references, pointers to overloaded members,
        temporaries bound to references, new[] with initialisers and two dimensions, placement new with more arguments, ?: on
        different class types, extern locals, thread_local.
-    8. (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's user-defined literals), the noexcept operator.
+    8. DONE 2026-11-16 (stage 8's 12 cases, 336 of 349 in all), in two commits:
+       - 1: the noexcept operator (CCPPFunction::mbNoexcept, CCPPUnit::MayThrow) and lists in braces as arguments
+         (CCPPOverloads::ListRank, CCPP65TypeChecker::CanInitialise).
+       - 2: literal operators (CPPNC_Literal, CCPPUnit::GetLiteralCall, implicit arguments holding the literal) and
+         std::initializer_list (InitializerListTemplate, InitializerListConstructor, BracedListType).
+       Not done: a std::initializer_list of objects that are destroyed (its array would have to be destroyed with it); auto
+       with a pointer or reference declarator from a list in braces; noexcept(e) doesn't ask the constructors and destructors
+       of the temporaries e makes, or a lambda's captures' copies; a constexpr literal operator isn't a constant.
+       As it was planned: (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's
+       user-defined literals), the noexcept operator.
     9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  A dynamic_cast<T&> that fails traps (the user), there being nothing to throw until exceptions are decided.  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.
     10. (M) B1, namespaces to the standard (added 2026-11-16, at the user's word, from 70 cases of N4140's namespace and lookup
        paragraphs, each checked with the Microsoft compiler: the conformance test's Stage10 group).  DONE 2026-11-16, 70 of 70, in

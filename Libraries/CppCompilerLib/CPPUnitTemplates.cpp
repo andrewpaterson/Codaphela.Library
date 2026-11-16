@@ -472,9 +472,9 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 			//template<> int Size<char>(char c) { ... } and template<> int Size(short s) { ... }
 			Specialisation(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction, pcName->GetLast());
 		}
-		else if (pcName && !pcClassTemplate && !bExplicit && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator)))
+		else if (pcName && !pcClassTemplate && !bExplicit && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator) || (pcName->GetLast()->meKind == CPPNC_Literal)))
 		{
-			//An operator template has no symbol; it is found by its operator (FindFreeOperator).
+			//An operator template (and a literal operator template) has no symbol; it is found by its operator (FindFreeOperator).
 			NewTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction, false);
 		}
 	}

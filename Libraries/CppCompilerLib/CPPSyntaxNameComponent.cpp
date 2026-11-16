@@ -70,6 +70,12 @@ void CCPPSyntaxNameComponent::PrettyPrint(CChars* pszDest, int iDepth)
 		AppendTokens(pszDest, miName, miLastToken);
 		return;
 	}
+	if (meKind == CPPNC_Literal)
+	{
+		pszDest->Append("operator ");
+		AppendTokens(pszDest, miFirstToken + 1, miLastToken);
+		return;
+	}
 	if (meKind == CPPNC_Conversion)
 	{
 		pszDest->Append("operator ");

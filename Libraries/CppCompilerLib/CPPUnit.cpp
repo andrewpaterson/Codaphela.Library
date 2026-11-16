@@ -281,6 +281,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcPackSymbols.Init();
 	mapcHiddenSymbols.Init();
 	mcRangeFors.Init(true);
+	mcLiteralCalls.Init(true);
+	mpcInitializerList = NULL;
 	mapsLambdas.Init();
 	mapcMemberSpecialisations.Init();
 	mapcStaticMemberTemplates.Init();
@@ -393,6 +395,7 @@ void CCPPUnit::Kill(void)
 	}
 	mapcHiddenSymbols.Kill();
 	mcRangeFors.Kill();
+	mcLiteralCalls.Kill();
 	FreeLambdas();
 	mapcMemberSpecialisations.Kill();
 	mapcStaticMemberTemplates.Kill();
@@ -2255,7 +2258,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 		{
 			i = 0;
 		}
-		else if ((pcInitialiser->GetKind() == CPPS_StringExpression) && (psType->psBase->iBytes == StringElementBytes(pcInitialiser)))
+		else if (IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == StringElementBytes(pcInitialiser)))
 		{
 			auiBytes.Init();
 			bResult = DecodeString(pcInitialiser, &auiBytes);
@@ -2303,7 +2306,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 		mcData.AppendData(psType->iBytes, FloatBits(psType, dValue));
 		return true;
 	}
-	if (pcInitialiser && psType->IsPointer() && (pcInitialiser->GetKind() == CPPS_StringExpression) && (psType->psBase->iBytes == StringElementBytes(pcInitialiser)))
+	if (pcInitialiser && psType->IsPointer() && IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
 		bResult = DecodeString(pcInitialiser, &auiBytes);
@@ -2461,7 +2464,7 @@ CCPPSyntax* CCPPUnit::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* p
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger())
 	{
 		papcElements = ListElements(pcInitialiser);
-		if ((papcElements->NumElements() == 1) && (papcElements->GetPtr(0)->GetKind() == CPPS_StringExpression) && (StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
+		if ((papcElements->NumElements() == 1) && IsStringLiteral(papcElements->GetPtr(0)) && (StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
 		{
 			return papcElements->GetPtr(0);
 		}

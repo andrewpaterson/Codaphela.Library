@@ -30,7 +30,11 @@ void CCPPSyntaxImplicitArgument::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 {
 	CCPPSyntaxExpression::Init(pcTree, pcParent);
 	mpsType = NULL;
-	mbZero = false;
+	mbConstant = false;
+	mlliValue = 0;
+	mdValue = 0;
+	mpcString = NULL;
+	miSpelling = -1;
 }
 
 
@@ -41,5 +45,12 @@ void CCPPSyntaxImplicitArgument::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPare
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxImplicitArgument::PrettyPrint(CChars* pszDest, int iDepth)
 {
-	pszDest->Append(mbZero ? "0" : "sizeof");
+	if (mbConstant)
+	{
+		pszDest->Append(mlliValue);
+	}
+	else
+	{
+		pszDest->Append((mpcString || (miSpelling >= 0)) ? "literal" : "sizeof");
+	}
 }

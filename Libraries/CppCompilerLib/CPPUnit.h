@@ -64,6 +64,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCTString;
+class CCTUserLiteral;
 //How well an argument converts to a parameter, best last.
 enum ECPPConversionRank
 {
@@ -190,6 +191,18 @@ struct SCPPRangeFor
 typedef CMapLongTemplate<SCPPRangeFor>	CMapCPPRangeFors;
 
 
+//The call a user-defined literal is (CCPPUnit::GetLiteralCall): the literal operator of its suffix, and its arguments
+//(implicit ones, holding the literal) in an initialiser of their own.
+struct SCPPLiteralCall
+{
+	CCPPFunction*							pcFunction;		//NULL if no literal operator takes the literal.
+	CCPPSyntaxParenthesisedInitializer*		pcArguments;
+};
+
+
+typedef CMapLongTemplate<SCPPLiteralCall>	CMapCPPLiteralCalls;
+
+
 //The function being written, put aside while another's parameters and locals are made (CCPPUnit::EnterFunctionScope).
 struct SCPPFunctionScope
 {
@@ -249,6 +262,8 @@ protected:
 	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
+	CMapCPPLiteralCalls		mcLiteralCalls;		//The call each user-defined literal is, by its node.
+	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
 	CArraySyntax			mapcMemberSpecialisations;	//template<> R Class<Arguments>::f() { ... }, each given to its instance.
 	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
@@ -612,6 +627,12 @@ public:
 	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
+	bool					TokenConstant(CCPPToken* pcToken, int64* plliValue);
+	bool					IsStringLiteral(CCPPSyntax* pcExpression);
+	CCTUserLiteral*			UserLiteralToken(CCPPSyntax* pcLiteral);
+	SCPPLiteralCall*		GetLiteralCall(CCPPSyntax* pcLiteral);
+	CCPPSyntaxImplicitArgument*	LiteralArgument(CCPPSyntax* pcLiteral, SCPP65Type* psType, CArraySyntax* papcArguments);
+	void					UserLiteralSpelling(int32 iToken, CChars* pszSpelling);
 	bool					MayThrow(CCPPSyntax* pcExpression);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
 	CCPPSyntax*				ImplicitZero(void);
@@ -682,6 +703,11 @@ public:
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	CCPPTemplate*			InitializerListTemplate(void);
+	SCPP65Type*				InitializerListElement(SCPP65Type* psType);
+	SCPP65Type*				InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNode);
+	SCPP65Type*				BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode);
+	bool					InitializerListLayout(CCPPClass* pcClass, bool* pbEnd);
 	SCPP65Type*				CastClassType(CCPPSyntax* pcExpression);
 	CCPPClass*			ObjectClass(CCPPSyntax* pcExpression);
 	bool					IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass);
@@ -714,6 +740,7 @@ public:
 	int64					FloatBits(SCPP65Type* psType, double dValue);
 	bool					FloatConstant(CCPPSyntax* pcExpression, double* pdValue);
 	bool					FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
+	bool					TokenFloat(CCPPToken* pcToken, double* pdValue, SCPP65Type** ppsType);
 	bool					FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
 };
 

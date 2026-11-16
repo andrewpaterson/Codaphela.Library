@@ -1713,6 +1713,17 @@ static const SConformanceCase gasConformanceStage8[] =
 		"int main() { int s = 0; for (int x : { 1, 2, 3 }) { s += x; } auto l = { 4, 5 }; for (int x : l) { s += x; } return s; }\n"
 	},
 	{
+		"InitializerListForms", 5760,
+		"#ifdef _MSC_VER\n"
+		"#include <initializer_list>\n"
+		"#else\n"
+		"namespace std { template<class T> class initializer_list { const T* mpFirst; const T* mpLast; public: constexpr initializer_list() noexcept : mpFirst(0), mpLast(0) {} constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpLast; } }; }\n"
+		"#endif\n"
+		"struct D { int k; D() : k(7) {} D(std::initializer_list<int> l) : k(0) { for (int x : l) { k += x; } } };\n"
+		"int total(std::initializer_list<double> l) { double t = 0; for (double d : l) { t += d; } return (int)(t * 2); }\n"
+		"int main() { auto x{5}; D a{}; D b{1, 2, 3}; return x * 1000 + a.k * 100 + b.k * 10 + total({1.5, 2.0}) - 7; }\n"
+	},
+	{
 		"LiteralOperators", 2542,
 		"#ifdef _WIN64\n"
 		"typedef unsigned long long size_t;\n"
@@ -1730,6 +1741,20 @@ static const SConformanceCase gasConformanceStage8[] =
 		"int operator\"\" _digits(const char* s) { int n = 0; while (s[n]) { n++; } return n; }\n"
 		"template<char... C> int operator\"\" _count() { return sizeof...(C); }\n"
 		"int main() { return 12345_digits * 10 + 0x1F_digits + 123_count * 100; }\n"
+	},
+	{
+		"LiteralOperatorForms", 8241,
+		"#ifdef _WIN64\n"
+		"typedef unsigned long long size_t;\n"
+		"#else\n"
+		"typedef unsigned long size_t;\n"
+		"#endif\n"
+		"struct M { long v; };\n"
+		"M operator\"\" _m(unsigned long long v) { M m; m.v = (long)v * 2; return m; }\n"
+		"int operator\"\" _len(const char* s, size_t n) { return (int)n; }\n"
+		"int operator\"\" _wlen(const wchar_t* s, size_t n) { return (int)n * 10; }\n"
+		"int operator\"\" _raw(const char* s) { int n = 0; while (s[n]) { n++; } return n; }\n"
+		"int main() { M m = 21_m; return (int)m.v * 100 + \"ab\" \"cd\"_len * 10 + (L\"xyz\"_wlen == 30) + 1.25_raw * 1000; }\n"
 	},
 	{
 		"LiteralOperatorMissing", CONFORMANCE_REFUSED,

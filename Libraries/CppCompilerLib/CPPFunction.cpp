@@ -102,6 +102,18 @@ size CCPPFunction::RequiredParameters(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a call can give the function uiArguments arguments: at least its
+// required parameters, and no more than it has unless it is variadic.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunction::TakesArgumentCount(size uiArguments)
+{
+	return (uiArguments >= RequiredParameters()) && ((uiArguments <= mapsParameters.NumElements()) || mbVariadic);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPFunction::SameParameters(CCPPFunction* pcOther)

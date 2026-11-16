@@ -35,6 +35,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP_OPERATOR_NAME(eToken)		(-2 - (int64)(eToken))
 #define CPP_ARRAY_OPERATOR_NAME(eToken)	(CPP_OPERATOR_NAME(eToken) - (int64)NUM_CPP_TOKENS)
 #define CPP_CONVERSION_NAME				(CPP_OPERATOR_NAME(0) - 2 * (int64)NUM_CPP_TOKENS)
+#define CPP_LITERAL_NAME(iSuffix)		(CPP_CONVERSION_NAME - 1 - (int64)(iSuffix))	//operator "" _suffix, by the suffix's identifier.
+#define CPP_IS_LITERAL_NAME(lliName)	((lliName) < CPP_CONVERSION_NAME)
+#define CPP_LITERAL_SUFFIX(lliName)		(CPP_CONVERSION_NAME - 1 - (lliName))
 
 
 //The object a member function is called on, which chooses between a const function and one that isn't, and
@@ -137,6 +140,7 @@ public:
 	bool	IsOperator(void) { return mlliName < 0; }						//An operator or a conversion: its name is no identifier.
 
 	size	RequiredParameters(void);
+	bool	TakesArgumentCount(size uiArguments);
 	bool	SameParameters(CCPPFunction* pcOther);
 	bool	Overrides(CCPPFunction* pcVirtual);
 	bool	TakesObject(ECPPCalledObject eObject);

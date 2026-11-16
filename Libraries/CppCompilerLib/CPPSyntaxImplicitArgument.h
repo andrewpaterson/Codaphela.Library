@@ -27,14 +27,19 @@ struct SCPP65Type;
 
 
 //An argument a call is given that the program doesn't write: the int 0 a postfix operator function is called with (s++
-//is s.operator++(0), mbZero), or the size an allocation function is given (operator new(sizeof(S)), its value the IR
-//front end's).  The unit makes them, in no tree's nodes, so nothing reads or writes their fields (CCPPUnit::ImplicitZero,
-//NewSize).  [over.inc] 1, [expr.new] 9
+//is s.operator++(0)), the size an allocation function is given (operator new(sizeof(S)), its value the IR front end's),
+//or what a literal operator is given for a user-defined literal: its value, its characters and their count, or its
+//spelling (CCPPUnit::GetLiteralCall).  The unit makes them, in no tree's nodes, so nothing reads or writes their fields
+//(CCPPUnit::ImplicitZero, NewSize).  [over.inc] 1, [expr.new] 9, [lex.ext]
 class CCPPSyntaxImplicitArgument : public CCPPSyntaxExpression
 {
 public:
 	SCPP65Type*				mpsType;
-	bool					mbZero;
+	bool					mbConstant;		//It is mlliValue, or mdValue for a floating point type.
+	int64					mlliValue;
+	double					mdValue;
+	CCPPSyntax*				mpcString;		//Or the address of this string literal's characters (its suffix left off).
+	int32					miSpelling;		//Or the address of this token's spelling (its suffix left off), or -1.
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	CPP_SYNTAX_NODE(ImplicitArgument)

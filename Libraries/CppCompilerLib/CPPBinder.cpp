@@ -703,7 +703,7 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	{
 		apcArguments.Add(pcBound->mpcRight);
 	}
-	pcFunction = mcOverloads.FindFreeOperator(pcBound->mlliName, &apcArguments, pcNode);
+	pcFunction = mcOverloads.FindFreeOperator(pcBound->mlliName, NULL, &apcArguments, pcNode);
 	apcArguments.Kill();
 	if (pcFunction)
 	{
@@ -780,6 +780,66 @@ CCPPFunction* CCPPBinder::FindAddressedFunction(CCPPSyntaxName* pcName, int64 ll
 CCPPFunction* CCPPBinder::FindMemberFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, CCPPClass** ppcClass, bool* pbOverloaded)
 {
 	return mcOverloads.FindMemberFunction(pcClass, lliName, psTarget, false, ppcClass, pbOverloaded);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The constructor a list in braces makes an object of pcClass with before
+// any other ([over.match.list] 1): one whose first parameter is a
+// std::initializer_list (or a const reference to one) that the list can
+// make, the others defaulted.  NULL if there is none, or for {} of a class
+// that has a default constructor ([dcl.init.list] 3).
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::InitializerListConstructor(CCPPClass* pcClass, CCPPSyntax* pcList)
+{
+	CCPPFunction*	pcFunction;
+	SCPP65Type*		psParameter;
+	size			i;
+
+	if (mpcUnit->ListElements(pcList)->NumElements() == 0)
+	{
+		for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+		{
+			pcFunction = pcClass->mapcMembers.GetPtr(i);
+			if ((pcFunction->meKind == CPPFK_Constructor) && pcFunction->TakesArgumentCount(0))
+			{
+				return NULL;
+			}
+		}
+	}
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+	{
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if ((pcFunction->meKind != CPPFK_Constructor) || pcFunction->mbDeleted || pcFunction->mpcTemplate || (pcFunction->mapsParameters.NumElements() == 0) || !pcFunction->TakesArgumentCount(1))
+		{
+			continue;
+		}
+		psParameter = pcFunction->mapsParameters.GetPtr(0);
+		if (psParameter->IsReference() && !psParameter->psBase->bConst)
+		{
+			continue;
+		}
+		if (mpcUnit->InitializerListElement(psParameter) && mpcUnit->GetTypeChecker()->CanInitialise(psParameter->WithoutReference(), pcList))
+		{
+			return pcFunction;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The literal operator of lliName (CPP_LITERAL_NAME) that takes
+// papcArguments, or the instance of one that is a template for
+// papcExplicit; NULL, quietly, if there is none.  [over.literal]
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::FindLiteralOperator(int64 lliName, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+{
+	return mcOverloads.FindFreeOperator(lliName, papcExplicit, papcArguments, pcNode);
 }
 
 
@@ -1136,7 +1196,7 @@ CCPPFunction* CCPPBinder::BindRangeFunction(int64 lliName, CCPPClass* pcClass, C
 	else
 	{
 		apcArguments.Add(pcRange);
-		pcFunction = mcOverloads.FindFreeOperator(lliName, &apcArguments, pcNode);
+		pcFunction = mcOverloads.FindFreeOperator(lliName, NULL, &apcArguments, pcNode);
 	}
 	apcArguments.Kill();
 	if (pcFunction && !mcAccess.CheckFunction(pcFunction, pcClass, pcNode))

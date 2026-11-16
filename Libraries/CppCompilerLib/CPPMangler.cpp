@@ -360,7 +360,8 @@ void CCPPMangler::AppendScopeNames(CChars* psz, CCPPScope* pcScope)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A function's name: its identifier, or op and the operator's name.
+// A function's name: its identifier, op and the operator's name, or
+// opLiteral and a literal operator's suffix.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPMangler::AppendFunctionName(CChars* psz, int64 lliName)
@@ -371,6 +372,14 @@ void CCPPMangler::AppendFunctionName(CChars* psz, int64 lliName)
 	if (lliName == CPP_CONVERSION_NAME)
 	{
 		psz->Append("opConvert");
+		return;
+	}
+	if (CPP_IS_LITERAL_NAME(lliName))
+	{
+		//operator "" _k is opLiteral_k.
+		psz->Append("opLiteral");
+		szName = mpcTokeniser->GetIdentifier(CPP_LITERAL_SUFFIX(lliName), &iLength);
+		psz->Append(szName, iLength);
 		return;
 	}
 	if (lliName < 0)

@@ -121,6 +121,8 @@ protected:
 	SCPP65Type*		InlineMemcpy(CArraySyntax* papcArguments);
 
 	SCPP65Type*		MemberFunctionCall(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
+	SCPP65Type*		LiteralCall(CCPPSyntax* pcLiteral);
+	bool			InitializerListElements(SCPP65Type* psType, SCPP65Type* psElement, CArraySyntax* papcElements, CCPPSyntax* pcNode);
 	bool			Narrows(CCPPSyntax* pcSource, SCPP65Type* psTo);
 	SCPP65Type*		ObjectCall(CCPPSyntax* pcObject, CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*		OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CArraySyntax* papcArguments, CCPPSyntax* pcNode);

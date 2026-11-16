@@ -442,6 +442,16 @@ Supported
   (__is_trivially_constructible ...), enumerators, string literals, placement new,
   noexcept(e) (a constant: false if e may call a function not declared noexcept or
   throw(), throw, or allocate with new; destructors and operator delete are noexcept).
+- User-defined literals call their suffix's literal operator (operator "" _k, labelled
+  opLiteral_k): 12_k with 12ULL if it takes an unsigned long long (1.5_k a long
+  double), else with "12" if it takes a const char*, else operator "" _k<'1', '2'>();
+  'c'_k with the character, and "text"_k with the characters and their count.
+- std::initializer_list<E> (the program's <initializer_list>, laid out as a pointer to
+  the elements then their count or end) from a list in braces is an array of the
+  elements in the frame.  A class with a constructor whose first parameter is one is
+  made by it from a list (V v{1, 2}), before any other constructor (but {} of a class
+  with a default constructor is that); auto l = {1, 2} and for (x : {1, 2, 3}) are of
+  std::initializer_list<int>, and auto x{5} is an int.
 - Constant expressions (array sizes, case labels, global initialisers, template
   arguments) include enumerators, const int variables, casts, sizeof and type traits.
 - Overloaded functions and operators, chosen by the number of arguments (default

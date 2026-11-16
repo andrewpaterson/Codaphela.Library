@@ -236,7 +236,7 @@ int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser)
 	{
 		return (int)mpcUnit->ListElements(pcInitialiser)->NumElements();
 	}
-	if (pcInitialiser->GetKind() == CPPS_StringExpression)
+	if (mpcUnit->IsStringLiteral(pcInitialiser))
 	{
 		auiBytes.Init();
 		iCount = mpcUnit->DecodeString(pcInitialiser, &auiBytes) ? ((int)auiBytes.NumElements() / mpcUnit->StringElementBytes(pcInitialiser)) + 1 : 0;
@@ -319,7 +319,9 @@ SCPP65Type* CCPPDeclarators::AutoType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CC
 // is for a parameter declared so and that argument: auto x = e is e's
 // type without its const (an array's or a function's a pointer), auto* p
 // what e points to, auto& r what e is, and auto&& r that or, for what has
-// a name, a reference to it.  [dcl.spec.auto] 7, [temp.deduct.call]
+// a name, a reference to it.  auto l = {1, 2} is a std::initializer_list
+// of the list's elements, and auto x{e} auto x = e.  [dcl.spec.auto] 7,
+// [temp.deduct.call]
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode)
@@ -338,10 +340,26 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 		mpcUnit->Error(pcNode, "auto needs an initialiser to take its type from");
 		return NULL;
 	}
+	if ((pcInitialiser->GetKind() == CPPS_InitializerList) && pcNode && (pcNode->GetKind() == CPPS_InitDeclarator) && (((CCPPSyntaxInitDeclarator*)pcNode)->meInitializer == CPPI_Braces))
+	{
+		//auto x{e} is auto x = e (as C++17 has it, and MSVC).
+		if (mpcUnit->ListElements(pcInitialiser)->NumElements() != 1)
+		{
+			mpcUnit->Error(pcNode, "auto x{...} needs one value");
+			return NULL;
+		}
+		pcInitialiser = mpcUnit->ListElements(pcInitialiser)->GetPtr(0);
+	}
 	if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{
-		mpcUnit->Error(pcNode, "auto from a list in braces is not supported by the compiler yet");
-		return NULL;
+		//auto l = {1, 2} is a std::initializer_list<int>.  [dcl.spec.auto] 7
+		if (pcDeclarator && (pcDeclarator->NumPointers() > 0))
+		{
+			mpcUnit->Error(pcNode, "auto with a pointer or reference from a list in braces is not supported by the compiler yet");
+			return NULL;
+		}
+		psType = mpcUnit->BracedListType(pcInitialiser, pcNode);
+		return psType ? mpcUnit->GetTypes()->Qualified(psType, (pcSpecifiers->muiFlags & CPPDS_CONST) != 0, false) : NULL;
 	}
 
 	pcTypes = mpcUnit->GetTypes();
@@ -365,7 +383,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 		{
 			psType = pcTypes->Pointer(psType->IsArray() ? psType->psBase : psType);
 		}
-		else if (psType && psType->IsPointer() && (mpcUnit->SkipParentheses(pcInitialiser)->GetKind() == CPPS_StringExpression))
+		else if (psType && psType->IsPointer() && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcInitialiser)))
 		{
 			//A string literal's characters are const.
 			psType = pcTypes->Pointer(pcTypes->Qualified(psType->psBase, true, false));

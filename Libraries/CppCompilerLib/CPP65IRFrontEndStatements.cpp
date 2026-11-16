@@ -550,8 +550,9 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	{
 		return false;
 	}
-	if (pcInitialiser->GetKind() == CPPS_InitializerList)
+	if ((pcInitialiser->GetKind() == CPPS_InitializerList) && !psPlace->psType->IsReference())
 	{
+		//A reference is bound to what the list makes (BindsToTemporary).
 		papcElements = mpcUnit->ListElements(pcInitialiser);
 		if (papcElements->NumElements() == 0)
 		{
@@ -565,7 +566,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 			return Unsupported(__FILE__, __LINE__);
 		}
 		pcInitialiser = papcElements->GetPtr(0);
-		if (!psPlace->psType->IsReference() && !mpcUnit->CheckBracedValue(pcInitialiser, psPlace->psType))
+		if (!mpcUnit->CheckBracedValue(pcInitialiser, psPlace->psType))
 		{
 			return false;
 		}
@@ -627,7 +628,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 
 	psElement = psPlace->psType->psBase;
 	pcInitialiser = mpcUnit->StringInitialiser(pcInitialiser, psElement);
-	if ((pcInitialiser->GetKind() == CPPS_StringExpression) && psElement->IsScalar() && (psElement->iBytes == mpcUnit->StringElementBytes(pcInitialiser)))
+	if (mpcUnit->IsStringLiteral(pcInitialiser) && psElement->IsScalar() && (psElement->iBytes == mpcUnit->StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
 		if (!mpcUnit->DecodeString(pcInitialiser, &auiBytes) || (auiBytes.NumElements() / psElement->iBytes > (size)psPlace->psType->iCount))
@@ -694,7 +695,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 		pcElement = papcElements->GetPtr(*puiNext);
 		if (psElement->IsArray())
 		{
-			if ((pcElement->GetKind() == CPPS_InitializerList) || (pcElement->GetKind() == CPPS_StringExpression))
+			if ((pcElement->GetKind() == CPPS_InitializerList) || mpcUnit->IsStringLiteral(pcElement))
 			{
 				(*puiNext)++;
 				if (!ArrayInitialiser(&sPlace, pcElement))

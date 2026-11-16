@@ -424,12 +424,13 @@ CCPPScope* CCPPOverloads::CurrentLookupScope(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The operator function (not a member) for the arguments: a declared one, or an
-// instance of a function template of that name.  Those of the namespaces around
+// instance of a function template of that name (only an instance, for
+// papcExplicit's template arguments).  Those of the namespaces around
 // the function being written (without the hiding names have) and those the
 // arguments are associated with.  NULL, quietly, if none matches.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
 	CCPPFunction*					pcFunction;
 	CCPPTemplate*					pcTemplate;
@@ -466,7 +467,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 	{
 		apcNamespaces.Add(NULL);
 	}
-	if (bDeclared)
+	if (bDeclared && !papcExplicit)
 	{
 		pcFunction = FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, CPPCO_None, &apcNamespaces);
 	}
@@ -481,7 +482,12 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcA
 		pcName = pcDefinition->mpcDeclarator ? pcDefinition->mpcDeclarator->GetName() : NULL;
 		if (pcName && (pcName->macpComponents.NumElements() == 1) && (mpcUnit->GetFunctionName(pcName->GetLast()) == lliName) && (apcNamespaces.Has(pcTemplate->mpcNamespace)))
 		{
-			pcFunction = mpcUnit->InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
+			//An instance made only from explicit arguments (template<char... C> operator "" _k) may not take the arguments.
+			pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, papcArguments, pcNode);
+			if (pcFunction && !pcFunction->TakesArgumentCount(papcArguments ? papcArguments->NumElements() : 0))
+			{
+				pcFunction = NULL;
+			}
 		}
 	}
 	apcNamespaces.Kill();
@@ -1117,7 +1123,7 @@ bool CCPPOverloads::RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArgu
 	size	i;
 
 	uiArguments = papcArguments ? papcArguments->NumElements() : 0;
-	if ((uiArguments < pcFunction->RequiredParameters()) || ((uiArguments > pcFunction->mapsParameters.NumElements()) && !pcFunction->mbVariadic))
+	if (!pcFunction->TakesArgumentCount(uiArguments))
 	{
 		return false;
 	}
@@ -1155,8 +1161,9 @@ bool CCPPOverloads::RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArgu
 //////////////////////////////////////////////////////////////////////////
 //
 // How well a list in braces converts to a parameter ([over.ics.list]): to
-// a class (or a const reference to one), a user defined conversion if the
-// class can be made from it; to anything else, its one element's
+// a std::initializer_list, the worst of its elements' conversions; to
+// another class (or a const reference to one), a user defined conversion if
+// the class can be made from it; to anything else, its one element's
 // conversion if that doesn't narrow, or an exact match for {}.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1165,6 +1172,9 @@ int CCPPOverloads::ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList)
 	SCPP65Type*		psType;
 	SCPP65Type*		psElement;
 	CArraySyntax*	papcElements;
+	size			i;
+	int				iRank;
+	int				iElement;
 
 	psType = psParameter;
 	if (psParameter->IsReference())
@@ -1179,11 +1189,24 @@ int CCPPOverloads::ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList)
 	{
 		return CPPCR_None;
 	}
+	papcElements = mpcUnit->ListElements(pcList);
+	psElement = mpcUnit->InitializerListElement(psType);
+	if (psElement)
+	{
+		//To a std::initializer_list, the worst of its elements' conversions.  [over.ics.list] 4
+		iRank = CPPCR_Exact;
+		for (i = 0; i < papcElements->NumElements(); i++)
+		{
+			psType = mpcUnit->TypeOf(papcElements->GetPtr(i));
+			iElement = psType ? ConversionRank(psElement, psType, papcElements->GetPtr(i)) : CPPCR_UserDefined;
+			iRank = (iElement < iRank) ? iElement : iRank;
+		}
+		return iRank;
+	}
 	if (psType->IsClass())
 	{
 		return CPPCR_UserDefined;
 	}
-	papcElements = mpcUnit->ListElements(pcList);
 	if (papcElements->NumElements() == 0)
 	{
 		return CPPCR_Exact;
@@ -1227,7 +1250,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 		//A value with no name only binds to a const reference or T&&.
 		return CPPCR_None;
 	}
-	if (psParameter->IsPointer() && psArgument->IsPointer() && psParameter->psBase->Equals(psArgument->psBase) && pcArgument && (mpcUnit->SkipParentheses(pcArgument)->GetKind() == CPPS_StringExpression))
+	if (psParameter->IsPointer() && psArgument->IsPointer() && psParameter->psBase->Equals(psArgument->psBase) && pcArgument && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcArgument)))
 	{
 		//A string literal's characters are const: char* p = "x" is allowed, but const char* is the better match.
 		return psParameter->psBase->bConst ? CPPCR_Exact : CPPCR_Qualification;

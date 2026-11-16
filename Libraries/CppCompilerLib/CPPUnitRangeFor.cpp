@@ -151,14 +151,23 @@ bool CCPPUnit::RangeForLocals(CCPPSyntaxRangeForStatement* pcFor)
 	CCPPSyntaxName*	pcName;
 	bool			bRvalue;
 
+	psRangeFor = GetRangeFor(pcFor);
 	if (pcFor->mpcRange->GetKind() == CPPS_InitializerList)
 	{
-		return Error(pcFor->mpcRange, "A list in braces as a range is not supported by the compiler yet");
+		//for (x : {1, 2, 3}) is over a std::initializer_list<int>.  [stmt.ranged] 1
+		bRvalue = true;
+		psRanged = BracedListType(pcFor->mpcRange, pcFor->mpcRange);
+		if (!psRanged)
+		{
+			return false;
+		}
 	}
-	psRangeFor = GetRangeFor(pcFor);
-	bRvalue = IsRvalue(pcFor->mpcRange);
-	psRanged = bRvalue ? NULL : PlaceOf(pcFor->mpcRange);
-	psRanged = psRanged ? psRanged : ValueTypeOf(pcFor->mpcRange);
+	else
+	{
+		bRvalue = IsRvalue(pcFor->mpcRange);
+		psRanged = bRvalue ? NULL : PlaceOf(pcFor->mpcRange);
+		psRanged = psRanged ? psRanged : ValueTypeOf(pcFor->mpcRange);
+	}
 	if (!psRanged)
 	{
 		ReportTypeOf(pcFor->mpcRange);

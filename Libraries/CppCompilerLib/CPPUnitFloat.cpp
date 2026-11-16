@@ -77,6 +77,38 @@ bool CCPPUnit::FloatConstant(CCPPSyntax* pcExpression, double* pdValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A floating point number token's value and type (float, double or long
+// double).  False for any other token.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::TokenFloat(CCPPToken* pcToken, double* pdValue, SCPP65Type** ppsType)
+{
+	if (!pcToken->IsNumber())
+	{
+		return false;
+	}
+	switch (((CCTNumber*)pcToken)->meType)
+	{
+	case CTNT_Float:
+		*pdValue = ((CCTFloat*)pcToken)->mcValue;
+		*ppsType = mcTypes.Float(4);
+		return true;
+	case CTNT_Double:
+		*pdValue = ((CCTDouble*)pcToken)->mcValue;
+		*ppsType = mcTypes.Float(8);
+		return true;
+	case CTNT_LongDouble:
+		*pdValue = (double)((CCTLongDouble*)pcToken)->mcValue;
+		*ppsType = mcTypes.LongDouble();
+		return true;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The value of a constant expression; *ppsType is its floating point type, or NULL
 // for an integer.
 //
@@ -103,27 +135,20 @@ bool CCPPUnit::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type*
 
 	switch (pcExpression->GetKind())
 	{
+	case CPPS_ImplicitArgument:
+		if (((CCPPSyntaxImplicitArgument*)pcExpression)->mbConstant && ((CCPPSyntaxImplicitArgument*)pcExpression)->mpsType->IsFloat())
+		{
+			*pdValue = ((CCPPSyntaxImplicitArgument*)pcExpression)->mdValue;
+			*ppsType = ((CCPPSyntaxImplicitArgument*)pcExpression)->mpsType;
+			return true;
+		}
+		break;
+
 	case CPPS_LiteralExpression:
 		pcToken = mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral);
-		if (pcToken->IsNumber())
+		if (TokenFloat(pcToken, pdValue, ppsType))
 		{
-			switch (((CCTNumber*)pcToken)->meType)
-			{
-			case CTNT_Float:
-				*pdValue = ((CCTFloat*)pcToken)->mcValue;
-				*ppsType = mcTypes.Float(4);
-				return true;
-			case CTNT_Double:
-				*pdValue = ((CCTDouble*)pcToken)->mcValue;
-				*ppsType = mcTypes.Float(8);
-				return true;
-			case CTNT_LongDouble:
-				*pdValue = (double)((CCTLongDouble*)pcToken)->mcValue;
-				*ppsType = mcTypes.LongDouble();
-				return true;
-			default:
-				break;
-			}
+			return true;
 		}
 		break;
 

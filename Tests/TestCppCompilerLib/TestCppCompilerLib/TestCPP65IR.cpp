@@ -524,9 +524,8 @@ void TestCPP65IRStringEscapes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// User-defined literals are parsed (adjacent strings with the same suffix
-// are one, with different ones an error) but nothing is generated for
-// them yet.  [lex.ext]
+// User-defined literals with no literal operator for them (adjacent strings
+// with the same suffix are one, with different ones an error).  [lex.ext]
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IRUserLiterals(void)
@@ -537,21 +536,21 @@ void TestCPP65IRUserLiterals(void)
 	szAssembly.Init();
 	szErrors.Init();
 	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "int gi = 10_km;"));
-	AssertString("Generated.cpp (1, 10): User-defined literals are not supported by the compiler yet [10_km]\n", szErrors.Text());
+	AssertString("Generated.cpp (1, 10): No literal operator takes the literal [10_km]\n", szErrors.Text());
 	szErrors.Kill();
 	szAssembly.Kill();
 
 	szAssembly.Init();
 	szErrors.Init();
 	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "const char* gsz = \"a\" \"b\"_s \"c\"_s;"));
-	AssertString("Generated.cpp (1, 19): User-defined literals are not supported by the compiler yet [\"a\"]\n", szErrors.Text());
+	AssertString("Generated.cpp (1, 19): No literal operator takes the literal [\"a\"]\n", szErrors.Text());
 	szErrors.Kill();
 	szAssembly.Kill();
 
 	szAssembly.Init();
 	szErrors.Init();
 	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "const char* gsz = \"a\"_s \"b\"_t;"));
-	AssertString("Generated.cpp (1, 25): Adjacent string literals have different user-defined suffixes. [\"b\"_t]\nGenerated.cpp (1, 19): User-defined literals are not supported by the compiler yet [\"a\"_s]\n", szErrors.Text());
+	AssertString("Generated.cpp (1, 25): Adjacent string literals have different user-defined suffixes. [\"b\"_t]\nGenerated.cpp (1, 19): No literal operator takes the literal [\"a\"_s]\n", szErrors.Text());
 	szErrors.Kill();
 	szAssembly.Kill();
 }

@@ -181,7 +181,7 @@ void CCPP65TypeChecker::VisitSubscriptExpression(CCPPSyntaxSubscriptExpression* 
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitLiteralExpression(CCPPSyntaxLiteralExpression* pcNode)
 {
-	mpsResult = ConstantValue(pcNode);
+	mpsResult = mpcUnit->UserLiteralToken(pcNode) ? LiteralCall(pcNode) : ConstantValue(pcNode);
 }
 
 
@@ -191,7 +191,33 @@ void CCPP65TypeChecker::VisitLiteralExpression(CCPPSyntaxLiteralExpression* pcNo
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitStringExpression(CCPPSyntaxStringExpression* pcNode)
 {
-	mpsResult = StringLiteral(pcNode);
+	mpsResult = mpcUnit->UserLiteralToken(pcNode) ? LiteralCall(pcNode) : StringLiteral(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A user-defined literal: the call of its literal operator
+// (CCPPUnit::GetLiteralCall).  [lex.ext]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::LiteralCall(CCPPSyntax* pcLiteral)
+{
+	SCPPLiteralCall*	psCall;
+	CCPPFunction*		pcFunction;
+
+	psCall = mpcUnit->GetLiteralCall(pcLiteral);
+	if (!psCall)
+	{
+		Error(pcLiteral, "No literal operator takes the literal");
+		return NULL;
+	}
+	pcFunction = psCall->pcFunction;
+	if (!Arguments(&pcFunction->mapsParameters, &pcFunction->mapcDefaults, pcFunction->mbVariadic, &psCall->pcArguments->macpElements, pcLiteral, pcFunction->mpsReturn))
+	{
+		return NULL;
+	}
+	return pcFunction->mpsReturn;
 }
 
 
@@ -2523,6 +2549,9 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	CCPPClass*						pcClass;
 	CCPPFunction*					pcConversion;
+	CCPPFunction*					pcConstructor;
+	CCPPSyntax*						pcList;
+	SCPP65Type*						psElement;
 	int								i;
 	bool							bResult;
 	bool							bBraced;
@@ -2533,6 +2562,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		papcArguments = &apcArguments;
 	}
 	bBraced = pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList);
+	pcList = bBraced ? pcInitialiser : NULL;
 	if (pcInitialiser && ((pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) || (pcInitialiser->GetKind() == CPPS_InitializerList)))
 	{
 		papcArguments = mpcUnit->ListElements(pcInitialiser);
@@ -2596,6 +2626,21 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		apcArguments.Kill();
 		return false;
 	}
+	if (pcList)
+	{
+		//A std::initializer_list is made from the list's elements; a class with an initializer-list constructor
+		//that takes the list, by it.  [dcl.init.list] 3 and 5
+		psElement = mpcUnit->InitializerListElement(psType);
+		pcConstructor = psElement ? NULL : mpcUnit->GetBinder()->InitializerListConstructor(pcClass, pcList);
+		if (psElement || pcConstructor)
+		{
+			apcArguments.ReInit();
+			apcArguments.Add(pcList);
+			bResult = psElement ? InitializerListElements(psType, psElement, papcArguments, pcNode) : (Call(pcConstructor, &apcArguments, pcNode) != NULL);
+			apcArguments.Kill();
+			return bResult;
+		}
+	}
 
 	//(object) copies it, as = object does, when no copy constructor of the class's own is to be called.
 	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !pcClass->HasCopyConstructor())
@@ -2642,6 +2687,43 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	}
 	bResult = ConstructClass(pcClass, papcArguments, pcNode);
 	apcArguments.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A std::initializer_list<psElement> (psType) from the elements of a list in
+// braces: each copy initialises an element, without narrowing.  It must be
+// laid out as the compiler fills it (CCPPUnit::InitializerListLayout).
+// [dcl.init.list] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::InitializerListElements(SCPP65Type* psType, SCPP65Type* psElement, CArraySyntax* papcElements, CCPPSyntax* pcNode)
+{
+	CCPPSyntax*	pcElement;
+	size		i;
+	bool		bEnd;
+	bool		bResult;
+
+	if (!mpcUnit->InitializerListLayout(psType->pcClass, &bEnd))
+	{
+		return Error(pcNode, "This std::initializer_list isn't laid out as the compiler fills one: a pointer to its elements, then their count or end");
+	}
+	if (psElement->IsClass() && !mpcUnit->CompleteClass(psElement->pcClass, pcNode))
+	{
+		return false;
+	}
+	if (psElement->IsClass() && psElement->pcClass->NeedsDestructor())
+	{
+		return Error(pcNode, "A std::initializer_list of objects that are destroyed is not supported by the compiler yet");
+	}
+	bResult = true;
+	for (i = 0; i < papcElements->NumElements(); i++)
+	{
+		pcElement = papcElements->GetPtr(i);
+		bResult &= Construct(psElement->Unqualified(), NULL, pcElement, pcElement) && (psElement->IsClass() || (pcElement->GetKind() == CPPS_InitializerList) || NotNarrowed(pcElement, psElement));
+	}
 	return bResult;
 }
 

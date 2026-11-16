@@ -433,7 +433,7 @@ SCPP65Type* CCPPDeduction::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcA
 	{
 		return psArgument;
 	}
-	if (mpcUnit->SkipParentheses(pcArgument)->GetKind() == CPPS_StringExpression)
+	if (mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcArgument)))
 	{
 		return pcTypes->Qualified(pcTypes->Pointer(pcTypes->Qualified(psArgument->psBase, true, false)), true, false);
 	}

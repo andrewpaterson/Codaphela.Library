@@ -147,6 +147,9 @@ bool CCPP65IRFrontEnd::IsObjectCall(CCPPSyntax* pcExpression)
 	case CPPS_CallExpression:
 	case CPPS_LambdaExpression:
 		return true;
+	case CPPS_LiteralExpression:
+	case CPPS_StringExpression:
+		return mpcUnit->UserLiteralToken(pcExpression) != NULL;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
 		return !mpcUnit->IsAssignmentOperator(pcBinary->meOperator) && !mpcUnit->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcUnit->IsOverloadedComma(pcBinary));
@@ -631,11 +634,15 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	CCPPClass*						pcClass;
 	CCPPFunction*					pcConversion;
+	CCPPFunction*					pcConstructor;
+	CCPPSyntax*						pcList;
+	SCPP65Type*						psElement;
 	SCPP65IRValue					sMade;
 	int								i;
 	bool							bResult;
 	bool							bValueInitialise;
 
+	pcList = NULL;
 	psType = psPlace->psType;
 	if (!papcArguments)
 	{
@@ -684,6 +691,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		else if (pcInitialiser->GetKind() == CPPS_InitializerList)
 		{
 			papcArguments = mpcUnit->ListElements(pcInitialiser);
+			pcList = pcInitialiser;
 			pcInitialiser = NULL;
 			bValueInitialise = papcArguments->NumElements() == 0;
 		}
@@ -717,6 +725,25 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	if (!mpcUnit->CompleteClass(pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
+	}
+	if (pcList)
+	{
+		//A std::initializer_list is made from the list's elements; a class with an initializer-list constructor
+		//that takes the list, by it.  [dcl.init.list] 3 and 5
+		psElement = mpcUnit->InitializerListElement(psType);
+		if (psElement)
+		{
+			return InitializerList(psPlace, psElement, papcArguments);
+		}
+		pcConstructor = mpcUnit->GetBinder()->InitializerListConstructor(pcClass, pcList);
+		if (pcConstructor)
+		{
+			apcArguments.Init();
+			apcArguments.Add(pcList);
+			bResult = CallObject(pcConstructor, psPlace->sAddress, pcClass, &apcArguments, false);
+			apcArguments.Kill();
+			return bResult;
+		}
 	}
 
 	//(object) and = object copy an object, when no copy constructor of the class's own is to be called.
@@ -815,6 +842,59 @@ bool CCPP65IRFrontEnd::ConvertToObject(SCPP65IRPlace* psPlace, CCPPFunction* pcC
 		return Unsupported(__FILE__, __LINE__);
 	}
 	return CopyBytes(psPlace, &sMade);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A std::initializer_list<psElement> at psPlace from the elements of a list
+// in braces: they are an array in the frame, which it points to with their
+// count (or end).  [dcl.init.list] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::InitializerList(SCPP65IRPlace* psPlace, SCPP65Type* psElement, CArraySyntax* papcElements)
+{
+	SCPP65IRPlace	sElement;
+	SCPP65IRPlace	sField;
+	SCPP65IRValue	sValue;
+	SIRReference	sArray;
+	SCPPField*		psFirst;
+	SCPPField*		psSecond;
+	size			uiCount;
+	size			i;
+	bool			bEnd;
+
+	if (!mpcUnit->InitializerListLayout(psPlace->psType->pcClass, &bEnd))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	uiCount = papcElements->NumElements();
+	sArray = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)((uiCount > 0) ? uiCount * psElement->iBytes : 1), 4);
+	sElement.psType = psElement->Unqualified();
+	sElement.psBitField = NULL;
+	for (i = 0; i < uiCount; i++)
+	{
+		sElement.sAddress = AddressAt(sArray, (int)(i * psElement->iBytes));
+		if (sElement.psType->IsClass() ? !Construct(&sElement, NULL, papcElements->GetPtr(i)) : !LocalInitialiser(&sElement, papcElements->GetPtr(i), false))
+		{
+			return false;
+		}
+	}
+
+	psFirst = psPlace->psType->pcClass->macFields.Get(0);
+	psSecond = psPlace->psType->pcClass->macFields.Get(1);
+	sField.psBitField = NULL;
+	sField.sAddress = AddressAt(psPlace->sAddress, psFirst->iOffset);
+	sField.psType = psFirst->psType;
+	sValue.sValue = sArray;
+	sValue.psType = psFirst->psType;
+	Store(&sField, &sValue);
+	sField.sAddress = AddressAt(psPlace->sAddress, psSecond->iOffset);
+	sField.psType = psSecond->psType;
+	sValue.sValue = bEnd ? AddressAt(sArray, (int)(uiCount * psElement->iBytes)) : Integer(psSecond->psType, (int64)uiCount);
+	sValue.psType = psSecond->psType;
+	Store(&sField, &sValue);
+	return true;
 }
 
 
@@ -1374,6 +1454,10 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		break;
 	case CPPS_CallExpression:
 		return CallExpression((CCPPSyntaxCallExpression*)pcExpression, psValue);
+	case CPPS_LiteralExpression:
+	case CPPS_StringExpression:
+		//A user-defined literal that makes an object: its literal operator's call.
+		return LiteralCall(pcExpression, psValue);
 	case CPPS_ConditionalExpression:
 		return ObjectConditional((CCPPSyntaxConditionalExpression*)pcExpression, NULL, psValue);
 	case CPPS_BinaryExpression:

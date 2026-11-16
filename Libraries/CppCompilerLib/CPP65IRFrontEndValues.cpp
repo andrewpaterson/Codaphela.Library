@@ -172,20 +172,15 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_ImplicitArgument:
-		if (mcImplicitValues.Get((int64)(size)pcExpression))
-		{
-			//A value the call is given (CallWithValue).
-			*psValue = *mcImplicitValues.Get((int64)(size)pcExpression);
-			return true;
-		}
-		return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
+		return ImplicitArgument((CCPPSyntaxImplicitArgument*)pcExpression, psValue);
 	case CPPS_LiteralExpression:
+		return mpcUnit->UserLiteralToken(pcExpression) ? LiteralCall(pcExpression, psValue) : (ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__));
 	case CPPS_SizeofExpression:
 	case CPPS_TypeTraitExpression:
 	case CPPS_NoexceptExpression:
 		return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 	case CPPS_StringExpression:
-		return StringLiteral(pcExpression, psValue);
+		return mpcUnit->UserLiteralToken(pcExpression) ? LiteralCall(pcExpression, psValue) : StringLiteral(pcExpression, psValue);
 	case CPPS_IdExpression:
 		mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
 		switch (cBound.meWhat)
@@ -446,6 +441,63 @@ bool CCPP65IRFrontEnd::ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* ps
 	psValue->sValue = Integer(psType, lliValue);
 	psValue->psType = psType;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An argument the program doesn't write: the value the call is given
+// (CallWithValue), the characters of a user-defined literal's string or its
+// spelling, or a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ImplicitArgument(CCPPSyntaxImplicitArgument* pcArgument, SCPP65IRValue* psValue)
+{
+	CChars	szSpelling;
+
+	if (mcImplicitValues.Get((int64)(size)pcArgument))
+	{
+		*psValue = *mcImplicitValues.Get((int64)(size)pcArgument);
+		return true;
+	}
+	if (pcArgument->mpcString)
+	{
+		if (!StringLiteral(pcArgument->mpcString, psValue))
+		{
+			return false;
+		}
+		psValue->psType = pcArgument->mpsType;
+		return true;
+	}
+	if (pcArgument->miSpelling >= 0)
+	{
+		szSpelling.Init();
+		mpcUnit->UserLiteralSpelling(pcArgument->miSpelling, &szSpelling);
+		StringData(szSpelling.Text(), szSpelling.Length(), psValue);
+		psValue->psType = pcArgument->mpsType;
+		szSpelling.Kill();
+		return true;
+	}
+	return ConstantValue(pcArgument, psValue) || Unsupported(__FILE__, __LINE__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A user-defined literal: its literal operator called with what it is
+// given (CCPPUnit::GetLiteralCall).  [lex.ext]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::LiteralCall(CCPPSyntax* pcLiteral, SCPP65IRValue* psValue)
+{
+	SCPPLiteralCall*	psCall;
+
+	psCall = mpcUnit->GetLiteralCall(pcLiteral);
+	if (!psCall)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	return Call(psCall->pcFunction, FunctionSymbol(psCall->pcFunction), NULL, &psCall->pcArguments->macpElements, psValue, NULL, false, NULL, false, IRNone());
 }
 
 
@@ -934,13 +986,15 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		return true;
 
 	case CPPS_CallExpression:
-		//What a call that returns a reference refers to, or the object a call makes.
+	case CPPS_LiteralExpression:
+	case CPPS_StringExpression:
+		//What a call (or a user-defined literal's) that returns a reference refers to, or the object it makes.
 		psType = mpcUnit->DeclaredTypeOf(pcExpression);
-		if (!psType || !(psType->IsReference() || psType->IsClass()))
+		if (!psType || !(psType->IsReference() || psType->IsClass()) || ((pcExpression->GetKind() != CPPS_CallExpression) && !mpcUnit->UserLiteralToken(pcExpression)))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if (!CallExpression((CCPPSyntaxCallExpression*)pcExpression, &sAddress))
+		if ((pcExpression->GetKind() == CPPS_CallExpression) ? !CallExpression((CCPPSyntaxCallExpression*)pcExpression, &sAddress) : !LiteralCall(pcExpression, &sAddress))
 		{
 			return false;
 		}

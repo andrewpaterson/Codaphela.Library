@@ -126,7 +126,7 @@ public:
 	CCPPFunction*			FindMemberFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, bool bStatic, CCPPClass** ppcClass, bool* pbOverloaded);
 	CCPPFunction*			FindOperator(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, ECPPCalledObject eObject);
 	CCPPScope*				CurrentLookupScope(void);
-	CCPPFunction*			FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	CCPPFunction*			FindFreeOperator(int64 lliName, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 };
 
 

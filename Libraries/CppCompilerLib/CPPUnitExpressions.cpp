@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTBoolean.h"
 #include "CTString.h"
 #include "CTIdentifier.h"
+#include "CTUserLiteral.h"
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
 #include "CPPUnit.h"
@@ -47,7 +48,7 @@ SCPP65Type* CCPPUnit::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 	pcToken = mpcTokeniser->Get(pcLiteral->miLiteral);
 	if (pcToken->IsUserLiteral())
 	{
-		Error(pcLiteral, "User-defined literals are not supported by the compiler yet");
+		Error(pcLiteral, "No literal operator takes the literal");
 		return NULL;
 	}
 	if (pcToken->IsNumber())
@@ -308,6 +309,247 @@ bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A literal token's value: a number's, a character's, a bool's, nullptr's
+// (0).  False for a floating point number and a user-defined literal.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::TokenConstant(CCPPToken* pcToken, int64* plliValue)
+{
+	if (pcToken->IsNumber())
+	{
+		switch (((CCTNumber*)pcToken)->meType)
+		{
+		case CTNT_Int:
+			*plliValue = ((CCTInt*)pcToken)->mcValue;
+			if (((CCTInt*)pcToken)->IsSigned())
+			{
+				*plliValue = (int32)((CCTInt*)pcToken)->mcValue;
+			}
+			return true;
+		case CTNT_Short:
+			*plliValue = ((CCTShort*)pcToken)->mcValue;
+			return true;
+		case CTNT_LongLong:
+			*plliValue = (int64)((CCTLongLong*)pcToken)->mcValue;
+			return true;
+		default:
+			return false;
+		}
+	}
+	if (pcToken->IsChar())
+	{
+		*plliValue = (int8)((CCTChar*)pcToken)->mcChar;
+		return true;
+	}
+	if (pcToken->IsBool())
+	{
+		*plliValue = ((CCTBoolean*)pcToken)->mcBool ? 1 : 0;
+		return true;
+	}
+	if (pcToken->IsUserLiteral())
+	{
+		return false;
+	}
+	*plliValue = 0;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an expression is a string literal, its characters: not a
+// user-defined one ("text"_s), which is its literal operator's call.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsStringLiteral(CCPPSyntax* pcExpression)
+{
+	return pcExpression && (pcExpression->GetKind() == CPPS_StringExpression) && !UserLiteralToken(pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The user-defined literal token of a literal (10_km, 'x'_c) or a string
+// ("text"_s, or "te" "xt"_s), or NULL for one without a suffix.
+//
+//////////////////////////////////////////////////////////////////////////
+CCTUserLiteral* CCPPUnit::UserLiteralToken(CCPPSyntax* pcLiteral)
+{
+	CCPPToken*	pcToken;
+	int32		iToken;
+
+	if (pcLiteral->GetKind() == CPPS_LiteralExpression)
+	{
+		pcToken = mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcLiteral)->miLiteral);
+		return pcToken->IsUserLiteral() ? (CCTUserLiteral*)pcToken : NULL;
+	}
+	if (pcLiteral->GetKind() == CPPS_StringExpression)
+	{
+		for (iToken = pcLiteral->miFirstToken; iToken <= pcLiteral->miLastToken; iToken++)
+		{
+			pcToken = mpcTokeniser->Get(iToken);
+			if (pcToken->IsUserString())
+			{
+				return (CCTUserLiteral*)pcToken;
+			}
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The call a user-defined literal is, worked out once for its node: its
+// suffix's literal operator and what it is given ([lex.ext]).  "text"_s is
+// operator "" _s("text", 4) and 'c'_c operator "" _c('c').  12_k is
+// operator "" _k(12ULL) if that operator takes an unsigned long long (1.5_k
+// a long double), else operator "" _k("12") if it takes a const char*, else
+// operator "" _k<'1', '2'>().  NULL if no literal operator takes it.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPLiteralCall* CCPPUnit::GetLiteralCall(CCPPSyntax* pcLiteral)
+{
+	SCPPLiteralCall*				psCall;
+	SCPPLiteralCall					sCall;
+	CCTUserLiteral*					pcUser;
+	CCPPSyntaxImplicitArgument*		pcArgument;
+	CArraySyntax*					papcArguments;
+	CArraySyntax					apcExplicit;
+	CArrayUint8						auiBytes;
+	CChars							szSpelling;
+	SCPP65Type*						psFloat;
+	int64							lliName;
+	int64							lliValue;
+	double							dValue;
+	int								i;
+
+	psCall = mcLiteralCalls.Get((int64)(size)pcLiteral);
+	if (psCall)
+	{
+		return psCall->pcFunction ? psCall : NULL;
+	}
+	pcUser = UserLiteralToken(pcLiteral);
+	if (!pcUser)
+	{
+		return NULL;
+	}
+
+	sCall.pcFunction = NULL;
+	sCall.pcArguments = mpcTree->GetMemory()->Create<CCPPSyntaxParenthesisedInitializer>(pcLiteral);
+	sCall.pcArguments->SetTokens(pcLiteral->miFirstToken, pcLiteral->miLastToken);
+	papcArguments = &sCall.pcArguments->macpElements;
+	lliName = CPP_LITERAL_NAME(pcUser->miSuffix);
+	if (pcLiteral->GetKind() == CPPS_StringExpression)
+	{
+		auiBytes.Init();
+		if (DecodeString(pcLiteral, &auiBytes))
+		{
+			LiteralArgument(pcLiteral, mcTypes.Pointer(mcTypes.Const(StringElementType(pcLiteral))), papcArguments)->mpcString = pcLiteral;
+			pcArgument = LiteralArgument(pcLiteral, mcTypes.Size(), papcArguments);
+			pcArgument->mbConstant = true;
+			pcArgument->mlliValue = (int64)(auiBytes.NumElements() / StringElementBytes(pcLiteral));
+			sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
+		}
+		auiBytes.Kill();
+	}
+	else if (pcUser->mpcLiteral->IsChar())
+	{
+		pcArgument = LiteralArgument(pcLiteral, &mcTypes.msChar, papcArguments);
+		pcArgument->mbConstant = TokenConstant(pcUser->mpcLiteral, &pcArgument->mlliValue);
+		sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
+	}
+	else if (pcUser->mpcLiteral->IsNumber())
+	{
+		psFloat = NULL;
+		dValue = 0;
+		if (TokenConstant(pcUser->mpcLiteral, &lliValue))
+		{
+			pcArgument = LiteralArgument(pcLiteral, &mcTypes.msUnsignedLongLong, papcArguments);
+			pcArgument->mlliValue = lliValue;
+		}
+		else
+		{
+			pcArgument = LiteralArgument(pcLiteral, mcTypes.LongDouble(), papcArguments);
+			pcArgument->mdValue = TokenFloat(pcUser->mpcLiteral, &dValue, &psFloat) ? dValue : 0;
+		}
+		pcArgument->mbConstant = true;
+		sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
+
+		//The raw operator, given the literal's spelling.
+		if (!sCall.pcFunction)
+		{
+			papcArguments->ReInit();
+			LiteralArgument(pcLiteral, mcTypes.Pointer(mcTypes.Const(&mcTypes.msChar)), papcArguments)->miSpelling = ((CCPPSyntaxLiteralExpression*)pcLiteral)->miLiteral;
+			sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
+		}
+
+		//The template operator, given its characters as its arguments.
+		if (!sCall.pcFunction)
+		{
+			papcArguments->ReInit();
+			apcExplicit.Init();
+			szSpelling.Init();
+			UserLiteralSpelling(((CCPPSyntaxLiteralExpression*)pcLiteral)->miLiteral, &szSpelling);
+			for (i = 0; i < szSpelling.Length(); i++)
+			{
+				pcArgument = LiteralArgument(pcLiteral, &mcTypes.msChar, &apcExplicit);
+				pcArgument->mbConstant = true;
+				pcArgument->mlliValue = szSpelling.GetChar(i);
+			}
+			sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, &apcExplicit, papcArguments, pcLiteral);
+			szSpelling.Kill();
+			apcExplicit.Kill();
+		}
+	}
+	mcLiteralCalls.Put((int64)(size)pcLiteral, &sCall);
+	return sCall.pcFunction ? mcLiteralCalls.Get((int64)(size)pcLiteral) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An argument of psType for a user-defined literal's call, added to
+// papcArguments: the caller says what it holds.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxImplicitArgument* CCPPUnit::LiteralArgument(CCPPSyntax* pcLiteral, SCPP65Type* psType, CArraySyntax* papcArguments)
+{
+	CCPPSyntaxImplicitArgument*	pcArgument;
+
+	pcArgument = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitArgument>(NULL);
+	pcArgument->SetTokens(pcLiteral->miFirstToken, pcLiteral->miLastToken);
+	pcArgument->mpsType = psType;
+	papcArguments->Add(pcArgument);
+	return pcArgument;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A user-defined literal token's spelling without its suffix: 0x1F of
+// 0x1F_k, what a raw literal operator is given.  [lex.ext] 3
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::UserLiteralSpelling(int32 iToken, CChars* pszSpelling)
+{
+	CCPPToken*			pcToken;
+	SPreprocessedToken*	psSource;
+	int					iSuffix;
+
+	pcToken = mpcTokeniser->Get(iToken);
+	psSource = mpcTokeniser->GetSource(pcToken);
+	iSuffix = 0;
+	if (pcToken->IsUserLiteral())
+	{
+		mpcTokeniser->GetIdentifier(((CCTUserLiteral*)pcToken)->miSuffix, &iSuffix);
+	}
+	pszSpelling->Append(psSource->szText, (int)psSource->uiLength - iSuffix);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a name that isn't a function's is ambiguous: lookup finds two
 // different things where it finds it (CCPPScope::IsAmbiguous, or for a
 // name qualified by a namespace IsAmbiguousMember).
@@ -389,7 +631,7 @@ CCPPSyntax* CCPPUnit::ImplicitZero(void)
 	{
 		mpcImplicitZero = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitArgument>(NULL);
 		mpcImplicitZero->mpsType = &mcTypes.msInt;
-		mpcImplicitZero->mbZero = true;
+		mpcImplicitZero->mbConstant = true;
 	}
 	return mpcImplicitZero;
 }
@@ -1237,7 +1479,7 @@ bool CCPPUnit::NamesConstexpr(CCPPSyntax* pcNode)
 	{
 		return false;
 	}
-	if (pcNode->GetKind() == CPPS_StringExpression)
+	if (IsStringLiteral(pcNode))
 	{
 		return true;
 	}
@@ -1275,7 +1517,6 @@ bool CCPPUnit::NamesConstexpr(CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 {
-	CCPPToken*						pcToken;
 	CCPPSyntaxUnaryExpression*		pcUnary;
 	CCPPSyntaxBinaryExpression*		pcBinary;
 	CCPPSyntaxConditionalExpression*	pcConditional;
@@ -1307,48 +1548,11 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_ImplicitArgument:
-		*plliValue = 0;
-		return ((CCPPSyntaxImplicitArgument*)pcExpression)->mbZero;
+		*plliValue = ((CCPPSyntaxImplicitArgument*)pcExpression)->mlliValue;
+		return ((CCPPSyntaxImplicitArgument*)pcExpression)->mbConstant && !((CCPPSyntaxImplicitArgument*)pcExpression)->mpsType->IsFloat();
 
 	case CPPS_LiteralExpression:
-		pcToken = mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral);
-		if (pcToken->IsNumber())
-		{
-			switch (((CCTNumber*)pcToken)->meType)
-			{
-			case CTNT_Int:
-				*plliValue = ((CCTInt*)pcToken)->mcValue;
-				if (((CCTInt*)pcToken)->IsSigned())
-				{
-					*plliValue = (int32)((CCTInt*)pcToken)->mcValue;
-				}
-				return true;
-			case CTNT_Short:
-				*plliValue = ((CCTShort*)pcToken)->mcValue;
-				return true;
-			case CTNT_LongLong:
-				*plliValue = (int64)((CCTLongLong*)pcToken)->mcValue;
-				return true;
-			default:
-				return false;
-			}
-		}
-		if (pcToken->IsChar())
-		{
-			*plliValue = (int8)((CCTChar*)pcToken)->mcChar;
-			return true;
-		}
-		if (pcToken->IsBool())
-		{
-			*plliValue = ((CCTBoolean*)pcToken)->mcBool ? 1 : 0;
-			return true;
-		}
-		if (pcToken->IsUserLiteral())
-		{
-			return false;
-		}
-		*plliValue = 0;
-		return true;
+		return TokenConstant(mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral), plliValue);
 
 	case CPPS_IdExpression:
 		pcId = (CCPPSyntaxIdExpression*)pcExpression;
@@ -2920,9 +3124,14 @@ bool CCPPUnit::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 			continue;
 		}
 
-		if (pcToken->IsUserLiteral())
+		if (pcToken->IsUserString())
 		{
-			return Error(pcString, "User-defined literals are not supported by the compiler yet");
+			//"text"_s's characters, given to its literal operator (GetLiteralCall).
+			if (!DecodeStringToken(pcString, (CCTString*)((CCTUserLiteral*)pcToken)->mpcLiteral, iElementBytes, pauiBytes))
+			{
+				return false;
+			}
+			continue;
 		}
 		if (iElementBytes != 1)
 		{
@@ -3002,6 +3211,7 @@ int CCPPUnit::StringElementBytes(CCPPSyntax* pcString)
 	for (iToken = pcString->miFirstToken; iToken <= pcString->miLastToken; iToken++)
 	{
 		pcToken = mpcTokeniser->Get(iToken);
+		pcToken = pcToken->IsUserString() ? ((CCTUserLiteral*)pcToken)->mpcLiteral : pcToken;
 		if (pcToken->IsString() && (((CCTString*)pcToken)->meEncoding == CTE_UTF32))
 		{
 			return 4;

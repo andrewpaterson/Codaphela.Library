@@ -19,6 +19,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CTIdentifier.h"
+#include "CTString.h"
+#include "CTUserLiteral.h"
 #include "CppParser.h"
 
 
@@ -236,6 +238,17 @@ static bool IsOverloadableOperator(CCPPToken* pcToken)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a token is "", the string a literal operator's name is made of.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsEmptyString(CCPPToken* pcToken)
+{
+	return pcToken && pcToken->IsString() && (((CCTString*)pcToken)->mszEnd - ((CCTString*)pcToken)->mszStart == 1) && (*((CCTString*)pcToken)->mszStart == '"');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxNameComponent* CCPPParser::ParseOperatorName(CCPPSyntax* pcParent)
@@ -276,6 +289,17 @@ CCPPSyntaxNameComponent* CCPPParser::ParseOperatorName(CCPPSyntax* pcParent)
 	else if (IsOverloadableOperator(pcToken))
 	{
 		pcComponent->meKind = CPPNC_Operator;
+		pcComponent->miName = CurrentToken();
+		Next();
+	}
+	else if ((IsEmptyString(pcToken) && Peek(1) && Peek(1)->IsIdentifier()) || (pcToken->IsUserString() && IsEmptyString(((CCTUserLiteral*)pcToken)->mpcLiteral)))
+	{
+		//operator "" _k and operator ""_k: a literal operator, named by its suffix.  [over.literal] 1
+		pcComponent->meKind = CPPNC_Literal;
+		if (pcToken->IsString())
+		{
+			Next();
+		}
 		pcComponent->miName = CurrentToken();
 		Next();
 	}
