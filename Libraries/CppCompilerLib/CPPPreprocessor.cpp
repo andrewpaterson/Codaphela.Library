@@ -605,14 +605,16 @@ SPPSource* CCPPPreprocessor::GetCurrentFileSource(void)
 size CCPPPreprocessor::LiteralBeforeMacro(CPPText* pcLiteral)
 {
 	size				uiLength;
+	size				uiTokenLength;
 	CExternalString		cName;
 
-	uiLength = QuotedLiteralLength(pcLiteral->TextStart(), pcLiteral->Length());
-	if ((uiLength == 0) || (uiLength == pcLiteral->Length()) || (pcLiteral->TextStart()[uiLength] == '_'))
+	uiTokenLength = (size)pcLiteral->Length();
+	uiLength = QuotedLiteralLength(pcLiteral->TextStart(), uiTokenLength);
+	if ((uiLength == 0) || (uiLength == uiTokenLength) || (pcLiteral->TextStart()[uiLength] == '_'))
 	{
 		return 0;
 	}
-	cName.Init(pcLiteral->TextStart() + uiLength, (int)(pcLiteral->Length() - uiLength));
+	cName.Init(pcLiteral->TextStart() + uiLength, uiTokenLength - uiLength);
 	return mcDefines.Get(&cName) ? uiLength : 0;
 }
 
