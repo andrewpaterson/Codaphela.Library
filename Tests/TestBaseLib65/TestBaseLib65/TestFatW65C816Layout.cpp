@@ -294,7 +294,9 @@ static const STestFatW65C816Value gasTestFatW65C816Values[] =
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The W65C816 source that works the values out: an array of longs.
+// The W65C816 source that works the values out: an array of longs.  The
+// classes' members are made public for it: offsetof is refused a member it
+// couldn't name, and the layout doesn't care.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestFatW65C816LayoutSource(CChars* pszSource)
@@ -303,6 +305,8 @@ static void TestFatW65C816LayoutSource(CChars* pszSource)
 
 	pszSource->Init();
 	pszSource->Append("#include <stddef.h>\n");
+	pszSource->Append("#define protected public\n");
+	pszSource->Append("#define private public\n");
 	pszSource->Append("#include \"BaseLib/FatVolume.h\"\n");
 	pszSource->Append("#include \"BaseLib/FatFile.h\"\n");
 	pszSource->Append("extern \"C\" const unsigned long gauiFatW65C816Layout[] =\n{\n");
