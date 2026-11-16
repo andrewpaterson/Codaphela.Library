@@ -28,10 +28,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// (T)x and the named casts, to scalars and void.
+// (T)x, T(x) and the named casts (pcCast), to scalars and void.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::CastExpression(CCPPSyntax* pcCast, CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		psTo;
 	bool			bAddress;
@@ -66,7 +66,60 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 	{
 		mpcUnit->WideningArithmetic(pcOperand, psValue->psType, psTo);
 	}
+
+	//A base's pointer cast to a derived class's (but by reinterpret_cast) points at the derived object.
+	if (!IsReinterpretCast(pcCast) && psTo->IsPointer() && psValue->psType && psValue->psType->IsPointer() && psTo->psBase->IsClass() && psValue->psType->psBase->IsClass() &&
+		(psTo->psBase->pcClass != psValue->psType->psBase->pcClass) && mpcUnit->IsDerived(psTo->psBase->pcClass, psValue->psType->psBase->pcClass, NULL))
+	{
+		if (!DerivedAddress(&psValue->sValue, psValue->psType->psBase->pcClass, psTo->psBase->pcClass, true, pcCast))
+		{
+			return false;
+		}
+		psValue->psType = psTo;
+		return true;
+	}
 	return psTo->IsScalar() ? Convert(psValue, psTo) : Unsupported(__FILE__, __LINE__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// static_cast<To*>(from) (or to To&, or a cast that is one): the address of
+// the pcTo object whose pcFrom base is at *psAddress, a fixed distance
+// back (a null pointer stays null with bNull).  A virtual base is nowhere
+// fixed in the class, so a cast from one is an error.  [expr.static.cast]
+// 2, 11
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DerivedAddress(SIRReference* psAddress, CCPPClass* pcFrom, CCPPClass* pcTo, bool bNull, CCPPSyntax* pcCast)
+{
+	int		iOffset;
+
+	if (!mpcUnit->CompleteClass(pcTo, NULL) || !mpcUnit->IsDerived(pcTo, pcFrom, &iOffset))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	if (iOffset == CPP_VIRTUAL_PATH)
+	{
+		mpcUnit->ReportError(pcCast, "A pointer or reference to a virtual base can't be cast to a class derived from it");
+		return Unsupported(__FILE__, __LINE__);
+	}
+	if (iOffset != 0)
+	{
+		*psAddress = bNull ? BaseAddress(*psAddress, -iOffset) : AddressAt(*psAddress, -iOffset);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the cast is reinterpret_cast<T>(x), which moves no pointer.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IsReinterpretCast(CCPPSyntax* pcCast)
+{
+	return (pcCast->GetKind() == CPPS_NamedCastExpression) && (((CCPPSyntaxNamedCastExpression*)pcCast)->meCast == CT_reinterpret_cast);
 }
 
 
@@ -537,7 +590,8 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 		//classes, say) it is the same value.
 		if ((BaseOffset(psTo->pcClass, psFrom->pcClass) == CPP_VIRTUAL_PATH) || (BaseOffset(psFrom->pcClass, psTo->pcClass) == CPP_VIRTUAL_PATH))
 		{
-			//A member of a virtual base has no fixed offset from the derived class.
+			//A member of a virtual base has no fixed offset from the derived class.  [conv.mem] 2
+			mpcUnit->ReportError(mpcValue, "A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it");
 			return Unsupported(__FILE__, __LINE__);
 		}
 		iOffset = BaseOffset(psTo->pcClass, psFrom->pcClass) - BaseOffset(psFrom->pcClass, psTo->pcClass);

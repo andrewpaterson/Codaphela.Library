@@ -2997,7 +2997,13 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 		return true;
 	}
 
-	//A pointer to a member of a base is a pointer to a member of a class derived from it ([conv.mem]).
+	//A pointer to a member of a base is a pointer to a member of a class derived from it, but not of a virtual base,
+	//whose members are nowhere fixed in the class.  [conv.mem] 2
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->pcClass && psTo->pcClass && (psFrom->pcClass != psTo->pcClass) && mpcUnit->CompleteClass(psTo->pcClass, pcNode) &&
+		mpcUnit->IsDerived(psTo->pcClass, psFrom->pcClass, &iOffset) && (iOffset == CPP_VIRTUAL_PATH))
+	{
+		return Error(pcNode, "A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it");
+	}
 	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->pcClass && psTo->pcClass && (psFrom->pcClass != psTo->pcClass) && mpcUnit->CompleteClass(psTo->pcClass, pcNode) && mpcUnit->IsDerived(psTo->pcClass, psFrom->pcClass, &iOffset) && (iOffset != 0) && psFrom->psBase->IsFunction())
 	{
 		return Error(pcNode, "A pointer to a member function of a base further on in the class is not supported by the compiler yet");

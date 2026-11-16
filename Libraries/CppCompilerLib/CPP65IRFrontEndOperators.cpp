@@ -285,6 +285,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	SCPP65IRValue	sOld;
 	ECppTokens		eOperator;
 	SCPP65Type*		psLeft;
+	bool			bBytes;
 
 	psLeft = mpcUnit->TypeOf(pcBinary->mpcLeft);
 	if (psLeft && psLeft->IsClass())
@@ -308,7 +309,9 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 		{
 			return false;
 		}
-		if (!(sPlace.psType->pcClass->IsTriviallyAssignable() ? CopyBytes(&sPlace, &sRight) : AssignMembers(&sPlace, &sRight, pcBinary->mpcRight)))
+		//A polymorphic object's vtable pointers stay: it may be a base subobject of another class's.
+		bBytes = sPlace.psType->pcClass->IsTriviallyAssignable() && !sPlace.psType->pcClass->IsPolymorphic();
+		if (!(bBytes ? CopyBytes(&sPlace, &sRight) : AssignMembers(&sPlace, &sRight, pcBinary->mpcRight)))
 		{
 			return false;
 		}

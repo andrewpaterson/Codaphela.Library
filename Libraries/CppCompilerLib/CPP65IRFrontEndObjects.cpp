@@ -664,13 +664,21 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass, bo
 //////////////////////////////////////////////////////////////////////////
 SIRReference CCPP65IRFrontEnd::VTTOf(CCPPClass* pcClass)
 {
+	return mbBaseVersion ? msVTT : CompleteVTT(pcClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The VTT of a complete object of the class (_Class__4, CCPPUnit::
+// EnsureVTT).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::CompleteVTT(CCPPClass* pcClass)
+{
 	CChars			szLabel;
 	SIRReference	sVTT;
 
-	if (mbBaseVersion)
-	{
-		return msVTT;
-	}
 	mpcUnit->EnsureVTT(pcClass);
 	szLabel.Init();
 	mpcUnit->GetMangler()->AppendVTTLabel(&szLabel, pcClass);
@@ -1845,35 +1853,55 @@ bool CCPP65IRFrontEnd::CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 	SCPP65IRPlace	sSource;
 	SIRReference	sAddress;
 
-	return Place(pcSource, &sSource) && CopyPlace(psPlace, &sSource, &sAddress) && CopyParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->IsRvalue(pcSource));
+	//The vtables are the object's once its parts' copy constructors (which store their own) have run.
+	return Place(pcSource, &sSource) && CopyPlace(psPlace, &sSource, &sAddress) && CopyParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->IsRvalue(pcSource), NULL, 0) &&
+		   StoreVtables(psPlace->sAddress, psPlace->psType->pcClass);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Copies the bases and fields of the class (the objects at sDestination and
-// sSource) that have copy constructors with them.
+// sSource) that have copy constructors with them, in the order a copy
+// constructor makes them: the virtual bases (once, by a complete object:
+// pcComplete is NULL), then the other bases, then the fields.  A part that
+// is a base subobject of a complete pcComplete, and has virtual bases, is
+// copied by its copy constructor's base version, given the entries at
+// iVTTIndex in pcComplete's VTT.  [class.copy] 15
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove)
+bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, CCPPClass* pcComplete, int iVTTIndex)
 {
-	SCPPBase*		psBase;
-	SCPPField*	psField;
-	SCPP65Type*		psType;
-	size			i;
-	int				j;
-	int				iCount;
-	int				iOffset;
+	SCPPBase*			psBase;
+	SCPPVirtualBase*	psVirtual;
+	SCPPField*			psField;
+	SCPP65Type*			psType;
+	CCPPClass*			pcBaseComplete;
+	size				i;
+	int					j;
+	int					iCount;
+	int					iOffset;
 
-	if (pcClass->HasVirtualBases())
+	for (i = 0; !pcComplete && (i < pcClass->macVirtualBases.NumElements()); i++)
 	{
-		//Its virtual bases are copied once, by the complete object's (not supported yet).
-		return Unsupported(__FILE__, __LINE__);
+		psVirtual = pcClass->macVirtualBases.Get(i);
+		pcBaseComplete = psVirtual->pcClass->HasVirtualBases() ? pcClass : NULL;
+		if (!CopyPart(psVirtual->pcClass, AddressAt(sDestination, psVirtual->iOffset), VirtualBaseAddress(sSource, pcClass, psVirtual->pcClass), bMove,
+					  pcBaseComplete, pcBaseComplete ? mpcUnit->VTTIndex(pcClass, psVirtual->pcClass) : 0))
+		{
+			return false;
+		}
 	}
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
-		if (!CopyPart(psBase->pcClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset), bMove))
+		if (psBase->bVirtual)
+		{
+			continue;
+		}
+		pcBaseComplete = psBase->pcClass->HasVirtualBases() ? (pcComplete ? pcComplete : pcClass) : NULL;
+		if (!CopyPart(psBase->pcClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset), bMove,
+					  pcBaseComplete, pcBaseComplete ? ((pcComplete ? iVTTIndex : 0) + mpcUnit->VTTIndex(pcClass, psBase->pcClass)) : 0))
 		{
 			return false;
 		}
@@ -1895,7 +1923,7 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 		for (j = 0; j < iCount; j++)
 		{
 			iOffset = psField->iOffset + j * psType->iBytes;
-			if (!CopyPart(psType->pcClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset), bMove))
+			if (!CopyPart(psType->pcClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset), bMove, NULL, 0))
 			{
 				return false;
 			}
@@ -1947,11 +1975,14 @@ bool CCPP65IRFrontEnd::InheritedConstructorCall(SCPP65IRPlace* psBase)
 //
 // A part (base or field) of a class: copied with its copy constructor (its
 // parameters after the first given their defaults, scalars only), or its
-// own parts, or left as its bytes.
+// own parts, or left as its bytes.  pcComplete and iVTTIndex: as CopyParts,
+// for a base subobject with virtual bases.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove)
+bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, CCPPClass* pcComplete, int iVTTIndex)
 {
+	bool							bBaseVersion;
+	SIRReference					sVTT;
 	CCPPFunction*					pcConstructor;
 	SCPP65Type*						psParameter;
 	CArrayTemplate<SCPP65IRValue>	asDefaults;
@@ -1965,7 +1996,7 @@ bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, S
 		{
 			return CopyDeleted(mpcValue);
 		}
-		return pcClass->IsTriviallyCopyable() || CopyParts(pcClass, sDestination, sSource, bMove);
+		return pcClass->IsTriviallyCopyable() || CopyParts(pcClass, sDestination, sSource, bMove, pcComplete, iVTTIndex);
 	}
 
 	//The defaults are worked out before the arguments are given: one may be a call.
@@ -1985,7 +2016,14 @@ bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, S
 			return false;
 		}
 	}
+	//A base version's VTT entries are worked out before the arguments, which go straight before the call.
+	bBaseVersion = pcComplete && pcClass->HasVirtualBases();
+	sVTT = bBaseVersion ? AddressAt(CompleteVTT(pcComplete), CPP65_VTABLE_ENTRY_BYTES * iVTTIndex) : IRNone();
 	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sDestination);
+	if (bBaseVersion)
+	{
+		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sVTT);
+	}
 	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sSource);
 	for (ui = 0; ui < asDefaults.NumElements(); ui++)
 	{
@@ -1993,7 +2031,7 @@ bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, S
 		mpcFunction->Argument(mpcBlock, IRTypeOf(psDefault->psType), psDefault->sValue);
 	}
 	asDefaults.Kill();
-	mpcFunction->Call(mpcBlock, IRType(IRTK_None), FunctionSymbol(pcConstructor), -1, true);
+	mpcFunction->Call(mpcBlock, IRType(IRTK_None), FunctionSymbol(pcConstructor, bBaseVersion), -1, true);
 	return true;
 }
 
@@ -2001,8 +2039,10 @@ bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, S
 //////////////////////////////////////////////////////////////////////////
 //
 // object = pcSource for a class with no operator= of its own whose parts
-// have: as the compiler's own operator= does, each base and field is
-// assigned in turn, with its class's operator= or its bytes.  What is
+// have, or that is polymorphic: as the compiler's own operator= does, each
+// base and field is assigned in turn, with its class's operator= or its
+// bytes.  The vtable pointers are left: the object may be a base subobject
+// of another class's.  What is
 // going (bMove of AssignParts) is moved from where a part's class has a
 // move assignment.  [class.copy] 28
 //
@@ -2018,34 +2058,41 @@ bool CCPP65IRFrontEnd::AssignMembers(SCPP65IRPlace* psPlace, SCPP65IRValue* psSo
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	return AssignParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->IsRvalue(pcSource)) && StoreVtables(psPlace->sAddress, psPlace->psType->pcClass);
+	return AssignParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->IsRvalue(pcSource), true);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Assigns the bases and the fields of the pcClass at sSource to those of
-// the one at sDestination, in the order they are declared.
+// the one at sDestination, in the order they are declared.  With
+// bVirtualBases (the object as a whole is assigned) its virtual bases
+// first, once each, where each object has them; else they are left to the
+// object it is a base of.  [class.copy] 28
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::AssignParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove)
+bool CCPP65IRFrontEnd::AssignParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, bool bVirtualBases)
 {
-	SCPPBase*	psBase;
-	SCPPField*	psField;
-	SCPP65Type*	psType;
-	size		i;
-	int			j;
-	int			iOffset;
+	SCPPBase*			psBase;
+	SCPPVirtualBase*	psVirtual;
+	SCPPField*			psField;
+	SCPP65Type*			psType;
+	size				i;
+	int					j;
+	int					iOffset;
 
-	if (pcClass->HasVirtualBases())
+	for (i = 0; bVirtualBases && (i < pcClass->macVirtualBases.NumElements()); i++)
 	{
-		//Its virtual bases are copied once, by the complete object's (not supported yet).
-		return Unsupported(__FILE__, __LINE__);
+		psVirtual = pcClass->macVirtualBases.Get(i);
+		if (!AssignPart(psVirtual->pcClass, VirtualBaseAddress(sDestination, pcClass, psVirtual->pcClass), VirtualBaseAddress(sSource, pcClass, psVirtual->pcClass), bMove, false))
+		{
+			return false;
+		}
 	}
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
-		if (!AssignPart(psBase->pcClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset), bMove))
+		if (!psBase->bVirtual && !AssignPart(psBase->pcClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset), bMove, false))
 		{
 			return false;
 		}
@@ -2062,7 +2109,7 @@ bool CCPP65IRFrontEnd::AssignParts(CCPPClass* pcClass, SIRReference sDestination
 		for (j = 0; j < (psField->psType->IsArray() ? psField->psType->iCount : 1); j++)
 		{
 			iOffset = psField->iOffset + j * psType->iBytes;
-			if (!AssignPart(psType->pcClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset), bMove))
+			if (!AssignPart(psType->pcClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset), bMove, true))
 			{
 				return false;
 			}
@@ -2076,10 +2123,11 @@ bool CCPP65IRFrontEnd::AssignParts(CCPPClass* pcClass, SIRReference sDestination
 //
 // Assigns the pcClass at sSource to the one at sDestination, a part of an
 // object being assigned: with the class's operator= for its own objects,
-// or as AssignParts, or its bytes.
+// or as AssignParts (bVirtualBases as it has it), or its bytes (but a
+// polymorphic class's, whose vtable pointers stay).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::AssignPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove)
+bool CCPP65IRFrontEnd::AssignPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, bool bVirtualBases)
 {
 	CCPPFunction*	pcOperator;
 	SCPP65Type*		psReturn;
@@ -2091,9 +2139,9 @@ bool CCPP65IRFrontEnd::AssignPart(CCPPClass* pcClass, SIRReference sDestination,
 		{
 			return CopyDeleted(mpcValue);
 		}
-		if (!pcClass->IsTriviallyAssignable())
+		if (!pcClass->IsTriviallyAssignable() || pcClass->IsPolymorphic())
 		{
-			return AssignParts(pcClass, sDestination, sSource, bMove);
+			return AssignParts(pcClass, sDestination, sSource, bMove, bVirtualBases);
 		}
 		CopyPieces(sDestination, sSource, pcClass->mpsType->iBytes);
 		return true;
@@ -2113,8 +2161,8 @@ bool CCPP65IRFrontEnd::AssignPart(CCPPClass* pcClass, SIRReference sDestination,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// object = source: the bytes (whatever the class), keeping the
-// destination's vtable pointers.
+// An object made from source, a trivially copyable object of its class: the
+// bytes, and the object's vtable pointers.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyObject(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
@@ -2138,27 +2186,44 @@ bool CCPP65IRFrontEnd::CopyBytes(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource
 
 	sSource.sAddress = psSource->sValue;
 	sSource.psType = psSource->psType->WithoutReference();
-	return CopyPlace(psPlace, &sSource, &sAddress);
+	return CopyPlace(psPlace, &sSource, &sAddress) && StoreVtables(psPlace->sAddress, psPlace->psType->pcClass);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Copies the object at psSource (of the place's class or one derived from
-// it) to the place, a piece at a time, then stores the place's class's
-// vtable pointers.  *psAddress is where it was copied from, as the place's
-// class (its base part).
+// Copies the bytes of the object at psSource (of the place's class or one
+// derived from it) to the place, a piece at a time: of a class with virtual
+// bases its own part, then each virtual base's from where the source has it
+// (the source may be a base subobject, whose virtual bases are elsewhere).
+// *psAddress is where it was copied from, as the place's class (its base
+// part).  The place's vtable pointers are the caller's to store.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyPlace(SCPP65IRPlace* psPlace, SCPP65IRPlace* psSource, SIRReference* psAddress)
 {
+	CCPPClass*			pcClass;
+	SCPPVirtualBase*	psVirtual;
+	size				i;
+
 	if (!psSource->psType->IsClass() || !mpcUnit->IsDerived(psSource->psType->pcClass, psPlace->psType->pcClass, NULL) ||
 		!ReferenceAddress(psSource, mpcTypes->Pointer(psPlace->psType), psAddress))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	CopyPieces(psPlace->sAddress, *psAddress, psPlace->psType->iBytes);
-	return StoreVtables(psPlace->sAddress, psPlace->psType->pcClass);
+	pcClass = psPlace->psType->pcClass;
+	if (!pcClass->HasVirtualBases())
+	{
+		CopyPieces(psPlace->sAddress, *psAddress, psPlace->psType->iBytes);
+		return true;
+	}
+	CopyPieces(psPlace->sAddress, *psAddress, pcClass->miOwnBytes);
+	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
+	{
+		psVirtual = pcClass->macVirtualBases.Get(i);
+		CopyPieces(AddressAt(psPlace->sAddress, psVirtual->iOffset), VirtualBaseAddress(*psAddress, pcClass, psVirtual->pcClass), psVirtual->pcClass->miOwnBytes);
+	}
+	return true;
 }
 
 

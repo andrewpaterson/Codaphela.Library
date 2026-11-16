@@ -3620,6 +3620,11 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 70): The function overrides one declared final [f]\n", "struct B { virtual int f() final { return 1; } }; struct D : B { int f() { return 2; } }; int h() { D d; return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 68): The operand of dynamic_cast is not polymorphic [dynamic_cast]\n", "struct P { int x; }; struct Q : P { int y; }; int g(P& p) { return dynamic_cast<Q&>(p).y; }");
 
+	//What a virtual base makes ill-formed (MSVC takes the member pointer, which its pointers to members can hold).  [conv.mem] 2, [expr.static.cast] 11
+	AssertCPP65Error("Generated.cpp (1, 81): A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it [&]\n", "struct A { int a; }; struct B : virtual A { int b; }; int f(B& b) { int B::*p = &A::a; return b.*p; }");
+	AssertCPP65Error("Generated.cpp (1, 91): A pointer or reference to a virtual base can't be cast to a class derived from it [static_cast]\n", "struct A { int a; virtual ~A() {} }; struct B : virtual A { int b; }; B* f(A* a) { return static_cast<B*>(a); }");
+	AssertCPP65Error("Generated.cpp (1, 91): A pointer or reference to a virtual base can't be cast to a class derived from it [static_cast]\n", "struct A { int a; virtual ~A() {} }; struct B : virtual A { int b; }; B& f(A& a) { return static_cast<B&>(a); }");
+
 	//A constant that running says isn't one says why, and in which constexpr calls.
 	AssertCPP65Error("Generated.cpp (3, 8): An array size must be a positive constant: It divides by zero, or the least number by -1, in f(int), called from g(int) [g]\n",
 		"constexpr int f(int x) { return 10 / x; }\nconstexpr int g(int x) { return f(x - 1); }\nchar a[g(1)];");

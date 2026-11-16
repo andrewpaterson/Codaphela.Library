@@ -1679,6 +1679,35 @@ static const SConformanceCase gasConformanceStage7[] =
 		"struct Z : X, Y { };\n"
 		"int main() { Y* p = new Z; delete p; X* q = new Z; delete q; Z* r = new Z; delete r; return gRight; }\n"
 	},
+	{
+		"CopyKeepsDerivedVtable", 2,
+		"struct Y { int y; virtual int f() { return 1; } Y() : y(0) {} Y(const Y& o) : y(o.y) {} };\n"
+		"struct C : Y { int c; int f() override { return 2; } };\n"
+		"int main() { C c; C d(c); Y* volatile p = &d; return p->f(); }\n"
+	},
+	{
+		"AssignToBaseSubobject", 23,
+		"struct Y { int y; virtual int g() { return 10; } };\n"
+		"struct X { int x; virtual int f() { return 1; } };\n"
+		"struct D : X, Y { int g() override { return 20; } };\n"
+		"int main() { D d; Y y; y.y = 3; Y* volatile p = &d; *p = y; return p->g() + p->y; }\n"
+	},
+	{
+		"AssignMembersToBaseSubobject", 21,
+		"struct S { int s; S() : s(0) {} S& operator=(const S& o) { s = o.s + 1; return *this; } };\n"
+		"struct X { int x; virtual int f() { return 1; } };\n"
+		"struct Y { S m; virtual int g() { return 10; } };\n"
+		"struct D : X, Y { int g() override { return 20; } };\n"
+		"int main() { D d; Y y; Y* volatile p = &d; *p = y; return p->g() + p->m.s; }\n"
+	},
+	{
+		"StaticCastToDerived", 57,
+		"struct X { int x; };\n"
+		"struct Y { int y; };\n"
+		"struct Z : X, Y { int z; };\n"
+		"int main() { Z z; z.z = 5; Y* py = &z; Z* pz = static_cast<Z*>(py); Y& ry = z; Z& rz = static_cast<Z&>(ry); Y* pn = 0;\n"
+		"             return (pz == &z) + (&rz == &z) * 2 + (static_cast<Z*>(pn) == 0) * 4 + pz->z * 10; }\n"
+	},
 };
 
 
@@ -2011,6 +2040,46 @@ static const SConformanceCase gasConformanceStage9[] =
 		"struct D : B, C { };\n"
 		"struct E { int e; D ds[2]; E() : e(1) { ds[1].a = 9; } };\n"
 		"int main() { E x; D* p = &x.ds[0]; return x.ds[0].a * 1000 + x.ds[1].a * 100 + p->b * 10 + p->c; }\n"
+	},
+	{
+		"VirtualBaseCopyConstructors", 15705,
+		"struct A { int a; A() : a(1) {} A(const A& o) : a(o.a + 10) {} A& operator=(const A& o) { a = o.a + 100; return *this; } };\n"
+		"struct B : virtual A { int b; B() : b(2) {} };\n"
+		"struct C : virtual A { int c; C() : c(3) {} };\n"
+		"struct D : B, C { };\n"
+		"int main() { D d; d.a = 5; d.b = 6; D e(d); D f; f = d; return e.a * 1000 + e.b * 100 + f.a; }\n"
+	},
+	{
+		"VirtualBaseCopyFromSubobject", 78,
+		"struct A { int a; A() : a(1) {} };\n"
+		"struct B : virtual A { int b; B() : b(2) {} };\n"
+		"struct E : B { int pad[3]; int e; };\n"
+		"int main() { E x; x.a = 7; x.b = 8; B& r = x; B y(r); B* volatile p = &y; return p->a * 10 + p->b; }\n"
+	},
+	{
+		"VirtualBaseBaseCopyConstructor", 1143,
+		"int g = 0;\n"
+		"struct A { int a; A() : a(1) {} A(const A& o) : a(o.a) { g += 1; } };\n"
+		"struct B : virtual A { int b; B() : b(2) {} B(const B& o) : A(o), b(o.b + 1) { g += 10; } };\n"
+		"struct C : virtual A { int c; C() : c(3) {} };\n"
+		"struct D : B, C { };\n"
+		"int main() { D d; d.a = 4; D e(d); return g * 100 + e.a * 10 + e.b; }\n"
+	},
+	{
+		"VirtualBaseAssignment", 15679,
+		"struct A { int a; A() : a(1) {} };\n"
+		"struct B : virtual A { int b; };\n"
+		"struct C : virtual A { int c; };\n"
+		"struct D : B, C { int d; };\n"
+		"struct E : B { int pad[2]; };\n"
+		"int main() { D x, y; x.a = 5; x.b = 6; x.c = 7; y = x; E z; B& rb = z; B s; s.a = 9; s.b = 4; rb = s;\n"
+		"             return y.a * 1000 + y.b * 100 + y.c * 10 + z.a + (z.b == 4) * 10000; }\n"
+	},
+	{
+		"VirtualBaseStaticCastRefused", -1,
+		"struct A { int a; virtual ~A() {} };\n"
+		"struct B : virtual A { int b; };\n"
+		"int main() { B b; A* a = &b; B* p = static_cast<B*>(a); return p != 0; }\n"
 	},
 };
 

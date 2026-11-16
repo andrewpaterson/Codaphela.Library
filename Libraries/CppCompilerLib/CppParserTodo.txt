@@ -292,10 +292,20 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        stage 7 case, DeleteThroughSecondaryBase).  MSVC differs from the standard for dynamic_cast<B*> of a virtual
        base in B's constructor ([class.cdtor] 6), so no case asks it.  (b) came with it: virtual functions through
        virtual bases (thunks __u<n> for an overrider after the part), dynamic_cast and typeid across them.
-       Found, for (c): copying a class whose base has a copy constructor of its own leaves the base's vtable in the
-       copy (CopyPlace stores the vtables before CopyParts calls the copy constructors), and the compiler's operator=
-       stores the static class's vtables, which is wrong when the object assigned to is a base subobject.  Neither
-       needs a virtual base.
+       (c) DONE 2026-11-17, 365 of 366: copying a class with virtual bases copies its own part's bytes and each virtual
+       base's from where the source has it (the source may be a base subobject), then the copy constructors in order,
+       virtual bases once (a base with virtual bases by its base version, given its VTT entries: CopyParts' pcComplete
+       and iVTTIndex), then the vtables; the compiler's operator= assigns the virtual bases once, through each object's
+       vtable.  A pointer to a member of a virtual base doesn't convert to one of the derived class, and static_cast
+       from a virtual base down is refused, as the standard says (TestCPP65Generator's errors: MSVC takes the member
+       pointer, as its pointers to members can hold it).  Fixed on the way, none needing a virtual base: a base's own
+       copy constructor left its vtable in the copy (CopyPlace stored the vtables before CopyParts ran the copy
+       constructors); the compiler's operator= stored the static class's vtables, wrong when what is assigned to is a
+       base subobject (assignment of a polymorphic class now never touches them, and isn't a copy of its bytes); a
+       cast from a base's pointer or reference down to a derived class didn't move it back to the derived object.
+       Stage 7 cases CopyKeepsDerivedVtable, AssignToBaseSubobject, AssignMembersToBaseSubobject, StaticCastToDerived;
+       stage 9 VirtualBaseCopyConstructors, CopyFromSubobject, BaseCopyConstructor, Assignment, StaticCastRefused.
+       Left for (d): the layouts against MSVC's.
        Order of the work, a commit each: (a) layout, vtable offsets, conversions and members through a virtual base,
        complete and base constructors and destructors, construction vtables; (b) virtual functions through virtual
        bases (thunks), dynamic_cast and typeid across them; (c) copying and assignment, member pointers; (d) the

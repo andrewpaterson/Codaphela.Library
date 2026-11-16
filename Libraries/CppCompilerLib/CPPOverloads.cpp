@@ -1232,6 +1232,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	bool			bReference;
 	bool			bRvalue;
 	CCPPFunction*	pcConversion;
+	int				iOffset;
 
 	bReference = psParameter->IsReference();
 	bRvalue = psParameter->IsRvalueReference();
@@ -1311,8 +1312,10 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	}
 	if (psParameter->IsMemberPointer() && psArgument->IsMemberPointer())
 	{
-		//A pointer to a member of a base converts to a pointer to the same member of a derived class.
-		if (psParameter->pcClass && psArgument->pcClass && psParameter->psBase->Equals(psArgument->psBase) && mpcUnit->IsDerived(psParameter->pcClass, psArgument->pcClass, NULL))
+		//A pointer to a member of a base converts to a pointer to the same member of a derived class (not through a
+		//virtual base).  [conv.mem] 2
+		if (psParameter->pcClass && psArgument->pcClass && psParameter->psBase->Equals(psArgument->psBase) && mpcUnit->IsDerived(psParameter->pcClass, psArgument->pcClass, &iOffset) &&
+			(iOffset != CPP_VIRTUAL_PATH))
 		{
 			return CPPCR_Conversion;
 		}

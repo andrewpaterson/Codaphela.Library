@@ -351,7 +351,9 @@ protected:
 	bool			ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayIRReferences* pasPieces);
 	void			CallResult(SCPP65Type* psReturn, SIRReference sMade, SIRReference sResult, SCPP65IRValue* psValue);
 	bool			ThisObject(CCPPFunction* pcFunction, CCPPSyntax* pcObject, bool bArrow, CCPPClass* pcObjectClass, bool bVirtual, SIRReference sGivenObject, SIRReference* psObject, SIRReference* psCallee);
-	bool			CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue);
+	bool			CastExpression(CCPPSyntax* pcCast, CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue);
+	bool			IsReinterpretCast(CCPPSyntax* pcCast);
+	bool			DerivedAddress(SIRReference* psAddress, CCPPClass* pcFrom, CCPPClass* pcTo, bool bNull, CCPPSyntax* pcCast);
 	bool			DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue);
 	SIRReference	DynamicCast(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo);
 	bool			Convert(SCPP65IRValue* psValue, SCPP65Type* psTo);
@@ -389,6 +391,7 @@ protected:
 	bool			DestructorEnd(void);
 	bool			StoreVtables(SIRReference sObject, CCPPClass* pcClass, bool bConstruction = false);
 	SIRReference	VTTOf(CCPPClass* pcClass);
+	SIRReference	CompleteVTT(CCPPClass* pcClass);
 	bool			DestroyBase(SIRReference sAddress, CCPPClass* pcBase);
 	void			DescribeVtable(CArrayTemplate<SCPPVtableEntry>* pasEntries, CCPPClass* pcClass, uint32 uiSymbol);
 	bool			Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArguments, CCPPSyntax* pcInitialiser);
@@ -422,11 +425,11 @@ protected:
 	bool			CopyPlace(SCPP65IRPlace* psPlace, SCPP65IRPlace* psSource, SIRReference* psAddress);
 	bool			CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyDeleted(CCPPSyntax* pcNode);
-	bool			CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
-	bool			CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
+	bool			CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, CCPPClass* pcComplete, int iVTTIndex);
+	bool			CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, CCPPClass* pcComplete, int iVTTIndex);
 	bool			AssignMembers(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource, CCPPSyntax* pcSource);
-	bool			AssignParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
-	bool			AssignPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove);
+	bool			AssignParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, bool bVirtualBases);
+	bool			AssignPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, bool bVirtualBases);
 	int				BaseOffset(CCPPClass* pcDerived, CCPPClass* pcBase);
 	void			CopyPieces(SIRReference sDest, SIRReference sSource, int iBytes);
 	void			ZeroBytes(SIRReference sAddress, int iBytes);

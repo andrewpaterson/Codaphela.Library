@@ -251,14 +251,14 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_DeleteExpression:
 		return DeleteExpression((CCPPSyntaxDeleteExpression*)pcExpression, psValue);
 	case CPPS_CastExpression:
-		return CastExpression(((CCPPSyntaxCastExpression*)pcExpression)->mpcType, ((CCPPSyntaxCastExpression*)pcExpression)->mpcOperand, psValue);
+		return CastExpression(pcExpression, ((CCPPSyntaxCastExpression*)pcExpression)->mpcType, ((CCPPSyntaxCastExpression*)pcExpression)->mpcOperand, psValue);
 	case CPPS_NamedCastExpression:
 		pcNamedCast = (CCPPSyntaxNamedCastExpression*)pcExpression;
 		if (pcNamedCast->meCast == CT_dynamic_cast)
 		{
 			return DynamicCastExpression(pcNamedCast, psValue);
 		}
-		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, psValue);
+		return CastExpression(pcNamedCast, pcNamedCast->mpcType, pcNamedCast->mpcOperand, psValue);
 	case CPPS_ConstructExpression:
 		return ScalarConstruct((CCPPSyntaxConstructExpression*)pcExpression, psValue);
 	default:
@@ -541,7 +541,7 @@ bool CCPP65IRFrontEnd::ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruc
 	papcElements = mpcUnit->ConstructElements(pcConstruct);
 	if (papcElements && (papcElements->NumElements() == 1))
 	{
-		return CastExpression(pcConstruct->mpcType, papcElements->GetPtr(0), psValue);
+		return CastExpression(pcConstruct, pcConstruct->mpcType, papcElements->GetPtr(0), psValue);
 	}
 	psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType);
 	if (!psType || !papcElements || (papcElements->NumElements() != 0) || !(psType->IsScalar() || psType->IsVoid()))
@@ -844,7 +844,8 @@ bool CCPP65IRFrontEnd::IsReferenceCast(CCPPSyntax* pcExpression)
 //
 // The place a cast to a reference, static_cast<T&&>(x), refers to: x's,
 // or for an object of another class of its hierarchy that class's part
-// (dynamic_cast<T&>'s, DynamicCastPlace).
+// (dynamic_cast<T&>'s, DynamicCastPlace), or the object of a derived class
+// that x is a base of (DerivedAddress, but for reinterpret_cast).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ReferenceCastPlace(CCPPSyntax* pcCast, SCPP65Type* psReference, SCPP65IRPlace* psPlace)
@@ -857,13 +858,19 @@ bool CCPP65IRFrontEnd::ReferenceCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefe
 	{
 		return DynamicCastPlace(pcCast, psReference, psPlace);
 	}
-	if (!Place(pcOperand, &sOperand) || !ReferenceAddress(&sOperand, psReference, &psPlace->sAddress))
+	if (!Place(pcOperand, &sOperand))
 	{
 		return false;
 	}
 	psPlace->psType = psReference->psBase;
 	psPlace->psBitField = NULL;
-	return true;
+	if (!IsReinterpretCast(pcCast) && sOperand.psType->IsClass() && psReference->psBase->IsClass() && (sOperand.psType->pcClass != psReference->psBase->pcClass) &&
+		mpcUnit->IsDerived(psReference->psBase->pcClass, sOperand.psType->pcClass, NULL))
+	{
+		psPlace->sAddress = sOperand.sAddress;
+		return DerivedAddress(&psPlace->sAddress, sOperand.psType->pcClass, psReference->psBase->pcClass, false, pcCast);
+	}
+	return ReferenceAddress(&sOperand, psReference, &psPlace->sAddress);
 }
 
 
