@@ -639,6 +639,9 @@
     <ClCompile Include="CPPSyntaxMemberExpression.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
+    <ClCompile Include="CPPSyntaxImplicitZero.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
     <ClCompile Include="CPPSyntaxLiteralExpression.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
@@ -1437,6 +1440,9 @@
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxMemberExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxImplicitZero.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxLiteralExpression.h">

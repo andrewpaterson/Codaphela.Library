@@ -772,7 +772,8 @@ CCPPFunction* CCPPBinder::FindAddressedFunction(CCPPSyntaxName* pcName, int64 ll
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The class's operator-> for the object, or NULL.
+// The class's operator-> for the object (NULL for an object an operator->
+// returned), or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPBinder::FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode)
@@ -781,7 +782,7 @@ CCPPFunction* CCPPBinder::FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcOb
 	CCPPFunction*	pcFunction;
 
 	apcNone.Init();
-	pcFunction = mcOverloads.FindFunction(pcClass, mpcUnit->GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, CPPCalledObject(mpcUnit->IsConstObject(pcObject)));
+	pcFunction = mcOverloads.FindFunction(pcClass, mpcUnit->GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, CPPCalledObject(pcObject && mpcUnit->IsConstObject(pcObject)));
 	apcNone.Kill();
 	return pcFunction;
 }

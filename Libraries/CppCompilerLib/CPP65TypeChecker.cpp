@@ -323,6 +323,17 @@ void CCPP65TypeChecker::VisitSizeofExpression(CCPPSyntaxSizeofExpression* pcNode
 //////////////////////////////////////////////////////////////////////////
 //
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitImplicitZero(CCPPSyntaxImplicitZero* pcNode)
+{
+	mpsResult = &mpcTypes->msInt;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitTypeTraitExpression(CCPPSyntaxTypeTraitExpression* pcNode)
 {
@@ -783,10 +794,10 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 {
 	SCPP65Type*	psType;
 
-	if (!pcUnary->mbPostfix && mpcUnit->IsObject(pcUnary->mpcOperand))
+	if (mpcUnit->IsObject(pcUnary->mpcOperand))
 	{
-		//++object and --object: the object's operator.
-		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary);
+		//++object, --object, and object++ and object-- with an int 0: the object's operator.  [over.inc] 1
+		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, pcUnary->mbPostfix ? mpcUnit->ImplicitZero() : NULL, pcUnary);
 	}
 	psType = Place(pcUnary->mpcOperand);
 	if (!psType || !CanChange(psType, pcUnary))
@@ -1672,12 +1683,14 @@ SCPP65Type* CCPP65TypeChecker::OperatorExpression(ECppTokens eOperator, CCPPSynt
 //////////////////////////////////////////////////////////////////////////
 //
 // The pointer that object-> goes through: the object's own (a pointer), or what its
-// operator-> returns, which must be a pointer.
+// operator-> returns: a pointer, or an object whose operator-> gives one.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 {
 	SCPP65Type*		psType;
+	CCPPFunction*	pcFunction;
+	int				i;
 
 	psType = mpcUnit->TypeOf(pcObject);
 	if (!psType || !psType->IsClass())
@@ -1685,9 +1698,15 @@ SCPP65Type* CCPP65TypeChecker::ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pc
 		return Value(pcObject);
 	}
 	psType = OperatorCall(pcObject, CT_MemberByPointer, &mapcNone, pcNode);
+	for (i = 0; psType && psType->IsClass() && (i < CPP_MAX_ARROWS); i++)
+	{
+		//An operator-> that returns an object: its operator-> is applied, until one returns a pointer.  [over.ref] 1
+		pcFunction = mpcUnit->CompleteClass(psType->pcClass, pcNode) ? mpcUnit->GetBinder()->FindArrowOperator(psType->pcClass, NULL, pcNode) : NULL;
+		psType = pcFunction ? Call(pcFunction, NULL, pcNode) : NULL;
+	}
 	if (psType && !psType->IsPointer())
 	{
-		Error(pcNode, "operator-> must return a pointer for the compiler");
+		Error(pcNode, "operator-> must return a pointer, or an object whose operator-> does");
 		return NULL;
 	}
 	return psType;

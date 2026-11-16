@@ -365,6 +365,7 @@
     <ClCompile Include="CPPSyntaxName.cpp" />
     <ClCompile Include="CPPSyntaxMemberInitializer.cpp" />
     <ClCompile Include="CPPSyntaxMemberExpression.cpp" />
+    <ClCompile Include="CPPSyntaxImplicitZero.cpp" />
     <ClCompile Include="CPPSyntaxLiteralExpression.cpp" />
     <ClCompile Include="CPPSyntaxLinkageSpecification.cpp" />
     <ClCompile Include="CPPSyntaxLabelStatement.cpp" />
@@ -633,6 +634,7 @@
     <ClInclude Include="CPPSyntaxName.h" />
     <ClInclude Include="CPPSyntaxMemberInitializer.h" />
     <ClInclude Include="CPPSyntaxMemberExpression.h" />
+    <ClInclude Include="CPPSyntaxImplicitZero.h" />
     <ClInclude Include="CPPSyntaxLiteralExpression.h" />
     <ClInclude Include="CPPSyntaxLinkageSpecification.h" />
     <ClInclude Include="CPPSyntaxLabelStatement.h" />

@@ -106,7 +106,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 	X(NoexceptExpression) \
 	X(LazyDeclaration) \
 	X(LambdaExpression) \
-	X(LambdaCapture)
+	X(LambdaCapture) \
+	X(ImplicitZero)
 
 
 #define CPP_SYNTAX_ENUM(N)	CPPS_##N,

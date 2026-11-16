@@ -125,6 +125,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_LiteralExpression:
 	case CPPS_SizeofExpression:
 	case CPPS_TypeTraitExpression:
+	case CPPS_ImplicitZero:
 		return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 	case CPPS_StringExpression:
 		return StringLiteral(pcExpression, psValue);

@@ -244,6 +244,9 @@ bool CCPP65IRFrontEnd::ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRRefer
 	SCPP65IRValue	sPointer;
 	SCPP65IRPlace	sPlace;
 	SCPP65Type*		psType;
+	CCPPClass*		pcClass;
+	CCPPFunction*	pcFunction;
+	int				i;
 
 	if (bArrow)
 	{
@@ -254,6 +257,16 @@ bool CCPP65IRFrontEnd::ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRRefer
 			if (!OperatorCall(pcObject, CT_MemberByPointer, NULL, &sPointer))
 			{
 				return false;
+			}
+			for (i = 0; sPointer.psType->IsClass() && (i < CPP_MAX_ARROWS); i++)
+			{
+				//An operator-> that returns an object (its address): its operator->, on it.  [over.ref] 1
+				pcClass = sPointer.psType->pcClass;
+				pcFunction = mpcUnit->GetBinder()->FindArrowOperator(pcClass, NULL, pcObject);
+				if (!pcFunction || !Call(pcFunction, FunctionSymbol(pcFunction), NULL, &mapcNone, &sPointer, NULL, false, pcClass, false, sPointer.sValue))
+				{
+					return Unsupported(__FILE__, __LINE__);
+				}
 			}
 		}
 		else if (!Value(pcObject, &sPointer))
@@ -1196,7 +1209,8 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		case CT_Decrement:
 			if (((CCPPSyntaxUnaryExpression*)pcExpression)->mbPostfix)
 			{
-				return Unsupported(__FILE__, __LINE__);
+				//object++ and object--: the object's operator with an int 0.  [over.inc] 1
+				return OperatorExpression(((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand, mpcUnit->ImplicitZero(), psValue);
 			}
 		case CT_Subtract:
 		case CT_Add:

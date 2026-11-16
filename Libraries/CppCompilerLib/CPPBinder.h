@@ -151,6 +151,10 @@ public:
 };
 
 
+//How many operator->s object-> goes through at most: an operator-> may return an object whose operator-> is then used.
+#define CPP_MAX_ARROWS	16
+
+
 typedef CMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
 
 

@@ -1318,6 +1318,7 @@ SCPP65Type* CCPPUnit::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 {
 	SCPP65Type*		psType;
 	CCPPFunction*	pcFunction;
+	int				i;
 
 	psType = TypeOf(pcObject);
 	if (!psType || !psType->IsClass())
@@ -1329,7 +1330,14 @@ SCPP65Type* CCPPUnit::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 		return NULL;
 	}
 	pcFunction = mcBinder.FindArrowOperator(psType->pcClass, pcObject, pcNode);
-	return pcFunction ? pcFunction->mpsReturn : NULL;
+	psType = pcFunction ? pcFunction->mpsReturn : NULL;
+	for (i = 0; psType && psType->IsClass() && (i < CPP_MAX_ARROWS); i++)
+	{
+		//An operator-> that returns an object: its operator->'s.  [over.ref] 1
+		pcFunction = CompleteClass(psType->pcClass, pcNode) ? mcBinder.FindArrowOperator(psType->pcClass, NULL, pcNode) : NULL;
+		psType = pcFunction ? pcFunction->mpsReturn : NULL;
+	}
+	return psType;
 }
 
 

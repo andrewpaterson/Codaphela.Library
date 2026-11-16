@@ -254,6 +254,7 @@ protected:
 	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
 	CCPPVariable*			mpcDefining;		//The variable of a template's instance GlobalDeclaration is defining, or NULL.
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
+	CCPPSyntax*				mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
 	int						miUnevaluated;		//How deep in operands that aren't evaluated (sizeof, decltype) the unit is.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
@@ -606,6 +607,7 @@ public:
 	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
+	CCPPSyntax*				ImplicitZero(void);
 	CCPPSyntaxIdExpression*	FunctionNameOf(CCPPSyntax* pcExpression);
 	bool					IsMemberPointerOperator(CCPPSyntax* pcExpression);
 	bool					HasMember(CCPPClass* pcClass, int64 lliName);

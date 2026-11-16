@@ -230,6 +230,22 @@ bool CCPPUnit::IsAmbiguousName(CCPPSyntaxName* pcName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The int 0 a postfix operator function is called with, made the first
+// time it is wanted (in no tree's nodes: it has no parent).
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPUnit::ImplicitZero(void)
+{
+	if (!mpcImplicitZero)
+	{
+		mpcImplicitZero = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitZero>(NULL);
+	}
+	return mpcImplicitZero;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // f or &f: the name of a function (overloaded or not), else NULL.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1102,6 +1118,10 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	switch (pcExpression->GetKind())
 	{
+	case CPPS_ImplicitZero:
+		*plliValue = 0;
+		return true;
+
 	case CPPS_LiteralExpression:
 		pcToken = mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral);
 		if (pcToken->IsNumber())

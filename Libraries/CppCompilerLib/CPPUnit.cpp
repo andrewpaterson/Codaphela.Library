@@ -287,6 +287,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcDefining = NULL;
 	mapcVariableInstances.Init();
 	miUnevaluated = 0;
+	mpcImplicitZero = NULL;
 	mapcQueue.Init();
 	muiQueueNext = 0;
 	mapcFailed.Init();
