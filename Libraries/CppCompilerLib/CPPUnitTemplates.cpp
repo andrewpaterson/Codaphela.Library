@@ -654,7 +654,7 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 			}
 			else if (!Constant(pcArgument ? pcArgument : pcValue->mpcDefault, &psBinding->lliValue))
 			{
-				bResult = Error(pcArgument ? pcArgument : pcNode, "The template argument must be a constant");
+				bResult = ConstantError(pcArgument ? pcArgument : pcNode, "The template argument must be a constant");
 				break;
 			}
 			pszArguments->Append("_L");

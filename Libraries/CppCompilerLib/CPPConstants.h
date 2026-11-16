@@ -82,6 +82,7 @@ public:
 
 	bool			Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* plliValue);
 	char*			GetReason(void);
+	void			ClearReason(void);
 
 	bool			CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode);
 	bool			CheckDefinition(CCPPFunction* pcFunction);
@@ -100,6 +101,9 @@ protected:
 	void					EndWriting(void);
 	SCPPConstantFunction*	FindFunction(const char* szLabel);
 	SCPPConstantVariable*	FindVariable(const char* szLabel);
+	bool					Run(CIRModule* pcModule, CIRFunction* pcIR, SIRValue* pasArguments, size uiNumArguments, SIRValue* psResult);
+	void					AppendFunctionName(CCPPFunction* pcFunction, CChars* pszDest);
+	void					AppendRepeats(size uiRepeats);
 	CCPPSyntax*				VariableInitialiser(CCPPVariable* pcVariable, uint32* puiFlags);
 	bool					CheckBody(CCPPSyntax* pcNode);
 	bool					CheckConstructor(CCPPFunction* pcFunction);

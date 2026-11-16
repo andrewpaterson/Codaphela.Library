@@ -54,6 +54,8 @@ void CIRInterpreter::Init(CIRInterpreterHost* pcHost)
 	muiErrorSource = 0;
 	mszLastError.Init();
 	muiLastErrorSource = 0;
+	maszTrail.Init();
+	maszLastTrail.Init();
 	muiSteps = 0;
 	muiStepLimit = IR_INTERPRETER_STEPS;
 	muiDepth = 0;
@@ -79,6 +81,8 @@ void CIRInterpreter::Kill(void)
 		masObjects.Get(i)->szName.Kill();
 	}
 	masObjects.Kill();
+	maszLastTrail.Kill();
+	maszTrail.Kill();
 	mszLastError.Kill();
 	mszError.Kill();
 }
@@ -94,6 +98,18 @@ void CIRInterpreter::SetLimits(size uiSteps, size uiDepth)
 {
 	muiStepLimit = uiSteps;
 	muiDepthLimit = uiDepth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The labels of the functions the last Call failed in, from the one that
+// failed out to the one called.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayChars* CIRInterpreter::GetTrail(void)
+{
+	return &maszLastTrail;
 }
 
 
@@ -1094,6 +1110,10 @@ bool CIRInterpreter::Run(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRV
 	free(pasPhis);
 	EndFrame(uiFrame, uiFirstObject);
 	muiDepth--;
+	if (!bResult)
+	{
+		maszTrail.Add(pcModule->GetSymbolName(pcFunction->muiSymbol));
+	}
 	return bResult;
 }
 
@@ -1112,6 +1132,7 @@ bool CIRInterpreter::Call(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue
 	CArrayIRValues			asArguments;
 	CArrayTemplate<SIRType>	asTypes;
 	CChars					szOuterError;
+	CArrayChars				aszOuterTrail;
 	SIRType					sType;
 	uint32					uiOuterSource;
 	size					i;
@@ -1121,6 +1142,9 @@ bool CIRInterpreter::Call(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue
 	uiOuterSource = muiErrorSource;
 	mszError.Clear();
 	muiErrorSource = 0;
+	aszOuterTrail.Init();
+	aszOuterTrail.Copy(&maszTrail);
+	maszTrail.ReInit();
 	if (muiDepth == 0)
 	{
 		muiSteps = 0;
@@ -1146,9 +1170,14 @@ bool CIRInterpreter::Call(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue
 	mszLastError.Clear();
 	mszLastError.Append(mszError.Text());
 	muiLastErrorSource = muiErrorSource;
+	maszLastTrail.ReInit();
+	maszLastTrail.Copy(&maszTrail);
 	mszError.Clear();
 	mszError.Append(szOuterError.Text());
 	muiErrorSource = uiOuterSource;
+	maszTrail.ReInit();
+	maszTrail.Copy(&aszOuterTrail);
+	aszOuterTrail.Kill();
 	szOuterError.Kill();
 	return bResult;
 }

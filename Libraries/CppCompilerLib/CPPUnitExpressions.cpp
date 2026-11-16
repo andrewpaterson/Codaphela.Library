@@ -863,7 +863,45 @@ bool CCPPUnit::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 {
+	mpcConstants->ClearReason();
 	return FoldConstant(pcExpression, plliValue) || RunConstant(pcExpression, plliValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The error that what must be a constant isn't (szMessage), with why if
+// running it said why: "An array size must be a positive constant: It
+// divides by zero, in f(int)".  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ConstantError(CCPPSyntax* pcNode, const char* szMessage)
+{
+	CChars	szError;
+	bool	bResult;
+
+	szError.Init();
+	ConstantMessage(szMessage, &szError);
+	bResult = Error(pcNode, szError.Text());
+	szError.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szMessage, and the reason the last constant asked for had no value if
+// running it gave one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::ConstantMessage(const char* szMessage, CChars* pszDest)
+{
+	pszDest->Append(szMessage);
+	if (mpcConstants->GetReason()[0] != '\0')
+	{
+		pszDest->Append(": ");
+		pszDest->Append(mpcConstants->GetReason());
+	}
 }
 
 

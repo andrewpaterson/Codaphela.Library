@@ -3616,6 +3616,14 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 84): The address of an overloaded function needs the type of the function it is for [F]\n", "int F(short a) { return a; } int F(long a) { return 1; } void* G() { return (void*)F; } int main() { return G() != 0; }");
 	AssertCPP65Error("Generated.cpp (1, 67): The operand of dynamic_cast is not polymorphic [dynamic_cast]\n", "struct P { int x; }; struct Q : P { int y; }; Q* f(P* p) { return dynamic_cast<Q*>(p); }");
 	AssertCPP65Error("Generated.cpp (1, 91): dynamic_cast to a reference is not supported [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; struct D : B { int y; }; int g(B& b) { return dynamic_cast<D&>(b).y; }");
+
+	//A constant that running says isn't one says why, and in which constexpr calls.
+	AssertCPP65Error("Generated.cpp (3, 8): An array size must be a positive constant: It divides by zero, or the least number by -1, in f(int), called from g(int) [g]\n",
+		"constexpr int f(int x) { return 10 / x; }\nconstexpr int g(int x) { return f(x - 1); }\nchar a[g(1)];");
+	AssertCPP65Error("Generated.cpp (2, 13): A constexpr variable's initialiser must be a constant: It divides by zero, or the least number by -1, in S::S(int) [s]\n",
+		"struct S { int v; constexpr S(int a) : v(10 / a) {} };\nconstexpr S s(0);");
+	AssertCPP65Error("Generated.cpp (2, 8): An array size must be a positive constant: Its calls go too deep to be worked out, in deep(int), called from itself 510 times [deep]\n",
+		"constexpr int deep(int n) { return n == 0 ? 0 : 1 + deep(n - 1); }\nchar b[deep(1000)];");
 	AssertCPP65Error("Generated.cpp (1, 66): dynamic_cast needs a pointer to a class or to void [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; int g(B* b) { return dynamic_cast<int*>(b) != 0; }");
 	AssertCPP65Error("Generated.cpp (1, 92): The operand of dynamic_cast must be a pointer to a class [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; struct D : B { int y; }; D* g(int* p) { return dynamic_cast<D*>(p); }");
 	AssertCPP65Error("Generated.cpp (1, 35): __builtin_bcd_add and __builtin_bcd_subtract are the W65C816's decimal mode: use BaseLib's BCDAdd and BCDSubtract [__builtin_bcd_add]\n", "int f(unsigned short* p) { return __builtin_bcd_add(p, p, 1, 0); }");

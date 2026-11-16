@@ -411,7 +411,7 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 	}
 	if (!mpcUnit->Constant(pcExpression, &lliValue))
 	{
-		Error(pcExpression, "The value is not a constant");
+		mpcUnit->ConstantError(pcExpression, "The value is not a constant");
 		return NULL;
 	}
 	return psType;

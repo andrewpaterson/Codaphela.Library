@@ -193,8 +193,8 @@ Part B plan (2026-11-15; stages 0 to 4 done 2026-11-16)
        - CIRInterpreter runs the generic IR, memory as objects and pointers as an object and an offset (IRInterpreter.cpp, TestIRInterpreter.cpp); IRFoldInteger is the optimiser's folding and the interpreter's arithmetic both.
        - CCPPConstants writes a constant as IR with front ends of its own that generate nothing, and the constexpr functions it calls and the variables it reads when the interpreter asks for them.  CCPPUnit::Constant is the tree folder, then a constexpr call (ConstexprCall), then running what names something constexpr (RunConstant).
        - A constexpr variable is worked out when it is defined, and its definition is an error if it can't be; a constexpr function's definition is checked as [dcl.constexpr] 3 and 4 say.
-       Left: constant data for globals (they are still made by start up code; not needed for compliance), the trail of calls in an error and the limits as compile options, and a test that a floating point constant agrees with the same value worked out at run time (the conformance test would need soft float linked).
-       As it was planned: (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
+       - A constant that running says isn't one says why where a constant was needed (CCPPUnit::ConstantError), with the constexpr calls it failed in ("It divides by zero, in f(int), called from g(int)"); the interpreter's limits are compile options (muiConstantSteps, muiConstantDepth); a floating point constant agrees with the same value worked out by soft float at run time (ConstexprFloatAgrees: the conformance test links soft float for a case that calls it).
+       Left: constant data for globals (they are still made by start up code).
        As it was planned: (L) B13.  constexpr, by running the IR at compile time (the user): ConstexprPlan.txt, planned on its own.
     5. (L) B12.  Lambdas: the parser, closure classes, captures, the conversion to a function pointer; then generic lambdas and init-captures (B-3).
     6. (L) B7 and B14.  Templates: SFINAE, template template parameters, member class templates, array deduction, packs everywhere and sizeof..., variable templates, the missing type traits.
@@ -204,6 +204,28 @@ Part B plan (2026-11-15; stages 0 to 4 done 2026-11-16)
     Then, when all of the above is done, come back to the user for: exceptions (B2), and the language support headers (B-4) and how much of the library.
 
   Why this order: wrong code with no error first; rvalue references before what is built on them (moves, forwarding, the library's move and forward); auto before lambdas; constexpr before the templates that lean on it.  Stages 6, 7 and 9 depend on little and can move.
+
+Part B: questions for the user (kept since 2026-11-16, at the user's word: "please build up a list of questions that I may need to think about")
+  Each is how it is done now; the user decides whether it stays.  Added to as Part B goes on.
+
+  Answered 2026-11-16 ("They look fine"):
+    - Kept as MSVC does, not as the standard says: T& takes an object with no name; a forwarding T&& deduces an array or a function as a const pointer; a string literal's characters are const when deducing.
+    - Access control allows a little more than the language: a class template's instances are one class, a friend function is known by its name alone, and [class.protected]'s rule for a protected member reached through an object of a base isn't checked.
+    - Constant data for globals was put off as not needed for compliance; work goes on in the worktree CommonLibrariesPartB (branch partb), fast-forwarded into master.
+  Answered by a test, 2026-11-16:
+    - Floating point constants are worked out with the host's float and double, and at run time it is Libc65's soft float: they agree on awkward values (rounding, a float narrowed from a double, an odd integer past 2^53, a denormal, truncation to int) on both targets (the conformance case ConstexprFloatAgrees, also checked with the Microsoft compiler).
+
+  Open:
+    1. Exceptions (B2): implement them (chained setjmp-style unwinding through V is likely cheaper on these processors than tables, at a cost for each try), or a documented mode with none?  Held for the end of Part B, at the user's word.
+    2. The library (B-4): only the language support headers (<initializer_list>, <typeinfo>, <exception>, <cstddef>, <type_traits>, move and forward), or the C++14 library; and where it lives (Libc65 or a library of its own).  Held for the end of Part B.
+    3. Signed overflow in a constant expression: the standard says it is no constant (an error), but the IR's add doesn't say whether it is signed, so the interpreter wraps as the code would at run time.  Making it an error needs the front end to mark signed arithmetic.  Worth doing?
+    4. The interpreter's limits: 1,000,000 instructions and 512 calls deep for one constant, as [implimits] suggests (CCPPCompileOptions::muiConstantSteps and muiConstantDepth).  Are those right for the IDE, and for a compiler that runs on the W65C816 one day?
+    5. Lambdas in inline functions and templates in headers: a closure class is the unit's own, so each unit that uses one has its own copy of its operator()'s code.  Is the size acceptable, or should closures share code across units?
+    6. Static locals with a first-time guard (stage 7): the targets have one thread, but interrupts and the kernal.  Is a plain "done" flag enough, or must the first initialisation be safe against being entered again from an interrupt?
+    7. thread_local (stage 7): static storage, as there is one thread; or per process if the kernal will run several?
+    8. typeid(x).name() (stage 9): what string, if any (the C++ name, the label, or ""), given it is data every polymorphic class carries.
+    9. Virtual inheritance (stage 9): lay classes out as MSVC does (a virtual base pointer in the object), as the plan says, or as the Itanium ABI does (virtual base offsets in the vtable), which is usually smaller?
+
 
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.

@@ -37,6 +37,8 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	true,						//mbHomeW
 	true,						//mbHomeB
 	true,						//mbMathTables
+	CPP_CONSTANT_STEPS,			//muiConstantSteps
+	CPP_CONSTANT_DEPTH,			//muiConstantDepth
 };
 
 

@@ -1026,6 +1026,30 @@ static const SConformanceCase gasConformanceStage4[] =
 		"int main() { return sizeof(a) * 10 + sizeof(b); }\n"
 	},
 	{
+		"ConstexprFloatAgrees", 127,
+		"constexpr double cThird = 1.0 / 3.0;\n"
+		"constexpr double cSum = 0.1 + 0.2;\n"
+		"constexpr float cFloat = 1.0f / 3.0f;\n"
+		"constexpr float cNarrowed = (float)(2.0 / 3.0);\n"
+		"constexpr double cBig = 9007199254740993.0 * 3.0;\n"
+		"constexpr double cTiny = 1e-300 * 1e-10;\n"
+		"constexpr int cTruncated = (int)(-7.9);\n"
+		"int main()\n"
+		"{\n"
+		"\tvolatile double one = 1.0, three = 3.0, p1 = 0.1, p2 = 0.2, two = 2.0, big = 9007199254740993.0, small = 1e-300, smaller = 1e-10, neg = -7.9;\n"
+		"\tvolatile float fone = 1.0f, fthree = 3.0f;\n"
+		"\tint r = 0;\n"
+		"\tr += (cThird == one / three);\n"
+		"\tr += (cSum == p1 + p2) * 2;\n"
+		"\tr += (cFloat == fone / fthree) * 4;\n"
+		"\tr += (cNarrowed == (float)(two / three)) * 8;\n"
+		"\tr += (cBig == big * three) * 16;\n"
+		"\tr += (cTiny == small * smaller) * 32;\n"
+		"\tr += (cTruncated == (int)neg) * 64;\n"
+		"\treturn r;\n"
+		"}\n"
+	},
+	{
 		"ConstexprReferencesAndPointers", 75,
 		"constexpr int gv = 7;\n"
 		"constexpr const int& gr = gv;\n"

@@ -520,6 +520,8 @@ public:
 
 
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
+	bool					ConstantError(CCPPSyntax* pcNode, const char* szMessage);
+	void					ConstantMessage(const char* szMessage, CChars* pszDest);
 	bool					FoldConstant(CCPPSyntax* pcExpression, int64* plliValue);
 	bool					RunConstant(CCPPSyntax* pcExpression, int64* plliValue);
 	bool					NamesConstexpr(CCPPSyntax* pcNode);

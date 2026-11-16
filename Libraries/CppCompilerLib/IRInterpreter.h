@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __I_R_INTERPRETER_H__
 #define __I_R_INTERPRETER_H__
+#include "BaseLib/ArrayChars.h"
 #include "IRModule.h"
 
 
@@ -99,6 +100,8 @@ protected:
 	uint32				muiErrorSource;		//The source token + 1 of the instruction that wasn't a constant, 0 for none.
 	CChars				mszLastError;		//Why the last Call had none (GetError).
 	uint32				muiLastErrorSource;
+	CArrayChars			maszTrail;			//The functions what is being run failed in, the innermost first.
+	CArrayChars			maszLastTrail;		//The last Call's (GetTrail).
 	size				muiSteps;
 	size				muiStepLimit;
 	size				muiDepth;
@@ -123,6 +126,7 @@ public:
 
 	char*		GetError(void);
 	uint32		GetErrorSource(void);
+	CArrayChars*	GetTrail(void);
 
 protected:
 	bool		Fail(const char* szReason, const char* szDetail = NULL);

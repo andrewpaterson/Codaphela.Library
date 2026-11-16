@@ -187,7 +187,7 @@ int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers)
 		}
 		else if (!Constant(pcAlignment, &lliAlign))
 		{
-			Error(pcAlignment, "The alignment must be a constant");
+			ConstantError(pcAlignment, "The alignment must be a constant");
 			return -1;
 		}
 		if ((lliAlign < 0) || (lliAlign > 0x10000) || ((lliAlign & (lliAlign - 1)) != 0))
@@ -1009,6 +1009,7 @@ bool CCPPUnit::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpe
 {
 	SCPP65Type*		psType;
 	SCPPField*		psField;
+	CChars			szMessage;
 	int64			lliWidth;
 	bool			bResult;
 
@@ -1030,7 +1031,10 @@ bool CCPPUnit::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpe
 	bResult = true;
 	if (!Constant(pcInit->mpcBitField, &lliWidth) || (lliWidth < 0))
 	{
-		bResult = ClassError(pcInit->mpcBitField->miFirstToken, "A bit-field's width must be a constant of 0 or more");
+		szMessage.Init();
+		ConstantMessage("A bit-field's width must be a constant of 0 or more", &szMessage);
+		bResult = ClassError(pcInit->mpcBitField->miFirstToken, szMessage.Text());
+		szMessage.Kill();
 		lliWidth = 1;
 	}
 	if (lliWidth > (int64)psType->iBytes * 8)

@@ -32,6 +32,8 @@ enum ECPPPrefer
 
 
 #define CPP_NO_FUNCTION_LIMIT	((size)-1)
+#define CPP_CONSTANT_STEPS		1000000		//IR instructions run to work out one constant, by default.  [implimits]
+#define CPP_CONSTANT_DEPTH		512			//constexpr calls inside calls, by default.  [implimits]
 
 
 //How a build's units are compiled, where there is a choice.  A builder has one (CCPP65Builder::GetOptions), set before
@@ -54,6 +56,8 @@ public:
 	bool		mbHomeW;				//The 65C64's W is a fourth register for values between calls, multiplies and divides (IR65R_W).
 	bool		mbHomeB;				//The 65C64's B is a fifth register, for values whose code doesn't work in B while they are live (IR65R_B).
 	bool		mbMathTables;			//The W65C816's code may read Garth Wilson's product table (MathMult) in place: it is in memory when the code runs.
+	size		muiConstantSteps;		//IR instructions run to work out one constant expression before it is given up on (CCPPConstants).
+	size		muiConstantDepth;		//How deep constexpr calls may go inside one another for a constant.
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);

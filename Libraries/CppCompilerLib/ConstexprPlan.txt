@@ -9,9 +9,9 @@ Where it stands (2026-11-16)
   3. Done: CIRInterpreter (IRInterpreter.cpp), IRFoldInteger shared with the optimiser, TestIRInterpreter.cpp.  Overflow wraps; floats are the host's.
   4. Done: CCPPUnit::ConstexprCall, CCPPConstants::Value and ConstantFunction.
   5. Done: constant objects (CCPPConstants::ConstantObject, CCPP65IRFrontEnd::ConstantInitialiser), read back through RunConstant.  A constexpr variable is worked out when it is defined (CheckVariable).
-  6. Done but for the soft float test, which needs the conformance test to link soft float.
+  6. Done, with the soft float test: ConstexprFloatAgrees, run on both targets with Libc65's soft float linked (the conformance test links it for a case that calls it).  They agree.
   7. Not done: globals are still made by start up code.  Not needed for compliance.
-  8. Partly: each failure has a reason, and the definition's checks are CCPPConstants::CheckDefinition.  The trail of calls and the limits as compile options are not done.
+  8. Done: each failure has a reason, given where a constant was needed (CCPPUnit::ConstantError) with the constexpr calls it failed in (CCPPConstants::Run; a function that calls itself is named once, with how often); the limits are compile options (CCPPCompileOptions::muiConstantSteps, muiConstantDepth); the definition's checks are CCPPConstants::CheckDefinition.
   It is stage 4 of Part B in CppParserTodo.txt (section 6), planned on its own at the user's word: "run the IR at compile time but plan this step out all on its own".  Found by reading the code and by compiling small programs with hcp65build; check each statement about the code before relying on it.
 
 

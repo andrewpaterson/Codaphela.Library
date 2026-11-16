@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "BaseLib/PrimitiveTypes.h"
@@ -105,16 +106,45 @@ static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, CChars
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Builds the program for the target, with its start up and Libc65's string
-// routines (the optimiser makes loops calls of them).  False, with why in
-// pszErrors, if it doesn't compile or link or something it uses is missing.
-// Nothing is asserted: a case the compiler can't do is not a failed test.
+// Builds a case's program for a target: the start up code, the program,
+// Libc65's string routines, and its soft float (softfloat.cpp, and the
+// target's assembly of it) only for a program that calls it, as linking
+// it into every case would double the time a case takes.
 //
 //////////////////////////////////////////////////////////////////////////
+static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bSoftFloat, CChars* pszErrors);
+
+
 static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, CChars* pszErrors)
+{
+	CChars	szErrors;
+	bool	bBuilt;
+
+	szErrors.Init();
+	bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, false, &szErrors);
+	if (!bBuilt && strstr(szErrors.Text(), "SoftFloat"))
+	{
+		pcBuilder->Kill();
+		pcBuilder->Init();
+		szErrors.Clear();
+		bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, true, &szErrors);
+	}
+	pszErrors->Append(&szErrors);
+	szErrors.Kill();
+	return bBuilt;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ConformanceBuild's build, with soft float or without.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bSoftFloat, CChars* pszErrors)
 {
 	static const char*	aszString65C64[] = { "Libc65/string.asm", NULL };
 	static const char*	aszStringW65C816[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszSoftFloat[] = { "Libc65/softfloat.cpp", "Libc65/softfloat.asm", "Libc65/softfloatW65C816.asm", NULL };
 	CFileUtil			cFileUtil;
 	CChars				szLibc65;
 	bool				bBuilt;
@@ -132,6 +162,10 @@ static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECP
 	}
 	bBuilt &= pcBuilder->AddSource("Test.cpp", szSource);
 	TestCPP65AddUnits(pcBuilder, (eTarget == CPPT_W65C816) ? aszStringW65C816 : aszString65C64, eTarget != CPPT_W65C816);
+	if (bSoftFloat)
+	{
+		TestCPP65AddUnits(pcBuilder, aszSoftFloat, eTarget != CPPT_W65C816);
+	}
 	bBuilt &= pcBuilder->Link();
 
 	pszErrors->Append(pcBuilder->GetErrors());

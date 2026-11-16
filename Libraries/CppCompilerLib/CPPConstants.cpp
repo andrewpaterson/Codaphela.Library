@@ -23,9 +23,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPUnit.h"
 #include "CPP65IRFrontEnd.h"
 #include "CPPConstants.h"
+#include "CPPTypeWriter.h"
 
 
 #define CPP_CONSTANTS_NESTED	32		//Constants needed while a constant is written, at most.
+#define CPP_CONSTANTS_TRAIL		8		//The functions a reason names, at most.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,6 +86,20 @@ void CCPPConstants::Kill(void)
 char* CCPPConstants::GetReason(void)
 {
 	return mszReason.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No reason yet: the next expression's is its own (CCPPUnit::Constant).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPConstants::ClearReason(void)
+{
+	if (mszReason.Length() > 0)
+	{
+		mszReason.Clear();
+	}
 }
 
 
@@ -176,15 +192,137 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 		return false;
 	}
 
-	bResult = mcInterpreter.Call(pcFrontEnd->GetModule(), pcIR, NULL, 0, &sResult);
+	bResult = Run(pcFrontEnd->GetModule(), pcIR, NULL, 0, &sResult);
 	pcFrontEnd->GetModule()->RemoveFunction(pcIR);
 	if (!bResult)
 	{
-		mszReason.Append(mcInterpreter.GetError());
 		return false;
 	}
 	*plliValue = mpcUnit->ConstantOfType(psType, (int64)sResult.ulliBits);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs a constant's IR, within the limits the compile options set.  If it
+// has no value, the reason is the interpreter's, and the constexpr
+// functions it failed in, innermost first: "It divides by zero, in f(int),
+// called from g(int)".
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::Run(CIRModule* pcModule, CIRFunction* pcIR, SIRValue* pasArguments, size uiNumArguments, SIRValue* psResult)
+{
+	SCPPConstantFunction*	psFunction;
+	CArrayChars*			paszTrail;
+	CCPPFunction*			pcLast;
+	size					i;
+	size					uiNamed;
+	size					uiRepeats;
+
+	mcInterpreter.SetLimits(mpcUnit->GetOptions()->muiConstantSteps, mpcUnit->GetOptions()->muiConstantDepth);
+	if (mcInterpreter.Call(pcModule, pcIR, pasArguments, uiNumArguments, psResult))
+	{
+		return true;
+	}
+	mszReason.Clear();
+	mszReason.Append(mcInterpreter.GetError());
+	paszTrail = mcInterpreter.GetTrail();
+	pcLast = NULL;
+	uiNamed = 0;
+	uiRepeats = 0;
+	for (i = 0; i < paszTrail->NumElements(); i++)
+	{
+		psFunction = FindFunction(paszTrail->Get(i)->Text());
+		if (!psFunction)
+		{
+			continue;
+		}
+		if (psFunction->pcFunction == pcLast)
+		{
+			uiRepeats++;
+			continue;
+		}
+		AppendRepeats(uiRepeats);
+		uiRepeats = 0;
+		if (uiNamed == CPP_CONSTANTS_TRAIL)
+		{
+			mszReason.Append(", ...");
+			pcLast = NULL;
+			break;
+		}
+		mszReason.Append((uiNamed == 0) ? ", in " : ", called from ");
+		AppendFunctionName(psFunction->pcFunction, &mszReason);
+		pcLast = psFunction->pcFunction;
+		uiNamed++;
+	}
+	AppendRepeats(uiRepeats);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function that calls itself is named once in a reason's calls, and
+// then how often it was called from itself.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPConstants::AppendRepeats(size uiRepeats)
+{
+	if (uiRepeats == 0)
+	{
+		return;
+	}
+	mszReason.Append(", called from itself ");
+	if (uiRepeats == 1)
+	{
+		mszReason.Append("once");
+		return;
+	}
+	mszReason.Append((int)uiRepeats);
+	mszReason.Append(" times");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function as the program names it: Class::name(parameter types), and a
+// constructor as its class.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPConstants::AppendFunctionName(CCPPFunction* pcFunction, CChars* pszDest)
+{
+	CCPPTypeWriter	cWriter;
+	size			i;
+
+	cWriter.Init(mpcUnit);
+	if (pcFunction->mpcClass)
+	{
+		cWriter.AppendType(pcFunction->mpcClass->mpsType, pszDest);
+		pszDest->Append("::");
+	}
+	if ((pcFunction->meKind == CPPFK_Constructor) && pcFunction->mpcClass)
+	{
+		cWriter.AppendType(pcFunction->mpcClass->mpsType, pszDest);
+	}
+	else if (pcFunction->IsOperator())
+	{
+		pszDest->Append("operator");
+	}
+	else
+	{
+		pszDest->Append(mpcUnit->GetTokeniser()->GetIdentifier(pcFunction->mlliName));
+	}
+	pszDest->Append('(');
+	for (i = 0; i < pcFunction->mapsParameters.NumElements(); i++)
+	{
+		if (i > 0)
+		{
+			pszDest->Append(", ");
+		}
+		cWriter.AppendType(pcFunction->mapsParameters.GetPtr(i), pszDest);
+	}
+	pszDest->Append(')');
 }
 
 
@@ -447,12 +585,10 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 
 	uiObject = mcInterpreter.NewNamedObject(szName, (size)pcVariable->mpsType->iBytes);
 	sObject = mcInterpreter.PointerTo(uiObject, 0, pcFrontEnd->GetModule()->GetPointerSize(0));
-	bResult = mcInterpreter.Call(pcFrontEnd->GetModule(), pcIR, &sObject, 1, &sResult);
+	bResult = Run(pcFrontEnd->GetModule(), pcIR, &sObject, 1, &sResult);
 	pcFrontEnd->GetModule()->RemoveFunction(pcIR);
 	if (!bResult)
 	{
-		mszReason.Clear();
-		mszReason.Append(mcInterpreter.GetError());
 		mcInterpreter.Forget(uiObject);
 		return 0;
 	}
