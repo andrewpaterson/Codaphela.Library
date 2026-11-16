@@ -18,6 +18,8 @@ void TestIsosurfaceOctree(void);
 void TestMeshShapeEditor(void);
 void TestMeshShapeNormals(void);
 void TestShapeScene(void);
+void TestSolidGenerators(void);
+void TestSolidOperators(void);
 
 
 int __cdecl main(void)
@@ -40,6 +42,8 @@ int __cdecl main(void)
 	TestMeshShapeEditor();
 	TestMeshShapeNormals();
 	TestShapeScene();
+	TestSolidGenerators();
+	TestSolidOperators();
 
 	MemoryKill();
 	TypeConverterKill();

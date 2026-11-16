@@ -28,9 +28,17 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ColourARGB32.h"
 
 
+//How many numbers a sample is: its colour's four, then its height, shine, gloss and glow.
+#define SOLID_SAMPLE_CHANNELS	8
+
+
 //What a solid texture gives at a point (ProceduralLib/TexturePlan.txt).  Floats, not clamped, so a chain of operators neither
-//bands nor loses what goes out of range on the way.  A texture that is only a value (noise) gives it as a grey colour and as
-//the height, so any texture can feed any operator.
+//bands nor loses what goes out of range on the way.  Operators that treat every channel alike take it as its numbers in a row
+//(Channels).
+//
+//A texture that is only a number at each point (a noise, a gradient) gives it as a grey and as the height (InitValue).  The
+//one number an operator reads from a sample (Value: a mask's amount, a ramp's place) is its colour's brightness, so anything
+//seen as light and dark can be used as one.
 struct SSolidSample
 {
 	SFloat32Vec4	sColour;  //Red, green, blue and alpha (x, y, z, w), 0 to 1.
@@ -39,9 +47,14 @@ struct SSolidSample
 	float32			fGloss;   //How tight its highlight is, 0 (broad) to 1 (a point).
 	float32			fGlow;    //How much of its colour it gives off as light, 0 to 1.
 
-	void	Init(void);  //Opaque black, flat, dull and dark.
-	void	Init(ARGB32 uiColour);
-	ARGB32	Colour(void);  //Its colour clamped to 0 to 1 and rounded to 8 bits a channel.
+	void		Init(void);  //Opaque black, flat, dull and dark.
+	void		Init(ARGB32 uiColour);
+	void		InitValue(float32 fValue);  //An opaque grey of that brightness, and that height.
+
+	ARGB32		Colour(void);  //Its colour clamped to 0 to 1 and rounded to 8 bits a channel.
+	float32		Value(void);  //Its colour's brightness: the mean of its red, green and blue.
+	float32*	Channels(void);  //Its SOLID_SAMPLE_CHANNELS numbers.
+	void		Blend(SSolidSample* psOther, float32 fAmount);  //Towards psOther: none of it at 0, all of it at 1.
 };
 
 

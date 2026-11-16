@@ -235,11 +235,17 @@
     <ClCompile Include="TestMeshShapeEditor.cpp" />
     <ClCompile Include="TestShapeScene.cpp" />
     <ClCompile Include="TestMeshShapeNormals.cpp" />
+    <ClCompile Include="ShapeSceneHelper.cpp" />
+    <ClCompile Include="TextureGallery.cpp" />
+    <ClCompile Include="TestSolidGenerators.cpp" />
+    <ClCompile Include="TestSolidOperators.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />
     <ClInclude Include="TestGyroid.h" />
     <ClInclude Include="IsosurfaceMeshes.h" />
+    <ClInclude Include="ShapeSceneHelper.h" />
+    <ClInclude Include="TextureGallery.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />

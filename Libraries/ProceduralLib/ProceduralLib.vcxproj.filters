@@ -30,6 +30,33 @@
     <ClCompile Include="MeshShapeNormals.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="SolidFlat.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidGradient.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidNoise.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidCells.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidOperator.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidRamp.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidAdjust.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidMerge.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidMask.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h">
@@ -54,6 +81,33 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="MeshShapeNormals.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidFlat.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidGradient.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidNoise.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidCells.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidOperator.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidRamp.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidAdjust.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidMerge.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidMask.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

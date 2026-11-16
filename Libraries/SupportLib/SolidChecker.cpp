@@ -106,16 +106,9 @@ float32 CSolidChecker::Mix(SFloat32Vec3* psPosition, float32 fWidth)
 void CSolidChecker::TextureSample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample)
 {
 	SSolidSample	sSecond;
-	float32			fMix;
-	float32			fKeep;
 
-	fMix = Mix(psPosition, fWidth);
-	fKeep = 1.0f - fMix;
 	psSample->Init(muiColour1);
 	sSecond.Init(muiColour2);
-	psSample->sColour.x = (psSample->sColour.x * fKeep) + (sSecond.sColour.x * fMix);
-	psSample->sColour.y = (psSample->sColour.y * fKeep) + (sSecond.sColour.y * fMix);
-	psSample->sColour.z = (psSample->sColour.z * fKeep) + (sSecond.sColour.z * fMix);
-	psSample->sColour.w = (psSample->sColour.w * fKeep) + (sSecond.sColour.w * fMix);
+	psSample->Blend(&sSecond, Mix(psPosition, fWidth));
 }
 

@@ -3,7 +3,7 @@ Texture generator plan
 
 Making the solid textures a bake reads (SupportLib/UnwrapPlan.txt, Bake): noise, the operators that combine textures, and
 materials built from them.  It comes before the virtual texture (SupportLib/VirtualTexturePlan.txt), whose pages are baked from
-these and whose design needs to know what a texel holds and what one costs to make.  Step 1 is built (see Steps).  What is decided
+these and whose design needs to know what a texel holds and what one costs to make.  Steps 1 to 21 are built (see Steps).  What is decided
 and what is only proposed is said at each point.
 
 
@@ -63,51 +63,53 @@ CSolidTexture's virtual is TextureSample(position, normal, width, sample); Sampl
 stays, clamping the sample's colour to an ARGB32, so the bake and its tests are as they were.  A texture that is only a value
 (noise) gives it as a grey colour and as the height, so any texture plugs into any operator, as .werkkzeug's images did.
 
-Only colour is baked at first.  Height is used from step 7, where glow is too: a glowing texel isn't darkened by baked
+Only colour is baked at first.  Height is used from step 32, where glow is too: a glowing texel isn't darkened by baked
 shading, and is a light when the virtual texture bakes lighting.  Shine and gloss are a pair (wet stone and polished metal
 both shine; one's highlight is broad, the other's a point) carried so operators needn't change when a renderer has highlights
 from an image; neither does yet.  Each bakes to a byte a texel when something reads it, and to nothing until then.
 
 Left out: opacity (the colour's alpha), a normal (made from the height in the bake; both would disagree), ambient occlusion
-(worked out from the height and the shape, step 9), metalness (physically based rendering, which neither renderer does).
+(worked out from the height and the shape, step 38), metalness (physically based rendering, which neither renderer does).
 
 
-Where it lives (proposed)
--------------------------
+Where it lives
+--------------
   BaseLib        Noise: plain arithmetic on floats, no objects (Noise.h).  Other libraries will want it (terrain, the
                  isosurface's shapes).
   SupportLib     CSolidTexture, the sample and the bake, as now.
   ProceduralLib  Every generator and operator, and the materials built from them.
 
 
-Noise (proposed)
-----------------
+Noise (built: steps 5 to 11)
+----------------------------
   Hash           An integer lattice point (and a seed) to 32 bits, by multiplying and xoring; no permutation table, so no
                  256 period and nothing to initialise.
   Gradient       Perlin's improved noise (2002) in 3D: a gradient at each lattice point from the hash, the quintic fade,
                  -1 to 1, 0 at lattice points, its mean 0.  Its gradient is returned with it (the same sums, differentiated),
                  for warping and for normals.
   Cellular       Worley's (1996): one jittered point in each lattice cube; the nearest two points' distances (F1, F2) and
-                 the nearest's hash, from the 27 cubes round the point.  F1 is pebbles and scales, F2 - F1 cracks and
+                 the nearest's own number, from the cubes round the point.  F1 is pebbles and scales, F2 - F1 cracks and
                  mortar, the hash a colour for each cell.
   Fractal sums   Octaves of gradient noise, each twice the frequency and half the size (fBm); with absolute values
                  (turbulence, Perlin's marble and fire); ridged (1 - |n|, squared: mountains, veins).
 
-Filtering: an octave whose wavelength is less than twice the width can't be seen at that texel and would flicker, so octaves
-finer than that are left out and the last one kept fades in (clamping, as RenderMan shaders did).  A coarse mip level is then
-the fine level's blur.  Cellular noise fades to its mean value as the width nears a cell.
+Filtering: each noise takes the width of the texel looking at it and gives its average over that, near enough: an octave is
+its mean plus what a texel that wide keeps of the rest (NoiseKept, measured), so an octave much finer than the texel is just
+its mean and isn't worked out.  A coarse mip level is then the fine level's blur.  Cellular noise goes to its means the same
+way.
 
 
 Operators (proposed)
 --------------------
-Each a CSolidTexture in ProceduralLib, named CSolid..., its inputs Ptr<CSolidTexture> fields.  A texture can feed several
-operators (the graph isn't a tree); it can't feed itself.
+Each a CSolidTexture in ProceduralLib, named CSolid..., its inputs Ptr<CSolidTexture> fields (those with inputs are
+CSolidOperators).  A texture can feed several operators (the graph isn't a tree); it can't feed itself.
 
   Generators     CSolidFlat        One sample everywhere.
-                 CSolidGradient    A value along an axis, or out from a point or an axis (rings: wood).
-                 CSolidNoise       A fractal sum: kind (fBm, turbulence, ridged), octaves, seed.
+                 CSolidGradient    A value rising from a plane, or out from an axis (rings: wood) or a point; once, as a
+                                   saw or as a wave.
+                 CSolidNoise       A fractal sum: kind (a sum, turbulence, ridged), octaves, seed.
                  CSolidCells       Cellular: F1, F2 - F1 or each cell's own value.
-                 CSolidBricks      A lattice of boxes with mortar, rows offset, each brick's own value (step 8).
+                 CSolidBricks      A lattice of boxes with mortar, rows offset, each brick's own value (step 35).
                  CSolidChecker     As it is, in SupportLib.
 
   Point          CSolidRamp        The input's value through a table of keys (value and a sample), smoothly
@@ -123,7 +125,7 @@ operators (the graph isn't a tree); it can't feed itself.
                                    wobble.
 
   Surface        CSolidSlope       How far the normal is from a direction, as a value: moss on top, dust in the lee.
-                 CSolidCavity      From a CShape's distances near the point: dirt in hollows, wear on edges (step 9).
+                 CSolidCavity      From a CShape's distances near the point: dirt in hollows, wear on edges (step 38).
                                    A solid texture can do this where a 2D one never could, as the shape is to hand.
 
 A material is a function that builds a graph (MakeMarble(seed, ...) returning its top texture), not a class: the graph is
@@ -140,7 +142,7 @@ mask's edge, min and max all put back detail finer than the texel, which flicker
   More samples   The bake takes several samples in a texel (a grid of n by n within it) and averages, where one isn't
                  enough.  How many is a setting on the bake, 1 as now by default.
 
-Step 6 measures which is needed where: each level against the level below it shrunk, which they should match.
+Step 28 measures which is needed where: each level against the level below it shrunk, which they should match.
 
 
 Height (proposed)
@@ -169,36 +171,88 @@ Bricks on slanted surfaces and text are what would bring in 2D operators, projec
 
 Steps
 -----
-Each with its tests: noise in TestBaseLib, the rest in TestProceduralLib.  From step 3 each step also writes a gallery: a
-sphere and a box baked with each texture, drawn by the rasteriser to PNGs, to be looked at, as the look is judged by eye.
+Each with its tests: noise in TestBaseLib, the rest in TestProceduralLib.  From step 16 the tests of textures draw a gallery:
+a sphere and a box baked with each texture, drawn by the rasteriser to Output/Gallery/<name>.png, to be looked at, as the
+look is judged by eye.  What was found building a step is under it.
 
-1.  The sample.  SSolidSample, TextureSample in place of TextureColour, CSolidChecker moved to it.  Tests: the bake's and
-    TestShapeScene's results unchanged.
-    Done: SSolidSample (Init to opaque black and nothing else, Init from an ARGB32, Colour clamped and rounded),
-    CSolidTexture::Sample and TextureSample (the sample is Init'd before a texture fills it, so it sets only what it has),
-    Colour through them.  CSolidChecker mixes its two colours as floats.  TestMeshBakeSample.
-2.  Noise in BaseLib: the hash, gradient noise with its gradient, cellular noise, the fractal sums and their filtering.
-    Tests: the same value for the same point and seed on every build; 0 at lattice points; within -1 to 1; a mean near 0 and
-    a spread near the known one over many points; the gradient against differences; F1 <= F2 and each the true distance
-    against a search of all points nearby; a sum at a width against the average of many samples across it.  Small enough to
-    run in TestBaseLib65.
-3.  The generators: CSolidFlat, CSolidGradient, CSolidNoise, CSolidCells, and the gallery.  Tests: samples at points against
-    the noise; placement (a texture scaled by 2 is the texture at half the point).
-4.  The point operators: CSolidRamp, CSolidAdjust, CSolidMerge, CSolidMask.  Tests: each against its arithmetic at points; a
-    graph saved, loaded and sampling the same.
-5.  CSolidWarp and placement inside a parent, then the first materials as graphs: marble (turbulence warping bands, through a
-    ramp), wood (rings round an axis, wobbled), stone (fBm and cells, masked), rust (a ridged mask between metal and
-    oxide).  Tests: a warp of nothing is its input; the materials by their galleries.
-6.  Filtering measured: every material's mip levels against the finer level shrunk.  Soft keys in the ramp and mask, samples
-    in a texel in the bake, whichever the measures ask for.  The cost of a texel of each material is measured here, for the
-    virtual texture (can a page be baked when it's first wanted?).
-7.  Height: the bake's tilted normal, baked shading, and the normal image on the bump slot.  Tests: a flat height leaves the
-    normal alone; a ramp of height tilts it by its slope; shaded texels against the light's angle.
-8.  CSolidBricks and tiles.  Tests: a point's brick against the lattice; mortar's width; rows offset.
-9.  The surface operators: CSolidSlope, then CSolidCavity from a CShape's distances.  Tests: a slope's value on a sphere;
-    a cavity dark in the groove between two joined spheres and light on a box's edges.
-10. Looking: a textures tab in WindowInputTester, a material chosen and its parameters changed, baked onto the isosurface
+The sample
+1.  SSolidSample: colour, height, shine, gloss and glow as floats.  Done.
+2.  CSolidTexture::Sample and the TextureSample virtual; Colour kept on top for the bake.  Done.
+3.  CSolidChecker moved to it.  Done.
+4.  TestMeshBakeSample; the bake's and the textured scene's results unchanged.  Done.
+    A sample is also its eight numbers in a row (Channels), so operators that treat every channel alike loop over them, and
+    Blend moves it towards another.  The one number an operator reads from a sample (Value) is its colour's brightness, not
+    its height, so a texture adjusted or ramped is a mask as it looks; a texture that is only a number gives it as a grey and
+    as the height (InitValue).
+
+Noise in BaseLib (Noise.h)
+5.  NoiseHash: a lattice point and a seed to 32 bits, no table.  Done.
+6.  GradientNoise in 3D (Perlin's improved), -1 to 1.  Done.
+7.  Its gradient, returned with the value.  Done: the corners' gradients blended, and the fade's slope times the blend at
+    the cube's far face less that at its near one.
+8.  CellularNoise (Worley's): the nearest two distances and the cell's own number.  Done: exact, as the 27 cubes round the
+    point aren't always enough (a point two cubes away can be nearer than the nearest's found): if the second nearest is
+    past the nearest face of the block searched, the block a cube bigger is searched (1.7% of points).
+9.  FractalNoise: octaves summed, as turbulence, ridged.  Done: over the sum of the octaves' strengths, so each kind keeps
+    its range whatever the octaves; each octave's lattice is moved, so their zeros don't all fall on the first's lattice
+    points; the sum's gradient too.
+10. Filtering by width.  Done: NoiseKept is how much of a noise's difference from its mean is left over a width, fitted to
+    gradient noise averaged over squares (0.87 at half a unit, 0.58 at one, 0.15 at two): 1 - smoothstep to two and a half
+    units.  An octave is its mean plus what's kept of the rest, so octaves too fine aren't worked out, and turbulence,
+    ridges and cells go to their measured means (0.2204, 0.6322; 0.5201 and 0.7167 for the nearest two distances), not to 0.
+    Against the average of 36 samples across half a unit: 0.024 root mean square for a sum, 0.033 turbulence, 0.051 ridged.
+11. TestNoise.  Done: 2088 checks; on the 65C64 and W65C816 too (Libc65 has no float.h, so none is used).
+
+Generators in ProceduralLib
+12. CSolidFlat: one sample everywhere.  Done.
+13. CSolidGradient: a value rising with distance from a plane, an axis or a point; once, as a saw or as a wave.  Done: its
+    mean over the texel's width along the distance, exactly, from the area under each repeat (as CSolidChecker's box filter).
+14. CSolidNoise: a fractal sum as a value, 0 to 1 (a sum about a half).  Done.
+15. CSolidCells: the nearest distance, how much further the second is (0 along cells' edges), or the cell's own.  Done.
+16. The gallery (TestProceduralLib's TextureGallery).  Done.  TestShapeScene's scene helpers moved to ShapeSceneHelper for it.
+
+Point operators (each a CSolidOperator, whose Input samples an input at the operator's point, black if there's none)
+17. CSolidRamp: the input's value through a table of keys, each a full sample.  Done: keys kept in order of value; between
+    two a straight blend of every channel; two at one value a hard edge.
+18. CSolidAdjust: hue, saturation, contrast, brightness, invert.  Done: hue is the colour turned about the line of greys,
+    so no conversion to hue and back.
+19. CSolidMerge: add, multiply, lesser, greater, difference.  Done: every channel alike.
+20. CSolidMask: two inputs blended by a third.  Done: where the mask is all one input the other isn't sampled.
+21. A graph saved, loaded, and sampling the same.  Done: TestSolidGraphSaveLoad (a mask of a merge of two ramps and a flat,
+    by a third ramp).
+
+Warp and the first materials
+22. Placement inside a parent: an input is sampled at its operator's point.
+23. CSolidWarp: the input sampled at a point moved by a second input.
+24. Marble: turbulence warping bands, through a ramp.
+25. Wood: rings round an axis, wobbled.
+26. Stone: a sum and cells, masked.
+27. Rust: a ridged mask between metal and oxide.
+
+Filtering and cost measured
+28. Each material's mip levels against the finer level shrunk.
+29. Soft keys in the ramp and mask, where the measure shows flicker.
+30. Several samples in a texel in the bake, where soft keys aren't enough.
+31. The cost of a texel of each material, for the virtual texture (can a page be baked when it's first wanted?).
+
+Height
+32. The bake's tilted normal: the height sampled at the point and two beside it on the surface.
+33. Baked shading: the colour lit by the tilted normal; glowing texels not darkened.
+34. The normal image on the material's bump slot, in the mesh's own space.
+
+Structured patterns
+35. CSolidBricks: a lattice of boxes with mortar, rows offset, each brick its own value.
+36. Tiles, from the same lattice.
+
+Surface operators
+37. CSolidSlope: how far the normal is from a direction.
+38. CSolidCavity: from a CShape's distances, dark in hollows and light on edges.
+
+Afterwards
+39. Looking: a textures tab in WindowInputTester, a material chosen and its parameters changed, baked onto the isosurface
     again as they change.
+40. The virtual texture (SupportLib/VirtualTexturePlan.txt).
+41. Loaded textures on a second UV layer (SupportLib/UnwrapPlan.txt, step 10).
 
 
 Open
@@ -206,7 +260,7 @@ Open
 Whether colours are in the display's space or linear between operators.  Proposed: as the renderers take them now, looked at
 again with baked lighting.
 Whether a texture read by several operators is worked out once for a point (each texture remembering its last point and
-sample) or each time.  Proposed: each time, until step 6's costs say otherwise.
+sample) or each time.  Proposed: each time, until step 31's costs say otherwise.
 Baking on more than one thread.  A sample has no side effects, so texels can be shared out; left to the virtual texture's
 background baking.
 

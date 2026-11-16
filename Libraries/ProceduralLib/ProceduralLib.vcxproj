@@ -27,6 +27,15 @@
     <ClCompile Include="IsosurfaceOctree.cpp" />
     <ClCompile Include="MeshShapeEditor.cpp" />
     <ClCompile Include="MeshShapeNormals.cpp" />
+    <ClCompile Include="SolidFlat.cpp" />
+    <ClCompile Include="SolidGradient.cpp" />
+    <ClCompile Include="SolidNoise.cpp" />
+    <ClCompile Include="SolidCells.cpp" />
+    <ClCompile Include="SolidOperator.cpp" />
+    <ClCompile Include="SolidRamp.cpp" />
+    <ClCompile Include="SolidAdjust.cpp" />
+    <ClCompile Include="SolidMerge.cpp" />
+    <ClCompile Include="SolidMask.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h" />
@@ -37,6 +46,15 @@
     <ClInclude Include="IsosurfaceOctree.h" />
     <ClInclude Include="MeshShapeEditor.h" />
     <ClInclude Include="MeshShapeNormals.h" />
+    <ClInclude Include="SolidFlat.h" />
+    <ClInclude Include="SolidGradient.h" />
+    <ClInclude Include="SolidNoise.h" />
+    <ClInclude Include="SolidCells.h" />
+    <ClInclude Include="SolidOperator.h" />
+    <ClInclude Include="SolidRamp.h" />
+    <ClInclude Include="SolidAdjust.h" />
+    <ClInclude Include="SolidMerge.h" />
+    <ClInclude Include="SolidMask.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9878AEFF-411B-415E-995B-BA59059726E1}</ProjectGuid>

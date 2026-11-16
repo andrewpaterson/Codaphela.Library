@@ -3,14 +3,9 @@
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
-#include "BaseLib/Float4x4.h"
 #include "StandardLib/Objects.h"
-#include "SupportLib/Camera.h"
-#include "SupportLib/Instance.h"
-#include "SupportLib/MeshEditor.h"
 #include "SupportLib/MeshFlatFaces.h"
 #include "SupportLib/MeshMergeNormals.h"
-#include "SupportLib/Scene.h"
 #include "SupportLib/Sphere.h"
 #include "SupportLib/Box.h"
 #include "SupportLib/Cylinder.h"
@@ -18,20 +13,14 @@
 #include "SupportLib/ShapeUnion.h"
 #include "SupportLib/ShapeSmoothUnion.h"
 #include "SupportLib/ShapeSubtraction.h"
-#include "RenderLib/RenderScene.h"
-#include "RasterRenderLib/RasterFrame.h"
-#include "RasterRenderLib/RasterRenderFactory.h"
 #include "ProceduralLib/MeshShapeEditor.h"
-#include "ProceduralLib/MeshShapeNormals.h"
-#include "SupportLib/MeshUnwrap.h"
-#include "SupportLib/MeshBake.h"
 #include "SupportLib/SolidChecker.h"
 #include "TestLib/Assert.h"
+#include "ShapeSceneHelper.h"
 
 
 #define TEST_SHAPE_SCENE_WIDTH		128
 #define TEST_SHAPE_SCENE_HEIGHT		80
-#define TEST_SHAPE_SCENE_SCALE		1000
 #define TEST_SHAPE_SCENE_CHANNEL	8		//How far a channel may be from what was saved before its pixel counts as different,
 #define TEST_SHAPE_SCENE_BLOCK		12		//and a textured scene's four by four block's mean.
 
@@ -113,29 +102,6 @@ static int TestShapeSceneDifferences(const char* szExpected, uint32* puiPixels, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// pEditor's mesh in an instance of its own, where its shape put it.
-//
-//////////////////////////////////////////////////////////////////////////
-static void TestShapeSceneInstance(Ptr<CScene> pScene, Ptr<CMeshEditor> pEditor)
-{
-	Ptr<CInstance>		pInstance;
-	Ptr<CInstanceMesh>	pInstanceMesh;
-	Ptr<CConnection>	pConnection;
-
-	pConnection = OMalloc<CConnection>();
-	pConnection->msWorldMatrix.Identity();
-	pConnection->msLocalMatrix.Identity();
-	pInstanceMesh = OMalloc<CInstanceMesh>(pEditor);
-	pInstanceMesh->mapConnections.Add(pConnection);
-	pInstance = OMalloc<CInstance>();
-	pInstance->mapConnections.Add(pConnection);
-	pInstance->mapMeshes.Add(pInstanceMesh);
-	pScene->mapInstances.Add(pInstance);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // pShape meshed by a CMeshShapeEditor with flat normals merged after it.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -147,61 +113,7 @@ static void TestShapeSceneAdd(Ptr<CScene> pScene, Ptr<CShape> pShape, float32 fS
 	pEditor->AddModifier<CMeshShapeEditor>(pShape, fSmallest, fLargest);
 	pEditor->AddModifier<CMeshFlatFaces>();
 	pEditor->AddModifier<CMeshMergeNormals>(MESH_SHAPE_SPLIT_ANGLE);
-	TestShapeSceneInstance(pScene, pEditor);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pShape meshed, its normals from the shape, unwrapped at fTexelsPerUnit
-// and pTexture baked onto it.
-//
-//////////////////////////////////////////////////////////////////////////
-static void TestShapeSceneAddTextured(Ptr<CScene> pScene, Ptr<CShape> pShape, Ptr<CSolidTexture> pTexture, float32 fTexelsPerUnit)
-{
-	Ptr<CMeshEditor>	pEditor;
-
-	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
-	pEditor->AddModifier<CMeshShapeEditor>(pShape, 0.05f, 0.4f);
-	pEditor->AddModifier<CMeshShapeNormals>(pShape);
-	pEditor->AddModifier<CMeshUnwrap>(fTexelsPerUnit);
-	pEditor->AddModifier<CMeshBake>(pTexture);
-	TestShapeSceneInstance(pScene, pEditor);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A camera at psEye looking at the origin, with z up in the scene.
-//
-//////////////////////////////////////////////////////////////////////////
-static Ptr<CCamera> TestShapeSceneCamera(SFloat32Vec3* psEye)
-{
-	Ptr<CCamera>	pCamera;
-	SFloat4x4		sWorld;
-	SFloat32Vec3	sBack;
-	SFloat32Vec3	sUp;
-	SFloat32Vec3	sRight;
-	SFloat32Vec3	sSceneUp;
-
-	Float32Vec3Normalise(&sBack, psEye);
-	sSceneUp.Init(0, 0, 1);
-	Float32Vec3Cross(&sRight, &sSceneUp, &sBack);
-	sRight.Normalize();
-	Float32Vec3Cross(&sUp, &sBack, &sRight);
-
-	sWorld.Identity();
-	sWorld.x.Init(sRight.x, sRight.y, sRight.z, 0.0f);
-	sWorld.y.Init(sUp.x, sUp.y, sUp.z, 0.0f);
-	sWorld.z.Init(sBack.x, sBack.y, sBack.z, 0.0f);
-	sWorld.pos.Init(psEye->x, psEye->y, psEye->z, 1.0f);
-
-	pCamera = OMalloc<CCamera>();
-	pCamera->mfFOV = 3.14159265f / 3.0f;
-	pCamera->mpConnection = OMalloc<CConnection>();
-	pCamera->mpConnection->msWorldMatrix = sWorld;
-	pCamera->mpConnection->msLocalMatrix = sWorld;
-	return pCamera;
+	ShapeSceneInstance(pScene, pEditor);
 }
 
 
@@ -216,33 +128,18 @@ static Ptr<CCamera> TestShapeSceneCamera(SFloat32Vec3* psEye)
 //////////////////////////////////////////////////////////////////////////
 static void TestShapeSceneRender(Ptr<CScene> pScene, SFloat32Vec3* psEye, size uiInstances, const char* szName, int iBlock, int iTolerance, int iPercentDifferent)
 {
-	CRasterRenderFactory	cFactory;
-	CRasteriser				cRasteriser;
-	CRasterTarget			cTarget;
-	CFileBasic				cFile;
-	CFileUtil				cFileUtil;
-	Ptr<CCamera>			pCamera;
-	Ptr<CRasterFrame>		pFrame;
-	CChars					szFile;
-	uint32*					puiPixels;
-	int						i;
-	int						iDrawn;
-	int						iDifferent;
-	lsize					uiBytes;
-
-	pCamera = TestShapeSceneCamera(psEye);
-	pScene->mapCameras.Add(pCamera);
-
-	cFactory.Init(TEST_SHAPE_SCENE_SCALE);
-	cRasteriser.Init();
-	pFrame = OMalloc<CRasterFrame>(OMalloc<CRenderScene>(pScene, &cFactory, cFactory.CreateRenderer()), pCamera);
+	CFileBasic	cFile;
+	CFileUtil	cFileUtil;
+	CChars		szFile;
+	uint32*		puiPixels;
+	int			i;
+	int			iDrawn;
+	int			iDifferent;
+	lsize		uiBytes;
 
 	uiBytes = TEST_SHAPE_SCENE_WIDTH * TEST_SHAPE_SCENE_HEIGHT * sizeof(uint32);
 	puiPixels = (uint32*)malloc((size_t)uiBytes);
-	cTarget.Init(puiPixels, TEST_SHAPE_SCENE_WIDTH, TEST_SHAPE_SCENE_HEIGHT, TEST_SHAPE_SCENE_WIDTH);
-	cTarget.Clear(0xFF000000);
-	pFrame->Draw(&cRasteriser, &cTarget);
-	AssertSize(uiInstances, pFrame->NumInstances());
+	AssertSize(uiInstances, ShapeSceneDraw(pScene, psEye, puiPixels, TEST_SHAPE_SCENE_WIDTH, TEST_SHAPE_SCENE_HEIGHT));
 
 	iDrawn = 0;
 	for (i = 0; i < TEST_SHAPE_SCENE_WIDTH * TEST_SHAPE_SCENE_HEIGHT; i++)
@@ -272,12 +169,7 @@ static void TestShapeSceneRender(Ptr<CScene> pScene, SFloat32Vec3* psEye, size u
 	AssertTrue(iDifferent >= 0);
 	AssertTrue(iDifferent <= ((TEST_SHAPE_SCENE_WIDTH / iBlock) * (TEST_SHAPE_SCENE_HEIGHT / iBlock) * iPercentDifferent / 100));
 
-	cTarget.Kill();
 	free(puiPixels);
-	pFrame = NULL;
-	pCamera = NULL;
-	cRasteriser.Kill();
-	cFactory.Kill();
 }
 
 
@@ -367,7 +259,7 @@ void TestShapeSceneTextured(void)
 	asAxes[1].Init(0, 1, 0);
 	asAxes[2].Init(0, 0, 1);
 	sBox.Init(&sCentre, &asAxes[0], 1.0f, &asAxes[1], 1.0f, &asAxes[2], 1.0f);
-	TestShapeSceneAddTextured(pScene, OMalloc<CBox>(&sBox), pChecker, 64.0f);
+	ShapeSceneAddTextured(pScene, OMalloc<CBox>(&sBox), pChecker, 64.0f);
 
 	asCentres[0].Init(0.5f, 0.2f, 0.0f);
 	asCentres[1].Init(1.4f, -0.4f, 0.3f);
@@ -379,7 +271,7 @@ void TestShapeSceneTextured(void)
 	{
 		pSpheres = OMalloc<CShapeSmoothUnion>(pSpheres, OMalloc<CSphere>(&asCentres[i], 0.7f), 0.4f);
 	}
-	TestShapeSceneAddTextured(pScene, pSpheres, pChecker, 64.0f);
+	ShapeSceneAddTextured(pScene, pSpheres, pChecker, 64.0f);
 
 	sEye.Init(0.5f, -8.0f, 4.0f);
 	TestShapeSceneRender(pScene, &sEye, 2, "TexturedScene", 4, TEST_SHAPE_SCENE_BLOCK, 3);
