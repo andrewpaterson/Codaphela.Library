@@ -70,8 +70,8 @@ static const SConformanceGroup gasConformanceGroups[] =
 		"FunctionTryBlock(C) "),
 	CONFORMANCE_GROUP(Stage8, "", ""),
 	CONFORMANCE_GROUP(Stage9,
-		"Typeid(C) DynamicCastReference(C) VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) ",
-		"Typeid(C) DynamicCastReference(C) VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) "),
+		"VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) ",
+		"VirtualDiamond(C) VirtualBaseConstructedOnce(C) VirtualBaseDestroyedOnce(C) VirtualFunctionsThroughVirtualBase(C) VirtualBaseCasts(C) VirtualBaseInConstructor(C) VirtualBaseMemberPointers(C) VirtualBaseMixed(C) VirtualBaseAssignmentAndCopy(C) VirtualBaseEmptyAndDeep(C) "),
 	CONFORMANCE_GROUP(Stage10, "", ""),
 };
 

@@ -1815,6 +1815,19 @@ static const SConformanceCase gasConformanceStage9[] =
 		"int main() { D d; B b; B& r = d; B* p = &d; return (typeid(r) == typeid(D)) + (typeid(b) == typeid(B)) * 2 + (typeid(*p) != typeid(B)) * 4 + (typeid(int) == typeid(int)) * 8 + (typeid(N) != typeid(D)) * 16 + (typeid(p) == typeid(B*)) * 32 + (typeid(const int) == typeid(int)) * 64; }\n"
 	},
 	{
+		"TypeidForms", 63,
+		"#ifdef _MSC_VER\n"
+		"#include <typeinfo>\n"
+		"#else\n"
+		"namespace std { class type_info { public: bool operator==(const type_info& o) const noexcept; bool operator!=(const type_info& o) const noexcept; const char* name() const noexcept; }; }\n"
+		"#endif\n"
+		"struct A { virtual ~A() {} int a; };\n"
+		"struct B { virtual ~B() {} int b; };\n"
+		"struct C : A, B { int c; };\n"
+		"template<class T> bool same(const T& x, const std::type_info& t) { return typeid(x) == t; }\n"
+		"int main() { C c; B* pb = &c; A* pa = &c; const B& rb = c; return (typeid(*pb) == typeid(C)) + (typeid(*pa) == typeid(*pb)) * 2 + (typeid(rb) == typeid(C)) * 4 + same(c, typeid(C)) * 8 + (typeid(pb) != typeid(pa)) * 16 + (typeid(char*) != typeid(const char*)) * 32; }\n"
+	},
+	{
 		"DynamicCastReference", 44,
 		"struct B { virtual ~B() {} };\n"
 		"struct D : B { int v; };\n"

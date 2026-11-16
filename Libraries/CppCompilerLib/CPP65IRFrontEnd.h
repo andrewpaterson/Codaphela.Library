@@ -314,6 +314,9 @@ protected:
 	bool			Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace);
 	bool			IsReferenceCast(CCPPSyntax* pcExpression);
 	bool			ReferenceCastPlace(CCPPSyntax* pcCast, SCPP65Type* psReference, SCPP65IRPlace* psPlace);
+	bool			DynamicCastPlace(CCPPSyntax* pcCast, SCPP65Type* psReference, SCPP65IRPlace* psPlace);
+	bool			TypeidPlace(CCPPSyntaxTypeidExpression* pcTypeid, SCPP65IRPlace* psPlace);
+	bool			TypeInfoCall(CCPPFunction* pcFunction, SIRReference sObject, CArrayIRReferences* pasArguments, SCPP65IRValue* psValue);
 	bool			VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* psPlace);
 	bool			UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue);
 	bool			IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue);

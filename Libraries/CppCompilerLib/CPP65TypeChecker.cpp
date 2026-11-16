@@ -387,6 +387,37 @@ void CCPP65TypeChecker::VisitNoexceptExpression(CCPPSyntaxNoexceptExpression* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
+// typeid(type) and typeid(expression): a const std::type_info&, of
+// <typeinfo>'s std::type_info.  [expr.typeid] 1
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitTypeidExpression(CCPPSyntaxTypeidExpression* pcNode)
+{
+	CCPPClass*	pcTypeInfo;
+	bool		bDynamic;
+
+	mpsResult = NULL;
+	pcTypeInfo = mpcUnit->TypeInfoClass();
+	if (!pcTypeInfo)
+	{
+		Error(pcNode, "typeid needs std::type_info, from <typeinfo>");
+		return;
+	}
+	if (pcNode->mpcOperand && !Value(pcNode->mpcOperand))
+	{
+		return;
+	}
+	if (!mpcUnit->TypeidType(pcNode, &bDynamic))
+	{
+		Error(pcNode, "typeid of this is not supported by the compiler yet");
+		return;
+	}
+	mpsResult = mpcTypes->Reference(mpcTypes->Const(pcTypeInfo->mpsType));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitTypeTraitExpression(CCPPSyntaxTypeTraitExpression* pcNode)

@@ -3616,7 +3616,7 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 76): The address of an overloaded function needs the type of the function it is for [F]\n", "int F(short a) { return a; } int F(long a) { return 1; } int (*gp)(char) = F; int main() { return gp(1); }");
 	AssertCPP65Error("Generated.cpp (1, 84): The address of an overloaded function needs the type of the function it is for [F]\n", "int F(short a) { return a; } int F(long a) { return 1; } void* G() { return (void*)F; } int main() { return G() != 0; }");
 	AssertCPP65Error("Generated.cpp (1, 67): The operand of dynamic_cast is not polymorphic [dynamic_cast]\n", "struct P { int x; }; struct Q : P { int y; }; Q* f(P* p) { return dynamic_cast<Q*>(p); }");
-	AssertCPP65Error("Generated.cpp (1, 91): dynamic_cast to a reference is not supported [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; struct D : B { int y; }; int g(B& b) { return dynamic_cast<D&>(b).y; }");
+	AssertCPP65Error("Generated.cpp (1, 68): The operand of dynamic_cast is not polymorphic [dynamic_cast]\n", "struct P { int x; }; struct Q : P { int y; }; int g(P& p) { return dynamic_cast<Q&>(p).y; }");
 
 	//A constant that running says isn't one says why, and in which constexpr calls.
 	AssertCPP65Error("Generated.cpp (3, 8): An array size must be a positive constant: It divides by zero, or the least number by -1, in f(int), called from g(int) [g]\n",

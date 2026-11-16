@@ -66,6 +66,7 @@ public:
 	void			VisitImplicitArgument(CCPPSyntaxImplicitArgument* pcNode) override;
 	void			VisitTypeTraitExpression(CCPPSyntaxTypeTraitExpression* pcNode) override;
 	void			VisitNoexceptExpression(CCPPSyntaxNoexceptExpression* pcNode) override;
+	void			VisitTypeidExpression(CCPPSyntaxTypeidExpression* pcNode) override;
 	void			VisitNewExpression(CCPPSyntaxNewExpression* pcNode) override;
 	void			VisitDeleteExpression(CCPPSyntaxDeleteExpression* pcNode) override;
 

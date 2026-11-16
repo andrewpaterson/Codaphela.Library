@@ -509,6 +509,12 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 		asPieces.Kill();
 		return false;
 	}
+	if (pcFunction && mpcUnit->IsTypeInfoMember(pcFunction))
+	{
+		bThisCall = TypeInfoCall(pcFunction, sObject, &asPieces, psValue);
+		asPieces.Kill();
+		return bThisCall;
+	}
 	if (bThisCall)
 	{
 		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sObject);
@@ -525,6 +531,59 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 
 	CallResult(psReturn, sMade, mpcFunction->Call(mpcBlock, ReturnIRType(psReturn), sCallee, bVariadic ? (int)uiParameters : -1, bThisCall), psValue);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member of std::type_info that nothing defines (CCPPUnit::
+// IsTypeInfoMember), worked out here: a type info's address is its type's,
+// so ==, != and before compare addresses and hash_code is the address.
+// name is "" (CppParserTodo.txt Part B, question 8).  [type.info]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::TypeInfoCall(CCPPFunction* pcFunction, SIRReference sObject, CArrayIRReferences* pasArguments, SCPP65IRValue* psValue)
+{
+	int64			lliName;
+	uint32			uiOpcode;
+	bool			bCompare;
+	SIRReference	sCondition;
+
+	lliName = pcFunction->mlliName;
+	bCompare = true;
+	uiOpcode = IRO_Eq;
+	if (lliName == mpcUnit->GetOperatorName(CT_NotEqualTo, false))
+	{
+		uiOpcode = IRO_Ne;
+	}
+	else if (mpcUnit->IsNamed(lliName, "before"))
+	{
+		uiOpcode = IRO_ULt;
+	}
+	else if (lliName != mpcUnit->GetOperatorName(CT_EqualTo, false))
+	{
+		bCompare = false;
+	}
+	if (bCompare && (pasArguments->NumElements() == 1))
+	{
+		sCondition = mpcFunction->Add(mpcBlock, uiOpcode, IRType(IRTK_Pointer), sObject, *pasArguments->Get(0));
+		psValue->sValue = ConvertIR(sCondition, IRType(IRTK_I1), IRTypeOf(&mpcTypes->msBool), false);
+		psValue->psType = &mpcTypes->msBool;
+		return true;
+	}
+	if (mpcUnit->IsNamed(lliName, "name") && (pasArguments->NumElements() == 0))
+	{
+		StringData((char*)"", 0, psValue);
+		psValue->psType = pcFunction->mpsReturn;
+		return true;
+	}
+	if (mpcUnit->IsNamed(lliName, "hash_code") && (pasArguments->NumElements() == 0) && pcFunction->mpsReturn->IsInteger())
+	{
+		psValue->sValue = ConvertIR(sObject, IRType(IRTK_Pointer), IRTypeOf(pcFunction->mpsReturn), false);
+		psValue->psType = pcFunction->mpsReturn;
+		return true;
+	}
+	return Unsupported(__FILE__, __LINE__);
 }
 
 

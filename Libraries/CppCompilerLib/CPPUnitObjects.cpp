@@ -189,6 +189,137 @@ CCPPClass* CCPPUnit::ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether an identifier (lliName) is szName.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsNamed(int64 lliName, const char* szName)
+{
+	char*	szIdentifier;
+	int		iLength;
+
+	if (lliName < 0)
+	{
+		return false;
+	}
+	szIdentifier = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	return ((size)iLength == strlen(szName)) && (memcmp(szIdentifier, szName, iLength) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a name declared in pcScope is std::szName: the library's, which
+// the compiler knows (std::initializer_list, std::type_info).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName)
+{
+	return pcScope && pcScope->mpcOwner && IsNamed(lliName, szName) && IsNamed(pcScope->mpcOwner->mlliName, "std") && (!pcScope->mpcParent || !pcScope->mpcParent->mpcOwner);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class std::type_info, if the program has declared it (<typeinfo>), or
+// NULL.  [type.info]
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::TypeInfoClass(void)
+{
+	CCPPClass*	pcClass;
+	size		i;
+
+	for (i = 0; !mpcTypeInfo && (i < mapcClasses.NumElements()); i++)
+	{
+		pcClass = mapcClasses.GetPtr(i);
+		if (!pcClass->mpcTemplate && pcClass->mpcSymbol && IsStdName(pcClass->mlliName, pcClass->mpcSymbol->mpcScope, "type_info"))
+		{
+			mpcTypeInfo = pcClass;
+		}
+	}
+	return mpcTypeInfo;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function is a member of std::type_info that the program declares
+// and nothing defines (<typeinfo>'s), which the IR front end works out where
+// it is called (CCPP65IRFrontEnd::TypeInfoCall).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsTypeInfoMember(CCPPFunction* pcFunction)
+{
+	return pcFunction->mpcClass && (pcFunction->mpcClass == TypeInfoClass()) && !pcFunction->mpcDefinition && (pcFunction->meKind == CPPFK_Function);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type typeid gives the std::type_info of: a type's, or an expression's
+// (its type without a reference), without const and volatile.  *pbDynamic
+// when it is the object's own (an lvalue of a polymorphic class), found
+// from its vtable.  [expr.typeid]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbDynamic)
+{
+	SCPP65Type*	psType;
+
+	*pbDynamic = false;
+	if (pcTypeid->mpcType)
+	{
+		psType = mcDeclarators.GetTypeIdType(pcTypeid->mpcType);
+	}
+	else
+	{
+		psType = TypeOf(pcTypeid->mpcOperand);
+		psType = psType ? psType->WithoutReference() : NULL;
+		*pbDynamic = psType && psType->IsClass() && CompleteClass(psType->pcClass, pcTypeid) && psType->pcClass->IsPolymorphic() && IsObjectLvalue(pcTypeid->mpcOperand);
+	}
+	return psType ? psType->WithoutReference()->Unqualified() : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label of a type's type info, the address typeid gives, written if it
+// isn't yet: a class's is _Class__3 (EnsureTypeInfo), any other type's _3
+// and the type mangled, a word of its own in a COMDAT section, so its
+// address is the type's in the whole program (no name starts with a digit).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
+{
+	CChars	szLabel;
+
+	if (psType->IsClass())
+	{
+		EnsureTypeInfo(psType->pcClass);
+		mcMangler.AppendTypeInfoLabel(psz, psType->pcClass);
+		return;
+	}
+	szLabel.Init("_3");
+	mcMangler.AppendType(&szLabel, psType);
+	if (Emit(&szLabel))
+	{
+		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
+		mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+		mcData.GetText()->AppendNewLine();
+		mcData.GetText()->Append(&szLabel);
+		mcData.GetText()->Append(':');
+		mcData.GetText()->AppendNewLine();
+		mcData.GetText()->Append("\t\t.long 0");
+		mcData.GetText()->AppendNewLine();
+	}
+	psz->Append(&szLabel);
+	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The class template std::initializer_list, if the program has declared it
 // (<initializer_list>), or NULL.  [support.initlist]
 //
@@ -196,9 +327,6 @@ CCPPClass* CCPPUnit::ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse)
 CCPPTemplate* CCPPUnit::InitializerListTemplate(void)
 {
 	CCPPTemplate*	pcTemplate;
-	CCPPScope*		pcNamespace;
-	char*			szName;
-	int				iLength;
 	size			i;
 
 	for (i = 0; !mpcInitializerList && (i < mapcTemplates.NumElements()); i++)
@@ -208,14 +336,7 @@ CCPPTemplate* CCPPUnit::InitializerListTemplate(void)
 		{
 			continue;
 		}
-		szName = mpcTokeniser->GetIdentifier(pcTemplate->mpcSymbol->mlliName, &iLength);
-		pcNamespace = pcTemplate->mpcNamespace;
-		if ((iLength != 16) || (memcmp(szName, "initializer_list", 16) != 0) || !pcNamespace || !pcNamespace->mpcOwner || (pcNamespace->mpcOwner->mlliName < 0))
-		{
-			continue;
-		}
-		szName = mpcTokeniser->GetIdentifier(pcNamespace->mpcOwner->mlliName, &iLength);
-		if ((iLength == 3) && (memcmp(szName, "std", 3) == 0) && (!pcNamespace->mpcParent || !pcNamespace->mpcParent->mpcOwner))
+		if (IsStdName(pcTemplate->mpcSymbol->mlliName, pcTemplate->mpcNamespace, "initializer_list"))
 		{
 			mpcInitializerList = pcTemplate;
 		}

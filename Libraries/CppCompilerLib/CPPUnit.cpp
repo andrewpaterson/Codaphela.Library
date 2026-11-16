@@ -283,6 +283,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcRangeFors.Init(true);
 	mcLiteralCalls.Init(true);
 	mpcInitializerList = NULL;
+	mpcTypeInfo = NULL;
 	mapsLambdas.Init();
 	mapcMemberSpecialisations.Init();
 	mapcStaticMemberTemplates.Init();
@@ -299,6 +300,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	miWarningChecks = 0;
 	mapcConstantTypes.Init();
 	mbPureVirtual = false;
+	mbBadCast = false;
 
 	mapcLocals.Init();
 	miStatics = 0;
@@ -3076,8 +3078,9 @@ bool CCPPUnit::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 //////////////////////////////////////////////////////////////////////////
 //
 // Runtime routines the generated code calls.  Only the ones used are added:
-// R_Pure, which a pure virtual function's vtable entry is, and the target's
-// own (CCPPTarget::AppendRuntime).
+// R_Pure, which a pure virtual function's vtable entry is, R_BadCast, which a
+// dynamic_cast to a reference that fails calls, and the target's own
+// (CCPPTarget::AppendRuntime).  Both stop: there is nothing to throw.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::AppendRuntime(void)
@@ -3085,6 +3088,12 @@ void CCPPUnit::AppendRuntime(void)
 	if (mbPureVirtual && BeginRuntime("R_Pure"))
 	{
 		//A pure virtual function was called.
+		Line("stp")->AppendNewLine();
+		mszCode.AppendNewLine();
+	}
+	if (mbBadCast && BeginRuntime("R_BadCast"))
+	{
+		//A dynamic_cast to a reference failed (bad_cast, were there exceptions).
 		Line("stp")->AppendNewLine();
 		mszCode.AppendNewLine();
 	}

@@ -319,7 +319,7 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     6. Static locals with a first-time guard (stage 7): the targets have one thread, but interrupts and the kernal.  Is a plain "done" flag enough, or must the first initialisation be safe against being entered again from an interrupt?  Done for now as a plain guard byte (G<n>_name), set after the initialisation, with nothing against an interrupt.
     7. thread_local (stage 7): static storage, as there is one thread; or per process if the kernal will run several?  Done for now as static storage.
     11. A static local object whose class needs a destructor is refused (stage 7): destroying it when the program ends needs its destructor registered when it is made (as atexit does), which the start-up code has no list for.  Add one?
-    8. typeid(x).name() (stage 9): what string, if any (the C++ name, the label, or ""), given it is data every polymorphic class carries.
+    8. typeid(x).name() (stage 9): what string, if any (the C++ name, the label, or ""), given it is data every polymorphic class carries.  Done for now as "": a name would be a string in every polymorphic class's type info, which every unit writes alike (COMDAT), whether or not the program asks for it.
     9. Virtual inheritance (stage 9): lay classes out as MSVC does (a virtual base pointer in the object), as the plan says, or as the Itanium ABI does (virtual base offsets in the vtable), which is usually smaller?
 
 

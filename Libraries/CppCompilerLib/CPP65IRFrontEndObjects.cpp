@@ -1430,6 +1430,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	case CPPS_MemberExpression:
 	case CPPS_SubscriptExpression:
 	case CPPS_ThisExpression:
+	case CPPS_TypeidExpression:
 		break;
 	case CPPS_UnaryExpression:
 		switch (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator)
@@ -1501,10 +1502,6 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		}
 		else
 		{
-			if (((CCPPSyntaxNamedCastExpression*)pcExpression)->meCast == CT_dynamic_cast)
-			{
-				mpcUnit->ReportError(pcExpression, "dynamic_cast to a reference is not supported");
-			}
 			return Unsupported(__FILE__, __LINE__);
 		}
 		psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcType);

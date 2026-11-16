@@ -264,6 +264,7 @@ protected:
 	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
 	CMapCPPLiteralCalls		mcLiteralCalls;		//The call each user-defined literal is, by its node.
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
+	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
 	CArraySyntax			mapcMemberSpecialisations;	//template<> R Class<Arguments>::f() { ... }, each given to its instance.
 	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
@@ -281,6 +282,7 @@ protected:
 	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
 	CArraySyntax			mapcConstantTypes;	//The expressions whose types Constant is finding (ConstantTypeOf).
 	bool					mbPureVirtual;
+	bool					mbBadCast;			//A dynamic_cast to a reference calls R_BadCast (UseBadCast).
 
 	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
@@ -463,6 +465,7 @@ public:
 	void					AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable);
 	void					AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable);
 	void					AppendRuntime(void);
+	void					UseBadCast(void) { mbBadCast = true; }
 	CArrayChars*			GetRuntimeCalls(void) override;
 	bool					BeginRuntime(const char* szName) override;
 	CChars*					GetRuntimeCode(void) override;
@@ -703,6 +706,12 @@ public:
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	bool					IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName);
+	bool					IsNamed(int64 lliName, const char* szName);
+	CCPPClass*				TypeInfoClass(void);
+	bool					IsTypeInfoMember(CCPPFunction* pcFunction);
+	SCPP65Type*				TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbDynamic);
+	void					AppendTypeidLabel(CChars* psz, SCPP65Type* psType);
 	CCPPTemplate*			InitializerListTemplate(void);
 	SCPP65Type*				InitializerListElement(SCPP65Type* psType);
 	SCPP65Type*				InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNode);

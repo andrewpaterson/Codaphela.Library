@@ -831,7 +831,7 @@ bool CCPP65IRFrontEnd::IsReferenceCast(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	if ((pcExpression->GetKind() != CPPS_CastExpression) && ((pcExpression->GetKind() != CPPS_NamedCastExpression) || (((CCPPSyntaxNamedCastExpression*)pcExpression)->meCast == CT_dynamic_cast)))
+	if ((pcExpression->GetKind() != CPPS_CastExpression) && (pcExpression->GetKind() != CPPS_NamedCastExpression))
 	{
 		return false;
 	}
@@ -843,7 +843,8 @@ bool CCPP65IRFrontEnd::IsReferenceCast(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 //
 // The place a cast to a reference, static_cast<T&&>(x), refers to: x's,
-// or for an object of another class of its hierarchy that class's part.
+// or for an object of another class of its hierarchy that class's part
+// (dynamic_cast<T&>'s, DynamicCastPlace).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ReferenceCastPlace(CCPPSyntax* pcCast, SCPP65Type* psReference, SCPP65IRPlace* psPlace)
@@ -852,12 +853,128 @@ bool CCPP65IRFrontEnd::ReferenceCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefe
 	SCPP65IRPlace	sOperand;
 
 	pcOperand = (pcCast->GetKind() == CPPS_CastExpression) ? ((CCPPSyntaxCastExpression*)pcCast)->mpcOperand : ((CCPPSyntaxNamedCastExpression*)pcCast)->mpcOperand;
+	if ((pcCast->GetKind() == CPPS_NamedCastExpression) && (((CCPPSyntaxNamedCastExpression*)pcCast)->meCast == CT_dynamic_cast))
+	{
+		return DynamicCastPlace(pcCast, psReference, psPlace);
+	}
 	if (!Place(pcOperand, &sOperand) || !ReferenceAddress(&sOperand, psReference, &psPlace->sAddress))
 	{
 		return false;
 	}
 	psPlace->psType = psReference->psBase;
 	psPlace->psBitField = NULL;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// dynamic_cast<T&>(x): the T of the object x is part of, found as
+// dynamic_cast<T*>(&x) finds it.  If there is none the program stops
+// (R_BadCast), as there is nothing to throw.  [expr.dynamic.cast] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DynamicCastPlace(CCPPSyntax* pcCast, SCPP65Type* psReference, SCPP65IRPlace* psPlace)
+{
+	CCPPSyntax*		pcOperand;
+	SCPP65IRPlace	sOperand;
+	CCPPClass*		pcFrom;
+	CCPPClass*		pcTo;
+	CIRBlock*		pcFailed;
+	CIRBlock*		pcFound;
+	SIRReference	sCondition;
+
+	pcOperand = ((CCPPSyntaxNamedCastExpression*)pcCast)->mpcOperand;
+	if (!psReference->psBase->IsClass() || !Place(pcOperand, &sOperand) || !sOperand.psType->IsClass())
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	pcFrom = sOperand.psType->pcClass;
+	pcTo = psReference->psBase->pcClass;
+	if (!mpcUnit->CompleteClass(pcFrom, NULL) || !mpcUnit->CompleteClass(pcTo, NULL))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	psPlace->psType = psReference->psBase;
+	psPlace->psBitField = NULL;
+	if (mpcUnit->IsDerived(pcFrom, pcTo, NULL))
+	{
+		return ReferenceAddress(&sOperand, psReference, &psPlace->sAddress);
+	}
+	if (!pcFrom->IsPolymorphic())
+	{
+		mpcUnit->ReportError(pcCast, "The operand of dynamic_cast is not polymorphic");
+		return Unsupported(__FILE__, __LINE__);
+	}
+
+	psPlace->sAddress = DynamicCast(sOperand.sAddress, pcFrom, pcTo);
+	pcFailed = NewBlock();
+	pcFound = NewBlock();
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_Pointer), psPlace->sAddress, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
+	mpcBlock->Branch(sCondition, pcFailed, pcFound);
+	StartBlock(pcFailed);
+	mpcUnit->UseBadCast();
+	mpcFunction->Call(mpcBlock, IRType(IRTK_None), mcModule.Symbol("R_BadCast"));
+	JumpTo(pcFound);
+	StartBlock(pcFound);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// typeid's std::type_info: the type info of its type (CCPPUnit::
+// AppendTypeidLabel), or for an lvalue of a polymorphic class its object's
+// own, which its vtable points to (a null one, *p of a null p, stops the
+// program at R_BadCast, there being no bad_typeid to throw).  [expr.typeid]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::TypeidPlace(CCPPSyntaxTypeidExpression* pcTypeid, SCPP65IRPlace* psPlace)
+{
+	SCPP65Type*		psType;
+	SCPP65IRPlace	sObject;
+	SIRReference	sVtable;
+	SIRReference	sCondition;
+	CIRBlock*		pcNull;
+	CIRBlock*		pcObject;
+	CChars			szLabel;
+	bool			bDynamic;
+
+	psType = mpcUnit->TypeidType(pcTypeid, &bDynamic);
+	if (!psType || !mpcUnit->TypeInfoClass())
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	psPlace->psType = mpcTypes->Const(mpcUnit->TypeInfoClass()->mpsType);
+	psPlace->psBitField = NULL;
+	if (bDynamic)
+	{
+		if (!Place(pcTypeid->mpcOperand, &sObject))
+		{
+			return false;
+		}
+		pcNull = NewBlock();
+		pcObject = NewBlock();
+		sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_Pointer), sObject.sAddress, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
+		mpcBlock->Branch(sCondition, pcNull, pcObject);
+		StartBlock(pcNull);
+		mpcUnit->UseBadCast();
+		mpcFunction->Call(mpcBlock, IRType(IRTK_None), mcModule.Symbol("R_BadCast"));
+		JumpTo(pcObject);
+		StartBlock(pcObject);
+		sVtable = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sObject.sAddress, sObject.psType->pcClass->GetVtablePointerOffset()));
+		psPlace->sAddress = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sVtable, CPP65_VTABLE_TYPE_INFO_OFFSET));
+		return true;
+	}
+	//An expression that isn't an lvalue of a polymorphic class isn't worked out.  [expr.typeid] 4
+	szLabel.Init();
+	mpcUnit->AppendTypeidLabel(&szLabel, psType);
+	psPlace->sAddress = mcModule.Symbol(szLabel.Text());
+	if (psType->IsClass() && psType->pcClass->IsUnnamed())
+	{
+		mcModule.SetLocal(psPlace->sAddress.Index());
+	}
+	szLabel.Kill();
 	return true;
 }
 
@@ -1013,6 +1130,9 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			return Unsupported(__FILE__, __LINE__);
 		}
 		return true;
+
+	case CPPS_TypeidExpression:
+		return TypeidPlace((CCPPSyntaxTypeidExpression*)pcExpression, psPlace);
 
 	case CPPS_ConstructExpression:
 		if (!ObjectValue(pcExpression, &sAddress))

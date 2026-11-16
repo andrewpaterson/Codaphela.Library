@@ -74,7 +74,7 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 //
 // dynamic_cast<T*>(p) and dynamic_cast<void*>(p).  A cast to the class or one
 // of its bases is a conversion; any other looks up the object's type info.
-// dynamic_cast<T&> (which would need exceptions) is not supported.
+// dynamic_cast<T&> is a place (DynamicCastPlace).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue)
@@ -90,7 +90,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	}
 	if (psTo->IsReference())
 	{
-		mpcUnit->ReportError(pcCast, "dynamic_cast to a reference is not supported");
+		//A reference cast's place is DynamicCastPlace's.
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!psTo->IsPointer() || !(psTo->psBase->IsClass() || psTo->psBase->IsVoid()))
