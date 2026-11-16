@@ -11,20 +11,20 @@ protected:
 
 public:
 	void			Init(CMapBlock* pcMap);
-	void			Kill(void);
+	void			Kill(void) override;
 
-	int64			NumElements(void);
-	void			Dump(void);
+	int64			NumElements(void) override;
+	void			Dump(void) override;
 
-	CMapIterator*	CreateIterator(void);
-	void			FreeIterator(CMapIterator* pcIter);
+	CMapIterator*	CreateIterator(void) override;
+	void			FreeIterator(CMapIterator* pcIter) override;
 
 protected:
-	 void*			Put(const void* pvKey, size iKeySize, const void* pvData, size uiDataSize);
-	 void*			Get(const void* pvKey, size iKeySize, size* puiDataSize);
-	 size			DataSize(void* pvKey, size iKeySize);
-	 bool			Remove(const void* pvKey, size iKeySize);
-	 bool			Has(const void* pvKey, size iKeySize);
+	 void*			Put(const void* pvKey, size iKeySize, const void* pvData, size uiDataSize) override;
+	 void*			Get(const void* pvKey, size iKeySize, size* puiDataSize) override;
+	 size			DataSize(void* pvKey, size iKeySize) override;
+	 bool			Remove(const void* pvKey, size iKeySize) override;
+	 bool			Has(const void* pvKey, size iKeySize) override;
 };
 
 

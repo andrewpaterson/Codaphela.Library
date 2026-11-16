@@ -15,13 +15,13 @@ protected:
 public:
 	void 								Init(const char* szSubDirectory, EDurableSync eSync, size uiBlockSize = SEQUENCE_BLOCK_SIZE);
 	void 								Init(const char* szSubDirectory, EDurableSync eSync, OIndex oiFirst, OIndex oiEnd, size uiBlockSize = SEQUENCE_BLOCK_SIZE);
-	void								Kill(void);
+	void								Kill(void) override;
 
-	const char*								Getdirectory(void);
-	EDurableSync							GetSync(void);
-	size									GetBlockSize(void);
-	OIndex									GetFirstIndex(void);
-	OIndex									GetEndIndex(void);
+	const char*								Getdirectory(void) override;
+	EDurableSync							GetSync(void) override;
+	size									GetBlockSize(void) override;
+	OIndex									GetFirstIndex(void) override;
+	OIndex									GetEndIndex(void) override;
 
 public:
 	static CLifeInit<CSequenceConfig>	Create(const char* szSubDirectory, EDurableSync eSync, size uiBlockSize = SEQUENCE_BLOCK_SIZE);

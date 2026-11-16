@@ -19,16 +19,16 @@ protected:
 public:
 	void 									Init(const char* szSubDirectory, lsize uiDataCacheSize, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy);
 	void 									Init(const char* szSubDirectory, lsize uiDataCacheSize, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CLifeInit<CIndexTreeDataOrderer> cIndexTreeDataOrderer);
-	void									Kill(void);
+	void									Kill(void) override;
 
-	const char*									GetSubdirectory(void);
-	lsize									GetDataCacheSize(void);
-	lsize									GetIndexCacheSize(void);
-	EIndexWriteThrough						GetWriteThrough(void);
-	CIndexTreeEvictionCallback*				GetIndexTreeEvictionUserCallback(void);
-	CIndexedDataEvictionCallback*			GetIndexedDataEvictionUserCallback(void);
-	CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void);
-	CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void);
+	const char*									GetSubdirectory(void) override;
+	lsize									GetDataCacheSize(void) override;
+	lsize									GetIndexCacheSize(void) override;
+	EIndexWriteThrough						GetWriteThrough(void) override;
+	CIndexTreeEvictionCallback*				GetIndexTreeEvictionUserCallback(void) override;
+	CIndexedDataEvictionCallback*			GetIndexedDataEvictionUserCallback(void) override;
+	CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) override;
+	CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void) override;
 
 public:
 	static CLifeInit<CIndexedDataConfig>	Create(const char* szSubDirectory, lsize uiDataCacheSize, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy);

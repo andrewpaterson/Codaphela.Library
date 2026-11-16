@@ -51,13 +51,13 @@ public:
 	bool	Write(CFileWriter* pcFileWriter);
 	bool	Read(CFileReader* pcFileReader);
 
-	bool	WriteData(CFileWriter* pcFileWriter, void* pvData);
-	bool	ReadData(CFileReader* pcFileReader, void* pvData);
+	bool	WriteData(CFileWriter* pcFileWriter, void* pvData) override;
+	bool	ReadData(CFileReader* pcFileReader, void* pvData) override;
 
 	bool	ValidateIndexTree(void);
 
-	size	AdjustDataSize(void* pvValue, size iValueSize);
-	void	FreeData(void* pvData);
+	size	AdjustDataSize(void* pvValue, size iValueSize) override;
+	void	FreeData(void* pvData) override;
 
 protected:
 	void*	Malloc(lsize uiSize);

@@ -51,23 +51,23 @@ protected:
 
 public:
 	void 			Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cConfig);
-	void 			Kill(void);
+	void 			Kill(void) override;
 
 	bool			CanKill(void);
 
 	bool			Flush(void);
-	bool			Flush(bool bClearDataCache);
+	bool			Flush(bool bClearDataCache) override;
 
 	bool			IsDurable(void);
 	bool			IsFlushed(void);
 
-	int64			NumIndices(void);
-	lsize			NumIndicesCached(void);
+	int64			NumIndices(void) override;
+	lsize			NumIndicesCached(void) override;
 	lsize			NumIndicesCached(size iSize);
 
-	bool			IsDirty(OIndex oi);
+	bool			IsDirty(OIndex oi) override;
 	bool			EvictKey(OIndex oi);
-	bool			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	bool			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor) override;
 
 	bool			FlushKey(OIndex oi);
 
@@ -90,12 +90,12 @@ public:
 	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* ppvData, lsize* piDataSize, lsize iMaxDataSize);
 
 protected:
-	bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
-	bool			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
-	bool			UpdateDescriptorCache(OIndex oi, void* pvCache, lsize uiDataSize);
-	bool			RemoveDescriptor(OIndex oi);
+	bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) override;
+	bool			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) override;
+	bool			UpdateDescriptorCache(OIndex oi, void* pvCache, lsize uiDataSize) override;
+	bool			RemoveDescriptor(OIndex oi) override;
 
-	bool			DescriptorEvicted(OIndex oi, void* pvCache, lsize uiDataSize);
+	bool			DescriptorEvicted(OIndex oi, void* pvCache, lsize uiDataSize) override;
 };
 
 

@@ -15,9 +15,9 @@ protected:
 
 public:
 	void	Init(CIndexTreeFile* pcIndexTree);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	bool	Iterate(void);
+	bool	Iterate(void) override;
 };
 
 

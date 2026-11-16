@@ -52,7 +52,7 @@ protected:
 public:
 	void				Init(CMarkupTag* pcParent);
 	void				Init(const char* szName, CMarkupTag* pcParent);
-	void				Kill(void);
+	void				Kill(void) override;
 	bool				IsEmpty(void);
 	bool				GetAttribute(const char* szAttribute, void** ppvData, uint* puiType = NULL);
 	void*				GetAttribute(size uiIndex, uint* puiType, char** szName = NULL);
@@ -90,8 +90,8 @@ public:
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
 	CMallocator*		GetMalloc(void);
-	void				Print(CChars* psz);
-	size				Print(CChars* psz, size iDepth, size iLine);
+	void				Print(CChars* psz) override;
+	size				Print(CChars* psz, size iDepth, size iLine) override;
 	void				Dump(void);
 
 protected:

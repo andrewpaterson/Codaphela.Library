@@ -41,7 +41,7 @@ public:
 	size					miReferences;
 
 			void Init(const char* szName, EMarkupSubstituteType eType);
-			void Kill(void);
+			void Kill(void) override;
 
 			void AddRef(void);
 			bool RemoveRef(void);
@@ -61,7 +61,7 @@ public:
 	CMarkup*	mpcMarkup;
 
 	void Init(const char* szName, const char* szText);
-	void Kill(void);
+	void Kill(void) override;
 };
 
 
@@ -72,7 +72,7 @@ public:
 	CMarkup*		mpcMarkup;
 
 	void Init(const char* szName, CMarkupDoc* pcDoc);
-	void Kill(void);
+	void Kill(void) override;
 };
 
 

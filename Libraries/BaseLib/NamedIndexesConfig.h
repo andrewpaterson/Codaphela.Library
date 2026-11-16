@@ -15,7 +15,7 @@ class CNamedIndexesConfig : public CConstructable, public CKillable
 friend class CNamedIndexes;
 CONSTRUCTABLE(CNamedIndexesConfig)
 public:
-	virtual void									Kill(void);
+	virtual void									Kill(void) override;
 
 	virtual lsize									GetIndexCacheSize(void) =0;
 	virtual CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) =0;

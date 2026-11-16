@@ -31,12 +31,12 @@ class CCalcConstExpression : public CCalcExpression
 public:
 	CNumber		mcValue;
 
-	void		Init(CCalculatorError* pcError);
-	void		Kill(void);
-	CNumber		Evaluate(void);
+	void		Init(CCalculatorError* pcError) override;
+	void		Kill(void) override;
+	CNumber		Evaluate(void) override;
 	void		SetValue(CNumber* pcNumber);
-	void		Print(CChars* psz);
-	bool		IsConstExpression(void);
+	void		Print(CChars* psz) override;
+	bool		IsConstExpression(void) override;
 	CNumber*	GetNumber(void);
 };
 

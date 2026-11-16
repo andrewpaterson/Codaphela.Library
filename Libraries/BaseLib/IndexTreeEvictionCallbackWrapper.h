@@ -13,7 +13,7 @@ protected:
 public:
 	void Init(CIndexTreeEvictionCallback* pcCallback1, CIndexTreeEvictionCallback* pcCallback2);
 
-	bool IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
 };
 
 

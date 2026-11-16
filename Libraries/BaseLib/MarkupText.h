@@ -33,10 +33,10 @@ public:
 
 	void 	Init(CMarkupTag* pcParent);
 	void 	Init(const char* szText, CMarkupTag* pcParent);
-	void 	Kill(void);
+	void 	Kill(void) override;
 
 	char*	Text(void);
-	size	Print(CChars* psz, size iDepth, size iLine);
+	size	Print(CChars* psz, size iDepth, size iLine) override;
 };
 
 

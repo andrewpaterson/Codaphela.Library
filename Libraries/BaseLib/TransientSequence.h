@@ -12,8 +12,8 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	OIndex	GetNext(void);
-	OIndex	PeekNext(void);
+	OIndex	GetNext(void) override;
+	OIndex	PeekNext(void) override;
 };
 
 

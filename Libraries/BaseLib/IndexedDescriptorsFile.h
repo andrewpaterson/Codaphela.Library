@@ -45,11 +45,11 @@ public:
 	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
 	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
 
-	bool			IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool			IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
 
-	size			IndexTreeDataSize(size uiSourceSize);
-	bool			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize);
-	bool			IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize);
+	size			IndexTreeDataSize(size uiSourceSize) override;
+	bool			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize) override;
+	bool			IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize) override;
 
 	bool			GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 

@@ -74,15 +74,15 @@ public:
 	ECalcOperator			meOp;
 	CCalculatorSymbols*		mpcSymbols;
 
-	void			Init(CCalculatorError* pcError);
-	void			Kill(void);
+	void			Init(CCalculatorError* pcError) override;
+	void			Kill(void) override;
 	void			Set(ECalcOperator eOp, CCalculatorSymbols* pcSymbols);
 	void			Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight);
 	void			Evaluate(CNumber* pcAnswer, CNumber* pcNumber);
 
-	bool			IsExpression(void);
-	bool			IsOperator(void);
-	bool			IsVariableDefinition(void);
+	bool			IsExpression(void) override;
+	bool			IsOperator(void) override;
+	bool			IsVariableDefinition(void) override;
 
 	bool			IsUnary(void);
 	bool			IsBinary(void);
@@ -90,7 +90,7 @@ public:
 	ECalcOperator	GetOperator(void);
 	void			SetOperator(ECalcOperator eOp);
 
-	void			Print(CChars* psz);
+	void			Print(CChars* psz) override;
 };
 
 

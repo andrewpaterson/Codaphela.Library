@@ -58,8 +58,8 @@ public:
 	const char*		GetFilename(void);
 
 	//Generally you shouldn't use these.  Use WriteData instead.
-	lsize		Write(const void* pvSource, lsize iSize, lsize iCount);
-	lsize		Read(void* pvDest, lsize iSize, lsize iCount);
+	lsize		Write(const void* pvSource, lsize iSize, lsize iCount) override;
+	lsize		Read(void* pvDest, lsize iSize, lsize iCount) override;
 };
 
 

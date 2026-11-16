@@ -15,20 +15,20 @@ public:
 	void			Init(int iElementSize);
 	void			Init(int iElementSize, int iAlignment);
 	void			Init(int iElementSize, int iAlignment, int iOffset);
-	void			Kill(void);
+	void			Kill(void) override;
 
-	void*			Malloc(lsize uiSize);
-	void*			Realloc(void* pv, lsize uiSize);
-	bool			Free(void* pv);
+	void*			Malloc(lsize uiSize) override;
+	void*			Realloc(void* pv, lsize uiSize) override;
+	bool			Free(void* pv) override;
 
 	CFreeList*		GetFreeList(void);
 
 	const char*		GetName(void);
 
-	bool			Read(CFileReader* pcFileReader);
-	bool			Write(CFileWriter* pcFileWriter);
+	bool			Read(CFileReader* pcFileReader) override;
+	bool			Write(CFileWriter* pcFileWriter) override;
 
-	size			SizeOffset(void);
+	size			SizeOffset(void) override;
 
 public:
 	static CLifeInit<CMallocator> Create(int iElementSize);

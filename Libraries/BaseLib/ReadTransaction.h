@@ -20,30 +20,30 @@ protected:
 
 public:
 	void	Init(CCodabase* pcCodabase, int64 iSnapshot);
-	void	Kill(void);
+	void	Kill(void) override;
 
 	int64	GetSnapshot(void);
 
-	bool	Get(OIndex oi, void* pvData);
-	bool	Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
-	bool	Get(const char* szName, void* pvData);
-	bool	Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
-	bool	Get(CChars* szName, void* pvData);
-	bool	Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
+	bool	Get(OIndex oi, void* pvData) override;
+	bool	Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize) override;
+	bool	Get(const char* szName, void* pvData) override;
+	bool	Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize) override;
+	bool	Get(CChars* szName, void* pvData) override;
+	bool	Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize) override;
 
-	bool	GetName(OIndex oi, CChars* szName);
-	bool	GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength);
-	OIndex	GetIndex(const char* szName);
-	OIndex	GetIndex(CChars* szName);
+	bool	GetName(OIndex oi, CChars* szName) override;
+	bool	GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength) override;
+	OIndex	GetIndex(const char* szName) override;
+	OIndex	GetIndex(CChars* szName) override;
 
-	bool	Contains(OIndex oi);
-	bool	Contains(const char* szName);
-	bool	Contains(CChars* szName);
+	bool	Contains(OIndex oi) override;
+	bool	Contains(const char* szName) override;
+	bool	Contains(CChars* szName) override;
 
-	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
-	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
-	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
-	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
+	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
+	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;
+	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;
 };
 
 

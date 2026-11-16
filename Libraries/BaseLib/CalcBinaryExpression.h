@@ -34,12 +34,12 @@ public:
 	CCalcExpression*	mpcRight;
 	bool				mbPrintSpace;
 
-	void		Init(CCalculatorError* pcError);
-	void		Kill(void);
-	CNumber		Evaluate(void);
+	void		Init(CCalculatorError* pcError) override;
+	void		Kill(void) override;
+	CNumber		Evaluate(void) override;
 	void		Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CCalcExpression* pcRight, bool bPrintSpace);
-	bool		IsBinaryExpression(void);
-	void		Print(CChars* psz);
+	bool		IsBinaryExpression(void) override;
+	void		Print(CChars* psz) override;
 };
 
 

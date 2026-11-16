@@ -13,9 +13,9 @@ protected:
 
 public:
 	void	Init(CMapBlock* pcMapBlock);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	void*	Iterate(size* piDataSize = NULL, void* pvDestKey = NULL, size* puiKeySize = NULL, size uiMaxKeySize = 0);
+	void*	Iterate(size* piDataSize = NULL, void* pvDestKey = NULL, size* puiKeySize = NULL, size uiMaxKeySize = 0) override;
 };
 
 

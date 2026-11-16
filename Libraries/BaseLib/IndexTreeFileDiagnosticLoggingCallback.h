@@ -11,13 +11,13 @@ protected:
 
 public:
 	void	Init(void);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	void	Put(void* pvKey, size iKeySize, const void* pvData, size iDataSize);
-	void	Get(void* pvKey, size iKeySize, void* pvData, size iDataSize);
-	void	Remove(void* pvKey, size iKeySize, void* pvData, size iDataSize);
-	void	Flush(void* pvKey, size iKeySize, void* pvData, size iDataSize);
-	void	Evict(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void	Put(void* pvKey, size iKeySize, const void* pvData, size iDataSize) override;
+	void	Get(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
+	void	Remove(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
+	void	Flush(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
+	void	Evict(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
 
 	void	Print(CChars* psz);
 	void	Dump(void);

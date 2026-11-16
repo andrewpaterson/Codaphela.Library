@@ -63,14 +63,14 @@ public:
 	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize);
 	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
-	void					Kill(void);
+	void					Kill(void) override;
 	void					Discard(void);
 	void					ReInit(void) override;
 
 	bool					Get(uint8* pvKey, size iKeySize, void* pvObject, size* piDataSize, size uiMaxDataSize);
 	bool					Put(uint8* pvKey, size iKeySize, const void* pvObject, size iDataSize);
-	bool					Remove(uint8* pvKey, size iKeySize);
-	bool					HasKey(uint8* pvKey, size iKeySize);
+	bool					Remove(uint8* pvKey, size iKeySize) override;
+	bool					HasKey(uint8* pvKey, size iKeySize) override;
 	size					GetDataSize(uint8* pvKey, size iKeySize);
 
 	bool					Flush(void);
@@ -97,7 +97,7 @@ public:
 	CDurableFileController* GetController(void);
 
 	void					Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
-	void					Dump(void);
+	void					Dump(void) override;
 
 protected:
 	bool					Evict(CIndexTreeNodeFile* pcNode);
@@ -111,10 +111,10 @@ protected:
 	CIndexTreeNodeFile*		GetNode(uint8* pvKey, size iKeySize);
 	CIndexTreeNodeFile*		GetMemoryNode(uint8* pvKey, size iKeySize);
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);
-	size					GetNodeKeySize(CIndexTreeNode* pcNode);
-	size					GetNodeKey(CIndexTreeNode* pcNode, uint8* pvDestKey, size iDestKeySize);
-	size					GetNodeDataSize(CIndexTreeNode* pcNode);
-	size					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, size iDestDataSize);
+	size					GetNodeKeySize(CIndexTreeNode* pcNode) override;
+	size					GetNodeKey(CIndexTreeNode* pcNode, uint8* pvDestKey, size iDestKeySize) override;
+	size					GetNodeDataSize(CIndexTreeNode* pcNode) override;
+	size					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, size iDestDataSize) override;
 
 	CListTemplateMinimal<char>* GetNodesKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		GetNodesStringKeys(CArrayVoidPtr* apvNodes);

@@ -8,10 +8,10 @@ class CIndexTreeMemoryConfig : public CIndexTreeConfig
 public:
 	void	Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	bool	Init(CFileReader* pcFileReader);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	bool	Write(CFileWriter* pcFileWriter);
-	bool	Read(CFileReader* pcFileReader);
+	bool	Write(CFileWriter* pcFileWriter) override;
+	bool	Read(CFileReader* pcFileReader) override;
 };
 
 

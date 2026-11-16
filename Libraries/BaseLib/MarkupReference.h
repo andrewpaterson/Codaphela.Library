@@ -38,9 +38,9 @@ public:
 	CMarkupSubText*	mpcRef;
 
 	void 	Init(CMarkupSubText* pcRef, CMarkupTag* pcParent);
-	void 	Kill(void);
+	void 	Kill(void) override;
 
-	size	Print(CChars* psz, size iDepth, size iLine);
+	size	Print(CChars* psz, size iDepth, size iLine) override;
 };
 
 
@@ -51,11 +51,11 @@ public:
 	CMarkupSubDoc*	mpcRef;
 
 	void 			Init(CMarkupSubDoc* pcRef, CMarkupTag* pcParent);
-	void 			Kill(void);
+	void 			Kill(void) override;
 
 	bool			Is(const char* szName);
 	CMarkupTag*		GetRootTag(void);
-	size			Print(CChars* psz, size iDepth, size iLine);
+	size			Print(CChars* psz, size iDepth, size iLine) override;
 };
 
 
@@ -65,9 +65,9 @@ public:
 	CCharsImmutable		mszName;
 
 	void 		Init(const char* szName, CMarkupTag* pcParent);
-	void 		Kill(void);
+	void 		Kill(void) override;
 
-	size		Print(CChars* psz, size iDepth, size iLine);
+	size		Print(CChars* psz, size iDepth, size iLine) override;
 };
 
 

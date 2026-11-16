@@ -16,7 +16,7 @@ class CSequenceConfig : public CConstructable, public CKillable
 {
 CONSTRUCTABLE(CSequenceConfig)
 public:
-			void		Kill(void);
+			void		Kill(void) override;
 
 	virtual	const char*		Getdirectory(void) =0;
 	virtual	EDurableSync	GetSync(void) =0;

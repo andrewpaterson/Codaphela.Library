@@ -22,7 +22,7 @@ protected:
 
 public:
 			void				Init(void);
-	virtual void				Kill(void);
+	virtual void				Kill(void) override;
 
 			void				New(CIndexTreeDataNode* psNode);
 	virtual void				Put(CIndexTreeDataNode* psNode) =0;

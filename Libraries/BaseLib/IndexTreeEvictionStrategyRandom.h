@@ -14,9 +14,9 @@ public:
 	void		Init(void);
 	void		Init(size iMaxAttempts);
 	void		Init(size iMaxAttempts, uint32 iSeed);
-	void		Kill(void);
+	void		Kill(void) override;
 
-	bool		Run(CIndexTreeNodeFile* pcDontEvict);
+	bool		Run(CIndexTreeNodeFile* pcDontEvict) override;
 	CRandom*	GetRandom(void);
 
 protected:

@@ -16,7 +16,7 @@ class CIndexedDataConfig : public CConstructable, public CKillable
 friend class CIndexedData;
 CONSTRUCTABLE(CIndexedDataConfig)
 public:
-			void									Kill(void);
+			void									Kill(void) override;
 
 	virtual const char*									GetSubdirectory(void) =0;
 	virtual lsize									GetDataCacheSize(void) =0;

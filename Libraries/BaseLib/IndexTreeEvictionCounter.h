@@ -12,7 +12,7 @@ private:
 public:
 	void	Init(void);
 	void	Reset(void);
-	bool	IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool	IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
 	int64	EvictionCount(void);
 };
 

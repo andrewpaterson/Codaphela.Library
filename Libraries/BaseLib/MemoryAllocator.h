@@ -14,7 +14,7 @@ protected:
 public:
 	void				Init(void);
 	void				Init(int iDefaultAlignment, bool bDefaultFreeListParams = true);
-	void				Kill(void);
+	void				Kill(void) override;
 
 	void*				Malloc(lsize uiSize) override;
 	void*				Malloc(lsize uiSize, char(**pacDebugName)[4]) override;
@@ -28,7 +28,7 @@ public:
 	bool				Write(CFileWriter* pcFileWriter) override;
 
 	CGeneralMemory*		GetMemory(void);
-	size				SizeOffset(void);
+	size				SizeOffset(void) override;
 
 public:
 	static CLifeInit<CMallocator> Create(void);

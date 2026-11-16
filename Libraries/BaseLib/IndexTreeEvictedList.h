@@ -14,7 +14,7 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	bool	IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool	IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
 	
 	size	NumElements(void);
 	void*	GetKey(size iIndex, size* piKeySize = NULL);

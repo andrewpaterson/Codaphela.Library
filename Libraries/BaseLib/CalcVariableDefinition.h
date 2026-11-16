@@ -32,16 +32,16 @@ protected:
 	bool				mbPrintSpace;
 
 public:
-	void				Init(CCalculatorError* pcError);
-	void				Kill(void);
+	void				Init(CCalculatorError* pcError) override;
+	void				Kill(void) override;
 	void				Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression, bool bPrintSpace);
-	void				Print(CChars* psz);
+	void				Print(CChars* psz) override;
 	char*				GetName(void);
 	CCalcExpression*	GetExpression(void);
 
-	bool				IsExpression(void);
-	bool				IsOperator(void);
-	bool				IsVariableDefinition(void);
+	bool				IsExpression(void) override;
+	bool				IsOperator(void) override;
+	bool				IsVariableDefinition(void) override;
 };
 
 

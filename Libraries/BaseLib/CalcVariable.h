@@ -35,12 +35,12 @@ protected:
 	CCalculatorVariables*	mpcVariableDefinitions;
 
 public:
-	void		Init(CCalculatorError* pcError);
-	void		Kill(void);
+	void		Init(CCalculatorError* pcError) override;
+	void		Kill(void) override;
 	void		Set(const char* szName, CCalculatorVariables* pcVariableDefinitions);
-	CNumber		Evaluate(void);
-	bool		IsVariable(void);
-	void		Print(CChars* psz);
+	CNumber		Evaluate(void) override;
+	bool		IsVariable(void) override;
+	void		Print(CChars* psz) override;
 	char*		Get(void);
 };
 

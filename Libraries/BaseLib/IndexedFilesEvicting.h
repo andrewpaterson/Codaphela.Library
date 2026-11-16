@@ -66,7 +66,7 @@ protected:
 	bool				CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	bool				ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
 
-	bool				CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor);
+	bool				CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor) override;
 };
 
 

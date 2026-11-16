@@ -93,8 +93,8 @@ public:
 protected:
 	void				InsertHoldingIntoSorted(void);
 
-	bool				WriteData(CFileWriter* pcFileWriter, void* pvData);
-	bool				ReadData(CFileReader* pcFileReader, void* pvData);
+	bool				WriteData(CFileWriter* pcFileWriter, void* pvData) override;
+	bool				ReadData(CFileReader* pcFileReader, void* pvData) override;
 };
 
 

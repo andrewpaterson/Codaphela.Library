@@ -44,16 +44,16 @@ protected:
 
 public:
 	void		Init(lsize uiKeepLimit);
-	void		Kill(void);
+	void		Kill(void) override;
 
-	void*		Malloc(lsize uiSize);
-	void*		Realloc(void* pv, lsize uiSize);
-	bool		Free(void* pv);
+	void*		Malloc(lsize uiSize) override;
+	void*		Realloc(void* pv, lsize uiSize) override;
+	bool		Free(void* pv) override;
 
-	bool		IsLocal(void);
-	size		SizeOffset(void);
+	bool		IsLocal(void) override;
+	size		SizeOffset(void) override;
 
-	const char*	ShortName(void);
+	const char*	ShortName(void) override;
 
 	lsize		BlockSize(void);
 

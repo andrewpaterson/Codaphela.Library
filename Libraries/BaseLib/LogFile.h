@@ -25,26 +25,26 @@ protected:
 
 public:
 	void					Init(CAbstractFile* pcBackingFile);
-	void					Kill(void);
+	void					Kill(void) override;
 
 	bool					Begin(void);
 	bool					Commit(void);
 	bool					End(void);
 	void					Abort(void);
 
-	bool					Open(EFileMode eFileMode);
-	bool					Close(void);
-	lsize					Write(const void* pvSource, lsize iSize, lsize iCount);
-	lsize					Read(void* pvDest, lsize iSize, lsize iCount);
-	filePos					Tell(void);
-	filePos					Size(void);
-	bool					Truncate(filePos iSize);
-	bool					Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
+	bool					Open(EFileMode eFileMode) override;
+	bool					Close(void) override;
+	lsize					Write(const void* pvSource, lsize iSize, lsize iCount) override;
+	lsize					Read(void* pvDest, lsize iSize, lsize iCount) override;
+	filePos					Tell(void) override;
+	filePos					Size(void) override;
+	bool					Truncate(filePos iSize) override;
+	bool					Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin) override;
 	bool					Eof(void);
-	bool					IsOpen(void);
-	bool					Flush(void);
-	bool					Delete(void);
-	const char*					GetFilename(void);
+	bool					IsOpen(void) override;
+	bool					Flush(void) override;
+	bool					Delete(void) override;
+	const char*					GetFilename(void) override;
 
 	bool					Commit(CAbstractFile* pcFile);
 

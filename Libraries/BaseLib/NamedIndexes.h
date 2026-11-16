@@ -64,11 +64,11 @@ public:
 	bool	StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	bool	Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
-	bool	IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool	IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
 
-	size	IndexTreeDataSize(size uiSourceSize);
-	bool	IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize);
-	bool	IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize);
+	size	IndexTreeDataSize(size uiSourceSize) override;
+	bool	IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize) override;
+	bool	IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize) override;
 
 	lsize	GetSystemMemorySize(void);
 	lsize	GetUserMemorySize(void);

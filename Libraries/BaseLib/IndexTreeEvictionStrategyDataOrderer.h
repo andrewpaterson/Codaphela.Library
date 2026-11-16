@@ -12,13 +12,13 @@ protected:
 
 public:
 	void					Init(CLifeInit<CIndexTreeDataOrderer> cOrderer);
-	void					Kill(void);
+	void					Kill(void) override;
 
-	void					SetIndexTree(CIndexTreeEvicting* pcIndexTree);
+	void					SetIndexTree(CIndexTreeEvicting* pcIndexTree) override;
 
-	bool					Run(CIndexTreeNodeFile* pcDontEvict);
+	bool					Run(CIndexTreeNodeFile* pcDontEvict) override;
 
-	CIndexTreeDataOrderer*	GetDataOrderer(void);
+	CIndexTreeDataOrderer*	GetDataOrderer(void) override;
 };
 
 

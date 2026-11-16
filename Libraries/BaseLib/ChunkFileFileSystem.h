@@ -58,8 +58,8 @@ protected:
 	void		ReadOpenChunksEnd(size uiKeep);
 	bool		ReadChunkBeginFrom(CArrayChars* paszChunkNames, size uiDepth);
 
-	lsize		Write(const void* pvSource, lsize iSize, lsize iCount);
-	lsize		Read(void* pvDest, lsize iSize, lsize iCount);
+	lsize		Write(const void* pvSource, lsize iSize, lsize iCount) override;
+	lsize		Read(void* pvDest, lsize iSize, lsize iCount) override;
 };
 
 

@@ -32,54 +32,54 @@ protected:
 public:
 	void			Init(CDataConnection* pcWritable, CDataConnection* pcRemoved, CSequence* pcSequence);
 	bool			AddReadOnly(CDataReader* pcLayer, CSequenceConnection* pcLayerSequence);
-	void			Kill(void);
+	void			Kill(void) override;
 
 	CSequence*		GetSequence(void);
 	size			NumLayers(void);
 
-	bool	Add(OIndex oi, void* pvData, lsize uiDataSize);
-	bool	Add(OIndex oi, const char* szName, void* pvData, lsize uiDataSize);
-	bool	Add(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize);
+	bool	Add(OIndex oi, void* pvData, lsize uiDataSize) override;
+	bool	Add(OIndex oi, const char* szName, void* pvData, lsize uiDataSize) override;
+	bool	Add(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize) override;
 
-	bool	Set(OIndex oi, void* pvData);
-	bool	Set(OIndex oi, void* pvData, lsize uiDataSize);
-	bool	Set(const char* szName, void* pvData);
-	bool	Set(const char* szName, void* pvData, lsize uiDataSize);
-	bool	Set(CChars* szName, void* pvData);
-	bool	Set(CChars* szName, void* pvData, lsize uiDataSize);
+	bool	Set(OIndex oi, void* pvData) override;
+	bool	Set(OIndex oi, void* pvData, lsize uiDataSize) override;
+	bool	Set(const char* szName, void* pvData) override;
+	bool	Set(const char* szName, void* pvData, lsize uiDataSize) override;
+	bool	Set(CChars* szName, void* pvData) override;
+	bool	Set(CChars* szName, void* pvData, lsize uiDataSize) override;
 
-	bool	Put(OIndex oi, void* pvData, lsize uiDataSize);
-	bool	Put(OIndex oi, const char* szName, void* pvData, lsize uiDataSize);
-	bool	Put(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize);
+	bool	Put(OIndex oi, void* pvData, lsize uiDataSize) override;
+	bool	Put(OIndex oi, const char* szName, void* pvData, lsize uiDataSize) override;
+	bool	Put(OIndex oi, CChars* szName, void* pvData, lsize uiDataSize) override;
 
-	bool	Get(OIndex oi, void* pvData);
-	bool	Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
-	bool	Get(const char* szName, void* pvData);
-	bool	Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
-	bool	Get(CChars* szName, void* pvData);
-	bool	Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize);
+	bool	Get(OIndex oi, void* pvData) override;
+	bool	Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize) override;
+	bool	Get(const char* szName, void* pvData) override;
+	bool	Get(const char* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize) override;
+	bool	Get(CChars* szName, void* pvData) override;
+	bool	Get(CChars* szName, lsize* puiDataSize, void* pvData, lsize uiMaxDataSize) override;
 
-	bool	GetName(OIndex oi, CChars* szName);
-	bool	GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength);
-	OIndex	GetIndex(const char* szName);
-	OIndex	GetIndex(CChars* szName);
+	bool	GetName(OIndex oi, CChars* szName) override;
+	bool	GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength) override;
+	OIndex	GetIndex(const char* szName) override;
+	OIndex	GetIndex(CChars* szName) override;
 
-	bool	Contains(OIndex oi);
-	bool	Contains(const char* szName);
-	bool	Contains(CChars* szName);
+	bool	Contains(OIndex oi) override;
+	bool	Contains(const char* szName) override;
+	bool	Contains(CChars* szName) override;
 
-	bool	Remove(OIndex oi);
-	bool	Remove(const char* szName);
-	bool	Remove(CChars* szName);
+	bool	Remove(OIndex oi) override;
+	bool	Remove(const char* szName) override;
+	bool	Remove(CChars* szName) override;
 
-	bool	Flush(void);
-	bool	Flush(bool bClearCache);
-	bool	IsWriteThrough(void);
+	bool	Flush(void) override;
+	bool	Flush(bool bClearCache) override;
+	bool	IsWriteThrough(void) override;
 
-	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
-	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
-	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
-	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
+	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
+	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;
+	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;
 
 protected:
 	size	FindLayer(OIndex oi);

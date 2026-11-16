@@ -11,23 +11,23 @@ private:
 
 public:
 	bool				Init(CIndexTreeEvicting* pcTree);
-	bool				Kill(void);
-	bool				Flush(void);
-	int64				NumElements(void);
-	bool				ValidateIndex(void);
-	void				Dump(void);
+	bool				Kill(void) override;
+	bool				Flush(void) override;
+	int64				NumElements(void) override;
+	bool				ValidateIndex(void) override;
+	void				Dump(void) override;
 
-	CIndexTreeIterator* CreateIterator(void);
-	void				FreeIterator(CIndexTreeIterator* pcIter);
+	CIndexTreeIterator* CreateIterator(void) override;
+	void				FreeIterator(CIndexTreeIterator* pcIter) override;
 
 protected:
-	bool	Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize);
-	bool	Get(uint8* pvKey, size iKeySize, void* pvData, size* uiDataSize, size uiMaxDataSize);
-	bool	Remove(uint8* pvKey, size iKeySize);
-	size	DataSize(uint8* pvKey, size iKeySize);
-	bool	Has(uint8* pvKey, size iKeySize);
-	bool	Evict(uint8* pvKey, size iKeySize);
-	bool	Flush(uint8* pvKey, size iKeySize);
+	bool	Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize) override;
+	bool	Get(uint8* pvKey, size iKeySize, void* pvData, size* uiDataSize, size uiMaxDataSize) override;
+	bool	Remove(uint8* pvKey, size iKeySize) override;
+	size	DataSize(uint8* pvKey, size iKeySize) override;
+	bool	Has(uint8* pvKey, size iKeySize) override;
+	bool	Evict(uint8* pvKey, size iKeySize) override;
+	bool	Flush(uint8* pvKey, size iKeySize) override;
 };
 
 

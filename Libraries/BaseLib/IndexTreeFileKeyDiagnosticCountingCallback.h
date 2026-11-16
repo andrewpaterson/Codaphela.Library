@@ -13,9 +13,9 @@ protected:
 public:
 	void	Init(const char* szKey);
 	void	Init(const void* pvKey, size iKeySize);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	void	Evict(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void	Evict(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;
 
 protected:
 	bool	Matches(void* pvKey, size iKeySize);

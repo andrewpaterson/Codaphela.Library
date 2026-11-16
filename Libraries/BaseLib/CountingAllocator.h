@@ -19,24 +19,24 @@ protected:
 
 public:
 	void			Init(CMallocator* pcAlloc);
-	void			Kill(void);
+	void			Kill(void) override;
 
 	lsize			AllocatedUserSize(void);
 	lsize			AllocatedSystemSize(void);
 
-	void*			Malloc(lsize uiSize);
-	void*			Realloc(void* pv, lsize uiSize);
-	bool			Free(void* pv);
+	void*			Malloc(lsize uiSize) override;
+	void*			Realloc(void* pv, lsize uiSize) override;
+	bool			Free(void* pv) override;
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator) should be used!
-	const char*		ClassName(void);
-	size			ClassSize(void);
+	const char*		ClassName(void) override;
+	size			ClassSize(void) override;
 
-	bool			IsLocal(void);
-	size			SizeOffset(void);
+	bool			IsLocal(void) override;
+	size			SizeOffset(void) override;
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator) should be used!
-	const char*		ShortName(void);
+	const char*		ShortName(void) override;
 };
 
 

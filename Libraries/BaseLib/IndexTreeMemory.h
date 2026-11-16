@@ -73,8 +73,8 @@ public:
 	bool					Get(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize);
 	bool					GetLongestPartial(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize);
 	void*					Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize);
-	bool					Remove(uint8* pvKey, size iKeySize);
-	bool					HasKey(uint8* pvKey, size iKeySize);
+	bool					Remove(uint8* pvKey, size iKeySize) override;
+	bool					HasKey(uint8* pvKey, size iKeySize) override;
 	size					GetDataSize(uint8* pvKey, size iKeySize);
 
 	void					FindAll(CArrayVoidPtr* papvElements);
@@ -117,16 +117,16 @@ public:
 	size					NonNullElements(void);
 
 	void					Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
-	void					Dump(void);
+	void					Dump(void) override;
 
 protected:
 	CIndexTreeNodeMemory*	GetNode(uint8* pvKey, size iKeySize);
 	CIndexTreeNodeMemory*	GetNodeFromLongestPartialKey(uint8* pvKey, size iKeySize);
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
-	size					GetNodeKeySize(CIndexTreeNode* pcNode);
-	size					GetNodeKey(CIndexTreeNode* pcNode, uint8* pvDestKey, size iDestKeySize);
-	size					GetNodeDataSize(CIndexTreeNode* pcNode);
-	size					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, size iDestDataSize);
+	size					GetNodeKeySize(CIndexTreeNode* pcNode) override;
+	size					GetNodeKey(CIndexTreeNode* pcNode, uint8* pvDestKey, size iDestKeySize) override;
+	size					GetNodeDataSize(CIndexTreeNode* pcNode) override;
+	size					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, size iDestDataSize) override;
 	bool					GetNodeData(CIndexTreeNodeMemory* pcNode, size& uiDataSize, size* puiDataSize, void* pvDestData, size uiMaxDataSize);
 
 	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
@@ -173,7 +173,7 @@ protected:
 	void					DebugKey(CChars* pszDest, uint8* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed);
 	CIndexTreeNodeMemory*	DebugNode(CChars* pszDest, CIndexTreeNodeMemory* pcParent, size uiIndexInParent, bool bShowFlags, bool bShowSize);
 
-	size					AdjustDataSize(void* pvValue, size iValueSize);
+	size					AdjustDataSize(void* pvValue, size iValueSize) override;
 };
 
 

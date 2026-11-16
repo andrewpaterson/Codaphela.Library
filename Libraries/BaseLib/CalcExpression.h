@@ -31,9 +31,9 @@ class CCalcExpression : public CCalcObject
 {
 public:
 	virtual CNumber		Evaluate(void) =0;
-			bool 		IsExpression(void);
-			bool 		IsOperator(void);
-			bool		IsVariableDefinition(void);
+			bool 		IsExpression(void) override;
+			bool 		IsOperator(void) override;
+			bool		IsVariableDefinition(void) override;
 	virtual bool		IsParentheses(void);
 	virtual bool		IsBinaryExpression(void);
 	virtual bool		IsUnaryExpression(void);

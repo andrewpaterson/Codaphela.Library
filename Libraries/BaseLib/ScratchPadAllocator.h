@@ -14,20 +14,20 @@ protected:
 public:
 	void			Init(void);
 	void			Init(size uiChunkSize);
-	void			Kill(void);
+	void			Kill(void) override;
 
-	void*			Malloc(lsize uiSize);
-	void*			Realloc(void* pv, lsize uiSize);
-	bool			Free(void* pv);
+	void*			Malloc(lsize uiSize) override;
+	void*			Realloc(void* pv, lsize uiSize) override;
+	bool			Free(void* pv) override;
 
 	CScratchPad*	GetScratchPad(void);
 
 	const char*		GetName(void);
 
-	bool			Read(CFileReader* pcFileReader);
-	bool			Write(CFileWriter* pcFileWriter);
+	bool			Read(CFileReader* pcFileReader) override;
+	bool			Write(CFileWriter* pcFileWriter) override;
 
-	size			SizeOffset(void);
+	size			SizeOffset(void) override;
 
 public:
 	static CLifeInit<CMallocator> Create(void);

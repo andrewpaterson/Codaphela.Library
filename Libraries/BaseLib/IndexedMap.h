@@ -17,17 +17,17 @@ protected:
 public:
 	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, lsize iCacheSize, EIndexWriteThrough eWriteThrough);
 	void	Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, lsize iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback);
-	void	Kill(void);
+	void	Kill(void) override;
 
 	bool	CanKill(void);
-	bool	DescriptorEvicted(OIndex oi, void* pvCache, lsize uiDataSize);
-	bool	Flush(bool bClearCache);
+	bool	DescriptorEvicted(OIndex oi, void* pvCache, lsize uiDataSize) override;
+	bool	Flush(bool bClearCache) override;
 
-	int64	NumIndices(void);
-	lsize	NumIndicesCached(void);
-	bool	IsDirty(OIndex oi);
+	int64	NumIndices(void) override;
+	lsize	NumIndicesCached(void) override;
+	bool	IsDirty(OIndex oi) override;
 
-	bool	EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	bool	EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor) override;
 
 	bool	TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
@@ -35,10 +35,10 @@ protected:
 	void	InitIndices(CDurableFileController* pcDurableFileControl, bool bDirtyTesting);
 	void	NullCachedDescriptors(void);
 
-	bool	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
-	bool	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
-	bool	UpdateDescriptorCache(OIndex oi, void* pvCache, lsize uiDataSize);
-	bool	RemoveDescriptor(OIndex oi);
+	bool	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) override;
+	bool	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) override;
+	bool	UpdateDescriptorCache(OIndex oi, void* pvCache, lsize uiDataSize) override;
+	bool	RemoveDescriptor(OIndex oi) override;
 };
 
 

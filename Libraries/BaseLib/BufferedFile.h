@@ -63,20 +63,20 @@ public:
 
 	void		Init(CAbstractFile* pcFile);
 	void		Init(CAbstractFile* pcFile, lsize iBufferSize);
-	void		Kill(void);
+	void		Kill(void) override;
 
-	bool		Open(EFileMode eFileMode);
-	bool		Close(void);
-	lsize		Read(void* pvDest, lsize iSize, lsize iCount);
-	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
-	lsize		Write(const void* pvSource, lsize iSize, lsize iCount);
-	filePos		Tell(void);
-	bool		IsOpen(void);
-	filePos		Size(void);
-	bool		Truncate(filePos iSize);
-	bool		Flush(void);
-	bool		Delete(void);
-	const char*		GetFilename(void);
+	bool		Open(EFileMode eFileMode) override;
+	bool		Close(void) override;
+	lsize		Read(void* pvDest, lsize iSize, lsize iCount) override;
+	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin) override;
+	lsize		Write(const void* pvSource, lsize iSize, lsize iCount) override;
+	filePos		Tell(void) override;
+	bool		IsOpen(void) override;
+	filePos		Size(void) override;
+	bool		Truncate(filePos iSize) override;
+	bool		Flush(void) override;
+	bool		Delete(void) override;
+	const char*		GetFilename(void) override;
 
 	void		MatchFilePosToCurrentPos(void);
 	void		BufferSourceFileRead(void);

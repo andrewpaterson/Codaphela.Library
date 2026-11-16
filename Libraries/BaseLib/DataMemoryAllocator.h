@@ -14,11 +14,11 @@ protected:
 public:
 	void			Init(void);
 	void			Init(CMemoryFreeListParams* pcFreeListParams);
-	void			Kill(void);
+	void			Kill(void) override;
 
 	void*			Malloc(lsize uiSize) override;
 	void*			Malloc(lsize uiSize, char(**pacDebugName)[4]) override;
-	void*			Realloc(void* pv, lsize uiSize);
+	void*			Realloc(void* pv, lsize uiSize) override;
 	bool			Free(void* pv) override;
 	size			FreeMultiple(CArrayVoidPtr* pav) override;
 
@@ -28,7 +28,7 @@ public:
 	bool			Write(CFileWriter* pcFileWriter) override;
 
 	CDataMemory*	GetMemory(void);
-	size			SizeOffset(void);
+	size			SizeOffset(void) override;
 
 public:
 	static CLifeInit<CMallocator> Create(void);

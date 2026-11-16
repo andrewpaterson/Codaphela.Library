@@ -10,12 +10,12 @@ class CModificationDataOrderer : public CIndexTreeDataOrderer
 CONSTRUCTABLE(CModificationDataOrderer)
 public:
 	void	Init(void);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	void	Put(CIndexTreeDataNode* psNode);
-	void	Get(CIndexTreeDataNode* psNode);
-	void	Remove(CIndexTreeDataNode* psNode);
-	void	HasKey(CIndexTreeDataNode* psNode);
+	void	Put(CIndexTreeDataNode* psNode) override;
+	void	Get(CIndexTreeDataNode* psNode) override;
+	void	Remove(CIndexTreeDataNode* psNode) override;
+	void	HasKey(CIndexTreeDataNode* psNode) override;
 
 public:
 	static CLifeInit<CIndexTreeDataOrderer> Create(void);

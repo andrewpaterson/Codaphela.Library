@@ -14,7 +14,7 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	bool	CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor);
+	bool	CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor) override;
 
 	int		NumElements(void);
 	void*	Get(int iIndex, lsize* puiDataSize = NULL);

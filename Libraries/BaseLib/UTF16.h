@@ -43,8 +43,8 @@ public:
     void    Reset(uint8* sz, size uiByteLength);
     void    SetBigEndian(void);
 
-    bool    GetByteOrderMark(void);
-    void*   GetCurrentData(void);
+    bool    GetByteOrderMark(void) override;
+    void*   GetCurrentData(void) override;
 
     uint16  GetCodePointUint16(void) override;
     uint32  GetCodePointUint32(void) override;
