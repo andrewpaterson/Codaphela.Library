@@ -377,8 +377,17 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if (pcVariable->meStorage == CPPVS_Static)
+		if ((pcVariable->meStorage == CPPVS_Static) && pcVariable->mbGuarded)
 		{
+			if (!GuardedStaticLocal(pcVariable, pcInit->mpcInitializer))
+			{
+				return false;
+			}
+			continue;
+		}
+		if ((pcVariable->meStorage == CPPVS_Static) || (pcVariable->meStorage == CPPVS_Global))
+		{
+			//A static local is made in the data, and an extern one only names a global.
 			continue;
 		}
 		if (pcVariable->meStorage != CPPVS_Local)
@@ -416,6 +425,62 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 			return false;
 		}
 	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// static S s; or static int v = g(); reached: made the first time, when its
+// guard byte is still 0, which it then isn't.  The object isn't one of the
+// scope's living ones: it outlives the function.  [stmt.dcl] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* pcInitialiser)
+{
+	SCPP65IRPlace	sPlace;
+	SIRReference	sGuard;
+	SIRReference	sTest;
+	CChars			szLabel;
+	CIRBlock*		pcMake;
+	CIRBlock*		pcDone;
+	size			uiTemporaries;
+
+	if (!VariablePlace(pcVariable, &sPlace))
+	{
+		return false;
+	}
+	szLabel.Init();
+	mpcUnit->AppendGuardLabel(&szLabel, pcVariable);
+	sGuard = mcModule.Symbol(szLabel.Text());
+	mcModule.SetLocal(sGuard.Index());
+	szLabel.Kill();
+
+	pcMake = NewBlock();
+	pcDone = NewBlock();
+	sTest = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_I8), mpcFunction->Load(mpcBlock, IRType(IRTK_I8), sGuard), mpcFunction->AddInteger(IRType(IRTK_I8), 0));
+	mpcBlock->Branch(sTest, pcMake, pcDone);
+
+	StartBlock(pcMake);
+	uiTemporaries = masTemporaries.NumElements();
+	if (ElementType(pcVariable->mpsType)->IsClass())
+	{
+		if (!Construct(&sPlace, NULL, pcInitialiser))
+		{
+			return false;
+		}
+	}
+	else if (pcInitialiser && !LocalInitialiser(&sPlace, pcInitialiser, false))
+	{
+		return false;
+	}
+	if (!DestroyTemporaries(uiTemporaries))
+	{
+		return false;
+	}
+	mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 1), sGuard);
+	JumpTo(pcDone);
+	StartBlock(pcDone);
 	return true;
 }
 

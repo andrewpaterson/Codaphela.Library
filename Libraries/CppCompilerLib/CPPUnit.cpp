@@ -2190,11 +2190,8 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 	}
 	if (pcInitialiser && (psType->IsFloat() || !Constant(pcInitialiser, &lliValue)))
 	{
-		if (mcContext.IsStaticLocal())
-		{
-			return Error(pcInitialiser, "A static local variable needs a constant initialiser in the compiler yet");
-		}
-		//Not a constant: R_Initialise works it out before main.  [basic.start.init]
+		//Not a constant: R_Initialise works it out before main, or for a static local its declaration the first time it
+		//is reached.  [basic.start.init], [stmt.dcl] 4
 		mcData.AppendData(psType->iBytes, 0);
 		if (!mcTypeChecker.ImplicitConvert(mcTypeChecker.ValueFor(pcInitialiser, psType, false), psType, pcInitialiser))
 		{
@@ -2683,13 +2680,14 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcNode->mpcParent;
 		if (pcInit->mpcSymbol && (pcInit->mpcSymbol->meKind == CPPSK_Variable))
 		{
-			if ((pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL)) == CPPDS_STATIC)
+			if (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_EXTERN)
 			{
-				return StaticLocal(pcInit, pcDeclaration->mpcSpecifiers);
+				return ExternLocal(pcInit, pcDeclaration->mpcSpecifiers);
 			}
-			if (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL))
+			if (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_THREAD_LOCAL))
 			{
-				return Error(pcNode, "Extern and thread local variables are not supported by the compiler yet");
+				//thread_local in a block is static too; there is one thread.  [dcl.stc] 3
+				return StaticLocal(pcInit, pcDeclaration->mpcSpecifiers);
 			}
 			psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 			if (!psType)
@@ -2762,27 +2760,60 @@ bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A static local variable is data with its own label, initialised in the data.  Its
-// initialiser must be constant; one that is not (it would be worked out the first
-// time the declaration is reached) is not supported yet, nor are objects.
+// extern int k; in a block declares the variable of the namespace it is in,
+// defined elsewhere (before or after the function, or in another unit): a
+// variable of the function's with the global's label.  [basic.link] 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
+{
+	SCPP65Type*	psType;
+
+	if (pcInit->mpcInitializer)
+	{
+		return Error(pcInit, "An extern variable declared in a block can't be initialised there");
+	}
+	psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, NULL);
+	if (!psType)
+	{
+		return false;
+	}
+	AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A static local variable is data with its own label, initialised in the
+// data.  An object, a reference, or a variable whose initialiser isn't a
+// constant is initialised the first time its declaration is reached
+// (CCPP65IRFrontEnd::Declaration), with a guard byte beside it that says
+// whether it has been (mbGuarded).  An object whose class needs a
+// destructor isn't supported yet: it would be destroyed when the program
+// ends.  [stmt.dcl] 4
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
 {
 	CCPPVariable*		pcVariable;
 	SCPP65Type*			psType;
+	SCPP65Type*			psElement;
 	CChars				szLabel;
 	bool				bResult;
 	bool				bInitialise;
+	bool				bObject;
 
 	psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 	if (!psType)
 	{
 		return false;
 	}
-	if ((psType->IsArray() ? psType->psBase : psType)->IsClass() || psType->IsReference())
+	psElement = psType->IsArray() ? psType->psBase : psType;
+	bObject = psElement->IsClass() || psType->IsReference();
+	if (psElement->IsClass() && (!CompleteClass(psElement->pcClass, pcInit) || psElement->pcClass->NeedsDestructor()))
 	{
-		return Error(pcInit, "Static local objects and references are not supported by the compiler yet");
+		return Error(pcInit, "Static local objects that are destroyed are not supported by the compiler yet");
 	}
 
 	pcVariable = AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Static, miStatics);
@@ -2790,18 +2821,50 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	pcVariable->mbDefined = true;
 	szLabel.Init();
 	AppendVariableLabel(&szLabel, pcVariable);
-	mcData.BeginData(&szLabel, DataAlignment(psType, false), false, NULL, IsBss(pcInit->mpcInitializer, psType));
+	mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), false, NULL, bObject || IsBss(pcInit->mpcInitializer, psType));
 	szLabel.Kill();
-	if (IsBss(pcInit->mpcInitializer, psType))
+	bResult = true;
+	bInitialise = false;
+	if (bObject || IsBss(pcInit->mpcInitializer, psType))
 	{
 		mcData.AppendSpace(psType->iBytes);
-		return true;
+	}
+	else
+	{
+		mcContext.EnterStaticLocal();
+		bResult = GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &bInitialise);
+		mcContext.LeaveStaticLocal();
 	}
 
-	mcContext.EnterStaticLocal();
-	bResult = GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &bInitialise);
-	mcContext.LeaveStaticLocal();
+	pcVariable->mbGuarded = bResult && (bObject || bInitialise);
+	if (pcVariable->mbGuarded)
+	{
+		szLabel.Init();
+		AppendGuardLabel(&szLabel, pcVariable);
+		mcData.BeginData(&szLabel, 1, false, NULL, true);
+		mcData.AppendSpace(1);
+		szLabel.Kill();
+	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label of a guarded static local's guard (G, its number, _ and its
+// name), as its own is S, its number, _ and its name.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable)
+{
+	char*	szName;
+	int		iLength;
+
+	szName = mpcTokeniser->GetIdentifier(pcVariable->mpcSymbol->mlliName, &iLength);
+	psz->Append('G');
+	psz->Append(pcVariable->miOffset);
+	psz->Append('_');
+	psz->Append(szName, iLength);
 }
 
 

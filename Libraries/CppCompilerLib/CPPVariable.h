@@ -57,6 +57,7 @@ public:
 	bool			mbDefined;				//A global's data has been written.
 	bool			mbUsed;
 	bool			mbRestrict;				//A global or parameter pointer declared __restrict.
+	bool			mbGuarded;				//A static local initialised the first time its declaration is reached, its guard beside it.
 	CCPPClass*		mpcAnonymous;			//The anonymous union or struct declared in a function that this local is a member of.
 	CCPPTemplate*	mpcTemplate;			//A variable template's instance: the template (or explicit specialisation) it is of...
 	CCPPTemplateArguments*	mpcBindings;	//...its arguments bound (NULL for a specialisation's)...

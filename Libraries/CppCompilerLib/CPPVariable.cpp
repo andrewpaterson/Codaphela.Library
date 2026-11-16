@@ -42,6 +42,7 @@ void CCPPVariable::Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eS
 	mbInternal = pcSymbol && pcSymbol->mpcScope && pcSymbol->mpcScope->IsInUnnamedNamespace();
 	mbCLinkage = bCLinkage;
 	mbRestrict = false;
+	mbGuarded = false;
 	mpcAnonymous = NULL;
 	mpcTemplate = NULL;
 	mpcBindings = NULL;

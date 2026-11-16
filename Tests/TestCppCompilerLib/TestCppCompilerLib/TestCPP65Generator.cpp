@@ -3609,7 +3609,7 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 16): break outside a loop or switch [break]\n", "void f(void) { break; }");
 	AssertCPP65Error("Generated.cpp (1, 33): __builtin_alloca is not supported [__builtin_alloca]\n", "int f(int n) { char* p = (char*)__builtin_alloca(n); return p[0]; }");
 	AssertCPP65Error("Generated.cpp (1, 41): __builtin_alloca is not supported [__builtin_alloca]\n", "int g(void* p); int f(int n) { return g(__builtin_alloca(n)); }");
-	AssertCPP65Error("Generated.cpp (1, 31): A static local variable needs a constant initialiser in the compiler yet [a]\n", "int f(int a) { static int s = a; return s; }");
+	AssertCPP65Error("Generated.cpp (1, 42): Static local objects that are destroyed are not supported by the compiler yet [d]\n", "struct D { ~D() {} }; int f() { static D d; return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 149): More than one specialisation of the class template matches equally [s]\n", "template<class A, class B> struct S {}; template<class A, class B> struct S<A*, B> {}; template<class A, class B> struct S<A, B*> {}; S<int*, int*> s; int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 70): The member template has not been defined [c]\n", "struct C { template<class T> int F(T t); }; int main() { C c; return c.F(1); }");
 	AssertCPP65Error("Generated.cpp (1, 76): The address of an overloaded function needs the type of the function it is for [F]\n", "int F(short a) { return a; } int F(long a) { return 1; } int (*gp)(char) = F; int main() { return gp(1); }");
