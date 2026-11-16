@@ -28,6 +28,7 @@ class CCPPSyntaxDecltypeSpecifier : public CCPPSyntaxTypeSpecifier
 public:
 	ECppTokens				meKeyword;
 	CCPPSyntax*				mpcOperand;
+	bool					mbUnderlyingType;	//__underlying_type(Enum), which isn't a keyword: the enum's integer type.
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	CPP_SYNTAX_NODE(DecltypeSpecifier)

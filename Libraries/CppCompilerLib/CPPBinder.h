@@ -185,6 +185,9 @@ public:
 	void	BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
 	bool	BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound);
 	void	CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
+	bool			IsConvertible(SCPP65Type* psTo, SCPP65Type* psFrom);
+	bool			IsConstructible(SCPP65Type* psType, CArrayCPP65Types* papsArguments);
+	bool			IsAssignable(SCPP65Type* psTo, SCPP65Type* psFrom);
 	CCPPFunction*	BindRangeFunction(int64 lliName, CCPPClass* pcClass, CCPPSyntax* pcRange, CCPPSyntax* pcNode);
 	bool	BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode, CCPPBoundConstruction* pcBound, bool bReport);
 	void	BindConversion(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit, CCPPBoundConversion* pcBound);

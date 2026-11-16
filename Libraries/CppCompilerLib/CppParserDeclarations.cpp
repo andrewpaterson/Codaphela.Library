@@ -1220,6 +1220,9 @@ CCPPSyntaxAlignasSpecifier* CCPPParser::ParseAlignasSpecifier(CCPPSyntax* pcPare
 }
 
 
+static ECPPDeclSpecifierStep CPPSetTypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxTypeSpecifier* pcType, bool* pbType);
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1257,6 +1260,14 @@ CCPPSyntaxDeclSpecifiers* CCPPParser::ParseDeclSpecifiers(CCPPSyntax* pcParent, 
 		if (pcToken->IsReservedWord())
 		{
 			eStep = ParseKeywordDeclSpecifier(pcSpecifiers, eContext, ((CCTReservedWord*)pcToken)->GetToken(), &bType);
+		}
+		else if (!bType && IsUnderlyingTypeAhead())
+		{
+			eStep = CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, CT_decltype), &bType);
+			if (eStep != CPPDSS_Failed)
+			{
+				((CCPPSyntaxDecltypeSpecifier*)pcSpecifiers->mpcType)->mbUnderlyingType = true;
+			}
 		}
 		else if ((pcToken->IsIdentifier() || pcToken->Is(CT_ScopeResolution)) && !bType)
 		{

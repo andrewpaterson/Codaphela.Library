@@ -288,6 +288,7 @@ protected:
 	bool							IsNameStart(void);
 	CCPPSymbol*						LookupNameAhead(int* piLength);
 	bool							IsTypeNameAhead(void);
+	bool							IsUnderlyingTypeAhead(void);
 
 	//Statements.  CppParserStatements.cpp
 	CCPPSyntaxCompoundStatement*	ParseCompoundStatement(CCPPSyntax* pcParent, bool bNewScope);

@@ -30,6 +30,7 @@ void CCPPSyntaxDecltypeSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPar
 	CCPPSyntaxTypeSpecifier::Init(pcTree, pcParent);
 	meKeyword = CT_decltype;
 	mpcOperand = NULL;
+	mbUnderlyingType = false;
 }
 
 
@@ -39,7 +40,14 @@ void CCPPSyntaxDecltypeSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcPar
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxDecltypeSpecifier::PrettyPrint(CChars* pszDest, int iDepth)
 {
-	PrintKeyword(pszDest, meKeyword);
+	if (mbUnderlyingType)
+	{
+		pszDest->Append("__underlying_type");
+	}
+	else
+	{
+		PrintKeyword(pszDest, meKeyword);
+	}
 	pszDest->Append('(');
 	PrintNode(pszDest, mpcOperand, iDepth);
 	pszDest->Append(')');
@@ -54,5 +62,6 @@ void CCPPSyntaxDecltypeSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
 {
 	pcFields->Enum(&meKeyword);
 	pcFields->Child(&mpcOperand);
+	pcFields->Bool(&mbUnderlyingType);
 }
 

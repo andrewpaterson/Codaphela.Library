@@ -444,7 +444,32 @@ bool CCPPParser::IsTypeNameAhead(void)
 	{
 		return false;
 	}
+	if (IsUnderlyingTypeAhead())
+	{
+		return true;
+	}
 	pcSymbol = LookupNameAhead(NULL);
 	return pcSymbol && pcSymbol->IsType();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if __underlying_type(Enum) is next: the compiler's name of the
+// enum's integer type (what std::underlying_type is made of), a type where
+// a type can be, unless the program has a name of its own for it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsUnderlyingTypeAhead(void)
+{
+	int		iLength;
+	char*	szName;
+
+	if (!IsIdentifier() || !IsAhead(1, CT_OpenRoundBracket))
+	{
+		return false;
+	}
+	szName = mpcTokeniser->GetIdentifier(GetIdentifier(), &iLength);
+	return szName && (iLength == 17) && (memcmp(szName, "__underlying_type", 17) == 0) && (mpcScope->Find(GetIdentifier()) == NULL);
 }
 

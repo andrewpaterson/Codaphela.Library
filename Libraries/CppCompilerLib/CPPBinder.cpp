@@ -832,6 +832,123 @@ bool CCPPBinder::TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papcArgu
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if a value of psFrom converts to psTo implicitly: the type traits'
+// question, of types with no expression.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsConvertible(SCPP65Type* psTo, SCPP65Type* psFrom)
+{
+	return mcOverloads.ConversionRank(psTo, psFrom, NULL, true) != CPPCR_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if an object of the type can be made from values of the argument
+// types: one of its class's constructors (not deleted) takes them, or with
+// no constructors none or one of its own class; a value that isn't an
+// object from none or one that converts.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsConstructible(SCPP65Type* psType, CArrayCPP65Types* papsArguments)
+{
+	CCPPClass*		pcClass;
+	CCPPFunction*	pcFunction;
+	size			i;
+	size			j;
+	bool			bTakes;
+
+	if (!psType->IsClass())
+	{
+		return (papsArguments->NumElements() == 0) || ((papsArguments->NumElements() == 1) && IsConvertible(psType, papsArguments->GetPtr(0)));
+	}
+	pcClass = psType->pcClass;
+	if (!pcClass->mbConstructors)
+	{
+		if (papsArguments->NumElements() == 0)
+		{
+			return true;
+		}
+		return (papsArguments->NumElements() == 1) && papsArguments->GetPtr(0)->WithoutReference()->IsClass() && mpcUnit->IsDerived(papsArguments->GetPtr(0)->WithoutReference()->pcClass, pcClass, NULL) && !pcClass->IsCopyDeleted();
+	}
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+	{
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if ((pcFunction->meKind != CPPFK_Constructor) || pcFunction->mbDeleted || (pcFunction->mapsParameters.NumElements() < papsArguments->NumElements()) || (pcFunction->RequiredParameters() > papsArguments->NumElements()))
+		{
+			continue;
+		}
+		bTakes = true;
+		for (j = 0; bTakes && (j < papsArguments->NumElements()); j++)
+		{
+			bTakes = mcOverloads.ConversionRank(pcFunction->mapsParameters.GetPtr(j), papsArguments->GetPtr(j), NULL, true) != CPPCR_None;
+		}
+		if (bTakes)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a value of psFrom can be assigned to psTo (a reference to what
+// is assigned): by an operator= of its class, the one the compiler writes,
+// or as a value converts.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsAssignable(SCPP65Type* psTo, SCPP65Type* psFrom)
+{
+	SCPP65Type*		psObject;
+	CCPPClass*		pcClass;
+	CCPPFunction*	pcFunction;
+	size			i;
+	bool			bOwn;
+
+	if (!psTo->IsReference())
+	{
+		//What has no name can't be assigned to (but an object, whose operator= may).
+		if (!psTo->IsClass())
+		{
+			return false;
+		}
+		psObject = psTo;
+	}
+	else
+	{
+		psObject = psTo->psBase;
+	}
+	if (psObject->bConst)
+	{
+		return false;
+	}
+	if (!psObject->IsClass())
+	{
+		return IsConvertible(psObject, psFrom);
+	}
+	pcClass = psObject->pcClass;
+	bOwn = false;
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+	{
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if ((pcFunction->mlliName != mpcUnit->GetOperatorName(CT_Assignment, false)) || (pcFunction->mapsParameters.NumElements() != 1))
+		{
+			continue;
+		}
+		bOwn = true;
+		if (!pcFunction->mbDeleted && (mcOverloads.ConversionRank(pcFunction->mapsParameters.GetPtr(0), psFrom, NULL, true) != CPPCR_None))
+		{
+			return true;
+		}
+	}
+	return !bOwn && !pcClass->IsCopyDeleted() && psFrom->WithoutReference()->IsClass() && mpcUnit->IsDerived(psFrom->WithoutReference()->pcClass, pcClass, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // begin or end of a range-for's range (pcRange, an object): the member of
 // that name of pcClass that takes nothing, or with no class the function
 // of that name that takes the range, of the namespaces around and those

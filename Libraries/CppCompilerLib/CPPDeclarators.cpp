@@ -389,6 +389,29 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// __underlying_type(Enum): the integer type the enum's values are, its
+// fixed one (enum E : short) or the one the compiler gave it.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeclarators::UnderlyingType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psType;
+
+	psType = (pcOperand && (pcOperand->GetKind() == CPPS_TypeId)) ? GetTypeIdType((CCPPSyntaxTypeId*)pcOperand) : NULL;
+	if (!psType || !psType->pcEnum)
+	{
+		if (psType)
+		{
+			mpcUnit->Error(pcNode, "__underlying_type is of an enum");
+		}
+		return NULL;
+	}
+	return mpcUnit->GetTypes()->Integer(psType->iBytes, psType->bSigned);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // decltype(operand).  A name, or a member of an object, with no
 // parentheses round it is the type it was declared with; any other
 // expression is its type, a reference to it if the expression is an
@@ -507,6 +530,10 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	{
 		if (pcType->GetKind() == CPPS_DecltypeSpecifier)
 		{
+			if (((CCPPSyntaxDecltypeSpecifier*)pcType)->mbUnderlyingType)
+			{
+				return UnderlyingType(((CCPPSyntaxDecltypeSpecifier*)pcType)->mpcOperand, pcNode);
+			}
 			return DecltypeType(((CCPPSyntaxDecltypeSpecifier*)pcType)->mpcOperand, pcNode);
 		}
 		if (pcType->GetKind() == CPPS_EnumSpecifier)

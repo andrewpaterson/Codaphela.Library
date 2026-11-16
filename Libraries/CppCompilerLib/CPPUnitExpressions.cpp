@@ -2097,6 +2097,15 @@ enum ECPP65TypeTrait
 	CPP65TT_TrivialConstructor,
 	CPP65TT_TrivialDestructor,
 	CPP65TT_Trivial,
+	CPP65TT_TriviallyCopyable,
+	CPP65TT_Pod,
+	CPP65TT_StandardLayout,
+	CPP65TT_LiteralType,
+	CPP65TT_Final,
+	CPP65TT_BaseOf,
+	CPP65TT_ConvertibleTo,
+	CPP65TT_Constructible,
+	CPP65TT_Assignable,
 };
 
 
@@ -2119,9 +2128,20 @@ static SCPP65TypeTraitName gasCPP65TypeTraits[] =
 	{ "__has_trivial_constructor", CPP65TT_TrivialConstructor },
 	{ "__is_trivially_destructible", CPP65TT_TrivialDestructor },
 	{ "__has_trivial_destructor", CPP65TT_TrivialDestructor },
-	{ "__is_pod", CPP65TT_Trivial },
+	{ "__is_pod", CPP65TT_Pod },
 	{ "__is_trivial", CPP65TT_Trivial },
-	{ "__is_trivially_copyable", CPP65TT_Trivial },
+	{ "__is_trivially_copyable", CPP65TT_TriviallyCopyable },
+	{ "__has_trivial_copy", CPP65TT_TriviallyCopyable },
+	{ "__is_standard_layout", CPP65TT_StandardLayout },
+	{ "__is_literal_type", CPP65TT_LiteralType },
+	{ "__is_literal", CPP65TT_LiteralType },
+	{ "__is_final", CPP65TT_Final },
+	{ "__is_sealed", CPP65TT_Final },
+	{ "__is_base_of", CPP65TT_BaseOf },
+	{ "__is_convertible_to", CPP65TT_ConvertibleTo },
+	{ "__is_convertible", CPP65TT_ConvertibleTo },
+	{ "__is_constructible", CPP65TT_Constructible },
+	{ "__is_assignable", CPP65TT_Assignable },
 };
 
 
@@ -2148,55 +2168,186 @@ static ECPP65TypeTrait CPP65FindTypeTrait(CChars* pszName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A compiler type trait's value (see gasCPP65TypeTraits).  A class is
-// abstract when one of its virtual functions is still pure, and trivial when
-// nothing the compiler writes runs to make, copy or destroy one: no
-// constructor, copy constructor, destructor or vtable.
+// A compiler type trait's value (see gasCPP65TypeTraits), of its types.  A
+// class is abstract when one of its virtual functions is still pure; it is
+// trivially copyable when copying, assigning and destroying it is only its
+// bytes (nothing the compiler writes runs, and it has no vtable), trivial
+// when making one is too, standard layout when its fields are laid out as
+// C's are, and a POD when both.  [meta.unary.prop]
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue)
 {
-	SCPP65Type*		psType;
-	CCPPClass*	pcClass;
-	CChars			szTrait;
-	ECPP65TypeTrait	eTrait;
-
-	if ((pcTrait->macpArguments.NumElements() < 1) || (pcTrait->macpArguments.GetPtr(0)->GetKind() != CPPS_TypeId))
-	{
-		return false;
-	}
-	psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(0));
-	if (!psType)
-	{
-		return false;
-	}
-	pcClass = psType->IsClass() ? psType->pcClass : NULL;
-	if (pcClass && !CompleteClass(pcClass, pcTrait))
-	{
-		return false;
-	}
+	CArrayCPP65Types	apsTypes;
+	SCPP65Type*			psType;
+	CCPPClass*			pcClass;
+	CChars				szTrait;
+	ECPP65TypeTrait		eTrait;
+	size				i;
+	bool				bResult;
 
 	szTrait.Init();
 	mpcTokeniser->GetSource(mpcTokeniser->Get(pcTrait->miName))->Append(&szTrait);
 	eTrait = CPP65FindTypeTrait(&szTrait);
 	szTrait.Kill();
-
-	switch (eTrait)
+	if (eTrait == CPP65TT_None)
 	{
-	case CPP65TT_Class:					*plliValue = pcClass && !pcClass->mbUnion;					return true;
-	case CPP65TT_Union:					*plliValue = pcClass && pcClass->mbUnion;					return true;
-	case CPP65TT_Enum:					*plliValue = psType->pcEnum != NULL;						return true;
-	case CPP65TT_Empty:					*plliValue = pcClass && pcClass->mbEmpty;					return true;
-	case CPP65TT_Polymorphic:			*plliValue = pcClass && pcClass->IsPolymorphic();				return true;
-	case CPP65TT_Abstract:				*plliValue = pcClass && pcClass->IsAbstract();				return true;
-	case CPP65TT_TrivialConstructor:	*plliValue = !pcClass || !pcClass->NeedsConstructor();		return true;
-	case CPP65TT_TrivialDestructor:		*plliValue = !pcClass || !pcClass->mpcDestructor;			return true;
-	case CPP65TT_Trivial:
-		*plliValue = !pcClass || (!pcClass->NeedsConstructor() && !pcClass->mpcDestructor && !pcClass->HasCopyConstructor() && !pcClass->IsPolymorphic());
-		return true;
+		return false;
+	}
+
+	apsTypes.Init();
+	bResult = pcTrait->macpArguments.NumElements() >= 1;
+	for (i = 0; bResult && (i < pcTrait->macpArguments.NumElements()); i++)
+	{
+		psType = (pcTrait->macpArguments.GetPtr(i)->GetKind() == CPPS_TypeId) ? mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(i)) : NULL;
+		pcClass = (psType && psType->WithoutReference()->IsClass()) ? psType->WithoutReference()->pcClass : NULL;
+		bResult = psType && (!pcClass || CompleteClass(pcClass, pcTrait));
+		if (bResult)
+		{
+			apsTypes.Add(psType);
+		}
+	}
+	if (bResult && (apsTypes.NumElements() < (((eTrait == CPP65TT_BaseOf) || (eTrait == CPP65TT_ConvertibleTo) || (eTrait == CPP65TT_Assignable)) ? 2 : 1)))
+	{
+		bResult = Error(pcTrait, "The type trait needs more types");
+	}
+	if (bResult)
+	{
+		*plliValue = TypeTraitValue(eTrait, &apsTypes);
+	}
+	apsTypes.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A type trait's value for its types (each complete).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::TypeTraitValue(int iTrait, CArrayCPP65Types* papsTypes)
+{
+	SCPP65Type*			psType;
+	SCPP65Type*			psOther;
+	CCPPClass*			pcClass;
+	CArrayCPP65Types	apsArguments;
+	size				i;
+	bool				bResult;
+
+	psType = papsTypes->GetPtr(0);
+	psOther = (papsTypes->NumElements() > 1) ? papsTypes->GetPtr(1) : NULL;
+	pcClass = psType->IsClass() ? psType->pcClass : NULL;
+	switch ((ECPP65TypeTrait)iTrait)
+	{
+	case CPP65TT_Class:					return pcClass && !pcClass->mbUnion;
+	case CPP65TT_Union:					return pcClass && pcClass->mbUnion;
+	case CPP65TT_Enum:					return psType->pcEnum != NULL;
+	case CPP65TT_Empty:					return pcClass && pcClass->mbEmpty;
+	case CPP65TT_Polymorphic:			return pcClass && pcClass->IsPolymorphic();
+	case CPP65TT_Abstract:				return pcClass && pcClass->IsAbstract();
+	case CPP65TT_Final:					return pcClass && pcClass->mpcSpecifier && pcClass->mpcSpecifier->mbFinal;
+	case CPP65TT_TrivialConstructor:	return !pcClass || !pcClass->NeedsConstructor();
+	case CPP65TT_TrivialDestructor:		return !pcClass || !pcClass->NeedsDestructor();
+	case CPP65TT_TriviallyCopyable:		return IsTriviallyCopyableType(psType);
+	case CPP65TT_Trivial:				return IsTriviallyCopyableType(psType) && (!pcClass || !pcClass->NeedsConstructor());
+	case CPP65TT_StandardLayout:		return IsStandardLayoutType(psType);
+	case CPP65TT_Pod:					return IsTriviallyCopyableType(psType) && (!pcClass || !pcClass->NeedsConstructor()) && IsStandardLayoutType(psType);
+	case CPP65TT_LiteralType:			return mpcConstants->IsLiteralType(psType);
+	case CPP65TT_BaseOf:
+		//A class is its own base here.  [meta.rel] Table 49
+		return pcClass && psOther->IsClass() && ((pcClass == psOther->pcClass) || IsDerived(psOther->pcClass, pcClass, NULL));
+	case CPP65TT_ConvertibleTo:
+		return mcBinder.IsConvertible(psOther, psType);
+	case CPP65TT_Constructible:
+		apsArguments.Init();
+		for (i = 1; i < papsTypes->NumElements(); i++)
+		{
+			apsArguments.Add(papsTypes->GetPtr(i));
+		}
+		bResult = mcBinder.IsConstructible(psType, &apsArguments);
+		apsArguments.Kill();
+		return bResult;
+	case CPP65TT_Assignable:
+		return mcBinder.IsAssignable(psType, psOther);
 	default:
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if copying, assigning and destroying an object of the type is only
+// its bytes.  [basic.types] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsTriviallyCopyableType(SCPP65Type* psType)
+{
+	CCPPClass*	pcClass;
+
+	while (psType->IsArray())
+	{
+		psType = psType->psBase;
+	}
+	if (!psType->IsClass())
+	{
+		return !psType->IsReference();
+	}
+	pcClass = psType->pcClass;
+	return pcClass->IsTriviallyCopyable() && pcClass->IsTriviallyAssignable() && !pcClass->NeedsDestructor() && !pcClass->IsPolymorphic();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the type is laid out as C's types are: no vtable, no reference,
+// standard layout fields and bases, and fields in only one class of its
+// hierarchy.  [class] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsStandardLayoutType(SCPP65Type* psType)
+{
+	CCPPClass*	pcClass;
+	CCPPClass*	pcFields;
+	size		i;
+
+	while (psType->IsArray())
+	{
+		psType = psType->psBase;
+	}
+	if (!psType->IsClass())
+	{
+		return !psType->IsReference();
+	}
+	pcClass = psType->pcClass;
+	if (pcClass->IsPolymorphic())
+	{
+		return false;
+	}
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		if (!IsStandardLayoutType(pcClass->macFields.Get(i)->psType))
+		{
+			return false;
+		}
+	}
+	pcFields = (pcClass->macFields.NumElements() > 0) ? pcClass : NULL;
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		if (!IsStandardLayoutType(pcClass->macBases.Get(i)->pcClass->mpsType))
+		{
+			return false;
+		}
+		if (!pcClass->macBases.Get(i)->pcClass->mbEmpty)
+		{
+			if (pcFields)
+			{
+				return false;
+			}
+			pcFields = pcClass->macBases.Get(i)->pcClass;
+		}
+	}
+	return true;
 }
 
 

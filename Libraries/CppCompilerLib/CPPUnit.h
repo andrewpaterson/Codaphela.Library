@@ -567,6 +567,9 @@ public:
 	void					LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* papcCounters);
 	CCPPSymbol*				LoopCounterSymbol(CCPPSyntax* pcExpression);
 	bool					TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue);
+	bool					TypeTraitValue(int iTrait, CArrayCPP65Types* papsTypes);
+	bool					IsTriviallyCopyableType(SCPP65Type* psType);
+	bool					IsStandardLayoutType(SCPP65Type* psType);
 	bool					EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue);
 	SCPP65Type*				EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier);
 	SCPP65Type*				EnumeratorType(CCPPSymbol* pcSymbol);
