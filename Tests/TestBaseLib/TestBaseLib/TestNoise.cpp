@@ -128,6 +128,7 @@ void TestNoiseGradientValues(void)
 static float32 TestNoiseSlopeError(EFractalNoise eKind, size uiOctaves, SFloat32Vec3* psPoint, uint32 uiSeed)
 {
 	SFloat32Vec3	sGradient;
+	SFloat32Vec3	sAxis;
 	SFloat32Vec3	sBefore;
 	SFloat32Vec3	sAfter;
 	float32			fWorst;
@@ -146,10 +147,9 @@ static float32 TestNoiseSlopeError(EFractalNoise eKind, size uiOctaves, SFloat32
 	fWorst = 0.0f;
 	for (iAxis = 0; iAxis < 3; iAxis++)
 	{
-		sBefore = *psPoint;
-		sAfter = *psPoint;
-		(&sBefore.x)[iAxis] -= 0.001f;
-		(&sAfter.x)[iAxis] += 0.001f;
+		sAxis.Init((iAxis == 0) ? 0.001f : 0.0f, (iAxis == 1) ? 0.001f : 0.0f, (iAxis == 2) ? 0.001f : 0.0f);
+		sBefore = *psPoint - sAxis;
+		sAfter = *psPoint + sAxis;
 		if (uiOctaves == 0)
 		{
 			fSlope = (GradientNoise(&sAfter, uiSeed) - GradientNoise(&sBefore, uiSeed)) / 0.002f;
@@ -158,7 +158,7 @@ static float32 TestNoiseSlopeError(EFractalNoise eKind, size uiOctaves, SFloat32
 		{
 			fSlope = (FractalNoise(eKind, &sAfter, uiSeed, uiOctaves, 0.0f) - FractalNoise(eKind, &sBefore, uiSeed, uiOctaves, 0.0f)) / 0.002f;
 		}
-		fWorst = maxf(fWorst, fabsf(fSlope - (&sGradient.x)[iAxis]));
+		fWorst = maxf(fWorst, fabsf(fSlope - (Float32Vec3Dot(&sGradient, &sAxis) / 0.001f)));
 	}
 	return fWorst;
 }

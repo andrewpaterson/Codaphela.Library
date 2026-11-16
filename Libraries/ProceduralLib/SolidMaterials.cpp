@@ -20,6 +20,8 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
 #include "SolidAdjust.h"
+#include "SolidBricks.h"
+#include "SolidCavity.h"
 #include "SolidCells.h"
 #include "SolidFlat.h"
 #include "SolidGradient.h"
@@ -27,35 +29,43 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SolidMerge.h"
 #include "SolidNoise.h"
 #include "SolidRamp.h"
+#include "SolidSlope.h"
 #include "SolidWarp.h"
 #include "SolidMaterials.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A sample of a colour, a height, and a highlight's strength and
-// tightness.
-//
-//////////////////////////////////////////////////////////////////////////
-static void SolidMaterialSample(SSolidSample* psSample, uint8 uiRed, uint8 uiGreen, uint8 uiBlue, float32 fHeight, float32 fShine, float32 fGloss)
-{
-	psSample->Init(Set32BitColour(uiRed, uiGreen, uiBlue));
-	psSample->fHeight = fHeight;
-	psSample->fShine = fShine;
-	psSample->fGloss = fGloss;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// A key of a colour, a height, and a highlight's strength and tightness.
 //
 //////////////////////////////////////////////////////////////////////////
 static void SolidMaterialKey(Ptr<CSolidRamp> pRamp, float32 fValue, uint8 uiRed, uint8 uiGreen, uint8 uiBlue, float32 fHeight, float32 fShine, float32 fGloss)
 {
 	SSolidSample	sSample;
 
-	SolidMaterialSample(&sSample, uiRed, uiGreen, uiBlue, fHeight, fShine, fGloss);
+	sSample.Init(Set32BitColour(uiRed, uiGreen, uiBlue));
+	sSample.fHeight = fHeight;
+	sSample.fShine = fShine;
+	sSample.fGloss = fGloss;
 	pRamp->AddKey(fValue, &sSample);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A ramp of pInput that is black up to fBlack and white from fWhite: a
+// mask's amount, none of its second input before the one and all of it
+// after the other (either way round).
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CSolidRamp> SolidMaterialWhere(Ptr<CSolidTexture> pInput, float32 fBlack, float32 fWhite)
+{
+	Ptr<CSolidRamp>	pRamp;
+
+	pRamp = OMalloc<CSolidRamp>(pInput);
+	pRamp->AddKey(fBlack, Set32BitColour((uint8)0, (uint8)0, (uint8)0));
+	pRamp->AddKey(fWhite, Set32BitColour((uint8)255, (uint8)255, (uint8)255));
+	return pRamp;
 }
 
 
@@ -199,3 +209,120 @@ Ptr<CSolidTexture> MakeSolidRust(uint32 uiSeed)
 	return OMalloc<CSolidMask>(pSteel, pRust, pWhere);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Blocks with mortar between: pBlocks (each block's colour, from its own
+// number) times a fine noise's grit where pInside says the point is more
+// than fBevel inside a block, pMortar where it's in the mortar, and a
+// blend of them across the bevel, so a block's edges slope down to it.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CSolidTexture> SolidMaterialBlocks(Ptr<CSolidTexture> pBlocks, Ptr<CSolidTexture> pMortar, Ptr<CSolidTexture> pInside, float32 fBevel, uint32 uiSeed)
+{
+	Ptr<CSolidRamp>	pGrit;
+
+	pGrit = OMalloc<CSolidRamp>(SolidMaterialNoise(FN_Sum, 4, uiSeed, 0.03f));
+	SolidMaterialKey(pGrit, 0.3f, 206, 200, 196, 1.0f, 1.0f, 1.0f);
+	SolidMaterialKey(pGrit, 0.7f, 255, 255, 255, 1.0f, 1.0f, 1.0f);
+	return OMalloc<CSolidMask>(pMortar, OMalloc<CSolidMerge>(SM_Multiply, pBlocks, pGrit), SolidMaterialWhere(pInside, 0.0f, fBevel));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A wall in running bond.  A brick's red is its own, from dark to orange;
+// the mortar is a pale gritty grey, lower than the bricks' faces.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CSolidTexture> MakeSolidBricks(uint32 uiSeed)
+{
+	Ptr<CSolidRamp>	pBricks;
+	Ptr<CSolidRamp>	pMortar;
+	SFloat32Vec3	sSize;
+
+	sSize.Init(0.3f, 0.15f, 0.1f);
+	pBricks = OMalloc<CSolidRamp>(OMalloc<CSolidBricks>(SB_Brick, &sSize, 0.016f, 0.5f, uiSeed));
+	SolidMaterialKey(pBricks, 0.0f, 124, 50, 38, 0.008f, 0.10f, 0.2f);
+	SolidMaterialKey(pBricks, 0.5f, 162, 68, 46, 0.008f, 0.10f, 0.2f);
+	SolidMaterialKey(pBricks, 1.0f, 190, 98, 62, 0.008f, 0.10f, 0.2f);
+
+	pMortar = OMalloc<CSolidRamp>(SolidMaterialNoise(FN_Sum, 3, uiSeed + 1, 0.02f));
+	SolidMaterialKey(pMortar, 0.3f, 150, 146, 138, 0.000f, 0.0f, 0.0f);
+	SolidMaterialKey(pMortar, 0.7f, 192, 188, 178, 0.002f, 0.0f, 0.0f);
+
+	return SolidMaterialBlocks(pBricks, pMortar, OMalloc<CSolidBricks>(SB_Inside, &sSize, 0.016f, 0.5f, uiSeed), 0.008f, uiSeed + 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tiles in a grid: cubes a quarter of a unit each way, so every face of a
+// thing square to them is tiled.  Half are cream and half terracotta, by
+// their own numbers (two keys at a half are the edge between), each a
+// little lighter or darker; they're glazed, and the grout is dark.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CSolidTexture> MakeSolidTiles(uint32 uiSeed)
+{
+	Ptr<CSolidRamp>	pTiles;
+	Ptr<CSolidRamp>	pGrout;
+	SFloat32Vec3	sSize;
+
+	sSize.Init(0.25f, 0.25f, 0.25f);
+	pTiles = OMalloc<CSolidRamp>(OMalloc<CSolidBricks>(SB_Brick, &sSize, 0.012f, 0.0f, uiSeed));
+	SolidMaterialKey(pTiles, 0.0f, 214, 200, 172, 0.004f, 0.8f, 0.7f);
+	SolidMaterialKey(pTiles, 0.5f, 238, 228, 204, 0.004f, 0.8f, 0.7f);
+	SolidMaterialKey(pTiles, 0.5f, 156, 82, 54, 0.004f, 0.8f, 0.7f);
+	SolidMaterialKey(pTiles, 1.0f, 192, 108, 70, 0.004f, 0.8f, 0.7f);
+
+	pGrout = OMalloc<CSolidRamp>(SolidMaterialNoise(FN_Sum, 3, uiSeed + 1, 0.02f));
+	SolidMaterialKey(pGrout, 0.3f, 58, 56, 54, 0.0f, 0.0f, 0.0f);
+	SolidMaterialKey(pGrout, 0.7f, 88, 84, 80, 0.0f, 0.0f, 0.0f);
+
+	return SolidMaterialBlocks(pTiles, pGrout, OMalloc<CSolidBricks>(SB_Inside, &sSize, 0.012f, 0.0f, uiSeed), 0.004f, uiSeed + 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How hollowed or edged the shape is (a CSolidCavity reaching 0.15) with
+// a noise added, so that what follows it has a ragged edge; then, over
+// the material: itself paler and greyer where that's well past a half
+// (worn edges), a dark earth where it's well under (dirt in the hollows),
+// and a green moss where the surface faces up and a broad noise is high
+// (in patches).
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CSolidTexture> MakeSolidWeathered(Ptr<CSolidTexture> pMaterial, Ptr<CShape> pShape, uint32 uiSeed)
+{
+	Ptr<CSolidTexture>	pCavity;
+	Ptr<CSolidTexture>	pWeathered;
+	Ptr<CSolidAdjust>	pWorn;
+	Ptr<CSolidRamp>		pRagged;
+	Ptr<CSolidRamp>		pDirt;
+	Ptr<CSolidRamp>		pMoss;
+	SSolidSample		sSample;
+
+	pRagged = OMalloc<CSolidRamp>(SolidMaterialNoise(FN_Sum, 4, uiSeed, 0.12f));
+	sSample.InitValue(-0.12f);
+	pRagged->AddKey(0.3f, &sSample);
+	sSample.InitValue(0.12f);
+	pRagged->AddKey(0.7f, &sSample);
+	pCavity = OMalloc<CSolidMerge>(SM_Add, OMalloc<CSolidCavity>(pShape, 0.15f), pRagged);
+
+	pWorn = OMalloc<CSolidAdjust>(pMaterial);
+	pWorn->mfSaturation = 0.5f;
+	pWorn->mfBrightness = 0.22f;
+	pWeathered = OMalloc<CSolidMask>(pMaterial, pWorn, SolidMaterialWhere(pCavity, 0.62f, 0.8f));
+
+	pDirt = OMalloc<CSolidRamp>(SolidMaterialNoise(FN_Sum, 4, uiSeed + 1, 0.08f));
+	SolidMaterialKey(pDirt, 0.3f, 40, 33, 26, 0.004f, 0.0f, 0.0f);
+	SolidMaterialKey(pDirt, 0.7f, 76, 62, 46, 0.008f, 0.0f, 0.0f);
+	pWeathered = OMalloc<CSolidMask>(pWeathered, pDirt, SolidMaterialWhere(pCavity, 0.42f, 0.22f));
+
+	pMoss = OMalloc<CSolidRamp>(SolidMaterialNoise(FN_Sum, 5, uiSeed + 2, 0.06f));
+	SolidMaterialKey(pMoss, 0.3f, 44, 72, 30, 0.006f, 0.0f, 0.0f);
+	SolidMaterialKey(pMoss, 0.7f, 104, 136, 58, 0.016f, 0.0f, 0.0f);
+	return OMalloc<CSolidMask>(pWeathered, pMoss, OMalloc<CSolidMerge>(SM_Multiply, SolidMaterialWhere(OMalloc<CSolidSlope>(), 0.72f, 0.9f), SolidMaterialWhere(SolidMaterialNoise(FN_Sum, 4, uiSeed + 3, 0.5f), 0.46f, 0.56f)));
+}

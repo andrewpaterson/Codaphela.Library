@@ -3,8 +3,8 @@ Texture generator plan
 
 Making the solid textures a bake reads (SupportLib/UnwrapPlan.txt, Bake): noise, the operators that combine textures, and
 materials built from them.  It comes before the virtual texture (SupportLib/VirtualTexturePlan.txt), whose pages are baked from
-these and whose design needs to know what a texel holds and what one costs to make.  Steps 1 to 34 are built (see Steps).  What is decided
-and what is only proposed is said at each point.
+these and whose design needs to know what a texel holds and what one costs to make.  Steps 1 to 38 are built (see Steps): what
+is left is under Afterwards.  What is decided and what is only proposed is said at each point.
 
 
 The user's decisions (2026-11-16)
@@ -61,7 +61,8 @@ A sample, not a colour (decided, and built in step 1):
 
 CSolidTexture's virtual is TextureSample(position, normal, width, sample); Sample gives it at a point in the world, and Colour
 stays, clamping the sample's colour to an ARGB32, so the bake and its tests are as they were.  A texture that is only a value
-(noise) gives it as a grey colour and as the height, so any texture plugs into any operator, as .werkkzeug's images did.
+(noise) gives it as a grey colour and as the height, so any texture plugs into any operator, as .werkkzeug's images did.  The
+one number an operator reads from a sample (a ramp's place, a mask's amount) is its colour's brightness.
 
 Only colour is baked at first.  Height is used from step 32, where glow is too: a glowing texel isn't darkened by baked
 shading, and is a light when the virtual texture bakes lighting.  Shine and gloss are a pair (wet stone and polished metal
@@ -85,8 +86,8 @@ Noise (built: steps 5 to 11)
   Hash           An integer lattice point (and a seed) to 32 bits, by multiplying and xoring; no permutation table, so no
                  256 period and nothing to initialise.
   Gradient       Perlin's improved noise (2002) in 3D: a gradient at each lattice point from the hash, the quintic fade,
-                 -1 to 1, 0 at lattice points, its mean 0.  Its gradient is returned with it (the same sums, differentiated),
-                 for warping and for normals.
+                 -1 to 1, 0 at lattice points, its mean 0.  Its gradient is returned with it (the same sums, differentiated);
+                 nothing uses it yet.
   Cellular       Worley's (1996): one jittered point in each lattice cube; the nearest two points' distances (F1, F2) and
                  the nearest's own number, from the cubes round the point.  F1 is pebbles and scales, F2 - F1 cracks and
                  mortar, the hash a colour for each cell.
@@ -99,8 +100,8 @@ its mean and isn't worked out.  A coarse mip level is then the fine level's blur
 way.
 
 
-Operators (proposed)
---------------------
+Operators (built: steps 12 to 23 and 35 to 38)
+----------------------------------------------
 Each a CSolidTexture in ProceduralLib, named CSolid..., its inputs Ptr<CSolidTexture> fields (those with inputs are
 CSolidOperators).  A texture can feed several operators (the graph isn't a tree); it can't feed itself.
 
@@ -112,7 +113,7 @@ CSolidOperators).  A texture can feed several operators (the graph isn't a tree)
                  CSolidBricks      A lattice of boxes with mortar, rows offset, each brick's own value (step 35).
                  CSolidChecker     As it is, in SupportLib.
 
-  Point          CSolidRamp        The input's value through a table of keys (value and a sample), smoothly
+  Point          CSolidRamp        The input's value through a table of keys (value and a sample), a straight blend
                                    between them.  Noise through a ramp is most materials.
                  CSolidAdjust      Hue, saturation, contrast, brightness; invert.
                  CSolidMerge       Two inputs added, multiplied, the lesser, the greater, the difference.
@@ -120,11 +121,11 @@ CSolidOperators).  A texture can feed several operators (the graph isn't a tree)
 
   Position       Placement         Every texture has one already.  An input is sampled at the operator's own point, so its
                                    placement is inside its parent's: a graph is placed in the world once, at its top.
-                 CSolidWarp        Its input sampled at the point moved by a second input's values (three noises of
-                                   different seeds, or one's gradient), by an amount in units.  Marble's veins, wood's
-                                   wobble.
+                 CSolidWarp        Its input sampled at the point moved by a second input's values (at the point and at
+                                   two points far from it, one for each axis), by an amount in units.  Marble's veins,
+                                   wood's wobble.
 
-  Surface        CSolidSlope       How far the normal is from a direction, as a value: moss on top, dust in the lee.
+  Surface        CSolidSlope       How nearly the normal faces a direction, as a value: moss on top, dust in the lee.
                  CSolidCavity      From a CShape's distances near the point: dirt in hollows, wear on edges (step 38).
                                    A solid texture can do this where a 2D one never could, as the shape is to hand.
 
@@ -282,12 +283,26 @@ Height (in the bake: SupportLib's MeshBake)
     renderer reads it.
 
 Structured patterns
-35. CSolidBricks: a lattice of boxes with mortar, rows offset, each brick its own value.
-36. Tiles, from the same lattice.
+35. CSolidBricks.  Done: boxes a size apart along x, y and z with mortar between, each row moved a share of a length
+    along x from the row below and each layer in depth from the layer in front (a half is running bond on a wall's
+    face and on its top).  Its numbers are a brick's own, and how far inside its brick the point is (0 in the mortar),
+    which through a ramp is a mask with a bevel.  MakeSolidBricks: each brick its own red, proud of pale mortar.  It
+    doesn't average itself: the bake's samples do.
+36. Tiles.  Done: the same lattice with no offset; MakeSolidTiles is cubes a quarter of a unit, cream or terracotta by
+    their own numbers, glazed, with dark grout.
+    Both are only right on faces square to the lattice, so the gallery places them along its box
+    (TextureGalleryAlign), a little off the box's corner: a face that lies in one of the lattice's planes is all mortar.
 
 Surface operators
-37. CSolidSlope: how far the normal is from a direction.
-38. CSolidCavity: from a CShape's distances, dark in hollows and light on edges.
+37. CSolidSlope.  Done: 1 where the normal is along its direction (up, as it starts), a half square to it, 0 against.
+38. CSolidCavity.  Done: it holds a CShape and asks its distance a reach out from the surface along the normal (less
+    than the reach where the surface is hollowed) and a reach in (less deep than the reach under an edge); a half on
+    a flat or evenly curved surface, towards 0 in hollows, towards 1 on edges.  The shape is in the space the texture
+    is placed in, so the texture takes its point back out of its own space (CSolidTexture::FromOwn).  On a mesh of
+    flat faces a curve's value varies a little across each face (a face's middle is inside the true surface), which
+    shows only when the raw value is baked with relief, never through a ramp's keys.
+    MakeSolidWeathered(material, shape, seed) puts them to work: the material paler along the shape's edges, earth in
+    its hollows and moss in patches on what faces up.
 
 Afterwards
 39. Looking: a textures tab in WindowInputTester, a material chosen and its parameters changed, baked onto the isosurface
@@ -301,9 +316,14 @@ Open
 Whether colours are in the display's space or linear between operators.  Proposed: as the renderers take them now, looked at
 again with baked lighting.
 Whether a texture read by several operators is worked out once for a point (each texture remembering its last point and
-sample) or each time.  Proposed: each time, until step 31's costs say otherwise.
+sample) or each time.  Each time, for now: step 31's costs are a few tenths of a microsecond a sample.
 Baking on more than one thread.  A sample has no side effects, so texels can be shared out; left to the virtual texture's
 background baking.
+Shine, gloss and glow are carried and not baked: nothing reads them (glow only holds off the relief's shading).
+A CMeshBake's level 0 takes four samples a texel for the relief, where it took one: a bake is about five times the samples
+it was.  A texture with no height (a checker) gains nothing from it; set mfRelief to 0 for one.
+A graph can't be told from its top what it needs of the bake (whether it has height, whether it averages itself), so the
+bake's samples are the same for every texture.
 
 
 Literature

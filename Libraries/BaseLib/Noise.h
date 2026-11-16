@@ -34,6 +34,9 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 //A lattice point and a seed to 32 well mixed bits.
 uint32	NoiseHash(int32 x, int32 y, int32 z, uint32 uiSeed);
 
+//A hash as a number from 0 up to, but never, 1 (its top 24 bits, which a float32 holds exactly).
+float32	NoiseHashUnit(uint32 uiHash);
+
 //How much of a noise's difference from its mean is left when it's averaged over fWidth: all of it at a point, none from two
 //and a half units, smoothly between.
 float32	NoiseKept(float32 fWidth);

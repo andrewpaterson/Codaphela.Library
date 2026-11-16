@@ -21,10 +21,11 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SolidWarp.h"
 
 
-//Where the warp texture is read for the y and z axes' moves, from the point: far enough that a noise there has nothing to do
-//with the noise here.
-static const float32 gaafSolidWarpElsewhere[2][3] =
+//Where the warp texture is read for each axis's move, from the point: at it for x, and for y and z far enough away that a
+//noise there has nothing to do with the noise here.
+static const float32 gaafSolidWarpElsewhere[3][3] =
 {
+	{  0.0f,   0.0f,  0.0f},
 	{ 31.4f, -17.3f, 47.2f},
 	{-27.8f,  91.1f, 13.6f},
 };
@@ -66,19 +67,19 @@ void CSolidWarp::TextureSample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal,
 {
 	SFloat32Vec3	sPosition;
 	SFloat32Vec3	sElsewhere;
+	float32			afMoves[3];
 	size			i;
 
 	sPosition = *psPosition;
 	if (mpWarp.IsNotNull() && (mfAmount != 0.0f))
 	{
-		mpWarp->Sample(psPosition, psNormal, fWidth, psSample);
-		sPosition.x += mfAmount * ((2.0f * psSample->Value()) - 1.0f);
-		for (i = 0; i < 2; i++)
+		for (i = 0; i < 3; i++)
 		{
 			sElsewhere.Init(psPosition->x + gaafSolidWarpElsewhere[i][0], psPosition->y + gaafSolidWarpElsewhere[i][1], psPosition->z + gaafSolidWarpElsewhere[i][2]);
 			mpWarp->Sample(&sElsewhere, psNormal, fWidth, psSample);
-			(&sPosition.y)[i] += mfAmount * ((2.0f * psSample->Value()) - 1.0f);
+			afMoves[i] = mfAmount * ((2.0f * psSample->Value()) - 1.0f);
 		}
+		sPosition.Init(psPosition->x + afMoves[0], psPosition->y + afMoves[1], psPosition->z + afMoves[2]);
 	}
 	Input(mpInput, &sPosition, psNormal, fWidth, psSample);
 }

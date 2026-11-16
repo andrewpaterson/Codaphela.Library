@@ -73,6 +73,16 @@ uint32 NoiseHash(int32 x, int32 y, int32 z, uint32 uiSeed)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+float32 NoiseHashUnit(uint32 uiHash)
+{
+	return (float32)(uiHash >> 8) / 16777216.0f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Fitted to gradient noise averaged over squares: the best multiple of
 // the noise at a square's middle for its average is 0.87 at half a unit
 // wide, 0.58 at one, 0.15 at two and 0.03 at four.  This is within 0.07
@@ -320,8 +330,13 @@ static void CellularNoiseSearch(SCellularPoint* pasNearest, SFloat32Vec3* psPosi
 	int32			y;
 	int32			z;
 
-	pasNearest[0].fSquared = NOISE_FURTHEST;
-	pasNearest[1].fSquared = NOISE_FURTHEST;
+	sPoint.sOffset.Init(0, 0, 0);
+	sPoint.fSquared = NOISE_FURTHEST;
+	sPoint.aiCube[0] = paiCube[0];
+	sPoint.aiCube[1] = paiCube[1];
+	sPoint.aiCube[2] = paiCube[2];
+	pasNearest[0] = sPoint;
+	pasNearest[1] = sPoint;
 	for (z = paiCube[2] - iReach; z <= paiCube[2] + iReach; z++)
 	{
 		for (y = paiCube[1] - iReach; y <= paiCube[1] + iReach; y++)
@@ -357,7 +372,7 @@ static void CellularNoiseSearch(SCellularPoint* pasNearest, SFloat32Vec3* psPosi
 //////////////////////////////////////////////////////////////////////////
 static float32 CellularNoiseCell(SCellularPoint* psPoint, uint32 uiSeed)
 {
-	return (float32)(NoiseHash(psPoint->aiCube[0], psPoint->aiCube[1], psPoint->aiCube[2], ~uiSeed) >> 8) / 16777216.0f;
+	return NoiseHashUnit(NoiseHash(psPoint->aiCube[0], psPoint->aiCube[1], psPoint->aiCube[2], ~uiSeed));
 }
 
 

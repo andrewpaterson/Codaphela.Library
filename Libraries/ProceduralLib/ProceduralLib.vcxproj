@@ -38,6 +38,9 @@
     <ClCompile Include="SolidMask.cpp" />
     <ClCompile Include="SolidWarp.cpp" />
     <ClCompile Include="SolidMaterials.cpp" />
+    <ClCompile Include="SolidBricks.cpp" />
+    <ClCompile Include="SolidSlope.cpp" />
+    <ClCompile Include="SolidCavity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h" />
@@ -59,6 +62,9 @@
     <ClInclude Include="SolidMask.h" />
     <ClInclude Include="SolidWarp.h" />
     <ClInclude Include="SolidMaterials.h" />
+    <ClInclude Include="SolidBricks.h" />
+    <ClInclude Include="SolidSlope.h" />
+    <ClInclude Include="SolidCavity.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9878AEFF-411B-415E-995B-BA59059726E1}</ProjectGuid>

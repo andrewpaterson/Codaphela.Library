@@ -21,6 +21,7 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __SOLID_MATERIALS_H__
 #define __SOLID_MATERIALS_H__
 #include "StandardLib/Pointer.h"
+#include "SupportLib/Shape.h"
 #include "SupportLib/SolidTexture.h"
 
 
@@ -33,6 +34,12 @@ Ptr<CSolidTexture>	MakeSolidMarble(uint32 uiSeed);  //Pale polished stone, bands
 Ptr<CSolidTexture>	MakeSolidWood(uint32 uiSeed);  //Rings round the z axis, wobbled: the grain runs along z.
 Ptr<CSolidTexture>	MakeSolidStone(uint32 uiSeed);  //Rough mottled rock in patches, cracked.
 Ptr<CSolidTexture>	MakeSolidRust(uint32 uiSeed);  //Bright steel with dull, raised rust spreading over it.
+Ptr<CSolidTexture>	MakeSolidBricks(uint32 uiSeed);  //A wall's bricks, 0.3 long (x), 0.15 deep (y) and 0.1 high (z), each its own red, proud of pale mortar.
+Ptr<CSolidTexture>	MakeSolidTiles(uint32 uiSeed);  //Glazed tiles a quarter of a unit square, cream and terracotta, in a grid with dark grout.
+
+//pMaterial as a thing of pShape's shape would be after years outside: dirt gathered in the shape's hollows, the material worn
+//pale along its edges, and moss in patches on what faces up (z).  pShape is in the space the result is placed in.
+Ptr<CSolidTexture>	MakeSolidWeathered(Ptr<CSolidTexture> pMaterial, Ptr<CShape> pShape, uint32 uiSeed);
 
 
 #endif // __SOLID_MATERIALS_H__

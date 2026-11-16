@@ -63,6 +63,15 @@
     <ClCompile Include="SolidMaterials.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="SolidBricks.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidSlope.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidCavity.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h">
@@ -120,6 +129,15 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="SolidMaterials.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidBricks.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidSlope.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidCavity.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

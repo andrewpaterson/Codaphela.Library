@@ -15,6 +15,7 @@
 #include "ProceduralLib/SolidNoise.h"
 #include "ProceduralLib/SolidRamp.h"
 #include "TestLib/Assert.h"
+#include "SolidSampling.h"
 #include "TextureGallery.h"
 
 
@@ -52,21 +53,6 @@ static void AssertSolidSample(SSolidSample* psExpected, SSolidSample* psActual, 
 	{
 		AssertFloat(pafExpected[i], pafActual[i], iDecimals);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static void TestSolidSampleAt(Ptr<CSolidTexture> pTexture, float32 x, float32 y, float32 z, SSolidSample* psSample)
-{
-	SFloat32Vec3	sPoint;
-	SFloat32Vec3	sNormal;
-
-	sPoint.Init(x, y, z);
-	sNormal.Init(0, 0, 1);
-	pTexture->Sample(&sPoint, &sNormal, 0.0f, psSample);
 }
 
 

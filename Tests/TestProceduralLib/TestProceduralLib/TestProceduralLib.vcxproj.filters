@@ -60,6 +60,12 @@
     <ClCompile Include="TestSolidFiltering.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestSolidSurface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidSampling.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h">
@@ -75,6 +81,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="TextureGallery.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidSampling.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -241,6 +241,8 @@
     <ClCompile Include="TestSolidOperators.cpp" />
     <ClCompile Include="TestSolidMaterials.cpp" />
     <ClCompile Include="TestSolidFiltering.cpp" />
+    <ClCompile Include="TestSolidSurface.cpp" />
+    <ClCompile Include="SolidSampling.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshMeasures.h" />
@@ -248,6 +250,7 @@
     <ClInclude Include="IsosurfaceMeshes.h" />
     <ClInclude Include="ShapeSceneHelper.h" />
     <ClInclude Include="TextureGallery.h" />
+    <ClInclude Include="SolidSampling.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />

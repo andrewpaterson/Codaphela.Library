@@ -8,24 +8,8 @@
 #include "ProceduralLib/SolidRamp.h"
 #include "ProceduralLib/SolidWarp.h"
 #include "TestLib/Assert.h"
+#include "SolidSampling.h"
 #include "TextureGallery.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static float32 TestSolidValueAt(Ptr<CSolidTexture> pTexture, float32 x, float32 y, float32 z)
-{
-	SSolidSample	sSample;
-	SFloat32Vec3	sPoint;
-	SFloat32Vec3	sNormal;
-
-	sPoint.Init(x, y, z);
-	sNormal.Init(0, 0, 1);
-	pTexture->Sample(&sPoint, &sNormal, 0.0f, &sSample);
-	return sSample.Value();
-}
 
 
 //////////////////////////////////////////////////////////////////////////
