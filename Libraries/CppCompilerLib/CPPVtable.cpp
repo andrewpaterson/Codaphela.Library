@@ -112,6 +112,17 @@ bool CCPPVtable::HasPure(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPVtable::IsOverriddenBy(CCPPFunction* pcFunction)
 {
+	return FindOverridden(pcFunction) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function in the vtables that pcFunction overrides, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPVtable::FindOverridden(CCPPFunction* pcFunction)
+{
 	SCPPSecondaryVtable*	psVtable;
 	size					i;
 	size					j;
@@ -120,7 +131,7 @@ bool CCPPVtable::IsOverriddenBy(CCPPFunction* pcFunction)
 	{
 		if (pcFunction->Overrides(mapcFunctions.GetPtr(i)))
 		{
-			return true;
+			return mapcFunctions.GetPtr(i);
 		}
 	}
 	for (i = 0; i < macSecondaries.NumElements(); i++)
@@ -130,11 +141,11 @@ bool CCPPVtable::IsOverriddenBy(CCPPFunction* pcFunction)
 		{
 			if (pcFunction->Overrides(psVtable->mapcFunctions.GetPtr(j)))
 			{
-				return true;
+				return psVtable->mapcFunctions.GetPtr(j);
 			}
 		}
 	}
-	return false;
+	return NULL;
 }
 
 

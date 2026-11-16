@@ -145,6 +145,7 @@ public:
 	bool			IsPolymorphic(void);
 	bool			IsAbstract(void);
 	bool			OverridesBase(CCPPFunction* pcFunction);
+	CCPPFunction*	FindOverridden(CCPPFunction* pcFunction);
 	int				GetVtablePointerOffset(void);
 };
 

@@ -5033,6 +5033,41 @@ void TestCPP816Warnings(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function that overrides a base class's virtual function and isn't
+// declared override (or final) is warned about, unless it is a destructor or
+// the warning is turned off (mbWarnMissingOverride).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816OverrideWarnings(void)
+{
+	const char*	szWarning = "isn't declared override";
+	const char*	szBase = "struct B { virtual int F(void) { return 1; } virtual ~B() {} int G(void) { return 2; } };\n";
+	CChars		szSource;
+
+	szSource.Init(szBase);
+	szSource.Append("struct D : B { int F(void) { return 3; } ~D() {} int G(void) { return 4; } };\nint H(void) { D d; return d.F(); }\n");
+	AssertInt(1, TestCPP816CountWarnings(szSource.Text(), szWarning));
+	szSource.Kill();
+
+	//override, final, a destructor, a function that hides one that isn't virtual, and one that overloads.
+	szSource.Init(szBase);
+	szSource.Append("struct D : B { int F(void) override { return 3; } ~D() {} int G(void) { return 4; } int F(int i) { return i; } };\nstruct E : D { int F(void) final { return 5; } };\nint H(void) { E e; return e.F(); }\n");
+	AssertInt(0, TestCPP816CountWarnings(szSource.Text(), szWarning));
+	szSource.Kill();
+
+	//Through a second base, and in a class template's instances (once).
+	AssertInt(1, TestCPP816CountWarnings("struct A { virtual int X(void) { return 1; } int a; };\nstruct B { virtual int Y(void) { return 2; } int b; };\nstruct C : A, B { int Y(void) { return 3; } };\nint H(void) { C c; return c.Y(); }\n", szWarning));
+	AssertInt(1, TestCPP816CountWarnings("struct B { virtual int F(void) { return 1; } };\ntemplate<class M> struct T : B { int F(void) { return 2; } };\nint H(void) { T<int> a; T<char> b; return a.F() + b.F(); }\n", szWarning));
+
+	//Turned off.
+	gcTestCPP816Options.mbWarnMissingOverride = false;
+	AssertInt(0, TestCPP816CountWarnings("struct B { virtual int F(void) { return 1; } };\nstruct D : B { int F(void) { return 2; } };\nint H(void) { D d; return d.F(); }\n", szWarning));
+	gcTestCPP816Options.mbWarnMissingOverride = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A for loop's counter compared with a wider value that isn't a constant
 // wraps before it can pass one that doesn't fit: a 16 bit i against a 32 bit
 // count goes round forever once the count passes 65535.
@@ -6350,6 +6385,7 @@ void TestCPP816(void)
 	TestCPP816Warnings();
 	TestCPP816RangeWarnings();
 	TestCPP816LoopCounterWarnings();
+	TestCPP816OverrideWarnings();
 	TestCPP816SizeLsizeBugs();
 	TestCPP816DestructorCalls();
 	TestCPP816DynamicCast();

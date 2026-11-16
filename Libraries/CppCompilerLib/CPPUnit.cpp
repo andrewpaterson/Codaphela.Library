@@ -1888,6 +1888,8 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcFunction->mbCLinkage = mcContext.IsCLinkage() && !pcClass;
 	pcFunction->mbExplicit = (uiFlags & CPPDS_EXPLICIT) != 0;
 	pcFunction->mbNoexcept = IsDeclaredNoexcept(pcSuffix->mpcExceptionSpecification, eKind, lliName);
+	pcFunction->mbOverride |= HasVirtSpecifier(pcSuffix, mpcTokeniser->mlliOverride);
+	pcFunction->mbFinal |= HasVirtSpecifier(pcSuffix, mpcTokeniser->mlliFinal);
 	if (pszArguments)
 	{
 		pcFunction->mszArguments.Append(pszArguments);

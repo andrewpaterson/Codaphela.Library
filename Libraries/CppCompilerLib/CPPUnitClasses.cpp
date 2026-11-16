@@ -804,6 +804,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	mcTypes.SetClassBytes(pcClass->mpsType, cLayout.GetBytes());
 	cLayout.Kill();
 	pcClass->meState = CPPCS_Complete;
+	bResult &= CheckOverrides(pcClass);
 
 	if (pcClass->mpcInheritedBase)
 	{
@@ -819,6 +820,70 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	mcContext.LeaveBindings();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class's functions' override and final ([class.virtual] 4 and 5): one
+// declared override must override a base class's virtual function, and none
+// may override one declared final.  One that overrides and is declared
+// neither is warned about (mbWarnMissingOverride), but for a destructor, as
+// G++'s -Wsuggest-override doesn't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
+{
+	CCPPFunction*	pcFunction;
+	CCPPFunction*	pcOverridden;
+	size			i;
+	bool			bResult;
+
+	bResult = true;
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+	{
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if (pcFunction->mbStatic || pcFunction->mbImplicit || !pcFunction->mpcDeclarator || (pcFunction->meKind == CPPFK_Constructor))
+		{
+			continue;
+		}
+		pcOverridden = pcClass->FindOverridden(pcFunction);
+		if (pcFunction->mbOverride && !pcOverridden)
+		{
+			bResult &= Error(pcFunction->mpcDeclarator, "The function is declared override but overrides no virtual function of a base class");
+		}
+		else if (pcOverridden && pcOverridden->mbFinal)
+		{
+			bResult &= Error(pcFunction->mpcDeclarator, "The function overrides one declared final");
+		}
+		else if (pcOverridden && !pcFunction->mbOverride && !pcFunction->mbFinal && (pcFunction->meKind != CPPFK_Destructor) && mpcOptions->mbWarnMissingOverride)
+		{
+			Warning(pcFunction->mpcDeclarator, "The function overrides a virtual function of a base class but isn't declared override");
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function's declarator says override (or final, lliName).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::HasVirtSpecifier(CCPPSyntaxFunctionSuffix* pcSuffix, int64 lliName)
+{
+	CCPPToken*	pcToken;
+	size		i;
+
+	for (i = 0; pcSuffix && (i < pcSuffix->macpVirtSpecifiers.NumElements()); i++)
+	{
+		pcToken = mpcTokeniser->Get(pcSuffix->macpVirtSpecifiers.GetPtr(i)->miFirstToken);
+		if (pcToken && pcToken->IsIdentifier() && (((CCTIdentifier*)pcToken)->miIdentifier == lliName))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

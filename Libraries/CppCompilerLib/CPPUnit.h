@@ -395,6 +395,8 @@ public:
 	CCPPFunction*			DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments);
 	SCPP65Type*				FunctionType(CCPPFunction* pcFunction);
 	bool					IsDeclaredNoexcept(CCPPSyntax* pcSpecification, ECPPFunctionKind eKind, int64 lliName);
+	bool					CheckOverrides(CCPPClass* pcClass);
+	bool					HasVirtSpecifier(CCPPSyntaxFunctionSuffix* pcSuffix, int64 lliName);
 	bool					IsAllocationFunction(int64 lliName);
 	bool					IsDefinedWhereDeclared(CCPPSyntaxName* pcName);
 	bool					ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);

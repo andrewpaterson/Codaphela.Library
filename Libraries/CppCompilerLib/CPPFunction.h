@@ -116,6 +116,8 @@ public:
 	bool							mbConstThis;	//A const member function: an overload of the same function without const.
 	bool							mbConstexpr;	//Declared constexpr: its value may be worked out when the program is compiled.
 	bool							mbNoexcept;		//Doesn't throw: declared noexcept or throw(), or a destructor or operator delete declared without either.
+	bool							mbOverride;		//Declared override: it must override a base class's virtual function.
+	bool							mbFinal;		//Declared final: no derived class's function may override it.
 	CCPPFunction*					mpcAddressOf;	//What a closure's conversion to a pointer to a function gives the address of (its invoker), or NULL.
 	ECPPRefQualifier				meRefQualifier;	//Declared & or &&: an overload of the same function declared the other.
 	bool							mbImplicit;		//A constructor or destructor the compiler wrote.

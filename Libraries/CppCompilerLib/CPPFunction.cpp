@@ -48,6 +48,8 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 	mbConstThis = false;
 	mbConstexpr = false;
 	mbNoexcept = false;
+	mbOverride = false;
+	mbFinal = false;
 	mpcAddressOf = NULL;
 	meRefQualifier = CPPRQ_None;
 	mbImplicit = false;

@@ -456,22 +456,35 @@ bool CCPPClass::IsAbstract(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if pcFunction overrides a virtual function in any of the class's bases'
-// vtables.
+// Whether pcFunction overrides a virtual function of one of the class's bases.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPClass::OverridesBase(CCPPFunction* pcFunction)
 {
-	size	i;
+	return FindOverridden(pcFunction) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The virtual function of one of the class's bases (a final overrider in its
+// vtables) that pcFunction overrides, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPClass::FindOverridden(CCPPFunction* pcFunction)
+{
+	CCPPFunction*	pcOverridden;
+	size			i;
 
 	for (i = 0; i < macBases.NumElements(); i++)
 	{
-		if (macBases.Get(i)->pcClass->mcVtable.IsOverriddenBy(pcFunction))
+		pcOverridden = macBases.Get(i)->pcClass->mcVtable.FindOverridden(pcFunction);
+		if (pcOverridden)
 		{
-			return true;
+			return pcOverridden;
 		}
 	}
-	return false;
+	return NULL;
 }
 
 

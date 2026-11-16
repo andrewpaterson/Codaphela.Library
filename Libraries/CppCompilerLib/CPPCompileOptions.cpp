@@ -30,6 +30,7 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	false,						//mbPrintIR
 	CPP_NO_FUNCTION_LIMIT,
 	false,						//mbWarnNarrowing: code written for a 32 bit int and size has many that are correct.
+	true,						//mbWarnMissingOverride (the user, 2026-11-16).
 	true,						//mbAssemblyUnits
 	true,						//mbSoftFloatInFrame
 	true,						//mbRegisterArguments
