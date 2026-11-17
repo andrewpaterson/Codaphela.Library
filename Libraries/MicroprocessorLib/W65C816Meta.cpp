@@ -303,7 +303,7 @@ void CW65C816Meta::SetX(STraceValue sX)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-STraceValue CW65C816Meta::GetX(void)
+STraceValue CW65C816Meta::GetX(void) const
 {
 	return msX;
 }

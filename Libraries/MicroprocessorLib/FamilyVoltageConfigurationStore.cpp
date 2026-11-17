@@ -547,6 +547,6 @@ CFamilyVoltageConfiguration* CFamilyVoltageConfigurationStore::Get(const char* s
 //
 //////////////////////////////////////////////////////////////////////////
 CFamilyVoltageConfiguration* CFamilyVoltageConfigurationStore::GetDefaultFamily(void) { return Get(DEFAULT_FAMILY); }
-size CFamilyVoltageConfigurationStore::NumFamilies(void) { return mapcFamilies.NumElements(); }
+size CFamilyVoltageConfigurationStore::NumFamilies(void) const { return mapcFamilies.NumElements(); }
 CFamilyVoltageConfiguration* CFamilyVoltageConfigurationStore::GetFamily(size uiIndex) { return mapcFamilies.SafeGetPtr(uiIndex); }
 

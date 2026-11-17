@@ -191,7 +191,7 @@ void CW65CMeta::SetBank(uint8 uiBank)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65CMeta::GetBank(void)
+uint8 CW65CMeta::GetBank(void) const
 {
 	return muiBank;
 }

@@ -61,11 +61,11 @@ public:
 	virtual void			ResetState(void);
 			void			AppendCounterValueHex(CChars* psz);
 			CCounterPins*	GetCounterPins(void);
-			uint32			GetCount(void);
+			uint32			GetCount(void) const;
 			void			SetCount(uint32 uiCount);
-			bool			IsTerminal(void);
+			bool			IsTerminal(void) const;
 			void			SetTerminal(bool bTerminal);
-			bool			IsSynchronousLoad(void);
+			bool			IsSynchronousLoad(void) const;
 };
 
 

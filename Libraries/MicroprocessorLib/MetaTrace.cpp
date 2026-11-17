@@ -47,7 +47,7 @@ void CMetaTrace::Set(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-STraceValue CMetaTrace::Get(void)
+STraceValue CMetaTrace::Get(void) const
 {
 	return msValue;
 }
@@ -67,7 +67,7 @@ void CMetaTrace::Invert(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMetaTrace::IsHigh(void)
+bool CMetaTrace::IsHigh(void) const
 {
 	return msValue.IsHigh();
 }
@@ -77,7 +77,7 @@ bool CMetaTrace::IsHigh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMetaTrace::IsLow(void)
+bool CMetaTrace::IsLow(void) const
 {
 	return msValue.IsLow();
 }

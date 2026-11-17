@@ -67,7 +67,7 @@ public:
 	virtual void			ResetState(void);
 
 			CGroupPins*		GetGroupPins(void);
-			bool			IsTransparent(void);
+			bool			IsTransparent(void) const;
 			uint32			GetValue(size uiGroup);
 			void			SetValue(size uiGroup, uint32 uiValue);
 

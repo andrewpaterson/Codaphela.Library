@@ -42,7 +42,7 @@ void STraceValue::Init(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool STraceValue::IsHigh(void)
+bool STraceValue::IsHigh(void) const
 {
 	return eValue == TV_High;
 }
@@ -52,7 +52,7 @@ bool STraceValue::IsHigh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool STraceValue::IsLow(void)
+bool STraceValue::IsLow(void) const
 {
 	return eValue == TV_Low;
 }

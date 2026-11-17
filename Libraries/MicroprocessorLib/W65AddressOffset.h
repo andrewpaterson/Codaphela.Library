@@ -24,7 +24,7 @@ public:
     virtual bool    IsConstantOffset(void);
     virtual bool    IsPageWrapped(CW65CCore* pcCPU);
     virtual bool    IsProgramCounter(void);
-            bool    HasBank(void);
+            bool    HasBank(void) const;
             bool    CanPageWrap(void);
 };
 

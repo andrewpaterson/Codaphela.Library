@@ -86,7 +86,7 @@ public:
 	void		Reset(void);
 	bool		Step(void);
 	CBreakpoints*	GetBreakpoints(void);
-	bool			IsAtBreakpoint(void);
+	bool			IsAtBreakpoint(void) const;
 	static size		InstructionLength(uint16 uiOpcode);
 	static size		CallLength(uint16 uiOpcode);
 	static bool		IsReturn(uint16 uiOpcode);
@@ -96,21 +96,21 @@ public:
 	void		SetEdgeInterrupt(size uiInterrupt, bool bLow);
 	void		SetLevelInterrupt(bool bLow);
 
-	uint64		GetA(void);
-	uint64		GetB(void);
-	uint64		GetX(void);
-	uint64		GetY(void);
-	uint32		GetS(void);
-	uint32		GetV(void);
-	uint32		GetW(void);
-	uint32		GetProgramCounter(void);
-	uint16		GetP(void);
-	uint32		GetInterruptDepth(void);
+	uint64		GetA(void) const;
+	uint64		GetB(void) const;
+	uint64		GetX(void) const;
+	uint64		GetY(void) const;
+	uint32		GetS(void) const;
+	uint32		GetV(void) const;
+	uint32		GetW(void) const;
+	uint32		GetProgramCounter(void) const;
+	uint16		GetP(void) const;
+	uint32		GetInterruptDepth(void) const;
 	bool		IsFlagSet(uint16 uiFlag);
-	bool		IsStopped(void);
-	bool		IsWaiting(void);
-	uint8		GetPendingEdges(void);
-	uint64		NumCycles(void);
+	bool		IsStopped(void) const;
+	bool		IsWaiting(void) const;
+	uint8		GetPendingEdges(void) const;
+	uint64		NumCycles(void) const;
 
 	bool		AppendDifferences(C65C64* pcMPU, CChars* psz);
 	void		AppendDifference(CChars* psz, const char* szName, uint64 uiOther, uint64 uiThis);

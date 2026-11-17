@@ -100,7 +100,7 @@ void CW65BusCycle::GetAddress(CW65Address* pcDest, CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65DataOperation* CW65BusCycle::GetDataOperation(void)
+CW65DataOperation* CW65BusCycle::GetDataOperation(void) const
 {
     return mpcDataOperation;
 }
@@ -223,7 +223,7 @@ void CW65BusCycle::ToDataString(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65BusCycle::IsFetchOpcode(void)
+bool CW65BusCycle::IsFetchOpcode(void) const
 {
     return mpcDataOperation->IsFetchOpcode();
 }
@@ -243,7 +243,7 @@ void CW65BusCycle::SetCycle(int16 iCycle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CW65BusCycle::GetCycle(void)
+int16 CW65BusCycle::GetCycle(void) const
 {
     return miCycle;
 }

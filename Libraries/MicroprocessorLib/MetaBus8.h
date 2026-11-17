@@ -16,7 +16,7 @@ public:
 	void	Kill(void);
 
 	void	Set(uint8 uiValue);
-	uint8	Get(void);
+	uint8	Get(void) const;
 
 	void	Print(CChars* psz, bool bAppend0x);
 

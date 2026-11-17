@@ -59,11 +59,11 @@ public:
 			void				Class(void) override;
 			void				Free(void) override;
 
-			int64				GetSampleTime(void);
+			int64				GetSampleTime(void) const;
 			COscilloscopePins*	GetOscilloscopePins(void);
-			size				GetInputCount(void);
-			size				GetSampleCount(void);
-			size				GetTickPosition(void);
+			size				GetInputCount(void) const;
+			size				GetSampleCount(void) const;
+			size				GetTickPosition(void) const;
 			void				SetTickPosition(size uiTickPosition);
 			float32				GetMinVoltage(size uiInput, size uiSample);
 			float32				GetMaxVoltage(size uiInput, size uiSample);

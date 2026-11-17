@@ -52,10 +52,10 @@ public:
 	virtual void	Execute(CTimeline* pcTimeline);
 	virtual void	RemoveFromOwner(void);
 
-			bool	IsRemoved(void);
-			bool	IsExecuted(void);
-			int64	GetTime(void);
-			int64	GetID(void);
+			bool	IsRemoved(void) const;
+			bool	IsExecuted(void) const;
+			int64	GetTime(void) const;
+			int64	GetID(void) const;
 
 	virtual void	PrintShort(CChars* psz);
 	virtual CIntegratedCircuit*	GetIntegratedCircuit(void);

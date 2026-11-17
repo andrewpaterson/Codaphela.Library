@@ -25,10 +25,10 @@ public:
 			void			Kill(void);
 
 			CW65Instruction*	GetInstruction(uint16 uiOpcode);
-			CW65Instruction*	GetReset(void);
-			CW65Instruction*	GetIRQ(void);
-			CW65Instruction*	GetNMI(void);
-			CW65Instruction*	GetFetchNext(void);
+			CW65Instruction*	GetReset(void) const;
+			CW65Instruction*	GetIRQ(void) const;
+			CW65Instruction*	GetNMI(void) const;
+			CW65Instruction*	GetFetchNext(void) const;
 
 protected:
 			void			CreateInstructions(void);

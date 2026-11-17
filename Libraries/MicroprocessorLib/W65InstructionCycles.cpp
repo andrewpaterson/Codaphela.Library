@@ -84,7 +84,7 @@ void CW65InstructionCycles::ValidateDoneOperation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EAddressingMode CW65InstructionCycles::GetAddressingMode(void)
+EAddressingMode CW65InstructionCycles::GetAddressingMode(void) const
 {
     return meAddressingMode;
 }
@@ -108,7 +108,7 @@ CW65BusCycle* CW65InstructionCycles::GetBusCycle(int16 miIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CW65InstructionCycles::Size(void)
+size CW65InstructionCycles::Size(void) const
 {
     return mapcCycles.NumElements();
 }

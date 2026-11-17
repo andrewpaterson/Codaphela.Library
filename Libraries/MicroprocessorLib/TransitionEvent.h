@@ -39,7 +39,7 @@ public:
 			void				Init(CLogicPort* pcPort, int64 iTime, int64 iID, float32 fVoltage);
 
 	virtual void				Execute(CTimeline* pcTimeline);
-			float32				GetVoltage(void);
+			float32				GetVoltage(void) const;
 	virtual void				PrintShort(CChars* psz);
 };
 

@@ -243,7 +243,7 @@ C65C64Instruction* C65C64InstructionFactory::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65C64Instruction* C65C64InstructionFactory::GetReset(void)
+C65C64Instruction* C65C64InstructionFactory::GetReset(void) const
 {
 	return mpcReset;
 }
@@ -253,7 +253,7 @@ C65C64Instruction* C65C64InstructionFactory::GetReset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65C64Instruction* C65C64InstructionFactory::GetFetchNext(void)
+C65C64Instruction* C65C64InstructionFactory::GetFetchNext(void) const
 {
 	return mpcFetchNext;
 }
@@ -263,7 +263,7 @@ C65C64Instruction* C65C64InstructionFactory::GetFetchNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65C64Instruction* C65C64InstructionFactory::GetInterrupt(void)
+C65C64Instruction* C65C64InstructionFactory::GetInterrupt(void) const
 {
 	return mpcInterrupt;
 }
@@ -273,7 +273,7 @@ C65C64Instruction* C65C64InstructionFactory::GetInterrupt(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65C64Instruction* C65C64InstructionFactory::GetWait(void)
+C65C64Instruction* C65C64InstructionFactory::GetWait(void) const
 {
 	return mpcWait;
 }
@@ -283,7 +283,7 @@ C65C64Instruction* C65C64InstructionFactory::GetWait(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size C65C64InstructionFactory::NumForms(void)
+size C65C64InstructionFactory::NumForms(void) const
 {
 	return muiNumForms;
 }

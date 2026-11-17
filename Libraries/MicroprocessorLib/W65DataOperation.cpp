@@ -32,7 +32,7 @@ bool CW65DataOperation::IsData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DataOperation::IsRead(void)
+bool CW65DataOperation::IsRead(void) const
 {
     return mbRead;
 }
@@ -42,7 +42,7 @@ bool CW65DataOperation::IsRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DataOperation::IsValidProgramAddress(void)
+bool CW65DataOperation::IsValidProgramAddress(void) const
 {
     return mbValidProgramAddress;
 }
@@ -52,7 +52,7 @@ bool CW65DataOperation::IsValidProgramAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DataOperation::IsValidDataAddress(void)
+bool CW65DataOperation::IsValidDataAddress(void) const
 {
     return mbValidDataAddress;
 }
@@ -62,7 +62,7 @@ bool CW65DataOperation::IsValidDataAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DataOperation::IsNotMemoryLock(void)
+bool CW65DataOperation::IsNotMemoryLock(void) const
 {
     return mbNotMemoryLock;
 }
@@ -72,7 +72,7 @@ bool CW65DataOperation::IsNotMemoryLock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DataOperation::IsNotVectorPull(void)
+bool CW65DataOperation::IsNotVectorPull(void) const
 {
     return mbNotVectorPull;
 }
@@ -82,7 +82,7 @@ bool CW65DataOperation::IsNotVectorPull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DataOperation::IsReady(void)
+bool CW65DataOperation::IsReady(void) const
 {
     return mbReady;
 }

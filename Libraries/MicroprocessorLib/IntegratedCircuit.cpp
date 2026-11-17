@@ -293,6 +293,6 @@ CPins* CIntegratedCircuit::GetPins(void) { return &mpPins; }
 CPort* CIntegratedCircuit::GetPort(const char* szName) { return mpPins->GetPort(szName); }
 CPort* CIntegratedCircuit::GetPort(size uiIndex) { return mpPins->GetPort(uiIndex); }
 size CIntegratedCircuit::NumPorts(void) { return mpPins->NumPorts(); }
-size CIntegratedCircuit::NumEvents(void) { return mapcEvents.NumElements(); }
+size CIntegratedCircuit::NumEvents(void) const { return mapcEvents.NumElements(); }
 CEvent* CIntegratedCircuit::GetEvent(size uiIndex) { return mapcEvents.SafeGetPtr(uiIndex); }
 

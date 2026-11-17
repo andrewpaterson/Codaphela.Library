@@ -259,7 +259,7 @@ SCircuitSubcircuitSimulations* CSubcircuitSimulations::Find(CCircuitSimulation* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSubcircuitSimulations::NumCircuitSimulations(void)
+size CSubcircuitSimulations::NumCircuitSimulations(void) const
 {
 	return mapsCircuitSimulations.NumElements();
 }

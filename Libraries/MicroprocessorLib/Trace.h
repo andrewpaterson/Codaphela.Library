@@ -46,9 +46,9 @@ public:
 	void			Connect(CPort* pcPort);
 	void			NotifyUndriven(CTimeline* pcTimeline, CPort* pcExcept);
 	void			Disconnect(CPort* pcPort);
-	size			NumConnectedPorts(void);
+	size			NumConnectedPorts(void) const;
 	CPort*			GetConnectedPort(size uiIndex);
-	int64			GetID(void);
+	int64			GetID(void) const;
 
 	static int64	GetID(CTrace* pcTrace);
 	static void		ResetNextID(void);

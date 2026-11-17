@@ -99,8 +99,8 @@ float32 CPin::GetVCC(int64 iTime)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CPin::GetType(void) { return "Pin"; }
-size CPin::NumTracePorts(void) { return mapcTracePorts.NumElements(); }
+size CPin::NumTracePorts(void) const { return mapcTracePorts.NumElements(); }
 CTracePort* CPin::GetTracePort(size uiIndex) { return mapcTracePorts.SafeGetPtr(uiIndex); }
-CPowerInPort* CPin::GetVoltageCommon(void) { return mpcVCC; }
-CPowerInPort* CPin::GetVoltageGround(void) { return mpcGND; }
+CPowerInPort* CPin::GetVoltageCommon(void) const { return mpcVCC; }
+CPowerInPort* CPin::GetVoltageGround(void) const { return mpcGND; }
 

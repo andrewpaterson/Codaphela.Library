@@ -34,7 +34,7 @@ protected:
 public:
 	void				Init(CW65C816Pins* pcPins);
 
-	CW65C816Pins*		GetPins(void);
+	CW65C816Pins*		GetPins(void) const;
 
 	using				CW65CCore::GetInstruction;
 	CW65Instruction*	GetInstruction(uint16 uiOpcode) override;

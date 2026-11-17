@@ -19,7 +19,7 @@ void CW65AddressOffset::Init(void)
 // True if GetBank can return other than 0.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65AddressOffset::HasBank(void)
+bool CW65AddressOffset::HasBank(void) const
 {
     return mbHasBank;
 }

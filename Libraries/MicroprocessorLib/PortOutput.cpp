@@ -126,7 +126,7 @@ bool CPortOutput::ForTime(int64 iTime)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CPortOutput::GetEndTime(void)
+int64 CPortOutput::GetEndTime(void) const
 {
 	if (miSlewTime == MAX_INT64)
 	{
@@ -140,11 +140,11 @@ int64 CPortOutput::GetEndTime(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPortOutput::IsNone(void) { return meType == PO_None; }
-bool CPortOutput::IsDrive(void) { return meType == PO_Drive; }
-bool CPortOutput::IsSlew(void) { return meType == PO_Slew; }
-int64 CPortOutput::GetTime(void) { return miTime; }
-float32 CPortOutput::GetStartVoltage(void) { return mfStartVoltage; }
-float32 CPortOutput::GetEndVoltage(void) { return mfEndVoltage; }
-int64 CPortOutput::GetSlewTime(void) { return miSlewTime; }
+bool CPortOutput::IsNone(void) const { return meType == PO_None; }
+bool CPortOutput::IsDrive(void) const { return meType == PO_Drive; }
+bool CPortOutput::IsSlew(void) const { return meType == PO_Slew; }
+int64 CPortOutput::GetTime(void) const { return miTime; }
+float32 CPortOutput::GetStartVoltage(void) const { return mfStartVoltage; }
+float32 CPortOutput::GetEndVoltage(void) const { return mfEndVoltage; }
+int64 CPortOutput::GetSlewTime(void) const { return miSlewTime; }
 

@@ -17,9 +17,9 @@ public:
     void                Init(EAddressingMode eAddressingMode, CW65BusCycleArray* papcCycles);
     void                Kill(void);
 
-    EAddressingMode     GetAddressingMode(void);
+    EAddressingMode     GetAddressingMode(void) const;
     CW65BusCycle*          GetBusCycle(int16 miIndex);
-    size                Size(void);
+    size                Size(void) const;
 
 protected:
     void ValidateDoneOperation(void);

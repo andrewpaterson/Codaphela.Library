@@ -51,16 +51,16 @@ public:
 			bool				Load(CObjectReader* pcFile) override;
 
 			void				SetIntegratedCircuit(CIntegratedCircuit* pcIntegratedCircuit);
-			CIntegratedCircuit*	GetIntegratedCircuit(void);
-			CPowerInPort*		GetVoltageCommon(void);
-			CPowerInPort*		GetVoltageGround(void);
+			CIntegratedCircuit*	GetIntegratedCircuit(void) const;
+			CPowerInPort*		GetVoltageCommon(void) const;
+			CPowerInPort*		GetVoltageGround(void) const;
 
 			void				InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual void				TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
 	virtual char*				GetComponentName(void);
 	virtual void				AppendDescription(CChars* psz);
 	virtual CCircuitComponent*	GetComponent(void);
-			const char*			GetType(void);
+			const char*			GetType(void) const;
 
 	static	void				CalculatePortName(CChars* psz, const char* szName, size i, size uiBufferCount);
 	static	void				CalculateGroupPortName(CChars* psz, size uiGroup, size uiGroupCount, const char* szName, size uiBit, size uiBitCount);

@@ -21,10 +21,10 @@ public:
     void        Init(void);
     void        Init(uint8 uiBank, uint16 uiOffset);
 
-    uint8       GetBank(void);
-    uint16      GetOffset(void);
-    uint8       GetOffsetLow(void);
-    uint8       GetOffsetHigh(void);
+    uint8       GetBank(void) const;
+    uint16      GetOffset(void) const;
+    uint8       GetOffsetLow(void) const;
+    uint8       GetOffsetHigh(void) const;
     CW65Address*   Offset(int16 iOffset);
     void        Print(CChars* psz);
     void        SetOffset(uint16 uiOffset);

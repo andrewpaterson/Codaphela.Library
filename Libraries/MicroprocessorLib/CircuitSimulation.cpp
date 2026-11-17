@@ -258,13 +258,13 @@ void CCircuitSimulation::ResetNextID(void)
 //////////////////////////////////////////////////////////////////////////
 CCircuit* CCircuitSimulation::GetCircuit(void) { return &mpCircuit; }
 CTimeline* CCircuitSimulation::GetTimeline(void) { return &mcTimeline; }
-int64 CCircuitSimulation::GetTime(void) { return mcTimeline.GetTime(); }
+int64 CCircuitSimulation::GetTime(void) const { return mcTimeline.GetTime(); }
 bool CCircuitSimulation::RunSimultaneous(void) { return mcTimeline.RunSimultaneous(); }
 bool CCircuitSimulation::RunToTime(int64 iTimeForward) { return mcTimeline.RunToTime(iTimeForward); }
 bool CCircuitSimulation::RemoveEvent(CEvent* pcEvent) { return mcTimeline.Remove(pcEvent); }
-int64 CCircuitSimulation::GetID(void) { return miID; }
+int64 CCircuitSimulation::GetID(void) const { return miID; }
 char* CCircuitSimulation::GetName(void) { return mszName.Text(); }
-CSubcircuitTopSimulation* CCircuitSimulation::GetSubcircuitTopSimulation(void) { return mpcSubcircuitTopSimulation; }
-size CCircuitSimulation::NumInstanceSimulations(void) { return mapcInstanceSimulations.NumElements(); }
+CSubcircuitTopSimulation* CCircuitSimulation::GetSubcircuitTopSimulation(void) const { return mpcSubcircuitTopSimulation; }
+size CCircuitSimulation::NumInstanceSimulations(void) const { return mapcInstanceSimulations.NumElements(); }
 CSubcircuitInstanceSimulation* CCircuitSimulation::GetInstanceSimulation(size uiIndex) { return (CSubcircuitInstanceSimulation*)mapcInstanceSimulations.SafeGetPtr(uiIndex); }
 

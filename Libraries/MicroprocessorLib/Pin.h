@@ -43,10 +43,10 @@ public:
 			void			Free(void) override;
 
 	virtual const char*		GetType(void);
-			size			NumTracePorts(void);
+			size			NumTracePorts(void) const;
 			CTracePort*		GetTracePort(size uiIndex);
-			CPowerInPort*	GetVoltageCommon(void);
-			CPowerInPort*	GetVoltageGround(void);
+			CPowerInPort*	GetVoltageCommon(void) const;
+			CPowerInPort*	GetVoltageGround(void) const;
 			float32			GetVCC(int64 iTime);
 };
 

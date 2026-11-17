@@ -50,14 +50,14 @@ public:
 			uint32				ReadData(CTimeline* pcTimeline, size uiBitWidth);
 			void				WriteOutput(CTimeline* pcTimeline, uint32 uiData, size uiBitWidth);
 
-			CLogicPort*			GetClock(void);
-			CLogicPort*			GetReset(void);
-			CLogicPort*			GetLoad(void);
+			CLogicPort*			GetClock(void) const;
+			CLogicPort*			GetReset(void) const;
+			CLogicPort*			GetLoad(void) const;
 			CArrayLogicPortPtr*	GetData(void);
-			CLogicPort*			GetCountEnable(void);
-			CLogicPort*			GetCountEnableTerminal(void);
+			CLogicPort*			GetCountEnable(void) const;
+			CLogicPort*			GetCountEnableTerminal(void) const;
 			CArrayLogicPortPtr*	GetOutput(void);
-			CLogicPort*			GetTerminalOutput(void);
+			CLogicPort*			GetTerminalOutput(void) const;
 };
 
 

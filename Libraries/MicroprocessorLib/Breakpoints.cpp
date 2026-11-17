@@ -284,7 +284,7 @@ bool CBreakpoints::IsEnabled(uint32 uiAddress)
 // Enabled and disabled.
 //
 //////////////////////////////////////////////////////////////////////////
-size CBreakpoints::NumBreakpoints(void)
+size CBreakpoints::NumBreakpoints(void) const
 {
 	return muiNumBreakpoints;
 }
@@ -294,7 +294,7 @@ size CBreakpoints::NumBreakpoints(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CBreakpoints::NumEnabled(void)
+size CBreakpoints::NumEnabled(void) const
 {
 	return muiNumEnabled;
 }

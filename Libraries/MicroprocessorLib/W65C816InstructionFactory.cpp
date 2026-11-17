@@ -114,7 +114,7 @@ CW65Instruction* CW65C816InstructionFactory::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816InstructionFactory::GetReset(void)
+CW65Instruction* CW65C816InstructionFactory::GetReset(void) const
 {
 	return mpcReset;
 }
@@ -124,7 +124,7 @@ CW65Instruction* CW65C816InstructionFactory::GetReset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816InstructionFactory::GetIRQ(void)
+CW65Instruction* CW65C816InstructionFactory::GetIRQ(void) const
 {
 	return mpcIRQ;
 }
@@ -134,7 +134,7 @@ CW65Instruction* CW65C816InstructionFactory::GetIRQ(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816InstructionFactory::GetNMI(void)
+CW65Instruction* CW65C816InstructionFactory::GetNMI(void) const
 {
 	return mpcNMI;
 }
@@ -144,7 +144,7 @@ CW65Instruction* CW65C816InstructionFactory::GetNMI(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816InstructionFactory::GetAbort(void)
+CW65Instruction* CW65C816InstructionFactory::GetAbort(void) const
 {
 	return mpcAbort;
 }
@@ -154,7 +154,7 @@ CW65Instruction* CW65C816InstructionFactory::GetAbort(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816InstructionFactory::GetFetchNext(void)
+CW65Instruction* CW65C816InstructionFactory::GetFetchNext(void) const
 {
 	return mpcFetchNext;
 }

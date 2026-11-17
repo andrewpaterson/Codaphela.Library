@@ -198,9 +198,9 @@ void CPins::CalculateGroupPortName(CChars* psz, size uiGroup, size uiGroupCount,
 //
 //////////////////////////////////////////////////////////////////////////
 void CPins::SetIntegratedCircuit(CIntegratedCircuit* pcIntegratedCircuit) { mpcIntegratedCircuit = pcIntegratedCircuit; }
-CIntegratedCircuit* CPins::GetIntegratedCircuit(void) { return mpcIntegratedCircuit; }
+CIntegratedCircuit* CPins::GetIntegratedCircuit(void) const { return mpcIntegratedCircuit; }
 CCircuitComponent* CPins::GetComponent(void) { return mpcIntegratedCircuit; }
-const char* CPins::GetType(void) { return mpcIntegratedCircuit->GetType(); }
-CPowerInPort* CPins::GetVoltageCommon(void) { return mpcVCC; }
-CPowerInPort* CPins::GetVoltageGround(void) { return mpcGND; }
+const char* CPins::GetType(void) const { return mpcIntegratedCircuit->GetType(); }
+CPowerInPort* CPins::GetVoltageCommon(void) const { return mpcVCC; }
+CPowerInPort* CPins::GetVoltageGround(void) const { return mpcGND; }
 

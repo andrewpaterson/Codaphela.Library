@@ -179,22 +179,22 @@ public:
 	void				DoneInstruction(void);
 	void				ResetPulled(void);
 
-	C65C64Instruction*		GetInstruction(void);
-	C65C64BusCycle*		GetBusCycle(void);
-	C65C64DataOperation*	GetDataOperation(void);
+	C65C64Instruction*		GetInstruction(void) const;
+	C65C64BusCycle*		GetBusCycle(void) const;
+	C65C64DataOperation*	GetDataOperation(void) const;
 	S65C64Decoded*		GetDecoded(void);
-	int16				GetCycle(void);
-	uint16				GetOpcode(void);
-	bool				IsStopped(void);
-	bool				IsWaiting(void);
-	uint8				GetPendingEdges(void);
+	int16				GetCycle(void) const;
+	uint16				GetOpcode(void) const;
+	bool				IsStopped(void) const;
+	bool				IsWaiting(void) const;
+	uint8				GetPendingEdges(void) const;
 
 	//Called by the operations.
 	void				ReadOpcode(void);
 	void				IncrementProgramCounter(void);
 	void				SetOperandWord(uint8 uiWord, uint16 uiData);
-	uint32				GetPointerAddress(void);
-	uint8				GetNumPointerWords(void);
+	uint32				GetPointerAddress(void) const;
+	uint8				GetNumPointerWords(void) const;
 	uint8				GetPointerWordLanes(uint8 uiWord);
 	void				SetPointerWord(uint8 uiWord, uint16 uiData);
 	size				GetNumReadWords(void);
@@ -205,10 +205,10 @@ public:
 	uint32				GetWriteWordAddress(uint8 uiWord);
 	uint8				GetWriteWordLanes(uint8 uiWord);
 	uint16				GetWriteWord(uint8 uiWord);
-	uint32				GetVectorAddress(void);
+	uint32				GetVectorAddress(void) const;
 	void				SetVectorWord(uint8 uiWord, uint16 uiData);
-	uint8				GetNumWaitCycles(void);
-	uint16				GetIOData(void);
+	uint8				GetNumWaitCycles(void) const;
+	uint16				GetIOData(void) const;
 	void				SetIOData(uint16 uiData);
 
 	//Instruction steps.
@@ -271,16 +271,16 @@ public:
 	uint32				GetRegisterAddress(E65Register eRegister);
 	uint8				GetWidthCode(E65Register eRegister);
 	void				SetWidthCode(E65Register eRegister, uint8 uiWidthCode);
-	uint64				GetA(void);
-	uint64				GetB(void);
-	uint64				GetX(void);
-	uint64				GetY(void);
-	uint32				GetS(void);
-	uint32				GetV(void);
-	uint32				GetW(void);
-	uint32				GetProgramCounter(void);
-	uint16				GetP(void);
-	uint32				GetInterruptDepth(void);
+	uint64				GetA(void) const;
+	uint64				GetB(void) const;
+	uint64				GetX(void) const;
+	uint64				GetY(void) const;
+	uint32				GetS(void) const;
+	uint32				GetV(void) const;
+	uint32				GetW(void) const;
+	uint32				GetProgramCounter(void) const;
+	uint16				GetP(void) const;
+	uint32				GetInterruptDepth(void) const;
 	bool				IsFlagSet(uint16 uiFlag);
 	void				SetFlag(uint16 uiFlag, bool bValue);
 
@@ -313,7 +313,7 @@ protected:
 	void				ExecuteAlu(E65Instruction eInstruction);
 	void				SetNegativeAndZero(uint64 uiValue, uint8 uiBytes);
 	bool				GetBranchFlag(uint8 uiFlag);
-	int64				GetBranchOffset(void);
+	int64				GetBranchOffset(void) const;
 	uint32				GetTarget(void);
 	uint64				GetSubcopyIndex(uint16 uiField, bool bBits);
 	void				SetFlagCode(uint8 uiFlag, bool bValue);

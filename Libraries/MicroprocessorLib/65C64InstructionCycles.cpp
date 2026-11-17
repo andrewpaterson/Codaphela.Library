@@ -71,7 +71,7 @@ C65C64BusCycle* C65C64InstructionCycles::GetBusCycle(int16 iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size C65C64InstructionCycles::Size(void)
+size C65C64InstructionCycles::Size(void) const
 {
 	return mapcCycles.NumElements();
 }

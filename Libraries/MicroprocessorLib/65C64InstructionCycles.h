@@ -34,7 +34,7 @@ public:
 	void			Kill(void);
 
 	C65C64BusCycle*	GetBusCycle(int16 iIndex);
-	size			Size(void);
+	size			Size(void) const;
 };
 
 

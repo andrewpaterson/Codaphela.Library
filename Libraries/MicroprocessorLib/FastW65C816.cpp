@@ -498,7 +498,7 @@ void CFastW65C816::UseBreakpoints(CBreakpoints* pcBreakpoints, CBreakpoints* pcM
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBreakpoints* CFastW65C816::GetUsedBreakpoints(void)
+CBreakpoints* CFastW65C816::GetUsedBreakpoints(void) const
 {
 	return mpcBreakpoints;
 }
@@ -508,7 +508,7 @@ CBreakpoints* CFastW65C816::GetUsedBreakpoints(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBreakpoints* CFastW65C816::GetMoreUsedBreakpoints(void)
+CBreakpoints* CFastW65C816::GetMoreUsedBreakpoints(void) const
 {
 	return mpcMoreBreakpoints;
 }
@@ -520,7 +520,7 @@ CBreakpoints* CFastW65C816::GetMoreUsedBreakpoints(void)
 // (GetProgramAddress).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFastW65C816::IsAtBreakpoint(void)
+bool CFastW65C816::IsAtBreakpoint(void) const
 {
 	return mbAtBreakpoint;
 }
@@ -837,7 +837,7 @@ inline void CFastW65C816::SetNZX(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline bool CFastW65C816::IsM16(void)
+inline bool CFastW65C816::IsM16(void) const
 {
 	return !(muiP & FAST_W65C816_M);
 }
@@ -847,7 +847,7 @@ inline bool CFastW65C816::IsM16(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-inline bool CFastW65C816::IsX16(void)
+inline bool CFastW65C816::IsX16(void) const
 {
 	return !(muiP & FAST_W65C816_X);
 }
@@ -2217,20 +2217,20 @@ FORCE_INLINE void CFastW65C816::Execute(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFastW65C816::GetC(void)				{ return muiC; }
-uint16 CFastW65C816::GetX(void)				{ return muiX; }
-uint16 CFastW65C816::GetY(void)				{ return muiY; }
-uint16 CFastW65C816::GetS(void)				{ return muiS; }
-uint16 CFastW65C816::GetD(void)				{ return muiD; }
-uint8 CFastW65C816::GetDataBank(void)		{ return muiDBR; }
-uint8 CFastW65C816::GetProgramBank(void)		{ return muiPBR; }
-uint16 CFastW65C816::GetProgramCounter(void)	{ return muiPC; }
-uint32 CFastW65C816::GetProgramAddress(void)	{ return ((uint32)muiPBR << 16) | muiPC; }
-uint8 CFastW65C816::GetP(void)				{ return muiP; }
-bool CFastW65C816::IsEmulation(void)			{ return mbE; }
-bool CFastW65C816::IsStopped(void)			{ return mbStopped; }
-bool CFastW65C816::IsWaiting(void)			{ return mbWaiting; }
-uint64 CFastW65C816::NumCycles(void)			{ return muiCycles; }
+uint16 CFastW65C816::GetC(void) const				{ return muiC; }
+uint16 CFastW65C816::GetX(void) const				{ return muiX; }
+uint16 CFastW65C816::GetY(void) const				{ return muiY; }
+uint16 CFastW65C816::GetS(void) const				{ return muiS; }
+uint16 CFastW65C816::GetD(void) const				{ return muiD; }
+uint8 CFastW65C816::GetDataBank(void) const		{ return muiDBR; }
+uint8 CFastW65C816::GetProgramBank(void) const		{ return muiPBR; }
+uint16 CFastW65C816::GetProgramCounter(void) const	{ return muiPC; }
+uint32 CFastW65C816::GetProgramAddress(void) const	{ return ((uint32)muiPBR << 16) | muiPC; }
+uint8 CFastW65C816::GetP(void) const				{ return muiP; }
+bool CFastW65C816::IsEmulation(void) const			{ return mbE; }
+bool CFastW65C816::IsStopped(void) const			{ return mbStopped; }
+bool CFastW65C816::IsWaiting(void) const			{ return mbWaiting; }
+uint64 CFastW65C816::NumCycles(void) const			{ return muiCycles; }
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -51,7 +51,7 @@ public:
 	CIntegratedCircuit*	GetIntegratedCircuit(size uiIndex);
 	size				NumPassives(void);
 	CPassive*			GetPassive(size uiIndex);
-	size				NumTraces(void);
+	size				NumTraces(void) const;
 	CTrace*				GetTrace(size uiIndex);
 
 protected:

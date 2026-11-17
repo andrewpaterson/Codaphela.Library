@@ -50,7 +50,7 @@ bool C65C64DataOperation::IsData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64DataOperation::IsOpcode(void)
+bool C65C64DataOperation::IsOpcode(void) const
 {
 	return mbOpcode;
 }
@@ -60,7 +60,7 @@ bool C65C64DataOperation::IsOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64DataOperation::IsProgramAddress(void)
+bool C65C64DataOperation::IsProgramAddress(void) const
 {
 	return mbProgramAddress;
 }
@@ -70,7 +70,7 @@ bool C65C64DataOperation::IsProgramAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64DataOperation::IsDataAddress(void)
+bool C65C64DataOperation::IsDataAddress(void) const
 {
 	return mbDataAddress;
 }
@@ -80,7 +80,7 @@ bool C65C64DataOperation::IsDataAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64DataOperation::IsRead(void)
+bool C65C64DataOperation::IsRead(void) const
 {
 	return mbRead;
 }
@@ -90,7 +90,7 @@ bool C65C64DataOperation::IsRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64DataOperation::IsNotVectorPull(void)
+bool C65C64DataOperation::IsNotVectorPull(void) const
 {
 	return mbNotVectorPull;
 }

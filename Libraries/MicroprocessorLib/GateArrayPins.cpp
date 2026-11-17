@@ -138,8 +138,8 @@ size CGateArrayPins::FindGate(CLogicPort* pcInput)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGateArrayPins::GetGateCount(void) { return muiGateCount; }
-size CGateArrayPins::GetInputCount(void) { return muiInputCount; }
+size CGateArrayPins::GetGateCount(void) const { return muiGateCount; }
+size CGateArrayPins::GetInputCount(void) const { return muiInputCount; }
 CLogicPort* CGateArrayPins::GetInput(size uiGate, size uiInput) { return mapcInputs.SafeGetPtr(uiGate * muiInputCount + uiInput); }
 CLogicPort* CGateArrayPins::GetOutput(size uiGate) { return mapcOutputs.SafeGetPtr(uiGate); }
 

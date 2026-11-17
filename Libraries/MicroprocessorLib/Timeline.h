@@ -67,15 +67,15 @@ public:
 	bool					Remove(CEvent* pcEvent);
 	bool					RemoveAll(CArrayEventPtr* papcEvents);
 
-	int64					GetTime(void);
-	int64					GetPreviousEventTime(void);
-	int64					GetEventTime(void);
-	size					NumSimultaneousEvents(void);
+	int64					GetTime(void) const;
+	int64					GetPreviousEventTime(void) const;
+	int64					GetEventTime(void) const;
+	size					NumSimultaneousEvents(void) const;
 	CSimultaneousEvents*	GetFirstSimultaneousEvents(void);
 	CSimultaneousEvents*	GetNextSimultaneousEvents(CSimultaneousEvents* pcEvents);
 	CSimultaneousEvents*	FindSimultaneousEvents(int64 iTime);
 	bool					IsValid(void);
-	void*					GetContext(void);
+	void*					GetContext(void) const;
 
 	void					Save(STimelineData* psData);
 	void					Load(STimelineData* psData);

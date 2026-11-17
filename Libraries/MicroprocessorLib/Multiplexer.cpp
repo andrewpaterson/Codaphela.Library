@@ -199,5 +199,5 @@ void CMultiplexer::WriteChannel(CTimeline* pcTimeline, size uiChannel)
 //////////////////////////////////////////////////////////////////////////
 const char* CMultiplexer::GetType(void) { return MULTIPLEXER_TYPE; }
 CGroupPins* CMultiplexer::GetGroupPins(void) { return (CGroupPins*)&mpPins; }
-bool CMultiplexer::IsDisabledHighImpedance(void) { return mbDisabledHighImpedance; }
+bool CMultiplexer::IsDisabledHighImpedance(void) const { return mbDisabledHighImpedance; }
 

@@ -83,7 +83,7 @@ void CAndGatePins::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLogicPort* CAndGatePins::GetOutput(void) { return mpcOutput; }
+CLogicPort* CAndGatePins::GetOutput(void) const { return mpcOutput; }
 CArrayLogicPortPtr* CAndGatePins::GetInputs(void) { return &mapcInputs; }
 CLogicPort* CAndGatePins::GetInput(size uiIndex) { return mapcInputs.SafeGetPtr(uiIndex); }
 

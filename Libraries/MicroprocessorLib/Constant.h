@@ -48,7 +48,7 @@ public:
 	virtual bool				LoadXML(CMarkupTag* pcTag);
 	virtual void				ResetState(void);
 			CConstantPins*		GetConstantPins(void);
-			int64				GetConstantValue(void);
+			int64				GetConstantValue(void) const;
 			void				SetConstantValue(int64 iConstantValue);
 };
 

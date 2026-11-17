@@ -43,10 +43,10 @@ public:
 	bool	Add(CEvent* pcEvent);
 	bool	Remove(CEvent* pcEvent);
 	bool	Contains(CEvent* pcEvent);
-	size	NumEvents(void);
+	size	NumEvents(void) const;
 	CEvent*	GetEvent(size uiIndex);
 	CEvent*	GetFirst(void);
-	int64	GetTime(void);
+	int64	GetTime(void) const;
 	void	KillEvents(void);
 
 	static size	GetTimeOffset(void);

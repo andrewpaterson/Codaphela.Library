@@ -68,7 +68,7 @@ public:
 			void				Class(void) override;
 			void				Free(void) override;
 
-			size				GetGroupCount(void);
+			size				GetGroupCount(void) const;
 			size				GetBitCount(size uiRole);
 			CLogicPort*			GetPin(size uiRole, size uiGroup, size uiBit = 0);
 			bool				FindPin(CLogicPort* pcPort, size* puiRole, size* puiGroup, size* puiBit);

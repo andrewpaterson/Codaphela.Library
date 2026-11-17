@@ -49,13 +49,13 @@ public:
 	virtual bool				IsInstance(void);
 	virtual void				AppendDescription(CChars* psz);
 
-			int64				GetID(void);
+			int64				GetID(void) const;
 			void				SetID(int64 iID);
-			CCircuitSimulation*	GetCircuitSimulation(void);
-			CCircuit*			GetCircuit(void);
-			CTimeline*			GetTimeline(void);
-			int64				GetTime(void);
-			char*				GetName(void);
+			CCircuitSimulation*	GetCircuitSimulation(void) const;
+			CCircuit*			GetCircuit(void) const;
+			CTimeline*			GetTimeline(void) const;
+			int64				GetTime(void) const;
+			char*				GetName(void) const;
 			bool				RunSimultaneous(void);
 			bool				RunToTime(int64 iTimeForward);
 
@@ -93,7 +93,7 @@ public:
 	virtual void					AppendDescription(CChars* psz);
 
 			void					SetSubcircuitInstance(CSubcircuitInstance* pcSubcircuitInstance);
-			CSubcircuitInstance*	GetSubcircuitInstance(void);
+			CSubcircuitInstance*	GetSubcircuitInstance(void) const;
 };
 
 

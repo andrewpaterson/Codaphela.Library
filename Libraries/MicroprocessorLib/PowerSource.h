@@ -36,7 +36,7 @@ public:
 			void			Class(void) override;
 
 	virtual const char*		GetType(void);
-			CPowerOutPort*	GetPowerOutPort(void);
+			CPowerOutPort*	GetPowerOutPort(void) const;
 };
 
 

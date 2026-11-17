@@ -145,14 +145,14 @@ CLogicPort* C65C64ChipPins::GetEIRQB(size uiInterrupt)
 //////////////////////////////////////////////////////////////////////////
 CLogicPortBus* C65C64ChipPins::GetAddress(void) { return &mcAddress; }
 CLogicPortBus* C65C64ChipPins::GetData(void) { return &mcData; }
-CLogicPort* C65C64ChipPins::GetPHI2(void) { return mpcPHI2; }
-CLogicPort* C65C64ChipPins::GetRESB(void) { return mpcRESB; }
-CLogicPort* C65C64ChipPins::GetRWB(void) { return mpcRWB; }
-CLogicPort* C65C64ChipPins::GetLowerByte(void) { return mpcLowerByte; }
-CLogicPort* C65C64ChipPins::GetUpperByte(void) { return mpcUpperByte; }
-CLogicPort* C65C64ChipPins::GetOPV(void) { return mpcOPV; }
-CLogicPort* C65C64ChipPins::GetVPA(void) { return mpcVPA; }
-CLogicPort* C65C64ChipPins::GetVDA(void) { return mpcVDA; }
-CLogicPort* C65C64ChipPins::GetVPB(void) { return mpcVPB; }
-CLogicPort* C65C64ChipPins::GetLIRQB(void) { return mpcLIRQB; }
+CLogicPort* C65C64ChipPins::GetPHI2(void) const { return mpcPHI2; }
+CLogicPort* C65C64ChipPins::GetRESB(void) const { return mpcRESB; }
+CLogicPort* C65C64ChipPins::GetRWB(void) const { return mpcRWB; }
+CLogicPort* C65C64ChipPins::GetLowerByte(void) const { return mpcLowerByte; }
+CLogicPort* C65C64ChipPins::GetUpperByte(void) const { return mpcUpperByte; }
+CLogicPort* C65C64ChipPins::GetOPV(void) const { return mpcOPV; }
+CLogicPort* C65C64ChipPins::GetVPA(void) const { return mpcVPA; }
+CLogicPort* C65C64ChipPins::GetVDA(void) const { return mpcVDA; }
+CLogicPort* C65C64ChipPins::GetVPB(void) const { return mpcVPB; }
+CLogicPort* C65C64ChipPins::GetLIRQB(void) const { return mpcLIRQB; }
 

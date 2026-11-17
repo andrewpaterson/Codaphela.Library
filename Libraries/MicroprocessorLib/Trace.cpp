@@ -284,7 +284,7 @@ void CTrace::ResetNextID(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTrace::NumConnectedPorts(void) { return mapcConnectedPorts.NumElements(); }
+size CTrace::NumConnectedPorts(void) const { return mapcConnectedPorts.NumElements(); }
 CPort* CTrace::GetConnectedPort(size uiIndex) { return mapcConnectedPorts.SafeGetPtr(uiIndex); }
-int64 CTrace::GetID(void) { return miID; }
+int64 CTrace::GetID(void) const { return miID; }
 

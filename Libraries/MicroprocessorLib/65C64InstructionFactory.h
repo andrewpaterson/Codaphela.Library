@@ -51,11 +51,11 @@ public:
 			void				Kill(void);
 
 			C65C64Instruction*		GetInstruction(uint16 uiOpcode);
-			C65C64Instruction*		GetReset(void);
-			C65C64Instruction*		GetFetchNext(void);
-			C65C64Instruction*		GetInterrupt(void);
-			C65C64Instruction*		GetWait(void);
-			size				NumForms(void);
+			C65C64Instruction*		GetReset(void) const;
+			C65C64Instruction*		GetFetchNext(void) const;
+			C65C64Instruction*		GetInterrupt(void) const;
+			C65C64Instruction*		GetWait(void) const;
+			size				NumForms(void) const;
 
 protected:
 			void				GetForm(S65C64Decoded* psDecoded, S65C64Form* psForm);

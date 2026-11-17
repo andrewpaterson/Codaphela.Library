@@ -21,10 +21,10 @@ public:
 	void			Kill(void);
 
 	void			Set(bool bValue);
-	STraceValue			Get(void);
+	STraceValue			Get(void) const;
 	void			Invert(void);
-	bool			IsHigh(void);
-	bool			IsLow(void);
+	bool			IsHigh(void) const;
+	bool			IsLow(void) const;
 
 	void			Print(CChars* psz);
 

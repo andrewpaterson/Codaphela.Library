@@ -244,6 +244,6 @@ bool CGroupPins::IsHigh(CTimeline* pcTimeline, size uiRole, size uiGroup, size u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGroupPins::GetGroupCount(void) { return muiGroups; }
+size CGroupPins::GetGroupCount(void) const { return muiGroups; }
 size CGroupPins::GetBitCount(size uiRole) { return masRoles.SafeGet(uiRole) != NULL ? masRoles.Get(uiRole)->uiBits : 0; }
 

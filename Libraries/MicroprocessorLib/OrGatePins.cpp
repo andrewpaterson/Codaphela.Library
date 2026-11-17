@@ -83,7 +83,7 @@ void COrGatePins::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLogicPort* COrGatePins::GetOutput(void) { return mpcOutput; }
+CLogicPort* COrGatePins::GetOutput(void) const { return mpcOutput; }
 CArrayLogicPortPtr* COrGatePins::GetInputs(void) { return &mapcInputs; }
 CLogicPort* COrGatePins::GetInput(size uiIndex) { return mapcInputs.SafeGetPtr(uiIndex); }
 

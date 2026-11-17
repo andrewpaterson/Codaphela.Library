@@ -112,7 +112,7 @@ public:
 			void				GetState(SW65CCoreState* psState);
 			void				SetState(SW65CCoreState* psState);
 
-			CW65CPins*			GetPins(void);
+			CW65CPins*			GetPins(void) const;
 
 			void				ASL(void);
 			void				ASL_A(void);
@@ -206,12 +206,12 @@ public:
 			void				GetStatusString(CChars* psz);
 			virtual char*		GetType(void) = 0;
 			void				GetCycleString(CChars* psz);
-			int16				GetCyclePlusOne(void);
+			int16				GetCyclePlusOne(void) const;
 			CW65Instruction*	GetInstruction(void);
 
-			bool				IsMemory8Bit(void);
-			bool				IsMemory16Bit(void);
-			bool				IsIndex8Bit(void);
+			bool				IsMemory8Bit(void) const;
+			bool				IsMemory16Bit(void) const;
+			bool				IsIndex8Bit(void) const;
 
 			void				Branch(bool condition);
 			void				To8BitHexString(CChars* psz, uint8 ui8);
@@ -248,7 +248,7 @@ public:
 			bool				IsReseting(STraceValue clockValue);
 			void				ClearReset(void);
 
-			uint8				GetProcessorRegisterValue(void);
+			uint8				GetProcessorRegisterValue(void) const;
 			uint8				GetPushedProcessorRegisterValue(bool bBreak);
 			void				SetZeroFlag(bool bZeroFlag);
 			void				SetNegativeFlag(bool bSignFlag);
@@ -258,14 +258,14 @@ public:
 			void				SetIndexWidthFlag(bool bIndexWidthFlag);
 			void				SetCarryFlag(bool bCarryFlag);
 			void				SetEmulationFlag(bool bEmulationFlag);
-			bool				IsZeroFlagSet(void);
-			bool				IsNegativeSet(void);
-			bool				IsDecimal(void);
-			bool				IsInterruptDisable(void);
-			bool				IsCarrySet(void);
-			bool				IsEmulation(void);
-			bool				IsBreak(void);
-			bool				IsOverflowFlag(void);
+			bool				IsZeroFlagSet(void) const;
+			bool				IsNegativeSet(void) const;
+			bool				IsDecimal(void) const;
+			bool				IsInterruptDisable(void) const;
+			bool				IsCarrySet(void) const;
+			bool				IsEmulation(void) const;
+			bool				IsBreak(void) const;
+			bool				IsOverflowFlag(void) const;
 			void				SetBreakFlag(bool bBreakFlag);
 			void				SetOverflowFlag(bool bOverflowFlag);
 			void				Cycle(CW65CCore* pcCPU);
@@ -273,16 +273,16 @@ public:
 			void				ExecuteInitialSideOperation(CW65CCore* pcCPU);
 			void				ExecuteTrailingSideOperation(CW65CCore* pcCPU);
 
-			CW65BusCycle*		GetBusCycle(void);
+			CW65BusCycle*		GetBusCycle(void) const;
 			void				UpdateBusCycle(void);
 			void				NextInstruction(void);
 			void				ChooseNextOpcode(void);
 			void				DoneInstruction(void);
 			void				NextCycle(void);
-			int16				GetCycle(void);
+			int16				GetCycle(void) const;
 			void				SetOpcode(uint16 uiOpcodeIndex);
-			CW65DataOperation*	GetDataOperation(void);
-			bool				IsStopped(void);
+			CW65DataOperation*	GetDataOperation(void) const;
+			bool				IsStopped(void) const;
 			bool				IsRead(void);
 			void				SetX(uint16 uiXIndex);
 			void				SetY(uint16 uiYIndex);
@@ -293,11 +293,11 @@ public:
 			void				SetSignAndZeroFromMemory(uint16 uiValue);
 			void				SetSignAndZeroFromIndex(uint16 uiValue);
 			void				SetMemoryData(uint16 uiData);
-			uint16				GetA(void);
-			uint16				GetC(void);
-			uint16				GetX(void);
-			uint16				GetY(void);
-			uint8				GetDataBank(void);
+			uint16				GetA(void) const;
+			uint16				GetC(void) const;
+			uint16				GetX(void) const;
+			uint16				GetY(void) const;
+			uint8				GetDataBank(void) const;
 			void				SetDataBank(uint8 uiDataBank);
 			void				SetDirectPage(uint16 uiDirectPage);
 			CW65Address*		GetProgramCounter(void);
@@ -315,25 +315,25 @@ public:
 			bool				IsMemoryNegative(uint16 uiOperand);
 			uint16				TrimMemory(uint16 uiValue);
 			uint16				TrimIndex(uint16 uiValue);
-			bool				IsIndex16Bit(void);
-			uint16				GetCarry(void);
-			bool				IsSignSet(void);
-			bool				IsOverflowSet(void);
+			bool				IsIndex16Bit(void) const;
+			uint16				GetCarry(void) const;
+			bool				IsSignSet(void) const;
+			bool				IsOverflowSet(void) const;
 			void				SetProgramCounter(CW65Address* pcAddress);
 			void				SetProgramAddressBank(uint8 uibank);
 			void				SetAddressLow(uint8 uiAddressLow);
 			void				SetAddressHigh(uint8 uiAddressHigh);
 			void				SetAddressBank(uint8 uiAddressBank);
-			uint8				GetDataLow(void);
-			uint8				GetDataHigh(void);
-			uint8				GetIOData(void);
-			uint16				GetMemoryData(void);
-			uint16				GetIndexData(void);
-			uint16				GetData16Bit(void);
-			uint16				GetDirectPage(void);
-			uint16				GetDirectOffset(void);
-			uint16				GetStackPointer(void);
-			uint16				GetStackPointer16Bit(void);
+			uint8				GetDataLow(void) const;
+			uint8				GetDataHigh(void) const;
+			uint8				GetIOData(void) const;
+			uint16				GetMemoryData(void) const;
+			uint16				GetIndexData(void) const;
+			uint16				GetData16Bit(void) const;
+			uint16				GetDirectPage(void) const;
+			uint16				GetDirectOffset(void) const;
+			uint16				GetStackPointer(void) const;
+			uint16				GetStackPointer16Bit(void) const;
 
 			CW65Instruction*	GetOpcode(void);
 			CW65Address*		GetNewProgramCounter(void);
@@ -366,7 +366,7 @@ public:
 			uint16				SetBit(uint16 uiValue, bool bBitValue, uint16 uiBitNumber);
 			uint16				ClearBit(uint16 uiValue, uint16 uiBitNumber);
 			uint16				SetBit(uint16 uiValue, uint16 uiBitNumber);
-			bool				IsBusEnable(void);
+			bool				IsBusEnable(void) const;
 			uint16				RotateLeft(uint16 uiValue);
 			uint16				RotateRight(uint16 uiValue);
 			uint16				ShiftRight(uint16 uiValue);
@@ -375,7 +375,7 @@ public:
 			void				ExecuteDecimal(int iNibbles, bool bSubtract);
 			void				RTIStatusIfEmulation(void);
 			void				Wait(void);
-			bool				IsWaiting(void);
+			bool				IsWaiting(void) const;
 			void				Reset(void);
 			void				DoneIfIndex8Bit(void);
 			void				DoneIfIndex16Bit(void);
@@ -390,8 +390,8 @@ public:
 			void				ReadOpcode(void);
 			bool				NoteFour(bool bIndexY, bool bNextWillRead);
 			bool				NoteSix(void);
-			uint16				GetAddressOffsetLowX(void);
-			uint16				GetAddressOffsetLowY(void);
+			uint16				GetAddressOffsetLowX(void) const;
+			uint16				GetAddressOffsetLowY(void) const;
 			void				WriteProgramBank(void);
 			void				WriteProgramCounterHigh(void);
 			void				WriteProgramCounterLow(void);

@@ -34,7 +34,7 @@ void CMetaBus16::Set(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CMetaBus16::Get(void)
+uint16 CMetaBus16::Get(void) const
 {
 	return muiValue;
 }

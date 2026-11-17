@@ -40,8 +40,8 @@ public:
 			void				Class(void) override;
 			void				Free(void) override;
 
-			size				GetGateCount(void);
-			size				GetInputCount(void);
+			size				GetGateCount(void) const;
+			size				GetInputCount(void) const;
 			CLogicPort*			GetInput(size uiGate, size uiInput);
 			CLogicPort*			GetOutput(size uiGate);
 			size				FindGate(CLogicPort* pcInput);

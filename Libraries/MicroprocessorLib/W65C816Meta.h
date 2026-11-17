@@ -40,7 +40,7 @@ public:
 	bool			IsStopInstruction(void);
 
 	void			SetX(STraceValue sX);
-	STraceValue			GetX(void);
+	STraceValue			GetX(void) const;
 
 	void			Print(CChars* psz);
 	void			Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperation, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP, bool bAddressBus, bool bDataBus, bool bBank, bool bVPB, bool bRDY, bool bMLB, bool bVPA, bool bVDA, bool bWM, bool bWX, bool bE, bool bRWB, bool bAddressOperation, bool bDataOperation, bool bDescription);

@@ -51,7 +51,7 @@ public:
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual void					ResetState(void);
 			CDTypeFlipFlopPins*		GetDTypeFlipFlopPins(void);
-			bool					GetState(void);
+			bool					GetState(void) const;
 			void					SetState(bool bState);
 
 protected:

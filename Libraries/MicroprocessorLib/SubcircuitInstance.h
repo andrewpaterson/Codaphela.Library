@@ -58,10 +58,10 @@ public:
 			CArrayTracePortPtr*				GetTracePorts(const char* szPinName);
 			bool							RemoveTracePorts(const char* szPinName, CTimeline* pcTimeline);
 			bool							HasTracePorts(const char* szPinName);
-			size							NumNamedPins(void);
+			size							NumNamedPins(void) const;
 			char*							GetPinName(size uiIndex);
 
-			CSubcircuitInstanceSimulation*	GetSubcircuitInstanceSimulation(void);
+			CSubcircuitInstanceSimulation*	GetSubcircuitInstanceSimulation(void) const;
 			void							SetSubcircuitInstanceSimulation(CSubcircuitInstanceSimulation* pcSubcircuitInstanceSimulation);
 
 protected:

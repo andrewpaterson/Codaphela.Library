@@ -43,7 +43,7 @@ void CW65C02::Init(CW65C02Pins* pcPins)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65C02Pins* CW65C02::GetPins(void)
+CW65C02Pins* CW65C02::GetPins(void) const
 {
 	return mpcW65C02Pins;
 }
@@ -144,7 +144,7 @@ void CW65C02::WriteSignalsPhi2Falling(CTimeline* pcTimeline, CW65DataOperation* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65C02::GetOpcodeBit(void)
+uint8 CW65C02::GetOpcodeBit(void) const
 {
 	//RMBx, SMBx, BBRx and BBSx encode the bit in bits 4 to 6 of the opcode.
 	return (msState.uiOpcodeIndex >> 4) & 0x7;

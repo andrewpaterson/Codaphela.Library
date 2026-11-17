@@ -221,7 +221,7 @@ void CRegister::TakeData(CTimeline* pcTimeline, size uiGroup)
 //////////////////////////////////////////////////////////////////////////
 const char* CRegister::GetType(void) { return mbTransparent ? LATCH_TYPE : REGISTER_TYPE; }
 CGroupPins* CRegister::GetGroupPins(void) { return (CGroupPins*)&mpPins; }
-bool CRegister::IsTransparent(void) { return mbTransparent; }
+bool CRegister::IsTransparent(void) const { return mbTransparent; }
 uint32 CRegister::GetValue(size uiGroup) { return (uiGroup < REGISTER_MAX_GROUPS) ? mauiValues[uiGroup] : 0; }
 void CRegister::SetValue(size uiGroup, uint32 uiValue) { if (uiGroup < REGISTER_MAX_GROUPS) { mauiValues[uiGroup] = uiValue; } }
 const char* CRegister::GetStateXMLName(void) { return "RegisterState"; }

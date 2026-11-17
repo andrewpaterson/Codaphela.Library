@@ -58,7 +58,7 @@ public:
 
 	CFamilyVoltageConfiguration*	Get(const char* szFamily);
 	CFamilyVoltageConfiguration*	GetDefaultFamily(void);
-	size							NumFamilies(void);
+	size							NumFamilies(void) const;
 	CFamilyVoltageConfiguration*	GetFamily(size uiIndex);
 
 	static bool						CreateVoltageConfiguration(CVoltageConfiguration* pcConfiguration, float32 fVcc, CArrayVoltagePropagationTimeRowPtr* papsRows);

@@ -49,7 +49,7 @@ void CW65Address::Init(uint8 uiBank, uint16 uiOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65Address::GetBank(void)
+uint8 CW65Address::GetBank(void) const
 {
     return muiBank;
 }
@@ -59,7 +59,7 @@ uint8 CW65Address::GetBank(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65Address::GetOffset(void)
+uint16 CW65Address::GetOffset(void) const
 {
     return muiOffset;
 }
@@ -69,7 +69,7 @@ uint16 CW65Address::GetOffset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65Address::GetOffsetLow(void)
+uint8 CW65Address::GetOffsetLow(void) const
 {
     return (uint8)muiOffset;
 }
@@ -79,7 +79,7 @@ uint8 CW65Address::GetOffsetLow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65Address::GetOffsetHigh(void)
+uint8 CW65Address::GetOffsetHigh(void) const
 {
     return (uint8)((muiOffset & 0xff00) >> 8);
 }

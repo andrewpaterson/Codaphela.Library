@@ -74,6 +74,6 @@ void CClockOscillatorPins::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLogicPort* CClockOscillatorPins::GetOutput(void) { return mpcOutput; }
-CLogicPort* CClockOscillatorPins::GetOutputInverse(void) { return mpcOutputInverse; }
+CLogicPort* CClockOscillatorPins::GetOutput(void) const { return mpcOutput; }
+CLogicPort* CClockOscillatorPins::GetOutputInverse(void) const { return mpcOutputInverse; }
 

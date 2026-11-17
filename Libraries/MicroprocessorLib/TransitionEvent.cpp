@@ -95,7 +95,7 @@ void CTransitionEvent::PrintShort(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 CTransitionEvent::GetVoltage(void)
+float32 CTransitionEvent::GetVoltage(void) const
 {
 	return mfVoltage;
 }

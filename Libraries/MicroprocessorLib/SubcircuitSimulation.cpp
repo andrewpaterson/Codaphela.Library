@@ -109,12 +109,12 @@ void CSubcircuitSimulation::ResetNextID(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSubcircuitSimulation::IsTop(void) { return false; }
 bool CSubcircuitSimulation::IsInstance(void) { return false; }
-int64 CSubcircuitSimulation::GetID(void) { return miID; }
-CCircuitSimulation* CSubcircuitSimulation::GetCircuitSimulation(void) { return mpcCircuitSimulation; }
-CCircuit* CSubcircuitSimulation::GetCircuit(void) { return mpcCircuitSimulation->GetCircuit(); }
-CTimeline* CSubcircuitSimulation::GetTimeline(void) { return mpcCircuitSimulation->GetTimeline(); }
-int64 CSubcircuitSimulation::GetTime(void) { return mpcCircuitSimulation->GetTime(); }
-char* CSubcircuitSimulation::GetName(void) { return mpcCircuitSimulation->GetName(); }
+int64 CSubcircuitSimulation::GetID(void) const { return miID; }
+CCircuitSimulation* CSubcircuitSimulation::GetCircuitSimulation(void) const { return mpcCircuitSimulation; }
+CCircuit* CSubcircuitSimulation::GetCircuit(void) const { return mpcCircuitSimulation->GetCircuit(); }
+CTimeline* CSubcircuitSimulation::GetTimeline(void) const { return mpcCircuitSimulation->GetTimeline(); }
+int64 CSubcircuitSimulation::GetTime(void) const { return mpcCircuitSimulation->GetTime(); }
+char* CSubcircuitSimulation::GetName(void) const { return mpcCircuitSimulation->GetName(); }
 bool CSubcircuitSimulation::RunSimultaneous(void) { return mpcCircuitSimulation->RunSimultaneous(); }
 bool CSubcircuitSimulation::RunToTime(int64 iTimeForward) { return mpcCircuitSimulation->RunToTime(iTimeForward); }
 
@@ -181,5 +181,5 @@ void CSubcircuitInstanceSimulation::AppendDescription(CChars* psz)
 const char* CSubcircuitInstanceSimulation::GetType(void) { return "Instance"; }
 bool CSubcircuitInstanceSimulation::IsInstance(void) { return true; }
 void CSubcircuitInstanceSimulation::SetSubcircuitInstance(CSubcircuitInstance* pcSubcircuitInstance) { mpcSubcircuitInstance = pcSubcircuitInstance; }
-CSubcircuitInstance* CSubcircuitInstanceSimulation::GetSubcircuitInstance(void) { return mpcSubcircuitInstance; }
+CSubcircuitInstance* CSubcircuitInstanceSimulation::GetSubcircuitInstance(void) const { return mpcSubcircuitInstance; }
 

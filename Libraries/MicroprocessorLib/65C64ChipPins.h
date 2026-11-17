@@ -53,17 +53,17 @@ public:
 
 			CLogicPortBus*	GetAddress(void);
 			CLogicPortBus*	GetData(void);
-			CLogicPort*		GetPHI2(void);
-			CLogicPort*		GetRESB(void);
-			CLogicPort*		GetRWB(void);
-			CLogicPort*		GetLowerByte(void);
-			CLogicPort*		GetUpperByte(void);
-			CLogicPort*		GetOPV(void);
-			CLogicPort*		GetVPA(void);
-			CLogicPort*		GetVDA(void);
-			CLogicPort*		GetVPB(void);
+			CLogicPort*		GetPHI2(void) const;
+			CLogicPort*		GetRESB(void) const;
+			CLogicPort*		GetRWB(void) const;
+			CLogicPort*		GetLowerByte(void) const;
+			CLogicPort*		GetUpperByte(void) const;
+			CLogicPort*		GetOPV(void) const;
+			CLogicPort*		GetVPA(void) const;
+			CLogicPort*		GetVDA(void) const;
+			CLogicPort*		GetVPB(void) const;
 			CLogicPort*		GetEIRQB(size uiInterrupt);
-			CLogicPort*		GetLIRQB(void);
+			CLogicPort*		GetLIRQB(void) const;
 };
 
 

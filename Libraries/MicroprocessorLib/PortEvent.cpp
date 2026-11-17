@@ -86,7 +86,7 @@ bool CPortEvent::IsOutputEvent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLogicPort* CPortEvent::GetPort(void)
+CLogicPort* CPortEvent::GetPort(void) const
 {
 	return mpcPort;
 }

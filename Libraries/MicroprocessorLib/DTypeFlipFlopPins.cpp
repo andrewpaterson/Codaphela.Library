@@ -87,10 +87,10 @@ void CDTypeFlipFlopPins::Free(void)
 //
 //////////////////////////////////////////////////////////////////////////
 bool CDTypeFlipFlopPins::IsClock(CLogicPort* pcPort) { return pcPort == mpcClock; }
-CLogicPort* CDTypeFlipFlopPins::GetOutputQ(void) { return mpcOutputQ; }
-CLogicPort* CDTypeFlipFlopPins::GetOutputQB(void) { return mpcOutputQB; }
-CLogicPort* CDTypeFlipFlopPins::GetClock(void) { return mpcClock; }
-CLogicPort* CDTypeFlipFlopPins::GetData(void) { return mpcData; }
-CLogicPort* CDTypeFlipFlopPins::GetSet(void) { return mpcSet; }
-CLogicPort* CDTypeFlipFlopPins::GetReset(void) { return mpcReset; }
+CLogicPort* CDTypeFlipFlopPins::GetOutputQ(void) const { return mpcOutputQ; }
+CLogicPort* CDTypeFlipFlopPins::GetOutputQB(void) const { return mpcOutputQB; }
+CLogicPort* CDTypeFlipFlopPins::GetClock(void) const { return mpcClock; }
+CLogicPort* CDTypeFlipFlopPins::GetData(void) const { return mpcData; }
+CLogicPort* CDTypeFlipFlopPins::GetSet(void) const { return mpcSet; }
+CLogicPort* CDTypeFlipFlopPins::GetReset(void) const { return mpcReset; }
 

@@ -37,8 +37,8 @@ public:
 			void		Class(void) override;
 			void		Free(void) override;
 
-			CLogicPort*	GetOutput(void);
-			CLogicPort*	GetOutputInverse(void);
+			CLogicPort*	GetOutput(void) const;
+			CLogicPort*	GetOutputInverse(void) const;
 };
 
 

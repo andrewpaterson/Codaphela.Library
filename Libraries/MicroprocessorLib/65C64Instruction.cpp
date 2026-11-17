@@ -53,7 +53,7 @@ void C65C64Instruction::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 C65C64Instruction::GetForm(void)
+uint32 C65C64Instruction::GetForm(void) const
 {
 	return muiForm;
 }
@@ -83,7 +83,7 @@ char* C65C64Instruction::GetDescription(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65C64InstructionCycles* C65C64Instruction::GetCycles(void)
+C65C64InstructionCycles* C65C64Instruction::GetCycles(void) const
 {
 	return mpcCycles;
 }

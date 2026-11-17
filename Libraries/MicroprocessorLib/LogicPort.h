@@ -59,7 +59,7 @@ public:
 
 			void							Add(CPortEvent* pcEvent);
 			void							Remove(CPortEvent* pcEvent);
-			size							NumEvents(void);
+			size							NumEvents(void) const;
 			CPortEvent*						GetEvent(size uiIndex);
 
 			void							WriteBool(CTimeline* pcTimeline, bool bValue);
@@ -83,11 +83,11 @@ public:
 			void							GetFutureDriveEvents(int64 iTime, CArrayEventPtr* papcDriveEvents);
 			void							GetOutputEventsAfter(int64 iTime, CArrayEventPtr* papcOutputEvents);
 
-			CVoltageConfigurationSource*	GetVoltageConfigurationSource(void);
+			CVoltageConfigurationSource*	GetVoltageConfigurationSource(void) const;
 			CPortOutput*					GetOutput(void);
 			float32							GetVCC(int64 iTime);
 			float32							GetGND(int64 iTime);
-			CPins*							GetPins(void);
+			CPins*							GetPins(void) const;
 			void							AppendEvents(CChars* psz);
 
 protected:

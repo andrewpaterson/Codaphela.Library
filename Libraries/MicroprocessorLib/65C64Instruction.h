@@ -41,10 +41,10 @@ public:
 	void					Init(uint32 uiForm, C65C64InstructionCycles* pcCycles, char* szName, char* szDescription);
 	void					Kill(void) override;
 
-	uint32					GetForm(void);
+	uint32					GetForm(void) const;
 	char*					GetName(void);
 	char*					GetDescription(void);
-	C65C64InstructionCycles*	GetCycles(void);
+	C65C64InstructionCycles*	GetCycles(void) const;
 	C65C64BusCycle*			GetBusCycle(int16 iCycle);
 };
 

@@ -658,10 +658,10 @@ void CLogicPort::AppendEvents(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogicPort::NumEvents(void) { return mapcEvents.NumElements(); }
+size CLogicPort::NumEvents(void) const { return mapcEvents.NumElements(); }
 CPortEvent* CLogicPort::GetEvent(size uiIndex) { return mapcEvents.SafeGetPtr(uiIndex); }
 bool CLogicPort::IsLogicPort(void) { return true; }
-CVoltageConfigurationSource* CLogicPort::GetVoltageConfigurationSource(void) { return mpcVoltageConfigurationSource; }
+CVoltageConfigurationSource* CLogicPort::GetVoltageConfigurationSource(void) const { return mpcVoltageConfigurationSource; }
 CPortOutput* CLogicPort::GetOutput(void) { return &mcOutput; }
-CPins* CLogicPort::GetPins(void) { return (CPins*)mpcHolder; }
+CPins* CLogicPort::GetPins(void) const { return (CPins*)mpcHolder; }
 

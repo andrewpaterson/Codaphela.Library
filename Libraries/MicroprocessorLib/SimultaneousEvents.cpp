@@ -198,7 +198,7 @@ int CompareSimultaneousEventsTime(const void* pvLeft, const void* pvRight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CSimultaneousEvents::NumEvents(void) { return mapcEvents.NumElements(); }
+size CSimultaneousEvents::NumEvents(void) const { return mapcEvents.NumElements(); }
 CEvent* CSimultaneousEvents::GetEvent(size uiIndex) { return mapcEvents.GetPtr(uiIndex); }
-int64 CSimultaneousEvents::GetTime(void) { return miTime; }
+int64 CSimultaneousEvents::GetTime(void) const { return miTime; }
 

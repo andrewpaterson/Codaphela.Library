@@ -210,11 +210,11 @@ float32 CClockOscillator::GetInternalVoltage(int64 iTime)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CClockOscillator::GetType(void) { return CLOCK_OSCILLATOR_TYPE; }
-int64 CClockOscillator::GetFullTicks(void) { return miFullTicks; }
-int64 CClockOscillator::GetHalfCycleTime(void) { return miHalfCycleTime; }
+int64 CClockOscillator::GetFullTicks(void) const { return miFullTicks; }
+int64 CClockOscillator::GetHalfCycleTime(void) const { return miHalfCycleTime; }
 CClockOscillatorPins* CClockOscillator::GetClockOscillatorPins(void) { return (CClockOscillatorPins*)&mpPins; }
 void CClockOscillator::SetFullTicks(int64 iFullTicks) { miFullTicks = iFullTicks; }
-bool CClockOscillator::IsHigh(void) { return mbHigh; }
+bool CClockOscillator::IsHigh(void) const { return mbHigh; }
 void CClockOscillator::SetHigh(bool bHigh) { mbHigh = bHigh; }
 
 

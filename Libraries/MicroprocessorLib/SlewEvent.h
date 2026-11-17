@@ -51,9 +51,9 @@ public:
 			float32			CalculateVoltageAtTime(int64 iTime, float32 fStartVoltage);
 			bool			ForTime(int64 iTime);
 			int64			GetEndTime(void);
-			float32			GetStartVoltage(void);
-			float32			GetEndVoltage(void);
-			int64			GetSlewTime(void);
+			float32			GetStartVoltage(void) const;
+			float32			GetEndVoltage(void) const;
+			int64			GetSlewTime(void) const;
 	virtual void			PrintShort(CChars* psz);
 			void			AppendDebugString(CChars* psz);
 

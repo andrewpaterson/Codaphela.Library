@@ -448,9 +448,9 @@ void CTimeline::Load(STimelineData* psData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CTimeline::GetTime(void) { return miTime; }
-int64 CTimeline::GetPreviousEventTime(void) { return miPreviousEventTime; }
-int64 CTimeline::GetEventTime(void) { return miEventTime; }
-size CTimeline::NumSimultaneousEvents(void) { return mcEvents.NumElements(); }
-void* CTimeline::GetContext(void) { return mpvContext; }
+int64 CTimeline::GetTime(void) const { return miTime; }
+int64 CTimeline::GetPreviousEventTime(void) const { return miPreviousEventTime; }
+int64 CTimeline::GetEventTime(void) const { return miEventTime; }
+size CTimeline::NumSimultaneousEvents(void) const { return mcEvents.NumElements(); }
+void* CTimeline::GetContext(void) const { return mpvContext; }
 

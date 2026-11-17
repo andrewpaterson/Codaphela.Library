@@ -304,7 +304,7 @@ void CCircuit::GetIntegratedCircuits(const char* szType, CArrayIntegratedCircuit
 //////////////////////////////////////////////////////////////////////////
 bool CCircuit::IsEmpty(void) { return (maIntegratedCircuits.NumElements() == 0) && (maPassives.NumElements() == 0); }
 size CCircuit::NumIntegratedCircuits(void) { return maIntegratedCircuits.NumElements(); }
-size CCircuit::NumTraces(void) { return mapcTraces.NumElements(); }
+size CCircuit::NumTraces(void) const { return mapcTraces.NumElements(); }
 CTrace* CCircuit::GetTrace(size uiIndex) { return mapcTraces.SafeGetPtr(uiIndex); }
 size CCircuit::NumPassives(void) { return maPassives.NumElements(); }
 

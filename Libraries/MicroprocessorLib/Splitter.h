@@ -38,9 +38,9 @@ public:
 			void			Free(void) override;
 
 	virtual const char*		GetType(void);
-			size			NumStartPorts(void);
+			size			NumStartPorts(void) const;
 			CTracePort*		GetStartPort(size uiIndex);
-			size			NumEndPorts(void);
+			size			NumEndPorts(void) const;
 			CTracePort*		GetEndPort(size uiIndex);
 
 protected:

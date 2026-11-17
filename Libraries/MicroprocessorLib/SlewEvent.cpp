@@ -295,7 +295,7 @@ void CSlewEvent::PrintShort(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 CSlewEvent::GetStartVoltage(void) { return mfStartVoltage; }
-float32 CSlewEvent::GetEndVoltage(void) { return mfEndVoltage; }
-int64 CSlewEvent::GetSlewTime(void) { return miSlewTime; }
+float32 CSlewEvent::GetStartVoltage(void) const { return mfStartVoltage; }
+float32 CSlewEvent::GetEndVoltage(void) const { return mfEndVoltage; }
+int64 CSlewEvent::GetSlewTime(void) const { return miSlewTime; }
 

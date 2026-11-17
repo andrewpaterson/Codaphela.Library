@@ -708,7 +708,7 @@ void C65C64::ResetPulled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65C64Instruction* C65C64::GetInstruction(void)
+C65C64Instruction* C65C64::GetInstruction(void) const
 {
 	return mpcInstruction;
 }
@@ -718,7 +718,7 @@ C65C64Instruction* C65C64::GetInstruction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65C64BusCycle* C65C64::GetBusCycle(void)
+C65C64BusCycle* C65C64::GetBusCycle(void) const
 {
 	if ((mpcInstruction != NULL) && (msState.iCycle >= 0))
 	{
@@ -732,7 +732,7 @@ C65C64BusCycle* C65C64::GetBusCycle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65C64DataOperation* C65C64::GetDataOperation(void)
+C65C64DataOperation* C65C64::GetDataOperation(void) const
 {
 	C65C64BusCycle*	pcBusCycle;
 
@@ -759,7 +759,7 @@ S65C64Decoded* C65C64::GetDecoded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 C65C64::GetCycle(void)
+int16 C65C64::GetCycle(void) const
 {
 	return msState.iCycle;
 }
@@ -769,7 +769,7 @@ int16 C65C64::GetCycle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 C65C64::GetOpcode(void)
+uint16 C65C64::GetOpcode(void) const
 {
 	return msState.uiOpcode;
 }
@@ -779,7 +779,7 @@ uint16 C65C64::GetOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64::IsStopped(void)
+bool C65C64::IsStopped(void) const
 {
 	return msState.bStopped;
 }
@@ -789,7 +789,7 @@ bool C65C64::IsStopped(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64::IsWaiting(void)
+bool C65C64::IsWaiting(void) const
 {
 	return msState.bWaiting;
 }
@@ -799,7 +799,7 @@ bool C65C64::IsWaiting(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 C65C64::GetPendingEdges(void)
+uint8 C65C64::GetPendingEdges(void) const
 {
 	return msState.uiPendingEdges;
 }
@@ -854,7 +854,7 @@ void C65C64::SetOperandWord(uint8 uiWord, uint16 uiData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 C65C64::GetPointerAddress(void)
+uint32 C65C64::GetPointerAddress(void) const
 {
 	return msState.uiPointerAddress;
 }
@@ -864,7 +864,7 @@ uint32 C65C64::GetPointerAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 C65C64::GetNumPointerWords(void)
+uint8 C65C64::GetNumPointerWords(void) const
 {
 	return msState.uiNumPointerWords;
 }
@@ -1099,7 +1099,7 @@ uint16 C65C64::GetWriteWord(uint8 uiWord)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 C65C64::GetVectorAddress(void)
+uint32 C65C64::GetVectorAddress(void) const
 {
 	return msState.uiVectorAddress;
 }
@@ -1119,7 +1119,7 @@ void C65C64::SetVectorWord(uint8 uiWord, uint16 uiData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 C65C64::GetNumWaitCycles(void)
+uint8 C65C64::GetNumWaitCycles(void) const
 {
 	//nop's wait, or stab's extra cycle.
 	return msDecoded.uiWait;
@@ -1130,7 +1130,7 @@ uint8 C65C64::GetNumWaitCycles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 C65C64::GetIOData(void)
+uint16 C65C64::GetIOData(void) const
 {
 	return msState.uiIOData;
 }
@@ -1816,7 +1816,7 @@ bool C65C64::GetBranchFlag(uint8 uiFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 C65C64::GetBranchOffset(void)
+int64 C65C64::GetBranchOffset(void) const
 {
 	if (msDecoded.sSecond.eKind == OK65_Immediate)
 	{
@@ -2953,16 +2953,16 @@ void C65C64::SetWidthCode(E65Register eRegister, uint8 uiWidthCode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 C65C64::GetA(void) { return msState.uiA; }
-uint64 C65C64::GetB(void) { return msState.uiB; }
-uint64 C65C64::GetX(void) { return msState.uiX; }
-uint64 C65C64::GetY(void) { return msState.uiY; }
-uint32 C65C64::GetS(void) { return msState.uiS; }
-uint32 C65C64::GetV(void) { return msState.uiV; }
-uint32 C65C64::GetW(void) { return msState.uiW; }
-uint32 C65C64::GetProgramCounter(void) { return msState.uiC; }
-uint16 C65C64::GetP(void) { return msState.uiP; }
-uint32 C65C64::GetInterruptDepth(void) { return msState.uiInterruptDepth; }
+uint64 C65C64::GetA(void) const { return msState.uiA; }
+uint64 C65C64::GetB(void) const { return msState.uiB; }
+uint64 C65C64::GetX(void) const { return msState.uiX; }
+uint64 C65C64::GetY(void) const { return msState.uiY; }
+uint32 C65C64::GetS(void) const { return msState.uiS; }
+uint32 C65C64::GetV(void) const { return msState.uiV; }
+uint32 C65C64::GetW(void) const { return msState.uiW; }
+uint32 C65C64::GetProgramCounter(void) const { return msState.uiC; }
+uint16 C65C64::GetP(void) const { return msState.uiP; }
+uint32 C65C64::GetInterruptDepth(void) const { return msState.uiInterruptDepth; }
 
 
 //////////////////////////////////////////////////////////////////////////

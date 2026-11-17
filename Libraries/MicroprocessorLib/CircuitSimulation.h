@@ -62,15 +62,15 @@ public:
 
 	CCircuit*						GetCircuit(void);
 	CTimeline*						GetTimeline(void);
-	int64							GetTime(void);
+	int64							GetTime(void) const;
 	bool							RunSimultaneous(void);
 	bool							RunToTime(int64 iTimeForward);
 	bool							RemoveEvent(CEvent* pcEvent);
-	int64							GetID(void);
+	int64							GetID(void) const;
 	char*							GetName(void);
 	void							AppendDescription(CChars* psz);
-	CSubcircuitTopSimulation*		GetSubcircuitTopSimulation(void);
-	size							NumInstanceSimulations(void);
+	CSubcircuitTopSimulation*		GetSubcircuitTopSimulation(void) const;
+	size							NumInstanceSimulations(void) const;
 	CSubcircuitInstanceSimulation*	GetInstanceSimulation(size uiIndex);
 
 	static void						ResetNextID(void);

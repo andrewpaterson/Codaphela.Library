@@ -37,7 +37,7 @@ public:
 			void				Class(void) override;
 			void				Free(void) override;
 
-			CLogicPort*			GetOutput(void);
+			CLogicPort*			GetOutput(void) const;
 			CArrayLogicPortPtr*	GetInputs(void);
 			CLogicPort*			GetInput(size uiIndex);
 };

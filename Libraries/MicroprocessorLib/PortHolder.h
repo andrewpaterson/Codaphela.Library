@@ -38,7 +38,7 @@ public:
 			void	AddPort(CPort* pcPort);
 			bool	RemovePort(CPort* pcPort);
 			CPort*	GetPort(const char* szName);
-			size	NumPorts(void);
+			size	NumPorts(void) const;
 			CPort*	GetPort(size uiIndex);
 
 	virtual void	TraceConnected(CTimeline* pcTimeline, CPort* pcPort) =0;

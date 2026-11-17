@@ -19,8 +19,8 @@ struct STraceValue
 	void	Init(void);
 	void	Init(ETraceValue eTraceValue);
 	void	Init(bool bValue);
-	bool	IsHigh(void);
-	bool	IsLow(void);
+	bool	IsHigh(void) const;
+	bool	IsLow(void) const;
 
 	void	Invert(void);
 

@@ -20,10 +20,10 @@ public:
     void                    Init(uint16 uiCode, CW65InstructionCycles* pcCycles, char* szName, char* szDescription);
     void                    Kill(void) override;
 
-    uint16                  GetCode(void);
+    uint16                  GetCode(void) const;
     char*                   GetName(void);
     char*                   GetDescription(void);
-    CW65InstructionCycles*     GetCycles(void);
+    CW65InstructionCycles*     GetCycles(void) const;
     CW65BusCycle*              GetBusCycle(int16 iCycle);
 };
 

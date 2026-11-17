@@ -51,15 +51,15 @@ public:
 	float32		GetVoltage(int64 iTime);
 	float32		CalculateVoltageAtTime(int64 iTime, float32 fStartVoltage);
 	bool		ForTime(int64 iTime);
-	int64		GetEndTime(void);
+	int64		GetEndTime(void) const;
 
-	bool		IsNone(void);
-	bool		IsDrive(void);
-	bool		IsSlew(void);
-	int64		GetTime(void);
-	float32		GetStartVoltage(void);
-	float32		GetEndVoltage(void);
-	int64		GetSlewTime(void);
+	bool		IsNone(void) const;
+	bool		IsDrive(void) const;
+	bool		IsSlew(void) const;
+	int64		GetTime(void) const;
+	float32		GetStartVoltage(void) const;
+	float32		GetEndVoltage(void) const;
+	int64		GetSlewTime(void) const;
 };
 
 

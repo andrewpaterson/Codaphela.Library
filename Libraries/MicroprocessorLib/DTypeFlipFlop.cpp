@@ -163,7 +163,7 @@ bool CDTypeFlipFlop::ChangeState(bool bState)
 //////////////////////////////////////////////////////////////////////////
 const char* CDTypeFlipFlop::GetType(void) { return D_TYPE_FLIP_FLOP_TYPE; }
 CDTypeFlipFlopPins* CDTypeFlipFlop::GetDTypeFlipFlopPins(void) { return (CDTypeFlipFlopPins*)&mpPins; }
-bool CDTypeFlipFlop::GetState(void) { return mbState; }
+bool CDTypeFlipFlop::GetState(void) const { return mbState; }
 void CDTypeFlipFlop::SetState(bool bState) { mbState = bState; }
 
 

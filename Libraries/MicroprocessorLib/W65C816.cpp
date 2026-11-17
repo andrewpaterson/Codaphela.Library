@@ -42,7 +42,7 @@ void CW65C816::Init(CW65C816Pins* pcPins)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65C816Pins* CW65C816::GetPins(void)
+CW65C816Pins* CW65C816::GetPins(void) const
 {
 	return mpcW65C816Pins;
 }

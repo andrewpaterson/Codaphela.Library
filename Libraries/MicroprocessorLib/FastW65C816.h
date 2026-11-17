@@ -120,24 +120,24 @@ public:
 
 	CBreakpoints*	GetBreakpoints(void);
 	void			UseBreakpoints(CBreakpoints* pcBreakpoints, CBreakpoints* pcMoreBreakpoints = NULL);
-	CBreakpoints*	GetUsedBreakpoints(void);
-	CBreakpoints*	GetMoreUsedBreakpoints(void);
-	bool			IsAtBreakpoint(void);
+	CBreakpoints*	GetUsedBreakpoints(void) const;
+	CBreakpoints*	GetMoreUsedBreakpoints(void) const;
+	bool			IsAtBreakpoint(void) const;
 
-	uint16		GetC(void);
-	uint16		GetX(void);
-	uint16		GetY(void);
-	uint16		GetS(void);
-	uint16		GetD(void);
-	uint8		GetDataBank(void);
-	uint8		GetProgramBank(void);
-	uint16		GetProgramCounter(void);
-	uint32		GetProgramAddress(void);
-	uint8		GetP(void);
-	bool		IsEmulation(void);
-	bool		IsStopped(void);
-	bool		IsWaiting(void);
-	uint64		NumCycles(void);
+	uint16		GetC(void) const;
+	uint16		GetX(void) const;
+	uint16		GetY(void) const;
+	uint16		GetS(void) const;
+	uint16		GetD(void) const;
+	uint8		GetDataBank(void) const;
+	uint8		GetProgramBank(void) const;
+	uint16		GetProgramCounter(void) const;
+	uint32		GetProgramAddress(void) const;
+	uint8		GetP(void) const;
+	bool		IsEmulation(void) const;
+	bool		IsStopped(void) const;
+	bool		IsWaiting(void) const;
+	uint64		NumCycles(void) const;
 
 	bool		AppendDifferences(CW65C816* pcMPU, CChars* psz);
 	void		AppendDifference(CChars* psz, const char* szName, uint64 uiOther, uint64 uiThis);
@@ -179,8 +179,8 @@ protected:
 	void		SetNZ16(uint16 uiValue);
 	void		SetNZM(uint16 uiValue);
 	void		SetNZX(uint16 uiValue);
-	bool		IsM16(void);
-	bool		IsX16(void);
+	bool		IsM16(void) const;
+	bool		IsX16(void) const;
 
 	uint16		ReadM(uint32 uiAddress);
 	uint16		ReadX(uint32 uiAddress);

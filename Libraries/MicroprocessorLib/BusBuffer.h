@@ -50,7 +50,7 @@ public:
 	virtual const char*		GetType(void);
 
 			CGroupPins*		GetGroupPins(void);
-			bool			IsInverting(void);
+			bool			IsInverting(void) const;
 
 	static	size			GetRoles(SGroupPinRole* asRoles, size uiBits, size uiEnables);
 

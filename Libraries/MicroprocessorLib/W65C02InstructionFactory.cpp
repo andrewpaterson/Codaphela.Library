@@ -82,7 +82,7 @@ CW65Instruction* CW65C02InstructionFactory::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C02InstructionFactory::GetReset(void)
+CW65Instruction* CW65C02InstructionFactory::GetReset(void) const
 {
 	return mpcReset;
 }
@@ -92,7 +92,7 @@ CW65Instruction* CW65C02InstructionFactory::GetReset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C02InstructionFactory::GetIRQ(void)
+CW65Instruction* CW65C02InstructionFactory::GetIRQ(void) const
 {
 	return mpcIRQ;
 }
@@ -102,7 +102,7 @@ CW65Instruction* CW65C02InstructionFactory::GetIRQ(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C02InstructionFactory::GetNMI(void)
+CW65Instruction* CW65C02InstructionFactory::GetNMI(void) const
 {
 	return mpcNMI;
 }
@@ -112,7 +112,7 @@ CW65Instruction* CW65C02InstructionFactory::GetNMI(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C02InstructionFactory::GetFetchNext(void)
+CW65Instruction* CW65C02InstructionFactory::GetFetchNext(void) const
 {
 	return mpcFetchNext;
 }

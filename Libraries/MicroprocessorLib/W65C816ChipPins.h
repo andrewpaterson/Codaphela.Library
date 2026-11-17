@@ -57,20 +57,20 @@ public:
 
 			CLogicPortBus*	GetAddress(void);
 			CLogicPortBus*	GetData(void);
-			CLogicPort*		GetVPB(void);
-			CLogicPort*		GetRDY(void);
-			CLogicPort*		GetABORTB(void);
-			CLogicPort*		GetIRQB(void);
-			CLogicPort*		GetNMIB(void);
-			CLogicPort*		GetMLB(void);
-			CLogicPort*		GetVPA(void);
-			CLogicPort*		GetVDA(void);
-			CLogicPort*		GetRESB(void);
-			CLogicPort*		GetMX(void);
-			CLogicPort*		GetPHI2(void);
-			CLogicPort*		GetBE(void);
-			CLogicPort*		GetE(void);
-			CLogicPort*		GetRWB(void);
+			CLogicPort*		GetVPB(void) const;
+			CLogicPort*		GetRDY(void) const;
+			CLogicPort*		GetABORTB(void) const;
+			CLogicPort*		GetIRQB(void) const;
+			CLogicPort*		GetNMIB(void) const;
+			CLogicPort*		GetMLB(void) const;
+			CLogicPort*		GetVPA(void) const;
+			CLogicPort*		GetVDA(void) const;
+			CLogicPort*		GetRESB(void) const;
+			CLogicPort*		GetMX(void) const;
+			CLogicPort*		GetPHI2(void) const;
+			CLogicPort*		GetBE(void) const;
+			CLogicPort*		GetE(void) const;
+			CLogicPort*		GetRWB(void) const;
 };
 
 

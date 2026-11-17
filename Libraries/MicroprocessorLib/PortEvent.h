@@ -41,7 +41,7 @@ public:
 	virtual bool				IsDriveEvent(void);
 	virtual bool				IsOutputEvent(void);
 
-			CLogicPort*			GetPort(void);
+			CLogicPort*			GetPort(void) const;
 	virtual CIntegratedCircuit*	GetIntegratedCircuit(void);
 			void				AppendPortOwner(CChars* psz);
 };

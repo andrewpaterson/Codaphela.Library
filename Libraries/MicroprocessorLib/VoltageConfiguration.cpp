@@ -181,7 +181,7 @@ void CVoltageConfiguration::SetDisableTime(int64 iHighToLowDisable, int64 iLowTo
 // be greater than zero.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CVoltageConfiguration::IsValid(void)
+bool CVoltageConfiguration::IsValid(void) const
 {
 	if (!(mfHighVoltageOut > mfLowVoltageOut))
 	{
@@ -310,7 +310,7 @@ float32 CVoltageConfiguration::GetVoltageOut(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CVoltageConfiguration::GetAverageDelayTime(void)
+int64 CVoltageConfiguration::GetAverageDelayTime(void) const
 {
 	return (miHighToLowHoldTime + miLowToHighHoldTime) / 2 + (miHighToLowSlewTime + miLowToHighSlewTime) / 2;
 }
@@ -322,23 +322,23 @@ int64 CVoltageConfiguration::GetAverageDelayTime(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CVoltageConfiguration::GetVoltsPerTimeLowToHigh(void) { return GetVoltsPerTime(miLowToHighSlewTime); }
 float32 CVoltageConfiguration::GetVoltsPerTimeHighToLow(void) { return GetVoltsPerTime(miHighToLowSlewTime); }
-float32 CVoltageConfiguration::GetVcc(void) { return mfVcc; }
-float32 CVoltageConfiguration::GetLowVoltageIn(void) { return mfLowVoltageIn; }
-float32 CVoltageConfiguration::GetHighVoltageIn(void) { return mfHighVoltageIn; }
-float32 CVoltageConfiguration::GetLowVoltageOut(void) { return mfLowVoltageOut; }
-float32 CVoltageConfiguration::GetHighVoltageOut(void) { return mfHighVoltageOut; }
-int64 CVoltageConfiguration::GetHighToLowHoldTime(void) { return miHighToLowHoldTime; }
-int64 CVoltageConfiguration::GetHighToLowSlewTime(void) { return miHighToLowSlewTime; }
-int64 CVoltageConfiguration::GetLowToHighHoldTime(void) { return miLowToHighHoldTime; }
-int64 CVoltageConfiguration::GetLowToHighSlewTime(void) { return miLowToHighSlewTime; }
-int64 CVoltageConfiguration::GetHighToDisableHoldTime(void) { return miHighToDisableHoldTime; }
-int64 CVoltageConfiguration::GetHighToDisableSlewTime(void) { return miHighToDisableSlewTime; }
-int64 CVoltageConfiguration::GetLowToDisableHoldTime(void) { return miLowToDisableHoldTime; }
-int64 CVoltageConfiguration::GetLowToDisableSlewTime(void) { return miLowToDisableSlewTime; }
-int64 CVoltageConfiguration::GetHighToEnableHoldTime(void) { return miHighToEnableHoldTime; }
-int64 CVoltageConfiguration::GetHighToEnableSlewTime(void) { return miHighToEnableSlewTime; }
-int64 CVoltageConfiguration::GetLowToEnableHoldTime(void) { return miLowToEnableHoldTime; }
-int64 CVoltageConfiguration::GetLowToEnableSlewTime(void) { return miLowToEnableSlewTime; }
+float32 CVoltageConfiguration::GetVcc(void) const { return mfVcc; }
+float32 CVoltageConfiguration::GetLowVoltageIn(void) const { return mfLowVoltageIn; }
+float32 CVoltageConfiguration::GetHighVoltageIn(void) const { return mfHighVoltageIn; }
+float32 CVoltageConfiguration::GetLowVoltageOut(void) const { return mfLowVoltageOut; }
+float32 CVoltageConfiguration::GetHighVoltageOut(void) const { return mfHighVoltageOut; }
+int64 CVoltageConfiguration::GetHighToLowHoldTime(void) const { return miHighToLowHoldTime; }
+int64 CVoltageConfiguration::GetHighToLowSlewTime(void) const { return miHighToLowSlewTime; }
+int64 CVoltageConfiguration::GetLowToHighHoldTime(void) const { return miLowToHighHoldTime; }
+int64 CVoltageConfiguration::GetLowToHighSlewTime(void) const { return miLowToHighSlewTime; }
+int64 CVoltageConfiguration::GetHighToDisableHoldTime(void) const { return miHighToDisableHoldTime; }
+int64 CVoltageConfiguration::GetHighToDisableSlewTime(void) const { return miHighToDisableSlewTime; }
+int64 CVoltageConfiguration::GetLowToDisableHoldTime(void) const { return miLowToDisableHoldTime; }
+int64 CVoltageConfiguration::GetLowToDisableSlewTime(void) const { return miLowToDisableSlewTime; }
+int64 CVoltageConfiguration::GetHighToEnableHoldTime(void) const { return miHighToEnableHoldTime; }
+int64 CVoltageConfiguration::GetHighToEnableSlewTime(void) const { return miHighToEnableSlewTime; }
+int64 CVoltageConfiguration::GetLowToEnableHoldTime(void) const { return miLowToEnableHoldTime; }
+int64 CVoltageConfiguration::GetLowToEnableSlewTime(void) const { return miLowToEnableSlewTime; }
 
 
 //////////////////////////////////////////////////////////////////////////

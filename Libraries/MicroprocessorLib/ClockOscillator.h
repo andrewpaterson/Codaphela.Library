@@ -57,11 +57,11 @@ public:
 	virtual void					ResetState(void);
 
 			float32					GetInternalVoltage(int64 iTime);
-			int64					GetFullTicks(void);
+			int64					GetFullTicks(void) const;
 			void					SetFullTicks(int64 iFullTicks);
-			bool					IsHigh(void);
+			bool					IsHigh(void) const;
 			void					SetHigh(bool bHigh);
-			int64					GetHalfCycleTime(void);
+			int64					GetHalfCycleTime(void) const;
 			CClockOscillatorPins*	GetClockOscillatorPins(void);
 
 protected:

@@ -122,7 +122,7 @@ uint32 C65C64BusCycle::GetAddress(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-C65C64DataOperation* C65C64BusCycle::GetDataOperation(void)
+C65C64DataOperation* C65C64BusCycle::GetDataOperation(void) const
 {
 	return mpcDataOperation;
 }
@@ -262,7 +262,7 @@ void C65C64BusCycle::SetCycle(int16 iCycle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 C65C64BusCycle::GetCycle(void)
+int16 C65C64BusCycle::GetCycle(void) const
 {
 	return miCycle;
 }

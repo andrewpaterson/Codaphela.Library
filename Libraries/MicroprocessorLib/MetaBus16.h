@@ -16,7 +16,7 @@ public:
 	void	Kill(void);
 
 	void	Set(uint16 uiValue);
-	uint16	Get(void);
+	uint16	Get(void) const;
 	void	Print(CChars* psz, bool bAppend0x);
 
 	virtual void	Write(CTimeline* pcTimeline, uint32 uiValue);

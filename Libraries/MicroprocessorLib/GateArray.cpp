@@ -198,5 +198,5 @@ bool CGateArray::IsSingleInput(EGateFunction eFunction)
 //////////////////////////////////////////////////////////////////////////
 const char* CGateArray::GetType(void) { return GATE_ARRAY_TYPE; }
 CGateArrayPins* CGateArray::GetGateArrayPins(void) { return (CGateArrayPins*)&mpPins; }
-EGateFunction CGateArray::GetFunction(void) { return meFunction; }
+EGateFunction CGateArray::GetFunction(void) const { return meFunction; }
 

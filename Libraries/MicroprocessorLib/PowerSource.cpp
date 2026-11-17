@@ -56,5 +56,5 @@ void CPowerSource::Class(void)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CPowerSource::GetType(void) { return "Power Source"; }
-CPowerOutPort* CPowerSource::GetPowerOutPort(void) { return mpcPowerOutPort; }
+CPowerOutPort* CPowerSource::GetPowerOutPort(void) const { return mpcPowerOutPort; }
 

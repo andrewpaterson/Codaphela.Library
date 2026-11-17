@@ -118,7 +118,7 @@ void CW65CCore::SetState(SW65CCoreState* psState)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65CPins* CW65CCore::GetPins(void)
+CW65CPins* CW65CCore::GetPins(void) const
 {
     return mpcPins;
 }
@@ -786,7 +786,7 @@ void CW65CCore::GetCycleOperationString(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65DataOperation* CW65CCore::GetDataOperation(void)
+CW65DataOperation* CW65CCore::GetDataOperation(void) const
 {
     CW65BusCycle*          pcBusCycle;
     CW65DataOperation*     pcDataOperation;
@@ -846,7 +846,7 @@ void CW65CCore::GetCycleString(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CW65CCore::GetCyclePlusOne(void)
+int16 CW65CCore::GetCyclePlusOne(void) const
 {
     return msState.iCycle + 1;
 }
@@ -1137,7 +1137,7 @@ void CW65CCore::IncrementReset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65CCore::GetProcessorRegisterValue(void)
+uint8 CW65CCore::GetProcessorRegisterValue(void) const
 {
 	int value = 0;
 	if (IsCarrySet())
@@ -1265,7 +1265,7 @@ void CW65CCore::SetEmulationFlag(bool bEmulationFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsZeroFlagSet(void)
+bool CW65CCore::IsZeroFlagSet(void) const
 {
 	return msState.bZeroFlag;
 }
@@ -1275,7 +1275,7 @@ bool CW65CCore::IsZeroFlagSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsNegativeSet(void)
+bool CW65CCore::IsNegativeSet(void) const
 {
 	return msState.bNegativeFlag;
 }
@@ -1285,7 +1285,7 @@ bool CW65CCore::IsNegativeSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsDecimal(void)
+bool CW65CCore::IsDecimal(void) const
 {
 	return msState.bDecimalFlag;
 }
@@ -1295,7 +1295,7 @@ bool CW65CCore::IsDecimal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsInterruptDisable(void)
+bool CW65CCore::IsInterruptDisable(void) const
 {
 	return msState.bInterruptDisableFlag;
 }
@@ -1305,7 +1305,7 @@ bool CW65CCore::IsInterruptDisable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsCarrySet(void)
+bool CW65CCore::IsCarrySet(void) const
 {
 	return msState.bCarryFlag;
 }
@@ -1315,7 +1315,7 @@ bool CW65CCore::IsCarrySet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsEmulation(void)
+bool CW65CCore::IsEmulation(void) const
 {
 	return msState.bEmulationFlag;
 }
@@ -1325,7 +1325,7 @@ bool CW65CCore::IsEmulation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsBreak(void)
+bool CW65CCore::IsBreak(void) const
 {
 	return msState.bBreakFlag;
 }
@@ -1335,7 +1335,7 @@ bool CW65CCore::IsBreak(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsOverflowFlag(void)
+bool CW65CCore::IsOverflowFlag(void) const
 {
 	return msState.bOverflowFlag;
 }
@@ -1442,7 +1442,7 @@ void CW65CCore::ExecuteTrailingSideOperation(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65BusCycle* CW65CCore::GetBusCycle(void)
+CW65BusCycle* CW65CCore::GetBusCycle(void) const
 {
 	return mpcBusCycle;
 }
@@ -1543,7 +1543,7 @@ void CW65CCore::NextCycle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CW65CCore::GetCycle(void)
+int16 CW65CCore::GetCycle(void) const
 {
 	return msState.iCycle;
 }
@@ -1571,7 +1571,7 @@ void CW65CCore::SetOpcode(uint16 uiOpcodeIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsStopped(void)
+bool CW65CCore::IsStopped(void) const
 {
 	return msState.bStopped;
 }
@@ -1591,7 +1591,7 @@ void CW65CCore::Wait(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsWaiting(void)
+bool CW65CCore::IsWaiting(void) const
 {
 	return msState.bWaiting;
 }
@@ -1636,7 +1636,7 @@ bool CW65CCore::IsRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsMemory8Bit(void)
+bool CW65CCore::IsMemory8Bit(void) const
 {
 	if (IsEmulation())
 	{
@@ -1653,7 +1653,7 @@ bool CW65CCore::IsMemory8Bit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsMemory16Bit(void)
+bool CW65CCore::IsMemory16Bit(void) const
 {
 	return !IsMemory8Bit();
 }
@@ -1663,7 +1663,7 @@ bool CW65CCore::IsMemory16Bit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsIndex8Bit()
+bool CW65CCore::IsIndex8Bit() const
 {
 	if (IsEmulation())
 	{
@@ -1853,7 +1853,7 @@ void CW65CCore::SetIOData(uint8 uiData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65CCore::GetIOData(void)
+uint8 CW65CCore::GetIOData(void) const
 {
 	return msState.uiIOData;
 }
@@ -1863,7 +1863,7 @@ uint8 CW65CCore::GetIOData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetA(void)
+uint16 CW65CCore::GetA(void) const
 {
 	if (IsMemory16Bit())
 	{
@@ -1880,7 +1880,7 @@ uint16 CW65CCore::GetA(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetC(void)
+uint16 CW65CCore::GetC(void) const
 {
 	return msState.uiAccumulator;
 }
@@ -1890,7 +1890,7 @@ uint16 CW65CCore::GetC(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetX(void)
+uint16 CW65CCore::GetX(void) const
 {
 	if (IsIndex16Bit())
 	{
@@ -1907,7 +1907,7 @@ uint16 CW65CCore::GetX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetY(void)
+uint16 CW65CCore::GetY(void) const
 {
 	if (IsIndex16Bit())
 	{
@@ -1924,7 +1924,7 @@ uint16 CW65CCore::GetY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65CCore::GetDataBank(void)
+uint8 CW65CCore::GetDataBank(void) const
 {
 	return msState.uiDataBank;
 }
@@ -2135,7 +2135,7 @@ uint16 CW65CCore::TrimIndex(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsIndex16Bit(void)
+bool CW65CCore::IsIndex16Bit(void) const
 {
 	return !IsIndex8Bit();
 }
@@ -2145,7 +2145,7 @@ bool CW65CCore::IsIndex16Bit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetCarry(void)
+uint16 CW65CCore::GetCarry(void) const
 {
 	return IsCarrySet() ? 1 : 0;
 }
@@ -2155,7 +2155,7 @@ uint16 CW65CCore::GetCarry(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsSignSet(void)
+bool CW65CCore::IsSignSet(void) const
 {
 	return IsNegativeSet();
 }
@@ -2165,7 +2165,7 @@ bool CW65CCore::IsSignSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsOverflowSet(void)
+bool CW65CCore::IsOverflowSet(void) const
 {
 	return IsOverflowFlag();
 }
@@ -2225,7 +2225,7 @@ void CW65CCore::SetAddressBank(uint8 uiAddressBank)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65CCore::GetDataLow(void)
+uint8 CW65CCore::GetDataLow(void) const
 {
 	return GetLowByte(msState.uiData);
 }
@@ -2235,7 +2235,7 @@ uint8 CW65CCore::GetDataLow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65CCore::GetDataHigh(void)
+uint8 CW65CCore::GetDataHigh(void) const
 {
 	return GetHighByte(msState.uiData);
 }
@@ -2245,7 +2245,7 @@ uint8 CW65CCore::GetDataHigh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetMemoryData(void)
+uint16 CW65CCore::GetMemoryData(void) const
 {
 	if (IsMemory16Bit())
 	{
@@ -2262,7 +2262,7 @@ uint16 CW65CCore::GetMemoryData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetIndexData(void)
+uint16 CW65CCore::GetIndexData(void) const
 {
 	if (IsIndex16Bit())
 	{
@@ -2279,7 +2279,7 @@ uint16 CW65CCore::GetIndexData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetData16Bit(void)
+uint16 CW65CCore::GetData16Bit(void) const
 {
 	return msState.uiData;
 }
@@ -2289,7 +2289,7 @@ uint16 CW65CCore::GetData16Bit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetDirectPage(void)
+uint16 CW65CCore::GetDirectPage(void) const
 {
 	return msState.uiDirectPage;
 }
@@ -2299,7 +2299,7 @@ uint16 CW65CCore::GetDirectPage(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetDirectOffset(void)
+uint16 CW65CCore::GetDirectOffset(void) const
 {
 	return msState.uiDirectOffset;
 }
@@ -2309,7 +2309,7 @@ uint16 CW65CCore::GetDirectOffset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetStackPointer16Bit(void)
+uint16 CW65CCore::GetStackPointer16Bit(void) const
 {
 	return msState.uiStackPointer;
 }
@@ -2319,7 +2319,7 @@ uint16 CW65CCore::GetStackPointer16Bit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetStackPointer(void)
+uint16 CW65CCore::GetStackPointer(void) const
 {
 	if (!IsEmulation())
 	{
@@ -2905,7 +2905,7 @@ uint16 CW65CCore::SetBit(uint16 uiValue, uint16 uiBitNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsBusEnable(void)
+bool CW65CCore::IsBusEnable(void) const
 {
 	return msState.bBusEnable;
 }
@@ -3737,7 +3737,7 @@ bool CW65CCore::NoteSix(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetAddressOffsetLowX(void)
+uint16 CW65CCore::GetAddressOffsetLowX(void) const
 {
 	return GetLowByte(msState.cAddress.GetOffsetLow() + GetLowByte(GetX()));
 }
@@ -3747,7 +3747,7 @@ uint16 CW65CCore::GetAddressOffsetLowX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65CCore::GetAddressOffsetLowY(void)
+uint16 CW65CCore::GetAddressOffsetLowY(void) const
 {
 	return GetLowByte(msState.cAddress.GetOffsetLow() + GetLowByte(GetY()));
 }

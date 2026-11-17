@@ -512,7 +512,7 @@ CBreakpoints* CFast65C64::GetBreakpoints(void)
 // (GetProgramCounter).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFast65C64::IsAtBreakpoint(void)
+bool CFast65C64::IsAtBreakpoint(void) const
 {
 	return mbAtBreakpoint;
 }
@@ -2210,21 +2210,21 @@ FORCE_INLINE void CFast65C64::Execute(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CFast65C64::GetA(void) { return mauiRegisters[R65_A]; }
-uint64 CFast65C64::GetB(void) { return mauiRegisters[R65_B]; }
-uint64 CFast65C64::GetX(void) { return mauiRegisters[R65_X]; }
-uint64 CFast65C64::GetY(void) { return mauiRegisters[R65_Y]; }
-uint32 CFast65C64::GetS(void) { return (uint32)mauiRegisters[R65_S]; }
-uint32 CFast65C64::GetV(void) { return (uint32)mauiRegisters[R65_V]; }
-uint32 CFast65C64::GetW(void) { return (uint32)mauiRegisters[R65_W]; }
-uint32 CFast65C64::GetProgramCounter(void) { return muiC; }
-uint16 CFast65C64::GetP(void) { return muiP; }
-uint32 CFast65C64::GetInterruptDepth(void) { return muiInterruptDepth; }
+uint64 CFast65C64::GetA(void) const { return mauiRegisters[R65_A]; }
+uint64 CFast65C64::GetB(void) const { return mauiRegisters[R65_B]; }
+uint64 CFast65C64::GetX(void) const { return mauiRegisters[R65_X]; }
+uint64 CFast65C64::GetY(void) const { return mauiRegisters[R65_Y]; }
+uint32 CFast65C64::GetS(void) const { return (uint32)mauiRegisters[R65_S]; }
+uint32 CFast65C64::GetV(void) const { return (uint32)mauiRegisters[R65_V]; }
+uint32 CFast65C64::GetW(void) const { return (uint32)mauiRegisters[R65_W]; }
+uint32 CFast65C64::GetProgramCounter(void) const { return muiC; }
+uint16 CFast65C64::GetP(void) const { return muiP; }
+uint32 CFast65C64::GetInterruptDepth(void) const { return muiInterruptDepth; }
 bool CFast65C64::IsFlagSet(uint16 uiFlag) { return (muiP & uiFlag) != 0; }
-bool CFast65C64::IsStopped(void) { return mbStopped; }
-bool CFast65C64::IsWaiting(void) { return mbWaiting; }
-uint8 CFast65C64::GetPendingEdges(void) { return muiPendingEdges; }
-uint64 CFast65C64::NumCycles(void) { return muiCycles; }
+bool CFast65C64::IsStopped(void) const { return mbStopped; }
+bool CFast65C64::IsWaiting(void) const { return mbWaiting; }
+uint8 CFast65C64::GetPendingEdges(void) const { return muiPendingEdges; }
+uint64 CFast65C64::NumCycles(void) const { return muiCycles; }
 
 
 //////////////////////////////////////////////////////////////////////////

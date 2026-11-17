@@ -143,8 +143,8 @@ void CEvent::ResetNextID(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEvent::IsRemoved(void) { return mbRemoved; }
-bool CEvent::IsExecuted(void) { return mbExecuted; }
-int64 CEvent::GetTime(void) { return miTime; }
-int64 CEvent::GetID(void) { return miID; }
+bool CEvent::IsRemoved(void) const { return mbRemoved; }
+bool CEvent::IsExecuted(void) const { return mbExecuted; }
+int64 CEvent::GetTime(void) const { return miTime; }
+int64 CEvent::GetID(void) const { return miID; }
 

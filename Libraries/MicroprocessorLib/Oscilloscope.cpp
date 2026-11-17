@@ -151,11 +151,11 @@ void COscilloscope::ExecuteTick(CTimeline* pcTimeline)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* COscilloscope::GetType(void) { return OSCILLOSCOPE_TYPE; }
-int64 COscilloscope::GetSampleTime(void) { return miSampleTime; }
+int64 COscilloscope::GetSampleTime(void) const { return miSampleTime; }
 COscilloscopePins* COscilloscope::GetOscilloscopePins(void) { return (COscilloscopePins*)&mpPins; }
-size COscilloscope::GetInputCount(void) { return muiInputCount; }
-size COscilloscope::GetSampleCount(void) { return muiSampleCount; }
-size COscilloscope::GetTickPosition(void) { return muiTickPosition; }
+size COscilloscope::GetInputCount(void) const { return muiInputCount; }
+size COscilloscope::GetSampleCount(void) const { return muiSampleCount; }
+size COscilloscope::GetTickPosition(void) const { return muiTickPosition; }
 float32 COscilloscope::GetMinVoltage(size uiInput, size uiSample) { return mafMinVoltage[uiInput * muiSampleCount + uiSample]; }
 float32 COscilloscope::GetMaxVoltage(size uiInput, size uiSample) { return mafMaxVoltage[uiInput * muiSampleCount + uiSample]; }
 

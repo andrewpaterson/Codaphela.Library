@@ -68,11 +68,11 @@ public:
 	virtual float32			GetVoltageOut(int64 iTime);
 
 			char*			GetName(void);
-			EPortType		GetPortType(void);
-			CTrace*			GetTrace(void);
-			int64			GetTraceID(void);
-			CPortHolder*	GetHolder(void);
-			bool			IsExplicit(void);
+			EPortType		GetPortType(void) const;
+			CTrace*			GetTrace(void) const;
+			int64			GetTraceID(void) const;
+			CPortHolder*	GetHolder(void) const;
+			bool			IsExplicit(void) const;
 	virtual void			AppendDescription(CChars* psz);
 	virtual void			AppendDebugString(CChars* psz);
 			void			AppendType(CChars* psz);

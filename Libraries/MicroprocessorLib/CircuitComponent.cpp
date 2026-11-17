@@ -119,7 +119,7 @@ void CCircuitComponent::AppendDescription(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCircuit* CCircuitComponent::GetCircuit(void)
+CCircuit* CCircuitComponent::GetCircuit(void) const
 {
 	return mpcContainingSubcircuitSimulation->GetCircuit();
 }
@@ -129,7 +129,7 @@ CCircuit* CCircuitComponent::GetCircuit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTimeline* CCircuitComponent::GetTimeline(void)
+CTimeline* CCircuitComponent::GetTimeline(void) const
 {
 	return mpcContainingSubcircuitSimulation->GetTimeline();
 }
@@ -140,5 +140,5 @@ CTimeline* CCircuitComponent::GetTimeline(void)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CCircuitComponent::GetComponentName(void) { return mszName.Text(); }
-CSubcircuitSimulation* CCircuitComponent::GetContainingSubcircuitSimulation(void) { return mpcContainingSubcircuitSimulation; }
+CSubcircuitSimulation* CCircuitComponent::GetContainingSubcircuitSimulation(void) const { return mpcContainingSubcircuitSimulation; }
 

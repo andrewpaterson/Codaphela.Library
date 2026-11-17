@@ -37,7 +37,7 @@ protected:
 public:
 	void			Init(CW65C02Pins* pcPins);
 
-	CW65C02Pins*	GetPins(void);
+	CW65C02Pins*	GetPins(void) const;
 
 	using			CW65CCore::GetInstruction;
 	CW65Instruction*	GetInstruction(uint16 uiOpcode) override;
@@ -56,7 +56,7 @@ public:
 	void			Execute8BitBCDSBC(void) override;
 
 protected:
-	uint8			GetOpcodeBit(void);
+	uint8			GetOpcodeBit(void) const;
 };
 
 

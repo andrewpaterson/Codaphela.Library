@@ -201,5 +201,5 @@ void CBusBuffer::WriteGroupOutputs(CTimeline* pcTimeline, size uiGroup)
 //////////////////////////////////////////////////////////////////////////
 const char* CBusBuffer::GetType(void) { return BUS_BUFFER_TYPE; }
 CGroupPins* CBusBuffer::GetGroupPins(void) { return (CGroupPins*)&mpPins; }
-bool CBusBuffer::IsInverting(void) { return mbInverting; }
+bool CBusBuffer::IsInverting(void) const { return mbInverting; }
 

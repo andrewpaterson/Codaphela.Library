@@ -34,7 +34,7 @@ void CMetaBus32::Set(uint32 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMetaBus32::Get(void)
+uint32 CMetaBus32::Get(void) const
 {
 	return muiValue;
 }

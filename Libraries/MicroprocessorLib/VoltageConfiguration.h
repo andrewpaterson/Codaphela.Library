@@ -70,38 +70,38 @@ public:
 	void		Kill(void);
 
 	ETraceValue	GetValue(float32 fVoltage);
-	float32		GetVcc(void);
-	float32		GetLowVoltageIn(void);
-	float32		GetHighVoltageIn(void);
-	float32		GetLowVoltageOut(void);
-	float32		GetHighVoltageOut(void);
+	float32		GetVcc(void) const;
+	float32		GetLowVoltageIn(void) const;
+	float32		GetHighVoltageIn(void) const;
+	float32		GetLowVoltageOut(void) const;
+	float32		GetHighVoltageOut(void) const;
 	float32		GetVoltageOut(bool bValue);
 
 	int64		CalculateHoldTime(float32 fOutVoltage, float32 fPortVoltage);
 	float32		CalculateStartVoltage(float32 fPortVoltage);
 	float32		GetVoltsPerTimeLowToHigh(void);
 	float32		GetVoltsPerTimeHighToLow(void);
-	int64		GetAverageDelayTime(void);
+	int64		GetAverageDelayTime(void) const;
 
-	int64		GetHighToLowHoldTime(void);
-	int64		GetHighToLowSlewTime(void);
-	int64		GetLowToHighHoldTime(void);
-	int64		GetLowToHighSlewTime(void);
-	int64		GetHighToDisableHoldTime(void);
-	int64		GetHighToDisableSlewTime(void);
-	int64		GetLowToDisableHoldTime(void);
-	int64		GetLowToDisableSlewTime(void);
-	int64		GetHighToEnableHoldTime(void);
-	int64		GetHighToEnableSlewTime(void);
-	int64		GetLowToEnableHoldTime(void);
-	int64		GetLowToEnableSlewTime(void);
+	int64		GetHighToLowHoldTime(void) const;
+	int64		GetHighToLowSlewTime(void) const;
+	int64		GetLowToHighHoldTime(void) const;
+	int64		GetLowToHighSlewTime(void) const;
+	int64		GetHighToDisableHoldTime(void) const;
+	int64		GetHighToDisableSlewTime(void) const;
+	int64		GetLowToDisableHoldTime(void) const;
+	int64		GetLowToDisableSlewTime(void) const;
+	int64		GetHighToEnableHoldTime(void) const;
+	int64		GetHighToEnableSlewTime(void) const;
+	int64		GetLowToEnableHoldTime(void) const;
+	int64		GetLowToEnableSlewTime(void) const;
 
 protected:
 	void		SetVoltages(float32 fVcc, float32 fLowVoltageIn, float32 fHighVoltageIn, float32 fLowVoltageOut, float32 fHighVoltageOut);
 	void		SetPropagationTime(int64 iHighToLowPropagation, int64 iLowToHighPropagation);
 	void		SetEnableTime(int64 iHighToLowEnable, int64 iLowToHighEnable);
 	void		SetDisableTime(int64 iHighToLowDisable, int64 iLowToHighDisable);
-	bool		IsValid(void);
+	bool		IsValid(void) const;
 	float32		GetVoltsPerTime(int64 iTime);
 };
 

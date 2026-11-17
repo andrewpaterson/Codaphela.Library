@@ -69,9 +69,9 @@ public:
 
 	virtual char*					GetComponentName(void);  //Not GetName, that is the object's name.
 	virtual void					AppendDescription(CChars* psz);
-			CSubcircuitSimulation*	GetContainingSubcircuitSimulation(void);
-			CCircuit*				GetCircuit(void);
-			CTimeline*				GetTimeline(void);
+			CSubcircuitSimulation*	GetContainingSubcircuitSimulation(void) const;
+			CCircuit*				GetCircuit(void) const;
+			CTimeline*				GetTimeline(void) const;
 };
 
 

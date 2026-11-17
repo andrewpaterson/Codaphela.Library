@@ -59,7 +59,7 @@ public:
 	virtual const char*		GetType(void);
 
 			CGroupPins*		GetGroupPins(void);
-			bool			IsDisabledHighImpedance(void);
+			bool			IsDisabledHighImpedance(void) const;
 
 	static	size			GetRoles(SGroupPinRole* asRoles, size uiSelectBits, bool bChannelEnables);
 

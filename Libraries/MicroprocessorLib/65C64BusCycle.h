@@ -43,7 +43,7 @@ public:
 	void					Kill(void) override;
 
 	uint32					GetAddress(C65C64* pcCPU);
-	C65C64DataOperation*		GetDataOperation(void);
+	C65C64DataOperation*		GetDataOperation(void) const;
 	bool					MustExecute(C65C64* pcCPU);
 	void					ExecuteInitialSide(C65C64* pcCPU);
 	void					ExecuteTrailingSide(C65C64* pcCPU, bool bSkipData);
@@ -51,7 +51,7 @@ public:
 	void					ToAddressOffsetString(CChars* psz);
 	void					ToOperationString(CChars* psz);
 	void					SetCycle(int16 iCycle);
-	int16					GetCycle(void);
+	int16					GetCycle(void) const;
 	C65OperationArray*		GetOperations(void);
 
 protected:

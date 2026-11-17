@@ -236,7 +236,7 @@ float32 CPort::GetVoltageOut(int64 iTime)
 // 0 when not connected.
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CPort::GetTraceID(void)
+int64 CPort::GetTraceID(void) const
 {
 	if (mpcTrace != NULL)
 	{
@@ -308,8 +308,8 @@ void CPort::AppendType(CChars* psz)
 bool CPort::IsLogicPort(void) { return false; }
 bool CPort::IsPowerIn(void) { return false; }
 char* CPort::GetName(void) { return mszName.Text(); }
-EPortType CPort::GetPortType(void) { return meType; }
-CTrace* CPort::GetTrace(void) { return mpcTrace; }
-CPortHolder* CPort::GetHolder(void) { return mpcHolder; }
-bool CPort::IsExplicit(void) { return mbExplicit; }
+EPortType CPort::GetPortType(void) const { return meType; }
+CTrace* CPort::GetTrace(void) const { return mpcTrace; }
+CPortHolder* CPort::GetHolder(void) const { return mpcHolder; }
+bool CPort::IsExplicit(void) const { return mbExplicit; }
 

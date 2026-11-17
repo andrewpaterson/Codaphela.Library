@@ -152,12 +152,12 @@ void CCounterPins::WriteOutput(CTimeline* pcTimeline, uint32 uiData, size uiBitW
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCounterPins::IsClock(CLogicPort* pcPort) { return pcPort == mpcClock; }
-CLogicPort* CCounterPins::GetClock(void) { return mpcClock; }
-CLogicPort* CCounterPins::GetReset(void) { return mpcReset; }
-CLogicPort* CCounterPins::GetLoad(void) { return mpcLoad; }
+CLogicPort* CCounterPins::GetClock(void) const { return mpcClock; }
+CLogicPort* CCounterPins::GetReset(void) const { return mpcReset; }
+CLogicPort* CCounterPins::GetLoad(void) const { return mpcLoad; }
 CArrayLogicPortPtr* CCounterPins::GetData(void) { return &mapcData; }
-CLogicPort* CCounterPins::GetCountEnable(void) { return mpcCountEnable; }
-CLogicPort* CCounterPins::GetCountEnableTerminal(void) { return mpcCountEnableTerminal; }
+CLogicPort* CCounterPins::GetCountEnable(void) const { return mpcCountEnable; }
+CLogicPort* CCounterPins::GetCountEnableTerminal(void) const { return mpcCountEnableTerminal; }
 CArrayLogicPortPtr* CCounterPins::GetOutput(void) { return &mapcOutput; }
-CLogicPort* CCounterPins::GetTerminalOutput(void) { return mpcTerminalOutput; }
+CLogicPort* CCounterPins::GetTerminalOutput(void) const { return mpcTerminalOutput; }
 

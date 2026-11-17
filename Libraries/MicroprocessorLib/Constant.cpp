@@ -101,7 +101,7 @@ void CConstant::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //////////////////////////////////////////////////////////////////////////
 const char* CConstant::GetType(void) { return CONSTANT_TYPE; }
 CConstantPins* CConstant::GetConstantPins(void) { return (CConstantPins*)&mpPins; }
-int64 CConstant::GetConstantValue(void) { return miConstantValue; }
+int64 CConstant::GetConstantValue(void) const { return miConstantValue; }
 void CConstant::SetConstantValue(int64 iConstantValue) { miConstantValue = iConstantValue; }
 
 

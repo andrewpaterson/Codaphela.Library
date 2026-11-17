@@ -89,8 +89,8 @@ void CSplitter::AddTracePorts(CArrayTracePortPtr* papcPorts, CArrayChars* paszPo
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CSplitter::GetType(void) { return "Splitter"; }
-size CSplitter::NumStartPorts(void) { return mapcStartPorts.NumElements(); }
+size CSplitter::NumStartPorts(void) const { return mapcStartPorts.NumElements(); }
 CTracePort* CSplitter::GetStartPort(size uiIndex) { return mapcStartPorts.SafeGetPtr(uiIndex); }
-size CSplitter::NumEndPorts(void) { return mapcEndPorts.NumElements(); }
+size CSplitter::NumEndPorts(void) const { return mapcEndPorts.NumElements(); }
 CTracePort* CSplitter::GetEndPort(size uiIndex) { return mapcEndPorts.SafeGetPtr(uiIndex); }
 

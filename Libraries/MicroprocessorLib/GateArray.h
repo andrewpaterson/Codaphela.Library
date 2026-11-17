@@ -60,7 +60,7 @@ public:
 	virtual const char*			GetType(void);
 
 			CGateArrayPins*		GetGateArrayPins(void);
-			EGateFunction		GetFunction(void);
+			EGateFunction		GetFunction(void) const;
 
 	static	bool				IsNegated(EGateFunction eFunction);
 	static	bool				IsSingleInput(EGateFunction eFunction);

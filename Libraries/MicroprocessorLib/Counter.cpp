@@ -181,10 +181,10 @@ void CCounter::AppendCounterValueHex(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 const char* CCounter::GetType(void) { return COUNTER_TYPE; }
 CCounterPins* CCounter::GetCounterPins(void) { return (CCounterPins*)&mpPins; }
-uint32 CCounter::GetCount(void) { return muiCount; }
+uint32 CCounter::GetCount(void) const { return muiCount; }
 void CCounter::SetCount(uint32 uiCount) { muiCount = uiCount; }
-bool CCounter::IsTerminal(void) { return mbTerminal; }
-bool CCounter::IsSynchronousLoad(void) { return mbSynchronousLoad; }
+bool CCounter::IsTerminal(void) const { return mbTerminal; }
+bool CCounter::IsSynchronousLoad(void) const { return mbSynchronousLoad; }
 void CCounter::SetTerminal(bool bTerminal) { mbTerminal = bTerminal; }
 
 

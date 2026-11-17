@@ -43,11 +43,11 @@ public:
 			void	Init(bool bOpcode, bool bProgramAddress, bool bDataAddress, bool bRead, bool bNotVectorPull);
 
 			bool	IsData(void) override;
-			bool	IsOpcode(void);
-			bool	IsProgramAddress(void);
-			bool	IsDataAddress(void);
-			bool	IsRead(void);
-			bool	IsNotVectorPull(void);
+			bool	IsOpcode(void) const;
+			bool	IsProgramAddress(void) const;
+			bool	IsDataAddress(void) const;
+			bool	IsRead(void) const;
+			bool	IsNotVectorPull(void) const;
 	virtual uint8	GetByteLanes(C65C64* pcCPU);
 };
 

@@ -61,7 +61,7 @@ public:
 			CVoltageConfiguration*	GetEqualOrHigherConfiguration(float32 fVcc);
 			CVoltageConfiguration*	GetLowerConfiguration(float32 fVcc);
 			CVoltageConfiguration*	GetDefaultVoltageConfiguration(const char* szLogicLevel);
-			size					NumConfigurations(void);
+			size					NumConfigurations(void) const;
 			CVoltageConfiguration*	GetConfiguration(size uiIndex);
 			char*					GetFamily(void);
 

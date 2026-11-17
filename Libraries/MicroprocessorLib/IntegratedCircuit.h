@@ -88,7 +88,7 @@ public:
 
 			void			Add(CIntegratedCircuitEvent* pcEvent);
 			bool			Remove(CIntegratedCircuitEvent* pcEvent);
-			size			NumEvents(void);
+			size			NumEvents(void) const;
 			CEvent*			GetEvent(size uiIndex);
 
 protected:

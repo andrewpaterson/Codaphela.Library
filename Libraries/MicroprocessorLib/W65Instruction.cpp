@@ -33,7 +33,7 @@ void CW65Instruction::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65Instruction::GetCode(void)
+uint16 CW65Instruction::GetCode(void) const
 {
     return muiCode;
 }
@@ -63,7 +63,7 @@ char* CW65Instruction::GetDescription(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65InstructionCycles* CW65Instruction::GetCycles(void)
+CW65InstructionCycles* CW65Instruction::GetCycles(void) const
 {
     return mpcCycles;
 }

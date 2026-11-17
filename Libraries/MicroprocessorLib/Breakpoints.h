@@ -58,8 +58,8 @@ public:
 
 	bool		Contains(uint32 uiAddress);
 	bool		IsEnabled(uint32 uiAddress);
-	size		NumBreakpoints(void);
-	size		NumEnabled(void);
+	size		NumBreakpoints(void) const;
+	size		NumEnabled(void) const;
 
 	FORCE_INLINE bool	AnyEnabled(void);
 	FORCE_INLINE bool	IsEnabledNext(uint32 uiAddress);

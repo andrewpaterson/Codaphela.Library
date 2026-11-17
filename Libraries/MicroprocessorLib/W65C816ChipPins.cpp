@@ -130,18 +130,18 @@ void CW65C816ChipPins::Free(void)
 //////////////////////////////////////////////////////////////////////////
 CLogicPortBus* CW65C816ChipPins::GetAddress(void) { return &mcAddress; }
 CLogicPortBus* CW65C816ChipPins::GetData(void) { return &mcData; }
-CLogicPort* CW65C816ChipPins::GetVPB(void) { return mpcVPB; }
-CLogicPort* CW65C816ChipPins::GetRDY(void) { return mpcRDY; }
-CLogicPort* CW65C816ChipPins::GetABORTB(void) { return mpcABORTB; }
-CLogicPort* CW65C816ChipPins::GetIRQB(void) { return mpcIRQB; }
-CLogicPort* CW65C816ChipPins::GetNMIB(void) { return mpcNMIB; }
-CLogicPort* CW65C816ChipPins::GetMLB(void) { return mpcMLB; }
-CLogicPort* CW65C816ChipPins::GetVPA(void) { return mpcVPA; }
-CLogicPort* CW65C816ChipPins::GetVDA(void) { return mpcVDA; }
-CLogicPort* CW65C816ChipPins::GetRESB(void) { return mpcRESB; }
-CLogicPort* CW65C816ChipPins::GetMX(void) { return mpcMX; }
-CLogicPort* CW65C816ChipPins::GetPHI2(void) { return mpcPHI2; }
-CLogicPort* CW65C816ChipPins::GetBE(void) { return mpcBE; }
-CLogicPort* CW65C816ChipPins::GetE(void) { return mpcE; }
-CLogicPort* CW65C816ChipPins::GetRWB(void) { return mpcRWB; }
+CLogicPort* CW65C816ChipPins::GetVPB(void) const { return mpcVPB; }
+CLogicPort* CW65C816ChipPins::GetRDY(void) const { return mpcRDY; }
+CLogicPort* CW65C816ChipPins::GetABORTB(void) const { return mpcABORTB; }
+CLogicPort* CW65C816ChipPins::GetIRQB(void) const { return mpcIRQB; }
+CLogicPort* CW65C816ChipPins::GetNMIB(void) const { return mpcNMIB; }
+CLogicPort* CW65C816ChipPins::GetMLB(void) const { return mpcMLB; }
+CLogicPort* CW65C816ChipPins::GetVPA(void) const { return mpcVPA; }
+CLogicPort* CW65C816ChipPins::GetVDA(void) const { return mpcVDA; }
+CLogicPort* CW65C816ChipPins::GetRESB(void) const { return mpcRESB; }
+CLogicPort* CW65C816ChipPins::GetMX(void) const { return mpcMX; }
+CLogicPort* CW65C816ChipPins::GetPHI2(void) const { return mpcPHI2; }
+CLogicPort* CW65C816ChipPins::GetBE(void) const { return mpcBE; }
+CLogicPort* CW65C816ChipPins::GetE(void) const { return mpcE; }
+CLogicPort* CW65C816ChipPins::GetRWB(void) const { return mpcRWB; }
 

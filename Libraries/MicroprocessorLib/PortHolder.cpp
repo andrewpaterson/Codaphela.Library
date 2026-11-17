@@ -120,6 +120,6 @@ CPort* CPortHolder::GetPort(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPortHolder::NumPorts(void) { return mapcPorts.NumElements(); }
+size CPortHolder::NumPorts(void) const { return mapcPorts.NumElements(); }
 CPort* CPortHolder::GetPort(size uiIndex) { return mapcPorts.SafeGetPtr(uiIndex); }
 

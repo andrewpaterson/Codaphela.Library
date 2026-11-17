@@ -43,12 +43,12 @@ public:
 			void		Free(void) override;
 
 			bool		IsClock(CLogicPort* pcPort);
-			CLogicPort*	GetOutputQ(void);
-			CLogicPort*	GetOutputQB(void);
-			CLogicPort*	GetClock(void);
-			CLogicPort*	GetData(void);
-			CLogicPort*	GetSet(void);
-			CLogicPort*	GetReset(void);
+			CLogicPort*	GetOutputQ(void) const;
+			CLogicPort*	GetOutputQB(void) const;
+			CLogicPort*	GetClock(void) const;
+			CLogicPort*	GetData(void) const;
+			CLogicPort*	GetSet(void) const;
+			CLogicPort*	GetReset(void) const;
 };
 
 

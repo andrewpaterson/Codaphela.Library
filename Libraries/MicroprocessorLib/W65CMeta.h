@@ -51,7 +51,7 @@ public:
 	bool			IsFetchOpcodeCycle(void);
 
 	void			SetBank(uint8 uiBank);
-	uint8			GetBank(void);
+	uint8			GetBank(void) const;
 
 protected:
 	void			InitTraces(void* pvContext);

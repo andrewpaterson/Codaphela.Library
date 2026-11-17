@@ -54,7 +54,7 @@ public:
 	void							GetSubcircuitTopSimulations(CArraySubcircuitSimulationPtr* papcSubcircuitSimulations);
 	void							GetSubcircuitInstanceSimulations(CArraySubcircuitSimulationPtr* papcSubcircuitSimulations);
 	void							GetSubcircuitSimulations(CArraySubcircuitSimulationPtr* papcSubcircuitSimulations);
-	size							NumCircuitSimulations(void);
+	size							NumCircuitSimulations(void) const;
 	CCircuitSimulation*				GetCircuitSimulation(size uiIndex);
 
 protected:

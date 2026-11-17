@@ -246,7 +246,7 @@ char* CSubcircuitInstance::GetPinName(size uiIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CSubcircuitInstance::GetType(void) { return "Subcircuit instance"; }
-size CSubcircuitInstance::NumNamedPins(void) { return mapsNamedPins.NumElements(); }
-CSubcircuitInstanceSimulation* CSubcircuitInstance::GetSubcircuitInstanceSimulation(void) { return mpcSubcircuitInstanceSimulation; }
+size CSubcircuitInstance::NumNamedPins(void) const { return mapsNamedPins.NumElements(); }
+CSubcircuitInstanceSimulation* CSubcircuitInstance::GetSubcircuitInstanceSimulation(void) const { return mpcSubcircuitInstanceSimulation; }
 void CSubcircuitInstance::SetSubcircuitInstanceSimulation(CSubcircuitInstanceSimulation* pcSubcircuitInstanceSimulation) { mpcSubcircuitInstanceSimulation = pcSubcircuitInstanceSimulation; }
 
