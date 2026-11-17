@@ -49,6 +49,8 @@ protected:
 	Ptr<CFillContainer>			mpPadded;  //The face less its padding.
 	SInt32Vec2					msPadding;  //On each side of the content, horizontally and vertically.
 	EButtonState				meBorderState;
+	bool						mbBorderless;  //RemoveBorder.
+	ARGB32						muiFaceColour;  //Its face's colour when it has no border.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, int32 iHorizontalPadding, int32 iVerticalPadding);
@@ -62,6 +64,7 @@ public:
 	void				SetPadding(int32 iHorizontal, int32 iVertical);
 	SInt32Vec2			GetPadding(void) const;
 	void				SetImages(Ptr<CButtonImages> pImages);
+	void				RemoveBorder(ARGB32 uiFaceColour);  //Only its face is left, that colour in every state, for one put where there's no room for a border (a number field's edit).
 	Ptr<CButtonImages>	GetImages(void) const;
 	void				SetBorderState(EButtonState eState);
 	void				UpdateBorderState(bool bFocussed);

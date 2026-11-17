@@ -6,6 +6,7 @@
 #include "WindowLib/Focus.h"
 #include "WindowLib/JewelTheme.h"
 #include "WindowLib/NumberField.h"
+#include "WindowLib/TextField.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 
@@ -259,7 +260,8 @@ void TestNumberFieldTyped(void)
 		pField->SetRange(0.0, 10.0);
 		pField->BeginEdit();
 		pWindow->Layout();
-		AssertTrue(pField->GetComponent(0)->GetActualSize() == pField->GetActualSize());  //The text field is the whole of it: its border isn't over its text.
+		AssertInt(pField->GetActualSize().y, pField->GetComponent(0)->GetActualSize().y);  //The text field has no border, so the number has the field's height: a line.
+		AssertInt(pField->GetActualSize().y, Ptr<CTextField>(pField->GetComponent(0))->GetPaddedFace()->GetActualSize().y);
 		pWindow->Paint();
 		if (getenv("NUMBER_FIELD_PICTURE") != NULL)  //NUMBER_FIELD_PICTURE=file saves the window with the number being typed, to look at.
 		{

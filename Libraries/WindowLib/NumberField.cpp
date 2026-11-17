@@ -39,6 +39,8 @@ void CNumberFieldEdit::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, cons
 
 	CTextField::Init(pWindow, pTheme, szText);
 	mpcField = pcField;
+	RemoveBorder(pTheme->GetColour(TC_Border));  //A number field is a line high: a border would leave no room for the number.  The bar's colour, with nothing filled.
+	SetPadding(0, 0);  //It's where the bar was, inside the field's own padding.
 	AddInputAction(CIC_Enter, this, &CNumberFieldEdit::Commit);
 	AddInputAction(CIC_ClearSelection, this, &CNumberFieldEdit::Cancel);
 
@@ -387,7 +389,6 @@ void CNumberField::BeginEdit(void)
 	mpEdit = OMalloc<CNumberFieldEdit>(mpWindow, mpTheme, mpNumber->GetText(), this);
 	mpEdit->SetAlignment(CSH_Stretch, CSV_Stretch);
 	SetHitAsWhole(false);
-	SetInsets(0, 0, 0, 0);  //The text field has the padding of its own, and its border about that.
 	CFillContainer::RemoveAllComponents();
 	CFillContainer::AddComponent(mpEdit);
 	mpEdit->SelectAll();
@@ -431,7 +432,6 @@ void CNumberField::EndEdit(bool bCommit)
 	CFillContainer::AddComponent(mpBar);
 	CFillContainer::AddComponent(mpName);
 	CFillContainer::AddComponent(mpNumber);
-	SetInsets(mpTheme->GetMetric(TM_FieldPaddingY), mpTheme->GetMetric(TM_FieldPaddingX), mpTheme->GetMetric(TM_FieldPaddingY), mpTheme->GetMetric(TM_FieldPaddingX));
 	SetHitAsWhole(true);
 	InvalidateLayout();
 

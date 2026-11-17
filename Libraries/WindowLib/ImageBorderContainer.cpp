@@ -51,6 +51,8 @@ void CImageBorderContainer::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImage
 	mpImages = pImages;
 	maBorderDraws.Init();
 	meBorderState = BS_Normal;
+	mbBorderless = false;
+	muiFaceColour = 0;
 
 	//As a button's: the corners are their tile's size and the edges are a tile thick and stretched along the face.  Every
 	//piece is transparent so what is behind shows through the rounded corners and any empty band.
@@ -107,6 +109,8 @@ void CImageBorderContainer::Class(void)
 	M_Pointer(mpPadded);
 	U_2Int32(msPadding);
 	U_Enum(meBorderState);
+	U_Bool(mbBorderless);
+	U_UInt32(muiFaceColour);
 }
 
 
@@ -203,7 +207,28 @@ void CImageBorderContainer::UpdateBorder(void)
 	{
 		maBorderDraws.Get(i)->SetCel(mpImages->GetCel(meBorderState, (EButtonBorderPiece)i));
 	}
-	mpFaceDraw->SetColour(mpImages->GetFaceColour(meBorderState));
+	mpFaceDraw->SetColour(mbBorderless ? muiFaceColour : mpImages->GetFaceColour(meBorderState));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageBorderContainer::RemoveBorder(ARGB32 uiFaceColour)
+{
+	size	i;
+
+	mbBorderless = true;
+	muiFaceColour = uiFaceColour;
+	mpFaceDraw->SetColour(muiFaceColour);
+
+	//The pieces are its first components (Init).  They stay, of no size, so the grid and the states are as they were.
+	for (i = 0; i < NUM_BUTTON_BORDER_PIECES; i++)
+	{
+		GetComponent(i)->SetDesiredSize(0, 0);
+	}
+	LayoutChanged();
 }
 
 
