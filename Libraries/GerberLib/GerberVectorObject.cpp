@@ -37,7 +37,7 @@ void CGerberVectorObject::SetPolarity(EGerberPolarity ePolarity)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EGerberPolarity CGerberVectorObject::GetPolarity(void)
+EGerberPolarity CGerberVectorObject::GetPolarity(void) const
 {
 	return mePolarity;
 }
@@ -47,7 +47,7 @@ EGerberPolarity CGerberVectorObject::GetPolarity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberVectorObject::IsDark(void)
+bool CGerberVectorObject::IsDark(void) const
 {
 	return mePolarity != GP_Clear;
 }

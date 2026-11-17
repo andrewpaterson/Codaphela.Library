@@ -79,7 +79,7 @@ bool CGerberApertureMacroOutline::IsOutline(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberApertureMacroOutline::NumPositions(void)
+size CGerberApertureMacroOutline::NumPositions(void) const
 {
 	return mcPositions.NumElements();
 }

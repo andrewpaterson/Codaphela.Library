@@ -12,9 +12,9 @@ public:
 	void			Init(EExcellonUnit eUnit);
 	void			Kill(void);
 
-	EExcellonUnit	GetUnit(void);
-	bool			IsInches(void);
-	bool			IsMillimeters(void);
+	EExcellonUnit	GetUnit(void) const;
+	bool			IsInches(void) const;
+	bool			IsMillimeters(void) const;
 };
 
 

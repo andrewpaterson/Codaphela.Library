@@ -23,9 +23,9 @@ public:
 
 	CNumber*						AddValue(void);
 
-	EGerberApertureMacroPrimitive	GetPrimitive(void);
+	EGerberApertureMacroPrimitive	GetPrimitive(void) const;
 	bool							IsPrimitive(EGerberApertureMacroPrimitive ePrimitive);
-	size							NumValues(void);
+	size							NumValues(void) const;
 	CNumber*						GetValue(size uiIndex);
 };
 
@@ -44,7 +44,7 @@ public:
 
 	CGerberEvaluatedPrimitive*	Add(EGerberApertureMacroPrimitive ePrimitive);
 
-	size						NumPrimitives(void);
+	size						NumPrimitives(void) const;
 	CGerberEvaluatedPrimitive*	GetPrimitive(size uiIndex);
 };
 

@@ -14,7 +14,7 @@ public:
 	void		Init(uint32 uiTool, CNumber* pcDiameter);
 	void		Kill(void);
 
-	uint32		GetTool(void);
+	uint32		GetTool(void) const;
 	CNumber*	GetDiameter(void);
 };
 

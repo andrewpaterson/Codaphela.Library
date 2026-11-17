@@ -20,8 +20,8 @@ public:
 	void		SetX(CNumber* pcX);
 	void		SetY(CNumber* pcY);
 
-	bool		HasX(void);
-	bool		HasY(void);
+	bool		HasX(void) const;
+	bool		HasY(void) const;
 	CNumber*	GetX(void);
 	CNumber*	GetY(void);
 };

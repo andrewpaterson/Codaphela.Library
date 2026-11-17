@@ -29,15 +29,15 @@ public:
 	char*				GetName(void);
 	char*				GetDirectory(void);
 
-	size				NumLayers(void);
+	size				NumLayers(void) const;
 	CGerberLayerFile*	GetLayer(size uiIndex);
 	CGerberLayerFile*	GetLayer(EGerberBoardLayer eLayer, EGerberBoardSide eSide);
 
-	size				NumDrills(void);
+	size				NumDrills(void) const;
 	CGerberDrillFile*	GetDrill(size uiIndex);
 	CGerberDrillFile*	GetDrill(EGerberDrillPlating ePlating);
 
-	bool				HasOutlineBounds(void);
+	bool				HasOutlineBounds(void) const;
 	CFloat64Rect*		GetOutlineBounds(void);
 
 protected:

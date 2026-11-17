@@ -37,7 +37,7 @@ public:
 	CGerberApertureMacroThermal*		AddThermal(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
 	CGerberApertureMacroVariableDefinition*	AddVariableDefinition(uint32 uiVariable, CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
 
-	size								NumPrimitives(void);
+	size								NumPrimitives(void) const;
 	CGerberApertureMacro*				GetPrimitive(size uiIndex);
 };
 

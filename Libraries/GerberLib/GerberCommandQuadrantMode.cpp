@@ -35,7 +35,7 @@ bool CGerberCommandQuadrantMode::IsQuadrantMode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandQuadrantMode::IsSingleQuadrant(void)
+bool CGerberCommandQuadrantMode::IsSingleQuadrant(void) const
 {
 	return meMode == GQM_Single;
 }
@@ -45,7 +45,7 @@ bool CGerberCommandQuadrantMode::IsSingleQuadrant(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandQuadrantMode::IsMultiQuadrant(void)
+bool CGerberCommandQuadrantMode::IsMultiQuadrant(void) const
 {
 	return meMode == GQM_Multi;
 }
@@ -55,7 +55,7 @@ bool CGerberCommandQuadrantMode::IsMultiQuadrant(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EGerberQuadrantMode CGerberCommandQuadrantMode::GetMode(void)
+EGerberQuadrantMode CGerberCommandQuadrantMode::GetMode(void) const
 {
 	return meMode;
 }

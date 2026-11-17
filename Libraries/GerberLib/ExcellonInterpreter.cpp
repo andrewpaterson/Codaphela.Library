@@ -62,7 +62,7 @@ bool CExcellonInterpreter::Interpret(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EExcellonUnit CExcellonInterpreter::GetUnit(void)
+EExcellonUnit CExcellonInterpreter::GetUnit(void) const
 {
 	return meUnit;
 }
@@ -72,7 +72,7 @@ EExcellonUnit CExcellonInterpreter::GetUnit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CExcellonInterpreter::NumTools(void)
+size CExcellonInterpreter::NumTools(void) const
 {
 	return mapcTools.NumElements();
 }

@@ -51,7 +51,7 @@ char* CGerberCommandAttribute::AddValue(size iValueLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberCommandAttribute::NumValues(void)
+size CGerberCommandAttribute::NumValues(void) const
 {
 	return mszValues.NumElements();
 }

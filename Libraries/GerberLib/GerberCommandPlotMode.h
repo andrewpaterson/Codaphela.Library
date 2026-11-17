@@ -24,10 +24,10 @@ public:
 
 	bool IsPlotMode(void);
 
-	bool IsLinear(void);
-	bool IsCircular(void);
-	bool IsClockwise(void);
-	bool IsAnticlockwise(void);
+	bool IsLinear(void) const;
+	bool IsCircular(void) const;
+	bool IsClockwise(void) const;
+	bool IsAnticlockwise(void) const;
 };
 
 

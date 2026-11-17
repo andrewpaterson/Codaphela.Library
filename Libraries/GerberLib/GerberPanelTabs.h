@@ -54,11 +54,11 @@ public:
 
 	bool				Calculate(CGerberPanel* pcPanel, CGerberPanelOutlines* pcOutlines);
 
-	size				NumTabs(void);
+	size				NumTabs(void) const;
 	SGerberPanelTab*	GetTab(size uiIndex);
 	void				GetMouseBites(CArrayFloat64Vec2* pasHoles);
 	void				GetTabHoles(SGerberPanelTab* psTab, CArrayFloat64Vec2* pasHoles);
-	float64				GetHoleDiameter(void);
+	float64				GetHoleDiameter(void) const;
 	size				NumMoved(void);  //Tabs moved from their even spacing, off a notch, a corner or copper.
 	size				NumDropped(void);  //Tabs with nowhere straight and clear of copper.
 

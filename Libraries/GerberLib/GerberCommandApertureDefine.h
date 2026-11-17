@@ -20,13 +20,13 @@ public:
 
 	bool		IsApertureDefine(void);
 
-	uint32		GetDCode(void);
+	uint32		GetDCode(void) const;
 	void		SetDCode(uint32 uiDCode);
 	char*		TemplateText(void);
 	void		SetTemplate(const char* szTemplate);
 
 	CNumber*	AddParameter(CNumber* pcParameter);
-	size		NumParameters(void);
+	size		NumParameters(void) const;
 	CNumber*	GetParameter(size uiIndex);
 };
 

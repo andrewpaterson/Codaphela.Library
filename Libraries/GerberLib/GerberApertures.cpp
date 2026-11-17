@@ -75,7 +75,7 @@ CGerberAperture* CGerberApertures::Get(uint32 uiDCode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberApertures::NumApertures(void)
+size CGerberApertures::NumApertures(void) const
 {
 	return macApertures.NumElements();
 }

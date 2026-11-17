@@ -39,7 +39,7 @@ bool CGerberCommandApertureDefine::IsApertureDefine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CGerberCommandApertureDefine::GetDCode(void)
+uint32 CGerberCommandApertureDefine::GetDCode(void) const
 {
 	return muiDCode;
 }
@@ -94,7 +94,7 @@ CNumber* CGerberCommandApertureDefine::AddParameter(CNumber* pcParameter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberCommandApertureDefine::NumParameters(void)
+size CGerberCommandApertureDefine::NumParameters(void) const
 {
 	return macParameters.NumElements();
 }

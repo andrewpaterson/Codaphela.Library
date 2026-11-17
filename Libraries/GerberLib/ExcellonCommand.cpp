@@ -25,7 +25,7 @@ bool CExcellonCommand::IsType(EExcellonCommandEnum eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EExcellonCommandEnum CExcellonCommand::GetType(void)
+EExcellonCommandEnum CExcellonCommand::GetType(void) const
 {
 	return meType;
 }

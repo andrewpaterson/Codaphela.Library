@@ -14,7 +14,7 @@ public:
 
 	bool	IsApertureBlock(void);
 
-	uint32	GetDCode(void);
+	uint32	GetDCode(void) const;
 };
 
 

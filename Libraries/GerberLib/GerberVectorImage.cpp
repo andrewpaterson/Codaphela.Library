@@ -62,7 +62,7 @@ CGerberVectorObject* CGerberVectorObjects::Add(CGerberVectorObject* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberVectorObjects::NumObjects(void)
+size CGerberVectorObjects::NumObjects(void) const
 {
 	return macObjects.NumElements();
 }

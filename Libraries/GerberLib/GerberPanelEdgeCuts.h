@@ -23,7 +23,7 @@ public:
 	bool				Calculate(CGerberPanelOutlines* pcOutlines, CGerberPanelTabs* pcTabs);
 	bool				Write(CChars* psz, float64 fLineWidth = 0.1);
 
-	size				NumLoops(void);
+	size				NumLoops(void) const;
 	CGerberPanelLoop*	GetLoop(size uiIndex);
 
 protected:

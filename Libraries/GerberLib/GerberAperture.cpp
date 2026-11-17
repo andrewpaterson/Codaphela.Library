@@ -67,7 +67,7 @@ void CGerberAperture::SetBlock(CGerberCommandApertureBlock* pcBlock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CGerberAperture::GetDCode(void)
+uint32 CGerberAperture::GetDCode(void) const
 {
 	return muiDCode;
 }
@@ -77,7 +77,7 @@ uint32 CGerberAperture::GetDCode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EGerberApertureType CGerberAperture::GetType(void)
+EGerberApertureType CGerberAperture::GetType(void) const
 {
 	return meType;
 }
@@ -97,7 +97,7 @@ bool CGerberAperture::IsType(EGerberApertureType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberAperture::IsSolidCircle(void)
+bool CGerberAperture::IsSolidCircle(void) const
 {
 	//The only aperture allowed for draws and arcs.  2.4
 	return (meType == GAT_Circle) && (macParameters.NumElements() == 1);
@@ -108,7 +108,7 @@ bool CGerberAperture::IsSolidCircle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberAperture::NumParameters(void)
+size CGerberAperture::NumParameters(void) const
 {
 	return macParameters.NumElements();
 }
@@ -128,7 +128,7 @@ CNumber* CGerberAperture::GetParameter(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberCommandApertureMacro* CGerberAperture::GetMacro(void)
+CGerberCommandApertureMacro* CGerberAperture::GetMacro(void) const
 {
 	return mpcMacro;
 }
@@ -148,7 +148,7 @@ CGerberEvaluatedPrimitives* CGerberAperture::GetPrimitives(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberCommandApertureBlock* CGerberAperture::GetBlock(void)
+CGerberCommandApertureBlock* CGerberAperture::GetBlock(void) const
 {
 	return mpcBlock;
 }

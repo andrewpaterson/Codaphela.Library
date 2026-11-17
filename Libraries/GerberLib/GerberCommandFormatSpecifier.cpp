@@ -38,7 +38,7 @@ bool CGerberCommandFormatSpecifier::IsFormatSpecifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CGerberCommandFormatSpecifier::GetXWholeNumbers(void)
+uint16 CGerberCommandFormatSpecifier::GetXWholeNumbers(void) const
 {
 	return muiXWholes;
 }
@@ -48,7 +48,7 @@ uint16 CGerberCommandFormatSpecifier::GetXWholeNumbers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CGerberCommandFormatSpecifier::GetXDecimals(void)
+uint16 CGerberCommandFormatSpecifier::GetXDecimals(void) const
 {
 	return muiXDecimals;
 }
@@ -58,7 +58,7 @@ uint16 CGerberCommandFormatSpecifier::GetXDecimals(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CGerberCommandFormatSpecifier::GetYWholeNumbers(void)
+uint16 CGerberCommandFormatSpecifier::GetYWholeNumbers(void) const
 {
 	return muiYWholes;
 }
@@ -68,7 +68,7 @@ uint16 CGerberCommandFormatSpecifier::GetYWholeNumbers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CGerberCommandFormatSpecifier::GetYDecimals(void)
+uint16 CGerberCommandFormatSpecifier::GetYDecimals(void) const
 {
 	return muiYDecimals;
 }

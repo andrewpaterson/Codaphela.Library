@@ -55,7 +55,7 @@ CCalculator* CGerberExpression::GetCalculator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CGerberExpression::GetConstNumber(void)
+CNumber* CGerberExpression::GetConstNumber(void) const
 {
 	CCalcConstExpression*	pcConst;
 
@@ -198,7 +198,7 @@ bool EvaluateGerberCalcExpression(CCalcExpression* pcExpression, CGerberMacroVar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberExpression::IsSet(void)
+bool CGerberExpression::IsSet(void) const
 {
 	return mpcExpression != NULL;
 }

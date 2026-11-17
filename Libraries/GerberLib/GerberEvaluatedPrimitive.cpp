@@ -40,7 +40,7 @@ CNumber* CGerberEvaluatedPrimitive::AddValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EGerberApertureMacroPrimitive CGerberEvaluatedPrimitive::GetPrimitive(void)
+EGerberApertureMacroPrimitive CGerberEvaluatedPrimitive::GetPrimitive(void) const
 {
 	return mePrimitive;
 }
@@ -60,7 +60,7 @@ bool CGerberEvaluatedPrimitive::IsPrimitive(EGerberApertureMacroPrimitive ePrimi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberEvaluatedPrimitive::NumValues(void)
+size CGerberEvaluatedPrimitive::NumValues(void) const
 {
 	return macValues.NumElements();
 }
@@ -122,7 +122,7 @@ CGerberEvaluatedPrimitive* CGerberEvaluatedPrimitives::Add(EGerberApertureMacroP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberEvaluatedPrimitives::NumPrimitives(void)
+size CGerberEvaluatedPrimitives::NumPrimitives(void) const
 {
 	return macPrimitives.NumElements();
 }

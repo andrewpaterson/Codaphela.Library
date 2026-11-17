@@ -42,7 +42,7 @@ bool CGerberCommandOperation::IsOperation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandOperation::IsPlot(void)
+bool CGerberCommandOperation::IsPlot(void) const
 {
 	return meType == GC_D01;
 }
@@ -52,7 +52,7 @@ bool CGerberCommandOperation::IsPlot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandOperation::IsMove(void)
+bool CGerberCommandOperation::IsMove(void) const
 {
 	return meType == GC_D02;
 }
@@ -62,7 +62,7 @@ bool CGerberCommandOperation::IsMove(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandOperation::IsFlash(void)
+bool CGerberCommandOperation::IsFlash(void) const
 {
 	return meType == GC_D03;
 }
@@ -116,7 +116,7 @@ void CGerberCommandOperation::SetJ(CNumber* pcJ)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandOperation::HasX(void)
+bool CGerberCommandOperation::HasX(void) const
 {
 	return mbX;
 }
@@ -126,7 +126,7 @@ bool CGerberCommandOperation::HasX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandOperation::HasY(void)
+bool CGerberCommandOperation::HasY(void) const
 {
 	return mbY;
 }
@@ -136,7 +136,7 @@ bool CGerberCommandOperation::HasY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandOperation::HasI(void)
+bool CGerberCommandOperation::HasI(void) const
 {
 	return mbI;
 }
@@ -146,7 +146,7 @@ bool CGerberCommandOperation::HasI(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandOperation::HasJ(void)
+bool CGerberCommandOperation::HasJ(void) const
 {
 	return mbJ;
 }

@@ -44,7 +44,7 @@ public:
 	void	Init(CGerberVectorImage* pcImage);
 	void	Kill(void);
 
-	bool	HasError(void);
+	bool	HasError(void) const;
 	char*	GetError(void);
 
 	void	Move(CGerberGraphicsState* pcState, SGerberPoint* psPoint);

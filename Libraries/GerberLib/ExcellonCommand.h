@@ -14,7 +14,7 @@ public:
 	virtual void					Kill(void) = 0;
 
 			bool					IsType(EExcellonCommandEnum eType);
-			EExcellonCommandEnum	GetType(void);
+			EExcellonCommandEnum	GetType(void) const;
 };
 
 

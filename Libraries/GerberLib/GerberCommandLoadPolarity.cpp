@@ -35,7 +35,7 @@ bool CGerberCommandLoadPolarity::IsLoadPolarity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadPolarity::IsDark(void)
+bool CGerberCommandLoadPolarity::IsDark(void) const
 {
 	return mePolarity == GP_Dark;
 }
@@ -45,7 +45,7 @@ bool CGerberCommandLoadPolarity::IsDark(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadPolarity::IsClear(void)
+bool CGerberCommandLoadPolarity::IsClear(void) const
 {
 	return mePolarity == GP_Clear;
 }

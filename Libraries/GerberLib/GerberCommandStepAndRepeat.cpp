@@ -29,7 +29,7 @@ bool CGerberCommandStepAndRepeat::IsStepAndRepeat(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CGerberCommandStepAndRepeat::GetXRepeats(void)
+uint32 CGerberCommandStepAndRepeat::GetXRepeats(void) const
 {
 	return muiXRepeats;
 }
@@ -39,7 +39,7 @@ uint32 CGerberCommandStepAndRepeat::GetXRepeats(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CGerberCommandStepAndRepeat::GetYRepeats(void)
+uint32 CGerberCommandStepAndRepeat::GetYRepeats(void) const
 {
 	return muiYRepeats;
 }

@@ -76,7 +76,7 @@ void CExcellonCommandSlot::SetEndY(CNumber* pcY)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExcellonCommandSlot::HasStartX(void)
+bool CExcellonCommandSlot::HasStartX(void) const
 {
 	return mbStartX;
 }
@@ -86,7 +86,7 @@ bool CExcellonCommandSlot::HasStartX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExcellonCommandSlot::HasStartY(void)
+bool CExcellonCommandSlot::HasStartY(void) const
 {
 	return mbStartY;
 }
@@ -96,7 +96,7 @@ bool CExcellonCommandSlot::HasStartY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExcellonCommandSlot::HasEndX(void)
+bool CExcellonCommandSlot::HasEndX(void) const
 {
 	return mbEndX;
 }
@@ -106,7 +106,7 @@ bool CExcellonCommandSlot::HasEndX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExcellonCommandSlot::HasEndY(void)
+bool CExcellonCommandSlot::HasEndY(void) const
 {
 	return mbEndY;
 }

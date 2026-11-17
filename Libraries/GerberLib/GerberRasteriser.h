@@ -21,12 +21,12 @@ public:
 
 	void			Clear(void);
 
-	uint8*			GetData(void);
-	int				GetWidth(void);
-	int				GetHeight(void);
+	uint8*			GetData(void) const;
+	int				GetWidth(void) const;
+	int				GetHeight(void) const;
 	uint8			Get(int x, int y);
 	SFloat64Vec2*	GetOrigin(void);
-	float64			GetPixelsPerMillimetre(void);
+	float64			GetPixelsPerMillimetre(void) const;
 	float64			Area(void);
 };
 

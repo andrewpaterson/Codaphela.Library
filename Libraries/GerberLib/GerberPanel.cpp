@@ -256,8 +256,8 @@ CGerberPanelPlacement* CGerberPanel::GetPlacement(CGerberFileSet* pcSet)
 //
 //////////////////////////////////////////////////////////////////////////
 SFloat64Vec2* CGerberPanel::GetSize(void) {return &msSize;}
-float64 CGerberPanel::GetGap(void) {return mfGap;}
-float64 CGerberPanel::GetEdge(void) {return mfEdge;}
-size CGerberPanel::NumPlacements(void) {return macPlacements.NumElements();}
+float64 CGerberPanel::GetGap(void) const {return mfGap;}
+float64 CGerberPanel::GetEdge(void) const {return mfEdge;}
+size CGerberPanel::NumPlacements(void) const {return macPlacements.NumElements();}
 CGerberPanelPlacement* CGerberPanel::GetPlacement(size uiIndex) {return macPlacements.SafeGet(uiIndex);}
 

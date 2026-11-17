@@ -19,7 +19,7 @@ public:
 
 	char*	NameText(void);
 
-	size	NumValues(void);
+	size	NumValues(void) const;
 	char*	ValueText(size uiIndex);
 };
 

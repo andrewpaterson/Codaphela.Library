@@ -23,8 +23,8 @@ public:
 
 	bool IsLoadPolarity(void);
 
-	bool IsDark(void);
-	bool IsClear(void);
+	bool IsDark(void) const;
+	bool IsClear(void) const;
 };
 
 

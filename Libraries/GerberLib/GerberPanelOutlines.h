@@ -64,7 +64,7 @@ public:
 	bool				Read(CGerberPanel* pcPanel);
 	bool				Read(CGerberFileSet* pcSet);  //One board, or a panel's files, where they are.
 
-	size				NumBoards(void);
+	size				NumBoards(void) const;
 	CGerberPanelLoop*	GetOuterLoop(size uiBoard);
 	size				NumBoardLoops(size uiBoard);
 	CGerberPanelLoop*	GetBoardLoop(size uiBoard, size uiIndex);

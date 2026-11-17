@@ -24,19 +24,19 @@ public:
 	void		Kill(void);
 
 	bool		IsOperation(void);
-	bool		IsPlot(void);
-	bool		IsMove(void);
-	bool		IsFlash(void);
+	bool		IsPlot(void) const;
+	bool		IsMove(void) const;
+	bool		IsFlash(void) const;
 
 	void		SetX(CNumber* pcX);
 	void		SetY(CNumber* pcY);
 	void		SetI(CNumber* pcI);
 	void		SetJ(CNumber* pcJ);
 
-	bool		HasX(void);
-	bool		HasY(void);
-	bool		HasI(void);
-	bool		HasJ(void);
+	bool		HasX(void) const;
+	bool		HasY(void) const;
+	bool		HasI(void) const;
+	bool		HasJ(void) const;
 
 	CNumber*	GetX(void);
 	CNumber*	GetY(void);

@@ -40,7 +40,7 @@ bool CGerberCommandCompound::IsCompound(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberCommands* CGerberCommandCompound::GetCommands(void)
+CGerberCommands* CGerberCommandCompound::GetCommands(void) const
 {
 	return mpcCommands;
 }

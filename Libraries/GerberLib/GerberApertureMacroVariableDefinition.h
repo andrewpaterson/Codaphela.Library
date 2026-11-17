@@ -19,7 +19,7 @@ public:
 
 	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
 
-	uint32				GetVariable(void);
+	uint32				GetVariable(void) const;
 	CGerberExpression*	GetExpression(void);
 };
 

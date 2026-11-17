@@ -11,7 +11,7 @@ public:
 	void	Kill(void);
 
 	bool	IsDeleteAttribute(void);
-	bool	IsDeleteAll(void);
+	bool	IsDeleteAll(void) const;
 };
 
 

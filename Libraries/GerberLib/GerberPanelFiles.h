@@ -29,7 +29,7 @@ public:
 	CGerberPanelOutlines*	GetOutlines(void);
 	CGerberPanelTabs*		GetTabs(void);
 	CGerberPanelEdgeCuts*	GetEdgeCuts(void);
-	size					NumFiles(void);
+	size					NumFiles(void) const;
 	char*					GetFile(size uiIndex);
 
 protected:

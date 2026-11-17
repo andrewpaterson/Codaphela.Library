@@ -22,8 +22,8 @@ public:
 	void Kill(void);
 
 	bool IsMeasurementMode(void);
-	bool IsMillimeters(void);
-	bool IsInches(void);
+	bool IsMillimeters(void) const;
+	bool IsInches(void) const;
 };
 
 

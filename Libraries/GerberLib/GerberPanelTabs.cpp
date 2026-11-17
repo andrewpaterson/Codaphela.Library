@@ -544,9 +544,9 @@ void CGerberPanelTabs::GetTabHoles(SGerberPanelTab* psTab, CArrayFloat64Vec2* pa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberPanelTabs::NumTabs(void) {return masTabs.NumElements();}
+size CGerberPanelTabs::NumTabs(void) const {return masTabs.NumElements();}
 SGerberPanelTab* CGerberPanelTabs::GetTab(size uiIndex) {return masTabs.SafeGet(uiIndex);}
-float64 CGerberPanelTabs::GetHoleDiameter(void) {return mfHoleDiameter;}
+float64 CGerberPanelTabs::GetHoleDiameter(void) const {return mfHoleDiameter;}
 size CGerberPanelTabs::NumMoved(void) {return muiMoved;}
 size CGerberPanelTabs::NumDropped(void) {return muiDropped;}
 

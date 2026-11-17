@@ -16,7 +16,7 @@ public:
 	CGerberFileSet*	Add(char* szDirectory);
 	bool			AddDirectories(char* szParentDirectory);
 
-	size			NumSets(void);
+	size			NumSets(void) const;
 	CGerberFileSet*	Get(size uiIndex);
 	CGerberFileSet*	Get(char* szName);
 };

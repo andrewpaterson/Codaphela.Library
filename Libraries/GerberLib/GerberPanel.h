@@ -48,9 +48,9 @@ public:
 	bool					Pack(CGerberFileSets* pcSets);
 
 	SFloat64Vec2*			GetSize(void);
-	float64					GetGap(void);
-	float64					GetEdge(void);
-	size					NumPlacements(void);
+	float64					GetGap(void) const;
+	float64					GetEdge(void) const;
+	size					NumPlacements(void) const;
 	CGerberPanelPlacement*	GetPlacement(size uiIndex);
 	CGerberPanelPlacement*	GetPlacement(CGerberFileSet* pcSet);
 

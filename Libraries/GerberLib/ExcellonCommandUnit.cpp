@@ -25,7 +25,7 @@ void CExcellonCommandUnit::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EExcellonUnit CExcellonCommandUnit::GetUnit(void)
+EExcellonUnit CExcellonCommandUnit::GetUnit(void) const
 {
 	return meUnit;
 }
@@ -35,7 +35,7 @@ EExcellonUnit CExcellonCommandUnit::GetUnit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExcellonCommandUnit::IsInches(void)
+bool CExcellonCommandUnit::IsInches(void) const
 {
 	return meUnit == EU_Inches;
 }
@@ -45,7 +45,7 @@ bool CExcellonCommandUnit::IsInches(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExcellonCommandUnit::IsMillimeters(void)
+bool CExcellonCommandUnit::IsMillimeters(void) const
 {
 	return meUnit == EU_Millimeters;
 }

@@ -16,8 +16,8 @@ public:
 	void				Init(CGerberVectorObject* pcSource);
 
 	void				SetPolarity(EGerberPolarity ePolarity);
-	EGerberPolarity		GetPolarity(void);
-	bool				IsDark(void);
+	EGerberPolarity		GetPolarity(void) const;
+	bool				IsDark(void) const;
 };
 
 

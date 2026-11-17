@@ -18,7 +18,7 @@ public:
 
 	bool				IsCompound(void);
 
-	CGerberCommands*	GetCommands(void);
+	CGerberCommands*	GetCommands(void) const;
 };
 
 

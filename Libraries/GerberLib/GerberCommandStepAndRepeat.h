@@ -18,8 +18,8 @@ public:
 
 	bool		IsStepAndRepeat(void);
 
-	uint32		GetXRepeats(void);
-	uint32		GetYRepeats(void);
+	uint32		GetXRepeats(void) const;
+	uint32		GetYRepeats(void) const;
 	CNumber*	GetXStep(void);
 	CNumber*	GetYStep(void);
 };

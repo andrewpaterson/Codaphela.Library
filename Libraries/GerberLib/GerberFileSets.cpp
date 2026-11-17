@@ -118,6 +118,6 @@ CGerberFileSet* CGerberFileSets::Get(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberFileSets::NumSets(void) {return macSets.NumElements();}
+size CGerberFileSets::NumSets(void) const {return macSets.NumElements();}
 CGerberFileSet* CGerberFileSets::Get(size uiIndex) {return macSets.SafeGetPtr(uiIndex);}
 

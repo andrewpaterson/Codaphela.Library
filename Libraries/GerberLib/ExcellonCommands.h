@@ -31,7 +31,7 @@ public:
 	CExcellonCommandCoordinate*		AddCoordinate(EExcellonCommandEnum eType);
 	CExcellonCommandSlot*			AddSlot(void);
 
-	size							NumCommands(void);
+	size							NumCommands(void) const;
 	CExcellonCommand*				GetCommand(size uiIndex);
 };
 

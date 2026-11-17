@@ -21,10 +21,10 @@ public:
 	void				Kill(void);
 
 	bool				IsQuadrantMode(void);
-	bool				IsSingleQuadrant(void);
-	bool				IsMultiQuadrant(void);
+	bool				IsSingleQuadrant(void) const;
+	bool				IsMultiQuadrant(void) const;
 
-	EGerberQuadrantMode	GetMode(void);
+	EGerberQuadrantMode	GetMode(void) const;
 };
 
 

@@ -24,8 +24,8 @@ public:
 
 	char*				GetFileName(void);
 	CGerberCommands*	GetCommands(void);
-	EGerberBoardLayer	GetLayer(void);
-	EGerberBoardSide	GetSide(void);
+	EGerberBoardLayer	GetLayer(void) const;
+	EGerberBoardSide	GetSide(void) const;
 
 protected:
 	void				IdentifyLayer(void);

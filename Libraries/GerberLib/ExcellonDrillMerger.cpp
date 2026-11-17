@@ -514,7 +514,7 @@ bool CExcellonDrillMerger::Write(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CExcellonDrillMerger::NumTools(void)
+size CExcellonDrillMerger::NumTools(void) const
 {
 	return mapcTools.NumElements();
 }

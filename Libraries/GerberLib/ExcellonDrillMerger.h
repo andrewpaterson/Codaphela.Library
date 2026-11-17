@@ -85,7 +85,7 @@ public:
 	void	AddHoles(CNumber* pcDiameter, CArrayChars* paszFunction, SFloat64Vec2* asHoles, size uiNumHoles);
 	bool	Write(CChars* psz);
 
-	size	NumTools(void);
+	size	NumTools(void) const;
 	size	NumHoles(void);
 	size	NumSlots(void);
 

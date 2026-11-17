@@ -40,7 +40,7 @@ bool CGerberApertureMacroVariableDefinition::IsVariableDefinition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CGerberApertureMacroVariableDefinition::GetVariable(void)
+uint32 CGerberApertureMacroVariableDefinition::GetVariable(void) const
 {
 	return muiVariable;
 }

@@ -26,7 +26,7 @@ bool CGerberCommandApertureBlock::IsApertureBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CGerberCommandApertureBlock::GetDCode(void)
+uint32 CGerberCommandApertureBlock::GetDCode(void) const
 {
 	return muiDCode;
 }

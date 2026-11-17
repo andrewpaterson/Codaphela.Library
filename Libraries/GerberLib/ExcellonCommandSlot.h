@@ -27,10 +27,10 @@ public:
 	void		SetEndX(CNumber* pcX);
 	void		SetEndY(CNumber* pcY);
 
-	bool		HasStartX(void);
-	bool		HasStartY(void);
-	bool		HasEndX(void);
-	bool		HasEndY(void);
+	bool		HasStartX(void) const;
+	bool		HasStartY(void) const;
+	bool		HasEndX(void) const;
+	bool		HasEndY(void) const;
 	CNumber*	GetStartX(void);
 	CNumber*	GetStartY(void);
 	CNumber*	GetEndX(void);

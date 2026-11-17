@@ -32,8 +32,8 @@ public:
 
 	bool						Interpret(void);
 
-	EExcellonUnit				GetUnit(void);
-	size						NumTools(void);
+	EExcellonUnit				GetUnit(void) const;
+	size						NumTools(void) const;
 	CExcellonCommandToolDefine*	GetTool(uint32 uiTool);
 
 protected:

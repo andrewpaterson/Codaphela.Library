@@ -35,7 +35,7 @@ bool CGerberCommandPlotMode::IsPlotMode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandPlotMode::IsLinear(void)
+bool CGerberCommandPlotMode::IsLinear(void) const
 {
 	return meMode == GPM_Linear;
 }
@@ -45,7 +45,7 @@ bool CGerberCommandPlotMode::IsLinear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandPlotMode::IsCircular(void)
+bool CGerberCommandPlotMode::IsCircular(void) const
 {
 	return	meMode == GPM_CircularClockwise || 
 			meMode == GPM_CircularAnticlockwise;
@@ -56,7 +56,7 @@ bool CGerberCommandPlotMode::IsCircular(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandPlotMode::IsClockwise(void)
+bool CGerberCommandPlotMode::IsClockwise(void) const
 {
 	return meMode == GPM_CircularClockwise;
 }
@@ -66,7 +66,7 @@ bool CGerberCommandPlotMode::IsClockwise(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandPlotMode::IsAnticlockwise(void)
+bool CGerberCommandPlotMode::IsAnticlockwise(void) const
 {
 	return	meMode == GPM_CircularAnticlockwise;
 }

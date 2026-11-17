@@ -248,6 +248,6 @@ bool CGerberPanelFiles::WriteDrills(const char* szDirectory, const char* szName,
 CGerberPanelOutlines* CGerberPanelFiles::GetOutlines(void) {return &mcOutlines;}
 CGerberPanelTabs* CGerberPanelFiles::GetTabs(void) {return &mcTabs;}
 CGerberPanelEdgeCuts* CGerberPanelFiles::GetEdgeCuts(void) {return &mcEdgeCuts;}
-size CGerberPanelFiles::NumFiles(void) {return maszFiles.NumElements();}
+size CGerberPanelFiles::NumFiles(void) const {return maszFiles.NumElements();}
 char* CGerberPanelFiles::GetFile(size uiIndex) {return maszFiles.Get(uiIndex)->Text();}
 

@@ -71,7 +71,7 @@ void CGerberRaster::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CGerberRaster::GetData(void)
+uint8* CGerberRaster::GetData(void) const
 {
 	return mpuiData;
 }
@@ -81,7 +81,7 @@ uint8* CGerberRaster::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CGerberRaster::GetWidth(void)
+int CGerberRaster::GetWidth(void) const
 {
 	return miWidth;
 }
@@ -91,7 +91,7 @@ int CGerberRaster::GetWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CGerberRaster::GetHeight(void)
+int CGerberRaster::GetHeight(void) const
 {
 	return miHeight;
 }
@@ -121,7 +121,7 @@ SFloat64Vec2* CGerberRaster::GetOrigin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CGerberRaster::GetPixelsPerMillimetre(void)
+float64 CGerberRaster::GetPixelsPerMillimetre(void) const
 {
 	return mfPixelsPerMillimetre;
 }

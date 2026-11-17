@@ -147,7 +147,7 @@ CExcellonCommandSlot* CExcellonCommands::AddSlot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CExcellonCommands::NumCommands(void)
+size CExcellonCommands::NumCommands(void) const
 {
 	return macCommands.NumElements();
 }

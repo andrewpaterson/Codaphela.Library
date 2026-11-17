@@ -25,12 +25,12 @@ public:
 
 	bool IsLoadMirroring(void);
 
-	bool IsNone(void);
-	bool IsX(void);
-	bool IsY(void);
-	bool IsXY(void);
+	bool IsNone(void) const;
+	bool IsX(void) const;
+	bool IsY(void) const;
+	bool IsXY(void) const;
 
-	EGerberMirroring	GetMirroring(void);
+	EGerberMirroring	GetMirroring(void) const;
 };
 
 

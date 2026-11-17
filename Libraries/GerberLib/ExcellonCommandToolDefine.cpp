@@ -26,7 +26,7 @@ void CExcellonCommandToolDefine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CExcellonCommandToolDefine::GetTool(void)
+uint32 CExcellonCommandToolDefine::GetTool(void) const
 {
 	return muiTool;
 }

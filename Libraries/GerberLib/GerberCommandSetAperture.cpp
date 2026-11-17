@@ -35,7 +35,7 @@ bool CGerberCommandSetAperture::IsSetAperture(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CGerberCommandSetAperture::GetDCode(void)
+uint32 CGerberCommandSetAperture::GetDCode(void) const
 {
 	return muiDCode;
 }

@@ -399,6 +399,6 @@ bool CGerberPanelEdgeCuts::Write(CChars* psz, float64 fLineWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberPanelEdgeCuts::NumLoops(void) {return mapcLoops.NumElements();}
+size CGerberPanelEdgeCuts::NumLoops(void) const {return mapcLoops.NumElements();}
 CGerberPanelLoop* CGerberPanelEdgeCuts::GetLoop(size uiIndex) {return mapcLoops.SafeGetPtr(uiIndex);}
 

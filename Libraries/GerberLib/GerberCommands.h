@@ -55,7 +55,7 @@ public:
 	CGerberCommandApertureMacro*		AddApertureMacro(size iNameLength);
 	CGerberCommandEndOfFile*			AddEndOfFile(void);
 	
-	size								NumCommands(void);
+	size								NumCommands(void) const;
 	CGerberCommand*						GetCommand(size uiIndex);
 };
 

@@ -17,10 +17,10 @@ public:
 	void	Kill(void);
 
 	bool	IsFormatSpecifier(void);
-	uint16	GetXWholeNumbers(void);
-	uint16	GetXDecimals(void);
-	uint16	GetYWholeNumbers(void);
-	uint16	GetYDecimals(void);
+	uint16	GetXWholeNumbers(void) const;
+	uint16	GetXDecimals(void) const;
+	uint16	GetYWholeNumbers(void) const;
+	uint16	GetYDecimals(void) const;
 };
 
 

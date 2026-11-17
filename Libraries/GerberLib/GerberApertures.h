@@ -17,7 +17,7 @@ public:
 	CGerberAperture*	Add(uint32 uiDCode, EGerberApertureType eType);
 	CGerberAperture*	Get(uint32 uiDCode);
 
-	size				NumApertures(void);
+	size				NumApertures(void) const;
 	CGerberAperture*	GetAperture(size uiIndex);
 };
 

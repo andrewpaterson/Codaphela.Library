@@ -12,7 +12,7 @@ public:
 	void	Init(uint32 uiTool);
 	void	Kill(void);
 
-	uint32	GetTool(void);
+	uint32	GetTool(void) const;
 };
 
 

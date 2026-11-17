@@ -13,7 +13,7 @@ public:
 	void	Init(uint16 uiFormat);
 	void	Kill(void);
 
-	uint16	GetFormat(void);
+	uint16	GetFormat(void) const;
 };
 
 

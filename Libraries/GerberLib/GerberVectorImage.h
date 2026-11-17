@@ -19,7 +19,7 @@ public:
 	CGerberVectorObject*	Add(EGerberPolarity ePolarity);
 	CGerberVectorObject*	Add(CGerberVectorObject* pcSource);
 
-	size					NumObjects(void);
+	size					NumObjects(void) const;
 	CGerberVectorObject*	GetObject(size uiIndex);
 };
 

@@ -18,11 +18,11 @@ public:
 
 	CCalculator*	GetCalculator(void);
 	void			SetCalcExpression(CCalcExpression* pcExpression);
-	CNumber*		GetConstNumber(void);
+	CNumber*		GetConstNumber(void) const;
 	float64			DoubleValue(void);
 
 	bool			Evaluate(CGerberMacroVariables* pcVariables, CNumber* pcResult);
-	bool			IsSet(void);
+	bool			IsSet(void) const;
 	bool			Print(CChars* psz);
 	bool			Parse(const char* szText, CCalculatorSymbols* pcSymbols);  //Replaces the expression.  The symbols the expression was parsed with may be gone.
 };

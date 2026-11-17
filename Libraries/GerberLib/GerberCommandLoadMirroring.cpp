@@ -35,7 +35,7 @@ bool CGerberCommandLoadMirroring::IsLoadMirroring(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadMirroring::IsNone(void)
+bool CGerberCommandLoadMirroring::IsNone(void) const
 {
 	return meMirroring == GLM_None;
 }
@@ -45,7 +45,7 @@ bool CGerberCommandLoadMirroring::IsNone(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadMirroring::IsX(void)
+bool CGerberCommandLoadMirroring::IsX(void) const
 {
 	return meMirroring == GLM_X;
 }
@@ -55,7 +55,7 @@ bool CGerberCommandLoadMirroring::IsX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadMirroring::IsY(void)
+bool CGerberCommandLoadMirroring::IsY(void) const
 {
 	return meMirroring == GLM_Y;
 }
@@ -65,7 +65,7 @@ bool CGerberCommandLoadMirroring::IsY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadMirroring::IsXY(void)
+bool CGerberCommandLoadMirroring::IsXY(void) const
 {
 	return meMirroring == GLM_XY;
 }
@@ -75,7 +75,7 @@ bool CGerberCommandLoadMirroring::IsXY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EGerberMirroring CGerberCommandLoadMirroring::GetMirroring(void)
+EGerberMirroring CGerberCommandLoadMirroring::GetMirroring(void) const
 {
 	return meMirroring;
 }

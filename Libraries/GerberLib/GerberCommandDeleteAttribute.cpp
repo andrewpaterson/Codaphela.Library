@@ -35,7 +35,7 @@ bool CGerberCommandDeleteAttribute::IsDeleteAttribute(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandDeleteAttribute::IsDeleteAll(void)
+bool CGerberCommandDeleteAttribute::IsDeleteAll(void) const
 {
 	return mszName.Empty();
 }

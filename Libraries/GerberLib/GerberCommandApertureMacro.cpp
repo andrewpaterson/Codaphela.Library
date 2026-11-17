@@ -171,7 +171,7 @@ bool CGerberCommandApertureMacro::IsApertureMacro(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberCommandApertureMacro::NumPrimitives(void)
+size CGerberCommandApertureMacro::NumPrimitives(void) const
 {
 	return macPrimitives.NumElements();
 }

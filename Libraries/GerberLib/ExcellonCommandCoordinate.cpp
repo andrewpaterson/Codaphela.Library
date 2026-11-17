@@ -50,7 +50,7 @@ void CExcellonCommandCoordinate::SetY(CNumber* pcY)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExcellonCommandCoordinate::HasX(void)
+bool CExcellonCommandCoordinate::HasX(void) const
 {
 	return mbX;
 }
@@ -60,7 +60,7 @@ bool CExcellonCommandCoordinate::HasX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExcellonCommandCoordinate::HasY(void)
+bool CExcellonCommandCoordinate::HasY(void) const
 {
 	return mbY;
 }

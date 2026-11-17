@@ -54,7 +54,7 @@ void CGerberVectoriser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberVectoriser::HasError(void)
+bool CGerberVectoriser::HasError(void) const
 {
 	return mbError;
 }

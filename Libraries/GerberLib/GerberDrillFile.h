@@ -29,7 +29,7 @@ public:
 
 	char*					GetFileName(void);
 	CExcellonCommands*		GetCommands(void);
-	EGerberDrillPlating		GetPlating(void);
+	EGerberDrillPlating		GetPlating(void) const;
 
 protected:
 	void					IdentifyPlating(void);

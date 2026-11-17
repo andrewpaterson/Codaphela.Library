@@ -332,7 +332,7 @@ CGerberCommandEndOfFile* CGerberCommands::AddEndOfFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberCommands::NumCommands(void)
+size CGerberCommands::NumCommands(void) const
 {
 	return macCommands.NumElements();
 }

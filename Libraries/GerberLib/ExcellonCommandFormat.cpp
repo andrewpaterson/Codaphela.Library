@@ -25,7 +25,7 @@ void CExcellonCommandFormat::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CExcellonCommandFormat::GetFormat(void)
+uint16 CExcellonCommandFormat::GetFormat(void) const
 {
 	return muiFormat;
 }

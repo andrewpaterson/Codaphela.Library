@@ -493,7 +493,7 @@ bool CGerberPanelOutlines::JoinPieces(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGerberPanelOutlines::NumBoards(void)
+size CGerberPanelOutlines::NumBoards(void) const
 {
 	return maiOuterLoops.NumElements();
 }

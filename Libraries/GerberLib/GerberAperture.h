@@ -39,17 +39,17 @@ public:
 	void							SetMacro(CGerberCommandApertureMacro* pcMacro);
 	void							SetBlock(CGerberCommandApertureBlock* pcBlock);
 
-	uint32							GetDCode(void);
-	EGerberApertureType				GetType(void);
+	uint32							GetDCode(void) const;
+	EGerberApertureType				GetType(void) const;
 	bool							IsType(EGerberApertureType eType);
-	bool							IsSolidCircle(void);
+	bool							IsSolidCircle(void) const;
 
-	size							NumParameters(void);
+	size							NumParameters(void) const;
 	CNumber*						GetParameter(size uiIndex);
 
-	CGerberCommandApertureMacro*	GetMacro(void);
+	CGerberCommandApertureMacro*	GetMacro(void) const;
 	CGerberEvaluatedPrimitives*		GetPrimitives(void);
-	CGerberCommandApertureBlock*	GetBlock(void);
+	CGerberCommandApertureBlock*	GetBlock(void) const;
 };
 
 

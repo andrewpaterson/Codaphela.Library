@@ -51,7 +51,7 @@ char* CExcellonCommandAttribute::NameText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CExcellonCommandAttribute::NumValues(void)
+size CExcellonCommandAttribute::NumValues(void) const
 {
 	return maszValues.NumElements();
 }

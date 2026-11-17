@@ -266,10 +266,10 @@ CGerberDrillFile* CGerberFileSet::GetDrill(EGerberDrillPlating ePlating)
 //////////////////////////////////////////////////////////////////////////
 char* CGerberFileSet::GetName(void) {return mszName.Text();}
 char* CGerberFileSet::GetDirectory(void) {return mszDirectory.Text();}
-size CGerberFileSet::NumLayers(void) {return macLayers.NumElements();}
+size CGerberFileSet::NumLayers(void) const {return macLayers.NumElements();}
 CGerberLayerFile* CGerberFileSet::GetLayer(size uiIndex) {return macLayers.SafeGetPtr(uiIndex);}
-size CGerberFileSet::NumDrills(void) {return macDrills.NumElements();}
+size CGerberFileSet::NumDrills(void) const {return macDrills.NumElements();}
 CGerberDrillFile* CGerberFileSet::GetDrill(size uiIndex) {return macDrills.SafeGetPtr(uiIndex);}
-bool CGerberFileSet::HasOutlineBounds(void) {return mbOutlineBounds;}
+bool CGerberFileSet::HasOutlineBounds(void) const {return mbOutlineBounds;}
 CFloat64Rect* CGerberFileSet::GetOutlineBounds(void) {return &mcOutlineBounds;}
 
