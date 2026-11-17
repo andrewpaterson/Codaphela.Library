@@ -305,6 +305,11 @@ EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 	eResult = InitialiseVolumeLabel();
 	RETURN_ON_FAT_FAILURE(eResult);
 
+	//What is known of the free clusters without a FAT32 file system info sector (a FAT16 volume has none): no cluster
+	//to start looking from, and all but one taken as free.  They were left as whatever the volume's memory held.
+	muiNextFreeCluster = 0xFFFFFFFF;
+	muiTotalFreeClusters = muiNoOfClusters - 1;
+
 	// if we find a valid FatFileSystemInfo structure we'll use it
 	if ((meFileSystem == FAT_FS_TYPE_FAT32) && (muiFileSystemInfoSector > 0) && (muiFileSystemInfoSector != 0xFFFFFFFF))
 	{
