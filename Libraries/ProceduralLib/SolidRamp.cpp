@@ -118,6 +118,33 @@ void CSolidRamp::AddKey(float32 fValue, SSolidSample* psSample)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The keys are in the order of their values, as AddKey keeps them: keys
+// of one value stay in the order they were.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSolidRamp::Changed(void)
+{
+	SSolidRampKey	sKey;
+	size			uiIndex;
+	size			i;
+
+	CSolidOperator::Changed();
+	for (i = 1; i < masKeys.NumElements(); i++)
+	{
+		sKey = *masKeys.Get(i);
+		uiIndex = i;
+		while ((uiIndex > 0) && (masKeys.Get(uiIndex - 1)->fValue > sKey.fValue))
+		{
+			*masKeys.Get(uiIndex) = *masKeys.Get(uiIndex - 1);
+			uiIndex--;
+		}
+		*masKeys.Get(uiIndex) = sKey;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The first key whose value is past fValue, and the key before it: the
 // sample is theirs blended by how far fValue is between them.
 //

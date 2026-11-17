@@ -58,6 +58,7 @@ public:
 	void	AddKey(float32 fValue, SSolidSample* psSample);
 
 	void	At(float32 fValue, SSolidSample* psSample);  //The ramp at a value.
+	void	Changed(void) override;
 
 protected:
 	void	TextureSample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample) override;

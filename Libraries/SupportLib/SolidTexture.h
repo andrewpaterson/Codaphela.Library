@@ -82,6 +82,7 @@ public:
 	void			Free(void) override;
 
 	void			Place(SFloat32Vec3* psOrigin, SFloat32Vec3* psXAxis, SFloat32Vec3* psYAxis, float32 fScale);  //Z is X cross Y; Y is made at right angles to X, both units.
+	virtual void	Changed(void);  //Its fields were set from outside, by an editor say: what Init and Place make of them is made again.  Overrides call it.
 	void			ToOwn(SFloat32Vec3* psOwnPosition, SFloat32Vec3* psOwnNormal, SFloat32Vec3* psPosition, SFloat32Vec3* psNormal);  //A point and a normal in the world, in its own space.
 	void			FromOwn(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, SFloat32Vec3* psOwnPosition, SFloat32Vec3* psOwnNormal);  //And back.
 	void			Sample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample);  //At a point in the world.

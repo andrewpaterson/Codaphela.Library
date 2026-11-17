@@ -76,6 +76,9 @@ void TestSolidRamp(void)
 	SSolidSample		sMiddle;
 	SSolidSample		sResult;
 	SSolidSample		sBlack;
+	float32				fFirst;
+	size				uiKeys;
+	size				i;
 
 	pGradient = OMalloc<CSolidGradient>(SG_Plane, SR_Once);
 	pRamp = OMalloc<CSolidRamp>(pGradient);
@@ -137,6 +140,19 @@ void TestSolidRamp(void)
 	TestSolidSampleAt(pRamp, 0.5f, 9.0f, -4.0f, &sResult);
 	AssertFloat(1.0f, sResult.sColour.x, 6);
 	AssertFloat(0.0f, sResult.sColour.y, 6);
+
+	//A key's value set from outside may put the keys out of order: Changed puts them back in it.
+	uiKeys = pRamp->masKeys.NumElements();
+	fFirst = pRamp->masKeys.Get(0)->fValue;
+	pRamp->masKeys.Get(0)->fValue = 2.0f;
+	pRamp->Changed();
+	AssertSize(uiKeys, pRamp->masKeys.NumElements());
+	AssertFloat(2.0f, pRamp->masKeys.Get(uiKeys - 1)->fValue, 6);
+	for (i = 1; i < uiKeys; i++)
+	{
+		AssertTrue(pRamp->masKeys.Get(i - 1)->fValue <= pRamp->masKeys.Get(i)->fValue);
+	}
+	AssertTrue(pRamp->masKeys.Get(0)->fValue >= fFirst);
 }
 
 

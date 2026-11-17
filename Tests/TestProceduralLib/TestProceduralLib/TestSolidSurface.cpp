@@ -118,6 +118,17 @@ void TestSolidSlope(void)
 	AssertFloat(0.9f, TestSolidSurfaceValue(pSlope, 1, 2, 3, 0, 0, 1), 5);
 	AssertFloat(0.0f, TestSolidSurfaceValue(pSlope, 1, 2, 3, -0.6f, 0, -0.8f), 5);
 
+	//A direction set from outside is made a unit again by Changed, as are the axes it's placed along.
+	pSlope->msDirection.Init(0, -7, 0);
+	pSlope->masAxes[0].Init(0, 4, 0);
+	pSlope->masAxes[1].Init(-2, 3, 0);
+	pSlope->Changed();
+	AssertFloat3(SFloat32Vec3(0, -1, 0), &pSlope->msDirection, 6);
+	AssertFloat3(SFloat32Vec3(0, 1, 0), &pSlope->masAxes[0], 6);
+	AssertFloat3(SFloat32Vec3(-1, 0, 0), &pSlope->masAxes[1], 6);
+	AssertFloat3(SFloat32Vec3(0, 0, 1), &pSlope->masAxes[2], 6);
+	pSlope = OMalloc<CSolidSlope>(&sDirection);
+
 	//Turned so the texture's z is the world's x, up is along x.
 	pSlope = OMalloc<CSolidSlope>();
 	sOrigin.Init(0, 0, 0);

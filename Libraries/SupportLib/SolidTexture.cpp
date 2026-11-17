@@ -193,6 +193,22 @@ void CSolidTexture::Place(SFloat32Vec3* psOrigin, SFloat32Vec3* psXAxis, SFloat3
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The axes are made units at right angles again, as Place makes them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSolidTexture::Changed(void)
+{
+	SFloat32Vec3	sXAxis;
+	SFloat32Vec3	sYAxis;
+
+	sXAxis = masAxes[0];
+	sYAxis = masAxes[1];
+	Place(&msOrigin, &sXAxis, &sYAxis, mfScale);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CSolidTexture::ToOwn(SFloat32Vec3* psOwnPosition, SFloat32Vec3* psOwnNormal, SFloat32Vec3* psPosition, SFloat32Vec3* psNormal)

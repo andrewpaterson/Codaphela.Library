@@ -37,6 +37,7 @@ public:
 	void	Init(void);  //Up: z.
 	void	Init(SFloat32Vec3* psDirection);  //Made a unit.
 	void	Class(void) override;
+	void	Changed(void) override;
 
 protected:
 	void	TextureSample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample) override;
