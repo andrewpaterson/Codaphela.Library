@@ -65,17 +65,17 @@ public:
 	CNativeCanvas*	CreateNativeCanvas(CCanvas* pcCanvas) override;
 	CNativeClipboard*	CreateNativeClipboard(CClipboard* pcClipboard) override;
 
-	_XDisplay*		GetDisplay(void);
+	_XDisplay*		GetDisplay(void) const;
 	CX11Selection*	GetSelection(void);
-	int				GetScreen(void);
-	X11ID			GetDeleteWindowAtom(void);
-	X11ID			GetProtocolsAtom(void);
+	int				GetScreen(void) const;
+	X11ID			GetDeleteWindowAtom(void) const;
+	X11ID			GetProtocolsAtom(void) const;
 
 	void			SetInput(CX11Input* pcInput);
-	CX11Input*		GetInput(void);
+	CX11Input*		GetInput(void) const;
 	void			SetSharedMemory(bool bSharedMemory);
 	bool			UsesSharedMemory(void);
-	int				GetSharedCompletionEvent(void);
+	int				GetSharedCompletionEvent(void) const;
 
 	void			AddWindow(CX11Window* pcWindow);
 	void			RemoveWindow(CX11Window* pcWindow);

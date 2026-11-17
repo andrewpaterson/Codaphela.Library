@@ -238,11 +238,11 @@ CNativeClipboard* CX11WindowFactory::CreateNativeClipboard(CClipboard* pcClipboa
 }
 
 
-_XDisplay* CX11WindowFactory::GetDisplay(void) { return mpsDisplay; }
+_XDisplay* CX11WindowFactory::GetDisplay(void) const { return mpsDisplay; }
 CX11Selection* CX11WindowFactory::GetSelection(void) { return &mcSelection; }
-int CX11WindowFactory::GetScreen(void) { return miScreen; }
-X11ID CX11WindowFactory::GetDeleteWindowAtom(void) { return mulDeleteWindowAtom; }
-X11ID CX11WindowFactory::GetProtocolsAtom(void) { return mulProtocolsAtom; }
+int CX11WindowFactory::GetScreen(void) const { return miScreen; }
+X11ID CX11WindowFactory::GetDeleteWindowAtom(void) const { return mulDeleteWindowAtom; }
+X11ID CX11WindowFactory::GetProtocolsAtom(void) const { return mulProtocolsAtom; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -251,7 +251,7 @@ X11ID CX11WindowFactory::GetProtocolsAtom(void) { return mulProtocolsAtom; }
 //
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::SetInput(CX11Input* pcInput) { mpcInput = pcInput; }
-CX11Input* CX11WindowFactory::GetInput(void) { return mpcInput; }
+CX11Input* CX11WindowFactory::GetInput(void) const { return mpcInput; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -263,7 +263,7 @@ CX11Input* CX11WindowFactory::GetInput(void) { return mpcInput; }
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::SetSharedMemory(bool bSharedMemory) { mbSharedMemory = bSharedMemory; }
 bool CX11WindowFactory::UsesSharedMemory(void) { return mbSharedMemory && mbSharedMemoryAvailable && !gbSharedMemoryFailed; }
-int CX11WindowFactory::GetSharedCompletionEvent(void) { return miSharedCompletionEvent; }
+int CX11WindowFactory::GetSharedCompletionEvent(void) const { return miSharedCompletionEvent; }
 
 
 //////////////////////////////////////////////////////////////////////////

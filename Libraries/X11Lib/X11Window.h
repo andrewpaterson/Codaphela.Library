@@ -78,7 +78,7 @@ public:
 
 	void	HandleEvent(_XEvent* puEvent);
 	void	PresentIfPending(void);
-	X11ID	GetXWindow(void);
+	X11ID	GetXWindow(void) const;
 
 protected:
 	void	PresentPixels(CNativeCanvas* pcNativeCanvas, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);

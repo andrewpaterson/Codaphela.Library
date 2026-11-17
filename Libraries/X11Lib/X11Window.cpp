@@ -1124,7 +1124,7 @@ void CX11Window::Deactivated(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-X11ID CX11Window::GetXWindow(void)
+X11ID CX11Window::GetXWindow(void) const
 {
     return mulWindow;
 }
