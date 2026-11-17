@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "LogString.h"
 #include "ArrayTemplatePtr.h"
 #include "AbstractFile.h"
-#include "Mutex.h"
+#include "RecursiveLock.h"
 
 
 typedef CArrayTemplatePtr<CAbstractFile> CArrayFile;
@@ -43,7 +43,7 @@ protected:
 	CArrayFile		mapcFiles;
 	SLogConfig		msConfig;
 	CAbstractFile*	mpcDebugOutputFile;
-	CMutex			mcMutex;
+	CRecursiveMutex	mcLock;			//The logger is re-entered from its own outputs (a CLogFile logs its errors).
 
 public:
 	void		Init(void);

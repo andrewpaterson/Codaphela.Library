@@ -387,6 +387,7 @@
     <ClInclude Include="ThreadMallocator.h" />
     <ClInclude Include="Atomic.h" />
     <ClInclude Include="SpinLock.h" />
+    <ClInclude Include="RecursiveLock.h" />
     <ClInclude Include="SystemMemory.h" />
     <ClInclude Include="MemoryBlock.h" />
     <ClInclude Include="MemoryCacheAllocation.h" />

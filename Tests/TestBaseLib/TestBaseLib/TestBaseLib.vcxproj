@@ -300,6 +300,8 @@
     <ClCompile Include="TestLinkedListBlock.cpp" />
     <ClCompile Include="TestSafeLinkedListBlock.cpp" />
     <ClCompile Include="TestMutex.cpp" />
+    <ClCompile Include="TestSpinLock.cpp" />
+    <ClCompile Include="TestRecursiveLock.cpp" />
     <ClCompile Include="TestSharedLibrary.cpp" />
     <ClCompile Include="TestLinkedListTemplate.cpp" />
     <ClCompile Include="TestListBlock.cpp" />

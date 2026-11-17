@@ -155,13 +155,39 @@ int NumHardwareThreads(void)
 }
 
 
+//The running thread's id, asked of the kernel once: asking is a system call, and locks ask often.
+static __thread int		giCurrentThreadId = 0;
+static bool				gbCurrentThreadIdForkHandled = false;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
+// The one thread of a process just forked has a new id, not the one remembered by the thread it was copied from.
+//
+//////////////////////////////////////////////////////////////////////////
+static void ForgetCurrentThreadId(void)
+{
+	giCurrentThreadId = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Never 0.
 //
 //////////////////////////////////////////////////////////////////////////
 int CurrentThreadId(void)
 {
-	return (int)syscall(SYS_gettid);
+	if (giCurrentThreadId == 0)
+	{
+		if (!gbCurrentThreadIdForkHandled)
+		{
+			gbCurrentThreadIdForkHandled = true;
+			pthread_atfork(NULL, NULL, ForgetCurrentThreadId);
+		}
+		giCurrentThreadId = (int)syscall(SYS_gettid);
+	}
+	return giCurrentThreadId;
 }
 
 

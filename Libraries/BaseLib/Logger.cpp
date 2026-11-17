@@ -36,10 +36,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 CLogger		gcLogger;
 
-//How many times this thread has locked gcLogger.  The logger can be re-entered from its own outputs (a CLogFile
-//logs its errors) so the lock must be recursive but CMutex is not.
-thread_local size	giLoggerLockDepth = 0;
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -93,7 +89,7 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 	char				s[512];
 	CAbstractFile*		pcDebugFile;
 
-	mcMutex.Init();
+	mcLock.Init();
 	mapcFiles.Init();
 
 	if (pcFile)
@@ -160,7 +156,7 @@ void CLogger::Kill(void)
 	mapcFiles.Kill();
 	Unlock();
 
-	mcMutex.Kill();
+	mcLock.Kill();
 }
 
 
@@ -170,11 +166,7 @@ void CLogger::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Lock(void)
 {
-	if (giLoggerLockDepth == 0)
-	{
-		mcMutex.Lock();
-	}
-	giLoggerLockDepth++;
+	mcLock.Lock();
 }
 
 
@@ -184,11 +176,7 @@ void CLogger::Lock(void)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Unlock(void)
 {
-	giLoggerLockDepth--;
-	if (giLoggerLockDepth == 0)
-	{
-		mcMutex.Unlock();
-	}
+	mcLock.Unlock();
 }
 
 

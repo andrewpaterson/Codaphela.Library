@@ -44,7 +44,7 @@ void				RunNativeThreadStart(SNativeThreadStart* psStart);
 void	ThreadYield(void);
 void	ThreadSleep(int iMilliseconds);
 int		NumHardwareThreads(void);
-int		CurrentThreadId(void);
+int		CurrentThreadId(void);		//Never 0, and cheap to ask.
 
 
 #endif // __NATIVE_THREAD_H__

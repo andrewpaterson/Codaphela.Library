@@ -816,6 +816,9 @@
     <ClInclude Include="SpinLock.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="RecursiveLock.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
     <ClInclude Include="SystemMemory.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>

@@ -510,6 +510,12 @@
     <ClCompile Include="TestMutex.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="TestSpinLock.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRecursiveLock.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
     <ClCompile Include="TestSharedLibrary.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
