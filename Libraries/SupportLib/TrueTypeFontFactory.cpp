@@ -20,7 +20,10 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/UTF8.h"
 #include "BaseLib/FixedPoint.h"
+#include "BaseLib/Logger.h"
 #include "ImageCel.h"
+#include "ImageColour.h"
+#include "ImageColourConverter.h"
 #include "TrueTypeFontFactory.h"
 
 
@@ -552,3 +555,53 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* 
 		}
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Rasterises the glyphs in white into an image, converts it to eOrder
+// and makes a font of them.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CFont> ReadTrueTypeFont(const char* szFontFilename, const char* szName, float32 fPixelSize, EColourOrder eOrder)
+{
+	CTrueTypeFont			cTrueTypeFont;
+	CTrueTypeFontFactory	cFactory;
+	CImageColourRGB			cColour;
+	CChars					szCharacters;
+	Ptr<CFontDescription>	pDescription;
+	Ptr<CImage>				pImage;
+	Ptr<CFont>				pFont;
+
+	cTrueTypeFont.Init();
+	if (!cTrueTypeFont.Load((char*)szFontFilename))
+	{
+		cTrueTypeFont.Kill();
+		gcLogger.Error2(__METHOD__, " Could not load font [", szFontFilename, "].", NULL);
+		return NULL;
+	}
+
+	cColour.Init(1.0f, 1.0f, 1.0f);
+	szCharacters.Init(TRUE_TYPE_FONT_ASCII);
+	cFactory.Init(&cTrueTypeFont, fPixelSize);
+	pDescription = cFactory.Describe((char*)szName, szCharacters.Text());
+	pImage = cFactory.Rasterise(pDescription, &cColour);
+	if (pImage.IsNotNull())
+	{
+		if (pImage->GetColourOrder() != eOrder)
+		{
+			pImage = CImageColourConverter::ConvertColour(pImage, eOrder);
+		}
+		pFont = OMalloc<CFont>(pDescription, pImage);
+	}
+	cFactory.Kill();
+	szCharacters.Kill();
+	cTrueTypeFont.Kill();
+
+	if (pFont.IsNull())
+	{
+		gcLogger.Error2(__METHOD__, " Could not make a font from [", szFontFilename, "].", NULL);
+	}
+	return pFont;
+}
+

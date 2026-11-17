@@ -25,6 +25,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Font.h"
 
 
+#define TRUE_TYPE_FONT_ASCII	" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+
+
 //Where a character's glyph is in the rasterised image and how it sits in its line.  Bearing and top are relative
 //to the pen origin on the baseline, y down.
 struct STrueTypeFontCharacter
@@ -89,6 +92,11 @@ protected:
 
 
 int TurnedGlyphOffset(EFontTurn eTurn, int x, int y, int iGlyphWidth, int iImageWidth);
+
+//A font of the printable ASCII characters of the TrueType file szFontFilename, fPixelSize high and called szName: white, to
+//be coloured as it's drawn (CFontColours), its image in eOrder, a window's colour order.  NULL, with the error logged, if
+//the file can't be read as a font.
+Ptr<CFont>	ReadTrueTypeFont(const char* szFontFilename, const char* szName, float32 fPixelSize, EColourOrder eOrder);
 
 
 #endif // __TRUE_TYPE_FONT_FACTORY_H__
