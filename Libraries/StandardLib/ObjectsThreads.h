@@ -52,14 +52,37 @@ class CEmbeddedObject;
 //first keeps one until something that looks finds its table empty, not each time its table empties, which for a
 //thread taking one pointer at a time is every time.)
 //
-//Everything here is called with the object system's lock held.  None of it is built for the 65C64 or the W65C816,
-//which run one thread.
+//Readers and writers.  Taking a stack pointer to an object that is attached to the root, or letting go of one,
+//frees nothing and changes no distance: it is most of what threads do with pointers, and it is done without the
+//object system's lock, by a thread that is reading.  Everything else (a pointer in an object changed, an object
+//made, freed or loaded, a stack pointer to an object that isn't attached) is done with the lock, by a thread that is
+//writing, alone.
+//  A thread that would read sets its own flag (ObjectsReadBegins) and then looks at the lock: if it is held it
+//  drops its flag, waits for the lock to be let go and tries again.  (It doesn't take the lock itself: readers that
+//  did would each be a writer to the rest, and under load nobody would ever read.  Unless the lock is its own: it is
+//  inside the object system already, and goes on as the writer it is.)  While its flag is up it may read whether
+//  objects are attached, and change its own table of stack froms (or, the home thread, the stack froms on the
+//  objects, which only it and writers touch).  It never looks at another thread's table.
+//  A writer takes the lock and then waits for every other thread's flag to drop (ObjectsWriteBegins).  Each has set
+//  its own (the lock is the writers') before it looks at the other's, so one of the two always sees the other.
+//Each thread's flag is on a cache line of its own: threads that only read write nothing in common.  A writer costs
+//each reader that line once, which is why writers should be the fewer.
+//It is switched on with the locking (ObjectsLocking), unless the objects' database is written through to, where
+//pointing a pointer at an object can save the object.
+//
+//Everything else here is called with the object system's lock held, by a writer.  None of it is built for the 65C64
+//or the W65C816, which run one thread.
 
 #ifdef __LIBC65__
 
 
 inline bool ObjectsThreadsRegistered(void) { return false; }
 inline bool ObjectsThreadsKeeping(void) { return false; }
+inline bool ObjectsReadBegins(void) { return false; }
+inline void ObjectsReadEnds(bool bDone) {}
+inline bool ObjectsIsReading(void) { return false; }
+inline bool ObjectsReaderIsHome(void) { return true; }
+inline size ObjectsNumReads(void) { return 0; }
 inline bool ThreadStackFromAdd(CEmbeddedObject* pcObject, CPointer* pcPointer) { return false; }
 inline bool ThreadStackFromRemove(CPointer* pcPointer) { return false; }
 inline bool ThreadStackFromRemoveAnywhere(CPointer* pcPointer) { return false; }
@@ -76,8 +99,35 @@ inline void ThreadStackFromsPrint(CChars* psz, bool bPointerMemory) {}
 #else
 
 
-extern bool		gbObjectsThreads;			//A thread other than the home thread is registered.  Changed with the lock held.
-extern int32	giObjectsThreadsKeeping;	//How many registered threads are counted as keeping stack froms.
+//What a thread reads by: its flag, on a cache line no other thread writes.
+struct SObjectsReader
+{
+	int32	iReading;	//The thread is reading: writers wait.
+	bool	bHome;		//It is the home thread, whose stack froms are on the objects.
+	size	uiReads;	//How many times it has read and done what it came for (for the tests of the ways in).
+};
+
+
+#ifdef _MSC_VER
+#define OBJECTS_PER_THREAD	__declspec(thread)
+#else
+#define OBJECTS_PER_THREAD	__thread
+#endif // _MSC_VER
+
+
+extern bool									gbObjectsThreads;			//A thread other than the home thread is registered.  Changed by writers.
+extern int32								giObjectsThreadsKeeping;	//How many registered threads are counted as keeping stack froms.
+extern OBJECTS_PER_THREAD SObjectsReader*	gpsObjectsReader;			//The running thread's, NULL if it can't read (it isn't registered, or nothing reads).
+
+
+//The home thread's, as the locking is switched on and off (ObjectsLocking's): with bReaders threads may read.
+void	ObjectsThreadsAddHome(bool bReaders);
+void	ObjectsThreadsRemoveHome(void);
+
+//A writer's, as it takes the lock from outside (ObjectsLock's).
+void	ObjectsWriteBegins(void);
+
+bool	ObjectsReadBeginsAfterWriter(SObjectsReader* psReader);
 
 //The registration of the running thread (ObjectsThreadInit's and ObjectsThreadKill's).  ObjectsThreadsRemove gives
 //back how many stack froms the thread was still keeping: they are let go of for it.
@@ -96,6 +146,55 @@ bool	ThreadStackFromsHasOnAnotherThreadInside(CEmbeddedObject* pcObject);
 size	ThreadStackFromsNumOnOtherThreadsInside(void);
 void	ThreadStackFromsAddressesInside(CArrayVoidPtr* papvAddresses);
 void	ThreadStackFromsPrintInside(CChars* psz, bool bPointerMemory);
+
+
+//True if the running thread is now reading, and must call ObjectsReadEnds; false if it must take the lock instead.
+inline bool ObjectsReadBegins(void)
+{
+	SObjectsReader*		psReader;
+
+	psReader = gpsObjectsReader;
+	if (psReader == NULL)
+	{
+		return false;
+	}
+	AtomicExchange(&psReader->iReading, 1);
+	if (OBJECTS_SELDOM(gcObjectsLock.IsLocked()))
+	{
+		return ObjectsReadBeginsAfterWriter(psReader);
+	}
+	return true;
+}
+
+
+//bDone if what it read for was done (it is counted), not left for a writer.
+inline void ObjectsReadEnds(bool bDone)
+{
+	SObjectsReader*		psReader;
+
+	psReader = gpsObjectsReader;
+	psReader->uiReads += bDone ? 1 : 0;
+	AtomicStore(&psReader->iReading, 0);
+}
+
+
+inline bool ObjectsIsReading(void)
+{
+	return (gpsObjectsReader != NULL) && (gpsObjectsReader->iReading != 0);
+}
+
+
+//Of a thread that is reading.
+inline bool ObjectsReaderIsHome(void)
+{
+	return gpsObjectsReader->bHome;
+}
+
+
+inline size ObjectsNumReads(void)
+{
+	return (gpsObjectsReader != NULL) ? gpsObjectsReader->uiReads : 0;
+}
 
 
 //What the object system calls.  With no thread registered but the home thread, or (for what asks about an object's

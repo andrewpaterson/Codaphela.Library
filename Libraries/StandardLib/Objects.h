@@ -120,7 +120,8 @@ public:
 						Ptr<CRoot>				Root(void);
 						void					LogicalDirty(CBaseObject* pcObject);
 
-						void					Collect(void);  //The home thread's: frees what other threads found dead.
+						void					Collect(void);
+						bool					IsWriteThrough(void);  //The home thread's: frees what other threads found dead.
 						size					NumWaitingToBeFreed(void);
 
 						bool					Remove(CArrayBaseObjectPtr* papcKilled);

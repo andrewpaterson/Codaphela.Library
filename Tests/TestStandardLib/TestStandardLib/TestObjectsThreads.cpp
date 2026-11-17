@@ -15,6 +15,7 @@
 #include "BaseLib/StdRandom.h"
 #include "BaseLib/TypeNames.h"
 #include "StandardLib/ArrayObject.h"
+#include "StandardLib/ObjectsThreads.h"
 #include "StandardLib/ArrayWeakObject.h"
 #include "StandardLib/IndexObject.h"
 #include "StandardLib/MapObject.h"
@@ -825,9 +826,9 @@ void TestObjectsThreadsAssertNoFree(void)
 #define AssertWaysIn(uiWaysIn, statement) \
 	do \
 	{ \
-		size	uiLocksTaken = ObjectsNumLocksTaken(); \
+		size	uiLocksTaken = ObjectsNumWaysIn(); \
 		statement; \
-		AssertSize(uiLocksTaken + (uiWaysIn), ObjectsNumLocksTaken()); \
+		AssertSize(uiLocksTaken + (uiWaysIn), ObjectsNumWaysIn()); \
 		AssertSize(0, ObjectsNumThreadErrors()); \
 	} \
 	while (false)
@@ -841,10 +842,10 @@ void TestObjectsThreadsAssertNoFree(void)
 #define AssertWayInReturning(pointer, expression) \
 	do \
 	{ \
-		size	uiLocksTaken = ObjectsNumLocksTaken(); \
+		size	uiLocksTaken = ObjectsNumWaysIn(); \
 		{ \
 			auto&&	pReturned = (expression); \
-			AssertSize(uiLocksTaken + 1, ObjectsNumLocksTaken()); \
+			AssertSize(uiLocksTaken + 1, ObjectsNumWaysIn()); \
 			pointer = pReturned; \
 		} \
 		AssertSize(0, ObjectsNumThreadErrors()); \
@@ -871,6 +872,8 @@ static void TestObjectsThreadsEveryPointerWayIn(void)
 	CChars					sz;
 	size					uiCount;
 	size					uiBefore;
+	size					uiReads;
+	int32					iFreed;
 	int						iDist;
 	bool					bDirty;
 
@@ -881,8 +884,11 @@ static void TestObjectsThreadsEveryPointerWayIn(void)
 	pcNode = &pNode;
 	pcOther = &pOther;
 
-	//Made with new so that each constructor, and the destructor, is a statement of its own.
+	//Made with new so that each constructor, and the destructor, is a statement of its own.  The objects are held by
+	//the root, so each of a stack pointer's ways in is taken as a reader, without the lock (level 2).
+	uiReads = ObjectsNumReads();
 	AssertWayIn(ppFirst = new CPointer(pcNode));
+	AssertSize(uiReads + 1, ObjectsNumReads());
 	AssertWayIn(ppSecond = new CPointer(*ppFirst));
 	AssertWayIn(ppThird = new CPointer((const CPointer&)*ppFirst));
 	AssertWayIn(*ppSecond = pcOther);
@@ -908,7 +914,27 @@ static void TestObjectsThreadsEveryPointerWayIn(void)
 	AssertBool(pcNode->IsDirty(), bDirty);
 	AssertWayIn(delete ppSecond);
 	AssertWayIn(delete ppThird);
+	uiReads = ObjectsNumReads();
 	AssertWayIn(delete ppFirst);
+	AssertSize(uiReads + 1, ObjectsNumReads());
+
+	//The same ways in with an object the root doesn't hold, which a stack pointer taken or let go of can free: each
+	//is taken with the lock, and so is a pointer between it and one the root does hold.
+	pHeld = OMalloc<CTestThreadNode>();
+	uiReads = ObjectsNumReads();
+	iFreed = giTestThreadNodesFreed;
+	AssertWayIn(ppFirst = new CPointer(&pHeld));
+	AssertWayIn(ppSecond = new CPointer(*ppFirst));
+	AssertWayIn(*ppSecond = pcNode);
+	AssertWayIn(*ppSecond = *ppFirst);
+	AssertWayIn(ppSecond->PointToNull());
+	AssertWayIn(ppSecond->AssignObject(&pHeld));
+	AssertWayIn(delete ppSecond);
+	AssertWayIn(delete ppFirst);
+	AssertSize(uiReads, ObjectsNumReads());
+	AssertInt(iFreed, giTestThreadNodesFreed);
+	AssertWayIn(pHeld = NULL);
+	AssertInt(iFreed + 1, giTestThreadNodesFreed);
 
 	//A field, and a weak one.
 	AssertWayIn(pNode->mpNext = pOther);
@@ -940,14 +966,14 @@ static void TestObjectsThreadsEveryPointerWayIn(void)
 	pHeld = NULL;
 
 	//An object on the stack: its class is completed in the shared classes, and its destructor unhooks it.
-	uiBefore = ObjectsNumLocksTaken();
+	uiBefore = ObjectsNumWaysIn();
 	{
 		CTestThreadNode		cOnStack;
 
 		AssertWaysIn(2, cOnStack.Init());  //Its PreInit and its PostInit.
 		AssertWayIn(cOnStack.mpNext = pNode);
 	}
-	AssertSize(uiBefore + 5, ObjectsNumLocksTaken());  //And its destructor, which kills it and then unhooks it.
+	AssertSize(uiBefore + 5, ObjectsNumWaysIn());  //And its destructor, which kills it and then unhooks it.
 
 	//What points at an object, and what it points at, written out.
 	sz.Init();

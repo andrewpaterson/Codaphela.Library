@@ -49,11 +49,36 @@ public:
 
 	bool	IsLockedByThisThread(void);
 	int		Depth(void);
+
+	bool	IsLocked(void);			//LOCK's, where it has them (a CSpinLock): by any thread,
+	void	WaitWhileLocked(void);	//and until it has been seen free.
 };
 
 
 typedef CRecursiveLock<CMutex>		CRecursiveMutex;
 typedef CRecursiveLock<CSpinLock>	CRecursiveSpinLock;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class LOCK>
+bool CRecursiveLock<LOCK>::IsLocked(void)
+{
+	return mcLock.IsLocked();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class LOCK>
+void CRecursiveLock<LOCK>::WaitWhileLocked(void)
+{
+	mcLock.WaitWhileLocked();
+}
 
 
 //////////////////////////////////////////////////////////////////////////

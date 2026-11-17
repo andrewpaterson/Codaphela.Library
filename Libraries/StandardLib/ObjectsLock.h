@@ -34,6 +34,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //  OBJECTS_READ()    it only reads what the object system keeps.
 //  OBJECTS_INSIDE()  it is the object system's own machinery, only reached from one of the two above: in a Debug
 //                    build it says so if it is reached with the lock not held.
+//A pointer's own ways in (its constructors, its destructor, its assignments) do their own locking, OBJECTS_LOCKING()
+//saying whether there is any to do: with the locking on they first try to do what they do as a reader, without the
+//lock (level 2; ObjectsThreads.h says what a reader is and when it can).
 //ThreadSafetyPlan.txt's audit lists which each public method is.  The lock may be taken again by the thread that
 //holds it, since a Free(), an Init() or a Save() is the user's code and comes back in.
 //
@@ -71,6 +74,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECTS_WRITE()
 #define OBJECTS_READ()
 #define OBJECTS_INSIDE()
+#define OBJECTS_LOCKING()	false
 
 
 inline bool ObjectsLocking(bool bLocking) { return !bLocking; }
@@ -82,11 +86,17 @@ inline void ObjectsHomeThread(bool bHome) {}
 inline bool ObjectsIsHomeThread(void) { return true; }
 inline void ObjectsFreesWaiting(bool bWaiting) {}
 inline bool ObjectsAssertNoFree(const char* szMethod) { return true; }
-inline size ObjectsNumLocksTaken(void) { return 0; }
+inline void ObjectsLock(void) {}
+inline void ObjectsUnlock(void) {}
+inline size ObjectsNumWaysIn(void) { return 0; }
 inline size ObjectsNumThreadErrors(void) { return 0; }
 
 
 #else
+
+
+#include "BaseLib/RecursiveLock.h"
+#include "BaseLib/SpinLock.h"
 
 
 //Debug builds on the hosts remember which thread each stack pointer is on.
@@ -102,7 +112,8 @@ inline size ObjectsNumThreadErrors(void) { return 0; }
 #endif // _MSC_VER
 
 
-extern bool		gbObjectsLocking;	//Changed by the home thread alone, while no other thread uses objects.
+extern bool					gbObjectsLocking;	//Changed by the home thread alone, while no other thread uses objects.
+extern CRecursiveSpinLock	gcObjectsLock;		//The lock.  Here for what reads (ObjectsThreads.h) to look at.
 
 bool	ObjectsLocking(bool bLocking);		//The home thread's.  False (and nothing changed) if it can't be done now.
 bool	IsObjectsLocking(void);
@@ -120,13 +131,15 @@ void	ObjectsFreeEnds(void);
 void	ObjectsLock(void);
 void	ObjectsUnlock(void);
 bool	ObjectsIsLockedByThisThread(void);
+bool	ObjectsIsInside(void);				//The running thread has the lock, or is reading.
 void	ObjectsNotInside(const char* szMethod);
 
 void	ObjectsNotLocking(void);
 
 //For the tests that every way in has its guard (TestObjectsThreadsEveryWayIn), and that threads which aren't to use
 //objects don't.
-size	ObjectsNumLocksTaken(void);			//How many times the lock has been taken by a thread that didn't hold it.
+size	ObjectsNumWaysIn(void);				//How many times the running thread has come into the object system from outside
+											//it: taken the lock when it didn't hold it, or read (ObjectsThreads.h).
 size	ObjectsNumThreadErrors(void);		//How many times a thread has been told it used the object system wrongly: its
 											//machinery reached without the lock, or objects used by a thread that isn't registered.
 
@@ -181,10 +194,28 @@ inline CObjectsGuard::~CObjectsGuard()
 #define OBJECTS_READ()		CObjectsGuard cObjectsGuard
 
 #ifdef _DEBUG
-#define OBJECTS_INSIDE()	do { if (gbObjectsLocking && !ObjectsIsLockedByThisThread()) { ObjectsNotInside(__METHOD__); } } while (false)
+#define OBJECTS_INSIDE()	do { if (gbObjectsLocking && !ObjectsIsInside()) { ObjectsNotInside(__METHOD__); } } while (false)
 #else
 #define OBJECTS_INSIDE()
 #endif // _DEBUG
+
+
+//For a way in that does its own locking (a pointer's, which may read instead: ObjectsThreads.h): whether the locking
+//is on.  With it off a Debug build checks the thread, as the guard does.
+inline bool ObjectsLockingHere(void)
+{
+	if (OBJECTS_SELDOM(gbObjectsLocking))
+	{
+		return true;
+	}
+#ifdef OBJECTS_THREAD_CHECKS
+	ObjectsNotLocking();
+#endif // OBJECTS_THREAD_CHECKS
+	return false;
+}
+
+
+#define OBJECTS_LOCKING()	ObjectsLockingHere()
 
 
 #endif // __LIBC65__

@@ -982,7 +982,7 @@ void CEmbeddedObject::ValidateStoredOnOneThread(void)
 	int				iThread;
 	bool			bOnAnother;
 
-	if (!IsObjectsLocking() || !(IsHollow() || GetEmbeddingContainer()->IsStored()))
+	if (!IsObjectsLocking() || !IsStoredOrHollow())
 	{
 		return;
 	}
@@ -1110,6 +1110,70 @@ bool CEmbeddedObject::UnlinkStackFrom(CCollection* pcCollection)
 	OBJECTS_INSIDE();
 
 	return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcCollection);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Held by the root (or the root itself): a stack from of it taken or let go of frees nothing and changes no
+// distance.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::IsAttachedToRoot(void)
+{
+	return GetDistToRoot() >= ROOT_DIST_TO_ROOT;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In the database, or standing for an object that is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::IsStoredOrHollow(void)
+{
+	return IsHollow() || GetEmbeddingContainer()->IsStored();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stack from of a pointer that has been pointed at this, added by a thread that is reading (ObjectsThreads.h)
+// and has seen this attached to the root.  A registered thread keeps the from itself; the home thread's goes on
+// this, where only it and writers look.
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::AddStackFromReading(CPointer* pcPointer)
+{
+	OBJECTS_INSIDE();
+
+	if (ObjectsReaderIsHome())
+	{
+		LinkStackFrom(GetStackPointers()->Add(pcPointer));
+	}
+	else
+	{
+		ThreadStackFromAdd(this, pcPointer);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// And taken off by one.  False if it isn't where a reader may look: a registered thread's from of an object that
+// wasn't attached when it was taken is on the object, and a pointer another thread took is in that thread's table.
+// A writer finds those.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::UnlinkStackFromReading(CPointer* pcPointer)
+{
+	OBJECTS_INSIDE();
+
+	if (ObjectsReaderIsHome())
+	{
+		return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer);
+	}
+	return ThreadStackFromRemove(pcPointer);
 }
 
 

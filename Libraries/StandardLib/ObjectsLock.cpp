@@ -34,7 +34,7 @@ bool						gbObjectsLocking = false;
 
 //Spinning: it is held for a few instructions at a time, thousands of times a second.  A mutex that is fought over
 //puts its waiters to sleep, which measured twenty times slower than one thread doing all the work.
-static CRecursiveSpinLock	gcObjectsLock;
+CRecursiveSpinLock			gcObjectsLock;
 
 static int					giObjectsHomeThread = 0;	//0 until ObjectsInit.
 static bool					gbObjectsFreesWaiting = false;	//Other threads have found objects dead.  Under the lock.
@@ -80,10 +80,16 @@ bool ObjectsLocking(bool bLocking)
 		return gcLogger.Error2(__METHOD__, " The locking of objects can't be switched off while [", SizeToString(ObjectsNumThreads()), "] other threads are registered.", NULL);
 	}
 
-	if (!bLocking && gbObjectsLocking)
+	if (bLocking && !gbObjectsLocking)
+	{
+		//Threads read (level 2) unless pointing a pointer at an object can save the object.
+		ObjectsThreadsAddHome(!gcObjects.IsWriteThrough());
+	}
+	else if (!bLocking && gbObjectsLocking)
 	{
 		//What the threads left to be freed is freed while there is still a lock to free it under.
 		gcObjects.Collect();
+		ObjectsThreadsRemoveHome();
 	}
 	gbObjectsLocking = bLocking;
 	return true;
@@ -208,6 +214,7 @@ void ObjectsLock(void)
 	if (gcObjectsLock.Depth() == 1)
 	{
 		guiObjectsLocksTaken++;
+		ObjectsWriteBegins();
 
 		//The home thread, coming in from outside, first frees what the other threads have found dead.
 		if (gbObjectsFreesWaiting && (CurrentThreadId() == giObjectsHomeThread))
@@ -251,6 +258,16 @@ void ObjectsUnlock(void)
 bool ObjectsIsLockedByThisThread(void)
 {
 	return gcObjectsLock.IsLockedByThisThread();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool ObjectsIsInside(void)
+{
+	return gcObjectsLock.IsLockedByThisThread() || ObjectsIsReading();
 }
 
 
@@ -308,14 +325,14 @@ void ObjectsNotInside(const char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size ObjectsNumLocksTaken(void)
+size ObjectsNumWaysIn(void)
 {
 	size	uiLocksTaken;
 
 	gcObjectsLock.Lock();
 	uiLocksTaken = guiObjectsLocksTaken;
 	gcObjectsLock.Unlock();
-	return uiLocksTaken;
+	return uiLocksTaken + ObjectsNumReads();
 }
 
 

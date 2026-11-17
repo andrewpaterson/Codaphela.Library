@@ -50,29 +50,40 @@ void CSpinLock::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Trying again for a while, then giving up the rest of the time slice each try: the holder has been switched out.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSpinLock::WaitWhileLocked(void)
+{
+	size	uiSpins;
+
+	uiSpins = 0;
+	while (AtomicLoad(&miLocked) != 0)
+	{
+		if (uiSpins < SPIN_LOCK_SPINS)
+		{
+			uiSpins++;
+			AtomicPause();
+		}
+		else
+		{
+			ThreadYield();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The lock was held.  It is only looked at (a read, which doesn't take the cache line from its holder) until it is
 // seen free, then tried for.
 //
 //////////////////////////////////////////////////////////////////////////
 void CSpinLock::LockContended(void)
 {
-	size	uiSpins;
-
-	uiSpins = 0;
 	for (;;)
 	{
-		while (AtomicLoad(&miLocked) != 0)
-		{
-			if (uiSpins < SPIN_LOCK_SPINS)
-			{
-				uiSpins++;
-				AtomicPause();
-			}
-			else
-			{
-				ThreadYield();
-			}
-		}
+		WaitWhileLocked();
 		if (AtomicExchange(&miLocked, 1) == 0)
 		{
 			return;

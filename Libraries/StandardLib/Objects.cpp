@@ -1530,10 +1530,22 @@ void CObjects::LogicalDirty(CBaseObject* pcObject)
 {
 	OBJECTS_WRITE();
 
-	if (mpcDataConnection && mpcDataConnection->IsWriteThrough())
+	if (IsWriteThrough())
 	{
 		pcObject->Flush();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an object is saved as soon as it is done being changed (LogicalDirty, which every pointer pointed at it
+// calls).  It doesn't change once the objects are initialised.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::IsWriteThrough(void)
+{
+	return (mpcDataConnection != NULL) && mpcDataConnection->IsWriteThrough();
 }
 
 

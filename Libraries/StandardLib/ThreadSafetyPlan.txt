@@ -223,8 +223,11 @@ The audit (step 8)
     W  The constructors from an object or another pointer, the destructor of a pointer that points at something,
        operator = (all), PointTo, PointToNull, AssignObject, Return, MorphInto.
        (Level 2: the constructors and destructor of a stack pointer to an object attached to the root are readers.)
+       Since step 19 these do their own locking, with no guard: a stack pointer between objects attached to the
+       root is changed by a reader, without the lock (PointToReading).
     R  NumStackFroms, NumHeapFroms, NumEmbedded, NumPointerTos, GetDistToRoot, IsDirty.
-    I  UnsafePointTo, UnsafeClearObject, AddHeapFrom, SetEmbedding, Load, PointToInside, AssignObjectInside.
+    I  UnsafePointTo, UnsafeClearObject, AddHeapFrom, SetEmbedding, Load, PointToInside, AssignObjectInside,
+       PointToFromOutside, PointToReading.
     -  Kill, LogicalDirty and the Dumps (they are the object's);
        CPointer(), operator -> and &, Dereference, DereferenceArrow (decision 4: nothing is added to them),
        operator !, == and !=, operator bool, IsNull, IsNotNull, IsEqual, IsNotEqual, Object, ObjectPtr, BaseObject,
@@ -560,6 +563,43 @@ Steps
       the locking on and nobody else working the home thread's copy and drop is 25 ns (12 with it off).
   19. Readers and the writer: each thread's reader flag, the writer's flag and its wait; the table path leaves the
       lock.  Measured against the threads table (14 to 25 ns a copy and drop at 12 threads in the prototype).
+      Done 2026-11-17 (ObjectsThreads.h, Readers and writers, says how it works).  Each thread that uses objects
+      while the locking is on has a flag on a cache line of its own, the home thread too.  A stack pointer's own
+      ways in (its constructors, destructor and assignments, and AssignObject, which is how a collection hands out
+      an element) first try to do what they do as a reader: the flag up, a look at the lock, and if both objects
+      are attached to the root the two stack froms are changed and the flag dropped, with no lock taken.  A
+      registered thread changes its own table; the home thread the froms on the objects, which only it and writers
+      touch.  Anything else is a writer: it takes the lock and waits for every flag to drop.
+      What was changed from the design above:
+        The writers' flag is the lock's own word.  A flag of its own was one more line every writer wrote.
+        A reader that finds the lock held waits for it and tries again as a reader.  First it took the lock
+        itself, as the prototype did, and that made it a writer to every other reader: with the home thread
+        writing and one other thread copying pointers a copy took 552 ns, seven times level 1's.  (If the lock is
+        the reader's own it is inside the object system already and goes on with the lock it has.)
+        The home thread reads too, where the design left it a writer: with the locking on and nobody else working
+        its copy and drop went from 25.6 ns to 17.
+        Not where the database is written through to: pointing a pointer at an object there can save the object
+        (LogicalDirty), so nothing reads and it is level 1.  And a Debug build leaves a stored object's pointers
+        to writers, as its check that one is held by one thread at a time looks where a reader may not.
+        A pointer's ways in do their own locking (OBJECTS_LOCKING), with no guard object: one thread with the
+        locking off is back to 324 instructions a copy and drop (346 after step 18).
+      Measured (Release, 64 bit, 24 hardware threads; other threads copying and dropping a Ptr, each to the one
+      rooted node or each to its own, which came out the same):
+                                          1 other    4 others   11 or 12    23
+        nothing writes, each thread       13 ns      14 ns      16 ns       22 ns
+        nothing writes, the home thread   18 ns      18 ns      18 ns       27 ns
+        level 1, each thread (step 18)    77 ns      1.7 us     11 us
+        the home thread writing meanwhile (the speed test's fields and OMallocs, back to back):
+          its own copy and drop           17 ns      17 ns      19 ns       (level 1: 93 ns, 0.9 us, 3.1 us)
+          a field pointed elsewhere       110 ns     165 ns     275 ns      (70 ns with nobody else working)
+          OMalloc and free                790 ns     1.0 us     1.6 us      (660 ns)
+          each other thread's copy        about 1 us whatever their number: they wait for the gaps between its
+                                          writes, and there are few
+      So threads that read cost each other nothing, and a writer among them is paid for by the writer (each reader's
+      line, once a write) and by the readers while it holds the lock.  It is for work where the pointers that
+      change are in objects seldom and on stacks often.
+      ThreadSanitizer reports nothing: its model of the flags (each set before the other is looked at) is what the
+      int32 atomics now promise (BaseLib/Atomic.h).
   20. Level 2 proved: ThreadSanitizer, the mutation harness, the full sweep, and Sculpt (or the IDE's indexing) with
       workers that do copy Ptrs.
 

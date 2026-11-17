@@ -27,9 +27,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectRemapFrom.h"
 #include "PointerObject.h"
 #include "ObjectsLock.h"
+#include "ObjectsThreads.h"
 
 
 bool gbLogPointer = false;
+
+//What a pointer that is let go of is pointed at.
+static CEmbeddedObject* const	gpcPointerNoObject = NULL;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -107,13 +111,11 @@ CPointer::CPointer()
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CPointer& cPointer)
 {
-	OBJECTS_WRITE();
-
 	//Constructor only called if a Pointer is declared on the Stack.
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointToInside(cPointer.mpcObject);
+	PointToFromOutside(&cPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -125,13 +127,11 @@ CPointer::CPointer(CPointer& cPointer)
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(const CPointer& cPointer)
 {
-	OBJECTS_WRITE();
-
 	//Constructor only called if a Pointer is declared on the Stack.
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointToInside(cPointer.mpcObject);
+	PointToFromOutside(&cPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -143,13 +143,11 @@ CPointer::CPointer(const CPointer& cPointer)
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CEmbeddedObject* pcObject)
 {
-	OBJECTS_WRITE();
-
 	//Constructor only called if a Pointer is declared on the Stack.
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointToInside(pcObject);
+	PointToFromOutside(&pcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -165,9 +163,16 @@ CPointer::~CPointer()
 
 	if (mpcObject)
 	{
-		OBJECTS_WRITE();
-
-		mpcObject->RemoveStackFromTryFree(this);
+		if (!OBJECTS_LOCKING())
+		{
+			mpcObject->RemoveStackFromTryFree(this);
+		}
+		else if (!PointToReading(&gpcPointerNoObject))
+		{
+			ObjectsLock();
+			mpcObject->RemoveStackFromTryFree(this);
+			ObjectsUnlock();
+		}
 	}
 }
 
@@ -178,9 +183,7 @@ CPointer::~CPointer()
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CEmbeddedObject* pcObject)
 {
-	OBJECTS_WRITE();
-
-	PointToInside(pcObject);
+	PointToFromOutside(&pcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -192,9 +195,7 @@ void CPointer::operator = (CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CPointer& pPointer)
 {
-	OBJECTS_WRITE();
-
-	PointToInside(pPointer.mpcObject);
+	PointToFromOutside(&pPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -206,9 +207,7 @@ void CPointer::operator = (CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (const CPointer& pPointer)
 {
-	OBJECTS_WRITE();
-
-	PointToInside(pPointer.mpcObject);
+	PointToFromOutside(&pPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -399,9 +398,81 @@ void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 {
-	OBJECTS_WRITE();
+	PointToFromOutside(&pcNewObject);
+}
 
-	PointToInside(pcNewObject);
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Points this at *ppcObject, from outside the object system: what the constructors and the assignments do.
+// *ppcObject (another pointer's object, where this is to point at what that does) is read once nothing can be
+// changing it.
+//
+// With the locking on it is first tried as a reader, without the lock (PointToReading).
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointer::PointToFromOutside(CEmbeddedObject* const* ppcObject)
+{
+	if (!OBJECTS_LOCKING())
+	{
+		PointToInside(*ppcObject);
+	}
+	else if (!PointToReading(ppcObject))
+	{
+		ObjectsLock();
+		PointToInside(*ppcObject);
+		ObjectsUnlock();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer on the stack pointed from one object attached to the root (or none) at another (or none) changes two
+// stack froms and nothing else: nothing can be freed by it and no distance changes.  That is most of what is ever
+// done with pointers, and a thread that is reading may do it (level 2; ObjectsThreads.h).  False, with nothing
+// done, if it isn't that or can't be read for now: it is then done with the lock.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPointer::PointToReading(CEmbeddedObject* const* ppcObject)
+{
+	CEmbeddedObject*	pcNewObject;
+	CEmbeddedObject*	pcOldObject;
+	bool				bDone;
+
+	//A field of an object, or a pointer reached through a NULL one (PointToInside says how).
+	if (((char*)this < CORRUPT_MEMORY) || (mpcEmbedding != NULL) || !ObjectsReadBegins())
+	{
+		return false;
+	}
+
+	pcNewObject = *ppcObject;
+	pcOldObject = mpcObject;
+	bDone = ((pcNewObject == NULL) || pcNewObject->IsAttachedToRoot()) && ((pcOldObject == NULL) || pcOldObject->IsAttachedToRoot());
+#ifdef OBJECTS_THREAD_CHECKS
+	//A Debug build checks that an object in the database is one thread's at a time (ValidateStoredOnOneThread),
+	//which looks where a reader may not: such an object's pointers are left for a writer.
+	bDone = bDone && ((pcNewObject == NULL) || !pcNewObject->IsStoredOrHollow());
+#endif // OBJECTS_THREAD_CHECKS
+	if (bDone && (pcNewObject != pcOldObject))
+	{
+		//The old from goes first: taking it off is what can fail, and with both objects held by the root the order
+		//frees nothing.
+		if (pcOldObject != NULL)
+		{
+			bDone = pcOldObject->UnlinkStackFromReading(this);
+		}
+		if (bDone)
+		{
+			mpcObject = pcNewObject;
+			if (pcNewObject != NULL)
+			{
+				pcNewObject->AddStackFromReading(this);
+			}
+		}
+	}
+	ObjectsReadEnds(bDone);
+	return bDone;
 }
 
 
@@ -908,9 +979,17 @@ void CPointer::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::AssignObject(CEmbeddedObject* pcObject)
 {
-	OBJECTS_WRITE();
-
-	AssignObjectInside(pcObject);
+	//A pointer that points at nothing yet is pointed at pcObject as any is, which a reader may do.
+	if (!OBJECTS_LOCKING())
+	{
+		AssignObjectInside(pcObject);
+	}
+	else if ((mpcObject != NULL) || !PointToReading(&pcObject))
+	{
+		ObjectsLock();
+		AssignObjectInside(pcObject);
+		ObjectsUnlock();
+	}
 }
 
 

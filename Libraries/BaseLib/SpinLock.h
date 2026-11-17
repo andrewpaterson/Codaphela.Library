@@ -45,9 +45,22 @@ public:
 	bool	TryLock(void);
 	void	Unlock(void);
 
+	bool	IsLocked(void);			//By any thread, as it was when it was looked at.
+	void	WaitWhileLocked(void);	//Returns once it has been seen free, which it may no longer be.
+
 protected:
 	void	LockContended(void);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+inline bool CSpinLock::IsLocked(void)
+{
+	return AtomicLoad(&miLocked) != 0;
+}
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -38,7 +38,9 @@
 //and registers that many other threads while the operations are timed.  They do nothing but be registered, unless
 //OBJECTS_SPEED_THREADS_WORK says what each does over and over until the operations are done: "copy" (a stack Ptr to
 //the one node, copied and dropped), "own" (the same, each thread to a node of its own) or "malloc" (OMalloc and
-//free).  What a thread's operation took, on average over the threads, is logged with the rest.
+//free).  What a thread's operation took, on average over the threads, is logged with the rest.  With
+//OBJECTS_SPEED_ONLY_COPIES set as well this thread does nothing but copy and drop a stack Ptr meanwhile, so nothing
+//writes: what threads that only read cost each other.
 
 
 #define TEST_OBJECTS_SPEED_COUNT		2000
@@ -460,6 +462,22 @@ void TestObjectsSpeedOperations(void)
 	ORoot()->Add(pSecond);
 	ORoot()->Add(pArray);
 	TestObjectsSpeedThreadsStart(&pNode);
+
+	if (getenv("OBJECTS_SPEED_ONLY_COPIES") != NULL)
+	{
+		iStart = GetDebugMicroseconds();
+		TestObjectsSpeedStackPointer(pNode, uiCount * 50);
+		TestObjectsSpeedLog("Stack Ptr copied and dropped, and nothing else", iStart, uiCount * 50);
+		TestObjectsSpeedThreadsStop();
+		pNode = NULL;
+		pFirst = NULL;
+		pSecond = NULL;
+		pArray = NULL;
+		ORoot()->RemoveAll();
+		ObjectsFlush();
+		ObjectsKill();
+		return;
+	}
 
 	iStart = GetDebugMicroseconds();
 	TestObjectsSpeedStackPointer(pNode, uiCount);

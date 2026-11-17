@@ -42,28 +42,165 @@ struct SThreadStackFrom
 typedef CArrayTemplate<SThreadStackFrom>	CArrayThreadStackFrom;
 
 
-//What is kept for a registered thread: the stack froms it keeps itself.
+#define OBJECTS_CACHE_LINE	64
+
+
+//What is kept for a thread that uses objects while the locking is on: what it reads by, with nothing else on its
+//cache line, and the stack froms it keeps itself (the home thread keeps none).
 struct SObjectsThread
 {
+	SObjectsReader			sReader;
+	char					acRestOfLine[OBJECTS_CACHE_LINE - sizeof(SObjectsReader)];
 	CArrayThreadStackFrom	asStackFroms;
 	int						iThread;
 	bool					bKeeping;	//Counted in giObjectsThreadsKeeping.
+	void*					pvAllocated;
 };
 
 
 typedef CArrayTemplatePtr<SObjectsThread>	CArrayObjectsThreadPtr;
 
 
-bool								gbObjectsThreads = false;
-int32								giObjectsThreadsKeeping = 0;
+bool									gbObjectsThreads = false;
+int32									giObjectsThreadsKeeping = 0;
+OBJECTS_PER_THREAD SObjectsReader*		gpsObjectsReader = NULL;
 
-static CArrayObjectsThreadPtr		gapsObjectsThreads;		//Every registered thread's.  Initialised while there are any.
+static CArrayObjectsThreadPtr			gapsObjectsThreads;			//Every thread's, the home thread's among them.  Initialised while the locking is on.
+static bool								gbObjectsReaders = false;	//Threads may read.  Changed by the home thread while it is the only one.
 
-#ifdef _MSC_VER
-static __declspec(thread) SObjectsThread*	gpsObjectsThread = NULL;	//The running thread's, NULL if it isn't registered.
-#else
-static __thread SObjectsThread*				gpsObjectsThread = NULL;
-#endif // _MSC_VER
+static OBJECTS_PER_THREAD SObjectsThread*	gpsObjectsThread = NULL;	//The running thread's, NULL if it has none.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The running thread's, on a cache line boundary, and in with every thread's.
+//
+//////////////////////////////////////////////////////////////////////////
+static SObjectsThread* ObjectsThreadNew(bool bHome)
+{
+	SObjectsThread*		psThread;
+	void*				pvAllocated;
+
+	pvAllocated = malloc(sizeof(SObjectsThread) + OBJECTS_CACHE_LINE);
+	psThread = (SObjectsThread*)(((ptr)pvAllocated + OBJECTS_CACHE_LINE) & ~(ptr)(OBJECTS_CACHE_LINE - 1));
+	psThread->pvAllocated = pvAllocated;
+	psThread->sReader.iReading = 0;
+	psThread->sReader.bHome = bHome;
+	psThread->sReader.uiReads = 0;
+	psThread->asStackFroms.Init();
+	psThread->iThread = CurrentThreadId();
+	psThread->bKeeping = false;
+
+	gapsObjectsThreads.Add(psThread);
+	gpsObjectsThread = psThread;
+	gpsObjectsReader = gbObjectsReaders ? &psThread->sReader : NULL;
+	return psThread;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void ObjectsThreadFree(SObjectsThread* psThread)
+{
+	if (psThread->bKeeping)
+	{
+		AtomicAdd(&giObjectsThreadsKeeping, -1);
+	}
+	gapsObjectsThreads.RemoveAt(gapsObjectsThreads.Find(psThread), false);
+	psThread->asStackFroms.Kill();
+	free(psThread->pvAllocated);
+	gpsObjectsThread = NULL;
+	gpsObjectsReader = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsThreadsAddHome(bool bReaders)
+{
+	gapsObjectsThreads.Init();
+	gbObjectsReaders = bReaders;
+	ObjectsThreadNew(true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsThreadsRemoveHome(void)
+{
+	ObjectsThreadFree(gpsObjectsThread);
+	gapsObjectsThreads.Kill();
+	gbObjectsReaders = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With the lock.  Once every other thread's flag has been seen down none is reading, nor will be until this thread
+// lets the lock go: one that would read sees the lock held first.  A reader's flag is up for a few instructions,
+// unless its thread has been put aside in the middle of them, which is what the yield is for.
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsWriteBegins(void)
+{
+	SObjectsThread*		psThread;
+	size				uiSpins;
+	size				i;
+
+	if (!gbObjectsReaders)
+	{
+		return;
+	}
+
+	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
+	{
+		psThread = gapsObjectsThreads.GetPtr(i);
+		uiSpins = 0;
+		while (AtomicLoad(&psThread->sReader.iReading) != 0)
+		{
+			uiSpins++;
+			if (uiSpins < 2000)
+			{
+				AtomicPause();
+			}
+			else
+			{
+				ThreadYield();
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The thread set its flag and then saw the lock held.  It waits for the lock to be let go and tries again, as a
+// reader, for as long as it takes; unless the lock is its own.
+//
+//////////////////////////////////////////////////////////////////////////
+bool ObjectsReadBeginsAfterWriter(SObjectsReader* psReader)
+{
+	for (;;)
+	{
+		AtomicStore(&psReader->iReading, 0);
+		if (gcObjectsLock.IsLockedByThisThread())
+		{
+			return false;
+		}
+		gcObjectsLock.WaitWhileLocked();
+		AtomicExchange(&psReader->iReading, 1);
+		if (!gcObjectsLock.IsLocked())
+		{
+			return true;
+		}
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,20 +209,8 @@ static __thread SObjectsThread*				gpsObjectsThread = NULL;
 //////////////////////////////////////////////////////////////////////////
 void ObjectsThreadsAdd(void)
 {
-	SObjectsThread*		psThread;
-
-	if (!gbObjectsThreads)
-	{
-		gapsObjectsThreads.Init();
-		gbObjectsThreads = true;
-	}
-
-	psThread = (SObjectsThread*)malloc(sizeof(SObjectsThread));
-	psThread->asStackFroms.Init();
-	psThread->iThread = CurrentThreadId();
-	psThread->bKeeping = false;
-	gapsObjectsThreads.Add(psThread);
-	gpsObjectsThread = psThread;
+	ObjectsThreadNew(false);
+	gbObjectsThreads = true;
 }
 
 
@@ -102,7 +227,7 @@ size ObjectsThreadsRemove(void)
 	size				uiStackFroms;
 
 	psThread = gpsObjectsThread;
-	if (psThread == NULL)
+	if ((psThread == NULL) || psThread->sReader.bHome)
 	{
 		return 0;
 	}
@@ -115,20 +240,8 @@ size ObjectsThreadsRemove(void)
 		sFrom.pcObject->GetObjectsOrDefault()->FromRemoved(sFrom.pcObject, false);
 	}
 
-	if (psThread->bKeeping)
-	{
-		AtomicAdd(&giObjectsThreadsKeeping, -1);
-	}
-	gapsObjectsThreads.RemoveAt(gapsObjectsThreads.Find(psThread), false);
-	psThread->asStackFroms.Kill();
-	free(psThread);
-	gpsObjectsThread = NULL;
-
-	if (gapsObjectsThreads.NumElements() == 0)
-	{
-		gapsObjectsThreads.Kill();
-		gbObjectsThreads = false;
-	}
+	ObjectsThreadFree(psThread);
+	gbObjectsThreads = gapsObjectsThreads.NumElements() > 1;
 	return uiStackFroms;
 }
 
@@ -139,12 +252,13 @@ size ObjectsThreadsRemove(void)
 //////////////////////////////////////////////////////////////////////////
 size ObjectsThreadsNum(void)
 {
-	return gbObjectsThreads ? gapsObjectsThreads.NumElements() : 0;
+	return gbObjectsThreads ? (gapsObjectsThreads.NumElements() - 1) : 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// By a writer or, of an object it has seen attached to the root, a reader: it is the running thread's own table.
 //
 //////////////////////////////////////////////////////////////////////////
 bool ThreadStackFromAddInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
@@ -153,7 +267,7 @@ bool ThreadStackFromAddInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
 	SThreadStackFrom*	psFrom;
 
 	psThread = gpsObjectsThread;
-	if ((psThread == NULL) || (pcObject->GetEmbeddingContainer()->GetDistToRoot() < ROOT_DIST_TO_ROOT))
+	if ((psThread == NULL) || psThread->sReader.bHome || !pcObject->IsAttachedToRoot())
 	{
 		return false;
 	}
@@ -223,6 +337,7 @@ static bool ObjectsThreadRemoveStackFrom(SObjectsThread* psThread, CPointer* pcP
 
 //////////////////////////////////////////////////////////////////////////
 //
+// By a writer or a reader: it is the running thread's own table.
 //
 //////////////////////////////////////////////////////////////////////////
 bool ThreadStackFromRemoveInside(CPointer* pcPointer)
