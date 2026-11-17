@@ -3625,6 +3625,9 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 91): A pointer or reference to a virtual base can't be cast to a class derived from it [static_cast]\n", "struct A { int a; virtual ~A() {} }; struct B : virtual A { int b; }; B* f(A* a) { return static_cast<B*>(a); }");
 	AssertCPP65Error("Generated.cpp (1, 91): A pointer or reference to a virtual base can't be cast to a class derived from it [static_cast]\n", "struct A { int a; virtual ~A() {} }; struct B : virtual A { int b; }; B& f(A& a) { return static_cast<B&>(a); }");
 
+	//A function that isn't const called on a const object says so (it said the arguments didn't match, which they did).
+	AssertCPP65Error("Generated.cpp (1, 109): The object is const and the function that takes these arguments isn't a const member function [Other]\n", "struct A { unsigned char v; bool Other(unsigned char x) { return v != x; } bool IsOpen(void) const { return Other(255); } }; int h() { A a; a.v = 0; return a.IsOpen(); }");
+
 	//A constant that running says isn't one says why, and in which constexpr calls.
 	AssertCPP65Error("Generated.cpp (3, 8): An array size must be a positive constant: It divides by zero, or the least number by -1, in f(int), called from g(int) [g]\n",
 		"constexpr int f(int x) { return 10 / x; }\nconstexpr int g(int x) { return f(x - 1); }\nchar a[g(1)];");

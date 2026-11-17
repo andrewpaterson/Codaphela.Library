@@ -1899,7 +1899,7 @@ void TestCPP65IRConstErrors(void)
 	AssertConstError("No function matches the arguments (const long): it takes (long&)", "int F(int& r) { return r; }\nint main() { const int a = 1; return F(a); }");
 	AssertConstError(szBind, "int& F(const int& r) { return r; }\nint main() { int a = 1; return F(a); }");
 
-	AssertConstError("No function matches", "struct S { int F() { return 1; } };\nint main() { const S s; return s.F(); }");
+	AssertConstError("The object is const and the function that takes these arguments isn't a const member function", "struct S { int F() { return 1; } };\nint main() { const S s; return s.F(); }");
 
 	//Allowed.
 	AssertConstError("", "struct S { mutable int m; int i; int Set() const { m = 1; return m; } S() : m(0), i(0) {} };\nint main() { const S s; return s.Set(); }");

@@ -88,7 +88,7 @@ void TestCPPOverloadsCalledObject(void)
 	AssertInt(21, TestCPP65Main("struct S { int i; int G() { return 1; } int G() const { return 2; } int H() const { return G(); } int I() { return G(); } };\nint main() { S s; s.i = 0; return s.H() * 10 + s.I(); }"));
 	AssertInt(2, TestCPP65Main("struct S { int i; int G(long long a) { return 1; } int G(int a) const { return 2; } };\nint main() { S s; s.i = 0; return s.G(1); }"));
 
-	AssertOverloadError("No function matches", "struct S { int i; int G() { return 1; } };\nint main() { S s; s.i = 0; const S& c = s; return c.G(); }");
+	AssertOverloadError("The object is const and the function that takes these arguments isn't a const member function", "struct S { int i; int G() { return 1; } };\nint main() { S s; s.i = 0; const S& c = s; return c.G(); }");
 }
 
 

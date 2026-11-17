@@ -626,6 +626,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	char				cResolved;
 	bool				bAmbiguous;
 	bool				bFound;
+	bool				bConstObject;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindFunction);
 	lliResolved = (int64)(size)pcNode + lliName * 31;
@@ -664,6 +665,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	//The candidates: the functions of the name that the call can see, that take its arguments.
 	cCandidates.Init(uiArguments);
 	uiLooked = 0;
+	bConstObject = false;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
 		if ((pcFunction->meKind != eKind) || pcFunction->mpcTemplate || !IsOverloadOf(pcClass, pcFunction, lliName) || (papcNamespaces && !papcNamespaces->Takes(pcFunction->mpcNamespace, DeclarationToken(pcFunction))))
@@ -675,9 +677,17 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 			continue;
 		}
 		uiLooked++;
-		if (pcFunction->TakesObject(eObject) && RankArguments(pcFunction, apsArguments, papcArguments, cCandidates.NextRanks()))
+		if (pcFunction->TakesObject(eObject))
 		{
-			cCandidates.Add(pcFunction, NULL);
+			if (RankArguments(pcFunction, apsArguments, papcArguments, cCandidates.NextRanks()))
+			{
+				cCandidates.Add(pcFunction, NULL);
+			}
+		}
+		else if (CPPCalledConst(eObject) && pcFunction->TakesObject(CPPCalledObject(false, CPPCalledRvalue(eObject))) && RankArguments(pcFunction, apsArguments, papcArguments, cCandidates.NextRanks()))
+		{
+			//It would take the arguments, but not a const object.
+			bConstObject = true;
 		}
 	}
 	bFound = uiLooked > 0;
@@ -704,6 +714,11 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	if (bAmbiguous)
 	{
 		mpcUnit->Error(pcNode, "The call is ambiguous");
+		return NULL;
+	}
+	if (bFound && bConstObject)
+	{
+		mpcUnit->Error(pcNode, "The object is const and the function that takes these arguments isn't a const member function");
 		return NULL;
 	}
 	if (bFound)
