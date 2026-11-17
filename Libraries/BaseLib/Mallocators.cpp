@@ -119,7 +119,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	if ((*ppcMallocator)->IsLocal())
 	{
 		pcLocalMallocator = (CLocalMallocator*)(*ppcMallocator);
-		pcLocalMallocator = (CLocalMallocator*)gcConstructors.Construct(pcLocalMallocator->ClassName(), &gcSystemAllocator);
+		pcLocalMallocator = (CLocalMallocator*)gcConstructors.Construct(pcLocalMallocator->ClassName());
 		if (!pcLocalMallocator)
 		{
 			gcLogger.Error2(__METHOD__, " Could not construct local mallocator [", (*ppcMallocator)->ClassName(), "].", NULL);

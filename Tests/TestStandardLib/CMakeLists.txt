@@ -11,6 +11,9 @@
 #
 # Add -DBASELIB_ASAN=ON for AddressSanitizer and LeakSanitizer.
 #
+# Add -DBASELIB_MALLOC=ON for gcSystemAllocator to use malloc, which valgrind knows the blocks of (it does not know
+# CThreadMallocator's).
+#
 # Add -DBASELIB_TSAN=ON (64-bit) for ThreadSanitizer, in its own build directory.  Run it with address space
 # randomisation off (setarch -R ctest ...): ThreadSanitizer doesn't start where the kernel maps memory high.
 #
@@ -35,6 +38,7 @@ endif()
 
 option(BASELIB_ASAN "Build with AddressSanitizer and LeakSanitizer" OFF)
 option(BASELIB_TSAN "Build with ThreadSanitizer" OFF)
+option(BASELIB_MALLOC "gcSystemAllocator allocates with malloc, not CThreadMallocator (as it does under AddressSanitizer)" OFF)
 option(BASELIB_64 "Build 64-bit instead of 32-bit" OFF)
 option(BASELIB_SIZE16 "Build with a 16-bit size (the W65C816's size model) and -Wconversion" OFF)
 
@@ -168,6 +172,10 @@ endif()
 if(BASELIB_ASAN)
 	target_compile_options(baselib_options INTERFACE -fsanitize=address -fno-omit-frame-pointer)
 	target_link_options(baselib_options INTERFACE -fsanitize=address)
+endif()
+
+if(BASELIB_MALLOC)
+	target_compile_definitions(baselib_options INTERFACE SYSTEM_ALLOCATOR_USES_MALLOC)
 endif()
 
 if(BASELIB_TSAN)

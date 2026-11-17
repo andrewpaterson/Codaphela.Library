@@ -1,6 +1,27 @@
+#include <stdlib.h>
 #include "Logger.h"
 #include "Validation.h"
+#include "ThreadMallocator.h"
 #include "SystemAllocator.h"
+
+
+//Where the system allocator's memory comes from.  On the hosts, CThreadMallocator.  On the 65C64 and the W65C816,
+//Libc65's malloc (a CTrueMallocator).  And malloc when AddressSanitizer is watching: it and LeakSanitizer see
+//malloc's blocks and none of CThreadMallocator's, and seeing them is what an ASan build is for.  Defining
+//SYSTEM_ALLOCATOR_USES_MALLOC asks for malloc too (to run under valgrind, say).
+#if defined(__LIBC65__) || defined(__SANITIZE_ADDRESS__)
+#define SYSTEM_ALLOCATOR_USES_MALLOC
+#endif // __LIBC65__ || __SANITIZE_ADDRESS__
+
+#ifdef SYSTEM_ALLOCATOR_USES_MALLOC
+#define SYSTEM_ALLOCATOR_MALLOC(uiSize)			malloc(uiSize)
+#define SYSTEM_ALLOCATOR_REALLOC(pv, uiSize)	realloc(pv, uiSize)
+#define SYSTEM_ALLOCATOR_FREE(pv)				free(pv)
+#else
+#define SYSTEM_ALLOCATOR_MALLOC(uiSize)			gcThreadMallocator.Malloc(uiSize)
+#define SYSTEM_ALLOCATOR_REALLOC(pv, uiSize)	gcThreadMallocator.Realloc(pv, uiSize)
+#define SYSTEM_ALLOCATOR_FREE(pv)				gcThreadMallocator.Free(pv)
+#endif // SYSTEM_ALLOCATOR_USES_MALLOC
 
 
 CSystemAllocator	gcSystemAllocator;
@@ -28,7 +49,7 @@ void* CSystemAllocator::Malloc(lsize uiSize)
 	}
 #endif // _DEBUG
 
-	return malloc(uiSize);
+	return SYSTEM_ALLOCATOR_MALLOC(uiSize);
 }
 
 
@@ -40,7 +61,7 @@ bool CSystemAllocator::Free(void* pv)
 {
 	if (pv)
 	{
-		free(pv);
+		SYSTEM_ALLOCATOR_FREE(pv);
 		return true;
 	}
 	else
@@ -63,15 +84,7 @@ void* CSystemAllocator::Realloc(void* pv, lsize uiSize)
 	}
 #endif // _DEBUG
 
-	if (pv == NULL)
-	{
-		pv = malloc(uiSize);
-	}
-	else
-	{
-		pv = realloc(pv, uiSize);
-	}
-	return pv;
+	return SYSTEM_ALLOCATOR_REALLOC(pv, uiSize);
 }
 
 

@@ -44,6 +44,31 @@ void CConstructors::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// NewMalloc for a class known by its name: the object is malloc's, as NewMalloc's are, so it is freed with free
+// (SafeKill, or a CLife that owns it).
+//
+//////////////////////////////////////////////////////////////////////////
+void* CConstructors::Construct(const char* szConstructorName)
+{
+	void*	pcConstructor;
+	size	uiSize;
+	void*	pcObject;
+
+	pcConstructor = Get(szConstructorName, &uiSize);
+	if (!pcConstructor)
+	{
+		return NULL;
+	}
+
+	pcObject = malloc(uiSize);
+	memcpy(pcObject, pcConstructor, uiSize);
+	return pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object is pcMalloc's: it is freed with pcMalloc->Free.
 //
 //////////////////////////////////////////////////////////////////////////
 void* CConstructors::Construct(const char* szConstructorName, CMallocator* pcMalloc, char(**pacDebugName)[4])

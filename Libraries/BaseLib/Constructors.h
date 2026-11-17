@@ -41,6 +41,7 @@ public:
 	template<class M>	M*		Get(size* puiSize);
 						void*	Get(const char* szConstructorName, size* puiSize);
 
+						void*	Construct(const char* szConstructorName);
 						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
 						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, size uiAdditionalSize, char(**pacDebugName)[4] = NULL);
 						size	NumConstructors(void);

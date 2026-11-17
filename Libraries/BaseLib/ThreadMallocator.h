@@ -47,6 +47,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //at a time as each page is first written, costs far more than anything else here.
 //A thread that ends leaves its arena, with whatever is still allocated in it, to the next thread that starts.
 //
+//Memory from malloc is not this allocator's and must go back to free (and this allocator's must come back here):
+//Free reports a pointer it didn't allocate, when it can tell.
+//
 //All zeros is its starting state, so it works before anything has run and needs no Init.  It is never killed: its
 //memory lasts as long as the process.  It isn't built for the 65C64 or the W65C816, which use a CTrueMallocator alone.
 
@@ -77,8 +80,12 @@ struct SThreadMallocatorChunk
 {
 	CThreadMallocatorArena*		pcArena;
 	lsize						uiBytes;		//All of it, this included: what is given back to the operating system.
-	lsize						auiUnused[2];	//So that what follows is aligned as blocks are, in 32 bits and in 64.
+	lsize						uiMagic;		//THREAD_MALLOCATOR_MAGIC: what tells memory from here from memory given to Free by mistake.
+	lsize						uiUnused;		//So that what follows is aligned as blocks are, in 32 bits and in 64.
 };
+
+
+#define THREAD_MALLOCATOR_MAGIC			((lsize)0x7EADC0DA)
 
 
 //Never a thread's arena, so a block of its own is never taken for one of the freeing thread's.
@@ -149,6 +156,7 @@ protected:
 	void*						MallocBlockOfItsOwn(lsize uiBytes);
 	void						FreeBlockOfItsOwn(SThreadMallocatorChunk* psChunk);
 	SThreadMallocatorChunk*		TakeKept(lsize uiBytes);
+	void						NotAllocatedHere(void* pv);
 };
 
 
@@ -323,6 +331,10 @@ inline void CThreadMallocator::Free(void* pv)
 	if (pcArena == gpcThreadMallocatorArena)
 	{
 		pcArena->Free(pv);
+	}
+	else if (psChunk->uiMagic != THREAD_MALLOCATOR_MAGIC)
+	{
+		NotAllocatedHere(pv);
 	}
 	else if (pcArena == THREAD_MALLOCATOR_NO_ARENA)
 	{

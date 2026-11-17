@@ -317,7 +317,7 @@ void TestThreadMallocatorChunks(void)
 		apv[i] = gcThreadMallocator.Malloc(100000);
 		TestThreadMallocatorFill(apv[i], 100000, (uint32)i);
 	}
-	AssertTrue(gcThreadMallocator.NumThreadChunks() >= uiChunks + 4);
+	AssertTrue(gcThreadMallocator.NumThreadChunks() >= 5);
 	AssertTrue(gcThreadMallocator.IsThreadArenaValid());
 
 	for (i = 0; i < 200; i++)

@@ -96,7 +96,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 	}
 
 	pcDataOrderer = *ppcDataOrderer;
-	pcDataOrderer = (CIndexTreeDataOrderer*)gcConstructors.Construct(pcDataOrderer->ClassName(), &gcSystemAllocator);
+	pcDataOrderer = (CIndexTreeDataOrderer*)gcConstructors.Construct(pcDataOrderer->ClassName());
 	if (!pcDataOrderer)
 	{
 		gcLogger.Error2(__METHOD__, " Could not construct data orderer [", (*ppcDataOrderer)->ClassName(), "].", NULL);

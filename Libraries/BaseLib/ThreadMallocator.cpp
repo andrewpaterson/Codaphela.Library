@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __LIBC65__
 #include <string.h>
+#include "Logger.h"
 #include "SystemMemory.h"
 #include "ThreadMallocator.h"
 
@@ -235,6 +236,7 @@ bool CThreadMallocatorArena::AddChunk(void)
 
 	psChunk->pcArena = this;
 	psChunk->uiBytes = THREAD_MALLOCATOR_CHUNK;
+	psChunk->uiMagic = THREAD_MALLOCATOR_MAGIC;
 	muiNumChunks++;
 	return AddRegion(psChunk + 1, THREAD_MALLOCATOR_CHUNK - sizeof(SThreadMallocatorChunk));
 }
@@ -415,6 +417,7 @@ void* CThreadMallocator::MallocBlockOfItsOwn(lsize uiBytes)
 		}
 		psChunk->pcArena = THREAD_MALLOCATOR_NO_ARENA;
 		psChunk->uiBytes = uiTotal;
+		psChunk->uiMagic = THREAD_MALLOCATOR_MAGIC;
 	}
 
 	//A block's header, so its size is found as any block's is.
@@ -530,6 +533,19 @@ lsize CThreadMallocator::KeptBytes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pv was given to Free or Realloc and isn't in a chunk of this allocator's: most likely it is malloc's, and was given
+// to gcSystemAllocator or to something that frees through it.  It is left alone (leaked): better than what freeing
+// it into whatever its memory happens to say would do.
+//
+//////////////////////////////////////////////////////////////////////////
+void CThreadMallocator::NotAllocatedHere(void* pv)
+{
+	gcLogger.Error2(__METHOD__, " Memory [", PointerToString(pv), "] was not allocated by CThreadMallocator (is it malloc's, freed through gcSystemAllocator?).", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The bytes pv's memory can hold: what was asked for, rounded up.  From any thread.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -567,6 +583,11 @@ void* CThreadMallocator::Realloc(void* pv, lsize uiBytes)
 	}
 
 	pcArena = ThreadMallocatorChunk(pv)->pcArena;
+	if ((pcArena != gpcThreadMallocatorArena) && (ThreadMallocatorChunk(pv)->uiMagic != THREAD_MALLOCATOR_MAGIC))
+	{
+		NotAllocatedHere(pv);
+		return NULL;
+	}
 	if ((pcArena == gpcThreadMallocatorArena) && (uiBytes <= THREAD_MALLOCATOR_ARENA_BYTES))
 	{
 		pvNew = pcArena->Realloc(pv, uiBytes);
