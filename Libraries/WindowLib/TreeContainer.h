@@ -24,9 +24,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayInt.h"
 #include "SupportLib/ImageCel.h"
 #include "ListContainer.h"
+#include "TreeRow.h"
 
 
-#define TREE_NO_NODE	-1
+#define TREE_NODE_FONT	((size)-1)
 
 
 //A node of a tree.  Its children are linked from iFirstChild through their iNextSibling, in the order they were added.
@@ -42,6 +43,7 @@ struct STreeNode
 	size	uiTextLength;
 	size	uiFirstRange;	//In masRanges, if uiNumRanges isn't 0.
 	size	uiNumRanges;
+	int32	iWidth;			//What its row needs across, -1 until it is worked out (GetNodeWidth).
 	bool	bExpanded;
 };
 
@@ -55,6 +57,18 @@ struct STreeNodeRange
 };
 
 
+//A piece of a node's name, as NextNodePiece walks them: a range, or the text between two.
+struct STreeNodePiece
+{
+	size	uiStart;		//In the node's text.
+	size	uiLength;
+	size	uiFont;			//The range's font's index, TREE_NODE_FONT for the node's own.
+	size	uiNextRange;	//The node's range after the piece.
+
+	void	Init(void);
+};
+
+
 typedef CArrayTemplate<STreeNode>			CArrayTreeNode;
 typedef CArrayTemplate<STreeNodeRange>	CArrayTreeNodeRange;
 
@@ -65,6 +79,11 @@ typedef CArrayTemplate<STreeNodeRange>	CArrayTreeNodeRange;
 //(AddNodeRange), as a found line's has its line number dim and the text found bold.  The rows of the list are the nodes that can be seen: those at the top and those
 //in open nodes.  A double click (or enter) on a node with children opens or closes it; on one without, the listeners
 //are told it was activated.  A press on the chevron opens or closes its node.
+//
+//The rows are all one height, so where each is is worked out, not laid out: row i is i rows down.  The tree only has
+//components (CTreeRow) for the rows in view, as many as the scroll pane it is in shows, and as it is scrolled each is
+//given the node that came into view (LayoutRows).  A tree of a hundred thousand open nodes has as few components as
+//one of a hundred.  How wide the tree is comes from its nodes' texts and fonts, kept for each node (GetNodeWidth).
 class CTreeContainer : public CListContainer
 {
 CONSTRUCTABLE(CTreeContainer);
@@ -79,9 +98,14 @@ protected:
 	CArray<CFont>		maRangeFonts;	//The ranges' fonts, each once.
 	CArrayInt			maiRowNodes;	//The node of each row.
 	CArrayInt			maiTopNodes;	//The nodes at the top, in order.
+	CArray<CTreeRow>	maRows;			//The rows in view's components: row i's is the one at i modulo how many there are.
+	SInt32Vec2			msRowsOrigin;	//Where the first row was laid out, in window client space.
+	int32				miRowsWidth;	//What the widest row needs across.
 	int32				miIndent;		//How far each depth is in.
 	int32				miRowHeight;
 	bool				mbRowsDirty;	//Nodes changed since the rows were made.
+	bool				mbRowsBound;	//The rows' components show their nodes as they are now.
+	bool				mbLaidOut;
 
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -123,7 +147,11 @@ public:
 	void			UpdateRows(void);
 
 	SInt32Vec2		GetDesiredSize(void) override;
+	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+	bool			GetRowBounds(int32 iRow, int32* piTop, int32* piHeight) override;
+	size			NumRowComponents(void);
+	Ptr<CTreeRow>	GetRowComponent(int32 iRow);
 	void			ActivateComponent(int x, int y) override;
 	void			Left(void);
 	void			Right(void);
@@ -131,10 +159,15 @@ public:
 
 protected:
 	void			RowActivated(int32 iRow) override;
+	int32			FindRowAtY(int32 y) override;
 	void			AddVisibleRows(int32 iNode);
-	void			AddNodeRow(int32 iNode);
-	int32			AddNodeLabels(Ptr<CGridContainer> pRow, int iColumn, int32 iNode);
 	bool			IsNodeVisible(int32 iNode);
+	bool			NextNodePiece(STreeNode* psNode, STreeNodePiece* psPiece);
+	Ptr<CFont>		GetPieceFont(int32 iNode, STreeNodePiece* psPiece);
+	int32			GetNodeWidth(int32 iNode);
+	void			GetRowsInView(SInt32Vec2 sOrigin, SInt32Vec2 sArea, int32* piFirst, int32* piNum);
+	void			LayoutRows(SInt32Vec2 sOrigin, SInt32Vec2 sArea);
+	void			BindRow(Ptr<CTreeRow> pRow, int32 iNode);
 };
 
 

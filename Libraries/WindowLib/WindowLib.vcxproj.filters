@@ -237,6 +237,9 @@
     <ClInclude Include="TreeContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="TreeRow.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
     <ClInclude Include="Popup.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
@@ -633,6 +636,9 @@
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="TreeContainer.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeRow.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="Popup.cpp">

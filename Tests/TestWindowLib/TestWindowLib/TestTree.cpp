@@ -3,6 +3,7 @@
 #include "StandardLib/Objects.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/TreeContainer.h"
+#include "WindowLib/ScrollPane.h"
 #include "WindowLib/JewelTheme.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
@@ -14,6 +15,10 @@ Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
 
 
 Ptr<CFont> ReadLabelFont(void);
+
+
+Ptr<CScrollBarImages> CreateScrollBarImages(void);
+Ptr<CWindowTheme> CreateScrollPaneTheme(Ptr<CScrollBarImages> pImages);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -235,7 +240,7 @@ void TestTreeNodes(void)
 		AssertString("0,1,2,3,4,5", TreeRows(pTree, &sz));
 		pTestWindow->Layout();
 		sPosition = pTree->GetPosition();
-		AssertTrue(pTree->GetTrackBounds(false, 1, &iTop, &iHeight));
+		AssertTrue(pTree->GetRowBounds(1, &iTop, &iHeight));
 		AssertTrue(pTree->IsOverChevron(1, 16 + 2));
 		AssertFalse(pTree->IsOverChevron(1, 2));
 		AssertFalse(pTree->IsOverChevron(3, 48 + 2));
@@ -272,6 +277,296 @@ void TestTreeNodes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The tree only has components for the rows in view.  Each shows its
+// row's node: a chevron if the node has children, its icon, and its name
+// in a label, or in a label for each part in a font of its own.  The
+// tree is as wide as its widest row, which it works out from the fonts:
+// the same as the row's labels are laid out to.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTreeRowComponents(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTreeContainer>		pTree;
+		Ptr<CTreeRow>			pRow;
+		Ptr<CFont>				pFont;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CPointer				pNull;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CImageCel>			pIcon;
+		int32					iProject;
+		int32					iSource;
+		int32					iMain;
+		int32					iHeader;
+		int32					iTop;
+		int32					iHeight;
+		int32					iWidth;
+		int32					iWidest;
+		int32					i;
+		size					uiName;
+		const char*				aszNames[] = { "Main.cpp", "a b  c", "12: int F(void) { return G(1, 2) + 3; }", "\tTabbed\ttext", "", "x" };
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Tree Rows Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pFont = ReadLabelFont();
+		pTheme = CreateTestTheme(pFont);
+		CJewelTheme::SetImages(pTheme, pTestWindow);
+		pIcon = pTheme->GetImage(TI_DownChevron);
+		pTree = OMalloc<CTreeContainer>(pTestWindow, pTheme);
+		pTestWindow->SetContainer(pTree);
+
+		//Before it is laid out the tree has no components for its rows, and doesn't know where they are.
+		iProject = pTree->AddNode(TREE_NO_NODE, "Project");
+		iSource = pTree->AddNode(iProject, "Source", pIcon);
+		iMain = pTree->AddNode(iSource, "Main.cpp");
+		iHeader = pTree->AddNode(TREE_NO_NODE, "Header.h", pIcon);
+		AssertTrue(pTree->AddNodeRange(iMain, 0, 4, pFont));
+		AssertTrue(pTree->AddNodeRange(iMain, 5, 3, pFont));
+		AssertSize(0, pTree->NumRowComponents());
+		AssertFalse(pTree->GetRowBounds(0, &iTop, &iHeight));
+		AssertTrue(pTree->GetRowComponent(0).IsNull());
+
+		//Laid out, closed: a row for each node at the top, each with its component.
+		pTestWindow->Layout();
+		AssertInt(2, pTree->NumRows());
+		AssertTrue(pTree->GetRowBounds(1, &iTop, &iHeight));
+		AssertInt(pTree->GetPosition().y + iHeight, iTop);
+		pRow = pTree->GetRowComponent(0);
+		AssertTrue(pRow.IsNotNull());
+		AssertInt(iProject, pRow->GetNode());
+		AssertTrue(pRow->HasChevron());
+		AssertFalse(pRow->HasIcon());
+		AssertSize(1, pRow->NumLabels());
+		AssertString("Project", pRow->GetLabel(0)->GetText());
+		AssertInt(pTree->GetPosition().y, pRow->GetPosition().y);
+		AssertInt(iHeight, pRow->GetActualSize().y);
+		pRow = pTree->GetRowComponent(1);
+		AssertInt(iHeader, pRow->GetNode());
+		AssertFalse(pRow->HasChevron());
+		AssertTrue(pRow->HasIcon());
+		AssertString("Header.h", pRow->GetLabel(0)->GetText());
+		AssertInt(iTop, pRow->GetPosition().y);
+		AssertTrue(pTree->GetRowComponent(2).IsNull());
+
+		//Opened, the rows below move down: each row's component shows the node that is now its row's.  A name with
+		//ranges has a label for each range and for the text between them.
+		pTree->ExpandAll();
+		pTestWindow->Layout();
+		AssertInt(4, pTree->NumRows());
+		AssertInt(iSource, pTree->GetRowComponent(1)->GetNode());
+		AssertTrue(pTree->GetRowComponent(1)->HasChevron());
+		AssertTrue(pTree->GetRowComponent(1)->HasIcon());
+		pRow = pTree->GetRowComponent(2);
+		AssertInt(iMain, pRow->GetNode());
+		AssertSize(3, pRow->NumLabels());
+		AssertString("Main", pRow->GetLabel(0)->GetText());
+		AssertString(".", pRow->GetLabel(1)->GetText());
+		AssertString("cpp", pRow->GetLabel(2)->GetText());
+		AssertTrue(pRow->GetLabel(3).IsNull());
+		AssertInt(iHeader, pTree->GetRowComponent(3)->GetNode());
+		AssertString("Header.h", pTree->GetRowComponent(3)->GetLabel(0)->GetText());
+
+		//Each label is where the one before it ends, the first after the indent (two deep), the chevron's gap and no icon.
+		AssertInt(pRow->GetLabel(0)->GetPosition().x + pRow->GetLabel(0)->GetActualSize().x, pRow->GetLabel(1)->GetPosition().x);
+		AssertInt(pRow->GetLabel(1)->GetPosition().x + pRow->GetLabel(1)->GetActualSize().x, pRow->GetLabel(2)->GetPosition().x);
+		AssertInt(pTree->GetPosition().x + 2 * pTheme->GetMetric(TM_TreeIndent) + pTheme->GetMetric(TM_TreeChevronWidth), pRow->GetLabel(0)->GetPosition().x);
+
+		//The tree is as wide as its widest row needs and as tall as its rows: what it works out from the fonts is what
+		//the rows' components need.
+		iWidest = 0;
+		for (i = 0; i < pTree->NumRows(); i++)
+		{
+			pRow = pTree->GetRowComponent(i);
+			pRow->SetRequiredSize();
+			iWidth = pRow->GetRequiredSize().x;
+			if (iWidth > iWidest)
+			{
+				iWidest = iWidth;
+			}
+		}
+		AssertInt(iWidest, pTree->GetDesiredSize().x);
+		AssertInt(4 * iHeight, pTree->GetDesiredSize().y);
+
+		//Closed again, the components of the rows that went show no node, and are kept for when rows come back.
+		pTree->CollapseAll();
+		pTestWindow->Layout();
+		AssertInt(2, pTree->NumRows());
+		AssertInt(iHeader, pTree->GetRowComponent(1)->GetNode());
+		AssertTrue(pTree->GetRowComponent(2).IsNull());
+		AssertSize(pTree->NumRowComponents() + 2, pTree->NumComponents());
+
+		//One node of each name, alone: as wide as its component needs, whatever is in the name.
+		for (uiName = 0; uiName < sizeof(aszNames) / sizeof(aszNames[0]); uiName++)
+		{
+			pTree->RemoveAllNodes();
+			pTree->AddNode(TREE_NO_NODE, aszNames[uiName], (uiName & 1) ? pIcon : Ptr<CImageCel>());
+			pTestWindow->Layout();
+			pRow = pTree->GetRowComponent(0);
+			AssertTrue(pRow.IsNotNull());
+			pRow->SetRequiredSize();
+			AssertInt(pRow->GetRequiredSize().x, pTree->GetDesiredSize().x);
+		}
+
+		pRow = NULL;
+		pIcon = NULL;
+		pFont = NULL;
+		pTree = NULL;
+		pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A hundred thousand nodes, all open, in a scroll pane: the tree is as
+// tall as all of them, but has no more components than the rows the
+// scroll pane shows, however far it is scrolled.  Rows are found, shown
+// and selected by where their heights put them.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTreeManyRows(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CScrollPane>		pScrollPane;
+		Ptr<CTreeContainer>		pTree;
+		Ptr<CTreeRow>			pRow;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CPointer				pNull;
+		Ptr<CWindowTheme>		pTheme;
+		CChars					sz;
+		int32					iRoot;
+		int32					iTop;
+		int32					iHeight;
+		int32					iShown;
+		int32					i;
+		size					uiComponents;
+		SInt32Vec2				sPosition;
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Tree Many Rows Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pTheme = CreateTestTheme(ReadLabelFont());
+		CJewelTheme::SetImages(pTheme, pTestWindow);
+		pScrollPane = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pTestWindow->SetContainer(pScrollPane);
+		pTree = OMalloc<CTreeContainer>(pTestWindow, pTheme);
+		pTree->SetAlignment(CSH_Stretch, CSV_Top);
+		pScrollPane->SetContent(pTree);
+
+		sz.Init();
+		iRoot = pTree->AddNode(TREE_NO_NODE, "Root");
+		for (i = 1; i < 100000; i++)
+		{
+			sz.Clear();
+			sz.Append("Node ");
+			sz.Append(i);
+			pTree->AddNode(iRoot, sz.Text(), NULL, i);
+		}
+		pTree->SetExpanded(iRoot, true);
+		pTestWindow->Layout();
+		AssertInt(100000, pTree->NumRows());
+		AssertTrue(pTree->GetRowBounds(0, &iTop, &iHeight));
+		AssertInt(100000 * iHeight, pTree->GetDesiredSize().y);
+
+		//As many components as rows the 200 high window shows (made a few at a time), and no more.
+		iShown = (200 + iHeight - 1) / iHeight;
+		uiComponents = pTree->NumRowComponents();
+		AssertTrue((uiComponents >= (size)iShown) && (uiComponents < (size)iShown + 8));
+		AssertSize(uiComponents + 2, pTree->NumComponents());
+		AssertInt(0, pTree->GetRowComponent(0)->GetNode());
+		AssertString("Node 1", pTree->GetRowComponent(1)->GetLabel(0)->GetText());
+		AssertTrue(pTree->GetRowComponent(iShown - 1).IsNotNull());
+		AssertTrue(pTree->GetRowComponent(iShown).IsNull());
+		AssertTrue(pTree->GetRowComponent(99999).IsNull());
+
+		//The last row shown: the same components now show the last rows, where their heights put them.
+		AssertTrue(pTree->Select(99999));
+		pTree->ShowRow(99999);
+		pTestWindow->Layout();
+		AssertInt(100000 * iHeight - 200, pScrollPane->GetScrollPosition().y);
+		AssertSize(uiComponents, pTree->NumRowComponents());
+		AssertSize(uiComponents + 2, pTree->NumComponents());
+		pRow = pTree->GetRowComponent(99999);
+		AssertTrue(pRow.IsNotNull());
+		AssertString("Node 99999", pRow->GetLabel(0)->GetText());
+		AssertInt(200 - iHeight, pRow->GetPosition().y);
+		AssertTrue(pTree->GetRowBounds(99999, &iTop, &iHeight));
+		AssertInt(200 - iHeight, iTop);
+		AssertTrue(pTree->GetRowComponent(0).IsNull());
+		AssertTrue(pTree->GetRowComponent(99999 - iShown).IsNull());
+		AssertTrue(pTree->GetRowComponent(99999 - iShown + 2).IsNotNull());
+
+		//The row at a point is found from its height, and a press there selects it.
+		sPosition = pTree->GetPosition();
+		AssertInt(99999, pTree->FindRowAt(50, 200 - 1));
+		AssertInt(99998, pTree->FindRowAt(50, 200 - iHeight - 1));
+		AssertInt(-1, pTree->FindRowAt(50, 200));
+		pTree->ActivateComponent(50, 200 - iHeight - 1 - sPosition.y);
+		AssertInt(99998, pTree->GetSelected());
+		AssertLong(99998, pTree->GetNodeData(pTree->GetSelectedNode()));
+
+		//The keys move the selection over rows that have no components until they are scrolled to.
+		pTree->DocumentHome();
+		pTestWindow->Layout();
+		AssertInt(0, pTree->GetSelected());
+		AssertInt(0, pScrollPane->GetScrollPosition().y);
+		AssertInt(0, pTree->GetRowComponent(0)->GetNode());
+		pTree->PageDown();
+		pTree->PageDown();
+		pTestWindow->Layout();
+		AssertTrue(pTree->GetSelected() > iShown);
+		AssertTrue(pTree->GetRowComponent(pTree->GetSelected()).IsNotNull());
+		AssertInt(pTree->GetSelected(), pTree->GetRowComponent(pTree->GetSelected())->GetNode());
+		AssertSize(uiComponents, pTree->NumRowComponents());
+
+		//Closed, there is one row, and the rest of the components show no node.
+		pTree->SetExpanded(iRoot, false);
+		pTestWindow->Layout();
+		AssertInt(1, pTree->NumRows());
+		AssertInt(iRoot, pTree->GetSelectedNode());
+		AssertInt(iHeight, pTree->GetDesiredSize().y);
+		AssertInt(iRoot, pTree->GetRowComponent(0)->GetNode());
+		AssertTrue(pTree->GetRowComponent(1).IsNull());
+		AssertSize(uiComponents, pTree->NumRowComponents());
+
+		sz.Kill();
+		pRow = NULL;
+		pTree = NULL;
+		pScrollPane = NULL;
+		pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTree(void)
@@ -280,6 +575,8 @@ void TestTree(void)
 	ObjectsInit();
 
 	TestTreeNodes();
+	TestTreeRowComponents();
+	TestTreeManyRows();
 
 	ObjectsFlush();
 	ObjectsKill();

@@ -22,11 +22,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Objects.h"
 #include "SupportLib/ColourFormat.h"
 #include "Window.h"
-#include "FillContainer.h"
-#include "GridContainer.h"
-#include "IconComponent.h"
-#include "Label.h"
 #include "TreeContainer.h"
+
+
+#define TREE_ROW_COMPONENTS_STEP	8	//How many more components are made when more rows show than there are.
 
 
 
@@ -51,6 +50,11 @@ void CTreeContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	maRangeFonts.Init();
 	maiRowNodes.Init();
 	maiTopNodes.Init();
+	maRows.Init();
+	msRowsOrigin.Init(0, 0);
+	miRowsWidth = 0;
+	mbRowsBound = false;
+	mbLaidOut = false;
 	miIndent = pTheme->GetMetric(TM_TreeIndent);
 	pFont = pTheme->GetFont();
 	miRowHeight = (pFont.IsNotNull() ? pFont->GetLineHeight() : 16) + pTheme->GetMetric(TM_TreeRowPadding);
@@ -79,9 +83,14 @@ void CTreeContainer::Class(void)
 	M_Embedded(maRangeFonts);
 	U_Unknown(CArrayInt, maiRowNodes);
 	U_Unknown(CArrayInt, maiTopNodes);
+	M_Embedded(maRows);
+	U_2Int32(msRowsOrigin);
+	U_Int32(miRowsWidth);
 	U_Int32(miIndent);
 	U_Int32(miRowHeight);
 	U_Bool(mbRowsDirty);
+	U_Bool(mbRowsBound);
+	U_Bool(mbLaidOut);
 }
 
 
@@ -149,6 +158,7 @@ int32 CTreeContainer::AddNode(int32 iParent, const char* szText, Ptr<CImageCel> 
 	psNode->uiTextLength = strlen(szText);
 	psNode->uiFirstRange = 0;
 	psNode->uiNumRanges = 0;
+	psNode->iWidth = -1;
 	psNode->bExpanded = false;
 	mszTexts.Append(szText);
 	maIcons.Add(pIcon);
@@ -269,6 +279,7 @@ void CTreeContainer::SetNodeFont(int32 iNode, Ptr<CFont> pFont)
 		return;
 	}
 	maFonts.Set(iNode, pFont);
+	masNodes.Get(iNode)->iWidth = -1;
 	if (IsNodeVisible(iNode))
 	{
 		mbRowsDirty = true;
@@ -479,9 +490,11 @@ bool CTreeContainer::IsNodeVisible(int32 iNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Makes the rows again from the nodes that can be seen if they changed.
-// The selected node stays selected, or if it was hidden the open node it
-// is in.
+// Makes the rows again from the nodes that can be seen if they changed:
+// which node each row is of, and how wide the widest is.  No components
+// are made, the rows in view's are given their nodes when the tree is
+// next laid out.  The selected node stays selected, or if it was hidden
+// the open node it is in.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTreeContainer::UpdateRows(void)
@@ -489,6 +502,7 @@ void CTreeContainer::UpdateRows(void)
 	int32	iSelected;
 	int32	iOldSelected;
 	int32	iRow;
+	int32	iWidth;
 	size	i;
 
 	if (!mbRowsDirty)
@@ -496,6 +510,7 @@ void CTreeContainer::UpdateRows(void)
 		return;
 	}
 	mbRowsDirty = false;
+	mbRowsBound = false;
 
 	//The nodes may all have been removed.
 	iOldSelected = GetRowNode(GetSelected());
@@ -510,27 +525,33 @@ void CTreeContainer::UpdateRows(void)
 	}
 
 	//The selection is carried over the new rows quietly: the listeners only hear of it when it is a different node.
-	miSelected = -1;
-	CListContainer::RemoveAllComponents();
 	maiRowNodes.ReInit();
 	for (i = 0; i < maiTopNodes.NumElements(); i++)
 	{
 		AddVisibleRows(maiTopNodes.GetValue(i));
 	}
+	SetNumRows((int32)maiRowNodes.NumElements());
 
 	iRow = -1;
-	if (iSelected != TREE_NO_NODE)
+	miRowsWidth = 0;
+	for (i = 0; i < maiRowNodes.NumElements(); i++)
 	{
-		for (i = 0; i < maiRowNodes.NumElements(); i++)
+		if (maiRowNodes.GetValue(i) == iSelected)
 		{
-			if (maiRowNodes.GetValue(i) == iSelected)
-			{
-				iRow = (int32)i;
-				break;
-			}
+			iRow = (int32)i;
+		}
+		iWidth = GetNodeWidth(maiRowNodes.GetValue(i));
+		if (iWidth > miRowsWidth)
+		{
+			miRowsWidth = iWidth;
 		}
 	}
 	miSelected = iRow;
+	miAnchor = iRow;
+	if (iRow >= 0)
+	{
+		mabSelected.Set(iRow, true);
+	}
 	UpdateHighlights();
 	if (iSelected != iOldSelected)
 	{
@@ -549,7 +570,7 @@ void CTreeContainer::AddVisibleRows(int32 iNode)
 {
 	int32	iChild;
 
-	AddNodeRow(iNode);
+	maiRowNodes.Add(iNode);
 	if (masNodes.Get(iNode)->bExpanded)
 	{
 		for (iChild = GetFirstChild(iNode); iChild != TREE_NO_NODE; iChild = GetNextSibling(iChild))
@@ -562,123 +583,241 @@ void CTreeContainer::AddVisibleRows(int32 iNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The indent, the chevron (a gap for a node without children), the icon
-// and the name, in a grid of their own so rows of different depths
-// don't share columns.
+// The next piece of the node's name after psPiece's (the first, after
+// psPiece->Init()): a range, in its font, or the text before the next
+// range, in the node's.  False when there are no more.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTreeContainer::AddNodeRow(int32 iNode)
+bool CTreeContainer::NextNodePiece(STreeNode* psNode, STreeNodePiece* psPiece)
 {
-	STreeNode*				psNode;
-	Ptr<CGridContainer>		pRow;
-	Ptr<CFillContainer>		pGap;
-	Ptr<CIconComponent>		pIcon;
-	Ptr<CImageCel>			pCel;
-	int32					iListRow;
-	int						iColumn;
-	int32					iWidth;
+	STreeNodeRange*		psRange;
+	size				uiPosition;
 
-	psNode = masNodes.Get(iNode);
-	pRow = OMalloc<CGridContainer>(mpWindow);
-	pRow->SetAlignment(CSH_Stretch, CSV_Center);
-	iColumn = 0;
-	iWidth = psNode->iDepth * miIndent + mpTheme->GetMetric(TM_TreeChevronWidth);
-
-	pGap = OMalloc<CFillContainer>(mpWindow);
-	pGap->SetDesiredSize(psNode->iDepth * miIndent, miRowHeight);
-	pRow->AddComponent(pGap, iColumn++, 0);
-
-	if (psNode->iFirstChild != TREE_NO_NODE)
+	uiPosition = psPiece->uiStart + psPiece->uiLength;
+	if (uiPosition >= psNode->uiTextLength)
 	{
-		pIcon = OMalloc<CIconComponent>(mpWindow, mpTheme->GetImage(psNode->bExpanded ? TI_DownChevron : TI_Chevron), mpTheme->GetMetric(TM_TreeChevronWidth), miRowHeight);
-		pIcon->SetCelAlignment(CSH_Center, CSV_Center);
-		pRow->AddComponent(pIcon, iColumn++, 0);
+		return false;
+	}
+
+	psRange = (psPiece->uiNextRange < psNode->uiNumRanges) ? masRanges.Get(psNode->uiFirstRange + psPiece->uiNextRange) : NULL;
+	psPiece->uiStart = uiPosition;
+	if (psRange && (psRange->uiStart == uiPosition))
+	{
+		psPiece->uiLength = psRange->uiLength;
+		psPiece->uiFont = psRange->uiFont;
+		psPiece->uiNextRange++;
 	}
 	else
 	{
-		pGap = OMalloc<CFillContainer>(mpWindow);
-		pGap->SetDesiredSize(mpTheme->GetMetric(TM_TreeChevronWidth), miRowHeight);
-		pRow->AddComponent(pGap, iColumn++, 0);
+		psPiece->uiLength = (psRange ? psRange->uiStart : psNode->uiTextLength) - uiPosition;
+		psPiece->uiFont = TREE_NODE_FONT;
 	}
-
-	pCel = maIcons.Get(iNode);
-	if (pCel.IsNotNull())
-	{
-		pIcon = OMalloc<CIconComponent>(mpWindow, pCel, mpTheme->GetMetric(TM_TreeIconWidth), miRowHeight);
-		pIcon->SetCelAlignment(CSH_Left, CSV_Center);
-		pRow->AddComponent(pIcon, iColumn++, 0);
-		iWidth += mpTheme->GetMetric(TM_TreeIconWidth);
-	}
-
-	//A grid in a grid isn't measured by its parent, so the row says how big it is.
-	iWidth += AddNodeLabels(pRow, iColumn, iNode);
-	pRow->SetDesiredSize(iWidth, miRowHeight);
-
-	iListRow = AddRow(true);
-	AddToRow(iListRow, pRow, 0, 1, 1);
-	maiRowNodes.Add(iNode);
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The node's name added to its row from iColumn: one label in its font,
-// or with ranges a label for each range, in its font, and for each run
-// of the text between them, in the node's.  The last takes what is left
-// of the row.  How wide they are together.
+// The font a piece of iNode's name is drawn in.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTreeContainer::AddNodeLabels(Ptr<CGridContainer> pRow, int iColumn, int32 iNode)
+Ptr<CFont> CTreeContainer::GetPieceFont(int32 iNode, STreeNodePiece* psPiece)
 {
-	STreeNode*			psNode;
-	STreeNodeRange*		psRange;
-	Ptr<CLabel>			pLabel;
-	Ptr<CFont>			pFont;
-	Ptr<CFont>			pNodeFont;
-	CChars				szPiece;
-	const char*			szText;
-	size				uiPosition;
-	size				uiEnd;
-	size				uiRange;
-	int32				iWidth;
+	Ptr<CFont>	pFont;
+
+	if (psPiece->uiFont != TREE_NODE_FONT)
+	{
+		return maRangeFonts.Get(psPiece->uiFont);
+	}
+	pFont = maFonts.Get(iNode);
+	if (pFont.IsNull())
+	{
+		pFont = mpTheme->GetFont();
+	}
+	return pFont;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the node's row needs across: its indent, the chevron, its icon
+// and each piece of its name in its font.  Worked out from the fonts, as
+// its labels would be laid out, and kept until its font or ranges change.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTreeContainer::GetNodeWidth(int32 iNode)
+{
+	STreeNode*		psNode;
+	STreeNodePiece	sPiece;
+	int32			iWidth;
 
 	psNode = masNodes.Get(iNode);
-	pNodeFont = maFonts.Get(iNode);
-	if (pNodeFont.IsNull())
+	if (psNode->iWidth < 0)
 	{
-		pNodeFont = mpTheme->GetFont();
+		iWidth = psNode->iDepth * miIndent + mpTheme->GetMetric(TM_TreeChevronWidth);
+		if (maIcons.Get(iNode).IsNotNull())
+		{
+			iWidth += mpTheme->GetMetric(TM_TreeIconWidth);
+		}
+		sPiece.Init();
+		while (NextNodePiece(psNode, &sPiece))
+		{
+			iWidth += (int32)GetPieceFont(iNode, &sPiece)->CalculateWidth(mszTexts.Text() + psNode->uiTextStart + sPiece.uiStart, sPiece.uiLength);
+		}
+		psNode->iWidth = iWidth;
+	}
+	return psNode->iWidth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rows that can be seen, of the tree laid out with its first row at
+// sOrigin in sArea: those in the scroll pane's view if it is in one, in
+// the window, and in the tree's own area.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeContainer::GetRowsInView(SInt32Vec2 sOrigin, SInt32Vec2 sArea, int32* piFirst, int32* piNum)
+{
+	CInt32Rect	cView;
+	CInt32Rect	cClip;
+	SInt32Vec2	sWindow;
+	int32		iFirst;
+	int32		iLast;
+
+	*piFirst = 0;
+	*piNum = 0;
+	if ((miRowHeight <= 0) || (NumRows() == 0))
+	{
+		return;
 	}
 
-	szText = mszTexts.Text() + psNode->uiTextStart;
-	uiPosition = 0;
-	uiRange = 0;
-	iWidth = 0;
-	do
+	cView.Init(sOrigin.x, sOrigin.y, sOrigin.x + sArea.x, sOrigin.y + sArea.y);
+	if (GetScrollView(&cClip))
 	{
-		psRange = (uiRange < psNode->uiNumRanges) ? masRanges.Get(psNode->uiFirstRange + uiRange) : NULL;
-		if (psRange && (psRange->uiStart == uiPosition))
+		cView.ClipTo(&cClip);
+	}
+	if (mpWindow.IsNotNull())
+	{
+		sWindow = mpWindow->GetActualSize();
+		cClip.Init(0, 0, sWindow.x, sWindow.y);
+		cView.ClipTo(&cClip);
+	}
+	if (cView.GetBottom() <= cView.GetTop())
+	{
+		return;
+	}
+
+	iFirst = (cView.GetTop() - sOrigin.y) / miRowHeight;
+	iLast = (cView.GetBottom() - 1 - sOrigin.y) / miRowHeight;
+	if (iLast >= NumRows())
+	{
+		iLast = NumRows() - 1;
+	}
+	if (iFirst <= iLast)
+	{
+		*piFirst = iFirst;
+		*piNum = iLast - iFirst + 1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives the rows in view their components and lays them out, each across
+// the tree at its row's height down.  Row i's component is the one at i
+// modulo how many there are, so a row keeps its component while it stays
+// in view and scrolling only changes those of the rows that come into
+// view.  There are as many components as rows in view (more are made
+// when more show, a few at a time); those left over show no node.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeContainer::LayoutRows(SInt32Vec2 sOrigin, SInt32Vec2 sArea)
+{
+	Ptr<CTreeRow>	pRow;
+	SInt32Vec2		sRowPosition;
+	SInt32Vec2		sRowSize;
+	int32			iFirst;
+	int32			iNum;
+	int32			iNumComponents;
+	int32			iFirstComponent;
+	int32			iRow;
+	int32			iNode;
+	int32			i;
+
+	GetRowsInView(sOrigin, sArea, &iFirst, &iNum);
+	while ((int32)maRows.NumElements() < iNum)
+	{
+		for (i = 0; i < TREE_ROW_COMPONENTS_STEP; i++)
 		{
-			uiEnd = uiPosition + psRange->uiLength;
-			pFont = maRangeFonts.Get(psRange->uiFont);
-			uiRange++;
+			pRow = OMalloc<CTreeRow>(mpWindow, mpTheme->GetMetric(TM_TreeChevronWidth), mpTheme->GetMetric(TM_TreeIconWidth), miRowHeight);
+			maRows.Add(pRow);
+			CGridContainer::AddComponent(pRow, 0, 0);
+		}
+	}
+
+	iNumComponents = (int32)maRows.NumElements();
+	iFirstComponent = (iNumComponents > 0) ? (iFirst % iNumComponents) : 0;
+	sRowSize.Init(sArea.x, miRowHeight);
+	for (i = 0; i < iNumComponents; i++)
+	{
+		//The row the component is for: iFirst's is at iFirstComponent, and they go round from there.
+		pRow = maRows.Get(i);
+		iRow = iFirst + ((i - iFirstComponent + iNumComponents) % iNumComponents);
+		if (iRow < iFirst + iNum)
+		{
+			iNode = maiRowNodes.GetValue(iRow);
+			if (!mbRowsBound || (pRow->GetNode() != iNode))
+			{
+				BindRow(pRow, iNode);
+			}
+			sRowPosition.Init(sOrigin.x, sOrigin.y + iRow * miRowHeight);
+			pRow->Layout(sRowPosition, sRowSize);
 		}
 		else
 		{
-			uiEnd = psRange ? psRange->uiStart : psNode->uiTextLength;
-			pFont = pNodeFont;
+			pRow->SetNode(TREE_NO_NODE, 0);
 		}
-		szPiece.Init();
-		szPiece.AppendSubString(szText, uiPosition, uiEnd);
-		pLabel = OMalloc<CLabel>(mpWindow, pFont, szPiece.Text());
-		szPiece.Kill();
-		pLabel->SetAlignment(CSH_Left, CSV_Center);
-		pRow->AddComponent(pLabel, iColumn, 0, 1, 1, (uiEnd >= psNode->uiTextLength) ? 1 : 0, 0);
-		iWidth += pLabel->GetDesiredSize().x;
-		iColumn++;
-		uiPosition = uiEnd;
 	}
-	while (uiPosition < psNode->uiTextLength);
-	return iWidth;
+	mbRowsBound = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The row shows iNode: its chevron, open or closed, if it has children,
+// its icon, and its name, in one label, or with ranges a label for each
+// range and for each run of the text between them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeContainer::BindRow(Ptr<CTreeRow> pRow, int32 iNode)
+{
+	STreeNode*		psNode;
+	STreeNodePiece	sPiece;
+	Ptr<CImageCel>	pChevron;
+	CChars			szPiece;
+	size			uiNumLabels;
+
+	psNode = masNodes.Get(iNode);
+	pRow->SetNode(iNode, psNode->iDepth * miIndent);
+	if (psNode->iFirstChild != TREE_NO_NODE)
+	{
+		pChevron = mpTheme->GetImage(psNode->bExpanded ? TI_DownChevron : TI_Chevron);
+	}
+	pRow->SetChevron(pChevron);
+	pRow->SetIcon(maIcons.Get(iNode));
+
+	uiNumLabels = 0;
+	sPiece.Init();
+	while (NextNodePiece(psNode, &sPiece))
+	{
+		szPiece.Init();
+		szPiece.Append(mszTexts.Text() + psNode->uiTextStart + sPiece.uiStart, (int)sPiece.uiLength);
+		pRow->SetLabel(uiNumLabels, GetPieceFont(iNode, &sPiece), szPiece.Text());
+		szPiece.Kill();
+		uiNumLabels++;
+	}
+	pRow->SetNumLabels(uiNumLabels);
 }
 
 
@@ -735,6 +874,7 @@ bool CTreeContainer::AddNodeRange(int32 iNode, size uiStart, size uiLength, Ptr<
 	psRange->uiLength = uiLength;
 	psRange->uiFont = uiFont;
 	psNode->uiNumRanges++;
+	psNode->iWidth = -1;
 	if (IsNodeVisible(iNode))
 	{
 		mbRowsDirty = true;
@@ -915,15 +1055,107 @@ SInt32Vec2 CTreeContainer::GetDesiredSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// As wide as the widest row and as tall as all of them, whether they are
+// in view or not.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeContainer::SetRequiredSize(void)
+{
+	UpdateRows();
+	msRequiredSize.Init(miRowsWidth, NumRows() * miRowHeight);
+	AddInsets(&msRequiredSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rows aren't the grid's: only those in view are laid out, where
+// their heights put them (LayoutRows).  A scroll pane lays the tree out
+// again each time it scrolls, which is when rows come into view.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTreeContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
+	SInt32Vec2	sOrigin;
+	SInt32Vec2	sArea;
+
 	UpdateRows();
-	CListContainer::Layout(sPosition, sAreaSize);
+
+	sOrigin = sPosition;
+	sArea = sAreaSize;
+	InsetArea(&sOrigin, &sArea);
+	SetContainerBounds(sOrigin, sArea);
+	SetActualBounds(sPosition, sAreaSize);
+	msRowsOrigin = sOrigin;
+	mbLaidOut = true;
+
+	LayoutRows(sOrigin, sArea);
+	UpdateHighlights();
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Where iRow is, in window client space, from where the tree was laid
+// out last: every row is as tall as the others.  False if there is no
+// such row or the tree hasn't been laid out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTreeContainer::GetRowBounds(int32 iRow, int32* piTop, int32* piHeight)
+{
+	if (!mbLaidOut || (iRow < 0) || (iRow >= NumRows()))
+	{
+		return false;
+	}
+	*piTop = msRowsOrigin.y + iRow * miRowHeight;
+	*piHeight = miRowHeight;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The row y, in window client space, is in, -1 for none.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTreeContainer::FindRowAtY(int32 y)
+{
+	int32	iRow;
+
+	if (!mbLaidOut || (miRowHeight <= 0) || (y < msRowsOrigin.y))
+	{
+		return -1;
+	}
+	iRow = (y - msRowsOrigin.y) / miRowHeight;
+	return (iRow < NumRows()) ? iRow : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component showing iRow, NULL if the row isn't in view (as the tree
+// was laid out last).
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CTreeRow> CTreeContainer::GetRowComponent(int32 iRow)
+{
+	Ptr<CTreeRow>	pRow;
+
+	if ((iRow < 0) || (iRow >= NumRows()) || (maRows.NumElements() == 0) || !mbRowsBound)
+	{
+		return NULL;
+	}
+	pRow = maRows.Get((size)iRow % maRows.NumElements());
+	if (pRow->GetNode() != maiRowNodes.GetValue(iRow))
+	{
+		return NULL;
+	}
+	return pRow;
+}
+
+
+void STreeNodePiece::Init(void) { uiStart = 0; uiLength = 0; uiFont = TREE_NODE_FONT; uiNextRange = 0; }
+size CTreeContainer::NumRowComponents(void) { return maRows.NumElements(); }  //How many components the tree has for its rows in view.
 int32 CTreeContainer::NumNodes(void) const { return (int32)masNodes.NumElements(); }
 int64 CTreeContainer::GetNodeData(int32 iNode) { return masNodes.Get(iNode)->iData; }
 int32 CTreeContainer::GetNodeParent(int32 iNode) { return masNodes.Get(iNode)->iParent; }
