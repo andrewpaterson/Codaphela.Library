@@ -45,6 +45,9 @@ struct SSFTImage
 };
 
 
+//A transparent image's pixels are its rows' runs, each this then uiRunLength pixels (a byte each), and after the last a
+//run that is all zero.  A row's first run has the start of run flag, but the first row's; a row without a pixel is a
+//run of no pixels that skips the row's width.
 struct SSFTCelRun
 {
 	uint16	uiFlags;  //0x8000: Start of run flag.  //0x7fff: run skip mask.  or how many pixels to add before the current run starts drawing

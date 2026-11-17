@@ -258,6 +258,11 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 
 		x += sCelRun.GetSkipLength();
 
+		if (sCelRun.GetRunLength() == 0)
+		{
+			//A row without a pixel.
+			continue;
+		}
 		pvResult = sMemory.GrowToAtLeastNumElements(sCelRun.GetRunLength());
 		if (pvResult == NULL)
 		{

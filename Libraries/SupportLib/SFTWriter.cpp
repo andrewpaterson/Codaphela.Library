@@ -202,6 +202,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 	uint8						uiColour;
 	SSFTCelRun					sCelRun;
 	bool						bLastOpaque;
+	bool						bRowWritten;
 	uint16						uiSkipLength;
 	uint16						uiRunLength;
 	CArrayChar					auiRow;
@@ -233,6 +234,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 		for (y = uiImageTopOffset; y < y2; y++)
 		{
 			bLastOpaque = false;
+			bRowWritten = false;
 			uiSkipLength = 0;
 			uiRunLength = 0;
 			for (x = uiImageLeftOffset; x < x2; x++)
@@ -258,6 +260,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 
 					auiRow.ReInit();
 					sCelRun.Init(false);
+					bRowWritten = true;
 					uiSkipLength = 0;
 					uiRunLength = 0;
 				}
@@ -292,6 +295,17 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 				}
 
 				auiRow.ReInit();
+			}
+			else if (!bRowWritten)
+			{
+				//A row without a pixel is a run of none after skipping the whole row: without it the rows after it
+				//would be a row higher.
+				sCelRun.Set(0, uiCelWidth);
+				if (!sCelRun.Write(pcFile))
+				{
+					auiRow.Kill();
+					return false;
+				}
 			}
 
 			sCelRun.Init(true);

@@ -205,6 +205,54 @@ void TestImageSFTWriterMultiSourceCelContainer(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Rows without a pixel (the first, two in the middle and the last) are
+// still rows: what is under them stays where it was.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestImageSFTWriterTransparentBlankRows(void)
+{
+	static const char*	aszRows[6] =
+	{
+		"....",
+		".##.",
+		"....",
+		"....",
+		"#..#",
+		"....",
+	};
+	bool		bResult;
+	uint32*		puiPixels;
+	uint32		auiExpected[6 * 4];
+	size		x;
+	size		y;
+
+	Ptr<CImage> pImage = OMalloc<CImage>(4, 6, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	AssertTrue(pImage.IsNotNull());
+	puiPixels = (uint32*)pImage->GetData();
+	for (y = 0; y < 6; y++)
+	{
+		for (x = 0; x < 4; x++)
+		{
+			auiExpected[y * 4 + x] = (aszRows[y][x] == '#') ? 0xFFFFFFFF : 0;
+			puiPixels[y * 4 + x] = auiExpected[y * 4 + x];
+		}
+	}
+
+	bResult = SaveSFT(pImage, "Output" _FS_ "BlankRows.sft");
+	AssertTrue(bResult);
+	pImage = NULL;
+
+	pImage = LoadSFT("Output" _FS_ "BlankRows.sft");
+	AssertTrue(pImage.IsNotNull());
+	AssertSize(4, pImage->GetWidth());
+	AssertSize(6, pImage->GetHeight());
+	AssertMemory(auiExpected, pImage->GetData(), sizeof(auiExpected));
+	pImage = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestImageSFTWriter(void)
@@ -217,6 +265,7 @@ void TestImageSFTWriter(void)
 
 	TestImageSFTWriterTinyTransparent();
 	TestImageSFTWriterTransparent();
+	TestImageSFTWriterTransparentBlankRows();
 	TestImageSFTWriterOpaque();
 	TestImageSFTWriterTransparentCelContainer();
 	TestImageSFTWriterMultiSourceCelContainer();
