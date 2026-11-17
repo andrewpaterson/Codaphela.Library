@@ -108,13 +108,13 @@ public:
 	void				Project(SRasterScreenVertex* psDest, SInt32Vec3* psPosition);
 	void				ViewToMesh(SRasterUnitVec3* psDest, SRasterUnitVec3* psView);
 
-	ERasterProjection	GetProjection(void);
+	ERasterProjection	GetProjection(void) const;
 	SFloat4x4*			GetRotation(void);
 	SInt32Vec3*			GetPivot(void);
 	SInt32Vec2*			GetPan(void);
-	int32				GetDistance(void);
-	int32				GetFocalLength(void);
-	size				NumChanges(void);
+	int32				GetDistance(void) const;
+	int32				GetFocalLength(void) const;
+	size				NumChanges(void) const;
 
 protected:
 	void				Changed(void);

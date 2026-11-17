@@ -623,7 +623,7 @@ void CRasterCamera::ViewToMesh(SRasterUnitVec3* psDest, SRasterUnitVec3* psView)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ERasterProjection CRasterCamera::GetProjection(void)
+ERasterProjection CRasterCamera::GetProjection(void) const
 {
 	return meProjection;
 }
@@ -663,7 +663,7 @@ SInt32Vec2* CRasterCamera::GetPan(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CRasterCamera::GetDistance(void)
+int32 CRasterCamera::GetDistance(void) const
 {
 	return miDistance;
 }
@@ -673,7 +673,7 @@ int32 CRasterCamera::GetDistance(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CRasterCamera::GetFocalLength(void)
+int32 CRasterCamera::GetFocalLength(void) const
 {
 	return miFocalLength;
 }
@@ -683,7 +683,7 @@ int32 CRasterCamera::GetFocalLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CRasterCamera::NumChanges(void)
+size CRasterCamera::NumChanges(void) const
 {
 	return muiChanges;
 }

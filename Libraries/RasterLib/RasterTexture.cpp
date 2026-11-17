@@ -92,9 +92,9 @@ uint32* CRasterTexture::AddLevel(int32 iWidth, int32 iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CRasterTexture::NumLevels(void) { return (int32)masLevels.NumElements(); }
+int32 CRasterTexture::NumLevels(void) const { return (int32)masLevels.NumElements(); }
 uint32* CRasterTexture::GetTexels(int32 iLevel) { return mauiTexels.GetData() + Level(iLevel)->uiStart; }
 int32 CRasterTexture::GetWidth(int32 iLevel) { return Level(iLevel)->iWidth; }
 int32 CRasterTexture::GetHeight(int32 iLevel) { return Level(iLevel)->iHeight; }
-uint64 CRasterTexture::GetSource(void) { return muiSource; }
+uint64 CRasterTexture::GetSource(void) const { return muiSource; }
 

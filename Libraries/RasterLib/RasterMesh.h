@@ -144,9 +144,9 @@ public:
 	bool	WriteFile(const char* szFilename, uint64 uiSource);
 	bool	ReadFile(const char* szFilename, uint64 uiSource);
 
-	size			NumTriangles(void);
-	bool			IsSkinned(void);
-	bool			IsTextured(void);
+	size			NumTriangles(void) const;
+	bool			IsSkinned(void) const;
+	bool			IsTextured(void) const;
 	int32			AddTexture(Ptr<CRasterTexture> pTexture);
 	void			AddRun(CArrayRasterTextureRun* pasRuns, uint32 uiTriangle, int32 iTexture);
 	CRasterTexture*	GetTexture(int32 iTexture);

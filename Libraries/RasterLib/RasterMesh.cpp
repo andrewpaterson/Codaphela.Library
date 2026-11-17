@@ -161,7 +161,7 @@ void CRasterMesh::UpdateBounds(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CRasterMesh::NumTriangles(void)
+size CRasterMesh::NumTriangles(void) const
 {
 	return masOpaque.NumElements() + masTransparent.NumElements();
 }
@@ -171,7 +171,7 @@ size CRasterMesh::NumTriangles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRasterMesh::IsSkinned(void)
+bool CRasterMesh::IsSkinned(void) const
 {
 	return masSkinVertices.NumElements() > 0;
 }
@@ -181,7 +181,7 @@ bool CRasterMesh::IsSkinned(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRasterMesh::IsTextured(void)
+bool CRasterMesh::IsTextured(void) const
 {
 	return (masOpaqueRuns.NumElements() > 0) || (masTransparentRuns.NumElements() > 0);
 }

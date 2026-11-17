@@ -52,9 +52,9 @@ struct SRasterInstance
 
 	void			Init(CRasterMesh* pcRasterMesh);
 	void			OnlyTurns(void);
-	SRasterVertex*	GetVertices(void);
-	SInt32Vec3*		GetMin(void);
-	SInt32Vec3*		GetMax(void);
+	SRasterVertex*	GetVertices(void) const;
+	SInt32Vec3*		GetMin(void) const;
+	SInt32Vec3*		GetMax(void) const;
 };
 
 

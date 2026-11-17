@@ -98,9 +98,9 @@ void SRasterInstance::OnlyTurns(void)
 // The vertices drawn, and their bounds before they're turned and moved.
 //
 //////////////////////////////////////////////////////////////////////////
-SRasterVertex* SRasterInstance::GetVertices(void) { return pcPosed ? pcPosed->masVertices.GetData() : pcMesh->masVertices.GetData(); }
-SInt32Vec3* SRasterInstance::GetMin(void) { return pcPosed ? &pcPosed->msMin : &pcMesh->msMin; }
-SInt32Vec3* SRasterInstance::GetMax(void) { return pcPosed ? &pcPosed->msMax : &pcMesh->msMax; }
+SRasterVertex* SRasterInstance::GetVertices(void) const { return pcPosed ? pcPosed->masVertices.GetData() : pcMesh->masVertices.GetData(); }
+SInt32Vec3* SRasterInstance::GetMin(void) const { return pcPosed ? &pcPosed->msMin : &pcMesh->msMin; }
+SInt32Vec3* SRasterInstance::GetMax(void) const { return pcPosed ? &pcPosed->msMax : &pcMesh->msMax; }
 
 
 //////////////////////////////////////////////////////////////////////////

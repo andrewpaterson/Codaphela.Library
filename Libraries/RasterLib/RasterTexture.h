@@ -89,11 +89,11 @@ public:
 
 	uint32*		AddLevel(int32 iWidth, int32 iHeight);  //Its texels, white, valid until the next is added.
 
-	int32		NumLevels(void);
+	int32		NumLevels(void) const;
 	uint32*		GetTexels(int32 iLevel = 0);
 	int32		GetWidth(int32 iLevel = 0);
 	int32		GetHeight(int32 iLevel = 0);
-	uint64		GetSource(void);
+	uint64		GetSource(void) const;
 
 	uint32		Sample(int64 iU, int64 iV);
 	uint32		SampleNearest(int64 iU, int64 iV, int32 iLevel);
