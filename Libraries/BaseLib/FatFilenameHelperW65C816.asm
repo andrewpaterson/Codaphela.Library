@@ -296,9 +296,9 @@ _MatchesFatFileName__FPbPbPcPtPcPtPh:
 		ply
 		ply
 		ply
-		cmp FAT_INVALID_FILENAME
-		bne MatchesShort
-		; A long name: GetFatLongNameForEntry(puiTargetFileLongName, szCurrentLevelPath).
+		sta [D + F_DIGITS]
+		; The name is compared with each entry's long name as well as its short one, whatever the case:
+		; GetFatLongNameForEntry(puiTargetFileLongName, szCurrentLevelPath).
 		inc [D + F_LFN]
 		lda MF_TARGET
 		ldx F_DEST
@@ -307,6 +307,9 @@ _MatchesFatFileName__FPbPbPcPtPcPtPh:
 		ldx F_STRING
 		jsr Copy32
 		jsr LongName
+		lda [D + F_DIGITS]
+		cmp FAT_INVALID_FILENAME
+		bne MatchesLong
 		; A name that is a short name but for its case is that short name: it is made from the name in upper case (at
 		; F_NAME, up to 12 characters).  Otherwise no short name is made: one of zeros never matches an entry (a zero
 		; first character ends the directory).

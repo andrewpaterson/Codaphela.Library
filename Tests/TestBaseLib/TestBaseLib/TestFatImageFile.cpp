@@ -121,8 +121,8 @@ void TestFatImageFilePut(void)
 	cImage.Kill();
 	AssertFalse(FatPutFileOnImage("Output" _FS_ "NotFat.img", "\\boot.exe", auiSecond, sizeof(auiSecond)));
 
-	//Read back from the image file a sector at a time: what was put, whatever the name's case; nothing for a file, an
-	//image or a volume that isn't there.
+	//Read back from the image file a sector at a time: what was put, whatever the name's case (Song.mod has a long
+	//name, so SONG.MOD isn't its short name); nothing for a file, an image or a volume that isn't there.
 	pvRead = NULL;
 	uiRead = 0;
 	AssertTrue(FatGetFileFromImage(TEST_FAT_IMAGE_FILE, "\\Games\\Mod\\modplay.exe", &pvRead, &uiRead));
@@ -132,6 +132,12 @@ void TestFatImageFilePut(void)
 	AssertTrue(FatGetFileFromImage(TEST_FAT_IMAGE_FILE, "\\song.mod", &pvRead, &uiRead));
 	AssertSize(sizeof(auiFirst), uiRead);
 	AssertTrue((pvRead != NULL) && (memcmp(pvRead, auiFirst, sizeof(auiFirst)) == 0));
+	free(pvRead);
+	AssertTrue(FatGetFileFromImage(TEST_FAT_IMAGE_FILE, "\\SONG.MOD", &pvRead, &uiRead));
+	AssertSize(sizeof(auiFirst), uiRead);
+	free(pvRead);
+	AssertTrue(FatGetFileFromImage(TEST_FAT_IMAGE_FILE, "\\GAMES\\MOD\\MODPLAY.EXE", &pvRead, &uiRead));
+	AssertSize(sizeof(auiSecond), uiRead);
 	free(pvRead);
 	AssertFalse(FatGetFileFromImage(TEST_FAT_IMAGE_FILE, "\\missing.exe", &pvRead, &uiRead));
 	AssertTrue(pvRead == NULL);

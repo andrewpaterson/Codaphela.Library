@@ -74,20 +74,22 @@ int CompareFatLongName(uint16* puiName1, uint16* puiName2)
 //////////////////////////////////////////////////////////////////////////
 EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, uint16* auiLongFilename, uint8* auiShortName)
 {
-	bool	bLongFilename;
-	bool	bMatch;
-	char	szUpper[13];
-	size	i;
+	bool		bLongFilename;
+	bool		bMatch;
+	char		szUpper[13];
+	size		i;
+	EFatCode	eShort;
 
-	bLongFilename = false;
-	if (GetFatShortNameForEntry(szConstructedShortFileName, szCurrentLevelPath, 1) == FAT_INVALID_FILENAME)
+	//The name is compared with each entry's long name as well as its short one, whatever the case (FAT's names don't
+	//care about it): SONG.MOD finds the entry whose long name is Song.mod (its short name is SONG~1.MOD).
+	eShort = GetFatShortNameForEntry(szConstructedShortFileName, szCurrentLevelPath, 1);
+	if (GetFatLongNameForEntry(puiTargetFileLongName, szCurrentLevelPath) == FAT_INVALID_FILENAME)
 	{
-		if (GetFatLongNameForEntry(puiTargetFileLongName, szCurrentLevelPath) == FAT_INVALID_FILENAME)
-		{
-			return FAT_INVALID_FILENAME;
-		}
-		bLongFilename = true;
-
+		return FAT_INVALID_FILENAME;
+	}
+	bLongFilename = true;
+	if (eShort == FAT_INVALID_FILENAME)
+	{
 		//A name that is a short name but for its case is that short name (FAT's names don't care about case): it is made
 		//from the name in upper case.  Otherwise no short name is made: one of zeros never matches an entry (a zero
 		//first character ends the directory).
@@ -100,12 +102,8 @@ EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructed
 		{
 			memset(szConstructedShortFileName, 0, 11);
 		}
-		bMatch = CompareFatLongName(puiTargetFileLongName, auiLongFilename) || CompareFatShortName(szConstructedShortFileName, (char*)auiShortName);
 	}
-	else
-	{
-		bMatch = CompareFatShortName(szConstructedShortFileName, (char*)auiShortName);
-	}
+	bMatch = CompareFatLongName(puiTargetFileLongName, auiLongFilename) || CompareFatShortName(szConstructedShortFileName, (char*)auiShortName);
 
 	*pbUsingLFN = bLongFilename;
 	*pbMatch = bMatch;
