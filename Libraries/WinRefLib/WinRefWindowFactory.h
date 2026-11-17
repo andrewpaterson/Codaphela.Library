@@ -51,7 +51,7 @@ public:
 	void				SetScreenArea(CInt32Rect* pcArea);
 	bool				GetScreenArea(CInt32Rect* pcDest);
 	void				SetWaitForEvents(bool bWait, int64 iMaxWait = WIN_REF_MAX_WAIT);
-	int64				GetMaxWait(void);
+	int64				GetMaxWait(void) const;
 	void				SetCheckPresents(bool bCheck);
 	bool				SetHashPresents(const char* szFileName, EWinRefHashArea eArea);
 	void				SetFrameInterval(uint32 uiInterval);
@@ -62,8 +62,8 @@ public:
 	CNativeCanvas*		CreateNativeCanvas(CCanvas* pcCanvas) override;
 	CNativeClipboard*	CreateNativeClipboard(CClipboard* pcClipboard) override;
 
-	int32				GetWidth(void);
-	int32				GetHeight(void);
+	int32				GetWidth(void) const;
+	int32				GetHeight(void) const;
 	CChars*				GetClipboardText(void);
 };
 

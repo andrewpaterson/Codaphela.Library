@@ -49,9 +49,9 @@ public:
 	uint64			Hash(CInt32Rect* pcArea, uint64 ulliHash);
 	lsize			FindDifference(CWinRefPixels* pcOther, CInt32Rect* pcDiffers);
 
-	int32			GetWidth(void);
-	int32			GetHeight(void);
-	size			GetPixelBytes(void);
+	int32			GetWidth(void) const;
+	int32			GetHeight(void) const;
+	size			GetPixelBytes(void) const;
 	void			GetArea(CInt32Rect* pcDest);
 	uint8*			GetPixel(int32 x, int32 y);
 };

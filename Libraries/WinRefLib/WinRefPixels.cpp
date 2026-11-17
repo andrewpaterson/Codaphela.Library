@@ -206,7 +206,7 @@ uint8* CWinRefPixels::GetPixel(int32 x, int32 y)
 }
 
 
-int32 CWinRefPixels::GetWidth(void) { return miWidth; }
-int32 CWinRefPixels::GetHeight(void) { return miHeight; }
-size CWinRefPixels::GetPixelBytes(void) { return muiPixelBytes; }
+int32 CWinRefPixels::GetWidth(void) const { return miWidth; }
+int32 CWinRefPixels::GetHeight(void) const { return miHeight; }
+size CWinRefPixels::GetPixelBytes(void) const { return muiPixelBytes; }
 

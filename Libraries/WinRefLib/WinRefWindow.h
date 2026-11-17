@@ -66,10 +66,10 @@ public:
 	bool			GetScreenArea(CInt32Rect* pcDest) override;
 
 	CWinRefPixels*	GetShown(void);
-	const char*		GetTitle(void);
+	const char*		GetTitle(void) const;
 
 protected:
-	CWinRefWindowFactory*	GetFactory(void);
+	CWinRefWindowFactory*	GetFactory(void) const;
 };
 
 

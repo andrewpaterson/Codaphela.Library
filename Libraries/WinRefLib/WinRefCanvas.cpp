@@ -132,7 +132,7 @@ Ptr<CImage> CWinRefCanvas::GetImageOrNull(void)
 // pretending to have no native image still has its frames saved).
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CWinRefCanvas::GetNativeImage(void)
+Ptr<CImage> CWinRefCanvas::GetNativeImage(void) const
 {
 	return GetImage();
 }

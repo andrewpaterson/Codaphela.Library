@@ -303,12 +303,12 @@ bool CWinRefWindow::GetScreenArea(CInt32Rect* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CWinRefWindow::GetTitle(void)
+const char* CWinRefWindow::GetTitle(void) const
 {
 	return mpcWindow->GetWindowTitle();
 }
 
 
 CWinRefPixels* CWinRefWindow::GetShown(void) { return &mcShown; }
-CWinRefWindowFactory* CWinRefWindow::GetFactory(void) { return (CWinRefWindowFactory*)mpcWindowFactory; }
+CWinRefWindowFactory* CWinRefWindow::GetFactory(void) const { return (CWinRefWindowFactory*)mpcWindowFactory; }
 

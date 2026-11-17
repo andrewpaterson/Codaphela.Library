@@ -147,7 +147,7 @@ void CWinRefScreen::CloseHash(void)
 // Windows keep what they show only while it is.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWinRefScreen::IsWatching(void)
+bool CWinRefScreen::IsWatching(void) const
 {
 	return mbCheck || mbHash;
 }
@@ -367,5 +367,5 @@ void CWinRefScreen::Compose(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CWinRefPixels* CWinRefScreen::GetPixels(void) { return &mcPixels; }
-lsize CWinRefScreen::NumMismatches(void) { return muiMismatches; }
+lsize CWinRefScreen::NumMismatches(void) const { return muiMismatches; }
 

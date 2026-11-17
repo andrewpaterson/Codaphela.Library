@@ -143,7 +143,7 @@ CChars* CWinRefWindowFactory::GetClipboardText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CWinRefWindowFactory::GetWidth(void)
+int32 CWinRefWindowFactory::GetWidth(void) const
 {
 	return mcWindowBounds.GetWidth();
 }
@@ -153,7 +153,7 @@ int32 CWinRefWindowFactory::GetWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CWinRefWindowFactory::GetHeight(void)
+int32 CWinRefWindowFactory::GetHeight(void) const
 {
 	return mcWindowBounds.GetHeight();
 }
@@ -240,6 +240,6 @@ bool CWinRefWindowFactory::IsFrameSaved(uint64 uiFrame)
 }
 
 
-int64 CWinRefWindowFactory::GetMaxWait(void) { return miMaxWait; }
+int64 CWinRefWindowFactory::GetMaxWait(void) const { return miMaxWait; }
 CWinRefScreen* CWinRefWindowFactory::GetScreen(void) { return &mcScreen; }
 

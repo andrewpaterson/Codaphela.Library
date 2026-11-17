@@ -60,7 +60,7 @@ public:
 	bool	GetArea(CInt32Rect* pcDest);
 	void	SetCheck(bool bCheck);
 	bool	SetHash(const char* szFileName, EWinRefHashArea eArea);
-	bool	IsWatching(void);
+	bool	IsWatching(void) const;
 
 	void	Add(CWinRefWindow* pcWindow);
 	void	Remove(CWinRefWindow* pcWindow);
@@ -68,7 +68,7 @@ public:
 
 	void	Present(CWinRefWindow* pcWindow, CWinRefPixels* pcCanvas, CDamageArea* pcDamage);
 
-	lsize	NumMismatches(void);
+	lsize	NumMismatches(void) const;
 	void	Compose(void);
 	CWinRefPixels*	GetPixels(void);
 

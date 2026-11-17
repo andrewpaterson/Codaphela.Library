@@ -44,7 +44,7 @@ public:
 
 	void			CopyCanvas(CNativeCanvas* pcSourceCanvas) override;
 	Ptr<CImage>		GetImageOrNull(void);
-	Ptr<CImage>		GetNativeImage(void);
+	Ptr<CImage>		GetNativeImage(void) const;
 
 	void			DrawBox(CInt32Rect* pcRectangle, bool bFilled, ARGB32 sColour) override;
 	void			DrawPixel(int32 iX, int32 iY, ARGB32 sColour) override;
