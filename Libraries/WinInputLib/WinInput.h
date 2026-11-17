@@ -52,10 +52,10 @@ public:
 	CDirectInput*	GetJoystick(void);
 	CWinRawInput*	GetRaw(void);
 	CWinXInput*		GetXInput(void);
-	HWND			GetHWnd(void);
-	bool			IsExclusive(void);
-	bool			IsNotInitialised(void);
-	bool			IsUsable(void);
+	HWND			GetHWnd(void) const;
+	bool			IsExclusive(void) const;
+	bool			IsNotInitialised(void) const;
+	bool			IsUsable(void) const;
 };
 
 
