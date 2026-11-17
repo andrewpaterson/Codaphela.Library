@@ -141,13 +141,13 @@ public:
 	size				NumProcesses(void) const;
 	SDebugProcess*		GetProcess(size uiIndex);
 	bool				FindProcess(const char* szName, uint32* puiProcess);
-	size				NumProcessEvents(void) const;
+	size				NumProcessEvents(void);
 	SDebugProcessEvent*	GetProcessEvent(size uiIndex);
 	bool				HasModules(void) const;
 	size				NumModules(void) const;
 	SDebugModule*		GetModule(size uiIndex);
 	SDebugModule*		FindModule(const char* szName);
-	size				NumModuleChanges(void) const;
+	size				NumModuleChanges(void);
 	size				NumRegisters(void) const;
 	SDebugRegister*		GetRegister(size uiRegister);
 	uint64				GetRegisterValue(size uiRegister);

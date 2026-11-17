@@ -910,11 +910,11 @@ bool CDebugClient::CanDecode(void)						{ return (msWelcome.uiCapabilities & DEB
 bool CDebugClient::HasProcesses(void) const					{ return (msWelcome.uiCapabilities & DEBUG_CAN_PROCESSES) != 0; }
 size CDebugClient::NumProcesses(void) const					{ return masProcesses.NumElements(); }
 SDebugProcess* CDebugClient::GetProcess(size uiIndex)	{ return masProcesses.SafeGet(uiIndex); }
-size CDebugClient::NumProcessEvents(void) const				{ return masProcessEvents.NumElements(); }
+size CDebugClient::NumProcessEvents(void)				{ return masProcessEvents.NumElements(); }
 bool CDebugClient::HasModules(void) const						{ return (msWelcome.uiCapabilities & DEBUG_CAN_MODULES) != 0; }
 size CDebugClient::NumModules(void) const						{ return masModules.NumElements(); }
 SDebugModule* CDebugClient::GetModule(size uiIndex)		{ return masModules.SafeGet(uiIndex); }
-size CDebugClient::NumModuleChanges(void) const				{ return muiModuleChanges; }
+size CDebugClient::NumModuleChanges(void)				{ return muiModuleChanges; }
 SDebugProcessEvent* CDebugClient::GetProcessEvent(size uiIndex)	{ return masProcessEvents.SafeGet(uiIndex); }
 
 
