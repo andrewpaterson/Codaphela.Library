@@ -636,7 +636,10 @@ void CSceneCanvasDraw::SetStatus(void)
 		szStatus.Append((int32)(mfDrawMilliseconds + 0.5));
 		szStatus.Append(" ms a frame");
 	}
-	szStatus.Append(mbPlaying ? ", playing" : ", paused");
+	if (mapPlayers.NumElements() > 0)
+	{
+		szStatus.Append(mbPlaying ? ", playing" : ", paused");
+	}
 	if (mpScene->mapCameras.NumElements() > 0)
 	{
 		if (muiView < mpScene->mapCameras.NumElements())
@@ -651,12 +654,7 @@ void CSceneCanvasDraw::SetStatus(void)
 			szStatus.Append(", the whole scene");
 		}
 	}
-	szStatus.Append(".  Space pauses, R switches renderer, ");
-	if (mpScene->mapCameras.NumElements() > 0)
-	{
-		szStatus.Append("C and Shift+C change camera, ");
-	}
-	szStatus.Append("Home puts the view back.");
+	szStatus.Append(".");
 	mpcStatus->SetText(szStatus.Text());
 	szStatus.Kill();
 }

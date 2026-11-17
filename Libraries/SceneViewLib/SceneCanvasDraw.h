@@ -55,7 +55,8 @@ class CWindow;
 //start.  StepView goes to the scene's next or last camera, and after the last to the framed view, and round.  ResetView
 //puts the view back where its camera, or the framed view, started it.
 //
-//The status label, which the page holds, says what's drawn and how; it's set outside the paint.
+//The status label, which the page holds, says what's drawn and how (not which keys do what: those are whoever holds
+//it's to say); it's set outside the paint.
 //
 //SetScene draws a scene made rather than read; SceneChanged says it changed, and ScreenToPlane is where a point on the canvas is
 //on the plane of the screen through what the view turns about.
