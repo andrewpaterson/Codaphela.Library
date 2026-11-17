@@ -305,72 +305,14 @@ Surface operators
     its hollows and moss in patches on what faces up.
 
 Afterwards
-39 to 52. Looking: the textures tab (below).
-53. The virtual texture (SupportLib/VirtualTexturePlan.txt).
-54. Loaded textures on a second UV layer (SupportLib/UnwrapPlan.txt, step 10).
-
-
-The textures tab (proposed 2026-11-17, nothing built)
------------------------------------------------------
-What it's for: the materials' colours and sizes are first guesses, and changing one means changing SolidMaterials.cpp,
-building and running the tests for the gallery.  The tab is a material on a shape, its numbers changed and seen at once.
-
-What it is: File's Textures makes a tab (CTexturePage, in WindowInputTester, as CIsosurfacePage is).  A view on the left,
-as the isosurface's (turn, pan, zoom, R, Home).  On the right, top to bottom:
-  Material   a combo: Marble, Wood, Stone, Rust, Bricks, Tiles, and each Weathered; a seed and a button for another.
-  Shape      a combo: sphere, box, the two met (the gallery's, so bricks have square faces and weathering has a hollow).
-  Show       a combo: baked (colour with relief), or one of colour, height, shine, gloss, glow alone as greys, or the
-             normals.  Shine, gloss and glow aren't baked, so this is the only place they're seen.
-  Graph      a tree (CTreeContainer) of the material's textures: the top one, and under each the textures it reads.
-  Settings   the chosen texture's numbers, a row each, and its placement (scale).
-  Bake       samples, relief and the light's direction.
-
-The settings are not written by hand for each class.  A material is a graph of objects and every object's Class() already
-names its fields and their kinds (that's how they save), so one editor walks a texture's fields and makes a row for each:
-a number for a float or an integer, a tick for a bool, a combo for an enum, three numbers for a vector, a swatch and three
-numbers for a colour.  A new operator then shows in the tab for nothing.  Two things need telling that Class() doesn't
-say: which integers are enums (and their names), and what a sensible step is for a number.  Proposed: a small table in the
-tab, by class and field name, for the enums' names; a number's step is a tenth of its size (so it works for 0.003 and 30).
-A ramp's keys are an array and get their own editor: a row a key (where, colour, height, shine, gloss, glow), add and remove.
-
-There is no slider or number widget in WindowLib.  Proposed: CNumberField, a CTextField that takes a number, the up and
-down keys and the wheel stepping it, and tells its listener when the number changes.  No slider: a slider needs a
-range, and most of these numbers have none.
-
-Fast enough to be live?  Unknown until measured (step 41).  From step 31's costs, the sphere at the isosurface's 128
-texels a unit is some 200,000 texels and about a million samples: half a second to a second on one thread, too slow to
-follow a wheel.  Proposed: on a change bake at a quarter of the density (a sixteenth of the texels, some 50 ms) at once,
-and at the whole density when nothing has changed for a third of a second.  Baking on another thread waits for the
-virtual texture, which needs it anyway.
-
-Steps
-39. CNumberField in WindowLib, with tests (typing, stepping, a bad number put back).
-40. CTexturePage with the view, the material, seed and shape combos, baked at full density on every change.  File's
-    Textures.  The mesh's stack is the gallery's: shape, unwrap, bake.
-41. Measure a bake of each material on each shape; decide the coarse density and the pause from the numbers, and build
-    coarse now, whole when still.
-42. What a texture works out once from its fields (a placement's axes, a gradient's direction): find each, and give
-    CSolidTexture a Changed() the editor calls, so a field changed from outside is as one set at Init.
-43. The graph: the tree of the material's textures (a texture read twice shown twice, as the same object).
-44. The field editor: rows from Class() for floats, integers, bools and vectors; a change calls Changed() and bakes.
-45. Enums as combos, colours as swatches.
-46. The ramp's keys.
-47. Show: one channel as greys, or the normals.  A CSolidChannel operator (a texture's one channel as its colour) does it
-    with nothing new in the bake.
-48. The bake's settings.
-49. Save and open: a graph saves and loads already (step 27), so File's Save writes the material as it now is and Open
-    reads one back into the tab.
-50. Copy as code: the graph written as the C++ that makes it, to paste into SolidMaterials.cpp.  Without this a material
-    tuned in the tab has to be typed back in by hand.
-51. Tune the seven materials in the tab and put the numbers in SolidMaterials.cpp; the gallery again.
-52. Clean up; the plan's Done notes.
-
-Not in it: changing the graph's shape (adding, removing or rewiring operators), undo, and picking a colour from a wheel.
-
-To decide (asked one at a time)
-  1. Its own tab (proposed) or a panel on the isosurface tab.
-  2. Every field of every operator (proposed) or a few named settings a material.
-  3. Step 50, copy as code: wanted, or are saved files enough.
+39. Looking: HCP65-Sculpt, a program of its own in its own repository (HCP65-Sculpt/SculptPlan.txt): a 3D view over a
+    node editor for a material's graph, as Blender's.  A material is a configuration, the graph itself, which may be
+    written to disk; SolidMaterials stays as the code way of making one.  The isosurface tab leaves WindowInputTester
+    for it.  What it needs of this library (its plan's steps 8, 9 and 17): operators that do something sensible with
+    an input missing, a Changed() on CSolidTexture for a field changed from outside, and CSolidChannel and
+    CSolidCombine (a sample's one channel; channels from different textures put together).
+40. The virtual texture (SupportLib/VirtualTexturePlan.txt).
+41. Loaded textures on a second UV layer (SupportLib/UnwrapPlan.txt, step 10).
 
 
 Open
