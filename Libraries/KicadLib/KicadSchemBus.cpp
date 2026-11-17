@@ -164,11 +164,11 @@ bool CKicadSchemBus::Contains(SFloat64Vec2* psPoint, bool* pbVertical)
 //
 //////////////////////////////////////////////////////////////////////////
 CKicadSchemSubnet* CKicadSchemBus::GetSubnet(void) { return &mcSubnet; }
-size CKicadSchemBus::NumLabels(void) { return mapcLabels.NumElements(); }
+size CKicadSchemBus::NumLabels(void) const { return mapcLabels.NumElements(); }
 CKicadSchemLabel* CKicadSchemBus::GetLabel(size uiIndex) { return mapcLabels.SafeGetPtr(uiIndex); }
-size CKicadSchemBus::NumTaps(void) { return masTaps.NumElements(); }
+size CKicadSchemBus::NumTaps(void) const { return masTaps.NumElements(); }
 SKicadSchemBusTap* CKicadSchemBus::GetTap(size uiIndex) { return masTaps.SafeGet(uiIndex); }
-size CKicadSchemBus::NumMembers(void) { return maszMembers.NumElements(); }
+size CKicadSchemBus::NumMembers(void) const { return maszMembers.NumElements(); }
 char* CKicadSchemBus::GetMember(size uiIndex) { return maszMembers.GetText(uiIndex); }
 
 

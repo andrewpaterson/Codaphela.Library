@@ -52,16 +52,16 @@ public:
 	void				SetLength(float64 fLength);
 	void				SetHidden(bool bHidden);
 
-	EKicadSchemPinType	GetType(void);
+	EKicadSchemPinType	GetType(void) const;
 	char*				GetGraphicStyle(void);
 	char*				GetName(void);
 	char*				GetNumber(void);
 	SFloat64Vec2*		GetPosition(void);
-	float64				GetAngle(void);
-	float64				GetLength(void);
-	bool				IsHidden(void);
-	int32				GetUnit(void);
-	int32				GetBodyStyle(void);
+	float64				GetAngle(void) const;
+	float64				GetLength(void) const;
+	bool				IsHidden(void) const;
+	int32				GetUnit(void) const;
+	int32				GetBodyStyle(void) const;
 	bool				IsOn(int32 iUnit, int32 iBodyStyle);
 };
 

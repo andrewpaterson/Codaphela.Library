@@ -78,7 +78,7 @@ SFloat64Vec2* CKicadSchemWire::GetEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemWire::IsBus(void)
+bool CKicadSchemWire::IsBus(void) const
 {
 	return mbBus;
 }

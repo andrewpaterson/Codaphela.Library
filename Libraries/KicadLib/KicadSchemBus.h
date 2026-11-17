@@ -65,11 +65,11 @@ public:
 
 	CKicadSchemSubnet*		GetSubnet(void);
 	char*					GetName(void);
-	size					NumLabels(void);
+	size					NumLabels(void) const;
 	CKicadSchemLabel*		GetLabel(size uiIndex);
-	size					NumTaps(void);
+	size					NumTaps(void) const;
 	SKicadSchemBusTap*		GetTap(size uiIndex);
-	size					NumMembers(void);
+	size					NumMembers(void) const;
 	char*					GetMember(size uiIndex);
 	size					GetMemberIndex(char* szMember);
 	bool					Contains(SFloat64Vec2* psPoint, bool* pbVertical);

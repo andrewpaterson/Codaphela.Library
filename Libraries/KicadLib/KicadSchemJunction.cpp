@@ -55,7 +55,7 @@ SFloat64Vec2* CKicadSchemJunction::GetPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CKicadSchemJunction::GetDiameter(void)
+float64 CKicadSchemJunction::GetDiameter(void) const
 {
 	return mfDiameter;
 }

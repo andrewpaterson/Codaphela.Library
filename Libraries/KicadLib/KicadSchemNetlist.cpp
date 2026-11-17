@@ -935,9 +935,9 @@ CKicadSchemBus* CKicadSchemNetlist::GetBus(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemNetlist::NumBuses(void) { return macBuses.NumElements(); }
+size CKicadSchemNetlist::NumBuses(void) const { return macBuses.NumElements(); }
 CKicadSchemBus* CKicadSchemNetlist::GetBus(size uiIndex) { return (CKicadSchemBus*)macBuses.Get(uiIndex); }
-size CKicadSchemNetlist::NumBusNets(void) { return macBusNets.NumElements(); }
+size CKicadSchemNetlist::NumBusNets(void) const { return macBusNets.NumElements(); }
 CKicadSchemNet* CKicadSchemNetlist::GetBusNet(size uiIndex) { return (CKicadSchemNet*)macBusNets.Get(uiIndex); }
 
 
@@ -1034,9 +1034,9 @@ CKicadSchemNet* CKicadSchemNetlist::GetPinNet(char* szReference, char* szPinNumb
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemNetlist::NumSubnets(void) { return macSubnets.NumElements(); }
+size CKicadSchemNetlist::NumSubnets(void) const { return macSubnets.NumElements(); }
 CKicadSchemSubnet* CKicadSchemNetlist::GetSubnet(size uiIndex) { return (CKicadSchemSubnet*)macSubnets.Get(uiIndex); }
-size CKicadSchemNetlist::NumNets(void) { return macNets.NumElements(); }
+size CKicadSchemNetlist::NumNets(void) const { return macNets.NumElements(); }
 CKicadSchemNet* CKicadSchemNetlist::GetNet(size uiIndex) { return (CKicadSchemNet*)macNets.Get(uiIndex); }
 
 

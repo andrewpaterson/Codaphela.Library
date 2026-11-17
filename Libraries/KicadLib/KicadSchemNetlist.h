@@ -84,18 +84,18 @@ public:
 
 	bool				Build(void);
 
-	size				NumSubnets(void);
+	size				NumSubnets(void) const;
 	CKicadSchemSubnet*	GetSubnet(size uiIndex);
-	size				NumNets(void);
+	size				NumNets(void) const;
 	CKicadSchemNet*		GetNet(size uiIndex);
 	CKicadSchemNet*		GetNet(char* szName);
 	CKicadSchemSubnet*	GetPinSubnet(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
 	CKicadSchemSubnet*	GetPinSubnet(char* szReference, char* szPinNumber);
 	CKicadSchemNet*		GetPinNet(char* szReference, char* szPinNumber);
-	size				NumBuses(void);
+	size				NumBuses(void) const;
 	CKicadSchemBus*		GetBus(size uiIndex);
 	CKicadSchemBus*		GetBus(char* szName);
-	size				NumBusNets(void);
+	size				NumBusNets(void) const;
 	CKicadSchemNet*		GetBusNet(size uiIndex);
 	bool				IsBusLabel(CKicadSchemLabel* pcLabel);
 	CKicadSchemSubnet*	GetSubnetAt(SFloat64Vec2* psPoint);

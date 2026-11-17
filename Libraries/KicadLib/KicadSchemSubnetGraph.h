@@ -44,9 +44,9 @@ public:
 	size				AddPoint(SFloat64Vec2* psPoint);
 	void				Build(void);
 
-	size				NumPoints(void);
+	size				NumPoints(void) const;
 	SFloat64Vec2*		GetPoint(size uiIndex);
-	size				NumEdges(void);
+	size				NumEdges(void) const;
 	bool				FindPath(size uiFrom, CArrayInt* paiTargets, CArrayInt* paiPath);
 
 	static float64		GetBendFraction(CArrayFloat64Vec2* pasPath, bool* pbHorizontal);

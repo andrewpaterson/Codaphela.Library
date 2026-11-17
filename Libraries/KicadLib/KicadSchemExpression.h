@@ -54,18 +54,18 @@ public:
 	void					AddChild(CKicadSchemExpression* pcChild);
 	void					AppendText(char c);
 
-	EKicadSchemExpressionType	GetType(void);
-	bool					IsList(void);
-	bool					IsSymbol(void);
-	bool					IsString(void);
-	bool					IsAtom(void);
+	EKicadSchemExpressionType	GetType(void) const;
+	bool					IsList(void) const;
+	bool					IsSymbol(void) const;
+	bool					IsString(void) const;
+	bool					IsAtom(void) const;
 	bool					Is(const char* szName);
 	bool					IsSymbol(const char* szText);
 
 	char*					GetText(void);
-	size					GetLine(void);
+	size					GetLine(void) const;
 
-	size					NumChildren(void);
+	size					NumChildren(void) const;
 	CKicadSchemExpression*	GetChild(size uiIndex);
 	CKicadSchemExpression*	FindChild(const char* szName);
 	CKicadSchemExpression*	FindChild(const char* szName, size uiStartIndex, size* puiIndex);

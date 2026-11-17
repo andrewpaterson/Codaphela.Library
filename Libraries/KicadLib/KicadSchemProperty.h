@@ -44,8 +44,8 @@ public:
 	char*				GetName(void);
 	char*				GetValue(void);
 	SFloat64Vec2*		GetPosition(void);
-	float64				GetAngle(void);
-	bool				IsHidden(void);
+	float64				GetAngle(void) const;
+	bool				IsHidden(void) const;
 };
 
 

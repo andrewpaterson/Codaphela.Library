@@ -88,19 +88,19 @@ public:
 	void					SetNoConnect(void);
 	void					SetNet(CKicadSchemNet* pcNet);
 
-	size					NumWires(void);
+	size					NumWires(void) const;
 	CKicadSchemWire*		GetWire(size uiIndex);
-	size					NumPins(void);
+	size					NumPins(void) const;
 	SKicadSchemNetPin*		GetPin(size uiIndex);
 	SKicadSchemNetPin*		GetPin(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
-	size					NumLabels(void);
+	size					NumLabels(void) const;
 	CKicadSchemLabel*		GetLabel(size uiIndex);
-	size					NumSheetPins(void);
+	size					NumSheetPins(void) const;
 	SKicadSchemNetSheetPin*	GetSheetPin(size uiIndex);
-	size					NumJunctions(void);
+	size					NumJunctions(void) const;
 	CKicadSchemJunction*	GetJunction(size uiIndex);
-	bool					IsNoConnect(void);
-	CKicadSchemNet*			GetNet(void);
+	bool					IsNoConnect(void) const;
+	CKicadSchemNet*			GetNet(void) const;
 };
 
 

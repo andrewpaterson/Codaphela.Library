@@ -74,7 +74,7 @@ void CKicadSchemExpression::AppendText(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EKicadSchemExpressionType CKicadSchemExpression::GetType(void)
+EKicadSchemExpressionType CKicadSchemExpression::GetType(void) const
 {
 	return meType;
 }
@@ -84,7 +84,7 @@ EKicadSchemExpressionType CKicadSchemExpression::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemExpression::IsList(void)
+bool CKicadSchemExpression::IsList(void) const
 {
 	return meType == KSET_List;
 }
@@ -94,7 +94,7 @@ bool CKicadSchemExpression::IsList(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemExpression::IsSymbol(void)
+bool CKicadSchemExpression::IsSymbol(void) const
 {
 	return meType == KSET_Symbol;
 }
@@ -104,7 +104,7 @@ bool CKicadSchemExpression::IsSymbol(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemExpression::IsString(void)
+bool CKicadSchemExpression::IsString(void) const
 {
 	return meType == KSET_String;
 }
@@ -114,7 +114,7 @@ bool CKicadSchemExpression::IsString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemExpression::IsAtom(void)
+bool CKicadSchemExpression::IsAtom(void) const
 {
 	return meType != KSET_List;
 }
@@ -154,7 +154,7 @@ char* CKicadSchemExpression::GetText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemExpression::GetLine(void)
+size CKicadSchemExpression::GetLine(void) const
 {
 	return muiLine;
 }
@@ -164,7 +164,7 @@ size CKicadSchemExpression::GetLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemExpression::NumChildren(void)
+size CKicadSchemExpression::NumChildren(void) const
 {
 	return mapcChildren.NumElements();
 }

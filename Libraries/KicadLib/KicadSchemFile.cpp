@@ -376,7 +376,7 @@ char* CKicadSchemFile::GetFileName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CKicadSchemFile::GetVersion(void)
+int32 CKicadSchemFile::GetVersion(void) const
 {
 	return miVersion;
 }
@@ -466,7 +466,7 @@ char* CKicadSchemFile::GetCompany(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemFile::NumLibSymbols(void)
+size CKicadSchemFile::NumLibSymbols(void) const
 {
 	return macLibSymbols.NumElements();
 }
@@ -519,7 +519,7 @@ CKicadSchemLibSymbol* CKicadSchemFile::GetLibSymbol(CKicadSchemSymbol* pcSymbol)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemFile::NumSymbols(void)
+size CKicadSchemFile::NumSymbols(void) const
 {
 	return macSymbols.NumElements();
 }
@@ -587,7 +587,7 @@ CKicadSchemSymbol* CKicadSchemFile::GetSymbolByUuid(char* szUuid)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemFile::NumWires(void)
+size CKicadSchemFile::NumWires(void) const
 {
 	return macWires.NumElements();
 }
@@ -607,7 +607,7 @@ CKicadSchemWire* CKicadSchemFile::GetWire(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemFile::NumJunctions(void)
+size CKicadSchemFile::NumJunctions(void) const
 {
 	return macJunctions.NumElements();
 }
@@ -627,7 +627,7 @@ CKicadSchemJunction* CKicadSchemFile::GetJunction(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemFile::NumNoConnects(void)
+size CKicadSchemFile::NumNoConnects(void) const
 {
 	return macNoConnects.NumElements();
 }
@@ -647,7 +647,7 @@ CKicadSchemNoConnect* CKicadSchemFile::GetNoConnect(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemFile::NumBusEntries(void)
+size CKicadSchemFile::NumBusEntries(void) const
 {
 	return macBusEntries.NumElements();
 }
@@ -667,7 +667,7 @@ CKicadSchemBusEntry* CKicadSchemFile::GetBusEntry(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemFile::NumLabels(void)
+size CKicadSchemFile::NumLabels(void) const
 {
 	return macLabels.NumElements();
 }
@@ -687,7 +687,7 @@ CKicadSchemLabel* CKicadSchemFile::GetLabel(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemFile::NumSheets(void)
+size CKicadSchemFile::NumSheets(void) const
 {
 	return macSheets.NumElements();
 }

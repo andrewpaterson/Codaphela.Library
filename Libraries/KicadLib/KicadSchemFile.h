@@ -79,7 +79,7 @@ public:
 	CKicadSchemSheet*		AddSheet(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
 
 	char*					GetFileName(void);
-	int32					GetVersion(void);
+	int32					GetVersion(void) const;
 	char*					GetGenerator(void);
 	char*					GetGeneratorVersion(void);
 	char*					GetUuid(void);
@@ -89,27 +89,27 @@ public:
 	char*					GetRevision(void);
 	char*					GetCompany(void);
 
-	size					NumLibSymbols(void);
+	size					NumLibSymbols(void) const;
 	CKicadSchemLibSymbol*	GetLibSymbol(size uiIndex);
 	CKicadSchemLibSymbol*	GetLibSymbol(char* szName);
 	CKicadSchemLibSymbol*	GetLibSymbol(CKicadSchemSymbol* pcSymbol);
 
-	size					NumSymbols(void);
+	size					NumSymbols(void) const;
 	CKicadSchemSymbol*		GetSymbol(size uiIndex);
 	CKicadSchemSymbol*		GetSymbol(char* szReference);
 	CKicadSchemSymbol*		GetSymbolByUuid(char* szUuid);
 
-	size					NumWires(void);
+	size					NumWires(void) const;
 	CKicadSchemWire*		GetWire(size uiIndex);
-	size					NumJunctions(void);
+	size					NumJunctions(void) const;
 	CKicadSchemJunction*	GetJunction(size uiIndex);
-	size					NumNoConnects(void);
+	size					NumNoConnects(void) const;
 	CKicadSchemNoConnect*	GetNoConnect(size uiIndex);
-	size					NumBusEntries(void);
+	size					NumBusEntries(void) const;
 	CKicadSchemBusEntry*	GetBusEntry(size uiIndex);
-	size					NumLabels(void);
+	size					NumLabels(void) const;
 	CKicadSchemLabel*		GetLabel(size uiIndex);
-	size					NumSheets(void);
+	size					NumSheets(void) const;
 	CKicadSchemSheet*		GetSheet(size uiIndex);
 
 	bool					GetPinPosition(SFloat64Vec2* psDest, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);

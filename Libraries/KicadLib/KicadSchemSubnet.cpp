@@ -177,16 +177,16 @@ SKicadSchemNetPin* CKicadSchemSubnet::GetPin(CKicadSchemSymbol* pcSymbol, CKicad
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemSubnet::NumWires(void) { return mapcWires.NumElements(); }
+size CKicadSchemSubnet::NumWires(void) const { return mapcWires.NumElements(); }
 CKicadSchemWire* CKicadSchemSubnet::GetWire(size uiIndex) { return mapcWires.SafeGetPtr(uiIndex); }
-size CKicadSchemSubnet::NumPins(void) { return masPins.NumElements(); }
+size CKicadSchemSubnet::NumPins(void) const { return masPins.NumElements(); }
 SKicadSchemNetPin* CKicadSchemSubnet::GetPin(size uiIndex) { return masPins.SafeGet(uiIndex); }
-size CKicadSchemSubnet::NumLabels(void) { return mapcLabels.NumElements(); }
+size CKicadSchemSubnet::NumLabels(void) const { return mapcLabels.NumElements(); }
 CKicadSchemLabel* CKicadSchemSubnet::GetLabel(size uiIndex) { return mapcLabels.SafeGetPtr(uiIndex); }
-size CKicadSchemSubnet::NumSheetPins(void) { return masSheetPins.NumElements(); }
+size CKicadSchemSubnet::NumSheetPins(void) const { return masSheetPins.NumElements(); }
 SKicadSchemNetSheetPin* CKicadSchemSubnet::GetSheetPin(size uiIndex) { return masSheetPins.SafeGet(uiIndex); }
-size CKicadSchemSubnet::NumJunctions(void) { return mapcJunctions.NumElements(); }
+size CKicadSchemSubnet::NumJunctions(void) const { return mapcJunctions.NumElements(); }
 CKicadSchemJunction* CKicadSchemSubnet::GetJunction(size uiIndex) { return mapcJunctions.SafeGetPtr(uiIndex); }
-bool CKicadSchemSubnet::IsNoConnect(void) { return mbNoConnect; }
-CKicadSchemNet* CKicadSchemSubnet::GetNet(void) { return mpcNet; }
+bool CKicadSchemSubnet::IsNoConnect(void) const { return mbNoConnect; }
+CKicadSchemNet* CKicadSchemSubnet::GetNet(void) const { return mpcNet; }
 

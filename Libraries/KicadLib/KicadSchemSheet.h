@@ -49,7 +49,7 @@ public:
 	char*					GetSheetName(void);
 	char*					GetSheetFile(void);
 
-	size					NumPins(void);
+	size					NumPins(void) const;
 	CKicadSchemSheetPin*	GetPin(size uiIndex);
 	CKicadSchemSheetPin*	GetPin(char* szName);
 };

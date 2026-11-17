@@ -107,7 +107,7 @@ void CKicadSchemLibPin::SetHidden(bool bHidden)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EKicadSchemPinType CKicadSchemLibPin::GetType(void)
+EKicadSchemPinType CKicadSchemLibPin::GetType(void) const
 {
 	return meType;
 }
@@ -157,7 +157,7 @@ SFloat64Vec2* CKicadSchemLibPin::GetPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CKicadSchemLibPin::GetAngle(void)
+float64 CKicadSchemLibPin::GetAngle(void) const
 {
 	return mfAngle;
 }
@@ -167,7 +167,7 @@ float64 CKicadSchemLibPin::GetAngle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CKicadSchemLibPin::GetLength(void)
+float64 CKicadSchemLibPin::GetLength(void) const
 {
 	return mfLength;
 }
@@ -177,7 +177,7 @@ float64 CKicadSchemLibPin::GetLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemLibPin::IsHidden(void)
+bool CKicadSchemLibPin::IsHidden(void) const
 {
 	return mbHidden;
 }
@@ -187,7 +187,7 @@ bool CKicadSchemLibPin::IsHidden(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CKicadSchemLibPin::GetUnit(void)
+int32 CKicadSchemLibPin::GetUnit(void) const
 {
 	return miUnit;
 }
@@ -197,7 +197,7 @@ int32 CKicadSchemLibPin::GetUnit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CKicadSchemLibPin::GetBodyStyle(void)
+int32 CKicadSchemLibPin::GetBodyStyle(void) const
 {
 	return miBodyStyle;
 }

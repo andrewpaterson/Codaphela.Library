@@ -81,7 +81,7 @@ void CKicadSchemExpressions::SetRoot(CKicadSchemExpression* pcRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemExpression* CKicadSchemExpressions::GetRoot(void)
+CKicadSchemExpression* CKicadSchemExpressions::GetRoot(void) const
 {
 	return mpcRoot;
 }
@@ -91,7 +91,7 @@ CKicadSchemExpression* CKicadSchemExpressions::GetRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemExpressions::NumExpressions(void)
+size CKicadSchemExpressions::NumExpressions(void) const
 {
 	return macExpressions.NumElements();
 }

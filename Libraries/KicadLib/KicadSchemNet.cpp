@@ -90,7 +90,7 @@ size CKicadSchemNet::NumPins(void)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CKicadSchemNet::GetName(void) { return mszName.Text(); }
-EKicadSchemNetNameSource CKicadSchemNet::GetNameSource(void) { return meNameSource; }
-size CKicadSchemNet::NumSubnets(void) { return mapcSubnets.NumElements(); }
+EKicadSchemNetNameSource CKicadSchemNet::GetNameSource(void) const { return meNameSource; }
+size CKicadSchemNet::NumSubnets(void) const { return mapcSubnets.NumElements(); }
 CKicadSchemSubnet* CKicadSchemNet::GetSubnet(size uiIndex) { return mapcSubnets.SafeGetPtr(uiIndex); }
 

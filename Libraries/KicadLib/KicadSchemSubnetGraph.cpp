@@ -327,7 +327,7 @@ float64 CKicadSchemSubnetGraph::GetBendFraction(CArrayFloat64Vec2* pasPath, bool
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemSubnetGraph::NumPoints(void) { return masPoints.NumElements(); }
+size CKicadSchemSubnetGraph::NumPoints(void) const { return masPoints.NumElements(); }
 SFloat64Vec2* CKicadSchemSubnetGraph::GetPoint(size uiIndex) { return masPoints.SafeGet(uiIndex); }
-size CKicadSchemSubnetGraph::NumEdges(void) { return maiEdgeStarts.NumElements(); }
+size CKicadSchemSubnetGraph::NumEdges(void) const { return maiEdgeStarts.NumElements(); }
 

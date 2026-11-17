@@ -101,7 +101,7 @@ SFloat64Vec2* CKicadSchemProperty::GetPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CKicadSchemProperty::GetAngle(void)
+float64 CKicadSchemProperty::GetAngle(void) const
 {
 	return mfAngle;
 }
@@ -111,7 +111,7 @@ float64 CKicadSchemProperty::GetAngle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemProperty::IsHidden(void)
+bool CKicadSchemProperty::IsHidden(void) const
 {
 	return mbHidden;
 }

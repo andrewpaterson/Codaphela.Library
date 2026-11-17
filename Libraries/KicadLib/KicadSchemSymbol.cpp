@@ -229,7 +229,7 @@ SFloat64Vec2* CKicadSchemSymbol::GetPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CKicadSchemSymbol::GetAngle(void)
+float64 CKicadSchemSymbol::GetAngle(void) const
 {
 	return mfAngle;
 }
@@ -239,7 +239,7 @@ float64 CKicadSchemSymbol::GetAngle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EKicadSchemMirror CKicadSchemSymbol::GetMirror(void)
+EKicadSchemMirror CKicadSchemSymbol::GetMirror(void) const
 {
 	return meMirror;
 }
@@ -249,7 +249,7 @@ EKicadSchemMirror CKicadSchemSymbol::GetMirror(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CKicadSchemSymbol::GetUnit(void)
+int32 CKicadSchemSymbol::GetUnit(void) const
 {
 	return miUnit;
 }
@@ -259,7 +259,7 @@ int32 CKicadSchemSymbol::GetUnit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CKicadSchemSymbol::GetBodyStyle(void)
+int32 CKicadSchemSymbol::GetBodyStyle(void) const
 {
 	return miBodyStyle;
 }
@@ -281,7 +281,7 @@ bool CKicadSchemSymbol::IsUnitPin(CKicadSchemLibPin* pcPin)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemSymbol::IsInBom(void)
+bool CKicadSchemSymbol::IsInBom(void) const
 {
 	return mbInBom;
 }
@@ -291,7 +291,7 @@ bool CKicadSchemSymbol::IsInBom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemSymbol::IsOnBoard(void)
+bool CKicadSchemSymbol::IsOnBoard(void) const
 {
 	return mbOnBoard;
 }
@@ -301,7 +301,7 @@ bool CKicadSchemSymbol::IsOnBoard(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemSymbol::IsDoNotPopulate(void)
+bool CKicadSchemSymbol::IsDoNotPopulate(void) const
 {
 	return mbDoNotPopulate;
 }
@@ -341,7 +341,7 @@ char* CKicadSchemSymbol::GetValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemSymbol::NumInstances(void)
+size CKicadSchemSymbol::NumInstances(void) const
 {
 	return macInstances.NumElements();
 }

@@ -159,7 +159,7 @@ char* CKicadSchemSheet::GetSheetFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemSheet::NumPins(void)
+size CKicadSchemSheet::NumPins(void) const
 {
 	return macPins.NumElements();
 }

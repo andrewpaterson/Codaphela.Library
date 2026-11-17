@@ -152,7 +152,7 @@ CKicadSchemProperties* CKicadSchemLibSymbol::GetProperties(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemLibSymbol::IsPower(void)
+bool CKicadSchemLibSymbol::IsPower(void) const
 {
 	return mbPower;
 }
@@ -182,7 +182,7 @@ bool CKicadSchemLibSymbol::ArePinNumbersHidden(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CKicadSchemLibSymbol::NumUnits(void)
+int32 CKicadSchemLibSymbol::NumUnits(void) const
 {
 	return miNumUnits;
 }
@@ -192,7 +192,7 @@ int32 CKicadSchemLibSymbol::NumUnits(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemLibSymbol::NumPins(void)
+size CKicadSchemLibSymbol::NumPins(void) const
 {
 	return macPins.NumElements();
 }

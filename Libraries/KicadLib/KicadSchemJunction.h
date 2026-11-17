@@ -35,7 +35,7 @@ public:
 	void				Kill(void);
 
 	SFloat64Vec2*		GetPosition(void);
-	float64				GetDiameter(void);
+	float64				GetDiameter(void) const;
 };
 
 

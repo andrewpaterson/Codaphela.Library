@@ -52,12 +52,12 @@ public:
 	char*					GetName(void);
 	char*					GetExtends(void);
 	CKicadSchemProperties*	GetProperties(void);
-	bool					IsPower(void);
+	bool					IsPower(void) const;
 	bool					ArePinNamesHidden(void);
 	bool					ArePinNumbersHidden(void);
-	int32					NumUnits(void);
+	int32					NumUnits(void) const;
 
-	size					NumPins(void);
+	size					NumPins(void) const;
 	CKicadSchemLibPin*		GetPin(size uiIndex);
 	CKicadSchemLibPin*		GetPin(char* szNumber, int32 iUnit, int32 iBodyStyle);
 };

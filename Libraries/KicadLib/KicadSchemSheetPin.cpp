@@ -69,7 +69,7 @@ char* CKicadSchemSheetPin::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EKicadSchemLabelShape CKicadSchemSheetPin::GetShape(void)
+EKicadSchemLabelShape CKicadSchemSheetPin::GetShape(void) const
 {
 	return meShape;
 }
@@ -89,7 +89,7 @@ SFloat64Vec2* CKicadSchemSheetPin::GetPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CKicadSchemSheetPin::GetAngle(void)
+float64 CKicadSchemSheetPin::GetAngle(void) const
 {
 	return mfAngle;
 }

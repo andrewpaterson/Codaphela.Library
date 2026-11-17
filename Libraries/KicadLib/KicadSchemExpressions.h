@@ -38,8 +38,8 @@ public:
 	CKicadSchemExpression*	Add(EKicadSchemExpressionType eType, const char* szText, size uiLength, size uiLine);
 	void					SetRoot(CKicadSchemExpression* pcRoot);
 
-	CKicadSchemExpression*	GetRoot(void);
-	size					NumExpressions(void);
+	CKicadSchemExpression*	GetRoot(void) const;
+	size					NumExpressions(void) const;
 };
 
 

@@ -69,19 +69,19 @@ public:
 	char*						GetLibSymbolName(void);
 	char*						GetUuid(void);
 	SFloat64Vec2*				GetPosition(void);
-	float64						GetAngle(void);
-	EKicadSchemMirror			GetMirror(void);
-	int32						GetUnit(void);
-	int32						GetBodyStyle(void);
+	float64						GetAngle(void) const;
+	EKicadSchemMirror			GetMirror(void) const;
+	int32						GetUnit(void) const;
+	int32						GetBodyStyle(void) const;
 	bool						IsUnitPin(CKicadSchemLibPin* pcPin);
-	bool						IsInBom(void);
-	bool						IsOnBoard(void);
-	bool						IsDoNotPopulate(void);
+	bool						IsInBom(void) const;
+	bool						IsOnBoard(void) const;
+	bool						IsDoNotPopulate(void) const;
 	CKicadSchemProperties*		GetProperties(void);
 	char*						GetReference(void);
 	char*						GetValue(void);
 
-	size						NumInstances(void);
+	size						NumInstances(void) const;
 	CKicadSchemSymbolInstance*	GetInstance(size uiIndex);
 
 	bool						GetSheetPosition(SFloat64Vec2* psDest, SFloat64Vec2* psLibrary);

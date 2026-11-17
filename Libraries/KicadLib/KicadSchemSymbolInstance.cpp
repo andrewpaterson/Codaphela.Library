@@ -80,7 +80,7 @@ char* CKicadSchemSymbolInstance::GetReference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CKicadSchemSymbolInstance::GetUnit(void)
+int32 CKicadSchemSymbolInstance::GetUnit(void) const
 {
 	return miUnit;
 }

@@ -70,7 +70,7 @@ void CKicadSchemLabel::SetShape(EKicadSchemLabelShape eShape)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EKicadSchemLabelType CKicadSchemLabel::GetType(void)
+EKicadSchemLabelType CKicadSchemLabel::GetType(void) const
 {
 	return meType;
 }
@@ -100,7 +100,7 @@ SFloat64Vec2* CKicadSchemLabel::GetPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 CKicadSchemLabel::GetAngle(void)
+float64 CKicadSchemLabel::GetAngle(void) const
 {
 	return mfAngle;
 }
@@ -110,7 +110,7 @@ float64 CKicadSchemLabel::GetAngle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EKicadSchemLabelShape CKicadSchemLabel::GetShape(void)
+EKicadSchemLabelShape CKicadSchemLabel::GetShape(void) const
 {
 	return meShape;
 }

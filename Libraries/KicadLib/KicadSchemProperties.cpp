@@ -108,7 +108,7 @@ char* CKicadSchemProperties::GetValue(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemProperties::NumProperties(void)
+size CKicadSchemProperties::NumProperties(void) const
 {
 	return macProperties.NumElements();
 }
