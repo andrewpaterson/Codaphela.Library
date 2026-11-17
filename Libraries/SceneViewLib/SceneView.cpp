@@ -89,7 +89,7 @@ void CSceneView::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSceneCanvasDraw> CSceneView::GetDraw(void)
+Ptr<CSceneCanvasDraw> CSceneView::GetDraw(void) const
 {
 	return mpDraw;
 }
@@ -112,7 +112,7 @@ CComponentEvent<CSceneView>* CSceneView::GetClickEvent(void)
 // Where the left button last went down, in the view.
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CSceneView::GetClick(void)
+SInt32Vec2 CSceneView::GetClick(void) const
 {
 	return msPressed;
 }

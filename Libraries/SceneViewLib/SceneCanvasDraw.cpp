@@ -276,7 +276,7 @@ bool CSceneCanvasDraw::ScreenToPlane(int32 x, int32 y, SFloat32Vec3* psDest)
 // What was last drawn, its bytes B, G, R, X: NULL before the first draw.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CSceneCanvasDraw::GetImage(void)
+Ptr<CImage> CSceneCanvasDraw::GetImage(void) const
 {
 	return mpImage;
 }

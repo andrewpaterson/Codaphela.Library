@@ -59,9 +59,9 @@ public:
 	void							Class(void) override;
 	void							Free(void) override;
 
-	Ptr<CSceneCanvasDraw>			GetDraw(void);
+	Ptr<CSceneCanvasDraw>			GetDraw(void) const;
 	CComponentEvent<CSceneView>*	GetClickEvent(void);
-	SInt32Vec2						GetClick(void);
+	SInt32Vec2						GetClick(void) const;
 	void							FocusView(void);
 
 	void							MovementAction(SComponentInputEvent* psEvent);

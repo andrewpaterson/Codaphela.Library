@@ -113,7 +113,7 @@ public:
 	void		SetScene(Ptr<CScene> pScene, const char* szName);
 	void		SceneChanged(const char* szName);
 	bool		ScreenToPlane(int32 x, int32 y, SFloat32Vec3* psDest);
-	Ptr<CImage>	GetImage(void);
+	Ptr<CImage>	GetImage(void) const;
 	bool		Draw(Ptr<CCanvas> pCanvas) override;
 	void		NextFrame(void);
 
