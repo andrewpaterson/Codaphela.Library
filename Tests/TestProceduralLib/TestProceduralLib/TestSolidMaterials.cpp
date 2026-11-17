@@ -1,8 +1,10 @@
 #include <math.h>
+#include "BaseLib/FileUtil.h"
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "StandardLib/Objects.h"
 #include "ProceduralLib/SolidFlat.h"
 #include "ProceduralLib/SolidGradient.h"
+#include "ProceduralLib/SolidMaterialFile.h"
 #include "ProceduralLib/SolidMaterials.h"
 #include "ProceduralLib/SolidNoise.h"
 #include "ProceduralLib/SolidRamp.h"
@@ -144,6 +146,109 @@ static void TestSolidMaterial(const char* szName, Ptr<CSolidTexture> (*fMake)(ui
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pTexture's sample at the uiPoint'th of some points.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestSolidMaterialFileSample(Ptr<CSolidTexture> pTexture, size uiPoint, SSolidSample* psSample)
+{
+	SFloat32Vec3	sPosition;
+	SFloat32Vec3	sNormal;
+
+	sPosition.Init(((float32)uiPoint * 0.37f) - 1.0f, (float32)uiPoint * 0.21f, ((float32)uiPoint * -0.13f) + 0.4f);
+	sNormal.Init(0, 0, 1);
+	pTexture->Sample(&sPosition, &sNormal, 0.01f, psSample);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A material written to a file and read back is other textures that
+// sample as it did: into the objects it was written from, twice over,
+// and into a fresh set, which is how another program has it.  The
+// file's name is given with or without its extension.  No file, or a
+// file that isn't a material's, is no material.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSolidMaterialFile(void)
+{
+	char			szDirectory[] = "Output" _FS_ "TestSolidMaterialFile";
+	char			szFile[] = "Output" _FS_ "TestSolidMaterialFile" _FS_ "Rust";
+	char			szFileWithExtension[] = "Output" _FS_ "TestSolidMaterialFile" _FS_ "Rust.DRG";
+	CFileUtil		cFileUtil;
+	SSolidSample	asSamples[8];
+	SSolidSample	sResult;
+	size			i;
+
+	AssertTrue(cFileUtil.RemoveDir(szDirectory));
+	AssertTrue(cFileUtil.TouchDir(szDirectory));
+
+	DataIOInit();
+	ObjectsInit();
+	{
+		Ptr<CSolidTexture>	pRust;
+		Ptr<CSolidTexture>	pRead;
+		Ptr<CSolidTexture>	pAgain;
+
+		pRust = MakeSolidRust(4);
+		for (i = 0; i < 8; i++)
+		{
+			TestSolidMaterialFileSample(pRust, i, &asSamples[i]);
+		}
+
+		AssertTrue(ReadSolidMaterial(szFile).IsNull());
+		AssertTrue(WriteSolidMaterial(pRust, szFile));
+		AssertTrue(cFileUtil.Exists(szFileWithExtension));
+
+		pRead = ReadSolidMaterial(szFileWithExtension);
+		AssertTrue(pRead.IsNotNull());
+		AssertTrue(pRead != pRust);
+		pAgain = ReadSolidMaterial(szFile);
+		AssertTrue(pAgain.IsNotNull());
+		AssertTrue(pAgain != pRead);
+		for (i = 0; i < 8; i++)
+		{
+			TestSolidMaterialFileSample(pRead, i, &sResult);
+			AssertFloat(asSamples[i].sColour.x, sResult.sColour.x, 6);
+			AssertFloat(asSamples[i].fHeight, sResult.fHeight, 6);
+			TestSolidMaterialFileSample(pAgain, i, &sResult);
+			AssertFloat(asSamples[i].sColour.y, sResult.sColour.y, 6);
+			TestSolidMaterialFileSample(pRust, i, &sResult);
+			AssertFloat(asSamples[i].sColour.z, sResult.sColour.z, 6);
+		}
+
+		//Written again over itself, from what was read.
+		AssertTrue(WriteSolidMaterial(pRead, szFileWithExtension));
+		pAgain = ReadSolidMaterial(szFile);
+		TestSolidMaterialFileSample(pAgain, 3, &sResult);
+		AssertFloat(asSamples[3].sColour.x, sResult.sColour.x, 6);
+	}
+	ObjectsDiscard();
+	ObjectsKill(false);
+
+	ObjectsInit();
+	{
+		Ptr<CSolidTexture>	pRead;
+
+		pRead = ReadSolidMaterial(szFile);
+		AssertTrue(pRead.IsNotNull());
+		for (i = 0; i < 8; i++)
+		{
+			TestSolidMaterialFileSample(pRead, i, &sResult);
+			AssertFloat(asSamples[i].sColour.x, sResult.sColour.x, 6);
+			AssertFloat(asSamples[i].sColour.y, sResult.sColour.y, 6);
+			AssertFloat(asSamples[i].fHeight, sResult.fHeight, 6);
+		}
+	}
+	ObjectsDiscard();
+	ObjectsKill(false);
+	DataIOKill();
+
+	AssertTrue(cFileUtil.RemoveDir(szDirectory));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSolidMaterials(void)
@@ -161,6 +266,8 @@ void TestSolidMaterials(void)
 	ObjectsDiscard();
 	ObjectsKill(false);
 	DataIOKill();
+
+	TestSolidMaterialFile();
 
 	TestStatistics();
 }

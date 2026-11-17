@@ -43,6 +43,7 @@
     <ClCompile Include="SolidCavity.cpp" />
     <ClCompile Include="SolidChannel.cpp" />
     <ClCompile Include="SolidCombine.cpp" />
+    <ClCompile Include="SolidMaterialFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h" />
@@ -69,6 +70,7 @@
     <ClInclude Include="SolidCavity.h" />
     <ClInclude Include="SolidChannel.h" />
     <ClInclude Include="SolidCombine.h" />
+    <ClInclude Include="SolidMaterialFile.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9878AEFF-411B-415E-995B-BA59059726E1}</ProjectGuid>
