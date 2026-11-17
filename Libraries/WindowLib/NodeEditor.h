@@ -125,6 +125,7 @@ protected:
 	bool					mbLinkInput;
 	size					muiLinkSocket;
 	bool					mbPanning;  //The middle button is down on it.
+	bool					mbFrame;  //The nodes are framed when it's next laid out: it was asked to before it had a size.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -177,6 +178,7 @@ public:
 protected:
 	void				Changed(void);
 	void				DropLink(int x, int y);
+	void				Frame(SInt32Vec2 sSize);
 	void				SelectBox(void);
 	void				RemoveLinksOf(CNodeBox* pcNode);
 	bool				IsShift(void);

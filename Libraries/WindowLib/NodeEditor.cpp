@@ -167,6 +167,7 @@ void CNodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mbLinkInput = false;
 	muiLinkSocket = 0;
 	mbPanning = false;
+	mbFrame = false;
 
 	mpDraw = OMalloc<CNodeEditorDraw>(this);
 	mpBack = OMalloc<CCanvas>(pWindow, mpDraw);
@@ -215,6 +216,7 @@ void CNodeEditor::Class(void)
 	U_Bool(mbLinkInput);
 	U_Size(muiLinkSocket);
 	U_Bool(mbPanning);
+	U_Bool(mbFrame);
 }
 
 
@@ -240,6 +242,12 @@ void CNodeEditor::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	Ptr<CNodeBox>	pNode;
 	SInt32Vec2		sNode;
 	size			i;
+
+	if (mbFrame && (sAreaSize.x > 0) && (sAreaSize.y > 0))
+	{
+		mbFrame = false;
+		Frame(sAreaSize);
+	}
 
 	SetContainerBounds(sPosition, sAreaSize);
 	LayoutComponentInArea(mpBack, sPosition, sAreaSize);
@@ -525,41 +533,59 @@ void CNodeEditor::SetPan(int32 x, int32 y)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Pans so the middle of all the nodes is the middle of the editor.  The
-// nodes' sizes are what they need, so it's right before they've been
-// laid out.
+// Pans so the middle of all the nodes is the middle of the editor: when
+// it's next laid out, if it has no size yet.
 //
 //////////////////////////////////////////////////////////////////////////
 void CNodeEditor::FrameAll(void)
 {
+	SInt32Vec2	sSize;
+
+	sSize = GetActualSize();
+	mbFrame = (sSize.x <= 0) || (sSize.y <= 0);
+	if (!mbFrame)
+	{
+		Frame(sSize);
+	}
+	Changed();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pan that puts the middle of all the nodes in the middle of an
+// editor of sSize.  The nodes' sizes are what they need, so it's right
+// before they've been laid out.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNodeEditor::Frame(SInt32Vec2 sSize)
+{
 	Ptr<CNodeBox>	pNode;
 	SInt32Vec2		sNode;
-	SInt32Vec2		sSize;
+	SInt32Vec2		sNodeSize;
 	SInt32Vec2		sMinimum;
 	SInt32Vec2		sMaximum;
-	SInt32Vec2		sEditor;
 	size			i;
 
 	if (mapNodes.NumElements() == 0)
 	{
-		SetPan(0, 0);
+		msPan.Init(0, 0);
 		return;
 	}
 	for (i = 0; i < mapNodes.NumElements(); i++)
 	{
 		pNode = mapNodes.Get(i);
 		sNode = pNode->GetNodePosition();
-		sSize = GetMeasuredSize(pNode);
+		sNodeSize = GetMeasuredSize(pNode);
 		if (i == 0)
 		{
 			sMinimum = sNode;
-			sMaximum.Init(sNode.x + sSize.x, sNode.y + sSize.y);
+			sMaximum.Init(sNode.x + sNodeSize.x, sNode.y + sNodeSize.y);
 		}
 		sMinimum.Init((sNode.x < sMinimum.x) ? sNode.x : sMinimum.x, (sNode.y < sMinimum.y) ? sNode.y : sMinimum.y);
-		sMaximum.Init((sNode.x + sSize.x > sMaximum.x) ? sNode.x + sSize.x : sMaximum.x, (sNode.y + sSize.y > sMaximum.y) ? sNode.y + sSize.y : sMaximum.y);
+		sMaximum.Init((sNode.x + sNodeSize.x > sMaximum.x) ? sNode.x + sNodeSize.x : sMaximum.x, (sNode.y + sNodeSize.y > sMaximum.y) ? sNode.y + sNodeSize.y : sMaximum.y);
 	}
-	sEditor = GetActualSize();
-	SetPan((sEditor.x - (sMinimum.x + sMaximum.x)) / 2, (sEditor.y - (sMinimum.y + sMaximum.y)) / 2);
+	msPan.Init((sSize.x - (sMinimum.x + sMaximum.x)) / 2, (sSize.y - (sMinimum.y + sMaximum.y)) / 2);
 }
 
 
