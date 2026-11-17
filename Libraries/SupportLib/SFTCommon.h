@@ -28,9 +28,29 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/FileWriter.h"
 
 
+//An SFT file is an image or a container of them.  A pixel is a byte: red in D0-D2, green in D3-D5 and blue in D6-D7.
+//
+//An opaque image is an SSFTImage, then its rows from the top, each its width of pixels.
+//
+//A transparent image is an SSFTImage, then bytes that say where its pixels are, starting at its top left:
+//  SFT_RUN_END              the image is done.
+//  $01-$7F                  that many pixels follow: they are drawn from here to the right.
+//  SFT_RUN_SKIP + (n - 1)   n pixels (1 to SFT_RUN_MAX_COUNT) are skipped to the right.
+//  SFT_RUN_ROWS + (n - 1)   n rows (1 to SFT_RUN_MAX_COUNT) down, at the row's left.
+//A longer run, skip or move down is several of them.  What isn't drawn is transparent.  (SFT_TYPE_TRANSPARENT was $e4f9
+//when a run was two words and its pixels, which is no longer read.)
+//
+//A container is an SSFTContainer, then its images, each after an SSFTContained.
 #define SFT_TYPE_OPAQUE			(uint16)0xe457
-#define SFT_TYPE_TRANSPARENT	(uint16)0xe4f9
+#define SFT_TYPE_TRANSPARENT	(uint16)0xe4fa
 #define SFT_TYPE_CONTAINER		(uint16)0xe4ef
+
+#define SFT_RUN_END				0x00
+#define SFT_RUN_MAX_PIXELS		0x7f
+#define SFT_RUN_SKIP			0x80
+#define SFT_RUN_ROWS			0xc0
+#define SFT_RUN_COUNT_MASK		0x3f
+#define SFT_RUN_MAX_COUNT		0x40
 
 
 struct SSFTImage
@@ -42,26 +62,6 @@ struct SSFTImage
 	void	Init(uint16 uiType, uint16 uiImageWidth, uint16 uiImageHeight);
 	bool	Read(CFileReader* pcFile);
 	bool	Write(CFileWriter* pcFile);
-};
-
-
-//A transparent image's pixels are its rows' runs, each this then uiRunLength pixels (a byte each), and after the last a
-//run that is all zero.  A row's first run has the start of run flag, but the first row's; a row without a pixel is a
-//run of no pixels that skips the row's width.
-struct SSFTCelRun
-{
-	uint16	uiFlags;  //0x8000: Start of run flag.  //0x7fff: run skip mask.  or how many pixels to add before the current run starts drawing
-	uint16	uiRunLength;
-
-	void	Init(bool bStartOfRun);
-	void	Set(uint16 uiRunLength, uint16 uiSkipLength);
-	bool	Read(CFileReader* pcFile);
-	bool	Write(CFileWriter* pcFile);
-
-	bool	IsStartOfRun(void) const;
-	uint16	GetRunLength(void) const;
-	uint16	GetSkipLength(void) const;
-	bool	IsDone(void) const;
 };
 
 
@@ -78,7 +78,7 @@ struct SSFTContainer
 
 struct SSFTContained
 {
-	uint16	uiSkipToNext;  //How many bytes to seek forward to the next contained (or zero if no more images contained).  Relative to the end of this struct.
+	uint16	uiSkipToNext;  //How many bytes from the start of this struct to the next contained's (or zero if no more images contained).
 
 	void	Init(void);
 	void	Init(uint16 uiSkipToNext);

@@ -188,6 +188,29 @@ bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffs
 
 //////////////////////////////////////////////////////////////////////////
 //
+// uiCount pixels skipped (SFT_RUN_SKIP) or rows moved down (SFT_RUN_ROWS),
+// SFT_RUN_MAX_COUNT at a time.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddSFTCount(CArrayChar* pauiData, uint8 uiCode, lsize uiCount)
+{
+	lsize	uiChunk;
+
+	while (uiCount > 0)
+	{
+		uiChunk = (uiCount < SFT_RUN_MAX_COUNT) ? uiCount : SFT_RUN_MAX_COUNT;
+		pauiData->Add((char)(uiCode | (uiChunk - 1)));
+		uiCount -= uiChunk;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cel's opaque pixels as runs (SFTCommon.h): each row that has any is
+// reached by moving down from the last that had, and each of its runs by
+// skipping from the one before.  The rows after the last pixel aren't
+// written.
 //
 //////////////////////////////////////////////////////////////////////////
 bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
@@ -197,134 +220,94 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 	CChannelsAccessor*			pcDiffuseAccessor;
 	lsize						x;
 	lsize						y;
+	lsize						x2;
+	lsize						y2;
 	lsize						uiImageWidth;
 	bool						bOpaque;
-	uint8						uiColour;
-	SSFTCelRun					sCelRun;
-	bool						bLastOpaque;
-	bool						bRowWritten;
-	uint16						uiSkipLength;
-	uint16						uiRunLength;
-	CArrayChar					auiRow;
+	lsize						uiRows;
+	lsize						uiSkip;
+	lsize						uiRun;
+	lsize						uiChunk;
+	lsize						i;
+	lsize						j;
+	CArrayChar					auiData;
+	CArrayChar					auiRun;
 	lsize						iResult;
-	lsize						y2;
-	lsize						x2;
 	CChannelsAccessorCreator	cCreator;
 
-	if (pcFile->IsOpen())
-	{
-		uiImageWidth = pImage->GetWidth();
-		sStruct.Init(SFT_TYPE_TRANSPARENT, uiCelWidth, uiCelHeight);
-		if (!sStruct.Write(pcFile))
-		{
-			return false;
-		}
-
-		pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pImage->GetChannels(), IMAGE_OPACITY, PT_bit);
-		cCreator.Init(pImage->GetChannels());
-		cCreator.AddAccess(IMAGE_DIFFUSE_RED, PT_tribble);
-		cCreator.AddAccess(IMAGE_DIFFUSE_GREEN, PT_tribble);
-		cCreator.AddAccess(IMAGE_DIFFUSE_BLUE, PT_crumb);
-		pcDiffuseAccessor = cCreator.CreateAndKill();
-
-		auiRow.Init();
-		sCelRun.Init(false);
-		y2 = uiImageTopOffset + uiCelHeight;
-		x2 = uiImageLeftOffset + uiCelWidth;
-		for (y = uiImageTopOffset; y < y2; y++)
-		{
-			bLastOpaque = false;
-			bRowWritten = false;
-			uiSkipLength = 0;
-			uiRunLength = 0;
-			for (x = uiImageLeftOffset; x < x2; x++)
-			{
-				bOpaque = (pcOppacityAccessor == NULL) || (*((bool*)pcOppacityAccessor->Get(x + y * uiImageWidth)));
-				uiColour = *((uint8*)pcDiffuseAccessor->Get(x + y * uiImageWidth));
-
-				if (!bOpaque && bLastOpaque)
-				{
-					sCelRun.Set(uiRunLength, uiSkipLength);
-					if (!sCelRun.Write(pcFile))
-					{
-						auiRow.Kill();
-						return false;
-					}
-
-					iResult = pcFile->Write(auiRow.GetData(), 1, auiRow.NumElements());
-					if (iResult != auiRow.NumElements())
-					{
-						auiRow.Kill();
-						return false;
-					}
-
-					auiRow.ReInit();
-					sCelRun.Init(false);
-					bRowWritten = true;
-					uiSkipLength = 0;
-					uiRunLength = 0;
-				}
-
-				if (!bOpaque)
-				{
-					uiSkipLength++;
-				}
-				else
-				{
-					uiRunLength++;
-					auiRow.Add(uiColour);
-				}
-
-				bLastOpaque = bOpaque;
-			}
-
-			if (uiRunLength != 0)
-			{
-				sCelRun.Set(uiRunLength, uiSkipLength);
-				if (!sCelRun.Write(pcFile))
-				{
-					auiRow.Kill();
-					return false;
-				}
-
-				iResult = pcFile->Write(auiRow.GetData(), 1, auiRow.NumElements());
-				if (iResult != auiRow.NumElements())
-				{
-					auiRow.Kill();
-					return false;
-				}
-
-				auiRow.ReInit();
-			}
-			else if (!bRowWritten)
-			{
-				//A row without a pixel is a run of none after skipping the whole row: without it the rows after it
-				//would be a row higher.
-				sCelRun.Set(0, uiCelWidth);
-				if (!sCelRun.Write(pcFile))
-				{
-					auiRow.Kill();
-					return false;
-				}
-			}
-
-			sCelRun.Init(true);
-		}
-
-		if (pcOppacityAccessor)
-		{
-			pcOppacityAccessor->Kill();
-		}
-		pcDiffuseAccessor->Kill();
-		auiRow.Kill();
-
-		sCelRun.Init(false);
-		return sCelRun.Write(pcFile);
-	}
-	else
+	if (!pcFile->IsOpen())
 	{
 		return false;
 	}
+
+	uiImageWidth = pImage->GetWidth();
+	sStruct.Init(SFT_TYPE_TRANSPARENT, uiCelWidth, uiCelHeight);
+	if (!sStruct.Write(pcFile))
+	{
+		return false;
+	}
+
+	pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pImage->GetChannels(), IMAGE_OPACITY, PT_bit);
+	cCreator.Init(pImage->GetChannels());
+	cCreator.AddAccess(IMAGE_DIFFUSE_RED, PT_tribble);
+	cCreator.AddAccess(IMAGE_DIFFUSE_GREEN, PT_tribble);
+	cCreator.AddAccess(IMAGE_DIFFUSE_BLUE, PT_crumb);
+	pcDiffuseAccessor = cCreator.CreateAndKill();
+
+	auiData.Init();
+	auiRun.Init();
+	uiRows = 0;
+	y2 = uiImageTopOffset + uiCelHeight;
+	x2 = uiImageLeftOffset + uiCelWidth;
+	for (y = uiImageTopOffset; y < y2; y++)
+	{
+		uiSkip = 0;
+		for (x = uiImageLeftOffset; x <= x2; x++)
+		{
+			bOpaque = (x < x2) && ((pcOppacityAccessor == NULL) || (*((bool*)pcOppacityAccessor->Get(x + y * uiImageWidth))));
+			if (bOpaque)
+			{
+				auiRun.Add(*((char*)pcDiffuseAccessor->Get(x + y * uiImageWidth)));
+			}
+			else if (auiRun.NumElements() > 0)
+			{
+				//A run has ended: down to its row, across to it, then its pixels.
+				AddSFTCount(&auiData, SFT_RUN_ROWS, uiRows);
+				AddSFTCount(&auiData, SFT_RUN_SKIP, uiSkip);
+				uiRun = auiRun.NumElements();
+				for (i = 0; i < uiRun; i += uiChunk)
+				{
+					uiChunk = ((uiRun - i) < SFT_RUN_MAX_PIXELS) ? (uiRun - i) : SFT_RUN_MAX_PIXELS;
+					auiData.Add((char)uiChunk);
+					for (j = 0; j < uiChunk; j++)
+					{
+						auiData.Add(auiRun.GetValue(i + j));
+					}
+				}
+				auiRun.ReInit();
+				uiRows = 0;
+				uiSkip = 1;
+			}
+			else
+			{
+				uiSkip++;
+			}
+		}
+		uiRows++;
+	}
+	auiData.Add((char)SFT_RUN_END);
+
+	if (pcOppacityAccessor)
+	{
+		pcOppacityAccessor->Kill();
+	}
+	pcDiffuseAccessor->Kill();
+
+	iResult = pcFile->Write(auiData.GetData(), 1, auiData.NumElements());
+	bOpaque = (iResult == auiData.NumElements());
+	auiRun.Kill();
+	auiData.Kill();
+	return bOpaque;
 }
 
 

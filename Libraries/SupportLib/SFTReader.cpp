@@ -194,18 +194,14 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 {
 	SSFTImage			sStruct;
-	lsize				iResult;
 	lsize				x;
 	lsize				y;
-	SSFTCelRun			sCelRun;
-	CArrayChar			sMemory;
-	lsize				x2;
 	lsize				i;
-	uint8				uiColour8;
-	uint32				uiColour32;
+	uint8				uiCode;
+	uint8				auiRun[SFT_RUN_MAX_PIXELS];
 	uint32*				puiImage;
 	lsize				uiWidth;
-	void*				pvResult;
+	lsize				uiHeight;
 
 	if (!sStruct.Read(pcFile))
 	{
@@ -235,57 +231,41 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 		pImage->SetChannelDebugNames(IMAGE_OPACITY);
 	}
 
+	uiHeight = sStruct.uiImageHeight;
 	x = 0;
 	y = 0;
-	sMemory.Init();
 	for (;;)
 	{
-		if (!sCelRun.Read(pcFile))
+		if (pcFile->Read(&uiCode, 1, 1) != 1)
 		{
 			return NULL;
 		}
-
-		if (sCelRun.IsDone())
+		if (uiCode == SFT_RUN_END)
 		{
 			break;
 		}
-
-		if (sCelRun.IsStartOfRun())
+		if (uiCode >= SFT_RUN_ROWS)
 		{
-			y++;
+			y += (uiCode & SFT_RUN_COUNT_MASK) + 1;
 			x = 0;
 		}
-
-		x += sCelRun.GetSkipLength();
-
-		if (sCelRun.GetRunLength() == 0)
+		else if (uiCode >= SFT_RUN_SKIP)
 		{
-			//A row without a pixel.
-			continue;
+			x += (uiCode & SFT_RUN_COUNT_MASK) + 1;
 		}
-		pvResult = sMemory.GrowToAtLeastNumElements(sCelRun.GetRunLength());
-		if (pvResult == NULL)
+		else
 		{
-			return NULL;
-		}
-
-		iResult = pcFile->Read(sMemory.GetData(), 1, sCelRun.GetRunLength());
-		if (iResult != sCelRun.GetRunLength())
-		{
-			return NULL;
-		}
-
-		x2 = x + sCelRun.GetRunLength();
-		for (i = 0; x < x2; x++, i++)
-		{
-			uiColour8 = sMemory.GetValue(i);
-			uiColour32 = Convert8BitColourTo32BitColour(uiColour8);
-
-			puiImage[x + y * uiWidth] = uiColour32;
+			//A run's pixels, which must be in the image.
+			if ((y >= uiHeight) || (x + uiCode > uiWidth) || (pcFile->Read(auiRun, 1, uiCode) != uiCode))
+			{
+				return NULL;
+			}
+			for (i = 0; i < uiCode; i++, x++)
+			{
+				puiImage[x + y * uiWidth] = Convert8BitColourTo32BitColour(auiRun[i]);
+			}
 		}
 	}
-	sMemory.Kill();
-
 	return pImage;
 }
 
