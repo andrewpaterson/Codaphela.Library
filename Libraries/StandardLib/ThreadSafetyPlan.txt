@@ -216,11 +216,11 @@ The audit (step 8)
     W  The constructors from an object or another pointer, the destructor of a pointer that points at something,
        operator = (all), PointTo, PointToNull, AssignObject, Return, Kill, MorphInto, LogicalDirty.
        (Level 2: the constructors and destructor of a stack pointer to an object attached to the root are readers.)
-    R  NumStackFroms, NumHeapFroms, NumEmbedded, NumPointerTos, GetDistToRoot, IsDirty, IsHollow, the Dumps.
+    R  NumStackFroms, NumHeapFroms, NumEmbedded, NumPointerTos, GetDistToRoot, IsDirty, the Dumps.
     I  UnsafePointTo, UnsafeClearObject, AddHeapFrom, SetEmbedding, Load.
     -  CPointer(), operator -> and &, Dereference, DereferenceArrow (decision 4: nothing is added to them),
        operator !, == and !=, operator bool, IsNull, IsNotNull, IsEqual, IsNotEqual, Object, ObjectPtr, BaseObject,
-       This, Embedding, IsEmbeddingAllocatedInObjects, GetIndex, GetName, IsNamed, ClassName, GetClass,
+       This, Embedding, IsEmbeddingAllocatedInObjects, IsHollow, GetIndex, GetName, IsNamed, ClassName, GetClass,
        IsInstanceOfTemplateClass, TemplateClassName; operator + (the class's own AddOperator).
 
   CWeakPointer, Weak<M>
@@ -231,7 +231,8 @@ The audit (step 8)
 
   CCollection, CArrayCommonObject, CArrayObject, CSetObject, CIndexObject, CMapObject
     W  Add, AddAll, Set, Insert, Put, Remove (all), RemoveAll, RemoveEnd, RemoveDuringIteration, KillAll, TouchAll,
-       Kill, MakeSubRoot, GrowTo, the destructors (a collection on the stack).
+       Kill, the destructors (a collection on the stack).  (A method that only passes what it is given to another of
+       these has no guard of its own.)
     I  ClearPointerTos, BaseNumPointerTos, BaseGetPointerTos, RemovePointerTo, RemapPointerTos, FreePointers, Free,
        Save, Load, GetEmbeddedObject, UnsafeGetObject, UnsafeRemove, Dereference, the member location hooks
        (CanLocateMembers, AddMemberLocations, FreeMemberLocation, IsMemberAt, RemoveMemberAt, ReplaceMemberAt,
@@ -239,7 +240,7 @@ The audit (step 8)
        GetUnknownMap.
     -  Init, Get, UnsafeGet, Contains, NumElements, NonNullElements, IsEmpty, StartIteration, Iterate,
        StartIterationPointer, IteratePointer, Sort, EnsureSorted, IsSorted, CalculateIsSorted, IsMustSort, IsSubRoot,
-       Dump, PrintSlots.  (What they return is a CPointer, whose own constructor is the guard.  A set that sorts
+       MakeSubRoot, GrowTo, Dump, PrintSlots.  (What they return is a CPointer, whose own constructor is the guard.  A set that sorts
        itself when it is read is, like any collection, not to be read on one thread while another changes it.)
 
   CArrayWeakObject
@@ -270,13 +271,15 @@ The audit (step 8)
        DisableValidation.
 
   CBaseObject, CObject, CEmbeddedObject (what a class's own code and its users call)
-    W  Kill, Flush, Destroy, SetDirty, SetStored, SetFlag, LogicalDirty; PreInit for an object that has no class yet
-       (an object on the stack: its class is completed in the CObjects' classes); an object on the stack's
-       destructor; the Dumps and ValidateConsistency.
-    R  GetDistToRoot, NumHeapFroms, NumStackFroms, NumTotalFroms, HasHeapFroms, HasStackFroms, GetHeapFroms,
-       GetStackFroms, GetHeapFrom, ContainsFrom, ContainsPointerTo, NumPointerTos, GetPointerTos, CanFindRoot,
-       IsKnownHeldFromStack, IsDirty, IsStored, IsInvalidated, IsKilled, IsInitialised, GetFlags, the Prints.
-    I  Everything else that reads or changes froms, distances, walk stamps or flags (AddHeapFrom,
+    W  Kill, Flush, Destroy, SetDirty, SetStored, LogicalDirty; PostInit (it marks the object initialised and dirty, by
+       when its Init may have shown it to other threads); PreInit for an object that has no class yet (an object on
+       the stack: its class is completed in classes every thread's objects share); an object on the stack's
+       destructor; the Dumps.
+    I  What asks an object itself about its froms, its distance or its flags (GetDistToRoot, NumHeapFroms,
+       NumStackFroms, HasHeapFroms, GetHeapFroms, CanFindRoot, IsDirty, GetFlags, the Prints and the rest): they are
+       what the walks are made of, and a test in each would be paid a million times a walk.  From outside they are
+       asked through a CPointer (which is a reader) or with the lock held.
+       And everything that changes froms, distances, walk stamps or flags (SetFlag, AddHeapFrom,
        RemoveHeapFromTryFree, AddStackFrom, RemoveStackFromTryFree, the Unlinks, KillInternal, FreeInternal, DoneKill,
        ClearPointerTos, RemapPointerTos, SetDistToRoot, SetWalkStamp, the heap from iteration, the Validates, Allocate,
        EmbedIn, the Save and Load pieces), and the field declarations Class() makes (Pointer, WeakPointer, Embedded,
@@ -290,6 +293,9 @@ The audit (step 8)
   (step 11): unknowns that are not objects are added and removed with no object system in sight.
 
   What the audit turned up
+    A read that writes.  Getting an element of a collection, or using a pointer, wrote the element or the pointer
+    back whether or not it had just loaded a hollow: two threads reading the same element were two threads writing
+    it (ThreadSanitizer, in the first threaded test).  They write only what has changed now.
     Switching the lock on.  The plan had a thread's registration switch it on.  It can't: the thread registering
     would be racing the home thread, which may be half way through something it started with the lock off.  The home
     thread switches it on itself (ObjectsLocking(true)), between operations, before any other thread registers, and
@@ -458,8 +464,9 @@ Steps
       ObjectsLocking(false) refusing while workers are registered; in Debug the stack pointer
       count for each thread and the thread on each stack pointer node, reported by ObjectsThreadKill.
       CWorkerThreadPool registers its threads when asked to.
-  11. Around the object system: CUnknowns' own lock; gcTransientSequence locked; an error if a constructor is
-      registered once threading is on; every flag write (SetDirty, LogicalDirty, SetFlag) behind a guard.
+  11. Around the object system: CUnknowns' own lock; an error if a constructor is registered once the locking is on;
+      every flag write (SetDirty, SetStored) behind a guard and SetFlag inside only.  (gcTransientSequence turned out
+      to be reached only from an allocation, which holds the lock.)
   12. The lock is real: with ObjectsLocking on the guards take the recursive spinning lock.  A
       ThreadSanitizer build dir for TestStandardLib and TestObjectsThreads.cpp (Tests, below).
   13. The database rule (decision 4): with a data connection and threading on, Debug checks that a stored object is

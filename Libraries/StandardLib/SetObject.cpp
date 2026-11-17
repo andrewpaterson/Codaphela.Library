@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "SetObject.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,6 +58,8 @@ CPointer CSetObject::UnsafeGet(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CSetObject::RemoveDuringIteration(SSetIterator* psIter)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcObject;
 	size			uiIndex;
 
@@ -83,6 +86,8 @@ bool CSetObject::RemoveDuringIteration(SSetIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 void CSetObject::TouchAll(void)
 {
+	OBJECTS_WRITE();
+
 	SSetIterator	sIter;
 	CPointer		p;
 	bool			bExists;

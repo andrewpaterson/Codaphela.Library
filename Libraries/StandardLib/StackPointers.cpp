@@ -96,6 +96,31 @@ size CStackPointers::NumElements(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The stack pointers on iThread's stack: 0 outside a Debug build, which doesn't remember where each is.
+//
+//////////////////////////////////////////////////////////////////////////
+size CStackPointers::NumOnThread(int iThread)
+{
+	CStackPointer*		pcStackPointer;
+	SFreeListIterator	sIter;
+	size				uiNum;
+
+	uiNum = 0;
+	pcStackPointer = (CStackPointer*)mcFreeList.StartIteration(&sIter);
+	while (pcStackPointer)
+	{
+		if (pcStackPointer->IsOnThread(iThread))
+		{
+			uiNum++;
+		}
+		pcStackPointer = (CStackPointer*)mcFreeList.Iterate(&sIter);
+	}
+	return uiNum;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CStackPointer* CStackPointers::Get(size uiIndex)

@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
 #include "ArrayWeakObject.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,6 +84,8 @@ bool CArrayWeakObject::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CArrayWeakObject::ClearWeak(size uiSlot)
 {
+	OBJECTS_INSIDE();
+
 	mapcObjects.SetPtr(uiSlot, NULL);
 }
 
@@ -93,6 +96,8 @@ void CArrayWeakObject::ClearWeak(size uiSlot)
 //////////////////////////////////////////////////////////////////////////
 void CArrayWeakObject::RemapWeak(size uiSlot, CEmbeddedObject* pcObject)
 {
+	OBJECTS_INSIDE();
+
 	mapcObjects.SetPtr(uiSlot, pcObject);
 }
 
@@ -113,6 +118,8 @@ CEmbeddedObject* CArrayWeakObject::GetWeak(size uiSlot)
 //////////////////////////////////////////////////////////////////////////
 size CArrayWeakObject::Add(CEmbeddedObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	size	uiIndex;
 
 	//An object being freed has had its weak references NULLed already (a Free() reaching it for one).
@@ -144,6 +151,8 @@ size CArrayWeakObject::Add(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 void CArrayWeakObject::Move(size uiFrom, size uiTo)
 {
+	OBJECTS_WRITE();
+
 	CEmbeddedObject*	pcObject;
 
 	pcObject = mapcObjects.GetPtr(uiFrom);
@@ -162,6 +171,8 @@ void CArrayWeakObject::Move(size uiFrom, size uiTo)
 //////////////////////////////////////////////////////////////////////////
 void CArrayWeakObject::RemoveAt(size uiIndex)
 {
+	OBJECTS_WRITE();
+
 	CEmbeddedObject*	pcObject;
 	size				uiLast;
 
@@ -185,6 +196,8 @@ void CArrayWeakObject::RemoveAt(size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayWeakObject::Remove(CEmbeddedObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	size	i;
 
 	if (pcObject == NULL)
@@ -210,6 +223,8 @@ bool CArrayWeakObject::Remove(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CArrayWeakObject::Compact(void)
 {
+	OBJECTS_WRITE();
+
 	size	i;
 
 	for (i = mapcObjects.NumElements(); i > 0; i--)
@@ -228,6 +243,8 @@ void CArrayWeakObject::Compact(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayWeakObject::RemoveAll(void)
 {
+	OBJECTS_WRITE();
+
 	size				i;
 	CEmbeddedObject*	pcObject;
 
@@ -259,6 +276,8 @@ size CArrayWeakObject::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<> CArrayWeakObject::Get(size uiIndex)
 {
+	OBJECTS_WRITE();
+
 	return Ptr<>(mapcObjects.GetPtr(uiIndex));
 }
 

@@ -25,6 +25,9 @@ static const char* gaszTestStandardLib65Excluded[] =
 	//Times the hosts' object system (and reads how long to run from the environment).
 	"TestObjectsSpeed",
 
+	//The 65C64 runs one thread.
+	"TestObjectsThreads",
+
 	NULL
 };
 

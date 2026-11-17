@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __STACK_POINTER_H__
 #include "BaseLib/Define.h"
 #include "BaseLib/FreeList.h"
+#include "ObjectsLock.h"
 
 
 enum EStackPointerType
@@ -38,6 +39,9 @@ class CEmbeddedObject;
 struct SStackPointer
 {
 	EStackPointerType	eType;
+#ifdef OBJECTS_THREAD_CHECKS
+	int					iThread;	//The thread whose stack it is on (where a 64 bit build has padding anyway).
+#endif // OBJECTS_THREAD_CHECKS
 	union
 	{
 		CPointer*		pcPointer;  //Pointer on the stack
@@ -72,6 +76,7 @@ public:
 	CStackPointer*		ClearPointerGetNext(CEmbeddedObject* pcPointedTo);
 
 	EStackPointerType	GetType(void) const;
+	bool				IsOnThread(int iThread) const;
 	SStackPointer*		Get(void);
 
 protected:

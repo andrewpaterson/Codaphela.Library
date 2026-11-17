@@ -31,6 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Primitive.h"
 #include "KillOrderCalculator.h"
 #include "BaseObject.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -98,6 +99,10 @@ void CBaseObject::PreClass(void)
 
 	if (!HasClass())
 	{
+		//An object allocated in Objects gets here inside its allocation.  One on the stack gets here from its Init, and
+		//its class is completed in classes that every thread's objects share.
+		OBJECTS_WRITE();
+
 		SetFlag(OBJECT_FLAGS_CALLED_CLASS, true);
 
 		PreFields();
@@ -220,6 +225,8 @@ void CBaseObject::ContainerPreInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ContainerPostInit(void)
 {
+	OBJECTS_WRITE();
+
 	CChars	sz;
 
 	if (IsEmbedded())
@@ -268,6 +275,8 @@ void CBaseObject::Initialised(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
+	OBJECTS_WRITE();
+
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally except by ~Object().
 	//It is the equivalent of setting the last pointer to the object to NULL.
@@ -317,6 +326,8 @@ void CBaseObject::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 {
+	OBJECTS_INSIDE();
+
 	if ((bFailNotEmbedded) && IsEmbedded())
 	{
 		FailNotExpectedToBeEmbedded(__METHOD__);
@@ -456,6 +467,8 @@ bool CBaseObject::NeedsSaving(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::Flush(void)
 {
+	OBJECTS_WRITE();
+
 	bool	bResult;
 
 	if (IsEmbedded())
@@ -685,6 +698,8 @@ void CBaseObject::AddHeapFromContainers(CArrayBaseObjectPtr* papcFroms)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetFlag(uint16 uiFlag, bool bFlagValue)
 {
+	OBJECTS_INSIDE();
+
 	if (uiFlag & OBJECT_FLAGS_CONTAINER)
 	{
 		::SetFlagShort(&GetEmbeddingContainer()->muiFlags, uiFlag & OBJECT_FLAGS_CONTAINER, bFlagValue);
@@ -789,6 +804,8 @@ void CBaseObject::StopDestructor(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::DestructOnStack(const char* szMethod, bool bKill)
 {
+	OBJECTS_WRITE();
+
 	if (muiFlags == OBJECT_FLAGS_CALLED_CONSTRUCTOR)
 	{
 		muiFlags = 0;
@@ -918,6 +935,8 @@ bool CBaseObject::TestedForSanity(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetDirty(bool bDirty)
 {
+	OBJECTS_WRITE();
+
 	SetFlag(OBJECT_FLAGS_DIRTY, bDirty);
 }
 
@@ -928,6 +947,8 @@ void CBaseObject::SetDirty(bool bDirty)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetStored(bool bStored)
 {
+	OBJECTS_WRITE();
+
 	SetFlag(OBJECT_FLAGS_STORED, bStored);
 }
 
@@ -940,6 +961,8 @@ void CBaseObject::SetStored(bool bStored)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::Destroy(void)
 {
+	OBJECTS_WRITE();
+
 	if (!IsAllocatedInObjects())
 	{
 		Kill();

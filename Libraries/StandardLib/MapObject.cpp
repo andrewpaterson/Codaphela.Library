@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
 #include "MapObject.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,6 +77,8 @@ void CMapObject::Free(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*		pcOldValue;
 	bool				bKeyExisted;
 	CBaseObject*		pcKey;
@@ -115,6 +118,8 @@ bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 //////////////////////////////////////////////////////////////////////////
 bool CMapObject::Remove(const CPointer& pKey)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcPointedTo;
 	bool			bResult;
 	CBaseObject*	pcKey;
@@ -322,6 +327,8 @@ void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 //////////////////////////////////////////////////////////////////////////
 bool CMapObject::ClearPointerTos(bool bFree)
 {
+	OBJECTS_INSIDE();
+
 	bool			bResult;
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
@@ -437,6 +444,8 @@ void CMapObject::Sort(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapObject::TouchAll(void)
 {
+	OBJECTS_WRITE();
+
 	CPointer		pKey;
 	CPointer		pValue;
 	CBaseObject*	pcPointedToKey;
@@ -463,6 +472,8 @@ void CMapObject::TouchAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapObject::KillAll(void)
 {
+	OBJECTS_WRITE();
+
 	//Killing a key removes its entry (and can free its value) and killing a value clears it so always start again from the first entry.
 
 	CBaseObject*	pcPointedToKey;
@@ -573,6 +584,8 @@ void CMapObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //////////////////////////////////////////////////////////////////////////
 size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
+	OBJECTS_INSIDE();
+
 	CPointerLocations*	pcLocations;
 	bool				bExists;
 	CBaseObject*		pcPointedToKey;

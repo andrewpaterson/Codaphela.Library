@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
 #include "Collection.h"
+#include "ObjectsLock.h"
 
 
 //A collection holding at least this many members keeps where each is, once it has to find one.
@@ -138,6 +139,8 @@ bool CCollection::IsSubRoot(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCollection::RemoveAll(void)
 {
+	OBJECTS_WRITE();
+
 	bool	bResult;
 
 	bResult = ClearPointerTos(true);
@@ -159,6 +162,8 @@ bool CCollection::RemoveAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate)
 {
+	OBJECTS_INSIDE();
+
 	MembersChanged();
 	if (pcObject == NULL)
 	{
@@ -186,6 +191,8 @@ void CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 bool CCollection::ReplaceObjectFrom(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 {
+	OBJECTS_INSIDE();
+
 	AddObjectFrom(pcNew, pcOld == NULL);
 	return RemoveObjectTryFree(pcOld, true);
 }
@@ -253,6 +260,8 @@ bool CCollection::UnlinkFromUnlessFreed(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bValidate)
 {
+	OBJECTS_INSIDE();
+
 	bool		bHeapFrom;
 	bool		bResult;
 #ifdef _DEBUG
@@ -296,6 +305,8 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 bool CCollection::RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRemoved, bool bValidate)
 {
+	OBJECTS_INSIDE();
+
 	size	i;
 	bool	bResult;
 

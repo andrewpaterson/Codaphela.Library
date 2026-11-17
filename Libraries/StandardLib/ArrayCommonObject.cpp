@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
 #include "ArrayCommonObject.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,6 +90,8 @@ void CArrayCommonObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::UnsafeRemove(CBaseObject* pcObject)
 {
+	OBJECTS_INSIDE();
+
 	//This is a test method.
 	if (pcObject)
 	{
@@ -233,6 +236,8 @@ bool CArrayCommonObject::Add(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	bool				bAdded;
 
 	EnsureSorted();
@@ -255,6 +260,8 @@ bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 {
+	OBJECTS_WRITE();
+
 	CArrayEmbeddedObjectPtr		apcObjects;
 	CEmbeddedObject*			pcObject;
 	size 						i;
@@ -299,6 +306,8 @@ bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*		pcPointedTo;
 	CEmbeddedObject*	pvObject;
 
@@ -340,9 +349,11 @@ CEmbeddedObject* CArrayCommonObject::Dereference(CEmbeddedObject** ppcObject)
 		{
 			return NULL;
 		}
-		*ppcObject = pcLoaded;
+		//Written only when it was a hollow that has now been loaded: a read that wrote the same pointer back would
+		//be a write as far as another thread reading the element is concerned.
 		if (pcLoaded != pcOldObject)
 		{
+			*ppcObject = pcLoaded;
 			mcArray.PointersChanged();
 		}
 		return pcLoaded;
@@ -387,6 +398,8 @@ bool CArrayCommonObject::Remove(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	size	uiRemoved;
 
 	if (pcObject)
@@ -413,6 +426,8 @@ bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::ClearPointerTos(bool bFree)
 {
+	OBJECTS_INSIDE();
+
 	CBaseObject*	pcPointedTo;
 	size 			i;
 	size 			uiNumElements;
@@ -551,6 +566,8 @@ CBaseObject* CArrayCommonObject::UnsafeGetObject(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
+	OBJECTS_INSIDE();
+
 	size 				iCount;
 	CEmbeddedObject**	ppcPointedTo;
 	size 				i;
@@ -647,6 +664,8 @@ CPointer CArrayCommonObject::Iterate(SSetIterator* psIter, bool* pbExists)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::TouchAll(void)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcObject;
 	CPointer		pObject;
 	size 			i;
@@ -668,6 +687,8 @@ void CArrayCommonObject::TouchAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::KillAll(void)
 {
+	OBJECTS_WRITE();
+
 	//Killing an Object removes it from this array (and can kill other Objects in it) so always look for the first Object left.
 
 	CBaseObject*	pcObject;
@@ -730,6 +751,8 @@ bool CArrayCommonObject::InsertAt(size iIndex, CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	bool				bResult;
 
 	EnsureSorted();
@@ -751,6 +774,8 @@ bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::RemoveAt(size iIndex)
 {
+	OBJECTS_WRITE();
+
 	CEmbeddedObject*	pcObject;
 
 	if (iIndex < mcArray.UnsafeNumElements())
@@ -776,6 +801,8 @@ bool CArrayCommonObject::RemoveAt(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 {
+	OBJECTS_WRITE();
+
 	size						uiNumElements;
 	size						i;
 	CEmbeddedObject*			pcObject;
@@ -822,6 +849,8 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::RemoveAll(CArrayCommonObject* pcArray)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcPointedTo;
 	bool			bResult;
 	SSetIterator	sIter;
@@ -892,6 +921,8 @@ bool CArrayCommonObject::Contains(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 size CArrayCommonObject::RemoveCopies(CEmbeddedObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	CPointerLocations*			pcLocations;
 	SPointerLocationsIterator	sIter;
 	ptr							uiIndex;

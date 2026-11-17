@@ -125,6 +125,7 @@ public:
 
 protected:
 	void				PointTo(CEmbeddedObject* pcObject);
+	void				PointToInside(CEmbeddedObject* pcObject);
 	bool				IsEmbeddingHeld(void) const;
 };
 

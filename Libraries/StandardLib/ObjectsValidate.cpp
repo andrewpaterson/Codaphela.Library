@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PointerFunctions.h"
 #include "BaseObject.h"
 #include "Objects.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -29,6 +30,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ValidateEmpty(void)
 {
+	OBJECTS_WRITE();
+
 	size	uiNumIndexed;
 
 	uiNumIndexed = mcMemory.NumIndexed();
@@ -55,6 +58,8 @@ void CObjects::ValidateEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ValidateObjectsConsistency(void)
 {
+	OBJECTS_WRITE();
+
 	//If this method is called from an Object - rather than a test case - then it should be wrapped with a #ifdef _DEBUG
 	//This is because it is still useful to have ValidateObjectsConsistency called in RELEASE from tests.
 

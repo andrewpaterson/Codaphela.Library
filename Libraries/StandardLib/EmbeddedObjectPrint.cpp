@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
 #include "BaseObject.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,6 +98,8 @@ char* CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded, bool bPointerMem
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::DumpHeapFroms(void)
 {
+	OBJECTS_WRITE();
+
 	size			uiNumElements;
 	size			i;
 	CBaseObject*	pcFromObject;

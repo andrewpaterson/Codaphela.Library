@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __WEAK_POINTER_H__
 #define __WEAK_POINTER_H__
+#include "ObjectsLock.h"
 #include "Pointer.h"
 #include "WeakFroms.h"
 
@@ -58,12 +59,68 @@ template<class M = CEmbeddedObject>
 class Weak : public CWeakPointer
 {
 public:
-	Weak&	operator = (const CPointer& pPointer) { PointTo(pPointer.Object()); return *this; };
-	Weak&	operator = (CEmbeddedObject* pcObject) { PointTo(pcObject); return *this; };
-	Weak&	operator = (Weak& cWeak) { PointTo(cWeak.Object()); return *this; };
+	Weak&	operator = (const CPointer& pPointer);
+	Weak&	operator = (CEmbeddedObject* pcObject);
+	Weak&	operator = (Weak& cWeak);
 
-	Ptr<M>	Get(void) { return Ptr<M>(mpcObject); };
+	Ptr<M>	Get(void);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is assigned is read under the object system's lock, as it is pointed at: it can't be freed in between.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Weak<M>& Weak<M>::operator = (const CPointer& pPointer)
+{
+	OBJECTS_WRITE();
+
+	PointTo(pPointer.Object());
+	return *this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Weak<M>& Weak<M>::operator = (CEmbeddedObject* pcObject)
+{
+	PointTo(pcObject);
+	return *this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Weak<M>& Weak<M>::operator = (Weak& cWeak)
+{
+	OBJECTS_WRITE();
+
+	PointTo(cWeak.Object());
+	return *this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer that holds the object for as long as it is used, NULL if the object has been freed.  Reading the weak
+// pointer and holding what it points at are one step: the object can't be freed between them.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<M> Weak<M>::Get(void)
+{
+	OBJECTS_WRITE();
+
+	return Ptr<M>(mpcObject);
+}
 
 
 #endif // __WEAK_POINTER_H__

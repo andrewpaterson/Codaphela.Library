@@ -26,6 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectReader.h"
 #include "ObjectRemapFrom.h"
 #include "PointerObject.h"
+#include "ObjectsLock.h"
 
 
 bool gbLogPointer = false;
@@ -106,11 +107,13 @@ CPointer::CPointer()
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CPointer& cPointer)
 {
+	OBJECTS_WRITE();
+
 	//Constructor only called if a Pointer is declared on the Stack.
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointTo(cPointer.mpcObject);
+	PointToInside(cPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -122,11 +125,13 @@ CPointer::CPointer(CPointer& cPointer)
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(const CPointer& cPointer)
 {
+	OBJECTS_WRITE();
+
 	//Constructor only called if a Pointer is declared on the Stack.
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointTo(cPointer.mpcObject);
+	PointToInside(cPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -138,11 +143,13 @@ CPointer::CPointer(const CPointer& cPointer)
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CEmbeddedObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	//Constructor only called if a Pointer is declared on the Stack.
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointTo(pcObject);
+	PointToInside(pcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -158,6 +165,8 @@ CPointer::~CPointer()
 
 	if (mpcObject)
 	{
+		OBJECTS_WRITE();
+
 		mpcObject->RemoveStackFromTryFree(this);
 	}
 }
@@ -169,7 +178,9 @@ CPointer::~CPointer()
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CEmbeddedObject* pcObject)
 {
-	PointTo(pcObject);
+	OBJECTS_WRITE();
+
+	PointToInside(pcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -181,7 +192,9 @@ void CPointer::operator = (CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CPointer& pPointer)
 {
-	PointTo(pPointer.mpcObject);
+	OBJECTS_WRITE();
+
+	PointToInside(pPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -193,7 +206,9 @@ void CPointer::operator = (CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (const CPointer& pPointer)
 {
-	PointTo(pPointer.mpcObject);
+	OBJECTS_WRITE();
+
+	PointToInside(pPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -275,6 +290,8 @@ bool CPointer::operator != (void* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::UnsafeClearObject(void)
 {
+	OBJECTS_INSIDE();
+
 	mpcObject = NULL;
 }
 
@@ -285,6 +302,8 @@ void CPointer::UnsafeClearObject(void)
 //////////////////////////////////////////////////////////////////////////
 size CPointer::NumStackFroms(void) const
 {
+	OBJECTS_READ();
+
 	if (mpcObject)
 	{
 		return mpcObject->NumStackFroms();
@@ -302,6 +321,8 @@ size CPointer::NumStackFroms(void) const
 //////////////////////////////////////////////////////////////////////////
 size CPointer::NumHeapFroms(void) const
 {
+	OBJECTS_READ();
+
 	if (mpcObject)
 	{
 		return mpcObject->NumHeapFroms();
@@ -319,6 +340,8 @@ size CPointer::NumHeapFroms(void) const
 //////////////////////////////////////////////////////////////////////////
 size CPointer::NumEmbedded(void) const
 {
+	OBJECTS_READ();
+
 	if (mpcObject)
 	{
 		return mpcObject->NumEmbedded();
@@ -336,6 +359,8 @@ size CPointer::NumEmbedded(void) const
 //////////////////////////////////////////////////////////////////////////
 size CPointer::NumPointerTos(void) const
 {
+	OBJECTS_READ();
+
 	if (mpcObject)
 	{
 		return mpcObject->NumPointerTos();
@@ -362,6 +387,8 @@ void CPointer::SetEmbedding(CObject* pcEmbedding)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 {
+	OBJECTS_INSIDE();
+
 	mpcObject = pcNewObject;
 }
 
@@ -371,6 +398,20 @@ void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 //
 //////////////////////////////////////////////////////////////////////////
 void CPointer::PointTo(CEmbeddedObject* pcNewObject)
+{
+	OBJECTS_WRITE();
+
+	PointToInside(pcNewObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// PointTo for what holds the object system's lock already: the constructors and assignments, which read what they
+// are to point at under it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointer::PointToInside(CEmbeddedObject* pcNewObject)
 {
 	CEmbeddedObject*	pcOldObject;
 	CPointer			cHoldEmbedding;
@@ -396,7 +437,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 				//Hold it until this method is done; it is freed when cHoldEmbedding is destroyed.
 				if (!IsEmbeddingHeld())
 				{
-					cHoldEmbedding.PointTo(mpcEmbedding);
+					cHoldEmbedding.PointToInside(mpcEmbedding);
 				}
 
 				if (mpcObject)
@@ -473,6 +514,8 @@ void CPointer::PointToNull(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::Return(void)
 {
+	OBJECTS_WRITE();
+
 	CEmbeddedObject*	pOldObject;
 
 	//Call this method when you need to return a pointers object but no other 
@@ -614,8 +657,10 @@ CEmbeddedObject* CPointer::Dereference(void)
 		return NULL;
 	}
 
+	//Written only when it pointed at a hollow that has now been loaded: using a pointer that two threads share (a
+	//field of an object they both use) mustn't write to it.
 	pcLoaded = mpcObject->Dehollow();
-	if (pcLoaded != NULL)
+	if ((pcLoaded != NULL) && (pcLoaded != mpcObject))
 	{
 		mpcObject = pcLoaded;
 	}
@@ -645,6 +690,8 @@ CEmbeddedObject* CPointer::DereferenceArrow(void)
 //////////////////////////////////////////////////////////////////////////
 size CPointer::MorphInto(CEmbeddedObject* pcNew)
 {
+	OBJECTS_WRITE();
+
 	CObjectRemapFrom	cRemapper;
 	size				iCount;
 
@@ -701,6 +748,8 @@ bool CPointer::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 int CPointer::GetDistToRoot(void) const
 {
+	OBJECTS_READ();
+
 	return mpcObject ? mpcObject->GetDistToRoot() : UNATTACHED_DIST_TO_ROOT;
 }
 
@@ -796,6 +845,8 @@ CClass* CPointer::GetClass(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsDirty(void) const
 {
+	OBJECTS_READ();
+
 	if (mpcObject)
 	{
 		return mpcObject->IsDirty();
@@ -813,6 +864,8 @@ bool CPointer::IsDirty(void) const
 //////////////////////////////////////////////////////////////////////////
 void CPointer::LogicalDirty(void)
 {
+	OBJECTS_WRITE();
+
 	if (mpcObject)
 	{
 		mpcObject->LogicalDirty();
@@ -843,6 +896,8 @@ bool CPointer::IsEmbeddingAllocatedInObjects(void) const
 //////////////////////////////////////////////////////////////////////////
 void CPointer::Kill(void)
 {
+	OBJECTS_WRITE();
+
 	//This method exists so that its object can be killed without invoking -> and potentially loading it first.
 	if (mpcObject)
 	{
@@ -857,6 +912,8 @@ void CPointer::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::AssignObject(CEmbeddedObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	mpcObject = pcObject;
 	if (mpcObject)
 	{
@@ -871,6 +928,8 @@ void CPointer::AssignObject(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::AddHeapFrom(CBaseObject* pcFrom)
 {
+	OBJECTS_INSIDE();
+
 	if (mpcObject)
 	{
 		mpcObject->AddHeapFrom(pcFrom, true);
@@ -884,6 +943,8 @@ void CPointer::AddHeapFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::DumpFroms(void)
 {
+	OBJECTS_READ();
+
 	CBaseObject* pvBaseObject = BaseObject();
 
 	if (pvBaseObject)
@@ -899,6 +960,8 @@ void CPointer::DumpFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::DumpPointerTos(void)
 {
+	OBJECTS_READ();
+
 	CBaseObject* pvBaseObject = BaseObject();
 
 	if (pvBaseObject)
@@ -914,6 +977,8 @@ void CPointer::DumpPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::Dump(void)
 {
+	OBJECTS_READ();
+
 	CChars			sz;
 	CBaseObject*	pvBaseObject = BaseObject();
 

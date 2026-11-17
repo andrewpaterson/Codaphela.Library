@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseObject.h"
 #include "Objects.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,6 +59,8 @@ void CObjects::PrintMemoryUseRecursion(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::PrintMemoryNames(CChars* psz)
 {
+	OBJECTS_WRITE();
+
 	CIndexTreeMemory*			pcIndex;
 	SIndexTreeMemoryIterator	sIter;
 	bool						bExists;
@@ -81,6 +84,8 @@ void CObjects::PrintMemoryNames(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpMemoryUseIteration(void)
 {
+	OBJECTS_WRITE();
+
 	CChars	sz;
 
 	sz.Init("------------------------- Indices -------------------------- \n");
@@ -104,6 +109,8 @@ void CObjects::DumpMemoryUseIteration(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpMemoryUseRecursion(void)
 {
+	OBJECTS_WRITE();
+
 	CChars	sz;
 
 	sz.Init("-------------------------- Indices --------------------------- \n");
@@ -119,6 +126,8 @@ void CObjects::DumpMemoryUseRecursion(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpNames(void)
 {
+	OBJECTS_WRITE();
+
 	CChars	sz;
 
 	sz.Init("---------------------------- Names --------------------------- \n");
@@ -139,6 +148,8 @@ void CObjects::DumpNames(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpMemoryNames(void)
 {
+	OBJECTS_WRITE();
+
 	CChars						sz;
 	CIndexTreeMemory*			pcIndex;
 	SIndexTreeMemoryIterator	sIter;
@@ -169,8 +180,30 @@ void CObjects::DumpMemoryNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static void PrintStackPointerThread(CChars* psz, SStackPointer* psPointer)
+{
+#ifdef OBJECTS_THREAD_CHECKS
+	if (IsObjectsLocking())
+	{
+		psz->Append(" on thread ");
+		psz->Append(psPointer->iThread);
+	}
+#else
+	(void)psz;
+	(void)psPointer;
+#endif // OBJECTS_THREAD_CHECKS
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With the locking on, a Debug build says which thread's stack each pointer is on.
+//
+//////////////////////////////////////////////////////////////////////////
 void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 {
+	OBJECTS_WRITE();
+
 	CStackPointer*		pcPointer;
 	SStackPointer*		psPointer;
 	SFreeListIterator	sIter;
@@ -211,6 +244,7 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 				psz->Append("NULL");
 			}
 			psz->Append("]");
+			PrintStackPointerThread(psz, psPointer);
 			psz->AppendNewLine();
 		}
 		else if (psPointer->eType == SPT_Collection)
@@ -222,6 +256,7 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 			}
 			psz->Append(ui);
 			psz->Append(": Collection []");  //The collection holding the pointer isn't known.
+			PrintStackPointerThread(psz, psPointer);
 			psz->AppendNewLine();
 		}
 		else
@@ -242,6 +277,8 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpStackPointers(void)
 {
+	OBJECTS_WRITE();
+
 	CChars	sz;
 
 	sz.Init();
@@ -256,6 +293,8 @@ void CObjects::DumpStackPointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::PrintGraph(CChars* psz, bool bPointerMemory)
 {
+	OBJECTS_WRITE();
+
 	Ptr<CRoot>	pRoot;
 
 	psz->Append("-------------------------- Graph --------------------------- \n");
@@ -297,6 +336,8 @@ void CObjects::UnsetDumpFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpGraph(void)
 {
+	OBJECTS_WRITE();
+
 	CChars		sz;
 
 	sz.Init();

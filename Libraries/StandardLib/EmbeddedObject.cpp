@@ -26,6 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Collection.h"
 #include "DistCalculator.h"
 #include "EmbeddedObject.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -408,6 +409,8 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 {
+	OBJECTS_INSIDE();
+
 	int		iDistToRoot;
 
 	if (pcFromObject != NULL)
@@ -527,6 +530,8 @@ void CEmbeddedObject::GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPo
 //////////////////////////////////////////////////////////////////////////
 EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject)
 {
+	OBJECTS_INSIDE();
+
 	bool			bRemoved;
 	EFreeResult		eResult;
 #ifdef _DEBUG
@@ -562,6 +567,8 @@ EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::UnlinkHeapFrom(CBaseObject* pcFrom)
 {
+	OBJECTS_INSIDE();
+
 	bool	bRemoved;
 
 	if (mpsHub != NULL)
@@ -907,6 +914,8 @@ bool CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 {
+	OBJECTS_INSIDE();
+
 	return StackFromLinked(LinkStackFrom(GetStackPointers()->Add(pcPointer)), bValidate);
 }
 
@@ -917,6 +926,8 @@ bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
 {
+	OBJECTS_INSIDE();
+
 	return StackFromLinked(LinkStackFrom(GetStackPointers()->Add(pcCollection)), bValidate);
 }
 
@@ -977,6 +988,8 @@ bool CEmbeddedObject::LinkStackFrom(CStackPointer* pcStackPointer)
 //////////////////////////////////////////////////////////////////////////
 EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer)
 {
+	OBJECTS_INSIDE();
+
 	bool	bRemoved;
 
 	bRemoved = UnlinkStackFrom(pcPointer);
@@ -1016,6 +1029,8 @@ static bool UnlinkStackFromList(CStackPointers* pcStackPointers, CStackPointer**
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::UnlinkStackFrom(CPointer* pcPointer)
 {
+	OBJECTS_INSIDE();
+
 	return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer);
 }
 
@@ -1026,6 +1041,8 @@ bool CEmbeddedObject::UnlinkStackFrom(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::UnlinkStackFrom(CCollection* pcCollection)
 {
+	OBJECTS_INSIDE();
+
 	return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcCollection);
 }
 

@@ -56,6 +56,7 @@ void TestCollectionDirty(void);
 void TestObjectReaderSimple(void);
 void TestObjects(void);
 void TestObjectsSpeed(void);
+void TestObjectsThreads(void);
 void TestObjectsEvictVsKill(void);
 void TestDehollowfication(void);
 void TestKill(void);
@@ -154,6 +155,7 @@ int __cdecl main(void)
 	TestObjectFreeOrdering();
 	TestFreeObjects();
 	TestObjectsSpeed();
+	TestObjectsThreads();
 	TestOrderer();
 	TestTextDiff();
 	TestExternalChannels();

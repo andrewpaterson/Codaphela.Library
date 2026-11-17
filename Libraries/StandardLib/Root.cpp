@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
 #include "Root.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,6 +83,8 @@ void CRoot::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CRoot::CreateSet(void)
 {
+	OBJECTS_INSIDE();
+
 	mpObjects = GetObjectsThisIn()->Malloc<CSetObject>();
 	mpObjects->Init(false);
 	mpObjects->MakeSubRoot();
@@ -94,6 +97,8 @@ void CRoot::CreateSet(void)
 //////////////////////////////////////////////////////////////////////////
 void CRoot::NullifySet(void)
 {
+	OBJECTS_INSIDE();
+
 	mpObjects = NULL;
 }
 
@@ -144,6 +149,8 @@ bool CRoot::Remove(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 bool CRoot::RemoveAll(void)
 {
+	OBJECTS_WRITE();
+
 	size	uiNumFreeObjects;
 
 	uiNumFreeObjects = 0;
@@ -195,6 +202,8 @@ bool CRoot::IsSubRoot(void)
 //////////////////////////////////////////////////////////////////////////
 CPointer CRoot::UnsafeGet(size iIndex)
 {
+	OBJECTS_READ();
+
 	mpObjects.Dereference();
 	CPointer pObject = mpObjects->UnsafeGet(iIndex);
 	return pObject;
@@ -212,6 +221,8 @@ CPointer CRoot::UnsafeGet(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 CPointer CRoot::Get(const char* szObjectName)
 {
+	OBJECTS_READ();
+
 	CBaseObject*	pcObject;
 	CPointer		pObject;
 
@@ -238,6 +249,8 @@ CPointer CRoot::Get(const char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CSetObject> CRoot::GetAll(void)
 {
+	OBJECTS_READ();
+
 	return &mpObjects;
 }
 
@@ -258,6 +271,8 @@ CSetObject* CRoot::TestGetSet(void)
 //////////////////////////////////////////////////////////////////////////
 bool CRoot::IsSetHollow(void) const
 {
+	OBJECTS_READ();
+
 	return mpObjects.IsHollow();
 }
 
@@ -268,6 +283,8 @@ bool CRoot::IsSetHollow(void) const
 //////////////////////////////////////////////////////////////////////////
 size CRoot::NumObjects(void)
 {
+	OBJECTS_READ();
+
 	return mpObjects->NumElements();
 }
 

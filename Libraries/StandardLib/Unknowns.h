@@ -25,12 +25,28 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Constructors.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LifeCycle.h"
+#include "BaseLib/SpinLock.h"
 #include "ArrayUnknownPtr.h"
 #include "Iterables.h"
+#include "ObjectsLock.h"
 
 
 #define UMalloc(classtype)	((classtype*)gcUnknowns.Add<classtype>())
 #define UFree(object) (gcUnknowns.Remove(object), (object) = NULL)
+
+//Holds an unknowns' lock to the end of the block, when threads are sharing objects (ObjectsLocking): unknowns are
+//added and removed by any thread, objects or not, and their allocator, count and iterables are one thread's at a time.
+//It is not the object system's lock, and not taken again by a thread that holds it.
+class CUnknownsGuard
+{
+protected:
+	CSpinLock*	mpcLock;
+
+public:
+	CUnknownsGuard(CSpinLock* pcLock);
+	~CUnknownsGuard();
+};
+
 
 class CUnknowns
 {
@@ -41,6 +57,7 @@ protected:
 	CLife<CMallocator>		mcMallocLife;
 	CMallocator*			mpcMalloc;
 	size					miNumElements;
+	CSpinLock				mcLock;			//Over mpcMalloc's memory, miNumElements and mcIterables.  See CUnknownsGuard.
 
 public:
 						void			Init(const char* szName, CConstructors* pcConstructors);
@@ -96,6 +113,33 @@ extern bool			gbUnknowns;
 
 void UnknownsInit(void);
 void UnknownsKill(void);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+inline CUnknownsGuard::CUnknownsGuard(CSpinLock* pcLock)
+{
+	mpcLock = IsObjectsLocking() ? pcLock : NULL;
+	if (mpcLock)
+	{
+		mpcLock->Lock();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+inline CUnknownsGuard::~CUnknownsGuard()
+{
+	if (mpcLock)
+	{
+		mpcLock->Unlock();
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -168,7 +212,11 @@ M* CUnknowns::Add(size uiAdditionalSize)
 	static_assert(__is_base_of(CUnknown, M), "Only classes derived from CUnknown can be added to Unknowns.");
 
 	uiSize = sizeof(M);
-	pv = (M*)mpcMalloc->Malloc(uiSize + uiAdditionalSize, &acDebug);
+	{
+		CUnknownsGuard	cGuard(&mcLock);
+
+		pv = (M*)mpcMalloc->Malloc(uiSize + uiAdditionalSize, &acDebug);
+	}
 	if (pv == NULL)
 	{
 		return NULL;
@@ -220,7 +268,12 @@ void CUnknowns::RemoveDuringIteration(SIteratorTemplate<M>* psIter)
 template<class M>
 void CUnknowns::AddConstructor(void)
 {
-	if (mpcConstructors)
+	if (IsObjectsLocking())
+	{
+		//The constructors are looked up by every thread that allocates by class name, with nothing locked.
+		gcLogger.Error2(__METHOD__, " Constructors are added before objects are shared between threads (ObjectsLocking).", NULL);
+	}
+	else if (mpcConstructors)
 	{
 		mpcConstructors->Add<M>();
 	}

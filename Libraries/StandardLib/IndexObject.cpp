@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
 #include "IndexObject.h"
+#include "ObjectsLock.h"
 
 
 //Where a member of an index is: a copy of its key.
@@ -127,6 +128,8 @@ bool CIndexObject::Put(const char* szKey, const CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexObject::Put(uint8* pvKey, size iKeySize, const CPointer& pObject)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*		pcPointedTo;
 	CEmbeddedObject*	pvObject;
 
@@ -162,6 +165,8 @@ bool CIndexObject::Remove(const char* szKey)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexObject::Remove(uint8* pvKey, size iKeySize)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcPointedTo;
 
 	pcPointedTo = (CBaseObject*)mcIndex.Get(pvKey, iKeySize);
@@ -392,6 +397,8 @@ void CIndexObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexObject::ClearPointerTos(bool bFree)
 {
+	OBJECTS_INSIDE();
+
 	CBaseObject*					pcPointedTo;
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	bool							bExists;
@@ -495,6 +502,8 @@ bool CIndexObject::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::TouchAll(void)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*				pcObject;
 	SIndexTreeMemoryIterator	sIter;
 	bool						bExists;
@@ -519,6 +528,8 @@ void CIndexObject::TouchAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::KillAll(void)
 {
+	OBJECTS_WRITE();
+
 	//Killing an object can take other entries out of this index (the same object under another key, or objects freed
 	//with it), freeing objects not yet reached.  So the keys are copied first and each key's object is looked up again
 	//when its turn comes.
@@ -612,6 +623,8 @@ void CIndexObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //////////////////////////////////////////////////////////////////////////
 size CIndexObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
+	OBJECTS_INSIDE();
+
 	bool							bExists;
 	CBaseObject*					pcPointedTo;
 	SIndexTreeMemoryUnsafeIterator	sIter;

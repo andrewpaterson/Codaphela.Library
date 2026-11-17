@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
 #include "BaseObject.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,6 +51,8 @@ char* CBaseObject::PrintIdentifier(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::DumpFroms(void)
 {
+	OBJECTS_WRITE();
+
 	CChars				sz;
 	size				i;
 	size				iNumEmbedded;
@@ -126,6 +129,8 @@ void CBaseObject::DumpFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::DumpPointerTos(void)
 {
+	OBJECTS_WRITE();
+
 	CChars								sz;
 	size								i;
 	size								iNumEmbedded;
@@ -369,6 +374,8 @@ void CBaseObject::PrintFlags(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::DumpFlags(void)
 {
+	OBJECTS_WRITE();
+
 	CChars	sz;
 
 	sz.Init();
@@ -384,5 +391,7 @@ void CBaseObject::DumpFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Dump(void)
 {
+	OBJECTS_WRITE();
+
 }
 

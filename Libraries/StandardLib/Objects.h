@@ -35,6 +35,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DistCalculator.h"
 #include "ObjectsRemovalContext.h"
 #include "WeakFroms.h"
+#include "ObjectsLock.h"
 
 
 #define ROOT_NAME					"GraphRoot"
@@ -370,6 +371,8 @@ Ptr<SpecificClass> CObjects::Malloc(void)
 template<class SpecificClass>
 Ptr<SpecificClass> CObjects::Malloc(const char* szObjectName)
 {
+	OBJECTS_WRITE();
+
 	bool			bResult;
 	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>(szObjectName);
 	if (pcObject)

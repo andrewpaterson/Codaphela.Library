@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 #include "Objects.h"
 #include "DistCalculator.h"
+#include "ObjectsLock.h"
 
 
 #define DIST_CALCULATOR_PRINT_TITLE_WIDTH	13	//Print's section titles are right aligned to this, on their objects' line.
@@ -129,6 +130,8 @@ void CDistCalculator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, bool bHeapFromChanged)
 {
+	OBJECTS_INSIDE();
+
 	if (bHeapFromChanged)
 	{
 		CalculateDistToRoot(pcFromChanged);

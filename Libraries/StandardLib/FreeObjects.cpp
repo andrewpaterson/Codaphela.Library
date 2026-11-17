@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
 #include "FreeObjects.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,6 +66,8 @@ void CFreeObjects::Class(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CFreeObjects::Add(CPointer &p)
 {
+	OBJECTS_WRITE();
+
 	bool	bResult;
 
 	if (p.IsNull())
@@ -96,6 +99,8 @@ CBaseObject* CFreeObjects::Add(CPointer &p)
 //////////////////////////////////////////////////////////////////////////
 bool CFreeObjects::Remove(CBaseObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	bool	bResult; 
 
 	if (pcObject == NULL)
@@ -119,6 +124,8 @@ bool CFreeObjects::Remove(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 size CFreeObjects::NumObjects(void)
 {
+	OBJECTS_READ();
+
 	return mpFreeObjects->NumElements();
 }
 

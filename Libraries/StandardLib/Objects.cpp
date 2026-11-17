@@ -35,6 +35,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StackPointers.h"
 #include "KillOrderCalculator.h"
 #include "Objects.h"
+#include "ObjectsLock.h"
 
 
 CObjects	gcObjects;
@@ -172,6 +173,8 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 //////////////////////////////////////////////////////////////////////////
 void CObjects::Kill(void)
 {
+	OBJECTS_WRITE();
+
 	mbInitialised = false;
 
 	ValidateNoDirty();
@@ -200,6 +203,8 @@ void CObjects::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 EFreeResult CObjects::FromRemoved(CEmbeddedObject* pcTo, bool bHeapFrom)
 {
+	OBJECTS_INSIDE();
+
 	CBaseObject*			pcObject;
 	CDistCalculator			cDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
@@ -252,6 +257,8 @@ EFreeResult CObjects::FromRemoved(CEmbeddedObject* pcTo, bool bHeapFrom)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled)
 {
+	OBJECTS_INSIDE();
+
 	CKillOrderCalculator	cKillOrder;
 	CArrayBaseObjectPtr*	papcKilledNesObjects;
 
@@ -277,6 +284,8 @@ void CObjects::RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 uint32 CObjects::StartWalk(void)
 {
+	OBJECTS_INSIDE();
+
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
 
@@ -344,6 +353,8 @@ void CObjects::SetDestructionCallback(ObjectCallback fCallback)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Flush(void)
 {
+	OBJECTS_WRITE();
+
 	SIndexesIterator	sIter;
 	OIndex				oi;
 	bool				bResult;
@@ -393,6 +404,8 @@ bool CObjects::Flush(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::ValidateNoDirty(void)
 {
+	OBJECTS_READ();
+
 	//ObjectsFlush or ObjectsDiscard must be called before Objects is killed.
 	return mcMemory.ValidateNoDirty();
 }
@@ -406,6 +419,8 @@ bool CObjects::ValidateNoDirty(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::Discard(void)
 {
+	OBJECTS_WRITE();
+
 	SIndexesIterator	sIter;
 	OIndex				oi;
 
@@ -465,6 +480,8 @@ public:
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolders)
 {
+	OBJECTS_WRITE();
+
 	CStoredHeapFromsCollector	cCollector;
 	CObjectReader				cReader;
 	CMemoryFile					cMemoryFile;
@@ -524,6 +541,8 @@ bool CObjects::LoadForDestroy(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Destroy(CBaseObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	CArrayOIndex	aoiDestroyed;
 	bool			bResult;
 
@@ -582,6 +601,8 @@ static void AddUniqueIndex(CArrayOIndex* paoi, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Destroy(CArrayOIndex* paoiDestroyed)
 {
+	OBJECTS_WRITE();
+
 	CArrayOIndex				aoiHolders;
 	CArrayOIndex				aoiChanged;
 	CArrayEmbeddedObjectPtr		apcTos;
@@ -758,6 +779,8 @@ bool CObjects::Destroy(CArrayOIndex* paoiDestroyed)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::LoadForward(CBaseObject* pcStart, CArrayOIndex* paoiLoaded, size uiMaxObjects)
 {
+	OBJECTS_WRITE();
+
 	CArrayEmbeddedObjectPtr		apcTos;
 	CBaseObject*				pcObject;
 	OIndex						oi;
@@ -809,6 +832,8 @@ bool CObjects::LoadForward(CBaseObject* pcStart, CArrayOIndex* paoiLoaded, size 
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::EvictInMemory(void)
 {
+	OBJECTS_WRITE();
+
 	bool	bResult;
 
 	bResult = SaveDirtyInMemory();
@@ -958,6 +983,8 @@ void CObjects::ClearWeakFroms(CArrayBaseObjectPtr* papcObjectPts)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ClearWeakFroms(CBaseObject* pcObject)
 {
+	OBJECTS_INSIDE();
+
 	size	i;
 	size	uiNumEmbedded;
 
@@ -981,6 +1008,8 @@ void CObjects::ClearWeakFroms(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::AddWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot)
 {
+	OBJECTS_INSIDE();
+
 	mcWeakFroms.Add(pcObject, pcHolder, uiSlot);
 	pcObject->GetEmbeddingContainer()->SetFlag(OBJECT_FLAGS_WEAKLY_HELD, true);
 }
@@ -992,6 +1021,8 @@ void CObjects::AddWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, siz
 //////////////////////////////////////////////////////////////////////////
 void CObjects::MoveWeakFroms(CEmbeddedObject* pcFrom, CEmbeddedObject* pcTo)
 {
+	OBJECTS_INSIDE();
+
 	if (mcWeakFroms.NumWeakFroms(pcFrom) > 0)
 	{
 		mcWeakFroms.Move(pcFrom, pcTo);
@@ -1006,6 +1037,8 @@ void CObjects::MoveWeakFroms(CEmbeddedObject* pcFrom, CEmbeddedObject* pcTo)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::RemoveWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot)
 {
+	OBJECTS_INSIDE();
+
 	return mcWeakFroms.Remove(pcObject, pcHolder, uiSlot);
 }
 
@@ -1169,6 +1202,8 @@ void CObjects::SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RemoveBatch(CArrayBaseObjectPtr* papcObjectPts)
 {
+	OBJECTS_INSIDE();
+
 	//Done (marked freed) before Free, unlike a single Kill: the pointers the objects' Free changes then don't start
 	//distance walks through objects that are going anyway (the walks skip freed objects).  With a batch of thousands
 	//sharing an object that's the difference between linear and quadratic (TestDistToRootUpdateFreeBatchSpeed).  The
@@ -1189,6 +1224,8 @@ void CObjects::RemoveBatch(CArrayBaseObjectPtr* papcObjectPts)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::ForceSave(CBaseObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	bool							bResult;
 	CInternalObjectSerialiser		cSerialiser;
 	CBaseObject*					pcEmbeddingContainer;
@@ -1230,6 +1267,8 @@ bool CObjects::ForceSave(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::AddIntoMemory(CBaseObject* pcObject)
 {
+	OBJECTS_INSIDE();
+
 	bool	bResult;
 
 	bResult = mcMemory.Add(pcObject);
@@ -1252,6 +1291,8 @@ bool CObjects::AddIntoMemory(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CRoot> CObjects::Root(void)
 {
+	OBJECTS_WRITE();
+
 	Ptr<CRoot>	pRoot;
 
 	pRoot = GetRoot();
@@ -1275,6 +1316,8 @@ Ptr<CRoot> CObjects::Root(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CFreeObjects> CObjects::FreeObjects(void)
 {
+	OBJECTS_WRITE();
+
 	Ptr<CFreeObjects>	pFree;
 	Ptr<CRoot>			pRoot;
 
@@ -1307,6 +1350,8 @@ Ptr<CFreeObjects> CObjects::FreeObjects(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AddFreeObject(CPointer& p)
 {
+	OBJECTS_WRITE();
+
 	Ptr<CFreeObjects>	pFree;
 
 	pFree = FreeObjects();
@@ -1324,6 +1369,8 @@ CBaseObject* CObjects::AddFreeObject(CPointer& p)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::RemoveFreeObject(CBaseObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	return FreeObjects()->Remove(pcObject);
 }
 
@@ -1334,6 +1381,8 @@ bool CObjects::RemoveFreeObject(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 size CObjects::NumFreeObjects(void)
 {
+	OBJECTS_READ();
+
 	Ptr<CFreeObjects>	pFree;
 
 	pFree = Get(FREE_OBJECTS_NAME);
@@ -1354,6 +1403,8 @@ size CObjects::NumFreeObjects(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::LogicalDirty(CBaseObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	if (mpcDataConnection && mpcDataConnection->IsWriteThrough())
 	{
 		pcObject->Flush();
@@ -1397,6 +1448,8 @@ bool CObjects::HasRoot(void)
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::Get(OIndex oi)
 {
+	OBJECTS_WRITE();
+
 	CPointer	pObject;
 
 	pObject = GetPossiblyHollow(oi);
@@ -1413,6 +1466,8 @@ CPointer CObjects::Get(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::GetPossiblyHollow(OIndex oi)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcObject;
 	CPointer		pObject;
 
@@ -1434,6 +1489,8 @@ CPointer CObjects::GetPossiblyHollow(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::Get(const char* szObjectName)
 {
+	OBJECTS_WRITE();
+
 	CPointer	pObject;
 
 	pObject = GetPossiblyHollow(szObjectName);
@@ -1450,6 +1507,8 @@ CPointer CObjects::Get(const char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::GetPossiblyHollow(const char* szObjectName)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcObject;
 	CPointer		pObject;
 
@@ -1594,6 +1653,8 @@ OIndex CObjects::GetNextIndex(void) const
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::TestGetFromMemory(const char* szName)
 {
+	OBJECTS_WRITE();
+
 	CPointer	pObject;
 
 	pObject.AssignObject(GetFromMemory(szName));
@@ -1607,6 +1668,8 @@ CPointer CObjects::TestGetFromMemory(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::TestGetFromMemory(OIndex oi)
 {
+	OBJECTS_WRITE();
+
 	CPointer	pObject;
 
 	pObject.AssignObject(GetFromMemory(oi));
@@ -1633,6 +1696,8 @@ static void LogPointedToMissing(const char* szMethod, const char* szObject, cons
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::Dehollow(OIndex oi)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcObject;
 
 	pcObject = GetFromDatabase(oi);
@@ -1652,6 +1717,8 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::Dehollow(const char* szObjectName)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcObject;
 	CChars			szName;
 
@@ -1678,6 +1745,8 @@ CBaseObject* CObjects::Dehollow(const char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Contains(const char* szObjectName)
 {
+	OBJECTS_READ();
+
 	//This does not check mcSources intentionally.
 	if (mcMemory.Get(szObjectName) != NULL)
 	{
@@ -1697,6 +1766,8 @@ bool CObjects::Contains(const char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Contains(OIndex oi)
 {
+	OBJECTS_READ();
+
 	//This does not check mcSources intentionally.
 	if (mcMemory.Get(oi) != NULL)
 	{
@@ -1726,6 +1797,8 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papcKilledAfter)
 {
+	OBJECTS_WRITE();
+
 	//Both batches are registered with the removal context before anything is freed.
 	//Freeing the objects in papcKilled can cause other objects to be removed (e.g. RemoveFreeObject) and the removal context must already know about the objects in papcKilledAfter so they are not killed twice.
 
@@ -1791,6 +1864,8 @@ CPointer CObjects::Null(void)
 //////////////////////////////////////////////////////////////////////////
 size CObjects::NumMemoryIndexes(void) const
 {
+	OBJECTS_READ();
+
 	return mcMemory.NumIndexed();
 }
 
@@ -1801,6 +1876,8 @@ size CObjects::NumMemoryIndexes(void) const
 //////////////////////////////////////////////////////////////////////////
 size CObjects::NumMemoryNames(void) const
 {
+	OBJECTS_READ();
+
 	return mcMemory.NumNames();
 }
 
@@ -1811,6 +1888,8 @@ size CObjects::NumMemoryNames(void) const
 //////////////////////////////////////////////////////////////////////////
 int64 CObjects::NumDatabaseIndexes(void) const
 {
+	OBJECTS_READ();
+
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
 	int64					iCount;
@@ -1838,6 +1917,8 @@ int64 CObjects::NumDatabaseIndexes(void) const
 //////////////////////////////////////////////////////////////////////////
 int64 CObjects::NumDatabaseNames(void) const
 {
+	OBJECTS_READ();
+
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
 	int64					iCount;
@@ -2047,6 +2128,8 @@ CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName,
 //////////////////////////////////////////////////////////////////////////
 OIndex CObjects::StartMemoryIteration(SIndexesIterator* psIter)
 {
+	OBJECTS_READ();
+
 	CIndexedObjects*	pcIndexedObjects;
 
 	pcIndexedObjects = mcMemory.GetObjects();
@@ -2060,6 +2143,8 @@ OIndex CObjects::StartMemoryIteration(SIndexesIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 OIndex CObjects::IterateMemory(SIndexesIterator* psIter)
 {
+	OBJECTS_READ();
+
 	CIndexedObjects* pcIndexedObjects;
 
 	pcIndexedObjects = mcMemory.GetObjects();
@@ -2190,6 +2275,8 @@ CConstructors* CObjects::GetConstructors(void) const
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(const char* szClassName, const char* szObjectName)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pcObject;
 	OIndex			oi;
 
@@ -2228,6 +2315,8 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(const ch
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const char* szObjectName)
 {
+	OBJECTS_WRITE();
+
 	CBaseObject*	pvOldObject;
 	CBaseObject*	pcObject;
 	OIndex			oi;
@@ -2358,6 +2447,8 @@ CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassNam
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::ReplaceBaseObject(CBaseObject* pcExisting, CBaseObject* pcObject)
 {
+	OBJECTS_INSIDE();
+
 	CObjectRemapFrom	cRemapper;
 
 	if ((pcExisting == NULL) || (pcObject == NULL))
@@ -2401,6 +2492,8 @@ bool CObjects::TestRemoveMemoryIdentifiers(CBaseObject* pvObject)
 //////////////////////////////////////////////////////////////////////////
 CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize)
 {
+	OBJECTS_INSIDE();
+
 	CHollowObject*	pcHollow;
 
 	if ((oi == INVALID_O_INDEX) || (oi == NULL_O_INDEX))
@@ -2434,6 +2527,8 @@ CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::GetNamedOrAllocateHollow(const char* szObjectName, size uiNumEmbedded)
 {
+	OBJECTS_INSIDE();
+
 	CHollowObject*	pcHollow;
 	bool			bResult;
 	CBaseObject*	pvExisting;
@@ -2479,6 +2574,8 @@ CBaseObject* CObjects::GetNamedOrAllocateHollow(const char* szObjectName, size u
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ReplaceWithHollow(CBaseObject* pcObject)
 {
+	OBJECTS_INSIDE();
+
 	CHollowObject*	pcHollow;
 
 	pcHollow = AllocateHollow(pcObject->NumEmbedded(), pcObject->GetName(), pcObject->GetIndex(), OBJECT_IDENTIFIER_SIZE_NOT_SET);
@@ -2543,6 +2640,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequ
 	gcStackPointers.Init();
 	gcObjects.Init(pcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
+	ObjectsHomeThread();
 }
 
 
@@ -2552,6 +2650,13 @@ void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequ
 //////////////////////////////////////////////////////////////////////////
 void ObjectsKill(bool bValidate)
 {
+	if (ObjectsNumThreads() > 0)
+	{
+		//Their objects would be freed under them.
+		gcLogger.Error2(__METHOD__, " Objects cannot be killed while [", SizeToString(ObjectsNumThreads()), "] other threads are registered (ObjectsThreadKill).", NULL);
+		return;
+	}
+
 	if (bValidate)
 	{
 		if (!gbObjects)
@@ -2571,6 +2676,10 @@ void ObjectsKill(bool bValidate)
 	TransientSequenceKill();
 	UnknownsKill();
 
+	if (IsObjectsLocking())
+	{
+		ObjectsLocking(false);
+	}
 	gbObjects = false;
 }
 

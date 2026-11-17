@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Pointer.h"
 #include "Collection.h"
+#include "BaseLib/NativeThread.h"
 #include "StackPointer.h"
 
 
@@ -44,6 +45,9 @@ void CStackPointer::Init(CPointer* pcPointer)
 	msPointer.eType = SPT_Pointer;
 	msPointer.u.pcPointer = pcPointer;
 	mpcNext = NULL;
+#ifdef OBJECTS_THREAD_CHECKS
+	msPointer.iThread = CurrentThreadId();
+#endif // OBJECTS_THREAD_CHECKS
 }
 
 
@@ -56,6 +60,9 @@ void CStackPointer::Init(CCollection* pcCollection)
 	msPointer.eType = SPT_Collection;
 	msPointer.u.pcCollection = pcCollection;
 	mpcNext = NULL;
+#ifdef OBJECTS_THREAD_CHECKS
+	msPointer.iThread = CurrentThreadId();
+#endif // OBJECTS_THREAD_CHECKS
 }
 
 
@@ -280,5 +287,21 @@ EStackPointerType CStackPointer::GetType(void) const
 SStackPointer* CStackPointer::Get(void)
 {
 	return &msPointer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether it is on iThread's stack.  Only a Debug build on a host knows: elsewhere it is always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CStackPointer::IsOnThread(int iThread) const
+{
+#ifdef OBJECTS_THREAD_CHECKS
+	return (msPointer.eType != SPT_Unknown) && (msPointer.iThread == iThread);
+#else
+	(void)iThread;
+	return false;
+#endif // OBJECTS_THREAD_CHECKS
 }
 

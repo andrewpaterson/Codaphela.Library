@@ -58,6 +58,7 @@ void CUnknowns::Init(CLifeInit<CMallocator> cMalloc, const char* szName, CConstr
 	cMalloc.ConfigureLife(&mcMallocLife, &mpcMalloc);
 
 	mcIterables.Init();
+	mcLock.Init();
 	mszName.Init(szName);
 	miNumElements = 0;
 }
@@ -81,6 +82,8 @@ void CUnknowns::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting, char(*pszDebug)[4])
 {
+	CUnknownsGuard	cGuard(&mcLock);
+
 	DebugName(pcExisting, pszDebug);
 
 	pcExisting->SetUnknowns(this);
@@ -124,7 +127,11 @@ CUnknown* CUnknowns::Add(const char* szClassName, size uiAdditionalSize)
 		return NULL;
 	}
 
-	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, mpcMalloc, uiAdditionalSize, &acDebug);
+	{
+		CUnknownsGuard	cGuard(&mcLock);
+
+		pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, mpcMalloc, uiAdditionalSize, &acDebug);
+	}
 	if (pcUnknown)
 	{
 		return AddExisting(pcUnknown, acDebug);
@@ -292,6 +299,8 @@ void CUnknowns::RemoveInKill(CUnknown* pcUnknown)
 	//That means that anything inheriting from CUnknown must have a Kill that last calls CUnknown::Kill()
 	if (pcUnknown)
 	{
+		CUnknownsGuard	cGuard(&mcLock);
+
 		if (pcUnknown->Iterable())
 		{
 			mcIterables.Remove(pcUnknown);
@@ -317,6 +326,8 @@ void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
 
 	if (papcObjectPts)
 	{
+		CUnknownsGuard	cGuard(&mcLock);
+
 		//Optimise this sometime later as iterables aren't used yet.
 		uiPtrs = papcObjectPts->NumElements();
 		for (i = 0; i < uiPtrs; i++)

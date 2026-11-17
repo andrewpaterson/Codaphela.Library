@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 #include "Objects.h"
 #include "WeakPointer.h"
+#include "ObjectsLock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,6 +61,8 @@ void CWeakPointer::RemapWeak(size uiSlot, CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CWeakPointer::PointTo(CEmbeddedObject* pcObject)
 {
+	OBJECTS_WRITE();
+
 	//An object being freed has had its weak references NULLed already (a Free() reaching it for one), so one to it is NULL.
 	if (pcObject && pcObject->IsBeingFreed())
 	{
