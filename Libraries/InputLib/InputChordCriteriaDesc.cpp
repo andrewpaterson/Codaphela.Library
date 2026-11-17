@@ -49,8 +49,8 @@ void CInputChordCriteriaDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EInputChordCriteriaDescType CInputChordCriteriaDesc::GetType(void) { return meType; }
-CInputChordDesc* CInputChordCriteriaDesc::GetChordDesc(void) { return mpcChordDesc; }
+EInputChordCriteriaDescType CInputChordCriteriaDesc::GetType(void) const { return meType; }
+CInputChordDesc* CInputChordCriteriaDesc::GetChordDesc(void) const { return mpcChordDesc; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -133,7 +133,7 @@ void CInputChordActiveDesc::GetInputSourceDescs(CArrayIntAndPointer* apcDest, CI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CInputChordActiveDesc::GetSourceDesc(void)
+CInputSourceDesc* CInputChordActiveDesc::GetSourceDesc(void) const
 {
 	return mpcSourceDesc;
 }
@@ -143,7 +143,7 @@ CInputSourceDesc* CInputChordActiveDesc::GetSourceDesc(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CInputChordActiveDesc::GetDescriptionID(void)
+size CInputChordActiveDesc::GetDescriptionID(void) const
 {
 	return miDescriptionID;
 }

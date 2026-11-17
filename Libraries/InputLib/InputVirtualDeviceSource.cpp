@@ -62,7 +62,7 @@ bool CInputVirtualDeviceSource::Equals(SInputDeviceValueSource* psOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CInputVirtualDeviceSource::GetSourceDesc(void)
+CInputSourceDesc* CInputVirtualDeviceSource::GetSourceDesc(void) const
 {
 	return msSource.pcSource;
 }
@@ -82,7 +82,7 @@ SInputDeviceValueSource* CInputVirtualDeviceSource::GetSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDevice* CInputVirtualDeviceSource::GetSourceDevice(void)
+CInputDevice* CInputVirtualDeviceSource::GetSourceDevice(void) const
 {
 	return msSource.pcDevice;
 }

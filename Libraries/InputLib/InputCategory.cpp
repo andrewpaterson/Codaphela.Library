@@ -173,7 +173,7 @@ char* CInputCategory::GetCategoryName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDevices* CInputCategory::GetInputDevices(void)
+CInputDevices* CInputCategory::GetInputDevices(void) const
 {
 	return mpcInputDevices;
 }

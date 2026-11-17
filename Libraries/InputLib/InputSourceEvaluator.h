@@ -100,11 +100,11 @@ public:
 	bool							EvaluateAnyToggleSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigAnyToggleSource* psConfig);
 	bool							EvaluateMatching(float* pfValue, SInputDeviceValue* psEvent);
 
-	EInputEvaluatorType				GetEvaluatorType(void);
-	EInputChordType					GetChordType(void);
+	EInputEvaluatorType				GetEvaluatorType(void) const;
+	EInputChordType					GetChordType(void) const;
 	UInputConfig*					GetConfig(void);
-	float							GetStateDeadzone(void);
-	float							GetDeltaSensitivity(void);
+	float							GetStateDeadzone(void) const;
+	float							GetDeltaSensitivity(void) const;
 	SInputConfigSpecificSource*		GetDeviceSource(void);
 	SInputConfigGenericSource*		GetDeviceGeneric(void);
 	SInputConfigAnyToggleSource*	GetDeviceAny(void);

@@ -128,7 +128,7 @@ bool CInputDeviceVariableValue::MatchNonChordCondition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableValueDesc* CInputDeviceVariableValue::GetDesc(void)
+CInputDeviceVariableValueDesc* CInputDeviceVariableValue::GetDesc(void) const
 {
 	return mpcDesc;
 }
@@ -138,7 +138,7 @@ CInputDeviceVariableValueDesc* CInputDeviceVariableValue::GetDesc(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableValue* CInputDeviceVariableValue::GetCurrentVariableValue(void)
+CInputDeviceVariableValue* CInputDeviceVariableValue::GetCurrentVariableValue(void) const
 {
 	return mpcVariable->GetCurrent();
 }

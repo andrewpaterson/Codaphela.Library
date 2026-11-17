@@ -55,7 +55,7 @@ protected:
 public:
 	void 						Init(const char* szID, const char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical);
 	void 						Kill(void);
-	CInputDevices*				GetInputDevices(void);
+	CInputDevices*				GetInputDevices(void) const;
 	void						Copy(CInputDeviceDesc* pcSourceDesc);
 	bool 						Is(const char* szID);
 	bool						HasTag(const char* szTagName);
@@ -72,7 +72,7 @@ public:
 	CInputSourceDesc*			GetSource(const char* szFriendlyName);
 	void						GetSources(CArrayIntAndPointer* apcDest, CInputCategoryGeneric* pcGeneric);
 	void						GetSources(CArrayIntAndPointer* apcDest);
-	CInputCategory*				GetCategory(void);
+	CInputCategory*				GetCategory(void) const;
 	CInputVirtualDeviceSwitch*	AddVariableSwitch(CInputDeviceVariableValue* pcVariableValue);
 	void						ToString(CChars* psz);
 	void						AddDevice(CInputDevice* pcDevice);
@@ -83,10 +83,10 @@ public:
 	bool						IterateVariables(SSetIterator* psIter, CInputDeviceVariableDesc** ppcVariableDesc);
 	bool						StartInputsIteration(SSetIterator* psIter, CInputSourceDesc** ppcSourceDesc);
 	bool						IterateInputs(SSetIterator* psIter, CInputSourceDesc** ppcSourceDesc);
-	size						NumInputs(void);
-	CInputDataFormat*			GetDataFormat(void);
+	size						NumInputs(void) const;
+	CInputDataFormat*			GetDataFormat(void) const;
 	CInputChordDescs*			GetVariableChordDescs(void);
-	bool						IsPhysical(void);
+	bool						IsPhysical(void) const;
 	char*						GetID(void);
 	char*						GetFriendlyName(void);
 	void						Dump(void);

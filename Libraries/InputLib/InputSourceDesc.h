@@ -60,15 +60,15 @@ public:
 	bool							Is(const char* szFriendlyName);
 	bool							StartValuesIteration(SSetIterator* psIter, CInputSourceValue** ppcSourceValue);
 	bool							IterateValues(SSetIterator* psIter, CInputSourceValue** ppcSourceValue);
-	float							GetRestValue(void);
-	bool							HasRestValue(void);
-	CInputDeviceDesc*				GetDeviceDesc(void);
+	float							GetRestValue(void) const;
+	bool							HasRestValue(void) const;
+	CInputDeviceDesc*				GetDeviceDesc(void) const;
 	CArrayInputCategoryGenericPtr*	GetGenerics(void);
-	EInputSourceType				GetType(void);
-	size							GetStateIndex(void);
+	EInputSourceType				GetType(void) const;
+	size							GetStateIndex(void) const;
 	char*							GetFriendlyName(void);
 	void							SetFriendlyName(const char* szFriendlyName);
-	bool							GetEmitRestEvent(void);
+	bool							GetEmitRestEvent(void) const;
 	void							ToString(CChars* psz);
 };
 

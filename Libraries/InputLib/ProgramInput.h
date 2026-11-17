@@ -41,7 +41,7 @@ public:
 	void 					AddDevicesTo(CInputDevices* pcDevices);
 	void 					Update(CInputDevices* pcDevices, uint32 uiSequence);
 	CInputDeviceDesc*		CreateStandardDesc(CInputDevices* pcDevices, CProgramDeviceDetail* pcDetail);
-	char*					GetCategoryName(void);
+	char*					GetCategoryName(void) const;
 };
 
 

@@ -253,7 +253,7 @@ bool CInputVirtualDeviceDesc::AddOrderedAction(const char* szActionName, int iDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputVirtualDeviceDesc::IsDeviceAgnostic(void) { return mbDeviceAgnostic; }
+bool CInputVirtualDeviceDesc::IsDeviceAgnostic(void) const { return mbDeviceAgnostic; }
 char* CInputVirtualDeviceDesc::GetName(void) { return mszName.Text(); }
 bool CInputVirtualDeviceDesc::StartInputSourceDescsIteration(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc) { return mlcInputSourceDescs.StartIteration(psIter, ppcSourceDesc); }
 bool CInputVirtualDeviceDesc::IterateInputSourceDescs(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc) { return mlcInputSourceDescs.Iterate(psIter, ppcSourceDesc); }

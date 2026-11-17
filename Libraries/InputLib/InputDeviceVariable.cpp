@@ -76,7 +76,7 @@ CInputDeviceVariableValue* CInputDeviceVariable::AddValue(CInputDeviceVariableVa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableValue* CInputDeviceVariable::GetCurrent(void)
+CInputDeviceVariableValue* CInputDeviceVariable::GetCurrent(void) const
 {
 	return mpcCurrent;
 }

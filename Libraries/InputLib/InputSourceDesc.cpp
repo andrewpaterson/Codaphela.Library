@@ -191,14 +191,14 @@ bool CInputSourceDesc::Is(const char* szFriendlyName)
 //////////////////////////////////////////////////////////////////////////
 bool CInputSourceDesc::StartValuesIteration(SSetIterator* psIter, CInputSourceValue** ppcSourceValue) { return mlcValues.StartIteration(psIter, ppcSourceValue); }
 bool CInputSourceDesc::IterateValues(SSetIterator* psIter, CInputSourceValue** ppcSourceValue) { return mlcValues.Iterate(psIter, ppcSourceValue); }
-float CInputSourceDesc::GetRestValue(void) { return mfRestValue; }
-bool CInputSourceDesc::HasRestValue(void) { return mbHasRestValue; }
-CInputDeviceDesc* CInputSourceDesc::GetDeviceDesc(void) { return mpcDeviceDesc; }
+float CInputSourceDesc::GetRestValue(void) const { return mfRestValue; }
+bool CInputSourceDesc::HasRestValue(void) const { return mbHasRestValue; }
+CInputDeviceDesc* CInputSourceDesc::GetDeviceDesc(void) const { return mpcDeviceDesc; }
 CArrayInputCategoryGenericPtr* CInputSourceDesc::GetGenerics(void) { return &mapcGenerics; }
-EInputSourceType CInputSourceDesc::GetType(void) { return meType; }
-size CInputSourceDesc::GetStateIndex(void) { return miStateIndex; }
+EInputSourceType CInputSourceDesc::GetType(void) const { return meType; }
+size CInputSourceDesc::GetStateIndex(void) const { return miStateIndex; }
 char* CInputSourceDesc::GetFriendlyName(void) { return mszFriendlyName.Text(); }
-bool CInputSourceDesc::GetEmitRestEvent(void) { return mbEmitRestEvent; }
+bool CInputSourceDesc::GetEmitRestEvent(void) const { return mbEmitRestEvent; }
 void CInputSourceDesc::SetFriendlyName(const char* szFriendlyName) { mszFriendlyName.Set(szFriendlyName); }
 
 //////////////////////////////////////////////////////////////////////////

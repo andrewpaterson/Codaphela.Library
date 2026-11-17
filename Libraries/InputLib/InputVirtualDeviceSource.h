@@ -50,9 +50,9 @@ public:
 	void 						Init(CInputDevice* pcSourceDevice, CInputSourceDesc* pcSourceDesc);
 	void 						Kill(void);
 	bool 						Equals(SInputDeviceValueSource* psOther);
-	CInputSourceDesc*			GetSourceDesc(void);
+	CInputSourceDesc*			GetSourceDesc(void) const;
 	SInputDeviceValueSource*	GetSource(void);
-	CInputDevice* 				GetSourceDevice(void);
+	CInputDevice* 				GetSourceDevice(void) const;
 };
 
 

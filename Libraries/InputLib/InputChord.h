@@ -81,15 +81,15 @@ public:
 
 	void							Call(void* pvContext);
 
-	CInputChordDesc*				GetDesc(void);
+	CInputChordDesc*				GetDesc(void) const;
 	UInputChordCriteria*			GetActionCriteria(void);
-	CAction*						GetAction(void);
-	size							GetTotalCriteria(void);
-	size							GetUpdateCriteria(void);
-	size							GetMatchedCriteria(void);
+	CAction*						GetAction(void) const;
+	size							GetTotalCriteria(void) const;
+	size							GetUpdateCriteria(void) const;
+	size							GetMatchedCriteria(void) const;
 	void							SetMatchedCriteria(size iMatchedCriteria);
 	void							SetEvictionAge(uint32 uiMilliseconds);
-	uint32							GetEvictionAge(void);
+	uint32							GetEvictionAge(void) const;
 	size							MatchActionEvent(CArrayInputDeviceTimeValue* pcHistory, size iStartPos);
 	void							ToString(CChars* psz);
 };

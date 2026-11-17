@@ -50,7 +50,7 @@ public:
 	void 						AsInactive(CInputSourceDesc* pcSourceDesc, size iDescriptionID);
 	CInputChordCollectiveDesc*	AsOrdered(void);
 	CInputChordCollectiveDesc*	AsGroup(void);
-	CInputChordCriteriaDesc*	GetRootCriteriaDesc(void);
+	CInputChordCriteriaDesc*	GetRootCriteriaDesc(void) const;
 	char*						GetActionName(void);
 };
 

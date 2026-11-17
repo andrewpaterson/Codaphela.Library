@@ -274,11 +274,11 @@ bool CInputSourceEvaluator::EvaluateMatching(float* pfValue, SInputDeviceValue* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EInputEvaluatorType CInputSourceEvaluator::GetEvaluatorType(void) { return meEvaluatorType; }
-EInputChordType CInputSourceEvaluator::GetChordType(void) { return meChordType; }
+EInputEvaluatorType CInputSourceEvaluator::GetEvaluatorType(void) const { return meEvaluatorType; }
+EInputChordType CInputSourceEvaluator::GetChordType(void) const { return meChordType; }
 UInputConfig* CInputSourceEvaluator::GetConfig(void) { return &muConfig; }
-float CInputSourceEvaluator::GetStateDeadzone(void) { return mfStateDeadzone; }
-float CInputSourceEvaluator::GetDeltaSensitivity(void) { return mfDeltaSensitivity; }
+float CInputSourceEvaluator::GetStateDeadzone(void) const { return mfStateDeadzone; }
+float CInputSourceEvaluator::GetDeltaSensitivity(void) const { return mfDeltaSensitivity; }
 SInputConfigSpecificSource* CInputSourceEvaluator::GetDeviceSource(void) { return &muConfig.sDeviceSource; }
 SInputConfigGenericSource* CInputSourceEvaluator::GetDeviceGeneric(void) { return &muConfig.sDeviceGeneric; }
 SInputConfigAnyToggleSource*  CInputSourceEvaluator::GetDeviceAny(void) { return &muConfig.sDeviceAny; }

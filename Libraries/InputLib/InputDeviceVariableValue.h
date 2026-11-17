@@ -49,8 +49,8 @@ public:
 	void 							ToString(CChars* psz);
 	bool 							MatchCondition(CInputChord* pcChord);
 	bool 							MatchNonChordCondition(void);
-	CInputDeviceVariableValueDesc*	GetDesc(void);
-	CInputDeviceVariableValue*		GetCurrentVariableValue(void);
+	CInputDeviceVariableValueDesc*	GetDesc(void) const;
+	CInputDeviceVariableValue*		GetCurrentVariableValue(void) const;
 };
 
 

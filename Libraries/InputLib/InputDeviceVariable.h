@@ -41,7 +41,7 @@ public:
 	void 						Kill(void);
 	void 						SetValue(CInputDeviceVariableValue* mpcValue);
 	CInputDeviceVariableValue*	AddValue(CInputDeviceVariableValueDesc* pcVariableDesc);
-	CInputDeviceVariableValue*	GetCurrent(void);
+	CInputDeviceVariableValue*	GetCurrent(void) const;
 	void						SetCurrent(CInputDeviceVariableValue* pcCurrent);
 	bool						StartValuesIteration(SSetIterator* psIter, CInputDeviceVariableValue** ppcVariableValue);
 	bool						IterateValues(SSetIterator* psIter, CInputDeviceVariableValue** ppcVariableValue);

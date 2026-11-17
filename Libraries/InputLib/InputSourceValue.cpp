@@ -187,16 +187,16 @@ void CInputSourceValue::CopyChannels(CInputSourceValue* pcInputSourceValue)
 //////////////////////////////////////////////////////////////////////////
 bool CInputSourceValue::StartChannelsIteration(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel) { return mlcChannels.StartIteration(psIter, ppcSourceChannel); }
 bool CInputSourceValue::IterateChannels(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel) { return mlcChannels.Iterate(psIter, ppcSourceChannel); }
-CInputDataFormat* CInputSourceValue::GetDataFormat(void) { return mpcDataFormat; }
-size CInputSourceValue::GetOrder(void) { return miOrder; }
+CInputDataFormat* CInputSourceValue::GetDataFormat(void) const { return mpcDataFormat; }
+size CInputSourceValue::GetOrder(void) const { return miOrder; }
 void CInputSourceValue::SetOrder(size iOrder) { miOrder = iOrder; }
-EInputSourceValueType CInputSourceValue::GetValueType(void) { return meValueType; }
-float CInputSourceValue::GetMaxValue(void) { return muDetail.sState.fMaxValue; }
-float CInputSourceValue::GetMinValue(void) { return muDetail.sState.fMinValue; }
-float CInputSourceValue::GetSensitivity(void) { return muDetail.sDelta.fSensitivity; }
-float CInputSourceValue::GetOffset(void) { return muDetail.sDelta.fOffset; }
-float CInputSourceValue::GetNumber(void) { return muValue.fNumber; }
-size CInputSourceValue::GetChannel(void) { return muValue.iChannel; }
+EInputSourceValueType CInputSourceValue::GetValueType(void) const { return meValueType; }
+float CInputSourceValue::GetMaxValue(void) const { return muDetail.sState.fMaxValue; }
+float CInputSourceValue::GetMinValue(void) const { return muDetail.sState.fMinValue; }
+float CInputSourceValue::GetSensitivity(void) const { return muDetail.sDelta.fSensitivity; }
+float CInputSourceValue::GetOffset(void) const { return muDetail.sDelta.fOffset; }
+float CInputSourceValue::GetNumber(void) const { return muValue.fNumber; }
+size CInputSourceValue::GetChannel(void) const { return muValue.iChannel; }
 
 
 //////////////////////////////////////////////////////////////////////////

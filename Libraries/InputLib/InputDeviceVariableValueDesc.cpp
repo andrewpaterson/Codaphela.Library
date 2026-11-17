@@ -130,7 +130,7 @@ char* CInputDeviceVariableValueDesc::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceVariableValueDesc::IsInitial(void)
+bool CInputDeviceVariableValueDesc::IsInitial(void) const
 {
 	return mbInitial;
 }
@@ -141,6 +141,6 @@ bool CInputDeviceVariableValueDesc::IsInitial(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayInputDeviceVariableValueConditionDesc* CInputDeviceVariableValueDesc::GetConditions(void) { return &mapcConditions; }
-CInputDeviceVariableDesc* CInputDeviceVariableValueDesc::GetVariableDesc(void) { return mpcVariableDesc; }
+CInputDeviceVariableDesc* CInputDeviceVariableValueDesc::GetVariableDesc(void) const { return mpcVariableDesc; }
 void CInputDeviceVariableValueDesc::SetInitial(bool bInitial) { mbInitial = bInitial; }
 

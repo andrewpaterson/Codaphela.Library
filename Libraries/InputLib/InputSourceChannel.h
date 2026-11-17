@@ -53,8 +53,8 @@ public:
 	void 							Kill(void);
 	bool 							Compare(void* pvData);
 	void 							ToString(CChars* psz);
-	int								GetChannel(void);
-	EInputSourceChannelComparator	GetCompare(void);
+	int								GetChannel(void) const;
+	EInputSourceChannelComparator	GetCompare(void) const;
 	char*							GetTest(void);
 
 };

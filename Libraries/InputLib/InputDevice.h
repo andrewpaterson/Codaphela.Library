@@ -51,7 +51,7 @@ protected:
 public:
 	void 						Init(CInputDeviceDesc* pcDesc, int iDeviceID, EInputDevice iDescriptionID, CInputActions* pcInputActions);
 	void 						Kill(void);
-	CInputDevices*				GetInputDevices(void);
+	CInputDevices*				GetInputDevices(void) const;
 	void 						GenerateRestState(void);
 	void 						Process(void* pvInput, uint32 uiSequence);
 	void 						ClearStateFlags(void);
@@ -60,10 +60,10 @@ public:
 	void 						GetSources(CArrayInputSourceDescPtr* pcActions, CInputCategoryGeneric* pcGeneric);
 	void 						ClearEvents(void);
 	void 						SortEvents(void);
-	int							GetDeviceID(void);
+	int							GetDeviceID(void) const;
 	CInputSourceDesc*			GetSource(const char* szFriendlyName);
 	bool						GetValue(CInputSourceDesc* pcSource, float* pfValue);
-	CInputVirtualDevice*		GetDefaultVirtualDevice(void);
+	CInputVirtualDevice*		GetDefaultVirtualDevice(void) const;
 	CInputVirtualDevice*		CreateDefaultVirtualDeviceFromThis(const char* szName = NULL);
 	bool						SetDefaultVirtualDevice(CInputVirtualDevice* pcVirtual);
 	CInputDeviceVariableValue*	GetValueForDesc(CInputDeviceVariableValueDesc* pcValueDesc);
@@ -72,9 +72,9 @@ public:
 	CInputVirtualDevice*		CreateVariableVirtualDeviceFromThis(CInputActions* pcInputActions);
 	CInputCategoryGeneric*		GetCategoryGeneric(const char* szGeneric);
 	void						VariableAction(CInputChord* pcChord);
-	EInputDevice				GetDescriptionID(void);
+	EInputDevice				GetDescriptionID(void) const;
 	CInputDeviceValues*			GetInputValues(void);
-	CInputDeviceDesc*			GetDesc(void);
+	CInputDeviceDesc*			GetDesc(void) const;
 	void						DumpEvents(void);
 };
 

@@ -93,16 +93,16 @@ public:
 	void 					CopyChannels(CInputSourceValue* pcInputSourceValue);
 	bool					StartChannelsIteration(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel);
 	bool					IterateChannels(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel);
-	CInputDataFormat*		GetDataFormat(void);
-	size					GetOrder(void);
+	CInputDataFormat*		GetDataFormat(void) const;
+	size					GetOrder(void) const;
 	void					SetOrder(size iOrder);
-	EInputSourceValueType	GetValueType(void);
-	float					GetMaxValue(void);
-	float					GetMinValue(void);
-	float					GetSensitivity(void);
-	float					GetOffset(void);
-	float					GetNumber(void);
-	size					GetChannel(void);
+	EInputSourceValueType	GetValueType(void) const;
+	float					GetMaxValue(void) const;
+	float					GetMinValue(void) const;
+	float					GetSensitivity(void) const;
+	float					GetOffset(void) const;
+	float					GetNumber(void) const;
+	size					GetChannel(void) const;
 	void 					ToString(CChars* psz, EInputSourceType eType);
 };
 

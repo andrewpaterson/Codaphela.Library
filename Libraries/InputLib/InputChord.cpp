@@ -921,12 +921,12 @@ void CInputChord::Call(void* pvContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChordDesc* CInputChord::GetDesc(void) { return mpcDesc; }
+CInputChordDesc* CInputChord::GetDesc(void) const { return mpcDesc; }
 UInputChordCriteria* CInputChord::GetActionCriteria(void) { return &muActionCriteria; }
-CAction* CInputChord::GetAction(void) { return mpcAction; }
-size CInputChord::GetTotalCriteria(void) { return miTotalCriteria; }
-size CInputChord::GetUpdateCriteria(void) { return miUpdateCriteria; }
-size CInputChord::GetMatchedCriteria(void) { return miMatchedCriteria; }
+CAction* CInputChord::GetAction(void) const { return mpcAction; }
+size CInputChord::GetTotalCriteria(void) const { return miTotalCriteria; }
+size CInputChord::GetUpdateCriteria(void) const { return miUpdateCriteria; }
+size CInputChord::GetMatchedCriteria(void) const { return miMatchedCriteria; }
 
 void CInputChord::SetMatchedCriteria(size iMatchedCriteria) { miMatchedCriteria = iMatchedCriteria; }
 
@@ -940,5 +940,5 @@ void CInputChord::SetMatchedCriteria(size iMatchedCriteria) { miMatchedCriteria 
 //
 //////////////////////////////////////////////////////////////////////////
 void CInputChord::SetEvictionAge(uint32 uiMilliseconds) { muiEvictionAge = uiMilliseconds; }
-uint32 CInputChord::GetEvictionAge(void) { return muiEvictionAge; }
+uint32 CInputChord::GetEvictionAge(void) const { return muiEvictionAge; }
 

@@ -51,7 +51,7 @@ void CInputVirtualSourceDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDeviceDesc* CInputVirtualSourceDesc::GetVirtualDeviceDesc(void)
+CInputVirtualDeviceDesc* CInputVirtualSourceDesc::GetVirtualDeviceDesc(void) const
 {
 	return mpcVirtualDeviceDesc;
 }
@@ -61,7 +61,7 @@ CInputVirtualDeviceDesc* CInputVirtualSourceDesc::GetVirtualDeviceDesc(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInputVirtualSourceDesc::GetDescriptionID(void)
+int CInputVirtualSourceDesc::GetDescriptionID(void) const
 {
 	return miDescriptionID;
 }
@@ -71,7 +71,7 @@ int CInputVirtualSourceDesc::GetDescriptionID(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CInputVirtualSourceDesc::GetSourceDesc(void)
+CInputSourceDesc* CInputVirtualSourceDesc::GetSourceDesc(void) const
 {
 	return mpcSourceDesc;
 }

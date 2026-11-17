@@ -123,8 +123,8 @@ bool CInputSouceChannel::Compare(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInputSouceChannel::GetChannel(void) { return miChannel; }
-EInputSourceChannelComparator CInputSouceChannel::GetCompare(void) { return meCompare; }
+int CInputSouceChannel::GetChannel(void) const { return miChannel; }
+EInputSourceChannelComparator CInputSouceChannel::GetCompare(void) const { return meCompare; }
 char* CInputSouceChannel::GetTest(void) { return mTest; }
 
 

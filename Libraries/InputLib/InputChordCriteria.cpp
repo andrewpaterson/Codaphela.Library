@@ -126,7 +126,7 @@ void CActiveInputChordCriteria::ToArray(CArrayActionInputChordCriteria* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CActiveInputChordCriteria::Size(void)
+size CActiveInputChordCriteria::Size(void) const
 {
 	return 1;
 }
@@ -183,7 +183,7 @@ void CInactiveInputChordCriteria::ToArray(CArrayActionInputChordCriteria* pcDest
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CInactiveInputChordCriteria::Size(void)
+size CInactiveInputChordCriteria::Size(void) const
 {
 	return 1;
 }
@@ -281,7 +281,7 @@ void CGroupInputChordCriteria::ToArray(CArrayActionInputChordCriteria* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGroupInputChordCriteria::Size(void)
+size CGroupInputChordCriteria::Size(void) const
 {
 	return mausBasicActionCriteria.NumElements();
 }

@@ -159,5 +159,5 @@ CInputChordCollectiveDesc* CInputChordDesc::AsGroup(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChordCriteriaDesc* CInputChordDesc::GetRootCriteriaDesc(void) { return mpcRootCriteriaDesc; }
+CInputChordCriteriaDesc* CInputChordDesc::GetRootCriteriaDesc(void) const { return mpcRootCriteriaDesc; }
 char* CInputChordDesc::GetActionName(void) { return mszActionName.Text(); }

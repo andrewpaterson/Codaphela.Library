@@ -54,7 +54,7 @@ public:
 
 	bool					 	StartInputSourceDescsIteration(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc);
 	bool					 	IterateInputSourceDescs(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc);
-	bool						IsDeviceAgnostic(void);
+	bool						IsDeviceAgnostic(void) const;
 	char*						GetName(void);
 	CInputChordDescs*			GetChordDescs(void);
 };

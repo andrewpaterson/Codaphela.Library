@@ -47,9 +47,9 @@ public:
 	void 											AddCondition(CInputChordDesc* pcChordDesc);
 	void 											AddCondition(CInputDeviceVariableValueDesc* pcVariableValueDesc);
 	char*											GetName(void);
-	bool											IsInitial(void);
+	bool											IsInitial(void) const;
 	CArrayInputDeviceVariableValueConditionDesc*	GetConditions(void);
-	CInputDeviceVariableDesc*						GetVariableDesc(void);
+	CInputDeviceVariableDesc*						GetVariableDesc(void) const;
 	void											SetInitial(bool bInitial);
 };
 

@@ -54,8 +54,8 @@ public:
 	void 							Kill(void);
 	virtual void					GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc) =0;
 
-	EInputChordCriteriaDescType		GetType(void);
-	CInputChordDesc*				GetChordDesc(void);
+	EInputChordCriteriaDescType		GetType(void) const;
+	CInputChordDesc*				GetChordDesc(void) const;
 };
 
 
@@ -85,8 +85,8 @@ public:
 	void 				Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
 	void 				Kill(void);
 	void 				GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
-	CInputSourceDesc*	GetSourceDesc(void);
-	size					GetDescriptionID(void);
+	CInputSourceDesc*	GetSourceDesc(void) const;
+	size					GetDescriptionID(void) const;
 };
 
 

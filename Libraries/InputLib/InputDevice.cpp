@@ -63,7 +63,7 @@ void CInputDevice::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDevices* CInputDevice::GetInputDevices(void)
+CInputDevices* CInputDevice::GetInputDevices(void) const
 {
 	return mpcDesc->GetInputDevices();
 }
@@ -177,7 +177,7 @@ void CInputDevice::SortEvents(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInputDevice::GetDeviceID(void)
+int CInputDevice::GetDeviceID(void) const
 {
 	return miDeviceID;
 }
@@ -187,7 +187,7 @@ int CInputDevice::GetDeviceID(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDevice* CInputDevice::GetDefaultVirtualDevice(void)
+CInputVirtualDevice* CInputDevice::GetDefaultVirtualDevice(void) const
 {
 	return mpcDefaultVirtual;
 }
@@ -374,7 +374,7 @@ void CInputDevice::VariableAction(CInputChord* pcChord)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EInputDevice CInputDevice::GetDescriptionID(void)
+EInputDevice CInputDevice::GetDescriptionID(void) const
 {
 	return meDescriptionID;
 }
@@ -394,7 +394,7 @@ CInputDeviceValues* CInputDevice::GetInputValues(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceDesc* CInputDevice::GetDesc(void)
+CInputDeviceDesc* CInputDevice::GetDesc(void) const
 {
 	return mpcDesc;
 }

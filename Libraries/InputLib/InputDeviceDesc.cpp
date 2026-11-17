@@ -72,7 +72,7 @@ void CInputDeviceDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDevices* CInputDeviceDesc::GetInputDevices(void)
+CInputDevices* CInputDeviceDesc::GetInputDevices(void) const
 {
 	return mpcCategory->GetInputDevices();
 }
@@ -281,7 +281,7 @@ void CInputDeviceDesc::GetSources(CArrayIntAndPointer* apcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputCategory* CInputDeviceDesc::GetCategory(void)
+CInputCategory* CInputDeviceDesc::GetCategory(void) const
 {
 	return mpcCategory;	
 }
@@ -549,9 +549,9 @@ bool CInputDeviceDesc::IterateInputs(SSetIterator* psIter, CInputSourceDesc** pp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CInputDeviceDesc::NumInputs(void) { return mlcInputs.NumElements(); }
-CInputDataFormat* CInputDeviceDesc::GetDataFormat(void) { return mpcDataFormat; }
-bool CInputDeviceDesc::IsPhysical(void) { return mbPhysical; }
+size CInputDeviceDesc::NumInputs(void) const { return mlcInputs.NumElements(); }
+CInputDataFormat* CInputDeviceDesc::GetDataFormat(void) const { return mpcDataFormat; }
+bool CInputDeviceDesc::IsPhysical(void) const { return mbPhysical; }
 CInputChordDescs* CInputDeviceDesc::GetVariableChordDescs(void) { return &mcVariableChordDescs; }
 char* CInputDeviceDesc::GetID(void) { return mszID.Text(); }
 char* CInputDeviceDesc::GetFriendlyName(void) { return mszFriendlyName.Text(); }

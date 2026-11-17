@@ -40,9 +40,9 @@ public:
 	void						Init(CInputVirtualDeviceDesc* pcVirtualDeviceDesc, CInputSourceDesc* pcSourceDesc, int iDescriptionID);
 	void						Kill(void);
 
-	CInputVirtualDeviceDesc*	GetVirtualDeviceDesc(void);
-	int							GetDescriptionID(void);
-	CInputSourceDesc*			GetSourceDesc(void);
+	CInputVirtualDeviceDesc*	GetVirtualDeviceDesc(void) const;
+	int							GetDescriptionID(void) const;
+	CInputSourceDesc*			GetSourceDesc(void) const;
 };
 
 

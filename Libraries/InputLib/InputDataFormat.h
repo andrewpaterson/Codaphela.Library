@@ -57,7 +57,7 @@ public:
 	float		GetCastToFloat(size iIndex, void* pvData);
 	void		GetAsNative(void* pvDest, size iIndex, void* pvData);
 
-	bool		IsCommon(void);
+	bool		IsCommon(void) const;
 	bool		IsCommonName(const char* szName);
 	char*		GetCommonName(void);
 };

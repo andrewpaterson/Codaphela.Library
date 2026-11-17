@@ -223,5 +223,5 @@ bool CInputDataFormat::IsCommonName(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDataFormat::IsCommon(void) { return mbCommon; }
+bool CInputDataFormat::IsCommon(void) const { return mbCommon; }
 char* CInputDataFormat::GetCommonName(void) { return mszCommonName.Text(); }
