@@ -65,7 +65,7 @@ void CRasterRenderMesh::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CRasterMesh> CRasterRenderMesh::GetRasterMesh(void)
+Ptr<CRasterMesh> CRasterRenderMesh::GetRasterMesh(void) const
 {
 	return mpRasterMesh;
 }

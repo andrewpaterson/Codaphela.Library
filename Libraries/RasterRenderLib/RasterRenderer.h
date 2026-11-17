@@ -47,7 +47,7 @@ public:
 	void				Class(void) override;
 	void				Free(void) override;
 
-	int32				GetScale(void);
+	int32				GetScale(void) const;
 	Ptr<CRasterTexture>	GetTexture(CMaterialImage* pcImage);
 	size				NumTextures(void);  //Those some mesh still holds.
 };

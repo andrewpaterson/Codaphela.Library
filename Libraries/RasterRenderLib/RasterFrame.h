@@ -97,8 +97,8 @@ public:
 	void				Draw(CRasteriser* pcRasteriser, CRasterTarget* pcTarget);
 
 	CRasterCamera*		GetCamera(void);
-	SRasterInstance*	GetInstances(void);
-	size				NumInstances(void);
+	SRasterInstance*	GetInstances(void) const;
+	size				NumInstances(void) const;
 
 protected:
 	void				ExtractInstances(int32 iScale);

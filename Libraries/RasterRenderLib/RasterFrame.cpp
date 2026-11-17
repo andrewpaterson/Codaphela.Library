@@ -684,7 +684,7 @@ CRasterCamera* CRasterFrame::GetCamera(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SRasterInstance* CRasterFrame::GetInstances(void)
+SRasterInstance* CRasterFrame::GetInstances(void) const
 {
 	return masInstances.GetData();
 }
@@ -694,7 +694,7 @@ SRasterInstance* CRasterFrame::GetInstances(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CRasterFrame::NumInstances(void)
+size CRasterFrame::NumInstances(void) const
 {
 	return masInstances.NumElements();
 }

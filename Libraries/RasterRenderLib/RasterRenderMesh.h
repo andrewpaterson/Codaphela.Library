@@ -41,7 +41,7 @@ public:
 	void				Class(void) override;
 	void				Free(void) override;
 
-	Ptr<CRasterMesh>	GetRasterMesh(void);
+	Ptr<CRasterMesh>	GetRasterMesh(void) const;
 };
 
 

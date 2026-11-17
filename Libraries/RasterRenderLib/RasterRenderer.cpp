@@ -66,7 +66,7 @@ void CRasterRenderer::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CRasterRenderer::GetScale(void)
+int32 CRasterRenderer::GetScale(void) const
 {
 	return miScale;
 }
