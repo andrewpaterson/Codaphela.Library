@@ -227,14 +227,14 @@ void CTextAreaTiles::ClearTiles(void)
 // The map the tiles are drawn from.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CTileMap> CTextAreaTiles::GetMap(void)
+Ptr<CTileMap> CTextAreaTiles::GetMap(void) const
 {
 	return mpTileMap;
 }
 
 
-size CTextAreaTiles::NumLines(void) { return masLines.NumElements(); }
-size CTextAreaTiles::NumStops(void) { return masStops.NumElements(); }
+size CTextAreaTiles::NumLines(void) const { return masLines.NumElements(); }
+size CTextAreaTiles::NumStops(void) const { return masStops.NumElements(); }
 STextLayoutLine* CTextAreaTiles::GetLine(size uiLine) { return masLines.Get(uiLine); }
 STextLayoutStop* CTextAreaTiles::GetStop(size uiStop) { return masStops.Get(uiStop); }
 

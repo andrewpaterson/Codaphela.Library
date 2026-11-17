@@ -64,15 +64,15 @@ public:
 	bool						ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew) override;
 	bool						RemoveNode(Ptr<CDockNode> pNode) override;
 	void						SetFloating(Ptr<CDockFloatingWindow> pFloating);
-	Ptr<CDockFloatingWindow>	GetFloating(void);
-	Ptr<CDockNode>				GetRoot(void);
-	bool						IsMain(void);
+	Ptr<CDockFloatingWindow>	GetFloating(void) const;
+	Ptr<CDockNode>				GetRoot(void) const;
+	bool						IsMain(void) const;
 	Ptr<CAutoHideStrip>			GetStrip(EDockSide eSide);
 	void						GetRootBounds(CInt32Rect* pcDest);
 	Ptr<CDockGroup>				FindGroupAt(int x, int y);
 	void						ShowGuides(Ptr<CDockGuides> pGuides);
 	void						HideGuides(void);
-	Ptr<CDockGuides>			GetGuides(void);
+	Ptr<CDockGuides>			GetGuides(void) const;
 	void						StripsChanged(void);
 
 protected:

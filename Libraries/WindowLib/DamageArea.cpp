@@ -170,8 +170,8 @@ void CDamageArea::GetBounds(CInt32Rect* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDamageArea::IsEmpty(void) { return !mbAll && (muiNumRectangles == 0); }
-bool CDamageArea::IsAll(void) { return mbAll; }
-size CDamageArea::NumRectangles(void) { return muiNumRectangles; }
+bool CDamageArea::IsEmpty(void) const { return !mbAll && (muiNumRectangles == 0); }
+bool CDamageArea::IsAll(void) const { return mbAll; }
+size CDamageArea::NumRectangles(void) const { return muiNumRectangles; }
 CInt32Rect* CDamageArea::GetRectangle(size uiIndex) { return &macRectangles[uiIndex]; }
 

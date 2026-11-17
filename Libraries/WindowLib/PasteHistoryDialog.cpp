@@ -228,12 +228,12 @@ bool CPasteHistoryDialog::Show(void)
 }
 
 
-bool CPasteHistoryDialog::IsChosen(void) { return mbChosen; }
+bool CPasteHistoryDialog::IsChosen(void) const { return mbChosen; }
 char* CPasteHistoryDialog::GetChosen(void) { return mszChosen.Text(); }
-Ptr<CListContainer> CPasteHistoryDialog::GetList(void) { return mpList; }
-Ptr<CTextArea> CPasteHistoryDialog::GetPreview(void) { return mpPreview; }
-Ptr<CLabel> CPasteHistoryDialog::GetFilterLabel(void) { return mpFilter; }
-Ptr<CDialog> CPasteHistoryDialog::GetDialog(void) { return mpDialog; }
+Ptr<CListContainer> CPasteHistoryDialog::GetList(void) const { return mpList; }
+Ptr<CTextArea> CPasteHistoryDialog::GetPreview(void) const { return mpPreview; }
+Ptr<CLabel> CPasteHistoryDialog::GetFilterLabel(void) const { return mpFilter; }
+Ptr<CDialog> CPasteHistoryDialog::GetDialog(void) const { return mpDialog; }
 size CPasteHistoryDialog::GetRowEntry(int32 iRow) { return *mauiRows.Get((size)iRow); }  //The history's entry row iRow shows.
 void CPasteHistoryDialog::GetRowText(int32 iRow, CChars* pszDest) { AppendRowText(pszDest, mpHistory->GetText(GetRowEntry(iRow))); }  //What row iRow shows of it, appended.
 

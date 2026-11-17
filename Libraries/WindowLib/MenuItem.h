@@ -71,22 +71,22 @@ public:
 	char*						GetText(void);
 	void						SetIcon(Ptr<CImageCel> pIcon);
 	Ptr<CImageCel>				GetIcon(void);
-	Ptr<CMenuContainer>			GetSubMenu(void);
+	Ptr<CMenuContainer>			GetSubMenu(void) const;
 	void						SetShortcut(const char* szShortcut);
 	void						SetShortcut(EComponentInputCommand eCommand);
 	char*						GetShortcut(void);
 	void						SetEnabled(bool bEnabled);
-	bool						IsEnabled(void);
+	bool						IsEnabled(void) const;
 	void						SetTag(int32 iTag);
-	int32						GetTag(void);
-	bool						HasSubMenu(void);
-	Ptr<CIconComponent>			GetIconComponent(void);
-	Ptr<CLabel>					GetLabel(void);
-	Ptr<CLabel>					GetShortcutLabel(void);
-	Ptr<CIconComponent>			GetChevronComponent(void);
+	int32						GetTag(void) const;
+	bool						HasSubMenu(void) const;
+	Ptr<CIconComponent>			GetIconComponent(void) const;
+	Ptr<CLabel>					GetLabel(void) const;
+	Ptr<CLabel>					GetShortcutLabel(void) const;
+	Ptr<CIconComponent>			GetChevronComponent(void) const;
 	CComponentEvent<CMenuItem>*	GetClickEvent(void);
 	void						SetCommand(Ptr<CCommand> pCommand);
-	Ptr<CCommand>				GetCommand(void);
+	Ptr<CCommand>				GetCommand(void) const;
 
 protected:
 	void					ShowEnabled(bool bEnabled);

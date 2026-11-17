@@ -336,9 +336,9 @@ void CDockArea::HideGuides(void)
 }
 
 
-Ptr<CDockNode>		CDockArea::GetRoot(void) { return mpRoot; }
-bool				CDockArea::IsMain(void) { return mbMain; }
-Ptr<CDockGuides>	CDockArea::GetGuides(void) { return mpGuides; }
+Ptr<CDockNode>		CDockArea::GetRoot(void) const { return mpRoot; }
+bool				CDockArea::IsMain(void) const { return mbMain; }
+Ptr<CDockGuides>	CDockArea::GetGuides(void) const { return mpGuides; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -373,5 +373,5 @@ bool CDockArea::RemoveNode(Ptr<CDockNode> pNode)
 
 
 void						CDockArea::SetFloating(Ptr<CDockFloatingWindow> pFloating) { mpFloating = pFloating; }
-Ptr<CDockFloatingWindow>	CDockArea::GetFloating(void) { return mpFloating; }
+Ptr<CDockFloatingWindow>	CDockArea::GetFloating(void) const { return mpFloating; }
 

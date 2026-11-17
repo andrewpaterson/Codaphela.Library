@@ -302,7 +302,7 @@ void CButton::Click(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CButton::SetCommand(Ptr<CCommand> pCommand) { mpCommand = pCommand; }
-Ptr<CCommand> CButton::GetCommand(void) { return mpCommand; }
+Ptr<CCommand> CButton::GetCommand(void) const { return mpCommand; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -491,13 +491,13 @@ void CButton::UpdateLook(void)
 //////////////////////////////////////////////////////////////////////////
 char* CButton::GetCaption(void) { return mpCaption->GetText(); }
 Ptr<CImageCel> CButton::GetIcon(void) { return mpIcon->GetCel(); }
-Ptr<CIconComponent> CButton::GetIconComponent(void) { return mpIcon; }
-Ptr<CLabel> CButton::GetCaptionLabel(void) { return mpCaption; }
+Ptr<CIconComponent> CButton::GetIconComponent(void) const { return mpIcon; }
+Ptr<CLabel> CButton::GetCaptionLabel(void) const { return mpCaption; }
 void CButton::SetShowsPushed(bool bShowsPushed) { mbShowsPushed = bShowsPushed; UpdateState(); }
-bool CButton::IsShowsPushed(void) { return mbShowsPushed; }
+bool CButton::IsShowsPushed(void) const { return mbShowsPushed; }
 void CButton::SetHighlighted(bool bHighlighted) { mbHighlighted = bHighlighted; UpdateState(); }
-bool CButton::IsHighlighted(void) { return mbHighlighted; }
-EButtonState CButton::GetState(void) { return meState; }
-bool CButton::IsPressed(void) { return mbPressed; }
-bool CButton::IsDefault(void) { return mbDefault; }
+bool CButton::IsHighlighted(void) const { return mbHighlighted; }
+EButtonState CButton::GetState(void) const { return meState; }
+bool CButton::IsPressed(void) const { return mbPressed; }
+bool CButton::IsDefault(void) const { return mbDefault; }
 

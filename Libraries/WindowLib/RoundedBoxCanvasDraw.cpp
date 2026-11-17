@@ -168,5 +168,5 @@ void CRoundedBoxCanvasDraw::SetColour(ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ARGB32 CRoundedBoxCanvasDraw::GetColour(void) { return msColour; }
+ARGB32 CRoundedBoxCanvasDraw::GetColour(void) const { return msColour; }
 

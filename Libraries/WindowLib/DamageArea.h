@@ -44,9 +44,9 @@ public:
 	void		AddAll(void);
 	void		Clear(void);
 
-	bool		IsEmpty(void);
-	bool		IsAll(void);
-	size		NumRectangles(void);
+	bool		IsEmpty(void) const;
+	bool		IsAll(void) const;
+	size		NumRectangles(void) const;
 	CInt32Rect*	GetRectangle(size uiIndex);
 	bool		Intersects(CInt32Rect* pcRectangle);
 	void		GetBounds(CInt32Rect* pcDest);

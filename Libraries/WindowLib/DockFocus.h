@@ -54,9 +54,9 @@ public:
 	bool						Save(CObjectWriter* pcFile) override;
 	bool						Load(CObjectReader* pcFile) override;
 
-	Ptr<CDockPane>				GetActivePane(void);
-	Ptr<CDockPane>				GetActiveDocument(void);
-	Ptr<CAutoHideFlyout>		GetFlyout(void);
+	Ptr<CDockPane>				GetActivePane(void) const;
+	Ptr<CDockPane>				GetActiveDocument(void) const;
+	Ptr<CAutoHideFlyout>		GetFlyout(void) const;
 	bool						IsInFlyout(Ptr<CDockPane> pPane);
 	void						Forget(Ptr<CDockPane> pPane);
 	void						Clear(void);

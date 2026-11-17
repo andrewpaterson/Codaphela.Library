@@ -168,7 +168,7 @@ void CDockSash::StopDragSelect(int x, int y)
 }
 
 
-bool CDockSash::IsDragging(void) { return mbDragging; }
+bool CDockSash::IsDragging(void) const { return mbDragging; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -768,7 +768,7 @@ void CDockSplit::SashMoved(Ptr<CDockSash> pSash, int32 iDelta)
 //////////////////////////////////////////////////////////////////////////
 size				CDockSplit::NumNodes(void) { return maNodes.NumElements(); }
 Ptr<CDockNode>		CDockSplit::GetNode(size uiIndex) { return maNodes.Get(uiIndex); }
-bool				CDockSplit::IsHorizontal(void) { return mbHorizontal; }
+bool				CDockSplit::IsHorizontal(void) const { return mbHorizontal; }
 Ptr<CDockSash>		CDockSplit::GetSash(size uiIndex) { return maSashes.Get(uiIndex); }
 int32				CDockSplit::GetNodeSize(size uiIndex) { return (uiIndex < maiSizes.NumElements()) ? maiSizes.GetValue(uiIndex) : 0; }
 

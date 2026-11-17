@@ -93,7 +93,7 @@ bool CToolTips::Load(CObjectReader* pcFile)
 
 
 void CToolTips::SetDelay(int32 iMilliseconds) { miDelay = (iMilliseconds > 0) ? iMilliseconds : 0; }
-int32 CToolTips::GetDelay(void) { return miDelay; }
+int32 CToolTips::GetDelay(void) const { return miDelay; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -269,7 +269,7 @@ Ptr<CComponent> CToolTips::FindTipped(Ptr<CComponent> pOver)
 }
 
 
-bool CToolTips::IsShown(void) { return mbShown; }
+bool CToolTips::IsShown(void) const { return mbShown; }
 char* CToolTips::GetText(void) { return mbShown ? mpLabel->GetText() : NULL; }
-Ptr<CComponent> CToolTips::GetTipped(void) { return mpTipped; }
+Ptr<CComponent> CToolTips::GetTipped(void) const { return mpTipped; }
 

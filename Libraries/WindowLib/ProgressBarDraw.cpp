@@ -128,9 +128,9 @@ void CProgressBarDraw::SetFraction(float fFraction)
 }
 
 
-float CProgressBarDraw::GetFraction(void) { return mfFraction; }
+float CProgressBarDraw::GetFraction(void) const { return mfFraction; }
 void CProgressBarDraw::SetBarColour(ARGB32 sBar) { msBar = sBar; }
-ARGB32 CProgressBarDraw::GetBarColour(void) { return msBar; }
+ARGB32 CProgressBarDraw::GetBarColour(void) const { return msBar; }
 void CProgressBarDraw::SetTrackColour(ARGB32 sTrack) { msTrack = sTrack; }
-ARGB32 CProgressBarDraw::GetTrackColour(void) { return msTrack; }
+ARGB32 CProgressBarDraw::GetTrackColour(void) const { return msTrack; }
 

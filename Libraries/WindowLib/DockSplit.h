@@ -50,7 +50,7 @@ public:
 	void			ExecuteComponent(int x, int y);
 	void			ContDragSelect(int x, int y);
 	void			StopDragSelect(int x, int y);
-	bool			IsDragging(void);
+	bool			IsDragging(void) const;
 };
 
 
@@ -91,7 +91,7 @@ public:
 	size				NumNodes(void);
 	Ptr<CDockNode>		GetNode(size uiIndex);
 	size				IndexOf(Ptr<CDockNode> pNode);
-	bool				IsHorizontal(void);
+	bool				IsHorizontal(void) const;
 	bool				IsAlong(EDockSide eSide);
 	bool				IsSameDirection(Ptr<CDockSplit> pOther);
 	Ptr<CDockSash>		GetSash(size uiIndex);

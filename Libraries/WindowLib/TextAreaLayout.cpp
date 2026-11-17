@@ -311,17 +311,17 @@ bool CTextAreaLayout::IsWrapWidthChanged(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFontFamily> CTextAreaLayout::GetFontFamily(void) { return mpFamily; }
+Ptr<CFontFamily> CTextAreaLayout::GetFontFamily(void) const { return mpFamily; }
 STextStyle* CTextAreaLayout::GetStyle(void) { return &msStyle; }
-size CTextAreaLayout::NumSpans(void) { return mcSpans.NumSpans(); }
+size CTextAreaLayout::NumSpans(void) const { return mcSpans.NumSpans(); }
 CTextLineGaps* CTextAreaLayout::GetGaps(void) { return &mcGaps; }  //Changing them, call GapsChanged.
-bool CTextAreaLayout::IsWordWrap(void) { return mbWordWrap; }
-bool CTextAreaLayout::IsTiledText(void) { return mbTiledText; }
-bool CTextAreaLayout::IsTiled(void) { return mbTiled; }  //Tiles were asked for and the font and word wrap allow them.
-bool CTextAreaLayout::IsTextDirty(void) { return mbTextDirty; }
-SInt32Vec2 CTextAreaLayout::GetTextSize(void) { return msTextSize; }  //As it was last laid out; UpdateSize first.
-Ptr<CSpriteMap> CTextAreaLayout::GetSpriteMap(void) { return mpSpriteMap; }
-Ptr<CGeometryMap> CTextAreaLayout::GetGeometryMap(void) { return mpGeometryMap; }
+bool CTextAreaLayout::IsWordWrap(void) const { return mbWordWrap; }
+bool CTextAreaLayout::IsTiledText(void) const { return mbTiledText; }
+bool CTextAreaLayout::IsTiled(void) const { return mbTiled; }  //Tiles were asked for and the font and word wrap allow them.
+bool CTextAreaLayout::IsTextDirty(void) const { return mbTextDirty; }
+SInt32Vec2 CTextAreaLayout::GetTextSize(void) const { return msTextSize; }  //As it was last laid out; UpdateSize first.
+Ptr<CSpriteMap> CTextAreaLayout::GetSpriteMap(void) const { return mpSpriteMap; }
+Ptr<CGeometryMap> CTextAreaLayout::GetGeometryMap(void) const { return mpGeometryMap; }
 Ptr<CTileMap> CTextAreaLayout::GetTileMap(void) { return mpTiles->GetMap(); }
 
 
@@ -607,7 +607,7 @@ bool CTextAreaLayout::UpdateSize(void)
 // wrapped.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTextAreaLayout::GetWrapWidth(void)
+int32 CTextAreaLayout::GetWrapWidth(void) const
 {
 	int32	iWidth;
 

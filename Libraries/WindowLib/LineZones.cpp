@@ -344,5 +344,5 @@ bool CLineZones::HasPages(size uiLine)
 }
 
 
-bool CLineZones::IsOutOfDate(void) { return mbOutOfDate; }
+bool CLineZones::IsOutOfDate(void) const { return mbOutOfDate; }
 

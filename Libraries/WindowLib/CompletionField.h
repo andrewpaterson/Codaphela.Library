@@ -61,7 +61,7 @@ public:
 	char*				GetCompletion(size uiIndex);
 	char*				GetCompletionNote(size uiIndex);
 	bool				TakeCompletion(size uiIndex);
-	Ptr<CMenuContainer>	GetMenu(void);
+	Ptr<CMenuContainer>	GetMenu(void) const;
 
 	bool				WantsEnter(void) override;
 	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) override;

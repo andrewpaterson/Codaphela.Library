@@ -132,7 +132,7 @@ public:
 	void						SetText(const char* szText);
 	void						AppendText(const char* szText, ARGB32 sColour);
 	char*						GetText(void);
-	size						GetChangeCount(void);
+	size						GetChangeCount(void) const;
 	bool						Undo(void);
 	bool						Redo(void);
 	bool						CanUndo(void);
@@ -179,32 +179,32 @@ public:
 	void					RemoveDocumentListener(CTextDocumentListener* pcListener);
 	bool					AddLineBoundary(size uiLine, int32 iThickness, ARGB32 sColour);
 	void					ClearBackgrounds(void);
-	size					NumBackgrounds(void);
+	size					NumBackgrounds(void) const;
 	STextAreaBackground*	GetBackground(size uiIndex);
 	void					GetStyleAt(size uiPosition, STextStyle* psStyle);
 	ARGB32					GetColourAt(size uiPosition);
 
 	void				SetEditable(bool bEditable);
-	bool				IsEditable(void);
+	bool				IsEditable(void) const;
 	void				SetSelectable(bool bSelectable);
-	bool				IsSelectable(void);
+	bool				IsSelectable(void) const;
 	void				SetTabWidth(int32 iTabWidth);
 	void				SetMarkColours(ARGB32 sSelection, ARGB32 sCaret);
 	void				SetCaretLine(bool bShown, ARGB32 sColour);
-	bool				IsCaretLineShown(void);
+	bool				IsCaretLineShown(void) const;
 	void				SetHighlightOccurrences(bool bHighlight);
-	bool				IsHighlightingOccurrences(void);
+	bool				IsHighlightingOccurrences(void) const;
 	void				SetOccurrenceColours(ARGB32 sOccurrence, ARGB32 sWrite);
 	void				SetOccurrenceRanges(STextOccurrenceRange* asRanges, size uiNumRanges);
 	void				ClearOccurrenceRanges(void);
-	size				NumOccurrenceRanges(void);
+	size				NumOccurrenceRanges(void) const;
 	STextOccurrenceRange*	GetOccurrenceRange(size uiIndex);
 	size				NumOccurrences(void);
 	STextRange*			GetOccurrence(size uiIndex);
 	void				FindOccurrences(void);
-	size				GetCaretLine(void);
+	size				GetCaretLine(void) const;
 	CTextEditing*		GetEditing(void);
-	size				GetCaretPosition(void);
+	size				GetCaretPosition(void) const;
 	void				SetCaretPosition(size uiPosition);
 	bool				GetSelection(size* puiStart, size* puiEnd);
 	void				Select(size uiStart, size uiEnd);
@@ -215,7 +215,7 @@ public:
 	bool				GetCaretRect(CInt32Rect* pcDest, ARGB32* psColour) override;
 
 	//Lines and the gaps below them.
-	size					NumLines(void);
+	size					NumLines(void) const;
 	size					GetLineStart(size uiLine);
 	size					GetLineEnd(size uiLine);
 	size					FindLine(size uiPosition);
@@ -235,7 +235,7 @@ public:
 	void				ShrinkSelection(void);
 	void				SetSelectionRanges(CTextSelectionRanges* pcRanges);
 	void				BoxSelect(size uiAnchorRow, int32 iAnchorX, size uiCaretRow, int32 iCaretX);
-	bool				IsBox(void);
+	bool				IsBox(void) const;
 	void				GetBoxRanges(CArrayTextRange* pasDest);
 	void				SelectAll(void);
 	bool				ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText);

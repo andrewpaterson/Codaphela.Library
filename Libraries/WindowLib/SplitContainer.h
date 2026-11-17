@@ -55,7 +55,7 @@ public:
 	void			ExecuteComponent(int x, int y);
 	void			ContDragSelect(int x, int y);
 	void			StopDragSelect(int x, int y);
-	bool			IsDragging(void);
+	bool			IsDragging(void) const;
 };
 
 
@@ -93,15 +93,15 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	void			SetComponents(Ptr<CComponent> pFirst, Ptr<CComponent> pSecond);
-	Ptr<CComponent>	GetFirst(void);
-	Ptr<CComponent>	GetSecond(void);
-	Ptr<CSplitSash>	GetSash(void);
-	bool			IsHorizontal(void);
+	Ptr<CComponent>	GetFirst(void) const;
+	Ptr<CComponent>	GetSecond(void) const;
+	Ptr<CSplitSash>	GetSash(void) const;
+	bool			IsHorizontal(void) const;
 	void			SetSecondShown(bool bShown);
-	bool			IsSecondShown(void);
+	bool			IsSecondShown(void) const;
 	void			SetShare(int32 iShare);
-	int32			GetShare(void);
-	int32			GetFirstSize(void);
+	int32			GetShare(void) const;
+	int32			GetFirstSize(void) const;
 	void			SashMoved(int32 iDelta);
 	CComponentEvent<CSplitContainer>*	GetShareEvent(void);
 

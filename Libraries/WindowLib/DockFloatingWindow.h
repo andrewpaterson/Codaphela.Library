@@ -61,9 +61,9 @@ public:
 	bool					Show(void);
 	void					Close(void);
 	bool					IsShown(void);
-	Ptr<CWindow>			GetWindow(void);
-	Ptr<CDockArea>			GetArea(void);
-	Ptr<CDockTitleBar>		GetTitleBar(void);
+	Ptr<CWindow>			GetWindow(void) const;
+	Ptr<CDockArea>			GetArea(void) const;
+	Ptr<CDockTitleBar>		GetTitleBar(void) const;
 	void					SetRoot(Ptr<CDockNode> pRoot);
 	Ptr<CDockNode>			GetRoot(void);
 	Ptr<CDockNode>			TakeRoot(void);

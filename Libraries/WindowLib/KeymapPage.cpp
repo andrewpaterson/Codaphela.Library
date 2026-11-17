@@ -159,7 +159,7 @@ bool CKeyCaptureDialog::Load(CObjectReader* pcFile) { return false; }
 bool CKeyCaptureDialog::Show(void) { return mpDialog->Show(KEYMAP_CAPTURE_WIDTH); }
 char* CKeyCaptureDialog::GetKeys(void) { return mpField->GetKeys(); }
 void CKeyCaptureDialog::SetKeys(const char* szKeys) { mpField->SetKeys(szKeys); }
-Ptr<CDialog> CKeyCaptureDialog::GetDialog(void) { return mpDialog; }
+Ptr<CDialog> CKeyCaptureDialog::GetDialog(void) const { return mpDialog; }
 
 
 //////////////////////////////////////////////////////////////////////////

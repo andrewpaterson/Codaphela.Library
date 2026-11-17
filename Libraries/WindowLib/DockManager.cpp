@@ -49,7 +49,7 @@ void SDockTarget::Init(void)
 }
 
 
-bool SDockTarget::IsValid(void) { return eKind != DTK_None; }
+bool SDockTarget::IsValid(void) const { return eKind != DTK_None; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -986,11 +986,11 @@ Ptr<CDockArea>				CDockManager::GetArea(void) { return mpState->GetArea(); }
 Ptr<CDocumentWell>			CDockManager::GetWell(void) { return mpState->GetWell(); }
 Ptr<CWindow>				CDockManager::GetWindow(void) { return mpState->GetWindow(); }
 void						CDockManager::SetListener(CDockManagerListener* pcListener) { mpState->SetListener(pcListener); }
-Ptr<CWindowTheme>			CDockManager::GetTheme(void) { return mpTheme; }
-Ptr<CDockState>				CDockManager::GetState(void) { return mpState; }
+Ptr<CWindowTheme>			CDockManager::GetTheme(void) const { return mpTheme; }
+Ptr<CDockState>				CDockManager::GetState(void) const { return mpState; }
 Ptr<CDockPane>				CDockManager::GetMenuPane(void) { return mpState->GetMenuPane(); }  //The pane a tab or title bar menu was opened for last: what its items are for.
-Ptr<CFont>					CDockManager::GetFont(void) { return mpFont; }
-Ptr<CFont>					CDockManager::GetTurnedFont(void) { return mpTurnedFont; }
+Ptr<CFont>					CDockManager::GetFont(void) const { return mpFont; }
+Ptr<CFont>					CDockManager::GetTurnedFont(void) const { return mpTurnedFont; }
 ARGB32						CDockManager::GetColour(EThemeColour eColour) { return mpTheme->GetColour(eColour); }
 int32						CDockManager::GetMetric(EThemeMetric eMetric) { return mpTheme->GetMetric(eMetric); }
 void						CDockManager::SetColour(EThemeColour eColour, ARGB32 sColour) { mpTheme->SetColour(eColour, sColour); }

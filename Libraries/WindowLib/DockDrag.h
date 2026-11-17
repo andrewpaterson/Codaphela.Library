@@ -69,9 +69,9 @@ public:
 	void						Dropped(void);
 	void						Cancelled(void);
 	void						SetNoDock(bool bNoDock);
-	bool						IsDragging(void);
+	bool						IsDragging(void) const;
 	SDockTarget*				GetTarget(void);
-	Ptr<CDockFloatingWindow>	GetFloating(void);
+	Ptr<CDockFloatingWindow>	GetFloating(void) const;
 	void						FindTarget(SInt32Vec2 sScreen, SDockTarget* psTarget);
 
 protected:

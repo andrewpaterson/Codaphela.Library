@@ -69,14 +69,14 @@ public:
 	size				NumItems(void);
 	char*				GetItemText(size uiIndex);
 	void				Select(int32 iIndex);
-	int32				GetSelected(void);
+	int32				GetSelected(void) const;
 	char*				GetSelectedText(void);
 
 	void				Open(void);
 	void				Close(void);
 	bool				IsOpen(void);
-	Ptr<CMenuContainer>	GetMenu(void);
-	Ptr<CLabel>			GetTextLabel(void);
+	Ptr<CMenuContainer>	GetMenu(void) const;
+	Ptr<CLabel>			GetTextLabel(void) const;
 
 	CComponentEvent<CComboBox>*	GetSelectionEvent(void);
 

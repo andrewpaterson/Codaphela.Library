@@ -200,6 +200,6 @@ void CBarContainer::AddAt(Ptr<CComponent> pComponent, int32 iCell, int iLengthWe
 }
 
 
-bool CBarContainer::IsVertical(void) { return mbVertical; }
-bool CBarContainer::IsStretched(void) { return mbStretched; }
+bool CBarContainer::IsVertical(void) const { return mbVertical; }
+bool CBarContainer::IsStretched(void) const { return mbStretched; }
 

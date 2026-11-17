@@ -171,7 +171,7 @@ float64* CSoundCelVoice::GetWork(lsize uiFrames)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSoundCel> CSoundCelVoice::GetCel(void) { return mpCel; }
-float64 CSoundCelVoice::GetPosition(void) { return mfPosition; }
+Ptr<CSoundCel> CSoundCelVoice::GetCel(void) const { return mpCel; }
+float64 CSoundCelVoice::GetPosition(void) const { return mfPosition; }
 void CSoundCelVoice::SetPosition(float64 fPosition) { mfPosition = fPosition; }
 

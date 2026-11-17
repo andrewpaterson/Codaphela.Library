@@ -80,7 +80,7 @@ public:
 
 	bool					Start(void);
 	void					Stop(void);
-	bool					IsRunning(void);
+	bool					IsRunning(void) const;
 	void					Lock(void);
 	void					Unlock(void);
 
@@ -95,15 +95,15 @@ public:
 	void					Mix(lsize uiFrames);
 
 	bool					SetSampleRate(uint32 uiSampleRate);
-	uint32					GetSampleRate(void);
+	uint32					GetSampleRate(void) const;
 	void					SetLead(uint32 uiLeadMs);
 	void					SetVolume(float64 fVolume);
-	float64					GetVolume(void);
+	float64					GetVolume(void) const;
 
-	bool					IsOpen(void);
+	bool					IsOpen(void) const;
 	uint64					NumFramesMixed(void);
 	uint64					NumDroppedFrames(void);
-	CNativeSoundMixer*		GetNativeMixer(void);
+	CNativeSoundMixer*		GetNativeMixer(void) const;
 
 protected:
 	static void				ThreadFunction(void* pvMixer);

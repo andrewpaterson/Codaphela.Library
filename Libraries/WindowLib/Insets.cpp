@@ -76,7 +76,7 @@ void SInsets::Init(int iHorizontal, int iVertical)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int SInsets::GetLeftAndRight(void)
+int SInsets::GetLeftAndRight(void) const
 {
 	return aiWidths[BEI_Left] + aiWidths[BEI_Right];
 }
@@ -86,7 +86,7 @@ int SInsets::GetLeftAndRight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int SInsets::GetTopAndBottom(void)
+int SInsets::GetTopAndBottom(void) const
 {
 	return aiWidths[BEI_Top] + aiWidths[BEI_Bottom];
 }

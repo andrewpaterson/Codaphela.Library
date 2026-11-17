@@ -67,7 +67,7 @@ void CTextAreaOccurrences::SetHighlighting(bool bHighlighting)
 }
 
 
-bool CTextAreaOccurrences::IsHighlighting(void) { return mbHighlighting; }
+bool CTextAreaOccurrences::IsHighlighting(void) const { return mbHighlighting; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@ bool CTextAreaOccurrences::Find(size uiStart, size uiEnd)
 }
 
 
-size CTextAreaOccurrences::NumFound(void) { return masFound.NumElements(); }
+size CTextAreaOccurrences::NumFound(void) const { return masFound.NumElements(); }
 STextRange* CTextAreaOccurrences::GetFound(size uiIndex) { return masFound.Get(uiIndex); }
 
 
@@ -203,7 +203,7 @@ bool CTextAreaOccurrences::ClearRanges(void)
 }
 
 
-size CTextAreaOccurrences::NumRanges(void) { return masRanges.NumElements(); }
+size CTextAreaOccurrences::NumRanges(void) const { return masRanges.NumElements(); }
 STextOccurrenceRange* CTextAreaOccurrences::GetRange(size uiIndex) { return masRanges.Get(uiIndex); }
 
 

@@ -247,7 +247,7 @@ void CScrollPane::SetScrollPosition(EScrollBarOrientation eOrientation, int32 iP
 // The content's size less the view's, as last laid out.
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CScrollPane::GetMaximumScrollPosition(void)
+SInt32Vec2 CScrollPane::GetMaximumScrollPosition(void) const
 {
 	SInt32Vec2	sMaximum;
 
@@ -306,7 +306,7 @@ void CScrollPane::ClampScrollPosition(void)
 // than the maximum.
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CScrollPane::GetScrollPosition(void)
+SInt32Vec2 CScrollPane::GetScrollPosition(void) const
 {
 	SInt32Vec2	sPosition;
 	SInt32Vec2	sMaximum;
@@ -616,8 +616,8 @@ CScrollEvent* CScrollPane::GetScrollEvent(void)
 }
 
 
-Ptr<CComponent> CScrollPane::GetContent(void) { return mpContent; }
+Ptr<CComponent> CScrollPane::GetContent(void) const { return mpContent; }
 void CScrollPane::SetWheelStep(int32 iWheelStep) { miWheelStep = iWheelStep; }
-int32 CScrollPane::GetWheelStep(void) { return miWheelStep; }
-SInt32Vec2 CScrollPane::GetContentSize(void) { return msContentSize; }
+int32 CScrollPane::GetWheelStep(void) const { return miWheelStep; }
+SInt32Vec2 CScrollPane::GetContentSize(void) const { return msContentSize; }
 

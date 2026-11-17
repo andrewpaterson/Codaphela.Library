@@ -65,14 +65,14 @@ public:
 	void			StepPrevious(void);
 	void			StepNext(void);
 
-	size			NumPages(void);
-	size			GetPage(void);
+	size			NumPages(void) const;
+	size			GetPage(void) const;
 	char*			GetTitle(void);
 	char*			GetText(void);
-	bool			IsOutOfDate(void);
+	bool			IsOutOfDate(void) const;
 	bool			HasButtons(void);
-	Ptr<CButton>	GetPreviousButton(void);
-	Ptr<CButton>	GetNextButton(void);
+	Ptr<CButton>	GetPreviousButton(void) const;
+	Ptr<CButton>	GetNextButton(void) const;
 
 protected:
 	Ptr<CButton>	CreateButton(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szCaption);

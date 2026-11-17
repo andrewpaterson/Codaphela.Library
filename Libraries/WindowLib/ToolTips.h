@@ -59,7 +59,7 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	void				SetDelay(int32 iMilliseconds);
-	int32				GetDelay(void);
+	int32				GetDelay(void) const;
 
 	void				PointerMoved(Ptr<CComponent> pOver, int64 iNow);
 	void				PointerLeft(void);
@@ -68,9 +68,9 @@ public:
 
 	int64				GetWait(int64 iNow);
 	bool				ShowIfDue(int64 iNow);
-	bool				IsShown(void);
+	bool				IsShown(void) const;
 	char*				GetText(void);
-	Ptr<CComponent>		GetTipped(void);
+	Ptr<CComponent>		GetTipped(void) const;
 
 protected:
 	Ptr<CComponent>		FindTipped(Ptr<CComponent> pOver);

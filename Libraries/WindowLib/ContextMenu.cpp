@@ -203,6 +203,6 @@ void CContextMenu::KeyAction(SComponentInputEvent* psEvent)
 }
 
 
-Ptr<CMenuContainer> CContextMenu::GetMenu(void) { return mpMenu; }
+Ptr<CMenuContainer> CContextMenu::GetMenu(void) const { return mpMenu; }
 bool CContextMenu::IsOpen(void) { return mpMenu->IsOpen(); }
 

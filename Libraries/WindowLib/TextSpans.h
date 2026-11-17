@@ -51,7 +51,7 @@ public:
 
 	void			Add(size uiStart, size uiLength, STextStyleOverride* psOverride);
 	void			Clear(void);
-	size			NumSpans(void);
+	size			NumSpans(void) const;
 	STextAreaSpan*	Get(size uiIndex);
 
 	void			ApplyAt(size uiPosition, STextStyle* psStyle);

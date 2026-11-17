@@ -78,8 +78,8 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
-	Ptr<CDockPane>		GetPane(void);
-	bool				IsVertical(void);
+	Ptr<CDockPane>		GetPane(void) const;
+	bool				IsVertical(void) const;
 	int32				GetLength(void);
 	void				TitleChanged(void);
 	char*				GetText(void);
@@ -117,7 +117,7 @@ public:
 	size				NumTabs(void);
 	Ptr<CAutoHideTab>	GetTab(size uiIndex);
 	Ptr<CAutoHideTab>	FindTab(Ptr<CDockPane> pPane);
-	EDockSide			GetSide(void);
+	EDockSide			GetSide(void) const;
 };
 
 

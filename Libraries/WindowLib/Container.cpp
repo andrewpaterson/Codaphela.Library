@@ -237,7 +237,7 @@ void CContainer::SetActualBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CContainer::GetRequiredSize(void)
+SInt32Vec2 CContainer::GetRequiredSize(void) const
 {
 	return msRequiredSize;
 }

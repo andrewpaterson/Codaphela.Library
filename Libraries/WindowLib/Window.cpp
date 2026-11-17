@@ -397,7 +397,7 @@ int64 CWindow::GetWaitMilliseconds(void)
 // A changed window is painted no more often than its frame rate.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWindow::IsFrameDue(void)
+bool CWindow::IsFrameDue(void) const
 {
 	return (GetDebugTickCount() - miLastPaintTime) >= muiFrameMilliseconds;
 }
@@ -640,9 +640,9 @@ void CWindow::SetRedrawLike(Ptr<CWindow> pWindow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWindow::IsPartialRedraw(void) { return mbPartialRedraw; }
-bool CWindow::IsVerifyRedraw(void) { return mbVerifyRedraw; }
-size CWindow::GetRedrawMismatches(void) { return muiRedrawMismatches; }
+bool CWindow::IsPartialRedraw(void) const { return mbPartialRedraw; }
+bool CWindow::IsVerifyRedraw(void) const { return mbVerifyRedraw; }
+size CWindow::GetRedrawMismatches(void) const { return muiRedrawMismatches; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -710,7 +710,7 @@ void CWindow::InvalidateLayout(void)
 // The window will be laid out again before it is next painted.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWindow::IsLayoutDirty(void)
+bool CWindow::IsLayoutDirty(void) const
 {
 	return mbLayoutDirty;
 }
@@ -758,7 +758,7 @@ void CWindow::SetMaxFramesPerSecond(uint32 uiFramesPerSecond)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWindow::IsContinuous(void) { return mbContinuous; }
+bool CWindow::IsContinuous(void) const { return mbContinuous; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1411,7 +1411,7 @@ void CWindow::ClearCloseApprover(void)
 }
 
 
-size CWindow::NumPosted(void) { return masPosted.NumElements() + masPostedLater.NumElements(); }  //The calls posted and not yet made.
+size CWindow::NumPosted(void) const { return masPosted.NumElements() + masPostedLater.NumElements(); }  //The calls posted and not yet made.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1569,20 +1569,20 @@ void CWindow::GetColourFormat(CColourFormatHelper* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
-CNativeWindow*			CWindow::GetNativeWindow(void) { return mpcNativeWindow; }
+Ptr<CCanvas>			CWindow::GetCanvas(void) const { return mpCanvas; }
+CNativeWindow*			CWindow::GetNativeWindow(void) const { return mpcNativeWindow; }
 Ptr<CFocus>				CWindow::GetFocus(void) { return &mcFocus; }
-Ptr<CSoundMixer>		CWindow::GetSoundMixer(void) { return mpSoundMixer; }
-Ptr<CClipboard>			CWindow::GetClipboard(void) { return mpClipboard; }
-Ptr<CButton>			CWindow::GetDefaultButton(void) { return mpDefaultButton; }
-Ptr<CButton>			CWindow::GetCancelButton(void) { return mpCancelButton; }
-CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }
+Ptr<CSoundMixer>		CWindow::GetSoundMixer(void) const { return mpSoundMixer; }
+Ptr<CClipboard>			CWindow::GetClipboard(void) const { return mpClipboard; }
+Ptr<CButton>			CWindow::GetDefaultButton(void) const { return mpDefaultButton; }
+Ptr<CButton>			CWindow::GetCancelButton(void) const { return mpCancelButton; }
+CComponentInput*		CWindow::GetComponentInput(void) const { return mpcComponentInput; }
 void					CWindow::SetCommands(Ptr<CCommandSet> pCommands) { mpCommands = pCommands; }  //Keys nothing focused takes run these; see CFocus::DispatchUnhandledCommand.
-Ptr<CCommandSet>		CWindow::GetCommands(void) { return mpCommands; }
+Ptr<CCommandSet>		CWindow::GetCommands(void) const { return mpCommands; }
 void					CWindow::SetToolTips(Ptr<CToolTips> pToolTips) { mpToolTips = pToolTips; }  //Made for this window; NULL shows none.
-Ptr<CToolTips>			CWindow::GetToolTips(void) { return mpToolTips; }
+Ptr<CToolTips>			CWindow::GetToolTips(void) const { return mpToolTips; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
-CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcNativeWindow->GetFactory(); }  //The native window was made by the factory.  mpFactory only keeps it.  A window that isn't in Objects can have let go of mpFactory before its Free.
+CNativeWindowFactory*	CWindow::GetFactory(void) const { return mpcNativeWindow->GetFactory(); }  //The native window was made by the factory.  mpFactory only keeps it.  A window that isn't in Objects can have let go of mpFactory before its Free.
 EColourOrder			CWindow::GetColourOrder(void) { return mpCanvas->GetColourOrder(); }
 
 
@@ -1986,9 +1986,9 @@ void CWindow::Raise(void)
 }
 
 
-bool CWindow::IsShown(void) { return mpcNativeWindow->IsCreated() && ((mpOwner.IsNotNull()) || mbTicking); }
-bool CWindow::IsModal(void) { return mbModal; }
-Ptr<CWindow> CWindow::GetOwner(void) { return mpOwner; }
+bool CWindow::IsShown(void) const { return mpcNativeWindow->IsCreated() && ((mpOwner.IsNotNull()) || mbTicking); }
+bool CWindow::IsModal(void) const { return mbModal; }
+Ptr<CWindow> CWindow::GetOwner(void) const { return mpOwner; }
 size CWindow::NumOwned(void) { return maOwned.NumElements(); }
 CComponentEvent<CWindow>* CWindow::GetClosedEvent(void) { return &mcClosed; }
 

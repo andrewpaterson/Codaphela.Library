@@ -39,8 +39,8 @@ struct SInsets
 	void Init(int iTop, int iRight, int iBottom, int iLeft);
 	void Init(int iHorizontal, int iVertical);
 
-	int	GetLeftAndRight(void);
-	int	GetTopAndBottom(void);
+	int	GetLeftAndRight(void) const;
+	int	GetTopAndBottom(void) const;
 
 	void Inset(SInt32Vec2* psPosition, SInt32Vec2* psSize);
 };

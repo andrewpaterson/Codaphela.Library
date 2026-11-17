@@ -433,7 +433,7 @@ void CComboBox::Down(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CComboBox::GetSelected(void) { return miSelected; }
-Ptr<CMenuContainer> CComboBox::GetMenu(void) { return mpMenu; }
-Ptr<CLabel> CComboBox::GetTextLabel(void) { return mpText; }
+int32 CComboBox::GetSelected(void) const { return miSelected; }
+Ptr<CMenuContainer> CComboBox::GetMenu(void) const { return mpMenu; }
+Ptr<CLabel> CComboBox::GetTextLabel(void) const { return mpText; }
 

@@ -139,7 +139,7 @@ void SDockRestore::SetNeighbour(const char* szNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SDockRestore::IsSet(void)
+bool SDockRestore::IsSet(void) const
 {
 	return (iGroup != 0) || !szNeighbour.Empty() || bInWell;
 }
@@ -332,7 +332,7 @@ void CDockPane::SetTabFont(Ptr<CFont> pFont)
 }
 
 
-Ptr<CFont> CDockPane::GetTabFont(void) { return mpTabFont; }
+Ptr<CFont> CDockPane::GetTabFont(void) const { return mpTabFont; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -405,9 +405,9 @@ void CDockPane::SetID(const char* szID)
 
 const char*			CDockPane::GetID(void) { return mszID.Text(); }
 const char*			CDockPane::GetTitle(void) { return mszTitle.Text(); }
-Ptr<CImageCel>		CDockPane::GetIcon(void) { return mpIcon; }
-Ptr<CComponent>		CDockPane::GetContent(void) { return mpContent; }
-Ptr<CComponent>		CDockPane::GetFocusTarget(void) { return mpFocusTarget; }
+Ptr<CImageCel>		CDockPane::GetIcon(void) const { return mpIcon; }
+Ptr<CComponent>		CDockPane::GetContent(void) const { return mpContent; }
+Ptr<CComponent>		CDockPane::GetFocusTarget(void) const { return mpFocusTarget; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -421,24 +421,24 @@ void CDockPane::SetFocusTarget(Ptr<CComponent> pTarget)
 {
 	mpFocusTarget = pTarget;
 }
-EDockPaneKind		CDockPane::GetKind(void) { return meKind; }
-bool				CDockPane::IsDocument(void) { return meKind == DPK_Document; }
-bool				CDockPane::IsTool(void) { return meKind == DPK_Tool; }
-bool				CDockPane::IsClosable(void) { return mbClosable; }
+EDockPaneKind		CDockPane::GetKind(void) const { return meKind; }
+bool				CDockPane::IsDocument(void) const { return meKind == DPK_Document; }
+bool				CDockPane::IsTool(void) const { return meKind == DPK_Tool; }
+bool				CDockPane::IsClosable(void) const { return mbClosable; }
 void				CDockPane::SetClosable(bool bClosable) { mbClosable = bClosable; }
-EDockPaneState		CDockPane::GetState(void) { return meState; }
+EDockPaneState		CDockPane::GetState(void) const { return meState; }
 void				CDockPane::SetState(EDockPaneState eState) { meState = eState; }
-Ptr<CDockGroup>		CDockPane::GetGroup(void) { return mpGroup; }
+Ptr<CDockGroup>		CDockPane::GetGroup(void) const { return mpGroup; }
 void				CDockPane::SetGroup(Ptr<CDockGroup> pGroup) { mpGroup = pGroup; }
-bool				CDockPane::IsShown(void) { return (meState == DPS_Docked) || (meState == DPS_Floating) || (meState == DPS_AutoHidden); }
-EDockPlaceKind		CDockPane::GetDefaultKind(void) { return meDefaultKind; }
-EDockSide			CDockPane::GetDefaultSide(void) { return meDefaultSide; }
-int32				CDockPane::GetDefaultSize(void) { return miDefaultSize; }
+bool				CDockPane::IsShown(void) const { return (meState == DPS_Docked) || (meState == DPS_Floating) || (meState == DPS_AutoHidden); }
+EDockPlaceKind		CDockPane::GetDefaultKind(void) const { return meDefaultKind; }
+EDockSide			CDockPane::GetDefaultSide(void) const { return meDefaultSide; }
+int32				CDockPane::GetDefaultSize(void) const { return miDefaultSize; }
 const char*			CDockPane::GetDefaultPane(void) { return mszDefaultPane.Text(); }
-bool				CDockPane::HasRestore(void) { return msRestore.IsSet(); }
+bool				CDockPane::HasRestore(void) const { return msRestore.IsSet(); }
 SDockRestore*		CDockPane::GetRestore(void) { return &msRestore; }
-EDockSide			CDockPane::GetAutoHideSide(void) { return meAutoHideSide; }
-int32				CDockPane::GetAutoHideSize(void) { return miAutoHideSize; }
+EDockSide			CDockPane::GetAutoHideSide(void) const { return meAutoHideSide; }
+int32				CDockPane::GetAutoHideSize(void) const { return miAutoHideSize; }
 void				CDockPane::SetAutoHideSize(int32 iSize) { miAutoHideSize = iSize; }
 
 

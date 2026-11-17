@@ -837,12 +837,12 @@ void CDockGroup::CloseMenuOpening(CMenuContainer* pcMenu)
 //
 //////////////////////////////////////////////////////////////////////////
 size					CDockGroup::NumPanes(void) { return maPanes.NumElements(); }
-bool					CDockGroup::IsActive(void) { return mbActive; }
-int32					CDockGroup::GetID(void) { return miID; }
+bool					CDockGroup::IsActive(void) const { return mbActive; }
+int32					CDockGroup::GetID(void) const { return miID; }
 void					CDockGroup::SetID(int32 iID) { miID = iID; }
-bool					CDockGroup::IsDocumentGroup(void) { return mbDocuments; }
-Ptr<CTabbedContainer>	CDockGroup::GetTabs(void) { return mpTabs; }
-Ptr<CDockTitleBar>		CDockGroup::GetTitleBar(void) { return mpTitleBar; }
+bool					CDockGroup::IsDocumentGroup(void) const { return mbDocuments; }
+Ptr<CTabbedContainer>	CDockGroup::GetTabs(void) const { return mpTabs; }
+Ptr<CDockTitleBar>		CDockGroup::GetTitleBar(void) const { return mpTitleBar; }
 bool CDockGroup::IsPointInHeader(int x, int y) { return (mpTitleBar.IsNotNull() && mpTitleBar->IsPointIn(x, y)) || mpTabs->IsPointInBar(x, y); }  //Its title bar or its tabs; x and y are in window client space.
 
 

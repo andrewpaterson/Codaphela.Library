@@ -129,9 +129,9 @@ public:
 	SInt32Vec2			GetFormSize(void);
 	void				Close(const char* szClicked);
 	char*				GetClicked(void);
-	Ptr<CWindow>		GetWindow(void);
+	Ptr<CWindow>		GetWindow(void) const;
 	void				SetOwner(Ptr<CWindow> pOwner);
-	SDialogLook*		GetLook(void);
+	SDialogLook*		GetLook(void) const;
 
 	void				OKClicked(void);
 	void				CloseClicked(CButton* pcButton);

@@ -62,7 +62,7 @@ void CTextSpans::Add(size uiStart, size uiLength, STextStyleOverride* psOverride
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextSpans::Clear(void) { masSpans.ReInit(); }
-size CTextSpans::NumSpans(void) { return masSpans.NumElements(); }
+size CTextSpans::NumSpans(void) const { return masSpans.NumElements(); }
 STextAreaSpan* CTextSpans::Get(size uiIndex) { return masSpans.Get(uiIndex); }
 
 

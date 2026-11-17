@@ -197,7 +197,7 @@ public:
 	int32			AddColumn(const char* szCaption, ETableColumn eKind = TCK_Text, int iWidthWeight = 1, int32 iWidthInCharacters = 0);
 	void			AddColumnChoice(int32 iColumn, const char* szChoice);
 	void			SetColumnEditable(int32 iColumn, bool bEditable);
-	int32			NumColumns(void);
+	int32			NumColumns(void) const;
 	ETableColumn	GetColumnKind(int32 iColumn);
 
 	int32			AddRow(void);
@@ -205,7 +205,7 @@ public:
 	bool			RemoveRow(int32 iRow);
 	bool			MoveRow(int32 iFrom, int32 iTo);
 	void			RemoveAllRows(void);
-	int32			NumRows(void);
+	int32			NumRows(void) const;
 
 	void			SetCellText(int32 iRow, int32 iColumn, const char* szText);
 	char*			GetCellText(int32 iRow, int32 iColumn);
@@ -220,16 +220,16 @@ public:
 	bool			BeginEdit(void);
 	bool			BeginEdit(const char* szText);
 	bool			EndEdit(bool bKeep);
-	bool			IsEditing(void);
-	Ptr<CTableField>	GetEditField(void);
-	Ptr<CTableCombo>	GetEditCombo(void);
+	bool			IsEditing(void) const;
+	Ptr<CTableField>	GetEditField(void) const;
+	Ptr<CTableCombo>	GetEditCombo(void) const;
 	bool			ToggleTick(void);
 	bool			MoveSelectedRow(int32 iBy);
 	void			SetRowsMovable(bool bRowsMovable);
 	void			SetVisibleRows(int32 iVisibleRows);
 
-	Ptr<CTableList>		GetList(void);
-	Ptr<CScrollPane>	GetScrollPane(void);
+	Ptr<CTableList>		GetList(void) const;
+	Ptr<CScrollPane>	GetScrollPane(void) const;
 	Ptr<CComponent>		GetCellComponent(int32 iRow, int32 iColumn);
 	Ptr<CComponent>		GetHeaderComponent(int32 iColumn);
 	bool				GetCellBounds(int32 iRow, int32 iColumn, CInt32Rect* pcDest);
@@ -238,8 +238,8 @@ public:
 	CComponentEvent<CTable>*	GetChangeEvent(void);
 	CComponentEvent<CTable>*	GetSelectionEvent(void);
 	CComponentEvent<CTable>*	GetOrderEvent(void);
-	int32						GetChangedRow(void);
-	int32						GetChangedColumn(void);
+	int32						GetChangedRow(void) const;
+	int32						GetChangedColumn(void) const;
 
 	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;

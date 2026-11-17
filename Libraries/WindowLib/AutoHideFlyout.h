@@ -56,10 +56,10 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
-	Ptr<CDockPane>		GetPane(void);
-	Ptr<CDockTitleBar>	GetTitleBar(void);
-	Ptr<CDockEdge>		GetEdge(void);
-	EDockSide			GetSide(void);
+	Ptr<CDockPane>		GetPane(void) const;
+	Ptr<CDockTitleBar>	GetTitleBar(void) const;
+	Ptr<CDockEdge>		GetEdge(void) const;
+	EDockSide			GetSide(void) const;
 	void				Place(CInt32Rect* pcRootBounds, SInt32Vec2* psPosition);
 	void				Detach(void);
 	void				PinPressed(CDockTitleBar* pcTitleBar);

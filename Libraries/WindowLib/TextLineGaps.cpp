@@ -208,7 +208,7 @@ size CTextLineGaps::FindLine(uint32 uiId)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextLineGaps::NumGaps(void)
+size CTextLineGaps::NumGaps(void) const
 {
 	return masGaps.NumElements();
 }

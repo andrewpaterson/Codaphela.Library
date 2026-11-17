@@ -87,7 +87,7 @@ public:
 
 	//What the text is laid out from.
 	void					SetFontFamily(Ptr<CFontFamily> pFamily);
-	Ptr<CFontFamily>		GetFontFamily(void);
+	Ptr<CFontFamily>		GetFontFamily(void) const;
 	Ptr<CFontColours>		GetFontColours(void);
 	Ptr<CFont>				GetFont(void);
 	void					SetStyle(STextStyle* psStyle);
@@ -95,20 +95,20 @@ public:
 	void					SetColour(ARGB32 sColour);
 	bool					AddSpan(size uiStart, size uiLength, STextStyleOverride* psOverride);
 	void					ClearSpans(void);
-	size					NumSpans(void);
+	size					NumSpans(void) const;
 	void					GetStyleAt(size uiPosition, STextStyle* psStyle);
 	CTextLineGaps*			GetGaps(void);
 	void					GapsChanged(void);
 	bool					SetWordWrap(bool bWordWrap);
-	bool					IsWordWrap(void);
+	bool					IsWordWrap(void) const;
 	bool					SetTiledText(bool bTiledText);
-	bool					IsTiledText(void);
-	bool					IsTiled(void);
+	bool					IsTiledText(void) const;
+	bool					IsTiled(void) const;
 	void					SetTabWidth(size uiTabWidth);
 	int32					GetTabPixels(void);
 	void					SetWidth(int32 iWidth);
-	int32					GetWrapWidth(void);
-	bool					IsTextDirty(void);
+	int32					GetWrapWidth(void) const;
+	bool					IsTextDirty(void) const;
 	bool					IsWrapWidthChanged(void);
 
 	//Laying it out.
@@ -118,9 +118,9 @@ public:
 	void					LayoutText(void);
 	bool					UpdateText(void);
 	bool					UpdateSize(void);
-	SInt32Vec2				GetTextSize(void);
-	Ptr<CSpriteMap>			GetSpriteMap(void);
-	Ptr<CGeometryMap>		GetGeometryMap(void);
+	SInt32Vec2				GetTextSize(void) const;
+	Ptr<CSpriteMap>			GetSpriteMap(void) const;
+	Ptr<CGeometryMap>		GetGeometryMap(void) const;
 	Ptr<CTileMap>			GetTileMap(void);
 
 	//The rows and stops the text is laid out in, by mpTextLayout or as tiles.

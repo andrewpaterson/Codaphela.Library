@@ -266,9 +266,9 @@ SInt32Vec2 CImageBorderContainer::GetContentSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFillContainer> CImageBorderContainer::GetFace(void) { return mpFace; }
-Ptr<CFillContainer> CImageBorderContainer::GetPaddedFace(void) { return mpPadded; }
-SInt32Vec2 CImageBorderContainer::GetPadding(void) { return msPadding; }
-Ptr<CButtonImages> CImageBorderContainer::GetImages(void) { return mpImages; }
-EButtonState CImageBorderContainer::GetBorderState(void) { return meBorderState; }
+Ptr<CFillContainer> CImageBorderContainer::GetFace(void) const { return mpFace; }
+Ptr<CFillContainer> CImageBorderContainer::GetPaddedFace(void) const { return mpPadded; }
+SInt32Vec2 CImageBorderContainer::GetPadding(void) const { return msPadding; }
+Ptr<CButtonImages> CImageBorderContainer::GetImages(void) const { return mpImages; }
+EButtonState CImageBorderContainer::GetBorderState(void) const { return meBorderState; }
 

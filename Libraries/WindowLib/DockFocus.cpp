@@ -416,6 +416,6 @@ bool CDockFocus::IsInFlyout(Ptr<CDockPane> pPane)
 }
 
 
-Ptr<CDockPane>			CDockFocus::GetActivePane(void) { return mpActivePane; }
-Ptr<CDockPane>			CDockFocus::GetActiveDocument(void) { return mpActiveDocument; }
-Ptr<CAutoHideFlyout>	CDockFocus::GetFlyout(void) { return mpFlyout; }
+Ptr<CDockPane>			CDockFocus::GetActivePane(void) const { return mpActivePane; }
+Ptr<CDockPane>			CDockFocus::GetActiveDocument(void) const { return mpActiveDocument; }
+Ptr<CAutoHideFlyout>	CDockFocus::GetFlyout(void) const { return mpFlyout; }

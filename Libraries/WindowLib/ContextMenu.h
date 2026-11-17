@@ -65,7 +65,7 @@ public:
 	void				ClickAction(SComponentInputEvent* psEvent);
 	void				KeyAction(SComponentInputEvent* psEvent);
 
-	Ptr<CMenuContainer>	GetMenu(void);
+	Ptr<CMenuContainer>	GetMenu(void) const;
 	bool				IsOpen(void);
 };
 

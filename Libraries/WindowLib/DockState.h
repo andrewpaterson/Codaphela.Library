@@ -76,24 +76,24 @@ public:
 
 	void						MakeParts(CDockManager* pcManager);
 
-	Ptr<CWindow>					GetWindow(void);
-	Ptr<CDockArea>					GetArea(void);
-	Ptr<CDocumentWell>				GetWell(void);
+	Ptr<CWindow>					GetWindow(void) const;
+	Ptr<CDockArea>					GetArea(void) const;
+	Ptr<CDocumentWell>				GetWell(void) const;
 	CArray<CDockPane>*				GetPanes(void);
 	CArray<CDockFloatingWindow>*	GetFloating(void);
-	int32							GetNextGroupID(void);
+	int32							GetNextGroupID(void) const;
 	void							SetNextGroupID(int32 iID);
 	int32							TakeGroupID(int32 iID);
-	Ptr<CDockGroup>					GetDocumentGroup(void);
+	Ptr<CDockGroup>					GetDocumentGroup(void) const;
 	void							SetDocumentGroup(Ptr<CDockGroup> pGroup);
-	CDockManagerListener*			GetListener(void);
+	CDockManagerListener*			GetListener(void) const;
 	void							SetListener(CDockManagerListener* pcListener);
 	bool							GetLayoutWindow(CInt32Rect* pcDest);
 	void							SetLayoutWindow(CInt32Rect* pcRectangle);
 
-	Ptr<CDockDrag>				GetDrag(void);
-	Ptr<CDockFocus>				GetFocus(void);
-	Ptr<CDockPane>				GetMenuPane(void);
+	Ptr<CDockDrag>				GetDrag(void) const;
+	Ptr<CDockFocus>				GetFocus(void) const;
+	Ptr<CDockPane>				GetMenuPane(void) const;
 	void						SetMenuPane(Ptr<CDockPane> pPane);
 	CDockTree*					GetTree(void);
 	CDockRestorer*				GetRestorer(void);

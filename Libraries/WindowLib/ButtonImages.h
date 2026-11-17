@@ -83,7 +83,7 @@ public:
 
 	Ptr<CImageCel>	GetCel(EButtonState eState, EButtonBorderPiece ePiece);
 	ARGB32			GetFaceColour(EButtonState eState);
-	int32			GetTileSize(void);
+	int32			GetTileSize(void) const;
 
 protected:
 	void			AddStrip(Ptr<CImage> pStrip);

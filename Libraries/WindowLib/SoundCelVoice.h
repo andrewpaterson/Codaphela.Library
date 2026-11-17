@@ -44,8 +44,8 @@ public:
 
 	void			Play(float64* pfLeft, float64* pfRight, lsize uiFrames, uint32 uiSampleRate) override;
 
-	Ptr<CSoundCel>	GetCel(void);
-	float64			GetPosition(void);
+	Ptr<CSoundCel>	GetCel(void) const;
+	float64			GetPosition(void) const;
 	void			SetPosition(float64 fPosition);
 
 protected:

@@ -46,7 +46,7 @@ public:
 	int32					GetHeight(size uiLine);
 	uint32					GetId(size uiLine);
 	size					FindLine(uint32 uiId);
-	size					NumGaps(void);
+	size					NumGaps(void) const;
 	CArrayTextLayoutGap*	GetGaps(void);
 	void					GetGapsFrom(size uiFirstLine, CArrayTextLayoutGap* pasDest);
 

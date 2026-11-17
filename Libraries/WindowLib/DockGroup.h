@@ -94,12 +94,12 @@ public:
 	size					IndexOfPane(Ptr<CDockPane> pPane);
 	void					PaneChanged(Ptr<CDockPane> pPane);
 	void					SetActive(bool bActive);
-	bool					IsActive(void);
-	int32					GetID(void);
+	bool					IsActive(void) const;
+	int32					GetID(void) const;
 	void					SetID(int32 iID);
-	bool					IsDocumentGroup(void);
-	Ptr<CTabbedContainer>	GetTabs(void);
-	Ptr<CDockTitleBar>		GetTitleBar(void);
+	bool					IsDocumentGroup(void) const;
+	Ptr<CTabbedContainer>	GetTabs(void) const;
+	Ptr<CDockTitleBar>		GetTitleBar(void) const;
 	bool					IsPointInHeader(int x, int y);
 	Ptr<CMenuContainer>		GetMenu(Ptr<CDockPane> pPane);
 	void					OpenMenu(Ptr<CDockPane> pPane, SInt32Vec2 sPosition);

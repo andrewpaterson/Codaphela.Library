@@ -99,7 +99,7 @@ void CSettingsDialog::Free(void)
 
 bool CSettingsDialog::Save(CObjectWriter* pcFile) { return false; }
 bool CSettingsDialog::Load(CObjectReader* pcFile) { return false; }
-Ptr<CDialog> CSettingsDialog::GetDialog(void) { return mpDialog; }
+Ptr<CDialog> CSettingsDialog::GetDialog(void) const { return mpDialog; }
 
 
 //////////////////////////////////////////////////////////////////////////

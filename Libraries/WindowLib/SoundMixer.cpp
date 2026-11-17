@@ -178,7 +178,7 @@ void CSoundMixer::Stop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSoundMixer::IsRunning(void)
+bool CSoundMixer::IsRunning(void) const
 {
 	return mbRunning;
 }
@@ -531,7 +531,7 @@ void CSoundMixer::SetVolume(float64 fVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSoundMixer::IsOpen(void)
+bool CSoundMixer::IsOpen(void) const
 {
 	return (mpcNativeMixer != NULL) && mpcNativeMixer->IsOpen();
 }
@@ -545,7 +545,7 @@ bool CSoundMixer::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 size CSoundMixer::NumVoices(void) { return maVoices.NumElements(); }
 Ptr<CSoundVoice> CSoundMixer::GetVoice(size uiIndex) { return maVoices.Get(uiIndex); }
-uint32 CSoundMixer::GetSampleRate(void) { return muiSampleRate; }
-float64 CSoundMixer::GetVolume(void) { return mfVolume; }
-CNativeSoundMixer* CSoundMixer::GetNativeMixer(void) { return mpcNativeMixer; }
+uint32 CSoundMixer::GetSampleRate(void) const { return muiSampleRate; }
+float64 CSoundMixer::GetVolume(void) const { return mfVolume; }
+CNativeSoundMixer* CSoundMixer::GetNativeMixer(void) const { return mpcNativeMixer; }
 

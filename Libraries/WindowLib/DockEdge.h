@@ -63,8 +63,8 @@ public:
 	void		Class(void) override;
 	bool		Save(CObjectWriter* pcFile) override;
 	bool		Load(CObjectReader* pcFile) override;
-	uint8		GetEdges(void);
-	bool		IsDragging(void);
+	uint8		GetEdges(void) const;
+	bool		IsDragging(void) const;
 	void		ActivateComponent(int x, int y);
 	void		ExecuteComponent(int x, int y);
 	void		ContDragSelect(int x, int y);

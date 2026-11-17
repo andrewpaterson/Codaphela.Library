@@ -42,7 +42,7 @@ public:
 	template<class M, class O>
 	void	Add(O* pcObject, void(M::*fFunction)(void));
 	bool	Remove(void* pvObject);
-	size	NumCalls(void);
+	size	NumCalls(void) const;
 
 	void	Call(S* pcSource);
 };
@@ -127,7 +127,7 @@ bool CComponentEvent<S>::Remove(void* pvObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class S>
-size CComponentEvent<S>::NumCalls(void)
+size CComponentEvent<S>::NumCalls(void) const
 {
 	return mcCalls.NumCalls();
 }

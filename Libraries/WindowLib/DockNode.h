@@ -113,8 +113,8 @@ public:
 	virtual	Ptr<CDockGroup>		FindGroupAt(int x, int y);
 	virtual	Ptr<CDockGroup>		GetFirstGroup(void) =0;
 			void				SetDockSize(int32 iSize);
-			int32				GetDockSize(void);
-			Ptr<CDockManager>	GetManager(void);
+			int32				GetDockSize(void) const;
+			Ptr<CDockManager>	GetManager(void) const;
 			Ptr<CDockNode>		GetParentNode(void);
 			Ptr<CDockSplit>		GetParentSplit(void);
 			Ptr<CDockArea>		GetParentArea(void);

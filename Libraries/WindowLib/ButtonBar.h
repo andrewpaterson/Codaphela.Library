@@ -46,9 +46,9 @@ public:
 	bool						Load(CObjectReader* pcFile) override;
 
 	void						SetGap(int32 iGap);
-	int32						GetGap(void);
+	int32						GetGap(void) const;
 	void						SetButtonAlignment(EContainerStyleHorizontal eAlignment);
-	EContainerStyleHorizontal	GetButtonAlignment(void);
+	EContainerStyleHorizontal	GetButtonAlignment(void) const;
 
 	void						SetRequiredSize(void) override;
 	void						Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;

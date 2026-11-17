@@ -872,7 +872,7 @@ void CCodeEditor::DrawGlyphs(void)
 // The gutter's column of marks: after the glyphs' when there are glyphs.
 //
 //////////////////////////////////////////////////////////////////////////
-size CCodeEditor::GetMarkColumn(void)
+size CCodeEditor::GetMarkColumn(void) const
 {
 	return mbGlyphColumn ? 1 : 0;
 }
@@ -989,8 +989,8 @@ bool CCodeEditor::IsChangeBarAt(size uiLine)
 
 CGutterClickEvent* CCodeEditor::GetChangeBarClickEvent(void) { return &mcChangeBarClicked; }
 CGutterClickEvent* CCodeEditor::GetGlyphClickEvent(void) { return &mcGlyphClicked; }
-bool CCodeEditor::HasGlyphColumn(void) { return mbGlyphColumn; }
-size CCodeEditor::NumChangeBars(void) { return masChangeBars.NumElements(); }
+bool CCodeEditor::HasGlyphColumn(void) const { return mbGlyphColumn; }
+size CCodeEditor::NumChangeBars(void) const { return masChangeBars.NumElements(); }
 SCodeEditorChangeBar* CCodeEditor::GetChangeBar(size uiIndex) { return masChangeBars.SafeGet(uiIndex); }
 
 
@@ -1177,8 +1177,8 @@ CComponentEvent<CCodeEditor>* CCodeEditor::GetChangeEvent(void)
 }
 
 
-Ptr<CTextArea> CCodeEditor::GetTextArea(void) { return mpTextArea; }
-Ptr<CTextArea> CCodeEditor::GetGutter(void) { return mpGutter; }
+Ptr<CTextArea> CCodeEditor::GetTextArea(void) const { return mpTextArea; }
+Ptr<CTextArea> CCodeEditor::GetGutter(void) const { return mpGutter; }
 size CCodeEditor::NumLineComponents(void) { return maLineComponents.NumElements(); }
 Ptr<CComponent> CCodeEditor::GetLineComponent(size uiIndex) { return maLineComponents.Get(uiIndex); }
 

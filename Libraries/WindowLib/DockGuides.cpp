@@ -637,6 +637,6 @@ SDockGuide* CDockGuides::FindGuide(EDockTargetKind eKind, EDockSide eSide, CDock
 }
 
 
-size		CDockGuides::NumGuides(void) { return masGuides.NumElements(); }
+size		CDockGuides::NumGuides(void) const { return masGuides.NumElements(); }
 SDockGuide*	CDockGuides::GetGuide(size uiIndex) { return masGuides.Get(uiIndex); }
 

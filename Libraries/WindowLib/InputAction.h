@@ -95,12 +95,12 @@ public:
 	bool					Matches(SComponentInputEvent* psEvent);
 	void					Call(SComponentInputEvent* psEvent);
 	void					SetEnabled(bool bEnabled);
-	bool					IsEnabled(void);
+	bool					IsEnabled(void) const;
 	void					SetKeepsLayout(bool bKeepsLayout);
 	bool					KeepsLayout(void);
 
-	EInputActionFilter		GetFilter(void);
-	EComponentInputCommand	GetCommand(void);
+	EInputActionFilter		GetFilter(void) const;
+	EComponentInputCommand	GetCommand(void) const;
 
 protected:
 	void					Init(EInputActionFilter eFilter, const char* szName, EComponentInputCommand eCommand, SMemberCall* psCall);

@@ -66,11 +66,11 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	void					SetRange(int32 iContentLength, int32 iViewLength, int32 iPosition);
-	bool					IsShown(void);
+	bool					IsShown(void) const;
 	void					GetThumbBounds(CInt32Rect* pcDest);
-	EScrollBarOrientation	GetOrientation(void);
-	bool					IsDragging(void);
-	bool					IsHoverShown(void);
+	EScrollBarOrientation	GetOrientation(void) const;
+	bool					IsDragging(void) const;
+	bool					IsHoverShown(void) const;
 
 	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
@@ -89,7 +89,7 @@ public:
 
 protected:
 	Ptr<CCanvas>	CreatePiece(Ptr<CWindow> pWindow, EScrollBarPiece ePiece);
-	int32			GetTrackLength(void);
+	int32			GetTrackLength(void) const;
 	int32			GetMinimumThumbLength(void);
 	int32			Along(int x, int y);
 	bool			IsInThumb(int x, int y);

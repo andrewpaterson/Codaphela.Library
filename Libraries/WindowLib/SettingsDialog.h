@@ -68,7 +68,7 @@ public:
 
 	void			AddPage(Ptr<CSettingsPage> pPage);
 	bool			Show(void);
-	Ptr<CDialog>	GetDialog(void);
+	Ptr<CDialog>	GetDialog(void) const;
 
 protected:
 	Ptr<CComponent>	CreateBody(void);

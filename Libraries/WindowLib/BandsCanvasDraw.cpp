@@ -89,9 +89,9 @@ bool CBandsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 
 
 void CBandsCanvasDraw::SetColour(ARGB32 sColour) { msColour = sColour; }
-ARGB32 CBandsCanvasDraw::GetColour(void) { return msColour; }
+ARGB32 CBandsCanvasDraw::GetColour(void) const { return msColour; }
 void CBandsCanvasDraw::ClearBands(void) { masBands.ReInit(); }
 void CBandsCanvasDraw::AddBand(int32 iTop, int32 iHeight) { masBands.Add()->Init(iTop, iHeight); }
-size CBandsCanvasDraw::NumBands(void) { return masBands.NumElements(); }
+size CBandsCanvasDraw::NumBands(void) const { return masBands.NumElements(); }
 SInt32Vec2 CBandsCanvasDraw::GetBand(size uiIndex) { return *masBands.Get(uiIndex); }
 

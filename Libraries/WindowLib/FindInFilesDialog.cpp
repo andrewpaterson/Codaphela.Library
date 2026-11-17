@@ -115,7 +115,7 @@ size CFindInFilesItems::NumFiles(void)
 }
 
 
-size CFindInFilesItems::NumItems(void) { return masItems.NumElements(); }
+size CFindInFilesItems::NumItems(void) const { return masItems.NumElements(); }
 SFindInFilesItem* CFindInFilesItems::Get(size uiIndex) { return masItems.Get(uiIndex); }
 
 
@@ -1022,25 +1022,25 @@ SFindInFilesItem* CFindInFilesDialog::GetChosen(void)
 }
 
 
-EFindInFilesResult CFindInFilesDialog::GetOutcome(void) { return meResult; }  //How it was last closed, as Show returned.
+EFindInFilesResult CFindInFilesDialog::GetOutcome(void) const { return meResult; }  //How it was last closed, as Show returned.
 char* CFindInFilesDialog::GetText(void) { return mpField->GetText(); }
 char* CFindInFilesDialog::GetDirectory(void) { return mpDirectory.IsNotNull() ? mpDirectory->GetText() : (char*)""; }
 bool CFindInFilesDialog::IsMatchCase(void) { return mpMatchCase->IsTicked(); }
 bool CFindInFilesDialog::IsWholeWords(void) { return mpWholeWords->IsTicked(); }
-bool CFindInFilesDialog::IsSearching(void) { return mbSearching; }
-bool CFindInFilesDialog::HasMore(void) { return mbMore; }
-size CFindInFilesDialog::NumResults(void) { return mcItems.NumItems(); }
+bool CFindInFilesDialog::IsSearching(void) const { return mbSearching; }
+bool CFindInFilesDialog::HasMore(void) const { return mbMore; }
+size CFindInFilesDialog::NumResults(void) const { return mcItems.NumItems(); }
 SFindInFilesItem* CFindInFilesDialog::GetResult(size uiIndex) { return mcItems.Get(uiIndex); }
 int32 CFindInFilesDialog::GetSelected(void) { return mpList->GetSelected(); }
 char* CFindInFilesDialog::GetPreviewTitle(void) { return mpPreview->GetTitle(); }
 char* CFindInFilesDialog::GetStatus(void) { return mpStatus->GetText(); }
-Ptr<CTextField> CFindInFilesDialog::GetField(void) { return mpField; }
-Ptr<CTextField> CFindInFilesDialog::GetDirectoryField(void) { return mpDirectory; }
-Ptr<CCheckBox> CFindInFilesDialog::GetMatchCaseBox(void) { return mpMatchCase; }
-Ptr<CCheckBox> CFindInFilesDialog::GetWholeWordsBox(void) { return mpWholeWords; }
-Ptr<CListContainer> CFindInFilesDialog::GetList(void) { return mpList; }
+Ptr<CTextField> CFindInFilesDialog::GetField(void) const { return mpField; }
+Ptr<CTextField> CFindInFilesDialog::GetDirectoryField(void) const { return mpDirectory; }
+Ptr<CCheckBox> CFindInFilesDialog::GetMatchCaseBox(void) const { return mpMatchCase; }
+Ptr<CCheckBox> CFindInFilesDialog::GetWholeWordsBox(void) const { return mpWholeWords; }
+Ptr<CListContainer> CFindInFilesDialog::GetList(void) const { return mpList; }
 Ptr<CCodeEditor> CFindInFilesDialog::GetPreview(void) { return mpPreview->GetEditor(); }
-Ptr<CCodePreview> CFindInFilesDialog::GetCodePreview(void) { return mpPreview; }
-Ptr<CButton> CFindInFilesDialog::GetFindWindowButton(void) { return mpFindWindow; }
-Ptr<CDialog> CFindInFilesDialog::GetDialog(void) { return mpDialog; }
+Ptr<CCodePreview> CFindInFilesDialog::GetCodePreview(void) const { return mpPreview; }
+Ptr<CButton> CFindInFilesDialog::GetFindWindowButton(void) const { return mpFindWindow; }
+Ptr<CDialog> CFindInFilesDialog::GetDialog(void) const { return mpDialog; }
 

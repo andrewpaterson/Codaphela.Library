@@ -78,10 +78,10 @@ public:
 	bool	Load(CObjectReader* pcFile) override;
 
 	void	SetLimit(size uiLimit);
-	size	GetLimit(void);
+	size	GetLimit(void) const;
 	void	SetMaxEntryBytes(size uiBytes);
 	void	SetChooser(CClipboardChooser* pcChooser);
-	CClipboardChooser*	GetChooser(void);
+	CClipboardChooser*	GetChooser(void) const;
 
 	bool	Add(const char* szText, bool bBlock = false);
 	bool	IsBlock(size uiIndex);
@@ -89,7 +89,7 @@ public:
 	void	Remove(size uiIndex);
 	void	Clear(void);
 	void	MoveToFront(size uiIndex);
-	size	NumEntries(void);
+	size	NumEntries(void) const;
 	char*	GetText(size uiIndex);
 	bool	Find(const char* szText, size* puiIndex);
 	bool	IsNewest(const char* szText);

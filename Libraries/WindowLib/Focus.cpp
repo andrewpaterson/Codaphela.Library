@@ -1014,11 +1014,11 @@ void CFocus::ToComponentSpace(Ptr<CComponent> pComponent, int* px, int* py)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CComponent>	CFocus::GetFocussedComponent(void) { return mpFocussedComponent; }
-Ptr<CComponent>	CFocus::GetDragComponent(void) { return mpDragComponent; }
-EFocusDrag		CFocus::GetDrag(void) { return meDrag; }
+Ptr<CComponent>	CFocus::GetFocussedComponent(void) const { return mpFocussedComponent; }
+Ptr<CComponent>	CFocus::GetDragComponent(void) const { return mpDragComponent; }
+EFocusDrag		CFocus::GetDrag(void) const { return meDrag; }
 CComponentEvent<CFocus>*	CFocus::GetFocusChangeEvent(void) { return &mcFocusChanged; }
-Ptr<CComponent>	CFocus::GetMouseOverComponent(void) { return mpMouseOverComponent; }
+Ptr<CComponent>	CFocus::GetMouseOverComponent(void) const { return mpMouseOverComponent; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1075,9 +1075,9 @@ Ptr<CComponent> CFocus::FindKeyComponent(CComponentInput* pcComponentInput, cons
 	*pszContext = GetKeyContext(mpFocussedComponent);
 	return NULL;
 }
-SInt32Vec2		CFocus::GetPointer(void) { return msPointer; }
-bool			CFocus::IsPointerIn(void) { return mbPointerIn; }
-bool			CFocus::IsActive(void) { return mbActive; }
+SInt32Vec2		CFocus::GetPointer(void) const { return msPointer; }
+bool			CFocus::IsPointerIn(void) const { return mbPointerIn; }
+bool			CFocus::IsActive(void) const { return mbActive; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1170,4 +1170,4 @@ bool CFocus::BlinkCaret(int64 iNow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFocus::IsCaretOn(void) { return mbCaretOn || (miCaretBlinkPeriod == 0); }
+bool CFocus::IsCaretOn(void) const { return mbCaretOn || (miCaretBlinkPeriod == 0); }

@@ -166,20 +166,20 @@ void CDockState::SetLayoutWindow(CInt32Rect* pcRectangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CWindow>					CDockState::GetWindow(void) { return mpWindow; }
-Ptr<CDockArea>					CDockState::GetArea(void) { return mpArea; }
-Ptr<CDocumentWell>				CDockState::GetWell(void) { return mpWell; }
+Ptr<CWindow>					CDockState::GetWindow(void) const { return mpWindow; }
+Ptr<CDockArea>					CDockState::GetArea(void) const { return mpArea; }
+Ptr<CDocumentWell>				CDockState::GetWell(void) const { return mpWell; }
 CArray<CDockPane>*				CDockState::GetPanes(void) { return &maPanes; }
 CArray<CDockFloatingWindow>*	CDockState::GetFloating(void) { return &maFloating; }
-int32							CDockState::GetNextGroupID(void) { return miNextGroupID; }
+int32							CDockState::GetNextGroupID(void) const { return miNextGroupID; }
 void							CDockState::SetNextGroupID(int32 iID) { miNextGroupID = iID; }
-Ptr<CDockGroup>					CDockState::GetDocumentGroup(void) { return mpDocumentGroup; }
+Ptr<CDockGroup>					CDockState::GetDocumentGroup(void) const { return mpDocumentGroup; }
 void							CDockState::SetDocumentGroup(Ptr<CDockGroup> pGroup) { mpDocumentGroup = pGroup; }
-CDockManagerListener*			CDockState::GetListener(void) { return mpcListener; }
+CDockManagerListener*			CDockState::GetListener(void) const { return mpcListener; }
 void							CDockState::SetListener(CDockManagerListener* pcListener) { mpcListener = pcListener; }
-Ptr<CDockDrag>					CDockState::GetDrag(void) { return mpDrag; }
-Ptr<CDockFocus>					CDockState::GetFocus(void) { return mpFocus; }
-Ptr<CDockPane>					CDockState::GetMenuPane(void) { return mpMenuPane; }
+Ptr<CDockDrag>					CDockState::GetDrag(void) const { return mpDrag; }
+Ptr<CDockFocus>					CDockState::GetFocus(void) const { return mpFocus; }
+Ptr<CDockPane>					CDockState::GetMenuPane(void) const { return mpMenuPane; }
 void							CDockState::SetMenuPane(Ptr<CDockPane> pPane) { mpMenuPane = pPane; }
 CDockTree*						CDockState::GetTree(void) { return &mcTree; }
 CDockRestorer*					CDockState::GetRestorer(void) { return &mcRestorer; }

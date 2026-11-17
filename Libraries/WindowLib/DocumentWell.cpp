@@ -57,7 +57,7 @@ void CDocumentWell::Class(void)
 
 EDockNodeKind CDocumentWell::GetKind(void) { return DNK_DocumentWell; }
 bool CDocumentWell::ContainsDocumentWell(void) { return true; }
-Ptr<CDockNode> CDocumentWell::GetRoot(void) { return mpRoot; }
+Ptr<CDockNode> CDocumentWell::GetRoot(void) const { return mpRoot; }
 
 
 //////////////////////////////////////////////////////////////////////////

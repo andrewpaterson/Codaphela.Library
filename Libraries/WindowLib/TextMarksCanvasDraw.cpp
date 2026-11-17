@@ -111,9 +111,9 @@ void CTextMarksCanvasDraw::SetCaret(int32 iLeft, int32 iTop, int32 iRight, int32
 //////////////////////////////////////////////////////////////////////////
 bool CTextMarksCanvasDraw::HideSelection(void) { bool bChanged = mbSelection; mbSelection = false; return bChanged; }
 void CTextMarksCanvasDraw::HideCaret(void) { mbCaret = false; }
-bool CTextMarksCanvasDraw::IsSelectionShown(void) { return mbSelection; }
-bool CTextMarksCanvasDraw::IsCaretShown(void) { return mbCaret; }
+bool CTextMarksCanvasDraw::IsSelectionShown(void) const { return mbSelection; }
+bool CTextMarksCanvasDraw::IsCaretShown(void) const { return mbCaret; }
 void CTextMarksCanvasDraw::GetSelection(CInt32Rect* pcDest) { *pcDest = mcSelection; }
 void CTextMarksCanvasDraw::GetCaret(CInt32Rect* pcDest) { *pcDest = mcCaret; }
-ARGB32 CTextMarksCanvasDraw::GetCaretColour(void) { return msCaretColour; }
+ARGB32 CTextMarksCanvasDraw::GetCaretColour(void) const { return msCaretColour; }
 

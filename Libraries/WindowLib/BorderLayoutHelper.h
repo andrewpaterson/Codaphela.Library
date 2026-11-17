@@ -53,7 +53,7 @@ public:
 	void					Kill(void);
 
 	bool					AddComponent(Ptr<CComponent> pComponent, EBorderLayoutCell eCell);
-	CGridContainer*			GetContainer(void);
+	CGridContainer*			GetContainer(void) const;
 };
 
 

@@ -608,7 +608,7 @@ void CMenuContainer::ItemClicked(Ptr<CMenuItem> pItem)
 //////////////////////////////////////////////////////////////////////////
 size CMenuContainer::NumItems(void) { return maItems.NumElements(); }
 Ptr<CMenuItem> CMenuContainer::GetItem(size uiIndex) { return maItems.Get(uiIndex); }
-Ptr<CMenuContainer> CMenuContainer::GetOpenSubMenu(void) { return mpOpenSubMenu; }
+Ptr<CMenuContainer> CMenuContainer::GetOpenSubMenu(void) const { return mpOpenSubMenu; }
 CComponentEvent<CMenuContainer>* CMenuContainer::GetOpeningEvent(void) { return &mcOpening; }
 
 
@@ -619,7 +619,7 @@ CComponentEvent<CMenuContainer>* CMenuContainer::GetOpeningEvent(void) { return 
 // is called; NULL otherwise.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CMenuContainer::GetOpener(void)
+Ptr<CComponent> CMenuContainer::GetOpener(void) const
 {
 	return mpOpener;
 }
@@ -639,6 +639,6 @@ void CMenuContainer::Click(Ptr<CMenuItem> pItem)
 		ItemClicked(pItem);
 	}
 }
-Ptr<CMenuBar> CMenuContainer::GetMenuBar(void) { return mpMenuBar; }
-Ptr<CMenuStyle> CMenuContainer::GetStyle(void) { return mpStyle; }
+Ptr<CMenuBar> CMenuContainer::GetMenuBar(void) const { return mpMenuBar; }
+Ptr<CMenuStyle> CMenuContainer::GetStyle(void) const { return mpStyle; }
 

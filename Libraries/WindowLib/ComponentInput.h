@@ -141,16 +141,16 @@ public:
 	void		ReleaseAll(void);
 	void		SetLocks(bool bCapsLock, bool bNumLock);
 	void		SetWindow(CWindow* pcWindow);
-	CWindow*	GetWindow(void);
+	CWindow*	GetWindow(void) const;
 
 	bool				IsShift(void);
 	bool				IsControl(void);
 	bool				IsAlt(void);
-	bool				IsCapsLock(void);
-	bool				IsNumLock(void);
-	bool				IsInsert(void);
+	bool				IsCapsLock(void) const;
+	bool				IsNumLock(void) const;
+	bool				IsInsert(void) const;
 	bool				IsSourceDown(const char* szFriendlyName);
-	CWindowInputSource*	GetSource(void);
+	CWindowInputSource*	GetSource(void) const;
 	bool				GetShortcutText(EComponentInputCommand eCommand, CChars* pszDest);
 	bool				AddContext(const char* szName, const char* szParent, bool bTyping, bool bEditorCommands = false);
 	bool				HasContext(const char* szName);

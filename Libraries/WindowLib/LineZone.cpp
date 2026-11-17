@@ -297,11 +297,11 @@ void CLineZone::ShowButtons(void)
 
 
 bool CLineZone::HasButtons(void) { return mpNext->GetParent().IsNotNull(); }
-size CLineZone::NumPages(void) { return muiPages; }
-size CLineZone::GetPage(void) { return muiPage; }
+size CLineZone::NumPages(void) const { return muiPages; }
+size CLineZone::GetPage(void) const { return muiPage; }
 char* CLineZone::GetTitle(void) { return mpTitle->GetText(); }
 char* CLineZone::GetText(void) { return mpText->GetText(); }
-bool CLineZone::IsOutOfDate(void) { return mbOutOfDate; }
-Ptr<CButton> CLineZone::GetPreviousButton(void) { return mpPrevious; }
-Ptr<CButton> CLineZone::GetNextButton(void) { return mpNext; }
+bool CLineZone::IsOutOfDate(void) const { return mbOutOfDate; }
+Ptr<CButton> CLineZone::GetPreviousButton(void) const { return mpPrevious; }
+Ptr<CButton> CLineZone::GetNextButton(void) const { return mpNext; }
 

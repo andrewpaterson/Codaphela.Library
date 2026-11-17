@@ -558,7 +558,7 @@ void CTextEditingInput::CancelDrag(void)
 }
 
 
-bool CTextEditingInput::IsTextDrag(void) { return (meDrag == TED_TextPressed) || (meDrag == TED_Text); }
+bool CTextEditingInput::IsTextDrag(void) const { return (meDrag == TED_TextPressed) || (meDrag == TED_Text); }
 
 
 //////////////////////////////////////////////////////////////////////////

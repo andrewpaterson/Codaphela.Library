@@ -214,6 +214,6 @@ void CDiffDividerDraw::MakeShapePath(CVectorPath* pcPath, SDiffDividerShape* psS
 }
 
 
-size CDiffDividerDraw::NumShapes(void) { return masShapes.NumElements(); }
+size CDiffDividerDraw::NumShapes(void) const { return masShapes.NumElements(); }
 SDiffDividerShape* CDiffDividerDraw::GetShape(size uiIndex) { return masShapes.SafeGet(uiIndex); }
 

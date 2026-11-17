@@ -139,8 +139,8 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	Ptr<CTextArea>		GetTextArea(void);
-	Ptr<CTextArea>		GetGutter(void);
+	Ptr<CTextArea>		GetTextArea(void) const;
+	Ptr<CTextArea>		GetGutter(void) const;
 	void				SetGutterColour(ARGB32 sColour);
 	void				SetGutterBackground(ARGB32 sColour);
 	int32				GetGutterWidth(void);
@@ -160,10 +160,10 @@ public:
 	void					AddChangeBand(size uiStartLine, size uiEndLine, ARGB32 sColour);
 	void					ClearChangeBars(void);
 	void					SetBandNumberColour(ARGB32 sColour);
-	size					NumChangeBars(void);
+	size					NumChangeBars(void) const;
 	SCodeEditorChangeBar*	GetChangeBar(size uiIndex);
 	void					SetGlyphColumn(bool bGlyphColumn);
-	bool					HasGlyphColumn(void);
+	bool					HasGlyphColumn(void) const;
 	void					SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour);
 	void					SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground);
 	SCodeEditorGlyph*		GetLineGlyph(size uiLine);
@@ -195,7 +195,7 @@ protected:
 	void				ChangeBarsChanged(void);
 	void				DrawGlyphs(void);
 	void				SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground, bool bBackground);
-	size				GetMarkColumn(void);
+	size				GetMarkColumn(void) const;
 	bool				IsChangeBarAt(size uiLine);
 	ECodeEditorGutterColumn	FindGutterColumn(int32 x, int32 y, size* puiLine);
 	void				StartLineDrag(SComponentInputEvent* psEvent, bool bExtend);

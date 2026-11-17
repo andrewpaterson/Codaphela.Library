@@ -431,6 +431,6 @@ CComponentInputCommand* CComponentInputDevice::GetPressedCommand(CInputSourceDes
 CComponentInputCommand* CComponentInputDevice::GetReleasedCommand(CInputSourceDesc* pcSource) { return FindComponentInputMeaning(&masReleasedCommands, pcSource); }
 CComponentInputNumKey* CComponentInputDevice::GetNumKeyRemap(CInputSourceDesc* pcSource) { return FindComponentInputMeaning(&masNumKeys, pcSource); }
 CComponentInputKey* CComponentInputDevice::GetKey(CInputSourceDesc* pcSource) { return FindComponentInputMeaning(&masKeys, pcSource); }
-CInputDevice* CComponentInputDevice::GetDevice(void) { return mpcDevice; }
-bool CComponentInputDevice::IsMouse(void) { return mbMouse; }
+CInputDevice* CComponentInputDevice::GetDevice(void) const { return mpcDevice; }
+bool CComponentInputDevice::IsMouse(void) const { return mbMouse; }
 

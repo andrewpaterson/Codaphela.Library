@@ -149,7 +149,7 @@ void CFlowContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFlowContainer::IsHorizontal(void)
+bool CFlowContainer::IsHorizontal(void) const
 {
 	return (meDirection == CSD_Right) || (meDirection == CSD_Left);
 }
@@ -159,7 +159,7 @@ bool CFlowContainer::IsHorizontal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFlowContainer::IsReversed(void)
+bool CFlowContainer::IsReversed(void) const
 {
 	return (meDirection == CSD_Left) || (meDirection == CSD_Up);
 }

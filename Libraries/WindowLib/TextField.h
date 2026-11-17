@@ -73,17 +73,17 @@ public:
 	void						SetText(const char* szText);
 	char*						GetText(void);
 	CTextEditing*				GetEditing(void);
-	size						GetCaretPosition(void);
+	size						GetCaretPosition(void) const;
 	void						SetCaretPosition(size uiPosition);
 	bool						GetSelection(size* puiStart, size* puiEnd);
 	void						Select(size uiStart, size uiEnd);
 	void						SelectAll(void);
 	void						SetColumns(int32 iColumns);
-	int32						GetScroll(void);
+	int32						GetScroll(void) const;
 	int32						GetCharacterX(size uiPosition);
 	size						FindPositionAt(int x);
-	Ptr<CLabel>					GetTextLabel(void);
-	Ptr<CTextMarksCanvasDraw>	GetMarksDraw(void);
+	Ptr<CLabel>					GetTextLabel(void) const;
+	Ptr<CTextMarksCanvasDraw>	GetMarksDraw(void) const;
 
 	CComponentEvent<CTextField>*	GetChangeEvent(void);
 

@@ -61,8 +61,8 @@ void CTextAreaBands::Clear(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextAreaBands::Complete(void) { mbComplete = true; }  //The bands added are all of them.
-bool CTextAreaBands::IsComplete(void) { return mbComplete; }
-size CTextAreaBands::NumBands(void) { return masBands.NumElements(); }
+bool CTextAreaBands::IsComplete(void) const { return mbComplete; }
+size CTextAreaBands::NumBands(void) const { return masBands.NumElements(); }
 STextAreaBand* CTextAreaBands::Get(size uiIndex) { return masBands.Get(uiIndex); }
 
 

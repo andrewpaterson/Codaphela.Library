@@ -277,9 +277,9 @@ void CCheckBox::UpdateLook(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCheckBox::IsTicked(void) { return mbTicked; }
+bool CCheckBox::IsTicked(void) const { return mbTicked; }
 char* CCheckBox::GetCaption(void) { return mpCaption->GetText(); }
-ECheckBoxState CCheckBox::GetState(void) { return meState; }
-Ptr<CIconComponent> CCheckBox::GetBoxComponent(void) { return mpBox; }
-Ptr<CLabel> CCheckBox::GetCaptionLabel(void) { return mpCaption; }
+ECheckBoxState CCheckBox::GetState(void) const { return meState; }
+Ptr<CIconComponent> CCheckBox::GetBoxComponent(void) const { return mpBox; }
+Ptr<CLabel> CCheckBox::GetCaptionLabel(void) const { return mpCaption; }
 

@@ -157,7 +157,7 @@ bool CCommandKeyList::HasSameKeys(CCommandKeyList* pcOther)
 
 bool CCommandKeyList::Contains(const char* szContext, const char* szKeys) { return Find(szContext, szKeys) != ARRAY_ELEMENT_NOT_FOUND; }
 bool CCommandKeyList::ContainsKeys(const char* szKeys) { return maszKeys.Contains((char*)szKeys); }  //In any context.
-size CCommandKeyList::NumKeys(void) { return maszKeys.NumElements(); }
+size CCommandKeyList::NumKeys(void) const { return maszKeys.NumElements(); }
 char* CCommandKeyList::GetKeys(size uiIndex) { return maszKeys.GetText(uiIndex); }
 char* CCommandKeyList::GetContext(size uiIndex) { return maszContexts.GetText(uiIndex); }
 
@@ -255,7 +255,7 @@ bool CCommand::IsEnabled(void)
 // Whether the command turns something on and off, and whether it is on.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCommand::IsCheckable(void) { return msChecked.IsSet(); }
+bool CCommand::IsCheckable(void) const { return msChecked.IsSet(); }
 bool CCommand::IsChecked(void) { return msChecked.IsSet() && msChecked.Ask(); }
 
 
@@ -283,27 +283,27 @@ bool CCommand::Run(void)
 
 
 void CCommand::SetStandardCommand(EComponentInputCommand eStandard) { meStandard = eStandard; }  //A command without keys of its own shows eStandard's.
-EComponentInputCommand CCommand::GetStandardCommand(void) { return meStandard; }
+EComponentInputCommand CCommand::GetStandardCommand(void) const { return meStandard; }
 void CCommand::SetGivesStandard(bool bGivesStandard) { mbGivesStandard = bGivesStandard; }  //Its keys give its standard command (SetStandardCommand) for the parts of the window to take.
-bool CCommand::IsGivingStandard(void) { return mbGivesStandard; }
+bool CCommand::IsGivingStandard(void) const { return mbGivesStandard; }
 char* CCommand::GetName(void) { return mszName.Text(); }
 char* CCommand::GetCaption(void) { return mszCaption.Text(); }
-size CCommand::NumContexts(void) { return maszContexts.NumElements(); }
+size CCommand::NumContexts(void) const { return maszContexts.NumElements(); }
 char* CCommand::GetContext(size uiIndex) { return maszContexts.GetText(uiIndex); }
 char* CCommand::GetFirstContext(void) { return maszContexts.GetText(0); }
 void CCommand::SetKeptByKeymap(bool bKept) { mbKeptByKeymap = bKept; }
-bool CCommand::IsKeptByKeymap(void) { return mbKeptByKeymap; }
+bool CCommand::IsKeptByKeymap(void) const { return mbKeptByKeymap; }
 void CCommand::SetListedInKeymap(bool bListed) { mbListedInKeymap = bListed; }
-bool CCommand::IsListedInKeymap(void) { return mbListedInKeymap; }
-size CCommand::NumKeys(void) { return mcKeys.NumKeys(); }
+bool CCommand::IsListedInKeymap(void) const { return mbListedInKeymap; }
+size CCommand::NumKeys(void) const { return mcKeys.NumKeys(); }
 char* CCommand::GetKeys(size uiIndex) { return mcKeys.GetKeys(uiIndex); }
 char* CCommand::GetKeysContext(size uiIndex) { return mcKeys.GetContext(uiIndex); }
-size CCommand::NumDefaultKeys(void) { return mcDefaultKeys.NumKeys(); }
+size CCommand::NumDefaultKeys(void) const { return mcDefaultKeys.NumKeys(); }
 char* CCommand::GetDefaultKeys(size uiIndex) { return mcDefaultKeys.GetKeys(uiIndex); }
 char* CCommand::GetDefaultKeysContext(size uiIndex) { return mcDefaultKeys.GetContext(uiIndex); }
 CCommandKeyList* CCommand::GetKeyList(void) { return &mcKeys; }
 void CCommand::ClearKeys(void) { mcKeys.Clear(); }
-Ptr<CImageCel> CCommand::GetIcon(void) { return mpIcon; }
+Ptr<CImageCel> CCommand::GetIcon(void) const { return mpIcon; }
 
 
 //////////////////////////////////////////////////////////////////////////

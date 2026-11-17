@@ -57,9 +57,9 @@ public:
 	void			SetText(const char* szText);
 	char*			GetText(void);
 	void			SetFont(Ptr<CFont> pFont);
-	Ptr<CFont>		GetFont(void);
+	Ptr<CFont>		GetFont(void) const;
 
-	SInt32Vec2		GetRequiredSize(void);
+	SInt32Vec2		GetRequiredSize(void) const;
 	SInt32Vec2		GetDesiredSize(void) override;
 
 protected:

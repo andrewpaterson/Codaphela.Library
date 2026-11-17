@@ -164,7 +164,7 @@ void CNativeWindow::SetMinimumSize(int32 iWidth, int32 iHeight)
 // A main window, or a dialog with a minimum size.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNativeWindow::IsResizable(void)
+bool CNativeWindow::IsResizable(void) const
 {
 	return !mpcOwner || ((msMinimumSize.x >= 0) && (msMinimumSize.y >= 0));
 }
@@ -211,10 +211,10 @@ void CNativeWindow::WaitForEvents(int64 iMilliseconds)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNativeWindow* CNativeWindow::GetOwner(void) { return mpcOwner; }
-SInt32Vec2 CNativeWindow::GetRequestedSize(void) { return msRequestedSize; }
-SInt32Vec2 CNativeWindow::GetMinimumSize(void) { return msMinimumSize; }
-bool CNativeWindow::IsEnabled(void) { return mbEnabled; }
+CNativeWindow* CNativeWindow::GetOwner(void) const { return mpcOwner; }
+SInt32Vec2 CNativeWindow::GetRequestedSize(void) const { return msRequestedSize; }
+SInt32Vec2 CNativeWindow::GetMinimumSize(void) const { return msMinimumSize; }
+bool CNativeWindow::IsEnabled(void) const { return mbEnabled; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -326,8 +326,8 @@ void CNativeWindow::Raise(void)
 }
 
 
-bool CNativeWindow::IsTool(void) { return mbTool; }
-ENativeCursor CNativeWindow::GetCursor(void) { return meCursor; }
+bool CNativeWindow::IsTool(void) const { return mbTool; }
+ENativeCursor CNativeWindow::GetCursor(void) const { return meCursor; }
 
 
 //////////////////////////////////////////////////////////////////////////

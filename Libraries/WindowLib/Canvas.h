@@ -64,35 +64,35 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	EColourFormat		GetColourFormat(void);
-	EColourOrder		GetColourOrder(void);
-	ERGBColourBits		GetColourBits(void);
-	ERGBAlphaBits		GetAlphaBits(void);
+	EColourFormat		GetColourFormat(void) const;
+	EColourOrder		GetColourOrder(void) const;
+	ERGBColourBits		GetColourBits(void) const;
+	ERGBAlphaBits		GetAlphaBits(void) const;
 	void				GetColourFormat(CColourFormatHelper* pcDest);
-	bool				IsValid(void);
+	bool				IsValid(void) const;
 
 	bool				SetTransparent(bool bTransparent);
-	bool				IsTransparent(void);
+	bool				IsTransparent(void) const;
 
-	uint8*				GetPixelData(void);
+	uint8*				GetPixelData(void) const;
 
-	CNativeCanvas*		GetNativeCanvas(void);
-	Ptr<CCanvasDraw>	GetCanvasDraw(void);
+	CNativeCanvas*		GetNativeCanvas(void) const;
+	Ptr<CCanvasDraw>	GetCanvasDraw(void) const;
 	void				SetCanvasDraw(Ptr<CCanvasDraw> pDraw);
-	bool				HasNativeChanged(void);
-	bool				HasArea(void);
+	bool				HasNativeChanged(void) const;
+	bool				HasArea(void) const;
 	bool				IsSolidInWindow(Ptr<CCanvas> pWindowCanvas, ARGB32* psColour);
 	void				UpdateNativeArea(void);
 	void				UpdateNativeArea(bool bClipped, CInt32Rect* pcClip);
-	bool				IsContentDirty(void);
+	bool				IsContentDirty(void) const;
 	void				SetDrawnEveryPaint(bool bDrawnEveryPaint);
-	bool				IsDrawnEveryPaint(void);
-	SInt32Vec2			GetNativeOrigin(void);
-	SInt32Vec2			GetNativeSize(void);
+	bool				IsDrawnEveryPaint(void) const;
+	SInt32Vec2			GetNativeOrigin(void) const;
+	SInt32Vec2			GetNativeSize(void) const;
 	bool				PrepareNativeCanvas(SInt32Vec2 sSize);
 
 	bool				SetContainer(Ptr<CContainer> pContainer);
-	Ptr<CContainer>		GetContainer(void);
+	Ptr<CContainer>		GetContainer(void) const;
 	bool				ClearContainer(void);
 
 	bool				Draw(void) override;
@@ -121,7 +121,7 @@ protected:
 	void				DrawParts(void);
 	void				DamagePart(CInt32Rect* pcRect);
 	void				MarkContentChanged(void) override;
-	EColourFormat		GetTransparentColourFormat(void);
+	EColourFormat		GetTransparentColourFormat(void) const;
 	void				DrawFilledBoxClipped(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour);
 	void				GetDrawableBounds(CInt32Rect* pcDest);
 };

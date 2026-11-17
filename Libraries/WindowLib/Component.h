@@ -113,11 +113,11 @@ public:
 	virtual	bool				CanDoCommand(EComponentInputCommand eCommand);
 	virtual	void				PopupClosed(Ptr<CComponent> pContent);  //Overrides call it.
 	virtual	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem);
-			Ptr<CComponent>		GetParent(void);
-			Ptr<CWindow>		GetWindow(void);
+			Ptr<CComponent>		GetParent(void) const;
+			Ptr<CWindow>		GetWindow(void) const;
 			void				MoveToWindow(Ptr<CWindow> pWindow);
 			void				SetCursor(ENativeCursor eCursor);
-			ENativeCursor		GetCursor(void);
+			ENativeCursor		GetCursor(void) const;
 			void				SetToolTip(const char* szToolTip);
 	virtual	bool				GetToolTip(CChars* pszDest);
 	virtual	void				Invalidate(void);
@@ -128,17 +128,17 @@ public:
 			void				SetActualSize(SInt32Vec2 sSize);
 			void				SetPosition(int x, int y);
 			void				SetPosition(SInt32Vec2 sPosition);
-			SInt32Vec2			GetPosition(void);
+			SInt32Vec2			GetPosition(void) const;
 	virtual	SInt32Vec2			GetDesiredSize(void);
 	virtual	void				ScrollToShow(CInt32Rect* pcRect);
 	virtual	bool				GetScrollView(CInt32Rect* pcDest);
 			void				SetDesiredSize(int iWidth, int iHeight);
-			SInt32Vec2			GetActualSize(void);
+			SInt32Vec2			GetActualSize(void) const;
 			void				GetActualBounds(CInt32Rect* pcDest);
 
 			void						SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);
-			EContainerStyleHorizontal	GetHorizontalAlignment(void);
-			EContainerStyleVertical		GetVerticalAlignment(void);
+			EContainerStyleHorizontal	GetHorizontalAlignment(void) const;
+			EContainerStyleVertical		GetVerticalAlignment(void) const;
 
 	template<class M, class O>
 			Ptr<CInputAction>	AddInputAction(EInputActionFilter eFilter, const char* szName, O* pcObject, void(M::*fFunction)(SComponentInputEvent*));

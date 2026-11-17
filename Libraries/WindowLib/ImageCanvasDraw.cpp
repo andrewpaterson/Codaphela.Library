@@ -156,7 +156,7 @@ void CImageCanvasDraw::SetCelAlignment(EContainerStyleHorizontal eHorizontal, EC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CImageCanvasDraw::GetCel(void)
+Ptr<CImageCel> CImageCanvasDraw::GetCel(void) const
 {
 	return mpCel;
 }

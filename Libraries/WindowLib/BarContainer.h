@@ -48,8 +48,8 @@ public:
 	void				Append(Ptr<CComponent> pComponent);
 	void				AddGap(int32 iPixels);
 	void				AddStretch(void);
-	bool				IsVertical(void);
-	bool				IsStretched(void);
+	bool				IsVertical(void) const;
+	bool				IsStretched(void) const;
 
 protected:
 	bool				AppendStretch(Ptr<CComponent> pComponent);

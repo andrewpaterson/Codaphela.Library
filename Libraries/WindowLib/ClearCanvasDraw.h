@@ -42,7 +42,7 @@ public:
 	bool	CanDrawPart(Ptr<CCanvas> pCanvas) override;
 
 	void	SetColour(ARGB32 sColour);
-	ARGB32	GetColour(void);
+	ARGB32	GetColour(void) const;
 };
 
 

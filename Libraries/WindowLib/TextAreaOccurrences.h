@@ -65,20 +65,20 @@ public:
 	void					Kill(void);
 
 	void					SetHighlighting(bool bHighlighting);
-	bool					IsHighlighting(void);
+	bool					IsHighlighting(void) const;
 	void					TextSet(void);
 	void					DocumentChanged(STextDocumentChange* psChange) override;
 
 	bool					IsFoundFor(size uiStart, size uiEnd);
 	bool					Request(size uiStart, size uiEnd);
 	bool					Find(size uiStart, size uiEnd);
-	size					NumFound(void);
+	size					NumFound(void) const;
 	STextRange*				GetFound(size uiIndex);
 	void					AddFound(CTextAreaShapes* pcShapes, Ptr<CGeometryMap> pMap, ARGB32 sColour);
 
 	void					SetRanges(STextOccurrenceRange* asRanges, size uiNumRanges);
 	bool					ClearRanges(void);
-	size					NumRanges(void);
+	size					NumRanges(void) const;
 	STextOccurrenceRange*	GetRange(size uiIndex);
 	void					AddRanges(CTextAreaShapes* pcShapes, Ptr<CGeometryMap> pMap, ARGB32 sColour, ARGB32 sWriteColour);
 };

@@ -45,7 +45,7 @@ void CNativeComponent::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNativeWindowFactory* CNativeComponent::GetFactory(void)
+CNativeWindowFactory* CNativeComponent::GetFactory(void) const
 {
 	return mpcWindowFactory;
 }

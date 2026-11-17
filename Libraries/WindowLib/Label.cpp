@@ -174,7 +174,7 @@ void CLabel::LayoutText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CLabel::GetRequiredSize(void)
+SInt32Vec2 CLabel::GetRequiredSize(void) const
 {
 	return msRequiredSize;
 }
@@ -203,4 +203,4 @@ SInt32Vec2 CLabel::GetDesiredSize(void)
 
 
 char* CLabel::GetText(void) { return mszText.Text(); }
-Ptr<CFont> CLabel::GetFont(void) { return mpFont; }
+Ptr<CFont> CLabel::GetFont(void) const { return mpFont; }

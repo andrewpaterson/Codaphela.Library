@@ -355,7 +355,7 @@ void CListContainer::SetMultiSelect(bool bMultiSelect)
 }
 
 
-bool CListContainer::IsMultiSelect(void) { return mbMultiSelect; }
+bool CListContainer::IsMultiSelect(void) const { return mbMultiSelect; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1127,15 +1127,15 @@ void CListContainer::SetHover(int32 iRow)
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::RowSelected(int32 iRow) {}
 void CListContainer::RowActivated(int32 iRow) {}
-int32 CListContainer::NumRows(void) { return (int32)mabEnabled.NumElements(); }
-int32 CListContainer::GetSelected(void) { return miSelected; }
-int32 CListContainer::GetHover(void) { return miHover; }
+int32 CListContainer::NumRows(void) const { return (int32)mabEnabled.NumElements(); }
+int32 CListContainer::GetSelected(void) const { return miSelected; }
+int32 CListContainer::GetHover(void) const { return miHover; }
 void CListContainer::SetSelectOnHover(bool bSelectOnHover) { mbSelectOnHover = bSelectOnHover; }
-bool CListContainer::IsSelectOnHover(void) { return mbSelectOnHover; }
+bool CListContainer::IsSelectOnHover(void) const { return mbSelectOnHover; }
 void CListContainer::SetDoubleClickActivates(bool bDoubleClickActivates) { mbDoubleClickActivates = bDoubleClickActivates; msDoubleClick.Forget(); }
-bool CListContainer::IsDoubleClickActivates(void) { return mbDoubleClickActivates; }
+bool CListContainer::IsDoubleClickActivates(void) const { return mbDoubleClickActivates; }
 void CListContainer::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; LayoutChanged(); }  //A page when no scroll pane shows the list.
 void CListContainer::SetWrapAround(bool bWrapAround) { mbWrapAround = bWrapAround; }  //Up from the first row goes to the last, and down from the last to the first.
-Ptr<CCanvas> CListContainer::GetSelectedHighlight(void) { return mpSelectedHighlight; }
-Ptr<CCanvas> CListContainer::GetHoverHighlight(void) { return mpHoverHighlight; }
+Ptr<CCanvas> CListContainer::GetSelectedHighlight(void) const { return mpSelectedHighlight; }
+Ptr<CCanvas> CListContainer::GetHoverHighlight(void) const { return mpHoverHighlight; }
 

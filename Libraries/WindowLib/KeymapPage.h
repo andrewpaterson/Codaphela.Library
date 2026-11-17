@@ -91,7 +91,7 @@ public:
 	bool			Show(void);
 	char*			GetKeys(void);
 	void			SetKeys(const char* szKeys);
-	Ptr<CDialog>	GetDialog(void);
+	Ptr<CDialog>	GetDialog(void) const;
 	const char*		GetContext(void);
 	bool			Approve(void);
 

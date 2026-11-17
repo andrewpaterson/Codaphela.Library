@@ -83,7 +83,7 @@ bool CTextBackgrounds::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextBackgrounds::NumBackgrounds(void)
+size CTextBackgrounds::NumBackgrounds(void) const
 {
 	return masBackgrounds.NumElements();
 }

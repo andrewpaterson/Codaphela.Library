@@ -142,23 +142,23 @@ void CMenuStyle::SetIconWidth(int32 iIconWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFont> CMenuStyle::GetFont(void) { return mpFont; }
-Ptr<CFont> CMenuStyle::GetDimFont(void) { return mpDimFont; }
-Ptr<CButtonImages> CMenuStyle::GetBarButtonImages(void) { return mpBarButtonImages; }
-Ptr<CImageCel> CMenuStyle::GetChevron(void) { return mpChevron; }
-ARGB32 CMenuStyle::GetBarBackground(void) { return msBarBackground; }
-ARGB32 CMenuStyle::GetMenuBackground(void) { return msMenuBackground; }
-ARGB32 CMenuStyle::GetMenuBorder(void) { return msMenuBorder; }
-ARGB32 CMenuStyle::GetSelected(void) { return msSelected; }
-ARGB32 CMenuStyle::GetHover(void) { return msHover; }
-ARGB32 CMenuStyle::GetSeparator(void) { return msSeparator; }
+Ptr<CFont> CMenuStyle::GetFont(void) const { return mpFont; }
+Ptr<CFont> CMenuStyle::GetDimFont(void) const { return mpDimFont; }
+Ptr<CButtonImages> CMenuStyle::GetBarButtonImages(void) const { return mpBarButtonImages; }
+Ptr<CImageCel> CMenuStyle::GetChevron(void) const { return mpChevron; }
+ARGB32 CMenuStyle::GetBarBackground(void) const { return msBarBackground; }
+ARGB32 CMenuStyle::GetMenuBackground(void) const { return msMenuBackground; }
+ARGB32 CMenuStyle::GetMenuBorder(void) const { return msMenuBorder; }
+ARGB32 CMenuStyle::GetSelected(void) const { return msSelected; }
+ARGB32 CMenuStyle::GetHover(void) const { return msHover; }
+ARGB32 CMenuStyle::GetSeparator(void) const { return msSeparator; }
 SInsets* CMenuStyle::GetMenuInsets(void) { return &msMenuInsets; }
-int32 CMenuStyle::GetIconWidth(void) { return miIconWidth; }
-int32 CMenuStyle::GetChevronWidth(void) { return miChevronWidth; }
-int32 CMenuStyle::GetItemPadding(void) { return miItemPadding; }
-int32 CMenuStyle::GetSeparatorHeight(void) { return miSeparatorHeight; }
-SInt32Vec2 CMenuStyle::GetBarPadding(void) { return msBarPadding; }
-int32 CMenuStyle::GetSelectionRadius(void) { return miSelectionRadius; }
-int32 CMenuStyle::GetSelectionInset(void) { return miSelectionInset; }
-int32 CMenuStyle::GetSeparatorInset(void) { return miSeparatorInset; }
+int32 CMenuStyle::GetIconWidth(void) const { return miIconWidth; }
+int32 CMenuStyle::GetChevronWidth(void) const { return miChevronWidth; }
+int32 CMenuStyle::GetItemPadding(void) const { return miItemPadding; }
+int32 CMenuStyle::GetSeparatorHeight(void) const { return miSeparatorHeight; }
+SInt32Vec2 CMenuStyle::GetBarPadding(void) const { return msBarPadding; }
+int32 CMenuStyle::GetSelectionRadius(void) const { return miSelectionRadius; }
+int32 CMenuStyle::GetSelectionInset(void) const { return miSelectionInset; }
+int32 CMenuStyle::GetSeparatorInset(void) const { return miSeparatorInset; }
 

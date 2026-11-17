@@ -178,7 +178,7 @@ SInt32Vec2 CButtonBar::GetRowSize(CArrayInt* paiWidths)
 
 
 void CButtonBar::SetGap(int32 iGap) { miGap = iGap; LayoutChanged(); }
-int32 CButtonBar::GetGap(void) { return miGap; }
+int32 CButtonBar::GetGap(void) const { return miGap; }
 void CButtonBar::SetButtonAlignment(EContainerStyleHorizontal eAlignment) { meButtonAlignment = eAlignment; LayoutChanged(); }
-EContainerStyleHorizontal CButtonBar::GetButtonAlignment(void) { return meButtonAlignment; }
+EContainerStyleHorizontal CButtonBar::GetButtonAlignment(void) const { return meButtonAlignment; }
 

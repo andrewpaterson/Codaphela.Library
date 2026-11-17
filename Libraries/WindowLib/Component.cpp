@@ -778,7 +778,7 @@ void CComponent::SetActualSize(int iWidth, int iHeight) { mcActualBounds.SetSize
 void CComponent::SetActualSize(SInt32Vec2 sSize) { mcActualBounds.SetSize(sSize.x, sSize.y); }
 void CComponent::SetPosition(int x, int y) { mcActualBounds.SetPos(x, y); }
 void CComponent::SetPosition(SInt32Vec2 sPosition) { mcActualBounds.SetPos(sPosition.x, sPosition.y); }
-SInt32Vec2 CComponent::GetPosition(void) { return mcActualBounds.msTopLeft; }
+SInt32Vec2 CComponent::GetPosition(void) const { return mcActualBounds.msTopLeft; }
 bool CComponent::CanGetFocus(void) { return mbCanGetFocus; }
 void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocus; }
 void CComponent::SetHitAsWhole(bool bHitAsWhole) { mbHitAsWhole = bHitAsWhole; }  //A component made of others, like a button, has the pointer over it and takes focus rather than its parts.
@@ -788,8 +788,8 @@ bool CComponent::IsTabStop(void) { return mbCanGetFocus; }  //Tab can move the f
 const char* CComponent::GetKeyContext(void) { return NULL; }  //The context its keys are read in (see CComponentInput::AddContext), NULL for its parent's (the global keys at the top).
 bool CComponent::TakesTyping(void) { return false; }  //A key that types is a character for it, so a context's bare keys aren't read for the component under the pointer.
 void CComponent::PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) {}  //An item in a popup this component opened, like a menu's, was clicked.  The popup has closed.
-Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
-Ptr<CWindow> CComponent::GetWindow(void) { return mpWindow; }
+Ptr<CComponent> CComponent::GetParent(void) const { return mpParent; }
+Ptr<CWindow> CComponent::GetWindow(void) const { return mpWindow; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -923,11 +923,11 @@ size CComponent::CheckLayout(CArrayTemplate<SInt32Vec2>* pasBounds, size uiIndex
 void CComponent::ScrollToShow(CInt32Rect* pcRect) { if (mpParent) { mpParent->ScrollToShow(pcRect); } }  //pcRect is in the window's space.  A component that scrolls its content, like a scroll pane, moves it to show the rect.
 bool CComponent::GetScrollView(CInt32Rect* pcDest) { if (mpParent) { return mpParent->GetScrollView(pcDest); } return false; }  //The part of the window the component is seen through when it is scrolled.  False if nothing scrolls it.
 void CComponent::SetDesiredSize(int iWidth, int iHeight) { msDesiredSize.Init(iWidth, iHeight); InvalidateLayout(); }
-SInt32Vec2 CComponent::GetActualSize(void) { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }
+SInt32Vec2 CComponent::GetActualSize(void) const { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }
 SInt32Vec2 CComponent::GetDesiredSize(void) { return msDesiredSize; }
 void CComponent::SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical) { meHorizontalAlignment = eHorizontal; meVerticalAlignment = eVertical; InvalidateLayout(); }
-EContainerStyleHorizontal CComponent::GetHorizontalAlignment(void) { return meHorizontalAlignment; }
-EContainerStyleVertical CComponent::GetVerticalAlignment(void) { return meVerticalAlignment; }
+EContainerStyleHorizontal CComponent::GetHorizontalAlignment(void) const { return meHorizontalAlignment; }
+EContainerStyleVertical CComponent::GetVerticalAlignment(void) const { return meVerticalAlignment; }
 
 
 
@@ -1108,7 +1108,7 @@ void CComponent::SetCursor(ENativeCursor eCursor)
 }
 
 
-ENativeCursor CComponent::GetCursor(void) { return meCursor; }
+ENativeCursor CComponent::GetCursor(void) const { return meCursor; }
 
 
 //////////////////////////////////////////////////////////////////////////

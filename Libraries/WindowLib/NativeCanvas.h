@@ -55,11 +55,11 @@ protected:
 	virtual void		DrawCel(int iX, int iY, Ptr<CImageCel> pSource) =0;
 	virtual void		DrawImage(int iX, int iY, Ptr<CImage> pSource) =0;
 
-			SInt32Vec2	GetSize(void);
+			SInt32Vec2	GetSize(void) const;
 			void		SetSize(int x, int y);
 
 			void		SetImage(Ptr<CImage> pImage);
-			Ptr<CImage>	GetImage(void);
+			Ptr<CImage>	GetImage(void) const;
 };
 
 

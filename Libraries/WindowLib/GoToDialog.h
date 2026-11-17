@@ -60,7 +60,7 @@ public:
 	void		Clear(void);
 
 	SGoToItem*	Add(const char* szName, const char* szLocation, int32 iIcon, size uiData, SNameMatch* psMatch);
-	size		NumItems(void);
+	size		NumItems(void) const;
 	SGoToItem*	Get(size uiIndex);
 	void		Sort(void);
 };
@@ -120,15 +120,15 @@ public:
 	void				SetText(const char* szText);
 	void				SelectTab(size uiTab);
 	size				GetTab(void);
-	size				NumResults(void);
+	size				NumResults(void) const;
 	SGoToItem*			GetResult(size uiIndex);
 	int32				GetSelected(void);
 	SGoToItem*			GetChosen(void);
-	int32				GetLine(void);
+	int32				GetLine(void) const;
 	char*				GetPattern(void);
-	Ptr<CTextField>		GetField(void);
-	Ptr<CListContainer>	GetList(void);
-	Ptr<CDialog>		GetDialog(void);
+	Ptr<CTextField>		GetField(void) const;
+	Ptr<CListContainer>	GetList(void) const;
+	Ptr<CDialog>		GetDialog(void) const;
 
 	void			Search(void);
 	bool			Approve(void);

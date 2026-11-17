@@ -300,6 +300,6 @@ CClipboard* CClipboard::FindDetached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CWindow> CClipboard::GetWindow(void) { return mpWindow; }
-CNativeClipboard* CClipboard::GetNativeClipboard(void) { return mpcNativeClipboard; }
+Ptr<CWindow> CClipboard::GetWindow(void) const { return mpWindow; }
+CNativeClipboard* CClipboard::GetNativeClipboard(void) const { return mpcNativeClipboard; }
 

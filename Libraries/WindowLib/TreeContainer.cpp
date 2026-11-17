@@ -924,7 +924,7 @@ void CTreeContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 }
 
 
-int32 CTreeContainer::NumNodes(void) { return (int32)masNodes.NumElements(); }
+int32 CTreeContainer::NumNodes(void) const { return (int32)masNodes.NumElements(); }
 int64 CTreeContainer::GetNodeData(int32 iNode) { return masNodes.Get(iNode)->iData; }
 int32 CTreeContainer::GetNodeParent(int32 iNode) { return masNodes.Get(iNode)->iParent; }
 int32 CTreeContainer::GetNodeDepth(int32 iNode) { return masNodes.Get(iNode)->iDepth; }

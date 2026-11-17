@@ -275,7 +275,7 @@ void CDockDrag::Start(Ptr<CDockFloatingWindow> pFloating, SInt32Vec2 sGrab, Ptr<
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDockDrag::IsDragging(void)
+bool CDockDrag::IsDragging(void) const
 {
 	return mpTracker.IsNotNull();
 }
@@ -574,5 +574,5 @@ void CDockDrag::Drop(Ptr<CDockFloatingWindow> pFloating, SDockTarget* psTarget, 
 
 
 SDockTarget*				CDockDrag::GetTarget(void) { return &msTarget; }
-Ptr<CDockFloatingWindow>	CDockDrag::GetFloating(void) { return mpFloating; }
+Ptr<CDockFloatingWindow>	CDockDrag::GetFloating(void) const { return mpFloating; }
 

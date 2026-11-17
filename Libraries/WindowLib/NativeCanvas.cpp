@@ -67,7 +67,7 @@ void CNativeCanvas::SetImage(Ptr<CImage> pImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CNativeCanvas::GetImage(void)
+Ptr<CImage> CNativeCanvas::GetImage(void) const
 {
 	if (mpcCanvas)
 	{
@@ -136,7 +136,7 @@ void CNativeCanvas::Clear(CInt32Rect* pcRect)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CNativeCanvas::GetSize(void)
+SInt32Vec2 CNativeCanvas::GetSize(void) const
 {
 	return msSize;
 }

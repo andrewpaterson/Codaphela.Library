@@ -2084,10 +2084,10 @@ bool CComponentInput::IsSourceDown(const char* szFriendlyName)
 bool		CComponentInput::IsShift(void) { return IsKeyDown(CIK_Shift); }
 bool		CComponentInput::IsControl(void) { return IsKeyDown(CIK_Control); }
 bool		CComponentInput::IsAlt(void) { return IsKeyDown(CIK_Alt); }
-bool		CComponentInput::IsCapsLock(void) { return mbCapsLock; }
-bool		CComponentInput::IsNumLock(void) { return mbNumLock; }
-bool		CComponentInput::IsInsert(void) { return mbInsert; }
-CWindowInputSource*	CComponentInput::GetSource(void) { return mpcSource; }
+bool		CComponentInput::IsCapsLock(void) const { return mbCapsLock; }
+bool		CComponentInput::IsNumLock(void) const { return mbNumLock; }
+bool		CComponentInput::IsInsert(void) const { return mbInsert; }
+CWindowInputSource*	CComponentInput::GetSource(void) const { return mpcSource; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2106,7 +2106,7 @@ void CComponentInput::SetWindow(CWindow* pcWindow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CWindow* CComponentInput::GetWindow(void)
+CWindow* CComponentInput::GetWindow(void) const
 {
 	return mpcWindow;
 }

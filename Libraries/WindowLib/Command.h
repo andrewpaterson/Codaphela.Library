@@ -51,7 +51,7 @@ public:
 	bool	Contains(const char* szContext, const char* szKeys);
 	bool	ContainsKeys(const char* szKeys);
 	bool	HasSameKeys(CCommandKeyList* pcOther);
-	size	NumKeys(void);
+	size	NumKeys(void) const;
 	char*	GetKeys(size uiIndex);
 	char*	GetContext(size uiIndex);
 };
@@ -114,29 +114,29 @@ public:
 	bool					IsEnabled(void);
 	template<class M, class O>
 	void					SetCheckedCheck(O* pcObject, bool(M::*fIsChecked)(void));
-	bool					IsCheckable(void);
+	bool					IsCheckable(void) const;
 	bool					IsChecked(void);
 	bool					Run(void);
 	void					SetStandardCommand(EComponentInputCommand eStandard);
-	EComponentInputCommand	GetStandardCommand(void);
+	EComponentInputCommand	GetStandardCommand(void) const;
 	void					SetGivesStandard(bool bGivesStandard);
-	bool					IsGivingStandard(void);
+	bool					IsGivingStandard(void) const;
 
 	char*				GetName(void);
 	char*				GetCaption(void);
 	void				SetContext(const char* szContext);
 	void				AllowContext(const char* szContext);
 	bool				IsContextAllowed(const char* szContext);
-	size				NumContexts(void);
+	size				NumContexts(void) const;
 	char*				GetContext(size uiIndex);
 	char*				GetFirstContext(void);
 	void				SetKeptByKeymap(bool bKept);
-	bool				IsKeptByKeymap(void);
+	bool				IsKeptByKeymap(void) const;
 	void				SetListedInKeymap(bool bListed);
-	bool				IsListedInKeymap(void);
+	bool				IsListedInKeymap(void) const;
 
 	char*				GetKeys(void);
-	size				NumKeys(void);
+	size				NumKeys(void) const;
 	char*				GetKeys(size uiIndex);
 	char*				GetKeysContext(size uiIndex);
 	bool				HasKeys(const char* szKeys, const char* szContext = NULL);
@@ -148,13 +148,13 @@ public:
 	void				ClearKeys(void);
 	void				ResetKeys(void);
 	bool				HasDefaultKeys(void);
-	size				NumDefaultKeys(void);
+	size				NumDefaultKeys(void) const;
 	char*				GetDefaultKeys(size uiIndex);
 	char*				GetDefaultKeysContext(size uiIndex);
 	CCommandKeyList*	GetKeyList(void);
 	bool				Bind(CComponentInput* pcInput);
 	void				Unbind(CComponentInput* pcInput);
-	Ptr<CImageCel>		GetIcon(void);
+	Ptr<CImageCel>		GetIcon(void) const;
 	bool				AppendKeysText(CChars* pszDest, CComponentInput* pcInput);
 
 protected:

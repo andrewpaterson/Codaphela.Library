@@ -298,9 +298,9 @@ void CSoundStreamVoice::SetLatency(uint32 uiLatencyMs, uint32 uiMaxLatencyMs)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSound> CSoundStreamVoice::GetBuffer(void) { return mpBuffer; }
-lsize CSoundStreamVoice::NumWaitingFrames(void) { return muiWaitingFrames; }
-uint64 CSoundStreamVoice::NumFramesPlayed(void) { return muiFramesPlayed; }
-uint64 CSoundStreamVoice::NumDroppedFrames(void) { return muiDroppedFrames; }
-uint64 CSoundStreamVoice::NumUnderruns(void) { return muiUnderruns; }
+Ptr<CSound> CSoundStreamVoice::GetBuffer(void) const { return mpBuffer; }
+lsize CSoundStreamVoice::NumWaitingFrames(void) const { return muiWaitingFrames; }
+uint64 CSoundStreamVoice::NumFramesPlayed(void) const { return muiFramesPlayed; }
+uint64 CSoundStreamVoice::NumDroppedFrames(void) const { return muiDroppedFrames; }
+uint64 CSoundStreamVoice::NumUnderruns(void) const { return muiUnderruns; }
 

@@ -56,8 +56,8 @@ public:
 	Ptr<CMenuBarItem>	AddMenu(const char* szText, Ptr<CMenuContainer> pMenu, Ptr<CImageCel> pIcon = NULL);
 	size				NumMenus(void);
 	Ptr<CMenuBarItem>	GetItem(size uiIndex);
-	Ptr<CMenuBarItem>	GetOpenItem(void);
-	Ptr<CMenuStyle>		GetStyle(void);
+	Ptr<CMenuBarItem>	GetOpenItem(void) const;
+	Ptr<CMenuStyle>		GetStyle(void) const;
 
 	void				OpenMenu(Ptr<CMenuBarItem> pItem, bool bSelectFirst);
 	void				CloseMenu(void);

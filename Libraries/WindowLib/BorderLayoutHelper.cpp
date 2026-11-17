@@ -86,7 +86,7 @@ bool CBorderLayoutHelper::AddComponent(Ptr<CComponent> pComponent, EBorderLayout
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGridContainer* CBorderLayoutHelper::GetContainer(void)
+CGridContainer* CBorderLayoutHelper::GetContainer(void) const
 {
 	return mpcGrid;
 }

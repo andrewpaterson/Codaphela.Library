@@ -48,7 +48,7 @@ public:
 
 	bool		Draw(Ptr<CCanvas> pCanvas) override;
 	void		SetColour(ARGB32 sColour);
-	ARGB32		GetColour(void);
+	ARGB32		GetColour(void) const;
 
 protected:
 	void		MakeCel(Ptr<CCanvas> pCanvas, SInt32Vec2 sSize);

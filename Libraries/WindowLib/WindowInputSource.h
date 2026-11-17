@@ -75,7 +75,7 @@ public:
 	bool					Load(CObjectReader* pcFile) override;
 
 	void					Update(void);
-	size					NumEvents(void);
+	size					NumEvents(void) const;
 	bool					GetEvictionDelay(uint32* puiMilliseconds);
 	SWindowInputEvent*		GetEvent(size uiIndex);
 
@@ -87,7 +87,7 @@ public:
 	bool					AddKeyChord(const char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
 	bool					AddKeyChord(const char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc** apcModifiers, size uiNumModifiers, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
 	bool					AddKeySequenceChord(const char* szName, CInputDevice* pcKeyboard, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputSourceDesc* pcFirstKey, CInputSourceDesc* pcSecondKey, bool bFirstModifierLetGo, bool bSecondModifierLetGo, uint32 uiEvictionMilliseconds);
-	CInputVirtualDevice*	GetVirtualDevice(void);
+	CInputVirtualDevice*	GetVirtualDevice(void) const;
 
 	bool					IsDown(CInputDevice* pcDevice, CInputSourceDesc* pcSource);
 	void					ForgetDown(void);

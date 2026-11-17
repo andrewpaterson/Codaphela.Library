@@ -66,16 +66,16 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	Ptr<CComponent>		GetContent(void);
-	Ptr<CComponent>		GetOwner(void);
+	Ptr<CComponent>		GetContent(void) const;
+	Ptr<CComponent>		GetOwner(void) const;
 	void				SetOpenPosition(SInt32Vec2 sPosition);
 	void				SetOwnerPressKeepsOpen(bool bKeepsOpen);
-	bool				IsOwnerPressKeepsOpen(void);
+	bool				IsOwnerPressKeepsOpen(void) const;
 	CComponentEvent<CPopup>*	GetClosedEvent(void);
 	void				SetPointerPasses(bool bPasses);
 	void				SetMaximumHeight(int32 iHeight, Ptr<CWindowTheme> pTheme);
-	int32				GetMaximumHeight(void);
-	Ptr<CScrollPane>	GetScrollPane(void);
+	int32				GetMaximumHeight(void) const;
+	Ptr<CScrollPane>	GetScrollPane(void) const;
 	bool				RemoveAllComponents(void) override;
 	Ptr<CComponent>		FindComponentAt(int x, int y) override;
 	void				SetLook(ARGB32 sBackground, ARGB32 sBorder, SInsets* psInsets);

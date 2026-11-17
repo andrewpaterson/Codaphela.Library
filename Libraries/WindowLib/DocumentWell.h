@@ -51,7 +51,7 @@ public:
 	void				SetRoot(Ptr<CDockNode> pRoot);
 	bool				ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew) override;
 	bool				RemoveNode(Ptr<CDockNode> pNode) override;
-	Ptr<CDockNode>		GetRoot(void);
+	Ptr<CDockNode>		GetRoot(void) const;
 };
 
 

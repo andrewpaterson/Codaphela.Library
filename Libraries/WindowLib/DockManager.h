@@ -64,7 +64,7 @@ struct SDockTarget
 	CInt32Rect			cPreview;
 
 	void	Init(void);
-	bool	IsValid(void);
+	bool	IsValid(void) const;
 	bool	Equals(SDockTarget* psOther);
 };
 
@@ -115,11 +115,11 @@ public:
 	Ptr<CDocumentWell>			GetWell(void);
 	Ptr<CWindow>				GetWindow(void);
 	void						SetListener(CDockManagerListener* pcListener);
-	Ptr<CWindowTheme>			GetTheme(void);
-	Ptr<CDockState>				GetState(void);
+	Ptr<CWindowTheme>			GetTheme(void) const;
+	Ptr<CDockState>				GetState(void) const;
 	Ptr<CDockPane>				GetMenuPane(void);
-	Ptr<CFont>					GetFont(void);
-	Ptr<CFont>					GetTurnedFont(void);
+	Ptr<CFont>					GetFont(void) const;
+	Ptr<CFont>					GetTurnedFont(void) const;
 	ARGB32						GetColour(EThemeColour eColour);
 	int32						GetMetric(EThemeMetric eMetric);
 	void						SetColour(EThemeColour eColour, ARGB32 sColour);

@@ -73,23 +73,23 @@ public:
 	void				SetIcon(Ptr<CImageCel> pIcon);
 	Ptr<CImageCel>		GetIcon(void);
 	void				SetIconGap(int32 iIconGap);
-	Ptr<CIconComponent>	GetIconComponent(void);
-	Ptr<CLabel>			GetCaptionLabel(void);
+	Ptr<CIconComponent>	GetIconComponent(void) const;
+	Ptr<CLabel>			GetCaptionLabel(void) const;
 
 	CComponentEvent<CButton>*	GetClickEvent(void);
 	void						Click(void);
 	void						SetCommand(Ptr<CCommand> pCommand);
-	Ptr<CCommand>				GetCommand(void);
+	Ptr<CCommand>				GetCommand(void) const;
 	bool						GetToolTip(CChars* pszDest) override;
 
-	EButtonState		GetState(void);
-	bool				IsPressed(void);
+	EButtonState		GetState(void) const;
+	bool				IsPressed(void) const;
 	void				SetDefault(bool bDefault);
-	bool				IsDefault(void);
+	bool				IsDefault(void) const;
 	void				SetShowsPushed(bool bShowsPushed);
-	bool				IsShowsPushed(void);
+	bool				IsShowsPushed(void) const;
 	void				SetHighlighted(bool bHighlighted);
-	bool				IsHighlighted(void);
+	bool				IsHighlighted(void) const;
 
 	bool				WantsEnter(void) override;
 

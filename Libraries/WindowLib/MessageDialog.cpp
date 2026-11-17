@@ -187,7 +187,7 @@ char* CMessageDialog::GetClicked(void)
 // The dialog, for its buttons' captions and its extra button.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CDialog> CMessageDialog::GetDialog(void)
+Ptr<CDialog> CMessageDialog::GetDialog(void) const
 {
 	return mpDialog;
 }

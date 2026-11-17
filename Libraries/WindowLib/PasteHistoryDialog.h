@@ -83,13 +83,13 @@ public:
 	bool			ChooseContent(Ptr<CWindow> pOwner, Ptr<CClipboardHistory> pHistory, CChars* pszDest) override;
 	void			Start(Ptr<CClipboardHistory> pHistory);
 	bool			Show(void);
-	bool			IsChosen(void);
+	bool			IsChosen(void) const;
 	char*			GetChosen(void);
 
-	Ptr<CListContainer>	GetList(void);
-	Ptr<CTextArea>		GetPreview(void);
-	Ptr<CLabel>			GetFilterLabel(void);
-	Ptr<CDialog>		GetDialog(void);
+	Ptr<CListContainer>	GetList(void) const;
+	Ptr<CTextArea>		GetPreview(void) const;
+	Ptr<CLabel>			GetFilterLabel(void) const;
+	Ptr<CDialog>		GetDialog(void) const;
 	size				GetRowEntry(int32 iRow);
 	void				GetRowText(int32 iRow, CChars* pszDest);
 

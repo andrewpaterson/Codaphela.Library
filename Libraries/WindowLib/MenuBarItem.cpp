@@ -185,5 +185,5 @@ void CMenuBarItem::PopupClosed(Ptr<CComponent> pContent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CMenuContainer> CMenuBarItem::GetMenu(void) { return mpMenu; }
+Ptr<CMenuContainer> CMenuBarItem::GetMenu(void) const { return mpMenu; }
 

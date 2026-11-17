@@ -41,11 +41,11 @@ public:
 	bool	Draw(Ptr<CCanvas> pCanvas) override;
 
 	void	SetFraction(float fFraction);
-	float	GetFraction(void);
+	float	GetFraction(void) const;
 	void	SetBarColour(ARGB32 sBar);
-	ARGB32	GetBarColour(void);
+	ARGB32	GetBarColour(void) const;
 	void	SetTrackColour(ARGB32 sTrack);
-	ARGB32	GetTrackColour(void);
+	ARGB32	GetTrackColour(void) const;
 	int32	GetBarWidth(int32 iWidth);
 };
 

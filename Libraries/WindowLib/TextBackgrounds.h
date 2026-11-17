@@ -62,7 +62,7 @@ public:
 
 	void					Add(ETextAreaBackground eType, size uiStart, size uiEnd, int32 iThickness, ARGB32 sColour);
 	bool					Clear(void);
-	size					NumBackgrounds(void);
+	size					NumBackgrounds(void) const;
 	STextAreaBackground*	Get(size uiIndex);
 
 	void					DocumentChanged(STextDocumentChange* psChange) override;

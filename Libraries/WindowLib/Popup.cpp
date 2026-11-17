@@ -203,8 +203,8 @@ void CPopup::SetMaximumHeight(int32 iHeight, Ptr<CWindowTheme> pTheme)
 }
 
 
-int32 CPopup::GetMaximumHeight(void) { return miMaximumHeight; }
-Ptr<CScrollPane> CPopup::GetScrollPane(void) { return mpScrollPane; }
+int32 CPopup::GetMaximumHeight(void) const { return miMaximumHeight; }
+Ptr<CScrollPane> CPopup::GetScrollPane(void) const { return mpScrollPane; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -342,10 +342,10 @@ void CPopup::PrepareArea(bool bDrawn, bool bClipped, CInt32Rect* pcClip, CInt32R
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CPopup::GetContent(void) { return mpContent; }
-Ptr<CComponent> CPopup::GetOwner(void) { return mpOwner; }
+Ptr<CComponent> CPopup::GetContent(void) const { return mpContent; }
+Ptr<CComponent> CPopup::GetOwner(void) const { return mpOwner; }
 void CPopup::SetOwnerPressKeepsOpen(bool bKeepsOpen) { mbOwnerPressKeepsOpen = bKeepsOpen; }  //True, as it starts, for a small owner like a combo box: pressing it again toggles the popup itself.
-bool CPopup::IsOwnerPressKeepsOpen(void) { return mbOwnerPressKeepsOpen; }
+bool CPopup::IsOwnerPressKeepsOpen(void) const { return mbOwnerPressKeepsOpen; }
 CComponentEvent<CPopup>* CPopup::GetClosedEvent(void) { return &mcClosed; }
 void CPopup::SetPointerPasses(bool bPasses) { mbPointerPasses = bPasses; }
 

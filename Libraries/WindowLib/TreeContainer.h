@@ -93,7 +93,7 @@ public:
 
 	int32			AddNode(int32 iParent, const char* szText, Ptr<CImageCel> pIcon = NULL, int64 iData = 0);
 	void			RemoveAllNodes(void);
-	int32			NumNodes(void);
+	int32			NumNodes(void) const;
 	char*			GetNodeText(int32 iNode, CChars* pszDest);
 	int64			GetNodeData(int32 iNode);
 	void			SetNodeFont(int32 iNode, Ptr<CFont> pFont);

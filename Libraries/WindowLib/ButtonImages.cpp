@@ -198,5 +198,5 @@ Ptr<CImageCel> CButtonImages::GetCel(EButtonState eState, EButtonBorderPiece ePi
 //
 //////////////////////////////////////////////////////////////////////////
 ARGB32 CButtonImages::GetFaceColour(EButtonState eState) { return masFaceColours[eState]; }
-int32 CButtonImages::GetTileSize(void) { return miTileSize; }
+int32 CButtonImages::GetTileSize(void) const { return miTileSize; }
 

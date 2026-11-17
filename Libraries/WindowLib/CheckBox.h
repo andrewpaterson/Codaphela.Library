@@ -60,14 +60,14 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	void				SetTicked(bool bTicked);
-	bool				IsTicked(void);
+	bool				IsTicked(void) const;
 	void				Toggle(void);
 	void				SetCaption(const char* szCaption);
 	char*				GetCaption(void);
 	void				SetGap(int32 iGap);
-	ECheckBoxState		GetState(void);
-	Ptr<CIconComponent>	GetBoxComponent(void);
-	Ptr<CLabel>			GetCaptionLabel(void);
+	ECheckBoxState		GetState(void) const;
+	Ptr<CIconComponent>	GetBoxComponent(void) const;
+	Ptr<CLabel>			GetCaptionLabel(void) const;
 
 	CComponentEvent<CCheckBox>*	GetChangeEvent(void);
 

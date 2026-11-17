@@ -80,19 +80,19 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	void				SetContent(Ptr<CComponent> pContent);
-	Ptr<CComponent>		GetContent(void);
+	Ptr<CComponent>		GetContent(void) const;
 	bool				AddComponent(Ptr<CComponent> pComponent) override;
 
 	void				SetPolicy(EScrollBarOrientation eOrientation, EScrollPanePolicy ePolicy);
 	EScrollPanePolicy	GetPolicy(EScrollBarOrientation eOrientation);
 	void				SetWheelStep(int32 iWheelStep);
-	int32				GetWheelStep(void);
+	int32				GetWheelStep(void) const;
 
 	void				SetScrollPosition(int32 x, int32 y);
 	void				SetScrollPosition(EScrollBarOrientation eOrientation, int32 iPosition);
-	SInt32Vec2			GetScrollPosition(void);
-	SInt32Vec2			GetMaximumScrollPosition(void);
-	SInt32Vec2			GetContentSize(void);
+	SInt32Vec2			GetScrollPosition(void) const;
+	SInt32Vec2			GetMaximumScrollPosition(void) const;
+	SInt32Vec2			GetContentSize(void) const;
 	Ptr<CScrollBar>		GetScrollBar(EScrollBarOrientation eOrientation);
 
 	CScrollEvent*		GetScrollEvent(void);

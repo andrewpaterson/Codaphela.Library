@@ -121,9 +121,9 @@ public:
 	bool						ShowModal(Ptr<CWindow> pOwner);
 	bool						ShowOwned(Ptr<CWindow> pOwner, CInt32Rect* pcScreenRectangle);
 	void						CloseOwned(void);
-	bool						IsShown(void);
-	bool						IsModal(void);
-	Ptr<CWindow>				GetOwner(void);
+	bool						IsShown(void) const;
+	bool						IsModal(void) const;
+	Ptr<CWindow>				GetOwner(void) const;
 	size						NumOwned(void);
 	CComponentEvent<CWindow>*	GetClosedEvent(void);
 	void						ClaimInput(void);
@@ -135,28 +135,28 @@ public:
 	void						Raise(void);
 	void						SetWindowSize(int32 iWidth, int32 iHeight);
 	void						SetMinimumWindowSize(int32 iWidth, int32 iHeight);
-	CNativeWindow*				GetNativeWindow(void);
+	CNativeWindow*				GetNativeWindow(void) const;
 	void						Paint(void);
 	void						PaintNow(void);
 	bool						BlinkCaret(int64 iNow);
 	bool						GetPaintedCaret(CInt32Rect* pcDest);
 	void						Invalidate(void) override;
 	void						InvalidateLayout(void) override;
-	bool						IsLayoutDirty(void);
+	bool						IsLayoutDirty(void) const;
 	void						AddDamage(CInt32Rect* pcArea);
 	void						RequestPaint(void);
 	CDamageArea*				GetPaintedDamage(void);
 	static void					SetDefaultRedraw(bool bPartialRedraw, bool bVerifyRedraw);
 	static size					GetTotalRedrawMismatches(void);
 	void						SetPartialRedraw(bool bPartialRedraw);
-	bool						IsPartialRedraw(void);
+	bool						IsPartialRedraw(void) const;
 	void						SetVerifyRedraw(bool bVerifyRedraw);
-	bool						IsVerifyRedraw(void);
+	bool						IsVerifyRedraw(void) const;
 	void						SetRedrawLike(Ptr<CWindow> pWindow);
-	size						GetRedrawMismatches(void);
+	size						GetRedrawMismatches(void) const;
 	void						RequestTick(uint32 uiMilliseconds);
 	void						SetContinuous(bool bContinuous);
-	bool						IsContinuous(void);
+	bool						IsContinuous(void) const;
 	void						SetMaxFramesPerSecond(uint32 uiFramesPerSecond);
 	void						SetCheckLayoutCache(bool bCheckLayoutCache);
 	void						Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds);
@@ -171,7 +171,7 @@ public:
 	void					CancelPosted(void* pvObject);
 	void					RunPosted(void);
 	void					RunPostedAt(int64 iNow);
-	size					NumPosted(void);
+	size					NumPosted(void) const;
 	void					ClearCloseApprover(void);
 	bool					ApproveClose(void);
 	void					Layout(void);
@@ -192,24 +192,24 @@ public:
 	bool						KeepsActive(void);
 
 	void					SetComponentInput(CComponentInput* pcComponentInput);
-	CComponentInput*		GetComponentInput(void);
+	CComponentInput*		GetComponentInput(void) const;
 	void					SetCommands(Ptr<CCommandSet> pCommands);
-	Ptr<CCommandSet>		GetCommands(void);
+	Ptr<CCommandSet>		GetCommands(void) const;
 	void					SetToolTips(Ptr<CToolTips> pToolTips);
-	Ptr<CToolTips>			GetToolTips(void);
+	Ptr<CToolTips>			GetToolTips(void) const;
 	bool					ShowToolTip(int64 iNow);
 
 	const char*				GetWindowTitle(void);
 	void					SetWindowTitle(const char* szTitle);
-	Ptr<CCanvas>			GetCanvas(void);
+	Ptr<CCanvas>			GetCanvas(void) const;
 	Ptr<CFocus>				GetFocus(void);
-	Ptr<CSoundMixer>		GetSoundMixer(void);
-	Ptr<CClipboard>			GetClipboard(void);
+	Ptr<CSoundMixer>		GetSoundMixer(void) const;
+	Ptr<CClipboard>			GetClipboard(void) const;
 
 	void					SetDefaultButton(Ptr<CButton> pButton);
-	Ptr<CButton>			GetDefaultButton(void);
+	Ptr<CButton>			GetDefaultButton(void) const;
 	void					SetCancelButton(Ptr<CButton> pButton);
-	Ptr<CButton>			GetCancelButton(void);
+	Ptr<CButton>			GetCancelButton(void) const;
 
 	Ptr<CPopup>				OpenPopup(Ptr<CComponent> pContent, SInt32Vec2 sPosition, Ptr<CComponent> pOwner);
 	bool					ClosePopup(Ptr<CComponent> pContent);
@@ -223,7 +223,7 @@ public:
 	Ptr<CContainer>			GetContainer(void);
 	bool					ClearContainer(void);
 
-	CNativeWindowFactory*	GetFactory(void);
+	CNativeWindowFactory*	GetFactory(void) const;
 
 	EColourOrder			GetColourOrder(void);
 	void					GetColourFormat(CColourFormatHelper* pcDest);
@@ -234,7 +234,7 @@ protected:
 	void					CheckLayoutCache(void);
 	void					DismissToolTip(void);
 	int64					GetWaitMilliseconds(void);
-	bool					IsFrameDue(void);
+	bool					IsFrameDue(void) const;
 	void					PaintOwned(bool bContinuous);
 	void					PaintCaret(void);
 	bool					CanPaintPartially(void);

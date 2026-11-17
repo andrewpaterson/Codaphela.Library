@@ -88,10 +88,10 @@ void CClipboardHistory::SetLimit(size uiLimit)
 }
 
 
-size CClipboardHistory::GetLimit(void) { return muiLimit; }
+size CClipboardHistory::GetLimit(void) const { return muiLimit; }
 void CClipboardHistory::SetMaxEntryBytes(size uiBytes) { muiMaxEntryBytes = uiBytes; }  //A text bigger than this isn't kept.
 void CClipboardHistory::SetChooser(CClipboardChooser* pcChooser) { mpcChooser = pcChooser; }  //What asks which entry to paste, NULL for nothing.
-CClipboardChooser* CClipboardHistory::GetChooser(void) { return mpcChooser; }
+CClipboardChooser* CClipboardHistory::GetChooser(void) const { return mpcChooser; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -185,7 +185,7 @@ void CClipboardHistory::MoveToFront(size uiIndex)
 }
 
 
-size CClipboardHistory::NumEntries(void) { return maszEntries.NumElements(); }
+size CClipboardHistory::NumEntries(void) const { return maszEntries.NumElements(); }
 char* CClipboardHistory::GetText(size uiIndex) { return maszEntries.GetText(IndexOf(uiIndex)); }
 
 

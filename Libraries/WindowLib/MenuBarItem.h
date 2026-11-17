@@ -45,7 +45,7 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	Ptr<CMenuContainer>	GetMenu(void);
+	Ptr<CMenuContainer>	GetMenu(void) const;
 	bool				IsMenuOpen(void);
 
 	void				MovedInto(void) override;

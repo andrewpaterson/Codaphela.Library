@@ -296,6 +296,6 @@ int32 CMenuBar::IndexOf(Ptr<CMenuBarItem> pItem)
 //////////////////////////////////////////////////////////////////////////
 size CMenuBar::NumMenus(void) { return maItems.NumElements(); }
 Ptr<CMenuBarItem> CMenuBar::GetItem(size uiIndex) { return maItems.Get(uiIndex); }
-Ptr<CMenuBarItem> CMenuBar::GetOpenItem(void) { return mpOpenItem; }
-Ptr<CMenuStyle> CMenuBar::GetStyle(void) { return mpStyle; }
+Ptr<CMenuBarItem> CMenuBar::GetOpenItem(void) const { return mpOpenItem; }
+Ptr<CMenuStyle> CMenuBar::GetStyle(void) const { return mpStyle; }
 

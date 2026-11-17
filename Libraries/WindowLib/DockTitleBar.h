@@ -78,9 +78,9 @@ public:
 	void				SetTitle(const char* szTitle);
 	char*				GetTitle(void);
 	void				SetActive(bool bActive);
-	bool				IsActive(void);
+	bool				IsActive(void) const;
 	void				SetPinned(bool bPinned);
-	bool				IsPinned(void);
+	bool				IsPinned(void) const;
 	void				ShowButton(EDockTitleButton eButton, bool bShow);
 	Ptr<CIconComponent>	GetButton(EDockTitleButton eButton);
 

@@ -87,7 +87,7 @@ public:
 	SInt32Vec2			GetDesiredSize(void) override;
 	void				Build(int x, int y, bool bDocuments, SInt32Vec2 sDraggedSize);
 	bool				Hit(int x, int y, SDockTarget* psTarget, SInt32Vec2 sDraggedSize);
-	size				NumGuides(void);
+	size				NumGuides(void) const;
 	SDockGuide*			GetGuide(size uiIndex);
 	SDockGuide*			FindGuide(EDockTargetKind eKind, EDockSide eSide, CDockNode* pcNode, bool bOuter);
 	void				DrawGuides(Ptr<CCanvas> pCanvas);

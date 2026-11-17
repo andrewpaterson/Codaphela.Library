@@ -495,8 +495,8 @@ void CTable::SetColumnEditable(int32 iColumn, bool bEditable)
 }
 
 
-int32 CTable::NumColumns(void) { return (int32)maiKinds.NumElements(); }
-int32 CTable::NumRows(void) { return (NumColumns() > 0) ? (int32)(maszCells.NumElements() / (size)NumColumns()) : 0; }
+int32 CTable::NumColumns(void) const { return (int32)maiKinds.NumElements(); }
+int32 CTable::NumRows(void) const { return (NumColumns() > 0) ? (int32)(maszCells.NumElements() / (size)NumColumns()) : 0; }
 ETableColumn CTable::GetColumnKind(int32 iColumn) { return (ETableColumn)maiKinds.GetValue((size)iColumn); }
 size CTable::CellIndex(int32 iRow, int32 iColumn) { return (size)iRow * (size)NumColumns() + (size)iColumn; }
 
@@ -918,17 +918,17 @@ bool CTable::SelectCell(int32 iRow, int32 iColumn)
 
 int32 CTable::GetSelectedRow(void) { return mpList->GetSelected(); }
 int32 CTable::GetSelectedColumn(void) { return (mpList->GetSelected() >= 0) ? miSelectedColumn : -1; }
-bool CTable::IsEditing(void) { return miEditRow >= 0; }
-Ptr<CTableField> CTable::GetEditField(void) { return mpField; }
-Ptr<CTableCombo> CTable::GetEditCombo(void) { return mpCombo; }
-Ptr<CTableList> CTable::GetList(void) { return mpList; }
-Ptr<CScrollPane> CTable::GetScrollPane(void) { return mpScroll; }
+bool CTable::IsEditing(void) const { return miEditRow >= 0; }
+Ptr<CTableField> CTable::GetEditField(void) const { return mpField; }
+Ptr<CTableCombo> CTable::GetEditCombo(void) const { return mpCombo; }
+Ptr<CTableList> CTable::GetList(void) const { return mpList; }
+Ptr<CScrollPane> CTable::GetScrollPane(void) const { return mpScroll; }
 void CTable::SetRowsMovable(bool bRowsMovable) { mbRowsMovable = bRowsMovable; }
 CComponentEvent<CTable>* CTable::GetChangeEvent(void) { return &mcChanged; }
 CComponentEvent<CTable>* CTable::GetSelectionEvent(void) { return &mcSelectionChanged; }
 CComponentEvent<CTable>* CTable::GetOrderEvent(void) { return &mcOrderChanged; }
-int32 CTable::GetChangedRow(void) { return miChangedRow; }
-int32 CTable::GetChangedColumn(void) { return miChangedColumn; }
+int32 CTable::GetChangedRow(void) const { return miChangedRow; }
+int32 CTable::GetChangedColumn(void) const { return miChangedColumn; }
 bool CTable::BeginEdit(void) { return BeginEdit(NULL); }
 
 

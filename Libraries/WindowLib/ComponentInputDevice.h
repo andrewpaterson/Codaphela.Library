@@ -58,8 +58,8 @@ public:
 	CComponentInputNumKey*		GetNumKeyRemap(CInputSourceDesc* pcSource);
 	CComponentInputKey*			GetKey(CInputSourceDesc* pcSource);
 	bool						IsKeyDown(EComponentInputKey eKey);
-	bool						IsMouse(void);
-	CInputDevice*				GetDevice(void);
+	bool						IsMouse(void) const;
+	CInputDevice*				GetDevice(void) const;
 
 	CInputSourceDesc*			AddCommand(const char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed = true);
 	CInputSourceDesc*			SetCommand(const char* szFriendlyName, EComponentInputCommand eCommand);

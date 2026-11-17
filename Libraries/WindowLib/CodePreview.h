@@ -59,9 +59,9 @@ public:
 	void			Clear(void);
 
 	char*				GetTitle(void);
-	Ptr<CCodeEditor>	GetEditor(void);
+	Ptr<CCodeEditor>	GetEditor(void) const;
 	Ptr<CTextArea>		GetTextArea(void);
-	Ptr<CScrollPane>	GetScrollPane(void);
+	Ptr<CScrollPane>	GetScrollPane(void) const;
 
 protected:
 	void			Centre(void);

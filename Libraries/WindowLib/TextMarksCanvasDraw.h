@@ -50,11 +50,11 @@ public:
 	bool	HideSelection(void);
 	void	SetCaret(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 	void	HideCaret(void);
-	bool	IsSelectionShown(void);
-	bool	IsCaretShown(void);
+	bool	IsSelectionShown(void) const;
+	bool	IsCaretShown(void) const;
 	void	GetSelection(CInt32Rect* pcDest);
 	void	GetCaret(CInt32Rect* pcDest);
-	ARGB32	GetCaretColour(void);
+	ARGB32	GetCaretColour(void) const;
 };
 
 

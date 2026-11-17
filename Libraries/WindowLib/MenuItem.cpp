@@ -165,12 +165,12 @@ void CMenuItem::SetIcon(Ptr<CImageCel> pIcon)
 //////////////////////////////////////////////////////////////////////////
 char* CMenuItem::GetText(void) { return mpLabel->GetText(); }
 Ptr<CImageCel> CMenuItem::GetIcon(void) { return mpIcon->GetCel(); }
-Ptr<CMenuContainer> CMenuItem::GetSubMenu(void) { return mpSubMenu; }
-bool CMenuItem::HasSubMenu(void) { return mpSubMenu.IsNotNull(); }
-Ptr<CIconComponent> CMenuItem::GetIconComponent(void) { return mpIcon; }
-Ptr<CLabel> CMenuItem::GetLabel(void) { return mpLabel; }
-Ptr<CLabel> CMenuItem::GetShortcutLabel(void) { return mpShortcut; }
-bool CMenuItem::IsEnabled(void) { return mbEnabled; }
+Ptr<CMenuContainer> CMenuItem::GetSubMenu(void) const { return mpSubMenu; }
+bool CMenuItem::HasSubMenu(void) const { return mpSubMenu.IsNotNull(); }
+Ptr<CIconComponent> CMenuItem::GetIconComponent(void) const { return mpIcon; }
+Ptr<CLabel> CMenuItem::GetLabel(void) const { return mpLabel; }
+Ptr<CLabel> CMenuItem::GetShortcutLabel(void) const { return mpShortcut; }
+bool CMenuItem::IsEnabled(void) const { return mbEnabled; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -352,7 +352,7 @@ void CMenuItem::ShowEnabled(bool bEnabled)
 		mpLabel->SetFont(bEnabled ? mpStyle->GetFont() : mpStyle->GetDimFont());
 	}
 }
-Ptr<CIconComponent> CMenuItem::GetChevronComponent(void) { return mpChevron; }
+Ptr<CIconComponent> CMenuItem::GetChevronComponent(void) const { return mpChevron; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -362,8 +362,8 @@ Ptr<CIconComponent> CMenuItem::GetChevronComponent(void) { return mpChevron; }
 //
 //////////////////////////////////////////////////////////////////////////
 void CMenuItem::SetTag(int32 iTag) { miTag = iTag; }
-int32 CMenuItem::GetTag(void) { return miTag; }
-Ptr<CCommand> CMenuItem::GetCommand(void) { return mpCommand; }
+int32 CMenuItem::GetTag(void) const { return miTag; }
+Ptr<CCommand> CMenuItem::GetCommand(void) const { return mpCommand; }
 
 
 //////////////////////////////////////////////////////////////////////////

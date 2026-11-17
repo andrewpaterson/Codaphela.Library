@@ -35,7 +35,7 @@ public:
 	void					Init(CNativeWindowFactory* pcWindowFactory);
 	void					Kill(void);
 
-	CNativeWindowFactory*	GetFactory(void);
+	CNativeWindowFactory*	GetFactory(void) const;
 };
 
 

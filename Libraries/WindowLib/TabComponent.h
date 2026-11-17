@@ -60,13 +60,13 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	void				SetSelected(bool bSelected);
-	bool				IsSelected(void);
-	bool				IsClosable(void);
+	bool				IsSelected(void) const;
+	bool				IsClosable(void) const;
 	char*				GetText(void);
 	void				SetText(const char* szName);
 	void				SetTextFont(Ptr<CFont> pFont);
-	Ptr<CIconComponent>	GetIcon(void);
-	Ptr<CIconComponent>	GetClose(void);
+	Ptr<CIconComponent>	GetIcon(void) const;
+	Ptr<CIconComponent>	GetClose(void) const;
 
 	void				FocusOrMouseOverChanged(void) override;
 	void				MovedOver(int x, int y) override;

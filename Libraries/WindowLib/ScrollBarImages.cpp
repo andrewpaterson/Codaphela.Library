@@ -236,13 +236,13 @@ Ptr<CImageCel> CScrollBarImages::GetCel(EScrollBarOrientation eOrientation, EScr
 // How far each half circle end reaches along the thumb.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CScrollBarImages::GetCapLength(void)
+int32 CScrollBarImages::GetCapLength(void) const
 {
 	return (miThickness + 1) / 2;
 }
 
 
-int32 CScrollBarImages::GetThickness(void) { return miThickness; }
-ARGB32 CScrollBarImages::GetColour(void) { return msColour; }
-ARGB32 CScrollBarImages::GetHoverColour(void) { return msHoverColour; }
+int32 CScrollBarImages::GetThickness(void) const { return miThickness; }
+ARGB32 CScrollBarImages::GetColour(void) const { return msColour; }
+ARGB32 CScrollBarImages::GetHoverColour(void) const { return msHoverColour; }
 

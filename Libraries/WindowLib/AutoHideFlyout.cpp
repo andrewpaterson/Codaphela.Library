@@ -353,7 +353,7 @@ void CAutoHideFlyout::EdgeReleased(CDockEdge* pcEdge)
 }
 
 
-Ptr<CDockPane>		CAutoHideFlyout::GetPane(void) { return mpPane; }
-Ptr<CDockTitleBar>	CAutoHideFlyout::GetTitleBar(void) { return mpTitleBar; }
-Ptr<CDockEdge>		CAutoHideFlyout::GetEdge(void) { return mpEdge; }
-EDockSide			CAutoHideFlyout::GetSide(void) { return meSide; }
+Ptr<CDockPane>		CAutoHideFlyout::GetPane(void) const { return mpPane; }
+Ptr<CDockTitleBar>	CAutoHideFlyout::GetTitleBar(void) const { return mpTitleBar; }
+Ptr<CDockEdge>		CAutoHideFlyout::GetEdge(void) const { return mpEdge; }
+EDockSide			CAutoHideFlyout::GetSide(void) const { return meSide; }

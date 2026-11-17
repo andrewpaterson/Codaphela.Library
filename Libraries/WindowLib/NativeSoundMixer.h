@@ -50,11 +50,11 @@ public:
 	virtual lsize					NumQueuedFrames(void) =0;
 	virtual void					Write(int16* paiFrames, lsize uiFrames) =0;
 
-			bool					IsOpen(void);
-			uint32					GetSampleRate(void);
-			uint64					NumDroppedFrames(void);
-			CSoundMixer*			GetMixer(void);
-			CNativeSoundFactory*	GetFactory(void);
+			bool					IsOpen(void) const;
+			uint32					GetSampleRate(void) const;
+			uint64					NumDroppedFrames(void) const;
+			CSoundMixer*			GetMixer(void) const;
+			CNativeSoundFactory*	GetFactory(void) const;
 };
 
 

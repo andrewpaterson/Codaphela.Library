@@ -52,7 +52,7 @@ public:
 			void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override =0;  //A container lays its components out itself, it doesn't pass its area on as a component does.
 
 	virtual void		SetRequiredSize(void) =0;  //Works out msRequiredSize from the container's components.
-			SInt32Vec2	GetRequiredSize(void);
+			SInt32Vec2	GetRequiredSize(void) const;
 			SInt32Vec2	GetDesiredOrRequiredSize(void);
 	static	SInt32Vec2	GetMeasuredSize(Ptr<CComponent> pComponent);
 

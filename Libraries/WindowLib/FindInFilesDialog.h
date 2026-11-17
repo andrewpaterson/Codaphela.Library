@@ -60,7 +60,7 @@ public:
 	void				Clear(void);
 
 	SFindInFilesItem*	Add(const char* szText, size uiMatchStart, size uiMatchLength, const char* szLocation, size uiFile, size uiData);
-	size				NumItems(void);
+	size				NumItems(void) const;
 	SFindInFilesItem*	Get(size uiIndex);
 	size				NumFiles(void);
 };
@@ -175,24 +175,24 @@ public:
 	char*				GetDirectory(void);
 	bool				IsMatchCase(void);
 	bool				IsWholeWords(void);
-	bool				IsSearching(void);
-	bool				HasMore(void);
-	size				NumResults(void);
+	bool				IsSearching(void) const;
+	bool				HasMore(void) const;
+	size				NumResults(void) const;
 	SFindInFilesItem*	GetResult(size uiIndex);
 	int32				GetSelected(void);
 	SFindInFilesItem*	GetChosen(void);
-	EFindInFilesResult	GetOutcome(void);
+	EFindInFilesResult	GetOutcome(void) const;
 	char*				GetPreviewTitle(void);
 	char*				GetStatus(void);
-	Ptr<CTextField>		GetField(void);
-	Ptr<CTextField>		GetDirectoryField(void);
-	Ptr<CCheckBox>		GetMatchCaseBox(void);
-	Ptr<CCheckBox>		GetWholeWordsBox(void);
-	Ptr<CListContainer>	GetList(void);
+	Ptr<CTextField>		GetField(void) const;
+	Ptr<CTextField>		GetDirectoryField(void) const;
+	Ptr<CCheckBox>		GetMatchCaseBox(void) const;
+	Ptr<CCheckBox>		GetWholeWordsBox(void) const;
+	Ptr<CListContainer>	GetList(void) const;
 	Ptr<CCodeEditor>	GetPreview(void);
-	Ptr<CCodePreview>	GetCodePreview(void);
-	Ptr<CButton>		GetFindWindowButton(void);
-	Ptr<CDialog>		GetDialog(void);
+	Ptr<CCodePreview>	GetCodePreview(void) const;
+	Ptr<CButton>		GetFindWindowButton(void) const;
+	Ptr<CDialog>		GetDialog(void) const;
 
 	void			Search(void);
 	bool			Step(void);

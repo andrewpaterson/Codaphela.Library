@@ -195,7 +195,7 @@ bool CAutoHideTab::Load(CObjectReader* pcFile)
 // On the left and right strips the tab runs down the strip.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAutoHideTab::IsVertical(void)
+bool CAutoHideTab::IsVertical(void) const
 {
 	return IsHorizontalDockSide(meSide);
 }
@@ -381,7 +381,7 @@ void CAutoHideTab::PopupClosed(Ptr<CComponent> pContent)
 }
 
 
-Ptr<CDockPane> CAutoHideTab::GetPane(void) { return mpPane; }
+Ptr<CDockPane> CAutoHideTab::GetPane(void) const { return mpPane; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -552,6 +552,6 @@ Ptr<CAutoHideTab> CAutoHideStrip::FindTab(Ptr<CDockPane> pPane)
 bool				CAutoHideStrip::HasTabs(void) { return maTabs.NumElements() > 0; }
 size				CAutoHideStrip::NumTabs(void) { return maTabs.NumElements(); }
 Ptr<CAutoHideTab>	CAutoHideStrip::GetTab(size uiIndex) { return maTabs.Get(uiIndex); }
-EDockSide			CAutoHideStrip::GetSide(void) { return meSide; }
+EDockSide			CAutoHideStrip::GetSide(void) const { return meSide; }
 
 

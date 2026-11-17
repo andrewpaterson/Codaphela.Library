@@ -57,15 +57,15 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	Ptr<CFillContainer>	GetFace(void);
-	Ptr<CFillContainer>	GetPaddedFace(void);
+	Ptr<CFillContainer>	GetFace(void) const;
+	Ptr<CFillContainer>	GetPaddedFace(void) const;
 	void				SetPadding(int32 iHorizontal, int32 iVertical);
-	SInt32Vec2			GetPadding(void);
+	SInt32Vec2			GetPadding(void) const;
 	void				SetImages(Ptr<CButtonImages> pImages);
-	Ptr<CButtonImages>	GetImages(void);
+	Ptr<CButtonImages>	GetImages(void) const;
 	void				SetBorderState(EButtonState eState);
 	void				UpdateBorderState(bool bFocussed);
-	EButtonState		GetBorderState(void);
+	EButtonState		GetBorderState(void) const;
 
 
 protected:

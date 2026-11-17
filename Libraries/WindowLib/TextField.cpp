@@ -517,7 +517,7 @@ void CTextField::UpdateLook(void)
 //////////////////////////////////////////////////////////////////////////
 char* CTextField::GetText(void) { return mcDocument.Text(); }
 CTextEditing* CTextField::GetEditing(void) { return &mcEditing; }  //The caret, the selection and the edits: its moves and edits are made through it.
-size CTextField::GetCaretPosition(void) { return mcEditing.GetCaretPosition(); }
+size CTextField::GetCaretPosition(void) const { return mcEditing.GetCaretPosition(); }
 void CTextField::SetCaretPosition(size uiPosition) { mcEditing.SetCaretPosition(uiPosition); }
 bool CTextField::GetSelection(size* puiStart, size* puiEnd) { return mcEditing.GetSelection(puiStart, puiEnd); }
 void CTextField::Select(size uiStart, size uiEnd) { mcEditing.Select(uiStart, uiEnd); }
@@ -525,7 +525,7 @@ void CTextField::SelectAll(void) { mcEditing.SelectAll(); }
 void CTextField::CutToClipboard(void) { mcInput.CutToClipboard(); }
 void CTextField::CopyToClipboard(void) { mcInput.CopyToClipboard(); }
 void CTextField::PasteFromClipboard(void) { mcInput.PasteFromClipboard(); }
-int32 CTextField::GetScroll(void) { return miScroll; }
-Ptr<CLabel> CTextField::GetTextLabel(void) { return mpText; }
-Ptr<CTextMarksCanvasDraw> CTextField::GetMarksDraw(void) { return mpMarksDraw; }
+int32 CTextField::GetScroll(void) const { return miScroll; }
+Ptr<CLabel> CTextField::GetTextLabel(void) const { return mpText; }
+Ptr<CTextMarksCanvasDraw> CTextField::GetMarksDraw(void) const { return mpMarksDraw; }
 

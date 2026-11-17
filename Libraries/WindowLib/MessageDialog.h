@@ -54,7 +54,7 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	void				AddItem(const char* szItem);
-	Ptr<CDialog>		GetDialog(void);
+	Ptr<CDialog>		GetDialog(void) const;
 	bool				Show(void);
 	char*				GetClicked(void);
 

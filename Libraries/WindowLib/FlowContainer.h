@@ -47,8 +47,8 @@ public:
 	void		SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eA);
 
 protected:
-	bool		IsHorizontal(void);
-	bool		IsReversed(void);
+	bool		IsHorizontal(void) const;
+	bool		IsReversed(void) const;
 	int			AlignCross(int iComponentSize, int iAvailableSize);
 
 	void		LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size iStart, size iEnd);

@@ -79,14 +79,14 @@ public:
 	bool				IsOpen(void);
 	void				OpenSubMenu(int32 iRow, bool bFocus);
 	void				CloseSubMenu(void);
-	Ptr<CMenuContainer>	GetOpenSubMenu(void);
+	Ptr<CMenuContainer>	GetOpenSubMenu(void) const;
 	void				SetMenuBar(Ptr<CMenuBar> pMenuBar);
-	Ptr<CMenuBar>		GetMenuBar(void);
-	Ptr<CMenuStyle>		GetStyle(void);
+	Ptr<CMenuBar>		GetMenuBar(void) const;
+	Ptr<CMenuStyle>		GetStyle(void) const;
 
 	CComponentEvent<CMenuItem>*			GetItemClickEvent(void);
 	CComponentEvent<CMenuContainer>*	GetOpeningEvent(void);
-	Ptr<CComponent>						GetOpener(void);
+	Ptr<CComponent>						GetOpener(void) const;
 	void								Click(Ptr<CMenuItem> pItem);
 	void								SetRowEnabled(int32 iRow, bool bEnabled) override;
 

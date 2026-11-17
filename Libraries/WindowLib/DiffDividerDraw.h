@@ -71,7 +71,7 @@ public:
 	bool				Draw(Ptr<CCanvas> pCanvas) override;
 
 	bool				SetShapes(CArrayDiffDividerShape* pasShapes);
-	size				NumShapes(void);
+	size				NumShapes(void) const;
 	SDiffDividerShape*	GetShape(size uiIndex);
 
 protected:

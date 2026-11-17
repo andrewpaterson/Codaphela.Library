@@ -46,7 +46,7 @@ public:
 
 	bool			Draw(Ptr<CCanvas> pCanvas) override;
 	void			SetCel(Ptr<CImageCel> pCel);
-	Ptr<CImageCel>	GetCel(void);
+	Ptr<CImageCel>	GetCel(void) const;
 	void			SetCelAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);
 	SInt32Vec2		GetDesiredSize(void) override;
 };

@@ -130,7 +130,7 @@ void CGoToItems::Sort(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGoToItems::NumItems(void) { return masItems.NumElements(); }
+size CGoToItems::NumItems(void) const { return masItems.NumElements(); }
 SGoToItem* CGoToItems::Get(size uiIndex) { return masItems.Get(uiIndex); }
 
 
@@ -728,12 +728,12 @@ SGoToItem* CGoToDialog::GetChosen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CGoToDialog::NumResults(void) { return mcItems.NumItems(); }
+size CGoToDialog::NumResults(void) const { return mcItems.NumItems(); }
 SGoToItem* CGoToDialog::GetResult(size uiIndex) { return mcItems.Get(uiIndex); }
 int32 CGoToDialog::GetSelected(void) { return mpList->GetSelected(); }
-int32 CGoToDialog::GetLine(void) { return miLine; }
+int32 CGoToDialog::GetLine(void) const { return miLine; }
 char* CGoToDialog::GetPattern(void) { return mpField->GetText(); }
-Ptr<CTextField> CGoToDialog::GetField(void) { return mpField; }
-Ptr<CListContainer> CGoToDialog::GetList(void) { return mpList; }
-Ptr<CDialog> CGoToDialog::GetDialog(void) { return mpDialog; }
+Ptr<CTextField> CGoToDialog::GetField(void) const { return mpField; }
+Ptr<CListContainer> CGoToDialog::GetList(void) const { return mpList; }
+Ptr<CDialog> CGoToDialog::GetDialog(void) const { return mpDialog; }
 

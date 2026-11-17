@@ -142,7 +142,7 @@ void CInputAction::Call(SComponentInputEvent* psEvent)
 //
 //////////////////////////////////////////////////////////////////////////
 void CInputAction::SetEnabled(bool bEnabled) { mbEnabled = bEnabled; }
-bool CInputAction::IsEnabled(void) { return mbEnabled; }
+bool CInputAction::IsEnabled(void) const { return mbEnabled; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -155,5 +155,5 @@ bool CInputAction::IsEnabled(void) { return mbEnabled; }
 //////////////////////////////////////////////////////////////////////////
 void CInputAction::SetKeepsLayout(bool bKeepsLayout) { mbKeepsLayout = bKeepsLayout; }
 bool CInputAction::KeepsLayout(void) { return mbKeepsLayout; }
-EInputActionFilter CInputAction::GetFilter(void) { return meFilter; }
-EComponentInputCommand CInputAction::GetCommand(void) { return meCommand; }
+EInputActionFilter CInputAction::GetFilter(void) const { return meFilter; }
+EComponentInputCommand CInputAction::GetCommand(void) const { return meCommand; }

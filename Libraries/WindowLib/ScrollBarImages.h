@@ -76,10 +76,10 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	Ptr<CImageCel>	GetCel(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece, bool bHover = false);
-	int32			GetThickness(void);
-	int32			GetCapLength(void);
-	ARGB32			GetColour(void);
-	ARGB32			GetHoverColour(void);
+	int32			GetThickness(void) const;
+	int32			GetCapLength(void) const;
+	ARGB32			GetColour(void) const;
+	ARGB32			GetHoverColour(void) const;
 
 protected:
 	void			CreateCels(CArray<CImageCel>* paDest, ARGB32 sColour);

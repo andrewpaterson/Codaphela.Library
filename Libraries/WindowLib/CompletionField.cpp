@@ -138,7 +138,7 @@ bool CCompletionField::IsCompleting(void) { return mpMenu->IsOpen(); }
 size CCompletionField::NumCompletions(void) { return mpMenu->NumItems(); }
 char* CCompletionField::GetCompletion(size uiIndex) { return mpMenu->GetItem(uiIndex)->GetText(); }
 char* CCompletionField::GetCompletionNote(size uiIndex) { return mpMenu->GetItem(uiIndex)->GetShortcut(); }
-Ptr<CMenuContainer> CCompletionField::GetMenu(void) { return mpMenu; }
+Ptr<CMenuContainer> CCompletionField::GetMenu(void) const { return mpMenu; }
 
 
 //////////////////////////////////////////////////////////////////////////

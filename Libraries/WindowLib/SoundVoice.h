@@ -50,9 +50,9 @@ public:
 	virtual void	Play(float64* pfLeft, float64* pfRight, lsize uiFrames, uint32 uiSampleRate) =0;
 
 			void	SetVolume(float64 fVolume);
-			float64	GetVolume(void);
+			float64	GetVolume(void) const;
 			void	Stop(void);
-			bool	IsFinished(void);
+			bool	IsFinished(void) const;
 
 	static	void	GetStereoChannelIndices(CSound* pcSound, size* puiLeft, size* puiRight);
 	static	float64	Interpolate(float64* pfSamples, float64 fPosition);

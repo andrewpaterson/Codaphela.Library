@@ -859,17 +859,17 @@ void CDiffView::HighlightChosen(void)
 
 void CDiffView::PreviousClicked(void) { PreviousDifference(); }
 void CDiffView::NextClicked(void) { NextDifference(); }
-lsize CDiffView::GetCurrentBlock(void) { return muiCurrentBlock; }
-Ptr<CButton> CDiffView::GetPreviousButton(void) { return mpPreviousButton; }
-Ptr<CButton> CDiffView::GetNextButton(void) { return mpNextButton; }
-Ptr<CComboBox> CDiffView::GetWhitespaceBox(void) { return mpWhitespaceBox; }
-Ptr<CComboBox> CDiffView::GetHighlightBox(void) { return mpHighlightBox; }
-Ptr<CLabel> CDiffView::GetCountLabel(void) { return mpCountLabel; }
+lsize CDiffView::GetCurrentBlock(void) const { return muiCurrentBlock; }
+Ptr<CButton> CDiffView::GetPreviousButton(void) const { return mpPreviousButton; }
+Ptr<CButton> CDiffView::GetNextButton(void) const { return mpNextButton; }
+Ptr<CComboBox> CDiffView::GetWhitespaceBox(void) const { return mpWhitespaceBox; }
+Ptr<CComboBox> CDiffView::GetHighlightBox(void) const { return mpHighlightBox; }
+Ptr<CLabel> CDiffView::GetCountLabel(void) const { return mpCountLabel; }
 CSimpleTextDiff* CDiffView::GetDiff(void) { return &mcDiff; }
 CTextDiffProducer* CDiffView::GetProducer(void) { return &mcProducer; }
 CTextContent* CDiffView::GetContent(ETextDiffSide eSide) { return (eSide == TDS_Left) ? mcDiff.GetContent1() : mcDiff.GetContent2(); }
 Ptr<CCodeEditor> CDiffView::GetEditor(ETextDiffSide eSide) { return (eSide == TDS_Left) ? mpLeftEditor : mpRightEditor; }
 Ptr<CScrollPane> CDiffView::GetPane(ETextDiffSide eSide) { return (eSide == TDS_Left) ? mpLeftPane : mpRightPane; }
 Ptr<CLabel> CDiffView::GetTitle(ETextDiffSide eSide) { return (eSide == TDS_Left) ? mpLeftTitle : mpRightTitle; }
-Ptr<CDiffDividerDraw> CDiffView::GetDividerDraw(void) { return mpDividerDraw; }
+Ptr<CDiffDividerDraw> CDiffView::GetDividerDraw(void) const { return mpDividerDraw; }
 

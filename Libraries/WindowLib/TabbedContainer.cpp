@@ -695,14 +695,14 @@ size CTabbedContainer::IndexOfPage(Ptr<CComponent> pPage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CTabComponent> CTabbedContainer::GetSelected(void) { return mpSelected; }
+Ptr<CTabComponent> CTabbedContainer::GetSelected(void) const { return mpSelected; }
 size CTabbedContainer::NumTabs(void) { return maTabs.NumElements(); }
 Ptr<CTabComponent> CTabbedContainer::GetTab(size uiIndex) { return maTabs.Get(uiIndex); }
 Ptr<CComponent> CTabbedContainer::GetPage(size uiIndex) { return maPages.Get(uiIndex); }
-ETabSide CTabbedContainer::GetTabSide(void) { return meTabSide; }
-bool CTabbedContainer::IsBarShown(void) { return mbBarShown; }
+ETabSide CTabbedContainer::GetTabSide(void) const { return meTabSide; }
+bool CTabbedContainer::IsBarShown(void) const { return mbBarShown; }
 bool CTabbedContainer::IsPointInBar(int x, int y) { return mbBarShown && mpBar->IsPointIn(x, y); }  //x and y are in window client space.
-Ptr<CMenuContainer> CTabbedContainer::GetOverflowMenu(void) { return mpOverflowMenu; }
+Ptr<CMenuContainer> CTabbedContainer::GetOverflowMenu(void) const { return mpOverflowMenu; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -800,7 +800,7 @@ void CTabbedContainer::TabClosePressed(Ptr<CTabComponent> pTab)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTabbedContainer::IsTabDraggable(void)
+bool CTabbedContainer::IsTabDraggable(void) const
 {
 	return mcDragged.NumCalls() > 0;
 }

@@ -82,9 +82,9 @@ public:
 	void				Decorate(Ptr<CMapFontDraw> pFontDraw, Ptr<CFontDescription> pDescription, STextStyle* psStyles);
 	void				ClearTiles(void);
 
-	Ptr<CTileMap>		GetMap(void);
-	size				NumLines(void);
-	size				NumStops(void);
+	Ptr<CTileMap>		GetMap(void) const;
+	size				NumLines(void) const;
+	size				NumStops(void) const;
 	STextLayoutLine*	GetLine(size uiLine);
 	STextLayoutStop*	GetStop(size uiStop);
 

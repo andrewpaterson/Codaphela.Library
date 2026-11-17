@@ -236,8 +236,8 @@ Ptr<CDocumentWell> CDockNode::AsWell(void)
 
 
 void				CDockNode::SetDockSize(int32 iSize) { miDockSize = iSize; }
-int32				CDockNode::GetDockSize(void) { return miDockSize; }
-Ptr<CDockManager>	CDockNode::GetManager(void) { return mpManager; }
+int32				CDockNode::GetDockSize(void) const { return miDockSize; }
+Ptr<CDockManager>	CDockNode::GetManager(void) const { return mpManager; }
 bool				CDockNode::IsSplit(void) { return GetKind() == DNK_Split; }
 bool				CDockNode::IsGroup(void) { return GetKind() == DNK_Group; }
 bool				CDockNode::IsDocumentWell(void) { return GetKind() == DNK_DocumentWell; }

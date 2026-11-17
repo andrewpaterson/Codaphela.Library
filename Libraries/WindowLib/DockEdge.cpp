@@ -174,8 +174,8 @@ void CDockEdge::StopDragSelect(int x, int y)
 }
 
 
-uint8	CDockEdge::GetEdges(void) { return muiEdges; }
-bool	CDockEdge::IsDragging(void) { return mbDragging; }
+uint8	CDockEdge::GetEdges(void) const { return muiEdges; }
+bool	CDockEdge::IsDragging(void) const { return mbDragging; }
 
 
 //////////////////////////////////////////////////////////////////////////

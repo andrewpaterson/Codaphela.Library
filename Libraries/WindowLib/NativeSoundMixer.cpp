@@ -51,9 +51,9 @@ void CNativeSoundMixer::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNativeSoundMixer::IsOpen(void) { return muiSampleRate != 0; }
-uint32 CNativeSoundMixer::GetSampleRate(void) { return muiSampleRate; }
-uint64 CNativeSoundMixer::NumDroppedFrames(void) { return muiDroppedFrames; }
-CSoundMixer* CNativeSoundMixer::GetMixer(void) { return mpcMixer; }
-CNativeSoundFactory* CNativeSoundMixer::GetFactory(void) { return mpcSoundFactory; }
+bool CNativeSoundMixer::IsOpen(void) const { return muiSampleRate != 0; }
+uint32 CNativeSoundMixer::GetSampleRate(void) const { return muiSampleRate; }
+uint64 CNativeSoundMixer::NumDroppedFrames(void) const { return muiDroppedFrames; }
+CSoundMixer* CNativeSoundMixer::GetMixer(void) const { return mpcMixer; }
+CNativeSoundFactory* CNativeSoundMixer::GetFactory(void) const { return mpcSoundFactory; }
 

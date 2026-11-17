@@ -147,7 +147,7 @@ void CScrollBar::SetRange(int32 iContentLength, int32 iViewLength, int32 iPositi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CScrollBar::IsShown(void)
+bool CScrollBar::IsShown(void) const
 {
 	return miContentLength > miViewLength;
 }
@@ -175,7 +175,7 @@ void CScrollBar::SetRequiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CScrollBar::GetTrackLength(void)
+int32 CScrollBar::GetTrackLength(void) const
 {
 	if (meOrientation == SBO_Horizontal)
 	{
@@ -551,7 +551,7 @@ void CScrollBar::FocusLost(void)
 }
 
 
-EScrollBarOrientation CScrollBar::GetOrientation(void) { return meOrientation; }
-bool CScrollBar::IsDragging(void) { return mbDragging; }
-bool CScrollBar::IsHoverShown(void) { return mbHoverShown; }
+EScrollBarOrientation CScrollBar::GetOrientation(void) const { return meOrientation; }
+bool CScrollBar::IsDragging(void) const { return mbDragging; }
+bool CScrollBar::IsHoverShown(void) const { return mbHoverShown; }
 

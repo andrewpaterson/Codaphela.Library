@@ -100,23 +100,23 @@ public:
 	void				Deactivate(void);
 	void				Forget(Ptr<CComponent> pComponent);
 
-	Ptr<CComponent>		GetFocussedComponent(void);
-	Ptr<CComponent>		GetMouseOverComponent(void);
+	Ptr<CComponent>		GetFocussedComponent(void) const;
+	Ptr<CComponent>		GetMouseOverComponent(void) const;
 	Ptr<CComponent>		FindKeyComponent(CComponentInput* pcComponentInput, const char** pszContext);
 	static const char*	GetKeyContext(Ptr<CComponent> pComponent);
-	SInt32Vec2			GetPointer(void);
-	bool				IsPointerIn(void);
-	bool				IsActive(void);
+	SInt32Vec2			GetPointer(void) const;
+	bool				IsPointerIn(void) const;
+	bool				IsActive(void) const;
 
 	//A focussed component can start a drag itself, as a scroll bar does when its thumb is pressed, so it gets the
 	//pointer's moves until it stops the drag.
 	void						StartDrag(EFocusDrag eDrag, int x, int y);
 	void						StopDrag(EFocusDrag eDrag);
 	void						HandOverDrag(Ptr<CComponent> pComponent);
-	Ptr<CComponent>				GetDragComponent(void);
+	Ptr<CComponent>				GetDragComponent(void) const;
 	int64						GetDragRepeatWait(int64 iNow);
 	bool						RepeatDrag(int64 iNow);
-	EFocusDrag					GetDrag(void);
+	EFocusDrag					GetDrag(void) const;
 	CComponentEvent<CFocus>*	GetFocusChangeEvent(void);
 
 	//The focussed component's caret blinks, as IntelliJ's: shown and hidden every period, shown again whenever it
@@ -124,7 +124,7 @@ public:
 	bool				GetCaret(CInt32Rect* pcDest, ARGB32* psColour);
 	void				SetCaretBlinkPeriod(int32 iMilliseconds);
 	void				ResetCaretBlink(void);
-	bool				IsCaretOn(void);
+	bool				IsCaretOn(void) const;
 	int64				GetCaretBlinkWait(int64 iNow);
 	bool				BlinkCaret(int64 iNow);
 

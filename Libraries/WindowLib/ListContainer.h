@@ -92,34 +92,34 @@ public:
 	bool			AddToRow(int32 iRow, Ptr<CComponent> pComponent, int iColumn = 0, int iColumnSpan = 1, int iWidthWeight = 0);
 	int32			AddItem(Ptr<CComponent> pItem, bool bEnabled = true);
 	bool			RemoveAllComponents(void) override;  //Removes every row.
-	int32			NumRows(void);
+	int32			NumRows(void) const;
 	virtual void	SetRowEnabled(int32 iRow, bool bEnabled);
 	bool			IsRowEnabled(int32 iRow);
 
 	bool			Select(int32 iRow);
-	int32			GetSelected(void);
+	int32			GetSelected(void) const;
 	void			SetMultiSelect(bool bMultiSelect);
-	bool			IsMultiSelect(void);
+	bool			IsMultiSelect(void) const;
 	bool			IsRowSelected(int32 iRow);
 	int32			NumSelected(void);
 	void			SelectRange(int32 iFrom, int32 iTo);
 	void			ToggleRow(int32 iRow);
 	void			SelectAll(void);
-	int32			GetHover(void);
+	int32			GetHover(void) const;
 	void			Activate(void);
 	int32			FindRowAt(int x, int y);
 	void			ShowRow(int32 iRow);
 
 	void			SetSelectOnHover(bool bSelectOnHover);
-	bool			IsSelectOnHover(void);
+	bool			IsSelectOnHover(void) const;
 	void			SetDoubleClickActivates(bool bDoubleClickActivates);
-	bool			IsDoubleClickActivates(void);
+	bool			IsDoubleClickActivates(void) const;
 	void			SetPageRows(int32 iPageRows);
 	void			SetWrapAround(bool bWrapAround);
 	void			SetHighlightColours(ARGB32 sSelected, ARGB32 sHover);
 	void			SetHighlightDraws(Ptr<CCanvasDraw> pSelected, Ptr<CCanvasDraw> pHover);
-	Ptr<CCanvas>	GetSelectedHighlight(void);
-	Ptr<CCanvas>	GetHoverHighlight(void);
+	Ptr<CCanvas>	GetSelectedHighlight(void) const;
+	Ptr<CCanvas>	GetHoverHighlight(void) const;
 
 	CComponentEvent<CListContainer>*	GetSelectionEvent(void);
 	CComponentEvent<CListContainer>*	GetActivationEvent(void);

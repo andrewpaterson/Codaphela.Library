@@ -66,7 +66,7 @@ public:
 	Ptr<CLineZone>		FindZone(size uiLine);
 	size				NumZones(void);
 	Ptr<CLineZone>		GetZone(size uiIndex);
-	bool				IsOutOfDate(void);
+	bool				IsOutOfDate(void) const;
 
 protected:
 	Ptr<CLineZone>		GetZoneComponent(size uiComponent);

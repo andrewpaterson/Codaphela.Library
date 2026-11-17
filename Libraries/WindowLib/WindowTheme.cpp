@@ -335,15 +335,15 @@ void CWindowTheme::SetFont(Ptr<CFont> pFont) { mpFont = pFont; }
 void CWindowTheme::SetSmallButtonImages(Ptr<CButtonImages> pImages) { mpSmallButtonImages = pImages; }
 void CWindowTheme::SetToolButtonImages(Ptr<CButtonImages> pImages) { mpToolButtonImages = pImages; }
 void CWindowTheme::SetMenuBarButtonImages(Ptr<CButtonImages> pImages) { mpMenuBarButtonImages = pImages; }
-Ptr<CButtonImages> CWindowTheme::GetMenuBarButtonImages(void) { return mpMenuBarButtonImages; }
+Ptr<CButtonImages> CWindowTheme::GetMenuBarButtonImages(void) const { return mpMenuBarButtonImages; }
 void CWindowTheme::SetCheckBoxImages(Ptr<CCheckBoxImages> pImages) { mpCheckBoxImages = pImages; }
 void CWindowTheme::SetMenuStyle(Ptr<CMenuStyle> pStyle) { mpMenuStyle = pStyle; }
 void CWindowTheme::SetScrollBarImages(Ptr<CScrollBarImages> pImages) { mpScrollBarImages = pImages; }
-Ptr<CFont> CWindowTheme::GetFont(void) { return mpFont; }
-Ptr<CCheckBoxImages> CWindowTheme::GetCheckBoxImages(void) { return mpCheckBoxImages; }
-Ptr<CMenuStyle> CWindowTheme::GetMenuStyle(void) { return mpMenuStyle; }
-Ptr<CMenuStyle> CWindowTheme::GetComboMenuStyle(void) { return mpComboMenuStyle; }
-Ptr<CScrollBarImages> CWindowTheme::GetScrollBarImages(void) { return mpScrollBarImages; }
+Ptr<CFont> CWindowTheme::GetFont(void) const { return mpFont; }
+Ptr<CCheckBoxImages> CWindowTheme::GetCheckBoxImages(void) const { return mpCheckBoxImages; }
+Ptr<CMenuStyle> CWindowTheme::GetMenuStyle(void) const { return mpMenuStyle; }
+Ptr<CMenuStyle> CWindowTheme::GetComboMenuStyle(void) const { return mpComboMenuStyle; }
+Ptr<CScrollBarImages> CWindowTheme::GetScrollBarImages(void) const { return mpScrollBarImages; }
 bool CWindowTheme::IsColourSet(EThemeColour eColour) { return mabColoursSet[eColour]; }
 bool CWindowTheme::IsImageSet(EThemeImage eImage) { return maImages.Get(eImage).IsNotNull(); }
 bool CWindowTheme::IsMetricSet(EThemeMetric eMetric) { return mabMetricsSet[eMetric]; }

@@ -139,7 +139,7 @@ void CSplitSash::StopDragSelect(int x, int y)
 }
 
 
-bool CSplitSash::IsDragging(void) { return mbDragging; }
+bool CSplitSash::IsDragging(void) const { return mbDragging; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -433,12 +433,12 @@ bool CSplitContainer::IsChildDrawn(Ptr<CComponent> pChild)
 }
 
 
-Ptr<CComponent> CSplitContainer::GetFirst(void) { return mpFirst; }
-Ptr<CComponent> CSplitContainer::GetSecond(void) { return mpSecond; }
-Ptr<CSplitSash> CSplitContainer::GetSash(void) { return mpSash; }
-bool CSplitContainer::IsHorizontal(void) { return mbHorizontal; }
-bool CSplitContainer::IsSecondShown(void) { return mbSecondShown; }
-int32 CSplitContainer::GetShare(void) { return miShare; }
-int32 CSplitContainer::GetFirstSize(void) { return miFirstSize; }
+Ptr<CComponent> CSplitContainer::GetFirst(void) const { return mpFirst; }
+Ptr<CComponent> CSplitContainer::GetSecond(void) const { return mpSecond; }
+Ptr<CSplitSash> CSplitContainer::GetSash(void) const { return mpSash; }
+bool CSplitContainer::IsHorizontal(void) const { return mbHorizontal; }
+bool CSplitContainer::IsSecondShown(void) const { return mbSecondShown; }
+int32 CSplitContainer::GetShare(void) const { return miShare; }
+int32 CSplitContainer::GetFirstSize(void) const { return miFirstSize; }
 CComponentEvent<CSplitContainer>* CSplitContainer::GetShareEvent(void) { return &mcShareChanged; }
 

@@ -101,12 +101,12 @@ public:
 	Ptr<CComponent>					TakeTab(Ptr<CTabComponent> pTab);
 	bool							MoveTab(Ptr<CTabComponent> pTab, size uiIndex);
 	void							SetTabSide(ETabSide eSide);
-	ETabSide						GetTabSide(void);
+	ETabSide						GetTabSide(void) const;
 	void							SetHideSingleTab(bool bHide);
-	bool							IsBarShown(void);
+	bool							IsBarShown(void) const;
 	void							SetOverflowMenu(bool bOverflow);
 	void							OpenOverflowMenu(void);
-	Ptr<CMenuContainer>				GetOverflowMenu(void);
+	Ptr<CMenuContainer>				GetOverflowMenu(void) const;
 	size							IndexOf(Ptr<CTabComponent> pTab);
 	size							IndexOfPage(Ptr<CComponent> pPage);
 	Ptr<CTabComponent>				FindTabAt(int x, int y);
@@ -115,7 +115,7 @@ public:
 	void							Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	void							Select(Ptr<CTabComponent> pTab);
 	void							Select(size uiIndex);
-	Ptr<CTabComponent>				GetSelected(void);
+	Ptr<CTabComponent>				GetSelected(void) const;
 	bool							IsPointInBar(int x, int y);
 	size							NumTabs(void);
 	Ptr<CTabComponent>				GetTab(size uiIndex);
@@ -129,7 +129,7 @@ public:
 	void							TabClosePressed(Ptr<CTabComponent> pTab);
 	void							TabReleased(Ptr<CTabComponent> pTab, int x, int y, bool bClick);
 	void							TabDragged(Ptr<CTabComponent> pTab);
-	bool							IsTabDraggable(void);
+	bool							IsTabDraggable(void) const;
 	void							OverflowItemClicked(CMenuItem* pcItem);
 
 protected:

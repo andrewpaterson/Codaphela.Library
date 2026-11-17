@@ -473,7 +473,7 @@ void CTextArea::ClearBackgrounds(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextArea::NumBackgrounds(void)
+size CTextArea::NumBackgrounds(void) const
 {
 	return mcBackgrounds.NumBackgrounds();
 }
@@ -720,7 +720,7 @@ SInt32Vec2 CTextArea::GetTextSize(void)
 
 
 char* CTextArea::GetText(void) { return mcDocument.Text(); }
-size CTextArea::GetChangeCount(void) { return mcDocument.GetChangeCount(); }  //Each edit counts one more, so the text's owner can tell it changed since it last looked.
+size CTextArea::GetChangeCount(void) const { return mcDocument.GetChangeCount(); }  //Each edit counts one more, so the text's owner can tell it changed since it last looked.
 Ptr<CFontFamily> CTextArea::GetFontFamily(void) { return mpLayout->GetFontFamily(); }
 bool CTextArea::IsWordWrap(void) { return mpLayout->IsWordWrap(); }
 ARGB32 CTextArea::GetColour(void) { return mpLayout->GetStyle()->sColour; }
@@ -809,8 +809,8 @@ void CTextArea::SetCaretLine(bool bShown, ARGB32 sColour)
 }
 
 
-bool CTextArea::IsCaretLineShown(void) { return mbCaretLine; }
-size CTextArea::GetCaretLine(void) { return muiCaretLine; }
+bool CTextArea::IsCaretLineShown(void) const { return mbCaretLine; }
+size CTextArea::GetCaretLine(void) const { return muiCaretLine; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -950,7 +950,7 @@ void CTextArea::GetCaretBounds(CInt32Rect* pcDest)
 // The lines are ended by line feeds; there is always at least one.
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextArea::NumLines(void) { return mcDocument.NumLines(); }
+size CTextArea::NumLines(void) const { return mcDocument.NumLines(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1201,7 +1201,7 @@ void CTextArea::BoxSelect(size uiAnchorRow, int32 iAnchorX, size uiCaretRow, int
 }
 
 
-bool CTextArea::IsBox(void) { return mcEditing.IsBox(); }
+bool CTextArea::IsBox(void) const { return mcEditing.IsBox(); }
 void CTextArea::GetBoxRanges(CArrayTextRange* pasDest) { mcEditing.GetBoxRanges(pasDest); }
 
 
@@ -1859,7 +1859,7 @@ void CTextArea::ClearOccurrenceRanges(void)
 }
 
 
-size CTextArea::NumOccurrenceRanges(void) { return mcOccurrences.NumRanges(); }
+size CTextArea::NumOccurrenceRanges(void) const { return mcOccurrences.NumRanges(); }
 STextOccurrenceRange* CTextArea::GetOccurrenceRange(size uiIndex) { return mcOccurrences.GetRange(uiIndex); }
 
 
@@ -1920,7 +1920,7 @@ void CTextArea::SetHighlightOccurrences(bool bHighlight)
 }
 
 
-bool CTextArea::IsHighlightingOccurrences(void) { return mcOccurrences.IsHighlighting(); }
+bool CTextArea::IsHighlightingOccurrences(void) const { return mcOccurrences.IsHighlighting(); }
 STextRange* CTextArea::GetOccurrence(size uiIndex) { return mcOccurrences.GetFound(uiIndex); }
 
 
@@ -2014,10 +2014,10 @@ int32 CTextArea::GetFullWidth(void)
 }
 
 
-bool CTextArea::IsEditable(void) { return mcEditing.IsEditable(); }
-bool CTextArea::IsSelectable(void) { return mbSelectable; }
+bool CTextArea::IsEditable(void) const { return mcEditing.IsEditable(); }
+bool CTextArea::IsSelectable(void) const { return mbSelectable; }
 CTextEditing* CTextArea::GetEditing(void) { return &mcEditing; }  //The caret, the selection and the edits: its moves and edits are made through it.
-size CTextArea::GetCaretPosition(void) { return mcEditing.GetCaretPosition(); }
+size CTextArea::GetCaretPosition(void) const { return mcEditing.GetCaretPosition(); }
 
 
 //////////////////////////////////////////////////////////////////////////

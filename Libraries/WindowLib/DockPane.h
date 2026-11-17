@@ -78,7 +78,7 @@ struct SDockRestore
 	void	Kill(void);
 	void	Copy(SDockRestore* psSource);
 	void	SetNeighbour(const char* szNeighbour);
-	bool	IsSet(void);
+	bool	IsSet(void) const;
 	bool	IsBesideWell(void);
 	bool	IsAroundWell(void);
 };
@@ -131,41 +131,41 @@ public:
 	void				SetID(const char* szID);
 	const char*			GetTitle(void);
 	void				SetTitle(const char* szTitle);
-	Ptr<CImageCel>		GetIcon(void);
+	Ptr<CImageCel>		GetIcon(void) const;
 	void				SetIcon(Ptr<CImageCel> pIcon);
-	Ptr<CFont>			GetTabFont(void);
+	Ptr<CFont>			GetTabFont(void) const;
 	void				SetTabFont(Ptr<CFont> pFont);
-	Ptr<CComponent>		GetContent(void);
+	Ptr<CComponent>		GetContent(void) const;
 	void				SetFocusTarget(Ptr<CComponent> pTarget);
-	Ptr<CComponent>		GetFocusTarget(void);
-	EDockPaneKind		GetKind(void);
-	bool				IsDocument(void);
-	bool				IsTool(void);
-	bool				IsClosable(void);
+	Ptr<CComponent>		GetFocusTarget(void) const;
+	EDockPaneKind		GetKind(void) const;
+	bool				IsDocument(void) const;
+	bool				IsTool(void) const;
+	bool				IsClosable(void) const;
 	void				SetClosable(bool bClosable);
-	EDockPaneState		GetState(void);
+	EDockPaneState		GetState(void) const;
 	void				SetState(EDockPaneState eState);
-	Ptr<CDockGroup>		GetGroup(void);
+	Ptr<CDockGroup>		GetGroup(void) const;
 	void				SetGroup(Ptr<CDockGroup> pGroup);
 	void				SetManager(Ptr<CDockManager> pManager);
-	bool				IsShown(void);
+	bool				IsShown(void) const;
 
-	EDockPlaceKind		GetDefaultKind(void);
-	EDockSide			GetDefaultSide(void);
-	int32				GetDefaultSize(void);
+	EDockPlaceKind		GetDefaultKind(void) const;
+	EDockSide			GetDefaultSide(void) const;
+	int32				GetDefaultSize(void) const;
 	const char*			GetDefaultPane(void);
 
 	void				SetRestore(SDockRestore* psRestore);
 	SDockRestore*		GetRestore(void);
 	void				ClearRestore(void);
-	bool				HasRestore(void);
+	bool				HasRestore(void) const;
 
 	void				SetFloatRectangle(CInt32Rect* pcRectangle);
 	bool				GetFloatRectangle(CInt32Rect* pcDest);
 
 	void				SetAutoHide(EDockSide eSide, int32 iSize);
-	EDockSide			GetAutoHideSide(void);
-	int32				GetAutoHideSize(void);
+	EDockSide			GetAutoHideSide(void) const;
+	int32				GetAutoHideSize(void) const;
 	void				SetAutoHideSize(int32 iSize);
 
 protected:

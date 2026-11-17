@@ -59,9 +59,9 @@ public:
 
 	void			Clear(void);
 	void			Complete(void);
-	bool			IsComplete(void);
+	bool			IsComplete(void) const;
 	void			Add(int32 iTop, int32 iBottom);
-	size			NumBands(void);
+	size			NumBands(void) const;
 	STextAreaBand*	Get(size uiIndex);
 	size			FindBand(int32 y);
 	void			Mix(size uiBand, const void* pvData, size uiBytes);

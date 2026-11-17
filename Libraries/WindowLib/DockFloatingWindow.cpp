@@ -506,9 +506,9 @@ void CDockFloatingWindow::WindowClosed(CWindow* pcWindow)
 }
 
 
-Ptr<CWindow>		CDockFloatingWindow::GetWindow(void) { return mpWindow; }
-Ptr<CDockArea>		CDockFloatingWindow::GetArea(void) { return mpArea; }
-Ptr<CDockTitleBar>	CDockFloatingWindow::GetTitleBar(void) { return mpTitleBar; }
+Ptr<CWindow>		CDockFloatingWindow::GetWindow(void) const { return mpWindow; }
+Ptr<CDockArea>		CDockFloatingWindow::GetArea(void) const { return mpArea; }
+Ptr<CDockTitleBar>	CDockFloatingWindow::GetTitleBar(void) const { return mpTitleBar; }
 Ptr<CDockNode>		CDockFloatingWindow::GetRoot(void) { return mpArea->GetRoot(); }
 size				CDockFloatingWindow::NumEdges(void) { return maEdges.NumElements(); }
 Ptr<CDockEdge>		CDockFloatingWindow::GetEdge(size uiIndex) { return maEdges.Get(uiIndex); }

@@ -358,8 +358,8 @@ void CDockTitleBar::StopDragSelect(int x, int y)
 
 
 char*				CDockTitleBar::GetTitle(void) { return mpTitle->GetText(); }
-bool				CDockTitleBar::IsActive(void) { return mbActive; }
-bool				CDockTitleBar::IsPinned(void) { return mbPinned; }
+bool				CDockTitleBar::IsActive(void) const { return mbActive; }
+bool				CDockTitleBar::IsPinned(void) const { return mbPinned; }
 Ptr<CIconComponent>	CDockTitleBar::GetButton(EDockTitleButton eButton) { return mapButtons[eButton]; }
 CComponentEvent<CDockTitleBar>*	CDockTitleBar::GetDragEvent(void) { return &mcDragged; }
 CComponentEvent<CDockTitleBar>*	CDockTitleBar::GetDoubleClickEvent(void) { return &mcDoubleClicked; }

@@ -144,7 +144,7 @@ bool CCanvas::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CCanvas::GetPixelData(void)
+uint8* CCanvas::GetPixelData(void) const
 {
 	if (mpcNativeCanvas == NULL)
 	{
@@ -474,7 +474,7 @@ bool CCanvas::PrepareNativeCanvas(SInt32Vec2 sSize)
 // no native canvas is unchanged, so it isn't made again on every draw.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCanvas::HasNativeChanged(void)
+bool CCanvas::HasNativeChanged(void) const
 {
 	SInt32Vec2	sSize;
 
@@ -557,7 +557,7 @@ bool CCanvas::IsSolidInWindow(Ptr<CCanvas> pWindowCanvas, ARGB32* psColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCanvas::HasArea(void)
+bool CCanvas::HasArea(void) const
 {
 	return (msNativeSize.x > 0) && (msNativeSize.y > 0);
 }
@@ -820,7 +820,7 @@ void CCanvas::DrawImage(int iX, int iY, Ptr<CImage> pImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCanvas::IsValid(void)
+bool CCanvas::IsValid(void) const
 {
 	if (mcFormat.meFormat == CFT_Unknown)
 	{
@@ -920,7 +920,7 @@ bool CCanvas::SetTransparent(bool bTransparent)
 // an ignored channel.
 //
 //////////////////////////////////////////////////////////////////////////
-EColourFormat CCanvas::GetTransparentColourFormat(void)
+EColourFormat CCanvas::GetTransparentColourFormat(void) const
 {
 	if ((mcFormat.meFormat == CFT_XRGB) || (mcFormat.meFormat == CFT_ARGB))
 	{
@@ -936,7 +936,7 @@ EColourFormat CCanvas::GetTransparentColourFormat(void)
 // is transparent.
 //
 //////////////////////////////////////////////////////////////////////////
-EColourFormat CCanvas::GetColourFormat(void)
+EColourFormat CCanvas::GetColourFormat(void) const
 {
 	if (mbTransparent)
 	{
@@ -950,7 +950,7 @@ EColourFormat CCanvas::GetColourFormat(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ERGBAlphaBits CCanvas::GetAlphaBits(void)
+ERGBAlphaBits CCanvas::GetAlphaBits(void) const
 {
 	if (mbTransparent)
 	{
@@ -971,15 +971,15 @@ void CCanvas::GetColourFormat(CColourFormatHelper* pcDest)
 }
 
 
-EColourOrder CCanvas::GetColourOrder(void) { return mcFormat.meOrder; }
-ERGBColourBits CCanvas::GetColourBits(void) { return mcFormat.meColourBits; }
-bool CCanvas::IsTransparent(void) { return mbTransparent; }
-CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
-SInt32Vec2 CCanvas::GetNativeOrigin(void) { return msNativeOrigin; }
-SInt32Vec2 CCanvas::GetNativeSize(void) { return msNativeSize; }
-Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
+EColourOrder CCanvas::GetColourOrder(void) const { return mcFormat.meOrder; }
+ERGBColourBits CCanvas::GetColourBits(void) const { return mcFormat.meColourBits; }
+bool CCanvas::IsTransparent(void) const { return mbTransparent; }
+CNativeCanvas* CCanvas::GetNativeCanvas(void) const { return mpcNativeCanvas; }
+SInt32Vec2 CCanvas::GetNativeOrigin(void) const { return msNativeOrigin; }
+SInt32Vec2 CCanvas::GetNativeSize(void) const { return msNativeSize; }
+Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) const { return mpCanvasDraw; }
 void CCanvas::SetCanvasDraw(Ptr<CCanvasDraw> pDraw) { mpCanvasDraw = pDraw; InvalidateLayout(); }
-bool CCanvas::IsContentDirty(void) { return mbContentDirty; }
+bool CCanvas::IsContentDirty(void) const { return mbContentDirty; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -991,6 +991,6 @@ bool CCanvas::IsContentDirty(void) { return mbContentDirty; }
 //
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::SetDrawnEveryPaint(bool bDrawnEveryPaint) { mbDrawnEveryPaint = bDrawnEveryPaint; }
-bool CCanvas::IsDrawnEveryPaint(void) { return mbDrawnEveryPaint; }
-Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }
+bool CCanvas::IsDrawnEveryPaint(void) const { return mbDrawnEveryPaint; }
+Ptr<CContainer> CCanvas::GetContainer(void) const { return mpContainer; }
 

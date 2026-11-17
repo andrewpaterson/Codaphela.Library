@@ -64,11 +64,11 @@ public:
 	virtual uint32			GetStreamSampleRate(void);  //Zero when the stream isn't playing.
 
 			void			SetLatency(uint32 uiLatencyMs, uint32 uiMaxLatencyMs);
-			Ptr<CSound>		GetBuffer(void);
-			lsize			NumWaitingFrames(void);
-			uint64			NumFramesPlayed(void);
-			uint64			NumDroppedFrames(void);
-			uint64			NumUnderruns(void);
+			Ptr<CSound>		GetBuffer(void) const;
+			lsize			NumWaitingFrames(void) const;
+			uint64			NumFramesPlayed(void) const;
+			uint64			NumDroppedFrames(void) const;
+			uint64			NumUnderruns(void) const;
 
 protected:
 			void			Read(uint32 uiStreamRate);

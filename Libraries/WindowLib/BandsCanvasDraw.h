@@ -44,10 +44,10 @@ public:
 	bool	Draw(Ptr<CCanvas> pCanvas) override;
 
 	void	SetColour(ARGB32 sColour);
-	ARGB32	GetColour(void);
+	ARGB32	GetColour(void) const;
 	void	ClearBands(void);
 	void	AddBand(int32 iTop, int32 iHeight);
-	size	NumBands(void);
+	size	NumBands(void) const;
 	SInt32Vec2	GetBand(size uiIndex);
 };
 

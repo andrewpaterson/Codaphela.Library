@@ -472,7 +472,7 @@ void CWindowInputSource::RememberLetGo(void)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CWindowInputSource::GetName(CInputSourceDesc* pcSource) { return pcSource->GetFriendlyName(); }
-size CWindowInputSource::NumEvents(void) { return masEvents.NumElements(); }
+size CWindowInputSource::NumEvents(void) const { return masEvents.NumElements(); }
 bool CWindowInputSource::GetEvictionDelay(uint32* puiMilliseconds) { return mpcVirtual->GetChords()->GetEvictionDelay(puiMilliseconds); }
 SWindowInputEvent* CWindowInputSource::GetEvent(size uiIndex) { return masEvents.Get(uiIndex); }
-CInputVirtualDevice* CWindowInputSource::GetVirtualDevice(void) { return mpcVirtual; }
+CInputVirtualDevice* CWindowInputSource::GetVirtualDevice(void) const { return mpcVirtual; }

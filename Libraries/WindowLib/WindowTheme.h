@@ -101,14 +101,14 @@ public:
 	bool					IsImageSet(EThemeImage eImage);
 	void					Changed(void);
 
-	Ptr<CFont>						GetFont(void);
+	Ptr<CFont>						GetFont(void) const;
 	Ptr<CButtonImages>				GetButtonImages(EButtonLook eLook);
 	Ptr<CButtonImages>				GetDefaultButtonImages(EButtonLook eLook);
-	Ptr<CButtonImages>				GetMenuBarButtonImages(void);
-	Ptr<CCheckBoxImages>			GetCheckBoxImages(void);
-	Ptr<CMenuStyle>					GetMenuStyle(void);
-	Ptr<CMenuStyle>					GetComboMenuStyle(void);
-	Ptr<CScrollBarImages>			GetScrollBarImages(void);
+	Ptr<CButtonImages>				GetMenuBarButtonImages(void) const;
+	Ptr<CCheckBoxImages>			GetCheckBoxImages(void) const;
+	Ptr<CMenuStyle>					GetMenuStyle(void) const;
+	Ptr<CMenuStyle>					GetComboMenuStyle(void) const;
+	Ptr<CScrollBarImages>			GetScrollBarImages(void) const;
 	ARGB32							GetColour(EThemeColour eColour);
 	Ptr<CImageCel>					GetImage(EThemeImage eImage);
 	int32							GetMetric(EThemeMetric eMetric);

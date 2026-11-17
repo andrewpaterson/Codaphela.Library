@@ -133,7 +133,7 @@ float64 CSoundVoice::Interpolate(float64* pfSamples, float64 fPosition)
 //
 //////////////////////////////////////////////////////////////////////////
 void CSoundVoice::SetVolume(float64 fVolume) { mfVolume = fVolume; }
-float64 CSoundVoice::GetVolume(void) { return mfVolume; }
+float64 CSoundVoice::GetVolume(void) const { return mfVolume; }
 void CSoundVoice::Stop(void) { mbFinished = true; }
-bool CSoundVoice::IsFinished(void) { return mbFinished; }
+bool CSoundVoice::IsFinished(void) const { return mbFinished; }
 

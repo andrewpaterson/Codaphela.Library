@@ -133,7 +133,7 @@ protected:
 	void	StartDrag(ETextEditingDrag eDrag, int x, int y);
 	void	SetDrag(ETextEditingDrag eDrag);
 	void	CancelDrag(void);
-	bool	IsTextDrag(void);
+	bool	IsTextDrag(void) const;
 	bool	FindUnitAt(ETextEditingDrag eUnit, int x, int y, size* puiStart, size* puiEnd);
 	void	DragByUnit(int x, int y);
 	bool	IsInSelection(int x, int y);
