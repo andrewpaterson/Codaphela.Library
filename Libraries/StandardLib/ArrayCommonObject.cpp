@@ -921,7 +921,7 @@ bool CArrayCommonObject::Contains(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 size CArrayCommonObject::RemoveCopies(CEmbeddedObject* pcObject)
 {
-	OBJECTS_WRITE();
+	OBJECTS_INSIDE();
 
 	CPointerLocations*			pcLocations;
 	SPointerLocationsIterator	sIter;

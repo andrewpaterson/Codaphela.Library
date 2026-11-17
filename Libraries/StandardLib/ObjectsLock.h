@@ -77,6 +77,8 @@ inline void ObjectsHomeThread(void) {}
 inline bool ObjectsIsHomeThread(void) { return true; }
 inline void ObjectsFreesWaiting(bool bWaiting) {}
 inline bool ObjectsAssertNoFree(const char* szMethod) { return true; }
+inline size ObjectsNumLocksTaken(void) { return 0; }
+inline size ObjectsNumNotInside(void) { return 0; }
 
 
 #else
@@ -114,6 +116,10 @@ void	ObjectsLock(void);
 void	ObjectsUnlock(void);
 bool	ObjectsIsLockedByThisThread(void);
 void	ObjectsNotInside(const char* szMethod);
+
+//For the tests that every way in has its guard (TestObjectsThreadsEveryWayIn).
+size	ObjectsNumLocksTaken(void);			//How many times the lock has been taken by a thread that didn't hold it.
+size	ObjectsNumNotInside(void);			//How many times the machinery was reached without it (ObjectsNotInside).
 
 
 //Holds the lock from where it is declared to the end of the block, when the locking is on.

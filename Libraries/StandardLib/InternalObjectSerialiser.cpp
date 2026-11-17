@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/DataConnection.h"
 #include "ObjectWriter.h"
 #include "SerialisedObject.h"
+#include "ObjectsLock.h"
 #include "InternalObjectSerialiser.h"
 
 
@@ -50,6 +51,8 @@ void CInternalObjectSerialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
+	OBJECTS_INSIDE();
+
 	CObjectWriter		cWriter;
 	bool				bResult;
 	CMemoryFile			cMemory;

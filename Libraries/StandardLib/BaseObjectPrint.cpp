@@ -47,11 +47,12 @@ char* CBaseObject::PrintIdentifier(CChars* psz)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What points at this, and at each object embedded in it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::DumpFroms(void)
+void CBaseObject::PrintFroms(CChars* psz)
 {
-	OBJECTS_WRITE();
+	OBJECTS_READ();
 
 	CChars				sz;
 	size				i;
@@ -118,7 +119,7 @@ void CBaseObject::DumpFroms(void)
 	sz.Append(&szLine);
 	szLine.Kill();
 
-	sz.Dump();
+	psz->Append(&sz);
 	sz.Kill();
 }
 
@@ -127,9 +128,24 @@ void CBaseObject::DumpFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::DumpPointerTos(void)
+void CBaseObject::DumpFroms(void)
 {
-	OBJECTS_WRITE();
+	CChars	sz;
+
+	sz.Init();
+	PrintFroms(&sz);
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What this, and each object embedded in it, points at.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::PrintPointerTos(CChars* psz)
+{
+	OBJECTS_READ();
 
 	CChars								sz;
 	size								i;
@@ -191,7 +207,7 @@ void CBaseObject::DumpPointerTos(void)
 			}
 			else
 			{
-				sz.Append("HollwEmbeddedObject");
+				sz.Append("HollowEmbeddedObject");
 			}
 			sz.AppendNewLine();
 		}
@@ -202,8 +218,22 @@ void CBaseObject::DumpPointerTos(void)
 	sz.Append(&szLine);
 	szLine.Kill();
 
-	sz.Dump();
+	psz->Append(&sz);
 	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::DumpPointerTos(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	PrintPointerTos(&sz);
+	sz.DumpKill();
 }
 
 
@@ -374,8 +404,6 @@ void CBaseObject::PrintFlags(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::DumpFlags(void)
 {
-	OBJECTS_WRITE();
-
 	CChars	sz;
 
 	sz.Init();
@@ -391,7 +419,5 @@ void CBaseObject::DumpFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Dump(void)
 {
-	OBJECTS_WRITE();
-
 }
 

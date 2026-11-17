@@ -165,11 +165,12 @@ public:
 						size					NumFreeObjects(void);
 
 						void					PrintMemoryNames(CChars* psz);
+						void					PrintMemoryUseIteration(CChars* psz);
+						void					PrintMemoryUseRecursion(CChars* psz);
 						void					PrintStackPointers(CChars* psz, bool bPointerMemory = true);
 						void					PrintGraph(CChars* psz, bool bPointerMemory = true);
 						void					DumpMemoryUseIteration(void);
 						void					DumpMemoryUseRecursion(void);
-						void					DumpNames(void);
 						void					DumpGraph(void);
 						void					DumpMemoryNames(void);
 						void					DumpStackPointers(void);
@@ -230,8 +231,6 @@ protected:
 						void					GetStackPointerAddresses(CArrayVoidPtr* papvAddresses);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize);
 						void					AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
-						void					PrintMemoryUseIteration(CChars* psz);
-						void					PrintMemoryUseRecursion(CChars* psz);
 						void					UnsetDumpFlags(void);
 
 public:
@@ -462,7 +461,7 @@ CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, const char* szFilename
 template<class M>
 M* CObjects::AddFreeObject(Ptr<M>& p)
 {
-	return FreeObjects()->Add(p);
+	return (M*)AddFreeObject((CPointer&)p);
 }
 
 

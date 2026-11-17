@@ -105,6 +105,7 @@ public:
 	bool				IsEmbeddingAllocatedInObjects(void) const;
 	void				Kill(void);
 	void				AssignObject(CEmbeddedObject* pcObject);
+	void				AssignObjectInside(CEmbeddedObject* pcObject);  //For what holds the object system's lock already.
 	CEmbeddedObject*	Dereference(void);
 	CEmbeddedObject*	DereferenceArrow(void);
 

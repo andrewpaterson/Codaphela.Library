@@ -521,6 +521,8 @@ bool CObjects::GetStoredHeapFroms(CBaseObject* pcObject, CArrayOIndex* paoiHolde
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::LoadForDestroy(OIndex oi)
 {
+	OBJECTS_INSIDE();
+
 	CBaseObject*	pcObject;
 
 	pcObject = GetFromMemory(oi);
@@ -1598,7 +1600,7 @@ CPointer CObjects::GetPossiblyHollow(OIndex oi)
 	{
 		pcObject = GetFromDatabase(oi);
 	}
-	pObject.AssignObject(pcObject);
+	pObject.AssignObjectInside(pcObject);
 	return pObject;
 }
 
@@ -1643,7 +1645,7 @@ CPointer CObjects::GetPossiblyHollow(const char* szObjectName)
 	{
 		pcObject = GetFromSources(szObjectName);
 	}
-	pObject.AssignObject(pcObject);
+	pObject.AssignObjectInside(pcObject);
 	return pObject;
 }
 
@@ -1779,7 +1781,7 @@ CPointer CObjects::TestGetFromMemory(const char* szName)
 
 	CPointer	pObject;
 
-	pObject.AssignObject(GetFromMemory(szName));
+	pObject.AssignObjectInside(GetFromMemory(szName));
 	return pObject;
 }
 
@@ -1794,7 +1796,7 @@ CPointer CObjects::TestGetFromMemory(OIndex oi)
 
 	CPointer	pObject;
 
-	pObject.AssignObject(GetFromMemory(oi));
+	pObject.AssignObjectInside(GetFromMemory(oi));
 	return pObject;
 }
 

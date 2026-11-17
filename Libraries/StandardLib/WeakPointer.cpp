@@ -63,6 +63,45 @@ void CWeakPointer::PointTo(CEmbeddedObject* pcObject)
 {
 	OBJECTS_WRITE();
 
+	PointToInside(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the other points at is read under the object system's lock, as this is pointed at it: it can't be freed in
+// between.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWeakPointer::PointToWeak(CWeakPointer* pcWeak)
+{
+	OBJECTS_WRITE();
+
+	PointToInside(pcWeak->mpcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reading the weak pointer and holding what it points at are one step: the object can't be freed between them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWeakPointer::HoldObject(CPointer& pHeld)
+{
+	OBJECTS_WRITE();
+
+	pHeld.AssignObjectInside(mpcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWeakPointer::PointToInside(CEmbeddedObject* pcObject)
+{
+	OBJECTS_INSIDE();
+
 	//An object being freed has had its weak references NULLed already (a Free() reaching it for one), so one to it is NULL.
 	if (pcObject && pcObject->IsBeingFreed())
 	{

@@ -20,7 +20,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __WEAK_POINTER_H__
 #define __WEAK_POINTER_H__
-#include "ObjectsLock.h"
 #include "Pointer.h"
 #include "WeakFroms.h"
 
@@ -44,11 +43,16 @@ public:
 	CEmbeddedObject*	GetWeak(size uiSlot) override;
 
 	void				PointTo(CEmbeddedObject* pcObject);  //Off its old object's weak froms, onto the new one's (NULL for an object being freed).
+	void				PointToWeak(CWeakPointer* pcWeak);  //At what another weak pointer points at.
+	void				HoldObject(CPointer& pHeld);  //pHeld, which is NULL, holds the object: NULL still if it has been freed.
 	void				Release(void);  //Off its object's weak froms, and NULL: its holder is being freed.
 	CEmbeddedObject*	Object(void);
 	bool				IsNull(void) const;
 	bool				IsNotNull(void) const;
 	CWeakPointer*		This(void);
+
+protected:
+	void				PointToInside(CEmbeddedObject* pcObject);
 
 private:
 						CWeakPointer(const CWeakPointer& cPointer);  //A weak pointer is a field: it isn't copied.
@@ -69,14 +73,11 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What is assigned is read under the object system's lock, as it is pointed at: it can't be freed in between.
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
 Weak<M>& Weak<M>::operator = (const CPointer& pPointer)
 {
-	OBJECTS_WRITE();
-
 	PointTo(pPointer.Object());
 	return *this;
 }
@@ -101,25 +102,23 @@ Weak<M>& Weak<M>::operator = (CEmbeddedObject* pcObject)
 template<class M>
 Weak<M>& Weak<M>::operator = (Weak& cWeak)
 {
-	OBJECTS_WRITE();
-
-	PointTo(cWeak.Object());
+	PointToWeak(&cWeak);
 	return *this;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A pointer that holds the object for as long as it is used, NULL if the object has been freed.  Reading the weak
-// pointer and holding what it points at are one step: the object can't be freed between them.
+// A pointer that holds the object for as long as it is used, NULL if the object has been freed.
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
 Ptr<M> Weak<M>::Get(void)
 {
-	OBJECTS_WRITE();
+	Ptr<M>	pHeld;
 
-	return Ptr<M>(mpcObject);
+	HoldObject(pHeld);
+	return pHeld;
 }
 
 

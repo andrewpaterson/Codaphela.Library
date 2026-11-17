@@ -973,8 +973,6 @@ void CBaseObject::SetStored(bool bStored)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::Destroy(void)
 {
-	OBJECTS_WRITE();
-
 	if (!IsAllocatedInObjects())
 	{
 		Kill();

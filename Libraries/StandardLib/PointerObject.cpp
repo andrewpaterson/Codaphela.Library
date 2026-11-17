@@ -864,8 +864,6 @@ bool CPointer::IsDirty(void) const
 //////////////////////////////////////////////////////////////////////////
 void CPointer::LogicalDirty(void)
 {
-	OBJECTS_WRITE();
-
 	if (mpcObject)
 	{
 		mpcObject->LogicalDirty();
@@ -896,8 +894,6 @@ bool CPointer::IsEmbeddingAllocatedInObjects(void) const
 //////////////////////////////////////////////////////////////////////////
 void CPointer::Kill(void)
 {
-	OBJECTS_WRITE();
-
 	//This method exists so that its object can be killed without invoking -> and potentially loading it first.
 	if (mpcObject)
 	{
@@ -913,6 +909,20 @@ void CPointer::Kill(void)
 void CPointer::AssignObject(CEmbeddedObject* pcObject)
 {
 	OBJECTS_WRITE();
+
+	AssignObjectInside(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// AssignObject for what holds the object system's lock already: what reads a pointer out of the object system's own
+// tables (the memory index, a weak reference) and must hold the object before the lock is let go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointer::AssignObjectInside(CEmbeddedObject* pcObject)
+{
+	OBJECTS_INSIDE();
 
 	mpcObject = pcObject;
 	if (mpcObject)
@@ -943,8 +953,6 @@ void CPointer::AddHeapFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::DumpFroms(void)
 {
-	OBJECTS_READ();
-
 	CBaseObject* pvBaseObject = BaseObject();
 
 	if (pvBaseObject)
@@ -960,8 +968,6 @@ void CPointer::DumpFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::DumpPointerTos(void)
 {
-	OBJECTS_READ();
-
 	CBaseObject* pvBaseObject = BaseObject();
 
 	if (pvBaseObject)
@@ -977,8 +983,6 @@ void CPointer::DumpPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::Dump(void)
 {
-	OBJECTS_READ();
-
 	CChars			sz;
 	CBaseObject*	pvBaseObject = BaseObject();
 

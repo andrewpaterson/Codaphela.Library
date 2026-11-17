@@ -189,6 +189,7 @@ public:
 			bool				TestRemoveHeapFrom(CBaseObject* pcFromObject);
 			bool				TestRemoveStackFrom(CPointer* pcPointer);
 
+			void				PrintHeapFroms(CChars* psz);
 			void				DumpHeapFroms(void);
 			void				PrintWeakFroms(CChars* psz);
 

@@ -238,7 +238,7 @@ CPointer CRoot::Get(const char* szObjectName)
 		return Null();
 	}
 
-	pObject.AssignObject(pcObject);
+	pObject.AssignObjectInside(pcObject);
 	return pObject;
 }
 
@@ -251,7 +251,10 @@ Ptr<CSetObject> CRoot::GetAll(void)
 {
 	OBJECTS_READ();
 
-	return &mpObjects;
+	Ptr<CSetObject>		pAll;
+
+	pAll.AssignObjectInside(&mpObjects);
+	return pAll;
 }
 
 

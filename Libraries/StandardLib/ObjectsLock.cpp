@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #ifndef __LIBC65__
+#include "BaseLib/Atomic.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "BaseLib/NativeThread.h"
@@ -37,6 +38,8 @@ static CRecursiveSpinLock	gcObjectsLock;
 static int					giObjectsHomeThread = 0;	//0 until ObjectsInit.
 static size					guiObjectsThreads = 0;		//The other threads registered.  Under the lock.
 static bool					gbObjectsFreesWaiting = false;	//Other threads have found objects dead.  Under the lock.
+static size					guiObjectsLocksTaken = 0;	//Under the lock.
+static int32				giObjectsNotInside = 0;
 
 //Whether the running thread may use objects: it is the home thread, or has registered.
 static thread_local bool	gbObjectsThread = false;
@@ -199,11 +202,15 @@ void ObjectsLock(void)
 		gcLogger.Error2(__METHOD__, " A thread that has not called ObjectsThreadInit is using objects.", NULL);
 	}
 	gcObjectsLock.Lock();
-
-	//The home thread, coming in from outside, first frees what the other threads have found dead.
-	if (gbObjectsFreesWaiting && (gcObjectsLock.Depth() == 1) && (CurrentThreadId() == giObjectsHomeThread))
+	if (gcObjectsLock.Depth() == 1)
 	{
-		gcObjects.Collect();
+		guiObjectsLocksTaken++;
+
+		//The home thread, coming in from outside, first frees what the other threads have found dead.
+		if (gbObjectsFreesWaiting && (CurrentThreadId() == giObjectsHomeThread))
+		{
+			gcObjects.Collect();
+		}
 	}
 }
 
@@ -273,7 +280,33 @@ bool ObjectsAssertNoFree(const char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 void ObjectsNotInside(const char* szMethod)
 {
+	AtomicAdd(&giObjectsNotInside, 1);
 	gcLogger.Error2(szMethod, " was reached without the object system's lock held.", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size ObjectsNumLocksTaken(void)
+{
+	size	uiLocksTaken;
+
+	gcObjectsLock.Lock();
+	uiLocksTaken = guiObjectsLocksTaken;
+	gcObjectsLock.Unlock();
+	return uiLocksTaken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size ObjectsNumNotInside(void)
+{
+	return (size)AtomicLoad(&giObjectsNotInside);
 }
 
 

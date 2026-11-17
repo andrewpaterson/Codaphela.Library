@@ -151,7 +151,7 @@ size CArrayWeakObject::Add(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 void CArrayWeakObject::Move(size uiFrom, size uiTo)
 {
-	OBJECTS_WRITE();
+	OBJECTS_INSIDE();
 
 	CEmbeddedObject*	pcObject;
 
@@ -278,7 +278,10 @@ Ptr<> CArrayWeakObject::Get(size uiIndex)
 {
 	OBJECTS_WRITE();
 
-	return Ptr<>(mapcObjects.GetPtr(uiIndex));
+	Ptr<>	pHeld;
+
+	pHeld.AssignObjectInside(mapcObjects.GetPtr(uiIndex));
+	return pHeld;
 }
 
 

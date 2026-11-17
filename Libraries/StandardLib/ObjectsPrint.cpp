@@ -29,6 +29,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CObjects::PrintMemoryUseIteration(CChars* psz)
 {
+	OBJECTS_READ();
+
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
 
@@ -49,6 +51,8 @@ void CObjects::PrintMemoryUseIteration(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::PrintMemoryUseRecursion(CChars* psz)
 {
+	OBJECTS_READ();
+
 	mcMemory.GetObjects()->Print(psz, true, true);
 }
 
@@ -59,7 +63,7 @@ void CObjects::PrintMemoryUseRecursion(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::PrintMemoryNames(CChars* psz)
 {
-	OBJECTS_WRITE();
+	OBJECTS_READ();
 
 	CIndexTreeMemory*			pcIndex;
 	SIndexTreeMemoryIterator	sIter;
@@ -80,11 +84,13 @@ void CObjects::PrintMemoryNames(CChars* psz)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A Dump is its Print written to the console, and has no guard of its own.  This one has: it also dumps the two
+// indexes themselves.
 //
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpMemoryUseIteration(void)
 {
-	OBJECTS_WRITE();
+	OBJECTS_READ();
 
 	CChars	sz;
 
@@ -109,8 +115,6 @@ void CObjects::DumpMemoryUseIteration(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpMemoryUseRecursion(void)
 {
-	OBJECTS_WRITE();
-
 	CChars	sz;
 
 	sz.Init("-------------------------- Indices --------------------------- \n");
@@ -124,53 +128,12 @@ void CObjects::DumpMemoryUseRecursion(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::DumpNames(void)
-{
-	OBJECTS_WRITE();
-
-	CChars	sz;
-
-	sz.Init("---------------------------- Names --------------------------- \n");
-	sz.DumpKill();
-
-	//mpcDataConnection->StartNameIteration()
-	//	...
-
-	sz.Init();
-	sz.Append("------------------------------------------------------------ \n");
-	sz.DumpKill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObjects::DumpMemoryNames(void)
 {
-	OBJECTS_WRITE();
-
-	CChars						sz;
-	CIndexTreeMemory*			pcIndex;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
+	CChars	sz;
 
 	sz.Init("------------------------- Memory Names ----------------------- \n");
-	sz.DumpKill();
-
-	pcIndex = mcMemory.GetNames();
-
-	bExists = pcIndex->StartIteration(&sIter, NULL, NULL, 0, NULL, NULL, 0);
-	while (bExists)
-	{
-		sz.Init((char*)sIter.acKey.GetData(), 0, sIter.iKeyLength);
-		sz.AppendNewLine();
-		sz.DumpKill();
-
-		bExists = pcIndex->Iterate(&sIter, NULL, NULL, 0, NULL, NULL, 0);
-	}
-
-	sz.Init();
+	PrintMemoryNames(&sz);
 	sz.Append("------------------------------------------------------------ \n");
 	sz.DumpKill();
 }
@@ -277,8 +240,6 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpStackPointers(void)
 {
-	OBJECTS_WRITE();
-
 	CChars	sz;
 
 	sz.Init();
@@ -336,8 +297,6 @@ void CObjects::UnsetDumpFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpGraph(void)
 {
-	OBJECTS_WRITE();
-
 	CChars		sz;
 
 	sz.Init();

@@ -219,6 +219,8 @@ public:
 			bool					IsNesPointedTo(void);
 			bool					HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
+			void					PrintFroms(CChars* psz);
+			void					PrintPointerTos(CChars* psz);
 			void					DumpFroms(void);
 			void					DumpPointerTos(void);
 	virtual void					Dump(void);

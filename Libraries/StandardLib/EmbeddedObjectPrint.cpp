@@ -94,27 +94,39 @@ char* CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded, bool bPointerMem
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The state of each object in the heap that points at this.
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::DumpHeapFroms(void)
+void CEmbeddedObject::PrintHeapFroms(CChars* psz)
 {
-	OBJECTS_WRITE();
+	OBJECTS_READ();
 
 	size			uiNumElements;
 	size			i;
 	CBaseObject*	pcFromObject;
-	CChars			sz;
 
-	sz.Init();
 	uiNumElements = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcFromObject = CEmbeddedObject::GetHeapFrom(i);
-		sz.Append(i);
-		sz.Append(": ");
-		pcFromObject->PrintState(&sz);
-		sz.AppendNewLine();
+		psz->Append(i);
+		psz->Append(": ");
+		pcFromObject->PrintState(psz);
+		psz->AppendNewLine();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::DumpHeapFroms(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	PrintHeapFroms(&sz);
 	sz.DumpKill();
 }
 

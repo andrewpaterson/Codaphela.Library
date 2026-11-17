@@ -15,6 +15,10 @@
 #include "BaseLib/StdRandom.h"
 #include "BaseLib/TypeNames.h"
 #include "StandardLib/ArrayObject.h"
+#include "StandardLib/ArrayWeakObject.h"
+#include "StandardLib/IndexObject.h"
+#include "StandardLib/MapObject.h"
+#include "StandardLib/SetObject.h"
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Objects.h"
@@ -233,6 +237,7 @@ static void TestObjectsThreadsEnd(size uiObjects)
 {
 	AssertInt(0, giTestThreadNodesFreedOffHome);
 	AssertInt(0, giTestThreadNeedersFreedLate);
+	AssertSize(0, ObjectsNumNotInside());
 	AssertSize(0, ObjectsNumThreads());
 	AssertTrue(ObjectsLocking(false));
 	gcObjects.EnableValidation();
@@ -823,6 +828,491 @@ void TestObjectsThreadsAssertNoFree(void)
 }
 
 
+//Runs statement, which is uiWaysIn ways into the object system and nothing more, and checks that each took the object
+//system's lock once and held it throughout: a way in that has lost its guard takes the lock for each thing it calls,
+//or not at all, and reaches the machinery behind it without the lock.
+#define AssertWaysIn(uiWaysIn, statement) \
+	do \
+	{ \
+		size	uiLocksTaken = ObjectsNumLocksTaken(); \
+		statement; \
+		AssertSize(uiLocksTaken + (uiWaysIn), ObjectsNumLocksTaken()); \
+		AssertSize(0, ObjectsNumNotInside()); \
+	} \
+	while (false)
+
+
+#define AssertWayIn(statement)	AssertWaysIn(1, statement)
+
+
+//The same, for a way in that returns a pointer.  The pointer returned is assigned to pointer after the lock is
+//counted, as assigning it, and letting go of what was returned, are ways in of their own.
+#define AssertWayInReturning(pointer, expression) \
+	do \
+	{ \
+		size	uiLocksTaken = ObjectsNumLocksTaken(); \
+		{ \
+			auto&&	pReturned = (expression); \
+			AssertSize(uiLocksTaken + 1, ObjectsNumLocksTaken()); \
+			pointer = pReturned; \
+		} \
+		AssertSize(0, ObjectsNumNotInside()); \
+	} \
+	while (false)
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointers' ways in.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestObjectsThreadsEveryPointerWayIn(void)
+{
+	Ptr<CTestThreadNode>	pNode;
+	Ptr<CTestThreadNode>	pOther;
+	Ptr<CTestThreadNode>	pHeld;
+	CTestThreadNode*		pcNode;
+	CTestThreadNode*		pcOther;
+	CEmbeddedObject*		pcReturned;
+	CPointer*				ppFirst;
+	CPointer*				ppSecond;
+	CPointer*				ppThird;
+	CChars					sz;
+	size					uiCount;
+	size					uiBefore;
+	int						iDist;
+	bool					bDirty;
+
+	pNode = OMalloc<CTestThreadNode>();
+	pOther = OMalloc<CTestThreadNode>();
+	ORoot()->Add(pNode);
+	ORoot()->Add(pOther);
+	pcNode = &pNode;
+	pcOther = &pOther;
+
+	//Made with new so that each constructor, and the destructor, is a statement of its own.
+	AssertWayIn(ppFirst = new CPointer(pcNode));
+	AssertWayIn(ppSecond = new CPointer(*ppFirst));
+	AssertWayIn(ppThird = new CPointer((const CPointer&)*ppFirst));
+	AssertWayIn(*ppSecond = pcOther);
+	AssertWayIn(*ppSecond = *ppFirst);
+	AssertWayIn(*ppSecond = (const CPointer&)*ppThird);
+	AssertWayIn(pcReturned = ppSecond->Return());
+	AssertPointer(pcNode, pcReturned);
+	AssertWayIn(ppSecond->AssignObject(pcOther));
+	AssertWayIn(ppSecond->PointToNull());
+	ppSecond->AssignObject(pcOther);
+	AssertWayIn(ppThird->LogicalDirty());
+	AssertWayIn(uiCount = ppThird->NumStackFroms());
+	AssertSize(3, uiCount);
+	AssertWayIn(uiCount = ppThird->NumHeapFroms());
+	AssertSize(1, uiCount);
+	AssertWayIn(uiCount = ppThird->NumEmbedded());
+	AssertSize(1, uiCount);
+	AssertWayIn(uiCount = ppThird->NumPointerTos());
+	AssertSize(0, uiCount);
+	AssertWayIn(iDist = ppThird->GetDistToRoot());
+	AssertInt(2, iDist);
+	AssertWayIn(bDirty = ppThird->IsDirty());
+	AssertBool(pcNode->IsDirty(), bDirty);
+	AssertWayIn(delete ppSecond);
+	AssertWayIn(delete ppThird);
+	AssertWayIn(delete ppFirst);
+
+	//A field, and a weak one.
+	AssertWayIn(pNode->mpNext = pOther);
+	AssertWayIn(pNode->mwWeak = pOther);
+	AssertWayIn(pNode->mwWeak = pcNode);
+	AssertWayIn(pOther->mwWeak = pNode->mwWeak);
+	AssertWayInReturning(pHeld, pNode->mwWeak.Get());
+	AssertTrue(pHeld == pNode);
+	pHeld = NULL;
+
+	//An object's own: its Init (the end of it), and being dirtied, marked stored and killed.
+	pHeld = OMallocNoI<CTestThreadNode>();
+	AssertWayIn(pHeld->Init());
+	AssertWayIn(pHeld->SetDirty(false));
+	AssertWayIn(pHeld->SetDirty(true));
+	AssertWayIn(pHeld->SetStored(true));
+	AssertWayIn(pHeld->SetStored(false));
+	AssertWayIn(pHeld->Kill());
+	AssertTrue(pHeld.IsNull());
+
+	//A pointer whose object is killed through it, and a pointer's objects swapped for another's.
+	pHeld = OMalloc<CTestThreadNode>();
+	AssertWayIn(pHeld.Kill());
+	pHeld = OMalloc<CTestThreadNode>();
+	pNode->mpOther = pHeld;
+	AssertWayIn(uiCount = pHeld.MorphInto(pcOther));
+	AssertSize(2, uiCount);
+	AssertTrue(pNode->mpOther == pOther);
+	pHeld = NULL;
+
+	//An object on the stack: its class is completed in the shared classes, and its destructor unhooks it.
+	uiBefore = ObjectsNumLocksTaken();
+	{
+		CTestThreadNode		cOnStack;
+
+		AssertWaysIn(2, cOnStack.Init());  //Its PreInit and its PostInit.
+		AssertWayIn(cOnStack.mpNext = pNode);
+	}
+	AssertSize(uiBefore + 5, ObjectsNumLocksTaken());  //And its destructor, which kills it and then unhooks it.
+
+	//What points at an object, and what it points at, written out.
+	sz.Init();
+	AssertWayIn(pcNode->PrintFroms(&sz));
+	AssertWayIn(pcNode->PrintPointerTos(&sz));
+	AssertWayIn(pcNode->PrintHeapFroms(&sz));
+	AssertTrue(sz.Contains("Total Heap Froms [1], Stack Froms [1]"));
+	sz.Kill();
+
+	pNode = NULL;
+	pOther = NULL;
+	ORoot()->RemoveAll();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The collections' ways in, and the root's.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestObjectsThreadsEveryCollectionWayIn(void)
+{
+	Ptr<CTestThreadNode>	apNodes[4];
+	Ptr<CTestThreadNode>	pHeld;
+	Ptr<CTestThreadNode>	pOther;
+	Ptr<CArrayObject>		pArray;
+	Ptr<CArrayObject>		pOtherArray;
+	Ptr<CSetObject>			pSet;
+	Ptr<CIndexObject>		pIndex;
+	Ptr<CMapObject>			pMap;
+	Ptr<CArrayWeakObject>	pWeakArray;
+	Ptr<CRoot>				pRoot;
+	Ptr<CSetObject>			pAll;
+	CPointer				pFound;
+	SSetIterator			sIter;
+	size					uiCount;
+	bool					bHollow;
+	size					i;
+
+	pRoot = ORoot();
+	for (i = 0; i < 4; i++)
+	{
+		apNodes[i] = OMalloc<CTestThreadNode>();
+	}
+	pArray = OMalloc<CArrayObject>();
+	pOtherArray = OMalloc<CArrayObject>();
+	pSet = OMalloc<CSetObject>();
+	pIndex = OMalloc<CIndexObject>();
+	pMap = OMalloc<CMapObject>();
+	pWeakArray = OMalloc<CArrayWeakObject>();
+
+	AssertWayIn(pRoot->Add(pArray));
+	pRoot->Add(pOtherArray);
+	pRoot->Add(pSet);
+	pRoot->Add(pIndex);
+	pRoot->Add(pMap);
+	pRoot->Add(pWeakArray);
+
+	//Arrays.
+	AssertWayIn(pArray->Add(apNodes[0]));
+	AssertWayIn(pArray->CArrayCommonObject::Add((CEmbeddedObject*)&apNodes[1]));
+	AssertWayIn(pArray->Insert(0, apNodes[2]));
+	AssertWayIn(pArray->Set(1, apNodes[3]));
+	AssertWayIn(pOtherArray->CArrayCommonObject::AddAll(&pArray));
+	AssertSize(3, pOtherArray->NumElements());
+	AssertWayIn(pArray->Remove((size)0));
+	AssertWayIn(pArray->Remove(apNodes[1]));
+	AssertWayIn(pArray->CArrayCommonObject::Remove((CEmbeddedObject*)&apNodes[3]));
+	AssertSize(0, pArray->NumElements());
+	AssertWayIn(pArray->CArrayCommonObject::RemoveAll(&pOtherArray));
+	AssertWayIn(pOtherArray->RemoveEnd(1));
+	AssertSize(1, pOtherArray->NumElements());
+	AssertWayIn(pOtherArray->TouchAll());
+	AssertWayIn(pOtherArray->RemoveAll());
+	pHeld = OMalloc<CTestThreadNode>();
+	pOther = OMalloc<CTestThreadNode>();
+	pOtherArray->Add(pHeld);
+	pOtherArray->Add(pOther);
+	pHeld = NULL;
+	pOther = NULL;
+	AssertWayIn(pOtherArray->KillAll());
+
+	//A set.
+	pSet->Add(apNodes[0]);
+	pSet->Add(apNodes[1]);
+	AssertWayIn(pSet->TouchAll());
+	pSet->StartIteration(&sIter);
+	AssertWayIn(pSet->RemoveDuringIteration(&sIter));
+	AssertSize(1, pSet->NumElements());
+
+	//An index and a map.
+	AssertWayIn(pIndex->Put("First", apNodes[0]));
+	AssertWayIn(pIndex->Put((uint8*)"Second", 6, apNodes[1]));
+	AssertWayIn(pIndex->TouchAll());
+	AssertWayIn(pIndex->Remove("First"));
+	AssertWayIn(pIndex->Remove((uint8*)"Second", 6));
+	pHeld = OMalloc<CTestThreadNode>();
+	pOther = OMalloc<CTestThreadNode>();
+	pIndex->Put("Killed", pHeld);
+	pIndex->Put("Too", pOther);
+	pHeld = NULL;
+	pOther = NULL;
+	AssertWayIn(pIndex->KillAll());
+	AssertWayIn(pMap->Put(apNodes[0], apNodes[1]));
+	AssertWayIn(pMap->TouchAll());
+	AssertWayIn(pMap->Remove(apNodes[0]));
+	pHeld = OMalloc<CTestThreadNode>();
+	pOther = OMalloc<CTestThreadNode>();
+	pMap->Put(pHeld, pOther);
+	pHeld = NULL;
+	pOther = NULL;
+	AssertWayIn(pMap->KillAll());
+
+	//An array of weak pointers.
+	AssertWayIn(pWeakArray->Add(&apNodes[0]));
+	AssertWayIn(pWeakArray->Add(apNodes[1]));
+	AssertWayInReturning(pHeld, pWeakArray->Get(0));
+	AssertTrue(pHeld == apNodes[0]);
+	pHeld = NULL;
+	AssertWayIn(pWeakArray->RemoveAt(0));
+	AssertWayIn(pWeakArray->Remove(&apNodes[0]));
+	AssertWayIn(pWeakArray->Compact());
+	pWeakArray->Add(apNodes[2]);
+	AssertWayIn(pWeakArray->RemoveAll());
+
+	//The root.
+	AssertWayIn(uiCount = pRoot->NumObjects());
+	AssertSize(6, uiCount);
+	AssertWayInReturning(pFound, pRoot->UnsafeGet(0));
+	AssertTrue(pFound.IsNotNull());
+	AssertWayInReturning(pFound, pRoot->Get("Nothing by this name"));
+	AssertTrue(pFound.IsNull());
+	AssertWayInReturning(pAll, pRoot->GetAll());
+	AssertSize(6, pAll->NumElements());
+	pAll = NULL;
+	AssertWayIn(bHollow = pRoot->IsSetHollow());
+	AssertFalse(bHollow);
+	AssertWayIn(pRoot->TouchAll());
+	AssertWayIn(pRoot->Remove(pOtherArray));
+	AssertWayIn(pRoot->Remove((CBaseObject*)&pWeakArray));
+
+	for (i = 0; i < 4; i++)
+	{
+		apNodes[i] = NULL;
+	}
+	pArray = NULL;
+	pOtherArray = NULL;
+	pSet = NULL;
+	pIndex = NULL;
+	pMap = NULL;
+	pWeakArray = NULL;
+	AssertWayIn(pRoot->RemoveAll());
+	pRoot = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// CObjects' ways in (those that need objects in a database among them).
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestObjectsThreadsEveryObjectsWayIn(void)
+{
+	Ptr<CString>			pStored;
+	Ptr<CString>			pOther;
+	Ptr<CRoot>				pRoot;
+	Ptr<CFreeObjects>		pFreeObjects;
+	CPointer				pFound;
+	CBaseObject*			pcObject;
+	CArrayOIndex			aoi;
+	CArrayBaseObjectPtr		apcNone;
+	SIndexesIterator		sIter;
+	CChars					sz;
+	OIndex					oi;
+	OIndex					oiStored;
+	OIndex					oiOther;
+	size					uiCount;
+	int64					iCount;
+	bool					bResult;
+
+	AssertWayInReturning(pRoot, gcObjects.Root());
+	AssertWayInReturning(pStored, gcObjects.Malloc<CString>("Stored"));
+	pStored->Init("kept");
+	pOther = ONMalloc<CString>("Other", "too");
+	pRoot->Add(pStored);
+	pRoot->Add(pOther);
+	oiStored = pStored.GetIndex();
+	oiOther = pOther.GetIndex();
+
+	AssertWayIn(bResult = gcObjects.Flush());
+	AssertTrue(bResult);
+	AssertWayIn(bResult = gcObjects.ValidateNoDirty());
+	AssertTrue(bResult);
+	AssertWayIn(bResult = pStored->Flush());
+	AssertTrue(bResult);
+	AssertWayIn(bResult = gcObjects.ForceSave(&pStored));
+	AssertTrue(bResult);
+	AssertWayIn(gcObjects.LogicalDirty(&pStored));
+	aoi.Init();
+	AssertWayIn(bResult = gcObjects.GetStoredHeapFroms(&pStored, &aoi));
+	AssertTrue(bResult);
+	aoi.ReInit();
+	AssertWayIn(bResult = gcObjects.LoadForward(&pStored, &aoi, 10));
+	AssertTrue(bResult);
+	aoi.Kill();
+
+	//Found by index and by name, and counted.
+	AssertWayInReturning(pFound, gcObjects.Get(oiStored));
+	AssertTrue(pFound == pStored);
+	AssertWayInReturning(pFound, gcObjects.Get("Stored"));
+	AssertTrue(pFound == pStored);
+	AssertWayInReturning(pFound, gcObjects.GetPossiblyHollow(oiOther));
+	AssertTrue(pFound == pOther);
+	AssertWayInReturning(pFound, gcObjects.GetPossiblyHollow("Other"));
+	AssertTrue(pFound == pOther);
+	AssertWayInReturning(pFound, gcObjects.TestGetFromMemory(oiStored));
+	AssertWayInReturning(pFound, gcObjects.TestGetFromMemory("Stored"));
+	pFound = NULL;
+	AssertWayIn(bResult = gcObjects.Contains(oiStored));
+	AssertTrue(bResult);
+	AssertWayIn(bResult = gcObjects.Contains("Stored"));
+	AssertTrue(bResult);
+	AssertWayIn(uiCount = gcObjects.NumMemoryIndexes());
+	AssertSize(4, uiCount);
+	AssertWayIn(uiCount = gcObjects.NumMemoryNames());
+	AssertSize(3, uiCount);
+	AssertWayIn(iCount = gcObjects.NumDatabaseIndexes());
+	AssertLong(4, iCount);
+	AssertWayIn(iCount = gcObjects.NumDatabaseNames());
+	AssertLong(3, iCount);
+	AssertWayIn(oi = gcObjects.StartMemoryIteration(&sIter));
+	AssertTrue(oi != INVALID_O_INDEX);
+	AssertWayIn(oi = gcObjects.IterateMemory(&sIter));
+	AssertWayIn(uiCount = gcObjects.NumWaitingToBeFreed());
+	AssertSize(0, uiCount);
+	AssertWayIn(gcObjects.Collect());
+
+	//Written out and checked.
+	sz.Init();
+	AssertWayIn(gcObjects.PrintMemoryNames(&sz));
+	AssertWayIn(gcObjects.PrintMemoryUseIteration(&sz));
+	AssertWayIn(gcObjects.PrintMemoryUseRecursion(&sz));
+	AssertWayIn(gcObjects.PrintStackPointers(&sz));
+	AssertWayIn(gcObjects.PrintGraph(&sz));
+	AssertTrue(sz.Length() > 0);
+	sz.Kill();
+	gcObjects.EnableValidation();
+	AssertWayIn(gcObjects.ValidateObjectsConsistency());
+	gcObjects.DisableValidation();
+
+	//Objects kept without a holder.
+	AssertWayInReturning(pFreeObjects, gcObjects.FreeObjects());
+	pFreeObjects = NULL;
+	AssertWayIn(pcObject = gcObjects.AddFreeObject(pOther));
+	AssertWayIn(uiCount = gcObjects.NumFreeObjects());
+	AssertSize(1, uiCount);
+	AssertWayIn(bResult = gcObjects.RemoveFreeObject(pcObject));
+	AssertTrue(bResult);
+
+	//A batch of none removed, an object made by class name, and one made in place of another by name.
+	apcNone.Init();
+	AssertWayIn(bResult = gcObjects.Remove(&apcNone, &apcNone));
+	AssertTrue(bResult);
+	apcNone.Kill();
+	AssertWayIn(pcObject = gcObjects.AllocateUninitialisedByClassNameAndAddIntoMemory("CString", ""));
+	pFound = pcObject;
+	((CString*)pcObject)->Init("made by name");
+	pFound = NULL;
+	AssertWayIn(pcObject = gcObjects.AllocateReplacingNamed("CString", "Other"));
+	pFound = pcObject;
+	((CString*)pcObject)->Init("in its place");
+	pOther = pFound;
+	pFound = NULL;
+
+	//Put out of memory and loaded again (once the root's objects are counted they are in memory, hollow until they are
+	//used), and deleted from the database.
+	pStored = NULL;
+	pOther = NULL;
+	pRoot = NULL;
+	AssertWayIn(bResult = gcObjects.EvictInMemory());
+	AssertTrue(bResult);
+	pRoot = gcObjects.Root();
+	AssertSize(3, pRoot->NumObjects());  //The two and the free objects.
+	pFound = gcObjects.GetPossiblyHollow(oiStored);
+	AssertTrue(pFound.IsHollow());
+	AssertWayIn(pcObject = gcObjects.Dehollow(oiStored));
+	AssertNotNull(pcObject);
+	AssertFalse(pFound.IsHollow());
+	pFound = NULL;
+	pRoot = NULL;
+	gcObjects.EvictInMemory();
+	pRoot = gcObjects.Root();
+	AssertSize(3, pRoot->NumObjects());  //The two and the free objects.
+	pFound = gcObjects.GetPossiblyHollow(oiStored);
+	AssertTrue(pFound.IsHollow());
+	AssertWayIn(pcObject = gcObjects.Dehollow("Stored"));
+	AssertNotNull(pcObject);
+	AssertFalse(pFound.IsHollow());
+	pStored = pFound;
+	pFound = NULL;
+	AssertString("kept", pStored->Text());
+
+	AssertWayIn(gcObjects.Discard());
+	pOther = gcObjects.Get<CString>("Other");
+	AssertWayIn(bResult = pOther->Destroy());
+	AssertTrue(bResult);
+	AssertTrue(pOther.IsNull());
+	aoi.Init();
+	aoi.Add(oiStored);
+	AssertWayIn(bResult = gcObjects.Destroy(&aoi));
+	AssertTrue(bResult);
+	AssertTrue(pStored.IsNull());
+	aoi.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every way into the object system takes its lock: each method ThreadSafetyPlan.txt's audit calls a writer or a reader
+// is called here with the locking on, and is seen to take the lock, and none of the machinery behind them is reached
+// without it.  (One thread is enough to tell: a way in without its guard reaches the machinery with the lock not
+// held.)  A method that is only another's with its arguments changed is not here.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsEveryWayIn(void)
+{
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	CFileUtil		cFileUtil;
+
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+	pcSequence = CSequenceFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, DS_No);
+	pcDatabase = CCodabaseFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, IWT_No, DS_No);
+	AssertTrue(pcDatabase->Open());
+	ObjectsInit(pcDatabase, pcSequence);
+	gcObjects.DisableValidation();
+	AssertTrue(ObjectsLocking(true));
+	AssertSize(0, ObjectsNumNotInside());
+	AssertWayIn(gcObjects.ValidateEmpty());
+
+	TestObjectsThreadsEveryPointerWayIn();
+	TestObjectsThreadsEveryCollectionWayIn();
+	TestObjectsThreadsEveryObjectsWayIn();
+
+	AssertSize(0, ObjectsNumNotInside());
+	AssertTrue(ObjectsLocking(false));
+	gcObjects.EnableValidation();
+	ObjectsFlush();
+	ObjectsKill(false);
+	AssertTrue(pcDatabase->Close());
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+}
+
+
 static int32	giTestObjectsThreadsHolding = 0;	//The holding thread has its Ptr.
 
 
@@ -983,6 +1473,7 @@ void TestObjectsThreads(void)
 	TestObjectsThreadsUnknowns();
 	TestObjectsThreadsStoredObjects();
 	TestObjectsThreadsAssertNoFree();
+	TestObjectsThreadsEveryWayIn();
 
 	DataIOKill();
 	TypesKill();
