@@ -344,7 +344,7 @@ protected:
 			void					UnmanagedBool(bool* pb, const char* szFieldName);
 			void					UnmanagedBool(bool* pab, size uiLength, const char* szFieldName);
 
-			void					UnmanagedEnum(void* pe, const char* szFieldName);
+			void					UnmanagedEnum(void* pe, size uiSizeof, const char* szFieldName);
 
 			void					UnmanagedString(CChars* pcChars, const char* szFieldName);
 			void					UnmanagedString(CCharsImmutable* pcChars, const char* szFieldName);

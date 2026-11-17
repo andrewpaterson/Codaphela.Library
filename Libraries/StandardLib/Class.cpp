@@ -385,7 +385,6 @@ void CClass::UnmanagedChar(CBaseObject* pcThis, char16* pac, size uiLength, cons
 void CClass::UnmanagedBool(CBaseObject* pcThis, bool* pb, const char* szFieldName)						{ Unmanaged(pcThis, PT_bool, pb, szFieldName); }
 void CClass::UnmanagedBool(CBaseObject* pcThis, bool* pab, size uiLength, const char* szFieldName)		{ Unmanaged(pcThis, PT_bool, pab, uiLength, szFieldName); }
 
-void CClass::UnmanagedEnum(CBaseObject* pcThis, void* pe, const char* szFieldName)						{ Unmanaged(pcThis, PT_Enum, pe, szFieldName); }
 
 void CClass::UnmanagedString(CBaseObject* pcThis, CChars* pcChars, const char* szFieldName)				{ Unmanaged(pcThis, PT_String, pcChars, szFieldName); }
 void CClass::UnmanagedString(CBaseObject* pcThis, CCharsImmutable* pcChars, const char* szFieldName)		{ Unmanaged(pcThis, PT_StringImmutable, pcChars, szFieldName); }
@@ -407,6 +406,28 @@ void CClass::Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, const char* szFi
 void CClass::Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, size uiLength, const char* szFieldName)		{ Unmanaged(pcThis, PT_M3int32, pf, uiLength, szFieldName); }
 void CClass::Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, const char* szFieldName)						{ Unmanaged(pcThis, PT_M4int32, pf, szFieldName); }
 void CClass::Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, size uiLength, const char* szFieldName)		{ Unmanaged(pcThis, PT_M4int32, pf, uiLength, szFieldName); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enum field is as large as the enum is in the object (uiSizeof, an
+// int's unless the enum says otherwise), not as PT_Enum's own size, which
+// is that of an enum written with its type: saved and loaded by that
+// size it would read and write past the field.
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::UnmanagedEnum(CBaseObject* pcThis, void* pe, size uiSizeof, const char* szFieldName)
+{
+	CUnmanagedField*	pcUnmanagedField;
+	ptrdiff_t			iOffset;
+
+	if (!FieldOffset(pcThis, pe, szFieldName, &iOffset))
+	{
+		return;
+	}
+	pcUnmanagedField = AddUnmanaged(szFieldName);
+	pcUnmanagedField->Init(PT_Enum, iOffset, this, uiSizeof, 1, szFieldName);
+}
 
 
 //////////////////////////////////////////////////////////////////////////

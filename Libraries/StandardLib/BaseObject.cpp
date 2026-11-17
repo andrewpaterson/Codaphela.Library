@@ -2112,7 +2112,7 @@ void CBaseObject::UnmanagedChar(char16* pac, size uiLength, const char* szFieldN
 void CBaseObject::UnmanagedBool(bool* pb, const char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedBool(this, pb, szFieldName); }
 void CBaseObject::UnmanagedBool(bool* pab, size uiLength, const char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedBool(this, pab, uiLength, szFieldName); }
 
-void CBaseObject::UnmanagedEnum(void* pe, const char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedEnum(this, pe, szFieldName); }
+void CBaseObject::UnmanagedEnum(void* pe, size uiSizeof, const char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedEnum(this, pe, uiSizeof, szFieldName); }
 
 void CBaseObject::UnmanagedString(CChars* pcChars, const char* szFieldName)				{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedString(this, pcChars, szFieldName); };
 void CBaseObject::UnmanagedString(CCharsImmutable* pcChars, const char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedString(this, pcChars, szFieldName); };

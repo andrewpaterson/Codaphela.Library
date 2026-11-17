@@ -163,7 +163,7 @@ public:
 	void					UnmanagedBool(CBaseObject* pcThis, bool* pb, const char* szFieldName);
 	void					UnmanagedBool(CBaseObject* pcThis, bool* pab, size uiLength, const char* szFieldName);
 
-	void					UnmanagedEnum(CBaseObject* pcThis, void* pe, const char* szFieldName);
+	void					UnmanagedEnum(CBaseObject* pcThis, void* pe, size uiSizeof, const char* szFieldName);
 
 	void					UnmanagedString(CBaseObject* pcThis, CChars* pcChars, const char* szFieldName);
 	void					UnmanagedString(CBaseObject* pcThis, CCharsImmutable* pcChars, const char* szFieldName);

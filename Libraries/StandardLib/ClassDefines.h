@@ -89,7 +89,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define U_Bool(name)					UnmanagedBool(&name, #name)
 #define U_BoolArray(name, length)		UnmanagedBool(name, length, #name)
 
-#define U_Enum(name)					UnmanagedEnum(&name, #name)
+#define U_Enum(name)					UnmanagedEnum(&name, sizeof(name), #name)
 
 #define U_String(name)					UnmanagedString(&name, #name)  /* CChars or CCharsImmutable */
 #define U_Number(name)					UnmanagedNumber(&name, #name)
