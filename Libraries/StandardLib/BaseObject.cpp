@@ -291,6 +291,12 @@ void CBaseObject::Kill(void)
 		return;
 	}
 
+	//A stored object that is still held is replaced by a hollow, which no other thread may be using it for.
+	if (HasHeapFroms() && IsStored() && IsAllocatedInObjects() && !GetObjectsThisIn()->ValidateNoOtherThreadHolds(__METHOD__))
+	{
+		return;
+	}
+
 #ifdef _DEBUG
 	pcObjectsThisIn = GetObjectsThisIn();
 #endif // _DEBUG
@@ -499,7 +505,13 @@ bool CBaseObject::Flush(void)
 void CBaseObject::FreeInternal(void)
 {
 	//Frees user data.
+#ifdef OBJECTS_THREAD_CHECKS
+	ObjectsFreeBegins();
 	Free();
+	ObjectsFreeEnds();
+#else
+	Free();
+#endif // OBJECTS_THREAD_CHECKS
 }
 
 

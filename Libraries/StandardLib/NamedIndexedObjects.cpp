@@ -394,6 +394,13 @@ bool CNamedIndexedObjects::RemoveIdentifiers(CBaseObject* pcObject)
 	char*	szName;
 	bool	bResult;
 
+	//Only if they are its: an object found dead on another thread than the home thread is taken out when it is found
+	//and freed later, by when its index and name may be another object's.
+	if (Get(pcObject->GetIndex()) != pcObject)
+	{
+		return false;
+	}
+
 	bResult = RemoveIndex(pcObject->GetIndex());
 
 	szName = pcObject->GetName();

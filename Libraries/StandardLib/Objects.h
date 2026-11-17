@@ -85,6 +85,7 @@ protected:
 	bool					mbValidateConsistency;
 	CObjectRemovalContext	mcRemovalContext;
 	CWeakFroms				mcWeakFroms;  //Every weakly held object's weak references (WeakReferencesPlan.txt).
+	CArrayBaseObjectPtr		mapcWaitingToBeFreed;  //Objects other threads found dead, for the home thread to free (Collect).
 	uint32					muiWalkStamp;  //The base of the last walk started.  See WALK_STAMP_STEP.
 
 public:
@@ -118,6 +119,9 @@ public:
 
 						Ptr<CRoot>				Root(void);
 						void					LogicalDirty(CBaseObject* pcObject);
+
+						void					Collect(void);  //The home thread's: frees what other threads found dead.
+						size					NumWaitingToBeFreed(void);
 
 						bool					Remove(CArrayBaseObjectPtr* papcKilled);
 						bool					Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papcKilledAfter);
@@ -209,6 +213,8 @@ protected:
 						void					KillObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveBatch(CArrayBaseObjectPtr* papcObjectPts);
 						void					SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts);
+						void					WaitToBeFreed(CArrayBaseObjectPtr* papcObjectPts);
+						bool					ValidateNoOtherThreadHolds(const char* szMethod);
 						bool					LoadForDestroy(OIndex oi);
 						bool					SaveDirtyInMemory(void);
 						void					FreeAllInKillOrder(bool bDeallocate);
@@ -259,6 +265,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequ
 void ObjectsKill(bool bValidate = true);
 bool ObjectsValidate(void);
 bool ObjectsFlush(void);
+void ObjectsCollect(void);  //The home thread's, from its tick: frees the objects other threads found dead.
 void ObjectsDiscard(void);  //Marks every object in memory clean, throwing its changes away.  ObjectsFlush or ObjectsDiscard comes before ObjectsKill.
 void ObjectsDump(void);
 

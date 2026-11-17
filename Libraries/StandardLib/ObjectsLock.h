@@ -46,6 +46,17 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //and ObjectsThreadKill when it has finished, having let go of every Ptr it held (in a Debug build ObjectsThreadKill
 //says if it hasn't).  When they have all finished the home thread may switch the locking off again.
 //
+//Freeing.  Only the home thread frees objects: a Free() is the user's code, and what it frees (a window, a texture)
+//belongs to the thread the objects were made for.  When another thread lets go of the last thing holding some
+//objects it still works out that they are dead, and makes them unreachable, but leaves the freeing to the home
+//thread, which does it the next time it takes the lock, or when its tick calls ObjectsCollect.  So what a thread
+//lets go of stays allocated until the home thread next uses an object: a home thread that waits for its threads
+//without calling ObjectsCollect frees nothing while it waits.
+//And because a Free() runs with the lock held, it must not wait for another thread that uses objects, nor take a
+//lock that another thread holds while it uses objects: the two would each be waiting for what the other has.  A class
+//with a lock of its own can check the second where it takes that lock: ObjectsAssertNoFree says (in a Debug build)
+//when it is reached from inside a Free().
+//
 //What it doesn't do: it keeps the object system right, and no object is freed while a thread holds a Ptr to it, but
 //an object's own fields are the object's to guard (as are a collection's elements) when threads share it.
 
@@ -63,6 +74,9 @@ inline bool ObjectsThreadInit(void) { return false; }
 inline bool ObjectsThreadKill(void) { return false; }
 inline size ObjectsNumThreads(void) { return 0; }
 inline void ObjectsHomeThread(void) {}
+inline bool ObjectsIsHomeThread(void) { return true; }
+inline void ObjectsFreesWaiting(bool bWaiting) {}
+inline bool ObjectsAssertNoFree(const char* szMethod) { return true; }
 
 
 #else
@@ -89,6 +103,12 @@ bool	ObjectsThreadInit(void);			//Every other thread's, before it touches an obj
 bool	ObjectsThreadKill(void);			//And when it has finished.
 size	ObjectsNumThreads(void);			//The other threads registered now.
 void	ObjectsHomeThread(void);			//ObjectsInit's: the running thread is the home thread.
+bool	ObjectsIsHomeThread(void);			//Always, while the locking is off.
+void	ObjectsFreesWaiting(bool bWaiting);	//CObjects': there are objects for the home thread to free.
+
+bool	ObjectsAssertNoFree(const char* szMethod);	//False, and said, if a Free() is running on this thread (a Debug build knows).
+void	ObjectsFreeBegins(void);			//CBaseObject's, round each Free().
+void	ObjectsFreeEnds(void);
 
 void	ObjectsLock(void);
 void	ObjectsUnlock(void);

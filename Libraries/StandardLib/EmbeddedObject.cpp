@@ -26,6 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Collection.h"
 #include "DistCalculator.h"
 #include "EmbeddedObject.h"
+#include "BaseLib/NativeThread.h"
 #include "ObjectsLock.h"
 
 
@@ -944,10 +945,41 @@ bool CEmbeddedObject::StackFromLinked(bool bAdded, bool bValidate)
 	{
 		GetEmbeddingContainer()->StackFromAdded();
 #ifdef _DEBUG
+		ValidateStoredOnOneThread();
 		ValidateObjectsConsistency(bValidate);
 #endif // _DEBUG
 	}
 	return bAdded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While threads share objects, an object in the database (or the hollow standing for one) is used by one thread at a
+// time (ThreadSafetyPlan.txt, decision 4): loading it, or putting a hollow in its place, rewrites every pointer that
+// points at it, and another thread's would be rewritten while that thread used it.  A Debug build, which knows the
+// thread each stack pointer is on, says so when two threads' stacks hold one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateStoredOnOneThread(void)
+{
+	CStackPointer*	pcStackPointer;
+	int				iThread;
+
+	if (!IsObjectsLocking() || !(IsHollow() || GetEmbeddingContainer()->IsStored()))
+	{
+		return;
+	}
+
+	iThread = CurrentThreadId();
+	for (pcStackPointer = mpcStackFroms; pcStackPointer; pcStackPointer = pcStackPointer->GetNext())
+	{
+		if (pcStackPointer->IsOnAnotherThread(iThread))
+		{
+			gcLogger.Error2(__METHOD__, " Stored object {", ObjectToString(this), "} is held from the stacks of two threads: a stored object is used by one thread at a time.", NULL);
+			return;
+		}
+	}
 }
 
 

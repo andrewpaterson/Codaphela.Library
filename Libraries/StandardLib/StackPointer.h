@@ -77,6 +77,7 @@ public:
 
 	EStackPointerType	GetType(void) const;
 	bool				IsOnThread(int iThread) const;
+	bool				IsOnAnotherThread(int iThread) const;
 	SStackPointer*		Get(void);
 
 protected:

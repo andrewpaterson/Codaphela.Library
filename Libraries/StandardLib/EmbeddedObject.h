@@ -199,6 +199,7 @@ public:
 protected:
 			bool				LinkStackFrom(CStackPointer* pcStackPointer);
 			bool				StackFromLinked(bool bAdded, bool bValidate);
+			void				ValidateStoredOnOneThread(void);
 	virtual void				Allocate(CObjects* pcObjects);
 			void				AddHeapPointer(CBaseObject* pcFromObject);
 	virtual void				RemoveAllHeapFroms(void);

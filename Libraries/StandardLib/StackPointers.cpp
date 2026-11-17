@@ -121,6 +121,31 @@ size CStackPointers::NumOnThread(int iThread)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The stack pointers on the stacks of threads that aren't iThread: 0 outside a Debug build.
+//
+//////////////////////////////////////////////////////////////////////////
+size CStackPointers::NumOnOtherThreads(int iThread)
+{
+	CStackPointer*		pcStackPointer;
+	SFreeListIterator	sIter;
+	size				uiNum;
+
+	uiNum = 0;
+	pcStackPointer = (CStackPointer*)mcFreeList.StartIteration(&sIter);
+	while (pcStackPointer)
+	{
+		if (pcStackPointer->IsOnAnotherThread(iThread))
+		{
+			uiNum++;
+		}
+		pcStackPointer = (CStackPointer*)mcFreeList.Iterate(&sIter);
+	}
+	return uiNum;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CStackPointer* CStackPointers::Get(size uiIndex)

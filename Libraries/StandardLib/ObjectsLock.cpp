@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/LogString.h"
 #include "BaseLib/NativeThread.h"
 #include "BaseLib/RecursiveLock.h"
+#include "Objects.h"
 #include "ObjectsLock.h"
 #include "StackPointers.h"
 
@@ -35,9 +36,13 @@ static CRecursiveSpinLock	gcObjectsLock;
 
 static int					giObjectsHomeThread = 0;	//0 until ObjectsInit.
 static size					guiObjectsThreads = 0;		//The other threads registered.  Under the lock.
+static bool					gbObjectsFreesWaiting = false;	//Other threads have found objects dead.  Under the lock.
 
 //Whether the running thread may use objects: it is the home thread, or has registered.
 static thread_local bool	gbObjectsThread = false;
+
+//How many Free()s the running thread is inside (a Free() frees other objects).
+static thread_local int		giObjectsFrees = 0;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,8 +77,34 @@ bool ObjectsLocking(bool bLocking)
 		return gcLogger.Error2(__METHOD__, " The locking of objects can't be switched off while [", SizeToString(ObjectsNumThreads()), "] other threads are registered.", NULL);
 	}
 
+	if (!bLocking && gbObjectsLocking)
+	{
+		//What the threads left to be freed is freed while there is still a lock to free it under.
+		gcObjects.Collect();
+	}
 	gbObjectsLocking = bLocking;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With the locking off there is one thread, which is the home thread whatever its number.
+//
+//////////////////////////////////////////////////////////////////////////
+bool ObjectsIsHomeThread(void)
+{
+	return !gbObjectsLocking || (CurrentThreadId() == giObjectsHomeThread);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsFreesWaiting(bool bWaiting)
+{
+	gbObjectsFreesWaiting = bWaiting;
 }
 
 
@@ -168,6 +199,12 @@ void ObjectsLock(void)
 		gcLogger.Error2(__METHOD__, " A thread that has not called ObjectsThreadInit is using objects.", NULL);
 	}
 	gcObjectsLock.Lock();
+
+	//The home thread, coming in from outside, first frees what the other threads have found dead.
+	if (gbObjectsFreesWaiting && (gcObjectsLock.Depth() == 1) && (CurrentThreadId() == giObjectsHomeThread))
+	{
+		gcObjects.Collect();
+	}
 }
 
 
@@ -188,6 +225,43 @@ void ObjectsUnlock(void)
 bool ObjectsIsLockedByThisThread(void)
 {
 	return gcObjectsLock.IsLockedByThisThread();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsFreeBegins(void)
+{
+	giObjectsFrees++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsFreeEnds(void)
+{
+	giObjectsFrees--;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For where a class takes a lock of its own.  A Free() runs with the object system's lock held, so a lock taken
+// inside one is taken after it; any thread that holds that lock and then uses an object takes them the other way
+// round, and the two stop for good.  Only a Debug build counts the Free()s: elsewhere this is always true.
+//
+//////////////////////////////////////////////////////////////////////////
+bool ObjectsAssertNoFree(const char* szMethod)
+{
+	if (giObjectsFrees > 0)
+	{
+		return gcLogger.Error2(szMethod, " was reached from inside an object's Free(), which runs with the object system's lock held.", NULL);
+	}
+	return true;
 }
 
 

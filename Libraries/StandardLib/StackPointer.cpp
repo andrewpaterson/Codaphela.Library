@@ -305,3 +305,19 @@ bool CStackPointer::IsOnThread(int iThread) const
 #endif // OBJECTS_THREAD_CHECKS
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether it is on the stack of a thread that isn't iThread.  False where it isn't known.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CStackPointer::IsOnAnotherThread(int iThread) const
+{
+#ifdef OBJECTS_THREAD_CHECKS
+	return (msPointer.eType != SPT_Unknown) && (msPointer.iThread != iThread);
+#else
+	(void)iThread;
+	return false;
+#endif // OBJECTS_THREAD_CHECKS
+}
+

@@ -43,6 +43,7 @@ public:
 
 	size			NumElements(void) const;
 	size			NumOnThread(int iThread);
+	size			NumOnOtherThreads(int iThread);
 	CStackPointer*	Get(size uiIndex);
 
 	CStackPointer*	StartIteration(SFreeListIterator* psIter);

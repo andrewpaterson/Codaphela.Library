@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/StackMemory.h"
 #include "BaseLib/DataConnection.h"
+#include "BaseLib/NativeThread.h"
 #include "BaseLib/TransientSequence.h"
 #include "BaseObject.h"
 #include "InternalObjectSerialiser.h"
@@ -164,6 +165,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	mbValidateConsistency = true;
 	mcRemovalContext.Init();
 	mcWeakFroms.Init();
+	mapcWaitingToBeFreed.Init();
 }
 
 
@@ -177,9 +179,11 @@ void CObjects::Kill(void)
 
 	mbInitialised = false;
 
+	Collect();
 	ValidateNoDirty();
 	FreeAllInKillOrder(false);
 
+	mapcWaitingToBeFreed.Kill();
 	mcRemovalContext.Kill();
 	mcWeakFroms.Kill();
 
@@ -836,6 +840,12 @@ bool CObjects::EvictInMemory(void)
 
 	bool	bResult;
 
+	if (!ValidateNoOtherThreadHolds(__METHOD__))
+	{
+		return false;
+	}
+
+	Collect();
 	bResult = SaveDirtyInMemory();
 	FreeAllInKillOrder(true);
 
@@ -1215,6 +1225,118 @@ void CObjects::RemoveBatch(CArrayBaseObjectPtr* papcObjectPts)
 	RemoveAllPointerTos(papcObjectPts);
 	RemoveAllHeapFroms(papcObjectPts);
 	KillObjects(papcObjectPts);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The objects were found dead by a thread that isn't the home thread.  They are made unreachable now, which is all
+// that can't wait: marked freed (the distance walks pass over them, and over their pointers to what is still alive),
+// their weak references NULLed, saved if they are dirty and stored, and taken out of memory's indexes so that nothing
+// is given them by index or by name.  Their Free(), and the rest of freeing them, is the home thread's (Collect).
+// They are freed as one batch however many batches they were found in: marked as they are, they are each other's
+// "freed with this".
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::WaitToBeFreed(CArrayBaseObjectPtr* papcObjectPts)
+{
+	OBJECTS_INSIDE();
+
+	size			i;
+	size			uiNumElements;
+	CBaseObject*	pcBaseObject;
+
+	SaveStoredDirty(papcObjectPts);
+	uiNumElements = papcObjectPts->NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcBaseObject = papcObjectPts->GetPtr(i);
+		pcBaseObject->SetFlag(OBJECT_FLAGS_FREED, true);
+	}
+	ClearWeakFroms(papcObjectPts);
+	for (i = 0; i < uiNumElements; i++)
+	{
+		mcMemory.RemoveIdentifiers(papcObjectPts->GetPtr(i));
+	}
+
+	mapcWaitingToBeFreed.InsertArrayAfterEnd(papcObjectPts);
+	ObjectsFreesWaiting(true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Frees the objects other threads found dead.  The home thread does this whenever it takes the object system's lock
+// (so by the time it is in here the taking of the lock has usually done it), and its tick can call it (ObjectsCollect)
+// so that they don't wait on its next use of an object.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::Collect(void)
+{
+	OBJECTS_WRITE();
+
+	CArrayBaseObjectPtr		apcDead;
+	size					i;
+
+	if (mapcWaitingToBeFreed.IsEmpty() || !ObjectsIsHomeThread() || mcRemovalContext.IsBusy())
+	{
+		return;
+	}
+
+	//More can be found dead while these are freed (a Free() runs anything): they wait for the next time.
+	apcDead.Init();
+	apcDead.InsertArrayAfterEnd(&mapcWaitingToBeFreed);
+	mapcWaitingToBeFreed.ReInit();
+	ObjectsFreesWaiting(false);
+
+	//They are freed as any batch is, which marks each object freed as its turn comes (those that others need to be
+	//there are freed in a batch after them, and must not look freed while the others unlink from them).  The mark
+	//they waited under has done its work: this thread holds the lock until they are gone.
+	for (i = 0; i < apcDead.NumElements(); i++)
+	{
+		apcDead.GetPtr(i)->SetFlag(OBJECT_FLAGS_FREED, false);
+	}
+
+	RemoveInKillOrder(&apcDead);
+	apcDead.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Putting hollows in place of objects (eviction, the Kill of a stored object that is still held) takes them from under
+// any thread that is using them: it is done between the other threads' work, when none of them holds a pointer
+// (ThreadSafetyPlan.txt, decision 4).  A Debug build knows whose stack each pointer is on and refuses otherwise;
+// elsewhere it is the caller's to see to.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::ValidateNoOtherThreadHolds(const char* szMethod)
+{
+	size	uiHeld;
+
+	if (!IsObjectsLocking())
+	{
+		return true;
+	}
+
+	uiHeld = mpcStackPointers->NumOnOtherThreads(CurrentThreadId());
+	if (uiHeld > 0)
+	{
+		return gcLogger.Error2(szMethod, " Cannot put hollows in place of objects while other threads hold [", SizeToString(uiHeld), "] stack pointers to objects.", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CObjects::NumWaitingToBeFreed(void)
+{
+	OBJECTS_READ();
+
+	return mapcWaitingToBeFreed.NumElements();
 }
 
 
@@ -1808,6 +1930,18 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papc
 	bKilledAfter = (papcKilledAfter != NULL) && papcKilledAfter->IsNotEmpty();
 	if (papcKilled->IsEmpty() && !bKilledAfter)
 	{
+		return true;
+	}
+
+	//Only the home thread frees: an object's Free(), and what it frees, belong to the thread the objects were made
+	//for.  Another thread leaves what it found dead for it.
+	if (!ObjectsIsHomeThread())
+	{
+		WaitToBeFreed(papcKilled);
+		if (bKilledAfter)
+		{
+			WaitToBeFreed(papcKilledAfter);
+		}
 		return true;
 	}
 
@@ -2697,6 +2831,19 @@ bool ObjectsValidate(void)
 	else
 	{
 		return true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsCollect(void)
+{
+	if (ObjectsValidate())
+	{
+		gcObjects.Collect();
 	}
 }
 

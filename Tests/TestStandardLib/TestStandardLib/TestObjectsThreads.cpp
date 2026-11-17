@@ -2,8 +2,14 @@
 #ifndef __LIBC65__
 #include <string.h>
 #include "BaseLib/Atomic.h"
+#include "BaseLib/Codabase.h"
+#include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/DataIO.h"
+#include "BaseLib/FileUtil.h"
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/MemoryFile.h"
+#include "BaseLib/SequenceFactory.h"
 #include "BaseLib/Mutex.h"
 #include "BaseLib/NativeThread.h"
 #include "BaseLib/StdRandom.h"
@@ -12,6 +18,7 @@
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/String.h"
 #include "StandardLib/WeakPointer.h"
 #include "TestLib/Assert.h"
 #include "UnknownTestClasses.h"
@@ -26,9 +33,16 @@
 #define TEST_OBJECTS_THREADS_SLOTS		16
 #define TEST_OBJECTS_THREADS_LIVE		0x11FE
 #define TEST_OBJECTS_THREADS_FREED		0xDEAD
+#define TEST_OBJECTS_THREADS_DIRECTORY	"Output" _FS_ "ObjectsThreads"
+
+
+void StartCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig);  //TestObjectFreeOrdering.cpp
+void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLogged, size uiSize);
 
 
 static int32	giTestThreadNodesFreed = 0;
+static int32	giTestThreadNodesFreedOffHome = 0;	//Freed on a thread that isn't the home thread: none should be.
+static int32	giTestThreadNeedersFreedLate = 0;	//Freed after what they need: none should be.
 
 
 class CTestThreadNode : public CObject
@@ -69,6 +83,10 @@ void CTestThreadNode::Free(void)
 {
 	miState = TEST_OBJECTS_THREADS_FREED;
 	AtomicAdd(&giTestThreadNodesFreed, 1);
+	if (!ObjectsIsHomeThread())
+	{
+		AtomicAdd(&giTestThreadNodesFreedOffHome, 1);
+	}
 }
 
 
@@ -76,6 +94,43 @@ void CTestThreadNode::Free(void)
 bool CTestThreadNode::IsLive(void)
 {
 	return miState == TEST_OBJECTS_THREADS_LIVE;
+}
+
+
+//An object that needs another to be there when it is freed (a Nes pointer): it is freed first.
+class CTestThreadNeeder : public CObject
+{
+CONSTRUCTABLE(CTestThreadNeeder)
+DESTRUCTABLE(CTestThreadNeeder)
+public:
+	Ptr<CTestThreadNode>	mpNeeds;
+
+	void	Init(Ptr<CTestThreadNode> pNeeds);
+	void	Class(void) override;
+	void	Free(void) override;
+};
+
+
+void CTestThreadNeeder::Init(Ptr<CTestThreadNode> pNeeds)
+{
+	PreInit();
+	mpNeeds = pNeeds;
+	PostInit();
+}
+
+
+void CTestThreadNeeder::Class(void)
+{
+	Nes(M_Pointer(mpNeeds));
+}
+
+
+void CTestThreadNeeder::Free(void)
+{
+	if (mpNeeds.IsNull() || !mpNeeds->IsLive() || !ObjectsIsHomeThread())
+	{
+		AtomicAdd(&giTestThreadNeedersFreedLate, 1);
+	}
 }
 
 
@@ -166,13 +221,18 @@ static void TestObjectsThreadsBegin(void)
 	ObjectsInit();
 	gcObjects.DisableValidation();
 	giTestThreadNodesFreed = 0;
+	giTestThreadNodesFreedOffHome = 0;
+	giTestThreadNeedersFreedLate = 0;
 	AssertTrue(ObjectsLocking(true));
 }
 
 
-//The threads are done: the locking goes off, the object system is checked and only uiObjects are left.
+//The threads are done: the locking goes off, the object system is checked and only uiObjects are left.  Whatever was
+//freed, was freed by this thread.
 static void TestObjectsThreadsEnd(size uiObjects)
 {
+	AssertInt(0, giTestThreadNodesFreedOffHome);
+	AssertInt(0, giTestThreadNeedersFreedLate);
 	AssertSize(0, ObjectsNumThreads());
 	AssertTrue(ObjectsLocking(false));
 	gcObjects.EnableValidation();
@@ -411,6 +471,11 @@ void TestObjectsThreadsOwnGraphs(void)
 
 	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsBuildGraphs, NULL, NULL, NULL, NULL));
 
+	//The threads found them dead; this thread, the home thread, frees them.
+	AssertInt(0, giTestThreadNodesFreed);
+	ObjectsCollect();
+	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_STEPS * 3, giTestThreadNodesFreed);
+	ObjectsCollect();
 	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_STEPS * 3, giTestThreadNodesFreed);
 	TestObjectsThreadsEnd(2);
 }
@@ -495,6 +560,7 @@ void TestObjectsThreadsFreedWhileHeld(void)
 	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsHoldNeighbours, TestObjectsThreadsRepoint, &cMutex, NULL, &pArray));
 
 	//One thread replaced a node at every step: the ones it replaced are freed and the last in each slot is not.
+	ObjectsCollect();
 	AssertInt(TEST_OBJECTS_THREADS_STEPS, giTestThreadNodesFreed);
 	AssertSize(TEST_OBJECTS_THREADS_SLOTS, pArray->NumElements());
 	pArray = NULL;
@@ -561,6 +627,7 @@ void TestObjectsThreadsWeak(void)
 
 	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsGetWeak, TestObjectsThreadsReplaceWeak, NULL, &pShared, NULL));
 
+	ObjectsCollect();
 	AssertInt(TEST_OBJECTS_THREADS_STEPS - 1, giTestThreadNodesFreed);
 	AssertTrue(pShared->mwWeak.Get() == pShared->mpNext);
 	AssertTrue(pShared->mpNext->IsLive());
@@ -644,10 +711,208 @@ void TestObjectsThreadsCollection(void)
 	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsHoldMembers, TestObjectsThreadsChangeArray, &cMutex, NULL, &pArray));
 
 	AssertSize(TEST_OBJECTS_THREADS_SLOTS, pArray->NumElements());
+	ObjectsCollect();
 	AssertInt(TEST_OBJECTS_THREADS_STEPS - TEST_OBJECTS_THREADS_SLOTS, giTestThreadNodesFreed);
 	pArray = NULL;
 	cMutex.Kill();
 	TestObjectsThreadsEnd(3 + TEST_OBJECTS_THREADS_SLOTS);
+}
+
+
+static void TestObjectsThreadsLetGo(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+
+	psThread = (STestObjectsThread*)pvThread;
+	Ptr<CTestThreadNode>	pShared = psThread->pcShared;
+	{
+		Ptr<CTestThreadNode>	pNeeded = OMalloc<CTestThreadNode>();
+		Ptr<CTestThreadNeeder>	pNeeder = OMalloc<CTestThreadNeeder>(pNeeded);
+		Ptr<CTestThreadNode>	pOther = OMalloc<CTestThreadNode>();
+
+		//Held weakly by an object every thread shares (each thread's assignment replaces the last's, so what the weak
+		//pointer gives is another thread's object, or nothing, as often as this one's), and by each other.
+		pOther->mpNext = pNeeded;
+		pShared->mwWeak = pOther;
+	}
+
+	//This thread has let go of them: they are not freed (the home thread will free them), but nothing reaches them.
+	if (AtomicLoad(&giTestThreadNodesFreed) != 0)
+	{
+		psThread->iErrors++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Objects a thread lets go of are freed by the home thread, when it next uses objects or collects: each once, on the
+// home thread, an object that needs another before the one it needs.  Until then nothing reaches them: a weak pointer
+// to one is NULL at once.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsFreedOnHomeThread(void)
+{
+	Ptr<CTestThreadNode>	pShared;
+
+	TestObjectsThreadsBegin();
+	pShared = OMalloc<CTestThreadNode>();
+	ORoot()->Add(pShared);
+
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsLetGo, NULL, NULL, &pShared, NULL));
+
+	//Nothing has been freed, and this thread hasn't touched an object since.  Its next use of one frees them all.
+	AssertInt(0, giTestThreadNodesFreed);
+	AssertTrue(pShared->mwWeak.Get().IsNull());
+	AssertInt(TEST_OBJECTS_THREADS * 2, giTestThreadNodesFreed);
+	AssertInt(0, giTestThreadNeedersFreedLate);
+	AssertInt(0, giTestThreadNodesFreedOffHome);
+	AssertSize(0, gcObjects.NumWaitingToBeFreed());
+
+	pShared = NULL;
+	TestObjectsThreadsEnd(3);
+}
+
+
+static bool	gbTestThreadCheckerAllowed = true;
+
+
+//An object whose Free() does what a class with a lock of its own does before it takes the lock.
+class CTestThreadChecker : public CObject
+{
+CONSTRUCTABLE(CTestThreadChecker)
+DESTRUCTABLE(CTestThreadChecker)
+public:
+	void	Init(void) { PreInit(); PostInit(); }
+	void	Class(void) override {}
+	void	Free(void) override { gbTestThreadCheckerAllowed = ObjectsAssertNoFree(__METHOD__); }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class can find out that its own lock is being taken inside a Free() (a Debug build tells it).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsAssertNoFree(void)
+{
+	Ptr<CTestThreadChecker>	pChecker;
+	CMemoryFile				cLog;
+	SLogConfig				sLogConfig;
+	char					szLog[1024];
+
+	ObjectsInit();
+	AssertTrue(ObjectsAssertNoFree(__METHOD__));
+
+	gbTestThreadCheckerAllowed = true;
+	pChecker = OMalloc<CTestThreadChecker>();
+	StartCapturingLog(&cLog, &sLogConfig);
+	pChecker = NULL;
+	StopCapturingLog(&cLog, &sLogConfig, szLog, sizeof(szLog));
+#ifdef OBJECTS_THREAD_CHECKS
+	AssertFalse(gbTestThreadCheckerAllowed);
+	AssertTrue(strstr(szLog, "was reached from inside an object's Free()") != NULL);
+#else
+	AssertTrue(gbTestThreadCheckerAllowed);
+	AssertString("", szLog);
+#endif // OBJECTS_THREAD_CHECKS
+	AssertTrue(ObjectsAssertNoFree(__METHOD__));
+
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+static int32	giTestObjectsThreadsHolding = 0;	//The holding thread has its Ptr.
+
+
+//Takes a Ptr to the stored object that the home thread holds too, and keeps it until it is released.
+static void TestObjectsThreadsHoldStored(void* pvStored)
+{
+	if (ObjectsThreadInit())
+	{
+		{
+			Ptr<CString>	pHeld = (CString*)pvStored;
+
+			AtomicStore(&giTestObjectsThreadsHolding, 1);
+			while (AtomicLoad(&giTestObjectsThreadsRelease) == 0)
+			{
+				ThreadYield();
+			}
+		}
+		ObjectsThreadKill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While threads share objects a stored object is one thread's at a time, and objects aren't evicted while another
+// thread holds a pointer.  A Debug build, which knows whose stack each pointer is on, says so and refuses.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsStoredObjects(void)
+{
+	CNativeThread	cThread;
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	Ptr<CString>	pStored;
+	CFileUtil		cFileUtil;
+	CMemoryFile		cLog;
+	SLogConfig		sLogConfig;
+	char			szLog[2048];
+
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+	pcSequence = CSequenceFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, DS_No);
+	pcDatabase = CCodabaseFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, IWT_No, DS_No);
+	AssertTrue(pcDatabase->Open());
+	ObjectsInit(pcDatabase, pcSequence);
+
+	pStored = ONMalloc<CString>("Stored", "kept");
+	ORoot()->Add(pStored);
+	AssertTrue(ObjectsFlush());
+	AssertTrue(ObjectsLocking(true));
+
+	AtomicStore(&giTestObjectsThreadsHolding, 0);
+	AtomicStore(&giTestObjectsThreadsRelease, 0);
+	StartCapturingLog(&cLog, &sLogConfig);
+	cThread.Init();
+	cThread.Start(TestObjectsThreadsHoldStored, &pStored);
+	while (AtomicLoad(&giTestObjectsThreadsHolding) == 0)
+	{
+		ThreadYield();
+	}
+#ifdef OBJECTS_THREAD_CHECKS
+	AssertFalse(gcObjects.EvictInMemory());
+#endif // OBJECTS_THREAD_CHECKS
+	AtomicStore(&giTestObjectsThreadsRelease, 1);
+	cThread.Join();
+	cThread.Kill();
+	StopCapturingLog(&cLog, &sLogConfig, szLog, sizeof(szLog));
+#ifdef OBJECTS_THREAD_CHECKS
+	AssertTrue(strstr(szLog, "is held from the stacks of two threads") != NULL);
+	AssertTrue(strstr(szLog, "Cannot put hollows in place of objects while other threads hold [1] stack pointers") != NULL);
+#else
+	AssertString("", szLog);
+#endif // OBJECTS_THREAD_CHECKS
+
+	//With the other thread gone its objects can be evicted, and are there to be loaded again.
+	AssertString("kept", pStored->Text());
+	pStored = NULL;
+	AssertTrue(gcObjects.EvictInMemory());
+	AssertLong(0, gcObjects.NumMemoryIndexes());
+	pStored = gcObjects.Get<CString>("Stored");
+	AssertTrue(pStored.IsNotNull());
+	AssertString("kept", pStored->Text());
+	pStored = NULL;
+
+	AssertTrue(ObjectsLocking(false));
+	AssertTrue(ObjectsFlush());
+	ObjectsKill(false);
+	AssertTrue(pcDatabase->Close());
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
 }
 
 
@@ -711,10 +976,13 @@ void TestObjectsThreads(void)
 	TestObjectsThreadsRegistration();
 	TestObjectsThreadsSharedObject();
 	TestObjectsThreadsOwnGraphs();
+	TestObjectsThreadsFreedOnHomeThread();
 	TestObjectsThreadsFreedWhileHeld();
 	TestObjectsThreadsWeak();
 	TestObjectsThreadsCollection();
 	TestObjectsThreadsUnknowns();
+	TestObjectsThreadsStoredObjects();
+	TestObjectsThreadsAssertNoFree();
 
 	DataIOKill();
 	TypesKill();
