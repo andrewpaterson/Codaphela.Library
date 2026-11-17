@@ -235,6 +235,9 @@
     <ClCompile Include="TestCaretBlink.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestNumberField.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataTestRefWindow.h">

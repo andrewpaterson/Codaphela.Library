@@ -299,6 +299,7 @@
     <ClCompile Include="TestSplitContainer.cpp" />
     <ClCompile Include="TestFindInFilesDialog.cpp" />
     <ClCompile Include="TestCaretBlink.cpp" />
+    <ClCompile Include="TestNumberField.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\InputLib\InputLib.vcxproj">

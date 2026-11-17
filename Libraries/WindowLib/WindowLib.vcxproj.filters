@@ -109,6 +109,9 @@
     <Filter Include="Source\Sound">
       <UniqueIdentifier>{22ed8e8e-291a-4ec6-ba8e-ff4a40717aca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Widgets\Number Field">
+      <UniqueIdentifier>{091c81c0-5672-47df-be56-41bdbcaf49a0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NativeSoundFactory.h">
@@ -534,6 +537,9 @@
     <ClInclude Include="ScrollBarImages.h">
       <Filter>Source\Component\Widgets\ScrollPane</Filter>
     </ClInclude>
+    <ClInclude Include="NumberField.h">
+      <Filter>Source\Component\Widgets\Number Field</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeSoundFactory.cpp">
@@ -931,6 +937,9 @@
     </ClCompile>
     <ClCompile Include="ScrollBarImages.cpp">
       <Filter>Source\Component\Widgets\ScrollPane</Filter>
+    </ClCompile>
+    <ClCompile Include="NumberField.cpp">
+      <Filter>Source\Component\Widgets\Number Field</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

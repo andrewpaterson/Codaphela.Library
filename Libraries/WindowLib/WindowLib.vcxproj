@@ -333,6 +333,7 @@
     <ClInclude Include="WindowTheme.h" />
     <ClInclude Include="JewelTheme.h" />
     <ClInclude Include="JewelColours.h" />
+    <ClInclude Include="NumberField.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComponentInput.cpp" />
@@ -467,6 +468,7 @@
     <ClCompile Include="EditCommands.cpp" />
     <ClCompile Include="WindowTheme.cpp" />
     <ClCompile Include="JewelTheme.cpp" />
+    <ClCompile Include="NumberField.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Container.txt" />
