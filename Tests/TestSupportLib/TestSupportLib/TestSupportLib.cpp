@@ -8,6 +8,7 @@
 
 
 void TestColourBlend(void);
+void TestColourHSV(void);
 void TestBumpMapper(void);
 void TestImage(void);
 void TestImageOpacity(void);
@@ -133,6 +134,7 @@ int __cdecl main(void)
 	TestImageResampler();
 	TestImageModifierDrawBox();
 	TestColourBlend();
+	TestColourHSV();
 	TestImageDraw();
 	TestVectorPath();
 	TestImageRecolour();

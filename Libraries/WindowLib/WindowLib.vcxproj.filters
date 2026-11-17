@@ -115,6 +115,9 @@
     <Filter Include="Source\Component\Widgets\Node Editor">
       <UniqueIdentifier>{d5b393ea-f8d6-4673-a84e-1b32d4e71871}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Widgets\Colour Field">
+      <UniqueIdentifier>{8ffd5c68-b18f-4dd7-914a-f05a0532f0ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NativeSoundFactory.h">
@@ -552,6 +555,9 @@
     <ClInclude Include="NodeEditor.h">
       <Filter>Source\Component\Widgets\Node Editor</Filter>
     </ClInclude>
+    <ClInclude Include="ColourField.h">
+      <Filter>Source\Component\Widgets\Colour Field</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeSoundFactory.cpp">
@@ -961,6 +967,9 @@
     </ClCompile>
     <ClCompile Include="NodeEditor.cpp">
       <Filter>Source\Component\Widgets\Node Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ColourField.cpp">
+      <Filter>Source\Component\Widgets\Colour Field</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

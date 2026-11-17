@@ -436,3 +436,91 @@ ARGB32 SetM32BitColour(uint8 r, uint8 g, uint8 b, uint8 a)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The value is the largest of the three, the saturation how far the
+// smallest is under it as a share of it, and the hue which sixth of the
+// way round the largest and the middle one put it in.
+//
+//////////////////////////////////////////////////////////////////////////
+void ColourRGBToHSV(float32 fRed, float32 fGreen, float32 fBlue, float32* pfHue, float32* pfSaturation, float32* pfValue)
+{
+	float32	fMost;
+	float32	fLeast;
+	float32	fSpread;
+	float32	fHue;
+
+	fMost = (fRed > fGreen) ? ((fRed > fBlue) ? fRed : fBlue) : ((fGreen > fBlue) ? fGreen : fBlue);
+	fLeast = (fRed < fGreen) ? ((fRed < fBlue) ? fRed : fBlue) : ((fGreen < fBlue) ? fGreen : fBlue);
+	fSpread = fMost - fLeast;
+
+	*pfValue = fMost;
+	*pfSaturation = (fMost > 0.0f) ? fSpread / fMost : 0.0f;
+	if (fSpread <= 0.0f)
+	{
+		*pfHue = 0.0f;
+		return;
+	}
+	if (fMost == fRed)
+	{
+		fHue = (fGreen - fBlue) / fSpread;
+	}
+	else if (fMost == fGreen)
+	{
+		fHue = 2.0f + (fBlue - fRed) / fSpread;
+	}
+	else
+	{
+		fHue = 4.0f + (fRed - fGreen) / fSpread;
+	}
+	fHue /= 6.0f;
+	*pfHue = (fHue < 0.0f) ? fHue + 1.0f : fHue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ColourHSVToRGB(float32 fHue, float32 fSaturation, float32 fValue, float32* pfRed, float32* pfGreen, float32* pfBlue)
+{
+	float32	fSixth;
+	float32	fAlong;
+	float32	fLow;
+	float32	fFalling;
+	float32	fRising;
+	int32	iSixth;
+
+	fSixth = (fHue - (float32)(int32)fHue) * 6.0f;
+	if (fSixth < 0.0f)
+	{
+		fSixth += 6.0f;
+	}
+	iSixth = (int32)fSixth;
+	fAlong = fSixth - (float32)iSixth;
+	fLow = fValue * (1.0f - fSaturation);
+	fFalling = fValue * (1.0f - fSaturation * fAlong);
+	fRising = fValue * (1.0f - fSaturation * (1.0f - fAlong));
+	switch (iSixth)
+	{
+	case 0:
+		*pfRed = fValue;	*pfGreen = fRising;		*pfBlue = fLow;
+		break;
+	case 1:
+		*pfRed = fFalling;	*pfGreen = fValue;		*pfBlue = fLow;
+		break;
+	case 2:
+		*pfRed = fLow;		*pfGreen = fValue;		*pfBlue = fRising;
+		break;
+	case 3:
+		*pfRed = fLow;		*pfGreen = fFalling;	*pfBlue = fValue;
+		break;
+	case 4:
+		*pfRed = fRising;	*pfGreen = fLow;		*pfBlue = fValue;
+		break;
+	default:
+		*pfRed = fValue;	*pfGreen = fLow;		*pfBlue = fFalling;
+		break;
+	}
+}
+

@@ -319,6 +319,9 @@
     <ClCompile Include="TestBitmapPacker.cpp">
       <Filter>Source Files\Image\Font</Filter>
     </ClCompile>
+    <ClCompile Include="TestColourHSV.cpp">
+      <Filter>Source Files\Map</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssertImage.h">

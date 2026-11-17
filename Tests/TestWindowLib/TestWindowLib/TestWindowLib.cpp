@@ -35,6 +35,7 @@ void TestLineZones(void);
 void TestScrollPane(void);
 void TestProgressBar(void);
 void TestNumberField(void);
+void TestColourField(void);
 void TestNodeEditor(void);
 void TestSplitContainer(void);
 void TestToolbar(void);
@@ -108,6 +109,7 @@ void RunWindowTests(void)
 	TestScrollPane();
 	TestProgressBar();
 	TestNumberField();
+	TestColourField();
 	TestNodeEditor();
 	TestSplitContainer();
 	TestToolbar();

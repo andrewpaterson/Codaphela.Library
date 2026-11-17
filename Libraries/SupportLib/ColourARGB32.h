@@ -89,5 +89,10 @@ uint32	ConvertToBGR(ARGB32 uiColour);
 uint32	ConvertToBGRA(ARGB32 uiColour);
 
 
+//A colour of red, green and blue as its hue, saturation and value, and back: each is 0 to 1, the hue once round the
+//colours from red through green and blue to red.  A grey has no hue: it's given 0.
+void	ColourRGBToHSV(float32 fRed, float32 fGreen, float32 fBlue, float32* pfHue, float32* pfSaturation, float32* pfValue);
+void	ColourHSVToRGB(float32 fHue, float32 fSaturation, float32 fValue, float32* pfRed, float32* pfGreen, float32* pfBlue);
+
 #endif // __COLOUR_RGBA32_H__
 

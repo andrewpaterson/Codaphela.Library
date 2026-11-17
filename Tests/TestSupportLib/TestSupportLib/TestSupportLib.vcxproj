@@ -314,6 +314,7 @@
     <ClCompile Include="TestMeshBake.cpp" />
     <ClCompile Include="TestMeshUVConformal.cpp" />
     <ClCompile Include="TestBitmapPacker.cpp" />
+    <ClCompile Include="TestColourHSV.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssertImage.h" />
