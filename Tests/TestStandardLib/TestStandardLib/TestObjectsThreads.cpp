@@ -430,6 +430,135 @@ void TestObjectsThreadsSharedObject(void)
 }
 
 
+//Takes the shared object off the root and puts it back, over and over: each is a write, and between the two the
+//object is held by stack pointers alone.
+static void TestObjectsThreadsReRoot(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CTestThreadNode>	pShared;
+	Ptr<CRoot>				pRoot;
+	size					i;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pShared = psThread->pcShared;
+	pRoot = ORoot();
+	for (i = 0; i < TEST_OBJECTS_THREADS_STEPS; i++)
+	{
+		if (!pRoot->Remove(pShared))
+		{
+			psThread->iErrors++;
+		}
+		pRoot->Add(pShared);
+	}
+}
+
+
+//Puts one of the array's objects (each thread its own) in the root and takes it out again, over and over: the object
+//is held by the array throughout, and how far it is from the root changes each time.
+static void TestObjectsThreadsRootOwn(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CTestThreadNode>	pOwn;
+	Ptr<CRoot>				pRoot;
+	size					i;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pOwn = psThread->pcArray->Get((psThread->uiSeed - 1000) / 7919);
+	pRoot = ORoot();
+	for (i = 0; i < TEST_OBJECTS_THREADS_STEPS; i++)
+	{
+		pRoot->Add(pOwn);
+		if (!pRoot->Remove(pOwn))
+		{
+			psThread->iErrors++;
+		}
+	}
+}
+
+
+//Takes and drops a Ptr to each of the array's objects in turn, over and over.
+static void TestObjectsThreadsCopyEach(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	CTestThreadNode*		apcNodes[TEST_OBJECTS_THREADS];
+	size					i;
+	size					j;
+
+	psThread = (STestObjectsThread*)pvThread;
+	for (j = 0; j < TEST_OBJECTS_THREADS; j++)
+	{
+		apcNodes[j] = (CTestThreadNode*)psThread->pcArray->GetPlain(j);
+	}
+	for (i = 0; i < TEST_OBJECTS_THREADS_STEPS; i++)
+	{
+		for (j = 0; j < TEST_OBJECTS_THREADS; j++)
+		{
+			Ptr<CTestThreadNode>	pCopy = apcNodes[j];
+
+			if (!pCopy->IsLive())
+			{
+				psThread->iErrors++;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Readers against writers that never rest: what a reader reads (how far an object is from the root) is what the
+// writers write, and ThreadSanitizer says if a reader ever reads while one writes.
+//
+// First the other threads take and drop Ptrs to an object while one keeps taking it off the root and putting it
+// back: every Ptr taken meets the lock held, or the object off the root, or neither.  Then one thread takes and drops
+// Ptrs while all the others write, each handing the lock straight to the next: the reader waits for the lock to be
+// let go, over and over, and must look again each time before it reads.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsReadersAndWriter(void)
+{
+	Ptr<CTestThreadNode>	pShared;
+	Ptr<CTestThreadNode>	pNext;
+	Ptr<CArrayObject>		pArray;
+	size					i;
+
+	TestObjectsThreadsBegin();
+	pShared = OMalloc<CTestThreadNode>();
+	pNext = OMalloc<CTestThreadNode>();
+	pShared->mpNext = pNext;
+	ORoot()->Add(pShared);
+
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsCopyPointers, TestObjectsThreadsReRoot, NULL, &pShared, NULL));
+
+	ObjectsCollect();
+	AssertSize(1, pShared.NumStackFroms());
+	AssertSize(1, pShared.NumHeapFroms());
+	AssertSize(1, pNext.NumStackFroms());
+	AssertInt(0, giTestThreadNodesFreed);
+	AssertTrue(pShared->IsLive());
+	pShared = NULL;
+	pNext = NULL;
+
+	pArray = OMalloc<CArrayObject>();
+	ORoot()->Add(pArray);
+	for (i = 0; i < TEST_OBJECTS_THREADS; i++)
+	{
+		pNext = OMalloc<CTestThreadNode>();
+		pArray->Add(pNext);
+	}
+	pNext = NULL;
+
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsRootOwn, TestObjectsThreadsCopyEach, NULL, NULL, &pArray));
+
+	ObjectsCollect();
+	AssertSize(TEST_OBJECTS_THREADS, pArray->NumElements());
+	AssertSize(2, ORoot()->NumObjects());
+	AssertInt(0, giTestThreadNodesFreed);
+	pArray = NULL;
+	TestObjectsThreadsEnd(5 + TEST_OBJECTS_THREADS);
+}
+
+
 static void TestObjectsThreadsBuildGraphs(void* pvThread)
 {
 	STestObjectsThread*		psThread;
@@ -1726,6 +1855,7 @@ void TestObjectsThreads(void)
 
 	TestObjectsThreadsRegistration();
 	TestObjectsThreadsSharedObject();
+	TestObjectsThreadsReadersAndWriter();
 	TestObjectsThreadsOwnGraphs();
 	TestObjectsThreadsFreedOnHomeThread();
 	TestObjectsThreadsFreedWhileHeld();

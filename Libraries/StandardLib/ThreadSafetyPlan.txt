@@ -602,6 +602,28 @@ Steps
       int32 atomics now promise (BaseLib/Atomic.h).
   20. Level 2 proved: ThreadSanitizer, the mutation harness, the full sweep, and Sculpt (or the IDE's indexing) with
       workers that do copy Ptrs.
+      Done 2026-11-17, but for the full sweep, which is run once after step 23.
+      ThreadSanitizer reports nothing in TestStandardLib (79151) or in TestSculptLib's bakes.
+      The guards again: the pointers' own ways in have no guard now, which leaves 100.  Each taken out in turn, 97
+      make a test fail; the three that don't are step 16's three.
+      The protocol itself, by hand: eleven changes, each what a slip in it would be.  Ten always fail a test:
+        the writer doesn't wait for the readers                       ThreadSanitizer: a data race
+        a reader doesn't look at the lock                             Debug: it crashes
+        a reader doesn't ask whether the objects are attached         Debug: an assertion
+        a registered thread reads as the home thread does             Debug: an assertion
+        PointToFromOutside, the destructor, AssignObject: no lock     Debug: an assertion each
+        a reader whose own lock is held waits for it                  Debug: it stops for good
+        a reader leaves its flag up                                   Debug: it stops for good
+        the tables aren't asked whether an object has a stack from    Debug: an assertion
+      The eleventh, a reader that has waited for a writer and doesn't look at the lock again before it reads, is
+      found by ThreadSanitizer in about one run in three: a writer has to take the lock and pass that reader's
+      flag between two of the reader's instructions.  TestObjectsThreadsReadersAndWriter was written for it (readers
+      against a writer that never rests, then one reader among writers that hand the lock to each other), and
+      running either half ten times over found it no oftener, so it runs once.  That line is right by being read.
+      A real workload: TestSculptLib bakes Sculpt's marble on a pool whose threads are registered, the locking on,
+      through a texture that takes a Ptr to its input at every sample (TestSculptBakeRegisteredJobs): the same
+      image, no thread told it did wrong, and at 128 texels a unit with 4 samples each way, 57 ms on 24 threads
+      against 54 with plain pointers (644 and 613 on one thread).  Workers may copy Ptrs to rooted objects freely.
 
   Allocation off the lock (only if objects are to be allocated on workers)
   21. mcMemory's own lock, and OMalloc as: allocate, add to the index, a reader's stack from.
