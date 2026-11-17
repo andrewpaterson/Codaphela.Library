@@ -28,6 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "EmbeddedObject.h"
 #include "BaseLib/NativeThread.h"
 #include "ObjectsLock.h"
+#include "ObjectsThreads.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -358,6 +359,7 @@ size CEmbeddedObject::ClearFromsOfCopy(CEmbeddedObject* pcOriginal)
 	{
 		GetStackPointers()->RemoveAll(mpcStackFroms);
 	}
+	uiNumFroms += ThreadStackFromsClear(pcOriginal);
 
 	PostRemapFroms();
 	return uiNumFroms;
@@ -809,15 +811,17 @@ CStackPointers* CEmbeddedObject::GetStackPointers(void)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::HasStackFroms(void)
 {
-	CBaseObject*	pcContainer;
-	size			i;
-	size			uiNumEmbedded;
+	CBaseObject*		pcContainer;
+	CEmbeddedObject*	pcEmbedded;
+	size				i;
+	size				uiNumEmbedded;
 
 	pcContainer = GetEmbeddingContainer();
 	uiNumEmbedded = pcContainer->NumEmbedded();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		if (pcContainer->GetEmbeddedObject(i)->mpcStackFroms != NULL)
+		pcEmbedded = pcContainer->GetEmbeddedObject(i);
+		if ((pcEmbedded->mpcStackFroms != NULL) || ThreadStackFromsHas(pcEmbedded))
 		{
 			return true;
 		}
@@ -854,13 +858,16 @@ size CEmbeddedObject::NumHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 size CEmbeddedObject::NumStackFroms(void)
 {
+	size	uiNumOnThreads;
+
+	uiNumOnThreads = ThreadStackFromsNum(this);
 	if (mpcStackFroms == NULL)
 	{
-		return 0;
+		return uiNumOnThreads;
 	}
 	else
 	{
-		return mpcStackFroms->NumPointers();
+		return mpcStackFroms->NumPointers() + uiNumOnThreads;
 	}
 }
 
@@ -917,6 +924,14 @@ bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 {
 	OBJECTS_INSIDE();
 
+	//A registered thread keeps its own stack froms of objects attached to the root (ObjectsThreads.h).
+	if (ThreadStackFromAdd(this, pcPointer))
+	{
+#ifdef _DEBUG
+		ValidateStoredOnOneThread();
+#endif // _DEBUG
+		return true;
+	}
 	return StackFromLinked(LinkStackFrom(GetStackPointers()->Add(pcPointer)), bValidate);
 }
 
@@ -965,6 +980,7 @@ void CEmbeddedObject::ValidateStoredOnOneThread(void)
 {
 	CStackPointer*	pcStackPointer;
 	int				iThread;
+	bool			bOnAnother;
 
 	if (!IsObjectsLocking() || !(IsHollow() || GetEmbeddingContainer()->IsStored()))
 	{
@@ -972,13 +988,14 @@ void CEmbeddedObject::ValidateStoredOnOneThread(void)
 	}
 
 	iThread = CurrentThreadId();
-	for (pcStackPointer = mpcStackFroms; pcStackPointer; pcStackPointer = pcStackPointer->GetNext())
+	bOnAnother = ThreadStackFromsHasOnAnotherThread(this);
+	for (pcStackPointer = mpcStackFroms; !bOnAnother && pcStackPointer; pcStackPointer = pcStackPointer->GetNext())
 	{
-		if (pcStackPointer->IsOnAnotherThread(iThread))
-		{
-			gcLogger.Error2(__METHOD__, " Stored object {", ObjectToString(this), "} is held from the stacks of two threads: a stored object is used by one thread at a time.", NULL);
-			return;
-		}
+		bOnAnother = pcStackPointer->IsOnAnotherThread(iThread);
+	}
+	if (bOnAnother)
+	{
+		gcLogger.Error2(__METHOD__, " Stored object {", ObjectToString(this), "} is held from the stacks of two threads: a stored object is used by one thread at a time.", NULL);
 	}
 }
 
@@ -1063,7 +1080,24 @@ bool CEmbeddedObject::UnlinkStackFrom(CPointer* pcPointer)
 {
 	OBJECTS_INSIDE();
 
+	if (ObjectsThreadsRegistered())
+	{
+		return UnlinkStackFromOfThreads(pcPointer);
+	}
 	return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While threads are registered a pointer's from is one the running thread keeps (ObjectsThreads.h), or is on this,
+// or (a pointer let go of by a thread that didn't take it) is one some other thread keeps.  Apart, so that with one
+// thread UnlinkStackFrom is as short as it was.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE bool CEmbeddedObject::UnlinkStackFromOfThreads(CPointer* pcPointer)
+{
+	return ThreadStackFromRemove(pcPointer) || UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer) || ThreadStackFromRemoveAnywhere(pcPointer);
 }
 
 
@@ -1103,6 +1137,7 @@ void CEmbeddedObject::RemoveAllStackFroms(void)
 			mpcStackFroms = NULL;
 		}
 	}
+	ThreadStackFromsClear(this);
 }
 
 

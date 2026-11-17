@@ -536,6 +536,28 @@ Steps
       the root goes in the worker's table and nothing is written to the object.  The writer's side with it: has-a-
       stack-from asks the tables, the dumps, validation, the remap of a loaded hollow's stack Ptrs, ObjectsThreadKill's
       report.  The home thread's stack froms stay on the objects.  Measured: what the tables cost the walks.
+      Done 2026-11-17 (ObjectsThreads.h says how it works).  A registered thread's stack pointer to an object that is
+      attached to the root as the pointer is pointed at it goes in the thread's own table, a pair in an array, the
+      last looked at first when one is let go; the home thread's, and anyone's to an object that isn't attached,
+      stay on the object.  What asks an object about its stack froms asks the tables too: HasStackFroms and
+      NumStackFroms, the clearing of pointers to an object that is freed (a held object killed leaves a thread's
+      pointer NULL, as it leaves the home thread's), the remap when a hollow is loaded, validation, the dump of
+      stack pointers, the eviction check (which now refuses in every build, not only Debug) and ObjectsThreadKill,
+      which lets go of what the thread still kept and makes those pointers NULL.  A pointer let go of by a thread
+      that didn't take it is looked for in every thread's table.
+      Measured (Release, 64 bit).  One thread, the locking off, by instructions: a tree of objects built +1.3%,
+      freed +1.0%, OMalloc and free +0.8%, focus moved -0.7%; a stack Ptr's copy and drop 346 where step 12 counted
+      308 and step 17 323.  Of those 38 the tables are two tests, six instructions; the rest came and went with
+      how the compiler inlined the destructor (nothing on that path changed between steps 12 and 17), and the clock
+      can't tell 346 from 323.
+      The walks: the first version looked through every registered thread's table for each object asked about, and
+      24 threads that were registered and held nothing made freeing a tree 39% slower for the home thread (637 to
+      883 ns a node).  The threads that keep any stack froms are counted now, and only theirs are looked through:
+      647 ns with 24 idle threads.
+      Level 1 as it stands, for step 19 to be compared with (other threads copying and dropping a Ptr to one rooted
+      node, the home thread running the speed test): each thread's copy and drop 77 ns with 1 thread, 1.7
+      microseconds with 4, 11 microseconds with 12; the home thread's own 93 ns, 0.9 and 3.1 microseconds.  With
+      the locking on and nobody else working the home thread's copy and drop is 25 ns (12 with it off).
   19. Readers and the writer: each thread's reader flag, the writer's flag and its wait; the table path leaves the
       lock.  Measured against the threads table (14 to 25 ns a copy and drop at 12 threads in the prototype).
   20. Level 2 proved: ThreadSanitizer, the mutation harness, the full sweep, and Sculpt (or the IDE's indexing) with

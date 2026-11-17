@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
 #include "ObjectRemapFrom.h"
+#include "ObjectsThreads.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -132,6 +133,7 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 		}
 		pcNew->AddStackPointersForRemap(pcFirstStackPointer);
 	}
+	iCount += ThreadStackFromsRemap(pcOld, pcNew);
 
 	//Weak references follow the object, as its pointers do (WeakReferencesPlan.txt).
 	pcOldFroms->GetObjectsOrDefault()->MoveWeakFroms(pcOldFroms, pcNew);

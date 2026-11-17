@@ -285,6 +285,7 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="Objects.h" />
     <ClInclude Include="ObjectsLock.h" />
+    <ClInclude Include="ObjectsThreads.h" />
     <ClInclude Include="Root.h" />
     <ClInclude Include="Collection.h" />
     <ClInclude Include="SetObject.h" />
@@ -421,6 +422,7 @@
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Objects.cpp" />
     <ClCompile Include="ObjectsLock.cpp" />
+    <ClCompile Include="ObjectsThreads.cpp" />
     <ClCompile Include="ObjectsPrint.cpp" />
     <ClCompile Include="ObjectsValidate.cpp" />
     <ClCompile Include="Root.cpp" />

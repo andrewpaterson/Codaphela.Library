@@ -37,6 +37,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "KillOrderCalculator.h"
 #include "Objects.h"
 #include "ObjectsLock.h"
+#include "ObjectsThreads.h"
 
 
 CObjects	gcObjects;
@@ -1321,7 +1322,7 @@ bool CObjects::ValidateNoOtherThreadHolds(const char* szMethod)
 		return true;
 	}
 
-	uiHeld = mpcStackPointers->NumOnOtherThreads(CurrentThreadId());
+	uiHeld = mpcStackPointers->NumOnOtherThreads(CurrentThreadId()) + ThreadStackFromsNumOnOtherThreads();
 	if (uiHeld > 0)
 	{
 		return gcLogger.Error2(szMethod, " Cannot put hollows in place of objects while other threads hold [", SizeToString(uiHeld), "] stack pointers to objects.", NULL);

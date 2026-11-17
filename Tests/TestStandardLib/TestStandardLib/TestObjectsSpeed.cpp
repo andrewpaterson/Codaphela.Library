@@ -1,9 +1,12 @@
 //The object system's speed isn't measured on the 65C64 or the W65C816, whose compiler is given every test's source.
 #ifndef __LIBC65__
 #include <stdlib.h>
+#include <string.h>
+#include "BaseLib/Atomic.h"
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
+#include "BaseLib/NativeThread.h"
 #include "BaseLib/Timer.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/DataIO.h"
@@ -30,6 +33,12 @@
 //with OBJECTS_SPEED set, and again with it set to twice as much: the difference in the instructions collected,
 //divided by the difference in how many times the operation ran (TEST_OBJECTS_SPEED_COUNT each time OBJECTS_SPEED goes
 //up by one), is the instructions one operation takes.
+//
+//With threads: OBJECTS_SPEED_THREADS set to a number (with OBJECTS_SPEED) switches the object system's locking on
+//and registers that many other threads while the operations are timed.  They do nothing but be registered, unless
+//OBJECTS_SPEED_THREADS_WORK says what each does over and over until the operations are done: "copy" (a stack Ptr to
+//the one node, copied and dropped), "own" (the same, each thread to a node of its own) or "malloc" (OMalloc and
+//free).  What a thread's operation took, on average over the threads, is logged with the rest.
 
 
 #define TEST_OBJECTS_SPEED_COUNT		2000
@@ -263,6 +272,168 @@ NO_INLINE void TestObjectsSpeedFreeTree(Ptr<CTestSpeedNode>& pWindow)
 }
 
 
+#define TEST_OBJECTS_SPEED_MAX_THREADS	64
+#define TEST_OBJECTS_SPEED_THREAD_BATCH	200
+
+
+struct STestSpeedThread
+{
+	CNativeThread		cThread;
+	CTestSpeedNode*		pcNode;		//What it copies pointers to.
+	const char*			szWork;		//NULL for nothing.
+	int64				iMicroseconds;
+	size				uiOperations;
+};
+
+
+static STestSpeedThread	gasTestSpeedThreads[TEST_OBJECTS_SPEED_MAX_THREADS];
+static size				guiTestSpeedThreads = 0;
+static int32			giTestSpeedThreadsReady = 0;
+static int32			giTestSpeedThreadsStop = 0;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestObjectsSpeedThread(void* pvThread)
+{
+	STestSpeedThread*	psThread;
+	int64				iStart;
+
+	psThread = (STestSpeedThread*)pvThread;
+	psThread->uiOperations = 0;
+	psThread->iMicroseconds = 0;
+	ObjectsThreadInit();
+	{
+		Ptr<CTestSpeedNode>		pNode;
+
+		//Only a thread that copies pointers holds the node: held, the tree it is the top of wouldn't be freed.
+		if ((psThread->szWork != NULL) && (strcmp(psThread->szWork, "malloc") != 0))
+		{
+			pNode = psThread->pcNode;
+		}
+		AtomicAdd(&giTestSpeedThreadsReady, 1);
+		iStart = GetDebugMicroseconds();
+		while (AtomicLoad(&giTestSpeedThreadsStop) == 0)
+		{
+			if (psThread->szWork == NULL)
+			{
+				ThreadSleep(1);
+			}
+			else if (strcmp(psThread->szWork, "malloc") == 0)
+			{
+				TestObjectsSpeedMalloc(TEST_OBJECTS_SPEED_THREAD_BATCH);
+				psThread->uiOperations += TEST_OBJECTS_SPEED_THREAD_BATCH;
+			}
+			else
+			{
+				TestObjectsSpeedStackPointer(pNode, TEST_OBJECTS_SPEED_THREAD_BATCH);
+				psThread->uiOperations += TEST_OBJECTS_SPEED_THREAD_BATCH;
+			}
+		}
+		psThread->iMicroseconds = GetDebugMicroseconds() - iStart;
+	}
+	ObjectsThreadKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Registers OBJECTS_SPEED_THREADS threads and sets them to OBJECTS_SPEED_THREADS_WORK, with the locking on.  Each
+// is given a node of its own, in the root, for "own"; pcShared otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestObjectsSpeedThreadsStart(CTestSpeedNode* pcShared)
+{
+	Ptr<CTestSpeedNode>		pOwn;
+	char*					szThreads;
+	const char*				szWork;
+	size					i;
+
+	szThreads = getenv("OBJECTS_SPEED_THREADS");
+	guiTestSpeedThreads = ((szThreads != NULL) && (getenv("OBJECTS_SPEED") != NULL)) ? (size)atoi(szThreads) : 0;
+	if (guiTestSpeedThreads > TEST_OBJECTS_SPEED_MAX_THREADS)
+	{
+		guiTestSpeedThreads = TEST_OBJECTS_SPEED_MAX_THREADS;
+	}
+	if (guiTestSpeedThreads == 0)
+	{
+		return;
+	}
+
+	szWork = getenv("OBJECTS_SPEED_THREADS_WORK");
+	AtomicStore(&giTestSpeedThreadsReady, 0);
+	AtomicStore(&giTestSpeedThreadsStop, 0);
+	for (i = 0; i < guiTestSpeedThreads; i++)
+	{
+		gasTestSpeedThreads[i].pcNode = pcShared;
+		if ((szWork != NULL) && (strcmp(szWork, "own") == 0))
+		{
+			pOwn = OMalloc<CTestSpeedNode>();
+			ORoot()->Add(pOwn);
+			gasTestSpeedThreads[i].pcNode = &pOwn;
+		}
+		gasTestSpeedThreads[i].szWork = szWork;
+	}
+	pOwn = NULL;
+
+	AssertTrue(ObjectsLocking(true));
+	for (i = 0; i < guiTestSpeedThreads; i++)
+	{
+		gasTestSpeedThreads[i].cThread.Init();
+		gasTestSpeedThreads[i].cThread.Start(TestObjectsSpeedThread, &gasTestSpeedThreads[i]);
+	}
+	while (AtomicLoad(&giTestSpeedThreadsReady) < (int32)guiTestSpeedThreads)
+	{
+		ThreadYield();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestObjectsSpeedThreadsStop(void)
+{
+	float	fNanoseconds;
+	size	uiWorked;
+	size	i;
+
+	if (guiTestSpeedThreads == 0)
+	{
+		return;
+	}
+
+	AtomicStore(&giTestSpeedThreadsStop, 1);
+	fNanoseconds = 0.0f;
+	uiWorked = 0;
+	for (i = 0; i < guiTestSpeedThreads; i++)
+	{
+		gasTestSpeedThreads[i].cThread.Join();
+		gasTestSpeedThreads[i].cThread.Kill();
+		if (gasTestSpeedThreads[i].uiOperations > 0)
+		{
+			fNanoseconds += (float)gasTestSpeedThreads[i].iMicroseconds * 1000.0f / (float)gasTestSpeedThreads[i].uiOperations;
+			uiWorked++;
+		}
+	}
+	if (uiWorked > 0)
+	{
+		fNanoseconds /= (float)uiWorked;
+		gcLogger.Info2("Each of ", SizeToString(uiWorked), " other threads, an operation (", gasTestSpeedThreads[0].szWork, "): ", IntToString((int)fNanoseconds), ".", IntToString((int)(fNanoseconds * 10.0f) % 10), " ns", NULL);
+	}
+	else
+	{
+		gcLogger.Info2(SizeToString(guiTestSpeedThreads), " other threads were registered.", NULL);
+	}
+	ObjectsCollect();
+	AssertTrue(ObjectsLocking(false));
+	guiTestSpeedThreads = 0;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -288,6 +459,7 @@ void TestObjectsSpeedOperations(void)
 	ORoot()->Add(pFirst);
 	ORoot()->Add(pSecond);
 	ORoot()->Add(pArray);
+	TestObjectsSpeedThreadsStart(&pNode);
 
 	iStart = GetDebugMicroseconds();
 	TestObjectsSpeedStackPointer(pNode, uiCount);
@@ -317,11 +489,14 @@ void TestObjectsSpeedOperations(void)
 	iStart = GetDebugMicroseconds();
 	TestObjectsSpeedMallocIntoArray(pArray, uiCount);
 	TestObjectsSpeedLog("OMalloc, added to an array, removed", iStart, uiCount);
+	TestObjectsSpeedThreadsStop();
 
 	gcObjects.EnableValidation();
 	gcObjects.ValidateObjectsConsistency();
-	AssertLong(6, gcObjects.NumMemoryIndexes());
-
+	if (getenv("OBJECTS_SPEED_THREADS") == NULL)
+	{
+		AssertLong(6, gcObjects.NumMemoryIndexes());
+	}
 	pNode = NULL;
 	pFirst = NULL;
 	pSecond = NULL;
@@ -357,6 +532,7 @@ void TestObjectsSpeedTree(void)
 	pWindow = OMalloc<CTestSpeedNode>();
 	ORoot()->Add(pWindow);
 	pTop = OMalloc<CTestSpeedNode>();
+	TestObjectsSpeedThreadsStart(&pWindow);
 
 	iStart = GetDebugMicroseconds();
 	pTop->mpObject1 = pWindow;
@@ -380,6 +556,8 @@ void TestObjectsSpeedTree(void)
 	iStart = GetDebugMicroseconds();
 	TestObjectsSpeedFreeTree(pWindow);
 	TestObjectsSpeedLog("Tree of objects freed, a node", iStart, uiNodes);
+	TestObjectsSpeedThreadsStop();
+	ORoot()->RemoveAll();
 	AssertLong(2, gcObjects.NumMemoryIndexes());
 
 	apcNodes.Kill();

@@ -28,9 +28,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 //Reads and writes of memory that more than one thread touches.  They are inline, as what uses them (a spinning lock,
 //an allocator's lists) is only worth having if it costs a few instructions.
 //
-//A Load or a Store is one whole value read or written, never half of one, with nothing promised about when other
-//threads see it: enough for a value only one thread writes.  An Exchange, an Add and a CompareExchange are a read and
-//a write no other thread can come between, and everything before them is seen by any thread that sees them.
+//A Load or a Store is one whole value read or written, never half of one.  An Exchange, an Add and a CompareExchange
+//are a read and a write no other thread can come between.
+//
+//The int32's are for flags and counts that threads wait on and hand work over by.  What a thread did before it
+//changed one is seen by any thread whose Load reads that change (so a thread that waits for a flag may then read
+//what the thread that set it left for it), and the Loads, Exchanges, Adds and CompareExchanges of all the threads
+//happen in one order they all agree on (so of two threads that each Exchange a flag of their own and then Load the
+//other's, at least one sees the other's set).  A Store promises only the first.
+//
+//The sizes' and the pointers' Load and Store promise neither: they are for a value one thread writes and others
+//only need some whole value of.  The pointers' Exchange and CompareExchange are as the int32's.
 //
 //The 65C64 and the W65C816 run one thread, so there they are plain reads and writes.
 
@@ -203,7 +211,7 @@ inline void AtomicPause(void)
 
 inline int32 AtomicLoad(int32* pi)
 {
-	return __atomic_load_n(pi, __ATOMIC_RELAXED);
+	return __atomic_load_n(pi, __ATOMIC_SEQ_CST);
 }
 
 

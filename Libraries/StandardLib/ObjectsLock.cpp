@@ -26,6 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/RecursiveLock.h"
 #include "Objects.h"
 #include "ObjectsLock.h"
+#include "ObjectsThreads.h"
 #include "StackPointers.h"
 
 
@@ -36,7 +37,6 @@ bool						gbObjectsLocking = false;
 static CRecursiveSpinLock	gcObjectsLock;
 
 static int					giObjectsHomeThread = 0;	//0 until ObjectsInit.
-static size					guiObjectsThreads = 0;		//The other threads registered.  Under the lock.
 static bool					gbObjectsFreesWaiting = false;	//Other threads have found objects dead.  Under the lock.
 static size					guiObjectsLocksTaken = 0;	//Under the lock.
 static int32				giObjectsThreadErrors = 0;
@@ -138,17 +138,19 @@ bool ObjectsThreadInit(void)
 	}
 
 	gbObjectsThread = true;
-	gcObjectsLock.Lock();
-	guiObjectsThreads++;
-	gcObjectsLock.Unlock();
+	ObjectsLock();
+	ObjectsThreadsAdd();
+	ObjectsUnlock();
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The running thread has finished with objects.  It should hold no Ptr: one it did hold would keep its object for
-// good (in a Debug build they are counted, and it is said).  False if it wasn't registered or still holds some.
+// The running thread has finished with objects.  It should hold no Ptr.  Those it kept the froms of itself are let
+// go of for it, and it is said; those kept on their objects (of objects that weren't attached to the root) keep their
+// objects for good, which a Debug build, which counts them, says too.  False if it wasn't registered or still held
+// some.
 //
 //////////////////////////////////////////////////////////////////////////
 bool ObjectsThreadKill(void)
@@ -160,10 +162,10 @@ bool ObjectsThreadKill(void)
 		return gcLogger.Error2(__METHOD__, " The thread is not registered.", NULL);
 	}
 
-	gcObjectsLock.Lock();
+	ObjectsLock();
 	uiStackPointers = gcStackPointers.NumOnThread(CurrentThreadId());
-	guiObjectsThreads--;
-	gcObjectsLock.Unlock();
+	uiStackPointers += ObjectsThreadsRemove();
+	ObjectsUnlock();
 	gbObjectsThread = false;
 
 	if (uiStackPointers > 0)
@@ -183,7 +185,7 @@ size ObjectsNumThreads(void)
 	size	uiThreads;
 
 	gcObjectsLock.Lock();
-	uiThreads = guiObjectsThreads;
+	uiThreads = ObjectsThreadsNum();
 	gcObjectsLock.Unlock();
 	return uiThreads;
 }

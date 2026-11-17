@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 #include "Objects.h"
 #include "ObjectsLock.h"
+#include "ObjectsThreads.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -192,6 +193,7 @@ void CObjects::GetStackPointerAddresses(CArrayVoidPtr* papvAddresses)
 		}
 		pcStackPointer = GetStackPointers()->Iterate(&sIter);
 	}
+	ThreadStackFromsAddresses(papvAddresses);
 }
 
 

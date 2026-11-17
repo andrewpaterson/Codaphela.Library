@@ -272,33 +272,23 @@ static void TestObjectsThreadsSwitchThread(void* pvSwitched)
 }
 
 
-//A thread that would end holding a Ptr is told so by ObjectsThreadKill (a Debug build keeps count).
+//A thread that would end holding a Ptr is told so by ObjectsThreadKill, which lets go of it for the thread: the Ptr
+//is NULL after.
 static void TestObjectsThreadsHoldingThread(void* pvThread)
 {
 	STestObjectsThread*		psThread;
-	bool					bKilled;
 
 	psThread = (STestObjectsThread*)pvThread;
 	psThread->bRegistered = ObjectsThreadInit();
 	{
 		Ptr<CTestThreadNode>	pHeld = psThread->pcShared;
 
-		bKilled = ObjectsThreadKill();
-#ifdef OBJECTS_THREAD_CHECKS
-		if (bKilled)
-		{
-			psThread->iErrors++;
-		}
-#else
-		(void)bKilled;
-#endif // OBJECTS_THREAD_CHECKS
-
-		//It lets go of the Ptr as a registered thread.
-		if (!ObjectsThreadInit())
+		if (ObjectsThreadKill() || pHeld.IsNotNull())
 		{
 			psThread->iErrors++;
 		}
 	}
+	psThread->bRegistered = psThread->bRegistered && ObjectsThreadInit();
 	psThread->bUnregistered = ObjectsThreadKill();
 }
 
@@ -377,6 +367,7 @@ void TestObjectsThreadsRegistration(void)
 	AssertTrue(sHolding.bUnregistered);
 	AssertInt(0, sHolding.iErrors);
 	AssertSize(1, pNode.NumStackFroms());
+	AssertTrue(pNode->IsLive());
 	pNode = NULL;
 
 	//Killing the objects switches the locking off.
@@ -1338,7 +1329,8 @@ static void TestObjectsThreadsHoldStored(void* pvStored)
 //////////////////////////////////////////////////////////////////////////
 //
 // While threads share objects a stored object is one thread's at a time, and objects aren't evicted while another
-// thread holds a pointer.  A Debug build, which knows whose stack each pointer is on, says so and refuses.
+// thread holds a pointer.  The second is refused.  A Debug build, which knows whose stack each pointer is on, says
+// the first.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectsThreadsStoredObjects(void)
@@ -1372,18 +1364,16 @@ void TestObjectsThreadsStoredObjects(void)
 	{
 		ThreadYield();
 	}
-#ifdef OBJECTS_THREAD_CHECKS
 	AssertFalse(gcObjects.EvictInMemory());
-#endif // OBJECTS_THREAD_CHECKS
 	AtomicStore(&giTestObjectsThreadsRelease, 1);
 	cThread.Join();
 	cThread.Kill();
 	StopCapturingLog(&cLog, &sLogConfig, szLog, sizeof(szLog));
+	AssertTrue(strstr(szLog, "Cannot put hollows in place of objects while other threads hold [1] stack pointers") != NULL);
 #ifdef OBJECTS_THREAD_CHECKS
 	AssertTrue(strstr(szLog, "is held from the stacks of two threads") != NULL);
-	AssertTrue(strstr(szLog, "Cannot put hollows in place of objects while other threads hold [1] stack pointers") != NULL);
 #else
-	AssertString("", szLog);
+	AssertTrue(strstr(szLog, "is held from the stacks of two threads") == NULL);
 #endif // OBJECTS_THREAD_CHECKS
 
 	//With the other thread gone its objects can be evicted, and are there to be loaded again.
@@ -1397,6 +1387,251 @@ void TestObjectsThreadsStoredObjects(void)
 	pStored = NULL;
 
 	AssertTrue(ObjectsLocking(false));
+	AssertTrue(ObjectsFlush());
+	ObjectsKill(false);
+	AssertTrue(pcDatabase->Close());
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+}
+
+
+//What the home thread and one other do in turn: the home thread asks for a step and waits for it to be done.
+struct STestObjectsSteps
+{
+	CNativeThread		cThread;
+	int32				iAsked;
+	int32				iDone;
+	CTestThreadNode*	apcNodes[4];
+	CPointer*			ppOnHeap;
+	bool				bRegistered;
+	bool				bUnregistered;
+	bool				bNullOnceKilled;
+	bool				bHollow;
+	bool				bLoaded;
+};
+
+
+static void TestObjectsStepWait(STestObjectsSteps* psSteps, int32 iStep)
+{
+	while (AtomicLoad(&psSteps->iAsked) < iStep)
+	{
+		ThreadYield();
+	}
+}
+
+
+static void TestObjectsStep(STestObjectsSteps* psSteps, int32 iStep)
+{
+	AtomicStore(&psSteps->iAsked, iStep);
+	while (AtomicLoad(&psSteps->iDone) < iStep)
+	{
+		ThreadYield();
+	}
+}
+
+
+//The stack froms an object is said to have, asked as the object system asks.
+static size TestObjectsNumStackFroms(CTestThreadNode* pcNode)
+{
+	size	uiNumStackFroms;
+
+	ObjectsLock();
+	uiNumStackFroms = pcNode->NumStackFroms();
+	ObjectsUnlock();
+	return uiNumStackFroms;
+}
+
+
+static void TestObjectsThreadsKeeper(void* pvSteps)
+{
+	STestObjectsSteps*	psSteps;
+
+	psSteps = (STestObjectsSteps*)pvSteps;
+	psSteps->bRegistered = ObjectsThreadInit();
+	{
+		Ptr<CTestThreadNode>	pHeld;
+
+		TestObjectsStepWait(psSteps, 1);
+		pHeld = psSteps->apcNodes[0];
+		AtomicStore(&psSteps->iDone, 1);
+
+		TestObjectsStepWait(psSteps, 2);
+		pHeld = NULL;
+		AtomicStore(&psSteps->iDone, 2);
+
+		TestObjectsStepWait(psSteps, 3);
+		pHeld = psSteps->apcNodes[1];
+		AtomicStore(&psSteps->iDone, 3);
+
+		TestObjectsStepWait(psSteps, 4);
+		psSteps->bNullOnceKilled = pHeld.IsNull();
+		psSteps->ppOnHeap = new CPointer(psSteps->apcNodes[2]);
+		AtomicStore(&psSteps->iDone, 4);
+
+		TestObjectsStepWait(psSteps, 5);
+		pHeld = psSteps->apcNodes[3];
+		AtomicStore(&psSteps->iDone, 5);
+
+		TestObjectsStepWait(psSteps, 6);
+	}
+	psSteps->bUnregistered = ObjectsThreadKill();
+	AtomicStore(&psSteps->iDone, 6);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A registered thread keeps its own stack froms of objects attached to the root (level 2), and the object system
+// asks it for them.  An object taken off the root while such a thread holds it stays, with a stack from to its
+// name, until the thread lets go; one killed while it is held leaves the thread's pointer NULL; a pointer one thread
+// took and another lets go of is found; and they are written out with the rest.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsKeptStackFroms(void)
+{
+	STestObjectsSteps		sSteps;
+	Ptr<CTestThreadNode>	pNode;
+	CChars					sz;
+	size					i;
+
+	TestObjectsThreadsBegin();
+	for (i = 0; i < 4; i++)
+	{
+		pNode = OMalloc<CTestThreadNode>();
+		ORoot()->Add(pNode);
+		sSteps.apcNodes[i] = &pNode;
+	}
+	pNode = NULL;
+	sSteps.iAsked = 0;
+	sSteps.iDone = 0;
+	sSteps.ppOnHeap = NULL;
+	sSteps.bNullOnceKilled = false;
+	sSteps.cThread.Init();
+	sSteps.cThread.Start(TestObjectsThreadsKeeper, &sSteps);
+
+	//The thread takes a pointer to the first, which is the first's only stack from, and is kept by the thread.
+	TestObjectsStep(&sSteps, 1);
+	AssertSize(1, TestObjectsNumStackFroms(sSteps.apcNodes[0]));
+	AssertSize(0, gcStackPointers.NumElements());
+	sz.Init();
+	gcObjects.PrintStackPointers(&sz, false);
+	AssertTrue(sz.Contains("] kept by thread "));
+	sz.Kill();
+	gcObjects.EnableValidation();
+	gcObjects.ValidateObjectsConsistency();
+	gcObjects.DisableValidation();
+
+	//Off the root it is held by that alone,
+	pNode = sSteps.apcNodes[0];
+	ORoot()->Remove(pNode);
+	pNode = NULL;
+	ObjectsCollect();
+	AssertInt(0, giTestThreadNodesFreed);
+	AssertTrue(sSteps.apcNodes[0]->IsLive());
+	AssertSize(1, TestObjectsNumStackFroms(sSteps.apcNodes[0]));
+
+	//until the thread lets go: the thread finds it dead and this one frees it.
+	TestObjectsStep(&sSteps, 2);
+	ObjectsCollect();
+	AssertInt(1, giTestThreadNodesFreed);
+
+	//The second is killed while the thread holds it: the thread's pointer is NULL.
+	TestObjectsStep(&sSteps, 3);
+	AssertSize(1, TestObjectsNumStackFroms(sSteps.apcNodes[1]));
+	sSteps.apcNodes[1]->Kill();
+	AssertInt(2, giTestThreadNodesFreed);
+	TestObjectsStep(&sSteps, 4);
+	AssertTrue(sSteps.bNullOnceKilled);
+
+	//The thread has made a pointer to the third that this thread lets go of.
+	AssertSize(1, TestObjectsNumStackFroms(sSteps.apcNodes[2]));
+	delete sSteps.ppOnHeap;
+	AssertSize(0, TestObjectsNumStackFroms(sSteps.apcNodes[2]));
+	AssertTrue(sSteps.apcNodes[2]->IsLive());
+
+	//And it lets go of the fourth as its own function ends.
+	TestObjectsStep(&sSteps, 5);
+	AssertSize(1, TestObjectsNumStackFroms(sSteps.apcNodes[3]));
+	TestObjectsStep(&sSteps, 6);
+	sSteps.cThread.Join();
+	sSteps.cThread.Kill();
+	AssertTrue(sSteps.bRegistered);
+	AssertTrue(sSteps.bUnregistered);
+	AssertSize(0, TestObjectsNumStackFroms(sSteps.apcNodes[3]));
+
+	ORoot()->RemoveAll();
+	AssertInt(4, giTestThreadNodesFreed);
+	TestObjectsThreadsEnd(2);
+}
+
+
+static void TestObjectsThreadsLoader(void* pvSteps)
+{
+	STestObjectsSteps*	psSteps;
+
+	psSteps = (STestObjectsSteps*)pvSteps;
+	psSteps->bRegistered = ObjectsThreadInit();
+	{
+		Ptr<CRoot>		pRoot;
+		Ptr<CString>	pStored;
+
+		pRoot = ORoot();
+		pStored = pRoot->Get("Stored");
+		psSteps->bHollow = pStored.IsHollow();
+		psSteps->bLoaded = (strcmp(pStored->Text(), "kept") == 0) && !pStored.IsHollow();
+	}
+	psSteps->bUnregistered = ObjectsThreadKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A hollow that is loaded through a pointer a registered thread keeps the from of: the pointer points at what was
+// loaded, and is a from of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsKeptStackFromOfHollow(void)
+{
+	STestObjectsSteps	sSteps;
+	CCodabase*			pcDatabase;
+	CSequence*			pcSequence;
+	Ptr<CString>		pStored;
+	CFileUtil			cFileUtil;
+
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+	pcSequence = CSequenceFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, DS_No);
+	pcDatabase = CCodabaseFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, IWT_No, DS_No);
+	AssertTrue(pcDatabase->Open());
+	ObjectsInit(pcDatabase, pcSequence);
+
+	pStored = ONMalloc<CString>("Stored", "kept");
+	ORoot()->Add(pStored);
+	pStored = NULL;
+	AssertTrue(ObjectsFlush());
+	AssertTrue(gcObjects.EvictInMemory());
+	AssertLong(0, gcObjects.NumMemoryIndexes());
+	AssertTrue(ObjectsLocking(true));
+
+	sSteps.bHollow = false;
+	sSteps.bLoaded = false;
+	sSteps.cThread.Init();
+	sSteps.cThread.Start(TestObjectsThreadsLoader, &sSteps);
+	sSteps.cThread.Join();
+	sSteps.cThread.Kill();
+	AssertTrue(sSteps.bRegistered);
+	AssertTrue(sSteps.bUnregistered);
+	AssertTrue(sSteps.bHollow);
+	AssertTrue(sSteps.bLoaded);
+	AssertSize(0, ObjectsNumThreadErrors());
+
+	pStored = gcObjects.Get<CString>("Stored");
+	AssertString("kept", pStored->Text());
+	AssertSize(1, pStored.NumStackFroms());
+	pStored = NULL;
+
+	AssertTrue(ObjectsLocking(false));
+	gcObjects.ValidateObjectsConsistency();
 	AssertTrue(ObjectsFlush());
 	ObjectsKill(false);
 	AssertTrue(pcDatabase->Close());
@@ -1472,6 +1707,8 @@ void TestObjectsThreads(void)
 	TestObjectsThreadsCollection();
 	TestObjectsThreadsUnknowns();
 	TestObjectsThreadsStoredObjects();
+	TestObjectsThreadsKeptStackFroms();
+	TestObjectsThreadsKeptStackFromOfHollow();
 	TestObjectsThreadsAssertNoFree();
 	TestObjectsThreadsEveryWayIn();
 
