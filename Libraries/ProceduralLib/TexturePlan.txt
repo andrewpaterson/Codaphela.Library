@@ -306,11 +306,13 @@ Surface operators
 
 Afterwards
 39. Looking: HCP65-Sculpt, a program of its own in its own repository (HCP65-Sculpt/SculptPlan.txt): a 3D view over a
-    node editor for a material's graph, as Blender's.  A material is a configuration, the graph itself, which may be
-    written to disk; SolidMaterials stays as the code way of making one.  The isosurface tab leaves WindowInputTester
-    for it.  What it needs of this library (its plan's steps 8, 9 and 17): operators that do something sensible with
-    an input missing, a Changed() on CSolidTexture for a field changed from outside, and CSolidChannel and
-    CSolidCombine (a sample's one channel; channels from different textures put together).
+    node editor for a material's graph, as Blender's.  Built (its plan's steps 1 to 24 say how).  What it needed of this
+    library, all here now: every operator gives something with an input missing (TestSolidOperatorsUnlinked; an input's
+    own value is a CSolidFlat linked to it); CSolidTexture::Changed, for fields set from outside; CSolidChannel and
+    CSolidCombine (one channel of a sample as a grey; a sample of a colour and four brightnesses); and a material as a
+    configuration, the graph itself in a file (SolidMaterialFile.h: WriteSolidMaterial and ReadSolidMaterial).
+    SolidMaterials' functions stay as the code way of making one.  The materials' numbers are still first guesses:
+    they're to be tuned in Sculpt.
 40. The virtual texture (SupportLib/VirtualTexturePlan.txt).
 41. Loaded textures on a second UV layer (SupportLib/UnwrapPlan.txt, step 10).
 
