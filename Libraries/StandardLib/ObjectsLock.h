@@ -40,6 +40,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Nothing is locked until ObjectsLocking(true): a program with one thread pays a test of gbObjectsLocking at each way
 //in and nothing else, and on the 65C64 and the W65C816, which run one thread, the three compile to nothing.
 //
+//A thread that isn't registered may still read objects it is handed, through plain pointers and operator ->, while
+//the thread that handed them over holds them and waits (a bake's rows shared among threads).  What it must not do is
+//come in by any of the ways in: copy, assign or let go of a Ptr.  It is told when it does, whether the locking is on
+//(every build) or off (a Debug build).
+//
 //Threads.  The thread that calls ObjectsInit is the home thread.  Before any other thread touches an object the home
 //thread switches the locking on, ObjectsLocking(true): it is the one thread that can know it isn't half way through
 //something it began with the lock off.  Each other thread then calls ObjectsThreadInit before it touches an object
@@ -73,12 +78,12 @@ inline bool IsObjectsLocking(void) { return false; }
 inline bool ObjectsThreadInit(void) { return false; }
 inline bool ObjectsThreadKill(void) { return false; }
 inline size ObjectsNumThreads(void) { return 0; }
-inline void ObjectsHomeThread(void) {}
+inline void ObjectsHomeThread(bool bHome) {}
 inline bool ObjectsIsHomeThread(void) { return true; }
 inline void ObjectsFreesWaiting(bool bWaiting) {}
 inline bool ObjectsAssertNoFree(const char* szMethod) { return true; }
 inline size ObjectsNumLocksTaken(void) { return 0; }
-inline size ObjectsNumNotInside(void) { return 0; }
+inline size ObjectsNumThreadErrors(void) { return 0; }
 
 
 #else
@@ -104,7 +109,7 @@ bool	IsObjectsLocking(void);
 bool	ObjectsThreadInit(void);			//Every other thread's, before it touches an object.
 bool	ObjectsThreadKill(void);			//And when it has finished.
 size	ObjectsNumThreads(void);			//The other threads registered now.
-void	ObjectsHomeThread(void);			//ObjectsInit's: the running thread is the home thread.
+void	ObjectsHomeThread(bool bHome);		//ObjectsInit's: the running thread is the home thread.  ObjectsKill's: no thread is.
 bool	ObjectsIsHomeThread(void);			//Always, while the locking is off.
 void	ObjectsFreesWaiting(bool bWaiting);	//CObjects': there are objects for the home thread to free.
 
@@ -117,9 +122,13 @@ void	ObjectsUnlock(void);
 bool	ObjectsIsLockedByThisThread(void);
 void	ObjectsNotInside(const char* szMethod);
 
-//For the tests that every way in has its guard (TestObjectsThreadsEveryWayIn).
+void	ObjectsNotLocking(void);
+
+//For the tests that every way in has its guard (TestObjectsThreadsEveryWayIn), and that threads which aren't to use
+//objects don't.
 size	ObjectsNumLocksTaken(void);			//How many times the lock has been taken by a thread that didn't hold it.
-size	ObjectsNumNotInside(void);			//How many times the machinery was reached without it (ObjectsNotInside).
+size	ObjectsNumThreadErrors(void);		//How many times a thread has been told it used the object system wrongly: its
+											//machinery reached without the lock, or objects used by a thread that isn't registered.
 
 
 //Holds the lock from where it is declared to the end of the block, when the locking is on.
@@ -146,6 +155,12 @@ inline CObjectsGuard::CObjectsGuard()
 	{
 		ObjectsLock();
 	}
+#ifdef OBJECTS_THREAD_CHECKS
+	else
+	{
+		ObjectsNotLocking();
+	}
+#endif // OBJECTS_THREAD_CHECKS
 }
 
 

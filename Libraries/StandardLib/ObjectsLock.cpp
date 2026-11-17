@@ -39,7 +39,7 @@ static int					giObjectsHomeThread = 0;	//0 until ObjectsInit.
 static size					guiObjectsThreads = 0;		//The other threads registered.  Under the lock.
 static bool					gbObjectsFreesWaiting = false;	//Other threads have found objects dead.  Under the lock.
 static size					guiObjectsLocksTaken = 0;	//Under the lock.
-static int32				giObjectsNotInside = 0;
+static int32				giObjectsThreadErrors = 0;
 
 //Whether the running thread may use objects: it is the home thread, or has registered.
 static thread_local bool	gbObjectsThread = false;
@@ -52,10 +52,10 @@ static thread_local int		giObjectsFrees = 0;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ObjectsHomeThread(void)
+void ObjectsHomeThread(bool bHome)
 {
-	giObjectsHomeThread = CurrentThreadId();
-	gbObjectsThread = true;
+	giObjectsHomeThread = bHome ? CurrentThreadId() : 0;
+	gbObjectsThread = bHome;
 }
 
 
@@ -199,6 +199,7 @@ void ObjectsLock(void)
 {
 	if (!gbObjectsThread)
 	{
+		AtomicAdd(&giObjectsThreadErrors, 1);
 		gcLogger.Error2(__METHOD__, " A thread that has not called ObjectsThreadInit is using objects.", NULL);
 	}
 	gcObjectsLock.Lock();
@@ -211,6 +212,22 @@ void ObjectsLock(void)
 		{
 			gcObjects.Collect();
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A way in was reached with the locking off (a Debug build asks).  That is right for the home thread alone: any
+// other thread is racing it.
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsNotLocking(void)
+{
+	if (!gbObjectsThread && (giObjectsHomeThread != 0))
+	{
+		AtomicAdd(&giObjectsThreadErrors, 1);
+		gcLogger.Error2(__METHOD__, " A thread other than the one that called ObjectsInit is using objects, and the locking of objects is off (ObjectsLocking).", NULL);
 	}
 }
 
@@ -280,7 +297,7 @@ bool ObjectsAssertNoFree(const char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 void ObjectsNotInside(const char* szMethod)
 {
-	AtomicAdd(&giObjectsNotInside, 1);
+	AtomicAdd(&giObjectsThreadErrors, 1);
 	gcLogger.Error2(szMethod, " was reached without the object system's lock held.", NULL);
 }
 
@@ -304,9 +321,9 @@ size ObjectsNumLocksTaken(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size ObjectsNumNotInside(void)
+size ObjectsNumThreadErrors(void)
 {
-	return (size)AtomicLoad(&giObjectsNotInside);
+	return (size)AtomicLoad(&giObjectsThreadErrors);
 }
 
 

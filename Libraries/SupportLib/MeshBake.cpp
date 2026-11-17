@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayUint32.h"
 #include "StandardLib/Objects.h"
 #include "ColourARGB32.h"
@@ -40,6 +41,11 @@ struct SMeshBakeTexel
 
 
 typedef CArrayLargeTemplate<SMeshBakeTexel>	CArrayMeshBakeTexel;
+
+
+//How many bands a bake's rows are shared out in for each thread there is to bake them.  A face's texels are where its
+//chart was put, so some rows have many times the work of others: several bands a thread evens that out.
+#define MESH_BAKE_BANDS_A_THREAD	8
 
 
 //From a texel to the four beside it.
@@ -63,6 +69,9 @@ static const int gaaiMeshBakeSteps[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 // sDownRise are their answers for a rise of one across and of one down,
 // so any slope is the two, each times its rise.
 //
+// iLeft to iBottom are the texels its centre can cover (those its UVs
+// are in or touch, that are in the image).
+//
 //////////////////////////////////////////////////////////////////////////
 struct SMeshBakeFace
 {
@@ -76,7 +85,40 @@ struct SMeshBakeFace
 	SFloat32Vec3	sDown;  //and for a texel down.
 	SFloat32Vec3	sAcrossRise;  //The slope, in the face's plane, of a height that rises one unit a texel across and none down,
 	SFloat32Vec3	sDownRise;  //and of one that rises one unit a texel down and none across.
+	int				iLeft;
+	int				iRight;
+	int				iTop;
+	int				iBottom;
+	ARGB32			uiTint;
 };
+
+
+typedef CArrayLargeTemplate<SMeshBakeFace>	CArrayMeshBakeFace;
+
+
+//What every band of a bake reads, and the texels they write, each band its own rows'.
+struct SMeshBake
+{
+	CArrayMeshBakeFace*		pasFaces;  //Those with texels, in the mesh's order.
+	CSolidTexture*			pcTexture;
+	SMeshBakeSettings*		psSettings;
+	bool					bTilt;
+	int						iWidth;
+	CArrayMeshBakeTexel*	pasTexels;
+	CArrayLargeInt*			paiCovered;
+};
+
+
+//Some of a bake's rows: one job.
+struct SMeshBakeBand
+{
+	SMeshBake*	psBake;
+	int			iFirstRow;
+	int			iLastRow;
+};
+
+
+typedef CArrayTemplate<SMeshBakeBand>	CArrayMeshBakeBand;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,6 +139,10 @@ static bool MeshBakeFace(SMeshBakeFace* psDest, CMesh* pcMesh, CMeshUVLayer* pcL
 	float32				fDown;
 	float32				fBoth;
 	float32				fDeterminant;
+	float32				fMinX;
+	float32				fMaxX;
+	float32				fMinY;
+	float32				fMaxY;
 	int					iNormal;
 	int					k;
 	int					j;
@@ -153,6 +199,26 @@ static bool MeshBakeFace(SMeshBakeFace* psDest, CMesh* pcMesh, CMeshUVLayer* pcL
 			psDest->asNormals[k] = *pcMesh->mcNormals.mcNormals.Get((lsize)((iNormal >= 0) ? iNormal : iFace));
 		}
 	}
+
+	fMinX = psDest->afX[0];
+	fMaxX = psDest->afX[0];
+	fMinY = psDest->afY[0];
+	fMaxY = psDest->afY[0];
+	for (k = 1; k < NUM_FACE_CORNERS; k++)
+	{
+		fMinX = (psDest->afX[k] < fMinX) ? psDest->afX[k] : fMinX;
+		fMaxX = (psDest->afX[k] > fMaxX) ? psDest->afX[k] : fMaxX;
+		fMinY = (psDest->afY[k] < fMinY) ? psDest->afY[k] : fMinY;
+		fMaxY = (psDest->afY[k] > fMaxY) ? psDest->afY[k] : fMaxY;
+	}
+	psDest->iLeft = (int)floorf(fMinX - 0.5f);
+	psDest->iRight = (int)ceilf(fMaxX - 0.5f);
+	psDest->iTop = (int)floorf(fMinY - 0.5f);
+	psDest->iBottom = (int)ceilf(fMaxY - 0.5f);
+	psDest->iLeft = (psDest->iLeft < 0) ? 0 : psDest->iLeft;
+	psDest->iTop = (psDest->iTop < 0) ? 0 : psDest->iTop;
+	psDest->iRight = (psDest->iRight >= iWidth) ? (iWidth - 1) : psDest->iRight;
+	psDest->iBottom = (psDest->iBottom >= iHeight) ? (iHeight - 1) : psDest->iBottom;
 	return true;
 }
 
@@ -166,6 +232,7 @@ void SMeshBakeSettings::Init(void)
 	iSamples = 1;
 	fRelief = 0.0f;
 	sLight.Init(0, 0, 1);
+	pcJobs = NULL;
 }
 
 
@@ -257,24 +324,19 @@ static void MeshBakeTexel(SMeshBakeTexel* psTexel, SMeshBakeFace* psFace, CSolid
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The texels whose centres a face covers (its barycentric weights all at
-// least nothing, either way round), each made from the texture there.
+// The texels in rows iFirstRow to iLastRow whose centres a face covers
+// (its barycentric weights all at least nothing, either way round), each
+// made from the texture there.
 //
 //////////////////////////////////////////////////////////////////////////
-static void MeshBakeDraw(SMeshBakeFace* psFace, CSolidTexture* pcTexture, SMeshBakeSettings* psSettings, bool bTilt, ARGB32 uiTint, int iWidth, int iHeight, CArrayMeshBakeTexel* pasTexels, CArrayLargeInt* paiCovered)
+static void MeshBakeDraw(SMeshBakeFace* psFace, SMeshBake* psBake, int iFirstRow, int iLastRow)
 {
 	SFloat32Vec3	sPosition;
 	SFloat32Vec3	sNormal;
-	float32			fMinX;
-	float32			fMaxX;
-	float32			fMinY;
-	float32			fMaxY;
 	float32			fCentreX;
 	float32			fCentreY;
 	float32			afWeights[NUM_FACE_CORNERS];
 	float32			fLength;
-	int				iX0;
-	int				iX1;
 	int				iY0;
 	int				iY1;
 	int				x;
@@ -285,30 +347,12 @@ static void MeshBakeDraw(SMeshBakeFace* psFace, CSolidTexture* pcTexture, SMeshB
 	bool			bInside;
 	lsize			uiTexel;
 
-	fMinX = psFace->afX[0];
-	fMaxX = psFace->afX[0];
-	fMinY = psFace->afY[0];
-	fMaxY = psFace->afY[0];
-	for (k = 1; k < NUM_FACE_CORNERS; k++)
-	{
-		fMinX = (psFace->afX[k] < fMinX) ? psFace->afX[k] : fMinX;
-		fMaxX = (psFace->afX[k] > fMaxX) ? psFace->afX[k] : fMaxX;
-		fMinY = (psFace->afY[k] < fMinY) ? psFace->afY[k] : fMinY;
-		fMaxY = (psFace->afY[k] > fMaxY) ? psFace->afY[k] : fMaxY;
-	}
-	iX0 = (int)floorf(fMinX - 0.5f);
-	iX1 = (int)ceilf(fMaxX - 0.5f);
-	iY0 = (int)floorf(fMinY - 0.5f);
-	iY1 = (int)ceilf(fMaxY - 0.5f);
-	iX0 = (iX0 < 0) ? 0 : iX0;
-	iY0 = (iY0 < 0) ? 0 : iY0;
-	iX1 = (iX1 >= iWidth) ? (iWidth - 1) : iX1;
-	iY1 = (iY1 >= iHeight) ? (iHeight - 1) : iY1;
-
+	iY0 = (psFace->iTop > iFirstRow) ? psFace->iTop : iFirstRow;
+	iY1 = (psFace->iBottom < iLastRow) ? psFace->iBottom : iLastRow;
 	for (y = iY0; y <= iY1; y++)
 	{
 		fCentreY = (float32)y + 0.5f;
-		for (x = iX0; x <= iX1; x++)
+		for (x = psFace->iLeft; x <= psFace->iRight; x++)
 		{
 			fCentreX = (float32)x + 0.5f;
 			bInside = true;
@@ -334,11 +378,78 @@ static void MeshBakeDraw(SMeshBakeFace* psFace, CSolidTexture* pcTexture, SMeshB
 			{
 				sNormal /= fLength;
 			}
-			uiTexel = ((lsize)y * (lsize)iWidth) + (lsize)x;
-			MeshBakeTexel(pasTexels->Get(uiTexel), psFace, pcTexture, &sPosition, &sNormal, psSettings, bTilt, uiTint);
-			paiCovered->SetValue(uiTexel, 1);
+			uiTexel = ((lsize)y * (lsize)psBake->iWidth) + (lsize)x;
+			MeshBakeTexel(psBake->pasTexels->Get(uiTexel), psFace, psBake->pcTexture, &sPosition, &sNormal, psBake->psSettings, psBake->bTilt, psFace->uiTint);
+			psBake->paiCovered->SetValue(uiTexel, 1);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A band's rows of every face, the faces in the mesh's order.  So a texel
+// two faces cover is the later face's whichever band it is in, and the
+// bake is the same however its rows are shared out.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshBakeBand(void* pvBand)
+{
+	SMeshBakeBand*	psBand;
+	SMeshBake*		psBake;
+	SMeshBakeFace*	psFace;
+	lsize			uiNumFaces;
+	lsize			uiFace;
+
+	psBand = (SMeshBakeBand*)pvBand;
+	psBake = psBand->psBake;
+	uiNumFaces = psBake->pasFaces->NumElements();
+	for (uiFace = 0; uiFace < uiNumFaces; uiFace++)
+	{
+		psFace = psBake->pasFaces->Get(uiFace);
+		if ((psFace->iTop <= psBand->iLastRow) && (psFace->iBottom >= psBand->iFirstRow))
+		{
+			MeshBakeDraw(psFace, psBake, psBand->iFirstRow, psBand->iLastRow);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every row baked: in one band on the caller's thread, or with jobs in
+// several bands for each of their threads, a job each, and waited for.
+//
+//////////////////////////////////////////////////////////////////////////
+static void MeshBakeRows(SMeshBake* psBake, int iHeight)
+{
+	CSerialJobs			cSerialJobs;
+	CJobs*				pcJobs;
+	CArrayMeshBakeBand	asBands;
+	SMeshBakeBand*		psBand;
+	int32				iNumBands;
+	int32				iBand;
+
+	pcJobs = (psBake->psSettings->pcJobs != NULL) ? psBake->psSettings->pcJobs : &cSerialJobs;
+	iNumBands = (pcJobs->NumThreads() > 1) ? ((int32)pcJobs->NumThreads() * MESH_BAKE_BANDS_A_THREAD) : 1;
+	iNumBands = (iNumBands > (int32)iHeight) ? (int32)iHeight : iNumBands;
+
+	//Every band is there before the first is run: a job is given its band's address.
+	asBands.Init();
+	asBands.Resize((size)iNumBands);
+	for (iBand = 0; iBand < iNumBands; iBand++)
+	{
+		psBand = asBands.Get((size)iBand);
+		psBand->psBake = psBake;
+		psBand->iFirstRow = (int)(((int32)iHeight * iBand) / iNumBands);
+		psBand->iLastRow = (int)(((int32)iHeight * (iBand + 1)) / iNumBands) - 1;
+	}
+	for (iBand = 0; iBand < iNumBands; iBand++)
+	{
+		pcJobs->Run(MeshBakeBand, asBands.Get((size)iBand));
+	}
+	pcJobs->Wait();
+	asBands.Kill();
 }
 
 
@@ -436,13 +547,14 @@ static Ptr<CImage> MeshBake(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 	SMeshBakeTexel		sNothing;
 	Ptr<CImage>			pImage;
 	CMeshUVLayer*		pcLayer;
+	SMeshBake			sBake;
 	SMeshBakeFace		sFace;
+	CArrayMeshBakeFace	asFaces;
 	CArrayMeshBakeTexel	asTexels;
 	CArrayLargeInt		aiCovered;
 	lsize				uiNumTexels;
 	lsize				uiTexel;
 	int					iFace;
-	bool				bTilt;
 
 	if (!pcMesh->mcUVs.InUse() || (iLayer < 0) || ((size)iLayer >= pcMesh->mcUVs.mcLayers.NumElements()) || (iWidth <= 0) || (iHeight <= 0))
 	{
@@ -454,7 +566,6 @@ static Ptr<CImage> MeshBake(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 		sOneSample.Init();
 		psSettings = &sOneSample;
 	}
-	bTilt = bNormals || (psSettings->fRelief != 0.0f);
 
 	uiNumTexels = (lsize)iWidth * (lsize)iHeight;
 	sNothing.uiColour = Set32BitColour((uint8)255, (uint8)255, (uint8)255);
@@ -469,13 +580,26 @@ static Ptr<CImage> MeshBake(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 	aiCovered.Resize(uiNumTexels);
 	aiCovered.SetArrayValues(0);
 
+	asFaces.Init();
 	for (iFace = 0; iFace < pcMesh->NumFaces(); iFace++)
 	{
 		if (MeshBakeFace(&sFace, pcMesh, pcLayer, iFace, iWidth, iHeight))
 		{
-			MeshBakeDraw(&sFace, pcTexture, psSettings, bTilt, (pauiTints != NULL) ? pauiTints[iFace] : sNothing.uiColour, iWidth, iHeight, &asTexels, &aiCovered);
+			sFace.uiTint = (pauiTints != NULL) ? pauiTints[iFace] : sNothing.uiColour;
+			asFaces.Add(&sFace);
 		}
 	}
+
+	sBake.pasFaces = &asFaces;
+	sBake.pcTexture = pcTexture;
+	sBake.psSettings = psSettings;
+	sBake.bTilt = bNormals || (psSettings->fRelief != 0.0f);
+	sBake.iWidth = iWidth;
+	sBake.pasTexels = &asTexels;
+	sBake.paiCovered = &aiCovered;
+	MeshBakeRows(&sBake, iHeight);
+	asFaces.Kill();
+
 	MeshBakeDilate(iWidth, iHeight, &asTexels, &aiCovered);
 
 	pImage = MeshBakeImage(&asTexels, iWidth, iHeight, false);
@@ -526,6 +650,7 @@ void CMeshBake::Init(Ptr<CSolidTexture> pTexture)
 	msLight.Init(MESH_BAKE_LIGHT_X, MESH_BAKE_LIGHT_Y, MESH_BAKE_LIGHT_Z);
 	msLight.Normalize();
 	mbNormals = false;
+	mpcJobs = NULL;
 	PostInit();
 }
 
@@ -544,6 +669,17 @@ void CMeshBake::Class(void)
 	U_Float32(mfRelief);
 	U_3Float32(msLight);
 	U_Bool(mbNormals);
+	U_Pointer(mpcJobs);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshBake::SetJobs(CJobs* pcJobs)
+{
+	mpcJobs = pcJobs;
 }
 
 
@@ -636,9 +772,10 @@ Ptr<CMesh> CMeshBake::Modify(Ptr<CMesh> pMesh)
 	MeshBakeTints(&auiTints, &pMesh);
 	pMaterial = OMalloc<CMaterial>();
 	pMaterial->msProperties.mcDiffuseColour.Init(1.0f, 1.0f, 1.0f, 1.0f);
-	sSettings.iSamples = 1;
+	sSettings.Init();
 	sSettings.fRelief = mfRelief;
 	sSettings.sLight = msLight;
+	sSettings.pcJobs = mpcJobs;
 	do
 	{
 		if (mbNormals)

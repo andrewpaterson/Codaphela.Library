@@ -67,18 +67,26 @@ bool CArrayObject::Insert(size iIndex, CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 CPointer CArrayObject::Get(size iIndex)
 {
-	CEmbeddedObject**	ppcObject;
-	CEmbeddedObject*	pcDehollowed;
-	CPointer			pObject;
+	CPointer	pObject;
 
+	pObject.AssignObject(GetPlain(iIndex));
+	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object at iIndex as a plain pointer, loaded if it was a hollow; NULL past the end.  For a loop that can't pay
+// for a Ptr to each element, or that runs on a thread that mustn't touch one (ObjectsLock.h).
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CArrayObject::GetPlain(size iIndex)
+{
 	if (iIndex < mcArray.UnsafeNumElements())
 	{
-		ppcObject = (CEmbeddedObject**)mcArray.UnsafeGetPointer(iIndex);
-		pcDehollowed = Dereference(ppcObject);
-		pObject.AssignObject(pcDehollowed);
-		return pObject;
+		return Dereference((CEmbeddedObject**)mcArray.UnsafeGetPointer(iIndex));
 	}
-	return pObject;
+	return NULL;
 }
 
 

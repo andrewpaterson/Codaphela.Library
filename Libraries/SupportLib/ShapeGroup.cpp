@@ -105,13 +105,13 @@ float32 CShapeGroup::Distance(SFloat32Vec3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 void CShapeGroup::Gradient(SFloat32Vec3* psDest, SFloat32Vec3* psPosition)
 {
-	Ptr<CShape>		pShape;
-	float32			fDistance;
+	CShape*		pcShape;
+	float32		fDistance;
 
-	pShape = Choose(psPosition, &fDistance);
-	if (pShape.IsNotNull())
+	pcShape = Choose(psPosition, &fDistance);
+	if (pcShape != NULL)
 	{
-		pShape->Gradient(psDest, psPosition);
+		pcShape->Gradient(psDest, psPosition);
 	}
 	else
 	{
@@ -136,23 +136,26 @@ bool CShapeGroup::IsExact(void)
 // that are as good, and its distance.  NULL, as far as can be, with none.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CShape> CShapeGroup::Choose(SFloat32Vec3* psPosition, float32* pfDistance)
+CShape* CShapeGroup::Choose(SFloat32Vec3* psPosition, float32* pfDistance)
 {
-	Ptr<CShape>		pShape;
-	Ptr<CShape>		pChosen;
-	size			i;
-	float32			fDistance;
+	CShape*		pcShape;
+	CShape*		pcChosen;
+	size		uiNumShapes;
+	size		i;
+	float32		fDistance;
 
+	pcChosen = NULL;
 	*pfDistance = FLOAT32_BOUNDS_LARGEST;
-	for (i = 0; i < mapShapes.NumElements(); i++)
+	uiNumShapes = mapShapes.NumElements();
+	for (i = 0; i < uiNumShapes; i++)
 	{
-		pShape = mapShapes.Get(i);
-		fDistance = pShape->Distance(psPosition);
-		if (pChosen.IsNull() || Prefers(fDistance, *pfDistance))
+		pcShape = mapShapes.GetPlain(i);
+		fDistance = pcShape->Distance(psPosition);
+		if ((pcChosen == NULL) || Prefers(fDistance, *pfDistance))
 		{
-			pChosen = pShape;
+			pcChosen = pcShape;
 			*pfDistance = fDistance;
 		}
 	}
-	return pChosen;
+	return pcChosen;
 }

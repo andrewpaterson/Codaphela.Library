@@ -34,6 +34,7 @@ public:
 	bool		Add(CPointer& pObject);
 	bool		AddAll(Ptr<CArrayObject> pArray);
 	CPointer	Get(size  iIndex);
+	CEmbeddedObject*	GetPlain(size iIndex);  //As a plain pointer (loaded, as Get's is), which holds nothing: the array is what holds it.
 	bool		Insert(size  iIndex, CPointer& pObject);
 	bool		Remove(size  iIndex);
 	bool		Remove(CPointer& pObject);

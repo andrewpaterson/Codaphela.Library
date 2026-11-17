@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_BAKE_H__
 #define __MESH_BAKE_H__
+#include "BaseLib/Jobs.h"
 #include "Image.h"
 #include "MeshModifier.h"
 #include "SolidTexture.h"
@@ -45,13 +46,20 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //it: by how much more or less of the light at sLight the tilted surface faces than the smooth one does, times fRelief,
 //which is what the bumps would look like lit from there, left in the colour as a renderer lights the smooth surface.  A
 //texel that glows is shaded that much less.
+//
+//Jobs: with pcJobs the bake's rows are shared out in bands, a job each, and the bake waits for them.  The image is the
+//same texel for texel however many threads there are.  The jobs' threads read the mesh and the texture through plain
+//pointers, which the caller holds for them: a texture's TextureSample (and a shape's Distance, which CSolidCavity asks)
+//must not copy, assign or let go of a Ptr, as those threads aren't registered to (StandardLib's ObjectsLock.h; a Debug
+//build says when one does).
 struct SMeshBakeSettings
 {
 	int				iSamples;  //Each way across the texel, spread evenly: the texel is their mean.
 	float32			fRelief;  //How strongly the texture's height shades its colour; 0 for not at all, 1 as the light would.
 	SFloat32Vec3	sLight;  //A unit, towards the light the relief is lit by, in the mesh's space.
+	CJobs*			pcJobs;  //What bakes the rows; NULL for the caller's thread.
 
-	void	Init(void);  //One sample, at the texel's centre; no relief.
+	void	Init(void);  //One sample, at the texel's centre; no relief; the caller's thread.
 };
 
 
@@ -84,6 +92,8 @@ Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 //each way at level 0 too; with no relief, or a texture with no height, the colour is the texture's own.  With mbNormals the
 //tilted normals are baked as well, the material's bump image and its levels (mpNormals the last level 0): neither renderer
 //reads them yet.
+//
+//SetJobs gives it threads to bake on (SMeshBakeSettings, Jobs).  They aren't saved with it.
 class CMeshBake : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshBake);
@@ -96,9 +106,12 @@ public:
 	float32				mfRelief;
 	SFloat32Vec3		msLight;  //A unit.
 	bool				mbNormals;
+	CJobs*				mpcJobs;  //NULL to bake on the caller's thread.
 
 	void		Init(Ptr<CSolidTexture> pTexture);
 	void		Class(void) override;
+
+	void		SetJobs(CJobs* pcJobs);
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };

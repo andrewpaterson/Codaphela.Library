@@ -2776,7 +2776,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequ
 	gcStackPointers.Init();
 	gcObjects.Init(pcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
-	ObjectsHomeThread();
+	ObjectsHomeThread(true);
 }
 
 
@@ -2817,6 +2817,7 @@ void ObjectsKill(bool bValidate)
 		ObjectsLocking(false);
 	}
 	gbObjects = false;
+	ObjectsHomeThread(false);
 }
 
 

@@ -492,7 +492,7 @@ Steps
       suites with their sizes unchanged, the MinGW Windows compile.
       Done 2026-11-17.  TestObjectsThreadsEveryWayIn calls each guarded method with the locking on and checks that
       it took the lock exactly once (ObjectsNumLocksTaken) and that nothing behind it was reached without the lock
-      (ObjectsNumNotInside, counted by OBJECTS_INSIDE in a Debug build).  The harness (kept with the prototypes, in
+      (ObjectsNumThreadErrors, counted by OBJECTS_INSIDE in a Debug build).  The harness (kept with the prototypes, in
       documents/ThreadSafetyPrototype/mutation) took each of the 109 guards out in turn: 106 made the test fail.
       Getting there was most of the work.  Checking only that the lock was taken let 55 through, as a way in with no
       guard still takes the lock in whatever it calls; counting exactly one let 38 through.  Those were pure
@@ -510,6 +510,26 @@ Steps
       it now); CArrayWeakObject::Move and CArrayCommonObject::RemoveCopies are machinery, not ways in;
       CObjects::DumpNames printed two lines and nothing between them (deleted).
   17. First use: Sculpt's bake on CWorkerThreadJobs, one Ptr at the top and plain pointers below.  Measured.
+      Done 2026-11-17.  SupportLib's bake shares its rows out in bands, a job each, on whatever CJobs it is given
+      (SMeshBakeSettings::pcJobs, CMeshBake::SetJobs; none, and it bakes on the caller's thread as before, which is
+      what the 65C64 and the 816 do).  Each band draws its rows of every face, the faces in the mesh's order, so the
+      image is the same byte for byte however many threads there are: tested on a box with a checker in
+      TestSupportLib and on a sphere with each of the six materials in TestSculptLib.  Sculpt's app owns the pool.
+      The threads are not registered and the locking stays off: they only read, through plain pointers and
+      operator ->, what the window's thread holds while it waits.  Two things make that safe to rely on:
+        A Debug build reports any way into the object system taken by a thread that isn't the home thread while the
+        locking is off (ObjectsNotLocking; counted with the other thread errors by ObjectsNumThreadErrors).  The
+        bake's tests assert there are none, and that a texture which does copy a Ptr where it is sampled is caught.
+        ThreadSanitizer builds of TestSupportLib and TestSculptLib (new: -DBASELIB_TSAN=ON) report nothing in the
+        bakes.
+      One place did copy Ptrs under a sample: CShapeGroup::Choose (a cavity texture asks a shape its distance), a
+      Ptr to each shape of the group at every point.  It walks plain pointers now (CArrayObject::GetPlain, which
+      loads a hollow as Get does).
+      Measured, Release, 24 hardware threads, TestSculptLib's SCULPT_BAKE_REPORT: a unit sphere's marble baked at
+      128 texels a unit with 4 samples (what Sculpt shows when a change settles) 638 ms on one thread, 58 ms on the
+      pool; at 32 a unit (a change as it is made) 41 ms and 6 ms.  The other five materials are the same shape:
+      stone 972 to 82, wood 590 to 54, rust 423 to 40, bricks 281 to 28, tiles 270 to 26.  What is left on one
+      thread is the faces' set-up, the spread into uncovered texels and the copy into the image.
 
   Level 2: stack Ptrs without the lock
   18. Workers' stack from tables, still under the one lock: a registered worker's stack Ptr to an object attached to

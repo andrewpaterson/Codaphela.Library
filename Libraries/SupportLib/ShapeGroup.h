@@ -48,7 +48,7 @@ public:
 
 protected:
 	virtual bool	Prefers(float32 fDistance, float32 fChosen) = 0;
-	Ptr<CShape>		Choose(SFloat32Vec3* psPosition, float32* pfDistance);
+	CShape*			Choose(SFloat32Vec3* psPosition, float32* pfDistance);
 };
 
 

@@ -237,7 +237,7 @@ static void TestObjectsThreadsEnd(size uiObjects)
 {
 	AssertInt(0, giTestThreadNodesFreedOffHome);
 	AssertInt(0, giTestThreadNeedersFreedLate);
-	AssertSize(0, ObjectsNumNotInside());
+	AssertSize(0, ObjectsNumThreadErrors());
 	AssertSize(0, ObjectsNumThreads());
 	AssertTrue(ObjectsLocking(false));
 	gcObjects.EnableValidation();
@@ -837,7 +837,7 @@ void TestObjectsThreadsAssertNoFree(void)
 		size	uiLocksTaken = ObjectsNumLocksTaken(); \
 		statement; \
 		AssertSize(uiLocksTaken + (uiWaysIn), ObjectsNumLocksTaken()); \
-		AssertSize(0, ObjectsNumNotInside()); \
+		AssertSize(0, ObjectsNumThreadErrors()); \
 	} \
 	while (false)
 
@@ -856,7 +856,7 @@ void TestObjectsThreadsAssertNoFree(void)
 			AssertSize(uiLocksTaken + 1, ObjectsNumLocksTaken()); \
 			pointer = pReturned; \
 		} \
-		AssertSize(0, ObjectsNumNotInside()); \
+		AssertSize(0, ObjectsNumThreadErrors()); \
 	} \
 	while (false)
 
@@ -1294,14 +1294,14 @@ void TestObjectsThreadsEveryWayIn(void)
 	ObjectsInit(pcDatabase, pcSequence);
 	gcObjects.DisableValidation();
 	AssertTrue(ObjectsLocking(true));
-	AssertSize(0, ObjectsNumNotInside());
+	AssertSize(0, ObjectsNumThreadErrors());
 	AssertWayIn(gcObjects.ValidateEmpty());
 
 	TestObjectsThreadsEveryPointerWayIn();
 	TestObjectsThreadsEveryCollectionWayIn();
 	TestObjectsThreadsEveryObjectsWayIn();
 
-	AssertSize(0, ObjectsNumNotInside());
+	AssertSize(0, ObjectsNumThreadErrors());
 	AssertTrue(ObjectsLocking(false));
 	gcObjects.EnableValidation();
 	ObjectsFlush();

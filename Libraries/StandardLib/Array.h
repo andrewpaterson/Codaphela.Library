@@ -36,6 +36,7 @@ public:
 	bool			AddAll(Ptr<CArrayCommonObject> pArray);
 	bool			Insert(size iIndex, Ptr<M> pObject);
 	Ptr<M>			Get(size iIndex);
+	M*				GetPlain(size iIndex);
 	bool			Set(size iIndex, Ptr<M> pObject);
 	Ptr<M>			StartIteration(SSetIterator* psIter, bool* pbExists = NULL);
 	Ptr<M>			Iterate(SSetIterator* psIter, bool* pbExists = NULL);
@@ -130,6 +131,17 @@ template<class M>
 Ptr<M> CArray<M>::Get(size iIndex)
 {
 	return CArrayObject::Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CArray<M>::GetPlain(size iIndex)
+{
+	return (M*)CArrayObject::GetPlain(iIndex);
 }
 
 

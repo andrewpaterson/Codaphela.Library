@@ -4,7 +4,10 @@
 #include "BaseLib/GlobalDataTypesIO.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/MemoryFile.h"
+#include "BaseLib/Atomic.h"
+#include "BaseLib/NativeThread.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/ObjectsLock.h"
 #include "SupportLib/MeshEditor.h"
 #include "SupportLib/MeshBoxEditor.h"
 #include "SupportLib/Material.h"
@@ -711,6 +714,264 @@ void TestMeshBakeModifierNormals(void)
 }
 
 
+#ifndef __LIBC65__
+
+
+#define TEST_BAKE_THREADS	4
+#define TEST_BAKE_MAX_JOBS	64
+
+
+class CTestBakeJobs;
+struct STestBakeJob
+{
+	CTestBakeJobs*	pcJobs;
+	JobFunction		fJob;
+	void*			pvData;
+	CNativeThread	cThread;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Jobs that each run on a thread of their own, all at once, or with
+// mbOneAtATime one after another (each still on its own thread).
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestBakeJobs : public CJobs
+{
+public:
+	STestBakeJob	masJobs[TEST_BAKE_MAX_JOBS];
+	int				miJobs;
+	int				miHomeThread;
+	int32			miRunElsewhere;  //How many jobs have run on a thread that isn't the one that made this.
+	bool			mbOneAtATime;
+
+	void Init(bool bOneAtATime)
+	{
+		miJobs = 0;
+		miHomeThread = CurrentThreadId();
+		miRunElsewhere = 0;
+		mbOneAtATime = bOneAtATime;
+	}
+
+	void Run(JobFunction fJob, void* pvData) override;
+
+	void Wait(void) override
+	{
+		int		i;
+
+		for (i = 0; i < miJobs; i++)
+		{
+			if (!mbOneAtATime)
+			{
+				masJobs[i].cThread.Join();
+			}
+			masJobs[i].cThread.Kill();
+		}
+		miJobs = 0;
+	}
+
+	int NumThreads(void) override
+	{
+		return TEST_BAKE_THREADS;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestBakeJobRun(void* pvJob)
+{
+	STestBakeJob*	psJob;
+
+	psJob = (STestBakeJob*)pvJob;
+	if (CurrentThreadId() != psJob->pcJobs->miHomeThread)
+	{
+		AtomicAdd(&psJob->pcJobs->miRunElsewhere, 1);
+	}
+	psJob->fJob(psJob->pvData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTestBakeJobs::Run(JobFunction fJob, void* pvData)
+{
+	STestBakeJob*	psJob;
+
+	psJob = &masJobs[miJobs];
+	miJobs++;
+	psJob->pcJobs = this;
+	psJob->fJob = fJob;
+	psJob->pvData = pvData;
+	psJob->cThread.Init();
+	psJob->cThread.Start(TestBakeJobRun, psJob);
+	if (mbOneAtATime)
+	{
+		psJob->cThread.Join();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A texture that does what one mustn't where it is sampled: it copies a
+// Ptr, which counts on its object.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestSolidHolder : public CSolidTexture
+{
+CONSTRUCTABLE(CTestSolidHolder);
+DESTRUCTABLE(CTestSolidHolder);
+public:
+	Ptr<CSolidTexture>	mpInput;
+
+	void Init(Ptr<CSolidTexture> pInput)
+	{
+		PreInit();
+		CSolidTexture::Init();
+		mpInput = pInput;
+		PostInit();
+	}
+
+	void Class(void) override
+	{
+		CSolidTexture::Class();
+		M_Pointer(mpInput);
+	}
+
+protected:
+	void TextureSample(SFloat32Vec3* psPosition, SFloat32Vec3* psNormal, float32 fWidth, SSolidSample* psSample) override
+	{
+		Ptr<CSolidTexture>	pHeld = mpInput;
+
+		pHeld->Sample(psPosition, psNormal, fWidth, psSample);
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box, unwrapped at 32 texels a unit, with a checker on it as its only
+// modifiers: baked with pcJobs or, with NULL, on this thread.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CMaterial> TestBakeBoxMaterial(Ptr<CSolidTexture> pTexture, CJobs* pcJobs)
+{
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMeshBake>		pBake;
+	Ptr<CMesh>			pMesh;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sZ;
+	SFloat32Vec3		sStart;
+
+	sX.Init(2, 0, 0);
+	sY.Init(0, 1, 0);
+	sZ.Init(0, 0, 0.5f);
+	sStart.Init(-1, -0.5f, -0.25f);
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 1, 1, 1);
+	pEditor->AddModifier<CMeshUnwrap>(32.0f);
+	pBake = pEditor->AddModifier<CMeshBake>(pTexture);
+	pBake->mbNormals = true;
+	pBake->SetJobs(pcJobs);
+	pMesh = pEditor->GetOutput();
+	return pMesh->mcMaterials.mapMaterials.Get(0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestBakeSameImage(Ptr<CImage> pFirst, Ptr<CImage> pSecond)
+{
+	if ((pFirst->GetWidth() != pSecond->GetWidth()) || (pFirst->GetHeight() != pSecond->GetHeight()))
+	{
+		return false;
+	}
+	return memcmp(pFirst->GetData(), pSecond->GetData(), (size_t)pFirst->GetWidth() * (size_t)pFirst->GetHeight() * 3) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bake whose rows are shared among threads is the same, byte for byte,
+// as the bake on one: the colour and the normals, at every level.  And
+// its threads never count on an object (a Debug build would say).
+//
+// A texture that copies a Ptr where it is sampled is found out by a Debug
+// build.  Its jobs run one at a time, so that what it does wrong harms
+// nothing here.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshBakeJobs(void)
+{
+	Ptr<CSolidChecker>		pChecker;
+	Ptr<CTestSolidHolder>	pHolder;
+	Ptr<CMaterial>			pAlone;
+	Ptr<CMaterial>			pShared;
+	Ptr<CImage>				pImage;
+	CTestBakeJobs			cJobs;
+	CMaterialImage*			pcAlone;
+	CMaterialImage*			pcShared;
+	SMeshBakeSettings		sSettings;
+	CMesh					cMesh;
+	size					uiThreadErrors;
+	size					i;
+	int						iImage;
+	bool					bSame;
+
+	uiThreadErrors = ObjectsNumThreadErrors();
+	pChecker = OMalloc<CSolidChecker>(0.25f, Set32BitColour((uint8)0, (uint8)0, (uint8)0), Set32BitColour((uint8)255, (uint8)255, (uint8)255));
+	cJobs.Init(false);
+	pAlone = TestBakeBoxMaterial(pChecker, NULL);
+	AssertInt(0, cJobs.miRunElsewhere);
+	pShared = TestBakeBoxMaterial(pChecker, &cJobs);
+	AssertTrue(cJobs.miRunElsewhere > TEST_BAKE_THREADS);
+
+	for (iImage = 0; iImage < 2; iImage++)
+	{
+		pcAlone = pAlone->GetImage((iImage == 0) ? MI_Diffuse : MI_Bump);
+		pcShared = pShared->GetImage((iImage == 0) ? MI_Diffuse : MI_Bump);
+		AssertTrue(pcAlone->mpImage->GetHeight() > TEST_BAKE_THREADS);
+		AssertTrue(TestBakeSameImage(pcAlone->mpImage, pcShared->mpImage));
+		AssertTrue(pcAlone->mapLevels.NumElements() > 4);
+		AssertSize(pcAlone->mapLevels.NumElements(), pcShared->mapLevels.NumElements());
+		bSame = true;
+		for (i = 0; i < pcAlone->mapLevels.NumElements(); i++)
+		{
+			bSame &= TestBakeSameImage(pcAlone->mapLevels.Get(i), pcShared->mapLevels.Get(i));
+		}
+		AssertTrue(bSame);
+	}
+	AssertSize(uiThreadErrors, ObjectsNumThreadErrors());
+
+	TestBakeSquare(&cMesh);
+	pHolder = OMalloc<CTestSolidHolder>(pChecker);
+	cJobs.Init(true);
+	sSettings.Init();
+	sSettings.pcJobs = &cJobs;
+	pImage = BakeMeshTexture(&cMesh, 0, &pHolder, 4, 4, NULL, &sSettings);
+	AssertTrue(TestBakeSameImage(pImage, BakeMeshTexture(&cMesh, 0, &pChecker, 4, 4)));
+	AssertInt(4, cJobs.miRunElsewhere);
+#ifdef _DEBUG
+	AssertTrue(ObjectsNumThreadErrors() > uiThreadErrors);
+#else
+	AssertSize(uiThreadErrors, ObjectsNumThreadErrors());
+#endif // _DEBUG
+	cMesh.Kill();
+}
+
+
+#endif // !__LIBC65__
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -731,6 +992,9 @@ void TestMeshBake(void)
 	TestMeshBakeModifier();
 	TestMeshBakeModifierSamples();
 	TestMeshBakeModifierNormals();
+#ifndef __LIBC65__
+	TestMeshBakeJobs();
+#endif // !__LIBC65__
 	ObjectsDiscard();
 	ObjectsKill(false);
 	DataIOKill();
