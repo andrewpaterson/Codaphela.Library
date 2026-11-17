@@ -177,7 +177,8 @@ void CInstanceMesh::LogMirrored(CInstance* pcInstance, size uiMatrix)
 //////////////////////////////////////////////////////////////////////////
 //
 // Where each of the mesh's positions is in the world, in floats, for what
-// needs it in memory rather than drawn: physics, say.  A rigid mesh is
+// needs it in memory rather than drawn: physics, say.  The mesh is what
+// its editor's modifiers leave of it, as it's drawn.  A rigid mesh is
 // placed by its first connection.  A skinned one is posed by its palette,
 // each position moved by each of its weights' matrices by the weight, the
 // weights taken as adding up to one.  A position with no weights stays
@@ -188,6 +189,7 @@ void CInstanceMesh::LogMirrored(CInstance* pcInstance, size uiMatrix)
 bool CInstanceMesh::Pose(CArrayFloat32Vec3* pasPositions)
 {
 	CArrayFloat4x4		asPalette;
+	Ptr<CMesh>			pMesh;
 	CMesh*				pcMesh;
 	CMeshSkinVert*		pcVert;
 	SSkinWeight*		psWeight;
@@ -205,7 +207,8 @@ bool CInstanceMesh::Pose(CArrayFloat32Vec3* pasPositions)
 	{
 		return false;
 	}
-	pcMesh = &mpEditor->mpMesh;
+	pMesh = mpEditor->GetOutput();
+	pcMesh = &pMesh;
 	uiNumPositions = (size)pcMesh->NumCorners();
 
 	asPalette.Init();
