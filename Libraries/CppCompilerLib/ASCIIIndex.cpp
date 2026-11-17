@@ -110,7 +110,7 @@ int64 CASCIIIndex::Add(const char* sz, const char* szLastCharInclusive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CASCIIIndex::NumElements(void)
+int CASCIIIndex::NumElements(void) const
 {
 	return (int)mapsNames.NumElements();
 }

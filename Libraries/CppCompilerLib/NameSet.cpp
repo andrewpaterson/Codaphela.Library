@@ -170,7 +170,7 @@ void CNameSet::Grow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CNameSet::NumNames(void)
+size CNameSet::NumNames(void) const
 {
 	return muiNames;
 }

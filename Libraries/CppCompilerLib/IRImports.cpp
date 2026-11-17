@@ -340,7 +340,7 @@ void CIRImports::Exported(const char* szName)
 // (Arrive).
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRImports::NumStale(void)
+size CIRImports::NumStale(void) const
 {
 	return muiStale;
 }
@@ -351,7 +351,7 @@ size CIRImports::NumStale(void)
 // How many times a unit's turn found it had missed a function (Missed).
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRImports::NumMissed(void)
+size CIRImports::NumMissed(void) const
 {
 	return muiMissed;
 }
@@ -530,7 +530,7 @@ CIRFunction* CIRImports::Find(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRImports::NumFunctions(void)
+size CIRImports::NumFunctions(void) const
 {
 	return mcModule.NumFunctions();
 }

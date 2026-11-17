@@ -81,7 +81,7 @@ protected:
 
 public:
 	void			Init(const char* szName, CIRPasses* pcGroup, FIRPass fRun);
-	const char*		GetPassName(void);
+	const char*		GetPassName(void) const;
 	bool			Run(void);
 };
 
@@ -123,7 +123,7 @@ public:
 	void				AddFollowing(EIRPass ePass);
 	void				Remove(EIRPass ePass);
 	bool				Has(EIRPass ePass);
-	int					NumSteps(void);
+	int					NumSteps(void) const;
 	SIRPipelineStep*	GetStep(int iStep);
 
 	static const char*	GetPassName(EIRPass ePass);

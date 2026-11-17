@@ -84,7 +84,7 @@ void CCPPSyntaxTree::Kill(void)
 // NodeArrayMallocator).
 //
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CCPPSyntaxTree::GetNodeArrayMallocator(void)
+CMallocator* CCPPSyntaxTree::GetNodeArrayMallocator(void) const
 {
 	return mpcNodeArrays;
 }
@@ -106,7 +106,7 @@ CMallocator* CCPPSyntaxTree::GetBlockReadingMallocator(size uiArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTokeniser* CCPPSyntaxTree::GetTokeniser(void)
+CCPPTokeniser* CCPPSyntaxTree::GetTokeniser(void) const
 {
 	return mpcTokeniser;
 }
@@ -136,7 +136,7 @@ CCPPSymbolTable* CCPPSyntaxTree::GetSymbols(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxTranslationUnit* CCPPSyntaxTree::GetRoot(void)
+CCPPSyntaxTranslationUnit* CCPPSyntaxTree::GetRoot(void) const
 {
 	return mpcRoot;
 }
@@ -167,7 +167,7 @@ CCPPErrors* CCPPSyntaxTree::GetErrors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxTree::NumErrors(void)
+size CCPPSyntaxTree::NumErrors(void) const
 {
 	return mcErrors.NumErrors();
 }

@@ -108,7 +108,7 @@ public:
 	static char*		PrintSyntaxRanges(CArrayCPPSyntaxRanges* pasRanges, CChars* psz);
 
 	SCPPHighlight*		Get(size iIndex);
-	size				NumHighlights(void);
+	size				NumHighlights(void) const;
 	char*				Print(CChars* psz);
 	static char*		GetKindName(ECPPHighlight eKind);
 

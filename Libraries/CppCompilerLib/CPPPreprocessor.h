@@ -244,7 +244,7 @@ protected:
 
 	void				LogInclude(CSourceFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
-	char*				GetFileName(void);
+	char*				GetFileName(void) const;
 	CPPToken*			DuplicatePPToken(CPPToken* pcSource);
 	CPPTokenMemory*		GetTokenMemory(void);
 	void				EmitToken(SPreprocessedToken* psToken);

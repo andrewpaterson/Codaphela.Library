@@ -296,7 +296,7 @@ void CPreprocessorParser::TestEnd(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorParser::IsWhitespace(void)
+bool CPreprocessorParser::IsWhitespace(void) const
 {
 	char c;
 	c = *mszParserPos;
@@ -308,7 +308,7 @@ bool CPreprocessorParser::IsWhitespace(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorParser::IsFirstIdentifier(void)
+bool CPreprocessorParser::IsFirstIdentifier(void) const
 {
 	return IsCPPNameStart(*mszParserPos);
 }
@@ -318,7 +318,7 @@ bool CPreprocessorParser::IsFirstIdentifier(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorParser::IsDigit(void)
+bool CPreprocessorParser::IsDigit(void) const
 {
 	if (((*mszParserPos) >= '0') && ((*mszParserPos) <= '9'))
 	{
@@ -423,7 +423,7 @@ void CPreprocessorParser::BackupNewLine(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorParser::IsNewLine(void)
+bool CPreprocessorParser::IsNewLine(void) const
 {
 	if (((*mszParserPos) == '\n') || ((*mszParserPos) == '\r'))
 	{
@@ -437,7 +437,7 @@ bool CPreprocessorParser::IsNewLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPreprocessorParser::GetPos(void)
+char* CPreprocessorParser::GetPos(void) const
 {
 	return mszParserPos;
 }
@@ -447,7 +447,7 @@ char* CPreprocessorParser::GetPos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPreprocessorParser::GetEnd(void)
+char* CPreprocessorParser::GetEnd(void) const
 {
 	return mszEndOfText;
 }

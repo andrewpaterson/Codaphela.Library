@@ -143,7 +143,7 @@ void CCPPToken::SetSource(int iSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPToken::GetSource(void)
+int CCPPToken::GetSource(void) const
 {
 	return miSource;
 }

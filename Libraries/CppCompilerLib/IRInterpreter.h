@@ -130,7 +130,7 @@ public:
 	bool		IsWritten(uint32 uiObject);
 
 	char*		GetError(void);
-	uint32		GetErrorSource(void);
+	uint32		GetErrorSource(void) const;
 	CArrayChars*	GetTrail(void);
 
 protected:

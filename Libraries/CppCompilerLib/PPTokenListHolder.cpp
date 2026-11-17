@@ -107,7 +107,7 @@ void CPPTokenListHolder::CopyTokens(CPPTokenListHolder* pcCast, CPPTokenMemory* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPPTokenListHolder::TokenLength(void)
+int CPPTokenListHolder::TokenLength(void) const
 {
 	return (int)mcTokens.NumTokens();
 }

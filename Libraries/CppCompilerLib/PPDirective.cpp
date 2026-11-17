@@ -164,7 +164,7 @@ bool CPPDirective::Is(EPreprocessorDirective eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPDirective::IsConditional(void)
+bool CPPDirective::IsConditional(void) const
 {
 	return meType <= PPD_elif;
 }

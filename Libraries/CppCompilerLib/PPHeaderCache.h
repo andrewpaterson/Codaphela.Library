@@ -183,10 +183,10 @@ public:
 	void				Forget(CSourceFile* pcFile);
 	void				Forget(CArrayPPHeaderFiles* papcFiles);
 
-	size				NumHeaders(void);
-	size				NumHits(void);
-	size				NumMisses(void);
-	size				NumReplayedTokens(void);
+	size				NumHeaders(void) const;
+	size				NumHits(void) const;
+	size				NumMisses(void) const;
+	size				NumReplayedTokens(void) const;
 
 protected:
 	static int64		Key(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext);

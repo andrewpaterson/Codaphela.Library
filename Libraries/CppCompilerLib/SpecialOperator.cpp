@@ -74,7 +74,7 @@ char* CSpecialOperator::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPreprocessorSpecialOperator CSpecialOperator::GetType(void)
+EPreprocessorSpecialOperator CSpecialOperator::GetType(void) const
 {
 	return meType;
 }

@@ -589,7 +589,7 @@ size CCPP65Builder::NumUnits(void)
 // The C++ translation units added (AddUnit), which Compile compiles.
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPP65Builder::NumUnitsToCompile(void)
+size CCPP65Builder::NumUnitsToCompile(void) const
 {
 	return muiUnits;
 }
@@ -794,7 +794,7 @@ void CCPP65Builder::ReportUnit(SCPP65CompiledUnit* psUnit, bool bFirst)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPP65Builder::NumLazySkipped(void)
+size CCPP65Builder::NumLazySkipped(void) const
 {
 	return muiLazySkipped;
 }
@@ -804,7 +804,7 @@ size CCPP65Builder::NumLazySkipped(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPP65Builder::NumLazyLoaded(void)
+size CCPP65Builder::NumLazyLoaded(void) const
 {
 	return muiLazyLoaded;
 }
@@ -816,7 +816,7 @@ size CCPP65Builder::NumLazyLoaded(void)
 // an earlier unit), not parsed again.
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPP65Builder::NumLazyRead(void)
+size CCPP65Builder::NumLazyRead(void) const
 {
 	return muiLazyRead;
 }
@@ -828,7 +828,7 @@ size CCPP65Builder::NumLazyRead(void)
 // they call was exported after they were compiled (CompileUnits).
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPP65Builder::NumCompiledAgain(void)
+size CCPP65Builder::NumCompiledAgain(void) const
 {
 	return muiCompiledAgain;
 }
@@ -866,7 +866,7 @@ CPPHeaderCache* CCPP65Builder::GetHeaderCache(void)
 // turn (CIRImports::Missed).
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPP65Builder::NumImportsMissed(void)
+size CCPP65Builder::NumImportsMissed(void) const
 {
 	return mcImports.NumMissed();
 }
@@ -879,7 +879,7 @@ size CCPP65Builder::NumImportsMissed(void)
 // again then (CIRImports::Arrive).
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPP65Builder::NumImportsStale(void)
+size CCPP65Builder::NumImportsStale(void) const
 {
 	return mcImports.NumStale();
 }
@@ -1349,7 +1349,7 @@ char* CCPP65Builder::GetMissing(size uiIndex)
 // compiled) and the assembly's, in the order they were added.
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPP65Builder::NumUnitObjects(void)
+size CCPP65Builder::NumUnitObjects(void) const
 {
 	return macObjects.NumElements();
 }

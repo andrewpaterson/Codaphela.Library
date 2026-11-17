@@ -88,7 +88,7 @@ void CDefine::SetFile(CSourceFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSourceFile* CDefine::GetFile(void)
+CSourceFile* CDefine::GetFile(void) const
 {
 	return mpcFile;
 }
@@ -98,7 +98,7 @@ CSourceFile* CDefine::GetFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDefine::GetNameLength(void)
+size CDefine::GetNameLength(void) const
 {
 	return mszName.Length();
 }
@@ -108,7 +108,7 @@ size CDefine::GetNameLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDefine::GetNameHash(void)
+uint32 CDefine::GetNameHash(void) const
 {
 	return muiNameHash;
 }
@@ -140,7 +140,7 @@ void CDefine::SetPosition(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDefine::GetLine(void)
+int CDefine::GetLine(void) const
 {
 	return miLine;
 }
@@ -150,7 +150,7 @@ int CDefine::GetLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDefine::GetColumn(void)
+int CDefine::GetColumn(void) const
 {
 	return miColumn;
 }
@@ -195,7 +195,7 @@ uint64 CDefine::ContentHash(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDefine::IsBodyConverted(void)
+bool CDefine::IsBodyConverted(void) const
 {
 	return mbBodyConverted;
 }
@@ -245,7 +245,7 @@ void CDefine::AddReplacementToken(CPPToken* pcToken)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDefine::IsBracketed(void)
+bool CDefine::IsBracketed(void) const
 {
 	return FixBool(miFlags & DEFINE_FLAGS_BRACKETED);
 }
@@ -255,7 +255,7 @@ bool CDefine::IsBracketed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDefine::IsVariadic(void)
+bool CDefine::IsVariadic(void) const
 {
 	return FixBool(miFlags & DEFINE_FLAGS_VARIADIC);
 }
@@ -265,7 +265,7 @@ bool CDefine::IsVariadic(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDefine::IsSpecial(void)
+bool CDefine::IsSpecial(void) const
 {
 	return FixBool(miFlags & DEFINE_FLAGS_SPECIAL);
 }
@@ -275,7 +275,7 @@ bool CDefine::IsSpecial(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDefine::IsInMap(void)
+bool CDefine::IsInMap(void) const
 {
 	return FixBool(miFlags & DEFINE_FLAGS_IN_MAP);
 }
@@ -315,7 +315,7 @@ char* CDefine::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CDefine::GetID(void)
+int64 CDefine::GetID(void) const
 {
 	return mlliID;
 }

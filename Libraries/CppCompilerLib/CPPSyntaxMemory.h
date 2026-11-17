@@ -37,7 +37,7 @@ protected:
 public:
 	void							Init(CCPPSyntaxTree* pcTree, CMallocator* pcSyntaxes = NULL, CMallocator* pcNodes = NULL);
 	void							Kill(void);
-	size							NumSyntaxes(void);
+	size							NumSyntaxes(void) const;
 	void							Rollback(size uiSyntaxes);
 
 	template<class M>	M*			Create(CCPPSyntax* pcParent);

@@ -42,7 +42,7 @@ public:
 	CPP_SYNTAX_NODE(LambdaExpression)
 	void							PrettyPrint(CChars* pszDest, int iDepth) override;
 	void							VisitFields(CCPPSyntaxFields* pcFields) override;
-	bool							IsMutable(void);
+	bool							IsMutable(void) const;
 };
 
 

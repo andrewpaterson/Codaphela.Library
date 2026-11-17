@@ -124,7 +124,7 @@ void CCPPCompileStatistics::SetTimes(bool bTimes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCompileStatistics::IsTimed(void)
+bool CCPPCompileStatistics::IsTimed(void) const
 {
 	return mbTimes;
 }

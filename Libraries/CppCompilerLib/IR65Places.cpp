@@ -1921,7 +1921,7 @@ bool CIR65Places::IsFrameOperand(CChars* pszOperand)
 // pushed while it runs.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Places::IsLeaf(void)
+bool CIR65Places::IsLeaf(void) const
 {
 	size	ui;
 	size	uiInstruction;

@@ -47,7 +47,7 @@ public:
 	CDefine*	Get(const char* szName);
 	void		Remove(CExternalString* pcName);
 	void		Remove(char* szName);
-	size		NumDefines(void);
+	size		NumDefines(void) const;
 	void		Dump(void);
 
 	static uint32	Hash(const char* szName, size uiLength);

@@ -316,35 +316,35 @@ protected:
 
 public:
 	//What the classes that work for the unit ask it for.
-	CCPP65Types*			GetTypes(void) { return &mcTypes; }
-	CCPPContext*			GetContext(void) { return &mcContext; }
-	CCPPBinder*				GetBinder(void) { return &mcBinder; }
-	CCPPConstants*			GetConstants(void) { return mpcConstants; }
-	CCPPDeclarators*		GetDeclarators(void) { return &mcDeclarators; }
-	CCPPMangler*			GetMangler(void) { return &mcMangler; }
-	CCPPUnitData*			GetData(void) { return &mcData; }
-	CCPP65TypeChecker*		GetTypeChecker(void) { return &mcTypeChecker; }
-	CChars*					GetCode(void) { return &mszCode; }
-	CArrayCPPTemplates*		GetTemplates(void) { return &mapcTemplates; }
-	CArrayCPPVariables*		GetLocals(void) { return &mapcLocals; }
-	CArrayLargeTemplate<uint16>*	GetCodePieces(void) { return &mauiCodePieces; }
-	int*					GetLabelCounter(void) { return &miLabels; }
-	CCPPTarget*				GetTarget(void) { return mpcTarget; }
-	CIRImports*				GetImports(void) { return mpcImports; }
-	CCPPTokeniser*			GetTokeniser(void) { return mpcTokeniser; }
-	CCPPSyntaxTree*			GetTree(void) { return mpcTree; }
-	CArrayCPPSymbols*		GetPackElements(void) { return &mapcPackElements; }
-	CSpillStore*			GetSpillStore(void) { return mpcSpillStore; }
-	CCPPSemanticPass*		GetSemanticPass(void) { return mpcSemanticPass; }
+	CCPP65Types*			GetTypes(void);
+	CCPPContext*			GetContext(void);
+	CCPPBinder*				GetBinder(void);
+	CCPPConstants*			GetConstants(void) const;
+	CCPPDeclarators*		GetDeclarators(void);
+	CCPPMangler*			GetMangler(void);
+	CCPPUnitData*			GetData(void);
+	CCPP65TypeChecker*		GetTypeChecker(void);
+	CChars*					GetCode(void);
+	CArrayCPPTemplates*		GetTemplates(void);
+	CArrayCPPVariables*		GetLocals(void);
+	CArrayLargeTemplate<uint16>*	GetCodePieces(void);
+	int*					GetLabelCounter(void);
+	CCPPTarget*				GetTarget(void) const;
+	CIRImports*				GetImports(void) const;
+	CCPPTokeniser*			GetTokeniser(void) const;
+	CCPPSyntaxTree*			GetTree(void) const;
+	CArrayCPPSymbols*		GetPackElements(void);
+	CSpillStore*			GetSpillStore(void) const;
+	CCPPSemanticPass*		GetSemanticPass(void) const;
 	bool					RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind);
 	bool					IsRecordedEnum(SCPP65Type* psType);
-	CAsm65Profile*			GetFrameProfile(void) { return mpcFrameProfile; }
-	uint32					GetSpillUnit(void) { return muiSpillUnit; }
-	size					GetImportsTurn(void) { return muiImportsTurn; }
-	bool					HasLineTable(void) { return mbLineTable; }
-	bool					HasListing(void) { return mbListing; }
-	bool					HasNoFloats(void) { return mbNoFloats; }
-	int64					GetCompileTime(void) { return mlliCompileTime; }
+	CAsm65Profile*			GetFrameProfile(void) const;
+	uint32					GetSpillUnit(void) const;
+	size					GetImportsTurn(void) const;
+	bool					HasLineTable(void) const;
+	bool					HasListing(void) const;
+	bool					HasNoFloats(void) const;
+	int64					GetCompileTime(void) const;
 
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
 	void					Kill(void);
@@ -354,14 +354,14 @@ public:
 	bool					GenerateProgram(CChars* pszDest);
 	CCPPErrors*				GetErrors(void);
 	CCPPErrors*				GetWarnings(void);
-	int						NumErrors(void);
+	int						NumErrors(void) const;
 	void					GetExternals(CArrayChars* paszLabels);
 	void					SetImports(CIRImports* pcImports, size uiTurn);
 	bool					MissedImports(void);
 	bool					GenerateBeforeTurn(void);
 	void					CheckContext(void);
 	bool					GenerateAfterTurn(CCPP65Assembly* pcDest);
-	CArrayChars*			GetNotImported(void);
+	CArrayChars*			GetNotImported(void) const;
 	void					SetFrameProfile(CAsm65Profile* pcProfile);
 	void					SetListing(bool bListing);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
@@ -369,8 +369,8 @@ public:
 	void					SetSpillStore(CSpillStore* pcStore, uint32 uiUnit = 0);
 	void					SetStatistics(CCPPCompileStatistics* pcStatistics);
 	void					SetOptions(CCPPCompileOptions* pcOptions);
-	CCPPCompileOptions*		GetOptions(void);
-	CCPPCompileStatistics*	GetStatistics(void);
+	CCPPCompileOptions*		GetOptions(void) const;
+	CCPPCompileStatistics*	GetStatistics(void) const;
 	CScratchPadAllocator*	GetBackendScratch(void);
 	void					GetMissingCallees(CArrayChars* paszNames);
 	bool					Check(CCPPSemanticPass* pcPass, bool bRemember = false);
@@ -518,7 +518,7 @@ public:
 	CCPPFunction*		InstantiateFunctionAsItself(CCPPTemplate* pcTemplate);
 	CCPPFunction*		InstanceOfFunction(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, CChars* pszArguments, CCPPSyntax* pcNode);
 	void				CheckTemplatesAsThemselves(void);
-	bool				IsCheckedAsWritten(void);
+	bool				IsCheckedAsWritten(void) const;
 	CCPPClass*			UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	CCPPFunction*			InstantiateFunction(CCPPTemplate* pcTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	CCPPTemplate*			NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember);
@@ -536,7 +536,7 @@ public:
 	CArraySyntax*			ExpandArguments(CArraySyntax* papcArguments);
 	void					BeginUnevaluated(void) { miUnevaluated++; }
 	void					EndUnevaluated(void) { miUnevaluated--; }
-	bool					IsUnevaluated(void) { return miUnevaluated > 0; }
+	bool					IsUnevaluated(void) const;
 	CArraySyntax*			ListElements(CCPPSyntax* pcList);
 	CCPPSymbol*				PackElement(SCPPBinding* psPack, size k);
 	bool					ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded);

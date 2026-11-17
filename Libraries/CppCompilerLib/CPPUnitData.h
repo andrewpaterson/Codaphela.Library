@@ -50,12 +50,12 @@ public:
 	void		AppendZeros(int iBytes);
 	void		AppendAddress(CChars* pszLabel, int iOffset, int iBytes);
 	void		AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData);
-	int			GetStartUp(void) { return miStartUps; }
+	int			GetStartUp(void) const;
 	void		NextStartUp(void) { miStartUps++; }
-	CChars*		GetText(void) { return &mszData; }
+	CChars*		GetText(void);
 
 	int			AddString(char* szBytes, size uiLength);
-	size		NumStrings(void) { return maszStrings.NumElements(); }
+	size		NumStrings(void) const;
 	void		AppendStrings(CChars* pszDest);
 
 	static void	AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);

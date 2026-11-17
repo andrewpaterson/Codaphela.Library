@@ -79,8 +79,8 @@ public:
 	int			Column(void);
 	void		AppendRemaining(CChars* psz);
 	bool		AppendRemaining(CChars* psz, CPPTokenListHolder* pcHolder, bool bAppending);
-	bool		HasToken(void);
-	CPPToken*	GetToken(void);
+	bool		HasToken(void) const;
+	CPPToken*	GetToken(void) const;
 	void		AssignCurrent(CPPToken* pcToken, int iTokenIndex);
 	void		Dump(void);
 	void		DumpAll(void);

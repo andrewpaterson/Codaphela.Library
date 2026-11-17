@@ -110,8 +110,8 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	bool	HasPointer(void) { return miPointerOffset != -1; }
-	bool	IsPolymorphic(void) { return (miPointerOffset != -1) || (macSecondaries.NumElements() > 0); }
+	bool	HasPointer(void) const;
+	bool	IsPolymorphic(void) const;
 	int		GetPointerOffset(void);
 	bool	HasPure(void);
 	bool	IsOverriddenBy(CCPPFunction* pcFunction);

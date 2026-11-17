@@ -320,7 +320,7 @@ SIRReference CIRFunction::FindTemporary(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRFunction::NumTemporaries(void)
+size CIRFunction::NumTemporaries(void) const
 {
 	return masTemporaries.NumElements();
 }
@@ -599,7 +599,7 @@ CIRBlock* CIRFunction::GetEntry(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRFunction::NumBlocks(void)
+size CIRFunction::NumBlocks(void) const
 {
 	return mapcBlocks.NumElements();
 }

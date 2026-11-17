@@ -124,7 +124,7 @@ char* CIRInterpreter::GetError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CIRInterpreter::GetErrorSource(void)
+uint32 CIRInterpreter::GetErrorSource(void) const
 {
 	return muiLastErrorSource;
 }

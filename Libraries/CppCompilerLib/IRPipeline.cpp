@@ -78,7 +78,7 @@ void CIRPass::Init(const char* szName, CIRPasses* pcGroup, FIRPass fRun)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CIRPass::GetPassName(void)
+const char* CIRPass::GetPassName(void) const
 {
 	return mszName;
 }
@@ -276,7 +276,7 @@ bool CIRPipeline::Has(EIRPass ePass)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIRPipeline::NumSteps(void)
+int CIRPipeline::NumSteps(void) const
 {
 	return miSteps;
 }

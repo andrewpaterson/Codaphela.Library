@@ -41,7 +41,7 @@ public:
 	char* 	Print(CChars* psz);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool	IsEmpty(void);
-	bool	IsVariadic(void);
+	bool	IsVariadic(void) const;
 };
 
 

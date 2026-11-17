@@ -204,7 +204,7 @@ void CIRLiveSets::Solve(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRLiveSets::NumWords(void)
+size CIRLiveSets::NumWords(void) const
 {
 	return muiWords;
 }

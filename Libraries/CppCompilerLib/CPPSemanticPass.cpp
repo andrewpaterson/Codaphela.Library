@@ -507,3 +507,9 @@ CCPPErrors* CCPPSemanticPass::GetErrors(void)
 	return &mcErrors;
 }
 
+
+bool CCPPSemanticPass::IsKept(void) const { return mpcUnit != NULL; }
+bool CCPPSemanticPass::IsTemplatesAsThemselves(void) const { return mbTemplatesAsThemselves; }
+char* CCPPSemanticPass::GetRecordedEnum(void) { return mszRecordedEnum.Text(); }
+SCPP65Type* CCPPSemanticPass::GetRecordedEnumType(void) const { return mpsRecordedEnum; }
+size CCPPSemanticPass::NumEnumCasts(void) const { return masEnumCasts.NumElements(); }

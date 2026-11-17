@@ -273,3 +273,7 @@ int CCPPUnitData::AddString(char* szBytes, size uiLength)
 	return (int)maszStrings.NumElements() - 1;
 }
 
+
+int CCPPUnitData::GetStartUp(void) const { return miStartUps; }
+CChars* CCPPUnitData::GetText(void) { return &mszData; }
+size CCPPUnitData::NumStrings(void) const { return maszStrings.NumElements(); }

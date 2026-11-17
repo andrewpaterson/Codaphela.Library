@@ -107,7 +107,7 @@ bool CASCIITree::Remove(const char* szText, const char* szLastCharInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CASCIITree::NumElements(void)
+int CASCIITree::NumElements(void) const
 {
 	return (int)mcIndex.NumElements();
 }
@@ -159,7 +159,7 @@ int64 CASCIITree::Iterate(SIndexTreeMemoryUnsafeIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CASCIITree::IsEmpty(void)
+bool CASCIITree::IsEmpty(void) const
 {
 	return mcIndex.NumElements() == 0;
 }

@@ -43,7 +43,7 @@ public:
 	void			Kill(void);
 	bool			Contains(const char* szName, size uiLength);
 	bool			Add(const char* szName, size uiLength);		//False if it was already in.
-	size			NumNames(void);
+	size			NumNames(void) const;
 
 	static uint64	Hash(const char* szName, size uiLength);
 

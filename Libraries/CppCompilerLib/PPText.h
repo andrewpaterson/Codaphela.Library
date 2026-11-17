@@ -52,7 +52,7 @@ public:
 	virtual	const char*	TextStart(void);
 	virtual	const char*	TextEndInclusive(void);
 	bool			IsEmpty(void);
-	int				Length(void);
+	int				Length(void) const;
 };
 
 

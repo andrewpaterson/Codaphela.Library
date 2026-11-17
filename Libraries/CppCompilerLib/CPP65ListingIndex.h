@@ -95,13 +95,13 @@ public:
 	void				AppendLines(size uiListing, size uiFirstLine, size uiEndLine, CChars* pszDest);
 	void				AppendRange(SCPP65ListingRange* psRange, CChars* pszDest);
 
-	size				NumListings(void);
+	size				NumListings(void) const;
 	char*				GetListingName(size uiListing);
 	size				NumListingLines(size uiListing);
-	size				NumFiles(void);
+	size				NumFiles(void) const;
 	char*				GetFile(size uiFile);
 	char*				GetFunction(size uiFunction);
-	size				NumRanges(void);
+	size				NumRanges(void) const;
 	SCPP65ListingRange*	GetRange(size uiRange);
 
 protected:

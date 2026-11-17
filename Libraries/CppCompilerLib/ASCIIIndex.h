@@ -54,7 +54,7 @@ public:
 	char*	Get(int64 lliID, int* piLength = NULL);
 	int64	Get(const char* szText, const char* szLastCharInclusive);
 
-	int		NumElements(void);
+	int		NumElements(void) const;
 
 protected:
 	lsize	Find(const char* sz, int iLength, uint32 uiHash);

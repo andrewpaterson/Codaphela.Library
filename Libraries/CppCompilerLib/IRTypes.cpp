@@ -246,3 +246,13 @@ SIRReference IRNone(void)
 	sReference.uiValue = 0;
 	return sReference;
 }
+
+
+bool SIRType::IsNone(void) const { return uiKind == IRTK_None; }
+bool SIRType::IsInteger(void) const { return uiKind >= IRTK_I1 && uiKind <= IRTK_I64; }
+bool SIRType::IsFloat(void) const { return uiKind == IRTK_F32 || uiKind == IRTK_F64; }
+bool SIRType::IsPointer(void) const { return uiKind == IRTK_Pointer; }
+bool SIRReference::IsNone(void) const { return uiValue == 0; }
+bool SIRReference::IsTemporary(void) { return Kind() == IRRK_Temporary; }
+bool SIRReference::IsConstant(void) { return Kind() == IRRK_Constant; }
+bool SIRReference::IsSymbol(void) { return Kind() == IRRK_Symbol; }

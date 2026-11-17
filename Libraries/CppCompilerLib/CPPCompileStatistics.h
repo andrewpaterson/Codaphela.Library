@@ -115,7 +115,7 @@ public:
 	void		Kill(void);
 
 	void		SetTimes(bool bTimes);
-	bool		IsTimed(void);
+	bool		IsTimed(void) const;
 	void		Begin(ECPPCompilePhase ePhase);
 	void		End(ECPPCompilePhase ePhase);
 	void		Count(ECPPCompileCount eCount, uint64 uiCount = 1);

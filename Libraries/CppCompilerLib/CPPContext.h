@@ -84,29 +84,29 @@ public:
 
 	void					EnterBindings(CCPPTemplateArguments* pcBindings);
 	void					LeaveBindings(void);
-	CCPPTemplateArguments*	GetBindings(void) { return mpcBindings; }
+	CCPPTemplateArguments*	GetBindings(void) const;
 
 	void					EnterNamespace(CCPPScope* pcNamespace);
 	void					LeaveNamespace(void);
-	CCPPScope*				GetNamespace(void) { return mpcDeclaringNamespace; }
+	CCPPScope*				GetNamespace(void) const;
 
 	void					EnterLinkage(bool bCLinkage, bool bExtern);
 	void					LeaveLinkage(void);
-	bool					IsCLinkage(void) { return mbCLinkage; }
-	bool					IsLinkageExtern(void) { return mbLinkageExtern; }
+	bool					IsCLinkage(void) const;
+	bool					IsLinkageExtern(void) const;
 
 	void					BeginFunction(CCPPFunction* pcFunction);
 	void					EndFunction(void);
 	void					NoThis(void) { mbThis = false; }
-	CCPPFunction*			GetFunction(void) { return mpcFunction; }
-	bool					HasThis(void) { return mbThis; }
+	CCPPFunction*			GetFunction(void) const;
+	bool					HasThis(void) const;
 
 	void					EnterStaticLocal(void);
 	void					LeaveStaticLocal(void);
-	bool					IsStaticLocal(void) { return mbStaticLocal; }
+	bool					IsStaticLocal(void) const;
 
 	void					SetPackParameter(CCPPSymbol* pcSymbol) { mpcPackParameter = pcSymbol; }
-	CCPPSymbol*				GetPackParameter(void) { return mpcPackParameter; }
+	CCPPSymbol*				GetPackParameter(void) const;
 
 	bool					BeginQuiet(void);
 	bool					EndQuiet(void);
@@ -114,10 +114,10 @@ public:
 	bool					EndTrial(void);
 	void					BeginLoud(void);
 	void					EndLoud(void);
-	bool					IsQuiet(void) { return miQuiet > 0; }
+	bool					IsQuiet(void) const;
 	void					SetFailed(void) { mbQuietFailed = true; }
 
-	bool					IsBroken(void) { return mbBroken || (masEntered.NumElements() != 0); }
+	bool					IsBroken(void) const;
 
 protected:
 	SCPPContextEntry*		Enter(ECPPContextEntry eKind);

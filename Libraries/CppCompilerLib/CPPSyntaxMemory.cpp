@@ -73,7 +73,7 @@ void CCPPSyntaxMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxMemory::NumSyntaxes(void)
+size CCPPSyntaxMemory::NumSyntaxes(void) const
 {
 	return mapcSyntaxes.NumElements();
 }

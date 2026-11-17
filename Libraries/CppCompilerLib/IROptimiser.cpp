@@ -119,7 +119,7 @@ void CIROptimiser::SetPipeline(CIRPipeline* pcPipeline)
 // The pipeline the optimiser runs: its own unless one was set.
 //
 //////////////////////////////////////////////////////////////////////////
-CIRPipeline* CIROptimiser::GetPipeline(void)
+CIRPipeline* CIROptimiser::GetPipeline(void) const
 {
 	return mpcPipeline;
 }

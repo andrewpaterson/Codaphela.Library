@@ -75,7 +75,7 @@ public:
 	void	Kill(void);
 
 	void	Optimise(CChars* pszCode, size uiStart, bool bHomeV);
-	bool	IsLoaded(void);
+	bool	IsLoaded(void) const;
 
 protected:
 	bool	RemoveCopies(void);

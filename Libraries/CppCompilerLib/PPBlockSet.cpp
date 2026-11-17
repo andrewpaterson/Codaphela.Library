@@ -138,7 +138,7 @@ void CPPBlockSet::DumpBlockSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPBlockSet::IsDirective(void)
+bool CPPBlockSet::IsDirective(void) const
 {
 	return !mbTextBlocks;
 }

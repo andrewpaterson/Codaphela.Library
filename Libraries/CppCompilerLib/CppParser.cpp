@@ -112,7 +112,7 @@ bool CCPPParser::Parse(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPParser::NumErrors(void)
+int CCPPParser::NumErrors(void) const
 {
 	return miErrors;
 }
@@ -123,7 +123,7 @@ int CCPPParser::NumErrors(void)
 // How many times the parser has looked ahead tentatively (BeginTentative).
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPParser::NumTentativeParses(void)
+size CCPPParser::NumTentativeParses(void) const
 {
 	return muiTentativeParses;
 }
@@ -133,7 +133,7 @@ size CCPPParser::NumTentativeParses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPParser::NumSkimmedErrors(void)
+int CCPPParser::NumSkimmedErrors(void) const
 {
 	return miSkimmedErrors;
 }
@@ -256,7 +256,7 @@ int64 CCPPParser::GetTokenIdentifier(int iToken)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPParser::IsEnd(void)
+bool CCPPParser::IsEnd(void) const
 {
 	return !mbHalf && (miToken >= miNumTokens);
 }

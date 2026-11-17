@@ -52,8 +52,8 @@ public:
 	bool					IsHeader(void);
 	bool					LogIncludes(void);
 	bool					IsSystemFile(void);
-	STULog*					GetLogs(void);
-	CLibrary*				GetLibrary(void);
+	STULog*					GetLogs(void) const;
+	CLibrary*				GetLibrary(void) const;
 	CPreprocessedTokens*	GetTokens(void);
 	char*					Print(CChars* psz);
 	void					Dump(void);

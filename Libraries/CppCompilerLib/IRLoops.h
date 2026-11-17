@@ -79,7 +79,7 @@ public:
 
 	void		Compute(CIRFunction* pcFunction, CIRDominators* pcDominators);
 
-	size		NumLoops(void);
+	size		NumLoops(void) const;
 	SIRLoop*	GetLoop(size uiLoop);
 	int32		Innermost(CIRBlock* pcBlock);
 	int32		Depth(CIRBlock* pcBlock);

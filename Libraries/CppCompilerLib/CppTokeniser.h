@@ -54,7 +54,7 @@ public:
 	void 				Kill(void);
 	bool 				Tokenise(CPreprocessedTokens* pcSource);
 
-	size				NumTokens(void);
+	size				NumTokens(void) const;
 	CCPPToken*			Get(size iIndex);
 	SPreprocessedToken*	GetSource(CCPPToken* pcToken);
 	int64				GetIdentifierID(char* szName);

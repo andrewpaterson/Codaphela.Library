@@ -288,7 +288,7 @@ void CDefineMap::Remove(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDefineMap::NumDefines(void)
+size CDefineMap::NumDefines(void) const
 {
 	return muiDefines;
 }

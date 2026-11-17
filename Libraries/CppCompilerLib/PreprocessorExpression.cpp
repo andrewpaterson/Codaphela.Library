@@ -67,7 +67,7 @@ void SPPValue::Init(uint64 ulliValue, bool bUnsigned)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SPPValue::IsTrue(void)
+bool SPPValue::IsTrue(void) const
 {
 	return ulliValue != 0;
 }

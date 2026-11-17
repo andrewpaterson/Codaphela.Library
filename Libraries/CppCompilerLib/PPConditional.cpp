@@ -48,7 +48,7 @@ void CPPConditional::Set(CPPConditional* pcNext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPConditional* CPPConditional::GetNext(void)
+CPPConditional* CPPConditional::GetNext(void) const
 {
 	return mpcNext;
 }
@@ -58,7 +58,7 @@ CPPConditional* CPPConditional::GetNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPPConditional::GetTokenBlock(void)
+SPPTokenBlockIndex CPPConditional::GetTokenBlock(void) const
 {
 	return msIndex;
 }

@@ -160,7 +160,7 @@ bool CSourceFile::Load(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSourceFile::IsLoaded(void)
+bool CSourceFile::IsLoaded(void) const
 {
 	return mbLoaded;
 }
@@ -282,7 +282,7 @@ char* CSourceFile::GetContents(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CSourceFile::GetContentsLength(void)
+size CSourceFile::GetContentsLength(void) const
 {
 	return mszContents.Length();
 }

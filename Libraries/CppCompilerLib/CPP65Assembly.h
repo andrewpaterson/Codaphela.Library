@@ -62,7 +62,7 @@ public:
 
 	CLargeChars*	GetText(void);
 	void			SetPieces(CArrayLargeTemplate<uint16>* pauiPieces);
-	bool			IsEmpty(void);
+	bool			IsEmpty(void) const;
 
 	void			Rewind(void) override;
 	const char*		NextLine(void) override;

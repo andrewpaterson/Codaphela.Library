@@ -144,7 +144,7 @@ void CCPPErrors::Truncate(size uiNumErrors)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPErrors::NumErrors(void)
+size CCPPErrors::NumErrors(void) const
 {
 	return maszErrors.NumElements();
 }

@@ -72,7 +72,7 @@ public:
 	CIRBlock*	GetImmediate(CIRBlock* pcBlock);
 	bool		Dominates(CIRBlock* pcDominator, CIRBlock* pcBlock);
 	bool		IsBackEdge(CIRBlock* pcFrom, CIRBlock* pcHead);
-	size		NumReachable(void);
+	size		NumReachable(void) const;
 	CIRBlock*	GetReversePostOrder(size uiIndex);
 	size		NumChildren(CIRBlock* pcBlock);
 	CIRBlock*	GetChild(CIRBlock* pcBlock, size uiIndex);

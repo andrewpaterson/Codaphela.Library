@@ -36,7 +36,7 @@ public:
 	bool 				IsTokenListHolder(void);
 	char*				Print(CChars* psz);
 	void 				Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens);
-	int	 				TokenLength(void);
+	int	 				TokenLength(void) const;
 	CPPToken*			Get(int iIndex);
 	bool				IsEmpty(void);
 	CPPTokenList*		GetTokenList(void);

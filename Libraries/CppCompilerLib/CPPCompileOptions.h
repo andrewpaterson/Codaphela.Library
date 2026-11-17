@@ -62,7 +62,7 @@ public:
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);
-	bool		PrefersSize(void);
+	bool		PrefersSize(void) const;
 };
 
 

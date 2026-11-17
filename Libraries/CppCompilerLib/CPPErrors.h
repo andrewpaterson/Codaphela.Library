@@ -57,7 +57,7 @@ public:
 	void	Add(const char* szFile, int iLine, int iColumn, int iToken, const char* szMessage, const char* szDetail = NULL);
 	void	Truncate(size uiNumErrors);
 
-	size	NumErrors(void);
+	size	NumErrors(void) const;
 	char*	Get(size iIndex);
 	char*	GetFile(size iIndex);
 	int		GetLine(size iIndex);

@@ -531,7 +531,7 @@ bool CCPPClass::IsTriviallyCopyable(void)
 // True if objects of the class have a vtable pointer, its own or a base's.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPClass::IsPolymorphic(void)
+bool CCPPClass::IsPolymorphic(void) const
 {
 	return mcVtable.IsPolymorphic();
 }
@@ -625,3 +625,11 @@ CCPPSymbol* CCPPClass::FindMemberSymbol(int64 lliName, ECPPSymbolKind eKind, CCP
 	return NULL;
 }
 
+
+bool SCPPField::IsBitField(void) const { return iBitWidth >= 0; }
+bool SCPPField::IsUnnamedBitField(void) const { return (iBitWidth >= 0) && (pcSymbol == NULL); }
+bool CCPPClass::IsComplete(void) const { return meState == CPPCS_Complete; }
+bool CCPPClass::IsBeingMade(void) const { return (meState == CPPCS_ResolvingBases) || (meState == CPPCS_LayingOut); }
+bool CCPPClass::HasBases(void) const { return meState >= CPPCS_ResolvingBases; }
+bool CCPPClass::HasVirtualBases(void) const { return macVirtualBases.NumElements() > 0; }
+bool CCPPClass::IsUnnamed(void) const { return mlliName < 0; }

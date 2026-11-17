@@ -94,7 +94,7 @@ CCPPSymbol* CCPPSymbolTable::CreateSymbol(int64 lliName, ECPPSymbolKind eKind, C
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPScope* CCPPSymbolTable::GetGlobalScope(void)
+CCPPScope* CCPPSymbolTable::GetGlobalScope(void) const
 {
 	return mpcGlobal;
 }
@@ -104,7 +104,7 @@ CCPPScope* CCPPSymbolTable::GetGlobalScope(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPSymbolTable::NumScopes(void)
+size CCPPSymbolTable::NumScopes(void) const
 {
 	return mapcScopes.NumElements();
 }

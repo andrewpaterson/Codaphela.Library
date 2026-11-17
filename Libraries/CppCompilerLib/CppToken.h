@@ -46,7 +46,7 @@ public:
 	virtual bool	Is(ECppTokens eToken);
 	virtual void	Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 			void	SetSource(int iSource);
-			int		GetSource(void);
+			int		GetSource(void) const;
 };
 
 

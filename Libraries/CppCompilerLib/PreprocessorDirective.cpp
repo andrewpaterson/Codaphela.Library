@@ -59,7 +59,7 @@ char* CPreprocessorDirective::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPreprocessorDirective::GetNameLength(void)
+int CPreprocessorDirective::GetNameLength(void) const
 {
 	return (int)mszName.Length();
 }
@@ -69,7 +69,7 @@ int CPreprocessorDirective::GetNameLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPreprocessorDirective CPreprocessorDirective::GetType(void)
+EPreprocessorDirective CPreprocessorDirective::GetType(void) const
 {
 	return meType;
 }

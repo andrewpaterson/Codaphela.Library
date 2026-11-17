@@ -48,7 +48,7 @@ public:
 	void 							Kill(void);
 	bool 							Equals(CSpecialOperator* pcOther);
 	char*							GetName(void);
-	EPreprocessorSpecialOperator	GetType(void);
+	EPreprocessorSpecialOperator	GetType(void) const;
 	void							Dump(void);
 };
 

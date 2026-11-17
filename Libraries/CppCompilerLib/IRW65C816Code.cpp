@@ -138,7 +138,7 @@ void CIRW65C816Code::Write(CChars* pszCode, size uiStart)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRW65C816Code::NumLines(void)
+size CIRW65C816Code::NumLines(void) const
 {
 	return maiOrder.NumElements();
 }

@@ -150,7 +150,7 @@ void CCPPClassLayout::Layout(int iClassAlign)
 // The class's size: an object is never smaller than a byte.
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPClassLayout::GetBytes(void)
+int CCPPClassLayout::GetBytes(void) const
 {
 	return (miBytes > 0) ? miBytes : 1;
 }

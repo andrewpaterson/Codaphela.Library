@@ -425,7 +425,7 @@ bool CIR65Code::Load(CChars* pszCode, size uiStart, bool bConflicts)
 // Whether the last Load could read the code.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Code::IsLoaded(void)
+bool CIR65Code::IsLoaded(void) const
 {
 	return mbLoaded;
 }

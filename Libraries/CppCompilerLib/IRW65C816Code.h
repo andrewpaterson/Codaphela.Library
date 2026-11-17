@@ -62,7 +62,7 @@ public:
 	void		Load(CChars* pszCode, size uiStart);
 	void		Write(CChars* pszCode, size uiStart);
 
-	size		NumLines(void);
+	size		NumLines(void) const;
 	CChars*		GetText(size uiLine);
 	const char*	Text(size uiLine);
 	bool		IsLabel(size uiLine);

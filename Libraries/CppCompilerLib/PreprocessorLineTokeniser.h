@@ -59,9 +59,9 @@ public:
 	void		Quote(char** pszStart, bool bInOther);
 	void		EndQuoted(char** pszStart, bool bString);
 	void		IdentifierCharacter(void);
-	bool		IsDigitSeparator(void);
-	bool		IsPPNumberContinuation(void);
-	bool		IsPPNumberStart(void);
+	bool		IsDigitSeparator(void) const;
+	bool		IsPPNumberContinuation(void) const;
+	bool		IsPPNumberStart(void) const;
 	void		AddRelevantToken(void);
 	CPPText* 	AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive);
 	void		NullAll(void);

@@ -45,8 +45,8 @@ struct SCPPField
 	int				iBitWidth;			//A bit-field's width, -1 for a field that isn't one.  An unnamed bit-field (int : 3;) has no symbol.
 	int				iBitOffset;			//A bit-field's first bit in the unit of its type at iOffset, 0 the lowest.
 
-	bool			IsBitField(void) { return iBitWidth >= 0; }
-	bool			IsUnnamedBitField(void) { return (iBitWidth >= 0) && (pcSymbol == NULL); }
+	bool			IsBitField(void) const;
+	bool			IsUnnamedBitField(void) const;
 };
 
 
@@ -142,11 +142,11 @@ public:
 	void			Init(CCPPSymbol* pcSymbol, int64 lliName);
 	void			Kill(void);
 
-	bool			IsUnnamed(void) { return mlliName < 0; }	//Its labels are the unit's own.
-	bool			IsComplete(void) { return meState == CPPCS_Complete; }
-	bool			IsBeingMade(void) { return (meState == CPPCS_ResolvingBases) || (meState == CPPCS_LayingOut); }
-	bool			HasBases(void) { return meState >= CPPCS_ResolvingBases; }
-	bool			HasVirtualBases(void) { return macVirtualBases.NumElements() > 0; }
+	bool			IsUnnamed(void) const;	//Its labels are the unit's own.
+	bool			IsComplete(void) const;
+	bool			IsBeingMade(void) const;
+	bool			HasBases(void) const;
+	bool			HasVirtualBases(void) const;
 	SCPPVirtualBase*	GetVirtualBase(CCPPClass* pcBase);
 	int				GetVirtualBaseIndex(CCPPClass* pcBase);
 	bool			HasBase(CCPPClass* pcBase);
@@ -164,7 +164,7 @@ public:
 	bool			IsCopyDeleted(void);
 	bool			IsTriviallyCopyable(void);
 	bool			IsTriviallyAssignable(void);
-	bool			IsPolymorphic(void);
+	bool			IsPolymorphic(void) const;
 	bool			IsAbstract(void);
 	bool			OverridesBase(CCPPFunction* pcFunction);
 	CCPPFunction*	FindOverridden(CCPPFunction* pcFunction);

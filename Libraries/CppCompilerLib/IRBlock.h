@@ -131,9 +131,9 @@ public:
 	void			Return(SIRType sType, SIRReference sValue);
 	void			Return(void);
 	void			Unreachable(void);
-	bool			HasJump(void);
+	bool			HasJump(void) const;
 
-	size			NumSuccessors(void);
+	size			NumSuccessors(void) const;
 	CIRBlock*		GetSuccessor(size uiIndex);
 	bool			HasPredecessor(CIRBlock* pcBlock);
 	bool			Defines(SIRReference sValue);

@@ -78,7 +78,7 @@ bool SPreprocessedToken::IsPunctuator(char* szText)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SPreprocessedToken::IsIdentifier(void)
+bool SPreprocessedToken::IsIdentifier(void) const
 {
 	return uiKind == PTK_Identifier;
 }
@@ -88,7 +88,7 @@ bool SPreprocessedToken::IsIdentifier(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SPreprocessedToken::HasLeadingSpace(void)
+bool SPreprocessedToken::HasLeadingSpace(void) const
 {
 	return (uiFlags & PTF_LEADING_SPACE) != 0;
 }
@@ -98,7 +98,7 @@ bool SPreprocessedToken::HasLeadingSpace(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SPreprocessedToken::IsStartOfLine(void)
+bool SPreprocessedToken::IsStartOfLine(void) const
 {
 	return (uiFlags & PTF_START_OF_LINE) != 0;
 }
@@ -217,7 +217,7 @@ SPreprocessedToken* CPreprocessedTokens::Add(SPreprocessedToken* psToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CPreprocessedTokens::NumTokens(void)
+size CPreprocessedTokens::NumTokens(void) const
 {
 	return macTokens.NumElements();
 }
@@ -257,7 +257,7 @@ int CPreprocessedTokens::AddExpansion(const char* szName, size uiNameLength, CSo
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CPreprocessedTokens::NumExpansions(void)
+size CPreprocessedTokens::NumExpansions(void) const
 {
 	return macExpansions.NumElements();
 }
@@ -321,7 +321,7 @@ void CPreprocessedTokens::AddInactiveLines(CSourceFile* pcFile, int iStartLine, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CPreprocessedTokens::NumInactiveRegions(void)
+size CPreprocessedTokens::NumInactiveRegions(void) const
 {
 	return macInactiveRegions.NumElements();
 }
@@ -356,7 +356,7 @@ void CPreprocessedTokens::AddDirectiveLine(CSourceFile* pcFile, int iLine, bool 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CPreprocessedTokens::NumDirectiveLines(void)
+size CPreprocessedTokens::NumDirectiveLines(void) const
 {
 	return macDirectiveLines.NumElements();
 }

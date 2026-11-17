@@ -38,8 +38,8 @@ public:
 	void					Kill(void);
 
 	char*					GetName(void);
-	int						GetNameLength(void);
-	EPreprocessorDirective	GetType(void);
+	int						GetNameLength(void) const;
+	EPreprocessorDirective	GetType(void) const;
 
 	void					Dump(void);
 };

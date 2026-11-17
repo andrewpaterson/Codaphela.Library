@@ -123,7 +123,7 @@ SIRFlagName	gasIRFlagNames[IRF_NumWordFlags] =
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int SIROpcode::NumOperands(void)
+int SIROpcode::NumOperands(void) const
 {
 	return (auiOperands[0] != IROK_None ? 1 : 0) + (auiOperands[1] != IROK_None ? 1 : 0);
 }

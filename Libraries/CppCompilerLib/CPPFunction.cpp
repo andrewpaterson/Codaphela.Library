@@ -180,7 +180,7 @@ bool CCPPFunction::TakesObject(ECPPCalledObject eObject)
 // namespace without a name is the unit's own: its label is local to the object.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPFunction::IsUnitFunction(void)
+bool CCPPFunction::IsUnitFunction(void) const
 {
 	CCPPClass*	pcClass;
 
@@ -228,3 +228,6 @@ void CCPPFunction::SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition)
 	}
 }
 
+
+bool CCPPFunction::IsConversion(void) const { return mlliName == CPP_CONVERSION_NAME; }
+bool CCPPFunction::IsOperator(void) const { return mlliName < 0; }

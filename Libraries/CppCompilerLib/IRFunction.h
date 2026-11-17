@@ -102,7 +102,7 @@ public:
 	bool			IsRestrictParameter(size uiParameter);
 	int				FindParameter(SIRReference sValue);
 	SIRReference	FindTemporary(const char* szName);
-	size			NumTemporaries(void);
+	size			NumTemporaries(void) const;
 	SIRType			GetTemporaryType(SIRReference sTemporary);
 	void			SetTemporaryType(SIRReference sTemporary, SIRType sType);
 	char*			GetTemporaryName(SIRReference sTemporary);
@@ -119,7 +119,7 @@ public:
 	CIRBlock*		AddBlock(const char* szName = NULL);
 	CIRBlock*		FindBlock(const char* szName);
 	CIRBlock*		GetEntry(void);
-	size			NumBlocks(void);
+	size			NumBlocks(void) const;
 	CIRBlock*		GetBlock(size uiIndex);
 	void			SetBlockOrder(CArrayIRBlocks* papcBlocks);
 	void			RemoveBlock(CIRBlock* pcBlock);

@@ -138,15 +138,15 @@ public:
 	void	Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
 	void	Kill(void);
 
-	bool	IsConversion(void) { return mlliName == CPP_CONVERSION_NAME; }	//operator T.
-	bool	IsOperator(void) { return mlliName < 0; }						//An operator or a conversion: its name is no identifier.
+	bool	IsConversion(void) const;	//operator T.
+	bool	IsOperator(void) const;		//An operator or a conversion: its name is no identifier.
 
 	size	RequiredParameters(void);
 	bool	TakesArgumentCount(size uiArguments);
 	bool	SameParameters(CCPPFunction* pcOther);
 	bool	Overrides(CCPPFunction* pcVirtual);
 	bool	TakesObject(ECPPCalledObject eObject);
-	bool	IsUnitFunction(void);
+	bool	IsUnitFunction(void) const;
 	void	SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition);
 };
 

@@ -50,8 +50,8 @@ public:
 
 	void				Deduce(CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments);
 	void				DeduceConversion(CCPPSyntaxTypeId* pcType, SCPP65Type* psTo);
-	CArrayCPP65Types*	GetTypes(void) { return &mapsDeduced; }
-	CArrayInt64*		GetValues(void) { return &malliDeduced; }
+	CArrayCPP65Types*	GetTypes(void);
+	CArrayInt64*		GetValues(void);
 
 protected:
 	void				DeduceParameters(CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments);
@@ -85,8 +85,8 @@ public:
 	void					Kill(void);
 
 	bool					Match(CCPPTemplateArguments* pcArguments);
-	CCPPTemplateArguments*	GetDeduced(void) { return mpcDeduced; }
-	int						GetScore(void) { return miScore; }
+	CCPPTemplateArguments*	GetDeduced(void) const;
+	int						GetScore(void) const;
 
 protected:
 	bool					MatchPattern(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments);

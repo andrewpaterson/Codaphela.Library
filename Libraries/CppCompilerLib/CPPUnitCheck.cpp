@@ -556,7 +556,7 @@ void CCPPUnit::CheckTemplatesAsThemselves(void)
 // written.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsCheckedAsWritten(void)
+bool CCPPUnit::IsCheckedAsWritten(void) const
 {
 	return !mcContext.GetBindings() || mcContext.GetBindings()->IsSelf();
 }

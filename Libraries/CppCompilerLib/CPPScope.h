@@ -70,7 +70,7 @@ public:
 
 	void		Add(CCPPScope* pcScope);
 	void		AddBefore(CCPPScope* pcScope, int iBefore);
-	size		NumElements(void);
+	size		NumElements(void) const;
 	CCPPScope*	GetPtr(size i);
 	void		SetPtr(size i, CCPPScope* pcScope);
 	bool		Has(CCPPScope* pcScope);
@@ -109,7 +109,7 @@ public:
 	CCPPScope*		GetDeclarationScope(void);
 	CCPPScope*		GetEnclosingNamespace(void);
 	CCPPScope*		GetNamespace(void);
-	bool			IsUnnamedNamespace(void);
+	bool			IsUnnamedNamespace(void) const;
 	bool			IsInlineNamespace(void);
 	CCPPScope*		FindUnnamedNamespace(void);
 	bool			IsInUnnamedNamespace(void);

@@ -185,7 +185,7 @@ CPPToken* CPPTokenList::Get(size iTokenIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CPPTokenList::NumTokens(void)
+size CPPTokenList::NumTokens(void) const
 {
 	return mcArray.NumElements();
 }

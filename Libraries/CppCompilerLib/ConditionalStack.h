@@ -53,7 +53,7 @@ public:
 	void Init(void);
 	void Kill(void);
 
-	bool IsParsing(void);
+	bool IsParsing(void) const;
 	bool IsElseIfEvaluated(void);
 	bool IsParentParsing(void);
 	void CalculateIsParsing(void);

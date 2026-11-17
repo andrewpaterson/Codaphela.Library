@@ -781,7 +781,7 @@ SCPPHighlight* CCPPHighlighter::Get(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPHighlighter::NumHighlights(void)
+size CCPPHighlighter::NumHighlights(void) const
 {
 	return macHighlights.NumElements();
 }

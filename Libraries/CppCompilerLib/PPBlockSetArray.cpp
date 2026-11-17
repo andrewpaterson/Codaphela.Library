@@ -67,7 +67,7 @@ void CPPBlockSetArray::RawProcessed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPBlockSetArray::IsRawProcessed(void)
+bool CPPBlockSetArray::IsRawProcessed(void) const
 {
 	return mbRawProcessed;
 }

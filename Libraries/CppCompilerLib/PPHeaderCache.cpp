@@ -490,7 +490,7 @@ void CPPHeaderCache::Unlink(SPPCachedHeader* psHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPPHeaderCache::NumHeaders(void)
+size CPPHeaderCache::NumHeaders(void) const
 {
 	return mapsHeaders.NumElements();
 }
@@ -500,7 +500,7 @@ size CPPHeaderCache::NumHeaders(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPPHeaderCache::NumHits(void)
+size CPPHeaderCache::NumHits(void) const
 {
 	return muiHits;
 }
@@ -510,7 +510,7 @@ size CPPHeaderCache::NumHits(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPPHeaderCache::NumMisses(void)
+size CPPHeaderCache::NumMisses(void) const
 {
 	return muiMisses;
 }
@@ -520,7 +520,7 @@ size CPPHeaderCache::NumMisses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPPHeaderCache::NumReplayedTokens(void)
+size CPPHeaderCache::NumReplayedTokens(void) const
 {
 	return muiReplayedTokens;
 }

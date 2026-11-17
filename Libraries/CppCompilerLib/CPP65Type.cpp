@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsInteger(void)
+bool SCPP65Type::IsInteger(void) const
 {
 	return (eKind == CPP65TK_Integer) || (eKind == CPP65TK_Bool);
 }
@@ -37,7 +37,7 @@ bool SCPP65Type::IsInteger(void)
 // A value that fits in a register.
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsScalar(void)
+bool SCPP65Type::IsScalar(void) const
 {
 	return IsInteger() || (eKind == CPP65TK_Pointer) || (eKind == CPP65TK_Float) || (eKind == CPP65TK_MemberPointer);
 }
@@ -47,7 +47,7 @@ bool SCPP65Type::IsScalar(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsPointer(void)
+bool SCPP65Type::IsPointer(void) const
 {
 	return eKind == CPP65TK_Pointer;
 }
@@ -57,7 +57,7 @@ bool SCPP65Type::IsPointer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsMemberPointer(void)
+bool SCPP65Type::IsMemberPointer(void) const
 {
 	return eKind == CPP65TK_MemberPointer;
 }
@@ -67,7 +67,7 @@ bool SCPP65Type::IsMemberPointer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsArray(void)
+bool SCPP65Type::IsArray(void) const
 {
 	return eKind == CPP65TK_Array;
 }
@@ -77,7 +77,7 @@ bool SCPP65Type::IsArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsFunction(void)
+bool SCPP65Type::IsFunction(void) const
 {
 	return eKind == CPP65TK_Function;
 }
@@ -87,7 +87,7 @@ bool SCPP65Type::IsFunction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsVoid(void)
+bool SCPP65Type::IsVoid(void) const
 {
 	return eKind == CPP65TK_Void;
 }
@@ -97,7 +97,7 @@ bool SCPP65Type::IsVoid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsClass(void)
+bool SCPP65Type::IsClass(void) const
 {
 	return eKind == CPP65TK_Class;
 }
@@ -107,7 +107,7 @@ bool SCPP65Type::IsClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsReference(void)
+bool SCPP65Type::IsReference(void) const
 {
 	return eKind == CPP65TK_Reference;
 }
@@ -117,7 +117,7 @@ bool SCPP65Type::IsReference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsRvalueReference(void)
+bool SCPP65Type::IsRvalueReference(void) const
 {
 	return (eKind == CPP65TK_Reference) && bRvalue;
 }
@@ -127,7 +127,7 @@ bool SCPP65Type::IsRvalueReference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsLvalueReference(void)
+bool SCPP65Type::IsLvalueReference(void) const
 {
 	return (eKind == CPP65TK_Reference) && !bRvalue;
 }
@@ -148,7 +148,7 @@ SCPP65Type* SCPP65Type::WithoutReference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsFloat(void)
+bool SCPP65Type::IsFloat(void) const
 {
 	return eKind == CPP65TK_Float;
 }
@@ -160,7 +160,7 @@ bool SCPP65Type::IsFloat(void)
 // float runtime's).
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsSupported(void)
+bool SCPP65Type::IsSupported(void) const
 {
 	return IsScalar() && (iBytes <= 8);
 }
@@ -183,7 +183,7 @@ bool SCPP65Type::HasQualifiersOf(SCPP65Type* psFrom)
 
 
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsWide(void)
+bool SCPP65Type::IsWide(void) const
 {
 	return (eKind == CPP65TK_Integer) && (iBytes == 8);
 }
@@ -364,7 +364,7 @@ bool SCPP65Type::Same(SCPP65Type* psOther)
 // Whether it is an enum class's type, const or not.  [dcl.enum] 10
 //
 //////////////////////////////////////////////////////////////////////////
-bool SCPP65Type::IsScopedEnum(void)
+bool SCPP65Type::IsScopedEnum(void) const
 {
 	return (pcEnum != NULL) && (bScopedEnum || psUnqualified->bScopedEnum);
 }
@@ -387,7 +387,7 @@ SCPP65Type* SCPP65Type::Unqualified(void)
 // (a GNU extension).
 //
 //////////////////////////////////////////////////////////////////////////
-int SCPP65Type::GetElementBytes(void)
+int SCPP65Type::GetElementBytes(void) const
 {
 	if (psBase->IsVoid())
 	{

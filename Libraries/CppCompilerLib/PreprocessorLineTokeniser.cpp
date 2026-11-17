@@ -337,7 +337,7 @@ void CPreprocessorLineTokeniser::EndQuoted(char** pszStart, bool bString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorLineTokeniser::IsDigitSeparator(void)
+bool CPreprocessorLineTokeniser::IsDigitSeparator(void) const
 {
 	char	c;
 
@@ -360,7 +360,7 @@ bool CPreprocessorLineTokeniser::IsDigitSeparator(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorLineTokeniser::IsPPNumberContinuation(void)
+bool CPreprocessorLineTokeniser::IsPPNumberContinuation(void) const
 {
 	char	c;
 	char	cPrev;
@@ -390,7 +390,7 @@ bool CPreprocessorLineTokeniser::IsPPNumberContinuation(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorLineTokeniser::IsPPNumberStart(void)
+bool CPreprocessorLineTokeniser::IsPPNumberStart(void) const
 {
 	char	c;
 

@@ -53,7 +53,7 @@ public:
 			void				Unload(void);
 			void				ClearContents(void);
 			void				SetContents(const char* sz);
-			bool				IsLoaded(void);
+			bool				IsLoaded(void) const;
 			bool				IsNamed(char* szName);
 	virtual bool				IsTranslationUnit(void) =0;
 	virtual bool				IsHeader(void) =0;
@@ -62,7 +62,7 @@ public:
 	virtual bool				IsSystemFile(void) =0;
 			void				Path(CChars* pszPath);
 			char*				GetContents(void);
-			size					GetContentsLength(void);
+			size					GetContentsLength(void) const;
 			size_t				GetTokenMemoryUsed(void);
 			CPPBlockSetArray*	GetBlockSets(void);
 			CPPTokenMemory*		GetTokenMemory(void);

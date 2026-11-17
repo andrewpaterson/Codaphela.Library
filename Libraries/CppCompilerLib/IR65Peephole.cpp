@@ -195,7 +195,7 @@ void CIR65Peephole::Optimise(CChars* pszCode, size uiStart, bool bHomeV)
 // code as it was if not).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Peephole::IsLoaded(void)
+bool CIR65Peephole::IsLoaded(void) const
 {
 	return mcCode.IsLoaded();
 }

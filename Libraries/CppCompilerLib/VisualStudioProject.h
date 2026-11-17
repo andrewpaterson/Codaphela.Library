@@ -39,7 +39,7 @@ public:
 	bool		Read(const char* szProjectFile);
 
 	char*		GetDirectory(void);
-	size		NumSources(void);
+	size		NumSources(void) const;
 	char*		GetSource(size uiIndex);
 
 protected:

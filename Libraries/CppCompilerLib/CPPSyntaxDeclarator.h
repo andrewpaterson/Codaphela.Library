@@ -43,11 +43,11 @@ public:
 	CPP_SYNTAX_NODE(Declarator)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
-	bool					IsEmpty(void);
+	bool					IsEmpty(void) const;
 	bool					IsFunction(void);
-	bool					IsParenthesisedName(void);
+	bool					IsParenthesisedName(void) const;
 	CCPPSyntaxFunctionSuffix*	GetFunctionSuffix(void);
-	CCPPSyntaxName*			GetName(void);
+	CCPPSyntaxName*			GetName(void) const;
 	size					NumPointers(void);
 	CCPPSyntaxPointerOperator*	GetPointer(size uiIndex);
 };

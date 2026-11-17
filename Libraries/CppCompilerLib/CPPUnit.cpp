@@ -67,7 +67,7 @@ bool CCPPUnit::MissedImports(void)
 // the imports and didn't find, NULL if it has none.
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayChars* CCPPUnit::GetNotImported(void)
+CArrayChars* CCPPUnit::GetNotImported(void) const
 {
 	return mpcIRFrontEnd->GetNotImported();
 }
@@ -143,7 +143,7 @@ void CCPPUnit::SetStatistics(CCPPCompileStatistics* pcStatistics)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPCompileStatistics* CCPPUnit::GetStatistics(void)
+CCPPCompileStatistics* CCPPUnit::GetStatistics(void) const
 {
 	return mpcStatistics;
 }
@@ -165,7 +165,7 @@ void CCPPUnit::SetOptions(CCPPCompileOptions* pcOptions)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPCompileOptions* CCPPUnit::GetOptions(void)
+CCPPCompileOptions* CCPPUnit::GetOptions(void) const
 {
 	return mpcOptions;
 }
@@ -819,7 +819,7 @@ CCPPErrors* CCPPUnit::GetWarnings(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPUnit::NumErrors(void)
+int CCPPUnit::NumErrors(void) const
 {
 	return (int)mcErrors.NumErrors();
 }
@@ -3163,3 +3163,33 @@ void CCPPUnit::RuntimeError(const char* szMessage)
 {
 	ErrorAt(-1, szMessage);
 }
+
+
+CCPP65Types* CCPPUnit::GetTypes(void) { return &mcTypes; }
+CCPPContext* CCPPUnit::GetContext(void) { return &mcContext; }
+CCPPBinder* CCPPUnit::GetBinder(void) { return &mcBinder; }
+CCPPConstants* CCPPUnit::GetConstants(void) const { return mpcConstants; }
+CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
+CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
+CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }
+CCPP65TypeChecker* CCPPUnit::GetTypeChecker(void) { return &mcTypeChecker; }
+CChars* CCPPUnit::GetCode(void) { return &mszCode; }
+CArrayCPPTemplates* CCPPUnit::GetTemplates(void) { return &mapcTemplates; }
+CArrayCPPVariables* CCPPUnit::GetLocals(void) { return &mapcLocals; }
+CArrayLargeTemplate<uint16>* CCPPUnit::GetCodePieces(void) { return &mauiCodePieces; }
+int* CCPPUnit::GetLabelCounter(void) { return &miLabels; }
+CCPPTarget* CCPPUnit::GetTarget(void) const { return mpcTarget; }
+CIRImports* CCPPUnit::GetImports(void) const { return mpcImports; }
+CCPPTokeniser* CCPPUnit::GetTokeniser(void) const { return mpcTokeniser; }
+CCPPSyntaxTree* CCPPUnit::GetTree(void) const { return mpcTree; }
+CArrayCPPSymbols* CCPPUnit::GetPackElements(void) { return &mapcPackElements; }
+CSpillStore* CCPPUnit::GetSpillStore(void) const { return mpcSpillStore; }
+CCPPSemanticPass* CCPPUnit::GetSemanticPass(void) const { return mpcSemanticPass; }
+CAsm65Profile* CCPPUnit::GetFrameProfile(void) const { return mpcFrameProfile; }
+uint32 CCPPUnit::GetSpillUnit(void) const { return muiSpillUnit; }
+size CCPPUnit::GetImportsTurn(void) const { return muiImportsTurn; }
+bool CCPPUnit::HasLineTable(void) const { return mbLineTable; }
+bool CCPPUnit::HasListing(void) const { return mbListing; }
+bool CCPPUnit::HasNoFloats(void) const { return mbNoFloats; }
+int64 CCPPUnit::GetCompileTime(void) const { return mlliCompileTime; }
+bool CCPPUnit::IsUnevaluated(void) const { return miUnevaluated > 0; }

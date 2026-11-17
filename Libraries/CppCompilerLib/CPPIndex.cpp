@@ -133,7 +133,7 @@ SCPPIndexLocation* CCPPIndexSymbol::GetDeclaration(void)
 }
 
 
-size CCPPIndexSymbol::NumLocations(void) { return masLocations.NumElements(); }
+size CCPPIndexSymbol::NumLocations(void) const { return masLocations.NumElements(); }
 SCPPIndexLocation* CCPPIndexSymbol::GetLocation(size uiIndex) { return masLocations.Get(uiIndex); }
 
 
@@ -2033,8 +2033,8 @@ CCPPIndexSymbol* CCPPIndex::FindSymbol(const char* szKey)
 }
 
 
-size CCPPIndex::NumSymbols(void) { return mapcSymbols.NumElements(); }
+size CCPPIndex::NumSymbols(void) const { return mapcSymbols.NumElements(); }
 CCPPIndexSymbol* CCPPIndex::GetSymbol(size uiIndex) { return mapcSymbols.GetPtr(uiIndex); }
-size CCPPIndex::NumFiles(void) { return maszFiles.NumElements(); }
+size CCPPIndex::NumFiles(void) const { return maszFiles.NumElements(); }
 char* CCPPIndex::GetFileName(size uiFile) { return maszFiles.GetText(uiFile); }
 

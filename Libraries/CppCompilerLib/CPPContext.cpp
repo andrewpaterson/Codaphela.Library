@@ -339,3 +339,14 @@ void CCPPContext::EndLoud(void)
 	}
 }
 
+
+CCPPTemplateArguments* CCPPContext::GetBindings(void) const { return mpcBindings; }
+CCPPScope* CCPPContext::GetNamespace(void) const { return mpcDeclaringNamespace; }
+bool CCPPContext::IsCLinkage(void) const { return mbCLinkage; }
+bool CCPPContext::IsLinkageExtern(void) const { return mbLinkageExtern; }
+CCPPFunction* CCPPContext::GetFunction(void) const { return mpcFunction; }
+bool CCPPContext::HasThis(void) const { return mbThis; }
+bool CCPPContext::IsStaticLocal(void) const { return mbStaticLocal; }
+CCPPSymbol* CCPPContext::GetPackParameter(void) const { return mpcPackParameter; }
+bool CCPPContext::IsQuiet(void) const { return miQuiet > 0; }
+bool CCPPContext::IsBroken(void) const { return mbBroken || (masEntered.NumElements() != 0); }

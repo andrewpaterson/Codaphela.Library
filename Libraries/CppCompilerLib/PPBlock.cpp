@@ -107,7 +107,7 @@ void CPPBlock::DumpPointersAsChars(CArrayIntAndPointer* papc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPPBlock::GetNextTokenBlock(void)
+SPPTokenBlockIndex CPPBlock::GetNextTokenBlock(void) const
 {
 	return msNext;
 }

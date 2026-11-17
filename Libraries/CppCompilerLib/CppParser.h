@@ -152,15 +152,15 @@ public:
 	void							Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
 	void							Kill(void);
 	bool							Parse(void);
-	int								NumErrors(void);
-	int								NumSkimmedErrors(void);
+	int								NumErrors(void) const;
+	int								NumSkimmedErrors(void) const;
 	void							ReportSkimmedErrors(bool bReport);
 	void							SetHeaderIndex(CCPPHeaderIndex* pcIndex);
 	void							LoadLazy(CCPPScope* pcScope, int64 lliName) override;
-	size							NumLazySkipped(void);
-	size							NumLazyLoaded(void);
-	size							NumLazyRead(void);
-	size							NumTentativeParses(void);
+	size							NumLazySkipped(void) const;
+	size							NumLazyLoaded(void) const;
+	size							NumLazyRead(void) const;
+	size							NumTentativeParses(void) const;
 
 protected:
 	//Lazy header declarations.  CppParserLazy.cpp
@@ -181,7 +181,7 @@ protected:
 	bool							IsIdentifier(void);
 	bool							IsIdentifierAhead(int iAhead);
 	int64							GetIdentifier(int iAhead = 0);
-	bool							IsEnd(void);
+	bool							IsEnd(void) const;
 	void							Next(void);
 	bool							Accept(ECppTokens eToken);
 	bool							Expect(ECppTokens eToken);
@@ -196,7 +196,7 @@ protected:
 	int								PreviousToken(void);
 	bool							IsSkimming(void);
 	bool							IsSkimming(int iToken);
-	bool							IsDeclaringTemplate(void);
+	bool							IsDeclaringTemplate(void) const;
 	bool							Error(char* szError);
 	bool							ErrorAt(int iToken, char* szError);
 	int64							GetTokenIdentifier(int iToken);

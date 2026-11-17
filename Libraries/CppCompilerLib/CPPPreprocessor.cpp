@@ -1571,7 +1571,7 @@ void CCPPPreprocessor::LogInclude(CSourceFile* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CCPPPreprocessor::GetFileName(void)
+char* CCPPPreprocessor::GetFileName(void) const
 {
 	if (mpcCurrentFile)
 	{

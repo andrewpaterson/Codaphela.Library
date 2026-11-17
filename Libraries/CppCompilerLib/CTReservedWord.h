@@ -34,7 +34,7 @@ public:
 	void Kill(void);
 	bool IsReservedWord(void);
 	bool Is(ECppTokens eToken);
-	ECppTokens GetToken(void);
+	ECppTokens GetToken(void) const;
 };
 
 

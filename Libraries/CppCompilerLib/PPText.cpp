@@ -172,7 +172,7 @@ bool CPPText::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPPText::Length(void)
+int CPPText::Length(void) const
 {
 	return (int)mcText.miLen;
 }

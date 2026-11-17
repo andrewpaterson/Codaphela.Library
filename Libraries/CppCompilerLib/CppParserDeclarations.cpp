@@ -504,7 +504,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseAsmDeclaration(CCPPSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPParser::IsDeclaringTemplate(void)
+bool CCPPParser::IsDeclaringTemplate(void) const
 {
 	return mbDeclaringTemplate;
 }

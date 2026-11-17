@@ -126,7 +126,7 @@ void CIR65Flags::Optimise(CChars* pszCode, size uiStart)
 // code as it was if not).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Flags::IsLoaded(void)
+bool CIR65Flags::IsLoaded(void) const
 {
 	return mcCode.IsLoaded();
 }

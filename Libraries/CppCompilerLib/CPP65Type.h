@@ -71,27 +71,27 @@ struct SCPP65Type
 	SCPP65Type*		psNextSameBase;	//The next type made of its kind and base (CCPP65Types::mcByBase), NULL if none.
 	SCPP65Type*		psNextSameSignature;	//A function type: the next made with its signature's hash (CCPP65Types::mcFunctions).
 
-	bool	IsInteger(void);
-	bool	IsScalar(void);
-	bool	IsPointer(void);
-	bool	IsArray(void);
-	bool	IsFunction(void);
-	bool	IsVoid(void);
-	bool	IsClass(void);
-	bool	IsReference(void);
-	bool	IsRvalueReference(void);
-	bool	IsLvalueReference(void);
-	bool	IsMemberPointer(void);
-	bool	IsFloat(void);
-	bool	IsSupported(void);
-	bool	IsWide(void);
+	bool	IsInteger(void) const;
+	bool	IsScalar(void) const;
+	bool	IsPointer(void) const;
+	bool	IsArray(void) const;
+	bool	IsFunction(void) const;
+	bool	IsVoid(void) const;
+	bool	IsClass(void) const;
+	bool	IsReference(void) const;
+	bool	IsRvalueReference(void) const;
+	bool	IsLvalueReference(void) const;
+	bool	IsMemberPointer(void) const;
+	bool	IsFloat(void) const;
+	bool	IsSupported(void) const;
+	bool	IsWide(void) const;
 	bool	Equals(SCPP65Type* psOther);
 	bool	HasQualifiersOf(SCPP65Type* psFrom);
 	bool	Same(SCPP65Type* psOther);
 	SCPP65Type*	Unqualified(void);
-	bool		IsScopedEnum(void);
+	bool		IsScopedEnum(void) const;
 	SCPP65Type*	WithoutReference(void);
-	int		GetElementBytes(void);
+	int		GetElementBytes(void) const;
 	void	Append(CChars* psz);
 };
 

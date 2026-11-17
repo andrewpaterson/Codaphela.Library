@@ -174,7 +174,7 @@ void CIRLoops::AddLoop(CIRBlock* pcHead)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRLoops::NumLoops(void)
+size CIRLoops::NumLoops(void) const
 {
 	return masLoops.NumElements();
 }

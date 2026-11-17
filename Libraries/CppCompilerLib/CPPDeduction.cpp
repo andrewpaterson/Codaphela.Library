@@ -1014,3 +1014,8 @@ bool CCPPSpecialisationMatch::MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding
 	return bResult;
 }
 
+
+CArrayCPP65Types* CCPPDeduction::GetTypes(void) { return &mapsDeduced; }
+CArrayInt64* CCPPDeduction::GetValues(void) { return &malliDeduced; }
+CCPPTemplateArguments* CCPPSpecialisationMatch::GetDeduced(void) const { return mpcDeduced; }
+int CCPPSpecialisationMatch::GetScore(void) const { return miScore; }

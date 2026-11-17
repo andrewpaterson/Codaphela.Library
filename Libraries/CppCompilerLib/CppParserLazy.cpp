@@ -47,7 +47,7 @@ void CCPPParser::SetHeaderIndex(CCPPHeaderIndex* pcIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPParser::NumLazySkipped(void)
+size CCPPParser::NumLazySkipped(void) const
 {
 	return muiLazySkipped;
 }
@@ -57,7 +57,7 @@ size CCPPParser::NumLazySkipped(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPParser::NumLazyLoaded(void)
+size CCPPParser::NumLazyLoaded(void) const
 {
 	return muiLazyLoaded;
 }
@@ -69,7 +69,7 @@ size CCPPParser::NumLazyLoaded(void)
 // blocks), not parsed.
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPParser::NumLazyRead(void)
+size CCPPParser::NumLazyRead(void) const
 {
 	return muiLazyRead;
 }

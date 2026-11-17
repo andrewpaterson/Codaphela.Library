@@ -118,16 +118,16 @@ public:
 	void				Kill(void);
 
 	bool				Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_Host, bool bKeep = false);
-	bool				IsKept(void) { return mpcUnit != NULL; }
+	bool				IsKept(void) const;
 	void				SetTemplatesAsThemselves(bool bTemplatesAsThemselves) { mbTemplatesAsThemselves = bTemplatesAsThemselves; }
-	bool				IsTemplatesAsThemselves(void) { return mbTemplatesAsThemselves; }
+	bool				IsTemplatesAsThemselves(void) const;
 	void				SetRecordedEnum(const char* szQualifiedName);
-	char*				GetRecordedEnum(void) { return mszRecordedEnum.Text(); }
+	char*				GetRecordedEnum(void);
 	void				SetRecordedEnumType(SCPP65Type* psType) { mpsRecordedEnum = psType; }
-	SCPP65Type*			GetRecordedEnumType(void) { return mpsRecordedEnum; }
+	SCPP65Type*			GetRecordedEnumType(void) const;
 	bool				IsRecordedEnum(SCPP65Type* psType);
 	bool				RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind);
-	size				NumEnumCasts(void) { return masEnumCasts.NumElements(); }
+	size				NumEnumCasts(void) const;
 	SCPPEnumCast*		GetEnumCast(size uiIndex) { return masEnumCasts.Get(uiIndex); }
 
 	void				Typed(CCPPSyntax* pcExpression, SCPP65Type* psType);

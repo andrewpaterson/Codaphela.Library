@@ -54,10 +54,10 @@ struct SIRType
 	uint8	uiKind;
 	uint8	uiSpace;
 
-	bool	IsNone(void)		{ return uiKind == IRTK_None; }
-	bool	IsInteger(void)		{ return uiKind >= IRTK_I1 && uiKind <= IRTK_I64; }
-	bool	IsFloat(void)		{ return uiKind == IRTK_F32 || uiKind == IRTK_F64; }
-	bool	IsPointer(void)		{ return uiKind == IRTK_Pointer; }
+	bool	IsNone(void) const;
+	bool	IsInteger(void) const;
+	bool	IsFloat(void) const;
+	bool	IsPointer(void) const;
 	bool	Is(EIRTypeKind eKind)	{ return uiKind == eKind; }
 	bool	Equals(SIRType sOther)	{ return uiKind == sOther.uiKind && uiSpace == sOther.uiSpace; }
 	int		Bits(void);
@@ -101,10 +101,10 @@ struct SIRReference
 
 	EIRReferenceKind	Kind(void)		{ return (EIRReferenceKind)(uiValue >> IR_REFERENCE_INDEX_BITS); }
 	uint32				Index(void)		{ return uiValue & IR_REFERENCE_INDEX_MASK; }
-	bool				IsNone(void)	{ return uiValue == 0; }
-	bool				IsTemporary(void)	{ return Kind() == IRRK_Temporary; }
-	bool				IsConstant(void)	{ return Kind() == IRRK_Constant; }
-	bool				IsSymbol(void)		{ return Kind() == IRRK_Symbol; }
+	bool				IsNone(void) const;
+	bool				IsTemporary(void);
+	bool				IsConstant(void);
+	bool				IsSymbol(void);
 	bool				Equals(SIRReference sOther)	{ return uiValue == sOther.uiValue; }
 };
 

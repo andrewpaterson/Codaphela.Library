@@ -70,7 +70,7 @@ bool CCTString::IsString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTString::IsWide(void)
+bool CCTString::IsWide(void) const
 {
 	return (meEncoding == CTE_Wide) || (meEncoding == CTE_UTF16) || (meEncoding == CTE_UTF32);
 }
@@ -81,7 +81,7 @@ bool CCTString::IsWide(void)
 // A raw string, as R"(text)": its prefix ends with R.  [lex.string]
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTString::IsRaw(void)
+bool CCTString::IsRaw(void) const
 {
 	return IsRawString(mszStart);
 }

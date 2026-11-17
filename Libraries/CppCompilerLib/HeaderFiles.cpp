@@ -311,7 +311,7 @@ CHeaderFile* CHeaderFiles::FindOutside(char* szAbsoluteFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHeaderFiles::HasSubDirectories(void)
+bool CHeaderFiles::HasSubDirectories(void) const
 {
 	return mbSubDirectories;
 }
@@ -321,7 +321,7 @@ bool CHeaderFiles::HasSubDirectories(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CHeaderFiles::GetBaseDirectoryLength(void)
+size CHeaderFiles::GetBaseDirectoryLength(void) const
 {
 	return mszBaseDirectory.Length();
 }

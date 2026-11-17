@@ -78,12 +78,12 @@ public:
 	CCPPLazyLoader*				mpcLoader;	//Parses mpcLazy.
 
 	void	Init(int64 lliName, ECPPSymbolKind eKind, CCPPSyntax* pcDeclaration, CCPPScope* pcScope);
-	bool	IsType(void);
-	bool	IsTemplate(void);
+	bool	IsType(void) const;
+	bool	IsTemplate(void) const;
 	bool	HasTemplate(void);
-	bool	IsNamespace(void);
-	bool	IsClass(void);
-	bool	IsFunction(void);
+	bool	IsNamespace(void) const;
+	bool	IsClass(void) const;
+	bool	IsFunction(void) const;
 };
 
 

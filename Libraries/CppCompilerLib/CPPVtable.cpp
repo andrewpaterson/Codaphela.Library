@@ -549,3 +549,7 @@ void CCPPVtable::AddEntries(CArrayCPPVtableEntries* pasEntries, CArrayInt* paiVi
 		psEntry->iInVirtual = iInVirtual;
 	}
 }
+
+
+bool CCPPVtable::HasPointer(void) const { return miPointerOffset != -1; }
+bool CCPPVtable::IsPolymorphic(void) const { return (miPointerOffset != -1) || (macSecondaries.NumElements() > 0); }

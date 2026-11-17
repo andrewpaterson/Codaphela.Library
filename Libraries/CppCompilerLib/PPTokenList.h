@@ -35,7 +35,7 @@ public:
 	char*		Print(CChars* psz, bool bShowFileAndLine = false);
 	void		Add(CPPToken* ppcToken);
 	void		SavageAppend(CChars* psz, size iDepth);
-	size		NumTokens(void);
+	size		NumTokens(void) const;
 	CPPToken*	Get(size iTokenIndex);
 	void		Dump(void);
 };

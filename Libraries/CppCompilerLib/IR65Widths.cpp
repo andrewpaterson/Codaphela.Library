@@ -154,7 +154,7 @@ void CIR65Widths::Optimise(CChars* pszCode, size uiStart)
 // code as it was if not).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Widths::IsLoaded(void)
+bool CIR65Widths::IsLoaded(void) const
 {
 	return mcCode.IsLoaded();
 }

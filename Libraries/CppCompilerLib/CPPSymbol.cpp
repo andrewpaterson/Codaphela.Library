@@ -42,7 +42,7 @@ void CCPPSymbol::Init(int64 lliName, ECPPSymbolKind eKind, CCPPSyntax* pcDeclara
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSymbol::IsType(void)
+bool CCPPSymbol::IsType(void) const
 {
 	return (meKind == CPPSK_Class) || (meKind == CPPSK_Enum) || (meKind == CPPSK_Typedef) || (meKind == CPPSK_ClassTemplate) || (meKind == CPPSK_AliasTemplate) || (meKind == CPPSK_TypeParameter) || (meKind == CPPSK_BuiltinType) || (meKind == CPPSK_TemplateTemplateParameter);
 }
@@ -52,7 +52,7 @@ bool CCPPSymbol::IsType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSymbol::IsTemplate(void)
+bool CCPPSymbol::IsTemplate(void) const
 {
 	return (meKind == CPPSK_ClassTemplate) || (meKind == CPPSK_FunctionTemplate) || (meKind == CPPSK_AliasTemplate) || (meKind == CPPSK_VariableTemplate) || (meKind == CPPSK_TemplateTemplateParameter);
 }
@@ -82,7 +82,7 @@ bool CCPPSymbol::HasTemplate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSymbol::IsNamespace(void)
+bool CCPPSymbol::IsNamespace(void) const
 {
 	return meKind == CPPSK_Namespace;
 }
@@ -92,7 +92,7 @@ bool CCPPSymbol::IsNamespace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSymbol::IsClass(void)
+bool CCPPSymbol::IsClass(void) const
 {
 	return (meKind == CPPSK_Class) || (meKind == CPPSK_ClassTemplate);
 }
@@ -102,7 +102,7 @@ bool CCPPSymbol::IsClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSymbol::IsFunction(void)
+bool CCPPSymbol::IsFunction(void) const
 {
 	return (meKind == CPPSK_Function) || (meKind == CPPSK_FunctionTemplate);
 }

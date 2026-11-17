@@ -241,7 +241,7 @@ void CIRBlock::Unreachable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRBlock::HasJump(void)
+bool CIRBlock::HasJump(void) const
 {
 	return msJump.uiKind != IRJ_None;
 }
@@ -251,7 +251,7 @@ bool CIRBlock::HasJump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRBlock::NumSuccessors(void)
+size CIRBlock::NumSuccessors(void) const
 {
 	if (msJump.uiKind == IRJ_Jump)
 	{

@@ -46,7 +46,7 @@ void CConditionalStack::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CConditionalStack::IsParsing(void)
+bool CConditionalStack::IsParsing(void) const
 {
 	return mbParsing;
 }

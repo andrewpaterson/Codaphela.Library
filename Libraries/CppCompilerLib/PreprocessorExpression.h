@@ -31,7 +31,7 @@ struct SPPValue
 	bool	bUnsigned;
 
 	void	Init(uint64 ulliValue, bool bUnsigned);
-	bool	IsTrue(void);
+	bool	IsTrue(void) const;
 	int64	Signed(void);
 };
 

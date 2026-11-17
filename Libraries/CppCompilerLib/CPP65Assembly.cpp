@@ -103,7 +103,7 @@ void CCPP65Assembly::SetPieces(CArrayLargeTemplate<uint16>* pauiPieces)
 // No text and no functions (a unit all left out by #if).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Assembly::IsEmpty(void)
+bool CCPP65Assembly::IsEmpty(void) const
 {
 	return mszText.Empty() && (mauiPieces.NumElements() == 0);
 }

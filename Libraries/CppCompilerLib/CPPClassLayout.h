@@ -48,7 +48,7 @@ public:
 	void		Kill(void);
 
 	void		Layout(int iClassAlign);
-	int			GetBytes(void);
+	int			GetBytes(void) const;
 
 	static int	TypeAlignment(SCPP65Type* psType);
 	static int	PackAlignment(int iAlign, int iPack);

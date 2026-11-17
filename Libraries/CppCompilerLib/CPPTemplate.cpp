@@ -179,7 +179,7 @@ ECPPSyntax CCPPTemplate::DefinitionKind(void)
 // True if it is a class template declared but not (yet) defined.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTemplate::IsDeclaredClass(void)
+bool CCPPTemplate::IsDeclaredClass(void) const
 {
 	return mpcDefinition && (mpcDefinition->GetKind() == CPPS_ElaboratedTypeSpecifier);
 }
@@ -215,3 +215,7 @@ CCPPSyntaxDeclSpecifiers* CCPPTemplate::FunctionSpecifiers(void)
 	}
 	return mpcSpecifiers;
 }
+
+
+bool SCPPBinding::IsPack(void) const { return (papsPack != NULL) || (palliPack != NULL); }
+size SCPPBinding::PackSize(void) const { return papsPack ? papsPack->NumElements() : (palliPack ? palliPack->NumElements() : 0); }

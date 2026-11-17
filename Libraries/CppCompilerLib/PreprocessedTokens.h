@@ -78,9 +78,9 @@ struct SPreprocessedToken
 	void	Init(EPreprocessedTokenKind eKind, const char* szText, size uiLength, CSourceFile* pcFile, int iLine, int iColumn);
 	bool	Is(char* szText);
 	bool	IsPunctuator(char* szText);
-	bool	IsIdentifier(void);
-	bool	HasLeadingSpace(void);
-	bool	IsStartOfLine(void);
+	bool	IsIdentifier(void) const;
+	bool	HasLeadingSpace(void) const;
+	bool	IsStartOfLine(void) const;
 	void	Append(CChars* psz);
 };
 
@@ -173,20 +173,20 @@ public:
 	void					SetMallocators(SPreprocessedTokensMallocators* psMallocators);
 
 	SPreprocessedToken*		Add(SPreprocessedToken* psToken);
-	size					NumTokens(void);
+	size					NumTokens(void) const;
 	SPreprocessedToken*		Get(size iIndex);
 
 	int						AddExpansion(const char* szName, size uiNameLength, CSourceFile* pcFile, int iLine, int iColumn, int iParent);
-	size					NumExpansions(void);
+	size					NumExpansions(void) const;
 	SMacroExpansion*		GetExpansion(size iIndex);
 
 	void					AddInactiveLine(CSourceFile* pcFile, int iLine);
 	void					AddInactiveLines(CSourceFile* pcFile, int iStartLine, int iEndLine);
-	size					NumInactiveRegions(void);
+	size					NumInactiveRegions(void) const;
 	SInactiveRegion*		GetInactiveRegion(size iIndex);
 
 	void					AddDirectiveLine(CSourceFile* pcFile, int iLine, bool bActive);
-	size					NumDirectiveLines(void);
+	size					NumDirectiveLines(void) const;
 	SDirectiveLine*			GetDirectiveLine(size iIndex);
 
 	void					AddLineDirective(CSourceFile* pcFile, int iLine, int iOffset, const char* szQuotedName);

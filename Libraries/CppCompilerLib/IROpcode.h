@@ -167,7 +167,7 @@ struct SIROpcode
 	uint8		uiSwapped;			//The comparison of the operands the other way round.
 	uint8		uiHolds;			//IRCH_ set of the orders it holds for.
 
-	int			NumOperands(void);
+	int			NumOperands(void) const;
 };
 
 

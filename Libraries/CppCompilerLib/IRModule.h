@@ -137,7 +137,7 @@ public:
 	uint8			AddSpace(const char* szName, int iPointerBytes);
 	uint8			AddDefaultSpace(int iPointerBytes = IR_DEFAULT_POINTER_BYTES);
 	int				FindSpace(const char* szName);
-	size			NumSpaces(void);
+	size			NumSpaces(void) const;
 	char*			GetSpaceName(uint8 uiSpace);
 	int				GetPointerSize(uint8 uiSpace);
 	int				GetSize(SIRType sType);
@@ -148,7 +148,7 @@ public:
 	SIRReference	Symbol(const char* szName);
 	void			SetRestrict(uint32 uiSymbol);
 	bool			IsRestrict(uint32 uiSymbol);
-	bool			HasRestrict(void);
+	bool			HasRestrict(void) const;
 	void			SetLocal(uint32 uiSymbol);
 	bool			IsLocal(uint32 uiSymbol);
 	void			SetRegisterCall(uint32 uiSymbol);
@@ -160,12 +160,12 @@ public:
 	CIRFunction*	FindFunction(uint32 uiSymbol);
 	CIRFunction*	CopyFunction(CIRFunction* pcFunction, const char* szName);
 	void			RemoveFunction(CIRFunction* pcFunction);
-	size			NumFunctions(void);
+	size			NumFunctions(void) const;
 	CIRFunction*	GetFunction(size uiIndex);
 
 	CIRGlobal*		AddGlobal(const char* szName, uint32 uiAlign = 1, uint32 uiAttributes = 0);
 	CIRGlobal*		FindGlobal(uint32 uiSymbol);
-	size			NumGlobals(void);
+	size			NumGlobals(void) const;
 	CIRGlobal*		GetGlobal(size uiIndex);
 	bool			IsDefined(uint32 uiSymbol);
 

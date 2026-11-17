@@ -334,7 +334,7 @@ int CIRModule::FindSpace(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRModule::NumSpaces(void)
+size CIRModule::NumSpaces(void) const
 {
 	return maszSpaces.NumElements();
 }
@@ -477,7 +477,7 @@ bool CIRModule::IsRestrict(uint32 uiSymbol)
 // True if some symbol is restrict.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRModule::HasRestrict(void)
+bool CIRModule::HasRestrict(void) const
 {
 	return muiNumRestrict != 0;
 }
@@ -641,7 +641,7 @@ CIRFunction* CIRModule::FindFunction(uint32 uiSymbol)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRModule::NumFunctions(void)
+size CIRModule::NumFunctions(void) const
 {
 	return mapcFunctions.NumElements();
 }
@@ -739,7 +739,7 @@ CIRGlobal* CIRModule::FindConstantData(uint32 uiSymbol)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRModule::NumGlobals(void)
+size CIRModule::NumGlobals(void) const
 {
 	return mapcGlobals.NumElements();
 }

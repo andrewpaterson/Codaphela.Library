@@ -49,7 +49,7 @@ public:
 	void	PassOut(size uiBlock, SIRReference sValue);
 	void	Solve(void);
 
-	size	NumWords(void);
+	size	NumWords(void) const;
 	uint32*	LiveIn(size uiBlock);
 	uint32*	LiveOut(size uiBlock);
 	bool	IsLiveIn(size uiBlock, size uiTemporary);

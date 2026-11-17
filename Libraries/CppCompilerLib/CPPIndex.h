@@ -217,7 +217,7 @@ public:
 	void	Init(const char* szKey, ECPPSymbolKind eKind);
 	void	Kill(void);
 
-	size				NumLocations(void);
+	size				NumLocations(void) const;
 	SCPPIndexLocation*	GetLocation(size uiIndex);
 	SCPPIndexLocation*	GetDefinition(void);
 	SCPPIndexLocation*	GetDeclaration(void);
@@ -254,13 +254,13 @@ public:
 	void				Merge(CCPPIndexUnit* pcUnit);
 	void				RemoveFile(const char* szFileName);
 
-	size				NumSymbols(void);
+	size				NumSymbols(void) const;
 	CCPPIndexSymbol*	GetSymbol(size uiIndex);
 	CCPPIndexSymbol*	FindSymbol(const char* szKey);
 	CCPPIndexSymbol*	FindSymbolAt(const char* szFileName, int iLine, int iColumn);
 	bool				FindOverrides(CCPPIndexSymbol* pcFunction, CArrayInt* paiDest);
 	size				FindFamily(CCPPIndexSymbol* pcSymbol, CArrayInt* paiDest, SCPPIndexLocation* psWhere = NULL);
-	size				NumFiles(void);
+	size				NumFiles(void) const;
 	char*				GetFileName(size uiFile);
 	char*				Print(CChars* pszDest);
 

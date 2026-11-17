@@ -615,7 +615,7 @@ bool CPreprocessorTokenParser::AppendRemaining(CChars* psz, CPPTokenListHolder* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorTokenParser::HasToken(void)
+bool CPreprocessorTokenParser::HasToken(void) const
 {
 	return mpsCurrent->pcCurrentToken != NULL;
 }
@@ -625,7 +625,7 @@ bool CPreprocessorTokenParser::HasToken(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessorTokenParser::GetToken(void)
+CPPToken* CPreprocessorTokenParser::GetToken(void) const
 {
 	return mpsCurrent->pcCurrentToken;
 }

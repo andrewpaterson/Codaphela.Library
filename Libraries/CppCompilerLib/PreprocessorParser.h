@@ -56,17 +56,17 @@ public:
 	void	StepLeft(void);
 	void	SkipWhitespace(void);
 	void	TestEnd(void);
-	bool	IsWhitespace(void);
+	bool	IsWhitespace(void) const;
 	void	SkipCStyleComment(void);
 	void	SkipCPPStyleComment(void);
-	bool	IsFirstIdentifier(void);
-	bool	IsDigit(void);
+	bool	IsFirstIdentifier(void) const;
+	bool	IsDigit(void) const;
 	void	SkipNewLine(void);
 	int		CalculateColumn(void);
 	void	BackupNewLine(void);
-	bool	IsNewLine(void);
-	char*	GetPos(void);
-	char*	GetEnd(void);
+	bool	IsNewLine(void) const;
+	char*	GetPos(void) const;
+	char*	GetEnd(void) const;
 	void	Dump(void);
 };
 

@@ -175,7 +175,7 @@ char* CVisualStudioProject::GetDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CVisualStudioProject::NumSources(void)
+size CVisualStudioProject::NumSources(void) const
 {
 	return maszSources.NumElements();
 }

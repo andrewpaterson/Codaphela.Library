@@ -86,7 +86,7 @@ public:
 	void				FindNarrowOnly(void);
 	const char*			RegisterName(SIR65Place* psPlace);
 	bool				IsFrameOperand(CChars* pszOperand);
-	bool				IsLeaf(void);
+	bool				IsLeaf(void) const;
 	bool				ArgumentsReadFirst(void);
 	bool				IsArrivalPlace(SIRReference sValue);
 };

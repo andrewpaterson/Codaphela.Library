@@ -39,8 +39,8 @@ public:
 
 	CCPPScope*		CreateScope(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwner);
 	CCPPSymbol*		CreateSymbol(int64 lliName, ECPPSymbolKind eKind, CCPPSyntax* pcDeclaration, CCPPScope* pcScope);
-	CCPPScope*		GetGlobalScope(void);
-	size			NumScopes(void);
+	CCPPScope*		GetGlobalScope(void) const;
+	size			NumScopes(void) const;
 	void			RollbackScopes(size uiScopes);
 };
 

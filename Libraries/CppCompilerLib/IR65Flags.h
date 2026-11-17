@@ -64,7 +64,7 @@ public:
 	void	Kill(void);
 
 	void	Optimise(CChars* pszCode, size uiStart);
-	bool	IsLoaded(void);
+	bool	IsLoaded(void) const;
 
 protected:
 	void	ComputeStates(void);

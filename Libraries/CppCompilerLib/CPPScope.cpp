@@ -501,7 +501,7 @@ CCPPScope* CCPPScope::GetEnclosingNamespace(void)
 // has no parent.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPScope::IsUnnamedNamespace(void)
+bool CCPPScope::IsUnnamedNamespace(void) const
 {
 	return (meKind == CPPSC_Namespace) && mpcParent && !mpcOwner;
 }
@@ -888,7 +888,7 @@ void CCPPOverloadScopes::AddBefore(CCPPScope* pcScope, int iBefore)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPOverloadScopes::NumElements(void)
+size CCPPOverloadScopes::NumElements(void) const
 {
 	return mapcScopes.NumElements();
 }

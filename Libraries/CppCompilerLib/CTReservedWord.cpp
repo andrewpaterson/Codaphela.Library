@@ -75,7 +75,7 @@ bool CCTReservedWord::Is(ECppTokens eToken)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECppTokens CCTReservedWord::GetToken(void)
+ECppTokens CCTReservedWord::GetToken(void) const
 {
 	return (ECppTokens)miReservedWord;
 }

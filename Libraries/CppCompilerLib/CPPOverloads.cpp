@@ -2059,3 +2059,5 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 	return bTakes;
 }
 
+
+size CCPPCandidates::NumElements(void) const { return masCandidates.NumElements(); }

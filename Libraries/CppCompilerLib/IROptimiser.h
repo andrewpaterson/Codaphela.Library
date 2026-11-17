@@ -116,7 +116,7 @@ public:
 	void			SetDivideRemainders(uint32 uiDivideRemainders);
 	void			SetProfile(CIRInlineProfile* pcProfile);
 	void			SetPipeline(CIRPipeline* pcPipeline);
-	CIRPipeline*	GetPipeline(void);
+	CIRPipeline*	GetPipeline(void) const;
 	bool			Optimise(CIRFunction* pcFunction);
 	bool			WritesMemory(CIRFunction* pcFunction);
 

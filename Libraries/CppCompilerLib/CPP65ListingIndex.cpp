@@ -608,12 +608,12 @@ void CCPP65ListingIndex::NormaliseFile(CChars* pszFile)
 }
 
 
-size CCPP65ListingIndex::NumListings(void) { return masListings.NumElements(); }
+size CCPP65ListingIndex::NumListings(void) const { return masListings.NumElements(); }
 char* CCPP65ListingIndex::GetListingName(size uiListing) { return masListings.Get(uiListing)->szName.Text(); }
 size CCPP65ListingIndex::NumListingLines(size uiListing) { return masListings.Get(uiListing)->auiLineStarts.NumElements(); }
-size CCPP65ListingIndex::NumFiles(void) { return maszFiles.NumElements(); }
+size CCPP65ListingIndex::NumFiles(void) const { return maszFiles.NumElements(); }
 char* CCPP65ListingIndex::GetFile(size uiFile) { return maszFiles.GetText(uiFile); }
 char* CCPP65ListingIndex::GetFunction(size uiFunction) { return maszFunctions.GetText(uiFunction); }
-size CCPP65ListingIndex::NumRanges(void) { return masRanges.NumElements(); }
+size CCPP65ListingIndex::NumRanges(void) const { return masRanges.NumElements(); }
 SCPP65ListingRange* CCPP65ListingIndex::GetRange(size uiRange) { Sort(); return masRanges.Get(uiRange); }
 

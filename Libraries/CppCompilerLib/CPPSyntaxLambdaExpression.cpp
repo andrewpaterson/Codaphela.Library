@@ -100,7 +100,7 @@ void CCPPSyntaxLambdaExpression::VisitFields(CCPPSyntaxFields* pcFields)
 // can be changed, and its operator() is not const.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSyntaxLambdaExpression::IsMutable(void)
+bool CCPPSyntaxLambdaExpression::IsMutable(void) const
 {
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntax*					pcQualifier;

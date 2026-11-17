@@ -61,7 +61,7 @@ public:
 	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool	Is(EPreprocessorDirective eType);
-	bool	IsConditional(void);
+	bool	IsConditional(void) const;
 	bool	NeedsNewLine(void);
 };
 

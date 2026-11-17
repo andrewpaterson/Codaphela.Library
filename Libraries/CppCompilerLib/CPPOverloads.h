@@ -60,7 +60,7 @@ public:
 
 	int*			NextRanks(void);
 	void			Add(CCPPFunction* pcFunction, CCPPTemplate* pcTemplate);
-	size			NumElements(void) { return masCandidates.NumElements(); }
+	size			NumElements(void) const;
 	CCPPFunction*	GetFunction(size uiIndex) { return masCandidates.Get(uiIndex)->pcFunction; }
 	CCPPTemplate*	GetTemplate(size uiIndex) { return masCandidates.Get(uiIndex)->pcTemplate; }
 	int				Compare(size uiFirst, size uiSecond);

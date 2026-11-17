@@ -127,7 +127,7 @@ public:
 	void			Kill(void);
 
 	bool			Load(CChars* pszCode, size uiStart, bool bConflicts);
-	bool			IsLoaded(void);
+	bool			IsLoaded(void) const;
 
 	size			NumLines(void) override;
 	EIRCodeFlow		Flow(size uiLine) override;

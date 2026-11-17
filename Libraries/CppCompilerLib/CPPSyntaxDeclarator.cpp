@@ -96,7 +96,7 @@ void CCPPSyntaxDeclarator::PrettyPrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSyntaxDeclarator::IsEmpty(void)
+bool CCPPSyntaxDeclarator::IsEmpty(void) const
 {
 	return (macpPrefix.NumElements() == 0) && !mbPack && (mpcName == NULL) && (mpcNested == NULL) && (macpSuffixes.NumElements() == 0) && (macpAttributes.NumElements() == 0);
 }
@@ -140,7 +140,7 @@ CCPPSyntaxFunctionSuffix* CCPPSyntaxDeclarator::GetFunctionSuffix(void)
 // or suffixes change what the declarator outside it declares.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSyntaxDeclarator::IsParenthesisedName(void)
+bool CCPPSyntaxDeclarator::IsParenthesisedName(void) const
 {
 	if ((macpPrefix.NumElements() != 0) || (macpSuffixes.NumElements() != 0))
 	{
@@ -164,7 +164,7 @@ bool CCPPSyntaxDeclarator::IsFunction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxName* CCPPSyntaxDeclarator::GetName(void)
+CCPPSyntaxName* CCPPSyntaxDeclarator::GetName(void) const
 {
 	if (mpcName)
 	{

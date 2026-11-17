@@ -42,12 +42,12 @@ public:
 
 	bool				Remove(const char* szText, const char* szLastCharInclusive = NULL);
 
-	int					NumElements(void);
+	int					NumElements(void) const;
 
 	int64				StartIteration(SIndexTreeMemoryUnsafeIterator* psIter);
 	int64				Iterate(SIndexTreeMemoryUnsafeIterator* psIter);
 
-	bool				IsEmpty(void);
+	bool				IsEmpty(void) const;
 	bool				Contains(char* szText);
 };
 

@@ -669,7 +669,7 @@ CCPPErrors* CCPPTokeniser::GetErrors(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CCPPTokeniser::NumTokens(void)
+size CCPPTokeniser::NumTokens(void) const
 {
 	return mcTokens.NumElements();
 }

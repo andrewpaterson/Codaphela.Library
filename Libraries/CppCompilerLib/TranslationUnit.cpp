@@ -131,7 +131,7 @@ bool CTranslationUnit::IsSystemFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-STULog* CTranslationUnit::GetLogs(void)
+STULog* CTranslationUnit::GetLogs(void) const
 {
 	return mpcLogs;
 }
@@ -141,7 +141,7 @@ STULog* CTranslationUnit::GetLogs(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLibrary* CTranslationUnit::GetLibrary(void)
+CLibrary* CTranslationUnit::GetLibrary(void) const
 {
 	return mpcLibrary;
 }

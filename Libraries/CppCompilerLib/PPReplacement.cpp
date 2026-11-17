@@ -111,7 +111,7 @@ bool CPPReplacement::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPReplacement::IsVariadic(void)
+bool CPPReplacement::IsVariadic(void) const
 {
 	return mbVariadic;
 }

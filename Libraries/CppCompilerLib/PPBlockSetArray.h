@@ -37,7 +37,7 @@ public:
 	void 				Init(void);
 	void				Kill(void);
 	void				RawProcessed(void);
-	bool				IsRawProcessed(void);
+	bool				IsRawProcessed(void) const;
 	CPPBlockSet*		Add(int iLine, bool bTextBlocks);
 	void				Print(CChars* psz);
 	void				Dump(void);

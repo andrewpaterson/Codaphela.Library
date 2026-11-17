@@ -48,8 +48,8 @@ struct SCPPBinding
 	bool							bSelf;		//The parameter stands for itself (CCPPUnit::BindAsItself): its type is a
 												//placeholder that is written as its name, and its value isn't known.
 
-	bool	IsPack(void) { return (papsPack != NULL) || (palliPack != NULL); }
-	size	PackSize(void) { return papsPack ? papsPack->NumElements() : (palliPack ? palliPack->NumElements() : 0); }
+	bool	IsPack(void) const;
+	size	PackSize(void) const;
 };
 
 
@@ -131,7 +131,7 @@ public:
 	void	Kill(void);
 
 	ECPPSyntax	DefinitionKind(void);
-	bool		IsDeclaredClass(void);
+	bool		IsDeclaredClass(void) const;
 
 	CCPPSyntaxDeclarator*		FunctionDeclarator(void);
 	CCPPSyntaxDeclSpecifiers*	FunctionSpecifiers(void);

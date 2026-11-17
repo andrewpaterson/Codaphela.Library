@@ -100,13 +100,13 @@ public:
 	bool			Missed(CArrayChars* paszNotFound);
 	void			SetResume(IRImportsResume fResume, void* pvContext);
 	EIRArrival		Arrive(size uiTurn, void* pvUnit, CArrayChars* paszNotFound);
-	size			NumMissed(void);
-	size			NumStale(void);
+	size			NumMissed(void) const;
+	size			NumStale(void) const;
 	void			SetForceMisses(bool bForceMisses);
 
 	bool			Export(CIRModule* pcModule, CIRFunction* pcFunction);
 	CIRFunction*	Find(const char* szName);
-	size			NumFunctions(void);
+	size			NumFunctions(void) const;
 	CIRModule*		GetModule(void);
 
 protected:

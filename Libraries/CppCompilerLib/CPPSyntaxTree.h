@@ -80,16 +80,16 @@ public:
 	void						Init(CCPPTokeniser* pcTokeniser, SCPPSyntaxTreeMallocators* psMallocators = NULL);
 	void						Kill(void);
 
-	CCPPTokeniser*				GetTokeniser(void);
+	CCPPTokeniser*				GetTokeniser(void) const;
 	CCPPSyntaxMemory*			GetMemory(void);
-	CMallocator*				GetNodeArrayMallocator(void);
+	CMallocator*				GetNodeArrayMallocator(void) const;
 	CMallocator*				GetBlockReadingMallocator(size uiArray);
 	CCPPSymbolTable*			GetSymbols(void);
-	CCPPSyntaxTranslationUnit*	GetRoot(void);
+	CCPPSyntaxTranslationUnit*	GetRoot(void) const;
 	void						SetRoot(CCPPSyntaxTranslationUnit* pcRoot);
 
 	CCPPErrors*					GetErrors(void);
-	size						NumErrors(void);
+	size						NumErrors(void) const;
 	char*						GetError(size iIndex);
 	int							GetErrorToken(size iIndex);
 

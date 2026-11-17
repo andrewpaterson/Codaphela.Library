@@ -45,7 +45,7 @@ public:
 	void 				Init(int iLine, int iBlock, bool bTextBlocks);
 	void 				Kill(void);
 	void				AddBlock(CPPBlock* pcBlock);
-	bool				IsDirective(void);
+	bool				IsDirective(void) const;
 	CPPTokenList*		GetUnprocssedTokens(void);
 	int					Line(void);
 	int					Column(void);

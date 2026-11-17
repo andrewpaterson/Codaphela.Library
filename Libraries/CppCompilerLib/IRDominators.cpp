@@ -358,7 +358,7 @@ bool CIRDominators::IsBackEdge(CIRBlock* pcFrom, CIRBlock* pcHead)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIRDominators::NumReachable(void)
+size CIRDominators::NumReachable(void) const
 {
 	return mapcReversePostOrder.NumElements();
 }

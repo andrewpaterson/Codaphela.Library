@@ -84,7 +84,7 @@ void CCPPCompileOptions::SetAssemblyUnits(bool bAssemblyUnits)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPCompileOptions::PrefersSize(void)
+bool CCPPCompileOptions::PrefersSize(void) const
 {
 	return mePrefer == CPPP_Size;
 }
