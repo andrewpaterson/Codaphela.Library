@@ -300,6 +300,7 @@
     <ClCompile Include="TestFindInFilesDialog.cpp" />
     <ClCompile Include="TestCaretBlink.cpp" />
     <ClCompile Include="TestNumberField.cpp" />
+    <ClCompile Include="TestNodeEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\InputLib\InputLib.vcxproj">

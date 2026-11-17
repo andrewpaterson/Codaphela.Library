@@ -112,6 +112,9 @@
     <Filter Include="Source\Component\Widgets\Number Field">
       <UniqueIdentifier>{091c81c0-5672-47df-be56-41bdbcaf49a0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Widgets\Node Editor">
+      <UniqueIdentifier>{d5b393ea-f8d6-4673-a84e-1b32d4e71871}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NativeSoundFactory.h">
@@ -543,6 +546,12 @@
     <ClInclude Include="CelCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
+    <ClInclude Include="NodeBox.h">
+      <Filter>Source\Component\Widgets\Node Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeEditor.h">
+      <Filter>Source\Component\Widgets\Node Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeSoundFactory.cpp">
@@ -946,6 +955,12 @@
     </ClCompile>
     <ClCompile Include="CelCanvasDraw.cpp">
       <Filter>Source\Image\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeBox.cpp">
+      <Filter>Source\Component\Widgets\Node Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeEditor.cpp">
+      <Filter>Source\Component\Widgets\Node Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

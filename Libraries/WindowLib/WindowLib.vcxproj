@@ -335,6 +335,8 @@
     <ClInclude Include="JewelColours.h" />
     <ClInclude Include="NumberField.h" />
     <ClInclude Include="CelCanvasDraw.h" />
+    <ClInclude Include="NodeBox.h" />
+    <ClInclude Include="NodeEditor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComponentInput.cpp" />
@@ -471,6 +473,8 @@
     <ClCompile Include="JewelTheme.cpp" />
     <ClCompile Include="NumberField.cpp" />
     <ClCompile Include="CelCanvasDraw.cpp" />
+    <ClCompile Include="NodeBox.cpp" />
+    <ClCompile Include="NodeEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Container.txt" />
