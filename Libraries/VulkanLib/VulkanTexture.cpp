@@ -90,6 +90,6 @@ bool CVulkanTexture::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-VkDescriptorSet CVulkanTexture::GetSet(void) { return msTexture.hSet; }
-OIndex CVulkanTexture::GetImageIndex(void) { return moiImage; }
+VkDescriptorSet CVulkanTexture::GetSet(void) const { return msTexture.hSet; }
+OIndex CVulkanTexture::GetImageIndex(void) const { return moiImage; }
 

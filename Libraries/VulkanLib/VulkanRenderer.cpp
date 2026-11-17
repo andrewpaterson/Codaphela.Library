@@ -885,7 +885,7 @@ Ptr<CVulkanTexture> CVulkanRenderer::GetTexture(CMaterialImage* pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-VkDescriptorSet CVulkanRenderer::GetWhite(void)
+VkDescriptorSet CVulkanRenderer::GetWhite(void) const
 {
 	return msWhite.hSet;
 }
@@ -1481,7 +1481,7 @@ void CVulkanRenderer::Draw(SVulkanDraw* psDraw, bool bMirrored, uint32 uiFirstIn
 // The frame's commands, for its meshes to bind their buffers.
 //
 //////////////////////////////////////////////////////////////////////////
-VkCommandBuffer CVulkanRenderer::GetCommands(void)
+VkCommandBuffer CVulkanRenderer::GetCommands(void) const
 {
 	return mhCommands;
 }
@@ -1535,8 +1535,8 @@ bool CVulkanRenderer::EndFrame(uint32* puiPixels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CVulkanRenderer::IsReady(void) { return mbReady; }
+bool CVulkanRenderer::IsReady(void) const { return mbReady; }
 const char* CVulkanRenderer::GetDeviceName(void) { return mszDeviceName.Text(); }
 CVulkanFunctions* CVulkanRenderer::GetFunctions(void) { return &mcVulkan; }
-VkDevice CVulkanRenderer::GetDevice(void) { return mhDevice; }
+VkDevice CVulkanRenderer::GetDevice(void) const { return mhDevice; }
 

@@ -154,15 +154,15 @@ public:
 	void				Class(void) override;
 	void				Free(void) override;
 
-	bool				IsReady(void);
+	bool				IsReady(void) const;
 	const char*			GetDeviceName(void);
 	CVulkanFunctions*	GetFunctions(void);
-	VkDevice			GetDevice(void);
+	VkDevice			GetDevice(void) const;
 
 	bool				CreateBuffer(SVulkanBuffer* psBuffer, VkDeviceSize uiSize, VkBufferUsageFlags uiUsage);
 	void				DestroyBuffer(SVulkanBuffer* psBuffer);
 	Ptr<CVulkanTexture>	GetTexture(CMaterialImage* pcImage);  //NULL for none: the mesh is drawn with GetWhite.
-	VkDescriptorSet		GetWhite(void);
+	VkDescriptorSet		GetWhite(void) const;
 	size				NumTextures(void);  //Those some mesh still holds.
 	VkDescriptorSet		AllocateSkin(SVulkanBuffer* psVertices, SVulkanBuffer* psWeights);
 	void				FreeSkin(VkDescriptorSet hSkin);
@@ -170,7 +170,7 @@ public:
 	bool				AddPalette(float32* paf4x4s, uint32 uiNumMatrices, uint32* puiOffset);
 
 	bool				BeginFrame(int32 iWidth, int32 iHeight, uint32 uiBackground, SVulkanFrameData* psFrame);
-	VkCommandBuffer		GetCommands(void);
+	VkCommandBuffer		GetCommands(void) const;
 	void				UseOpaque(void);
 	void				UseTransparent(void);
 	void				UseTexture(VkDescriptorSet hTexture);

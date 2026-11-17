@@ -223,10 +223,10 @@ void CVulkanRenderMesh::Bind(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CVulkanRenderMesh::IsDrawable(void) { return mbMade; }
-bool CVulkanRenderMesh::IsSkinned(void) { return mhSkin != VK_NULL_HANDLE; }
-uint32 CVulkanRenderMesh::NumMatrices(void) { return muiNumMatrices; }
-VkDescriptorSet CVulkanRenderMesh::GetSkin(void) { return mhSkin; }
-size CVulkanRenderMesh::NumSubmeshes(void) { return masSubmeshes.NumElements(); }
+bool CVulkanRenderMesh::IsDrawable(void) const { return mbMade; }
+bool CVulkanRenderMesh::IsSkinned(void) const { return mhSkin != VK_NULL_HANDLE; }
+uint32 CVulkanRenderMesh::NumMatrices(void) const { return muiNumMatrices; }
+VkDescriptorSet CVulkanRenderMesh::GetSkin(void) const { return mhSkin; }
+size CVulkanRenderMesh::NumSubmeshes(void) const { return masSubmeshes.NumElements(); }
 SVulkanSubmesh* CVulkanRenderMesh::GetSubmesh(size uiIndex) { return masSubmeshes.Get(uiIndex); }
 

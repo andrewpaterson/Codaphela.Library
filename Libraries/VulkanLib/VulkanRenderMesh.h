@@ -74,12 +74,12 @@ public:
 	void			Class(void) override;
 	void			Free(void) override;
 
-	bool			IsDrawable(void);
-	bool			IsSkinned(void);
-	uint32			NumMatrices(void);
-	VkDescriptorSet	GetSkin(void);
+	bool			IsDrawable(void) const;
+	bool			IsSkinned(void) const;
+	uint32			NumMatrices(void) const;
+	VkDescriptorSet	GetSkin(void) const;
 	void			Bind(void);
-	size			NumSubmeshes(void);
+	size			NumSubmeshes(void) const;
 	SVulkanSubmesh*	GetSubmesh(size uiIndex);
 
 protected:

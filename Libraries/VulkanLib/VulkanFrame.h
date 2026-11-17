@@ -80,7 +80,7 @@ public:
 	bool	Extract(int32 iWidth, int32 iHeight);
 	bool	Draw(uint32* puiPixels, int32 iWidth, int32 iHeight, uint32 uiBackground);
 
-	size	NumInstances(void);
+	size	NumInstances(void) const;
 
 protected:
 	void	ExtractInstances(void);

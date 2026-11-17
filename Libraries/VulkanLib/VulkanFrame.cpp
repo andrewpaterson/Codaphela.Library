@@ -510,7 +510,7 @@ bool CVulkanFrame::Draw(uint32* puiPixels, int32 iWidth, int32 iHeight, uint32 u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CVulkanFrame::NumInstances(void)
+size CVulkanFrame::NumInstances(void) const
 {
 	return masInstances.NumElements();
 }

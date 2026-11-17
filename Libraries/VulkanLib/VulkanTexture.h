@@ -45,8 +45,8 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
-	VkDescriptorSet	GetSet(void);
-	OIndex			GetImageIndex(void);
+	VkDescriptorSet	GetSet(void) const;
+	OIndex			GetImageIndex(void) const;
 };
 
 
