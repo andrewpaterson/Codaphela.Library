@@ -1046,7 +1046,7 @@ void TestMenuTreeContextMenu(void)
 		pTestWindow->Layout();
 
 		//The right button on the second row selects it, then opens the menu at the pointer.
-		AssertTrue(pTree->GetTrackBounds(false, 1, &iTop, &iHeight));
+		AssertTrue(pTree->GetRowBounds(1, &iTop, &iHeight));
 		MoveTo(pTestWindow, SInt32Vec2(20, iTop + 2));
 		pTestWindow->InputCommand(CIC_ContextMenu, true);
 		AssertInt(iSecond, pTree->GetSelectedNode());
@@ -1072,7 +1072,7 @@ void TestMenuTreeContextMenu(void)
 		//The Menu key opens it under the selected row, at the tree's left.
 		pTree->SelectNode(iFirst);
 		pTestWindow->Layout();
-		AssertTrue(pTree->GetTrackBounds(false, 0, &iTop, &iHeight));
+		AssertTrue(pTree->GetRowBounds(0, &iTop, &iHeight));
 		pTestWindow->InputCommand(CIC_ContextMenuKey, true);
 		AssertTrue(pMenu->IsOpen());
 		pPopup = pTestWindow->GetPopup(pMenu);

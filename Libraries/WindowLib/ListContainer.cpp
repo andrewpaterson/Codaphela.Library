@@ -525,18 +525,29 @@ void CListContainer::Activate(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CListContainer::FindRowAt(int x, int y)
 {
-	uint32	i;
-	int32	iTop;
-	int32	iHeight;
-
 	if (!IsPointIn(x, y))
 	{
 		return -1;
 	}
+	return FindRowAtY(y);
+}
 
-	for (i = 0; i < (uint32)NumRows(); i++)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The row y, in window client space, is in, -1 for none.  The grid's rows
+// as they were laid out last.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CListContainer::FindRowAtY(int32 y)
+{
+	int32	i;
+	int32	iTop;
+	int32	iHeight;
+
+	for (i = 0; i < NumRows(); i++)
 	{
-		if (GetTrackBounds(false, (size)i, &iTop, &iHeight))
+		if (GetRowBounds(i, &iTop, &iHeight))
 		{
 			if ((y >= iTop) && (y < iTop + iHeight))
 			{
@@ -545,6 +556,46 @@ int32 CListContainer::FindRowAt(int x, int y)
 		}
 	}
 	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where iRow starts and how tall it is, in window client space: the
+// grid's row as it was laid out last.  False if there was no such row.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::GetRowBounds(int32 iRow, int32* piTop, int32* piHeight)
+{
+	if (iRow < 0)
+	{
+		return false;
+	}
+	return GetTrackBounds(false, (size)iRow, piTop, piHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For a list whose rows aren't the grid's: it has iNumRows rows, every
+// one enabled and none selected, as if they had all been removed and
+// added again.  The selected row is the caller's to carry over.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::SetNumRows(int32 iNumRows)
+{
+	int32	i;
+
+	miHover = -1;
+	mbPressed = false;
+	msDoubleClick.Forget();
+	mabEnabled.ReInit();
+	mabSelected.ReInit();
+	for (i = 0; i < iNumRows; i++)
+	{
+		mabEnabled.Add(true);
+		mabSelected.Add(false);
+	}
 }
 
 
@@ -751,7 +802,7 @@ SInt32Vec2 CListContainer::GetContextMenuPosition(void)
 	int32		iHeight;
 
 	sPosition = GetPosition();
-	if ((miSelected >= 0) && GetTrackBounds(false, (size)miSelected, &iTop, &iHeight))
+	if ((miSelected >= 0) && GetRowBounds(miSelected, &iTop, &iHeight))
 	{
 		sPosition.y = iTop + iHeight;
 	}
@@ -978,7 +1029,7 @@ void CListContainer::UpdateHighlights(void)
 		mpSelectedBands->ClearBands();
 		for (i = 0; i < NumRows(); i++)
 		{
-			if (mabSelected.Get(i) && GetTrackBounds(false, (size)i, &iTop, &iHeight))
+			if (mabSelected.Get(i) && GetRowBounds(i, &iTop, &iHeight))
 			{
 				mpSelectedBands->AddBand(iTop - GetPosition().y, iHeight);
 			}
@@ -1005,7 +1056,7 @@ void CListContainer::ShowRow(int32 iRow)
 	int32		iHeight;
 	CInt32Rect	cRow;
 
-	if ((iRow >= 0) && GetTrackBounds(false, (size)iRow, &iTop, &iHeight))
+	if ((iRow >= 0) && GetRowBounds(iRow, &iTop, &iHeight))
 	{
 		cRow.Init(GetPosition().x, iTop, GetPosition().x + GetActualSize().x, iTop + iHeight);
 		ScrollToShow(&cRow);
@@ -1028,7 +1079,7 @@ void CListContainer::LayoutHighlight(Ptr<CCanvas> pHighlight, int32 iRow)
 	SInt32Vec2	sPosition;
 	SInt32Vec2	sSize;
 
-	if ((iRow >= 0) && GetTrackBounds(false, (size)iRow, &iTop, &iHeight))
+	if ((iRow >= 0) && GetRowBounds(iRow, &iTop, &iHeight))
 	{
 		sPosition.Init(GetPosition().x, iTop);
 		sSize.Init(GetActualSize().x, iHeight);
@@ -1092,7 +1143,7 @@ int32 CListContainer::GetPageRows(void)
 	int32		iHeight;
 	int32		iPage;
 
-	if (GetScrollView(&cView) && GetTrackBounds(false, (miSelected < 0) ? 0 : (size)miSelected, &iTop, &iHeight) && (iHeight > 0))
+	if (GetScrollView(&cView) && GetRowBounds((miSelected < 0) ? 0 : miSelected, &iTop, &iHeight) && (iHeight > 0))
 	{
 		iPage = cView.GetHeight() / iHeight - 1;
 		return (iPage > 1) ? iPage : 1;

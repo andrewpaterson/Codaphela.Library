@@ -54,6 +54,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //Like a button, a list keeps the size its rows need unless a desired size is set on an axis, so in a scroll pane it is
 //its rows' height.
+//
+//Where its rows are the list asks itself (GetRowBounds, FindRowAtY): the grid's rows, unless what derives from it has
+//rows that aren't the grid's, as a tree's, which only has components for the rows in view.
 class CListContainer : public CGridContainer
 {
 CONSTRUCTABLE(CListContainer);
@@ -108,6 +111,7 @@ public:
 	int32			GetHover(void) const;
 	void			Activate(void);
 	int32			FindRowAt(int x, int y);
+	virtual bool	GetRowBounds(int32 iRow, int32* piTop, int32* piHeight);
 	void			ShowRow(int32 iRow);
 
 	void			SetSelectOnHover(bool bSelectOnHover);
@@ -152,6 +156,8 @@ public:
 protected:
 	virtual void	RowSelected(int32 iRow);  //Called before the listeners are told, iRow is -1 when the selection is cleared.
 	virtual void	RowActivated(int32 iRow);  //Called before the listeners are told.
+	virtual int32	FindRowAtY(int32 y);
+	void			SetNumRows(int32 iNumRows);
 
 	void			AddHighlights(void);
 	Ptr<CCanvas>	CreateHighlight(Ptr<CClearCanvasDraw> pDraw);
