@@ -278,13 +278,13 @@ void CNodeEditor::SetRequiredSize(void)
 
 
 void CNodeEditor::SetListener(CNodeEditorListener* pcListener) { mpcListener = pcListener; }
-Ptr<CWindowTheme> CNodeEditor::GetTheme(void) { return mpTheme; }
+Ptr<CWindowTheme> CNodeEditor::GetTheme(void) const { return mpTheme; }
 size CNodeEditor::NumNodes(void) { return mapNodes.NumElements(); }
 Ptr<CNodeBox> CNodeEditor::GetNode(size uiIndex) { return mapNodes.Get(uiIndex); }
-size CNodeEditor::NumLinks(void) { return masLinks.NumElements(); }
+size CNodeEditor::NumLinks(void) const { return masLinks.NumElements(); }
 SNodeLink* CNodeEditor::GetLink(size uiIndex) { return masLinks.SafeGet(uiIndex); }
-SInt32Vec2 CNodeEditor::GetPan(void) { return msPan; }
-ENodeEditorDrag CNodeEditor::GetDrag(void) { return meDrag; }
+SInt32Vec2 CNodeEditor::GetPan(void) const { return msPan; }
+ENodeEditorDrag CNodeEditor::GetDrag(void) const { return meDrag; }
 
 
 //////////////////////////////////////////////////////////////////////////

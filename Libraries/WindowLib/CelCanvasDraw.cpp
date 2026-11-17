@@ -116,7 +116,7 @@ void CCelCanvasDraw::Repaint(void)
 // painted.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCelCanvasDraw::IsPainted(void)
+bool CCelCanvasDraw::IsPainted(void) const
 {
 	return msCelSize.x >= 0;
 }

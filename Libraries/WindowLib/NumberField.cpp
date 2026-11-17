@@ -276,11 +276,11 @@ bool CNumberField::Change(float64 fValue)
 }
 
 
-float64 CNumberField::GetValue(void) { return mfValue; }
+float64 CNumberField::GetValue(void) const { return mfValue; }
 char* CNumberField::GetNumberText(void) { return mpNumber->GetText(); }
 CComponentEvent<CNumberField>* CNumberField::GetChangeEvent(void) { return &mcChanged; }
-bool CNumberField::IsEditing(void) { return mpEdit.IsNotNull(); }
-Ptr<CTextField> CNumberField::GetEdit(void) { return mpEdit; }
+bool CNumberField::IsEditing(void) const { return mpEdit.IsNotNull(); }
+Ptr<CTextField> CNumberField::GetEdit(void) const { return mpEdit; }
 
 
 //////////////////////////////////////////////////////////////////////////

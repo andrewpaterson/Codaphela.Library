@@ -446,11 +446,11 @@ void CNodeBox::SetSelected(bool bSelected)
 
 
 char* CNodeBox::GetTitle(void) { return mpTitle->GetText(); }
-ARGB32 CNodeBox::GetHeaderColour(void) { return msHeader; }
-Ptr<CWindowTheme> CNodeBox::GetTheme(void) { return mpTheme; }
+ARGB32 CNodeBox::GetHeaderColour(void) const { return msHeader; }
+Ptr<CWindowTheme> CNodeBox::GetTheme(void) const { return mpTheme; }
 void CNodeBox::SetNodePosition(int32 x, int32 y) { msNodePosition.Init(x, y); InvalidateLayout(); }
-SInt32Vec2 CNodeBox::GetNodePosition(void) { return msNodePosition; }
-bool CNodeBox::IsSelected(void) { return mbSelected; }
+SInt32Vec2 CNodeBox::GetNodePosition(void) const { return msNodePosition; }
+bool CNodeBox::IsSelected(void) const { return mbSelected; }
 void CNodeBox::SetData(int64 iData) { miData = iData; }
-int64 CNodeBox::GetData(void) { return miData; }
+int64 CNodeBox::GetData(void) const { return miData; }
 

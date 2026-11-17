@@ -137,7 +137,7 @@ void CColourPicker::Free(void)
 
 float32* CColourPicker::GetColour(void) { return mafColour; }
 CComponentEvent<CColourPicker>* CColourPicker::GetChangeEvent(void) { return &mcChanged; }
-Ptr<CTextField> CColourPicker::GetHex(void) { return mpHex; }
+Ptr<CTextField> CColourPicker::GetHex(void) const { return mpHex; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -370,7 +370,7 @@ void CColourField::Free(void)
 
 float32* CColourField::GetColour(void) { return mafColour; }
 CComponentEvent<CColourField>* CColourField::GetChangeEvent(void) { return &mcChanged; }
-Ptr<CColourPicker> CColourField::GetPicker(void) { return mpPicker; }
+Ptr<CColourPicker> CColourField::GetPicker(void) const { return mpPicker; }
 
 
 //////////////////////////////////////////////////////////////////////////

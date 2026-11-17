@@ -104,17 +104,17 @@ public:
 
 	int32								AddStop(float32 fPlace, float32 fRed, float32 fGreen, float32 fBlue, int32 iData);
 	void								RemoveAllStops(void);
-	size								NumStops(void);
+	size								NumStops(void) const;
 	SColourRampStop*					GetStop(size uiIndex);
 	void								Choose(int32 iStop);
-	int32								GetChosen(void);
+	int32								GetChosen(void) const;
 	void								At(float32 fPlace, float32* pafColour);
 	CComponentEvent<CColourRampBar>*	GetChangeEvent(void);
 	CComponentEvent<CColourRampBar>*	GetChoiceEvent(void);
-	Ptr<CCanvas>						GetBar(void);
-	Ptr<CNumberField>					GetPlace(void);
-	Ptr<CColourField>					GetColour(void);
-	Ptr<CWindowTheme>					GetTheme(void);
+	Ptr<CCanvas>						GetBar(void) const;
+	Ptr<CNumberField>					GetPlace(void) const;
+	Ptr<CColourField>					GetColour(void) const;
+	Ptr<CWindowTheme>					GetTheme(void) const;
 
 	void								BarPressed(int x, int y);
 	void								BarLetGo(int x, int y);

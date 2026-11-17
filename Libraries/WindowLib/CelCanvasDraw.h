@@ -44,7 +44,7 @@ public:
 
 	bool	Draw(Ptr<CCanvas> pCanvas) override;
 	void	Repaint(void);
-	bool	IsPainted(void);
+	bool	IsPainted(void) const;
 
 protected:
 	virtual void	Paint(CImageDraw* pcDraw, SInt32Vec2 sSize) =0;  //Positions are pixels from the canvas's top left.

@@ -65,7 +65,7 @@ public:
 	float32*						GetColour(void);
 	CComponentEvent<CColourPicker>*	GetChangeEvent(void);
 	Ptr<CNumberField>				GetChannel(size uiChannel);  //0 to 5: red, green, blue, hue, saturation, value.
-	Ptr<CTextField>					GetHex(void);
+	Ptr<CTextField>					GetHex(void) const;
 
 	void							RGBChanged(CNumberField* pcNumber);
 	void							HSVChanged(CNumberField* pcNumber);
@@ -106,7 +106,7 @@ public:
 	void							ActivateComponent(int x, int y);
 	void							OpenPicker(void);
 	void							ClosePicker(void);
-	Ptr<CColourPicker>				GetPicker(void);
+	Ptr<CColourPicker>				GetPicker(void) const;
 	void							PopupClosed(Ptr<CComponent> pContent) override;
 	void							PickerChanged(CColourPicker* pcPicker);
 

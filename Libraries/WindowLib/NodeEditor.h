@@ -136,7 +136,7 @@ public:
 	void				SetRequiredSize(void) override;
 
 	void				SetListener(CNodeEditorListener* pcListener);
-	Ptr<CWindowTheme>	GetTheme(void);
+	Ptr<CWindowTheme>	GetTheme(void) const;
 
 	void				AddNode(Ptr<CNodeBox> pNode);
 	bool				RemoveNode(Ptr<CNodeBox> pNode);
@@ -147,7 +147,7 @@ public:
 
 	bool				Link(CNodeBox* pcFrom, size uiOutput, CNodeBox* pcTo, size uiInput);
 	bool				Unlink(CNodeBox* pcTo, size uiInput);
-	size				NumLinks(void);
+	size				NumLinks(void) const;
 	SNodeLink*			GetLink(size uiIndex);
 	SNodeLink*			FindLinkTo(CNodeBox* pcTo, size uiInput);
 
@@ -155,11 +155,11 @@ public:
 	void				SelectNone(void);
 	size				NumSelected(void);
 
-	SInt32Vec2			GetPan(void);
+	SInt32Vec2			GetPan(void) const;
 	void				SetPan(int32 x, int32 y);
 	void				FrameAll(void);
 
-	ENodeEditorDrag		GetDrag(void);
+	ENodeEditorDrag		GetDrag(void) const;
 	bool				GetDraggedLink(SInt32Vec2* psFrom, SInt32Vec2* psTo, ARGB32* psColour);
 	bool				GetDraggedBox(CInt32Rect* pcDest);
 

@@ -100,7 +100,7 @@ public:
 	void							SetRange(float64 fMinimum, float64 fMaximum);
 	void							SetWhole(bool bWhole);
 	void							SetValue(float64 fValue);
-	float64							GetValue(void);
+	float64							GetValue(void) const;
 	char*							GetNumberText(void);
 	CComponentEvent<CNumberField>*	GetChangeEvent(void);
 
@@ -111,8 +111,8 @@ public:
 
 	void							BeginEdit(void);
 	void							EndEdit(bool bCommit);
-	bool							IsEditing(void);
-	Ptr<CTextField>					GetEdit(void);
+	bool							IsEditing(void) const;
+	Ptr<CTextField>					GetEdit(void) const;
 
 protected:
 	float64							Kept(float64 fValue);

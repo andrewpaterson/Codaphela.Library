@@ -115,16 +115,16 @@ public:
 	bool				IsInputLinked(size uiIndex);
 
 	char*				GetTitle(void);
-	ARGB32				GetHeaderColour(void);
+	ARGB32				GetHeaderColour(void) const;
 	int32				GetHeaderHeight(void);
-	Ptr<CWindowTheme>	GetTheme(void);
+	Ptr<CWindowTheme>	GetTheme(void) const;
 
 	void				SetNodePosition(int32 x, int32 y);
-	SInt32Vec2			GetNodePosition(void);
+	SInt32Vec2			GetNodePosition(void) const;
 	void				SetSelected(bool bSelected);
-	bool				IsSelected(void);
+	bool				IsSelected(void) const;
 	void				SetData(int64 iData);
-	int64				GetData(void);
+	int64				GetData(void) const;
 
 protected:
 	size				AddSocket(bool bInput, const char* szName, ARGB32 sColour, Ptr<CComponent> pValue);

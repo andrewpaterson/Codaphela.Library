@@ -200,15 +200,15 @@ void CColourRampBar::Free(void)
 }
 
 
-size CColourRampBar::NumStops(void) { return masStops.NumElements(); }
+size CColourRampBar::NumStops(void) const { return masStops.NumElements(); }
 SColourRampStop* CColourRampBar::GetStop(size uiIndex) { return masStops.SafeGet(uiIndex); }
-int32 CColourRampBar::GetChosen(void) { return miChosen; }
+int32 CColourRampBar::GetChosen(void) const { return miChosen; }
 CComponentEvent<CColourRampBar>* CColourRampBar::GetChangeEvent(void) { return &mcChanged; }
 CComponentEvent<CColourRampBar>* CColourRampBar::GetChoiceEvent(void) { return &mcChosen; }
-Ptr<CCanvas> CColourRampBar::GetBar(void) { return mpBar; }
-Ptr<CNumberField> CColourRampBar::GetPlace(void) { return mpPlace; }
-Ptr<CColourField> CColourRampBar::GetColour(void) { return mpColour; }
-Ptr<CWindowTheme> CColourRampBar::GetTheme(void) { return mpTheme; }
+Ptr<CCanvas> CColourRampBar::GetBar(void) const { return mpBar; }
+Ptr<CNumberField> CColourRampBar::GetPlace(void) const { return mpPlace; }
+Ptr<CColourField> CColourRampBar::GetColour(void) const { return mpColour; }
+Ptr<CWindowTheme> CColourRampBar::GetTheme(void) const { return mpTheme; }
 
 
 //////////////////////////////////////////////////////////////////////////
