@@ -7,6 +7,7 @@
 #include "StandardLib/ChunkFileObjectWriter.h"
 #include "StandardLib/ChunkFileSystemObjectReader.h"
 #include "ProceduralLib/SolidAdjust.h"
+#include "ProceduralLib/SolidCavity.h"
 #include "ProceduralLib/SolidCells.h"
 #include "ProceduralLib/SolidFlat.h"
 #include "ProceduralLib/SolidGradient.h"
@@ -14,6 +15,7 @@
 #include "ProceduralLib/SolidMerge.h"
 #include "ProceduralLib/SolidNoise.h"
 #include "ProceduralLib/SolidRamp.h"
+#include "ProceduralLib/SolidWarp.h"
 #include "TestLib/Assert.h"
 #include "SolidSampling.h"
 #include "TextureGallery.h"
@@ -449,6 +451,60 @@ void TestSolidGraphSaveLoad(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Every operator gives something with nothing linked to it: an editor's
+// links can all be taken off.  An input that isn't there is opaque
+// black; a warp with nothing to warp by leaves its input where it is; a
+// ramp with no keys is black too; a cavity with no shape is the middle
+// grey of a flat surface.  An input's own value, as an editor shows it,
+// is a flat texture linked to it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSolidOperatorsUnlinked(void)
+{
+	Ptr<CSolidTexture>	pNone;
+	Ptr<CSolidWarp>		pWarp;
+	Ptr<CSolidMerge>	pMerge;
+	SSolidSample		sBlack;
+	SSolidSample		sGrey;
+	SSolidSample		sSample;
+	SSolidSample		sResult;
+
+	sBlack.Init();
+	sGrey.InitValue(0.5f);
+	TestSolidSample(&sSample, 0.1f, 0.1f);
+
+	TestSolidSampleAt(OMalloc<CSolidRamp>(pNone), 1, 2, 3, &sResult);
+	AssertSolidSample(&sBlack, &sResult, 6);
+	TestSolidSampleAt(OMalloc<CSolidAdjust>(pNone), 1, 2, 3, &sResult);
+	AssertSolidSample(&sBlack, &sResult, 6);
+	TestSolidSampleAt(OMalloc<CSolidMerge>(SM_Add, pNone, pNone), 1, 2, 3, &sResult);
+	AssertFloat(0.0f, sResult.sColour.x, 6);
+	AssertFloat(2.0f, sResult.sColour.w, 6);  //Two opaque blacks' alphas.
+	TestSolidSampleAt(OMalloc<CSolidMask>(pNone, pNone, pNone), 1, 2, 3, &sResult);
+	AssertSolidSample(&sBlack, &sResult, 6);
+	TestSolidSampleAt(OMalloc<CSolidCavity>(Ptr<CShape>(), 0.1f), 1, 2, 3, &sResult);
+	AssertSolidSample(&sGrey, &sResult, 6);
+
+	pWarp = OMalloc<CSolidWarp>(pNone, pNone, 0.5f);
+	TestSolidSampleAt(pWarp, 1, 2, 3, &sResult);
+	AssertSolidSample(&sBlack, &sResult, 6);
+	pWarp->mpInput = OMalloc<CSolidGradient>(SG_Plane, SR_Once);
+	TestSolidSampleAt(pWarp, 0.25f, 2, 3, &sResult);
+	AssertFloat(0.25f, sResult.Value(), 6);  //Not moved.
+
+	//A flat texture in an input's place is the input's value.
+	pMerge = OMalloc<CSolidMerge>(SM_Add, OMalloc<CSolidFlat>(&sSample), pNone);
+	TestSolidSampleAt(pMerge, 1, 2, 3, &sResult);
+	AssertFloat(0.1f, sResult.sColour.x, 6);
+	pMerge->mpSecond = OMalloc<CSolidFlat>(&sSample);
+	TestSolidSampleAt(pMerge, 1, 2, 3, &sResult);
+	AssertFloat(0.2f, sResult.sColour.x, 6);
+	AssertFloat(1.0f, sResult.fHeight, 6);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestSolidOperators(void)
@@ -461,6 +517,7 @@ void TestSolidOperators(void)
 	TestSolidAdjust();
 	TestSolidMerge();
 	TestSolidMask();
+	TestSolidOperatorsUnlinked();
 	ObjectsDiscard();
 	ObjectsKill(false);
 
