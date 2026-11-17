@@ -25,11 +25,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PrimitiveTypes.h"
 
 
-//A general purpose allocator over one region of memory, used by Libc65's malloc.  It is a two level segregated fit
-//(TLSF) allocator: a free block is on one of a list for each size range, found from two levels of bitmaps (the power
-//of two of its size, then which of 16 parts of that power), so Malloc and Free take the same time however many blocks
-//there are.  Freed blocks are joined to free blocks either side of them at once.  It uses nothing else from BaseLib,
-//so it can be linked into programs that only use Libc65.
+//A general purpose allocator over regions of memory it is given, used by Libc65's malloc (one region) and by
+//CThreadMallocator's arenas (a region for each chunk).  It is a two level segregated fit (TLSF) allocator: a free
+//block is on one of a list for each size range, found from two levels of bitmaps (the power of two of its size, then
+//which of 16 parts of that power), so Malloc and Free take the same time however many blocks there are.  Freed blocks
+//are joined to free blocks either side of them at once.  It uses nothing else from BaseLib but Atomic.h (which is
+//only its header), so it can be linked into programs that only use Libc65.
+//
+//It isn't safe between threads.  One thing is, for CThreadMallocator: Size may be asked of a used block by another
+//thread than the one allocating and freeing.
 
 #ifdef BUILD_64
 #define TRUE_MALLOCATOR_ALIGNMENT_LOG2		4
@@ -63,6 +67,14 @@ struct STrueMallocatorBlock
 };
 
 
+//A region is its memory's start, aligned, then its blocks, then a used block of no size that ends it.
+struct STrueMallocatorRegion
+{
+	STrueMallocatorRegion*	psNext;
+	STrueMallocatorBlock*	psEnd;
+};
+
+
 #define TRUE_MALLOCATOR_HEADER				(2 * sizeof(lsize))
 #define TRUE_MALLOCATOR_MIN_BLOCK			(sizeof(STrueMallocatorBlock))
 
@@ -70,8 +82,7 @@ struct STrueMallocatorBlock
 class CTrueMallocator
 {
 protected:
-	uint8*					mpuiStart;
-	STrueMallocatorBlock*	mpsEnd;				//A used block of no size after the last block.
+	STrueMallocatorRegion*	mpsRegions;
 	uint32					muiFirstBitmap;		//A bit for each first level with a free block.
 	uint16					mauiSecondBitmaps[TRUE_MALLOCATOR_FIRST_LEVELS];	//A bit for each second level (16) with a free block.
 	STrueMallocatorBlock*	mapsFree[TRUE_MALLOCATOR_FIRST_LEVELS * TRUE_MALLOCATOR_SECOND_LEVELS];	//By TRUE_MALLOCATOR_LIST(first, second).
@@ -80,8 +91,13 @@ protected:
 	lsize					muiPeakBytes;		//The most muiAllocatedBytes has been.
 
 public:
+	void					Init(void);
 	bool					Init(void* pvMemory, lsize uiBytes);
 	void					Kill(void);
+
+	bool					AddRegion(void* pvMemory, lsize uiBytes);
+	bool					RemoveRegion(void* pvMemory);
+	bool					IsRegionFree(void* pvMemory);
 
 	void*					Malloc(lsize uiBytes);
 	void*					Realloc(void* pv, lsize uiBytes);
@@ -96,6 +112,10 @@ public:
 	bool					IsValid(void);
 
 protected:
+	STrueMallocatorRegion*	GetRegion(void* pvMemory);
+	STrueMallocatorBlock*	FirstBlock(STrueMallocatorRegion* psRegion);
+	bool					IsValidRegion(STrueMallocatorRegion* psRegion, lsize* puiNumUsed, lsize* puiUsedBytes, lsize* puiNumFree);
+	bool					IsValidLists(lsize uiNumFree);
 	lsize					BlockSize(lsize uiBytes);
 	void					Mapping(lsize uiSize, int* piFirst, int* piSecond);
 	STrueMallocatorBlock*	FindFree(lsize uiSize);

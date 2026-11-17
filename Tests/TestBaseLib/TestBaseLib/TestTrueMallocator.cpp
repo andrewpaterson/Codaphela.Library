@@ -476,6 +476,112 @@ void TestTrueMallocatorMapping(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Memory is allocated from every region added, a region with something in it can't be taken away and one with nothing
+// in it can, after which nothing comes from it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTrueMallocatorRegions(void)
+{
+	CTrueMallocator	cMallocator;
+	uint8*			puiFirst;
+	uint8*			puiSecond;
+	void*			apv[TEST_TRUE_MALLOCATOR_ALLOCATIONS];
+	size			uiHalf;
+	size			uiCount;
+	size			uiInFirst;
+	size			uiInSecond;
+	size			i;
+
+	//Nothing to allocate from until a region is added.
+	cMallocator.Init();
+	AssertFalse(cMallocator.IsValid());
+	AssertNull(cMallocator.Malloc(16));
+	AssertFalse(cMallocator.AddRegion(gauiTestTrueMallocatorMemory, 8));
+
+	uiHalf = TEST_TRUE_MALLOCATOR_MEMORY / 2;
+	puiFirst = gauiTestTrueMallocatorMemory;
+	puiSecond = &gauiTestTrueMallocatorMemory[uiHalf];
+	AssertTrue(cMallocator.AddRegion(puiFirst, uiHalf));
+	AssertTrue(cMallocator.IsValid());
+	AssertTrue(cMallocator.IsRegionFree(puiFirst));
+	AssertTrue(cMallocator.Contains(&puiFirst[100]));
+	AssertFalse(cMallocator.Contains(&puiSecond[100]));
+
+	AssertTrue(cMallocator.AddRegion(puiSecond, uiHalf));
+	AssertTrue(cMallocator.IsValid());
+	AssertTrue(cMallocator.Contains(&puiSecond[100]));
+
+	//A block is never bigger than a region, though both together have room for it.
+	AssertNull(cMallocator.Malloc(uiHalf));
+
+	uiCount = 0;
+	uiInFirst = 0;
+	uiInSecond = 0;
+	for (i = 0; i < TEST_TRUE_MALLOCATOR_ALLOCATIONS; i++)
+	{
+		apv[i] = cMallocator.Malloc(400);
+		if (!apv[i])
+		{
+			break;
+		}
+		AssertTrue(cMallocator.Contains(apv[i]));
+		if ((uint8*)apv[i] < puiSecond)
+		{
+			uiInFirst++;
+		}
+		else
+		{
+			uiInSecond++;
+		}
+		uiCount++;
+	}
+	AssertTrue(uiCount > TEST_TRUE_MALLOCATOR_MEMORY / 500);
+	AssertTrue(uiCount < TEST_TRUE_MALLOCATOR_ALLOCATIONS);
+	AssertTrue(uiInFirst > uiHalf / 500);
+	AssertTrue(uiInSecond > uiHalf / 500);
+	AssertSize(uiCount, cMallocator.NumAllocations());
+	AssertTrue(cMallocator.IsValid());
+	AssertFalse(cMallocator.IsRegionFree(puiFirst));
+	AssertFalse(cMallocator.IsRegionFree(puiSecond));
+	AssertFalse(cMallocator.RemoveRegion(puiSecond));
+	AssertFalse(cMallocator.RemoveRegion(&puiSecond[TRUE_MALLOCATOR_ALIGNMENT * 8]));
+
+	for (i = 0; i < uiCount; i++)
+	{
+		if ((uint8*)apv[i] >= puiSecond)
+		{
+			cMallocator.Free(apv[i]);
+			apv[i] = NULL;
+		}
+	}
+	AssertTrue(cMallocator.IsValid());
+	AssertFalse(cMallocator.IsRegionFree(puiFirst));
+	AssertTrue(cMallocator.IsRegionFree(puiSecond));
+	AssertTrue(cMallocator.RemoveRegion(puiSecond));
+	AssertFalse(cMallocator.RemoveRegion(puiSecond));
+	AssertTrue(cMallocator.IsValid());
+	AssertSize(uiInFirst, cMallocator.NumAllocations());
+	AssertFalse(cMallocator.Contains(&puiSecond[100]));
+
+	//The first region is full and the second is gone.
+	AssertNull(cMallocator.Malloc(400));
+
+	for (i = 0; i < uiCount; i++)
+	{
+		cMallocator.Free(apv[i]);
+	}
+	AssertTrue(cMallocator.IsValid());
+	AssertSize(0, cMallocator.NumAllocations());
+	AssertSize(0, cMallocator.AllocatedBytes());
+	AssertTrue(cMallocator.RemoveRegion(puiFirst));
+	AssertFalse(cMallocator.IsValid());
+	AssertNull(cMallocator.Malloc(16));
+	cMallocator.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTrueMallocator(void)
@@ -489,6 +595,7 @@ void TestTrueMallocator(void)
 	TestTrueMallocatorRealloc();
 	TestTrueMallocatorRandom();
 	TestTrueMallocatorLarge();
+	TestTrueMallocatorRegions();
 
 	TestStatistics();
 }

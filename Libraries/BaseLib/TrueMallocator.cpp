@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef _MSC_VER
 #include <intrin.h>
 #endif // _MSC_VER
+#include "Atomic.h"
 #include "TrueMallocator.h"
 
 
@@ -118,18 +119,32 @@ static int TrueMallocatorSizeHighestBit(lsize uiSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Manages the memory from pvMemory for uiBytes (at most TRUE_MALLOCATOR_MAX_SIZE of it).  It starts as one free
-// block and a used block of no size that ends it.  Returns false if there is too little memory for a block.
+// A used block's size word is read by the thread that holds the block (Size, asked by CThreadMallocator of a block
+// from another thread's arena) while the arena's thread sets or clears TRUE_MALLOCATOR_PREVIOUS_FREE in it, as the
+// block before it is freed and used again.  So those are a whole word read and a whole word written.  They are
+// macros so that nothing changes on the 65C64 and the W65C816, which run one thread.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueMallocator::Init(void* pvMemory, lsize uiBytes)
+#ifdef __LIBC65__
+#define TRUE_MALLOCATOR_SHARED_SIZE(psBlock)			((psBlock)->uiSize)
+#define TRUE_MALLOCATOR_SET_PREVIOUS_FREE(psBlock)		((psBlock)->uiSize |= TRUE_MALLOCATOR_PREVIOUS_FREE)
+#define TRUE_MALLOCATOR_CLEAR_PREVIOUS_FREE(psBlock)	((psBlock)->uiSize &= ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE)
+#else
+#define TRUE_MALLOCATOR_SHARED_SIZE(psBlock)			AtomicLoadSize(&(psBlock)->uiSize)
+#define TRUE_MALLOCATOR_SET_PREVIOUS_FREE(psBlock)		AtomicStoreSize(&(psBlock)->uiSize, (psBlock)->uiSize | TRUE_MALLOCATOR_PREVIOUS_FREE)
+#define TRUE_MALLOCATOR_CLEAR_PREVIOUS_FREE(psBlock)	AtomicStoreSize(&(psBlock)->uiSize, (psBlock)->uiSize & ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE)
+#endif // __LIBC65__
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With no memory yet: AddRegion gives it some.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueMallocator::Init(void)
 {
-	lsize					uiStart;
-	lsize					uiEnd;
-	lsize					uiSize;
-	STrueMallocatorBlock*	psBlock;
-	size					i;
-	size					j;
+	size	i;
+	size	j;
 
 	muiFirstBitmap = 0;
 	for (i = 0; i < TRUE_MALLOCATOR_FIRST_LEVELS; i++)
@@ -143,32 +158,19 @@ bool CTrueMallocator::Init(void* pvMemory, lsize uiBytes)
 	muiNumAllocations = 0;
 	muiAllocatedBytes = 0;
 	muiPeakBytes = 0;
-	mpuiStart = NULL;
-	mpsEnd = NULL;
+	mpsRegions = NULL;
+}
 
-	uiStart = ((lsize)pvMemory + TRUE_MALLOCATOR_ALIGNMENT - 1) & ~(TRUE_MALLOCATOR_ALIGNMENT - 1);
-	uiEnd = ((lsize)pvMemory + uiBytes) & ~(TRUE_MALLOCATOR_ALIGNMENT - 1);
-	if ((uiEnd <= uiStart) || (uiEnd - uiStart < TRUE_MALLOCATOR_MIN_BLOCK + TRUE_MALLOCATOR_HEADER))
-	{
-		return false;
-	}
-	if (uiEnd - uiStart > TRUE_MALLOCATOR_MAX_SIZE + TRUE_MALLOCATOR_HEADER)
-	{
-		uiEnd = uiStart + TRUE_MALLOCATOR_MAX_SIZE + TRUE_MALLOCATOR_HEADER;
-	}
 
-	mpuiStart = (uint8*)uiStart;
-	mpsEnd = (STrueMallocatorBlock*)(uiEnd - TRUE_MALLOCATOR_HEADER);
-	mpsEnd->uiPreviousSize = 0;
-	mpsEnd->uiSize = 0;
-
-	uiSize = (lsize)((uint8*)mpsEnd - mpuiStart);
-	psBlock = (STrueMallocatorBlock*)mpuiStart;
-	psBlock->uiPreviousSize = 0;
-	psBlock->uiSize = 0;
-	MarkFree(psBlock, uiSize);
-	InsertFree(psBlock);
-	return true;
+//////////////////////////////////////////////////////////////////////////
+//
+// Manages the memory from pvMemory for uiBytes.  Returns false if there is too little memory for a block.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueMallocator::Init(void* pvMemory, lsize uiBytes)
+{
+	Init();
+	return AddRegion(pvMemory, uiBytes);
 }
 
 
@@ -178,12 +180,118 @@ bool CTrueMallocator::Init(void* pvMemory, lsize uiBytes)
 //////////////////////////////////////////////////////////////////////////
 void CTrueMallocator::Kill(void)
 {
-	mpuiStart = NULL;
-	mpsEnd = NULL;
+	mpsRegions = NULL;
 	muiFirstBitmap = 0;
 	muiNumAllocations = 0;
 	muiAllocatedBytes = 0;
 	muiPeakBytes = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// More memory to allocate from: pvMemory for uiBytes (at most TRUE_MALLOCATOR_MAX_SIZE of it is used).  It starts as
+// one free block and a used block of no size that ends it.  Regions needn't be next to each other and their blocks
+// are never joined across them.  Returns false if there is too little memory for a block.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueMallocator::AddRegion(void* pvMemory, lsize uiBytes)
+{
+	STrueMallocatorRegion*	psRegion;
+	STrueMallocatorBlock*	psBlock;
+	lsize					uiStart;
+	lsize					uiEnd;
+
+	uiStart = ((lsize)pvMemory + TRUE_MALLOCATOR_ALIGNMENT - 1) & ~(TRUE_MALLOCATOR_ALIGNMENT - 1);
+	uiEnd = ((lsize)pvMemory + uiBytes) & ~(TRUE_MALLOCATOR_ALIGNMENT - 1);
+	if ((uiEnd <= uiStart) || (uiEnd - uiStart < sizeof(STrueMallocatorRegion) + TRUE_MALLOCATOR_MIN_BLOCK + TRUE_MALLOCATOR_HEADER))
+	{
+		return false;
+	}
+	if (uiEnd - uiStart > sizeof(STrueMallocatorRegion) + TRUE_MALLOCATOR_MAX_SIZE + TRUE_MALLOCATOR_HEADER)
+	{
+		uiEnd = uiStart + sizeof(STrueMallocatorRegion) + TRUE_MALLOCATOR_MAX_SIZE + TRUE_MALLOCATOR_HEADER;
+	}
+
+	psRegion = (STrueMallocatorRegion*)uiStart;
+	psRegion->psEnd = (STrueMallocatorBlock*)(uiEnd - TRUE_MALLOCATOR_HEADER);
+	psRegion->psEnd->uiPreviousSize = 0;
+	psRegion->psEnd->uiSize = 0;
+	psRegion->psNext = mpsRegions;
+	mpsRegions = psRegion;
+
+	psBlock = FirstBlock(psRegion);
+	psBlock->uiPreviousSize = 0;
+	psBlock->uiSize = 0;
+	MarkFree(psBlock, (lsize)((uint8*)psRegion->psEnd - (uint8*)psBlock));
+	InsertFree(psBlock);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether nothing is allocated in the region that was added with pvMemory: it is one free block.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueMallocator::IsRegionFree(void* pvMemory)
+{
+	STrueMallocatorRegion*	psRegion;
+	STrueMallocatorBlock*	psBlock;
+
+	psRegion = GetRegion(pvMemory);
+	psBlock = FirstBlock(psRegion);
+	return (psBlock->uiSize & TRUE_MALLOCATOR_FREE) && (Next(psBlock) == psRegion->psEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Stops managing the region that was added with pvMemory, whose memory is the caller's again.  Only a region with
+// nothing allocated in it can go: returns false if something is, or if it isn't one of the regions.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueMallocator::RemoveRegion(void* pvMemory)
+{
+	STrueMallocatorRegion*	psRegion;
+	STrueMallocatorRegion**	ppsRegion;
+
+	psRegion = GetRegion(pvMemory);
+	for (ppsRegion = &mpsRegions; *ppsRegion; ppsRegion = &(*ppsRegion)->psNext)
+	{
+		if (*ppsRegion == psRegion)
+		{
+			if (!IsRegionFree(pvMemory))
+			{
+				return false;
+			}
+			RemoveFree(FirstBlock(psRegion));
+			*ppsRegion = psRegion->psNext;
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The region AddRegion made of pvMemory.
+//
+//////////////////////////////////////////////////////////////////////////
+STrueMallocatorRegion* CTrueMallocator::GetRegion(void* pvMemory)
+{
+	return (STrueMallocatorRegion*)(((lsize)pvMemory + TRUE_MALLOCATOR_ALIGNMENT - 1) & ~(TRUE_MALLOCATOR_ALIGNMENT - 1));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+STrueMallocatorBlock* CTrueMallocator::FirstBlock(STrueMallocatorRegion* psRegion)
+{
+	return (STrueMallocatorBlock*)(psRegion + 1);
 }
 
 
@@ -211,7 +319,7 @@ void* CTrueMallocator::Malloc(lsize uiBytes)
 
 	RemoveFree(psBlock);
 	psBlock->uiSize &= ~(lsize)TRUE_MALLOCATOR_FREE;
-	Next(psBlock)->uiSize &= ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE;
+	TRUE_MALLOCATOR_CLEAR_PREVIOUS_FREE(Next(psBlock));
 	Split(psBlock, uiSize);
 
 	muiNumAllocations++;
@@ -259,7 +367,7 @@ void* CTrueMallocator::Realloc(void* pv, lsize uiBytes)
 	{
 		RemoveFree(psNext);
 		psBlock->uiSize += psNext->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
-		Next(psBlock)->uiSize &= ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE;
+		TRUE_MALLOCATOR_CLEAR_PREVIOUS_FREE(Next(psBlock));
 		Split(psBlock, uiSize);
 		Allocated((psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS) - uiCurrent);
 		return pv;
@@ -317,7 +425,8 @@ void CTrueMallocator::Free(void* pv)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bytes pv's memory can hold: what it was asked for, rounded up.
+// The bytes pv's memory can hold: what it was asked for, rounded up.  The one thing another thread may ask while
+// this is allocating and freeing, of a block that thread is using.
 //
 //////////////////////////////////////////////////////////////////////////
 lsize CTrueMallocator::Size(void* pv)
@@ -325,7 +434,7 @@ lsize CTrueMallocator::Size(void* pv)
 	STrueMallocatorBlock*	psBlock;
 
 	psBlock = (STrueMallocatorBlock*)((uint8*)pv - TRUE_MALLOCATOR_HEADER);
-	return (psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS) - TRUE_MALLOCATOR_HEADER;
+	return (TRUE_MALLOCATOR_SHARED_SIZE(psBlock) & ~(lsize)TRUE_MALLOCATOR_FLAGS) - TRUE_MALLOCATOR_HEADER;
 }
 
 
@@ -408,12 +517,21 @@ lsize CTrueMallocator::LargestFree(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether pv is in the memory this manages.
+// Whether pv is in a block of the memory this manages.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTrueMallocator::Contains(void* pv)
 {
-	return ((uint8*)pv >= mpuiStart) && ((uint8*)pv < (uint8*)mpsEnd);
+	STrueMallocatorRegion*	psRegion;
+
+	for (psRegion = mpsRegions; psRegion; psRegion = psRegion->psNext)
+	{
+		if (((uint8*)pv >= (uint8*)FirstBlock(psRegion)) && ((uint8*)pv < (uint8*)psRegion->psEnd))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
@@ -426,32 +544,57 @@ bool CTrueMallocator::Contains(void* pv)
 //////////////////////////////////////////////////////////////////////////
 bool CTrueMallocator::IsValid(void)
 {
+	STrueMallocatorRegion*	psRegion;
+	lsize					uiNumUsed;
+	lsize					uiUsedBytes;
+	lsize					uiNumFree;
+
+	if (!mpsRegions)
+	{
+		return false;
+	}
+
+	uiNumUsed = 0;
+	uiUsedBytes = 0;
+	uiNumFree = 0;
+	for (psRegion = mpsRegions; psRegion; psRegion = psRegion->psNext)
+	{
+		if (!IsValidRegion(psRegion, &uiNumUsed, &uiUsedBytes, &uiNumFree))
+		{
+			return false;
+		}
+	}
+	if ((uiNumUsed != muiNumAllocations) || (uiUsedBytes != muiAllocatedBytes))
+	{
+		return false;
+	}
+	return IsValidLists(uiNumFree);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psRegion's blocks are consistent with each other and each free one is on its list.  Its used blocks, their
+// bytes and its free blocks are added to the counts.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueMallocator::IsValidRegion(STrueMallocatorRegion* psRegion, lsize* puiNumUsed, lsize* puiUsedBytes, lsize* puiNumFree)
+{
+	STrueMallocatorBlock*	psEnd;
 	STrueMallocatorBlock*	psBlock;
 	STrueMallocatorBlock*	psNext;
 	STrueMallocatorBlock*	psListed;
 	lsize					uiSize;
-	lsize					uiNumUsed;
-	lsize					uiUsedBytes;
-	lsize					uiNumFree;
-	lsize					uiNumListed;
 	bool					bPreviousFree;
 	int						iFirst;
 	int						iSecond;
-	size					i;
-	size					j;
 
-	if (!mpsEnd)
-	{
-		return false;
-	}
-	uiNumUsed = 0;
-	uiUsedBytes = 0;
-	uiNumFree = 0;
+	psEnd = psRegion->psEnd;
 	bPreviousFree = false;
-	for (psBlock = (STrueMallocatorBlock*)mpuiStart; psBlock != mpsEnd; psBlock = psNext)
+	for (psBlock = FirstBlock(psRegion); psBlock != psEnd; psBlock = psNext)
 	{
 		uiSize = psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
-		if ((uiSize < TRUE_MALLOCATOR_MIN_BLOCK) || (uiSize & (TRUE_MALLOCATOR_ALIGNMENT - 1)) || (uiSize > (lsize)((uint8*)mpsEnd - (uint8*)psBlock)))
+		if ((uiSize < TRUE_MALLOCATOR_MIN_BLOCK) || (uiSize & (TRUE_MALLOCATOR_ALIGNMENT - 1)) || (uiSize > (lsize)((uint8*)psEnd - (uint8*)psBlock)))
 		{
 			return false;
 		}
@@ -474,24 +617,31 @@ bool CTrueMallocator::IsValid(void)
 			{
 				return false;
 			}
-			uiNumFree++;
+			(*puiNumFree)++;
 			bPreviousFree = true;
 		}
 		else
 		{
-			uiNumUsed++;
-			uiUsedBytes += uiSize;
+			(*puiNumUsed)++;
+			*puiUsedBytes += uiSize;
 			bPreviousFree = false;
 		}
 	}
-	if ((((mpsEnd->uiSize & TRUE_MALLOCATOR_PREVIOUS_FREE) != 0) != bPreviousFree) || (mpsEnd->uiSize & ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE))
-	{
-		return false;
-	}
-	if ((uiNumUsed != muiNumAllocations) || (uiUsedBytes != muiAllocatedBytes))
-	{
-		return false;
-	}
+	return (((psEnd->uiSize & TRUE_MALLOCATOR_PREVIOUS_FREE) != 0) == bPreviousFree) && !(psEnd->uiSize & ~(lsize)TRUE_MALLOCATOR_PREVIOUS_FREE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the bitmaps match the free lists, and the lists hold free blocks only, uiNumFree of them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrueMallocator::IsValidLists(lsize uiNumFree)
+{
+	STrueMallocatorBlock*	psBlock;
+	lsize					uiNumListed;
+	size					i;
+	size					j;
 
 	uiNumListed = 0;
 	for (i = 0; i < TRUE_MALLOCATOR_FIRST_LEVELS; i++)
@@ -719,7 +869,7 @@ void CTrueMallocator::MarkFree(STrueMallocatorBlock* psBlock, lsize uiSize)
 	psBlock->uiSize = uiSize | TRUE_MALLOCATOR_FREE | (psBlock->uiSize & TRUE_MALLOCATOR_PREVIOUS_FREE);
 	psNext = Next(psBlock);
 	psNext->uiPreviousSize = uiSize;
-	psNext->uiSize |= TRUE_MALLOCATOR_PREVIOUS_FREE;
+	TRUE_MALLOCATOR_SET_PREVIOUS_FREE(psNext);
 }
 
 
