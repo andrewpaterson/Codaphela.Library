@@ -1,5 +1,6 @@
 #include "BaseLib/GlobalMemory.h"
 #include "StandardLib/Objects.h"
+#include "SupportLib/PNGWriter.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/FillContainer.h"
 #include "WindowLib/Focus.h"
@@ -257,6 +258,13 @@ void TestNumberFieldTyped(void)
 		//What's typed is kept to the range.
 		pField->SetRange(0.0, 10.0);
 		pField->BeginEdit();
+		pWindow->Layout();
+		AssertTrue(pField->GetComponent(0)->GetActualSize() == pField->GetActualSize());  //The text field is the whole of it: its border isn't over its text.
+		pWindow->Paint();
+		if (getenv("NUMBER_FIELD_PICTURE") != NULL)  //NUMBER_FIELD_PICTURE=file saves the window with the number being typed, to look at.
+		{
+			SavePNG(pWindow->GetCanvas()->GetImageOrNull(), getenv("NUMBER_FIELD_PICTURE"));
+		}
 		pWindow->InputPrintable('2', true);
 		pWindow->InputPrintable('5', true);
 		pWindow->InputCommand(CIC_Enter, true);

@@ -387,6 +387,7 @@ void CNumberField::BeginEdit(void)
 	mpEdit = OMalloc<CNumberFieldEdit>(mpWindow, mpTheme, mpNumber->GetText(), this);
 	mpEdit->SetAlignment(CSH_Stretch, CSV_Stretch);
 	SetHitAsWhole(false);
+	SetInsets(0, 0, 0, 0);  //The text field has the padding of its own, and its border about that.
 	CFillContainer::RemoveAllComponents();
 	CFillContainer::AddComponent(mpEdit);
 	mpEdit->SelectAll();
@@ -430,6 +431,7 @@ void CNumberField::EndEdit(bool bCommit)
 	CFillContainer::AddComponent(mpBar);
 	CFillContainer::AddComponent(mpName);
 	CFillContainer::AddComponent(mpNumber);
+	SetInsets(mpTheme->GetMetric(TM_FieldPaddingY), mpTheme->GetMetric(TM_FieldPaddingX), mpTheme->GetMetric(TM_FieldPaddingY), mpTheme->GetMetric(TM_FieldPaddingX));
 	SetHitAsWhole(true);
 	InvalidateLayout();
 
