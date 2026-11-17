@@ -41,6 +41,8 @@
     <ClCompile Include="SolidBricks.cpp" />
     <ClCompile Include="SolidSlope.cpp" />
     <ClCompile Include="SolidCavity.cpp" />
+    <ClCompile Include="SolidChannel.cpp" />
+    <ClCompile Include="SolidCombine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h" />
@@ -65,6 +67,8 @@
     <ClInclude Include="SolidBricks.h" />
     <ClInclude Include="SolidSlope.h" />
     <ClInclude Include="SolidCavity.h" />
+    <ClInclude Include="SolidChannel.h" />
+    <ClInclude Include="SolidCombine.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9878AEFF-411B-415E-995B-BA59059726E1}</ProjectGuid>

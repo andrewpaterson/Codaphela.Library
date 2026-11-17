@@ -9,6 +9,8 @@
 #include "ProceduralLib/SolidAdjust.h"
 #include "ProceduralLib/SolidCavity.h"
 #include "ProceduralLib/SolidCells.h"
+#include "ProceduralLib/SolidChannel.h"
+#include "ProceduralLib/SolidCombine.h"
 #include "ProceduralLib/SolidFlat.h"
 #include "ProceduralLib/SolidGradient.h"
 #include "ProceduralLib/SolidMask.h"
@@ -467,6 +469,69 @@ void TestSolidGraphSaveLoad(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A channel is one of its input's eight numbers as an opaque grey with
+// nothing else; a combine takes its colour input's colour and alpha and
+// the brightness of each other input as its height, shine, gloss and
+// glow.  Together they take a sample apart and put it back.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSolidChannelAndCombine(void)
+{
+	Ptr<CSolidFlat>		pFlat;
+	Ptr<CSolidChannel>	pChannel;
+	Ptr<CSolidCombine>	pCombine;
+	Ptr<CSolidTexture>	pNone;
+	SSolidSample		sSample;
+	SSolidSample		sResult;
+	SSolidSample		sExpected;
+	size				i;
+
+	TestSolidSample(&sSample, 0.1f, 0.1f);
+	pFlat = OMalloc<CSolidFlat>(&sSample);
+	pChannel = OMalloc<CSolidChannel>(SCH_Red, pFlat);
+	for (i = 0; i < SOLID_SAMPLE_CHANNELS; i++)
+	{
+		pChannel->meChannel = (ESolidChannel)i;
+		TestSolidSampleAt(pChannel, 1, 2, 3, &sResult);
+		sExpected.Init();
+		sExpected.sColour.x = sExpected.sColour.y = sExpected.sColour.z = sSample.Channels()[i];
+		AssertSolidSample(&sExpected, &sResult, 6);
+	}
+	AssertFloat(0.8f, sResult.sColour.x, 6);  //The last, the glow.
+
+	//A channel there isn't, and of nothing, is black.
+	sExpected.Init();
+	pChannel->meChannel = (ESolidChannel)SOLID_SAMPLE_CHANNELS;
+	TestSolidSampleAt(pChannel, 1, 2, 3, &sResult);
+	AssertSolidSample(&sExpected, &sResult, 6);
+	pChannel->meChannel = SCH_Alpha;
+	pChannel->mpInput = NULL;
+	TestSolidSampleAt(pChannel, 1, 2, 3, &sResult);
+	AssertFloat(1.0f, sResult.sColour.x, 6);  //Black is opaque.
+	AssertFloat(0.0f, sResult.fHeight, 6);
+
+	//Taken apart and put back together.
+	pCombine = OMalloc<CSolidCombine>(pFlat, OMalloc<CSolidChannel>(SCH_Height, pFlat), OMalloc<CSolidChannel>(SCH_Shine, pFlat), OMalloc<CSolidChannel>(SCH_Gloss, pFlat), OMalloc<CSolidChannel>(SCH_Glow, pFlat));
+	TestSolidSampleAt(pCombine, 1, 2, 3, &sResult);
+	AssertSolidSample(&sSample, &sResult, 6);
+
+	//The colour input's own height isn't the combine's; an input that isn't there is none.
+	pCombine = OMalloc<CSolidCombine>(pFlat, pNone, pFlat, pNone, pNone);
+	TestSolidSampleAt(pCombine, 1, 2, 3, &sResult);
+	AssertFloat(0.1f, sResult.sColour.x, 6);
+	AssertFloat(0.4f, sResult.sColour.w, 6);
+	AssertFloat(0.0f, sResult.fHeight, 6);
+	AssertFloat(0.2f, sResult.fShine, 6);  //The brightness of 0.1, 0.2 and 0.3.
+	AssertFloat(0.0f, sResult.fGlow, 6);
+	pCombine->mpColour = NULL;
+	TestSolidSampleAt(pCombine, 1, 2, 3, &sResult);
+	AssertFloat(0.0f, sResult.sColour.x, 6);
+	AssertFloat(1.0f, sResult.sColour.w, 6);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Every operator gives something with nothing linked to it: an editor's
 // links can all be taken off.  An input that isn't there is opaque
 // black; a warp with nothing to warp by leaves its input where it is; a
@@ -533,6 +598,7 @@ void TestSolidOperators(void)
 	TestSolidAdjust();
 	TestSolidMerge();
 	TestSolidMask();
+	TestSolidChannelAndCombine();
 	TestSolidOperatorsUnlinked();
 	ObjectsDiscard();
 	ObjectsKill(false);

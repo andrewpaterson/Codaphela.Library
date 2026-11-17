@@ -72,6 +72,12 @@
     <ClCompile Include="SolidCavity.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="SolidChannel.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SolidCombine.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Procedural.h">
@@ -138,6 +144,12 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="SolidCavity.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidChannel.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="SolidCombine.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
