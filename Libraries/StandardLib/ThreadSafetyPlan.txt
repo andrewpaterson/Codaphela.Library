@@ -1,0 +1,230 @@
+Thread safety plan for the object system
+========================================
+
+Today every part of the object system assumes one thread: Ptrs, froms, the distance walks, freeing, hollows, the
+allocator under gcUnknowns.  The apps that have threads (the IDE's code model and build, the emulator runner, the sound
+mixer) keep objects off them, and Sculpt's bake can't be shared among cores without "no Ptr is copied on a worker".
+This plan makes the object system itself safe to use from several threads.  Nothing here is built.
+
+
+What "safe" means (the contract)
+--------------------------------
+  The object system promises:
+    1. Its own bookkeeping (froms, stack pointers, distances, flags, the memory index, weak froms, the allocator) is
+       never corrupted, whatever threads do with Ptrs, collections, OMalloc and Get.
+    2. An object is never freed while any thread holds a Ptr to it, or while it is reachable from the root.
+    3. Freeing stays exact and immediate: when the last thing holding an object lets go, it is freed then (or, for an
+       object owned by another thread, queued for that thread: decision 3).
+  It does not promise:
+    4. That an object's own fields are safe to read on one thread while another writes them.  That is the class's
+       business (its own CMutex), as with any data.  This includes the contents of a collection: two threads adding to
+       one CArrayObject need a lock of their own, though the froms of what they add are always right.
+  One rule for users follows from 2: a thread that uses an object across a point where another thread could let go of
+  it holds a Ptr of its own.  `pWindow->mpCanvas->Draw()` through a field, with no stack Ptr, is only safe while
+  whatever guards mpCanvas is held.  The single-threaded version of this rule (a Free() re-entering) exists already.
+
+
+What is not safe today (survey)
+-------------------------------
+  Allocation
+    A. gcUnknowns allocates from a CMemoryAllocator (its own CGeneralMemory: free lists on CSlabAllocator's 64 KB
+       slabs).  No locking anywhere in it.  CUnknowns::miNumElements and mcIterables aren't either.  Objects and plain
+       unknowns (UMalloc) share it, so it is reached from outside the object system too.
+    B. gcStackPointers: one CFreeList of CStackPointer nodes for every stack Ptr in the process.
+    C. Arrays inside objects (the from arrays, collections' storage, CPointerLocations) use gcSystemAllocator, which is
+       malloc and safe already.
+  CObjects
+    D. mcMemory (index tree by OIndex, names), mcWeakFroms, mcClasses (a class is completed lazily at its first
+       Allocate), the sequence handing out OIndexes (gcTransientSequence or the connection's), mcSource.
+    E. mcRemovalContext.  It is re-entrancy state: a removal started while one is busy is taken for a nested one and
+       queued.  A second thread's removal would be queued behind the first thread's as if nested.
+    F. muiWalkStamp.  One walk at a time: a walk started while another is under way restamps what it visits (the
+       comment on StartWalk says so).  Two threads walking at once would each lose their marks.
+    G. Debug validation: with validation on, every from change runs ValidateObjectsConsistency over all of memory.
+  Each object
+    H. mapHeapFromObjects, mapHeapFromCollections, mpcStackFroms, mpsHub: changed by any Ptr pointing at the object.
+    I. miDistToRoot (with the transient CLEARED state during a walk and the HELD_FROM_STACK state) and muiWalkStamp.
+    J. muiFlags: 16 bits changed by read-modify-write.  SetDirty runs on every pointer change and is called by users
+       (LogicalDirty); the collector sets FREED on the same word.  An embedded object's flags are its container's.
+  Pointers
+    K. CPointer::PointTo is several steps (add the new from, remove the old, perhaps free).  The copy constructor reads
+       the source's mpcObject and then adds a from: between the two the object can be freed by another thread.
+    L. Dereference writes: operator-> on a Ptr to a hollow loads the object, remaps every Ptr that pointed at the
+       hollow (other threads' stack Ptrs included: one thread writing another's stack) and frees the hollow.
+    M. Eviction and Kill of a held stored object go the other way: the object is replaced by a hollow while another
+       thread may be inside one of its methods with a raw `this`.
+    N. Weak<M>::Get against ClearWeakFroms.
+  Freeing
+    O. Free() is user code run inside the collector, on whichever thread let go last.  It changes Ptrs (re-enters), and
+       it frees native things that belong to a thread: X11, GDI and Vulkan resources, a window.
+    P. A user lock held while a Ptr is let go, against a Free() that takes the same user lock: a deadlock by lock order
+       as soon as the object system has a lock of its own.
+  The stack
+    Q. "Held from the stack" is one notion for the process.  ObjectsKill reports stack pointers still alive, validation
+       collects stack pointer addresses (ValidateNoStackPointerInside); neither knows about threads.  A Ptr in a job's
+       data struct is a Ptr in a non-CObject, which the rules forbid already.
+    R. CObjects on the stack (not allocated in Objects) take KillInternal's other branch and reach into the froms of
+       heap objects from their destructors.
+  Around it
+    S. BaseLib globals used on the way: gcConstructors (registered up front, read after: fine if nothing registers a
+       constructor once threads run), gcTransientSequence, gcDataOrderers.  gcLogger has its mutex; the __METHOD__ and
+       ...ToString scratch pads are thread_local already.
+    T. The 65C64 and 816 builds have one thread and no room: all of this must compile to nothing there, and object
+       sizes must not change on any target (the size asserts on three targets).
+    U. Tests assert exact from orders, counts, distances and sizes.  With one thread nothing observable may change.
+
+
+The design
+----------
+  Three levels.  Each is complete and shippable; each later one is only worth building if measurements ask for it.
+
+  Level 1: one lock (correct first)
+    One recursive lock per CObjects (mcLock).  Every entry into the object system takes it:
+      CPointer: the copy constructors, assignment, PointTo, the destructor, Return, Kill, MorphInto; Dereference only
+        when it must (see hollows below).
+      CCollection and the four collections: every method that adds, removes, replaces or clears members, and the
+        stack-held collection's construction and destruction.
+      Weak<M> and CArrayWeakObject: Get, assignment, Compact.
+      CObjects: Malloc, Get, GetPossiblyHollow, Contains, Root, Flush, Discard, Destroy, LoadForward, EvictInMemory,
+        Dehollow, Remove, the free-object calls, iteration, the dumps and validators.
+      CBaseObject: Kill, SetDirty/LogicalDirty/SetFlag, the stack CObject's destructor path (R).
+    Recursive because Free() and Init() run user code that comes back in.  CMutex is not recursive, and gcLogger has
+    hand-rolled the same thing (giLoggerLockDepth): step 1 makes that a BaseLib class (CRecursiveMutex: a CMutex, the
+    owning thread and a depth) and the logger uses it.
+    What this settles: A (for objects), B, D, E (only the lock's owner can be "nested"), F, G, H, I, J, K, N, R.
+    One thread costs nothing: the lock is skipped until a second thread registers (ObjectsThreadInit, below), a
+    predictable branch on a bool.  On the 65C64 and the 816 the calls are compiled out (T).
+
+  Level 2: readers and a writer (only if level 1 is measured to be too slow with workers)
+    Most Ptr traffic walks nothing: a stack Ptr taken to, or dropped from, an object that stays attached to the root
+    (FromRemoved returns at once for it today).  Those become readers: they hold the lock shared and take a small lock
+    on the object (one of a fixed table of spin locks, picked by the object's address) to link or unlink the stack
+    pointer node.  Anything that changes a heap from, walks, frees, loads or evicts is a writer and holds it alone.
+    The shared side is one mutex per registered thread (a writer takes them all), so readers on different threads never
+    touch the same cache line.  It is sound because a walk then sees stack lists that cannot change under it, and a
+    reader's "is it still attached?" cannot be answered in the middle of a walk.
+    The call sites don't change: step 2 already marks each entry point as a reader or a writer (ObjectsRead / ObjectsWrite
+    guards that are the same lock in level 1).
+    Allocation leaves the writer side here: OMalloc is allocate (the allocator's own safety), add to mcMemory (its own
+    small mutex), then a reader's stack from.  That is when the allocator has to scale.
+
+  Level 3: a CObjects per thread (only if objects must be BUILT in parallel)
+    Levels 1 and 2 serialise every heap pointer change, so threads that build object graphs gain nothing.  The answer
+    that scales is no sharing: a worker has its own CObjects (and CStackPointers), builds there, and the finished graph
+    is handed to the main CObjects in one step (Adopt: re-register its objects in the other memory index; no copy when
+    both allocate from the same thread-safe allocator; OIndexes come from one locked sequence).  Pointers between two
+    CObjects stay forbidden and validated.  OMalloc/ORoot would go through a thread_local "current objects" in place of
+    gcObjects.  Not planned in detail until something needs it.
+
+  Threads register
+    ObjectsThreadInit() / ObjectsThreadKill() on each thread that will touch objects (the thread that called
+    ObjectsInit is registered by it).  Registration switches the locking on, gives the thread its stack pointer count
+    (a thread_local, raised and lowered with every stack from), and in level 2 its reader mutex.  ObjectsThreadKill
+    reports stack pointers the thread still has, as ObjectsKill does for the process; ObjectsKill refuses while other
+    threads are registered.  In Debug a CStackPointer node also records its thread, for the dumps (Q).
+    An object system call from a thread that hasn't registered, once threading is on, is an Error2.
+
+  Which thread frees (O)
+    Every CObjects has a home thread (the one that called ObjectsInit).  A batch found dead on another thread is not
+    freed there: under the lock it is marked FREED, its weak froms are cleared and it is taken out of the memory index
+    (so nothing can reach it: no Get, no Weak, no from of a live object the walks will follow), and it is queued.  The
+    home thread frees queued batches whenever it next takes the lock, and from ObjectsCollect() which a tick calls.  So
+    Free() always runs on the home thread, window and renderer code needs no change, and freeing is still immediate
+    for everything the home thread lets go of itself.  The cost: memory let go by a worker lives until the home thread
+    next touches an object.  (The alternative, freeing on the thread that let go, needs every Free() in WindowLib, the
+    native canvases and the renderers to be safe on any thread.)
+
+  The lock order rule (P)
+    The object lock is taken before any lock of the user's that a Free() takes; put the other way, don't let go of a
+    Ptr that could be the last while holding a lock some Free() wants.  Home-thread freeing removes most of it (workers
+    never run Free()).  In Debug the recursive mutex can record that a Free() is running, and a small ObjectsAssertNoFree
+    helper lets a class check its own lock isn't taken inside one.
+
+  Hollows, loading and eviction (L, M)
+    Without a data connection there are no hollows (ReplaceWithHollow needs a stored object), which is every UI app
+    today: operator-> stays a plain load of mpcObject with no lock.
+    With a data connection, Dereference takes the lock (a reader in level 2) whenever threading is on, because another
+    thread's Dehollow may be rewriting this very Ptr.  That makes operator-> slow for threaded programs with a database;
+    acceptable until the Codabase transaction work decides how CObjects and transactions meet (open there already).
+    Eviction and killing a held stored object are only allowed while no other registered thread is inside the object
+    system or holding a stack pointer (checked from the per-thread counts): in practice, between jobs.
+
+  Flags (J)
+    All flag writes go under the lock in level 1 (SetDirty included).  If SetDirty from users shows up in profiles, the
+    dirty bit alone becomes an atomic OR; no layout change is needed for that.
+
+  Handing objects to jobs (Q)
+    The caller keeps a Ptr (or the object is rooted) until the job is done and gives the job a raw pointer, or the job
+    data is itself a rooted CObject.  A worker that wants to keep something takes its own stack Ptr on its own thread.
+    A worker that only reads a graph nobody changes (Sculpt's bake sampling a material) takes one Ptr at the top and
+    uses plain pointers below it: no Ptr traffic, no locking, full speed on every core.  This is the pattern to prefer.
+
+
+The allocator
+-------------
+  Level 1: gcUnknowns gets a mutex of its own around its allocate/free, the element count and the iterables, because
+  plain unknowns are added and removed outside the object lock.  CGeneralMemory stays.  Cheap, and enough: object
+  allocation is inside the object lock anyway, so a faster allocator would buy nothing yet.
+  Level 2: allocation runs on many threads at once and a locked CGeneralMemory becomes the bottleneck.  Candidates, to
+  be measured with the existing allocator bench plus a threaded one, before choosing:
+    a. CSystemAllocator (malloc) under gcUnknowns.  Thread-safe with per-thread arenas today, nothing to write.  Loses
+       CGeneralMemory's iteration, debug names and FreeMultiple; needs a survey of who relies on them.
+    b. A thread-caching allocator built from what BaseLib has: each thread owns CFreeLists per size class on
+       CSlabAllocator slabs and allocates without a lock; a free from another thread is pushed onto an atomic list in
+       the slab's header (CFreeList::GetSlabNode already finds the slab from the pointer) that the owner drains when it
+       next allocates.  Keeps debug names and iteration, costs a slab per size class per thread.
+  Recommended: (a) if the survey shows nothing needs CGeneralMemory under gcUnknowns, else (b).  The 65C64 and the 816
+  keep CTrueMallocator and CGeneralMemory as they are.
+  gcStackPointers: under the object lock in level 1; one CFreeList per thread in level 2 (a node is returned to the
+  list of the thread that made it, which is the thread whose stack it is).
+
+
+Steps
+-----
+  Each step ends with TestBaseLib/TestStandardLib/TestWindowLib/TestSupportLib passing and the single-thread speed tests
+  (the dist-to-root focus sweep, free batch, typing latency) within noise of before.
+
+   1. BaseLib: CRecursiveMutex (and gcLogger on it); CurrentThreadId made cheap (thread_local).  Tests.
+   2. The guards: ObjectsRead / ObjectsWrite scoped guards and the threading-on switch, no-ops for now, placed at every
+      entry point listed under level 1.  The audit is the work: each public method of CPointer, Ptr, Weak, CCollection
+      and its four, CObjects, CBaseObject is marked reader, writer, or "inside only" (must be called with the lock
+      held; asserted in Debug).  Compiled out under __LIBC65__.  No behaviour change.
+   3. ObjectsThreadInit/Kill, per-thread stack pointer counts, the unregistered-thread error, the Debug thread on stack
+      pointer nodes, ObjectsKill's checks.
+   4. CUnknowns' own mutex; gcTransientSequence locked; a check that no constructor is registered once threading is on.
+   5. The lock is real.  A ThreadSanitizer build dir for TestStandardLib (build/TestStandardLib64Tsan) and the first
+      threaded tests (below).  Hollows: the locked Dereference when there is a data connection; eviction's guard.
+   6. Home-thread freeing: the queue, ObjectsCollect, draining when the home thread takes the lock, ObjectsKill draining
+      it.  Tests that a worker's last Ptr frees on the home thread and that Free() order (Nes) is kept.
+   7. Use it: Sculpt's bake on CWorkerThreadJobs with the one-Ptr-at-the-top pattern.  Measure.
+   8. Measure level 1 with real workers that do copy Ptrs (the IDE's indexing is the candidate).  Stop here unless the
+      lock shows in the profile.
+   9. (If 8 says so) level 2: per-thread reader mutexes, the object lock table, mcMemory's mutex, per-thread stack
+      pointer lists, then the allocator choice above.
+  10. (If something needs it) level 3, planned then.
+
+  Tests (TestStandardLib/TestObjectsThreads.cpp, not on the 65 targets)
+    Threads copying and dropping Ptrs to one rooted object; to a hub; to objects another thread is re-pointing a field
+    at (under the test's own mutex) so objects are freed while others take Ptrs to their neighbours.
+    Each thread building and dropping its own unrooted graphs, cycles included, with object counts back to the start.
+    The last Ptr dropped on a worker: freed on the home thread, once, in Nes order.
+    Weak Get on one thread against the last strong Ptr going on another: always NULL or a kept object.
+    Collections changed on one thread (own mutex) while others hold members.
+    Unknowns added and removed on several threads.
+    Every test ends with ValidateObjectsConsistency and exact counts; all run under ThreadSanitizer and ASan, repeated,
+    and each guard's removal (one at a time, by the mutation harness) must make some test fail.
+
+
+Decisions wanted
+----------------
+  1. The contract: the object system protects itself and lifetimes; a class protects its own fields.  [Recommended.]
+  2. Start with level 1 and go further only on measurements.  [Recommended.]
+  3. Free() runs on the CObjects' home thread, queued from other threads.  [Recommended; the other choice is freeing on
+     the thread that let go, with every Free() made safe for that.]
+  4. Threaded programs with a database: locked Dereference and eviction only between jobs for now, the rest left to
+     the Codabase transaction decisions.  [Recommended.]
+  5. Allocator at level 1: a mutex in CUnknowns, CGeneralMemory kept; the swap is decided at level 2 by measurement.
+     [Recommended.]
+  6. Threads register explicitly (ObjectsThreadInit/Kill) and an unregistered thread touching objects is an error.
+     [Recommended; the other choice is registering silently on first use, which hides stack pointers leaked by a
+     thread that has exited.]
