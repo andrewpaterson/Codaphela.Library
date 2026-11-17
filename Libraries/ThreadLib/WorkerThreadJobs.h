@@ -41,6 +41,7 @@ protected:
 public:
 	void	Init(void);
 	void	Init(int iNumThreads);
+	void	Init(int iNumThreads, WorkerThreadFunction fThreadStarted, WorkerThreadFunction fThreadEnding);
 	void	Kill(void);
 
 	void	Run(JobFunction fJob, void* pvData) override;

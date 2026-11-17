@@ -69,10 +69,22 @@ void CWorkerThreadJobs::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWorkerThreadJobs::Init(int iNumThreads)
 {
+	Init(iNumThreads, NULL, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each of its threads calls fThreadStarted before its first job and fThreadEnding after its last: see
+// WorkerThreadFunction.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWorkerThreadJobs::Init(int iNumThreads, WorkerThreadFunction fThreadStarted, WorkerThreadFunction fThreadEnding)
+{
 	mcMutex.Init();
 	mcFinished.Init();
 	muiUnfinished = 0;
-	mcPool.Init(iNumThreads);
+	mcPool.Init(iNumThreads, fThreadStarted, fThreadEnding);
 }
 
 

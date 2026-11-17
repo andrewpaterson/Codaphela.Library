@@ -30,12 +30,26 @@ void CWorkerThreadPool::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWorkerThreadPool::Init(int iNumThreads)
 {
+	Init(iNumThreads, NULL, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each thread calls fThreadStarted before the first function it runs and fThreadEnding after the last (either can be
+// NULL).
+//
+//////////////////////////////////////////////////////////////////////////
+void CWorkerThreadPool::Init(int iNumThreads, WorkerThreadFunction fThreadStarted, WorkerThreadFunction fThreadEnding)
+{
 	size			i;
 	SWorkerThread*	psThread;
 
 	mcMutex.Init();
 	mcWake.Init();
 	mcTasks.Init();
+	mfThreadStarted = fThreadStarted;
+	mfThreadEnding = fThreadEnding;
 	miNumIdle = 0;
 	mbDone = false;
 	mbStop = false;
@@ -173,6 +187,11 @@ void CWorkerThreadPool::Work(int iThreadId)
 {
 	SWorkerTask		sTask;
 
+	if (mfThreadStarted)
+	{
+		mfThreadStarted();
+	}
+
 	mcMutex.Lock();
 	for (;;)
 	{
@@ -194,6 +213,11 @@ void CWorkerThreadPool::Work(int iThreadId)
 		}
 	}
 	mcMutex.Unlock();
+
+	if (mfThreadEnding)
+	{
+		mfThreadEnding();
+	}
 }
 
 

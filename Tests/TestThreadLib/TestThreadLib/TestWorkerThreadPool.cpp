@@ -147,6 +147,69 @@ void TestWorkerThreadPoolInitialiseAndKill(void)
 	cPool.Kill();
 }
 
+static CAtomicInt			giTestWorkerThreadsStarted;
+static CAtomicInt			giTestWorkerThreadsEnded;
+static CAtomicInt			giTestWorkerThreadsRanOutsideThem;
+static thread_local bool	gbTestWorkerThreadStarted = false;	//The running thread is between its started and its ending.
+
+
+static bool TestWorkerThreadStarted(void)
+{
+	gbTestWorkerThreadStarted = true;
+	giTestWorkerThreadsStarted.Increment();
+	return true;
+}
+
+
+static bool TestWorkerThreadEnding(void)
+{
+	gbTestWorkerThreadStarted = false;
+	giTestWorkerThreadsEnded.Increment();
+	return true;
+}
+
+
+static void TestWorkerThreadCountedTask(int iThreadId, void* pvCount)
+{
+	if (!gbTestWorkerThreadStarted)
+	{
+		giTestWorkerThreadsRanOutsideThem.Increment();
+	}
+	((CAtomicInt*)pvCount)->Increment();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each of the pool's threads calls its started function once before anything it runs and its ending function once
+// after everything.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestWorkerThreadPoolThreadFunctions(void)
+{
+	CWorkerThreadPool	cPool;
+	CAtomicInt			iCount;
+	int					i;
+
+	giTestWorkerThreadsStarted.Set(0);
+	giTestWorkerThreadsEnded.Set(0);
+	giTestWorkerThreadsRanOutsideThem.Set(0);
+	iCount.Set(0);
+
+	cPool.Init(4, TestWorkerThreadStarted, TestWorkerThreadEnding);
+	for (i = 0; i < 100; i++)
+	{
+		cPool.Push(TestWorkerThreadCountedTask, &iCount);
+	}
+	cPool.Stop(true);
+	AssertInt(100, iCount.Get());
+	AssertInt(4, giTestWorkerThreadsStarted.Get());
+	AssertInt(4, giTestWorkerThreadsEnded.Get());
+	AssertInt(0, giTestWorkerThreadsRanOutsideThem.Get());
+	cPool.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -158,6 +221,7 @@ void TestWorkerThreadPool(void)
 
 	TestWorkerThreadPoolInitialiseAndKill();
 	TestWorkerThreadPoolConcurrency();
+	TestWorkerThreadPoolThreadFunctions();
 
 	MemoryKill();
 	TestStatistics();
