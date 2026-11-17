@@ -270,6 +270,8 @@
     <ClCompile Include="TestFloatHelper.cpp" />
     <ClCompile Include="TestFreeListAllocator.cpp" />
     <ClCompile Include="TestTrueMallocator.cpp" />
+    <ClCompile Include="TestThreadMallocator.cpp" />
+    <ClCompile Include="TestThreadMallocatorSpeed.cpp" />
     <ClCompile Include="TestGlobalDataTypesIO.cpp" />
     <ClCompile Include="TestIndexBlock.cpp" />
     <ClCompile Include="TestIndexPtr.cpp" />

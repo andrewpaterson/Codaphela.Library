@@ -807,6 +807,18 @@
     <ClInclude Include="TrueMallocator.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="ThreadMallocator.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Atomic.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="SpinLock.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemMemory.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
     <ClInclude Include="PackFilePacker.h">
       <Filter>Source\File\Pack\Util</Filter>
     </ClInclude>
@@ -2115,6 +2127,18 @@
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="TrueMallocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadMallocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="SpinLock.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemMemory_Linux.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemMemory_Windows.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="PackFilePacker.cpp">

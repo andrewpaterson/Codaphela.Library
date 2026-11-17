@@ -21,6 +21,10 @@ static const char* gaszTestBaseLib65Excluded[] =
 	"TestReadTransaction",
 	"TestTransactionConcurrency",
 
+	//CThreadMallocator isn't built for the 65C64 (its malloc is a CTrueMallocator alone).
+	"TestThreadMallocator",
+	"TestThreadMallocatorSpeed",
+
 	//Hundreds of millions to billions of instructions natively, far too many to simulate here.
 	"TestNumber",
 	"TestFloatPrinter",

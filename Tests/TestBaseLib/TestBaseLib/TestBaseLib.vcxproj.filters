@@ -396,6 +396,12 @@
     <ClCompile Include="TestTrueMallocator.cpp">
       <Filter>Source\Memory\FreeList</Filter>
     </ClCompile>
+    <ClCompile Include="TestThreadMallocator.cpp">
+      <Filter>Source\Memory\FreeList</Filter>
+    </ClCompile>
+    <ClCompile Include="TestThreadMallocatorSpeed.cpp">
+      <Filter>Source\Memory\FreeList</Filter>
+    </ClCompile>
     <ClCompile Include="TestTrackingAllocator.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
