@@ -1000,16 +1000,12 @@ bool CCodabase::ValidateConfigInitialised(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Asked after Kill, so there is no mutex to lock (and no other thread to lock it against).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCodabase::ValidateConfigKilled(void)
 {
-	bool	bResult;
-
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.ValidateConfigKilled();
-	mcMutex.Unlock();
-	return bResult;
+	return mcNamedIndexedData.ValidateConfigKilled();
 }
 
 

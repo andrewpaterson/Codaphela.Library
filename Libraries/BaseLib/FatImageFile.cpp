@@ -202,8 +202,11 @@ bool FatGetFileFromImage(const char* szImage, const char* szName, void** ppvData
 			puiData = (uint8*)malloc((*puiSize > 0) ? *puiSize : 1);
 			uiRead = 0;
 			bResult = (*puiSize == 0) || ((cFile.Read(puiData, *puiSize, &uiRead) == FAT_SUCCESS) && (uiRead == *puiSize));
-			cFile.Close();
 		}
+
+		//Whether or not it opened: Open makes the file's cluster cache before it looks for the file, and Close is what
+		//frees it.
+		cFile.Close();
 	}
 	cVolume.Unmount();
 	cDrive.Kill();
