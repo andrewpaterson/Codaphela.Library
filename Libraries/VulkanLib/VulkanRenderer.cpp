@@ -870,7 +870,7 @@ Ptr<CVulkanTexture> CVulkanRenderer::GetTexture(CMaterialImage* pcImage)
 		return pTexture;
 	}
 
-	bResult = cLevels.Init(pcImage) && CreateTexture(&sTexture, cLevels.NumLevels(), cLevels.maiWidths.GetData(), cLevels.maiHeights.GetData(), cLevels.mauiTexels.GetData());
+	bResult = cLevels.Init(pcImage, true) && CreateTexture(&sTexture, cLevels.NumLevels(), cLevels.maiWidths.GetData(), cLevels.maiHeights.GetData(), cLevels.mauiTexels.GetData());
 	cLevels.Kill();
 	if (bResult)
 	{

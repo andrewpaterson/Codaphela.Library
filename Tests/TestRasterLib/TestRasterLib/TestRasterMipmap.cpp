@@ -498,6 +498,60 @@ void TestRasterMipmapTexturesFreed(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A GPU's levels (halved rounding down): 6 by 3 is followed by 3 by 1 and
+// 1 by 1, not by 3 by 2, 2 by 1 and 1 by 1.  A level's texel is the mean
+// of all the level before's it covers: two by three, then three in a row.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRasterMipmapRoundedDown(void)
+{
+	Ptr<CMaterialImage>	pMaterialImage;
+	CTextureLevels		cLevels;
+	uint32				auiSource[9] = { 0x00000000, 0x04080C10, 0xFF000000, 0x00000000, 0x04080C10, 0xFF000000, 0x03060900, 0x04080C10, 0x80808080 };
+	uint32				uiDest;
+	uint8*				puiData;
+	int32				x;
+	int32				y;
+
+	ShrinkTexels(&uiDest, 1, 1, auiSource, 3, 3);
+	AssertIntHex((int32)0x49121314, (int32)uiDest);
+
+	pMaterialImage = OMalloc<CMaterialImage>();
+	pMaterialImage->mpImage = OMalloc<CImage>((uint32)6, (uint32)3, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	puiData = (uint8*)pMaterialImage->mpImage->GetData();
+	for (y = 0; y < 3; y++)
+	{
+		for (x = 0; x < 6; x++)
+		{
+			puiData[(((y * 6) + x) * 3) + 0] = (uint8)(x * 30);
+			puiData[(((y * 6) + x) * 3) + 1] = (uint8)(y * 60);
+			puiData[(((y * 6) + x) * 3) + 2] = 0;
+		}
+	}
+
+	AssertTrue(cLevels.Init(&pMaterialImage));
+	AssertInt(4, cLevels.NumLevels());
+	AssertInt(3, cLevels.GetWidth(1));
+	AssertInt(2, cLevels.GetHeight(1));
+	cLevels.Kill();
+
+	AssertTrue(cLevels.Init(&pMaterialImage, true));
+	AssertInt(3, cLevels.NumLevels());
+	AssertInt(6, cLevels.GetWidth(0));
+	AssertInt(3, cLevels.GetHeight(0));
+	AssertInt(3, cLevels.GetWidth(1));
+	AssertInt(1, cLevels.GetHeight(1));
+	AssertInt(1, cLevels.GetWidth(2));
+	AssertInt(1, cLevels.GetHeight(2));
+	AssertIntHex((int32)0xFF0F3C00, (int32)cLevels.GetTexels(1)[0]);
+	AssertIntHex((int32)0xFF873C00, (int32)cLevels.GetTexels(1)[2]);
+	AssertIntHex((int32)0xFF4B3C00, (int32)cLevels.GetTexels(2)[0]);
+	cLevels.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRasterMipmap(void)
@@ -513,6 +567,7 @@ void TestRasterMipmap(void)
 	TestRasterMipmapChoice();
 	TestRasterMipmapHalve();
 	TestRasterMipmapMaterialLevels();
+	TestRasterMipmapRoundedDown();
 	TestRasterMipmapTexturesFreed();
 
 	ObjectsKill(false);

@@ -30,6 +30,10 @@ class CMaterialImage;
 //A material image's texels at every mip level, as the renderers texture with them (GetImageTexels): level 0 the image's, then
 //each half the one before (rounded up) to 1 by 1.  A level is the image's own (CMaterialImage's mapLevels, as a bake makes
 //them) where it has one that size, or else made from the level before by HalveTexels.  The levels are end to end, finest first.
+//
+//A GPU halves rounding down (a level 3 across is followed by one 1 across, not 2), and takes no other sizes: bRoundDown gives
+//its levels, the ones whose sizes differ made from the level before by ShrinkTexels.  The two are the same for sizes that are
+//powers of two.
 class CTextureLevels
 {
 public:
@@ -38,7 +42,7 @@ public:
 	CArrayLargeInt		maiWidths;
 	CArrayLargeInt		maiHeights;
 
-	bool	Init(CMaterialImage* pcImage);  //False, and no levels, for no image or one that isn't bytes.
+	bool	Init(CMaterialImage* pcImage, bool bRoundDown = false);  //False, and no levels, for no image or one that isn't bytes.
 	void	Kill(void);
 
 	int32	NumLevels(void) const;
@@ -54,6 +58,10 @@ int32	HalfTextureSize(int32 iSize);
 //The level after puiSource, iWidth by iHeight: each of its texels the mean of the two by two it covers (each channel, rounded),
 //or of the one or two at an odd size's last row and column.
 void	HalveTexels(uint32* puiDest, uint32* puiSource, int32 iWidth, int32 iHeight);
+
+//puiSource, iWidth by iHeight, made iDestWidth by iDestHeight, neither more than the source's: each of its texels the mean of
+//the source's it covers (each channel, rounded).
+void	ShrinkTexels(uint32* puiDest, int32 iDestWidth, int32 iDestHeight, uint32* puiSource, int32 iWidth, int32 iHeight);
 
 
 #endif // __TEXTURE_LEVELS_H__

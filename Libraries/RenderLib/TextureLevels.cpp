@@ -88,11 +88,68 @@ void HalveTexels(uint32* puiDest, uint32* puiSource, int32 iWidth, int32 iHeight
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each of its texels the mean of the source's it covers: those from where
+// it starts, scaled up, to where the next one does.
+//
+//////////////////////////////////////////////////////////////////////////
+void ShrinkTexels(uint32* puiDest, int32 iDestWidth, int32 iDestHeight, uint32* puiSource, int32 iWidth, int32 iHeight)
+{
+	int32	x;
+	int32	y;
+	int32	i;
+	int32	j;
+	int32	iLeft;
+	int32	iRight;
+	int32	iTop;
+	int32	iBottom;
+	int32	iShift;
+	uint32	uiCount;
+	uint32	auiSums[4];
+	uint32	uiTexel;
+	uint32	uiResult;
+
+	for (y = 0; y < iDestHeight; y++)
+	{
+		iTop = (y * iHeight) / iDestHeight;
+		iBottom = ((y + 1) * iHeight) / iDestHeight;
+		for (x = 0; x < iDestWidth; x++)
+		{
+			iLeft = (x * iWidth) / iDestWidth;
+			iRight = ((x + 1) * iWidth) / iDestWidth;
+			auiSums[0] = 0;
+			auiSums[1] = 0;
+			auiSums[2] = 0;
+			auiSums[3] = 0;
+			for (j = iTop; j < iBottom; j++)
+			{
+				for (i = iLeft; i < iRight; i++)
+				{
+					uiTexel = puiSource[((size)j * (size)iWidth) + (size)i];
+					for (iShift = 0; iShift < 4; iShift++)
+					{
+						auiSums[iShift] += (uiTexel >> (iShift * 8)) & 0xFF;
+					}
+				}
+			}
+			uiCount = (uint32)(iRight - iLeft) * (uint32)(iBottom - iTop);
+			uiResult = 0;
+			for (iShift = 0; iShift < 4; iShift++)
+			{
+				uiResult |= ((auiSums[iShift] + (uiCount / 2)) / uiCount) << (iShift * 8);
+			}
+			puiDest[((size)y * (size)iDestWidth) + (size)x] = uiResult;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Each level is laid down at the end and filled from the image's own
 // level that size if it has one, from the level before if not.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextureLevels::Init(CMaterialImage* pcImage)
+bool CTextureLevels::Init(CMaterialImage* pcImage, bool bRoundDown)
 {
 	CImage*	pcLevel;
 	int32	iWidth;
@@ -132,14 +189,29 @@ bool CTextureLevels::Init(CMaterialImage* pcImage)
 				maiHeights.ReInit();
 				return false;
 			}
-			HalveTexels(mauiTexels.GetData() + uiStart, GetTexels(iLevel - 1), GetWidth(iLevel - 1), GetHeight(iLevel - 1));
+			if (bRoundDown)
+			{
+				ShrinkTexels(mauiTexels.GetData() + uiStart, iWidth, iHeight, GetTexels(iLevel - 1), GetWidth(iLevel - 1), GetHeight(iLevel - 1));
+			}
+			else
+			{
+				HalveTexels(mauiTexels.GetData() + uiStart, GetTexels(iLevel - 1), GetWidth(iLevel - 1), GetHeight(iLevel - 1));
+			}
 		}
 		if ((iWidth == 1) && (iHeight == 1))
 		{
 			return true;
 		}
-		iWidth = HalfTextureSize(iWidth);
-		iHeight = HalfTextureSize(iHeight);
+		if (bRoundDown)
+		{
+			iWidth = (iWidth > 1) ? iWidth / 2 : 1;
+			iHeight = (iHeight > 1) ? iHeight / 2 : 1;
+		}
+		else
+		{
+			iWidth = HalfTextureSize(iWidth);
+			iHeight = HalfTextureSize(iHeight);
+		}
 	}
 }
 
