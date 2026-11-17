@@ -18,13 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/FileUtil.h"
-#include "StandardLib/ChunkFileObjectWriter.h"
-#include "StandardLib/ChunkFileSystemObjectReader.h"
 #include "StandardLib/ClassDefines.h"
-#include "StandardLib/ExternalObjectDeserialiser.h"
-#include "StandardLib/ExternalObjectSerialiser.h"
-#include "StandardLib/ObjectFileGeneral.h"
+#include "StandardLib/NamedObjectFile.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/Box.h"
 #include "SupportLib/ShapeSmoothUnion.h"
@@ -77,49 +72,13 @@ void CSolidMaterial::Free(void) {}
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szFilename as the folder it's in and its name less the object files'
-// extension, which is how the objects' reader and writer are told of a
-// file.
-//
-//////////////////////////////////////////////////////////////////////////
-static void SolidMaterialSplit(const char* szFilename, CChars* pszDirectory, CChars* pszName)
-{
-	CFileUtil	cFileUtil;
-	CChars		szExtension;
-
-	pszDirectory->Init(szFilename);
-	cFileUtil.RemoveLastFromPath(pszDirectory);
-	if (pszDirectory->Empty())
-	{
-		pszDirectory->Append(".");
-	}
-	pszName->Init();
-	cFileUtil.GetFileName(pszName, szFilename);
-
-	szExtension.Init(".");
-	szExtension.Append(OBJECT_FILE_EXTENSION);
-	if (pszName->EndsWithIgnoreCase(szExtension.Text()))
-	{
-		pszName->RemoveFromEnd(szExtension.Length());
-	}
-	szExtension.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The textures are written through a material named SOLID_MATERIAL_NAME,
 // which is only there while they're written.
 //
 //////////////////////////////////////////////////////////////////////////
 bool WriteSolidMaterial(Ptr<CSolidTexture> pSurface, const char* szFilename)
 {
-	Ptr<CSolidMaterial>			pMaterial;
-	CExternalObjectSerialiser	cSerialiser;
-	CChunkFileObjectWriter		cWriter;
-	CChars						szDirectory;
-	CChars						szName;
-	bool						bResult;
+	Ptr<CSolidMaterial>		pMaterial;
 
 	pMaterial = gcObjects.Malloc<CSolidMaterial>(SOLID_MATERIAL_NAME);
 	if (pMaterial.IsNull())
@@ -127,16 +86,7 @@ bool WriteSolidMaterial(Ptr<CSolidTexture> pSurface, const char* szFilename)
 		return false;
 	}
 	pMaterial->Init(pSurface);
-
-	SolidMaterialSplit(szFilename, &szDirectory, &szName);
-	cWriter.Init(szDirectory.Text(), "", szName.Text());
-	cSerialiser.Init(&cWriter);
-	bResult = cSerialiser.Write(&pMaterial);
-	cSerialiser.Kill();
-	cWriter.Kill();
-	szName.Kill();
-	szDirectory.Kill();
-	return bResult;
+	return WriteNamedObjectFile(&pMaterial, szFilename);
 }
 
 
@@ -146,37 +96,15 @@ bool WriteSolidMaterial(Ptr<CSolidTexture> pSurface, const char* szFilename)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CSolidTexture> ReadSolidMaterial(const char* szFilename)
 {
-	Ptr<CSolidMaterial>				pMaterial;
-	Ptr<CSolidTexture>				pSurface;
-	CExternalObjectDeserialiser		cDeserialiser;
-	CChunkFileSystemObjectReader	cReader;
-	CFileUtil						cFileUtil;
-	CChars							szDirectory;
-	CChars							szName;
-	CChars							szFile;
+	Ptr<CSolidMaterial>		pMaterial;
 
-	SolidMaterialSplit(szFilename, &szDirectory, &szName);
-	szFile.Init(szDirectory);
-	cFileUtil.AppendToPath(&szFile, szName.Text());
-	szFile.Append(".");
-	szFile.Append(OBJECT_FILE_EXTENSION);
-	if (cFileUtil.Exists(szFile.Text()))
+	AddSolidTextureConstructors();
+	pMaterial = Ptr<CSolidMaterial>(dynamic_cast<CSolidMaterial*>(ReadNamedObjectFile(szFilename, SOLID_MATERIAL_NAME)));
+	if (pMaterial.IsNull())
 	{
-		AddSolidTextureConstructors();
-		cReader.Init(szDirectory.Text(), szName.Text());
-		cDeserialiser.Init(&cReader, false, &gcObjects);
-		pMaterial = Ptr<CSolidMaterial>(dynamic_cast<CSolidMaterial*>(cDeserialiser.Read(SOLID_MATERIAL_NAME)));
-		cDeserialiser.Kill();
-		cReader.Kill();
-		if (pMaterial.IsNotNull())
-		{
-			pSurface = pMaterial->mpSurface;
-		}
+		return NULL;
 	}
-	szFile.Kill();
-	szName.Kill();
-	szDirectory.Kill();
-	return pSurface;
+	return pMaterial->mpSurface;
 }
 
 

@@ -570,6 +570,9 @@
     <ClInclude Include="ArrayWeakObject.h">
       <Filter>Source\Object\Object\Remove</Filter>
     </ClInclude>
+    <ClInclude Include="NamedObjectFile.h">
+      <Filter>Source\Object\Object\IO\ChunkFile</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -958,6 +961,9 @@
     </ClCompile>
     <ClCompile Include="ArrayWeakObject.cpp">
       <Filter>Source\Object\Object\Remove</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedObjectFile.cpp">
+      <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

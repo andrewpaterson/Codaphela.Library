@@ -332,6 +332,7 @@
     <ClInclude Include="WeakPointer.h" />
     <ClInclude Include="WeakPointerField.h" />
     <ClInclude Include="ArrayWeakObject.h" />
+    <ClInclude Include="NamedObjectFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChannelDebugDescriptor.cpp" />
@@ -463,6 +464,7 @@
     <ClCompile Include="WeakPointer.cpp" />
     <ClCompile Include="WeakPointerField.cpp" />
     <ClCompile Include="ArrayWeakObject.cpp" />
+    <ClCompile Include="NamedObjectFile.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
