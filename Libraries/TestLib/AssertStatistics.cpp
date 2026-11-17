@@ -132,7 +132,7 @@ void CAssertStatistics::PrintTotal(CChars* psz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CAssertStatistics::GetTotalTestsFailed(void)
+int CAssertStatistics::GetTotalTestsFailed(void) const
 {
 	return (int)miTotalTestsFailed;
 }

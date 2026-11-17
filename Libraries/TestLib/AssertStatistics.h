@@ -68,7 +68,7 @@ public:
 	void	PrintTest(CChars* psz);
 	void	PrintTotal(CChars* psz);
 	
-	int		GetTotalTestsFailed(void);
+	int		GetTotalTestsFailed(void) const;
 };
 
 
