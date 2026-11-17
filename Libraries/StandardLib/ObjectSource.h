@@ -43,12 +43,12 @@ public:
 	virtual CBaseObject*	Convert(const char* szFullName) =0;
 	virtual bool			Contains(const char* szFullName) =0;
 
-	virtual bool			IsNative(void);
-	virtual bool			IsMultiSource(void);
+	virtual bool			IsNative(void) const;
+	virtual bool			IsMultiSource(void) const;
 
 			CAbstractFile*	GetFile(void) const;
 
-	virtual CExternalObjectReader*	GetReader(void);
+	virtual CExternalObjectReader*	GetReader(void) const;
 };
 
 

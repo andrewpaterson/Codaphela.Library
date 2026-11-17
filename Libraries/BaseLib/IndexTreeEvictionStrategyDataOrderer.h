@@ -18,7 +18,7 @@ public:
 
 	bool					Run(CIndexTreeNodeFile* pcDontEvict) override;
 
-	CIndexTreeDataOrderer*	GetDataOrderer(void) override;
+	CIndexTreeDataOrderer*	GetDataOrderer(void) const override;
 };
 
 

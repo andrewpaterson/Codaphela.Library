@@ -41,8 +41,8 @@ protected:
 public:
 			void			Init(void);
 			void			Kill(void) final;
-			bool			IsCollection(void) override;
-			bool			IsObject(void) override;
+			bool			IsCollection(void) const override;
+			bool			IsObject(void) const override;
 			CBaseObject*	Dehollow(void) override;
 	virtual void			TouchAll(void) =0;
 	virtual void			KillAll(void) =0;
@@ -53,7 +53,7 @@ public:
 	virtual bool			IsEmpty(void) =0;
 
 			void			MakeSubRoot(void);
-			bool			IsSubRoot(void) override;
+			bool			IsSubRoot(void) const override;
 
 			void			ValidateConsistency(void) override;
 			void			ValidateMemberLocations(void);

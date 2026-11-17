@@ -69,7 +69,7 @@ void CCalcParentheses::SetExpression(CCalcExpression* pcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcParentheses::IsParentheses(void)
+bool CCalcParentheses::IsParentheses(void) const
 {
 	return true;
 }

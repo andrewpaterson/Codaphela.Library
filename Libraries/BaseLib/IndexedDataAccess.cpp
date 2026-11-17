@@ -51,7 +51,7 @@ bool CIndexedDataAccess::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedDataAccess::NumElements(void)
+int64 CIndexedDataAccess::NumElements(void) const
 {
 	return mpcIndexData->NumElements();
 }

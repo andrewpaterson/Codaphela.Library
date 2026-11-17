@@ -31,9 +31,9 @@ public:
 	void			Init(CClass* pcFieldClass, size uiOffset, CClass* pcContainingClass, const char* szName);
 	void			Kill(void) override;
 
-	bool			IsEmbeddedObject(void) override;
-	size			GetSizeOf(void) override;
-	size			GetNameOffset(void) override;
+	bool			IsEmbeddedObject(void) const override;
+	size			GetSizeOf(void) const override;
+	size			GetNameOffset(void) const override;
 
 	CBaseObject*	GetEmbeddedObject(CBaseObject* pcFieldContainer);
 };

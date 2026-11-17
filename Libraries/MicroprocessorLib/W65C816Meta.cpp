@@ -313,7 +313,7 @@ STraceValue CW65C816Meta::GetX(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Meta::IsOpcodeFetchSignalled(void)
+bool CW65C816Meta::IsOpcodeFetchSignalled(void) const
 {
 	return mcVDA.IsHigh() && mcVPA.IsHigh();
 }

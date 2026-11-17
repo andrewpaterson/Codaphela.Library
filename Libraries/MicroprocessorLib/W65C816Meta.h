@@ -47,7 +47,7 @@ public:
 	void			Dump(void);
 
 protected:
-	bool			IsOpcodeFetchSignalled(void) override;
+	bool			IsOpcodeFetchSignalled(void) const override;
 	void			LatchPhi2Low(void) override;
 	void			CallTickHigh(void) override;
 	void			CallTickLow(void) override;

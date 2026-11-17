@@ -40,7 +40,7 @@ public:
 
 	bool			CreateNativeCanvas(void) override;
 
-	uint8*			GetPixelData(void);
+	uint8*			GetPixelData(void) const;
 
 	void			CopyCanvas(CNativeCanvas* pcSourceCanvas) override;
 	Ptr<CImage>		GetImageOrNull(void);

@@ -874,7 +874,7 @@ lsize CBaseObject::SerialisedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::IsRoot(void)
+bool CBaseObject::IsRoot(void) const
 {
 	return false;
 }
@@ -884,7 +884,7 @@ bool CBaseObject::IsRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::IsNamed(void)
+bool CBaseObject::IsNamed(void) const
 {
 	return !mon.Empty();
 }
@@ -894,7 +894,7 @@ bool CBaseObject::IsNamed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::IsSubRoot(void)
+bool CBaseObject::IsSubRoot(void) const
 {
 	return false;
 }
@@ -1149,7 +1149,7 @@ void CBaseObject::FreeIdentifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::IsHollow(void)
+bool CBaseObject::IsHollow(void) const
 {
 	return false;
 }
@@ -1685,7 +1685,7 @@ bool CBaseObject::LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CBaseObject::GetIndex(void)
+OIndex CBaseObject::GetIndex(void) const
 {
 	return moi;
 }
@@ -1695,7 +1695,7 @@ OIndex CBaseObject::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::IsBaseObject(void)
+bool CBaseObject::IsBaseObject(void) const
 {
 	return true;
 }
@@ -1768,7 +1768,7 @@ void CBaseObject::GetStackFroms(CArrayStackPointerE32* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CBaseObject::NumEmbedded(void)
+size CBaseObject::NumEmbedded(void) const
 {
 	return muiNumEmbedded;
 }
@@ -1850,7 +1850,7 @@ bool CBaseObject::IsInitialised(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CBaseObject::GetClass(void)
+CClass* CBaseObject::GetClass(void) const
 {
 	return mpcClass;
 }
@@ -1938,7 +1938,7 @@ bool CBaseObject::ClipName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::HasNes(void)
+bool CBaseObject::HasNes(void) const
 {
 	return mpcClass->HasNes();
 }

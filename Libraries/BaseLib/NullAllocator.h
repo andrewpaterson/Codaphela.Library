@@ -15,7 +15,7 @@ public:
 
 	const char*	GetName(void) const;
 
-	bool		IsLocal(void) override;
+	bool		IsLocal(void) const override;
 	size		SizeOffset(void) override;
 
 	const char*	ShortName(void) override;

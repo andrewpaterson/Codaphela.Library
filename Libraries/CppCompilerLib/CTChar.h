@@ -32,7 +32,7 @@ public:
 	void Init(void);
 	void Init(char c);
 	void Kill(void);
-	bool IsChar(void);
+	bool IsChar(void) const;
 };
 
 

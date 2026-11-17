@@ -75,7 +75,7 @@ char* CPPReplacement::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPReplacement::IsReplacement(void)
+bool CPPReplacement::IsReplacement(void) const
 {
 	return true;
 }

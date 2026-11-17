@@ -97,7 +97,7 @@ CGerberExpression* CGerberApertureMacroCenterLine::GetRotation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacroCenterLine::IsCenterLine(void)
+bool CGerberApertureMacroCenterLine::IsCenterLine(void) const
 {
 	return true;
 }

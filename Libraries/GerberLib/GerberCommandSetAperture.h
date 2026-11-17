@@ -12,7 +12,7 @@ public:
 	void	Init(uint32 uiDCode);
 	void	Kill(void);
 
-	bool	IsSetAperture(void);
+	bool	IsSetAperture(void) const;
 
 	uint32	GetDCode(void) const;
 	void	SetDCode(uint32 uiDCode);

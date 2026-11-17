@@ -26,7 +26,7 @@ void CW65DecrementStackPointer::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DecrementStackPointer::IsInitialSide(void)
+bool CW65DecrementStackPointer::IsInitialSide(void) const
 {
 	return false;
 }

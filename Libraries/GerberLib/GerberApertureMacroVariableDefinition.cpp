@@ -30,7 +30,7 @@ void CGerberApertureMacroVariableDefinition::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacroVariableDefinition::IsVariableDefinition(void)
+bool CGerberApertureMacroVariableDefinition::IsVariableDefinition(void) const
 {
 	return true;
 }

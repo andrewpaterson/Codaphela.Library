@@ -15,7 +15,7 @@ void CW65Operation::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65Operation::IsOperation(void)
+bool CW65Operation::IsOperation(void) const
 {
     return true;
 }
@@ -37,7 +37,7 @@ bool CW65Operation::MustExecute(CW65CCore* pcCPU)
 // cycle asks them.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65Operation::IsConditional(void)
+bool CW65Operation::IsConditional(void) const
 {
     return false;
 }
@@ -47,7 +47,7 @@ bool CW65Operation::IsConditional(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65Operation::IsAddress(void)
+bool CW65Operation::IsAddress(void) const
 {
     return false;
 }
@@ -57,7 +57,7 @@ bool CW65Operation::IsAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65Operation::IsData(void)
+bool CW65Operation::IsData(void) const
 {
     return false;
 }
@@ -67,7 +67,7 @@ bool CW65Operation::IsData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CW65Operation::GetDone8(void)
+size CW65Operation::GetDone8(void) const
 {
     return 0;
 }
@@ -77,7 +77,7 @@ size CW65Operation::GetDone8(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CW65Operation::GetDone16(void)
+size CW65Operation::GetDone16(void) const
 {
     return 0;
 }

@@ -35,9 +35,9 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 	int					GetDistToRoot(void) override;
 	bool				SetDistToRoot(int iDistToRoot) override;
-	size				NumEmbedded(void) override;
+	size				NumEmbedded(void) const override;
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
-	bool				IsHollow(void) override;
+	bool				IsHollow(void) const override;
 	CBaseObject*		Dehollow(void) override;
 	size				GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void) const;
@@ -46,9 +46,9 @@ public:
 	bool				IsInitialised(void) override;
 	bool				IsDirty(void) override;
 	void				SetDirty(bool bDirty) override;
-	bool				IsRoot(void) override;
-	CClass*				GetClass(void) override;
-	bool				HasNes(void) override;
+	bool				IsRoot(void) const override;
+	CClass*				GetClass(void) const override;
+	bool				HasNes(void) const override;
 	bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
 protected:

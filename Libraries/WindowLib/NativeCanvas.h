@@ -42,7 +42,7 @@ public:
 
 protected:
 	virtual bool		CreateNativeCanvas(void) =0;
-	virtual uint8*		GetPixelData(void) =0;
+	virtual uint8*		GetPixelData(void) const =0;
 
 	virtual void		CopyCanvas(CNativeCanvas* pcSourceCanvas) =0;
 	virtual Ptr<CImage>	GetImageOrNull(void) =0;

@@ -64,7 +64,7 @@ bool CW65C02Meta::IsStopInstruction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C02Meta::IsOpcodeFetchSignalled(void)
+bool CW65C02Meta::IsOpcodeFetchSignalled(void) const
 {
 	return mcSYNC.IsHigh();
 }

@@ -55,7 +55,7 @@ void CCTIdentifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTIdentifier::IsIdentifier(void)
+bool CCTIdentifier::IsIdentifier(void) const
 {
 	return true;
 }

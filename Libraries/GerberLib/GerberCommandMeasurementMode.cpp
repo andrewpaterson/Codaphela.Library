@@ -25,7 +25,7 @@ void CGerberCommandMeasurementMode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandMeasurementMode::IsMeasurementMode(void)
+bool CGerberCommandMeasurementMode::IsMeasurementMode(void) const
 {
 	return true;
 }

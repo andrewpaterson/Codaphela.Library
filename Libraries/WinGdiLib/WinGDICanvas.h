@@ -42,7 +42,7 @@ public:
 
 	bool			CreateNativeCanvas(void) override;
 
-	uint8*			GetPixelData(void);
+	uint8*			GetPixelData(void) const;
 
 	void			Paint(HDC hDC, int32 iWidth, int32 iHeight);
 

@@ -24,7 +24,7 @@ public:
 	virtual bool		Free(void* pv) =0;
 	virtual size		FreeMultiple(CArrayVoidPtr* pav);
 
-	virtual bool		IsLocal(void) =0;
+	virtual bool		IsLocal(void) const =0;
 
 	virtual size		SizeOffset(void) =0;
 

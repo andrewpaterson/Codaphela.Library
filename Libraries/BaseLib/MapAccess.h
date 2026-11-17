@@ -13,7 +13,7 @@ class CMapAccess : public CKillable
 public:
 			void	Init(void);
 
-	virtual int64	NumElements(void) =0;
+	virtual int64	NumElements(void) const =0;
 	virtual void	Dump(void) =0;
 
 			void**	PutLongPtr(int64 lliKey, void* pvPointer);

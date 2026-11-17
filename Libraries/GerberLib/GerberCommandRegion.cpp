@@ -15,7 +15,7 @@ void CGerberCommandRegion::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandRegion::IsRegion(void)
+bool CGerberCommandRegion::IsRegion(void) const
 {
 	return true;
 }

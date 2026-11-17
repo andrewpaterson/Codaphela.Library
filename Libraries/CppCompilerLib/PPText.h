@@ -45,10 +45,10 @@ public:
 	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, const char* szStart, int iLength);
 	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, char* szEndExclusive);
 	void 			Kill(void);
-	bool 			IsText(void);
+	bool 			IsText(void) const;
 	char* 			Print(CChars* psz);
 	void 			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	virtual bool	HasSource(void);
+	virtual bool	HasSource(void) const;
 	virtual	const char*	TextStart(void);
 	virtual	const char*	TextEndInclusive(void);
 	bool			IsEmpty(void);

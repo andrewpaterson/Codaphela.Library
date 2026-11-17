@@ -45,7 +45,7 @@ void C65C64InternalOperation::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64InternalOperation::IsInitialSide(void)
+bool C65C64InternalOperation::IsInitialSide(void) const
 {
 	return false;
 }

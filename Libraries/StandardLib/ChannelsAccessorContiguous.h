@@ -34,7 +34,7 @@ public:
 	void*	Get(lsize iPos) override;
 	void	Set(lsize iPos, void* pvData) override;
 
-	bool	IsContiguous(void) override;
+	bool	IsContiguous(void) const override;
 };
 
 

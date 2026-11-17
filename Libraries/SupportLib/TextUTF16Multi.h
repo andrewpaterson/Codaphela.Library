@@ -39,7 +39,7 @@ public:
 	bool	Load(CObjectReader* pcFile) override;
 	bool	Save(CObjectWriter* pcFile) override;
 
-	bool	IsUTF16Multi(void) override;
+	bool	IsUTF16Multi(void) const override;
 
 	void	TextElementAbstract(void) override {}
 };

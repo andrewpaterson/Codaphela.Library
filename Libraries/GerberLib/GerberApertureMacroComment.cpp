@@ -36,7 +36,7 @@ char* CGerberApertureMacroComment::Text(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacroComment::IsComment(void)
+bool CGerberApertureMacroComment::IsComment(void) const
 {
 	return true;
 }

@@ -38,7 +38,7 @@ public:
 	void		Kill(void) override;
 	CNumber		Evaluate(void) override;
 	void		Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CCalcExpression* pcRight, bool bPrintSpace);
-	bool		IsBinaryExpression(void) override;
+	bool		IsBinaryExpression(void) const override;
 	void		Print(CChars* psz) override;
 };
 

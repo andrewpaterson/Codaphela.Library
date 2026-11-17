@@ -179,7 +179,7 @@ static const SW65CCoreStateAddress gasW65CCoreStateAddresses[] =
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CW65C816Chip::GetStateXMLName(void) { return "W65C816State"; }
+const char* CW65C816Chip::GetStateXMLName(void) const { return "W65C816State"; }
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -22,12 +22,12 @@ public:
 
 	void									Kill(void) override;
 
-	lsize									GetIndexCacheSize(void) override;
-	CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) override;
-	EIndexWriteThrough						GetWriteThrough(void) override;
-	CIndexTreeEvictionCallback*				GetIndexTreeEvictionCallback(void) override;
-	const char*									GetSubDirectory(void) override;
-	CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void) override;
+	lsize									GetIndexCacheSize(void) const override;
+	CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) const override;
+	EIndexWriteThrough						GetWriteThrough(void) const override;
+	CIndexTreeEvictionCallback*				GetIndexTreeEvictionCallback(void) const override;
+	const char*									GetSubDirectory(void) const override;
+	CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void) const override;
 
 public:
 	static CLifeInit<CNamedIndexesConfig> Create(const char* szSubDirectory, lsize uiIndexCacheSize, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, EIndexWriteThrough eWriteThrough);

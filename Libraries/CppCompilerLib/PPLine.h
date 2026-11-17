@@ -31,7 +31,7 @@ public:
 	PP_TOKEN_CONSTRUCT(CPPLine);
 	void	Init(int iLine, int miColumn, char* szFileName);
 	void	Kill(void);
-	bool	IsLine(void);
+	bool	IsLine(void) const;
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool	NeedsNewLine(void);
 };

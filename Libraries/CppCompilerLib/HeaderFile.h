@@ -31,9 +31,9 @@ protected:
 public:
 	void	Init(char* szFullName, bool bSystemFile);
 	void	Kill(void);
-	bool	IsTranslationUnit(void);
-	bool	IsHeader(void);
-	bool	IsSystemFile(void);
+	bool	IsTranslationUnit(void) const;
+	bool	IsHeader(void) const;
+	bool	IsSystemFile(void) const;
 };
 
 

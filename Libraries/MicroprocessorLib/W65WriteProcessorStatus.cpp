@@ -37,7 +37,7 @@ void CW65WriteProcessorStatus::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65WriteProcessorStatus::IsInitialSide(void)
+bool CW65WriteProcessorStatus::IsInitialSide(void) const
 {
 	return true;
 }

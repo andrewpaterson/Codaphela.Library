@@ -26,7 +26,7 @@ void CW65NoteThree::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65NoteThree::IsInitialSide(void)
+bool CW65NoteThree::IsInitialSide(void) const
 {
 	return true;
 }

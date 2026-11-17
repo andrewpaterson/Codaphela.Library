@@ -47,7 +47,7 @@ void CPPDirective::Init(EPreprocessorDirective eType, int iLine, int iColumn, ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPDirective::IsDirective(void)
+bool CPPDirective::IsDirective(void) const
 {
 	return true;
 }

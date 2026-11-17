@@ -48,7 +48,7 @@ void CW65ExecuteIf8Bit::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ExecuteIf8Bit::IsInitialSide(void)
+bool CW65ExecuteIf8Bit::IsInitialSide(void) const
 {
     return mbInitialSide;
 }

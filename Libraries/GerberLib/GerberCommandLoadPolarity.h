@@ -21,7 +21,7 @@ public:
 	void Init(EGerberPolarity ePolarity);
 	void Kill(void);
 
-	bool IsLoadPolarity(void);
+	bool IsLoadPolarity(void) const;
 
 	bool IsDark(void) const;
 	bool IsClear(void) const;

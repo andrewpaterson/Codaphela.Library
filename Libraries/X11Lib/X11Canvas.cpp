@@ -96,7 +96,7 @@ bool CX11Canvas::CreateNativeCanvas(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CX11Canvas::GetPixelData(void)
+uint8* CX11Canvas::GetPixelData(void) const
 {
     return mpuiPixelData;
 }

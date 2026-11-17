@@ -11,7 +11,7 @@ public:
 	void	Init(size iNameLength);
 	void	Kill(void);
 
-	bool	IsObjectAttribute(void);
+	bool	IsObjectAttribute(void) const;
 };
 
 

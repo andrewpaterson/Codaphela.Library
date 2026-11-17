@@ -43,12 +43,12 @@ public:
 	virtual uint32	GetCodePointUint32(void) =0;  // Retuns 0xFFFD if larger than uint32
 	virtual size	GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) =0;
 
-	virtual void*	GetCurrentData(void) =0;
+	virtual void*	GetCurrentData(void) const =0;
 	virtual bool	GetByteOrderMark(void) =0;
 
 	virtual size	PeekUTFBytes(void) =0;
 
-	virtual size	GetPosition(void) =0;
+	virtual size	GetPosition(void) const =0;
 
 			size	GetZWJLength(EUnicodeEncoding eEncoding);
 			uint8*	GetZWJBytes(EUnicodeEncoding eEncoding);

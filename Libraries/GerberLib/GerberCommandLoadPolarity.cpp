@@ -25,7 +25,7 @@ void CGerberCommandLoadPolarity::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadPolarity::IsLoadPolarity(void)
+bool CGerberCommandLoadPolarity::IsLoadPolarity(void) const
 {
 	return true;
 }

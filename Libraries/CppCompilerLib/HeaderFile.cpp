@@ -47,7 +47,7 @@ void CHeaderFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHeaderFile::IsTranslationUnit(void)
+bool CHeaderFile::IsTranslationUnit(void) const
 {
 	return false;
 }
@@ -57,7 +57,7 @@ bool CHeaderFile::IsTranslationUnit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHeaderFile::IsHeader(void)
+bool CHeaderFile::IsHeader(void) const
 {
 	return true;
 }
@@ -67,7 +67,7 @@ bool CHeaderFile::IsHeader(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHeaderFile::IsSystemFile(void)
+bool CHeaderFile::IsSystemFile(void) const
 {
 	return mbSystemFile;
 }

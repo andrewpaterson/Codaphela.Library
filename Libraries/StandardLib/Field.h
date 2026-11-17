@@ -44,18 +44,18 @@ public:
 			CClasses*	GetClasses(void) const;
 			char*		GetName(void);
 			CClass*		GetClass(void) const;
-	virtual	size		GetSizeOf(void) =0;
+	virtual	size		GetSizeOf(void) const =0;
 
-	virtual	bool		IsArray(void);
+	virtual	bool		IsArray(void) const;
 			size		GetOffset(void) const;
-	virtual	bool		IsPointer(void);
-	virtual	bool		IsPrimitive(void);
-	virtual	bool		IsUnmanaged(void);
-	virtual	bool		IsEmbeddedObject(void);
-	virtual	SDataIO*	GetDataIO(void);
+	virtual	bool		IsPointer(void) const;
+	virtual	bool		IsPrimitive(void) const;
+	virtual	bool		IsUnmanaged(void) const;
+	virtual	bool		IsEmbeddedObject(void) const;
+	virtual	SDataIO*	GetDataIO(void) const;
 
 protected:
-	virtual	size		GetNameOffset(void) =0;
+	virtual	size		GetNameOffset(void) const =0;
 };
 
 

@@ -146,7 +146,7 @@ bool CMapStringUnknown::Load(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMapStringUnknown::GetSortedSize(void)
+size CMapStringUnknown::GetSortedSize(void) const
 {
 	return mcMap.GetSortedSize();
 }

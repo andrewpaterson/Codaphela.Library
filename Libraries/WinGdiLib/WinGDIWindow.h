@@ -61,7 +61,7 @@ public:
 	bool	GetPointerScreenPosition(SInt32Vec2* psDest) override;
 	bool	GetScreenArea(CInt32Rect* pcDest) override;
 	void	SetCursor(ENativeCursor eCursor) override;
-	bool	IsCreated(void) override;
+	bool	IsCreated(void) const override;
 	void	Raise(void) override;
 	void	TitleChanged(void) override;
 	bool	ShowCursor(void);

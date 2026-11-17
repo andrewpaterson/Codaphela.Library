@@ -131,7 +131,7 @@ CLogicPort* CLogicPortBus::GetPort(size uiBit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogicPortBus::GetWidth(void)
+size CLogicPortBus::GetWidth(void) const
 {
 	return muiWidth;
 }

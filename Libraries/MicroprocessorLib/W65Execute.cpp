@@ -29,7 +29,7 @@ void CW65Execute::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65Execute::IsInitialSide(void)
+bool CW65Execute::IsInitialSide(void) const
 {
 	return mbInitialSide;
 }

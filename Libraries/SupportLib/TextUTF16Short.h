@@ -36,7 +36,7 @@ public:
 	bool		Load(CObjectReader* pcFile) override;
 	bool		Save(CObjectWriter* pcFile) override;
 
-	bool		IsUTF16Short(void) override;
+	bool		IsUTF16Short(void) const override;
 
 	void		PrintAsASCII(CChars* psz);
 

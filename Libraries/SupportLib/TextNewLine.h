@@ -32,7 +32,7 @@ public:
 			bool		Load(CObjectReader* pcFile) override;
 			bool		Save(CObjectWriter* pcFile) override;
 
-			bool		IsNewLine(void) override;
+			bool		IsNewLine(void) const override;
 
 			void		TextElementAbstract(void) override {}
 };

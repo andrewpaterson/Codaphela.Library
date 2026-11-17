@@ -35,12 +35,12 @@ public:
 	void		Init(void);
 	void		Kill(void) override;
 
-	size		NumElements(void) override;
-	void*		GetData(void) override;
+	size		NumElements(void) const override;
+	void*		GetData(void) const override;
 	uint32*		GetChars(void) const;
 
 	void		Push(uint32 uiChar);
-	bool		IsUTF16Long(void) override;
+	bool		IsUTF16Long(void) const override;
 };
 
 

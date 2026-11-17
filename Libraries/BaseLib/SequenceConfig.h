@@ -19,8 +19,8 @@ public:
 			void		Kill(void) override;
 
 	virtual	const char*		Getdirectory(void) =0;
-	virtual	EDurableSync	GetSync(void) =0;
-	virtual	size			GetBlockSize(void) =0;
+	virtual	EDurableSync	GetSync(void) const =0;
+	virtual	size			GetBlockSize(void) const =0;
 	virtual	OIndex			GetFirstIndex(void) =0;	//The first index handed out by a new sequence.
 	virtual	OIndex			GetEndIndex(void) =0;	//One past the last index the sequence may hand out (MAX_O_INDEX: no end).
 };

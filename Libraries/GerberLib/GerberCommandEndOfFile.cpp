@@ -24,7 +24,7 @@ void CGerberCommandEndOfFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandEndOfFile::IsEndOfFile(void)
+bool CGerberCommandEndOfFile::IsEndOfFile(void) const
 {
 	return true;
 }

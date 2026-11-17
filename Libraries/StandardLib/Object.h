@@ -65,8 +65,8 @@ public:
 
 	void				Allocate(CObjects* pcObjects) override;
 	void				Kill(void) final override;
-	bool				IsCollection(void) override;
-	bool				IsObject(void) override;
+	bool				IsCollection(void) const override;
+	bool				IsObject(void) const override;
 	void				GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPointer* pacPointers) override;
 
 	size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded) override;

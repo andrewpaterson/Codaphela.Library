@@ -35,9 +35,9 @@ public:
 	void		Init(ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName);
 	void		Kill(void) override;
 
-	bool		IsPointer(void) override;
-	size		GetSizeOf(void) override;
-	size		GetNameOffset(void) override;
+	bool		IsPointer(void) const override;
+	size		GetSizeOf(void) const override;
+	size		GetNameOffset(void) const override;
 	CPointer*	GetPointer(CBaseObject* pcFieldContainer);
 	void		DoNotFreePointedTo(bool bValue);
 	bool		IsDoNotFreePointedTo(void) const;

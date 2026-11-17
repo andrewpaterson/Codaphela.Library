@@ -120,7 +120,7 @@ char* CPPToken::ShortFileName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsDirective(void)
+bool CPPToken::IsDirective(void) const
 {
 	return false;
 }
@@ -130,7 +130,7 @@ bool CPPToken::IsDirective(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsUnknown(void)
+bool CPPToken::IsUnknown(void) const
 {
 	return false;
 }
@@ -140,7 +140,7 @@ bool CPPToken::IsUnknown(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsText(void)
+bool CPPToken::IsText(void) const
 {
 	return false;
 }
@@ -150,7 +150,7 @@ bool CPPToken::IsText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsWhitespace(void)
+bool CPPToken::IsWhitespace(void) const
 {
 	return false;
 }
@@ -160,7 +160,7 @@ bool CPPToken::IsWhitespace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsReplacement(void)
+bool CPPToken::IsReplacement(void) const
 {
 	return false;
 }
@@ -170,7 +170,7 @@ bool CPPToken::IsReplacement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsHash(void)
+bool CPPToken::IsHash(void) const
 {
 	return false;
 }
@@ -181,7 +181,7 @@ bool CPPToken::IsHash(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsTokenReplacementsHolder(void)
+bool CPPToken::IsTokenReplacementsHolder(void) const
 {
 	return false;
 }
@@ -193,7 +193,7 @@ bool CPPToken::IsTokenReplacementsHolder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsLine(void)
+bool CPPToken::IsLine(void) const
 {
 	return false;
 }
@@ -203,7 +203,7 @@ bool CPPToken::IsLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsFile(void)
+bool CPPToken::IsFile(void) const
 {
 	return false;
 }
@@ -213,7 +213,7 @@ bool CPPToken::IsFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsBlock(void)
+bool CPPToken::IsBlock(void) const
 {
 	return false;
 }
@@ -223,7 +223,7 @@ bool CPPToken::IsBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsTokenListHolder(void)
+bool CPPToken::IsTokenListHolder(void) const
 {
 	return false;
 }

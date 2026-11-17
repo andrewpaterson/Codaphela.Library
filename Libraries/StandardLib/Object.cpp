@@ -365,7 +365,7 @@ size CObject::NumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObject::IsObject(void)
+bool CObject::IsObject(void) const
 {
 	return true;
 }
@@ -375,7 +375,7 @@ bool CObject::IsObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObject::IsCollection(void)
+bool CObject::IsCollection(void) const
 {
 	return false;
 }

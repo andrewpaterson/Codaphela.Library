@@ -12,7 +12,7 @@ public:
 	bool				Init(CIndexedData* pcIndexData);
 	bool				Kill(void) override;
 	bool				Flush(void) override;
-	int64				NumElements(void) override;
+	int64				NumElements(void) const override;
 	bool				ValidateIndex(void) override;
 	void				Dump(void) override;
 

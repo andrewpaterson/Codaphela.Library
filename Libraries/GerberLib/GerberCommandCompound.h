@@ -16,7 +16,7 @@ public:
 	void				Init(EGerberCommandEnum eType);
 	void				Kill(void);
 
-	bool				IsCompound(void);
+	bool				IsCompound(void) const;
 
 	CGerberCommands*	GetCommands(void) const;
 };

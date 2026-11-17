@@ -32,7 +32,7 @@ public:
 	virtual void			Write(CTimeline* pcTimeline, uint32 uiValue) =0;
 	virtual void			WriteImpedance(CTimeline* pcTimeline) =0;
 	virtual uint32			Read(CTimeline* pcTimeline) =0;
-	virtual size			GetWidth(void) =0;
+	virtual size			GetWidth(void) const =0;
 };
 
 

@@ -61,21 +61,21 @@ public:
 	uint8*			GetMemory(void) const;
 	void			SetDecoder(CDebugDecoder* pcDecoder);
 
-	const char*		GetProcessorName(void) override;
-	size			NumAddressBits(void) override;
-	EDebugAddressFormat	GetAddressFormat(void) override;
-	size			NumRegisters(void) override;
+	const char*		GetProcessorName(void) const override;
+	size			NumAddressBits(void) const override;
+	EDebugAddressFormat	GetAddressFormat(void) const override;
+	size			NumRegisters(void) const override;
 	void			GetRegister(size uiRegister, SDebugRegister* psDest) override;
 	uint64			GetRegisterValue(size uiRegister) override;
 	bool			SetRegisterValue(size uiRegister, uint64 uiValue) override;
 
 	uint32			GetProgramAddress(void) override;
 	void			SetProgramAddress(uint32 uiAddress) override;
-	uint32			GetStackPointer(void) override;
+	uint32			GetStackPointer(void) const override;
 
 	CBreakpoints*	GetBreakpoints(void) override;
-	bool			IsAtBreakpoint(void) override;
-	bool			IsStopped(void) override;
+	bool			IsAtBreakpoint(void) const override;
+	bool			IsStopped(void) const override;
 
 	void			Run(uint64 uiBudget) override;
 	bool			Step(void) override;

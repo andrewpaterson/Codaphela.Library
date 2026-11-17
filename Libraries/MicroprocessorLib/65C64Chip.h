@@ -45,7 +45,7 @@ public:
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual const char*		GetType(void);
-	virtual const char*		GetStateXMLName(void);
+	virtual const char*		GetStateXMLName(void) const;
 	virtual void			SaveXML(CXMLWriter* pcWriter);
 	virtual bool			LoadXML(CMarkupTag* pcTag);
 

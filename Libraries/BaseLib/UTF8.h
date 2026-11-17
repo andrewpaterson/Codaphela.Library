@@ -41,7 +41,7 @@ public:
 	void	Kill(void) override;
 
 	bool	GetByteOrderMark(void) override;
-	void*	GetCurrentData(void) override;
+	void*	GetCurrentData(void) const override;
 
 	uint16	GetCodePointUint16(void) override;
 	uint32	GetCodePointUint32(void) override;
@@ -49,7 +49,7 @@ public:
 
 	size	PeekUTFBytes(void) override;
 
-	size	GetPosition(void) override;
+	size	GetPosition(void) const override;
 
 protected:
 	size	GetUTF8ElementLength(void) const;

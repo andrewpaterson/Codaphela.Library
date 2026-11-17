@@ -44,7 +44,7 @@ void CW65SetProgramCounter::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65SetProgramCounter::IsInitialSide(void)
+bool CW65SetProgramCounter::IsInitialSide(void) const
 {
     return false;
 }

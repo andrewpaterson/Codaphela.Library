@@ -48,7 +48,7 @@ void CObjectSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSource::IsNative(void)
+bool CObjectSource::IsNative(void) const
 {
 	return false;
 }
@@ -58,7 +58,7 @@ bool CObjectSource::IsNative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSource::IsMultiSource(void)
+bool CObjectSource::IsMultiSource(void) const
 {
 	return false;
 }
@@ -77,7 +77,7 @@ CAbstractFile* CObjectSource::GetFile(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CExternalObjectReader* CObjectSource::GetReader(void)
+CExternalObjectReader* CObjectSource::GetReader(void) const
 {
 	return NULL;
 }

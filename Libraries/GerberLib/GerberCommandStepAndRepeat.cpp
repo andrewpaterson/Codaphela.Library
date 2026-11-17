@@ -19,7 +19,7 @@ void CGerberCommandStepAndRepeat::Init(uint32 uiXRepeats, uint32 uiYRepeats, CNu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandStepAndRepeat::IsStepAndRepeat(void)
+bool CGerberCommandStepAndRepeat::IsStepAndRepeat(void) const
 {
 	return true;
 }

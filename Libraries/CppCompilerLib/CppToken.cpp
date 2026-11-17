@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPToken::IsReservedWord(void)
+bool CCPPToken::IsReservedWord(void) const
 {
 	return false;
 }
@@ -36,7 +36,7 @@ bool CCPPToken::IsReservedWord(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPToken::IsIdentifier(void)
+bool CCPPToken::IsIdentifier(void) const
 {
 	return false;
 }
@@ -46,7 +46,7 @@ bool CCPPToken::IsIdentifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPToken::IsNumber(void)
+bool CCPPToken::IsNumber(void) const
 {
 	return false;
 }
@@ -56,7 +56,7 @@ bool CCPPToken::IsNumber(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPToken::IsString(void)
+bool CCPPToken::IsString(void) const
 {
 	return false;
 }
@@ -66,7 +66,7 @@ bool CCPPToken::IsString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPToken::IsChar(void)
+bool CCPPToken::IsChar(void) const
 {
 	return false;
 }
@@ -76,7 +76,7 @@ bool CCPPToken::IsChar(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPToken::IsBool(void)
+bool CCPPToken::IsBool(void) const
 {
 	return false;
 }
@@ -86,7 +86,7 @@ bool CCPPToken::IsBool(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPToken::IsUserLiteral(void)
+bool CCPPToken::IsUserLiteral(void) const
 {
 	return false;
 }

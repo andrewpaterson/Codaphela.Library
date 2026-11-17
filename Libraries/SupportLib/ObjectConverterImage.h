@@ -32,7 +32,7 @@ public:
 	void			Init(CObjects* pcObjects);
 	void			Kill(void) override;
 
-	const char*		GetFileExtension(void) override;
+	const char*		GetFileExtension(void) const override;
 	bool			IsFor(CAbstractFile* pcFile) override;
 	CObjectSource*	CreateSource(CAbstractFile* pcFile, const char* szFilename) override;
 	CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName) override;

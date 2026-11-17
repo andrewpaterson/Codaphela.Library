@@ -153,7 +153,7 @@ void CReuseAllocator::FreeBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReuseAllocator::IsLocal(void)
+bool CReuseAllocator::IsLocal(void) const
 {
 	return true;
 }

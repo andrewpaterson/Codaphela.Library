@@ -192,7 +192,7 @@ void CCounter::SetTerminal(bool bTerminal) { mbTerminal = bTerminal; }
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CCounter::GetStateXMLName(void) { return "CounterState"; }
+const char* CCounter::GetStateXMLName(void) const { return "CounterState"; }
 
 
 //////////////////////////////////////////////////////////////////////////

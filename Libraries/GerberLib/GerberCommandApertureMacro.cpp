@@ -161,7 +161,7 @@ CGerberApertureMacroVariableDefinition* CGerberCommandApertureMacro::AddVariable
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandApertureMacro::IsApertureMacro(void)
+bool CGerberCommandApertureMacro::IsApertureMacro(void) const
 {
 	return true;
 }

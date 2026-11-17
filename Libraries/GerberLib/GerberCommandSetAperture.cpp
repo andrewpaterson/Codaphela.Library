@@ -25,7 +25,7 @@ void CGerberCommandSetAperture::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandSetAperture::IsSetAperture(void)
+bool CGerberCommandSetAperture::IsSetAperture(void) const
 {
 	return true;
 }

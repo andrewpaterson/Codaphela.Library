@@ -25,7 +25,7 @@ void CTextBuilderUTF16Short::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CTextBuilderUTF16Short::NumElements(void)
+size CTextBuilderUTF16Short::NumElements(void) const
 {
 	return mauiUTF16.NumElements();
 }
@@ -35,7 +35,7 @@ size CTextBuilderUTF16Short::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTextBuilderUTF16Short::GetData(void)
+void* CTextBuilderUTF16Short::GetData(void) const
 {
 	return mauiUTF16.GetData();
 }
@@ -65,7 +65,7 @@ void CTextBuilderUTF16Short::Push(uint16 uiChar)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextBuilderUTF16Short::IsUTF16Short(void)
+bool CTextBuilderUTF16Short::IsUTF16Short(void) const
 {
 	return true;
 }

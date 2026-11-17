@@ -25,7 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTNumber::IsNumber(void)
+bool CCTNumber::IsNumber(void) const
 {
 	return true;
 }
@@ -35,7 +35,7 @@ bool CCTNumber::IsNumber(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTNumber::IsSigned(void)
+bool CCTNumber::IsSigned(void) const
 {
 	return true;
 }

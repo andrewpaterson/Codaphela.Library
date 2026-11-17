@@ -56,14 +56,14 @@ void CFlatW65C816DebugTarget::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CFastW65C816* CFlatW65C816DebugTarget::GetMPU(void)	{ return &mcMPU; }
 uint8* CFlatW65C816DebugTarget::GetMemory(void) const		{ return mpuiMemory; }
-const char* CFlatW65C816DebugTarget::GetProcessorName(void)	{ return "W65C816"; }
-size CFlatW65C816DebugTarget::NumAddressBits(void)	{ return 24; }
-size CFlatW65C816DebugTarget::NumRegisters(void)		{ return DW65C816R_NumRegisters; }
+const char* CFlatW65C816DebugTarget::GetProcessorName(void) const	{ return "W65C816"; }
+size CFlatW65C816DebugTarget::NumAddressBits(void) const	{ return 24; }
+size CFlatW65C816DebugTarget::NumRegisters(void) const		{ return DW65C816R_NumRegisters; }
 uint32 CFlatW65C816DebugTarget::GetProgramAddress(void)	{ return mcMPU.GetProgramAddress(); }
-uint32 CFlatW65C816DebugTarget::GetStackPointer(void)	{ return mcMPU.GetS(); }
+uint32 CFlatW65C816DebugTarget::GetStackPointer(void) const	{ return mcMPU.GetS(); }
 CBreakpoints* CFlatW65C816DebugTarget::GetBreakpoints(void)	{ return mcMPU.GetBreakpoints(); }
-bool CFlatW65C816DebugTarget::IsAtBreakpoint(void)	{ return mcMPU.IsAtBreakpoint(); }
-bool CFlatW65C816DebugTarget::IsStopped(void)		{ return mcMPU.IsStopped(); }
+bool CFlatW65C816DebugTarget::IsAtBreakpoint(void) const	{ return mcMPU.IsAtBreakpoint(); }
+bool CFlatW65C816DebugTarget::IsStopped(void) const		{ return mcMPU.IsStopped(); }
 void CFlatW65C816DebugTarget::Run(uint64 uiBudget)	{ mcMPU.Run((size)uiBudget); }
 bool CFlatW65C816DebugTarget::Step(void)				{ return mcMPU.Step(); }
 void CFlatW65C816DebugTarget::Reset(void)			{ mcMPU.Reset(); }
@@ -143,4 +143,4 @@ void CFlatW65C816DebugTarget::SetDecoder(CDebugDecoder* pcDecoder)
 
 
 CDebugDecoder* CFlatW65C816DebugTarget::GetDecoder(void)				{ return mpcDecoder; }
-EDebugAddressFormat CFlatW65C816DebugTarget::GetAddressFormat(void)	{ return DAF_Bank; }
+EDebugAddressFormat CFlatW65C816DebugTarget::GetAddressFormat(void) const	{ return DAF_Bank; }

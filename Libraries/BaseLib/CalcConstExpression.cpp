@@ -77,7 +77,7 @@ void CCalcConstExpression::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcConstExpression::IsConstExpression(void)
+bool CCalcConstExpression::IsConstExpression(void) const
 {
 	return true;
 }

@@ -15,7 +15,7 @@ public:
 	void				Init(uint32 uiVariable, CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	void				Kill(void);
 
-	bool				IsVariableDefinition(void);
+	bool				IsVariableDefinition(void) const;
 
 	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
 

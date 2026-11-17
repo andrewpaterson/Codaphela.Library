@@ -32,7 +32,7 @@ public:
 	void Init(void);
 	void Init(bool bBool);
 	void Kill(void);
-	bool IsBool(void);
+	bool IsBool(void) const;
 };
 
 

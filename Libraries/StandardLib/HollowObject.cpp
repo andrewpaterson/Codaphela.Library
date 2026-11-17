@@ -126,7 +126,7 @@ CBaseObject* CHollowObject::Dehollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowObject::IsHollow(void)
+bool CHollowObject::IsHollow(void) const
 {
 	return true;
 }
@@ -156,7 +156,7 @@ bool CHollowObject::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowObject::IsCollection(void)
+bool CHollowObject::IsCollection(void) const
 {
 	return false;
 }
@@ -166,7 +166,7 @@ bool CHollowObject::IsCollection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowObject::IsObject(void)
+bool CHollowObject::IsObject(void) const
 {
 	return false;
 }
@@ -290,7 +290,7 @@ void CHollowObject::ValidateConsistency(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowObject::HasNes(void)
+bool CHollowObject::HasNes(void) const
 {
 	return false;
 }

@@ -74,7 +74,7 @@ const char* CNullAllocator::GetName(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNullAllocator::IsLocal(void)
+bool CNullAllocator::IsLocal(void) const
 {
 	return false;
 }

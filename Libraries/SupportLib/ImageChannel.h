@@ -82,7 +82,7 @@ class CImageChannelsSource : public CUnknown
 CONSTRUCTABLE(CImageChannelsSource);
 public:
 	void				Kill(void) override;
-	virtual size		NumChannels(void) =0;
+	virtual size		NumChannels(void) const =0;
 	virtual	SChannel	GetChannel(size iIndex) =0;
 };
 
@@ -94,7 +94,7 @@ CONSTRUCTABLE(CChannelRGB);
 public:
 	static CImageChannelsSource* Get(void);
 
-	size 		NumChannels(void) override;
+	size 		NumChannels(void) const override;
 	SChannel	GetChannel(size iIndex) override;
 };
 
@@ -105,7 +105,7 @@ CONSTRUCTABLE(CChannelRGBA);
 public:
 	static CImageChannelsSource* Get(void);
 
-	size 		NumChannels(void) override;
+	size 		NumChannels(void) const override;
 	SChannel	GetChannel(size iIndex) override;
 };
 
@@ -116,7 +116,7 @@ CONSTRUCTABLE(CChannelRGBX);
 public:
 	static CImageChannelsSource* Get(void);
 
-	size 		NumChannels(void) override;
+	size 		NumChannels(void) const override;
 	SChannel	GetChannel(size iIndex) override;
 };
 

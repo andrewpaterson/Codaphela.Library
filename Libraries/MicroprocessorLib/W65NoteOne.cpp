@@ -27,7 +27,7 @@ void CW65NoteOne::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65NoteOne::IsInitialSide(void)
+bool CW65NoteOne::IsInitialSide(void) const
 {
     return true;
 }
@@ -59,7 +59,7 @@ bool CW65NoteOne::MustExecute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65NoteOne::IsConditional(void)
+bool CW65NoteOne::IsConditional(void) const
 {
     return true;
 }

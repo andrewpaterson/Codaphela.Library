@@ -33,11 +33,11 @@ class CWeakPointerField : public CField
 CONSTRUCTABLE(CWeakPointerField)
 public:
 	void			Init(ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName);
-	size			GetSizeOf(void) override;
+	size			GetSizeOf(void) const override;
 	CWeakPointer*	GetWeakPointer(CBaseObject* pcFieldContainer);
 
 protected:
-	size			GetNameOffset(void) override;
+	size			GetNameOffset(void) const override;
 };
 
 

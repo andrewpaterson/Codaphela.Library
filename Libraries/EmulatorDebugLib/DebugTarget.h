@@ -154,39 +154,39 @@ enum EDebugModuleEvent
 class CDebugTarget
 {
 public:
-	virtual const char*			GetProcessorName(void) =0;
-	virtual size				NumAddressBits(void) =0;
-	virtual EDebugAddressFormat	GetAddressFormat(void) =0;
-	virtual size				NumRegisters(void) =0;
+	virtual const char*			GetProcessorName(void) const =0;
+	virtual size				NumAddressBits(void) const =0;
+	virtual EDebugAddressFormat	GetAddressFormat(void) const =0;
+	virtual size				NumRegisters(void) const =0;
 	virtual void				GetRegister(size uiRegister, SDebugRegister* psDest) =0;
 	virtual uint64				GetRegisterValue(size uiRegister) =0;
 	virtual bool				SetRegisterValue(size uiRegister, uint64 uiValue) =0;
 
 	virtual uint32				GetProgramAddress(void) =0;
 	virtual void				SetProgramAddress(uint32 uiAddress) =0;
-	virtual uint32				GetStackPointer(void) =0;
+	virtual uint32				GetStackPointer(void) const =0;
 
 	virtual CBreakpoints*		GetBreakpoints(void) =0;
-	virtual size				NumBreakpointSpaces(void);
+	virtual size				NumBreakpointSpaces(void) const;
 	virtual const char*			GetBreakpointSpaceName(size uiSpace);
 	virtual CBreakpoints*		GetSpaceBreakpoints(size uiSpace);
 	virtual CBreakpoints*		GetProcessBreakpoints(size uiSpace, uint32 uiProcess);
 	virtual void				ClearBreakpoints(void);
 	virtual void				EnableAllBreakpoints(bool bEnabled);
 
-	virtual bool				HasProcesses(void);
-	virtual size				NumProcesses(void);
+	virtual bool				HasProcesses(void) const;
+	virtual size				NumProcesses(void) const;
 	virtual bool				GetProcess(size uiIndex, SDebugProcess* psDest);
 	virtual void				WatchEvents(bool bWatch);
 	virtual bool				TakeProcessEvent(EDebugProcessEvent* peEvent, SDebugProcess* psDest);
-	virtual bool				HasModules(void);
-	virtual size				NumModules(void);
+	virtual bool				HasModules(void) const;
+	virtual size				NumModules(void) const;
 	virtual bool				GetModule(size uiIndex, SDebugModule* psDest);
 	virtual bool				TakeModuleEvent(EDebugModuleEvent* peEvent, SDebugModule* psDest);
-	virtual uint32				GetCurrentSpace(void);
-	virtual uint32				GetCurrentProcess(void);
-	virtual bool				IsAtBreakpoint(void) =0;
-	virtual bool				IsStopped(void) =0;
+	virtual uint32				GetCurrentSpace(void) const;
+	virtual uint32				GetCurrentProcess(void) const;
+	virtual bool				IsAtBreakpoint(void) const =0;
+	virtual bool				IsStopped(void) const =0;
 
 	//uiBudget is the target's own unit: instructions for a bare processor, cycles for a computer that keeps time.
 	virtual void				Run(uint64 uiBudget) =0;

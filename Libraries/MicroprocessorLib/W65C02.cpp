@@ -73,7 +73,7 @@ CW65Instruction* CW65C02::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C02::GetResetOpcode(void)
+CW65Instruction* CW65C02::GetResetOpcode(void) const
 {
 	return CW65C02InstructionFactory::GetInstance()->GetReset();
 }
@@ -83,7 +83,7 @@ CW65Instruction* CW65C02::GetResetOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C02::GetIrqOpcode(void)
+CW65Instruction* CW65C02::GetIrqOpcode(void) const
 {
 	return CW65C02InstructionFactory::GetInstance()->GetIRQ();
 }
@@ -93,7 +93,7 @@ CW65Instruction* CW65C02::GetIrqOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C02::GetNmiOpcode(void)
+CW65Instruction* CW65C02::GetNmiOpcode(void) const
 {
 	return CW65C02InstructionFactory::GetInstance()->GetNMI();
 }
@@ -103,7 +103,7 @@ CW65Instruction* CW65C02::GetNmiOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C02::GetAbortOpcode(void)
+CW65Instruction* CW65C02::GetAbortOpcode(void) const
 {
 	//The W65C02S has no ABORTB.
 	return NULL;
@@ -114,7 +114,7 @@ CW65Instruction* CW65C02::GetAbortOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C02::GetFetchNextOpcode(void)
+CW65Instruction* CW65C02::GetFetchNextOpcode(void) const
 {
 	return CW65C02InstructionFactory::GetInstance()->GetFetchNext();
 }

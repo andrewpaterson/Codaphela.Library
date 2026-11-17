@@ -38,11 +38,11 @@ public:
 
 	using				CW65CCore::GetInstruction;
 	CW65Instruction*	GetInstruction(uint16 uiOpcode) override;
-	CW65Instruction*	GetResetOpcode(void) override;
-	CW65Instruction*	GetIrqOpcode(void) override;
-	CW65Instruction*	GetNmiOpcode(void) override;
-	CW65Instruction*	GetAbortOpcode(void) override;
-	CW65Instruction*	GetFetchNextOpcode(void) override;
+	CW65Instruction*	GetResetOpcode(void) const override;
+	CW65Instruction*	GetIrqOpcode(void) const override;
+	CW65Instruction*	GetNmiOpcode(void) const override;
+	CW65Instruction*	GetAbortOpcode(void) const override;
+	CW65Instruction*	GetFetchNextOpcode(void) const override;
 	void				WriteSignalsPhi2Falling(CTimeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle) override;
 	void				WriteSignalsPhi2Rising(CTimeline* pcTimeline) override;
 	bool				IsReadCycle(CW65DataOperation* pcDataOperation) override;

@@ -48,7 +48,7 @@ void CPPBlock::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPBlock::IsBlock(void)
+bool CPPBlock::IsBlock(void) const
 {
 	return true;
 }

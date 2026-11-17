@@ -40,7 +40,7 @@ public:
 	virtual void			Execute(CTimeline* pcTimeline);
 	virtual float32			GetVoltage(int64 iTime);
 	virtual void			CopyOutput(CPortOutput* pcOutput);
-	virtual bool			IsDriveEvent(void);
+	virtual bool			IsDriveEvent(void) const;
 	virtual void			PrintShort(CChars* psz);
 };
 

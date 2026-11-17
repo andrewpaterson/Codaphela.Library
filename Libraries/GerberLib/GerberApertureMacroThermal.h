@@ -19,7 +19,7 @@ public:
 	void				Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	void				Kill(void);
 
-	bool				IsThermal(void);
+	bool				IsThermal(void) const;
 
 	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
 

@@ -34,11 +34,11 @@ public:
 			void		Init(void);
 			void		Kill(void) override;  //This should do nothing.
 
-	virtual size		NumElements(void) =0;
-	virtual void*		GetData(void) =0;
+	virtual size		NumElements(void) const =0;
+	virtual void*		GetData(void) const =0;
 
-	virtual bool		IsUTF16Short(void);
-	virtual bool		IsUTF16Long(void);
+	virtual bool		IsUTF16Short(void) const;
+	virtual bool		IsUTF16Long(void) const;
 };
 
 

@@ -44,7 +44,7 @@ void CW65ProgramCounter::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ProgramCounter::IsProgramCounter(void)
+bool CW65ProgramCounter::IsProgramCounter(void) const
 {
     return true;
 }

@@ -56,7 +56,7 @@ void CCTChar::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTChar::IsChar(void)
+bool CCTChar::IsChar(void) const
 {
 	return true;
 }

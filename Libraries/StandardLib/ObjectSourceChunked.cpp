@@ -150,7 +150,7 @@ size CObjectSourceChunked::NumNames(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourceChunked::IsMultiSource(void)
+bool CObjectSourceChunked::IsMultiSource(void) const
 {
 	return true;
 }
@@ -160,7 +160,7 @@ bool CObjectSourceChunked::IsMultiSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourceChunked::IsNative(void)
+bool CObjectSourceChunked::IsNative(void) const
 {
 	return true; 
 }
@@ -170,7 +170,7 @@ bool CObjectSourceChunked::IsNative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CExternalObjectReader* CObjectSourceChunked::GetReader(void)
+CExternalObjectReader* CObjectSourceChunked::GetReader(void) const
 {
 	return mpcReader;
 }

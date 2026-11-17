@@ -85,7 +85,7 @@ CGerberExpression* CGerberApertureMacroCircle::GetRotation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacroCircle::IsCircle(void)
+bool CGerberApertureMacroCircle::IsCircle(void) const
 {
 	return true;
 }

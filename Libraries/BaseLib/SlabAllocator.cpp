@@ -94,7 +94,7 @@ bool CSlabAllocator::Free(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSlabAllocator::IsLocal(void)
+bool CSlabAllocator::IsLocal(void) const
 {
 	return false;
 }

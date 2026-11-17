@@ -46,7 +46,7 @@ void C65C64WaitOperation::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64WaitOperation::IsInitialSide(void)
+bool C65C64WaitOperation::IsInitialSide(void) const
 {
 	return false;
 }
@@ -76,7 +76,7 @@ bool C65C64WaitOperation::MustExecute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64WaitOperation::IsConditional(void)
+bool C65C64WaitOperation::IsConditional(void) const
 {
 	return true;
 }

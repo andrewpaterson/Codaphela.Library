@@ -72,7 +72,7 @@ public:
 	virtual	bool			GetScreenArea(CInt32Rect* pcDest);
 	virtual	void			SetCursor(ENativeCursor eCursor);
 			ENativeCursor	GetCursor(void) const;
-	virtual	bool			IsCreated(void);
+	virtual	bool			IsCreated(void) const;
 	virtual	void			Raise(void);
 	virtual	void			TitleChanged(void);
 			bool			ApproveClose(void);

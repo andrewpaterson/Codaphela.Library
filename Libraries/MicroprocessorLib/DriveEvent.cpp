@@ -110,7 +110,7 @@ void CDriveEvent::CopyOutput(CPortOutput* pcOutput)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDriveEvent::IsDriveEvent(void)
+bool CDriveEvent::IsDriveEvent(void) const
 {
 	return true;
 }

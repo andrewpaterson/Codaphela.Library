@@ -25,7 +25,7 @@ void CGerberCommandObjectAttribute::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandObjectAttribute::IsObjectAttribute(void)
+bool CGerberCommandObjectAttribute::IsObjectAttribute(void) const
 {
 	return true;
 }

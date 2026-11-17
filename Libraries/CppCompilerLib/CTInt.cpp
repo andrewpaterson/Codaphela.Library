@@ -63,7 +63,7 @@ void CCTInt::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTInt::IsSigned(void)
+bool CCTInt::IsSigned(void) const
 {
 	return mbSigned;
 }

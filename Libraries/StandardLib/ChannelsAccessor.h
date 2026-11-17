@@ -44,7 +44,7 @@ public:
 	virtual void*					Get(lsize iPos) =0;
 	virtual void					Set(lsize iPos, void* pvData) =0;
 
-	virtual bool					IsContiguous(void);
+	virtual bool					IsContiguous(void) const;
 
 			EPrimitiveType			GetType(void);
 			size					GetBitSize(void) const;

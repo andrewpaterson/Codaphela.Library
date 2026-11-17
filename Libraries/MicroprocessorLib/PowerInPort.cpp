@@ -55,7 +55,7 @@ float32 CPowerInPort::GetVoltageIn(int64 iTime)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPowerInPort::IsPowerIn(void)
+bool CPowerInPort::IsPowerIn(void) const
 {
 	return true;
 }

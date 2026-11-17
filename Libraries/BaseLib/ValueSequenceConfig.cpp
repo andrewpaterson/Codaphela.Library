@@ -49,7 +49,7 @@ const char* CValueSequenceConfig::Getdirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EDurableSync CValueSequenceConfig::GetSync(void)
+EDurableSync CValueSequenceConfig::GetSync(void) const
 {
 	return meSync;
 }
@@ -59,7 +59,7 @@ EDurableSync CValueSequenceConfig::GetSync(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CValueSequenceConfig::GetBlockSize(void)
+size CValueSequenceConfig::GetBlockSize(void) const
 {
 	return muiBlockSize;
 }

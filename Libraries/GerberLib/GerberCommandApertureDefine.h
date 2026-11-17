@@ -18,7 +18,7 @@ public:
 	void		Init(uint32 uiDCode, size iTemplateLength);
 	void		Kill(void);
 
-	bool		IsApertureDefine(void);
+	bool		IsApertureDefine(void) const;
 
 	uint32		GetDCode(void) const;
 	void		SetDCode(uint32 uiDCode);

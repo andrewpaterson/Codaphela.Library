@@ -59,7 +59,7 @@ void CCTLongLong::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTLongLong::IsSigned(void)
+bool CCTLongLong::IsSigned(void) const
 {
 	return mbSigned;
 }

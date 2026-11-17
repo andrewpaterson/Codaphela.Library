@@ -54,7 +54,7 @@ void CObjectConverterNative::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CObjectConverterNative::GetFileExtension(void)
+const char* CObjectConverterNative::GetFileExtension(void) const
 {
 	return OBJECT_FILE_EXTENSION;
 }

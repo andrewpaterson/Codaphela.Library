@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcExpression::IsExpression(void)
+bool CCalcExpression::IsExpression(void) const
 {
 	return true;
 }
@@ -37,7 +37,7 @@ bool CCalcExpression::IsExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcExpression::IsOperator(void)
+bool CCalcExpression::IsOperator(void) const
 {
 	return false;
 }
@@ -47,7 +47,7 @@ bool CCalcExpression::IsOperator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcExpression::IsVariableDefinition(void)
+bool CCalcExpression::IsVariableDefinition(void) const
 {
 	return false;
 }
@@ -57,7 +57,7 @@ bool CCalcExpression::IsVariableDefinition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcExpression::IsParentheses(void)
+bool CCalcExpression::IsParentheses(void) const
 {
 	return false;
 }
@@ -67,7 +67,7 @@ bool CCalcExpression::IsParentheses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcExpression::IsBinaryExpression(void)
+bool CCalcExpression::IsBinaryExpression(void) const
 {
 	return false;
 }
@@ -77,7 +77,7 @@ bool CCalcExpression::IsBinaryExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcExpression::IsUnaryExpression(void)
+bool CCalcExpression::IsUnaryExpression(void) const
 {
 	return false;
 }
@@ -87,7 +87,7 @@ bool CCalcExpression::IsUnaryExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcExpression::IsConstExpression(void)
+bool CCalcExpression::IsConstExpression(void) const
 {
 	return false;
 }
@@ -97,7 +97,7 @@ bool CCalcExpression::IsConstExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcExpression::IsVariable(void)
+bool CCalcExpression::IsVariable(void) const
 {
 	return false;
 }

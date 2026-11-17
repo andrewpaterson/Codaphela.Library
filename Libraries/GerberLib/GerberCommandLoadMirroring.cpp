@@ -25,7 +25,7 @@ void CGerberCommandLoadMirroring::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadMirroring::IsLoadMirroring(void)
+bool CGerberCommandLoadMirroring::IsLoadMirroring(void) const
 {
 	return true;
 }

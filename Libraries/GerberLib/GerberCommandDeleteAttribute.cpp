@@ -25,7 +25,7 @@ void CGerberCommandDeleteAttribute::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandDeleteAttribute::IsDeleteAttribute(void)
+bool CGerberCommandDeleteAttribute::IsDeleteAttribute(void) const
 {
 	return true;
 }

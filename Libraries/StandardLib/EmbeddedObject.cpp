@@ -111,7 +111,7 @@ size CEmbeddedObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* m
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CEmbeddedObject::GetIndex(void)
+OIndex CEmbeddedObject::GetIndex(void) const
 {
 	return INVALID_O_INDEX;
 }
@@ -121,7 +121,7 @@ OIndex CEmbeddedObject::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::IsNamed(void)
+bool CEmbeddedObject::IsNamed(void) const
 {
 	return false;
 }
@@ -150,7 +150,7 @@ void CEmbeddedObject::FreeIdentifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::IsBaseObject(void)
+bool CEmbeddedObject::IsBaseObject(void) const
 {
 	return false;
 }
@@ -1276,7 +1276,7 @@ void CEmbeddedObject::CopyFields(CEmbeddedObject* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::HasNes(void)
+bool CEmbeddedObject::HasNes(void) const
 {
 	CClass*		pcClass;
 

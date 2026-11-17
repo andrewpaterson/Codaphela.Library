@@ -35,7 +35,7 @@ public:
 	void		Kill(void) override;
 	CNumber		Evaluate(void) override;
 	void		SetExpression(CCalcExpression* pcExpression);
-	bool		IsParentheses(void) override;
+	bool		IsParentheses(void) const override;
 	void		Print(CChars* psz) override;
 };
 

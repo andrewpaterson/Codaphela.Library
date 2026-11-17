@@ -42,7 +42,7 @@ void CImageChannelsSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannelRGB::NumChannels(void)
+size CChannelRGB::NumChannels(void) const
 {
 	return 3;
 }
@@ -90,7 +90,7 @@ CImageChannelsSource* CChannelRGB::Get(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannelRGBA::NumChannels(void)
+size CChannelRGBA::NumChannels(void) const
 {
 	return 4;
 }
@@ -142,7 +142,7 @@ CImageChannelsSource* CChannelRGBA::Get(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChannelRGBX::NumChannels(void)
+size CChannelRGBX::NumChannels(void) const
 {
 	return 4;
 }

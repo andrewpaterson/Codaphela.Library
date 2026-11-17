@@ -93,7 +93,7 @@ void CUnmanagedField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CUnmanagedField::IsArray(void)
+bool CUnmanagedField::IsArray(void) const
 {
 	return muiLength > 1;
 }
@@ -113,7 +113,7 @@ size CUnmanagedField::GetLength(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CUnmanagedField::GetSizeOf(void)
+size CUnmanagedField::GetSizeOf(void) const
 {
 	return muiElementSize;
 }
@@ -135,7 +135,7 @@ EPrimitiveType CUnmanagedField::GetType(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CUnmanagedField::IsUnmanaged(void)
+bool CUnmanagedField::IsUnmanaged(void) const
 {
 	return true;
 }
@@ -155,7 +155,7 @@ void* CUnmanagedField::GetData(CBaseObject* pcFieldContainer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CUnmanagedField::GetNameOffset(void)
+size CUnmanagedField::GetNameOffset(void) const
 {
 	return sizeof(CUnmanagedField);
 }

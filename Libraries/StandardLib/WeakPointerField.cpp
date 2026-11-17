@@ -38,7 +38,7 @@ void CWeakPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass, const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CWeakPointerField::GetSizeOf(void)
+size CWeakPointerField::GetSizeOf(void) const
 {
 	return sizeof(CWeakPointer);
 }
@@ -58,7 +58,7 @@ CWeakPointer* CWeakPointerField::GetWeakPointer(CBaseObject* pcFieldContainer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CWeakPointerField::GetNameOffset(void)
+size CWeakPointerField::GetNameOffset(void) const
 {
 	return sizeof(CWeakPointerField);
 }

@@ -35,7 +35,7 @@ void C65C64Operation::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64Operation::IsOperation(void)
+bool C65C64Operation::IsOperation(void) const
 {
 	return true;
 }
@@ -45,7 +45,7 @@ bool C65C64Operation::IsOperation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64Operation::IsAddress(void)
+bool C65C64Operation::IsAddress(void) const
 {
 	return false;
 }
@@ -67,7 +67,7 @@ bool C65C64Operation::MustExecute(C65C64* pcCPU)
 // cycle asks them.
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64Operation::IsConditional(void)
+bool C65C64Operation::IsConditional(void) const
 {
 	return false;
 }
@@ -77,7 +77,7 @@ bool C65C64Operation::IsConditional(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64Operation::IsData(void)
+bool C65C64Operation::IsData(void) const
 {
 	return false;
 }

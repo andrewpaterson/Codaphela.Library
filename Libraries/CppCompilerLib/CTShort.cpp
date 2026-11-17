@@ -59,7 +59,7 @@ void CCTShort::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTShort::IsSigned(void)
+bool CCTShort::IsSigned(void) const
 {
 	return mbSigned;
 }

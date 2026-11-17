@@ -92,7 +92,7 @@ void* CSystemAllocator::Realloc(void* pv, lsize uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSystemAllocator::IsLocal(void)
+bool CSystemAllocator::IsLocal(void) const
 {
 	return false;
 }

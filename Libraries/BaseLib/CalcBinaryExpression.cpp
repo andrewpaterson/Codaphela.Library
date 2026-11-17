@@ -87,7 +87,7 @@ void CCalcBinaryExpression::Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcBinaryExpression::IsBinaryExpression(void)
+bool CCalcBinaryExpression::IsBinaryExpression(void) const
 {
 	return true;
 }

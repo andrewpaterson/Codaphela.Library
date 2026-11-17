@@ -11,7 +11,7 @@ public:
 	void	Init(size iNameLength);
 	void	Kill(void);
 
-	bool	IsApertureAttribute(void);
+	bool	IsApertureAttribute(void) const;
 };
 
 

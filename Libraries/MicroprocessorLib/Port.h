@@ -63,8 +63,8 @@ public:
 	virtual void			TraceUndriven(CTimeline* pcTimeline);
 	virtual void			Reset(void);
 
-	virtual bool			IsLogicPort(void);
-	virtual bool			IsPowerIn(void);
+	virtual bool			IsLogicPort(void) const;
+	virtual bool			IsPowerIn(void) const;
 	virtual float32			GetVoltageOut(int64 iTime);
 
 			char*			GetName(void);

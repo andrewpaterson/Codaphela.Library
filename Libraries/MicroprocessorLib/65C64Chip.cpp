@@ -164,7 +164,7 @@ static const char* gasz65C64Instructions[] = { "none", "opcode", "reset", "fetch
 // (XML names can't start with a digit, so the element is State65C64.)
 //
 //////////////////////////////////////////////////////////////////////////
-const char* C65C64Chip::GetStateXMLName(void) { return "State65C64"; }
+const char* C65C64Chip::GetStateXMLName(void) const { return "State65C64"; }
 
 
 //////////////////////////////////////////////////////////////////////////

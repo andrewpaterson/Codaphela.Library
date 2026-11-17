@@ -55,7 +55,7 @@ void CCTBoolean::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTBoolean::IsBool(void)
+bool CCTBoolean::IsBool(void) const
 {
 	return true;
 }

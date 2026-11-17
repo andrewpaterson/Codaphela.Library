@@ -25,7 +25,7 @@ void CGerberCommandApertureAttribute::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandApertureAttribute::IsApertureAttribute(void)
+bool CGerberCommandApertureAttribute::IsApertureAttribute(void) const
 {
 	return true;
 }

@@ -24,7 +24,7 @@ public:
 	void								Init(size iNameLength);
 	void								Kill(void);
 
-	bool								IsApertureMacro(void);
+	bool								IsApertureMacro(void) const;
 
 	char*								NameText(void);
 	void								SetName(const char* szNewName);

@@ -51,7 +51,7 @@ void CObjectSourceSimple::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourceSimple::IsNative(void)
+bool CObjectSourceSimple::IsNative(void) const
 {
 	return true; 
 }
@@ -85,7 +85,7 @@ CBaseObject* CObjectSourceSimple::Convert(const char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CExternalObjectReader* CObjectSourceSimple::GetReader(void)
+CExternalObjectReader* CObjectSourceSimple::GetReader(void) const
 {
 	return mpcReader;
 }

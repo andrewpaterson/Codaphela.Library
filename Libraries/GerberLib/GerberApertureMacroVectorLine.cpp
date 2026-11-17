@@ -107,7 +107,7 @@ CGerberExpression* CGerberApertureMacroVectorLine::GetRotation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacroVectorLine::IsVectorLine(void)
+bool CGerberApertureMacroVectorLine::IsVectorLine(void) const
 {
 	return true;
 }

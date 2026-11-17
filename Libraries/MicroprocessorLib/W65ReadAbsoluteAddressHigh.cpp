@@ -26,7 +26,7 @@ void CW65ReadAbsoluteAddressHigh::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ReadAbsoluteAddressHigh::IsInitialSide(void)
+bool CW65ReadAbsoluteAddressHigh::IsInitialSide(void) const
 {
 	return false;
 }

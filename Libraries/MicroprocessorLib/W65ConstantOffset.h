@@ -18,7 +18,7 @@ public:
 
     int32   GetOffset(CW65CCore* pcCPU) override;
     void    Print(CChars* psz) override;
-    bool    IsConstantOffset(void);
+    bool    IsConstantOffset(void) const;
 };
 
 

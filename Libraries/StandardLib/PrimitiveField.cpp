@@ -51,7 +51,7 @@ void CPrimitiveField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPrimitiveField::IsPrimitive(void)
+bool CPrimitiveField::IsPrimitive(void) const
 {
 	return true;
 }
@@ -61,7 +61,7 @@ bool CPrimitiveField::IsPrimitive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPrimitiveField::GetSizeOf(void)
+size CPrimitiveField::GetSizeOf(void) const
 {
 	//This is the size of the whole primitive object; not just the primitive part.
 	return mpcFieldClass->GetSizeOf();
@@ -95,7 +95,7 @@ void* CPrimitiveField::GetValue(CBaseObject* pcFieldContainer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPrimitiveField::GetNameOffset(void)
+size CPrimitiveField::GetNameOffset(void) const
 {
 	return sizeof(CPrimitiveField);
 }
@@ -105,7 +105,7 @@ size CPrimitiveField::GetNameOffset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDataIO* CPrimitiveField::GetDataIO(void)
+SDataIO* CPrimitiveField::GetDataIO(void) const
 {
 	return mpcIO;
 }

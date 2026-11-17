@@ -62,7 +62,7 @@ void CNumberFieldEdit::Class(void)
 
 bool CNumberFieldEdit::WantsEnter(void) { return true; }
 bool CNumberFieldEdit::WantsEscape(void) { return true; }
-bool CNumberFieldEdit::IsTabStop(void) { return false; }  //It is reached by clicking the number, not by Tab.
+bool CNumberFieldEdit::IsTabStop(void) const { return false; }  //It is reached by clicking the number, not by Tab.
 void CNumberFieldEdit::Commit(void) { mpcField->EndEdit(true); }
 void CNumberFieldEdit::Cancel(void) { mpcField->EndEdit(false); }
 

@@ -10,7 +10,7 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	bool	IsEndOfFile(void);
+	bool	IsEndOfFile(void) const;
 };
 
 

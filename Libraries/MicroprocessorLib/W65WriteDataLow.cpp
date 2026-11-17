@@ -26,7 +26,7 @@ void CW65WriteDataLow::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65WriteDataLow::IsInitialSide(void)
+bool CW65WriteDataLow::IsInitialSide(void) const
 {
 	return true;
 }

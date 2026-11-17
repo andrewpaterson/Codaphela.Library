@@ -37,10 +37,10 @@ public:
 	virtual bool		Load(CObjectReader* pcFile) =0;
 	virtual bool		Save(CObjectWriter* pcFile) =0;
 
-	virtual bool		IsNewLine(void);
-	virtual bool		IsUTF16Short(void);
-	virtual bool		IsUTF16Long(void);
-	virtual bool		IsUTF16Multi(void);
+	virtual bool		IsNewLine(void) const;
+	virtual bool		IsUTF16Short(void) const;
+	virtual bool		IsUTF16Long(void) const;
+	virtual bool		IsUTF16Multi(void) const;
 
 	virtual void		TextElementAbstract(void) =0;
 };

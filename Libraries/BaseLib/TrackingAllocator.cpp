@@ -109,7 +109,7 @@ size CTrackingAllocator::ClassSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrackingAllocator::IsLocal(void)
+bool CTrackingAllocator::IsLocal(void) const
 {
 	return mpcAlloc->IsLocal();
 }

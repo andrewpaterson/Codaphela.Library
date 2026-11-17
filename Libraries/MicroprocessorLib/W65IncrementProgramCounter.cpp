@@ -26,7 +26,7 @@ void CW65IncrementProgramCounter::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65IncrementProgramCounter::IsInitialSide(void)
+bool CW65IncrementProgramCounter::IsInitialSide(void) const
 {
 	return false;
 }

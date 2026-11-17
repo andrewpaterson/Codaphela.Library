@@ -48,7 +48,7 @@ bool CHollowEmbeddedObject::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CHollowEmbeddedObject::NumEmbedded(void)
+size CHollowEmbeddedObject::NumEmbedded(void) const
 {
 	return 0;
 }
@@ -83,7 +83,7 @@ int CHollowEmbeddedObject::GetDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowEmbeddedObject::IsHollow(void)
+bool CHollowEmbeddedObject::IsHollow(void) const
 {
 	return true;
 }
@@ -210,7 +210,7 @@ bool CHollowEmbeddedObject::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowEmbeddedObject::IsRoot(void)
+bool CHollowEmbeddedObject::IsRoot(void) const
 {
 	return false;
 }
@@ -220,7 +220,7 @@ bool CHollowEmbeddedObject::IsRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CHollowEmbeddedObject::GetClass(void)
+CClass* CHollowEmbeddedObject::GetClass(void) const
 {
 	return NULL;
 }
@@ -239,7 +239,7 @@ void CHollowEmbeddedObject::SetDirty(bool bDirty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowEmbeddedObject::HasNes(void)
+bool CHollowEmbeddedObject::HasNes(void) const
 {
 	return false;
 }

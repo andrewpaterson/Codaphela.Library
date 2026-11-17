@@ -58,7 +58,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECPPTarget CCPPTargetW65C816::GetTarget(void)
+ECPPTarget CCPPTargetW65C816::GetTarget(void) const
 {
 	return CPPT_W65C816;
 }

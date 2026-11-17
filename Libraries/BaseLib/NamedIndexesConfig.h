@@ -17,12 +17,12 @@ CONSTRUCTABLE(CNamedIndexesConfig)
 public:
 	virtual void									Kill(void) override;
 
-	virtual lsize									GetIndexCacheSize(void) =0;
-	virtual CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) =0;
-	virtual EIndexWriteThrough						GetWriteThrough(void) =0;
-	virtual CIndexTreeEvictionCallback*				GetIndexTreeEvictionCallback(void) =0;
-	virtual const char*									GetSubDirectory(void) =0;
-	virtual CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void) =0;
+	virtual lsize									GetIndexCacheSize(void) const =0;
+	virtual CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) const =0;
+	virtual EIndexWriteThrough						GetWriteThrough(void) const =0;
+	virtual CIndexTreeEvictionCallback*				GetIndexTreeEvictionCallback(void) const =0;
+	virtual const char*									GetSubDirectory(void) const =0;
+	virtual CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void) const =0;
 };
 
 

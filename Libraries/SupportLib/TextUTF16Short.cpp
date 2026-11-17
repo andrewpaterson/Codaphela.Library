@@ -91,5 +91,5 @@ void CTextUTF16Short::PrintAsASCII(CChars* psz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Short::IsUTF16Short(void) { return true; }
+bool CTextUTF16Short::IsUTF16Short(void) const { return true; }
 

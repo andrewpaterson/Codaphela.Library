@@ -24,7 +24,7 @@ void CW65NoteDecimal::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65NoteDecimal::IsInitialSide(void)
+bool CW65NoteDecimal::IsInitialSide(void) const
 {
 	return true;
 }
@@ -44,7 +44,7 @@ bool CW65NoteDecimal::MustExecute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65NoteDecimal::IsConditional(void)
+bool CW65NoteDecimal::IsConditional(void) const
 {
 	return true;
 }

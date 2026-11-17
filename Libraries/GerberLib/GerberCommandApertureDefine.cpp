@@ -29,7 +29,7 @@ void CGerberCommandApertureDefine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandApertureDefine::IsApertureDefine(void)
+bool CGerberCommandApertureDefine::IsApertureDefine(void) const
 {
 	return true;
 }

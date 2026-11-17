@@ -25,7 +25,7 @@ void CW65NoteTwo::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65NoteTwo::IsInitialSide(void)
+bool CW65NoteTwo::IsInitialSide(void) const
 {
 	return true;
 }
@@ -45,7 +45,7 @@ bool CW65NoteTwo::MustExecute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65NoteTwo::IsConditional(void)
+bool CW65NoteTwo::IsConditional(void) const
 {
 	return true;
 }

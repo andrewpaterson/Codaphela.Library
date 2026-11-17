@@ -47,7 +47,7 @@ void CEmbeddedObjectField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObjectField::IsEmbeddedObject(void)
+bool CEmbeddedObjectField::IsEmbeddedObject(void) const
 {
 	return true;
 }
@@ -57,7 +57,7 @@ bool CEmbeddedObjectField::IsEmbeddedObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CEmbeddedObjectField::GetSizeOf(void)
+size CEmbeddedObjectField::GetSizeOf(void) const
 {
 	return mpcFieldClass->GetSizeOf();
 }
@@ -80,7 +80,7 @@ CBaseObject* CEmbeddedObjectField::GetEmbeddedObject(CBaseObject* pcFieldContain
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CEmbeddedObjectField::GetNameOffset(void)
+size CEmbeddedObjectField::GetNameOffset(void) const
 {
 	return sizeof(CEmbeddedObjectField);
 }

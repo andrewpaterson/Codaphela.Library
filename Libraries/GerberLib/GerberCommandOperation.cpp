@@ -32,7 +32,7 @@ void CGerberCommandOperation::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandOperation::IsOperation(void)
+bool CGerberCommandOperation::IsOperation(void) const
 {
 	return true;
 }

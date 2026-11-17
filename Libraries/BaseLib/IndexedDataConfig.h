@@ -18,14 +18,14 @@ CONSTRUCTABLE(CIndexedDataConfig)
 public:
 			void									Kill(void) override;
 
-	virtual const char*									GetSubdirectory(void) =0;
-	virtual lsize									GetDataCacheSize(void) =0;
-	virtual lsize									GetIndexCacheSize(void) =0;
-	virtual EIndexWriteThrough						GetWriteThrough(void) =0;
-	virtual CIndexTreeEvictionCallback*				GetIndexTreeEvictionUserCallback(void) =0;
-	virtual CIndexedDataEvictionCallback*			GetIndexedDataEvictionUserCallback(void) =0;
-	virtual CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) =0;
-	virtual CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void) =0;
+	virtual const char*									GetSubdirectory(void) const =0;
+	virtual lsize									GetDataCacheSize(void) const =0;
+	virtual lsize									GetIndexCacheSize(void) const =0;
+	virtual EIndexWriteThrough						GetWriteThrough(void) const =0;
+	virtual CIndexTreeEvictionCallback*				GetIndexTreeEvictionUserCallback(void) const =0;
+	virtual CIndexedDataEvictionCallback*			GetIndexedDataEvictionUserCallback(void) const =0;
+	virtual CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) const =0;
+	virtual CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void) const =0;
 };
 
 

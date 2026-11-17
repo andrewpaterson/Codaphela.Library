@@ -78,7 +78,7 @@ CCalcExpression* CCalcVariableDefinition::GetExpression(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcVariableDefinition::IsExpression(void)
+bool CCalcVariableDefinition::IsExpression(void) const
 {
 	return false;
 }
@@ -88,7 +88,7 @@ bool CCalcVariableDefinition::IsExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcVariableDefinition::IsOperator(void)
+bool CCalcVariableDefinition::IsOperator(void) const
 {
 	return false;
 }
@@ -98,7 +98,7 @@ bool CCalcVariableDefinition::IsOperator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcVariableDefinition::IsVariableDefinition(void)
+bool CCalcVariableDefinition::IsVariableDefinition(void) const
 {
 	return true;
 }

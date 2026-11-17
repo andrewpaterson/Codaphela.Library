@@ -10,7 +10,7 @@ public:
     void    Kill(void) override;
 
     int32   GetOffset(CW65CCore* pcCPU) override;
-    bool    IsProgramCounter(void) override;
+    bool    IsProgramCounter(void) const override;
     void    Print(CChars* psz) override;
 };
 

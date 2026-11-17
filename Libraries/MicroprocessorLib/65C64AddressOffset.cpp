@@ -35,7 +35,7 @@ void C65C64AddressOffset::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64AddressOffset::IsOperation(void)
+bool C65C64AddressOffset::IsOperation(void) const
 {
 	return false;
 }
@@ -45,7 +45,7 @@ bool C65C64AddressOffset::IsOperation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64AddressOffset::IsAddress(void)
+bool C65C64AddressOffset::IsAddress(void) const
 {
 	return true;
 }
@@ -55,7 +55,7 @@ bool C65C64AddressOffset::IsAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64AddressOffset::IsConstantOffset(void)
+bool C65C64AddressOffset::IsConstantOffset(void) const
 {
 	return false;
 }
@@ -65,7 +65,7 @@ bool C65C64AddressOffset::IsConstantOffset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64AddressOffset::IsProgramCounter(void)
+bool C65C64AddressOffset::IsProgramCounter(void) const
 {
 	return false;
 }

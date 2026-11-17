@@ -13,10 +13,10 @@ public:
     void    Init(EWidthFromRegister eWidth);
 
 	void    Execute(CW65CCore* pcCPU) override;
-	bool	IsInitialSide(void) override;
+	bool	IsInitialSide(void) const override;
 
 	void    Print(CChars* psz) override;
-    size	GetDone8(void) override;
+    size	GetDone8(void) const override;
 };
 
 

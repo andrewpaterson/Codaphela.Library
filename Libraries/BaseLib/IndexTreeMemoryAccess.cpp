@@ -49,7 +49,7 @@ void CIndexTreeMemoryAccess::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexTreeMemoryAccess::NumElements(void)
+int64 CIndexTreeMemoryAccess::NumElements(void) const
 {
 	return mpcTree->NumElements();
 }

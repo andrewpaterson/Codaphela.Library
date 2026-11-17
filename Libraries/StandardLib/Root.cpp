@@ -180,7 +180,7 @@ bool CRoot::RemoveAll(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRoot::IsRoot(void)
+bool CRoot::IsRoot(void) const
 {
 	return true;
 }
@@ -190,7 +190,7 @@ bool CRoot::IsRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRoot::IsSubRoot(void)
+bool CRoot::IsSubRoot(void) const
 {
 	return true;
 }

@@ -25,7 +25,7 @@ void CGerberCommandLoadScaling::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadScaling::IsLoadScaling(void)
+bool CGerberCommandLoadScaling::IsLoadScaling(void) const
 {
 	return true;
 }

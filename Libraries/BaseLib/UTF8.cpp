@@ -79,7 +79,7 @@ bool CUTF8::GetByteOrderMark(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CUTF8::GetCurrentData(void)
+void* CUTF8::GetCurrentData(void) const
 {
 	return (&mszText[muiPos]);
 }
@@ -458,5 +458,5 @@ size CUTF8::GetUTF8ElementLength(void) const
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF8::GetPosition(void) { return muiPos; }
+size CUTF8::GetPosition(void) const { return muiPos; }
 

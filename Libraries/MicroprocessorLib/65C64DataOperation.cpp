@@ -40,7 +40,7 @@ void C65C64DataOperation::Init(bool bOpcode, bool bProgramAddress, bool bDataAdd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64DataOperation::IsData(void)
+bool C65C64DataOperation::IsData(void) const
 {
 	return true;
 }

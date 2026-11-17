@@ -62,7 +62,7 @@ public:
 	CDamageArea*	GetPresented(void);
 	void			ClearPresented(void);
 	void			SetScreenRectangle(CInt32Rect* pcRectangle) override;
-	bool			IsCreated(void) override;
+	bool			IsCreated(void) const override;
 	bool			GetScreenArea(CInt32Rect* pcDest) override;
 
 	CWinRefPixels*	GetShown(void);

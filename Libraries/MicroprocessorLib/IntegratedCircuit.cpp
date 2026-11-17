@@ -182,7 +182,7 @@ void CIntegratedCircuit::WriteOutputs(CTimeline* pcTimeline)
 // nothing beyond its ports and events.
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CIntegratedCircuit::GetStateXMLName(void)
+const char* CIntegratedCircuit::GetStateXMLName(void) const
 {
 	return NULL;
 }

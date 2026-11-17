@@ -35,7 +35,7 @@ public:
 	void Init(void);
 	void Init(unsigned int i);
 	void Kill(void);
-	bool IsSigned(void);
+	bool IsSigned(void) const;
 };
 
 

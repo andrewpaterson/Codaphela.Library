@@ -16,7 +16,7 @@ void CGerberCommandApertureBlock::Init(uint32 uiDCode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandApertureBlock::IsApertureBlock(void)
+bool CGerberCommandApertureBlock::IsApertureBlock(void) const
 {
 	return true;
 }

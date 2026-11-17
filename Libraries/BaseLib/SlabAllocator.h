@@ -40,7 +40,7 @@ public:
 	void*		Realloc(void* pv, lsize uiSize) override;
 	bool		Free(void* pv) override;
 
-	bool		IsLocal(void) override;
+	bool		IsLocal(void) const override;
 	size		SizeOffset(void) override;
 
 	const char*	ShortName(void) override;

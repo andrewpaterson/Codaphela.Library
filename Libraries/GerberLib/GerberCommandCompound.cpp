@@ -30,7 +30,7 @@ void CGerberCommandCompound::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandCompound::IsCompound(void)
+bool CGerberCommandCompound::IsCompound(void) const
 {
 	return true;
 }

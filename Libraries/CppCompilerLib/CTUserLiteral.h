@@ -36,8 +36,8 @@ public:
 	void Init(void);
 	void Init(CCPPToken* pcLiteral, int64 lliSuffix);
 	void Kill(void);
-	bool IsUserLiteral(void);
-	bool IsUserString(void);
+	bool IsUserLiteral(void) const;
+	bool IsUserString(void) override;
 };
 
 

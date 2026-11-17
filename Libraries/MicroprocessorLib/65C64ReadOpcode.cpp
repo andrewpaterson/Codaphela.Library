@@ -46,7 +46,7 @@ void C65C64ReadOpcode::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64ReadOpcode::IsInitialSide(void)
+bool C65C64ReadOpcode::IsInitialSide(void) const
 {
 	return false;
 }

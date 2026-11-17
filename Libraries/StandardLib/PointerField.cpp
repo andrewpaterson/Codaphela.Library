@@ -54,7 +54,7 @@ void CPointerField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointerField::IsPointer(void)
+bool CPointerField::IsPointer(void) const
 {
 	return true;
 }
@@ -64,7 +64,7 @@ bool CPointerField::IsPointer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPointerField::GetSizeOf(void)
+size CPointerField::GetSizeOf(void) const
 {
 	return mpcFieldClass->GetSizeOf();
 }
@@ -87,7 +87,7 @@ CPointer* CPointerField::GetPointer(CBaseObject* pcFieldContainer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CPointerField::GetNameOffset(void)
+size CPointerField::GetNameOffset(void) const
 {
 	return sizeof(CPointerField);
 }

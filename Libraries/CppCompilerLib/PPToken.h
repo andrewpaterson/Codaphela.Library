@@ -49,17 +49,17 @@ public:
 	virtual size			ClassSize(void) =0;
 			char*			ShortFileName(void);
 
-	virtual bool			IsDirective(void);
-	virtual bool			IsText(void);
-	virtual bool			IsWhitespace(void);
-	virtual bool			IsReplacement(void);
-	virtual bool			IsHash(void);
-	virtual bool			IsTokenListHolder(void);
-	virtual bool			IsLine(void);
-	virtual bool			IsTokenReplacementsHolder(void);
-	virtual bool			IsFile(void);
-	virtual bool			IsBlock(void);
-	virtual bool			IsUnknown(void);
+	virtual bool			IsDirective(void) const;
+	virtual bool			IsText(void) const;
+	virtual bool			IsWhitespace(void) const;
+	virtual bool			IsReplacement(void) const;
+	virtual bool			IsHash(void) const;
+	virtual bool			IsTokenListHolder(void) const;
+	virtual bool			IsLine(void) const;
+	virtual bool			IsTokenReplacementsHolder(void) const;
+	virtual bool			IsFile(void) const;
+	virtual bool			IsBlock(void) const;
+	virtual bool			IsUnknown(void) const;
 	virtual bool			IsEmpty(void) =0;
 			void			Set(int iLine, int iColumn);
 	virtual char*			Print(CChars* psz) =0;

@@ -43,13 +43,13 @@ public:
 	bool			ReadNames(void);
 	bool			Contains(const char* szFullName) override;
 	CBaseObject*	Convert(const char* szFullName) override;
-	bool			IsNative(void) override;
-	bool			IsMultiSource(void) override;
+	bool			IsNative(void) const override;
+	bool			IsMultiSource(void) const override;
 
 	char*			GetName(size iIndex);
 	size			NumNames(void) const;
 
-	CExternalObjectReader*	GetReader(void) override;
+	CExternalObjectReader*	GetReader(void) const override;
 };
 
 

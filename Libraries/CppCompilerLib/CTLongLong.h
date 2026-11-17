@@ -33,7 +33,7 @@ public:
 	void Init(void);
 	void Init(uint64 ulli);
 	void Kill(void);
-	bool IsSigned(void);
+	bool IsSigned(void) const;
 };
 
 

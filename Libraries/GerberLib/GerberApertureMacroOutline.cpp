@@ -69,7 +69,7 @@ CGerberExpressionPosition* CGerberApertureMacroOutline::Add(CCalculatorSymbols* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacroOutline::IsOutline(void)
+bool CGerberApertureMacroOutline::IsOutline(void) const
 {
 	return true;
 }

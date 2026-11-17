@@ -36,7 +36,7 @@ public:
 			void			Init(CObjects* pcObjects);
 			void			Kill(void) override;
 
-	virtual const char*		GetFileExtension(void) =0;
+	virtual const char*		GetFileExtension(void) const =0;
 	virtual bool			IsFor(CAbstractFile* pcFile) =0;
 	virtual CObjectSource*	CreateSource(CAbstractFile* pcFile, const char* szFilename) =0;
 	virtual CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName) =0;

@@ -1309,7 +1309,7 @@ void CX11Window::Raise(void)
 }
 
 
-bool CX11Window::IsCreated(void) { return mulWindow != 0; }
+bool CX11Window::IsCreated(void) const { return mulWindow != 0; }
 
 
 //////////////////////////////////////////////////////////////////////////

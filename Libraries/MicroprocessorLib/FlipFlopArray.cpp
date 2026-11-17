@@ -188,7 +188,7 @@ const char* CFlipFlopArray::GetType(void) { return FLIP_FLOP_ARRAY_TYPE; }
 CGroupPins* CFlipFlopArray::GetGroupPins(void) { return (CGroupPins*)&mpPins; }
 bool CFlipFlopArray::GetState(size uiFlipFlop) { return (uiFlipFlop < FLIP_FLOP_ARRAY_MAX) ? mabStates[uiFlipFlop] : false; }
 void CFlipFlopArray::SetState(size uiFlipFlop, bool bState) { if (uiFlipFlop < FLIP_FLOP_ARRAY_MAX) { mabStates[uiFlipFlop] = bState; } }
-const char* CFlipFlopArray::GetStateXMLName(void) { return "FlipFlopArrayState"; }
+const char* CFlipFlopArray::GetStateXMLName(void) const { return "FlipFlopArrayState"; }
 
 
 //////////////////////////////////////////////////////////////////////////

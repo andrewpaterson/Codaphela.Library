@@ -44,7 +44,7 @@ public:
 	void	Init(void);
 	void	Init(const char* szStart, const char* szEnd, ECTEncoding eEncoding);
 	void	Kill(void);
-	bool	IsString(void);
+	bool	IsString(void) const;
 	bool	IsWide(void) const;
 	bool	IsRaw(void) const;
 	const char*	OpeningQuote(void);

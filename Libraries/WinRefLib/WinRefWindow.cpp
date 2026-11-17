@@ -283,7 +283,7 @@ void CWinRefWindow::SetScreenRectangle(CInt32Rect* pcRectangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWinRefWindow::IsCreated(void)
+bool CWinRefWindow::IsCreated(void) const
 {
 	return mbCreated;
 }

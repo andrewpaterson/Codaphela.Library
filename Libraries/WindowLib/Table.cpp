@@ -189,7 +189,7 @@ void CTableField::Free(void)
 
 bool CTableField::WantsEnter(void) { return true; }
 bool CTableField::WantsEscape(void) { return true; }
-bool CTableField::IsTabStop(void) { return false; }  //It is reached by editing a cell, not by Tab.
+bool CTableField::IsTabStop(void) const { return false; }  //It is reached by editing a cell, not by Tab.
 void CTableField::Commit(void) { mpcTable->EndEdit(true); }
 void CTableField::Cancel(void) { mpcTable->EndEdit(false); }
 void CTableField::CommitNext(void) { mpcTable->EditNext(1); }
@@ -269,7 +269,7 @@ void CTableCombo::Free(void)
 
 
 bool CTableCombo::WantsEscape(void) { return true; }
-bool CTableCombo::IsTabStop(void) { return false; }
+bool CTableCombo::IsTabStop(void) const { return false; }
 void CTableCombo::Cancel(void) { mpcTable->EndEdit(false); }
 
 

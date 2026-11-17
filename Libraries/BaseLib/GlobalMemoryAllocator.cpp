@@ -66,7 +66,7 @@ bool CGlobalMemoryAllocator::Free(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGlobalMemoryAllocator::IsLocal(void)
+bool CGlobalMemoryAllocator::IsLocal(void) const
 {
 	return false;
 }

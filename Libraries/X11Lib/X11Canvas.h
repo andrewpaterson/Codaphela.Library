@@ -39,7 +39,7 @@ public:
 
 	bool			CreateNativeCanvas(void) override;
 
-	uint8*			GetPixelData(void);
+	uint8*			GetPixelData(void) const;
 	using			CNativeCanvas::GetSize;
 
 	void			CopyCanvas(CNativeCanvas* pcSourceCanvas);

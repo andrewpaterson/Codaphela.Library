@@ -47,7 +47,7 @@ void CW65ExecuteIf16Bit::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ExecuteIf16Bit::IsInitialSide(void)
+bool CW65ExecuteIf16Bit::IsInitialSide(void) const
 {
     return mbInitialSide;
 }

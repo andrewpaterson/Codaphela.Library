@@ -26,7 +26,7 @@ void CW65ReadDataBank::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ReadDataBank::IsInitialSide(void)
+bool CW65ReadDataBank::IsInitialSide(void) const
 {
 	return false;
 }

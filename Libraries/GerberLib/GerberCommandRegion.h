@@ -9,7 +9,7 @@ class CGerberCommandRegion : public CGerberCommandCompound
 public:
 	void	Init(void);
 
-	bool	IsRegion(void);
+	bool	IsRegion(void) const;
 };
 
 

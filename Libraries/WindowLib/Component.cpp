@@ -295,7 +295,7 @@ bool CComponent::DrawChildren(void)
 // scroll bar that isn't needed isn't.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponent::IsDrawn(void)
+bool CComponent::IsDrawn(void) const
 {
 	return true;
 }
@@ -784,7 +784,7 @@ void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocu
 void CComponent::SetHitAsWhole(bool bHitAsWhole) { mbHitAsWhole = bHitAsWhole; }  //A component made of others, like a button, has the pointer over it and takes focus rather than its parts.
 bool CComponent::WantsEnter(void) { return false; }  //Enter goes to the window's default button unless the focussed component wants it.
 bool CComponent::WantsEscape(void) { return false; }  //Escape goes to the window's cancel button unless the focussed component wants it.
-bool CComponent::IsTabStop(void) { return mbCanGetFocus; }  //Tab can move the focus to it in a dialog (CFocus::MoveFocus).
+bool CComponent::IsTabStop(void) const { return mbCanGetFocus; }  //Tab can move the focus to it in a dialog (CFocus::MoveFocus).
 const char* CComponent::GetKeyContext(void) { return NULL; }  //The context its keys are read in (see CComponentInput::AddContext), NULL for its parent's (the global keys at the top).
 bool CComponent::TakesTyping(void) { return false; }  //A key that types is a character for it, so a context's bare keys aren't read for the component under the pointer.
 void CComponent::PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) {}  //An item in a popup this component opened, like a menu's, was clicked.  The popup has closed.

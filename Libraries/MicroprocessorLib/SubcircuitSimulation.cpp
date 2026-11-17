@@ -107,8 +107,8 @@ void CSubcircuitSimulation::ResetNextID(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSubcircuitSimulation::IsTop(void) { return false; }
-bool CSubcircuitSimulation::IsInstance(void) { return false; }
+bool CSubcircuitSimulation::IsTop(void) const { return false; }
+bool CSubcircuitSimulation::IsInstance(void) const { return false; }
 int64 CSubcircuitSimulation::GetID(void) const { return miID; }
 CCircuitSimulation* CSubcircuitSimulation::GetCircuitSimulation(void) const { return mpcCircuitSimulation; }
 CCircuit* CSubcircuitSimulation::GetCircuit(void) const { return mpcCircuitSimulation->GetCircuit(); }
@@ -124,7 +124,7 @@ bool CSubcircuitSimulation::RunToTime(int64 iTimeForward) { return mpcCircuitSim
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CSubcircuitTopSimulation::GetType(void) { return "Top"; }
-bool CSubcircuitTopSimulation::IsTop(void) { return true; }
+bool CSubcircuitTopSimulation::IsTop(void) const { return true; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -179,7 +179,7 @@ void CSubcircuitInstanceSimulation::AppendDescription(CChars* psz)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CSubcircuitInstanceSimulation::GetType(void) { return "Instance"; }
-bool CSubcircuitInstanceSimulation::IsInstance(void) { return true; }
+bool CSubcircuitInstanceSimulation::IsInstance(void) const { return true; }
 void CSubcircuitInstanceSimulation::SetSubcircuitInstance(CSubcircuitInstance* pcSubcircuitInstance) { mpcSubcircuitInstance = pcSubcircuitInstance; }
 CSubcircuitInstance* CSubcircuitInstanceSimulation::GetSubcircuitInstance(void) const { return mpcSubcircuitInstance; }
 

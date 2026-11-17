@@ -38,7 +38,7 @@ bool CMapIndexAccess::Flush(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int64 CMapIndexAccess::NumElements(void)
+int64 CMapIndexAccess::NumElements(void) const
 {
 	return mpcMap->NumElements();
 }

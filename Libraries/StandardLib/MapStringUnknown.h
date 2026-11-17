@@ -44,7 +44,7 @@ public:
 	CUnknown*	Get(const char* szKey);
 
 	size		NumElements(void) override;
-	size		GetSortedSize(void) override;
+	size		GetSortedSize(void) const override;
 	size		GetHoldingSize(void) override;
 
 	bool		StartIteration(SMapIterator* psIterator, char** ppvKey, CUnknown** ppvData);

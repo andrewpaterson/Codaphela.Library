@@ -9,10 +9,10 @@ public:
 	void	Init(void);
 
 	void	Execute(CW65CCore* pcCPU) override;
-	bool	IsInitialSide(void) override;
+	bool	IsInitialSide(void) const override;
 
 	bool    MustExecute(CW65CCore* pcCPU) override;
-	bool    IsConditional(void) override;
+	bool    IsConditional(void) const override;
 	void	Print(CChars* psz) override;
 
 };

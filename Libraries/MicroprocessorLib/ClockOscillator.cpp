@@ -222,7 +222,7 @@ void CClockOscillator::SetHigh(bool bHigh) { mbHigh = bHigh; }
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CClockOscillator::GetStateXMLName(void) { return "ClockOscillatorState"; }
+const char* CClockOscillator::GetStateXMLName(void) const { return "ClockOscillatorState"; }
 
 
 //////////////////////////////////////////////////////////////////////////

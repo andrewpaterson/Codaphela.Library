@@ -36,7 +36,7 @@ public:
 	bool		Load(CObjectReader* pcFile) override;
 	bool		Save(CObjectWriter* pcFile) override;
 
-	bool		IsUTF16Long(void) override;
+	bool		IsUTF16Long(void) const override;
 
 	void		TextElementAbstract(void) override {}
 };

@@ -148,21 +148,21 @@ public:
 			bool					Save(CObjectWriter* pcFile) override;
 			bool					Load(CObjectReader* pcFile) override;
 
-			OIndex					GetIndex(void) override;
+			OIndex					GetIndex(void) const override;
 			void					FreeIdentifiers(void) override;
 
-			bool					IsRoot(void) override;
-	virtual bool					IsSubRoot(void);
-			bool					IsHollow(void) override;
-	virtual bool					IsCollection(void) =0;
-	virtual bool					IsObject(void) =0;
-			bool					IsNamed(void) override;
+			bool					IsRoot(void) const override;
+	virtual bool					IsSubRoot(void) const;
+			bool					IsHollow(void) const override;
+	virtual bool					IsCollection(void) const =0;
+	virtual bool					IsObject(void) const =0;
+			bool					IsNamed(void) const override;
 			bool					IsInvalidated(void);
 			bool					IsDirty(void) override;
 			bool					IsStored(void);
 			bool					IsInitialised(void) override;
 			bool					HasClass(void) const;
-			CClass*					GetClass(void) override;
+			CClass*					GetClass(void) const override;
 			bool					IsKilled(void);
 			bool					IsNamed(const char* szName);
 
@@ -174,7 +174,7 @@ public:
 			void					PrintFlags(CChars* psz);
 			void					Print(CChars* psz) override;
 
-			size					NumEmbedded(void) final;
+			size					NumEmbedded(void) const final;
 			size					NumHeapFroms(void) override;
 			size					NumStackFroms(void) override;
 			void					GetStackFroms(CArrayStackPointerE32* papcFroms) override;
@@ -214,7 +214,7 @@ public:
 			bool					HasHeapFromCloserThan(int iDistToRoot);
 			void					StopDestructor(void);
 
-			bool					HasNes(void) override;
+			bool					HasNes(void) const override;
 			void					GetNesPointerToThis(CArrayEmbeddedObjectPtrE8* papNesObjectsPointingToThis);
 			bool					IsNesPointedTo(void);
 			bool					HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
@@ -269,7 +269,7 @@ protected:
 			bool					SaveHeapFroms(CObjectWriter* pcFile);
 			bool					LoadHeapFroms(CObjectReader* pcFile);
 
-			bool					IsBaseObject(void) override;
+			bool					IsBaseObject(void) const override;
 			size					NumHeapFromHolders(void) const;
 			void					SetNumEmbedded(size uiNumEmbedded);
 			void					ContainerPreInit(void);

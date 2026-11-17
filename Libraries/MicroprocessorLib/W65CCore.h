@@ -230,11 +230,11 @@ public:
 
 	//Provided by each processor.
 	virtual CW65Instruction*	GetInstruction(uint16 uiOpcode) = 0;
-	virtual CW65Instruction*	GetResetOpcode(void) = 0;
-	virtual CW65Instruction*	GetIrqOpcode(void) = 0;
-	virtual CW65Instruction*	GetNmiOpcode(void) = 0;
-	virtual CW65Instruction*	GetAbortOpcode(void) = 0;
-	virtual CW65Instruction*	GetFetchNextOpcode(void) = 0;
+	virtual CW65Instruction*	GetResetOpcode(void) const = 0;
+	virtual CW65Instruction*	GetIrqOpcode(void) const = 0;
+	virtual CW65Instruction*	GetNmiOpcode(void) const = 0;
+	virtual CW65Instruction*	GetAbortOpcode(void) const = 0;
+	virtual CW65Instruction*	GetFetchNextOpcode(void) const = 0;
 	virtual void				WriteSignalsPhi2Falling(CTimeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle) = 0;
 	virtual void				WriteSignalsPhi2Rising(CTimeline* pcTimeline);
 	virtual bool				IsReadCycle(CW65DataOperation* pcDataOperation);

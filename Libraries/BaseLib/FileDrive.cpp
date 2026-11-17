@@ -36,7 +36,7 @@ uint32 CFileDrive::GetSectorSize(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFileDrive::GetPageSize(void)
+uint32 CFileDrive::GetPageSize(void) const
 {
 	return 1;  //The page size is represented as multiples of sectors.
 }

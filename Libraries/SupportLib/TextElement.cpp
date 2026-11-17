@@ -14,7 +14,7 @@ void CTextElement::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextElement::IsNewLine(void)
+bool CTextElement::IsNewLine(void) const
 {
 	return false;
 }
@@ -24,7 +24,7 @@ bool CTextElement::IsNewLine(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextElement::IsUTF16Short(void)
+bool CTextElement::IsUTF16Short(void) const
 {
 	return false;
 }
@@ -34,7 +34,7 @@ bool CTextElement::IsUTF16Short(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextElement::IsUTF16Long(void)
+bool CTextElement::IsUTF16Long(void) const
 {
 	return false;
 }
@@ -44,7 +44,7 @@ bool CTextElement::IsUTF16Long(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextElement::IsUTF16Multi(void)
+bool CTextElement::IsUTF16Multi(void) const
 {
 	return false;
 }

@@ -35,7 +35,7 @@ void CIndexTreeEvictionStrategy::SetIndexTree(CIndexTreeEvicting* pcIndexTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeDataOrderer* CIndexTreeEvictionStrategy::GetDataOrderer(void)
+CIndexTreeDataOrderer* CIndexTreeEvictionStrategy::GetDataOrderer(void) const
 {
 	return NULL;
 }

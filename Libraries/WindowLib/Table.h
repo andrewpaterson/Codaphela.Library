@@ -92,7 +92,7 @@ public:
 
 	bool	WantsEnter(void) override;
 	bool	WantsEscape(void) override;
-	bool	IsTabStop(void) override;
+	bool	IsTabStop(void) const override;
 	void	FocusLost(void) override;
 	void	Commit(void);
 	void	Cancel(void);
@@ -117,7 +117,7 @@ public:
 	void	Free(void) override;
 
 	bool	WantsEscape(void) override;
-	bool	IsTabStop(void) override;
+	bool	IsTabStop(void) const override;
 	void	PopupClosed(Ptr<CComponent> pContent) override;
 	void	Cancel(void);
 };

@@ -70,7 +70,7 @@ public:
 
 	virtual	bool				Draw(void);
 			bool				DrawChildren(void);
-	virtual	bool				IsDrawn(void);
+	virtual	bool				IsDrawn(void) const;
 	virtual	bool				IsChildDrawn(Ptr<CComponent> pChild);
 			void				PrepareDraw(bool bDrawn, bool bClipped, CInt32Rect* pcClip);
 			void				GetDrawnArea(CInt32Rect* pcDest);
@@ -109,7 +109,7 @@ public:
 	virtual	bool				WantsEscape(void);
 	virtual	const char*			GetKeyContext(void);
 	virtual	bool				TakesTyping(void);
-	virtual	bool				IsTabStop(void);
+	virtual	bool				IsTabStop(void) const;
 	virtual	bool				CanDoCommand(EComponentInputCommand eCommand);
 	virtual	void				PopupClosed(Ptr<CComponent> pContent);  //Overrides call it.
 	virtual	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem);

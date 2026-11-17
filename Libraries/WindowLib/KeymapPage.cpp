@@ -332,9 +332,9 @@ void CKeymapPage::Free(void)
 
 bool CKeymapPage::Save(CObjectWriter* pcFile) { return false; }
 bool CKeymapPage::Load(CObjectReader* pcFile) { return false; }
-const char* CKeymapPage::GetTitle(void) { return "Keymap"; }
-Ptr<CComponent> CKeymapPage::GetBody(void) { return mpBody; }
-Ptr<CComponent> CKeymapPage::GetFirstEditor(void) { return mpFilter; }
+const char* CKeymapPage::GetTitle(void) const { return "Keymap"; }
+Ptr<CComponent> CKeymapPage::GetBody(void) const { return mpBody; }
+Ptr<CComponent> CKeymapPage::GetFirstEditor(void) const { return mpFilter; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -633,7 +633,7 @@ void CKeymapPage::SelectRow(size uiRow)
 // with its group ("Debug: Start Debugging").
 //
 //////////////////////////////////////////////////////////////////////////
-size CKeymapPage::NumKeyLists(void) { return masRows.NumElements(); }
+size CKeymapPage::NumKeyLists(void) const { return masRows.NumElements(); }
 CCommand* CKeymapPage::GetKeyListCommand(size uiIndex) { return masRows.Get(uiIndex)->pcCommand; }
 CCommandKeyList* CKeymapPage::GetKeyList(size uiIndex) { return &masRows.Get(uiIndex)->cKeys; }
 

@@ -26,7 +26,7 @@ void CW65WriteProgramCounterHigh::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65WriteProgramCounterHigh::IsInitialSide(void)
+bool CW65WriteProgramCounterHigh::IsInitialSide(void) const
 {
 	return true;
 }

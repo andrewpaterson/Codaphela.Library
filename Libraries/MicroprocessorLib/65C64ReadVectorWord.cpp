@@ -47,7 +47,7 @@ void C65C64ReadVectorWord::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64ReadVectorWord::IsInitialSide(void)
+bool C65C64ReadVectorWord::IsInitialSide(void) const
 {
 	return false;
 }

@@ -25,7 +25,7 @@ void CW65InternalFirst::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65InternalFirst::IsInitialSide(void)
+bool CW65InternalFirst::IsInitialSide(void) const
 {
 	return false;
 }

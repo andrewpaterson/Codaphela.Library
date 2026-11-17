@@ -35,7 +35,7 @@ public:
 	void	Init(C65C64Func fFunction, bool bInitialSide);
 
 	void	Execute(C65C64* pcCPU) override;
-	bool	IsInitialSide(void) override;
+	bool	IsInitialSide(void) const override;
 	void	Print(CChars* psz) override;
 };
 

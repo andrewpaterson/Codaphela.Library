@@ -43,7 +43,7 @@ public:
 			bool		Load(CFileReader* pcFile) override =0;
 
 	virtual size		NumElements(void) =0;
-	virtual size		GetSortedSize(void) =0;
+	virtual size		GetSortedSize(void) const =0;
 	virtual size		GetHoldingSize(void) =0;
 
 			bool 		IsKillElements(void) const;

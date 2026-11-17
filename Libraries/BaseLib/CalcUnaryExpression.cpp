@@ -80,7 +80,7 @@ void CCalcUnaryExpression::Set(CCalcExpression* pcExpression, CCalcOperator* pcO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcUnaryExpression::IsUnaryExpression(void)
+bool CCalcUnaryExpression::IsUnaryExpression(void) const
 {
 	return true;
 }

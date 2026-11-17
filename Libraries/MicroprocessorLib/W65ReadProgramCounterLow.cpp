@@ -26,7 +26,7 @@ void CW65ReadProgramCounterLow::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ReadProgramCounterLow::IsInitialSide(void)
+bool CW65ReadProgramCounterLow::IsInitialSide(void) const
 {
 	return false;
 }

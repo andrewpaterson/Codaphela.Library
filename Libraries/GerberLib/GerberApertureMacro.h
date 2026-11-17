@@ -32,14 +32,14 @@ public:
 			void	Init(EGerberApertureMacroPrimitive ePrimitive);
 	virtual void	Kill(void) = 0;
 
-	virtual bool	IsComment(void);
-	virtual bool	IsCircle(void);
-	virtual bool	IsCenterLine(void);
-	virtual bool	IsOutline(void);
-	virtual bool	IsPolygon(void);
-	virtual bool	IsVectorLine(void);
-	virtual bool	IsThermal(void);
-	virtual bool	IsVariableDefinition(void);
+	virtual bool	IsComment(void) const;
+	virtual bool	IsCircle(void) const;
+	virtual bool	IsCenterLine(void) const;
+	virtual bool	IsOutline(void) const;
+	virtual bool	IsPolygon(void) const;
+	virtual bool	IsVectorLine(void) const;
+	virtual bool	IsThermal(void) const;
+	virtual bool	IsVariableDefinition(void) const;
 
 	//Adds the evaluated primitive to pcPrimitives or, for a variable definition, sets the variable.
 	virtual bool	Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);

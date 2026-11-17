@@ -28,7 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 class CCPPTargetHost : public CCPPTarget
 {
 public:
-	ECPPTarget	GetTarget(void) override;
+	ECPPTarget	GetTarget(void) const override;
 	const char*	GetConfigurationName(void) override;
 	int			GetIntBytes(void) override;
 	int			GetPointerBytes(void) override;

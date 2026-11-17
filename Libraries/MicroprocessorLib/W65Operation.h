@@ -11,15 +11,15 @@ public:
 
     virtual void    Execute(CW65CCore* pcCPU) =0;
 
-            bool    IsOperation(void) override;
+            bool    IsOperation(void) const override;
     virtual bool    MustExecute(CW65CCore* pcCPU);
-    virtual bool    IsConditional(void);
-    virtual bool    IsAddress(void) override;
-    virtual bool    IsData(void);
-    virtual size    GetDone8(void);
-    virtual size    GetDone16(void);
+    virtual bool    IsConditional(void) const;
+    virtual bool    IsAddress(void) const override;
+    virtual bool    IsData(void) const;
+    virtual size    GetDone8(void) const;
+    virtual size    GetDone16(void) const;
 
-    virtual bool    IsInitialSide(void) =0;
+    virtual bool    IsInitialSide(void) const =0;
             bool    IsTrailingSide(void);
 };
 

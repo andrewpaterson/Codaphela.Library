@@ -19,7 +19,7 @@ public:
 	void				Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	void				Kill(void);
 
-	bool				IsVectorLine(void);
+	bool				IsVectorLine(void) const;
 
 	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
 

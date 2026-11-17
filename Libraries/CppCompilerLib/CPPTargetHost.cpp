@@ -25,7 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECPPTarget CCPPTargetHost::GetTarget(void)
+ECPPTarget CCPPTargetHost::GetTarget(void) const
 {
 	return CPPT_Host;
 }

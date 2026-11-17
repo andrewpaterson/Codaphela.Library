@@ -85,7 +85,7 @@ uint32 CMetaBus8::Read(CTimeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMetaBus8::GetWidth(void)
+size CMetaBus8::GetWidth(void) const
 {
 	return 8;
 }

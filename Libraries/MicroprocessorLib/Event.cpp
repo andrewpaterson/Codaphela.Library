@@ -123,7 +123,7 @@ void CEvent::PrintShort(CChars* psz)
 // chip events override it.
 //
 //////////////////////////////////////////////////////////////////////////
-CIntegratedCircuit* CEvent::GetIntegratedCircuit(void)
+CIntegratedCircuit* CEvent::GetIntegratedCircuit(void) const
 {
 	return NULL;
 }

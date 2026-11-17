@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLocalMallocator::IsLocal(void)
+bool CLocalMallocator::IsLocal(void) const
 {
 	return true;
 }

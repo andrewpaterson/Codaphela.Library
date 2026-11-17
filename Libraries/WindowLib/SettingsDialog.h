@@ -41,9 +41,9 @@ public:
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	virtual const char*		GetTitle(void);
-	virtual Ptr<CComponent>	GetBody(void);
-	virtual Ptr<CComponent>	GetFirstEditor(void);
+	virtual const char*		GetTitle(void) const;
+	virtual Ptr<CComponent>	GetBody(void) const;
+	virtual Ptr<CComponent>	GetFirstEditor(void) const;
 	virtual void			Keep(void);
 };
 

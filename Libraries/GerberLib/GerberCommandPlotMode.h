@@ -22,7 +22,7 @@ public:
 	void Init(EGerberCommandEnum eType, EGerberPlotMode eMode);
 	void Kill(void);
 
-	bool IsPlotMode(void);
+	bool IsPlotMode(void) const;
 
 	bool IsLinear(void) const;
 	bool IsCircular(void) const;

@@ -26,7 +26,7 @@ void CW65WriteAbsoluteAddressLow::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65WriteAbsoluteAddressLow::IsInitialSide(void)
+bool CW65WriteAbsoluteAddressLow::IsInitialSide(void) const
 {
 	return true;
 }

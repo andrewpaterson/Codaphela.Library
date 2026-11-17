@@ -47,9 +47,9 @@ void CSettingsPage::Class(void) {}
 void CSettingsPage::Free(void) {}
 bool CSettingsPage::Save(CObjectWriter* pcFile) { return false; }
 bool CSettingsPage::Load(CObjectReader* pcFile) { return false; }
-const char* CSettingsPage::GetTitle(void) { return ""; }
-Ptr<CComponent> CSettingsPage::GetBody(void) { return NULL; }
-Ptr<CComponent> CSettingsPage::GetFirstEditor(void) { return NULL; }
+const char* CSettingsPage::GetTitle(void) const { return ""; }
+Ptr<CComponent> CSettingsPage::GetBody(void) const { return NULL; }
+Ptr<CComponent> CSettingsPage::GetFirstEditor(void) const { return NULL; }
 void CSettingsPage::Keep(void) {}
 
 

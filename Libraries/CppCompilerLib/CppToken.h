@@ -35,13 +35,13 @@ protected:
 public:
 	virtual void	Init(void) =0;
 	virtual void	Kill(void) =0;
-	virtual bool	IsReservedWord(void);
-	virtual bool	IsIdentifier(void);
-	virtual bool	IsNumber(void);
-	virtual bool	IsString(void);
-	virtual bool	IsChar(void);
-	virtual bool	IsBool(void);
-	virtual bool	IsUserLiteral(void);
+	virtual bool	IsReservedWord(void) const;
+	virtual bool	IsIdentifier(void) const;
+	virtual bool	IsNumber(void) const;
+	virtual bool	IsString(void) const;
+	virtual bool	IsChar(void) const;
+	virtual bool	IsBool(void) const;
+	virtual bool	IsUserLiteral(void) const;
 	virtual bool	IsUserString(void);	//A user-defined literal that is a string, as "text"_s.
 	virtual bool	Is(ECppTokens eToken);
 	virtual void	Append(CChars* psz, CCPPTokeniser* pcTokeniser);

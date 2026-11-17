@@ -109,27 +109,27 @@ public:
 			size				ClearFromsOfCopy(CEmbeddedObject* pcOriginal);
 	virtual bool				Save(CObjectWriter* pcFile) =0;
 	virtual bool				Load(CObjectReader* pcFile) =0;
-	virtual bool				IsHollow(void) =0;
+	virtual bool				IsHollow(void) const =0;
 	virtual size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
 	virtual bool				SetDistToRoot(int iDistToRoot) =0;
 	virtual int					GetDistToRoot(void) =0;
-	virtual OIndex				GetIndex(void);
-	virtual bool				IsNamed(void);
+	virtual OIndex				GetIndex(void) const;
+	virtual bool				IsNamed(void) const;
 	virtual char*				GetName(void);
 	virtual void				FreeIdentifiers(void);
 	virtual bool				IsDirty(void) =0;
 	virtual void				SetDirty(bool bDirty) =0;
 			void				LogicalDirty(void);
-	virtual bool				IsBaseObject(void);
+	virtual bool				IsBaseObject(void) const;
 	virtual void				RemovePointerTo(CEmbeddedObject* pcTo);
 			CBaseObject*		GetEmbeddingContainer(void);
 			bool				IsEmbeddingContainerAllocatedInObjects(void);
 			bool				IsEmbedded(void) const;
 			bool				IsNotEmbedded(void) const;
 	virtual bool				IsInitialised(void) =0;
-	virtual bool				IsRoot(void) =0;
+	virtual bool				IsRoot(void) const =0;
 	virtual size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-	virtual size				NumEmbedded(void) =0;
+	virtual size				NumEmbedded(void) const =0;
 			void				SetEmbedding(CBaseObject* pcEmbedded);
 			CBaseObject*		GetEmbedding(void);  //The object this is embedded in directly (GetEmbeddingContainer is the outermost); NULL if not embedded.
 	virtual CEmbeddedObject*	GetEmbeddedObject(size iIndex) =0;
@@ -175,9 +175,9 @@ public:
 
 			size				NumTotalFroms(void);
 			bool				ContainsFrom(CEmbeddedObject* pcBaseObject);
-	virtual CClass*				GetClass(void) =0;
+	virtual CClass*				GetClass(void) const =0;
 	virtual	void				CopyFields(CEmbeddedObject* pcOther);
-	virtual bool				HasNes(void) =0;
+	virtual bool				HasNes(void) const =0;
 	virtual bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) =0;
 			CEmbeddedObject*	GetNesPointerFrom(size* piStart);
 

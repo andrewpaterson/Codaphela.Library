@@ -65,7 +65,7 @@ void CPortEvent::RemoveFromOwner(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPortEvent::IsDriveEvent(void)
+bool CPortEvent::IsDriveEvent(void) const
 {
 	return false;
 }
@@ -76,7 +76,7 @@ bool CPortEvent::IsDriveEvent(void)
 // True for the drives and slews that set what the port drives.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPortEvent::IsOutputEvent(void)
+bool CPortEvent::IsOutputEvent(void) const
 {
 	return false;
 }
@@ -117,7 +117,7 @@ void CPortEvent::AppendPortOwner(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIntegratedCircuit* CPortEvent::GetIntegratedCircuit(void)
+CIntegratedCircuit* CPortEvent::GetIntegratedCircuit(void) const
 {
 	return mpcPort->GetPins()->GetIntegratedCircuit();
 }

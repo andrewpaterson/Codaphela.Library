@@ -36,7 +36,7 @@ public:
 	PP_TOKEN_CONSTRUCT(CPPBlock);
 	void 				Init(size iLine, size iColumn, char* szFileName);
 	void 				Kill(void);
-	bool 				IsBlock(void);
+	bool 				IsBlock(void) const;
 	void				Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	void				SetNext(size	iTokenIndex, size iBlockIndex);
 	SPPTokenBlockIndex	GetNextTokenBlock(void) const;

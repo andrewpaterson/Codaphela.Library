@@ -48,7 +48,7 @@ void CPPTokenListHolder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPTokenListHolder::IsTokenListHolder(void)
+bool CPPTokenListHolder::IsTokenListHolder(void) const
 {
 	return true;
 }

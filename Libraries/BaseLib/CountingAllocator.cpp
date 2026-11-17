@@ -208,7 +208,7 @@ size CCountingAllocator::ClassSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCountingAllocator::IsLocal(void)
+bool CCountingAllocator::IsLocal(void) const
 {
 	return mpcAlloc->IsLocal();
 }

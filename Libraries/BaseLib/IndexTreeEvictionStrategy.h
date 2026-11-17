@@ -17,7 +17,7 @@ public:
 	virtual void					SetIndexTree(CIndexTreeEvicting* pcIndexTree);
 	virtual bool					Run(CIndexTreeNodeFile* pcDontEvict) =0;
 
-	virtual CIndexTreeDataOrderer*	GetDataOrderer(void);
+	virtual CIndexTreeDataOrderer*	GetDataOrderer(void) const;
 
 protected:
 			bool					EvictNode(CIndexTreeNodeFile* pcNode);

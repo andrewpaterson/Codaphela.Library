@@ -30,7 +30,7 @@ CONSTRUCTABLE(CPowerInPort);
 public:
 			void	Init(EPortType eType, const char* szName, CPortHolder* pcHolder);
 
-	virtual bool	IsPowerIn(void);
+	virtual bool	IsPowerIn(void) const;
 			float32	GetVoltageIn(int64 iTime);
 };
 

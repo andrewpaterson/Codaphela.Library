@@ -17,7 +17,7 @@ public:
 	void						Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	void						Kill(void);
 
-	bool						IsOutline(void);
+	bool						IsOutline(void) const;
 
 	bool						Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
 

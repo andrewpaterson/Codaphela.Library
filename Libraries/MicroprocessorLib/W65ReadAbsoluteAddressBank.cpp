@@ -26,7 +26,7 @@ void CW65ReadAbsoluteAddressBank::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ReadAbsoluteAddressBank::IsInitialSide(void)
+bool CW65ReadAbsoluteAddressBank::IsInitialSide(void) const
 {
 	return false;
 }

@@ -23,7 +23,7 @@ public:
 	void		Init(EGerberCommandEnum eType);
 	void		Kill(void);
 
-	bool		IsOperation(void);
+	bool		IsOperation(void) const;
 	bool		IsPlot(void) const;
 	bool		IsMove(void) const;
 	bool		IsFlash(void) const;

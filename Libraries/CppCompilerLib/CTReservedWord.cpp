@@ -55,7 +55,7 @@ void CCTReservedWord::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTReservedWord::IsReservedWord(void)
+bool CCTReservedWord::IsReservedWord(void) const
 {
 	return true;
 }

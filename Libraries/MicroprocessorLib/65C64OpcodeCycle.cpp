@@ -45,7 +45,7 @@ void C65C64OpcodeCycle::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64OpcodeCycle::IsInitialSide(void)
+bool C65C64OpcodeCycle::IsInitialSide(void) const
 {
 	return false;
 }

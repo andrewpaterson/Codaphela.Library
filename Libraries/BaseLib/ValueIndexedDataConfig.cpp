@@ -43,7 +43,7 @@ void CValueIndexedDataConfig::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CValueIndexedDataConfig::GetSubdirectory(void)
+const char* CValueIndexedDataConfig::GetSubdirectory(void) const
 {
 	return mszSubDirectory;
 }
@@ -53,7 +53,7 @@ const char* CValueIndexedDataConfig::GetSubdirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CValueIndexedDataConfig::GetDataCacheSize(void)
+lsize CValueIndexedDataConfig::GetDataCacheSize(void) const
 {
 	return muiDataCacheSize;
 }
@@ -63,7 +63,7 @@ lsize CValueIndexedDataConfig::GetDataCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CValueIndexedDataConfig::GetIndexCacheSize(void)
+lsize CValueIndexedDataConfig::GetIndexCacheSize(void) const
 {
 	return muiIndexCacheSize;
 }
@@ -73,7 +73,7 @@ lsize CValueIndexedDataConfig::GetIndexCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EIndexWriteThrough CValueIndexedDataConfig::GetWriteThrough(void)
+EIndexWriteThrough CValueIndexedDataConfig::GetWriteThrough(void) const
 {
 	return meWriteThrough;
 }
@@ -83,7 +83,7 @@ EIndexWriteThrough CValueIndexedDataConfig::GetWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexTreeEvictionUserCallback(void)
+CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexTreeEvictionUserCallback(void) const
 {
 	return mpcIndexTreeEvictionUserCallback;
 }
@@ -93,7 +93,7 @@ CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexTreeEvictionUserCal
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedDataEvictionCallback* CValueIndexedDataConfig::GetIndexedDataEvictionUserCallback(void)
+CIndexedDataEvictionCallback* CValueIndexedDataConfig::GetIndexedDataEvictionUserCallback(void) const
 {
 	return mpcIndexedDataEvictionUserCallback;
 }
@@ -103,7 +103,7 @@ CIndexedDataEvictionCallback* CValueIndexedDataConfig::GetIndexedDataEvictionUse
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CIndexTreeEvictionStrategy> CValueIndexedDataConfig::GetEvictionStrategy(void)
+CLifeInit<CIndexTreeEvictionStrategy> CValueIndexedDataConfig::GetEvictionStrategy(void) const
 {
 	return mcEvictionStrategy;
 }
@@ -113,7 +113,7 @@ CLifeInit<CIndexTreeEvictionStrategy> CValueIndexedDataConfig::GetEvictionStrate
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CIndexTreeDataOrderer> CValueIndexedDataConfig::GetIndexTreeDataOrderer(void)
+CLifeInit<CIndexTreeDataOrderer> CValueIndexedDataConfig::GetIndexTreeDataOrderer(void) const
 {
 	return mcIndexTreeDataOrderer;
 }

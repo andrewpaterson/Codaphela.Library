@@ -61,7 +61,7 @@ void C65C64ConstantOffset::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64ConstantOffset::IsConstantOffset(void)
+bool C65C64ConstantOffset::IsConstantOffset(void) const
 {
 	return true;
 }

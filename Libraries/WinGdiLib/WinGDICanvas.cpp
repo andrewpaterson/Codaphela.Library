@@ -108,7 +108,7 @@ void CWinGDICanvas::Paint(HDC hDC, int32 iWidth, int32 iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CWinGDICanvas::GetPixelData(void)
+uint8* CWinGDICanvas::GetPixelData(void) const
 {
     return mpuiPixelData;
 }

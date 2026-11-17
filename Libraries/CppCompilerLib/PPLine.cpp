@@ -46,7 +46,7 @@ void CPPLine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPLine::IsLine(void)
+bool CPPLine::IsLine(void) const
 {
 	return true;
 }

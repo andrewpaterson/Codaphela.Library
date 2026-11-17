@@ -94,7 +94,7 @@ char* CCalcVariable::Get(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcVariable::IsVariable(void)
+bool CCalcVariable::IsVariable(void) const
 {
 	return true;
 }

@@ -62,7 +62,7 @@ void CCTUserLiteral::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTUserLiteral::IsUserLiteral(void)
+bool CCTUserLiteral::IsUserLiteral(void) const
 {
 	return true;
 }

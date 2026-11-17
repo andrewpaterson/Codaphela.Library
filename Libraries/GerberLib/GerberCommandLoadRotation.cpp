@@ -25,7 +25,7 @@ void CGerberCommandLoadRotation::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandLoadRotation::IsLoadRotation(void)
+bool CGerberCommandLoadRotation::IsLoadRotation(void) const
 {
 	return true;
 }

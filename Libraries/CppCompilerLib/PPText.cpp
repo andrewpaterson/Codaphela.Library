@@ -67,7 +67,7 @@ void CPPText::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPText::IsText(void)
+bool CPPText::IsText(void) const
 {
 	return true;
 }
@@ -132,7 +132,7 @@ void CPPText::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPText::HasSource(void)
+bool CPPText::HasSource(void) const
 {
 	return false;
 }

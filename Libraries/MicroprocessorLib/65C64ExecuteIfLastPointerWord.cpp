@@ -51,7 +51,7 @@ void C65C64ExecuteIfLastPointerWord::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64ExecuteIfLastPointerWord::IsInitialSide(void)
+bool C65C64ExecuteIfLastPointerWord::IsInitialSide(void) const
 {
 	return false;
 }

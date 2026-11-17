@@ -58,7 +58,7 @@ protected:
 	void			KillTraces(void);
 	void			InputTransition(void);
 
-	virtual bool	IsOpcodeFetchSignalled(void) = 0;
+	virtual bool	IsOpcodeFetchSignalled(void) const = 0;
 	virtual void	LatchPhi2Low(void) = 0;
 	virtual void	CallTickHigh(void) = 0;
 	virtual void	CallTickLow(void) = 0;

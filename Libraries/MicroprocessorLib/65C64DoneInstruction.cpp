@@ -46,7 +46,7 @@ void C65C64DoneInstruction::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64DoneInstruction::IsInitialSide(void)
+bool C65C64DoneInstruction::IsInitialSide(void) const
 {
 	return false;
 }

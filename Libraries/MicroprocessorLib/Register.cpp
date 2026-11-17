@@ -224,7 +224,7 @@ CGroupPins* CRegister::GetGroupPins(void) { return (CGroupPins*)&mpPins; }
 bool CRegister::IsTransparent(void) const { return mbTransparent; }
 uint32 CRegister::GetValue(size uiGroup) { return (uiGroup < REGISTER_MAX_GROUPS) ? mauiValues[uiGroup] : 0; }
 void CRegister::SetValue(size uiGroup, uint32 uiValue) { if (uiGroup < REGISTER_MAX_GROUPS) { mauiValues[uiGroup] = uiValue; } }
-const char* CRegister::GetStateXMLName(void) { return "RegisterState"; }
+const char* CRegister::GetStateXMLName(void) const { return "RegisterState"; }
 
 
 //////////////////////////////////////////////////////////////////////////

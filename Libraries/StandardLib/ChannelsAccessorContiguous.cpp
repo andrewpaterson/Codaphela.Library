@@ -66,7 +66,7 @@ void CChannelsAccessorContiguous::Set(lsize iPos, void* pvSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChannelsAccessorContiguous::IsContiguous(void)
+bool CChannelsAccessorContiguous::IsContiguous(void) const
 {
 	return true;
 }

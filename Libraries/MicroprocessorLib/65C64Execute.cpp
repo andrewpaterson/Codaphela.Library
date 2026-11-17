@@ -48,7 +48,7 @@ void C65C64Execute::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64Execute::IsInitialSide(void)
+bool C65C64Execute::IsInitialSide(void) const
 {
 	return mbInitialSide;
 }

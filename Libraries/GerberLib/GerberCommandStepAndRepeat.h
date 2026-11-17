@@ -16,7 +16,7 @@ protected:
 public:
 	void		Init(uint32 uiXRepeats, uint32 uiYRepeats, CNumber* pcXStep, CNumber* pcYStep);
 
-	bool		IsStepAndRepeat(void);
+	bool		IsStepAndRepeat(void) const;
 
 	uint32		GetXRepeats(void) const;
 	uint32		GetYRepeats(void) const;

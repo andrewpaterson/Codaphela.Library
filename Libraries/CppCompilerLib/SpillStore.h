@@ -42,7 +42,7 @@ class CSpillStore
 public:
 	virtual void	Kill(void) =0;
 
-	virtual size	MaxDataSize(void) =0;
+	virtual size	MaxDataSize(void) const =0;
 	virtual bool	Put(const void* pvKey, size uiKeySize, const void* pvData, size uiDataSize) =0;
 	virtual bool	Get(const void* pvKey, size uiKeySize, void* pvData, size uiMaxDataSize, size* puiDataSize) =0;
 	virtual bool	Remove(const void* pvKey, size uiKeySize) =0;
@@ -59,7 +59,7 @@ public:
 	void	Init(void);
 	void	Kill(void) override;
 
-	size	MaxDataSize(void) override;
+	size	MaxDataSize(void) const override;
 	bool	Put(const void* pvKey, size uiKeySize, const void* pvData, size uiDataSize) override;
 	bool	Get(const void* pvKey, size uiKeySize, void* pvData, size uiMaxDataSize, size* puiDataSize) override;
 	bool	Remove(const void* pvKey, size uiKeySize) override;
@@ -90,7 +90,7 @@ public:
 	bool	Init(const char* szDirectory, lsize uiCacheSize);
 	void	Kill(void) override;
 
-	size	MaxDataSize(void) override;
+	size	MaxDataSize(void) const override;
 	bool	Put(const void* pvKey, size uiKeySize, const void* pvData, size uiDataSize) override;
 	bool	Get(const void* pvKey, size uiKeySize, void* pvData, size uiMaxDataSize, size* puiDataSize) override;
 	bool	Remove(const void* pvKey, size uiKeySize) override;

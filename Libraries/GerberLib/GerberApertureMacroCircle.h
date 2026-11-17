@@ -18,7 +18,7 @@ public:
 	void				Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	void				Kill(void);
 
-	bool				IsCircle(void);
+	bool				IsCircle(void) const;
 
 	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
 

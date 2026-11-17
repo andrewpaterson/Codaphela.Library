@@ -25,7 +25,7 @@ void CGerberCommandPlotMode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandPlotMode::IsPlotMode(void)
+bool CGerberCommandPlotMode::IsPlotMode(void) const
 {
 	return true;
 }

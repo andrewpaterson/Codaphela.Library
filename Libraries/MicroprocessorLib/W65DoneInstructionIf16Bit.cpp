@@ -38,7 +38,7 @@ void CW65DoneInstructionIf16Bit::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DoneInstructionIf16Bit::IsInitialSide(void)
+bool CW65DoneInstructionIf16Bit::IsInitialSide(void) const
 {
     return false;
 }
@@ -59,7 +59,7 @@ void CW65DoneInstructionIf16Bit::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CW65DoneInstructionIf16Bit::GetDone16(void)
+size CW65DoneInstructionIf16Bit::GetDone16(void) const
 {
     return 1;
 }

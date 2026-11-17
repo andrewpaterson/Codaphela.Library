@@ -25,7 +25,7 @@ bool CGerberCommand::IsType(EGerberCommandEnum eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsApertureMacro(void)
+bool CGerberCommand::IsApertureMacro(void) const
 {
 	return false;
 }
@@ -35,7 +35,7 @@ bool CGerberCommand::IsApertureMacro(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsComment(void)
+bool CGerberCommand::IsComment(void) const
 {
 	return false;
 }
@@ -45,7 +45,7 @@ bool CGerberCommand::IsComment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsFileAttribute(void)
+bool CGerberCommand::IsFileAttribute(void) const
 {
 	return false;
 }
@@ -55,7 +55,7 @@ bool CGerberCommand::IsFileAttribute(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsApertureAttribute(void)
+bool CGerberCommand::IsApertureAttribute(void) const
 {
 	return false;
 }
@@ -65,7 +65,7 @@ bool CGerberCommand::IsApertureAttribute(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsObjectAttribute(void)
+bool CGerberCommand::IsObjectAttribute(void) const
 {
 	return false;
 }
@@ -75,7 +75,7 @@ bool CGerberCommand::IsObjectAttribute(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsDeleteAttribute(void)
+bool CGerberCommand::IsDeleteAttribute(void) const
 {
 	return false;
 }
@@ -85,7 +85,7 @@ bool CGerberCommand::IsDeleteAttribute(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsApertureDefine(void)
+bool CGerberCommand::IsApertureDefine(void) const
 {
 	return false;
 }
@@ -95,7 +95,7 @@ bool CGerberCommand::IsApertureDefine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsSetAperture(void)
+bool CGerberCommand::IsSetAperture(void) const
 {
 	return false;
 }
@@ -105,7 +105,7 @@ bool CGerberCommand::IsSetAperture(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsOperation(void)
+bool CGerberCommand::IsOperation(void) const
 {
 	return false;
 }
@@ -115,7 +115,7 @@ bool CGerberCommand::IsOperation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsFormatSpecifier(void)
+bool CGerberCommand::IsFormatSpecifier(void) const
 {
 	return false;
 }
@@ -125,7 +125,7 @@ bool CGerberCommand::IsFormatSpecifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsLoadPolarity(void)
+bool CGerberCommand::IsLoadPolarity(void) const
 {
 	return false;
 }
@@ -135,7 +135,7 @@ bool CGerberCommand::IsLoadPolarity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsLoadMirroring(void)
+bool CGerberCommand::IsLoadMirroring(void) const
 {
 	return false;
 }
@@ -145,7 +145,7 @@ bool CGerberCommand::IsLoadMirroring(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsLoadRotation(void)
+bool CGerberCommand::IsLoadRotation(void) const
 {
 	return false;
 }
@@ -155,7 +155,7 @@ bool CGerberCommand::IsLoadRotation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsLoadScaling(void)
+bool CGerberCommand::IsLoadScaling(void) const
 {
 	return false;
 }
@@ -165,7 +165,7 @@ bool CGerberCommand::IsLoadScaling(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsMeasurementMode(void)
+bool CGerberCommand::IsMeasurementMode(void) const
 {
 	return false;
 }
@@ -175,7 +175,7 @@ bool CGerberCommand::IsMeasurementMode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsPlotMode(void)
+bool CGerberCommand::IsPlotMode(void) const
 {
 	return false;
 }
@@ -185,7 +185,7 @@ bool CGerberCommand::IsPlotMode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsQuadrantMode(void)
+bool CGerberCommand::IsQuadrantMode(void) const
 {
 	return false;
 }
@@ -195,7 +195,7 @@ bool CGerberCommand::IsQuadrantMode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsCompound(void)
+bool CGerberCommand::IsCompound(void) const
 {
 	return false;
 }
@@ -205,7 +205,7 @@ bool CGerberCommand::IsCompound(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsRegion(void)
+bool CGerberCommand::IsRegion(void) const
 {
 	return false;
 }
@@ -215,7 +215,7 @@ bool CGerberCommand::IsRegion(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsApertureBlock(void)
+bool CGerberCommand::IsApertureBlock(void) const
 {
 	return false;
 }
@@ -225,7 +225,7 @@ bool CGerberCommand::IsApertureBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsStepAndRepeat(void)
+bool CGerberCommand::IsStepAndRepeat(void) const
 {
 	return false;
 }
@@ -235,7 +235,7 @@ bool CGerberCommand::IsStepAndRepeat(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsEndOfFile(void)
+bool CGerberCommand::IsEndOfFile(void) const
 {
 	return false;
 }

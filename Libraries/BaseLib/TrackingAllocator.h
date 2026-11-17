@@ -24,7 +24,7 @@ public:
 	const char*		ClassName(void) override;
 	size			ClassSize(void) override;
 
-	bool			IsLocal(void) override;
+	bool			IsLocal(void) const override;
 	size			SizeOffset(void) override;
 
 	//This looks very wrong. 

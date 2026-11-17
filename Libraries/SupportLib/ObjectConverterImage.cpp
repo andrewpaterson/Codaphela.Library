@@ -49,7 +49,7 @@ void CObjectConverterImage::Kill(void)
 // No single extension: the type is guessed from each filename.
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CObjectConverterImage::GetFileExtension(void)
+const char* CObjectConverterImage::GetFileExtension(void) const
 {
 	return NULL;
 }

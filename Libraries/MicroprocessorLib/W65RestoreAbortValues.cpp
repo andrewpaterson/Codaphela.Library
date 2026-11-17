@@ -26,7 +26,7 @@ void CW65RestoreAbortValues::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65RestoreAbortValues::IsInitialSide(void)
+bool CW65RestoreAbortValues::IsInitialSide(void) const
 {
 	return false;
 }

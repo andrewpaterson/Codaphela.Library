@@ -56,7 +56,7 @@ void C65C64ProgramCounterOffset::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64ProgramCounterOffset::IsProgramCounter(void)
+bool C65C64ProgramCounterOffset::IsProgramCounter(void) const
 {
 	return true;
 }

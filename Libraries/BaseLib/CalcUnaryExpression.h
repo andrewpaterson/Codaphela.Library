@@ -36,7 +36,7 @@ public:
 	void		Kill(void) override;
 	CNumber		Evaluate(void) override;
 	void		Set(CCalcExpression* mpcExpression, CCalcOperator* mpcOp);
-	bool		IsUnaryExpression(void) override;
+	bool		IsUnaryExpression(void) const override;
 	void		Print(CChars* psz) override;
 };
 

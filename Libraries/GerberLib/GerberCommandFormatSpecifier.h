@@ -16,7 +16,7 @@ public:
 	void	Init(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals);
 	void	Kill(void);
 
-	bool	IsFormatSpecifier(void);
+	bool	IsFormatSpecifier(void) const;
 	uint16	GetXWholeNumbers(void) const;
 	uint16	GetXDecimals(void) const;
 	uint16	GetYWholeNumbers(void) const;

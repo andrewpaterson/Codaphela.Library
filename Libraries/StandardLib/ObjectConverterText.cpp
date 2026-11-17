@@ -50,7 +50,7 @@ void CObjectConverterText::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CObjectConverterText::GetFileExtension(void)
+const char* CObjectConverterText::GetFileExtension(void) const
 {
 	return "TXT";
 }

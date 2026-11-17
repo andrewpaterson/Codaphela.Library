@@ -38,11 +38,11 @@ public:
 			void				Init(CLogicPort* pcPort, int64 iTime, int64 iID);
 
 	virtual void				RemoveFromOwner(void);
-	virtual bool				IsDriveEvent(void);
-	virtual bool				IsOutputEvent(void);
+	virtual bool				IsDriveEvent(void) const;
+	virtual bool				IsOutputEvent(void) const;
 
 			CLogicPort*			GetPort(void) const;
-	virtual CIntegratedCircuit*	GetIntegratedCircuit(void);
+	virtual CIntegratedCircuit*	GetIntegratedCircuit(void) const;
 			void				AppendPortOwner(CChars* psz);
 };
 

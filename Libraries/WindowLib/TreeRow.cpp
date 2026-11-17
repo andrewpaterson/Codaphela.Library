@@ -269,7 +269,7 @@ void CTreeRow::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 // A row showing no node isn't drawn.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTreeRow::IsDrawn(void)
+bool CTreeRow::IsDrawn(void) const
 {
 	return miNode != TREE_NO_NODE;
 }

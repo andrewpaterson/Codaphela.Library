@@ -67,7 +67,7 @@ void CCollection::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCollection::IsCollection(void)
+bool CCollection::IsCollection(void) const
 {
 	return true;
 }
@@ -77,7 +77,7 @@ bool CCollection::IsCollection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCollection::IsObject(void)
+bool CCollection::IsObject(void) const
 {
 	return false;
 }
@@ -127,7 +127,7 @@ void CCollection::MakeSubRoot(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCollection::IsSubRoot(void)
+bool CCollection::IsSubRoot(void) const
 {
 	return mbSubRoot;
 }

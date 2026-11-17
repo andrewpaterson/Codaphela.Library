@@ -56,7 +56,7 @@ void CPPHashes::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPHashes::IsHash(void)
+bool CPPHashes::IsHash(void) const
 {
 	return true;
 }

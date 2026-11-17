@@ -27,7 +27,7 @@ void CW65ReadDirectOffset::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ReadDirectOffset::IsInitialSide(void)
+bool CW65ReadDirectOffset::IsInitialSide(void) const
 {
 	return false;
 }

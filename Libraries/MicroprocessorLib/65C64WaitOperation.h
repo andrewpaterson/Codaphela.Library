@@ -33,10 +33,10 @@ public:
 	void	Init(uint8 uiWait);
 
 	void	Execute(C65C64* pcCPU) override;
-	bool	IsInitialSide(void) override;
+	bool	IsInitialSide(void) const override;
 	void	Print(CChars* psz) override;
 	bool	MustExecute(C65C64* pcCPU) override;
-	bool	IsConditional(void) override;
+	bool	IsConditional(void) const override;
 };
 
 

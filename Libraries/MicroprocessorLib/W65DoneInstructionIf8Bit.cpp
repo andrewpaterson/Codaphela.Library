@@ -39,7 +39,7 @@ void CW65DoneInstructionIf8Bit::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DoneInstructionIf8Bit::IsInitialSide(void)
+bool CW65DoneInstructionIf8Bit::IsInitialSide(void) const
 {
     return false;
 }
@@ -60,7 +60,7 @@ void CW65DoneInstructionIf8Bit::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CW65DoneInstructionIf8Bit::GetDone8(void)
+size CW65DoneInstructionIf8Bit::GetDone8(void) const
 {
     return 1;
 }

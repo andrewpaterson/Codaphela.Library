@@ -32,7 +32,7 @@ public:
 	void	Init(size iLine, size iColumn, char* szFileName);
 	void	Init(size iCount, size iLine, size iColumn, char* szFileName);
 	void	Kill(void);
-	bool	IsHash(void);
+	bool	IsHash(void) const;
 	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool	IsEmpty(void);

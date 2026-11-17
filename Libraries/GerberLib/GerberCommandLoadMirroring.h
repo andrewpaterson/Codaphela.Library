@@ -23,7 +23,7 @@ public:
 	void Init(EGerberMirroring eMirroring);
 	void Kill(void);
 
-	bool IsLoadMirroring(void);
+	bool IsLoadMirroring(void) const;
 
 	bool IsNone(void) const;
 	bool IsX(void) const;

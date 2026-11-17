@@ -64,7 +64,7 @@ public:
 class CCPPTarget
 {
 public:
-	virtual ECPPTarget	GetTarget(void) =0;
+	virtual ECPPTarget	GetTarget(void) const =0;
 	virtual const char*	GetConfigurationName(void) =0;	//The project configuration units are preprocessed with.
 
 	//Sizes.

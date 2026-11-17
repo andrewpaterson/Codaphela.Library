@@ -63,7 +63,7 @@ void CIntegratedCircuitEvent::RemoveFromOwner(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIntegratedCircuit* CIntegratedCircuitEvent::GetIntegratedCircuit(void)
+CIntegratedCircuit* CIntegratedCircuitEvent::GetIntegratedCircuit(void) const
 {
 	return mpcIntegratedCircuit;
 }

@@ -42,7 +42,7 @@ protected:
 public:
 			void	Init(bool bOpcode, bool bProgramAddress, bool bDataAddress, bool bRead, bool bNotVectorPull);
 
-			bool	IsData(void) override;
+			bool	IsData(void) const override;
 			bool	IsOpcode(void) const;
 			bool	IsProgramAddress(void) const;
 			bool	IsDataAddress(void) const;

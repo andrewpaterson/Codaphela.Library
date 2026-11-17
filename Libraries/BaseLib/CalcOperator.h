@@ -80,9 +80,9 @@ public:
 	void			Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight);
 	void			Evaluate(CNumber* pcAnswer, CNumber* pcNumber);
 
-	bool			IsExpression(void) override;
-	bool			IsOperator(void) override;
-	bool			IsVariableDefinition(void) override;
+	bool			IsExpression(void) const override;
+	bool			IsOperator(void) const override;
+	bool			IsVariableDefinition(void) const override;
 
 	bool			IsUnary(void) const;
 	bool			IsBinary(void) const;

@@ -26,7 +26,7 @@ void CW65ReadOpcode::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ReadOpcode::IsInitialSide(void)
+bool CW65ReadOpcode::IsInitialSide(void) const
 {
 	return false;
 }
@@ -46,7 +46,7 @@ void CW65ReadOpcode::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CW65ReadOpcode::GetDone8(void)
+size CW65ReadOpcode::GetDone8(void) const
 {
 	return 1;
 }
@@ -56,7 +56,7 @@ size CW65ReadOpcode::GetDone8(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CW65ReadOpcode::GetDone16(void)
+size CW65ReadOpcode::GetDone16(void) const
 {
 	return 1;
 }
@@ -66,7 +66,7 @@ size CW65ReadOpcode::GetDone16(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ReadOpcode::IsFetchOpcode(void)
+bool CW65ReadOpcode::IsFetchOpcode(void) const
 {
 	return true;
 }

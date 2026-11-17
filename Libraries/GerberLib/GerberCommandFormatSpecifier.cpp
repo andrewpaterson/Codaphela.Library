@@ -28,7 +28,7 @@ void CGerberCommandFormatSpecifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandFormatSpecifier::IsFormatSpecifier(void)
+bool CGerberCommandFormatSpecifier::IsFormatSpecifier(void) const
 {
 	return true;
 }

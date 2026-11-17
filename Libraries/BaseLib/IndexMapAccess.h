@@ -13,7 +13,7 @@ public:
 	void			Init(CIndexBlock* pcIndex);
 	void			Kill(void) override;
 
-	int64			NumElements(void) override;
+	int64			NumElements(void) const override;
 	void			Dump(void) override;
 
 	CMapIterator*	CreateIterator(void) override;

@@ -60,7 +60,7 @@ void CCTString::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCTString::IsString(void)
+bool CCTString::IsString(void) const
 {
 	return true;
 }

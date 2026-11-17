@@ -26,7 +26,7 @@ void CW65WriteProgramBank::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65WriteProgramBank::IsInitialSide(void)
+bool CW65WriteProgramBank::IsInitialSide(void) const
 {
 	return true;
 }

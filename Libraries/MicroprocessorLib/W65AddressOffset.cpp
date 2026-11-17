@@ -40,7 +40,7 @@ bool CW65AddressOffset::CanPageWrap(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65AddressOffset::IsOperation(void)
+bool CW65AddressOffset::IsOperation(void) const
 {
     return false;
 }
@@ -50,7 +50,7 @@ bool CW65AddressOffset::IsOperation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65AddressOffset::IsAddress(void)
+bool CW65AddressOffset::IsAddress(void) const
 {
     return true;
 }
@@ -70,7 +70,7 @@ uint8 CW65AddressOffset::GetBank(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65AddressOffset::IsConstantOffset(void)
+bool CW65AddressOffset::IsConstantOffset(void) const
 {
     return false;
 }
@@ -90,7 +90,7 @@ bool CW65AddressOffset::IsPageWrapped(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65AddressOffset::IsProgramCounter(void)
+bool CW65AddressOffset::IsProgramCounter(void) const
 {
     return false;
 }

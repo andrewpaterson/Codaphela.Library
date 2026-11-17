@@ -54,7 +54,7 @@ char* CPPWhitespace::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPWhitespace::IsWhitespace(void)
+bool CPPWhitespace::IsWhitespace(void) const
 {
 	return true;
 }

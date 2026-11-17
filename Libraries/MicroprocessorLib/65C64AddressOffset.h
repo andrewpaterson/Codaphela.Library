@@ -30,11 +30,11 @@ class C65C64AddressOffset : public C65C64BusCycleParameter
 public:
 			void	Init(void);
 
-			bool	IsOperation(void) override;
-			bool	IsAddress(void) override;
+			bool	IsOperation(void) const override;
+			bool	IsAddress(void) const override;
 	virtual uint32	GetOffset(C65C64* pcCPU) =0;
-	virtual bool	IsConstantOffset(void);
-	virtual bool	IsProgramCounter(void);
+	virtual bool	IsConstantOffset(void) const;
+	virtual bool	IsProgramCounter(void) const;
 };
 
 

@@ -27,7 +27,7 @@ void CW65WaitOperation::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65WaitOperation::IsInitialSide(void)
+bool CW65WaitOperation::IsInitialSide(void) const
 {
 	return false;
 }

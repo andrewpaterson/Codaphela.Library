@@ -36,7 +36,7 @@ char* CGerberCommandComment::Text(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandComment::IsComment(void)
+bool CGerberCommandComment::IsComment(void) const
 {
 	return true;
 }

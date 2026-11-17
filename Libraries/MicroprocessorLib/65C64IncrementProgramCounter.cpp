@@ -46,7 +46,7 @@ void C65C64IncrementProgramCounter::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64IncrementProgramCounter::IsInitialSide(void)
+bool C65C64IncrementProgramCounter::IsInitialSide(void) const
 {
 	return false;
 }

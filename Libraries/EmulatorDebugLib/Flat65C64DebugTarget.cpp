@@ -56,15 +56,15 @@ void CFlat65C64DebugTarget::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CFast65C64* CFlat65C64DebugTarget::GetMPU(void)		{ return &mcMPU; }
 uint8* CFlat65C64DebugTarget::GetMemory(void) const		{ return mpuiMemory; }
-const char* CFlat65C64DebugTarget::GetProcessorName(void)	{ return "65C64"; }
-size CFlat65C64DebugTarget::NumAddressBits(void)	{ return 32; }
-size CFlat65C64DebugTarget::NumRegisters(void)		{ return F64R_NumRegisters; }
+const char* CFlat65C64DebugTarget::GetProcessorName(void) const	{ return "65C64"; }
+size CFlat65C64DebugTarget::NumAddressBits(void) const	{ return 32; }
+size CFlat65C64DebugTarget::NumRegisters(void) const		{ return F64R_NumRegisters; }
 uint32 CFlat65C64DebugTarget::GetProgramAddress(void)	{ return mcMPU.GetProgramCounter(); }
 void CFlat65C64DebugTarget::SetProgramAddress(uint32 uiAddress)	{ mcMPU.TestSetProgramCounter(uiAddress); }
-uint32 CFlat65C64DebugTarget::GetStackPointer(void)	{ return mcMPU.GetS(); }
+uint32 CFlat65C64DebugTarget::GetStackPointer(void) const	{ return mcMPU.GetS(); }
 CBreakpoints* CFlat65C64DebugTarget::GetBreakpoints(void)	{ return mcMPU.GetBreakpoints(); }
-bool CFlat65C64DebugTarget::IsAtBreakpoint(void)	{ return mcMPU.IsAtBreakpoint(); }
-bool CFlat65C64DebugTarget::IsStopped(void)			{ return mcMPU.IsStopped(); }
+bool CFlat65C64DebugTarget::IsAtBreakpoint(void) const	{ return mcMPU.IsAtBreakpoint(); }
+bool CFlat65C64DebugTarget::IsStopped(void) const			{ return mcMPU.IsStopped(); }
 void CFlat65C64DebugTarget::Run(uint64 uiBudget)	{ mcMPU.Run((size)uiBudget); }
 bool CFlat65C64DebugTarget::Step(void)				{ return mcMPU.Step(); }
 void CFlat65C64DebugTarget::Reset(void)				{ mcMPU.Reset(); }
@@ -191,4 +191,4 @@ void CFlat65C64DebugTarget::SetDecoder(CDebugDecoder* pcDecoder)
 
 
 CDebugDecoder* CFlat65C64DebugTarget::GetDecoder(void)				{ return mpcDecoder; }
-EDebugAddressFormat CFlat65C64DebugTarget::GetAddressFormat(void)	{ return DAF_Flat; }
+EDebugAddressFormat CFlat65C64DebugTarget::GetAddressFormat(void) const	{ return DAF_Flat; }

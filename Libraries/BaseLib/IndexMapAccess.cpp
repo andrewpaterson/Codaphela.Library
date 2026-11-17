@@ -27,7 +27,7 @@ void CIndexMapAccess::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexMapAccess::NumElements(void)
+int64 CIndexMapAccess::NumElements(void) const
 {
 	return mpcIndex->NumElements();
 }

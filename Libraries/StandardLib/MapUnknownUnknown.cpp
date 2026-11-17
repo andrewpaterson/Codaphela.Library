@@ -199,7 +199,7 @@ size CMapUnknownUnknown::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMapUnknownUnknown::GetSortedSize(void)
+size CMapUnknownUnknown::GetSortedSize(void) const
 {
 	return mcMap.GetSortedSize();
 }

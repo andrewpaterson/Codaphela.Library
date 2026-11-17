@@ -56,7 +56,7 @@ public:
 	PP_TOKEN_CONSTRUCT(CPPDirective);
 	void	Init(int iLine, int iColumn, char* szFileName);
 	void	Init(EPreprocessorDirective eType, int iLine, int iColumn, char* szFileName);
-	bool	IsDirective(void);
+	bool	IsDirective(void) const;
 	void	Set(EPreprocessorDirective eType);
 	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);

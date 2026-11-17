@@ -28,7 +28,7 @@ void CW65DoneInstructionIfBinary::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DoneInstructionIfBinary::IsInitialSide(void)
+bool CW65DoneInstructionIfBinary::IsInitialSide(void) const
 {
 	return false;
 }

@@ -36,15 +36,15 @@ public:
 			void				Init(size iNumEmbedded, uint16 uiFatSize);
 			void				Kill(void) final;
 
-			bool				IsHollow(void) override;
+			bool				IsHollow(void) const override;
 			bool				IsFatHollow(void) const;
 			uint16				GetFatSize(void) const;
 
 			bool				Save(CObjectWriter* pcFile) override;
 			bool				Load(CObjectReader* pcFile) override;
 
-			bool				IsCollection(void) override;
-			bool				IsObject(void) override;
+			bool				IsCollection(void) const override;
+			bool				IsObject(void) const override;
 
 
 			CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
@@ -52,7 +52,7 @@ public:
 
 			void				ValidateConsistency(void) override;
 
-			bool				HasNes(void) override;
+			bool				HasNes(void) const override;
 			bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
 

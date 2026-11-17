@@ -100,7 +100,7 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CWinRefCanvas::GetPixelData(void)
+uint8* CWinRefCanvas::GetPixelData(void) const
 {
 	return (uint8*)mpcImage->GetData();
 }

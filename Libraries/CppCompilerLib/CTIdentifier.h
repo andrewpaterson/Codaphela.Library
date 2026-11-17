@@ -32,7 +32,7 @@ public:
 	void Init(void);
 	void Init(int64 lliIdentifier);
 	void Kill(void);
-	bool IsIdentifier(void);
+	bool IsIdentifier(void) const;
 };
 
 

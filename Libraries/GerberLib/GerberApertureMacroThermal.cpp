@@ -97,7 +97,7 @@ CGerberExpression* CGerberApertureMacroThermal::GetRotation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacroThermal::IsThermal(void)
+bool CGerberApertureMacroThermal::IsThermal(void) const
 {
 	return true;
 }

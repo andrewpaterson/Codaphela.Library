@@ -36,7 +36,7 @@ public:
 	CNumber		Evaluate(void) override;
 	void		SetValue(CNumber* pcNumber);
 	void		Print(CChars* psz) override;
-	bool		IsConstExpression(void) override;
+	bool		IsConstExpression(void) const override;
 	CNumber*	GetNumber(void);
 };
 

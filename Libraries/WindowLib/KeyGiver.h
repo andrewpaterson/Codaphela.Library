@@ -44,7 +44,7 @@ public:
 class CKeyListSource
 {
 public:
-	virtual size				NumKeyLists(void) = 0;
+	virtual size				NumKeyLists(void) const = 0;
 	virtual CCommand*			GetKeyListCommand(size uiIndex) = 0;
 	virtual CCommandKeyList*	GetKeyList(size uiIndex) = 0;
 	virtual void				AppendKeyListCaption(size uiIndex, CChars* pszDest) = 0;
@@ -59,7 +59,7 @@ protected:
 
 public:
 	void				Init(CCommandSet* pcCommands);
-	size				NumKeyLists(void) override;
+	size				NumKeyLists(void) const override;
 	CCommand*			GetKeyListCommand(size uiIndex) override;
 	CCommandKeyList*	GetKeyList(size uiIndex) override;
 	void				AppendKeyListCaption(size uiIndex, CChars* pszDest) override;

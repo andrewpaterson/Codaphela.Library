@@ -82,7 +82,7 @@ CClass* CField::GetClass(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CField::IsArray(void)
+bool CField::IsArray(void) const
 {
 	return false;
 }
@@ -102,7 +102,7 @@ size CField::GetOffset(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CField::IsPointer(void)
+bool CField::IsPointer(void) const
 {
 	return false;
 }
@@ -112,7 +112,7 @@ bool CField::IsPointer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CField::IsPrimitive(void)
+bool CField::IsPrimitive(void) const
 {
 	return false;
 }
@@ -122,7 +122,7 @@ bool CField::IsPrimitive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CField::IsUnmanaged(void)
+bool CField::IsUnmanaged(void) const
 {
 	return false;
 }
@@ -132,7 +132,7 @@ bool CField::IsUnmanaged(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CField::IsEmbeddedObject(void)
+bool CField::IsEmbeddedObject(void) const
 {
 	return false;
 }
@@ -144,7 +144,7 @@ bool CField::IsEmbeddedObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDataIO* CField::GetDataIO(void)
+SDataIO* CField::GetDataIO(void) const
 {
 	return NULL;
 }

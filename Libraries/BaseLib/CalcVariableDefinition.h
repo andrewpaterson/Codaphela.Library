@@ -39,9 +39,9 @@ public:
 	char*				GetName(void) const;
 	CCalcExpression*	GetExpression(void) const;
 
-	bool				IsExpression(void) override;
-	bool				IsOperator(void) override;
-	bool				IsVariableDefinition(void) override;
+	bool				IsExpression(void) const override;
+	bool				IsOperator(void) const override;
+	bool				IsVariableDefinition(void) const override;
 };
 
 

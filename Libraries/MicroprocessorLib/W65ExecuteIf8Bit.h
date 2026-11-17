@@ -16,7 +16,7 @@ public:
 	void	Init(CW65CFunc fFunction, EWidthFromRegister eWidth, bool bInitialSide);
 
 	void	Execute(CW65CCore* pcCPU) override;
-	bool	IsInitialSide(void) override;
+	bool	IsInitialSide(void) const override;
 
 	void	Print(CChars* psz) override;
 };

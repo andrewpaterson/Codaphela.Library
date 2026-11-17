@@ -222,7 +222,7 @@ CW65Instruction* CW65C816::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816::GetResetOpcode(void)
+CW65Instruction* CW65C816::GetResetOpcode(void) const
 {
 	return CW65C816InstructionFactory::GetInstance()->GetReset();
 }
@@ -232,7 +232,7 @@ CW65Instruction* CW65C816::GetResetOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816::GetIrqOpcode(void)
+CW65Instruction* CW65C816::GetIrqOpcode(void) const
 {
 	return CW65C816InstructionFactory::GetInstance()->GetIRQ();
 }
@@ -242,7 +242,7 @@ CW65Instruction* CW65C816::GetIrqOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816::GetNmiOpcode(void)
+CW65Instruction* CW65C816::GetNmiOpcode(void) const
 {
 	return CW65C816InstructionFactory::GetInstance()->GetNMI();
 }
@@ -252,7 +252,7 @@ CW65Instruction* CW65C816::GetNmiOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816::GetAbortOpcode(void)
+CW65Instruction* CW65C816::GetAbortOpcode(void) const
 {
 	return CW65C816InstructionFactory::GetInstance()->GetAbort();
 }
@@ -262,7 +262,7 @@ CW65Instruction* CW65C816::GetAbortOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Instruction* CW65C816::GetFetchNextOpcode(void)
+CW65Instruction* CW65C816::GetFetchNextOpcode(void) const
 {
 	return CW65C816InstructionFactory::GetInstance()->GetFetchNext();
 }

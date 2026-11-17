@@ -55,11 +55,11 @@ public:
 			void				SetContents(const char* sz);
 			bool				IsLoaded(void) const;
 			bool				IsNamed(char* szName);
-	virtual bool				IsTranslationUnit(void) =0;
-	virtual bool				IsHeader(void) =0;
+	virtual bool				IsTranslationUnit(void) const =0;
+	virtual bool				IsHeader(void) const =0;
 			char*				ShortName(void);
 			char*				FullName(void);
-	virtual bool				IsSystemFile(void) =0;
+	virtual bool				IsSystemFile(void) const =0;
 			void				Path(CChars* pszPath);
 			char*				GetContents(void);
 			size					GetContentsLength(void) const;

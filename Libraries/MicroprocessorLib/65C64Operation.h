@@ -33,13 +33,13 @@ public:
 
 	virtual void	Execute(C65C64* pcCPU) =0;
 
-			bool	IsOperation(void) override;
-			bool	IsAddress(void) override;
+			bool	IsOperation(void) const override;
+			bool	IsAddress(void) const override;
 	virtual bool	MustExecute(C65C64* pcCPU);
-	virtual bool	IsConditional(void);
-	virtual bool	IsData(void);
+	virtual bool	IsConditional(void) const;
+	virtual bool	IsData(void) const;
 
-	virtual bool	IsInitialSide(void) =0;
+	virtual bool	IsInitialSide(void) const =0;
 			bool	IsTrailingSide(void);
 };
 

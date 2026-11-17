@@ -97,7 +97,7 @@ CGerberExpression* CGerberApertureMacroPolygon::GetRotation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacroPolygon::IsPolygon(void)
+bool CGerberApertureMacroPolygon::IsPolygon(void) const
 {
 	return true;
 }

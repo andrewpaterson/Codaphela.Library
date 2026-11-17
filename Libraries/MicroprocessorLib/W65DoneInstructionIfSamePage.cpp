@@ -29,7 +29,7 @@ void CW65DoneInstructionIfSamePage::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DoneInstructionIfSamePage::IsInitialSide(void)
+bool CW65DoneInstructionIfSamePage::IsInitialSide(void) const
 {
 	return false;
 }

@@ -32,7 +32,7 @@ public:
 
 	uint32	GetOffset(C65C64* pcCPU) override;
 	void	Print(CChars* psz) override;
-	bool	IsProgramCounter(void) override;
+	bool	IsProgramCounter(void) const override;
 };
 
 

@@ -39,7 +39,7 @@ public:
 	void		Kill(void) override;
 	void		Set(const char* szName, CCalculatorVariables* pcVariableDefinitions);
 	CNumber		Evaluate(void) override;
-	bool		IsVariable(void) override;
+	bool		IsVariable(void) const override;
 	void		Print(CChars* psz) override;
 	char*		Get(void);
 };

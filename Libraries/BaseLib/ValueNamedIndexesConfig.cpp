@@ -40,7 +40,7 @@ void CValueNamedIndexesConfig::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize CValueNamedIndexesConfig::GetIndexCacheSize(void)
+lsize CValueNamedIndexesConfig::GetIndexCacheSize(void) const
 {
 	return muiIndexCacheSize;
 }
@@ -50,7 +50,7 @@ lsize CValueNamedIndexesConfig::GetIndexCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CIndexTreeEvictionStrategy> CValueNamedIndexesConfig::GetEvictionStrategy(void)
+CLifeInit<CIndexTreeEvictionStrategy> CValueNamedIndexesConfig::GetEvictionStrategy(void) const
 {
 	return mcEvictionStrategy;
 }
@@ -60,7 +60,7 @@ CLifeInit<CIndexTreeEvictionStrategy> CValueNamedIndexesConfig::GetEvictionStrat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EIndexWriteThrough CValueNamedIndexesConfig::GetWriteThrough(void)
+EIndexWriteThrough CValueNamedIndexesConfig::GetWriteThrough(void) const
 {
 	return meWriteThrough;
 }
@@ -70,7 +70,7 @@ EIndexWriteThrough CValueNamedIndexesConfig::GetWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeEvictionCallback* CValueNamedIndexesConfig::GetIndexTreeEvictionCallback(void)
+CIndexTreeEvictionCallback* CValueNamedIndexesConfig::GetIndexTreeEvictionCallback(void) const
 {
 	return mpEvictionCallback;
 }
@@ -80,7 +80,7 @@ CIndexTreeEvictionCallback* CValueNamedIndexesConfig::GetIndexTreeEvictionCallba
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CValueNamedIndexesConfig::GetSubDirectory(void)
+const char* CValueNamedIndexesConfig::GetSubDirectory(void) const
 {
 	return mszSubDirectory;
 }
@@ -91,7 +91,7 @@ const char* CValueNamedIndexesConfig::GetSubDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CIndexTreeDataOrderer> CValueNamedIndexesConfig::GetIndexTreeDataOrderer(void)
+CLifeInit<CIndexTreeDataOrderer> CValueNamedIndexesConfig::GetIndexTreeDataOrderer(void) const
 {
 	return mcIndexTreeDataOrderer;
 }

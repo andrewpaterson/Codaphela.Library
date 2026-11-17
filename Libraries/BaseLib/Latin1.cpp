@@ -78,7 +78,7 @@ bool CLatin1::GetByteOrderMark(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLatin1::GetCurrentData(void)
+void* CLatin1::GetCurrentData(void) const
 {
 	return &mszText[muiPos];
 }
@@ -160,5 +160,5 @@ size CLatin1::PeekUTFBytes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLatin1::GetPosition(void) { return muiPos; }
+size CLatin1::GetPosition(void) const { return muiPos; }
 

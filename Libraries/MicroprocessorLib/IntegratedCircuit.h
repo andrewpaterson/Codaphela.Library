@@ -72,7 +72,7 @@ public:
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort) =0;
 	virtual const char*		GetType(void) =0;
 
-	virtual const char*		GetStateXMLName(void);
+	virtual const char*		GetStateXMLName(void) const;
 	virtual void			SaveXML(CXMLWriter* pcWriter);
 	virtual bool			LoadXML(CMarkupTag* pcTag);
 

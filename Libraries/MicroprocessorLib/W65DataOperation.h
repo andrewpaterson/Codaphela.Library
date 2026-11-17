@@ -18,14 +18,14 @@ protected:
 public:
             void Init(bool bValidProgramAddress, bool bValidDataAddress, NotMemoryLock bNotMemoryLock, bool bRead, bool bNotVectorPull);
 
-            bool IsData(void) override;
+            bool IsData(void) const override;
             bool IsRead(void) const;
             bool IsValidProgramAddress(void) const;
             bool IsValidDataAddress(void) const;
             bool IsNotMemoryLock(void) const;
             bool IsNotVectorPull(void) const;
             bool IsReady(void) const;
-    virtual bool IsFetchOpcode(void);
+    virtual bool IsFetchOpcode(void) const;
 };
 
 

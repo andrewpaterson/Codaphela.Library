@@ -171,7 +171,7 @@ void CDTypeFlipFlop::SetState(bool bState) { mbState = bState; }
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CDTypeFlipFlop::GetStateXMLName(void) { return "DTypeFlipFlopState"; }
+const char* CDTypeFlipFlop::GetStateXMLName(void) const { return "DTypeFlipFlopState"; }
 
 
 //////////////////////////////////////////////////////////////////////////

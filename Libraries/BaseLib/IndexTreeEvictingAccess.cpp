@@ -56,7 +56,7 @@ bool CIndexTreeEvictingAccess::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexTreeEvictingAccess::NumElements(void)
+int64 CIndexTreeEvictingAccess::NumElements(void) const
 {
 	return mpcTree->NumElements();
 }

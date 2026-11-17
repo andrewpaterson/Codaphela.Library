@@ -20,7 +20,7 @@ public:
 	virtual bool    Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive) =0;
 			uint64	GetTotalSectors(void) const;
 			uint32	GetSectorSize(void) const;
-	virtual uint32	GetPageSize(void);
+	virtual uint32	GetPageSize(void) const;
 
 			uint64	SetMaxSectorForTesting(uint64 uiMaxSector);
 };

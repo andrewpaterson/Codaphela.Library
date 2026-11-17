@@ -14,7 +14,7 @@ public:
 	virtual bool	Kill(void);
 
 	virtual bool	Flush(void)= 0;
-	virtual int64	NumElements(void) =0;
+	virtual int64	NumElements(void) const =0;
 	virtual bool	ValidateIndex(void) =0;
 	virtual void	Dump(void) =0;
 

@@ -29,7 +29,7 @@ public:
 	PP_TOKEN_CONSTRUCT(CPPWhitespace);
 	void	Init(int iLine, int iColumn, char* szFileName);
 	void	Kill(void);
-	bool	IsWhitespace(void);
+	bool	IsWhitespace(void) const;
 	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool	IsEmpty(void);

@@ -19,7 +19,7 @@ public:
 	void				Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	void				Kill(void);
 
-	bool				IsPolygon(void);
+	bool				IsPolygon(void) const;
 
 	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
 

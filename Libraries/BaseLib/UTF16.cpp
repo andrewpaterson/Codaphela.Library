@@ -105,7 +105,7 @@ bool CUTF16::GetByteOrderMark(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CUTF16::GetCurrentData(void)
+void* CUTF16::GetCurrentData(void) const
 {
     return (&mszText[muiPos]);
 }
@@ -370,5 +370,5 @@ size CUTF16::GetUTF16ElementLength(void) const
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF16::GetPosition(void) { return muiPos; }
+size CUTF16::GetPosition(void) const { return muiPos; }
 

@@ -26,7 +26,7 @@ void CW65DoneInstruction::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DoneInstruction::IsInitialSide(void)
+bool CW65DoneInstruction::IsInitialSide(void) const
 {
 	return false;
 }
@@ -46,7 +46,7 @@ void CW65DoneInstruction::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CW65DoneInstruction::GetDone8()
+size CW65DoneInstruction::GetDone8() const
 {
 	return 1;
 }
@@ -56,7 +56,7 @@ size CW65DoneInstruction::GetDone8()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CW65DoneInstruction::GetDone16()
+size CW65DoneInstruction::GetDone16() const
 {
 	return 1;
 }

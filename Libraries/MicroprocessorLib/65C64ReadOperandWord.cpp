@@ -47,7 +47,7 @@ void C65C64ReadOperandWord::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64ReadOperandWord::IsInitialSide(void)
+bool C65C64ReadOperandWord::IsInitialSide(void) const
 {
 	return false;
 }

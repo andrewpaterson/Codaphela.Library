@@ -34,7 +34,7 @@ public:
 
 	uint32	GetOffset(C65C64* pcCPU) override;
 	void	Print(CChars* psz) override;
-	bool	IsConstantOffset(void) override;
+	bool	IsConstantOffset(void) const override;
 };
 
 

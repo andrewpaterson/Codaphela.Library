@@ -14,7 +14,7 @@ public:
 	void		Init(CNumber* pcRotation);
 	void		Kill(void);
 
-	bool		IsLoadRotation(void);
+	bool		IsLoadRotation(void) const;
 
 	CNumber*	GetRotation(void);
 };

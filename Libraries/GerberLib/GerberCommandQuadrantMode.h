@@ -20,7 +20,7 @@ public:
 	void				Init(EGerberCommandEnum eType, EGerberQuadrantMode eMode);
 	void				Kill(void);
 
-	bool				IsQuadrantMode(void);
+	bool				IsQuadrantMode(void) const;
 	bool				IsSingleQuadrant(void) const;
 	bool				IsMultiQuadrant(void) const;
 

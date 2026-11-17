@@ -14,7 +14,7 @@ public:
 	void		Init(CNumber* pcScaling);
 	void		Kill(void);
 
-	bool		IsLoadScaling(void);
+	bool		IsLoadScaling(void) const;
 
 	CNumber*	GetScaling(void);
 };

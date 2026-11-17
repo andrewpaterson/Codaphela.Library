@@ -28,7 +28,7 @@ void CMapMapAccess::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int64 CMapMapAccess::NumElements(void)
+int64 CMapMapAccess::NumElements(void) const
 {
 	return mpcMap->NumElements();
 }

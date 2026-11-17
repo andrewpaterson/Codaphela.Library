@@ -270,7 +270,7 @@ void CScrollBar::LayoutPiece(Ptr<CCanvas> pPiece, int32 iStart, int32 iLength)
 }
 
 
-bool CScrollBar::IsTabStop(void) { return false; }  //It can be clicked, but the keys have no use for it.
+bool CScrollBar::IsTabStop(void) const { return false; }  //It can be clicked, but the keys have no use for it.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -278,7 +278,7 @@ bool CScrollBar::IsTabStop(void) { return false; }  //It can be clicked, but the
 // A bar is only drawn while its content overflows and it has a thumb.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CScrollBar::IsDrawn(void)
+bool CScrollBar::IsDrawn(void) const
 {
 	return IsShown() && (miThumbLength > 0);
 }

@@ -69,7 +69,7 @@ bool CIndexTreeEvictionStrategyDataOrderer::Run(CIndexTreeNodeFile* pcDontEvict)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeDataOrderer* CIndexTreeEvictionStrategyDataOrderer::GetDataOrderer(void)
+CIndexTreeDataOrderer* CIndexTreeEvictionStrategyDataOrderer::GetDataOrderer(void) const
 {
 	return mpcOrderer;
 }

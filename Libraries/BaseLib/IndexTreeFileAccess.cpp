@@ -56,7 +56,7 @@ bool CIndexTreeFileAccess::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexTreeFileAccess::NumElements(void)
+int64 CIndexTreeFileAccess::NumElements(void) const
 {
 	return mpcTree->NumElements();
 }

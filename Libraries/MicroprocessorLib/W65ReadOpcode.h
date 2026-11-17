@@ -9,12 +9,12 @@ public:
 	void	Init(void);
 
 	void	Execute(CW65CCore* pcCPU) override;
-	bool	IsInitialSide(void) override;
+	bool	IsInitialSide(void) const override;
 
 	void	Print(CChars* psz) override;
-	size	GetDone8(void) override;
-	size	GetDone16(void) override;
-	bool	IsFetchOpcode(void) override;
+	size	GetDone8(void) const override;
+	size	GetDone16(void) const override;
+	bool	IsFetchOpcode(void) const override;
 };
 
 

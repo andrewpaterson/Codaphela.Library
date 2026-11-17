@@ -28,7 +28,7 @@ void CGerberCommandFileAttribute::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandFileAttribute::IsFileAttribute(void)
+bool CGerberCommandFileAttribute::IsFileAttribute(void) const
 {
 	return true;
 }

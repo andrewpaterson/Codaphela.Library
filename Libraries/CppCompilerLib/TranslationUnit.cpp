@@ -84,7 +84,7 @@ void CTranslationUnit::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTranslationUnit::IsTranslationUnit(void)
+bool CTranslationUnit::IsTranslationUnit(void) const
 {
 	return true;
 }
@@ -94,7 +94,7 @@ bool CTranslationUnit::IsTranslationUnit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTranslationUnit::IsHeader(void)
+bool CTranslationUnit::IsHeader(void) const
 {
 	return false;
 }
@@ -121,7 +121,7 @@ bool CTranslationUnit::LogIncludes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTranslationUnit::IsSystemFile(void)
+bool CTranslationUnit::IsSystemFile(void) const
 {
 	return false;
 }

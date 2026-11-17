@@ -38,13 +38,13 @@ public:
 	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiElementSize, size uiLength, const char* szName);
 	void		Kill(void) override;
 
-	bool		IsArray(void) override;
+	bool		IsArray(void) const override;
 	size		GetLength(void) const;
-	bool		IsUnmanaged(void) override;
+	bool		IsUnmanaged(void) const override;
 	void*		GetData(CBaseObject* pcFieldContainer);
-	size		GetSizeOf(void) override;
+	size		GetSizeOf(void) const override;
 	EPrimitiveType	GetType(void) const;
-	size		GetNameOffset(void) override;
+	size		GetNameOffset(void) const override;
 };
 
 

@@ -31,14 +31,14 @@ class CCalcExpression : public CCalcObject
 {
 public:
 	virtual CNumber		Evaluate(void) =0;
-			bool 		IsExpression(void) override;
-			bool 		IsOperator(void) override;
-			bool		IsVariableDefinition(void) override;
-	virtual bool		IsParentheses(void);
-	virtual bool		IsBinaryExpression(void);
-	virtual bool		IsUnaryExpression(void);
-	virtual bool		IsConstExpression(void);
-	virtual bool		IsVariable(void);
+			bool 		IsExpression(void) const override;
+			bool 		IsOperator(void) const override;
+			bool		IsVariableDefinition(void) const override;
+	virtual bool		IsParentheses(void) const;
+	virtual bool		IsBinaryExpression(void) const;
+	virtual bool		IsUnaryExpression(void) const;
+	virtual bool		IsConstExpression(void) const;
+	virtual bool		IsVariable(void) const;
 };
 
 

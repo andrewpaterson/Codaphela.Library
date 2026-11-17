@@ -21,7 +21,7 @@ public:
 	void Init(EGerberMeasurementMode eMode);
 	void Kill(void);
 
-	bool IsMeasurementMode(void);
+	bool IsMeasurementMode(void) const;
 	bool IsMillimeters(void) const;
 	bool IsInches(void) const;
 };

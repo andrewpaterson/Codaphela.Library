@@ -67,7 +67,7 @@ void CInputDeviceVariableValueConditionChordDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceVariableValueConditionChordDesc::IsChord(void)
+bool CInputDeviceVariableValueConditionChordDesc::IsChord(void) const
 {
 	return true;
 }
@@ -77,7 +77,7 @@ bool CInputDeviceVariableValueConditionChordDesc::IsChord(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceVariableValueConditionChordDesc::IsVariable(void)
+bool CInputDeviceVariableValueConditionChordDesc::IsVariable(void) const
 {
 	return false;
 }
@@ -108,7 +108,7 @@ void CInputDeviceVariableValueConditionVariableDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceVariableValueConditionVariableDesc::IsChord(void)
+bool CInputDeviceVariableValueConditionVariableDesc::IsChord(void) const
 {
 	return false;
 }
@@ -118,7 +118,7 @@ bool CInputDeviceVariableValueConditionVariableDesc::IsChord(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInputDeviceVariableValueConditionVariableDesc::IsVariable(void)
+bool CInputDeviceVariableValueConditionVariableDesc::IsVariable(void) const
 {
 	return true;
 }

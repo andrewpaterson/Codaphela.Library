@@ -310,7 +310,7 @@ void CNativeWindow::SetCursor(ENativeCursor eCursor)
 // The window is on the screen.  It isn't once it has been closed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNativeWindow::IsCreated(void)
+bool CNativeWindow::IsCreated(void) const
 {
 	return true;
 }

@@ -908,7 +908,7 @@ void CWinGDIWindow::Raise(void)
 }
 
 
-bool CWinGDIWindow::IsCreated(void) { return mhWnd != NULL; }
+bool CWinGDIWindow::IsCreated(void) const { return mhWnd != NULL; }
 
 
 //////////////////////////////////////////////////////////////////////////

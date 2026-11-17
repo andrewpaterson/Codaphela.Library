@@ -35,9 +35,9 @@ protected:
 public:
 	virtual void Init(CCalculatorError* pcError) =0;
 	virtual void Kill(void) =0;
-	virtual bool IsExpression(void) =0;
-	virtual bool IsOperator(void) =0;
-	virtual bool IsVariableDefinition(void) =0;
+	virtual bool IsExpression(void) const =0;
+	virtual bool IsOperator(void) const =0;
+	virtual bool IsVariableDefinition(void) const =0;
 	virtual void Print(CChars* psz) =0;
 			void Dump(void);
 };

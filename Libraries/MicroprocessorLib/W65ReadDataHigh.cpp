@@ -26,7 +26,7 @@ void CW65ReadDataHigh::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ReadDataHigh::IsInitialSide(void)
+bool CW65ReadDataHigh::IsInitialSide(void) const
 {
 	return false;
 }

@@ -12,7 +12,7 @@ protected:
 public:
 	void	Init(uint32 uiDCode);
 
-	bool	IsApertureBlock(void);
+	bool	IsApertureBlock(void) const;
 
 	uint32	GetDCode(void) const;
 };

@@ -47,7 +47,7 @@ void CMemorySpillStore::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMemorySpillStore::MaxDataSize(void)
+size CMemorySpillStore::MaxDataSize(void) const
 {
 	return SPILL_STORE_MAX_DATA;
 }
@@ -147,7 +147,7 @@ void CIndexTreeSpillStore::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeSpillStore::MaxDataSize(void)
+size CIndexTreeSpillStore::MaxDataSize(void) const
 {
 	return MAX_DATA_SIZE - 2;
 }

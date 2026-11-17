@@ -28,7 +28,7 @@ void CW65SetProgramBank::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65SetProgramBank::IsInitialSide(void)
+bool CW65SetProgramBank::IsInitialSide(void) const
 {
 	return false;
 }

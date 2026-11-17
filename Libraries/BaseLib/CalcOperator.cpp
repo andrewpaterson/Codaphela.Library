@@ -205,7 +205,7 @@ void CCalcOperator::Evaluate(CNumber* pcAnswer, CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcOperator::IsExpression(void)
+bool CCalcOperator::IsExpression(void) const
 {
 	return false;
 }
@@ -215,7 +215,7 @@ bool CCalcOperator::IsExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcOperator::IsOperator(void)
+bool CCalcOperator::IsOperator(void) const
 {
 	return true;
 }
@@ -225,7 +225,7 @@ bool CCalcOperator::IsOperator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcOperator::IsVariableDefinition(void)
+bool CCalcOperator::IsVariableDefinition(void) const
 {
 	return false;
 }

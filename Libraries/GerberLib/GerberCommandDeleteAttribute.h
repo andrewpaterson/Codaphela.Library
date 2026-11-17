@@ -10,7 +10,7 @@ public:
 	void	Init(size iNameLength);
 	void	Kill(void);
 
-	bool	IsDeleteAttribute(void);
+	bool	IsDeleteAttribute(void) const;
 	bool	IsDeleteAll(void) const;
 };
 

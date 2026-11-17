@@ -25,7 +25,7 @@ void CGerberCommandQuadrantMode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandQuadrantMode::IsQuadrantMode(void)
+bool CGerberCommandQuadrantMode::IsQuadrantMode(void) const
 {
 	return true;
 }

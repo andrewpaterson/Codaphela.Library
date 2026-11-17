@@ -18,8 +18,8 @@ public:
 	void								Kill(void) override;
 
 	const char*								Getdirectory(void) override;
-	EDurableSync							GetSync(void) override;
-	size									GetBlockSize(void) override;
+	EDurableSync							GetSync(void) const override;
+	size									GetBlockSize(void) const override;
 	OIndex									GetFirstIndex(void) override;
 	OIndex									GetEndIndex(void) override;
 

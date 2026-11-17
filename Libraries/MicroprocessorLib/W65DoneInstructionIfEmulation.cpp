@@ -19,7 +19,7 @@ void CW65DoneInstructionIfEmulation::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DoneInstructionIfEmulation::IsInitialSide(void)
+bool CW65DoneInstructionIfEmulation::IsInitialSide(void) const
 {
 	return false;
 }

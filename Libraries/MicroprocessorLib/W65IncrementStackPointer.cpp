@@ -25,7 +25,7 @@ void CW65IncrementStackPointer::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65IncrementStackPointer::IsInitialSide(void)
+bool CW65IncrementStackPointer::IsInitialSide(void) const
 {
 	return false;
 }

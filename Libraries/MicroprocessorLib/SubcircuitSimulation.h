@@ -45,8 +45,8 @@ public:
 	virtual void				Kill(void);
 
 	virtual const char*			GetType(void) =0;
-	virtual bool				IsTop(void);
-	virtual bool				IsInstance(void);
+	virtual bool				IsTop(void) const;
+	virtual bool				IsInstance(void) const;
 	virtual void				AppendDescription(CChars* psz);
 
 			int64				GetID(void) const;
@@ -72,7 +72,7 @@ class CSubcircuitTopSimulation : public CSubcircuitSimulation
 CONSTRUCTABLE(CSubcircuitTopSimulation);
 public:
 	virtual const char*		GetType(void);
-	virtual bool			IsTop(void);
+	virtual bool			IsTop(void) const;
 };
 
 
@@ -89,7 +89,7 @@ public:
 			void					Init(CCircuitSimulation* pcCircuitSimulation, int64 iID);
 
 	virtual const char*				GetType(void);
-	virtual bool					IsInstance(void);
+	virtual bool					IsInstance(void) const;
 	virtual void					AppendDescription(CChars* psz);
 
 			void					SetSubcircuitInstance(CSubcircuitInstance* pcSubcircuitInstance);

@@ -48,10 +48,10 @@ protected:
 public:
 	void					Init(char* szFullName, CLibrary* pcLibrary, bool bLogIncludes);
 	void					Kill(void);
-	bool					IsTranslationUnit(void);
-	bool					IsHeader(void);
+	bool					IsTranslationUnit(void) const;
+	bool					IsHeader(void) const;
 	bool					LogIncludes(void);
-	bool					IsSystemFile(void);
+	bool					IsSystemFile(void) const;
 	STULog*					GetLogs(void) const;
 	CLibrary*				GetLibrary(void) const;
 	CPreprocessedTokens*	GetTokens(void);

@@ -22,7 +22,7 @@ void CW65DataOperation::Init(bool bValidProgramAddress, bool bValidDataAddress, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DataOperation::IsData(void)
+bool CW65DataOperation::IsData(void) const
 {
     return true;
 }
@@ -92,7 +92,7 @@ bool CW65DataOperation::IsReady(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65DataOperation::IsFetchOpcode(void)
+bool CW65DataOperation::IsFetchOpcode(void) const
 {
     return false;
 }

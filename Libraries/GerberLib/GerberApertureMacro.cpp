@@ -19,7 +19,7 @@ void CGerberApertureMacro::Init(EGerberApertureMacroPrimitive ePrimitive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacro::IsComment(void)
+bool CGerberApertureMacro::IsComment(void) const
 {
 	return false;
 }
@@ -29,7 +29,7 @@ bool CGerberApertureMacro::IsComment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacro::IsCircle(void)
+bool CGerberApertureMacro::IsCircle(void) const
 {
 	return false;
 }
@@ -39,7 +39,7 @@ bool CGerberApertureMacro::IsCircle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacro::IsCenterLine(void)
+bool CGerberApertureMacro::IsCenterLine(void) const
 {
 	return false;
 }
@@ -49,7 +49,7 @@ bool CGerberApertureMacro::IsCenterLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacro::IsOutline(void)
+bool CGerberApertureMacro::IsOutline(void) const
 {
 	return false;
 }
@@ -59,7 +59,7 @@ bool CGerberApertureMacro::IsOutline(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacro::IsPolygon(void)
+bool CGerberApertureMacro::IsPolygon(void) const
 {
 	return false;
 }
@@ -69,7 +69,7 @@ bool CGerberApertureMacro::IsPolygon(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacro::IsVectorLine(void)
+bool CGerberApertureMacro::IsVectorLine(void) const
 {
 	return false;
 }
@@ -79,7 +79,7 @@ bool CGerberApertureMacro::IsVectorLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacro::IsThermal(void)
+bool CGerberApertureMacro::IsThermal(void) const
 {
 	return false;
 }
@@ -89,7 +89,7 @@ bool CGerberApertureMacro::IsThermal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacro::IsVariableDefinition(void)
+bool CGerberApertureMacro::IsVariableDefinition(void) const
 {
 	return false;
 }

@@ -109,7 +109,7 @@ void CConstant::SetConstantValue(int64 iConstantValue) { miConstantValue = iCons
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CConstant::GetStateXMLName(void) { return "ConstantState"; }
+const char* CConstant::GetStateXMLName(void) const { return "ConstantState"; }
 
 
 //////////////////////////////////////////////////////////////////////////

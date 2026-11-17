@@ -23,7 +23,7 @@ void CTextBuilderUTFCommon::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextBuilderUTFCommon::IsUTF16Short(void)
+bool CTextBuilderUTFCommon::IsUTF16Short(void) const
 {
 	return false;
 }
@@ -33,7 +33,7 @@ bool CTextBuilderUTFCommon::IsUTF16Short(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextBuilderUTFCommon::IsUTF16Long(void)
+bool CTextBuilderUTFCommon::IsUTF16Long(void) const
 {
 	return false;
 }

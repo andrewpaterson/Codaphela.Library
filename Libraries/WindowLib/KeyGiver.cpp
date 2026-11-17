@@ -36,7 +36,7 @@ void CCommandSetKeys::Init(CCommandSet* pcCommands)
 }
 
 
-size CCommandSetKeys::NumKeyLists(void) { return mpcCommands->NumCommands(); }
+size CCommandSetKeys::NumKeyLists(void) const { return mpcCommands->NumCommands(); }
 CCommand* CCommandSetKeys::GetKeyListCommand(size uiIndex) { return &mpcCommands->GetCommand(uiIndex); }
 CCommandKeyList* CCommandSetKeys::GetKeyList(size uiIndex) { return mpcCommands->GetCommand(uiIndex)->GetKeyList(); }
 void CCommandSetKeys::AppendKeyListCaption(size uiIndex, CChars* pszDest) { pszDest->Append(mpcCommands->GetCommand(uiIndex)->GetCaption()); }

@@ -84,7 +84,7 @@ void CW65ConstantOffset::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ConstantOffset::IsConstantOffset(void)
+bool CW65ConstantOffset::IsConstantOffset(void) const
 {
     return true;
 }

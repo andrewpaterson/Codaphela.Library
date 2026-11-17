@@ -37,9 +37,9 @@ public:
 	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szFilename);
 	void			Kill(void) override;
 
-	bool			IsNative(void) override;
+	bool			IsNative(void) const override;
 	CBaseObject*	Convert(const char* szFullName) override;
-	CExternalObjectReader*	GetReader(void) override;
+	CExternalObjectReader*	GetReader(void) const override;
 };
 
 

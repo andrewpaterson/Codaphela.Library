@@ -26,7 +26,7 @@ void CW65ReadProcessorStatus::Execute(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65ReadProcessorStatus::IsInitialSide(void)
+bool CW65ReadProcessorStatus::IsInitialSide(void) const
 {
 	return false;
 }

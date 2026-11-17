@@ -47,7 +47,7 @@ void C65C64WriteTransferWord::Execute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64WriteTransferWord::IsInitialSide(void)
+bool C65C64WriteTransferWord::IsInitialSide(void) const
 {
 	return true;
 }
@@ -79,7 +79,7 @@ bool C65C64WriteTransferWord::MustExecute(C65C64* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool C65C64WriteTransferWord::IsConditional(void)
+bool C65C64WriteTransferWord::IsConditional(void) const
 {
 	return true;
 }

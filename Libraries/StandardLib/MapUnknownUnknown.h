@@ -57,7 +57,7 @@ public:
 	void		SetValue(SMapIterator* psIter, CUnknown* pcNewValue);
 
 	size		NumElements(void) override;
-	size		GetSortedSize(void) override;
+	size		GetSortedSize(void) const override;
 	size		GetHoldingSize(void) override;
 	size		NonNullElements(void);
 
