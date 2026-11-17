@@ -286,7 +286,7 @@ SIsosurfaceCrossing* CIsosurfaceGrid::GetCrossing(int x, int y, int z, int iAxis
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIsosurfaceGrid::NumCrossings(void)
+int CIsosurfaceGrid::NumCrossings(void) const
 {
 	return (int)masCrossings.NumElements();
 }

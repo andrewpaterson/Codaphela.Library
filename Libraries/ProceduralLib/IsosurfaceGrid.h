@@ -75,7 +75,7 @@ public:
 	void					GetCornerPosition(SFloat32Vec3* psDest, int x, int y, int z);
 	float32					GetCornerDistance(int x, int y, int z);
 	SIsosurfaceCrossing*	GetCrossing(int x, int y, int z, int iAxis);  //On the edge from corner x, y, z along axis iAxis (0 is x), or NULL.
-	int						NumCrossings(void);
+	int						NumCrossings(void) const;
 };
 
 
