@@ -6,7 +6,8 @@
     python repos.py push              Push.
     python repos.py sync              Pull then push.  Doesn't push if any pull failed.
     python repos.py commit <message>  Stage everything (including deletions) and commit it where there are changes.
-    python repos.py link              Make repos, a link to this file, in the folder the repositories are in.
+    python repos.py link              Make repos, a link to this file (repos.cmd on Windows), in the folder the
+                                      repositories are in.
     python repos.py clone             Clone every repository that isn't there, from where CommonLibraries came from.
 
 The repositories are the folders beside CommonLibraries, which this file is in, so it runs from anywhere:
@@ -120,6 +121,8 @@ def link():
     """Makes repos, a relative link to this file, in the folder the repositories are in.  Returns True if it's there."""
     path = ROOT / "repos"
     target = Path(__file__).resolve().relative_to(ROOT)
+    if os.name == "nt":
+        return link_windows(path, target)
     if path.is_symlink():
         if Path(os.readlink(path)) == target:
             print(f"{path} is already linked to {target}.")
@@ -135,6 +138,22 @@ def link():
         print(f"Couldn't link {path} to {target}: {error}", file=sys.stderr)
         return False
     print(f"Linked {path} to {target}.")
+    return True
+
+
+def link_windows(path, target):
+    """Makes repos.cmd, which runs this file, instead of a link.  Windows starts a link with no extension through
+    the .py file association, which opens a console of its own rather than running in the one it was called from."""
+    if path.is_symlink():
+        path.unlink()
+        print(f"Removed the link {path}.")
+    command = path.with_suffix(".cmd")
+    text = f'@python "%~dp0{target}" %*\n'
+    if command.exists() and command.read_text() != text:
+        print(f"{command} exists and isn't ours, left alone.", file=sys.stderr)
+        return False
+    command.write_text(text)
+    print(f"{command} runs {target}.")
     return True
 
 
