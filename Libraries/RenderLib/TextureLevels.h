@@ -41,7 +41,7 @@ public:
 	bool	Init(CMaterialImage* pcImage);  //False, and no levels, for no image or one that isn't bytes.
 	void	Kill(void);
 
-	int32	NumLevels(void);
+	int32	NumLevels(void) const;
 	uint32*	GetTexels(int32 iLevel);
 	int32	GetWidth(int32 iLevel);
 	int32	GetHeight(int32 iLevel);

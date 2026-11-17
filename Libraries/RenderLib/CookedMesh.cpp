@@ -505,9 +505,9 @@ void CCookedMesh::Cook(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCookedMesh::NumVertices(void) { return masPositions.NumElements(); }
-size CCookedMesh::NumTriangles(void) { return mauiIndices.NumElements() / 3; }
-bool CCookedMesh::IsSkinned(void) { return masSkinVertices.NumElements() > 0; }
-bool CCookedMesh::HasColours(void) { return mauiColours.NumElements() > 0; }
-bool CCookedMesh::HasUVs(void) { return masUVs.NumElements() > 0; }
+size CCookedMesh::NumVertices(void) const { return masPositions.NumElements(); }
+size CCookedMesh::NumTriangles(void) const { return mauiIndices.NumElements() / 3; }
+bool CCookedMesh::IsSkinned(void) const { return masSkinVertices.NumElements() > 0; }
+bool CCookedMesh::HasColours(void) const { return mauiColours.NumElements() > 0; }
+bool CCookedMesh::HasUVs(void) const { return masUVs.NumElements() > 0; }
 

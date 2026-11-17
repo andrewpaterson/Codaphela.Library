@@ -106,11 +106,11 @@ public:
 
 	void	Cook(CMesh* pcMesh);
 
-	size	NumVertices(void);
-	size	NumTriangles(void);
-	bool	IsSkinned(void);
-	bool	HasColours(void);
-	bool	HasUVs(void);
+	size	NumVertices(void) const;
+	size	NumTriangles(void) const;
+	bool	IsSkinned(void) const;
+	bool	HasColours(void) const;
+	bool	HasUVs(void) const;
 
 protected:
 	void	CookVertices(CMesh* pcMesh, CArrayCookedInt* paiFaceVertices, CArrayCookedInt* paiFaceSubmeshes);

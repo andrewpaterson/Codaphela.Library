@@ -267,7 +267,7 @@ size CRenderScene::NumMeshes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CScene> CRenderScene::GetScene(void)
+Ptr<CScene> CRenderScene::GetScene(void) const
 {
 	return mpScene;
 }
@@ -277,7 +277,7 @@ Ptr<CScene> CRenderScene::GetScene(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CRenderer> CRenderScene::GetRenderer(void)
+Ptr<CRenderer> CRenderScene::GetRenderer(void) const
 {
 	return mpRenderer;
 }

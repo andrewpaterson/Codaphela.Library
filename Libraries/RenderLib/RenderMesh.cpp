@@ -59,7 +59,7 @@ void CRenderMesh::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CRenderer> CRenderMesh::GetRenderer(void)
+Ptr<CRenderer> CRenderMesh::GetRenderer(void) const
 {
 	return mpRenderer;
 }

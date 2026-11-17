@@ -39,7 +39,7 @@ public:
 	void			Class(void) override;
 	void			Free(void) override;
 
-	Ptr<CRenderer>	GetRenderer(void);
+	Ptr<CRenderer>	GetRenderer(void) const;
 };
 
 

@@ -161,7 +161,7 @@ void CTextureLevels::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CTextureLevels::NumLevels(void) { return (int32)maiWidths.NumElements(); }
+int32 CTextureLevels::NumLevels(void) const { return (int32)maiWidths.NumElements(); }
 uint32* CTextureLevels::GetTexels(int32 iLevel) { return mauiTexels.GetData() + maiStarts.GetValue((lsize)iLevel); }
 int32 CTextureLevels::GetWidth(int32 iLevel) { return maiWidths.GetValue((lsize)iLevel); }
 int32 CTextureLevels::GetHeight(int32 iLevel) { return maiHeights.GetValue((lsize)iLevel); }
