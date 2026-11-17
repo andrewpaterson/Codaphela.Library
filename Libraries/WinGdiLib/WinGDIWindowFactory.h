@@ -36,7 +36,7 @@ public:
 	CNativeClipboard*	CreateNativeClipboard(CClipboard* pcClipboard) override;
 
 	void			SetHWnd(HWND hWnd);
-	HWND			GetHWnd(void);
+	HWND			GetHWnd(void) const;
 
 	void			SetRawInput(WinGDIRawInputFunc fRawInput, void* pvContext);
 	void			RawInput(void* pvRawInput);

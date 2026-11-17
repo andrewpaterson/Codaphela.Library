@@ -34,7 +34,7 @@ protected:
 	bool	SetText(const char* szText) override;
 	bool	GetText(CChars* pszDest) override;
 
-	HWND	GetOwner(void);
+	HWND	GetOwner(void) const;
 	bool	Open(HWND hOwner);
 };
 

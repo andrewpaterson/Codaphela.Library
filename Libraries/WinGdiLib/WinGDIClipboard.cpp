@@ -203,7 +203,7 @@ bool CWinGDIClipboard::GetText(CChars* pszDest)
 // main window.  NULL if neither is.
 //
 //////////////////////////////////////////////////////////////////////////
-HWND CWinGDIClipboard::GetOwner(void)
+HWND CWinGDIClipboard::GetOwner(void) const
 {
     CWinGDIWindow*          pcWindow;
     CWinGDIWindowFactory*   pcFactory;

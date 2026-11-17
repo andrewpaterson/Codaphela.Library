@@ -119,7 +119,7 @@ CNativeClipboard* CWinGDIWindowFactory::CreateNativeClipboard(CClipboard* pcClip
 //
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindowFactory::SetHWnd(HWND hWnd) { mhWnd = hWnd; }
-HWND CWinGDIWindowFactory::GetHWnd(void) { return mhWnd; }
+HWND CWinGDIWindowFactory::GetHWnd(void) const { return mhWnd; }
 
 
 //////////////////////////////////////////////////////////////////////////

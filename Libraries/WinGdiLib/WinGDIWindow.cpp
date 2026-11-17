@@ -759,7 +759,7 @@ void CWinGDIWindow::Resized(void)
 // NULL while the window isn't on the screen.
 //
 //////////////////////////////////////////////////////////////////////////
-HWND CWinGDIWindow::GetHWnd(void)
+HWND CWinGDIWindow::GetHWnd(void) const
 {
     return mhWnd;
 }
