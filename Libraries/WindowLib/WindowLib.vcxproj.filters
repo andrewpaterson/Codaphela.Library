@@ -558,6 +558,9 @@
     <ClInclude Include="ColourField.h">
       <Filter>Source\Component\Widgets\Colour Field</Filter>
     </ClInclude>
+    <ClInclude Include="ColourRampBar.h">
+      <Filter>Source\Component\Widgets\Colour Field</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeSoundFactory.cpp">
@@ -969,6 +972,9 @@
       <Filter>Source\Component\Widgets\Node Editor</Filter>
     </ClCompile>
     <ClCompile Include="ColourField.cpp">
+      <Filter>Source\Component\Widgets\Colour Field</Filter>
+    </ClCompile>
+    <ClCompile Include="ColourRampBar.cpp">
       <Filter>Source\Component\Widgets\Colour Field</Filter>
     </ClCompile>
   </ItemGroup>

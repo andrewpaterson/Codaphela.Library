@@ -338,6 +338,7 @@
     <ClInclude Include="NodeBox.h" />
     <ClInclude Include="NodeEditor.h" />
     <ClInclude Include="ColourField.h" />
+    <ClInclude Include="ColourRampBar.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComponentInput.cpp" />
@@ -477,6 +478,7 @@
     <ClCompile Include="NodeBox.cpp" />
     <ClCompile Include="NodeEditor.cpp" />
     <ClCompile Include="ColourField.cpp" />
+    <ClCompile Include="ColourRampBar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Container.txt" />

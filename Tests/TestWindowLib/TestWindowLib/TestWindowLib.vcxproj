@@ -302,6 +302,7 @@
     <ClCompile Include="TestNumberField.cpp" />
     <ClCompile Include="TestNodeEditor.cpp" />
     <ClCompile Include="TestColourField.cpp" />
+    <ClCompile Include="TestColourRampBar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\InputLib\InputLib.vcxproj">

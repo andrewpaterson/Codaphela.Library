@@ -244,6 +244,9 @@
     <ClCompile Include="TestColourField.cpp">
       <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="TestColourRampBar.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataTestRefWindow.h">
