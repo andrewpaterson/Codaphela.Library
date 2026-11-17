@@ -23,7 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "SupportLib/ColourARGB32.h"
 #include "SupportLib/VectorPath.h"
-#include "ImageCanvasDraw.h"
+#include "CelCanvasDraw.h"
 
 
 //A changed block's shape on the divider: where its lines are on the left (at the divider's left edge) and on the right
@@ -48,34 +48,28 @@ typedef CArrayTemplate<SDiffDividerShape>	CArrayDiffDividerShape;
 //Draws the strip between a diff view's two sides, as IntelliJ IDEA does: on its background each changed block is a
 //shape from its lines on the left to its lines on the right, the top and bottom edges curves (cubic Beziers flat at
 //both ends), filled and outlined above and below.  A side with no lines pinches the shape to a point there.  Shapes are
-//set whenever the sides scroll or are laid out (SetShapes); they are drawn into a cel the size of the canvas, made
-//again only when the shapes or the size change.
-class CDiffDividerDraw : public CCanvasDraw
+//set whenever the sides scroll or are laid out (SetShapes); they are painted into a cel the size of the canvas
+//(CCelCanvasDraw), again only when the shapes or the size change.
+class CDiffDividerDraw : public CCelCanvasDraw
 {
 CONSTRUCTABLE(CDiffDividerDraw);
 DESTRUCTABLE(CDiffDividerDraw);
 protected:
-	Ptr<CImageCanvasDraw>	mpCelDraw;
 	ARGB32					msBackground;
 	CArrayDiffDividerShape	masShapes;
-	SInt32Vec2				msCelSize;  //The canvas size the cel was made for, -1, -1 to make it again.
 
 public:
 	void				Init(ARGB32 sBackground);
 	void				Class(void) override;
 	void				Free(void) override;
 
-	bool				Save(CObjectWriter* pcFile) override;
-	bool				Load(CObjectReader* pcFile) override;
-
-	bool				Draw(Ptr<CCanvas> pCanvas) override;
 
 	bool				SetShapes(CArrayDiffDividerShape* pasShapes);
 	size				NumShapes(void) const;
 	SDiffDividerShape*	GetShape(size uiIndex);
 
 protected:
-	void				MakeCel(Ptr<CCanvas> pCanvas, SInt32Vec2 sSize);
+	void				Paint(CImageDraw* pcDraw, SInt32Vec2 sSize) override;
 	void				MakeShapePath(CVectorPath* pcPath, SDiffDividerShape* psShape, float64 fWidth, float64 fGrow);
 };
 

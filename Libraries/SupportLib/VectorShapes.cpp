@@ -419,3 +419,36 @@ void AddVectorRing(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fOuterRa
 	pcPath->LineTo(&sOuterStart);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void VectorLevelCubic(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, float64 fReach, SFloat64Vec2* psControl1, SFloat64Vec2* psControl2)
+{
+	psControl1->Init(psStart->x + fReach, psStart->y);
+	psControl2->Init(psEnd->x - fReach, psEnd->y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The point fAlong the cubic Bezier, by its Bernstein weights.
+//
+//////////////////////////////////////////////////////////////////////////
+void VectorCubicPoint(SFloat64Vec2* psDest, SFloat64Vec2* psStart, SFloat64Vec2* psControl1, SFloat64Vec2* psControl2, SFloat64Vec2* psEnd, float64 fAlong)
+{
+	float64		fLeft;
+	float64		fStart;
+	float64		fControl1;
+	float64		fControl2;
+	float64		fEnd;
+
+	fLeft = 1.0 - fAlong;
+	fStart = fLeft * fLeft * fLeft;
+	fControl1 = 3.0 * fLeft * fLeft * fAlong;
+	fControl2 = 3.0 * fLeft * fAlong * fAlong;
+	fEnd = fAlong * fAlong * fAlong;
+	psDest->Init(fStart * psStart->x + fControl1 * psControl1->x + fControl2 * psControl2->x + fEnd * psEnd->x, fStart * psStart->y + fControl1 * psControl1->y + fControl2 * psControl2->y + fEnd * psEnd->y);
+}
+

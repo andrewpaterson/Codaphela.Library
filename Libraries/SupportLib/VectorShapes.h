@@ -36,6 +36,12 @@ void	AddVectorRoundedRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFl
 void	AddVectorSector(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fRadius, float64 fStartAngle, float64 fEndAngle);
 void	AddVectorRing(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fOuterRadius, float64 fInnerRadius, float64 fStartAngle, float64 fEndAngle);
 
+//A level cubic: a cubic Bezier from psStart to psEnd that leaves and arrives along x, its controls fReach along x from
+//its ends (towards +x from the start and back towards -x from the end; a negative reach is the other way, for a curve
+//drawn right to left).  It's the S a diff view's blocks and a node editor's links are drawn with.
+void	VectorLevelCubic(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, float64 fReach, SFloat64Vec2* psControl1, SFloat64Vec2* psControl2);
+void	VectorCubicPoint(SFloat64Vec2* psDest, SFloat64Vec2* psStart, SFloat64Vec2* psControl1, SFloat64Vec2* psControl2, SFloat64Vec2* psEnd, float64 fAlong);  //fAlong 0 at the start to 1 at the end.
+
 
 #endif // __VECTOR_SHAPES_H__
 

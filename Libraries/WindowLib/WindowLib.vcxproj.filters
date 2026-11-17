@@ -540,6 +540,9 @@
     <ClInclude Include="NumberField.h">
       <Filter>Source\Component\Widgets\Number Field</Filter>
     </ClInclude>
+    <ClInclude Include="CelCanvasDraw.h">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeSoundFactory.cpp">
@@ -940,6 +943,9 @@
     </ClCompile>
     <ClCompile Include="NumberField.cpp">
       <Filter>Source\Component\Widgets\Number Field</Filter>
+    </ClCompile>
+    <ClCompile Include="CelCanvasDraw.cpp">
+      <Filter>Source\Image\Canvas</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
