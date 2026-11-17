@@ -76,12 +76,14 @@ What is not safe today (survey)
 
 The design
 ----------
-  Three levels.  Each is complete and shippable; each later one is only worth building if measurements ask for it.
+  Three levels.  Each is complete and shippable.  Levels 1 and 2 are both to be built (decision 2); level 3 only if
+  something needs it.
 
   Level 1: one lock (correct first)
-    One recursive lock per CObjects (mcLock).  Every entry into the object system takes it:
-      CPointer: the copy constructors, assignment, PointTo, the destructor, Return, Kill, MorphInto; Dereference only
-        when it must (see hollows below).
+    One recursive lock for the process (the audit says why not one per CObjects).  Every entry into the object system
+    takes it:
+      CPointer: the copy constructors, assignment, PointTo, the destructor, Return, Kill, MorphInto.  Never
+        Dereference (see hollows below).
       CCollection and the four collections: every method that adds, removes, replaces or clears members, and the
         stack-held collection's construction and destruction.
       Weak<M> and CArrayWeakObject: Get, assignment, Compact.
@@ -89,21 +91,39 @@ The design
         Dehollow, Remove, the free-object calls, iteration, the dumps and validators.
       CBaseObject: Kill, SetDirty/LogicalDirty/SetFlag, the stack CObject's destructor path (R).
     Recursive because Free() and Init() run user code that comes back in.  CMutex is not recursive, and gcLogger has
-    hand-rolled the same thing (giLoggerLockDepth): step 1 makes that a BaseLib class (CRecursiveMutex: a CMutex, the
-    owning thread and a depth) and the logger uses it.
+    hand-rolled the same thing (giLoggerLockDepth): step 6 makes that a BaseLib class (CRecursiveMutex: a lock, the
+    owning thread and a depth) and the logger uses it.  The object system's is the same over a spinning lock (below).
     What this settles: A (for objects), B, D, E (only the lock's owner can be "nested"), F, G, H, I, J, K, N, R.
-    One thread costs nothing: the lock is skipped until a second thread registers (ObjectsThreadInit, below), a
-    predictable branch on a bool.  On the 65C64 and the 816 the calls are compiled out (T).
+    The lock is skipped until the locking is switched on (ObjectsLocking, below).  That is NOT free: see Measurements.
+    Done with care (the test is one load and a branch never taken, the locking out of line, nothing at all in
+    operator->) it costs about 0.6 to 1 ns on a stack Ptr's copy and drop (14 ns today) and nothing that can be
+    measured elsewhere; done carelessly it cost 25% there and 37% on operator->.  On the 65C64 and the 816 the calls are
+    compiled out (T); on the hosts they are always built (decision 7).
+    The lock is not a CMutex.  A pthread mutex that is fought over puts its waiters to sleep: 12 threads copying Ptrs
+    took 5 to 6 microseconds a copy, twenty times less work done than one thread alone.  It spins, then yields.
+    What level 1 is good for: threads that seldom touch a Ptr.  At one Ptr copy per 0.8 microseconds of other work it
+    holds up to about 4 threads and gets worse after.  It is the base everything else stands on (every writer path
+    needs it), not somewhere to stop if workers are to use Ptrs freely.
 
-  Level 2: readers and a writer (only if level 1 is measured to be too slow with workers)
+  Level 2: stack Ptrs without the lock (measured: this is what makes threads worth having)
     Most Ptr traffic walks nothing: a stack Ptr taken to, or dropped from, an object that stays attached to the root
-    (FromRemoved returns at once for it today).  Those become readers: they hold the lock shared and take a small lock
-    on the object (one of a fixed table of spin locks, picked by the object's address) to link or unlink the stack
-    pointer node.  Anything that changes a heap from, walks, frees, loads or evicts is a writer and holds it alone.
-    The shared side is one mutex per registered thread (a writer takes them all), so readers on different threads never
-    touch the same cache line.  It is sound because a walk then sees stack lists that cannot change under it, and a
-    reader's "is it still attached?" cannot be answered in the middle of a walk.
-    The call sites don't change: step 2 already marks each entry point as a reader or a writer (ObjectsRead / ObjectsWrite
+    (FromRemoved returns at once for it today).  Those become readers; anything that changes a heap from, walks, frees,
+    loads or evicts is a writer and runs alone, as in level 1.
+    A reader marks itself in a flag of its own thread's and looks for a waiting writer (one exchange, about 5 ns); a
+    writer raises its flag and waits for every thread's reader flag to drop.  So readers on different threads never
+    write the same cache line, and a walk sees stack froms that cannot change under it.
+    Where a worker's stack froms are kept is the part that matters.  First tried: on the object, as now, under a small
+    lock picked by the object's address.  It scales when threads hold different objects (40 ns flat to 12 threads) and
+    not at all when they hold the same one (3.6 microseconds at 12 threads, at one copy per 0.8 microseconds of work):
+    the object's list is fought over.  What works: each registered worker keeps its own table of (its stack Ptr, the
+    object), and nothing is written to the object.  12 ns a copy and drop on one thread (less than today's 14: no node
+    from the free list), 14 to 25 ns on 12 threads, the same object or not.  The thread that called ObjectsInit keeps
+    its stack froms on the objects as now, so nothing changes for one thread.
+    The cost moves to the writer: "has this object a stack from?" is the object's own list and then a look in each
+    worker's table.  It is asked only of objects found detached from the root.  Not built or measured yet; nor are
+    stack Ptrs to unattached objects, which stay under the lock (unrooted graphs are slow on any number of threads).
+    The dumps, validation and the remap of a loaded hollow's stack Ptrs read the tables too.
+    The call sites don't change: step 9 already marks each entry point as a reader or a writer (ObjectsRead / ObjectsWrite
     guards that are the same lock in level 1).
     Allocation leaves the writer side here: OMalloc is allocate (the allocator's own safety), add to mcMemory (its own
     small mutex), then a reader's stack from.  That is when the allocator has to scale.
@@ -117,12 +137,15 @@ The design
     gcObjects.  Not planned in detail until something needs it.
 
   Threads register
-    ObjectsThreadInit() / ObjectsThreadKill() on each thread that will touch objects (the thread that called
-    ObjectsInit is registered by it).  Registration switches the locking on, gives the thread its stack pointer count
-    (a thread_local, raised and lowered with every stack from), and in level 2 its reader mutex.  ObjectsThreadKill
-    reports stack pointers the thread still has, as ObjectsKill does for the process; ObjectsKill refuses while other
-    threads are registered.  In Debug a CStackPointer node also records its thread, for the dumps (Q).
-    An object system call from a thread that hasn't registered, once threading is on, is an Error2.
+    The home thread (the one that called ObjectsInit) switches the locking on, ObjectsLocking(true), before any other
+    thread touches an object, and off again when the others are done: it is the one thread that can know it isn't in
+    the middle of something.  Each other thread then calls ObjectsThreadInit() before it touches an object and
+    ObjectsThreadKill() when it has finished.  Registration gives the thread its stack pointer count (a thread_local,
+    raised and lowered with every stack from; Debug only), and in level 2 its reader flag and its table of stack
+    froms.  ObjectsThreadKill reports stack pointers the thread still has, as ObjectsKill does for the process;
+    ObjectsKill and ObjectsLocking(false) refuse while other threads are registered.  In Debug a CStackPointer node
+    also records its thread, for the dumps (Q).
+    An object system call from a thread that hasn't registered, once the locking is on, is an Error2.
 
   Which thread frees (O)
     Every CObjects has a home thread (the one that called ObjectsInit).  A batch found dead on another thread is not
@@ -131,7 +154,15 @@ The design
     home thread frees queued batches whenever it next takes the lock, and from ObjectsCollect() which a tick calls.  So
     Free() always runs on the home thread, window and renderer code needs no change, and freeing is still immediate
     for everything the home thread lets go of itself.  The cost: memory let go by a worker lives until the home thread
-    next touches an object.  (The alternative, freeing on the thread that let go, needs every Free() in WindowLib, the
+    next touches an object.
+    What stays on the thread that let go: the walk that finds the batch (it is how the object system knows anything is
+    dead, and distances must be right before the lock is released), the FREED marks, the weak froms, the index.  What
+    moves: the kill order, the destruction callback, every Free(), the pointer tos and froms coming off, the memory.
+    Until the home thread gets to them the dead objects still point at live ones and are still in those objects' froms;
+    the walks pass over FREED froms already (a batch whose Free() changes pointers relies on it today).
+    A dirty stored object in the batch is saved before it leaves the index, on the thread that let go: left for later,
+    a Get of it would load the old one from the database in the meantime.
+    (The alternative, freeing on the thread that let go, needs every Free() in WindowLib, the
     native canvases and the renderers to be safe on any thread.)
 
   The lock order rule (P)
@@ -143,9 +174,13 @@ The design
   Hollows, loading and eviction (L, M)
     Without a data connection there are no hollows (ReplaceWithHollow needs a stored object), which is every UI app
     today: operator-> stays a plain load of mpcObject with no lock.
-    With a data connection, Dereference takes the lock (a reader in level 2) whenever threading is on, because another
-    thread's Dehollow may be rewriting this very Ptr.  That makes operator-> slow for threaded programs with a database;
-    acceptable until the Codabase transaction work decides how CObjects and transactions meet (open there already).
+    With a data connection another thread's Dehollow may be rewriting this very Ptr.  Locking in Dereference is ruled
+    out by measurement: operator-> went from 1.3 ns to 9.2 ns with the lock on, and even an unused test for it cost
+    0.5 ns.  Nothing is added to operator->.  The choices are (a) stored objects are used by one thread at a time
+    until the Codabase transaction work decides how CObjects and transactions meet (open there already), or (b) a
+    hollow that has been loaded stays as a forwarder while another thread's stack Ptr still points at it (its Dehollow,
+    which only a Ptr to a hollow ever calls, takes the lock and answers with the loaded object), so the cost falls
+    only on Ptrs to hollows.  (b) is to be designed with the transaction work; (a) until then.
     Eviction and killing a held stored object are only allowed while no other registered thread is inside the object
     system or holding a stack pointer (checked from the per-thread counts): in practice, between jobs.
 
@@ -160,48 +195,305 @@ The design
     uses plain pointers below it: no Ptr traffic, no locking, full speed on every core.  This is the pattern to prefer.
 
 
+The audit (step 8)
+------------------
+  Every public way into the object system, by what it must hold.  It is what step 9 places guards from and what the
+  Debug assertions check.
+    W  a writer.  It changes what the object system keeps (froms, distances, flags, the memory index, the classes), or
+       frees, loads or saves.  It takes the lock (OBJECTS_WRITE).
+    R  a reader.  It only reads what the object system keeps.  It takes the lock in level 1 (OBJECTS_READ); in level 2
+       it is one of many at once, shut out only by a writer.
+    I  inside only.  Machinery that is public because C++ makes it so: it is only ever reached from a W or an R, and
+       asserts in Debug that the lock is held (OBJECTS_INSIDE).
+    -  nothing.  It touches only the caller's own object, or what never changes once an object exists (its index, name
+       and class), or a collection's own storage, which is the business of whoever uses the collection (the contract).
+    H  the home thread alone, with no other thread registered: set-up and shut-down.
+
+  The lock is one for the process (not one for each CObjects): a pointer must be locked before the object it points
+  at can be asked which CObjects it is in, and stack pointers and threads are the process's anyway.
+
+  CPointer, Ptr<M>
+    W  The constructors from an object or another pointer, the destructor of a pointer that points at something,
+       operator = (all), PointTo, PointToNull, AssignObject, Return, Kill, MorphInto, LogicalDirty.
+       (Level 2: the constructors and destructor of a stack pointer to an object attached to the root are readers.)
+    R  NumStackFroms, NumHeapFroms, NumEmbedded, NumPointerTos, GetDistToRoot, IsDirty, IsHollow, the Dumps.
+    I  UnsafePointTo, UnsafeClearObject, AddHeapFrom, SetEmbedding, Load.
+    -  CPointer(), operator -> and &, Dereference, DereferenceArrow (decision 4: nothing is added to them),
+       operator !, == and !=, operator bool, IsNull, IsNotNull, IsEqual, IsNotEqual, Object, ObjectPtr, BaseObject,
+       This, Embedding, IsEmbeddingAllocatedInObjects, GetIndex, GetName, IsNamed, ClassName, GetClass,
+       IsInstanceOfTemplateClass, TemplateClassName; operator + (the class's own AddOperator).
+
+  CWeakPointer, Weak<M>
+    W  operator = (all), PointTo, Get (the weak reference read and the stack pointer taken are one step, or the
+       object could be freed between them).
+    I  Release, ClearWeak, RemapWeak, GetWeak.
+    -  IsNull, IsNotNull, Object, This.
+
+  CCollection, CArrayCommonObject, CArrayObject, CSetObject, CIndexObject, CMapObject
+    W  Add, AddAll, Set, Insert, Put, Remove (all), RemoveAll, RemoveEnd, RemoveDuringIteration, KillAll, TouchAll,
+       Kill, MakeSubRoot, GrowTo, the destructors (a collection on the stack).
+    I  ClearPointerTos, BaseNumPointerTos, BaseGetPointerTos, RemovePointerTo, RemapPointerTos, FreePointers, Free,
+       Save, Load, GetEmbeddedObject, UnsafeGetObject, UnsafeRemove, Dereference, the member location hooks
+       (CanLocateMembers, AddMemberLocations, FreeMemberLocation, IsMemberAt, RemoveMemberAt, ReplaceMemberAt,
+       HaveMembersMoved, NumLocatedMembers), ValidateConsistency, ValidateMemberLocations, GetIndexForTesting,
+       GetUnknownMap.
+    -  Init, Get, UnsafeGet, Contains, NumElements, NonNullElements, IsEmpty, StartIteration, Iterate,
+       StartIterationPointer, IteratePointer, Sort, EnsureSorted, IsSorted, CalculateIsSorted, IsMustSort, IsSubRoot,
+       Dump, PrintSlots.  (What they return is a CPointer, whose own constructor is the guard.  A set that sorts
+       itself when it is read is, like any collection, not to be read on one thread while another changes it.)
+
+  CArrayWeakObject
+    W  Add, Remove, RemoveAt, Compact, RemoveAll, Move, Get.
+    I  ClearWeak, RemapWeak, GetWeak, Save, Load, Free.
+    -  Init, NumElements, Contains.
+
+  CRoot
+    W  Add (all), Remove (both), RemoveAll, KillAll, TouchAll.
+    R  Get, UnsafeGet, GetAll, GetFirst, NumObjects, IsSetHollow.
+    I  CreateSet, NullifySet, KillInternal, TestGetSet.
+    -  Init, IsRoot, IsSubRoot.
+
+  CObjects, and the functions beside it
+    W  Malloc, Get (all), GetPossiblyHollow, Root, Dehollow, Flush, Discard, Destroy (both), LoadForward,
+       GetStoredHeapFroms, ForceSave, EvictInMemory, Remove (both), LogicalDirty, FreeObjects, AddFreeObject,
+       RemoveFreeObject, ValidateObjectsConsistency, ValidateEmpty, ValidateNoDirty, the Dumps and Prints (they mark
+       what they have visited); OMalloc, ONMalloc, OMallocNoI, ONMallocNoI, ORoot, ObjectsFlush, ObjectsDiscard,
+       ObjectsValidate, ObjectsDump.
+    R  Contains (both), NumMemoryIndexes, NumMemoryNames, NumDatabaseIndexes, NumDatabaseNames, NumFreeObjects,
+       StartMemoryIteration, IterateMemory (each call: an iteration is not held across calls, so it is only right
+       while no other thread allocates or frees).
+    I  FromRemoved, RemoveInKillOrder, ReplaceBaseObject, ReplaceWithHollow, StartWalk, the Allocate... functions,
+       GetNamedOrAllocateHollow, AddWeakFrom, RemoveWeakFrom, ClearWeakFroms, MoveWeakFroms, GetWeakFroms, GetMemory,
+       GetStackPointers, GetClasses, GetConstructors, GetIndexGenerator, the Test... functions.
+    -  Null.
+    H  Init, Kill, ObjectsInit, ObjectsKill, AddConstructor, AddSource, the three Set...Callbacks, EnableValidation,
+       DisableValidation.
+
+  CBaseObject, CObject, CEmbeddedObject (what a class's own code and its users call)
+    W  Kill, Flush, Destroy, SetDirty, SetStored, SetFlag, LogicalDirty; PreInit for an object that has no class yet
+       (an object on the stack: its class is completed in the CObjects' classes); an object on the stack's
+       destructor; the Dumps and ValidateConsistency.
+    R  GetDistToRoot, NumHeapFroms, NumStackFroms, NumTotalFroms, HasHeapFroms, HasStackFroms, GetHeapFroms,
+       GetStackFroms, GetHeapFrom, ContainsFrom, ContainsPointerTo, NumPointerTos, GetPointerTos, CanFindRoot,
+       IsKnownHeldFromStack, IsDirty, IsStored, IsInvalidated, IsKilled, IsInitialised, GetFlags, the Prints.
+    I  Everything else that reads or changes froms, distances, walk stamps or flags (AddHeapFrom,
+       RemoveHeapFromTryFree, AddStackFrom, RemoveStackFromTryFree, the Unlinks, KillInternal, FreeInternal, DoneKill,
+       ClearPointerTos, RemapPointerTos, SetDistToRoot, SetWalkStamp, the heap from iteration, the Validates, Allocate,
+       EmbedIn, the Save and Load pieces), and the field declarations Class() makes (Pointer, WeakPointer, Embedded,
+       Primitive, the Unmanageds, Nes), which run inside the allocation that completes the class.
+    -  Init, PostInit and PreInit for an object allocated in Objects (it is known to nobody but the thread making
+       it), GetIndex, GetName, IsNamed, GetClass, HasClass, ClassName, IsRoot, IsSubRoot, IsHollow, IsCollection,
+       IsObject, IsEmbedded, GetEmbeddingContainer, GetEmbedding, NumEmbedded, GetObjectsThisIn, GetClasses,
+       IsAllocatedInObjects, SerialisedSize, PrintIdentifier.
+
+  CUnknowns is not under the object lock.  It has a lock of its own round its allocator, its count and its iterables
+  (step 11): unknowns that are not objects are added and removed with no object system in sight.
+
+  What the audit turned up
+    Switching the lock on.  The plan had a thread's registration switch it on.  It can't: the thread registering
+    would be racing the home thread, which may be half way through something it started with the lock off.  The home
+    thread switches it on itself (ObjectsLocking(true)), between operations, before any other thread registers, and
+    off again when the others have gone.
+    ORoot() looks the root up by name every time it is called.  Under the lock it is no worse, but it is a search
+    where a pointer would do.
+    SetDirty is called by every assignment to a primitive field that changes it.  It is a writer; a class whose
+    primitives are written often on several threads will feel the lock.
+
+
+Measurements (2026-11-17)
+-------------------------
+  Asked: does this damage what performance the object system has?  A prototype of the guards was built on a private
+  copy and timed against the code as it is.  Release, 64 bit, -O3 with LTO, one pinned core, the least of 9 runs, runs
+  interleaved; the machine was shared, so differences under about 3% are noise.  ns for each operation:
+
+                                        today   guards, lock off      lock on, one thread    naive guards, off
+    stack Ptr copy + drop (rooted)       14.2    14.8   (+4%)          22.0   (+55%)          16.6  (+25%)
+    Ptr by value + a method call         15.7    16.7   (+7%)          24.8   (+58%)          18.8  (+15%)
+    operator-> + a method call            1.3     1.2                   1.2                    1.9  (+37%)
+    field re-pointed (rooted)            64.0    64.1                  67.6   (+6%)           64.7
+    OMalloc + free                        789     805   (+2%)           823   (+4%)            789
+    OMalloc, array add, remove            801     817   (+2%)           841   (+5%)            835
+    build a window tree, per node        1141    1159   (+2%)          1247   (+9%)           1173
+    focus across the tree, per move     46675   46686                 46767                  47470
+    free the tree, per node               888     935   (noise)         919                    963
+
+  "Naive" is a guard object at each entry point (nested through PointTo), a test in Dereference and a per-thread stack
+  pointer count: the first thing written.  "Guards" is one test per entry point with the locking out of line, nothing
+  in Dereference, the count left to Debug.  "Lock on" is the spinning lock, never fought over.
+  Only the stack Ptr pays: its copy and drop is the one operation short enough for a test to show.  Everything that
+  walks or allocates is hundreds of ns and the guard is lost in it.
+
+  Threads, ns for each operation on each thread (so flat is perfect scaling):
+
+                                               threads:   1      2      4      8     12
+    Ptr copy + drop, own object    pthread mutex         42    293    624   2858   5372
+                                   spinning lock         29    106    380   1486   2500
+                                   lock on the object    42     29     40     50     47
+                                   per-thread table      17     17     17     15     14
+    Ptr copy + drop, one object    pthread mutex         34    317    659   3469   6509
+                                   spinning lock         30    138    644   1599   3129
+                                   lock on the object    40    171    584   1079   1396
+                                   per-thread table      16     16     17     21     25
+    1 copy per 0.8 us of work,     pthread mutex        806    901   1928   4831   8441
+      one object                   spinning lock        755    821   1041   2321   3825
+                                   lock on the object   739    783   1064   2518   3632
+                                   per-thread table     745    822    867    921    958
+    OMalloc + free, own objects    spinning lock        951   1710   3671   7607  10096
+
+  What it says: one lock (level 1) is right but does not scale, and a pthread mutex is far worse than a spin; stack
+  froms kept on the object don't scale for a shared object whatever the lock; per-thread tables do.  Allocating on
+  several threads is slower than on one until allocation leaves the lock (level 2's last part, or level 3).
+  Not measured: the writer's side of level 2 (walks asking the workers' tables), anything in Debug, 32 bit, Windows.
+  An aside: OMalloc and free is about 790 ns, fifty times a stack Ptr copy.  That is where the object system's time
+  goes today, threads or not.  Looked into under The allocator: nearly half of it is glibc.
+
+
 The allocator
 -------------
-  Level 1: gcUnknowns gets a mutex of its own around its allocate/free, the element count and the iterables, because
-  plain unknowns are added and removed outside the object lock.  CGeneralMemory stays.  Cheap, and enough: object
-  allocation is inside the object lock anyway, so a faster allocator would buy nothing yet.
-  Level 2: allocation runs on many threads at once and a locked CGeneralMemory becomes the bottleneck.  Candidates, to
-  be measured with the existing allocator bench plus a threaded one, before choosing:
-    a. CSystemAllocator (malloc) under gcUnknowns.  Thread-safe with per-thread arenas today, nothing to write.  Loses
-       CGeneralMemory's iteration, debug names and FreeMultiple; needs a survey of who relies on them.
-    b. A thread-caching allocator built from what BaseLib has: each thread owns CFreeLists per size class on
-       CSlabAllocator slabs and allocates without a lock; a free from another thread is pushed onto an atomic list in
-       the slab's header (CFreeList::GetSlabNode already finds the slab from the pointer) that the owner drains when it
-       next allocates.  Keeps debug names and iteration, costs a slab per size class per thread.
-  Recommended: (a) if the survey shows nothing needs CGeneralMemory under gcUnknowns, else (b).  The 65C64 and the 816
-  keep CTrueMallocator and CGeneralMemory as they are.
-  gcStackPointers: under the object lock in level 1; one CFreeList per thread in level 2 (a node is returned to the
-  list of the thread that made it, which is the thread whose stack it is).
+  The user's decision: "The TrueMallocator exists, see if you can make it faster than malloc and thread safe.  Fall
+  back to lock now and measure if not."  It can be: a prototype was built and measured (2026-11-17), so the fallback
+  isn't needed.
+
+  Where the time goes first.  OMalloc and free is 15400 instructions (callgrind): 45% of them are inside glibc's
+  malloc, realloc and free, called through gcSystemAllocator for the memory index's tree nodes (CIndexTreeMemory::Put
+  reallocs them, 28% alone) and the scratch arrays of the distance calculation and the removal; the index itself is
+  another 20%, the distance calculation 17%, and the object's own memory (CGeneralMemory under gcUnknowns) 12%, nearly
+  all of it CFreeList::GetLastNodeElement.  So the allocator that matters most is the one behind gcSystemAllocator,
+  not the one under gcUnknowns.
+
+  What was built (the prototype, 450 lines over CTrueMallocator unchanged):
+    An arena for each thread: a CTrueMallocator over 4 MB chunks from the system, another chunk added to the same
+    lists when it fills.  Only its thread allocates from it or frees into it, so that path has no lock.
+    A block's arena is found from its address: chunks start on 4 MB boundaries and a chunk's header names its arena.
+    In front of each arena, a list for each block size: every 16 bytes up to 1 KB, then 16 sizes to each power of two up
+    to 64 KB.  The common malloc is a pop and the common free a push.  The lists hold 2 MB at most; past that they are
+    emptied back into the arena in turn, so sizes no longer used don't sit there.
+    A block freed by another thread is pushed onto its arena's remote list (one compare-and-swap, no lock).  The owner
+    takes the whole list back when one of its own lists runs dry, onto its front lists.
+    Over 1 MB comes straight from the system.  A thread that ends leaves its arena for the next thread that starts.
+
+  Measured (Release, 64 bit, glibc 2.39, the least of 3 runs), ns for each operation:
+
+                                         glibc   CGeneralMemory   CTrueMallocator   + one lock   per thread
+    malloc + free, 64 bytes                6.1        10.0             12.5            19.1          4.0
+    malloc + free, 256 bytes               6.2         9.8             13.0            19.7          4.0
+    malloc + free, 16 KB                  12.7        22.4             13.2            19.6          4.6
+    churn, 2000 live, 16-528 bytes        12.9        21.1             29.0            30.2          4.8
+    churn, 20000 live, 16-4112 bytes      76.6        79.2             49.4            54.0         16.1
+    10000 x 100 bytes, then free all       8.2        10.8             13.1            20.0          5.0
+    realloc doubling, 16 to 4096          23.4        24.0             14.0            15.6         10.6
+    realloc + 8 bytes, 8 to 256            7.0         7.2              4.5             8.5          4.6
+
+                                               threads:   1      2      4      8     12
+    churn, each thread its own blocks   glibc            20     23     20     21     21
+                                        + one lock       48     97    310    766   1200
+                                        per thread        8      8     10      8      8
+    every block freed by another thread glibc            32     75    114    132    134
+                                        + one lock       37    188    560   1218   1844
+                                        per thread       16     40     77    110    112
+
+  CTrueMallocator as it is, or with a lock round it, is slower than glibc for small blocks and does not scale; with
+  an arena per thread and the front lists it is faster than glibc in every case measured, from 1.2 to 4.8 times.
+
+  In the object system (the prototype behind gcSystemAllocator, nothing else changed, one thread, the least of 5):
+    OMalloc + free 772 -> 576 ns (-25%), OMalloc + array add + remove 801 -> 602, build a window tree 1095 -> 1022 a
+    node, focus move 46.8 -> 43.2 us, free the tree 849 -> 782 a node.
+
+  Checked: 12 threads allocating, reallocating and freeing each other's blocks (16 bytes to 4 MB) with their contents
+  verified, threads ending and starting again between rounds: no errors.  ThreadSanitizer finds one thing: a thread
+  reading the size of a block it holds (realloc of a block from another arena) while the owner sets or clears the
+  "block before is free" flag in the same header word.  Harmless on the hardware, a race in the language: the host
+  build reads and writes that word as a relaxed atomic (the same instructions).
+  Still to do before it is a BaseLib class: Windows (VirtualAlloc for the aligned chunks), 32 bit, chunks given back
+  to the system (never, in the prototype), debug names and iteration if anything under gcSystemAllocator needs them,
+  IsValid over every chunk, the counts.  Blocks over 1 MB are an mmap each, slower than glibc's if they come often.
+  Not measured: long runs (fragmentation), Debug.
+  The 65C64 and the 816 keep CTrueMallocator alone, unchanged: the arenas are a class of their own on top of it.
+  A caution on the small numbers: a stack Ptr's copy and drop moved between 13.6 and 17.7 ns from one build to the
+  next with the same 349 instructions (where things land in memory).  Differences of a nanosecond or two between
+  builds are checked by counting instructions, not by the clock.  Counted, the guards add 23 to those 349 (6.6%).
+  The prototype, the benchmarks and the patches are kept in ~/Codaphela/documents/ThreadSafetyPrototype.
+
+  What follows from it is steps 1 to 5 and 23 below.  gcStackPointers stays under the object lock in level 1 and is
+  not used by workers in level 2 (their tables).
 
 
 Steps
 -----
-  Each step ends with TestBaseLib/TestStandardLib/TestWindowLib/TestSupportLib passing and the single-thread speed tests
-  (the dist-to-root focus sweep, free batch, typing latency) within noise of before.
+  One list, in the order to be built.  Each step ends with TestBaseLib, TestStandardLib, TestWindowLib and
+  TestSupportLib passing and the speed tests (step 7's, the dist-to-root focus sweep, free batch, typing latency) where
+  they were, small differences judged by instruction counts.  Nothing here changes what one thread sees: orders,
+  counts, distances and sizes stay as the tests assert them.
 
-   1. BaseLib: CRecursiveMutex (and gcLogger on it); CurrentThreadId made cheap (thread_local).  Tests.
-   2. The guards: ObjectsRead / ObjectsWrite scoped guards and the threading-on switch, no-ops for now, placed at every
-      entry point listed under level 1.  The audit is the work: each public method of CPointer, Ptr, Weak, CCollection
-      and its four, CObjects, CBaseObject is marked reader, writer, or "inside only" (must be called with the lock
-      held; asserted in Debug).  Compiled out under __LIBC65__.  No behaviour change.
-   3. ObjectsThreadInit/Kill, per-thread stack pointer counts, the unregistered-thread error, the Debug thread on stack
-      pointer nodes, ObjectsKill's checks.
-   4. CUnknowns' own mutex; gcTransientSequence locked; a check that no constructor is registered once threading is on.
-   5. The lock is real.  A ThreadSanitizer build dir for TestStandardLib (build/TestStandardLib64Tsan) and the first
-      threaded tests (below).  Hollows: the locked Dereference when there is a data connection; eviction's guard.
-   6. Home-thread freeing: the queue, ObjectsCollect, draining when the home thread takes the lock, ObjectsKill draining
-      it.  Tests that a worker's last Ptr frees on the home thread and that Free() order (Nes) is kept.
-   7. Use it: Sculpt's bake on CWorkerThreadJobs with the one-Ptr-at-the-top pattern.  Measure.
-   8. Measure level 1 with real workers that do copy Ptrs (the IDE's indexing is the candidate).  Stop here unless the
-      lock shows in the profile.
-   9. (If 8 says so) level 2: per-thread reader mutexes, the object lock table, mcMemory's mutex, per-thread stack
-      pointer lists, then the allocator choice above.
-  10. (If something needs it) level 3, planned then.
+  The allocator (stands alone; worth a quarter of OMalloc and free with or without threads)
+   1. CTrueMallocator: a second region on the same lists (AddRegion, from the prototype), IsValid over every region,
+      and the block header's size word read and written as a relaxed atomic on the hosts (plain on the 65C64 and the
+      816).  TestTrueMallocator extended.
+   2. CThreadMallocator (the name to be settled) in BaseLib from the prototype: an arena for each thread, chunks on
+      4 MB boundaries (mmap on Linux, VirtualAlloc on Windows), the front lists with their 2 MB limit and flush, remote
+      frees, blocks over 1 MB from the system, arenas left by a thread that ends and taken up by the next, the counts.
+      32 and 64 bit.  Not built for the 65C64 or the 816.
+   3. Its tests: behaviour on one thread; the stress test (threads allocating, reallocating and freeing each other's
+      blocks with their contents checked, threads ending and starting); a ThreadSanitizer build dir for TestBaseLib;
+      ASan.  The allocator benchmark goes into TestBaseLib's speed tests.
+   4. Memory given back: a chunk that is wholly free returned to the system (one kept), and what to do about blocks
+      over 1 MB that come often, decided by measuring.
+   5. gcSystemAllocator on it for the hosts.  A full sweep, and the object benchmark against the table (OMalloc and
+      free 772 -> about 576 ns).
+
+  Level 1: one lock
+   6. BaseLib: a lock that spins then yields, and a recursive lock over it (the owning thread and a depth); gcLogger
+      on the recursive one in place of its own; CurrentThreadId made cheap.  Tests.
+   7. The object benchmark (the Measurements tables) into TestStandardLib's speed tests, with how to count its
+      instructions; today's numbers recorded.
+   8. The audit, on paper: every public method of CPointer, Ptr, Weak, CCollection and its four, CArrayWeakObject,
+      CRoot, CObjects and CBaseObject listed as reader, writer or inside-only.  Added to this file; no code.
+   9. The guards placed as the audit says, switched off: ObjectsRead / ObjectsWrite at each entry point, one test with
+      the locking out of line, inside-only methods asserted in Debug, nothing in operator->, compiled out under
+      __LIBC65__.  No behaviour change.  Held to step 7: no more than the 23 instructions measured on a stack Ptr's
+      copy and drop, nothing elsewhere.
+  10. Threads register: ObjectsLocking(true) by the home thread before any other thread uses objects (the audit says
+      why it isn't the registration that switches the lock on), ObjectsThreadInit / ObjectsThreadKill on each other
+      thread, the home thread recorded by ObjectsInit, the error for a thread that hasn't registered, ObjectsKill and
+      ObjectsLocking(false) refusing while workers are registered; in Debug the stack pointer
+      count for each thread and the thread on each stack pointer node, reported by ObjectsThreadKill.
+      CWorkerThreadPool registers its threads when asked to.
+  11. Around the object system: CUnknowns' own lock; gcTransientSequence locked; an error if a constructor is
+      registered once threading is on; every flag write (SetDirty, LogicalDirty, SetFlag) behind a guard.
+  12. The lock is real: with ObjectsLocking on the guards take the recursive spinning lock.  A
+      ThreadSanitizer build dir for TestStandardLib and TestObjectsThreads.cpp (Tests, below).
+  13. The database rule (decision 4): with a data connection and threading on, Debug checks that a stored object is
+      used by one thread at a time, and eviction or the Kill of a held stored object is refused while another thread
+      is inside the object system or holds a stack pointer.  Nothing is added to operator->.
+  14. Home-thread freeing: on a worker the dead batch is marked FREED, its weak froms cleared, its dirty stored
+      objects saved, it leaves the index and is queued; the home thread frees queued batches when it takes the lock
+      and from ObjectsCollect(); ObjectsKill drains the queue.  Tests: freed on the home thread, once, in Nes order.
+  15. The lock order rule in Debug: the lock records that a Free() is running; ObjectsAssertNoFree for a class to
+      check its own lock isn't taken inside one.
+  16. Level 1 proved: each guard removed in turn (the mutation harness) must fail a test; the full sweep, the 65
+      suites with their sizes unchanged, the MinGW Windows compile.
+  17. First use: Sculpt's bake on CWorkerThreadJobs, one Ptr at the top and plain pointers below.  Measured.
+
+  Level 2: stack Ptrs without the lock
+  18. Workers' stack from tables, still under the one lock: a registered worker's stack Ptr to an object attached to
+      the root goes in the worker's table and nothing is written to the object.  The writer's side with it: has-a-
+      stack-from asks the tables, the dumps, validation, the remap of a loaded hollow's stack Ptrs, ObjectsThreadKill's
+      report.  The home thread's stack froms stay on the objects.  Measured: what the tables cost the walks.
+  19. Readers and the writer: each thread's reader flag, the writer's flag and its wait; the table path leaves the
+      lock.  Measured against the threads table (14 to 25 ns a copy and drop at 12 threads in the prototype).
+  20. Level 2 proved: ThreadSanitizer, the mutation harness, the full sweep, and Sculpt (or the IDE's indexing) with
+      workers that do copy Ptrs.
+
+  Allocation off the lock (only if objects are to be allocated on workers)
+  21. mcMemory's own lock, and OMalloc as: allocate, add to the index, a reader's stack from.
+  22. Measured: OMalloc and free on several threads.
+  23. gcUnknowns onto the new allocator, if it measures better than CGeneralMemory there (it is 12% of an OMalloc and
+      free today).
+
+  Later, when something needs it
+  24. Forwarding hollows (a loaded hollow stays while another thread's stack Ptr points at it), designed with the
+      Codabase transaction decisions; decision 4's rule is lifted then.
+  25. Level 3: a CObjects for each thread, and Adopt.
 
   Tests (TestStandardLib/TestObjectsThreads.cpp, not on the 65 targets)
     Threads copying and dropping Ptrs to one rooted object; to a hub; to objects another thread is re-pointing a field
@@ -215,16 +507,17 @@ Steps
     and each guard's removal (one at a time, by the mutation harness) must make some test fail.
 
 
-Decisions wanted
-----------------
-  1. The contract: the object system protects itself and lifetimes; a class protects its own fields.  [Recommended.]
-  2. Start with level 1 and go further only on measurements.  [Recommended.]
-  3. Free() runs on the CObjects' home thread, queued from other threads.  [Recommended; the other choice is freeing on
-     the thread that let go, with every Free() made safe for that.]
-  4. Threaded programs with a database: locked Dereference and eviction only between jobs for now, the rest left to
-     the Codabase transaction decisions.  [Recommended.]
-  5. Allocator at level 1: a mutex in CUnknowns, CGeneralMemory kept; the swap is decided at level 2 by measurement.
-     [Recommended.]
-  6. Threads register explicitly (ObjectsThreadInit/Kill) and an unregistered thread touching objects is an error.
-     [Recommended; the other choice is registering silently on first use, which hides stack pointers leaked by a
-     thread that has exited.]
+Decisions (the user's, 2026-11-17)
+----------------------------------
+  1. The contract: the object system protects itself and lifetimes; a class protects its own fields.
+  2. Level 1 first (a spinning lock, not CMutex), then level 2's per-thread stack froms as a planned step.
+  3. Free() runs on the CObjects' home thread, queued from other threads.  The thread that disconnects a graph still
+     does the walk that finds it dead ("that's as expected").
+  4. Threaded programs with a database: stored objects used by one thread at a time and eviction only between jobs,
+     for now; forwarding hollows designed with the Codabase transaction decisions.  Nothing is added to operator->.
+  5. The allocator: "The TrueMallocator exists, see if you can make it faster than malloc and thread safe.  Fall back
+     to lock now and measure if not."  Done as a prototype: faster than glibc in every case measured, and thread
+     safe.  See The allocator.
+  6. Threads register explicitly (ObjectsThreadInit/Kill); an unregistered thread touching objects is an error.
+  7. The half nanosecond is accepted on the hosts: one configuration, guards always built; compiled out only for the
+     65C64 and the 816.
