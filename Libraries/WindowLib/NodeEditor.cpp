@@ -83,7 +83,7 @@ void CNodeEditorDraw::Paint(CImageDraw* pcDraw, SInt32Vec2 sSize)
 
 	pTheme = mpcEditor->GetTheme();
 	pcDraw->SetColour(pTheme->GetColour(TC_Editor));
-	pcDraw->DrawRectangle(0, 0, sSize.x, sSize.y);
+	pcDraw->DrawBox(true);  //Whole texels, so not a shape's edges to smooth.
 
 	sEditor = mpcEditor->GetPosition();
 	for (i = 0; i < mpcEditor->NumLinks(); i++)
@@ -168,6 +168,7 @@ void CNodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	muiLinkSocket = 0;
 	mbPanning = false;
 	mbFrame = false;
+	muiPainted = 0;
 
 	mpDraw = OMalloc<CNodeEditorDraw>(this);
 	mpBack = OMalloc<CCanvas>(pWindow, mpDraw);
@@ -217,6 +218,7 @@ void CNodeEditor::Class(void)
 	U_Size(muiLinkSocket);
 	U_Bool(mbPanning);
 	U_Bool(mbFrame);
+	U_UInt64(muiPainted);
 }
 
 
@@ -241,6 +243,7 @@ void CNodeEditor::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	Ptr<CNodeBox>	pNode;
 	SInt32Vec2		sNode;
+	uint64			uiPainted;
 	size			i;
 
 	if (mbFrame && (sAreaSize.x > 0) && (sAreaSize.y > 0))
@@ -259,9 +262,48 @@ void CNodeEditor::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	}
 	SetActualBounds(sPosition, sAreaSize);
 
-	//The links are drawn to where the sockets now are.
-	mpDraw->Repaint();
-	mpBack->Invalidate();
+	//The links are drawn to where the sockets now are, if that isn't where they were drawn to: the window is laid out
+	//for many things that move nothing here, and painting the back is most of what the editor costs.
+	uiPainted = GetPaintedState(sAreaSize);
+	if (uiPainted != muiPainted)
+	{
+		muiPainted = uiPainted;
+		mpDraw->Repaint();
+		mpBack->Invalidate();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A number made of everything the back is painted from that a layout can
+// change: its size and where each link's ends are in it.  (What else
+// changes it says so itself: Changed, the drags.)
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CNodeEditor::GetPaintedState(SInt32Vec2 sAreaSize)
+{
+	SNodeLink*	psLink;
+	SInt32Vec2	sEditor;
+	SInt32Vec2	sSocket;
+	uint64		uiState;
+	size		i;
+
+	sEditor = GetPosition();
+	uiState = 14695981039346656037ULL;
+	uiState = (uiState ^ (uint64)(uint32)sAreaSize.x) * 1099511628211ULL;
+	uiState = (uiState ^ (uint64)(uint32)sAreaSize.y) * 1099511628211ULL;
+	for (i = 0; i < masLinks.NumElements(); i++)
+	{
+		psLink = masLinks.Get(i);
+		sSocket = psLink->pcFrom->GetSocketPosition(false, psLink->uiOutput);
+		uiState = (uiState ^ (uint64)(uint32)(sSocket.x - sEditor.x)) * 1099511628211ULL;
+		uiState = (uiState ^ (uint64)(uint32)(sSocket.y - sEditor.y)) * 1099511628211ULL;
+		sSocket = psLink->pcTo->GetSocketPosition(true, psLink->uiInput);
+		uiState = (uiState ^ (uint64)(uint32)(sSocket.x - sEditor.x)) * 1099511628211ULL;
+		uiState = (uiState ^ (uint64)(uint32)(sSocket.y - sEditor.y)) * 1099511628211ULL;
+	}
+	return uiState;
 }
 
 

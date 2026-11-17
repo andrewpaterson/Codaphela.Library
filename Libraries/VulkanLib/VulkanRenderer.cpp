@@ -1147,6 +1147,7 @@ bool CVulkanRenderer::CreateBuffer(SVulkanBuffer* psBuffer, VkDeviceSize uiSize,
 {
 	VkBufferCreateInfo		sCreate;
 	VkMemoryRequirements	sRequirements;
+	bool					bAllocated;
 
 	ClearVulkanBuffer(psBuffer);
 	memset(&sCreate, 0, sizeof(sCreate));
@@ -1160,7 +1161,19 @@ bool CVulkanRenderer::CreateBuffer(SVulkanBuffer* psBuffer, VkDeviceSize uiSize,
 		return false;
 	}
 	mcVulkan.vkGetBufferMemoryRequirements(mhDevice, psBuffer->hBuffer, &sRequirements);
-	if (!AllocateMemory(&psBuffer->hMemory, &sRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) ||
+
+	//A buffer that's copied into on the GPU is one that's read here (the frame's pixels): from cached memory if there is any,
+	//as reading memory that's only for writing through is many times slower.
+	bAllocated = false;
+	if (uiUsage & VK_BUFFER_USAGE_TRANSFER_DST_BIT)
+	{
+		bAllocated = AllocateMemory(&psBuffer->hMemory, &sRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+	}
+	if (!bAllocated)
+	{
+		bAllocated = AllocateMemory(&psBuffer->hMemory, &sRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	}
+	if (!bAllocated ||
 		(mcVulkan.vkBindBufferMemory(mhDevice, psBuffer->hBuffer, psBuffer->hMemory, 0) < 0) ||
 		(mcVulkan.vkMapMemory(mhDevice, psBuffer->hMemory, 0, VK_WHOLE_SIZE, 0, &psBuffer->pvMapped) < 0))
 	{
