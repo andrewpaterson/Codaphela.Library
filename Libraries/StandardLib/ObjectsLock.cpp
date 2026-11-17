@@ -37,7 +37,7 @@ bool						gbObjectsLocking = false;
 CRecursiveSpinLock			gcObjectsLock;
 
 static int					giObjectsHomeThread = 0;	//0 until ObjectsInit.
-static bool					gbObjectsFreesWaiting = false;	//Other threads have found objects dead.  Under the lock.
+int32						giObjectsFreesWaiting = 0;
 static size					guiObjectsLocksTaken = 0;	//Under the lock.
 static int32				giObjectsThreadErrors = 0;
 
@@ -113,8 +113,9 @@ bool ObjectsIsHomeThread(void)
 //////////////////////////////////////////////////////////////////////////
 void ObjectsFreesWaiting(bool bWaiting)
 {
-	gbObjectsFreesWaiting = bWaiting;
+	AtomicStore(&giObjectsFreesWaiting, bWaiting ? 1 : 0);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -217,7 +218,7 @@ void ObjectsLock(void)
 		ObjectsWriteBegins();
 
 		//The home thread, coming in from outside, first frees what the other threads have found dead.
-		if (gbObjectsFreesWaiting && (CurrentThreadId() == giObjectsHomeThread))
+		if ((giObjectsFreesWaiting != 0) && (CurrentThreadId() == giObjectsHomeThread))
 		{
 			gcObjects.Collect();
 		}

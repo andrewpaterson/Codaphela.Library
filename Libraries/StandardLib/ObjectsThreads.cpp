@@ -44,6 +44,9 @@ typedef CArrayTemplate<SThreadStackFrom>	CArrayThreadStackFrom;
 
 #define OBJECTS_CACHE_LINE	64
 
+//How many times a thread that would read waits for a writer before it takes the lock itself.
+#define OBJECTS_READER_TRIES	4
+
 
 //What is kept for a thread that uses objects while the locking is on: what it reads by, with nothing else on its
 //cache line, and the stack froms it keeps itself (the home thread keeps none).
@@ -180,13 +183,18 @@ void ObjectsWriteBegins(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The thread set its flag and then saw the lock held.  It waits for the lock to be let go and tries again, as a
-// reader, for as long as it takes; unless the lock is its own.
+// The thread set its flag and then saw the lock held.  It waits for the lock to be let go and tries again as a
+// reader, a few times: a reader needs the lock free for two looks, a writer for one, and writers that follow each
+// other closely leave a reader waiting for good (one thread making and freeing objects in a loop held up another
+// that only copied pointers for minutes).  After that it stops trying to read and takes the lock, which it gets as
+// soon as any writer would.  It doesn't wait at all if the lock is its own.
 //
 //////////////////////////////////////////////////////////////////////////
 bool ObjectsReadBeginsAfterWriter(SObjectsReader* psReader)
 {
-	for (;;)
+	size	uiTries;
+
+	for (uiTries = 0; uiTries < OBJECTS_READER_TRIES; uiTries++)
 	{
 		AtomicStore(&psReader->iReading, 0);
 		if (gcObjectsLock.IsLockedByThisThread())
@@ -200,6 +208,8 @@ bool ObjectsReadBeginsAfterWriter(SObjectsReader* psReader)
 			return true;
 		}
 	}
+	AtomicStore(&psReader->iReading, 0);
+	return false;
 }
 
 

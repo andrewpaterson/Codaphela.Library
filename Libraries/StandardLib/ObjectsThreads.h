@@ -58,9 +58,10 @@ class CEmbeddedObject;
 //made, freed or loaded, a stack pointer to an object that isn't attached) is done with the lock, by a thread that is
 //writing, alone.
 //  A thread that would read sets its own flag (ObjectsReadBegins) and then looks at the lock: if it is held it
-//  drops its flag, waits for the lock to be let go and tries again.  (It doesn't take the lock itself: readers that
-//  did would each be a writer to the rest, and under load nobody would ever read.  Unless the lock is its own: it is
-//  inside the object system already, and goes on as the writer it is.)  While its flag is up it may read whether
+//  drops its flag, waits for the lock to be let go and tries again.  (It doesn't take the lock itself at once:
+//  readers that did would each be a writer to the rest, and under load nobody would ever read.  It does after a few
+//  tries, or writers that follow each other closely would keep it waiting for good.  And if the lock is its own it
+//  is inside the object system already, and goes on as the writer it is.)  While its flag is up it may read whether
 //  objects are attached, and change its own table of stack froms (or, the home thread, the stack froms on the
 //  objects, which only it and writers touch).  It never looks at another thread's table.
 //  A writer takes the lock and then waits for every other thread's flag to drop (ObjectsWriteBegins).  Each has set

@@ -600,6 +600,11 @@ Steps
       change are in objects seldom and on stacks often.
       ThreadSanitizer reports nothing: its model of the flags (each set before the other is looked at) is what the
       int32 atomics now promise (BaseLib/Atomic.h).
+      Mended after (found measuring step 22): a reader waited for the lock however long it took, and writers that
+      follow each other closely (a thread making and freeing objects in a loop) left the home thread, which only
+      copied pointers, waiting for minutes: a reader needs the lock free for two looks, a writer for one.  A
+      reader now waits four times and then takes the lock.  And a home thread that only read never freed what the
+      others had let go of: with frees waiting it takes the lock, which frees them.  The times above didn't move.
   20. Level 2 proved: ThreadSanitizer, the mutation harness, the full sweep, and Sculpt (or the IDE's indexing) with
       workers that do copy Ptrs.
       Done 2026-11-17, but for the full sweep, which is run once after step 23.

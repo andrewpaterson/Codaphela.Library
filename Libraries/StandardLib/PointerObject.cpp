@@ -449,6 +449,9 @@ bool CPointer::PointToReading(CEmbeddedObject* const* ppcObject)
 	pcNewObject = *ppcObject;
 	pcOldObject = mpcObject;
 	bDone = ((pcNewObject == NULL) || pcNewObject->IsAttachedToRoot()) && ((pcOldObject == NULL) || pcOldObject->IsAttachedToRoot());
+
+	//The home thread with objects waiting for it to free takes the lock instead, which frees them.
+	bDone = bDone && !(ObjectsReaderIsHome() && ObjectsAreFreesWaiting());
 #ifdef OBJECTS_THREAD_CHECKS
 	//A Debug build checks that an object in the database is one thread's at a time (ValidateStoredOnOneThread),
 	//which looks where a reader may not: such an object's pointers are left for a writer.
