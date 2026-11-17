@@ -22,6 +22,9 @@ static const char* gaszTestStandardLib65Excluded[] =
 	"TestSetObject",
 	"TestMapObject",
 
+	//Times the hosts' object system (and reads how long to run from the environment).
+	"TestObjectsSpeed",
+
 	NULL
 };
 

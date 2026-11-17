@@ -64,6 +64,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ENGINE_PRETTY_FUNCTION__ __FUNCSIG__
 #define __ENGINE_DECORATED_FUNCTION__ __FUNCDNAME__
 #define FORCE_INLINE __forceinline
+#define NO_INLINE __declspec(noinline)
 #endif // _MSC_VER
 
 
@@ -83,6 +84,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
 #define restrict __restrict__
 #define FORCE_INLINE inline __attribute__((always_inline))
+#define NO_INLINE __attribute__((noinline))
 #endif // WIN_GNU_32
 
 
@@ -106,6 +108,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
 #define restrict __restrict__
 #define FORCE_INLINE inline __attribute__((always_inline))
+#define NO_INLINE __attribute__((noinline))
 #endif // LINUX_GNU
 
 
@@ -130,12 +133,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
 #define restrict __restrict
 #define FORCE_INLINE inline
+#define NO_INLINE
 #endif // __LIBC65__
 
 
 //Inlined even where the compiler would not choose to.  For the small functions a hot loop calls.
 #ifndef FORCE_INLINE
 #define FORCE_INLINE inline
+#define NO_INLINE
 #endif // FORCE_INLINE
 
 
