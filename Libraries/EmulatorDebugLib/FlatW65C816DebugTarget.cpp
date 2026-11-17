@@ -55,7 +55,7 @@ void CFlatW65C816DebugTarget::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CFastW65C816* CFlatW65C816DebugTarget::GetMPU(void)	{ return &mcMPU; }
-uint8* CFlatW65C816DebugTarget::GetMemory(void)		{ return mpuiMemory; }
+uint8* CFlatW65C816DebugTarget::GetMemory(void) const		{ return mpuiMemory; }
 const char* CFlatW65C816DebugTarget::GetProcessorName(void)	{ return "W65C816"; }
 size CFlatW65C816DebugTarget::NumAddressBits(void)	{ return 24; }
 size CFlatW65C816DebugTarget::NumRegisters(void)		{ return DW65C816R_NumRegisters; }

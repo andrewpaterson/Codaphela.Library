@@ -55,7 +55,7 @@ void CFlat65C64DebugTarget::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CFast65C64* CFlat65C64DebugTarget::GetMPU(void)		{ return &mcMPU; }
-uint8* CFlat65C64DebugTarget::GetMemory(void)		{ return mpuiMemory; }
+uint8* CFlat65C64DebugTarget::GetMemory(void) const		{ return mpuiMemory; }
 const char* CFlat65C64DebugTarget::GetProcessorName(void)	{ return "65C64"; }
 size CFlat65C64DebugTarget::NumAddressBits(void)	{ return 32; }
 size CFlat65C64DebugTarget::NumRegisters(void)		{ return F64R_NumRegisters; }

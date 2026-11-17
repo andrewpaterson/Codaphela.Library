@@ -1232,7 +1232,7 @@ void CDebugServer::Error(uint32 uiType, const char* szText)
 // Where a reply's struct is built, after its header.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CDebugServer::GetBody(void)
+uint8* CDebugServer::GetBody(void) const
 {
 	return &mpuiMessage[sizeof(SDebugHeader)];
 }
@@ -1263,7 +1263,7 @@ void CDebugServer::Send(uint32 uiType, uint32 uiRequest, size uiBodySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EDebugServerState CDebugServer::GetState(void)
+EDebugServerState CDebugServer::GetState(void) const
 {
 	return meState;
 }
@@ -1274,7 +1274,7 @@ EDebugServerState CDebugServer::GetState(void)
 // DM_Hello has been received and the debugger hasn't gone.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDebugServer::IsConnected(void)
+bool CDebugServer::IsConnected(void) const
 {
 	return mbConnected;
 }
@@ -1285,7 +1285,7 @@ bool CDebugServer::IsConnected(void)
 // The debugger detached or its channel closed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDebugServer::IsClosed(void)
+bool CDebugServer::IsClosed(void) const
 {
 	return mbClosed;
 }
@@ -1296,7 +1296,7 @@ bool CDebugServer::IsClosed(void)
 // The debugger sent DM_Quit.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDebugServer::IsQuitting(void)
+bool CDebugServer::IsQuitting(void) const
 {
 	return mbQuit;
 }

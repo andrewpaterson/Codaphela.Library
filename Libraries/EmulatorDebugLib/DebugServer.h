@@ -79,10 +79,10 @@ public:
 	void				Poll(void);
 	void				ResetTarget(void);
 
-	EDebugServerState	GetState(void);
-	bool				IsConnected(void);
-	bool				IsClosed(void);
-	bool				IsQuitting(void);
+	EDebugServerState	GetState(void) const;
+	bool				IsConnected(void) const;
+	bool				IsClosed(void) const;
+	bool				IsQuitting(void) const;
 
 protected:
 	void				Handle(uint32 uiType, uint8* puiData, size uiSize);
@@ -120,7 +120,7 @@ protected:
 	void				SendRegisters(void);
 	size				AppendRegisters(uint64* puiDest);
 	void				Error(uint32 uiType, const char* szText);
-	uint8*				GetBody(void);
+	uint8*				GetBody(void) const;
 	void				Send(uint32 uiType, uint32 uiRequest, size uiBodySize);
 };
 

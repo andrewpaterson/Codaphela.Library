@@ -41,7 +41,7 @@ public:
 	void			Kill(void);
 
 	CFastW65C816*	GetMPU(void);
-	uint8*			GetMemory(void);
+	uint8*			GetMemory(void) const;
 	void			SetDecoder(CDebugDecoder* pcDecoder);
 
 	const char*		GetProcessorName(void) override;

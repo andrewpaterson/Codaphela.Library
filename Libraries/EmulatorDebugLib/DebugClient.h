@@ -124,56 +124,56 @@ public:
 
 	bool				Poll(int iTimeoutMilliseconds);
 
-	EDebugClientState	GetState(void);
-	bool				IsStopped(void);
-	bool				IsRunning(void);
-	bool				IsStepping(void);
-	bool				IsBusy(void);
+	EDebugClientState	GetState(void) const;
+	bool				IsStopped(void) const;
+	bool				IsRunning(void) const;
+	bool				IsStepping(void) const;
+	bool				IsBusy(void) const;
 
-	const char*			GetProcessorName(void);
-	size				NumAddressBits(void);
-	EDebugAddressFormat	GetAddressFormat(void);
+	const char*			GetProcessorName(void) const;
+	size				NumAddressBits(void) const;
+	EDebugAddressFormat	GetAddressFormat(void) const;
 	bool				CanDecode(void);
-	size				NumBreakpointSpaces(void);
+	size				NumBreakpointSpaces(void) const;
 	const char*			GetBreakpointSpaceName(size uiIndex);
 	bool				FindBreakpointSpace(const char* szName, uint32* puiSpace);
-	bool				HasProcesses(void);
-	size				NumProcesses(void);
+	bool				HasProcesses(void) const;
+	size				NumProcesses(void) const;
 	SDebugProcess*		GetProcess(size uiIndex);
 	bool				FindProcess(const char* szName, uint32* puiProcess);
-	size				NumProcessEvents(void);
+	size				NumProcessEvents(void) const;
 	SDebugProcessEvent*	GetProcessEvent(size uiIndex);
-	bool				HasModules(void);
-	size				NumModules(void);
+	bool				HasModules(void) const;
+	size				NumModules(void) const;
 	SDebugModule*		GetModule(size uiIndex);
 	SDebugModule*		FindModule(const char* szName);
-	size				NumModuleChanges(void);
-	size				NumRegisters(void);
+	size				NumModuleChanges(void) const;
+	size				NumRegisters(void) const;
 	SDebugRegister*		GetRegister(size uiRegister);
 	uint64				GetRegisterValue(size uiRegister);
 	void				AppendAddress(CChars* psz, uint32 uiAddress);
 
-	EDebugStop			GetStopReason(void);
-	uint32				GetStopAddress(void);
-	uint32				GetStopSpace(void);
-	uint32				GetStopProcess(void);
+	EDebugStop			GetStopReason(void) const;
+	uint32				GetStopAddress(void) const;
+	uint32				GetStopSpace(void) const;
+	uint32				GetStopProcess(void) const;
 	size				NumStops(void);
 	size				NumRegisterReplies(void);
 
-	uint8*				GetMemory(void);
-	uint32				GetMemoryAddress(void);
-	size				GetMemorySize(void);
-	uint32				GetMemoryRequest(void);
+	uint8*				GetMemory(void) const;
+	uint32				GetMemoryAddress(void) const;
+	size				GetMemorySize(void) const;
+	uint32				GetMemoryRequest(void) const;
 	size				NumMemoryReplies(void);
 
-	size				NumInstructions(void);
+	size				NumInstructions(void) const;
 	SDebugInstruction*	GetInstruction(size uiIndex);
-	uint32				GetDisassemblyRequest(void);
+	uint32				GetDisassemblyRequest(void) const;
 	size				NumDisassemblies(void);
 
 	const char*			GetError(void);
-	uint32				GetErrorType(void);
-	uint32				GetErrorRequest(void);
+	uint32				GetErrorType(void) const;
+	uint32				GetErrorRequest(void) const;
 	size				NumErrors(void);
 
 protected:
@@ -191,7 +191,7 @@ protected:
 	void				Answered(uint32 uiRequest);
 	uint32				SendMemory(uint32 uiType, uint32 uiAddress, void* pvData, size uiSize);
 	uint32				SendMotion(uint32 uiType, void* pvData, size uiSize);
-	uint8*				GetBody(void);
+	uint8*				GetBody(void) const;
 	uint32				Send(uint32 uiType, void* pvData, size uiSize);
 };
 

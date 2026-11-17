@@ -845,7 +845,7 @@ uint32 CDebugClient::SendMotion(uint32 uiType, void* pvData, size uiSize)
 // Where a request's struct can be built, after its header.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CDebugClient::GetBody(void)
+uint8* CDebugClient::GetBody(void) const
 {
 	return &mpuiMessage[sizeof(SDebugHeader)];
 }
@@ -898,23 +898,23 @@ void CDebugClient::AppendAddress(CChars* psz, uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EDebugClientState CDebugClient::GetState(void)			{ return meState; }
-bool CDebugClient::IsStopped(void)						{ return meState == DCS_Stopped; }
-bool CDebugClient::IsRunning(void)						{ return meState == DCS_Running; }
-bool CDebugClient::IsStepping(void)						{ return (meState == DCS_Running) && mbStepping; }
-bool CDebugClient::IsBusy(void)							{ return muiMotionAnswered < muiMotionSent; }
-const char* CDebugClient::GetProcessorName(void)		{ return msWelcome.szProcessor; }
-size CDebugClient::NumAddressBits(void)					{ return msWelcome.uiAddressBits; }
-EDebugAddressFormat CDebugClient::GetAddressFormat(void)	{ return (EDebugAddressFormat)msWelcome.uiAddressFormat; }
+EDebugClientState CDebugClient::GetState(void) const			{ return meState; }
+bool CDebugClient::IsStopped(void) const						{ return meState == DCS_Stopped; }
+bool CDebugClient::IsRunning(void) const						{ return meState == DCS_Running; }
+bool CDebugClient::IsStepping(void) const						{ return (meState == DCS_Running) && mbStepping; }
+bool CDebugClient::IsBusy(void) const							{ return muiMotionAnswered < muiMotionSent; }
+const char* CDebugClient::GetProcessorName(void) const		{ return msWelcome.szProcessor; }
+size CDebugClient::NumAddressBits(void) const					{ return msWelcome.uiAddressBits; }
+EDebugAddressFormat CDebugClient::GetAddressFormat(void) const	{ return (EDebugAddressFormat)msWelcome.uiAddressFormat; }
 bool CDebugClient::CanDecode(void)						{ return (msWelcome.uiCapabilities & DEBUG_CAN_DECODE) != 0; }
-bool CDebugClient::HasProcesses(void)					{ return (msWelcome.uiCapabilities & DEBUG_CAN_PROCESSES) != 0; }
-size CDebugClient::NumProcesses(void)					{ return masProcesses.NumElements(); }
+bool CDebugClient::HasProcesses(void) const					{ return (msWelcome.uiCapabilities & DEBUG_CAN_PROCESSES) != 0; }
+size CDebugClient::NumProcesses(void) const					{ return masProcesses.NumElements(); }
 SDebugProcess* CDebugClient::GetProcess(size uiIndex)	{ return masProcesses.SafeGet(uiIndex); }
-size CDebugClient::NumProcessEvents(void)				{ return masProcessEvents.NumElements(); }
-bool CDebugClient::HasModules(void)						{ return (msWelcome.uiCapabilities & DEBUG_CAN_MODULES) != 0; }
-size CDebugClient::NumModules(void)						{ return masModules.NumElements(); }
+size CDebugClient::NumProcessEvents(void) const				{ return masProcessEvents.NumElements(); }
+bool CDebugClient::HasModules(void) const						{ return (msWelcome.uiCapabilities & DEBUG_CAN_MODULES) != 0; }
+size CDebugClient::NumModules(void) const						{ return masModules.NumElements(); }
 SDebugModule* CDebugClient::GetModule(size uiIndex)		{ return masModules.SafeGet(uiIndex); }
-size CDebugClient::NumModuleChanges(void)				{ return muiModuleChanges; }
+size CDebugClient::NumModuleChanges(void) const				{ return muiModuleChanges; }
 SDebugProcessEvent* CDebugClient::GetProcessEvent(size uiIndex)	{ return masProcessEvents.SafeGet(uiIndex); }
 
 
@@ -958,24 +958,24 @@ SDebugModule* CDebugClient::FindModule(const char* szName)
 	}
 	return NULL;
 }
-size CDebugClient::NumRegisters(void)					{ return msWelcome.uiNumRegisters; }
-EDebugStop CDebugClient::GetStopReason(void)			{ return meStopReason; }
-uint32 CDebugClient::GetStopAddress(void)				{ return muiStopAddress; }
-uint32 CDebugClient::GetStopSpace(void)					{ return muiStopSpace; }
-uint32 CDebugClient::GetStopProcess(void)				{ return muiStopProcess; }
+size CDebugClient::NumRegisters(void) const					{ return msWelcome.uiNumRegisters; }
+EDebugStop CDebugClient::GetStopReason(void) const			{ return meStopReason; }
+uint32 CDebugClient::GetStopAddress(void) const				{ return muiStopAddress; }
+uint32 CDebugClient::GetStopSpace(void) const					{ return muiStopSpace; }
+uint32 CDebugClient::GetStopProcess(void) const				{ return muiStopProcess; }
 size CDebugClient::NumStops(void)						{ return muiNumStops; }
 size CDebugClient::NumRegisterReplies(void)				{ return muiNumRegisterReplies; }
-uint8* CDebugClient::GetMemory(void)					{ return mpuiMemory; }
-uint32 CDebugClient::GetMemoryAddress(void)				{ return muiMemoryAddress; }
-size CDebugClient::GetMemorySize(void)					{ return muiMemorySize; }
-uint32 CDebugClient::GetMemoryRequest(void)				{ return muiMemoryRequest; }
+uint8* CDebugClient::GetMemory(void) const					{ return mpuiMemory; }
+uint32 CDebugClient::GetMemoryAddress(void) const				{ return muiMemoryAddress; }
+size CDebugClient::GetMemorySize(void) const					{ return muiMemorySize; }
+uint32 CDebugClient::GetMemoryRequest(void) const				{ return muiMemoryRequest; }
 size CDebugClient::NumMemoryReplies(void)				{ return muiNumMemoryReplies; }
-size CDebugClient::NumInstructions(void)				{ return muiNumInstructions; }
-uint32 CDebugClient::GetDisassemblyRequest(void)		{ return muiDisassemblyRequest; }
+size CDebugClient::NumInstructions(void) const				{ return muiNumInstructions; }
+uint32 CDebugClient::GetDisassemblyRequest(void) const		{ return muiDisassemblyRequest; }
 size CDebugClient::NumDisassemblies(void)				{ return muiNumDisassemblies; }
 const char* CDebugClient::GetError(void)				{ return mszError.Text(); }
-uint32 CDebugClient::GetErrorType(void)					{ return muiErrorType; }
-uint32 CDebugClient::GetErrorRequest(void)				{ return muiErrorRequest; }
+uint32 CDebugClient::GetErrorType(void) const					{ return muiErrorType; }
+uint32 CDebugClient::GetErrorRequest(void) const				{ return muiErrorRequest; }
 size CDebugClient::NumErrors(void)						{ return muiNumErrors; }
 
 
@@ -1000,7 +1000,7 @@ SDebugInstruction* CDebugClient::GetInstruction(size uiIndex)
 // stops only there (a computer's kernel or user mode).
 //
 //////////////////////////////////////////////////////////////////////////
-size CDebugClient::NumBreakpointSpaces(void)
+size CDebugClient::NumBreakpointSpaces(void) const
 {
 	return (msWelcome.uiNumSpaces != 0) ? msWelcome.uiNumSpaces : 1;
 }
