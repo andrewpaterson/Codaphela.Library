@@ -24,10 +24,10 @@ struct SSharedMemoryResult
 	SSharedMemoryResult(size_t uiSize);
 	SSharedMemoryResult(ESharedMemoryResult eResult);
 
-	size_t	GetSize(void);
-	bool	IsFailed(void);
-	bool	IsSuccess(void);
-	bool	IsInvalid(void);
+	size_t	GetSize(void) const;
+	bool	IsFailed(void) const;
+	bool	IsSuccess(void) const;
+	bool	IsInvalid(void) const;
 };
 
 

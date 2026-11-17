@@ -26,7 +26,7 @@ public:
 	bool	Open(void);
 
 	int		Increment(void);
-	int		Get(void);
+	int		Get(void) const;
 	bool	WaitUntilAtLeast(int iCount, int iTimeoutMilliseconds);
 };
 

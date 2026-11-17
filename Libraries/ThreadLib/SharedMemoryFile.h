@@ -30,7 +30,7 @@ public:
 	void						Reinit(char* szName);
 	bool						Kill(void);
 
-	bool						IsNamed(void);
+	bool						IsNamed(void) const;
 	char*						GetName(void);
 
 	SSharedMemoryResult			Create(size_t uiSize);
@@ -40,7 +40,7 @@ public:
 	SSharedMemoryDescriptor*	Map(size_t uiSize);
 	void						Unmap(SSharedMemoryDescriptor* psDescriptor);
 
-	char*						GetLastErrorString(void);
+	char*						GetLastErrorString(void) const;
 };
 
 

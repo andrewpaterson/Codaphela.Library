@@ -32,9 +32,9 @@ public:
 			void	Start(void);
 
 			void	TryStop(void);
-			bool	IsDone(void);
-			bool	IsRunning(void);
-			int		GetThreadId(void);
+			bool	IsDone(void) const;
+			bool	IsRunning(void) const;
+			int		GetThreadId(void) const;
 			void	AddNotifier(CThreadStateNotifer* pcNotify);
 
 			void	Start(int iThreadId, bool bDelete);

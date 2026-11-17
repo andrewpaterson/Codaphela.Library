@@ -107,7 +107,7 @@ SSharedMemoryFileName* CSharedMemoryCoordinator::Add(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSharedMemoryFileName* CSharedMemoryCoordinator::GetCurrent(void)
+SSharedMemoryFileName* CSharedMemoryCoordinator::GetCurrent(void) const
 {
 	if ((mpsDescriptor->iValidSharedMemoryIndex != -1) && (mpsDescriptor->iValidSharedMemoryIndex < mpsDescriptor->iNumSharedMemoryFiles))
 	{
@@ -132,7 +132,7 @@ void CSharedMemoryCoordinator::Invalidate(void)
 // The resizable memories attached to this coordinator, in every process.
 //
 //////////////////////////////////////////////////////////////////////////
-int CSharedMemoryCoordinator::NumClients(void)
+int CSharedMemoryCoordinator::NumClients(void) const
 {
 	if (mpsDescriptor == NULL)
 	{

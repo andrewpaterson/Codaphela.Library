@@ -50,7 +50,7 @@ public:
 
 	bool	Push(WorkerFunction fFunction, void* pvData);
 
-	int		Size(void);
+	int		Size(void) const;
 	int		NumIdleThreads(void);
 
 	void	Work(int iThreadId);

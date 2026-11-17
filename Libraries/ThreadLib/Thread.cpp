@@ -85,7 +85,7 @@ void CThread::Start(int iThreadId, bool bDelete)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CThread::IsDone(void)
+bool CThread::IsDone(void) const
 {
 	return meState == TS_Stopped;
 }
@@ -95,7 +95,7 @@ bool CThread::IsDone(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CThread::IsRunning(void)
+bool CThread::IsRunning(void) const
 {
 	return meState == TS_Running;
 }
@@ -105,7 +105,7 @@ bool CThread::IsRunning(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CThread::GetThreadId(void)
+int CThread::GetThreadId(void) const
 {
 	return miThreadId;
 }

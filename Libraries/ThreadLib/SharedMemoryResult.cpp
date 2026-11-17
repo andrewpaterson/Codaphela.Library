@@ -38,7 +38,7 @@ SSharedMemoryResult::SSharedMemoryResult(ESharedMemoryResult eResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SSharedMemoryResult::IsFailed(void)
+bool SSharedMemoryResult::IsFailed(void) const
 {
     return eResult != SMR_Success;
 }
@@ -48,7 +48,7 @@ bool SSharedMemoryResult::IsFailed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SSharedMemoryResult::IsSuccess(void)
+bool SSharedMemoryResult::IsSuccess(void) const
 {
     return eResult == SMR_Success;
 }
@@ -58,7 +58,7 @@ bool SSharedMemoryResult::IsSuccess(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SSharedMemoryResult::IsInvalid(void)
+bool SSharedMemoryResult::IsInvalid(void) const
 {
     return eResult == SMR_Invalid;
 }
@@ -68,7 +68,7 @@ bool SSharedMemoryResult::IsInvalid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t SSharedMemoryResult::GetSize(void)
+size_t SSharedMemoryResult::GetSize(void) const
 {
     return uiSize;
 }

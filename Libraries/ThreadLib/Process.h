@@ -53,8 +53,8 @@ public:
 
 	void	Terminate(void);
 
-	bool	IsRunning(void);
-	int		GetExitCode(void);
+	bool	IsRunning(void) const;
+	int		GetExitCode(void) const;
 
 protected:
 	bool	Start(const char* szExecutable, CArrayChars* paszArguments, const char* szWorkingDirectory, bool bCapture);

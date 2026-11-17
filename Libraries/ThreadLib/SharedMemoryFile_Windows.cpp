@@ -227,7 +227,7 @@ void CSharedMemoryFile::Unmap(SSharedMemoryDescriptor* psDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CSharedMemoryFile::GetLastErrorString(void)
+char* CSharedMemoryFile::GetLastErrorString(void) const
 {
     return WindowsErrorCodeToString(GetLastError());
 }

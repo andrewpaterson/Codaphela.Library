@@ -37,11 +37,11 @@ public:
 	SSharedMemoryMap	IncreaseSize(size_t uiMore);
 	SSharedMemoryMap	Resize(size_t uiSize);
 
-	size_t				GetSize(void);
+	size_t				GetSize(void) const;
 
 	//The memory mapped now if it has not moved to another file, else NULL.
 	//Does not Touch, so it can be called without the lock that guards the memory.
-	void*				GetValidMemory(void);
+	void*				GetValidMemory(void) const;
 
 protected:
 	bool	InitCoordinator(char* szMemoryName);

@@ -144,7 +144,7 @@ bool CWorkerThreadPool::Push(WorkerFunction fFunction, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CWorkerThreadPool::Size(void)
+int CWorkerThreadPool::Size(void) const
 {
 	return (int)macThreads.NumElements();
 }

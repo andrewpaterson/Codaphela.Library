@@ -414,7 +414,7 @@ int CResizableSharedMemory::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CResizableSharedMemory::GetSize(void)
+size_t CResizableSharedMemory::GetSize(void) const
 {
     return (size_t)mpsDescriptor->uiSize;
 }
@@ -424,7 +424,7 @@ size_t CResizableSharedMemory::GetSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CResizableSharedMemory::GetValidMemory(void)
+void* CResizableSharedMemory::GetValidMemory(void) const
 {
     if (mpsDescriptor == NULL)
     {

@@ -20,7 +20,7 @@ void CAtomicInt::Set(int iValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CAtomicInt::Get(void)
+int CAtomicInt::Get(void) const
 {
 	return InterlockedCompareExchange((volatile LONG*)&miValue, 0, 0);
 }

@@ -21,7 +21,7 @@ public:
 	void	AddRedirect(char* szName, main_func);
 
 	bool	Run(int argc, char* argv[]);
-	int		GetResult(void);
+	int		GetResult(void) const;
 };
 
 

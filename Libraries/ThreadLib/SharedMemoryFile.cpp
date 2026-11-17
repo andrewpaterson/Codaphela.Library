@@ -28,7 +28,7 @@ void CSharedMemoryFile::Reinit(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSharedMemoryFile::IsNamed(void)
+bool CSharedMemoryFile::IsNamed(void) const
 {
     if (StrEmpty(mszName))
     {

@@ -75,7 +75,7 @@ int CInterProcessCounter::Increment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInterProcessCounter::Get(void)
+int CInterProcessCounter::Get(void) const
 {
 	return mpsCounter->iCount.Get();
 }

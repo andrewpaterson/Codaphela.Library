@@ -16,7 +16,7 @@ protected:
 
 public:
 	void	Set(int iValue);
-	int		Get(void);
+	int		Get(void) const;
 
 	int		Increment(void);
 	int		Decrement(void);

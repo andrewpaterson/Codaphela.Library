@@ -19,7 +19,7 @@ void CAtomicInt::Set(int iValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CAtomicInt::Get(void)
+int CAtomicInt::Get(void) const
 {
 	return __atomic_load_n(&miValue, __ATOMIC_SEQ_CST);
 }

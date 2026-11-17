@@ -323,6 +323,6 @@ void CProcess::EndOutput(CArrayChars* paszLines)
 }
 
 
-bool CProcess::IsRunning(void) { return mbRunning; }
-int CProcess::GetExitCode(void) { return miExitCode; }  //Once Poll has found it exited.
+bool CProcess::IsRunning(void) const { return mbRunning; }
+int CProcess::GetExitCode(void) const { return miExitCode; }  //Once Poll has found it exited.
 

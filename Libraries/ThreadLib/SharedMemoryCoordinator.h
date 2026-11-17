@@ -34,10 +34,10 @@ public:
 	void							Kill(void);
 
 	SSharedMemoryFileName*	Add(char* szName);
-	SSharedMemoryFileName*	GetCurrent(void);
+	SSharedMemoryFileName*	GetCurrent(void) const;
 
 	void							Invalidate(void);
-	int								NumClients(void);
+	int								NumClients(void) const;
 };
 
 

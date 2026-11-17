@@ -73,7 +73,7 @@ bool CMainProcessDirector::Run(int argc, char* argv[])
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMainProcessDirector::GetResult(void)
+int CMainProcessDirector::GetResult(void) const
 {
 	return miRedirectResult;
 }
