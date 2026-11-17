@@ -79,10 +79,10 @@ public:
 	bool				Init(const char* szFilename);
 	void				Kill(void);
 
-	EOldDragonVersion	GetVersion(void);
-	bool				IsDamaged(void);
+	EOldDragonVersion	GetVersion(void) const;
+	bool				IsDamaged(void) const;
 
-	size				NumChunks(void);
+	size				NumChunks(void) const;
 	SOldDragonChunk*	GetChunk(size uiIndex);
 	const char*			GetChunkName(SOldDragonChunk* psChunk);
 	const uint8*		GetChunkData(SOldDragonChunk* psChunk);

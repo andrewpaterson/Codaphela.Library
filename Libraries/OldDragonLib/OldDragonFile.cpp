@@ -124,7 +124,7 @@ void COldDragonFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EOldDragonVersion COldDragonFile::GetVersion(void)
+EOldDragonVersion COldDragonFile::GetVersion(void) const
 {
 	return meVersion;
 }
@@ -134,7 +134,7 @@ EOldDragonVersion COldDragonFile::GetVersion(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool COldDragonFile::IsDamaged(void)
+bool COldDragonFile::IsDamaged(void) const
 {
 	return mbDamaged;
 }
@@ -144,7 +144,7 @@ bool COldDragonFile::IsDamaged(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size COldDragonFile::NumChunks(void)
+size COldDragonFile::NumChunks(void) const
 {
 	return macChunks.NumElements();
 }
