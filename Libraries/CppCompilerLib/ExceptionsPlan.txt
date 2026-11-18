@@ -1,0 +1,258 @@
+Exceptions: throw, try and catch to C++14
+==========================================
+
+Planned 2026-11-18, at the user's word ("plan out how you would add exceptions to the CppCompiler").  It is B2 of CppParserTodo.txt (section 6) and the first of its open questions.  Nothing here is built.  The statements about the code were found by reading it on 2026-11-18; check each before relying on it.
+
+The standard meant is N4140: clause 15 (exception handling), 5.17 (throw), 5.3.4 and 3.7.4 (new that fails), 5.2.7 and 5.2.8 (bad_cast, bad_typeid), 6.7 (a static local whose initialisation throws), 12.4 and 12.6.2 (destructors, constructors that fail), 18.6 and 18.8 (the language support library's part of it).
+
+
+The idea
+--------
+
+A function that throws returns.  It returns the way it always does, through its own exit code, with one more fact: "I ended by throwing".  The caller tests that fact after the call, and if it is set goes to code that destroys what it has made and then either handles the exception or returns in the same way itself.  The exception object waits in the runtime while the stack is left one function at a time.
+
+So an exception is a second way out of a call, and both ways out are written in the IR as ordinary branches.  Nothing walks the stack, nothing reads tables, and no state is saved when a try block is entered.
+
+Why this and not the other two ways:
+
+  Tables (what g++ and the Microsoft compiler do on big machines).  The normal path costs nothing, and that is all that is good about it here.  It needs a description of every frame that a run-time unwinder can read, and the frames are irregular: on the W65C816, DropFrame leaves functions with no frame or the caller's D, AlignFrame moves D and S to a page boundary and keeps the old S in the frame, forwarders are a jml, register stubs push the arguments a second time, the scratch runtime routines run on the caller's D, and BaseLib's FAT assembly builds frames with a helper; on the 65C64 a function may have no frame, may keep a value in V, and pushes whichever of [$80+W] it uses.  It needs a table from return addresses to landing code, which must survive the back ends' text passes.  Tables of code addresses keep every function they name alive at link time, don't work with lazy loading (they would hold the trampolines' addresses), and would have to be registered by each driver module.  And the landing code is still reached by an edge the IR doesn't have, so the IR work below is needed as well.
+
+  setjmp and longjmp chained through the frame (the guess in CppParserTodo.txt).  On the W65C816 the state is only S and D, so a try is cheap.  But every scope with an object to destroy has to register too, not only every try, and each call inside one must record how far the scope has got.  On the 65C64 the state includes the [$80+W] units, which each function in between has pushed in its own prologue: a longjmp can't put them back without knowing every frame, which is the tables again.  The hidden edge is the same problem as with tables.  The debugger's Step Out counts calls and returns (CDebugServer, muiCalls) and would lose count.
+
+  A second way out.  Every exceptional edge is a branch the optimiser already understands, so slot promotion, the inliner, load forwarding and code motion are right without being taught anything.  The back ends get two small things to write and no unwinder.  It works through every irregular frame, because each function leaves through its own exit.  Stepping in the debugger keeps working, because every frame returns.  A throw is fast (a return for each frame).  The cost is on the normal path: a test and a branch after each call that may throw, in size and in time.  That cost is the subject of stage 9, and "Exceptions off" (below) is for the programs that can't pay it.
+
+What the standard leaves to the implementation, and what this choice makes of it:
+  - An exception nobody catches: whether the stack is unwound before std::terminate is called is implementation-defined (15.3/9).  Here it is unwound, up to main's caller.
+  - A noexcept function that an exception tries to leave: std::terminate is called at that function; the stack is unwound up to it (15.4/9 allows this).
+
+
+How it is written
+-----------------
+
+1. The IR (IR.txt gets a section)
+
+  Two new things, and a fact about symbols.
+
+  - thrown.  "%t = thrown" is an i1: whether the call just before it ended by throwing.  It comes straight after its call (the verifier checks, as it checks that an arg is followed by its call) and is followed, sooner or later, by a brif on it.  Nothing may be put between a call and its thrown: SinkSteps (IRBackendPasses.cpp, it puts a step after a call) and the inliner must know.
+  - throw.  A fifth way for a block to end, beside jmp, brif, ret and unreachable (IRJ_Throw): the function returns having thrown.  It has no value.
+  - nothrow.  A symbol whose function has no throw anywhere is nothrow (SIRSymbolDefinition::bNoThrow, the word "nothrow" in the text form, beside nowrites).  CIRInterprocedural marks them as MarkNoWrites marks its own, and FoldConstants makes a thrown after a call to a nothrow symbol false; the branch folds, the landing code is unreachable and goes, and if that was the function's last throw it is nothrow too.  Symbols with no IR that the compiler itself calls (R_ routines, the soft float, memcpy and the others ReplaceLoopIdioms writes) are nothrow.
+
+  What each part does with them:
+  - The verifier: thrown only after a call; a nothrow function has no throw.
+  - The printer and parser: both, round trip (TestIR).
+  - The inliner: where it now turns each copied ret into a jump to the rest of the block and makes the result a phi, it turns each copied throw into a jump there too, and the call's thrown becomes a phi of false (from the returns) and true (from the throws).  ThreadPhis and ThreadBranches then send each one straight to where it goes.  Today the inliner turns any ending it doesn't know into unreachable (IRInliner.cpp:1019): that must not catch throw.  A function with no ret (it always throws) can't be inlined today (CanInline); it can stay so.
+  - Everything that switches on a jump's kind or counts successors (the list is in "Where the IR is touched" below): throw has no successors, like ret.
+  - DuplicateReturns, JoinBlocks, SkipEmptyBlocks: check each against a block that ends in throw.
+  - The interpreter (constexpr): a throw makes the expression not a constant (CIRInterpreter::Fail, "It throws an exception"); a thrown is false, since a callee that threw has already failed.  So constexpr int f(int x) { return x < 0 ? throw 1 : x; } is a constant when x isn't negative, as the standard has it.  A constexpr function still can't have try (C++14).
+
+  Considered and left for stage 9, when there are measurements: a second form of call that says "if this throws, so do I, with nothing to do first", for the many functions that have nothing to destroy.  It keeps their blocks whole and lets a forwarder stay a jml.  It is how LLVM tells call from invoke.  It is not in the first build because one form is easier to prove right, and the first form can say everything.
+
+2. The back ends
+
+  Each writes two things: the exit of a block that ends in throw, and the test of thrown.
+
+  The fact travels in the carry flag: set on return means thrown.  A, X, Y and the flags may already change across a call on both processors, so the carry is free to mean this.  The test is one bcs after the call (2 bytes, 2 cycles when not taken).  An interrupt keeps it, since an interrupt saves the flags.
+
+  Every way a function returns must then leave the carry right, and each of these is to be checked and tested:
+  - W65C816: the usual exit (tdc, clc, adc n, tcs: the carry is clear after it unless the stack wraps, so the normal exit may need nothing, and the throw exit needs sec before rtl), DropFrame's short exits (pld, rtl: needs clc or sec), AlignFrame's exit, register stubs (they call the body and then tidy the stack with clc and adc, which loses the carry: they must keep it), thunks (a jml passes it on untouched; the vcall thunk's rtl trick to be checked), forwarders (a jml passes it on, which is right only when the forwarding function would have passed the exception on untouched; see stage 9).
+  - W65C816, after a call: removing the pushed arguments (ply keeps the carry; tsc, clc, adc, tcs doesn't, so the bcs comes first and both paths remove them, or they are removed without touching the carry).
+  - 65C64: the same list in its own terms (add S, n in the exit and after calls, the copied short epilogues, register stubs, thunks).
+  - A function that is nothrow and is only called by callers that know it needn't clear the carry.  One that may be called through a pointer or a vtable must.
+
+  Calls into assembly are the weak point of the carry: an assembly routine leaves the carry as it happens to be.  So a call may only be tested when what is called keeps the rule.  That is so when:
+  - it is compiled C++; or
+  - it is declared noexcept (then there is no test).  Libc65's headers declare the C library noexcept for C++, as glibc does, and so do BaseLib's declarations of its assembly; or
+  - it is assembly written to the rule (clc before it returns).
+  The builder checks it: each unit lists the symbols it calls with a test, and a symbol on a list that an assembly unit defines is an error that says to declare it noexcept.  (To be confirmed in stage 3 that the builder has what this needs.)
+
+  If stage 3 finds a place where the carry can't be kept at a fair price, the fallback for that place is a byte in memory (R_Throwing).  It costs about four times as much per test on the W65C816 (it needs A, which holds the result), and an interrupt that runs C++ with exceptions would have to save it.
+
+  Start-up code: after main returns, carry set means nobody caught it: std::terminate.  The compiler's two start-ups (CPPTarget65C64.cpp, CPPTargetW65C816.cpp) and HCP65's own (Libraries\UserLib\UserStart.asm) get it.  The routines the compiler writes for the init and fini tables (R_Initialise, R_Finalise) end in terminate themselves, so the table walkers need no test.
+
+3. The runtime (Libc65: exception.cpp, and the headers <exception>, <typeinfo>, more of <new>)
+
+  The exception object.  throw E allocates sizeof(E) with a header in front (R_AllocateException), and the front end constructs E there.  The header holds: the type info of E, E's destructor, a count of who still needs it (handlers that are in it, and exception_ptrs), and a link.  Allocation is malloc; when malloc fails a small fixed pool is used (enough to throw bad_alloc and a few more); when that is gone, terminate.
+
+  The state, all in one struct so that it can be one per thread if threads come:
+  - the exceptions in flight, a stack (linked through the headers).  It is a stack because a destructor run while unwinding may itself throw and catch inside, and an interrupt handler may too: the newer one is caught and popped and the older is on top again.
+  - the exceptions being handled, a stack (a handler may throw and catch another inside it; throw; with no operand rethrows the top one).
+  - how many are in flight and not yet caught (std::uncaught_exception).
+  - the terminate, unexpected and new handlers.
+
+  The routines the compiler calls (names to be settled; none is tested for thrown except the ones marked):
+  - R_AllocateException(bytes), R_FreeException(p): the second is for when constructing the operand throws.
+  - R_Throw(p, type info, destructor): puts it in flight.  The front end follows it with the way out.
+  - R_Match(type info of the handler): does the one in flight match this handler?  Gives the address the handler's parameter refers to (moved to the base class for a handler of a base, the converted pointer for a handler of a pointer), or null.
+  - R_BeginCatch(): the one in flight becomes the one being handled.  R_EndCatch(): it stops being handled, and is destroyed and freed when nobody needs it.
+  - R_Rethrow(): throw; with no operand.  With nothing being handled, terminate.
+  - R_Terminate(): std::terminate.  R_Unexpected(): for throw(A, B) lists, below.
+  - R_ThrowBadCast(), R_ThrowBadTypeid(), R_ThrowBadArrayNewLength(): written in C++ in Libc65, so they throw in the ordinary way (these are tested).  R_BadCast and its stp go.  R_Pure (a pure virtual call) calls terminate.
+
+  Matching a handler (15.3/3) needs more in a type's type info than there is.  Today a class's is a list of (type info, offset) for itself and every base subobject, and every other type's is one word whose address is its identity.  It needs:
+  - what kind of type it is: class, pointer, pointer to member, nullptr_t, other.
+  - for a class, for each base subobject: whether it is reached by a public path (a handler for a base only matches a public, unambiguous base; ambiguous is already seen as "found twice").
+  - for a pointer: the type pointed to, and its const and volatile, so that a thrown D* matches B*, const B* and void* handlers, a thrown T* matches const T*, and nullptr matches any pointer.
+  dynamic_cast, typeid and delete read the same lists, so they change with it.  The other session is adding the type's name for typeid(x).name() (question 8): the layout is to be agreed with it once, before either builds.
+
+  The library part, which the language needs and so comes with it:
+  - <exception>: exception, bad_exception, terminate and set_terminate and get_terminate, unexpected and set_unexpected and get_unexpected, uncaught_exception, exception_ptr with current_exception and rethrow_exception and make_exception_ptr, nested_exception with throw_with_nested and rethrow_if_nested.
+  - <new>: bad_alloc, bad_array_new_length, nothrow_t and nothrow and the nothrow forms of new, new_handler and set_new_handler and get_new_handler.  operator new calls the new handler in a loop and throws bad_alloc when there is none (18.6.1.1/4); today it returns malloc's null.
+  - <typeinfo>: bad_cast, bad_typeid (type_info itself is the other session's, with question 8).
+  <stdexcept> and the rest of the library are question 2 of CppParserTodo.txt, which is still the user's.
+
+4. The front end
+
+  What has to be destroyed.  Today the front end keeps two lists while it writes a function (masLiving: objects of the scopes being written; masTemporaries: temporaries of the full expression) and at every exit (the scope's end, return, break, continue) writes the destructor calls again.  An exception adds a way out after every call that may throw, and adds things that only an exception undoes.  The lists become one class, the cleanup stack (CCPP65IRCleanups), which the statements and expressions push to and pop from, and which answers two questions: "write what a normal exit to this depth destroys" (as now) and "which block does an exception go to from here".
+
+  The second is answered with blocks made only when asked for and shared: each entry of the stack has a block that undoes that entry and jumps to the block of the entry below it.  The bottom one is the function's way out: throw; or, in a noexcept function, a call of R_Terminate; or, under a try, that try's handlers.  So a function with five objects has at most five such blocks however many calls it makes, and a function whose calls can't throw has none.
+
+  What an entry can be:
+  - an object to destroy (a local, a parameter the called function destroys, a temporary; a conditional temporary with its "made" flag, as now)
+  - the elements of an array made so far (a count in a slot for the run-time loops of new T[n]; an entry for each element while a local array is being made, replaced by one for the array when it is done)
+  - in a constructor: each base and member made so far (the virtual bases only in the complete constructor), popped when the constructor ends normally.  In a delegating constructor: once the constructor delegated to has returned the object is complete, and an exception from the body runs its destructor (15.2/2).
+  - memory from new, to give back with the matching operator delete if the constructor throws (5.3.4/20 to 23: the placement delete that matches the placement new, or none)
+  - an exception object being constructed, to free
+  - a handler being run: R_EndCatch (on both ways out)
+  - a static local being initialised: its guard goes back to "not started" (6.7/4).  The other session is building the three-state guard (question 6) and leaves a named hook.
+  - a try: the mark where the way out turns into that try's handlers
+  Some are only for exceptions (the constructor's parts, new's memory, the guard, the exception object); the rest are for both ways out.
+
+  One rule has to become true everywhere first: an entry is pushed when its object's construction has finished, never before.  Today Temporary registers a temporary before its constructor runs, a class-returning call's temporary is registered before the call, and a conditional temporary's flag is set before construction.  None of that matters while nothing can leave in the middle.
+
+  A call.  After a call that may throw the front end writes thrown and a brif to the block the cleanup stack gives.  "May throw" is one question asked in one place (CCPPBinder's binding of the call says which function; CCPPUnit::CanThrow says whether): not noexcept, or called through a pointer or a vtable whose function isn't declared noexcept.  It must be right: today a wrong answer only makes noexcept(e) a wrong constant, then it would leave out a test.  See stage 1.
+
+  A destructor call made while unwinding: destructors are noexcept unless they say otherwise, so most need no test.  One that is noexcept(false) is tested, and if it threw, R_Terminate (15.2/3).  The same destructor called at a normal exit is tested like any call, with the way out being the entries below it.
+
+  throw E.  Its type is void (the type checker gets VisitThrowExpression, and the rule for c ? throw 1 : x).  E is decayed (array to pointer, function to pointer) and its top-level const dropped; the class must be complete, not abstract, with a copy or move constructor and a destructor that can be reached (15.1/3, /5).  Written: R_AllocateException; an entry to free it; construct E in it (a local variable named alone is moved from, 12.8/32; the copy may be left out); pop the entry; R_Throw; jump to the way out.  What follows is unreachable.
+
+  try.  The block is written with a try mark on the cleanup stack.  The mark's block tries each handler in order: R_Match with the handler's type, and a brif.  catch (...) always matches.  With no match it jumps to the way out below the mark.  A handler: R_BeginCatch; an R_EndCatch entry; the parameter is initialised from the address R_Match gave (a reference is bound to it; an object is copy-constructed from it, and is a local like any other); the block; pop.  Errors: a handler for an incomplete type, an abstract class or an rvalue reference (15.3/1); a goto or a switch that jumps into a try block or a handler (15/2).  A warning: a handler that an earlier one hides.
+
+  A function-try-block.  The parser can't read one with member initialisers (ParseFunctionBody goes to ParseTryStatement, which wants a "{"), and nothing but the body being a try statement says that it is one: the function definition gets its handlers as its own field.  The try mark is pushed before the member initialisers and the bases, and popped after the body.  In a constructor or destructor the handlers rethrow when they reach their end (15.3/15), can't return (15.3/14 for a constructor), and using a member or a base there is undefined, so nothing is done about it.  In other functions a handler that reaches its end returns.  The parameters are in scope in the handlers and are destroyed after them.
+
+  noexcept and throw().  A noexcept function's way out is R_Terminate, so it has no throw and is nothrow in the IR.  A throw(A, B) list (deprecated in C++14, gone in C++17, but in C++14): the way out asks R_Match for each type, and with no match calls R_Unexpected, which calls the unexpected handler; what that throws is let through if the list allows it, becomes bad_exception if the list has bad_exception, and is terminate otherwise (15.5.2).
+
+  The places that must be gone through one by one, because each makes something that an exception must undo.  The other session's list and the reading agree on these:
+  - constructors: bases, virtual bases, members (ConstructorStart), the complete and base versions and their VTT (stage 9 of Part B), delegating constructors
+  - the copy constructor and operator= the compiler writes (CopyParts, CopyMembers), aggregates filled field by field (ConstructClass)
+  - arrays: local (unrolled), new T[n] (the counted loop and the cookie), new T[n]{...}, delete[]
+  - new T(args) and placement new
+  - arguments: an object pushed by value is the called function's to destroy once the call is made; until then (while a later argument is still being worked out) it is the caller's
+  - the object a function returns (msResult, msElide): made in the caller's place.  If a local's destructor throws after the return value is made, C++14 doesn't say the return value is destroyed (that came later, CWG 2176); it isn't.
+  - temporaries kept alive by a reference (ExtendTemporary), the range-for's object, a global reference's temporary (BoundTemporary)
+  - conditional temporaries (?:, &&, ||)
+  - lambdas: the closure's captures being copied
+  - static locals, and their at-exit registration (questions 6 and 11, the other session's)
+  - a std::initializer_list's array of objects that need destroying, which stage 8 of Part B left unsupported: its destruction is the same entry as an array's
+
+5. Exceptions off
+
+  A compile option, Exceptions, false unless a program says otherwise (the user, 2026-11-18: "Keep it off by default, programs opt in").  With it off, the language is as it is today: throw and try are errors that say so, no call is tested, new returns null when memory runs out, a failed dynamic_cast<T&> stops the processor.  __cpp_exceptions is defined (199711) only when it is on, and Libc65, which each program compiles for itself, follows it.
+
+  Off costs nothing, which matters most to the programs that can't pay: the kernal's ROM is close to its 192KB, and the kernal, the drivers and the boot ROM never throw.  They stay as they are with no change to their configurations.  A program is built whole, so the option is one for the whole program; the kernal and its drivers call each other and are all off.
+
+  The compiler is a C++14 compiler with the option on; off is a documented mode without exceptions, as many embedded compilers have.  The website says so.
+
+  The option goes the way PreferSize goes: CCPPCompileOptions::mbExceptions, the Exceptions attribute of a Configuration in .hcp65build (BuildConfiguration, BuildConfigurationEdit), hcp65build's -no-exceptions in plain mode and -show-plain, the check box in the IDE's Build Configurations dialog and its scripted edit for the checks, the tests of each, and the website's two tables.
+
+  The tests turn it on for what they test: the conformance test's Exceptions group, and a run of the three Lib65 suites with it on (a switch like TEST_PROJECT65_PREFER_SIZE), so that the libraries are proved to compile and run both ways.
+
+
+What it touches outside the compiler
+------------------------------------
+
+  - Libc65: the runtime and headers above; every C declaration noexcept for C++; operator new.
+  - BaseLib, StandardLib, SupportLib, the kernal, the drivers: no code uses try, throw or catch (grepped).  BaseLib's declarations of its assembly routines become noexcept.  With exceptions on they get the tests after calls and grow; how much is measured in stage 9.
+  - The tests' harness: a conformance case can't see std::terminate or exit today (a stop that isn't main returning is "didn't stop").  Stage 0 teaches the runner that a stop in _Exit is a result, its status; then a case sets a terminate handler that calls _Exit(n).  TestLibc65's runner already can.
+  - The debugger: Step Over and Step Out keep working as they are, since every frame returns.  A breakpoint on R_Throw is "stop when something is thrown".  There is no call stack view to change.
+  - The IDE's refactorings: CIDEExitFinder doesn't count a throw as a way out of a run of statements; Extract Method, Inline Function, Introduce Variable and the others have no case for try or a handler's parameter.  Stage 10.
+  - The website: compiler\language.md's table of what isn't supported (stale for much more than exceptions), compiler\index.md:45, libc65.md, the two option tables.
+
+
+Where the IR is touched (so that nothing that knows the four endings is missed)
+-----------------------------------------------------------------------------
+
+  The ending's kind is switched on in the inliner (IRInliner.cpp:1005), the interpreter (IRInterpreter.cpp:1182), the printer (IRPrinter.cpp:751), the parser (IRParser.cpp:1332), the verifier, and both back ends; successors are counted in CIRBlock::NumSuccessors and GetSuccessor and predecessors made in CIRFunction::ComputePredecessors.  pcThen and pcElse are read directly in some 160 places (IROptimiserIdioms 25, IROptimiserLoops 23, IROptimiserBlocks 20, IR65Backend 16, IRW65C816Backend 15, IROptimiserCounters 11, and fewer in a dozen more): each is a read of a jump or a branch and should be unaffected, but stage 2 goes through them.
+
+
+The stages
+----------
+
+Each ends with the whole of TestCppCompilerLib passing in Release x64 and a commit.  The stages that change what the libraries compile to also run the three Lib65 suites' compile (TEST_PROJECT65_ONLY=NoSuchTest, both targets).  Builds and suites are announced to the other session first.
+
+  0. Ground.
+     - The conformance test gets an Exceptions group: a case for each paragraph of clause 15 and the others named at the top that can be tested, about 150, each run with the Microsoft compiler first (hostcheck.py, which already compiles with /EHsc), all "not done" to begin with.  It is the table the rest of the work is counted against, as Stage10's 70 cases were for namespaces.  Cases that must be refused are in it too.
+     - The runner sees a stop in _Exit as a result.
+     - The option, all the way through (5 above), off by default, as it stays.
+     - The parser: a function-try-block with member initialisers; the function definition's own field for its handlers.  TestCppParser.
+     - A baseline: Tests/CompilerMeasure.py (the three Lib65 suites, both processors: cycles, sizes, times) as things are.
+
+  1. noexcept to the standard.  Found wrong or missing while reading:
+     - a destructor the compiler declares, and every other implicit special member, has no exception specification worked out (15.4/14: it is what the functions it calls allow); they are all "may throw" today
+     - only the first declaration's specification is read; later ones aren't compared with it (15.4/3)
+     - a lambda's noexcept is never read
+     - the Microsoft throw(...) counts as noexcept, and means the opposite
+     - an overrider with a looser specification than what it overrides is accepted (15.4/4), and so is a pointer to function assigned from a looser one (15.4/5)
+     - noexcept(e) doesn't ask the constructors and destructors of e's temporaries (the known gap of stage 8)
+     - a deallocation function is noexcept unless it says otherwise
+     One function says whether a call can throw, and noexcept(e) and (later) the test after a call both ask it.
+
+  2. The IR: thrown, throw and nothrow, in the printer, parser, verifier, interpreter, inliner, the block passes, CIRInterprocedural and FoldConstants.  Tests in TestIR, TestIRInterpreter and TestIRInterprocedural, written as IR text: round trips, the verifier's errors, a function inlined at a tested call, a nothrow callee's test folding away.
+
+  3. The back ends: the throw exit and the test, on both, through every kind of exit and stub in 2 above; the start-ups; the builder's check of assembly.  Tests in TestIR65Backend and TestIRW65C816Backend from IR text, and programs written in IR that throw through frames of each irregular kind and are run.
+
+  4. Type info and the runtime: the type info's new layout (agreed with the other session), dynamic_cast, typeid and delete on it; Libc65's exception.cpp and headers.  The runtime is tested in TestLibc65 by calling it directly, before the compiler writes a throw.
+
+  5. The cleanup stack, changing nothing: masLiving and masTemporaries become CCPP65IRCleanups, and every push moves to after its construction.  The proof is that the Lib65 listings don't change (TEST_PROJECT65_LISTINGS against a baseline) except where a push moved, and the suite.
+
+  6. throw, try and catch: the throw expression, the try statement, handlers by value, by reference and (...), throw; with no operand, nesting, unwinding through locals and temporaries, an exception nobody catches, noexcept functions.  The first conformance cases pass, on both targets.
+
+  7. Everything that is half made: the list at the end of 4 above, one item at a time with its cases, and function-try-blocks.  FunctionTryBlock, the one case of 366 that fails today, passes here.
+
+  8. What the language itself throws, and the rest of 18.8: bad_alloc from new, the nothrow forms and the new handler, bad_array_new_length, bad_cast, bad_typeid; exception_ptr and nested_exception; uncaught_exception; throw(A, B) lists and std::unexpected.
+
+  9. The cost.  Measure first (CompilerMeasure.py with the option on against stage 0's baseline, the kernal's ROM size, TestCPP816ArrayLayers' 6144, which leans on forwarders), then, in the order the numbers say:
+     - the second form of call, for functions with nothing to destroy (1 above), so that forwarders are forwarders again
+     - landing blocks out of the way: last in the function (OrderBlocks), weightless to the loop passes and to the inliner's size limit
+     - nothrow across the whole program: a virtual function none of whose overriders throws
+     - the option stays off by default (the user); what turning it on costs a program, in size and in time, goes in the website's page so that a program can decide
+
+  10. Around it: the IDE (throw as a way out in CIDEExitFinder; the refactorings' cases for try, handlers and their parameters; the checks), the website's pages, CppParserTodo.txt's B2 and question 1 closed, IR.txt and CPP65Generator.txt.
+
+
+Sizes
+-----
+
+  Relative, as in CppParserTodo.txt: stage 0 M, 1 M, 2 M, 3 L, 4 L, 5 M, 6 M, 7 L, 8 M, 9 L, 10 M.  The risk is in 3 (every exit of every kind of frame must leave the carry right, and a miss is silent wrong code, so the tests there throw through each kind) and in 7 (many small places, each easy to miss, so each is a conformance case first).
+
+
+Working with the other session
+------------------------------
+
+  It is building the answers to questions 3 to 11 of CppParserTodo.txt in the same files.  Where the two meet:
+  - the type info's layout (its question 8, stage 4 here): agreed once
+  - the static local's guard (its question 6, stage 7 here): it leaves the hook
+  - the at-exit list (its question 11): an object is put on it when its construction has finished, which is the cleanup stack's rule too
+  - closures shared across units (its question 5): nothing here depends on it
+  - HCP65's UserStart.asm doesn't run the atexit functions or the fini table (found while reading; it matters to question 11, and stage 3 here edits the same file)
+  When stage 0 starts it is told, and moves to a worktree or this work does.
+
+
+Questions for the user
+----------------------
+
+  Each has the answer the plan assumes; the work goes on with it unless told otherwise.
+
+  1. The scheme: a second way out of each call, tested by the caller, and not tables or setjmp.  It puts a small cost on every call that may throw in a program built with exceptions on, whether or not anything is ever thrown.  Assumed: yes.
+  2. Answered 2026-11-18: "Keep it off by default, programs opt in".  No HCP65 program is turned on by this work.
+  3. Assembly called from C++ with exceptions on must be declared noexcept or return with the carry clear, and the build refuses it otherwise.  Assumed: yes.
+  4. The runtime and the three headers go in Libc65.  (Where the rest of the C++ library lives is question 2 of CppParserTodo.txt and stays open.)  Assumed: yes.
+  5. throw(A, B) lists and std::unexpected: in C++14, deprecated there, removed in C++17.  Assumed: built, in stage 8, since the target is C++14.
+  6. With exceptions off, new that fails returns null, as now (the standard has no such mode, so there is no right answer).  Assumed: yes.
+  7. An exception nobody catches unwinds the stack before terminate is called, so a terminate handler can't see where it was thrown from; a breakpoint on R_Throw can.  It comes with the scheme.  Assumed: accepted.
+  8. Interrupt handlers and the kernal call: no exception crosses either.  A handler that lets one out stops the machine (terminate).  Assumed: yes.
+
+
+Progress
+--------
+
+  Nothing started.
