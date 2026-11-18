@@ -343,6 +343,12 @@ Progress
      - A static local's guard, from the other session's question 6 (its branch cpp14, 2026-11-18): the guard byte is
        0 not started, 1 being made, 2 done (GuardedStaticLocal), and reaching it at 1 calls R_RecursiveInit.  For
        stage 7: an initialiser left by an exception stores 0 back (6.7/4).
+     - Objects destroyed at exit, from its questions 11 and 7 (same day, not on master yet when written): an object
+       made at start up, and a static local with a destructor, is pushed on an exit list when its construction
+       finishes (CCPP65IRFrontEnd::PushExitNode; __ExitList and __ThreadExitList in the start up; R_RunExitLists, or
+       Libc65's __RunAtExit, runs them); only a constant-initialised global keeps a fini-table entry.  For stages 6
+       and 7: an object whose construction throws is never pushed (the push is after), and a destructor or an atexit
+       function that leaves by an exception while the lists run is std::terminate (15.5.1), so the runner's calls test.
      Still to do: the baseline measure.  The three Lib65 suites are built in the worktree (Release x64), but
      CompilerMeasure.py was stopped twice for low memory (the suites' own: TestStandardLib65 was seen at 880 MB with
      the other session doing little).  Its first three runs finished and their raw output was kept only in the
