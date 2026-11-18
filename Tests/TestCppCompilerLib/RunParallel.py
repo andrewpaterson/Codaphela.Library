@@ -6,7 +6,7 @@
 # The exe's -list says the files in the order they run and which can be run in parts; the long ones run in parts (-part
 # p/n, or by the calls' times from the last run: -calls), the short ones together in one process, the longest first, at most -jobs at once (4 unless given), and none
 # started while free memory is under 2 GB.  Each process writes its own log (TESTLIB_LOG, <Job>Log.txt, kept for
-# looking at).  The exit code is the failed tests' count as the exe's is, or 1000 if a process didn't finish.  Each file's
+# looking at) and what it prints to Output/<Job>Out.txt.  The exit code is the failed tests' count as the exe's is, or 1000 if a process didn't finish.  Each file's
 # time, and each call's of the files run in parts (TEST_PART_TIMES), is kept in Output/RunParallel.times, for the next run.
 import ctypes, json, os, re, subprocess, sys, time
 
@@ -119,6 +119,7 @@ def main():
 		asTimes = {"files": asTimes, "calls": {}}
 	aJobs = Jobs(aFiles, asTimes, iJobs)
 
+	os.makedirs(os.path.join(WORK, "Output"), exist_ok=True)
 	fStart = time.time()
 	aRunning = []
 	asDone = {}
@@ -138,7 +139,7 @@ def main():
 			asEnv = dict(os.environ)
 			asEnv["TESTLIB_LOG"] = szLog
 			asEnv["TEST_PART_TIMES"] = "1"
-			pcOut = open(os.path.join(WORK, sJob[0] + "Out.txt"), "w")
+			pcOut = open(os.path.join(WORK, "Output", sJob[0] + "Out.txt"), "w")
 			aRunning.append((sJob, subprocess.Popen([szExe] + sJob[1], cwd=WORK, env=asEnv, stdout=pcOut, stderr=subprocess.STDOUT), time.time(), pcOut))
 		time.sleep(0.5)
 
@@ -173,7 +174,7 @@ def main():
 	#The times, kept for the next run: each file's, and each call's of those run in parts.
 	asCalls = {}
 	for sJob in aJobs:
-		szOut = os.path.join(WORK, sJob[0] + "Out.txt")
+		szOut = os.path.join(WORK, "Output", sJob[0] + "Out.txt")
 		for m in re.finditer(r"^TESTPART (\S+) (\d+) ([0-9.]+) \d+$", open(szOut, errors="replace").read() if os.path.exists(szOut) else "", re.M):
 			asCalls.setdefault(m.group(1), {})[m.group(2)] = float(m.group(3))
 	if not aszUnfinished:
