@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __POINTER_OBJECT_H__
 #define __POINTER_OBJECT_H__
+#include "BaseLib/Atomic.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/IndexedGeneral.h"
 #include "EmbeddedObject.h"
@@ -130,7 +131,23 @@ protected:
 	void				PointToFromOutside(CEmbeddedObject* const* ppcObject);
 	bool				PointToReading(CEmbeddedObject* const* ppcObject);
 	bool				IsEmbeddingHeld(void) const;
+
+private:
+	CEmbeddedObject*	Dehollow(CEmbeddedObject* pcObject);
+	CEmbeddedObject*	LoadObject(void) const;
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object pointed to, read whole: a load on another thread may be
+// pointing this at what a hollow was loaded as (UnsafePointTo).
+//
+//////////////////////////////////////////////////////////////////////////
+inline CEmbeddedObject* CPointer::LoadObject(void) const
+{
+	return (CEmbeddedObject*)AtomicLoadPointer((void**)&mpcObject);
+}
 
 
 void LogPointerDebug(CPointer* pvThis, const char* szMethod);

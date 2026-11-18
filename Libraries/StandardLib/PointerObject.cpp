@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Atomic.h"
 #include "BaseLib/Define.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/Numbers.h"
@@ -388,7 +389,8 @@ void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 {
 	OBJECTS_INSIDE();
 
-	mpcObject = pcNewObject;
+	//Whole: a load remaps pointers that other threads may be reading (Dereference).
+	AtomicStorePointer((void**)&mpcObject, pcNewObject);
 }
 
 
@@ -717,28 +719,24 @@ CObject* CPointer::Embedding(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The object, loaded if it is a hollow (the pointer then points to the
-// loaded object).  NULL for a NULL pointer, or a hollow that can't be
-// loaded: the pointer is then left pointing to the hollow, to try again.
+// The object, loaded if it is a hollow.  NULL for a NULL pointer, or a
+// hollow that can't be loaded (the pointer is left pointing to it, to try
+// again).  Nothing is written: a load points every pointer to the hollow
+// at the object, this one too.  The pointer is read whole, as a load on
+// another thread may be rewriting it (ThreadSafetyPlan.txt, Forwarding
+// hollows).
 //
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::Dereference(void)
 {
-	CEmbeddedObject*	pcLoaded;
+	CEmbeddedObject*	pcObject;
 
-	if (mpcObject == NULL)
+	pcObject = LoadObject();
+	if (pcObject == NULL)
 	{
 		return NULL;
 	}
-
-	//Written only when it pointed at a hollow that has now been loaded: using a pointer that two threads share (a
-	//field of an object they both use) mustn't write to it.
-	pcLoaded = mpcObject->Dehollow();
-	if ((pcLoaded != NULL) && (pcLoaded != mpcObject))
-	{
-		mpcObject = pcLoaded;
-	}
-	return pcLoaded;
+	return Dehollow(pcObject);
 }
 
 
@@ -749,12 +747,36 @@ CEmbeddedObject* CPointer::Dereference(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::DereferenceArrow(void)
 {
-	if (mpcObject == NULL)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject == NULL)
 	{
 		gcLogger.Error2(__METHOD__, " Attempted to dereference NULL Pointer.", NULL);
 		return NULL;
 	}
-	return Dereference();
+	return Dehollow(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcObject, what this pointed to when it was read, or if that was a
+// hollow what it is loaded as (which this points to now).
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CPointer::Dehollow(CEmbeddedObject* pcObject)
+{
+	CEmbeddedObject*	pcLoaded;
+
+	pcLoaded = pcObject->Dehollow();
+#ifdef _DEBUG
+	if ((pcLoaded != NULL) && (pcLoaded != pcObject) && (LoadObject() != pcLoaded))
+	{
+		gcLogger.Error2(__METHOD__, " A pointer to a hollow wasn't pointed at what the hollow was loaded as.", NULL);
+	}
+#endif // _DEBUG
+	return pcLoaded;
 }
 
 

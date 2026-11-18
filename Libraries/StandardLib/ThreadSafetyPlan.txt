@@ -871,6 +871,20 @@ Steps
          NumForwarders).
       d. The words a load rewrites read and written as relaxed atomics; Dereference's write-backs gone (asserted
          first).  Held to step 7: operator-> and a collection's Get counted, no more instructions than now.
+         Done 2026-11-18.  A pointer's object is read whole where operator-> reads it (CPointer::LoadObject) and
+         written whole by a remap (UnsafePointTo); a set's or array's elements are read through UnsafeGet and written
+         by a remap through UnsafeSet, both whole; a map of pointers reads its keys and values whole (CMapPtrPtr) and
+         CMapUnknownUnknown writes them whole; the order comparison reads its two elements whole.  A key loaded for
+         its hollow is changed where it is in a map that keeps its members' locations (ReplaceKey): putting the entry
+         again was a change to the map's arrays while another thread could be reading them.
+         The write-backs are gone, from CPointer::Dereference and CArrayCommonObject::Dereference (which now takes the
+         element's place, not a pointer to it); a Debug build says so if a load ever leaves the pointer or element
+         behind, and in the whole of TestStandardLib it never did.
+         Counted (callgrind, one thread): operator-> and a method call 19 instructions to 16, an array's Get and a
+         method call 727 to 707 (a new speed case), a stack Ptr's copy and drop 331 and a field pointed elsewhere
+         unchanged.
+         Left as it was: an index object's values are copied in and out of its tree by BaseLib's memcpy, so one read
+         while a load rewrites it is still a race as far as ThreadSanitizer goes (the hardware reads it whole).
       e. Tests (TestObjectsThreads.cpp, with a database): threads walking one stored graph and loading it as they go
          (each object loaded once, the same objects reached, counts and distances exact, no forwarders left after);
          two threads using one hollow at once, over and over; a raw pointer to a hollow kept by one thread while

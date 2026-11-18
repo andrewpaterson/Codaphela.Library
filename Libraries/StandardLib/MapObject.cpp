@@ -625,15 +625,24 @@ size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 		return iCount;
 	}
 
-	//Where pcOld is a value, then where it is a key: that entry is put again under pcNew, which keeps the map sorted.
-	//(Its key may sort with pcNew's and already be pcNew: this is called again for each pointer pcOld had here.)
+	//Where pcOld is a value, then where it is a key.  A key that sorts as pcNew does (a hollow's loaded object) is
+	//changed where it is, as another thread may be reading the map; otherwise its entry is put again under pcNew,
+	//which keeps the map sorted.  (pcOld's key may sort with pcNew's and already be pcNew: this is called again for
+	//each pointer pcOld had here.)
 	iCount = RemapLocatedMember(pcOld, pcNew);
 	if (mcMap.GetKey(pcOld) == pcOld)
 	{
 		pcValue = (CEmbeddedObject*)mcMap.Get(pcOld);
-		mcMap.Remove(pcOld);
 		RemoveValueLocation(pcValue, pcOld);
-		mcMap.Put(pcNew, pcValue);
+		if (CEmbeddedObject::CompareIndex(&pcOld, &pcNew) == 0)
+		{
+			mcMap.ReplaceKey(pcOld, pcNew);
+		}
+		else
+		{
+			mcMap.Remove(pcOld);
+			mcMap.Put(pcNew, pcValue);
+		}
 		AddValueLocation(pcValue, pcNew);
 		iCount++;
 	}

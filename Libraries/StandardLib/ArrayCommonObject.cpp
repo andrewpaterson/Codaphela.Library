@@ -334,35 +334,31 @@ bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The element at iIndex, loaded if it is a hollow (the load points the
+// element at the object).  Read whole: a load on another thread may be
+// rewriting it.  NULL for a NULL element, or a hollow that can't be
+// loaded, which is left as it is to try again.
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CArrayCommonObject::Dereference(CEmbeddedObject** ppcObject)
+CEmbeddedObject* CArrayCommonObject::Dereference(size iIndex)
 {
-	CEmbeddedObject*	pcOldObject;
+	CEmbeddedObject*	pcObject;
 	CEmbeddedObject*	pcLoaded;
 
-	pcOldObject = *ppcObject;
-	if (pcOldObject)
-	{
-		//If it can't be loaded the element is left as the hollow, to try again.
-		pcLoaded = pcOldObject->Dehollow();
-		if (pcLoaded == NULL)
-		{
-			return NULL;
-		}
-		//Written only when it was a hollow that has now been loaded: a read that wrote the same pointer back would
-		//be a write as far as another thread reading the element is concerned.
-		if (pcLoaded != pcOldObject)
-		{
-			*ppcObject = pcLoaded;
-			mcArray.PointerReplaced(pcOldObject, pcLoaded);
-		}
-		return pcLoaded;
-	}
-	else
+	pcObject = (CEmbeddedObject*)mcArray.UnsafeGet(iIndex);
+	if (pcObject == NULL)
 	{
 		return NULL;
 	}
+
+	pcLoaded = pcObject->Dehollow();
+#ifdef _DEBUG
+	if ((pcLoaded != NULL) && (pcLoaded != pcObject) && (mcArray.UnsafeGet(iIndex) != pcLoaded))
+	{
+		gcLogger.Error2(__METHOD__, " A collection's hollow element wasn't pointed at what the hollow was loaded as.", NULL);
+	}
+#endif // _DEBUG
+	return pcLoaded;
 }
 
 
@@ -570,7 +566,6 @@ size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject
 	OBJECTS_INSIDE();
 
 	size 				iCount;
-	CEmbeddedObject**	ppcPointedTo;
 	size 				i;
 	size 				uiNumElements;
 	CPointerLocations*	pcLocations;
@@ -587,10 +582,9 @@ size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject
 		uiNumElements = mcArray.UnsafeNumElements();
 		for (i = 0; i < uiNumElements; i++)
 		{
-			ppcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
-			if (*ppcPointedTo == pcOld)
+			if (mcArray.UnsafeGet(i) == pcOld)
 			{
-				*ppcPointedTo = pcNew;
+				mcArray.UnsafeSet(i, pcNew);
 				iCount++;
 			}
 		}

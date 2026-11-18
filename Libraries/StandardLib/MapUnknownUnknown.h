@@ -57,6 +57,7 @@ public:
 	bool		Contains(CUnknown* pcKey);
 
 	void		SetKey(SMapIterator* psIter, CUnknown* pcNewKey);
+	bool		ReplaceKey(CUnknown* pcKey, CUnknown* pcNewKey);
 	void		SetValue(SMapIterator* psIter, CUnknown* pcNewValue);
 
 	size		NumElements(void) override;
@@ -81,6 +82,7 @@ protected:
 	bool		WriteData(CFileWriter* pcFile, void* pvData) override;
 	bool		ReadData(CFileReader* pcFile, void* pvData) override;
 	void		ReplaceValue(CUnknown** ppcValue, CUnknown* pcKey, CUnknown* pcValue);
+	void		SetNodeKey(SMNode* psNode, CUnknown* pcNewKey);
 };
 
 

@@ -234,6 +234,17 @@ NO_INLINE void TestObjectsSpeedMallocIntoArray(Ptr<CArrayObject>& pArray, size u
 }
 
 
+NO_INLINE void TestObjectsSpeedArrayGet(Ptr<CArrayObject>& pArray, size uiCount)
+{
+	size	i;
+
+	for (i = 0; i < uiCount; i++)
+	{
+		pArray->Get<CTestSpeedNode>(0)->Touch();
+	}
+}
+
+
 //A window's worth of components: every node points to the window and to its parent, and holds its children in an
 //array.  Returns how many nodes it made.
 NO_INLINE size TestObjectsSpeedBuildTree(Ptr<CTestSpeedNode> pWindow, Ptr<CTestSpeedNode> pParent, size uiDepth, CArrayBaseObjectPtr* papcNodes)
@@ -602,6 +613,12 @@ void TestObjectsSpeedOperations(void)
 	iStart = GetDebugMicroseconds();
 	TestObjectsSpeedMallocIntoArray(pArray, uiCount);
 	TestObjectsSpeedLog("OMalloc, added to an array, removed", iStart, uiCount);
+
+	pArray->Add(pFirst);
+	iStart = GetDebugMicroseconds();
+	TestObjectsSpeedArrayGet(pArray, uiCount);
+	TestObjectsSpeedLog("Array's Get and a method called", iStart, uiCount);
+	pArray->RemoveAll();
 	TestObjectsSpeedThreadsStop();
 
 	gcObjects.EnableValidation();

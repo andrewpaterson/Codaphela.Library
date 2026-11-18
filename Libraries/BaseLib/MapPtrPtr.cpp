@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "Atomic.h"
 #include "PointerFunctions.h"
 #include "MapPtrPtr.h"
 
@@ -67,7 +68,7 @@ void* CMapPtrPtr::Get(void* pvKey)
 	ppvResult = CMapTemplateTemplate<void*, void*>::Get(&pvKey);
 	if (ppvResult)
 	{
-		return *ppvResult;
+		return AtomicLoadPointer(ppvResult);
 	}
 	return NULL;
 }
@@ -108,8 +109,8 @@ bool CMapPtrPtr::StartIteration(SMapIterator* psIterator, void** ppcKey, void** 
 	bResult = CMapBlock::StartIteration(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
 	if (bResult)
 	{
-		*ppcKey = *ppcK;
-		*ppcValue = *ppcV;
+		*ppcKey = AtomicLoadPointer(ppcK);
+		*ppcValue = AtomicLoadPointer(ppcV);
 	}
 	return bResult;
 }
@@ -128,8 +129,8 @@ bool CMapPtrPtr::Iterate(SMapIterator* psIterator, void** ppcKey, void** ppcValu
 	bResult = CMapBlock::Iterate(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
 	if (bResult)
 	{
-		*ppcKey = *ppcK;
-		*ppcValue = *ppcV;
+		*ppcKey = AtomicLoadPointer(ppcK);
+		*ppcValue = AtomicLoadPointer(ppcV);
 	}
 	return bResult;
 }

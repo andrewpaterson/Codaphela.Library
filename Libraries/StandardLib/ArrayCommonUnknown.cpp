@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Atomic.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/PrimitiveTypes.h"
 #include "EmbeddedObject.h"
@@ -101,7 +102,7 @@ void CArrayCommonUnknown::PrivateKill(void)
 		uiNumElements = mcArray.NumElements();
 		for (i = 0; i < uiNumElements; i++)
 		{
-			pcUnknown = *mcArray.Get(i);
+			pcUnknown = UnsafeGet(i);
 			if (pcUnknown)
 			{
 				pcUnknown->Kill();
@@ -220,7 +221,7 @@ bool CArrayCommonUnknown::WriteElements(CFileWriter* pcFile)
 	uiNumElements = mcArray.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		ReturnOnFalse(WriteElement(pcFile, *mcArray.Get(i)));
+		ReturnOnFalse(WriteElement(pcFile, UnsafeGet(i)));
 	}
 	return true;
 }
@@ -424,7 +425,7 @@ size CArrayCommonUnknown::FindNextSortedWith(CUnknown* pcUnknown, size iFound, s
 	uiNumElements = mcArray.NumElements();
 	for (; iIndex < uiNumElements; iIndex++)
 	{
-		pcCurrent = *mcArray.Get(iIndex);
+		pcCurrent = UnsafeGet(iIndex);
 		if (pcCurrent == pcUnknown)
 		{
 			return iIndex;
@@ -461,7 +462,7 @@ size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 		{
 			return ARRAY_ELEMENT_NOT_FOUND;
 		}
-		if (*mcArray.Get(iIndex) != pcUnknown)
+		if (UnsafeGet(iIndex) != pcUnknown)
 		{
 			return FindNextSortedWith(pcUnknown, iIndex, uiStartIndex);
 		}
@@ -469,13 +470,13 @@ size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 		//The search finds any one of the same element.  They are next to each other.
 		if (iIndex < uiStartIndex)
 		{
-			if ((uiStartIndex < mcArray.NumElements()) && (*mcArray.Get(uiStartIndex) == pcUnknown))
+			if ((uiStartIndex < mcArray.NumElements()) && (UnsafeGet(uiStartIndex) == pcUnknown))
 			{
 				return uiStartIndex;
 			}
 			return ARRAY_ELEMENT_NOT_FOUND;
 		}
-		while ((iIndex > uiStartIndex) && (*mcArray.Get(iIndex - 1) == pcUnknown))
+		while ((iIndex > uiStartIndex) && (UnsafeGet(iIndex - 1) == pcUnknown))
 		{
 			iIndex--;
 		}
@@ -486,7 +487,7 @@ size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 		uiNumElements = mcArray.NumElements();
 		for (iIndex = uiStartIndex; iIndex < uiNumElements; iIndex++)
 		{
-			pcCurrent = *mcArray.Get(iIndex);
+			pcCurrent = UnsafeGet(iIndex);
 			if (pcCurrent == pcUnknown)
 			{
 				return iIndex;
@@ -564,7 +565,7 @@ bool CArrayCommonUnknown::Set(size iIndex, CUnknown* pcUnknown, bool bCleanNulls
 		return false;
 	}
 
-	pcOld = *mcArray.Get(iIndex);
+	pcOld = UnsafeGet(iIndex);
 	if (pcOld == pcUnknown)
 	{
 		return true;
@@ -578,7 +579,7 @@ bool CArrayCommonUnknown::Set(size iIndex, CUnknown* pcUnknown, bool bCleanNulls
 		//Searched without Contains: a binary search can clean the NULLs, moving the element at iIndex.
 		for (i = 0; i < uiNumElements; i++)
 		{
-			if (*mcArray.Get(i) == pcUnknown)
+			if (UnsafeGet(i) == pcUnknown)
 			{
 				return false;
 			}
@@ -631,7 +632,7 @@ bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 	{
 		for (i = 0; i < uiNumElements; i++)
 		{
-			pcUnknown = *pcSource->mcArray.Get(i);
+			pcUnknown = pcSource->UnsafeGet(i);
 			if ((pcUnknown != NULL) || !bSkipNulls)
 			{
 				Add(pcUnknown, false);
@@ -644,7 +645,7 @@ bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 	{
 		for (i = 0; i < uiNumElements; i++)
 		{
-			pcUnknown = *pcSource->mcArray.Get(i);
+			pcUnknown = pcSource->UnsafeGet(i);
 			if (pcUnknown != NULL)
 			{
 				mcArray.Add(pcUnknown);
@@ -797,7 +798,7 @@ size CArrayCommonUnknown::CountNonNull(void)
 	uiNumElements = mcArray.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		if (*mcArray.Get(i) != NULL)
+		if (UnsafeGet(i) != NULL)
 		{
 			uiNonNull++;
 		}
@@ -829,7 +830,7 @@ void CArrayCommonUnknown::CleanNulls(void)
 	do
 	{
 		uiLastNotNull--;
-		pcSource = *mcArray.Get(uiLastNotNull);
+		pcSource = UnsafeGet(uiLastNotNull);
 		if (pcSource)
 		{
 			break;
@@ -845,7 +846,7 @@ void CArrayCommonUnknown::CleanNulls(void)
 		{
 			do
 			{
-				pcSource = *mcArray.Get(iSource);
+				pcSource = UnsafeGet(iSource);
 				iSource++;
 			}
 			while (pcSource == NULL);
@@ -916,7 +917,7 @@ bool CArrayCommonUnknown::RemoveLast(bool bCleanNullsIfNecessary)
 			do
 			{
 				i--;
-				pcUnknown = *mcArray.Get(i);
+				pcUnknown = UnsafeGet(i);
 				if (pcUnknown)
 				{
 					return Remove(i, bCleanNullsIfNecessary);
@@ -985,7 +986,7 @@ EArrayUnsetReturn CArrayCommonUnknown::Unset(size iIndex)
 		return eReturn;
 	}
 
-	pcUnknown = *mcArray.Get(iIndex);
+	pcUnknown = UnsafeGet(iIndex);
 	if (muiFlags & ARRAY_COMMON_IGNORE_NULL)
 	{
 		if (pcUnknown != NULL)
@@ -1086,7 +1087,7 @@ bool CArrayCommonUnknown::RemoveEnd(size iIndexInclusive)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::UnsafeSet(size iIndex, CUnknown* pcUnknown)
 {
-	mcArray.Set(iIndex, &pcUnknown);
+	AtomicStorePointer((void**)mcArray.Get(iIndex), pcUnknown);
 }
 
 
@@ -1096,7 +1097,7 @@ void CArrayCommonUnknown::UnsafeSet(size iIndex, CUnknown* pcUnknown)
 //////////////////////////////////////////////////////////////////////////
 CUnknown* CArrayCommonUnknown::UnsafeGet(size iIndex)
 {
-	return *mcArray.Get(iIndex);
+	return (CUnknown*)AtomicLoadPointer((void**)mcArray.Get(iIndex));
 }
 
 
@@ -1171,7 +1172,7 @@ CUnknown* CArrayCommonUnknown::Last(void)
 				do
 				{
 					i--;
-					pcUnknown = *mcArray.Get(i);
+					pcUnknown = UnsafeGet(i);
 					if (pcUnknown)
 					{
 						return pcUnknown;
@@ -1201,7 +1202,7 @@ bool CArrayCommonUnknown::StartIteration(SSetIterator* psIter, CUnknown** ppcUnk
 	{
 		psIter->iIndex = 0;
 		psIter->bStepFirst = true;
-		pcUnknown = *mcArray.Get(psIter->iIndex);
+		pcUnknown = UnsafeGet(psIter->iIndex);
 
 		if ((pcUnknown == NULL) && (muiFlags & ARRAY_COMMON_IGNORE_NULL))
 		{
@@ -1284,7 +1285,7 @@ bool CArrayCommonUnknown::PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnk
 			psIter->iIndex++;
 		}
 		psIter->bStepFirst = true;
-		*ppcUnknown = *mcArray.Get(psIter->iIndex);
+		*ppcUnknown = UnsafeGet(psIter->iIndex);
 		return true;
 	}
 	else

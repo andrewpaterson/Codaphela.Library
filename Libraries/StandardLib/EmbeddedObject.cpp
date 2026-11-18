@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Atomic.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
@@ -192,9 +193,10 @@ int CEmbeddedObject::CompareIndex(const void* ppvObject1, const void* ppvObject2
 	OIndex				oi1;
 	OIndex				oi2;
 
-	//Nearly always two objects, not embedded, with indexes of their own: no call.
-	pc1 = *((CEmbeddedObject**)ppvObject1);
-	pc2 = *((CEmbeddedObject**)ppvObject2);
+	//Read whole: a load may be rewriting a set's element.  Nearly always two objects, not embedded, with indexes of
+	//their own: no call.
+	pc1 = (CEmbeddedObject*)AtomicLoadPointer((void**)ppvObject1);
+	pc2 = (CEmbeddedObject*)AtomicLoadPointer((void**)ppvObject2);
 	if ((pc1 != NULL) && (pc2 != NULL) && (pc1->mpcEmbedded == NULL) && (pc2->mpcEmbedded == NULL))
 	{
 		oi1 = ((CBaseObject*)pc1)->moi;
