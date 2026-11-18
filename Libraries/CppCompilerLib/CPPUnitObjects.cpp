@@ -285,13 +285,20 @@ SCPP65Type* CCPPUnit::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbD
 //
 // The label of a type's type info, the address typeid gives, written if it
 // isn't yet: a class's is _Class__3 (EnsureTypeInfo), any other type's _3
-// and the type mangled, a word of its own in a COMDAT section, so its
-// address is the type's in the whole program (no name starts with a digit).
+// and the type mangled, in a COMDAT section, so its address is the type's in
+// the whole program (no name starts with a digit).  Its name and kind, then
+// for a pointer its pointee's type info, for a pointer to a member the
+// member's type's and the class's (CPP65_TYPE_INFO_NAME_OFFSET).  The type
+// infos it points to are written first, each a section of its own.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
 {
-	CChars	szLabel;
+	CChars				szLabel;
+	CChars				szName;
+	CChars				szFirst;
+	CChars				szSecond;
+	ECPP65TypeInfoKind	eKind;
 
 	if (psType->IsClass())
 	{
@@ -303,6 +310,25 @@ void CCPPUnit::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
 	mcMangler.AppendType(&szLabel, psType);
 	if (Emit(&szLabel))
 	{
+		szFirst.Init();
+		szSecond.Init();
+		switch (psType->eKind)
+		{
+		case CPP65TK_Pointer:
+			eKind = CPP65TIK_Pointer;
+			AppendTypeidLabel(&szFirst, psType->psBase->Unqualified());
+			break;
+		case CPP65TK_MemberPointer:
+			eKind = CPP65TIK_MemberPointer;
+			AppendTypeidLabel(&szFirst, psType->psBase->Unqualified());
+			AppendTypeidLabel(&szSecond, psType->pcClass->mpsType);
+			break;
+		case CPP65TK_Array:		eKind = CPP65TIK_Array;		break;
+		case CPP65TK_Function:	eKind = CPP65TIK_Function;	break;
+		default:				eKind = psType->pcEnum ? CPP65TIK_Enum : CPP65TIK_Fundamental;	break;
+		}
+		szName.Init();
+		AppendTypeInfoName(&szLabel, psType, true, &szName);
 		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
 		CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
 		mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
@@ -310,11 +336,305 @@ void CCPPUnit::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
 		mcData.GetText()->Append(&szLabel);
 		mcData.GetText()->Append(':');
 		mcData.GetText()->AppendNewLine();
-		mcData.GetText()->Append("\t\t.long 0");
-		mcData.GetText()->AppendNewLine();
+		AppendTypeInfoHeader(&szName, eKind);
+		if (szFirst.Length() > 0)
+		{
+			mcData.GetText()->Append("\t\t.long ")->Append(&szFirst);
+			mcData.GetText()->AppendNewLine();
+		}
+		if (szSecond.Length() > 0)
+		{
+			mcData.GetText()->Append("\t\t.long ")->Append(&szSecond);
+			mcData.GetText()->AppendNewLine();
+		}
+		szName.Kill();
+		szSecond.Kill();
+		szFirst.Kill();
 	}
 	psz->Append(&szLabel);
 	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A type as a program writes it, for type_info::name ([type.info] 9 leaves
+// the string to the implementation): "int", "unsigned char", "N::A",
+// "N::Box<long>", "const char*", "char* const*", "int (*)[3]",
+// "void (*)(int)", "int A::*".  An integer is named by its size as the
+// compiler has its types, so long is int where they are as wide and
+// wchar_t is unsigned short (CppParserTodo.txt question 13).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendTypeName(CChars* psz, SCPP65Type* psType)
+{
+	CChars	szInner;
+
+	szInner.Init();
+	AppendTypeNameAround(psz, psType, &szInner);
+	szInner.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// psType around pszInner, what is declared of it so far (a declarator
+// without its name): int around * is int*, int[3] around (*) is
+// int (*)[3], and a pointer to an array or a function is put in brackets.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendTypeNameAround(CChars* psz, SCPP65Type* psType, CChars* pszInner)
+{
+	CChars		szInner;
+	const char*	szName;
+	size		i;
+
+	szInner.Init();
+	switch (psType->eKind)
+	{
+	case CPP65TK_Pointer:
+	case CPP65TK_Reference:
+	case CPP65TK_MemberPointer:
+		if (psType->eKind == CPP65TK_MemberPointer)
+		{
+			AppendClassName(&szInner, psType->pcClass);
+			szInner.Append("::*");
+		}
+		else if (psType->eKind == CPP65TK_Pointer)
+		{
+			szInner.Append('*');
+		}
+		else
+		{
+			szInner.Append(psType->bRvalue ? "&&" : "&");
+		}
+		if (psType->eKind != CPP65TK_Reference)
+		{
+			szInner.Append(psType->bConst ? " const" : "");
+			szInner.Append(psType->bVolatile ? " volatile" : "");
+		}
+		szInner.Append(pszInner);
+		if (psType->psBase->IsArray() || psType->psBase->IsFunction())
+		{
+			szInner.Insert(0, '(');
+			szInner.Append(')');
+		}
+		AppendTypeNameAround(psz, psType->psBase, &szInner);
+		szInner.Kill();
+		return;
+
+	case CPP65TK_Array:
+		szInner.Append(pszInner);
+		szInner.Append('[')->Append(psType->iCount)->Append(']');
+		AppendTypeNameAround(psz, psType->psBase, &szInner);
+		szInner.Kill();
+		return;
+
+	case CPP65TK_Function:
+		szInner.Append(pszInner);
+		szInner.Append('(');
+		for (i = 0; i < psType->papsParameters->NumElements(); i++)
+		{
+			szInner.Append((i == 0) ? "" : ", ");
+			AppendTypeName(&szInner, psType->papsParameters->GetPtr(i));
+		}
+		if (psType->bVariadic)
+		{
+			szInner.Append((i == 0) ? "..." : ", ...");
+		}
+		szInner.Append(')');
+		AppendTypeNameAround(psz, psType->psBase, &szInner);
+		szInner.Kill();
+		return;
+
+	default:
+		break;
+	}
+	szInner.Kill();
+
+	//The type's own name, then what is declared of it: a space before (*) or A::*, none before * or &.
+	psz->Append(psType->bConst ? "const " : "");
+	psz->Append(psType->bVolatile ? "volatile " : "");
+	switch (psType->eKind)
+	{
+	case CPP65TK_Void:
+		psz->Append("void");
+		break;
+	case CPP65TK_Bool:
+		psz->Append("bool");
+		break;
+	case CPP65TK_Integer:
+		if (psType->pcEnum)
+		{
+			AppendScopeName(psz, psType->pcEnum->mpcScope);
+			if (psType->pcEnum->mlliName >= 0)
+			{
+				AppendIdentifier(psz, psType->pcEnum->mlliName);
+			}
+			else
+			{
+				psz->Append("(unnamed enum)");
+			}
+			break;
+		}
+		psz->Append(psType->bSigned ? "" : "unsigned ");
+		if (psType->iBytes == 1)
+		{
+			szName = "char";
+		}
+		else if (psType->iBytes == mcTypes.msInt.iBytes)
+		{
+			szName = "int";
+		}
+		else
+		{
+			szName = (psType->iBytes == 2) ? "short" : ((psType->iBytes == 4) ? "long" : "long long");
+		}
+		psz->Append(szName);
+		break;
+	case CPP65TK_Float:
+		psz->Append(psType->bLongDouble ? "long double" : ((psType->iBytes == 4) ? "float" : "double"));
+		break;
+	case CPP65TK_Class:
+		AppendClassName(psz, psType->pcClass);
+		break;
+	default:
+		psz->Append("?");
+		break;
+	}
+	if (!pszInner->Empty())
+	{
+		if ((pszInner->GetChar(0) == '(') || (pszInner->GetChar(0) == '_') || ((pszInner->GetChar(0) >= 'A') && (pszInner->GetChar(0) <= 'Z')) || ((pszInner->GetChar(0) >= 'a') && (pszInner->GetChar(0) <= 'z')))
+		{
+			psz->Append(' ');
+		}
+		psz->Append(pszInner);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class's name as the program writes it: N::Outer::Inner, N::Box<long>,
+// P<char>::Q<long>.  A template instance's arguments are what its template's
+// parameters are bound to (for an instance of a partial specialisation,
+// what the specialisation's are).  A closure is <lambda>, a class with no
+// name <unnamed>.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendClassName(CChars* psz, CCPPClass* pcClass)
+{
+	SCPPBinding*	psBinding;
+	size			i;
+	size			j;
+	bool			bFirst;
+
+	if (pcClass->mpsLambda)
+	{
+		psz->Append("<lambda>");
+		return;
+	}
+	if (pcClass->IsUnnamed())
+	{
+		psz->Append("<unnamed>");
+		return;
+	}
+	if (pcClass->mpcTemplate && pcClass->mpcTemplate->mpcPrimary->mpcClass)
+	{
+		AppendClassName(psz, pcClass->mpcTemplate->mpcPrimary->mpcClass);
+		psz->Append("::");
+	}
+	else if (pcClass->mpcSymbol)
+	{
+		AppendScopeName(psz, pcClass->mpcSymbol->mpcScope);
+	}
+	AppendIdentifier(psz, pcClass->mlliName);
+	if (!pcClass->mpcTemplate || !pcClass->mpcBindings)
+	{
+		return;
+	}
+	psz->Append('<');
+	bFirst = true;
+	for (i = 0; i < pcClass->mpcBindings->macBindings.NumElements(); i++)
+	{
+		psBinding = pcClass->mpcBindings->macBindings.Get(i);
+		if (psBinding->papsPack)
+		{
+			for (j = 0; j < psBinding->papsPack->NumElements(); j++)
+			{
+				psz->Append(bFirst ? "" : ", ");
+				AppendTypeName(psz, psBinding->papsPack->GetPtr(j));
+				bFirst = false;
+			}
+			continue;
+		}
+		if (psBinding->palliPack)
+		{
+			for (j = 0; j < psBinding->palliPack->NumElements(); j++)
+			{
+				psz->Append(bFirst ? "" : ", ");
+				psz->Append(psBinding->palliPack->GetValue(j));
+				bFirst = false;
+			}
+			continue;
+		}
+		psz->Append(bFirst ? "" : ", ");
+		bFirst = false;
+		if (psBinding->psType)
+		{
+			AppendTypeName(psz, psBinding->psType);
+		}
+		else if (psBinding->pcTemplate && psBinding->pcTemplate->mpcPrimary && psBinding->pcTemplate->mpcPrimary->mpcSymbol)
+		{
+			AppendScopeName(psz, psBinding->pcTemplate->mpcPrimary->mpcSymbol->mpcScope);
+			AppendIdentifier(psz, psBinding->pcTemplate->mpcPrimary->mpcSymbol->mlliName);
+		}
+		else
+		{
+			psz->Append(psBinding->lliValue);
+		}
+	}
+	psz->Append('>');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The named namespaces and classes pcScope is in, outermost first, each
+// followed by ::.  A namespace without a name is (anonymous namespace)::.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendScopeName(CChars* psz, CCPPScope* pcScope)
+{
+	if (!pcScope || ((pcScope->meKind != CPPSC_Class) && (pcScope->meKind != CPPSC_Namespace)))
+	{
+		return;
+	}
+	AppendScopeName(psz, pcScope->mpcParent);
+	if (pcScope->mpcOwner && (pcScope->mpcOwner->mlliName >= 0))
+	{
+		AppendIdentifier(psz, pcScope->mpcOwner->mlliName);
+		psz->Append("::");
+	}
+	else if (pcScope->IsUnnamedNamespace())
+	{
+		psz->Append("(anonymous namespace)::");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An identifier's text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendIdentifier(CChars* psz, int64 lliName)
+{
+	char*	szName;
+	int		iLength;
+
+	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	psz->Append(szName, iLength);
 }
 
 

@@ -612,7 +612,15 @@ public:
 	void					AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset, CChars* pszWords);
 	size					VTTEntries(CCPPClass* pcClass);
 	int						VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase);
-	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset);
+	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags);
+	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
+	void					AppendTypeInfoHeader(CChars* pszName, ECPP65TypeInfoKind eKind);
+	void					AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bShared, CChars* pszName);
+	void					AppendTypeName(CChars* psz, SCPP65Type* psType);
+	void					AppendTypeNameAround(CChars* psz, SCPP65Type* psType, CChars* pszInner);
+	void					AppendClassName(CChars* psz, CCPPClass* pcClass);
+	void					AppendScopeName(CChars* psz, CCPPScope* pcScope);
+	void					AppendIdentifier(CChars* psz, int64 lliName);
 	void					AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer);
 	void					AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction);
 	void					AppendThunkLabel(CChars* pszLabel, bool bComdat);

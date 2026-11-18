@@ -328,17 +328,21 @@ void CCPPUnit::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// _Class__3: the class's type info, for dynamic_cast.  Every subobject of an
-// object of the class, the object itself first: the subobject class's type info
-// and its offset in the object.  A zero ends it.  Each unit that needs it writes
+// _Class__3: the class's type info, for typeid and dynamic_cast: its name and
+// kind (CPP65_TYPE_INFO_NAME_OFFSET), then every subobject of an object of the
+// class, the object itself first: the subobject class's type info, its
+// offset in the object and its flags (CPP65_TYPE_INFO_PUBLIC,
+// CPP65_TYPE_INFO_VIRTUAL).  A zero ends it.  Each unit that needs it writes
 // it in a COMDAT section (the linker keeps one) so its address identifies the
 // class.  The type infos of the bases are written too.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 {
-	CChars	szLabel;
-	size	i;
+	CChars		szLabel;
+	CChars		szName;
+	CCPPClass*	pcVirtual;
+	size		i;
 
 	if (pcClass->mbTypeInfo)
 	{
@@ -353,6 +357,8 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 		szLabel.Kill();
 		return;
 	}
+	szName.Init();
+	AppendTypeInfoName(&szLabel, pcClass->mpsType, !pcClass->IsUnnamed(), &szName);
 	if (pcClass->IsUnnamed())
 	{
 		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, NULL);
@@ -368,13 +374,16 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 	mcMangler.AppendTypeInfoLabel(mcData.GetText(), pcClass);
 	mcData.GetText()->Append(':');
 	mcData.GetText()->AppendNewLine();
-	AppendTypeInfoBases(pcClass, 0);
+	AppendTypeInfoHeader(&szName, CPP65TIK_Class);
+	AppendTypeInfoBases(pcClass, 0, CPP65_TYPE_INFO_PUBLIC);
 	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
 	{
-		AppendTypeInfoBases(pcClass->macVirtualBases.Get(i)->pcClass, pcClass->macVirtualBases.Get(i)->iOffset);
+		pcVirtual = pcClass->macVirtualBases.Get(i)->pcClass;
+		AppendTypeInfoBases(pcVirtual, pcClass->macVirtualBases.Get(i)->iOffset, CPP65_TYPE_INFO_VIRTUAL | (IsPublicBase(pcClass, pcVirtual) ? CPP65_TYPE_INFO_PUBLIC : 0));
 	}
 	mcData.GetText()->Append("\t\t.long 0");
 	mcData.GetText()->AppendNewLine();
+	szName.Kill();
 
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
@@ -386,10 +395,12 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 //////////////////////////////////////////////////////////////////////////
 //
 // The type info entries for the class's subobject at iOffset and its non-
-// virtual bases' (a virtual base's are the complete object's, once).
+// virtual bases' (a virtual base's are the complete object's, once), with
+// its flags (uiFlags): whether only public bases lead to it, and whether it
+// is a virtual base.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
+void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags)
 {
 	SCPPBase*	psBase;
 	size		i;
@@ -400,14 +411,97 @@ void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset)
 	mcData.GetText()->Append("\t\t.long ");
 	mcData.GetText()->Append(iOffset);
 	mcData.GetText()->AppendNewLine();
+	mcData.GetText()->Append("\t\t.long ");
+	mcData.GetText()->Append((int)uiFlags);
+	mcData.GetText()->AppendNewLine();
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
 		if (!psBase->bVirtual)
 		{
-			AppendTypeInfoBases(psBase->pcClass, iOffset + psBase->iOffset);
+			AppendTypeInfoBases(psBase->pcClass, iOffset + psBase->iOffset, (psBase->eAccess == CPPA_Public) ? (uiFlags & CPP65_TYPE_INFO_PUBLIC) : 0);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcBase is reached from pcClass through public bases only, by one
+// path at least (a virtual base has many).  [class.access.base] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase)
+{
+	SCPPBase*	psBase;
+	size		i;
+
+	if (pcClass == pcBase)
+	{
+		return true;
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if ((psBase->eAccess == CPPA_Public) && IsPublicBase(psBase->pcClass, pcBase))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A type info's header, in the section being written: its name's label
+// (pszName, AppendTypeInfoName) and its kind's word.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendTypeInfoHeader(CChars* pszName, ECPP65TypeInfoKind eKind)
+{
+	mcData.GetText()->Append("\t\t.long ");
+	mcData.GetText()->Append(pszName);
+	mcData.GetText()->AppendNewLine();
+	mcData.GetText()->Append("\t\t.long ");
+	mcData.GetText()->Append((int)eKind);
+	mcData.GetText()->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name a type info points to (pszInfo's, with __Name: *pszName), a
+// string of its own written before it: the type as the program writes it
+// (AppendTypeName).  COMDAT and global with a type info that is (bShared).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bShared, CChars* pszName)
+{
+	CChars	szText;
+	size	i;
+
+	pszName->Append(pszInfo);
+	pszName->Append("__Name");
+	szText.Init();
+	AppendTypeName(&szText, psType);
+	CCPPUnitData::AppendSection(mcData.GetText(), "rodata", pszName, bShared ? ", comdat" : NULL);
+	if (bShared)
+	{
+		CCPPUnitData::AppendGlobal(mcData.GetText(), pszName);
+	}
+	mcData.GetText()->Append(pszName);
+	mcData.GetText()->Append(':');
+	mcData.GetText()->AppendNewLine();
+	mcData.GetText()->Append("\t\t.byte ");
+	for (i = 0; i < szText.Length(); i++)
+	{
+		mcData.GetText()->Append((int)(uint8)szText.GetChar(i));
+		mcData.GetText()->Append(", ");
+	}
+	mcData.GetText()->Append('0');
+	mcData.GetText()->AppendNewLine();
+	szText.Kill();
 }
 
 

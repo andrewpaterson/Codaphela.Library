@@ -3667,6 +3667,23 @@ void TestCPP65GeneratorSharedInline(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// typeid(x).name() is the type as the program writes it: fundamental types,
+// classes and a template's instance in a namespace, an enum, pointers to
+// const, to an array, to a function and to a member, and an object's
+// dynamic type (Input/CPP65/TypeNamesProject; CppParserTodo.txt question
+// 8).  A bit for each name that is right.  [type.info] 9
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorTypeNames(void)
+{
+	static const char*	aszNames[] = { "Input/CPP65/TypeNamesProject/Main.cpp", NULL };
+
+	AssertInt(8191, TestCPP65RunProject(aszNames, ""));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorErrors(void)
@@ -4001,6 +4018,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorStaticConstMembers();
 	TestCPP65GeneratorStaticLocalGuard();
 	TestCPP65GeneratorSharedInline();
+	TestCPP65GeneratorTypeNames();
 	TestCPP65GeneratorNestedQualifiers();
 	TestCPP65GeneratorLateMemberDefinitions();
 	TestCPP65GeneratorExternTemplateProject();

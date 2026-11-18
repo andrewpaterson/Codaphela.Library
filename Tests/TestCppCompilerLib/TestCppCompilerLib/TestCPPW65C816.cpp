@@ -5831,6 +5831,20 @@ void TestCPP816SharedInline(void)
 	AssertInt(3225, TestCPP816RunProject(aszShared, "", NULL));
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// typeid(x).name() is the type as the program writes it
+// (TestCPP65GeneratorTypeNames' program, for the W65C816).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816TypeNames(void)
+{
+	static const char*	aszNames[] = { "Input/CPP65/TypeNamesProject/Main.cpp", NULL };
+
+	AssertInt(8191, TestCPP816RunProject(aszNames, "", NULL));
+}
+
 //The functions of TestCPP816AlignedBigFrameArguments, natively for the expected result and for the W65C816.
 #define TEST_CPP816_BIG_FRAME_FUNCTIONS \
 	long Spread(int n, long add, long more, int k, char c) { int a[180]; for (int i = 0; i < 180; i++) { a[i] = i * k + n + c; } long s = add - more; for (int i = 0; i < 180; i++) { s += a[i]; } return s; } \
@@ -6477,6 +6491,7 @@ void TestCPP816(void)
 	TestCPP816Exit();
 	TestCPP816ExitOrder();
 	TestCPP816SharedInline();
+	TestCPP816TypeNames();
 	TestCPP816StringRegisters();
 	TestCPP816MathRegisters();
 	TestCPP816WideMultiplies();

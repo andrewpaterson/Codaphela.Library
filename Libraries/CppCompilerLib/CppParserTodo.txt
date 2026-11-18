@@ -414,6 +414,11 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         pushes on the same list) after main; globals made in the data stay in the fini table, run after the lists.
     8. typeid(x).name() is the type's C++ name (the standard leaves the string to the implementation, [type.info]/9; the most useful one
        is the name as the program writes it, "N::A", "int*"), for every type typeid can name, polymorphic or not.
+       Done 2026-11-18: every type info starts with its name and its kind's word (CPP65_TYPE_INFO_NAME_OFFSET; the layout
+       agreed with the exceptions work), a class's entries are three words with flags (public path, virtual base), a pointer's
+       and a member pointer's point to their parts' type infos; CCPPUnit::AppendTypeName writes the names.  An instance of a
+       partial specialisation is named with what the specialisation's parameters are bound to (S<int> for S<int*> from
+       S<T*>).  OS.SYS: 177018 -> 178039 bytes of code and data (+1021, the names), ending at $03C556 of $040000.
     9. Virtual inheritance (stage 9): lay classes out as MSVC does (a virtual base pointer in the object), as the plan says, or as the
        Itanium ABI does (virtual base offsets in the vtable), which is usually smaller?  The user, 2026-11-16: Itanium style.
 
@@ -423,6 +428,13 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         variable shall not be eliminated even if it appears unused.  Keeping every global with an R_Initialise or a
         destructor would be correct, but it keeps BaseLib's unused globals (and the code they use) in the kernal: OS.SYS
         may then not fit.  Keep them all, keep them only outside the kernal build, or work out which have side effects?
+
+    13. The compiler's types are its sizes: long is int where they are as wide (the 65C64: CCPP65Types::Long is
+        Integer(4)), char is signed char, wchar_t and char16_t are unsigned short, char32_t is unsigned long, and nullptr
+        has no type of its own (a null pointer of any type).  [basic.fundamental] says each is a distinct type, so
+        overloads on them (f(int) and f(long) on the 65C64) can't be told apart, typeid and catch can't either, and
+        typeid(long).name() is "int" on the 65C64.  Making them distinct types (with the conversions and ranks between
+        them, their labels and names) is a change across the compiler: do it now, or with the library question?
 
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.

@@ -260,9 +260,10 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	{
 		mcModule.SetLocal(sTarget.Index());
 	}
-	sInfo = mpcFunction->Load(mpcBlock, sPointer, AddressAt(sVtable, CPP65_VTABLE_TYPE_INFO_OFFSET));
+	sInfo = AddressAt(mpcFunction->Load(mpcBlock, sPointer, AddressAt(sVtable, CPP65_VTABLE_TYPE_INFO_OFFSET)), CPP65_TYPE_INFO_ENTRIES_OFFSET);
 
-	//Each entry is a subobject's class's type info then its offset; a zero ends them.  sFound is the match so far.
+	//After the type info's header, each entry is a subobject's class's type info, its offset and its flags; a zero ends
+	//them.  sFound is the match so far.
 	pcLoop = NewBlock();
 	pcCheck = NewBlock();
 	pcMatch = NewBlock();
