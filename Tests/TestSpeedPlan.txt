@@ -1,0 +1,92 @@
+Making the tests faster (planned 2026-11-18, the user: "Plan out making the tests faster 1 to 5 please")
+==========================================================================================================
+
+The rule the sweep follows from now on (the user, 2026-11-18): Release|x64, Release|Win32 and Debug|x64 are run; Debug|Win32
+only if a Release build fails.
+
+What was measured (2026-11-18, this machine: 16 cores, 7.9 GB, shared with other sessions)
+  - TestCppCompilerLib: Release|x64 460-630 s, Release|Win32 675 s, Debug|x64 2507 s, Debug|Win32 5660 s.  Per file in
+    Release|x64 (its Time: lines since ad367fada): TestCPPW65C816 309 s (103 test functions, 180 programs built and run),
+    TestIRW65C816Backend 83 s, TestCPPConformance 73 s, TestCPP65Generator 72 s, TestCPP65IR 28 s, TestCPP65ForwardingReferences
+    15 s, TestCPP65Spill 15 s; the other 24 files 30 s together.  A process peaks at about 300 MB in Release.
+  - A trivial program built and run on both targets (start up, math tables, Libc65's string routines): 0.3 s with the
+    process's start.  TestCPPW65C816's programs take 1.7 s each, so its time is its own programs and runs, not that.
+  - IDE checks (392, one IDE process each, one after another): 290 light checks took 187 s together; 50 heavy ones 2212 s,
+    about 44 s each.  The heavy ones (usages-*, find-*, nav-*, rename-*, gotosource-*) open ModPlay, wait for BaseLib to be
+    indexed (WAIT_INDEX) and then do a second's work.  An IDE with ModPlay indexed is about 2.3 GB.
+  - TestSupportLib65 Release|x64: 495 s.  It compiles TestSupportLib and its libraries once (in parallel since 2026-11-02:
+    ~37 s on the 816), then links and runs its programs one after another on one emulator.
+  - The sweep of the CommonLibraries suites other than TestCppCompilerLib: about 35 minutes for the four configurations.
+
+Each step is its own commit, and is checked against what it replaces: the same suites pass with the same totals (and for the
+IDE checks the same passes and failures) as a run in one process.
+
+
+1. TestCppCompilerLib in parallel processes                                        Release|x64 627 s -> ~150 s, Debug|x64 2507 s -> ~700 s
+   a. TestLib: the log file's name from the environment (TESTLIB_LOG, Log.txt if unset), so processes in one working folder
+      don't write over each other's Log.txt.
+   b. TestCppCompilerLib's main: its files in a table ({name, function}) instead of a list of calls, and arguments -only <file>[,<file>]
+      and -list (prints the names, for the driver).  With neither it runs everything as now.
+   c. The long files split by test function: TestCPPW65C816 (103 functions), TestIRW65C816Backend (45), TestCPP65Generator (44),
+      TestCPPConformance (its groups and targets).  Their entry points take a part (-part 2/4: every 4th function from the
+      second), with BeginTests/TestStatistics around each part.  Before splitting, check that no two functions of a file
+      write the same Output path (TestCPPW65C816 has 14 Output references, TestCPP65Spill 13: Spill stays whole).
+   d. Tests/TestCppCompilerLib/RunParallel.py: runs the parts as processes, longest first (from the last run's Time: lines,
+      kept in a file beside it), at most N at once (default 4; fewer while free memory is under 2 GB), then adds up their
+      logs into Log.txt with the same per-file sections and totals as one process writes.  sweep.py runs it for
+      TestCppCompilerLib.
+   e. Check: the totals and every file's count equal a one-process run's in Release|x64 and Debug|x64.
+   Questions: none.
+
+2. IDE checks in parallel, and the heavy checks lighter                              ~50 min -> ~15-20 min
+   a. Measure where a heavy check's 44 s goes (indexing BaseLib, starting, the check), with the IDE's timings printed for
+      one check (HCP65_IDE_WAIT_INDEX already waits; add how long the index took).
+   b. Isolation, so checks can run side by side: each worker gets its own APPDATA (the IDE keeps RecentSolutions.xml and
+      Keymap.xml there) and its own copies of ModPlay and Kernal, made beside them at the same depth (HCP65\ModPlay-check1,
+      ignored by git) so their relative paths still reach CommonLibraries and Libc65; IDEChecks.py takes MODPLAY and KERNAL
+      from the worker and builds expectations that print those paths from them.  The checks that edit BaseLib's Calc files
+      never save them (WATCHED says so), so they can share them.  The copies and the APPDATA folders go when the run ends,
+      and RestoreUserFiles has nothing left to put back.
+   c. A scheduler in checks.py: light checks 4 at a time, heavy ones (WAIT_INDEX on ModPlay) at most 2 at a time because of
+      their 2.3 GB, both by free memory.  Each check's output goes to its own file and the report is in CHECKS order.
+      With the heavy checks as they are this gives ~40 min -> ~20 min.
+   d. Then the heavy checks themselves, depending on (a): if indexing is most of it, a solution of its own for them with the
+      Calc files and what they need (Checks/Input, as the 28 Make*Copy checks have), so they index a few files, not BaseLib;
+      their expected counts are checked against the ModPlay run before the switch.  A few that are about scale (the index
+      off the UI thread, reindexing while typing) keep ModPlay.  Expected: the heavy checks ~44 s -> a few seconds each.
+   Questions for the user: (d) changes what the usages/find checks run against, from the real ModPlay to a small copy, so
+   they no longer check the IDE on a big solution.  Keep a handful on ModPlay (as above), or keep them all and accept ~20 min?
+
+3. The *65 suites: their programs' runs on worker threads                            TestSupportLib65 816 ~243 s -> ~90 s (estimate)
+   a. Measure each suite's compile, link and run times (TEST_PROJECT65_RUN_TIME prints each program's run).
+   b. TestProject65: the link stays one program after another (the builder's LinkWith reuses its objects), each program's
+      linked image copied out (its segments); its run, with its own CPU, memory and console, goes to CWorkerThreadJobs (the
+      compile's already), at most N at once, N from free memory (each emulator has 64 MB).  Results are asserted and logged
+      in program order when all have run, so Log.txt and the counts are as now.
+   c. What a run shares today goes per run: gpTestProject65Measure, the console and fault strings, the profile.
+      TEST_PROJECT65_CYCLES and the profiling options stay one at a time.
+   d. Check: TestBaseLib65, TestStandardLib65 and TestSupportLib65, both processors, the same counts and results.
+   Questions: none.
+
+4. TestCPPW65C816: where its 309 s goes, then the biggest costs                       (unknown until measured)
+   The plan said "compile Libc65 once per process", but a trivial build is 0.15 s a target, so that is small.  Instead:
+   a. Time each of its 103 test functions (TestLib's timer around each, printed with TEST_CPP816_TIMES) and each program's
+      compile, link and run.
+   b. Then, as the numbers say: lockstep runs (two emulators compared each instruction) where a plain run proves the same;
+      a step limit far above what a program needs; the one whole-BaseLib build (TestCPP816 with bBaseLib) reusing its
+      compiled objects across the tests that link it, through an object cache in the builder keyed by the unit's file, its
+      text's hash and the options.
+   c. Check: the same 3203 tests pass; nothing is tested less (a lockstep run removed is listed in the commit with why).
+   Questions: any lockstep run to drop goes to the user first.
+
+5. The sweep: build while the last suite runs                                        ~3.5 h -> ~1.5 h with 1 and 6
+   a. sweep.py: while one solution's suite runs, the next solution builds (-m:2), if free memory is over 3 GB; otherwise in
+      turn as now.  Builds of one configuration never run alongside each other.
+   b. Debug|Win32 only for a solution whose Release build or suite failed (the user's rule above).
+   c. The order: the long suites (TestCppCompilerLib, the *65 suites, TestHCP65Lib) first in each configuration, so the short
+      ones fill in behind them.
+   d. It records what ran and when (the build, the run, the result) in sweep_results.txt as now, resuming where it stopped.
+   Questions: none.
+
+Order: 1 and 5 (the biggest win, small and safe), then 3, then 2 (a to c, then d after the user's answer), then 4 (measure,
+then the user decides on lockstep).  Each step is announced to the other sessions before its runs.
