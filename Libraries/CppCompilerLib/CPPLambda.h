@@ -65,6 +65,9 @@ struct SCPPLambda
 	CCPPSyntax*					pcErrorNode;	//...where, and what (said again each time the closure is asked for, as an
 	CChars						szError;		//expression's errors are taken away when only its type was wanted).
 	CCPPFunction*				pcCall;			//operator() when it isn't generic.
+	CChars						szName;			//In a function every unit may write: the function's label, __L and the lambda's number in its
+												//definition, so the closure is one type, with the same labels, in every unit.  Else empty: the
+												//unit's own (Unnamed<n>).  [expr.prim.lambda] 3, [basic.def.odr] 6
 };
 
 

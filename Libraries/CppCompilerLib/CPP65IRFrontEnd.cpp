@@ -575,7 +575,7 @@ CIRModule* CCPP65IRFrontEnd::GetModule(void)
 // for.  False if the front end can't write it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise, const char* szExitNode, const char* szFinaliser, bool bThread)
+bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise, const char* szExitNode, const char* szFinaliser, bool bThread, bool bLocal)
 {
 	CCPPFunction	cFunction;
 	SCPP65IRPlace	sPlace;
@@ -584,7 +584,7 @@ bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, 
 	memset(&cFunction, 0, sizeof(CCPPFunction));
 	cFunction.meKind = CPPFK_Function;
 	cFunction.mpsReturn = &mpcTypes->msVoid;
-	BeginWriting(&cFunction, szLabel, IRType(IRTK_None), IRA_Local);
+	BeginWriting(&cFunction, szLabel, IRType(IRTK_None), bLocal ? IRA_Local : 0);
 	mpcUnit->BeginQuiet();
 	sPlace.sAddress = mcModule.Symbol(szGlobal);
 	sPlace.psType = psType;

@@ -65,8 +65,10 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 	psLambda->pcErrorNode = pcSyntax;
 	psLambda->szError.Init();
 	psLambda->pcCall = NULL;
+	psLambda->szName.Init();
 	psLambda->pcClass = NewClass(NULL, -1);
 	psLambda->pcClass->mpsLambda = psLambda;
+	NameLambda(psLambda);
 	psLambda->pcClass->mpcBindings = psLambda->pcBindings;
 	mapsLambdas.Add(psLambda);
 
@@ -85,6 +87,62 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 		return NULL;
 	}
 	return psLambda;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A lambda in a function every unit may write is named for it: its label,
+// __L and the lambda's number among those in the function's definition
+// (written the same in every unit), so its closure is one type in every
+// unit, its functions COMDAT with the same labels.  [basic.def.odr] 6
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::NameLambda(SCPPLambda* psLambda)
+{
+	size	uiNumber;
+
+	uiNumber = 0;
+	if (!IsSharedFunction(psLambda->pcEnclosing) || !psLambda->pcEnclosing->mpcDefinition || !LambdaNumber(psLambda->pcEnclosing->mpcDefinition, psLambda->pcSyntax, &uiNumber))
+	{
+		return;
+	}
+	mcMangler.AppendFunctionLabel(&psLambda->szName, psLambda->pcEnclosing);
+	psLambda->szName.Append("__L");
+	psLambda->szName.Append((int)uiNumber);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcLambda is in pcNode, with *puiNumber the lambdas before it
+// (outer ones first: in the order they are written).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* pcLambda, size* puiNumber)
+{
+	size	i;
+
+	if (!pcNode)
+	{
+		return false;
+	}
+	if (pcNode == pcLambda)
+	{
+		return true;
+	}
+	if (pcNode->GetKind() == CPPS_LambdaExpression)
+	{
+		(*puiNumber)++;
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		if (LambdaNumber(pcNode->GetChild(i), pcLambda, puiNumber))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
@@ -814,6 +872,7 @@ void CCPPUnit::FreeLambdas(void)
 	{
 		mapsLambdas.GetPtr(i)->asCaptures.Kill();
 		mapsLambdas.GetPtr(i)->szError.Kill();
+		mapsLambdas.GetPtr(i)->szName.Kill();
 		free(mapsLambdas.GetPtr(i));
 	}
 	mapsLambdas.Kill();

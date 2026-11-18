@@ -27,6 +27,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65Type.h"
 
 
+class CCPPFunction;
+
+
 enum ECPPStorage
 {
 	CPPVS_Local,
@@ -59,6 +62,7 @@ public:
 	bool			mbRestrict;				//A global or parameter pointer declared __restrict.
 	bool			mbGuarded;				//A static local initialised the first time its declaration is reached, its guard beside it.
 	bool			mbThreadLocal;			//thread_local: static storage (there is one thread), destroyed from the thread's exit list.
+	CCPPFunction*	mpcSharedIn;			//A static local of a function every unit may write: labelled for it, its data COMDAT (one object).
 	bool			mbExitNode;				//A guarded static local destroyed when the program ends: its node (Label__ExitNode) is pushed when it is made.
 	CCPPClass*		mpcAnonymous;			//The anonymous union or struct declared in a function that this local is a member of.
 	CCPPTemplate*	mpcTemplate;			//A variable template's instance: the template (or explicit specialisation) it is of...

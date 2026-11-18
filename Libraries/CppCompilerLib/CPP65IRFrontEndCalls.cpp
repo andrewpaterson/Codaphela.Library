@@ -547,7 +547,8 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 // A member of std::type_info that nothing defines (CCPPUnit::
 // IsTypeInfoMember), worked out here: a type info's address is its type's,
 // so ==, != and before compare addresses and hash_code is the address.
-// name is "" (CppParserTodo.txt Part B, question 8).  [type.info]
+// name is the name the type info points to, the type as the program writes
+// it (CCPPUnit::AppendTypeName; CppParserTodo.txt question 8).  [type.info]
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::TypeInfoCall(CCPPFunction* pcFunction, SIRReference sObject, CArrayIRReferences* pasArguments, SCPP65IRValue* psValue)
@@ -581,7 +582,7 @@ bool CCPP65IRFrontEnd::TypeInfoCall(CCPPFunction* pcFunction, SIRReference sObje
 	}
 	if (mpcUnit->IsNamed(lliName, "name") && (pasArguments->NumElements() == 0))
 	{
-		StringData((char*)"", 0, psValue);
+		psValue->sValue = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sObject, CPP65_TYPE_INFO_NAME_OFFSET));
 		psValue->psType = pcFunction->mpsReturn;
 		return true;
 	}

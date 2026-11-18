@@ -3649,6 +3649,41 @@ void TestCPP65GeneratorStaticLocalGuard(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What is in an inline function or a template's instance is one thing in
+// every unit (Input/CPP65/SharedInlineProject; CppParserTodo.txt question
+// 5): its static locals, its lambdas' closures and their static locals, and
+// a lambda's conversion to a function pointer.  A.cpp and B.cpp both have
+// them; counts go on across the two and the pointers are equal.
+// [basic.def.odr] 6, [dcl.fct.spec] 4, [expr.prim.lambda] 3
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorSharedInline(void)
+{
+	static const char*	aszShared[] = { "Input/CPP65/SharedInlineProject/A.cpp", "Input/CPP65/SharedInlineProject/B.cpp", "Input/CPP65/SharedInlineProject/Main.cpp", NULL };
+
+	AssertInt(3225, TestCPP65RunProject(aszShared, ""));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// typeid(x).name() is the type as the program writes it: fundamental types,
+// classes and a template's instance in a namespace, an enum, pointers to
+// const, to an array, to a function and to a member, and an object's
+// dynamic type (Input/CPP65/TypeNamesProject; CppParserTodo.txt question
+// 8).  A bit for each name that is right.  [type.info] 9
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorTypeNames(void)
+{
+	static const char*	aszNames[] = { "Input/CPP65/TypeNamesProject/Main.cpp", NULL };
+
+	AssertInt(8191, TestCPP65RunProject(aszNames, ""));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorErrors(void)
@@ -3986,6 +4021,8 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorExternTemplates();
 	TestCPP65GeneratorStaticConstMembers();
 	TestCPP65GeneratorStaticLocalGuard();
+	TestCPP65GeneratorSharedInline();
+	TestCPP65GeneratorTypeNames();
 	TestCPP65GeneratorNestedQualifiers();
 	TestCPP65GeneratorLateMemberDefinitions();
 	TestCPP65GeneratorExternTemplateProject();

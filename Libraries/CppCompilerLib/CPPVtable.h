@@ -52,18 +52,43 @@ typedef CArrayTemplate<SCPPSecondaryVtable>	CArrayCPPSecondaryVtables;
 //two words, the distance from the part's vtable pointer to the object's start and the class's type info, then the
 //part's functions.  Before the header, the distances from the part's subobject to each virtual base of its class, the
 //first nearest the header.  A vtable pointer points at its part's first function, and the label (_Class__2) at the
-//first part's.  The type info (_Class__3) is an entry per subobject, its class's type info and its offset, and a zero.
+//first part's.  A type info (_Class__3 for a class, _3 and the type mangled for any other, CCPPUnit::AppendTypeidLabel) is
+//its name (type_info::name, written as the program would write the type) and a word whose low byte is its kind
+//(ECPP65TypeInfoKind; bits 8 to 15 are the exceptions', ExceptionsPlan.txt), then for a class an entry per subobject, its
+//class's type info, its offset and its flags, and a zero; for a pointer its pointee's type info; for a pointer to a
+//member the member's type's type info and the class's.
 #define CPP65_VTABLE_ENTRY_BYTES		4
 #define CPP65_VTABLE_HEADER_ENTRIES		2
 #define CPP65_VTABLE_TOP_OFFSET			(-CPP65_VTABLE_HEADER_ENTRIES * CPP65_VTABLE_ENTRY_BYTES)	//From a vtable pointer: the distance to the object's start.
 #define CPP65_VTABLE_TYPE_INFO_OFFSET	(-CPP65_VTABLE_ENTRY_BYTES)			//From a vtable pointer: the class's type info.
 #define CPP65_VTABLE_VIRTUAL_OFFSET(i)	(CPP65_VTABLE_TOP_OFFSET - (1 + (i)) * CPP65_VTABLE_ENTRY_BYTES)	//From a vtable pointer: the distance to the part's class's virtual base i.
-#define CPP65_TYPE_INFO_ENTRY_BYTES		(2 * CPP65_VTABLE_ENTRY_BYTES)
-#define CPP65_TYPE_INFO_OFFSET_OFFSET	CPP65_VTABLE_ENTRY_BYTES				//In a type info entry: the subobject's offset.
+#define CPP65_TYPE_INFO_NAME_OFFSET		0										//In a type info: its name, a char*...
+#define CPP65_TYPE_INFO_KIND_OFFSET		CPP65_VTABLE_ENTRY_BYTES				//...its kind's word...
+#define CPP65_TYPE_INFO_ENTRIES_OFFSET	(2 * CPP65_VTABLE_ENTRY_BYTES)			//...then a class's entries, or a pointer's pointee's type info.
+#define CPP65_TYPE_INFO_ENTRY_BYTES		(3 * CPP65_VTABLE_ENTRY_BYTES)			//A class's entry: the subobject's class's type info...
+#define CPP65_TYPE_INFO_OFFSET_OFFSET	CPP65_VTABLE_ENTRY_BYTES				//...its offset in the object...
+#define CPP65_TYPE_INFO_FLAGS_OFFSET	(2 * CPP65_VTABLE_ENTRY_BYTES)			//...and its flags:
+#define CPP65_TYPE_INFO_PUBLIC			0x01									//reached from the object through public bases only,
+#define CPP65_TYPE_INFO_VIRTUAL			0x02									//a virtual base.
 #define CPP65_VTABLE_LABEL				"2"
 #define CPP65_TYPE_INFO_LABEL			"3"
 #define CPP65_VTT_LABEL					"4"
 #define CPP65_CONSTRUCTION_LABEL		"5"
+
+
+//A type info's kind, its kind word's low byte (CPP65_TYPE_INFO_KIND_OFFSET).  There is no type of its own for nullptr
+//yet (CppParserTodo.txt question 13), so CPP65TIK_NullPointer isn't written.
+enum ECPP65TypeInfoKind
+{
+	CPP65TIK_Fundamental = 1,
+	CPP65TIK_NullPointer,
+	CPP65TIK_Pointer,
+	CPP65TIK_MemberPointer,
+	CPP65TIK_Array,
+	CPP65TIK_Function,
+	CPP65TIK_Enum,
+	CPP65TIK_Class,
+};
 
 
 enum ECPPVtableEntry

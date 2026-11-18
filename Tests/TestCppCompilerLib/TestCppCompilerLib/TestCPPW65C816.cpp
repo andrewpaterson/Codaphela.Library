@@ -5815,6 +5815,36 @@ void TestCPP816ExitOrder(void)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is in an inline function or a template's instance is one thing in
+// every unit (TestCPP65GeneratorSharedInline's project, for the W65C816):
+// static locals, lambdas' closures and their static locals, a lambda's
+// conversion to a function pointer.  CppParserTodo.txt question 5.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816SharedInline(void)
+{
+	static const char*	aszShared[] = { "Input/CPP65/SharedInlineProject/A.cpp", "Input/CPP65/SharedInlineProject/B.cpp", "Input/CPP65/SharedInlineProject/Main.cpp", NULL };
+
+	AssertInt(3225, TestCPP816RunProject(aszShared, "", NULL));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// typeid(x).name() is the type as the program writes it
+// (TestCPP65GeneratorTypeNames' program, for the W65C816).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816TypeNames(void)
+{
+	static const char*	aszNames[] = { "Input/CPP65/TypeNamesProject/Main.cpp", NULL };
+
+	AssertInt(8191, TestCPP816RunProject(aszNames, "", NULL));
+}
+
 //The functions of TestCPP816AlignedBigFrameArguments, natively for the expected result and for the W65C816.
 #define TEST_CPP816_BIG_FRAME_FUNCTIONS \
 	long Spread(int n, long add, long more, int k, char c) { int a[180]; for (int i = 0; i < 180; i++) { a[i] = i * k + n + c; } long s = add - more; for (int i = 0; i < 180; i++) { s += a[i]; } return s; } \
@@ -6460,6 +6490,8 @@ void TestCPP816(void)
 	TestCPP816ObjectArguments();
 	TestCPP816Exit();
 	TestCPP816ExitOrder();
+	TestCPP816SharedInline();
+	TestCPP816TypeNames();
 	TestCPP816StringRegisters();
 	TestCPP816MathRegisters();
 	TestCPP816WideMultiplies();
