@@ -3,10 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "BaseLib/Atomic.h"
+#include "BaseLib/Chars.h"
+#include "BaseLib/Codabase.h"
+#include "BaseLib/CodabaseFactory.h"
+#include "BaseLib/FileUtil.h"
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "BaseLib/NativeThread.h"
+#include "BaseLib/SequenceFactory.h"
 #include "BaseLib/Timer.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/DataIO.h"
@@ -14,6 +19,7 @@
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/SetObject.h"
 #include "TestLib/Assert.h"
 
 
@@ -33,6 +39,10 @@
 //with OBJECTS_SPEED set, and again with it set to twice as much: the difference in the instructions collected,
 //divided by the difference in how many times the operation ran (TEST_OBJECTS_SPEED_COUNT each time OBJECTS_SPEED goes
 //up by one), is the instructions one operation takes.
+//
+//The tree loaded from a database and the sets are counted the same way.  Each set function is called once for each
+//size of set, so to count one size OBJECTS_SPEED_SET_MEMBERS says which (the only size the sets are then made at).
+//Two runs at once mustn't share a directory: the tree is saved in Output.
 //
 //With threads: OBJECTS_SPEED_THREADS set to a number (with OBJECTS_SPEED) switches the object system's locking on
 //and registers that many other threads while the operations are timed.  They do nothing but be registered, unless
@@ -271,6 +281,91 @@ NO_INLINE void TestObjectsSpeedFreeTree(Ptr<CTestSpeedNode>& pWindow)
 {
 	ORoot()->Remove(pWindow);
 	pWindow = NULL;
+}
+
+
+//pNode and what is below it, as TestObjectsSpeedLoad.
+static void TestObjectsSpeedLoadNode(Ptr<CTestSpeedNode>& pNode, size* puiObjects)
+{
+	Ptr<CArrayObject>		pChildren;
+	Ptr<CTestSpeedNode>		pChild;
+	size					uiNumChildren;
+	size					i;
+
+	(*puiObjects)++;
+	pChildren = pNode->mpObject3;
+	if (pChildren.IsNull())
+	{
+		return;
+	}
+
+	(*puiObjects)++;
+	uiNumChildren = pChildren->NumElements();
+	for (i = 0; i < uiNumChildren; i++)
+	{
+		pChild = pChildren->Get<CTestSpeedNode>(i);
+		TestObjectsSpeedLoadNode(pChild, puiObjects);
+	}
+}
+
+
+//A tree read back from the database by walking it through its pointers: each node's array of children is a hollow
+//until it is used, and so is each child.  Returns how many objects it loaded.
+NO_INLINE size TestObjectsSpeedLoad(Ptr<CTestSpeedNode>& pTop)
+{
+	size	uiObjects;
+
+	uiObjects = 0;
+	TestObjectsSpeedLoadNode(pTop, &uiObjects);
+	return uiObjects;
+}
+
+
+//Each member is added in the order of the ring the members' mpObject1s make, starting after pcFirst.
+NO_INLINE void TestObjectsSpeedSetFill(Ptr<CSetObject>& pSet, CTestSpeedNode* pcFirst, size uiMembers)
+{
+	CTestSpeedNode*		pcNode;
+	size				i;
+
+	pcNode = pcFirst;
+	for (i = 0; i < uiMembers; i++)
+	{
+		pSet->Add(pcNode->mpObject1);
+		pcNode = (CTestSpeedNode*)pcNode->mpObject1.Object();
+	}
+}
+
+
+//Returns how many of the uiCount looked for were found.
+NO_INLINE size TestObjectsSpeedSetContains(Ptr<CSetObject>& pSet, CTestSpeedNode* pcFirst, size uiCount)
+{
+	CTestSpeedNode*		pcNode;
+	size				uiFound;
+	size				i;
+
+	pcNode = pcFirst;
+	uiFound = 0;
+	for (i = 0; i < uiCount; i++)
+	{
+		uiFound += pSet->Contains(pcNode->mpObject1) ? 1 : 0;
+		pcNode = (CTestSpeedNode*)pcNode->mpObject1.Object();
+	}
+	return uiFound;
+}
+
+
+NO_INLINE void TestObjectsSpeedSetRemoveAdd(Ptr<CSetObject>& pSet, CTestSpeedNode* pcFirst, size uiCount)
+{
+	CTestSpeedNode*		pcNode;
+	size				i;
+
+	pcNode = pcFirst;
+	for (i = 0; i < uiCount; i++)
+	{
+		pSet->Remove(pcNode->mpObject1);
+		pSet->Add(pcNode->mpObject1);
+		pcNode = (CTestSpeedNode*)pcNode->mpObject1.Object();
+	}
 }
 
 
@@ -587,6 +682,204 @@ void TestObjectsSpeedTree(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The tree TestObjectsSpeedTree builds, saved, and read back with the
+// objects and the database opened again from nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsSpeedLoadTree(void)
+{
+	CFileUtil				cFileUtil;
+	CCodabase*				pcDatabase;
+	CSequence*				pcSequence;
+	Ptr<CTestSpeedNode>		pWindow;
+	Ptr<CTestSpeedNode>		pTop;
+	CArrayBaseObjectPtr		apcNodes;
+	size					uiDepth;
+	size					uiNodes;
+	size					uiObjects;
+	int64					iStart;
+	char					szDirectory[] = "Output" _FS_ "ObjectsSpeed" _FS_ "Load";
+
+	cFileUtil.RemoveDir(szDirectory);
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	gcObjects.DisableValidation();
+	apcNodes.Init();
+
+	uiDepth = TEST_OBJECTS_SPEED_TREE_DEPTH + (getenv("OBJECTS_SPEED") ? 2 : 0);
+	pWindow = ONMalloc<CTestSpeedNode>("Window");
+	ORoot()->Add(pWindow);
+	pTop = OMalloc<CTestSpeedNode>();
+	pTop->mpObject1 = pWindow;
+	pWindow->mpObject1 = pTop;
+	uiNodes = TestObjectsSpeedBuildTree(pWindow, pTop, uiDepth, &apcNodes);
+	apcNodes.Kill();
+	pTop = NULL;
+	pWindow = NULL;
+
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	gcObjects.DisableValidation();
+	gcObjects.AddConstructor<CTestSpeedNode>();
+
+	pWindow = ORoot()->Get<CTestSpeedNode>("Window");
+	pTop = pWindow->mpObject1;
+	iStart = GetDebugMicroseconds();
+	uiObjects = TestObjectsSpeedLoad(pTop);
+	TestObjectsSpeedLog("Tree loaded through its pointers, an object", iStart, uiObjects);
+
+	//Every node, and an array for each node that has children: a third of the rest.
+	AssertSize(uiNodes + (uiNodes - 1) / 3, uiObjects);
+	gcObjects.EnableValidation();
+	gcObjects.ValidateObjectsConsistency();
+	AssertLong(3 + uiObjects, gcObjects.NumMemoryIndexes());
+
+	pTop = NULL;
+	pWindow = NULL;
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A set of uiMembers nodes: filled, looked in uiCount times, and a member
+// removed and added back uiCount times (fewer for a big set, where each
+// moves the members after it).  Every node is held in an array as well,
+// so nothing the set does frees one.  They are added, looked for and
+// removed in a shuffled order (the same every run): each node's mpObject1
+// points to the next, round in a ring.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestObjectsSpeedSet(size uiMembers, size uiCount)
+{
+	Ptr<CArrayObject>		pHolder;
+	Ptr<CSetObject>			pSet;
+	Ptr<CTestSpeedNode>		pNode;
+	CArrayBaseObjectPtr		apcNodes;
+	CTestSpeedNode*			pcFirst;
+	CBaseObject*			pcSwap;
+	uint32					uiRandom;
+	size					uiPairs;
+	size					i;
+	size					j;
+	int64					iStart;
+	CChars					szFill;
+	CChars					szContains;
+	CChars					szPair;
+
+	szFill.Init("Set of ")->Append(SizeToString(uiMembers))->Append(" members filled, an Add");
+	szContains.Init("Set of ")->Append(SizeToString(uiMembers))->Append(" members, Contains");
+	szPair.Init("Set of ")->Append(SizeToString(uiMembers))->Append(" members, a member removed and added back");
+
+	pHolder = OMalloc<CArrayObject>();
+	ORoot()->Add(pHolder);
+	apcNodes.Init();
+	for (i = 0; i < uiMembers; i++)
+	{
+		pNode = OMalloc<CTestSpeedNode>();
+		pHolder->Add(pNode);
+		apcNodes.Add(&pNode);
+	}
+	pNode = NULL;
+
+	uiRandom = 1;
+	for (i = uiMembers - 1; i > 0; i--)
+	{
+		uiRandom = uiRandom * 1103515245 + 12345;
+		j = (size)((uiRandom >> 8) % (uint32)(i + 1));
+		pcSwap = apcNodes.GetPtr(i);
+		apcNodes.SetPtr(i, apcNodes.GetPtr(j));
+		apcNodes.SetPtr(j, pcSwap);
+	}
+	for (i = 0; i < uiMembers; i++)
+	{
+		((CTestSpeedNode*)apcNodes.GetPtr(i))->mpObject1 = apcNodes.GetPtr((i + 1) % uiMembers);
+	}
+	pcFirst = (CTestSpeedNode*)apcNodes.GetPtr(0);
+	apcNodes.Kill();
+
+	pSet = OMalloc<CSetObject>();
+	ORoot()->Add(pSet);
+
+	iStart = GetDebugMicroseconds();
+	TestObjectsSpeedSetFill(pSet, pcFirst, uiMembers);
+	TestObjectsSpeedLog(szFill.Text(), iStart, uiMembers);
+	AssertSize(uiMembers, pSet->NumElements());
+
+	iStart = GetDebugMicroseconds();
+	AssertSize(uiCount, TestObjectsSpeedSetContains(pSet, pcFirst, uiCount));
+	TestObjectsSpeedLog(szContains.Text(), iStart, uiCount);
+
+	uiPairs = (uiMembers > 1000) ? uiCount / 100 : uiCount;
+	iStart = GetDebugMicroseconds();
+	TestObjectsSpeedSetRemoveAdd(pSet, pcFirst, uiPairs);
+	TestObjectsSpeedLog(szPair.Text(), iStart, uiPairs);
+	AssertSize(uiMembers, pSet->NumElements());
+
+	ORoot()->Remove(pSet);
+	pSet = NULL;
+	ORoot()->Remove(pHolder);
+	pHolder = NULL;
+	AssertLong(2, gcObjects.NumMemoryIndexes());
+
+	szPair.Kill();
+	szContains.Kill();
+	szFill.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Sets of 10 and 1000 members, and 100000 when timed; or only as many as
+// OBJECTS_SPEED_SET_MEMBERS says.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsSpeedSets(void)
+{
+	size	uiCount;
+	char*	szMembers;
+
+	ObjectsInit();
+	gcObjects.DisableValidation();
+
+	uiCount = TEST_OBJECTS_SPEED_COUNT * TestObjectsSpeedScale();
+	szMembers = getenv("OBJECTS_SPEED_SET_MEMBERS");
+	if ((szMembers != NULL) && (atoi(szMembers) > 1))
+	{
+		TestObjectsSpeedSet((size)atoi(szMembers), uiCount);
+	}
+	else
+	{
+		TestObjectsSpeedSet(10, uiCount);
+		TestObjectsSpeedSet(1000, uiCount);
+		if (getenv("OBJECTS_SPEED"))
+		{
+			TestObjectsSpeedSet(100000, uiCount);
+		}
+	}
+
+	gcObjects.EnableValidation();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectsSpeed(void)
@@ -598,6 +891,8 @@ void TestObjectsSpeed(void)
 
 	TestObjectsSpeedOperations();
 	TestObjectsSpeedTree();
+	TestObjectsSpeedLoadTree();
+	TestObjectsSpeedSets();
 
 	DataIOKill();
 	TypesKill();

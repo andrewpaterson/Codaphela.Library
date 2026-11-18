@@ -180,7 +180,8 @@ The design
     until the Codabase transaction work decides how CObjects and transactions meet (open there already), or (b) a
     hollow that has been loaded stays as a forwarder while another thread's stack Ptr still points at it (its Dehollow,
     which only a Ptr to a hollow ever calls, takes the lock and answers with the loaded object), so the cost falls
-    only on Ptrs to hollows.  (b) is to be designed with the transaction work; (a) until then.
+    only on Ptrs to hollows.  (b) is to be designed with the transaction work; (a) until then.  (b) is designed under
+    Forwarding hollows, below (2026-11-18).
     Eviction and killing a held stored object are only allowed while no other registered thread is inside the object
     system or holding a stack pointer (checked from the per-thread counts): in practice, between jobs.
 
@@ -438,6 +439,84 @@ The allocator
   not used by workers in level 2 (their tables).
 
 
+Forwarding hollows (step 24, planned 2026-11-18)
+------------------------------------------------
+  What it is for: a program with a database whose threads share its stored objects.  Until it is built decision 4
+  keeps a stored object to one thread at a time.
+
+  The Codabase transaction work and this don't touch.  Every thread here shares one CObjects and its one data
+  connection, which is only called with the object lock held (and a CCodabase session takes calls from any thread
+  already).  A thread that wants a view of the database of its own (a read-only transaction's snapshot: the open item
+  in CodabaseTransactions.txt) wants a CObjects of its own: level 3, step 25, with that CObjects over the thread's
+  transaction.
+
+  What happens today, right on one thread.  Using a Ptr to a hollow loads the object (CObjects::Dehollow).  The loaded
+  object takes the hollow's place (ReplaceBaseObject: every pointer to the hollow, in objects, on the home thread's
+  stack and in any thread's table, is rewritten to the object; weak froms move) and the hollow is freed there and
+  then.  With other threads:
+    1. Thread B has read a pointer's mpcObject (the hollow) in operator-> and not yet called the hollow's Dehollow,
+       which is where a lock can first be taken.  Thread A loads the object and frees the hollow.  B calls into freed
+       memory.  The window is a few instructions in Dereference, and nothing can be put there (decision 4).
+    2. Two threads using one hollow: the second, once it has the lock, finds the hollow freed (1), or would load the
+       object a second time.
+    3. A rewrites words that B reads without a way in: B's own stack Ptrs, and the fields and collection elements B
+       reads through operator->.  A pointer is written whole by the hardware, so nothing breaks, but it is a race as
+       far as the language (and ThreadSanitizer) goes.
+    4. A set, and a map's keys, are kept in address order.  A loaded object has a new address, so a load leaves the
+       collection out of order and the next read sorts it: a read that writes, and two readers can sort at once.  That
+       is why their members are saved as fat hollows: a fat hollow is allocated at the object's size and the object is
+       made in place, so the address doesn't change.  But made in place, the object's class (its vtable) is there from
+       the start of its load, so a thread that reads the address meanwhile (through a field or an element) calls
+       straight into a half loaded object.  With threads a fat hollow can't be loaded in place.
+
+  The design
+    A loaded hollow forwards.  Pointers are rewritten as today, so any pointer read after the load gives the object.
+    The hollow isn't freed: it is put aside on its CObjects, paired with the object it was loaded as (nothing is added
+    to the hollow, whose size the 65 targets assert).  A hollow's Dehollow takes the lock before it reads anything of
+    its own, then asks whether it forwards; if it does it answers the object and loads nothing (1 and 2).
+    A forwarder is freed once no thread can still be in 1's window.  Each thread counts its reads and the times it
+    takes the lock, which it can't do inside the window (the window ends in the hollow's Dehollow, under the lock).  The
+    home thread checks as it collects: the forwarders put aside before its last check are freed if every other
+    registered thread's count has moved since; those put aside since wait for the next.  A thread that does nothing
+    with objects keeps them waiting (a hollow each, nothing more); a thread that ends no longer counts.  With no other
+    thread registered, or the locking off, a hollow is freed at once as today: one thread sees nothing new.
+    The words a load rewrites are read and written as relaxed atomics on the hosts (3): CPointer::Dereference's read
+    of mpcObject, the remap's writes, and the reads of a collection's elements that take no way in.  On x86-64 and
+    ARM64 these are the instructions used now (checked by counting operator->).  Plain on the 65C64 and the 816.
+    Dereference stops writing back what the hollow's Dehollow answered: the remap has rewritten the pointer already.
+    A Debug assertion shows that first; CArrayCommonObject::Dereference likewise.
+    The object a forwarder names is alive whenever a forwarder is rightly asked: the pointer B read is the one the
+    load rewrote to that object.  A Debug build checks that the object is still in memory under the hollow's index
+    when a forwarder answers.
+
+    Sets and maps (4) are decision 10, open:
+      a. Ordered by object index (an embedded member by its container's index, then its place in it).  A load changes
+         no order, and fat hollows are retired: every hollow loads into memory of its own and forwards.  The order is
+         the order objects were made in, the same on every run and under every allocator (address order broke four
+         tests when gcUnknowns changed allocator, step 23).  Costs: a comparison reads both objects' indexes where it
+         compared two addresses (the speed to be measured first); and a hollow made for a name alone must have the
+         database's index for that name from the start (today the object loaded for it takes the database's, a
+         different one, which would move it in a set).
+      b. Address order kept, and fat hollows on one thread.  While other threads are registered a fat hollow is loaded
+         into memory of its own like any other, the sets and maps it is in are put back in order at once under the
+         lock, and a read never sorts.  But an iteration on one thread can see a member move when another thread loads
+         one (it is skipped, or seen twice), and no lock of the user's can stop that: a load is somebody's read.
+
+  What doesn't change
+    EvictInMemory evicts everything in memory, so it stays between jobs (refused while another thread holds a stack
+    pointer).  Evicting part of memory while threads run (the game's paging) needs a design of its own: an object
+    another thread is using mustn't be evicted, and the only sign of that the object system sees is a stack Ptr.
+    The Kill of a stored object (it leaves a hollow behind for its holders): step 13 refuses it while another thread
+    holds any stack pointer.  Narrowed to a stack pointer to that object or one embedded in it.  Killing an object
+    another thread is using is otherwise the user's business, as it is for any object.
+    Written through (IWT_Yes): no readers, level 1, as now.
+    Flush, and the save of a dirty stored object being freed, read the object's fields.  Decision 1 already makes a
+    class guard its own fields: a class whose fields are written on several threads saves under its own lock (in its
+    Save), or the program flushes between jobs.
+
+  What goes: ValidateStoredOnOneThread, and the Debug rule that leaves a stored object's pointers to writers.
+
+
 Steps
 -----
   One list, in the order to be built.  Each step ends with TestBaseLib, TestStandardLib, TestWindowLib and
@@ -690,9 +769,69 @@ Steps
       Objects made on one thread and freed on another (which is every object a registered thread makes): the two
       allocators came out the same within what the measurement can tell.
 
+  Forwarding hollows (the design is above, under Forwarding hollows; decision 4's rule is lifted at 24f)
+  24. a. Measured first, for decision 10: a load speed test in TestObjectsSpeed (a stored tree walked through its
+         pointers, so every node is loaded: instructions a load, one thread); and sets of 10, 1000 and 100000 members,
+         Add, Contains and Remove, ordered by address and (a prototype) by index.  Today's numbers recorded.
+         Done 2026-11-18 (TestObjectsSpeedLoadTree and TestObjectsSpeedSets; OBJECTS_SPEED_SET_MEMBERS runs one size
+         of set alone, for counting).  Two builds of one commit, Release, 64 bit: as it is, and with a prototype that
+         orders a set's members by their container's index (a comparison that reads both objects; nothing else
+         changed).  Instructions by callgrind at OBJECTS_SPEED=1; time the least of five runs of the whole test
+         program each, the two builds taking turns, OBJECTS_SPEED=100.
+                                                    address order            index order
+                                                    instructions    ns       instructions    ns
+           Contains, a set of 10                         104          5.2         193          9.2
+                     1000                                181         31.7         440         51.6
+                     100000                              264        139           703        229
+           Add, filling a set of 10                      510          -           576           -
+                                 1000                    721         76           959        107
+                                 100000                19377       2497         19796       2694
+           a member removed and added back, of 10       2101        113          2436        133
+                                               1000   228853       7797        228054       7931
+                                               100000  26.6 M     2.95 ms      26.6 M     2.94 ms
+           an object loaded (the tree, 4373 objects)   28994       4063         28963       3923
+         (The clock can't time ten Adds.)  By index, Contains takes 1.6 to 1.9 times as long: 4 ns more on a set of
+         10, 20 on 1000, 90 on 100000.  An Add takes 41% longer on 1000 members and 8% on 100000, where moving the
+         members after it is most of an Add.  The prototype compares through a function pointer and tests every case
+         each time; a comparison written for objects alone would take fewer instructions, but at 100000 members it is
+         reading the objects that costs, and that stays.
+         The whole of TestStandardLib passes with the prototype: no test leans on address order.
+         Found on the way, the same in either order:
+           A set of 64 members or more (COLLECTION_MEMBER_LOCATIONS_THRESHOLD) that has had a member added anywhere
+           but at its end works out where every member is again (its member locations) the next time one is
+           removed: 229 instructions a member, 83% of the time above, 7.8 microseconds to remove one from 1000 and
+           3 milliseconds from 100000.  A sorted set can find a member by searching it.
+           A load is 29000 instructions, 4 microseconds, an object.  A third of that is the database being asked
+           whether it has the object before it is read (GetFromDatabase calls CCodabase::Contains), which in a
+           session takes a lock through the session's write transaction (CWriteTransaction::LockOrDie, 30%).  Those
+           locks are held until Close, and a load costs more the more have been read: 24000 instructions an object
+           when 485 are read, 29000 when 4373 are.
+      b. Decision 10 built.  (a): sets and maps by index, a hollow made for a name alone given the database's index,
+         fat hollows retired and the size they were made at taken out of the record format (2 bytes less in every
+         record's header and every pointer it writes; nothing outside the tests reads the format yet, the user said).
+         (b): fat hollows loaded into memory of their own while other threads are registered, the sets and maps
+         re-sorted under the lock, no sort on a read.  One thread passes as before either way.
+      c. Forwarders: the pairs put aside on the CObjects; the remap leaving a hollow forwarding when another thread is
+         registered; the hollow's Dehollow taking the lock first and answering; each thread's count; the home thread's
+         check as it collects; ObjectsKill and ObjectsLocking(false) freeing what is left; NumForwarders for the
+         tests; the Debug check of the object a forwarder names.
+      d. The words a load rewrites read and written as relaxed atomics; Dereference's write-backs gone (asserted
+         first).  Held to step 7: operator-> and a collection's Get counted, no more instructions than now.
+      e. Tests (TestObjectsThreads.cpp, with a database): threads walking one stored graph and loading it as they go
+         (each object loaded once, the same objects reached, counts and distances exact, no forwarders left after);
+         two threads using one hollow at once, over and over; a raw pointer to a hollow kept by one thread while
+         another loads it (1's window held open: it forwards, and isn't freed until that thread does something); sets
+         and maps of stored objects iterated on threads while others load their members; a stored object killed
+         while no other thread holds it, and refused while one does; Flush on the home thread while others read; an
+         idle registered thread keeping forwarders and ObjectsThreadKill letting them go.  ThreadSanitizer and ASan,
+         repeated.
+      f. Decision 4 lifted: ValidateStoredOnOneThread and the Debug writer rule gone, the Kill refusal narrowed,
+         EvictInMemory's kept.  The contract gets its rule for Flush (above).
+      g. Proved: the mutation harness over the new pieces (a hollow freed at once, Dehollow reading before it locks, a
+         count not raised, the check freeing a turn early, an atomic made plain), the full sweep, the 65 suites with
+         their sizes unchanged, the MinGW compile.
+
   Later, when something needs it
-  24. Forwarding hollows (a loaded hollow stays while another thread's stack Ptr points at it), designed with the
-      Codabase transaction decisions; decision 4's rule is lifted then.
   25. Level 3: a CObjects for each thread, and Adopt.
 
   Tests (TestStandardLib/TestObjectsThreads.cpp, not on the 65 targets)
