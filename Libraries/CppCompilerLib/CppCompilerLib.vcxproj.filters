@@ -210,6 +210,9 @@
     <ClCompile Include="CPPFunction.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPExceptionSpec.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPVariable.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -1071,6 +1074,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPFunction.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPExceptionSpec.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPVariable.h">

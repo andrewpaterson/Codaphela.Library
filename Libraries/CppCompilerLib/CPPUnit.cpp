@@ -1527,26 +1527,399 @@ SCPP65Type* CCPPUnit::FunctionType(CCPPFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a function declared with pcSpecification (NULL for none) doesn't
-// throw: noexcept, noexcept(true) and throw() say so, and a destructor and
-// operator delete without one don't.  [except.spec] 3 and 15
+// What an exception specification that is written allows: noexcept,
+// noexcept(true) and throw() nothing, noexcept(false) and Microsoft's
+// throw(...) anything, throw(A, B) those types.  [except.spec] 2 and 3
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsDeclaredNoexcept(CCPPSyntax* pcSpecification, ECPPFunctionKind eKind, int64 lliName)
+void CCPPUnit::WrittenExceptions(CCPPSyntaxExceptionSpecification* pcSpecification, CCPPExceptionSpec* pcDest)
 {
-	CCPPSyntaxExceptionSpecification*	pcExceptions;
-	int64								lliValue;
+	SCPP65Type*	psType;
+	int64		lliValue;
+	size		i;
 
-	if (!pcSpecification || (pcSpecification->GetKind() != CPPS_ExceptionSpecification))
+	pcDest->SetAnything();
+	if (pcSpecification->mbNoexcept)
 	{
-		return (eKind == CPPFK_Destructor) || (lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true));
+		if (!pcSpecification->mpcCondition || (Constant(pcSpecification->mpcCondition, &lliValue) && (lliValue != 0)))
+		{
+			pcDest->SetNothing();
+		}
+		return;
 	}
-	pcExceptions = (CCPPSyntaxExceptionSpecification*)pcSpecification;
-	if (!pcExceptions->mbNoexcept)
+	if (pcSpecification->mbAnything)
 	{
-		return pcExceptions->macpTypes.NumElements() == 0;
+		return;
 	}
-	return !pcExceptions->mpcCondition || (Constant(pcExceptions->mpcCondition, &lliValue) && (lliValue != 0));
+	pcDest->SetNothing();
+	for (i = 0; i < pcSpecification->macpTypes.NumElements(); i++)
+	{
+		psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcSpecification->macpTypes.GetPtr(i));
+		if (psType)
+		{
+			pcDest->AddType(ParameterType(psType)->Unqualified());
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the exception specification a function is declared with allows.
+// noexcept(e)'s e may name the function's parameters, as the return type
+// written after them may: noexcept(noexcept(t.f())).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxExceptionSpecification* pcSpecification, CCPPExceptionSpec* pcDest)
+{
+	SCPPFunctionScope	sScope;
+
+	if (!pcSpecification->mpcCondition)
+	{
+		WrittenExceptions(pcSpecification, pcDest);
+		return;
+	}
+	EnterFunctionScope(&sScope, pcFunction);
+	AddParameters(pcFunction, pcDeclarator);
+	WrittenExceptions(pcSpecification, pcDest);
+	LeaveFunctionScope(&sScope);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The exception specification a function's declarator is written with,
+// NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxExceptionSpecification* CCPPUnit::WrittenSpecification(CCPPSyntaxFunctionSuffix* pcSuffix)
+{
+	if (!pcSuffix || !pcSuffix->mpcExceptionSpecification || (pcSuffix->mpcExceptionSpecification->GetKind() != CPPS_ExceptionSpecification))
+	{
+		return NULL;
+	}
+	return (CCPPSyntaxExceptionSpecification*)pcSuffix->mpcExceptionSpecification;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new function's exception specification, from its declarator.  One
+// declared with none allows anything, but: an operator delete allows
+// nothing ([except.spec] 15), and a destructor's is worked out from its
+// class when it is asked for (ExceptionsOf).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SetDeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxExceptionSpecification*	pcSpecification;
+
+	pcSpecification = WrittenSpecification(pcDeclarator->GetFunctionSuffix());
+	if (pcSpecification)
+	{
+		DeclaredExceptions(pcFunction, pcDeclarator, pcSpecification, &pcFunction->mcExceptions);
+		pcFunction->mbExceptionsWritten = true;
+	}
+	else if ((pcFunction->mlliName == GetOperatorName(CT_delete, false)) || (pcFunction->mlliName == GetOperatorName(CT_delete, true)))
+	{
+		pcFunction->mcExceptions.SetNothing();
+		pcFunction->mbExceptionsWritten = true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function declared again: its exception specification must be
+// compatible with the one it has ([except.spec] 3).  A declaration
+// without one has what the function would have with none written, which
+// for a destructor is its class's parts' ([class.dtor] 3).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckRedeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxExceptionSpecification*	pcSpecification;
+	CCPPExceptionSpec					cDeclared;
+	bool								bCompatible;
+
+	if (pcDeclarator == pcFunction->mpcDeclarator)
+	{
+		return true;
+	}
+	pcSpecification = WrittenSpecification(pcDeclarator->GetFunctionSuffix());
+	cDeclared.Init();
+	if (pcSpecification)
+	{
+		DeclaredExceptions(pcFunction, pcDeclarator, pcSpecification, &cDeclared);
+	}
+	else if ((pcFunction->mlliName == GetOperatorName(CT_delete, false)) || (pcFunction->mlliName == GetOperatorName(CT_delete, true)))
+	{
+		cDeclared.SetNothing();
+	}
+	else if ((pcFunction->meKind == CPPFK_Destructor) || pcFunction->mbImplicit)
+	{
+		if (!pcFunction->mbExceptionsWritten || !pcFunction->mpcClass || !pcFunction->mpcClass->IsComplete())
+		{
+			cDeclared.Kill();
+			return true;
+		}
+		cDeclared.SetNothing();
+		ImplicitExceptions(pcFunction, &cDeclared);
+	}
+	bCompatible = cDeclared.IsCompatible(ExceptionsOf(pcFunction));
+	cDeclared.Kill();
+	if (!bCompatible)
+	{
+		//Declarations are made quietly (one that fails is only an error if it is used); this one is wrong where it is.
+		BeginLoud();
+		Error(pcDeclarator, "The function is declared again with a different exception specification");
+		EndLoud();
+	}
+	return bCompatible;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a function may throw.  One declared with a specification has that.
+// A destructor declared without one, and a function the compiler writes,
+// allow what the functions they call allow ([except.spec] 14): it is
+// worked out here, once the class is complete.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPExceptionSpec* CCPPUnit::ExceptionsOf(CCPPFunction* pcFunction)
+{
+	if (pcFunction->mbExceptionsWritten || pcFunction->mbExceptionsKnown)
+	{
+		return &pcFunction->mcExceptions;
+	}
+	pcFunction->mbExceptionsKnown = true;
+	if (!pcFunction->mpcClass || ((pcFunction->meKind != CPPFK_Destructor) && !pcFunction->mbImplicit))
+	{
+		return &pcFunction->mcExceptions;
+	}
+	pcFunction->mcExceptions.SetNothing();
+	ImplicitExceptions(pcFunction, &pcFunction->mcExceptions);
+	pcFunction->mbExceptionsKnown = pcFunction->mpcClass->IsComplete();
+	return &pcFunction->mcExceptions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsNoexcept(CCPPFunction* pcFunction)
+{
+	return ExceptionsOf(pcFunction)->IsNonThrowing();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds to pcDest what a function with no specification written allows
+// because of what it does to its class's bases and fields: a destructor
+// destroys them, a default constructor makes them, a copy or move
+// constructor or operator= copies or moves them, and an inherited
+// constructor calls the base's and makes the rest.  [except.spec] 14
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::ImplicitExceptions(CCPPFunction* pcFunction, CCPPExceptionSpec* pcDest)
+{
+	CCPPClass*			pcClass;
+	SCPP65Type*			psParameter;
+	ECPPSpecialMember	eMember;
+	bool				bCopier;
+	bool				bMove;
+
+	pcClass = pcFunction->mpcClass;
+	psParameter = (pcFunction->mapsParameters.NumElements() > 0) ? pcFunction->mapsParameters.GetPtr(0) : NULL;
+	bCopier = psParameter && psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->pcClass == pcClass);
+	bMove = bCopier && psParameter->bRvalue;
+	if (pcFunction->meKind == CPPFK_Destructor)
+	{
+		eMember = CPPSM_Destroy;
+	}
+	else if (pcFunction->meKind == CPPFK_Constructor)
+	{
+		eMember = bCopier ? (bMove ? CPPSM_Move : CPPSM_Copy) : CPPSM_DefaultConstruct;
+		if (pcFunction->mpcInherited)
+		{
+			pcDest->Add(ExceptionsOf(pcFunction->mpcInherited));
+		}
+	}
+	else if (bCopier && (pcFunction->mlliName == CPP_OPERATOR_NAME(CT_Assignment)))
+	{
+		eMember = bMove ? CPPSM_MoveAssign : CPPSM_Assign;
+	}
+	else
+	{
+		//A closure's conversion to a pointer to a function, which does nothing that throws.
+		return;
+	}
+	PartsExceptions(pcClass, eMember, pcDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds to pcDest what doing eMember to each base and field of the class
+// allows, and for making an object what its fields' default member
+// initialisers do.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::PartsExceptions(CCPPClass* pcClass, ECPPSpecialMember eMember, CCPPExceptionSpec* pcDest)
+{
+	SCPPField*	psField;
+	SCPP65Type*	psType;
+	size		i;
+
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		ClassExceptions(pcClass->macBases.Get(i)->pcClass, eMember, pcDest);
+	}
+	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
+	{
+		ClassExceptions(pcClass->macVirtualBases.Get(i)->pcClass, eMember, pcDest);
+	}
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		psType = psField->psType;
+		while (psType->IsArray())
+		{
+			psType = psType->psBase;
+		}
+		if (psType->IsClass() && (psType->pcClass != pcClass))
+		{
+			ClassExceptions(psType->pcClass, eMember, pcDest);
+		}
+		if ((eMember == CPPSM_DefaultConstruct) && psField->pcInitialiser && MayThrow(psField->pcInitialiser))
+		{
+			pcDest->SetAnything();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds to pcDest what doing eMember to an object of the class allows: what
+// the function the class has for it allows, and when it has none (the
+// compiler copies, makes or destroys the object part by part where it is
+// needed) what its parts' do.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::ClassExceptions(CCPPClass* pcClass, ECPPSpecialMember eMember, CCPPExceptionSpec* pcDest)
+{
+	CCPPFunction*	pcFunction;
+	CCPPFunction*	pcMember;
+	size			i;
+
+	pcFunction = NULL;
+	switch (eMember)
+	{
+	case CPPSM_Destroy:
+		if (pcClass->mpcDestructor)
+		{
+			pcDest->Add(ExceptionsOf(pcClass->mpcDestructor));
+		}
+		return;
+	case CPPSM_DefaultConstruct:
+		for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+		{
+			pcMember = pcClass->mapcMembers.GetPtr(i);
+			if ((pcMember->meKind == CPPFK_Constructor) && !pcMember->mbDeleted && !pcMember->mpcInherited && (pcMember->RequiredParameters() == 0))
+			{
+				pcFunction = pcMember;
+				break;
+			}
+		}
+		break;
+	case CPPSM_Copy:
+	case CPPSM_Move:
+		pcFunction = pcClass->GetPartCopier(false, eMember == CPPSM_Move);
+		break;
+	default:
+		pcFunction = pcClass->GetPartCopier(true, eMember == CPPSM_MoveAssign);
+		break;
+	}
+	if (pcFunction)
+	{
+		pcDest->Add(ExceptionsOf(pcFunction));
+	}
+	else
+	{
+		PartsExceptions(pcClass, eMember, pcDest);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether doing eMember to an object of the class may throw.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ClassMayThrow(CCPPClass* pcClass, ECPPSpecialMember eMember)
+{
+	CCPPExceptionSpec	cExceptions;
+	bool				bThrows;
+
+	cExceptions.Init();
+	cExceptions.SetNothing();
+	ClassExceptions(pcClass, eMember, &cExceptions);
+	bThrows = !cExceptions.IsNonThrowing();
+	cExceptions.Kill();
+	return bThrows;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcTighter allows only what pcLooser allows: what an overriding
+// function's must do against the function's it overrides, and a function's
+// against the pointer's it is assigned to.  A class is allowed where a
+// base of it is.  [except.spec] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::AllowsOnlyWhat(CCPPExceptionSpec* pcTighter, CCPPExceptionSpec* pcLooser)
+{
+	SCPP65Type*	psType;
+	SCPP65Type*	psAllowed;
+	size		i;
+	size		j;
+	int			iOffset;
+	bool		bAllowed;
+
+	if (pcLooser->IsAnything() || pcTighter->IsNonThrowing())
+	{
+		return true;
+	}
+	if (pcTighter->IsAnything())
+	{
+		return false;
+	}
+	for (i = 0; i < pcTighter->mapsTypes.NumElements(); i++)
+	{
+		psType = pcTighter->mapsTypes.GetPtr(i);
+		bAllowed = pcLooser->HasType(psType);
+		for (j = 0; !bAllowed && (j < pcLooser->mapsTypes.NumElements()); j++)
+		{
+			psAllowed = pcLooser->mapsTypes.GetPtr(j);
+			if (psType->IsPointer() && psAllowed->IsPointer() && !psType->IsMemberPointer() && !psAllowed->IsMemberPointer())
+			{
+				psType = psType->psBase->Unqualified();
+				psAllowed = psAllowed->psBase->Unqualified();
+			}
+			bAllowed = psType->IsClass() && psAllowed->IsClass() && IsDerived(psType->pcClass, psAllowed->pcClass, &iOffset);
+			psType = pcTighter->mapsTypes.GetPtr(i);
+		}
+		if (!bAllowed)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
@@ -1964,6 +2337,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		pcFunction->mbCLinkage |= mcContext.IsCLinkage() && !pcClass;
 		pcFunction->mbExplicit |= (uiFlags & CPPDS_EXPLICIT) != 0;
 		pcFunction->mbConstexpr |= (uiFlags & CPPDS_CONSTEXPR) != 0;
+		CheckRedeclaredExceptions(pcFunction, pcDeclarator);
 		return pcFunction;
 	}
 
@@ -1988,7 +2362,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcFunction->mpcTemplate = pcTemplate;
 	pcFunction->mbCLinkage = mcContext.IsCLinkage() && !pcClass;
 	pcFunction->mbExplicit = (uiFlags & CPPDS_EXPLICIT) != 0;
-	pcFunction->mbNoexcept = IsDeclaredNoexcept(pcSuffix->mpcExceptionSpecification, eKind, lliName);
+	SetDeclaredExceptions(pcFunction, pcDeclarator);
 	pcFunction->mbOverride |= HasVirtSpecifier(pcSuffix, mpcTokeniser->mlliOverride);
 	pcFunction->mbFinal |= HasVirtSpecifier(pcSuffix, mpcTokeniser->mlliFinal);
 	if (pszArguments)
@@ -2220,6 +2594,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			bResult &= Error(pcInit, "Only variables with simple names are supported by the compiler yet");
 			continue;
 		}
+		bResult &= CheckPointerExceptions(pcInit);
 
 		//extern without an initialiser only declares; extern int x = 1; defines x.  [basic.def]
 		if (((pcSpecifiers->muiFlags & CPPDS_EXTERN) || mcContext.IsLinkageExtern()) && !pcInit->mpcInitializer)

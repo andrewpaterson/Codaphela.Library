@@ -48,7 +48,9 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 	mbExplicit = false;
 	mbConstThis = false;
 	mbConstexpr = false;
-	mbNoexcept = false;
+	mcExceptions.Init();
+	mbExceptionsWritten = false;
+	mbExceptionsKnown = false;
 	mbOverride = false;
 	mbFinal = false;
 	mpcAddressOf = NULL;
@@ -78,6 +80,7 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 //////////////////////////////////////////////////////////////////////////
 void CCPPFunction::Kill(void)
 {
+	mcExceptions.Kill();
 	mszArguments.Kill();
 	mapcDefaults.Kill();
 	mapsParameters.Kill();

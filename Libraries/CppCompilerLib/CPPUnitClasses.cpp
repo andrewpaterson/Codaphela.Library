@@ -823,7 +823,8 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 //
 // A class's functions' override and final ([class.virtual] 4 and 5): one
 // declared override must override a base class's virtual function, and none
-// may override one declared final.  One that overrides and is declared
+// may override one declared final.  One that overrides may allow only the
+// exceptions the function it overrides allows ([except.spec] 5).  One that overrides and is declared
 // neither is warned about (mbWarnMissingOverride), but for a destructor, as
 // G++'s -Wsuggest-override doesn't.
 //
@@ -852,10 +853,22 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 		{
 			bResult &= Error(pcFunction->mpcDeclarator, "The function overrides one declared final");
 		}
+		else if (pcOverridden && !AllowsOnlyWhat(ExceptionsOf(pcFunction), ExceptionsOf(pcOverridden)))
+		{
+			bResult &= Error(pcFunction->mpcDeclarator, "The function allows exceptions that the virtual function it overrides doesn't");
+		}
 		else if (pcOverridden && !pcFunction->mbOverride && !pcFunction->mbFinal && (pcFunction->meKind != CPPFK_Destructor) && mpcOptions->mbWarnMissingOverride)
 		{
 			Warning(pcFunction->mpcDeclarator, "The function overrides a virtual function of a base class but isn't declared override");
 		}
+	}
+
+	//The destructor the compiler declares allows what the class's parts' destructors do, which may be more.
+	pcFunction = pcClass->mpcDestructor;
+	pcOverridden = (pcFunction && pcFunction->mbImplicit) ? pcClass->FindOverridden(pcFunction) : NULL;
+	if (pcOverridden && !AllowsOnlyWhat(ExceptionsOf(pcFunction), ExceptionsOf(pcOverridden)))
+	{
+		bResult &= Error(pcClass->mpcSpecifier, "The class's destructor allows exceptions that the virtual destructor it overrides doesn't");
 	}
 	return bResult;
 }

@@ -509,7 +509,10 @@ CCPPSyntaxFunctionSuffix* CCPPParser::ParseFunctionSuffix(CCPPSyntax* pcParent, 
 
 	if (Is(CT_noexcept) || Is(CT_throw))
 	{
+		//The parameters are in scope in it: void call(T& t) noexcept(noexcept(t.f())).  [basic.scope.block] 2
+		mpcScope = pcScope;
 		pcFunction->mpcExceptionSpecification = ParseExceptionSpecification(pcFunction);
+		PopScope(pcScope);
 		if (!pcFunction->mpcExceptionSpecification)
 		{
 			return NULL;
@@ -586,6 +589,7 @@ CCPPSyntaxExceptionSpecification* CCPPParser::ParseExceptionSpecification(CCPPSy
 			if (Is(CT_Elipsis))
 			{
 				//Microsoft's throw(...).
+				pcSpecification->mbAnything = true;
 				Next();
 				break;
 			}

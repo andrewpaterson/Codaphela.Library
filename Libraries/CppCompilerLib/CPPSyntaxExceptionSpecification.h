@@ -31,6 +31,7 @@ class CCPPSyntaxExceptionSpecification : public CCPPSyntax
 public:
 	bool					mbNoexcept;
 	bool					mbParentheses;
+	bool					mbAnything;		//Microsoft's throw(...): anything may be thrown.
 	CCPPSyntaxExpression*	mpcCondition;
 	CArraySyntax			macpTypes;
 

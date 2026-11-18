@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/MapLongTemplate.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
+#include "CPPExceptionSpec.h"
 #include "CPP65Type.h"
 
 
@@ -88,6 +89,18 @@ enum ECPPFunctionKind
 };
 
 
+//What is done to an object of a class with a function the class declares or, when it declares none, part by part.
+enum ECPPSpecialMember
+{
+	CPPSM_DefaultConstruct,
+	CPPSM_Copy,
+	CPPSM_Move,
+	CPPSM_Assign,
+	CPPSM_MoveAssign,
+	CPPSM_Destroy,
+};
+
+
 class CCPPClass;
 class CCPPTemplate;
 class CCPPTemplateArguments;
@@ -115,7 +128,9 @@ public:
 	bool							mbExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
 	bool							mbConstThis;	//A const member function: an overload of the same function without const.
 	bool							mbConstexpr;	//Declared constexpr: its value may be worked out when the program is compiled.
-	bool							mbNoexcept;		//Doesn't throw: declared noexcept or throw(), or a destructor or operator delete declared without either.
+	CCPPExceptionSpec				mcExceptions;	//What it may throw.  Ask CCPPUnit::ExceptionsOf: one that wasn't written is worked out when it is asked for.
+	bool							mbExceptionsWritten;	//mcExceptions is what a declaration says (or what an operator delete declared without one has).
+	bool							mbExceptionsKnown;		//mcExceptions has been worked out (a destructor's, or a function's the compiler writes).
 	bool							mbOverride;		//Declared override: it must override a base class's virtual function.
 	bool							mbFinal;		//Declared final: no derived class's function may override it.
 	CCPPFunction*					mpcAddressOf;	//What a closure's conversion to a pointer to a function gives the address of (its invoker), or NULL.

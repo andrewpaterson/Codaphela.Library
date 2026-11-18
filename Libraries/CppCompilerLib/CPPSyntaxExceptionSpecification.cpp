@@ -30,6 +30,7 @@ void CCPPSyntaxExceptionSpecification::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* 
 	CCPPSyntax::Init(pcTree, pcParent);
 	mbNoexcept = false;
 	mbParentheses = false;
+	mbAnything = false;
 	mpcCondition = NULL;
 	macpTypes.Init(NodeArrayMallocator());
 }
@@ -65,6 +66,10 @@ void CCPPSyntaxExceptionSpecification::PrettyPrint(CChars* pszDest, int iDepth)
 	else
 	{
 		pszDest->Append("throw(");
+		if (mbAnything)
+		{
+			pszDest->Append("...");
+		}
 		PrintList(pszDest, &macpTypes, ", ", iDepth);
 		pszDest->Append(')');
 	}
@@ -79,6 +84,7 @@ void CCPPSyntaxExceptionSpecification::VisitFields(CCPPSyntaxFields* pcFields)
 {
 	pcFields->Bool(&mbNoexcept);
 	pcFields->Bool(&mbParentheses);
+	pcFields->Bool(&mbAnything);
 	pcFields->Child(&mpcCondition);
 	pcFields->Children(&macpTypes);
 }

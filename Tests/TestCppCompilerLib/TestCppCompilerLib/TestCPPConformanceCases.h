@@ -3381,13 +3381,13 @@ static const SConformanceCase gasConformanceExceptions[] =
 	{
 		"NoexceptImplicitDestructor", 122,	//15.4/14
 		"struct A { ~A() {} }; struct B { ~B() noexcept(false) {} }; struct C { B b; }; struct D2 { A a; };\n"
-		"template<class T> T& ref() noexcept;\n"
+		"template<class T> T& ref() noexcept { return *(T*)0; }\n"
 		"int main() { return noexcept(ref<A>().~A()) + !noexcept(ref<B>().~B()) * 2 + !noexcept(ref<C>().~C()) * 4 + noexcept(ref<D2>().~D2()) * 8 + 107; }\n"
 	},
 	{
 		"NoexceptImplicitConstructors", 123,	//15.4/14
 		"struct A { A() noexcept {} A(const A&) noexcept {} }; struct B { B() {} B(const B&) {} }; struct HA { A a; }; struct HB { B b; }; struct Tr { int x; };\n"
-		"template<class T> T& ref() noexcept;\n"
+		"template<class T> T& ref() noexcept { return *(T*)0; }\n"
 		"int main() { return noexcept(HA()) + !noexcept(HB()) * 2 + noexcept(HA(ref<HA>())) * 4 + !noexcept(HB(ref<HB>())) * 8 + noexcept(Tr()) * 16 + noexcept(Tr(ref<Tr>())) * 32 + 60; }\n"
 	},
 	{
@@ -3425,7 +3425,7 @@ static const SConformanceCase gasConformanceExceptions[] =
 		"OverrideLooserRefused", CONFORMANCE_REFUSED,	//15.4/5
 		"struct B { virtual void f() noexcept; };\n"
 		"struct D : B { void f() override; };\n"
-		"int main() { return 1; }\n"
+		"int main() { D d; return 1; }\n"
 	},
 	{
 		"PointerLooserRefused", CONFORMANCE_REFUSED,	//15.4/5
@@ -3438,6 +3438,23 @@ static const SConformanceCase gasConformanceExceptions[] =
 		"void f() noexcept;\n"
 		"void f();\n"
 		"int main() { return 1; }\n"
+	},
+	{
+		"PointerAssignedLooserRefused", CONFORMANCE_REFUSED,	//15.4/5
+		"void f();\n"
+		"int main() { void (*p)() noexcept = 0; p = f; return 1; }\n"
+	},
+	{
+		"ImplicitDestructorLooserRefused", CONFORMANCE_REFUSED,	//15.4/5, 12.4/3
+		"struct M { ~M() noexcept(false) {} };\n"
+		"struct B { virtual ~B() noexcept {} };\n"
+		"struct D : B { M m; };\n"
+		"int main() { D d; return 1; }\n"
+	},
+	{
+		"PointerToPointerSpecification", 202,	//15.4/5
+		"void f() noexcept {}\n"
+		"int main() { void (*p)() noexcept = f; void (*q)() noexcept = p; void (*r)() = q; return noexcept(q()) + !noexcept(r()) * 2 + noexcept((*p)()) * 4 + 195; }\n"
 	},
 	{
 		"CatchIncompleteRefused", CONFORMANCE_REFUSED,	//15.3/1

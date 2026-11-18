@@ -388,15 +388,16 @@ void CCPP65TypeChecker::VisitNoexceptExpression(CCPPSyntaxNoexceptExpression* pc
 //////////////////////////////////////////////////////////////////////////
 //
 // throw, and throw with an operand.  A program built without exceptions
-// (CCPPCompileOptions::mbExceptions) can't have one; with them it isn't
-// compiled yet (ExceptionsPlan.txt).
+// (CCPPCompileOptions::mbExceptions) can't have one; with them it is void
+// ([expr.throw] 1), and the front end doesn't write it yet
+// (ExceptionsPlan.txt).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitThrowExpression(CCPPSyntaxThrowExpression* pcNode)
 {
 	if (mpcUnit->GetOptions()->mbExceptions)
 	{
-		VisitDefault(pcNode);
+		mpsResult = (!pcNode->mpcOperand || Value(pcNode->mpcOperand)) ? &mpcTypes->msVoid : NULL;
 	}
 	else
 	{
@@ -913,6 +914,11 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 	case CT_MemberFunctionPointerIndirection:
 		return Load(Place(pcBinary), pcBinary);
 	case CT_Assignment:
+		if (!mpcUnit->CheckAssignedExceptions(pcBinary))
+		{
+			return NULL;
+		}
+		return Assignment(pcBinary);
 	case CT_AssignmentAdd:
 	case CT_AssignmentSubtract:
 	case CT_AssignmentMultiply:

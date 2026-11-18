@@ -410,6 +410,7 @@ void CCPPUnit::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 		DeclareBlockFunction(((CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator);
 		return;
 	}
+	CheckPointerExceptions(pcInit);
 	pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
 	if (pcVariable && mcTypeChecker.Initialise(pcVariable->mpsType, pcInit->mpcInitializer, pcInit))
 	{
