@@ -1657,8 +1657,12 @@ static void TestObjectsThreadsKeeper(void* pvSteps)
 		psSteps->ppOnHeap = new CPointer(psSteps->apcNodes[2]);
 		AtomicStore(&psSteps->iDone, 4);
 
+		//From the third to the fourth as a writer, which keeps a from of each until the old one goes.
 		TestObjectsStepWait(psSteps, 5);
+		pHeld = psSteps->apcNodes[2];
+		ObjectsLock();
 		pHeld = psSteps->apcNodes[3];
+		ObjectsUnlock();
 		AtomicStore(&psSteps->iDone, 5);
 
 		TestObjectsStepWait(psSteps, 6);
@@ -1673,7 +1677,8 @@ static void TestObjectsThreadsKeeper(void* pvSteps)
 // A registered thread keeps its own stack froms of objects attached to the root (level 2), and the object system
 // asks it for them.  An object taken off the root while such a thread holds it stays, with a stack from to its
 // name, until the thread lets go; one killed while it is held leaves the thread's pointer NULL; a pointer one thread
-// took and another lets go of is found; and they are written out with the rest.
+// took and another lets go of is found; a pointer moved from one to another with the lock held keeps the right one;
+// and they are written out with the rest.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectsThreadsKeptStackFroms(void)
@@ -1738,8 +1743,10 @@ void TestObjectsThreadsKeptStackFroms(void)
 	AssertSize(0, TestObjectsNumStackFroms(sSteps.apcNodes[2]));
 	AssertTrue(sSteps.apcNodes[2]->IsLive());
 
-	//And it lets go of the fourth as its own function ends.
+	//It points a pointer from the third to the fourth with the lock held: the third's from is the one that goes.  And it
+	//lets go of the fourth as its own function ends.
 	TestObjectsStep(&sSteps, 5);
+	AssertSize(0, TestObjectsNumStackFroms(sSteps.apcNodes[2]));
 	AssertSize(1, TestObjectsNumStackFroms(sSteps.apcNodes[3]));
 	TestObjectsStep(&sSteps, 6);
 	sSteps.cThread.Join();

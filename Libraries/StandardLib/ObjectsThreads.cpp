@@ -406,11 +406,12 @@ static SObjectsThread* ObjectsThreadKeeping(size uiThread)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes pcPointer's from out of the thread's, if it is one of them: the last looked at first.  What was last takes
-// its place.
+// Takes pcPointer's from of pcObject out of the thread's, if it is one of them: the last looked at first.  What was
+// last takes its place.  Matched on both: a pointer pointed from one object at another has a from of each for a while
+// (PointToInside adds the new before it takes off the old), and it is the old one that goes.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ObjectsThreadRemoveStackFrom(SObjectsThread* psThread, CPointer* pcPointer)
+static bool ObjectsThreadRemoveStackFrom(SObjectsThread* psThread, CEmbeddedObject* pcObject, CPointer* pcPointer)
 {
 	SThreadStackFrom*	pasFroms;
 	size				i;
@@ -420,7 +421,7 @@ static bool ObjectsThreadRemoveStackFrom(SObjectsThread* psThread, CPointer* pcP
 	while (i > 0)
 	{
 		i--;
-		if (pasFroms[i].pcPointer == pcPointer)
+		if ((pasFroms[i].pcPointer == pcPointer) && (pasFroms[i].pcObject == pcObject))
 		{
 			psThread->asStackFroms.RemoveAt(i, false);
 			return true;
@@ -435,12 +436,12 @@ static bool ObjectsThreadRemoveStackFrom(SObjectsThread* psThread, CPointer* pcP
 // By a writer or a reader: it is the running thread's own table.
 //
 //////////////////////////////////////////////////////////////////////////
-bool ThreadStackFromRemoveInside(CPointer* pcPointer)
+bool ThreadStackFromRemoveInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
 {
 	SObjectsThread*		psThread;
 
 	psThread = gpsObjectsThread;
-	return (psThread != NULL) && ObjectsThreadRemoveStackFrom(psThread, pcPointer);
+	return (psThread != NULL) && ObjectsThreadRemoveStackFrom(psThread, pcObject, pcPointer);
 }
 
 
@@ -448,7 +449,7 @@ bool ThreadStackFromRemoveInside(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ThreadStackFromRemoveAnywhereInside(CPointer* pcPointer)
+bool ThreadStackFromRemoveAnywhereInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
 {
 	SObjectsThread*		psThread;
 	size				i;
@@ -456,7 +457,7 @@ bool ThreadStackFromRemoveAnywhereInside(CPointer* pcPointer)
 	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
 	{
 		psThread = ObjectsThreadKeeping(i);
-		if ((psThread != NULL) && ObjectsThreadRemoveStackFrom(psThread, pcPointer))
+		if ((psThread != NULL) && ObjectsThreadRemoveStackFrom(psThread, pcObject, pcPointer))
 		{
 			return true;
 		}

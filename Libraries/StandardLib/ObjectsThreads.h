@@ -88,8 +88,8 @@ inline size ObjectsThreadsNumWaysIn(void) { return 0; }
 inline void ObjectsThreadsMarkWaysIn(void) {}
 inline bool ObjectsThreadsAllInSinceMark(void) { return true; }
 inline bool ThreadStackFromAdd(CEmbeddedObject* pcObject, CPointer* pcPointer) { return false; }
-inline bool ThreadStackFromRemove(CPointer* pcPointer) { return false; }
-inline bool ThreadStackFromRemoveAnywhere(CPointer* pcPointer) { return false; }
+inline bool ThreadStackFromRemove(CEmbeddedObject* pcObject, CPointer* pcPointer) { return false; }
+inline bool ThreadStackFromRemoveAnywhere(CEmbeddedObject* pcObject, CPointer* pcPointer) { return false; }
 inline bool ThreadStackFromsHas(CEmbeddedObject* pcObject) { return false; }
 inline size ThreadStackFromsNum(CEmbeddedObject* pcObject) { return 0; }
 inline size ThreadStackFromsClear(CEmbeddedObject* pcObject) { return 0; }
@@ -142,8 +142,8 @@ size	ObjectsThreadsRemove(void);
 size	ObjectsThreadsNum(void);
 
 bool	ThreadStackFromAddInside(CEmbeddedObject* pcObject, CPointer* pcPointer);
-bool	ThreadStackFromRemoveInside(CPointer* pcPointer);
-bool	ThreadStackFromRemoveAnywhereInside(CPointer* pcPointer);
+bool	ThreadStackFromRemoveInside(CEmbeddedObject* pcObject, CPointer* pcPointer);
+bool	ThreadStackFromRemoveAnywhereInside(CEmbeddedObject* pcObject, CPointer* pcPointer);
 bool	ThreadStackFromsHasInside(CEmbeddedObject* pcObject);
 size	ThreadStackFromsNumInside(CEmbeddedObject* pcObject);
 size	ThreadStackFromsClearInside(CEmbeddedObject* pcObject);
@@ -236,17 +236,17 @@ inline bool ThreadStackFromAdd(CEmbeddedObject* pcObject, CPointer* pcPointer)
 }
 
 
-//pcPointer no longer points at its object.  True if the running thread was keeping the from, which it no longer is.
-inline bool ThreadStackFromRemove(CPointer* pcPointer)
+//pcPointer no longer points at pcObject.  True if the running thread was keeping the from, which it no longer is.
+inline bool ThreadStackFromRemove(CEmbeddedObject* pcObject, CPointer* pcPointer)
 {
-	return ObjectsThreadsRegistered() && ThreadStackFromRemoveInside(pcPointer);
+	return ObjectsThreadsRegistered() && ThreadStackFromRemoveInside(pcObject, pcPointer);
 }
 
 
 //The same, of every thread: for a pointer let go of by a thread that didn't take it.
-inline bool ThreadStackFromRemoveAnywhere(CPointer* pcPointer)
+inline bool ThreadStackFromRemoveAnywhere(CEmbeddedObject* pcObject, CPointer* pcPointer)
 {
-	return ObjectsThreadsKeeping() && ThreadStackFromRemoveAnywhereInside(pcPointer);
+	return ObjectsThreadsKeeping() && ThreadStackFromRemoveAnywhereInside(pcObject, pcPointer);
 }
 
 

@@ -1130,7 +1130,7 @@ bool CEmbeddedObject::UnlinkStackFrom(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 NO_INLINE bool CEmbeddedObject::UnlinkStackFromOfThreads(CPointer* pcPointer)
 {
-	return ThreadStackFromRemove(pcPointer) || UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer) || ThreadStackFromRemoveAnywhere(pcPointer);
+	return ThreadStackFromRemove(this, pcPointer) || UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer) || ThreadStackFromRemoveAnywhere(this, pcPointer);
 }
 
 
@@ -1206,7 +1206,7 @@ bool CEmbeddedObject::UnlinkStackFromReading(CPointer* pcPointer)
 	{
 		return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer);
 	}
-	return ThreadStackFromRemove(pcPointer);
+	return ThreadStackFromRemove(this, pcPointer);
 }
 
 
