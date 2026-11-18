@@ -948,6 +948,27 @@ Steps
       g. Proved: the mutation harness over the new pieces (a hollow freed at once, Dehollow reading before it locks, a
          count not raised, the check freeing a turn early, an atomic made plain), the full sweep, the 65 suites with
          their sizes unchanged, the MinGW compile.
+         Done 2026-11-18.  ~/Codaphela/documents/ThreadSafetyPrototype/mutation/forwarding.py: 22 mutants of step 24's
+         pieces, each built and run with the threads tests in Debug and, if they pass, under ThreadSanitizer (up to
+         TSAN_TRIES times, as a race shows in some runs and not others).  21 killed:
+           by a test's assertion or a crash in Debug: a loaded hollow freed at once; the hollow's Dehollow reading the
+             forwarders before it locks (a crash); a read, or a lock taken, not counted; the check not waiting for
+             every thread; a pointer pointed under the lock (PointToLocking, AssignObject) at a forwarder; a
+             forwarder left attached to the root; the forwarders not counted; a thread's stack from taken off by its
+             pointer alone; a stored object another thread holds killed;
+           by ThreadSanitizer: the check freeing a turn early (a thread called Dehollow on a forwarder freed under
+             it: a crash in that build); operator->, IsNull or a pointer's destructor reading the word plain; a remap
+             writing it plain; a collection's element read or written plain; slots-moved cleared in the flags word.
+         Survived: a pointer's Load made relaxed.  The race it allows (a key a load rewrote, read and followed before
+         the object's index is seen) was seen once in 12 runs before it was fixed, and not in 6 tries here: a reader
+         mostly synchronises with the load through the reader protocol anyway.  Kept as explained.
+         Two tests were added for survivors of the first pass: a pointer pointed at a plain pointer kept to a hollow
+         after the hollow loaded (TestObjectsThreadsForwardingHollow, before anything has been freed), and the count
+         of forwarders asserted (a count never raised wraps when forwarders are freed, and so passed as non-zero).
+         Repeated: the threads tests 16 times under ThreadSanitizer and 10 under ASan, nothing reported.  The 65
+         suites 185 and 183 passed (mbSlotsMoved fits the padding there too: their layout asserts pass).  MinGW, 32
+         and 64 bit: StandardLib's 131 files compile with nothing said.  TestBaseLib (64, Release, ThreadSanitizer)
+         and TestThreadLib pass with the pointers' acquire Load.
 
   Level 3: a CObjects for each thread (decisions 11 to 15)
   25. a. The memory index replaced: an object found, put and taken out by its index in a few instructions, where the

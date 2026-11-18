@@ -1879,12 +1879,13 @@ static void TestObjectsThreadsComesInEnd(STestObjectsSteps* psSteps)
 // A hollow loaded while another thread is registered forwards: a thread
 // that read a pointer to it before it was loaded (a plain pointer kept,
 // here) asks it for its object and is given what it was loaded as, with
-// nothing loaded again.  It is freed once every other thread has come into
-// the object system since the home thread marked them (ObjectsCollect,
-// which marks the first time and frees the next), and not before; a
-// thread that has unregistered doesn't hold it up.  With no other thread
-// registered a loaded hollow is freed at once, and switching the locking
-// off frees what forwarders are left.
+// nothing loaded again, and a pointer pointed at that plain pointer points
+// at what it was loaded as too.  It is freed once every other thread has
+// come into the object system since the home thread marked them
+// (ObjectsCollect, which marks the first time and frees the next), and not
+// before; a thread that has unregistered doesn't hold it up.  With no
+// other thread registered a loaded hollow is freed at once, and switching
+// the locking off frees what forwarders are left.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectsThreadsForwardingHollow(void)
@@ -1895,6 +1896,7 @@ void TestObjectsThreadsForwardingHollow(void)
 	CFileUtil			cFileUtil;
 	Ptr<CRoot>			pRoot;
 	Ptr<CString>		pStored;
+	Ptr<CString>		pHeld;
 	CEmbeddedObject*	pcHollow;
 	size				uiIndexes;
 
@@ -1931,8 +1933,15 @@ void TestObjectsThreadsForwardingHollow(void)
 	AssertFalse(pStored.IsHollow());
 	AssertSize(uiIndexes, gcObjects.NumMemoryIndexes());
 	AssertSize(2, gcObjects.NumForwarders());
+	AssertSize(2, guiObjectsForwarders);  //What pointing a pointer looks at first.
 	AssertPointer(pStored.Object(), pcHollow->Dehollow());
 	AssertSize(uiIndexes, gcObjects.NumMemoryIndexes());
+
+	//A pointer pointed at the plain pointer kept to the hollow is pointed at what it was loaded as.
+	pHeld = pcHollow;
+	AssertFalse(pHeld.IsHollow());
+	AssertPointer(pStored.Object(), pHeld.Object());
+	pHeld = NULL;
 
 	//Marked, then kept while the other thread hasn't come in, then freed once it has.
 	ObjectsCollect();
@@ -1971,6 +1980,7 @@ void TestObjectsThreadsForwardingHollow(void)
 	AssertSize(0, ObjectsNumThreadErrors());
 	AssertTrue(ObjectsLocking(false));
 	AssertSize(0, gcObjects.NumForwarders());
+	AssertSize(0, guiObjectsForwarders);
 
 	pStored = NULL;
 	pRoot = NULL;
