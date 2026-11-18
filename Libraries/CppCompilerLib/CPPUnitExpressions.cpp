@@ -422,7 +422,7 @@ SCPPLiteralCall* CCPPUnit::GetLiteralCall(CCPPSyntax* pcLiteral)
 	int64							lliName;
 	int64							lliValue;
 	double							dValue;
-	int								i;
+	size								i;
 
 	psCall = mcLiteralCalls.Get((int64)(size)pcLiteral);
 	if (psCall)
@@ -2688,7 +2688,7 @@ bool CCPPUnit::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValu
 			apsTypes.Add(psType);
 		}
 	}
-	if (bResult && (apsTypes.NumElements() < (((eTrait == CPP65TT_BaseOf) || (eTrait == CPP65TT_ConvertibleTo) || (eTrait == CPP65TT_Assignable)) ? 2 : 1)))
+	if (bResult && (apsTypes.NumElements() < (size)(((eTrait == CPP65TT_BaseOf) || (eTrait == CPP65TT_ConvertibleTo) || (eTrait == CPP65TT_Assignable)) ? 2 : 1)))
 	{
 		bResult = Error(pcTrait, "The type trait needs more types");
 	}
