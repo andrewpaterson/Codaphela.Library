@@ -196,6 +196,61 @@ Each ends with the whole of TestCppCompilerLib passing in Release x64 and a comm
      - a deallocation function is noexcept unless it says otherwise
      One function says whether a call can throw, and noexcept(e) and (later) the test after a call both ask it.
 
+     How it is to be done (the code read 2026-11-18, while the machine was the other session's; nothing of it built):
+     - An exception specification becomes a thing of its own, CCPPExceptionSpec, in place of CCPPFunction::mbNoexcept
+       (which only CCPPUnit::MayThrow reads): it allows nothing, anything, or a list of types, and says IsNonThrowing,
+       Allows(type), AllowsOnlyWhat(another) for 15.4/5, IsCompatible(another) for 15.4/3, and Add(another) for the
+       union that 15.4/14 gives an implicit member.  Stage 8's throw(A, B) lists and std::unexpected read the same thing.
+       CCPPUnit::IsDeclaredNoexcept (CPPUnit.cpp:1434) becomes what makes one from the syntax.  The parser drops the
+       Microsoft throw(...) (CppParserDeclarators.cpp:586): the node gets a flag and it means "anything".
+     - Where one is made.  CCPPUnit::DeclareFunction sets it only for a new function (CPPUnit.cpp:1890); the path for a
+       declaration of a function declared before (1824 to 1866) returns without looking: it compares the two there and
+       an incompatible one is an error.  A function that has an implicit one (a destructor, a deallocation function)
+       declared again without one is the same.  CCPPUnit::AddLambdaFunction (CPPUnitLambdas.cpp:516) reads the lambda's
+       suffix, which it has (pcFunction->mpcDeclarator).  The functions AddFunction makes with no declaration get theirs
+       worked out: the implicit destructor (CPPUnitClasses.cpp:786) and a closure's (CPPUnitLambdas.cpp:423), the
+       implicit and the inherited constructors (CPPUnitClasses.cpp:813, 987, 1001), and a member that is = default
+       (CPPUnitClasses.cpp:1167, CCPPFunction::SetDefinition).
+     - What the compiler does without a function has one too.  A class with no copy or move constructor and no
+       operator= is copied by code written where the copy is (CCPP65IRFrontEnd::CopyParts; CCPPClass::GetCopier finds
+       only declared ones), a class that needs no constructor has none (NeedsConstructor), and one that needs no
+       destructor has none (mpcDestructor is NULL).  So the question "may making, copying, assigning or destroying an
+       object of this class throw" is asked of the class (CCPPClass, beside IsTriviallyCopyable): its own function's
+       specification if it declares one, else the union of its bases' and fields' answers and, for the default
+       constructor, of its fields' default member initialisers.
+     - CCPPUnit::MayThrow (CPPUnitExpressions.cpp:254) is where 5.3.7/3 is said.  What it has wrong or lacks:
+         - a destructor call bound with no function (the class has none) counts as throwing (line 279: !mpcFunction);
+         - a call through a pointer always throws: a pointer, reference or member pointer to a function declared with a
+           specification doesn't (noexcept(p()) with void (*p)() noexcept).  C++14 keeps a specification out of the
+           type (15.4/13), and one can't be written in a typedef or an alias (15.4/2), so it is the variable's, the
+           parameter's or the field's: CCPPVariable and SCPPField keep their declarator's.  Initialising or assigning
+           one from a function or a pointer that allows more is the error of 15.4/5;
+         - a call that is a constant expression doesn't throw whatever it is declared (5.3.7/3, "unless the call is a
+           constant expression"; C++17 took this out, g++ -std=c++14 has it, the Microsoft compiler doesn't).  A case to
+           add: NoexceptConstantCall;
+         - new asks its allocation function (CCPPBinder::FindAllocation) and its constructor, not only "is it
+           placement"; delete asks the destructor and the deallocation function, and today asks nothing;
+         - objects made: T(args) and T{args} (CPPS_ConstructExpression, through CCPPBinder::BindConstruction), an
+           argument converted to a class by a constructor or from one by a conversion function (BindConversion), and
+           the destructor of every temporary of a class the expression makes;
+         - dynamic_cast to a reference, and typeid of a glvalue of a polymorphic class;
+         - a lambda expression: the copies of what it captures by value.
+     - CCPPUnit::CheckOverrides (CPPUnitClasses.cpp:832) gets 15.4/5: an overrider may only allow what the function it
+       overrides allows.  It skips implicit functions today; a destructor the compiler declares that is looser than a
+       base's virtual one is the same error.
+     - What the stage can break in code that compiles today: a redeclaration with another specification in BaseLib,
+       StandardLib, SupportLib, Libc65 or the HCP65 sources (the Lib65 suites' compile will say; "fix those sources as
+       part of the stage", as for access control), and specifications of templates, which are worked out when an
+       instance is declared, not when one is needed (C++14's 14.7.1/15: left so unless something refuses to compile).
+     - Its cases are in the Exceptions group already: NoexceptOperatorThrow, NoexceptImplicitDestructor,
+       NoexceptImplicitConstructors, NoexceptLambda, NoexceptFunctionPointer, NoexceptDependent, NoexceptTemporaries,
+       DeallocationNoexcept, OverrideLooserRefused, PointerLooserRefused, RedeclaredDifferentRefused, and Stage8's
+       NoexceptOperator and NoexceptForms, which must go on passing.
+     - For stage 6, seen on the way: the front end writes a call to the IR in eleven places (CCPP65IRFrontEnd::Call at
+       CPP65IRFrontEndCalls.cpp:540 for nearly all of the program's; CallWithArguments, CallRuntime, the count
+       routines at 294, the inherited and base constructors and operator= at CPP65IRFrontEndObjects.cpp:1969, 2034 and
+       2157, and R_BadCast twice).  They become one function that writes the call and, when it may throw, the test.
+
   2. The IR: thrown, throw and nothrow, in the printer, parser, verifier, interpreter, inliner, the block passes, CIRInterprocedural and FoldConstants.  Tests in TestIR, TestIRInterpreter and TestIRInterprocedural, written as IR text: round trips, the verifier's errors, a function inlined at a tested call, a nothrow callee's test folding away.
 
   3. The back ends: the throw exit and the test, on both, through every kind of exit and stub in 2 above; the start-ups; the builder's check of assembly.  Tests in TestIR65Backend and TestIRW65C816Backend from IR text, and programs written in IR that throw through frames of each irregular kind and are run.
