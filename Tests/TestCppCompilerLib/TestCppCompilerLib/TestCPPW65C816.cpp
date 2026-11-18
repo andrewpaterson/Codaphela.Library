@@ -6327,7 +6327,6 @@ void TestCPP816(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 	CW65C816InstructionFactory::GetInstance()->Init();
 
 	TestCPP816Basics();
@@ -6431,7 +6430,6 @@ void TestCPP816(void)
 	TestCPP816EnumClass();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

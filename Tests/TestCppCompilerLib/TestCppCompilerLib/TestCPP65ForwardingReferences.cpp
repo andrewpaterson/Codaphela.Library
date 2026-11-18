@@ -564,14 +564,12 @@ void TestCPP65ForwardingReferences(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	TestForwardingReferences(CPPT_65C64, TEST_CPP65_FORWARDING_NOT_DONE);
 	TestForwardingReferences(CPPT_W65C816, TEST_CPP816_FORWARDING_NOT_DONE);
 	TestForwardingReferenceRejected(CPPT_65C64);
 	TestForwardingReferenceRejected(CPPT_W65C816);
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

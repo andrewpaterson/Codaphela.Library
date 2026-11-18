@@ -2986,7 +2986,6 @@ void TestIR816Backend(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 	CW65C816InstructionFactory::GetInstance()->Init();
 
@@ -3034,7 +3033,6 @@ void TestIR816Backend(void)
 	SafeKill(gapcTestIR816Runtime[1]);
 	CW65C816InstructionFactory::GetInstance()->Kill();
 	C65C64InstructionFactory::GetInstance()->Kill();
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

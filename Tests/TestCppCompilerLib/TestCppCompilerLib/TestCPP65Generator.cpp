@@ -3884,7 +3884,6 @@ void TestCPP65Generator(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 
 	TestCPP65GeneratorAssembly();
@@ -3928,7 +3927,6 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorVirtualBaseLayouts();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

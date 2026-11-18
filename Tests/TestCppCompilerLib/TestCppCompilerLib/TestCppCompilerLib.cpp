@@ -46,6 +46,7 @@ int __cdecl main(void)
 
 	BreakOnAllocation(0);
 	InitTotalStatistics();
+	NumberInit();
 
 	if (getenv("TEST_CPP_CONFORMANCE_TRY"))
 	{

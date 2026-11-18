@@ -2114,7 +2114,6 @@ void TestCPP65IR(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 
 	TestCPP65RegisterArguments();
@@ -2175,7 +2174,6 @@ void TestCPP65IR(void)
 	TestCPP65IRZeroedArrays();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

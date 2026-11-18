@@ -1982,7 +1982,6 @@ void TestCppParser(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	TestCppParserOperatorNames();
 	TestCppParserDeclarations();
@@ -2019,7 +2018,6 @@ void TestCppParser(void)
 	TestCppParserTentativeMemory();
 	TestCppParserBaseAndEnumAttributes();
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

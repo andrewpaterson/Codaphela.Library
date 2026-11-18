@@ -2601,7 +2601,6 @@ void TestPreprocessor(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	TestPreprocessorSimple();
 	TestPreprocessorSimpleReplacement();
@@ -2661,7 +2660,6 @@ void TestPreprocessor(void)
 	TestPreprocessorIncludeNext();
 	TestPreprocessorHeaderNames();
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

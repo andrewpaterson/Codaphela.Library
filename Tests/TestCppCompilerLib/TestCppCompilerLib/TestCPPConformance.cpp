@@ -410,7 +410,6 @@ void TestCPPConformance(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	if (getenv("TEST_CPP_CONFORMANCE_TRY"))
 	{
@@ -427,7 +426,6 @@ void TestCPPConformance(void)
 		TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_W65C816);
 	}
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 
