@@ -708,8 +708,8 @@ FindNodeSkip:
 
 
 ; bool CFatInfoSectorCache::Unlock(uint32 uiSector): unlocks the sector's cache if it is cached.
-		.global _CFatInfoSectorCache__Unlock__Fj
-_CFatInfoSectorCache__Unlock__Fj:
+		.global _CFatInfoSectorCache__Unlock__Fm
+_CFatInfoSectorCache__Unlock__Fm:
 		.width (A, X), 16
 		phd
 		tsc
@@ -1071,7 +1071,7 @@ DriveReturn:
 
 		.global _CFatSectorCache__Init.ax, _CFatSectorCache__GetCache.ax, _CFatSectorCache__Lock.ax, _CFatSectorCache__Unlock.ax, _CFatSectorCache__Dirty.ax, _CFatInfoSectorCache__Init.axssy
 		.global _CFatInfoSectorCache__Kill.ax, _CFatInfoSectorCache__ReadSector.ax
-		.global _CFatInfoSectorCache__AddNewCache.ax, _CFatInfoSectorCache__GetOrCacheSector.ax, _CFatInfoSectorCache__Unlock__Fj.ax, _CFatInfoSectorCache__FindCachedSector.ax, _CFatInfoSectorCache__Flush.ax, _CFatInfoSectorCache__GetNumAllocatedSectors.ax
+		.global _CFatInfoSectorCache__AddNewCache.ax, _CFatInfoSectorCache__GetOrCacheSector.ax, _CFatInfoSectorCache__Unlock__Fm.ax, _CFatInfoSectorCache__FindCachedSector.ax, _CFatInfoSectorCache__Flush.ax, _CFatInfoSectorCache__GetNumAllocatedSectors.ax
 		.global _CFatInfoSectorCache__GetNumCachedSectors.ax, _CFatInfoSectorCache__GetLockedCachedSectors.ax, _CFatInfoSectorCache__InitialiseCache.ax, _CFatInfoSectorCache__FlushCache.ax
 
 _CFatSectorCache__Init.ax:
@@ -1125,9 +1125,9 @@ _CFatInfoSectorCache__GetOrCacheSector.ax:
 		ldy _CFatInfoSectorCache__GetOrCacheSector & 0xFFFF
 		brl RegisterEntry_ax_2
 
-_CFatInfoSectorCache__Unlock__Fj.ax:
+_CFatInfoSectorCache__Unlock__Fm.ax:
 		.width (A, X), 16
-		ldy _CFatInfoSectorCache__Unlock__Fj & 0xFFFF
+		ldy _CFatInfoSectorCache__Unlock__Fm & 0xFFFF
 		brl RegisterEntry_ax_2
 
 _CFatInfoSectorCache__FindCachedSector.ax:

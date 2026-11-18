@@ -429,7 +429,7 @@ SCPP65Type* CCPPDeclarators::UnderlyingType(CCPPSyntax* pcOperand, CCPPSyntax* p
 		}
 		return NULL;
 	}
-	return mpcUnit->GetTypes()->Integer(psType->iBytes, psType->bSigned);
+	return psType->eInteger ? mpcUnit->GetTypes()->IntegerOfKind(psType->eInteger) : mpcUnit->GetTypes()->Integer(psType->iBytes, psType->bSigned);
 }
 
 
@@ -699,23 +699,34 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	{
 		return &mpcUnit->GetTypes()->msBool;
 	}
+	//Each a type of its own, though as wide as another.  [basic.fundamental]
 	if (uiKeywords & (CPPTK_CHAR | CPPTK_INT8))
 	{
-		return mpcUnit->GetTypes()->Integer(1, bSigned);
+		//char, signed char and unsigned char are three types (char is signed here).  MSVC's __int8 is char.
+		return !bSigned ? &mpcUnit->GetTypes()->msUnsignedChar : ((uiKeywords & CPPTK_SIGNED) ? &mpcUnit->GetTypes()->msSignedChar : &mpcUnit->GetTypes()->msChar);
 	}
-	if (uiKeywords & (CPPTK_WCHAR_T | CPPTK_CHAR16_T))
+	if (uiKeywords & CPPTK_WCHAR_T)
 	{
-		return mpcUnit->GetTypes()->Integer(2, false);
+		return &mpcUnit->GetTypes()->msWChar;
+	}
+	if (uiKeywords & CPPTK_CHAR16_T)
+	{
+		return &mpcUnit->GetTypes()->msChar16;
 	}
 	if (uiKeywords & CPPTK_CHAR32_T)
 	{
-		return mpcUnit->GetTypes()->Integer(4, false);
+		return &mpcUnit->GetTypes()->msChar32;
 	}
 	if (uiKeywords & (CPPTK_SHORT | CPPTK_INT16))
 	{
-		return mpcUnit->GetTypes()->Integer(2, bSigned);
+		return bSigned ? &mpcUnit->GetTypes()->msShort : &mpcUnit->GetTypes()->msUnsignedShort;
 	}
-	if ((uiKeywords & CPPTK_INT32) || (pcSpecifiers->miLongs == 1))
+	if (uiKeywords & CPPTK_INT32)
+	{
+		//MSVC's __int32: int where int is 4 bytes, else long.
+		return mpcUnit->GetTypes()->Integer(4, bSigned);
+	}
+	if (pcSpecifiers->miLongs == 1)
 	{
 		return mpcUnit->GetTypes()->Long(bSigned);
 	}

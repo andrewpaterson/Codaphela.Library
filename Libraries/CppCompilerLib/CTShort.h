@@ -28,6 +28,7 @@ class CCTShort : public CCTNumber
 public:
 	unsigned short int	mcValue;
 	bool				mbSigned;
+	bool				mbChar16;	//u'x', a char16_t, rather than L'x', a wchar_t.
 
 	CPP_TOKEN_CONSTRUCT(CCTShort);
 	void Init(void);

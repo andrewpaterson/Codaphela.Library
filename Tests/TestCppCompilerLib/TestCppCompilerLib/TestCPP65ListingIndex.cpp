@@ -225,7 +225,7 @@ void TestCPP65ListingIndexBuild(void)
 	AssertSize(1, asPlaces.NumElements());
 	psPlace = asPlaces.Get(0);
 	AssertSize(0, psPlace->uiListing);
-	AssertString("_Triple__Fss", cIndex.GetFunction(psPlace->uiFunction));
+	AssertString("_Triple__Fii", cIndex.GetFunction(psPlace->uiFunction));
 
 	asPlaces.Kill();
 	cIndex.Kill();

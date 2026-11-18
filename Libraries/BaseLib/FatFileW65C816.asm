@@ -1128,7 +1128,7 @@ AllocateFileMore:
 		pei [D + F_WORK]
 		pei [D + F_VOLUME + 2]
 		pei [D + F_VOLUME]
-		jsl _CFatVolume__AllocateClusters__FjjPjj
+		jsl _CFatVolume__AllocateClusters__FmmPmm
 		ldx 20
 		jsr Drop
 		cmp FAT_SUCCESS

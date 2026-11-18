@@ -100,11 +100,11 @@ void TestCPP816DeadArguments(void)
 
 	//Each function's register entry: Pick(a, b) A and X (not A, X, two pushed words and Y), Fact(n) A, and Taken and
 	//Global keep both of theirs (A and X).  (Pick and Global are inlined into main, so there are no calls to look at.)
-	AssertTrue(strstr(szListing.Text(), "\n_Pick__Fssis.ax:") != NULL);
-	AssertTrue(strstr(szListing.Text(), "\n_Fact__Fss.a:") != NULL);
+	AssertTrue(strstr(szListing.Text(), "\n_Pick__Fiili.ax:") != NULL);
+	AssertTrue(strstr(szListing.Text(), "\n_Fact__Fii.a:") != NULL);
 	AssertTrue(TestCPP816Calls(szListing.Text(), "_Fact", ".a"));
-	AssertTrue(strstr(szListing.Text(), "\n_Taken__Fss.ax:") != NULL);
-	AssertTrue(strstr(szListing.Text(), "\n_Global__Fss.ax:") != NULL);
+	AssertTrue(strstr(szListing.Text(), "\n_Taken__Fii.ax:") != NULL);
+	AssertTrue(strstr(szListing.Text(), "\n_Global__Fii.ax:") != NULL);
 	szListing.Kill();
 }
 
@@ -471,11 +471,11 @@ void TestCPP816ArrayLayers(void)
 
 	w = 0;
 	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Add.ax", "_CArrayCommonObject__Add__FRC8CPointer.ax")) { w |= 1; }
-	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Insert.axy", "_CArrayCommonObject__InsertAt__FtRC8CPointer.axy")) { w |= 2; }
-	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Remove__Ft.axy", "_CArrayCommonObject__RemoveAt.axy")) { w |= 4; }
+	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Insert.axy", "_CArrayCommonObject__InsertAt__FjRC8CPointer.axy")) { w |= 2; }
+	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Remove__Fj.axy", "_CArrayCommonObject__RemoveAt.axy")) { w |= 4; }
 	if (!TestCPP816JumpsTo(szObject.Text(), "_CArrayObject__Remove__FRC8CPointer.ax", "_CArrayCommonObject__Remove__FRC8CPointer.ax")) { w |= 8; }
 
-	if (!TestCPP816JumpsTo(szUse.Text(), "_UseArrayRemoveAt__FPC24CArray__T_C11CBaseObjectt.axy", "_CArrayCommonObject__RemoveAt.axy")) { w |= 16; }
+	if (!TestCPP816JumpsTo(szUse.Text(), "_UseArrayRemoveAt__FPC24CArray__T_C11CBaseObjectj.axy", "_CArrayCommonObject__RemoveAt.axy")) { w |= 16; }
 	if (!TestCPP816JumpsTo(szUse.Text(), "_UseArrayAdd__FPC12CArrayObjectRC8CPointer.ax", "_CArrayCommonObject__Add__FRC8CPointer.ax")) { w |= 32; }
 
 	if (!TestCPP816AdjustsAndJumpsTo(szCommon.Text(), "_CArrayCommonObject__NumElements.ax", "_CArrayCommonUnknown__NumElements.ax")) { w |= 64; }

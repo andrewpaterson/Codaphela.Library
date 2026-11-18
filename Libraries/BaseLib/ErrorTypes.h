@@ -34,8 +34,9 @@ enum TRISTATE
 {
 	TRITRUE	= true,
 	TRIFALSE = false,
-	TRIGNORED = 0xfffffffe,
-	TRIERROR = 0xffffffff
+	//-2 and -1 (as 0xfffffffe and 0xffffffff were in an int enum): an int holds them, so it is an int on the W65C816 too.
+	TRIGNORED = -2,
+	TRIERROR = -1
 };
 
 

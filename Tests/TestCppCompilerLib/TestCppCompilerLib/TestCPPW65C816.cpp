@@ -1184,7 +1184,7 @@ void TestCPP816SignedToFloat(void)
 	AssertInt(-500, TestCPP816RunListed(
 		"int Convert(int x) { float f = (float)x; return (int)(f / 2.0f); }\n"
 		"int main(void) { return Convert(-1000); }\n", aszFloats, &szListing, NULL, 0, true));
-	AssertTrue(szListing.Contains("_Convert__Fs:"));
+	AssertTrue(szListing.Contains("_Convert__Fi:"));
 	AssertFalse(szListing.Contains("C +"));
 	szListing.Kill();
 }
@@ -2201,8 +2201,8 @@ void TestCPP816Sprites(void)
 	TestCPP65AddUnits(&cBuilder, aszSprites, false);
 	AssertTrue(cBuilder.Link());
 	AssertString("", cBuilder.GetErrors());
-	AssertTrue(cBuilder.GetSymbol("_DrawSprite__FssPC13SSpriteHeader", &iAddress));
-	AssertFalse(cBuilder.GetSymbol("_DrawPixel__Fssh", &iAddress));
+	AssertTrue(cBuilder.GetSymbol("_DrawSprite__FiiPC13SSpriteHeader", &iAddress));
+	AssertFalse(cBuilder.GetSymbol("_DrawPixel__Fiih", &iAddress));
 	cBuilder.Kill();
 }
 
@@ -2423,9 +2423,9 @@ void TestCPP816TideVideo(void)
 	TestCPP65AddUnits(&cBuilder, aszUnits, false);
 	AssertTrue(cBuilder.Link());
 	AssertString("", cBuilder.GetErrors());
-	AssertTrue(cBuilder.GetSymbol("_DrawSprite__FssPC13SSpriteHeader", &iAddress));
+	AssertTrue(cBuilder.GetSymbol("_DrawSprite__FiiPC13SSpriteHeader", &iAddress));
 	AssertTrue(cBuilder.GetSymbol("_guiImageWidth", &iAddress));
-	AssertFalse(cBuilder.GetSymbol("_DrawPixel__Fssh", &iAddress));
+	AssertFalse(cBuilder.GetSymbol("_DrawPixel__Fiih", &iAddress));
 	cBuilder.Kill();
 }
 
@@ -3321,7 +3321,7 @@ void TestCPP816ProfileGuidedInlining(void)
 
 	cProfile.Init();
 	iResult = TestCPP816RunProfiled(szSource, NULL, &cProfile, &uiPlain);
-	psMix = cProfile.Get("_Mix__Fss");
+	psMix = cProfile.Get("_Mix__Fii");
 	AssertNotNull((void*)psMix);
 	AssertLong(2001, psMix ? (int64)psMix->ulliCalls : 0);
 	AssertTrue(cProfile.GetLine("_main", "Test.cpp", 26) != NULL);
@@ -3331,24 +3331,24 @@ void TestCPP816ProfileGuidedInlining(void)
 	AssertTrue(psMain && (psMain->uiHash != 0) && (psMain->iTime != 0));
 
 	//Its call sites: each line's calls of Mix, with the cycles inside them; written and read back.
-	psCallSite = cProfile.GetCallSite("_Mix__Fss", "Test.cpp", 26);
+	psCallSite = cProfile.GetCallSite("_Mix__Fii", "Test.cpp", 26);
 	AssertNotNull((void*)psCallSite);
 	AssertLong(2000, psCallSite ? (int64)psCallSite->ulliCalls : 0);
-	psOnce = cProfile.GetCallSite("_Mix__Fss", "Test.cpp", 28);
+	psOnce = cProfile.GetCallSite("_Mix__Fii", "Test.cpp", 28);
 	AssertNotNull((void*)psOnce);
 	AssertLong(1, psOnce ? (int64)psOnce->ulliCalls : 0);
 	AssertTrue(psCallSite && psOnce && psMix && (psCallSite->ulliCycles + psOnce->ulliCycles >= psMix->ulliCycles) && (psOnce->ulliCycles > 0));
 	cRead.Init();
 	AssertTrue(cProfile.Write("Output" _FS_ "CallSites.profile"));
 	AssertTrue(cRead.Read("Output" _FS_ "CallSites.profile"));
-	psRead = cRead.GetCallSite("_Mix__Fss", "Test.cpp", 26);
+	psRead = cRead.GetCallSite("_Mix__Fii", "Test.cpp", 26);
 	AssertTrue(psCallSite && psRead && (psRead->ulliCalls == psCallSite->ulliCalls) && (psRead->ulliCycles == psCallSite->ulliCycles));
 	cRead.Kill();
 
 	//Guided: only the call in main's loop is inlined.
 	cGuided.Init();
 	AssertInt(iResult, TestCPP816RunProfiled(szSource, &cProfile, &cGuided, &uiGuided));
-	psMix = cGuided.Get("_Mix__Fss");
+	psMix = cGuided.Get("_Mix__Fii");
 	AssertLong(1, psMix ? (int64)psMix->ulliCalls : 0);
 	AssertTrue(uiGuided < uiPlain);
 
@@ -3356,7 +3356,7 @@ void TestCPP816ProfileGuidedInlining(void)
 	//inlines it (CCPP65IRFrontEnd::InlinedEntries).
 	cAgain.Init();
 	AssertInt(iResult, TestCPP816RunProfiled(szSource, &cGuided, &cAgain, &uiGuided));
-	psMix = cAgain.Get("_Mix__Fss");
+	psMix = cAgain.Get("_Mix__Fii");
 	AssertLong(1, psMix ? (int64)psMix->ulliCalls : 0);
 	cAgain.Kill();
 
@@ -3365,7 +3365,7 @@ void TestCPP816ProfileGuidedInlining(void)
 	szChanged.Replace("\tr += Mix(r, 3);\n", "\tr += Mix(r, 3);\n\tr ^= 1;\n");
 	cAgain.Init();
 	TestCPP816RunProfiled(szChanged.Text(), &cProfile, &cAgain, &uiGuided);
-	psMix = cAgain.Get("_Mix__Fss");
+	psMix = cAgain.Get("_Mix__Fii");
 	AssertLong(2001, psMix ? (int64)psMix->ulliCalls : 0);
 	cAgain.Kill();
 	szChanged.Kill();
@@ -4836,9 +4836,9 @@ void TestCPP816AlignedFrames(void)
 	AssertTrue(abAligned[1]);
 	AssertTrue(abAligned[2]);
 	AssertFalse(abAligned[3]);
-	AssertTrue((cProfile.Get("_Big__Fsi") != NULL) && cProfile.Get("_Big__Fsi")->bRecursive);
-	AssertTrue((cProfile.Get("_Sum__FPsss") != NULL) && !cProfile.Get("_Sum__FPsss")->bRecursive);
-	AssertTrue((cProfile.Get("_Wide__Fsi") != NULL) && !cProfile.Get("_Wide__Fsi")->bRecursive);
+	AssertTrue((cProfile.Get("_Big__Fil") != NULL) && cProfile.Get("_Big__Fil")->bRecursive);
+	AssertTrue((cProfile.Get("_Sum__FPiii") != NULL) && !cProfile.Get("_Sum__FPiii")->bRecursive);
+	AssertTrue((cProfile.Get("_Wide__Fil") != NULL) && !cProfile.Get("_Wide__Fil")->bRecursive);
 
 	//Measured: Cold's loop ran 3 times once, not worth a page of stack.
 	AssertInt(7, TestCPP816RunFrames(szSource, &cProfile, NULL, &uiMeasured, aszPrefixes, abAligned));
@@ -5352,8 +5352,8 @@ void TestCPP816ProfileRegisterEntries(void)
 	cProfile.Init();
 	TestCPP816RunProfiled(szSource, NULL, &cProfile, &uiCycles);
 	gcTestCPP816Options.mbInline = true;
-	psTwice = cProfile.Get("_Twice__Fss");
-	psDown = cProfile.Get("_Down__Fs");
+	psTwice = cProfile.Get("_Twice__Fii");
+	psDown = cProfile.Get("_Down__Fi");
 	AssertNotNull((void*)psTwice);
 	AssertNotNull((void*)psDown);
 	AssertLong(8, psTwice ? (int64)psTwice->ulliCalls : 0);
@@ -5761,8 +5761,8 @@ void TestCPP816ObjectArguments(void)
 	AssertInt(iBig + 378 + 1020 + 5, TestCPP816RunListed(szSource, aszNone, &szListing, NULL, 0));
 	gcTestCPP816Options.mbInline = true;
 	AssertTrue(szListing.Contains("jsl _Big__FC4SBigC4SBigPKctPKc\n"));
-	AssertTrue(szListing.Contains("jsl _Six__FsC4SSix\n"));
-	AssertTrue(szListing.Contains("jsl _Plain__Fss.ax"));
+	AssertTrue(szListing.Contains("jsl _Six__FiC4SSix\n"));
+	AssertTrue(szListing.Contains("jsl _Plain__Fii.ax"));
 	szListing.Kill();
 }
 
@@ -6007,11 +6007,11 @@ void TestCPP816StringRegisters(void)
 	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	static const char*	szSixteen =
 		"#include <string.h>\n"
-		"void MemSwp16(const void* pv1, const void* pv2, unsigned short uiLength);\n"
-		"unsigned short FindFirstSetBit(void* pvArray, unsigned short iArraySize);\n"
-		"unsigned short FindFirstClearBit(void* pvArray, unsigned short iArraySize);\n"
-		"unsigned short FindLastSetBit(void* pvArray, unsigned short iArraySize);\n"
-		"unsigned short FindLastClearBit(void* pvArray, unsigned short iArraySize);\n"
+		"void MemSwp16(const void* pv1, const void* pv2, unsigned int uiLength);\n"
+		"unsigned int FindFirstSetBit(void* pvArray, unsigned int iArraySize);\n"
+		"unsigned int FindFirstClearBit(void* pvArray, unsigned int iArraySize);\n"
+		"unsigned int FindLastSetBit(void* pvArray, unsigned int iArraySize);\n"
+		"unsigned int FindLastClearBit(void* pvArray, unsigned int iArraySize);\n"
 		"unsigned long FindFirstSetBitLarge(void* pvArray, unsigned long iArraySize);\n"
 		"unsigned long FindLastClearBitLarge(void* pvArray, unsigned long iArraySize);\n"
 		"unsigned short FindFirstClearBit(unsigned long uiBits);\n"
@@ -6020,9 +6020,9 @@ void TestCPP816StringRegisters(void)
 		"void* (*volatile gpMemset16)(void*, int, unsigned short) = memset16;\n"
 		"int (*volatile gpMemcmp16)(const void*, const void*, unsigned short) = memcmp16;\n"
 		"unsigned short (*volatile gpStrlen16)(const char*) = strlen16;\n"
-		"void (*volatile gpMemSwp16)(const void*, const void*, unsigned short) = MemSwp16;\n"
-		"unsigned short (*volatile gpFindFirstSetBit)(void*, unsigned short) = FindFirstSetBit;\n"
-		"unsigned short (*volatile gpFindLastClearBit)(void*, unsigned short) = FindLastClearBit;\n"
+		"void (*volatile gpMemSwp16)(const void*, const void*, unsigned int) = MemSwp16;\n"
+		"unsigned int (*volatile gpFindFirstSetBit)(void*, unsigned int) = FindFirstSetBit;\n"
+		"unsigned int (*volatile gpFindLastClearBit)(void*, unsigned int) = FindLastClearBit;\n"
 		"unsigned long (*volatile gpFindFirstSetBitLarge)(void*, unsigned long) = FindFirstSetBitLarge;\n"
 		"unsigned long (*volatile gpFindLastClearBitLarge)(void*, unsigned long) = FindLastClearBitLarge;\n"
 		"unsigned short (*volatile gpFindFirstClearBit32)(unsigned long) = FindFirstClearBit;\n"

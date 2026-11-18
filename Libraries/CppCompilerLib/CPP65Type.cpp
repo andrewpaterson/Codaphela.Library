@@ -202,7 +202,7 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 	{
 		return true;
 	}
-	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (iCount != psOther->iCount) || (pcClass != psOther->pcClass) || (bLongDouble != psOther->bLongDouble) || (pcEnum != psOther->pcEnum) || (bRvalue != psOther->bRvalue))
+	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (eInteger != psOther->eInteger) || (iCount != psOther->iCount) || (pcClass != psOther->pcClass) || (bLongDouble != psOther->bLongDouble) || (pcEnum != psOther->pcEnum) || (bRvalue != psOther->bRvalue))
 	{
 		return false;
 	}
@@ -413,16 +413,20 @@ void CCPP65Types::Init(int iIntBytes, int iPointerBytes)
 	InitBuiltin(&msVoid, CPP65TK_Void, 0, false);
 	InitBuiltin(&msUndeduced, CPP65TK_Void, 0, false);
 	InitBuiltin(&msBool, CPP65TK_Bool, 1, false);
-	InitBuiltin(&msChar, CPP65TK_Integer, 1, true);
-	InitBuiltin(&msUnsignedChar, CPP65TK_Integer, 1, false);
-	InitBuiltin(&msShort, CPP65TK_Integer, 2, true);
-	InitBuiltin(&msUnsignedShort, CPP65TK_Integer, 2, false);
-	InitBuiltin(&msInt, CPP65TK_Integer, iIntBytes, true);
-	InitBuiltin(&msUnsignedInt, CPP65TK_Integer, iIntBytes, false);
-	InitBuiltin(&msLong, CPP65TK_Integer, 4, true);
-	InitBuiltin(&msUnsignedLong, CPP65TK_Integer, 4, false);
-	InitBuiltin(&msLongLong, CPP65TK_Integer, 8, true);
-	InitBuiltin(&msUnsignedLongLong, CPP65TK_Integer, 8, false);
+	InitInteger(&msChar, CPP65IK_Char, 1, true);
+	InitInteger(&msSignedChar, CPP65IK_SignedChar, 1, true);
+	InitInteger(&msUnsignedChar, CPP65IK_UnsignedChar, 1, false);
+	InitInteger(&msWChar, CPP65IK_WChar, 2, false);
+	InitInteger(&msChar16, CPP65IK_Char16, 2, false);
+	InitInteger(&msChar32, CPP65IK_Char32, 4, false);
+	InitInteger(&msShort, CPP65IK_Short, 2, true);
+	InitInteger(&msUnsignedShort, CPP65IK_UnsignedShort, 2, false);
+	InitInteger(&msInt, CPP65IK_Int, iIntBytes, true);
+	InitInteger(&msUnsignedInt, CPP65IK_UnsignedInt, iIntBytes, false);
+	InitInteger(&msLong, CPP65IK_Long, 4, true);
+	InitInteger(&msUnsignedLong, CPP65IK_UnsignedLong, 4, false);
+	InitInteger(&msLongLong, CPP65IK_LongLong, 8, true);
+	InitInteger(&msUnsignedLongLong, CPP65IK_UnsignedLongLong, 8, false);
 	InitBuiltin(&msFloat, CPP65TK_Float, 4, true);
 	InitBuiltin(&msDouble, CPP65TK_Float, 8, true);
 	InitBuiltin(&msLongDouble, CPP65TK_Float, 8, true);
@@ -462,11 +466,23 @@ void CCPP65Types::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCPP65Types::InitInteger(SCPP65Type* psType, ECPP65IntegerKind eInteger, int iBytes, bool bSigned)
+{
+	InitBuiltin(psType, CPP65TK_Integer, iBytes, bSigned);
+	psType->eInteger = eInteger;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iBytes, bool bSigned)
 {
 	psType->eKind = eKind;
 	psType->iBytes = iBytes;
 	psType->bSigned = bSigned;
+	psType->eInteger = CPP65IK_None;
 	psType->psBase = NULL;
 	psType->iCount = 0;
 	psType->pcClass = NULL;
@@ -671,7 +687,35 @@ SCPP65Type* CCPP65Types::Integer(int iBytes, bool bSigned)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Long(bool bSigned)
 {
-	return Integer(4, bSigned);
+	return bSigned ? &msLong : &msUnsignedLong;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The integer type of the kind.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::IntegerOfKind(ECPP65IntegerKind eInteger)
+{
+	switch (eInteger)
+	{
+	case CPP65IK_Char:				return &msChar;
+	case CPP65IK_SignedChar:			return &msSignedChar;
+	case CPP65IK_UnsignedChar:			return &msUnsignedChar;
+	case CPP65IK_WChar:				return &msWChar;
+	case CPP65IK_Char16:				return &msChar16;
+	case CPP65IK_Char32:				return &msChar32;
+	case CPP65IK_Short:				return &msShort;
+	case CPP65IK_UnsignedShort:			return &msUnsignedShort;
+	case CPP65IK_Int:				return &msInt;
+	case CPP65IK_UnsignedInt:			return &msUnsignedInt;
+	case CPP65IK_Long:				return &msLong;
+	case CPP65IK_UnsignedLong:			return &msUnsignedLong;
+	case CPP65IK_LongLong:			return &msLongLong;
+	case CPP65IK_UnsignedLongLong:		return &msUnsignedLongLong;
+	default:						return NULL;
+	}
 }
 
 
@@ -906,7 +950,7 @@ SCPP65Type* CCPP65Types::MemberPointer(CCPPClass* pcClass, SCPP65Type* psMember)
 // overloads and templates.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned, bool bScoped)
+SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum, SCPP65Type* psUnderlying, bool bScoped)
 {
 	SCPP65Type*	psType;
 
@@ -916,8 +960,9 @@ SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned, bool
 		return psType;
 	}
 
-	psType = NewType(CPP65TK_Integer, iBytes);
-	psType->bSigned = bSigned;
+	psType = NewType(CPP65TK_Integer, psUnderlying->iBytes);
+	psType->bSigned = psUnderlying->bSigned;
+	psType->eInteger = psUnderlying->eInteger;
 	psType->pcEnum = pcEnum;
 	psType->bScopedEnum = bScoped;
 	AddType(psType);
@@ -984,51 +1029,135 @@ SCPP65Type* CCPP65Types::Class(CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Integral promotion: bool, char and short become int.  [conv.prom]
+// Integral promotion: bool, the chars, short and unsigned short become int,
+// or unsigned int if int can't hold all their values (unsigned short where
+// int is 16 bits); wchar_t, char16_t, char32_t and an unscoped enum the
+// first of int, unsigned int, long, unsigned long, long long and unsigned
+// long long that holds all theirs; an enum as its underlying type.
+// [conv.prom]
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Promote(SCPP65Type* psType)
 {
 	psType = psType->Unqualified();
-	if (psType->IsInteger() && ((psType->iBytes < msInt.iBytes) || psType->pcEnum))
+	if (!psType->IsInteger())
 	{
-		return &msInt;
+		return psType;
 	}
-	return psType;
+	if (psType->pcEnum)
+	{
+		return psType->eInteger ? Promote(IntegerOfKind(psType->eInteger)) : PromoteToHold(psType->iBytes, psType->bSigned);
+	}
+	switch (psType->eKind == CPP65TK_Bool ? CPP65IK_UnsignedChar : psType->eInteger)
+	{
+	case CPP65IK_Char:
+	case CPP65IK_SignedChar:
+	case CPP65IK_UnsignedChar:
+	case CPP65IK_Short:
+	case CPP65IK_UnsignedShort:
+	case CPP65IK_WChar:
+	case CPP65IK_Char16:
+	case CPP65IK_Char32:
+		return PromoteToHold(psType->iBytes, psType->bSigned);
+	default:
+		return psType;
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The usual arithmetic conversions of two integers: unsigned when either promoted
-// type is unsigned.  [expr] 10
+// The first of int, unsigned int, long, unsigned long, long long and
+// unsigned long long that holds every value of an integer iBytes wide (and
+// bSigned): a promotion's type.  [conv.prom]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::PromoteToHold(int iBytes, bool bSigned)
+{
+	SCPP65Type*	apsOrder[] = { &msInt, &msUnsignedInt, &msLong, &msUnsignedLong, &msLongLong, &msUnsignedLongLong };
+	SCPP65Type*	psTo;
+	size		i;
+
+	for (i = 0; i < sizeof(apsOrder) / sizeof(SCPP65Type*); i++)
+	{
+		psTo = apsOrder[i];
+		if (psTo->bSigned ? (bSigned ? (psTo->iBytes >= iBytes) : (psTo->iBytes > iBytes)) : (!bSigned && (psTo->iBytes >= iBytes)))
+		{
+			return psTo;
+		}
+	}
+	return &msUnsignedLongLong;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The usual arithmetic conversions of two integers, each promoted: the same
+// type stays it; of two both signed or both unsigned, the higher rank's
+// (long long, long, int); else the unsigned one if its rank is as high,
+// the signed one if it holds all the unsigned one's values, or the
+// unsigned type of the signed one's rank.  [expr] 10, [conv.rank]
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Arithmetic(SCPP65Type* psLeft, SCPP65Type* psRight)
 {
+	SCPP65Type*	psSigned;
+	SCPP65Type*	psUnsigned;
+
 	psLeft = Promote(psLeft);
 	psRight = Promote(psRight);
-	if (psLeft->IsWide() || psRight->IsWide())
-	{
-		//long long holds every unsigned int, so only an unsigned long long makes it unsigned.
-		if ((psLeft->IsWide() && !psLeft->bSigned) || (psRight->IsWide() && !psRight->bSigned))
-		{
-			return &msUnsignedLongLong;
-		}
-		return &msLongLong;
-	}
 	if (!psLeft->IsInteger() || !psRight->IsInteger())
 	{
 		return (!psLeft->bSigned || !psRight->bSigned) ? &msUnsignedInt : &msInt;
 	}
-
-	//The wider type, unsigned when it is or when both are the same width and either is.  (A long holds every
-	//unsigned int where int is narrower.)
-	if (psLeft->iBytes != psRight->iBytes)
+	if (psLeft->Equals(psRight))
 	{
-		return (psLeft->iBytes > psRight->iBytes) ? Integer(psLeft->iBytes, psLeft->bSigned) : Integer(psRight->iBytes, psRight->bSigned);
+		return psLeft;
 	}
-	return Integer(psLeft->iBytes, psLeft->bSigned && psRight->bSigned);
+	if (psLeft->bSigned == psRight->bSigned)
+	{
+		return (IntegerRank(psLeft) >= IntegerRank(psRight)) ? psLeft : psRight;
+	}
+	psSigned = psLeft->bSigned ? psLeft : psRight;
+	psUnsigned = psLeft->bSigned ? psRight : psLeft;
+	if (IntegerRank(psUnsigned) >= IntegerRank(psSigned))
+	{
+		return psUnsigned;
+	}
+	if (psSigned->iBytes > psUnsigned->iBytes)
+	{
+		return psSigned;
+	}
+	return (psSigned->eInteger == CPP65IK_LongLong) ? &msUnsignedLongLong : ((psSigned->eInteger == CPP65IK_Long) ? &msUnsignedLong : &msUnsignedInt);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A promoted integer's rank: int's 3, long's 4, long long's 5 (signed or
+// not).  [conv.rank]
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Types::IntegerRank(SCPP65Type* psType)
+{
+	switch (psType->eInteger)
+	{
+	case CPP65IK_LongLong:
+	case CPP65IK_UnsignedLongLong:
+		return 5;
+	case CPP65IK_Long:
+	case CPP65IK_UnsignedLong:
+		return 4;
+	case CPP65IK_Short:
+	case CPP65IK_UnsignedShort:
+		return 2;
+	case CPP65IK_Char:
+	case CPP65IK_SignedChar:
+	case CPP65IK_UnsignedChar:
+		return 1;
+	default:
+		return 3;
+	}
 }
 
 
@@ -1055,7 +1184,7 @@ SCPP65Type* CCPP65Types::FloatArithmetic(SCPP65Type* psLeft, SCPP65Type* psRight
 //////////////////////////////////////////////////////////////////////////
 //
 // ptrdiff_t, pointer - pointer: a signed integer as wide as a pointer (int on the
-// 65C64, long on the W65C816).  [expr.add] 5
+// 65C64, long on the W65C816), Libc65's std::ptrdiff_t.  [expr.add] 5
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::PointerDifference(void)

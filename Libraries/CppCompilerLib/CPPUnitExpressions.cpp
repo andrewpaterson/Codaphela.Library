@@ -56,9 +56,10 @@ SCPP65Type* CCPPUnit::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 		switch (((CCTNumber*)pcToken)->meType)
 		{
 		case CTNT_Int:
-			return IntegerLiteralType((CCTInt*)pcToken);
+			return ((CCTInt*)pcToken)->mbChar32 ? &mcTypes.msChar32 : IntegerLiteralType((CCTInt*)pcToken);
 		case CTNT_Short:
-			return &mcTypes.msInt;
+			//L'x' and u'x'.
+			return ((CCTShort*)pcToken)->mbChar16 ? &mcTypes.msChar16 : &mcTypes.msWChar;
 		case CTNT_LongLong:
 			return ((CCTLongLong*)pcToken)->IsSigned() ? &mcTypes.msLongLong : &mcTypes.msUnsignedLongLong;
 		case CTNT_Float:
@@ -93,22 +94,29 @@ SCPP65Type* CCPPUnit::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::IntegerLiteralType(CCTInt* pcInt)
 {
-	int64	lliValue;
-	bool	bLong;
+	uint64	ulliValue;
+	uint64	ulliIntMax;
 
+	//An L literal is long (unsigned long if it's unsigned), whatever int is.
+	ulliValue = (uint32)pcInt->mcValue;
+	ulliIntMax = (mcTypes.msInt.iBytes < 4) ? 0x7FFF : 0x7FFFFFFF;
 	if (pcInt->IsSigned())
 	{
-		lliValue = (int32)pcInt->mcValue;
-		if ((mcTypes.msInt.iBytes < 4) && !pcInt->mbLong && !pcInt->mbDecimal && (lliValue > 32767) && (lliValue <= 0xFFFF))
+		if (!pcInt->mbLong && (ulliValue <= ulliIntMax))
+		{
+			return &mcTypes.msInt;
+		}
+		if (!pcInt->mbLong && !pcInt->mbDecimal && (ulliValue <= ulliIntMax * 2 + 1))
 		{
 			return &mcTypes.msUnsignedInt;
 		}
-		bLong = pcInt->mbLong || (lliValue < -32768) || (lliValue > 32767);
-		return bLong && (mcTypes.msInt.iBytes < 4) ? &mcTypes.msLong : &mcTypes.msInt;
+		return &mcTypes.msLong;
 	}
-	lliValue = (uint32)pcInt->mcValue;
-	bLong = pcInt->mbLong || (lliValue > 0xFFFF);
-	return bLong && (mcTypes.msInt.iBytes < 4) ? &mcTypes.msUnsignedLong : &mcTypes.msUnsignedInt;
+	if (!pcInt->mbLong && (ulliValue <= ulliIntMax * 2 + 1))
+	{
+		return &mcTypes.msUnsignedInt;
+	}
+	return &mcTypes.msUnsignedLong;
 }
 
 
@@ -2947,14 +2955,12 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 
 	iBytes = mcTypes.msInt.iBytes;
 	bSigned = true;
+	psBase = NULL;
 	if (pcSpecifier && pcSpecifier->mpcBase)
 	{
+		//Fixed: enum E : short is a short underneath, though int is as wide.
 		psBase = mcDeclarators.GetTypeIdType(pcSpecifier->mpcBase);
-		if (psBase && psBase->IsInteger())
-		{
-			iBytes = psBase->iBytes;
-			bSigned = psBase->bSigned;
-		}
+		psBase = (psBase && psBase->IsInteger()) ? psBase->Unqualified() : NULL;
 	}
 	else if (pcSpecifier && !pcSpecifier->mbScoped)
 	{
@@ -2999,7 +3005,7 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 
 	if (pcEnum)
 	{
-		psType = mcTypes.Enum(pcEnum, iBytes, bSigned, pcSpecifier && pcSpecifier->mbScoped);
+		psType = mcTypes.Enum(pcEnum, psBase ? psBase : mcTypes.Integer(iBytes, bSigned), pcSpecifier && pcSpecifier->mbScoped);
 		if (mpcSemanticPass && (mpcSemanticPass->GetRecordedEnum()[0] != '\0') && !mpcSemanticPass->GetRecordedEnumType())
 		{
 			//The enum a refactoring is asking about: checked as an enum class, what that refuses recorded.
@@ -3014,7 +3020,7 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 		}
 		return psType;
 	}
-	return mcTypes.Integer(iBytes, bSigned);
+	return psBase ? psBase : mcTypes.Integer(iBytes, bSigned);
 }
 
 
@@ -3264,16 +3270,33 @@ int CCPPUnit::StringElementBytes(CCPPSyntax* pcString)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The type of a string expression's elements: char, or for a wide string
-// wchar_t, char16_t or char32_t (the same unsigned integers of their widths).
+// The type of a string expression's elements: char, or wchar_t for L"",
+// char16_t for u"" and char32_t for U"".  [lex.string] 8-11
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::StringElementType(CCPPSyntax* pcString)
 {
-	int		iBytes;
+	CCPPToken*		pcToken;
+	SCPP65Type*		psElement;
+	int				iToken;
 
-	iBytes = StringElementBytes(pcString);
-	return (iBytes == 1) ? &mcTypes.msChar : mcTypes.Integer(iBytes, false);
+	psElement = &mcTypes.msChar;
+	for (iToken = pcString->miFirstToken; iToken <= pcString->miLastToken; iToken++)
+	{
+		pcToken = mpcTokeniser->Get(iToken);
+		pcToken = pcToken->IsUserString() ? ((CCTUserLiteral*)pcToken)->mpcLiteral : pcToken;
+		if (pcToken->IsString())
+		{
+			switch (((CCTString*)pcToken)->meEncoding)
+			{
+			case CTE_UTF32:	return &mcTypes.msChar32;
+			case CTE_UTF16:	psElement = &mcTypes.msChar16;	break;
+			case CTE_Wide:	psElement = &mcTypes.msWChar;		break;
+			default:		break;
+			}
+		}
+	}
+	return psElement;
 }
 
 

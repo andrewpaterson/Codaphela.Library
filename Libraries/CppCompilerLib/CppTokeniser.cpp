@@ -571,11 +571,13 @@ CCPPToken* CCPPTokeniser::Character(SPreprocessedToken* psToken, size uiLength)
 		pcShort = CCTShort::Construct(mcStack.Add(sizeof(CCTShort)));
 		pcShort->Init((unsigned short)sLiteral.uiValue);
 		pcShort->mbSigned = false;
+		pcShort->mbChar16 = (sLiteral.eEncoding == CTE_UTF16);
 		return pcShort;
 	}
 	pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
 	pcInt->Init(sLiteral.uiValue);
 	pcInt->mbSigned = (sLiteral.eEncoding != CTE_UTF32);
+	pcInt->mbChar32 = (sLiteral.eEncoding == CTE_UTF32);
 	return pcInt;
 }
 
