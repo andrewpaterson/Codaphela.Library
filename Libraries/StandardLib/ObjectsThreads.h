@@ -84,6 +84,9 @@ inline void ObjectsReadEnds(bool bDone) {}
 inline bool ObjectsIsReading(void) { return false; }
 inline bool ObjectsReaderIsHome(void) { return true; }
 inline size ObjectsNumReads(void) { return 0; }
+inline size ObjectsThreadsNumWaysIn(void) { return 0; }
+inline void ObjectsThreadsMarkWaysIn(void) {}
+inline bool ObjectsThreadsAllInSinceMark(void) { return true; }
 inline bool ThreadStackFromAdd(CEmbeddedObject* pcObject, CPointer* pcPointer) { return false; }
 inline bool ThreadStackFromRemove(CPointer* pcPointer) { return false; }
 inline bool ThreadStackFromRemoveAnywhere(CPointer* pcPointer) { return false; }
@@ -105,7 +108,9 @@ struct SObjectsReader
 {
 	int32	iReading;	//The thread is reading: writers wait.
 	bool	bHome;		//It is the home thread, whose stack froms are on the objects.
-	size	uiReads;	//How many times it has read and done what it came for (for the tests of the ways in).
+	int32	iReads;		//How many times it has read and done what it came for,
+	int32	iLocks;		//and taken the lock from outside.  Its ways in, written by the thread and read by the tests of the
+						//ways in and by the home thread, which frees forwarding hollows by them (CObjects::FreeForwarders).
 };
 
 
@@ -174,7 +179,7 @@ inline void ObjectsReadEnds(bool bDone)
 	SObjectsReader*		psReader;
 
 	psReader = gpsObjectsReader;
-	psReader->uiReads += bDone ? 1 : 0;
+	AtomicStore(&psReader->iReads, psReader->iReads + (bDone ? 1 : 0));
 	AtomicStore(&psReader->iReading, 0);
 }
 
@@ -194,8 +199,18 @@ inline bool ObjectsReaderIsHome(void)
 
 inline size ObjectsNumReads(void)
 {
-	return (gpsObjectsReader != NULL) ? gpsObjectsReader->uiReads : 0;
+	return (gpsObjectsReader != NULL) ? (size)gpsObjectsReader->iReads : 0;
 }
+
+
+//The ways in of the running thread, and (the home thread's, for forwarding hollows) of every other.  A thread can't
+//come in between reading a pointer to a hollow and asking the hollow for its object (CHollowObject::Dehollow, which
+//takes the lock): every thread having come in since the mark means none can still be about to ask a hollow that was
+//forwarding by then.  A thread registered since the mark couldn't have read the pointer.
+size	ObjectsThreadsNumWaysIn(void);
+void	ObjectsThreadsMarkWaysIn(void);
+bool	ObjectsThreadsAllInSinceMark(void);
+void	ObjectsThreadLocked(void);		//ObjectsLock's, as the running thread takes the lock from outside.
 
 
 //What the object system calls.  With no thread registered but the home thread, or (for what asks about an object's

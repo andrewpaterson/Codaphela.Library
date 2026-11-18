@@ -27,6 +27,7 @@ class CObjectRemapFrom
 {
 public:
 	size	Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
+	size	RemapFroms(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 
 private:
 	size	RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);

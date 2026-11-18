@@ -15,6 +15,7 @@
 #include "BaseLib/StdRandom.h"
 #include "BaseLib/TypeNames.h"
 #include "StandardLib/ArrayObject.h"
+#include "StandardLib/HollowObject.h"
 #include "StandardLib/ObjectsThreads.h"
 #include "StandardLib/ArrayWeakObject.h"
 #include "StandardLib/IndexObject.h"
@@ -1358,6 +1359,9 @@ static void TestObjectsThreadsEveryObjectsWayIn(void)
 	AssertWayIn(uiCount = gcObjects.NumWaitingToBeFreed());
 	AssertSize(0, uiCount);
 	AssertWayIn(gcObjects.Collect());
+	AssertWayIn(uiCount = gcObjects.NumForwarders());
+	AssertSize(0, uiCount);
+	AssertWayIn(gcObjects.FreeForwarders());
 
 	//Written out and checked.
 	sz.Init();
@@ -1418,6 +1422,16 @@ static void TestObjectsThreadsEveryObjectsWayIn(void)
 	pFound = gcObjects.GetPossiblyHollow(oiStored);
 	AssertTrue(pFound.IsHollow());
 	AssertWayIn(pcObject = gcObjects.Dehollow("Stored"));
+	AssertNotNull(pcObject);
+	AssertFalse(pFound.IsHollow());
+	pFound = NULL;
+	pRoot = NULL;
+	gcObjects.EvictInMemory();
+	pRoot = gcObjects.Root();
+	AssertSize(3, pRoot->NumObjects());  //The two and the free objects.
+	pFound = gcObjects.GetPossiblyHollow(oiStored);
+	AssertTrue(pFound.IsHollow());
+	AssertWayIn(pcObject = gcObjects.Dehollow((CHollowObject*)pFound.Object()));
 	AssertNotNull(pcObject);
 	AssertFalse(pFound.IsHollow());
 	pStored = pFound;
@@ -1815,6 +1829,143 @@ void TestObjectsThreadsKeptStackFromOfHollow(void)
 }
 
 
+//Registers, comes into the object system once when asked (step 2), and unregisters (step 3).
+static void TestObjectsThreadsComesIn(void* pvSteps)
+{
+	STestObjectsSteps*	psSteps;
+
+	psSteps = (STestObjectsSteps*)pvSteps;
+	psSteps->bRegistered = ObjectsThreadInit();
+	AtomicStore(&psSteps->iDone, 1);
+
+	TestObjectsStepWait(psSteps, 2);
+	psSteps->bLoaded = gcObjects.NumMemoryIndexes() > 0;
+	AtomicStore(&psSteps->iDone, 2);
+
+	TestObjectsStepWait(psSteps, 3);
+	psSteps->bUnregistered = ObjectsThreadKill();
+	AtomicStore(&psSteps->iDone, 3);
+}
+
+
+static void TestObjectsThreadsComesInStart(STestObjectsSteps* psSteps)
+{
+	psSteps->iAsked = 0;
+	psSteps->iDone = 0;
+	psSteps->bRegistered = false;
+	psSteps->bUnregistered = false;
+	psSteps->bLoaded = false;
+	psSteps->cThread.Init();
+	psSteps->cThread.Start(TestObjectsThreadsComesIn, psSteps);
+	TestObjectsStep(psSteps, 1);
+	AssertTrue(psSteps->bRegistered);
+}
+
+
+static void TestObjectsThreadsComesInEnd(STestObjectsSteps* psSteps)
+{
+	TestObjectsStep(psSteps, 3);
+	psSteps->cThread.Join();
+	psSteps->cThread.Kill();
+	AssertTrue(psSteps->bUnregistered);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A hollow loaded while another thread is registered forwards: a thread
+// that read a pointer to it before it was loaded (a plain pointer kept,
+// here) asks it for its object and is given what it was loaded as, with
+// nothing loaded again.  It is freed once every other thread has come into
+// the object system since the home thread marked them (ObjectsCollect,
+// which marks the first time and frees the next), and not before.  With
+// no other thread registered a loaded hollow is freed at once, and
+// switching the locking off frees what forwarders are left.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsForwardingHollow(void)
+{
+	STestObjectsSteps	sSteps;
+	CCodabase*			pcDatabase;
+	CSequence*			pcSequence;
+	CFileUtil			cFileUtil;
+	Ptr<CRoot>			pRoot;
+	Ptr<CString>		pStored;
+	CEmbeddedObject*	pcHollow;
+	size				uiIndexes;
+
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+	pcSequence = CSequenceFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, DS_No);
+	pcDatabase = CCodabaseFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, IWT_No, DS_No);
+	AssertTrue(pcDatabase->Open());
+	ObjectsInit(pcDatabase, pcSequence);
+
+	pRoot = ORoot();
+	pStored = ONMalloc<CString>("One", "first");
+	pRoot->Add(pStored);
+	pStored = ONMalloc<CString>("Two", "second");
+	pRoot->Add(pStored);
+	pStored = ONMalloc<CString>("Three", "third");
+	pRoot->Add(pStored);
+	pStored = NULL;
+	pRoot = NULL;
+	AssertTrue(ObjectsFlush());
+	AssertTrue(gcObjects.EvictInMemory());
+	AssertTrue(ObjectsLocking(true));
+
+	TestObjectsThreadsComesInStart(&sSteps);
+	//Getting One loads the root's set, which was a hollow too: it forwards as well.
+	pRoot = ORoot();
+	pStored = pRoot->Get("One");
+	AssertTrue(pStored.IsHollow());
+	AssertSize(1, gcObjects.NumForwarders());
+	pcHollow = pStored.Object();
+	uiIndexes = gcObjects.NumMemoryIndexes();
+	AssertString("first", pStored->Text());
+	AssertFalse(pStored.IsHollow());
+	AssertSize(uiIndexes, gcObjects.NumMemoryIndexes());
+	AssertSize(2, gcObjects.NumForwarders());
+	AssertPointer(pStored.Object(), pcHollow->Dehollow());
+	AssertSize(uiIndexes, gcObjects.NumMemoryIndexes());
+
+	//Marked, then kept while the other thread hasn't come in, then freed once it has.
+	ObjectsCollect();
+	AssertSize(2, gcObjects.NumForwarders());
+	ObjectsCollect();
+	AssertSize(2, gcObjects.NumForwarders());
+	TestObjectsStep(&sSteps, 2);
+	AssertTrue(sSteps.bLoaded);
+	ObjectsCollect();
+	AssertSize(0, gcObjects.NumForwarders());
+	TestObjectsThreadsComesInEnd(&sSteps);
+
+	pStored = pRoot->Get("Two");
+	AssertTrue(pStored.IsHollow());
+	AssertString("second", pStored->Text());
+	AssertSize(0, gcObjects.NumForwarders());
+
+	TestObjectsThreadsComesInStart(&sSteps);
+	pStored = pRoot->Get("Three");
+	AssertString("third", pStored->Text());
+	AssertSize(1, gcObjects.NumForwarders());
+	TestObjectsThreadsComesInEnd(&sSteps);
+	AssertSize(1, gcObjects.NumForwarders());
+	AssertSize(0, ObjectsNumThreadErrors());
+	AssertTrue(ObjectsLocking(false));
+	AssertSize(0, gcObjects.NumForwarders());
+
+	pStored = NULL;
+	pRoot = NULL;
+	gcObjects.ValidateObjectsConsistency();
+	AssertTrue(ObjectsFlush());
+	ObjectsKill(false);
+	AssertTrue(pcDatabase->Close());
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+}
+
+
 static void TestObjectsThreadsAddUnknowns(void* pvThread)
 {
 	STestObjectsThread*		psThread;
@@ -1884,6 +2035,7 @@ void TestObjectsThreads(void)
 	TestObjectsThreadsStoredObjects();
 	TestObjectsThreadsKeptStackFroms();
 	TestObjectsThreadsKeptStackFromOfHollow();
+	TestObjectsThreadsForwardingHollow();
 	TestObjectsThreadsAssertNoFree();
 	TestObjectsThreadsEveryWayIn();
 

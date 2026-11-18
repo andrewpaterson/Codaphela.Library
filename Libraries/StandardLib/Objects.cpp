@@ -139,6 +139,7 @@ CObjects::CObjects()
 	mpcDataConnection = NULL;
 	mpcSequenceConnection = NULL;
 	muiWalkStamp = 0;
+	muiForwardersMarked = 0;
 }
 
 
@@ -167,6 +168,8 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	mcRemovalContext.Init();
 	mcWeakFroms.Init();
 	mapcWaitingToBeFreed.Init();
+	masForwarders.Init();
+	muiForwardersMarked = 0;
 }
 
 
@@ -181,11 +184,13 @@ void CObjects::Kill(void)
 	mbInitialised = false;
 
 	//The objects' memory is given back one by one: what allocates them (the global unknowns, from gcSystemAllocator)
-	//outlives this, and doesn't give its memory back as a whole.
+	//outlives this, and doesn't give its memory back as a whole.  No other thread uses objects now.
 	Collect();
+	FreeForwardersInside(true);
 	ValidateNoDirty();
 	FreeAllInKillOrder(true);
 
+	masForwarders.Kill();
 	mapcWaitingToBeFreed.Kill();
 	mcRemovalContext.Kill();
 	mcWeakFroms.Kill();
@@ -1309,6 +1314,150 @@ void CObjects::Collect(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a hollow loaded now forwards (ThreadSafetyPlan.txt, Forwarding
+// hollows): another thread may have read a pointer to it in operator->
+// and not yet asked it for its object.  With no other thread registered
+// it is freed at once, as on one thread.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::MustForward(void)
+{
+	return IsObjectsLocking() && (ObjectsNumThreads() > 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcHollow, loaded as pcObject (and everything that pointed to it now
+// pointing to pcObject), is kept until no thread can still ask it for its
+// object: it answers with pcObject.  A pointer to one of its embedded
+// hollows that pcObject has no place for is cleared now, as the hollow's
+// Kill would clear it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::Forward(CHollowObject* pcHollow, CBaseObject* pcObject)
+{
+	CBaseObject*		pcBaseHollow;
+	SForwardingHollow*	psForwarder;
+
+	pcBaseHollow = pcHollow;
+	pcBaseHollow->RemoveAllStackFroms();
+	pcBaseHollow->RemoveAllHeapFroms();
+
+	psForwarder = masForwarders.Add();
+	psForwarder->pcHollow = pcHollow;
+	psForwarder->pcObject = pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What pcHollow was loaded as, if it forwards; otherwise NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::GetForwarded(CHollowObject* pcHollow)
+{
+	SForwardingHollow*	psForwarder;
+	size				i;
+
+	for (i = 0; i < masForwarders.NumElements(); i++)
+	{
+		psForwarder = masForwarders.Get(i);
+		if (psForwarder->pcHollow == pcHollow)
+		{
+			return psForwarder->pcObject;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A thread that read a pointer to a hollow before it was loaded asks it
+// for its object without coming into the object system in between, and
+// asks it under the lock (Dehollow(CHollowObject*)).  So once every other
+// thread has come in since a mark (taken the lock, or read) none can still
+// be about to ask a hollow that was forwarding at the mark: those go.  The
+// rest are marked now, for the next time.  With no other thread registered
+// they all go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::FreeForwarders(void)
+{
+	OBJECTS_WRITE();
+
+	if (!ObjectsIsHomeThread() || mcRemovalContext.IsBusy())
+	{
+		return;
+	}
+	FreeForwardersInside(ObjectsNumThreads() == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// bAll: every one, as no other thread uses objects.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::FreeForwardersInside(bool bAll)
+{
+	CArrayBaseObjectPtr		apcHollows;
+	size					uiFree;
+	size					i;
+
+	if (bAll)
+	{
+		uiFree = masForwarders.NumElements();
+	}
+	else if (muiForwardersMarked == 0)
+	{
+		uiFree = 0;
+	}
+	else if (ObjectsThreadsAllInSinceMark())
+	{
+		uiFree = muiForwardersMarked;
+	}
+	else
+	{
+		return;
+	}
+
+	//Taken out first: a Kill runs callbacks.  Each is as a loaded hollow was freed before it forwarded.
+	apcHollows.Init();
+	for (i = 0; i < uiFree; i++)
+	{
+		apcHollows.Add(masForwarders.Get(i)->pcHollow);
+	}
+	masForwarders.RemoveRange(0, uiFree);
+	muiForwardersMarked = masForwarders.NumElements();
+	if (muiForwardersMarked > 0)
+	{
+		ObjectsThreadsMarkWaysIn();
+	}
+
+	for (i = 0; i < uiFree; i++)
+	{
+		apcHollows.GetPtr(i)->KillInternal(true, true);
+	}
+	apcHollows.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CObjects::NumForwarders(void)
+{
+	OBJECTS_READ();
+
+	return masForwarders.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Putting hollows in place of objects (eviction, the Kill of a stored object that is still held) takes them from under
 // any thread that is using them: it is done between the other threads' work, when none of them holds a pointer
 // (ThreadSafetyPlan.txt, decision 4).  A Debug build knows whose stack each pointer is on and refuses otherwise;
@@ -1845,6 +1994,44 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 		LogPointedToMissing(__METHOD__, IndexToString(oi), "the database");
 	}
 	return pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object pcHollow stands for (CHollowObject::Dehollow, for a pointer
+// to it): loaded now, or if it has been loaded already while another
+// thread read the pointer, what it was loaded as.  Nothing of pcHollow's
+// that a load changes is read before the lock is held.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::Dehollow(CHollowObject* pcHollow)
+{
+	OBJECTS_WRITE();
+
+	CBaseObject*	pcObject;
+
+	if (!masForwarders.IsEmpty())
+	{
+		pcObject = GetForwarded(pcHollow);
+		if (pcObject != NULL)
+		{
+#ifdef _DEBUG
+			//The pointer read is the one the load pointed at pcObject, which holds it: still in memory.
+			if ((pcHollow->IsNamed() ? GetFromMemory(pcHollow->GetName()) : GetFromMemory(pcHollow->GetIndex())) != pcObject)
+			{
+				gcLogger.Error2(__METHOD__, " A hollow was asked for the object it was loaded as once that object had gone.", NULL);
+			}
+#endif // _DEBUG
+			return pcObject;
+		}
+	}
+
+	if (pcHollow->IsNamed())
+	{
+		return Dehollow(pcHollow->GetName());
+	}
+	return Dehollow(pcHollow->GetIndex());
 }
 
 
@@ -2479,7 +2666,15 @@ bool CObjects::ReplaceBaseObject(CBaseObject* pcExisting, CBaseObject* pcObject)
 		return false;
 	}
 
-	cRemapper.Remap(pcExisting, pcObject);
+	if (pcExisting->IsHollow() && !pcObject->IsHollow() && MustForward())
+	{
+		cRemapper.RemapFroms(pcExisting, pcObject);
+		Forward((CHollowObject*)pcExisting, pcObject);
+	}
+	else
+	{
+		cRemapper.Remap(pcExisting, pcObject);
+	}
 	return AddIntoMemory(pcObject);
 }
 
@@ -2727,6 +2922,7 @@ void ObjectsCollect(void)
 	if (ObjectsValidate())
 	{
 		gcObjects.Collect();
+		gcObjects.FreeForwarders();
 	}
 }
 

@@ -850,6 +850,25 @@ Steps
          registered; the hollow's Dehollow taking the lock first and answering; each thread's count; the home thread's
          check as it collects; ObjectsKill and ObjectsLocking(false) freeing what is left; NumForwarders for the
          tests; the Debug check of the object a forwarder names.
+         Done 2026-11-18.  A hollow loaded while another thread is registered is remapped as before
+         (CObjectRemapFrom::RemapFroms, the remap without the Kill), pointers to embedded hollows the object has no
+         place for are cleared, and the hollow is put aside on its CObjects with what it was loaded as (out of
+         memory's index, as a loaded hollow always was).  A hollow's Dehollow is CObjects::Dehollow(CHollowObject*),
+         which takes the lock and then answers a forwarder's object, loading nothing.  Each thread counts its ways in,
+         its reads and the times it takes the lock (SObjectsReader's iReads and iLocks, on its own cache line, written
+         by the thread alone); the home thread's ObjectsCollect marks the other threads' counts, and a later
+         ObjectsCollect frees what was forwarding at the mark once every count has moved (FreeForwarders).  It isn't
+         done as the home thread takes the lock, as the free of queued batches is: that can be inside the hollow's
+         own Dehollow.  With no other thread registered (ObjectsLocking(false), ObjectsKill) they all go, and with
+         none registered a loaded hollow is freed at once, as before.  The counts replaced the one count of the
+         locks taken: ObjectsNumWaysIn is the running thread's, which is what the tests of the ways in counted.
+         One thread, by instructions: a load 28789 an object (28779 before; the call into CObjects), a stack Ptr's
+         copy and drop 331.
+         Tests: TestObjectsThreadsForwardingHollow (a plain pointer kept to a hollow that is then loaded is answered
+         with the object; marked, kept while the other thread stays out, freed once it has come in; freed at once
+         with no other thread; ObjectsLocking(false) frees what is left; a root's set, loaded on the way, forwards
+         too).  TestObjectsThreadsEveryWayIn takes the new ways in (Dehollow of a hollow, FreeForwarders,
+         NumForwarders).
       d. The words a load rewrites read and written as relaxed atomics; Dereference's write-backs gone (asserted
          first).  Held to step 7: operator-> and a collection's Get counted, no more instructions than now.
       e. Tests (TestObjectsThreads.cpp, with a database): threads walking one stored graph and loading it as they go

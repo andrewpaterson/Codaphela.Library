@@ -25,18 +25,37 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What points to pcOld (or its embedded objects) points to pcNew instead,
+// and pcOld is killed.
 //
 //////////////////////////////////////////////////////////////////////////
 size CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+{
+	size	iCount;
+	bool	bHeapFromChanged;
+
+	bHeapFromChanged = pcOld->HasHeapFroms();
+	iCount = RemapFroms(pcOld, pcNew);
+	pcOld->KillInternal(bHeapFromChanged, true);
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What points to pcOld (or its embedded objects) points to pcNew instead.
+// Pointers to an embedded object pcNew doesn't have are left for pcOld's
+// Kill to clear.
+//
+//////////////////////////////////////////////////////////////////////////
+size CObjectRemapFrom::RemapFroms(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	size				iCount;
 	CEmbeddedObject*	pcEmbeddedOld;
 	size				iNumEmbedded;
 	CEmbeddedObject*	pcEmbeddedNew;
 	size				i;
-	bool				bHeapFromChanged;
 
-	bHeapFromChanged = pcOld->HasHeapFroms();
 	iNumEmbedded = CalculateNumEmbedded(pcOld, pcNew);
 	iCount = 0;
 
@@ -51,8 +70,6 @@ size CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 	//An embedded object pcNew doesn't have (it is of a class with fewer) keeps its froms until pcOld is killed, which
 	//clears the pointers to it.  That's on purpose, but the pointers lose what they pointed to, so it's a warning.
 	WarnDroppedEmbedded(pcOld, iNumEmbedded);
-	pcOld->KillInternal(bHeapFromChanged, true);
-
 	return iCount;
 }
 

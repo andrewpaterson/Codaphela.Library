@@ -38,7 +38,6 @@ CRecursiveSpinLock			gcObjectsLock;
 
 static int					giObjectsHomeThread = 0;	//0 until ObjectsInit.
 int32						giObjectsFreesWaiting = 0;
-static size					guiObjectsLocksTaken = 0;	//Under the lock.
 static int32				giObjectsThreadErrors = 0;
 
 //Whether the running thread may use objects: it is the home thread, or has registered.
@@ -87,8 +86,10 @@ bool ObjectsLocking(bool bLocking)
 	}
 	else if (!bLocking && gbObjectsLocking)
 	{
-		//What the threads left to be freed is freed while there is still a lock to free it under.
+		//What the threads left to be freed is freed while there is still a lock to free it under, the forwarding hollows
+		//too: no other thread is registered.
 		gcObjects.Collect();
+		gcObjects.FreeForwarders();
 		ObjectsThreadsRemoveHome();
 	}
 	gbObjectsLocking = bLocking;
@@ -214,7 +215,7 @@ void ObjectsLock(void)
 	gcObjectsLock.Lock();
 	if (gcObjectsLock.Depth() == 1)
 	{
-		guiObjectsLocksTaken++;
+		ObjectsThreadLocked();
 		ObjectsWriteBegins();
 
 		//The home thread, coming in from outside, first frees what the other threads have found dead.
@@ -328,12 +329,7 @@ void ObjectsNotInside(const char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 size ObjectsNumWaysIn(void)
 {
-	size	uiLocksTaken;
-
-	gcObjectsLock.Lock();
-	uiLocksTaken = guiObjectsLocksTaken;
-	gcObjectsLock.Unlock();
-	return uiLocksTaken + ObjectsNumReads();
+	return ObjectsThreadsNumWaysIn();
 }
 
 

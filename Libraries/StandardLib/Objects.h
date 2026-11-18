@@ -61,6 +61,18 @@ typedef void (*ObjectCallback)(CBaseObject*);
 
 class CHollowObject;
 class CFreeObjects;
+
+
+//A hollow loaded while another thread may have read a pointer to it and not yet asked it for its object, and what it
+//was loaded as (ThreadSafetyPlan.txt, Forwarding hollows).
+struct SForwardingHollow
+{
+	CHollowObject*	pcHollow;
+	CBaseObject*	pcObject;
+};
+typedef CArrayTemplate<SForwardingHollow>	CArrayForwardingHollow;
+
+
 class CObjects
 {
 friend class CBaseObject;
@@ -86,6 +98,8 @@ protected:
 	CObjectRemovalContext	mcRemovalContext;
 	CWeakFroms				mcWeakFroms;  //Every weakly held object's weak references (WeakReferencesPlan.txt).
 	CArrayBaseObjectPtr		mapcWaitingToBeFreed;  //Objects other threads found dead, for the home thread to free (Collect).
+	CArrayForwardingHollow	masForwarders;  //Hollows loaded while other threads were registered, until none can still ask one (FreeForwarders).
+	size					muiForwardersMarked;  //The first of masForwarders, forwarding when the threads' ways in were last marked.
 	uint32					muiWalkStamp;  //The base of the last walk started.  See WALK_STAMP_STEP.
 
 public:
@@ -120,9 +134,11 @@ public:
 						Ptr<CRoot>				Root(void);
 						void					LogicalDirty(CBaseObject* pcObject);
 
-						void					Collect(void);
-						bool					IsWriteThrough(void);  //The home thread's: frees what other threads found dead.
+						void					Collect(void);  //The home thread's: frees what other threads found dead.
+						void					FreeForwarders(void);  //The home thread's: frees the forwarding hollows no thread can still ask.
+						bool					IsWriteThrough(void);
 						size					NumWaitingToBeFreed(void);
+						size					NumForwarders(void);
 
 						bool					Remove(CArrayBaseObjectPtr* papcKilled);
 						bool					Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papcKilledAfter);
@@ -143,6 +159,7 @@ public:
 
 						CBaseObject*			Dehollow(OIndex oi);
 						CBaseObject*			Dehollow(const char* szObjectName);
+						CBaseObject*			Dehollow(CHollowObject* pcHollow);
 
 						bool					ReplaceBaseObject(CBaseObject* pcExisting, CBaseObject* pcObject);
 						bool					TestRemoveMemoryIdentifiers(CBaseObject* pvObject);
@@ -233,6 +250,10 @@ protected:
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi);
 						void					AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
 						void					UnsetDumpFlags(void);
+						bool					MustForward(void);
+						void					Forward(CHollowObject* pcHollow, CBaseObject* pcObject);
+						CBaseObject*			GetForwarded(CHollowObject* pcHollow);
+						void					FreeForwardersInside(bool bAll);
 
 public:
 						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(const char* szClassName, const char* szObjectName);

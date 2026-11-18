@@ -57,6 +57,8 @@ struct SObjectsThread
 	CArrayThreadStackFrom	asStackFroms;
 	int						iThread;
 	bool					bKeeping;	//Counted in giObjectsThreadsKeeping.
+	bool					bMarked;	//The home thread has marked its ways in (ObjectsThreadsMarkWaysIn)...
+	int32					iWaysInMarked;	//...at this.
 	void*					pvAllocated;
 };
 
@@ -89,10 +91,13 @@ static SObjectsThread* ObjectsThreadNew(bool bHome)
 	psThread->pvAllocated = pvAllocated;
 	psThread->sReader.iReading = 0;
 	psThread->sReader.bHome = bHome;
-	psThread->sReader.uiReads = 0;
+	psThread->sReader.iReads = 0;
+	psThread->sReader.iLocks = 0;
 	psThread->asStackFroms.Init();
 	psThread->iThread = CurrentThreadId();
 	psThread->bKeeping = false;
+	psThread->bMarked = false;
+	psThread->iWaysInMarked = 0;
 
 	gapsObjectsThreads.Add(psThread);
 	gpsObjectsThread = psThread;
@@ -263,6 +268,86 @@ size ObjectsThreadsRemove(void)
 size ObjectsThreadsNum(void)
 {
 	return gbObjectsThreads ? (gapsObjectsThreads.NumElements() - 1) : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsThreadLocked(void)
+{
+	SObjectsReader*		psReader;
+
+	if (gpsObjectsThread != NULL)
+	{
+		psReader = &gpsObjectsThread->sReader;
+		AtomicStore(&psReader->iLocks, psReader->iLocks + 1);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 ObjectsThreadWaysIn(SObjectsThread* psThread)
+{
+	return AtomicLoad(&psThread->sReader.iReads) + AtomicLoad(&psThread->sReader.iLocks);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size ObjectsThreadsNumWaysIn(void)
+{
+	return (gpsObjectsThread != NULL) ? (size)ObjectsThreadWaysIn(gpsObjectsThread) : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With the lock, by the home thread: every other thread's ways in now.
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsThreadsMarkWaysIn(void)
+{
+	SObjectsThread*		psThread;
+	size				i;
+
+	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
+	{
+		psThread = gapsObjectsThreads.GetPtr(i);
+		if (psThread != gpsObjectsThread)
+		{
+			psThread->iWaysInMarked = ObjectsThreadWaysIn(psThread);
+			psThread->bMarked = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With the lock, by the home thread.
+//
+//////////////////////////////////////////////////////////////////////////
+bool ObjectsThreadsAllInSinceMark(void)
+{
+	SObjectsThread*		psThread;
+	size				i;
+
+	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
+	{
+		psThread = gapsObjectsThreads.GetPtr(i);
+		if ((psThread != gpsObjectsThread) && psThread->bMarked && (ObjectsThreadWaysIn(psThread) == psThread->iWaysInMarked))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
