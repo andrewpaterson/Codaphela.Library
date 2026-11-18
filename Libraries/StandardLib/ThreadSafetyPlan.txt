@@ -885,8 +885,34 @@ Steps
          count not raised, the check freeing a turn early, an atomic made plain), the full sweep, the 65 suites with
          their sizes unchanged, the MinGW compile.
 
-  Later, when something needs it
-  25. Level 3: a CObjects for each thread, and Adopt.
+  Level 3: a CObjects for each thread (decisions 11 to 15)
+  25. a. The memory index replaced: an object found, put and taken out by its index in a few instructions, where the
+         trie by index's bytes takes about 1800 to put and 1600 to take out (37% of an OMalloc and free, 40% of a tree
+         built).  A hash table (iteration sorted when it is asked for: Flush, Kill and Evict go in index order) and a
+         paged table (in order as it is) are both measured, on OMalloc and free, the tree and the load, and the faster
+         kept.  Names keep their trie.
+      b. A worker's object system: a variant of ObjectsThreadInit that gives the thread a CObjects of its own, with
+         its own root, stack pointers and completed classes.  OMalloc, ONMalloc and ORoot on that thread go to it (a
+         current object system for each thread, gcObjects where none is set).  Its objects take their indexes from
+         the main object system's sequence, and it has no database.  The worker is its home thread: Free() runs there,
+         and ObjectsThreadKill frees what is left in it.  Its objects' own ways in take no lock.
+      c. A worker's object pointing at a main object: held as the worker's stack pointers hold main objects (the
+         thread's table), so the main object stays while it is pointed at.  Neither object system's walks cross into
+         the other.  A main object pointed into an unadopted graph is an error, found by validation.
+      d. Adopt(pTop), by the worker, under the main lock: pTop and every object reachable from it that is still the
+         worker's are put in the main memory index (a name the main object system already has refuses the whole
+         graph, and nothing moves), their class pointers made the main object system's, their pointers at main
+         objects made ordinary heap froms, and the worker's stack pointers to them kept as its thread's stack froms.
+         Returns a pointer to pTop in the main object system for the caller to attach.  What the worker keeps that
+         points into the adopted graph is a worker object pointing at main objects (c).
+      e. Tests (TestObjectsThreads.cpp): workers building graphs at once and adopting them (counts, distances,
+         names, indexes, and the database after a flush); a worker's objects holding main objects; a clashing name
+         refusing Adopt; objects left at ObjectsThreadKill; scratch objects kept and freed by the worker.
+         ThreadSanitizer and ASan, repeated.
+      f. Measured: OMalloc and free on 1 to 12 workers each in its own object system (step 22's table again), and
+         Adopt for each object.
+      g. Proved: the mutation harness over the new guards, the full sweep, the 65 suites (with level 3 compiled
+         out), the MinGW compile.
 
   Tests (TestStandardLib/TestObjectsThreads.cpp, not on the 65 targets)
     Threads copying and dropping Ptrs to one rooted object; to a hub; to objects another thread is re-pointing a field
@@ -924,3 +950,12 @@ Decisions (the user's, 2026-11-17)
   10. (2026-11-18, with step 24a's measurements) Sets and maps are ordered by object index, not address: a load
      never changes an order, so fat hollows are retired and the size they were made at leaves the record format.
      Contains costs 4 to 90 ns more and an Add 8 to 41% more, for sets of 10 to 100000.
+  11. (2026-11-18, for step 25) A worker's objects may point at main objects, held as the worker's stack pointers hold
+     them and made ordinary pointers at Adopt; main objects may not point into a graph that hasn't been adopted.
+  12. Adopt(pTop) moves pTop and every object reachable from it that is still the worker's, and returns a pointer to it
+     in the main object system.  Anything else the worker made stays with the worker, which carries on building.
+  13. A worker's object system has no database: its objects take their indexes from the main object system's sequence
+     and are saved when the main one flushes after Adopt.
+  14. A name a worker's object has that the main object system already uses is found at Adopt, which then refuses the
+     whole graph and moves nothing.  (Not at creation, as Codabase transactions do it.)
+  15. The memory index is replaced within step 25, before level 3 is built on it.
