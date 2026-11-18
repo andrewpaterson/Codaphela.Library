@@ -601,7 +601,7 @@ Questions for the user
   11. dynamic_cast stops finding a base that isn't public (stage 4a), with exceptions off too.  It is what the standard says and no code here is known to lean on it.  Assumed: yes.
   12. Stage 5b changes the order in which the temporaries of one expression are destroyed, to the standard's (the reverse of the order they were finished).  A program that leans on today's order changes.  Assumed: yes.
   13. Stage 4 waits for the other session's question 8 (the type info's header).  Stages 2, 3 and 5 don't; 5 is best done when the other session has left the front end's statement files.  Assumed order: 1, 2, 3, 5, 4.
-  14. Types the compiler doesn't keep apart (the other session, 2026-11-18, answering 4a's check): long is int where they are one size (CCPP65Types::Long is Integer(4), so on the 65C64 they are one type), char is signed char, wchar_t and char16_t are unsigned short, char32_t is unsigned long, and nullptr has no type of its own.  So catch (long) catches a thrown int, catch (signed char) a thrown char, and throw nullptr can't be caught as std::nullptr_t; typeid and overloads have the same fault.  It is the type system's, not exceptions' or question 8's, and is question 13 of CppParserTodo.txt for the user.  Until it is answered and built, the cases of the Exceptions group that lean on it (CatchNullPointer and any that throws one of these and catches the other) stay not done, and stage 4a's check of the labels is this.  The type info has a kind for nullptr_t ready (CPP65TIK_NullPointer) that nothing writes.  Assumed: exceptions go on without it.
+  14. Types the compiler doesn't keep apart (the other session, 2026-11-18, answering 4a's check): long is int where they are one size (CCPP65Types::Long is Integer(4), so on the 65C64 they are one type), char is signed char, wchar_t and char16_t are unsigned short, char32_t is unsigned long, and nullptr has no type of its own.  So catch (long) catches a thrown int, catch (signed char) a thrown char, and throw nullptr can't be caught as std::nullptr_t; typeid and overloads have the same fault.  It is the type system's, not exceptions' or question 8's, and is question 13 of CppParserTodo.txt for the user.  Until it is answered and built, the cases of the Exceptions group that lean on it (CatchNullPointer and any that throws one of these and catches the other) stay not done, and stage 4a's check of the labels is this.  The type info has a kind for nullptr_t ready (CPP65TIK_NullPointer) that nothing writes.  Assumed: exceptions go on without it.  Overtaken 2026-11-18: the other session built steps 1, 2, 4 and 5 of its question 13 (master 390c71f1a, 16abb5c62), so int and long, char and signed char and the rest have type infos of their own and catch (long) no longer takes an int; what is left of it there is its steps 3 and 6.
 
 
 Progress
@@ -716,4 +716,26 @@ Progress
     the fix comes with its distinct fundamental types (its question 13), which changes mangled labels, Libc65's
     stdint.h and stddef.h and some .asm labels.  Merge that before stage 2's first Lib65 run, and measure the baseline
     again then: it changes what is compiled with the option off.
+
+  Master was merged a third time on 2026-11-18 (CommonLibraries c6796848e and 664bc9b7a, to master 16abb5c62; HCP65
+  1999b81; HCP65-IDE c3d9266), with no conflict: the other session's distinct fundamental types and type names by kind,
+  and the getenv fix, so the *65 programs compile again.  TestCppCompilerLib passes (268605, RunParallel.py, at
+  c6796848e).
+
+  The second baseline, taken the same way with the compiler of 664bc9b7a, exceptions off; it is the one stages 2 to 9
+  compare with (the first is above, for what the merges changed: at most 0.006% either way).  Each run's own output is
+  in D:\gameengine-exceptions\Baseline2.
+
+    Suite              CPU      Passed Programs  Asserts           Cycles        Bytes  Seconds  Peak MB
+    TestBaseLib65      65C64    yes         180   163825       6931899093     21894535      176      524
+    TestBaseLib65      W65C816  yes         178   157337      26693649179     85736121      284      551
+    TestStandardLib65  65C64    yes          67    11138      15986986408     31249666      264      564
+    TestStandardLib65  W65C816  yes          65    10585      24749548242     72350567      272      618
+    TestSupportLib65   65C64    yes          76    35991      33703784905     38009216      544      828
+    TestSupportLib65   W65C816  yes          72    27200      92188895862     82435550      775      884
+
+  The user, 2026-11-18, shown the assumed answers before stage 2: "Numbered questions that stage 2 depends on are fine",
+  and, of the decisions inside stage 2's steps set beside LLVM, GCC and Swift (a throwing call stays an ordinary
+  instruction with thrown straight after it, tied by position, where the others end the block at the call): "Those are
+  fine then thanks".  No go for stage 2 yet.
 
