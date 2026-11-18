@@ -5842,6 +5842,41 @@ void TestCPP816SharedInline(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A global nothing refers to is dropped by the linker with its init and
+// fini entries, so its constructor and destructor don't run, unless the
+// build keeps such globals (CCPPCompileOptions::mbKeepUnusedObjects,
+// KeepUnusedObjects="true": CppParserTodo.txt question 12).  Its
+// constructor logs 7 at 0010:0000 and its destructor 9 after it.
+// [basic.stc.static] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816KeepUnusedObjects(void)
+{
+	static const char*	aszNone[] = { NULL };
+	static const char*	szSource =
+		"struct SLog { SLog() { ((volatile long*)0x100000)[0] = 7; } ~SLog() { ((volatile long*)0x100000)[1] = 9; } };\n"
+		"SLog gsNobodyUses;\n"
+		"int main(void) { return 3; }\n";
+	uint32	auiResults[2];
+	CChars	szListing;
+
+	auiResults[0] = auiResults[1] = 1;
+	AssertInt(3, TestCPP816RunListed(szSource, aszNone, &szListing, auiResults, 2));
+	AssertInt(0, (int)auiResults[0]);
+	AssertInt(0, (int)auiResults[1]);
+	szListing.Kill();
+
+	gcTestCPP816Options.mbKeepUnusedObjects = true;
+	AssertInt(3, TestCPP816RunListed(szSource, aszNone, &szListing, auiResults, 2));
+	AssertInt(7, (int)auiResults[0]);
+	AssertInt(9, (int)auiResults[1]);
+	szListing.Kill();
+	gcTestCPP816Options.mbKeepUnusedObjects = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // typeid(x).name() is the type as the program writes it
 // (TestCPP65GeneratorTypeNames' program, for the W65C816).
 //
@@ -6500,6 +6535,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816Exit());
 	TEST_PART(TestCPP816ExitOrder());
 	TEST_PART(TestCPP816SharedInline());
+	TEST_PART(TestCPP816KeepUnusedObjects());
 	TEST_PART(TestCPP816TypeNames());
 	TEST_PART(TestCPP816StringRegisters());
 	TEST_PART(TestCPP816MathRegisters());

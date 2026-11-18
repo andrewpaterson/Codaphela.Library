@@ -59,6 +59,8 @@ public:
 	bool		mbMathTables;			//The W65C816's code may read Garth Wilson's product table (MathMult) in place: it is in memory when the code runs.
 	size		muiConstantSteps;		//Full-expressions evaluated to work out one constant expression before it is given up on (CCPPConstants).
 	size		muiConstantDepth;		//How deep constexpr calls may go inside one another for a constant.
+	bool		mbKeepUnusedObjects;	//A global whose making or destroying runs code (R_Initialise, R_Finalise) is linked though
+									//nothing refers to it ([basic.stc.static] 2); off, it goes with the rest of what is unused.
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);

@@ -659,7 +659,7 @@ bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialis
 		{
 			if ((i == 0) || !bListed)
 			{
-				mcData.AppendStartUpEntry((i == 0) ? "init" : "fini", &szLabel, pszData);
+				mcData.AppendStartUpEntry((i == 0) ? "init" : "fini", &szLabel, pszData, mpcOptions->mbKeepUnusedObjects);
 			}
 		}
 		else

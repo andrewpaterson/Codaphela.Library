@@ -428,6 +428,10 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         variable shall not be eliminated even if it appears unused.  Keeping every global with an R_Initialise or a
         destructor would be correct, but it keeps BaseLib's unused globals (and the code they use) in the kernal: OS.SYS
         may then not fit.  Keep them all, keep them only outside the kernal build, or work out which have side effects?
+        The user, 2026-11-18: "make that an optional argument to not drop them - I suspect it's usually fine".  Done:
+        CCPPCompileOptions::mbKeepUnusedObjects (off unless set), KeepUnusedObjects="true" in a .hcp65build
+        configuration, hcp65build -keep-unused-objects and the IDE's build configurations dialog: an init or fini entry is
+        then kept, not associated with its global's data, and keeps what it reaches.
 
     13. The compiler's types are its sizes: long is int where they are as wide (the 65C64: CCPP65Types::Long is
         Integer(4)), char is signed char, wchar_t and char16_t are unsigned short, char32_t is unsigned long, and nullptr
