@@ -439,6 +439,65 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         overloads on them (f(int) and f(long) on the 65C64) can't be told apart, typeid and catch can't either, and
         typeid(long).name() is "int" on the 65C64.  Making them distinct types (with the conversions and ranks between
         them, their labels and names) is a change across the compiler: do it now, or with the library question?
+        The user, 2026-11-18: "give each fundamental type its own identity please".  The plan, a commit for each step after
+        a full TestCppCompilerLib pass (RunParallel.py), the steps that can refuse code also the *65 compile checks
+        (TEST_PROJECT65_ONLY=NoSuchTest, both targets) and the kernal with hcp65build:
+        1. Identity.  SCPP65Type has its integer's kind (char, signed char, unsigned char, wchar_t, char16_t, char32_t,
+           short, unsigned short, int, unsigned int, long, unsigned long, long long, unsigned long long), and Equals and
+           Same tell kinds apart; one builtin type for each (msSignedChar, msWChar, msChar16, msChar32 added).  The
+           declarators give each keyword its own (long is msLong, never Integer(4)); CCPP65Types::Integer(bytes, signed),
+           for what the compiler makes itself, gives the type of that size it would make (int where int is as wide).
+        2. Promotions and conversions by rank ([conv.prom], [conv.rank], [expr] 10): char, signed char, unsigned char,
+           short and unsigned short, bool and an unscoped enum become int, or unsigned int if int can't hold them all;
+           wchar_t, char16_t and char32_t the first of int, unsigned int, long, unsigned long, long long and unsigned
+           long long that holds them all.  The usual arithmetic conversions by rank (long long > long > int > short >
+           char), a signed type taking an unsigned one's operands only when it holds all their values.  Overloads: int to
+           long is a conversion, not an exact match, though they are as wide.
+        3. Literals: an integer literal's type from [lex.icon]'s table (decimal int, long, long long; octal and hex the
+           unsigned ones between; the suffixes); 'c' char, L'c' wchar_t, u'c' char16_t, U'c' char32_t, and the strings'
+           elements so.  sizeof's type is std::size_t, Libc65's unsigned long, on both targets (an object can be more
+           than 64KB on the W65C816), and pointer - pointer std::ptrdiff_t, long.
+        4. Labels: the Itanium codes (c char, a signed char, h unsigned char, w wchar_t, Ds char16_t, Di char32_t, s short,
+           t unsigned short, i int, j unsigned int, l long, m unsigned long, x long long, y unsigned long long), in place
+           of codes by size.  The assembly that names compiled functions (BaseLib's Fat*W65C816.asm, Libc65's
+           stringW65C816*.asm, the kernal's KernalExports.asm) and the tests that read labels change with them.
+        5. Names: typeid's names, the type checker's and the IDE's, by kind ("long", "signed char", "char16_t").
+        6. std::nullptr_t: a type of its own (CPP65TK_NullPointer, a pointer wide), nullptr's and decltype(nullptr)'s,
+           converting to any pointer, pointer to member and (in direct initialisation) bool; overloads on it; its type
+           info (CPP65TIK_NullPointer) and label (Dn).
+        7. The libraries and the kernal as distinct types find them: what passes an int* for a long* and the like is
+           mended where it is, as access control's and enum class's were.
+        Conformance cases for each, checked with MSVC (hostcheck.py), as the steps go.
+        Progress, 2026-11-18: steps 1, 2 and 4 are built, together (apart, int and long would be one label and long +
+        long an int): SCPP65Type::eInteger (an enum's is its underlying type's, so enum E : short is short underneath and
+        __underlying_type says so), msSignedChar, msWChar, msChar16 and msChar32, CCPP65Types::Promote and Arithmetic by
+        rank (IntegerRank, PromoteToHold), an overload's promotion what Promote makes, the Itanium codes in labels.  Of
+        step 3, an L literal is long, and L'x', u'x' and U'x' and the strings' elements are wchar_t, char16_t and
+        char32_t.  What came with them (the libraries and kernal as the types found them, step 7):
+        - Libc65's fixed width types are int where int is that wide, as avr-gcc's are and every 32 bit int platform's:
+          int16_t and uint16_t are int and unsigned int on the W65C816, int32_t and uint32_t on the 65C64.  BaseLib's
+          int16 overloads under __W65C816__ (IntToString, CChars::Append, CNumber::Init...) were written to take an int,
+          and do again; with int16_t a short, every one of them was ambiguous.  So on the W65C816 a uint16 or 16 bit size
+          parameter is j in a label: the W65C816 assembly's labels changed (FatFilenameHelperW65C816.asm and the other
+          Fat ones, stringW65C816*.asm, KernalExports.asm), as did its 4 byte unsigned ones (uint32, lsize, size_t: m).
+        - size_t and ptrdiff_t are a pointer wide: unsigned int and int on the 65C64 (as on Win32), unsigned long and long
+          on the W65C816; pointer - pointer is Integer(pointer bytes, true) as it was.
+        - TRISTATE's TRIGNORED and TRIERROR are -2 and -1 (0xfffffffe and 0xffffffff in MSVC's int enum already): the
+          old Promote made every enum an int, so a 4 byte TRISTATE was compared in 16 bits; promoted rightly it took 32
+          and the kernal 1100 bytes more.  As an int it is 2 bytes on the W65C816 and the kernal is 84 bytes over master's
+          (longer names: CMapStringPrimitive<long>'s type info).
+        - TestLib's TESTLIB_LOG (Tests/TestSpeedPlan.txt step 1) isn't read under __LIBC65__: Libc65 has no getenv, and
+          the *65 suites hadn't compiled since.
+        Left: step 3's sizeof (an unsigned int, 2 bytes on the W65C816, while Libc65's size_t is unsigned long there:
+        question 14), step 5 (names by kind: typeid's, CCPPTypeWriter's, SCPP65Type::Append's are still by size) and
+        step 6 (std::nullptr_t).
+    14. sizeof's type is std::size_t ([expr.sizeof] 6): on the W65C816 Libc65's size_t is unsigned long (4 bytes, as
+        an object can be more than 64KB), but the compiler's sizeof is an unsigned int, 2 bytes.  They are different
+        types now, so a template or overload sees sizeof(x) as an unsigned int and a size_t as an unsigned long, and an
+        object over 64KB has its size cut.  Make sizeof an unsigned long there, as the standard says (every
+        sizeof(a) / sizeof(a[0]) loop bound and BaseLib's size arithmetic is then 32 bit unless the constant is folded
+        narrow, which costs code and cycles), or keep it 16 bits and make Libc65's size_t unsigned int on the W65C816
+        (objects over 64KB can't be sized, as now)?
 
   Small gaps found on 2026-11-18 (by the exceptions work), not done yet:
     - A function template declared and never defined can't be named in an unevaluated operand: noexcept(ref<A>()) with
@@ -447,6 +506,11 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       final function) aren't reported for it.
     - InitializerList (CPP65IRFrontEndObjects.cpp) puts its backing array on no destruction list, so elements with
       destructors aren't destroyed, if that case compiles at all.
+  And by question 13's cases:
+    - A string literal argument doesn't deduce: template<class T, int N> int Count(const T (&)[N]); Count("ab") says
+      "The template argument is not a type the compiler supports" (a named const char a[] = "ab" deduces T and N).
+    - decltype of a subscript of a string literal isn't its element's const reference: decltype("ab"[0]) is not
+      const char& (auto p = "ab" is a const char* as it should be).
 
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.

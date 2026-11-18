@@ -1234,8 +1234,8 @@ int CCPPOverloads::ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList)
 //////////////////////////////////////////////////////////////////////////
 //
 // How well an argument converts to a parameter: an exact match (the same type, an
-// array or function to a pointer to it), a promotion (bool, char, short and enums to
-// int, float to double), a conversion (between other arithmetic types, a derived class
+// array or function to a pointer to it), a promotion (bool, the chars, short and enums
+// to int as CCPP65Types::Promote has them, float to double), a conversion (between other arithmetic types, a derived class
 // or its pointer to a base, a pointer to void*, 0 to a pointer, a pointer to bool),
 // a user defined conversion (a constructor of the parameter's class, only when
 // bUserDefined) or none.  A reference parameter matches its referred type.
@@ -1301,8 +1301,10 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 			//Only the same enum (an exact match) converts to an enum, and an enum class's value to nothing else.
 			return CPPCR_None;
 		}
-		if ((psParameter == &mpcUnit->GetTypes()->msInt) && psArgument->IsInteger() && ((psArgument->iBytes < 4) || psArgument->pcEnum))
+		if (psArgument->IsInteger() && psParameter->Unqualified()->Equals(mpcUnit->GetTypes()->Promote(psArgument)))
 		{
+			//An integral promotion (short to int, unsigned short to unsigned int where int is 16 bits); int to long is a
+			//conversion though they are as wide.  [over.ics.scs] 3, [conv.prom]
 			return CPPCR_Promotion;
 		}
 		if (psParameter->IsFloat() && (psParameter->iBytes == 8) && !psParameter->bLongDouble && psArgument->IsFloat() && (psArgument->iBytes == 4))

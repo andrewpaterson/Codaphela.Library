@@ -445,7 +445,14 @@ void TestCPP65GeneratorOperatorTypes(void)
 		AssertPointer(&cTypes.msUnsignedInt, cTypes.Operation(CT_Modulus, &cTypes.msUnsignedInt, &cTypes.msBool));
 		AssertPointer(&cTypes.msLongLong, cTypes.Operation(CT_Multiply, &cTypes.msUnsignedInt, &cTypes.msLongLong));
 		AssertPointer(&cTypes.msInt, cTypes.Operation(CT_LeftShift, &cTypes.msChar, &cTypes.msLongLong));
-		AssertPointer((iIntBytes == 2) ? &cTypes.msLong : &cTypes.msUnsignedInt, cTypes.Operation(CT_Add, &cTypes.msLong, &cTypes.msUnsignedInt));
+		//long's rank is above int's: long where it holds every unsigned int, else unsigned long (the 65C64), never unsigned int.
+		AssertPointer((iIntBytes == 2) ? &cTypes.msLong : &cTypes.msUnsignedLong, cTypes.Operation(CT_Add, &cTypes.msLong, &cTypes.msUnsignedInt));
+		AssertPointer(&cTypes.msUnsignedLong, cTypes.Operation(CT_Add, &cTypes.msUnsignedLong, &cTypes.msInt));
+		AssertPointer(&cTypes.msLong, cTypes.Operation(CT_Add, &cTypes.msLong, &cTypes.msLong));
+		AssertPointer((iIntBytes == 2) ? &cTypes.msUnsignedInt : &cTypes.msInt, cTypes.Operation(CT_Add, &cTypes.msUnsignedShort, &cTypes.msShort));
+		AssertPointer(&cTypes.msInt, cTypes.Operation(CT_Add, &cTypes.msSignedChar, &cTypes.msChar));
+		AssertPointer((iIntBytes == 2) ? &cTypes.msUnsignedInt : &cTypes.msInt, cTypes.Promote(&cTypes.msWChar));
+		AssertPointer((iIntBytes == 2) ? &cTypes.msUnsignedLong : &cTypes.msUnsignedInt, cTypes.Promote(&cTypes.msChar32));
 
 		//Floats: + - * / only, at the wider float; an integer takes the float's type.
 		AssertPointer(&cTypes.msDouble, cTypes.Operation(CT_Divide, &cTypes.msFloat, &cTypes.msDouble));
@@ -521,9 +528,9 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 	AssertPointer(psClass, cTypes.Class(pcFirstClass));
 
 	AssertNull(cTypes.FindEnum(pcFirstEnum));
-	psEnum = cTypes.Enum(pcFirstEnum, 2, false, false);
+	psEnum = cTypes.Enum(pcFirstEnum, &cTypes.msUnsignedShort, false);
 	AssertPointer(psEnum, cTypes.FindEnum(pcFirstEnum));
-	AssertPointer(psEnum, cTypes.Enum(pcFirstEnum, 2, false, false));
+	AssertPointer(psEnum, cTypes.Enum(pcFirstEnum, &cTypes.msUnsignedShort, false));
 	AssertNull(cTypes.FindEnum(pcSecondEnum));
 	AssertTrue(cTypes.Volatile(psEnum) != psEnum);
 	AssertPointer(psEnum, cTypes.FindEnum(pcFirstEnum));

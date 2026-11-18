@@ -2654,6 +2654,84 @@ static const SConformanceCase gasConformanceStage10[] =
 		"using namespace B;\n"
 		"int main() { return cf(); }\n"
 	},
+	//Each fundamental type is a type of its own however wide (CppParserTodo.txt question 13).
+	//3.9.1/2, 13.3.3.1.1
+	{
+		"DistinctIntLong", 12,
+		"int f(int) { return 1; }\n"
+		"int f(long) { return 2; }\n"
+		"int main() { return f(1) * 10 + f(1L); }\n"
+	},
+	//3.9.1/2
+	{
+		"DistinctShortInt", 12,
+		"int f(short) { return 1; }\n"
+		"int f(int) { return 2; }\n"
+		"int main() { short s = 1; return f(s) * 10 + f(1); }\n"
+	},
+	//3.9.1/1
+	{
+		"DistinctChars", 123,
+		"int f(char) { return 1; }\n"
+		"int f(signed char) { return 2; }\n"
+		"int f(unsigned char) { return 3; }\n"
+		"int main() { return f((char)1) * 100 + f((signed char)1) * 10 + f((unsigned char)1); }\n"
+	},
+	//3.9.1/5
+	{
+		"DistinctWideChars", 123,
+		"int f(wchar_t) { return 1; }\n"
+		"int f(char16_t) { return 2; }\n"
+		"int f(char32_t) { return 3; }\n"
+		"int main() { return f(L'a') * 100 + f(u'a') * 10 + f(U'a'); }\n"
+	},
+	//14.4
+	{
+		"DistinctSpecialisation", 1234,
+		"template<class T> struct S { enum { V = 1 }; };\n"
+		"template<> struct S<long> { enum { V = 2 }; };\n"
+		"template<> struct S<short> { enum { V = 3 }; };\n"
+		"template<> struct S<signed char> { enum { V = 4 }; };\n"
+		"int main() { return S<int>::V * 1000 + S<long>::V * 100 + S<short>::V * 10 + S<signed char>::V; }\n"
+	},
+	//4.5/1, 13.3.3.1.1/3
+	{
+		"DistinctPromotionRank", 21,
+		"int f(int) { return 1; }\n"
+		"int f(long) { return 2; }\n"
+		"int g(long) { return 2; }\n"
+		"int g(double) { return 3; }\n"
+		"int main() { short s = 1; long l = 1; return f(l) * 10 + f(s) + g(l) * 0; }\n"
+	},
+	//2.14.3, 2.14.5
+	{
+		"LiteralTypes", 127,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main() { auto b = u\"ab\"; auto c = U\"ab\"; auto d = L\"ab\";\n"
+		" return Same<decltype('a'), char>::V + Same<decltype(L'a'), wchar_t>::V * 2 + Same<decltype(u'a'), char16_t>::V * 4 + Same<decltype(U'a'), char32_t>::V * 8 + Same<decltype(1L), long>::V * 16 + Same<decltype(1UL), unsigned long>::V * 32 + (Same<decltype(b), const char16_t*>::V + Same<decltype(c), const char32_t*>::V + Same<decltype(d), const wchar_t*>::V == 3) * 64; }\n"
+	},
+	//4.13, 5/10
+	{
+		"ArithmeticTypes", 255,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"enum E : short { X };\n"
+		"enum class F : long { Y };\n"
+		"int main() { short s = 1; signed char a = 1; char c = 1; unsigned char h = 1; long l = 1; long long x = 1; E e = X;\n"
+		" return Same<decltype(+s), int>::V + Same<decltype(a + c), int>::V * 2 + Same<decltype(h + h), int>::V * 4 + Same<decltype(l + l), long>::V * 8 + Same<decltype(x + 1), long long>::V * 16 + Same<decltype(l + s), long>::V * 32 + Same<decltype(+e), int>::V * 64 + Same<__underlying_type(F), long>::V * 128; }\n"
+	},
+	//7.2/5
+	{
+		"EnumUnderlyingKinds", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"enum A : long { P };\n"
+		"enum B : signed char { Q };\n"
+		"enum C : char { R };\n"
+		"enum D : unsigned short { S };\n"
+		"int main() { return Same<__underlying_type(A), long>::V + Same<__underlying_type(B), signed char>::V * 2 + Same<__underlying_type(C), char>::V * 4 + Same<__underlying_type(D), unsigned short>::V * 8; }\n"
+	},
 };
 
 

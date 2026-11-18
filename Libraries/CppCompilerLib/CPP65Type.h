@@ -42,12 +42,34 @@ enum ECPP65TypeKind
 };
 
 
+//Which integer type an integer that isn't an enum is.  Two of one size and signedness are different types all the same:
+//int and long on the 65C64, short and int on the W65C816, char and signed char everywhere.  [basic.fundamental]
+enum ECPP65IntegerKind
+{
+	CPP65IK_None,
+	CPP65IK_Char,
+	CPP65IK_SignedChar,
+	CPP65IK_UnsignedChar,
+	CPP65IK_WChar,
+	CPP65IK_Char16,
+	CPP65IK_Char32,
+	CPP65IK_Short,
+	CPP65IK_UnsignedShort,
+	CPP65IK_Int,
+	CPP65IK_UnsignedInt,
+	CPP65IK_Long,
+	CPP65IK_UnsignedLong,
+	CPP65IK_LongLong,
+	CPP65IK_UnsignedLongLong,
+};
+
+
 class CCPPClass;
 class CCPPSymbol;
 
 
 //The type of a value the compiler works with.  Integers are 1, 2, 4 or 8 bytes (int is 4 bytes on the 65C64 and 2
-//on the W65C816, long is 4 on both), pointers and references are 4 bytes.  A pointer to a member of pcClass (psBase
+//on the W65C816, long is 4 on both), each a type of its own however wide (eInteger), pointers and references are 4 bytes.  A pointer to a member of pcClass (psBase
 //is the member's type) is 4 bytes: a member function's address or a field's offset.  float is 4 bytes, double and
 //long double 8.  A class type's layout is in pcClass.  A function type has its parameters.  Types are made by
 //CCPP65Types and are never freed while it lives.
@@ -56,6 +78,7 @@ struct SCPP65Type
 	ECPP65TypeKind	eKind;
 	int				iBytes;
 	bool			bSigned;
+	ECPP65IntegerKind	eInteger;	//An integer: which one (CCPP65Types' builtins), an enum's underlying one; else CPP65IK_None.
 	SCPP65Type*		psBase;		//The type pointed to, the element type or the return type.
 	int				iCount;		//Array elements.
 	CCPPClass*	pcClass;
@@ -124,13 +147,17 @@ public:
 	SCPP65Type			msVoid;
 	SCPP65Type			msUndeduced;	//What auto f() returns until its definition says (CCPPUnit::ResolveReturn): void, but itself.
 	SCPP65Type			msBool;
-	SCPP65Type			msChar;
+	SCPP65Type			msChar;				//Signed, but not signed char.
+	SCPP65Type			msSignedChar;
 	SCPP65Type			msUnsignedChar;
+	SCPP65Type			msWChar;			//2 bytes, unsigned, as MSVC's.
+	SCPP65Type			msChar16;
+	SCPP65Type			msChar32;
 	SCPP65Type			msShort;
 	SCPP65Type			msUnsignedShort;
 	SCPP65Type			msInt;				//The target's int: 4 bytes on the 65C64, 2 on the W65C816.
 	SCPP65Type			msUnsignedInt;
-	SCPP65Type			msLong;				//4 bytes.  The same type as int when int is 4 bytes.
+	SCPP65Type			msLong;				//4 bytes: another type than int though int is as wide (the 65C64).
 	SCPP65Type			msUnsignedLong;
 	SCPP65Type			msLongLong;
 	SCPP65Type			msUnsignedLongLong;
@@ -143,13 +170,14 @@ public:
 
 	SCPP65Type*			Integer(int iBytes, bool bSigned);
 	SCPP65Type*			Long(bool bSigned);
+	SCPP65Type*			IntegerOfKind(ECPP65IntegerKind eInteger);
 	SCPP65Type*			Size(void);
 	SCPP65Type*			Pointer(SCPP65Type* psBase);
 	SCPP65Type*			Array(SCPP65Type* psElement, int iCount);
 	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);
 	SCPP65Type*			Reference(SCPP65Type* psBase, bool bRvalue = false);
 	SCPP65Type*			MemberPointer(CCPPClass* pcClass, SCPP65Type* psMember);
-	SCPP65Type*			Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned, bool bScoped);
+	SCPP65Type*			Enum(CCPPSymbol* pcEnum, SCPP65Type* psUnderlying, bool bScoped);
 	SCPP65Type*			FindEnum(CCPPSymbol* pcEnum);
 	SCPP65Type*			Float(int iBytes);
 	SCPP65Type*			LongDouble(void);
@@ -167,6 +195,9 @@ public:
 
 protected:
 	void				InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iBytes, bool bSigned);
+	void				InitInteger(SCPP65Type* psType, ECPP65IntegerKind eInteger, int iBytes, bool bSigned);
+	SCPP65Type*			PromoteToHold(int iBytes, bool bSigned);
+	int					IntegerRank(SCPP65Type* psType);
 	SCPP65Type*			NewType(ECPP65TypeKind eKind, int iBytes);
 	void				AddType(SCPP65Type* psType);
 	static int64		GetBaseKey(ECPP65TypeKind eKind, SCPP65Type* psBase);

@@ -441,8 +441,10 @@ void CCPPMangler::AppendFunctionName(CChars* psz, int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Types in labels: v void, b bool, c char, h unsigned char, s short, t unsigned
-// short, i int, j unsigned, x long long, y unsigned long long, f float, d double,
+// Types in labels, the Itanium codes: v void, b bool, c char, a signed char, h
+// unsigned char, w wchar_t, Ds char16_t, Di char32_t, s short, t unsigned short,
+// i int, j unsigned, l long, m unsigned long, x long long, y unsigned long long
+// (each its type's, however wide), f float, d double,
 // e long double, P pointer, R reference, O rvalue reference (T&&), A count _
 // array, F return parameters E function, and C, the length and the label of a class.  A volatile type starts
 // with V and a const one with K (VK both): const char* is PKc, const T& RK.
@@ -484,12 +486,23 @@ void CCPPMangler::AppendType(CChars* psz, SCPP65Type* psType)
 			szClass.Kill();
 			break;
 		}
-		switch (psType->iBytes)
+		switch (psType->eInteger)
 		{
-		case 1:		psz->Append(psType->bSigned ? 'c' : 'h');	break;
-		case 2:		psz->Append(psType->bSigned ? 's' : 't');	break;
-		case 8:		psz->Append(psType->bSigned ? 'x' : 'y');	break;
-		default:	psz->Append(psType->bSigned ? 'i' : 'j');	break;
+		case CPP65IK_Char:				psz->Append('c');		break;
+		case CPP65IK_SignedChar:			psz->Append('a');		break;
+		case CPP65IK_UnsignedChar:			psz->Append('h');		break;
+		case CPP65IK_WChar:				psz->Append('w');		break;
+		case CPP65IK_Char16:				psz->Append("Ds");		break;
+		case CPP65IK_Char32:				psz->Append("Di");		break;
+		case CPP65IK_Short:				psz->Append('s');		break;
+		case CPP65IK_UnsignedShort:			psz->Append('t');		break;
+		case CPP65IK_Int:				psz->Append('i');		break;
+		case CPP65IK_UnsignedInt:			psz->Append('j');		break;
+		case CPP65IK_Long:				psz->Append('l');		break;
+		case CPP65IK_UnsignedLong:			psz->Append('m');		break;
+		case CPP65IK_LongLong:			psz->Append('x');		break;
+		case CPP65IK_UnsignedLongLong:		psz->Append('y');		break;
+		default:						psz->Append(psType->bSigned ? 'i' : 'j');	break;
 		}
 		break;
 	case CPP65TK_Float:

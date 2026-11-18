@@ -31,6 +31,7 @@ void CCTShort::Init(void)
 	meType = CTNT_Short;
 	mcValue = 0;
 	mbSigned = true;
+	mbChar16 = false;
 }
 
 
@@ -43,6 +44,7 @@ void CCTShort::Init(unsigned short int s)
 	meType = CTNT_Short;
 	mcValue = s;
 	mbSigned = true;
+	mbChar16 = false;
 }
 
 
