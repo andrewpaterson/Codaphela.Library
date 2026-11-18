@@ -330,6 +330,123 @@ void* CTrueMallocator::Malloc(lsize uiBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How far into the free block psBlock a block of uiSize must start for its
+// uiBytes of data not to cross a multiple of uiBoundary (a power of two)
+// in their addresses: 0 if they needn't move, else far enough to leave a
+// free block before it.  TRUE_MALLOCATOR_MAX_SIZE if the block hasn't the
+// room.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CTrueMallocator::LeadWithin(STrueMallocatorBlock* psBlock, lsize uiSize, lsize uiBytes, lsize uiBoundary)
+{
+	lsize	uiTotal;
+	lsize	uiData;
+	lsize	uiLast;
+	lsize	uiStart;
+	lsize	uiLead;
+
+	uiTotal = psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
+	uiData = (lsize)((uint8*)psBlock + TRUE_MALLOCATOR_HEADER);
+	uiLast = uiData + ((uiBytes > 0) ? uiBytes - 1 : 0);
+	if ((uiData & ~(uiBoundary - 1)) == (uiLast & ~(uiBoundary - 1)))
+	{
+		return (uiTotal >= uiSize) ? 0 : TRUE_MALLOCATOR_MAX_SIZE;
+	}
+
+	//From the boundary crossed, or the one after it if that leaves too little before it for a block.
+	uiStart = uiLast & ~(uiBoundary - 1);
+	uiLead = uiStart - uiData;
+	if (uiLead < TRUE_MALLOCATOR_MIN_BLOCK)
+	{
+		uiLead += uiBoundary;
+	}
+	return ((uiLead < uiTotal) && (uiTotal - uiLead >= uiSize)) ? uiLead : TRUE_MALLOCATOR_MAX_SIZE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiBytes that don't cross a multiple of uiBoundary (a power of two, at
+// least TRUE_MALLOCATOR_MIN_BLOCK) in their addresses: Malloc, but in a
+// region that crosses them the memory starts on one where it otherwise
+// would cross it, with what is before it left free.  NULL if uiBytes is
+// more than uiBoundary or no free block has such a place: every free block
+// is looked at if the first found hasn't, so it takes longer than Malloc.
+//
+//////////////////////////////////////////////////////////////////////////
+void* CTrueMallocator::MallocWithin(lsize uiBytes, lsize uiBoundary)
+{
+	STrueMallocatorRegion*	psRegion;
+	STrueMallocatorBlock*	psBlock;
+	STrueMallocatorBlock*	psFound;
+	STrueMallocatorBlock*	psLead;
+	lsize					uiSize;
+	lsize					uiTotal;
+	lsize					uiLead;
+
+	uiSize = BlockSize(uiBytes);
+	if ((uiSize == 0) || (uiBytes > uiBoundary) || (uiBoundary < TRUE_MALLOCATOR_MIN_BLOCK) || ((uiBoundary & (uiBoundary - 1)) != 0))
+	{
+		return NULL;
+	}
+
+	uiLead = TRUE_MALLOCATOR_MAX_SIZE;
+	psFound = FindFree(uiSize);
+	if (psFound)
+	{
+		uiLead = LeadWithin(psFound, uiSize, uiBytes, uiBoundary);
+	}
+	if (uiLead == TRUE_MALLOCATOR_MAX_SIZE)
+	{
+		psFound = NULL;
+		for (psRegion = mpsRegions; psRegion && !psFound; psRegion = psRegion->psNext)
+		{
+			for (psBlock = FirstBlock(psRegion); psBlock != psRegion->psEnd; psBlock = Next(psBlock))
+			{
+				if (psBlock->uiSize & TRUE_MALLOCATOR_FREE)
+				{
+					uiLead = LeadWithin(psBlock, uiSize, uiBytes, uiBoundary);
+					if (uiLead != TRUE_MALLOCATOR_MAX_SIZE)
+					{
+						psFound = psBlock;
+						break;
+					}
+				}
+			}
+		}
+		if (!psFound)
+		{
+			return NULL;
+		}
+	}
+
+	psBlock = psFound;
+	RemoveFree(psBlock);
+	if (uiLead != 0)
+	{
+		//What is before the boundary stays a free block, and the rest is the block found.
+		uiTotal = psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS;
+		psLead = psBlock;
+		psBlock = (STrueMallocatorBlock*)((uint8*)psLead + uiLead);
+		psBlock->uiSize = uiTotal - uiLead;
+		MarkFree(psLead, uiLead);
+		InsertFree(psLead);
+	}
+	else
+	{
+		psBlock->uiSize &= ~(lsize)TRUE_MALLOCATOR_FREE;
+	}
+	TRUE_MALLOCATOR_CLEAR_PREVIOUS_FREE(Next(psBlock));
+	Split(psBlock, uiSize);
+
+	muiNumAllocations++;
+	Allocated(psBlock->uiSize & ~(lsize)TRUE_MALLOCATOR_FLAGS);
+	return (uint8*)psBlock + TRUE_MALLOCATOR_HEADER;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Changes the size of pv's memory to uiBytes, keeping what is in it.  It shrinks in place, and grows in place when
 // the block after it is free and big enough; otherwise the memory moves.  NULL pv is Malloc.  Returns NULL, leaving
 // pv as it was, if there is no room.

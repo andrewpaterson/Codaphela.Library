@@ -29,7 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //CThreadMallocator's arenas (a region for each chunk).  It is a two level segregated fit (TLSF) allocator: a free
 //block is on one of a list for each size range, found from two levels of bitmaps (the power of two of its size, then
 //which of 16 parts of that power), so Malloc and Free take the same time however many blocks there are.  Freed blocks
-//are joined to free blocks either side of them at once.  It uses nothing else from BaseLib but Atomic.h (which is
+//are joined to free blocks either side of them at once.  MallocWithin is Malloc for memory that mustn't cross a
+//boundary in its addresses (a W65C816's bank, which an index register doesn't count past), in a region that does.  It uses nothing else from BaseLib but Atomic.h (which is
 //only its header), so it can be linked into programs that only use Libc65.
 //
 //It isn't safe between threads.  One thing is, for CThreadMallocator: Size may be asked of a used block by another
@@ -100,6 +101,7 @@ public:
 	bool					IsRegionFree(void* pvMemory);
 
 	void*					Malloc(lsize uiBytes);
+	void*					MallocWithin(lsize uiBytes, lsize uiBoundary);
 	void*					Realloc(void* pv, lsize uiBytes);
 	void					Free(void* pv);
 	lsize					Size(void* pv);
@@ -119,6 +121,7 @@ protected:
 	lsize					BlockSize(lsize uiBytes);
 	void					Mapping(lsize uiSize, int* piFirst, int* piSecond);
 	STrueMallocatorBlock*	FindFree(lsize uiSize);
+	lsize					LeadWithin(STrueMallocatorBlock* psBlock, lsize uiSize, lsize uiBytes, lsize uiBoundary);
 	void					InsertFree(STrueMallocatorBlock* psBlock);
 	void					RemoveFree(STrueMallocatorBlock* psBlock);
 	STrueMallocatorBlock*	Next(STrueMallocatorBlock* psBlock);
