@@ -283,6 +283,7 @@ protected:
 	CArraySyntax			mapcConstantTypes;	//The expressions whose types Constant is finding (ConstantTypeOf).
 	bool					mbPureVirtual;
 	bool					mbBadCast;			//A dynamic_cast to a reference calls R_BadCast (UseBadCast).
+	bool					mbRecursiveInit;	//A guarded static local calls R_RecursiveInit if it is reached again while being made.
 
 	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
@@ -472,6 +473,7 @@ public:
 	void					AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable);
 	void					AppendRuntime(void);
 	void					UseBadCast(void) { mbBadCast = true; }
+	void					UseRecursiveInit(void) { mbRecursiveInit = true; }
 	CArrayChars*			GetRuntimeCalls(void) override;
 	bool					BeginRuntime(const char* szName) override;
 	CChars*					GetRuntimeCode(void) override;

@@ -3616,6 +3616,39 @@ static void AssertCPP65Generates(const char* szSource)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A static local's guard has three states (CppParserTodo.txt question 6):
+// reached again while it is being made, as g's v is when its initialiser
+// calls g again, the program stops at R_RecursiveInit.  A static local
+// that is initialised in the data has no guard and no such call.
+// [stmt.dcl] 4
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorStaticLocalGuard(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "int f(int n);\nint g(int n) { static int v = f(n); return v; }\nint f(int n) { return (n > 0) ? g(n - 1) : 5; }\n"));
+	AssertString("", szErrors.Text());
+	AssertTrue(szAssembly.Contains("R_RecursiveInit:"));
+	AssertTrue(szAssembly.Contains("G0_v"));
+	szErrors.Kill();
+	szAssembly.Kill();
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "int g(void) { static int v = 7; return v++; }\n"));
+	AssertString("", szErrors.Text());
+	AssertFalse(szAssembly.Contains("R_RecursiveInit"));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorErrors(void)
@@ -3947,6 +3980,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorProject();
 	TestCPP65GeneratorExternTemplates();
 	TestCPP65GeneratorStaticConstMembers();
+	TestCPP65GeneratorStaticLocalGuard();
 	TestCPP65GeneratorNestedQualifiers();
 	TestCPP65GeneratorLateMemberDefinitions();
 	TestCPP65GeneratorExternTemplateProject();

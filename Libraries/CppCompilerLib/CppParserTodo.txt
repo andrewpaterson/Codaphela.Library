@@ -396,6 +396,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
        being initialised (recursively, or from an interrupt) is undefined behaviour: it traps, as g++'s __cxa_guard_acquire throws
        recursive_init_error.  If the initialisation exits by an exception (once there are exceptions) it isn't done, and is tried again
        the next time.  If threads come, another thread entering it waits until it is done.
+       Done 2026-11-18: the guard byte is 0, 1 being made, 2 done; reached at 1 it calls R_RecursiveInit (stp).  An
+       exception leaving the initialiser is to store 0 back (ExceptionsPlan.txt).
     7. thread_local is one object per thread ([basic.stc.thread]).  A program has one thread, so it is static storage now, with the
        same dynamic initialisation and destruction a thread's objects have (initialised before first use, destroyed at exit, before the
        static objects); per thread if threads come.  A process is a program of its own, so the kernal running several changes nothing.

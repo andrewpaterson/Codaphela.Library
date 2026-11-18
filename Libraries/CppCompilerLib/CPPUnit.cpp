@@ -301,6 +301,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcConstantTypes.Init();
 	mbPureVirtual = false;
 	mbBadCast = false;
+	mbRecursiveInit = false;
 
 	mapcLocals.Init();
 	miStatics = 0;
@@ -3134,8 +3135,10 @@ bool CCPPUnit::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 //
 // Runtime routines the generated code calls.  Only the ones used are added:
 // R_Pure, which a pure virtual function's vtable entry is, R_BadCast, which a
-// dynamic_cast to a reference that fails calls, and the target's own
-// (CCPPTarget::AppendRuntime).  Both stop: there is nothing to throw.
+// dynamic_cast to a reference that fails calls, R_RecursiveInit, which a
+// static local reached again while it is being made calls, and the
+// target's own (CCPPTarget::AppendRuntime).  They stop: there is nothing to
+// throw.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::AppendRuntime(void)
@@ -3149,6 +3152,12 @@ void CCPPUnit::AppendRuntime(void)
 	if (mbBadCast && BeginRuntime("R_BadCast"))
 	{
 		//A dynamic_cast to a reference failed (bad_cast, were there exceptions).
+		Line("stp")->AppendNewLine();
+		mszCode.AppendNewLine();
+	}
+	if (mbRecursiveInit && BeginRuntime("R_RecursiveInit"))
+	{
+		//A static local was reached again while it was being made (undefined behaviour; g++ throws recursive_init_error).
 		Line("stp")->AppendNewLine();
 		mszCode.AppendNewLine();
 	}
