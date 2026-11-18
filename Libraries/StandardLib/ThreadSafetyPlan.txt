@@ -656,23 +656,26 @@ Steps
       ObjectsCollect while it waits now, which is what a home thread is meant to do.
   23. gcUnknowns onto the new allocator, if it measures better than CGeneralMemory there (it is 12% of an OMalloc and
       free today).
-      Done 2026-11-18, by the user's choice with the numbers in front of them (decision 9): it measures better at
-      one thing and worse at another.  The global unknowns, which every object in gcObjects is one of, are
-      allocated by gcSystemAllocator (UnknownsInit).  In the whole test program, whose memory sixty other groups
-      of tests have used first, as a real program's has been used:
+      Done 2026-11-18, by the user's choice (decision 9).  The global unknowns, which every object in gcObjects is
+      one of, are allocated by gcSystemAllocator (UnknownsInit).
+      Measured like for like: two builds of one commit that differ only in the unknowns' allocator, in the whole
+      test program, whose memory sixty other groups of tests have used first.
                                           CMemoryAllocator    gcSystemAllocator
-        OMalloc and free                  586 ns              490 ns     -16%   (instructions -16%)
-        OMalloc, added to an array, removed  599 ns           503 ns     -16%   (instructions -17%)
-        a tree of objects built, a node   557 ns              654 ns     +17%   (instructions -1%)
-        a tree of objects freed, a node   599 ns              736 ns     +23%   (instructions -3%)
-        focus moved across the tree       9.5 us              9.9 us     +4%
-      Fewer instructions every time, so what the tree loses is where its objects are: a CMemoryAllocator keeps
-      blocks of one size together, and the new allocator hands out whatever its lists hold, which in memory that
-      has been used is scattered, and building, walking and freeing a tree touch every node.  (In a program that
-      ran nothing first the tree was 5% quicker to build and 9% slower to free.)  A front list limit of 8 MB in
-      place of 2 freed the tree 7% quicker and built it slower: left at 2.
-      To do, for the tree's time back: the thread allocator keeping blocks of one size together (runs of them cut
-      from a chunk for each small size, as the front lists' sizes already are).
+        OMalloc and free                  586 ns              490 ns        -16%   (instructions -16%)
+        OMalloc, added to an array, removed  599 ns           503 ns        -16%   (instructions -17%)
+        a tree of objects built           33.19 M instructions   33.49 M    +0.9%  (635 to 644 ns a node; 609 to 644)
+        a tree of objects freed           30.87 M instructions   31.66 M    +2.6%  (645 to 655 ns a node; 689 to 738)
+        the tree's cache misses (callgrind's simulation, first level, reads): built 58013 and 51524, freed 570142
+        and 573364, focus moved across it 6.61 M and 5.89 M.  No page faults in either, and no system time.
+      So the tree is built as quickly and freed a few percent slower, which is the allocator joining freed blocks
+      together again when a batch overflows its front lists.  A front list limit of 8 MB in place of 2 didn't help
+      (the free +5% in instructions): left at 2.
+      What the user was told first, and it was wrong: that the tree was 17% slower to build and 23% slower to free,
+      for want of its objects being kept together.  Those came from two binaries built in different directories,
+      and the tree's time by the clock moves that much from one build to the next and from one run to the next
+      (one binary: 632, 779 and 808 ns a node in three runs).  The cache simulation was run to confirm it before
+      anything was built, and didn't: the new allocator misses no more.  Nothing was built.  The tree's time is to
+      be judged by instructions, as step 7 says of the short operations.
       What else it gave up: CUnknowns::Dump can't go through the global unknowns one by one (it says how many),
       and those still there at UnknownsKill aren't freed with their allocator.  The second showed at once: with
       the allocator no longer thrown away whole, LeakSanitizer counted 21557 objects left by TestStandardLib.  Two
@@ -721,6 +724,7 @@ Decisions (the user's, 2026-11-17)
   8. (2026-11-18, with step 22's measurements) Step 21 isn't built: allocating as a reader can't let threads make
      and free more objects, and the memory index with a lock of its own is too wide a change for what it gives.
      Level 3 is the way to build objects in parallel.
-  9. (2026-11-18, with step 23's measurements, asked twice as the first numbers were too kind) gcUnknowns goes onto
-     the new allocator: "Switch anyway", for the 16% on OMalloc and free, with a tree's build and free 17 and 23%
-     slower until the allocator keeps blocks of one size together.
+  9. (2026-11-18, with step 23's measurements, asked twice) gcUnknowns goes onto the new allocator: "Switch anyway",
+     for the 16% on OMalloc and free.  The second asking said a tree's build and free would be 17 and 23% slower;
+     measured like for like afterwards they are the same and about 3% (step 23 says how the first figures came to
+     be wrong).
