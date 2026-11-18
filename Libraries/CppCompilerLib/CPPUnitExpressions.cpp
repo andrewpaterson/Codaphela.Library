@@ -1653,7 +1653,14 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		switch (pcUnary->meOperator)
 		{
 		case CT_Add:			*plliValue = lliLeft;																	break;
-		case CT_Subtract:		*plliValue = (int64)(0 - (uint64)lliLeft);	ConstantOverflow(pcExpression, *plliValue, true);	break;
+		case CT_Subtract:		*plliValue = (int64)(0 - (uint64)lliLeft);	ConstantOverflow(pcExpression, *plliValue, true);
+			//A signed one that overflows is no constant.  [expr] 4
+			if (psType && psType->IsInteger() && psType->bSigned && IRSignedOverflows(IRO_Neg, psType->iBytes * 8, (uint64)lliLeft, 0, (uint64)*plliValue))
+			{
+				mpcConstants->SetReason("Its signed arithmetic overflows");
+				return false;
+			}
+			break;
 		case CT_BitwiseNot:		*plliValue = ~lliLeft;																	break;
 		default:				return false;
 		}
@@ -1962,8 +1969,38 @@ bool CCPPUnit::BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLef
 	default:
 		return false;
 	}
+
+	//A signed sum, difference, product, left shift or quotient that overflows is no constant: the least number
+	//divided by -1 is one.  [expr] 4, [expr.shift] 2
+	if (!bUnsigned && psOperands && psOperands->IsInteger() && psOperands->bSigned && IsSignedOverflow(pcBinary->meOperator, psOperands->iBytes * 8, lliLeft, lliRight, lliResult))
+	{
+		mpcConstants->SetReason(((pcBinary->meOperator == CT_Divide) || (pcBinary->meOperator == CT_Modulus)) ? "It divides by zero, or the least number by -1" : "Its signed arithmetic overflows");
+		return false;
+	}
 	*plliValue = ConstantOfType(psResult, lliResult);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a signed constant's left op right (iBits wide) that gave
+// lliResult overflows (IRSignedOverflows), or is the least number divided
+// by -1.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsSignedOverflow(ECppTokens eOperator, int iBits, int64 lliLeft, int64 lliRight, int64 lliResult)
+{
+	switch (eOperator)
+	{
+	case CT_Add:			return IRSignedOverflows(IRO_Add, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
+	case CT_Subtract:		return IRSignedOverflows(IRO_Sub, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
+	case CT_Multiply:		return IRSignedOverflows(IRO_Mul, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
+	case CT_LeftShift:		return IRSignedOverflows(IRO_Shl, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
+	case CT_Divide:
+	case CT_Modulus:		return (lliRight == -1) && IRSignedOverflows(IRO_Neg, iBits, (uint64)lliLeft, 0, 0);
+	default:				return false;
+	}
 }
 
 

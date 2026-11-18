@@ -337,8 +337,10 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 			mcTypeChecker.Truth(psValue, pcValue);
 		}
 		return;
-	case CPPS_ClassSpecifier:
 	case CPPS_EnumSpecifier:
+		CheckEnumerators(pcNode);
+		return;
+	case CPPS_ClassSpecifier:
 	case CPPS_LazyDeclaration:
 	case CPPS_SkippedStatement:
 	case CPPS_SkippedDeclaration:

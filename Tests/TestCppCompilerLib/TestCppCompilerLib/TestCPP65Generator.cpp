@@ -3667,6 +3667,9 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Generates("constexpr int Count(int n) { int s = 0; for (int i = 0; i < n; i++) { s += i & 1; } return s; }\nchar a[Count(200000) - 99999];");
 	AssertCPP65Error("Generated.cpp (2, 8): An array size must be a positive constant: It takes too long to work out, in Count(int) [Count]\n",
 		"constexpr int Count(int n) { int s = 0; for (int i = 0; i < n; i++) { s += i & 1; } return s; }\nchar a[Count(400000)];");
+	//The least int negated overflows, so it isn't a constant (MSVC takes it without a word).  [expr] 4
+	AssertCPP65Error("Generated.cpp (2, 15): A constexpr variable's initialiser must be a constant: Its signed arithmetic overflows [N]\n",
+		"constexpr int L = -2147483647 - 1;\nconstexpr int N = -L;");
 	AssertCPP65Error("Generated.cpp (1, 66): dynamic_cast needs a pointer to a class or to void [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; int g(B* b) { return dynamic_cast<int*>(b) != 0; }");
 	AssertCPP65Error("Generated.cpp (1, 92): The operand of dynamic_cast must be a pointer to a class [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; struct D : B { int y; }; D* g(int* p) { return dynamic_cast<D*>(p); }");
 	AssertCPP65Error("Generated.cpp (1, 35): __builtin_bcd_add and __builtin_bcd_subtract are the W65C816's decimal mode: use BaseLib's BCDAdd and BCDSubtract [__builtin_bcd_add]\n", "int f(unsigned short* p) { return __builtin_bcd_add(p, p, 1, 0); }");

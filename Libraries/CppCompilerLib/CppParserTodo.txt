@@ -375,6 +375,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     3. Signed overflow in a constant expression is an error: it isn't a constant ([expr]/4, [expr.const]/2: an operation whose result
        isn't mathematically defined or not in its type's range).  The front end marks signed arithmetic (add, subtract, multiply,
        negate, left shift, divide and remainder of the least number by -1) so the interpreter can tell; unsigned arithmetic still wraps.
+       Done 2026-11-18: IRSignedOverflows, IRF_NoSignedWrap, the folder's reason, and an enum's values checked where it is
+       declared ([dcl.enum] 2) when they are definitely no constant.
     4. The limits are at least [implimits]' (Annex B): 512 recursive constexpr calls, and 1,048,576 full-expressions evaluated within
        one core constant expression.  The step limit counts full-expressions, not instructions (an instruction count of 1,000,000
        was fewer), and both are options (muiConstantSteps, muiConstantDepth) that may be raised.  The depth no longer takes the C stack

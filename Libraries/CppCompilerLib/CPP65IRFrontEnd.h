@@ -274,6 +274,7 @@ protected:
 	bool			FullExpression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			DestroyTemporaries(size uiTemporaries);
 	void			MarkFullExpression(void);
+	void			MarkSigned(SCPP65Type* psType);
 	bool			DestroyTemporaryPlaces(size uiFrom);
 	bool			DestroyPlaces(CArrayCPP65IRPlaces* pasPlaces, size uiFrom);
 	bool			DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);

@@ -466,6 +466,7 @@ public:
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
+	bool					CheckEnumerators(CCPPSyntax* pcType);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable);
 	void					AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable);
@@ -687,6 +688,7 @@ public:
 	SCPP65Type*				ConstantTypeOf(CCPPSyntax* pcExpression);
 	bool					BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue);
 	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);
+	bool					IsSignedOverflow(ECppTokens eOperator, int iBits, int64 lliLeft, int64 lliRight, int64 lliResult);
 	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	void					WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo);
 	CCPPSyntaxBinaryExpression*	NarrowMultiply(CCPPSyntax* pcExpression, SCPP65Type* psType);

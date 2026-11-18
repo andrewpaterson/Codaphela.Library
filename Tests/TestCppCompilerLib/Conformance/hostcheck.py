@@ -8,6 +8,7 @@
 # that must be refused).  Each is compiled here as C++17: one that must be refused must not compile, and the others
 # must return their value.  What is printed is what is wrong with the cases, not with the compiler they test.
 # /Zc:lambda is MSVC's conforming lambda processor: without it a lambda can't use a constant it doesn't capture.
+# /we4307 makes MSVC's warning of a signed constant that overflows an error, as the standard has it.
 import os, shutil, subprocess, sys
 
 VCVARS = r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
@@ -32,7 +33,7 @@ for line in open("Cases.txt"):
     if only and name not in only and name.split(".")[1] not in only:
         continue
     checked += 1
-    r = subprocess.run([cl, "/nologo", "/std:c++17", "/W3", "/EHsc", "/permissive-", "/Zc:lambda", name + ".cpp", "/Fe:" + name + ".exe", "/Fo:" + name + ".obj"], capture_output=True, text=True, env=env)
+    r = subprocess.run([cl, "/nologo", "/std:c++17", "/W3", "/EHsc", "/permissive-", "/Zc:lambda", "/we4307", name + ".cpp", "/Fe:" + name + ".exe", "/Fo:" + name + ".obj"], capture_output=True, text=True, env=env)
     if value == -1:
         if r.returncode == 0:
             print(name, "must be refused, and compiles")

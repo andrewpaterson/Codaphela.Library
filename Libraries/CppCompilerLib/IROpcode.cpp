@@ -404,3 +404,80 @@ bool IRFoldInteger(uint16 uiOpcode, SIRType sType, SIRType sFrom, int iBits, uin
 	}
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the opcode is one a signed overflow of is undefined behaviour
+// in (IRF_NoSignedWrap): add, sub, mul, neg and shl.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRSignedWrapping(uint16 uiOpcode)
+{
+	return (uiOpcode == IRO_Add) || (uiOpcode == IRO_Sub) || (uiOpcode == IRO_Mul) || (uiOpcode == IRO_Neg) || (uiOpcode == IRO_Shl);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A number iBits wide as a signed one.
+//
+//////////////////////////////////////////////////////////////////////////
+static int64 IRSignExtendBits(int iBits, uint64 ulliBits)
+{
+	return (iBits >= 64) ? (int64)ulliBits : ((int64)(ulliBits << (64 - iBits)) >> (64 - iBits));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a signed add, sub, mul, neg or shl of a and b, iBits wide, that
+// gave ulliResult (IRFoldInteger's) overflows: its exact value isn't one
+// of the type's, which is undefined behaviour, so no constant.  A left
+// shift's left operand mustn't be negative, and what it makes must fit the
+// unsigned type as wide.  [expr] 4, [expr.shift] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool IRSignedOverflows(uint16 uiOpcode, int iBits, uint64 a, uint64 b, uint64 ulliResult)
+{
+	int64	sa;
+	int64	sb;
+	int64	sr;
+	int64	lliLeast;
+
+	sa = IRSignExtendBits(iBits, a);
+	sb = IRSignExtendBits(iBits, b);
+	sr = IRSignExtendBits(iBits, ulliResult);
+	lliLeast = (int64)(((uint64)1) << 63) >> (64 - iBits);
+	switch (uiOpcode)
+	{
+	case IRO_Add:
+		return ((sa ^ sr) & (sb ^ sr)) < 0;
+	case IRO_Sub:
+		return ((sa ^ sb) & (sa ^ sr)) < 0;
+	case IRO_Neg:
+		return sa == lliLeast;
+	case IRO_Mul:
+		if (iBits <= 32)
+		{
+			return (sa * sb) != sr;
+		}
+		if ((sa == 0) || (sb == 0))
+		{
+			return false;
+		}
+		if (((sa == -1) && (sb == lliLeast)) || ((sb == -1) && (sa == lliLeast)))
+		{
+			return true;
+		}
+		return (sr / sa) != sb;
+	case IRO_Shl:
+		if (sa < 0)
+		{
+			return true;
+		}
+		return (b > 0) && (b < (uint64)iBits) && (((a & ((iBits >= 64) ? ~(uint64)0 : ((((uint64)1) << iBits) - 1))) >> (iBits - (int)b)) != 0);
+	default:
+		return false;
+	}
+}

@@ -2066,6 +2066,10 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 	int							iBound;
 
 	pcSpecifiers = pcDeclaration->mpcSpecifiers;
+	if (pcSpecifiers && !CheckEnumerators(pcSpecifiers->mpcType))
+	{
+		return false;
+	}
 	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_TYPEDEF))
 	{
 		return true;
@@ -3047,6 +3051,55 @@ bool CCPPUnit::ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier)
 		if (pcMember->GetKind() == CPPS_StaticAssert)
 		{
 			bResult &= StaticAssert((CCPPSyntaxStaticAssert*)pcMember);
+		}
+		else if ((pcMember->GetKind() == CPPS_SimpleDeclaration) && ((CCPPSyntaxSimpleDeclaration*)pcMember)->mpcSpecifiers)
+		{
+			bResult &= CheckEnumerators(((CCPPSyntaxSimpleDeclaration*)pcMember)->mpcSpecifiers->mpcType);
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enum's enumerators when it is declared (pcType, a declaration's
+// type, may be anything else): a value given that is definitely no
+// constant (it overflows, divides by zero, takes too long ...) is an error
+// even if nothing uses it.  One the compiler can't work out yet is left to
+// where it is used.  [dcl.enum] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckEnumerators(CCPPSyntax* pcType)
+{
+	CCPPSyntaxEnumSpecifier*	pcSpecifier;
+	CCPPSyntaxEnumerator*		pcEnumerator;
+	const char*					szReason;
+	int64						lliValue;
+	size						i;
+	bool						bConstant;
+	bool						bResult;
+
+	if (!pcType || (pcType->GetKind() != CPPS_EnumSpecifier) || !((CCPPSyntaxEnumSpecifier*)pcType)->mbBody)
+	{
+		return true;
+	}
+	pcSpecifier = (CCPPSyntaxEnumSpecifier*)pcType;
+	bResult = true;
+	for (i = 0; i < pcSpecifier->macpEnumerators.NumElements(); i++)
+	{
+		pcEnumerator = (CCPPSyntaxEnumerator*)pcSpecifier->macpEnumerators.GetPtr(i);
+		if (!pcEnumerator->mpcValue)
+		{
+			continue;
+		}
+		BeginQuiet();
+		bConstant = Constant(pcEnumerator->mpcValue, &lliValue);
+		EndQuiet();
+		szReason = mpcConstants->GetReason();
+		if (!bConstant && (szReason[0] != '\0') && (strncmp(szReason, "It uses what", 12) != 0) && (strncmp(szReason, "Its initialiser uses what", 25) != 0))
+		{
+			bResult &= ConstantError(pcEnumerator->mpcValue, "An enumerator's value must be a constant");
 		}
 	}
 	return bResult;

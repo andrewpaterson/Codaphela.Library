@@ -666,6 +666,10 @@ bool CIRInterpreter::Integer(CIRModule* pcModule, CIRFunction* pcFunction, SIRIn
 		}
 		return Fail("It is not IR that can be run");
 	}
+	if ((psInstruction->uiFlags & IRF_NoSignedWrap) && IRSignedOverflows(uiOpcode, iBits, psLeft->ulliBits, psRight->ulliBits, ulliResult))
+	{
+		return Fail("Its signed arithmetic overflows");
+	}
 	psResult->Set(bComparison ? (ulliResult & 1) : IRTruncate(sType, ulliResult));
 	return true;
 }

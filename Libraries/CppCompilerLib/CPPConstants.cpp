@@ -206,6 +206,19 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Why the last constant asked for has no value, where the tree's folder
+// knows (a signed overflow).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPConstants::SetReason(const char* szReason)
+{
+	mszReason.Clear();
+	mszReason.Append(szReason);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Runs a constant's IR, within the limits the compile options set.  If it
 // has no value, the reason is the interpreter's, and the constexpr
 // functions it failed in, innermost first: "It divides by zero, in f(int),

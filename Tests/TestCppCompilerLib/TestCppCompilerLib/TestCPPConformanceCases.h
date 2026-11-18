@@ -1150,6 +1150,60 @@ static const SConformanceCase gasConformanceStage4[] =
 		"struct P { int x; constexpr P(int a) : x(a) {} constexpr int get() const { return x; } };\n"
 		"int main() { int v = 3; P p(v); return sq(v) * 10 + p.get(); }\n"
 	},
+	{
+		//Signed overflow is undefined, so an expression that overflows isn't a constant; unsigned arithmetic wraps
+		//([expr] 4, [expr.const] 2; CppParserTodo.txt question 3).  A left shift into the sign bit is C++14's
+		//[expr.shift] 2.  int is 16 bits on the W65C816, so M is its largest from sizeof.  MSVC only warns of most
+		//of these (C4307), which hostcheck.py makes an error.
+		"ConstantUnsignedWraps", 7,
+		"constexpr unsigned U = 0u - 1u;\n"
+		"enum { E = (U == ~0u) ? 7 : 1 };\n"
+		"int main() { return E; }\n"
+	},
+	{
+		"ConstantShiftIntoSign", 9,
+		"enum { S = 1 << (sizeof(int) * 8 - 1) };\n"
+		"int main() { return (S < 0) ? 9 : 1; }\n"
+	},
+	{
+		"ConstantSignedSumOverflows", CONFORMANCE_REFUSED,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"enum { E = M + 1 };\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"ConstantSignedProductOverflows", CONFORMANCE_REFUSED,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"char a[(M * 2) / 2 > 0 ? 1 : 2];\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"ConstantLeastDividedByMinusOne", CONFORMANCE_REFUSED,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"constexpr int L = -M - 1;\n"
+		"constexpr int Q = L / -1;\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"ConstexprCallOverflows", CONFORMANCE_REFUSED,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"constexpr int Add(int a, int b) { return a + b; }\n"
+		"enum { E = Add(M, 1) };\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"ConstexprLoopOverflows", CONFORMANCE_REFUSED,
+		"constexpr int Grow(int n) { int s = 1; for (int i = 0; i < n; i++) { s *= 3; } return s; }\n"
+		"enum { E = Grow(40) };\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		//Where a constant isn't needed it is the program's to be right: it compiles.
+		"SignedOverflowAtRunTimeCompiles", 5,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"int F(int x) { return x - M; }\n"
+		"int main() { volatile int m = M; return F(m) + 5; }\n"
+	},
 };
 
 

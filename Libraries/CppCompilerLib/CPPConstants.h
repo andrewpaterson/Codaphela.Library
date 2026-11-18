@@ -84,6 +84,7 @@ public:
 	bool			Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* plliValue);
 	char*			GetReason(void);
 	void			ClearReason(void);
+	void			SetReason(const char* szReason);
 
 	bool			CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode);
 	bool			AppendData(CCPPVariable* pcVariable, CCPPUnitData* pcData);
