@@ -436,6 +436,14 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         typeid(long).name() is "int" on the 65C64.  Making them distinct types (with the conversions and ranks between
         them, their labels and names) is a change across the compiler: do it now, or with the library question?
 
+  Small gaps found on 2026-11-18 (by the exceptions work), not done yet:
+    - A function template declared and never defined can't be named in an unevaluated operand: noexcept(ref<A>()) with
+      template<class T> T& ref() noexcept; says "The function template has not been defined" (CPPBinder.cpp:223).
+    - A class nothing uses is never laid out, so CheckOverrides' errors (override that overrides nothing, overriding a
+      final function) aren't reported for it.
+    - InitializerList (CPP65IRFrontEndObjects.cpp) puts its backing array on no destruction list, so elements with
+      destructors aren't destroyed, if that case compiles at all.
+
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.
   - "%"PRId64 with no space: as g++ (see A2 above).
