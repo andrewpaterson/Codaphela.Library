@@ -340,6 +340,9 @@ Progress
        the IDE check build-configuration-exceptions passes.  The website was not built with mkdocs.
      - Instruction flags, agreed with the other session 2026-11-18: 0x40 (IRF_FullExpression) goes on any instruction
        and is never to be shared; 0x80 (IRF_NoSignedWrap) is arithmetic only, so a flag on call may share it.
+     - A static local's guard, from the other session's question 6 (its branch cpp14, 2026-11-18): the guard byte is
+       0 not started, 1 being made, 2 done (GuardedStaticLocal), and reaching it at 1 calls R_RecursiveInit.  For
+       stage 7: an initialiser left by an exception stores 0 back (6.7/4).
      Still to do: the baseline measure.  The three Lib65 suites are built in the worktree (Release x64), but
      CompilerMeasure.py was stopped twice for low memory (the suites' own: TestStandardLib65 was seen at 880 MB with
      the other session doing little).  Its first three runs finished and their raw output was kept only in the
