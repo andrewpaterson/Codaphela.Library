@@ -192,6 +192,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		case CPPBN_FunctionTemplate:
 			return FunctionTemplateAddress((CCPPSyntaxIdExpression*)pcExpression, psValue);
 		case CPPBN_Constant:
+		case CPPBN_EnclosingConstant:
 			return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 		case CPPBN_TemplateArgument:
 			return Value(cBound.mpcArgument, psValue);

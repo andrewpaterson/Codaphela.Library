@@ -568,6 +568,9 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 	{
 	case CPPBN_FunctionName:
 		return mpcTypes->Pointer(&mpcTypes->msChar);
+	case CPPBN_EnclosingConstant:
+		//A constant of the function the lambda is in, which it doesn't capture: its value.  [basic.def.odr] 3
+		return mpcUnit->EnclosingConstantType(cBound.mpcSymbol);
 	case CPPBN_Constant:
 		if (cBound.mpcSymbol->meKind == CPPSK_Enumerator)
 		{
@@ -2016,6 +2019,12 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 			if (cBound.meWhat == CPPBN_FunctionName)
 			{
 				Error(pcExpression, "This is not an lvalue");
+				return NULL;
+			}
+			if (cBound.meWhat == CPPBN_EnclosingConstant)
+			{
+				//Its object is wanted (its address, or a reference to it): that odr-uses it.  [basic.def.odr] 3
+				Error(pcExpression, "The lambda doesn't capture the variable");
 				return NULL;
 			}
 			Error(pcExpression, "Only variables are supported by the compiler here yet");

@@ -3600,6 +3600,24 @@ static void AssertCPP65Error(const char* szExpected, const char* szSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static void AssertCPP65Generates(const char* szSource)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, szSource));
+	AssertString("", szErrors.Text());
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorErrors(void)
 {
 	AssertCPP65Error("Generated.cpp (1, 27): The operands must be integers [f]\n", "float f; int g() { return f % 2; }");
@@ -3619,6 +3637,12 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 64): The function is declared override but overrides no virtual function of a base class [g]\n", "struct B { virtual int f() { return 1; } }; struct D : B { int g() override { return 2; } }; int h() { D d; return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 70): The function overrides one declared final [f]\n", "struct B { virtual int f() final { return 1; } }; struct D : B { int f() { return 2; } }; int h() { D d; return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 68): The operand of dynamic_cast is not polymorphic [dynamic_cast]\n", "struct P { int x; }; struct Q : P { int y; }; int g(P& p) { return dynamic_cast<Q&>(p).y; }");
+
+	//A lambda may use a constant it doesn't capture where its value is used at once (TestCPPConformance's
+	//LambdaUncapturedConstant), but a reference bound to it odr-uses it (MSVC, with /Zc:lambda, takes this one; g++
+	//doesn't).  A const enum is a constant as an integer is (MSVC wants it captured).  [basic.def.odr] 3, [expr.const] 2.7
+	AssertCPP65Error("Generated.cpp (1, 62): The lambda doesn't capture the variable [n]\n", "int main() { const int n = 5; auto f = []() { const int& r = n; return r; }; return f(); }");
+	AssertCPP65Generates("int main() { enum E { A = 2, B = 3 }; const E e = B; auto f = [](int x) { return x * e; }; return f(2); }");
 
 	//What a virtual base makes ill-formed (MSVC takes the member pointer, which its pointers to members can hold).  [conv.mem] 2, [expr.static.cast] 11
 	AssertCPP65Error("Generated.cpp (1, 81): A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it [&]\n", "struct A { int a; }; struct B : virtual A { int b; }; int f(B& b) { int B::*p = &A::a; return b.*p; }");

@@ -94,6 +94,7 @@ enum ECPPBoundName
 	CPPBN_Variable,			//A local, a parameter, a global or a static member.
 	CPPBN_Field,			//A field of this.
 	CPPBN_Capture,			//A variable a lambda being written captures: its closure's field.
+	CPPBN_EnclosingConstant,	//A constant of the function a lambda being written is in, which it doesn't capture: its value.
 	CPPBN_TemplateArgument,	//A template's pointer or reference parameter: the expression its argument is (mpcArgument).
 };
 

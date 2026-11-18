@@ -177,6 +177,12 @@ bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 		pcSymbol = ((CCPPSyntaxIdExpression*)pcNode)->mpcName->mpcSymbol;
 		if (IsEnclosingLocal(pcSymbol, psLambda) && !FindLambdaCapture(psLambda, pcSymbol))
 		{
+			//A constant whose value is used at once isn't odr-used: it isn't captured, even by a default capture.
+			if (!IsOdrUse(pcNode) && IsEnclosingConstant(pcSymbol, psLambda))
+			{
+				return true;
+			}
+
 			if (psLambda->pcSyntax->meDefault == CPPLC_None)
 			{
 				return LambdaError(psLambda, pcNode, "The lambda doesn't capture the variable");
@@ -251,6 +257,108 @@ bool CCPPUnit::IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 		uiFlags = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers->muiFlags;
 	}
 	return (uiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL)) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the symbol is a variable of a function the lambda is in whose
+// value is a constant: a const or constexpr integer, bool or enum, not
+// volatile, initialised with a constant.  Where its value is used at once
+// it isn't odr-used, and a lambda that doesn't capture it may use it.
+// [basic.def.odr] 3, [expr.const] 2.7, [expr.prim.lambda] 12
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
+{
+	CCPPSyntaxInitDeclarator*	pcInit;
+	int64						lliValue;
+
+	if (!IsEnclosingLocal(pcSymbol, psLambda) || !EnclosingConstantType(pcSymbol))
+	{
+		return false;
+	}
+	pcInit = (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration;
+	return Constant(pcInit->mpcInitializer, &lliValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of a local constant's value (IsEnclosingConstant): its declared
+// type without const.  NULL if it isn't const (or constexpr), is volatile,
+// has no initialiser, or isn't an integer, bool or enum.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::EnclosingConstantType(CCPPSymbol* pcSymbol)
+{
+	CCPPSyntaxInitDeclarator*	pcInit;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	SCPP65Type*					psType;
+
+	pcInit = (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration;
+	if ((pcSymbol->meKind != CPPSK_Variable) || !pcInit || (pcInit->GetKind() != CPPS_InitDeclarator) || !pcInit->mpcInitializer)
+	{
+		return NULL;
+	}
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+	if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)))
+	{
+		return NULL;
+	}
+	psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+	if (!psType || psType->bVolatile || !psType->IsInteger())
+	{
+		return NULL;
+	}
+	return psType->Unqualified();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a name (pcNode, a variable's) is odr-used where it is because
+// its object is wanted, not its value: it is the operand of & or what a
+// reference is bound to in its declaration.  A reference parameter it is
+// an argument for is found when its place is asked for (the type checker's
+// Place).  [basic.def.odr] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsOdrUse(CCPPSyntax* pcNode)
+{
+	CCPPSyntax*						pcParent;
+	CCPPSyntaxUnaryExpression*		pcUnary;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	SCPP65Type*						psType;
+
+	pcParent = pcNode->mpcParent;
+	while (pcParent && (pcParent->GetKind() == CPPS_ParenthesisedExpression))
+	{
+		pcNode = pcParent;
+		pcParent = pcParent->mpcParent;
+	}
+	if (!pcParent)
+	{
+		return false;
+	}
+	if (pcParent->GetKind() == CPPS_UnaryExpression)
+	{
+		pcUnary = (CCPPSyntaxUnaryExpression*)pcParent;
+		return (pcUnary->meOperator == CT_BitwiseAnd) && (pcUnary->mpcOperand == pcNode);
+	}
+	if (pcParent->GetKind() == CPPS_InitDeclarator)
+	{
+		pcInit = (CCPPSyntaxInitDeclarator*)pcParent;
+		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+		if ((pcInit->mpcInitializer != pcNode) || !pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration))
+		{
+			return false;
+		}
+		psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+		return psType && psType->IsReference();
+	}
+	return false;
 }
 
 

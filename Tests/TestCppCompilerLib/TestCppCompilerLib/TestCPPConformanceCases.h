@@ -1236,8 +1236,35 @@ static const SConformanceCase gasConformanceStage5[] =
 		"}\n"
 	},
 	{
+		//A constant whose value is used at once isn't odr-used, so a lambda may use it without capturing it ([basic.def.odr] 3,
+		//[expr.prim.lambda] 12; CppParserTodo.txt question 10).  MSVC needs /Zc:lambda for it (hostcheck.py passes it).
+		"LambdaUncapturedConstant", 150,
+		"int main() { const int n = 5; constexpr long m = 3; const bool b = true; auto f = [](int x) { return x * n + (int)m + b; }; auto g = [=]() { return n * 2; }; return f(2) * 10 + g(); }\n"
+	},
+	{
+		"LambdaUncapturedConstantNested", 3020,
+		"template<class T> int Scale(T t) { const int k = 3; auto f = [](T x) { auto g = [](T y) { return y * k; }; return g(x) + k; }; return f(t); }\n"
+		"int main() { const int n = 7; int a[n]; auto f = [&a](int i) { a[i % n] = i; return a[i % n] + n; }; return Scale(1000) + f(10); }\n"
+	},
+	{
 		"LambdaUsesUncaptured", CONFORMANCE_REFUSED,
 		"int main() { int a = 1; auto f = []() { return a; }; return f(); }\n"
+	},
+	{
+		//Its address, or a reference parameter bound to it, odr-uses it.
+		"LambdaAddressOfUncapturedConstant", CONFORMANCE_REFUSED,
+		"int main() { const int n = 5; auto f = []() { return *&n; }; return f(); }\n"
+	},
+	{
+		"LambdaUncapturedConstArgumentByReference", CONFORMANCE_REFUSED,
+		"int Get(const int& r) { return r; }\n"
+		"int main() { const int n = 5; auto f = []() { return Get(n); }; return f(); }\n"
+	},
+	{
+		//A const initialised with what isn't a constant is a variable like any other.
+		"LambdaUncapturedConstNotConstant", CONFORMANCE_REFUSED,
+		"int F(int p) { const int n = p; auto g = []() { return n; }; return g(); }\n"
+		"int main() { return F(3); }\n"
 	},
 	{
 		"LambdaChangesCopy", CONFORMANCE_REFUSED,

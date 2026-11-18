@@ -439,6 +439,9 @@ public:
 	bool					UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode);
 	bool					UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode);
 	bool					IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
+	bool					IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
+	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);
+	bool					IsOdrUse(CCPPSyntax* pcNode);
 	bool					IsThisMember(CCPPSymbol* pcSymbol);
 	SCPPLambdaCapture*		FindLambdaCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol);
 	bool					AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax* pcInitialiser, bool bReference, bool bOwn, CCPPSyntax* pcNode);
@@ -732,6 +735,7 @@ public:
 	bool					IsRvalue(CCPPSyntax* pcExpression);
 	bool					IsReturnedLocal(CCPPSyntaxIdExpression* pcId);
 	bool					IsObjectLvalue(CCPPSyntax* pcExpression);
+	bool					IsUncapturedConstant(CCPPSyntax* pcExpression);
 	SCPP65Type*				PlaceOf(CCPPSyntax* pcExpression);
 	bool					BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument);
 	bool					MakesObject(CCPPSyntax* pcExpression);

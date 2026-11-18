@@ -567,8 +567,36 @@ bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 		psValue = ValueTypeOf(pcArgument);
 		return psValue && !(psValue->IsClass() && ((psValue->pcClass == psReference->psBase->pcClass) || IsDerived(psValue->pcClass, psReference->psBase->pcClass, NULL)));
 	}
+	if (IsUncapturedConstant(pcArgument))
+	{
+		//A constant a lambda doesn't capture has no object in it to refer to: binding a reference to it odr-uses it.
+		//[basic.def.odr] 3
+		ReportOnce(pcArgument, "The lambda doesn't capture the variable");
+		return true;
+	}
 	psPlace = PlaceOf(pcArgument);
 	return !psPlace || !psReference->psBase->Equals(psPlace->WithoutReference());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the expression names a constant of the function a lambda being
+// written is in, which the lambda doesn't capture (CPPBN_EnclosingConstant):
+// only its value can be used.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsUncapturedConstant(CCPPSyntax* pcExpression)
+{
+	CCPPBoundName	cBound;
+
+	pcExpression = SkipParentheses(pcExpression);
+	if (!pcExpression || (pcExpression->GetKind() != CPPS_IdExpression))
+	{
+		return false;
+	}
+	mcBinder.BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
+	return cBound.meWhat == CPPBN_EnclosingConstant;
 }
 
 
