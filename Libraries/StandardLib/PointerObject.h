@@ -115,6 +115,7 @@ public:
 
 	CEmbeddedObject*	Return(void);
 	void				UnsafeClearObject(void);
+	void				ReleaseAcross(void);  //A worker's object's field lets go of the main object it points at, with the main lock.
 
 	size				NumStackFroms(void) const;
 	size				NumHeapFroms(void) const;
@@ -136,6 +137,8 @@ private:
 	void				PointToLocking(CEmbeddedObject* const* ppcObject);
 	void				AssignObjectLocking(CEmbeddedObject* pcObject);
 	bool				IsAllThreadsOwn(CEmbeddedObject* pcNewObject);
+	bool				IsFieldAcross(CEmbeddedObject* pcOldObject);
+	void				PointFieldAcross(CEmbeddedObject* pcOldObject);
 	CEmbeddedObject*	Dehollow(CEmbeddedObject* pcObject);
 	CEmbeddedObject*	LoadObject(void) const;
 };

@@ -28,6 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Primitive.h"
 #include "Unknown.h"
 #include "PointerLocations.h"
+#include "ObjectsLock.h"
 
 
 #define ROOT_DIST_TO_ROOT			 0
@@ -168,6 +169,12 @@ public:
 			bool				UnlinkStackFromOfThreads(CPointer* pcPointer);
 			bool				IsAttachedToRoot(void);
 			bool				IsThreadsOwn(void);
+			CObjects*			GetWorkerObjects(void);
+			CObjects*			GetWorkerObjectsLocking(void);
+	static	bool				IsAcross(CObjects* pcWorker, CEmbeddedObject* pcTo);
+			void				KeepWorkersOwnTos(CArrayEmbeddedObjectPtr* papcTos, size uiFirst);
+			void				KeepWorkersOwnTosLocking(CArrayEmbeddedObjectPtr* papcTos, size uiFirst);
+			void				ValidateWorkersOwn(CBaseObject* pcFromObject);
 			void				AddStackFromReading(CPointer* pcPointer);
 			bool				UnlinkStackFromReading(CPointer* pcPointer);
 			bool				UnlinkStackFrom(CCollection* pcCollection);
@@ -224,6 +231,55 @@ private:
 
 char* ObjectToString(CEmbeddedObject* pcObject);
 char* ObjectToString(CEmbeddedObject* pcObject, bool bEmbedded);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The worker's object system this is in, whose objects may point at main
+// objects (ThreadSafetyPlan.txt, Level 3); NULL if it isn't in one, which
+// with the locking off (one thread) is all that is asked.
+//
+//////////////////////////////////////////////////////////////////////////
+inline CObjects* CEmbeddedObject::GetWorkerObjects(void)
+{
+#ifdef __LIBC65__
+	return NULL;
+#else
+	return OBJECTS_SELDOM(gbObjectsLocking) ? GetWorkerObjectsLocking() : NULL;
+#endif // __LIBC65__
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The objects BaseGetPointerTos added to papcTos (from uiFirst) less the
+// main objects, when this is a worker's: its object system's walks don't
+// go into main objects its objects point at (IsAcross).  With the locking
+// off, nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+inline void CEmbeddedObject::KeepWorkersOwnTos(CArrayEmbeddedObjectPtr* papcTos, size uiFirst)
+{
+#ifndef __LIBC65__
+	if (OBJECTS_SELDOM(gbObjectsLocking))
+	{
+		KeepWorkersOwnTosLocking(papcTos, uiFirst);
+	}
+#endif // !__LIBC65__
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcTo, which an object in pcWorker (GetWorkerObjects, or NULL)
+// points at, is a main object: held as the worker's stack pointers hold
+// one, not by a heap from, and not walked by the worker's object system.
+//
+//////////////////////////////////////////////////////////////////////////
+inline bool CEmbeddedObject::IsAcross(CObjects* pcWorker, CEmbeddedObject* pcTo)
+{
+	return (pcWorker != NULL) && (pcTo != NULL) && (pcTo->GetObjectsThisIn() != pcWorker);
+}
 
 
 #endif // __EMBEDDED_OBJECT__

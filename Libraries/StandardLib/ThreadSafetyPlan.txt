@@ -1079,6 +1079,32 @@ Steps
       c. A worker's object pointing at a main object: held as the worker's stack pointers hold main objects (the
          thread's table), so the main object stays while it is pointed at.  Neither object system's walks cross into
          the other.  A main object pointed into an unadopted graph is an error, found by validation.
+         Done 2026-11-18.  An object of a worker's object system (CEmbeddedObject::GetWorkerObjects) holds a main
+         object (IsAcross) by a stack from, under the main lock, where its own objects get heap froms:
+           a field (CPointer::PointFieldAcross, from PointToInside when the field or its old object is across): its
+           pointer is the stack from, in the worker's table if the main object is attached to the main root, on the
+           main object if not, so a load remaps the field and a Kill clears it; the new from before the old goes, and
+           a main object let go of is the main object system's to free (queued for its home thread);
+           a collection (CCollection::AddAcrossFrom, RemoveAcrossTryFree): the collection is the stack from, as a
+           collection on a stack is, on the main object; a main hollow is loaded as it is added, so that no load later
+           changes the worker's collection under the main lock while the worker uses it without.
+         When a worker's object is freed, its fields across let go first (CObject::ReleaseFieldsAcross) and its
+         collections' members across are removed as when taken out (FromRemoved on the main object system), whether
+         or not it is freed alone.  A worker's walks leave main objects out: each BaseGetPointerTos keeps what it
+         added less the main objects (KeepWorkersOwnTos), so the dist to root, the kill order and validation stay in
+         the worker's object system; main's walks see the stack froms and nothing past them.  A Debug build says when
+         an object of another object system is to point at a worker's object, or a thread that isn't its worker is
+         to hold one (CEmbeddedObject::ValidateWorkersOwn, in AddHeapFrom, AddStackFrom and AddStackFromReading).
+         Tests: TestObjectsThreadsWorkerObjectsPointAtMain (8 workers' objects point at 16 main nodes by fields and in
+         arrays, and are pointed between those and their own, 2000 times each: the main nodes end with one heap from
+         and one stack from, as before, and every worker object is freed on its worker),
+         TestObjectsThreadsWorkerObjectHoldsMain (a main node off main's root that only a worker's object holds
+         stays, and is freed by main's home thread once the worker's object goes), and
+         TestObjectsThreadsWorkerObjectsAreItsOwn (main holding a worker's object, and a main object pointed at one:
+         said in Debug).
+         One thread, by instructions against 25b: the checks are an inline test of gbObjectsLocking, and what a
+         worker needs is out of line: a copy and drop 335 to 324, an array's Get 696 to 677, a field pointed
+         elsewhere 1052 to 1048, a tree built -1.5%, freed +0.55%, OMalloc and free +0.6% (LTO's band).
       d. Adopt(pTop), by the worker, under the main lock: pTop and every object reachable from it that is still the
          worker's are put in the main memory index (a name the main object system already has refuses the whole
          graph, and nothing moves), their class pointers made the main object system's, their pointers at main

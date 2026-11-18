@@ -2666,6 +2666,258 @@ void TestObjectsThreadsWorkerHoldsMain(void)
 }
 
 
+#define TEST_OBJECTS_THREADS_MAIN_NODES	16
+
+
+//A worker's objects point at the main nodes in pcArray, by their fields and in a collection of the worker's own, and
+//are pointed between them and the worker's own objects, over and over.
+static void TestObjectsThreadsWorkerPointsAtMain(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CArrayObject>		pMain;
+	size					i;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pMain = psThread->pcArray;
+	for (i = 0; i < TEST_OBJECTS_THREADS_STEPS; i++)
+	{
+		Ptr<CTestThreadNode>	pOwn = OMalloc<CTestThreadNode>();
+		Ptr<CTestThreadNode>	pOther = OMalloc<CTestThreadNode>();
+		Ptr<CArrayObject>		pList = OMalloc<CArrayObject>();
+		Ptr<CTestThreadNode>	pMainNode = pMain->Get((i + psThread->uiSeed) % TEST_OBJECTS_THREADS_MAIN_NODES);
+
+		pOwn->mpNext = pMainNode;
+		pOwn->mpOther = pOther;
+		pOther->mpNext = pOwn;
+		pList->Add(pMainNode);
+		pList->Add(pOther);
+		if (!pOwn->mpNext->IsLive() || !pList->Get<CTestThreadNode>(0)->IsLive())
+		{
+			psThread->iErrors++;
+		}
+
+		//From a main object to one of its own and back, and from one main object to another.
+		pOwn->mpNext = pOther;
+		pOwn->mpNext = pMainNode;
+		pOther->mpOther = pMain->Get((i + 1) % TEST_OBJECTS_THREADS_MAIN_NODES);
+		pOther->mpOther = pMain->Get((i + 2) % TEST_OBJECTS_THREADS_MAIN_NODES);
+		pList->Remove((size)0);
+		pList->Add(pMainNode);
+		pOther->mpNext = NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Workers' objects point at main objects (decision 11), by their fields and
+// in their collections, and are pointed between those and the workers' own
+// objects: the main objects are held while they are pointed at, as by the
+// workers' stack pointers, and are left as they were, held by main alone.
+// Every worker object is freed on its worker.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsWorkerObjectsPointAtMain(void)
+{
+	Ptr<CArrayObject>		pMain;
+	Ptr<CTestThreadNode>	pNode;
+	size					uiObjects;
+	size					i;
+
+	TestObjectsThreadsBegin();
+	pMain = OMalloc<CArrayObject>();
+	ORoot()->Add(pMain);
+	for (i = 0; i < TEST_OBJECTS_THREADS_MAIN_NODES; i++)
+	{
+		pNode = OMalloc<CTestThreadNode>();
+		pMain->Add(pNode);
+	}
+	pNode = NULL;
+	uiObjects = gcObjects.NumMemoryIndexes();
+
+	gbTestObjectsThreadsWorkers = true;
+	gfTestObjectsThreadsWaiting = ObjectsCollect;
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsWorkerPointsAtMain, NULL, NULL, NULL, &pMain));
+	gfTestObjectsThreadsWaiting = NULL;
+	gbTestObjectsThreadsWorkers = false;
+	ObjectsCollect();
+
+	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_STEPS * 2, giTestThreadNodesFreed);
+	for (i = 0; i < TEST_OBJECTS_THREADS_MAIN_NODES; i++)
+	{
+		pNode = pMain->Get(i);
+		AssertTrue(pNode->IsLive());
+		AssertSize(1, pNode.NumStackFroms());
+		AssertSize(1, pNode.NumHeapFroms());
+	}
+	pNode = NULL;
+	pMain = NULL;
+	TestObjectsThreadsEnd(uiObjects);
+}
+
+
+static void TestObjectsThreadsWorkerHolder(void* pvSteps)
+{
+	STestObjectsSteps*		psSteps;
+
+	psSteps = (STestObjectsSteps*)pvSteps;
+	psSteps->bRegistered = ObjectsWorkerInit();
+	{
+		Ptr<CTestThreadNode>	pOwn;
+
+		pOwn = OMalloc<CTestThreadNode>();
+		ORoot()->Add(pOwn);
+		pOwn->mpNext = psSteps->apcNodes[0];
+		AtomicStore(&psSteps->iDone, 1);
+
+		TestObjectsStepWait(psSteps, 2);
+		psSteps->bLoaded = pOwn->mpNext->IsLive();
+		ORoot()->Remove(pOwn);
+		pOwn = NULL;
+		AtomicStore(&psSteps->iDone, 2);
+
+		TestObjectsStepWait(psSteps, 3);
+	}
+	psSteps->bUnregistered = ObjectsThreadKill();
+	AtomicStore(&psSteps->iDone, 3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A main object that only a worker's object points at stays while it
+// does, though main lets go of it, and is freed by main, on the home
+// thread, once the worker's object has gone.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsWorkerObjectHoldsMain(void)
+{
+	STestObjectsSteps		sSteps;
+	Ptr<CTestThreadNode>	pShared;
+	size					uiObjects;
+
+	TestObjectsThreadsBegin();
+	ORoot();
+	uiObjects = gcObjects.NumMemoryIndexes();
+	pShared = OMalloc<CTestThreadNode>();
+	ORoot()->Add(pShared);
+	sSteps.apcNodes[0] = &pShared;
+	sSteps.iAsked = 0;
+	sSteps.iDone = 0;
+	sSteps.bLoaded = false;
+	sSteps.cThread.Init();
+	sSteps.cThread.Start(TestObjectsThreadsWorkerHolder, &sSteps);
+	TestObjectsStep(&sSteps, 1);
+	AssertTrue(sSteps.bRegistered);
+
+	//Off main's root and let go of here: the worker's object holds it.
+	ORoot()->Remove(pShared);
+	pShared = NULL;
+	ObjectsCollect();
+	AssertInt(0, giTestThreadNodesFreed);
+	AssertTrue(sSteps.apcNodes[0]->IsLive());
+
+	//The worker's object goes, and with it the main object, freed here.
+	TestObjectsStep(&sSteps, 2);
+	AssertTrue(sSteps.bLoaded);
+	AssertInt(1, giTestThreadNodesFreed);
+	ObjectsCollect();
+	AssertInt(2, giTestThreadNodesFreed);
+
+	TestObjectsStep(&sSteps, 3);
+	sSteps.cThread.Join();
+	sSteps.cThread.Kill();
+	AssertTrue(sSteps.bUnregistered);
+	TestObjectsThreadsEnd(uiObjects);
+}
+
+
+static void TestObjectsThreadsWorkerLends(void* pvSteps)
+{
+	STestObjectsSteps*		psSteps;
+
+	psSteps = (STestObjectsSteps*)pvSteps;
+	psSteps->bRegistered = ObjectsWorkerInit();
+	{
+		Ptr<CTestThreadNode>	pOwn;
+		Ptr<CTestThreadNode>	pMain;
+
+		pOwn = OMalloc<CTestThreadNode>();
+		ORoot()->Add(pOwn);
+		psSteps->apcNodes[1] = &pOwn;
+		AtomicStore(&psSteps->iDone, 1);
+
+		//A main object pointed at the worker's own object.
+		TestObjectsStepWait(psSteps, 2);
+		pMain = psSteps->apcNodes[0];
+		pMain->mpNext = pOwn;
+		pMain->mpNext = NULL;
+		AtomicStore(&psSteps->iDone, 2);
+
+		TestObjectsStepWait(psSteps, 3);
+	}
+	psSteps->bUnregistered = ObjectsThreadKill();
+	AtomicStore(&psSteps->iDone, 3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker's objects are its own until it adopts them: another thread
+// holding one, or a main object pointing at one, is said (a Debug build
+// checks).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsWorkerObjectsAreItsOwn(void)
+{
+	STestObjectsSteps		sSteps;
+	Ptr<CTestThreadNode>	pMain;
+	CMemoryFile				cLog;
+	SLogConfig				sLogConfig;
+	char					szLog[2048];
+	size					uiObjects;
+
+	TestObjectsThreadsBegin();
+	pMain = OMalloc<CTestThreadNode>();
+	ORoot()->Add(pMain);
+	uiObjects = gcObjects.NumMemoryIndexes();
+	sSteps.apcNodes[0] = &pMain;
+	sSteps.iAsked = 0;
+	sSteps.iDone = 0;
+	sSteps.cThread.Init();
+	sSteps.cThread.Start(TestObjectsThreadsWorkerLends, &sSteps);
+	TestObjectsStep(&sSteps, 1);
+	AssertTrue(sSteps.bRegistered);
+
+	//This thread holds the worker's object, while the worker waits.
+	StartCapturingLog(&cLog, &sLogConfig);
+	{
+		Ptr<CTestThreadNode>	pBorrowed;
+
+		pBorrowed = sSteps.apcNodes[1];
+		pBorrowed = NULL;
+	}
+	StopCapturingLog(&cLog, &sLogConfig, szLog, sizeof(szLog));
+#ifdef _DEBUG
+	AssertNotNull(strstr(szLog, "A thread that isn't its worker holds"));
+#endif // _DEBUG
+
+	StartCapturingLog(&cLog, &sLogConfig);
+	TestObjectsStep(&sSteps, 2);
+	StopCapturingLog(&cLog, &sLogConfig, szLog, sizeof(szLog));
+#ifdef _DEBUG
+	AssertNotNull(strstr(szLog, "of another object system points at"));
+#endif // _DEBUG
+
+	TestObjectsStep(&sSteps, 3);
+	sSteps.cThread.Join();
+	sSteps.cThread.Kill();
+	AssertTrue(sSteps.bUnregistered);
+	pMain = NULL;
+	TestObjectsThreadsEnd(uiObjects);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2697,6 +2949,9 @@ void TestObjectsThreads(void)
 	TestObjectsThreadsWorkerOwnGraphs();
 	TestObjectsThreadsWorkerLeftObjects();
 	TestObjectsThreadsWorkerHoldsMain();
+	TestObjectsThreadsWorkerObjectsPointAtMain();
+	TestObjectsThreadsWorkerObjectHoldsMain();
+	TestObjectsThreadsWorkerObjectsAreItsOwn();
 	TestObjectsThreadsAssertNoFree();
 	TestObjectsThreadsEveryWayIn();
 

@@ -534,7 +534,9 @@ void CArrayCommonObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 	CEmbeddedObject*	pcPointedTo;
 	size 				i;
 	size 				uiNumElements;
+	size				uiFirst;
 
+	uiFirst = papcTos->NumElements();
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
@@ -544,6 +546,7 @@ void CArrayCommonObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 			papcTos->Add(pcPointedTo);
 		}
 	}
+	KeepWorkersOwnTos(papcTos, uiFirst);
 }
 
 

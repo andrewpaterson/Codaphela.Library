@@ -305,8 +305,10 @@ void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
 	bool			bExists;
+	size			uiFirst;
 
 	//No need to EnsureSorted().  If the pointers come out in an unsorted order it doesn't matter.
+	uiFirst = papcTos->NumElements();
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	while (bExists)
 	{
@@ -317,6 +319,7 @@ void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 		}
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
+	KeepWorkersOwnTos(papcTos, uiFirst);
 }
 
 

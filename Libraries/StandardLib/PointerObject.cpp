@@ -563,6 +563,22 @@ bool CPointer::PointToReading(CEmbeddedObject* const* ppcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether this field, of a worker's object, was or is now pointed at a
+// main object (ThreadSafetyPlan.txt, Level 3).  Never with the locking
+// off.
+//
+//////////////////////////////////////////////////////////////////////////
+inline bool CPointer::IsFieldAcross(CEmbeddedObject* pcOldObject)
+{
+	CObjects*	pcWorker;
+
+	pcWorker = mpcEmbedding->GetWorkerObjects();
+	return CEmbeddedObject::IsAcross(pcWorker, pcOldObject) || CEmbeddedObject::IsAcross(pcWorker, mpcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // PointTo for what holds the object system's lock already: the constructors and assignments, which read what they
 // are to point at under it.
 //
@@ -587,7 +603,11 @@ void CPointer::PointToInside(CEmbeddedObject* pcNewObject)
 
 		if (IsEmbeddingAllocatedInObjects())
 		{
-			if (pcOldObject)
+			if (OBJECTS_SELDOM(IsFieldAcross(pcOldObject)))
+			{
+				PointFieldAcross(pcOldObject);
+			}
+			else if (pcOldObject)
 			{
 				//Removing the heap from on the old object can free the embedding (and this pointer) if nothing else holds the embedding.
 				//Hold it until this method is done; it is freed when cHoldEmbedding is destroyed.
@@ -631,6 +651,75 @@ void CPointer::PointToInside(CEmbeddedObject* pcNewObject)
 	{
 		mpcObject->LogicalDirty();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// PointToInside for a field of a worker's object pointed from pcOldObject
+// at mpcObject, either of them a main object.  An object of the worker's
+// own has a heap from of it, as any field's object does; a main object is
+// held as the worker's stack pointers hold one (its from in the worker's
+// table, or on it), under the main lock: the new before the old goes, and
+// a main object let go of is the main object system's to free.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE void CPointer::PointFieldAcross(CEmbeddedObject* pcOldObject)
+{
+	CPointer	cHoldEmbedding;
+	CObjects*	pcWorker;
+
+	if ((pcOldObject != NULL) && !IsEmbeddingHeld())
+	{
+		cHoldEmbedding.PointToInside(mpcEmbedding);
+	}
+
+	pcWorker = mpcEmbedding->GetWorkerObjects();
+	ObjectsLock();
+	if (mpcObject != NULL)
+	{
+		if (CEmbeddedObject::IsAcross(pcWorker, mpcObject))
+		{
+			mpcObject->AddStackFrom(this, false);
+		}
+		else
+		{
+			mpcObject->AddHeapFrom(mpcEmbedding, pcOldObject == NULL);
+			mpcObject->SetDirty(true);
+		}
+	}
+	if (pcOldObject != NULL)
+	{
+		if (CEmbeddedObject::IsAcross(pcWorker, pcOldObject))
+		{
+			pcOldObject->RemoveStackFromTryFree(this);
+		}
+		else
+		{
+			pcOldObject->SetDirty(true);
+			pcOldObject->RemoveHeapFromTryFree(mpcEmbedding);
+		}
+	}
+	ObjectsUnlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// This field, of a worker's object that is being freed, lets go of the
+// main object it points at (PointFieldAcross), and is NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointer::ReleaseAcross(void)
+{
+	CEmbeddedObject*	pcObject;
+
+	//Read and cleared under the lock: a load of the main object rewrites it.
+	ObjectsLock();
+	pcObject = mpcObject;
+	UnsafePointTo(NULL);
+	pcObject->RemoveStackFromTryFree(this);
+	ObjectsUnlock();
 }
 
 

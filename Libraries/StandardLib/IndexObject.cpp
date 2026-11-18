@@ -376,7 +376,9 @@ void CIndexObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 	CBaseObject*				pcPointedTo;
 	SIndexTreeMemoryIterator	sIter;
 	bool						bExists;
+	size						uiFirst;
 
+	uiFirst = papcTos->NumElements();
 	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 	while (bExists)
 	{
@@ -386,6 +388,7 @@ void CIndexObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 		}
 		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 	}
+	KeepWorkersOwnTos(papcTos, uiFirst);
 }
 
 

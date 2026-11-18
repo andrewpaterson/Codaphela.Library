@@ -435,11 +435,13 @@ void CObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 //////////////////////////////////////////////////////////////////////////
 void CObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
-	size					uiNumPointers;
-	size					i;
+	size				uiNumPointers;
+	size				i;
 	CPointer*			pcPointer;
 	CEmbeddedObject*	pcPointedTo;
+	size				uiFirst;
 
+	uiFirst = papcTos->NumElements();
 	uiNumPointers = NumPointerFields();
 	for (i = 0; i < uiNumPointers; i++)
 	{
@@ -450,6 +452,7 @@ void CObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 			papcTos->Add(pcPointedTo);
 		}
 	}
+	KeepWorkersOwnTos(papcTos, uiFirst);
 }
 
 
@@ -465,12 +468,20 @@ bool CObject::ClearPointerTos(bool bFree)
 	size				uiNumPointers;
 	CPointer*			pcPointer;
 	bool				bResult;
+	CObjects*			pcWorker;
 
 	//Weak pointers come off their objects' weak froms (one freed with this has cleared them already).
 	uiNumPointers = NumWeakPointerFields();
 	for (i = 0; i < uiNumPointers; i++)
 	{
 		GetWeakPointerField(i)->Release();
+	}
+
+	//A main object a worker's object points at is let go of first, whether or not this is freed alone.
+	pcWorker = GetWorkerObjects();
+	if (OBJECTS_SELDOM(pcWorker != NULL))
+	{
+		ReleaseFieldsAcross(pcWorker);
 	}
 
 	uiNumPointers = NumPointerFields();
@@ -502,6 +513,30 @@ bool CObject::ClearPointerTos(bool bFree)
 		pcEmbedded = IterateDirectlyEmbedded(&uiIndex);
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The fields of this, a worker's object, that point at main objects let
+// go of them (CPointer::ReleaseAcross).
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE void CObject::ReleaseFieldsAcross(CObjects* pcWorker)
+{
+	size		uiNumPointers;
+	size		i;
+	CPointer*	pcPointer;
+
+	uiNumPointers = NumPointerFields();
+	for (i = 0; i < uiNumPointers; i++)
+	{
+		pcPointer = GetPointerField(i);
+		if (IsAcross(pcWorker, pcPointer->Object()))
+		{
+			pcPointer->ReleaseAcross();
+		}
+	}
 }
 
 

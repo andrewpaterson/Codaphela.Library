@@ -451,6 +451,9 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 
 	if (pcFromObject != NULL)
 	{
+#ifdef _DEBUG
+		ValidateWorkersOwn(pcFromObject);
+#endif // _DEBUG
 		iDistToRoot = pcFromObject->GetDistToRoot();
 		AddHeapPointer(pcFromObject);
 		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
@@ -957,6 +960,10 @@ bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 {
 	OBJECTS_INSIDE();
 
+#ifdef _DEBUG
+	ValidateWorkersOwn(NULL);
+#endif // _DEBUG
+
 	//A registered thread keeps its own stack froms of objects attached to the root (ObjectsThreads.h).
 	if (ThreadStackFromAdd(this, pcPointer))
 	{
@@ -1133,6 +1140,10 @@ void CEmbeddedObject::AddStackFromReading(CPointer* pcPointer)
 {
 	OBJECTS_INSIDE();
 
+#ifdef _DEBUG
+	ValidateWorkersOwn(NULL);
+#endif // _DEBUG
+
 	if (ObjectsReaderIsHome() || !ThreadStackFromAdd(this, pcPointer))
 	{
 		LinkStackFrom(GetStackPointers()->Add(pcPointer));
@@ -1171,6 +1182,80 @@ bool CEmbeddedObject::IsThreadsOwn(void)
 
 	pcOwn = ObjectsOwn();
 	return (pcOwn != NULL) && (GetObjectsThisIn() == pcOwn);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// KeepWorkersOwnTos with the locking on.
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::KeepWorkersOwnTosLocking(CArrayEmbeddedObjectPtr* papcTos, size uiFirst)
+{
+	CObjects*	pcWorker;
+	size		i;
+
+	pcWorker = GetWorkerObjectsLocking();
+	if (pcWorker != NULL)
+	{
+		i = papcTos->NumElements();
+		while (i > uiFirst)
+		{
+			i--;
+			if (IsAcross(pcWorker, papcTos->GetPtr(i)))
+			{
+				papcTos->RemoveAt(i, true);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// GetWorkerObjects with the locking on.
+//
+//////////////////////////////////////////////////////////////////////////
+CObjects* CEmbeddedObject::GetWorkerObjectsLocking(void)
+{
+	CObjects*	pcObjects;
+
+	pcObjects = GetObjectsThisIn();
+	return ((pcObjects != NULL) && pcObjects->IsWorker()) ? pcObjects : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker's objects are its own until it adopts them (ThreadSafetyPlan.txt,
+// Level 3): no object of another object system points at one (pcFromObject
+// is about to), and no other thread holds one (pcFromObject NULL: the
+// running thread is about to).
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateWorkersOwn(CBaseObject* pcFromObject)
+{
+	CObjects*	pcWorker;
+	CObjects*	pcFromObjects;
+
+	pcWorker = GetWorkerObjects();
+	if (pcWorker == NULL)
+	{
+		return;
+	}
+
+	if (pcFromObject != NULL)
+	{
+		pcFromObjects = pcFromObject->GetObjectsThisIn();
+		if ((pcFromObjects != NULL) && (pcFromObjects != pcWorker))
+		{
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcFromObject), "} of another object system points at {", ObjectToString(this), "}, of a worker's: a worker's objects are its own until it adopts them.", NULL);
+		}
+	}
+	else if (ObjectsOwn() != pcWorker)
+	{
+		gcLogger.Error2(__METHOD__, " A thread that isn't its worker holds {", ObjectToString(this), "}: a worker's objects are its own until it adopts them.", NULL);
+	}
 }
 
 
