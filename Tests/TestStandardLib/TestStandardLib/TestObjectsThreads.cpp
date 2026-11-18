@@ -2971,7 +2971,8 @@ static void TestObjectsThreadsPointLeaves(Ptr<CTestThreadNode>& pNode, CTestThre
 
 
 //A worker builds a named tree in its own root, its leaves pointing at the main node, adopts it and puts it in the
-//main root.  The pointer it kept into the tree is to a main object then, and its object system has the tree no more.
+//main root.  The pointer it kept into the tree is to a main object then, and its object system and unknowns have the
+//tree no more.
 static void TestObjectsThreadsWorkerAdopts(void* pvThread)
 {
 	STestObjectsThread*		psThread;
@@ -2979,6 +2980,8 @@ static void TestObjectsThreadsWorkerAdopts(void* pvThread)
 	Ptr<CTestThreadNode>	pMiddle;
 	char					szName[32];
 	size					uiObjects;
+	size					uiUnknowns;
+	CUnknowns*				pcUnknowns;
 
 	psThread = (STestObjectsThread*)pvThread;
 	snprintf(szName, sizeof(szName), "Tree%u", (unsigned)psThread->uiSeed);
@@ -2988,12 +2991,18 @@ static void TestObjectsThreadsWorkerAdopts(void* pvThread)
 	TestObjectsThreadsPointLeaves(pTop, psThread->pcShared);
 	pMiddle = pTop->mpNext->mpOther;
 	uiObjects = ObjectsCurrent()->NumMemoryIndexes();
+	pcUnknowns = ObjectsCurrent()->GetUnknowns();
+	uiUnknowns = pcUnknowns->NumElements();
 
 	if (!ObjectsAdopt(pTop) || (pTop->GetObjectsThisIn() != &gcObjects) || (pMiddle->GetObjectsThisIn() != &gcObjects))
 	{
 		psThread->iErrors++;
 	}
 	if (ObjectsCurrent()->NumMemoryIndexes() != uiObjects - TEST_OBJECTS_THREADS_TREE_NODES)
+	{
+		psThread->iErrors++;
+	}
+	if ((pcUnknowns == &gcUnknowns) || (pcUnknowns->NumElements() != uiUnknowns - TEST_OBJECTS_THREADS_TREE_NODES) || (pMiddle->GetUnknownsThisIn() != &gcUnknowns))
 	{
 		psThread->iErrors++;
 	}
@@ -3032,12 +3041,14 @@ void TestObjectsThreadsWorkersAdopt(void)
 	Ptr<CTestThreadNode>	pShared;
 	CChars					szName;
 	size					uiObjects;
+	size					uiUnknowns;
 	size					i;
 
 	TestObjectsThreadsBegin();
 	pShared = ONMalloc<CTestThreadNode>("Shared");
 	ORoot()->Add(pShared);
 	uiObjects = gcObjects.NumMemoryIndexes();
+	uiUnknowns = gcUnknowns.NumElements();
 
 	gbTestObjectsThreadsWorkers = true;
 	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsWorkerAdopts, NULL, NULL, &pShared, NULL));
@@ -3045,6 +3056,7 @@ void TestObjectsThreadsWorkersAdopt(void)
 
 	AssertInt(0, giTestThreadNodesFreed);
 	AssertLong((int64)(uiObjects + TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_TREE_NODES), gcObjects.NumMemoryIndexes());
+	AssertSize(uiUnknowns + TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_TREE_NODES, gcUnknowns.NumElements());
 	AssertSize((size)((TEST_OBJECTS_THREADS << TEST_OBJECTS_THREADS_TREE_DEPTH) + 1), pShared.NumHeapFroms());  //Every leaf, and the root.
 	for (i = 0; i < TEST_OBJECTS_THREADS; i++)
 	{
@@ -3062,6 +3074,7 @@ void TestObjectsThreadsWorkersAdopt(void)
 	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_TREE_NODES, giTestThreadNodesFreed);
 	pShared = NULL;
 	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_TREE_NODES + 1, giTestThreadNodesFreed);
+	AssertSize(uiUnknowns - 1, gcUnknowns.NumElements());
 	TestObjectsThreadsEnd(uiObjects - 1);
 }
 

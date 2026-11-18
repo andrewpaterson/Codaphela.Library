@@ -106,6 +106,7 @@ bool CObjects::Adopt(CPointer& pTop)
 	CObjects*			pcWorker;
 	CBaseObject*		pcTop;
 	CArrayBaseObjectPtr	apcGraph;
+	CArrayUnknownPtr	apcUnknowns;
 	CArrayAdoptFrom		asFroms;
 	uint32				uiStamp;
 	size				i;
@@ -135,6 +136,8 @@ bool CObjects::Adopt(CPointer& pTop)
 		{
 			MoveAdopted(pcWorker, apcGraph.GetPtr(i));
 		}
+		apcUnknowns.Fake((CUnknown**)apcGraph.GetData(), apcGraph.NumElements());
+		pcWorker->mpcUnknownsAllocatingFrom->MoveTo(&apcUnknowns, mpcUnknownsAllocatingFrom);
 		for (i = 0; i < apcGraph.NumElements(); i++)
 		{
 			HoldAdoptedTos(apcGraph.GetPtr(i), uiStamp);

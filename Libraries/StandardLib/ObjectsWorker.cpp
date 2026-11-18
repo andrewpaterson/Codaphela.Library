@@ -89,9 +89,10 @@ bool ObjectsWorkerOwnInit(void)
 	}
 
 	psWorker = NewMalloc<SObjectsWorker>();
+	psWorker->cUnknowns.InitSharing(gcObjects.GetUnknowns(), "Worker");
 	psWorker->cStackPointers.Init();
 	psWorker->cSequence.Init(&gcObjects);
-	psWorker->cObjects.InitWorker(&gcObjects, &psWorker->cStackPointers, &psWorker->cSequence);
+	psWorker->cObjects.InitWorker(&gcObjects, &psWorker->cUnknowns, &psWorker->cStackPointers, &psWorker->cSequence);
 	gpsObjectsWorker = psWorker;
 	gpcObjectsOwn = &psWorker->cObjects;
 	return true;
@@ -122,6 +123,7 @@ size ObjectsWorkerOwnKill(void)
 	psWorker->cObjects.Discard();
 	psWorker->cObjects.Kill();
 	psWorker->cStackPointers.Kill();
+	psWorker->cUnknowns.Kill();
 
 	gpcObjectsOwn = NULL;
 	gpsObjectsWorker = NULL;

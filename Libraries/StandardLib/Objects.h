@@ -103,6 +103,7 @@ protected:
 
 	CDataConnection*		mpcDataConnection;
 	CSequenceConnection*	mpcSequenceConnection;
+	CSpinLock				mcIndexLock;  //Over the sequence while the locking is on (ReserveIndexes), not the object system's lock.
 
 	ObjectCallback			mAllocationCallback;
 	ObjectCallback			mHollowAllocationCallback;
@@ -120,7 +121,7 @@ protected:
 public:
 												CObjects();
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
-						void					InitWorker(CObjects* pcMain, CStackPointers* pcStackPointers, CSequenceConnection* pcSequenceConnection);
+						void					InitWorker(CObjects* pcMain, CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CSequenceConnection* pcSequenceConnection);
 						void					Kill(void);
 
 	template<class M>	void					AddConstructor(void);
@@ -154,7 +155,7 @@ public:
 						void					FreeForwarders(void);  //The home thread's: frees the forwarding hollows no thread can still ask.
 						bool					IsHomeThread(void);  //The running thread is the one that frees this's objects.
 						bool					IsWorker(void);
-						OIndex					ReserveIndexes(size uiCount);  //uiCount indexes in a row, for a worker's object system: the first.
+						OIndex					ReserveIndexes(size uiCount);  //uiCount indexes in a row, the first: a worker's block, without waiting for writers.
 						bool					Adopt(CPointer& pTop);  //The main object system's, by a worker: pTop's graph becomes main's (ObjectsAdopt).
 						bool					IsWriteThrough(void);
 						size					NumWaitingToBeFreed(void);
@@ -190,6 +191,7 @@ public:
 						CStackPointers*			GetStackPointers(void) const;
 						CClasses*				GetClasses(void);
 						CConstructors*			GetConstructors(void) const;
+						CUnknowns*				GetUnknowns(void) const;
 
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);
@@ -242,7 +244,8 @@ protected:
 						CBaseObject*			GetFromDatabase(OIndex oi);
 						CBaseObject*			GetFromDatabase(const char* szObjectName);
 						CBaseObject*			GetFromSources(const char* szObjectName);
-						OIndex					GetNextIndex(void) const;
+						OIndex					GetNextIndex(void);
+						OIndex					NextIndex(void);
 						
 						void					FreeInternal(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts);

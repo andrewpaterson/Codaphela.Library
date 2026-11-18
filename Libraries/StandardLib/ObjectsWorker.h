@@ -30,14 +30,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //with others calls ObjectsWorkerInit in place of ObjectsThreadInit: OMalloc, ONMalloc and ORoot on it then make and
 //find objects in an object system of its own, whose ways in take no lock.  It is the worker's alone: the worker is its
 //home thread (Free() runs there) and nothing outside it may point into it.  It has no database; its objects take their
-//indexes from the main object system's sequence, so they are unique in the process.  ObjectsThreadKill frees what is
-//left in it.
+//indexes from the main object system's sequence, so they are unique in the process, and are allocated by unknowns of
+//its own (from the main unknowns' allocator, which is safe for threads), so that no lock is shared to make one.
+//ObjectsThreadKill frees what is left in it.
 
 
 #define OBJECTS_WORKER_INDEXES	256		//The indexes a worker takes from the main object system at a time: one lock for so many objects.
 
 
-//A worker's indexes: blocks taken from the main object system's sequence, handed out without the lock.
+//A worker's indexes: blocks taken from the main object system's sequence (under its index lock), handed out without one.
 class CObjectsWorkerSequence : public CSequenceConnection
 {
 protected:
@@ -56,6 +57,7 @@ public:
 struct SObjectsWorker
 {
 	CObjects				cObjects;
+	CUnknowns				cUnknowns;
 	CStackPointers			cStackPointers;
 	CObjectsWorkerSequence	cSequence;
 };

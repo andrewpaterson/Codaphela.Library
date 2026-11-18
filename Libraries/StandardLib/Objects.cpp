@@ -183,13 +183,13 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 //
 // A worker thread's own object system (ThreadSafetyPlan.txt, Level 3 as
 // built): no database, its indexes from the main object system's
-// sequence, and the worker its home.  It allocates from what the main one
-// does and validates as it does.
+// sequence, and the worker its home.  Its unknowns allocate from what the
+// main one's do (CUnknowns::InitSharing), and it validates as main does.
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::InitWorker(CObjects* pcMain, CStackPointers* pcStackPointers, CSequenceConnection* pcSequenceConnection)
+void CObjects::InitWorker(CObjects* pcMain, CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CSequenceConnection* pcSequenceConnection)
 {
-	Init(pcMain->mpcUnknownsAllocatingFrom, pcStackPointers, NULL, pcSequenceConnection);
+	Init(pcUnknowns, pcStackPointers, NULL, pcSequenceConnection);
 	mbValidateConsistency = pcMain->mbValidateConsistency;
 	mbWorker = true;
 }
@@ -2057,22 +2057,40 @@ CBaseObject* CObjects::GetFromSources(const char* szObjectName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Under the index lock alone: a worker taking a block doesn't wait for
+// the object system's writers, only for another index being handed out.
+// With it held no other index comes between them: they are in a row.
 //
 //////////////////////////////////////////////////////////////////////////
 OIndex CObjects::ReserveIndexes(size uiCount)
 {
-	OBJECTS_WRITE();
-
 	OIndex	oiFirst;
 	size	i;
 
-	//With the lock held no other index is handed out between them: they are in a row.
-	oiFirst = GetNextIndex();
+	mcIndexLock.Lock();
+	oiFirst = NextIndex();
 	for (i = 1; i < uiCount; i++)
 	{
-		GetNextIndex();
+		NextIndex();
 	}
+	mcIndexLock.Unlock();
 	return oiFirst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While the locking is on, workers take blocks from the main object
+// system's sequence too.  A worker's own sequence is its alone.
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CObjects::GetNextIndex(void)
+{
+	if (OBJECTS_SELDOM(IsObjectsLocking()) && !mbWorker)
+	{
+		return ReserveIndexes(1);
+	}
+	return NextIndex();
 }
 
 
@@ -2080,7 +2098,7 @@ OIndex CObjects::ReserveIndexes(size uiCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CObjects::GetNextIndex(void) const
+OIndex CObjects::NextIndex(void)
 {
 	if (mpcSequenceConnection)
 	{
@@ -2624,6 +2642,16 @@ CClasses* CObjects::GetClasses(void)
 CConstructors* CObjects::GetConstructors(void) const
 {
 	return mpcUnknownsAllocatingFrom->GetConstructors();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CUnknowns* CObjects::GetUnknowns(void) const
+{
+	return mpcUnknownsAllocatingFrom;
 }
 
 

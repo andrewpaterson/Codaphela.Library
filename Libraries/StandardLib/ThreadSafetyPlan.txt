@@ -971,6 +971,8 @@ Steps
          suites 185 and 183 passed (mbSlotsMoved fits the padding there too: their layout asserts pass).  MinGW, 32
          and 64 bit: StandardLib's 131 files compile with nothing said.  TestBaseLib (64, Release, ThreadSanitizer)
          and TestThreadLib pass with the pointers' acquire Load.
+         The full sweep, of the step's last commit (3a4f5accf): the 147 builds made, and the 144 runs, the 65C64's
+         and the W65C816's among them, all passed with no test failing.
 
   Level 3: a CObjects for each thread (decisions 11 to 15)
     Level 3 as built (worked out 2026-11-18, before 25b):
@@ -979,10 +981,11 @@ Steps
         ObjectsKill, ObjectsFlush, ObjectsDiscard and ObjectsCollect stay the main object system's, the home
         thread's.
       A worker's object system.  ObjectsWorkerInit registers the thread as ObjectsThreadInit does (it may still use
-        main objects through its stack pointers and table) and makes it a CObjects: gcUnknowns to allocate from, a
-        CStackPointers of its own, classes of its own, no database, its own root.  Its indexes come from the main
-        sequence a page at a time (256 in a row, taken under the main lock: one lock for 256 OMallocs).  The worker
-        is its home: Free() runs there, nothing is queued, ObjectsThreadKill frees what is left and kills it.
+        main objects through its stack pointers and table) and makes it a CObjects: unknowns of its own to allocate
+        from (gcUnknowns' allocator, which is safe for threads, and its constructors), a CStackPointers of its own,
+        classes of its own, no database, its own root.  Its indexes come from the main sequence a page at a time (256
+        in a row, under the sequence's own lock, not the main lock: 25f).  The worker is its home: Free() runs there,
+        nothing is queued, ObjectsThreadKill frees what is left and kills it.
       The guards.  OBJECTS_WRITE() and OBJECTS_READ() pass `this` (every guard is in a member function: of CObjects,
         an object, CPointer or CWeakPointer): CObjectsGuard has a constructor for each.  The inline part is as it is
         (the test of gbObjectsLocking, all one thread pays); the locked part, out of line, decides by the object
@@ -998,11 +1001,13 @@ Steps
       Adopt(pTop), by the worker, under the main lock.  The graph is pTop and every worker object it reaches.  A name
         main already has refuses the whole graph (decision 14) and nothing moves.  Otherwise each object leaves the
         worker's memory index and enters main's (its index is from main's sequence already), takes main's class of
-        its name, and its object system is main.  Its fields that point at main objects leave the worker's table and
-        become heap froms of those objects; the worker's objects that point into the graph go the other way (into
-        the table).  The worker's stack pointers to adopted objects move from the worker's CStackPointers to the
-        objects (they aren't attached until the caller attaches them, so they aren't for a thread's table).  The
-        graph is unattached in main until the caller points something attached at the returned pointer. an object found, put and taken out by its index in a few instructions, where the
+        its name, and its object system and unknowns are main's.  Its fields that point at main objects leave the
+        worker's table and become heap froms of those objects; the worker's objects that point into the graph go the
+        other way (into the table).  The worker's stack pointers to adopted objects move from the worker's
+        CStackPointers to the objects (they aren't attached until the caller attaches them, so they aren't for a
+        thread's table).  The graph is unattached in main until the caller points something attached at the returned
+        pointer.
+  25. a. The memory index replaced: an object found, put and taken out by its index in a few instructions, where the
          trie by index's bytes takes about 1800 to put and 1600 to take out (37% of an OMalloc and free, 40% of a tree
          built).  A hash table (iteration sorted when it is asked for: Flush, Kill and Evict go in index order) and a
          paged table (in order as it is) are both measured, on OMalloc and free, the tree and the load, and the faster
@@ -1038,6 +1043,12 @@ Steps
          code: how many destructors LTO inlines into the test's loop).  StartWalk's reset of every stamp, seldom, is
          out of line (ClearWalkStamps): inlined, it had grown StartWalk enough that CDistCalculator::Init stopped being
          inlined into FromRemoved, 16 instructions on every field change.
+         By the clock, once 25b to 25e were in too (Release, one thread, the least of five runs of the speed tests,
+         taking turns with the commit before 25a): OMalloc and free 478 to 299 ns (-38%), held by a field 468 to 293,
+         added to an array 488 to 314, a tree's node built 779 to 459 (-41%) and freed 587 to 361 (-39%), a stored
+         object loaded 3938 to 3330 (-15%).  A stack Ptr's copy and drop 21 ns as it was; a field pointed elsewhere
+         45 to 88 ns from run to run in both; an array's Get 29 to 31 ns, with 0.7% fewer instructions (where LTO put
+         the code).
       b. A worker's object system: a variant of ObjectsThreadInit that gives the thread a CObjects of its own, with
          its own root, stack pointers and completed classes.  OMalloc, ONMalloc and ORoot on that thread go to it (a
          current object system for each thread, gcObjects where none is set).  Its objects take their indexes from
@@ -1148,6 +1159,38 @@ Steps
          (memory stored-objects-without-path), not Adopt's; the test loads through the root.
       f. Measured: OMalloc and free on 1 to 12 workers each in its own object system (step 22's table again), and
          Adopt for each object.
+         Done 2026-11-19 (TestObjectsSpeed with OBJECTS_SPEED_THREADS_WORK=workermalloc, Release, 64 bit, the least
+         of three runs; each worker makes and frees objects while the home thread runs the speed tests).  The first
+         measurement found the workers still taking turns: one OMalloc and free cost 0.4 microseconds on one worker
+         and 14 on twelve, and slowed the home thread's own as much.  Stopped every 150 ms in gdb (perf isn't allowed
+         on this machine), four workers were nearly always waiting, for one of two locks they shared:
+           the main lock, once every 256 objects: a worker took its block of indexes under it, and the home thread
+           holds it for as long as a write takes (2.8 ms for a member of a set of 100000 taken out and put back).
+           The main sequence has a lock of its own now (CObjects::mcIndexLock): a worker's block is taken under it
+           alone, and while the locking is on the main object system's own indexes are too (GetNextIndex is then
+           ReserveIndexes(1));
+           gcUnknowns' lock, twice an OMalloc and once a free: every object, on every thread, was one of the global
+           unknowns.  A worker's object system has unknowns of its own (CUnknowns::InitSharing: gcUnknowns'
+           allocator, which is safe for threads since step 23, and its constructors), and Adopt moves the graph to
+           main's (CUnknowns::MoveTo).  TestObjectsThreadsWorkersAdopt counts gcUnknowns: the trees join it when
+           adopted and leave it when freed.
+         ns for each OMalloc and free on each worker, while the home thread copies pointers and makes objects, and
+         while it builds and frees a tree:
+                          before            after
+           1 worker      415   2995        367    370
+           2             476   5558        380    394
+           4            1252   5643        380    441
+           8            4642  14198        392    405
+           12          13821  10815        422    423
+         Against step 22's level 2, every thread in the main object system with the lock (here, after: 665 ns with
+         one thread, 4710 with four, 39074 with twelve).  The home thread meanwhile: its OMalloc and free 387 to 425
+         ns with 1 to 8 workers (398 to 4425 before), 609 with 12 (17219); its tree's node built 695 to 794 ns (734
+         to 2570), 1390 with 12 (14689).  With twelve workers its tree is freed at 967 ns a node, 420 before: thirteen
+         threads run now on the machine's 16 cores, 8 of them the slower kind, where before the workers mostly waited.
+         A tree built on a worker, 501 ns a node (459 in the main object system with no other thread); Adopt, 147 ns
+         an object.
+         One thread, by instructions against 25e: OMalloc and free and a stack Ptr's copy and drop the same to the
+         instruction, a tree built -0.4%, freed and Adopt the same.
       g. Proved: the mutation harness over the new guards, the full sweep, the 65 suites (with level 3 compiled
          out), the MinGW compile.
          The mutation harness, 2026-11-18: ~/Codaphela/documents/ThreadSafetyPrototype/mutation/level3.py, 13 mutants
@@ -1160,6 +1203,9 @@ Steps
          first pass, for want of a test: TestObjectsThreadsWorkerHoldsMain now has the home thread read every
          thread's table (a node's stack froms, with the lock) while the workers move their pointers, and
          TestObjectsThreadsWorkerObjectHoldsMain a main node held by a worker's collection alone.
+         With 25f's changes, three more, each caught by an assertion in Debug: a worker's block of indexes taken
+         without the index lock, a worker allocating from the main unknowns, and Adopt leaving the graph in the
+         worker's unknowns.
          The 65 suites (level 3 compiled out: ObjectsOwn() is NULL there, ObjectsAdopt refuses) pass at every step,
          187 and 185, and the MinGW compile of every changed file says nothing, 32 and 64 bit.
 
