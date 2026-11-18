@@ -611,7 +611,7 @@ Progress
   its own, D:\gameengine-exceptions\CommonLibraries, \HCP65 and \HCP65-IDE (branch exceptions in each, none merged),
   so the main trees stay the other session's to build from.
 
-  0. Done but for the baseline measure (below).
+  0. Done.  The baseline was taken after stage 1 (below it).
      - The table: the conformance test's Exceptions group, 171 cases (TestCPPConformanceCases.h), compiled with
        exceptions on.  Each was run with the Microsoft compiler (hostcheck.py) and with g++ -std=c++14 (gcccheck.sh,
        new, in WSL); every case is what the standard says and what at least one of them does, and the comment over the
@@ -655,7 +655,7 @@ Progress
   The user, 2026-11-18: "Your assumed answers are fine, go ahead with stage 1" (questions 9 to 14 as assumed).  Master
   was merged into the three exceptions branches first, with the other session's questions 3 to 11 (the last 28dd9d62f).
 
-  1. Done in the compiler (193dc536a); the libraries' compile is still to be run (below).
+  1. Done (193dc536a).
      - CCPPExceptionSpec (CPPExceptionSpec.h): nothing, anything, or types.  CCPPFunction::mcExceptions in place of
        mbNoexcept; ask CCPPUnit::ExceptionsOf or IsNoexcept.  One that is written is made when the function is declared
        (SetDeclaredExceptions); a destructor's with none written, and a function's the compiler writes (mbImplicit: the
@@ -685,6 +685,25 @@ Progress
        both told to the other session for CppParserTodo.txt's small gaps).  Three were added and run on both hosts:
        PointerAssignedLooserRefused, ImplicitDestructorLooserRefused, PointerToPointerSpecification.  The Exceptions
        group is 27 of 174 done on each target.  TestCppCompilerLib passes in Release x64 (268546).
-     Still to do: the three Lib65 suites' compile, which is what says whether BaseLib, StandardLib, SupportLib or
-     Libc65 declare a function twice with different specifications (now an error).
+     - The three Lib65 suites' compile (CompilerMeasure.py --compile --serial, both processors) has no error: nothing in
+       BaseLib, StandardLib, SupportLib or Libc65 declares a function twice with different specifications, overrides
+       with a looser one or gives a noexcept pointer a looser function.
+
+  The baseline, taken 2026-11-18 with the compiler of 193dc536a (stage 1, which changes nothing that is compiled with
+  exceptions off; master merged to 28dd9d62f): Tests\CompilerMeasure.py --serial, Release x64, one suite at a time in
+  the foreground (the way that fits the machine: a suite's peak is its serial compile's).  Each run's own output (every
+  program's cycles and size) and the tables with the compiler's times are kept in D:\gameengine-exceptions\Baseline,
+  outside the repositories.  Cycles and bytes are exact; the seconds were taken with the other session idle.
+
+    Suite              CPU      Passed Programs  Asserts           Cycles        Bytes  Seconds  Peak MB
+    TestBaseLib65      65C64    yes         180   163825       6931890711     21895877      182      527
+    TestBaseLib65      W65C816  yes         178   157337      26693453262     85741872      284      554
+    TestStandardLib65  65C64    yes          67    11138      15986987328     31250202      270      570
+    TestStandardLib65  W65C816  yes          65    10585      24749550972     72351654      267      617
+    TestSupportLib65   65C64    yes          76    35991      33703785941     38009824      562      831
+    TestSupportLib65   W65C816  yes          72    27200      92188986865     82440465      762      881
+
+  Stage 9 measures against these with the option on.  The option off must go on giving these cycles and bytes through
+  stages 2 to 8, but for what the other session's work changes when master is merged again: measure again after a merge
+  that changes what is compiled, before the next stage, so that a stage's own difference can be told from it.
 
