@@ -21,6 +21,7 @@
 #include "CppCompilerLib/CPPUnit.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
+#include "TestCppCompilerLibParts.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -5380,17 +5381,22 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 	CAsm65Memory	cMemory;
 	CFastW65C816		cFast;
 	CChars			szProject;
+	CChars			szDirectory;
 	CFileUtil		cFileUtil;
 	CTextFile		cFile;
 	size			i;
 	int32			iResult;
 
 	iResult = -1000000;
-	cFileUtil.RemoveDir("Output" _FS_ "CPP816Listing");
+
+	//Each part's own folder, as parts run side by side (TestPartLabel).
+	szDirectory.Init("Output" _FS_ "CPP816Listing");
+	szDirectory.Append(TestPartLabel());
+	cFileUtil.RemoveDir(szDirectory.Text());
 	cBuilder.Init();
 	*cBuilder.GetOptions() = gcTestCPP816Options;
 	cBuilder.SetTarget(CPPT_W65C816);
-	cBuilder.SetListingDirectory("Output" _FS_ "CPP816Listing");
+	cBuilder.SetListingDirectory(szDirectory.Text());
 	TestCPP65AddIncludeDirectories(&cBuilder);
 	AssertTrue(cBuilder.AddStartUp());
 	szProject.Init(".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65");
@@ -5407,7 +5413,9 @@ int32 TestCPP816RunListed(const char* szSource, const char** aszUnits, CChars* p
 	szMissing.Kill();
 
 	cFile.Init();
-	AssertTrue(cFile.Read("Output" _FS_ "CPP816Listing" _FS_ "Test.lst"));
+	szDirectory.Append(_FS_ "Test.lst");
+	AssertTrue(cFile.Read(szDirectory.Text()));
+	szDirectory.Kill();
 	pszListing->Init(cFile.Text() ? cFile.Text() : "");
 	cFile.Kill();
 
@@ -5829,6 +5837,41 @@ void TestCPP816SharedInline(void)
 	static const char*	aszShared[] = { "Input/CPP65/SharedInlineProject/A.cpp", "Input/CPP65/SharedInlineProject/B.cpp", "Input/CPP65/SharedInlineProject/Main.cpp", NULL };
 
 	AssertInt(3225, TestCPP816RunProject(aszShared, "", NULL));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A global nothing refers to is dropped by the linker with its init and
+// fini entries, so its constructor and destructor don't run, unless the
+// build keeps such globals (CCPPCompileOptions::mbKeepUnusedObjects,
+// KeepUnusedObjects="true": CppParserTodo.txt question 12).  Its
+// constructor logs 7 at 0010:0000 and its destructor 9 after it.
+// [basic.stc.static] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816KeepUnusedObjects(void)
+{
+	static const char*	aszNone[] = { NULL };
+	static const char*	szSource =
+		"struct SLog { SLog() { ((volatile long*)0x100000)[0] = 7; } ~SLog() { ((volatile long*)0x100000)[1] = 9; } };\n"
+		"SLog gsNobodyUses;\n"
+		"int main(void) { return 3; }\n";
+	uint32	auiResults[2];
+	CChars	szListing;
+
+	auiResults[0] = auiResults[1] = 1;
+	AssertInt(3, TestCPP816RunListed(szSource, aszNone, &szListing, auiResults, 2));
+	AssertInt(0, (int)auiResults[0]);
+	AssertInt(0, (int)auiResults[1]);
+	szListing.Kill();
+
+	gcTestCPP816Options.mbKeepUnusedObjects = true;
+	AssertInt(3, TestCPP816RunListed(szSource, aszNone, &szListing, auiResults, 2));
+	AssertInt(7, (int)auiResults[0]);
+	AssertInt(9, (int)auiResults[1]);
+	szListing.Kill();
+	gcTestCPP816Options.mbKeepUnusedObjects = false;
 }
 
 
@@ -6391,113 +6434,115 @@ void TestCPP816Namespaces(void)
 void TestCPP816(void)
 {
 	BeginTests();
+	TEST_PART_BEGIN("TestCPPW65C816");
 
 	TypesInit();
 	TypeConverterInit();
 	CW65C816InstructionFactory::GetInstance()->Init();
 
-	TestCPP816Basics();
-	TestCPP816SignedToFloat();
-	TestCPP816Functions();
-	TestCPP816Classes();
-	TestCPP816DelegatingConstructors();
-	TestCPP816BitFields();
-	TestCPP816Thunks();
-	TestCPP816OverloadedComma();
-	TestCPP816WideStrings();
-	TestCPP816RawStrings();
-	TestCPP816ExtendedIdentifiers();
-	TestCPP816NestedConstants();
-	TestCPP816SharedTables();
-	TestCPP816Statements();
-	TestCPP816NarrowSubscripts();
-	TestCPP816GuardedIndices();
-	TestCPP816ZeroWords();
-	TestCPP816PointerCallsAndOrder();
-	TestCPP816CounterDivisions();
-	TestCPP816ByteMasksAndSignedCompares();
-	TestCPP816SharedDivisions();
-	TestCPP816Divide64();
-	TestCPP816BitTables();
-	TestCPP816CountZeros();
-	TestCPP816BitTable64();
-	TestCPP816ShiftCounts();
-	TestCPP816IndexedWords();
-	TestCPP816SmallShifts();
-	TestCPP816ScratchOperands();
-	TestCPP816PointerPlaceLoads();
-	TestCPP816NarrowDivisors();
-	TestCPP816WordShifts();
-	TestCPP816Globals();
-	TestCPP816Builtins();
-	TestCPP816MemSwp();
-	TestCPP816LoopIdioms();
-	TestCPP816BaseLib();
-	TestCPP816CompiledAgain();
-	TestCPP816Sprites();
-	TestCPP816TideVideo();
-	TestCPP816Restrict();
-	TestCPP816RestrictParameter();
-	TestCPP816LocalSymbols();
-	TestCPP816ExitValues();
-	TestCPP816MovedCode();
-	TestCPP816CompileBaseLibUnits();
-	TestCPP816NewDelete();
-	TestCPP816Floats();
-	TestCPP816NoFloats();
-	TestCPP816TestBaseLibBugs();
-	TestCPP816ConstantShifts();
-	TestCPP816VariableShifts();
-	TestCPP816Warnings();
-	TestCPP816RangeWarnings();
-	TestCPP816LoopCounterWarnings();
-	TestCPP816OverrideWarnings();
-	TestCPP816SizeLsizeBugs();
-	TestCPP816DestructorCalls();
-	TestCPP816DynamicCast();
-	TestCPP816DynamicCastUnits();
-	TestCPP816StaticConstMembers();
-	TestCPP816ExternTemplateProject();
-	TestCPP816OverloadedFunctionPointers();
-	TestCPP816MemberTemplateCallsPlainOverload();
-	TestCPP816VariadicObjectParameters();
-	TestCPP816ProfileGuidedInlining();
-	TestCPP816ProfileRegisterEntries();
-	TestCPP816ProfileGuidedDivisionTables();
-	TestCPP816BiasedIndices();
-	TestCPP816BCDBuiltins();
-	TestCPP816ShiftedWordIndices();
-	TestCPP816TypeTraits();
-	TestCPP816MergedAddressPhis();
-	TestCPP816InlineObjectParameters();
-	TestCPP816ConstantDivisions();
-	TestCPP816DivisionRanges();
-	TestCPP816WideDivisors();
-	TestCPP816ScaledIndices();
-	TestCPP816BiasedIndicesInOneBlock();
-	TestCPP816BoundedRemainders();
-	TestCPP816MergeLoop();
-	TestCPP816ReturnedObjectSlots();
-	TestCPP816DivisibilityTests();
-	TestCPP816IntIndexPointers();
-	TestCPP816NarrowCounters();
-	TestCPP816AlignedFrames();
-	TestCPP816AlignedBigFrameArguments();
-	TestCPP816AlignedFrameUnreadArguments();
-	TestCPP816RegisterArguments();
-	TestCPP816FrameOperandFloats();
-	TestCPP816RegisterFloats();
-	TestCPP816ObjectArguments();
-	TestCPP816Exit();
-	TestCPP816ExitOrder();
-	TestCPP816SharedInline();
-	TestCPP816TypeNames();
-	TestCPP816StringRegisters();
-	TestCPP816MathRegisters();
-	TestCPP816WideMultiplies();
-	TestCPP816ConstantArguments();
-	TestCPP816Namespaces();
-	TestCPP816EnumClass();
+	TEST_PART(TestCPP816Basics());
+	TEST_PART(TestCPP816SignedToFloat());
+	TEST_PART(TestCPP816Functions());
+	TEST_PART(TestCPP816Classes());
+	TEST_PART(TestCPP816DelegatingConstructors());
+	TEST_PART(TestCPP816BitFields());
+	TEST_PART(TestCPP816Thunks());
+	TEST_PART(TestCPP816OverloadedComma());
+	TEST_PART(TestCPP816WideStrings());
+	TEST_PART(TestCPP816RawStrings());
+	TEST_PART(TestCPP816ExtendedIdentifiers());
+	TEST_PART(TestCPP816NestedConstants());
+	TEST_PART(TestCPP816SharedTables());
+	TEST_PART(TestCPP816Statements());
+	TEST_PART(TestCPP816NarrowSubscripts());
+	TEST_PART(TestCPP816GuardedIndices());
+	TEST_PART(TestCPP816ZeroWords());
+	TEST_PART(TestCPP816PointerCallsAndOrder());
+	TEST_PART(TestCPP816CounterDivisions());
+	TEST_PART(TestCPP816ByteMasksAndSignedCompares());
+	TEST_PART(TestCPP816SharedDivisions());
+	TEST_PART(TestCPP816Divide64());
+	TEST_PART(TestCPP816BitTables());
+	TEST_PART(TestCPP816CountZeros());
+	TEST_PART(TestCPP816BitTable64());
+	TEST_PART(TestCPP816ShiftCounts());
+	TEST_PART(TestCPP816IndexedWords());
+	TEST_PART(TestCPP816SmallShifts());
+	TEST_PART(TestCPP816ScratchOperands());
+	TEST_PART(TestCPP816PointerPlaceLoads());
+	TEST_PART(TestCPP816NarrowDivisors());
+	TEST_PART(TestCPP816WordShifts());
+	TEST_PART(TestCPP816Globals());
+	TEST_PART(TestCPP816Builtins());
+	TEST_PART(TestCPP816MemSwp());
+	TEST_PART(TestCPP816LoopIdioms());
+	TEST_PART(TestCPP816BaseLib());
+	TEST_PART(TestCPP816CompiledAgain());
+	TEST_PART(TestCPP816Sprites());
+	TEST_PART(TestCPP816TideVideo());
+	TEST_PART(TestCPP816Restrict());
+	TEST_PART(TestCPP816RestrictParameter());
+	TEST_PART(TestCPP816LocalSymbols());
+	TEST_PART(TestCPP816ExitValues());
+	TEST_PART(TestCPP816MovedCode());
+	TEST_PART(TestCPP816CompileBaseLibUnits());
+	TEST_PART(TestCPP816NewDelete());
+	TEST_PART(TestCPP816Floats());
+	TEST_PART(TestCPP816NoFloats());
+	TEST_PART(TestCPP816TestBaseLibBugs());
+	TEST_PART(TestCPP816ConstantShifts());
+	TEST_PART(TestCPP816VariableShifts());
+	TEST_PART(TestCPP816Warnings());
+	TEST_PART(TestCPP816RangeWarnings());
+	TEST_PART(TestCPP816LoopCounterWarnings());
+	TEST_PART(TestCPP816OverrideWarnings());
+	TEST_PART(TestCPP816SizeLsizeBugs());
+	TEST_PART(TestCPP816DestructorCalls());
+	TEST_PART(TestCPP816DynamicCast());
+	TEST_PART(TestCPP816DynamicCastUnits());
+	TEST_PART(TestCPP816StaticConstMembers());
+	TEST_PART(TestCPP816ExternTemplateProject());
+	TEST_PART(TestCPP816OverloadedFunctionPointers());
+	TEST_PART(TestCPP816MemberTemplateCallsPlainOverload());
+	TEST_PART(TestCPP816VariadicObjectParameters());
+	TEST_PART(TestCPP816ProfileGuidedInlining());
+	TEST_PART(TestCPP816ProfileRegisterEntries());
+	TEST_PART(TestCPP816ProfileGuidedDivisionTables());
+	TEST_PART(TestCPP816BiasedIndices());
+	TEST_PART(TestCPP816BCDBuiltins());
+	TEST_PART(TestCPP816ShiftedWordIndices());
+	TEST_PART(TestCPP816TypeTraits());
+	TEST_PART(TestCPP816MergedAddressPhis());
+	TEST_PART(TestCPP816InlineObjectParameters());
+	TEST_PART(TestCPP816ConstantDivisions());
+	TEST_PART(TestCPP816DivisionRanges());
+	TEST_PART(TestCPP816WideDivisors());
+	TEST_PART(TestCPP816ScaledIndices());
+	TEST_PART(TestCPP816BiasedIndicesInOneBlock());
+	TEST_PART(TestCPP816BoundedRemainders());
+	TEST_PART(TestCPP816MergeLoop());
+	TEST_PART(TestCPP816ReturnedObjectSlots());
+	TEST_PART(TestCPP816DivisibilityTests());
+	TEST_PART(TestCPP816IntIndexPointers());
+	TEST_PART(TestCPP816NarrowCounters());
+	TEST_PART(TestCPP816AlignedFrames());
+	TEST_PART(TestCPP816AlignedBigFrameArguments());
+	TEST_PART(TestCPP816AlignedFrameUnreadArguments());
+	TEST_PART(TestCPP816RegisterArguments());
+	TEST_PART(TestCPP816FrameOperandFloats());
+	TEST_PART(TestCPP816RegisterFloats());
+	TEST_PART(TestCPP816ObjectArguments());
+	TEST_PART(TestCPP816Exit());
+	TEST_PART(TestCPP816ExitOrder());
+	TEST_PART(TestCPP816SharedInline());
+	TEST_PART(TestCPP816KeepUnusedObjects());
+	TEST_PART(TestCPP816TypeNames());
+	TEST_PART(TestCPP816StringRegisters());
+	TEST_PART(TestCPP816MathRegisters());
+	TEST_PART(TestCPP816WideMultiplies());
+	TEST_PART(TestCPP816ConstantArguments());
+	TEST_PART(TestCPP816Namespaces());
+	TEST_PART(TestCPP816EnumClass());
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 	TypeConverterKill();

@@ -60,6 +60,8 @@ public:
 	size		muiConstantSteps;		//Full-expressions evaluated to work out one constant expression before it is given up on (CCPPConstants).
 	size		muiConstantDepth;		//How deep constexpr calls may go inside one another for a constant.
 	bool		mbExceptions;			//throw, try and catch are compiled (ExceptionsPlan.txt); without it they are errors and nothing pays for them.
+	bool		mbKeepUnusedObjects;	//A global whose making or destroying runs code (R_Initialise, R_Finalise) is linked though
+									//nothing refers to it ([basic.stc.static] 2); off, it goes with the rest of what is unused.
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);

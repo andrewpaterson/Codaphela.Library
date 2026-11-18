@@ -37,6 +37,14 @@ IDE checks the same passes and failures) as a run in one process.
       TestCppCompilerLib.
    e. Check: the totals and every file's count equal a one-process run's in Release|x64 and Debug|x64.
    Questions: none.
+   Done 2026-11-18.  RunParallel.py; TESTLIB_LOG; main's -list, -only, -part p/n and -calls; TEST_PART in the four long
+   files, each call's time and tests printed with TEST_PART_TIMES and kept in Output/RunParallel.times, from which the
+   next run shares a file's calls out by time (the longest first, to the part with least).  Release|x64: 168 s with 4
+   processes, against ~460 s in one.  Every call's tests are the same in parts as in a whole run (checked file by
+   file); a total can differ by what a process does once, the first time a test needs it (TestIRW65C816Backend
+   assembles its runtime libraries in each process that needs them: 203623 run alone, 203611 after the other files in
+   one process).  The floor is two of TestCPPW65C816's functions, which can't be split by function:
+   TestCPP816TestBaseLibBugs 168 s and TestCPP816SizeLsizeBugs 103 s, of its 294 s: step 4 starts with them.
 
 2. IDE checks in parallel, and the heavy checks lighter                              ~50 min -> ~15-20 min
    a. Measure where a heavy check's 44 s goes (indexing BaseLib, starting, the check), with the IDE's timings printed for
@@ -56,6 +64,7 @@ IDE checks the same passes and failures) as a run in one process.
       off the UI thread, reindexing while typing) keep ModPlay.  Expected: the heavy checks ~44 s -> a few seconds each.
    Questions for the user: (d) changes what the usages/find checks run against, from the real ModPlay to a small copy, so
    they no longer check the IDE on a big solution.  Keep a handful on ModPlay (as above), or keep them all and accept ~20 min?
+   The user, 2026-11-18: "2d, run on a small solution".
 
 3. The *65 suites: their programs' runs on worker threads                            TestSupportLib65 816 ~243 s -> ~90 s (estimate)
    a. Measure each suite's compile, link and run times (TEST_PROJECT65_RUN_TIME prints each program's run).

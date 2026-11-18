@@ -204,15 +204,24 @@ void CCPPUnitData::AppendAddress(CChars* pszLabel, int iOffset, int iBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A start up routine's entry in the init (or fini) table, kept only while the global's data section is.
+// A start up routine's entry in the init (or fini) table, kept only while the global's data section is, or with
+// bKeep whether it is or not (CCPPCompileOptions::mbKeepUnusedObjects).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnitData::AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData)
+void CCPPUnitData::AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData, bool bKeep)
 {
 	CChars	szOptions;
 
-	szOptions.Init(mbDataBss ? ", associated bss." : ", associated data.");
-	szOptions.Append(pszData);
+	//Kept with the global's data, or (bKeep) kept whether the global is used or not: its routine keeps its data.
+	if (bKeep)
+	{
+		szOptions.Init(", keep");
+	}
+	else
+	{
+		szOptions.Init(mbDataBss ? ", associated bss." : ", associated data.");
+		szOptions.Append(pszData);
+	}
 	AppendSection(&mszData, szTable, pszLabel, szOptions.Text());
 
 	//Aligned, so an entry never crosses the end of a W65C816 bank (the linker would move it on, leaving a gap the start

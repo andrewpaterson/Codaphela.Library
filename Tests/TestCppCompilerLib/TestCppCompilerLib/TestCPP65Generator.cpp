@@ -16,6 +16,7 @@
 #include "BaseLib/TextFile.h"
 #include "CppCompilerLib/CPP65Builder.h"
 #include "TestLib/Assert.h"
+#include "TestCppCompilerLibParts.h"
 
 
 //Short names for GCC's builtins in the test programs.
@@ -3989,53 +3990,54 @@ void TestCPP65GeneratorVirtualBaseLayouts(void)
 void TestCPP65Generator(void)
 {
 	BeginTests();
+	TEST_PART_BEGIN("TestCPP65Generator");
 
 	TypesInit();
 	TypeConverterInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 
-	TestCPP65GeneratorAssembly();
-	TestCPP65GeneratorConvention();
-	TestCPP65GeneratorOperatorTypes();
-	TestCPP65GeneratorTypesFoundAgain();
-	TestCPP65GeneratorOperators();
-	TestCPP65GeneratorConversions();
-	TestCPP65GeneratorStatements();
-	TestCPP65GeneratorPrograms();
-	TestCPP65GeneratorQueueOrder();
-	TestCPP65GeneratorClasses();
-	TestCPP65GeneratorExtern();
-	TestCPP65GeneratorNewDelete();
-	TestCPP65GeneratorMemberTemplates();
-	TestCPP65GeneratorDependentMembers();
-	TestCPP65GeneratorSpecialisation();
-	TestCPP65GeneratorMemberPointers();
-	TestCPP65GeneratorTemplateOverloads();
-	TestCPP65GeneratorVariadicTemplates();
-	TestCPP65GeneratorOverloadRanking();
-	TestCPP65GeneratorMemberTemplateCallsPlainOverload();
-	TestCPP65GeneratorBaseLibConstructs();
-	TestCPP65GeneratorStandardLibConstructs();
-	TestCPP65GeneratorArrayTemplate();
-	TestCPP65GeneratorProject();
-	TestCPP65GeneratorExternTemplates();
-	TestCPP65GeneratorStaticConstMembers();
-	TestCPP65GeneratorStaticLocalGuard();
-	TestCPP65GeneratorSharedInline();
-	TestCPP65GeneratorTypeNames();
-	TestCPP65GeneratorNestedQualifiers();
-	TestCPP65GeneratorLateMemberDefinitions();
-	TestCPP65GeneratorExternTemplateProject();
-	TestCPP65GeneratorFloat();
-	TestCPP65GeneratorBaseLib();
-	TestCPP65GeneratorAllBaseLib();
-	TestCPP65GeneratorAllStandardLib();
-	TestCPP65GeneratorLazy();
-	TestCPP65GeneratorLockstep();
-	TestCPP65GeneratorErrors();
-	TestCPP65GeneratorListing();
-	TestCPP65GeneratorEnumClass();
-	TestCPP65GeneratorVirtualBaseLayouts();
+	TEST_PART(TestCPP65GeneratorAssembly());
+	TEST_PART(TestCPP65GeneratorConvention());
+	TEST_PART(TestCPP65GeneratorOperatorTypes());
+	TEST_PART(TestCPP65GeneratorTypesFoundAgain());
+	TEST_PART(TestCPP65GeneratorOperators());
+	TEST_PART(TestCPP65GeneratorConversions());
+	TEST_PART(TestCPP65GeneratorStatements());
+	TEST_PART(TestCPP65GeneratorPrograms());
+	TEST_PART(TestCPP65GeneratorQueueOrder());
+	TEST_PART(TestCPP65GeneratorClasses());
+	TEST_PART(TestCPP65GeneratorExtern());
+	TEST_PART(TestCPP65GeneratorNewDelete());
+	TEST_PART(TestCPP65GeneratorMemberTemplates());
+	TEST_PART(TestCPP65GeneratorDependentMembers());
+	TEST_PART(TestCPP65GeneratorSpecialisation());
+	TEST_PART(TestCPP65GeneratorMemberPointers());
+	TEST_PART(TestCPP65GeneratorTemplateOverloads());
+	TEST_PART(TestCPP65GeneratorVariadicTemplates());
+	TEST_PART(TestCPP65GeneratorOverloadRanking());
+	TEST_PART(TestCPP65GeneratorMemberTemplateCallsPlainOverload());
+	TEST_PART(TestCPP65GeneratorBaseLibConstructs());
+	TEST_PART(TestCPP65GeneratorStandardLibConstructs());
+	TEST_PART(TestCPP65GeneratorArrayTemplate());
+	TEST_PART(TestCPP65GeneratorProject());
+	TEST_PART(TestCPP65GeneratorExternTemplates());
+	TEST_PART(TestCPP65GeneratorStaticConstMembers());
+	TEST_PART(TestCPP65GeneratorStaticLocalGuard());
+	TEST_PART(TestCPP65GeneratorSharedInline());
+	TEST_PART(TestCPP65GeneratorTypeNames());
+	TEST_PART(TestCPP65GeneratorNestedQualifiers());
+	TEST_PART(TestCPP65GeneratorLateMemberDefinitions());
+	TEST_PART(TestCPP65GeneratorExternTemplateProject());
+	TEST_PART(TestCPP65GeneratorFloat());
+	TEST_PART(TestCPP65GeneratorBaseLib());
+	TEST_PART(TestCPP65GeneratorAllBaseLib());
+	TEST_PART(TestCPP65GeneratorAllStandardLib());
+	TEST_PART(TestCPP65GeneratorLazy());
+	TEST_PART(TestCPP65GeneratorLockstep());
+	TEST_PART(TestCPP65GeneratorErrors());
+	TEST_PART(TestCPP65GeneratorListing());
+	TEST_PART(TestCPP65GeneratorEnumClass());
+	TEST_PART(TestCPP65GeneratorVirtualBaseLayouts());
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	TypeConverterKill();

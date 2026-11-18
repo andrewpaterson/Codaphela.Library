@@ -49,7 +49,7 @@ public:
 	void		AppendData(int iBytes, int64 lliValue);
 	void		AppendZeros(int iBytes);
 	void		AppendAddress(CChars* pszLabel, int iOffset, int iBytes);
-	void		AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData);
+	void		AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData, bool bKeep = false);
 	void		AppendExitNode(CChars* pszLabel, CChars* pszData, int iBytes);
 	int			GetStartUp(void) const;
 	void		NextStartUp(void) { miStartUps++; }

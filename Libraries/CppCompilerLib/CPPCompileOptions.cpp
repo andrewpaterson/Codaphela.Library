@@ -41,6 +41,7 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	CPP_CONSTANT_STEPS,			//muiConstantSteps
 	CPP_CONSTANT_DEPTH,			//muiConstantDepth
 	false,						//mbExceptions: a program opts in (the user, 2026-11-18).
+	false,						//mbKeepUnusedObjects: what nothing uses is dropped (the user, 2026-11-18: "I suspect it's usually fine").
 };
 
 

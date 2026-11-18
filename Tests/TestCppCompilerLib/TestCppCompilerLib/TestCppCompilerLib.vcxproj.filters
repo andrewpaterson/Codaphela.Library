@@ -141,6 +141,9 @@
     <ClInclude Include="TestCPP65Context.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
+    <ClInclude Include="TestCppCompilerLibParts.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
     <ClInclude Include="TestHeader2.h">
       <Filter>Source\Project</Filter>
     </ClInclude>

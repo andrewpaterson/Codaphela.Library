@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "BaseLib/Timer.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/NumberControl.h"
@@ -16,7 +17,8 @@ void CAssertStatistics::Init(void)
 	mcTotalTimer.Init();
 	mcTestTimer.Init();
 
-	gcLogger.Init();
+	//The log is Log.txt, or what TESTLIB_LOG names: processes run side by side in one folder each have their own.
+	gcLogger.Init(getenv("TESTLIB_LOG") ? getenv("TESTLIB_LOG") : "Log.txt");
 
 	miTotalTestsRun = 0;
 	miTotalTestsPassed = 0;
@@ -229,6 +231,27 @@ bool Pass(void)
 void PrivateBeginTests(const char* szFile)
 {
 	gcAssertStatistics.Begin(szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The tests the file being run (since BeginTests) has run so far.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize TestsRun(void)
+{
+	return gcAssertStatistics.GetTestsRun();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CAssertStatistics::GetTestsRun(void) const
+{
+	return miTestsRun;
 }
 
 

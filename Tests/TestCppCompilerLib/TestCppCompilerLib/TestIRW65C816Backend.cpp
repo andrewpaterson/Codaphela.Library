@@ -20,6 +20,7 @@
 #include "CppCompilerLib/IRW65C816BackendInternal.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
+#include "TestCppCompilerLibParts.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2983,51 +2984,52 @@ void TestIR816BackendXOpcodes(void)
 void TestIR816Backend(void)
 {
 	BeginTests();
+	TEST_PART_BEGIN("TestIRW65C816Backend");
 
 	TypesInit();
 	TypeConverterInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 	CW65C816InstructionFactory::GetInstance()->Init();
 
-	TestIR816BackendDirectPage();
-	TestIR816BackendXOpcodes();
-	TestIR816BackendBasics();
-	TestIR816BackendLoops();
-	TestIR816BackendNarrow();
-	TestIR816BackendDivide();
-	TestIR816BackendDividePaths();
-	TestIR816BackendMultiply();
-	TestIR816BackendDivide16();
-	TestIR816BackendMultiplyConstants();
-	TestIR816BackendShiftConstants();
-	TestIR816BackendCompareCarry();
-	TestIR816BackendSharedPlaces();
-	TestIR816BackendFused();
-	TestIR816BackendStepInPlace();
-	TestIR816BackendShifts();
-	TestIR816BackendX();
-	TestIR816BackendWide();
-	TestIR816BackendFrameCheck();
-	TestIR816BackendParameterPlaces();
-	TestIR816BackendShiftRoutines();
-	TestIR816BackendMultiply64();
-	TestIR816BackendMemoryAndCalls();
-	TestIR816BackendIndexed();
-	TestIR816BackendBranches();
-	TestIR816BackendPeepholeBranches();
-	TestIR816BackendPeepholeRegisters();
-	TestIR816BackendRemoveUnreadStores();
-	TestIR816BackendPeephole();
-	TestIR816BackendRemoveDeadStores();
-	TestIR816BackendRemoveFlowDeadStores();
-	TestIR816BackendPeepholeMasks();
-	TestIR816BackendPeepholeStores();
-	TestIR816BackendPeepholeTransfers();
-	TestIR816BackendTidyExits();
-	TestIR816BackendBigFrame();
-	TestIR816BackendMathSafe();
-	TestIR816BackendInlineMultiply();
-	TestIR816BackendRuntimeRoutines();
+	TEST_PART(TestIR816BackendDirectPage());
+	TEST_PART(TestIR816BackendXOpcodes());
+	TEST_PART(TestIR816BackendBasics());
+	TEST_PART(TestIR816BackendLoops());
+	TEST_PART(TestIR816BackendNarrow());
+	TEST_PART(TestIR816BackendDivide());
+	TEST_PART(TestIR816BackendDividePaths());
+	TEST_PART(TestIR816BackendMultiply());
+	TEST_PART(TestIR816BackendDivide16());
+	TEST_PART(TestIR816BackendMultiplyConstants());
+	TEST_PART(TestIR816BackendShiftConstants());
+	TEST_PART(TestIR816BackendCompareCarry());
+	TEST_PART(TestIR816BackendSharedPlaces());
+	TEST_PART(TestIR816BackendFused());
+	TEST_PART(TestIR816BackendStepInPlace());
+	TEST_PART(TestIR816BackendShifts());
+	TEST_PART(TestIR816BackendX());
+	TEST_PART(TestIR816BackendWide());
+	TEST_PART(TestIR816BackendFrameCheck());
+	TEST_PART(TestIR816BackendParameterPlaces());
+	TEST_PART(TestIR816BackendShiftRoutines());
+	TEST_PART(TestIR816BackendMultiply64());
+	TEST_PART(TestIR816BackendMemoryAndCalls());
+	TEST_PART(TestIR816BackendIndexed());
+	TEST_PART(TestIR816BackendBranches());
+	TEST_PART(TestIR816BackendPeepholeBranches());
+	TEST_PART(TestIR816BackendPeepholeRegisters());
+	TEST_PART(TestIR816BackendRemoveUnreadStores());
+	TEST_PART(TestIR816BackendPeephole());
+	TEST_PART(TestIR816BackendRemoveDeadStores());
+	TEST_PART(TestIR816BackendRemoveFlowDeadStores());
+	TEST_PART(TestIR816BackendPeepholeMasks());
+	TEST_PART(TestIR816BackendPeepholeStores());
+	TEST_PART(TestIR816BackendPeepholeTransfers());
+	TEST_PART(TestIR816BackendTidyExits());
+	TEST_PART(TestIR816BackendBigFrame());
+	TEST_PART(TestIR816BackendMathSafe());
+	TEST_PART(TestIR816BackendInlineMultiply());
+	TEST_PART(TestIR816BackendRuntimeRoutines());
 
 	SafeKill(gapcTestIR816Runtime[0]);
 	SafeKill(gapcTestIR816Runtime[1]);

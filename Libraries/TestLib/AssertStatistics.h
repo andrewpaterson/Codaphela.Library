@@ -29,6 +29,7 @@ void PrivateBeginTests(const char* szFile);
 void PrivateTestStatistics();
 int  TestTotalStatistics(void);
 void InitTotalStatistics(void);
+lsize TestsRun(void);
 
 bool Pass(void);
 bool Failed(size iLine, const char* szFile);
@@ -64,6 +65,7 @@ public:
 
 	void	Begin(const char* szFile);
 	void	End(void);
+	lsize	GetTestsRun(void) const;
 
 	void	PrintTest(CChars* psz);
 	void	PrintTotal(CChars* psz);
