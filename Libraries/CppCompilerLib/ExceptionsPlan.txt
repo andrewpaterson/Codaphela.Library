@@ -252,12 +252,301 @@ Each ends with the whole of TestCppCompilerLib passing in Release x64 and a comm
        2157, and R_BadCast twice).  They become one function that writes the call and, when it may throw, the test.
 
   2. The IR: thrown, throw and nothrow, in the printer, parser, verifier, interpreter, inliner, the block passes, CIRInterprocedural and FoldConstants.  Tests in TestIR, TestIRInterpreter and TestIRInterprocedural, written as IR text: round trips, the verifier's errors, a function inlined at a tested call, a nothrow callee's test folding away.
+     How it is to be done (the code read 2026-11-18 on master a407b23c7, nothing of it built; line numbers are from
+     that reading).  Each step ends with TestCppCompilerLib passing and a commit.
+     2a. The fifth ending.
+       - IRJ_Throw in EIRJumpKind (IRBlock.h:74), CIRBlock::Throw() beside Unreachable() (IRBlock.cpp:179 to 237): no
+         value, no successors.  NumSuccessors (IRBlock.cpp:254) already gives 0 for anything that isn't jmp or brif, so
+         predecessors, dominators, liveness, the loops, OrderBlocks and RemoveUnreachable need nothing.
+       - The printer (PrintJump, IRPrinter.cpp:729) and the parser (ParseJump, IRParser.cpp:1324; "throw" and "thrown"
+         don't collide, GetKeyword takes the whole word).
+       - The three places that quietly turn an ending they don't know into something else, which each get a case:
+         the inliner's CopyBlock (IRInliner.cpp:1019, unreachable; see 2d), UnswitchLoops' copy of a loop's blocks
+         (IROptimiserLoops.cpp:1538, unreachable: a throw is copied as a throw), and the W65C816's Jump
+         (IRW65C816Backend.cpp:2000, stp: until stage 3 it is an error, as the 65C64's default already is).
+       - The interpreter: RunFrame's switch (IRInterpreter.cpp:1191) fails with "It throws an exception".
+       - Read and found to need nothing, each to get a test with a throw block all the same: DuplicateReturns (only
+         copies a ret), SkipEmptyBlocks and JoinBlocks (only act on a jmp; JoinBlocks carries the ending it finds),
+         CanInline (a function with no ret isn't inlined, and stays so), IsForwarder and IsThunk (want a ret).
+       - Tests: TestIR round trip, the parser's errors, an optimiser test with a throw block reached by a brif.
+     2b. thrown.
+       - An opcode after call (IROpcode.h:91, the row in IROpcode.cpp:43 to 109, and a row in gasIR816XOpcodes,
+         IRW65C816Places.cpp:1787, which is in the same order).  It is the first opcode with a result and no operands.
+         Its text is "%t = thrown i1": the parser reads that as it is (ParseOperation wants a type and then
+         NumOperands() operands), and the printer learns the general rule that an opcode with no operands prints its
+         type and stops (IRPrinter.cpp:666; it would print "i1 ?" today).  The opcodes of the targets are numbered
+         after the generic ones, so they move by one: TestIR.cpp:485 says the numbers.
+       - The verifier, where "arg not followed by a call." is (IRVerifier.cpp:639): the instruction before a thrown is
+         a call.  "thrown not straight after a call."
+       - It is IROP_Pure, so that it doesn't count as a write to memory (not pure, it would stop its function being
+         nowrites and stop the passes that a call already stops), with one exception written where the exception is:
+         two throwns are never the same instruction (IROptimiserSameInstruction, IROptimiserFolding.cpp:803), since
+         each speaks of its own call.  Dead code may remove one that nothing reads.  It is not in IROptimiserHoistable's
+         list, so nothing lifts it out of a loop.
+       - The one pass found that would put something between a call and what follows it: SinkStep
+         (IRBackendPasses.cpp:440 to 455) puts a loop's step after the call whose arg read it.  It puts it after the
+         thrown too.  The others that insert or move were read (the list is in the reading's notes: SinkLoads, the
+         hoists, InsertInstruction's callers, NarrowTruncations, RemoveDeadArguments) and insert before what they
+         rewrite; the verifier's rule catches one that was missed, since the optimiser tests verify after the passes.
+       - The interpreter: thrown is false (a callee that threw has failed already).  It needs its own case in Step
+         (IRInterpreter.cpp:888): the default reads an operand it hasn't got.
+       - Both back ends say "not supported" for it until stage 3 (their defaults do).
+       - Tests: round trip, the verifier's error, two calls each with a thrown through the common subexpression pass,
+         a loop whose step is sunk past a call with a thrown, TestIRInterpreter (a function that throws on one path
+         is a constant on the other).
+     2c. nothrow.
+       - SIRSymbolDefinition::bNoThrow beside bNoWrites (IRModule.h:87), SetNoThrow and IsNoThrow, the line
+         "nothrow @name" printed after the nowrites lines (IRPrinter.cpp:107) and parsed (IRParser.cpp:120; the error
+         that lists the words is asserted word for word at TestIR.cpp:567).
+       - Who sets it.  The front end, for what it knows from a declaration (stage 6 does this; here only the means).
+         CIRInterprocedural::MarkNoThrow, written as MarkNoWrites is (IRInterprocedural.cpp:384): every function of the
+         unit that has IR is taken to be nothrow, then, until nothing changes, one stops being so if a block that ends
+         in throw can be reached from its entry when the "threw" side of a brif on the thrown of a call to a nothrow
+         symbol is not followed.  A call through a pointer, and a symbol with no IR that nobody marked, may throw.  It
+         never clears a mark the front end set.  It is called where MarkNoWrites is (CCPP65IRFrontEnd::InlineUnit,
+         CPP65IRFrontEndUnit.cpp:79 to 84), so, like it, only when the unit is optimised and inlined; without it the
+         tests after calls simply stay.
+       - What reads it: FoldConstants gets a case of its own (the chain at IROptimiserFolding.cpp:116; Fold itself
+         gives up on an instruction with no operand) that looks at the instruction before a thrown and makes it false
+         when that calls a nothrow symbol.  FoldBranches and RemoveUnreachable then take the landing code away.  The
+         verifier: a function whose symbol is nothrow has no block that ends in throw.
+       - The same holes nowrites has, to be closed for nothrow where restrict and regcall are carried today, because a
+         lost nothrow costs code in every caller: CIRImports::Export (IRImports.cpp:473 to 499), the inliner's Map for
+         a callee from another unit (IRInliner.cpp:751 to 764), CIRModule::CopyFunction (IRModule.cpp:596).
+       - There is no list of the routines the optimiser itself calls: CIRIdiomPasses::LibraryCall
+         (IROptimiserIdioms.cpp:392), which makes the symbols for memcpy and the rest, marks them nothrow as it marks
+         them regcall.  The soft float and the R816_ routines aren't calls in the IR at all, so they are never tested.
+       - Tests: TestIRInterprocedural (a chain of functions the last of which can't throw; two that call each other;
+         one called through a pointer; a mark the front end set that survives), TestIR for the fold and for the
+         landing blocks going.
+     2d. The inliner (IRInliner.cpp:862 to 947).
+       - Today everything after the call moves to a new block, each copied ret jumps there and the result is a phi.
+         With a thrown first in that block: each copied throw jumps there too, the thrown becomes a phi of false from
+         the returns and true from the throws, and the result's phi has a zero from the throws.  The front end always
+         writes call, thrown, brif with nothing between, so the new block is phis and a brif, which is the shape
+         ThreadPhis sends each predecessor straight through (IROptimiserBlocks.cpp:656; it wants every instruction of
+         the block pure): each return goes on, each throw goes to the landing code.  A test says so.
+       - A callee that has a throw, called with no thrown after it, isn't inlined (it can't happen from the front end;
+         CanInline says no rather than lose the throw).
+       - Tests: by hand, as TestIRInlineForwarders is (TestIR.cpp:2559): a callee that returns on one path and throws
+         on the other; one that only returns, into a tested call; the text after SimplifyCFG.
+     2e. IR.txt: the endings (lines 39 and 152 to 160, where "Exceptions are not in the IR" is), calls (132 to 150),
+         the verifier's rules (215 to 219), the interprocedural passes (279 to 284) and inlining (286 to 296).  It
+         doesn't say what the restrict, regcall and nowrites lines are at all; the text form's section gets all four.
 
   3. The back ends: the throw exit and the test, on both, through every kind of exit and stub in 2 above; the start-ups; the builder's check of assembly.  Tests in TestIR65Backend and TestIRW65C816Backend from IR text, and programs written in IR that throw through frames of each irregular kind and are run.
+     How it is to be done (read the same day; "the reading" is the back ends' part of it).  What it found that the
+     plan above didn't know:
+       - Removing a call's arguments loses the carry on both processors (the W65C816's tsc, clc, adc, tcs for all but
+         2 or 4 bytes, IRW65C816Calls.cpp:70 to 84; the 65C64's add S, n, IR65Calls.cpp:337), and so does the form of
+         register stub that calls its body (IRW65C816Backend.cpp:1628; IR65Backend.cpp:664).
+       - The 65C64 has no instruction that sets or clears the carry, and its add and cmp don't read it
+         (65C64Simulator.txt:71).  cmp S, S sets it (no borrow) and add S, 0 clears it, and neither changes anything
+         else but the other flags.  To be tried on the simulator first, with whether ret leaves the flags alone
+         ("ret pulls P if asked", line 86).
+       - A noexcept function can be called through a plain pointer (C++14 keeps the specification out of the type),
+         and that call is tested.  So with exceptions on every function returns with the carry clear, not only those
+         that can throw; the one that may skip it is a local function all of whose callers are known not to test.
+       - Both back ends take "the block's last instruction gives an i1" to be the brif's comparison
+         (CIRBackend::BranchComparison, IRBackend.cpp:90): the 65C64 would hand a thrown to IntegerCompare.
+     3a. The exits.  Only with the option on; with it off not a byte changes, and the tests say so.
+       - W65C816.  The usual exit (IR816AppendFrameExit, IRW65C816Frames.cpp:83) ends tdc, clc, adc n, tcs, pld, rtl:
+         the carry is clear already.  The exits with no adc get a clc before the rtl: a function with no frame
+         (DropFrame, IRW65C816Frames.cpp:364) and a page-aligned one (AlignFrame, :633).  A block that ends in throw
+         is the function's exit with no value and sec before the rtl.  Three things match the exit's text and must
+         know the new last lines: DropFrame and AlignFrame (:336, :542, :645), IR816TidyExits (:209, it wants tya, pld,
+         rtl one after another) and IR816LinkFlowBlock (IRW65C816Flow.cpp:857, it wants pld before rtl).
+       - 65C64.  ReturnCode (IR65Backend.cpp:282): with a frame the exit's add S, n leaves the carry clear; with none,
+         add S, 0.  The throw exit ends cmp S, S, ret.  The copied short exits (:1296) and ReturnDirectly
+         (IR65Peephole.cpp:711) copy whichever exit it is.  ComputeFlagDemand (IR65Code.cpp:1239) takes the flags to be
+         dead at ret: with the option on ret reads c, or RemoveCompares takes the new lines away.
+       - The W65C816's peepholes rest on "branching on the carry is the only way the code reads a carry it didn't
+         set" (IRW65C816Peephole.cpp:138) and so remove a cmp 0 before an exit.  The clc and sec are written last, after
+         anything of the kind, and rtl already counts as reading the carry (IR816CarryReadLater, :201), so nothing
+         removes them.  jsl and jsr are not marked as setting the carry (IRW65C816Lines.cpp:75): they are now, so that
+         nothing takes a carry known before a call to be known after it.
+       - Thunks and the vcall thunk end in a jml or the rtl trick and pass the carry on as it is (CPPTargetW65C816.cpp
+         523 to 579, CPPTarget65C64.cpp 275 to 306): read again, tested, not changed.
+       - Forwarders (W65C816 only): a function that tests its call isn't one any more (Forwarder,
+         IRW65C816Backend.cpp:1132, wants the call last and one block), so nothing is wrong, only bigger.  Stage 9.
+     3b. The test after a call.
+       - The call's code looks at the next instruction.  When it is a thrown that the block's brif alone reads (the
+         shape the front end writes), the thrown is not written by itself: it is fused, as a comparison is
+         (IsFusedCompare, IRW65C816Compares.cpp:272; FusedComparison, IR65Places.cpp:189, which has no list of opcodes
+         and gets one).  After the jsl (IRW65C816Calls.cpp:163 and :196) or jsr (IR65Calls.cpp:97):
+           - nothing was pushed, or the W65C816 pushed 2 or 4 bytes (it removes them with ply, which keeps the carry):
+             the result is stored (sta and stx, and the 65C64's cpy, keep the carry) and the ending is one bcs or bcc
+             (brac c or bras c) with the edges' copies, written by what writes a fused comparison's branch.
+           - otherwise the arguments are still on the stack on the way that threw: bcs to a few lines put after the
+             function's last block, which remove them and go on to the landing block.  The way that didn't throw is
+             as it is today.
+       - A thrown that isn't fused (something came between it and the brif, or it has another reader) is made a value
+         at the call: bcs, 0 or 1, as Compare makes a comparison's (IRW65C816Compares.cpp:390; IR65Instructions.cpp:224).
+         The front end never writes this; a test does.
+       - The register stubs' calling form: bcs after the call of the body to a second ending that tidies the stack
+         and leaves with the carry set.  Left as it is when the body's symbol is nothrow.
+       - A branch out of reach: the W65C816's functions start with .relax and the assembler turns a far bcs into a bcc
+         round a brl.  What the 65C64's assembler does with a far bras or brac wasn't read: to be found out here.
+       - The soft float's calls, the R816_ routines and R_DivideSigned are assembly that leaves the carry as it
+         falls: none is a call in the IR, so none is ever followed by a thrown.  Nothing to do, and a line in IR.txt.
+     3c. The start-ups: CPPTarget65C64.cpp:163, CPPTargetW65C816.cpp:384 and HCP65's UserStart.asm:92.  After main
+       returns, carry set is an exception nobody caught: a call of the terminate routine through a weak reference, as
+       ___RunAtExit is called (it is linked only when something can throw).  Until stage 4 has the routine the
+       reference is never satisfied and the line is a stop.  The init and fini entries and the exit lists' runner call
+       C++ that ends in terminate itself (stage 6), so their walkers aren't touched.
+     3d. The builder's check of assembly.  An object doesn't say whether it came from assembly or C++, and a unit
+       doesn't say which of the symbols it calls it tests (CPP65Builder.h:72; Asm65Object.h:91).  So: the back end
+       gives each unit the list of symbols it calls with a test (beside the missing callees it already gives,
+       SCPP65CompiledUnit), the builder marks the objects it assembled (AddUnit's .asm path, AddAssemblyUnit,
+       AddRuntime, AddAssembly), and after the link a tested symbol that an assembled object defines is an error:
+       "f is assembly and is called by C++ that tests for an exception: declare it noexcept".  An assembly routine
+       written to the rule (clc before it returns) says so with a directive the check reads; none exists yet, and it
+       is only added if one is wanted.
+     3e. Tests.
+       - Each back end from IR text, the assembly asserted (the run helpers hand it back: TestIR816Run,
+         TestIRW65C816Backend.cpp:325; TestIR65Run, TestIR65Backend.cpp:192): each exit of 3a with the option on and
+         off, the fused test with nothing, 2, 4 and more bytes pushed, the thrown as a value, the stub.
+       - Programs written in IR and run on both processors (each helper runs both, so 3a and 3b are finished on both
+         before either file passes): main calls a function that throws through one, two and three frames, the frames
+         being each kind of 3a in turn (usual, no frame, page-aligned, register stub in both forms, through a pointer,
+         through a this-adjusting thunk and a vcall thunk written by hand), with arguments on the stack and with
+         none, in a loop, and with the result of the call used on the way that didn't throw.
+       - The text passes, with their own helpers (AssertIR816TidyExits, AssertPeepholeBranches, TestIR65FlagsOptimise):
+         the new exits go through unchanged.
+       - TestCppCompilerLib and the Lib65 suites' compile with the option off: the listings are the same as before
+         the stage, byte for byte.
 
   4. Type info and the runtime: the type info's new layout (agreed with the other session), dynamic_cast, typeid and delete on it; Libc65's exception.cpp and headers.  The runtime is tested in TestLibc65 by calling it directly, before the compiler writes a throw.
+     How it is to be done (read the same day).  It stands on the other session's question 8, which hadn't been
+     started when this was written (its worktree was clean at 132c4d5ca): it changes the class's list to three-word
+     entries behind a header of name and kind, and keeps dynamic_cast, typeid and delete working on it.  This stage
+     starts when that is on master and merged here.
+     What is there today: a class's type info is a list of (type info, offset) for itself and every base subobject,
+     the complete object first, ended by a zero word, label _<Class>__3 (CCPPUnit::EnsureTypeInfo,
+     CPPUnitVtables.cpp:338); any other type's is one zero word, label _3<mangled type>, written only when typeid
+     names it (CCPPUnit::AppendTypeidLabel, CPPUnitObjects.cpp:292).  Copies in several units are comdat sections and
+     the linker keeps the first.  dynamic_cast is IR written where it is used (CCPP65IRFrontEnd::DynamicCast,
+     CPP65IRFrontEndConversions.cpp:202), with no check that the base is public; there is no routine for it.
+     4a. Type info for every type, on question 8's header.
+       - One function gives the type info's label for any type and sees that it is written (AppendTypeidLabel made
+         general): by kind, a pointer's has its pointee's type info after the header and the pointee's const and
+         volatile in bits 8 and 9 of the kind word; a member pointer's has the pointee's and then the class's;
+         nullptr_t, enums, arrays, functions and the fundamental types have the header alone.  It writes what it
+         refers to, as EnsureTypeInfo writes the bases'.
+       - A handler tells types apart by these labels, so two types with one mangling are one type to a catch.  To be
+         checked before anything else: int and long (both 4 bytes on the 65C64, and the mangler's default gives both
+         "i", CPPMangler.cpp:486), char and signed char, wchar_t and char16_t against the types under them, and how
+         decltype(nullptr) is kept (SCPP65Type has no kind for it).  Where two share one, the mangling is mended, which
+         is right for overloads too.
+       - The class entries' flags (bit 0: reached by a public path; bit 1: a virtual base).  If question 8 leaves them
+         unfilled, AppendTypeInfoBases (CPPUnitVtables.cpp:392) fills them here.
+       - dynamic_cast reads bit 0: a base that isn't public is not found (5.2.7/8).  It doesn't check today; this is a
+         change with exceptions off too, and a conformance case.
+     4b. The runtime: Libc65's exception.cpp.
+       - Its routines are extern "C" functions with names that begin with two underscores (__Throw, __Match and the
+         rest), so their labels are what the compiler calls, as __RunAtExit's is.  The plan above calls them R_Throw
+         and so on; a label that begins R_ can't be written in C++ (every C label gets an underscore, CPPMangler.cpp:110)
+         and means "the unit writes it itself" to CCPPUnit::AppendUsedLabels (CPPUnit.cpp:949).  One that isn't linked
+         is already a link error that names it (CPP65Builder.cpp:1266).
+       - CCPP65IRFrontEnd::CallRuntime takes one argument (CPP65IRFrontEndCalls.cpp:1039): it takes a list, and marks
+         the symbol a register call (MarkFunctionSymbol does for any function with plain parameters; CallRuntime's
+         callers get the stack form today), and nothrow.
+       - The exception's header, in front of the object: the type info, the destructor, the count of who needs it,
+         the link, and the address the handler's parameter was given.  __AllocateException: malloc, which is safe
+         before the static initialisers have run (the heap starts itself, stdlib.cpp:63); when it gives null, a pool
+         that is a static array in exception.cpp (a few objects of up to 64 bytes); when that is gone, terminate.
+       - The state: one struct, a plain global as errno and the atexit list are (there is nothing per thread to
+         follow: thread_local is one thread's static storage).  Kept in data, not bss, so that it is zero whether the
+         start up clears bss or not, as the exit lists' heads are (CPPTarget.cpp:241).
+       - __Match(handler's type info), 15.3/3, over the type info of 4a: the same type; a class that is a public base
+         found once in the thrown class's list (bit 0, and the entry's offset, which is right because the thrown
+         object is complete); a thrown pointer to a handler's pointer (the same pointee with more const or volatile at
+         each level, to void, or to a public base found once: the pointer is moved by the entry's offset, and for a
+         virtual base through the object's own vtable, as dynamic_cast does); nullptr to any pointer or member
+         pointer; a member pointer only with more const or volatile.
+       - __Throw, __BeginCatch, __EndCatch, __Rethrow, __FreeException, __Terminate, __Unexpected and the handlers'
+         setters, as in 3 above.  None of them has a throw in it (the compiler writes the way out after __Throw and
+         __Rethrow), so exception.cpp compiles with the option off or on, before stage 6.  The routines that do throw
+         (rethrow_exception, throw_with_nested, bad_cast's and the others') are stage 8's.
+       - R_Pure calls __Terminate when it is linked (weak), and stops otherwise.  The start ups' reference of 3c is
+         satisfied.
+       - The headers: <exception> (exception, bad_exception, the terminate and unexpected handlers,
+         uncaught_exception; exception_ptr and nested_exception are stage 8's) and in <typeinfo>, which is question
+         8's file, bad_cast and bad_typeid.  <new> is stage 8's.
+       - exception.cpp is added to the W65C816's list of Libc65's units (CPPTargetW65C816.cpp:229); it is linked only
+         when something refers to it.  The tests that list the units by hand get it where they need it.
+     4c. Tests.
+       - TestLibc65 gets TestLibc65Exception: programs that call the routines themselves, with typeid(T) for the type
+         infos (a throw can't be compiled yet).  Throw and match for each rule of 15.3/3 and each that must not match
+         (a private base, an ambiguous base, a pointer that would lose const, a pointer to a pointer to a derived
+         class); the stacks (a second exception thrown and caught while the first is in flight; rethrow; the count of
+         uncaught ones); the object destroyed when the last handler leaves and not before; the pool, with malloc made
+         to fail; terminate's handler reached through _Exit.
+       - The conformance test: dynamic_cast to a private base; typeid of a pointer, an enum, nullptr.
+       - The kernal's ROM is measured before and after question 8 by the other session; after 4a it is measured
+         again, since a class's entries are a word longer and every vtable names one.
 
   5. The cleanup stack, changing nothing: masLiving and masTemporaries become CCPP65IRCleanups, and every push moves to after its construction.  The proof is that the Lib65 listings don't change (TEST_PROJECT65_LISTINGS against a baseline) except where a push moved, and the suite.
+     How it is to be done (read the same day).  What the reading found that changes the stage:
+       - The two lists can't be one list cut back to a mark.  A local is put on masLiving before its initialiser's
+         temporaries are destroyed (CPP65IRFrontEndStatements.cpp:456 and then :469; :1165 and :1177), so the
+         temporaries to remove are under it.
+       - Every push of a temporary is before its constructor (they are all in Temporary,
+         CPP65IRFrontEndObjects.cpp:1719), and moving it to after changes the order temporaries are destroyed in
+         whenever the constructor's operands make temporaries of their own: for f(S(T())) the S is registered first
+         today and so destroyed last.  The standard has them destroyed in the reverse of the order their construction
+         finished (12.2), which is S first.  So "changing nothing" can't be all of the stage: it is two steps, the
+         first of which changes nothing and the second of which changes exactly this.
+       - What is in no list at all (the object a return is making, memory from new, a constructor's bases and
+         members, an array's elements so far, a static local) stays out here.  Stage 7.
+     5a. The class, changing nothing.
+       - CCPP65IRCleanups (CPP65IRCleanups.h and .cpp): one stack in the order things were registered.  An entry is
+         the place (SCPP65IRPlace), its kind (a local, a temporary, a conditional temporary with its flag), and room
+         for what stages 6 and 7 add (the block that undoes it, made when asked for; the kinds that only an exception
+         undoes).  What it does, each one of the things the front end does by hand today:
+           - PushLocal (AddLiving, Statements.cpp:180: only a type with a destructor) and PushTemporary (the two
+             pushes in Temporary).
+           - Mark(): the stack's height, for a scope, a loop's body (masJumps' uiLiving, set at Statements.cpp:150 and
+             :1029) and a full expression.
+           - LeaveScope(mark): writes the destructors down to the mark and cuts back to it (LeaveScope, :222).
+           - DestroyTo(mark): writes them and removes nothing, for return, break and continue and the end of the
+             function (DestroyLiving, :238; five callers).
+           - EndFullExpression(mark): writes the destructors of the temporaries above the mark, the conditional ones
+             behind their flag as now (DestroyTemporaryPlaces, :323), and takes those entries out, leaving the locals
+             that were registered after them (DestroyTemporaries, :265).  And the form that writes them without
+             removing, twice, for the two ways out of a condition (FullCondition, CPP65IRFrontEndOperators.cpp:705).
+             Where MarkFullExpression's flag goes is kept as it is in each (after the destructors in one, before
+             them in the other).
+           - Extend(address): a temporary a reference keeps alive becomes a local where it stands (ExtendTemporary,
+             :196, takes it out of the middle of one list and puts it at the end of the other; the order of
+             destruction is the same, because no local can be registered between the two in one initialiser).
+           - The questions the front end asks of the lists to say "not supported": a statement that leaves a
+             temporary (:53), a member initialiser that does (CPP65IRFrontEnd.cpp:223), a goto with anything living
+             (:1442), a reference local with a temporary left (:465, :1173).
+       - The lists are touched in 37 places in 25 functions, all in CPP65IRFrontEndStatements.cpp, Temporary,
+         FullCondition and CPP65IRFrontEnd.cpp; nothing saves and restores them, and a constant worked out in the
+         middle of a function has a front end of its own (CCPPConstants::BeginWriting).  masLiving, masTemporaries and
+         the helpers over them go; miConditional stays where it is (it is about operands, not about the stack).
+       - To be settled on the way: Temporary asks NeedsDestructor() and AddLiving asks mpcDestructor (Objects.cpp:1730,
+         Statements.cpp:182).  If they can differ the class keeps the difference and a line here says why.
+       - The proof: the Lib65 suites' compile on both processors with TEST_PROJECT65_LISTINGS
+         (TestProject65.cpp:809) before and after, and the listings the same byte for byte.  They are compiled with
+         TEST_PROJECT65_SERIAL and in the foreground, one suite at a time: the machine couldn't hold the suites any
+         other way on 2026-11-18.  And TestCppCompilerLib, whose text tests of destructors are in TestCPP65Generator
+         and TestCPPW65C816.
+     5b. Registered when made.
+       - Temporary is split: it makes the slot (and for a conditional one the flag and its zero in the entry block)
+         and gives back what Register(…) needs; the seven callers that want the temporary destroyed register it after
+         their Construct or their call (CPP65IRFrontEndCalls.cpp:735 and :822; Objects.cpp:68, :1556, :1611, :1646,
+         :1688).  A conditional temporary's flag is set to 1 after its constructor, not before (:1753).
+       - What changes in what is compiled, and nothing else may: the order of two temporaries' destructors where one
+         was made while the other's constructor's operands were being worked out, and where a conditional
+         temporary's flag is stored.  The listings are compared again and each difference is one of the two.
+       - Conformance cases first, run on the hosts as the others were: TemporariesReverseOrder (f(S(T())) and an
+         argument that makes a temporary), ConditionalTemporaryOrder.  They fail before 5b and pass after.
+       - Found on the way and not this stage's: a std::initializer_list's array of objects with destructors is never
+         destroyed (InitializerList, Objects.cpp:984, registers nothing).  It is in stage 7's list already; if it is a
+         wrong program today and not a refused one, it is told to the other session now.
 
   6. throw, try and catch: the throw expression, the try statement, handlers by value, by reference and (...), throw; with no operand, nesting, unwinding through locals and temporaries, an exception nobody catches, noexcept functions.  The first conformance cases pass, on both targets.
 
@@ -305,6 +594,13 @@ Questions for the user
   6. With exceptions off, new that fails returns null, as now (the standard has no such mode, so there is no right answer).  Assumed: yes.
   7. An exception nobody catches unwinds the stack before terminate is called, so a terminate handler can't see where it was thrown from; a breakpoint on R_Throw can.  It comes with the scheme.  Assumed: accepted.
   8. Interrupt handlers and the kernal call: no exception crosses either.  A handler that lets one out stops the machine (terminate).  Assumed: yes.
+
+  Added 2026-11-18 with the steps of stages 2 to 5:
+  9. With exceptions on, every function returns with the carry clear, whether or not it can throw (a noexcept function can be called through a plain pointer, and that call is tested).  It costs a byte at the exits of functions with no frame.  Assumed: yes.
+  10. The runtime's routines are C functions in Libc65 with names that begin with two underscores (__Throw), not R_ labels.  Assumed: yes.
+  11. dynamic_cast stops finding a base that isn't public (stage 4a), with exceptions off too.  It is what the standard says and no code here is known to lean on it.  Assumed: yes.
+  12. Stage 5b changes the order in which the temporaries of one expression are destroyed, to the standard's (the reverse of the order they were finished).  A program that leans on today's order changes.  Assumed: yes.
+  13. Stage 4 waits for the other session's question 8 (the type info's header).  Stages 2, 3 and 5 don't; 5 is best done when the other session has left the front end's statement files.  Assumed order: 1, 2, 3, 5, 4.
 
 
 Progress
