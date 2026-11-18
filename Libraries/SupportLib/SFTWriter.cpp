@@ -81,7 +81,7 @@ bool HasTransparency(Ptr<CImage> pImage, lsize uiImageLeftOffset, lsize uiImageT
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFT(Ptr<CImage> pImage, char* szFilename, bool bForceTransparent)
+bool SaveSFT(Ptr<CImage> pImage, char* szFilename, bool bForceTransparent, lsize uiMergeGap)
 {
 	ValidatePtr(pImage);
 
@@ -114,7 +114,7 @@ bool SaveSFT(Ptr<CImage> pImage, char* szFilename, bool bForceTransparent)
 	{
 		if (HasTransparency(pImage, 0, 0, pImage->GetWidth(), pImage->GetHeight()) || bForceTransparent)
 		{
-			bResult = SaveSFTTransparent(pImage, &cFile, 0, 0, pImage->GetWidth(), pImage->GetHeight());
+			bResult = SaveSFTTransparent(pImage, &cFile, 0, 0, pImage->GetWidth(), pImage->GetHeight(), uiMergeGap);
 		}
 		else
 		{
@@ -188,17 +188,17 @@ bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffs
 
 //////////////////////////////////////////////////////////////////////////
 //
-// uiCount pixels skipped (SFT_RUN_SKIP) or rows moved down (SFT_RUN_ROWS),
-// SFT_RUN_MAX_COUNT at a time.
+// uiCount pixels skipped (SFT_RUN_SKIP, uiMax SFT_RUN_MAX_COUNT) or rows
+// moved down (SFT_RUN_ROWS, SFT_RUN_MAX_ROWS), uiMax at a time.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AddSFTCount(CArrayChar* pauiData, uint8 uiCode, lsize uiCount)
+static void AddSFTCount(CArrayChar* pauiData, uint8 uiCode, lsize uiCount, lsize uiMax)
 {
 	lsize	uiChunk;
 
 	while (uiCount > 0)
 	{
-		uiChunk = (uiCount < SFT_RUN_MAX_COUNT) ? uiCount : SFT_RUN_MAX_COUNT;
+		uiChunk = (uiCount < uiMax) ? uiCount : uiMax;
 		pauiData->Add((char)(uiCode | (uiChunk - 1)));
 		uiCount -= uiChunk;
 	}
@@ -212,26 +212,39 @@ static void AddSFTCount(CArrayChar* pauiData, uint8 uiCode, lsize uiCount)
 // skipping from the one before.  The rows after the last pixel aren't
 // written.
 //
+// Runs of a row that are no more than uiMergeGap transparent pixels apart
+// are written as one mixed run, their gaps as SFT_PIXEL_TRANSPARENT: fewer,
+// longer runs for what draws a run as one copy.  A run with a pixel of that
+// colour (black) is left by itself, as it can't be in one.  With 0 no runs
+// are mixed.
+//
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
+bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight, lsize uiMergeGap)
 {
 	SSFTImage					sStruct;
 	CChannelsAccessor*			pcOppacityAccessor;
 	CChannelsAccessor*			pcDiffuseAccessor;
 	lsize						x;
 	lsize						y;
-	lsize						x2;
 	lsize						y2;
 	lsize						uiImageWidth;
-	bool						bOpaque;
 	lsize						uiRows;
 	lsize						uiSkip;
-	lsize						uiRun;
+	lsize						uiStart;
+	lsize						uiEnd;
+	lsize						uiNext;
+	lsize						uiAfter;
 	lsize						uiChunk;
+	lsize						uiMax;
 	lsize						i;
 	lsize						j;
+	bool						bMixed;
+	bool						bBlack;
+	bool						bNextBlack;
+	bool						bResult;
+	uint8*						pauiPixels;
+	bool*						pabOpaque;
 	CArrayChar					auiData;
-	CArrayChar					auiRun;
 	lsize						iResult;
 	CChannelsAccessorCreator	cCreator;
 
@@ -254,48 +267,84 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 	cCreator.AddAccess(IMAGE_DIFFUSE_BLUE, PT_crumb);
 	pcDiffuseAccessor = cCreator.CreateAndKill();
 
+	pauiPixels = (uint8*)malloc(uiCelWidth + 1);
+	pabOpaque = (bool*)malloc(sizeof(bool) * (uiCelWidth + 1));
 	auiData.Init();
-	auiRun.Init();
 	uiRows = 0;
 	y2 = uiImageTopOffset + uiCelHeight;
-	x2 = uiImageLeftOffset + uiCelWidth;
 	for (y = uiImageTopOffset; y < y2; y++)
 	{
-		uiSkip = 0;
-		for (x = uiImageLeftOffset; x <= x2; x++)
+		//The row: which pixels are drawn, and what they are.
+		for (x = 0; x < uiCelWidth; x++)
 		{
-			bOpaque = (x < x2) && ((pcOppacityAccessor == NULL) || (*((bool*)pcOppacityAccessor->Get(x + y * uiImageWidth))));
-			if (bOpaque)
-			{
-				auiRun.Add(*((char*)pcDiffuseAccessor->Get(x + y * uiImageWidth)));
-			}
-			else if (auiRun.NumElements() > 0)
-			{
-				//A run has ended: down to its row, across to it, then its pixels.
-				AddSFTCount(&auiData, SFT_RUN_ROWS, uiRows);
-				AddSFTCount(&auiData, SFT_RUN_SKIP, uiSkip);
-				uiRun = auiRun.NumElements();
-				for (i = 0; i < uiRun; i += uiChunk)
-				{
-					uiChunk = ((uiRun - i) < SFT_RUN_MAX_PIXELS) ? (uiRun - i) : SFT_RUN_MAX_PIXELS;
-					auiData.Add((char)uiChunk);
-					for (j = 0; j < uiChunk; j++)
-					{
-						auiData.Add(auiRun.GetValue(i + j));
-					}
-				}
-				auiRun.ReInit();
-				uiRows = 0;
-				uiSkip = 1;
-			}
-			else
+			i = uiImageLeftOffset + x + y * uiImageWidth;
+			pabOpaque[x] = (pcOppacityAccessor == NULL) || (*((bool*)pcOppacityAccessor->Get(i)));
+			pauiPixels[x] = pabOpaque[x] ? *((uint8*)pcDiffuseAccessor->Get(i)) : (uint8)SFT_PIXEL_TRANSPARENT;
+		}
+
+		uiSkip = 0;
+		x = 0;
+		while (x < uiCelWidth)
+		{
+			if (!pabOpaque[x])
 			{
 				uiSkip++;
+				x++;
+				continue;
 			}
+
+			//A run, and the runs after it that are near enough to be one with it.
+			uiStart = x;
+			bMixed = false;
+			bBlack = false;
+			for (uiEnd = uiStart; (uiEnd < uiCelWidth) && pabOpaque[uiEnd]; uiEnd++)
+			{
+				bBlack = bBlack || (pauiPixels[uiEnd] == SFT_PIXEL_TRANSPARENT);
+			}
+			while (!bBlack && (uiMergeGap > 0))
+			{
+				for (uiNext = uiEnd; (uiNext < uiCelWidth) && !pabOpaque[uiNext]; uiNext++)
+				{
+				}
+				if ((uiNext == uiCelWidth) || (uiNext - uiEnd > uiMergeGap))
+				{
+					break;
+				}
+				bNextBlack = false;
+				for (uiAfter = uiNext; (uiAfter < uiCelWidth) && pabOpaque[uiAfter]; uiAfter++)
+				{
+					bNextBlack = bNextBlack || (pauiPixels[uiAfter] == SFT_PIXEL_TRANSPARENT);
+				}
+				if (bNextBlack)
+				{
+					break;
+				}
+				bMixed = true;
+				uiEnd = uiAfter;
+			}
+
+			//Down to its row, across to it, then its pixels.
+			AddSFTCount(&auiData, SFT_RUN_ROWS, uiRows, SFT_RUN_MAX_ROWS);
+			AddSFTCount(&auiData, SFT_RUN_SKIP, uiSkip, SFT_RUN_MAX_COUNT);
+			uiMax = bMixed ? SFT_RUN_MAX_MIXED : SFT_RUN_MAX_PIXELS;
+			for (i = uiStart; i < uiEnd; i += uiChunk)
+			{
+				uiChunk = ((uiEnd - i) < uiMax) ? (uiEnd - i) : uiMax;
+				auiData.Add(bMixed ? (char)(SFT_RUN_MIXED | (uiChunk - 1)) : (char)uiChunk);
+				for (j = 0; j < uiChunk; j++)
+				{
+					auiData.Add((char)pauiPixels[i + j]);
+				}
+			}
+			uiRows = 0;
+			uiSkip = 0;
+			x = uiEnd;
 		}
 		uiRows++;
 	}
 	auiData.Add((char)SFT_RUN_END);
+	free(pauiPixels);
+	free(pabOpaque);
 
 	if (pcOppacityAccessor)
 	{
@@ -304,10 +353,9 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 	pcDiffuseAccessor->Kill();
 
 	iResult = pcFile->Write(auiData.GetData(), 1, auiData.NumElements());
-	bOpaque = (iResult == auiData.NumElements());
-	auiRun.Kill();
+	bResult = (iResult == auiData.NumElements());
 	auiData.Kill();
-	return bOpaque;
+	return bResult;
 }
 
 
