@@ -310,8 +310,9 @@ Questions for the user
 Progress
 --------
 
-  The user, 2026-11-18: "Your assumed answers are fine, go ahead with stage 0".  The work is in the worktree
-  CommonLibrariesExceptions (branch exceptions) while the other session's sweep runs from the main trees.
+  The user, 2026-11-18: "Your assumed answers are fine, go ahead with stage 0".  The work is in a set of worktrees of
+  its own, D:\gameengine-exceptions\CommonLibraries, \HCP65 and \HCP65-IDE (branch exceptions in each, none merged),
+  so the main trees stay the other session's to build from.
 
   0. Under way.
      - The table: the conformance test's Exceptions group, 171 cases (TestCPPConformanceCases.h), compiled with
@@ -329,8 +330,18 @@ Progress
        planned: the function definition has no field of its own for the handlers.  Its body is the try statement, as
        it was (CCPPSyntaxTryStatement::IsFunctionBody says so), because everything that walks a function's body
        (AllocateLocals, FindReturns, CheckNode, the IDE) then walks the handlers with no change.
-     TestCppCompilerLib passes in Release x64 with these (268445); of the 171 cases 14 are done, 13 of them programs that
-     must be refused and may be refused for the wrong reason yet.  No test asks for the two "built without exceptions"
-     errors yet.
-     Still to do: the option in BuildLib, hcp65build, the IDE's dialog and the website (HCP65-IDE and HCP65, after the
-     sweep); the baseline measure (after the sweep: the Lib65 suites take the memory the sweep needs).
+     TestCppCompilerLib passes in Release x64 with these (268449); of the 171 cases 14 are done, 13 of them programs that
+     must be refused and may be refused for the wrong reason yet.  TestCPP65GeneratorErrors asks for the two "built
+     without exceptions" errors (73f202529).
+     - The option outside the compiler (the worktrees D:\gameengine-exceptions\HCP65-IDE, 95ce4cd, and \HCP65, f0887f0):
+       a configuration's Exceptions="true" (CBuildConfiguration::IsExceptions, written only when true), hcp65build's
+       -exceptions (and -show-plain), the IDE dialog's "C++ exceptions" check box (scripted edit exceptions:<0 or 1>),
+       and the website's compiler/building.md, ide/building.md and compiler/language.md.  TestBuildLib passes (769) and
+       the IDE check build-configuration-exceptions passes.  The website was not built with mkdocs.
+     - Instruction flags, agreed with the other session 2026-11-18: 0x40 (IRF_FullExpression) goes on any instruction
+       and is never to be shared; 0x80 (IRF_NoSignedWrap) is arithmetic only, so a flag on call may share it.
+     Still to do: the baseline measure.  The three Lib65 suites are built in the worktree (Release x64), but
+     CompilerMeasure.py was stopped twice for low memory (the suites' own: TestStandardLib65 was seen at 880 MB with
+     the other session doing little).  Its first three runs finished and their raw output was kept only in the
+     session's scratch folder; the user is to say how the rest is taken (one run at a time in the foreground, later, or
+     before stage 9).
