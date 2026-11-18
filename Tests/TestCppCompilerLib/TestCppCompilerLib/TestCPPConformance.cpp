@@ -32,6 +32,7 @@ struct SConformanceCase
 
 
 #include "TestCPPConformanceCases.h"
+#include "TestCppCompilerLibParts.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -407,6 +408,7 @@ void TestCPPConformance(void)
 	size	i;
 
 	BeginTests();
+	TEST_PART_BEGIN("TestCPPConformance");
 
 	TypesInit();
 	TypeConverterInit();
@@ -422,8 +424,8 @@ void TestCPPConformance(void)
 	}
 	for (i = 0; i < NUM_CONFORMANCE_GROUPS; i++)
 	{
-		TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_65C64);
-		TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_W65C816);
+		TEST_PART(TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_65C64));
+		TEST_PART(TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_W65C816));
 	}
 
 	TypeConverterKill();

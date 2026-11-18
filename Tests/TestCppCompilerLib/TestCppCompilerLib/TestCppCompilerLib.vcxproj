@@ -272,6 +272,7 @@
     <ClInclude Include="TestHeader.h" />
     <ClInclude Include="TestHeader2.h" />
     <ClInclude Include="TestCPP65Context.h" />
+    <ClInclude Include="TestCppCompilerLibParts.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Log.txt" />
