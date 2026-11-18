@@ -516,6 +516,9 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         - Open for the user: the suffix (malloc32 and memcpy32, or an l prefix as BaseLib's lsize); whole banks for large
           allocations, or one TLSF region that crosses banks for them (less rounding, more fragmentation); whether the
           16 suffixed names stay as aliases.  The labels with a size_t parameter change again on the W65C816 (m to j).
+        Decided, 2026-11-18: "32 suffix please.  Whole banks.  Drop 16 suffixes", and ptrdiff_t stays long ("ptrdiff_t as
+        long, agreed": a difference within a malloc32 block mustn't be cut; not int as proposed above).  The user noted
+        that size and size_t are then one type on the W65C816.  The plan is Size16Plan.txt (steps 0-5, not started).
 
   Small gaps found on 2026-11-18 (by the exceptions work), not done yet:
     - A function template declared and never defined can't be named in an unevaluated operand: noexcept(ref<A>()) with
