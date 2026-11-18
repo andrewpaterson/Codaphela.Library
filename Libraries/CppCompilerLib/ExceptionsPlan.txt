@@ -707,3 +707,13 @@ Progress
   stages 2 to 8, but for what the other session's work changes when master is merged again: measure again after a merge
   that changes what is compiled, before the next stage, so that a stage's own difference can be told from it.
 
+  Master was merged again on 2026-11-18, after the baseline (CommonLibraries eb1b48331 to master 6564f7026, HCP65
+  2c31c6b, HCP65-IDE 26e0afe and 5ae3b53): the other session's KeepUnusedObjects option beside Exceptions, and its
+  RunParallel.py.  After it TestCppCompilerLib passes (268602, RunParallel.py), HCP65IDE.sln builds, TestBuildLib passes
+  (773) and the IDE checks build-configuration-exceptions and build-configuration-override-warning pass.
+  - Not yet run after it: the Lib65 suites.  Master's 6d88caae6 (the other session's test speed step 1) makes TestLib
+    call getenv, which Libc65 doesn't have, so the *65 programs don't compile on this branch until its fix is merged;
+    the fix comes with its distinct fundamental types (its question 13), which changes mangled labels, Libc65's
+    stdint.h and stddef.h and some .asm labels.  Merge that before stage 2's first Lib65 run, and measure the baseline
+    again then: it changes what is compiled with the option off.
+
