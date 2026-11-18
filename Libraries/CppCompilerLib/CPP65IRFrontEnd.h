@@ -207,7 +207,9 @@ public:
 	CIRFunction*	ConstantExpression(const char* szLabel, CCPPSyntax* pcExpression, SCPP65Type* psType);
 	CIRFunction*	ConstantInitialiser(const char* szLabel, SCPP65Type* psType, CCPPSyntax* pcInitialiser);
 	CIRModule*		GetModule(void);
-	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
+	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise, const char* szExitNode = NULL, const char* szFinaliser = NULL, bool bThread = false);
+	bool			ExitListsRoutine(const char* szLabel);
+	void			PushExitNode(const char* szNode, const char* szFinaliser, bool bThread);
 	void			InlineUnit(void);
 	bool			FinishUnit(void);
 	CArrayChars*	GetNotImported(void);

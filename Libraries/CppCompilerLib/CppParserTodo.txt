@@ -401,14 +401,25 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     7. thread_local is one object per thread ([basic.stc.thread]).  A program has one thread, so it is static storage now, with the
        same dynamic initialisation and destruction a thread's objects have (initialised before first use, destroyed at exit, before the
        static objects); per thread if threads come.  A process is a program of its own, so the kernal running several changes nothing.
+       Done 2026-11-18: mbThreadLocal; a thread_local object goes on __ThreadExitList, run before __ExitList.
     11. Static objects whose class has a destructor (static locals included) are destroyed when the program ends, in the reverse of the
         order their construction finished, interleaved with namespace-scope objects and with functions registered by atexit
         ([basic.start.term]/1, /3).  The start-up code gets a list: a static local registers its destructor when its initialisation
         finishes; exit runs the list.
+        Done 2026-11-18: CCPP65IRFrontEnd::PushExitNode when a construction finishes (R_Initialise, GuardedStaticLocal),
+        heads in the start up (AppendExitLists, HCP65 UserStart.asm), R_RunExitLists or Libc65's __RunAtExit (whose atexit
+        pushes on the same list) after main; globals made in the data stay in the fini table, run after the lists.
     8. typeid(x).name() is the type's C++ name (the standard leaves the string to the implementation, [type.info]/9; the most useful one
        is the name as the program writes it, "N::A", "int*"), for every type typeid can name, polymorphic or not.
     9. Virtual inheritance (stage 9): lay classes out as MSVC does (a virtual base pointer in the object), as the plan says, or as the
        Itanium ABI does (virtual base offsets in the vtable), which is usually smaller?  The user, 2026-11-16: Itanium style.
+
+  Found while doing 11 (2026-11-18), for the user:
+    12. The linker drops a global nothing refers to (SetRemoveUnused), with its init and fini entries, so one whose
+        construction or destruction has side effects is never made or destroyed.  [basic.stc.static] 2 says such a
+        variable shall not be eliminated even if it appears unused.  Keeping every global with an R_Initialise or a
+        destructor would be correct, but it keeps BaseLib's unused globals (and the code they use) in the kernal: OS.SYS
+        may then not fit.  Keep them all, keep them only outside the kernal build, or work out which have side effects?
 
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.

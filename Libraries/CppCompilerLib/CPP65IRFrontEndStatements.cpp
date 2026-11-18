@@ -491,6 +491,7 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 	SIRReference	sGuard;
 	SIRReference	sTest;
 	CChars			szLabel;
+	CChars			szFinaliser;
 	CIRBlock*		pcMake;
 	CIRBlock*		pcDone;
 	CIRBlock*		pcStarted;
@@ -542,6 +543,18 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 	if (!DestroyTemporaries(uiTemporaries))
 	{
 		return false;
+	}
+	if (pcVariable->mbExitNode)
+	{
+		//Made: it is destroyed from an exit list, by the R_Finalise the unit writes for it (WriteExitRoutines).
+		szLabel.Init();
+		mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
+		szFinaliser.Init("R_Finalise");
+		szFinaliser.Append(szLabel);
+		szLabel.Append("__ExitNode");
+		PushExitNode(szLabel.Text(), szFinaliser.Text(), pcVariable->mbThreadLocal);
+		szFinaliser.Kill();
+		szLabel.Kill();
 	}
 	mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 2), sGuard);
 	JumpTo(pcDone);

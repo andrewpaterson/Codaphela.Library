@@ -227,6 +227,28 @@ void CCPPUnitData::AppendStartUpEntry(const char* szTable, CChars* pszLabel, CCh
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object's exit node (iBytes: two pointers), bss kept with its data
+// (pszData): CCPP65IRFrontEnd::PushExitNode fills it in.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnitData::AppendExitNode(CChars* pszLabel, CChars* pszData, int iBytes)
+{
+	CChars	szOptions;
+
+	szOptions.Init(mbDataBss ? ", associated bss." : ", associated data.");
+	szOptions.Append(pszData);
+	AppendSection(&mszData, "bss", pszLabel, szOptions.Text());
+	mszData.Append("\t\t.align 4\n");
+	mszData.Append(pszLabel);
+	mszData.Append(':');
+	mszData.AppendNewLine();
+	AppendSpace(iBytes);
+	szOptions.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // String literals are Str and a number, zero terminated.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -302,6 +302,10 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbPureVirtual = false;
 	mbBadCast = false;
 	mbRecursiveInit = false;
+	mbExitLists = false;
+	mbExitListsWritten = false;
+	maszExitFinalisers.Init();
+	mapsExitFinalisers.Init();
 
 	mapcLocals.Init();
 	miStatics = 0;
@@ -415,6 +419,8 @@ void CCPPUnit::Kill(void)
 	mcWarnings.Kill();
 	masClassErrors.Kill();
 	mcErrors.Kill();
+	mapsExitFinalisers.Kill();
+	maszExitFinalisers.Kill();
 	maszRuntime.Kill();
 	mszThunks.Kill();
 	mszCode.Kill();
@@ -499,6 +505,10 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	//class templates' static members and variable templates' instances.
 	GenerateQueued();
 	DefineInstanceData();
+	while (WriteExitRoutines())
+	{
+		GenerateQueued();
+	}
 	ReportClassErrors();
 	ReportNamedInstances();
 	CheckContext();
@@ -604,7 +614,7 @@ bool CCPPUnit::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser
 	pszBound->Append("__Bound");
 	mcData.BeginData(pszBound, DataAlignment(psType, bClass), bGlobal, szOptions, false);
 	mcData.AppendZeros(psType->iBytes);
-	*pbResult &= GlobalStartUpRoutines(psType, pcInitialiser, pszBound, true, bClass && (psType->pcClass->mpcDestructor != NULL));
+	*pbResult &= GlobalStartUpRoutines(psType, pcInitialiser, pszBound, true, bClass && (psType->pcClass->mpcDestructor != NULL), false);
 	mcData.NextStartUp();
 	return true;
 }
@@ -616,12 +626,23 @@ bool CCPPUnit::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser
 // destroying.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy)
+bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy, bool bThread)
 {
 	CChars	szLabel;
+	CChars	szFinaliser;
+	CChars	szNode;
 	bool	bResult;
+	bool	bListed;
 	int		i;
 
+	//One made when the program starts is put on an exit list once it has been (bThread: a thread_local's), so objects
+	//are destroyed in the reverse of the order they were made, with the atexit functions between them; one made in the
+	//data, before any of those, is in the fini table, run after the lists.  [basic.start.term] 1, 3
+	bListed = bConstruct && bDestroy;
+	szFinaliser.Init("R_Finalise");
+	szFinaliser.Append(mcData.GetStartUp());
+	szNode.Init(pszData);
+	szNode.Append("__ExitNode");
 	bResult = true;
 	for (i = 0; i < 2; i++)
 	{
@@ -632,9 +653,12 @@ bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialis
 		szLabel.Init((i == 0) ? "R_Initialise" : "R_Finalise");
 		szLabel.Append(mcData.GetStartUp());
 		CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, NULL);
-		if (mpcIRFrontEnd->GlobalRoutine(szLabel.Text(), pszData->Text(), psType, pcInitialiser, i == 1))
+		if (mpcIRFrontEnd->GlobalRoutine(szLabel.Text(), pszData->Text(), psType, pcInitialiser, i == 1, ((i == 0) && bListed) ? szNode.Text() : NULL, szFinaliser.Text(), bThread))
 		{
-			mcData.AppendStartUpEntry((i == 0) ? "init" : "fini", &szLabel, pszData);
+			if ((i == 0) || !bListed)
+			{
+				mcData.AppendStartUpEntry((i == 0) ? "init" : "fini", &szLabel, pszData);
+			}
 		}
 		else
 		{
@@ -642,7 +666,62 @@ bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialis
 		}
 		szLabel.Kill();
 	}
+	if (bListed)
+	{
+		mcData.AppendExitNode(&szNode, pszData, 2 * mcTypes.Pointer(&mcTypes.msVoid)->iBytes);
+	}
+	szNode.Kill();
+	szFinaliser.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Once the unit's functions are written: the R_Finalise of each static
+// local destroyed at exit that they reach (StaticLocal), and the exit
+// lists' runner if anything is pushed on them (R_RunExitLists, a COMDAT
+// section any unit may write).  True if it wrote anything (which may
+// queue destructors to generate).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::WriteExitRoutines(void)
+{
+	CChars	szFinaliser;
+	CChars	szLabel;
+	size	i;
+	bool	bWritten;
+
+	bWritten = false;
+	for (i = 0; i < maszExitFinalisers.NumElements(); i++)
+	{
+		szFinaliser.Init("R_Finalise");
+		szFinaliser.Append(maszExitFinalisers.GetText(i));
+		CCPPUnitData::AppendSection(&mszCode, "text", &szFinaliser, NULL);
+		if (!mpcIRFrontEnd->GlobalRoutine(szFinaliser.Text(), maszExitFinalisers.GetText(i), mapsExitFinalisers.GetPtr(i), NULL, true))
+		{
+			ErrorAt(-1, "This static local's destruction uses C++ the IR front end doesn't support yet");
+		}
+		szFinaliser.Kill();
+		bWritten = true;
+	}
+	maszExitFinalisers.ReInit();
+	mapsExitFinalisers.ReInit();
+
+	if (mbExitLists && !mbExitListsWritten)
+	{
+		mbExitListsWritten = true;
+		szLabel.Init("R_RunExitLists");
+		if (Emit(&szLabel))
+		{
+			CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, ", comdat");
+			CCPPUnitData::AppendGlobal(&mszCode, &szLabel);
+			mpcIRFrontEnd->ExitListsRoutine(szLabel.Text());
+			bWritten = true;
+		}
+		szLabel.Kill();
+	}
+	return bWritten;
 }
 
 
@@ -2206,18 +2285,18 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		else if (bBss)
 		{
 			mcData.AppendSpace(psType->iBytes);
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, psElement->IsClass(), psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL));
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, psElement->IsClass(), psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0);
 		}
 		else if (!psElement->IsClass() && !psType->IsReference())
 		{
 			bInitialise = false;
 			bResult &= GlobalInitialiser(psType, pcInitialiser, pcInit, &bInitialise);
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, bInitialise, false);
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, bInitialise, false, false);
 		}
 		else
 		{
 			mcData.AppendZeros(psType->iBytes);
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, true, psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL));
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, true, psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0);
 		}
 		mcData.NextStartUp();
 		szBound.Kill();
@@ -2930,8 +3009,9 @@ bool CCPPUnit::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 // constant is initialised the first time its declaration is reached
 // (CCPP65IRFrontEnd::Declaration), with a guard byte beside it that says
 // whether it has been (mbGuarded).  An object whose class needs a
-// destructor isn't supported yet: it would be destroyed when the program
-// ends.  [stmt.dcl] 4
+// destructor is destroyed when the program ends: once made it is pushed
+// on an exit list (the thread's for a thread_local), with the R_Finalise
+// WriteExitRoutines writes.  [stmt.dcl] 4, [basic.start.term] 1
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
@@ -2951,14 +3031,15 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	}
 	psElement = psType->IsArray() ? psType->psBase : psType;
 	bObject = psElement->IsClass() || psType->IsReference();
-	if (psElement->IsClass() && (!CompleteClass(psElement->pcClass, pcInit) || psElement->pcClass->NeedsDestructor()))
+	if (psElement->IsClass() && !CompleteClass(psElement->pcClass, pcInit))
 	{
-		return Error(pcInit, "Static local objects that are destroyed are not supported by the compiler yet");
+		return false;
 	}
 
 	pcVariable = AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Static, miStatics);
 	miStatics++;
 	pcVariable->mbDefined = true;
+	pcVariable->mbThreadLocal = (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0;
 	szLabel.Init();
 	AppendVariableLabel(&szLabel, pcVariable);
 	mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), false, NULL, bObject || IsBss(pcInit->mpcInitializer, psType));
@@ -2984,6 +3065,19 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 		mcData.BeginData(&szLabel, 1, false, NULL, true);
 		mcData.AppendSpace(1);
 		szLabel.Kill();
+	}
+	if (pcVariable->mbGuarded && psElement->IsClass() && psElement->pcClass->NeedsDestructor())
+	{
+		pcVariable->mbExitNode = true;
+		szLabel.Init();
+		AppendVariableLabel(&szLabel, pcVariable);
+		maszExitFinalisers.Add(szLabel.Text());
+		mapsExitFinalisers.Add(psType);
+		szLabel.Append("__ExitNode");
+		mcData.BeginData(&szLabel, 4, false, NULL, true);
+		mcData.AppendSpace(2 * mcTypes.Pointer(&mcTypes.msVoid)->iBytes);
+		szLabel.Kill();
+		UseExitLists();
 	}
 	return bResult;
 }

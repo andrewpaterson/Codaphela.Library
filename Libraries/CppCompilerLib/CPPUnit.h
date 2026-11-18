@@ -284,6 +284,10 @@ protected:
 	bool					mbPureVirtual;
 	bool					mbBadCast;			//A dynamic_cast to a reference calls R_BadCast (UseBadCast).
 	bool					mbRecursiveInit;	//A guarded static local calls R_RecursiveInit if it is reached again while being made.
+	bool					mbExitLists;		//Something is pushed on an exit list: the unit writes R_RunExitLists (UseExitLists).
+	bool					mbExitListsWritten;
+	CArrayChars				maszExitFinalisers;	//The labels of static locals destroyed at exit whose R_Finalise is still to write...
+	CArrayCPP65Types		mapsExitFinalisers;	//...and their types (WriteExitRoutines).
 
 	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
@@ -468,17 +472,19 @@ public:
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckEnumerators(CCPPSyntax* pcType);
+	bool					WriteExitRoutines(void);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable);
 	void					AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable);
 	void					AppendRuntime(void);
 	void					UseBadCast(void) { mbBadCast = true; }
 	void					UseRecursiveInit(void) { mbRecursiveInit = true; }
+	void					UseExitLists(void) { mbExitLists = true; }
 	CArrayChars*			GetRuntimeCalls(void) override;
 	bool					BeginRuntime(const char* szName) override;
 	CChars*					GetRuntimeCode(void) override;
 	void					RuntimeError(const char* szMessage) override;
-	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy);
+	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy, bool bThread);
 	bool					BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset, bool* pbResult);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);

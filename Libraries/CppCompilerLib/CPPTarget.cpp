@@ -238,6 +238,26 @@ void CCPPTarget::AppendStartUp(CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The exit lists' heads, in the start up: __ExitList, and __ThreadExitList
+// for thread_local objects, each a pointer to the last node pushed on it
+// (CCPP65IRFrontEnd::PushExitNode, Libc65's atexit), 0 while empty.  Data,
+// not bss, so they are 0 whether the start up clears bss or not.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget::AppendExitLists(CChars* pszDest)
+{
+	pszDest->Append("\t\t.section data.ExitLists, keep\n");
+	pszDest->Append("\t\t.align 4\n");
+	pszDest->Append("\t\t.global __ExitList, __ThreadExitList\n");
+	pszDest->Append("__ExitList:\n");
+	pszDest->Append("\t\t.long 0\n");
+	pszDest->Append("__ThreadExitList:\n");
+	pszDest->Append("\t\t.long 0\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTarget::AppendRuntime(CCPPRuntimeWriter* pcWriter)
