@@ -58,6 +58,7 @@ void CIRInterpreter::Init(CIRInterpreterHost* pcHost)
 	muiDepth = 0;
 	muiDepthLimit = IR_INTERPRETER_DEPTH;
 	muiFrames = 0;
+	mpsFrame = NULL;
 
 	//Object 0 is no object.
 	AddObject(IROB_Unknown, 0, false, 0, NULL);
@@ -72,6 +73,10 @@ void CIRInterpreter::Kill(void)
 {
 	size	i;
 
+	while (mpsFrame)
+	{
+		PopFrame(false);
+	}
 	for (i = 0; i < masObjects.NumElements(); i++)
 	{
 		FreeObject(masObjects.Get(i));
@@ -769,14 +774,14 @@ bool CIRInterpreter::Float(CIRFunction* pcFunction, SIRInstruction* psInstructio
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A call: the function a symbol or a pointer names, run with the
-// arguments the arg instructions before it gave.
+// A call: the function a symbol or a pointer names, with the arguments
+// the arg instructions before it gave, in a frame that is then the
+// innermost (Run runs it).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRInterpreter::CallInstruction(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* pasTemporaries, CArrayIRValues* pasPending, CArrayTemplate<SIRType>* pasPendingTypes)
+bool CIRInterpreter::CallInstruction(SIRFrame* psFrame, SIRInstruction* psInstruction)
 {
 	SIRValue		sCallee;
-	SIRValue		sResult;
 	SIRObject*		psObject;
 	CIRModule*		pcCalledModule;
 	CIRFunction*	pcCalled;
@@ -784,8 +789,12 @@ bool CIRInterpreter::CallInstruction(CIRModule* pcModule, CIRFunction* pcFunctio
 	uint32			uiObject;
 	int				iSymbol;
 	bool			bResult;
+	CIRModule*		pcModule;
+	CIRFunction*	pcFunction;
 
-	if (!ValueOf(pcModule, pcFunction, pasTemporaries, psInstruction->asArguments[0], &sCallee))
+	pcModule = psFrame->pcModule;
+	pcFunction = psFrame->pcFunction;
+	if (!ValueOf(pcModule, pcFunction, psFrame->pasTemporaries, psInstruction->asArguments[0], &sCallee))
 	{
 		return false;
 	}
@@ -813,13 +822,10 @@ bool CIRInterpreter::CallInstruction(CIRModule* pcModule, CIRFunction* pcFunctio
 	}
 	szName.Kill();
 
-	bResult = Run(pcCalledModule, pcCalled, pasPending, pasPendingTypes, &sResult);
-	pasPending->ReInit();
-	pasPendingTypes->ReInit();
-	if (bResult && psInstruction->sResult.IsTemporary())
-	{
-		pasTemporaries[psInstruction->sResult.Index()] = sResult;
-	}
+	//Run goes on in the callee, and gives the caller what it returns.
+	bResult = PushFrame(pcCalledModule, pcCalled, &psFrame->asPending, &psFrame->asPendingTypes);
+	psFrame->asPending.ReInit();
+	psFrame->asPendingTypes.ReInit();
 	return bResult;
 }
 
@@ -829,9 +835,11 @@ bool CIRInterpreter::CallInstruction(CIRModule* pcModule, CIRFunction* pcFunctio
 // One instruction.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRInterpreter::Step(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* pasTemporaries, uint32 uiArguments, CArrayTemplate<size>* pauiArgumentOffsets,
-						  CArrayIRValues* pasPending, CArrayTemplate<SIRType>* pasPendingTypes, size uiFrame)
+bool CIRInterpreter::Step(SIRFrame* psFrame, SIRInstruction* psInstruction)
 {
+	CIRModule*	pcModule;
+	CIRFunction*	pcFunction;
+	SIRValue*	pasTemporaries;
 	SIROpcode*	psOpcode;
 	SIRValue	sLeft;
 	SIRValue	sRight;
@@ -841,6 +849,9 @@ bool CIRInterpreter::Step(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstr
 	uint32		uiObject;
 	int			iPointerBytes;
 
+	pcModule = psFrame->pcModule;
+	pcFunction = psFrame->pcFunction;
+	pasTemporaries = psFrame->pasTemporaries;
 	psOpcode = GetIROpcode(psInstruction->uiOpcode);
 	if (!psOpcode || (psInstruction->uiOpcode >= IRO_NumGeneric))
 	{
@@ -848,7 +859,7 @@ bool CIRInterpreter::Step(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstr
 	}
 	if (psInstruction->uiOpcode == IRO_Call)
 	{
-		return CallInstruction(pcModule, pcFunction, psInstruction, pasTemporaries, pasPending, pasPendingTypes);
+		return CallInstruction(psFrame, psInstruction);
 	}
 
 	sLeft.Set(0);
@@ -868,15 +879,15 @@ bool CIRInterpreter::Step(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstr
 	switch (psInstruction->uiOpcode)
 	{
 	case IRO_Slot:
-		sResult = PointerTo(AddObject(IROB_Slot, (size)sLeft.ulliBits, true, uiFrame, NULL), 0, iPointerBytes);
+		sResult = PointerTo(AddObject(IROB_Slot, (size)sLeft.ulliBits, true, psFrame->uiFrame, NULL), 0, iPointerBytes);
 		break;
 	case IRO_ArgAddress:
 		ulliIndex = sLeft.ulliBits;
-		if (ulliIndex >= pauiArgumentOffsets->NumElements())
+		if (ulliIndex >= psFrame->auiOffsets.NumElements())
 		{
 			return Fail("It takes the address of an argument it wasn't given");
 		}
-		sResult = PointerTo(uiArguments, *pauiArgumentOffsets->Get((size)ulliIndex), iPointerBytes);
+		sResult = PointerTo(psFrame->uiArguments, *psFrame->auiOffsets.Get((size)ulliIndex), iPointerBytes);
 		break;
 	case IRO_PtrAdd:
 		uiObject = ObjectOf(&sLeft, iPointerBytes);
@@ -912,8 +923,8 @@ bool CIRInterpreter::Step(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstr
 		}
 		return Store(pcModule, sType, &sLeft, &sRight, pcModule->GetPointerSize(pcFunction->TypeOf(psInstruction->asArguments[1]).uiSpace));
 	case IRO_Arg:
-		pasPending->Add(&sLeft);
-		pasPendingTypes->Add(&sType);
+		psFrame->asPending.Add(&sLeft);
+		psFrame->asPendingTypes.Add(&sType);
 		return true;
 	default:
 		if (sType.IsFloat() || pcFunction->TypeOf(psInstruction->asArguments[0]).IsFloat())
@@ -962,31 +973,85 @@ void CIRInterpreter::EndFrame(size uiFrame, uint32 uiFirstObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Runs a function with its arguments: its blocks from the first, each
-// one's phis (all read before any is written), instructions and jump,
-// until it returns.
+// Runs a function with its arguments, until it returns.  Each call it
+// makes is a frame, run until it returns, when its caller goes on: none
+// takes the C stack.  A call the host makes while one is being run (to
+// work out another constant) is run above the frames there were.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRInterpreter::Run(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRValues* pasArguments, CArrayTemplate<SIRType>* pasArgumentTypes, SIRValue* psResult)
 {
-	SIRValue*				pasTemporaries;
-	SIRValue*				pasPhis;
-	CArrayIRValues			asPending;
-	CArrayTemplate<SIRType>	asPendingTypes;
-	CArrayTemplate<size>	auiOffsets;
-	CIRBlock*				pcBlock;
-	CIRBlock*				pcPrevious;
-	SIRPhi*					psPhi;
-	SIRPhiArgument*			psPhiArgument;
-	SIRValue				sValue;
-	SIRValue				sAddress;
-	size					uiFrame;
-	size					uiOffset;
-	size					i;
-	size					uiMaxPhis;
-	uint32					uiFirstObject;
-	uint32					uiArguments;
-	bool					bResult;
+	SIRFrame*		psBase;
+	SIRFrame*		psFrame;
+	SIRFrame*		psCaller;
+	SIRInstruction*	psCall;
+	SIRValue		sValue;
+	bool			bResult;
+
+	psResult->Set(0);
+	psBase = mpsFrame;
+	if (!PushFrame(pcModule, pcFunction, pasArguments, pasArgumentTypes))
+	{
+		return false;
+	}
+
+	bResult = true;
+	while (bResult && (mpsFrame != psBase))
+	{
+		psFrame = mpsFrame;
+		bResult = RunFrame(psFrame);
+		if (bResult && !psFrame->pcBlock)
+		{
+			//It has returned: its caller has its value and goes on after the call.
+			sValue = psFrame->sResult;
+			PopFrame(false);
+			psCaller = mpsFrame;
+			if (psCaller == psBase)
+			{
+				*psResult = sValue;
+			}
+			else
+			{
+				psCall = psCaller->pcBlock->masInstructions.Get(psCaller->uiInstruction);
+				if (psCall->sResult.IsTemporary())
+				{
+					psCaller->pasTemporaries[psCall->sResult.Index()] = sValue;
+				}
+				psCaller->uiInstruction++;
+			}
+		}
+	}
+
+	//What wasn't a constant is the innermost call's instruction it was in, or its call's.
+	while (mpsFrame != psBase)
+	{
+		psFrame = mpsFrame;
+		if ((muiErrorSource == 0) && psFrame->pcBlock && (psFrame->uiInstruction < psFrame->pcBlock->masInstructions.NumElements()))
+		{
+			muiErrorSource = psFrame->pcBlock->masInstructions.Get(psFrame->uiInstruction)->uiSource;
+		}
+		PopFrame(true);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call's frame, the innermost: its arguments where the caller put them,
+// each its own size and the first lowest (a parameter is also its value),
+// at its function's first block.  False if it can't be called, or the
+// arguments or the first block's phis aren't values; it is gone then.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::PushFrame(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRValues* pasArguments, CArrayTemplate<SIRType>* pasArgumentTypes)
+{
+	SIRFrame*	psFrame;
+	SIRValue	sAddress;
+	size		uiOffset;
+	size		uiMaxPhis;
+	size		i;
+	bool		bResult;
 
 	if (pasArguments->NumElements() < pcFunction->masParameters.NumElements())
 	{
@@ -996,23 +1061,33 @@ bool CIRInterpreter::Run(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRV
 	{
 		return Fail("Its calls go too deep to be worked out");
 	}
-	muiDepth++;
-	uiFrame = ++muiFrames;
-	uiFirstObject = (uint32)masObjects.NumElements();
 
-	//The arguments where the caller put them, each its own size and the first lowest; a parameter is also its value.
-	auiOffsets.Init();
+	psFrame = (SIRFrame*)malloc(sizeof(SIRFrame));
+	psFrame->psCaller = mpsFrame;
+	psFrame->pcModule = pcModule;
+	psFrame->pcFunction = pcFunction;
+	psFrame->pcBlock = NULL;
+	psFrame->uiInstruction = 0;
+	psFrame->sResult.Set(0);
+	psFrame->asPending.Init();
+	psFrame->asPendingTypes.Init();
+	muiDepth++;
+	psFrame->uiFrame = ++muiFrames;
+	psFrame->uiFirstObject = (uint32)masObjects.NumElements();
+	mpsFrame = psFrame;
+
+	psFrame->auiOffsets.Init();
 	uiOffset = 0;
 	for (i = 0; i < pasArguments->NumElements(); i++)
 	{
-		auiOffsets.Add(&uiOffset);
+		psFrame->auiOffsets.Add(&uiOffset);
 		uiOffset += ValueBytes(pcModule, *pasArgumentTypes->Get(i));
 	}
-	uiArguments = AddObject(IROB_Arguments, uiOffset, true, uiFrame, NULL);
+	psFrame->uiArguments = AddObject(IROB_Arguments, uiOffset, true, psFrame->uiFrame, NULL);
 	bResult = true;
 	for (i = 0; bResult && (i < pasArguments->NumElements()); i++)
 	{
-		sAddress = PointerTo(uiArguments, *auiOffsets.Get(i), pcModule->GetPointerSize(0));
+		sAddress = PointerTo(psFrame->uiArguments, *psFrame->auiOffsets.Get(i), pcModule->GetPointerSize(0));
 		bResult = Store(pcModule, *pasArgumentTypes->Get(i), pasArguments->Get(i), &sAddress, pcModule->GetPointerSize(0));
 	}
 
@@ -1024,67 +1099,102 @@ bool CIRInterpreter::Run(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRV
 			uiMaxPhis = pcFunction->GetBlock(i)->masPhis.NumElements();
 		}
 	}
-	pasTemporaries = (SIRValue*)calloc(pcFunction->NumTemporaries() + 1, sizeof(SIRValue));
-	pasPhis = (SIRValue*)calloc(uiMaxPhis + 1, sizeof(SIRValue));
+	psFrame->pasTemporaries = (SIRValue*)calloc(pcFunction->NumTemporaries() + 1, sizeof(SIRValue));
+	psFrame->pasPhis = (SIRValue*)calloc(uiMaxPhis + 1, sizeof(SIRValue));
 	for (i = 0; i < pcFunction->masParameters.NumElements(); i++)
 	{
-		pasTemporaries[pcFunction->masParameters.Get(i)->Index()] = *pasArguments->Get(i);
+		psFrame->pasTemporaries[pcFunction->masParameters.Get(i)->Index()] = *pasArguments->Get(i);
 	}
 
-	asPending.Init();
-	asPendingTypes.Init();
-	psResult->Set(0);
-	pcPrevious = NULL;
-	pcBlock = pcFunction->GetEntry();
-	while (bResult && pcBlock)
+	bResult = bResult && EnterBlock(psFrame, pcFunction->GetEntry());
+	if (!bResult)
 	{
-		for (i = 0; bResult && (i < pcBlock->masPhis.NumElements()); i++)
-		{
-			psPhi = pcBlock->masPhis.Get(i);
-			psPhiArgument = pcPrevious ? pcBlock->FindPhiArgument(psPhi, pcPrevious) : NULL;
-			bResult = psPhiArgument ? ValueOf(pcModule, pcFunction, pasTemporaries, psPhiArgument->sValue, &pasPhis[i]) : Fail("It is not IR that can be run");
-		}
-		for (i = 0; bResult && (i < pcBlock->masPhis.NumElements()); i++)
-		{
-			pasTemporaries[pcBlock->masPhis.Get(i)->sResult.Index()] = pasPhis[i];
-		}
+		PopFrame(true);
+	}
+	return bResult;
+}
 
-		for (i = 0; bResult && (i < pcBlock->masInstructions.NumElements()); i++)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The innermost call has returned, or failed (then it is in the trail of
+// functions what was run failed in): its slots and its arguments are gone,
+// and its caller is the innermost.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterpreter::PopFrame(bool bFailed)
+{
+	SIRFrame*	psFrame;
+
+	psFrame = mpsFrame;
+	psFrame->asPending.Kill();
+	psFrame->asPendingTypes.Kill();
+	psFrame->auiOffsets.Kill();
+	free(psFrame->pasTemporaries);
+	free(psFrame->pasPhis);
+	EndFrame(psFrame->uiFrame, psFrame->uiFirstObject);
+	muiDepth--;
+	if (bFailed)
+	{
+		maszTrail.Add(psFrame->pcModule->GetSymbolName(psFrame->pcFunction->muiSymbol));
+	}
+	mpsFrame = psFrame->psCaller;
+	free(psFrame);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs a call from where it is: its block's instructions and jump, and the
+// blocks after, until it returns (pcBlock is NULL) or makes a call (the
+// callee's frame is the innermost; the caller is at the call).  False if
+// what it does isn't a value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::RunFrame(SIRFrame* psFrame)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRValue		sValue;
+	bool			bResult;
+
+	while (psFrame->pcBlock)
+	{
+		pcBlock = psFrame->pcBlock;
+		while (psFrame->uiInstruction < pcBlock->masInstructions.NumElements())
 		{
+			psInstruction = pcBlock->masInstructions.Get(psFrame->uiInstruction);
 			if (++muiSteps > muiStepLimit)
 			{
-				bResult = Fail("It takes too long to work out");
+				return Fail("It takes too long to work out");
 			}
-			else
+			if (psInstruction->uiOpcode == IRO_Call)
 			{
-				bResult = Step(pcModule, pcFunction, pcBlock->masInstructions.Get(i), pasTemporaries, uiArguments, &auiOffsets, &asPending, &asPendingTypes, uiFrame);
+				return CallInstruction(psFrame, psInstruction);
 			}
-			if (!bResult && (muiErrorSource == 0))
+			if (!Step(psFrame, psInstruction))
 			{
-				muiErrorSource = pcBlock->masInstructions.Get(i)->uiSource;
+				return false;
 			}
-		}
-		if (!bResult)
-		{
-			break;
+			psFrame->uiInstruction++;
 		}
 
-		pcPrevious = pcBlock;
 		switch (pcBlock->msJump.uiKind)
 		{
 		case IRJ_Jump:
-			pcBlock = pcBlock->msJump.pcThen;
+			bResult = EnterBlock(psFrame, pcBlock->msJump.pcThen);
 			break;
 		case IRJ_Branch:
-			bResult = ValueOf(pcModule, pcFunction, pasTemporaries, pcBlock->msJump.sArgument, &sValue);
-			pcBlock = (sValue.ulliBits & 1) ? pcBlock->msJump.pcThen : pcBlock->msJump.pcElse;
+			bResult = ValueOf(psFrame->pcModule, psFrame->pcFunction, psFrame->pasTemporaries, pcBlock->msJump.sArgument, &sValue);
+			bResult = bResult && EnterBlock(psFrame, (sValue.ulliBits & 1) ? pcBlock->msJump.pcThen : pcBlock->msJump.pcElse);
 			break;
 		case IRJ_Return:
+			bResult = true;
 			if (!pcBlock->msJump.sArgument.IsNone())
 			{
-				bResult = ValueOf(pcModule, pcFunction, pasTemporaries, pcBlock->msJump.sArgument, psResult);
+				bResult = ValueOf(psFrame->pcModule, psFrame->pcFunction, psFrame->pasTemporaries, pcBlock->msJump.sArgument, &psFrame->sResult);
 			}
-			pcBlock = NULL;
+			psFrame->pcBlock = NULL;
 			break;
 		default:
 			bResult = Fail("It reaches where the program can't go on");
@@ -1094,24 +1204,60 @@ bool CIRInterpreter::Run(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRV
 			}
 			break;
 		}
-		if (bResult && (++muiSteps > muiStepLimit))
+		if (!bResult)
 		{
-			bResult = Fail("It takes too long to work out");
+			return false;
+		}
+		if (++muiSteps > muiStepLimit)
+		{
+			return Fail("It takes too long to work out");
 		}
 	}
+	return true;
+}
 
-	asPending.Kill();
-	asPendingTypes.Kill();
-	auiOffsets.Kill();
-	free(pasTemporaries);
-	free(pasPhis);
-	EndFrame(uiFrame, uiFirstObject);
-	muiDepth--;
-	if (!bResult)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call goes to a block (from the one it is in, NULL at its function's
+// first): its phis, all read before any is written, then its first
+// instruction.  A jump to no block returns.  False if a phi isn't a value;
+// the call stays where it was.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::EnterBlock(SIRFrame* psFrame, CIRBlock* pcBlock)
+{
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psPhiArgument;
+	CIRBlock*		pcPrevious;
+	size			i;
+
+	pcPrevious = psFrame->pcBlock;
+	if (!pcBlock)
 	{
-		maszTrail.Add(pcModule->GetSymbolName(pcFunction->muiSymbol));
+		psFrame->pcBlock = NULL;
+		return true;
 	}
-	return bResult;
+	for (i = 0; i < pcBlock->masPhis.NumElements(); i++)
+	{
+		psPhi = pcBlock->masPhis.Get(i);
+		psPhiArgument = pcPrevious ? pcBlock->FindPhiArgument(psPhi, pcPrevious) : NULL;
+		if (!psPhiArgument)
+		{
+			return Fail("It is not IR that can be run");
+		}
+		if (!ValueOf(psFrame->pcModule, psFrame->pcFunction, psFrame->pasTemporaries, psPhiArgument->sValue, &psFrame->pasPhis[i]))
+		{
+			return false;
+		}
+	}
+	for (i = 0; i < pcBlock->masPhis.NumElements(); i++)
+	{
+		psFrame->pasTemporaries[pcBlock->masPhis.Get(i)->sResult.Index()] = psFrame->pasPhis[i];
+	}
+	psFrame->pcBlock = pcBlock;
+	psFrame->uiInstruction = 0;
+	return true;
 }
 
 

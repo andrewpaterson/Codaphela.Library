@@ -79,6 +79,27 @@ typedef CArrayTemplate<SIRValue>	CArrayIRValues;
 
 
 //What the interpreter asks of whoever has the program: what a symbol its module doesn't define is.
+//A call being run: the function, where in it the call is and what it has.  A frame is made for each call, so a call
+//inside a call doesn't take the C stack.
+struct SIRFrame
+{
+	SIRFrame*				psCaller;
+	CIRModule*				pcModule;
+	CIRFunction*			pcFunction;
+	SIRValue*				pasTemporaries;
+	SIRValue*				pasPhis;
+	CArrayIRValues			asPending;		//The arguments of the call it is making.
+	CArrayTemplate<SIRType>	asPendingTypes;
+	CArrayTemplate<size>	auiOffsets;		//Each argument's offset in its arguments' object.
+	CIRBlock*				pcBlock;		//NULL once it has returned.
+	size					uiInstruction;	//The instruction of pcBlock it is at; the number of them at the jump.
+	size					uiFrame;
+	uint32					uiFirstObject;
+	uint32					uiArguments;	//Its arguments' object.
+	SIRValue				sResult;
+};
+
+
 class CIRInterpreterHost
 {
 public:
@@ -112,6 +133,7 @@ protected:
 	size				muiDepth;
 	size				muiDepthLimit;
 	size				muiFrames;			//Calls made: each one's number.
+	SIRFrame*			mpsFrame;			//The innermost call being run, NULL for none.
 
 public:
 	void		Init(CIRInterpreterHost* pcHost = NULL);
@@ -136,14 +158,17 @@ public:
 protected:
 	bool		Fail(const char* szReason, const char* szDetail = NULL);
 	bool		Run(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRValues* pasArguments, CArrayTemplate<SIRType>* pasArgumentTypes, SIRValue* psResult);
-	bool		Step(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* pasTemporaries, uint32 uiArguments, CArrayTemplate<size>* pauiArgumentOffsets,
-					 CArrayIRValues* pasPending, CArrayTemplate<SIRType>* pasPendingTypes, size uiFrame);
+	bool		PushFrame(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRValues* pasArguments, CArrayTemplate<SIRType>* pasArgumentTypes);
+	void		PopFrame(bool bFailed);
+	bool		RunFrame(SIRFrame* psFrame);
+	bool		EnterBlock(SIRFrame* psFrame, CIRBlock* pcBlock);
+	bool		Step(SIRFrame* psFrame, SIRInstruction* psInstruction);
 	bool		ValueOf(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue* pasTemporaries, SIRReference sReference, SIRValue* psValue);
 	bool		Integer(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* psLeft, SIRValue* psRight, SIRValue* psResult);
 	bool		Float(CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* psLeft, SIRValue* psRight, SIRValue* psResult);
 	bool		Load(CIRModule* pcModule, SIRType sType, SIRValue* psAddress, int iAddressBytes, SIRValue* psResult);
 	bool		Store(CIRModule* pcModule, SIRType sType, SIRValue* psValue, SIRValue* psAddress, int iAddressBytes);
-	bool		CallInstruction(CIRModule* pcModule, CIRFunction* pcFunction, SIRInstruction* psInstruction, SIRValue* pasTemporaries, CArrayIRValues* pasPending, CArrayTemplate<SIRType>* pasPendingTypes);
+	bool		CallInstruction(SIRFrame* psFrame, SIRInstruction* psInstruction);
 
 	uint32		AddObject(EIRObjectKind eKind, size uiSize, bool bWritable, size uiFrame, const char* szName);
 	uint32		SymbolObject(CIRModule* pcModule, uint32 uiSymbol);
