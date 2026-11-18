@@ -210,7 +210,8 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 
 	szLabel.Init();
 	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction, mbBaseVersion);
-	BeginWriting(pcFunction, szLabel.Text(), ReturnIRType(pcFunction->mpsReturn), (pcFunction->mbVariadic ? IRA_Variadic : 0) | ((pcFunction->mpcClass && !pcFunction->mbStatic) ? IRA_ThisCall : 0));
+	BeginWriting(pcFunction, szLabel.Text(), ReturnIRType(pcFunction->mpsReturn), (pcFunction->mbVariadic ? IRA_Variadic : 0) | ((pcFunction->mpcClass && !pcFunction->mbStatic) ? IRA_ThisCall : 0) |
+		(mpcUnit->HasAttribute(pcFunction->mpcDeclarator, "noinline") ? IRA_NoInline : 0));
 
 	//The generator's errors are not reported while the front end works (it reports them if it writes the function
 	//itself).  What it fails to work out comes back as NULL, which the front end doesn't support; quiet errors from

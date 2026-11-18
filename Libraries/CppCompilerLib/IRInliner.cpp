@@ -153,7 +153,7 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 	CIRBlock*		pcBlock;
 	bool			bReturns;
 
-	if ((pcCallee == NULL) || (pcCallee == mpcCaller) || (pcCallee->muiAttributes & IRA_Variadic) || (pcCallee->NumBlocks() == 0))
+	if ((pcCallee == NULL) || (pcCallee == mpcCaller) || (pcCallee->muiAttributes & (IRA_Variadic | IRA_NoInline)) || (pcCallee->NumBlocks() == 0))
 	{
 		return false;
 	}

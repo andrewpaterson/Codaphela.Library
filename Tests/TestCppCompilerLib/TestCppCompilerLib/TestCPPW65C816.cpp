@@ -5877,6 +5877,36 @@ void TestCPP816KeepUnusedObjects(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// __attribute__((noinline)) keeps a function out of its callers wherever
+// GCC takes it: before the declaration (BaseLib's NO_INLINE), after the
+// parameters of a declaration, and of a definition.  A function as small
+// without it is inlined.  The results are as natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816NoInline(void)
+{
+	static const char*	aszNone[] = { NULL };
+	CChars				szListing;
+
+	szListing.Init();
+	AssertInt(3 * 2 + 1 + 4 * 2 + 1 + 3 * 3 + 1 + 5 * 3 + 1 + 3 * 5 + 1 + 3 * 7 + 1, TestCPP816RunListed(
+		"__attribute__((noinline)) static int Twice(int a) { return a * 2 + 1; }\n"
+		"static int Thrice(int a) __attribute__((noinline));\n"
+		"static int Thrice(int a) { return a * 3 + 1; }\n"
+		"static int Five(int a) __attribute__((__noinline__)) { return a * 5 + 1; }\n"
+		"static int Seven(int a) { return a * 7 + 1; }\n"
+		"volatile int gi = 3;\n"
+		"int main(void) { return Twice(gi) + Twice(gi + 1) + Thrice(gi) + Thrice(gi + 2) + Five(gi) + Seven(gi); }\n", aszNone, &szListing, NULL, 0, true));
+	AssertTrue(szListing.Contains("jsl _Twice__Fi"));
+	AssertTrue(szListing.Contains("jsl _Thrice__Fi"));
+	AssertTrue(szListing.Contains("jsl _Five__Fi"));
+	AssertFalse(szListing.Contains("jsl _Seven__Fi"));
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // typeid(x).name() is the type as the program writes it
 // (TestCPP65GeneratorTypeNames' program, for the W65C816).
 //
@@ -6539,6 +6569,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816SharedInline());
 	TEST_PART(TestCPP816KeepUnusedObjects());
 	TEST_PART(TestCPP816TypeNames());
+	TEST_PART(TestCPP816NoInline());
 	TEST_PART(TestCPP816StringRegisters());
 	TEST_PART(TestCPP816MathRegisters());
 	TEST_PART(TestCPP816WideMultiplies());
