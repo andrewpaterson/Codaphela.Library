@@ -114,7 +114,7 @@ struct SObjectsReader
 };
 
 
-extern bool									gbObjectsThreads;			//A thread other than the home thread is registered.  Changed by writers.
+extern lsize								guiObjectsThreads;			//A thread other than the home thread is registered.  Changed by writers; read whole, as a worker's own object system asks without the lock.
 extern int32								giObjectsThreadsKeeping;	//How many registered threads are counted as keeping stack froms.
 extern OBJECTS_PER_THREAD SObjectsReader*	gpsObjectsReader;			//The running thread's, NULL if it can't read (it isn't registered, or nothing reads).
 
@@ -211,7 +211,7 @@ void	ObjectsThreadLocked(void);		//ObjectsLock's, as the running thread takes th
 
 inline bool ObjectsThreadsRegistered(void)
 {
-	return OBJECTS_SELDOM(gbObjectsThreads);
+	return OBJECTS_SELDOM(AtomicLoadSize(&guiObjectsThreads) != 0);
 }
 
 

@@ -66,7 +66,7 @@ struct SObjectsThread
 typedef CArrayTemplatePtr<SObjectsThread>	CArrayObjectsThreadPtr;
 
 
-bool									gbObjectsThreads = false;
+lsize									guiObjectsThreads = 0;
 int32									giObjectsThreadsKeeping = 0;
 OBJECTS_PER_THREAD SObjectsReader*		gpsObjectsReader = NULL;
 
@@ -225,7 +225,7 @@ bool ObjectsReadBeginsAfterWriter(SObjectsReader* psReader)
 void ObjectsThreadsAdd(void)
 {
 	ObjectsThreadNew(false);
-	gbObjectsThreads = true;
+	AtomicStoreSize(&guiObjectsThreads, 1);
 }
 
 
@@ -256,7 +256,7 @@ size ObjectsThreadsRemove(void)
 	}
 
 	ObjectsThreadFree(psThread);
-	gbObjectsThreads = gapsObjectsThreads.NumElements() > 1;
+	AtomicStoreSize(&guiObjectsThreads, (gapsObjectsThreads.NumElements() > 1) ? 1 : 0);
 	return uiStackFroms;
 }
 
@@ -267,7 +267,7 @@ size ObjectsThreadsRemove(void)
 //////////////////////////////////////////////////////////////////////////
 size ObjectsThreadsNum(void)
 {
-	return gbObjectsThreads ? (gapsObjectsThreads.NumElements() - 1) : 0;
+	return (guiObjectsThreads != 0) ? (gapsObjectsThreads.NumElements() - 1) : 0;
 }
 
 
@@ -353,16 +353,17 @@ bool ObjectsThreadsAllInSinceMark(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// By a writer or, of an object it has seen attached to the root, a reader: it is the running thread's own table.
+// By a writer or, of an object it has seen attached to the root, a reader: it is the running thread's own table.  A
+// worker's own objects keep their froms themselves: the tables are for main objects attached to the main root.
 //
 //////////////////////////////////////////////////////////////////////////
-bool ThreadStackFromAddInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
+NO_INLINE bool ThreadStackFromAddInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
 {
 	SObjectsThread*		psThread;
 	SThreadStackFrom*	psFrom;
 
 	psThread = gpsObjectsThread;
-	if ((psThread == NULL) || psThread->sReader.bHome || !pcObject->IsAttachedToRoot())
+	if ((psThread == NULL) || psThread->sReader.bHome || !pcObject->IsAttachedToRoot() || pcObject->IsThreadsOwn())
 	{
 		return false;
 	}
@@ -435,10 +436,18 @@ static bool ObjectsThreadRemoveStackFrom(SObjectsThread* psThread, CEmbeddedObje
 //
 // By a writer or a reader: it is the running thread's own table.
 //
+// This and the other questions of the tables about one object pass over a worker's own objects, which keep their
+// froms themselves (ThreadStackFromAddInside) and are the worker's alone: it asks about them without the lock.
+//
 //////////////////////////////////////////////////////////////////////////
-bool ThreadStackFromRemoveInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
+NO_INLINE bool ThreadStackFromRemoveInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
 {
 	SObjectsThread*		psThread;
+
+	if (pcObject->IsThreadsOwn())
+	{
+		return false;
+	}
 
 	psThread = gpsObjectsThread;
 	return (psThread != NULL) && ObjectsThreadRemoveStackFrom(psThread, pcObject, pcPointer);
@@ -449,10 +458,15 @@ bool ThreadStackFromRemoveInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ThreadStackFromRemoveAnywhereInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
+NO_INLINE bool ThreadStackFromRemoveAnywhereInside(CEmbeddedObject* pcObject, CPointer* pcPointer)
 {
 	SObjectsThread*		psThread;
 	size				i;
+
+	if (pcObject->IsThreadsOwn())
+	{
+		return false;
+	}
 
 	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
 	{
@@ -500,10 +514,15 @@ static size ObjectsThreadNumStackFroms(SObjectsThread* psThread, CEmbeddedObject
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ThreadStackFromsHasInside(CEmbeddedObject* pcObject)
+NO_INLINE bool ThreadStackFromsHasInside(CEmbeddedObject* pcObject)
 {
 	SObjectsThread*		psThread;
 	size				i;
+
+	if (pcObject->IsThreadsOwn())
+	{
+		return false;
+	}
 
 	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
 	{
@@ -521,11 +540,16 @@ bool ThreadStackFromsHasInside(CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size ThreadStackFromsNumInside(CEmbeddedObject* pcObject)
+NO_INLINE size ThreadStackFromsNumInside(CEmbeddedObject* pcObject)
 {
 	SObjectsThread*		psThread;
 	size				uiNum;
 	size				i;
+
+	if (pcObject->IsThreadsOwn())
+	{
+		return 0;
+	}
 
 	uiNum = 0;
 	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
@@ -544,10 +568,15 @@ size ThreadStackFromsNumInside(CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ThreadStackFromsHasOnAnotherThreadInside(CEmbeddedObject* pcObject)
+NO_INLINE bool ThreadStackFromsHasOnAnotherThreadInside(CEmbeddedObject* pcObject)
 {
 	SObjectsThread*		psThread;
 	size				i;
+
+	if (pcObject->IsThreadsOwn())
+	{
+		return false;
+	}
 
 	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
 	{
@@ -565,7 +594,7 @@ bool ThreadStackFromsHasOnAnotherThreadInside(CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size ThreadStackFromsNumOnOtherThreadsInside(void)
+NO_INLINE size ThreadStackFromsNumOnOtherThreadsInside(void)
 {
 	SObjectsThread*		psThread;
 	size				uiNum;
@@ -590,13 +619,18 @@ size ThreadStackFromsNumOnOtherThreadsInside(void)
 // changed where they are, by whichever thread is freeing or loading the object.
 //
 //////////////////////////////////////////////////////////////////////////
-size ThreadStackFromsClearInside(CEmbeddedObject* pcObject)
+NO_INLINE size ThreadStackFromsClearInside(CEmbeddedObject* pcObject)
 {
 	SObjectsThread*		psThread;
 	SThreadStackFrom*	pasFroms;
 	size				uiNum;
 	size				i;
 	size				j;
+
+	if (pcObject->IsThreadsOwn())
+	{
+		return 0;
+	}
 
 	uiNum = 0;
 	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
@@ -628,7 +662,7 @@ size ThreadStackFromsClearInside(CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size ThreadStackFromsRemapInside(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+NO_INLINE size ThreadStackFromsRemapInside(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	SObjectsThread*		psThread;
 	SThreadStackFrom*	pasFroms;
@@ -636,6 +670,11 @@ size ThreadStackFromsRemapInside(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 	size				uiNum;
 	size				i;
 	size				j;
+
+	if (pcOld->IsThreadsOwn())
+	{
+		return 0;
+	}
 
 	uiNum = 0;
 	for (i = 0; i < gapsObjectsThreads.NumElements(); i++)
@@ -665,7 +704,7 @@ size ThreadStackFromsRemapInside(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ThreadStackFromsAddressesInside(CArrayVoidPtr* papvAddresses)
+NO_INLINE void ThreadStackFromsAddressesInside(CArrayVoidPtr* papvAddresses)
 {
 	SObjectsThread*		psThread;
 	size				i;
@@ -686,7 +725,7 @@ void ThreadStackFromsAddressesInside(CArrayVoidPtr* papvAddresses)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ThreadStackFromsPrintInside(CChars* psz, bool bPointerMemory)
+NO_INLINE void ThreadStackFromsPrintInside(CChars* psz, bool bPointerMemory)
 {
 	SObjectsThread*		psThread;
 	SThreadStackFrom*	psFrom;

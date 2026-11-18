@@ -144,6 +144,7 @@ CObjects::CObjects()
 	mpcSequenceConnection = NULL;
 	muiWalkStamp = 0;
 	muiForwardersMarked = 0;
+	mbWorker = false;
 }
 
 
@@ -174,6 +175,23 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	mapcWaitingToBeFreed.Init();
 	masForwarders.Init();
 	muiForwardersMarked = 0;
+	mbWorker = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker thread's own object system (ThreadSafetyPlan.txt, Level 3 as
+// built): no database, its indexes from the main object system's
+// sequence, and the worker its home.  It allocates from what the main one
+// does and validates as it does.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::InitWorker(CObjects* pcMain, CStackPointers* pcStackPointers, CSequenceConnection* pcSequenceConnection)
+{
+	Init(pcMain->mpcUnknownsAllocatingFrom, pcStackPointers, NULL, pcSequenceConnection);
+	mbValidateConsistency = pcMain->mbValidateConsistency;
+	mbWorker = true;
 }
 
 
@@ -1305,7 +1323,7 @@ void CObjects::Collect(void)
 	CArrayBaseObjectPtr		apcDead;
 	size					i;
 
-	if (mapcWaitingToBeFreed.IsEmpty() || !ObjectsIsHomeThread() || mcRemovalContext.IsBusy())
+	if (mapcWaitingToBeFreed.IsEmpty() || !IsHomeThread() || mcRemovalContext.IsBusy())
 	{
 		return;
 	}
@@ -1326,6 +1344,28 @@ void CObjects::Collect(void)
 
 	RemoveInKillOrder(&apcDead);
 	apcDead.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The main object system's home is the thread that called ObjectsInit; a
+// worker's own object system's is the worker.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::IsHomeThread(void)
+{
+	return mbWorker ? (ObjectsOwn() == this) : ObjectsIsHomeThread();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::IsWorker(void)
+{
+	return mbWorker;
 }
 
 
@@ -1438,7 +1478,7 @@ void CObjects::FreeForwarders(void)
 {
 	OBJECTS_WRITE();
 
-	if (!ObjectsIsHomeThread() || mcRemovalContext.IsBusy())
+	if (!IsHomeThread() || mcRemovalContext.IsBusy())
 	{
 		return;
 	}
@@ -1456,6 +1496,12 @@ void CObjects::FreeForwardersInside(bool bAll)
 	CArrayBaseObjectPtr		apcHollows;
 	size					uiFree;
 	size					i;
+
+	//The count of every object system's forwarders isn't touched by one that has none (a worker's never has).
+	if (masForwarders.IsEmpty())
+	{
+		return;
+	}
 
 	if (bAll)
 	{
@@ -1560,7 +1606,7 @@ bool CObjects::ValidateNoOtherThreadHolds(const char* szMethod, CBaseObject* pcO
 		return true;
 	}
 
-	bHome = ObjectsIsHomeThread();
+	bHome = IsHomeThread();
 	for (i = 0; i < pcObject->NumEmbedded(); i++)
 	{
 		pcEmbedded = pcObject->GetEmbeddedObject(i);
@@ -2013,6 +2059,27 @@ CBaseObject* CObjects::GetFromSources(const char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+OIndex CObjects::ReserveIndexes(size uiCount)
+{
+	OBJECTS_WRITE();
+
+	OIndex	oiFirst;
+	size	i;
+
+	//With the lock held no other index is handed out between them: they are in a row.
+	oiFirst = GetNextIndex();
+	for (i = 1; i < uiCount; i++)
+	{
+		GetNextIndex();
+	}
+	return oiFirst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 OIndex CObjects::GetNextIndex(void) const
 {
 	if (mpcSequenceConnection)
@@ -2230,7 +2297,7 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papc
 
 	//Only the home thread frees: an object's Free(), and what it frees, belong to the thread the objects were made
 	//for.  Another thread leaves what it found dead for it.
-	if (!ObjectsIsHomeThread())
+	if (!IsHomeThread())
 	{
 		WaitToBeFreed(papcKilled);
 		if (bKilledAfter)

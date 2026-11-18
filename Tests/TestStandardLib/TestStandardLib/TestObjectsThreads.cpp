@@ -17,6 +17,7 @@
 #include "StandardLib/ArrayObject.h"
 #include "StandardLib/HollowObject.h"
 #include "StandardLib/ObjectsThreads.h"
+#include "StandardLib/ObjectsWorker.h"
 #include "StandardLib/ArrayWeakObject.h"
 #include "StandardLib/IndexObject.h"
 #include "StandardLib/MapObject.h"
@@ -47,7 +48,7 @@ void StopCapturingLog(CMemoryFile* pcMemory, SLogConfig* psLogConfig, char* szLo
 
 
 static int32	giTestThreadNodesFreed = 0;
-static int32	giTestThreadNodesFreedOffHome = 0;	//Freed on a thread that isn't the home thread: none should be.
+static int32	giTestThreadNodesFreedOffHome = 0;	//Freed on a thread that isn't its object system's home: none should be.
 static int32	giTestThreadNeedersFreedLate = 0;	//Freed after what they need: none should be.
 
 
@@ -89,7 +90,7 @@ void CTestThreadNode::Free(void)
 {
 	miState = TEST_OBJECTS_THREADS_FREED;
 	AtomicAdd(&giTestThreadNodesFreed, 1);
-	if (!ObjectsIsHomeThread())
+	if (!GetObjectsOrDefault()->IsHomeThread())
 	{
 		AtomicAdd(&giTestThreadNodesFreedOffHome, 1);
 	}
@@ -133,7 +134,7 @@ void CTestThreadNeeder::Class(void)
 
 void CTestThreadNeeder::Free(void)
 {
-	if (mpNeeds.IsNull() || !mpNeeds->IsLive() || !ObjectsIsHomeThread())
+	if (mpNeeds.IsNull() || !mpNeeds->IsLive() || !GetObjectsOrDefault()->IsHomeThread())
 	{
 		AtomicAdd(&giTestThreadNeedersFreedLate, 1);
 	}
@@ -158,16 +159,19 @@ struct STestObjectsThread
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A thread of a test: it registers, waits until every thread of the test has (so they all run at once however
+// A thread of a test: it registers (as a worker if the test says), waits until every thread of the test has (so they all run at once however
 // quickly the first would have finished), does its work and is done with objects.
 //
 //////////////////////////////////////////////////////////////////////////
+static bool	gbTestObjectsThreadsWorkers = false;	//The threads are workers, each with an object system of its own.
+
+
 static void TestObjectsThread(void* pvThread)
 {
 	STestObjectsThread*		psThread;
 
 	psThread = (STestObjectsThread*)pvThread;
-	psThread->bRegistered = ObjectsThreadInit();
+	psThread->bRegistered = gbTestObjectsThreadsWorkers ? ObjectsWorkerInit() : ObjectsThreadInit();
 	AtomicAdd(psThread->piStarted, 1);
 	while (AtomicLoad(psThread->piStarted) < TEST_OBJECTS_THREADS)
 	{
@@ -1995,6 +1999,7 @@ void TestObjectsThreadsForwardingHollow(void)
 
 
 #define TEST_OBJECTS_THREADS_TREE_DEPTH		6
+#define TEST_OBJECTS_THREADS_TREE_NODES		((2 << TEST_OBJECTS_THREADS_TREE_DEPTH) - 1)
 #define TEST_OBJECTS_THREADS_STORED_ROUNDS	3
 #define TEST_OBJECTS_THREADS_MEMBERS		64
 #define TEST_OBJECTS_THREADS_PASSES			20
@@ -2475,6 +2480,192 @@ void TestObjectsThreadsUnknowns(void)
 }
 
 
+static CArrayOIndex	gaoiTestObjectsWorkerIndexes;	//Every worker's objects' indexes, under the test's mutex.
+
+
+//Builds graphs as TestObjectsThreadsBuildGraphs does, in the worker's own object system: the only ways into the main
+//one are for blocks of indexes, and the weak pointer's (pointed, got and let go of: a weak pointer doesn't know the
+//object it is in, so it takes the main lock).
+static void TestObjectsThreadsWorkerGraphs(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	size					uiWaysIn;
+	size					uiObjects;
+
+	psThread = (STestObjectsThread*)pvThread;
+	if (ObjectsCurrent() == &gcObjects)
+	{
+		psThread->iErrors++;
+	}
+	uiObjects = ObjectsCurrent()->NumMemoryIndexes();
+	uiWaysIn = ObjectsNumWaysIn();
+	TestObjectsThreadsBuildGraphs(pvThread);
+	uiWaysIn = ObjectsNumWaysIn() - uiWaysIn;
+	if (uiWaysIn > (TEST_OBJECTS_THREADS_STEPS * 3) + ((TEST_OBJECTS_THREADS_STEPS * 3) / OBJECTS_WORKER_INDEXES) + 1)
+	{
+		psThread->iErrors++;
+	}
+	if (ObjectsCurrent()->NumMemoryIndexes() != uiObjects)
+	{
+		psThread->iErrors++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Workers, each with an object system of its own, build graphs at once and
+// let them go: no lock is taken but one for each block of indexes (and
+// the weak pointer's), every object is freed once and on its worker, and
+// the main object system doesn't change.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsWorkerOwnGraphs(void)
+{
+	size	uiObjects;
+
+	TestObjectsThreadsBegin();
+	ORoot();
+	uiObjects = gcObjects.NumMemoryIndexes();
+
+	gbTestObjectsThreadsWorkers = true;
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsWorkerGraphs, NULL, NULL, NULL, NULL));
+	gbTestObjectsThreadsWorkers = false;
+
+	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_STEPS * 3, giTestThreadNodesFreed);
+	TestObjectsThreadsEnd(uiObjects);
+}
+
+
+//A tree in the worker's own root, its indexes noted; left for ObjectsThreadKill.
+static void TestObjectsThreadsWorkerLeaves(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CRoot>				pRoot;
+	Ptr<CTestThreadNode>	pTop;
+	SIndexesIterator		sIter;
+	OIndex					oi;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pRoot = ORoot();
+	if (pRoot->GetObjectsThisIn() != ObjectsCurrent())
+	{
+		psThread->iErrors++;
+	}
+	pTop = OMalloc<CTestThreadNode>();
+	pRoot->Add(pTop);
+	TestObjectsThreadsMakeTree(pTop, TEST_OBJECTS_THREADS_TREE_DEPTH);
+
+	psThread->pcMutex->Lock();
+	oi = ObjectsCurrent()->StartMemoryIteration(&sIter);
+	while (oi != INVALID_O_INDEX)
+	{
+		gaoiTestObjectsWorkerIndexes.Add(oi);
+		oi = ObjectsCurrent()->IterateMemory(&sIter);
+	}
+	psThread->pcMutex->Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker's objects have their own root, and indexes no other object in
+// the process has.  What it leaves in its object system is freed, on the
+// worker, when it unregisters.  Validation is on: a worker's object system
+// validates as the main one does, and its own objects alone.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsWorkerLeftObjects(void)
+{
+	CMutex	cMutex;
+	size	uiObjects;
+	size	i;
+
+	TestObjectsThreadsBegin();
+	ORoot();
+	uiObjects = gcObjects.NumMemoryIndexes();
+	gaoiTestObjectsWorkerIndexes.Init();
+	cMutex.Init();
+
+	gcObjects.EnableValidation();
+	gbTestObjectsThreadsWorkers = true;
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsWorkerLeaves, NULL, &cMutex, NULL, NULL));
+	gbTestObjectsThreadsWorkers = false;
+	gcObjects.DisableValidation();
+	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_TREE_NODES, giTestThreadNodesFreed);
+
+	gaoiTestObjectsWorkerIndexes.QuickSort();
+	AssertTrue(gaoiTestObjectsWorkerIndexes.NumElements() > TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_TREE_NODES);
+	for (i = 1; i < gaoiTestObjectsWorkerIndexes.NumElements(); i++)
+	{
+		if (gaoiTestObjectsWorkerIndexes.GetValue(i - 1) == gaoiTestObjectsWorkerIndexes.GetValue(i))
+		{
+			AssertLong(-1, gaoiTestObjectsWorkerIndexes.GetValue(i));
+			break;
+		}
+		AssertFalse(gcObjects.Contains(gaoiTestObjectsWorkerIndexes.GetValue(i)));
+	}
+	gaoiTestObjectsWorkerIndexes.Kill();
+	cMutex.Kill();
+	TestObjectsThreadsEnd(uiObjects);
+}
+
+
+//A worker's stack pointers between its own objects and the main object system's shared node, over and over.
+static void TestObjectsThreadsWorkerHolds(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CTestThreadNode>	pHeld;
+	Ptr<CTestThreadNode>	pOwn;
+	size					i;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pOwn = OMalloc<CTestThreadNode>();
+	ORoot()->Add(pOwn);
+	for (i = 0; i < TEST_OBJECTS_THREADS_STEPS; i++)
+	{
+		pHeld = psThread->pcShared;
+		if (!pHeld->IsLive())
+		{
+			psThread->iErrors++;
+		}
+		pHeld = pOwn;
+		pHeld = psThread->pcShared;
+		pHeld = OMalloc<CTestThreadNode>();
+		pHeld = NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker's stack pointers point at main objects as any registered
+// thread's do, and move between its own objects and main ones.  The main
+// object is held exactly while they point at it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsWorkerHoldsMain(void)
+{
+	Ptr<CTestThreadNode>	pShared;
+	size					uiObjects;
+
+	TestObjectsThreadsBegin();
+	pShared = OMalloc<CTestThreadNode>();
+	ORoot()->Add(pShared);
+	uiObjects = gcObjects.NumMemoryIndexes();
+
+	gbTestObjectsThreadsWorkers = true;
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsWorkerHolds, NULL, NULL, &pShared, NULL));
+	gbTestObjectsThreadsWorkers = false;
+
+	AssertSize(1, pShared.NumStackFroms());
+	AssertTrue(pShared->IsLive());
+	AssertInt(TEST_OBJECTS_THREADS * (TEST_OBJECTS_THREADS_STEPS + 1), giTestThreadNodesFreed);
+	pShared = NULL;
+	TestObjectsThreadsEnd(uiObjects);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2503,6 +2694,9 @@ void TestObjectsThreads(void)
 	TestObjectsThreadsStoredCollections();
 	TestObjectsThreadsFlushWhileRead();
 	TestObjectsThreadsKillStoredHeld();
+	TestObjectsThreadsWorkerOwnGraphs();
+	TestObjectsThreadsWorkerLeftObjects();
+	TestObjectsThreadsWorkerHoldsMain();
 	TestObjectsThreadsAssertNoFree();
 	TestObjectsThreadsEveryWayIn();
 

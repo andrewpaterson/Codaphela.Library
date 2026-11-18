@@ -96,6 +96,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 inline bool ObjectsLocking(bool bLocking) { return !bLocking; }
 inline bool IsObjectsLocking(void) { return false; }
 inline bool ObjectsThreadInit(void) { return false; }
+inline bool ObjectsWorkerInit(void) { return false; }
 inline bool ObjectsThreadKill(void) { return false; }
 inline size ObjectsNumThreads(void) { return 0; }
 inline void ObjectsHomeThread(bool bHome) {}
@@ -105,6 +106,8 @@ inline bool ObjectsAreFreesWaiting(void) { return false; }
 inline bool ObjectsAssertNoFree(const char* szMethod) { return true; }
 inline void ObjectsLock(void) {}
 inline void ObjectsUnlock(void) {}
+inline void ObjectsOwnEnters(void) {}
+inline void ObjectsOwnLeaves(void) {}
 inline size ObjectsNumWaysIn(void) { return 0; }
 inline size ObjectsNumThreadErrors(void) { return 0; }
 
@@ -138,7 +141,8 @@ extern int32				giObjectsFreesWaiting;	//Other threads have found objects dead. 
 bool	ObjectsLocking(bool bLocking);		//The home thread's.  False (and nothing changed) if it can't be done now.
 bool	IsObjectsLocking(void);
 bool	ObjectsThreadInit(void);			//Every other thread's, before it touches an object.
-bool	ObjectsThreadKill(void);			//And when it has finished.
+bool	ObjectsWorkerInit(void);			//Or, for a thread that makes objects of its own: ObjectsThreadInit and an object system of its own (ObjectsWorker.h).
+bool	ObjectsThreadKill(void);			//And when it has finished (a worker's own object system, and what is left in it, goes).
 size	ObjectsNumThreads(void);			//The other threads registered now.
 void	ObjectsHomeThread(bool bHome);		//ObjectsInit's: the running thread is the home thread.  ObjectsKill's: no thread is.
 bool	ObjectsIsHomeThread(void);			//Always, while the locking is off.
@@ -168,19 +172,28 @@ class CObjects;
 class CEmbeddedObject;
 
 
-//The lock for a way into pcObjects, or into pcObject's object system, taken (true) unless it is the running thread's
-//own (a worker's), which takes none (ThreadSafetyPlan.txt, Level 3 as built).
-bool	ObjectsLockFor(const CObjects* pcObjects);
-bool	ObjectsLockForObject(const CEmbeddedObject* pcObject);
+//What a guard holds: nothing (the locking is off), the lock, or a way into the running thread's own object system (a
+//worker's), which takes no lock (ThreadSafetyPlan.txt, Level 3 as built).
+#define OBJECTS_HELD_NOTHING	0
+#define OBJECTS_HELD_LOCK		1
+#define OBJECTS_HELD_OWN		2
+
+
+//A way into pcObjects, or into pcObject's object system: the lock taken, or the thread's own.  And let go of.
+int		ObjectsEnterFor(const CObjects* pcObjects);
+int		ObjectsEnterForObject(const CEmbeddedObject* pcObject);
+void	ObjectsLeave(int iHeld);
+void	ObjectsOwnEnters(void);  //The running thread's own object system is used without a guard (a pointer's ways in).
+void	ObjectsOwnLeaves(void);
 
 
 //Holds the lock from where it is declared to the end of the block, when the locking is on.  It is given what the way
-//in is a method of (`this`): of an object system or an object, it is the lock that object system needs; of anything
-//else (a pointer, a weak pointer), the main object system's.
+//in is a method of (`this`): of an object system or an object, it is the lock that object system needs (none for the
+//running thread's own); of anything else (a pointer, a weak pointer), the main object system's.
 class CObjectsGuard
 {
 protected:
-	bool	mbLocked;
+	int		miHeld;
 
 public:
 	CObjectsGuard(const void* pvOther);
@@ -201,11 +214,11 @@ protected:
 //////////////////////////////////////////////////////////////////////////
 inline CObjectsGuard::CObjectsGuard(const void* pvOther)
 {
-	mbLocked = false;
+	miHeld = OBJECTS_HELD_NOTHING;
 	if (OBJECTS_SELDOM(gbObjectsLocking))
 	{
 		ObjectsLock();
-		mbLocked = true;
+		miHeld = OBJECTS_HELD_LOCK;
 	}
 	else
 	{
@@ -220,10 +233,10 @@ inline CObjectsGuard::CObjectsGuard(const void* pvOther)
 //////////////////////////////////////////////////////////////////////////
 inline CObjectsGuard::CObjectsGuard(const CObjects* pcObjects)
 {
-	mbLocked = false;
+	miHeld = OBJECTS_HELD_NOTHING;
 	if (OBJECTS_SELDOM(gbObjectsLocking))
 	{
-		mbLocked = ObjectsLockFor(pcObjects);
+		miHeld = ObjectsEnterFor(pcObjects);
 	}
 	else
 	{
@@ -238,10 +251,10 @@ inline CObjectsGuard::CObjectsGuard(const CObjects* pcObjects)
 //////////////////////////////////////////////////////////////////////////
 inline CObjectsGuard::CObjectsGuard(const CEmbeddedObject* pcObject)
 {
-	mbLocked = false;
+	miHeld = OBJECTS_HELD_NOTHING;
 	if (OBJECTS_SELDOM(gbObjectsLocking))
 	{
-		mbLocked = ObjectsLockForObject(pcObject);
+		miHeld = ObjectsEnterForObject(pcObject);
 	}
 	else
 	{
@@ -269,9 +282,9 @@ inline void CObjectsGuard::NotLocking(void)
 //////////////////////////////////////////////////////////////////////////
 inline CObjectsGuard::~CObjectsGuard()
 {
-	if (OBJECTS_SELDOM(mbLocked))
+	if (OBJECTS_SELDOM(miHeld != OBJECTS_HELD_NOTHING))
 	{
-		ObjectsUnlock();
+		ObjectsLeave(miHeld);
 	}
 }
 

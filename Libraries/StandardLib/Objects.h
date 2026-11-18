@@ -101,10 +101,12 @@ protected:
 	CArrayForwardingHollow	masForwarders;  //Hollows loaded while other threads were registered, until none can still ask one (FreeForwarders).
 	size					muiForwardersMarked;  //The first of masForwarders, forwarding when the threads' ways in were last marked.
 	uint32					muiWalkStamp;  //The base of the last walk started.  See WALK_STAMP_STEP.
+	bool					mbWorker;  //A worker thread's own object system (ObjectsWorkerInit): that thread is its home.
 
 public:
 												CObjects();
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
+						void					InitWorker(CObjects* pcMain, CStackPointers* pcStackPointers, CSequenceConnection* pcSequenceConnection);
 						void					Kill(void);
 
 	template<class M>	void					AddConstructor(void);
@@ -136,6 +138,9 @@ public:
 
 						void					Collect(void);  //The home thread's: frees what other threads found dead.
 						void					FreeForwarders(void);  //The home thread's: frees the forwarding hollows no thread can still ask.
+						bool					IsHomeThread(void);  //The running thread is the one that frees this's objects.
+						bool					IsWorker(void);
+						OIndex					ReserveIndexes(size uiCount);  //uiCount indexes in a row, for a worker's object system: the first.
 						bool					IsWriteThrough(void);
 						size					NumWaitingToBeFreed(void);
 						size					NumForwarders(void);
@@ -286,9 +291,11 @@ extern size		guiObjectsForwarders;  //Forwarding hollows in every object system 
 //The object system OMalloc, ORoot and the rest make and find objects in: the running thread's own (a worker's), or
 //gcObjects (ThreadSafetyPlan.txt, Level 3 as built).
 #ifdef __LIBC65__
+inline CObjects* ObjectsOwn(void) { return NULL; }
 inline CObjects* ObjectsCurrent(void) { return &gcObjects; }
 #else
 extern OBJECTS_PER_THREAD CObjects*	gpcObjectsOwn;  //The running thread's own object system, NULL if it has none.
+inline CObjects* ObjectsOwn(void) { return gpcObjectsOwn; }
 inline CObjects* ObjectsCurrent(void)
 {
 	CObjects*	pcOwn;

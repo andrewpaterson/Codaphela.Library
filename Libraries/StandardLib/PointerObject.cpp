@@ -455,20 +455,61 @@ void CPointer::PointToFromOutside(CEmbeddedObject* const* ppcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// PointToFromOutside with the locking on: as a reader if it can be
-// (PointToReading), otherwise with the lock.  Apart, so that the ways
-// with the locking off (the constructors, assignments and destructor) stay
-// as short as they are.
+// PointToFromOutside with the locking on: in the running thread's own
+// object system (a worker's) as with the locking off; as a reader if it
+// can be (PointToReading); otherwise with the lock.  Apart, so that the
+// ways with the locking off (the constructors, assignments and destructor)
+// stay as short as they are.
 //
 //////////////////////////////////////////////////////////////////////////
 NO_INLINE void CPointer::PointToLocking(CEmbeddedObject* const* ppcObject)
 {
+	CEmbeddedObject*	pcNewObject;
+
+	//Only a worker asks.  What it points this at is its own, or a main object held by what it is read from, read
+	//whole: a load may be rewriting it.
+	if (ObjectsOwn() != NULL)
+	{
+		pcNewObject = (CEmbeddedObject*)AtomicLoadPointer((void**)ppcObject);
+		if (IsAllThreadsOwn(pcNewObject))
+		{
+			ObjectsOwnEnters();
+			PointToInside(pcNewObject);
+			ObjectsOwnLeaves();
+			return;
+		}
+	}
+
 	if (!PointToReading(ppcObject))
 	{
 		ObjectsLock();
 		PointToInside(NotForwarding(*ppcObject));
 		ObjectsUnlock();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this, pointed from its object at pcNewObject, changes nothing
+// but the running thread's own object system: the object it points at,
+// pcNewObject and the object it is a field of are each its own (or NULL).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPointer::IsAllThreadsOwn(CEmbeddedObject* pcNewObject)
+{
+	CObjects*			pcOwn;
+	CEmbeddedObject*	pcOldObject;
+
+	pcOwn = ObjectsOwn();
+	if ((pcOwn == NULL) || ((char*)this < CORRUPT_MEMORY))
+	{
+		return false;
+	}
+	pcOldObject = LoadObject();
+	return ((pcOldObject == NULL) || (pcOldObject->GetObjectsThisIn() == pcOwn)) &&
+		   ((pcNewObject == NULL) || (pcNewObject->GetObjectsThisIn() == pcOwn)) &&
+		   ((mpcEmbedding == NULL) || (mpcEmbedding->GetObjectsThisIn() == pcOwn));
 }
 
 
@@ -1090,7 +1131,13 @@ void CPointer::AssignObject(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 NO_INLINE void CPointer::AssignObjectLocking(CEmbeddedObject* pcObject)
 {
-	if ((LoadObject() != NULL) || !PointToReading(&pcObject))
+	if (IsAllThreadsOwn(pcObject))
+	{
+		ObjectsOwnEnters();
+		AssignObjectInside(pcObject);
+		ObjectsOwnLeaves();
+	}
+	else if ((LoadObject() != NULL) || !PointToReading(&pcObject))
 	{
 		ObjectsLock();
 		AssignObjectInside(NotForwarding(pcObject));

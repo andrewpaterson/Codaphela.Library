@@ -167,6 +167,7 @@ public:
 			bool				UnlinkStackFrom(CPointer* pcPointer);
 			bool				UnlinkStackFromOfThreads(CPointer* pcPointer);
 			bool				IsAttachedToRoot(void);
+			bool				IsThreadsOwn(void);
 			void				AddStackFromReading(CPointer* pcPointer);
 			bool				UnlinkStackFromReading(CPointer* pcPointer);
 			bool				UnlinkStackFrom(CCollection* pcCollection);

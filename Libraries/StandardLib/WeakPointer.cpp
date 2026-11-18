@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Atomic.h"
 #include "EmbeddedObject.h"
 #include "BaseObject.h"
 #include "Objects.h"
@@ -41,7 +42,8 @@ CWeakPointer::CWeakPointer()
 //////////////////////////////////////////////////////////////////////////
 void CWeakPointer::ClearWeak(size uiSlot)
 {
-	mpcObject = NULL;
+	//Whole: Release reads it without the lock.
+	AtomicStorePointer((void**)&mpcObject, NULL);
 }
 
 
@@ -51,7 +53,7 @@ void CWeakPointer::ClearWeak(size uiSlot)
 //////////////////////////////////////////////////////////////////////////
 void CWeakPointer::RemapWeak(size uiSlot, CEmbeddedObject* pcObject)
 {
-	mpcObject = pcObject;
+	AtomicStorePointer((void**)&mpcObject, pcObject);
 }
 
 
@@ -115,7 +117,7 @@ void CWeakPointer::PointToInside(CEmbeddedObject* pcObject)
 	{
 		mpcObject->GetObjectsOrDefault()->RemoveWeakFrom(mpcObject, this, 0);
 	}
-	mpcObject = pcObject;
+	AtomicStorePointer((void**)&mpcObject, pcObject);
 	if (mpcObject)
 	{
 		mpcObject->GetObjectsOrDefault()->AddWeakFrom(mpcObject, this, 0);
@@ -129,7 +131,12 @@ void CWeakPointer::PointToInside(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CWeakPointer::Release(void)
 {
-	PointTo(NULL);
+	//A NULL weak pointer stays NULL until its holder points it (the object system only clears and remaps them), so
+	//letting go of one, which every freed object with a weak field does, takes no lock.
+	if (AtomicLoadPointer((void**)&mpcObject) != NULL)
+	{
+		PointTo(NULL);
+	}
 }
 
 

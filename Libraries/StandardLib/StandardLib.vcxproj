@@ -301,6 +301,7 @@
     <ClInclude Include="MultiFileObjectWriter.h" />
     <ClInclude Include="HollowObject.h" />
     <ClInclude Include="IndexedObjects.h" />
+    <ClInclude Include="ObjectsWorker.h" />
     <ClInclude Include="ObjectSource.h" />
     <ClInclude Include="Action.h" />
     <ClInclude Include="Actions.h" />
@@ -437,6 +438,7 @@
     <ClCompile Include="MultiFileObjectWriter.cpp" />
     <ClCompile Include="HollowObject.cpp" />
     <ClCompile Include="IndexedObjects.cpp" />
+    <ClCompile Include="ObjectsWorker.cpp" />
     <ClCompile Include="ObjectSource.cpp" />
     <ClCompile Include="Action.cpp" />
     <ClCompile Include="Actions.cpp" />

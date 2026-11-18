@@ -1125,21 +1125,17 @@ bool CEmbeddedObject::IsAttachedToRoot(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The stack from of a pointer that has been pointed at this, added by a thread that is reading (ObjectsThreads.h)
-// and has seen this attached to the root.  A registered thread keeps the from itself; the home thread's goes on
-// this, where only it and writers look.
+// and has seen this attached to the root.  A registered thread keeps the from of a main object itself; the home
+// thread's goes on this, where only it and writers look, and a worker's of its own object on this, where only it does.
 //
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddStackFromReading(CPointer* pcPointer)
 {
 	OBJECTS_INSIDE();
 
-	if (ObjectsReaderIsHome())
+	if (ObjectsReaderIsHome() || !ThreadStackFromAdd(this, pcPointer))
 	{
 		LinkStackFrom(GetStackPointers()->Add(pcPointer));
-	}
-	else
-	{
-		ThreadStackFromAdd(this, pcPointer);
 	}
 }
 
@@ -1155,11 +1151,26 @@ bool CEmbeddedObject::UnlinkStackFromReading(CPointer* pcPointer)
 {
 	OBJECTS_INSIDE();
 
-	if (ObjectsReaderIsHome())
+	if (ObjectsReaderIsHome() || IsThreadsOwn())
 	{
 		return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer);
 	}
 	return ThreadStackFromRemove(this, pcPointer);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In the running thread's own object system (a worker's): only it uses
+// this, so this keeps its froms itself, whatever the locking.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::IsThreadsOwn(void)
+{
+	CObjects*	pcOwn;
+
+	pcOwn = ObjectsOwn();
+	return (pcOwn != NULL) && (GetObjectsThisIn() == pcOwn);
 }
 
 

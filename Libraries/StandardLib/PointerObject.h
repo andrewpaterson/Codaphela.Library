@@ -135,6 +135,7 @@ protected:
 private:
 	void				PointToLocking(CEmbeddedObject* const* ppcObject);
 	void				AssignObjectLocking(CEmbeddedObject* pcObject);
+	bool				IsAllThreadsOwn(CEmbeddedObject* pcNewObject);
 	CEmbeddedObject*	Dehollow(CEmbeddedObject* pcObject);
 	CEmbeddedObject*	LoadObject(void) const;
 };

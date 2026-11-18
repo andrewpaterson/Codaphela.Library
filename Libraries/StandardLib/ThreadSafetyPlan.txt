@@ -1043,6 +1043,39 @@ Steps
          current object system for each thread, gcObjects where none is set).  Its objects take their indexes from
          the main object system's sequence, and it has no database.  The worker is its home thread: Free() runs there,
          and ObjectsThreadKill frees what is left in it.  Its objects' own ways in take no lock.
+         Done 2026-11-18, in two commits.  The groundwork (43026582e): ObjectsCurrent() (a plain per-thread pointer,
+         gpcObjectsOwn, or gcObjects) for OMalloc, ONMalloc, OString, ORoot and GetObjectsOrDefault; OBJECTS_WRITE()
+         and OBJECTS_READ() give the guard `this`, so a way into an object system or an object decides by that object
+         system (ObjectsEnterFor: the running thread's own takes no lock) and anything else takes the main lock as
+         before; a pointer's ways with the locking on out of line (PointToLocking, AssignObjectLocking).
+         Then the worker: ObjectsWorkerInit registers the thread and makes it an SObjectsWorker (ObjectsWorker.h): a
+         CObjects (InitWorker: no database, main's unknowns and validation), a CStackPointers, and a sequence that
+         takes indexes from main's 256 in a row (CObjects::ReserveIndexes, under the main lock) and hands them out
+         without it.  CObjects::IsHomeThread is the worker for its own object system (it frees its own, nothing is
+         queued).  ObjectsThreadKill discards and kills it, its pointers into it cleared.  A guard into the worker's
+         own object system counts how deep the thread is (OBJECTS_INSIDE knows it is inside).  A pointer whose
+         object, new object and holder are all the worker's own (or NULL) is pointed as with the locking off; only a
+         worker reads the new object before the reader flag or the lock, and reads it whole.  A worker's own objects
+         keep their stack froms on themselves (never in the thread tables, which are for main objects attached to
+         the main root), and the tables' questions about one object pass over them: the worker asks without the
+         lock.  A worker's stack pointers still point at main objects as any registered thread's do, and move
+         between its own objects and main ones as a reader or with the lock.
+         Found on the way: the flag that a thread is registered (now guiObjectsThreads) and the count of forwarders
+         were read or written by a worker's own machinery without the lock (relaxed atomic; an object system with no
+         forwarders doesn't touch the count); a worker validating its own object system read the threads' tables (it
+         leaves them out).  A weak pointer doesn't know the object it is in, and what it points at may be a main
+         object another thread frees, so its ways in take the main lock on a worker too; letting go of a NULL one,
+         which every freed object with a weak field does, takes none.  The tables' functions are out of line: LTO
+         inlined one, with its new check, into HasStackFroms, and every caller paid for its registers.
+         Tests: TestObjectsThreadsWorkerOwnGraphs (8 workers build and drop 6000 objects each in cycles: no way into
+         the main object system but a block of indexes and the weak pointer's, every object freed once on its
+         worker), TestObjectsThreadsWorkerLeftObjects (a tree in each worker's own root, indexes unique in the
+         process and not main's, freed when the worker unregisters, validation on), TestObjectsThreadsWorkerHoldsMain
+         (a worker's stack pointers between its own objects and a main object: held exactly while pointed at).
+         One thread, by instructions against the groundwork: within LTO's band, a copy and drop 332 to 335, OMalloc
+         and free 5385 to 5303, a tree built +0.5%, freed -0.9%.
+         Not yet: a worker's object pointing at a main object (25c).  Until it is built, a worker's objects point at
+         its own objects only.
       c. A worker's object pointing at a main object: held as the worker's stack pointers hold main objects (the
          thread's table), so the main object stays while it is pointed at.  Neither object system's walks cross into
          the other.  A main object pointed into an unadopted graph is an error, found by validation.
