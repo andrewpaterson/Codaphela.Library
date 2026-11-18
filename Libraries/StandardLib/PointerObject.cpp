@@ -160,14 +160,18 @@ CPointer::CPointer(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 CPointer::~CPointer()
 {
+	CEmbeddedObject*	pcObject;
+
 	LOG_POINTER_DEBUG();
 
-	//Read whole: a load on another thread may be rewriting it.  Read again inside, where nothing can be.
-	if (LoadObject() != NULL)
+	//Read whole: a load on another thread may be rewriting it.  With the locking on it is read again inside, where
+	//nothing can be.
+	pcObject = LoadObject();
+	if (pcObject != NULL)
 	{
 		if (!OBJECTS_LOCKING())
 		{
-			mpcObject->RemoveStackFromTryFree(this);
+			pcObject->RemoveStackFromTryFree(this);
 		}
 		else if (!PointToReading(&gpcPointerNoObject))
 		{

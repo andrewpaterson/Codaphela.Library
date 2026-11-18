@@ -69,6 +69,7 @@ void TestEmbeddedObjectRemapTos(void);
 void TestEmbeddedStackPointers(void);
 void TestFreeEmbedded(void);
 void TestIndexTreeMemory(void);
+void TestIndexedObjects(void);
 void TestStackEmbeddedReInit(void);
 void TestObjectFree(void);
 void TestObjectFreeOrdering(void);
@@ -92,6 +93,7 @@ int __cdecl main(void)
 	NumberInit();
 
 	TestIndexTreeMemory();
+	TestIndexedObjects();
 	TestUnknowns();
 	TestArrayUnknown();
 	TestSetUnknown();

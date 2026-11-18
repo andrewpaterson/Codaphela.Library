@@ -138,6 +138,8 @@ The design
     both allocate from the same thread-safe allocator; OIndexes come from one locked sequence).  Pointers between two
     CObjects stay forbidden and validated.  OMalloc/ORoot would go through a thread_local "current objects" in place of
     gcObjects.  Not planned in detail until something needs it.
+    (Decisions 11 to 15 changed the last but one sentence: a worker's objects may point at main objects.  How it is
+    built is under step 25, Level 3 as built.)
 
   Threads register
     The home thread (the one that called ObjectsInit) switches the locking on, ObjectsLocking(true), before any other
@@ -971,11 +973,71 @@ Steps
          and TestThreadLib pass with the pointers' acquire Load.
 
   Level 3: a CObjects for each thread (decisions 11 to 15)
-  25. a. The memory index replaced: an object found, put and taken out by its index in a few instructions, where the
+    Level 3 as built (worked out 2026-11-18, before 25b):
+      Which object system.  A thread_local current object system, ObjectsCurrent(): gcObjects unless the thread has
+        one of its own.  OMalloc, ONMalloc, ORoot and GetObjectsOrDefault (an object in none) go to it; ObjectsInit,
+        ObjectsKill, ObjectsFlush, ObjectsDiscard and ObjectsCollect stay the main object system's, the home
+        thread's.
+      A worker's object system.  ObjectsWorkerInit registers the thread as ObjectsThreadInit does (it may still use
+        main objects through its stack pointers and table) and makes it a CObjects: gcUnknowns to allocate from, a
+        CStackPointers of its own, classes of its own, no database, its own root.  Its indexes come from the main
+        sequence a page at a time (256 in a row, taken under the main lock: one lock for 256 OMallocs).  The worker
+        is its home: Free() runs there, nothing is queued, ObjectsThreadKill frees what is left and kills it.
+      The guards.  OBJECTS_WRITE() and OBJECTS_READ() pass `this` (every guard is in a member function: of CObjects,
+        an object, CPointer or CWeakPointer): CObjectsGuard has a constructor for each.  The inline part is as it is
+        (the test of gbObjectsLocking, all one thread pays); the locked part, out of line, decides by the object
+        system the way in is about: the running thread's own (a worker's) takes no lock, any other the main lock.
+        A pointer's ways in that do their own locking (constructors, assignments, destructor, AssignObject) do the
+        same by the objects they point from and to: both the worker's own (or NULL) is as with the locking off.
+      A worker's object pointing at a main object (decision 11).  The field's pointer goes in the worker's table of
+        stack froms, as the worker's stack pointers to main objects do: the main object stays while it is pointed
+        at, a load remaps the field, a Kill clears it.  Never a heap from on the main object (its froms are the main
+        lock's), and no walk of either system crosses into the other: to a worker's walk the main object is a leaf,
+        to a main walk the field is a stack pointer.  A main object pointed at a worker object is refused (validated
+        in Debug): a worker's object isn't attached to main's root, and main's walks can't see into the worker.
+      Adopt(pTop), by the worker, under the main lock.  The graph is pTop and every worker object it reaches.  A name
+        main already has refuses the whole graph (decision 14) and nothing moves.  Otherwise each object leaves the
+        worker's memory index and enters main's (its index is from main's sequence already), takes main's class of
+        its name, and its object system is main.  Its fields that point at main objects leave the worker's table and
+        become heap froms of those objects; the worker's objects that point into the graph go the other way (into
+        the table).  The worker's stack pointers to adopted objects move from the worker's CStackPointers to the
+        objects (they aren't attached until the caller attaches them, so they aren't for a thread's table).  The
+        graph is unattached in main until the caller points something attached at the returned pointer. an object found, put and taken out by its index in a few instructions, where the
          trie by index's bytes takes about 1800 to put and 1600 to take out (37% of an OMalloc and free, 40% of a tree
          built).  A hash table (iteration sorted when it is asked for: Flush, Kill and Evict go in index order) and a
          paged table (in order as it is) are both measured, on OMalloc and free, the tree and the load, and the faster
          kept.  Names keep their trie.
+         Done 2026-11-18: a table of two levels.  An index's bits above 16 pick a directory (an array of them grown as
+         indexes rise, NULL where none), its next 8 a page in the directory and its low 8 the object's place in the
+         page (CIndexedObjects; 256 objects a page, 256 pages a directory: 2 KB each on the hosts, 1 KB on the 65
+         targets, and a pointer for every 65536 indexes up to the highest).  A get is three loads in any order; the
+         page last used is tried first; a page that empties stays until another page empties, and the page taken out
+         is kept for the next one needed, so an object made and freed over and over makes and frees no page.
+         Iteration goes in index order from an index (SIndexesIterator is that index), so objects can be added and
+         taken out as it goes and an iteration left early has nothing to free (the iterator's Kill is gone, from six
+         callers in CommonLibraries and LogiCim).  PrintMemoryUseRecursion, which printed the trie, is
+         PrintMemoryPages.  TestIndexedObjects tests the table alone.
+         Chosen by a model first (scratchpad bench, instructions each, a table holding 300 objects then 4373, and
+         100000; gets and frees in no order, as a graph's):
+                                          sorted pages    hash table    two levels
+           made and freed, over and over      40              69            40
+           added in a row                     25          148 (107)         29
+           got, in no order                   53              15            26
+           taken out, in no order             58              31            34
+         The hash (Fibonacci hashing, linear probing, backward shift deletion) gets fastest, but grows by rehashing
+         and has no order: Flush, Kill, Evict and validation iterate in index order, which a hash would sort for
+         each time, holding the sorted keys somewhere an iteration left early would leak.  Pages found by binary
+         search over a sorted directory (with a guess from each end, exact while indexes run in a row) search on
+         every change of page in a graph's order.  Two levels need no search and keep the order, so only they were
+         built into the object system; the hash was measured in the model alone.
+         In the object system (callgrind, Release, one thread, against HEAD, instructions each): OMalloc and free 9097
+         to 5441 (-40%), held by a field 8905 to 5350, added to an array 9199 to 5677, a tree's node built 21097 to
+         12733 (-40%) and freed 9271 to 6308 (-32%), a stored object loaded 28811 to 23492 (-18%: the database's part
+         is the rest).  A stack Ptr's copy and drop, operator->, an array's Get and a field pointed elsewhere are as
+         they were within what LTO's inlining moves (a copy and drop has read 331 to 338 in builds of the same pointer
+         code: how many destructors LTO inlines into the test's loop).  StartWalk's reset of every stamp, seldom, is
+         out of line (ClearWalkStamps): inlined, it had grown StartWalk enough that CDistCalculator::Init stopped being
+         inlined into FromRemoved, 16 instructions on every field change.
       b. A worker's object system: a variant of ObjectsThreadInit that gives the thread a CObjects of its own, with
          its own root, stack pointers and completed classes.  OMalloc, ONMalloc and ORoot on that thread go to it (a
          current object system for each thread, gcObjects where none is set).  Its objects take their indexes from

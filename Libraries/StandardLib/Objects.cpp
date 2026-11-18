@@ -299,24 +299,37 @@ uint32 CObjects::StartWalk(void)
 {
 	OBJECTS_INSIDE();
 
-	SIndexesIterator	sIter;
-	CBaseObject*		pcBaseObject;
-
 	muiWalkStamp += WALK_STAMP_STEP;
 	if (muiWalkStamp == 0)
 	{
-		if (mbInitialised)
-		{
-			pcBaseObject = mcMemory.StartIteration(&sIter);
-			while (pcBaseObject)
-			{
-				pcBaseObject->SetWalkStamp(0);
-				pcBaseObject = mcMemory.Iterate(&sIter);
-			}
-		}
-		muiWalkStamp = WALK_STAMP_STEP;
+		ClearWalkStamps();
 	}
 	return muiWalkStamp;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stamps have come round to 0: every object's is cleared, so that
+// none looks visited to the walks to come.  Apart from StartWalk, which
+// every walk calls: this is seldom.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE void CObjects::ClearWalkStamps(void)
+{
+	SIndexesIterator	sIter;
+	CBaseObject*		pcBaseObject;
+
+	if (mbInitialised)
+	{
+		pcBaseObject = mcMemory.StartIteration(&sIter);
+		while (pcBaseObject)
+		{
+			pcBaseObject->SetWalkStamp(0);
+			pcBaseObject = mcMemory.Iterate(&sIter);
+		}
+	}
+	muiWalkStamp = WALK_STAMP_STEP;
 }
 
 

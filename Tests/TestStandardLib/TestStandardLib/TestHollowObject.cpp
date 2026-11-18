@@ -173,7 +173,6 @@ void TestHollowObjectMemoryIteration(void)
 	p = gcObjects.TestGetFromMemory(oi);
 	AssertTrue(p.IsHollow());
 	oi = gcObjects.IterateMemory(&sIter);
-	sIter.Kill();
 	AssertLong(INVALID_O_INDEX, oi);
 	AssertString("CTestObject", p->ClassName());
 	AssertFalse(p.IsHollow());

@@ -184,11 +184,11 @@ public:
 
 						void					PrintMemoryNames(CChars* psz);
 						void					PrintMemoryUseIteration(CChars* psz);
-						void					PrintMemoryUseRecursion(CChars* psz);
+						void					PrintMemoryPages(CChars* psz);
 						void					PrintStackPointers(CChars* psz, bool bPointerMemory = true);
 						void					PrintGraph(CChars* psz, bool bPointerMemory = true);
 						void					DumpMemoryUseIteration(void);
-						void					DumpMemoryUseRecursion(void);
+						void					DumpMemoryPages(void);
 						void					DumpGraph(void);
 						void					DumpMemoryNames(void);
 						void					DumpStackPointers(void);
@@ -233,6 +233,7 @@ protected:
 						void					RemoveBatch(CArrayBaseObjectPtr* papcObjectPts);
 						void					SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts);
 						void					WaitToBeFreed(CArrayBaseObjectPtr* papcObjectPts);
+						void					ClearWalkStamps(void);
 						bool					ValidateNoOtherThreadHolds(const char* szMethod);
 						bool					ValidateNoOtherThreadHolds(const char* szMethod, CBaseObject* pcObject);
 						bool					LoadForDestroy(OIndex oi);

@@ -1369,7 +1369,7 @@ static void TestObjectsThreadsEveryObjectsWayIn(void)
 	sz.Init();
 	AssertWayIn(gcObjects.PrintMemoryNames(&sz));
 	AssertWayIn(gcObjects.PrintMemoryUseIteration(&sz));
-	AssertWayIn(gcObjects.PrintMemoryUseRecursion(&sz));
+	AssertWayIn(gcObjects.PrintMemoryPages(&sz));
 	AssertWayIn(gcObjects.PrintStackPointers(&sz));
 	AssertWayIn(gcObjects.PrintGraph(&sz));
 	AssertTrue(sz.Length() > 0);

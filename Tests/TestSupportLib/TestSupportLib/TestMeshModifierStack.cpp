@@ -29,7 +29,6 @@ size CountMeshMemoryObjects(const char* szClassName)
 		}
 		oi = gcObjects.IterateMemory(&sIter);
 	}
-	sIter.Kill();
 	p = NULL;
 	return uiCount;
 }

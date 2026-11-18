@@ -106,7 +106,6 @@ void TestObjectsInMemoryIteration(void)
 	oi = gcObjects.IterateMemory(&sIter);
 	AssertLong(9LL, oi);
 	oi = gcObjects.IterateMemory(&sIter);
-	sIter.Kill();
 	AssertLong(INVALID_O_INDEX, oi);
 
 	ObjectsFlush();
