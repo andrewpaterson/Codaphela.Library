@@ -107,6 +107,13 @@ bool CCPP65IRFrontEnd::StatementOf(CCPPSyntax* pcStatement)
 	case CPPS_AttributedStatement:
 		//[[fallthrough]], [[likely]] and the like change nothing.
 		return StatementOf(((CCPPSyntaxAttributedStatement*)pcStatement)->mpcStatement);
+	case CPPS_TryStatement:
+		//Not compiled yet (ExceptionsPlan.txt); in a program built without exceptions it never is.
+		if (!mpcUnit->GetOptions()->mbExceptions)
+		{
+			mpcUnit->ReportError(pcStatement, CPP_EXCEPTIONS_OFF_TRY);
+		}
+		return Unsupported(__FILE__, __LINE__);
 	default:
 		return Unsupported(__FILE__, __LINE__);
 	}

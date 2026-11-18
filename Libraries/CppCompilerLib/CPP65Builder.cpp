@@ -184,7 +184,7 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 	if (!pcLibrary)
 	{
 		pcLibrary = mcProject.AddLibrary((char*)szLibrary, (char*)szDirectory, false);
-		mpcTarget->AddDefines(pcLibrary->AddConfiguration((char*)mpcTarget->GetConfigurationName()), mcOptions.mbAssemblyUnits);
+		mpcTarget->AddDefines(pcLibrary->AddConfiguration((char*)mpcTarget->GetConfigurationName()), &mcOptions);
 		if (bLinkAsLibrary)
 		{
 			psLinkLibrary = macLinkLibraries.Add();
@@ -1449,7 +1449,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cOptions = pcOptions ? *pcOptions : *GetDefaultCPPCompileOptions();
 	cOptions.mbMathTables = bMathTables;
 	pcOptions = &cOptions;
-	GetCPPTarget(eTarget)->AddDefines(&cConfig, pcOptions->mbAssemblyUnits);
+	GetCPPTarget(eTarget)->AddDefines(&cConfig, pcOptions);
 	cFile.Init((char*)szName, NULL, false);
 	cFile.SetContents((char*)szSource);
 	cPreprocessor.Init(&cConfig);

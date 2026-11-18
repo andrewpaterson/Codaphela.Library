@@ -59,6 +59,7 @@ public:
 	bool		mbMathTables;			//The W65C816's code may read Garth Wilson's product table (MathMult) in place: it is in memory when the code runs.
 	size		muiConstantSteps;		//IR instructions run to work out one constant expression before it is given up on (CCPPConstants).
 	size		muiConstantDepth;		//How deep constexpr calls may go inside one another for a constant.
+	bool		mbExceptions;			//throw, try and catch are compiled (ExceptionsPlan.txt); without it they are errors and nothing pays for them.
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);
@@ -67,6 +68,11 @@ public:
 
 
 CCPPCompileOptions*	GetDefaultCPPCompileOptions(void);
+
+
+//What a program built without exceptions (mbExceptions) is told where it uses them.
+#define CPP_EXCEPTIONS_OFF_THROW	"throw can't be used: the program is built without exceptions (the Exceptions option)"
+#define CPP_EXCEPTIONS_OFF_TRY		"try can't be used: the program is built without exceptions (the Exceptions option)"
 
 
 #endif // __C_P_P_COMPILE_OPTIONS_H__

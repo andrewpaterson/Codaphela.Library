@@ -50,15 +50,40 @@ void CCPPSyntaxTryStatement::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxTryStatement::PrettyPrint(CChars* pszDest, int iDepth)
 {
-	size	i;
-
 	Indent(pszDest, iDepth);
 	pszDest->Append("try\n");
+	PrintBlocks(pszDest, iDepth);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The block and the handlers, which is all of it after try: a function's
+// definition prints its member initializers between them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxTryStatement::PrintBlocks(CChars* pszDest, int iDepth)
+{
+	size	i;
+
 	PrintNode(pszDest, mpcBlock, iDepth);
 	for (i = 0; i < macpHandlers.NumElements(); i++)
 	{
 		macpHandlers.GetPtr(i)->PrettyPrint(pszDest, iDepth);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether it is a function-try-block: a function's whole body, whose
+// handlers also catch what the function's member initializers, and its
+// bases' and members' constructors and destructors, throw.  [except.handle]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxTryStatement::IsFunctionBody(void)
+{
+	return mpcParent && (mpcParent->GetKind() == CPPS_FunctionDefinition);
 }
 
 

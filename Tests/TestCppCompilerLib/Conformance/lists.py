@@ -52,13 +52,13 @@ for target in sorted(done):
 
 if "-write" in sys.argv:
     def group(m):
-        a = lists[(m.group(1), "65C64")]
-        b = lists[(m.group(1), "W65C816")]
+        a = lists[(m.group(2), "65C64")]
+        b = lists[(m.group(2), "W65C816")]
         if a == "" and b == "":
-            return 'CONFORMANCE_GROUP(%s, "", ""),' % m.group(1)
-        return 'CONFORMANCE_GROUP(%s,\n\t\t"%s",\n\t\t"%s"),' % (m.group(1), a, b)
+            return '%s(%s, "", ""),' % (m.group(1), m.group(2))
+        return '%s(%s,\n\t\t"%s",\n\t\t"%s"),' % (m.group(1), m.group(2), a, b)
 
     text = open(TEST, "rb").read().decode("utf-8")
-    text, count = re.subn(r'CONFORMANCE_GROUP\((\w+),\s*"[^"]*",\s*"[^"]*"\),', group, text)
+    text, count = re.subn(r'(CONFORMANCE_GROUP|CONFORMANCE_EXCEPTIONS_GROUP)\((\w+),\s*"[^"]*",\s*"[^"]*"\),', group, text)
     open(TEST, "wb").write(text.encode("utf-8"))
     print("%d lists written to TestCPPConformance.cpp" % (2 * count))

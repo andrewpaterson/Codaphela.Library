@@ -110,8 +110,9 @@ uint32 CCPPTarget65C64::GetStackTop(void)
 // operator new aligns as Libc65's malloc does (CTrueMallocator).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPTarget65C64::AddDefines(CConfig* pcConfig, bool bAssemblyUnits)
+void CCPPTarget65C64::AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions)
 {
+	CCPPTarget::AddDefines(pcConfig, pcOptions);
 	pcConfig->AddDefine("__65C64__=1");
 	pcConfig->AddDefine("__LIBC65__=1");
 	pcConfig->AddDefine("__STDCPP_DEFAULT_NEW_ALIGNMENT__=8UL");
@@ -186,6 +187,9 @@ void CCPPTarget65C64::AppendStartUp(CChars* pszDest)
 	pszDest->Append("\t\tcpy V, S")->AppendNewLine();
 	pszDest->Append("\t\tcpy A, [5 + V]")->AppendNewLine();
 	pszDest->Append("\t\tstp")->AppendNewLine();
+	//Where _Exit's code ends: a program stopped between __Exit.a and here ended itself (a test asks).
+	pszDest->Append("\t\t.global __ExitEnd")->AppendNewLine();
+	pszDest->Append("__ExitEnd:")->AppendNewLine();
 	pszDest->AppendNewLine();
 }
 

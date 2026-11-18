@@ -40,6 +40,7 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	true,						//mbMathTables
 	CPP_CONSTANT_STEPS,			//muiConstantSteps
 	CPP_CONSTANT_DEPTH,			//muiConstantDepth
+	false,						//mbExceptions: a program opts in (the user, 2026-11-18).
 };
 
 

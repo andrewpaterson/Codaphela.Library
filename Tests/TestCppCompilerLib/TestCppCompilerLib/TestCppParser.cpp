@@ -693,6 +693,44 @@ bool b = noexcept(f(1));\n", sParsed.Print(&sz));
 	AssertPointer(sParsed.GetSymbol("e", 0), sParsed.GetSymbol("e", 1));
 	AssertPointer(sParsed.GetSymbol("f", 0), sParsed.GetSymbol("f", 1));
 	sParsed.Kill();
+
+	//Function-try-blocks: a constructor's member initializers come after try, and the handlers see the parameters.
+	AssertTrue(sParsed.Init("\
+struct S\n\
+{\n\
+	int v;\n\
+	S(int a) try : v(a) { } catch (...) { v = a; }\n\
+};\n\
+int f(int n) try { return n; } catch (int e) { return n + e; }"));
+	AssertInt(0, sParsed.iErrors);
+
+	sz.Init();
+	AssertString("\
+struct S\n\
+{\n\
+	int v;\n\
+	S(int a)\n\
+	try : v(a)\n\
+	{\n\
+	}\n\
+	catch (...)\n\
+	{\n\
+		v = a;\n\
+	}\n\
+};\n\
+int f(int n)\n\
+try\n\
+{\n\
+	return n;\n\
+}\n\
+catch (int e)\n\
+{\n\
+	return n + e;\n\
+}\n", sParsed.Print(&sz));
+	sz.Kill();
+	AssertPointer(sParsed.GetSymbol("a", 0), sParsed.GetSymbol("a", 2));
+	AssertPointer(sParsed.GetSymbol("n", 0), sParsed.GetSymbol("n", 2));
+	sParsed.Kill();
 }
 
 

@@ -56,6 +56,8 @@ void CCPPSyntaxFunctionDefinition::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxFunctionDefinition::PrettyPrint(CChars* pszDest, int iDepth)
 {
+	bool	bFunctionTry;
+
 	Indent(pszDest, iDepth);
 	if (mpcSpecifiers && (mpcSpecifiers->macpSpecifiers.NumElements() > 0))
 	{
@@ -63,6 +65,14 @@ void CCPPSyntaxFunctionDefinition::PrettyPrint(CChars* pszDest, int iDepth)
 		pszDest->Append(' ');
 	}
 	PrintNode(pszDest, mpcDeclarator, iDepth);
+	bFunctionTry = (meBody == CPPFB_Body) && mpcBody && (mpcBody->GetKind() == CPPS_TryStatement);
+	if (bFunctionTry)
+	{
+		//A function-try-block's try comes before the member initializers.
+		pszDest->AppendNewLine();
+		Indent(pszDest, iDepth);
+		pszDest->Append("try");
+	}
 	if (macpMemberInitializers.NumElements() > 0)
 	{
 		pszDest->Append(" : ");
@@ -83,6 +93,11 @@ void CCPPSyntaxFunctionDefinition::PrettyPrint(CChars* pszDest, int iDepth)
 		Indent(pszDest, iDepth);
 		AppendTokens(pszDest, miBodyStart, miBodyEnd);
 		pszDest->AppendNewLine();
+	}
+	else if (bFunctionTry)
+	{
+		pszDest->AppendNewLine();
+		((CCPPSyntaxTryStatement*)mpcBody)->PrintBlocks(pszDest, iDepth);
 	}
 	else
 	{

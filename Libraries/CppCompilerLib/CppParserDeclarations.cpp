@@ -810,7 +810,8 @@ bool CCPPParser::ParseFunctionBody(CCPPSyntaxFunctionDefinition* pcFunction)
 
 	if (Is(CT_try))
 	{
-		pcFunction->mpcBody = ParseTryStatement(pcFunction);
+		//A function-try-block: try [: mem-initializers] { body } handlers.  [except]
+		pcFunction->mpcBody = ParseTryStatement(pcFunction, pcFunction);
 	}
 	else
 	{

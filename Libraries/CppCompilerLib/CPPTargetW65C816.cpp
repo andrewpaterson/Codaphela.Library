@@ -118,16 +118,17 @@ uint32 CCPPTargetW65C816::GetStackTop(void)
 //
 // __W65C816__ is the processor, __LIBC65__ the Libc65 headers and devices
 // (as the 65C64's), and __W65C816_ASSEMBLY__ leaves out the C++ that a
-// unit's XW65C816.asm replaces when those are built (bAssemblyUnits).
+// unit's XW65C816.asm replaces when those are built (mbAssemblyUnits).
 // operator new aligns as Libc65's malloc does (CTrueMallocator).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPTargetW65C816::AddDefines(CConfig* pcConfig, bool bAssemblyUnits)
+void CCPPTargetW65C816::AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions)
 {
+	CCPPTarget::AddDefines(pcConfig, pcOptions);
 	pcConfig->AddDefine("__W65C816__=1");
 	pcConfig->AddDefine("__LIBC65__=1");
 	pcConfig->AddDefine("__STDCPP_DEFAULT_NEW_ALIGNMENT__=8UL");
-	if (bAssemblyUnits)
+	if (pcOptions->mbAssemblyUnits)
 	{
 		pcConfig->AddDefine("__W65C816_ASSEMBLY__=1");
 	}
@@ -442,6 +443,9 @@ void CCPPTargetW65C816::AppendStartUp(CChars* pszDest)
 	pszDest->Append("\t\tlda [S + 4]\n");
 	pszDest->Append("__Exit.a:\n");
 	pszDest->Append("\t\tstp\n");
+	//Where _Exit's code ends: a program stopped between __Exit and here ended itself (a test asks).
+	pszDest->Append("\t\t.global __ExitEnd\n");
+	pszDest->Append("__ExitEnd:\n");
 	pszDest->AppendNewLine();
 }
 

@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Chars.h"
 #include "Config.h"
+#include "CPPCompileOptions.h"
 #include "IRInliner.h"
 #include "IRPipeline.h"
 #include "CPPTarget65C64.h"
@@ -85,13 +86,17 @@ uint32 CCPPTarget::GetStackTop(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The macros the target predefines, for the configuration code is
-// preprocessed with: none unless the target has its own.  bAssemblyUnits:
-// the target's assembly units are built in place of the C++ they replace
-// (HasAssemblyUnits).
+// preprocessed with.  Those every target has are the options' own:
+// __cpp_exceptions when exceptions are compiled (mbExceptions).  A target
+// adds its own to them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPTarget::AddDefines(CConfig* pcConfig, bool bAssemblyUnits)
+void CCPPTarget::AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions)
 {
+	if (pcOptions->mbExceptions)
+	{
+		pcConfig->AddDefine("__cpp_exceptions=199711");
+	}
 }
 
 

@@ -11,6 +11,7 @@
 #include "Assembler65Lib/Asm65Memory.h"
 #include "CppCompilerLib/CPP65Builder.h"
 #include "CppCompilerLib/CPPTarget.h"
+#include "CppCompilerLib/CPPCompileOptions.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -50,10 +51,12 @@ struct SConformanceGroup
 	const SConformanceCase*	pasCases;
 	size					uiNumCases;
 	const char*				aszNotDone[2];	//The 65C64's, then the W65C816's.
+	bool					bExceptions;	//Its cases are compiled with exceptions (CCPPCompileOptions::mbExceptions).
 };
 
 
-#define CONFORMANCE_GROUP(NAME, NOT_DONE_65C64, NOT_DONE_W65C816) { #NAME, gasConformance##NAME, sizeof(gasConformance##NAME) / sizeof(SConformanceCase), { NOT_DONE_65C64, NOT_DONE_W65C816 } }
+#define CONFORMANCE_GROUP(NAME, NOT_DONE_65C64, NOT_DONE_W65C816) { #NAME, gasConformance##NAME, sizeof(gasConformance##NAME) / sizeof(SConformanceCase), { NOT_DONE_65C64, NOT_DONE_W65C816 }, false }
+#define CONFORMANCE_EXCEPTIONS_GROUP(NAME, NOT_DONE_65C64, NOT_DONE_W65C816) { #NAME, gasConformance##NAME, sizeof(gasConformance##NAME) / sizeof(SConformanceCase), { NOT_DONE_65C64, NOT_DONE_W65C816 }, true }
 
 
 static const SConformanceGroup gasConformanceGroups[] =
@@ -71,6 +74,9 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Stage8, "", ""),
 	CONFORMANCE_GROUP(Stage9, "", ""),
 	CONFORMANCE_GROUP(Stage10, "", ""),
+	CONFORMANCE_EXCEPTIONS_GROUP(Exceptions,
+		"ThrowInt(C) ThrowThroughCalls(C) NoThrowSkipsHandler(C) CatchByReferenceChanges(C) CatchByValueIsACopy(C) CatchEllipsis(C) HandlersInOrder(C) NoMatchPropagates(C) CodeAfterHandler(C) ThrowInHandler(C) RethrowKeepsDynamicType(C) ThrowStaticType(C) CatchDerivedAsBaseReference(C) CatchDerivedAsBaseValue(C) CatchPointerToBase(C) CatchSecondBase(C) CatchPointerToSecondBase(C) CatchVoidPointer(C) CatchConstPointer(C) PointerKeepsConst(C) NoArithmeticConversion(C) StringLiteralDecays(C) ArrayDecays(C) FunctionDecays(C) CatchNullPointer(C) HandlerConstIgnored(C) ThrownConstDropped(C) EnumIsNotInt(C) PrivateBaseNotCaught(C) AmbiguousBaseNotCaught(C) VirtualBaseCaught(C) CatchReferenceToPointer(C) PointerIsNotReferenceToClass(C) ThrowDouble(C) ThrowLongLong(C) ThrowLargeObject(C) ThrowInConditional(C) HandlerParameterShadows(C) ExceptionObjectIsACopy(C) ThrowClassWithCopyConstructor(C) NestedHandledExceptions(C) RethrowInCalledFunction(C) RecursionCatchAndThrow(C) ExceptionObjectLifetime(C) CatchByValueCopies(C) ExceptionLivesThroughRethrow(C) ExceptionDestroyedOnReturn(C) ExceptionDestroyedWhenHandlerThrows(C) HandlerBreakContinue(C) TryInLoop(C) LocalsSeenInHandler(C) LocalsAfterLoopThrow(C) ManyLocalsAcrossThrow(C) GotoOutOfTry(C) SwitchInsideTry(C) ReturnFromTryDestroys(C) UnwindLocalsInReverse(C) UnwindOnlyConstructed(C) UnwindNestedScopes(C) UnwindThroughFrames(C) UnwindTemporaries(C) DeepUnwind(C) DestructorCatchesWhileUnwinding(C) UncaughtException(C) ParameterDestroyed(C) ConditionalTemporaryDestroyed(C) ExtendedTemporaryDestroyed(C) RangeForUnwinds(C) OperatorThrows(C) HiddenResultThrows(C) ConstructorBodyThrows(C) MemberConstructorThrows(C) BaseDestroyedWhenMemberThrows(C) ArrayPartlyConstructed(C) NewConstructorThrowsFrees(C) NewArrayConstructorThrows(C) PlacementDeleteCalled(C) NoPlacementDeleteNoCall(C) DelegatingBodyThrows(C) DelegatedConstructorThrows(C) VirtualBaseDestroyed(C) DestructorThrows(C) MembersDestroyedWhenDestructorThrows(C) StaticLocalRetried(C) TryInConstructorBody(C) TryInDestructor(C) ThrowInGlobalConstructorCaught(C) DefaultArgumentThrows(C) MemberInitialiserThrows(C) LambdaThrows(C) VirtualCallThrows(C) FunctionPointerThrows(C) TemplateThrows(C) RegisterArgumentsThrow(C) VariadicThrows(C) MemberFunctionThrows(C) BigFrameThrows(C) LongLongFunctionThrows(C) ForwarderThrows(C) ThunkThrows(C) VirtualBaseThunkThrows(C) FloatFunctionThrows(C) FunctionTryBody(C) FunctionTryParameters(C) FunctionTryFallsOff(C) MainFunctionTry(C) ConstructorFunctionTryRethrows(C) ConstructorFunctionTryCatchesBase(C) ConstructorFunctionTryThrowsOther(C) FunctionTryMembersDestroyedFirst(C) DestructorFunctionTryRethrows(C) ConstructorFunctionTryBodyThrows(C) UncaughtTerminates(C) NoexceptTerminates(C) NoexceptThroughCallTerminates(C) ImplicitNoexceptDestructorTerminates(C) ThrowWhileUnwindingTerminates(C) RethrowNothingTerminates(C) CatchCopyThrowsTerminates(C) GlobalConstructorThrowsTerminates(C) SetTerminateReturnsPrevious(C) TerminateCallsHandler(C) NoexceptOperatorThrow(C) NoexceptImplicitDestructor(C) NoexceptImplicitConstructors(C) NoexceptLambda(W) NoexceptFunctionPointer(W) NoexceptDependent(W) NoexceptTemporaries(W) NoexceptFalseThrows(C) OverrideLooserRefused(A) PointerLooserRefused(A) RedeclaredDifferentRefused(A) ConstructorFunctionTryReturnRefused(A) ConstexprThrowNotTaken(C) DynamicSpecAllows(C) UnexpectedCalled(C) UnexpectedThrowsAllowed(C) UnexpectedBadException(C) UnexpectedTerminates(C) ThrowNothingSpecUnexpected(C) DynamicSpecAllowsDerived(C) BadAllocFromReplacedNew(C) NothrowNewNull(C) ClassNewNoexceptNull(W) SetNewHandlerReturnsPrevious(C) BadArrayNewLength(C) BadCast(C) BadTypeid(C) StandardExceptionsDerive(C) UserExceptionWhat(C) ExceptionPtr(C) ExceptionPtrNull(C) ExceptionPtrKeepsObject(C) MakeExceptionPtr(C) NestedException(C) ExceptionCopies(C) ",
+		"ThrowInt(C) ThrowThroughCalls(C) NoThrowSkipsHandler(C) CatchByReferenceChanges(C) CatchByValueIsACopy(C) CatchEllipsis(C) HandlersInOrder(C) NoMatchPropagates(C) CodeAfterHandler(C) ThrowInHandler(C) RethrowKeepsDynamicType(C) ThrowStaticType(C) CatchDerivedAsBaseReference(C) CatchDerivedAsBaseValue(C) CatchPointerToBase(C) CatchSecondBase(C) CatchPointerToSecondBase(C) CatchVoidPointer(C) CatchConstPointer(C) PointerKeepsConst(C) NoArithmeticConversion(C) StringLiteralDecays(C) ArrayDecays(C) FunctionDecays(C) CatchNullPointer(C) HandlerConstIgnored(C) ThrownConstDropped(C) EnumIsNotInt(C) PrivateBaseNotCaught(C) AmbiguousBaseNotCaught(C) VirtualBaseCaught(C) CatchReferenceToPointer(C) PointerIsNotReferenceToClass(C) ThrowDouble(C) ThrowLongLong(C) ThrowLargeObject(C) ThrowInConditional(C) HandlerParameterShadows(C) ExceptionObjectIsACopy(C) ThrowClassWithCopyConstructor(C) NestedHandledExceptions(C) RethrowInCalledFunction(C) RecursionCatchAndThrow(C) ExceptionObjectLifetime(C) CatchByValueCopies(C) ExceptionLivesThroughRethrow(C) ExceptionDestroyedOnReturn(C) ExceptionDestroyedWhenHandlerThrows(C) HandlerBreakContinue(C) TryInLoop(C) LocalsSeenInHandler(C) LocalsAfterLoopThrow(C) ManyLocalsAcrossThrow(C) GotoOutOfTry(C) SwitchInsideTry(C) ReturnFromTryDestroys(C) UnwindLocalsInReverse(C) UnwindOnlyConstructed(C) UnwindNestedScopes(C) UnwindThroughFrames(C) UnwindTemporaries(C) DeepUnwind(C) DestructorCatchesWhileUnwinding(C) UncaughtException(C) ParameterDestroyed(C) ConditionalTemporaryDestroyed(C) ExtendedTemporaryDestroyed(C) RangeForUnwinds(C) OperatorThrows(C) HiddenResultThrows(C) ConstructorBodyThrows(C) MemberConstructorThrows(C) BaseDestroyedWhenMemberThrows(C) ArrayPartlyConstructed(C) NewConstructorThrowsFrees(C) NewArrayConstructorThrows(C) PlacementDeleteCalled(C) NoPlacementDeleteNoCall(C) DelegatingBodyThrows(C) DelegatedConstructorThrows(C) VirtualBaseDestroyed(C) DestructorThrows(C) MembersDestroyedWhenDestructorThrows(C) StaticLocalRetried(C) TryInConstructorBody(C) TryInDestructor(C) ThrowInGlobalConstructorCaught(C) DefaultArgumentThrows(C) MemberInitialiserThrows(C) LambdaThrows(C) VirtualCallThrows(C) FunctionPointerThrows(C) TemplateThrows(C) RegisterArgumentsThrow(C) VariadicThrows(C) MemberFunctionThrows(C) BigFrameThrows(C) LongLongFunctionThrows(C) ForwarderThrows(C) ThunkThrows(C) VirtualBaseThunkThrows(C) FloatFunctionThrows(C) FunctionTryBody(C) FunctionTryParameters(C) FunctionTryFallsOff(C) MainFunctionTry(C) ConstructorFunctionTryRethrows(C) ConstructorFunctionTryCatchesBase(C) ConstructorFunctionTryThrowsOther(C) FunctionTryMembersDestroyedFirst(C) DestructorFunctionTryRethrows(C) ConstructorFunctionTryBodyThrows(C) UncaughtTerminates(C) NoexceptTerminates(C) NoexceptThroughCallTerminates(C) ImplicitNoexceptDestructorTerminates(C) ThrowWhileUnwindingTerminates(C) RethrowNothingTerminates(C) CatchCopyThrowsTerminates(C) GlobalConstructorThrowsTerminates(C) SetTerminateReturnsPrevious(C) TerminateCallsHandler(C) NoexceptOperatorThrow(C) NoexceptImplicitDestructor(C) NoexceptImplicitConstructors(C) NoexceptLambda(W) NoexceptFunctionPointer(W) NoexceptDependent(W) NoexceptTemporaries(W) NoexceptFalseThrows(C) OverrideLooserRefused(A) PointerLooserRefused(A) RedeclaredDifferentRefused(A) ConstructorFunctionTryReturnRefused(A) ConstexprThrowNotTaken(C) DynamicSpecAllows(C) UnexpectedCalled(C) UnexpectedThrowsAllowed(C) UnexpectedBadException(C) UnexpectedTerminates(C) ThrowNothingSpecUnexpected(C) DynamicSpecAllowsDerived(C) BadAllocFromReplacedNew(C) NothrowNewNull(C) ClassNewNoexceptNull(W) SetNewHandlerReturnsPrevious(C) BadArrayNewLength(C) BadCast(C) BadTypeid(C) StandardExceptionsDerive(C) UserExceptionWhat(C) ExceptionPtr(C) ExceptionPtrNull(C) ExceptionPtrKeepsObject(C) MakeExceptionPtr(C) NestedException(C) ExceptionCopies(C) "),
 };
 
 
@@ -82,15 +88,19 @@ static const SConformanceGroup gasConformanceGroups[] =
 // Whether the program compiles for the target, alone (nothing is linked).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, CChars* pszErrors)
+static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, bool bExceptions, CChars* pszErrors)
 {
-	CCPP65Builder	cBuilder;
-	CChars			szAssembly;
-	bool			bCompiled;
+	CCPP65Builder		cBuilder;
+	CCPPCompileOptions	cOptions;
+	CChars				szAssembly;
+	bool				bCompiled;
 
 	cBuilder.Init();
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	cOptions.Init();
+	cOptions.mbExceptions = bExceptions;
 	szAssembly.Init();
-	bCompiled = CCPP65Builder::Generate(&szAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, eTarget) && pszErrors->Empty();
+	bCompiled = CCPP65Builder::Generate(&szAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, eTarget, NULL, NULL, false, false, false, true, &cOptions) && pszErrors->Empty();
 	szAssembly.Kill();
 	cBuilder.Kill();
 	return bCompiled;
@@ -105,22 +115,22 @@ static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, CChars
 // it into every case would double the time a case takes.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bSoftFloat, CChars* pszErrors);
+static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bExceptions, bool bSoftFloat, CChars* pszErrors);
 
 
-static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, CChars* pszErrors)
+static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bExceptions, CChars* pszErrors)
 {
 	CChars	szErrors;
 	bool	bBuilt;
 
 	szErrors.Init();
-	bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, false, &szErrors);
+	bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, bExceptions, false, &szErrors);
 	if (!bBuilt && strstr(szErrors.Text(), "_Soft"))
 	{
 		pcBuilder->Kill();
 		pcBuilder->Init();
 		szErrors.Clear();
-		bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, true, &szErrors);
+		bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, bExceptions, true, &szErrors);
 	}
 	pszErrors->Append(&szErrors);
 	szErrors.Kill();
@@ -133,7 +143,7 @@ static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECP
 // ConformanceBuild's build, with soft float or without.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bSoftFloat, CChars* pszErrors)
+static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bExceptions, bool bSoftFloat, CChars* pszErrors)
 {
 	static const char*	aszString65C64[] = { "Libc65/string.asm", NULL };
 	static const char*	aszStringW65C816[] = { "Libc65/stringW65C816.asm", NULL };
@@ -143,6 +153,7 @@ static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource,
 	bool				bBuilt;
 
 	pcBuilder->SetTarget(eTarget);
+	pcBuilder->GetOptions()->mbExceptions = bExceptions;
 	if (getenv("TEST_CPP_CONFORMANCE_LISTINGS"))
 	{
 		//Each unit's generated assembly, for looking at a case's code.
@@ -174,9 +185,32 @@ static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a program that stopped at uiProgramCounter stopped in the start
+// up's _Exit (its stack and its register entries, up to __ExitEnd): it
+// ended itself, as a terminate handler does, with its status where main's
+// result would be.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ConformanceExited(CCPP65Builder* pcBuilder, uint32 uiProgramCounter)
+{
+	int64	lliStack;
+	int64	lliRegister;
+	int64	lliEnd;
+
+	if (!pcBuilder->GetSymbol("__Exit", &lliStack) || !pcBuilder->GetSymbol("__Exit.a", &lliRegister) || !pcBuilder->GetSymbol("__ExitEnd", &lliEnd))
+	{
+		return false;
+	}
+	return ((int64)uiProgramCounter >= ((lliStack < lliRegister) ? lliStack : lliRegister)) && ((int64)uiProgramCounter <= lliEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Runs a built program from reset.  False if it doesn't stop, with its
-// stack where it started and nothing read or written where there is no
-// memory; else *piResult is what main returned.
+// stack where it started (or in _Exit, wherever its stack is) and nothing
+// read or written where there is no memory; else *piResult is what main
+// returned, or what _Exit was given.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool ConformanceRun65C64(CCPP65Builder* pcBuilder, int32* piResult)
@@ -185,7 +219,7 @@ static bool ConformanceRun65C64(CCPP65Builder* pcBuilder, int32* piResult)
 	bool			bStopped;
 
 	TestCPP65BeginBuilt(&sRun, pcBuilder);
-	bStopped = (TestCPP65Run(&sRun, CONFORMANCE_STEPS) < CONFORMANCE_STEPS) && (TestCPP65MPU(&sRun)->GetS() == CPP65_STACK_TOP);
+	bStopped = (TestCPP65Run(&sRun, CONFORMANCE_STEPS) < CONFORMANCE_STEPS) && ((TestCPP65MPU(&sRun)->GetS() == CPP65_STACK_TOP) || (TestCPP65MPU(&sRun)->IsStopped() && ConformanceExited(pcBuilder, TestCPP65MPU(&sRun)->GetProgramCounter())));
 	*piResult = (int32)TestCPP65MPU(&sRun)->GetA();
 	TestCPP65End(&sRun);
 	return bStopped;
@@ -202,7 +236,8 @@ static bool ConformanceRunW65C816(CCPP65Builder* pcBuilder, int32* piResult)
 	cMemory.Load(pcBuilder->GetOutput());
 	cMemory.InitFast65816(&cFast);
 	cFast.Reset();
-	bStopped = (cFast.Run(CONFORMANCE_STEPS) < CONFORMANCE_STEPS) && cFast.IsStopped() && (cMemory.NumBadAccesses() == 0) && ((uint32)cFast.GetS() == GetCPPTarget(CPPT_W65C816)->GetStackTop());
+	bStopped = (cFast.Run(CONFORMANCE_STEPS) < CONFORMANCE_STEPS) && cFast.IsStopped() && (cMemory.NumBadAccesses() == 0);
+	bStopped = bStopped && (((uint32)cFast.GetS() == GetCPPTarget(CPPT_W65C816)->GetStackTop()) || ConformanceExited(pcBuilder, ((uint32)cFast.GetProgramBank() << 16) | cFast.GetProgramCounter()));
 	*piResult = (int16)cFast.GetC();
 	cFast.Kill();
 	cMemory.Kill();
@@ -217,7 +252,7 @@ static bool ConformanceRunW65C816(CCPP65Builder* pcBuilder, int32* piResult)
 // in the environment says why on stderr.
 //
 //////////////////////////////////////////////////////////////////////////
-static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eTarget)
+static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eTarget, bool bExceptions)
 {
 	CCPP65Builder	cBuilder;
 	CChars			szErrors;
@@ -229,7 +264,7 @@ static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eT
 	szNotDone = NULL;
 	if (psCase->iExpected == CONFORMANCE_REFUSED)
 	{
-		if (ConformanceCompiles(psCase->szSource, eTarget, &szErrors))
+		if (ConformanceCompiles(psCase->szSource, eTarget, bExceptions, &szErrors))
 		{
 			szNotDone = "(A)";
 		}
@@ -238,7 +273,7 @@ static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eT
 	else
 	{
 		cBuilder.Init();
-		if (!ConformanceBuild(&cBuilder, psCase->szSource, eTarget, &szErrors))
+		if (!ConformanceBuild(&cBuilder, psCase->szSource, eTarget, bExceptions, &szErrors))
 		{
 			szNotDone = "(C)";
 		}
@@ -284,7 +319,7 @@ static void TestCPPConformanceGroup(const SConformanceGroup* psGroup, ECPPTarget
 	uiNotDone = 0;
 	for (i = 0; i < psGroup->uiNumCases; i++)
 	{
-		szCaseNotDone = ConformanceCase(&psGroup->pasCases[i], eTarget);
+		szCaseNotDone = ConformanceCase(&psGroup->pasCases[i], eTarget, psGroup->bExceptions);
 		if (szCaseNotDone)
 		{
 			szNotDone.Append(psGroup->pasCases[i].szName);
@@ -367,7 +402,8 @@ static void TestCPPConformanceExport(const char* szDirectory)
 // built and run on each target, what main returned or why it wasn't built
 // is written to stderr, and nothing else is tested.  For trying a program
 // out while the compiler is worked on; TEST_CPP_CONFORMANCE_LISTINGS names a
-// directory for each unit's generated assembly.
+// directory for each unit's generated assembly, and
+// TEST_CPP_CONFORMANCE_EXCEPTIONS compiles it with exceptions.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestCPPConformanceTry(const char* szFileName)
@@ -376,6 +412,7 @@ static void TestCPPConformanceTry(const char* szFileName)
 	CChars				szSource;
 	FILE*				pFile;
 	int					iChar;
+	bool				bExceptions;
 
 	szSource.Init();
 	pFile = fopen(szFileName, "rb");
@@ -390,8 +427,9 @@ static void TestCPPConformanceTry(const char* szFileName)
 	sCase.szName = "Try";
 	sCase.iExpected = CONFORMANCE_TRIED;
 	sCase.szSource = szSource.Text();
-	ConformanceCase(&sCase, CPPT_65C64);
-	ConformanceCase(&sCase, CPPT_W65C816);
+	bExceptions = getenv("TEST_CPP_CONFORMANCE_EXCEPTIONS") != NULL;
+	ConformanceCase(&sCase, CPPT_65C64, bExceptions);
+	ConformanceCase(&sCase, CPPT_W65C816, bExceptions);
 	szSource.Kill();
 }
 

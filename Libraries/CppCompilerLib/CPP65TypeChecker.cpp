@@ -387,6 +387,27 @@ void CCPP65TypeChecker::VisitNoexceptExpression(CCPPSyntaxNoexceptExpression* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
+// throw, and throw with an operand.  A program built without exceptions
+// (CCPPCompileOptions::mbExceptions) can't have one; with them it isn't
+// compiled yet (ExceptionsPlan.txt).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::VisitThrowExpression(CCPPSyntaxThrowExpression* pcNode)
+{
+	if (mpcUnit->GetOptions()->mbExceptions)
+	{
+		VisitDefault(pcNode);
+	}
+	else
+	{
+		Error(pcNode, CPP_EXCEPTIONS_OFF_THROW);
+		mpsResult = NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // typeid(type) and typeid(expression): a const std::type_info&, of
 // <typeinfo>'s std::type_info.  [expr.typeid] 1
 //

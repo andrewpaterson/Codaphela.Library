@@ -695,17 +695,25 @@ CCPPSyntaxStatement* CCPPParser::ParseCaseStatement(CCPPSyntax* pcParent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A try block, or with pcFunction a function-try-block, which is that
+// function's body (CCPPSyntaxTryStatement::IsFunctionBody): its member
+// initializers come between try and the block, and are the function's as
+// they are without a try.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxStatement* CCPPParser::ParseTryStatement(CCPPSyntax* pcParent)
+CCPPSyntaxStatement* CCPPParser::ParseTryStatement(CCPPSyntax* pcParent, CCPPSyntaxFunctionDefinition* pcFunction)
 {
 	CCPPSyntaxTryStatement*		pcTry;
 	CCPPSyntaxCatchHandler*		pcHandler;
 
-	//try compound-statement handlers  [except]
+	//try [ctor-initializer] compound-statement handlers  [except]
 	pcTry = mpcMemory->Create<CCPPSyntaxTryStatement>(pcParent);
 	pcTry->miFirstToken = CurrentToken();
 	Expect(CT_try);
+	if (pcFunction && Is(CT_Colon) && !ParseMemberInitializers(pcFunction))
+	{
+		return NULL;
+	}
 	pcTry->mpcBlock = ParseCompoundStatement(pcTry, true);
 	if (!pcTry->mpcBlock)
 	{

@@ -301,7 +301,7 @@ protected:
 	CCPPSyntaxStatement*			ParseForStatement(CCPPSyntax* pcParent);
 	CCPPSyntaxStatement*			ParseReturnStatement(CCPPSyntax* pcParent);
 	CCPPSyntaxStatement*			ParseCaseStatement(CCPPSyntax* pcParent);
-	CCPPSyntaxStatement*			ParseTryStatement(CCPPSyntax* pcParent);
+	CCPPSyntaxStatement*			ParseTryStatement(CCPPSyntax* pcParent, CCPPSyntaxFunctionDefinition* pcFunction = NULL);
 	CCPPSyntax*						ParseCondition(CCPPSyntax* pcParent);
 	CCPPSyntaxStatement*			ParseDeclarationStatement(CCPPSyntax* pcParent, ECPPDeclarationContext eContext);
 	bool							IsDeclarationStatement(ECPPDeclarationContext eContext);

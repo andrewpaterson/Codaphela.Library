@@ -9,6 +9,7 @@
 #include "CppCompilerLib/PPDirective.h"
 #include "CppCompilerLib/HeaderFileMap.h"
 #include "CppCompilerLib/CPPTarget.h"
+#include "CppCompilerLib/CPPCompileOptions.h"
 #include "TestLib/Assert.h"
 
 
@@ -2290,7 +2291,7 @@ host\n\
 	for (i = 0; i < 2; i++)
 	{
 		cConfig.Init("Release");
-		GetCPPTarget(aeTargets[i])->AddDefines(&cConfig, false);
+		GetCPPTarget(aeTargets[i])->AddDefines(&cConfig, GetDefaultCPPCompileOptions());
 		szDest.Init();
 		AssertTrue(PreprocessFile("Alignment.cpp", "size_t a = __STDCPP_DEFAULT_NEW_ALIGNMENT__;\n", &cConfig, NULL, NULL, &szDest, NULL));
 		AssertString("size_t a = 8UL;\n", szDest.Text());

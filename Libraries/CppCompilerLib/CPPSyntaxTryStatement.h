@@ -33,6 +33,8 @@ public:
 	void					Kill(void) override;
 	CPP_SYNTAX_NODE(TryStatement)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
+	void					PrintBlocks(CChars* pszDest, int iDepth);
+	bool					IsFunctionBody(void);
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 };
 

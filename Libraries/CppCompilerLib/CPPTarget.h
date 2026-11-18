@@ -75,7 +75,7 @@ public:
 	virtual uint32		GetStackTop(void);				//S as the start up sets it.
 
 	//The preprocessor's configuration.
-	virtual void		AddDefines(CConfig* pcConfig, bool bAssemblyUnits);
+	virtual void		AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions);
 
 	//What the generator and the IR front end write differently.
 	virtual void		AppendStartUp(CChars* pszDest);			//A program's start up, as an object linked first.

@@ -34,7 +34,7 @@ public:
 	int			GetPointerBytes(void) override;
 	uint32		GetBankSize(void) override;
 	uint32		GetStackTop(void) override;
-	void		AddDefines(CConfig* pcConfig, bool bAssemblyUnits) override;
+	void		AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions) override;
 	void		AppendStartUp(CChars* pszDest) override;
 	void		AppendRuntime(CCPPRuntimeWriter* pcWriter) override;
 	void		AppendAdjustThunk(CChars* pszDest, int iAdjust, const char* szFunction) override;

@@ -2574,3 +2574,1013 @@ static const SConformanceCase gasConformanceStage10[] =
 		"int main() { return cf(); }\n"
 	},
 };
+
+
+//Exceptions (CppCompilerLib/ExceptionsPlan.txt): throw, try and catch, what an exception destroys on its way, function-try-
+//blocks, std::terminate and std::unexpected, exception specifications, and what the language and its support library
+//throw.  They are compiled with exceptions on (CCPPCompileOptions::mbExceptions).  Each case has the paragraph of N4140 it
+//is from.  Values are 1 to 255, so that a host whose programs return a byte can say them too: they were found with the
+//Microsoft compiler (Conformance/hostcheck.py) and with g++ -std=c++14 (Conformance/gcccheck.sh), and a case that sees
+//std::terminate or std::unexpected called gives them a handler that ends the program with _Exit(value).  Every case is
+//what the standard says and what at least one of the two does; where one differs:
+//  - the Microsoft compiler: a handler for a pointer doesn't catch nullptr (CatchNullPointer); copying the exception to a
+//    handler's parameter may throw (CatchCopyThrowsTerminates); a handler for an rvalue reference is accepted
+//    (CatchRvalueReferenceRefused); as C++17 it has no std::unexpected (the five cases that set its handler).
+//  - g++: a class's operator delete with no specification isn't noexcept in a delete expression (DeallocationNoexcept); a
+//    redeclaration with another specification and try in a constexpr function are only warned about
+//    (RedeclaredDifferentRefused, ConstexprTryRefused).
+static const SConformanceCase gasConformanceExceptions[] =
+{
+	{
+		"ThrowInt", 5,	//15.1/1
+		"int main() { try { throw 5; } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"ThrowThroughCalls", 7,	//15.1/1
+		"int h(int x) { if (x > 2) throw x + 4; return x; }\n"
+		"int k(int x) { return h(x) + 1; }\n"
+		"int f(int x) { return k(x) + 1; }\n"
+		"int main() { try { return f(3) + 100; } catch (int e) { return e; } }\n"
+	},
+	{
+		"NoThrowSkipsHandler", 9,	//15/1
+		"int f(int x) { if (x > 5) throw 1; return x; }\n"
+		"int main() { int r = 0; try { r = f(4); r += 5; } catch (int) { r = 100; } return r; }\n"
+	},
+	{
+		"CatchByReferenceChanges", 12,	//15.3/16
+		"int main() { try { try { throw 5; } catch (int& e) { e += 7; throw; } } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"CatchByValueIsACopy", 5,	//15.3/16
+		"struct T { int v; };\n"
+		"int main() { try { try { T t; t.v = 5; throw t; } catch (T e) { e.v = 9; throw; } } catch (T& e) { return e.v; } return 1; }\n"
+	},
+	{
+		"CatchEllipsis", 3,	//15.3/5
+		"int main() { try { throw 2.5; } catch (...) { return 3; } return 1; }\n"
+	},
+	{
+		"HandlersInOrder", 4,	//15.3/4
+		"struct B {}; struct D : B {};\n"
+		"int main() { int r = 0; try { throw D(); } catch (B&) { r = 4; } catch (D&) { r = 8; } return r; }\n"
+	},
+	{
+		"NoMatchPropagates", 16,	//15.3/6
+		"int main() { try { try { throw 6; } catch (char) { return 1; } catch (long) { return 2; } catch (unsigned) { return 3; } } catch (int e) { return e + 10; } return 4; }\n"
+	},
+	{
+		"CodeAfterHandler", 15,	//15/1
+		"int main() { int r = 1; try { throw 2; } catch (int e) { r += e; } r *= 5; return r; }\n"
+	},
+	{
+		"ThrowInHandler", 65,	//15.1/1
+		"int main() { try { try { throw 1; } catch (int e) { throw (char)(e + 64); } } catch (char c) { return c; } return 1; }\n"
+	},
+	{
+		"RethrowKeepsDynamicType", 22,	//15.1/8
+		"struct B { virtual int f() { return 1; } virtual ~B() {} }; struct D : B { int f() override { return 22; } };\n"
+		"int main() { try { try { throw D(); } catch (B&) { throw; } } catch (D& d) { return d.f(); } catch (...) { return 2; } return 3; }\n"
+	},
+	{
+		"ThrowStaticType", 34,	//15.1/3
+		"struct B { int v; B() : v(3) {} }; struct D : B { D() { v = 4; } };\n"
+		"int main() { D d; B& b = d; try { throw b; } catch (D&) { return 1; } catch (B& e) { return e.v + 30; } return 2; }\n"
+	},
+	{
+		"CatchDerivedAsBaseReference", 17,	//15.3/3
+		"struct B { virtual int f() const { return 1; } virtual ~B() {} }; struct D : B { int f() const override { return 17; } };\n"
+		"int main() { try { throw D(); } catch (const B& b) { return b.f(); } return 2; }\n"
+	},
+	{
+		"CatchDerivedAsBaseValue", 41,	//15.3/16
+		"struct B { virtual int f() const { return 1; } virtual ~B() {} }; struct D : B { int f() const override { return 17; } };\n"
+		"int main() { try { throw D(); } catch (B b) { return b.f() + 40; } return 2; }\n"
+	},
+	{
+		"CatchPointerToBase", 6,	//15.3/3
+		"struct B { int b; }; struct D : B { int d; };\n"
+		"int main() { D d; d.b = 6; d.d = 7; try { throw &d; } catch (B* p) { return p->b; } return 1; }\n"
+	},
+	{
+		"CatchSecondBase", 9,	//15.3/3
+		"struct A { int a; }; struct B { int b; }; struct D : A, B { };\n"
+		"int main() { try { D d; d.a = 2; d.b = 9; throw d; } catch (B& b) { return b.b; } return 1; }\n"
+	},
+	{
+		"CatchPointerToSecondBase", 10,	//15.3/3
+		"struct A { int a; }; struct B { int b; }; struct D : A, B { };\n"
+		"int main() { D d; d.a = 2; d.b = 9; try { throw &d; } catch (B* p) { return p->b + (p == static_cast<B*>(&d)); } return 1; }\n"
+	},
+	{
+		"CatchVoidPointer", 9,	//15.3/3
+		"int main() { int x = 8; try { throw &x; } catch (void* p) { return *(int*)p + 1; } return 1; }\n"
+	},
+	{
+		"CatchConstPointer", 10,	//15.3/3
+		"int main() { int x = 8; try { throw &x; } catch (const int* p) { return *p + 2; } return 1; }\n"
+	},
+	{
+		"PointerKeepsConst", 11,	//15.3/3
+		"int main() { int x = 8; const int* q = &x; try { throw q; } catch (int*) { return 1; } catch (void*) { return 2; } catch (const void* p) { return *(const int*)p + 3; } return 4; }\n"
+	},
+	{
+		"NoArithmeticConversion", 13,	//15.3/3
+		"int main() { try { throw 1; } catch (long) { return 2; } catch (unsigned) { return 3; } catch (char) { return 4; } catch (const int&) { return 13; } return 5; }\n"
+	},
+	{
+		"StringLiteralDecays", 98,	//15.1/3
+		"int main() { try { throw \"ab\"; } catch (const char* s) { return s[1]; } return 1; }\n"
+	},
+	{
+		"ArrayDecays", 23,	//15.1/3
+		"int main() { int a[3] = { 1, 2, 3 }; try { throw a; } catch (int* p) { return p[2] + 20; } return 1; }\n"
+	},
+	{
+		"FunctionDecays", 24,	//15.1/3
+		"int f(int x) { return x + 1; }\n"
+		"int main() { try { throw f; } catch (int (*p)(int)) { return p(23); } return 1; }\n"
+	},
+	{
+		"CatchNullPointer", 25,	//15.3/3
+		"int main() { try { throw nullptr; } catch (int* p) { return p == 0 ? 25 : 1; } catch (...) { return 2; } return 3; }\n"
+	},
+	{
+		"HandlerConstIgnored", 26,	//15.3/3
+		"int main() { try { throw 3; } catch (const int e) { return e + 23; } return 1; }\n"
+	},
+	{
+		"ThrownConstDropped", 27,	//15.1/3
+		"int main() { const int c = 4; try { throw c; } catch (int& e) { e += 23; return e; } return 1; }\n"
+	},
+	{
+		"EnumIsNotInt", 28,	//15.3/3
+		"enum E { A = 3 };\n"
+		"int main() { try { throw A; } catch (int) { return 1; } catch (E e) { return e + 25; } return 2; }\n"
+	},
+	{
+		"PrivateBaseNotCaught", 29,	//15.3/3
+		"struct B {}; struct D : private B {};\n"
+		"int main() { try { throw D(); } catch (B&) { return 1; } catch (...) { return 29; } return 2; }\n"
+	},
+	{
+		"AmbiguousBaseNotCaught", 30,	//15.3/3
+		"struct B {}; struct L : B {}; struct R : B {}; struct D : L, R {};\n"
+		"int main() { try { throw D(); } catch (B&) { return 1; } catch (L&) { return 30; } return 2; }\n"
+	},
+	{
+		"VirtualBaseCaught", 31,	//15.3/3
+		"struct B { int v; B() : v(31) {} }; struct L : virtual B {}; struct R : virtual B {}; struct D : L, R {};\n"
+		"int main() { try { throw D(); } catch (B& b) { return b.v; } return 2; }\n"
+	},
+	{
+		"CatchReferenceToPointer", 32,	//15.3/3
+		"int main() { int x = 32; int* p = &x; try { throw p; } catch (int*& r) { return *r; } return 1; }\n"
+	},
+	{
+		"PointerIsNotReferenceToClass", 98,	//15.3/3
+		"struct B {}; struct D : B {};\n"
+		"int main() { D d; try { throw &d; } catch (B&) { return 1; } catch (D*) { return 98; } return 2; }\n"
+	},
+	{
+		"ThrowDouble", 33,	//15.3/3
+		"int main() { try { throw 2.5; } catch (float) { return 1; } catch (double d) { return (int)(d * 2) + 28; } return 2; }\n"
+	},
+	{
+		"ThrowLongLong", 35,	//15.1/3
+		"int main() { try { throw 0x100000022LL; } catch (long long v) { return (int)(v & 0xFF) + (int)(v >> 32); } return 2; }\n"
+	},
+	{
+		"ThrowLargeObject", 36,	//15.1/3
+		"struct Big { int a[20]; };\n"
+		"Big make() { Big b; for (int i = 0; i < 20; i++) b.a[i] = i; return b; }\n"
+		"int main() { try { throw make(); } catch (const Big& b) { int s = 0; for (int i = 0; i < 20; i++) s += b.a[i]; return s - 154; } return 1; }\n"
+	},
+	{
+		"ThrowInConditional", 37,	//5.16/2
+		"int f(int x) { return x > 0 ? x : throw 37; }\n"
+		"int main() { try { return f(1) + f(0); } catch (int e) { return e; } }\n"
+	},
+	{
+		"HandlerParameterShadows", 95,	//15.3/16
+		"int main() { int e = 1; try { throw 94; } catch (int e) { e += 1; return e; } return e; }\n"
+	},
+	{
+		"ExceptionObjectIsACopy", 96,	//15.1/3
+		"struct T { int v; }; T gt;\n"
+		"int main() { gt.v = 96; try { throw gt; } catch (T& e) { e.v = 1; } return gt.v; }\n"
+	},
+	{
+		"ThrowClassWithCopyConstructor", 97,	//15.1/5
+		"struct T { int v; T(int a) : v(a) {} T(const T& o) : v(o.v) {} };\n"
+		"int main() { try { T t(97); throw t; } catch (T& e) { return e.v; } return 1; }\n"
+	},
+	{
+		"NestedHandledExceptions", 93,	//15.1/8
+		"int main() { try { try { throw 90; } catch (int) { try { throw 'a'; } catch (char) { } throw; } } catch (int e) { return e + 3; } catch (char) { return 1; } return 2; }\n"
+	},
+	{
+		"RethrowInCalledFunction", 94,	//15.1/8
+		"void re() { throw; }\n"
+		"int main() { try { try { throw 94; } catch (...) { re(); } } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"RecursionCatchAndThrow", 92,	//15.1/1
+		"int f(int n) { try { if (n == 0) throw 0; return f(n - 1); } catch (int e) { throw e + 1; } }\n"
+		"int main() { try { f(91); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"ExceptionObjectLifetime", 38,	//15.1/4
+		"int live; int g;\n"
+		"struct T { T() { live++; } T(const T&) { live++; } ~T() { live--; } };\n"
+		"int main() { try { throw T(); } catch (T&) { g = live; } return g * 10 + live + 28; }\n"
+	},
+	{
+		"CatchByValueCopies", 39,	//15.3/16
+		"int live; int g;\n"
+		"struct T { T() { live++; } T(const T&) { live++; } ~T() { live--; } };\n"
+		"int main() { try { throw T(); } catch (T e) { g = live; } return g * 10 + live + 19; }\n"
+	},
+	{
+		"ExceptionLivesThroughRethrow", 40,	//15.1/4
+		"int live; int g;\n"
+		"struct T { T() { live++; } T(const T&) { live++; } ~T() { live--; } };\n"
+		"int main() { int a = 0; int b = 0; try { try { throw T(); } catch (T&) { a = live; throw; } } catch (T&) { b = live; } return a + b * 2 + live * 4 + 37; }\n"
+	},
+	{
+		"ExceptionDestroyedOnReturn", 41,	//15.1/4
+		"int live; int g;\n"
+		"struct T { T() { live++; } T(const T&) { live++; } ~T() { live--; } };\n"
+		"int f() { try { throw T(); } catch (T&) { return live; } return 5; }\n"
+		"int main() { int r = f(); return r * 10 + live + 31; }\n"
+	},
+	{
+		"ExceptionDestroyedWhenHandlerThrows", 42,	//15.1/4
+		"int live; int g;\n"
+		"struct T { T() { live++; } T(const T&) { live++; } ~T() { live--; } };\n"
+		"int main() { g = 9; try { try { throw T(); } catch (T&) { throw 1; } } catch (int) { g = live; } return g + 42; }\n"
+	},
+	{
+		"HandlerBreakContinue", 123,	//15/1
+		"int main() { int s = 0; for (int i = 0; i < 5; i++) { try { if (i == 1) continue; if (i == 3) break; throw i; } catch (int e) { s += e + 10; if (e == 2) continue; s += 1; } s += 100; } return s; }\n"
+	},
+	{
+		"TryInLoop", 43,	//15/1
+		"int main() { int s = 0; for (int i = 0; i < 10; i++) { try { if (i & 1) throw i; s += 1; } catch (int e) { s += e; } } return s + 13; }\n"
+	},
+	{
+		"LocalsSeenInHandler", 44,	//15/1
+		"void f() { throw 1; }\n"
+		"int main() { int x = 1; try { x = 2; f(); x = 3; } catch (...) { x += 40; } return x + 2; }\n"
+	},
+	{
+		"LocalsAfterLoopThrow", 45,	//15/1
+		"void f(int i) { if (i == 3) throw i; }\n"
+		"int main() { int s = 0; int i = 0; try { for (i = 0; i < 10; i++) { s += i; f(i); } } catch (int) { } return s * 5 + i + 12; }\n"
+	},
+	{
+		"ManyLocalsAcrossThrow", 46,	//15/1
+		"int thrower(int a, int b, int c) { if (a + b + c > 0) throw a + b + c; return 0; }\n"
+		"int main() { int a = 1, b = 2, c = 3, d = 4, e = 5, f = 6; int r = 0; try { r = thrower(a, b, c); } catch (int v) { r = v; } return a + b + c + d + e + f + r + 19; }\n"
+	},
+	{
+		"GotoOutOfTry", 148,	//15/2
+		"int main() { int r = 140; try { r += 8; goto done; } catch (...) { r = 1; } r = 2; done: return r; }\n"
+	},
+	{
+		"SwitchInsideTry", 149,	//15/2
+		"int f(int x) { try { switch (x) { case 1: throw 100; case 2: throw 'c'; default: return 3; } } catch (int e) { return e + 49; } catch (char) { return 5; } }\n"
+		"int main() { return f(1); }\n"
+	},
+	{
+		"ReturnFromTryDestroys", 52,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct T { int k; T(int a) : k(a) {} ~T() { t(k); } };\n"
+		"int f() { try { T a(1); return 5; } catch (...) { return 6; } }\n"
+		"int main() { int r = f(); return g == 1 ? r + 47 : 1; }\n"
+	},
+	{
+		"UnwindLocalsInReverse", 47,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct T { int k; T(int a) : k(a) {} ~T() { t(k); } };\n"
+		"void f() { T a(1); T b(2); throw 0; }\n"
+		"int main() { try { T c(3); f(); } catch (int) { t(4); } return g == 2134 ? 47 : 1; }\n"
+	},
+	{
+		"UnwindOnlyConstructed", 48,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct T { int k; T(int a) : k(a) {} ~T() { t(k); } };\n"
+		"void f(int n) { T a(1); if (n) throw 0; T b(2); }\n"
+		"int main() { try { f(1); } catch (int) { t(3); } return g == 13 ? 48 : 1; }\n"
+	},
+	{
+		"UnwindNestedScopes", 49,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct T { int k; T(int a) : k(a) {} ~T() { t(k); } };\n"
+		"void f() { T a(1); { T b(2); { T c(3); throw 0; } } }\n"
+		"int main() { try { f(); } catch (int) { t(4); } return g == 3214 ? 49 : 1; }\n"
+	},
+	{
+		"UnwindThroughFrames", 50,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct T { int k; T(int a) : k(a) {} ~T() { t(k); } };\n"
+		"void h() { T a(1); throw 0; }\n"
+		"void k() { T b(2); h(); t(9); }\n"
+		"void f() { T c(3); k(); t(9); }\n"
+		"int main() { try { f(); } catch (int) { t(4); } return g == 1234 ? 50 : 1; }\n"
+	},
+	{
+		"UnwindTemporaries", 51,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct T { int k; T(int a) : k(a) {} ~T() { t(k); } };\n"
+		"int thrower() { throw 0; }\n"
+		"int use(const T& a, int b) { return a.k + b; }\n"
+		"int main() { try { (use(T(1), 0), thrower()); } catch (int) { t(2); } return g == 12 ? 51 : 1; }\n"
+	},
+	{
+		"DeepUnwind", 53,	//15.2/1
+		"int live; struct C { C() { live++; } ~C() { live--; } };\n"
+		"int rec(int n) { C c; if (n == 0) throw live; return rec(n - 1) + 1; }\n"
+		"int main() { try { rec(40); } catch (int e) { return e + live + 12; } return 1; }\n"
+	},
+	{
+		"DestructorCatchesWhileUnwinding", 54,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct I { ~I() { try { throw 5; } catch (int e) { t(e); } } };\n"
+		"void f() { I i; throw 1; }\n"
+		"int main() { try { f(); } catch (int e) { t(e); } return g == 51 ? 54 : 1; }\n"
+	},
+	{
+		"UncaughtException", 55,	//15.5.3/1
+		"#include <exception>\n"
+		"int g;\n"
+		"struct U { ~U() { g = g * 2 + (std::uncaught_exception() ? 1 : 0); } };\n"
+		"int main() { { U u; } try { U u; throw 1; } catch (int) { g = g * 2 + (std::uncaught_exception() ? 1 : 0); } return g + 53; }\n"
+	},
+	{
+		"ParameterDestroyed", 70,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct T { int k; T(int a) : k(a) {} T(const T& o) : k(o.k + 1) {} ~T() { t(k); } };\n"
+		"void f(T a) { T b(2); throw 0; }\n"
+		"int main() { T x(0); try { f(x); } catch (int) { t(3); } return g == 213 ? 70 : 1; }\n"
+	},
+	{
+		"ConditionalTemporaryDestroyed", 71,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct T { int k; T(int a) : k(a) {} ~T() { t(k); } };\n"
+		"int thrower() { throw 0; }\n"
+		"int pick(bool c) { return c ? (T(1).k, thrower()) : 5; }\n"
+		"int main() { try { pick(true); } catch (int) { t(2); } int r = pick(false); return g == 12 ? r + 66 : 1; }\n"
+	},
+	{
+		"ExtendedTemporaryDestroyed", 72,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct T { int k; T(int a) : k(a) {} ~T() { t(k); } };\n"
+		"void f() { const T& r = T(1); T b(2); throw r.k; }\n"
+		"int main() { try { f(); } catch (int e) { t(e + 2); } return g == 213 ? 72 : 1; }\n"
+	},
+	{
+		"RangeForUnwinds", 73,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct R { int a[3]; R() { a[0] = 1; a[1] = 2; a[2] = 3; } ~R() { t(7); } int* begin() { return a; } int* end() { return a + 3; } };\n"
+		"void f() { for (int v : R()) { t(v); if (v == 2) throw 0; } }\n"
+		"int main() { try { f(); } catch (int) { t(4); } return g == 1274 ? 73 : 1; }\n"
+	},
+	{
+		"OperatorThrows", 78,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct V { int v; V(int a) : v(a) {} ~V() { t(v); } V operator+(const V& o) const { if (o.v == 2) throw 0; return V(v + o.v); } };\n"
+		"int main() { try { V a(1); V b(2); V c = a + b; } catch (int) { t(3); } return g == 213 ? 78 : 1; }\n"
+	},
+	{
+		"HiddenResultThrows", 81,	//15.2/1
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct O { int v; O() : v(1) { t(1); } O(const O& o) : v(o.v) { t(2); } ~O() { t(3); } };\n"
+		"O make(int x) { if (x) throw 0; return O(); }\n"
+		"int main() { try { O o = make(1); (void)o; } catch (int) { t(4); } return g == 4 ? 81 : 1; }\n"
+	},
+	{
+		"ConstructorBodyThrows", 56,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct M { int k; M(int a) : k(a) { t(k); } ~M() { t(k + 5); } };\n"
+		"struct X { M a; M b; X() : a(1), b(2) { throw 0; } ~X() { t(9); } };\n"
+		"int main() { try { X x; } catch (int) { t(3); } return g == 12763 ? 56 : 1; }\n"
+	},
+	{
+		"MemberConstructorThrows", 57,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct N { N(int a) { if (a == 2) throw 0; t(a); } ~N() { t(7); } };\n"
+		"struct X { N a; N b; N c; X() : a(1), b(2), c(3) {} };\n"
+		"int main() { try { X x; } catch (int) { t(4); } return g == 174 ? 57 : 1; }\n"
+	},
+	{
+		"BaseDestroyedWhenMemberThrows", 58,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct B { B() { t(1); } ~B() { t(2); } }; struct Th { Th() { throw 0; } };\n"
+		"struct D : B { Th m; D() {} };\n"
+		"int main() { try { D d; } catch (int) { t(3); } return g == 123 ? 58 : 1; }\n"
+	},
+	{
+		"ArrayPartlyConstructed", 59,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"int n; struct E { int k; E() : k(++n) { if (k == 3) throw 0; } ~E() { t(k); } };\n"
+		"int main() { try { E a[4]; } catch (int) { t(5); } return g == 215 ? 59 : 1; }\n"
+	},
+	{
+		"NewConstructorThrowsFrees", 60,	//5.3.4/20
+		"#include <stdlib.h>\n"
+		"#include <stddef.h>\n"
+		"struct F { static int news, deletes; F() { throw 0; } static void* operator new(size_t s) { news++; return malloc(s); } static void operator delete(void* p) { deletes++; free(p); } };\n"
+		"int F::news; int F::deletes;\n"
+		"int main() { try { F* p = new F; (void)p; } catch (int) { } return F::news * 10 + F::deletes * 5 + 45; }\n"
+	},
+	{
+		"NewArrayConstructorThrows", 61,	//5.3.4/20
+		"#include <stdlib.h>\n"
+		"#include <stddef.h>\n"
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"int n; struct E { int k; E() : k(++n) { if (k == 3) throw 0; } ~E() { t(k); } static void* operator new[](size_t s) { t(8); return malloc(s); } static void operator delete[](void* p) { t(9); free(p); } };\n"
+		"int main() { try { E* p = new E[4]; (void)p; } catch (int) { } return g == 8219 ? 61 : 1; }\n"
+	},
+	{
+		"PlacementDeleteCalled", 62,	//5.3.4/22
+		"#include <stdlib.h>\n"
+		"#include <stddef.h>\n"
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct P { P() { throw 0; } static void* operator new(size_t s, int tag) { t(tag); return malloc(s); } static void operator delete(void* p, int tag) { t(tag + 1); free(p); } static void operator delete(void* p) { t(9); free(p); } };\n"
+		"int main() { try { new (3) P; } catch (int) { } return g == 34 ? 62 : 1; }\n"
+	},
+	{
+		"NoPlacementDeleteNoCall", 63,	//5.3.4/20
+		"#include <stdlib.h>\n"
+		"#include <stddef.h>\n"
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct Q { Q() { throw 0; } static void* operator new(size_t s, int tag) { static char b[16]; t(tag); return b; } static void operator delete(void*) { t(9); } };\n"
+		"int main() { try { new (3) Q; } catch (int) { t(5); } return g == 35 ? 63 : 1; }\n"
+	},
+	{
+		"DelegatingBodyThrows", 64,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct G { G(int) { t(1); } G() : G(0) { t(2); throw 0; } ~G() { t(3); } };\n"
+		"int main() { try { G x; } catch (int) { t(4); } return g == 1234 ? 64 : 1; }\n"
+	},
+	{
+		"DelegatedConstructorThrows", 65,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct M { int k; M(int a) : k(a) { t(k); } ~M() { t(k + 5); } };\n"
+		"struct G { M m; G(int) : m(1) { throw 0; } G() : G(0) { t(2); } ~G() { t(3); } };\n"
+		"int main() { try { G x; } catch (int) { t(4); } return g == 164 ? 65 : 1; }\n"
+	},
+	{
+		"VirtualBaseDestroyed", 66,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct V { V() { t(1); } ~V() { t(2); } }; struct L : virtual V { L() { t(3); } ~L() { t(4); } }; struct D : L { D() { throw 0; } };\n"
+		"int main() { try { D d; } catch (int) { t(5); } return g == 13425 ? 66 : 1; }\n"
+	},
+	{
+		"DestructorThrows", 67,	//15.2/3
+		"struct W { ~W() noexcept(false) { throw 3; } };\n"
+		"int main() { try { W w; } catch (int e) { return e + 64; } return 1; }\n"
+	},
+	{
+		"MembersDestroyedWhenDestructorThrows", 68,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct M2 { ~M2() { t(2); } }; struct W { M2 m; ~W() noexcept(false) { t(1); throw 0; } };\n"
+		"int main() { try { W w; } catch (int) { t(3); } return g == 123 ? 68 : 1; }\n"
+	},
+	{
+		"StaticLocalRetried", 69,	//6.7/4
+		"int n;\n"
+		"int init() { if (++n < 3) throw n; return n; }\n"
+		"int f() { static int s = init(); return s; }\n"
+		"int main() { int r = 0; for (int i = 0; i < 5; i++) { try { r += f(); } catch (int e) { r += e * 10; } } return r + 30; }\n"
+	},
+	{
+		"TryInConstructorBody", 99,	//15/1
+		"struct S { int v; S() { try { throw 99; } catch (int e) { v = e; } } };\n"
+		"int main() { S s; return s.v; }\n"
+	},
+	{
+		"TryInDestructor", 100,	//15/1
+		"int g;\n"
+		"struct S { ~S() { try { throw 5; } catch (int e) { g = e; } } };\n"
+		"int main() { { S s; } return g + 95; }\n"
+	},
+	{
+		"ThrowInGlobalConstructorCaught", 91,	//15/1
+		"struct G { int v; G() { try { throw 91; } catch (int e) { v = e; } } };\n"
+		"G gg;\n"
+		"int main() { return gg.v; }\n"
+	},
+	{
+		"DefaultArgumentThrows", 79,	//15.1/1
+		"int th() { throw 79; }\n"
+		"int f(int a = th()) { return a; }\n"
+		"int main() { try { return f(); } catch (int e) { return e; } }\n"
+	},
+	{
+		"MemberInitialiserThrows", 80,	//15.2/2
+		"int th() { throw 80; }\n"
+		"struct S { int v; S() : v(th()) {} };\n"
+		"int main() { try { S s; return s.v; } catch (int e) { return e; } }\n"
+	},
+	{
+		"LambdaThrows", 74,	//15.1/1
+		"int main() { int k = 70; auto l = [k](int x) -> int { if (x) throw k + x; return 0; }; try { l(4); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"VirtualCallThrows", 75,	//15.1/1
+		"struct B { virtual void f() = 0; virtual ~B() {} }; struct D : B { void f() override { throw 75; } };\n"
+		"int main() { D d; B* b = &d; try { b->f(); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"FunctionPointerThrows", 76,	//15.1/1
+		"void f() { throw 76; }\n"
+		"int main() { void (*p)() = f; try { p(); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"TemplateThrows", 77,	//15.1/1
+		"template<class T> void th(T v) { throw v; }\n"
+		"int main() { try { th<short>(77); } catch (int) { return 1; } catch (short s) { return s; } return 2; }\n"
+	},
+	{
+		"RegisterArgumentsThrow", 82,	//15.1/1
+		"int f(int a, int b, int c) { if (c) throw a * 64 + b * 8 + c; return 0; }\n"
+		"int main() { try { f(1, 2, 3); } catch (int e) { return e - 1; } return 1; }\n"
+	},
+	{
+		"VariadicThrows", 83,	//15.1/1
+		"#include <stdarg.h>\n"
+		"int sum(int n, ...) { va_list a; va_start(a, n); int s = 0; for (int i = 0; i < n; i++) s += va_arg(a, int); va_end(a); if (s > 0) throw s; return 0; }\n"
+		"int main() { try { sum(3, 20, 30, 33); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"MemberFunctionThrows", 84,	//15.1/1
+		"struct S { int v; int f(int a) { if (a) throw v + a; return 0; } };\n"
+		"int main() { S s; s.v = 80; try { s.f(4); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"BigFrameThrows", 85,	//15.1/1
+		"int f(int n) { volatile char buf[600]; buf[0] = (char)n; buf[599] = 1; if (n) throw (int)buf[0] + buf[599]; return 0; }\n"
+		"int main() { volatile char pad[300]; pad[0] = 1; try { f(84); } catch (int e) { return e + pad[0] - 1; } return 1; }\n"
+	},
+	{
+		"LongLongFunctionThrows", 86,	//15.1/1
+		"long long f(int x) { if (x) throw x; return 1; }\n"
+		"int main() { try { long long v = f(86); return (int)v; } catch (int e) { return e; } }\n"
+	},
+	{
+		"ForwarderThrows", 87,	//15.1/1
+		"int f(int x) { if (x) throw x; return 0; }\n"
+		"int w(int x) { return f(x); }\n"
+		"int w2(int x) { return w(x); }\n"
+		"int main() { try { return w2(87) + 1; } catch (int e) { return e; } }\n"
+	},
+	{
+		"ThunkThrows", 88,	//15.1/1
+		"struct A { virtual void fa() {} int a; virtual ~A() {} }; struct B { virtual void fb() = 0; int b; virtual ~B() {} }; struct D : A, B { int d; void fb() override { throw d; } };\n"
+		"int main() { D x; x.d = 88; B* p = &x; try { p->fb(); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"VirtualBaseThunkThrows", 89,	//15.1/1
+		"struct V { virtual void f() = 0; virtual ~V() {} }; struct M : virtual V { int m; void f() override { throw m; } };\n"
+		"int main() { M x; x.m = 89; V* p = &x; try { p->f(); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"FloatFunctionThrows", 90,	//15.1/1
+		"float f(float x) { if (x > 1.0f) throw (int)(x * 2); return x; }\n"
+		"int main() { try { f(45.0f); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"FunctionTryBody", 101,	//15/4
+		"int f(int x) try { if (x) throw x; return 1; } catch (int e) { return e + 1; }\n"
+		"int main() { return f(100); }\n"
+	},
+	{
+		"FunctionTryParameters", 102,	//15.3/13
+		"int f(int a, int b) try { throw a; } catch (int e) { return e + b; }\n"
+		"int main() { return f(100, 2); }\n"
+	},
+	{
+		"FunctionTryFallsOff", 103,	//15.3/15
+		"int g;\n"
+		"void f() try { throw 3; } catch (int e) { g = e; }\n"
+		"int main() { f(); return g + 100; }\n"
+	},
+	{
+		"MainFunctionTry", 104,	//15/4
+		"int main() try { throw 104; } catch (int e) { return e; }\n"
+	},
+	{
+		"ConstructorFunctionTryRethrows", 105,	//15.3/15
+		"int g;\n"
+		"struct Th { Th(int) { throw 5; } };\n"
+		"struct S { Th m; S() try : m(1) { } catch (int e) { g = e; } };\n"
+		"int main() { try { S s; } catch (int e) { return g * 10 + e + 50; } return 1; }\n"
+	},
+	{
+		"ConstructorFunctionTryCatchesBase", 106,	//15.3/13
+		"int g;\n"
+		"struct B { B() { throw 6; } };\n"
+		"struct S : B { S() try { } catch (int e) { g = e; } };\n"
+		"int main() { try { S s; } catch (int e) { return g * 10 + e + 40; } return 1; }\n"
+	},
+	{
+		"ConstructorFunctionTryThrowsOther", 107,	//15.3/15
+		"struct Th { Th(int) { throw 5; } };\n"
+		"struct S { Th m; S() try : m(1) { } catch (int e) { throw (char)(e + 102); } };\n"
+		"int main() { try { S s; } catch (char c) { return c; } return 1; }\n"
+	},
+	{
+		"FunctionTryMembersDestroyedFirst", 108,	//15.3/11
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct Th { Th(int) { throw 5; } };\n"
+		"struct M { M() { t(1); } ~M() { t(2); } };\n"
+		"struct S { M a; Th b; S() try : b(1) { } catch (int) { t(3); } };\n"
+		"int main() { try { S s; } catch (int) { t(4); } return g == 1234 ? 108 : 1; }\n"
+	},
+	{
+		"DestructorFunctionTryRethrows", 109,	//15.3/15
+		"int g;\n"
+		"struct S { ~S() noexcept(false) try { throw 9; } catch (int e) { g = e; } };\n"
+		"int main() { try { S s; } catch (int e) { return g * 10 + e + 10; } return 1; }\n"
+	},
+	{
+		"ConstructorFunctionTryBodyThrows", 110,	//15.3/11
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct M { M() { t(1); } ~M() { t(2); } };\n"
+		"struct S { M a; S() try { throw 1; } catch (int) { t(3); } };\n"
+		"int main() { try { S s; } catch (int) { t(4); } return g == 1234 ? 110 : 1; }\n"
+	},
+	{
+		"UncaughtTerminates", 111,	//15.5.1/1
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(111); }\n"
+		"int main() { std::set_terminate(bye); throw 1; }\n"
+	},
+	{
+		"NoexceptTerminates", 112,	//15.4/9
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(112); }\n"
+		"void f() noexcept { throw 1; }\n"
+		"int main() { std::set_terminate(bye); try { f(); } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"NoexceptThroughCallTerminates", 113,	//15.4/9
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(113); }\n"
+		"void th() { throw 1; }\n"
+		"void f() noexcept { th(); }\n"
+		"int main() { std::set_terminate(bye); try { f(); } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"ImplicitNoexceptDestructorTerminates", 114,	//12.4/3
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(114); }\n"
+		"struct S { ~S() { throw 1; } };\n"
+		"int main() { std::set_terminate(bye); try { S s; } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"ThrowWhileUnwindingTerminates", 115,	//15.5.1/1
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(115); }\n"
+		"struct S { ~S() noexcept(false) { throw 2; } };\n"
+		"int main() { std::set_terminate(bye); try { S s; throw 1; } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"RethrowNothingTerminates", 116,	//15.1/9
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(116); }\n"
+		"int main() { std::set_terminate(bye); throw; }\n"
+	},
+	{
+		"CatchCopyThrowsTerminates", 117,	//15.5.1/1
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(117); }\n"
+		"int armed;\n"
+		"struct T { T() {} T(const T&) { if (armed) throw 1; } };\n"
+		"struct Arm { ~Arm() { armed = 1; } };\n"
+		"int main() { std::set_terminate(bye); try { Arm a; throw T(); } catch (T) { return 1; } catch (...) { return 2; } return 3; }\n"
+	},
+	{
+		"GlobalConstructorThrowsTerminates", 118,	//15.5.1/1
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(118); }\n"
+		"struct G { G() { std::set_terminate(bye); throw 1; } };\n"
+		"G gg;\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"SetTerminateReturnsPrevious", 119,	//18.8.3.2
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void a() { _Exit(1); }\n"
+		"void b() { _Exit(2); }\n"
+		"int main() { std::set_terminate(a); std::terminate_handler p = std::set_terminate(b); return (p == a) + (std::get_terminate() == b) * 2 + 116; }\n"
+	},
+	{
+		"TerminateCallsHandler", 120,	//18.8.3.4
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(120); }\n"
+		"int main() { std::set_terminate(bye); std::terminate(); }\n"
+	},
+	{
+		"NoexceptOperatorThrow", 121,	//5.3.7/3
+		"int main() { return noexcept(throw 1) ? 1 : 121; }\n"
+	},
+	{
+		"NoexceptImplicitDestructor", 122,	//15.4/14
+		"struct A { ~A() {} }; struct B { ~B() noexcept(false) {} }; struct C { B b; }; struct D2 { A a; };\n"
+		"template<class T> T& ref() noexcept;\n"
+		"int main() { return noexcept(ref<A>().~A()) + !noexcept(ref<B>().~B()) * 2 + !noexcept(ref<C>().~C()) * 4 + noexcept(ref<D2>().~D2()) * 8 + 107; }\n"
+	},
+	{
+		"NoexceptImplicitConstructors", 123,	//15.4/14
+		"struct A { A() noexcept {} A(const A&) noexcept {} }; struct B { B() {} B(const B&) {} }; struct HA { A a; }; struct HB { B b; }; struct Tr { int x; };\n"
+		"template<class T> T& ref() noexcept;\n"
+		"int main() { return noexcept(HA()) + !noexcept(HB()) * 2 + noexcept(HA(ref<HA>())) * 4 + !noexcept(HB(ref<HB>())) * 8 + noexcept(Tr()) * 16 + noexcept(Tr(ref<Tr>())) * 32 + 60; }\n"
+	},
+	{
+		"NoexceptLambda", 124,	//5.1.2/5
+		"int main() { auto a = []() noexcept { }; auto b = []() { }; return noexcept(a()) + !noexcept(b()) * 2 + 121; }\n"
+	},
+	{
+		"NoexceptFunctionPointer", 125,	//15.4/2
+		"void f() noexcept {}\n"
+		"int main() { void (*p)() noexcept = f; void (*q)() = f; return noexcept(p()) + !noexcept(q()) * 2 + 122; }\n"
+	},
+	{
+		"NoexceptDependent", 126,	//15.4/1
+		"template<class T> void call(T& t) noexcept(noexcept(t.f())) { t.f(); }\n"
+		"struct A { void f() noexcept {} }; struct B { void f() {} };\n"
+		"int main() { A a; B b; return noexcept(call(a)) + !noexcept(call(b)) * 2 + 123; }\n"
+	},
+	{
+		"NoexceptTemporaries", 127,	//5.3.7/3
+		"struct X { X(int) {} ~X() {} }; struct Y { Y(int) noexcept {} };\n"
+		"void take(const X&) noexcept; void takeY(const Y&) noexcept;\n"
+		"int main() { return !noexcept(take(1)) + noexcept(takeY(1)) * 2 + 124; }\n"
+	},
+	{
+		"DeallocationNoexcept", 128,	//15.4/15
+		"struct S { static void operator delete(void*) {} };\n"
+		"int main() { S* p = 0; return noexcept(delete p) ? 128 : 1; }\n"
+	},
+	{
+		"NoexceptFalseThrows", 129,	//15.4/1
+		"void f() noexcept(false) { throw 129; }\n"
+		"int main() { try { f(); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"OverrideLooserRefused", CONFORMANCE_REFUSED,	//15.4/5
+		"struct B { virtual void f() noexcept; };\n"
+		"struct D : B { void f() override; };\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"PointerLooserRefused", CONFORMANCE_REFUSED,	//15.4/5
+		"void f();\n"
+		"void (*p)() noexcept = f;\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"RedeclaredDifferentRefused", CONFORMANCE_REFUSED,	//15.4/3
+		"void f() noexcept;\n"
+		"void f();\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"CatchIncompleteRefused", CONFORMANCE_REFUSED,	//15.3/1
+		"struct I;\n"
+		"int main() { try { } catch (I) { } return 1; }\n"
+	},
+	{
+		"CatchRvalueReferenceRefused", CONFORMANCE_REFUSED,	//15.3/1
+		"int main() { try { } catch (int&&) { } return 1; }\n"
+	},
+	{
+		"CatchAbstractRefused", CONFORMANCE_REFUSED,	//15.3/1
+		"struct A { virtual void f() = 0; };\n"
+		"int main() { try { } catch (A) { } return 1; }\n"
+	},
+	{
+		"ThrowIncompleteRefused", CONFORMANCE_REFUSED,	//15.1/3
+		"struct I;\n"
+		"void f(I* p) { throw *p; }\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"ThrowAbstractRefused", CONFORMANCE_REFUSED,	//15.1/3
+		"struct A { virtual void f() = 0; };\n"
+		"void f(A& a) { throw a; }\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"GotoIntoTryRefused", CONFORMANCE_REFUSED,	//15/2
+		"int main() { goto L; try { L: ; } catch (...) { } return 1; }\n"
+	},
+	{
+		"GotoIntoHandlerRefused", CONFORMANCE_REFUSED,	//15/2
+		"int main() { goto L; try { } catch (...) { L: ; } return 1; }\n"
+	},
+	{
+		"SwitchIntoTryRefused", CONFORMANCE_REFUSED,	//15/2
+		"int main() { int x = 1; switch (x) { case 0: try { case 1: x = 2; } catch (...) { } } return x; }\n"
+	},
+	{
+		"ConstructorFunctionTryReturnRefused", CONFORMANCE_REFUSED,	//15.3/14
+		"struct S { S() try { } catch (...) { return; } };\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"EllipsisNotLastRefused", CONFORMANCE_REFUSED,	//15.3/5
+		"int main() { try { } catch (...) { } catch (int) { } return 1; }\n"
+	},
+	{
+		"ThrowPrivateCopyRefused", CONFORMANCE_REFUSED,	//15.1/5
+		"struct N { N() {} private: N(const N&); };\n"
+		"void f() { N n; throw n; }\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"TryWithoutHandlerRefused", CONFORMANCE_REFUSED,	//15/1
+		"int main() { try { } return 1; }\n"
+	},
+	{
+		"ConstexprThrowTakenRefused", CONFORMANCE_REFUSED,	//5.19/2
+		"constexpr int f(int x) { return x < 0 ? throw 1 : x; }\n"
+		"constexpr int k = f(-1);\n"
+		"int main() { return k; }\n"
+	},
+	{
+		"ConstexprTryRefused", CONFORMANCE_REFUSED,	//7.1.5/3
+		"constexpr int f() { try { return 1; } catch (...) { return 2; } }\n"
+		"int main() { return f(); }\n"
+	},
+	{
+		"ConstexprThrowNotTaken", 147,	//5.19/2
+		"constexpr int f(int x) { return x < 0 ? throw 1 : x; }\n"
+		"int a[f(3)];\n"
+		"int main() { try { return (int)(sizeof(a) / sizeof(int)) + f(-1); } catch (int e) { return e + 146; } }\n"
+	},
+	{
+		"DynamicSpecAllows", 150,	//15.4/8
+		"void f() throw(int) { throw 150; }\n"
+		"int main() { try { f(); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"UnexpectedCalled", 151,	//15.5.2/1
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(151); }\n"
+		"void f() throw(int) { throw 'a'; }\n"
+		"int main() { std::set_unexpected(bye); try { f(); } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"UnexpectedThrowsAllowed", 152,	//15.5.2/2
+		"#include <exception>\n"
+		"void un() { throw 152; }\n"
+		"void f() throw(int) { throw 'a'; }\n"
+		"int main() { std::set_unexpected(un); try { f(); } catch (int e) { return e; } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"UnexpectedBadException", 153,	//15.5.2/3
+		"#include <exception>\n"
+		"void un() { throw 1.5; }\n"
+		"void f() throw(int, std::bad_exception) { throw 'a'; }\n"
+		"int main() { std::set_unexpected(un); try { f(); } catch (std::bad_exception&) { return 153; } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"UnexpectedTerminates", 154,	//15.5.2/3
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(154); }\n"
+		"void un() { throw 1.5; }\n"
+		"void f() throw(int) { throw 'a'; }\n"
+		"int main() { std::set_terminate(bye); std::set_unexpected(un); try { f(); } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"ThrowNothingSpecUnexpected", 155,	//15.4/9
+		"#include <exception>\n"
+		"#include <stdlib.h>\n"
+		"void bye() { _Exit(155); }\n"
+		"void f() throw() { throw 1; }\n"
+		"int main() { std::set_unexpected(bye); try { f(); } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"DynamicSpecAllowsDerived", 156,	//15.4/8
+		"struct B {}; struct D : B {};\n"
+		"void f() throw(B) { throw D(); }\n"
+		"int main() { try { f(); } catch (D&) { return 156; } catch (...) { return 1; } return 2; }\n"
+	},
+	{
+		"BadAllocFromReplacedNew", 157,	//18.6.2.1
+		"#include <new>\n"
+		"#include <stdlib.h>\n"
+		"#include <stddef.h>\n"
+		"void* operator new(size_t s) { if (s > 100) throw std::bad_alloc(); return malloc(s); }\n"
+		"void operator delete(void* p) noexcept { free(p); }\n"
+		"void operator delete(void* p, size_t) noexcept { free(p); }\n"
+		"struct Big { char b[200]; };\n"
+		"int main() { try { Big* p = new Big; return p ? 1 : 2; } catch (std::bad_alloc& e) { return e.what() ? 157 : 3; } }\n"
+	},
+	{
+		"NothrowNewNull", 158,	//5.3.4/13
+		"#include <new>\n"
+		"#include <stdlib.h>\n"
+		"#include <stddef.h>\n"
+		"int g;\n"
+		"void* operator new(size_t, const std::nothrow_t&) noexcept { return 0; }\n"
+		"struct C { C() { g = 1; } };\n"
+		"int main() { C* p = new (std::nothrow) C; return p == 0 && g == 0 ? 158 : 1; }\n"
+	},
+	{
+		"ClassNewNoexceptNull", 159,	//5.3.4/13
+		"#include <stdlib.h>\n"
+		"#include <stddef.h>\n"
+		"int g;\n"
+		"struct C { C() { g = 1; } static void* operator new(size_t) noexcept { return 0; } static void operator delete(void*) {} };\n"
+		"int main() { C* p = new C; return p == 0 && g == 0 ? 159 : 1; }\n"
+	},
+	{
+		"SetNewHandlerReturnsPrevious", 160,	//18.6.2.4
+		"#include <new>\n"
+		"void a() {}\n"
+		"void b() {}\n"
+		"int main() { std::set_new_handler(a); std::new_handler p = std::set_new_handler(b); return (p == a) + (std::get_new_handler() == b) * 2 + 157; }\n"
+	},
+	{
+		"BadArrayNewLength", 161,	//5.3.4/7
+		"#include <new>\n"
+		"int main() { volatile int n = -1; try { int* p = new int[n]; return p ? 1 : 2; } catch (std::bad_array_new_length&) { return 161; } catch (...) { return 3; } }\n"
+	},
+	{
+		"BadCast", 162,	//5.2.7/9
+		"#include <typeinfo>\n"
+		"struct B { virtual ~B() {} }; struct D : B {}; struct E : B {};\n"
+		"int main() { E e; B& b = e; try { D& d = dynamic_cast<D&>(b); (void)d; return 1; } catch (std::bad_cast& x) { return x.what() ? 162 : 2; } }\n"
+	},
+	{
+		"BadTypeid", 163,	//5.2.8/2
+		"#include <typeinfo>\n"
+		"struct B { virtual ~B() {} };\n"
+		"int main() { B* p = 0; try { return typeid(*p) == typeid(B) ? 1 : 2; } catch (std::bad_typeid&) { return 163; } }\n"
+	},
+	{
+		"StandardExceptionsDerive", 164,	//18.8.1
+		"#include <exception>\n"
+		"#include <new>\n"
+		"#include <typeinfo>\n"
+		"int g;\n"
+		"template<class T> void th() { try { throw T(); } catch (std::exception& e) { g += e.what() != 0; } }\n"
+		"int main() { th<std::bad_alloc>(); th<std::bad_cast>(); th<std::bad_typeid>(); th<std::bad_exception>(); return g + 160; }\n"
+	},
+	{
+		"UserExceptionWhat", 165,	//18.8.1
+		"#include <exception>\n"
+		"struct My : std::exception { const char* what() const noexcept override { return \"m\"; } };\n"
+		"int main() { try { throw My(); } catch (const std::exception& e) { return e.what()[0] + 56; } return 1; }\n"
+	},
+	{
+		"ExceptionPtr", 166,	//18.8.5
+		"#include <exception>\n"
+		"int main() { std::exception_ptr p; try { throw 160; } catch (...) { p = std::current_exception(); } try { std::rethrow_exception(p); } catch (int e) { return e + 6; } return 1; }\n"
+	},
+	{
+		"ExceptionPtrNull", 167,	//18.8.5
+		"#include <exception>\n"
+		"int main() { std::exception_ptr p = std::current_exception(); std::exception_ptr q; return (p == nullptr) + (p == q) * 2 + !p * 4 + 160; }\n"
+	},
+	{
+		"ExceptionPtrKeepsObject", 168,	//18.8.5/8
+		"#include <exception>\n"
+		"int live; int g;\n"
+		"struct T { T() { live++; } T(const T&) { live++; } ~T() { live--; } };\n"
+		"int main() { int a = 0; { std::exception_ptr p; try { throw T(); } catch (...) { p = std::current_exception(); } a = live > 0; } return a + (live == 0) * 2 + 165; }\n"
+	},
+	{
+		"MakeExceptionPtr", 169,	//18.8.5
+		"#include <exception>\n"
+		"int main() { std::exception_ptr p = std::make_exception_ptr(169); try { std::rethrow_exception(p); } catch (int e) { return e; } return 1; }\n"
+	},
+	{
+		"NestedException", 170,	//18.8.6
+		"#include <exception>\n"
+		"struct Outer { int v; Outer(int a) : v(a) {} virtual ~Outer() {} };\n"
+		"int main() { try { try { throw 100; } catch (...) { std::throw_with_nested(Outer(60)); } } catch (Outer& o) { try { std::rethrow_if_nested(o); } catch (int e) { return e + o.v + 10; } } return 1; }\n"
+	},
+	{
+		"ExceptionCopies", 171,	//18.8.1
+		"#include <exception>\n"
+		"int main() { std::exception a; std::exception b(a); b = a; std::bad_exception c; return (b.what() != 0) + (c.what() != 0) * 2 + 168; }\n"
+	},
+};

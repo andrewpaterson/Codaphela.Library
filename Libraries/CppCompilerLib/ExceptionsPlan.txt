@@ -127,7 +127,7 @@ How it is written
 
   try.  The block is written with a try mark on the cleanup stack.  The mark's block tries each handler in order: R_Match with the handler's type, and a brif.  catch (...) always matches.  With no match it jumps to the way out below the mark.  A handler: R_BeginCatch; an R_EndCatch entry; the parameter is initialised from the address R_Match gave (a reference is bound to it; an object is copy-constructed from it, and is a local like any other); the block; pop.  Errors: a handler for an incomplete type, an abstract class or an rvalue reference (15.3/1); a goto or a switch that jumps into a try block or a handler (15/2).  A warning: a handler that an earlier one hides.
 
-  A function-try-block.  The parser can't read one with member initialisers (ParseFunctionBody goes to ParseTryStatement, which wants a "{"), and nothing but the body being a try statement says that it is one: the function definition gets its handlers as its own field.  The try mark is pushed before the member initialisers and the bases, and popped after the body.  In a constructor or destructor the handlers rethrow when they reach their end (15.3/15), can't return (15.3/14 for a constructor), and using a member or a base there is undefined, so nothing is done about it.  In other functions a handler that reaches its end returns.  The parameters are in scope in the handlers and are destroyed after them.
+  A function-try-block.  The parser can't read one with member initialisers (ParseFunctionBody goes to ParseTryStatement, which wants a "{"), which stage 0 mends; the function's body is then the try statement (CCPPSyntaxTryStatement::IsFunctionBody).  The try mark is pushed before the member initialisers and the bases, and popped after the body.  In a constructor or destructor the handlers rethrow when they reach their end (15.3/15), can't return (15.3/14 for a constructor), and using a member or a base there is undefined, so nothing is done about it.  In other functions a handler that reaches its end returns.  The parameters are in scope in the handlers and are destroyed after them.
 
   noexcept and throw().  A noexcept function's way out is R_Terminate, so it has no throw and is nothrow in the IR.  A throw(A, B) list (deprecated in C++14, gone in C++17, but in C++14): the way out asks R_Match for each type, and with no match calls R_Unexpected, which calls the unexpected handler; what that throws is let through if the list allows it, becomes bad_exception if the list has bad_exception, and is terminate otherwise (15.5.2).
 
@@ -183,7 +183,7 @@ Each ends with the whole of TestCppCompilerLib passing in Release x64 and a comm
      - The conformance test gets an Exceptions group: a case for each paragraph of clause 15 and the others named at the top that can be tested, about 150, each run with the Microsoft compiler first (hostcheck.py, which already compiles with /EHsc), all "not done" to begin with.  It is the table the rest of the work is counted against, as Stage10's 70 cases were for namespaces.  Cases that must be refused are in it too.
      - The runner sees a stop in _Exit as a result.
      - The option, all the way through (5 above), off by default, as it stays.
-     - The parser: a function-try-block with member initialisers; the function definition's own field for its handlers.  TestCppParser.
+     - The parser: a function-try-block with member initialisers.  TestCppParser.
      - A baseline: Tests/CompilerMeasure.py (the three Lib65 suites, both processors: cycles, sizes, times) as things are.
 
   1. noexcept to the standard.  Found wrong or missing while reading:
@@ -255,4 +255,27 @@ Questions for the user
 Progress
 --------
 
-  Nothing started.
+  The user, 2026-11-18: "Your assumed answers are fine, go ahead with stage 0".  The work is in the worktree
+  CommonLibrariesExceptions (branch exceptions) while the other session's sweep runs from the main trees.
+
+  0. Under way.
+     - The table: the conformance test's Exceptions group, 171 cases (TestCPPConformanceCases.h), compiled with
+       exceptions on.  Each was run with the Microsoft compiler (hostcheck.py) and with g++ -std=c++14 (gcccheck.sh,
+       new, in WSL); every case is what the standard says and what at least one of them does, and the comment over the
+       cases says where one differs.  Values are 1 to 255 so both hosts can say them.  Not cases, because no small
+       program can make them happen the same way on a host and on the targets: operator new running out of memory and
+       the new handler being called (TestLibc65's, in stage 8).
+     - The runner: a stop in the start up's _Exit is a result (ConformanceExited; the start ups have __ExitEnd).
+       TEST_CPP_CONFORMANCE_EXCEPTIONS turns exceptions on for TEST_CPP_CONFORMANCE_TRY.
+     - The option in the compiler: CCPPCompileOptions::mbExceptions, false by default; __cpp_exceptions when it is on
+       (CCPPTarget::AddDefines, which takes the options now).  With it off throw and try are errors that say so
+       (CPP_EXCEPTIONS_OFF_THROW, CPP_EXCEPTIONS_OFF_TRY).
+     - The parser: a function-try-block with member initializers (ParseTryStatement given the function).  Not as
+       planned: the function definition has no field of its own for the handlers.  Its body is the try statement, as
+       it was (CCPPSyntaxTryStatement::IsFunctionBody says so), because everything that walks a function's body
+       (AllocateLocals, FindReturns, CheckNode, the IDE) then walks the handlers with no change.
+     TestCppCompilerLib passes in Release x64 with these (268445); of the 171 cases 14 are done, 13 of them programs that
+     must be refused and may be refused for the wrong reason yet.  No test asks for the two "built without exceptions"
+     errors yet.
+     Still to do: the option in BuildLib, hcp65build, the IDE's dialog and the website (HCP65-IDE and HCP65, after the
+     sweep); the baseline measure (after the sweep: the Lib65 suites take the memory the sweep needs).
