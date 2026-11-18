@@ -439,6 +439,35 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         overloads on them (f(int) and f(long) on the 65C64) can't be told apart, typeid and catch can't either, and
         typeid(long).name() is "int" on the 65C64.  Making them distinct types (with the conversions and ranks between
         them, their labels and names) is a change across the compiler: do it now, or with the library question?
+        The user, 2026-11-18: "give each fundamental type its own identity please".  The plan, a commit for each step after
+        a full TestCppCompilerLib pass (RunParallel.py), the steps that can refuse code also the *65 compile checks
+        (TEST_PROJECT65_ONLY=NoSuchTest, both targets) and the kernal with hcp65build:
+        1. Identity.  SCPP65Type has its integer's kind (char, signed char, unsigned char, wchar_t, char16_t, char32_t,
+           short, unsigned short, int, unsigned int, long, unsigned long, long long, unsigned long long), and Equals and
+           Same tell kinds apart; one builtin type for each (msSignedChar, msWChar, msChar16, msChar32 added).  The
+           declarators give each keyword its own (long is msLong, never Integer(4)); CCPP65Types::Integer(bytes, signed),
+           for what the compiler makes itself, gives the type of that size it would make (int where int is as wide).
+        2. Promotions and conversions by rank ([conv.prom], [conv.rank], [expr] 10): char, signed char, unsigned char,
+           short and unsigned short, bool and an unscoped enum become int, or unsigned int if int can't hold them all;
+           wchar_t, char16_t and char32_t the first of int, unsigned int, long, unsigned long, long long and unsigned
+           long long that holds them all.  The usual arithmetic conversions by rank (long long > long > int > short >
+           char), a signed type taking an unsigned one's operands only when it holds all their values.  Overloads: int to
+           long is a conversion, not an exact match, though they are as wide.
+        3. Literals: an integer literal's type from [lex.icon]'s table (decimal int, long, long long; octal and hex the
+           unsigned ones between; the suffixes); 'c' char, L'c' wchar_t, u'c' char16_t, U'c' char32_t, and the strings'
+           elements so.  sizeof's type is std::size_t, Libc65's unsigned long, on both targets (an object can be more
+           than 64KB on the W65C816), and pointer - pointer std::ptrdiff_t, long.
+        4. Labels: the Itanium codes (c char, a signed char, h unsigned char, w wchar_t, Ds char16_t, Di char32_t, s short,
+           t unsigned short, i int, j unsigned int, l long, m unsigned long, x long long, y unsigned long long), in place
+           of codes by size.  The assembly that names compiled functions (BaseLib's Fat*W65C816.asm, Libc65's
+           stringW65C816*.asm, the kernal's KernalExports.asm) and the tests that read labels change with them.
+        5. Names: typeid's names, the type checker's and the IDE's, by kind ("long", "signed char", "char16_t").
+        6. std::nullptr_t: a type of its own (CPP65TK_NullPointer, a pointer wide), nullptr's and decltype(nullptr)'s,
+           converting to any pointer, pointer to member and (in direct initialisation) bool; overloads on it; its type
+           info (CPP65TIK_NullPointer) and label (Dn).
+        7. The libraries and the kernal as distinct types find them: what passes an int* for a long* and the like is
+           mended where it is, as access control's and enum class's were.
+        Conformance cases for each, checked with MSVC (hostcheck.py), as the steps go.
 
   Small gaps found on 2026-11-18 (by the exceptions work), not done yet:
     - A function template declared and never defined can't be named in an unevaluated operand: noexcept(ref<A>()) with
