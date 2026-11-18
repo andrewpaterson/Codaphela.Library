@@ -1887,7 +1887,7 @@ void TestCPP65IRConstErrors(void)
 	AssertConstError(szPointer, "int main() { const int a = 1; int* p = &a; return *p; }");
 	AssertConstError(szPointer, "int main() { const int a = 1; int* p; p = &a; return *p; }");
 	AssertConstError(szPointer, "int main() { const int a = 1; void* p = &a; return p != 0; }");
-	AssertConstError("No function matches the arguments (const long*): it takes (long*)", "int F(int* p) { return 1; }\nint main() { const int a = 1; return F(&a); }");
+	AssertConstError("No function matches the arguments (const int*): it takes (int*)", "int F(int* p) { return 1; }\nint main() { const int a = 1; return F(&a); }");
 	AssertConstError(szPointer, "int* F(const int* p) { return p; }\nint main() { return F(0) != 0; }");
 	AssertConstError(szPointer, "const int* F(const int* p) { return p; }\nint main() { int* q = F(0); return q != 0; }");
 	AssertConstError("", "const int* F(const int* p) { return p; }\nint main() { const int* q = F(0); return q != 0; }");
@@ -1896,7 +1896,7 @@ void TestCPP65IRConstErrors(void)
 	AssertConstError(szPointer, "int main() { char c = 0; char* p = &c; const char** q = &p; return q != 0; }");
 
 	AssertConstError(szBind, "int main() { const int a = 1; int& r = a; return r; }");
-	AssertConstError("No function matches the arguments (const long): it takes (long&)", "int F(int& r) { return r; }\nint main() { const int a = 1; return F(a); }");
+	AssertConstError("No function matches the arguments (const int): it takes (int&)", "int F(int& r) { return r; }\nint main() { const int a = 1; return F(a); }");
 	AssertConstError(szBind, "int& F(const int& r) { return r; }\nint main() { int a = 1; return F(a); }");
 
 	AssertConstError("The object is const and the function that takes these arguments isn't a const member function", "struct S { int F() { return 1; } };\nint main() { const S s; return s.F(); }");

@@ -234,9 +234,36 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The type as C++ for messages.  Integers are named by their size, not as
-// declared (a 2 byte int is "short", a 4 byte one "long"), so the widths
-// that differ between targets show.  Classes and enums aren't named.
+// An integer type's name as C++ writes it: "unsigned short", "char16_t".
+//
+//////////////////////////////////////////////////////////////////////////
+const char* IntegerKindName(ECPP65IntegerKind eInteger)
+{
+	switch (eInteger)
+	{
+	case CPP65IK_Char:				return "char";
+	case CPP65IK_SignedChar:			return "signed char";
+	case CPP65IK_UnsignedChar:			return "unsigned char";
+	case CPP65IK_WChar:				return "wchar_t";
+	case CPP65IK_Char16:				return "char16_t";
+	case CPP65IK_Char32:				return "char32_t";
+	case CPP65IK_Short:				return "short";
+	case CPP65IK_UnsignedShort:			return "unsigned short";
+	case CPP65IK_Int:				return "int";
+	case CPP65IK_UnsignedInt:			return "unsigned int";
+	case CPP65IK_Long:				return "long";
+	case CPP65IK_UnsignedLong:			return "unsigned long";
+	case CPP65IK_LongLong:			return "long long";
+	case CPP65IK_UnsignedLongLong:		return "unsigned long long";
+	default:						return "int";
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type as C++ for messages, its integers as declared (IntegerKindName).
+// Classes and enums aren't named.
 //
 //////////////////////////////////////////////////////////////////////////
 void SCPP65Type::Append(CChars* psz)
@@ -263,17 +290,7 @@ void SCPP65Type::Append(CChars* psz)
 			psz->Append("enum");
 			break;
 		}
-		if (!bSigned)
-		{
-			psz->Append("unsigned ");
-		}
-		switch (iBytes)
-		{
-		case 1:		psz->Append("char");		break;
-		case 2:		psz->Append("short");		break;
-		case 4:		psz->Append("long");		break;
-		default:	psz->Append("long long");	break;
-		}
+		psz->Append(IntegerKindName(eInteger));
 		break;
 	case CPP65TK_Float:
 		psz->Append(bLongDouble ? "long double" : ((iBytes == 4) ? "float" : "double"));
