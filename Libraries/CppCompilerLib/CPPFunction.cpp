@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPScope.h"
 #include "CPPClass.h"
 #include "CPPFunction.h"
+#include "CPPLambda.h"
 
 
 //A function the compiler knows: what it is asked about itself.
@@ -185,6 +186,11 @@ bool CCPPFunction::IsUnitFunction(void) const
 	CCPPClass*	pcClass;
 
 	pcClass = mpcClass;
+	if (pcClass && pcClass->mpsLambda)
+	{
+		//A closure is the unit's own unless the lambda is in a function every unit may write (SCPPLambda::szName).
+		return pcClass->mpsLambda->szName.Empty();
+	}
 	if (pcClass)
 	{
 		return (pcClass->IsUnnamed()) || (pcClass->mpcSymbol && pcClass->mpcSymbol->mpcScope->IsInUnnamedNamespace());

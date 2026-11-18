@@ -306,6 +306,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbExitListsWritten = false;
 	maszExitFinalisers.Init();
 	mapsExitFinalisers.Init();
+	maiExitShared.Init();
 
 	mapcLocals.Init();
 	miStatics = 0;
@@ -419,6 +420,7 @@ void CCPPUnit::Kill(void)
 	mcWarnings.Kill();
 	masClassErrors.Kill();
 	mcErrors.Kill();
+	maiExitShared.Kill();
 	mapsExitFinalisers.Kill();
 	maszExitFinalisers.Kill();
 	maszRuntime.Kill();
@@ -678,6 +680,20 @@ bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialis
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if every unit that needs the function writes it, each in a COMDAT
+// section the linker keeps one of (inline, a template's instance, or
+// implicit), so what is in it is one thing in every unit: its lambdas'
+// closures and its static locals.  [basic.def.odr] 6, [dcl.fct.spec] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsSharedFunction(CCPPFunction* pcFunction)
+{
+	return pcFunction && !pcFunction->IsUnitFunction() && (pcFunction->mbInline || pcFunction->mbImplicit || pcFunction->mpcTemplate);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Once the unit's functions are written: the R_Finalise of each static
 // local destroyed at exit that they reach (StaticLocal), and the exit
 // lists' runner if anything is pushed on them (R_RunExitLists, a COMDAT
@@ -697,8 +713,12 @@ bool CCPPUnit::WriteExitRoutines(void)
 	{
 		szFinaliser.Init("R_Finalise");
 		szFinaliser.Append(maszExitFinalisers.GetText(i));
-		CCPPUnitData::AppendSection(&mszCode, "text", &szFinaliser, NULL);
-		if (!mpcIRFrontEnd->GlobalRoutine(szFinaliser.Text(), maszExitFinalisers.GetText(i), mapsExitFinalisers.GetPtr(i), NULL, true))
+		CCPPUnitData::AppendSection(&mszCode, "text", &szFinaliser, maiExitShared.GetValue(i) ? ", comdat" : NULL);
+		if (maiExitShared.GetValue(i))
+		{
+			CCPPUnitData::AppendGlobal(&mszCode, &szFinaliser);
+		}
+		if (!mpcIRFrontEnd->GlobalRoutine(szFinaliser.Text(), maszExitFinalisers.GetText(i), mapsExitFinalisers.GetPtr(i), NULL, true, NULL, NULL, false, maiExitShared.GetValue(i) == 0))
 		{
 			ErrorAt(-1, "This static local's destruction uses C++ the IR front end doesn't support yet");
 		}
@@ -707,6 +727,7 @@ bool CCPPUnit::WriteExitRoutines(void)
 	}
 	maszExitFinalisers.ReInit();
 	mapsExitFinalisers.ReInit();
+	maiExitShared.ReInit();
 
 	if (mbExitLists && !mbExitListsWritten)
 	{
@@ -2674,7 +2695,7 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 	//that needs them, each in a COMDAT section the linker keeps one of.
 	szLabel.Init();
 	mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
-	bShared = !pcFunction->IsUnitFunction() && (pcFunction->mbInline || pcFunction->mbImplicit || pcFunction->mpcTemplate);
+	bShared = IsSharedFunction(pcFunction);
 	if (bShared && !Emit(&szLabel))
 	{
 		szLabel.Kill();
@@ -3023,6 +3044,12 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	bool				bResult;
 	bool				bInitialise;
 	bool				bObject;
+	CCPPFunction*		pcShared;
+	const char*			szOptions;
+	size				uiData;
+	bool				bFirst;
+	size				i;
+	int					iNumber;
 
 	psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 	if (!psType)
@@ -3036,13 +3063,29 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 		return false;
 	}
 
-	pcVariable = AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Static, miStatics);
+	//In a function every unit may write it is one object: labelled for the function and its number there, its data COMDAT.
+	pcShared = IsSharedFunction(mcContext.GetFunction()) ? mcContext.GetFunction() : NULL;
+	iNumber = miStatics;
+	if (pcShared)
+	{
+		iNumber = 0;
+		for (i = 0; i < mapcLocals.NumElements(); i++)
+		{
+			iNumber += (mapcLocals.GetPtr(i)->meStorage == CPPVS_Static) ? 1 : 0;
+		}
+	}
+	szOptions = pcShared ? ", comdat" : NULL;
+	pcVariable = AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Static, iNumber);
 	miStatics++;
 	pcVariable->mbDefined = true;
 	pcVariable->mbThreadLocal = (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0;
+	pcVariable->mpcSharedIn = pcShared;
 	szLabel.Init();
 	AppendVariableLabel(&szLabel, pcVariable);
-	mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), false, NULL, bObject || IsBss(pcInit->mpcInitializer, psType));
+	//A function written again in the unit has its static locals again: a shared one's data is the unit's once.
+	bFirst = !pcShared || Emit(&szLabel);
+	uiData = mcData.GetText()->Length();
+	mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), pcShared != NULL, szOptions, bObject || IsBss(pcInit->mpcInitializer, psType));
 	szLabel.Kill();
 	bResult = true;
 	bInitialise = false;
@@ -3062,7 +3105,7 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	{
 		szLabel.Init();
 		AppendGuardLabel(&szLabel, pcVariable);
-		mcData.BeginData(&szLabel, 1, false, NULL, true);
+		mcData.BeginData(&szLabel, 1, pcShared != NULL, szOptions, true);
 		mcData.AppendSpace(1);
 		szLabel.Kill();
 	}
@@ -3071,13 +3114,21 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 		pcVariable->mbExitNode = true;
 		szLabel.Init();
 		AppendVariableLabel(&szLabel, pcVariable);
-		maszExitFinalisers.Add(szLabel.Text());
-		mapsExitFinalisers.Add(psType);
+		if (bFirst)
+		{
+			maszExitFinalisers.Add(szLabel.Text());
+			mapsExitFinalisers.Add(psType);
+			maiExitShared.Add(pcShared != NULL);
+		}
 		szLabel.Append("__ExitNode");
-		mcData.BeginData(&szLabel, 4, false, NULL, true);
+		mcData.BeginData(&szLabel, 4, pcShared != NULL, szOptions, true);
 		mcData.AppendSpace(2 * mcTypes.Pointer(&mcTypes.msVoid)->iBytes);
 		szLabel.Kill();
 		UseExitLists();
+	}
+	if (!bFirst)
+	{
+		mcData.GetText()->SetLength(uiData);
 	}
 	return bResult;
 }
@@ -3095,6 +3146,11 @@ void CCPPUnit::AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable)
 	int		iLength;
 
 	szName = mpcTokeniser->GetIdentifier(pcVariable->mpcSymbol->mlliName, &iLength);
+	if (pcVariable->mpcSharedIn)
+	{
+		mcMangler.AppendFunctionLabel(psz, pcVariable->mpcSharedIn);
+		psz->Append("__");
+	}
 	psz->Append('G');
 	psz->Append(pcVariable->miOffset);
 	psz->Append('_');
@@ -3116,6 +3172,12 @@ void CCPPUnit::AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable)
 	if (pcVariable->meStorage == CPPVS_Static)
 	{
 		szName = mpcTokeniser->GetIdentifier(pcVariable->mpcSymbol->mlliName, &iLength);
+		if (pcVariable->mpcSharedIn)
+		{
+			//A shared function's: its label, __S and its number in the function.
+			mcMangler.AppendFunctionLabel(psz, pcVariable->mpcSharedIn);
+			psz->Append("__");
+		}
 		psz->Append('S');
 		psz->Append(pcVariable->miOffset);
 		psz->Append('_');

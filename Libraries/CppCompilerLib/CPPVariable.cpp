@@ -45,6 +45,7 @@ void CCPPVariable::Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eS
 	mbGuarded = false;
 	mbThreadLocal = false;
 	mbExitNode = false;
+	mpcSharedIn = NULL;
 	mpcAnonymous = NULL;
 	mpcTemplate = NULL;
 	mpcBindings = NULL;

@@ -3649,6 +3649,24 @@ void TestCPP65GeneratorStaticLocalGuard(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What is in an inline function or a template's instance is one thing in
+// every unit (Input/CPP65/SharedInlineProject; CppParserTodo.txt question
+// 5): its static locals, its lambdas' closures and their static locals, and
+// a lambda's conversion to a function pointer.  A.cpp and B.cpp both have
+// them; counts go on across the two and the pointers are equal.
+// [basic.def.odr] 6, [dcl.fct.spec] 4, [expr.prim.lambda] 3
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorSharedInline(void)
+{
+	static const char*	aszShared[] = { "Input/CPP65/SharedInlineProject/A.cpp", "Input/CPP65/SharedInlineProject/B.cpp", "Input/CPP65/SharedInlineProject/Main.cpp", NULL };
+
+	AssertInt(3225, TestCPP65RunProject(aszShared, ""));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorErrors(void)
@@ -3982,6 +4000,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorExternTemplates();
 	TestCPP65GeneratorStaticConstMembers();
 	TestCPP65GeneratorStaticLocalGuard();
+	TestCPP65GeneratorSharedInline();
 	TestCPP65GeneratorNestedQualifiers();
 	TestCPP65GeneratorLateMemberDefinitions();
 	TestCPP65GeneratorExternTemplateProject();

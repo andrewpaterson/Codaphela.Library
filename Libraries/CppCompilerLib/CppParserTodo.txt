@@ -386,11 +386,14 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     5. A closure type in an inline function or a template is one type in every unit ([basic.def.odr]/6, [expr.prim.lambda]/3): its
        operator(), its static locals and its conversion to a function pointer are shared across units (COMDAT, as inline functions
        are), so a static local in the lambda is one object and the function pointer is one address.
+       Done 2026-11-18: a closure in a function every unit may write (IsSharedFunction) is named for it and the lambda's
+       number there (SCPPLambda::szName), so its functions are COMDAT; any static local of such a function (a lambda's too)
+       is labelled for the function, its data, guard, exit node and R_Finalise COMDAT ([dcl.fct.spec] 4).
     10. A const integer (or enumeration) of the enclosing scope initialised with a constant may be used in a lambda that doesn't
         capture it, where it isn't odr-used (an lvalue-to-rvalue conversion is applied at once, [basic.def.odr]/3,
         [expr.prim.lambda]/12): its value is used, as for any constant.  Taking its address or binding a reference to it still needs
         a capture.
-        Done 2026-11-18 (138cc2368): CPPBN_EnclosingConstant; its address, a reference bound to it or a reference
+        Done 2026-11-18 (adf19358c): CPPBN_EnclosingConstant; its address, a reference bound to it or a reference
         parameter it is an argument for still needs a capture.
     6. A static local's guard has three states: not started, being initialised, done ([stmt.dcl]/4).  Entering it again while it is
        being initialised (recursively, or from an interrupt) is undefined behaviour: it traps, as g++'s __cxa_guard_acquire throws

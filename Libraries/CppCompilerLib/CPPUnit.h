@@ -287,7 +287,8 @@ protected:
 	bool					mbExitLists;		//Something is pushed on an exit list: the unit writes R_RunExitLists (UseExitLists).
 	bool					mbExitListsWritten;
 	CArrayChars				maszExitFinalisers;	//The labels of static locals destroyed at exit whose R_Finalise is still to write...
-	CArrayCPP65Types		mapsExitFinalisers;	//...and their types (WriteExitRoutines).
+	CArrayCPP65Types		mapsExitFinalisers;	//...their types...
+	CArrayInt				maiExitShared;		//...and whether each is a shared function's (its R_Finalise COMDAT; WriteExitRoutines).
 
 	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
@@ -439,6 +440,9 @@ public:
 	CCPPSyntaxIdExpression*	NewHiddenName(CCPPSymbol* pcSymbol, CCPPSyntax* pcParent);
 	bool					RangeForLocals(CCPPSyntaxRangeForStatement* pcFor);
 	SCPPLambda*				GetLambda(CCPPSyntaxLambdaExpression* pcSyntax);
+	void					NameLambda(SCPPLambda* psLambda);
+	bool					LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* pcLambda, size* puiNumber);
+	bool					IsSharedFunction(CCPPFunction* pcFunction);
 	SCPP65Type*				LambdaType(CCPPSyntaxLambdaExpression* pcSyntax);
 	bool					LambdaCaptures(SCPPLambda* psLambda);
 	bool					UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode);

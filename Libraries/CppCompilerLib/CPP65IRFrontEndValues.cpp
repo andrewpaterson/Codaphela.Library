@@ -1250,7 +1250,7 @@ bool CCPP65IRFrontEnd::VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* ps
 		{
 			mcModule.SetRestrict(psPlace->sAddress.Index());
 		}
-		if (pcVariable->mbInternal || (pcVariable->meStorage == CPPVS_Static))
+		if (pcVariable->mbInternal || ((pcVariable->meStorage == CPPVS_Static) && !pcVariable->mpcSharedIn))
 		{
 			mcModule.SetLocal(psPlace->sAddress.Index());
 		}

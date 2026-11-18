@@ -506,7 +506,10 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 	szLabel.Init();
 	mpcUnit->AppendGuardLabel(&szLabel, pcVariable);
 	sGuard = mcModule.Symbol(szLabel.Text());
-	mcModule.SetLocal(sGuard.Index());
+	if (!pcVariable->mpcSharedIn)
+	{
+		mcModule.SetLocal(sGuard.Index());
+	}
 	szLabel.Kill();
 
 	pcMake = NewBlock();

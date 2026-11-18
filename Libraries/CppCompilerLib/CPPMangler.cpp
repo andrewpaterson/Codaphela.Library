@@ -328,6 +328,12 @@ void CCPPMangler::AppendClassName(CChars* psz, CCPPClass* pcClass)
 	char*	szName;
 	int		iLength;
 
+	if (pcClass->mpsLambda && !pcClass->mpsLambda->szName.Empty())
+	{
+		//The closure of a lambda in a function every unit may write: named for the function.
+		psz->Append(&pcClass->mpsLambda->szName);
+		return;
+	}
 	if (pcClass->IsUnnamed())
 	{
 		//A class without a name is the unit's own (its labels are local to the object).
