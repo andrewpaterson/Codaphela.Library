@@ -65,8 +65,24 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //with a lock of its own can check the second where it takes that lock: ObjectsAssertNoFree says (in a Debug build)
 //when it is reached from inside a Free().
 //
+//Stored objects.  Any registered thread may use stored objects, loading them as it goes.  A hollow loaded while other
+//threads are registered isn't freed at once, as another thread may have read it and not yet asked it for its object:
+//it forwards to the object until the home thread's ObjectsCollect finds every other thread has come in since
+//(CObjects::FreeForwarders), so a registered thread that does nothing with objects keeps a hollow or two waiting.  The
+//Kill of a stored object (which leaves a hollow for what held it) is refused while another thread holds a Ptr to it,
+//and EvictInMemory while another thread holds any.  Flush, and the save of a dirty stored object as it is freed, read
+//its fields: a class whose fields other threads write saves under its own lock, or the program flushes between jobs.
+//
 //What it doesn't do: it keeps the object system right, and no object is freed while a thread holds a Ptr to it, but
 //an object's own fields are the object's to guard (as are a collection's elements) when threads share it.
+
+//A test that is seldom true, for the compilers that can be told.
+#if defined(_MSC_VER) || defined(__LIBC65__)
+#define OBJECTS_SELDOM(b)	(b)
+#else
+#define OBJECTS_SELDOM(b)	__builtin_expect(!!(b), 0)
+#endif // _MSC_VER || __LIBC65__
+
 
 #ifdef __LIBC65__
 
@@ -105,13 +121,6 @@ inline size ObjectsNumThreadErrors(void) { return 0; }
 #ifdef _DEBUG
 #define OBJECTS_THREAD_CHECKS
 #endif // _DEBUG
-
-
-#ifdef _MSC_VER
-#define OBJECTS_SELDOM(b)	(b)
-#else
-#define OBJECTS_SELDOM(b)	__builtin_expect(!!(b), 0)
-#endif // _MSC_VER
 
 
 extern bool					gbObjectsLocking;	//Changed by the home thread alone, while no other thread uses objects.

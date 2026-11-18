@@ -960,9 +960,6 @@ bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 	//A registered thread keeps its own stack froms of objects attached to the root (ObjectsThreads.h).
 	if (ThreadStackFromAdd(this, pcPointer))
 	{
-#ifdef _DEBUG
-		ValidateStoredOnOneThread();
-#endif // _DEBUG
 		return true;
 	}
 	return StackFromLinked(LinkStackFrom(GetStackPointers()->Add(pcPointer)), bValidate);
@@ -993,43 +990,10 @@ bool CEmbeddedObject::StackFromLinked(bool bAdded, bool bValidate)
 	{
 		GetEmbeddingContainer()->StackFromAdded();
 #ifdef _DEBUG
-		ValidateStoredOnOneThread();
 		ValidateObjectsConsistency(bValidate);
 #endif // _DEBUG
 	}
 	return bAdded;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// While threads share objects, an object in the database (or the hollow standing for one) is used by one thread at a
-// time (ThreadSafetyPlan.txt, decision 4): loading it, or putting a hollow in its place, rewrites every pointer that
-// points at it, and another thread's would be rewritten while that thread used it.  A Debug build, which knows the
-// thread each stack pointer is on, says so when two threads' stacks hold one.
-//
-//////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ValidateStoredOnOneThread(void)
-{
-	CStackPointer*	pcStackPointer;
-	int				iThread;
-	bool			bOnAnother;
-
-	if (!IsObjectsLocking() || !IsStoredOrHollow())
-	{
-		return;
-	}
-
-	iThread = CurrentThreadId();
-	bOnAnother = ThreadStackFromsHasOnAnotherThread(this);
-	for (pcStackPointer = mpcStackFroms; !bOnAnother && pcStackPointer; pcStackPointer = pcStackPointer->GetNext())
-	{
-		bOnAnother = pcStackPointer->IsOnAnotherThread(iThread);
-	}
-	if (bOnAnother)
-	{
-		gcLogger.Error2(__METHOD__, " Stored object {", ObjectToString(this), "} is held from the stacks of two threads: a stored object is used by one thread at a time.", NULL);
-	}
 }
 
 
@@ -1155,17 +1119,6 @@ bool CEmbeddedObject::UnlinkStackFrom(CCollection* pcCollection)
 bool CEmbeddedObject::IsAttachedToRoot(void)
 {
 	return GetDistToRoot() >= ROOT_DIST_TO_ROOT;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// In the database, or standing for an object that is.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::IsStoredOrHollow(void)
-{
-	return IsHollow() || GetEmbeddingContainer()->IsStored();
 }
 
 

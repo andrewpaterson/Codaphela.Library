@@ -162,7 +162,8 @@ CPointer::~CPointer()
 {
 	LOG_POINTER_DEBUG();
 
-	if (mpcObject)
+	//Read whole: a load on another thread may be rewriting it.  Read again inside, where nothing can be.
+	if (LoadObject() != NULL)
 	{
 		if (!OBJECTS_LOCKING())
 		{
@@ -240,7 +241,7 @@ CEmbeddedObject* CPointer::operator & ()
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator ! ()
 {
-	return mpcObject == NULL;
+	return LoadObject() == NULL;
 }
 
 
@@ -250,7 +251,7 @@ bool CPointer::operator ! ()
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator == (const CPointer& pPointer)
 {
-	return mpcObject == pPointer.Object();
+	return LoadObject() == pPointer.Object();
 }
 
 
@@ -260,7 +261,7 @@ bool CPointer::operator == (const CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator != (const CPointer& pPointer)
 {
-	return mpcObject != pPointer.Object();
+	return LoadObject() != pPointer.Object();
 }
 
 
@@ -270,7 +271,7 @@ bool CPointer::operator != (const CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator == (void* pcPointer)
 {
-	return mpcObject == pcPointer;
+	return LoadObject() == pcPointer;
 }
 
 
@@ -280,7 +281,7 @@ bool CPointer::operator == (void* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator != (void* pcPointer)
 {
-	return mpcObject != pcPointer;
+	return LoadObject() != pcPointer;
 }
 
 
@@ -406,6 +407,30 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcObject, or if it is a hollow that was read before it was loaded on
+// another thread (a collection's element, read and then pointed at) and
+// forwards now, what it was loaded as: a pointer is never pointed at a
+// forwarder.  Only a way in from outside that has taken the lock asks: a
+// forwarder exists only while the locking is on, isn't attached to the
+// root (so a reader never points at one), and the object system's own
+// callers read what they point at under the lock, after any load has
+// pointed it at the object.
+//
+//////////////////////////////////////////////////////////////////////////
+static NO_INLINE CEmbeddedObject* PointerForwarded(CEmbeddedObject* pcObject)
+{
+	return (pcObject != NULL) ? pcObject->GetObjectsOrDefault()->Forwarded(pcObject) : NULL;
+}
+
+
+static inline CEmbeddedObject* NotForwarding(CEmbeddedObject* pcObject)
+{
+	return OBJECTS_SELDOM(guiObjectsForwarders != 0) ? PointerForwarded(pcObject) : pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Points this at *ppcObject, from outside the object system: what the constructors and the assignments do.
 // *ppcObject (another pointer's object, where this is to point at what that does) is read once nothing can be
 // changing it.
@@ -421,10 +446,22 @@ void CPointer::PointToFromOutside(CEmbeddedObject* const* ppcObject)
 	}
 	else if (!PointToReading(ppcObject))
 	{
-		ObjectsLock();
-		PointToInside(*ppcObject);
-		ObjectsUnlock();
+		PointToLocking(ppcObject);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// PointToFromOutside with the lock: what a reader couldn't do.  Apart, so
+// that the way with the locking off is as short as it was.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE void CPointer::PointToLocking(CEmbeddedObject* const* ppcObject)
+{
+	ObjectsLock();
+	PointToInside(NotForwarding(*ppcObject));
+	ObjectsUnlock();
 }
 
 
@@ -454,11 +491,6 @@ bool CPointer::PointToReading(CEmbeddedObject* const* ppcObject)
 
 	//The home thread with objects waiting for it to free takes the lock instead, which frees them.
 	bDone = bDone && !(ObjectsReaderIsHome() && ObjectsAreFreesWaiting());
-#ifdef OBJECTS_THREAD_CHECKS
-	//A Debug build checks that an object in the database is one thread's at a time (ValidateStoredOnOneThread),
-	//which looks where a reader may not: such an object's pointers are left for a writer.
-	bDone = bDone && ((pcNewObject == NULL) || !pcNewObject->IsStoredOrHollow());
-#endif // OBJECTS_THREAD_CHECKS
 	if (bDone && (pcNewObject != pcOldObject))
 	{
 		//The old from goes first: taking it off is what can fail, and with both objects held by the root the order
@@ -614,7 +646,7 @@ CEmbeddedObject* CPointer::Return(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsNotNull(void) const
 {
-	return mpcObject != NULL;
+	return LoadObject() != NULL;
 }
 
 
@@ -624,7 +656,7 @@ bool CPointer::IsNotNull(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsNull(void) const
 {
-	return mpcObject == NULL;
+	return LoadObject() == NULL;
 }
 
 
@@ -634,7 +666,7 @@ bool CPointer::IsNull(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsNotEqual(CPointer& pPointer)
 {
-	return mpcObject != pPointer.Object();
+	return LoadObject() != pPointer.Object();
 }
 
 
@@ -644,7 +676,7 @@ bool CPointer::IsNotEqual(CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsEqual(CPointer& pPointer)
 {
-	return mpcObject == pPointer.Object();
+	return LoadObject() == pPointer.Object();
 }
 
 
@@ -654,7 +686,7 @@ bool CPointer::IsEqual(CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsEqual(CEmbeddedObject* pcObject)
 {
-	return mpcObject == pcObject;
+	return LoadObject() == pcObject;
 }
 
 
@@ -676,7 +708,7 @@ CPointer* CPointer::This(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::Object(void) const
 {
-	return mpcObject;
+	return LoadObject();
 }
 
 
@@ -696,9 +728,12 @@ CEmbeddedObject** CPointer::ObjectPtr(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CPointer::BaseObject(void)
 {
-	if (mpcObject && mpcObject->IsBaseObject())
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject && pcObject->IsBaseObject())
 	{
-		return (CBaseObject*)mpcObject;
+		return (CBaseObject*)pcObject;
 	}
 	else
 	{
@@ -773,7 +808,7 @@ CEmbeddedObject* CPointer::Dehollow(CEmbeddedObject* pcObject)
 #ifdef _DEBUG
 	if ((pcLoaded != NULL) && (pcLoaded != pcObject) && (LoadObject() != pcLoaded))
 	{
-		gcLogger.Error2(__METHOD__, " A pointer to a hollow wasn't pointed at what the hollow was loaded as.", NULL);
+		gcLogger.Error2(__METHOD__, " A pointer ", (mpcEmbedding != NULL) ? "field" : "on the stack", " to hollow {", ObjectToString(pcObject), "} wasn't pointed at what the hollow was loaded as, {", ObjectToString(pcLoaded), "}: it points at {", ObjectToString(LoadObject()), "}.", NULL);
 	}
 #endif // _DEBUG
 	return pcLoaded;
@@ -803,9 +838,12 @@ size CPointer::MorphInto(CEmbeddedObject* pcNew)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsHollow(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->IsHollow();
+		return pcObject->IsHollow();
 	}
 	else
 	{
@@ -856,9 +894,12 @@ int CPointer::GetDistToRoot(void) const
 //////////////////////////////////////////////////////////////////////////
 OIndex CPointer::GetIndex(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->GetIndex();
+		return pcObject->GetIndex();
 	}
 	else
 	{
@@ -873,9 +914,12 @@ OIndex CPointer::GetIndex(void) const
 //////////////////////////////////////////////////////////////////////////
 char* CPointer::GetName(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->GetName();
+		return pcObject->GetName();
 	}
 	else
 	{
@@ -890,9 +934,12 @@ char* CPointer::GetName(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsNamed(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->IsNamed();
+		return pcObject->IsNamed();
 	}
 	else
 	{
@@ -907,9 +954,12 @@ bool CPointer::IsNamed(void) const
 //////////////////////////////////////////////////////////////////////////
 const char* CPointer::ClassName(void)
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->ClassName();
+		return pcObject->ClassName();
 	}
 	else
 	{
@@ -924,9 +974,12 @@ const char* CPointer::ClassName(void)
 //////////////////////////////////////////////////////////////////////////
 CClass* CPointer::GetClass(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->GetClass();
+		return pcObject->GetClass();
 	}
 	else
 	{
@@ -960,9 +1013,12 @@ bool CPointer::IsDirty(void) const
 //////////////////////////////////////////////////////////////////////////
 void CPointer::LogicalDirty(void)
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		mpcObject->LogicalDirty();
+		pcObject->LogicalDirty();
 	}
 }
 
@@ -990,10 +1046,13 @@ bool CPointer::IsEmbeddingAllocatedInObjects(void) const
 //////////////////////////////////////////////////////////////////////////
 void CPointer::Kill(void)
 {
+	CEmbeddedObject*	pcObject;
+
 	//This method exists so that its object can be killed without invoking -> and potentially loading it first.
-	if (mpcObject)
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		mpcObject->Kill();
+		pcObject->Kill();
 	}
 }
 
@@ -1009,10 +1068,10 @@ void CPointer::AssignObject(CEmbeddedObject* pcObject)
 	{
 		AssignObjectInside(pcObject);
 	}
-	else if ((mpcObject != NULL) || !PointToReading(&pcObject))
+	else if ((LoadObject() != NULL) || !PointToReading(&pcObject))
 	{
 		ObjectsLock();
-		AssignObjectInside(pcObject);
+		AssignObjectInside(NotForwarding(pcObject));
 		ObjectsUnlock();
 	}
 }

@@ -4,7 +4,7 @@ Thread safety plan for the object system
 Today every part of the object system assumes one thread: Ptrs, froms, the distance walks, freeing, hollows, the
 allocator under gcUnknowns.  The apps that have threads (the IDE's code model and build, the emulator runner, the sound
 mixer) keep objects off them, and Sculpt's bake can't be shared among cores without "no Ptr is copied on a worker".
-This plan makes the object system itself safe to use from several threads.  Nothing here is built.
+This plan makes the object system itself safe to use from several threads.  What is built is said under each step.
 
 
 What "safe" means (the contract)
@@ -22,6 +22,9 @@ What "safe" means (the contract)
   One rule for users follows from 2: a thread that uses an object across a point where another thread could let go of
   it holds a Ptr of its own.  `pWindow->mpCanvas->Draw()` through a field, with no stack Ptr, is only safe while
   whatever guards mpCanvas is held.  The single-threaded version of this rule (a Free() re-entering) exists already.
+  And one from 4 for a program with a database (step 24f): Flush, and the save of a dirty stored object as it is
+  freed, read the object's fields on the thread doing it, so a class whose fields other threads write saves under its
+  own lock (in its Save), or the program flushes between jobs.
 
 
 What is not safe today (survey)
@@ -893,8 +896,55 @@ Steps
          while no other thread holds it, and refused while one does; Flush on the home thread while others read; an
          idle registered thread keeping forwarders and ObjectsThreadKill letting them go.  ThreadSanitizer and ASan,
          repeated.
+         Done 2026-11-18, with f.  TestObjectsThreadsLoadStoredTree (8 threads walk one stored tree of 127 nodes from
+         its name, loading it as they go, three rounds with the tree evicted between: every thread reaches every node,
+         memory holds as many objects as before it was evicted, the object system is consistent and no forwarder is
+         left), TestObjectsThreadsStoredCollections (a set of 64 stored nodes and a map keyed by them: half the
+         threads iterate them 20 times, finding each member's value, while the others load the members and values;
+         every pass sees every member and the set is never sorted again), TestObjectsThreadsFlushWhileRead (the home
+         thread dirties the top and flushes, over and over, while the threads walk the tree), TestObjectsThreadsKill
+         StoredHeld (refused and said while another thread holds the object, done once it has let go; another
+         stored object killed meanwhile), and TestObjectsThreadsForwardingHollow taking a thread that unregisters
+         while forwarders wait on it.  A thread's stored rounds are the stored helpers (BeginStored, StoredRound,
+         EndStored: the database and sequence of their own, the home thread collecting as it waits).  Two threads
+         using one hollow at once is what the tree's walk does at every node.
+         Found on the way:
+           A registered thread's stack froms were taken off its table by pointer alone.  PointToInside adds the new
+           from before it takes the old one off (p = p->mpNext), so for a moment the table holds two for the pointer,
+           and the search from the end found the new one: the old object kept a stack from it no longer had and the
+           new one lost its, so it could be freed while pointed at, and a load didn't move the pointer (which is how
+           the walk found it: a stack pointer left on a freed forwarder).  A level 2 fault, there since step 19: the
+           froms are matched on the pointer and the object now, and TestObjectsThreadsKeptStackFroms points a
+           worker's pointer from one object to another with the lock held.
+           A collection's element read before a load (an iteration's raw pointer) and then pointed at under the lock
+           pointed the pointer at the forwarder.  The ways in from outside that take the lock (PointToFromOutside's,
+           AssignObject's) ask the forwarders first (NotForwarding: a test of the count of forwarders, and the
+           lookup out of line); a reader can't point at one, as a forwarder isn't attached to the root.
+           A pointer's own read-only methods (IsNull, the comparisons, Object, GetIndex and the rest that read
+           mpcObject without a guard) and its destructor's first look read the word whole now, as operator-> does:
+           ThreadSanitizer saw IsNull on a thread's stack pointer while a load on another thread rewrote it.
+           A pointer read whole could still be read before what it points at was: a map's key rewritten to the object
+           a load made, and a thread comparing keys reading that object's index as the load wrote it.  A pointer's
+           Store was a release already; its Load is an acquire now (BaseLib's Atomic.h says what they promise), the
+           same instruction on x86-64.
+           A load building a big set's member locations cleared the set's slots-moved bit, in the flags word that
+           threads iterating the set read (for ignore-NULL and the sort).  The bit, never saved, is a byte of its own
+           (mbSlotsMoved, in the padding after the flags), which only the lock's holders read.
+           OBJECTS_SELDOM is defined for the 65 targets too (as the plain test).
+           The threads tests alone, 16 times under ThreadSanitizer and 10 under ASan: nothing reported.
+         One thread, by instructions (callgrind, Release, against 24d): a stack Ptr's copy and drop 331, operator->
+         unchanged (one instruction more in the test's own method, which LTO laid out differently), an array's Get
+         and a method call 707 to 690, a field pointed elsewhere unchanged, a tree built +0.17%, freed +0.15%, loaded
+         +0.1%.  Asking the forwarders on every PointToInside had cost 5 instructions a copy (and 30 while it stopped
+         PointToInside being inlined), which is why only the locked ways in ask.
       f. Decision 4 lifted: ValidateStoredOnOneThread and the Debug writer rule gone, the Kill refusal narrowed,
          EvictInMemory's kept.  The contract gets its rule for Flush (above).
+         Done 2026-11-18.  ValidateStoredOnOneThread, IsStoredOrHollow and the Debug rule that left a stored object's
+         pointers to writers are gone.  The Kill of a stored object that is still held is refused while another thread
+         holds a stack pointer to it or to one of its embedded objects (CObjects::ValidateNoOtherThreadHolds(szMethod,
+         pcObject)), not while it holds any; EvictInMemory's refusal is as it was.  A forwarder is unattached (its
+         distance to the root), and the Debug build says if one is pointed to when it is freed.  The contract has the
+         Flush rule, and ObjectsLock.h says what threads may do with stored objects.
       g. Proved: the mutation harness over the new pieces (a hollow freed at once, Dehollow reading before it locks, a
          count not raised, the check freeing a turn early, an atomic made plain), the full sweep, the 65 suites with
          their sizes unchanged, the MinGW compile.

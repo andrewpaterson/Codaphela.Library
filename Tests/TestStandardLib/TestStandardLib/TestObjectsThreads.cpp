@@ -180,7 +180,8 @@ static void TestObjectsThread(void* pvThread)
 }
 
 
-static bool	gbTestObjectsThreadsCollect = false;
+typedef void (*TestObjectsHomeWork)(void);
+static TestObjectsHomeWork	gfTestObjectsThreadsWaiting = NULL;	//What the home thread does over and over while it waits.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -188,9 +189,10 @@ static bool	gbTestObjectsThreadsCollect = false;
 // Runs TEST_OBJECTS_THREADS threads on fRun (the last on fLast, if it isn't NULL) and waits for them.  Returns the
 // errors they counted; a thread that couldn't register, or ended still holding a Ptr, is one.
 //
-// With gbTestObjectsThreadsCollect this thread, the home thread, frees what the threads let go of while it waits, as
-// one with a tick would (ObjectsCollect).  Without it nothing is freed until the threads are done, which is what
-// some tests are there to see, and is no way to wait for threads that let go of objects by the thousand.
+// While it waits this thread, the home thread, does gfTestObjectsThreadsWaiting over and over if it is set: with
+// ObjectsCollect it frees what the threads let go of, as one with a tick would.  Without it nothing is freed until the
+// threads are done, which is what some tests are there to see, and is no way to wait for threads that let go of
+// objects by the thousand.
 //
 //////////////////////////////////////////////////////////////////////////
 static int TestObjectsRunThreads(NativeThreadFunction fRun, NativeThreadFunction fLast, CMutex* pcMutex, CTestThreadNode* pcShared, CArrayObject* pcArray)
@@ -219,9 +221,9 @@ static int TestObjectsRunThreads(NativeThreadFunction fRun, NativeThreadFunction
 		asThreads[i].cThread.Start(TestObjectsThread, &asThreads[i]);
 	}
 
-	while (gbTestObjectsThreadsCollect && (AtomicLoad(&iFinished) < TEST_OBJECTS_THREADS))
+	while ((gfTestObjectsThreadsWaiting != NULL) && (AtomicLoad(&iFinished) < TEST_OBJECTS_THREADS))
 	{
-		ObjectsCollect();
+		gfTestObjectsThreadsWaiting();
 		ThreadYield();
 	}
 
@@ -614,9 +616,9 @@ void TestObjectsThreadsOwnGraphs(void)
 	TestObjectsThreadsBegin();
 	ORoot();
 
-	gbTestObjectsThreadsCollect = true;
+	gfTestObjectsThreadsWaiting = ObjectsCollect;
 	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsBuildGraphs, NULL, NULL, NULL, NULL));
-	gbTestObjectsThreadsCollect = false;
+	gfTestObjectsThreadsWaiting = NULL;
 
 	//The threads found them dead; this thread, the home thread, freed them as it waited, and frees the last now.
 	ObjectsCollect();
@@ -1516,9 +1518,8 @@ static void TestObjectsThreadsHoldStored(void* pvStored)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// While threads share objects a stored object is one thread's at a time, and objects aren't evicted while another
-// thread holds a pointer.  The second is refused.  A Debug build, which knows whose stack each pointer is on, says
-// the first.
+// Threads share stored objects, as any (two threads hold this one), but objects aren't evicted while another thread
+// holds a pointer: eviction puts hollows in place of everything in memory, and is refused.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectsThreadsStoredObjects(void)
@@ -1558,11 +1559,6 @@ void TestObjectsThreadsStoredObjects(void)
 	cThread.Kill();
 	StopCapturingLog(&cLog, &sLogConfig, szLog, sizeof(szLog));
 	AssertTrue(strstr(szLog, "Cannot put hollows in place of objects while other threads hold [1] stack pointers") != NULL);
-#ifdef OBJECTS_THREAD_CHECKS
-	AssertTrue(strstr(szLog, "is held from the stacks of two threads") != NULL);
-#else
-	AssertTrue(strstr(szLog, "is held from the stacks of two threads") == NULL);
-#endif // OBJECTS_THREAD_CHECKS
 
 	//With the other thread gone its objects can be evicted, and are there to be loaded again.
 	AssertString("kept", pStored->Text());
@@ -1885,9 +1881,10 @@ static void TestObjectsThreadsComesInEnd(STestObjectsSteps* psSteps)
 // here) asks it for its object and is given what it was loaded as, with
 // nothing loaded again.  It is freed once every other thread has come into
 // the object system since the home thread marked them (ObjectsCollect,
-// which marks the first time and frees the next), and not before.  With
-// no other thread registered a loaded hollow is freed at once, and
-// switching the locking off frees what forwarders are left.
+// which marks the first time and frees the next), and not before; a
+// thread that has unregistered doesn't hold it up.  With no other thread
+// registered a loaded hollow is freed at once, and switching the locking
+// off frees what forwarders are left.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectsThreadsForwardingHollow(void)
@@ -1913,6 +1910,8 @@ void TestObjectsThreadsForwardingHollow(void)
 	pStored = ONMalloc<CString>("Two", "second");
 	pRoot->Add(pStored);
 	pStored = ONMalloc<CString>("Three", "third");
+	pRoot->Add(pStored);
+	pStored = ONMalloc<CString>("Four", "fourth");
 	pRoot->Add(pStored);
 	pStored = NULL;
 	pRoot = NULL;
@@ -1951,12 +1950,24 @@ void TestObjectsThreadsForwardingHollow(void)
 	AssertString("second", pStored->Text());
 	AssertSize(0, gcObjects.NumForwarders());
 
+	//A thread that has gone no longer holds them up.
 	TestObjectsThreadsComesInStart(&sSteps);
 	pStored = pRoot->Get("Three");
 	AssertString("third", pStored->Text());
 	AssertSize(1, gcObjects.NumForwarders());
+	ObjectsCollect();
+	ObjectsCollect();
+	AssertSize(1, gcObjects.NumForwarders());
 	TestObjectsThreadsComesInEnd(&sSteps);
 	AssertSize(1, gcObjects.NumForwarders());
+	ObjectsCollect();
+	AssertSize(0, gcObjects.NumForwarders());
+
+	TestObjectsThreadsComesInStart(&sSteps);
+	pStored = pRoot->Get("Four");
+	AssertString("fourth", pStored->Text());
+	AssertSize(1, gcObjects.NumForwarders());
+	TestObjectsThreadsComesInEnd(&sSteps);
 	AssertSize(0, ObjectsNumThreadErrors());
 	AssertTrue(ObjectsLocking(false));
 	AssertSize(0, gcObjects.NumForwarders());
@@ -1970,6 +1981,441 @@ void TestObjectsThreadsForwardingHollow(void)
 	SafeKill(pcDatabase);
 	SafeKill(pcSequence);
 	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+}
+
+
+#define TEST_OBJECTS_THREADS_TREE_DEPTH		6
+#define TEST_OBJECTS_THREADS_STORED_ROUNDS	3
+#define TEST_OBJECTS_THREADS_MEMBERS		64
+#define TEST_OBJECTS_THREADS_PASSES			20
+
+
+static CCodabase*	gpcTestObjectsDatabase = NULL;
+static CSequence*	gpcTestObjectsSequence = NULL;
+static size			guiTestObjectsNodes = 0;	//How many nodes a stored test's threads are to reach.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object system over a database of its own, with the locking off:
+// what the threads load is made, saved and evicted first.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestObjectsThreadsBeginStored(void)
+{
+	CFileUtil	cFileUtil;
+
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+	gpcTestObjectsSequence = CSequenceFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, DS_No);
+	gpcTestObjectsDatabase = CCodabaseFactory::Create(TEST_OBJECTS_THREADS_DIRECTORY, IWT_No, DS_No);
+	AssertTrue(gpcTestObjectsDatabase->Open());
+	ObjectsInit(gpcTestObjectsDatabase, gpcTestObjectsSequence);
+	gcObjects.AddConstructor<CTestThreadNode>();
+	gcObjects.DisableValidation();
+	giTestThreadNodesFreed = 0;
+	giTestThreadNodesFreedOffHome = 0;
+	giTestThreadNeedersFreedLate = 0;
+}
+
+
+//The threads are done and the locking is off.
+static void TestObjectsThreadsEndStored(void)
+{
+	CFileUtil	cFileUtil;
+
+	AssertInt(0, giTestThreadNodesFreedOffHome);
+	AssertSize(0, ObjectsNumThreadErrors());
+	AssertSize(0, gcObjects.NumForwarders());
+	gcObjects.EnableValidation();
+	gcObjects.ValidateObjectsConsistency();
+	AssertTrue(ObjectsFlush());
+	ObjectsKill(false);
+	AssertTrue(gpcTestObjectsDatabase->Close());
+	SafeKill(gpcTestObjectsDatabase);
+	SafeKill(gpcTestObjectsSequence);
+	cFileUtil.RemoveDir(TEST_OBJECTS_THREADS_DIRECTORY);
+}
+
+
+//A round of a stored test: everything in memory evicted, then the threads let loose on the database with the
+//locking on.  The home thread does fWaiting while it waits, and frees the forwarders once they have gone.
+static int TestObjectsThreadsStoredRound(NativeThreadFunction fRun, NativeThreadFunction fLast, TestObjectsHomeWork fWaiting)
+{
+	int		iErrors;
+
+	AssertTrue(gcObjects.EvictInMemory());
+	AssertTrue(ObjectsLocking(true));
+	gfTestObjectsThreadsWaiting = fWaiting;
+	iErrors = TestObjectsRunThreads(fRun, fLast, NULL, NULL, NULL);
+	gfTestObjectsThreadsWaiting = NULL;
+	ObjectsCollect();
+	AssertSize(0, gcObjects.NumForwarders());
+	AssertTrue(ObjectsLocking(false));
+	return iErrors;
+}
+
+
+//A tree below pNode, uiDepth deep: its mpNext and mpOther are its children.  Returns how many nodes it has.
+static size TestObjectsThreadsMakeTree(Ptr<CTestThreadNode>& pNode, size uiDepth)
+{
+	Ptr<CTestThreadNode>	pChild;
+	size					uiNodes;
+
+	uiNodes = 1;
+	if (uiDepth > 0)
+	{
+		pChild = OMalloc<CTestThreadNode>();
+		pNode->mpNext = pChild;
+		uiNodes += TestObjectsThreadsMakeTree(pChild, uiDepth - 1);
+		pChild = OMalloc<CTestThreadNode>();
+		pNode->mpOther = pChild;
+		uiNodes += TestObjectsThreadsMakeTree(pChild, uiDepth - 1);
+	}
+	return uiNodes;
+}
+
+
+//The nodes of the tree below pNode, each reached through its pointers and so loaded if it is a hollow.  A node that
+//isn't live is an error.
+static size TestObjectsThreadsWalkTree(Ptr<CTestThreadNode>& pNode, int* piErrors)
+{
+	Ptr<CTestThreadNode>	pChild;
+	size					uiNodes;
+
+	if (pNode.IsNull())
+	{
+		return 0;
+	}
+	if (!pNode->IsLive())
+	{
+		(*piErrors)++;
+	}
+	uiNodes = 1;
+	pChild = pNode->mpNext;
+	uiNodes += TestObjectsThreadsWalkTree(pChild, piErrors);
+	pChild = pNode->mpOther;
+	uiNodes += TestObjectsThreadsWalkTree(pChild, piErrors);
+	return uiNodes;
+}
+
+
+static void TestObjectsThreadsLoadTree(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CTestThreadNode>	pTop;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pTop = ORoot()->Get("Top");
+	if (TestObjectsThreadsWalkTree(pTop, &psThread->iErrors) != guiTestObjectsNodes)
+	{
+		psThread->iErrors++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every thread walks one stored tree at once, loading it as it goes, so
+// most of its hollows are asked for by several threads together.  Each
+// object is loaded once (memory holds what it held before it was
+// evicted), every thread reaches every node, the distances are right and
+// no forwarder is left.  Three rounds, the tree evicted between them.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsLoadStoredTree(void)
+{
+	size	uiObjects;
+	size	i;
+
+	TestObjectsThreadsBeginStored();
+	{
+		Ptr<CTestThreadNode>	pTop;
+
+		pTop = ONMalloc<CTestThreadNode>("Top");
+		ORoot()->Add(pTop);
+		guiTestObjectsNodes = TestObjectsThreadsMakeTree(pTop, TEST_OBJECTS_THREADS_TREE_DEPTH);
+	}
+	AssertTrue(ObjectsFlush());
+	uiObjects = gcObjects.NumMemoryIndexes();
+
+	for (i = 0; i < TEST_OBJECTS_THREADS_STORED_ROUNDS; i++)
+	{
+		AssertInt(0, TestObjectsThreadsStoredRound(TestObjectsThreadsLoadTree, NULL, ObjectsCollect));
+		AssertSize(uiObjects, gcObjects.NumMemoryIndexes());
+		gcObjects.EnableValidation();
+		gcObjects.ValidateObjectsConsistency();
+		gcObjects.DisableValidation();
+	}
+	TestObjectsThreadsEndStored();
+}
+
+
+//Reads the set of stored nodes, and the map from them, over and over: each pass sees every member, and finds each
+//one's value, while other threads load them.
+static void TestObjectsThreadsReadStored(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CRoot>				pRoot;
+	Ptr<CSetObject>			pSet;
+	Ptr<CMapObject>			pMap;
+	SSetIterator			sIter;
+	CPointer				pMember;
+	size					uiMembers;
+	size					i;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pRoot = ORoot();
+	pSet = pRoot->Get("Set");
+	pMap = pRoot->Get("Map");
+	for (i = 0; i < TEST_OBJECTS_THREADS_PASSES; i++)
+	{
+		uiMembers = 0;
+		pMember = pSet->StartIteration(&sIter);
+		while (pMember.IsNotNull())
+		{
+			uiMembers++;
+			if (pMap->Get(pMember).IsNull())
+			{
+				psThread->iErrors++;
+			}
+			pMember = pSet->Iterate(&sIter);
+		}
+		if (uiMembers != TEST_OBJECTS_THREADS_MEMBERS)
+		{
+			psThread->iErrors++;
+		}
+	}
+}
+
+
+//Loads each member of the set, and the value the map has for it.
+static void TestObjectsThreadsLoadStored(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CRoot>				pRoot;
+	Ptr<CSetObject>			pSet;
+	Ptr<CMapObject>			pMap;
+	SSetIterator			sIter;
+	Ptr<CTestThreadNode>	pMember;
+	Ptr<CTestThreadNode>	pValue;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pRoot = ORoot();
+	pSet = pRoot->Get("Set");
+	pMap = pRoot->Get("Map");
+	pMember = pSet->StartIteration(&sIter);
+	while (pMember.IsNotNull())
+	{
+		pValue = pMap->Get(pMember);
+		if (!pMember->IsLive() || pValue.IsNull() || !pValue->IsLive())
+		{
+			psThread->iErrors++;
+		}
+		pMember = pSet->Iterate(&sIter);
+	}
+}
+
+
+//Every other thread reads the set and the map; the rest load what they hold.
+static void TestObjectsThreadsReadOrLoadStored(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+
+	psThread = (STestObjectsThread*)pvThread;
+	if ((psThread->uiSeed / 7919) % 2 == 0)
+	{
+		TestObjectsThreadsReadStored(pvThread);
+	}
+	else
+	{
+		TestObjectsThreadsLoadStored(pvThread);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A set of stored nodes and a map keyed by them, read on some threads
+// (each member, and its value) while others load the members and the
+// values.  A read always sees every member, in order without the set
+// being sorted again, and never a forwarding hollow in place of one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsStoredCollections(void)
+{
+	size	uiObjects;
+	size	i;
+
+	TestObjectsThreadsBeginStored();
+	{
+		Ptr<CSetObject>			pSet;
+		Ptr<CMapObject>			pMap;
+		Ptr<CTestThreadNode>	pKey;
+		Ptr<CTestThreadNode>	pValue;
+
+		pSet = ONMalloc<CSetObject>("Set");
+		pMap = ONMalloc<CMapObject>("Map");
+		ORoot()->Add(pSet);
+		ORoot()->Add(pMap);
+		for (i = 0; i < TEST_OBJECTS_THREADS_MEMBERS; i++)
+		{
+			pKey = OMalloc<CTestThreadNode>();
+			pValue = OMalloc<CTestThreadNode>();
+			pSet->Add(pKey);
+			pMap->Put(pKey, pValue);
+		}
+	}
+	AssertTrue(ObjectsFlush());
+	uiObjects = gcObjects.NumMemoryIndexes();
+
+	for (i = 0; i < TEST_OBJECTS_THREADS_STORED_ROUNDS; i++)
+	{
+		AssertInt(0, TestObjectsThreadsStoredRound(TestObjectsThreadsReadOrLoadStored, NULL, ObjectsCollect));
+		AssertSize(uiObjects, gcObjects.NumMemoryIndexes());
+		AssertTrue(gcObjects.Get<CSetObject>("Set")->IsSorted());
+	}
+	TestObjectsThreadsEndStored();
+}
+
+
+//The tree, walked over and over while the home thread flushes it.
+static void TestObjectsThreadsWalkStoredTree(void* pvThread)
+{
+	size	i;
+
+	for (i = 0; i < TEST_OBJECTS_THREADS_PASSES; i++)
+	{
+		TestObjectsThreadsLoadTree(pvThread);
+	}
+}
+
+
+//The home thread's while the others read: the tree's top changed and everything saved.
+static void TestObjectsThreadsFlushTop(void)
+{
+	gcObjects.Get<CTestThreadNode>("Top").LogicalDirty();
+	ObjectsFlush();
+	ObjectsCollect();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The home thread flushes, over and over, while the other threads read
+// what it saves (and load it as they go).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsFlushWhileRead(void)
+{
+	TestObjectsThreadsBeginStored();
+	{
+		Ptr<CTestThreadNode>	pTop;
+
+		pTop = ONMalloc<CTestThreadNode>("Top");
+		ORoot()->Add(pTop);
+		guiTestObjectsNodes = TestObjectsThreadsMakeTree(pTop, TEST_OBJECTS_THREADS_TREE_DEPTH - 2);
+	}
+	AssertTrue(ObjectsFlush());
+	AssertInt(0, TestObjectsThreadsStoredRound(TestObjectsThreadsWalkStoredTree, NULL, TestObjectsThreadsFlushTop));
+	TestObjectsThreadsEndStored();
+}
+
+
+static void TestObjectsThreadsHolder(void* pvSteps)
+{
+	STestObjectsSteps*		psSteps;
+
+	psSteps = (STestObjectsSteps*)pvSteps;
+	psSteps->bRegistered = ObjectsThreadInit();
+	{
+		Ptr<CTestThreadNode>	pHeld;
+
+		pHeld = ORoot()->Get("Held");
+		psSteps->bLoaded = pHeld->IsLive();
+		AtomicStore(&psSteps->iDone, 1);
+
+		TestObjectsStepWait(psSteps, 2);
+		pHeld = NULL;
+		AtomicStore(&psSteps->iDone, 2);
+
+		TestObjectsStepWait(psSteps, 3);
+	}
+	psSteps->bUnregistered = ObjectsThreadKill();
+	AtomicStore(&psSteps->iDone, 3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A stored object another thread holds isn't killed (its Kill would put
+// a hollow in its place under that thread): it is refused, and said.
+// Once the thread has let go it is killed, and what held it holds a
+// hollow for it.  Another stored object, held by no other thread, is
+// killed while the thread holds the first.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsKillStoredHeld(void)
+{
+	STestObjectsSteps		sSteps;
+	Ptr<CTestThreadNode>	pHeld;
+	Ptr<CTestThreadNode>	pOther;
+	Ptr<CArrayObject>		pHolders;
+	CMemoryFile				cLog;
+	SLogConfig				sLogConfig;
+	char					szLog[1024];
+
+	TestObjectsThreadsBeginStored();
+	pHeld = ONMalloc<CTestThreadNode>("Held");
+	pOther = ONMalloc<CTestThreadNode>("Other");
+	ORoot()->Add(pHeld);
+	pHolders = ONMalloc<CArrayObject>("Holders");
+	ORoot()->Add(pHolders);
+	pHolders->Add(pHeld);
+	pHolders->Add(pOther);
+	pHeld = NULL;
+	pOther = NULL;
+	pHolders = NULL;
+	AssertTrue(ObjectsFlush());
+	AssertTrue(gcObjects.EvictInMemory());
+	AssertTrue(ObjectsLocking(true));
+
+	sSteps.iAsked = 0;
+	sSteps.iDone = 0;
+	sSteps.bLoaded = false;
+	sSteps.cThread.Init();
+	sSteps.cThread.Start(TestObjectsThreadsHolder, &sSteps);
+	TestObjectsStep(&sSteps, 1);
+	AssertTrue(sSteps.bRegistered);
+	AssertTrue(sSteps.bLoaded);
+
+	pHolders = ORoot()->Get("Holders");
+	pHeld = pHolders->Get(0);
+	pOther = pHolders->Get(1);
+	StartCapturingLog(&cLog, &sLogConfig);
+	pHeld->Kill();
+	StopCapturingLog(&cLog, &sLogConfig, szLog, sizeof(szLog));
+	AssertNotNull(strstr(szLog, "other threads hold"));
+	AssertFalse(pHeld.IsHollow());
+	AssertTrue(pHeld->IsLive());
+
+	//Killed, what held it (this thread's pointer, the array) holds a hollow for it.
+	pOther->Kill();
+	AssertTrue(pOther.IsHollow());
+
+	TestObjectsStep(&sSteps, 2);
+	pHeld->Kill();
+	AssertTrue(pHeld.IsHollow());
+
+	TestObjectsStep(&sSteps, 3);
+	sSteps.cThread.Join();
+	sSteps.cThread.Kill();
+	AssertTrue(sSteps.bUnregistered);
+	pHeld = NULL;
+	pOther = NULL;
+	pHolders = NULL;
+	ObjectsCollect();
+	AssertTrue(ObjectsLocking(false));
+	TestObjectsThreadsEndStored();
 }
 
 
@@ -2043,6 +2489,10 @@ void TestObjectsThreads(void)
 	TestObjectsThreadsKeptStackFroms();
 	TestObjectsThreadsKeptStackFromOfHollow();
 	TestObjectsThreadsForwardingHollow();
+	TestObjectsThreadsLoadStoredTree();
+	TestObjectsThreadsStoredCollections();
+	TestObjectsThreadsFlushWhileRead();
+	TestObjectsThreadsKillStoredHeld();
 	TestObjectsThreadsAssertNoFree();
 	TestObjectsThreadsEveryWayIn();
 

@@ -234,6 +234,7 @@ protected:
 						void					SaveStoredDirty(CArrayBaseObjectPtr* papcObjectPts);
 						void					WaitToBeFreed(CArrayBaseObjectPtr* papcObjectPts);
 						bool					ValidateNoOtherThreadHolds(const char* szMethod);
+						bool					ValidateNoOtherThreadHolds(const char* szMethod, CBaseObject* pcObject);
 						bool					LoadForDestroy(OIndex oi);
 						bool					SaveDirtyInMemory(void);
 						void					FreeAllInKillOrder(bool bDeallocate);
@@ -263,6 +264,7 @@ public:
 						CBaseObject*			AllocateReplacingNamed(const char* szClassName, const char* szObjectName);
 						CBaseObject*			GetNamedOrAllocateHollow(const char* szObjectName, size uiNumEmbedded);
 						void					ReplaceWithHollow(CBaseObject* pcObject);
+						CEmbeddedObject*		Forwarded(CEmbeddedObject* pcObject);
 
 						void					AddWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
 						bool					RemoveWeakFrom(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
@@ -277,6 +279,7 @@ protected:
 
 extern CObjects	gcObjects;
 extern bool		gbObjects;
+extern size		guiObjectsForwarders;  //Forwarding hollows in every object system (with the lock): pointing a pointer looks for one only while there are some.
 
 void ObjectsInit(void);
 void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);

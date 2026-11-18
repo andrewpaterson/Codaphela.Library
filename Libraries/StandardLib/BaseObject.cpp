@@ -291,8 +291,8 @@ void CBaseObject::Kill(void)
 		return;
 	}
 
-	//A stored object that is still held is replaced by a hollow, which no other thread may be using it for.
-	if (HasHeapFroms() && IsStored() && IsAllocatedInObjects() && !GetObjectsThisIn()->ValidateNoOtherThreadHolds(__METHOD__))
+	//A stored object that is still held is replaced by a hollow, under any thread that holds it.
+	if (HasHeapFroms() && IsStored() && IsAllocatedInObjects() && !GetObjectsThisIn()->ValidateNoOtherThreadHolds(__METHOD__, this))
 	{
 		return;
 	}

@@ -167,7 +167,6 @@ public:
 			bool				UnlinkStackFrom(CPointer* pcPointer);
 			bool				UnlinkStackFromOfThreads(CPointer* pcPointer);
 			bool				IsAttachedToRoot(void);
-			bool				IsStoredOrHollow(void);
 			void				AddStackFromReading(CPointer* pcPointer);
 			bool				UnlinkStackFromReading(CPointer* pcPointer);
 			bool				UnlinkStackFrom(CCollection* pcCollection);
@@ -206,7 +205,6 @@ public:
 protected:
 			bool				LinkStackFrom(CStackPointer* pcStackPointer);
 			bool				StackFromLinked(bool bAdded, bool bValidate);
-			void				ValidateStoredOnOneThread(void);
 	virtual void				Allocate(CObjects* pcObjects);
 			void				AddHeapPointer(CBaseObject* pcFromObject);
 	virtual void				RemoveAllHeapFroms(void);

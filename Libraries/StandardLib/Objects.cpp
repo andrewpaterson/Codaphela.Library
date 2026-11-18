@@ -42,6 +42,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 CObjects	gcObjects;
 bool		gbObjects = false;
+size		guiObjectsForwarders = 0;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1344,9 +1345,14 @@ void CObjects::Forward(CHollowObject* pcHollow, CBaseObject* pcObject)
 	pcBaseHollow->RemoveAllStackFroms();
 	pcBaseHollow->RemoveAllHeapFroms();
 
+	//Not attached to the root (nothing points to it), so a pointer pointed at it once it forwards can't be by a
+	//reader: it is a writer's, which points it at pcObject instead (Forwarded).
+	pcBaseHollow->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+
 	psForwarder = masForwarders.Add();
 	psForwarder->pcHollow = pcHollow;
 	psForwarder->pcObject = pcObject;
+	guiObjectsForwarders++;
 }
 
 
@@ -1369,6 +1375,35 @@ CBaseObject* CObjects::GetForwarded(CHollowObject* pcHollow)
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What pcObject was loaded as, if it is a forwarding hollow (or a hollow
+// embedded in one); otherwise pcObject.  A pointer is about to be pointed
+// at it by a thread that read it before the load, from a collection's
+// element say, and must be pointed at what it stands for instead.
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CObjects::Forwarded(CEmbeddedObject* pcObject)
+{
+	OBJECTS_INSIDE();
+
+	CBaseObject*	pcContainer;
+	CBaseObject*	pcLoaded;
+
+	if (masForwarders.IsEmpty() || !pcObject->IsHollow())
+	{
+		return pcObject;
+	}
+	pcContainer = pcObject->GetEmbeddingContainer();
+	pcLoaded = GetForwarded((CHollowObject*)pcContainer);
+	if (pcLoaded == NULL)
+	{
+		return pcObject;
+	}
+	return pcLoaded->GetEmbeddedObject(pcContainer->GetEmbeddedIndex(pcObject));
 }
 
 
@@ -1430,6 +1465,7 @@ void CObjects::FreeForwardersInside(bool bAll)
 		apcHollows.Add(masForwarders.Get(i)->pcHollow);
 	}
 	masForwarders.RemoveRange(0, uiFree);
+	guiObjectsForwarders -= uiFree;
 	muiForwardersMarked = masForwarders.NumElements();
 	if (muiForwardersMarked > 0)
 	{
@@ -1438,6 +1474,13 @@ void CObjects::FreeForwardersInside(bool bAll)
 
 	for (i = 0; i < uiFree; i++)
 	{
+#ifdef _DEBUG
+		//Nothing may point to a forwarder (Forwarded): its Kill would leave such a pointer NULL.
+		if (apcHollows.GetPtr(i)->HasHeapFroms() || apcHollows.GetPtr(i)->HasStackFroms())
+		{
+			gcLogger.Error2(__METHOD__, " A forwarding hollow is pointed to as it is freed.", NULL);
+		}
+#endif // _DEBUG
 		apcHollows.GetPtr(i)->KillInternal(true, true);
 	}
 	apcHollows.Kill();
@@ -1458,10 +1501,9 @@ size CObjects::NumForwarders(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Putting hollows in place of objects (eviction, the Kill of a stored object that is still held) takes them from under
-// any thread that is using them: it is done between the other threads' work, when none of them holds a pointer
-// (ThreadSafetyPlan.txt, decision 4).  A Debug build knows whose stack each pointer is on and refuses otherwise;
-// elsewhere it is the caller's to see to.
+// Evicting everything in memory puts hollows in place of objects under any thread using them: it is done between the
+// other threads' work, and refused while any of them holds a stack pointer (in its table, or, as a Debug build knows,
+// on an object).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::ValidateNoOtherThreadHolds(const char* szMethod)
@@ -1477,6 +1519,39 @@ bool CObjects::ValidateNoOtherThreadHolds(const char* szMethod)
 	if (uiHeld > 0)
 	{
 		return gcLogger.Error2(szMethod, " Cannot put hollows in place of objects while other threads hold [", SizeToString(uiHeld), "] stack pointers to objects.", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Putting a hollow in place of pcObject (the Kill of a stored object that
+// is still held) takes it from under any other thread holding it: refused
+// while one does.  Another thread's stack pointers to an object attached
+// to the root are in that thread's table; those on the object are the
+// home thread's, so are another's unless this is the home thread.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::ValidateNoOtherThreadHolds(const char* szMethod, CBaseObject* pcObject)
+{
+	CEmbeddedObject*	pcEmbedded;
+	size				i;
+	bool				bHome;
+
+	if (!IsObjectsLocking())
+	{
+		return true;
+	}
+
+	bHome = ObjectsIsHomeThread();
+	for (i = 0; i < pcObject->NumEmbedded(); i++)
+	{
+		pcEmbedded = pcObject->GetEmbeddedObject(i);
+		if (ThreadStackFromsHasOnAnotherThread(pcEmbedded) || (!bHome && (pcEmbedded->GetFirstStackFrom() != NULL)))
+		{
+			return gcLogger.Error2(szMethod, " Cannot put a hollow in place of {", ObjectToString(pcObject), "}: other threads hold stack pointers to it.", NULL);
+		}
 	}
 	return true;
 }

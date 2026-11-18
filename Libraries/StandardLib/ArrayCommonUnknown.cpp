@@ -35,6 +35,7 @@ void CArrayCommonUnknown::_Init(void)
 {
 	mcArray.Init(&gcSystemAllocator);  //Nothing is allocated until something is added, which an array still can be.
 	muiFlags = 0;
+	mbSlotsMoved = false;
 	miNonNullElements = 0;
 }
 
@@ -51,6 +52,7 @@ void CArrayCommonUnknown::Init(uint16 uiFlags, size iChunkSize)
 	mcArray.Init(&gcSystemAllocator, iChunkSize);
 	muiFlags = uiFlags & ARRAY_COMMON_INIT_FLAGS;
 	SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, FixBool(uiFlags & ARRAY_COMMON_SORT_POINTERS));
+	mbSlotsMoved = false;
 	miNonNullElements = 0;
 }
 
@@ -144,7 +146,7 @@ bool CArrayCommonUnknown::WriteArrayHeader(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteSize(mcArray.NumElements()));
 	ReturnOnFalse(pcFile->WriteSize(miNonNullElements));
 	ReturnOnFalse(pcFile->WriteSize(mcArray.ChunkSize()));
-	return pcFile->WriteInt16((uint16)(muiFlags & ~ARRAY_COMMON_SLOTS_MOVED));
+	return pcFile->WriteInt16(muiFlags);
 }
 
 
@@ -252,6 +254,7 @@ bool CArrayCommonUnknown::ReadElements(CFileReader* pcFile, size iNumElements)
 void CArrayCommonUnknown::PostLoad(uint16 iFlags)
 {
 	muiFlags = iFlags;
+	mbSlotsMoved = false;
 
 	//If the array was saved sorted it must be sorted after it is loaded.
 	//Which might not be the case as pointer position will depend on allocation,
@@ -274,6 +277,7 @@ void CArrayCommonUnknown::PostLoad(uint16 iFlags)
 void CArrayCommonUnknown::PostLoadPointers(uint16 iFlags)
 {
 	muiFlags = (iFlags & ARRAY_COMMON_SORT_BY_INDEX) ? iFlags : (iFlags & ~ARRAY_COMMON_IS_PTR_SORTED);
+	mbSlotsMoved = false;
 }
 
 
@@ -1430,7 +1434,7 @@ bool CArrayCommonUnknown::IsIgnoreNull(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::HaveSlotsMoved(void)
 {
-	return FixBool(muiFlags & ARRAY_COMMON_SLOTS_MOVED);
+	return mbSlotsMoved;
 }
 
 
@@ -1440,7 +1444,7 @@ bool CArrayCommonUnknown::HaveSlotsMoved(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::ClearSlotsMoved(void)
 {
-	SetFlagShort(&muiFlags, ARRAY_COMMON_SLOTS_MOVED, false);
+	mbSlotsMoved = false;
 }
 
 
@@ -1450,7 +1454,7 @@ void CArrayCommonUnknown::ClearSlotsMoved(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::SlotsMoved(void)
 {
-	SetFlagShort(&muiFlags, ARRAY_COMMON_SLOTS_MOVED, true);
+	mbSlotsMoved = true;
 }
 
 

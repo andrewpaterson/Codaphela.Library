@@ -133,6 +133,7 @@ protected:
 	bool				IsEmbeddingHeld(void) const;
 
 private:
+	void				PointToLocking(CEmbeddedObject* const* ppcObject);
 	CEmbeddedObject*	Dehollow(CEmbeddedObject* pcObject);
 	CEmbeddedObject*	LoadObject(void) const;
 };
