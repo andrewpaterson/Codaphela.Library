@@ -386,7 +386,6 @@ void CCPPUnit::AppendTypeName(CChars* psz, SCPP65Type* psType)
 void CCPPUnit::AppendTypeNameAround(CChars* psz, SCPP65Type* psType, CChars* pszInner)
 {
 	CChars		szInner;
-	const char*	szName;
 	size		i;
 
 	szInner.Init();
@@ -477,20 +476,7 @@ void CCPPUnit::AppendTypeNameAround(CChars* psz, SCPP65Type* psType, CChars* psz
 			}
 			break;
 		}
-		psz->Append(psType->bSigned ? "" : "unsigned ");
-		if (psType->iBytes == 1)
-		{
-			szName = "char";
-		}
-		else if (psType->iBytes == mcTypes.msInt.iBytes)
-		{
-			szName = "int";
-		}
-		else
-		{
-			szName = (psType->iBytes == 2) ? "short" : ((psType->iBytes == 4) ? "long" : "long long");
-		}
-		psz->Append(szName);
+		psz->Append(IntegerKindName(psType->eInteger));
 		break;
 	case CPP65TK_Float:
 		psz->Append(psType->bLongDouble ? "long double" : ((psType->iBytes == 4) ? "float" : "double"));

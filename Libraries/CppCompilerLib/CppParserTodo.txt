@@ -489,8 +489,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         - TestLib's TESTLIB_LOG (Tests/TestSpeedPlan.txt step 1) isn't read under __LIBC65__: Libc65 has no getenv, and
           the *65 suites hadn't compiled since.
         Left: step 3's sizeof (an unsigned int, 2 bytes on the W65C816, while Libc65's size_t is unsigned long there:
-        question 14), step 5 (names by kind: typeid's, CCPPTypeWriter's, SCPP65Type::Append's are still by size) and
-        step 6 (std::nullptr_t).
+        question 14) and step 6 (std::nullptr_t).  Step 5 is built (2026-11-18): IntegerKindName names an integer as declared
+        for messages (SCPP65Type::Append), CCPPTypeWriter and typeid (AppendTypeNameAround), in place of three namings by size.
     14. sizeof's type is std::size_t ([expr.sizeof] 6): on the W65C816 Libc65's size_t is unsigned long (4 bytes, as
         an object can be more than 64KB), but the compiler's sizeof is an unsigned int, 2 bytes.  They are different
         types now, so a template or overload sees sizeof(x) as an unsigned int and a size_t as an unsigned long, and an

@@ -226,30 +226,7 @@ bool CCPPTypeWriter::Named(SCPP65Type* psType, CChars* pszDest)
 		{
 			return QualifiedName(psType->pcEnum, pszDest);
 		}
-		if (!psType->bSigned)
-		{
-			pszDest->Append("unsigned ");
-		}
-		if (psType->iBytes == 1)
-		{
-			pszDest->Append("char");
-		}
-		else if (psType->iBytes == mpcUnit->GetTypes()->msInt.iBytes)
-		{
-			pszDest->Append("int");
-		}
-		else if (psType->iBytes == 2)
-		{
-			pszDest->Append("short");
-		}
-		else if (psType->iBytes == 4)
-		{
-			pszDest->Append("long");
-		}
-		else
-		{
-			pszDest->Append("long long");
-		}
+		pszDest->Append(IntegerKindName(psType->eInteger));
 		return true;
 	case CPP65TK_Float:
 		pszDest->Append(psType->bLongDouble ? "long double" : ((psType->iBytes == 4) ? "float" : "double"));

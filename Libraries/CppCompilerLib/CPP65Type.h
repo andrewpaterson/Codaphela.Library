@@ -64,6 +64,9 @@ enum ECPP65IntegerKind
 };
 
 
+const char*	IntegerKindName(ECPP65IntegerKind eInteger);
+
+
 class CCPPClass;
 class CCPPSymbol;
 

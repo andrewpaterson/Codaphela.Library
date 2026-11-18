@@ -571,7 +571,7 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 	//A variadic function's parameters as C++.
 	szType.Init();
 	cTypes.Function(&cTypes.msVoid, &apsPointers, true)->Append(&szType);
-	AssertString("void(long*, long, ...)", szType.Text());
+	AssertString("void(int*, int, ...)", szType.Text());
 	szType.Clear();
 	apsNone.Init();
 	cTypes.Function(&cTypes.msShort, &apsNone, true)->Append(&szType);
@@ -3685,8 +3685,10 @@ void TestCPP65GeneratorSharedInline(void)
 void TestCPP65GeneratorTypeNames(void)
 {
 	static const char*	aszNames[] = { "Input/CPP65/TypeNamesProject/Main.cpp", NULL };
+	static const char*	aszKinds[] = { "Input/CPP65/TypeNamesKindsProject/Main.cpp", NULL };
 
 	AssertInt(8191, TestCPP65RunProject(aszNames, ""));
+	AssertInt(63, TestCPP65RunProject(aszKinds, ""));
 }
 
 
@@ -3700,7 +3702,7 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 43): No operator new takes the placement arguments [new]\n", "struct S { int i; }; S* f(int n) { return new (n, 2) S; }");
 	AssertCPP65Error("Generated.cpp (1, 24): new Type[count](arguments) can only be () [new]\n", "int* f(int n) { return new int[n](1); }");
 	AssertCPP65Error("Generated.cpp (1, 44): The object has no conversion to the type it is used as [p]\n", "struct P { int x; }; int f() { P p; return p; }");
-	AssertCPP65Error("Generated.cpp (1, 32): No function matches the arguments (): it takes (long) [f]\n", "int f(int a); int g() { return f(); }");
+	AssertCPP65Error("Generated.cpp (1, 32): No function matches the arguments (): it takes (int) [f]\n", "int f(int a); int g() { return f(); }");
 	AssertCPP65Error("Generated.cpp (1, 16): break outside a loop or switch [break]\n", "void f(void) { break; }");
 	AssertCPP65Error("Generated.cpp (1, 33): __builtin_alloca is not supported [__builtin_alloca]\n", "int f(int n) { char* p = (char*)__builtin_alloca(n); return p[0]; }");
 	AssertCPP65Error("Generated.cpp (1, 41): __builtin_alloca is not supported [__builtin_alloca]\n", "int g(void* p); int f(int n) { return g(__builtin_alloca(n)); }");

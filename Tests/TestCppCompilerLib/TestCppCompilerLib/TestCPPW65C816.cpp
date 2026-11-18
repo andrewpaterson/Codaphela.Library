@@ -5884,8 +5884,10 @@ void TestCPP816KeepUnusedObjects(void)
 void TestCPP816TypeNames(void)
 {
 	static const char*	aszNames[] = { "Input/CPP65/TypeNamesProject/Main.cpp", NULL };
+	static const char*	aszKinds[] = { "Input/CPP65/TypeNamesKindsProject/Main.cpp", NULL };
 
 	AssertInt(8191, TestCPP816RunProject(aszNames, "", NULL));
+	AssertInt(63, TestCPP816RunProject(aszKinds, "", NULL));
 }
 
 //The functions of TestCPP816AlignedBigFrameArguments, natively for the expected result and for the W65C816.
