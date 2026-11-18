@@ -83,6 +83,7 @@ class CEmbeddedObject : public CUnknown
 {
 friend class CPointer;
 friend class CCollection;
+friend class CHollowObject;
 CONSTRUCTABLE(CEmbeddedObject)
 protected:
 	CBaseObject*								mpcEmbedded;    //Object that 'this' is embedded in.
@@ -108,7 +109,6 @@ public:
 
 	virtual void				FreePointers(void);
 			void				PostRemapFroms(void);
-			size				ClearFromsOfCopy(CEmbeddedObject* pcOriginal);
 	virtual bool				Save(CObjectWriter* pcFile) =0;
 	virtual bool				Load(CObjectReader* pcFile) =0;
 	virtual bool				IsHollow(void) const =0;
@@ -178,7 +178,6 @@ public:
 			size				NumTotalFroms(void);
 			bool				ContainsFrom(CEmbeddedObject* pcBaseObject);
 	virtual CClass*				GetClass(void) const =0;
-	virtual	void				CopyFields(CEmbeddedObject* pcOther);
 	virtual bool				HasNes(void) const =0;
 	virtual bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) =0;
 			CEmbeddedObject*	GetNesPointerFrom(size* piStart);
@@ -216,6 +215,7 @@ protected:
 			void				ValidateObjectsConsistency(bool bValidate);
 
 private:
+	static	int					CompareIndexOtherwise(CEmbeddedObject* pc1, CEmbeddedObject* pc2);
 			void				MakeHeapFromHub(void);
 			void				KillHeapFromHub(void);
 			bool				UnlinkHubHeapFrom(CBaseObject* pcFrom);

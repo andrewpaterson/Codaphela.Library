@@ -230,14 +230,14 @@ protected:
 						void					ClearValidationFlags(CArrayBaseObjectPtr* papcObjects);
 						void					ValidateObjectInternals(CArrayBaseObjectPtr* papcObjects);
 						void					GetStackPointerAddresses(CArrayVoidPtr* papvAddresses);
-						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize);
+						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi);
 						void					AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
 						void					UnsetDumpFlags(void);
 
 public:
 						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(const char* szClassName, const char* szObjectName);
 
-						CHollowObject*			AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
+						CHollowObject*			AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded);
 
 						CBaseObject*			AllocateReplacingNamed(const char* szClassName, const char* szObjectName);
 						CBaseObject*			GetNamedOrAllocateHollow(const char* szObjectName, size uiNumEmbedded);
@@ -251,8 +251,6 @@ public:
 
 protected:
 						CBaseObject*			AllocateForInternalDeserialisation(const char* szClassName, const char* szObjectName, OIndex oi);
-						CBaseObject*			ConvertFatHollowToUninitialisedByClassName(CHollowObject* pcHollowObject, const char* szClassName);
-						void					RemapFatHollowEmbeddedObjects(CBaseObject* pcObject, size uiNumEmbedded, void* pvHollowEmbedded);
 };
 
 

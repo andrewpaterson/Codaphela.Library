@@ -200,7 +200,6 @@
     <ClInclude Include="Class.h" />
     <ClInclude Include="ClassDefines.h" />
     <ClInclude Include="Classes.h" />
-    <ClInclude Include="FatHollowConfiguration.h" />
     <ClInclude Include="FreeObjects.h" />
     <ClInclude Include="Index.h" />
     <ClInclude Include="IndexObject.h" />
@@ -341,7 +340,6 @@
     <ClCompile Include="ChannelsAccessorCreatorParams.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Classes.cpp" />
-    <ClCompile Include="FatHollowConfiguration.cpp" />
     <ClCompile Include="FreeObjects.cpp" />
     <ClCompile Include="IndexObject.cpp" />
     <ClCompile Include="IndexUnknown.cpp" />

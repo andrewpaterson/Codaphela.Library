@@ -442,25 +442,6 @@ bool CBaseObject::IsKilled(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::CopyFields(CEmbeddedObject* pcOther)
-{
-	CBaseObject* pcBaseObject;
-
-	pcBaseObject = (CBaseObject*)pcOther;
-	moi = pcBaseObject->moi;
-	mon = pcBaseObject->mon;
-	miDistToRoot = pcBaseObject->miDistToRoot;
-	muiWalkStamp = pcBaseObject->muiWalkStamp;
-	muiPreInits = 1;
-	muiPostInits = 1;
-	CEmbeddedObject::CopyFields(pcOther);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether Flush would save the object: it is dirty, and attached to the
 // root or stored (a stored object's holders may only be in the database,
 // so it is saved without a path to the root).
@@ -1281,7 +1262,7 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcHeapFrom = CEmbeddedObject::GetHeapFrom(i);
-		bResult = pcFile->WriteDependent(pcHeapFrom, false);
+		bResult = pcFile->WriteDependent(pcHeapFrom);
 		ReturnOnFalse(bResult);
 	}
 	

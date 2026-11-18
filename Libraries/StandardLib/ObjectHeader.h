@@ -24,7 +24,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/IndexedGeneral.h"
 
 
-#define OBJECT_IDENTIFIER_SIZE_NOT_SET	0xFFFF
 
 
 class CObjectIdentifier
@@ -33,21 +32,18 @@ public:
 	int32	meType;  //See ObjectFileGeneral.h
 	CChars	mszObjectName;
 	OIndex	moi;
-	uint16	muiSize;  //This is the in memory allocated size (or -1).  Not the serialised size.
 
 	void	Init(void);
-	void	Init(OIndex oi, uint16 uiSize);
-	void	Init(const char* szName, OIndex oi, uint16 uiSize);
+	void	Init(OIndex oi);
+	void	Init(const char* szName, OIndex oi);
 	void	Kill(void);
 
 	bool	IsNamed(void) const;
 	bool	IsIndexed(void) const;
-	bool	IsFat(void) const;
 
 	const char*	GetName(void);
 	OIndex	GetIndex();
 	const char*	GetType(void) const;
-	uint16	GetFatSize(void) const;
 };
 
 

@@ -55,20 +55,6 @@ void CHollowObject::Init(size iNumEmbedded)
 {
 	PreInit();
 	SetNumEmbedded(iNumEmbedded);
-	muiSize = OBJECT_IDENTIFIER_SIZE_NOT_SET;
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CHollowObject::Init(size iNumEmbedded, uint16 uiFatSize)
-{
-	PreInit();
-	SetNumEmbedded(iNumEmbedded);
-	muiSize = uiFatSize;
 	PostInit();
 }
 
@@ -89,7 +75,6 @@ void CHollowObject::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CHollowObject::Class(void)
 {
-	U_UInt16(muiSize);
 }
 
 
@@ -176,26 +161,6 @@ bool CHollowObject::IsObject(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowObject::IsFatHollow(void) const
-{
-	return muiSize != OBJECT_IDENTIFIER_SIZE_NOT_SET;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-uint16 CHollowObject::GetFatSize(void) const
-{
-	return muiSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CHollowObject::FreePointers(void)
 {
 	CBaseObject::FreePointers();
@@ -208,6 +173,46 @@ void CHollowObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CHollowObject::Free(void)
 {
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pointers to the hollow and to each of its embedded hollows, as a
+// CObject's are to it and its embedded objects.  A hollow is killed with
+// pointers to an embedded hollow when the object loaded for it has fewer
+// embedded objects (CObjectRemapFrom::Remap).
+//
+//////////////////////////////////////////////////////////////////////////
+void CHollowObject::RemoveAllHeapFroms(void)
+{
+	size	i;
+	size	uiNumEmbedded;
+
+	CEmbeddedObject::RemoveAllHeapFroms();
+	uiNumEmbedded = NumEmbedded();
+	for (i = 1; i < uiNumEmbedded; i++)
+	{
+		GetEmbeddedObject(i)->CEmbeddedObject::RemoveAllHeapFroms();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CHollowObject::RemoveAllStackFroms(void)
+{
+	size	i;
+	size	uiNumEmbedded;
+
+	CEmbeddedObject::RemoveAllStackFroms();
+	uiNumEmbedded = NumEmbedded();
+	for (i = 1; i < uiNumEmbedded; i++)
+	{
+		GetEmbeddedObject(i)->CEmbeddedObject::RemoveAllStackFroms();
+	}
 }
 
 

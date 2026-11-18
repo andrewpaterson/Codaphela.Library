@@ -2141,114 +2141,6 @@ bool CObjects::ValidateCanAllocate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Makes a fat hollow into an uninitialised object of szClassName, in the
-// same memory: a fat hollow was allocated at the size of the object it
-// stands in for, so whatever points to it needn't change.  The object has
-// its class's embedded objects, which may not be what the hollow was saved
-// with.  NULL (and the hollow is left as it was) if szClassName can't be
-// allocated or isn't the hollow's size.
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::ConvertFatHollowToUninitialisedByClassName(CHollowObject* pcHollowObject, const char* szClassName)
-{
-	CBaseObject*	pcObject;
-	bool			bResult;
-	size			uiClassSize;
-	size			uiHollowSize;
-	void*			pvConstructor;
-	CHollowObject	cHollow;
-	CStackMemory<>	cStackEmbedded;
-	void*			pvHollowEmbedded;
-	size			uiNumEmbedded;
-	size			uiHollowEmbeddedSize;
-
-	bResult = ValidateCanAllocate(szClassName);
-	if (!bResult)
-	{
-		return NULL;
-	}
-
-	pvConstructor = mpcUnknownsAllocatingFrom->GetConstructors()->Get(szClassName, &uiClassSize);
-	if (!pvConstructor)
-	{
-		gcLogger.Error2(__METHOD__, " No constructor found for class [", szClassName, "].", NULL);
-		return NULL;
-	}
-
-	uiHollowSize = pcHollowObject->GetFatSize();
-	if (uiHollowSize != uiClassSize)
-	{
-		gcLogger.Error2(__METHOD__, " Class [", szClassName, "] size [", SizeToString(uiClassSize), "] does not match fat Hollow size [", SizeToString(uiHollowSize), "].", NULL);
-		return NULL;
-	}
-
-	//The embedded hollows are overwritten by the new object so their froms must be copied out first.
-	uiNumEmbedded = pcHollowObject->NumEmbedded();
-	uiHollowEmbeddedSize = sizeof(CHollowEmbeddedObject) * (uiNumEmbedded - 1);
-	pvHollowEmbedded = cStackEmbedded.Init(uiHollowEmbeddedSize);
-	memcpy(pvHollowEmbedded, RemapSinglePointer(pcHollowObject, sizeof(CHollowObject)), uiHollowEmbeddedSize);
-	memcpy(&cHollow, pcHollowObject, sizeof(CHollowObject));
-
-	pcObject = pcHollowObject;
-	memcpy(pcObject, pvConstructor, uiClassSize);
-	pcObject->Allocate(this);
-	pcObject->CopyFields(&cHollow);
-	RemapFatHollowEmbeddedObjects(pcObject, uiNumEmbedded, pvHollowEmbedded);
-
-	cStackEmbedded.Kill();
-	cHollow.StopDestructor();
-	return pcObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjects::RemapFatHollowEmbeddedObjects(CBaseObject* pcObject, size uiNumEmbedded, void* pvHollowEmbedded)
-{
-	//pvHollowEmbedded is a copy of the embedded hollows that were at the end of the fat hollow now overwritten by pcObject.
-	//Anything pointing to an embedded hollow points to its original address, not to the copy.
-
-	CObjectRemapFrom		cRemapper;
-	size					i;
-	CEmbeddedObject*		pcOldEmbedded;
-	CHollowEmbeddedObject*	pcOldEmbeddedFroms;
-	CEmbeddedObject*		pcNewEmbedded;
-	size					uiNumInObject;
-	bool					bDropped;
-	CBaseObject*			pcClosest;
-
-	bDropped = false;
-	uiNumInObject = pcObject->NumEmbedded();
-	for (i = 1; i < uiNumEmbedded; i++)
-	{
-		pcOldEmbedded = (CEmbeddedObject*)RemapSinglePointer(pcObject, sizeof(CHollowObject) + ((lsize)sizeof(CHollowEmbeddedObject) * (i - 1)));
-		pcOldEmbeddedFroms = (CHollowEmbeddedObject*)RemapSinglePointer(pvHollowEmbedded, (lsize)sizeof(CHollowEmbeddedObject) * (i - 1));
-		if (i < uiNumInObject)
-		{
-			pcNewEmbedded = pcObject->GetEmbeddedObject(i);
-			cRemapper.RemapEmbedded(pcNewEmbedded, pcOldEmbedded, pcOldEmbeddedFroms);
-		}
-		else if (pcOldEmbeddedFroms->ClearFromsOfCopy(pcOldEmbedded) != 0)
-		{
-			//The class has fewer embedded objects than when this was saved.  As in CObjectRemapFrom::Remap: on purpose, but the pointers lose what they pointed to.
-			gcLogger.Warning2(__METHOD__, " Object {", ObjectToString(pcObject), "} was loaded without its embedded object [", SizeToString(i), "]: the pointers to it are cleared.", NULL);
-			bDropped = true;
-		}
-	}
-
-	if (bDropped)
-	{
-		//A dropped pointer may have been what held this to the root.  An object not yet loaded points to nothing, so no other object's distance depends on this one's.
-		pcClosest = pcObject->GetClosestFromToRoot();
-		pcObject->SetDistToRoot((pcClosest != NULL) ? pcClosest->GetDistToRoot() + 1 : UNATTACHED_DIST_TO_ROOT);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName, const char* szObjectName, OIndex oi)
@@ -2315,18 +2207,13 @@ CNamedIndexedObjects* CObjects::GetMemory(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A hollow with its embedded hollows after it.  A fat hollow (uiFatSize
-// not OBJECT_IDENTIFIER_SIZE_NOT_SET) takes the size of the object it
-// will be loaded as, so it can become that object in place (a uint16: a
-// class too big for one isn't written fat).  An empty name is an unnamed
-// hollow.
+// A hollow with its embedded hollows after it.  An empty name is an
+// unnamed hollow.
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize)
+CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi)
 {
 	CHollowObject*	pcHollow;
-	size			uiHollowSize;
-	CHollowObject*	pcConstructor;
 	void*			pvEmbedded;
 
 	if (uiNumEmbedded == 0)
@@ -2334,35 +2221,12 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 		return NULL;
 	}
 
-	if (uiFatSize == OBJECT_IDENTIFIER_SIZE_NOT_SET)
+	pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, sizeof(CHollowEmbeddedObject) * (uiNumEmbedded - 1));
+	if (pcHollow == NULL)
 	{
-		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, sizeof(CHollowEmbeddedObject) * (uiNumEmbedded - 1));
-		if (pcHollow == NULL)
-		{
-			return NULL;
-		}
-		pcHollow->Init(uiNumEmbedded);
+		return NULL;
 	}
-	else
-	{
-		pcConstructor = mpcUnknownsAllocatingFrom->GetConstructor<CHollowObject>(&uiHollowSize);
-		if (pcConstructor == NULL)
-		{
-			gcLogger.Error2(__METHOD__, " Could not find HollowObject constructor.", NULL);
-			return NULL;
-		}
-		if (uiHollowSize > uiFatSize)
-		{
-			gcLogger.Error2(__METHOD__, " Hollow size [", SizeToString(uiHollowSize), "] is larger than Fat Object size [", SizeToString(uiFatSize), "].", NULL);
-			return NULL;
-		}
-		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, uiFatSize - uiHollowSize);
-		if (pcHollow == NULL)
-		{
-			return NULL;
-		}
-		pcHollow->Init(uiNumEmbedded, uiFatSize);
-	}
+	pcHollow->Init(uiNumEmbedded);
 
 	pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
 	AppendHollowEmbeddedObjects(pcHollow, uiNumEmbedded, pvEmbedded);
@@ -2524,8 +2388,7 @@ CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const cha
 //////////////////////////////////////////////////////////////////////////
 //
 // The object the InternalObjectDeserialiser is about to read: a hollow
-// already in memory for it is replaced, or if fat (and with the same
-// index) becomes it in place.  The hollow is found by index, or for a
+// already in memory for it is replaced.  The hollow is found by index, or for a
 // named object by name: a hollow made for a name alone (by an external
 // read) before the database had the name has an index of its own, and the
 // object loaded for it takes the database's.  An empty name is an unnamed
@@ -2570,11 +2433,6 @@ CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassNam
 	}
 
 	pcHollowObject = (CHollowObject*)pcObject;
-	if (pcHollowObject->IsFatHollow() && (pcHollowObject->GetIndex() == oi))
-	{
-		return ConvertFatHollowToUninitialisedByClassName(pcHollowObject, szClassName);
-	}
-
 	pcObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
 	if (pcObject == NULL)
 	{
@@ -2642,7 +2500,7 @@ bool CObjects::TestRemoveMemoryIdentifiers(CBaseObject* pvObject)
 // to, before reading it.  An empty name is an unnamed hollow.
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize)
+CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded)
 {
 	OBJECTS_INSIDE();
 
@@ -2654,7 +2512,7 @@ CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex
 		return NULL;
 	}
 
-	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi, uiObjectSize);
+	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi);
 	if (pcHollow == NULL)
 	{
 		LOG_OBJECT_ALLOCATION_FAILURE("CHollowObject", oi, szObjectName);
@@ -2704,7 +2562,7 @@ CBaseObject* CObjects::GetNamedOrAllocateHollow(const char* szObjectName, size u
 	{
 		oi = GetNextIndex();
 	}
-	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi);
 	if (!pcHollow)
 	{
 		return NULL;
@@ -2736,7 +2594,7 @@ void CObjects::ReplaceWithHollow(CBaseObject* pcObject)
 
 	CHollowObject*	pcHollow;
 
-	pcHollow = AllocateHollow(pcObject->NumEmbedded(), pcObject->GetName(), pcObject->GetIndex(), OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	pcHollow = AllocateHollow(pcObject->NumEmbedded(), pcObject->GetName(), pcObject->GetIndex());
 	if ((pcHollow != NULL) && !ReplaceBaseObject(pcObject, pcHollow))
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);

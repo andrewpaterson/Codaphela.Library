@@ -811,6 +811,41 @@ Steps
          record's header and every pointer it writes; nothing outside the tests reads the format yet, the user said).
          (b): fat hollows loaded into memory of their own while other threads are registered, the sets and maps
          re-sorted under the lock, no sort on a read.  One thread passes as before either way.
+         Done 2026-11-18, (a), in two commits.
+         The order.  A set's members and a map's keys are ordered by CEmbeddedObject::CompareIndex: an object by its
+         index, an embedded object by its container's then its place in it (as CObjectWriter::WriteDependent writes
+         it), objects with no index by address.  A hollow and the object loaded for it sort as one, so a load or a
+         remap leaves a set or map unsorted only when the member changed what it is (MorphInto); a set or map is saved
+         in order and read back in order; a hollow made for a name alone has the database's index for it.  Lookups
+         that mean one object find that object among those that sort with it (a map's remap found the new key's entry
+         when asked again for the old one: TestMapObject's member locations).  The common case (two objects with
+         indexes of their own) is compared without a call.
+         Fat hollows retired: the in-place conversion, FatHollowConfiguration, CopyFields, and the size in the record
+         format (2 bytes less in every record's header and in every pointer it writes).  The files tests compare
+         what they write with (Input/*.DRG and the Codabase's data files in Input/Dehollowfication) were written
+         again; the Codabase's index and name files came out byte for byte the same.
+         Found on the way:
+           A map that was killed sorted its holding entries first, comparing keys its Kill had already freed
+           (ASan, once a comparison read the keys).  CMapBlock::Kill frees the entries where they are.
+           A hollow killed with pointers to its embedded hollows (an object loaded for it with fewer embedded objects
+           than it was saved with) left them pointing at freed memory: the fat path cleared them itself, the other
+           path relied on Kill, which a hollow didn't extend to its embedded hollows.  CHollowObject now does, as
+           CObject does (RemoveAllHeapFroms, RemoveAllStackFroms); TestEmbedded's two fat tests, made ordinary loads,
+           found it.
+         Instructions (callgrind, OBJECTS_SPEED=1), next to 24a's:
+                                              address order    prototype    as built
+           Contains, a set of 10                    104            193          205
+                     1000                           181            440          412
+                     100000                         264            703          639
+           Add, filling a set of 10                 510            576          567
+                                 1000               721            959          917
+                                 100000           19377          19796        19717
+           an object loaded (4373)                28994          28963        28779
+         Time, the least of five runs of the whole test program each, taking turns with 24a's address-order build
+         (the machine busier than for 24a), ns:  Contains 5.2, 30.8 and 155 by address against 9.2, 53.3 and 238 as
+         built; an Add filling a set of 1000 74 against 90, of 100000 2451 against 2704; a load 3938 against 3972.
+         The prototype's times, in other words: at 100000 members it is reading the members that costs, and fewer
+         instructions don't change that.
       c. Forwarders: the pairs put aside on the CObjects; the remap leaving a hollow forwarding when another thread is
          registered; the hollow's Dehollow taking the lock first and answering; each thread's count; the home thread's
          check as it collects; ObjectsKill and ObjectsLocking(false) freeing what is left; NumForwarders for the

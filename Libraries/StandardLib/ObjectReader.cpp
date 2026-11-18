@@ -227,9 +227,8 @@ bool CObjectReader::ReadIdentifier(CObjectIdentifier* pcObjectIdentifier)
 		return false;
 	}
 
-	//An index and a size, then (named) the name.
+	//An index, then (named) the name.
 	ReturnOnFalse(ReadInt64(&pcObjectIdentifier->moi));
-	ReturnOnFalse(ReadInt16(&pcObjectIdentifier->muiSize));
 	if (pcObjectIdentifier->meType == OBJECT_POINTER_NAMED)
 	{
 		ReturnOnFalse(pcObjectIdentifier->mszObjectName.ReadChars(this));

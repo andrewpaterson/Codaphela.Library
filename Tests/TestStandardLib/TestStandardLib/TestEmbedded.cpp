@@ -1208,17 +1208,18 @@ void TestEmbeddedReplaceWithFewerEmbedded(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Reaches CObjects' conversion of a fat hollow.  A class can change its
-// embedded objects without changing its size, so the count a hollow was
-// saved with need not be its class's.
+// Reaches what CObjects does with a hollow when the object it stands for is
+// read: the object, uninitialised, takes the hollow's place.  A class can
+// change its embedded objects, so the count a hollow was saved with need
+// not be its class's.
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestFatHollowConverter : public CObjects
+class CTestHollowLoader : public CObjects
 {
 public:
-	CBaseObject* TestConvert(CHollowObject* pcHollow, const char* szClassName)
+	CBaseObject* TestLoad(OIndex oi, const char* szClassName)
 	{
-		return ConvertFatHollowToUninitialisedByClassName(pcHollow, szClassName);
+		return AllocateForInternalDeserialisation(szClassName, "", oi);
 	}
 };
 
@@ -1227,23 +1228,22 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedContainer* TestEmbeddedConvertFatHollow(CHollowObject* pcHollow)
+CEmbeddedContainer* TestEmbeddedLoadHollow(OIndex oi)
 {
-	return (CEmbeddedContainer*)((CTestFatHollowConverter*)&gcObjects)->TestConvert(pcHollow, "CEmbeddedContainer");
+	return (CEmbeddedContainer*)((CTestHollowLoader*)&gcObjects)->TestLoad(oi, "CEmbeddedContainer");
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A fat hollow saved with more embedded objects than its class has now: the
+// A hollow saved with more embedded objects than its class has now: the
 // object has its class's count, a pointer to an embedded hollow it still
 // has moves to the embedded object, and a pointer to one it doesn't have is
-// cleared with a warning (the hollow it pointed to has been overwritten).
-// Its distance to root comes from the pointers left: with none from the
-// heap it is no longer attached.
+// cleared with a warning.  Its distance to root comes from the pointers
+// left: with none from the heap it is no longer attached.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestEmbeddedFatHollowMoreEmbeddedThanClass(bool bKeptFromHeap)
+void TestEmbeddedHollowMoreEmbeddedThanClass(bool bKeptFromHeap)
 {
 	char		szErrors[1024];
 	CMemoryFile	cLog;
@@ -1261,9 +1261,8 @@ void TestEmbeddedFatHollowMoreEmbeddedThanClass(bool bKeptFromHeap)
 		CHollowObject*			pcHollow;
 		CEmbeddedContainer*		pcObject;
 
-		pcHollow = gcObjects.AllocateInternalHollow("", 1000, 4, (uint16)sizeof(CEmbeddedContainer));
+		pcHollow = gcObjects.AllocateInternalHollow("", 1000, 4);
 		AssertNotNull(pcHollow);
-		AssertTrue(pcHollow->IsFatHollow());
 		AssertSize(4, pcHollow->NumEmbedded());
 
 		pHolder = OMalloc<CTestObject>();
@@ -1279,7 +1278,7 @@ void TestEmbeddedFatHollowMoreEmbeddedThanClass(bool bKeptFromHeap)
 		}
 
 		StartCapturingLog(&cLog, &sLogConfig);
-		pcObject = TestEmbeddedConvertFatHollow(pcHollow);
+		pcObject = TestEmbeddedLoadHollow(1000);
 		StopCapturingLog(&cLog, &sLogConfig, szErrors, sizeof(szErrors));
 		AssertNotNull(pcObject);
 		AssertNotNull(strstr(szErrors, "without its embedded object [3]: the pointers to it are cleared."));
@@ -1315,11 +1314,11 @@ void TestEmbeddedFatHollowMoreEmbeddedThanClass(bool bKeptFromHeap)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A fat hollow saved with fewer embedded objects than its class has now: the
+// A hollow saved with fewer embedded objects than its class has now: the
 // object still has all of its class's, and nothing is dropped.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestEmbeddedFatHollowFewerEmbeddedThanClass(void)
+void TestEmbeddedHollowFewerEmbeddedThanClass(void)
 {
 	char		szErrors[1024];
 	CMemoryFile	cLog;
@@ -1332,12 +1331,12 @@ void TestEmbeddedFatHollowFewerEmbeddedThanClass(void)
 		CHollowObject*			pcHollow;
 		CEmbeddedContainer*		pcObject;
 
-		pcHollow = gcObjects.AllocateInternalHollow("", 1001, 1, (uint16)sizeof(CEmbeddedContainer));
+		pcHollow = gcObjects.AllocateInternalHollow("", 1001, 1);
 		AssertNotNull(pcHollow);
 		AssertSize(1, pcHollow->NumEmbedded());
 
 		StartCapturingLog(&cLog, &sLogConfig);
-		pcObject = TestEmbeddedConvertFatHollow(pcHollow);
+		pcObject = TestEmbeddedLoadHollow(1001);
 		StopCapturingLog(&cLog, &sLogConfig, szErrors, sizeof(szErrors));
 		AssertNotNull(pcObject);
 		AssertString("", szErrors);
@@ -1513,9 +1512,9 @@ void TestEmbedded(void)
 	TestEmbeddedNestedPointerValidated();
 	TestEmbeddedReplaceWithFewerEmbedded();
 	TestEmbeddedSetFlag();
-	TestEmbeddedFatHollowFewerEmbeddedThanClass();
-	TestEmbeddedFatHollowMoreEmbeddedThanClass(false);
-	TestEmbeddedFatHollowMoreEmbeddedThanClass(true);
+	TestEmbeddedHollowFewerEmbeddedThanClass();
+	TestEmbeddedHollowMoreEmbeddedThanClass(false);
+	TestEmbeddedHollowMoreEmbeddedThanClass(true);
 	TestEmbeddedTooManyEmbedded();
 
 	DataIOKill();

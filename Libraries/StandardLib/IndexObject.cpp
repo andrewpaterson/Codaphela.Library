@@ -449,7 +449,7 @@ bool CIndexObject::Save(CObjectWriter* pcFile)
 	{
 		ReturnOnFalse(pcFile->WriteSize(uiKeySize));
 		ReturnOnFalse(pcFile->WriteData(auiKey, uiKeySize));
-		ReturnOnFalse(pcFile->WriteDependent(pcPointedTo, false));
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedTo));
 		bExists = mcIndex.Iterate(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, (CUnknown**)&pcPointedTo);
 	}
 	return true;

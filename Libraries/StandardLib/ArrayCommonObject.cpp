@@ -123,18 +123,16 @@ bool CArrayCommonObject::Save(CObjectWriter* pcFile)
 	size 				i;
 	size 				uiNumElements;
 	CEmbeddedObject*	pcPointedTo;
-	bool				bFatHollow;
 
 	//Saved in order, and so read back in order: its members keep their indexes.
 	EnsureSorted();
 	ReturnOnFalse(mcArray.WriteArrayHeader(pcFile));
 
-	bFatHollow = mcArray.IsMustSort();
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CEmbeddedObject*)mcArray.UnsafeGet(i);
-		ReturnOnFalse(pcFile->WriteDependent(pcPointedTo, bFatHollow));
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedTo));
 	}
 	return true;
 }

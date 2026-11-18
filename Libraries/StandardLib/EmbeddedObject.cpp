@@ -189,13 +189,39 @@ int CEmbeddedObject::CompareIndex(const void* ppvObject1, const void* ppvObject2
 {
 	CEmbeddedObject*	pc1;
 	CEmbeddedObject*	pc2;
+	OIndex				oi1;
+	OIndex				oi2;
+
+	//Nearly always two objects, not embedded, with indexes of their own: no call.
+	pc1 = *((CEmbeddedObject**)ppvObject1);
+	pc2 = *((CEmbeddedObject**)ppvObject2);
+	if ((pc1 != NULL) && (pc2 != NULL) && (pc1->mpcEmbedded == NULL) && (pc2->mpcEmbedded == NULL))
+	{
+		oi1 = ((CBaseObject*)pc1)->moi;
+		oi2 = ((CBaseObject*)pc2)->moi;
+		if (oi1 != oi2)
+		{
+			return (oi1 < oi2) ? -1 : 1;
+		}
+	}
+	return CompareIndexOtherwise(pc1, pc2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// CompareIndex's other cases: NULL, embedded objects, an object compared
+// with itself, a hollow and the object loaded for it, objects with no
+// index.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE int CEmbeddedObject::CompareIndexOtherwise(CEmbeddedObject* pc1, CEmbeddedObject* pc2)
+{
 	CBaseObject*		pcContainer1;
 	CBaseObject*		pcContainer2;
 	size				uiPlace1;
 	size				uiPlace2;
 
-	pc1 = *((CEmbeddedObject**)ppvObject1);
-	pc2 = *((CEmbeddedObject**)ppvObject2);
 	if ((pc1 == pc2) || (pc1 == NULL) || (pc2 == NULL))
 	{
 		return ComparePtr(pc1, pc2);
@@ -368,45 +394,6 @@ void CEmbeddedObject::PostRemapFroms(void)
 	mapHeapFromObjects.ReInit();
 	mapHeapFromCollections.ReInit();
 	mpcStackFroms = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// This is a copy of pcOriginal, which has been overwritten (a fat hollow
-// converted in place) and has no place in what replaced it.  The pointers
-// to pcOriginal that this holds as froms are cleared.  Returns how many
-// froms there were.
-//
-//////////////////////////////////////////////////////////////////////////
-size CEmbeddedObject::ClearFromsOfCopy(CEmbeddedObject* pcOriginal)
-{
-	size			i;
-	size			uiNumFroms;
-	size			uiNumHeapFroms;
-	CStackPointer*	pcStackPointer;
-
-	uiNumHeapFroms = CEmbeddedObject::NumHeapFroms();
-	for (i = 0; i < uiNumHeapFroms; i++)
-	{
-		CEmbeddedObject::GetHeapFrom(i)->RemovePointerTo(pcOriginal);
-	}
-
-	uiNumFroms = uiNumHeapFroms;
-	pcStackPointer = mpcStackFroms;
-	while (pcStackPointer)
-	{
-		pcStackPointer = pcStackPointer->ClearPointerGetNext(pcOriginal);
-		uiNumFroms++;
-	}
-	if (mpcStackFroms)
-	{
-		GetStackPointers()->RemoveAll(mpcStackFroms);
-	}
-	uiNumFroms += ThreadStackFromsClear(pcOriginal);
-
-	PostRemapFroms();
-	return uiNumFroms;
 }
 
 
@@ -1298,21 +1285,6 @@ CObjects* CEmbeddedObject::GetObjects(void)
 		pcObjects = &gcObjects;
 	}
 	return pcObjects;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Takes pcOther's froms (and their hub): pcOther, a copy of a fat hollow
-// this has overwritten in place, is dropped without being killed.
-//
-//////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::CopyFields(CEmbeddedObject* pcOther)
-{
-	mapHeapFromObjects = pcOther->mapHeapFromObjects;
-	mapHeapFromCollections = pcOther->mapHeapFromCollections;
-	mpcStackFroms = pcOther->mpcStackFroms;
-	mpsHub = pcOther->mpsHub;
 }
 
 

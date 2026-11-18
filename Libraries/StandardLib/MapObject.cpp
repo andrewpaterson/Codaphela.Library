@@ -392,8 +392,8 @@ bool CMapObject::Save(CObjectWriter* pcFile)
 		pcMapPtrPtr->GetInSorted(ui, &pvKey, &pvValue);
 		pcPointedToKey = *((CBaseObject**)pvKey);
 		pcPointedToValue = *((CBaseObject**)pvValue);
-		ReturnOnFalse(pcFile->WriteDependent(pcPointedToKey, true));
-		ReturnOnFalse(pcFile->WriteDependent(pcPointedToValue, false));
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedToKey));
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedToValue));
 	}
 	return true;
 }

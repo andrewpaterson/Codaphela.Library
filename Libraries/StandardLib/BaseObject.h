@@ -201,7 +201,6 @@ public:
 			CObjects*				GetObjectsThisIn(void) override;
 			CClasses*				GetClasses(void);
 			CClass*					CompleteClass(CClasses* pcClasses);
-			void					CopyFields(CEmbeddedObject* pcOther) override;
 
 			bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 		TestGetPointerTo(size iToIndex);

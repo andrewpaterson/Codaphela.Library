@@ -151,7 +151,6 @@ void TestObjectReaderSimpleHeaderInit(void)
 	cIdentifier.Init();
 	AssertInt(OBJECT_POINTER_NULL, cIdentifier.meType);
 	AssertLong(INVALID_O_INDEX, cIdentifier.moi);
-	AssertShort((uint16)0, cIdentifier.muiSize);
 	AssertString("", cIdentifier.mszObjectName.Text());
 	cIdentifier.Kill();
 
@@ -159,7 +158,6 @@ void TestObjectReaderSimpleHeaderInit(void)
 	cHeader.Init();
 	AssertInt(OBJECT_POINTER_NULL, cHeader.meType);
 	AssertLong(INVALID_O_INDEX, cHeader.moi);
-	AssertShort((uint16)0, cHeader.muiSize);
 	AssertString("", cHeader.mszObjectName.Text());
 	AssertShort((uint16)0, cHeader.miNumEmbedded);
 	AssertShort((uint16)0, cHeader.miEmbeddedIndex);
@@ -169,7 +167,6 @@ void TestObjectReaderSimpleHeaderInit(void)
 	cObjectHeader.Init();
 	AssertInt(OBJECT_POINTER_NULL, cObjectHeader.meType);
 	AssertLong(INVALID_O_INDEX, cObjectHeader.moi);
-	AssertShort((uint16)0, cObjectHeader.muiSize);
 	AssertString("", cObjectHeader.mszObjectName.Text());
 
 	cObjectHeader.mszClassName.Init("CThing");

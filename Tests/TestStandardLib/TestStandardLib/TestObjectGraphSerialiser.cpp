@@ -221,13 +221,13 @@ void TestObjectGraphSerialiserDependentOrder(void)
 #if !defined(BASELIB_SIZE16) && !defined(__W65C816__)
 //////////////////////////////////////////////////////////////////////////
 //
-// An object too big for a fat hollow's uint16 size.
+// An object bigger than a uint16 can count.
 //
 //////////////////////////////////////////////////////////////////////////
-class CTestTooBigToBeFat : public CObject
+class CTestBigObject : public CObject
 {
-CONSTRUCTABLE(CTestTooBigToBeFat);
-DESTRUCTABLE(CTestTooBigToBeFat);
+CONSTRUCTABLE(CTestBigObject);
+DESTRUCTABLE(CTestBigObject);
 public:
 	uint8	mauiData[70000];
 
@@ -241,28 +241,22 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A pointer to it can't be written as a fat hollow (its size wouldn't
-// fit), only as an ordinary one.
+// A pointer to it is written as any other is: nothing in a pointer says
+// how big what it points to is.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestObjectGraphSerialiserTooBigToBeFat(void)
+void TestObjectGraphSerialiserBigObject(void)
 {
-	Ptr<CTestTooBigToBeFat>	pBig;
+	Ptr<CTestBigObject>		pBig;
 	CObjectWriter			cWriter;
 	CMemoryFile				cMemory;
-	SLogConfig				sLogConfig;
-	bool					bResult;
 
-	pBig = OMalloc<CTestTooBigToBeFat>();
+	pBig = OMalloc<CTestBigObject>();
 
 	cMemory.Init();
 	cMemory.Open(EFM_ReadWrite_Create);
 	cWriter.Init(&cMemory, NULL);
-	sLogConfig = gcLogger.SetSilent();
-	bResult = cWriter.WriteDependent(pBig.Object(), true);
-	gcLogger.SetConfig(&sLogConfig);
-	AssertFalse(bResult);
-	AssertTrue(cWriter.WriteDependent(pBig.Object(), false));
+	AssertTrue(cWriter.WriteDependent(pBig.Object()));
 	cMemory.Close();
 	cWriter.Kill();
 	cMemory.Kill();
@@ -311,7 +305,7 @@ void TestObjectGraphSerialiser(void)
 	TestObjectGraphSerialiserMarkNotDependent();
 	TestObjectGraphSerialiserDependentOrder();
 #if !defined(BASELIB_SIZE16) && !defined(__W65C816__)
-	TestObjectGraphSerialiserTooBigToBeFat();
+	TestObjectGraphSerialiserBigObject();
 #endif // !BASELIB_SIZE16 && !__W65C816__
 	TestObjectGraphSerialiserSerialisedLength();
 

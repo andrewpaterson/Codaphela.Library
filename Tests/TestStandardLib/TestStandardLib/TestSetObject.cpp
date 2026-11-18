@@ -736,24 +736,16 @@ void TestSetObjectObjectInternalSerialisation(size uiNumSetItems)
 		AssertTrue(gcObjects.Contains("Set"));
 
 		Ptr<CSetObject>				pSet;
-		Ptr<CHollowObject>			pHollow;
 		bool						bResult;
 		OIndex						oi;
 		STriOi						sTriOi;
 		SSetIterator				sIter;
 		CPointer					pObject;
 		bool						bExists;
-		CIndexTreeMemory			cIndexObjectPointers;
-		char*						szName;
-		size						uiLength;
-		CHollowObject*				pcHollow;
-		CObject*					pcObject;
 
 		pSet = gcObjects.Get("Set");
 		AssertTrue(pSet.IsNotNull());
 		AssertSize(uiNumSetItems, pSet->NumElements());
-
-		cIndexObjectPointers.Init();
 
 		//Read back in the order it was saved in: its members keep their indexes.
 		AssertTrue(pSet->IsMustSort());
@@ -771,19 +763,6 @@ void TestSetObjectObjectInternalSerialisation(size uiNumSetItems)
 				AssertTrue(bResult);
 				break;
 			}
-			pHollow = pObject;
-			pcHollow = ((CHollowObject*)pHollow.Object());
-			bResult = pcHollow->IsFatHollow();
-			if (!bResult)
-			{
-				AssertTrue(bResult);
-				break;
-			}
-			szName = pHollow.GetName();
-			uiLength = StrLen(szName);
-			
-			cIndexObjectPointers.Put((uint8*)szName, uiLength, &pcHollow, sizeof(CHollowObject*));
-
 			oi = pObject->GetIndex();
 			bResult = pObject.IsHollow();
 			if (bResult)
@@ -814,34 +793,11 @@ void TestSetObjectObjectInternalSerialisation(size uiNumSetItems)
 			pObject = pSet->Iterate(&sIter);
 		}
 		AssertTrue(bResult);
+
+		//Every member was loaded into memory of its own, and the set is still in order without being sorted again.
 		AssertTrue(pSet->IsSorted());
 		AssertTrue(pSet->CalculateIsSorted());
 
-		bResult = true;
-		pObject = pSet->StartIteration(&sIter);
-		while (pObject.IsNotNull())
-		{
-			bResult = pObject.IsHollow();
-			if (bResult)
-			{
-				AssertFalse(bResult);
-				break;
-			}
-			szName = pObject.GetName();
-			uiLength = StrLen(szName);
-
-			bExists = cIndexObjectPointers.Get((uint8*)szName, uiLength, &pcObject, NULL, sizeof(CObject*));
-			bResult = pObject.Object() == pcObject;
-			if (bResult)
-			{
-				AssertPointer(pObject.Object(), pcObject);
-				break;
-			}
-			pObject = pSet->Iterate(&sIter);
-		}
-		AssertTrue(bResult);
-
-		cIndexObjectPointers.Kill();
 		aiKeyNames.Kill();
 	}
 	pcDatabase->Close();

@@ -59,21 +59,11 @@ size CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What points to pcOld points to pcNew instead: its heap froms, its stack
+// froms (and any thread's) and its weak froms.
 //
 //////////////////////////////////////////////////////////////////////////
 size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
-{
-	return RemapEmbedded(pcNew, pcOld, pcOld);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pcOld is the address the froms point to.  pcOldFroms holds the froms.  They differ when
-// pcOld has been overwritten (a fat hollow converted in place) and pcOldFroms is a copy of it.
-//
-//////////////////////////////////////////////////////////////////////////
-size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld, CEmbeddedObject* pcOldFroms)
 {
 	size				iNumHeapFroms;
 	size				i;
@@ -85,11 +75,11 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 
 	iCount = 0;
 
-	iNumHeapFroms = pcOldFroms->CEmbeddedObject::NumHeapFroms();
+	iNumHeapFroms = pcOld->CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < iNumHeapFroms; i++)
 	{
-		pvFrom = pcOldFroms->CEmbeddedObject::GetHeapFrom(i);
-		if (pvFrom->GetEmbeddingContainer() == pcOldFroms->GetEmbeddingContainer())
+		pvFrom = pcOld->CEmbeddedObject::GetHeapFrom(i);
+		if (pvFrom->GetEmbeddingContainer() == pcOld->GetEmbeddingContainer())
 		{
 			//The old object points to itself.  That pointer is killed with the old object so it must not be moved to the new object.
 			continue;
@@ -105,11 +95,11 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 			//If the object is not initialised it cannot point to any other objects
 			//This means this dist to root calculation for tos can be skipped.
 			pcNew->AddHeapPointerForRemap(pvFrom);
-			pcNew->SetDistToRoot(pcOldFroms->GetDistToRoot());
+			pcNew->SetDistToRoot(pcOld->GetDistToRoot());
 		}
 	}
 
-	pcFirstStackPointer = pcOldFroms->GetFirstStackFrom();
+	pcFirstStackPointer = pcOld->GetFirstStackFrom();
 	pcStackPointer = pcFirstStackPointer;
 	if (pcStackPointer)
 	{
@@ -136,9 +126,9 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 	iCount += ThreadStackFromsRemap(pcOld, pcNew);
 
 	//Weak references follow the object, as its pointers do (WeakReferencesPlan.txt).
-	pcOldFroms->GetObjectsOrDefault()->MoveWeakFroms(pcOldFroms, pcNew);
+	pcOld->GetObjectsOrDefault()->MoveWeakFroms(pcOld, pcNew);
 
-	pcOldFroms->PostRemapFroms();
+	pcOld->PostRemapFroms();
 
 	return iCount;
 }
