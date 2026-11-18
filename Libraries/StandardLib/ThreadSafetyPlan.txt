@@ -649,6 +649,11 @@ Steps
       and the speed test's numbers show it does well.
       It is what found the two faults mended after step 19 (a reader waiting for good, a home thread that never
       freed).
+      And the last sweep found what a home thread that only waits costs: the objects waiting for it to free are
+      kept in an array, which holds as many as a size counts.  A host built with a 16 bit size (as the tests are,
+      to find what the W65C816 would; the W65C816 itself has no threads) ran past 65535 of them in the test where
+      eight threads build and drop graphs while the home thread waited for them.  That test's home thread calls
+      ObjectsCollect while it waits now, which is what a home thread is meant to do.
   23. gcUnknowns onto the new allocator, if it measures better than CGeneralMemory there (it is 12% of an OMalloc and
       free today).
       Done 2026-11-18, by the user's choice with the numbers in front of them (decision 9): it measures better at
