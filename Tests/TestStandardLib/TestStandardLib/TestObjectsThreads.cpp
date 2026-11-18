@@ -2918,6 +2918,210 @@ void TestObjectsThreadsWorkerObjectsAreItsOwn(void)
 }
 
 
+//The leaves of the tree below pNode point at pcShared (by mpOther).
+static void TestObjectsThreadsPointLeaves(Ptr<CTestThreadNode>& pNode, CTestThreadNode* pcShared)
+{
+	Ptr<CTestThreadNode>	pChild;
+
+	if (pNode->mpNext.IsNull())
+	{
+		pNode->mpOther = pcShared;
+		return;
+	}
+	pChild = pNode->mpNext;
+	TestObjectsThreadsPointLeaves(pChild, pcShared);
+	pChild = pNode->mpOther;
+	TestObjectsThreadsPointLeaves(pChild, pcShared);
+}
+
+
+//A worker builds a named tree in its own root, its leaves pointing at the main node, adopts it and puts it in the
+//main root.  The pointer it kept into the tree is to a main object then, and its object system has the tree no more.
+static void TestObjectsThreadsWorkerAdopts(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CTestThreadNode>	pTop;
+	Ptr<CTestThreadNode>	pMiddle;
+	char					szName[32];
+	size					uiObjects;
+
+	psThread = (STestObjectsThread*)pvThread;
+	snprintf(szName, sizeof(szName), "Tree%u", (unsigned)psThread->uiSeed);
+	pTop = ONMalloc<CTestThreadNode>(szName);
+	ORoot()->Add(pTop);
+	TestObjectsThreadsMakeTree(pTop, TEST_OBJECTS_THREADS_TREE_DEPTH);
+	TestObjectsThreadsPointLeaves(pTop, psThread->pcShared);
+	pMiddle = pTop->mpNext->mpOther;
+	uiObjects = ObjectsCurrent()->NumMemoryIndexes();
+
+	if (!ObjectsAdopt(pTop) || (pTop->GetObjectsThisIn() != &gcObjects) || (pMiddle->GetObjectsThisIn() != &gcObjects))
+	{
+		psThread->iErrors++;
+	}
+	if (ObjectsCurrent()->NumMemoryIndexes() != uiObjects - TEST_OBJECTS_THREADS_TREE_NODES)
+	{
+		psThread->iErrors++;
+	}
+	gcObjects.Root()->Add(pTop);
+	ORoot()->Remove(pTop);
+	if (!pMiddle->IsLive() || !pMiddle->mpNext->IsLive())
+	{
+		psThread->iErrors++;
+	}
+}
+
+
+//The nodes of the tree named szName, reached through the main root.
+static size TestObjectsThreadsCountTree(const char* szName)
+{
+	Ptr<CTestThreadNode>	pTop;
+	int						iErrors;
+
+	iErrors = 0;
+	pTop = ORoot()->Get(szName);
+	return TestObjectsThreadsWalkTree(pTop, &iErrors) + iErrors;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Workers build trees at once, each in its own object system, their leaves
+// pointing at a main node, and adopt them into the main object system: the
+// main root holds every tree, each found by its name, with every node, and
+// the main node held by every leaf.  Nothing is freed until main lets go,
+// and then on the home thread.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsWorkersAdopt(void)
+{
+	Ptr<CTestThreadNode>	pShared;
+	CChars					szName;
+	size					uiObjects;
+	size					i;
+
+	TestObjectsThreadsBegin();
+	pShared = ONMalloc<CTestThreadNode>("Shared");
+	ORoot()->Add(pShared);
+	uiObjects = gcObjects.NumMemoryIndexes();
+
+	gbTestObjectsThreadsWorkers = true;
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsWorkerAdopts, NULL, NULL, &pShared, NULL));
+	gbTestObjectsThreadsWorkers = false;
+
+	AssertInt(0, giTestThreadNodesFreed);
+	AssertLong((int64)(uiObjects + TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_TREE_NODES), gcObjects.NumMemoryIndexes());
+	AssertSize((size)((TEST_OBJECTS_THREADS << TEST_OBJECTS_THREADS_TREE_DEPTH) + 1), pShared.NumHeapFroms());  //Every leaf, and the root.
+	for (i = 0; i < TEST_OBJECTS_THREADS; i++)
+	{
+		szName.Init();
+		szName.Append("Tree");
+		szName.Append((uint32)(1000 + i * 7919));
+		AssertSize(TEST_OBJECTS_THREADS_TREE_NODES + (1 << TEST_OBJECTS_THREADS_TREE_DEPTH), TestObjectsThreadsCountTree(szName.Text()));  //Each leaf reaches the shared node too.
+		szName.Kill();
+	}
+	gcObjects.EnableValidation();
+	gcObjects.ValidateObjectsConsistency();
+	gcObjects.DisableValidation();
+
+	ORoot()->RemoveAll();
+	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_TREE_NODES, giTestThreadNodesFreed);
+	pShared = NULL;
+	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_TREE_NODES + 1, giTestThreadNodesFreed);
+	TestObjectsThreadsEnd(uiObjects - 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Workers' trees adopted into a main object system with a database are
+// saved by its flush like any of its objects, and load again: evicted,
+// each tree is found by its name with every node.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsWorkersAdoptStored(void)
+{
+	Ptr<CTestThreadNode>	pShared;
+	CChars					szName;
+	size					uiObjects;
+	size					i;
+
+	TestObjectsThreadsBeginStored();
+	pShared = ONMalloc<CTestThreadNode>("Shared");
+	ORoot()->Add(pShared);
+	AssertTrue(ObjectsLocking(true));
+
+	gbTestObjectsThreadsWorkers = true;
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsWorkerAdopts, NULL, NULL, &pShared, NULL));
+	gbTestObjectsThreadsWorkers = false;
+	pShared = NULL;
+	ObjectsCollect();
+	AssertTrue(ObjectsLocking(false));
+
+	uiObjects = gcObjects.NumMemoryIndexes();
+	AssertTrue(ObjectsFlush());
+	AssertTrue(gcObjects.EvictInMemory());
+	for (i = 0; i < TEST_OBJECTS_THREADS; i++)
+	{
+		szName.Init();
+		szName.Append("Tree");
+		szName.Append((uint32)(1000 + i * 7919));
+		AssertSize(TEST_OBJECTS_THREADS_TREE_NODES + (1 << TEST_OBJECTS_THREADS_TREE_DEPTH), TestObjectsThreadsCountTree(szName.Text()));
+		szName.Kill();
+	}
+	AssertLong((int64)uiObjects, gcObjects.NumMemoryIndexes());
+	TestObjectsThreadsEndStored();
+}
+
+
+//A graph with a name the main object system has already is refused whole: it stays the worker's, and is freed with it.
+static void TestObjectsThreadsWorkerAdoptsClash(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CTestThreadNode>	pTop;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pTop = OMalloc<CTestThreadNode>();
+	pTop->mpNext = ONMalloc<CTestThreadNode>("Shared");
+	ORoot()->Add(pTop);
+	if (ObjectsAdopt(pTop) || (pTop->GetObjectsThisIn() != ObjectsCurrent()) || (pTop->mpNext->GetObjectsThisIn() != ObjectsCurrent()))
+	{
+		psThread->iErrors++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker's graph with a name the main object system has is refused, and
+// said, and nothing of it moves (decision 14).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsWorkerAdoptClash(void)
+{
+	Ptr<CTestThreadNode>	pShared;
+	CMemoryFile				cLog;
+	SLogConfig				sLogConfig;
+	char					szLog[1024];
+	size					uiObjects;
+
+	TestObjectsThreadsBegin();
+	pShared = ONMalloc<CTestThreadNode>("Shared");
+	ORoot()->Add(pShared);
+	pShared = NULL;
+	uiObjects = gcObjects.NumMemoryIndexes();
+
+	StartCapturingLog(&cLog, &sLogConfig);
+	gbTestObjectsThreadsWorkers = true;
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsWorkerAdoptsClash, NULL, NULL, NULL, NULL));
+	gbTestObjectsThreadsWorkers = false;
+	StopCapturingLog(&cLog, &sLogConfig, szLog, sizeof(szLog));
+	AssertNotNull(strstr(szLog, "Cannot adopt a graph with an object named [Shared]"));
+
+	AssertInt(TEST_OBJECTS_THREADS * 2, giTestThreadNodesFreed);
+	TestObjectsThreadsEnd(uiObjects);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2952,6 +3156,9 @@ void TestObjectsThreads(void)
 	TestObjectsThreadsWorkerObjectsPointAtMain();
 	TestObjectsThreadsWorkerObjectHoldsMain();
 	TestObjectsThreadsWorkerObjectsAreItsOwn();
+	TestObjectsThreadsWorkersAdopt();
+	TestObjectsThreadsWorkersAdoptStored();
+	TestObjectsThreadsWorkerAdoptClash();
 	TestObjectsThreadsAssertNoFree();
 	TestObjectsThreadsEveryWayIn();
 

@@ -626,6 +626,9 @@
     <ClCompile Include="ObjectsWorker.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
+    <ClCompile Include="ObjectsAdopt.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
     <ClCompile Include="ObjectsThreads.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>

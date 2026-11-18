@@ -65,6 +65,20 @@ class CFreeObjects;
 
 //A hollow loaded while another thread may have read a pointer to it and not yet asked it for its object, and what it
 //was loaded as (ThreadSafetyPlan.txt, Forwarding hollows).
+//A from of an object a worker adopts (CObjects::Adopt) that is taken off while the object moves, and put back as a stack
+//from once it is main's: a stack pointer or collection of the worker's, or a field or collection of a worker's object
+//outside the graph (which then holds a main object, IsAcross).
+struct SAdoptFrom
+{
+	CEmbeddedObject*	pcTo;
+	CPointer*			pcPointer;
+	CCollection*		pcCollection;
+};
+
+
+typedef CArrayTemplate<SAdoptFrom>	CArrayAdoptFrom;
+
+
 struct SForwardingHollow
 {
 	CHollowObject*	pcHollow;
@@ -141,6 +155,7 @@ public:
 						bool					IsHomeThread(void);  //The running thread is the one that frees this's objects.
 						bool					IsWorker(void);
 						OIndex					ReserveIndexes(size uiCount);  //uiCount indexes in a row, for a worker's object system: the first.
+						bool					Adopt(CPointer& pTop);  //The main object system's, by a worker: pTop's graph becomes main's (ObjectsAdopt).
 						bool					IsWriteThrough(void);
 						size					NumWaitingToBeFreed(void);
 						size					NumForwarders(void);
@@ -240,6 +255,13 @@ protected:
 						void					WaitToBeFreed(CArrayBaseObjectPtr* papcObjectPts);
 						void					ClearWalkStamps(void);
 						bool					ValidateNoOtherThreadHolds(const char* szMethod);
+						uint32					AdoptGraph(CObjects* pcWorker, CBaseObject* pcTop, CArrayBaseObjectPtr* papcGraph);
+						bool					CanAdoptNames(CArrayBaseObjectPtr* papcGraph);
+						void					TakeAdoptedFroms(CBaseObject* pcObject, uint32 uiStamp, CArrayAdoptFrom* pasFroms);
+						void					RecordAdoptedFields(CEmbeddedObject* pcEmbedded, CArrayBaseObjectPtr* papcOutside, CArrayAdoptFrom* pasFroms, CArrayHeapFromPointer* pasFields);
+						void					AdoptWeakFroms(CObjects* pcWorker, CArrayBaseObjectPtr* papcGraph, uint32 uiStamp);
+						void					MoveAdopted(CObjects* pcWorker, CBaseObject* pcObject);
+						void					HoldAdoptedTos(CBaseObject* pcObject, uint32 uiStamp);
 						bool					ValidateNoOtherThreadHolds(const char* szMethod, CBaseObject* pcObject);
 						bool					LoadForDestroy(OIndex oi);
 						bool					SaveDirtyInMemory(void);
@@ -309,6 +331,7 @@ void ObjectsInit(void);
 void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsKill(bool bValidate = true);
+bool ObjectsAdopt(CPointer& pTop);  //A worker's: pTop and every object of its it reaches become the main object system's (ThreadSafetyPlan.txt, Level 3).
 bool ObjectsValidate(void);
 bool ObjectsFlush(void);
 void ObjectsCollect(void);  //The home thread's, from its tick: frees the objects other threads found dead.

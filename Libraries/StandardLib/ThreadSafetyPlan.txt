@@ -1111,10 +1111,41 @@ Steps
          objects made ordinary heap froms, and the worker's stack pointers to them kept as its thread's stack froms.
          Returns a pointer to pTop in the main object system for the caller to attach.  What the worker keeps that
          points into the adopted graph is a worker object pointing at main objects (c).
+         Done 2026-11-18: ObjectsAdopt(pTop) (CObjects::Adopt on the main object system, ObjectsAdopt.cpp), by the
+         worker, under the main lock.  It returns whether it adopted; pTop, the worker's own pointer, then points at a
+         main object that isn't attached to the main root until something attached points at it.
+           The graph: pTop's container and every object of the worker's it reaches, stamped with a walk of the
+           worker's (a worker's walk leaves main objects out, so the graph ends at them).
+           Names: one the main object system has, in memory or in its database, refuses the whole graph and is said;
+           nothing has moved.
+           Each object's froms that aren't the graph's come off (unlinked, so nothing is freed): the worker's stack
+           pointers and collections, and the heap froms of the worker's objects outside the graph (a field, found by
+           GetPointerFieldsTo, or a place in a collection).
+           Weak references: those within the graph move to the main object system's table; those across its edge,
+           in or out, are cleared (a holder is the graph's if it lies in the memory of one of its objects).
+           Each object leaves the worker's memory index for main's (its index is from main's sequence already), its
+           object system is main's, its classes and its embedded objects' are main's (completed now if main has
+           none, the embedded objects' first: a class records its embedded fields' classes), it is unattached and
+           dirty.
+           Its fields and collections that held main objects as a worker's do (IsAcross) hold them by heap froms.
+           The froms taken off go back on as stack froms: the worker's stack pointers and collections, and the
+           worker's objects outside the graph, which now hold main objects (c).
       e. Tests (TestObjectsThreads.cpp): workers building graphs at once and adopting them (counts, distances,
          names, indexes, and the database after a flush); a worker's objects holding main objects; a clashing name
          refusing Adopt; objects left at ObjectsThreadKill; scratch objects kept and freed by the worker.
          ThreadSanitizer and ASan, repeated.
+         Done 2026-11-18, with b, c and d: TestObjectsThreadsWorkerOwnGraphs, WorkerLeftObjects, WorkerHoldsMain,
+         WorkerObjectsPointAtMain, WorkerObjectHoldsMain, WorkerObjectsAreItsOwn (b and c, above), and for d:
+         TestObjectsThreadsWorkersAdopt (8 workers each build a named tree of 127 nodes in its own root, the leaves
+         pointing at a main node, keep a pointer into it, adopt it and put it in the main root: main holds every
+         tree by name with every node, the main node one heap from from each leaf, main's validation passes, and
+         every node is freed on the home thread once main lets go), TestObjectsThreadsWorkersAdoptStored (the same
+         into a main object system with a database: flushed, evicted, and loaded again through the root, whole),
+         TestObjectsThreadsWorkerAdoptClash (a graph with a name main has is refused, said, and freed with the
+         worker).  The threads tests 3 times in Debug, and under ASan and ThreadSanitizer: nothing reported.
+         Found on the way: a tree loaded by its name alone (gcObjects.Get) while its holders are hollows isn't
+         attached, and goes again when the pointer to it does: the open item on objects loaded by name alone
+         (memory stored-objects-without-path), not Adopt's; the test loads through the root.
       f. Measured: OMalloc and free on 1 to 12 workers each in its own object system (step 22's table again), and
          Adopt for each object.
       g. Proved: the mutation harness over the new guards, the full sweep, the 65 suites (with level 3 compiled

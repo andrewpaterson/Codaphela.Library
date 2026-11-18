@@ -439,6 +439,7 @@
     <ClCompile Include="HollowObject.cpp" />
     <ClCompile Include="IndexedObjects.cpp" />
     <ClCompile Include="ObjectsWorker.cpp" />
+    <ClCompile Include="ObjectsAdopt.cpp" />
     <ClCompile Include="ObjectSource.cpp" />
     <ClCompile Include="Action.cpp" />
     <ClCompile Include="Actions.cpp" />

@@ -226,6 +226,26 @@ bool CWeakFroms::Contains(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CWeakFroms::GetObjects(CArrayEmbeddedObjectPtr* papcObjects)
+{
+	SMapIterator		sIterator;
+	CEmbeddedObject*	pcObject;
+	CArrayWeakFrom*		pacFroms;
+	bool				bExists;
+
+	bExists = mcObjects.StartIteration(&sIterator, (void**)&pcObject, (void**)&pacFroms);
+	while (bExists)
+	{
+		papcObjects->Add(pcObject);
+		bExists = mcObjects.Iterate(&sIterator, (void**)&pcObject, (void**)&pacFroms);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CWeakFroms::ValidateConsistency(void)
 {
 	SMapIterator		sIterator;
