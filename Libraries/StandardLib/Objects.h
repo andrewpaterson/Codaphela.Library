@@ -282,6 +282,22 @@ extern CObjects	gcObjects;
 extern bool		gbObjects;
 extern size		guiObjectsForwarders;  //Forwarding hollows in every object system (with the lock): pointing a pointer looks for one only while there are some.
 
+
+//The object system OMalloc, ORoot and the rest make and find objects in: the running thread's own (a worker's), or
+//gcObjects (ThreadSafetyPlan.txt, Level 3 as built).
+#ifdef __LIBC65__
+inline CObjects* ObjectsCurrent(void) { return &gcObjects; }
+#else
+extern OBJECTS_PER_THREAD CObjects*	gpcObjectsOwn;  //The running thread's own object system, NULL if it has none.
+inline CObjects* ObjectsCurrent(void)
+{
+	CObjects*	pcOwn;
+
+	pcOwn = gpcObjectsOwn;
+	return (pcOwn != NULL) ? pcOwn : &gcObjects;
+}
+#endif // __LIBC65__
+
 void ObjectsInit(void);
 void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
@@ -497,7 +513,7 @@ template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> OMalloc(Args&& ... args)
 {
 	//Calls .Init on the allocated instance to ensure it's properly wound into the Objects machinery.
-	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>();
+	Ptr<SpecificClass> pObject = ObjectsCurrent()->Malloc<SpecificClass>();
 	if (pObject.IsNotNull())
 	{
 		pObject->Init(args...);
@@ -514,7 +530,7 @@ template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args&& ... args)
 {
 	//Calls .Init on the allocated instance to ensure it's properly wound into the Objects machinery.
-	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>(szObjectName);
+	Ptr<SpecificClass> pObject = ObjectsCurrent()->Malloc<SpecificClass>(szObjectName);
 	if (pObject.IsNotNull())
 	{
 		pObject->Init(args...);
@@ -530,7 +546,7 @@ template <class SpecificClass>
 Ptr<SpecificClass> OMallocNoI()
 {
 	//Does not call .Init on the allocated instance.
-	return gcObjects.Malloc<SpecificClass>();
+	return ObjectsCurrent()->Malloc<SpecificClass>();
 }
 
 
@@ -542,7 +558,7 @@ template <class SpecificClass>
 Ptr<SpecificClass> ONMallocNoI(const char* szObjectName)
 {
 	//Does not call .Init on the allocated instance.
-	return gcObjects.Malloc<SpecificClass>(szObjectName);
+	return ObjectsCurrent()->Malloc<SpecificClass>(szObjectName);
 }
 
 

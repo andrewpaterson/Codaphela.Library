@@ -43,6 +43,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 CObjects	gcObjects;
 bool		gbObjects = false;
 size		guiObjectsForwarders = 0;
+#ifndef __LIBC65__
+OBJECTS_PER_THREAD CObjects*	gpcObjectsOwn = NULL;
+#endif // __LIBC65__
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -3066,6 +3069,6 @@ void ObjectsDump(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CRoot> ORoot(void)
 {
-	return gcObjects.Root();
+	return ObjectsCurrent()->Root();
 }
 

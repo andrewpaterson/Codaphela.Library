@@ -229,6 +229,34 @@ void ObjectsLock(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE bool ObjectsLockFor(const CObjects* pcObjects)
+{
+	if ((pcObjects != NULL) && (pcObjects == gpcObjectsOwn))
+	{
+		return false;
+	}
+	ObjectsLock();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object in no object system (on the stack, say) is the main one's
+// business, as anything else is.  GetObjectsThisIn only reads (it isn't
+// const as GetEmbeddingContainer isn't).
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE bool ObjectsLockForObject(const CEmbeddedObject* pcObject)
+{
+	return ObjectsLockFor(((CEmbeddedObject*)pcObject)->GetObjectsThisIn());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A way in was reached with the locking off (a Debug build asks).  That is right for the home thread alone: any
 // other thread is racing it.
 //

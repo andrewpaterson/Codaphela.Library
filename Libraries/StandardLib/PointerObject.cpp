@@ -173,11 +173,9 @@ CPointer::~CPointer()
 		{
 			pcObject->RemoveStackFromTryFree(this);
 		}
-		else if (!PointToReading(&gpcPointerNoObject))
+		else
 		{
-			ObjectsLock();
-			mpcObject->RemoveStackFromTryFree(this);
-			ObjectsUnlock();
+			PointToLocking(&gpcPointerNoObject);
 		}
 	}
 }
@@ -439,7 +437,7 @@ static inline CEmbeddedObject* NotForwarding(CEmbeddedObject* pcObject)
 // *ppcObject (another pointer's object, where this is to point at what that does) is read once nothing can be
 // changing it.
 //
-// With the locking on it is first tried as a reader, without the lock (PointToReading).
+// With the locking on it is first tried as a reader, without the lock (PointToLocking).
 //
 //////////////////////////////////////////////////////////////////////////
 void CPointer::PointToFromOutside(CEmbeddedObject* const* ppcObject)
@@ -448,7 +446,7 @@ void CPointer::PointToFromOutside(CEmbeddedObject* const* ppcObject)
 	{
 		PointToInside(*ppcObject);
 	}
-	else if (!PointToReading(ppcObject))
+	else
 	{
 		PointToLocking(ppcObject);
 	}
@@ -457,15 +455,20 @@ void CPointer::PointToFromOutside(CEmbeddedObject* const* ppcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// PointToFromOutside with the lock: what a reader couldn't do.  Apart, so
-// that the way with the locking off is as short as it was.
+// PointToFromOutside with the locking on: as a reader if it can be
+// (PointToReading), otherwise with the lock.  Apart, so that the ways
+// with the locking off (the constructors, assignments and destructor) stay
+// as short as they are.
 //
 //////////////////////////////////////////////////////////////////////////
 NO_INLINE void CPointer::PointToLocking(CEmbeddedObject* const* ppcObject)
 {
-	ObjectsLock();
-	PointToInside(NotForwarding(*ppcObject));
-	ObjectsUnlock();
+	if (!PointToReading(ppcObject))
+	{
+		ObjectsLock();
+		PointToInside(NotForwarding(*ppcObject));
+		ObjectsUnlock();
+	}
 }
 
 
@@ -1067,12 +1070,27 @@ void CPointer::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::AssignObject(CEmbeddedObject* pcObject)
 {
-	//A pointer that points at nothing yet is pointed at pcObject as any is, which a reader may do.
 	if (!OBJECTS_LOCKING())
 	{
 		AssignObjectInside(pcObject);
 	}
-	else if ((LoadObject() != NULL) || !PointToReading(&pcObject))
+	else
+	{
+		AssignObjectLocking(pcObject);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// AssignObject with the locking on.  A pointer that points at nothing yet
+// is pointed at pcObject as any is, which a reader may do.  Apart, as
+// PointToLocking is.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE void CPointer::AssignObjectLocking(CEmbeddedObject* pcObject)
+{
+	if ((LoadObject() != NULL) || !PointToReading(&pcObject))
 	{
 		ObjectsLock();
 		AssignObjectInside(NotForwarding(pcObject));

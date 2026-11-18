@@ -1217,7 +1217,7 @@ CObjects* CEmbeddedObject::GetObjectsOrDefault(void)
 	{
 		return pcObjects;
 	}
-	return &gcObjects;
+	return ObjectsCurrent();
 }
 
 
@@ -1237,7 +1237,7 @@ CObjects* CEmbeddedObject::GetObjects(void)
 			return NULL;
 		}
 
-		pcObjects = &gcObjects;
+		pcObjects = ObjectsCurrent();
 	}
 	return pcObjects;
 }

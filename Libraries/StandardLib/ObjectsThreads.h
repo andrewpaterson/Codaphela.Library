@@ -114,13 +114,6 @@ struct SObjectsReader
 };
 
 
-#ifdef _MSC_VER
-#define OBJECTS_PER_THREAD	__declspec(thread)
-#else
-#define OBJECTS_PER_THREAD	__thread
-#endif // _MSC_VER
-
-
 extern bool									gbObjectsThreads;			//A thread other than the home thread is registered.  Changed by writers.
 extern int32								giObjectsThreadsKeeping;	//How many registered threads are counted as keeping stack froms.
 extern OBJECTS_PER_THREAD SObjectsReader*	gpsObjectsReader;			//The running thread's, NULL if it can't read (it isn't registered, or nothing reads).
