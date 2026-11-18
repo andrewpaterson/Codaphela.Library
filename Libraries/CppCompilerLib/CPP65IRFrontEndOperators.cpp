@@ -694,6 +694,7 @@ bool CCPP65IRFrontEnd::FullCondition(CCPPSyntax* pcExpression, CIRBlock* pcTrue,
 	{
 		return false;
 	}
+	MarkFullExpression();
 	StartBlock(pcDestroyTrue);
 	if (!DestroyTemporaryPlaces(uiTemporaries))
 	{

@@ -134,6 +134,8 @@ enum EIRShape
 #define IRF_InArray		0x20		//ptradd: the result is in an array of under 64KB that starts at the pointer, so the offset
 									//and the bytes read or written through it stay under 64KB
 #define IRF_NumWordFlags	5
+#define IRF_FullExpression	0x40		//any: ends a full-expression in a constant's IR (CIRInterpreter counts them).  Not
+									//written, and allowed on every opcode.
 
 
 //What optimising may do with an opcode's instructions.  A target's opcodes have none, so are left alone.

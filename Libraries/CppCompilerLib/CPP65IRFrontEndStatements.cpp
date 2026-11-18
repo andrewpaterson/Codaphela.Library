@@ -269,7 +269,25 @@ bool CCPP65IRFrontEnd::DestroyTemporaries(size uiTemporaries)
 		return false;
 	}
 	masTemporaries.FakeSetUsedElements(uiTemporaries);
+	MarkFullExpression();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A full-expression has been written: in a constant's IR the last
+// instruction of the block it ends in is marked, and the interpreter counts
+// those.  One that wrote nothing there (a constant) isn't counted.
+// [implimits]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::MarkFullExpression(void)
+{
+	if (mbConstants && mpcBlock && (mpcBlock->masInstructions.NumElements() > 0))
+	{
+		mpcBlock->masInstructions.Tail()->uiFlags |= IRF_FullExpression;
+	}
 }
 
 

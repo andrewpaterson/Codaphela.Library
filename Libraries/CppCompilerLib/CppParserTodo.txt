@@ -379,6 +379,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
        one core constant expression.  The step limit counts full-expressions, not instructions (an instruction count of 1,000,000
        was fewer), and both are options (muiConstantSteps, muiConstantDepth) that may be raised.  The depth no longer takes the C stack
        (the interpreter's frames, bf900638d).
+       Done 2026-11-18: the front end marks where each full-expression ends in a constant's IR (IRF_FullExpression), the
+       interpreter counts those, and 64 instructions or jumps a step stay as a backstop (for (;;) {}).
     5. A closure type in an inline function or a template is one type in every unit ([basic.def.odr]/6, [expr.prim.lambda]/3): its
        operator(), its static locals and its conversion to a function pointer are shared across units (COMDAT, as inline functions
        are), so a static local in the lambda is one object and the function pointer is one address.
@@ -386,6 +388,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         capture it, where it isn't odr-used (an lvalue-to-rvalue conversion is applied at once, [basic.def.odr]/3,
         [expr.prim.lambda]/12): its value is used, as for any constant.  Taking its address or binding a reference to it still needs
         a capture.
+        Done 2026-11-18 (138cc2368): CPPBN_EnclosingConstant; its address, a reference bound to it or a reference
+        parameter it is an argument for still needs a capture.
     6. A static local's guard has three states: not started, being initialised, done ([stmt.dcl]/4).  Entering it again while it is
        being initialised (recursively, or from an interrupt) is undefined behaviour: it traps, as g++'s __cxa_guard_acquire throws
        recursive_init_error.  If the initialisation exits by an exception (once there are exceptions) it isn't done, and is tried again

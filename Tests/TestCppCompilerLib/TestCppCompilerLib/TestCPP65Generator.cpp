@@ -3657,8 +3657,16 @@ void TestCPP65GeneratorErrors(void)
 		"constexpr int f(int x) { return 10 / x; }\nconstexpr int g(int x) { return f(x - 1); }\nchar a[g(1)];");
 	AssertCPP65Error("Generated.cpp (2, 13): A constexpr variable's initialiser must be a constant: It divides by zero, or the least number by -1, in S::S(int) [s]\n",
 		"struct S { int v; constexpr S(int a) : v(10 / a) {} };\nconstexpr S s(0);");
-	AssertCPP65Error("Generated.cpp (2, 8): An array size must be a positive constant: Its calls go too deep to be worked out, in deep(int), called from itself 510 times [deep]\n",
+	AssertCPP65Error("Generated.cpp (2, 8): An array size must be a positive constant: Its calls go too deep to be worked out, in deep(int), called from itself 511 times [deep]\n",
 		"constexpr int deep(int n) { return n == 0 ? 0 : 1 + deep(n - 1); }\nchar b[deep(1000)];");
+
+	//The limits are at least [implimits]' (Annex B; CppParserTodo.txt question 4): 512 constexpr calls inside one
+	//another, and 1,048,576 full-expressions evaluated for one constant, however many instructions they take (200,000
+	//turns of the loop are 600,000 full-expressions and some millions of instructions; 400,000 are too many).
+	AssertCPP65Generates("constexpr int deep(int n) { return n == 0 ? 0 : 1 + deep(n - 1); }\nchar b[deep(511) - 510];");
+	AssertCPP65Generates("constexpr int Count(int n) { int s = 0; for (int i = 0; i < n; i++) { s += i & 1; } return s; }\nchar a[Count(200000) - 99999];");
+	AssertCPP65Error("Generated.cpp (2, 8): An array size must be a positive constant: It takes too long to work out, in Count(int) [Count]\n",
+		"constexpr int Count(int n) { int s = 0; for (int i = 0; i < n; i++) { s += i & 1; } return s; }\nchar a[Count(400000)];");
 	AssertCPP65Error("Generated.cpp (1, 66): dynamic_cast needs a pointer to a class or to void [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; int g(B* b) { return dynamic_cast<int*>(b) != 0; }");
 	AssertCPP65Error("Generated.cpp (1, 92): The operand of dynamic_cast must be a pointer to a class [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; struct D : B { int y; }; D* g(int* p) { return dynamic_cast<D*>(p); }");
 	AssertCPP65Error("Generated.cpp (1, 35): __builtin_bcd_add and __builtin_bcd_subtract are the W65C816's decimal mode: use BaseLib's BCDAdd and BCDSubtract [__builtin_bcd_add]\n", "int f(unsigned short* p) { return __builtin_bcd_add(p, p, 1, 0); }");

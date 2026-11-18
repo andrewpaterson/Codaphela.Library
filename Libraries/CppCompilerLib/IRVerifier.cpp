@@ -631,7 +631,7 @@ void CIRVerifier::CheckInstruction(CIRBlock* pcBlock, size uiIndex)
 		CheckConversion(psInstruction, psOpcode);
 	}
 	CheckResult(psInstruction, psOpcode);
-	if (psInstruction->uiFlags & ~psOpcode->uiFlags)
+	if (psInstruction->uiFlags & ~(psOpcode->uiFlags | IRF_FullExpression))
 	{
 		Error("Flag not allowed on the opcode.", psOpcode->szName);
 	}

@@ -273,6 +273,7 @@ protected:
 	bool			DestroyLiving(size uiLiving);
 	bool			FullExpression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			DestroyTemporaries(size uiTemporaries);
+	void			MarkFullExpression(void);
 	bool			DestroyTemporaryPlaces(size uiFrom);
 	bool			DestroyPlaces(CArrayCPP65IRPlaces* pasPlaces, size uiFrom);
 	bool			DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);

@@ -221,7 +221,8 @@ bool CCPPConstants::Run(CIRModule* pcModule, CIRFunction* pcIR, SIRValue* pasArg
 	size					uiNamed;
 	size					uiRepeats;
 
-	mcInterpreter.SetLimits(mpcUnit->GetOptions()->muiConstantSteps, mpcUnit->GetOptions()->muiConstantDepth);
+	//The depth is of constexpr calls: the function the constant expression is written as is one more.
+	mcInterpreter.SetLimits(mpcUnit->GetOptions()->muiConstantSteps, mpcUnit->GetOptions()->muiConstantDepth + 1);
 	if (mcInterpreter.Call(pcModule, pcIR, pasArguments, uiNumArguments, psResult))
 	{
 		return true;
