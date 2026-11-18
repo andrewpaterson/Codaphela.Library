@@ -18,7 +18,12 @@ void CAssertStatistics::Init(void)
 	mcTestTimer.Init();
 
 	//The log is Log.txt, or what TESTLIB_LOG names: processes run side by side in one folder each have their own.
+	//Libc65 (the 65C64 and the W65C816) has no environment.
+#ifdef __LIBC65__
+	gcLogger.Init("Log.txt");
+#else
 	gcLogger.Init(getenv("TESTLIB_LOG") ? getenv("TESTLIB_LOG") : "Log.txt");
+#endif // __LIBC65__
 
 	miTotalTestsRun = 0;
 	miTotalTestsPassed = 0;
