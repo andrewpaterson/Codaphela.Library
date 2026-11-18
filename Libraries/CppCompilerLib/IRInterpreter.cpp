@@ -55,6 +55,8 @@ void CIRInterpreter::Init(CIRInterpreterHost* pcHost)
 	maszLastTrail.Init();
 	muiSteps = 0;
 	muiStepLimit = IR_INTERPRETER_STEPS;
+	muiInstructions = 0;
+	muiInstructionLimit = IR_INTERPRETER_STEPS * IR_INTERPRETER_INSTRUCTIONS_PER_STEP;
 	muiDepth = 0;
 	muiDepthLimit = IR_INTERPRETER_DEPTH;
 	muiFrames = 0;
@@ -92,13 +94,16 @@ void CIRInterpreter::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// How many instructions may be run before a value is given up on, and how
-// deep calls may go.
+// How many full-expressions (instructions marked IRF_FullExpression) may be
+// evaluated before a value is given up on, and how deep calls may go.  As
+// many instructions and jumps as IR_INTERPRETER_INSTRUCTIONS_PER_STEP times
+// the steps may be run whatever is marked.  [implimits]
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRInterpreter::SetLimits(size uiSteps, size uiDepth)
 {
 	muiStepLimit = uiSteps;
+	muiInstructionLimit = uiSteps * IR_INTERPRETER_INSTRUCTIONS_PER_STEP;
 	muiDepthLimit = uiDepth;
 }
 
@@ -661,6 +666,10 @@ bool CIRInterpreter::Integer(CIRModule* pcModule, CIRFunction* pcFunction, SIRIn
 		}
 		return Fail("It is not IR that can be run");
 	}
+	if ((psInstruction->uiFlags & IRF_NoSignedWrap) && IRSignedOverflows(uiOpcode, iBits, psLeft->ulliBits, psRight->ulliBits, ulliResult))
+	{
+		return Fail("Its signed arithmetic overflows");
+	}
 	psResult->Set(bComparison ? (ulliResult & 1) : IRTruncate(sType, ulliResult));
 	return true;
 }
@@ -1164,9 +1173,9 @@ bool CIRInterpreter::RunFrame(SIRFrame* psFrame)
 		while (psFrame->uiInstruction < pcBlock->masInstructions.NumElements())
 		{
 			psInstruction = pcBlock->masInstructions.Get(psFrame->uiInstruction);
-			if (++muiSteps > muiStepLimit)
+			if (!CountStep(psInstruction->uiFlags & IRF_FullExpression))
 			{
-				return Fail("It takes too long to work out");
+				return false;
 			}
 			if (psInstruction->uiOpcode == IRO_Call)
 			{
@@ -1204,14 +1213,27 @@ bool CIRInterpreter::RunFrame(SIRFrame* psFrame)
 			}
 			break;
 		}
-		if (!bResult)
+		if (!bResult || !CountStep(false))
 		{
 			return false;
 		}
-		if (++muiSteps > muiStepLimit)
-		{
-			return Fail("It takes too long to work out");
-		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instruction or a jump is run: a step too if it ends a full-expression
+// (bFullExpression).  False, with why, once either limit is passed.
+// [implimits]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterpreter::CountStep(bool bFullExpression)
+{
+	if ((bFullExpression && (++muiSteps > muiStepLimit)) || (++muiInstructions > muiInstructionLimit))
+	{
+		return Fail("It takes too long to work out");
 	}
 	return true;
 }
@@ -1291,6 +1313,7 @@ bool CIRInterpreter::Call(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue
 	if (muiDepth == 0)
 	{
 		muiSteps = 0;
+		muiInstructions = 0;
 	}
 
 	bResult = uiNumArguments == pcFunction->masParameters.NumElements();

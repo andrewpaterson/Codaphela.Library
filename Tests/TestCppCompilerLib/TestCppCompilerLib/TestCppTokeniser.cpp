@@ -912,7 +912,6 @@ void TestCppTokeniser(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	TestCppTokeniserKeywordsAndPunctuators();
 	TestCppTokeniserDigraphBeforeScope();
@@ -928,7 +927,6 @@ void TestCppTokeniser(void)
 	TestCppTokeniserRawStrings();
 	TestCppTokeniserIdentifierIndex();
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

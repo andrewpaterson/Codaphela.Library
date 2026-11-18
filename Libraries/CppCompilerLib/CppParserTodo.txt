@@ -375,10 +375,14 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     3. Signed overflow in a constant expression is an error: it isn't a constant ([expr]/4, [expr.const]/2: an operation whose result
        isn't mathematically defined or not in its type's range).  The front end marks signed arithmetic (add, subtract, multiply,
        negate, left shift, divide and remainder of the least number by -1) so the interpreter can tell; unsigned arithmetic still wraps.
+       Done 2026-11-18: IRSignedOverflows, IRF_NoSignedWrap, the folder's reason, and an enum's values checked where it is
+       declared ([dcl.enum] 2) when they are definitely no constant.
     4. The limits are at least [implimits]' (Annex B): 512 recursive constexpr calls, and 1,048,576 full-expressions evaluated within
        one core constant expression.  The step limit counts full-expressions, not instructions (an instruction count of 1,000,000
        was fewer), and both are options (muiConstantSteps, muiConstantDepth) that may be raised.  The depth no longer takes the C stack
        (the interpreter's frames, bf900638d).
+       Done 2026-11-18: the front end marks where each full-expression ends in a constant's IR (IRF_FullExpression), the
+       interpreter counts those, and 64 instructions or jumps a step stay as a backstop (for (;;) {}).
     5. A closure type in an inline function or a template is one type in every unit ([basic.def.odr]/6, [expr.prim.lambda]/3): its
        operator(), its static locals and its conversion to a function pointer are shared across units (COMDAT, as inline functions
        are), so a static local in the lambda is one object and the function pointer is one address.
@@ -386,21 +390,36 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         capture it, where it isn't odr-used (an lvalue-to-rvalue conversion is applied at once, [basic.def.odr]/3,
         [expr.prim.lambda]/12): its value is used, as for any constant.  Taking its address or binding a reference to it still needs
         a capture.
+        Done 2026-11-18 (138cc2368): CPPBN_EnclosingConstant; its address, a reference bound to it or a reference
+        parameter it is an argument for still needs a capture.
     6. A static local's guard has three states: not started, being initialised, done ([stmt.dcl]/4).  Entering it again while it is
        being initialised (recursively, or from an interrupt) is undefined behaviour: it traps, as g++'s __cxa_guard_acquire throws
        recursive_init_error.  If the initialisation exits by an exception (once there are exceptions) it isn't done, and is tried again
        the next time.  If threads come, another thread entering it waits until it is done.
+       Done 2026-11-18: the guard byte is 0, 1 being made, 2 done; reached at 1 it calls R_RecursiveInit (stp).  An
+       exception leaving the initialiser is to store 0 back (ExceptionsPlan.txt).
     7. thread_local is one object per thread ([basic.stc.thread]).  A program has one thread, so it is static storage now, with the
        same dynamic initialisation and destruction a thread's objects have (initialised before first use, destroyed at exit, before the
        static objects); per thread if threads come.  A process is a program of its own, so the kernal running several changes nothing.
+       Done 2026-11-18: mbThreadLocal; a thread_local object goes on __ThreadExitList, run before __ExitList.
     11. Static objects whose class has a destructor (static locals included) are destroyed when the program ends, in the reverse of the
         order their construction finished, interleaved with namespace-scope objects and with functions registered by atexit
         ([basic.start.term]/1, /3).  The start-up code gets a list: a static local registers its destructor when its initialisation
         finishes; exit runs the list.
+        Done 2026-11-18: CCPP65IRFrontEnd::PushExitNode when a construction finishes (R_Initialise, GuardedStaticLocal),
+        heads in the start up (AppendExitLists, HCP65 UserStart.asm), R_RunExitLists or Libc65's __RunAtExit (whose atexit
+        pushes on the same list) after main; globals made in the data stay in the fini table, run after the lists.
     8. typeid(x).name() is the type's C++ name (the standard leaves the string to the implementation, [type.info]/9; the most useful one
        is the name as the program writes it, "N::A", "int*"), for every type typeid can name, polymorphic or not.
     9. Virtual inheritance (stage 9): lay classes out as MSVC does (a virtual base pointer in the object), as the plan says, or as the
        Itanium ABI does (virtual base offsets in the vtable), which is usually smaller?  The user, 2026-11-16: Itanium style.
+
+  Found while doing 11 (2026-11-18), for the user:
+    12. The linker drops a global nothing refers to (SetRemoveUnused), with its init and fini entries, so one whose
+        construction or destruction has side effects is never made or destroyed.  [basic.stc.static] 2 says such a
+        variable shall not be eliminated even if it appears unused.  Keeping every global with an R_Initialise or a
+        destructor would be correct, but it keeps BaseLib's unused globals (and the code they use) in the kernal: OS.SYS
+        may then not fit.  Keep them all, keep them only outside the kernal build, or work out which have side effects?
 
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.

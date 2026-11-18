@@ -419,6 +419,13 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 		RemoveAllHeapFroms();   //Handles embedded objects (in Object.RemoveAllHeapFroms()).
 
 		DoneKill(false);    //Handles embedded objects (in Object.DoneKill()).
+
+		//One that an unknowns allocated without Objects (UMalloc) gives its memory back as any unknown does: last, as
+		//this is gone then.  (One on the stack is in no unknowns.)
+		if (mpcUnknownsThisIn != NULL)
+		{
+			CUnknown::Kill();
+		}
 	}
 }
 

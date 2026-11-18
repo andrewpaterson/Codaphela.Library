@@ -569,7 +569,6 @@ void TestCppHighlighter(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	TestCppHighlighterSource();
 	TestCppHighlighterSplices();
@@ -579,7 +578,6 @@ void TestCppHighlighter(void)
 	TestCppHighlighterSyntaxRanges();
 	TestCppHighlighterNames();
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

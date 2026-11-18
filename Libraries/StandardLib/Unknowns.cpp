@@ -574,13 +574,17 @@ CConstructors* CUnknowns::GetConstructors(void) const
 //////////////////////////////////////////////////////////////////////////
 void UnknownsInit(void)
 {
+	//The global unknowns, which every object in gcObjects is one of, are allocated by gcSystemAllocator: on the hosts
+	//the allocator with a store for each thread (BaseLib's CThreadMallocator), which made an OMalloc and free 14%
+	//quicker than a CMemoryAllocator of their own did (ThreadSafetyPlan.txt, step 23).  What that gave up: Dump can't
+	//go through them one by one, and those still there at UnknownsKill aren't freed with their allocator.
 	if (gbUnknowns)
 	{
 		gcLogger.Error("Unknowns has already been initialised.");
 		return;
 	}
 
-	gcUnknowns.Init("Global", &gcConstructors);
+	gcUnknowns.Init(LifeLocal<CMallocator>(&gcSystemAllocator), "Global", &gcConstructors);
 	gbUnknowns = true;
 }
 

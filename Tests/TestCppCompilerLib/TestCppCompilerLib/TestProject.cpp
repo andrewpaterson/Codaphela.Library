@@ -17,7 +17,6 @@ void TestNoInclude(void)
 {
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	CProject			cProject;
 	CLibrary*			pcLibrary;
@@ -37,7 +36,6 @@ void TestNoInclude(void)
 
 	cProject.Kill();
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 }
@@ -51,7 +49,6 @@ void TestOneInclude(void)
 {
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	CProject			cProject;
 	CLibrary* pcLibrary;
@@ -74,7 +71,6 @@ void TestOneInclude(void)
 
 	cProject.Kill();
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 }
@@ -88,7 +84,6 @@ void TestReinclude(void)
 {
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	CProject			cProject;
 	CLibrary*			pcLibrary;
@@ -125,7 +120,6 @@ void TestReinclude(void)
 
 	cProject.Kill();
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 }
@@ -157,7 +151,6 @@ void TestWritePostFile(void)
 {
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	CProject			cProject;
 	CLibrary*			pcLibrary;
@@ -188,7 +181,6 @@ void TestWritePostFile(void)
 	cProject.Kill();
 	AssertTrue(cFileUtil.Delete("Post" _FS_ "TestUnit4.cpp"));
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 }
@@ -203,7 +195,6 @@ void TestNoPostFile(void)
 {
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	CProject			cProject;
 	CLibrary*			pcLibrary;
@@ -222,7 +213,6 @@ void TestNoPostFile(void)
 
 	AssertFalse(cFileUtil.Exists("Post" _FS_ "TestUnit3.cpp"));
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 }
@@ -238,7 +228,6 @@ void TestMissingIncludeDirectory(void)
 {
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	CProject			cProject;
 	CLibrary*			pcLibrary;
@@ -265,7 +254,6 @@ void TestMissingIncludeDirectory(void)
 
 	cProject.Kill();
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 }
@@ -343,7 +331,6 @@ void TestIncludeDirectorySubDirectory(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 
 	cFileUtil.RemoveDir("Output" _FS_ "IncludeSub");
 	cFileUtil.TouchDir("Output" _FS_ "IncludeSub" _FS_ "Base" _FS_ "Sub");
@@ -424,7 +411,6 @@ void TestIncludeDirectorySubDirectory(void)
 
 	cFileUtil.RemoveDir("Output" _FS_ "IncludeSub");
 
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 }

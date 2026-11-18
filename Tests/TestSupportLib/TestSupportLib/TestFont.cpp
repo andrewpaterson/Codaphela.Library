@@ -476,7 +476,12 @@ void TestFontMapFontViewportLayout(void)
 		AssertTrue(bResult);
 		cTimer.Update();
 		iMilliseconds = cTimer.GetTotalTimeInMillieconds();
+#ifndef __SANITIZE_THREAD__
+		//Not under ThreadSanitizer, which runs everything several times slower.
 		AssertTrue(iMilliseconds < 10);
+#else
+		(void)iMilliseconds;
+#endif // !__SANITIZE_THREAD__
 
 		gcObjects.EnableValidation();
 		gcObjects.ValidateObjectsConsistency();

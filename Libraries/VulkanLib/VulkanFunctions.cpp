@@ -28,6 +28,17 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 
+#ifdef __SANITIZE_ADDRESS__
+//The driver Vulkan's loader finds may register itself on D-Bus (NVIDIA's does), and what libdbus allocated for it is
+//still there when the driver has been unloaded: memory this library never had, and nothing a program that uses it
+//can free.  LeakSanitizer, which would otherwise fail every such program over it, is told to pass over libdbus's.
+extern "C" const char* __lsan_default_suppressions(void)
+{
+	return "leak:libdbus-1.so\n";
+}
+#endif // __SANITIZE_ADDRESS__
+
+
 #define VULKAN_CLEAR_FUNCTION(name)		name = NULL;
 #define VULKAN_FIND_GLOBAL(name)		name = (PFN_##name)mpfGetInstanceProcAddr(NULL, #name);  bResult = bResult && (name != NULL);
 #define VULKAN_FIND_INSTANCE(name)		name = (PFN_##name)mpfGetInstanceProcAddr(hInstance, #name);  bResult = bResult && (name != NULL);

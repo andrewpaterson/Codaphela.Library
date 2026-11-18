@@ -1261,6 +1261,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	CCPPClass*		pcMemberClass;
 	CCPPClass*		pcLookup;
 	SCPPBinding*	psBinding;
+	SCPPLambda*		psLambda;
 
 	pcBound->meWhat = CPPBN_Nothing;
 	pcBound->mpcVariable = NULL;
@@ -1282,6 +1283,14 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		pcBound->mpcClass = mpcUnit->WritingLambda()->pcClass;
 		pcBound->mpsField = pcBound->mpcClass->macFields.Get(pcBound->mpsCapture->uiField);
 		pcBound->miOffset = pcBound->mpsField->iOffset;
+		return;
+	}
+
+	//A constant of the function it is in that it doesn't capture is its value (its object is the type checker's error).
+	psLambda = (pcSymbol && (pcId->mpcName->macpComponents.NumElements() == 1)) ? mpcUnit->WritingLambda() : NULL;
+	if (psLambda && mpcUnit->IsEnclosingConstant(pcSymbol, psLambda))
+	{
+		pcBound->meWhat = CPPBN_EnclosingConstant;
 		return;
 	}
 	if (mpcUnit->IsFunctionName(pcId))

@@ -291,8 +291,9 @@ const char* CCPPTargetW65C816::GetRuntimePrefix(void)
 // The W65C816's start up.  Bank 0 only holds the stack, the direct page, the vectors and their stubs (the user,
 // 2026-10-25), so the reset vector goes to a jml stub there and the start up is in bank 1 onwards.  It switches to
 // native mode with 16 bit registers, sets S to the target's stack top and D to 0, clears bss, calls the init table's routines
-// (each global's R_Initialise, in link order), calls main, Libc65's __RunAtExit when stdlib.cpp is linked (a weak
-// reference), the fini table's routines last first, and stops with main's result in A.  The table walks keep a far
+// (each global's R_Initialise, in link order), calls main, runs the exit lists (Libc65's __RunAtExit when stdlib.cpp
+// is linked, else R_RunExitLists if a unit wrote it: weak references), the fini table's routines last first, and stops
+// with main's result in A.  The lists' heads are its data (AppendExitLists).  The table walks keep a far
 // pointer at 0000:0000 (the direct page while D is 0).  _Exit(int) stops with its argument in A (__Exit.a, the
 // register entry the compiler's callers use, and __Exit, the stack entry).
 //
@@ -384,10 +385,17 @@ void CCPPTargetW65C816::AppendStartUp(CChars* pszDest)
 	pszDest->Append("\t\tjsl _main\n");
 	pszDest->Append("\t\tpha\n");
 	pszDest->Append("\t\t.weak ___RunAtExit\n");
+	pszDest->Append("\t\t.weak R_RunExitLists\n");
 	pszDest->Append("\t\tlda ___RunAtExit & 0xFFFF\n");
 	pszDest->Append("\t\tora ___RunAtExit >> 16\n");
-	pszDest->Append("\t\tbeq StartAtExitDone\n");
+	pszDest->Append("\t\tbeq StartExitLists\n");
 	pszDest->Append("\t\tjsl ___RunAtExit\n");
+	pszDest->Append("\t\tbra StartAtExitDone\n");
+	pszDest->Append("StartExitLists:\n");
+	pszDest->Append("\t\tlda R_RunExitLists & 0xFFFF\n");
+	pszDest->Append("\t\tora R_RunExitLists >> 16\n");
+	pszDest->Append("\t\tbeq StartAtExitDone\n");
+	pszDest->Append("\t\tjsl R_RunExitLists\n");
 	pszDest->Append("StartAtExitDone:\n");
 	pszDest->Append("\t\tlda __fini_end & 0xFFFF\n");
 	pszDest->Append("\t\tsta [D + 0]\n");
@@ -446,6 +454,7 @@ void CCPPTargetW65C816::AppendStartUp(CChars* pszDest)
 	//Where _Exit's code ends: a program stopped between __Exit and here ended itself (a test asks).
 	pszDest->Append("\t\t.global __ExitEnd\n");
 	pszDest->Append("__ExitEnd:\n");
+	AppendExitLists(pszDest);
 	pszDest->AppendNewLine();
 }
 

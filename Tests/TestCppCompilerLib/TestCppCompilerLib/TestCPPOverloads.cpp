@@ -192,7 +192,6 @@ void TestCPPOverloads(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 
 	TestCPPOverloadsBest();
@@ -204,7 +203,6 @@ void TestCPPOverloads(void)
 	TestCPPSpecialisationMatch();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

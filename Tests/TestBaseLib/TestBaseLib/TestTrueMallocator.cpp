@@ -582,6 +582,155 @@ void TestTrueMallocatorRegions(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if pv's uiBytes are within one uiBoundary of addresses.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestTrueMallocatorIsWithin(void* pv, lsize uiBytes, lsize uiBoundary)
+{
+	lsize	uiFirst;
+	lsize	uiLast;
+
+	uiFirst = (lsize)pv;
+	uiLast = uiFirst + uiBytes - 1;
+	return (uiFirst & ~(uiBoundary - 1)) == (uiLast & ~(uiBoundary - 1));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// MallocWithin's memory doesn't cross a boundary in a region that crosses
+// many, what it leaves before a boundary can still be allocated, and it is
+// all given back.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTrueMallocatorWithin(void)
+{
+	CTrueMallocator	cMallocator;
+	CRandom			cRandom;
+	void*			apv[TEST_TRUE_MALLOCATOR_ALLOCATIONS];
+	lsize			auiBytes[TEST_TRUE_MALLOCATOR_ALLOCATIONS];
+	lsize			uiBoundary;
+	lsize			uiBytes;
+	lsize			uiLargest;
+	size			uiCount;
+	size			uiWithin;
+	size			i;
+	size			j;
+	void*			pv;
+
+	uiBoundary = 0x1000;
+	AssertTrue(cMallocator.Init(gauiTestTrueMallocatorLargeMemory, TEST_TRUE_MALLOCATOR_LARGE_MEMORY));
+	uiLargest = cMallocator.LargestFree();
+
+	//More than a boundary can't be within one, and a boundary must be a power of two that a block fits in.
+	AssertNull(cMallocator.MallocWithin(uiBoundary + 1, uiBoundary));
+	AssertNull(cMallocator.MallocWithin(16, 0x1001));
+	AssertNull(cMallocator.MallocWithin(16, TRUE_MALLOCATOR_ALIGNMENT));
+	AssertNull(cMallocator.MallocWithin(16, 0));
+	AssertSize(0, cMallocator.NumAllocations());
+
+	//A whole boundary of bytes starts on one.
+	pv = cMallocator.MallocWithin(uiBoundary, uiBoundary);
+	AssertNotNull(pv);
+	AssertSize(0, (lsize)pv & (uiBoundary - 1));
+	AssertTrue(cMallocator.IsValid());
+	cMallocator.Free(pv);
+	AssertTrue(cMallocator.IsValid());
+	AssertSize(uiLargest, cMallocator.LargestFree());
+
+	//Mixed with Malloc's, which may cross: every one is where it was asked to be and keeps what is written to it.
+	cRandom.Init(8944);
+	uiCount = 0;
+	uiWithin = 0;
+	for (i = 0; i < TEST_TRUE_MALLOCATOR_ALLOCATIONS; i++)
+	{
+		uiBytes = 1 + (lsize)cRandom.Next(0, 0xBFF);
+		if (i % 3 == 2)
+		{
+			apv[uiCount] = cMallocator.Malloc(uiBytes);
+		}
+		else
+		{
+			apv[uiCount] = cMallocator.MallocWithin(uiBytes, uiBoundary);
+			if (apv[uiCount])
+			{
+				AssertTrue(TestTrueMallocatorIsWithin(apv[uiCount], uiBytes, uiBoundary));
+				uiWithin++;
+			}
+		}
+		if (!apv[uiCount])
+		{
+			continue;
+		}
+		AssertSize(0, (lsize)apv[uiCount] & (TRUE_MALLOCATOR_ALIGNMENT - 1));
+		AssertTrue(cMallocator.Size(apv[uiCount]) >= uiBytes);
+		memset(apv[uiCount], (int)(uiCount & 0xFF), uiBytes);
+		auiBytes[uiCount] = uiBytes;
+		uiCount++;
+
+		//Every so often one from the middle goes back, so that free blocks are among the used.
+		if ((i % 5 == 4) && (uiCount > 2))
+		{
+			j = uiCount / 2;
+			cMallocator.Free(apv[j]);
+			uiCount--;
+			apv[j] = apv[uiCount];
+			auiBytes[j] = auiBytes[uiCount];
+			memset(apv[j], (int)(j & 0xFF), auiBytes[j]);
+		}
+	}
+	AssertTrue(cMallocator.IsValid());
+	AssertTrue(uiWithin > TEST_TRUE_MALLOCATOR_ALLOCATIONS / 4);
+	AssertSize(uiCount, cMallocator.NumAllocations());
+	for (i = 0; i < uiCount; i++)
+	{
+		for (j = 0; j < auiBytes[i]; j++)
+		{
+			if (((uint8*)apv[i])[j] != (uint8)(i & 0xFF))
+			{
+				break;
+			}
+		}
+		AssertSize(auiBytes[i], j);
+	}
+
+	for (i = 0; i < uiCount; i++)
+	{
+		cMallocator.Free(apv[i]);
+	}
+	AssertTrue(cMallocator.IsValid());
+	AssertSize(0, cMallocator.NumAllocations());
+	AssertSize(0, cMallocator.AllocatedBytes());
+	AssertSize(uiLargest, cMallocator.LargestFree());
+
+	//Until nothing has a boundary's worth free: Malloc's blocks could still be had where they may cross.
+	uiCount = 0;
+	for (i = 0; i < TEST_TRUE_MALLOCATOR_ALLOCATIONS; i++)
+	{
+		apv[i] = cMallocator.MallocWithin(uiBoundary - 0x100, uiBoundary);
+		if (!apv[i])
+		{
+			break;
+		}
+		AssertTrue(TestTrueMallocatorIsWithin(apv[i], uiBoundary - 0x100, uiBoundary));
+		uiCount++;
+	}
+	AssertTrue(uiCount >= TEST_TRUE_MALLOCATOR_LARGE_MEMORY / uiBoundary - 2);
+	AssertTrue(uiCount <= TEST_TRUE_MALLOCATOR_LARGE_MEMORY / uiBoundary + 1);
+	AssertTrue(cMallocator.IsValid());
+	for (i = 0; i < uiCount; i++)
+	{
+		cMallocator.Free(apv[i]);
+	}
+	AssertTrue(cMallocator.IsValid());
+	AssertSize(uiLargest, cMallocator.LargestFree());
+	cRandom.Kill();
+	cMallocator.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTrueMallocator(void)
@@ -596,6 +745,7 @@ void TestTrueMallocator(void)
 	TestTrueMallocatorRandom();
 	TestTrueMallocatorLarge();
 	TestTrueMallocatorRegions();
+	TestTrueMallocatorWithin();
 
 	TestStatistics();
 }

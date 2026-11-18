@@ -145,6 +145,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	{
 	case CT_Subtract:
 		psValue->sValue = mpcFunction->Add(mpcBlock, IRO_Neg, sType, sOperand.sValue);
+		MarkSigned(psType);
 		break;
 	case CT_BitwiseNot:
 		psValue->sValue = mpcFunction->Add(mpcBlock, IRO_Not, sType, sOperand.sValue);
@@ -487,7 +488,27 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	sType = IRTypeOf(psType);
 	psResult->sValue = mpcFunction->Add(mpcBlock, uiOpcode, sType, sLeft.sValue, sRight.sValue);
 	psResult->psType = psType;
+	if (IsIRSignedWrapping(uiOpcode))
+	{
+		MarkSigned(psType);
+	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The add, sub, mul, neg or shl just written is of psType: in a constant's
+// IR one of a signed type is marked, so that an overflow is no constant
+// (IRF_NoSignedWrap).  [expr] 4
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::MarkSigned(SCPP65Type* psType)
+{
+	if (mbConstants && psType->IsInteger() && psType->bSigned && (mpcBlock->masInstructions.NumElements() > 0))
+	{
+		mpcBlock->masInstructions.Tail()->uiFlags |= IRF_NoSignedWrap;
+	}
 }
 
 
@@ -694,6 +715,7 @@ bool CCPP65IRFrontEnd::FullCondition(CCPPSyntax* pcExpression, CIRBlock* pcTrue,
 	{
 		return false;
 	}
+	MarkFullExpression();
 	StartBlock(pcDestroyTrue);
 	if (!DestroyTemporaryPlaces(uiTemporaries))
 	{

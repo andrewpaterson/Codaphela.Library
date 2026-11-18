@@ -206,6 +206,19 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Why the last constant asked for has no value, where the tree's folder
+// knows (a signed overflow).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPConstants::SetReason(const char* szReason)
+{
+	mszReason.Clear();
+	mszReason.Append(szReason);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Runs a constant's IR, within the limits the compile options set.  If it
 // has no value, the reason is the interpreter's, and the constexpr
 // functions it failed in, innermost first: "It divides by zero, in f(int),
@@ -221,7 +234,8 @@ bool CCPPConstants::Run(CIRModule* pcModule, CIRFunction* pcIR, SIRValue* pasArg
 	size					uiNamed;
 	size					uiRepeats;
 
-	mcInterpreter.SetLimits(mpcUnit->GetOptions()->muiConstantSteps, mpcUnit->GetOptions()->muiConstantDepth);
+	//The depth is of constexpr calls: the function the constant expression is written as is one more.
+	mcInterpreter.SetLimits(mpcUnit->GetOptions()->muiConstantSteps, mpcUnit->GetOptions()->muiConstantDepth + 1);
 	if (mcInterpreter.Call(pcModule, pcIR, pasArguments, uiNumArguments, psResult))
 	{
 		return true;

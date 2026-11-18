@@ -17,6 +17,16 @@
 #include "TestLib/Assert.h"
 
 
+//How many texels to a unit the box the modifier's tests bake is unwrapped at.  On the 65C64 and the W65C816 a
+//sixteenth of the texels: it is the same code, which the simulators run with floats made of integers, and at 32 the
+//W65C816 took 31 thousand million cycles over this file, more than the instructions a test is given.
+#ifdef __LIBC65__
+#define TEST_MESH_BAKE_TEXELS_PER_UNIT	8.0f
+#else
+#define TEST_MESH_BAKE_TEXELS_PER_UNIT	32.0f
+#endif // __LIBC65__
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A baked image's texel as an ARGB32, opaque.
@@ -380,7 +390,7 @@ void TestMeshBakeModifier(void)
 	sStart.Init(-1, -0.5f, -0.25f);
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 1, 1, 1);
-	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(32.0f);
+	pUnwrap = pEditor->AddModifier<CMeshUnwrap>(TEST_MESH_BAKE_TEXELS_PER_UNIT);
 	pBake = pEditor->AddModifier<CMeshBake>(OMalloc<CSolidChecker>(0.25f, Set32BitColour((uint8)0, (uint8)0, (uint8)0), Set32BitColour((uint8)255, (uint8)255, (uint8)255)));
 	pMesh = pEditor->GetOutput();
 
@@ -641,7 +651,7 @@ void TestMeshBakeModifierSamples(void)
 	{
 		pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 		pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 1, 1, 1);
-		pEditor->AddModifier<CMeshUnwrap>(32.0f);
+		pEditor->AddModifier<CMeshUnwrap>(TEST_MESH_BAKE_TEXELS_PER_UNIT);
 		pBake = pEditor->AddModifier<CMeshBake>(pStep);
 		AssertInt(MESH_BAKE_SAMPLES, pBake->miSamples);
 		pBake->miSamples = iMost;
@@ -691,7 +701,7 @@ void TestMeshBakeModifierNormals(void)
 	sStart.Init(-1, -0.5f, -0.25f);
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 1, 1, 1);
-	pEditor->AddModifier<CMeshUnwrap>(32.0f);
+	pEditor->AddModifier<CMeshUnwrap>(TEST_MESH_BAKE_TEXELS_PER_UNIT);
 	pBake = pEditor->AddModifier<CMeshBake>(OMalloc<CTestSolidRise>(0.75f, 0.0f));
 	AssertFloat(1.0f, pBake->mfRelief, 6);
 	AssertFloat(1.0f, pBake->msLight.Magnitude(), 5);
@@ -876,7 +886,7 @@ static Ptr<CMaterial> TestBakeBoxMaterial(Ptr<CSolidTexture> pTexture, CJobs* pc
 	sStart.Init(-1, -0.5f, -0.25f);
 	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
 	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 1, 1, 1);
-	pEditor->AddModifier<CMeshUnwrap>(32.0f);
+	pEditor->AddModifier<CMeshUnwrap>(TEST_MESH_BAKE_TEXELS_PER_UNIT);
 	pBake = pEditor->AddModifier<CMeshBake>(pTexture);
 	pBake->mbNormals = true;
 	pBake->SetJobs(pcJobs);

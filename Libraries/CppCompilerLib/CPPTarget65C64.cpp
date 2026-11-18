@@ -130,8 +130,11 @@ void CCPPTarget65C64::AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pc
 // linked first so it is at the start of the text, 0001:0000; the reset vector is left
 // to the loader.
 //
-// After main it calls Libc65's __RunAtExit (the atexit functions, last first) when
-// stdlib.cpp is linked: the reference is weak, so it doesn't pull stdlib.cpp in.
+// After main it runs the exit lists (the atexit functions and the destructors of what
+// was made at start up and of static locals, last first, thread_local objects first):
+// Libc65's __RunAtExit when stdlib.cpp is linked, else R_RunExitLists if a unit wrote
+// it.  The references are weak, so they pull nothing in.  The lists' heads are its
+// data (AppendExitLists).
 //
 // It also defines C's _Exit(int iStatus), which stops at once with iStatus in A: at
 // its register label (__Exit.a, where compiled code calls it) it is there already.
@@ -162,7 +165,14 @@ void CCPPTarget65C64::AppendStartUp(CChars* pszDest)
 	pszDest->Append("\t\tjsr _main")->AppendNewLine();
 	pszDest->Append("\t\tpsh A")->AppendNewLine();
 	pszDest->Append("\t\t.weak ___RunAtExit")->AppendNewLine();
+	pszDest->Append("\t\t.weak R_RunExitLists")->AppendNewLine();
 	pszDest->Append("\t\tcpy Y, ___RunAtExit")->AppendNewLine();
+	pszDest->Append("\t\tcmp Y, 0")->AppendNewLine();
+	pszDest->Append("\t\tbras z, StartExitLists")->AppendNewLine();
+	pszDest->Append("\t\tjsr Y")->AppendNewLine();
+	pszDest->Append("\t\tbra StartAtExitDone")->AppendNewLine();
+	pszDest->Append("StartExitLists:")->AppendNewLine();
+	pszDest->Append("\t\tcpy Y, R_RunExitLists")->AppendNewLine();
 	pszDest->Append("\t\tcmp Y, 0")->AppendNewLine();
 	pszDest->Append("\t\tbras z, StartAtExitDone")->AppendNewLine();
 	pszDest->Append("\t\tjsr Y")->AppendNewLine();
@@ -190,6 +200,7 @@ void CCPPTarget65C64::AppendStartUp(CChars* pszDest)
 	//Where _Exit's code ends: a program stopped between __Exit.a and here ended itself (a test asks).
 	pszDest->Append("\t\t.global __ExitEnd")->AppendNewLine();
 	pszDest->Append("__ExitEnd:")->AppendNewLine();
+	AppendExitLists(pszDest);
 	pszDest->AppendNewLine();
 }
 

@@ -85,6 +85,7 @@ inline size ObjectsNumThreads(void) { return 0; }
 inline void ObjectsHomeThread(bool bHome) {}
 inline bool ObjectsIsHomeThread(void) { return true; }
 inline void ObjectsFreesWaiting(bool bWaiting) {}
+inline bool ObjectsAreFreesWaiting(void) { return false; }
 inline bool ObjectsAssertNoFree(const char* szMethod) { return true; }
 inline void ObjectsLock(void) {}
 inline void ObjectsUnlock(void) {}
@@ -95,6 +96,7 @@ inline size ObjectsNumThreadErrors(void) { return 0; }
 #else
 
 
+#include "BaseLib/Atomic.h"
 #include "BaseLib/RecursiveLock.h"
 #include "BaseLib/SpinLock.h"
 
@@ -114,6 +116,7 @@ inline size ObjectsNumThreadErrors(void) { return 0; }
 
 extern bool					gbObjectsLocking;	//Changed by the home thread alone, while no other thread uses objects.
 extern CRecursiveSpinLock	gcObjectsLock;		//The lock.  Here for what reads (ObjectsThreads.h) to look at.
+extern int32				giObjectsFreesWaiting;	//Other threads have found objects dead.  Written with the lock.
 
 bool	ObjectsLocking(bool bLocking);		//The home thread's.  False (and nothing changed) if it can't be done now.
 bool	IsObjectsLocking(void);
@@ -198,6 +201,15 @@ inline CObjectsGuard::~CObjectsGuard()
 #else
 #define OBJECTS_INSIDE()
 #endif // _DEBUG
+
+
+//For the home thread where it is about to read (ObjectsThreads.h): with frees waiting it takes the lock instead,
+//which frees them.  Without this a home thread that only took and dropped pointers would never free what the others
+//let go of.
+inline bool ObjectsAreFreesWaiting(void)
+{
+	return OBJECTS_SELDOM(AtomicLoad(&giObjectsFreesWaiting) != 0);
+}
 
 
 //For a way in that does its own locking (a pointer's, which may read instead: ObjectsThreads.h): whether the locking

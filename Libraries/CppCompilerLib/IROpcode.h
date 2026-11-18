@@ -134,6 +134,10 @@ enum EIRShape
 #define IRF_InArray		0x20		//ptradd: the result is in an array of under 64KB that starts at the pointer, so the offset
 									//and the bytes read or written through it stay under 64KB
 #define IRF_NumWordFlags	5
+#define IRF_NoSignedWrap	0x80		//add, sub, mul, neg, shl in a constant's IR: signed, so an overflow means it isn't a
+									//constant (IRSignedOverflows).  Not written.
+#define IRF_FullExpression	0x40		//any: ends a full-expression in a constant's IR (CIRInterpreter counts them).  Not
+									//written, and allowed on every opcode.
 
 
 //What optimising may do with an opcode's instructions.  A target's opcodes have none, so are left alone.
@@ -194,6 +198,8 @@ bool		IsIRPure(uint16 uiOpcode);
 bool		IsIRMayTrap(uint16 uiOpcode);
 bool		IsIRCommutative(uint16 uiOpcode);
 bool		IRFoldInteger(uint16 uiOpcode, SIRType sType, SIRType sFrom, int iBits, uint64 a, uint64 b, uint64* pulliResult);
+bool		IRSignedOverflows(uint16 uiOpcode, int iBits, uint64 a, uint64 b, uint64 ulliResult);
+bool		IsIRSignedWrapping(uint16 uiOpcode);
 
 
 #endif // __I_R_OPCODE_H__

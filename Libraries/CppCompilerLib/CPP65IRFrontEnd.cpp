@@ -575,7 +575,7 @@ CIRModule* CCPP65IRFrontEnd::GetModule(void)
 // for.  False if the front end can't write it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise)
+bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise, const char* szExitNode, const char* szFinaliser, bool bThread)
 {
 	CCPPFunction	cFunction;
 	SCPP65IRPlace	sPlace;
@@ -595,9 +595,83 @@ bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, 
 	else
 	{
 		bResult = Construct(&sPlace, NULL, pcInitialiser) && DestroyTemporaries(0);
+		if (bResult && szExitNode)
+		{
+			//Made: it is destroyed from an exit list.
+			PushExitNode(szExitNode, szFinaliser, bThread);
+		}
 	}
 	mpcUnit->EndQuiet();
 	return FinishWriting(bResult, szLabel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object has been made: its node (szNode, two pointers: the next node,
+// then the function) is pushed on __ExitList, or __ThreadExitList for a
+// thread_local, with szFinaliser, which destroys it.  The lists are run,
+// last pushed first, when the program ends (R_RunExitLists, or Libc65's
+// __RunAtExit, whose atexit pushes on __ExitList too), so objects are
+// destroyed in the reverse of the order they were made, with the atexit
+// functions between them.  [basic.start.term] 1, 3
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::PushExitNode(const char* szNode, const char* szFinaliser, bool bThread)
+{
+	SIRReference	sHead;
+	SIRReference	sNode;
+
+	sHead = mcModule.Symbol(bThread ? "__ThreadExitList" : "__ExitList");
+	sNode = mcModule.Symbol(szNode);
+	mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), sHead), sNode);
+	mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), mcModule.Symbol(szFinaliser), mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sNode, Offset(mcModule.GetPointerSize(0))));
+	mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sNode, sHead);
+	mpcUnit->UseExitLists();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// R_RunExitLists: the thread's exit list, then the program's, each node
+// taken off before its function is called (which may push more).  The
+// start up calls it when Libc65's __RunAtExit, which does the same, isn't
+// linked.  [basic.start.term] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ExitListsRoutine(const char* szLabel)
+{
+	CCPPFunction	cFunction;
+	SIRReference	sHead;
+	SIRReference	sNode;
+	SIRReference	sTest;
+	CIRBlock*		pcLoop;
+	CIRBlock*		pcCall;
+	CIRBlock*		pcDone;
+	int				i;
+
+	memset(&cFunction, 0, sizeof(CCPPFunction));
+	cFunction.meKind = CPPFK_Function;
+	cFunction.mpsReturn = &mpcTypes->msVoid;
+	BeginWriting(&cFunction, szLabel, IRType(IRTK_None), 0);
+	for (i = 0; i < 2; i++)
+	{
+		sHead = mcModule.Symbol((i == 0) ? "__ThreadExitList" : "__ExitList");
+		pcLoop = NewBlock();
+		pcCall = NewBlock();
+		pcDone = NewBlock();
+		JumpTo(pcLoop);
+		StartBlock(pcLoop);
+		sNode = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), sHead);
+		sTest = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_Pointer), sNode, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
+		mpcBlock->Branch(sTest, pcDone, pcCall);
+		StartBlock(pcCall);
+		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), sNode), sHead);
+		mpcFunction->Call(mpcBlock, IRType(IRTK_None), mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sNode, Offset(mcModule.GetPointerSize(0)))));
+		JumpTo(pcLoop);
+		StartBlock(pcDone);
+	}
+	return FinishWriting(true, szLabel);
 }
 
 

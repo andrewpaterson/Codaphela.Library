@@ -2175,7 +2175,6 @@ void TestIR65Backend(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 
 	TestIR65BackendMnemonics();
@@ -2205,7 +2204,6 @@ void TestIR65Backend(void)
 	TestIRSourceMarkersMovedBlock();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

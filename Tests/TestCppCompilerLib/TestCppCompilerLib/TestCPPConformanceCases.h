@@ -1150,6 +1150,60 @@ static const SConformanceCase gasConformanceStage4[] =
 		"struct P { int x; constexpr P(int a) : x(a) {} constexpr int get() const { return x; } };\n"
 		"int main() { int v = 3; P p(v); return sq(v) * 10 + p.get(); }\n"
 	},
+	{
+		//Signed overflow is undefined, so an expression that overflows isn't a constant; unsigned arithmetic wraps
+		//([expr] 4, [expr.const] 2; CppParserTodo.txt question 3).  A left shift into the sign bit is C++14's
+		//[expr.shift] 2.  int is 16 bits on the W65C816, so M is its largest from sizeof.  MSVC only warns of most
+		//of these (C4307), which hostcheck.py makes an error.
+		"ConstantUnsignedWraps", 7,
+		"constexpr unsigned U = 0u - 1u;\n"
+		"enum { E = (U == ~0u) ? 7 : 1 };\n"
+		"int main() { return E; }\n"
+	},
+	{
+		"ConstantShiftIntoSign", 9,
+		"enum { S = 1 << (sizeof(int) * 8 - 1) };\n"
+		"int main() { return (S < 0) ? 9 : 1; }\n"
+	},
+	{
+		"ConstantSignedSumOverflows", CONFORMANCE_REFUSED,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"enum { E = M + 1 };\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"ConstantSignedProductOverflows", CONFORMANCE_REFUSED,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"char a[(M * 2) / 2 > 0 ? 1 : 2];\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"ConstantLeastDividedByMinusOne", CONFORMANCE_REFUSED,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"constexpr int L = -M - 1;\n"
+		"constexpr int Q = L / -1;\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"ConstexprCallOverflows", CONFORMANCE_REFUSED,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"constexpr int Add(int a, int b) { return a + b; }\n"
+		"enum { E = Add(M, 1) };\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"ConstexprLoopOverflows", CONFORMANCE_REFUSED,
+		"constexpr int Grow(int n) { int s = 1; for (int i = 0; i < n; i++) { s *= 3; } return s; }\n"
+		"enum { E = Grow(40) };\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		//Where a constant isn't needed it is the program's to be right: it compiles.
+		"SignedOverflowAtRunTimeCompiles", 5,
+		"constexpr int M = sizeof(int) == 2 ? 32767 : 2147483647;\n"
+		"int F(int x) { return x - M; }\n"
+		"int main() { volatile int m = M; return F(m) + 5; }\n"
+	},
 };
 
 
@@ -1236,8 +1290,35 @@ static const SConformanceCase gasConformanceStage5[] =
 		"}\n"
 	},
 	{
+		//A constant whose value is used at once isn't odr-used, so a lambda may use it without capturing it ([basic.def.odr] 3,
+		//[expr.prim.lambda] 12; CppParserTodo.txt question 10).  MSVC needs /Zc:lambda for it (hostcheck.py passes it).
+		"LambdaUncapturedConstant", 150,
+		"int main() { const int n = 5; constexpr long m = 3; const bool b = true; auto f = [](int x) { return x * n + (int)m + b; }; auto g = [=]() { return n * 2; }; return f(2) * 10 + g(); }\n"
+	},
+	{
+		"LambdaUncapturedConstantNested", 3020,
+		"template<class T> int Scale(T t) { const int k = 3; auto f = [](T x) { auto g = [](T y) { return y * k; }; return g(x) + k; }; return f(t); }\n"
+		"int main() { const int n = 7; int a[n]; auto f = [&a](int i) { a[i % n] = i; return a[i % n] + n; }; return Scale(1000) + f(10); }\n"
+	},
+	{
 		"LambdaUsesUncaptured", CONFORMANCE_REFUSED,
 		"int main() { int a = 1; auto f = []() { return a; }; return f(); }\n"
+	},
+	{
+		//Its address, or a reference parameter bound to it, odr-uses it.
+		"LambdaAddressOfUncapturedConstant", CONFORMANCE_REFUSED,
+		"int main() { const int n = 5; auto f = []() { return *&n; }; return f(); }\n"
+	},
+	{
+		"LambdaUncapturedConstArgumentByReference", CONFORMANCE_REFUSED,
+		"int Get(const int& r) { return r; }\n"
+		"int main() { const int n = 5; auto f = []() { return Get(n); }; return f(); }\n"
+	},
+	{
+		//A const initialised with what isn't a constant is a variable like any other.
+		"LambdaUncapturedConstNotConstant", CONFORMANCE_REFUSED,
+		"int F(int p) { const int n = p; auto g = []() { return n; }; return g(); }\n"
+		"int main() { return F(3); }\n"
 	},
 	{
 		"LambdaChangesCopy", CONFORMANCE_REFUSED,

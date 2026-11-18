@@ -253,6 +253,72 @@ void TestImageSFTWriterTransparentBlankRows(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Runs of a row no more than the merge gap apart are one mixed run, whose
+// gaps are transparent pixels: the picture read back is the same.  A run
+// with a black pixel stays by itself, and so does one further away.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestImageSFTWriterTransparentMixedRuns(void)
+{
+	static const char*	aszRows[5] =
+	{
+		"#.#..#......",		//One mixed run of six: gaps of one and two.
+		"............",
+		".##...#.....",		//Two runs: the gap is three.
+		"#.B.#.......",		//The black pixel's run is by itself, and so the runs either side of it are.
+		"...........#",
+	};
+	static const uint8	auiExpectedFile[] =
+	{
+		0xfa, 0xe4, 12, 0, 5, 0,
+		0xe5, 0xff, 0x00, 0xff, 0x00, 0x00, 0xff,
+		0xc1, 0x80, 0x02, 0xff, 0xff, 0x82, 0x01, 0xff,
+		0xc0, 0x01, 0xff, 0x80, 0x01, 0x00, 0x80, 0x01, 0xff,
+		0xc0, 0x8a, 0x01, 0xff,
+		0x00,
+	};
+	bool		bResult;
+	uint32*		puiPixels;
+	uint32		auiExpected[5 * 12];
+	uint8		auiFile[sizeof(auiExpectedFile) + 1];
+	CFileBasic	cFile;
+	size		x;
+	size		y;
+
+	Ptr<CImage> pImage = OMalloc<CImage>(12, 5, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	AssertTrue(pImage.IsNotNull());
+	puiPixels = (uint32*)pImage->GetData();
+	for (y = 0; y < 5; y++)
+	{
+		for (x = 0; x < 12; x++)
+		{
+			auiExpected[y * 12 + x] = (aszRows[y][x] == '#') ? 0xFFFFFFFF : ((aszRows[y][x] == 'B') ? 0xFF000000 : 0);
+			puiPixels[y * 12 + x] = auiExpected[y * 12 + x];
+		}
+	}
+
+	bResult = SaveSFT(pImage, "Output" _FS_ "MixedRuns.sft", true, 2);
+	AssertTrue(bResult);
+	pImage = NULL;
+
+	cFile.Init(DiskFile("Output" _FS_ "MixedRuns.sft"));
+	AssertTrue(cFile.Open(EFM_Read));
+	AssertSize(sizeof(auiExpectedFile), cFile.Read(auiFile, 1, sizeof(auiFile)));
+	cFile.Close();
+	cFile.Kill();
+	AssertMemory((void*)auiExpectedFile, auiFile, sizeof(auiExpectedFile));
+
+	pImage = LoadSFT("Output" _FS_ "MixedRuns.sft");
+	AssertTrue(pImage.IsNotNull());
+	AssertSize(12, pImage->GetWidth());
+	AssertSize(5, pImage->GetHeight());
+	AssertMemory(auiExpected, pImage->GetData(), sizeof(auiExpected));
+	pImage = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestImageSFTWriter(void)
@@ -266,6 +332,7 @@ void TestImageSFTWriter(void)
 	TestImageSFTWriterTinyTransparent();
 	TestImageSFTWriterTransparent();
 	TestImageSFTWriterTransparentBlankRows();
+	TestImageSFTWriterTransparentMixedRuns();
 	TestImageSFTWriterOpaque();
 	TestImageSFTWriterTransparentCelContainer();
 	TestImageSFTWriterMultiSourceCelContainer();

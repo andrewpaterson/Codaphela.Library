@@ -43,6 +43,8 @@ void CCPPVariable::Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eS
 	mbCLinkage = bCLinkage;
 	mbRestrict = false;
 	mbGuarded = false;
+	mbThreadLocal = false;
+	mbExitNode = false;
 	mpcAnonymous = NULL;
 	mpcTemplate = NULL;
 	mpcBindings = NULL;

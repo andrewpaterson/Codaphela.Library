@@ -244,9 +244,25 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 		{
 			break;
 		}
-		if (uiCode >= SFT_RUN_ROWS)
+		if (uiCode >= SFT_RUN_MIXED)
 		{
-			y += (uiCode & SFT_RUN_COUNT_MASK) + 1;
+			//A mixed run's pixels, which must be in the image: those that aren't transparent.
+			uiCode = (uint8)((uiCode & SFT_RUN_MIXED_MASK) + 1);
+			if ((y >= uiHeight) || (x + uiCode > uiWidth) || (pcFile->Read(auiRun, 1, uiCode) != uiCode))
+			{
+				return NULL;
+			}
+			for (i = 0; i < uiCode; i++, x++)
+			{
+				if (auiRun[i] != SFT_PIXEL_TRANSPARENT)
+				{
+					puiImage[x + y * uiWidth] = Convert8BitColourTo32BitColour(auiRun[i]);
+				}
+			}
+		}
+		else if (uiCode >= SFT_RUN_ROWS)
+		{
+			y += (uiCode & SFT_RUN_ROWS_MASK) + 1;
 			x = 0;
 		}
 		else if (uiCode >= SFT_RUN_SKIP)

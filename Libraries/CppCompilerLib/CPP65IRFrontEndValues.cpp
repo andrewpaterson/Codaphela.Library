@@ -192,6 +192,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		case CPPBN_FunctionTemplate:
 			return FunctionTemplateAddress((CCPPSyntaxIdExpression*)pcExpression, psValue);
 		case CPPBN_Constant:
+		case CPPBN_EnclosingConstant:
 			return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 		case CPPBN_TemplateArgument:
 			return Value(cBound.mpcArgument, psValue);
@@ -1238,9 +1239,10 @@ bool CCPP65IRFrontEnd::VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* ps
 		szLabel.Init();
 		mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
 		psPlace->sAddress = mcModule.Symbol(szLabel.Text());
-		if (mbConstants)
+		if (mbConstants && (pcVariable->meStorage == CPPVS_Global))
 		{
-			//The interpreter may ask what its data is.
+			//The interpreter may ask what its data is.  Only a global's can be a constant's (IsConstantVariable): a
+			//static local's variable is freed once its function is written, so it isn't kept.
 			mpcUnit->GetConstants()->NoteVariable(szLabel.Text(), pcVariable);
 		}
 		szLabel.Kill();

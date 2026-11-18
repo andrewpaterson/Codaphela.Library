@@ -276,7 +276,25 @@ bool CCPP65IRFrontEnd::DestroyTemporaries(size uiTemporaries)
 		return false;
 	}
 	masTemporaries.FakeSetUsedElements(uiTemporaries);
+	MarkFullExpression();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A full-expression has been written: in a constant's IR the last
+// instruction of the block it ends in is marked, and the interpreter counts
+// those.  One that wrote nothing there (a constant) isn't counted.
+// [implimits]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::MarkFullExpression(void)
+{
+	if (mbConstants && mpcBlock && (mpcBlock->masInstructions.NumElements() > 0))
+	{
+		mpcBlock->masInstructions.Tail()->uiFlags |= IRF_FullExpression;
+	}
 }
 
 
@@ -467,8 +485,11 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 //////////////////////////////////////////////////////////////////////////
 //
 // static S s; or static int v = g(); reached: made the first time, when its
-// guard byte is still 0, which it then isn't.  The object isn't one of the
-// scope's living ones: it outlives the function.  [stmt.dcl] 4
+// guard byte is still 0 (not started).  It is 1 while the object is being
+// made and 2 once it is: reaching the declaration again while it is 1
+// (from its own initialiser, or an interrupt) stops the program at
+// R_RecursiveInit.  The object isn't one of the scope's living ones: it
+// outlives the function.  [stmt.dcl] 4
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* pcInitialiser)
@@ -477,8 +498,12 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 	SIRReference	sGuard;
 	SIRReference	sTest;
 	CChars			szLabel;
+	CChars			szFinaliser;
 	CIRBlock*		pcMake;
 	CIRBlock*		pcDone;
+	CIRBlock*		pcStarted;
+	CIRBlock*		pcAgain;
+	SIRReference	sState;
 	size			uiTemporaries;
 
 	if (!VariablePlace(pcVariable, &sPlace))
@@ -493,10 +518,23 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 
 	pcMake = NewBlock();
 	pcDone = NewBlock();
-	sTest = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_I8), mpcFunction->Load(mpcBlock, IRType(IRTK_I8), sGuard), mpcFunction->AddInteger(IRType(IRTK_I8), 0));
-	mpcBlock->Branch(sTest, pcMake, pcDone);
+	pcStarted = NewBlock();
+	pcAgain = NewBlock();
+	sState = mpcFunction->Load(mpcBlock, IRType(IRTK_I8), sGuard);
+	sTest = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_I8), sState, mpcFunction->AddInteger(IRType(IRTK_I8), 0));
+	mpcBlock->Branch(sTest, pcMake, pcStarted);
+
+	//Started: done, or being made now.
+	StartBlock(pcStarted);
+	sTest = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_I8), sState, mpcFunction->AddInteger(IRType(IRTK_I8), 1));
+	mpcBlock->Branch(sTest, pcAgain, pcDone);
+	StartBlock(pcAgain);
+	mpcUnit->UseRecursiveInit();
+	mpcFunction->Call(mpcBlock, IRType(IRTK_None), mcModule.Symbol("R_RecursiveInit"));
+	JumpTo(pcDone);
 
 	StartBlock(pcMake);
+	mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 1), sGuard);
 	uiTemporaries = masTemporaries.NumElements();
 	if (ElementType(pcVariable->mpsType)->IsClass())
 	{
@@ -513,7 +551,19 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 	{
 		return false;
 	}
-	mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 1), sGuard);
+	if (pcVariable->mbExitNode)
+	{
+		//Made: it is destroyed from an exit list, by the R_Finalise the unit writes for it (WriteExitRoutines).
+		szLabel.Init();
+		mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
+		szFinaliser.Init("R_Finalise");
+		szFinaliser.Append(szLabel);
+		szLabel.Append("__ExitNode");
+		PushExitNode(szLabel.Text(), szFinaliser.Text(), pcVariable->mbThreadLocal);
+		szFinaliser.Kill();
+		szLabel.Kill();
+	}
+	mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 2), sGuard);
 	JumpTo(pcDone);
 	StartBlock(pcDone);
 	return true;

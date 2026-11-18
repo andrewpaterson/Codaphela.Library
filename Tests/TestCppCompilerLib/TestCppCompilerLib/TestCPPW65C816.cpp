@@ -5778,6 +5778,43 @@ void TestCPP816Exit(void)
 	szListing.Kill();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Objects with static storage are destroyed when main returns in the
+// reverse of the order they were made: what was made at start up and a
+// static local first reached in main, each put on the start up's exit list
+// once it is made, the thread_local objects' list first, and Libc65 not
+// linked (R_RunExitLists runs the lists).  The constructors log ten times
+// their numbers and the destructors their numbers.  CppParserTodo.txt
+// questions 7 and 11.  [basic.start.term] 1, 3
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816ExitOrder(void)
+{
+	static const char*	szSource =
+		"int giNext;\n"
+		"void Log(long l) { ((volatile long*)0x100000)[giNext] = l; giNext++; }\n"
+		"struct S { int v; S(int a) : v(a) { Log(a * 10); } ~S() { Log(v); } };\n"
+		"struct C { int k; constexpr C() : k(5) {} ~C() { Log(k); } };\n"
+		"C gc;\n"
+		"S ga(4);\n"
+		"thread_local S gt(1);\n"
+		"S gb(3);\n"
+		"S& Local() { static S s(2); return s; }\n"
+		"int main(void) { Local(); Local(); return gc.k + ga.v + gt.v + gb.v; }\n";
+	uint32	auiResults[9];
+	uint32	auiExpected[9] = { 40, 10, 30, 20, 1, 2, 3, 4, 5 };
+	size	i;
+
+	memset(auiResults, 0, sizeof(auiResults));
+	AssertInt(13, TestCPP816RunProject(NULL, "", szSource, false, auiResults, 9));
+	for (i = 0; i < 9; i++)
+	{
+		AssertInt((int)auiExpected[i], (int)auiResults[i]);
+	}
+}
+
 //The functions of TestCPP816AlignedBigFrameArguments, natively for the expected result and for the W65C816.
 #define TEST_CPP816_BIG_FRAME_FUNCTIONS \
 	long Spread(int n, long add, long more, int k, char c) { int a[180]; for (int i = 0; i < 180; i++) { a[i] = i * k + n + c; } long s = add - more; for (int i = 0; i < 180; i++) { s += a[i]; } return s; } \
@@ -6327,7 +6364,6 @@ void TestCPP816(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 	CW65C816InstructionFactory::GetInstance()->Init();
 
 	TestCPP816Basics();
@@ -6423,6 +6459,7 @@ void TestCPP816(void)
 	TestCPP816RegisterFloats();
 	TestCPP816ObjectArguments();
 	TestCPP816Exit();
+	TestCPP816ExitOrder();
 	TestCPP816StringRegisters();
 	TestCPP816MathRegisters();
 	TestCPP816WideMultiplies();
@@ -6431,7 +6468,6 @@ void TestCPP816(void)
 	TestCPP816EnumClass();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

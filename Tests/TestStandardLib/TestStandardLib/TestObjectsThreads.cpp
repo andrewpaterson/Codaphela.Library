@@ -143,7 +143,8 @@ struct STestObjectsThread
 {
 	CNativeThread			cThread;
 	NativeThreadFunction	fRun;			//What the thread does, registered.
-	int32*					piStarted;		//How many of the threads have registered.
+	int32*					piStarted;		//How many of the threads have registered,
+	int32*					piFinished;		//and how many are done with objects.
 	uint32					uiSeed;
 	CMutex*					pcMutex;		//The test's own, over the fields the threads share.
 	CTestThreadNode*		pcShared;
@@ -174,7 +175,11 @@ static void TestObjectsThread(void* pvThread)
 
 	psThread->fRun(psThread);
 	psThread->bUnregistered = ObjectsThreadKill();
+	AtomicAdd(psThread->piFinished, 1);
 }
+
+
+static bool	gbTestObjectsThreadsCollect = false;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -182,19 +187,26 @@ static void TestObjectsThread(void* pvThread)
 // Runs TEST_OBJECTS_THREADS threads on fRun (the last on fLast, if it isn't NULL) and waits for them.  Returns the
 // errors they counted; a thread that couldn't register, or ended still holding a Ptr, is one.
 //
+// With gbTestObjectsThreadsCollect this thread, the home thread, frees what the threads let go of while it waits, as
+// one with a tick would (ObjectsCollect).  Without it nothing is freed until the threads are done, which is what
+// some tests are there to see, and is no way to wait for threads that let go of objects by the thousand.
+//
 //////////////////////////////////////////////////////////////////////////
 static int TestObjectsRunThreads(NativeThreadFunction fRun, NativeThreadFunction fLast, CMutex* pcMutex, CTestThreadNode* pcShared, CArrayObject* pcArray)
 {
 	STestObjectsThread	asThreads[TEST_OBJECTS_THREADS];
 	int32				iStarted;
+	int32				iFinished;
 	int					iErrors;
 	size				i;
 
 	iStarted = 0;
+	iFinished = 0;
 	for (i = 0; i < TEST_OBJECTS_THREADS; i++)
 	{
 		asThreads[i].fRun = (fLast && (i == TEST_OBJECTS_THREADS - 1)) ? fLast : fRun;
 		asThreads[i].piStarted = &iStarted;
+		asThreads[i].piFinished = &iFinished;
 		asThreads[i].uiSeed = 1000 + (uint32)i * 7919;
 		asThreads[i].pcMutex = pcMutex;
 		asThreads[i].pcShared = pcShared;
@@ -204,6 +216,12 @@ static int TestObjectsRunThreads(NativeThreadFunction fRun, NativeThreadFunction
 		asThreads[i].bUnregistered = false;
 		asThreads[i].cThread.Init();
 		asThreads[i].cThread.Start(TestObjectsThread, &asThreads[i]);
+	}
+
+	while (gbTestObjectsThreadsCollect && (AtomicLoad(&iFinished) < TEST_OBJECTS_THREADS))
+	{
+		ObjectsCollect();
+		ThreadYield();
 	}
 
 	iErrors = 0;
@@ -430,6 +448,135 @@ void TestObjectsThreadsSharedObject(void)
 }
 
 
+//Takes the shared object off the root and puts it back, over and over: each is a write, and between the two the
+//object is held by stack pointers alone.
+static void TestObjectsThreadsReRoot(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CTestThreadNode>	pShared;
+	Ptr<CRoot>				pRoot;
+	size					i;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pShared = psThread->pcShared;
+	pRoot = ORoot();
+	for (i = 0; i < TEST_OBJECTS_THREADS_STEPS; i++)
+	{
+		if (!pRoot->Remove(pShared))
+		{
+			psThread->iErrors++;
+		}
+		pRoot->Add(pShared);
+	}
+}
+
+
+//Puts one of the array's objects (each thread its own) in the root and takes it out again, over and over: the object
+//is held by the array throughout, and how far it is from the root changes each time.
+static void TestObjectsThreadsRootOwn(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	Ptr<CTestThreadNode>	pOwn;
+	Ptr<CRoot>				pRoot;
+	size					i;
+
+	psThread = (STestObjectsThread*)pvThread;
+	pOwn = psThread->pcArray->Get((psThread->uiSeed - 1000) / 7919);
+	pRoot = ORoot();
+	for (i = 0; i < TEST_OBJECTS_THREADS_STEPS; i++)
+	{
+		pRoot->Add(pOwn);
+		if (!pRoot->Remove(pOwn))
+		{
+			psThread->iErrors++;
+		}
+	}
+}
+
+
+//Takes and drops a Ptr to each of the array's objects in turn, over and over.
+static void TestObjectsThreadsCopyEach(void* pvThread)
+{
+	STestObjectsThread*		psThread;
+	CTestThreadNode*		apcNodes[TEST_OBJECTS_THREADS];
+	size					i;
+	size					j;
+
+	psThread = (STestObjectsThread*)pvThread;
+	for (j = 0; j < TEST_OBJECTS_THREADS; j++)
+	{
+		apcNodes[j] = (CTestThreadNode*)psThread->pcArray->GetPlain(j);
+	}
+	for (i = 0; i < TEST_OBJECTS_THREADS_STEPS; i++)
+	{
+		for (j = 0; j < TEST_OBJECTS_THREADS; j++)
+		{
+			Ptr<CTestThreadNode>	pCopy = apcNodes[j];
+
+			if (!pCopy->IsLive())
+			{
+				psThread->iErrors++;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Readers against writers that never rest: what a reader reads (how far an object is from the root) is what the
+// writers write, and ThreadSanitizer says if a reader ever reads while one writes.
+//
+// First the other threads take and drop Ptrs to an object while one keeps taking it off the root and putting it
+// back: every Ptr taken meets the lock held, or the object off the root, or neither.  Then one thread takes and drops
+// Ptrs while all the others write, each handing the lock straight to the next: the reader waits for the lock to be
+// let go, over and over, and must look again each time before it reads.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsThreadsReadersAndWriter(void)
+{
+	Ptr<CTestThreadNode>	pShared;
+	Ptr<CTestThreadNode>	pNext;
+	Ptr<CArrayObject>		pArray;
+	size					i;
+
+	TestObjectsThreadsBegin();
+	pShared = OMalloc<CTestThreadNode>();
+	pNext = OMalloc<CTestThreadNode>();
+	pShared->mpNext = pNext;
+	ORoot()->Add(pShared);
+
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsCopyPointers, TestObjectsThreadsReRoot, NULL, &pShared, NULL));
+
+	ObjectsCollect();
+	AssertSize(1, pShared.NumStackFroms());
+	AssertSize(1, pShared.NumHeapFroms());
+	AssertSize(1, pNext.NumStackFroms());
+	AssertInt(0, giTestThreadNodesFreed);
+	AssertTrue(pShared->IsLive());
+	pShared = NULL;
+	pNext = NULL;
+
+	pArray = OMalloc<CArrayObject>();
+	ORoot()->Add(pArray);
+	for (i = 0; i < TEST_OBJECTS_THREADS; i++)
+	{
+		pNext = OMalloc<CTestThreadNode>();
+		pArray->Add(pNext);
+	}
+	pNext = NULL;
+
+	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsRootOwn, TestObjectsThreadsCopyEach, NULL, NULL, &pArray));
+
+	ObjectsCollect();
+	AssertSize(TEST_OBJECTS_THREADS, pArray->NumElements());
+	AssertSize(2, ORoot()->NumObjects());
+	AssertInt(0, giTestThreadNodesFreed);
+	pArray = NULL;
+	TestObjectsThreadsEnd(5 + TEST_OBJECTS_THREADS);
+}
+
+
 static void TestObjectsThreadsBuildGraphs(void* pvThread)
 {
 	STestObjectsThread*		psThread;
@@ -466,10 +613,11 @@ void TestObjectsThreadsOwnGraphs(void)
 	TestObjectsThreadsBegin();
 	ORoot();
 
+	gbTestObjectsThreadsCollect = true;
 	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsBuildGraphs, NULL, NULL, NULL, NULL));
+	gbTestObjectsThreadsCollect = false;
 
-	//The threads found them dead; this thread, the home thread, frees them.
-	AssertInt(0, giTestThreadNodesFreed);
+	//The threads found them dead; this thread, the home thread, freed them as it waited, and frees the last now.
 	ObjectsCollect();
 	AssertInt(TEST_OBJECTS_THREADS * TEST_OBJECTS_THREADS_STEPS * 3, giTestThreadNodesFreed);
 	ObjectsCollect();
@@ -1726,6 +1874,7 @@ void TestObjectsThreads(void)
 
 	TestObjectsThreadsRegistration();
 	TestObjectsThreadsSharedObject();
+	TestObjectsThreadsReadersAndWriter();
 	TestObjectsThreadsOwnGraphs();
 	TestObjectsThreadsFreedOnHomeThread();
 	TestObjectsThreadsFreedWhileHeld();

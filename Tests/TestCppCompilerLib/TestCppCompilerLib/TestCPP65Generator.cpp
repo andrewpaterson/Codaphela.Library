@@ -3600,6 +3600,57 @@ static void AssertCPP65Error(const char* szExpected, const char* szSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static void AssertCPP65Generates(const char* szSource)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, szSource));
+	AssertString("", szErrors.Text());
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A static local's guard has three states (CppParserTodo.txt question 6):
+// reached again while it is being made, as g's v is when its initialiser
+// calls g again, the program stops at R_RecursiveInit.  A static local
+// that is initialised in the data has no guard and no such call.
+// [stmt.dcl] 4
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorStaticLocalGuard(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "int f(int n);\nint g(int n) { static int v = f(n); return v; }\nint f(int n) { return (n > 0) ? g(n - 1) : 5; }\n"));
+	AssertString("", szErrors.Text());
+	AssertTrue(szAssembly.Contains("R_RecursiveInit:"));
+	AssertTrue(szAssembly.Contains("G0_v"));
+	szErrors.Kill();
+	szAssembly.Kill();
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors, "int g(void) { static int v = 7; return v++; }\n"));
+	AssertString("", szErrors.Text());
+	AssertFalse(szAssembly.Contains("R_RecursiveInit"));
+	szErrors.Kill();
+	szAssembly.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorErrors(void)
 {
 	AssertCPP65Error("Generated.cpp (1, 27): The operands must be integers [f]\n", "float f; int g() { return f % 2; }");
@@ -3610,7 +3661,8 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 16): break outside a loop or switch [break]\n", "void f(void) { break; }");
 	AssertCPP65Error("Generated.cpp (1, 33): __builtin_alloca is not supported [__builtin_alloca]\n", "int f(int n) { char* p = (char*)__builtin_alloca(n); return p[0]; }");
 	AssertCPP65Error("Generated.cpp (1, 41): __builtin_alloca is not supported [__builtin_alloca]\n", "int g(void* p); int f(int n) { return g(__builtin_alloca(n)); }");
-	AssertCPP65Error("Generated.cpp (1, 42): Static local objects that are destroyed are not supported by the compiler yet [d]\n", "struct D { ~D() {} }; int f() { static D d; return 0; }");
+	//A static local object that is destroyed is, when the program ends (CppParserTodo.txt question 11; TestCPP816ExitOrder).
+	AssertCPP65Generates("struct D { ~D() {} }; int f() { static D d; return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 149): More than one specialisation of the class template matches equally [s]\n", "template<class A, class B> struct S {}; template<class A, class B> struct S<A*, B> {}; template<class A, class B> struct S<A, B*> {}; S<int*, int*> s; int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 70): The member template has not been defined [c]\n", "struct C { template<class T> int F(T t); }; int main() { C c; return c.F(1); }");
 	AssertCPP65Error("Generated.cpp (1, 76): The address of an overloaded function needs the type of the function it is for [F]\n", "int F(short a) { return a; } int F(long a) { return 1; } int (*gp)(char) = F; int main() { return gp(1); }");
@@ -3619,6 +3671,12 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 64): The function is declared override but overrides no virtual function of a base class [g]\n", "struct B { virtual int f() { return 1; } }; struct D : B { int g() override { return 2; } }; int h() { D d; return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 70): The function overrides one declared final [f]\n", "struct B { virtual int f() final { return 1; } }; struct D : B { int f() { return 2; } }; int h() { D d; return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 68): The operand of dynamic_cast is not polymorphic [dynamic_cast]\n", "struct P { int x; }; struct Q : P { int y; }; int g(P& p) { return dynamic_cast<Q&>(p).y; }");
+
+	//A lambda may use a constant it doesn't capture where its value is used at once (TestCPPConformance's
+	//LambdaUncapturedConstant), but a reference bound to it odr-uses it (MSVC, with /Zc:lambda, takes this one; g++
+	//doesn't).  A const enum is a constant as an integer is (MSVC wants it captured).  [basic.def.odr] 3, [expr.const] 2.7
+	AssertCPP65Error("Generated.cpp (1, 62): The lambda doesn't capture the variable [n]\n", "int main() { const int n = 5; auto f = []() { const int& r = n; return r; }; return f(); }");
+	AssertCPP65Generates("int main() { enum E { A = 2, B = 3 }; const E e = B; auto f = [](int x) { return x * e; }; return f(2); }");
 
 	//What a virtual base makes ill-formed (MSVC takes the member pointer, which its pointers to members can hold).  [conv.mem] 2, [expr.static.cast] 11
 	AssertCPP65Error("Generated.cpp (1, 81): A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it [&]\n", "struct A { int a; }; struct B : virtual A { int b; }; int f(B& b) { int B::*p = &A::a; return b.*p; }");
@@ -3633,8 +3691,19 @@ void TestCPP65GeneratorErrors(void)
 		"constexpr int f(int x) { return 10 / x; }\nconstexpr int g(int x) { return f(x - 1); }\nchar a[g(1)];");
 	AssertCPP65Error("Generated.cpp (2, 13): A constexpr variable's initialiser must be a constant: It divides by zero, or the least number by -1, in S::S(int) [s]\n",
 		"struct S { int v; constexpr S(int a) : v(10 / a) {} };\nconstexpr S s(0);");
-	AssertCPP65Error("Generated.cpp (2, 8): An array size must be a positive constant: Its calls go too deep to be worked out, in deep(int), called from itself 510 times [deep]\n",
+	AssertCPP65Error("Generated.cpp (2, 8): An array size must be a positive constant: Its calls go too deep to be worked out, in deep(int), called from itself 511 times [deep]\n",
 		"constexpr int deep(int n) { return n == 0 ? 0 : 1 + deep(n - 1); }\nchar b[deep(1000)];");
+
+	//The limits are at least [implimits]' (Annex B; CppParserTodo.txt question 4): 512 constexpr calls inside one
+	//another, and 1,048,576 full-expressions evaluated for one constant, however many instructions they take (200,000
+	//turns of the loop are 600,000 full-expressions and some millions of instructions; 400,000 are too many).
+	AssertCPP65Generates("constexpr int deep(int n) { return n == 0 ? 0 : 1 + deep(n - 1); }\nchar b[deep(511) - 510];");
+	AssertCPP65Generates("constexpr int Count(int n) { int s = 0; for (int i = 0; i < n; i++) { s += i & 1; } return s; }\nchar a[Count(200000) - 99999];");
+	AssertCPP65Error("Generated.cpp (2, 8): An array size must be a positive constant: It takes too long to work out, in Count(int) [Count]\n",
+		"constexpr int Count(int n) { int s = 0; for (int i = 0; i < n; i++) { s += i & 1; } return s; }\nchar a[Count(400000)];");
+	//The least int negated overflows, so it isn't a constant (MSVC takes it without a word).  [expr] 4
+	AssertCPP65Error("Generated.cpp (2, 15): A constexpr variable's initialiser must be a constant: Its signed arithmetic overflows [N]\n",
+		"constexpr int L = -2147483647 - 1;\nconstexpr int N = -L;");
 	AssertCPP65Error("Generated.cpp (1, 66): dynamic_cast needs a pointer to a class or to void [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; int g(B* b) { return dynamic_cast<int*>(b) != 0; }");
 	AssertCPP65Error("Generated.cpp (1, 92): The operand of dynamic_cast must be a pointer to a class [dynamic_cast]\n", "struct B { virtual int F() { return 0; } }; struct D : B { int y; }; D* g(int* p) { return dynamic_cast<D*>(p); }");
 	AssertCPP65Error("Generated.cpp (1, 35): __builtin_bcd_add and __builtin_bcd_subtract are the W65C816's decimal mode: use BaseLib's BCDAdd and BCDSubtract [__builtin_bcd_add]\n", "int f(unsigned short* p) { return __builtin_bcd_add(p, p, 1, 0); }");
@@ -3888,7 +3957,6 @@ void TestCPP65Generator(void)
 
 	TypesInit();
 	TypeConverterInit();
-	NumberInit();
 	C65C64InstructionFactory::GetInstance()->Init();
 
 	TestCPP65GeneratorAssembly();
@@ -3917,6 +3985,7 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorProject();
 	TestCPP65GeneratorExternTemplates();
 	TestCPP65GeneratorStaticConstMembers();
+	TestCPP65GeneratorStaticLocalGuard();
 	TestCPP65GeneratorNestedQualifiers();
 	TestCPP65GeneratorLateMemberDefinitions();
 	TestCPP65GeneratorExternTemplateProject();
@@ -3932,7 +4001,6 @@ void TestCPP65Generator(void)
 	TestCPP65GeneratorVirtualBaseLayouts();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
-	NumberKill();
 	TypeConverterKill();
 	TypesKill();
 

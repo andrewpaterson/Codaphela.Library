@@ -24,7 +24,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRModule.h"
 
 
-#define IR_INTERPRETER_STEPS	1000000		//Instructions run before a value is given up on.  [implimits]
+#define IR_INTERPRETER_STEPS	1048576		//Full-expressions evaluated (IRF_FullExpression) before a value is given up on.  [implimits]
+#define IR_INTERPRETER_INSTRUCTIONS_PER_STEP	64	//Instructions and jumps run for each step allowed: what stops a loop
+												//whose full-expressions write nothing (for (;;) {}), or IR with no marks.
 #define IR_INTERPRETER_DEPTH	512			//Calls inside calls.
 #define IR_VALUE_BYTES			8
 
@@ -130,6 +132,8 @@ protected:
 	CArrayChars			maszLastTrail;		//The last Call's (GetTrail).
 	size				muiSteps;
 	size				muiStepLimit;
+	size				muiInstructions;
+	size				muiInstructionLimit;
 	size				muiDepth;
 	size				muiDepthLimit;
 	size				muiFrames;			//Calls made: each one's number.
@@ -161,6 +165,7 @@ protected:
 	bool		PushFrame(CIRModule* pcModule, CIRFunction* pcFunction, CArrayIRValues* pasArguments, CArrayTemplate<SIRType>* pasArgumentTypes);
 	void		PopFrame(bool bFailed);
 	bool		RunFrame(SIRFrame* psFrame);
+	bool		CountStep(bool bFullExpression);
 	bool		EnterBlock(SIRFrame* psFrame, CIRBlock* pcBlock);
 	bool		Step(SIRFrame* psFrame, SIRInstruction* psInstruction);
 	bool		ValueOf(CIRModule* pcModule, CIRFunction* pcFunction, SIRValue* pasTemporaries, SIRReference sReference, SIRValue* psValue);
