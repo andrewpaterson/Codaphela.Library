@@ -64,6 +64,7 @@ IDE checks the same passes and failures) as a run in one process.
       off the UI thread, reindexing while typing) keep ModPlay.  Expected: the heavy checks ~44 s -> a few seconds each.
    Questions for the user: (d) changes what the usages/find checks run against, from the real ModPlay to a small copy, so
    they no longer check the IDE on a big solution.  Keep a handful on ModPlay (as above), or keep them all and accept ~20 min?
+   The user, 2026-11-18: "2d, run on a small solution".
 
 3. The *65 suites: their programs' runs on worker threads                            TestSupportLib65 816 ~243 s -> ~90 s (estimate)
    a. Measure each suite's compile, link and run times (TEST_PROJECT65_RUN_TIME prints each program's run).

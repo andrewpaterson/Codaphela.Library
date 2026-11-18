@@ -93,6 +93,7 @@ static size			guiTestPart = 0;
 static size			guiTestParts = 1;
 static bool			gbTestPartCalls = false;
 static bool			gabTestPartCalls[TEST_PART_MAX_CALLS];
+static size			guiTestPartRest = TEST_PART_MAX_CALLS;	//-rest: every call from it runs too.
 static size			guiTestPartCall = 0;
 static const char*	gszTestPartFile = "";
 static clock_t		giTestPartStart = 0;
@@ -126,11 +127,15 @@ bool TestPartStarts(void)
 	guiTestPartCall++;
 	if (gbTestPartCalls)
 	{
-		bRuns = (uiCall < TEST_PART_MAX_CALLS) && gabTestPartCalls[uiCall];
+		bRuns = (uiCall >= guiTestPartRest) || ((uiCall < TEST_PART_MAX_CALLS) && gabTestPartCalls[uiCall]);
 	}
 	else
 	{
 		bRuns = (uiCall % guiTestParts) == guiTestPart;
+	}
+	if (!bRuns && gbTestPartTimes)
+	{
+		printf("TESTSKIP %s %d\n", gszTestPartFile, (int)uiCall);
 	}
 	giTestPartStart = clock();
 	giTestPartTests = TestsRun();
@@ -260,7 +265,7 @@ static bool TestFileChosen(const char* szName, const char* szOnly)
 // it can be run in parts (else 0), and runs nothing; -only Name[,Name]
 // runs those files; -part p/n runs part p (from 0) of n of each file that
 // can be run in parts, and nothing of the others; -calls n,n,... runs those
-// calls of them (TestCppCompilerLibParts.h).  RunParallel.py runs the parts
+// calls of them, and -rest n every call from n too (TestCppCompilerLibParts.h).  RunParallel.py runs the parts
 // in processes of their own, TESTLIB_LOG naming each one's log.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -294,6 +299,10 @@ int __cdecl main(int argc, char** argv)
 				return 2;
 			}
 		}
+		else if ((strcmp(argv[i], "-rest") == 0) && (i + 1 < argc))
+		{
+			guiTestPartRest = (size)atoi(argv[++i]);
+		}
 		else if ((strcmp(argv[i], "-part") == 0) && (i + 1 < argc))
 		{
 			i++;
@@ -305,7 +314,7 @@ int __cdecl main(int argc, char** argv)
 		}
 		else
 		{
-			printf("TestCppCompilerLib [-list] [-only Name[,Name]] [-part p/n | -calls n,n,...]\n");
+			printf("TestCppCompilerLib [-list] [-only Name[,Name]] [-part p/n | -calls n,n,... [-rest n]]\n");
 			return 2;
 		}
 	}

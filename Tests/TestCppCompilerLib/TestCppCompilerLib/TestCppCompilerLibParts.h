@@ -5,9 +5,10 @@
 
 //A long test file can be run in parts, each in a process of its own (main's -part and -calls, RunParallel.py): its test
 //functions are called through TEST_PART, counted from its entry point's TEST_PART_BEGIN.  A part runs the calls -calls
-//lists (by their numbers, from 0), or with -part p/n every n-th from the p-th; with neither, every call runs.  With
+//lists (by their numbers, from 0) and with -rest n every call from n, or with -part p/n every n-th from the p-th; with neither, every call runs.  With
 //TEST_PART_TIMES in the environment each call's time and tests are printed ("TESTPART <file> <call> <seconds> <tests>"), which RunParallel.py
-//keeps to share the calls out evenly next time.  TestPartLabel names the process's part, for what it writes beside the
+//keeps to share the calls out evenly next time; the calls a part leaves to the others are printed too ("TESTSKIP <file>
+//<call>"), so it can check each call ran in one part.  TestPartLabel names the process's part, for what it writes beside the
 //others: its log's name without Log.txt (TESTLIB_LOG), or "" for the whole run.
 void	TestPartBegin(const char* szFile);
 bool	TestPartStarts(void);

@@ -57,7 +57,7 @@ def ShareCalls(asCalls, iParts):
 		p = afTimes.index(min(afTimes))
 		aaiParts[p].append(int(szCall))
 		afTimes[p] += fTime
-	return [(sorted(a), f) for a, f in zip(aaiParts, afTimes)]
+	return [(sorted(a), f, p == afTimes.index(min(afTimes))) for p, (a, f) in enumerate(zip(aaiParts, afTimes))]
 
 
 def Jobs(aFiles, asTimes, iJobs):
@@ -71,8 +71,10 @@ def Jobs(aFiles, asTimes, iJobs):
 		fTime = asFileTimes.get(szName, DEFAULT_TIMES.get(szName, 1))
 		iParts = max(1, min(iJobs, int(fTime / 40 + 0.5))) if bParts else 1
 		if (iParts > 1) and asCallTimes.get(szName):
-			for p, (aiCalls, fPart) in enumerate(ShareCalls(asCallTimes[szName], iParts)):
-				aJobs.append(("%sPart%d" % (szName, p), ["-only", szName, "-calls", ",".join(str(i) for i in aiCalls)], fPart))
+			#Calls added since the times were kept (numbered from the last one known) go to the part with least to do.
+			iRest = max(int(c) for c in asCallTimes[szName]) + 1
+			for p, (aiCalls, fPart, bLeast) in enumerate(ShareCalls(asCallTimes[szName], iParts)):
+				aJobs.append(("%sPart%d" % (szName, p), ["-only", szName, "-calls", ",".join(str(i) for i in aiCalls)] + (["-rest", str(iRest)] if bLeast else []), fPart))
 		elif iParts > 1:
 			for p in range(iParts):
 				aJobs.append(("%sPart%d" % (szName, p), ["-only", szName, "-part", "%d/%d" % (p, iParts)], fTime / iParts))
@@ -167,16 +169,26 @@ def main():
 	iPassed = sum(a[1] for a in asTotals.values())
 	iFailed = sum(a[2] for a in asTotals.values())
 	szLog += "------------------------------ Total Results ------------------------------\nTotal Tests Run: %d\nTotal Passed: %d\nTotal Failed: %d\n" % (iRun, iPassed, iFailed)
-	for szUnfinished in aszUnfinished:
-		szLog += "Did not finish: %s\n" % szUnfinished
-	open(os.path.join(WORK, "Log.txt"), "w", encoding="utf-8").write(szLog)
 
 	#The times, kept for the next run: each file's, and each call's of those run in parts.
 	asCalls = {}
+	asRuns = {}
+	asSkipped = {}
 	for sJob in aJobs:
 		szOut = os.path.join(WORK, "Output", sJob[0] + "Out.txt")
 		for m in re.finditer(r"^TESTPART (\S+) (\d+) ([0-9.]+) \d+$", open(szOut, errors="replace").read() if os.path.exists(szOut) else "", re.M):
 			asCalls.setdefault(m.group(1), {})[m.group(2)] = float(m.group(3))
+			asRuns.setdefault(m.group(1), []).append(int(m.group(2)))
+		for m in re.finditer(r"^TESTSKIP (\S+) (\d+)$", open(szOut, errors="replace").read() if os.path.exists(szOut) else "", re.M):
+			asSkipped.setdefault(m.group(1), set()).add(int(m.group(2)))
+	#Every call of a file run in parts ran, in one part or another.
+	for szName, bParts in aFiles:
+		aiRuns = sorted(asRuns.get(szName, []))
+		if bParts and (aiRuns or (szName in asSkipped)) and (aiRuns != sorted(set(aiRuns) | asSkipped.get(szName, set()))):
+			aszUnfinished.append("%s (a call of it ran in no part, or in two)" % szName)
+	for szUnfinished in aszUnfinished:
+		szLog += "Did not finish: %s\n" % szUnfinished
+	open(os.path.join(WORK, "Log.txt"), "w", encoding="utf-8").write(szLog)
 	if not aszUnfinished:
 		os.makedirs(os.path.dirname(TIMES), exist_ok=True)
 		json.dump({"files": {k: round(v[3], 1) for k, v in asTotals.items()}, "calls": asCalls}, open(TIMES, "w"), indent=0, sort_keys=True)
