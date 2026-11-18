@@ -47,8 +47,9 @@
 //With threads: OBJECTS_SPEED_THREADS set to a number (with OBJECTS_SPEED) switches the object system's locking on
 //and registers that many other threads while the operations are timed.  They do nothing but be registered, unless
 //OBJECTS_SPEED_THREADS_WORK says what each does over and over until the operations are done: "copy" (a stack Ptr to
-//the one node, copied and dropped), "own" (the same, each thread to a node of its own) or "malloc" (OMalloc and
-//free).  What a thread's operation took, on average over the threads, is logged with the rest.  With
+//the one node, copied and dropped), "own" (the same, each thread to a node of its own), "malloc" (OMalloc and
+//free) or "workermalloc" (the same, each thread a worker with an object system of its own: ObjectsWorkerInit).  What
+//a thread's operation took, on average over the threads, is logged with the rest.  With
 //OBJECTS_SPEED_ONLY_COPIES set as well this thread does nothing but copy and drop a stack Ptr meanwhile, so nothing
 //writes: what threads that only read cost each other.
 
@@ -121,20 +122,27 @@ static size TestObjectsSpeedScale(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// fOperation run on uiCount things took from iStart until now.
+// An operation run on uiCount things took iMicroseconds.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestObjectsSpeedLog(const char* szWhat, int64 iStart, size uiCount)
+static void TestObjectsSpeedLogTime(const char* szWhat, int64 iMicroseconds, size uiCount)
 {
 	float	fNanoseconds;
 
-	fNanoseconds = (float)(GetDebugMicroseconds() - iStart) * 1000.0f / (float)uiCount;
+	fNanoseconds = (float)iMicroseconds * 1000.0f / (float)uiCount;
 	if (getenv("OBJECTS_SPEED"))
 	{
 		//In tenths, as whole numbers: printing a float needs the number control.
 		gcLogger.Info2(szWhat, ": ", IntToString((int)fNanoseconds), ".", IntToString((int)(fNanoseconds * 10.0f) % 10), " ns", NULL);
 	}
 	AssertTrue(fNanoseconds >= 0.0f);
+}
+
+
+//fOperation run on uiCount things took from iStart until now.
+static void TestObjectsSpeedLog(const char* szWhat, int64 iStart, size uiCount)
+{
+	TestObjectsSpeedLogTime(szWhat, GetDebugMicroseconds() - iStart, uiCount);
 }
 
 
@@ -412,12 +420,19 @@ static void TestObjectsSpeedThread(void* pvThread)
 	psThread = (STestSpeedThread*)pvThread;
 	psThread->uiOperations = 0;
 	psThread->iMicroseconds = 0;
-	ObjectsThreadInit();
+	if ((psThread->szWork != NULL) && (strcmp(psThread->szWork, "workermalloc") == 0))
+	{
+		ObjectsWorkerInit();
+	}
+	else
+	{
+		ObjectsThreadInit();
+	}
 	{
 		Ptr<CTestSpeedNode>		pNode;
 
 		//Only a thread that copies pointers holds the node: held, the tree it is the top of wouldn't be freed.
-		if ((psThread->szWork != NULL) && (strcmp(psThread->szWork, "malloc") != 0))
+		if ((psThread->szWork != NULL) && (strstr(psThread->szWork, "malloc") == NULL))
 		{
 			pNode = psThread->pcNode;
 		}
@@ -429,7 +444,7 @@ static void TestObjectsSpeedThread(void* pvThread)
 			{
 				ThreadSleep(1);
 			}
-			else if (strcmp(psThread->szWork, "malloc") == 0)
+			else if (strstr(psThread->szWork, "malloc") != NULL)
 			{
 				TestObjectsSpeedMalloc(TEST_OBJECTS_SPEED_THREAD_BATCH);
 				psThread->uiOperations += TEST_OBJECTS_SPEED_THREAD_BATCH;
@@ -697,6 +712,87 @@ void TestObjectsSpeedTree(void)
 }
 
 
+//What a worker's build and Adopt took.
+struct STestSpeedAdopt
+{
+	size	uiNodes;
+	size	uiObjects;
+	int64	iBuild;
+	int64	iAdopt;
+	bool	bAdopted;
+};
+
+
+//A worker builds TestObjectsSpeedTree's tree in its own object system and gives it to the main one.
+static void TestObjectsSpeedAdoptThread(void* pvAdopt)
+{
+	STestSpeedAdopt*		psAdopt;
+	CArrayBaseObjectPtr		apcNodes;
+	int64					iStart;
+
+	psAdopt = (STestSpeedAdopt*)pvAdopt;
+	ObjectsWorkerInit();
+	{
+		Ptr<CTestSpeedNode>		pWindow;
+		Ptr<CTestSpeedNode>		pTop;
+
+		apcNodes.Init();
+		pWindow = OMalloc<CTestSpeedNode>();
+		pTop = OMalloc<CTestSpeedNode>();
+		iStart = GetDebugMicroseconds();
+		pTop->mpObject1 = pWindow;
+		pWindow->mpObject1 = pTop;
+		psAdopt->uiNodes = TestObjectsSpeedBuildTree(pWindow, pTop, TEST_OBJECTS_SPEED_TREE_DEPTH + (getenv("OBJECTS_SPEED") ? 2 : 0), &apcNodes);
+		psAdopt->iBuild = GetDebugMicroseconds() - iStart;
+		psAdopt->uiObjects = ObjectsCurrent()->NumMemoryIndexes();
+
+		iStart = GetDebugMicroseconds();
+		psAdopt->bAdopted = ObjectsAdopt(pWindow);
+		psAdopt->iAdopt = GetDebugMicroseconds() - iStart;
+		gcObjects.Root()->Add(pWindow);
+		apcNodes.Kill();
+	}
+	ObjectsThreadKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// TestObjectsSpeedTree's tree built on a worker, in an object system of
+// its own (no lock), and adopted by the main object system: a node, and
+// Adopt's cost for each object.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestObjectsSpeedAdopt(void)
+{
+	STestSpeedAdopt		sAdopt;
+	CNativeThread		cThread;
+
+	ObjectsInit();
+	gcObjects.DisableValidation();
+	ORoot();
+	AssertTrue(ObjectsLocking(true));
+	sAdopt.bAdopted = false;
+	cThread.Init();
+	cThread.Start(TestObjectsSpeedAdoptThread, &sAdopt);
+	cThread.Join();
+	cThread.Kill();
+	AssertTrue(ObjectsLocking(false));
+
+	AssertTrue(sAdopt.bAdopted);
+	TestObjectsSpeedLogTime("Tree of objects built on a worker, a node", sAdopt.iBuild, sAdopt.uiNodes);
+	TestObjectsSpeedLogTime("Tree adopted, an object", sAdopt.iAdopt, sAdopt.uiObjects);
+	AssertLong((int64)(2 + sAdopt.uiObjects), gcObjects.NumMemoryIndexes());
+
+	gcObjects.EnableValidation();
+	gcObjects.ValidateObjectsConsistency();
+	ORoot()->RemoveAll();
+	AssertLong(2, gcObjects.NumMemoryIndexes());
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The tree TestObjectsSpeedTree builds, saved, and read back with the
@@ -908,6 +1004,7 @@ void TestObjectsSpeed(void)
 
 	TestObjectsSpeedOperations();
 	TestObjectsSpeedTree();
+	TestObjectsSpeedAdopt();
 	TestObjectsSpeedLoadTree();
 	TestObjectsSpeedSets();
 

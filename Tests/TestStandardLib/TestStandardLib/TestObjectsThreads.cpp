@@ -2637,11 +2637,25 @@ static void TestObjectsThreadsWorkerHolds(void* pvThread)
 }
 
 
+static CTestThreadNode*	gpcTestObjectsThreadsCounted = NULL;
+
+
+//The home thread's while the workers move their pointers: the counted node's stack froms, which reads every thread's
+//table with the lock.
+static void TestObjectsThreadsCountStackFroms(void)
+{
+	ObjectsLock();
+	gpcTestObjectsThreadsCounted->NumStackFroms();
+	ObjectsUnlock();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A worker's stack pointers point at main objects as any registered
-// thread's do, and move between its own objects and main ones.  The main
-// object is held exactly while they point at it.
+// thread's do, and move between its own objects and main ones, while the
+// home thread reads the threads' tables.  The main object is held exactly
+// while they point at it.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectsThreadsWorkerHoldsMain(void)
@@ -2654,9 +2668,13 @@ void TestObjectsThreadsWorkerHoldsMain(void)
 	ORoot()->Add(pShared);
 	uiObjects = gcObjects.NumMemoryIndexes();
 
+	gpcTestObjectsThreadsCounted = &pShared;
+	gfTestObjectsThreadsWaiting = TestObjectsThreadsCountStackFroms;
 	gbTestObjectsThreadsWorkers = true;
 	AssertInt(0, TestObjectsRunThreads(TestObjectsThreadsWorkerHolds, NULL, NULL, &pShared, NULL));
 	gbTestObjectsThreadsWorkers = false;
+	gfTestObjectsThreadsWaiting = NULL;
+	gpcTestObjectsThreadsCounted = NULL;
 
 	AssertSize(1, pShared.NumStackFroms());
 	AssertTrue(pShared->IsLive());
@@ -2765,15 +2783,24 @@ static void TestObjectsThreadsWorkerHolder(void* pvSteps)
 	{
 		Ptr<CTestThreadNode>	pOwn;
 
+		Ptr<CArrayObject>		pList;
+		Ptr<CTestThreadNode>	pListed;
+
 		pOwn = OMalloc<CTestThreadNode>();
 		ORoot()->Add(pOwn);
 		pOwn->mpNext = psSteps->apcNodes[0];
+		pList = OMalloc<CArrayObject>();
+		ORoot()->Add(pList);
+		pListed = psSteps->apcNodes[1];
+		pList->Add(pListed);
+		pListed = NULL;
 		AtomicStore(&psSteps->iDone, 1);
 
 		TestObjectsStepWait(psSteps, 2);
-		psSteps->bLoaded = pOwn->mpNext->IsLive();
+		psSteps->bLoaded = pOwn->mpNext->IsLive() && pList->Get<CTestThreadNode>(0)->IsLive();
 		ORoot()->Remove(pOwn);
 		pOwn = NULL;
+		pList->Remove((size)0);
 		AtomicStore(&psSteps->iDone, 2);
 
 		TestObjectsStepWait(psSteps, 3);
@@ -2787,13 +2814,15 @@ static void TestObjectsThreadsWorkerHolder(void* pvSteps)
 //
 // A main object that only a worker's object points at stays while it
 // does, though main lets go of it, and is freed by main, on the home
-// thread, once the worker's object has gone.
+// thread, once the worker's object has gone; and so is one only a
+// worker's collection holds, once it is taken out.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestObjectsThreadsWorkerObjectHoldsMain(void)
 {
 	STestObjectsSteps		sSteps;
 	Ptr<CTestThreadNode>	pShared;
+	Ptr<CTestThreadNode>	pListed;
 	size					uiObjects;
 
 	TestObjectsThreadsBegin();
@@ -2801,7 +2830,10 @@ void TestObjectsThreadsWorkerObjectHoldsMain(void)
 	uiObjects = gcObjects.NumMemoryIndexes();
 	pShared = OMalloc<CTestThreadNode>();
 	ORoot()->Add(pShared);
+	pListed = OMalloc<CTestThreadNode>();
+	ORoot()->Add(pListed);
 	sSteps.apcNodes[0] = &pShared;
+	sSteps.apcNodes[1] = &pListed;
 	sSteps.iAsked = 0;
 	sSteps.iDone = 0;
 	sSteps.bLoaded = false;
@@ -2810,19 +2842,22 @@ void TestObjectsThreadsWorkerObjectHoldsMain(void)
 	TestObjectsStep(&sSteps, 1);
 	AssertTrue(sSteps.bRegistered);
 
-	//Off main's root and let go of here: the worker's object holds it.
+	//Off main's root and let go of here: the worker's object and collection hold them.
 	ORoot()->Remove(pShared);
+	ORoot()->Remove(pListed);
 	pShared = NULL;
+	pListed = NULL;
 	ObjectsCollect();
 	AssertInt(0, giTestThreadNodesFreed);
 	AssertTrue(sSteps.apcNodes[0]->IsLive());
+	AssertTrue(sSteps.apcNodes[1]->IsLive());
 
-	//The worker's object goes, and with it the main object, freed here.
+	//The worker's object goes, and with it the main object, freed here; the other is taken out of the collection.
 	TestObjectsStep(&sSteps, 2);
 	AssertTrue(sSteps.bLoaded);
 	AssertInt(1, giTestThreadNodesFreed);
 	ObjectsCollect();
-	AssertInt(2, giTestThreadNodesFreed);
+	AssertInt(3, giTestThreadNodesFreed);
 
 	TestObjectsStep(&sSteps, 3);
 	sSteps.cThread.Join();

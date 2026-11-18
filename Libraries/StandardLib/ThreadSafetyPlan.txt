@@ -1150,6 +1150,18 @@ Steps
          Adopt for each object.
       g. Proved: the mutation harness over the new guards, the full sweep, the 65 suites (with level 3 compiled
          out), the MinGW compile.
+         The mutation harness, 2026-11-18: ~/Codaphela/documents/ThreadSafetyPrototype/mutation/level3.py, 13 mutants
+         of step 25's pieces, all killed: a worker's guard taking no lock for any object system; a worker's pointer to
+         a main object pointed without the lock; a worker's own objects in the threads' tables; the tables asked about
+         a worker's own objects; a worker's walks going into main objects; a worker's field to a main object a heap
+         from; a worker's object freed without letting go of its main objects; a main object a worker's collection let
+         go of not freed; a worker's block of indexes one index; a worker not its object system's home; Adopt not
+         checking names, keeping the worker's classes, or not putting the stack pointers back.  Two survived the
+         first pass, for want of a test: TestObjectsThreadsWorkerHoldsMain now has the home thread read every
+         thread's table (a node's stack froms, with the lock) while the workers move their pointers, and
+         TestObjectsThreadsWorkerObjectHoldsMain a main node held by a worker's collection alone.
+         The 65 suites (level 3 compiled out: ObjectsOwn() is NULL there, ObjectsAdopt refuses) pass at every step,
+         187 and 185, and the MinGW compile of every changed file says nothing, 32 and 64 bit.
 
   Tests (TestStandardLib/TestObjectsThreads.cpp, not on the 65 targets)
     Threads copying and dropping Ptrs to one rooted object; to a hub; to objects another thread is re-pointing a field
