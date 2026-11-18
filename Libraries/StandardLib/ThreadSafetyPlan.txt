@@ -489,7 +489,7 @@ Forwarding hollows (step 24, planned 2026-11-18)
     load rewrote to that object.  A Debug build checks that the object is still in memory under the hollow's index
     when a forwarder answers.
 
-    Sets and maps (4) are decision 10, open:
+    Sets and maps (4) are decision 10: (a), the user's choice with step 24a's measurements.
       a. Ordered by object index (an embedded member by its container's index, then its place in it).  A load changes
          no order, and fat hollows are retired: every hollow loads into memory of its own and forwards.  The order is
          the order objects were made in, the same on every run and under every allocator (address order broke four
@@ -867,3 +867,6 @@ Decisions (the user's, 2026-11-17)
      for the 16% on OMalloc and free.  The second asking said a tree's build and free would be 17 and 23% slower;
      measured like for like afterwards they are the same and about 3% (step 23 says how the first figures came to
      be wrong).
+  10. (2026-11-18, with step 24a's measurements) Sets and maps are ordered by object index, not address: a load
+     never changes an order, so fat hollows are retired and the size they were made at leaves the record format.
+     Contains costs 4 to 90 ns more and an Add 8 to 41% more, for sets of 10 to 100000.
