@@ -103,28 +103,27 @@ void CAssertStatistics::PrintTotal(CChars* psz)
 		NumberInit();
 	}
 
-	if (miTotalTestsRun > 0)
-	{
-		psz->Append("Total Tests Run: ");
-		psz->Append((uint64)miTotalTestsRun);
-		psz->AppendNewLine();
-		psz->Append("Total Passed: ");
-		psz->Append((uint64)miTotalTestsPassed);
-		psz->AppendNewLine();
-		psz->Append("Total Failed: ");
-		psz->Append((uint64)miTotalTestsFailed);
-		psz->AppendNewLine();
+	//Said even when nothing was run (a suite whose every test needs something the machine hasn't, a graphics driver
+	//say): what reads the results can then tell a program that tested nothing from one that stopped before the end.
+	psz->Append("Total Tests Run: ");
+	psz->Append((uint64)miTotalTestsRun);
+	psz->AppendNewLine();
+	psz->Append("Total Passed: ");
+	psz->Append((uint64)miTotalTestsPassed);
+	psz->AppendNewLine();
+	psz->Append("Total Failed: ");
+	psz->Append((uint64)miTotalTestsFailed);
+	psz->AppendNewLine();
 #if !defined(__LIBC65__)
-		psz->AppendNewLine();
-		psz->Append("Total Time:   ");
-		psz->Append(fTotalTime, 2);
-		psz->Append("s");
-		psz->AppendNewLine();
+	psz->AppendNewLine();
+	psz->Append("Total Time:   ");
+	psz->Append(fTotalTime, 2);
+	psz->Append("s");
+	psz->AppendNewLine();
 #else
-		(void)fTotalTime;
+	(void)fTotalTime;
 #endif
-		psz->AppendNewLine();
-	}
+	psz->AppendNewLine();
 }
 
 
