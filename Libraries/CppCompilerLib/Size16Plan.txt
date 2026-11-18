@@ -24,7 +24,8 @@ What it is when done
 - malloc's blocks never cross a bank: the heap is a CTrueMallocator region for each 64KB bank, so no block can, and
   Malloc stays constant time.  malloc of more than a bank's room is NULL.
 - malloc32 of more than fits a bank takes whole adjacent banks (rounded up to 64KB), as the kernal's main heap takes
-  banks (KernalTakeHeapBanks); free gives them back.  malloc32 of what fits a bank is malloc.  A bank the small heap
+  banks (KernalTakeHeapBanks); free gives them back.  malloc32 of what fits a bank is malloc.  free and realloc take
+  either kind of block.  A bank the small heap
   holds goes back to the pool when all its blocks are free (IsRegionFree, RemoveRegion), so large allocations can
   have it again.
 - BaseLib: SArrayNaturalSize copies with memcpy and the others on every target (no W65C816 branch: size is size_t);
@@ -45,8 +46,11 @@ Steps (a commit each, after the checks it lists)
 1. Libc65's heap by banks (HCP65; nothing else changes yet).  InitHeap gives CTrueMallocator one region per bank of
    the heap's memory (0008:0000-000F:FFFF and the high heap the same way), so no block crosses a bank.  A bank pool
    (a bitmap of the heap's banks) hands whole banks to the small heap when it is full and to large allocations;
-   malloc of more than a bank's room is refused.  The kernal's main heap (KernalMemory.cpp) is already by banks;
-   its bOneBank MallocWithin becomes Malloc once its regions are per bank too.  Tests in TestLibc65: no block crosses
+   malloc of more than a bank's room is refused.  Small banks are taken from the bottom of the heap, large runs from
+   the top, so they meet only when memory is short.  A byte for each bank says what it is (free, the small heap's,
+   the first of a large run, more of one), as the kernal's gauiKernalBanks does, so free knows which a pointer is.
+   The kernal's main heap (KernalMemory.cpp, KernalMainMalloc's explicit uint32 sizes) is its own and stays as it
+   is.  Tests in TestLibc65: no block crosses
    a bank, freeing a bank's last block returns it, many small allocations then a large one.
    Checks: TestLibc65, TestHCP65Lib (the kernal), the *65 compiles.
 
@@ -68,8 +72,11 @@ Steps (a commit each, after the checks it lists)
    - stddef.h: size_t unsigned int under __W65C816__; stdint.h SIZE_MAX 0xFFFF there.
    - string.h, stdlib.h, stdio.h: the plain names take size_t (16 bits); the 16 suffixed declarations go.
      stringW65C816_16.asm's bodies become memcpy, memmove, memset, memcmp, strlen (and MemSwp, the FindFirst/Last bit
-     ones of size); stringW65C816.asm keeps only the 32 suffixed ones.  malloc and the others in stdlib.cpp, and
-     new.cpp's operator new and new[], take 16 bits.
+     ones of size); stringW65C816.asm keeps only the 32 suffixed ones.  memchr, strncpy, strncat and strncmp have no
+     16 bit bodies: their plain names become short entries that widen the 16 bit count (in Y, as the register
+     convention gives a 16 bit third argument) and go into the 32 bit body (memchr32's; strncpy's, strncat's and
+     strncmp's under local names, as no one asked for 32 suffixed ones of those).  malloc and the others in
+     stdlib.cpp, and new.cpp's operator new and new[], take 16 bits.
    - BaseLib: SArrayNaturalSize loses its W65C816 branch, StrLen loses its #if, MemSwp16 goes (MemSwp is it),
      StringHelper.h's declarations follow.  PrimitiveTypes.h: on the W65C816 size is size_t (one typedef, as it says);
      BASELIB_SIZE16's host check keeps uint16.
