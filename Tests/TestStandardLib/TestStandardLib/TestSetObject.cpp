@@ -13,6 +13,7 @@
 #include "StandardLib/ArrayObject.h"
 #include "TestLib/Assert.h"
 #include "NamedObjectTestClasses.h"
+#include "EmbeddedObjectTestClasses.h"
 #include "TestSetObject.h"
 
 
@@ -754,8 +755,9 @@ void TestSetObjectObjectInternalSerialisation(size uiNumSetItems)
 
 		cIndexObjectPointers.Init();
 
+		//Read back in the order it was saved in: its members keep their indexes.
 		AssertTrue(pSet->IsMustSort());
-		AssertFalse(pSet->IsSorted());
+		AssertTrue(pSet->IsSorted());
 
 		bResult = true;
 		pObject = pSet->StartIteration(&sIter);
@@ -943,8 +945,8 @@ void TestSetObjectObjectMorphSetEntry(size uiNumElements)
 		}
 		AssertTrue(bResult);
 
-		//The set no longer takes itself to be in order.  (Whether it still is, with one member's address changed, is
-		//the allocator's business.)
+		//The set no longer takes itself to be in order, nor is it: its middle member is now an object made after
+		//the rest.
 		AssertFalse(pSet->IsSorted());
 
 		pSet->Contains(pComplex);
@@ -1514,14 +1516,170 @@ void TestSetObjectLoadKeepsFlags(void)
 		AssertString("C", pArray->Get(1).GetName());
 		AssertString("D", pArray->Get(2).GetName());
 
-		//Every member is loaded now, so the set is in pointer order again.
+		//Every member is loaded now, and the set is still in order: its members kept their indexes.
 		for (i = 0; i < 4; i++)
 		{
 			szName[0] = (char)('A' + i);
 			AssertTrue(gcObjects.Get(szName).IsNotNull());
 		}
+		AssertTrue(pSet->IsSorted());
 		AssertTrue(pSet->Contains(pB));
 		AssertTrue(pSet->CalculateIsSorted());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A set's members are in index order: the order they were made in, not
+// the order they were added in.  An object embedded in another comes after
+// its container, in the order of its container's embedded objects.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectIndexOrder(void)
+{
+	ObjectsInit();
+	{
+		Ptr<CSetObject>				pSet;
+		Ptr<CEmbeddedContainer>		pA;
+		Ptr<CEmbeddedContainer>		pB;
+		Ptr<CTestObject>			pC;
+		CEmbeddedObject*			apcExpected[7];
+		SSetIterator				sIter;
+		CPointer					pMember;
+		size						i;
+
+		pSet = OMalloc<CSetObject>();
+		ORoot()->Add(pSet);
+		pA = OMalloc<CEmbeddedContainer>();
+		pB = OMalloc<CEmbeddedContainer>();
+		pC = OMalloc<CTestObject>();
+
+		pSet->Add(&pB->mcTwo);
+		pSet->Add(pC);
+		pSet->Add(&pA->mcTwo);
+		pSet->Add(pB);
+		pSet->Add(&pA->mcOne);
+		pSet->Add(&pB->mcOne);
+		pSet->Add(pA);
+		AssertSize(7, pSet->NumElements());
+		AssertTrue(pSet->IsSorted());
+		AssertTrue(pSet->CalculateIsSorted());
+
+		apcExpected[0] = &pA;
+		apcExpected[1] = &pA->mcOne;
+		apcExpected[2] = &pA->mcTwo;
+		apcExpected[3] = &pB;
+		apcExpected[4] = &pB->mcOne;
+		apcExpected[5] = &pB->mcTwo;
+		apcExpected[6] = &pC;
+		i = 0;
+		pMember = pSet->StartIteration(&sIter);
+		while (pMember.IsNotNull() && (i < 7))
+		{
+			AssertPointer(apcExpected[i], pMember.Object());
+			i++;
+			pMember = pSet->Iterate(&sIter);
+		}
+		AssertSize(7, i);
+		AssertTrue(pMember.IsNull());
+	}
+	ObjectsFlush();
+	ObjectsKill(false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A set read from the database holds hollows for its members, which are
+// loaded later, one at a time, into memory of their own.  (They were read
+// first as an array's members, so the set finds them already in memory as
+// hollows that load anywhere.)  The set stays in order through every load
+// without being sorted again: an object loaded for a hollow has its index.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestSetObjectLoadKeepsOrder(size uiNumMembers)
+{
+	CFileUtil		cFileUtil;
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	char			szDirectory[] = "Output" _FS_ "SetObjectOrder";
+	size			i;
+	bool			bResult;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	TestSetObjectAddConstructors();
+	{
+		Ptr<CSetObject>		pSet;
+		Ptr<CArrayObject>	pArray;
+		Ptr<CTestObject>	pObject;
+
+		pSet = ONMalloc<CSetObject>("Set");
+		pArray = ONMalloc<CArrayObject>("Array");
+		ORoot()->Add(pSet);
+		ORoot()->Add(pArray);
+		for (i = 0; i < uiNumMembers; i++)
+		{
+			pObject = OMalloc<CTestObject>();
+			pArray->Add(pObject);
+		}
+		for (i = uiNumMembers; i > 0; i--)
+		{
+			pObject = pArray->Get(i - 1);
+			pSet->Add(pObject);
+		}
+		AssertTrue(pSet->IsSorted());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	TestSetObjectAddConstructors();
+	{
+		Ptr<CRoot>			pRoot;
+		Ptr<CSetObject>		pSet;
+		Ptr<CArrayObject>	pArray;
+		CPointer			pMember;
+
+		pRoot = ORoot();
+		pArray = pRoot->Get("Array");
+		AssertSize(uiNumMembers, pArray->NumElements());
+		pSet = pRoot->Get("Set");
+		AssertSize(uiNumMembers, pSet->NumElements());
+		AssertTrue(pSet->IsSorted());
+
+		for (i = 0; i < uiNumMembers; i++)
+		{
+			pMember = pArray->Get(i);
+			bResult = !pMember.IsHollow() && pSet->IsSorted() && pSet->CalculateIsSorted() && pSet->Contains(pMember);
+			if (!bResult)
+			{
+				AssertFalse(pMember.IsHollow());
+				AssertTrue(pSet->IsSorted());
+				AssertTrue(pSet->CalculateIsSorted());
+				AssertTrue(pSet->Contains(pMember));
+				break;
+			}
+		}
+		AssertTrue(pSet->IsSorted());
 	}
 	ObjectsFlush();
 	pcDatabase->Close();
@@ -1689,6 +1847,9 @@ void TestSetObject(void)
 	TestSetObjectMemberLocations(false);
 	TestSetObjectSortedInsertMovesMembers();
 	TestSetObjectLoadKeepsFlags();
+	TestSetObjectIndexOrder();
+	TestSetObjectLoadKeepsOrder(10);
+	TestSetObjectLoadKeepsOrder(200);
 	TestSetObjectUnsafeGet();
 	TestSetObjectRemoveDuringIterationResult();
 	TestSetObjectAddAllResult();

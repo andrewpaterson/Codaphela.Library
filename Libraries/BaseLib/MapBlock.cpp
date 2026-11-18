@@ -91,16 +91,16 @@ void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare
 //////////////////////////////////////////////////////////////////////////
 void CMapBlock::Kill(void)
 {
-	size		i;
-	SMNode**	ppsNode;
-	size		uiNumElements;
+	SArraySortedIterator	sIter;
+	SMNode**				ppsNode;
 
-	mapArray.InsertHoldingIntoSorted();
-	uiNumElements = mapArray.NumElements();
-	for (i = 0; i < uiNumElements; i++)
+	//Every node, the holding arrays' too, as they are: sorting them in first would compare keys, and a key compare
+	//may read what a key points to, which may already be gone (a map of objects can be killed after its keys).
+	ppsNode = (SMNode**)mapArray.StartIteration(&sIter);
+	while (ppsNode != NULL)
 	{
-		ppsNode = (SMNode**)mapArray.GetInSorted(i);
 		FreeNode(*ppsNode);
+		ppsNode = (SMNode**)mapArray.Iterate(&sIter);
 	}
 
 	miLargestKeySize = 0;

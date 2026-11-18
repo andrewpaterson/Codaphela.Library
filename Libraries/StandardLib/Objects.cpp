@@ -2527,9 +2527,10 @@ CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const cha
 // already in memory for it is replaced, or if fat (and with the same
 // index) becomes it in place.  The hollow is found by index, or for a
 // named object by name: a hollow made for a name alone (by an external
-// read) has an index of its own, and the object loaded for it takes the
-// database's.  An empty name is an unnamed object; a name taken by an
-// object that isn't hollow fails to go into memory.
+// read) before the database had the name has an index of its own, and the
+// object loaded for it takes the database's.  An empty name is an unnamed
+// object; a name taken by an object that isn't hollow fails to go into
+// memory.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassName, const char* szObjectName, OIndex oi)
@@ -2672,8 +2673,10 @@ CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The object named szObjectName in memory, or a hollow for it (with the
-// next index) to be loaded later.
+// The object named szObjectName in memory, or a hollow for it to be loaded
+// later.  The hollow has the database's index for the name, which the
+// object loaded for it keeps (so it keeps its place in a set), or else the
+// next index.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::GetNamedOrAllocateHollow(const char* szObjectName, size uiNumEmbedded)
@@ -2696,7 +2699,11 @@ CBaseObject* CObjects::GetNamedOrAllocateHollow(const char* szObjectName, size u
 		return pvExisting;
 	}
 
-	oi = GetNextIndex();
+	oi = (mpcDataConnection != NULL) ? mpcDataConnection->GetIndex(szObjectName) : INVALID_O_INDEX;
+	if (oi == INVALID_O_INDEX)
+	{
+		oi = GetNextIndex();
+	}
 	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi, OBJECT_IDENTIFIER_SIZE_NOT_SET);
 	if (!pcHollow)
 	{

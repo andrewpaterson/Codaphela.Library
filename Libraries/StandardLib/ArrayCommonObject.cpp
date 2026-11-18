@@ -45,7 +45,8 @@ void CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrde
 	PreInit();
 	CCollection::Init();
 
-	mcArray.Init(CArrayCommonUnknown::Flags(false, false, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers));
+	//A collection of objects that sorts them sorts them by index: an object loaded in place of its hollow keeps its place.
+	mcArray.Init(CArrayCommonUnknown::Flags(false, false, bUnique, bIgnoreNull, bPreserveOrder, bSortPointers) | (bSortPointers ? ARRAY_COMMON_SORT_BY_INDEX : 0));
 	PostInit();
 }
 
@@ -124,6 +125,8 @@ bool CArrayCommonObject::Save(CObjectWriter* pcFile)
 	CEmbeddedObject*	pcPointedTo;
 	bool				bFatHollow;
 
+	//Saved in order, and so read back in order: its members keep their indexes.
+	EnsureSorted();
 	ReturnOnFalse(mcArray.WriteArrayHeader(pcFile));
 
 	bFatHollow = mcArray.IsMustSort();
@@ -354,7 +357,7 @@ CEmbeddedObject* CArrayCommonObject::Dereference(CEmbeddedObject** ppcObject)
 		if (pcLoaded != pcOldObject)
 		{
 			*ppcObject = pcLoaded;
-			mcArray.PointersChanged();
+			mcArray.PointerReplaced(pcOldObject, pcLoaded);
 		}
 		return pcLoaded;
 	}
@@ -601,7 +604,7 @@ size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject
 
 	if (iCount > 0)
 	{
-		mcArray.PointersChanged();
+		mcArray.PointerReplaced(pcOld, pcNew);
 	}
 	return iCount;
 }

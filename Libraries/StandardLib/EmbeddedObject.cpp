@@ -176,6 +176,50 @@ CBaseObject* CEmbeddedObject::GetEmbeddingContainer(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The order of a set's members and a map's keys (ppvObject1 and 2 point to
+// pointers to objects): by index, which a hollow shares with the object
+// loaded for it, so the two are the same as far as order goes and loading
+// moves nothing.  An embedded object goes by its container's index, then
+// its place in the container (as it is written: CObjectWriter::
+// WriteDependent).  Objects with no index (not allocated in Objects) go by
+// address.  NULL is first.
+//
+//////////////////////////////////////////////////////////////////////////
+int CEmbeddedObject::CompareIndex(const void* ppvObject1, const void* ppvObject2)
+{
+	CEmbeddedObject*	pc1;
+	CEmbeddedObject*	pc2;
+	CBaseObject*		pcContainer1;
+	CBaseObject*		pcContainer2;
+	size				uiPlace1;
+	size				uiPlace2;
+
+	pc1 = *((CEmbeddedObject**)ppvObject1);
+	pc2 = *((CEmbeddedObject**)ppvObject2);
+	if ((pc1 == pc2) || (pc1 == NULL) || (pc2 == NULL))
+	{
+		return ComparePtr(pc1, pc2);
+	}
+
+	pcContainer1 = (pc1->mpcEmbedded == NULL) ? (CBaseObject*)pc1 : pc1->GetEmbeddingContainer();
+	pcContainer2 = (pc2->mpcEmbedded == NULL) ? (CBaseObject*)pc2 : pc2->GetEmbeddingContainer();
+	if (pcContainer1->moi != pcContainer2->moi)
+	{
+		return (pcContainer1->moi < pcContainer2->moi) ? -1 : 1;
+	}
+	if ((pcContainer1 != pcContainer2) && (pcContainer1->moi == INVALID_O_INDEX))
+	{
+		return ComparePtr(pcContainer1, pcContainer2);
+	}
+
+	uiPlace1 = pcContainer1->GetEmbeddedIndex(pc1);
+	uiPlace2 = pcContainer2->GetEmbeddedIndex(pc2);
+	return (uiPlace1 < uiPlace2) ? -1 : ((uiPlace1 > uiPlace2) ? 1 : 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::LogicalDirty(void)

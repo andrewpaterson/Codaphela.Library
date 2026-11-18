@@ -40,7 +40,19 @@ void CMapPtrPtr::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapPtrPtr::Init(CMallocator* pcMalloc)
 {
-	CMapBlock::Init(pcMalloc, &ComparePtrPtr, true);
+	Init(pcMalloc, &ComparePtrPtr);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// Keys ordered by fKeyCompare, given pointers to two keys, rather than	//
+// by address.															//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CMapPtrPtr::Init(CMallocator* pcMalloc, DataCompare fKeyCompare)
+{
+	CMapBlock::Init(pcMalloc, fKeyCompare, true);
 };
 
 

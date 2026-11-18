@@ -96,6 +96,8 @@ public:
 								CEmbeddedObject();
 								~CEmbeddedObject();
 
+	static	int					CompareIndex(const void* ppvObject1, const void* ppvObject2);
+
 			void				Kill(void) override;
 	virtual void				KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded);
 

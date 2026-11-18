@@ -40,8 +40,20 @@ void CMapUnknownUnknown::_Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapUnknownUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
+	Init(bKillElements, bOverwriteExisting, &ComparePtrPtr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Keys ordered by fKeyCompare (given pointers to two keys) rather than by
+// address.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapUnknownUnknown::Init(bool bKillElements, bool bOverwriteExisting, DataCompare fKeyCompare)
+{
 	CMapCommonUnknown::Init(bKillElements, bOverwriteExisting);
-	mcMap.Init();
+	mcMap.Init(&gcSystemAllocator, fKeyCompare);
 	mcMap.SetDataFreeCallback(this);
 	mcMap.SetDataIOCallback(this);
 }
@@ -114,8 +126,19 @@ bool CMapUnknownUnknown::WriteMapUnknownHeader(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader)
 {
+	return ReadMapUnknownHeader(pcFileReader, &ComparePtrPtr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys to be ordered by fKeyCompare, as Init's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader, DataCompare fKeyCompare)
+{
 	ReturnOnFalse(pcFileReader->ReadInt16(&muiFlags));
-	return mcMap.ReadMapBlockHeader(pcFileReader, &ComparePtrPtr, this, this);
+	return mcMap.ReadMapBlockHeader(pcFileReader, fKeyCompare, this, this);
 }
 
 
@@ -171,6 +194,26 @@ CUnknown* CMapUnknownUnknown::Get(CUnknown* pcKey)
 SMNode* CMapUnknownUnknown::GetNode(CUnknown* pcKey)
 {
 	return mcMap.GetNode(&pcKey, sizeof(CUnknown*));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The key the map has that sorts with pcKey: pcKey if it is in the map, or
+// one its order can't tell from pcKey (keys ordered by object index: a
+// hollow and the object loaded for it), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CUnknown* CMapUnknownUnknown::GetKey(CUnknown* pcKey)
+{
+	SMNode*		psNode;
+
+	psNode = GetNode(pcKey);
+	if (psNode == NULL)
+	{
+		return NULL;
+	}
+	return *((CUnknown**)mcMap.GetKey(psNode));
 }
 
 

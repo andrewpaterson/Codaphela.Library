@@ -30,6 +30,7 @@ class CMapPtrPtr : public CMapTemplateTemplate<void*, void*>
 public:
 	void	Init(void);
 	void	Init(CMallocator* pcMalloc);
+	void	Init(CMallocator* pcMalloc, DataCompare fKeyCompare);
 
 	void*	Get(void* pvKey);
 

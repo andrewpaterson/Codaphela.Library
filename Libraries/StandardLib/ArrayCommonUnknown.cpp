@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/PrimitiveTypes.h"
+#include "EmbeddedObject.h"
 #include "SetIterator.h"
 #include "Unknowns.h"
 #include "ArrayUnknown.h"
@@ -264,13 +265,14 @@ void CArrayCommonUnknown::PostLoad(uint16 iFlags)
 //////////////////////////////////////////////////////////////////////////
 //
 // The flags of an array whose elements were read as pointers to objects
-// (hollows, or objects already in memory): their addresses aren't those
-// saved, so it isn't sorted until it is sorted again.
+// (hollows, or objects already in memory).  Sorted by index it is in the
+// order it was saved in; sorted by address it isn't, as their addresses
+// aren't those saved, until it is sorted again.
 //
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::PostLoadPointers(uint16 iFlags)
 {
-	muiFlags = iFlags & ~ARRAY_COMMON_IS_PTR_SORTED;
+	muiFlags = (iFlags & ARRAY_COMMON_SORT_BY_INDEX) ? iFlags : (iFlags & ~ARRAY_COMMON_IS_PTR_SORTED);
 }
 
 
@@ -357,7 +359,7 @@ void CArrayCommonUnknown::PreserveOrder(bool bPreserveOrder)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::Sort(void)
 {
-	mcArray.QuickSort(ComparePtrPtr);
+	mcArray.QuickSort(SortCompare());
 	SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, true);
 	SlotsMoved();
 }
@@ -395,6 +397,49 @@ size CArrayCommonUnknown::Find(CUnknown* pcUnknown)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The index of the first of pcUnknown from uiStartIndex on, in a sorted
+// array where iFound is an element that sorts with it but isn't it.  Sorted
+// by index a hollow and the object loaded for it sort as one: they are
+// next to each other, and next to any copies of pcUnknown.
+//
+//////////////////////////////////////////////////////////////////////////
+size CArrayCommonUnknown::FindNextSortedWith(CUnknown* pcUnknown, size iFound, size uiStartIndex)
+{
+	DataCompare		fCompare;
+	CUnknown*		pcCurrent;
+	size			iIndex;
+	size			uiNumElements;
+
+	fCompare = SortCompare();
+	iIndex = iFound;
+	while ((iIndex > uiStartIndex) && (fCompare(mcArray.Get(iIndex - 1), &pcUnknown) == 0))
+	{
+		iIndex--;
+	}
+	if (iIndex < uiStartIndex)
+	{
+		iIndex = uiStartIndex;
+	}
+
+	uiNumElements = mcArray.NumElements();
+	for (; iIndex < uiNumElements; iIndex++)
+	{
+		pcCurrent = *mcArray.Get(iIndex);
+		if (pcCurrent == pcUnknown)
+		{
+			return iIndex;
+		}
+		if (fCompare(&pcCurrent, &pcUnknown) != 0)
+		{
+			break;
+		}
+	}
+	return ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The index of the first of pcUnknown from uiStartIndex on.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -412,9 +457,13 @@ size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 	if (muiFlags & ARRAY_COMMON_IS_PTR_SORTED)
 	{
 		CleanNullsBeforeBinarySearch();
-		if (!mcArray.FindInSorted(&pcUnknown, ComparePtrPtr, &iIndex))
+		if (!mcArray.FindInSorted(&pcUnknown, SortCompare(), &iIndex))
 		{
 			return ARRAY_ELEMENT_NOT_FOUND;
+		}
+		if (*mcArray.Get(iIndex) != pcUnknown)
+		{
+			return FindNextSortedWith(pcUnknown, iIndex, uiStartIndex);
 		}
 
 		//The search finds any one of the same element.  They are next to each other.
@@ -474,7 +523,7 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 	if (((muiFlags & ARRAY_COMMON_IS_PTR_SORTED) || mcArray.NumElements() < 2) && (muiFlags & ARRAY_COMMON_SORT_POINTERS))
 	{
 		CleanNullsBeforeBinarySearch();
-		uiIndex = mcArray.InsertIntoSorted(ComparePtrPtr, &pcUnknown, false);
+		uiIndex = mcArray.InsertIntoSorted(SortCompare(), &pcUnknown, false);
 		if (uiIndex + 1 != mcArray.NumElements())
 		{
 			SlotsMoved();
@@ -671,7 +720,7 @@ size CArrayCommonUnknown::InsertIntoSorted(CUnknown* pcUnknown)
 	}
 	CleanNullsBeforeBinarySearch();
 
-	uiIndex = mcArray.InsertIntoSorted(ComparePtrPtr, &pcUnknown, false);
+	uiIndex = mcArray.InsertIntoSorted(SortCompare(), &pcUnknown, false);
 	if (uiIndex + 1 != mcArray.NumElements())
 	{
 		SlotsMoved();
@@ -1290,7 +1339,7 @@ bool CArrayCommonUnknown::CalculateIsSorted(void)
 		pcLeft = UnsafeGet(ui);
 		pcRight = UnsafeGet(ui + 1);
 
-		iResult = ComparePtrPtr(&pcLeft, &pcRight);
+		iResult = SortCompare()(&pcLeft, &pcRight);
 		if (iResult > 0)
 		{
 			return false;
@@ -1312,13 +1361,30 @@ bool CArrayCommonUnknown::IsMustSort(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An element was changed where it is (a hollow loaded, or remapped): the
-// array may no longer be in pointer order.
+// pcOld was replaced by pcNew where it is (a hollow loaded, or remapped):
+// the array is out of order unless pcNew sorts where pcOld did.  An object
+// loaded for a hollow has the hollow's index, so an array sorted by index
+// stays in order.
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::PointersChanged(void)
+void CArrayCommonUnknown::PointerReplaced(CUnknown* pcOld, CUnknown* pcNew)
 {
-	SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, false);
+	if (SortCompare()(&pcOld, &pcNew) != 0)
+	{
+		SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, false);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The order the array is sorted in: by address, or (ARRAY_COMMON_SORT_BY_
+// INDEX) by the indexes of the objects it holds.
+//
+//////////////////////////////////////////////////////////////////////////
+DataCompare CArrayCommonUnknown::SortCompare(void) const
+{
+	return (muiFlags & ARRAY_COMMON_SORT_BY_INDEX) ? &CEmbeddedObject::CompareIndex : &ComparePtrPtr;
 }
 
 
