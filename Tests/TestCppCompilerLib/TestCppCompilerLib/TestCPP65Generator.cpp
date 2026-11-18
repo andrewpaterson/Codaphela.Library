@@ -3644,6 +3644,10 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 28): The builtin takes one argument [__builtin_ctz]\n", "int f(unsigned u) { return __builtin_ctz(u, 1); }");
 	AssertCPP65Error("Generated.cpp (1, 28): The builtin takes two arguments [__builtin_expect]\n", "int f(unsigned u) { return __builtin_expect(u); }");
 	AssertCPP65Error("Generated.cpp (1, 28): This builtin is not supported by the compiler yet [__builtin_frobnicate]\n", "int f(unsigned u) { return __builtin_frobnicate(u); }");
+
+	//A program built without exceptions (CCPPCompileOptions::mbExceptions, which a program turns on) can't throw or try.
+	AssertCPP65Error("Generated.cpp (1, 12): throw can't be used: the program is built without exceptions (the Exceptions option) [throw]\n", "void f() { throw 1; }");
+	AssertCPP65Error("Generated.cpp (1, 12): try can't be used: the program is built without exceptions (the Exceptions option) [try]\n", "void f() { try { } catch (...) { } }");
 }
 
 
