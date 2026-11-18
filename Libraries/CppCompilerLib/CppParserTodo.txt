@@ -369,16 +369,38 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
   Open:
     1. Exceptions (B2): implement them (chained setjmp-style unwinding through V is likely cheaper on these processors than tables, at a cost for each try), or a documented mode with none?  Held for the end of Part B, at the user's word.
     2. The library (B-4): only the language support headers (<initializer_list>, <typeinfo>, <exception>, <cstddef>, <type_traits>, move and forward), or the C++14 library; and where it lives (Libc65 or a library of its own).  Held for the end of Part B.
-    3. Signed overflow in a constant expression: the standard says it is no constant (an error), but the IR's add doesn't say whether it is signed, so the interpreter wraps as the code would at run time.  Making it an error needs the front end to mark signed arithmetic.  Worth doing?
-    4. The interpreter's limits: 1,000,000 instructions and 512 calls deep for one constant, as [implimits] suggests (CCPPCompileOptions::muiConstantSteps and muiConstantDepth).  Are those right for the IDE, and for a compiler that runs on the W65C816 one day?
-    5. Lambdas in inline functions and templates in headers: a closure class is the unit's own, so each unit that uses one has its own copy of its operator()'s code.  Is the size acceptable, or should closures share code across units?
-    10. A const integer of the enclosing function used in a lambda that doesn't capture it is refused ("The lambda doesn't capture the variable"), though the standard lets it be used, as it is a constant.  Rare; worth the work?
-    6. Static locals with a first-time guard (stage 7): the targets have one thread, but interrupts and the kernal.  Is a plain "done" flag enough, or must the first initialisation be safe against being entered again from an interrupt?  Done for now as a plain guard byte (G<n>_name), set after the initialisation, with nothing against an interrupt.
-    7. thread_local (stage 7): static storage, as there is one thread; or per process if the kernal will run several?  Done for now as static storage.
-    11. A static local object whose class needs a destructor is refused (stage 7): destroying it when the program ends needs its destructor registered when it is made (as atexit does), which the start-up code has no list for.  Add one?
-    8. typeid(x).name() (stage 9): what string, if any (the C++ name, the label, or ""), given it is data every polymorphic class carries.  Done for now as "": a name would be a string in every polymorphic class's type info, which every unit writes alike (COMDAT), whether or not the program asks for it.
-    9. Virtual inheritance (stage 9): lay classes out as MSVC does (a virtual base pointer in the object), as the plan says, or as the Itanium ABI does (virtual base offsets in the vtable), which is usually smaller?  The user, 2026-11-16: Itanium style.
 
+  Answered 2026-11-18 (the user: "For each of 2.'s open questions pick the answer that is most correct for the standard, I'm not worried
+  about performance for any of them").  Each is to be done:
+    3. Signed overflow in a constant expression is an error: it isn't a constant ([expr]/4, [expr.const]/2: an operation whose result
+       isn't mathematically defined or not in its type's range).  The front end marks signed arithmetic (add, subtract, multiply,
+       negate, left shift, divide and remainder of the least number by -1) so the interpreter can tell; unsigned arithmetic still wraps.
+    4. The limits are at least [implimits]' (Annex B): 512 recursive constexpr calls, and 1,048,576 full-expressions evaluated within
+       one core constant expression.  The step limit counts full-expressions, not instructions (an instruction count of 1,000,000
+       was fewer), and both are options (muiConstantSteps, muiConstantDepth) that may be raised.  The depth no longer takes the C stack
+       (the interpreter's frames, bf900638d).
+    5. A closure type in an inline function or a template is one type in every unit ([basic.def.odr]/6, [expr.prim.lambda]/3): its
+       operator(), its static locals and its conversion to a function pointer are shared across units (COMDAT, as inline functions
+       are), so a static local in the lambda is one object and the function pointer is one address.
+    10. A const integer (or enumeration) of the enclosing scope initialised with a constant may be used in a lambda that doesn't
+        capture it, where it isn't odr-used (an lvalue-to-rvalue conversion is applied at once, [basic.def.odr]/3,
+        [expr.prim.lambda]/12): its value is used, as for any constant.  Taking its address or binding a reference to it still needs
+        a capture.
+    6. A static local's guard has three states: not started, being initialised, done ([stmt.dcl]/4).  Entering it again while it is
+       being initialised (recursively, or from an interrupt) is undefined behaviour: it traps, as g++'s __cxa_guard_acquire throws
+       recursive_init_error.  If the initialisation exits by an exception (once there are exceptions) it isn't done, and is tried again
+       the next time.  If threads come, another thread entering it waits until it is done.
+    7. thread_local is one object per thread ([basic.stc.thread]).  A program has one thread, so it is static storage now, with the
+       same dynamic initialisation and destruction a thread's objects have (initialised before first use, destroyed at exit, before the
+       static objects); per thread if threads come.  A process is a program of its own, so the kernal running several changes nothing.
+    11. Static objects whose class has a destructor (static locals included) are destroyed when the program ends, in the reverse of the
+        order their construction finished, interleaved with namespace-scope objects and with functions registered by atexit
+        ([basic.start.term]/1, /3).  The start-up code gets a list: a static local registers its destructor when its initialisation
+        finishes; exit runs the list.
+    8. typeid(x).name() is the type's C++ name (the standard leaves the string to the implementation, [type.info]/9; the most useful one
+       is the name as the program writes it, "N::A", "int*"), for every type typeid can name, polymorphic or not.
+    9. Virtual inheritance (stage 9): lay classes out as MSVC does (a virtual base pointer in the object), as the plan says, or as the
+       Itanium ABI does (virtual base offsets in the vtable), which is usually smaller?  The user, 2026-11-16: Itanium style.
 
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.
