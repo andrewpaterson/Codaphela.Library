@@ -632,9 +632,55 @@ Steps
 
   Allocation off the lock (only if objects are to be allocated on workers)
   21. mcMemory's own lock, and OMalloc as: allocate, add to the index, a reader's stack from.
+      Not built (decision 8, 2026-11-18).  Measured first (step 22), and it can't do what it was for.  A free is
+      always a writer's: the walk that finds the object dead, and the home thread's Free() of it.  Readers and
+      writers take turns, so an allocation made as a reader still takes turns with every free: threads that make
+      and free objects would get no more done, only stop holding up other threads' pointer copies while they
+      allocate.  To get more done the memory index would need a lock of its own taken at every place the index is
+      read or changed, most of CObjects, for perhaps 1.3 to 1.5 times.  Objects built in parallel are level 3's
+      (step 25): a CObjects for each thread shares nothing to take turns over.
   22. Measured: OMalloc and free on several threads.
+      Done 2026-11-17 and 18 (TestObjectsSpeed with OBJECTS_SPEED_THREADS_WORK=malloc, the home thread only copying
+      pointers meanwhile, Release, 64 bit).  Each thread's OMalloc and free: about 0.8 microseconds with one thread
+      at it, 1.7 with two, 4 to 5 with four: less is done by four threads than by one, as each waits for the lock
+      three times an object (the allocation, the end of its Init, the pointer let go) and the home thread a fourth
+      (the free).  With eleven the home thread hardly gets the lock at all.  Level 2 is for threads that read
+      objects and copy pointers, with the objects made and freed by one thread at a time; that is what the bake's
+      and the speed test's numbers show it does well.
+      It is what found the two faults mended after step 19 (a reader waiting for good, a home thread that never
+      freed).
   23. gcUnknowns onto the new allocator, if it measures better than CGeneralMemory there (it is 12% of an OMalloc and
       free today).
+      Done 2026-11-18, by the user's choice with the numbers in front of them (decision 9): it measures better at
+      one thing and worse at another.  The global unknowns, which every object in gcObjects is one of, are
+      allocated by gcSystemAllocator (UnknownsInit).  In the whole test program, whose memory sixty other groups
+      of tests have used first, as a real program's has been used:
+                                          CMemoryAllocator    gcSystemAllocator
+        OMalloc and free                  586 ns              490 ns     -16%   (instructions -16%)
+        OMalloc, added to an array, removed  599 ns           503 ns     -16%   (instructions -17%)
+        a tree of objects built, a node   557 ns              654 ns     +17%   (instructions -1%)
+        a tree of objects freed, a node   599 ns              736 ns     +23%   (instructions -3%)
+        focus moved across the tree       9.5 us              9.9 us     +4%
+      Fewer instructions every time, so what the tree loses is where its objects are: a CMemoryAllocator keeps
+      blocks of one size together, and the new allocator hands out whatever its lists hold, which in memory that
+      has been used is scattered, and building, walking and freeing a tree touch every node.  (In a program that
+      ran nothing first the tree was 5% quicker to build and 9% slower to free.)  A front list limit of 8 MB in
+      place of 2 freed the tree 7% quicker and built it slower: left at 2.
+      To do, for the tree's time back: the thread allocator keeping blocks of one size together (runs of them cut
+      from a chunk for each small size, as the front lists' sizes already are).
+      What else it gave up: CUnknowns::Dump can't go through the global unknowns one by one (it says how many),
+      and those still there at UnknownsKill aren't freed with their allocator.  The second showed at once: with
+      the allocator no longer thrown away whole, LeakSanitizer counted 21557 objects left by TestStandardLib.  Two
+      things had leaned on it.  CObjects::Kill freed its objects but left their memory "to be released with the
+      Unknowns": it gives each back now, as an eviction does.  And an object an unknowns allocated without Objects
+      (UMalloc of a CObject, which CChannels' tests do) was never given back to its unknowns when it was killed:
+      KillInternal does that now.  Nothing leaks, and what does in future will be seen.
+      Found on the way: CMallocator::FreeMultiple returned 0 where it freed everything, not how many it freed (and
+      sorted the caller's array first, which only a CMemoryAllocator's own wants): the unknowns' count went wrong
+      under any other allocator.  Two tests (a set's, a map's) took the order of their objects' addresses for the
+      order they were made in; they find their objects by what they are now.
+      Objects made on one thread and freed on another (which is every object a registered thread makes): the two
+      allocators came out the same within what the measurement can tell.
 
   Later, when something needs it
   24. Forwarding hollows (a loaded hollow stays while another thread's stack Ptr points at it), designed with the
@@ -667,3 +713,9 @@ Decisions (the user's, 2026-11-17)
   6. Threads register explicitly (ObjectsThreadInit/Kill); an unregistered thread touching objects is an error.
   7. The half nanosecond is accepted on the hosts: one configuration, guards always built; compiled out only for the
      65C64 and the 816.
+  8. (2026-11-18, with step 22's measurements) Step 21 isn't built: allocating as a reader can't let threads make
+     and free more objects, and the memory index with a lock of its own is too wide a change for what it gives.
+     Level 3 is the way to build objects in parallel.
+  9. (2026-11-18, with step 23's measurements, asked twice as the first numbers were too kind) gcUnknowns goes onto
+     the new allocator: "Switch anyway", for the 16% on OMalloc and free, with a tree's build and free 17 and 23%
+     slower until the allocator keeps blocks of one size together.

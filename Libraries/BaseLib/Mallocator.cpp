@@ -23,28 +23,20 @@ void* CMallocator::Malloc(lsize uiSize, char(** pacDebugName)[4])
 //////////////////////////////////////////////////////////////////////////
 size CMallocator::FreeMultiple(CArrayVoidPtr* pav)
 {
+	size	uiNumElements;
+	size	uiFreed;
 	size	i;
-	void*	pv;
-	bool	bFreed;
 
-	pav->QuickSort();
-	i = pav->NumElements();
-	if (i != 0)
+	uiNumElements = pav->NumElements();
+	uiFreed = 0;
+	for (i = 0; i < uiNumElements; i++)
 	{
-		do
+		if (Free(pav->GetPtr(i)))
 		{
-			i--;
-			pv = pav->GetPtr(i);
-			bFreed = Free(pv);
-			if (!bFreed)
-			{
-				return i;
-			}
+			uiFreed++;
 		}
-		while (i != 0);
 	}
-
-	return 0;
+	return uiFreed;
 }
 
 

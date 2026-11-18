@@ -245,14 +245,12 @@ void TestMapObjectIterate(void)
 		Ptr<CTestObject>			pKey5;
 		SMapIterator				sIter;
 		CMapEntry					cEntry;
-#ifdef BUILD_64
 		const char*					aszNames[5] = { "shnork", "shniqu", "shnerp", "booger", "bozzul" };
 		void*						apvValues[5];
 		bool						abFound[5] = { false, false, false, false, false };
 		size						i;
 		size						iExpected;
 		char*						szName;
-#endif // BUILD_64
 
 		pRoot = ORoot();
 		pMap = OMalloc<CMapObject>();
@@ -281,10 +279,9 @@ void TestMapObjectIterate(void)
 		AssertTrue(pMap->Contains(pKey5));
 		AssertFalse(pMap->Contains(pValue1));
 
-		//Iteration order depends on allocation order in GeneralMemory.  Which should be stable.
+		//The map is sorted by its keys' addresses, which are the allocator's business: the entries can come in any
+		//order.
 		cEntry.Init();
-#ifdef BUILD_64
-		//The map is sorted by key address and 64 bit allocations are not in address order, so the entries can come in any order.
 		apvValues[0] = &pValue3;
 		apvValues[1] = NULL;
 		apvValues[2] = &pValue2;
@@ -311,32 +308,6 @@ void TestMapObjectIterate(void)
 				cEntry = pMap->Iterate(&sIter);
 			}
 		}
-#else
-		cEntry = pMap->StartIteration(&sIter);
-		AssertTrue(cEntry.Exists());
-		AssertString("shnork", cEntry.Key().GetName());
-		AssertPointer(&pValue3, &cEntry.Value());
-
-		cEntry = pMap->Iterate(&sIter);
-		AssertTrue(cEntry.Exists());
-		AssertString("shniqu", cEntry.Key().GetName());
-		AssertNull(&cEntry.Value());
-
-		cEntry = pMap->Iterate(&sIter);
-		AssertTrue(cEntry.Exists());
-		AssertString("shnerp", cEntry.Key().GetName());
-		AssertPointer(&pValue2, &cEntry.Value());
-
-		cEntry = pMap->Iterate(&sIter);
-		AssertTrue(cEntry.Exists());
-		AssertString("booger", cEntry.Key().GetName());
-		AssertPointer(&pValue1, &cEntry.Value());
-
-		cEntry = pMap->Iterate(&sIter);		
-		AssertTrue(cEntry.Exists());
-		AssertString("bozzul", cEntry.Key().GetName());
-		AssertNull(&cEntry.Value());
-#endif // BUILD_64
 
 		cEntry = pMap->Iterate(&sIter);
 		AssertFalse(cEntry.Exists());
@@ -951,9 +922,11 @@ void TestMapObjectExternalSerialisation()
 	ObjectsKill(false);
 	ObjectsInit();
 	{
+		Ptr<CString>					pKey;
 		Ptr<CString>					pKey1;
 		Ptr<CString>					pKey2;
 		Ptr<CString>					pKey3;
+		size							i;
 		Ptr<CPointerContainer>			pValue1;
 		Ptr<CPointerContainer>			pValue2;
 		Ptr<CPointerContainer>			pValue3;
@@ -973,21 +946,32 @@ void TestMapObjectExternalSerialisation()
 		cDeserialiser.Kill();
 		cReader.Kill();
 
+		//A map is in the order of its keys' addresses, which is the allocator's business: each key is found by what
+		//it says.
 		cEntry = pMapObject->StartIteration(&sIter);
-		pKey1 = cEntry.Key();
+		for (i = 0; i < 3; i++)
+		{
+			pKey = cEntry.Key();
+			AssertTrue(pKey.IsNotNull());
+			AssertString("CString", pKey->ClassName());
+			if (strcmp(pKey->Text(), "Hun") == 0)
+			{
+				pKey1 = pKey;
+			}
+			else if (strcmp(pKey->Text(), "Koya") == 0)
+			{
+				pKey2 = pKey;
+			}
+			else if (strcmp(pKey->Text(), "Tokka") == 0)
+			{
+				pKey3 = pKey;
+			}
+			cEntry = pMapObject->Iterate(&sIter);
+		}
+		pKey = NULL;
 		AssertTrue(pKey1.IsNotNull());
-		AssertString("Hun", pKey1->Text());
-		cEntry = pMapObject->Iterate(&sIter);
-		pKey2 = cEntry.Key();
 		AssertTrue(pKey2.IsNotNull());
-		AssertString("CString", pKey1->ClassName());
-		AssertString("Koya", pKey2->Text());
-		cEntry = pMapObject->Iterate(&sIter);
-		pKey3 = cEntry.Key();
 		AssertTrue(pKey3.IsNotNull());
-		AssertString("CString", pKey2->ClassName());
-		AssertString("CString", pKey3->ClassName());
-		AssertString("Tokka", pKey3->Text());
 		pValue1 = pMapObject->Get(pKey1);
 		pValue2 = pMapObject->Get(pKey2);
 		pValue3 = pMapObject->Get(pKey3);

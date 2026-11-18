@@ -168,6 +168,8 @@ void TestSetObjectRemoveSortedWithNulls(void)
 		Ptr<CTestObject>			pObject4;
 		Ptr<CTestObject>			pLowest;
 		Ptr<CTestObject>			pNew;
+		Ptr<CTestObject>			pAgain;
+		Ptr<CTestObject>			pAbsent;
 
 		pRoot = ORoot();
 		pSet = OMalloc<CSet<CTestObject>>();
@@ -196,15 +198,19 @@ void TestSetObjectRemoveSortedWithNulls(void)
 		AssertSize(0, pSet->NumElements());
 		AssertFalse(pSet->Contains(pLowest));
 
+		//Which of the four sorted first is the allocator's business (a set is in the order of its objects'
+		//addresses): one that didn't is added again, and one that is neither isn't.
+		pAgain = (pLowest == pObject2) ? pObject1 : pObject2;
+		pAbsent = ((pLowest == pObject3) || (pAgain == pObject3)) ? pObject4 : pObject3;
 		pNew = OMalloc<CTestObject>();
-		AssertTrue(pSet->Add(pObject2));
+		AssertTrue(pSet->Add(pAgain));
 		AssertTrue(pSet->Add(pNew));
 		AssertTrue(pSet->Add(pLowest));
 		AssertSize(3, pSet->NumElements());
-		AssertTrue(pSet->Contains(pObject2));
+		AssertTrue(pSet->Contains(pAgain));
 		AssertTrue(pSet->Contains(pNew));
 		AssertTrue(pSet->Contains(pLowest));
-		AssertFalse(pSet->Contains(pObject3));
+		AssertFalse(pSet->Contains(pAbsent));
 		gcObjects.ValidateObjectsConsistency();
 	}
 	ObjectsFlush();
@@ -937,8 +943,9 @@ void TestSetObjectObjectMorphSetEntry(size uiNumElements)
 		}
 		AssertTrue(bResult);
 
+		//The set no longer takes itself to be in order.  (Whether it still is, with one member's address changed, is
+		//the allocator's business.)
 		AssertFalse(pSet->IsSorted());
-		AssertFalse(pSet->CalculateIsSorted());
 
 		pSet->Contains(pComplex);
 

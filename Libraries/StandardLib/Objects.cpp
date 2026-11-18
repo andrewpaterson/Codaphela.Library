@@ -180,9 +180,11 @@ void CObjects::Kill(void)
 
 	mbInitialised = false;
 
+	//The objects' memory is given back one by one: what allocates them (the global unknowns, from gcSystemAllocator)
+	//outlives this, and doesn't give its memory back as a whole.
 	Collect();
 	ValidateNoDirty();
-	FreeAllInKillOrder(false);
+	FreeAllInKillOrder(true);
 
 	mapcWaitingToBeFreed.Kill();
 	mcRemovalContext.Kill();
