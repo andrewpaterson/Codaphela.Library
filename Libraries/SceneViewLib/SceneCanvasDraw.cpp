@@ -260,6 +260,29 @@ void CSceneCanvasDraw::SceneChanged(const char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pCooked is the editor's output as the editor is now, cooked elsewhere
+// (on the thread that made the output, say): whichever renderer draws the
+// scene makes the editor's next mesh of it, without the editor being
+// asked for its output or that being cooked as the canvas is drawn (see
+// CRenderScene::SetCooked).  Before the rasteriser has first drawn there
+// is nothing to give it to, and it is cooked then as it would be.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSceneCanvasDraw::SetCooked(Ptr<CMeshEditor> pEditor, Ptr<CCookedMesh> pCooked)
+{
+	if (mbVulkan && mpVulkanFrame.IsNotNull())
+	{
+		mpVulkanFrame->GetRenderScene()->SetCooked(pEditor, pCooked);
+	}
+	else if (!mbVulkan && mpRasterFrame.IsNotNull())
+	{
+		mpRasterFrame->GetRenderScene()->SetCooked(pEditor, pCooked);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Where the ray through the middle of the canvas's pixel x, y meets the
 // plane of the screen through what the view turns about.  False before
 // the canvas has been drawn.

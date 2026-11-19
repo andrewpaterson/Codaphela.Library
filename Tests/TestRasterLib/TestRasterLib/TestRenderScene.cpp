@@ -177,6 +177,87 @@ void TestRenderSceneUnused(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An output cooked elsewhere is what the editor's next mesh is made of,
+// not its own output (here it's another mesh's, to tell); given for an
+// editor that changes before the update, it's passed over.  A render mesh
+// made elsewhere is the editor's as it is, until the editor changes.  What
+// is given for an editor the scene doesn't use goes at the next update.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestRenderSceneMadeElsewhere(void)
+{
+	CRasterRenderFactory	cFactory;
+	Ptr<CScene>				pScene;
+	Ptr<CRenderScene>		pRenderScene;
+	Ptr<CMeshEditor>		pEditor;
+	Ptr<CMeshEditor>		pOther;
+	Ptr<CMeshEditor>		pUnused;
+	Ptr<CCookedMesh>		pCooked;
+	Ptr<CRasterRenderMesh>	pMesh;
+	Ptr<CRasterRenderMesh>	pMade;
+
+	cFactory.Init(100);
+	pScene = OMalloc<CScene>();
+	pEditor = TestRenderSceneEditor();
+	TestRenderSceneAddInstance(pScene, pEditor);
+	pRenderScene = OMalloc<CRenderScene>(pScene, &cFactory, cFactory.CreateRenderer());
+	AssertTrue(pRenderScene->GetFactory() == &cFactory);
+
+	//Two triangles, cooked here as another thread would cook them.
+	pOther = TestRenderSceneEditor();
+	pOther->AddCorner(0, 0, 1);
+	pOther->AddFace(0, 1, 3);
+	pCooked = OMalloc<CCookedMesh>();
+	pCooked->Cook(&pOther->GetOutput());
+
+	pRenderScene->SetCooked(pEditor, pCooked);
+	pRenderScene->Update();
+	pMesh = pRenderScene->GetMesh(pEditor);
+	AssertSize(2, pMesh->GetRasterMesh()->NumTriangles());
+	pRenderScene->Update();
+	AssertTrue(pRenderScene->GetMesh(pEditor) == pMesh);
+
+	//The editor changes after it's given: the editor's own three triangles are cooked.
+	pRenderScene->SetCooked(pEditor, pCooked);
+	pEditor->AddCorner(0, 0, 1);
+	pEditor->AddFace(0, 1, 3);
+	pEditor->AddFace(1, 2, 3);
+	pRenderScene->Update();
+	pMesh = pRenderScene->GetMesh(pEditor);
+	AssertSize(3, pMesh->GetRasterMesh()->NumTriangles());
+
+	//A render mesh made elsewhere, of the two triangles.
+	pMade = cFactory.CreateMesh(pRenderScene->GetRenderer(), &pCooked);
+	pRenderScene->SetMesh(pEditor, pMade);
+	AssertTrue(pRenderScene->GetMesh(pEditor) == pMade);
+	pRenderScene->Update();
+	AssertTrue(pRenderScene->GetMesh(pEditor) == pMade);
+	pEditor->mcModifiers.Touch();
+	pRenderScene->Update();
+	pMesh = pRenderScene->GetMesh(pEditor);
+	AssertFalse(pMesh == pMade);
+	AssertSize(3, pMesh->GetRasterMesh()->NumTriangles());
+
+	//For an editor no instance uses.
+	pUnused = TestRenderSceneEditor();
+	pRenderScene->SetMesh(pUnused, pMade);
+	pRenderScene->SetCooked(pOther, pCooked);
+	AssertSize(3, pRenderScene->NumMeshes());
+	pRenderScene->Update();
+	AssertSize(1, pRenderScene->NumMeshes());
+	AssertTrue(pRenderScene->GetMesh(pUnused).IsNull());
+
+	pMade = NULL;
+	pMesh = NULL;
+	pCooked = NULL;
+	pRenderScene = NULL;
+	pScene = NULL;
+	cFactory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestRenderScene(void)
@@ -190,6 +271,7 @@ void TestRenderScene(void)
 	TestRenderSceneCreate();
 	TestRenderSceneReplace();
 	TestRenderSceneUnused();
+	TestRenderSceneMadeElsewhere();
 
 	ObjectsKill(false);
 	NumberKill();

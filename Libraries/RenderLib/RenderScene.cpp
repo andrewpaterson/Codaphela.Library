@@ -36,6 +36,10 @@ void CRenderSceneMesh::Init(Ptr<CMeshEditor> pEditor)
 	muiShapeChanges = 0;
 	muiModifierChanges = 0;
 	mbUsed = false;
+	mpCooked = NULL;
+	muiCookedStructure = 0;
+	muiCookedShape = 0;
+	muiCookedModifiers = 0;
 
 	PostInit();
 }
@@ -53,6 +57,10 @@ void CRenderSceneMesh::Class(void)
 	U_Size(muiShapeChanges);
 	U_Size(muiModifierChanges);
 	U_Bool(mbUsed);
+	M_Pointer(mpCooked);
+	U_Size(muiCookedStructure);
+	U_Size(muiCookedShape);
+	U_Size(muiCookedModifiers);
 }
 
 
@@ -88,6 +96,38 @@ void CRenderSceneMesh::Made(Ptr<CRenderMesh> pMesh)
 	muiStructureChanges = mpEditor->NumStructureChanges();
 	muiShapeChanges = mpEditor->NumShapeChanges();
 	muiModifierChanges = mpEditor->NumModifierChanges();
+	mpCooked = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pCooked is the editor's output as the editor is now.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRenderSceneMesh::SetCooked(Ptr<CCookedMesh> pCooked)
+{
+	mpCooked = pCooked;
+	muiCookedStructure = mpEditor->NumStructureChanges();
+	muiCookedShape = mpEditor->NumShapeChanges();
+	muiCookedModifiers = mpEditor->NumModifierChanges();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CCookedMesh> CRenderSceneMesh::TakeCooked(void)
+{
+	Ptr<CCookedMesh>	pCooked;
+
+	if ((muiCookedStructure == mpEditor->NumStructureChanges()) && (muiCookedShape == mpEditor->NumShapeChanges()) && (muiCookedModifiers == mpEditor->NumModifierChanges()))
+	{
+		pCooked = mpCooked;
+	}
+	mpCooked = NULL;
+	return pCooked;
 }
 
 
@@ -173,13 +213,8 @@ void CRenderScene::UpdateEditor(Ptr<CMeshEditor> pEditor)
 		return;
 	}
 
-	pSceneMesh = FindMesh(pEditor);
-	if (pSceneMesh.IsNull())
-	{
-		pSceneMesh = OMalloc<CRenderSceneMesh>(pEditor);
-		mapMeshes.Add(pSceneMesh);
-	}
-	else if (pSceneMesh->mbUsed)
+	pSceneMesh = FindOrAddMesh(pEditor);
+	if (pSceneMesh->mbUsed)
 	{
 		return;
 	}
@@ -187,13 +222,61 @@ void CRenderScene::UpdateEditor(Ptr<CMeshEditor> pEditor)
 	pSceneMesh->mbUsed = true;
 	if (pSceneMesh->IsOutOfDate())
 	{
-		pOutput = pEditor->GetOutput();
-		pCooked = OMalloc<CCookedMesh>();
-		pCooked->Cook(&pOutput);
-		pOutput = NULL;
+		pCooked = pSceneMesh->TakeCooked();
+		if (pCooked.IsNull())
+		{
+			pOutput = pEditor->GetOutput();
+			pCooked = OMalloc<CCookedMesh>();
+			pCooked->Cook(&pOutput);
+			pOutput = NULL;
+		}
 		pEditor->ClearOutput();
 		pSceneMesh->Made(mpcFactory->CreateMesh(mpRenderer, &pCooked));
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pCooked is the editor's output as the editor is now, cooked elsewhere:
+// the editor's next render mesh is made of it, if the editor hasn't
+// changed again by then.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRenderScene::SetCooked(Ptr<CMeshEditor> pEditor, Ptr<CCookedMesh> pCooked)
+{
+	FindOrAddMesh(pEditor)->SetCooked(pCooked);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pMesh is the render mesh of the editor's output as the editor is now,
+// made elsewhere by this scene's factory for its renderer: it is the
+// editor's until the editor changes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CRenderScene::SetMesh(Ptr<CMeshEditor> pEditor, Ptr<CRenderMesh> pMesh)
+{
+	FindOrAddMesh(pEditor)->Made(pMesh);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CRenderSceneMesh> CRenderScene::FindOrAddMesh(Ptr<CMeshEditor> pEditor)
+{
+	Ptr<CRenderSceneMesh>	pSceneMesh;
+
+	pSceneMesh = FindMesh(pEditor);
+	if (pSceneMesh.IsNull())
+	{
+		pSceneMesh = OMalloc<CRenderSceneMesh>(pEditor);
+		mapMeshes.Add(pSceneMesh);
+	}
+	return pSceneMesh;
 }
 
 
@@ -280,5 +363,15 @@ Ptr<CScene> CRenderScene::GetScene(void) const
 Ptr<CRenderer> CRenderScene::GetRenderer(void) const
 {
 	return mpRenderer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CRenderFactory* CRenderScene::GetFactory(void) const
+{
+	return mpcFactory;
 }
 
