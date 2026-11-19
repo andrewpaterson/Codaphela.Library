@@ -5430,3 +5430,1037 @@ static const SConformanceCase gasConformanceClause5[] =
 		"}\n"
 	},
 };
+
+
+//Clause 8, declarators [dcl.decl].
+static const SConformanceCase gasConformanceClause8[] =
+{
+	//8.1 [dcl.name]: type names
+	{
+		"DclTypeNames", 31,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"typedef int* IntPointer;\n"
+		"typedef int Row[3];\n"
+		"typedef int Function(double);\n"
+		"int Twice(double d) { return (int)(d * 2); }\n"
+		"int main()\n"
+		"{\n"
+		"	int a[3] = { 1, 2, 3 };\n"
+		"	int r = 0;\n"
+		"	if (sizeof(int*) == sizeof(IntPointer) && sizeof(int[3]) == sizeof(Row) && sizeof(int*[3]) == 3 * sizeof(int*)) r += 1;\n"
+		"	if (sizeof(int (*)[3]) == sizeof(void*) && sizeof(int (*)(double)) == sizeof(Function*)) r += 2;\n"
+		"	if (Same<int (*)[3], Row*>::V && Same<int (*)(double), Function*>::V && Same<int* (*)(), IntPointer (*)()>::V) r += 4;\n"
+		"	if (!Same<int*[3], int (*)[3]>::V && !Same<int* (), int (*)()>::V && Same<int[3], Row>::V) r += 8;\n"
+		"	if (((int (*)(double))Twice)(2.5) == 5 && (*(int (*)[3])&a)[2] == 3 && static_cast<const int*>(a)[1] == 2) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.2 [dcl.ambig.res] p1: what can be a declaration is one
+	{
+		"DclAmbiguityFunctionOrObject", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct S { S(int x) : v(x) { } S() : v(9) { } int v; };\n"
+		"int ga = 4;\n"
+		"int main()\n"
+		"{\n"
+		"	int a = 3;\n"
+		"	S x(int(a));\n"
+		"	S y((int)a);\n"
+		"	S z(int(ga) + 1);\n"
+		"	S w(S());\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(x), S(int)>::V) r += 1;\n"
+		"	if (y.v == 3) r += 2;\n"
+		"	if (z.v == 5) r += 4;\n"
+		"	if (Same<decltype(w), S(S (*)())>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.2 [dcl.ambig.res], 6.8 [stmt.ambig]: a statement that can be a declaration is one
+	{
+		"DclAmbiguityStatement", 7,
+		"struct T { T(int v) : m(v) { } T* operator->() { return this; } int m; };\n"
+		"int gCalls = 0;\n"
+		"int Call(int v) { gCalls += v; return v; }\n"
+		"int main()\n"
+		"{\n"
+		"	int a = 1;\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		int(x);\n"
+		"		x = 5;\n"
+		"		if (x == 5) r += 1;\n"
+		"	}\n"
+		"	T(a)->m = 7;\n"
+		"	int(Call(3));\n"
+		"	if (gCalls == 3) r += 2;\n"
+		"	{\n"
+		"		T(b)(4);\n"
+		"		if (b.m == 4) r += 4;\n"
+		"	}\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.2 [dcl.ambig.res] p2: what can be a type is one
+	{
+		"DclAmbiguityTypeId", 7,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"template<class F> struct Holder { enum { IsFunction = Same<F, int()>::V }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Holder<int()>::IsFunction) r += 1;\n"
+		"	if (sizeof(int(*)()) == sizeof(void*)) r += 2;\n"
+		"	if ((int)(1.5) == 1 && (int)1.5 + int(2.5) == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.3.1 [dcl.ptr]: pointers
+	{
+		"DclPointers", 31,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int i = 1;\n"
+		"	int j = 2;\n"
+		"	const int ci = 3;\n"
+		"	int* p = &i;\n"
+		"	const int* pc = &ci;\n"
+		"	int* const cp = &i;\n"
+		"	const int* const cpc = &ci;\n"
+		"	int** pp = &p;\n"
+		"	int* const* pcp = &cp;\n"
+		"	volatile int* pv = &i;\n"
+		"	int r = 0;\n"
+		"	*cp = 5;\n"
+		"	pc = &i;\n"
+		"	p = &j;\n"
+		"	if (i == 5 && *pc == 5 && *p == 2 && **pp == 2) r += 1;\n"
+		"	if (*cpc == 3 && **pcp == 5 && *pv == 5) r += 2;\n"
+		"	if (Same<decltype(cp), int* const>::V && Same<decltype(pc), const int*>::V && Same<decltype(cpc), const int* const>::V) r += 4;\n"
+		"	if (Same<decltype(*cp), int&>::V && Same<decltype(*pc), const int&>::V && Same<decltype(*pcp), int* const&>::V) r += 8;\n"
+		"	int *a, b, *c;\n"
+		"	a = &i; b = 7; c = &b;\n"
+		"	if (*a == 5 && *c == 7 && sizeof(b) == sizeof(int)) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	{
+		"DclConstPointerAssignedRefused", CONFORMANCE_REFUSED,
+		"int main() { int i = 1; int j = 2; int* const cp = &i; cp = &j; return *cp; }\n"
+	},
+	{
+		"DclPointerToConstWrittenRefused", CONFORMANCE_REFUSED,
+		"int main() { int i = 1; const int* pc = &i; *pc = 2; return i; }\n"
+	},
+	//8.3.1 [dcl.ptr] p4: no pointers to references
+	{
+		"DclPointerToReferenceRefused", CONFORMANCE_REFUSED,
+		"int main() { int i = 1; int&* p = 0; return i; }\n"
+	},
+	//8.3.2 [dcl.ref]: references
+	{
+		"DclReferences", 63,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"typedef int& LRef;\n"
+		"typedef int&& RRef;\n"
+		"typedef const int CInt;\n"
+		"int gi = 4;\n"
+		"int& Global() { return gi; }\n"
+		"void Bump(int& r) { r++; }\n"
+		"int main()\n"
+		"{\n"
+		"	int i = 1;\n"
+		"	int& r = i;\n"
+		"	int& rr = r;\n"
+		"	const int& cr = i;\n"
+		"	int a[3] = { 1, 2, 3 };\n"
+		"	int (&ra)[3] = a;\n"
+		"	int* p = &i;\n"
+		"	int*& rp = p;\n"
+		"	int r0 = 0;\n"
+		"	r = 5;\n"
+		"	rr += 1;\n"
+		"	if (i == 6 && &r == &i && &rr == &i && cr == 6) r0 += 1;\n"
+		"	Bump(i);\n"
+		"	Bump(r);\n"
+		"	Global() = 9;\n"
+		"	if (i == 8 && gi == 9) r0 += 2;\n"
+		"	ra[1] = 20;\n"
+		"	rp = &gi;\n"
+		"	if (a[1] == 20 && sizeof(ra) == sizeof(a) && p == &gi && *rp == 9) r0 += 4;\n"
+		"	if (Same<LRef&, int&>::V && Same<LRef&&, int&>::V && Same<RRef&, int&>::V && Same<RRef&&, int&&>::V) r0 += 8;\n"
+		"	if (Same<CInt&, const int&>::V && sizeof(LRef) == sizeof(int) && sizeof(r) == sizeof(int)) r0 += 16;\n"
+		"	LRef& collapsed = i;\n"
+		"	collapsed = 30;\n"
+		"	if (i == 30 && Same<decltype(collapsed), int&>::V) r0 += 32;\n"
+		"	return r0;\n"
+		"}\n"
+	},
+	//8.3.2 [dcl.ref] p5: a reference is initialised
+	{
+		"DclReferenceNoInitialiserRefused", CONFORMANCE_REFUSED,
+		"int main() { int& r; return 1; }\n"
+	},
+	//8.3.2 [dcl.ref] p1: no references to void
+	{
+		"DclReferenceToVoidRefused", CONFORMANCE_REFUSED,
+		"int main() { int i = 1; void& r = i; return 1; }\n"
+	},
+	//8.3.2 [dcl.ref] p5: no arrays of references
+	{
+		"DclArrayOfReferencesRefused", CONFORMANCE_REFUSED,
+		"int main() { int i = 1; int& a[2] = { i, i }; return a[0]; }\n"
+	},
+	//8.3.2 [dcl.ref] p5: no references to references
+	{
+		"DclReferenceToReferenceRefused", CONFORMANCE_REFUSED,
+		"int main() { int i = 1; int& & r = i; return r; }\n"
+	},
+	//8.3.2 [dcl.ref] p1: a reference has no cv-qualifiers of its own
+	{
+		"DclConstReferenceQualifierRefused", CONFORMANCE_REFUSED,
+		"int main() { int i = 1; int& const r = i; return r; }\n"
+	},
+	//8.3.3 [dcl.mptr]: pointers to members
+	{
+		"DclMemberPointers", 31,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct S { int a; int b; const int c; int f() { return a; } int g() const { return b; } static int s; static int sf() { return 7; } S() : a(1), b(2), c(3) { } };\n"
+		"int S::s = 4;\n"
+		"int main()\n"
+		"{\n"
+		"	S s;\n"
+		"	int S::* pa = &S::a;\n"
+		"	const int S::* pc = &S::c;\n"
+		"	int (S::*pf)() = &S::f;\n"
+		"	int (S::*pg)() const = &S::g;\n"
+		"	int* ps = &S::s;\n"
+		"	int (*psf)() = &S::sf;\n"
+		"	int S::* const cpa = &S::b;\n"
+		"	int r = 0;\n"
+		"	if (s.*pa == 1 && s.*pc == 3 && (s.*pf)() == 1 && (s.*pg)() == 2) r += 1;\n"
+		"	if (*ps == 4 && psf() == 7 && s.*cpa == 2) r += 2;\n"
+		"	if (Same<decltype(pa), int S::*>::V && Same<decltype(pc), const int S::*>::V && Same<decltype(&S::g), int (S::*)() const>::V) r += 4;\n"
+		"	if (!Same<int S::*, int*>::V && !Same<int (S::*)(), int (S::*)() const>::V && Same<decltype(&S::s), int*>::V) r += 8;\n"
+		"	typedef int S::* MemberPointer;\n"
+		"	MemberPointer table[2] = { &S::a, &S::b };\n"
+		"	if (s.*table[0] + s.*table[1] == 3 && sizeof(table) == 2 * sizeof(MemberPointer)) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.3.3 [dcl.mptr] p3: not to a static member
+	{
+		"DclMemberPointerToStaticRefused", CONFORMANCE_REFUSED,
+		"struct S { static int s; };\n"
+		"int S::s = 1;\n"
+		"int main() { int S::* p = &S::s; return p ? 1 : 2; }\n"
+	},
+	//8.3.3 [dcl.mptr]: pointers to members
+	{
+		"DclMemberPointerToConstFunctionRefused", CONFORMANCE_REFUSED,
+		"struct S { int g() const { return 1; } };\n"
+		"int main() { int (S::*p)() = &S::g; S s; return (s.*p)(); }\n"
+	},
+	//8.3.4 [dcl.array]: arrays
+	{
+		"DclArrays", 127,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"typedef int Unbounded[];\n"
+		"extern int gLater[];\n"
+		"int Peek() { return gLater[1]; }\n"
+		"int gLater[3] = { 4, 5, 6 };\n"
+		"const int gSize = 4;\n"
+		"enum { Five = 5 };\n"
+		"int main()\n"
+		"{\n"
+		"	int a[] = { 1, 2, 3 };\n"
+		"	int m[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } };\n"
+		"	int n[][2] = { { 1, 2 }, { 3, 4 }, { 5, 6 } };\n"
+		"	Unbounded u = { 7, 8 };\n"
+		"	char sized[gSize * 2 + Five];\n"
+		"	const int c[2] = { 9, 10 };\n"
+		"	int (*rows)[3] = m;\n"
+		"	int r = 0;\n"
+		"	if (sizeof(a) == 3 * sizeof(int) && sizeof(u) == 2 * sizeof(int) && sizeof(sized) == 13) r += 1;\n"
+		"	if (sizeof(m) == 6 * sizeof(int) && sizeof(m[0]) == 3 * sizeof(int) && sizeof(n) == 6 * sizeof(int) && sizeof(n) / sizeof(n[0]) == 3) r += 2;\n"
+		"	if (m[1][2] == 6 && n[2][0] == 5 && rows[1][0] == 4 && *(*(m + 1) + 1) == 5) r += 4;\n"
+		"	if (Peek() == 5 && sizeof(gLater) == 3 * sizeof(int)) r += 8;\n"
+		"	if (Same<decltype(a), int[3]>::V && Same<decltype(m), int[2][3]>::V && Same<decltype(c), const int[2]>::V && Same<decltype(c[0]), const int&>::V) r += 16;\n"
+		"	if (Same<decltype(m[0]), int (&)[3]>::V && Same<decltype(&m), int (*)[2][3]>::V && Same<decltype(&m[0]), int (*)[3]>::V) r += 32;\n"
+		"	int t[2][2][2] = { { { 1, 2 }, { 3, 4 } }, { { 5, 6 }, { 7, 8 } } };\n"
+		"	if (t[1][0][1] == 6 && sizeof(t[0]) == 4 * sizeof(int) && c[1] == 10 && &a[3] - &a[0] == 3) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.3.4 [dcl.array] p1: the bound is greater than zero
+	{
+		"DclArrayNegativeBoundRefused", CONFORMANCE_REFUSED,
+		"int main() { int a[-1]; return sizeof(a) ? 1 : 2; }\n"
+	},
+	{
+		"DclArrayZeroBoundRefused", CONFORMANCE_REFUSED,
+		"int main() { int a[0]; return 1; }\n"
+	},
+	//8.3.4 [dcl.array] p1: not of void, references or functions
+	{
+		"DclArrayOfVoidRefused", CONFORMANCE_REFUSED,
+		"int main() { void a[2]; return 1; }\n"
+	},
+	{
+		"DclArrayOfFunctionsRefused", CONFORMANCE_REFUSED,
+		"int main() { int a[2](); return 1; }\n"
+	},
+	//8.3.4 [dcl.array] p3: only the first bound may be left out
+	{
+		"DclArraySecondBoundMissingRefused", CONFORMANCE_REFUSED,
+		"int main() { int a[2][] = { { 1 }, { 2 } }; return a[0][0]; }\n"
+	},
+	//8.3.4 [dcl.array] p3: a bound left out comes from the initialiser
+	{
+		"DclArrayNoBoundNoInitialiserRefused", CONFORMANCE_REFUSED,
+		"int main() { int a[]; return 1; }\n"
+	},
+	//8.3.4 [dcl.array]: an array is not a modifiable lvalue
+	{
+		"DclArrayAssignedRefused", CONFORMANCE_REFUSED,
+		"int main() { int a[2] = { 1, 2 }; int b[2] = { 3, 4 }; a = b; return a[0]; }\n"
+	},
+	//8.3.5 [dcl.fct]: functions
+	{
+		"DclFunctionTypes", 127,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"typedef int Binary(int, int);\n"
+		"Binary Add;\n"
+		"int Add(int a, int b) { return a + b; }\n"
+		"int ArrayParameter(int a[10]) { return sizeof(a) == sizeof(int*) ? a[1] : -1; }\n"
+		"int FunctionParameter(int f(int), int v) { return f(v); }\n"
+		"int Twice(int v) { return v * 2; }\n"
+		"int ConstParameter(const int v);\n"
+		"int ConstParameter(int v) { return v + 1; }\n"
+		"int NoParameters(void) { return 7; }\n"
+		"int Unnamed(int, int b) { return b; }\n"
+		"auto Trailing(int v) -> long { return v; }\n"
+		"int Variadic(int n, ...) { return n; }\n"
+		"int (*Returned(int which))(int) { return which ? Twice : 0; }\n"
+		"int main()\n"
+		"{\n"
+		"	int a[3] = { 1, 2, 3 };\n"
+		"	Binary* p = Add;\n"
+		"	int r = 0;\n"
+		"	if (Add(1, 2) == 3 && p(3, 4) == 7) r += 1;\n"
+		"	if (ArrayParameter(a) == 2 && FunctionParameter(Twice, 4) == 8) r += 2;\n"
+		"	if (ConstParameter(1) == 2 && NoParameters() == 7 && Unnamed(1, 2) == 2) r += 4;\n"
+		"	if (Trailing(5) == 5 && Same<decltype(Trailing(5)), long>::V && Variadic(3, 1, 2.5, \"x\") == 3) r += 8;\n"
+		"	if (Returned(1)(6) == 12 && Returned(0) == 0) r += 16;\n"
+		"	if (Same<decltype(ArrayParameter), int(int*)>::V && Same<decltype(FunctionParameter), int(int (*)(int), int)>::V && Same<decltype(ConstParameter), int(int)>::V) r += 32;\n"
+		"	if (Same<decltype(NoParameters), int()>::V && Same<Binary, int(int, int)>::V && !Same<int(int), int(long)>::V && Same<decltype(Variadic), int(int, ...)>::V) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.3.5 [dcl.fct] p6: a member function's const and reference qualifiers
+	{
+		"DclFunctionMemberTypes", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct S\n"
+		"{\n"
+		"	int v;\n"
+		"	int Get() { return v; }\n"
+		"	int Get() const { return v + 10; }\n"
+		"	int Ref() & { return 1; }\n"
+		"	int Ref() && { return 2; }\n"
+		"	int Both() const & { return 3; }\n"
+		"	typedef int Getter() const;\n"
+		"	Getter Typed;\n"
+		"};\n"
+		"int S::Typed() const { return v + 20; }\n"
+		"int main()\n"
+		"{\n"
+		"	S s = { 1 };\n"
+		"	const S cs = { 2 };\n"
+		"	int r = 0;\n"
+		"	if (s.Get() == 1 && cs.Get() == 12) r += 1;\n"
+		"	if (s.Ref() == 1 && S().Ref() == 2 && s.Both() == 3 && S().Both() == 3) r += 2;\n"
+		"	if (cs.Typed() == 22 && s.Typed() == 21) r += 4;\n"
+		"	if (!Same<int (S::*)(), int (S::*)() const>::V && Same<decltype(&S::Typed), int (S::*)() const>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.3.5 [dcl.fct] p8: a function returns no array or function
+	{
+		"DclFunctionReturnsArrayRefused", CONFORMANCE_REFUSED,
+		"typedef int Row[3];\n"
+		"Row f();\n"
+		"int main() { return 1; }\n"
+	},
+	{
+		"DclFunctionReturnsFunctionRefused", CONFORMANCE_REFUSED,
+		"typedef int F(int);\n"
+		"F g();\n"
+		"int main() { return 1; }\n"
+	},
+	//8.3.5 [dcl.fct] p4: void is the whole parameter list or not there
+	{
+		"DclVoidParameterWithOthersRefused", CONFORMANCE_REFUSED,
+		"int f(void, int v) { return v; }\n"
+		"int main() { return f(1); }\n"
+	},
+	{
+		"DclVoidParameterNamedRefused", CONFORMANCE_REFUSED,
+		"int f(void v) { return 1; }\n"
+		"int main() { return f(); }\n"
+	},
+	//8.3.5 [dcl.fct]: the return type is not part of what tells overloads apart
+	{
+		"DclFunctionRedeclaredDifferentReturnRefused", CONFORMANCE_REFUSED,
+		"int f(int v);\n"
+		"long f(int v) { return v; }\n"
+		"int main() { return (int)f(1); }\n"
+	},
+	//8.3.5 [dcl.fct] p6: only a member function has cv-qualifiers
+	{
+		"DclConstFreeFunctionRefused", CONFORMANCE_REFUSED,
+		"int f() const { return 1; }\n"
+		"int main() { return f(); }\n"
+	},
+	//8.3.6 [dcl.fct.default]: default arguments
+	{
+		"DclDefaultArguments", 127,
+		"int gBase = 10;\n"
+		"int gCalls = 0;\n"
+		"int Next() { return ++gCalls; }\n"
+		"int One(int a, int b = 2, int c = 3) { return a * 100 + b * 10 + c; }\n"
+		"int Later(int a, int b);\n"
+		"int Later(int a, int b = 5);\n"
+		"int Later(int a, int b) { return a + b; }\n"
+		"int More(int a, int b, int c = 3);\n"
+		"int More(int a, int b = 2, int c);\n"
+		"int More(int a, int b, int c) { return a * 100 + b * 10 + c; }\n"
+		"int Global(int a = gBase) { return a; }\n"
+		"int Counted(int a = Next()) { return a; }\n"
+		"int Expression(int a = sizeof(long) * 2 + One(1)) { return a; }\n"
+		"struct S { static int s; int m; int Member(int a = s) { return a + m; } static int Static(int a = 7) { return a; } };\n"
+		"int S::s = 4;\n"
+		"struct B { virtual int F(int a = 1) { return a; } virtual ~B() { } };\n"
+		"struct D : B { int F(int a = 2) override { return a + 10; } };\n"
+		"template<class T> T Templated(T a, T b = T(6)) { return a + b; }\n"
+		"int main()\n"
+		"{\n"
+		"	S s;\n"
+		"	D d;\n"
+		"	B* pb = &d;\n"
+		"	s.m = 1;\n"
+		"	int r = 0;\n"
+		"	if (One(1) == 123 && One(1, 5) == 153 && One(1, 5, 6) == 156) r += 1;\n"
+		"	if (Later(1) == 6 && Later(1, 2) == 3 && More(1) == 123 && More(1, 4) == 143) r += 2;\n"
+		"	gBase = 20;\n"
+		"	if (Global() == 20 && Global(3) == 3) r += 4;\n"
+		"	if (Counted() == 1 && Counted() == 2 && Counted(9) == 9 && gCalls == 2) r += 8;\n"
+		"	if (Expression() == (int)sizeof(long) * 2 + 123 && s.Member() == 5 && s.Member(2) == 3 && S::Static() == 7) r += 16;\n"
+		"	if (pb->F() == 11 && d.F() == 12 && pb->F(5) == 15) r += 32;\n"
+		"	if (Templated(1) == 7 && Templated(1.5) == 7.5 && Templated(1, 2) == 3) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.3.6 [dcl.fct.default] p4: after a default argument every parameter has one
+	{
+		"DclDefaultArgumentGapRefused", CONFORMANCE_REFUSED,
+		"int f(int a = 1, int b) { return a + b; }\n"
+		"int main() { return f(1, 2); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p4: a default argument is given once
+	{
+		"DclDefaultArgumentTwiceRefused", CONFORMANCE_REFUSED,
+		"int f(int a = 1);\n"
+		"int f(int a = 1) { return a; }\n"
+		"int main() { return f(); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p7: not a local variable
+	{
+		"DclDefaultArgumentLocalRefused", CONFORMANCE_REFUSED,
+		"int main() { int local = 1; struct L { static int f(int a = local) { return a; } }; return L::f(); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p9: not another parameter
+	{
+		"DclDefaultArgumentParameterRefused", CONFORMANCE_REFUSED,
+		"int f(int a, int b = a) { return a + b; }\n"
+		"int main() { return f(1); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p8: not this
+	{
+		"DclDefaultArgumentThisRefused", CONFORMANCE_REFUSED,
+		"struct S { int m; int f(int a = m) { return a; } };\n"
+		"int main() { S s; s.m = 1; return s.f(); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p5: the default is converted as an argument is
+	{
+		"DclDefaultArgumentWrongTypeRefused", CONFORMANCE_REFUSED,
+		"int f(int* p = 5) { return p ? 1 : 2; }\n"
+		"int main() { return f(); }\n"
+	},
+	//8.4 [dcl.fct.def]: defaulted and deleted functions
+	{
+		"DclDefaultedAndDeleted", 63,
+		"struct D\n"
+		"{\n"
+		"	int v;\n"
+		"	D() = default;\n"
+		"	D(int x) : v(x) { }\n"
+		"	D(const D&) = default;\n"
+		"	D& operator=(const D&) = default;\n"
+		"	~D() = default;\n"
+		"};\n"
+		"struct OutOfClass { int v; OutOfClass(); OutOfClass(const OutOfClass& o); };\n"
+		"OutOfClass::OutOfClass() = default;\n"
+		"OutOfClass::OutOfClass(const OutOfClass& o) = default;\n"
+		"struct NoCopy { int v; NoCopy(int x) : v(x) { } NoCopy(const NoCopy&) = delete; NoCopy& operator=(const NoCopy&) = delete; };\n"
+		"int Only(int v) { return v; }\n"
+		"int Only(double) = delete;\n"
+		"template<class T> int Exact(T) = delete;\n"
+		"int Exact(int v) { return v + 1; }\n"
+		"const char* Name() { return __func__; }\n"
+		"int main()\n"
+		"{\n"
+		"	D a(3);\n"
+		"	D b = a;\n"
+		"	D c;\n"
+		"	c = b;\n"
+		"	D zero = D();\n"
+		"	OutOfClass o = OutOfClass();\n"
+		"	OutOfClass p = o;\n"
+		"	NoCopy n(4);\n"
+		"	NoCopy& rn = n;\n"
+		"	int r = 0;\n"
+		"	if (b.v == 3 && c.v == 3) r += 1;\n"
+		"	if (zero.v == 0 && o.v == 0 && p.v == 0) r += 2;\n"
+		"	if (rn.v == 4 && Only(5) == 5 && Only('a') == 'a') r += 4;\n"
+		"	if (Exact(1) == 2) r += 8;\n"
+		"	if (Name()[0] == 'N' && Name()[3] == 'e' && Name()[4] == 0) r += 16;\n"
+		"	static_assert(noexcept(D()) && noexcept(D(a)), \"defaulted functions don't throw\");\n"
+		"	if (sizeof(D) == sizeof(int)) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.4.3 [dcl.fct.def.delete] p2: a deleted function is not used
+	{
+		"DclDeletedConversionCalledRefused", CONFORMANCE_REFUSED,
+		"int Only(int v) { return v; }\n"
+		"int Only(double) = delete;\n"
+		"int main() { return Only(1.5); }\n"
+	},
+	{
+		"DclDeletedTemplateInstanceRefused", CONFORMANCE_REFUSED,
+		"template<class T> int Exact(T) = delete;\n"
+		"int Exact(int v) { return v + 1; }\n"
+		"int main() { return Exact(1L); }\n"
+	},
+	//8.4.3 [dcl.fct.def.delete] p4: deleted at its first declaration
+	{
+		"DclDeletedAfterDeclaredRefused", CONFORMANCE_REFUSED,
+		"int f(int v);\n"
+		"int f(int v) = delete;\n"
+		"int main() { return 1; }\n"
+	},
+	//8.4.2 [dcl.fct.def.default] p1: only a special member function is defaulted
+	{
+		"DclDefaultedNotSpecialRefused", CONFORMANCE_REFUSED,
+		"struct S { int f() = default; };\n"
+		"int main() { return 1; }\n"
+	},
+	//8.4.2 [dcl.fct.def.default] p1: a defaulted function has no default arguments
+	{
+		"DclDefaultedWithDefaultArgumentRefused", CONFORMANCE_REFUSED,
+		"struct S { S(int v = 1) = default; };\n"
+		"int main() { return 1; }\n"
+	},
+	//8.4.1 [dcl.fct.def.general], 3.2 [basic.def.odr]: one definition
+	{
+		"DclFunctionDefinedTwiceRefused", CONFORMANCE_REFUSED,
+		"int f() { return 1; }\n"
+		"int f() { return 2; }\n"
+		"int main() { return f(); }\n"
+	},
+	//8.5 [dcl.init] p6-p8: zero, default and value initialisation
+	{
+		"DclZeroAndDefaultInitialisation", 63,
+		"struct P { int a; int* p; double d; char c[3]; };\n"
+		"struct C { C() : v(5) { } int v; };\n"
+		"struct M { int a = 3; int b; };\n"
+		"struct Outer { P p; C c; int tail; };\n"
+		"int gi;\n"
+		"int* gp;\n"
+		"double gd;\n"
+		"P gs;\n"
+		"int ga[3];\n"
+		"static long sl;\n"
+		"int Statics() { static int s; static P sp; return s + sp.a + (sp.p ? 1 : 0); }\n"
+		"int main()\n"
+		"{\n"
+		"	C c;\n"
+		"	C ca[2];\n"
+		"	int r = 0;\n"
+		"	if (gi == 0 && gp == 0 && gd == 0.0 && sl == 0 && ga[2] == 0) r += 1;\n"
+		"	if (gs.a == 0 && gs.p == 0 && gs.d == 0.0 && gs.c[2] == 0 && Statics() == 0) r += 2;\n"
+		"	if (c.v == 5 && ca[0].v == 5 && ca[1].v == 5) r += 4;\n"
+		"	int vi = int();\n"
+		"	int* vp = &vi;\n"
+		"	P vs = P();\n"
+		"	Outer vo = Outer();\n"
+		"	if (vi == 0 && *vp == 0 && vs.a == 0 && vs.p == 0 && vs.c[1] == 0) r += 8;\n"
+		"	if (vo.p.a == 0 && vo.p.d == 0.0 && vo.c.v == 5 && vo.tail == 0) r += 16;\n"
+		"	M m = M();\n"
+		"	int braced{};\n"
+		"	P bracedObject{};\n"
+		"	int bracedArray[3]{};\n"
+		"	if (m.a == 3 && m.b == 0 && braced == 0 && bracedObject.d == 0.0 && bracedArray[2] == 0) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5 [dcl.init] p7: a const object is initialised
+	{
+		"DclConstNeedsInitialiserRefused", CONFORMANCE_REFUSED,
+		"int main() { const int x; return 1; }\n"
+	},
+	{
+		"DclConstClassNeedsConstructorRefused", CONFORMANCE_REFUSED,
+		"struct P { int a; };\n"
+		"int main() { const P p; return 1; }\n"
+	},
+	//8.5 [dcl.init] p7: a const object of a class with a default constructor
+	{
+		"DclConstClassWithConstructor", 5,
+		"struct C { C() : v(5) { } int v; };\n"
+		"int main() { const C c; return c.v; }\n"
+	},
+	//8.5 [dcl.init] p15-p17: direct and copy initialisation
+	{
+		"DclDirectAndCopyInitialisation", 63,
+		"struct FromInt { FromInt(int x) : v(x) { } int v; };\n"
+		"struct Explicit { explicit Explicit(int x) : v(x) { } int v; };\n"
+		"struct ToInt { operator int() const { return 7; } };\n"
+		"struct Wrapper { Wrapper(FromInt f) : v(f.v + 100) { } int v; };\n"
+		"int Take(FromInt f) { return f.v; }\n"
+		"FromInt Give() { return 9; }\n"
+		"int main()\n"
+		"{\n"
+		"	FromInt a = 1;\n"
+		"	FromInt b(2);\n"
+		"	FromInt c = FromInt(3);\n"
+		"	FromInt d{ 4 };\n"
+		"	FromInt e = { 5 };\n"
+		"	Explicit x(6);\n"
+		"	Explicit y{ 7 };\n"
+		"	Explicit z = Explicit(8);\n"
+		"	ToInt t;\n"
+		"	int fromObject = t;\n"
+		"	int direct(t);\n"
+		"	long widened = t;\n"
+		"	Wrapper w = FromInt(1);\n"
+		"	Wrapper w2(2);\n"
+		"	int r = 0;\n"
+		"	if (a.v == 1 && b.v == 2 && c.v == 3 && d.v == 4 && e.v == 5) r += 1;\n"
+		"	if (x.v == 6 && y.v == 7 && z.v == 8) r += 2;\n"
+		"	if (fromObject == 7 && direct == 7 && widened == 7) r += 4;\n"
+		"	if (Take(10) == 10 && Take(a) == 1 && Give().v == 9) r += 8;\n"
+		"	if (w.v == 101 && w2.v == 102) r += 16;\n"
+		"	int i(3.9);\n"
+		"	int j = 3.9;\n"
+		"	char ch = 65;\n"
+		"	double dd = 1;\n"
+		"	bool flag = 5;\n"
+		"	if (i == 3 && j == 3 && ch == 'A' && dd == 1.0 && flag == true) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5 [dcl.init] p17: an explicit constructor is not used to copy initialise
+	{
+		"DclCopyInitialisationExplicitRefused", CONFORMANCE_REFUSED,
+		"struct Explicit { explicit Explicit(int x) : v(x) { } int v; };\n"
+		"int main() { Explicit e = 1; return e.v; }\n"
+	},
+	//8.5 [dcl.init] p17: one user-defined conversion
+	{
+		"DclCopyInitialisationTwoConversionsRefused", CONFORMANCE_REFUSED,
+		"struct FromInt { FromInt(int x) : v(x) { } int v; };\n"
+		"struct Wrapper { Wrapper(FromInt f) : v(f.v) { } int v; };\n"
+		"int main() { Wrapper w = 1; return w.v; }\n"
+	},
+	//8.5 [dcl.init] p11: empty parentheses declare a function
+	{
+		"DclFunctionNotObject", 3,
+		"struct C { C() : v(5) { } int v; };\n"
+		"int main()\n"
+		"{\n"
+		"	C notAnObject();\n"
+		"	C object;\n"
+		"	C braced{};\n"
+		"	int r = 0;\n"
+		"	if (sizeof(notAnObject()) == sizeof(C)) r += 1;\n"
+		"	if (object.v == 5 && braced.v == 5) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5.1 [dcl.init.aggr]: aggregates
+	{
+		"DclAggregates", 255,
+		"struct P { int a; int b; };\n"
+		"struct Nested { P p; int c; P q[2]; };\n"
+		"struct WithDefaults { int a = 1; int b = a + 1; int c; };\n"
+		"struct WithStatic { int a; static int s; int b; };\n"
+		"int WithStatic::s = 9;\n"
+		"union U { int i; char c; };\n"
+		"struct WithReference { int& r; int v; };\n"
+		"struct Empty { };\n"
+		"struct HoldsEmpty { Empty e; int v; };\n"
+		"int main()\n"
+		"{\n"
+		"	int gi = 5;\n"
+		"	P full = { 1, 2 };\n"
+		"	P partial = { 1 };\n"
+		"	P none = { };\n"
+		"	int a[5] = { 1, 2 };\n"
+		"	Nested n = { { 1, 2 }, 3, { { 4, 5 }, { 6, 7 } } };\n"
+		"	Nested elided = { 1, 2, 3, 4, 5, 6, 7 };\n"
+		"	Nested part = { { 1 }, 3 };\n"
+		"	P pa[] = { { 1, 2 }, { 3, 4 }, { 5 } };\n"
+		"	P flat[] = { 1, 2, 3, 4 };\n"
+		"	WithDefaults d = { };\n"
+		"	WithDefaults d2 = { 10 };\n"
+		"	WithDefaults d3 = { 10, 20, 30 };\n"
+		"	WithStatic ws = { 1, 2 };\n"
+		"	U u = { 65 };\n"
+		"	WithReference wr = { gi, 2 };\n"
+		"	HoldsEmpty he = { { }, 4 };\n"
+		"	int r = 0;\n"
+		"	if (full.a == 1 && full.b == 2 && partial.a == 1 && partial.b == 0 && none.a == 0 && none.b == 0) r += 1;\n"
+		"	if (a[1] == 2 && a[2] == 0 && a[4] == 0) r += 2;\n"
+		"	if (n.p.b == 2 && n.c == 3 && n.q[0].a == 4 && n.q[1].b == 7) r += 4;\n"
+		"	if (elided.p.b == 2 && elided.c == 3 && elided.q[1].a == 6 && part.p.b == 0 && part.c == 3 && part.q[1].b == 0) r += 8;\n"
+		"	if (sizeof(pa) == 3 * sizeof(P) && pa[2].a == 5 && pa[2].b == 0 && sizeof(flat) == 2 * sizeof(P) && flat[1].a == 3) r += 16;\n"
+		"	if (d.a == 1 && d.b == 2 && d.c == 0 && d2.a == 10 && d2.b == 11 && d3.b == 20 && d3.c == 30) r += 32;\n"
+		"	if (ws.a == 1 && ws.b == 2 && WithStatic::s == 9 && u.i == 65 && u.c == 'A') r += 64;\n"
+		"	wr.r = 8;\n"
+		"	if (gi == 8 && wr.v == 2 && he.v == 4) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5.1 [dcl.init.aggr] p6: no more initialisers than members
+	{
+		"DclAggregateTooManyRefused", CONFORMANCE_REFUSED,
+		"struct P { int a; int b; };\n"
+		"int main() { P p = { 1, 2, 3 }; return p.a; }\n"
+	},
+	//8.5.1 [dcl.init.aggr] p6: no more initialisers than elements
+	{
+		"DclArrayTooManyRefused", CONFORMANCE_REFUSED,
+		"int main() { int a[2] = { 1, 2, 3 }; return a[0]; }\n"
+	},
+	//8.5.1 [dcl.init.aggr] p1: a class with a base is not an aggregate
+	{
+		"DclAggregateWithBaseRefused", CONFORMANCE_REFUSED,
+		"struct B { int b; };\n"
+		"struct D : B { int d; };\n"
+		"int main() { D d = { 1, 2 }; return d.d; }\n"
+	},
+	//8.5.1 [dcl.init.aggr] p1: a class with a constructor is not an aggregate
+	{
+		"DclAggregateWithConstructorRefused", CONFORMANCE_REFUSED,
+		"struct C { C() : a(0), b(0) { } int a; int b; };\n"
+		"int main() { C c = { 1, 2 }; return c.a; }\n"
+	},
+	//8.5.1 [dcl.init.aggr] p1: a class with private data is not an aggregate
+	{
+		"DclAggregatePrivateMemberRefused", CONFORMANCE_REFUSED,
+		"class C { int a; public: int b; };\n"
+		"int main() { C c = { 1, 2 }; return c.b; }\n"
+	},
+	//8.5.1 [dcl.init.aggr] p9: a reference member is given something to refer to
+	{
+		"DclAggregateReferenceMissingRefused", CONFORMANCE_REFUSED,
+		"struct W { int v; int& r; };\n"
+		"int main() { W w = { 1 }; return w.v; }\n"
+	},
+	//8.5.2 [dcl.init.string]: character arrays
+	{
+		"DclCharacterArrays", 63,
+		"int main()\n"
+		"{\n"
+		"	char a[] = \"abc\";\n"
+		"	char b[6] = \"ab\";\n"
+		"	char c[] = { \"xyz\" };\n"
+		"	char d[4] = \"abc\";\n"
+		"	wchar_t w[] = L\"hi\";\n"
+		"	char16_t u[] = u\"ok\";\n"
+		"	char32_t U[3] = U\"\";\n"
+		"	const char e[] = \"a\" \"b\" \"c\";\n"
+		"	unsigned char uc[] = \"ab\";\n"
+		"	signed char sc[3] = \"x\";\n"
+		"	int r = 0;\n"
+		"	if (sizeof(a) == 4 && a[2] == 'c' && a[3] == 0) r += 1;\n"
+		"	if (sizeof(b) == 6 && b[1] == 'b' && b[2] == 0 && b[5] == 0) r += 2;\n"
+		"	if (sizeof(c) == 4 && c[0] == 'x' && sizeof(d) == 4 && d[3] == 0) r += 4;\n"
+		"	if (sizeof(w) == 3 * sizeof(wchar_t) && w[1] == L'i' && w[2] == 0 && sizeof(u) == 3 * sizeof(char16_t) && u[0] == u'o') r += 8;\n"
+		"	if (sizeof(U) == 3 * sizeof(char32_t) && U[0] == 0 && U[2] == 0 && sizeof(e) == 4 && e[1] == 'b') r += 16;\n"
+		"	a[0] = 'z';\n"
+		"	if (a[0] == 'z' && sizeof(uc) == 3 && uc[1] == 'b' && sc[0] == 'x' && sc[2] == 0) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5.2 [dcl.init.string] p2: no more characters than elements
+	{
+		"DclCharacterArrayTooLongRefused", CONFORMANCE_REFUSED,
+		"int main() { char a[3] = \"abc\"; return a[0]; }\n"
+	},
+	//8.5.2 [dcl.init.string] p1: the string's kind is the array's
+	{
+		"DclCharacterArrayWideMismatchRefused", CONFORMANCE_REFUSED,
+		"int main() { char a[] = L\"abc\"; return a[0]; }\n"
+	},
+	{
+		"DclWideArrayNarrowStringRefused", CONFORMANCE_REFUSED,
+		"int main() { wchar_t a[] = \"abc\"; return a[0]; }\n"
+	},
+	//8.5.2 [dcl.init.string] p1: an array of a character type
+	{
+		"DclIntArrayFromStringRefused", CONFORMANCE_REFUSED,
+		"int main() { int a[] = \"abc\"; return a[0]; }\n"
+	},
+	//8.5.3 [dcl.init.ref]: references
+	{
+		"DclReferenceBinding", 255,
+		"struct B { int b; };\n"
+		"struct D : B { int d; };\n"
+		"struct ToRef { int v; operator int&() { return v; } };\n"
+		"struct ToValue { operator long() const { return 9; } };\n"
+		"int gCount = 0;\n"
+		"struct T { T(int x) : v(x) { gCount += 10; } ~T() { gCount += 1; } int v; };\n"
+		"int Value() { return 6; }\n"
+		"int main()\n"
+		"{\n"
+		"	int i = 1;\n"
+		"	D d;\n"
+		"	d.b = 2; d.d = 3;\n"
+		"	ToRef tr = { 4 };\n"
+		"	ToValue tv;\n"
+		"	int r = 0;\n"
+		"	int& ri = i;\n"
+		"	B& rb = d;\n"
+		"	const B& crb = d;\n"
+		"	int& fromConversion = tr;\n"
+		"	if (&ri == &i && &rb == static_cast<B*>(&d) && crb.b == 2) r += 1;\n"
+		"	fromConversion = 40;\n"
+		"	if (tr.v == 40) r += 2;\n"
+		"	const int& toTemporary = 5;\n"
+		"	const long& widened = i;\n"
+		"	const int& fromCall = Value();\n"
+		"	const long& viaOperator = tv;\n"
+		"	i = 100;\n"
+		"	if (toTemporary == 5 && widened == 1 && fromCall == 6 && viaOperator == 9) r += 4;\n"
+		"	int&& rvalue = 7;\n"
+		"	int&& fromSum = i + 1;\n"
+		"	int&& moved = static_cast<int&&>(i);\n"
+		"	rvalue++;\n"
+		"	moved = 50;\n"
+		"	if (rvalue == 8 && fromSum == 101 && i == 50 && &moved == &i) r += 8;\n"
+		"	{\n"
+		"		const T& kept = T(3);\n"
+		"		T&& alsoKept = T(4);\n"
+		"		if (gCount == 20 && kept.v == 3 && alsoKept.v == 4) r += 16;\n"
+		"	}\n"
+		"	if (gCount == 22) r += 32;\n"
+		"	const int& chain = ri;\n"
+		"	const volatile int& cv = i;\n"
+		"	int a[2] = { 1, 2 };\n"
+		"	int (&ra)[2] = a;\n"
+		"	const int (&cra)[2] = a;\n"
+		"	int (&rf)() = Value;\n"
+		"	if (&chain == &i && &cv == &i && &ra == &a && cra[1] == 2 && rf() == 6) r += 64;\n"
+		"	B&& fromDerived = D();\n"
+		"	const B& slicedTemporary = D();\n"
+		"	(void)fromDerived; (void)slicedTemporary;\n"
+		"	const D& cd = d;\n"
+		"	const B& base = cd;\n"
+		"	if (base.b == 2 && &base == static_cast<const B*>(&d)) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: an lvalue reference to non-const binds to an lvalue
+	{
+		"DclReferenceToRvalueRefused", CONFORMANCE_REFUSED,
+		"int main() { int& r = 5; return r; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: an lvalue reference to non-const binds to its own type
+	{
+		"DclReferenceToOtherTypeRefused", CONFORMANCE_REFUSED,
+		"int main() { int i = 1; long& r = i; return (int)r; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: the reference is at least as qualified
+	{
+		"DclReferenceDropsConstRefused", CONFORMANCE_REFUSED,
+		"int main() { const int i = 1; int& r = i; return r; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: an rvalue reference binds to an rvalue
+	{
+		"DclRvalueReferenceToLvalueRefused", CONFORMANCE_REFUSED,
+		"int main() { int i = 1; int&& r = i; return r; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: a non-const reference does not bind to a bit-field
+	{
+		"DclReferenceToBitFieldRefused", CONFORMANCE_REFUSED,
+		"struct S { int b : 3; };\n"
+		"int main() { S s; s.b = 1; int& r = s.b; return r; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: reference-compatible types
+	{
+		"DclReferenceToBaseFromUnrelatedRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; };\n"
+		"struct B { int b; };\n"
+		"int main() { A a; B& r = a; return 1; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: an lvalue reference to non-const binds to an lvalue
+	{
+		"DclReferenceToCallValueRefused", CONFORMANCE_REFUSED,
+		"int Value() { return 6; }\n"
+		"int main() { int& r = Value(); return r; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: a const reference to a bit-field is to a copy
+	{
+		"DclConstReferenceToBitField", 3,
+		"struct S { int b : 4; };\n"
+		"int main()\n"
+		"{\n"
+		"	S s;\n"
+		"	s.b = 3;\n"
+		"	const int& r = s.b;\n"
+		"	s.b = 5;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5.4 [dcl.init.list]: list initialisation
+	{
+		"DclListInitialisation", 255,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[1024];\n"
+		"size_t guiHeap = 0;\n"
+		"size_t guiLastSize = 0;\n"
+		"int giNews = 0;\n"
+		"int giDeletes = 0;\n"
+		"void* Allocate(size_t n) { void* p = gacHeap + guiHeap; for (size_t i = 0; i < n; i++) gacHeap[guiHeap + i] = 0x55; guiHeap += (n + 7) & ~(size_t)7; guiLastSize = n; giNews++; return p; }\n"
+		"void* operator new(size_t n) { return Allocate(n); }\n"
+		"void* operator new[](size_t n) { return Allocate(n); }\n"
+		"void operator delete(void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete(void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"struct P { int a; int b; };\n"
+		"struct C { C() : v(1) { } C(int a) : v(a) { } C(int a, int b) : v(a * 10 + b) { } int v; };\n"
+		"P MakeP() { return { 3, 4 }; }\n"
+		"C MakeC() { return { 5, 6 }; }\n"
+		"int SumP(P p) { return p.a + p.b; }\n"
+		"int ValueOf(C c) { return c.v; }\n"
+		"int main()\n"
+		"{\n"
+		"	int a{ 5 };\n"
+		"	int b = { 6 };\n"
+		"	int c{ };\n"
+		"	double d{ 1.5 };\n"
+		"	char ch{ 'x' };\n"
+		"	long widened{ a };\n"
+		"	int* null{ };\n"
+		"	P p{ 1, 2 };\n"
+		"	P q = { 3 };\n"
+		"	C none{ };\n"
+		"	C one{ 7 };\n"
+		"	C two{ 8, 9 };\n"
+		"	C copy = { 2, 3 };\n"
+		"	int arr[]{ 1, 2, 3 };\n"
+		"	P parr[2]{ { 1, 2 }, { 3, 4 } };\n"
+		"	const int k = 100;\n"
+		"	char fits{ k };\n"
+		"	unsigned char fromConstant{ 200 };\n"
+		"	float fromInt{ 16 };\n"
+		"	int r = 0;\n"
+		"	if (a == 5 && b == 6 && c == 0 && d == 1.5 && ch == 'x' && widened == 5 && null == 0) r += 1;\n"
+		"	if (p.b == 2 && q.a == 3 && q.b == 0) r += 2;\n"
+		"	if (none.v == 1 && one.v == 7 && two.v == 89 && copy.v == 23) r += 4;\n"
+		"	if (sizeof(arr) == 3 * sizeof(int) && arr[2] == 3 && parr[1].a == 3) r += 8;\n"
+		"	if (MakeP().b == 4 && MakeC().v == 56 && SumP({ 1, 2 }) == 3 && ValueOf({ 4, 5 }) == 45 && ValueOf({ }) == 1) r += 16;\n"
+		"	if (fits == 100 && fromConstant == 200 && fromInt == 16.0f) r += 32;\n"
+		"	a = { 9 };\n"
+		"	p = { 7, 8 };\n"
+		"	two = { 1, 1 };\n"
+		"	if (a == 9 && p.a == 7 && two.v == 11 && int{ 3 } == 3 && P{ 5, 6 }.b == 6 && C{ 1, 2 }.v == 12) r += 64;\n"
+		"	int* fresh = new int{ 12 };\n"
+		"	P* freshP = new P{ 13, 14 };\n"
+		"	if (*fresh == 12 && freshP->b == 14) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5.4 [dcl.init.list] p7: no narrowing
+	{
+		"DclListNarrowingDoubleRefused", CONFORMANCE_REFUSED,
+		"int main() { int x{ 2.5 }; return x; }\n"
+	},
+	{
+		"DclListNarrowingVariableRefused", CONFORMANCE_REFUSED,
+		"int main() { long long l = 5; int x{ l }; return x; }\n"
+	},
+	{
+		"DclListNarrowingConstantRefused", CONFORMANCE_REFUSED,
+		"int main() { unsigned char c{ 300 }; return c; }\n"
+	},
+	{
+		"DclListNarrowingNegativeRefused", CONFORMANCE_REFUSED,
+		"int main() { unsigned int u{ -1 }; return u ? 1 : 2; }\n"
+	},
+	{
+		"DclListNarrowingToFloatRefused", CONFORMANCE_REFUSED,
+		"int main() { double d = 1.5; float f{ d }; return f > 1 ? 1 : 2; }\n"
+	},
+	{
+		"DclListNarrowingIntToFloatRefused", CONFORMANCE_REFUSED,
+		"int main() { long long big = 1; float f{ big }; return f > 0 ? 1 : 2; }\n"
+	},
+	{
+		"DclListNarrowingInAggregateRefused", CONFORMANCE_REFUSED,
+		"struct P { char a; int b; };\n"
+		"int main() { int i = 300; P p = { i, 2 }; return p.b; }\n"
+	},
+	{
+		"DclListNarrowingArgumentRefused", CONFORMANCE_REFUSED,
+		"int Take(int v) { return v; }\n"
+		"int main() { return Take({ 2.5 }); }\n"
+	},
+	//8.5.4 [dcl.init.list] p3: a scalar from a list of one
+	{
+		"DclListTooManyForScalarRefused", CONFORMANCE_REFUSED,
+		"int main() { int x{ 1, 2 }; return x; }\n"
+	},
+	//8.5.4 [dcl.init.list] p3, 13.3.1.7: copy list initialisation does not use an explicit constructor
+	{
+		"DclListExplicitCopyRefused", CONFORMANCE_REFUSED,
+		"struct E { explicit E(int a, int b) : v(a + b) { } int v; };\n"
+		"int main() { E e = { 1, 2 }; return e.v; }\n"
+	},
+	//8.5.4 [dcl.init.list] p3: a constructor takes the list's elements
+	{
+		"DclListNoConstructorRefused", CONFORMANCE_REFUSED,
+		"struct C { C(int a) : v(a) { } int v; };\n"
+		"int main() { C c{ 1, 2, 3 }; return c.v; }\n"
+	},
+	//8.5.4 [dcl.init.list] p3: an empty list is value initialisation
+	{
+		"DclListEmptyNoDefaultRefused", CONFORMANCE_REFUSED,
+		"struct C { C(int a) : v(a) { } int v; };\n"
+		"int main() { C c{ }; return c.v; }\n"
+	},
+};
