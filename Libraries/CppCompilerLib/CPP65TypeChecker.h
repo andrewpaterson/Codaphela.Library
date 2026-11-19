@@ -83,6 +83,8 @@ public:
 	bool			Truth(SCPP65Type* psType, CCPPSyntax* pcNode);
 	bool			RecordsEnumOperands(CCPPSyntax* pcNode, SCPP65Type* psLeft, SCPP65Type* psRight, uint8 uiKind);
 	bool			CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode);
+	bool			ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue);
+	bool			ConversionError(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo);
 	bool			KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			LosesPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo);
 	bool			NamedCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo);

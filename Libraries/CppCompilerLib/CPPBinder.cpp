@@ -471,6 +471,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	CCPPClass*					pcClass;
 	CCPPClass*					pcLookup;
 	CCPPFunction*				pcFunction;
+	CCPPFunction*				pcInstance;
 	CCPPFunction*				pcIn;
 	CCPPTemplate*				pcTemplate;
 	SCPP65Type*					psType;
@@ -478,6 +479,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	int							iOffset;
 	ECPPCalledObject			eObject;
 	size						uiErrors;
+	size						uiTrial;
 	bool						bArrow;
 	bool						bVirtual;
 
@@ -617,6 +619,20 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	if (!pcFunction && pcTemplate)
 	{
 		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
+	}
+	else if (pcFunction && pcTemplate && !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments))
+	{
+		//The member template's instance, if it takes the arguments better than the function that converts them, as a
+		//function's is chosen (Resolve).  [over.match.best] 1
+		uiTrial = mpcUnit->GetErrors()->NumErrors();
+		mpcUnit->BeginTrial();
+		pcInstance = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
+		mpcUnit->EndTrial();
+		mpcUnit->GetErrors()->Truncate(uiTrial);
+		if (pcInstance && mcOverloads.IsBetterFunction(pcInstance, pcFunction, pcBound->mpapcArguments))
+		{
+			pcFunction = pcInstance;
+		}
 	}
 	if (!pcFunction)
 	{

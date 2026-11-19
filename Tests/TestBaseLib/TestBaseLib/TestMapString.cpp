@@ -64,7 +64,7 @@ void TestMapStringInt(void)
 {
 	CMapStringInt	cMap;
 	int				iResult;
-	int*			piResult;
+	int32*			piResult;
 	SMapIterator	sIter;
 	char*			szKey;
 
@@ -79,7 +79,8 @@ void TestMapStringInt(void)
 	AssertNotNull(szKey);
 	AssertNotNull(piResult);
 	AssertString("Dock", szKey);
-	AssertInt(17, *piResult);
+	iResult = *piResult;
+	AssertInt(17, iResult);
 
 	piResult = cMap.CMapStringTemplate::Get("EZ");
 	AssertNotNull(piResult);

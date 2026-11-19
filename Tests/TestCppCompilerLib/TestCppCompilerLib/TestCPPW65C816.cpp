@@ -2181,7 +2181,8 @@ void TestCPP816CompiledAgain(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Sprite drawing in C style (Input/CPP65/SpriteProject: Sprite.h and Sprite.cpp as given, Image.cpp's DrawPixel on a
+// Sprite drawing in C style (Input/CPP65/SpriteProject: Sprite.h and Sprite.cpp as given but for the casts C++ asks
+// of a void* that becomes a uint8_t*, Image.cpp's DrawPixel on a
 // 320 x 200 byte screen at 0011:0000): a container of an opaque and a transparent sprite, iterated and drawn.  The
 // expected values are from the same sources built natively (with DrawPixel on an array): 20 pixels set, 2 images and
 // the screen's hash.  DrawPixel is inlined across the units.

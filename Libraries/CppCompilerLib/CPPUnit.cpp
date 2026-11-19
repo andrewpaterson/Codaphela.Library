@@ -188,6 +188,30 @@ void CCPPUnit::SetLineTable(bool bLineTable, int64 lliCompileTime)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The unit's source is C (a .c file): what C allows and C++ doesn't, of the
+// little that is told apart, is allowed in it.  A void* is a pointer to
+// any object there without a cast (C11 6.3.2.3 1), as malloc's result is
+// used.  See CCPP65Builder::IsCSource.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SetCSource(bool bCSource)
+{
+	mbCSource = bCSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsCSource(void) const
+{
+	return mbCSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Floating point in any code the unit writes (a float or double value,
 // variable, literal or conversion) is an error at its statement.  Only
 // what is written: a declaration that is never used (a header's float
@@ -241,6 +265,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbListing = false;
 	mbLineTable = false;
 	mbNoFloats = false;
+	mbCSource = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;

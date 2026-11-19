@@ -308,6 +308,7 @@ protected:
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
 	bool					mbNoFloats;			//Floating point in the code it writes is an error (SetNoFloats): a kernal's units.
+	bool					mbCSource;			//The source is C, not C++ (SetCSource): a void* needs no cast.
 	int64					mlliCompileTime;	//When the unit was compiled (seconds since 1970), for .fingerprint.
 	CSpillStore*			mpcSpillStore;		//Where the functions' code waits until the unit is assembled (SetSpillStore),
 	uint32					muiSpillUnit;		//by the unit's number.
@@ -372,6 +373,8 @@ public:
 	void					SetListing(bool bListing);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetNoFloats(bool bNoFloats);
+	void					SetCSource(bool bCSource);
+	bool					IsCSource(void) const;
 	void					SetSpillStore(CSpillStore* pcStore, uint32 uiUnit = 0);
 	void					SetStatistics(CCPPCompileStatistics* pcStatistics);
 	void					SetOptions(CCPPCompileOptions* pcOptions);

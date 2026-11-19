@@ -2547,6 +2547,11 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 		Error(pcNew, "A new array of arrays with a list of initialisers is not supported by the compiler yet");
 		return NULL;
 	}
+	if (mpcUnit->IsStringLiteral(mpcUnit->StringInitialiser(pcNew->mpcInitializer, psType)))
+	{
+		//new char[n]{"abc"}: the string's characters, as an array of them is initialised.  [dcl.init.string]
+		papcElements = NULL;
+	}
 	for (i = 0; papcElements && (i < papcElements->NumElements()); i++)
 	{
 		if (!Construct(psType, NULL, papcElements->GetPtr(i), pcNew))
@@ -3157,7 +3162,8 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Convert, for a conversion no cast asks for: a pointer can't lose const or
+// Convert, for a conversion no cast asks for: a pointer is made from and
+// becomes only what it may (ConvertsPointer), it can't lose const or
 // volatile (KeepsPointerQualifiers), an enum class's value stays one
 // (KeepsScopedEnum), and std::nullptr_t converts only as it may
 // (KeepsNullPointer).  pcValue is the expression converted, when there is
@@ -3166,7 +3172,7 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue)
 {
-	return Convert(psFrom, psTo, pcNode) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsScopedEnum(psFrom, psTo, pcNode) && KeepsNullPointer(psFrom, psTo, pcNode, pcValue);
+	return Convert(psFrom, psTo, pcNode) && ConvertsPointer(psFrom, psTo, pcNode, pcValue) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsScopedEnum(psFrom, psTo, pcNode) && KeepsNullPointer(psFrom, psTo, pcNode, pcValue);
 }
 
 
@@ -3254,6 +3260,82 @@ bool CCPP65TypeChecker::KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 		return mpcUnit->RecordEnumCast(pcNode, psFrom, psTo, CPPEC_TO_ENUM) || Error(pcNode, "An enum class is given only its own values, or a cast");
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psFrom converts to psTo with no cast as far as pointers go (any
+// other types do here).  Only a null pointer constant, pcValue, becomes a
+// pointer or a pointer to a member; a pointer becomes no number but a bool;
+// a pointer to an object becomes a void* and a pointer to a class one to
+// its base, and no other pointer; a pointer to a base's member becomes one
+// to a derived class's, and no other.  [conv.ptr], [conv.mem], [conv.bool]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue)
+{
+	bool	bFromPointer;
+	bool	bToPointer;
+
+	psFrom = psFrom->WithoutReference();
+	psTo = psTo->WithoutReference();
+	bFromPointer = psFrom->IsPointer() || psFrom->IsMemberPointer();
+	bToPointer = psTo->IsPointer() || psTo->IsMemberPointer();
+	if ((!bFromPointer && !bToPointer) || psFrom->IsNullPointer() || psTo->IsNullPointer() || !psFrom->IsScalar() || !psTo->IsScalar())
+	{
+		return true;
+	}
+	if (!bFromPointer)
+	{
+		return (psFrom->IsInteger() && (!pcValue || mpcUnit->IsNullPointerConstant(pcValue))) || Error(pcNode, "Only 0 or nullptr becomes a pointer without a cast");
+	}
+	if (!bToPointer)
+	{
+		return (psTo->eKind == CPP65TK_Bool) || Error(pcNode, "A pointer becomes a number only by a cast");
+	}
+	if (psFrom->IsPointer() && psTo->IsPointer())
+	{
+		if (psFrom->psBase->Equals(psTo->psBase) || (psTo->psBase->IsVoid() && !psFrom->psBase->IsFunction()))
+		{
+			return true;
+		}
+		if (psFrom->psBase->IsClass() && psTo->psBase->IsClass() && mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL))
+		{
+			return true;
+		}
+		if (psFrom->psBase->IsVoid() && !psTo->psBase->IsFunction() && mpcUnit->IsCSource())
+		{
+			//C's void* is any object's pointer.  (C11 6.3.2.3 1)
+			return true;
+		}
+		return ConversionError(pcNode, psFrom, psTo);
+	}
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->psBase->Equals(psTo->psBase) && mpcUnit->IsDerived(psTo->pcClass, psFrom->pcClass, NULL))
+	{
+		return true;
+	}
+	return ConversionError(pcNode, psFrom, psTo);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The error of a conversion that needs a cast, with the two types.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConversionError(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	CChars	szError;
+
+	szError.Init();
+	mpcUnit->AppendTypeName(&szError, psFrom);
+	szError.Append(" becomes ");
+	mpcUnit->AppendTypeName(&szError, psTo);
+	szError.Append(" only by a cast");
+	Error(pcNode, szError.Text());
+	szError.Kill();
+	return false;
 }
 
 
@@ -3492,7 +3574,8 @@ bool CCPP65TypeChecker::CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CC
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcValue can initialise a psTo (a variable, or what a function
-// returns) with the const and volatile it has.
+// returns): as a pointer it is one that converts (ConvertsPointer), with
+// the const and volatile it has.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
@@ -3508,7 +3591,13 @@ bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
 	{
 		return BindsCategory(psTo, pcValue, pcValue) && (mpcUnit->BindsToTemporary(psTo, pcValue) || CanBind(psTo, psValue, pcValue));
 	}
-	return KeepsPointerQualifiers(psValue->IsArray() ? mpcTypes->Pointer(psValue->psBase) : psValue, psTo, pcValue);
+	psValue = psValue->IsArray() ? mpcTypes->Pointer(psValue->psBase) : psValue;
+	if (!mpcUnit->FunctionNameFor(pcValue, psTo) && !ConvertsPointer(psValue, psTo, pcValue, pcValue))
+	{
+		//(A function's name for a pointer to a function is the overload of that type, whatever type it is alone.)
+		return false;
+	}
+	return KeepsPointerQualifiers(psValue, psTo, pcValue);
 }
 
 

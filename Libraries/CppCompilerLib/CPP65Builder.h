@@ -269,6 +269,7 @@ public:
 
 	bool			AddStartUp(void);
 	bool			AddSource(const char* szName, const char* szSource);
+	static bool		IsCSource(const char* szName);
 	bool			AddAssembly(const char* szName, const char* szAssembly);
 	bool			Link(void);
 	bool			Compile(void);
