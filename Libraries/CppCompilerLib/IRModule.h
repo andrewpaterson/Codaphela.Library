@@ -84,6 +84,7 @@ protected:
 //bLocal: the symbol is the unit's own (a string, a static variable or function) even if nothing here defines it.
 //bRegisterCall: the symbol is a function a back end may pass arguments to in registers (see SetRegisterCall).
 //bNoWrites: the symbol is a function that writes no memory its callers can see (see SetNoWrites).
+//bNoThrow: the symbol is a function that is never left with an exception (see SetNoThrow).
 struct SIRSymbolDefinition
 {
 	CIRFunction*	pcFunction;
@@ -92,6 +93,7 @@ struct SIRSymbolDefinition
 	bool			bLocal;
 	bool			bRegisterCall;
 	bool			bNoWrites;
+	bool			bNoThrow;
 };
 
 
@@ -155,6 +157,10 @@ public:
 	bool			IsRegisterCall(uint32 uiSymbol);
 	void			SetNoWrites(uint32 uiSymbol, bool bNoWrites);
 	bool			IsNoWrites(uint32 uiSymbol);
+	void			SetNoThrow(uint32 uiSymbol, bool bNoThrow);
+	bool			IsNoThrow(uint32 uiSymbol);
+	bool			NeverThrown(CIRBlock* pcBlock, size uiInstruction);
+	bool			MayThrow(CIRFunction* pcFunction);
 
 	CIRFunction*	AddFunction(const char* szName, SIRType sReturnType, uint32 uiAttributes = 0);
 	CIRFunction*	FindFunction(uint32 uiSymbol);

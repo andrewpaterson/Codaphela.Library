@@ -59,9 +59,10 @@ public:
 
 
 //The passes over a whole unit that work on what its functions do with each other (IR.txt Passes): specialising
-//functions for constant arguments, removing arguments never read, and finding the functions that write no memory.
-//They run before inlining.  What they changed is asked for afterwards, by the function's index: IsChanged for code
-//that must be written again, CallsNoWrites for a function worth optimising again.
+//functions for constant arguments, removing arguments never read, and finding the functions that write no memory and
+//those that never throw.  They run before inlining.  What they changed is asked for afterwards, by the function's
+//index: IsChanged for code that must be written again, CallsNoWrites and TestsNoThrow for a function worth optimising
+//again.
 class CIRInterprocedural
 {
 protected:
@@ -69,6 +70,7 @@ protected:
 	CIRUnitFunctions*		mpcUnit;
 	CArrayTemplate<bool>	mabChanged;			//Per unit function.
 	CArrayTemplate<bool>	mabCallsNoWrites;	//Per unit function, once MarkNoWrites has run.
+	CArrayTemplate<bool>	mabTestsNoThrow;	//Per unit function, once MarkNoThrow has run.
 
 public:
 	void			Init(CIRModule* pcModule, CIRUnitFunctions* pcUnit);
@@ -77,10 +79,12 @@ public:
 	void			SpecialiseConstantArguments(void);
 	void			RemoveDeadArguments(void);
 	void			MarkNoWrites(void);
+	void			MarkNoThrow(void);
 	void			Optimise(CIRFunction* pcFunction);
 
 	bool			IsChanged(size uiFunction);
 	bool			CallsNoWrites(size uiFunction);
+	bool			TestsNoThrow(size uiFunction);
 
 	static bool		IsRecursive(CIRModule* pcModule, CIRFunction* pcFunction);
 	static uint32	DeadParameters(CIRFunction* pcFunction);

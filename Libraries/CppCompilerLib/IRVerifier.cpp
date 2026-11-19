@@ -289,6 +289,12 @@ bool CIRVerifier::CheckBlocks(void)
 		mpcBlock = NULL;
 		return false;
 	}
+	if (mpcModule->IsNoThrow(mpcFunction->muiSymbol) && mpcModule->MayThrow(mpcFunction))
+	{
+		mpcBlock = NULL;
+		Error("A nothrow function can reach a throw.");
+		return false;
+	}
 
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{

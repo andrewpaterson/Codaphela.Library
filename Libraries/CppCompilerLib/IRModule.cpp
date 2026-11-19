@@ -559,6 +559,130 @@ bool CIRModule::IsNoWrites(uint32 uiSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the symbol is a function that is never left with an exception: a
+// front end marks what a declaration says, and CIRInterprocedural's
+// MarkNoThrow works it out for the unit's functions.  The thrown after a
+// call to it is false (NeverThrown), so the code a caller has for an
+// exception from it goes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRModule::SetNoThrow(uint32 uiSymbol, bool bNoThrow)
+{
+	masDefinitions.Get(uiSymbol)->bNoThrow = bNoThrow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRModule::IsNoThrow(uint32 uiSymbol)
+{
+	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bNoThrow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the instruction is the thrown of a call to a function that never
+// throws: it is false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRModule::NeverThrown(CIRBlock* pcBlock, size uiInstruction)
+{
+	SIRInstruction*	psCall;
+
+	if ((uiInstruction == 0) || (pcBlock->masInstructions.Get(uiInstruction)->uiOpcode != IRO_Thrown))
+	{
+		return false;
+	}
+	psCall = pcBlock->masInstructions.Get(uiInstruction - 1);
+	return (psCall->uiOpcode == IRO_Call) && psCall->asArguments[0].IsSymbol() && IsNoThrow(psCall->asArguments[0].Index());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a block that ends in throw can be reached from the function's
+// entry.  A brif on a constant goes one way, and so does one on the thrown
+// of a call to a function that never throws (the way that isn't taken is
+// the code for its exception, until the optimiser takes it away).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRModule::MayThrow(CIRFunction* pcFunction)
+{
+	CArrayTemplate<uint8>	auiReached;
+	CArrayTemplate<size>	auiStack;
+	CIRBlock*				pcBlock;
+	SIRJump*				psJump;
+	size					ui;
+	size					uiInstruction;
+	bool					bThen;
+	bool					bElse;
+	bool					bThrows;
+
+	if (pcFunction->NumBlocks() == 0)
+	{
+		return true;
+	}
+	pcFunction->Renumber();
+	auiReached.Init();
+	auiReached.GrowToAtLeastNumElements(pcFunction->NumBlocks(), true, 0);
+	auiStack.Init();
+	auiStack.Add()[0] = pcFunction->GetEntry()->muiIndex;
+	bThrows = false;
+	while (!bThrows && auiStack.Pop(&ui))
+	{
+		if (*auiReached.Get(ui))
+		{
+			continue;
+		}
+		*auiReached.Get(ui) = 1;
+		pcBlock = pcFunction->GetBlock(ui);
+		psJump = &pcBlock->msJump;
+		if (psJump->uiKind == IRJ_Throw)
+		{
+			bThrows = true;
+		}
+		else if (psJump->uiKind == IRJ_Jump)
+		{
+			auiStack.Add()[0] = psJump->pcThen->muiIndex;
+		}
+		else if (psJump->uiKind == IRJ_Branch)
+		{
+			bThen = true;
+			bElse = true;
+			if (psJump->sArgument.IsConstant())
+			{
+				bThen = (pcFunction->GetConstant(psJump->sArgument)->ulliBits & 1) != 0;
+				bElse = !bThen;
+			}
+			for (uiInstruction = pcBlock->masInstructions.NumElements(); psJump->sArgument.IsTemporary() && (uiInstruction > 0); uiInstruction--)
+			{
+				if (pcBlock->masInstructions.Get(uiInstruction - 1)->sResult.Equals(psJump->sArgument))
+				{
+					bThen = !NeverThrown(pcBlock, uiInstruction - 1);
+					break;
+				}
+			}
+			if (bThen)
+			{
+				auiStack.Add()[0] = psJump->pcThen->muiIndex;
+			}
+			if (bElse)
+			{
+				auiStack.Add()[0] = psJump->pcElse->muiIndex;
+			}
+		}
+	}
+	auiStack.Kill();
+	auiReached.Kill();
+	return bThrows;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CIRFunction* CIRModule::AddFunction(const char* szName, SIRType sReturnType, uint32 uiAttributes)
@@ -578,8 +702,9 @@ CIRFunction* CIRModule::AddFunction(const char* szName, SIRType sReturnType, uin
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A copy of pcFunction named szName, local and taking register arguments as
-// it does.  An existing function of that name is it.
+// A copy of pcFunction named szName, local, taking register arguments as it
+// does and never throwing if it doesn't.  An existing function of that name
+// is it.
 //
 //////////////////////////////////////////////////////////////////////////
 CIRFunction* CIRModule::CopyFunction(CIRFunction* pcFunction, const char* szName)
@@ -599,6 +724,10 @@ CIRFunction* CIRModule::CopyFunction(CIRFunction* pcFunction, const char* szName
 	if (IsRegisterCall(pcFunction->muiSymbol))
 	{
 		SetRegisterCall(pcCopy->muiSymbol);
+	}
+	if (IsNoThrow(pcFunction->muiSymbol))
+	{
+		SetNoThrow(pcCopy->muiSymbol, true);
 	}
 	return pcCopy;
 }

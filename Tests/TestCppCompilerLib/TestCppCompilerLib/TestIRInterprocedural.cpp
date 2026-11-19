@@ -1,4 +1,5 @@
 #include "CppCompilerLib/IRInterprocedural.h"
+#include "CppCompilerLib/IRVerifier.h"
 #include "CppCompilerLib/IROptimiser.h"
 #include "CppCompilerLib/IRParser.h"
 #include "CppCompilerLib/IRPrinter.h"
@@ -472,6 +473,79 @@ void TestIRInterproceduralNotSpecialised(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// MarkNoThrow: a function is never left with an exception unless a throw
+// can be reached in it, not counting the code for an exception from a
+// function that never throws.  Functions that call each other and never
+// throw are found; one that tests a call through a pointer or to another
+// unit's function may throw; a mark that was there already stays, and so
+// does another unit's function's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRInterproceduralNoThrow(void)
+{
+	CTestIRUnit			cUnit;
+	CIRInterprocedural	cPasses;
+	CIRVerifier			cVerifier;
+	CCPPErrors			cErrors;
+
+#define TEST_IR_TESTED(name, callee) \
+	"function void @" name "()\n{\n0:\n\tcall void " callee "()\n\t%t = thrown i1\n\tbrif %t, 1, 2\n1:\n\tthrow\n2:\n\tret\n}\n"
+
+	cUnit.Init(
+		"space default 4\n"
+		"nothrow @Promised\n"
+		"nothrow @OutsideSafe\n\n"
+		"function void @Leaf()\n{\n0:\n\tret\n}\n"
+		"function void @Throws(i32 %n)\n{\n0:\n\t%c = ne i32 %n, 0\n\tbrif %c, 1, 2\n1:\n\tthrow\n2:\n\tret\n}\n"
+		TEST_IR_TESTED("CallsLeaf", "@Leaf")
+		TEST_IR_TESTED("CallsCallsLeaf", "@CallsLeaf")
+		"function void @CallsThrows()\n{\n0:\n\tcall void @Throws(i32 1)\n\t%t = thrown i1\n\tbrif %t, 1, 2\n1:\n\tthrow\n2:\n\tret\n}\n"
+		TEST_IR_TESTED("CallsOutside", "@Outside")
+		TEST_IR_TESTED("CallsOutsideSafe", "@OutsideSafe")
+		"function void @CallsPointer(ptr %p)\n{\n0:\n\tcall void %p()\n\t%t = thrown i1\n\tbrif %t, 1, 2\n1:\n\tthrow\n2:\n\tret\n}\n"
+		TEST_IR_TESTED("Even", "@Odd")
+		TEST_IR_TESTED("Odd", "@Even")
+		TEST_IR_TESTED("Promised", "@Leaf")
+		"function void @Swallows()\n{\n0:\n\tcall void @Outside()\n\t%t = thrown i1\n\tbrif %t, 1, 2\n1:\n\tcall void @Report()\n\tret\n2:\n\tret\n}\n");
+	cPasses.Init(&cUnit.mcModule, &cUnit);
+	AssertFalse(cPasses.TestsNoThrow(cUnit.Index("CallsLeaf")));
+	cPasses.MarkNoThrow();
+	AssertTrue(cUnit.mcModule.IsNoThrow(cUnit.Find("Leaf")->muiSymbol));
+	AssertFalse(cUnit.mcModule.IsNoThrow(cUnit.Find("Throws")->muiSymbol));
+	AssertTrue(cUnit.mcModule.IsNoThrow(cUnit.Find("CallsLeaf")->muiSymbol));
+	AssertTrue(cUnit.mcModule.IsNoThrow(cUnit.Find("CallsCallsLeaf")->muiSymbol));
+	AssertFalse(cUnit.mcModule.IsNoThrow(cUnit.Find("CallsThrows")->muiSymbol));
+	AssertFalse(cUnit.mcModule.IsNoThrow(cUnit.Find("CallsOutside")->muiSymbol));
+	AssertTrue(cUnit.mcModule.IsNoThrow(cUnit.Find("CallsOutsideSafe")->muiSymbol));
+	AssertFalse(cUnit.mcModule.IsNoThrow(cUnit.Find("CallsPointer")->muiSymbol));
+	AssertTrue(cUnit.mcModule.IsNoThrow(cUnit.Find("Even")->muiSymbol));
+	AssertTrue(cUnit.mcModule.IsNoThrow(cUnit.Find("Odd")->muiSymbol));
+	AssertTrue(cUnit.mcModule.IsNoThrow(cUnit.Find("Promised")->muiSymbol));
+	AssertTrue(cUnit.mcModule.IsNoThrow(cUnit.Find("Swallows")->muiSymbol));
+	AssertTrue(cUnit.mcModule.IsNoThrow((uint32)cUnit.mcModule.FindSymbol("OutsideSafe")));
+	AssertFalse(cUnit.mcModule.IsNoThrow((uint32)cUnit.mcModule.FindSymbol("Outside")));
+
+	AssertTrue(cPasses.TestsNoThrow(cUnit.Index("CallsLeaf")));
+	AssertTrue(cPasses.TestsNoThrow(cUnit.Index("Even")));
+	AssertTrue(cPasses.TestsNoThrow(cUnit.Index("CallsOutsideSafe")));
+	AssertFalse(cPasses.TestsNoThrow(cUnit.Index("CallsThrows")));
+	AssertFalse(cPasses.TestsNoThrow(cUnit.Index("CallsPointer")));
+	AssertFalse(cPasses.TestsNoThrow(cUnit.Index("Leaf")));
+	cPasses.Kill();
+
+	//What it marked is what the verifier allows.
+	cErrors.Init();
+	cVerifier.Init(&cUnit.mcModule, &cErrors);
+	AssertTrue(cVerifier.Verify());
+	cVerifier.Kill();
+	AssertString("", cErrors.Text());
+	cErrors.Kill();
+	cUnit.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIRInterprocedural(void)
@@ -480,6 +554,7 @@ void TestIRInterprocedural(void)
 
 	TestIRInterproceduralRecursion();
 	TestIRInterproceduralNoWrites();
+	TestIRInterproceduralNoThrow();
 	TestIRInterproceduralDeadArguments();
 	TestIRInterproceduralOneValue();
 	TestIRInterproceduralCopies();

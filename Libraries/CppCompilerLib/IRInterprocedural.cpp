@@ -253,6 +253,7 @@ void CIRInterprocedural::Init(CIRModule* pcModule, CIRUnitFunctions* pcUnit)
 		mabChanged.Add(&bFalse);
 	}
 	mabCallsNoWrites.Init();
+	mabTestsNoThrow.Init();
 }
 
 
@@ -262,6 +263,7 @@ void CIRInterprocedural::Init(CIRModule* pcModule, CIRUnitFunctions* pcUnit)
 //////////////////////////////////////////////////////////////////////////
 void CIRInterprocedural::Kill(void)
 {
+	mabTestsNoThrow.Kill();
 	mabCallsNoWrites.Kill();
 	mabChanged.Kill();
 }
@@ -287,6 +289,18 @@ bool CIRInterprocedural::IsChanged(size uiFunction)
 bool CIRInterprocedural::CallsNoWrites(size uiFunction)
 {
 	return (uiFunction < mabCallsNoWrites.NumElements()) && *mabCallsNoWrites.Get(uiFunction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the function tests a call to a function that never throws: the
+// test folds away when it is optimised again.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterprocedural::TestsNoThrow(size uiFunction)
+{
+	return (uiFunction < mabTestsNoThrow.NumElements()) && *mabTestsNoThrow.Get(uiFunction);
 }
 
 
@@ -433,6 +447,77 @@ void CIRInterprocedural::MarkNoWrites(void)
 			}
 		}
 		mabCallsNoWrites.Add(&bCalls);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Which of the unit's functions are never left with an exception (before
+// inlining), marked on their symbols (CIRModule::SetNoThrow) so that the
+// test after a call to one folds away and the code for its exception goes.
+// Each is taken not to throw until a throw is seen to be reachable in it
+// (CIRModule::MayThrow, which doesn't follow the thrown side of a call to
+// one that doesn't throw), again until none changes, so functions that call
+// each other and never throw are marked too.  A call through a pointer and
+// a function of another unit that nobody marked may throw.  A mark that was
+// there already (a front end's, from a declaration) stays.  TestsNoThrow
+// then gives the functions that test a call to one of them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterprocedural::MarkNoThrow(void)
+{
+	CArrayTemplate<bool>	abMarked;
+	CIRFunction*			pcFunction;
+	CIRBlock*				pcBlock;
+	size					ui;
+	size					uiBlock;
+	size					uiInstruction;
+	bool					bChanged;
+	bool					bMarked;
+	bool					bTests;
+
+	abMarked.Init();
+	for (ui = 0; ui < mpcUnit->NumUnitFunctions(); ui++)
+	{
+		pcFunction = mpcUnit->GetUnitFunction(ui);
+		bMarked = pcFunction && mpcModule->IsNoThrow(pcFunction->muiSymbol);
+		abMarked.Add(&bMarked);
+		if (pcFunction)
+		{
+			mpcModule->SetNoThrow(pcFunction->muiSymbol, true);
+		}
+	}
+
+	do
+	{
+		bChanged = false;
+		for (ui = 0; ui < mpcUnit->NumUnitFunctions(); ui++)
+		{
+			pcFunction = mpcUnit->GetUnitFunction(ui);
+			if (pcFunction && !*abMarked.Get(ui) && mpcModule->IsNoThrow(pcFunction->muiSymbol) && mpcModule->MayThrow(pcFunction))
+			{
+				mpcModule->SetNoThrow(pcFunction->muiSymbol, false);
+				bChanged = true;
+			}
+		}
+	}
+	while (bChanged);
+	abMarked.Kill();
+
+	for (ui = 0; ui < mpcUnit->NumUnitFunctions(); ui++)
+	{
+		pcFunction = mpcUnit->GetUnitFunction(ui);
+		bTests = false;
+		for (uiBlock = 0; pcFunction && (uiBlock < pcFunction->NumBlocks()) && !bTests; uiBlock++)
+		{
+			pcBlock = pcFunction->GetBlock(uiBlock);
+			for (uiInstruction = 0; (uiInstruction < pcBlock->masInstructions.NumElements()) && !bTests; uiInstruction++)
+			{
+				bTests = mpcModule->NeverThrown(pcBlock, uiInstruction);
+			}
+		}
+		mabTestsNoThrow.Add(&bTests);
 	}
 }
 

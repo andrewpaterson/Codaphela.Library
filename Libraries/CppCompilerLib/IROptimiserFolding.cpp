@@ -113,7 +113,18 @@ bool CIRFoldingPasses::FoldConstants(void)
 			{
 				bChanged = true;
 			}
-			if (Fold(psInstruction, &ulliResult) || ImpliedComparison(pcBlock, psInstruction, &ulliResult, &bChanged))
+			if (mpcModule->NeverThrown(pcBlock, uiInstruction))
+			{
+				//The call before it is to a function that never throws.  The thrown itself stays, read by nothing, for the
+				//dead code pass.
+				if (*mpcContext->mauiUses.Get(psInstruction->sResult.Index()) != 0)
+				{
+					Replace(psInstruction->sResult, mpcFunction->AddConstant(IRType(IRTK_I1), 0));
+					*mpcContext->mauiUses.Get(psInstruction->sResult.Index()) = 0;
+					bChanged = true;
+				}
+			}
+			else if (Fold(psInstruction, &ulliResult) || ImpliedComparison(pcBlock, psInstruction, &ulliResult, &bChanged))
 			{
 				sResultType = mpcFunction->GetTemporaryType(psInstruction->sResult);
 				Replace(psInstruction->sResult, mpcFunction->AddConstant(sResultType, ulliResult));

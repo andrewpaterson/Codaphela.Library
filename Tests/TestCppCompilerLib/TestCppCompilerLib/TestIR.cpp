@@ -565,7 +565,7 @@ void TestIRLarge(void)
 //////////////////////////////////////////////////////////////////////////
 void TestIRParserErrors(void)
 {
-	AssertIRErrors("(1, 1): Expected space, global, function, restrict, regcall or nowrites. [fun]\n", "fun");
+	AssertIRErrors("(1, 1): Expected space, global, function, restrict, regcall, nowrites or nothrow. [fun]\n", "fun");
 	AssertIRErrors("(4, 7): Expected an opcode with a result. [plus]\n",
 		"function void @f()\n{\nb:\n\t%x = plus i32 1, 2\n\tret\n}\n");
 	AssertIRErrors("(4, 2): Expected a block label. [%x]\n",
@@ -5526,6 +5526,101 @@ void TestIRThrown(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// nothrow @name: the function is never left with an exception.  The thrown
+// after a call to it is false, so the code for its exception goes; the
+// thrown after any other call stays.  A function marked nothrow can't reach
+// a throw, except past the thrown of a call to another that is.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRNoThrow(void)
+{
+	CIRModule	cModule;
+	CCPPErrors	cErrors;
+	CIRParser	cParser;
+
+	//A copy of a function that never throws never throws.
+	cModule.Init();
+	cErrors.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse("nothrow @f\n\nfunction void @f()\n{\nb:\n\tret\n}\n\nfunction void @g()\n{\nb:\n\tret\n}\n"));
+	cParser.Kill();
+	AssertTrue(cModule.IsNoThrow(cModule.CopyFunction(cModule.GetFunction(0), "f.copy")->muiSymbol));
+	AssertFalse(cModule.IsNoThrow(cModule.CopyFunction(cModule.GetFunction(1), "g.copy")->muiSymbol));
+	AssertFalse(cModule.MayThrow(cModule.GetFunction(0)));
+	cErrors.Kill();
+	cModule.Kill();
+
+	AssertIRRoundTrip(
+		"space default 4\n"
+		"nowrites @_Quiet__Fv\n"
+		"nothrow @_Quiet__Fv\n"
+		"nothrow @_Outside__Fv\n"
+		"\n"
+		"function void @_Quiet__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\tcall void @_Outside__Fv()\n"
+		"\t%t = thrown i1\n"
+		"\tbrif %t, fail, done\n"
+		"done:\n"
+		"\tret\n"
+		"fail:\n"
+		"\tthrow\n"
+		"}\n");
+
+	AssertIRErrors("(1, 9): Expected '@'. [5]\n", "nothrow 5\n");
+	AssertIRErrors("@f: A nothrow function can reach a throw.\n",
+		"nothrow @f\n\nfunction void @f()\n{\nb:\n\tcall void @g()\n\t%t = thrown i1\n\tbrif %t, c, d\nc:\n\tthrow\nd:\n\tret\n}\n");
+	AssertIRErrors("@f: A nothrow function can reach a throw.\n",
+		"nothrow @f\n\nfunction void @f()\n{\nb:\n\tbrif 1, c, d\nc:\n\tthrow\nd:\n\tret\n}\n");
+
+	//The test after the call to the nothrow function folds and its landing block goes; the other's stays.
+	AssertIROptimised(
+		"space default 4\n"
+		"nothrow @_Safe__Fv\n"
+		"\n"
+		"function i32 @_Both__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = call i32 @_Safe__Fv()\n"
+		"\t%b = call i32 @_Risky__Fv()\n"
+		"\t%u = thrown i1\n"
+		"\tbrif %u, landb, done\n"
+		"landb:\n"
+		"\tcall void @_Undo__Fv()\n"
+		"\tthrow\n"
+		"done:\n"
+		"\t%s = add i32 %a, %b\n"
+		"\tret i32 %s\n"
+		"}\n",
+		"space default 4\n"
+		"nothrow @_Safe__Fv\n"
+		"\n"
+		"function i32 @_Both__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = call i32 @_Safe__Fv()\n"
+		"\t%t = thrown i1\n"
+		"\tbrif %t, landa, next\n"
+		"landa:\n"
+		"\tcall void @_Abandon__Fv()\n"
+		"\tthrow\n"
+		"next:\n"
+		"\t%b = call i32 @_Risky__Fv()\n"
+		"\t%u = thrown i1\n"
+		"\tbrif %u, landb, done\n"
+		"landb:\n"
+		"\tcall void @_Undo__Fv()\n"
+		"\tthrow\n"
+		"done:\n"
+		"\t%s = add i32 %a, %b\n"
+		"\tret i32 %s\n"
+		"}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR(void)
@@ -5593,6 +5688,7 @@ void TestIR(void)
 	TestIRVerifierUnusedOperand();
 	TestIRThrow();
 	TestIRThrown();
+	TestIRNoThrow();
 
 	TestStatistics();
 }

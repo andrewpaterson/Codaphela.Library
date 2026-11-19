@@ -121,9 +121,13 @@ bool CIRParser::Parse(const char* szText)
 		{
 			bResult = ParseNoWrites();
 		}
+		else if (GetKeyword("nothrow"))
+		{
+			bResult = ParseNoThrow();
+		}
 		else
 		{
-			bResult = ErrorAt(uiStart, "Expected space, global, function, restrict, regcall or nowrites.");
+			bResult = ErrorAt(uiStart, "Expected space, global, function, restrict, regcall, nowrites or nothrow.");
 		}
 		if (!bResult)
 		{
@@ -770,6 +774,24 @@ bool CIRParser::ParseNoWrites(void)
 		return false;
 	}
 	mpcModule->SetNoWrites(mpcModule->AddSymbol(mszName.Text()), true);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// nothrow @name: the symbol is a function that is never left with an
+// exception (CIRModule::SetNoThrow).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRParser::ParseNoThrow(void)
+{
+	SkipSpace();
+	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
+	{
+		return false;
+	}
+	mpcModule->SetNoThrow(mpcModule->AddSymbol(mszName.Text()), true);
 	return true;
 }
 

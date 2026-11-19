@@ -81,6 +81,11 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		cInterprocedural.SpecialiseConstantArguments();
 		cInterprocedural.RemoveDeadArguments();
 		cInterprocedural.MarkNoWrites();
+		if (mpcUnit->GetOptions()->mbExceptions)
+		{
+			//Only a program built with exceptions has a test after a call to fold away.
+			cInterprocedural.MarkNoThrow();
+		}
 	}
 	for (ui = masWritten.NumElements(); mpcUnit->GetOptions()->mbInline && (ui > 0); ui--)
 	{
@@ -102,9 +107,10 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 				}
 			}
 		}
-		else if (cInterprocedural.CallsNoWrites(ui - 1))
+		else if (cInterprocedural.CallsNoWrites(ui - 1) || cInterprocedural.TestsNoThrow(ui - 1))
 		{
-			//What is in memory is still known after its calls to functions that write nothing (MarkNoWrites).
+			//What is in memory is still known after its calls to functions that write nothing (MarkNoWrites), and the tests
+			//after its calls to functions that never throw fold away (MarkNoThrow).
 			cInterprocedural.Optimise(psWritten->pcFunction);
 		}
 		else if (!cInterprocedural.IsChanged(ui - 1))
