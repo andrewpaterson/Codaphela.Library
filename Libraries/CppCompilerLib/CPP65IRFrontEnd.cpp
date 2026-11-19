@@ -84,8 +84,7 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	masJumps.Init();
 	masCases.Init();
 	masLabels.Init();
-	masLiving.Init();
-	masTemporaries.Init();
+	mcCleanups.Init();
 	miConditional = 0;
 	mpcExit = NULL;
 	mapcNone.Init();
@@ -145,8 +144,7 @@ void CCPP65IRFrontEnd::Kill(void)
 	SafeFree(mpcBackend);
 	mcModule.Kill();
 	mapcNone.Kill();
-	masTemporaries.Kill();
-	masLiving.Kill();
+	mcCleanups.Kill();
 	masLabels.Kill();
 	masCases.Kill();
 	masJumps.Kill();
@@ -221,7 +219,7 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	if (bResult && (pcFunction->meKind == CPPFK_Constructor))
 	{
 		//A member initialiser's temporaries would need destroying after it (not supported).
-		bResult = ConstructorStart(pcFunction->mpcDefinition) && ((masTemporaries.NumElements() == 0) || Unsupported(__FILE__, __LINE__));
+		bResult = ConstructorStart(pcFunction->mpcDefinition) && ((mcCleanups.NumTemporaries() == 0) || Unsupported(__FILE__, __LINE__));
 	}
 	else if (bResult && (pcFunction->meKind == CPPFK_Destructor))
 	{
@@ -268,8 +266,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	masJumps.ReInit();
 	masCases.ReInit();
 	masLabels.ReInit();
-	masLiving.ReInit();
-	masTemporaries.ReInit();
+	mcCleanups.ReInit();
 	miConditional = 0;
 	maszRuntime.ReInit();
 	mpcExit = NULL;

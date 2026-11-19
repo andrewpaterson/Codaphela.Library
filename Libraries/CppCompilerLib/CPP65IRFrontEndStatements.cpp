@@ -49,8 +49,8 @@ bool CCPP65IRFrontEnd::Statement(CCPPSyntax* pcStatement)
 
 	//Expression, declaration and return statements destroy their temporaries; one left (made in a condition, say) isn't
 	//supported.
-	uiTemporaries = masTemporaries.NumElements();
-	bResult = StatementOf(pcStatement) && ((masTemporaries.NumElements() <= uiTemporaries) || Unsupported(__FILE__, __LINE__));
+	uiTemporaries = mcCleanups.NumTemporaries();
+	bResult = StatementOf(pcStatement) && ((mcCleanups.NumTemporaries() <= uiTemporaries) || Unsupported(__FILE__, __LINE__));
 	mcModule.muiSource = uiSource;
 	return bResult;
 }
@@ -129,7 +129,7 @@ bool CCPP65IRFrontEnd::CompoundStatement(CCPPSyntaxCompoundStatement* pcCompound
 	size	ui;
 	size	uiLiving;
 
-	uiLiving = masLiving.NumElements();
+	uiLiving = mcCleanups.NumLocals();
 	for (ui = 0; ui < pcCompound->macpStatements.NumElements(); ui++)
 	{
 		if (!Statement(pcCompound->macpStatements.GetPtr(ui)))
@@ -154,7 +154,7 @@ bool CCPP65IRFrontEnd::JumpStatement(CCPPSyntax* pcStatement, CIRBlock* pcBreak,
 	bool			bResult;
 
 	psJump = masJumps.Add();
-	psJump->uiLiving = masLiving.NumElements();
+	psJump->uiLiving = mcCleanups.NumLocals();
 	psJump->pcBreak = pcBreak;
 	psJump->pcContinue = pcContinue;
 	bResult = ScopedStatement(pcStatement);
@@ -173,7 +173,7 @@ bool CCPP65IRFrontEnd::ScopedStatement(CCPPSyntax* pcStatement)
 {
 	size	uiLiving;
 
-	uiLiving = masLiving.NumElements();
+	uiLiving = mcCleanups.NumLocals();
 	return Statement(pcStatement) && LeaveScope(uiLiving);
 }
 
@@ -188,7 +188,7 @@ void CCPP65IRFrontEnd::AddLiving(SCPP65IRPlace* psPlace)
 {
 	if (ElementType(psPlace->psType)->pcClass->mpcDestructor)
 	{
-		masLiving.Add(psPlace);
+		mcCleanups.PushLocal(psPlace);
 	}
 }
 
@@ -202,20 +202,11 @@ void CCPP65IRFrontEnd::AddLiving(SCPP65IRPlace* psPlace)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::ExtendTemporary(SIRReference sReferred)
 {
-	SCPP65IRTemporary*	psTemporary;
-	SCPP65IRPlace		sPlace;
-	size				ui;
+	SCPP65IRPlace	sPlace;
 
-	for (ui = masTemporaries.NumElements(); ui > 0; ui--)
+	if (mcCleanups.TakeTemporary(sReferred, &sPlace))
 	{
-		psTemporary = masTemporaries.Get(ui - 1);
-		if (!psTemporary->bConditional && psTemporary->sPlace.sAddress.Equals(sReferred))
-		{
-			sPlace = psTemporary->sPlace;
-			masTemporaries.RemoveAt(ui - 1);
-			AddLiving(&sPlace);
-			return;
-		}
+		AddLiving(&sPlace);
 	}
 }
 
@@ -231,7 +222,7 @@ bool CCPP65IRFrontEnd::LeaveScope(size uiLiving)
 	bool	bResult;
 
 	bResult = DestroyLiving(uiLiving);
-	masLiving.FakeSetUsedElements(uiLiving);
+	mcCleanups.CutLocals(uiLiving);
 	return bResult;
 }
 
@@ -244,7 +235,18 @@ bool CCPP65IRFrontEnd::LeaveScope(size uiLiving)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DestroyLiving(size uiLiving)
 {
-	return DestroyPlaces(&masLiving, uiLiving);
+	SCPP65IRPlace	sPlace;
+	size			ui;
+
+	for (ui = mcCleanups.NumLocals(); ui > uiLiving; ui--)
+	{
+		sPlace = mcCleanups.GetLocal(ui - 1)->sPlace;
+		if (!Destroy(sPlace.sAddress, sPlace.psType))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
@@ -258,7 +260,7 @@ bool CCPP65IRFrontEnd::FullExpression(CCPPSyntax* pcExpression, SCPP65IRValue* p
 {
 	size	uiTemporaries;
 
-	uiTemporaries = masTemporaries.NumElements();
+	uiTemporaries = mcCleanups.NumTemporaries();
 	return Expression(pcExpression, psValue) && DestroyTemporaries(uiTemporaries);
 }
 
@@ -275,7 +277,7 @@ bool CCPP65IRFrontEnd::DestroyTemporaries(size uiTemporaries)
 	{
 		return false;
 	}
-	masTemporaries.FakeSetUsedElements(uiTemporaries);
+	mcCleanups.CutTemporaries(uiTemporaries);
 	MarkFullExpression();
 	return true;
 }
@@ -300,28 +302,6 @@ void CCPP65IRFrontEnd::MarkFullExpression(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Destroys the objects in pasPlaces from uiFrom, last first.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::DestroyPlaces(CArrayCPP65IRPlaces* pasPlaces, size uiFrom)
-{
-	SCPP65IRPlace*	psPlace;
-	size			ui;
-
-	for (ui = pasPlaces->NumElements(); ui > uiFrom; ui--)
-	{
-		psPlace = pasPlaces->Get(ui - 1);
-		if (!Destroy(psPlace->sAddress, psPlace->psType))
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Destroys the temporaries made since uiFrom, last made first; one that may
 // not have been made only if its flag says it was (the flag is cleared for
 // the next time round a loop).
@@ -329,7 +309,7 @@ bool CCPP65IRFrontEnd::DestroyPlaces(CArrayCPP65IRPlaces* pasPlaces, size uiFrom
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DestroyTemporaryPlaces(size uiFrom)
 {
-	SCPP65IRTemporary*	psTemporary;
+	SCPP65IRCleanup		sTemporary;
 	size				ui;
 	CIRBlock*			pcDestroy;
 	CIRBlock*			pcNext;
@@ -338,12 +318,13 @@ bool CCPP65IRFrontEnd::DestroyTemporaryPlaces(size uiFrom)
 	SIRType				sFlag;
 
 	sFlag = IRTypeOf(&mpcTypes->msBool);
-	for (ui = masTemporaries.NumElements(); ui > uiFrom; ui--)
+	for (ui = mcCleanups.NumTemporaries(); ui > uiFrom; ui--)
 	{
-		psTemporary = masTemporaries.Get(ui - 1);
-		if (!psTemporary->bConditional)
+		//A copy: writing a destructor's call may register something, which moves the entries.
+		sTemporary = *mcCleanups.GetTemporary(ui - 1);
+		if (!sTemporary.bConditional)
 		{
-			if (!Destroy(psTemporary->sPlace.sAddress, psTemporary->sPlace.psType))
+			if (!Destroy(sTemporary.sPlace.sAddress, sTemporary.sPlace.psType))
 			{
 				return false;
 			}
@@ -352,7 +333,7 @@ bool CCPP65IRFrontEnd::DestroyTemporaryPlaces(size uiFrom)
 
 		pcDestroy = NewBlock();
 		pcNext = NewBlock();
-		sMade.sValue = mpcFunction->Load(mpcBlock, sFlag, psTemporary->sMade);
+		sMade.sValue = mpcFunction->Load(mpcBlock, sFlag, sTemporary.sMade);
 		sMade.psType = &mpcTypes->msBool;
 		if (!Truth(&sMade, &sCondition))
 		{
@@ -360,11 +341,11 @@ bool CCPP65IRFrontEnd::DestroyTemporaryPlaces(size uiFrom)
 		}
 		mpcBlock->Branch(sCondition, pcDestroy, pcNext);
 		StartBlock(pcDestroy);
-		if (!Destroy(psTemporary->sPlace.sAddress, psTemporary->sPlace.psType))
+		if (!Destroy(sTemporary.sPlace.sAddress, sTemporary.sPlace.psType))
 		{
 			return false;
 		}
-		mpcFunction->Store(mpcBlock, sFlag, mpcFunction->AddConstant(sFlag, 0), psTemporary->sMade);
+		mpcFunction->Store(mpcBlock, sFlag, mpcFunction->AddConstant(sFlag, 0), sTemporary.sMade);
 		JumpTo(pcNext);
 		StartBlock(pcNext);
 	}
@@ -452,7 +433,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		}
 		sPlace.sAddress = *mcAddresses.Get((int64)(size)pcVariable);
 		sPlace.psType = pcVariable->mpsType;
-		uiTemporaries = masTemporaries.NumElements();
+		uiTemporaries = mcCleanups.NumTemporaries();
 		if (ElementType(pcVariable->mpsType)->IsClass())
 		{
 			//Objects are constructed (by default without an initialiser) and destroyed when their scope is left.
@@ -469,7 +450,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 
 		//Each initialiser is a full expression.  A temporary a reference is bound to through another (const S& r =
 		//S(1).Self()) would be destroyed at its end, as one bound through a field (const int& r = S(1).v) mustn't.
-		if (pcVariable->mpsType->IsReference() && (masTemporaries.NumElements() > uiTemporaries))
+		if (pcVariable->mpsType->IsReference() && (mcCleanups.NumTemporaries() > uiTemporaries))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -538,7 +519,7 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 
 	StartBlock(pcMake);
 	mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 1), sGuard);
-	uiTemporaries = masTemporaries.NumElements();
+	uiTemporaries = mcCleanups.NumTemporaries();
 	if (ElementType(pcVariable->mpsType)->IsClass())
 	{
 		if (!Construct(&sPlace, NULL, pcInitialiser))
@@ -939,7 +920,7 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 	bool			bResult;
 	size			uiLiving;
 
-	uiLiving = masLiving.NumElements();
+	uiLiving = mcCleanups.NumLocals();
 	if (!Statement(pcFor->mpcInitialiser))
 	{
 		return false;
@@ -1009,7 +990,7 @@ bool CCPP65IRFrontEnd::RangeForStatement(CCPPSyntaxRangeForStatement* pcFor)
 	bool			bResult;
 
 	psRangeFor = mpcUnit->GetRangeFor(pcFor);
-	uiLiving = masLiving.NumElements();
+	uiLiving = mcCleanups.NumLocals();
 	if (!VariablePlace(psRangeFor->pcRange, &sRange) || !LocalInitialiser(&sRange, pcFor->mpcRange, true))
 	{
 		return false;
@@ -1034,7 +1015,7 @@ bool CCPP65IRFrontEnd::RangeForStatement(CCPPSyntaxRangeForStatement* pcFor)
 		return false;
 	}
 	StartBlock(pcBody);
-	uiEach = masLiving.NumElements();
+	uiEach = mcCleanups.NumLocals();
 	psJump = masJumps.Add();
 	psJump->uiLiving = uiEach;
 	psJump->pcBreak = pcAfter;
@@ -1165,7 +1146,7 @@ bool CCPP65IRFrontEnd::RangeForVariable(CCPPSyntaxRangeForStatement* pcFor, CCPP
 	{
 		return false;
 	}
-	uiTemporaries = masTemporaries.NumElements();
+	uiTemporaries = mcCleanups.NumTemporaries();
 	if (ElementType(sPlace.psType)->IsClass())
 	{
 		if (!Construct(&sPlace, NULL, pcElement))
@@ -1180,7 +1161,7 @@ bool CCPP65IRFrontEnd::RangeForVariable(CCPPSyntaxRangeForStatement* pcFor, CCPP
 	}
 
 	//A temporary a reference is bound to through another, or through a field, is not supported (see Declaration).
-	if (sPlace.psType->IsReference() && (masTemporaries.NumElements() > uiTemporaries))
+	if (sPlace.psType->IsReference() && (mcCleanups.NumTemporaries() > uiTemporaries))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1211,7 +1192,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	uiTemporaries = masTemporaries.NumElements();
+	uiTemporaries = mcCleanups.NumTemporaries();
 	if (!Value(pcSwitch->mpcCondition, &sValue))
 	{
 		return false;
@@ -1342,7 +1323,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 
 	psReturn = mpcCPPFunction->mpsReturn;
 	sType = mpcFunction->msReturnType;
-	uiTemporaries = masTemporaries.NumElements();
+	uiTemporaries = mcCleanups.NumTemporaries();
 	//The value is worked out, then the living objects are destroyed.  An object is made at the result address, which
 	//is returned.
 	if (psReturn->IsClass())
@@ -1449,7 +1430,7 @@ bool CCPP65IRFrontEnd::GotoStatement(CCPPSyntaxGotoStatement* pcGoto)
 	CIRBlock*	pcBlock;
 
 	pcBlock = GotoBlock(pcGoto->miLabel);
-	if (!pcBlock || (masLiving.NumElements() > 0))
+	if (!pcBlock || (mcCleanups.NumLocals() > 0))
 	{
 		//Which objects a goto leaves the scope of isn't worked out.
 		return Unsupported(__FILE__, __LINE__);

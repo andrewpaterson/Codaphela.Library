@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRPipeline.h"
 #include "CPPSyntaxes.h"
 #include "CPP65Type.h"
+#include "CPP65IRCleanups.h"
 
 
 class CSourceFile;
@@ -52,30 +53,11 @@ struct SCPP65IRValue
 };
 
 
-//Where a C++ lvalue is: its address (an IR pointer) and its type.
-struct SCPPField;
-struct SCPP65IRPlace
-{
-	SIRReference	sAddress;
-	SCPP65Type*		psType;
-	SCPPField*		psBitField;		//The bit-field the place is (bits of the unit of psType at sAddress), or NULL.
-
-	SCPP65IRPlace(void) : psBitField(NULL) {}
-};
+//(SCPP65IRPlace, where a C++ lvalue is, is CPP65IRCleanups.h's.)
 
 
-//A temporary to destroy at the end of its full expression.  One made in an operand that may not be worked out (of
-//&&, || or ?:) has its place and an i8 flag (1 once it is made) in the entry block.
-struct SCPP65IRTemporary
-{
-	SCPP65IRPlace	sPlace;
-	bool			bConditional;
-	SIRReference	sMade;
-};
-
-
-//Where break and continue go (NULL for continue in a switch), and how many objects were living there (see
-//masLiving): those after them are destroyed on the way.
+//Where break and continue go (NULL for continue in a switch), and how many objects were living there
+//(CCPP65IRCleanups::NumLocals): those after them are destroyed on the way.
 struct SCPP65IRJump
 {
 	CIRBlock*	pcBreak;
@@ -133,8 +115,6 @@ typedef CMapLongTemplate<SCPP65IRValue>		CMapCPP65IRValues;
 typedef CArrayTemplate<SCPP65IRJump>		CArrayCPP65IRJumps;
 typedef CArrayTemplate<SCPP65IRCase>		CArrayCPP65IRCases;
 typedef CArrayTemplate<SCPP65IRLabel>		CArrayCPP65IRLabels;
-typedef CArrayTemplate<SCPP65IRPlace>		CArrayCPP65IRPlaces;
-typedef CArrayTemplate<SCPP65IRTemporary>	CArrayCPP65IRTemporaries;
 typedef CArrayTemplate<SCPP65IRWritten>		CArrayCPP65IRWritten;
 
 
@@ -176,8 +156,7 @@ protected:
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
 	CArrayCPP65IRLabels		masLabels;
-	CArrayCPP65IRPlaces		masLiving;			//The objects that need destroying in the scopes being written, oldest first.
-	CArrayCPP65IRTemporaries	masTemporaries;		//The temporaries to destroy at the end of the full expression, oldest first.
+	CCPP65IRCleanups		mcCleanups;			//What needs destroying: the objects of the scopes being written and the temporaries of the full expression.
 	int						miConditional;		//Inside an operand that may not be worked out (of &&, || or ?:).
 	CIRBlock*				mpcExit;			//A destructor's last block (it destroys the fields and bases); NULL in others.
 	CArraySyntax			mapcNone;			//No arguments.
@@ -278,7 +257,6 @@ protected:
 	void			MarkFullExpression(void);
 	void			MarkSigned(SCPP65Type* psType);
 	bool			DestroyTemporaryPlaces(size uiFrom);
-	bool			DestroyPlaces(CArrayCPP65IRPlaces* pasPlaces, size uiFrom);
 	bool			DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);
 	bool			Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable** ppcLast);
 	bool			GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* pcInitialiser);

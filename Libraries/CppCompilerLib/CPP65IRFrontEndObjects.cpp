@@ -1719,7 +1719,7 @@ bool CCPP65IRFrontEnd::ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, S
 bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, bool bDestroy)
 {
 	bool				bDestructor;
-	SCPP65IRTemporary*	psTemporary;
+	SIRReference		sMade;
 	CIRBlock*			pcEntry;
 	SIRType				sFlag;
 
@@ -1734,10 +1734,7 @@ bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, boo
 		psPlace->sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)psType->iBytes, 4);
 		if (bDestructor)
 		{
-			psTemporary = masTemporaries.Add();
-			psTemporary->sPlace = *psPlace;
-			psTemporary->bConditional = false;
-			psTemporary->sMade = IRNone();
+			mcCleanups.PushTemporary(psPlace, false, IRNone());
 		}
 		return true;
 	}
@@ -1745,12 +1742,10 @@ bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, boo
 	pcEntry = mpcFunction->GetBlock(0);
 	sFlag = IRTypeOf(&mpcTypes->msBool);
 	psPlace->sAddress = mpcFunction->Slot(pcEntry, IRType(IRTK_Pointer), (uint32)psType->iBytes, 4);
-	psTemporary = masTemporaries.Add();
-	psTemporary->sPlace = *psPlace;
-	psTemporary->bConditional = true;
-	psTemporary->sMade = mpcFunction->Slot(pcEntry, IRType(IRTK_Pointer), 1, 1);
-	mpcFunction->Store(pcEntry, sFlag, mpcFunction->AddConstant(sFlag, 0), psTemporary->sMade);
-	mpcFunction->Store(mpcBlock, sFlag, mpcFunction->AddConstant(sFlag, 1), psTemporary->sMade);
+	sMade = mpcFunction->Slot(pcEntry, IRType(IRTK_Pointer), 1, 1);
+	mcCleanups.PushTemporary(psPlace, true, sMade);
+	mpcFunction->Store(pcEntry, sFlag, mpcFunction->AddConstant(sFlag, 0), sMade);
+	mpcFunction->Store(mpcBlock, sFlag, mpcFunction->AddConstant(sFlag, 1), sMade);
 	return true;
 }
 

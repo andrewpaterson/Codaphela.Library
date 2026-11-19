@@ -708,7 +708,7 @@ bool CCPP65IRFrontEnd::FullCondition(CCPPSyntax* pcExpression, CIRBlock* pcTrue,
 	CIRBlock*	pcDestroyTrue;
 	CIRBlock*	pcDestroyFalse;
 
-	uiTemporaries = masTemporaries.NumElements();
+	uiTemporaries = mcCleanups.NumTemporaries();
 	pcDestroyTrue = NewBlock();
 	pcDestroyFalse = NewBlock();
 	if (!Condition(pcExpression, pcDestroyTrue, pcDestroyFalse))
@@ -728,7 +728,7 @@ bool CCPP65IRFrontEnd::FullCondition(CCPPSyntax* pcExpression, CIRBlock* pcTrue,
 		return false;
 	}
 	JumpTo(pcFalse);
-	masTemporaries.FakeSetUsedElements(uiTemporaries);
+	mcCleanups.CutTemporaries(uiTemporaries);
 	return true;
 }
 

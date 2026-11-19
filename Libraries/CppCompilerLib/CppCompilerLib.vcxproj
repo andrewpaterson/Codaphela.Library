@@ -308,6 +308,7 @@
     <ClCompile Include="CPPBinder.cpp" />
     <ClCompile Include="CPPTemplate.cpp" />
     <ClCompile Include="CPPFunction.cpp" />
+    <ClCompile Include="CPP65IRCleanups.cpp" />
     <ClCompile Include="CPPExceptionSpec.cpp" />
     <ClCompile Include="CPPVariable.cpp" />
     <ClCompile Include="CPPVtable.cpp" />
@@ -578,6 +579,7 @@
     <ClInclude Include="CPPBinder.h" />
     <ClInclude Include="CPPTemplate.h" />
     <ClInclude Include="CPPFunction.h" />
+    <ClInclude Include="CPP65IRCleanups.h" />
     <ClInclude Include="CPPExceptionSpec.h" />
     <ClInclude Include="CPPVariable.h" />
     <ClInclude Include="CPPVtable.h" />
