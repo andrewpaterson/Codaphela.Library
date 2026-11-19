@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #endif // _MSC_VER
 #include "Atomic.h"
 #include "TrueMallocator.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -495,7 +496,7 @@ void* CTrueMallocator::Realloc(void* pv, lsize uiBytes)
 	{
 		return NULL;
 	}
-	memcpy(pvNew, pv, uiCurrent - TRUE_MALLOCATOR_HEADER);
+	memcpy32(pvNew, pv, uiCurrent - TRUE_MALLOCATOR_HEADER);
 	Free(pv);
 	return pvNew;
 }

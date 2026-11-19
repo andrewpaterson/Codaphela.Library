@@ -6,6 +6,7 @@
 #include "SupportLib/Mesh.h"
 #include "SupportLib/MeshReader.h"
 #include "SupportLib/VRMLReader.h"
+#include "BaseLib/Memory32.h"
 #include "TestLib/Assert.h"
 
 
@@ -136,7 +137,7 @@ void AssertVRMLText(bool bExpected, int iExpectedCorners, const char* szText)
 
 	cMesh.Init();
 	cReader.Init(&cMesh, "Test.wrl");
-	AssertBool(bExpected, cReader.Read(szText, (lsize)strlen(szText)));
+	AssertBool(bExpected, cReader.Read(szText, (lsize)strlen32(szText)));
 	cReader.Kill();
 	AssertInt(iExpectedCorners, cMesh.NumCorners());
 }

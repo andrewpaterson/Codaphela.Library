@@ -1610,6 +1610,7 @@ void CCPP65IRFrontEnd::InitOptimiser(CIROptimiser* pcOptimiser)
 	pcOptimiser->SetPipeline(&mcPipeline);
 	mpcUnit->GetTarget()->ConfigureOptimiser(pcOptimiser);
 	pcOptimiser->SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
+	pcOptimiser->SetLibrarySize(IRTypeOf(mpcTypes->Size()));
 	if (InliningProfile())
 	{
 		pcOptimiser->SetProfile(this);

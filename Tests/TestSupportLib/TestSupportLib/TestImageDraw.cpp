@@ -14,6 +14,7 @@
 #include "BaseLib/Numbers.h"
 #include "TestLib/Assert.h"
 #include "TestLib/AssertFile.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1094,18 +1095,18 @@ void TestImageDrawCelOpaqueOntoDestOpacity(void)
 
 	cDraw.Init(&pDest);
 
-	memset(pDest->GetData(), 0, pDest->GetByteSize());
+	memset32(pDest->GetData(), 0, pDest->GetByteSize());
 	AssertTrue(cDraw.DrawCel(2, 1, pCel));
 	AssertDrawCelPixels(pDest, 4, pSource, 3, false, 2, 1, NULL);
 	AssertDrawCelOpacity(pDest, 2, 1, 8, 5, NULL);
 
-	memset(pDest->GetData(), 0, pDest->GetByteSize());
+	memset32(pDest->GetData(), 0, pDest->GetByteSize());
 	AssertTrue(cDraw.DrawCel(-3, 6, pCel));
 	AssertDrawCelPixels(pDest, 4, pSource, 3, false, -3, 6, NULL);
 	AssertDrawCelOpacity(pDest, -3, 6, 3, 10, NULL);
 
 	cClip.Init(3, 2, 7, 4);
-	memset(pDest->GetData(), 0, pDest->GetByteSize());
+	memset32(pDest->GetData(), 0, pDest->GetByteSize());
 	AssertTrue(cDraw.DrawCel(2, 1, pCel, &cClip));
 	AssertDrawCelPixels(pDest, 4, pSource, 3, false, 2, 1, &cClip);
 	AssertDrawCelOpacity(pDest, 2, 1, 8, 5, &cClip);
@@ -1171,7 +1172,7 @@ void TestImageDrawCelTranslucentBGROntoDestOpacity(void)
 	}
 
 	pDest = OMalloc<CImage>(4, 1, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
-	memset(pDest->GetData(), 0, pDest->GetByteSize());
+	memset32(pDest->GetData(), 0, pDest->GetByteSize());
 	pCel = OMalloc<CImageCel>(pSource);
 	cDraw.Init(&pDest);
 	AssertTrue(cDraw.DrawCel(0, 0, pCel));
@@ -1181,7 +1182,7 @@ void TestImageDrawCelTranslucentBGROntoDestOpacity(void)
 	pConverted = CImageColourConverter::ConvertColour(pSource, CCO_BGR);
 	AssertInt(CCO_BGR, pConverted->GetColourOrder());
 	pDest = OMalloc<CImage>(4, 1, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP);
-	memset(pDest->GetData(), 0, pDest->GetByteSize());
+	memset32(pDest->GetData(), 0, pDest->GetByteSize());
 	pCel = OMalloc<CImageCel>(pConverted);
 	cDraw.Init(&pDest);
 	AssertTrue(cDraw.DrawCel(0, 0, pCel));
@@ -1321,7 +1322,7 @@ void FillDrawCelBackground(Ptr<CImage> pDest, uint32 uiDestStride, uint8* puiBac
 	uiNumPixels = iWidth * pDest->GetHeight();
 	for (ui = 0; ui < uiNumPixels; ui++)
 	{
-		memcpy(&puiDest[ui * uiDestStride], puiBackground, uiDestStride);
+		memcpy32(&puiDest[ui * uiDestStride], puiBackground, uiDestStride);
 	}
 }
 
@@ -1362,7 +1363,7 @@ void AssertDrawCelSized(Ptr<CImage> pDest, uint32 uiDestStride, uint8* puiBackgr
 	{
 		for (x = 0; x < iDestWidth; x++)
 		{
-			memcpy(auiExpected, puiBackground, uiDestStride);
+			memcpy32(auiExpected, puiBackground, uiDestStride);
 
 			bInside = (x >= iLeft) && (x < iLeft + iWidth) && (y >= iTop) && (y < iTop + iHeight);
 			bInside &= (pcClip == NULL) || ((x >= pcClip->msTopLeft.x) && (x < pcClip->msBottomRight.x) && (y >= pcClip->msTopLeft.y) && (y < pcClip->msBottomRight.y));
@@ -1396,7 +1397,7 @@ void AssertDrawCelSized(Ptr<CImage> pDest, uint32 uiDestStride, uint8* puiBackgr
 				}
 			}
 
-			if (memcmp(&puiDest[(x + y * iDestWidth) * uiDestStride], auiExpected, uiDestStride) != 0)
+			if (memcmp32(&puiDest[(x + y * iDestWidth) * uiDestStride], auiExpected, uiDestStride) != 0)
 			{
 				uiWrong++;
 			}

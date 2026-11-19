@@ -12,6 +12,7 @@
 #include "StandardLib/Deflater.h"
 #include "StandardLib/DeflateCommon.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -358,7 +359,7 @@ void TestCompressionDeflate(void)
 	uint8			auiEmptyZLib[] = { 0x78, 0x9C, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01 };
 	const char*		szText = "Deflate replaces repeated strings with references to an earlier copy of the same string.  Deflate replaces repeated strings.";
 
-	puiData = (uint8*)malloc(200000);
+	puiData = (uint8*)malloc32(200000);
 
 	//Empty input is a single fixed block with only an end of block code.
 	cFirst.Init();
@@ -373,12 +374,12 @@ void TestCompressionDeflate(void)
 	AssertDeflateRoundTrip(puiData, 1, true);
 	AssertDeflateRoundTrip(puiData, 1, false);
 
-	uiSize = strlen(szText);
-	memcpy(puiData, szText, uiSize);
+	uiSize = strlen32(szText);
+	memcpy32(puiData, szText, uiSize);
 	AssertTrue(AssertDeflateRoundTrip(puiData, uiSize, true) < uiSize);
 
 	//Long runs use matches that overlap themselves.
-	memset(puiData, 'z', 100000);
+	memset32(puiData, 'z', 100000);
 	AssertTrue(AssertDeflateRoundTrip(puiData, 100000, true) < 200);
 
 	//Incompressible data is stored, which needs more than one stored block past 65535 bytes.
@@ -455,7 +456,7 @@ void TestCompressionDeflateMatches(void)
 	CCRC32			cCRCs;
 	const char*		aszWords[] = { "the ", "a ", "tile ", "map ", "image ", "pixel ", "channel ", "opacity ", "blit ", "star ", "control ", "deflate ", "png ", "of ", "and ", "with " };
 
-	puiData = (uint8*)malloc(200000);
+	puiData = (uint8*)malloc32(200000);
 	uiTotalSize = 0;
 	cCRCs.Init();
 
@@ -465,8 +466,8 @@ void TestCompressionDeflateMatches(void)
 	while (i < 60000)
 	{
 		uiRandom = uiRandom * 1103515245 + 12345;
-		uiLength = strlen(aszWords[(uiRandom >> 16) & 15]);
-		memcpy(&puiData[i], aszWords[(uiRandom >> 16) & 15], uiLength);
+		uiLength = strlen32(aszWords[(uiRandom >> 16) & 15]);
+		memcpy32(&puiData[i], aszWords[(uiRandom >> 16) & 15], uiLength);
 		i += uiLength;
 	}
 	uiCRC = DeflatedCRC(puiData, 60000, true, &uiTotalSize);
@@ -532,7 +533,7 @@ void TestCompressionInflateCodes(void)
 	lsize			uiCompressedSize;
 	bool			bResult;
 
-	puiData = (uint8*)malloc(100000);
+	puiData = (uint8*)malloc32(100000);
 
 	//Symbols with halving frequencies need codes up to the longest allowed.  The data is random so there are few matches.
 	uiRandom = 7;

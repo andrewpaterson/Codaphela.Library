@@ -21,6 +21,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/Logger.h"
 #include "SceneFileReader.h"
+#include "BaseLib/Memory32.h"
 
 
 #define SCENE_FILE_MATRIX_SIZE	(sizeof(float32) * SCENE_FILE_FLOATS_IN_MATRIX)
@@ -286,7 +287,7 @@ bool CSceneFileReader::ReadString(const char* szChunk, CChars* psz)
 	bool	bResult;
 
 	uiLength = NumElements(szChunk, sizeof(char));
-	szData = (char*)malloc(uiLength + 1);
+	szData = (char*)malloc32(uiLength + 1);
 	if (szData == NULL)
 	{
 		return Fail("Could not allocate a string");

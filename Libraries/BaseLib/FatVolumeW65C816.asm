@@ -2434,7 +2434,6 @@ FindBPBNextShort:
 ; memcpy(&msBPB, A (low) X (high), sizeof(SFatBIOSParameterBlock))
 CopyBPB:
 		.width (A, X), 16
-		pea 0
 		pea SIZEOF_SFatBIOSParameterBlock
 		phx
 		pha
@@ -2443,7 +2442,7 @@ CopyBPB:
 		jsl _memcpy
 		tsc
 		clc
-		adc 12
+		adc 10
 		tcs
 		rts
 
@@ -3124,7 +3123,6 @@ GetEntryPath:
 		stz [D + GE_SHORT + 2]
 		stz [D + GE_CURRENT]
 		stz [D + GE_CURRENT + 2]
-		pea 0
 		pea FAT_MAX_PATH + 1
 		pea 0
 		pei [D + GE_LEVEL + 2]
@@ -3132,7 +3130,7 @@ GetEntryPath:
 		jsl _memset
 		tsc
 		clc
-		adc 10
+		adc 8
 		tcs
 		pei [D + Q_QUERY + 2]
 		pei [D + Q_QUERY]
@@ -4272,7 +4270,6 @@ InitialiseDirectoryCluster:
 InitialiseDirectoryRead:
 		ldy CFatVolume_muiBytesPerSector
 		lda [[D + F_THIS]:24 + Y]
-		pea 0
 		pha
 		pea 0
 		pei [D + F_CACHE + 2]
@@ -4280,7 +4277,7 @@ InitialiseDirectoryRead:
 		jsl _memset
 		tsc
 		clc
-		adc 10
+		adc 8
 		tcs
 		; "." is this cluster.
 		lda [D + F_CACHE]
@@ -4439,8 +4436,6 @@ _CFatVolume__CreateFATEntry:
 		ply
 		ply
 		sta [D + CE_LENGTH]
-		txy
-		bne CreateEntryTooLong
 		cmp FAT_MAX_FILENAME + 1
 		bcc CreateEntryLength
 CreateEntryTooLong:
@@ -4699,7 +4694,6 @@ UniqueShortNameEntry:
 		and 0xFF
 		beq UniqueShortNameChecked
 		; memcmp(szShortName, the entry's, 11)
-		pea 0
 		pea 11
 		pei [D + CE_SHORT + 2]
 		pei [D + CE_SHORT]
@@ -4709,7 +4703,7 @@ UniqueShortNameEntry:
 		tay
 		tsc
 		clc
-		adc 12
+		adc 10
 		tcs
 		tya
 		cmp 0
@@ -5483,8 +5477,6 @@ _CFatVolume__CreateDirectory__FPKc:
 		ply
 		cmp 0
 		beq CreateDirectoryInvalid
-		txy
-		bne CreateDirectoryInvalid
 		cmp FAT_MAX_PATH + 1
 		bcc CreateDirectoryLength
 CreateDirectoryInvalid:
@@ -5570,7 +5562,6 @@ CreateDirectoryInName:
 		sec
 		sbc [D + CD_PATH]
 		sta [D + F_WORK]
-		pea 0
 		pha
 		pei [D + CD_PATH + 2]
 		pei [D + CD_PATH]
@@ -5579,7 +5570,7 @@ CreateDirectoryInName:
 		jsl _memcpy
 		tsc
 		clc
-		adc 12
+		adc 10
 		tcs
 		ldy [D + F_WORK]
 		lda 0

@@ -23,6 +23,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "WAVCommon.h"
 #include "WAVWriter.h"
+#include "BaseLib/Memory32.h"
 
 
 //The frames converted at a time.
@@ -98,7 +99,7 @@ size WAVGetChannelOrder(Ptr<CSound> pSound, size* puiOrder, uint32* puiMask)
 	uint32		uiBit;
 
 	uiNumChannels = pSound->NumChannels();
-	puiKeys = (size*)malloc((lsize)sizeof(size) * (uiNumChannels + 1));
+	puiKeys = (size*)malloc32((lsize)sizeof(size) * (uiNumChannels + 1));
 	uiNumWritten = 0;
 	*puiMask = 0;
 	for (uiIndex = 0; uiIndex < uiNumChannels; uiIndex++)
@@ -293,7 +294,7 @@ bool SaveWAV(Ptr<CSound> pSound, char* szPathName, EWAVSampleFormat eFormat)
 		return false;
 	}
 
-	puiOrder = (size*)malloc((lsize)sizeof(size) * (pSound->NumChannels() + 1));
+	puiOrder = (size*)malloc32((lsize)sizeof(size) * (pSound->NumChannels() + 1));
 	uiNumChannels = WAVGetChannelOrder(pSound, puiOrder, &uiMask);
 	if ((uiNumChannels == 0) || (uiNumChannels > 0xFFFF))
 	{
@@ -337,7 +338,7 @@ bool SaveWAV(Ptr<CSound> pSound, char* szPathName, EWAVSampleFormat eFormat)
 	}
 	uiDataSize = (lsize)ulliDataSize;
 
-	puiData = (uint8*)malloc(uiDataSize + 1);
+	puiData = (uint8*)malloc32(uiDataSize + 1);
 	pfBlock = (float64*)malloc(sizeof(float64) * WAV_WRITE_BLOCK_FRAMES);
 	for (uiFirst = 0; uiFirst < uiNumFrames; uiFirst += WAV_WRITE_BLOCK_FRAMES)
 	{

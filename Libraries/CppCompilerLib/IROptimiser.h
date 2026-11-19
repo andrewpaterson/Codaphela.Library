@@ -110,6 +110,7 @@ public:
 	void			Init(CIRModule* pcModule);
 	void			Kill(void);
 	void			SetLibraryInt(SIRType sInt);
+	void			SetLibrarySize(SIRType sSize);
 	void			SetIndexedAddresses(bool bIndexedAddresses);
 	void			SetWarnings(CChars* pszWarnings);
 	void			SetConstantDivisions(bool bConstantDivisions);

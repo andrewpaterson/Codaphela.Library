@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FNVHash.h"
 #include "TextComparison.h"
+#include "BaseLib/Memory32.h"
 
 
 //What every line separator compares as.
@@ -100,7 +101,7 @@ bool STextToken::Equals(STextToken* psOther)
 
 	if (!bSkipWhitespace)
 	{
-		return (uiLength == psOther->uiLength) && (memcmp(sz, psOther->sz, uiLength) == 0);
+		return (uiLength == psOther->uiLength) && (memcmp32(sz, psOther->sz, uiLength) == 0);
 	}
 
 	ui1 = 0;
@@ -458,7 +459,7 @@ void CTextComparison::Intern(void)
 
 	mauiTable.Resize(uiTableSize);
 	pauiTable = mauiTable.GetData();
-	memset(pauiTable, 0, uiTableSize * sizeof(lsize));
+	memset32(pauiTable, 0, uiTableSize * sizeof(lsize));
 	mauiIds1.Resize(uiNumTokens1);
 	mauiIds2.Resize(macTokens2.NumElements());
 

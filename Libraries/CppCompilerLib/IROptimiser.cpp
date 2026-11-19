@@ -183,6 +183,19 @@ void CIROptimiser::SetLibraryInt(SIRType sInt)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type the library's size_t is (32 bits, the default, or 16): with 16
+// a count that may not fit is passed to the 32 suffixed function (memset32
+// and the others, the W65C816's Libc65).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetLibrarySize(SIRType sSize)
+{
+	mcContext.msLibrarySize = sSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the target's loads and stores add a pointer and an index for
 // nothing (the 65C64's [R1 + R2]; the W65C816's don't): if not, p + i in a
 // loop is strength reduced too.

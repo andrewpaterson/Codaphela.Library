@@ -27,6 +27,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageCopier.h"
 #include "RLEPacketEncoder.h"
 #include "TGAWriter.h"
+#include "BaseLib/Memory32.h"
 
 
 #define TGA_TRUE_COLOUR			2
@@ -128,7 +129,7 @@ bool SaveTGA(Ptr<CImage> pImage, char* szPathName, bool bRLE)
 	iPixelBytes = (bGrey ? 1 : 3) + (bAlpha ? 1 : 0);
 
 	//Export in Targa's byte order: blue, green, red, alpha or grey, alpha.
-	pvPixels = (uint8*)malloc((lsize)iWidth * iHeight * iPixelBytes);
+	pvPixels = (uint8*)malloc32((lsize)iWidth * iHeight * iPixelBytes);
 	if (pvPixels == NULL)
 	{
 		gcLogger.Error2(__METHOD__, " Could not allocate memory to write [", szPathName, "].", NULL);

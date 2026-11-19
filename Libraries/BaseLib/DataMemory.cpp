@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Logger.h"
 #include "Validation.h"
 #include "DataMemory.h"
+#include "Memory32.h"
 
 
 CMemoryFreeListParams gcDataMemoryFreeListParams;
@@ -376,7 +377,7 @@ void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, lsize uiDestSize,
 	lsize	uiSize;
 
 	uiSize = (uiDestSize < uiSourceSize) ? uiDestSize : uiSourceSize;
-	memcpy(pvDest, pvSource, uiSize);
+	memcpy32(pvDest, pvSource, uiSize);
 }
 
 

@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "HuffmanEncoder.h"
+#include "BaseLib/Memory32.h"
 
 
 #define HUFFMAN_MAX_NODES	(HUFFMAN_MAX_SYMBOLS * 2)
@@ -39,7 +40,7 @@ void CHuffmanEncoder::Init(uint32* puiFrequencies, size iNumSymbols, int iMaxBit
 	size	i;
 
 	miNumSymbols = iNumSymbols;
-	memcpy(auiFrequencies, puiFrequencies, (lsize)iNumSymbols * sizeof(uint32));
+	memcpy32(auiFrequencies, puiFrequencies, (lsize)iNumSymbols * sizeof(uint32));
 	while (!BuildLengths(auiFrequencies, iMaxBits))
 	{
 		for (i = 0; i < iNumSymbols; i++)

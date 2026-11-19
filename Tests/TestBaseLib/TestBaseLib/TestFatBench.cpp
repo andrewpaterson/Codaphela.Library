@@ -5,6 +5,7 @@
 #include "TestFat32Common.h"
 #include "BaseLib/Fat32.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 //A FAT32 work load to time the 65C64 and W65C816 code generators with: format, directories, files written in
@@ -95,7 +96,7 @@ static void FatBenchFill(uint8* puiData, uint32 uiSize)
 		{
 			uiLength = uiSize - uiDone;
 		}
-		memcpy(&puiData[uiDone], &gauiFatBenchPool[uiStart], uiLength);
+		memcpy32(&puiData[uiDone], &gauiFatBenchPool[uiStart], uiLength);
 		uiStart = 0;
 	}
 }
@@ -354,7 +355,7 @@ static void FatBenchRun(uint8 uiSectorsPerCluster, uint64 uiSectors)
 	{
 		FatBenchName(&asFiles[i], i, ".txt");
 		asFiles[i].uiSize = 100 + (i * 7919) % 30000;
-		asFiles[i].puiData = (uint8*)malloc(asFiles[i].uiSize);
+		asFiles[i].puiData = (uint8*)malloc32(asFiles[i].uiSize);
 		asFiles[i].bExists = false;
 		FatBenchFill(asFiles[i].puiData, asFiles[i].uiSize);
 		FatBenchWrite(&cVolume, &asFiles[i], 300 + (i % 5) * 700);
@@ -401,7 +402,7 @@ static void FatBenchRun(uint8 uiSectorsPerCluster, uint64 uiSectors)
 		FatBenchName(&asFiles[i], i, ".new");
 		free(asFiles[i].puiData);
 		asFiles[i].uiSize = 2000 + (i * 4513) % 20000;
-		asFiles[i].puiData = (uint8*)malloc(asFiles[i].uiSize);
+		asFiles[i].puiData = (uint8*)malloc32(asFiles[i].uiSize);
 		FatBenchFill(asFiles[i].puiData, asFiles[i].uiSize);
 		FatBenchWrite(&cVolume, &asFiles[i], 1024);
 	}

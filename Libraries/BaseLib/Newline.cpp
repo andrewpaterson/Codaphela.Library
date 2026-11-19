@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <string.h>
 #include "PointerFunctions.h"
 #include "Newline.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -110,7 +111,7 @@ lsize PassifyNewlines(char *szString)
 	char*	szNewString;  //Should use StackMemory.
 	lsize	uiPos;
 
-	uiLen = strlen(szString);
+	uiLen = strlen32(szString);
 	uiNumCarriageReturns = CountCarriageReturns(szString, uiLen);
 
 	if (uiNumCarriageReturns == 0)
@@ -118,7 +119,7 @@ lsize PassifyNewlines(char *szString)
 		return MAX_LSIZE;
 	}
 
-	szNewString	= (char*)malloc(uiLen-uiNumCarriageReturns+1);
+	szNewString	= (char*)malloc32(uiLen-uiNumCarriageReturns+1);
 
 	uiPos = 0;
 	for (i = 0; i <= uiLen; i++)
@@ -130,7 +131,7 @@ lsize PassifyNewlines(char *szString)
 		}
 	}
 
-	memcpy(szString, szNewString, uiPos);
+	memcpy32(szString, szNewString, uiPos);
 	SafeFree(szNewString);
 	return uiPos - 1;
 }

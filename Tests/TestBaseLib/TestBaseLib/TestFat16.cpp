@@ -3,6 +3,7 @@
 #include "BaseLib/MemoryDrive.h"
 #include "BaseLib/Fat32.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 //An 8MB drive (16384 sectors of 512 bytes: it fits in the W65C816's memory) formatted FAT16 with 1KB clusters: 16K
@@ -38,7 +39,7 @@ static void TestFat16Write(CFatVolume* pcVolume, const char* szName, uint32 uiLe
 	CFatFile	cFile;
 	uint8*		puiData;
 
-	puiData = (uint8*)malloc(uiLength);
+	puiData = (uint8*)malloc32(uiLength);
 	TestFat16Fill(puiData, uiLength, uiSeed);
 	cFile.Init(pcVolume);
 	AssertInt(FAT_SUCCESS, cFile.Open(szName, FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_WRITE));
@@ -61,8 +62,8 @@ static void TestFat16Read(CFatVolume* pcVolume, const char* szName, uint32 uiLen
 	uint8*		puiExpected;
 	lsize		uiRead;
 
-	puiData = (uint8*)malloc(uiLength + 1);
-	puiExpected = (uint8*)malloc(uiLength);
+	puiData = (uint8*)malloc32(uiLength + 1);
+	puiExpected = (uint8*)malloc32(uiLength);
 	TestFat16Fill(puiExpected, uiLength, uiSeed);
 	cFile.Init(pcVolume);
 	AssertInt(FAT_SUCCESS, cFile.Open(szName, FAT_FILE_ACCESS_READ));
@@ -70,7 +71,7 @@ static void TestFat16Read(CFatVolume* pcVolume, const char* szName, uint32 uiLen
 	uiRead = 0;
 	AssertInt(FAT_SUCCESS, cFile.Read(puiData, uiLength, &uiRead));
 	AssertInt(uiLength, (uint32)uiRead);
-	AssertInt(0, memcmp(puiData, puiExpected, uiLength));
+	AssertInt(0, memcmp32(puiData, puiExpected, uiLength));
 
 	//Seeking into the middle (into a later cluster) and reading on.
 	if (uiLength > 5000)

@@ -23,6 +23,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "ColourBlend.h"
 #include "VectorRasteriser.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -423,7 +424,7 @@ bool CVectorRasteriser::Rasterise(CVectorPath* pcPath, int iLeft, int iTop, int 
 		mpuiResult = mcCoverage.GetCoverage();
 		if ((uiNumParts == 1) && !pcPath->GetSegment(0)->bExposure)
 		{
-			memset(mpuiResult, 0, (lsize)iWidth * iHeight);
+			memset32(mpuiResult, 0, (lsize)iWidth * iHeight);
 		}
 		return true;
 	}
@@ -433,7 +434,7 @@ bool CVectorRasteriser::Rasterise(CVectorPath* pcPath, int iLeft, int iTop, int 
 	if (uiCells > muiPathCapacity)
 	{
 		free(mpuiPath);
-		mpuiPath = (uint8*)malloc(uiCells);
+		mpuiPath = (uint8*)malloc32(uiCells);
 		if (mpuiPath == NULL)
 		{
 			muiPathCapacity = 0;
@@ -441,7 +442,7 @@ bool CVectorRasteriser::Rasterise(CVectorPath* pcPath, int iLeft, int iTop, int 
 		}
 		muiPathCapacity = uiCells;
 	}
-	memset(mpuiPath, 0, uiCells);
+	memset32(mpuiPath, 0, uiCells);
 
 	uiPartStart = 0;
 	bExposure = true;

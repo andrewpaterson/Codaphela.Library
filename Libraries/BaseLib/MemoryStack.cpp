@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerFunctions.h"
 #include "PointerRemapper.h"
 #include "MemoryStack.h" 
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -46,7 +47,7 @@ void CMemoryStack::Init(lsize iSize)
 void* CMemoryStack::Allocate(lsize iSize)
 {
 	Init(iSize);
-	mpvMemory = malloc(miMemorySize);
+	mpvMemory = malloc32(miMemorySize);
 	return mpvMemory;
 }
 
@@ -83,7 +84,7 @@ void* CMemoryStack::Add(lsize iSize)
 
 	if (mpvMemory == NULL)
 	{
-		mpvMemory = malloc(miMemorySize);
+		mpvMemory = malloc32(miMemorySize);
 		if (mpvMemory == NULL)
 		{
 			return NULL;

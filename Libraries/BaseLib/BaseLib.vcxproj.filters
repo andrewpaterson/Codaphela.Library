@@ -1065,6 +1065,9 @@
     <ClInclude Include="Malloc.h">
       <Filter>Source\Memory\Allocator\Base</Filter>
     </ClInclude>
+    <ClInclude Include="Memory32.h">
+      <Filter>Source\Memory\Allocator\Base</Filter>
+    </ClInclude>
     <ClInclude Include="WindowsError.h">
       <Filter>Source\Error\Windows</Filter>
     </ClInclude>

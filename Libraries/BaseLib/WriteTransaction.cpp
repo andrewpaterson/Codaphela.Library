@@ -6,6 +6,7 @@
 #include "NamedIndexedHeader.h"
 #include "Codabase.h"
 #include "WriteTransaction.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -421,7 +422,7 @@ bool CWriteTransaction::Get(OIndex oi, void* pvData)
 	{
 		return false;
 	}
-	memcpy(pvData, pcRecord->GetData(), pcRecord->uiDataSize);
+	memcpy32(pvData, pcRecord->GetData(), pcRecord->uiDataSize);
 	return true;
 }
 
@@ -451,7 +452,7 @@ bool CWriteTransaction::Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize u
 	SafeAssign(puiDataSize, pcRecord->uiDataSize);
 	if (pvData)
 	{
-		memcpy(pvData, pcRecord->GetData(), (pcRecord->uiDataSize < uiMaxDataSize) ? pcRecord->uiDataSize : uiMaxDataSize);
+		memcpy32(pvData, pcRecord->GetData(), (pcRecord->uiDataSize < uiMaxDataSize) ? pcRecord->uiDataSize : uiMaxDataSize);
 	}
 	return true;
 }
@@ -1071,12 +1072,12 @@ bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored
 	pvCopy = NULL;
 	if (uiDataSize > 0)
 	{
-		pvCopy = malloc(uiDataSize);
+		pvCopy = malloc32(uiDataSize);
 		if (pvCopy == NULL)
 		{
 			return gcLogger.Error2(__METHOD__, " Could not allocate the change to Index [", IndexToString(oi), "].", NULL);
 		}
-		memcpy(pvCopy, pvData, uiDataSize);
+		memcpy32(pvCopy, pvData, uiDataSize);
 	}
 
 	iNameLength = szName ? (int32)strlen(szName) : 0;
@@ -1093,7 +1094,7 @@ bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored
 	pcRecord->iNameLength = iNameLength;
 	pcRecord->uiDataSize = uiDataSize;
 	pcRecord->mpvData = pvCopy;
-	memcpy(pcRecord->GetName(), szName ? szName : "", iNameLength + 1);
+	memcpy32(pcRecord->GetName(), szName ? szName : "", iNameLength + 1);
 	return true;
 }
 

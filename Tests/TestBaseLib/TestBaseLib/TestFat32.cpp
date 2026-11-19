@@ -11,6 +11,7 @@
 #include "TestLib/Assert.h"
 #include "TestLib/Words.h"
 #include "TestFat32Common.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -684,7 +685,7 @@ char* AllocateAndFillMemory(int32 iLength)
 	int32	i;
 	char*	puiFileData;
 
-	puiFileData = (char*)malloc(iLength);
+	puiFileData = (char*)malloc32(iLength);
 
 	char c = 33;
 	for (i = 0; i < iLength; i++)
@@ -752,7 +753,7 @@ void TestFat32CreateDirectoryAfterWrite(void)
 	AssertInt(FAT_SUCCESS, eResult);
 	AssertInt(iLength, cFatFile.Size());
 
-	puiFileData2 = (char*)malloc(iLength);
+	puiFileData2 = (char*)malloc32(iLength);
 	uiBytesRead = 0;
 	cFatFile.Read((uint8*)puiFileData2, iLength, &uiBytesRead);
 	AssertSize(iLength, uiBytesRead);
@@ -895,7 +896,7 @@ void TestFat32GreatWrite(void)
 	sQuery.Kill(cVolume.GetSectorCache());
 
 	iLength = 196 KB;
-	puiFileData2 = (char*)malloc(iLength);
+	puiFileData2 = (char*)malloc32(iLength);
 	puiFileData = AllocateAndFillMemory(iLength);
 
 	eResult = cFatFile.Write((uint8*)puiFileData, iLength);
@@ -917,11 +918,11 @@ void TestFat32GreatWrite(void)
 	AssertInt(FAT_SUCCESS, eResult);
 	AssertInt((uint32)(196 KB) , cFatFile.Size());
 
-	memset(puiFileData2, 0, iLength);
+	memset32(puiFileData2, 0, iLength);
 	eResult = cFatFile.Read((uint8*)puiFileData2, iLength, &uiBytesRead);
 	AssertInt(FAT_SUCCESS, eResult);
 	AssertSize(iLength, uiBytesRead);
-	AssertInt(0, memcmp(puiFileData, puiFileData2, iLength));
+	AssertInt(0, memcmp32(puiFileData, puiFileData2, iLength));
 
 	eResult = cFatFile.Close();
 	AssertInt(FAT_SUCCESS, eResult);
@@ -929,7 +930,7 @@ void TestFat32GreatWrite(void)
 	eResult = cFatFile.Open("\\New File.txt", FAT_FILE_ACCESS_READ);
 	AssertInt(FAT_SUCCESS, eResult);
 
-	memset(puiFileData2, 0, iLength);
+	memset32(puiFileData2, 0, iLength);
 	iLength = 196 KB - 64 KB - 1024;
 	cFatFile.Seek(64 KB + 1024, FAT_SEEK_START);
 	eResult = cFatFile.Read((uint8*)puiFileData2, iLength, &uiBytesRead);
@@ -983,11 +984,11 @@ void TestFat32GreatWrite(void)
 	AssertInt(FAT_SUCCESS, eResult);
 	AssertInt((uint32)(196 KB), cFatFile.Size());
 
-	memset(puiFileData2, 0, iLength);
+	memset32(puiFileData2, 0, iLength);
 	eResult = cFatFile.Read((uint8*)puiFileData2, iLength, &uiBytesRead);
 	AssertInt(FAT_SUCCESS, eResult);
 	AssertSize(iLength, uiBytesRead);
-	AssertInt(0, memcmp(puiFileData, puiFileData2, iLength));
+	AssertInt(0, memcmp32(puiFileData, puiFileData2, iLength));
 
 	eResult = cFatFile.Close();
 	AssertInt(FAT_SUCCESS, eResult);
@@ -998,11 +999,11 @@ void TestFat32GreatWrite(void)
 	AssertInt(FAT_SUCCESS, eResult);
 	AssertInt((uint32)(196 KB), cFatFile.Size());
 
-	memset(puiFileData2, 0, iLength);
+	memset32(puiFileData2, 0, iLength);
 	eResult = cFatFile.Read((uint8*)puiFileData2, iLength, &uiBytesRead);
 	AssertInt(FAT_SUCCESS, eResult);
 	AssertSize(iLength, uiBytesRead);
-	AssertInt(0, memcmp(puiFileData, puiFileData2, iLength));
+	AssertInt(0, memcmp32(puiFileData, puiFileData2, iLength));
 
 	eResult = cFatFile.Close();
 	AssertInt(FAT_SUCCESS, eResult);
@@ -1175,7 +1176,7 @@ void TestFat32WriteAndSeek(void)
 	}
 	AssertTrue(bAllSuccess);
 
-	szRead = (char*)malloc(196 KB);
+	szRead = (char*)malloc32(196 KB);
 	eResult = cFatFile.Seek(0, FAT_SEEK_START);
 	AssertInt(FAT_SUCCESS, eResult);
 	eResult = cFatFile.Read((uint8*)szRead, 196 KB, &uiBytesRead);

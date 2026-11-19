@@ -15,6 +15,7 @@
 #include "SupportLib/MeshUnwrap.h"
 #include "SupportLib/MeshBake.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 //How many texels to a unit the box the modifier's tests bake is unwrapped at.  On the 65C64 and the W65C816 a
@@ -730,7 +731,7 @@ void TestMeshBakeModifierSamples(void)
 		for (i = 0; i < 4; i++)
 		{
 			pExpected = BakeMeshTexture(&pMesh, 0, &pStep, (int)pLevel->GetWidth(), (int)pLevel->GetHeight(), NULL, &sSettings);
-			AssertInt(0, memcmp(pExpected->GetData(), pLevel->GetData(), pLevel->GetWidth() * pLevel->GetHeight() * 3));
+			AssertInt(0, memcmp32(pExpected->GetData(), pLevel->GetData(), pLevel->GetWidth() * pLevel->GetHeight() * 3));
 			pLevel = pcDiffuse->mapLevels.Get(i);
 			if ((sSettings.iSamples * 2) <= iMost)
 			{

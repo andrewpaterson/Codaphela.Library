@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MarkupText.h"
 #include "MarkupReference.h"
 #include "Markup.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -680,11 +681,11 @@ char* CMarkupTag::MallocString(char* szSource)
 
 	pcMalloc = GetMalloc();
 
-	uiLength = strlen(szSource) + 1;
+	uiLength = strlen32(szSource) + 1;
 	szAllocatedString = (char*)pcMalloc->Malloc(uiLength);
 	if (szAllocatedString)
 	{
-		memcpy(szAllocatedString, szSource, uiLength);
+		memcpy32(szAllocatedString, szSource, uiLength);
 	}
 
 	return szAllocatedString;

@@ -122,8 +122,14 @@ typedef unsigned int	uint;
 typedef uint64			size;
 typedef uint64			ptr;
 typedef int64			ptrdiff;
+#elif defined(__W65C816__)
+//size is the W65C816's natural width, and size_t is too (Libc65's unsigned int, which uint16 is): one type, as on
+//the other targets.  Pointers (and ptrdiff_t) stay 32 bits.  Use lsize past 64KB.
+typedef size_t			size;
+typedef uintptr_t		ptr;
+typedef ptrdiff_t		ptrdiff;
 #elif defined(SIZE_16)
-//size is the W65C816's natural width; pointers (and size_t) stay 32 bits.  Use lsize past 64KB.
+//The host's check of the W65C816's size model: size is 16 bits, size_t the host's.
 typedef uint16			size;
 typedef uintptr_t		ptr;
 typedef ptrdiff_t		ptrdiff;

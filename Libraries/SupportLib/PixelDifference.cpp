@@ -20,6 +20,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "PixelDifference.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -44,7 +45,7 @@ lsize FindPixelDifference(const uint8* puiFirst, lsize uiFirstRowBytes, const ui
 	{
 		puiFirstRow = &puiFirst[(lsize)y * uiFirstRowBytes];
 		puiSecondRow = &puiSecond[(lsize)y * uiSecondRowBytes];
-		if (memcmp(puiFirstRow, puiSecondRow, uiRowBytes) == 0)
+		if (memcmp32(puiFirstRow, puiSecondRow, uiRowBytes) == 0)
 		{
 			continue;
 		}

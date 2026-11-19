@@ -259,6 +259,7 @@ public:
 	bool					mbDominatorRanges;	//...and by those above a block with several predecessors, from its dominators (worked out).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
+	SIRType					msLibrarySize;		//memset's size_t (16 or 32 bits): a 16 bit one has 32 suffixed functions for longer counts.
 	CIRInlineProfile*		mpcProfile;			//How often lines ran (SetProfile), NULL for none.
 	CChars*					mpszWarnings;		//Comparisons found always true or false (SetWarnings); NULL: not looked for.
 	CIRDominators			mcDominators;

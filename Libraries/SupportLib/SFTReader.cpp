@@ -31,6 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCelSourceSingle.h"
 #include "SFTCommon.h"
 #include "SFTReader.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -165,7 +166,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 	}
 
 	uiSize = (lsize)sStruct.uiImageWidth * sStruct.uiImageHeight;
-	puiData = (uint8*)malloc(uiSize);
+	puiData = (uint8*)malloc32(uiSize);
 	iResult = pcFile->Read(puiData, 1, uiSize);
 	if (iResult != uiSize)
 	{
@@ -221,7 +222,7 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 	}
 
 	puiImage = (uint32*)pImage->GetData();
-	memset(puiImage, 0, pImage->GetByteSize());
+	memset32(puiImage, 0, pImage->GetByteSize());
 
 	if (bAddDebug)
 	{

@@ -25,6 +25,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MeshEdgeVisibility.h"
 #include "MeshNormals.h"
 #include "MeshPolygons.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -354,8 +355,8 @@ bool CMeshPolygons::PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshP
 
 	iNumFaces = psPolygon->maiFaces.NumElements();
 
-	memset(aiTouched, 0, (lsize)sizeof(int)*iNumFaces);
-	memset(aiStack, -1, (lsize)sizeof(int)*iNumFaces);
+	memset32(aiTouched, 0, (lsize)sizeof(int)*iNumFaces);
+	memset32(aiStack, -1, (lsize)sizeof(int)*iNumFaces);
 
 	iPolygonFaceIndex = 0;
 
@@ -433,7 +434,7 @@ bool CMeshPolygons::IsPolygonContiguous(CMeshConnectivity* pcConn, int iPolygon)
 		{
 			return false;
 		}
-		aiStack = (int*)malloc((lsize)iNumFaces*sizeof(int)*2);
+		aiStack = (int*)malloc32((lsize)iNumFaces*sizeof(int)*2);
 		aiTouched = (int*)RemapSinglePointer(aiStack, (lsize)iNumFaces*sizeof(int));
 
 		bResult = PrivateIsPolygonContiguous(pcConn, psPolygon, aiStack, aiTouched);

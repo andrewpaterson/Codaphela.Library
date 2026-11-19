@@ -3,6 +3,7 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/DiskFile.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -173,7 +174,7 @@ void TestLinkedListBlockAlignedExhaustive(void)
 		for (uiDataSize = 1; uiDataSize <= 128; uiDataSize++)
 		{
 			pvNew = cList.Add(uiDataSize, iAlignment);
-			memcpy(pvNew, pv, uiDataSize);
+			memcpy32(pvNew, pv, uiDataSize);
 
 			iExpectedElements++;
 		}
@@ -211,7 +212,7 @@ void TestLinkedListBlockAlignedExhaustive(void)
 				AssertSize(uiDataSize, psNode->sAligned.uiSize);
 			}
 
-			iResult = memcmp(pv, pvData, uiDataSize);
+			iResult = memcmp32(pv, pvData, uiDataSize);
 			if (iResult != 0)
 			{
 				AssertMemory(pv, pvData, uiDataSize);
@@ -289,7 +290,7 @@ void TestLinkedListBlockAlignedExhaustive(void)
 				AssertSize(uiDataSize, psNode->sAligned.uiSize);
 			}
 
-			iResult = memcmp(pv, pvData, uiDataSize);
+			iResult = memcmp32(pv, pvData, uiDataSize);
 			if (iResult != 0)
 			{
 				AssertMemory(pv, pvData, uiDataSize);

@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "SystemAllocator.h"
 #include "GlobalMemory.h"
 #include "LinkedListBlockAligned.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -339,7 +340,7 @@ void* CLinkedListBlockAligned::Grow(void* pvData, lsize uiNewSize)
 	{
 		pvNew = InsertAfterNode(pvData, uiNewSize, psNodeHeader->sAligned.iAlignment, psNodeHeader->sAligned.iOffset);
 		uiSize = (uiNewSize < psNodeHeader->sAligned.uiSize) ? uiNewSize : psNodeHeader->sAligned.uiSize;
-		memcpy(pvNew, pvData, uiSize);
+		memcpy32(pvNew, pvData, uiSize);
 		Remove(pvData);
 		return pvNew;
 	}

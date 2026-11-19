@@ -40,6 +40,7 @@ void CIRPassContext::Init(CIRModule* pcModule)
 	mbRestrict = false;
 	miUnswitched = 0;
 	msLibraryInt = IRType(IRTK_None);
+	msLibrarySize = IRType(IRTK_I32);
 	mpcProfile = NULL;
 	mcDominators.Init();
 	mcDefinitions.Init();

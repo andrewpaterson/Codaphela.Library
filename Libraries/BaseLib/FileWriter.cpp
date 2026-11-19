@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "FileWriter.h"
+#include "Memory32.h"
 #include "IntegerHelper.h"
 
 
@@ -44,7 +45,7 @@ bool CFileWriter::WriteString(const char* szString)
 {
 	lsize	iStrLen;
 
-	iStrLen = strlen(szString)+1;
+	iStrLen = strlen32(szString)+1;
 	WriteSize(iStrLen);
 	CheckWrite(szString, iStrLen);
 	return true;

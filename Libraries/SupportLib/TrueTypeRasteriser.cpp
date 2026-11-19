@@ -27,6 +27,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ColourBlend.h"
 #include "ImageAccessorCreator.h"
 #include "TrueTypeRasteriser.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -631,7 +632,7 @@ Ptr<CImage> CTrueTypeRasteriser::CoverageToImage(void)
 	Ptr<CImage>		pImage;
 
 	pImage = OMalloc<CImage>(mcCoverage.GetWidth(), mcCoverage.GetHeight(), PT_uint8, IMAGE_OPACITY, CHANNEL_STOP);
-	memcpy(pImage->GetData(), mcCoverage.GetCoverage(), (lsize)mcCoverage.GetWidth() * mcCoverage.GetHeight());
+	memcpy32(pImage->GetData(), mcCoverage.GetCoverage(), (lsize)mcCoverage.GetWidth() * mcCoverage.GetHeight());
 	return pImage;
 }
 

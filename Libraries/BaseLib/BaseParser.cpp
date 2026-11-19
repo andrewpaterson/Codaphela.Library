@@ -1,4 +1,5 @@
 #include "MarkupTag.h"
+#include "Memory32.h"
 #include "BaseParser.h"
 
 
@@ -26,7 +27,7 @@ void CBaseParser::Init(const char* szText, const char* szFileName, CLogger* pcLo
 {
 	lsize	uiLength;
 
-	uiLength = strlen(szText);
+	uiLength = strlen32(szText);
 
 	Init(szText, uiLength, szFileName, pcLogger, pfSkipWhitespace, pfParseString, pfParseExactIdentifier, pfParseIdentifier);
 	mpcCurrent = NULL;

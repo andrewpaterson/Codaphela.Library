@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "NaiveFile.h"
 #include "PointerFunctions.h"
 #include "DiskFile.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,7 +125,7 @@ bool CNaiveFile::Read(CAbstractFile* pcAbstractFile)
 			bResult = (miSize >= 0) && ((filePos)(lsize)miSize == miSize);
 			if (bResult && (miSize != 0))
 			{
-				mpvMem = malloc((lsize)miSize);
+				mpvMem = malloc32((lsize)miSize);
 				bResult = (mpvMem != NULL) && cFile.ReadData(mpvMem, (lsize)miSize);
 			}
 			cFile.Close();
@@ -199,7 +200,7 @@ void CNaiveFile::Set(void* pvMem, size iSize)
 	SafeFree(mpvMem);
 	mpvMem = malloc(iSize);
 	miSize = iSize;
-	memcpy(mpvMem, pvMem, (lsize)miSize);
+	memcpy32(mpvMem, pvMem, (lsize)miSize);
 }
 
 

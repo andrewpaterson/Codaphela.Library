@@ -3,6 +3,7 @@
 #include "BaseLib/ArrayVoidPtr.h"
 #include "BaseLib/StdRandom.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -21,7 +22,7 @@ void TestMemoryManagerContiguousAllocations(void)
 	uint32			uiMemorySize;
 
 	uiMemorySize = (uint32)(10 + 20 + 30 + 3 * MM_NODE_HEADER_SIZE);
-	pvStartMemory = calloc(1, uiMemorySize);
+	pvStartMemory = calloc32(1, uiMemorySize);
 	pvEndMemory = RemapSinglePointer(pvStartMemory, (uiMemorySize - 1));
 	cMemory.Init(pvStartMemory, pvEndMemory);
 	cMemory.DisableEmptyCache();
@@ -93,7 +94,7 @@ void TestMemoryManagerDeallocate1(void)
 	SMMNode*		psNode;
 
 	uiMemorySize = (uint32)(4 * (10 + MM_NODE_HEADER_SIZE));
-	pvStartMemory = calloc(1, uiMemorySize);
+	pvStartMemory = calloc32(1, uiMemorySize);
 	pvEndMemory = RemapSinglePointer(pvStartMemory, (uiMemorySize - 1));
 	cMemory.Init(pvStartMemory, pvEndMemory);
 	cMemory.DisableEmptyCache();
@@ -157,7 +158,7 @@ void TestMemoryManagerDeallocate2(void)
 	SMMNode*		psNode;
 
 	uiMemorySize = (uint32)(5 * (8 + MM_NODE_HEADER_SIZE));
-	pvStartMemory = calloc(1, uiMemorySize);
+	pvStartMemory = calloc32(1, uiMemorySize);
 	pvEndMemory = RemapSinglePointer(pvStartMemory, (uiMemorySize - 1));
 	cMemory.Init(pvStartMemory, pvEndMemory);
 	cMemory.DisableEmptyCache();
@@ -232,7 +233,7 @@ void TestMemoryManagerDeallocateAllocate1(void)
 	SMMNode*		psNode;
 
 	uiMemorySize = (uint32)(4 * (8 + MM_NODE_HEADER_SIZE) + 20);
-	pvStartMemory = calloc(1, uiMemorySize);
+	pvStartMemory = calloc32(1, uiMemorySize);
 	pvEndMemory = RemapSinglePointer(pvStartMemory, (uiMemorySize - 1));
 	cMemory.Init(pvStartMemory, pvEndMemory);
 	cMemory.DisableEmptyCache();
@@ -323,7 +324,7 @@ void TestMemoryManagerDeallocateAllocate2(void)
 	SMMNode*		psNode;
 
 	uiMemorySize = (uint32)(4 * (8 + MM_NODE_HEADER_SIZE) + 20);
-	pvStartMemory = calloc(1, uiMemorySize);
+	pvStartMemory = calloc32(1, uiMemorySize);
 	pvEndMemory = RemapSinglePointer(pvStartMemory, (uiMemorySize - 1));
 	cMemory.Init(pvStartMemory, pvEndMemory);
 	cMemory.DisableEmptyCache();
@@ -396,7 +397,7 @@ void TestMemoryManagerDeallocateAllocate3(void)
 	SMMNode*		psNode;
 
 	uiMemorySize = (uint32)(12 + 8 + 12 + 8 + 4 * MM_NODE_HEADER_SIZE);
-	pvStartMemory = calloc(1, uiMemorySize);
+	pvStartMemory = calloc32(1, uiMemorySize);
 	pvEndMemory = RemapSinglePointer(pvStartMemory, (uiMemorySize - 1));
 	cMemory.Init(pvStartMemory, pvEndMemory);
 	cMemory.DisableEmptyCache();
@@ -519,7 +520,7 @@ void TestMemoryManagerEmptyCache(void)
 #endif // BUILD_64
 
 	uiMemorySize = 64 KB;
-	pvStartMemory = calloc(1, uiMemorySize);
+	pvStartMemory = calloc32(1, uiMemorySize);
 	pvEndMemory = RemapSinglePointer(pvStartMemory, (uiMemorySize - 1));
 	cMemory.Init(pvStartMemory, pvEndMemory);
 
@@ -537,7 +538,7 @@ void TestMemoryManagerEmptyCache(void)
 
 		apvAllocations.Add(pv);
 
-		memset(pv, uiValue, uiCount);
+		memset32(pv, uiValue, uiCount);
 		uiValue++;
 		uiCount++;
 		if (uiCount > 150)

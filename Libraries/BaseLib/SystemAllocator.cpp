@@ -3,6 +3,7 @@
 #include "Validation.h"
 #include "ThreadMallocator.h"
 #include "SystemAllocator.h"
+#include "Memory32.h"
 
 
 //Where the system allocator's memory comes from.  On the hosts, CThreadMallocator.  On the 65C64 and the W65C816,
@@ -13,14 +14,10 @@
 #define SYSTEM_ALLOCATOR_USES_MALLOC
 #endif // __LIBC65__ || __SANITIZE_ADDRESS__
 
-#if defined(__W65C816__)
-//Its sizes are lsize, which can pass a bank: malloc32's blocks of more than one take whole banks.
+#ifdef SYSTEM_ALLOCATOR_USES_MALLOC
+//Its sizes are lsize, which can pass a bank on the W65C816: malloc32's blocks of more than one take whole banks.
 #define SYSTEM_ALLOCATOR_MALLOC(uiSize)			malloc32(uiSize)
 #define SYSTEM_ALLOCATOR_REALLOC(pv, uiSize)	realloc32(pv, uiSize)
-#define SYSTEM_ALLOCATOR_FREE(pv)				free(pv)
-#elif defined(SYSTEM_ALLOCATOR_USES_MALLOC)
-#define SYSTEM_ALLOCATOR_MALLOC(uiSize)			malloc(uiSize)
-#define SYSTEM_ALLOCATOR_REALLOC(pv, uiSize)	realloc(pv, uiSize)
 #define SYSTEM_ALLOCATOR_FREE(pv)				free(pv)
 #else
 #define SYSTEM_ALLOCATOR_MALLOC(uiSize)			gcThreadMallocator.Malloc(uiSize)

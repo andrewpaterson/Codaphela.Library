@@ -116,6 +116,43 @@ Steps (a commit each, after the checks it lists)
    Checks: TestCppCompilerLib (RunParallel.py), the *65 compiles (both targets), TestLibc65, TestBuildLib,
    TestHCP65Lib, the kernal with hcp65build (OS.SYS fits; against step 0), modplay with hcp65build, the IDE's
    assembly checks.
+   Built 2026-11-19, as planned, and:
+   - No labels changed: the asm defines extern "C" names, BaseLib's size was already unsigned int (j), and the only
+     C++ one with a size_t, MemSwp, is now size's (_MemSwp__FPKvPKvj, the old MemSwp16 body).  The FAT asm pushes
+     2 byte counts to memcpy, memset, memcmp and malloc, and no longer tests strlen's X (it has no high word).
+   - The loop idioms: CIROptimiser::SetLibrarySize (the front end gives size_t's type) and
+     CIRIdiomPasses::LibrarySize: memset, memmove, memcmp and memchr get the plain name and a 16 bit count when the
+     loop's counter is 16 bits or narrower and steps a byte, else the 32 suffixed one; strlen's always strlen32 (its
+     length is 32 bits).  The 65C64 (a 32 bit size_t) is as it was.
+   - BaseLib/Memory32.h gives memcpy32, memmove32, memset32, memcmp32, memchr32, strlen32, malloc32, calloc32 and
+     realloc32 on every target (Libc65's on the W65C816, the plain functions elsewhere), and StringHelper.h
+     MemSwp32, so BaseLib and the others say what they mean once: SArrayLargeSize and CSystemAllocator lost their
+     #ifs.  Every count the W65C816 *65 compiles warned a 32 bit value was narrowed into (235 calls in 89 files,
+     found by scratchpad s16/step4sweep.py from the warnings' columns), every constant count of more than 64KB (the
+     "Integer conversion overflow" warnings: SLAB_SIZE, FILE_BLOCK_SIZE, DEFLATER_HASH_SIZE, ModPlayer's render
+     blocks, tests' 70000 to 200000 byte buffers), and every strlen kept in an lsize (CTextParser::Init,
+     CStringLength, MarkupTag, Newline ...) calls the 32 suffixed one: what was a 32 bit call stays one.  TimSort.inl
+     moves with memcpy32 and memmove32 (a macro's warnings name the macro, so the sweep missed it; TestArrayTemplate's
+     large TimSort found it).  Element sized copies (TimSort's ASSIGN) stay plain.
+   - Found by TestHCP65Lib's console test, from before this step: KernalCopy.asm's and the export table's
+     KernalMainCopy were labelled with unsigned short counts (tt), as the Blitter Board work was written before
+     question 13 made uint16 unsigned int (jj), so VIDEO.DRV's import of it wasn't found and the driver didn't load.
+     The table's local label names follow the names in their strings.
+   - HCP65: KernalCopyToUser and KernalCopyFromUser copy with memcpy32 (a bank's 65536 bytes is more than a
+     size_t: the count would have been 0), KernalLoadDriver clears a section's tail with memset32, ModPlay loads its
+     module with malloc32.
+   - Libc65 bugs a 16 bit size_t showed: qsort indexed the element before with k - uiBytes (unsigned, so k + 65536 -
+     uiBytes); printf's %t read a size_t (ptrdiff_t is 32 bits) and %p cut the pointer through size_t; vsprintf's
+     and sprintf's unbounded size was 0x7FFFFFFF (now (size_t)-1).
+   - Tests: TestLibc65's 16 bit test calls the plain names, its overflow and bank tests the 32 suffixed ones;
+     TestCPP816StringRegisters' second program the 32 suffixed ones, TestCPP816MemSwp MemSwp32; the W65C816 test
+     programs that link stringW65C816.asm link stringW65C816_16.asm too; the conformance case SizeTypes (Stage10:
+     sizeof's and offsetof's type is size_t, p - q's ptrdiff_t; MSVC agrees).
+   Passed: TestCppCompilerLib 268622; TestLibc65 65C64 154775, W65C816 154821; the *65 compiles on both targets;
+   TestBaseLib65 816's array, sorting, allocator, string helper and chars tests (19 programs, 40663 asserts);
+   TestBuildLib 769; the IDE's 43 assembly and namespace checks; TestHCP65Lib 2143 (29 minutes); the kernal builds (182806 bytes of segments, 2548
+   over step 0; it ends at $03D6C2 of $040000); modplay builds (816078 bytes, 27321 over step 0: step 5 looks at
+   why).
 
 5. Measure against step 0 and write it here: OS.SYS, modplay.exe, the profile's cycles.  Then the *65 suites
    themselves, run once as the sweep runs them (the user's rule is not to run them for ordinary feature work; this

@@ -1593,7 +1593,7 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, CArrayS
 		//Libc65's memcpy (a small constant count is InlineMemcpy, before this).
 		if (Convert(Value(papcArguments->GetPtr(0)), psVoidPointer, papcArguments->GetPtr(0)) &&
 			Convert(Value(papcArguments->GetPtr(1)), psVoidPointer, papcArguments->GetPtr(1)) &&
-			Convert(Value(papcArguments->GetPtr(2)), mpcTypes->Long(false), papcArguments->GetPtr(2)))
+			Convert(Value(papcArguments->GetPtr(2)), mpcTypes->Size(), papcArguments->GetPtr(2)))
 		{
 			return psVoidPointer;
 		}

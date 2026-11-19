@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "GlobalMemory.h"
 #include "FilePathBuilder.h"
 #include "IndexedFiles.h"
+#include "Memory32.h"
 
 
 struct SIndexedFileDescriptor
@@ -141,7 +142,7 @@ bool CIndexedFiles::ReadIndexedFileDescriptors(void)
 	uiFileSize = (lsize)iFileSize;
 	uiNumFiles = (size)iNumFiles;
 
-	pasFileDescriptors = (SIndexedFileDescriptor*)malloc(uiFileSize);
+	pasFileDescriptors = (SIndexedFileDescriptor*)malloc32(uiFileSize);
 
 	iRead = mcFileDescriptors.Read(pasFileDescriptors, sizeof(SIndexedFileDescriptor), uiNumFiles);
 
@@ -181,8 +182,8 @@ bool CIndexedFiles::WriteIndexedFileDescriptors(void)
 	size						uiNumElements;
 
 	//Zeroed: the descriptors' padding is written to the file too, and the same files must give the same bytes.
-	pvFileDescriptors = malloc((lsize)mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
-	memset(pvFileDescriptors, 0, (lsize)mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
+	pvFileDescriptors = malloc32((lsize)mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
+	memset32(pvFileDescriptors, 0, (lsize)mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
 
 	bResult = true;
 	uiNumElements = mcFiles.NumElements();

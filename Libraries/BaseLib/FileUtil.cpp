@@ -33,6 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayChars.h"
 #include "StackMemory.h"
 #include "DiskFile.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -342,13 +343,13 @@ bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2, bool b
 		bResult = (iRemaining == cBackup.GetFileLength());
 		if (bResult && !bSizeOnly)
 		{
-			pvPrimary = malloc(FILE_BLOCK_SIZE);
-			pvBackup = malloc(FILE_BLOCK_SIZE);
+			pvPrimary = malloc32(FILE_BLOCK_SIZE);
+			pvBackup = malloc32(FILE_BLOCK_SIZE);
 			while (bResult && (iRemaining > 0))
 			{
 				iChunk = (iRemaining > FILE_BLOCK_SIZE) ? FILE_BLOCK_SIZE : (lsize)iRemaining;
 				bResult = cPrimary.ReadData(pvPrimary, iChunk) && cBackup.ReadData(pvBackup, iChunk);
-				bResult = bResult && (memcmp(pvPrimary, pvBackup, iChunk) == 0);
+				bResult = bResult && (memcmp32(pvPrimary, pvBackup, iChunk) == 0);
 				iRemaining -= iChunk;
 			}
 			SafeFree(pvPrimary);

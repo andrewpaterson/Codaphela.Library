@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerRemapper.h"
 #include "Chars.h"
 #include "MemoryCache.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CMemoryCache::Init(lsize uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize, bool bZeroMemory)
 {
 	//A cache that can't be allocated has no memory (rather than clearing memory from address 0).
-	mpvCache = malloc(uiCacheSize + sizeof(SCircularMemoryList));
+	mpvCache = malloc32(uiCacheSize + sizeof(SCircularMemoryList));
 	mcMemoryList.Init(mpvCache, mpvCache ? uiCacheSize + sizeof(SCircularMemoryList) : 0, iDescriptorSize, bZeroMemory);
 	mpcEvictionCallback = pcEvictionCallback;
 }
@@ -59,7 +60,7 @@ void CMemoryCache::Resize(lsize uiNewCacheSize)
 {
 	SCircularMemoryList*	pvNewDetail;
 
-	mpvCache = realloc(mpvCache, uiNewCacheSize + sizeof(SCircularMemoryList));
+	mpvCache = realloc32(mpvCache, uiNewCacheSize + sizeof(SCircularMemoryList));
 	pvNewDetail = (SCircularMemoryList*)mpvCache;
 	if (pvNewDetail)
 	{

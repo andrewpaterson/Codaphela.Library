@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileUtil.h"
 #include "ConstructorCall.h"
 #include "PointerFunctions.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -46,7 +47,7 @@ void CBufferedFile::Init(CAbstractFile* pcFile, lsize iBufferSize)
 {
 	CAbstractFile::Init();
 	mpcFile = pcFile;
-	mpvMem = malloc(iBufferSize);
+	mpvMem = malloc32(iBufferSize);
 	if (mpvMem)
 	{
 		miAllocatedSize = iBufferSize;
@@ -220,7 +221,7 @@ lsize CBufferedFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 			iRemainingBuffer = miAllocatedSize - miBufferPos;
 			if (iByteSize <= iRemainingBuffer)
 			{
-				memcpy(RemapSinglePointer(mpvMem, miBufferPos), pvSource, iByteSize);
+				memcpy32(RemapSinglePointer(mpvMem, miBufferPos), pvSource, iByteSize);
 				mulliCurrentPos += iByteSize;
 				miBufferPos += iByteSize;
 				if (mulliCurrentPos > mulliLength)
@@ -231,13 +232,13 @@ lsize CBufferedFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 			}
 			else
 			{
-				memcpy(RemapSinglePointer(mpvMem, miBufferPos), pvSource, iRemainingBuffer);
+				memcpy32(RemapSinglePointer(mpvMem, miBufferPos), pvSource, iRemainingBuffer);
 				
 				miBufferPos = miAllocatedSize;
 				bResult = WriteUnwritten();
 
 				iSourceRemaining = iByteSize - iRemainingBuffer;
-				memcpy(mpvMem, RemapSinglePointer(pvSource, iRemainingBuffer), iSourceRemaining);
+				memcpy32(mpvMem, RemapSinglePointer(pvSource, iRemainingBuffer), iSourceRemaining);
 				miBufferPos = iSourceRemaining;
 				meType = BT_Write;
 
@@ -256,7 +257,7 @@ lsize CBufferedFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 		}
 		else
 		{
-			memcpy(mpvMem, pvSource, iByteSize);
+			memcpy32(mpvMem, pvSource, iByteSize);
 			mulliCurrentPos += iByteSize;
 			miBufferPos = iByteSize;
 			if (mulliCurrentPos > mulliLength)
@@ -420,7 +421,7 @@ void CBufferedFile::CopyFromBuffer(void* pvDest, lsize iByteSize, lsize iDestOff
 {
 	if (iByteSize > 0)
 	{
-		memcpy(RemapSinglePointer(pvDest, iDestOffset), RemapSinglePointer(mpvMem, miBufferPos), iByteSize);
+		memcpy32(RemapSinglePointer(pvDest, iDestOffset), RemapSinglePointer(mpvMem, miBufferPos), iByteSize);
 		mulliCurrentPos += iByteSize;
 		miBufferPos += iByteSize;
 	}

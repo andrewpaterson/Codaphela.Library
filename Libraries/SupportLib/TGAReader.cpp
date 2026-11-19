@@ -28,6 +28,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageReaderCommon.h"
 #include "ImageReaderHelper.h"
 #include "TGAReader.h"
+#include "BaseLib/Memory32.h"
 
 
 #define TGA_HEADER_SIZE			18
@@ -236,7 +237,7 @@ bool TGAReadInfo(CFileBasic* pcFile, lsize uiFileSize, STGAInfo* psInfo)
 			{
 				return false;
 			}
-			psInfo->puiColourMap = (uint8*)malloc((lsize)psInfo->iColourMapLength * 4);
+			psInfo->puiColourMap = (uint8*)malloc32((lsize)psInfo->iColourMapLength * 4);
 			if (psInfo->puiColourMap == NULL)
 			{
 				return false;
@@ -440,7 +441,7 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug, const char* szObjectName)
 		bValid = TGAReadInfo(&cFile, uiFileSize, &sInfo);
 		if (bValid)
 		{
-			puiRGBA = (uint8*)malloc((lsize)sInfo.iWidth * sInfo.iHeight * 4);
+			puiRGBA = (uint8*)malloc32((lsize)sInfo.iWidth * sInfo.iHeight * 4);
 			bDecoded = (puiRGBA != NULL) && TGADecodePixels(&cFile, &sInfo, puiRGBA);
 		}
 		cFile.Close();

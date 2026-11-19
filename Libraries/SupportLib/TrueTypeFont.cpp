@@ -24,6 +24,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/FixedPoint.h"
 #include "TrueTypeFont.h"
+#include "BaseLib/Memory32.h"
 
 
 #define TRUE_TYPE_HEAD_MAGIC			0x5F0F3CF5
@@ -167,12 +168,12 @@ bool CTrueTypeFont::Load(void* pvData, lsize uiSize)
 	{
 		return false;
 	}
-	mpuiData = (uint8*)malloc(uiSize);
+	mpuiData = (uint8*)malloc32(uiSize);
 	if (mpuiData == NULL)
 	{
 		return false;
 	}
-	memcpy(mpuiData, pvData, uiSize);
+	memcpy32(mpuiData, pvData, uiSize);
 	muiSize = uiSize;
 
 	if (!Parse())
@@ -1352,7 +1353,7 @@ bool CTrueTypeFont::ReadSimpleGlyph(lsize uiOffset, lsize uiLength, size iNumCon
 
 	//The flags are read first, then they say how big each coordinate is.
 	pcOutline->macPoints.GrowToAtLeastNumElements(uiFirstPoint + uiNumPoints, true);
-	puiFlags = (uint8*)malloc(uiNumPoints);
+	puiFlags = (uint8*)malloc32(uiNumPoints);
 	if (puiFlags == NULL)
 	{
 		return false;

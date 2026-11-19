@@ -3,6 +3,7 @@
 #include "TestLib/Assert.h"
 #include "BaseLib/StringHelper.h"
 #include "BaseLib/ArrayElementNotFound.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -548,7 +549,7 @@ void TestFindCharIndex(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // StrLen is a natural length: a C string too long for a size is MAX_SIZE
-// (strlen is the lsize length).
+// (strlen32 is the lsize length).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestStrLen(void)
@@ -558,15 +559,15 @@ void TestStrLen(void)
 	AssertSize(5, StrLen("hello"));
 	AssertSize(0, StrLen(""));
 
-	sz = (char*)malloc(70001);
-	memset(sz, 'a', 70000);
+	sz = (char*)malloc32(70001);
+	memset32(sz, 'a', 70000);
 	sz[70000] = '\0';
 #ifdef SIZE_16
 	AssertSize(MAX_SIZE, StrLen(sz));
 #else
 	AssertSize(70000, StrLen(sz));
 #endif // SIZE_16
-	AssertLSize(70000, strlen(sz));
+	AssertLSize(70000, strlen32(sz));
 	free(sz);
 }
 
@@ -583,10 +584,10 @@ void TestMemICmpLarge(void)
 	lsize	uiLength;
 
 	uiLength = 70000;
-	sz1 = (char*)malloc(uiLength + 1);
-	sz2 = (char*)malloc(uiLength + 1);
-	memset(sz1, 'a', uiLength);
-	memset(sz2, 'A', uiLength);
+	sz1 = (char*)malloc32(uiLength + 1);
+	sz2 = (char*)malloc32(uiLength + 1);
+	memset32(sz1, 'a', uiLength);
+	memset32(sz2, 'A', uiLength);
 	sz1[uiLength] = '\0';
 	sz2[uiLength] = '\0';
 
