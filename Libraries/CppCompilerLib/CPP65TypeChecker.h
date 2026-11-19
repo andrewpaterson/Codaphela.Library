@@ -85,11 +85,14 @@ public:
 	bool			CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode);
 	bool			ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue);
 	bool			ConversionError(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo);
+	bool			TypesError(CCPPSyntax* pcNode, const char* szBefore, SCPP65Type* psFirst, const char* szBetween, SCPP65Type* psSecond, const char* szAfter);
 	bool			KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			LosesPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo);
 	bool			NamedCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo);
 	bool			ConstCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
 	bool			StaticCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
+	bool			DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo);
+	bool			CastReachesBase(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			ReinterpretCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
 	bool			KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool			NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo);

@@ -61,9 +61,10 @@ public:
 	bool	CheckFunction(CCPPFunction* pcFunction, CCPPClass* pcNaming, CCPPSyntax* pcNode);
 	bool	CheckSymbol(CCPPSymbol* pcSymbol, CCPPClass* pcNaming, CCPPSyntax* pcNode);
 	bool	Check(CCPPSyntax* pcDeclaration, CCPPClass* pcNaming, CCPPSyntax* pcNode);
+	bool	CheckBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
+	bool	Refuse(CCPPSyntax* pcNode, const char* szMessage);
 
 protected:
-	bool	Refuse(CCPPSyntax* pcNode, const char* szMessage);
 	int		DeclaredAccess(CCPPSyntax* pcDeclaration, CCPPSyntaxClassSpecifier** ppcClass);
 	CCPPSyntax*	FindUsingDeclaration(CCPPClass* pcClass, CCPPSyntax* pcDeclaration, CCPPSyntaxClassSpecifier* pcDeclaring);
 	int		AccessAs(CCPPClass* pcClass, CCPPSyntaxClassSpecifier* pcDeclaring, int iDeclared);

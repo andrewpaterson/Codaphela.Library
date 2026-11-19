@@ -160,6 +160,7 @@ public:
 	bool			IsInstanceNamed(CCPPSymbol* pcSymbol);
 	SCPPField*		FindField(int64 lliName, int* piOffset, CCPPClass** ppcVirtual = NULL);
 	SCPPField*		FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset, CCPPClass** ppcVirtual = NULL);
+	CCPPClass*		FindFieldClass(SCPPField* psField);
 	CCPPSymbol*		FindMemberSymbol(int64 lliName, ECPPSymbolKind eKind, CCPPClass** ppcClass);
 	size			NumAggregateFields(void);
 	bool			NeedsConstructor(void);

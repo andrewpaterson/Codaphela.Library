@@ -203,7 +203,7 @@ bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
 //////////////////////////////////////////////////////////////////////////
 //
 // The object at psValue converted by the conversion function bound for it, then the
-// result to psTo.
+// result (what it refers to, if it returns a reference) to psTo.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConvertObjectBy(SCPP65IRValue* psValue, CCPPBoundConversion* pcBound, SCPP65Type* psTo)
@@ -215,7 +215,7 @@ bool CCPP65IRFrontEnd::ConvertObjectBy(SCPP65IRValue* psValue, CCPPBoundConversi
 		return false;
 	}
 	*psValue = sResult;
-	return Convert(psValue, psTo);
+	return ReadReferred(psValue) && Convert(psValue, psTo);
 }
 
 
@@ -1845,18 +1845,25 @@ bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, boo
 //////////////////////////////////////////////////////////////////////////
 //
 // Copy constructs the object at psPlace from pcSource (of its class or one
-// derived from it): with a constructor the class declares for that (the
-// one chosen for the source, so a move for what is going), or as the
-// compiler's own does, its parts one by one (CopyMembers) or its bytes.
+// derived from it, as which it is one of the class: CCPPBinder::ReachesBase):
+// with a constructor the class declares for that (the one chosen for the
+// source, so a move for what is going), or as the compiler's own does, its
+// parts one by one (CopyMembers) or its bytes.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 {
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
+	CCPPClass*		pcSourceClass;
 	CArraySyntax	apcArguments;
 	bool			bResult;
 
 	pcClass = psPlace->psType->pcClass;
+	pcSourceClass = mpcUnit->ObjectClass(pcSource);
+	if (pcSourceClass && !mpcUnit->GetBinder()->ReachesBase(pcSourceClass, pcClass, pcSource))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
 	if (pcClass->HasCopyConstructor())
 	{
 		apcArguments.Init();

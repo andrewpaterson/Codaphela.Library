@@ -83,7 +83,8 @@ SCPP65Type* CCPP65TypeChecker::Value(CCPPSyntax* pcExpression, SCPP65Type** ppsD
 // known): a function's name for a pointer to a function is the overload of that
 // type (&Class::f for a pointer to a member function the member of that type),
 // an object is converted by its conversion function to psTo (only an
-// explicit one when bExplicit), and a list in braces is its one value or zero.
+// explicit one when bExplicit; what it refers to, if it returns a reference to
+// a number or a pointer), and a list in braces is its one value or zero.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit)
@@ -91,6 +92,7 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 	CCPPBoundConversion			cBound;
 	CCPPSyntaxIdExpression*		pcFunctionName;
 	SCPP65Type*					psMember;
+	SCPP65Type*					psConverted;
 
 	if (pcExpression && (pcExpression->GetKind() == CPPS_InitializerList) && psTo && !psTo->IsClass())
 	{
@@ -111,7 +113,8 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 	mpcUnit->GetBinder()->BindConversion(pcExpression, psTo, bExplicit, &cBound);
 	if (cBound.meHow == CPPBV_Function)
 	{
-		return ObjectCall(pcExpression, cBound.mpcFunction, NULL, pcExpression);
+		psConverted = ObjectCall(pcExpression, cBound.mpcFunction, NULL, pcExpression);
+		return (psConverted && psConverted->IsReference() && psConverted->psBase->IsScalar()) ? psConverted->psBase : psConverted;
 	}
 	return Value(pcExpression);
 }
@@ -341,8 +344,9 @@ void CCPP65TypeChecker::VisitNamedCastExpression(CCPPSyntaxNamedCastExpression* 
 
 	if (pcNode->meCast == CT_dynamic_cast)
 	{
-		//Its pointer or reference type, whatever the operand (CCPP65IRFrontEnd::DynamicCastExpression checks it).
-		mpsResult = mpcUnit->GetDeclarators()->GetTypeIdType(pcNode->mpcType);
+		//Its pointer or reference type (CCPP65IRFrontEnd::DynamicCastExpression checks what the operand is).
+		psResult = mpcUnit->GetDeclarators()->GetTypeIdType(pcNode->mpcType);
+		mpsResult = (psResult && DynamicCastAllowed(pcNode, psResult)) ? psResult : NULL;
 		return;
 	}
 	//(The check types the operand again, which leaves its type in mpsResult.)
@@ -2303,7 +2307,7 @@ SCPP65Type* CCPP65TypeChecker::ReferenceCast(SCPP65Type* psTo, CCPPSyntax* pcOpe
 	}
 	if (psReferred->IsClass() && psPlace->IsClass() && (mpcUnit->IsDerived(psPlace->pcClass, psReferred->pcClass, NULL) || mpcUnit->IsDerived(psReferred->pcClass, psPlace->pcClass, NULL)))
 	{
-		return psTo;
+		return CastReachesBase(psPlace, psReferred, pcNode) ? psTo : NULL;
 	}
 	if ((pcNode->GetKind() == CPPS_CastExpression) || ((pcNode->GetKind() == CPPS_NamedCastExpression) && (((CCPPSyntaxNamedCastExpression*)pcNode)->meCast == CT_reinterpret_cast)))
 	{
@@ -2363,7 +2367,53 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 		Error(pcNode, "Only casts to integers and pointers are supported by the compiler yet");
 		return NULL;
 	}
-	return Convert(psFrom, psTo, pcNode) ? psTo : NULL;
+	return (Convert(psFrom, psTo, pcNode) && CastReachesBase(psFrom, psTo, pcNode)) ? psTo : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the cast pcNode may take a psFrom to a psTo where they are two
+// classes (a reference's cast), pointers to two or pointers to members of
+// two, and one class is the other's base: the base is in the derived class
+// once, and may be reached there, which only (T)x doesn't ask.  True for
+// any other types, and for reinterpret_cast, which makes no use of the
+// classes.  [expr.static.cast] 2, 11, 12; [expr.cast] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::CastReachesBase(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxNamedCastExpression*	pcNamed;
+	CCPPClass*						pcFrom;
+	CCPPClass*						pcTo;
+	CCPPClass*						pcDerived;
+
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer())
+	{
+		pcFrom = psFrom->pcClass;
+		pcTo = psTo->pcClass;
+	}
+	else
+	{
+		if (psFrom->IsPointer() && psTo->IsPointer())
+		{
+			psFrom = psFrom->psBase;
+			psTo = psTo->psBase;
+		}
+		pcFrom = psFrom->IsClass() ? psFrom->pcClass : NULL;
+		pcTo = psTo->IsClass() ? psTo->pcClass : NULL;
+	}
+	pcNamed = (pcNode->GetKind() == CPPS_NamedCastExpression) ? (CCPPSyntaxNamedCastExpression*)pcNode : NULL;
+	if (!pcFrom || !pcTo || (pcFrom == pcTo) || (pcNamed && (pcNamed->meCast == CT_reinterpret_cast)))
+	{
+		return true;
+	}
+	pcDerived = mpcUnit->IsDerived(pcFrom, pcTo, NULL) ? pcFrom : pcTo;
+	if (pcNamed)
+	{
+		return mpcUnit->GetBinder()->ReachesBase(pcDerived, (pcDerived == pcFrom) ? pcTo : pcFrom, pcNode);
+	}
+	return mpcUnit->GetBinder()->HasOneBase(pcDerived, (pcDerived == pcFrom) ? pcTo : pcFrom, pcNode);
 }
 
 
@@ -2975,7 +3025,8 @@ bool CCPP65TypeChecker::CopyConstruct(CCPPClass* pcClass, CCPPSyntax* pcSource, 
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcSource's bytes can be copied to an object of pcClass: it must be an
-// object of pcClass or a class derived from it.
+// object of pcClass or a class derived from it, as which it is a pcClass
+// (CCPPBinder::ReachesBase).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::CopyObject(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode)
@@ -2991,7 +3042,7 @@ bool CCPP65TypeChecker::CopyObject(CCPPClass* pcClass, CCPPSyntax* pcSource, CCP
 	{
 		return Error(pcNode, "The object cannot be copied to that class");
 	}
-	return true;
+	return mpcUnit->GetBinder()->ReachesBase(psSource->pcClass, pcClass, pcNode);
 }
 
 
@@ -3302,7 +3353,7 @@ bool CCPP65TypeChecker::ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 		}
 		if (psFrom->psBase->IsClass() && psTo->psBase->IsClass() && mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL))
 		{
-			return true;
+			return mpcUnit->GetBinder()->ReachesBase(psFrom->psBase->pcClass, psTo->psBase->pcClass, pcNode);
 		}
 		if (psFrom->psBase->IsVoid() && !psTo->psBase->IsFunction() && mpcUnit->IsCSource())
 		{
@@ -3313,7 +3364,7 @@ bool CCPP65TypeChecker::ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 	}
 	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->psBase->Equals(psTo->psBase) && mpcUnit->IsDerived(psTo->pcClass, psFrom->pcClass, NULL))
 	{
-		return true;
+		return mpcUnit->GetBinder()->ReachesBase(psTo->pcClass, psFrom->pcClass, pcNode);
 	}
 	return ConversionError(pcNode, psFrom, psTo);
 }
@@ -3326,13 +3377,24 @@ bool CCPP65TypeChecker::ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::ConversionError(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo)
 {
+	return TypesError(pcNode, "", psFrom, " becomes ", psTo, " only by a cast");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An error that names two types, in the words around them.  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::TypesError(CCPPSyntax* pcNode, const char* szBefore, SCPP65Type* psFirst, const char* szBetween, SCPP65Type* psSecond, const char* szAfter)
+{
 	CChars	szError;
 
-	szError.Init();
-	mpcUnit->AppendTypeName(&szError, psFrom);
-	szError.Append(" becomes ");
-	mpcUnit->AppendTypeName(&szError, psTo);
-	szError.Append(" only by a cast");
+	szError.Init(szBefore);
+	mpcUnit->AppendTypeName(&szError, psFirst);
+	szError.Append(szBetween);
+	mpcUnit->AppendTypeName(&szError, psSecond);
+	szError.Append(szAfter);
 	Error(pcNode, szError.Text());
 	szError.Kill();
 	return false;
@@ -3388,6 +3450,44 @@ bool CCPP65TypeChecker::NamedCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, 
 	default:
 		return StaticCastAllowed(pcCast, psFrom, psTo);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether dynamic_cast<psTo>(x) may be made of an x that is a pointer to
+// an object, or an object for a reference: it takes no const away, and a
+// cast to a base of x's class is the conversion to it, which the base is
+// in the class once and reached for.  [expr.dynamic.cast] 1, 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo)
+{
+	SCPP65Type*	psFrom;
+
+	psFrom = psTo->IsReference() ? Place(pcCast->mpcOperand) : mpcUnit->ValueTypeOf(pcCast->mpcOperand);
+	if (!psFrom)
+	{
+		return false;
+	}
+	if (psTo->IsPointer() && psFrom->IsPointer())
+	{
+		psFrom = psFrom->psBase;
+	}
+	else if (!psTo->IsReference())
+	{
+		return true;
+	}
+	psTo = psTo->psBase;
+	if (!psTo->HasQualifiersOf(psFrom))
+	{
+		return Error(pcCast, "dynamic_cast doesn't take const away: const_cast does");
+	}
+	if (psFrom->IsClass() && psTo->IsClass() && mpcUnit->IsDerived(psFrom->pcClass, psTo->pcClass, NULL))
+	{
+		return mpcUnit->GetBinder()->ReachesBase(psFrom->pcClass, psTo->pcClass, pcCast);
+	}
+	return true;
 }
 
 
@@ -3545,29 +3645,60 @@ bool CCPP65TypeChecker::CanChange(SCPP65Type* psPlace, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcValue is the kind of expression a reference of type
-// psReference binds to: T&& only to what has no name or is about to go.
-// [dcl.init.ref] 5.2
+// psReference binds to: T&& only to what has no name or is about to go,
+// or to the temporary a value of another type is converted to (long&& of
+// an int, int&& of an object with operator int).  [dcl.init.ref] 5.2
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::BindsCategory(SCPP65Type* psReference, CCPPSyntax* pcValue, CCPPSyntax* pcNode)
 {
-	return !psReference->bRvalue || mpcUnit->IsRvalue(pcValue) || Error(pcNode, "A reference declared && cannot be bound to something with a name");
+	return !psReference->bRvalue || mpcUnit->IsRvalue(pcValue) || mpcUnit->BindsToTemporary(psReference, pcValue) || Error(pcNode, "A reference declared && cannot be bound to something with a name");
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether reference psReference can bind to a place of type psPlace: it has
-// the place's const and volatile.  [dcl.init.ref]
+// Whether reference psReference can bind to a place of type psPlace: the
+// place is of the type referred to, or an object of a class derived from
+// it (which has the base once, where it may be reached), and the reference
+// has the place's const and volatile; or the place is an object whose
+// conversion function gives what it binds to.  [dcl.init.ref] 4, 5
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode)
 {
-	if (psPlace->IsArray() && psReference->psBase->IsPointer())
+	SCPP65Type*			psReferred;
+	CCPPBoundConversion	cBound;
+
+	psReferred = psReference->psBase;
+	if (psPlace->IsArray() && psReferred->IsPointer())
 	{
 		return Error(pcNode, "An array cannot be bound to a reference to a pointer that isn't const");
 	}
-	return psReference->psBase->HasQualifiersOf(psPlace) || Error(pcNode, "A const object cannot be bound to a reference that is not const");
+	if (psPlace->IsClass() && !(psReferred->IsClass() && mpcUnit->IsDerived(psPlace->pcClass, psReferred->pcClass, NULL)))
+	{
+		mpcUnit->GetBinder()->BindObjectConversion(psPlace->pcClass, psReference, false, pcNode, &cBound);
+		return cBound.mpcFunction || TypesError(pcNode, "A reference to ", psReferred, " doesn't bind to ", psPlace, "");
+	}
+	if (!psReferred->HasQualifiersOf(psPlace))
+	{
+		return Error(pcNode, "A const object cannot be bound to a reference that is not const");
+	}
+	if (psPlace->IsClass())
+	{
+		return mpcUnit->GetBinder()->ReachesBase(psPlace->pcClass, psReferred->pcClass, pcNode);
+	}
+	if (psReferred->IsFunction())
+	{
+		//A function's name: the overload of the reference's type (FunctionAddress chooses it).
+		return true;
+	}
+	if (psReferred->IsArray() && psPlace->IsPointer() && psReferred->psBase->Equals(psPlace->psBase))
+	{
+		//An array's place is typed as its first element's address.
+		return true;
+	}
+	return psReferred->Equals(psPlace) || TypesError(pcNode, "A reference to ", psReferred, " doesn't bind to ", psPlace, "");
 }
 
 

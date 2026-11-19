@@ -117,6 +117,89 @@ bool CCPPUnit::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many pcBase subobjects an object of pcClass has: itself, if it is the
+// class, and one for each way to the base that passes no virtual base, from
+// the class and from each of its virtual bases (of which an object has one,
+// however many ways reach it).  More than one, and the base is ambiguous: a
+// pcClass doesn't become a pcBase.  [class.mi] 4, [conv.ptr] 3
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPUnit::CountBases(CCPPClass* pcClass, CCPPClass* pcBase)
+{
+	CArrayCPPClasses	apcVirtual;
+	size				uiCount;
+	size				i;
+
+	if (!IsDerived(pcClass, pcBase, NULL))
+	{
+		return 0;
+	}
+	apcVirtual.Init();
+	CollectVirtualBases(pcClass, &apcVirtual);
+	uiCount = CountFixedBases(pcClass, pcBase);
+	for (i = 0; i < apcVirtual.NumElements(); i++)
+	{
+		uiCount += CountFixedBases(apcVirtual.GetPtr(i), pcBase);
+	}
+	apcVirtual.Kill();
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The virtual bases of pcClass, direct or not, each once.  (A class that is
+// laid out has them in macVirtualBases; this asks only for its bases.)
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual)
+{
+	SCPPBase*	psBase;
+	size		i;
+
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if (psBase->bVirtual && (papcVirtual->Find(psBase->pcClass) == ARRAY_ELEMENT_NOT_FOUND))
+		{
+			papcVirtual->Add(psBase->pcClass);
+		}
+		CollectVirtualBases(psBase->pcClass, papcVirtual);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many pcBase subobjects are at a fixed place in pcClass's own part:
+// itself, or those of its bases that aren't virtual.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPUnit::CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase)
+{
+	SCPPBase*	psBase;
+	size		uiCount;
+	size		i;
+
+	if (pcClass == pcBase)
+	{
+		return 1;
+	}
+	uiCount = 0;
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if (!psBase->bVirtual)
+		{
+			uiCount += CountFixedBases(psBase->pcClass, pcBase);
+		}
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The virtual base of pcClass (direct or not) that pcBase is, or that pcBase
 // is a non-virtual base of, with where pcBase is in it (*piBelow); NULL if
 // no virtual base of pcClass leads to pcBase.

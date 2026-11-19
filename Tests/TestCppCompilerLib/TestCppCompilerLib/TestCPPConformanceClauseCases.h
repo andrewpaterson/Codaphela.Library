@@ -5429,6 +5429,58 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.2.5 [expr.ref] p5, 10.2 [class.member.lookup]: a member of a base the class has twice, named through each
+	{
+		"MemberAccessRepeatedBase", 63,
+		"struct A { int a; int f() { return a; } static int s() { return 3; } };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct V : virtual A { };\n"
+		"struct W : virtual A { };\n"
+		"struct D : B, C { int k() { return B::a * 10 + C::f(); } int m() { return C::a * 10 + B::f() + s(); } };\n"
+		"struct E : V, W { int k() { return a * 10 + f(); } };\n"
+		"int main()\n"
+		"{\n"
+		"	D d;\n"
+		"	E e;\n"
+		"	d.B::a = 1; d.C::a = 2; e.a = 4;\n"
+		"	A* p = &e;\n"
+		"	A& ra = e;\n"
+		"	int r = 0;\n"
+		"	if (d.k() == 12) r += 1;\n"
+		"	if (d.m() == 24) r += 2;\n"
+		"	if (d.B::a == 1 && d.C::f() == 2 && d.s() == 3) r += 4;\n"
+		"	if (e.k() == 44 && p->a == 4 && ra.a == 4) r += 8;\n"
+		"	if (static_cast<A*>(static_cast<B*>(&d))->a == 1 && static_cast<A&>(static_cast<C&>(d)).a == 2) r += 16;\n"
+		"	if (static_cast<E*>(static_cast<V*>(&e))->k() == 44) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.2.5 [expr.ref] p5, 10.2 [class.member.lookup]: ambiguous base
+	{
+		"MemberAccessAmbiguousBaseOnThisRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { int g() { return a; } };\n"
+		"int main() { D d; return d.g(); }\n"
+	},
+	{
+		"MemberCallAmbiguousBaseRefused", CONFORMANCE_REFUSED,
+		"struct A { int f() { return 1; } };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"int main() { D d; return d.f(); }\n"
+	},
+	{
+		"MemberCallAmbiguousBaseOnThisRefused", CONFORMANCE_REFUSED,
+		"struct A { int f() { return 1; } };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { int h() { return f(); } };\n"
+		"int main() { D d; return d.h(); }\n"
+	},
 };
 
 
@@ -6462,5 +6514,132 @@ static const SConformanceCase gasConformanceClause8[] =
 		"DclListEmptyNoDefaultRefused", CONFORMANCE_REFUSED,
 		"struct C { C(int a) : v(a) { } int v; };\n"
 		"int main() { C c{ }; return c.v; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: an object whose conversion function gives the lvalue
+	{
+		"DclReferenceConversionFunction", 3,
+		"struct A { int a; };\n"
+		"struct W { int v; A o; operator int&() { return v; } operator A&() { return o; } };\n"
+		"int main()\n"
+		"{\n"
+		"	W w;\n"
+		"	w.v = 1; w.o.a = 2;\n"
+		"	int& ri = w;\n"
+		"	A& ra = w;\n"
+		"	ri = 5; ra.a = 6;\n"
+		"	int r = 0;\n"
+		"	if (w.v == 5) r += 1;\n"
+		"	if (w.o.a == 6) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5.3 [dcl.init.ref] p4: reference-compatible with a base it has once
+	{
+		"DclReferenceToRepeatedBaseRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"int main() { D d; A& r = d; return 1; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p4, 11.2: the base is accessible
+	{
+		"DclReferenceToPrivateBaseRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; };\n"
+		"struct P : private A { };\n"
+		"int main() { P p; const A& r = p; return 1; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p4: reference-compatible with a base it has once
+	{
+		"DclReferenceArgumentRepeatedBaseRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"int Take(A& r) { return 1; }\n"
+		"int main() { D d; return Take(d); }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: an int& does not bind to an enum
+	{
+		"DclReferenceToEnumRefused", CONFORMANCE_REFUSED,
+		"enum E { X, Y };\n"
+		"int main() { E e = Y; int& r = e; return r; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5: char and signed char are different types
+	{
+		"DclReferenceToOtherCharRefused", CONFORMANCE_REFUSED,
+		"int main() { char c = 1; signed char& r = c; return r; }\n"
+	},
+	//8.5 [dcl.init] p17: an object from one of a derived class, by the base it has once
+	{
+		"DclCopyFromRepeatedBaseRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"int main() { D d; A a = d; return 1; }\n"
+	},
+	//8.5 [dcl.init] p17, 11.2: the base is accessible
+	{
+		"DclCopyFromPrivateBaseRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; };\n"
+		"struct P : private A { };\n"
+		"int main() { P p; A a(p); return 1; }\n"
+	},
+	//8.5 [dcl.init] p17: an object from one of a derived class, by the base it has once
+	{
+		"DclReturnCopyRepeatedBaseRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"A Give(D& d) { return d; }\n"
+		"int main() { D d; return Give(d).a; }\n"
+	},
+	//8.5.3 [dcl.init.ref] p5, 13.3.1.6 [over.match.ref]: references and parameters bound through conversion functions
+	{
+		"DclReferenceConversionResults", 255,
+		"struct A { int a; };\n"
+		"struct B : A { int b; };\n"
+		"struct W\n"
+		"{\n"
+		"	int pad; int v; B o; long l;\n"
+		"	operator int&() { return v; }\n"
+		"	operator B&() { return o; }\n"
+		"	operator const long&() const { return l; }\n"
+		"};\n"
+		"struct N { int n; operator int() const { return n; } };\n"
+		"int TakeI(int& r) { r += 1; return r; }\n"
+		"int TakeA(const A& r) { return r.a; }\n"
+		"int TakeB(B& r) { r.b += 1; return r.b; }\n"
+		"int TakeC(const int& r) { return r; }\n"
+		"int TakeR(int&& r) { return r; }\n"
+		"int& GiveI(W& w) { return w; }\n"
+		"int main()\n"
+		"{\n"
+		"	W w;\n"
+		"	N n;\n"
+		"	w.pad = 100; w.v = 1; w.o.a = 2; w.o.b = 3; w.l = 7; n.n = 9;\n"
+		"	const W& cw = w;\n"
+		"	const long& rl = cw;\n"
+		"	A& ra = w;\n"
+		"	const int& rc = n;\n"
+		"	int&& rr = n;\n"
+		"	long x = cw;\n"
+		"	short s = 5;\n"
+		"	int&& rs = s;\n"
+		"	int r = 0;\n"
+		"	if (TakeI(w) == 2 && w.v == 2 && w.pad == 100) r += 1;\n"
+		"	if (TakeA(w) == 2 && TakeB(w) == 4 && w.o.b == 4) r += 2;\n"
+		"	if (rl == 7 && x == 7) r += 4;\n"
+		"	if (&ra == &w.o && ra.a == 2) r += 8;\n"
+		"	GiveI(w) = 4;\n"
+		"	if (w.v == 4) r += 16;\n"
+		"	if (rc == 9 && rr == 9 && TakeC(n) == 9 && TakeR(n) == 9) r += 32;\n"
+		"	if (TakeC(w) == 4) r += 64;\n"
+		"	rs = 6;\n"
+		"	if (s == 5 && rs == 6) r += 128;\n"
+		"	return r;\n"
+		"}\n"
 	},
 };

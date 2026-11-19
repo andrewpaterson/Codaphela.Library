@@ -215,6 +215,35 @@ SCPPField* CCPPClass::FindField(int64 lliName, int* piOffset, CCPPClass** ppcVir
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class that declares the field, this one or a base of it: NULL for a
+// field of neither (and for one of an anonymous union or struct, which is
+// that's).
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPClass::FindFieldClass(SCPPField* psField)
+{
+	CCPPClass*	pcClass;
+	size		i;
+
+	for (i = 0; i < macFields.NumElements(); i++)
+	{
+		if (macFields.Get(i) == psField)
+		{
+			return this;
+		}
+	}
+	pcClass = NULL;
+	for (i = 0; !pcClass && (i < macBases.NumElements()); i++)
+	{
+		pcClass = macBases.Get(i)->pcClass->FindFieldClass(psField);
+	}
+	return pcClass;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// FindField, for the field a symbol declares.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPPField* CCPPClass::FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset, CCPPClass** ppcVirtual)

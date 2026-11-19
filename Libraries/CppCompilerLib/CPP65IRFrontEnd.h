@@ -248,6 +248,7 @@ protected:
 	bool			IsPlaceType(SCPP65Type* psType);
 	bool			IsLocalType(SCPP65Type* psType);
 	bool			ReferenceAddress(SCPP65IRPlace* psPlace, SCPP65Type* psReference, SIRReference* psAddress);
+	bool			ConvertedAddress(SCPP65IRPlace* psPlace, SCPP65Type* psReference, SIRReference* psAddress);
 	CIRBlock*		NewBlock(void);
 	void			StartBlock(CIRBlock* pcBlock);
 	void			JumpTo(CIRBlock* pcBlock);
@@ -306,6 +307,7 @@ protected:
 	bool			Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue);
 	bool			ContextualValue(CCPPSyntax* pcExpression, bool bPointer, SCPP65IRValue* psValue);
+	bool			ReadReferred(SCPP65IRValue* psValue);
 	bool			Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	void			Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	SIRReference	BitFieldValue(SCPP65Type* psType, int iOffset, int iWidth, SIRReference sUnit);

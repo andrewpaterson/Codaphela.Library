@@ -639,6 +639,9 @@ public:
 	bool					IsConstPointer(CCPPSyntax* pcExpression);
 	bool					IsConstThis(void);
 	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
+	size					CountBases(CCPPClass* pcClass, CCPPClass* pcBase);
+	void					CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual);
+	size					CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase);
 	SCPPVirtualBase*		VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, int* piBelow);
 	bool					CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);

@@ -215,20 +215,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_ConditionalExpression:
 		return ConditionalExpression((CCPPSyntaxConditionalExpression*)pcExpression, psValue);
 	case CPPS_CallExpression:
-		if (!CallExpression((CCPPSyntaxCallExpression*)pcExpression, psValue))
-		{
-			return false;
-		}
-		if (psValue->psType && psValue->psType->IsReference() && psValue->psType->psBase->IsScalar())
-		{
-			//The value of a call that returns a reference to a number or a pointer is what it refers to, read
-			//([conv.lval]); its place is Place's.  (A reference to an object stays one: IsObjectValue.)
-			sPlace.sAddress = psValue->sValue;
-			sPlace.psType = psValue->psType->psBase;
-			sPlace.psBitField = NULL;
-			return Load(&sPlace, psValue);
-		}
-		return true;
+		return CallExpression((CCPPSyntaxCallExpression*)pcExpression, psValue) && ReadReferred(psValue);
 	case CPPS_SubscriptExpression:
 		if (IsObjectSubscript((CCPPSyntaxSubscriptExpression*)pcExpression))
 		{
@@ -287,6 +274,27 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	{
 		return false;
 	}
+	return Load(&sPlace, psValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call's result as a value: what a reference to a number or a pointer
+// refers to, read ([conv.lval]; its place is Place's).  A reference to an
+// object stays one (IsObjectValue), and any other result is the value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ReadReferred(SCPP65IRValue* psValue)
+{
+	SCPP65IRPlace	sPlace;
+
+	if (!psValue->psType || !psValue->psType->IsReference() || !psValue->psType->psBase->IsScalar())
+	{
+		return true;
+	}
+	sPlace.sAddress = psValue->sValue;
+	sPlace.psType = psValue->psType->psBase;
 	return Load(&sPlace, psValue);
 }
 

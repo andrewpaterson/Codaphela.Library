@@ -398,15 +398,16 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArr
 //
 // A call of a member function, as the binder bound it.  The object's
 // expression is worked out for a static member function too, which has no
-// use for it ([expr.ref] 1).  A name qualified by a base, p->C::f(), calls
-// the function on the part of the object that is in that base: f's class
-// may be a base of the object's class more than once, and the first isn't
-// then the one meant.  [class.member.lookup]
+// use for it ([expr.ref] 1).  A name qualified by a base, p->C::f() or
+// this's C::f(), calls the function on the part of the object that is in
+// that base: f's class may be a base of the object's class more than once,
+// and the first isn't then the one meant.  [class.member.lookup]
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::MemberCall(CCPPBoundCall* pcBound, SCPP65IRValue* psValue)
 {
 	CCPPFunction*	pcFunction;
+	CCPPClass*		pcClass;
 	SIRReference	sObject;
 
 	pcFunction = pcBound->mpcFunction;
@@ -415,12 +416,14 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPBoundCall* pcBound, SCPP65IRValue* psValue
 		//this's, where there is none to call it on.
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!pcBound->mpcObject || !(pcFunction->mbStatic || pcBound->mpcQualifier))
+	if (!pcFunction->mbStatic && !pcBound->mpcQualifier)
 	{
 		return Call(pcFunction, FunctionSymbol(pcFunction), NULL, pcBound->mpapcArguments, psValue, pcBound->mpcObject, pcBound->mbArrow, pcBound->mpcObject ? pcBound->mpcClass : NULL, pcBound->mbVirtual);
 	}
 
-	if (!ObjectAddress(pcBound->mpcObject, pcBound->mbArrow, &sObject))
+	sObject = msThis;
+	pcClass = pcBound->mpcObject ? pcBound->mpcClass : mpcUnit->ThisClass();
+	if (pcBound->mpcObject && !ObjectAddress(pcBound->mpcObject, pcBound->mbArrow, &sObject))
 	{
 		return false;
 	}
@@ -428,7 +431,7 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPBoundCall* pcBound, SCPP65IRValue* psValue
 	{
 		return Call(pcFunction, FunctionSymbol(pcFunction), NULL, pcBound->mpapcArguments, psValue);
 	}
-	sObject = BaseAddress(sObject, pcBound->mpcClass, pcBound->mpcQualifier, false);
+	sObject = BaseAddress(sObject, pcClass, pcBound->mpcQualifier, false);
 	return Call(pcFunction, FunctionSymbol(pcFunction), NULL, pcBound->mpapcArguments, psValue, NULL, false, pcBound->mpcQualifier, false, sObject);
 }
 

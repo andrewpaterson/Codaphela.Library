@@ -68,7 +68,7 @@ public:
 	//A member's call and a destructor's.
 	CCPPSyntax*			mpcObject;		//What it is called on: the left of . or ->, or NULL for this.
 	CCPPClass*			mpcClass;		//The object's class (this's, or the one that qualifies the name, without an object).
-	CCPPClass*			mpcQualifier;	//The base of the object's class that the name's qualifier names (p->C::f()): the function's object is in it.  NULL without one.
+	CCPPClass*			mpcQualifier;	//The base of the object's class (or of this's) that the name's qualifier names (p->C::f(), C::f()): the function's object is in it.  NULL without one.
 	bool				mbArrow;		//The object is the left of ->.
 	bool				mbVirtual;		//A virtual function is called through the vtable: not for a named object or a qualified name.
 
@@ -193,6 +193,9 @@ public:
 
 	void	BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
 	bool	BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound);
+	bool	HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
+	bool	HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass* pcDeclaring, CCPPSyntax* pcNode);
+	bool	ReachesBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
 	void	CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	bool			IsConvertible(SCPP65Type* psTo, SCPP65Type* psFrom);
 	bool			IsConstructible(SCPP65Type* psType, CArrayCPP65Types* papsArguments);

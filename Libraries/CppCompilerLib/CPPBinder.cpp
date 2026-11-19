@@ -470,6 +470,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	CCPPSyntax*					pcObject;
 	CCPPClass*					pcClass;
 	CCPPClass*					pcLookup;
+	CCPPClass*					pcThis;
 	CCPPFunction*				pcFunction;
 	CCPPFunction*				pcInstance;
 	CCPPFunction*				pcIn;
@@ -646,6 +647,16 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	{
 		mpcUnit->Error(pcCallee, "A member function needs an object");
 		return;
+	}
+	pcThis = pcObject ? pcClass : mpcUnit->ThisClass();
+	if (pcThis && !pcFunction->mbStatic && !HasOneMember(pcThis, pcLookup, pcFunction->mpcClass, pcCallee))
+	{
+		return;
+	}
+	if (!pcObject && pcThis && (pcLookup != pcThis) && mpcUnit->IsDerived(pcThis, pcLookup, NULL))
+	{
+		//C::f() on this, in a member function of a class derived from C.
+		pcBound->mpcQualifier = pcLookup;
 	}
 	mpcUnit->Resolved(pcName, pcFunction);
 	pcBound->meHow = CPPBC_Member;
@@ -1538,6 +1549,8 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	{
 		pcBound->meWhat = CPPBN_Field;
 		pcBound->mpcClass = pcClass;
+		pcLookup = pcBound->mpcQualifier ? pcBound->mpcQualifier : pcClass;
+		HasOneMember(pcClass, pcLookup, pcLookup->FindFieldClass(pcBound->mpsField), pcId);
 	}
 }
 
@@ -1583,6 +1596,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	{
 		pcBound->meWhat = CPPBN_Field;
 		pcBound->mpcSymbol = pcBound->mpsField->pcSymbol;
+		HasOneMember(pcClass, pcLookup, pcLookup->FindFieldClass(pcBound->mpsField), pcNode);
 	}
 	else
 	{
@@ -1598,6 +1612,49 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	//It is the member whether or not it may be named here: that it may not is an error of its own.
 	mcAccess.CheckSymbol(pcBound->mpcSymbol, pcClass, pcNode);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an object of pcClass has one pcBase to be (the class itself, or a
+// base it has once): an error (and false) for a base it has more than once,
+// which a pcClass doesn't become, nor is a member of it the class's without
+// saying whose.  [class.mi] 4, [class.member.lookup]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode)
+{
+	return (mpcUnit->CountBases(pcClass, pcBase) <= 1) || mcAccess.Refuse(pcNode, "The base class is in the class more than once: say which is meant with a qualified name or a cast to a class between");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a member that pcDeclaring declares (a field or a member function
+// that isn't static; NULL when it isn't known), found in pcLookup, is one
+// member of an object of pcClass: the object has one pcLookup (itself, or
+// the base that qualifies the member's name) and that one pcDeclaring.  An
+// error (and false) if not.  [class.member.lookup], [expr.ref] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass* pcDeclaring, CCPPSyntax* pcNode)
+{
+	return HasOneBase(pcClass, pcLookup, pcNode) && (!pcDeclaring || HasOneBase(pcLookup, pcDeclaring, pcNode));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a pcClass becomes its base pcBase at pcNode, or the base the
+// class, as a pointer, a reference or a pointer to a member does: the base
+// is there once and may be reached.  An error (and false) if not.
+// [conv.ptr] 3, [conv.mem] 2, [expr.static.cast] 2, 11, 12
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ReachesBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode)
+{
+	return HasOneBase(pcClass, pcBase, pcNode) && mcAccess.CheckBase(pcClass, pcBase, pcNode);
 }
 
 
