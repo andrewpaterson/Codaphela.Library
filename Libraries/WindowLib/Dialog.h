@@ -71,7 +71,8 @@ public:
 //
 //OK can have another caption, like a file chooser's Open, and an approver, but it still closes the dialog as OK.
 //Cancel can have another caption or none, and an extra button can go before OK; they close the dialog as their
-//captions.
+//captions.  A dialog can be without OK too, where only what it waits for can finish it (Close as "OK"), as a progress
+//dialog's work does.
 //
 //A dialog is an object: make it with OMalloc and keep it in the root, or in an object that is, while it's shown.  It
 //holds its window.
@@ -90,6 +91,7 @@ protected:
 	Ptr<CButton>			mpOK;
 	Ptr<CButton>			mpCancel;
 	Ptr<CButton>			mpExtra;  //Like Save Defaults, NULL if there isn't one.
+	bool					mbOK;  //OK is shown (SetOKCaption).
 	bool					mbCancel;  //Cancel is shown (SetCancelCaption).
 	Ptr<CComponent>			mpFirstEditor;  //Has focus when the dialog opens.
 	SMemberCall				msApprover;  //Asked whether OK may close the dialog, not set if OK always closes it.
