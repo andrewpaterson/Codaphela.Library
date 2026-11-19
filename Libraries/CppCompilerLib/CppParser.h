@@ -237,7 +237,7 @@ protected:
 	ECPPDeclSpecifierStep			ParseNamedDeclSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext, bool* pbType);
 	void							AddKeywordSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken);
 	CCPPSyntaxNamedTypeSpecifier*	ParseTypenameSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
-	CCPPSyntaxDecltypeSpecifier*	ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken);
+	CCPPSyntaxDecltypeSpecifier*	ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken, bool bUnderlyingType);
 	bool							IsUnknownNameAType(ECPPDeclarationContext eContext);
 	CCPPSyntaxAttribute*			ParseAttribute(CCPPSyntax* pcParent);
 	bool							IsAttributeStart(void);

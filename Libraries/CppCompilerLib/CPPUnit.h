@@ -746,6 +746,7 @@ public:
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	bool					BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound);
 	SCPPField*				BitFieldOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression);
 	SCPP65Type*				ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse);

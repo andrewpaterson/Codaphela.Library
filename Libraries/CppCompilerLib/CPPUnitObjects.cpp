@@ -46,6 +46,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
 {
 	CCPPSyntaxMemberExpression*	pcMember;
+	CCPPBoundName				cBound;
 	SCPP65Type*					psType;
 
 	pcExpression = SkipParentheses(pcExpression);
@@ -56,8 +57,9 @@ bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
 	case CPPS_IdExpression:
 		return (PlaceOf(pcExpression) == NULL) || IsReturnedLocal((CCPPSyntaxIdExpression*)pcExpression);
 	case CPPS_MemberExpression:
+		//An rvalue object's field, unless the field is a reference: that, and a static member, are lvalues.  [expr.ref] 4
 		pcMember = (CCPPSyntaxMemberExpression*)pcExpression;
-		return !pcMember->mbArrow && IsRvalue(pcMember->mpcObject);
+		return !pcMember->mbArrow && IsRvalue(pcMember->mpcObject) && BindMemberOf(pcMember, &cBound) && (cBound.meWhat == CPPBN_Field) && !cBound.mpsField->psType->IsReference();
 	default:
 		break;
 	}
@@ -165,37 +167,50 @@ bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the member of object.member or pointer->member is, in *pcBound
+// (CCPPBinder::BindMember, in the object's class), with nothing reported:
+// false if it is nothing, or the object isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound)
+{
+	SCPP65Type*	psObject;
+	bool		bBound;
+
+	BeginQuiet();
+	psObject = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : ValueTypeOf(pcMember->mpcObject);
+	if (psObject && pcMember->mbArrow)
+	{
+		psObject = psObject->IsPointer() ? psObject->psBase : NULL;
+	}
+	bBound = psObject && psObject->IsClass() && mcBinder.BindMember(psObject->pcClass, pcMember->mpcName, pcMember, pcBound);
+	EndQuiet();
+	return bBound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The bit-field an expression names, or NULL: a field of this named alone,
 // or one after . or ->, that is declared with a width.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPPField* CCPPUnit::BitFieldOf(CCPPSyntax* pcExpression)
 {
-	CCPPSyntaxMemberExpression*	pcMember;
-	CCPPBoundName				cBound;
-	SCPP65Type*					psObject;
+	CCPPBoundName	cBound;
 
 	pcExpression = SkipParentheses(pcExpression);
 	cBound.meWhat = CPPBN_Nothing;
-	BeginQuiet();
 	if (pcExpression->GetKind() == CPPS_IdExpression)
 	{
+		BeginQuiet();
 		mcBinder.BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
+		EndQuiet();
 	}
-	else if (pcExpression->GetKind() == CPPS_MemberExpression)
+	else if ((pcExpression->GetKind() == CPPS_MemberExpression) && !BindMemberOf((CCPPSyntaxMemberExpression*)pcExpression, &cBound))
 	{
-		pcMember = (CCPPSyntaxMemberExpression*)pcExpression;
-		psObject = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : ValueTypeOf(pcMember->mpcObject);
-		if (psObject && pcMember->mbArrow)
-		{
-			psObject = psObject->IsPointer() ? psObject->psBase : NULL;
-		}
-		if (!psObject || !psObject->IsClass() || !mcBinder.BindMember(psObject->pcClass, pcMember->mpcName, pcMember, &cBound))
-		{
-			cBound.meWhat = CPPBN_Nothing;
-		}
+		cBound.meWhat = CPPBN_Nothing;
 	}
-	EndQuiet();
 	return ((cBound.meWhat == CPPBN_Field) && cBound.mpsField->IsBitField()) ? cBound.mpsField : NULL;
 }
 
@@ -241,7 +256,7 @@ SCPP65Type* CCPPUnit::CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, 
 	bConst = psLeft->bConst || psRight->bConst;
 	pcBase = bFirstLevel ? ConditionalClass(psLeft, psRight) : NULL;
 	psCommon = NULL;
-	if (psLeft->Unqualified()->Equals(psRight->Unqualified()))
+	if (psLeft->Unqualified()->Same(psRight->Unqualified()))
 	{
 		psCommon = psLeft;
 	}
@@ -323,7 +338,7 @@ SCPP65Type* CCPPUnit::ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse)
 	{
 		return &mcTypes.msVoid;
 	}
-	if (psTrue->Unqualified()->Equals(psFalse->Unqualified()))
+	if (psTrue->Unqualified()->Same(psFalse->Unqualified()))
 	{
 		return psTrue->Unqualified();
 	}

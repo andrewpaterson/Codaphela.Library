@@ -1334,11 +1334,7 @@ CCPPSyntaxDeclSpecifiers* CCPPParser::ParseDeclSpecifiers(CCPPSyntax* pcParent, 
 		}
 		else if (!bType && IsUnderlyingTypeAhead())
 		{
-			eStep = CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, CT_decltype), &bType);
-			if (eStep != CPPDSS_Failed)
-			{
-				((CCPPSyntaxDecltypeSpecifier*)pcSpecifiers->mpcType)->mbUnderlyingType = true;
-			}
+			eStep = CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, CT_decltype, true), &bType);
 		}
 		else if ((pcToken->IsIdentifier() || pcToken->Is(CT_ScopeResolution)) && !bType)
 		{
@@ -1440,7 +1436,7 @@ ECPPDeclSpecifierStep CCPPParser::ParseKeywordDeclSpecifier(CCPPSyntaxDeclSpecif
 	}
 	if (((eToken == CT_decltype) || (eToken == CT___typeof__)) && !*pbType)
 	{
-		return CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, eToken), pbType);
+		return CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, eToken, false), pbType);
 	}
 	if (eToken == CT_alignas)
 	{
@@ -1483,24 +1479,29 @@ CCPPSyntaxNamedTypeSpecifier* CCPPParser::ParseTypenameSpecifier(CCPPSyntaxDeclS
 // decltype(e) and g++'s __typeof__(e) or __typeof__(type).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxDecltypeSpecifier* CCPPParser::ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken)
+CCPPSyntaxDecltypeSpecifier* CCPPParser::ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken, bool bUnderlyingType)
 {
 	CCPPSyntaxDecltypeSpecifier*	pcDecltype;
 	bool							bNoGreater;
+	bool							bExpression;
 
 	pcDecltype = mpcMemory->Create<CCPPSyntaxDecltypeSpecifier>(pcSpecifiers);
 	pcDecltype->miFirstToken = CurrentToken();
 	pcDecltype->meKeyword = eToken;
+	pcDecltype->mbUnderlyingType = bUnderlyingType;
 	Next();
 	if (!Expect(CT_OpenRoundBracket))
 	{
 		return NULL;
 	}
 
-	//In its brackets a '>' is an operator, though the decltype is a template argument: X<decltype(a >> 1)>.
+	//decltype's operand is an expression (S() makes an S; it is no function's type), or auto; __typeof__'s may be a
+	//type and __underlying_type's is one.  In the brackets a '>' is an operator, though the specifier is a template
+	//argument: X<decltype(a >> 1)>.
+	bExpression = (eToken == CT_decltype) && !bUnderlyingType && !Is(CT_auto);
 	bNoGreater = mbNoGreater;
 	mbNoGreater = false;
-	pcDecltype->mpcOperand = ParseTypeIdOrExpression(pcDecltype, false);
+	pcDecltype->mpcOperand = bExpression ? ParseExpression(pcDecltype) : ParseTypeIdOrExpression(pcDecltype, false);
 	mbNoGreater = bNoGreater;
 	if (!pcDecltype->mpcOperand || !Expect(CT_CloseRoundBracket))
 	{

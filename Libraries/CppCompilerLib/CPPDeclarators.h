@@ -53,6 +53,7 @@ public:
 	SCPP65Type*				UnderlyingType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				DecltypeType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				OperandType(CCPPSyntax* pcOperand);
+	SCPP65Type*				EntityType(CCPPSyntax* pcOperand);
 	SCPP65Type*				GetTypeIdType(CCPPSyntaxTypeId* pcTypeId);
 	SCPP65Type*				GetSymbolType(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 };

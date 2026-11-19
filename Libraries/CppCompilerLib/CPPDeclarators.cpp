@@ -436,10 +436,12 @@ SCPP65Type* CCPPDeclarators::UnderlyingType(CCPPSyntax* pcOperand, CCPPSyntax* p
 //////////////////////////////////////////////////////////////////////////
 //
 // decltype(operand).  A name, or a member of an object, with no
-// parentheses round it is the type it was declared with; any other
-// expression is its type, a reference to it if the expression is an
-// lvalue (so decltype((a)) is int& where decltype(a) is int).  Nothing
-// is worked out.  [dcl.type.simple] 4
+// parentheses round it is the type the thing it names was declared with
+// (EntityType).  Any other expression is its type: a reference to it if
+// the expression is an lvalue (so decltype((a)) is int& where decltype(a)
+// is int), an rvalue reference if it is an xvalue, and for a prvalue the
+// type alone, which has no const unless it is a class's.  Nothing is
+// worked out.  [dcl.type.simple] 4, [expr] 6
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPDeclarators::DecltypeType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode)
@@ -461,34 +463,18 @@ SCPP65Type* CCPPDeclarators::DecltypeType(CCPPSyntax* pcOperand, CCPPSyntax* pcN
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPDeclarators::OperandType(CCPPSyntax* pcOperand)
 {
-	CCPPBoundName	cBound;
 	SCPP65Type*		psType;
+	SCPP65Type*		psPlace;
 
 	if (pcOperand->GetKind() == CPPS_TypeId)
 	{
 		//__typeof__(type).
 		return GetTypeIdType((CCPPSyntaxTypeId*)pcOperand);
 	}
-	if (pcOperand->GetKind() == CPPS_IdExpression)
+	psType = EntityType(pcOperand);
+	if (psType)
 	{
-		mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcOperand, &cBound);
-		if (cBound.meWhat == CPPBN_Variable)
-		{
-			return cBound.mpcVariable->mpsType;
-		}
-		if (cBound.meWhat == CPPBN_Field)
-		{
-			return cBound.mpsField->psType;
-		}
-	}
-	else if (pcOperand->GetKind() == CPPS_MemberExpression)
-	{
-		psType = mpcUnit->PlaceOf(pcOperand);
-		if (psType)
-		{
-			//The field's type, not const because its object is.
-			return mpcUnit->IsConstObject(((CCPPSyntaxMemberExpression*)pcOperand)->mpcObject) ? psType->Unqualified() : psType;
-		}
+		return psType;
 	}
 
 	psType = mpcUnit->DeclaredTypeOf(pcOperand);
@@ -497,12 +483,73 @@ SCPP65Type* CCPPDeclarators::OperandType(CCPPSyntax* pcOperand)
 		mpcUnit->ReportTypeOf(pcOperand);
 		return NULL;
 	}
-	if (psType->IsReference() || mpcUnit->IsRvalue(pcOperand))
+	if (psType->IsReference())
 	{
+		//A call or a cast that gives a reference.
 		return psType;
 	}
-	psType = mpcUnit->PlaceOf(pcOperand);
-	return psType ? mpcUnit->GetTypes()->Reference(psType) : mpcUnit->ValueTypeOf(pcOperand);
+	psPlace = mpcUnit->PlaceOf(pcOperand);
+	if (psPlace && !mpcUnit->IsRvalue(pcOperand))
+	{
+		return mpcUnit->GetTypes()->Reference(psPlace);
+	}
+	if (psPlace && (mpcUnit->SkipParentheses(pcOperand)->GetKind() == CPPS_MemberExpression))
+	{
+		//Make().m: a field of an object that is going, an xvalue.
+		return mpcUnit->GetTypes()->Reference(psPlace, true);
+	}
+	psType = mpcUnit->ValueTypeOf(pcOperand);
+	return (psType && !psType->IsClass()) ? psType->Unqualified() : psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type the thing a name, or the member of object.member, names was
+// declared with: a variable's, a field's (a reference field's is the
+// reference, and a const object's field isn't const for that), a function's,
+// and for what a lambda captured the variable's own.  NULL if the operand
+// isn't a name or a member alone, or names none of them.
+// [dcl.type.simple] 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeclarators::EntityType(CCPPSyntax* pcOperand)
+{
+	CCPPBoundName	cBound;
+	SCPP65Type*		psType;
+
+	cBound.meWhat = CPPBN_Nothing;
+	if (pcOperand->GetKind() == CPPS_IdExpression)
+	{
+		psType = mpcUnit->QualifiedFieldType(pcOperand);
+		if (psType)
+		{
+			return psType;
+		}
+		if (mpcUnit->NamesFunction(pcOperand))
+		{
+			psType = mpcUnit->TypeOf(pcOperand);
+			return (psType && psType->IsPointer()) ? psType->psBase : NULL;
+		}
+		mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcOperand, &cBound);
+	}
+	else if ((pcOperand->GetKind() != CPPS_MemberExpression) || !mpcUnit->BindMemberOf((CCPPSyntaxMemberExpression*)pcOperand, &cBound))
+	{
+		return NULL;
+	}
+
+	switch (cBound.meWhat)
+	{
+	case CPPBN_Variable:
+		return cBound.mpcVariable->mpsType;
+	case CPPBN_Field:
+		return cBound.mpsField->psType;
+	case CPPBN_Capture:
+		//The closure's field is the variable's copy, or a reference to it.
+		return cBound.mpsCapture->bReference ? cBound.mpsField->psType->WithoutReference() : cBound.mpsField->psType;
+	default:
+		return NULL;
+	}
 }
 
 
