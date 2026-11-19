@@ -247,6 +247,10 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		}
 		break;
 	case CPPS_MemberExpression:
+		if (mpcUnit->MemberEnumerator((CCPPSyntaxMemberExpression*)pcExpression))
+		{
+			return MemberEnumerator((CCPPSyntaxMemberExpression*)pcExpression, psValue);
+		}
 		break;
 	case CPPS_ThisExpression:
 		if (msThis.IsNone())
@@ -537,6 +541,33 @@ bool CCPP65IRFrontEnd::StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValu
 	StringData((char*)auiBytes.GetData(), auiBytes.NumElements(), psValue);
 	psValue->psType = mpcTypes->Pointer(mpcTypes->Const(mpcUnit->StringElementType(pcString)));
 	auiBytes.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// object.Enumerator and pointer->Enumerator: the object's expression is
+// worked out, and the value is the enumerator's.  [expr.ref] 1, 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember, SCPP65IRValue* psValue)
+{
+	CCPPSymbol*		pcEnumerator;
+	SCPP65IRValue	sObject;
+	int64			lliValue;
+
+	pcEnumerator = mpcUnit->MemberEnumerator(pcMember);
+	if (!Value(pcMember->mpcObject, &sObject))
+	{
+		return false;
+	}
+	psValue->psType = mpcUnit->EnumeratorType(pcEnumerator);
+	if (!psValue->psType || !mpcUnit->EnumeratorValue(pcEnumerator, &lliValue))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	psValue->sValue = Integer(psValue->psType, lliValue);
 	return true;
 }
 

@@ -312,6 +312,7 @@ protected:
 	bool			ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValue);
 	bool			ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruct, SCPP65IRValue* psValue);
+	bool			MemberEnumerator(CCPPSyntaxMemberExpression* pcMember, SCPP65IRValue* psValue);
 	bool			FunctionName(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue);
 	bool			FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65IRValue* psValue);
 	bool			MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65IRValue* psValue, bool* pbMember);
@@ -333,6 +334,7 @@ protected:
 	bool			IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue, SCPP65IRPlace* psStored = NULL);
 	bool			BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue);
 	bool			Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue, SCPP65IRPlace* psStored = NULL);
+	bool			AssignedObject(CCPPSyntax* pcRight, SCPP65Type* psClass, SCPP65IRValue* psValue);
 	bool			Operand(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP65IRValue* psRight, SCPP65IRValue* psResult);
 	bool			Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP65IRValue* psRight, SIRReference* psCondition);

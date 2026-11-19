@@ -287,6 +287,15 @@ void CCPP65TypeChecker::VisitCallExpression(CCPPSyntaxCallExpression* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitMemberExpression(CCPPSyntaxMemberExpression* pcNode)
 {
+	CCPPSymbol*	pcEnumerator;
+
+	//object.Enumerator is the enumerator, the object worked out first; anything else is a field or a static member.
+	pcEnumerator = mpcUnit->MemberEnumerator(pcNode);
+	if (pcEnumerator)
+	{
+		mpsResult = Value(pcNode->mpcObject) ? mpcUnit->EnumeratorType(pcEnumerator) : NULL;
+		return;
+	}
 	mpsResult = Load(Place(pcNode), pcNode);
 }
 
@@ -975,6 +984,11 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 	if (psPlace->IsClass() && (pcBinary->meOperator == CT_Assignment))
 	{
+		if (mpcUnit->SkipParentheses(pcBinary->mpcRight)->GetKind() == CPPS_InitializerList)
+		{
+			//x = {1, 2} is x = X{1, 2}: a temporary made from the list.  [expr.ass] 9
+			return TemporaryObject(psPlace->Unqualified(), pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
+		}
 		return CopyObject(psPlace->pcClass, pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
 	}
 	if (!psPlace->IsScalar())
@@ -1523,37 +1537,10 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 		{
 			return false;
 		}
-		if (psType->eKind == CPP65TK_Bool)
+		psParameter = mpcUnit->VariadicArgumentType(psType);
+		if (!psParameter)
 		{
-			psParameter = &mpcTypes->msInt;
-		}
-		else if (psType->IsFloat())
-		{
-			psParameter = &mpcTypes->msDouble;
-		}
-		else if (psType->IsInteger())
-		{
-			psParameter = mpcTypes->Promote(psType);
-		}
-		else if (psType->IsArray())
-		{
-			psParameter = mpcTypes->Pointer(psType->psBase);
-		}
-		else if (psType->IsFunction())
-		{
-			psParameter = mpcTypes->Pointer(psType);
-		}
-		else if (psType->IsPointer())
-		{
-			psParameter = psType;
-		}
-		else if (psType->IsClass())
-		{
-			return Error(pcArgument, "Objects cannot be passed by value by the compiler yet; pass a pointer or a reference");
-		}
-		else
-		{
-			return Error(pcArgument, "This variable argument is not supported by the compiler yet");
+			return Error(pcArgument, psType->IsClass() ? "Objects cannot be passed by value by the compiler yet; pass a pointer or a reference" : "This variable argument is not supported by the compiler yet");
 		}
 		if (!Convert(psType, psParameter, pcArgument))
 		{

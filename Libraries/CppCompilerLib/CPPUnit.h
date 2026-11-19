@@ -746,9 +746,12 @@ public:
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	CCPPClass*				MemberObjectClass(CCPPSyntaxMemberExpression* pcMember);
 	bool					BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound);
+	CCPPSymbol*				MemberEnumerator(CCPPSyntaxMemberExpression* pcMember);
 	SCPPField*				BitFieldOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression);
+	SCPP65Type*				VariadicArgumentType(SCPP65Type* psType);
 	SCPP65Type*				ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse);
 	SCPP65Type*				CompositePointerType(SCPP65Type* psLeft, SCPP65Type* psRight);
 	SCPP65Type*				CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, bool bFirstLevel);

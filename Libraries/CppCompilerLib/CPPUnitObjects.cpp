@@ -167,6 +167,27 @@ bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class of the object in object.member or pointer->member, or NULL if
+// it isn't an object of a class.  Nothing is reported.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::MemberObjectClass(CCPPSyntaxMemberExpression* pcMember)
+{
+	SCPP65Type*	psObject;
+
+	BeginQuiet();
+	psObject = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : ValueTypeOf(pcMember->mpcObject);
+	EndQuiet();
+	if (psObject && pcMember->mbArrow)
+	{
+		psObject = psObject->IsPointer() ? psObject->psBase : NULL;
+	}
+	return (psObject && psObject->IsClass()) ? psObject->pcClass : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the member of object.member or pointer->member is, in *pcBound
 // (CCPPBinder::BindMember, in the object's class), with nothing reported:
 // false if it is nothing, or the object isn't one.
@@ -174,18 +195,31 @@ bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound)
 {
-	SCPP65Type*	psObject;
+	CCPPClass*	pcClass;
 	bool		bBound;
 
+	pcClass = MemberObjectClass(pcMember);
 	BeginQuiet();
-	psObject = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : ValueTypeOf(pcMember->mpcObject);
-	if (psObject && pcMember->mbArrow)
-	{
-		psObject = psObject->IsPointer() ? psObject->psBase : NULL;
-	}
-	bBound = psObject && psObject->IsClass() && mcBinder.BindMember(psObject->pcClass, pcMember->mpcName, pcMember, pcBound);
+	bBound = pcClass && mcBinder.BindMember(pcClass, pcMember->mpcName, pcMember, pcBound);
 	EndQuiet();
 	return bBound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The enumerator that object.name or pointer->name names, a member of the
+// object's class (s.E is S::E, once s is worked out), or NULL.
+// [expr.ref] 4
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPUnit::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember)
+{
+	CCPPClass*	pcClass;
+	CCPPClass*	pcDeclaring;
+
+	pcClass = MemberObjectClass(pcMember);
+	return (pcClass && CompleteClass(pcClass, pcMember)) ? pcClass->FindMemberSymbol(GetComponentName(pcMember->mpcName->GetLast()), CPPSK_Enumerator, &pcDeclaring) : NULL;
 }
 
 
@@ -231,6 +265,41 @@ SCPP65Type* CCPPUnit::OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression)
 
 	psField = psType->IsInteger() ? BitFieldOf(pcExpression) : NULL;
 	return psField ? mcTypes.PromoteBitField(psType, psField->iBitWidth) : psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type an argument with no parameter (one of a function's ...) is
+// passed as, after the default argument promotions: a bool or an integer
+// smaller than an int is promoted, a float is a double, an array or a
+// function is a pointer to it and nullptr is a void*.  NULL for what isn't
+// passed so (an object).  [expr.call] 7
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::VariadicArgumentType(SCPP65Type* psType)
+{
+	if (psType->IsFloat())
+	{
+		return &mcTypes.msDouble;
+	}
+	if (psType->IsInteger())
+	{
+		return mcTypes.Promote(psType);
+	}
+	if (psType->IsArray())
+	{
+		return mcTypes.Pointer(psType->psBase);
+	}
+	if (psType->IsFunction())
+	{
+		return mcTypes.Pointer(psType);
+	}
+	if (psType->IsNullPointer())
+	{
+		return mcTypes.Pointer(&mcTypes.msVoid);
+	}
+	return (psType->IsPointer() || psType->IsMemberPointer()) ? psType : NULL;
 }
 
 

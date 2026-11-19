@@ -586,6 +586,11 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
 	{
 		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
+		if (papcElements->NumElements() == 0)
+		{
+			//T(), as new int() has: zero.  [dcl.init] 11
+			return ValueInitialise(psPlace);
+		}
 		if (papcElements->NumElements() != 1)
 		{
 			return Unsupported(__FILE__, __LINE__);

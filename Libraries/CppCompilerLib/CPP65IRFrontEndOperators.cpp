@@ -351,7 +351,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 		{
 			return CopyDeleted(pcBinary);
 		}
-		if (!Value(pcBinary->mpcRight, &sRight) || !Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass())
+		if (!AssignedObject(pcBinary->mpcRight, psLeft->Unqualified(), &sRight) || !Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass())
 		{
 			return false;
 		}
@@ -415,6 +415,31 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	}
 	Store(&sPlace, psValue);
 	BitFieldResult(&sPlace, psValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What an object of psClass is assigned: the right operand's object, or
+// for a list in braces a temporary of the class made from the list, as
+// x = {1, 2} is x = X{1, 2}.  [expr.ass] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::AssignedObject(CCPPSyntax* pcRight, SCPP65Type* psClass, SCPP65IRValue* psValue)
+{
+	SCPP65IRPlace	sTemporary;
+
+	if (mpcUnit->SkipParentheses(pcRight)->GetKind() != CPPS_InitializerList)
+	{
+		return Value(pcRight, psValue);
+	}
+	if (!Temporary(psClass, &sTemporary, true) || !Construct(&sTemporary, NULL, pcRight))
+	{
+		return false;
+	}
+	psValue->sValue = sTemporary.sAddress;
+	psValue->psType = psClass;
 	return true;
 }
 

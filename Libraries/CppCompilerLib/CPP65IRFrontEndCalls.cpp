@@ -733,23 +733,8 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 		{
 			return false;
 		}
-		if (sArgument.psType->eKind == CPP65TK_Bool)
-		{
-			psParameter = &mpcTypes->msInt;
-		}
-		else if (sArgument.psType->IsFloat())
-		{
-			psParameter = &mpcTypes->msDouble;
-		}
-		else if (sArgument.psType->IsInteger())
-		{
-			psParameter = mpcTypes->Promote(sArgument.psType);
-		}
-		else if (sArgument.psType->IsPointer())
-		{
-			psParameter = sArgument.psType;
-		}
-		else
+		psParameter = mpcUnit->VariadicArgumentType(sArgument.psType);
+		if (!psParameter)
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
