@@ -83,7 +83,7 @@ static const char* TestProject65ProfileFile(void)
 }
 
 
-static const char* gaszTestProject65Libc65[] = { "string.cpp", "string.asm", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "softfloat.asm", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", NULL };
+static const char* gaszTestProject65Libc65[] = { "string.cpp", "string.asm", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "softfloat.asm", "new.cpp", "exception.cpp", "signal.cpp", "stdio.cpp", "host.cpp", NULL };
 static const char* gaszTestProjectW65C816Suffixes[] = { "W65C816.asm", "W65C816_16.asm", NULL };
 
 

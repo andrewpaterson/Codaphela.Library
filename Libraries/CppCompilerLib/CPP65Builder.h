@@ -125,6 +125,7 @@ struct SCPP65CompiledUnit
 	CTranslationUnit*	pcFile;
 	CAsm65Object*		pcObject;
 	CArrayChars			aszMissing;
+	CArrayChars			aszTested;		//The functions it calls by name and tests for an exception (CCPPUnit::GetTestedCallees).
 	ECPP65CompileAgain	eAgain;
 	size				uiTurn;			//Its turn with the imports (CIRImports::BeginTurn).
 	bool				bResult;
@@ -222,6 +223,8 @@ protected:
 	bool							mbUnitReports;			//Each unit is reported as it finishes (SetUnitReports).
 	CArrayCPP65UnitReports			masUnitReports;			//Those not taken yet (TakeUnitReports), under mcCompilingMutex.
 	CCPPCompileStatistics			mcStatistics;			//The units' counts and times, and the builder's own (linking).
+	CArrayChars						maszTested;				//The functions the compiled units call by name and test for an exception...
+	CArrayTemplate<CAsm65Object*>	mapcCompiled;			//...and the objects that were compiled from C++: a tested function must be in one (CheckTested).
 	CCPPCompileOptions				mcOptions;				//How the units are compiled where there is a choice (GetOptions).
 
 public:
@@ -290,10 +293,11 @@ public:
 	bool			GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true, CCPPCompileOptions* pcOptions = NULL, CCPPCompileStatistics* pcStatistics = NULL);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true, CCPPCompileOptions* pcOptions = NULL, CCPPCompileStatistics* pcStatistics = NULL, CArrayChars* paszTested = NULL);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:
+	bool			CheckTested(void);
 	bool			AddObject(const char* szName, const char* szAssembly, bool bResident = false, const char* szDirectory = NULL, const char* szSourceFile = NULL);
 	bool			AddObject(const char* szName, CAsm65Source* pcSource, bool bResident = false, const char* szDirectory = NULL, const char* szSourceFile = NULL);
 	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL, const char* szSourceFile = NULL);

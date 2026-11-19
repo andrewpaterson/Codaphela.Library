@@ -20,7 +20,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSystem, uint32 uiFatSize, uint32 uiNoOfClusters, uint16 uiBytesPerSector)
+bool CFatVolume::CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSystem, uint32 uiFatSize, uint32 uiNoOfClusters, uint16 uiBytesPerSector) noexcept
 {
 	switch (eFileSystem)
 	{
@@ -51,7 +51,7 @@ bool CFatVolume::CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSys
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster)
+bool CFatVolume::CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster) noexcept
 {
 	while (uiSectorsPerCluster != 1)
 	{
@@ -70,7 +70,7 @@ bool CFatVolume::CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster)
 // The power of two uiSize is (it is one: Mount checks).
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CFatVolume::PowerOfTwoShift(uint32 uiSize)
+uint8 CFatVolume::PowerOfTwoShift(uint32 uiSize) noexcept
 {
 	uint8	uiShift;
 
@@ -87,7 +87,7 @@ uint8 CFatVolume::PowerOfTwoShift(uint32 uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SFatBIOSParameterBlock* psBPB, uint32 uiHiddenSectors)
+bool CFatVolume::InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SFatBIOSParameterBlock* psBPB, uint32 uiHiddenSectors) noexcept
 {
 	// get all the info we need from BPB.
 	muiRootDirectorySectors = ((psBPB->uiRootEntryCount * 32) + (psBPB->uiBytsPerSector - 1)) / psBPB->uiBytsPerSector;
@@ -151,7 +151,7 @@ bool CFatVolume::InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
+EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector) noexcept
 {
 	uint32					uiHiddenSectors;
 	SFatPartitionEntry*		psPartitionEntry;
@@ -252,7 +252,7 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::InitialiseVolumeLabel(void)
+EFatCode CFatVolume::InitialiseVolumeLabel(void) noexcept
 {
 	EFatCode			eResult;
 	SFatQueryState		sQuery;
@@ -281,7 +281,7 @@ EFatCode CFatVolume::InitialiseVolumeLabel(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
+EFatCode CFatVolume::Mount(CFileDrive* pcDevice) noexcept
 {
 	SFatCache	sMBRSector;
 	EFatCode	eResult;
@@ -327,7 +327,7 @@ EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 // and lets the volume go.
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Unmount(void)
+EFatCode CFatVolume::Unmount(void) noexcept
 {
 	SFatFileSystemInfo*		psFileSystemInfo;
 	EFatCode				eResult;
@@ -370,7 +370,7 @@ EFatCode CFatVolume::Unmount(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::InitialiseFat32FileSystemInfo(void)
+EFatCode CFatVolume::InitialiseFat32FileSystemInfo(void) noexcept
 {
 	SFatFileSystemInfo* psFileSystemInfo;
 	SFatCache			sInfoSector;
@@ -407,7 +407,7 @@ EFatCode CFatVolume::InitialiseFat32FileSystemInfo(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Flush(void)
+EFatCode CFatVolume::Flush(void) noexcept
 {
 	bool	bSuccess;
 
@@ -427,7 +427,7 @@ EFatCode CFatVolume::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::Erase(uint32 uiStartSector, uint32 uiStopSectorInclusive)
+bool CFatVolume::Erase(uint32 uiStartSector, uint32 uiStopSectorInclusive) noexcept
 {
 	return mpcDevice->Erase(uiStartSector, uiStopSectorInclusive);
 }
@@ -437,7 +437,7 @@ bool CFatVolume::Erase(uint32 uiStartSector, uint32 uiStopSectorInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* psDirectoryEntry, uint8 attributes, SFatQueryState* psQuery, bool bBufferLocked)
+EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* psDirectoryEntry, uint8 attributes, SFatQueryState* psQuery, bool bBufferLocked) noexcept
 {
 	uint32		uiFirstSector;
 	EFatCode	eResult;
@@ -490,7 +490,7 @@ EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* psDirectoryEntry, ui
 // (characters 247 on) only has room for 9.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery)
+void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery) noexcept
 {
 	uint8*	puiDest;
 
@@ -515,7 +515,7 @@ void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery)
 // is left alone).
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::EndQuery(SFatQueryState* psQuery)
+EFatCode CFatVolume::EndQuery(SFatQueryState* psQuery) noexcept
 {
 	memset(&psQuery->sEndEntry, 0, sizeof(SFatRawDirectoryEntry));
 	psQuery->psCurrentEntryRaw = &psQuery->sEndEntry;
@@ -527,7 +527,7 @@ EFatCode CFatVolume::EndQuery(SFatQueryState* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector, SFatQueryState* psQuery)
+EFatCode CFatVolume::FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector, SFatQueryState* psQuery) noexcept
 {
 	fatEntry	uiFat;
 	EFatCode	eResult;
@@ -553,7 +553,7 @@ EFatCode CFatVolume::FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::IsRootDirectoryCluster(uint32 uiDirectoryCluster)
+bool CFatVolume::IsRootDirectoryCluster(uint32 uiDirectoryCluster) noexcept
 {
 	return uiDirectoryCluster == 0;
 }
@@ -563,7 +563,7 @@ bool CFatVolume::IsRootDirectoryCluster(uint32 uiDirectoryCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQueryState* psQuery)
+EFatCode CFatVolume::FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQueryState* psQuery) noexcept
 {
 	psQuery->uiCurrentSector++;
 
@@ -587,7 +587,7 @@ EFatCode CFatVolume::FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQue
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
+EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery) noexcept
 {
 	uint32		uiSector;
 	uint32		uiPreviousSector;
@@ -648,7 +648,7 @@ EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::IsFreeDirectoryEntry(SFatRawDirectoryEntry* psEntry)
+bool CFatVolume::IsFreeDirectoryEntry(SFatRawDirectoryEntry* psEntry) noexcept
 {
 	return *psEntry->uEntry.sFatRawCommon.szShortName == FAT_DELETED_ENTRY || IsLastDirectoryEntry(psEntry);
 }
@@ -658,7 +658,7 @@ bool CFatVolume::IsFreeDirectoryEntry(SFatRawDirectoryEntry* psEntry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::IsLastDirectoryEntry(SFatRawDirectoryEntry* psEntry)
+bool CFatVolume::IsLastDirectoryEntry(SFatRawDirectoryEntry* psEntry) noexcept
 {
 	return *psEntry->uEntry.sFatRawCommon.szShortName == '\0';
 }
@@ -668,7 +668,7 @@ bool CFatVolume::IsLastDirectoryEntry(SFatRawDirectoryEntry* psEntry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::ProcessQueryLongFileNameEntry(SFatQueryState* psQuery)
+void CFatVolume::ProcessQueryLongFileNameEntry(SFatQueryState* psQuery) noexcept
 {
 	if (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & FAT_FIRST_LFN_ENTRY)
 	{
@@ -703,7 +703,7 @@ void CFatVolume::ProcessQueryLongFileNameEntry(SFatQueryState* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery)
+void CFatVolume::ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery) noexcept
 {
 	::ConstructFatLongFileNameFromShortName(psQuery->auiLongFilename, (char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_BASENAME, psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_EXTENSION);
 }
@@ -713,7 +713,7 @@ void CFatVolume::ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked, bool bFirstEntry)
+EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked, bool bFirstEntry) noexcept
 {
 	bool		bPass;
 	EFatCode	eResult;
@@ -781,7 +781,7 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, fatEntry* puiNextCluster)
+EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, fatEntry* puiNextCluster) noexcept
 {
 	uint32		uiFirstClusterSector;
 	uint32		uiOffsetInSector;
@@ -798,7 +798,7 @@ EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, fatEntry* puiN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::EraseClusterChainContents(fatEntry uiCluster)
+EFatCode CFatVolume::EraseClusterChainContents(fatEntry uiCluster) noexcept
 {
 	uint32		uiStartSector;
 	uint32		uiEndSector;
@@ -827,7 +827,7 @@ EFatCode CFatVolume::EraseClusterChainContents(fatEntry uiCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::AllocateClusters(uint32 uiClustersNeeded, uint32 uiCluster, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster)
+EFatCode CFatVolume::AllocateClusters(uint32 uiClustersNeeded, uint32 uiCluster, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster) noexcept
 {
 	uint32		uiPageSize;
 	EFatCode	eResult;
@@ -872,7 +872,7 @@ EFatCode CFatVolume::AllocateClusters(uint32 uiClustersNeeded, uint32 uiCluster,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::AllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* peResult)
+uint32 CFatVolume::AllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* peResult) noexcept
 {
 	return AllocateClusters(parent, 1, true, 1, peResult, GetEndOfClusterMarker());
 }
@@ -882,7 +882,7 @@ uint32 CFatVolume::AllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::AllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster, EFatCode* peResult, uint32 uiPreviousCluster)
+uint32 CFatVolume::AllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster, EFatCode* peResult, uint32 uiPreviousCluster) noexcept
 {
 	return AllocateClusters(NULL, uiClusterCount, bEraseCluster, 1, peResult, uiPreviousCluster);
 }
@@ -892,7 +892,7 @@ uint32 CFatVolume::AllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::AllocateDataClusterEx(uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster)
+uint32 CFatVolume::AllocateDataClusterEx(uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster) noexcept
 {
 	return AllocateClusters(NULL, uiClusterCount, bEraseCluster, uiPageSize, peResult, uiPreviousCluster);
 }
@@ -902,7 +902,7 @@ uint32 CFatVolume::AllocateDataClusterEx(uint32 uiClusterCount, bool bEraseClust
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint16 uiStep)
+uint32 CFatVolume::FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint16 uiStep) noexcept
 {
 	uint32 uiSector;
 	uint16 uiStepCount;
@@ -926,7 +926,7 @@ uint32 CFatVolume::FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint
 //
 //
 //////////////////////////////////////////////////////////////////////////
-fatEntry CFatVolume::GetEndOfClusterMarker(void) const
+fatEntry CFatVolume::GetEndOfClusterMarker(void) const noexcept
 {
 	switch (meFileSystem)
 	{
@@ -947,7 +947,7 @@ fatEntry CFatVolume::GetEndOfClusterMarker(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-fatEntry CFatVolume::GetBadClusterMarker(void) const
+fatEntry CFatVolume::GetBadClusterMarker(void) const noexcept
 {
 	switch (meFileSystem)
 	{
@@ -968,7 +968,7 @@ fatEntry CFatVolume::GetBadClusterMarker(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-fatEntry CFatVolume::GetClusterEntryMask(void) const
+fatEntry CFatVolume::GetClusterEntryMask(void) const noexcept
 {
 	switch (meFileSystem)
 	{
@@ -988,7 +988,7 @@ fatEntry CFatVolume::GetClusterEntryMask(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetEntryCluster(SFatRawDirectoryEntry* psEntry)
+uint32 CFatVolume::GetEntryCluster(SFatRawDirectoryEntry* psEntry) noexcept
 {
 	fatEntry	uiClusterEntryMask;
 	fatEntry	uiEntry;
@@ -1006,7 +1006,7 @@ uint32 CFatVolume::GetEntryCluster(SFatRawDirectoryEntry* psEntry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::HasNextFreeCluser(void) const
+bool CFatVolume::HasNextFreeCluser(void) const noexcept
 {
 	if (muiNextFreeCluster != 0xFFFFFFFF)
 	{
@@ -1023,7 +1023,7 @@ bool CFatVolume::HasNextFreeCluser(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::CalculateClusterStepSize(uint32 uiPageSize)
+uint16 CFatVolume::CalculateClusterStepSize(uint32 uiPageSize) noexcept
 {
 	// find the step between clusters allocated on page boundaries
 	if (NumSectorsPerCluster() < uiPageSize)
@@ -1041,7 +1041,7 @@ uint16 CFatVolume::CalculateClusterStepSize(uint32 uiPageSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::EraseClusterContents(uint32 uiCluster)
+EFatCode CFatVolume::EraseClusterContents(uint32 uiCluster) noexcept
 {
 	bool	bSuccess;
 	uint16	uiSectorsPerCluster;
@@ -1066,7 +1066,7 @@ EFatCode CFatVolume::EraseClusterContents(uint32 uiCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::InitialiseDottyDirectoryEntry(SFatRawDirectoryEntry* psEntries, const char* sz, uint32 uiCluster)
+void CFatVolume::InitialiseDottyDirectoryEntry(SFatRawDirectoryEntry* psEntries, const char* sz, uint32 uiCluster) noexcept
 {
 	psEntries->uEntry.sFatRawCommon.szShortName[0x0] = sz[0];
 	psEntries->uEntry.sFatRawCommon.szShortName[0x1] = sz[1];
@@ -1096,7 +1096,7 @@ void CFatVolume::InitialiseDottyDirectoryEntry(SFatRawDirectoryEntry* psEntries,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirectoryParent, uint32 uiCluster)
+EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirectoryParent, uint32 uiCluster) noexcept
 {
 	uint32					uiFirstClusterSector;
 	SFatRawDirectoryEntry*	psEntries;
@@ -1153,7 +1153,7 @@ EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirecto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiCluster, bool bZero)
+EFatCode CFatVolume::InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiCluster, bool bZero) noexcept
 {
 	EFatCode	eResult;
 
@@ -1180,7 +1180,7 @@ EFatCode CFatVolume::InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::WrapAllocate(uint32 uiStartCluster, uint32 uiLastFatEntry, bool* pbWrappedAround, uint32* puiClusterIndex, uint32* puiOffsetInSector, uint32* puiFirstClusterSector)
+EFatCode CFatVolume::WrapAllocate(uint32 uiStartCluster, uint32 uiLastFatEntry, bool* pbWrappedAround, uint32* puiClusterIndex, uint32* puiOffsetInSector, uint32* puiFirstClusterSector) noexcept
 {
 	if (uiStartCluster > 2 && !*pbWrappedAround)
 	{
@@ -1213,7 +1213,7 @@ EFatCode CFatVolume::WrapAllocate(uint32 uiStartCluster, uint32 uiLastFatEntry, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::WriteFat16Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry)
+EFatCode CFatVolume::WriteFat16Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry) noexcept
 {
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
@@ -1241,7 +1241,7 @@ EFatCode CFatVolume::WriteFat16Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntryOffset, uint32 uiClusterIndexInTable, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry)
+EFatCode CFatVolume::WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntryOffset, uint32 uiClusterIndexInTable, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry) noexcept
 {
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
@@ -1271,7 +1271,7 @@ EFatCode CFatVolume::WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntry
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32 uiOffsetInSector, uint32 uiSector, fatEntry uiPreviousFatEntry, uint32 uiPreviousSector, uint32 uiPreviousEntryOffset)
+EFatCode CFatVolume::WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32 uiOffsetInSector, uint32 uiSector, fatEntry uiPreviousFatEntry, uint32 uiPreviousSector, uint32 uiPreviousEntryOffset) noexcept
 {
 	// maintain the count of free cluster and the next cluster that may be free.
 	SetNextFreeCluster(uiClusterIndexInTable + 1);
@@ -1299,7 +1299,7 @@ EFatCode CFatVolume::WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster)
+uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster) noexcept
 {
 	uint32		uiFirstClusterSector;
 	uint32		uiCurrentSector;
@@ -1431,7 +1431,7 @@ uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 uiFirstCluster, uint32 uiNewClusterInVolume, uint32 uiClustersInFile)
+EFatCode CFatVolume::UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 uiFirstCluster, uint32 uiNewClusterInVolume, uint32 uiClustersInFile) noexcept
 {
 	SFatCache	sBuffer;
 
@@ -1455,7 +1455,7 @@ EFatCode CFatVolume::UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::SetFat16ClusterEntry(fatEntry uiClusterInVolume, uint32 uiFirstClusterSector, uint16 uiOffsetInSector)
+EFatCode CFatVolume::SetFat16ClusterEntry(fatEntry uiClusterInVolume, uint32 uiFirstClusterSector, uint16 uiOffsetInSector) noexcept
 {
 	uint8*		puiBuffer;
 	SFatCache	sBuffer;
@@ -1474,7 +1474,7 @@ EFatCode CFatVolume::SetFat16ClusterEntry(fatEntry uiClusterInVolume, uint32 uiF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::SetFat32ClusterEntry(fatEntry uiClusterInVolume, uint32 uiFirstClusterSector, uint16 uiOffsetInSector)
+EFatCode CFatVolume::SetFat32ClusterEntry(fatEntry uiClusterInVolume, uint32 uiFirstClusterSector, uint16 uiOffsetInSector) noexcept
 {
 	uint8*		puiBuffer;
 	SFatCache	sBuffer;
@@ -1493,7 +1493,7 @@ EFatCode CFatVolume::SetFat32ClusterEntry(fatEntry uiClusterInVolume, uint32 uiF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterInVolume)
+EFatCode CFatVolume::SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterInVolume) noexcept
 {
 	uint32		uiFirstClusterSector;
 	uint32		uiOffsetInSector;
@@ -1526,7 +1526,7 @@ EFatCode CFatVolume::SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::IncreaseFat16ClusterAddress(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector)
+EFatCode CFatVolume::IncreaseFat16ClusterAddress(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector) noexcept
 {
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
@@ -1543,7 +1543,7 @@ EFatCode CFatVolume::IncreaseFat16ClusterAddress(uint32* puiClusterIndex, uint32
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::IncreaseFat32ClusterAddress(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector)
+EFatCode CFatVolume::IncreaseFat32ClusterAddress(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector) noexcept
 {
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
@@ -1563,7 +1563,7 @@ EFatCode CFatVolume::IncreaseFat32ClusterAddress(uint32* puiClusterIndex, uint32
 // other sector is read meanwhile, so its cache stays put).
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::SeekFat32ByClusterCount(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex)
+EFatCode CFatVolume::SeekFat32ByClusterCount(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex) noexcept
 {
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
@@ -1604,7 +1604,7 @@ EFatCode CFatVolume::SeekFat32ByClusterCount(uint32 uiClusterIndex, uint16 uiClu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex)
+EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex) noexcept
 {
 	uint32		uiOffsetInSector;
 	uint32		uiFirstClusterSector;
@@ -1674,7 +1674,7 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FreeDirectoryEntry(SFatDirectoryEntry* psEntry)
+EFatCode CFatVolume::FreeDirectoryEntry(SFatDirectoryEntry* psEntry) noexcept
 {
 	uint32		uiCluster;
 	EFatCode	eResult;
@@ -1709,7 +1709,7 @@ EFatCode CFatVolume::FreeDirectoryEntry(SFatDirectoryEntry* psEntry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 uiClusterIndex, uint32* puiSector)
+void CFatVolume::CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 uiClusterIndex, uint32* puiSector) noexcept
 {
 	*puiOffsetInSector = CalculateFATEntryIndex(uiClusterIndex);
 	*puiSector = GetNoOfReservedSectors() + BytesToSectors(*puiOffsetInSector);
@@ -1721,7 +1721,7 @@ void CFatVolume::CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::CalculateFATEntryIndex(uint32 uiClusterIndexInFAT)
+uint32 CFatVolume::CalculateFATEntryIndex(uint32 uiClusterIndexInFAT) noexcept
 {
 	switch (meFileSystem)
 	{
@@ -1742,7 +1742,7 @@ uint32 CFatVolume::CalculateFATEntryIndex(uint32 uiClusterIndexInFAT)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFatCache CFatVolume::ReadSector(uint32 uiFatInfoSector, bool bLock)
+SFatCache CFatVolume::ReadSector(uint32 uiFatInfoSector, bool bLock) noexcept
 {
 	SFatCache sSectorCache;
 
@@ -1759,7 +1759,7 @@ SFatCache CFatVolume::ReadSector(uint32 uiFatInfoSector, bool bLock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::DirtySector(SFatCache sCachedSector)
+void CFatVolume::DirtySector(SFatCache sCachedSector) noexcept
 {
 	mcSectorCache.Dirty(sCachedSector);
 }
@@ -1769,7 +1769,7 @@ void CFatVolume::DirtySector(SFatCache sCachedSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CFatVolume::FatLongEntryChecksum(char* szFilename)
+uint8 CFatVolume::FatLongEntryChecksum(char* szFilename) noexcept
 {
 	uint16	len;
 	uint8	sum = 0;
@@ -1786,7 +1786,7 @@ uint8 CFatVolume::FatLongEntryChecksum(char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetPageSize(void) const
+uint32 CFatVolume::GetPageSize(void) const noexcept
 {
 	return mpcDevice->GetPageSize();
 }
@@ -1796,7 +1796,7 @@ uint32 CFatVolume::GetPageSize(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::FatIsEOFEntry(fatEntry uiFat)
+bool CFatVolume::FatIsEOFEntry(fatEntry uiFat) noexcept
 {
 	switch (meFileSystem)
 	{
@@ -1817,7 +1817,7 @@ bool CFatVolume::FatIsEOFEntry(fatEntry uiFat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::CalculateRootSector(void)
+uint32 CFatVolume::CalculateRootSector(void) noexcept
 {
 	if (meFileSystem == FAT_FS_TYPE_FAT32)
 	{
@@ -1834,7 +1834,7 @@ uint32 CFatVolume::CalculateRootSector(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::CalculateFirstSectorOfCluster(uint32 uiCluster)
+uint32 CFatVolume::CalculateFirstSectorOfCluster(uint32 uiCluster) noexcept
 {
 	return (((uiCluster - 2) * muiNoOfSectorsPerCluster) + muiFirstDataSector);
 }
@@ -1844,7 +1844,7 @@ uint32 CFatVolume::CalculateFirstSectorOfCluster(uint32 uiCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::ReadFat16Entry(uint32 uiOffsetInSector, uint32 uiSector, fatEntry* puiFatEntry)
+EFatCode CFatVolume::ReadFat16Entry(uint32 uiOffsetInSector, uint32 uiSector, fatEntry* puiFatEntry) noexcept
 {
 	SFatCache	sBuffer;
 
@@ -1859,7 +1859,7 @@ EFatCode CFatVolume::ReadFat16Entry(uint32 uiOffsetInSector, uint32 uiSector, fa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::ReadFat32Entry(uint32 uiOffsetInSector, uint32 uiSector, fatEntry* puiFatEntry)
+EFatCode CFatVolume::ReadFat32Entry(uint32 uiOffsetInSector, uint32 uiSector, fatEntry* puiFatEntry) noexcept
 {
 	SFatCache	sBuffer;
 
@@ -1873,7 +1873,7 @@ EFatCode CFatVolume::ReadFat32Entry(uint32 uiOffsetInSector, uint32 uiSector, fa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex, uint32 uiSector, fatEntry* puiFatEntry)
+EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex, uint32 uiSector, fatEntry* puiFatEntry) noexcept
 {
 	EFatCode	eResult;
 
@@ -1901,7 +1901,7 @@ EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FreeFat16Chain(uint32* puiFreedClusterIndex, uint32 uiSector, uint32 uiOffsetInSector)
+EFatCode CFatVolume::FreeFat16Chain(uint32* puiFreedClusterIndex, uint32 uiSector, uint32 uiOffsetInSector) noexcept
 {
 	SFatCache	sBuffer;
 
@@ -1920,7 +1920,7 @@ EFatCode CFatVolume::FreeFat16Chain(uint32* puiFreedClusterIndex, uint32 uiSecto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FreeFat32Chain(uint32* puiFreedClusterIndex, uint32 uiSector, uint32 uiOffsetInSector)
+EFatCode CFatVolume::FreeFat32Chain(uint32* puiFreedClusterIndex, uint32 uiSector, uint32 uiOffsetInSector) noexcept
 {
 	SFatCache	sBuffer;
 
@@ -1939,7 +1939,7 @@ EFatCode CFatVolume::FreeFat32Chain(uint32* puiFreedClusterIndex, uint32 uiSecto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex)
+EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex) noexcept
 {
 	EFatCode	eResult;
 	uint32		uiOffsetInSector;						
@@ -1994,7 +1994,7 @@ EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::IsFreeFat(fatEntry uifat)
+bool CFatVolume::IsFreeFat(fatEntry uifat) noexcept
 {
 	switch (meFileSystem)
 	{
@@ -2016,7 +2016,7 @@ bool CFatVolume::IsFreeFat(fatEntry uifat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::SetNextFreeCluster(uint32 uiCluster)
+void CFatVolume::SetNextFreeCluster(uint32 uiCluster) noexcept
 {
 	muiNextFreeCluster = uiCluster;
 }
@@ -2026,7 +2026,7 @@ void CFatVolume::SetNextFreeCluster(uint32 uiCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::SetTotalFreeClusters(uint32 uiTotalFreeClusters)
+void CFatVolume::SetTotalFreeClusters(uint32 uiTotalFreeClusters) noexcept
 {
 	muiTotalFreeClusters = uiTotalFreeClusters;
 }
@@ -2036,7 +2036,7 @@ void CFatVolume::SetTotalFreeClusters(uint32 uiTotalFreeClusters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
+EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry) noexcept
 {
 	uint32	uiRootCluster;
 
@@ -2088,7 +2088,7 @@ const char* FindNextPathItem(const char* szPath, char* szCurrentLevelPath)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetRootDirectorySector(void) const
+uint32 CFatVolume::GetRootDirectorySector(void) const noexcept
 {
 	return GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
 }
@@ -2098,7 +2098,7 @@ uint32 CFatVolume::GetRootDirectorySector(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::HasNoMoreEntries(SFatFileSystemQuery* psQuery)
+bool CFatVolume::HasNoMoreEntries(SFatFileSystemQuery* psQuery) noexcept
 {
 	return psQuery->sQuery.psCurrentEntryRaw == NULL;
 }
@@ -2108,7 +2108,7 @@ bool CFatVolume::HasNoMoreEntries(SFatFileSystemQuery* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::TerminalQueryEntry(SFatFileSystemQuery* psQuery)
+EFatCode CFatVolume::TerminalQueryEntry(SFatFileSystemQuery* psQuery) noexcept
 {
 	psQuery->sCurrentEntry.szName[0] = '\0';
 	return FAT_SUCCESS;
@@ -2119,7 +2119,7 @@ EFatCode CFatVolume::TerminalQueryEntry(SFatFileSystemQuery* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::CalculateQuerySector(SFatFileSystemQuery* psQuery)
+uint32 CFatVolume::CalculateQuerySector(SFatFileSystemQuery* psQuery) noexcept
 {
 	if (IsRootDirectoryCluster(psQuery->sQuery.uiCurrentCluster))
 	{
@@ -2136,7 +2136,7 @@ uint32 CFatVolume::CalculateQuerySector(SFatFileSystemQuery* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::CalculateQuerySectorOffset(SFatFileSystemQuery* psQuery)
+uint32 CFatVolume::CalculateQuerySectorOffset(SFatFileSystemQuery* psQuery) noexcept
 {
 	return (uint16)(((uintptr_t)psQuery->sQuery.psCurrentEntryRaw) - ((uintptr_t)psQuery->sQuery.psFirstEntryRaw));
 }
@@ -2146,7 +2146,7 @@ uint32 CFatVolume::CalculateQuerySectorOffset(SFatFileSystemQuery* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FindFirstFATEntry(const char* szParentPath, uint8 uiAttributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery)
+EFatCode CFatVolume::FindFirstFATEntry(const char* szParentPath, uint8 uiAttributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery) noexcept
 {
 	EFatCode			eResult;
 	SFatDirectoryEntry	sParentEntry;
@@ -2190,7 +2190,7 @@ EFatCode CFatVolume::FindFirstFATEntry(const char* szParentPath, uint8 uiAttribu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery)
+EFatCode CFatVolume::FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery) noexcept
 {
 	EFatCode				eResult;
 
@@ -2224,7 +2224,7 @@ EFatCode CFatVolume::FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry)
+void CFatVolume::FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry) noexcept
 {
 	ConvertFATShortInternalNameInto8Dot3Format(psEntry->szName, (uint8*)psRawEntry->uEntry.sFatRawCommon.szShortName);
 
@@ -2238,7 +2238,7 @@ void CFatVolume::FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* psParentDirectory, uint8* szShortName)
+EFatCode CFatVolume::GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* psParentDirectory, uint8* szShortName) noexcept
 {
 	SFatQueryState	sQuery;
 	uint16			uiNameSuffix;
@@ -2295,7 +2295,7 @@ EFatCode CFatVolume::GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* ps
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, const char* szName, uint8 uiAttributes, uint32 uiEntryCluster)
+void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, const char* szName, uint8 uiAttributes, uint32 uiEntryCluster) noexcept
 {
 	strcpy((char*)psNewEntry->szName, szName);
 	psNewEntry->uiAttributes = uiAttributes;
@@ -2317,7 +2317,7 @@ void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, const char* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength, const char* szName, uint16 uiNameIndex)
+uint16 CFatVolume::LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength, const char* szName, uint16 uiNameIndex) noexcept
 {
 	if (uiLFNIndex + uiNameIndex > uiNameLength)
 	{
@@ -2334,7 +2334,7 @@ uint16 CFatVolume::LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, uint16 uiNameLength, const char* szName, uint16 uiNameIndex)
+void CFatVolume::GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, uint16 uiNameLength, const char* szName, uint16 uiNameIndex) noexcept
 {
 	uint16	uiWideChar;
 
@@ -2348,7 +2348,7 @@ void CFatVolume::GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, const char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound)
+void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, const char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound) noexcept
 {
 	uint16 uiLFNIndex;
 	uint16 uiNameLength;
@@ -2395,7 +2395,7 @@ void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, con
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::ValidateFatCache(SFatCache sCache)
+EFatCode CFatVolume::ValidateFatCache(SFatCache sCache) noexcept
 {
 	if (mcSectorCache.ValidateTimeStamp(sCache))
 	{
@@ -2412,7 +2412,7 @@ EFatCode CFatVolume::ValidateFatCache(SFatCache sCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-fatEntry CFatVolume::GetDirectoryCluster(SFatRawDirectoryEntry* psParentDirectory)
+fatEntry CFatVolume::GetDirectoryCluster(SFatRawDirectoryEntry* psParentDirectory) noexcept
 {
 	fatEntry	uiDirectoryCluster;
 
@@ -2433,7 +2433,7 @@ fatEntry CFatVolume::GetDirectoryCluster(SFatRawDirectoryEntry* psParentDirector
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetDirectorySector(SFatRawDirectoryEntry* psParentDirectory)
+uint32 CFatVolume::GetDirectorySector(SFatRawDirectoryEntry* psParentDirectory) noexcept
 {
 	uint32	uiFirstSectorOfCluster;
 
@@ -2454,7 +2454,7 @@ uint32 CFatVolume::GetDirectorySector(SFatRawDirectoryEntry* psParentDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEntry* puiDirectoryCluster, uint32* puiFirstSectorOfCluster, uint32* puiSector, int* piLFNEntriesFound, SFatRawDirectoryEntry** ppsParentEntry, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded)
+EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEntry* puiDirectoryCluster, uint32* puiFirstSectorOfCluster, uint32* puiSector, int* piLFNEntriesFound, SFatRawDirectoryEntry** ppsParentEntry, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded) noexcept
 {
 	uint32					uiFirstSectorOfCluster;
 	fatEntry				uiDirectoryCluster;
@@ -2571,7 +2571,7 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, uint32* puiSector, uint32* puiFirstSectorOfCluster, fatEntry* puiDirectoryCluster, int iLFNEntriesFound, fatEntry uiFirstDirectoryCluster)
+EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, uint32* puiSector, uint32* puiFirstSectorOfCluster, fatEntry* puiDirectoryCluster, int iLFNEntriesFound, fatEntry uiFirstDirectoryCluster) noexcept
 {
 	SFatCache				sBuffer;
 	SFatRawDirectoryEntry*	psParentEntry;
@@ -2623,7 +2623,7 @@ EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, 
 // The cluster before uiCluster in the chain starting at uiFirstCluster.
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FindPreviousCluster(fatEntry uiFirstCluster, fatEntry uiCluster, fatEntry* puiPreviousCluster)
+EFatCode CFatVolume::FindPreviousCluster(fatEntry uiFirstCluster, fatEntry uiCluster, fatEntry* puiPreviousCluster) noexcept
 {
 	EFatCode	eResult;
 	fatEntry	uiNextCluster;
@@ -2647,7 +2647,7 @@ EFatCode CFatVolume::FindPreviousCluster(fatEntry uiFirstCluster, fatEntry uiClu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CheckEntryName(const char* szName)
+EFatCode CFatVolume::CheckEntryName(const char* szName) noexcept
 {
 	uint16					uiLength;
 
@@ -2671,7 +2671,7 @@ EFatCode CFatVolume::CheckEntryName(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::IncrementDirectorySector(uint32* puiSector, uint32 uiFirstSectorOfCluster, fatEntry uiDirectoryCluster)
+EFatCode CFatVolume::IncrementDirectorySector(uint32* puiSector, uint32 uiFirstSectorOfCluster, fatEntry uiDirectoryCluster) noexcept
 {
 	(*puiSector)++;
 
@@ -2690,7 +2690,7 @@ EFatCode CFatVolume::IncrementDirectorySector(uint32* puiSector, uint32 uiFirstS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::IncrementOrAllocateDirectoryCluster(uint32* puiSector, fatEntry* puiDirectoryCluster, fatEntry uiLastDirectoryCluster)
+EFatCode CFatVolume::IncrementOrAllocateDirectoryCluster(uint32* puiSector, fatEntry* puiDirectoryCluster, fatEntry uiLastDirectoryCluster) noexcept
 {
 	EFatCode	eResult;
 
@@ -2717,7 +2717,7 @@ EFatCode CFatVolume::IncrementOrAllocateDirectoryCluster(uint32* puiSector, fatE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, const char* szName, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded)
+EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, const char* szName, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded) noexcept
 {
 	EFatCode				eResult;
 	uint32					uiSector;
@@ -2802,7 +2802,7 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, const char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, const char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry)
+EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, const char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry) noexcept
 {
 	EFatCode				eResult;
 	int						iLFNEntriesNeeded;
@@ -2847,7 +2847,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, co
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CreateDirectory(const char* szDirectory, SFatDirectoryEntry* psEntry)
+EFatCode CFatVolume::CreateDirectory(const char* szDirectory, SFatDirectoryEntry* psEntry) noexcept
 {
 	size				uiPathLength;
 	const char*			szPathScanner;
@@ -2890,7 +2890,7 @@ EFatCode CFatVolume::CreateDirectory(const char* szDirectory, SFatDirectoryEntry
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CreateDirectory(const char* szDirectory)
+EFatCode CFatVolume::CreateDirectory(const char* szDirectory) noexcept
 {
 	EFatCode			eResult;
 	SFatDirectoryEntry	sEntry;
@@ -2917,7 +2917,7 @@ EFatCode CFatVolume::CreateDirectory(const char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::GetFileEntry(const char* szPath, SFatDirectoryEntry* psEntry)
+EFatCode CFatVolume::GetFileEntry(const char* szPath, SFatDirectoryEntry* psEntry) noexcept
 {
 	EFatCode				eResult;
 	bool					bMatch;
@@ -3044,7 +3044,7 @@ EFatCode CFatVolume::GetFileEntry(const char* szPath, SFatDirectoryEntry* psEntr
 // The short name entry must not be deleted yet (queries skip deleted ones).
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::DeleteLongNameEntries(const char* szParentPath, uint32 uiSectorAddress, uint16 uiSectorOffset, uint8 uiChecksum)
+EFatCode CFatVolume::DeleteLongNameEntries(const char* szParentPath, uint32 uiSectorAddress, uint16 uiSectorOffset, uint8 uiChecksum) noexcept
 {
 	EFatCode				eResult;
 	SFatFileSystemQuery		sQuery;
@@ -3102,7 +3102,7 @@ EFatCode CFatVolume::DeleteLongNameEntries(const char* szParentPath, uint32 uiSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Delete(const char* szFilename)
+EFatCode CFatVolume::Delete(const char* szFilename) noexcept
 {
 	EFatCode			eResult;
 	uint32				uiFirstCluster;
@@ -3156,7 +3156,7 @@ EFatCode CFatVolume::Delete(const char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::CopyRawEntry(SFatDirectoryEntry* psOriginalEntry, SFatDirectoryEntry* psNewEntry)
+void CFatVolume::CopyRawEntry(SFatDirectoryEntry* psOriginalEntry, SFatDirectoryEntry* psNewEntry) noexcept
 {
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiAccessDate = psOriginalEntry->sRaw.uEntry.sFatRawCommon.uiAccessDate;
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiAttributes = psOriginalEntry->sRaw.uEntry.sFatRawCommon.uiAttributes;
@@ -3176,7 +3176,7 @@ void CFatVolume::CopyRawEntry(SFatDirectoryEntry* psOriginalEntry, SFatDirectory
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Rename(const char* szOriginalFilename, const char* szNewFilename)
+EFatCode CFatVolume::Rename(const char* szOriginalFilename, const char* szNewFilename) noexcept
 {
 	EFatCode			eResult;
 	uint32				uiEntryCluster;
@@ -3244,24 +3244,24 @@ EFatCode CFatVolume::Rename(const char* szOriginalFilename, const char* szNewFil
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetID(void) const { return muiID; }
-uint32 CFatVolume::GetFatSize(void) const { return muiFatSize; }
-uint32 CFatVolume::GetRootCluster(void) const { return muiRootCluster; }
-uint32 CFatVolume::GetRootSector(void) const { return muiRootSector; }
-uint32 CFatVolume::GetFirstDataSector(void) const { return muiFirstDataSector; }
-uint32 CFatVolume::GetNoOfSectors(void) const { return muiNoOfSectors; }
-uint32 CFatVolume::GetNoOfDataSectors(void) const { return muiNoOfDataSectors; }
-uint32 CFatVolume::GetNumClusters(void) const { return muiNoOfClusters; }
-uint32 CFatVolume::GetNextFreeCluster(void) const { return muiNextFreeCluster; }
-uint32 CFatVolume::GetTotalFreeClusters(void) const { return muiTotalFreeClusters; }
-uint32 CFatVolume::GetFileSystemInfoSector(void) const { return muiFileSystemInfoSector; }
-uint16 CFatVolume::GetRootDirectorySectors(void) const { return muiRootDirectorySectors; }
-bool CFatVolume::IsUseLongFilenames(void) const { return mbUseLongFilenames; }
-EFatFileSystemType CFatVolume::GetFileSystemType(void) const { return meFileSystem; }
-uint8 CFatVolume::GetNoOfFatTables(void) const { return muiNoOfFatTables; }
-char* CFatVolume::GetLabel(void) { return mszLabel.Text(); }
-CFileDrive* CFatVolume::GetFileDrive(void) const { return mpcDevice; }
-CFatInfoSectorCache* CFatVolume::GetSectorCache(void) { return &mcSectorCache; }
+uint32 CFatVolume::GetID(void) const noexcept { return muiID; }
+uint32 CFatVolume::GetFatSize(void) const noexcept { return muiFatSize; }
+uint32 CFatVolume::GetRootCluster(void) const noexcept { return muiRootCluster; }
+uint32 CFatVolume::GetRootSector(void) const noexcept { return muiRootSector; }
+uint32 CFatVolume::GetFirstDataSector(void) const noexcept { return muiFirstDataSector; }
+uint32 CFatVolume::GetNoOfSectors(void) const noexcept { return muiNoOfSectors; }
+uint32 CFatVolume::GetNoOfDataSectors(void) const noexcept { return muiNoOfDataSectors; }
+uint32 CFatVolume::GetNumClusters(void) const noexcept { return muiNoOfClusters; }
+uint32 CFatVolume::GetNextFreeCluster(void) const noexcept { return muiNextFreeCluster; }
+uint32 CFatVolume::GetTotalFreeClusters(void) const noexcept { return muiTotalFreeClusters; }
+uint32 CFatVolume::GetFileSystemInfoSector(void) const noexcept { return muiFileSystemInfoSector; }
+uint16 CFatVolume::GetRootDirectorySectors(void) const noexcept { return muiRootDirectorySectors; }
+bool CFatVolume::IsUseLongFilenames(void) const noexcept { return mbUseLongFilenames; }
+EFatFileSystemType CFatVolume::GetFileSystemType(void) const noexcept { return meFileSystem; }
+uint8 CFatVolume::GetNoOfFatTables(void) const noexcept { return muiNoOfFatTables; }
+char* CFatVolume::GetLabel(void) noexcept { return mszLabel.Text(); }
+CFileDrive* CFatVolume::GetFileDrive(void) const noexcept { return mpcDevice; }
+CFatInfoSectorCache* CFatVolume::GetSectorCache(void) noexcept { return &mcSectorCache; }
 
 #endif // __W65C816_ASSEMBLY__
 

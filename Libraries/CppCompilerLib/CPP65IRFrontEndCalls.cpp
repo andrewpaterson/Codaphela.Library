@@ -542,7 +542,7 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 
 	//The call, the test of whether it threw (nothing may come between them), then what it returned.
 	sResult = mpcFunction->Call(mpcBlock, ReturnIRType(psReturn), sCallee, bVariadic ? (int)uiParameters : -1, bThisCall);
-	TestThrown(pcFunction);
+	TestThrown(pcFunction, sCallee);
 	CallResult(psReturn, sMade, sResult, psValue);
 
 	//The object the call returned in a temporary has been made now, and not before.

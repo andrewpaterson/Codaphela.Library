@@ -36,7 +36,7 @@
  //
  //
  //////////////////////////////////////////////////////////////////////////
-void CFatFile::Init(CFatVolume* pcVolume)
+void CFatFile::Init(CFatVolume* pcVolume) noexcept
 {
 	memset(&msFile, 0, sizeof(SFatFile));
 	mpcVolume = pcVolume;
@@ -84,7 +84,7 @@ EFatCode FindBackslash(const char* szFilename, const char** ppcFilenameScanner)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Open(const char* szFilename, uint8 uiAccessFlags)
+EFatCode CFatFile::Open(const char* szFilename, uint8 uiAccessFlags) noexcept
 {
 	EFatCode			eResult;
 
@@ -155,7 +155,7 @@ EFatCode CFatFile::Open(const char* szFilename, uint8 uiAccessFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
+EFatCode CFatFile::Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags) noexcept
 {
 	mcCache.Init(mpcVolume->GetFileDrive(), mpcVolume->GetClusterSize(), mpcVolume->GetSectorSize());
 
@@ -167,7 +167,7 @@ EFatCode CFatFile::Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
+EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags) noexcept
 {
 	EFatCode	eResult;
 
@@ -224,7 +224,7 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatFile::FatFileGetUniqueId(void)
+uint32 CFatFile::FatFileGetUniqueId(void) noexcept
 {
 	return GetFirstClusterFromFatEntry(&msFile.sDirectoryEntry.sRaw, IsFat32Volume());
 }
@@ -234,7 +234,7 @@ uint32 CFatFile::FatFileGetUniqueId(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::CounterClustersInFile(uint32* puiClustersInFile, fatEntry* puiPreviousCluster, fatEntry uiFirstCluster)
+EFatCode CFatFile::CounterClustersInFile(uint32* puiClustersInFile, fatEntry* puiPreviousCluster, fatEntry uiFirstCluster) noexcept
 {
 	EFatCode	eResult;
 	fatEntry	uiCluster;
@@ -271,7 +271,7 @@ EFatCode CFatFile::CounterClustersInFile(uint32* puiClustersInFile, fatEntry* pu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
+EFatCode CFatFile::AllocateClusters(uint32 uiBytes) noexcept
 {
 	EFatCode	eResult;
 	fatEntry	uiNewCluster;
@@ -331,7 +331,7 @@ EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatFile::CalculateFirstCluster(void)
+uint32 CFatFile::CalculateFirstCluster(void) noexcept
 {
 	return GetFirstClusterFromFatEntry(&msFile.sDirectoryEntry.sRaw, IsFat32Volume());
 }
@@ -341,7 +341,7 @@ uint32 CFatFile::CalculateFirstCluster(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::CalculateSeekPosition(uint32 offset, EFatSeek eSeekMode, uint32* puiBytePositionInFile)
+EFatCode CFatFile::CalculateSeekPosition(uint32 offset, EFatSeek eSeekMode, uint32* puiBytePositionInFile) noexcept
 {
 	switch (eSeekMode)
 	{
@@ -376,7 +376,7 @@ EFatCode CFatFile::CalculateSeekPosition(uint32 offset, EFatSeek eSeekMode, uint
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Seek(uint32 offset, EFatSeek eSeekMode)
+EFatCode CFatFile::Seek(uint32 offset, EFatSeek eSeekMode) noexcept
 {
 	uint32		uiBytePositionInFile;
 	uint32		uiClusterIndex;
@@ -463,7 +463,7 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek eSeekMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::ValidateCanWrite(void)
+EFatCode CFatFile::ValidateCanWrite(void) noexcept
 {
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
@@ -485,7 +485,7 @@ EFatCode CFatFile::ValidateCanWrite(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::PotentiallyAllocateClusters(uint32 uiLength)
+EFatCode CFatFile::PotentiallyAllocateClusters(uint32 uiLength) noexcept
 {
 	EFatCode	eResult;
 	uint32		uiOverFileLength;
@@ -507,7 +507,7 @@ EFatCode CFatFile::PotentiallyAllocateClusters(uint32 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Write(uint8* pvSource, lsize uiLength)
+EFatCode CFatFile::Write(uint8* pvSource, lsize uiLength) noexcept
 {
 	EFatCode	eResult;
 
@@ -531,7 +531,7 @@ EFatCode CFatFile::Write(uint8* pvSource, lsize uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource)
+EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource) noexcept
 {
 	EFatCode	uiResult;
 	bool		bSuccess;
@@ -597,7 +597,7 @@ EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* pui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::ValidateCanRead(void)
+EFatCode CFatFile::ValidateCanRead(void) noexcept
 {
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
@@ -616,7 +616,7 @@ EFatCode CFatFile::ValidateCanRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Read(uint8* puiDestination, lsize uiLength, lsize* puiBytesRead)
+EFatCode CFatFile::Read(uint8* puiDestination, lsize uiLength, lsize* puiBytesRead) noexcept
 {
 	EFatCode	eResult;
 
@@ -636,7 +636,7 @@ EFatCode CFatFile::Read(uint8* puiDestination, lsize uiLength, lsize* puiBytesRe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead, uint8* puiDestination)
+EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead, uint8* puiDestination) noexcept
 {
 	EFatCode	eResult;
 	bool		bSuccess;
@@ -716,7 +716,7 @@ EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead
 // the position at the start of the next cluster: move to it, as Seek does.
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::StepToClusterOfPosition(void)
+EFatCode CFatFile::StepToClusterOfPosition(void) noexcept
 {
 	if ((mpcVolume->OffsetInCluster(msFile.uiFilePosition) == 0) && (msFile.uiFilePosition < msFile.uiFileSize))
 	{
@@ -730,7 +730,7 @@ EFatCode CFatFile::StepToClusterOfPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatFile::IsFat32Volume(void) const
+bool CFatFile::IsFat32Volume(void) const noexcept
 {
 	return mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32;
 }
@@ -740,7 +740,7 @@ bool CFatFile::IsFat32Volume(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FlushCacheUpdateAccess(void)
+EFatCode CFatFile::FlushCacheUpdateAccess(void) noexcept
 {
 	SFatCache	sBuffer;
 
@@ -771,7 +771,7 @@ EFatCode CFatFile::FlushCacheUpdateAccess(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Flush(void)
+EFatCode CFatFile::Flush(void) noexcept
 {
 	EFatCode	eResult;
 
@@ -790,7 +790,7 @@ EFatCode CFatFile::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Truncate(void)
+EFatCode CFatFile::Truncate(void) noexcept
 {
 	EFatCode	eResult;
 	fatEntry	uiFatEntry;
@@ -868,7 +868,7 @@ EFatCode CFatFile::Truncate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Close(void)
+EFatCode CFatFile::Close(void) noexcept
 {
 	EFatCode	eResult;
 
@@ -901,7 +901,7 @@ EFatCode CFatFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CFatFile::GetShortFileName(void) const
+const char* CFatFile::GetShortFileName(void) const noexcept
 {
 	if (mszName[0] == '\0')
 	{
@@ -918,10 +918,10 @@ const char* CFatFile::GetShortFileName(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatFile::Size(void) { return msFile.uiFileSize; }
-uint32 CFatFile::Tell(void) { return msFile.uiFilePosition; }
-bool CFatFile::IsBusy(void) const { return msFile.bBusy; }
-uint8 CFatFile::GetAccessFlags(void) const { return msFile.uiAccessFlags; }
+uint32 CFatFile::Size(void) noexcept { return msFile.uiFileSize; }
+uint32 CFatFile::Tell(void) noexcept { return msFile.uiFilePosition; }
+bool CFatFile::IsBusy(void) const noexcept { return msFile.bBusy; }
+uint8 CFatFile::GetAccessFlags(void) const noexcept { return msFile.uiAccessFlags; }
 
 #endif // __W65C816_ASSEMBLY__
 

@@ -460,7 +460,7 @@ void SetBits(size iStart, void* pvBitArray, bool bBit, size iLength)
 //	iArray size is in bits
 //
 //////////////////////////////////////////////////////////////////////////
-size FindFirstSetBit(void* pvArray, size iArraySize)
+size FindFirstSetBit(void* pvArray, size iArraySize) noexcept
 {
 	//Use _BitScanForward (MSVC) or __builtin_ffs (GCC) rather.
 
@@ -559,7 +559,7 @@ size FindFirstSetBit(void* pvArray, size iArraySize)
 //	array size is in bits
 //
 //////////////////////////////////////////////////////////////////////////
-size FindFirstClearBit(void* pvArray, size iArraySize)
+size FindFirstClearBit(void* pvArray, size iArraySize) noexcept
 {
 	size	iIntSize;
 	size	i;
@@ -654,7 +654,7 @@ size FindFirstClearBit(void* pvArray, size iArraySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size FindFirstClearBit(uint32 uiBits)
+size FindFirstClearBit(uint32 uiBits) noexcept
 {
 	if (uiBits == 0xFFFFFFFF)
 	{
@@ -676,7 +676,7 @@ size FindFirstClearBit(uint32 uiBits)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size FindFirstSetBit(uint64 uiBits)
+size FindFirstSetBit(uint64 uiBits) noexcept
 {
 #if defined(_MSC_VER) && defined(BUILD_64)
 	unsigned long	uiIndex;
@@ -823,7 +823,7 @@ size FindNextClearBit(void* pvArray, size iArraySize, size iStartBit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size FindLastClearBit(void* pvArray, size iArraySize)
+size FindLastClearBit(void* pvArray, size iArraySize) noexcept
 {
 	size	i;
 	bool	iBit;
@@ -851,7 +851,7 @@ size FindLastClearBit(void* pvArray, size iArraySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size FindLastSetBit(void* pvArray, size iArraySize)
+size FindLastSetBit(void* pvArray, size iArraySize) noexcept
 {
 	size	i;
 	bool	iBit;
@@ -963,7 +963,7 @@ static lsize FindLastBitLarge(void* pvArray, lsize iArraySize, uint8 uiInvert)
 //	Array size is in bits
 //
 //////////////////////////////////////////////////////////////////////////
-lsize FindFirstSetBitLarge(void* pvArray, lsize iArraySize)
+lsize FindFirstSetBitLarge(void* pvArray, lsize iArraySize) noexcept
 {
 	return FindFirstBitLarge(pvArray, iArraySize, 0x00);
 }
@@ -974,7 +974,7 @@ lsize FindFirstSetBitLarge(void* pvArray, lsize iArraySize)
 //	Array size is in bits
 //
 //////////////////////////////////////////////////////////////////////////
-lsize FindFirstClearBitLarge(void* pvArray, lsize iArraySize)
+lsize FindFirstClearBitLarge(void* pvArray, lsize iArraySize) noexcept
 {
 	return FindFirstBitLarge(pvArray, iArraySize, 0xff);
 }
@@ -985,7 +985,7 @@ lsize FindFirstClearBitLarge(void* pvArray, lsize iArraySize)
 //	Array size is in bits
 //
 //////////////////////////////////////////////////////////////////////////
-lsize FindLastSetBitLarge(void* pvArray, lsize iArraySize)
+lsize FindLastSetBitLarge(void* pvArray, lsize iArraySize) noexcept
 {
 	return FindLastBitLarge(pvArray, iArraySize, 0x00);
 }
@@ -996,7 +996,7 @@ lsize FindLastSetBitLarge(void* pvArray, lsize iArraySize)
 //	Array size is in bits
 //
 //////////////////////////////////////////////////////////////////////////
-lsize FindLastClearBitLarge(void* pvArray, lsize iArraySize)
+lsize FindLastClearBitLarge(void* pvArray, lsize iArraySize) noexcept
 {
 	return FindLastBitLarge(pvArray, iArraySize, 0xff);
 }

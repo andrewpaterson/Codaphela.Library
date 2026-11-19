@@ -2106,6 +2106,45 @@ void TestCPP65Profile(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Exceptions (ExceptionsPlan.txt 3d): C++ that tests a call of a function
+// for an exception can't call one written in assembly, which leaves the
+// flag it tests as it falls; one declared noexcept isn't tested, and one
+// compiled from C++ returns with the flag clear.  Without exceptions nothing
+// is tested and nothing is refused.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP65IRTestedAssembly(bool bExceptions, bool bNoexcept, const char* szExpected)
+{
+	CCPP65Builder	cBuilder;
+	CChars			szSource;
+
+	cBuilder.Init();
+	cBuilder.GetOptions()->mbExceptions = bExceptions;
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	AssertTrue(cBuilder.AddStartUp());
+	szSource.Init(bNoexcept ? "extern \"C\" int Twice(int i) noexcept;\n" : "extern \"C\" int Twice(int i);\n");
+	szSource.Append(
+		"int Compiled(int i) { return i + 1; }\n"
+		"int main(void) { return Twice(Compiled(3)); }\n");
+	AssertTrue(cBuilder.AddSource("Test.cpp", szSource.Text()));
+	AssertTrue(cBuilder.AddAssembly("twice", "\t\t.section text._Twice\n\t\t.global _Twice\n_Twice:\n\t\tadd A, A\n\t\tret\n"));
+	AssertBool(szExpected[0] == '\0', cBuilder.Link());
+	AssertString(szExpected, cBuilder.GetErrors());
+	szSource.Kill();
+	cBuilder.Kill();
+}
+
+
+static void TestCPP65IRTestedAssemblies(void)
+{
+	TestCPP65IRTestedAssembly(true, false, "_Twice is assembly and is called by C++ that tests for an exception: declare it noexcept.\n");
+	TestCPP65IRTestedAssembly(true, true, "");
+	TestCPP65IRTestedAssembly(false, false, "");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IR(void)
@@ -2172,6 +2211,7 @@ void TestCPP65IR(void)
 	TestCPP65IRDeferredBodies();
 	TestCPP65IRClassMembers();
 	TestCPP65IRZeroedArrays();
+	TestCPP65IRTestedAssemblies();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	TypeConverterKill();

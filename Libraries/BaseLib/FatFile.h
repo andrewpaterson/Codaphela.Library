@@ -27,43 +27,43 @@ protected:
 	char				mszName[FAT_MAX_FILENAME];
 
 public:
-	void		Init(CFatVolume* pcVolume);
-	EFatCode	Open(const char* szFilename, uint8 uiAccessFlags);
-	EFatCode	Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags);
-	EFatCode	Close(void);
-	EFatCode	Write(uint8* pvSource, lsize uiLength);
-	EFatCode	Read(uint8* puiDestination, lsize length, lsize* puiBytesRead);
-	EFatCode	Seek(uint32 uiOffset, EFatSeek eMode);
-	EFatCode	Flush(void);
-	EFatCode	Truncate(void);
+	void		Init(CFatVolume* pcVolume) noexcept;
+	EFatCode	Open(const char* szFilename, uint8 uiAccessFlags) noexcept;
+	EFatCode	Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags) noexcept;
+	EFatCode	Close(void) noexcept;
+	EFatCode	Write(uint8* pvSource, lsize uiLength) noexcept;
+	EFatCode	Read(uint8* puiDestination, lsize length, lsize* puiBytesRead) noexcept;
+	EFatCode	Seek(uint32 uiOffset, EFatSeek eMode) noexcept;
+	EFatCode	Flush(void) noexcept;
+	EFatCode	Truncate(void) noexcept;
 
-	uint32		Tell(void);
-	uint32		Size(void);
-	bool		IsBusy(void) const;
-	uint8		GetAccessFlags(void) const;
+	uint32		Tell(void) noexcept;
+	uint32		Size(void) noexcept;
+	bool		IsBusy(void) const noexcept;
+	uint8		GetAccessFlags(void) const noexcept;
 
-	EFatCode	AllocateClusters(uint32 bytes);
-	uint32		CalculateFirstCluster(void);
+	EFatCode	AllocateClusters(uint32 bytes) noexcept;
+	uint32		CalculateFirstCluster(void) noexcept;
 
 protected:
-	EFatCode	OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags);
-	uint32		FatFileGetUniqueId(void);
-	EFatCode	WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource);
+	EFatCode	OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags) noexcept;
+	uint32		FatFileGetUniqueId(void) noexcept;
+	EFatCode	WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource) noexcept;
 
-	bool		IsFat32Volume(void) const;
-	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead, uint8* puiDestination);
-	EFatCode	StepToClusterOfPosition(void);
+	bool		IsFat32Volume(void) const noexcept;
+	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead, uint8* puiDestination) noexcept;
+	EFatCode	StepToClusterOfPosition(void) noexcept;
 
-	EFatCode	FlushCacheUpdateAccess(void);
+	EFatCode	FlushCacheUpdateAccess(void) noexcept;
 
-	const char*		GetShortFileName(void) const;
-	EFatCode	ValidateCanRead(void);
-	EFatCode	ValidateCanWrite(void);
+	const char*		GetShortFileName(void) const noexcept;
+	EFatCode	ValidateCanRead(void) noexcept;
+	EFatCode	ValidateCanWrite(void) noexcept;
 
-	EFatCode	PotentiallyAllocateClusters(uint32 uiLength);
-	EFatCode	CounterClustersInFile(uint32* puiClustersInFile, fatEntry* puiPreviousCluster, fatEntry uiFirstCluster);
+	EFatCode	PotentiallyAllocateClusters(uint32 uiLength) noexcept;
+	EFatCode	CounterClustersInFile(uint32* puiClustersInFile, fatEntry* puiPreviousCluster, fatEntry uiFirstCluster) noexcept;
 
-	EFatCode	CalculateSeekPosition(uint32 uiOffset, EFatSeek eMode, uint32* puiBytePositionInFile);
+	EFatCode	CalculateSeekPosition(uint32 uiOffset, EFatSeek eMode, uint32* puiBytePositionInFile) noexcept;
 };
 
 

@@ -14,7 +14,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatClusterCache::Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 uiSectorSize)
+void CFatClusterCache::Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 uiSectorSize) noexcept
 {
 	muiClusterSize = uiClusterSize;
 	muiSectorSize = uiSectorSize;
@@ -42,7 +42,7 @@ void CFatClusterCache::Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatClusterCache::Kill(void)
+void CFatClusterCache::Kill(void) noexcept
 {
 	SafeFree(msCluster.pbDirtySectors);
 	SafeFree(msCluster.pbCachedSectors);
@@ -55,7 +55,7 @@ void CFatClusterCache::Kill(void)
 // The sector of the byte before uiEnd (0 when uiEnd is 0).
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatClusterCache::LastSectorBefore(uint16 uiEnd)
+uint16 CFatClusterCache::LastSectorBefore(uint16 uiEnd) noexcept
 {
 	return (uiEnd == 0) ? 0 : (uint16)((uiEnd - 1) >> muiSectorSizeShift);
 }
@@ -65,7 +65,7 @@ uint16 CFatClusterCache::LastSectorBefore(uint16 uiEnd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiMaximumOffset)
+bool CFatClusterCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiMaximumOffset) noexcept
 {
 	bool	bResult;
 	uint32	uiLength;
@@ -161,7 +161,7 @@ bool CFatClusterCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiPreviousMaximumOffset)
+bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiPreviousMaximumOffset) noexcept
 {
 	bool	bResult;
 	uint32	uiLength;
@@ -284,7 +284,7 @@ bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiCluster
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::Flush(void)
+bool CFatClusterCache::Flush(void) noexcept
 {
 	return Flush(&msCluster);
 }
@@ -294,7 +294,7 @@ bool CFatClusterCache::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::Flush(SClusterCache* psCluster)
+bool CFatClusterCache::Flush(SClusterCache* psCluster) noexcept
 {
 	size	iFirstDirtySector;
 	size	iLastDirtySector;
@@ -349,7 +349,7 @@ bool CFatClusterCache::Flush(SClusterCache* psCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::FlushAndInvalidate(SClusterCache* psCluster)
+bool CFatClusterCache::FlushAndInvalidate(SClusterCache* psCluster) noexcept
 {
 	bool bResult;
 
@@ -365,7 +365,7 @@ bool CFatClusterCache::FlushAndInvalidate(SClusterCache* psCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::IsCached(uint32 uiSectorIndex)
+bool CFatClusterCache::IsCached(uint32 uiSectorIndex) noexcept
 {
 	return GetBit(uiSectorIndex, msCluster.pbCachedSectors);
 }
@@ -375,7 +375,7 @@ bool CFatClusterCache::IsCached(uint32 uiSectorIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex)
+bool CFatClusterCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex) noexcept
 {
 	bool	bResult;
 
@@ -396,7 +396,7 @@ bool CFatClusterCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatClusterCache::Clear(void)
+void CFatClusterCache::Clear(void) noexcept
 {
 	Invalidate(&msCluster);
 }
@@ -406,7 +406,7 @@ void CFatClusterCache::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatClusterCache::Invalidate(SClusterCache* psCluster)
+void CFatClusterCache::Invalidate(SClusterCache* psCluster) noexcept
 {
 	uint16	i;
 
@@ -429,7 +429,7 @@ void CFatClusterCache::Invalidate(SClusterCache* psCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CFatClusterCache::GetCache(void) const
+uint8* CFatClusterCache::GetCache(void) const noexcept
 {
 	return msCluster.pvCache;
 }
@@ -439,7 +439,7 @@ uint8* CFatClusterCache::GetCache(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::IsSectorDirty(uint16 iSectorIndex)
+bool CFatClusterCache::IsSectorDirty(uint16 iSectorIndex) noexcept
 {
 	if (iSectorIndex < muiSectorsPerCluster)
 	{
@@ -456,7 +456,7 @@ bool CFatClusterCache::IsSectorDirty(uint16 iSectorIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::IsSectorCached(uint16 iSectorIndex)
+bool CFatClusterCache::IsSectorCached(uint16 iSectorIndex) noexcept
 {
 	if (iSectorIndex < muiSectorsPerCluster)
 	{
@@ -473,7 +473,7 @@ bool CFatClusterCache::IsSectorCached(uint16 iSectorIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatClusterCache::GetSectorsPerCluster(void) const
+uint16 CFatClusterCache::GetSectorsPerCluster(void) const noexcept
 {
 	return muiSectorsPerCluster;
 }
@@ -483,7 +483,7 @@ uint16 CFatClusterCache::GetSectorsPerCluster(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::SetCachedSector(size uiSectorIndex, bool bCached)
+bool CFatClusterCache::SetCachedSector(size uiSectorIndex, bool bCached) noexcept
 {
 	if (uiSectorIndex < muiBytesForBits)
 	{
@@ -501,7 +501,7 @@ bool CFatClusterCache::SetCachedSector(size uiSectorIndex, bool bCached)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::SetDirtySector(size uiSectorIndex, bool bDirty)
+bool CFatClusterCache::SetDirtySector(size uiSectorIndex, bool bDirty) noexcept
 {
 	if (uiSectorIndex < muiBytesForBits)
 	{

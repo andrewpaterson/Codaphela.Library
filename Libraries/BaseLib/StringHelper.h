@@ -34,11 +34,11 @@ int			MemICmp(const void* pv1, const void* pv2, size iLength);
 int			MemICmpLarge(const void* pv1, const void* pv2, lsize iLength);
 int			MemCmp(const void* pv1, size iLen1, const void* pv2, size iLen2);
 #if defined(__W65C816__)
-void		MemSwp(const void* pv1, const void* pv2, size uiLength);  //Libc65's stringW65C816_16.asm.
-void		MemSwp32(const void* pv1, const void* pv2, lsize uiLength);  //Libc65's stringW65C816.asm, past 64KB.
+void		MemSwp(const void* pv1, const void* pv2, size uiLength) noexcept;  //Libc65's stringW65C816_16.asm.
+void		MemSwp32(const void* pv1, const void* pv2, lsize uiLength) noexcept;  //Libc65's stringW65C816.asm, past 64KB.
 #else
-void		MemSwp(const void* pv1, const void* pv2, lsize uiLength);
-inline void	MemSwp32(const void* pv1, const void* pv2, lsize uiLength) { MemSwp(pv1, pv2, uiLength); }  //As Memory32.h's.
+void		MemSwp(const void* pv1, const void* pv2, lsize uiLength) noexcept;
+inline void	MemSwp32(const void* pv1, const void* pv2, lsize uiLength) noexcept { MemSwp(pv1, pv2, uiLength); }  //As Memory32.h's.
 #endif // __W65C816__
 char*		StrRev(char* szString);
 char*		StrRev(char* szString, size iLength);

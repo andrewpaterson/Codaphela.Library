@@ -2062,7 +2062,7 @@ bool CCPP65IRFrontEnd::InheritedConstructorCall(SCPP65IRPlace* psBase)
 		iIndex++;
 	}
 	mpcFunction->Call(mpcBlock, IRType(IRTK_None), FunctionSymbol(mpcCPPFunction->mpcInherited), -1, true);
-	TestThrown(mpcCPPFunction->mpcInherited);
+	TestThrown(mpcCPPFunction->mpcInherited, FunctionSymbol(mpcCPPFunction->mpcInherited));
 	return true;
 }
 
@@ -2128,7 +2128,7 @@ bool CCPP65IRFrontEnd::CopyPart(CCPPClass* pcClass, SIRReference sDestination, S
 	}
 	asDefaults.Kill();
 	mpcFunction->Call(mpcBlock, IRType(IRTK_None), FunctionSymbol(pcConstructor, bBaseVersion), -1, true);
-	TestThrown(pcConstructor);
+	TestThrown(pcConstructor, FunctionSymbol(pcConstructor, bBaseVersion));
 	return true;
 }
 
@@ -2252,7 +2252,7 @@ bool CCPP65IRFrontEnd::AssignPart(CCPPClass* pcClass, SIRReference sDestination,
 	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sDestination);
 	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sSource);
 	mpcFunction->Call(mpcBlock, psReturn->IsVoid() ? IRType(IRTK_None) : (psReturn->IsReference() ? IRType(IRTK_Pointer) : IRTypeOf(psReturn)), FunctionSymbol(pcOperator), -1, true);
-	TestThrown(pcOperator);
+	TestThrown(pcOperator, FunctionSymbol(pcOperator));
 	return true;
 }
 

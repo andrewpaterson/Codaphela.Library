@@ -221,6 +221,25 @@ void CCPPUnit::GetMissingCallees(CArrayChars* paszNames)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds the labels of the functions the unit calls by name and tests for an
+// exception (CCPP65IRFrontEnd::GetTestedCallees).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::GetTestedCallees(CArrayChars* paszNames)
+{
+	CArrayChars*	paszTested;
+	size			i;
+
+	paszTested = mpcIRFrontEnd->GetTestedCallees();
+	for (i = 0; i < paszTested->NumElements(); i++)
+	{
+		paszNames->AddIfUnique(paszTested->GetText(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)

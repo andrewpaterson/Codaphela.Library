@@ -14,7 +14,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode GetFatLongNameForEntry(uint16* puiDest, char* szSource)
+EFatCode GetFatLongNameForEntry(uint16* puiDest, char* szSource) noexcept
 {
 	size	i;
 	size	uiLength;
@@ -34,7 +34,7 @@ EFatCode GetFatLongNameForEntry(uint16* puiDest, char* szSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CompareFatShortName(char* szName1, char* szName2)
+bool CompareFatShortName(char* szName1, char* szName2) noexcept
 {
 	return memcmp(szName1, szName2, 11) == 0;
 }
@@ -44,7 +44,7 @@ bool CompareFatShortName(char* szName1, char* szName2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CompareFatLongName(uint16* puiName1, uint16* puiName2)
+int CompareFatLongName(uint16* puiName1, uint16* puiName2) noexcept
 {
 	size	i;
 	char	c1;
@@ -72,7 +72,7 @@ int CompareFatLongName(uint16* puiName1, uint16* puiName2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, uint16* auiLongFilename, uint8* auiShortName)
+EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, uint16* auiLongFilename, uint8* auiShortName) noexcept
 {
 	bool		bLongFilename;
 	bool		bMatch;
@@ -115,7 +115,7 @@ EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructed
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode GetFatShortNameForEntry(char* szDest, const char* szSource, bool bLFNDisabled)
+EFatCode GetFatShortNameForEntry(char* szDest, const char* szSource, bool bLFNDisabled) noexcept
 {
 	char	szName[13];
 	bool	bUppercase;
@@ -302,7 +302,7 @@ EFatCode GetFatShortNameForEntry(char* szDest, const char* szSource, bool bLFNDi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* puiSource)
+void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* puiSource) noexcept
 {
 	if (*puiSource != FAT_KANJI_SKIP_ENTRY)
 	{
@@ -392,7 +392,7 @@ void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* pui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShortName, bool bLowercaseBase, bool bLowercaseExtension)
+void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShortName, bool bLowercaseBase, bool bLowercaseExtension) noexcept
 {
 	size	i;
 	size	uiResult;
@@ -443,7 +443,7 @@ void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* StepPathOverSlash(const char* szPathName)
+const char* StepPathOverSlash(const char* szPathName) noexcept
 {
 	if (szPathName)
 	{
@@ -460,7 +460,7 @@ const char* StepPathOverSlash(const char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* StepPathToSlash(const char* szPathName)
+const char* StepPathToSlash(const char* szPathName) noexcept
 {
 	while (*(--szPathName) != '\\');
 	return szPathName;
@@ -471,7 +471,7 @@ const char* StepPathToSlash(const char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource)
+void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource) noexcept
 {
 	size	uiIndex;
 
@@ -497,7 +497,7 @@ void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool IsIllegalFilenameCharacter(char c)
+bool IsIllegalFilenameCharacter(char c) noexcept
 {
 	size	uiIndex;
 
@@ -522,7 +522,7 @@ bool IsIllegalFilenameCharacter(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool IsIllegalFilename(const char* szName, uint16 uiLength)
+bool IsIllegalFilename(const char* szName, uint16 uiLength) noexcept
 {
 	size		uiCharIndex;
 
@@ -549,7 +549,7 @@ bool IsIllegalFilename(const char* szName, uint16 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
+void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName) noexcept
 {
 	char	szNameSuffix[7];
 	char	szDigits[6];
@@ -595,7 +595,7 @@ void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ParsePathAndFilename(const char* szPath, char* szPathPart, const char** pszFilenamePart)
+void ParsePathAndFilename(const char* szPath, char* szPathPart, const char** pszFilenamePart) noexcept
 {
 	*pszFilenamePart = szPath + strlen(szPath);
 

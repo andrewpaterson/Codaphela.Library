@@ -203,7 +203,7 @@ int MemCmp(const void* pv1, size iLen1, const void* pv2, size iLen2)
 //
 ////////////////////////////////////////////////////////////////////////////////////
 #ifndef __W65C816__
-void MemSwp(const void* pv1, const void* pv2, lsize uiLength)
+void MemSwp(const void* pv1, const void* pv2, lsize uiLength) noexcept
 {
 	lsize	i;
 	lsize	iIntLength;

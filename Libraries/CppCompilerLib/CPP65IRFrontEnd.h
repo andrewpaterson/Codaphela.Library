@@ -189,6 +189,7 @@ protected:
 	CIRBlock*				mpcExit;			//A destructor's last block (it destroys the fields and bases); NULL in others.
 	CArraySyntax			mapcNone;			//No arguments.
 	CArrayChars				maszRuntime;		//Runtime routines called, given to the generator if the function is written.
+	CArrayChars				maszTested;			//The functions called by name whose calls are tested for an exception (GetTestedCallees).
 	CArrayChars				maszMissing;		//Named callees with no body in the unit or the imports (GetMissingCallees).
 	CArrayChars				maszNotImported;	//Every name the inliner looked for in the imports and didn't find (CIRImports::Missed).
 	CArrayUint8				mauiStringBytes;	//String literals, given to the generator if the function is written.
@@ -237,6 +238,7 @@ public:
 	CAsm65Profile*	InliningProfile(void);
 	bool			SourceLine(int iToken, CSourceFile** ppcFile, int* piLine);
 	CArrayChars*	GetMissingCallees(void);
+	CArrayChars*	GetTestedCallees(void);
 
 protected:
 	void			BeginWriting(CCPPFunction* pcFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes);
@@ -288,7 +290,7 @@ protected:
 	bool			DestroyTemporaryPlaces(size uiFrom);
 	bool			DestroyTemporary(SCPP65IRCleanup* psTemporary);
 	bool			CallMayThrow(CCPPFunction* pcFunction);
-	void			TestThrown(CCPPFunction* pcFunction);
+	void			TestThrown(CCPPFunction* pcFunction, SIRReference sCallee);
 	CIRBlock*		Landing(void);
 	CIRBlock*		LandingBelow(void);
 	CIRBlock*		UndoBlock(size uiIndex);

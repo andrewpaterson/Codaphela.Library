@@ -52,18 +52,18 @@ void 	SetFlagInt(int32* piDest, int32 iFlag, bool iFlagValue);
 void 	SetFlagLong(uint64* psiDest, uint64 iFlag, bool iFlagValue); 
 void 	SetFlagLong(int64* psiDest, int64 iFlag, bool iFlagValue); 
 void 	SetFlagSize(size* piDest, size iFlag, bool iFlagValue);
-size 	FindFirstClearBit(void* pvArray, size iArraySize);  //Libc65's stringW65C816_16.asm on the W65C816 (and the Last, uint32 and uint64 ones).
-size	FindFirstClearBit(uint32 uiBits);  //32 if uiBits has no clear bit.
-size 	FindFirstSetBit(void* pvArray, size iArraySize);
-size	FindFirstSetBit(uint64 uiBits);  //uiBits must have a set bit.
-size 	FindLastClearBit(void* pvArray, size iArraySize);
-size 	FindLastSetBit(void* pvArray, size iArraySize);
+size 	FindFirstClearBit(void* pvArray, size iArraySize) noexcept;  //Libc65's stringW65C816_16.asm on the W65C816 (and the Last, uint32 and uint64 ones).
+size	FindFirstClearBit(uint32 uiBits) noexcept;  //32 if uiBits has no clear bit.
+size 	FindFirstSetBit(void* pvArray, size iArraySize) noexcept;
+size	FindFirstSetBit(uint64 uiBits) noexcept;  //uiBits must have a set bit.
+size 	FindLastClearBit(void* pvArray, size iArraySize) noexcept;
+size 	FindLastSetBit(void* pvArray, size iArraySize) noexcept;
 size	FindNextSetBit(void* pvArray, size iArraySize, size iStartBit);
 size	FindNextClearBit(void* pvArray, size iArraySize, size iStartBit);
-lsize 	FindFirstClearBitLarge(void* pvArray, lsize iArraySize);  //The bit array functions for more bits than a size counts, ARRAY_LARGE_ELEMENT_NOT_FOUND if there is none.
-lsize 	FindFirstSetBitLarge(void* pvArray, lsize iArraySize);
-lsize 	FindLastClearBitLarge(void* pvArray, lsize iArraySize);
-lsize 	FindLastSetBitLarge(void* pvArray, lsize iArraySize);
+lsize 	FindFirstClearBitLarge(void* pvArray, lsize iArraySize) noexcept;  //The bit array functions for more bits than a size counts, ARRAY_LARGE_ELEMENT_NOT_FOUND if there is none.
+lsize 	FindFirstSetBitLarge(void* pvArray, lsize iArraySize) noexcept;
+lsize 	FindLastClearBitLarge(void* pvArray, lsize iArraySize) noexcept;
+lsize 	FindLastSetBitLarge(void* pvArray, lsize iArraySize) noexcept;
 lsize	FindNextSetBitLarge(void* pvArray, lsize iArraySize, lsize iStartBit);
 lsize	FindNextClearBitLarge(void* pvArray, lsize iArraySize, lsize iStartBit);
 void 	SwapInt16(int16* pi1, int16* pi2);

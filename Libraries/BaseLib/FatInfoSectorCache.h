@@ -28,11 +28,11 @@ public:
 	uint16	muiLocks;
 	bool	mbDirty;
 
-	void	Init(uint32 uiInfoSector, uint64 uiCreationStamp);
-	void*	GetCache(void) const;
-	void	Lock(void);
-	bool	Unlock(void);
-	void	Dirty(void);
+	void	Init(uint32 uiInfoSector, uint64 uiCreationStamp) noexcept;
+	void*	GetCache(void) const noexcept;
+	void	Lock(void) noexcept;
+	bool	Unlock(void) noexcept;
+	void	Dirty(void) noexcept;
 };
 
 
@@ -48,26 +48,26 @@ protected:
 	uint64				muiCreationStamp;
 
 public:
-	void				Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCaches);
-	bool				Kill(void);
-	SFatCache			ReadSector(uint32 uiInfoSector);
-	void				Lock(SFatCache sSectorCache);
-	bool				Unlock(SFatCache sSectorCache);
-	bool				Unlock(uint32 uiSector);
-	uint16				GetNumAllocatedSectors(void);
-	uint16				GetNumCachedSectors(void);
-	uint16				GetLockedCachedSectors(void);
-	void				Dirty(SFatCache sSectorCache);
-	bool				Flush(void);
-	bool				ValidateTimeStamp(SFatCache sSectorCache);
-	void				Dump(void);
+	void				Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCaches) noexcept;
+	bool				Kill(void) noexcept;
+	SFatCache			ReadSector(uint32 uiInfoSector) noexcept;
+	void				Lock(SFatCache sSectorCache) noexcept;
+	bool				Unlock(SFatCache sSectorCache) noexcept;
+	bool				Unlock(uint32 uiSector) noexcept;
+	uint16				GetNumAllocatedSectors(void) noexcept;
+	uint16				GetNumCachedSectors(void) noexcept;
+	uint16				GetLockedCachedSectors(void) noexcept;
+	void				Dirty(SFatCache sSectorCache) noexcept;
+	bool				Flush(void) noexcept;
+	bool				ValidateTimeStamp(SFatCache sSectorCache) noexcept;
+	void				Dump(void) noexcept;
 
 protected:
-	CFatSectorCache*	AddNewCache(void);
-	CFatSectorCache*	GetOrCacheSector(uint32 uiInfoSector);
-	CFatSectorCache*	InitialiseCache(uint32 uiInfoSector, CFatSectorCache* pcCachedSector);
-	bool				FlushCache(CFatSectorCache* pcCachedSector);
-	SFatCache			FindCachedSector(uint32 uiInfoSector);
+	CFatSectorCache*	AddNewCache(void) noexcept;
+	CFatSectorCache*	GetOrCacheSector(uint32 uiInfoSector) noexcept;
+	CFatSectorCache*	InitialiseCache(uint32 uiInfoSector, CFatSectorCache* pcCachedSector) noexcept;
+	bool				FlushCache(CFatSectorCache* pcCachedSector) noexcept;
+	SFatCache			FindCachedSector(uint32 uiInfoSector) noexcept;
 };
 
 

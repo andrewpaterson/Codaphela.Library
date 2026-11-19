@@ -95,6 +95,7 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	mapcNone.Init();
 	maszRuntime.Init();
 	maszMissing.Init();
+	maszTested.Init();
 	maszNotImported.Init();
 	mauiStringBytes.Init();
 	mauiStringLengths.Init();
@@ -131,6 +132,7 @@ void CCPP65IRFrontEnd::Kill(void)
 	mauiStringLengths.Kill();
 	mauiStringBytes.Kill();
 	maszNotImported.Kill();
+	maszTested.Kill();
 	maszMissing.Kill();
 	maszRuntime.Kill();
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
@@ -1247,6 +1249,19 @@ void CCPP65IRFrontEnd::FreeWritten(SCPP65IRWritten* psWritten)
 		free(psWritten->pcBackend);
 		psWritten->pcBackend = NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The labels of the functions the unit calls by name and tests for an
+// exception: none of them may be assembly, which leaves the flag the test
+// reads as it falls (CCPP65Builder::CheckTested).
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayChars* CCPP65IRFrontEnd::GetTestedCallees(void)
+{
+	return &maszTested;
 }
 
 

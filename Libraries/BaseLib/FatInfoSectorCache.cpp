@@ -11,7 +11,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatSectorCache::Init(uint32 uiInfoSector, uint64 uiCreationStamp)
+void CFatSectorCache::Init(uint32 uiInfoSector, uint64 uiCreationStamp) noexcept
 {
 	muiInfoSector = uiInfoSector;
 	muiLocks = 0;
@@ -24,7 +24,7 @@ void CFatSectorCache::Init(uint32 uiInfoSector, uint64 uiCreationStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CFatSectorCache::GetCache(void) const
+void* CFatSectorCache::GetCache(void) const noexcept
 {
 	return RemapSinglePointer(this, sizeof(CFatSectorCache));
 }
@@ -34,7 +34,7 @@ void* CFatSectorCache::GetCache(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatSectorCache::Lock(void)
+void CFatSectorCache::Lock(void) noexcept
 {
 	muiLocks++;
 }
@@ -44,7 +44,7 @@ void CFatSectorCache::Lock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatSectorCache::Unlock(void)
+bool CFatSectorCache::Unlock(void) noexcept
 {
 	if (muiLocks != 0)
 	{
@@ -59,7 +59,7 @@ bool CFatSectorCache::Unlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatSectorCache::Dirty(void)
+void CFatSectorCache::Dirty(void) noexcept
 {
 	mbDirty = true;
 }
@@ -69,7 +69,7 @@ void CFatSectorCache::Dirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatInfoSectorCache::Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCaches)
+void CFatInfoSectorCache::Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCaches) noexcept
 {
 	mpcDrive = pcDrive;
 	muiSectorSize = pcDrive->GetSectorSize();
@@ -85,7 +85,7 @@ void CFatInfoSectorCache::Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCach
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatInfoSectorCache::Kill(void)
+bool CFatInfoSectorCache::Kill(void) noexcept
 {
 	CFatSectorCache*	pcCachedSector;
 	uint32				uiLockCount;
@@ -111,7 +111,7 @@ bool CFatInfoSectorCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFatCache CFatInfoSectorCache::ReadSector(uint32 uiInfoSector)
+SFatCache CFatInfoSectorCache::ReadSector(uint32 uiInfoSector) noexcept
 {
 	CFatSectorCache*	pcCachedSector;
 	SFatCache			sSectorCache;
@@ -136,7 +136,7 @@ SFatCache CFatInfoSectorCache::ReadSector(uint32 uiInfoSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatInfoSectorCache::ValidateTimeStamp(SFatCache sSectorCache)
+bool CFatInfoSectorCache::ValidateTimeStamp(SFatCache sSectorCache) noexcept
 {
 	CFatSectorCache* pcSectorCache;
 
@@ -149,7 +149,7 @@ bool CFatInfoSectorCache::ValidateTimeStamp(SFatCache sSectorCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFatSectorCache* CFatInfoSectorCache::AddNewCache(void)
+CFatSectorCache* CFatInfoSectorCache::AddNewCache(void) noexcept
 {
 	CFatSectorCache*	pcSectorCache;
 	size				uiSize;
@@ -166,7 +166,7 @@ CFatSectorCache* CFatInfoSectorCache::AddNewCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFatSectorCache* CFatInfoSectorCache::GetOrCacheSector(uint32 uiInfoSector)
+CFatSectorCache* CFatInfoSectorCache::GetOrCacheSector(uint32 uiInfoSector) noexcept
 {
 	CFatSectorCache*	pcCachedSector;
 	CFatSectorCache*	pcEmptySector;
@@ -240,7 +240,7 @@ CFatSectorCache* CFatInfoSectorCache::GetOrCacheSector(uint32 uiInfoSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFatSectorCache* CFatInfoSectorCache::InitialiseCache(uint32 uiInfoSector, CFatSectorCache* pcCachedSector)
+CFatSectorCache* CFatInfoSectorCache::InitialiseCache(uint32 uiInfoSector, CFatSectorCache* pcCachedSector) noexcept
 {
 	void*	pvData;
 	bool	bSuccess;
@@ -264,7 +264,7 @@ CFatSectorCache* CFatInfoSectorCache::InitialiseCache(uint32 uiInfoSector, CFatS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatInfoSectorCache::FlushCache(CFatSectorCache* pcCachedSector)
+bool CFatInfoSectorCache::FlushCache(CFatSectorCache* pcCachedSector) noexcept
 {
 	void*	pvData;
 	bool	bSuccess;
@@ -291,7 +291,7 @@ bool CFatInfoSectorCache::FlushCache(CFatSectorCache* pcCachedSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatInfoSectorCache::Lock(SFatCache sSectorCache)
+void CFatInfoSectorCache::Lock(SFatCache sSectorCache) noexcept
 {
 	CFatSectorCache*	pcCachedSector;
 
@@ -304,7 +304,7 @@ void CFatInfoSectorCache::Lock(SFatCache sSectorCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatInfoSectorCache::Unlock(SFatCache sSectorCache)
+bool CFatInfoSectorCache::Unlock(SFatCache sSectorCache) noexcept
 {
 	CFatSectorCache* pcCachedSector;
 
@@ -317,7 +317,7 @@ bool CFatInfoSectorCache::Unlock(SFatCache sSectorCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatInfoSectorCache::Unlock(uint32 uiSector)
+bool CFatInfoSectorCache::Unlock(uint32 uiSector) noexcept
 {
 	SFatCache			sSectorCache;
 	CFatSectorCache*	pcCachedSector;
@@ -337,7 +337,7 @@ bool CFatInfoSectorCache::Unlock(uint32 uiSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFatCache CFatInfoSectorCache::FindCachedSector(uint32 uiInfoSector)
+SFatCache CFatInfoSectorCache::FindCachedSector(uint32 uiInfoSector) noexcept
 {
 	CFatSectorCache*	pcCachedSector;
 	SFatCache			sCachedSector;
@@ -364,7 +364,7 @@ SFatCache CFatInfoSectorCache::FindCachedSector(uint32 uiInfoSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatInfoSectorCache::Dirty(SFatCache sSectorCache)
+void CFatInfoSectorCache::Dirty(SFatCache sSectorCache) noexcept
 {
 	CFatSectorCache* pcCachedSector;
 
@@ -377,7 +377,7 @@ void CFatInfoSectorCache::Dirty(SFatCache sSectorCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatInfoSectorCache::Flush(void)
+bool CFatInfoSectorCache::Flush(void) noexcept
 {
 	CFatSectorCache*	pcCachedSector;
 	bool				bSuccess;
@@ -404,7 +404,7 @@ bool CFatInfoSectorCache::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatInfoSectorCache::GetNumAllocatedSectors(void)
+uint16 CFatInfoSectorCache::GetNumAllocatedSectors(void) noexcept
 {
 	return (uint16)mllcCachedSectors.NumElements();
 }
@@ -414,7 +414,7 @@ uint16 CFatInfoSectorCache::GetNumAllocatedSectors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatInfoSectorCache::GetNumCachedSectors(void)
+uint16 CFatInfoSectorCache::GetNumCachedSectors(void) noexcept
 {
 	CFatSectorCache*	pcCachedSector;
 	uint16				uiCount;
@@ -438,7 +438,7 @@ uint16 CFatInfoSectorCache::GetNumCachedSectors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatInfoSectorCache::GetLockedCachedSectors(void)
+uint16 CFatInfoSectorCache::GetLockedCachedSectors(void) noexcept
 {
 	CFatSectorCache*	pcCachedSector;
 	uint16				uiCount;
@@ -465,7 +465,7 @@ uint16 CFatInfoSectorCache::GetLockedCachedSectors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatInfoSectorCache::Dump(void)
+void CFatInfoSectorCache::Dump(void) noexcept
 {
 	CFatSectorCache*	pcCachedSector;
 	CChars				sz;

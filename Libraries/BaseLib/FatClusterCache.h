@@ -31,31 +31,31 @@ protected:
 	CFileDrive*		mpcDrive;
 
 public:
-	void	Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 uiSectorSize);
-	void	Kill(void);
+	void	Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 uiSectorSize) noexcept;
+	void	Kill(void) noexcept;
 
-	bool	Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiMaximumOffset);
-	bool	Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiPreviousMaximumOffset);
-	bool	Flush(void);
+	bool	Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiMaximumOffset) noexcept;
+	bool	Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiPreviousMaximumOffset) noexcept;
+	bool	Flush(void) noexcept;
 
-	void	Clear(void);
-	uint8*	GetCache(void) const;
+	void	Clear(void) noexcept;
+	uint8*	GetCache(void) const noexcept;
 
-	bool	IsSectorDirty(uint16 iSectorIndex);
-	bool	IsSectorCached(uint16 iSectorIndex);
+	bool	IsSectorDirty(uint16 iSectorIndex) noexcept;
+	bool	IsSectorCached(uint16 iSectorIndex) noexcept;
 
-	uint16	GetSectorsPerCluster(void) const;
+	uint16	GetSectorsPerCluster(void) const noexcept;
 
 protected:
-	void	Invalidate(SClusterCache* psCluster);
-	bool	Flush(SClusterCache* psCluster);
-	bool	FlushAndInvalidate(SClusterCache* psCluster);
-	bool	IsCached(uint32 uiSectorIndex);
-	uint16	LastSectorBefore(uint16 uiEnd);
-	bool	CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex);
+	void	Invalidate(SClusterCache* psCluster) noexcept;
+	bool	Flush(SClusterCache* psCluster) noexcept;
+	bool	FlushAndInvalidate(SClusterCache* psCluster) noexcept;
+	bool	IsCached(uint32 uiSectorIndex) noexcept;
+	uint16	LastSectorBefore(uint16 uiEnd) noexcept;
+	bool	CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex) noexcept;
 
-	bool	SetCachedSector(size uiSectorIndex, bool bCached);
-	bool	SetDirtySector(size uiSectorIndex, bool bDirty);
+	bool	SetCachedSector(size uiSectorIndex, bool bCached) noexcept;
+	bool	SetDirtySector(size uiSectorIndex, bool bDirty) noexcept;
 };
 
 

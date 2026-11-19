@@ -64,6 +64,8 @@ void CCPP65Builder::Init(void)
 	mcLinker.SetRemoveUnused(true);
 	mszErrors.Init();
 	mszWarnings.Init();
+	maszTested.Init();
+	mapcCompiled.Init();
 	mcImports.Init(IR_IMPORT_INSTRUCTIONS);
 	mcImports.SetResume(ResumeUnit, this);
 	mpcUnitJobs = NULL;
@@ -123,6 +125,8 @@ void CCPP65Builder::Kill(void)
 	maszOutsideProjects.Kill();
 	mszListings.Kill();
 	mcImports.Kill();
+	mapcCompiled.Kill();
+	maszTested.Kill();
 	mszWarnings.Kill();
 	mszErrors.Kill();
 	mcLinker.Kill();
@@ -1090,6 +1094,7 @@ bool CCPP65Builder::AddSource(const char* szName, const char* szSource)
 	szAssembly.Init();
 	bResult = GenerateSource(&szAssembly, szName, szSource);
 	bResult &= AddObject(szName, szAssembly.Text());
+	mapcCompiled.Add(&macObjects.Tail()->pcObject);
 	szAssembly.Kill();
 	return bResult;
 }
@@ -1106,7 +1111,7 @@ bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, cons
 {
 	bool	bResult;
 
-	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mcOptions.mbMathTables, &mcOptions);
+	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mcOptions.mbMathTables, &mcOptions, NULL, &maszTested);
 	if (!mszListings.Empty())
 	{
 		bResult &= WriteListing(szName, pszAssembly);
@@ -1232,6 +1237,56 @@ void CCPP65Builder::ResetLinker(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Exceptions (ExceptionsPlan.txt): a function that throws returns with a
+// flag set, and compiled C++ returns with it clear when it doesn't.  An
+// assembly routine leaves it as it falls, so C++ that tests a call of one
+// would take what it finds for an exception.  Every function the compiled
+// units call by name and test must therefore be one a compiled unit
+// defines; one that is linked from anything else is an error, which says
+// what to do: declare it noexcept, and its calls aren't tested.  (A function
+// nothing defines is the linker's to report, or a stub.)
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::CheckTested(void)
+{
+	CAsm65Object*	pcObject;
+	const char*		szName;
+	size			ui;
+	size			uiObject;
+	size			uiMissing;
+	int32			iSymbol;
+	bool			bCompiled;
+	bool			bMissing;
+	bool			bResult;
+
+	bResult = true;
+	for (ui = 0; ui < maszTested.NumElements(); ui++)
+	{
+		szName = maszTested.GetText(ui);
+		bCompiled = false;
+		for (uiObject = 0; !bCompiled && (uiObject < mapcCompiled.NumElements()); uiObject++)
+		{
+			pcObject = *mapcCompiled.Get(uiObject);
+			iSymbol = pcObject->FindSymbol(szName);
+			bCompiled = (iSymbol >= 0) && (pcObject->GetSymbol((size)iSymbol)->iSection >= 0);
+		}
+		bMissing = false;
+		for (uiMissing = 0; !bCompiled && !bMissing && (uiMissing < mcLinker.NumMissing()); uiMissing++)
+		{
+			bMissing = strcmp(mcLinker.GetMissing(uiMissing), szName) == 0;
+		}
+		if (!bCompiled && !bMissing)
+		{
+			mszErrors.Append(szName)->Append(" is assembly and is called by C++ that tests for an exception: declare it noexcept.\n");
+			bResult = false;
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::LinkObjects(void)
@@ -1256,6 +1311,7 @@ bool CCPP65Builder::LinkObjects(void)
 	bResult = mcLinker.Link();
 	mcStatistics.End(CPPCP_Link);
 	mszErrors.Append(mcLinker.GetErrors());
+	bResult &= CheckTested();
 
 	//A runtime routine isn't stubbed: its program would stop at the first multiply.
 	szPrefix = mpcTarget->GetRuntimePrefix();
@@ -1413,7 +1469,7 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // (CCPPUnit::SetLineTable), bNoFloats and bMathTables as SetNoFloats and SetMathTables.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics, CArrayChars* paszTested)
 {
 	CTranslationUnit				cFile;
 	CCPPPreprocessor					cPreprocessor;
@@ -1486,6 +1542,10 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	if (paszExternals)
 	{
 		cGenerator.GetExternals(paszExternals);
+	}
+	if (paszTested)
+	{
+		cGenerator.GetTestedCallees(paszTested);
 	}
 	pszErrors->Append(cGenerator.GetErrors()->Text());
 	if (pszWarnings)
@@ -1715,6 +1775,7 @@ bool CCPP65Builder::CompileUnits(void)
 	size						uiMaxCompiling;
 	size						uiTurn;
 	size						ui;
+	size						uj;
 	bool						bResult;
 	CFileUtil					cFileUtil;
 
@@ -1795,6 +1856,17 @@ bool CCPP65Builder::CompileUnits(void)
 	for (ui = 0; ui < apsUnits.NumElements(); ui++)
 	{
 		psUnit = *apsUnits.Get(ui);
+
+		//What it tests, and that its object is C++'s, for CheckTested.
+		for (uj = 0; uj < psUnit->aszTested.NumElements(); uj++)
+		{
+			maszTested.AddIfUnique(psUnit->aszTested.GetText(uj));
+		}
+		if (psUnit->pcObject)
+		{
+			mapcCompiled.Add(&psUnit->pcObject);
+		}
+		psUnit->aszTested.Kill();
 		psUnit->aszMissing.Kill();
 		psUnit->szWarnings.Kill();
 		psUnit->szErrors.Kill();
@@ -1849,6 +1921,7 @@ void CCPP65Builder::StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFi
 	psUnit->pcFile = pcFile;
 	psUnit->pcObject = NULL;
 	psUnit->aszMissing.Init();
+	psUnit->aszTested.Init();
 	psUnit->eAgain = CPP65CA_No;
 	psUnit->uiTurn = uiTurn;
 	psUnit->bResult = true;
@@ -2319,6 +2392,7 @@ void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
 	psCompile = psUnit->psCompile;
 	bResult = psCompile->bResult && bGenerated;
 	psCompile->cGenerator.GetMissingCallees(&psUnit->aszMissing);
+	psCompile->cGenerator.GetTestedCallees(&psUnit->aszTested);
 	psUnit->szErrors.Append(psCompile->cGenerator.GetErrors()->Text());
 	psUnit->szWarnings.Append(psCompile->cGenerator.GetWarnings()->Text());
 	psCompile->cGenerator.Kill();

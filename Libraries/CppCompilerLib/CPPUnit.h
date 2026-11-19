@@ -381,6 +381,7 @@ public:
 	CCPPCompileStatistics*	GetStatistics(void) const;
 	CScratchPadAllocator*	GetBackendScratch(void);
 	void					GetMissingCallees(CArrayChars* paszNames);
+	void					GetTestedCallees(CArrayChars* paszNames);
 	bool					Check(CCPPSemanticPass* pcPass, bool bRemember = false);
 
 	//Declarations, functions and statements.  CPPUnit.cpp

@@ -58,10 +58,13 @@ bool CCPP65IRFrontEnd::CallMayThrow(CCPPFunction* pcFunction)
 // whether it did, and the way an exception goes from here (Landing).  The
 // code goes on in a new block, for the way that didn't.  While a cleanup is
 // being written for an exception on its way (mbUnwinding), a second one is
-// std::terminate.  [except.ctor] 3
+// std::terminate.  [except.ctor] 3  sCallee is what was called: a function
+// called by name is noted (GetTestedCallees), but for the unit's own (a
+// static function), which is C++ compiled here and has no label the linker
+// sees.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::TestThrown(CCPPFunction* pcFunction)
+void CCPP65IRFrontEnd::TestThrown(CCPPFunction* pcFunction, SIRReference sCallee)
 {
 	SIRReference	sThrown;
 	CIRBlock*		pcLanding;
@@ -70,6 +73,10 @@ void CCPP65IRFrontEnd::TestThrown(CCPPFunction* pcFunction)
 	if (!CallMayThrow(pcFunction) || mbUnsupported)
 	{
 		return;
+	}
+	if (sCallee.IsSymbol() && !mcModule.IsLocal(sCallee.Index()))
+	{
+		maszTested.AddIfUnique(mcModule.GetSymbolName(sCallee.Index()));
 	}
 	sThrown = mpcFunction->AddTemporary(IRType(IRTK_I1));
 	mpcBlock->AddInstruction(IRO_Thrown, IRType(IRTK_I1), sThrown, IRNone(), IRNone());

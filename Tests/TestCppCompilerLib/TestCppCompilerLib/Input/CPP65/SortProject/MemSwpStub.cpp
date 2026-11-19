@@ -10,7 +10,7 @@ typedef lsize	MemSwpLength;
 #endif // __W65C816__
 
 
-void MemSwp(const void* pv1, const void* pv2, MemSwpLength uiLength)
+void MemSwp(const void* pv1, const void* pv2, MemSwpLength uiLength) noexcept
 {
 	MemSwpLength	i;
 	char			cTemp;
