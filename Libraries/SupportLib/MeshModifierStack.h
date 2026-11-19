@@ -35,6 +35,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //NumChanges goes up whenever what the modifiers do changes: one is added, Touch says one's settings changed, or they're
 //removed or flattened.  ClearOutput only lets the output go, to be made again the same.
+//
+//SetOutput gives it an output made elsewhere, as its modifiers would make it of its source: on another thread, from
+//copies of them, so that the thread which draws needn't wait for it (HCP65-Sculpt's CSculptBaker).  It counts as a
+//change, and is kept as GetOutput's until the next one or ClearOutput, after which GetOutput makes its own.
 class CMeshEditor;
 class CMeshModifierStack : public CObject
 {
@@ -66,6 +70,7 @@ public:
 
 	Ptr<CMesh>	GetSource(void) const;
 	Ptr<CMesh>	GetOutput(void);  //Kept until a modifier is added or Touch is called.
+	void		SetOutput(Ptr<CMesh> pOutput);  //The output, made elsewhere as the modifiers make it: a change.
 	void		Touch(void);  //Call this when a modifier's settings have changed.
 	void		ClearOutput(void);
 	void		Flatten(void);  //The output becomes the new source and the modifiers are removed.

@@ -73,6 +73,7 @@ public:
 	void		Collapse(void);
 
 	Ptr<CMesh>	GetOutput(void);
+	void		SetOutput(Ptr<CMesh> pOutput);  //Made elsewhere of the mesh as it is now (CMeshModifierStack::SetOutput).
 	void		ClearOutput(void);
 	size		NumStructureChanges(void) const;
 	size		NumShapeChanges(void) const;

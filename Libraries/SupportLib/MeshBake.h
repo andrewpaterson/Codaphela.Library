@@ -52,14 +52,20 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //pointers, which the caller holds for them: a texture's TextureSample (and a shape's Distance, which CSolidCavity asks)
 //must not copy, assign or let go of a Ptr, as those threads aren't registered to (StandardLib's ObjectsLock.h; a Debug
 //build says when one does).
+//
+//Stopping: a bake that finds *piStop not zero (another thread sets it, AtomicStore) bakes no more faces and returns
+//what it has, which isn't whole and is to be thrown away: for whoever asked for a bake that something newer has made
+//out of date before it's done.
 struct SMeshBakeSettings
 {
 	int				iSamples;  //Each way across the texel, spread evenly: the texel is their mean.
 	float32			fRelief;  //How strongly the texture's height shades its colour; 0 for not at all, 1 as the light would.
 	SFloat32Vec3	sLight;  //A unit, towards the light the relief is lit by, in the mesh's space.
 	CJobs*			pcJobs;  //What bakes the rows; NULL for the caller's thread.
+	int32*			piStop;  //Not zero to stop early; NULL for a bake that's never stopped.
 
-	void	Init(void);  //One sample, at the texel's centre; no relief; the caller's thread.
+	void	Init(void);  //One sample, at the texel's centre; no relief; the caller's thread; never stopped.
+	bool	IsStopped(void);
 };
 
 
@@ -93,7 +99,9 @@ Ptr<CImage> BakeMeshTexture(CMesh* pcMesh, int iLayer, CSolidTexture* pcTexture,
 //tilted normals are baked as well, the material's bump image and its levels (mpNormals the last level 0): neither renderer
 //reads them yet.
 //
-//SetJobs gives it threads to bake on (SMeshBakeSettings, Jobs).  They aren't saved with it.
+//SetJobs gives it threads to bake on (SMeshBakeSettings, Jobs), and SetStop what stops it early (SMeshBakeSettings,
+//Stopping): a stopped bake's mesh has what levels were baked by then, the last of them not whole.  Neither is saved
+//with it.
 class CMeshBake : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshBake);
@@ -107,11 +115,13 @@ public:
 	SFloat32Vec3		msLight;  //A unit.
 	bool				mbNormals;
 	CJobs*				mpcJobs;  //NULL to bake on the caller's thread.
+	int32*				mpiStop;  //NULL for never.
 
 	void		Init(Ptr<CSolidTexture> pTexture);
 	void		Class(void) override;
 
 	void		SetJobs(CJobs* pcJobs);
+	void		SetStop(int32* piStop);
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };

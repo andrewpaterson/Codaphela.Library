@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayUint32.h"
+#include "BaseLib/Atomic.h"
 #include "StandardLib/Objects.h"
 #include "ColourARGB32.h"
 #include "Material.h"
@@ -233,6 +234,17 @@ void SMeshBakeSettings::Init(void)
 	fRelief = 0.0f;
 	sLight.Init(0, 0, 1);
 	pcJobs = NULL;
+	piStop = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SMeshBakeSettings::IsStopped(void)
+{
+	return (piStop != NULL) && (AtomicLoad(piStop) != 0);
 }
 
 
@@ -404,7 +416,7 @@ static void MeshBakeBand(void* pvBand)
 	psBand = (SMeshBakeBand*)pvBand;
 	psBake = psBand->psBake;
 	uiNumFaces = psBake->pasFaces->NumElements();
-	for (uiFace = 0; uiFace < uiNumFaces; uiFace++)
+	for (uiFace = 0; (uiFace < uiNumFaces) && !psBake->psSettings->IsStopped(); uiFace++)
 	{
 		psFace = psBake->pasFaces->Get(uiFace);
 		if ((psFace->iTop <= psBand->iLastRow) && (psFace->iBottom >= psBand->iFirstRow))
@@ -651,6 +663,7 @@ void CMeshBake::Init(Ptr<CSolidTexture> pTexture)
 	msLight.Normalize();
 	mbNormals = false;
 	mpcJobs = NULL;
+	mpiStop = NULL;
 	PostInit();
 }
 
@@ -670,6 +683,7 @@ void CMeshBake::Class(void)
 	U_3Float32(msLight);
 	U_Bool(mbNormals);
 	U_Pointer(mpcJobs);
+	U_Pointer(mpiStop);
 }
 
 
@@ -680,6 +694,16 @@ void CMeshBake::Class(void)
 void CMeshBake::SetJobs(CJobs* pcJobs)
 {
 	mpcJobs = pcJobs;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshBake::SetStop(int32* piStop)
+{
+	mpiStop = piStop;
 }
 
 
@@ -776,6 +800,7 @@ Ptr<CMesh> CMeshBake::Modify(Ptr<CMesh> pMesh)
 	sSettings.fRelief = mfRelief;
 	sSettings.sLight = msLight;
 	sSettings.pcJobs = mpcJobs;
+	sSettings.piStop = mpiStop;
 	do
 	{
 		if (mbNormals)
@@ -796,7 +821,7 @@ Ptr<CMesh> CMeshBake::Modify(Ptr<CMesh> pMesh)
 			sSettings.iSamples *= 2;
 		}
 	}
-	while (!bLast);
+	while (!bLast && !sSettings.IsStopped());
 	auiTints.Kill();
 	mpImage = pMaterial->GetImage(MI_Diffuse)->mpImage;
 	mpNormals = pMaterial->GetImage(MI_Bump)->mpImage;
