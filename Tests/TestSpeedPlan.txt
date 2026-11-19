@@ -84,6 +84,11 @@ IDE checks the same passes and failures) as a run in one process.
    stop is named by its link's map (TestProject65AppendStop, AppendSymbol): the map goes with the image to the run.
    Programs that need one another's files (none known) would show as a difference in (d).  The times in the heading are
    still the plan's estimate: (a) comes first, on a machine no other session is using.
+   (a) measured 2026-11-19 (TestSupportLib65 W65C816, Release x64, TEST_PROJECT65_RUN_TIME, which leaves the frame check
+   out): 335 s in all, the compile 31 s, the 72 programs' runs 282 s (84%), their links and the rest 22 s; the longest
+   runs 34.6, 34.3 and 32.0 s.  The frame check about doubles a run (the same suite with it: 664 s).  With four workers
+   the runs would take about the longest few of them (~80 s), so the suite ~135 s without the frame check and ~200 s
+   with it.
 
 4. TestCPPW65C816: where its 309 s goes, then the biggest costs                       (unknown until measured)
    The plan said "compile Libc65 once per process", but a trivial build is 0.15 s a target, so that is small.  Instead:
