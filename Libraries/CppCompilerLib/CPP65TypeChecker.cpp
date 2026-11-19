@@ -1214,6 +1214,38 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 
 //////////////////////////////////////////////////////////////////////////
 //
+// c ? x : y as a place: x and y are lvalues of one type, which the result
+// is, with the const and volatile of both.  NULL, with why, if they aren't.
+// (One that picks between bit-fields isn't done.)  [expr.cond] 3, 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::ConditionalPlace(CCPPSyntaxConditionalExpression* pcConditional)
+{
+	SCPP65Type*	psTrue;
+	SCPP65Type*	psFalse;
+
+	psTrue = mpcUnit->PlaceOf(pcConditional->mpcTrue);
+	psFalse = mpcUnit->PlaceOf(pcConditional->mpcFalse);
+	if (!psTrue || !psFalse || mpcUnit->IsRvalue(pcConditional->mpcTrue) || mpcUnit->IsRvalue(pcConditional->mpcFalse) || !psTrue->Unqualified()->Same(psFalse->Unqualified()))
+	{
+		Error(pcConditional, "This is not an lvalue: the two results of ? : are not lvalues of one type");
+		return NULL;
+	}
+	if (mpcUnit->BitFieldOf(pcConditional->mpcTrue) || mpcUnit->BitFieldOf(pcConditional->mpcFalse))
+	{
+		Error(pcConditional, "c ? x : y that picks a bit-field to change is not supported by the compiler yet");
+		return NULL;
+	}
+	if (!Condition(pcConditional->mpcCondition) || !Place(pcConditional->mpcTrue) || !Place(pcConditional->mpcFalse))
+	{
+		return NULL;
+	}
+	return mpcTypes->Qualified(psTrue->Unqualified(), psTrue->bConst || psFalse->bConst, psTrue->bVolatile || psFalse->bVolatile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // c ? x : y with objects of the same class, or one derived from the other's
 // (CCPPUnit::ConditionalClass): an object of the class made from the
 // operand the condition picks.
@@ -2083,6 +2115,11 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		if (((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement)) && !pcUnary->mbPostfix && !mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//++x and --x are x, once it is stepped.  [expr.pre.incr] 1
+			return IncrementExpression(pcUnary) ? Place(pcUnary->mpcOperand) : NULL;
+		}
 		if (pcUnary->meOperator != CT_Multiply)
 		{
 			break;
@@ -2126,10 +2163,31 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		}
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
 		pcLeft = mpcUnit->SkipParentheses(pcBinary->mpcLeft);
-		if (mpcUnit->IsAssignmentOperator(pcBinary->meOperator) && (pcLeft->GetKind() == CPPS_IdExpression) && !mpcUnit->IsObject(pcLeft))
+		if (mpcUnit->IsAssignmentOperator(pcBinary->meOperator) && !mpcUnit->IsObject(pcLeft))
 		{
-			//&(c = 'A'): the assignment, then its variable's place.
+			//(x = y) and (x op= y) are x, once it is assigned.  [expr.ass] 1
 			return Assignment(pcBinary) ? Place(pcLeft) : NULL;
+		}
+		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma(pcBinary))
+		{
+			//(x, y) is y, once x is worked out.  [expr.comma] 1
+			return Value(pcBinary->mpcLeft) ? Place(pcBinary->mpcRight) : NULL;
+		}
+		break;
+
+	case CPPS_CastExpression:
+	case CPPS_NamedCastExpression:
+		//A cast to a reference is what it refers to.  [expr.static.cast] 1
+		if (Value(pcExpression, &psType) && psType->IsReference())
+		{
+			return psType->psBase;
+		}
+		break;
+
+	case CPPS_ConditionalExpression:
+		if (!mpcUnit->IsObject(pcExpression))
+		{
+			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression);
 		}
 		break;
 
@@ -2218,7 +2276,8 @@ SCPP65Type* CCPP65TypeChecker::ResultPlace(SCPP65Type* psType, CCPPSyntax* pcNod
 //
 // A cast to a reference, (T&)x or static_cast<T&&>(x): x itself as a T,
 // which is its own type (const taken away or not) or, for an object, a
-// base or a derived class of its class.  [expr.static.cast] 2, 3
+// base or a derived class of its class; any other type only by
+// reinterpret_cast, or by (T&)x.  [expr.static.cast] 2, 3
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ReferenceCast(SCPP65Type* psTo, CCPPSyntax* pcOperand, CCPPSyntax* pcNode)
@@ -2240,7 +2299,13 @@ SCPP65Type* CCPP65TypeChecker::ReferenceCast(SCPP65Type* psTo, CCPPSyntax* pcOpe
 	{
 		return psTo;
 	}
-	Error(pcNode, "A cast to a reference to another type is not supported by the compiler yet");
+	if ((pcNode->GetKind() == CPPS_CastExpression) || ((pcNode->GetKind() == CPPS_NamedCastExpression) && (((CCPPSyntaxNamedCastExpression*)pcNode)->meCast == CT_reinterpret_cast)))
+	{
+		//reinterpret_cast<T&>(x) is *reinterpret_cast<T*>(&x), and (T&)x is that where it can be nothing else.
+		//[expr.reinterpret.cast] 11, [expr.cast] 4
+		return psTo;
+	}
+	Error(pcNode, "This cast can't make a reference to another type: reinterpret_cast does");
 	return NULL;
 }
 

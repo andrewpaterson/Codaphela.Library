@@ -1012,6 +1012,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	CCPPBoundName					cBound;
 	CCPPSyntaxIdExpression*			pcId;
 	CCPPSyntaxUnaryExpression*		pcUnary;
+	CCPPSyntaxBinaryExpression*		pcBinary;
 	CCPPSyntaxSubscriptExpression*	pcSubscript;
 	SCPP65IRValue					sPointer;
 	SCPP65IRValue					sIndex;
@@ -1052,6 +1053,11 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		if (((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement)) && !pcUnary->mbPostfix && !mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//++x and --x are x, once it is stepped.  [expr.pre.incr] 1
+			return IncrementExpression(pcUnary, &sAddress, psPlace);
+		}
 		if (pcUnary->meOperator != CT_Multiply)
 		{
 			//-object, +object, ~object: the temporary its operator made.
@@ -1183,6 +1189,13 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			return MemberPointerPlace((CCPPSyntaxBinaryExpression*)pcExpression, psPlace);
 		}
 
+		//(x, y) is y, once x is worked out.  [expr.comma] 1
+		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
+		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma(pcBinary))
+		{
+			return Value(pcBinary->mpcLeft, &sAddress) && Place(pcBinary->mpcRight, psPlace);
+		}
+
 		//(x = y) and (x op= y) of a scalar are x's place after the assignment.
 		psType = mpcUnit->TypeOf(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft);
 		if (mpcUnit->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator) && psType && !psType->IsClass() &&
@@ -1210,6 +1223,10 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		//Any other cast is the object it makes, as below.
 	case CPPS_ConditionalExpression:
 		psType = mpcUnit->TypeOf(pcExpression);
+		if ((pcExpression->GetKind() == CPPS_ConditionalExpression) && psType && !psType->IsClass())
+		{
+			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression, psPlace);
+		}
 		if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
 		{
 			return Unsupported(__FILE__, __LINE__);

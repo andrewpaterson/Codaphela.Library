@@ -330,13 +330,14 @@ protected:
 	bool			TypeInfoCall(CCPPFunction* pcFunction, SIRReference sObject, CArrayIRReferences* pasArguments, SCPP65IRValue* psValue);
 	bool			VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* psPlace);
 	bool			UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue);
-	bool			IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue);
+	bool			IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue, SCPP65IRPlace* psStored = NULL);
 	bool			BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue);
 	bool			Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue, SCPP65IRPlace* psStored = NULL);
 	bool			Operand(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP65IRValue* psRight, SCPP65IRValue* psResult);
 	bool			Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP65IRValue* psRight, SIRReference* psCondition);
 	bool			ConditionalExpression(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRValue* psValue);
+	bool			ConditionalPlace(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRPlace* psPlace);
 	bool			ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRPlace* psInto, SCPP65IRValue* psValue);
 	bool			IsObjectCall(CCPPSyntax* pcExpression);
 	bool			IsObjectOf(CCPPSyntax* pcExpression, CCPPClass* pcClass);

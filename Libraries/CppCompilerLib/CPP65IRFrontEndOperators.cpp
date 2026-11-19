@@ -181,10 +181,11 @@ bool CCPP65IRFrontEnd::Operand(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 //////////////////////////////////////////////////////////////////////////
 //
 // ++x and --x give the new value, x++ and x-- the old one.  Pointers step by
-// the size of what they point to.
+// the size of what they point to.  psStored (if not NULL) gets the place
+// that was stepped: what ++x and --x are as lvalues.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue, SCPP65IRPlace* psStored)
 {
 	SCPP65IRPlace	sPlace;
 	SCPP65IRValue	sOld;
@@ -223,6 +224,10 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 	Store(&sPlace, &sNew);
 	BitFieldResult(&sPlace, &sNew);
 	*psValue = pcUnary->mbPostfix ? sOld : sNew;
+	if (psStored)
+	{
+		*psStored = sPlace;
+	}
 	return true;
 }
 
@@ -663,6 +668,57 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	{
 		psValue->sValue = IRNone();
 	}
+	StartBlock(pcEnd);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// c ? x : y of two lvalues of one type, as the place it is: x's or y's,
+// their addresses meeting in a phi.  [expr.cond] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ConditionalPlace(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRPlace* psPlace)
+{
+	CIRBlock*		pcTrue;
+	CIRBlock*		pcFalse;
+	CIRBlock*		pcEnd;
+	CIRBlock*		pcTrueEnd;
+	SCPP65IRPlace	sTrue;
+	SCPP65IRPlace	sFalse;
+
+	psPlace->psType = mpcUnit->PlaceTypeOf(pcConditional);
+	psPlace->psBitField = NULL;
+	if (!psPlace->psType)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+
+	pcTrue = NewBlock();
+	pcFalse = NewBlock();
+	pcEnd = NewBlock();
+	if (!Condition(pcConditional->mpcCondition, pcTrue, pcFalse))
+	{
+		return false;
+	}
+	//A temporary made by only one of them is destroyed only if it was made (Temporary).
+	miConditional++;
+	StartBlock(pcTrue);
+	if (!Place(pcConditional->mpcTrue, &sTrue))
+	{
+		return false;
+	}
+	pcTrueEnd = mpcBlock;
+	JumpTo(pcEnd);
+	StartBlock(pcFalse);
+	if (!Place(pcConditional->mpcFalse, &sFalse))
+	{
+		return false;
+	}
+	miConditional--;
+	JumpTo(pcEnd);
+	psPlace->sAddress = Phi(pcEnd, IRType(IRTK_Pointer), pcTrueEnd, sTrue.sAddress, mpcBlock, sFalse.sAddress);
 	StartBlock(pcEnd);
 	return true;
 }
