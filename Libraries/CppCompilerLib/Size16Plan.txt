@@ -172,6 +172,13 @@ Steps (a commit each, after the checks it lists)
    comparators, as at step 0; what the 0.8% is wasn't found (a step 0 profile to set beside it would say).
    For the user: whether the inliner should count a callee's copies (inline a callee at many calls only if that
    costs no more than its calls), and the *65 suites.
+   The user, 2026-11-19: both.  The inliner: CIRInliner::GrowsWithin, copies at all of a caller's calls of a callee
+   (less the call and arguments each replaces) within the one call limit.  OS.SYS 171170 (step 0 -9088), modplay.exe
+   751263 (step 0 -37494, -4.8%), the profile 3216321022 cycles (step 0 +1.6%); leaving calls in loops to the old rule
+   gave back almost none of the cycles (3215922757) for 2554 bytes of OS.SYS and 13529 of modplay, so every call counts.
+   The *65 suites (Release x64): TestBaseLib65's W65C816 run found CFileCopier::Copy's buffer malloc'd with a 64 bit
+   length narrowed to 16 bits (the copy then ran over it): the sweep had looked only for 32 bit values narrowed, and
+   with 64 bit ones too it finds only that, now malloc32.
 
 
 Risks

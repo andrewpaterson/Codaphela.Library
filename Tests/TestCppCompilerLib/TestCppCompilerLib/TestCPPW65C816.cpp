@@ -5905,6 +5905,56 @@ void TestCPP816NoInline(void)
 }
 
 
+//The function TestCPP816InlineCopies' program calls, natively for its result.
+static int TestCPP816InlineMix(int a, int b)
+{
+	return ((a * 3 + b) ^ (a >> 1)) + ((b * 5) ^ a) + (a & b) * 7;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function small enough to inline is still called when one caller calls
+// it from so many places that its copies would grow the caller past the
+// inline limit (CIRInliner::GrowsWithin: CTypeNames::Init's 43 calls of
+// AddType), and inlined where it is called once.  The results are as
+// natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816InlineCopies(void)
+{
+	static const char*	aszNone[] = { NULL };
+	CChars				szSource;
+	CChars				szListing;
+	int					i;
+	int					iExpected;
+
+	szSource.Init();
+	szSource.Append("static int Mix(int a, int b) { return ((a * 3 + b) ^ (a >> 1)) + ((b * 5) ^ a) + (a & b) * 7; }\n");
+	szSource.Append("static int Once(int a, int b) { return ((a * 3 + b) ^ (a >> 1)) + ((b * 5) ^ a) + (a & b) * 7; }\n");
+	szSource.Append("volatile int gi = 3;\n");
+	szSource.Append("int Many(void) { int s = 0;");
+	iExpected = 0;
+	for (i = 1; i <= 20; i++)
+	{
+		szSource.Append(" s += Mix(gi, ");
+		szSource.Append(i);
+		szSource.Append(");");
+		iExpected += TestCPP816InlineMix(3, i);
+	}
+	szSource.Append(" return s; }\n");
+	szSource.Append("int main(void) { return Many() + Once(gi, 9); }\n");
+	iExpected += TestCPP816InlineMix(3, 9);
+
+	szListing.Init();
+	AssertInt(iExpected, TestCPP816RunListed(szSource.Text(), aszNone, &szListing, NULL, 0, true));
+	AssertTrue(szListing.Contains("jsl _Mix__Fii"));
+	AssertFalse(szListing.Contains("jsl _Once__Fii"));
+	szListing.Kill();
+	szSource.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // typeid(x).name() is the type as the program writes it
@@ -6577,6 +6627,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816KeepUnusedObjects());
 	TEST_PART(TestCPP816TypeNames());
 	TEST_PART(TestCPP816NoInline());
+	TEST_PART(TestCPP816InlineCopies());
 	TEST_PART(TestCPP816StringRegisters());
 	TEST_PART(TestCPP816MathRegisters());
 	TEST_PART(TestCPP816WideMultiplies());
