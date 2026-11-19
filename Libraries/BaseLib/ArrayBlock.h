@@ -54,11 +54,20 @@ struct SArrayLargeSize
 	static const lsize	NotFound = ARRAY_LARGE_ELEMENT_NOT_FOUND;
 	static const bool	CheckSize = false;
 
+#if defined(__W65C816__)
+	//A large array can pass 64KB: Libc65's 32 bit functions.
+	static void*	Copy(void* pvDest, const void* pvSource, lsize uiBytes)	{ return memcpy32(pvDest, pvSource, uiBytes); }
+	static void*	Move(void* pvDest, const void* pvSource, lsize uiBytes)	{ return memmove32(pvDest, pvSource, uiBytes); }
+	static void*	Set(void* pvDest, int iValue, lsize uiBytes)			{ return memset32(pvDest, iValue, uiBytes); }
+	static int		Compare(const void* pv1, const void* pv2, lsize uiBytes)	{ return memcmp32(pv1, pv2, uiBytes); }
+	static void		Swap(const void* pv1, const void* pv2, lsize uiBytes)	{ MemSwp32(pv1, pv2, uiBytes); }
+#else
 	static void*	Copy(void* pvDest, const void* pvSource, lsize uiBytes)	{ return memcpy(pvDest, pvSource, uiBytes); }
 	static void*	Move(void* pvDest, const void* pvSource, lsize uiBytes)	{ return memmove(pvDest, pvSource, uiBytes); }
 	static void*	Set(void* pvDest, int iValue, lsize uiBytes)			{ return memset(pvDest, iValue, uiBytes); }
 	static int		Compare(const void* pv1, const void* pv2, lsize uiBytes)	{ return memcmp(pv1, pv2, uiBytes); }
 	static void		Swap(const void* pv1, const void* pv2, lsize uiBytes)	{ MemSwp(pv1, pv2, uiBytes); }
+#endif // __W65C816__
 };
 
 

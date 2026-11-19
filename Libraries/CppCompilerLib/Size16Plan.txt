@@ -86,6 +86,11 @@ Steps (a commit each, after the checks it lists)
    breaks yet.
    Checks: the *65 compiles (both targets), TestBaseLib65 816 for the array tests only (TEST_PROJECT65_ONLY), the
    host BASELIB_SIZE16 build if it builds today.
+   Built 2026-11-19: SArrayLargeSize's W65C816 branch, CSystemAllocator's malloc32 and realloc32, MemSwp32 (a second
+   label on the lsize body).  With a 32 bit size_t an lsize to size_t is no narrowing, so the warnings find nothing yet:
+   TEST_PROJECT65_WARN_NARROWING=1 (TestProject65.cpp) turns them on, and step 4 looks at them with size_t 16 bits.
+   Passed: the *65 compiles on both targets; TestBaseLib65 816's array, sorting and allocator tests (17 programs,
+   40204 asserts).  The host BASELIB_SIZE16 build is untouched (every change is __W65C816__'s).
 
 4. The switch (HCP65, CommonLibraries, HCP65-IDE in one go: apart, size_t and the asm disagree).
    - stddef.h: size_t unsigned int under __W65C816__; stdint.h SIZE_MAX 0xFFFF there.

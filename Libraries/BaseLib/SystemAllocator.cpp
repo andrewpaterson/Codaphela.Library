@@ -13,7 +13,12 @@
 #define SYSTEM_ALLOCATOR_USES_MALLOC
 #endif // __LIBC65__ || __SANITIZE_ADDRESS__
 
-#ifdef SYSTEM_ALLOCATOR_USES_MALLOC
+#if defined(__W65C816__)
+//Its sizes are lsize, which can pass a bank: malloc32's blocks of more than one take whole banks.
+#define SYSTEM_ALLOCATOR_MALLOC(uiSize)			malloc32(uiSize)
+#define SYSTEM_ALLOCATOR_REALLOC(pv, uiSize)	realloc32(pv, uiSize)
+#define SYSTEM_ALLOCATOR_FREE(pv)				free(pv)
+#elif defined(SYSTEM_ALLOCATOR_USES_MALLOC)
 #define SYSTEM_ALLOCATOR_MALLOC(uiSize)			malloc(uiSize)
 #define SYSTEM_ALLOCATOR_REALLOC(pv, uiSize)	realloc(pv, uiSize)
 #define SYSTEM_ALLOCATOR_FREE(pv)				free(pv)

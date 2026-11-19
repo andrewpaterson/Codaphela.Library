@@ -36,6 +36,7 @@ int			MemCmp(const void* pv1, size iLen1, const void* pv2, size iLen2);
 void		MemSwp(const void* pv1, const void* pv2, lsize uiLength);
 #if defined(__W65C816__)
 void		MemSwp16(const void* pv1, const void* pv2, size uiLength);  //Libc65's stringW65C816_16.asm.
+void		MemSwp32(const void* pv1, const void* pv2, lsize uiLength);  //Libc65's stringW65C816.asm, past 64KB.
 #endif // __W65C816__
 char*		StrRev(char* szString);
 char*		StrRev(char* szString, size iLength);
