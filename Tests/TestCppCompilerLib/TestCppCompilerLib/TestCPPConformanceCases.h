@@ -2800,4 +2800,34 @@ static const SConformanceCase gasConformanceStage10[] =
 		"typedef decltype(nullptr) nullptr_t;\n"
 		"int main() { nullptr_t n = nullptr; long l = (long)n; long m = reinterpret_cast<long>(nullptr); void* p = static_cast<void*>(n); return (l == 0) + (m == 0) * 2 + (p == 0) * 4; }\n"
 	},
+	//Found 2026-11-19 by a probe of library style code (CppParserTodo.txt): both had been refused.  The value of a call
+	//that returns a reference to a number or a pointer is what it refers to ([conv.lval]).  A static data member's
+	//address is taken through its class's name, a reference is bound to it, and a class template's constexpr one
+	//defined outside the class has the initialiser the class gave it, with the instance's arguments ([class.static.data]).
+	{
+		"ReferenceResultRead", 30317,
+		"int gi = 3;\n"
+		"int& same() { return gi; }\n"
+		"const long& pick(const long& a) { return a; }\n"
+		"struct V { int a[4]; int& at(int i) { return a[i]; } char c; char& ch() { return c; } };\n"
+		"int take(int v) { return v; }\n"
+		"int* gp = &gi;\n"
+		"int*& ptr() { return gp; }\n"
+		"int main() { V v; v.at(1) = 7; v.ch() = 'A'; long l = 40; int x = v.at(1); int r = same() + 1; if (same() == 3) { r += 10; } long m = same(); return r + take(same()) * 100 + x * 1000 + (int)pick(l) * 100 + (v.ch() == 'A') * 10000 + *ptr() * 3000 + (int)m; }\n"
+	},
+	{
+		"StaticMemberAddress", 32375,
+		"template<class T, T v> struct ic { static constexpr T value = v; };\n"
+		"template<class T, T v> constexpr T ic<T, v>::value;\n"
+		"template<class T> struct S { static constexpr int size = sizeof(T); static const int twice = sizeof(T) * 2; static int count; };\n"
+		"template<class T> constexpr int S<T>::size;\n"
+		"template<class T> const int S<T>::twice;\n"
+		"template<class T> int S<T>::count = 3;\n"
+		"struct N { static constexpr int k = 5; static int n; };\n"
+		"constexpr int N::k;\n"
+		"int N::n = 6;\n"
+		"const int& ref(const int& r) { return r; }\n"
+		"int main() { const int* p = &ic<int, 5>::value; const int* q = &N::k; int* c = &S<char>::count; int* n = &N::n; *c += 1; *n += 1;\n"
+		" return *p + ref(ic<int, 7>::value) * 10 + ref(S<char>::size) * 100 + ref(S<char>::twice) * 200 + *q * 1000 + S<char>::count * 2000 + N::n * 400 + (p == &ic<int, 5>::value) * 16000; }\n"
+	},
 };

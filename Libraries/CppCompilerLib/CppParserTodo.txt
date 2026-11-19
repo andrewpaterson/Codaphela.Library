@@ -549,8 +549,16 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
   And by a probe of library style code, 2026-11-19 (48 small programs, each checked with g++ first: traits by SFINAE,
   pair, tuple, smart pointers, allocator_traits, containers, function, bind; 8 compiled, on both targets).  Seen, not yet
   narrowed down; a case each for the conformance test when they are:
-    - A static constexpr member of a class template that uses a template parameter, used where it needs an address or
-      defined out of the class: "A template parameter used outside an instantiation".
+    - DONE 2026-11-19.  A static constexpr member of a class template that uses a template parameter, used where it
+      needs an address or defined out of the class: "A template parameter used outside an instantiation".  It was three
+      things: CCPPConstants worked out a class template instance's constexpr static member under no bindings (now the
+      class's); &Class::member of a static data member was refused for any class (CCPP65IRFrontEnd::UnaryExpression); and
+      the one below.  Conformance case StaticMemberAddress.
+    - DONE 2026-11-19, and the widest of them, found on the way: the value of a call that returns a reference to a
+      number or a pointer couldn't be used (int x = f(); return f(); g(f()); f() == 0, with int& f()), on both targets
+      and since before Part B: only its place could (f() = 1, &f(), int& r = f()), and an object's.
+      CCPP65IRFrontEnd::Value reads what it refers to ([conv.lval]).  Conformance case ReferenceResultRead; the
+      forwarding tests' ForwardPattern, listed as not done since stage 2, was waiting for it and passes.
     - decltype(...) as a default template argument: "Expected a name".
     - A partial specialisation chosen through void_t isn't chosen; ones on function types with const or an ellipsis,
       and on pointers to member functions, aren't matched; max<T> and max<T, U...> "match equally".

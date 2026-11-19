@@ -550,13 +550,14 @@ static void TestForwardingReferenceRejected(ECPPTarget eTarget)
 //////////////////////////////////////////////////////////////////////////
 //
 // What the compiler can't do yet is listed here for each target: take a
-// program off its list as the compiler does it.  ForwardPattern expands
-// Forward<Args>(args)..., a pattern that is more than the pack's name
-// (Part B stage 6 in CppParserTodo.txt).
+// program off its list as the compiler does it.  Nothing is listed now:
+// ForwardPattern, which passes Forward<Args>(args)... to an int parameter,
+// waited for the value of a call that returns a reference to a number
+// (2026-11-19), not for the pattern.
 //
 //////////////////////////////////////////////////////////////////////////
-#define TEST_CPP65_FORWARDING_NOT_DONE		"ForwardPattern(C) "
-#define TEST_CPP816_FORWARDING_NOT_DONE		"ForwardPattern(C) "
+#define TEST_CPP65_FORWARDING_NOT_DONE		""
+#define TEST_CPP816_FORWARDING_NOT_DONE		""
 
 void TestCPP65ForwardingReferences(void)
 {
