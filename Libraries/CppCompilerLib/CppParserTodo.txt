@@ -552,6 +552,11 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       final function) aren't reported for it.
     - InitializerList (CPP65IRFrontEndObjects.cpp) puts its backing array on no destruction list, so elements with
       destructors aren't destroyed, if that case compiles at all.
+  And by the exceptions work's stage 4 tests (2026-11-19, worked round):
+    - &typeid(T) is refused: "This lvalue is not supported by the compiler yet [typeid]" (binding it to a const
+      std::type_info& and taking that's address works).
+    - A pseudo-destructor call through a template parameter that is a built-in type, ((T*)pv)->~T() with T = int, is
+      refused: "Member functions need an object of a class".
   And by question 13's cases:
     - A string literal argument doesn't deduce: template<class T, int N> int Count(const T (&)[N]); Count("ab") says
       "The template argument is not a type the compiler supports" (a named const char a[] = "ab" deduces T and N).
