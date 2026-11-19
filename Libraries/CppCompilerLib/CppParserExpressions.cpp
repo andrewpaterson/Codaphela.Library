@@ -556,14 +556,7 @@ CCPPSyntaxTypeId* CCPPParser::CreateSimpleTypeId(CCPPSyntax* pcParent)
 		pcKeyword->meKeyword = eToken;
 		pcKeyword->SetTokens(CurrentToken(), CurrentToken());
 		pcType->mpcSpecifiers->macpSpecifiers.Add(pcKeyword);
-		if (eToken == CT_long)
-		{
-			pcType->mpcSpecifiers->miLongs++;
-		}
-		else
-		{
-			pcType->mpcSpecifiers->muiTypeKeywords |= CPPTK_INT;
-		}
+		pcType->mpcSpecifiers->CountTypeKeyword(eToken);
 		Next();
 	}
 	pcType->mpcSpecifiers->miLastToken = PreviousToken();

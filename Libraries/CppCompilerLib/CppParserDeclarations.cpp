@@ -1400,39 +1400,6 @@ static ECPPDeclSpecifierStep CPPSetTypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpe
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A simple type keyword counted in the specifiers.
-//
-//////////////////////////////////////////////////////////////////////////
-static void CPPCountTypeKeyword(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken)
-{
-	switch (eToken)
-	{
-	case CT_void:		pcSpecifiers->muiTypeKeywords |= CPPTK_VOID;		break;
-	case CT_bool:		pcSpecifiers->muiTypeKeywords |= CPPTK_BOOL;		break;
-	case CT_char:		pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR;		break;
-	case CT_wchar_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_WCHAR_T;		break;
-	case CT_char16_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR16_T;	break;
-	case CT_char32_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR32_T;	break;
-	case CT_short:		pcSpecifiers->muiTypeKeywords |= CPPTK_SHORT;		break;
-	case CT_int:		pcSpecifiers->muiTypeKeywords |= CPPTK_INT;			break;
-	case CT_long:		pcSpecifiers->miLongs++;							break;
-	case CT_signed:
-	case CT___signed__:	pcSpecifiers->muiTypeKeywords |= CPPTK_SIGNED;		break;
-	case CT_unsigned:	pcSpecifiers->muiTypeKeywords |= CPPTK_UNSIGNED;	break;
-	case CT_float:		pcSpecifiers->muiTypeKeywords |= CPPTK_FLOAT;		break;
-	case CT_double:		pcSpecifiers->muiTypeKeywords |= CPPTK_DOUBLE;		break;
-	case CT_auto:		pcSpecifiers->muiTypeKeywords |= CPPTK_AUTO;		break;
-	case CT___int8:		pcSpecifiers->muiTypeKeywords |= CPPTK_INT8;		break;
-	case CT___int16:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT16;		break;
-	case CT___int32:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT32;		break;
-	case CT___int64:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT64;		break;
-	default:																break;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The specifier a keyword, eToken, starts.  CPPDSS_Stop if it doesn't start
 // one (or another type can't be here).
 //
@@ -1450,7 +1417,7 @@ ECPPDeclSpecifierStep CCPPParser::ParseKeywordDeclSpecifier(CCPPSyntaxDeclSpecif
 	}
 	if (IsSimpleTypeKeyword(eToken))
 	{
-		CPPCountTypeKeyword(pcSpecifiers, eToken);
+		pcSpecifiers->CountTypeKeyword(eToken);
 		AddKeywordSpecifier(pcSpecifiers, eToken);
 		*pbType = true;
 		return CPPDSS_Next;
