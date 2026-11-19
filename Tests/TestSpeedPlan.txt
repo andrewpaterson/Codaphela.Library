@@ -132,6 +132,14 @@ IDE checks the same passes and failures) as a run in one process.
       text's hash and the options.
    c. Check: the same 3203 tests pass; nothing is tested less (a lockstep run removed is listed in the commit with why).
    Questions: any lockstep run to drop goes to the user first.
+   DONE 2026-11-19.  (a) Its calls' times are RunParallel.py's (Output/RunParallel.times, from TEST_PART_TIMES): of
+   TestCPPW65C816's 267 s, TestCPP816TestBaseLibBugs was 145 s and TestCPP816SizeLsizeBugs 87 s (87%), the next 4 s.
+   Between them they build eight programs with all of BaseLib (TestCPP816RunProject's bBaseLib), ~29 s each, as the
+   builder compiled BaseLib's units one at a time.  (b) TestCPP816RunProject gives a whole-BaseLib build a
+   CWorkerThreadJobs (CCPP65Builder::SetJobs), as TestProject65's compile has: they are 54 s and 35 s now, the file
+   125 s, and RunParallel 156 s -> 124 s (its longest process is no longer TestCPP816TestBaseLibBugs).  Nothing tested
+   less, no lockstep run touched: 268694 passed as before.  The object cache across those eight builds would save
+   ~40 s of CPU but not of wall time (other files are the longest processes now): not done.
 
 5. The sweep: build while the last suite runs                                        ~3.5 h -> ~1.5 h with 1 and 6
    Planned in detail 2026-11-19 (the user: "Plan step 5 please").

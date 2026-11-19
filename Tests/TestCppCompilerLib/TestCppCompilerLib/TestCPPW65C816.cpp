@@ -17,6 +17,7 @@
 #include "Assembler65Lib/Asm65Memory.h"
 #include "CppCompilerLib/CPP65Builder.h"
 #include "CppCompilerLib/IRW65C816Backend.h"
+#include "ThreadLib/WorkerThreadJobs.h"
 #include "CppCompilerLib/CPP65IRFrontEnd.h"
 #include "CppCompilerLib/CPPUnit.h"
 #include "TestLib/Assert.h"
@@ -172,6 +173,7 @@ struct STestCPP816Memory
 int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const char* szSource, bool bLockstep = false, uint32* puiResults = NULL, size uiResults = 0, size uiMaxSteps = TEST_CPP816_STEPS, bool bBaseLib = false, STestCPP816Memory* psMemory = NULL)
 {
 	CCPP65Builder	cBuilder;
+	CWorkerThreadJobs	cJobs;
 	CAsm65Memory	cMemory;
 	CFastW65C816		cFast;
 	CChars			szMissing;
@@ -185,6 +187,13 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 	iResult = -1000000;
 	cBuilder.Init();
 	cBuilder.SetTarget(CPPT_W65C816);
+	if (bBaseLib)
+	{
+		//All of BaseLib is compiled on the hardware's threads (it builds the same as one at a time), as the *65 suites'
+		//is: one at a time it was ~29 s a program (Tests/TestSpeedPlan.txt step 4).
+		cJobs.Init();
+		cBuilder.SetJobs(&cJobs);
+	}
 	TestCPP65AddIncludeDirectories(&cBuilder);
 	bResult = cBuilder.AddStartUp();
 	szProject.Init(".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65");
@@ -271,6 +280,10 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 		cMemory.Kill();
 	}
 	cBuilder.Kill();
+	if (bBaseLib)
+	{
+		cJobs.Kill();
+	}
 	return iResult;
 }
 
