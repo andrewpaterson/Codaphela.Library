@@ -852,7 +852,8 @@ bool CMarkupTag::AddBooleanAttribute(bool bValue)
 //////////////////////////////////////////////////////////////////////////
 bool CMarkupTag::AddNullAttribute(char* szAttribute, bool bAllowDuplicates)
 {
-	bool			bExists;
+	char*	szAllocatedName;
+	bool	bExists;
 
 	if (!bAllowDuplicates)
 	{
@@ -863,8 +864,9 @@ bool CMarkupTag::AddNullAttribute(char* szAttribute, bool bAllowDuplicates)
 		}
 	}
 
+	szAllocatedName = MallocString(szAttribute);
 
-	mcAttributes.Add(NULL, PT_void, szAttribute);
+	mcAttributes.Add(NULL, PT_void, szAllocatedName);
 	return true;
 }
 

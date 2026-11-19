@@ -195,6 +195,34 @@ void TestJSONParserReadAttributes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A null attribute's name is the tag's own copy, as every attribute's is: the tag frees it, not the caller's.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestJSONParserNullAttribute(void)
+{
+	CMarkup			cMarkup;
+	CMarkupTag*		pcTag;
+	char			szTag[] = "widget";
+	char			szName[] = "parent";
+	CChars			sz;
+
+	cMarkup.Init();
+	pcTag = cMarkup.mpcDoc->SetRootTag(szTag);
+	AssertTrue(pcTag->AddNullAttribute(szName, true));
+	szName[0] = 'X';
+	AssertTrue(pcTag->GetAttribute("parent", NULL, NULL));
+
+	sz.Init();
+	cMarkup.Print(&sz);
+	AssertString("<widget parent=null/>\n", sz.Text());
+	sz.Kill();
+
+	cMarkup.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestJSONParser65816SampleTest(void)
@@ -303,6 +331,7 @@ void TestJSONParser(void)
 	TestJSONParserRead1();
 	TestJSONParserRead2();
 	TestJSONParserReadAttributes();
+	TestJSONParserNullAttribute();
 	TestJSONParser65816SampleTest();
 
 	DataMemoryKill();
