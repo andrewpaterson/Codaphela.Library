@@ -770,3 +770,69 @@ Progress
        TestBaseLib65 on both processors, TestStandardLib65 on both, TestSupportLib65 on the 65C64.  TestSupportLib65 on
        the W65C816 was stopped by the machine running low on memory (not a failure of the run) and is still to be made.
 
+  The user, 2026-11-19: "Go ahead with stage 3 as suggested".
+
+  3. Done but for 3d and HCP65's own start-up, which wait for stage 6 (b75d9fc0b 3a and 3b, 5254454cc 3c).
+     - 3a, the exits.
+       - W65C816: a throw's exit is the function's own with sec before the rtl.  Not as planned: the clc at the other
+         exits is not written where each exit is written but by one pass over the function's finished text
+         (IR816ClearExitCarries, at the end of GenerateFunction and again at the end of FinishFunction, after AlignFrame
+         and TidyExits): every rtl gets a clc unless the lines before it are the usual exit's clc, adc n, tcs and then
+         only loads, transfers and pld (the carry is clear already), or a sec (a throw), or the pha or sta [S + 1] of a
+         call through a pointer.  So DropFrame, AlignFrame, TidyExits and the flow linker match the same text as before
+         with the option off, and only TidyExits and the flow linker learnt anything (the sec of a throw's exit).  jsl
+         and jsr are not marked as setting the carry: it would change what the peepholes do with the option off, and
+         they already take the carry to be read at a jsl (it leaves the code).
+       - 65C64: as planned.  cmp S, S and add S, 0 assemble and do what the simulator's notes say; ret leaves the
+         flags.  The flag passes are told that ret reads c (CIR65Code::SetReturnReadsCarry) only with the option on.
+       - A forwarder (W65C816) only jumps to a function compiled in the same unit when the option is on: another
+         unit's may be assembly declared noexcept, which leaves the carry as it falls, and the jump would hand that to
+         the forwarder's caller.  This costs forwarders across units; stage 9 measures it.
+       - The thunks (this-adjusting and virtual call, both targets) end in a jump into the function, whose exit sets
+         the carry: read again, not changed, and not run through by a test of this stage.
+     - 3b, the test after a call.
+       - W65C816: the thrown stays in the carry for the block's brif (bcs or bcc) when the brif is all that reads it,
+         the arguments are 8 bytes or fewer (they are pulled with ply, which keeps the carry: IR816_CARRY_PULL_BYTES)
+         and the result is stored on the direct page.  Not as planned: in every other case the thrown is made a word
+         in a scratch word straight after the jsl (ldy 0, bcc, iny, sty), before S is moved, and read from there; no
+         code is put after the function's last block.  About 16 cycles a call against 3; stage 9 says whether the
+         out-of-line form is worth writing.
+       - 65C64: as planned (a bras c straight after the jsr to code after the function's ret that removes the
+         arguments, does the edge's copies and goes to the landing block), for every tested call whatever was pushed.
+         Not as planned: a thrown that isn't the last thing in its block, read by its brif alone, is made so before
+         the code is written (CIRBackendPasses::IsolateThrowns: the old thrown becomes a phi of 1 and 0), so the back
+         end knows one shape.
+       - The register stubs that call their body: as planned, on both.
+       - CIRBackend::BranchComparison never hands a thrown to a comparison's code: thrown's result is its type's
+         (IRRS_Same), not IRRS_I1.
+     - 3c, the start-ups: the two the compiler writes test the carry after main when the option is on (bExceptions
+       of CCPPTarget::AppendStartUp) and call ___Terminate through a weak reference, or stop.  Not done: HCP65's
+       UserStart.asm.  It is one file for every program, and a program built without exceptions returns from main
+       with the carry as it falls, so the test can't be there for all; how it is told (a second file, or a symbol the
+       build defines) is question 15.
+     - 3d, the builder's check of assembly: not done here.  Nothing compiled from C++ writes a tested call until
+       stage 6, so the list of tested symbols and the check would have had no program to be tried on.  It is stage
+       6's, where the front end knows which calls it tests.
+     - 3e, the tests: TestIR816BackendExceptions (TestIRW65C816Backend.cpp; each program runs on both processors):
+       a throw through one frame and two, a loop that takes both ways of three tested calls with 4, 12 and 20 bytes
+       of arguments, a thrown read as a value, a call through a pointer, frames with locals and without, register
+       functions with and without a stub that pushes, the W65C816's stub that calls its body, a function that ends
+       with a comparison (which sets the carry) and returns with it clear; the assembly of each kind asserted on
+       both; the option off writes none of it; IR816TidyExits and IR816ClearExitCarries on text.  IsolateThrowns in
+       TestIRThrown.  TestCppCompilerLib passes (268976, RunParallel.py); the conformance test's Exceptions group,
+       which is built with the option, runs through the new start-ups.
+     - With the option on, a program that throws nothing: TEST_PROJECT65_EXCEPTIONS (CompilerMeasure.py
+       --exceptions) builds the Lib65 suites' programs with it.  TestBaseLib65 passes so on both processors (raw
+       outputs in D:\gameengine-exceptions\Stage3\on): 65C64 6969484032 cycles (+0.54%) and 21994351 bytes (+0.46%),
+       W65C816 26701250791 (+0.03%) and 85775222 (+0.05%).  The 65C64 pays an add S, 0 at every exit of a function
+       with no frame.  One assert fewer on the 65C64 (163824): TestTrueMallocator allocates until memory runs out and
+       the image is bigger.  The other two suites were not run with it on.
+     - With the option off nothing changed: the same cycles and bytes as the second baseline, to the last digit, in
+       D:\gameengine-exceptions\Stage3\off: TestBaseLib65 and TestStandardLib65 on both processors, TestSupportLib65
+       on the 65C64 and on the W65C816 (which also settles the run stage 2 was left without: the back ends changed since, the IR passes didn't).
+
+  Question 15 (added with stage 3, for the user): HCP65's UserStart.asm is one start-up for every user program.  With
+  exceptions it must test the carry after main; without, it must not.  Assumed: the build gives the assembler a symbol
+  when the configuration has Exceptions on, and UserStart.asm tests it (an .if), so there is one file; done in stage 6,
+  when a program can first be built that throws.
+
