@@ -685,7 +685,7 @@ char* CMarkupTag::MallocString(char* szSource)
 	szAllocatedString = (char*)pcMalloc->Malloc(uiLength);
 	if (szAllocatedString)
 	{
-		memcpy32(szAllocatedString, szSource, uiLength);
+		memcpy(szAllocatedString, szSource, uiLength);
 	}
 
 	return szAllocatedString;

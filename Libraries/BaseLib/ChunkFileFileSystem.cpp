@@ -1,5 +1,4 @@
 #include "ChunkFileFileSystem.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -357,8 +356,8 @@ bool CChunkFileFileSystem::ReadChunkBeginFrom(CArrayChars* paszChunkNames, size 
 
 	uiFrom = uiDepth;
 	uiLength = paszChunkNames->NumElements();
-	abFoundFirst = (bool*)malloc32((lsize)sizeof(bool) * uiLength);
-	memset32(abFoundFirst, 0, (lsize)sizeof(bool) * uiLength);
+	abFoundFirst = (bool*)malloc((lsize)sizeof(bool) * uiLength);
+	memset(abFoundFirst, 0, (lsize)sizeof(bool) * uiLength);
 
 	for (;;)
 	{

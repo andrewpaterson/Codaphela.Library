@@ -22,7 +22,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageResampleChannel.h"
 #include "ImageResampleBilinear.h"
 #include "ImageResampleSmart.h"
-#include "BaseLib/Memory32.h"
 
 
 #define SMART_CORNERS		4
@@ -60,9 +59,9 @@ bool SSmartSource::Init(Ptr<CImage> pSource)
 
 	uiNumChannels = pSource->NumChannels();
 	uiNumPixels = (lsize)pSource->GetWidth() * pSource->GetHeight();
-	papafValues = (float64**)malloc32((lsize)sizeof(float64*) * (uiNumChannels + 1));
-	pafScales = (float64*)malloc32((lsize)sizeof(float64) * (uiNumChannels + 1));
-	pabCompared = (bool*)malloc32((lsize)sizeof(bool) * (uiNumChannels + 1));
+	papafValues = (float64**)malloc((lsize)sizeof(float64*) * (uiNumChannels + 1));
+	pafScales = (float64*)malloc((lsize)sizeof(float64) * (uiNumChannels + 1));
+	pabCompared = (bool*)malloc((lsize)sizeof(bool) * (uiNumChannels + 1));
 
 	uiRed = pSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_RED);
 	uiGreen = pSource->GetChannels()->GetIndexOfChannel(IMAGE_DIFFUSE_GREEN);
@@ -71,7 +70,7 @@ bool SSmartSource::Init(Ptr<CImage> pSource)
 
 	for (uiChannel = 0; uiChannel < uiNumChannels; uiChannel++)
 	{
-		papafValues[uiChannel] = (float64*)malloc32(sizeof(float64) * (uiNumPixels + 1));
+		papafValues[uiChannel] = (float64*)malloc(sizeof(float64) * (uiNumPixels + 1));
 		cChannel.Init(pSource, uiChannel);
 		cChannel.GetFloats(papafValues[uiChannel]);
 
@@ -266,10 +265,10 @@ bool ResampleSmart(Ptr<CImage> pSource, Ptr<CImage> pDest)
 	sY.Init(pSource->GetHeight(), uiDestHeight);
 	sSource.Init(pSource);
 
-	papafDest = (float64**)malloc32((lsize)sizeof(float64*) * (sSource.uiNumChannels + 1));
+	papafDest = (float64**)malloc((lsize)sizeof(float64*) * (sSource.uiNumChannels + 1));
 	for (uiChannel = 0; uiChannel < sSource.uiNumChannels; uiChannel++)
 	{
-		papafDest[uiChannel] = (float64*)malloc32(sizeof(float64) * uiDestWidth * uiDestHeight);
+		papafDest[uiChannel] = (float64*)malloc(sizeof(float64) * uiDestWidth * uiDestHeight);
 	}
 
 	for (y = 0; y < uiDestHeight; y++)

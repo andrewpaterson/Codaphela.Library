@@ -25,7 +25,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "ImageCopier.h"
 #include "BMPWriter.h"
-#include "BaseLib/Memory32.h"
 
 
 #define BMP_FILE_HEADER_SIZE		14
@@ -155,7 +154,7 @@ bool SaveBMP(Ptr<CImage> pImage, char* szPathName)
 	}
 
 	uiNumChannels = (bGrey ? 1 : 3) + (bAlpha ? 1 : 0);
-	pvPixels = (uint8*)malloc32((lsize)iWidth * iHeight * uiNumChannels);
+	pvPixels = (uint8*)malloc((lsize)iWidth * iHeight * uiNumChannels);
 	if (bGrey && bAlpha)
 	{
 		cImageExport.Init(iWidth, iHeight, pvPixels, PT_uint8, IMAGE_DIFFUSE_GREY, IMAGE_OPACITY, CHANNEL_STOP);

@@ -170,6 +170,30 @@ typedef uint128			ulongint;
 #endif
 
 
+#if defined(__W65C816__)
+#include <string.h>
+#include <stdlib.h>
+//On the W65C816 size_t is 16 bits, so the C library's memcpy, malloc and the others take at most 65535 bytes, and Libc65
+//has 32 suffixed ones for more (memcpy32, malloc32 ...).  An lsize is a count that can pass 64KB, so a call with one is
+//a call of the 32 suffixed function: these overloads choose by the count's type, and no call says which it wants.  A
+//size, a size_t or a sizeof is the C library's own function (an exact match, which is chosen before a template); any
+//other type gets the function its width needs, so a long, or a constant made with KB or MB (a long long), is the 32
+//suffixed one's, and an int's (a literal, a char, a short) the C library's.  The user, 2026-11-19, of the ways a
+//wide count could reach them: "Overloads", and of the calls then named memcpy32 and the like: "Please fix to
+//overloads".  (What is returned can't choose: a string's whole length is strlen32, Memory32.h's on the other targets.)
+#define LARGE_COUNT(T)	(sizeof(T) > sizeof(size_t))
+template<class T> inline void*	memcpy(void* pvDest, const void* pvSource, T uiBytes)	{ return LARGE_COUNT(T) ? memcpy32(pvDest, pvSource, (lsize)uiBytes) : memcpy(pvDest, pvSource, (size_t)uiBytes); }
+template<class T> inline void*	memmove(void* pvDest, const void* pvSource, T uiBytes)	{ return LARGE_COUNT(T) ? memmove32(pvDest, pvSource, (lsize)uiBytes) : memmove(pvDest, pvSource, (size_t)uiBytes); }
+template<class T> inline void*	memset(void* pvDest, int iValue, T uiBytes)				{ return LARGE_COUNT(T) ? memset32(pvDest, iValue, (lsize)uiBytes) : memset(pvDest, iValue, (size_t)uiBytes); }
+template<class T> inline int	memcmp(const void* pv1, const void* pv2, T uiBytes)		{ return LARGE_COUNT(T) ? memcmp32(pv1, pv2, (lsize)uiBytes) : memcmp(pv1, pv2, (size_t)uiBytes); }
+template<class T> inline void*	memchr(const void* pv, int iValue, T uiBytes)			{ return LARGE_COUNT(T) ? memchr32(pv, iValue, (lsize)uiBytes) : memchr(pv, iValue, (size_t)uiBytes); }
+template<class T> inline void*	malloc(T uiBytes)										{ return LARGE_COUNT(T) ? malloc32((lsize)uiBytes) : malloc((size_t)uiBytes); }
+template<class T> inline void*	realloc(void* pv, T uiBytes)							{ return LARGE_COUNT(T) ? realloc32(pv, (lsize)uiBytes) : realloc(pv, (size_t)uiBytes); }
+//calloc32 when either the count or the size is wider than a size_t.
+template<class C, class B> inline void*	calloc(C uiCount, B uiBytes)					{ return (LARGE_COUNT(C) || LARGE_COUNT(B)) ? calloc32((lsize)uiCount, (lsize)uiBytes) : calloc((size_t)uiCount, (size_t)uiBytes); }
+#endif // __W65C816__
+
+
 
 #endif // __PRIMITIVE_TYPES_H__
 

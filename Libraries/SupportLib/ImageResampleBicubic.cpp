@@ -22,7 +22,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CatmullRom.h"
 #include "ImageResampleChannel.h"
 #include "ImageResampleBicubic.h"
-#include "BaseLib/Memory32.h"
 
 
 #define BICUBIC_TAPS		4
@@ -58,8 +57,8 @@ void SBicubicAxis::Init(uint32 uiSourceSize, uint32 uiDestSize)
 	int32*		paiTaps;
 	float64*	pafTaps;
 
-	paiPixels = (int32*)malloc32(sizeof(int32) * BICUBIC_TAPS * (uiDestSize + 1));
-	pafWeights = (float64*)malloc32(sizeof(float64) * BICUBIC_TAPS * (uiDestSize + 1));
+	paiPixels = (int32*)malloc(sizeof(int32) * BICUBIC_TAPS * (uiDestSize + 1));
+	pafWeights = (float64*)malloc(sizeof(float64) * BICUBIC_TAPS * (uiDestSize + 1));
 
 	iLast = (int32)uiSourceSize - 1;
 	for (d = 0; d < uiDestSize; d++)
@@ -117,7 +116,7 @@ void ResampleBicubicFloats(float64* pafSource, uint32 uiSourceWidth, uint32 uiSo
 	uint32		x;
 	uint32		y;
 
-	pafRows = (float64*)malloc32(sizeof(float64) * uiDestWidth * uiSourceHeight);
+	pafRows = (float64*)malloc(sizeof(float64) * uiDestWidth * uiSourceHeight);
 	for (y = 0; y < uiSourceHeight; y++)
 	{
 		pafSourceRow = &pafSource[(lsize)y * uiSourceWidth];
@@ -195,8 +194,8 @@ bool ResampleBicubic(Ptr<CImage> pSource, Ptr<CImage> pDest)
 		bResult = cDestChannel.Init(pDest, uiChannel);
 		if (bResult)
 		{
-			pafSource = (float64*)malloc32(sizeof(float64) * cSourceChannel.NumPixels());
-			pafDest = (float64*)malloc32(sizeof(float64) * cDestChannel.NumPixels());
+			pafSource = (float64*)malloc(sizeof(float64) * cSourceChannel.NumPixels());
+			pafDest = (float64*)malloc(sizeof(float64) * cDestChannel.NumPixels());
 			cSourceChannel.GetFloats(pafSource);
 			ResampleBicubicFloats(pafSource, uiSourceWidth, uiSourceHeight, pafDest, uiDestWidth, uiDestHeight, &sX, &sY);
 			cDestChannel.SetFloats(pafDest);

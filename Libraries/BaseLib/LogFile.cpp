@@ -28,7 +28,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DiskFile.h"
 #include "ConstructorCall.h"
 #include "LogFile.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -653,7 +652,7 @@ bool CLogFile::ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void*
 	}
 
 	pvDest = RemapSinglePointer(psWrite->GetData(), (ptrdiff)(iPosition - psWrite->iPosition));
-	memcpy32(pvDest, (void*)pvSource, iLength);
+	memcpy(pvDest, (void*)pvSource, iLength);
 	psWrite->iSize = uiNewSize;
 	return true;
 }
@@ -715,11 +714,11 @@ bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping,
 		psWrite = (CLogFileCommandWrite*)macCommands.Get(iIndex);
 		pvDest = RemapSinglePointer(pvData, (ptrdiff)(psWrite->iPosition - iStart));
 		pvNewSource = RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite));
-		memcpy32(pvDest, pvNewSource, psWrite->iSize);
+		memcpy(pvDest, pvNewSource, psWrite->iSize);
 	}
 
 	pvDest = RemapSinglePointer(pvData, (ptrdiff)(iPosition - iStart));
-	memcpy32(pvDest, (void*)pvSource, iLength);
+	memcpy(pvDest, (void*)pvSource, iLength);
 
 	//Remove all the old overlapping chunks.
 	i = papvOverlapping->NumElements();
@@ -841,7 +840,7 @@ lsize CLogFile::ReadFirstTouchingWrites(size uiWriteIndex, void* pvDest, lsize i
 		if (bHoles)
 		{
 			//Holes past the end of the backing file read as zeros, as they do in a disk file.
-			memset32(pvDest, 0, iByteSize);
+			memset(pvDest, 0, iByteSize);
 			ReadFromBackingFile(pvDest, iSize, iCount);
 		}
 
@@ -852,7 +851,7 @@ lsize CLogFile::ReadFirstTouchingWrites(size uiWriteIndex, void* pvDest, lsize i
 	else
 	{
 		//Writes or a truncation elsewhere can make the file longer than the backing file.  The rest reads as zeros and Read limits it to the file length.
-		memset32(pvDest, 0, iByteSize);
+		memset(pvDest, 0, iByteSize);
 		if (miBackingFileLength != 0)
 		{
 			ReadWithNoTouchingWrites(pvDest, iSize, iCount);
@@ -930,7 +929,7 @@ void CLogFile::CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, lsize iByt
 		pvSource = RemapSinglePointer(pvData, (ptrdiff)iSourceOffset);
 		pvNewDest = RemapSinglePointer(pvDest, (ptrdiff)iDestOffset);
 
-		memcpy32(pvNewDest, pvSource, iLength);
+		memcpy(pvNewDest, pvSource, iLength);
 	}
 }
 
@@ -1285,7 +1284,7 @@ bool CLogFile::Truncate(filePos iSize)
 		{
 			return false;
 		}
-		memset32(RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite)), 0, uiGrowth);
+		memset(RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite)), 0, uiGrowth);
 		miLength = iSize;
 	}
 	else if (iSize < miLength)

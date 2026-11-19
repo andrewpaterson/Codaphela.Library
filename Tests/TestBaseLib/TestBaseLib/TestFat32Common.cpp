@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "TestFat32Common.h"
-#include "BaseLib/Memory32.h"
 
 
 
@@ -15,7 +14,7 @@ char* AllocateStringBuffer(lsize uiSize)
 	char	c;
 	lsize	i;
 
-	szSource = (char*)malloc32(uiSize);
+	szSource = (char*)malloc(uiSize);
 	c = 'A';
 	for (i = 0; i < uiSize; i++)
 	{
@@ -48,8 +47,8 @@ void CFatTestDrive::Init(uint64 uiSectors)
 	CFileDrive::Init(512);
 	muiMaxSector = uiSectors;
 	muiPages = (uint32)((uiSectors + FAT_TEST_PAGE_SECTORS - 1) / FAT_TEST_PAGE_SECTORS);
-	mapuiPages = (uint8**)malloc32(muiPages * sizeof(uint8*));
-	memset32(mapuiPages, 0, muiPages * sizeof(uint8*));
+	mapuiPages = (uint8**)malloc(muiPages * sizeof(uint8*));
+	memset(mapuiPages, 0, muiPages * sizeof(uint8*));
 	mbImage = false;
 	muiImageSectors = 0;
 	muiWrites = 0;
@@ -135,8 +134,8 @@ uint8* CFatTestDrive::GetPage(uint32 uiPage, bool bWrite)
 		{
 			return NULL;
 		}
-		mapuiPages = (uint8**)realloc32(mapuiPages, (uiPage + 1) * sizeof(uint8*));
-		memset32(&mapuiPages[muiPages], 0, (uiPage + 1 - muiPages) * sizeof(uint8*));
+		mapuiPages = (uint8**)realloc(mapuiPages, (uiPage + 1) * sizeof(uint8*));
+		memset(&mapuiPages[muiPages], 0, (uiPage + 1 - muiPages) * sizeof(uint8*));
 		muiPages = uiPage + 1;
 	}
 

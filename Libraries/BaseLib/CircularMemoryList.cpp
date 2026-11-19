@@ -25,7 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerRemapper.h"
 #include "Chars.h"
 #include "CircularMemoryList.h"
-#include "Memory32.h"
 
 
 //I don't understand
@@ -138,7 +137,7 @@ void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, lsize uiCacheSi
 		do
 		{
 			uiSize = miDescriptorSize + psCacheBasedDescriptor->GetSize();
-			memcpy32(psNew, psCacheBasedDescriptor, uiSize);
+			memcpy(psNew, psCacheBasedDescriptor, uiSize);
 
 			psNew->ClearNext();
 			psNew->SetPrev(MapFromCacheBasedToZeroBased(pvNewCache, psNewPrev));
@@ -231,7 +230,7 @@ void CCircularMemoryList::RemapSameMemory(lsize uiCacheSize)
 		{
 			psNew = (SMemoryCacheDescriptor*)mpvCache;
 		}
-		memcpy32(psNew, psCacheBasedDescriptor, uiSize);
+		memcpy(psNew, psCacheBasedDescriptor, uiSize);
 
 		psLargest->SetNext(MapFromCacheBasedToZeroBased(psNew));
 		psNew->SetPrev(MapFromCacheBasedToZeroBased(psLargest));
@@ -264,7 +263,7 @@ void CCircularMemoryList::Clear(bool bZeroMemory)
 	mpsDetail->mpsHead = NULL;
 	if (bZeroMemory)
 	{
-		memset32(mpvCache, 0, mpsDetail->muiCacheSize);
+		memset(mpvCache, 0, mpsDetail->muiCacheSize);
 	}
 }
 

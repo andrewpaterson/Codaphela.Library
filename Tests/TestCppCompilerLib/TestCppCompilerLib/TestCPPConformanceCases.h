@@ -2743,6 +2743,18 @@ static const SConformanceCase gasConformanceStage10[] =
 		"int main() { int ai[4]; int* p = &ai[3]; int* q = &ai[0];\n"
 		" return Same<decltype(sizeof(int)), size_t>::V + Same<decltype(p - q), ptrdiff_t>::V * 2 + Same<decltype(offsetof(S, b)), size_t>::V * 4 + (p - q == 3) * 8; }\n"
 	},
+	//A function that isn't a template's is called rather than a template's instance that takes the arguments no better;
+	//the instance when it converts one better and none worse ([over.match.best] 1).  The first f is the function's though
+	//its pointer is converted, as the instance's is.  (BaseLib's memcpy and malloc overloads on the W65C816 lean on it.)
+	{
+		"TemplateOrFunction", 19121,
+		"int f(const void* p, unsigned n) { return 1; }\n"
+		"template<class T> int f(const void* p, T n) { return 2; }\n"
+		"template<class T> int g(T a, long b) { return 3; }\n"
+		"int g(int a, int b) { return 4; }\n"
+		"char ga[4];\n"
+		"int main() { unsigned u = 3; int i = 3; return f(ga, u) + f(ga, i) * 10 + f((const void*)ga, u) * 100 + g(1, 2) * 1000 + g('a', 2L) * 5000; }\n"
+	},
 	//std::nullptr_t is a type of its own ([basic.fundamental] 10, [lex.nullptr], [conv.ptr] 1, [conv.mem] 1, [conv.bool]):
 	//nullptr's and decltype(nullptr)'s, not void*; it converts to any pointer and pointer to member, and to bool only in
 	//a direct initialisation or a condition; nothing but a null pointer constant converts to it, and it has no arithmetic.

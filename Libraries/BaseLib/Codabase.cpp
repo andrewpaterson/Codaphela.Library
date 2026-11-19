@@ -4,7 +4,6 @@
 #include "ReadTransaction.h"
 #include "IndexTreeHelper.h"
 #include "Codabase.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -723,7 +722,7 @@ bool CCodabase::SnapshotGetLocked(int64 iSnapshot, OIndex oi, lsize* puiDataSize
 		{
 			uiCopySize = uiMaxDataSize;
 		}
-		memcpy32(pvData, pcVersion->GetData(), uiCopySize);
+		memcpy(pvData, pcVersion->GetData(), uiCopySize);
 	}
 	return true;
 }

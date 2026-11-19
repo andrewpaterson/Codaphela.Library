@@ -134,6 +134,24 @@ Steps (a commit each, after the checks it lists)
      CStringLength, MarkupTag, Newline ...) calls the 32 suffixed one: what was a 32 bit call stays one.  TimSort.inl
      moves with memcpy32 and memmove32 (a macro's warnings name the macro, so the sweep missed it; TestArrayTemplate's
      large TimSort found it).  Element sized copies (TimSort's ASSIGN) stay plain.
+     Changed 2026-11-19, at the user's word ("Overloads", when asked how an lsize count should reach the 32 bit
+     functions, and of this bullet's calls: "Please fix to overloads"): the calls say memcpy, malloc and the others
+     again, and PrimitiveTypes.h has, under __W65C816__, a template of each of memcpy, memmove, memset, memcmp,
+     memchr, malloc, realloc and calloc whose count is any type: one wider than a size_t (an lsize, a long, a KB or
+     MB constant, which is a long long) calls the 32 suffixed function, a narrower one the C library's, and a size,
+     a size_t or a sizeof is the C function itself, an exact match, with no template between.  So a new call with
+     an lsize is right without a sweep to find it.  267 lines in 94 files went back to the plain names, and
+     Memory32.h is included only where a 32 suffixed function is still named: strlen32 (a result's type chooses
+     nothing), SArrayLargeSize and CSystemAllocator, which mean the 32 bit one whatever they are given.  TimSort's
+     ASSIGN, whose width is an lsize, is memcpy32 now.  The kernal's and modplay's four calls of memcpy32, memset32
+     and malloc32 (HCP65) are as they were.  The compiler needed two things for it: a template's instance is
+     called rather than a function of the name only when it converts an argument better and none worse
+     (CCPPOverloads::IsBetterFunction, [over.match.best] 1: it was whenever the function converted any argument,
+     a char* to memcpy's void*; conformance case TemplateOrFunction), and a small constant memcpy is still copied
+     in place when a template of the name exists (CCPPBinder::Resolve).  Checked on dev7: the W65C816 *65
+     compiles' narrowing warnings are the same but for ASSIGN's, which is gone; step 0's six TestBaseLib65 tests
+     pass in 3216384758 cycles (3216382570 before); OS.SYS 171230 bytes of segments (171212), modplay.exe 754754
+     (754440).
    - Found by TestHCP65Lib's console test, from before this step: KernalCopy.asm's and the export table's
      KernalMainCopy were labelled with unsigned short counts (tt), as the Blitter Board work was written before
      question 13 made uint16 unsigned int (jj), so VIDEO.DRV's import of it wasn't found and the driver didn't load.

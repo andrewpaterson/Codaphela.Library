@@ -1128,6 +1128,53 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcFirst is a better function for the arguments than pcSecond: it
+// converts one of them better and none worse (as CCPPCandidates::Compare
+// has it).  A template's instance must be, to be called rather than a
+// function of the name that isn't a template's.  [over.match.best] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::IsBetterFunction(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments)
+{
+	SCPP65Type*	apsArguments[CPP_BETTER_FUNCTION_ARGUMENTS];
+	int			aiFirst[CPP_BETTER_FUNCTION_ARGUMENTS];
+	int			aiSecond[CPP_BETTER_FUNCTION_ARGUMENTS];
+	size		uiArguments;
+	size		i;
+	bool		bBetter;
+
+	uiArguments = papcArguments ? papcArguments->NumElements() : 0;
+	if (uiArguments > CPP_BETTER_FUNCTION_ARGUMENTS)
+	{
+		return true;
+	}
+	for (i = 0; i < uiArguments; i++)
+	{
+		apsArguments[i] = mpcUnit->TypeOf(papcArguments->GetPtr(i));
+	}
+	if (!RankArguments(pcSecond, apsArguments, papcArguments, aiSecond))
+	{
+		return true;
+	}
+	if (!RankArguments(pcFirst, apsArguments, papcArguments, aiFirst))
+	{
+		return false;
+	}
+	bBetter = false;
+	for (i = 0; i < uiArguments; i++)
+	{
+		if (aiFirst[i] < aiSecond[i])
+		{
+			return false;
+		}
+		bBetter |= aiFirst[i] > aiSecond[i];
+	}
+	return bBetter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The rank of each argument's conversion to its parameter, in aiRanks.  Returns
 // false if the function cannot take the arguments.
 //

@@ -1,6 +1,5 @@
 #include "BaseLib/PointerRemapper.h"
 #include "TextUTF16Short.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,7 +37,7 @@ size CTextUTF16Short::NumChars(void) const
 //////////////////////////////////////////////////////////////////////////
 void CTextUTF16Short::Copy(uint16* puiData)
 {
-	memcpy32(GetChars(), puiData, (lsize)muiNumChars * sizeof(uint16));
+	memcpy(GetChars(), puiData, (lsize)muiNumChars * sizeof(uint16));
 }
 
 

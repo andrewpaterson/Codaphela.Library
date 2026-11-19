@@ -31,7 +31,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageCopier.h"
 #include "PNGCommon.h"
 #include "PNGWriter.h"
-#include "BaseLib/Memory32.h"
 
 
 //The image data is split into chunks of this size, as most encoders do.
@@ -478,9 +477,9 @@ bool SavePNG(Ptr<CImage> pImage, char* szPathName)
 
 	uiPixelBytes = (lsize)uiNumChannels * uiBytesPerSample;
 	uiRowBytes = iWidth * uiPixelBytes;
-	pvPixels = (uint8*)malloc32(uiRowBytes * iHeight);
-	pvFiltered = (uint8*)malloc32((uiRowBytes + 1) * iHeight);
-	pvZeros = (uint8*)calloc32(uiRowBytes, 1);
+	pvPixels = (uint8*)malloc(uiRowBytes * iHeight);
+	pvFiltered = (uint8*)malloc((uiRowBytes + 1) * iHeight);
+	pvZeros = (uint8*)calloc(uiRowBytes, 1);
 	if ((pvPixels == NULL) || (pvFiltered == NULL) || (pvZeros == NULL))
 	{
 		free(pvZeros);

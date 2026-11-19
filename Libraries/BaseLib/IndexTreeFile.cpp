@@ -9,7 +9,6 @@
 #include "IndexTreeFileDebug.h"
 #include "IndexTreeFileDefaultDataCallback.h"
 #include "IndexTreeFile.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -4267,7 +4266,7 @@ size CIndexTreeFile::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, size 
 		if (pvDestData)
 		{
 			pvData = pcNode->GetDataPtr();
-			memcpy32(pvDestData, pvData, MinDataSize(iDataSize, iDestDataSize));
+			memcpy(pvDestData, pvData, MinDataSize(iDataSize, iDestDataSize));
 		}
 		return iDataSize;
 	}

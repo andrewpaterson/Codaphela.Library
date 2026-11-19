@@ -22,7 +22,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/LogString.h"
 #include "StandardLib/ClassDefines.h"
 #include "SoundCelGroup.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -153,7 +152,7 @@ size CSoundCelGroup::AddSound(Ptr<CSound> pSound, lsize uiLoopFrame)
 	}
 
 	bResult = true;
-	pfSamples = (float64*)malloc32((lsize)sizeof(float64) * (uiNumFrames + 1));
+	pfSamples = (float64*)malloc((lsize)sizeof(float64) * (uiNumFrames + 1));
 	for (uiChannel = 0; uiChannel < pSound->NumChannels(); uiChannel++)
 	{
 		bResult &= pSound->GetSamples(uiChannel, 0, uiNumFrames, pfSamples);

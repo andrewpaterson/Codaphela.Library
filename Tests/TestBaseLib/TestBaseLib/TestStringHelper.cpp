@@ -559,8 +559,8 @@ void TestStrLen(void)
 	AssertSize(5, StrLen("hello"));
 	AssertSize(0, StrLen(""));
 
-	sz = (char*)malloc32(70001);
-	memset32(sz, 'a', 70000);
+	sz = (char*)malloc(70001);
+	memset(sz, 'a', 70000);
 	sz[70000] = '\0';
 #ifdef SIZE_16
 	AssertSize(MAX_SIZE, StrLen(sz));
@@ -584,10 +584,10 @@ void TestMemICmpLarge(void)
 	lsize	uiLength;
 
 	uiLength = 70000;
-	sz1 = (char*)malloc32(uiLength + 1);
-	sz2 = (char*)malloc32(uiLength + 1);
-	memset32(sz1, 'a', uiLength);
-	memset32(sz2, 'A', uiLength);
+	sz1 = (char*)malloc(uiLength + 1);
+	sz2 = (char*)malloc(uiLength + 1);
+	memset(sz1, 'a', uiLength);
+	memset(sz2, 'A', uiLength);
 	sz1[uiLength] = '\0';
 	sz2[uiLength] = '\0';
 

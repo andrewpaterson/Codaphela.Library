@@ -3,7 +3,6 @@
 #include "BaseLib/TextFile.h"
 #include "BaseLib/IndexedFile.h"
 #include "TestLib/Assert.h"
-#include "BaseLib/Memory32.h"
 
 
 
@@ -126,7 +125,7 @@ void TestIndexedFileManyDatas(void)
 	AssertTrue(bResult);
 
 	uiCount = 70000;
-	puiData = (uint8*)malloc32(uiCount);
+	puiData = (uint8*)malloc(uiCount);
 	for (i = 0; i < uiCount; i++)
 	{
 		puiData[i] = (uint8)(i % 251);
@@ -140,13 +139,13 @@ void TestIndexedFileManyDatas(void)
 	AssertTrue(cIndexedFile.Write(0, puiData, uiCount));
 	AssertLong(70000, cIndexedFile.NumDatas());
 
-	memset32(puiData, 0, uiCount);
+	memset(puiData, 0, uiCount);
 	AssertTrue(cIndexedFile.Read(0, puiData, uiCount));
 	AssertInt((int)(69999 % 251), puiData[69999]);
 	AssertInt((int)(65536 % 251), puiData[65536]);
 
 	AssertTrue(cIndexedFile.Delete(10, 80000));
-	memset32(puiData, 0, uiCount);
+	memset(puiData, 0, uiCount);
 	AssertTrue(cIndexedFile.Read(0, puiData, uiCount));
 	AssertInt(9, puiData[9]);
 	AssertInt(INDEX_FILE_EMPTY_CHAR, puiData[10]);

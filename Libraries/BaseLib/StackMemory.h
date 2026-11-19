@@ -3,7 +3,6 @@
 #include "PointerFunctions.h"
 #include "PrimitiveTypes.h"
 #include "Numbers.h"
-#include "Memory32.h"
 
 
 template<size I = 512>
@@ -49,7 +48,7 @@ void* CStackMemory<I>::Init(lsize iSize)
 	if (iSize > I)
 	{
 		muiSize = I + 1;
-		u.mpvOffStack = (uint8*)malloc32(iSize);
+		u.mpvOffStack = (uint8*)malloc(iSize);
 		return u.mpvOffStack;
 	}
 	else

@@ -8,7 +8,6 @@
 #include "BaseLib/MemoryDrive.h"
 #include "BaseLib/FatClusterCache.h"
 #include "TestLib/Assert.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -21,7 +20,7 @@ char* FatCacheAllocateTestData(lsize iDataLength)
 	char*	pvData;
 
 	iDataLength = 65 KB;
-	pvData = (char*)malloc32(iDataLength);
+	pvData = (char*)malloc(iDataLength);
 
 	char c = 33;
 	for (i = 0; i < iDataLength; i++)
