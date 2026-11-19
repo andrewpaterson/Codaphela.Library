@@ -862,16 +862,17 @@ CCPPFunction* CCPPBinder::FindLiteralOperator(int64 lliName, CArraySyntax* papcE
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The allocation function new Type (or new Type[count], bArray) calls with
-// papcArguments, its size (CCPPUnit::NewSize) then its placement arguments:
-// the class's own operator new (or a base's), or one of the program's
-// global ones that the placement arguments choose.  NULL for the runtime's
-// operator new, or for new (address) Type with no operator new of the
-// program's that takes a pointer, the address itself; *pbFailed when no
-// operator new takes placement arguments.  [expr.new] 9
+// The allocation function a new expression of psType (an array's element)
+// calls with papcArguments, its size (CCPPUnit::NewSize) then its
+// placement arguments: the class's own operator new or new[] (or a
+// base's), unless it is ::new, or one of the program's global ones that
+// the placement arguments choose.  NULL for the runtime's operator new,
+// or for new (address) Type with no operator new of the program's that
+// takes a pointer, the address itself; *pbFailed when no operator new
+// takes placement arguments.  [expr.new] 9
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPBinder::FindAllocation(SCPP65Type* psType, bool bArray, CArraySyntax* papcArguments, CCPPSyntax* pcNode, bool* pbFailed)
+CCPPFunction* CCPPBinder::FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, CArraySyntax* papcArguments, bool* pbFailed)
 {
 	CCPPFunction*	pcFunction;
 	CCPPClass*		pcClass;
@@ -879,11 +880,11 @@ CCPPFunction* CCPPBinder::FindAllocation(SCPP65Type* psType, bool bArray, CArray
 	size			uiErrors;
 
 	*pbFailed = false;
-	lliName = mpcUnit->GetOperatorName(CT_new, bArray);
-	pcClass = psType->IsClass() ? psType->pcClass : NULL;
+	lliName = mpcUnit->GetOperatorName(CT_new, pcNew->macpArraySizes.NumElements() > 0);
+	pcClass = (psType->IsClass() && !pcNew->mbGlobal) ? psType->pcClass : NULL;
 	if (pcClass && mpcUnit->HasMember(pcClass, lliName))
 	{
-		pcFunction = mcOverloads.FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, CPPCO_None);
+		pcFunction = mcOverloads.FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNew, CPPCO_None);
 		*pbFailed = !pcFunction;
 		return pcFunction;
 	}
@@ -894,7 +895,7 @@ CCPPFunction* CCPPBinder::FindAllocation(SCPP65Type* psType, bool bArray, CArray
 
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
 	mpcUnit->BeginTrial();
-	pcFunction = mcOverloads.FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, CPPCO_None);
+	pcFunction = mcOverloads.FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNew, CPPCO_None);
 	mpcUnit->EndTrial();
 	mpcUnit->GetErrors()->Truncate(uiErrors);
 	if (pcFunction && IsReservedPlacement(pcFunction))
@@ -949,13 +950,16 @@ bool CCPPBinder::IsBuiltinPlacement(CArraySyntax* papcArguments)
 //////////////////////////////////////////////////////////////////////////
 //
 // The deallocation function delete (or delete[], bArray) of an object of
-// pcClass calls: the class's own operator delete (or a base's) that takes
-// the pointer alone, or NULL for the runtime's.  [expr.delete] 9
+// pcClass calls, or NULL for the runtime's: the operator delete of the
+// class, or of the nearest base that declares one, that takes the pointer
+// alone, or failing that the pointer and a size_t.  [expr.delete] 9,
+// [basic.stc.dynamic.deallocation] 2
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray)
 {
 	CCPPFunction*	pcFunction;
+	CCPPFunction*	pcFound;
 	int64			lliName;
 
 	lliName = mpcUnit->GetOperatorName(CT_delete, bArray);
@@ -963,14 +967,52 @@ CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray)
 	{
 		return NULL;
 	}
+	pcFound = NULL;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if (pcFunction->mpcClass && mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL) && (pcFunction->mapsParameters.NumElements() == 1))
+		if (IsUsualDeallocation(pcFunction) && mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL) && IsNearerDeallocation(pcFunction, pcFound))
 		{
-			return pcFunction;
+			pcFound = pcFunction;
 		}
 	}
-	return NULL;
+	return pcFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a class's operator delete is one a delete expression calls: it
+// takes the pointer, or the pointer and the size as a size_t.
+// [basic.stc.dynamic.deallocation] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsUsualDeallocation(CCPPFunction* pcFunction)
+{
+	size	uiParameters;
+
+	uiParameters = pcFunction->mapsParameters.NumElements();
+	return pcFunction->mpcClass && ((uiParameters == 1) || ((uiParameters == 2) && pcFunction->mapsParameters.GetPtr(1)->Unqualified()->Equals(mpcUnit->GetTypes()->Size())));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a class's operator delete, pcFunction, is chosen before pcFound
+// (NULL for none yet): it is a more derived class's, which hides a base's,
+// or it is the same class's and takes the pointer alone.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsNearerDeallocation(CCPPFunction* pcFunction, CCPPFunction* pcFound)
+{
+	if (!pcFound)
+	{
+		return true;
+	}
+	if (pcFunction->mpcClass == pcFound->mpcClass)
+	{
+		return pcFunction->mapsParameters.NumElements() == 1;
+	}
+	return mpcUnit->IsDerived(pcFunction->mpcClass, pcFound->mpcClass, NULL);
 }
 
 

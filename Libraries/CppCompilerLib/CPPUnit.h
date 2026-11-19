@@ -674,7 +674,7 @@ public:
 	bool					MayThrow(CCPPSyntax* pcExpression);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
 	CCPPSyntax*				ImplicitZero(void);
-	CCPPSyntax*				ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType);
+	CCPPSyntaxImplicitArgument*	ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType, int iWhich = 0);
 	CCPPSyntax*				NewSize(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*				NewElementType(CCPPSyntaxNewExpression* pcNew);
 	void					NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcArguments);

@@ -2411,7 +2411,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 
 	apcArguments.Init();
 	mpcUnit->NewArguments(pcNew, &apcArguments);
-	pcAllocation = mpcUnit->GetBinder()->FindAllocation(psType, pcNew->macpArraySizes.NumElements() > 0, &apcArguments, pcNew, &bFailed);
+	pcAllocation = mpcUnit->GetBinder()->FindAllocation(pcNew, psType, &apcArguments, &bFailed);
 	psResult = pcAllocation ? Call(pcAllocation, &apcArguments, pcNew) : &mpcTypes->msVoid;
 	apcArguments.Kill();
 	if (bFailed)

@@ -208,10 +208,12 @@ public:
 	CCPPFunction*	InitializerListConstructor(CCPPClass* pcClass, CCPPSyntax* pcList);
 	CCPPFunction*	FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	CCPPFunction*	ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
-	CCPPFunction*	FindAllocation(SCPP65Type* psType, bool bArray, CArraySyntax* papcArguments, CCPPSyntax* pcNode, bool* pbFailed);
+	CCPPFunction*	FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, CArraySyntax* papcArguments, bool* pbFailed);
 	bool			IsBuiltinPlacement(CArraySyntax* papcArguments);
 	bool			IsReservedPlacement(CCPPFunction* pcFunction);
 	CCPPFunction*	FindDeallocation(CCPPClass* pcClass, bool bArray);
+	bool			IsUsualDeallocation(CCPPFunction* pcFunction);
+	bool			IsNearerDeallocation(CCPPFunction* pcFunction, CCPPFunction* pcFound);
 	bool			HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments);
 	bool			KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
 

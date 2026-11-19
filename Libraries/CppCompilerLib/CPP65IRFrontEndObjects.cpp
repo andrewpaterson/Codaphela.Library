@@ -1172,7 +1172,7 @@ bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	bArray = pcNew->macpArraySizes.NumElements() > 0;
 	apcArguments.Init();
 	mpcUnit->NewArguments(pcNew, &apcArguments);
-	pcAllocation = mpcUnit->GetBinder()->FindAllocation(psType, bArray, &apcArguments, pcNew, &bFailed);
+	pcAllocation = mpcUnit->GetBinder()->FindAllocation(pcNew, psType, &apcArguments, &bFailed);
 	bResult = !bFailed;
 	if (bResult && pcAllocation)
 	{
@@ -1235,6 +1235,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	SCPP65IRValue		sBytes;
 	SCPP65IRPlace		sElement;
 	CArraySyntax*		papcElements;
+	CCPPSyntax*			pcString;
 	SCPP65Type*			psElement;
 	SIRType				sSize;
 	SIRType				sBytesType;
@@ -1303,13 +1304,26 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		sMemory = AddressAt(sMemory, mcModule.GetPointerSize(0));
 	}
 
-	//The elements a list in braces gives, then the rest.
+	//The elements a list in braces gives (or the characters of the string it holds, as an array's are: new
+	//char[n]{"abc"}, [dcl.init.string]), then the rest.
+	pcString = mpcUnit->StringInitialiser(pcNew->mpcInitializer, psType);
 	papcElements = pcNew->mpcInitializer ? mpcUnit->ListElements(pcNew->mpcInitializer) : NULL;
 	bValue = pcNew->mpcInitializer != NULL;
 	uiFirst = papcElements ? papcElements->NumElements() : 0;
-	sElement.psType = psType;
 	sElement.psBitField = NULL;
-	for (i = 0; i < uiFirst; i++)
+	if (mpcUnit->IsStringLiteral(pcString))
+	{
+		uiFirst = mpcUnit->StringArrayType(pcString)->iCount;
+		sElement.sAddress = sMemory;
+		sElement.psType = mpcTypes->Array(psType, (int)uiFirst);
+		if (!ArrayInitialiser(&sElement, pcString))
+		{
+			return false;
+		}
+		papcElements = NULL;
+	}
+	sElement.psType = psType;
+	for (i = 0; papcElements && (i < uiFirst); i++)
 	{
 		sElement.sAddress = AddressAt(sMemory, (int)(i * psType->iBytes));
 		if (psType->IsClass() ? !Construct(&sElement, NULL, papcElements->GetPtr(i)) : !LocalInitialiser(&sElement, papcElements->GetPtr(i), false))
@@ -1428,11 +1442,6 @@ bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass)
 bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue)
 {
 	SCPP65IRValue	sPointer;
-	SCPP65IRValue	sAddress;
-	SCPP65IRValue	sResult;
-	CCPPFunction*	pcDeallocation;
-	CArraySyntax	apcArguments;
-	bool			bCalled;
 	SCPP65Type*		psType;
 	SIRReference	sCondition;
 	SIRReference	sFree;
@@ -1481,24 +1490,9 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 		{
 			return false;
 		}
-		pcDeallocation = psType->IsClass() ? mpcUnit->GetBinder()->FindDeallocation(psType->pcClass, pcDelete->mbArray) : NULL;
-		if (pcDeallocation)
+		if (!Deallocate(pcDelete, psType, sFree))
 		{
-			//The class's own operator delete.  [expr.delete] 9
-			apcArguments.Init();
-			apcArguments.Add(mpcUnit->ImplicitValue(pcDelete, mpcTypes->Pointer(&mpcTypes->msVoid)));
-			sAddress.psType = mpcTypes->Pointer(&mpcTypes->msVoid);
-			sAddress.sValue = sFree;
-			bCalled = CallWithValue(pcDeallocation, &apcArguments, apcArguments.GetPtr(0), &sAddress, &sResult);
-			apcArguments.Kill();
-			if (!bCalled)
-			{
-				return false;
-			}
-		}
-		else
-		{
-			CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sFree);
+			return false;
 		}
 	}
 	JumpTo(pcDone);
@@ -1506,6 +1500,48 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 	psValue->sValue = IRNone();
 	psValue->psType = &mpcTypes->msVoid;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Frees the memory at sFree that the object of psType a delete expression
+// destroyed was in: by the class's own operator delete
+// (CCPPBinder::FindDeallocation), which is given the class's size if it
+// takes one, or by the runtime's operator delete or delete[], as ::delete
+// does whatever the class has.  [expr.delete] 9, 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::Deallocate(CCPPSyntaxDeleteExpression* pcDelete, SCPP65Type* psType, SIRReference sFree)
+{
+	CCPPFunction*				pcDeallocation;
+	CCPPSyntaxImplicitArgument*	pcSize;
+	CArraySyntax				apcArguments;
+	SCPP65IRValue				sAddress;
+	SCPP65IRValue				sResult;
+	bool						bCalled;
+
+	pcDeallocation = (psType->IsClass() && !pcDelete->mbGlobal) ? mpcUnit->GetBinder()->FindDeallocation(psType->pcClass, pcDelete->mbArray) : NULL;
+	if (!pcDeallocation)
+	{
+		CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sFree);
+		return true;
+	}
+
+	apcArguments.Init();
+	apcArguments.Add(mpcUnit->ImplicitValue(pcDelete, mpcTypes->Pointer(&mpcTypes->msVoid)));
+	if (pcDeallocation->mapsParameters.NumElements() == 2)
+	{
+		pcSize = mpcUnit->ImplicitValue(pcDelete, mpcTypes->Size(), 1);
+		pcSize->mbConstant = true;
+		pcSize->mlliValue = psType->iBytes;
+		apcArguments.Add(pcSize);
+	}
+	sAddress.psType = mpcTypes->Pointer(&mpcTypes->msVoid);
+	sAddress.sValue = sFree;
+	bCalled = CallWithValue(pcDeallocation, &apcArguments, apcArguments.GetPtr(0), &sAddress, &sResult);
+	apcArguments.Kill();
+	return bCalled;
 }
 
 

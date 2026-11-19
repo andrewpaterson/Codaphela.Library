@@ -648,25 +648,29 @@ CCPPSyntax* CCPPUnit::ImplicitZero(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An argument the IR front end gives a value, pcFor's own (as a new
-// expression in a new expression's placement arguments mustn't change its
-// size's), of the type psType: the size a new expression's allocation
-// function is given, or the address delete gives a class's operator delete.
+// An argument the IR front end gives a value, pcFor's own iWhich'th (as a
+// new expression in a new expression's placement arguments mustn't change
+// its size's), of the type psType: the size a new expression's allocation
+// function is given, or the address, and then the size, that delete gives
+// a class's operator delete.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPUnit::ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType)
+CCPPSyntaxImplicitArgument* CCPPUnit::ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType, int iWhich)
 {
 	CCPPSyntaxImplicitArgument**	ppcValue;
 	CCPPSyntaxImplicitArgument*		pcValue;
+	int64							lliKey;
 
-	ppcValue = mcImplicitValues.Get((int64)(size)pcFor);
+	//A node's address and those of the few bytes after it are no other node's.
+	lliKey = (int64)(size)pcFor + iWhich;
+	ppcValue = mcImplicitValues.Get(lliKey);
 	if (ppcValue)
 	{
 		return *ppcValue;
 	}
 	pcValue = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitArgument>(NULL);
 	pcValue->mpsType = psType;
-	mcImplicitValues.Put((int64)(size)pcFor, &pcValue);
+	mcImplicitValues.Put(lliKey, &pcValue);
 	return pcValue;
 }
 

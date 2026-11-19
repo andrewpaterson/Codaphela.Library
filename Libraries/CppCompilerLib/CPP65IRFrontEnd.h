@@ -422,6 +422,7 @@ protected:
 	bool			NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue);
 	bool			DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass);
 	bool			DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue);
+	bool			Deallocate(CCPPSyntaxDeleteExpression* pcDelete, SCPP65Type* psType, SIRReference sFree);
 	bool			ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, bool bDestroy);
 	bool			ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, SCPP65IRPlace* psPlace);
