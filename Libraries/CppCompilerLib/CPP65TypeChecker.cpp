@@ -818,7 +818,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	if (((pcUnary->meOperator == CT_Subtract) || (pcUnary->meOperator == CT_BitwiseNot) || (pcUnary->meOperator == CT_Add)) && mpcUnit->Constant(pcUnary, &lliValue))
 	{
 		psType = mpcUnit->TypeOf(pcUnary->mpcOperand);
-		if (psType && psType->IsInteger())
+		if (psType && psType->IsInteger() && !psType->IsScopedEnum())
 		{
 			return mpcTypes->Promote(mpcUnit->OperandType(psType, pcUnary->mpcOperand));
 		}
@@ -879,6 +879,12 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 	if (!psType->IsScalar() || (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcUnary, psType, psType, CPPEC_INCREMENT)))
 	{
 		Error(pcUnary, "Only integers and pointers can be incremented");
+		return NULL;
+	}
+	if (psType->pcEnum && !psType->IsScopedEnum() && !mpcUnit->IsCSource())
+	{
+		//The next value is a number, which an enum isn't given.  [expr.pre.incr] 1, [expr.post.incr] 1
+		Error(pcUnary, "An enum can't be incremented: it is given only its own values, or a cast");
 		return NULL;
 	}
 	if ((psType->eKind == CPP65TK_Bool) && (pcUnary->meOperator == CT_Decrement))
@@ -1029,8 +1035,9 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	case CT_AssignmentLeftShift:	eOperator = CT_LeftShift;	break;
 	default:						eOperator = CT_RightShift;	break;
 	}
+	//x op= y is x = x op y.  [expr.ass] 7
 	psResult = Operate(eOperator, psPlace, psRight, pcBinary);
-	return Convert(psResult, psPlace, pcBinary) ? psPlace : NULL;
+	return ImplicitConvert(psResult, psPlace, pcBinary, NULL) ? psPlace : NULL;
 }
 
 
@@ -3215,15 +3222,15 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 //
 // Convert, for a conversion no cast asks for: a pointer is made from and
 // becomes only what it may (ConvertsPointer), it can't lose const or
-// volatile (KeepsPointerQualifiers), an enum class's value stays one
-// (KeepsScopedEnum), and std::nullptr_t converts only as it may
-// (KeepsNullPointer).  pcValue is the expression converted, when there is
-// one to look at.
+// volatile (KeepsPointerQualifiers), an enum class's value stays one and
+// an enum is given its own values (KeepsEnum), and std::nullptr_t converts
+// only as it may (KeepsNullPointer).  pcValue is the expression converted,
+// when there is one to look at.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue)
 {
-	return Convert(psFrom, psTo, pcNode) && ConvertsPointer(psFrom, psTo, pcNode, pcValue) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsScopedEnum(psFrom, psTo, pcNode) && KeepsNullPointer(psFrom, psTo, pcNode, pcValue);
+	return Convert(psFrom, psTo, pcNode) && ConvertsPointer(psFrom, psTo, pcNode, pcValue) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsEnum(psFrom, psTo, pcNode) && KeepsNullPointer(psFrom, psTo, pcNode, pcValue);
 }
 
 
@@ -3283,12 +3290,13 @@ bool CCPP65TypeChecker::RecordsEnumOperands(CCPPSyntax* pcNode, SCPP65Type* psLe
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether psFrom converts to psTo with no cast as far as an enum class
-// goes: its value is only its own type's, and only its own values are its.
-// [conv.prom] and [conv.integral] leave a scoped enum out.
+// Whether psFrom converts to psTo with no cast as far as enums go: an
+// enum class's value is only its own type's, and only an enum's own values
+// are its (in C a number is an enum's value too).  [conv.prom] and
+// [conv.integral] leave a scoped enum out, and convert nothing to an enum.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65TypeChecker::KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
+bool CCPP65TypeChecker::KeepsEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
 {
 	if (psTo->IsReference())
 	{
@@ -3309,6 +3317,10 @@ bool CCPP65TypeChecker::KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 	if (psTo->IsScopedEnum())
 	{
 		return mpcUnit->RecordEnumCast(pcNode, psFrom, psTo, CPPEC_TO_ENUM) || Error(pcNode, "An enum class is given only its own values, or a cast");
+	}
+	if (psTo->pcEnum && !mpcUnit->IsCSource())
+	{
+		return Error(pcNode, "An enum is given only its own values, or a cast");
 	}
 	return true;
 }

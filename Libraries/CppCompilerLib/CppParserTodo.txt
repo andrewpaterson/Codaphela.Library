@@ -509,7 +509,7 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         is deduced as it.  It converts to any pointer and pointer to member (the null one, 0), to bool only where it
         directly initialises one or is tested, and to nothing else without a cast; only a null pointer constant (nullptr, a
         literal 0: CCPPUnit::IsNullPointerConstant) converts to it (CCPP65TypeChecker::KeepsNullPointer, asked by the
-        IR front end's ConvertImplicit as KeepsScopedEnum is, and CCPPOverloads::ConversionRank).  It is compared with a
+        IR front end's ConvertImplicit as KeepsEnum is, and CCPPOverloads::ConversionRank).  It is compared with a
         pointer, a pointer to a member (== and !=) or another nullptr_t, and has no arithmetic.  Its label is Dn, its
         name std::nullptr_t, its type info's kind CPP65TIK_NullPointer.  Conformance cases NullPointerOwnType,
         NullPointerConversions, NullPointerNotBool, NullPointerFromPointer, NullPointerArithmetic, NullPointerTypeid,

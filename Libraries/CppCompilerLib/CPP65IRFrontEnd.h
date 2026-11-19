@@ -352,7 +352,7 @@ protected:
 	bool			FullCondition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIRBlock* pcFalse);
 	bool			Truth(SCPP65IRValue* psValue, SIRReference* psCondition);
 	bool			IsObjectValue(SCPP65IRValue* psValue);
-	bool			ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo);
+	bool			ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo, bool bExplicit = true);
 	bool			ConvertObjectBy(SCPP65IRValue* psValue, CCPPBoundConversion* pcBound, SCPP65Type* psTo);
 	bool			CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
 	bool			MemberCall(CCPPBoundCall* pcBound, SCPP65IRValue* psValue);

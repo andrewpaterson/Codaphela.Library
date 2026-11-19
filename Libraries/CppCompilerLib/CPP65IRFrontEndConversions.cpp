@@ -313,17 +313,19 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 //
 // Converts a value to psTo where no cast asks for it (a variable given its
 // value, an argument, what a function returns, an assignment): an enum
-// class's value stays one (CCPP65TypeChecker::KeepsScopedEnum).
+// class's value stays one, and an enum is given its own values
+// (CCPP65TypeChecker::KeepsEnum); an object's explicit conversion function
+// isn't used.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo, CCPPSyntax* pcNode)
 {
 	bool	bKept;
 
-	if (psValue->psType && psTo && (psValue->psType->IsScopedEnum() || psTo->IsScopedEnum() || (psTo->IsReference() && psTo->psBase->IsScopedEnum())))
+	if (psValue->psType && psTo && (psValue->psType->IsScopedEnum() || psTo->WithoutReference()->pcEnum))
 	{
 		mpcUnit->BeginLoud();
-		bKept = mpcUnit->GetTypeChecker()->KeepsScopedEnum(psValue->psType, psTo, pcNode);
+		bKept = mpcUnit->GetTypeChecker()->KeepsEnum(psValue->psType, psTo, pcNode);
 		mpcUnit->EndLoud();
 		if (!bKept)
 		{
@@ -340,6 +342,10 @@ bool CCPP65IRFrontEnd::ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo,
 		{
 			return false;
 		}
+	}
+	if (psValue->psType && psTo && IsObjectValue(psValue) && psTo->IsScalar())
+	{
+		return ConvertObject(psValue, psTo, false);
 	}
 	return Convert(psValue, psTo);
 }

@@ -180,19 +180,25 @@ bool CCPP65IRFrontEnd::IsObjectValue(SCPP65IRValue* psValue)
 //
 // An object converted to a scalar by its class's conversion function (the
 // generator's FindConversion: operator T, its own or a base's), then the
-// result to psTo.
+// result to psTo.  An explicit one is used only with bExplicit: by a cast
+// or a condition, not where no cast asks (ConvertImplicit).
+// [class.conv.fct] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
+bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo, bool bExplicit)
 {
 	CCPPBoundConversion	cBound;
+	CCPPBoundConversion	cExplicit;
+	CCPPClass*			pcClass;
 
-	mpcUnit->GetBinder()->BindObjectConversion(psValue->psType->WithoutReference()->pcClass, psTo, true, NULL, &cBound);
+	pcClass = psValue->psType->WithoutReference()->pcClass;
+	mpcUnit->GetBinder()->BindObjectConversion(pcClass, psTo, bExplicit, NULL, &cBound);
 	if (cBound.meHow != CPPBV_Function)
 	{
+		mpcUnit->GetBinder()->BindObjectConversion(pcClass, psTo, true, NULL, &cExplicit);
 		if (mpcValue)
 		{
-			mpcUnit->ReportError(mpcValue, "The object has no conversion to the type it is used as");
+			mpcUnit->ReportError(mpcValue, (cExplicit.meHow == CPPBV_Function) ? "The object's conversion to the type it is used as is explicit: it needs a cast" : "The object has no conversion to the type it is used as");
 		}
 		return Unsupported(__FILE__, __LINE__);
 	}
