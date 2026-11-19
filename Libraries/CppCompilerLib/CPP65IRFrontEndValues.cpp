@@ -678,7 +678,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* p
 		return false;
 	}
 	*pbMember = true;
-	psValue->sValue = mpcFunction->AddInteger(IRType(IRTK_I32), iOffset);
+	psValue->sValue = mpcFunction->AddInteger(IRType(IRTK_I32), iOffset + CPP_MEMBER_POINTER_BIAS);
 	psValue->psType = mpcTypes->MemberPointer(pcClass, psField->psType);
 	return true;
 }
@@ -764,14 +764,15 @@ bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArra
 //////////////////////////////////////////////////////////////////////////
 //
 // object.*field and pointer->*field: the object's address plus the
-// field's offset.
+// field's offset, which the pointer to the member is with its bias.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRPlace* psPlace)
 {
 	SCPP65Type*		psMember;
-	SCPP65IRValue	sOffset;
+	SCPP65IRValue	sMember;
 	SIRReference	sObject;
+	SIRReference	sOffset;
 
 	psPlace->psBitField = NULL;
 
@@ -783,11 +784,12 @@ bool CCPP65IRFrontEnd::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, 
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!Value(pcBinary->mpcRight, &sOffset))
+	if (!Value(pcBinary->mpcRight, &sMember))
 	{
 		return false;
 	}
-	psPlace->sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sObject, sOffset.sValue);
+	sOffset = mpcFunction->Add(mpcBlock, IRO_Sub, IRType(IRTK_I32), sMember.sValue, mpcFunction->AddInteger(IRType(IRTK_I32), CPP_MEMBER_POINTER_BIAS));
+	psPlace->sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sObject, sOffset);
 	psPlace->psType = psMember->psBase;
 	return true;
 }

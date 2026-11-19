@@ -81,6 +81,12 @@ typedef CArrayTemplate<SCPPVirtualBase>	CArrayCPPVirtualBases;
 #define CPP_VIRTUAL_PATH	(-0x7FFFFFFF)
 
 
+//A pointer to a data member is the member's offset in its class and this much more: the null pointer to a member is
+//then 0, as every null pointer is (so that zeroed memory holds null ones), and it is no member's, the first's too.
+//[conv.mem] 1
+#define CPP_MEMBER_POINTER_BIAS	1
+
+
 //using Base::f; in a class: Base's functions named f are overloads of the class's own.
 struct SCPPUsing
 {
