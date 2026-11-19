@@ -1241,6 +1241,59 @@ SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type of an operand that isn't evaluated and isn't converted as a
+// value is (sizeof's and typeid's): an lvalue stays what it is, so an array
+// (a variable, a field, a row of another array, a string) is not the
+// pointer it would become, and a function is not a pointer to it.  S::m
+// alone is the member's type.  NULL if it is wrong.  [expr.sizeof] 4,
+// [expr.typeid] 3
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	BeginUnevaluated();
+	pcExpression = SkipParentheses(pcExpression);
+	psType = QualifiedFieldType(pcExpression);
+	if (!psType)
+	{
+		psType = PlaceTypeOf(pcExpression);
+	}
+	if (!psType)
+	{
+		psType = TypeOf(pcExpression);
+		if (psType && psType->IsPointer() && psType->psBase->IsFunction() && NamesFunction(pcExpression))
+		{
+			psType = psType->psBase;
+		}
+	}
+	EndUnevaluated();
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an expression is a function's name: the function itself, an
+// lvalue, where it isn't converted to a pointer to it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::NamesFunction(CCPPSyntax* pcExpression)
+{
+	CCPPSymbol*	pcSymbol;
+
+	if (pcExpression->GetKind() != CPPS_IdExpression)
+	{
+		return false;
+	}
+	pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
+	return pcSymbol && (pcSymbol->meKind == CPPSK_Function);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type the expression is declared to give: TypeOf's, or the reference
 // to it that a call of a function returning T& or T&&, or a cast to one,
 // gives.  A variable declared as a reference is its own type here, as its
@@ -1538,7 +1591,6 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	CArraySyntax*					papcElements;
 	CCPPSyntaxIdExpression*			pcId;
-	CCPPSyntax*						pcOperand;
 	CCPPSymbol*						pcSymbol;
 	CCPPSyntaxInitDeclarator*		pcInit;
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
@@ -1748,20 +1800,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		}
 		else
 		{
-			//The operand isn't evaluated, and an lvalue stays what it is: an array (a variable, a field, a row of
-			//another array, a string) is not the pointer it would become.  [expr.sizeof] 4
-			BeginUnevaluated();
-			pcOperand = SkipParentheses(pcSizeof->mpcOperand);
-			psType = QualifiedFieldType(pcOperand);
-			if (!psType)
-			{
-				psType = PlaceTypeOf(pcOperand);
-			}
-			if (!psType)
-			{
-				psType = TypeOf(pcOperand);
-			}
-			EndUnevaluated();
+			psType = UnevaluatedTypeOf(pcSizeof->mpcOperand);
 		}
 		if (!psType || psType->IsVoid() || psType->IsFunction())
 		{

@@ -690,6 +690,8 @@ public:
 	void					ReportFailedDeclaration(int64 lliName);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				DeclaredTypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				UnevaluatedTypeOf(CCPPSyntax* pcExpression);
+	bool					NamesFunction(CCPPSyntax* pcExpression);
 	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);
 	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);

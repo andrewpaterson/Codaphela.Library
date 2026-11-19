@@ -449,7 +449,7 @@ SCPP65Type* CCPPUnit::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbD
 	}
 	else
 	{
-		psType = TypeOf(pcTypeid->mpcOperand);
+		psType = UnevaluatedTypeOf(pcTypeid->mpcOperand);
 		psType = psType ? psType->WithoutReference() : NULL;
 		*pbDynamic = psType && psType->IsClass() && CompleteClass(psType->pcClass, pcTypeid) && psType->pcClass->IsPolymorphic() && IsObjectLvalue(pcTypeid->mpcOperand);
 	}
@@ -985,7 +985,7 @@ bool CCPPUnit::IsObjectLvalue(CCPPSyntax* pcExpression)
 	SCPP65Type*	psType;
 
 	pcExpression = SkipParentheses(pcExpression);
-	psType = TypeOf(pcExpression);
+	psType = DeclaredTypeOf(pcExpression);
 	if (psType && psType->IsReference())
 	{
 		return true;
