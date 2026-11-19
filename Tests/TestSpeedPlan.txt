@@ -145,6 +145,13 @@ IDE checks the same passes and failures) as a run in one process.
    The user's answers, 2026-11-19: 1 yes, they are on the list; 2 TestHCP65Lib in Release|x64 only (the other
    configurations still build HCP65Emulator.sln); 3 the *65 suites on both processors (each suite run twice in
    Release|x64: no argument, then 816).
+   Built 2026-11-19: Tests/Sweep.py, as above (a to f), with its results in Tests/Output/SweepResults.txt (the item,
+   when it began, the result) and its last build's output in Tests/Output/SweepBuild.log, both ignored by git.  -only
+   takes several names, -configs a list, -new starts a fresh results file.  Until a sweep has kept its own times the
+   order starts from DEFAULT_SECONDS (TestHCP65Lib, TestSupportLib65, TestStandardLib65, TestBaseLib65,
+   TestCppCompilerLib).  Tried on TestInputLib and TestThreadLib in Release|x64 (55 s, both passed; run again it does
+   nothing).  Check (g), a whole sweep against the last one's results, waits for a machine with no other session's
+   builds and runs on it.
 
 Order: 1 and 5 (the biggest win, small and safe), then 3, then 2 (a to c, then d after the user's answer), then 4 (measure,
 then the user decides on lockstep).  Each step is announced to the other sessions before its runs.
