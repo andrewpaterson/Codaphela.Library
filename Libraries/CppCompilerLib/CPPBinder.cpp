@@ -414,7 +414,7 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	pcBound->mpcFunction = pcFunction;
 	pcBound->mpcObject = pcBound->mpcCallee;
 	pcBound->mpcClass = psType->pcClass;
-	pcBound->mbVirtual = pcBound->mpcCallee->GetKind() != CPPS_IdExpression;
+	pcBound->mbVirtual = !IsNamedObject(pcBound->mpcCallee);
 	return true;
 }
 
@@ -488,11 +488,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		pcObject = pcMember->mpcObject;
 		pcName = pcMember->mpcName;
 
-		//A named object is what it is declared as: its virtual functions are called by their labels.
-		if (!bArrow && (pcObject->WithoutParentheses()->GetKind() == CPPS_IdExpression))
-		{
-			bVirtual = false;
-		}
+		bVirtual = bArrow || !IsNamedObject(pcObject);
 	}
 	else
 	{
@@ -710,7 +706,7 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 			pcBound->mpcFunction = pcFunction;
 			pcBound->mpcObject = pcBound->mpcLeft;
 			pcBound->mpcClass = psType->pcClass;
-			pcBound->mbVirtual = pcBound->mpcLeft->WithoutParentheses()->GetKind() != CPPS_IdExpression;
+			pcBound->mbVirtual = !IsNamedObject(pcBound->mpcLeft);
 			return;
 		}
 		apcArguments.ReInit();
@@ -773,7 +769,7 @@ void CCPPBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	pcBound->mpcFunction = pcFunction;
 	pcBound->mpcObject = pcBound->mpcLeft;
 	pcBound->mpcClass = psType->pcClass;
-	pcBound->mbVirtual = pcBound->mpcLeft->WithoutParentheses()->GetKind() != CPPS_IdExpression;
+	pcBound->mbVirtual = !IsNamedObject(pcBound->mpcLeft);
 }
 
 
@@ -1223,6 +1219,41 @@ CCPPFunction* CCPPBinder::BindRangeFunction(int64 lliName, CCPPClass* pcClass, C
 		return NULL;
 	}
 	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the object a member function is called on can only be of the
+// class it is declared as, so that its virtual functions are called by
+// their labels: an object that is named.  A name that is a reference is
+// not one: what it refers to may be of a derived class, as what a pointer
+// points to may, and its virtual functions are called through its vtable.
+// [expr.call] 1, [class.virtual] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsNamedObject(CCPPSyntax* pcObject)
+{
+	CCPPBoundName	cBound;
+
+	pcObject = pcObject->WithoutParentheses();
+	if (pcObject->GetKind() != CPPS_IdExpression)
+	{
+		return false;
+	}
+
+	ResolveName((CCPPSyntaxIdExpression*)pcObject, &cBound);
+	switch (cBound.meWhat)
+	{
+	case CPPBN_Variable:
+		return !cBound.mpcVariable->mpsType->IsReference();
+	case CPPBN_Field:
+		return !cBound.mpsField->psType->IsReference();
+	case CPPBN_Capture:
+		return !cBound.mpsCapture->bReference && !cBound.mpsField->psType->IsReference();
+	default:
+		return false;
+	}
 }
 
 

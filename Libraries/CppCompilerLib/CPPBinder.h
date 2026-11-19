@@ -216,6 +216,7 @@ public:
 
 protected:
 	ECPPCalledObject	CalledObject(CCPPSyntax* pcObject, bool bArrow);
+	bool	IsNamedObject(CCPPSyntax* pcObject);
 	void	Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	void	ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
 	void	CheckAccess(CCPPBoundCall* pcBound, CCPPSyntax* pcNode);
