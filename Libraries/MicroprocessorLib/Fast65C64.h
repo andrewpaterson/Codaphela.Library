@@ -87,6 +87,7 @@ public:
 	bool		Step(void);
 	CBreakpoints*	GetBreakpoints(void);
 	bool			IsAtBreakpoint(void) const;
+	static void		DecodeAll(void);
 	static size		InstructionLength(uint16 uiOpcode);
 	static size		CallLength(uint16 uiOpcode);
 	static bool		IsReturn(uint16 uiOpcode);

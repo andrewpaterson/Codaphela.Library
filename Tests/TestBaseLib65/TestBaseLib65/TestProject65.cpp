@@ -10,6 +10,8 @@
 #include "BaseLib/StringHelper.h"
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/Mutex.h"
+#include "BaseLib/ConditionVariable.h"
 #include "Assembler65Lib/Asm65Memory.h"
 #include "Assembler65Lib/Asm65HostFiles.h"
 #include "MicroprocessorLib/Fast65C64.h"
@@ -29,8 +31,9 @@
 // CCPP65Builder's CProject (as a library whose units are only linked when used) with Libc65, and compiled once with
 // the real source.  Each test that the test project's main calls is then linked as its own program, the main's
 // file with only that test's call left in its main (a whole test project does not fit below the 65C64's stack), and
-// run on a CFast65C64.  The programs read and write a copy of the test project's directory through the host file
-// device.  For the W65C816 (geTestProject65Target) the units in 65C64 assembly are left out, the memory is 16MB (24
+// run on a CFast65C64, several side by side on worker threads (TEST_PROJECT65_RUNS) while the next is linked, their
+// results asserted in order once all have run.  The programs read and write a copy of the test project's directory
+// through the host file device, each worker its own copy.  For the W65C816 (geTestProject65Target) the units in 65C64 assembly are left out, the memory is 16MB (24
 // bit addresses) and the programs run on a CFastW65C816.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -53,6 +56,13 @@
 #define TEST_PROJECT_W65C816_PROGRAM_LIMIT	0x800000
 
 #define TEST_PROJECT65_MAX_STEPS		4000000000ULL
+
+//How many programs run side by side, each on its own thread with its own emulator and copy of the test project's
+//directory (TEST_PROJECT65_RUNS=n, 1 for one after another).  The profile, TEST_PROJECT65_CYCLES and
+//TEST_PROJECT65_TRACE run them one after another.
+#define TEST_PROJECT65_RUNS				4
+#define TEST_PROJECT65_MAX_RUNS			16
+#define TEST_PROJECT65_NO_WORKER		((size)-1)
 
 
 ECPPTarget	geTestProject65Target = CPPT_65C64;
@@ -264,24 +274,32 @@ static void TestProject65TestDirectory(STestProject65* psProject, CChars* pszDes
 //////////////////////////////////////////////////////////////////////////
 //
 // The directory the programs read and write, Output/<target>/<name>: the
-// 65C64's and the W65C816's runs of a test can go at once.
+// 65C64's and the W65C816's runs of a test can go at once.  Programs run
+// side by side (TEST_PROJECT65_RUNS) have one each: Output/<target>/<name>.n
+// for worker n, when uiWorker isn't TEST_PROJECT65_NO_WORKER.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestProject65OutputDirectory(STestProject65* psProject, CChars* pszDest)
+static void TestProject65OutputDirectory(STestProject65* psProject, CChars* pszDest, size uiWorker)
 {
 	pszDest->Init("Output" _FS_);
 	pszDest->Append(TestTarget65Name(geTestProject65Target));
 	pszDest->Append(_FS_);
 	pszDest->Append(psProject->szTestProject);
+	if (uiWorker != TEST_PROJECT65_NO_WORKER)
+	{
+		pszDest->Append(".");
+		pszDest->Append((int)uiWorker);
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A copy of the test project's directory (without its Output) for the programs to read and write.
+// A copy of the test project's directory (without its Output) for the programs to read and write (uiWorker's own,
+// see TestProject65OutputDirectory).
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestProject65CopyDirectory(STestProject65* psProject)
+static void TestProject65CopyDirectory(STestProject65* psProject, size uiWorker)
 {
 	CFileUtil	cFileUtil;
 	CArrayChars	aszEntries;
@@ -292,7 +310,7 @@ static void TestProject65CopyDirectory(STestProject65* psProject)
 	size		i;
 
 	TestProject65TestDirectory(psProject, &szTestDirectory);
-	TestProject65OutputDirectory(psProject, &szOutput);
+	TestProject65OutputDirectory(psProject, &szOutput, uiWorker);
 	cFileUtil.RemoveDir(szOutput.Text());
 	AssertTrue(cFileUtil.TouchDir(szOutput.Text()));
 
@@ -441,10 +459,11 @@ static void TestProject65AddProjects(STestProject65* psProject, CCPP65Builder* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Appends uiAddress and the symbol at or before it (from the linker's map).
+// Appends uiAddress and the symbol at or before it (from szLinkerMap, the
+// linker's map).
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestProject65AppendSymbol(CCPP65Builder* pcBuilder, uint32 uiAddress, CChars* pszDest)
+static void TestProject65AppendSymbol(const char* szLinkerMap, uint32 uiAddress, CChars* pszDest)
 {
 	const char*	szMap;
 	const char*	szLine;
@@ -453,7 +472,7 @@ static void TestProject65AppendSymbol(CCPP65Builder* pcBuilder, uint32 uiAddress
 	uint32		uiValue;
 	int			iLength;
 
-	szMap = strstr(pcBuilder->GetMap(), "Symbols\n");
+	szMap = strstr(szLinkerMap, "Symbols\n");
 	szBest = NULL;
 	uiBest = 0;
 	for (szLine = szMap; szLine; szLine = strchr(szLine + 1, '\n'))
@@ -490,14 +509,14 @@ static void TestProject65AppendSymbol(CCPP65Builder* pcBuilder, uint32 uiAddress
 // bytes after a jsl) are its calls, innermost first.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestProject65AppendStop(CCPP65Builder* pcBuilder, uint32 uiAddress, uint32 uiS, uint64 uiSteps, CChars* pszDest, CAsm65Memory* pcMemory = NULL)
+static void TestProject65AppendStop(const char* szMap, uint32 uiAddress, uint32 uiS, uint64 uiSteps, CChars* pszDest, CAsm65Memory* pcMemory = NULL)
 {
 	uint32	uiTop;
 	uint32	uiReturn;
 	int		iCalls;
 
 	pszDest->Append("Stopped at ");
-	TestProject65AppendSymbol(pcBuilder, uiAddress, pszDest);
+	TestProject65AppendSymbol(szMap, uiAddress, pszDest);
 	pszDest->Append(", S 0x");
 	pszDest->AppendHexHiLo(&uiS, sizeof(uint32));
 	pszDest->Append(", after ");
@@ -514,7 +533,7 @@ static void TestProject65AppendStop(CCPP65Builder* pcBuilder, uint32 uiAddress, 
 			if ((uiReturn >= 0x10003) && (uiReturn < 0x800000) && (pcMemory->GetByte(uiReturn - 3) == 0x22))
 			{
 				pszDest->Append("  called from ");
-				TestProject65AppendSymbol(pcBuilder, uiReturn - 3, pszDest);
+				TestProject65AppendSymbol(szMap, uiReturn - 3, pszDest);
 				pszDest->AppendNewLine();
 				iCalls++;
 				uiS += 2;
@@ -530,11 +549,11 @@ static void TestProject65AppendStop(CCPP65Builder* pcBuilder, uint32 uiAddress, 
 // instructions, a million at a time (Run takes a size, which is 32 bits in
 // a 32 bit build).  With pszFaults, every function's direct page stores are
 // checked (CAsmW65C816FrameCheck) and pszFaults gets those to a caller's
-// stack, each at its function (pcBuilder's map).  Returns the steps run, to
-// the million.
+// stack, each at its function (szMap, the linker's map).  Returns the steps
+// run, to the million.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint64 TestProject65RunW65C816(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, CFastW65C816* pcMPU, uint64 uiMaxSteps, CChars* pszFaults)
+static uint64 TestProject65RunW65C816(const char* szMap, CAsm65Memory* pcMemory, CFastW65C816* pcMPU, uint64 uiMaxSteps, CChars* pszFaults)
 {
 	CAsmW65C816FrameCheck	cCheck;
 	uint64				uiSteps;
@@ -559,7 +578,7 @@ static uint64 TestProject65RunW65C816(CCPP65Builder* pcBuilder, CAsm65Memory* pc
 	{
 		for (ui = 0; ui < cCheck.NumWrites(); ui++)
 		{
-			TestProject65AppendSymbol(pcBuilder, cCheck.GetWrite(ui)->uiAddress, pszFaults);
+			TestProject65AppendSymbol(szMap, cCheck.GetWrite(ui)->uiAddress, pszFaults);
 			CAsmW65C816FrameCheck::AppendWrite(cCheck.GetWrite(ui), pszFaults);
 		}
 		cCheck.Kill();
@@ -570,32 +589,16 @@ static uint64 TestProject65RunW65C816(CCPP65Builder* pcBuilder, CAsm65Memory* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Runs the linked program.  pszConsole gets what it printed, and pszFaults
-// a W65C816 program's stores to a caller's stack (TestProject65RunW65C816;
-// not when it is timed, TEST_PROJECT65_RUN_TIME).  Returns true if main
-// returned.
+// A memory with the builder's linked program in it, to run (a copy: the
+// builder links the next program while this one runs).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder, CChars* pszConsole, CChars* pszFaults)
+static CAsm65Memory* TestProject65Load(CCPP65Builder* pcBuilder)
 {
-	CAsm65Memory*		pcMemory;
-	CAsm65HostFiles		cHostFiles;
-	CFast65C64			cMPU;
-	CFastW65C816			cMPUW65C816;
-	CAsm65Profiled65C64		cProfiled65C64;
-	CAsm65ProfiledW65C816	cProfiledW65C816;
-	CChars				szOutput;
-	uint64				uiSteps;
-	uint64				uiMaxSteps;
-	bool				bReturned;
-	bool				bW65C816;
-	clock_t				iStart;
+	CAsm65Memory*	pcMemory;
 
-	//TEST_PROJECT65_STEPS (millions of instructions) gives a slow test longer, for timing it.
-	uiMaxSteps = getenv("TEST_PROJECT65_STEPS") ? (uint64)strtoul(getenv("TEST_PROJECT65_STEPS"), NULL, 10) * 1000000 : TEST_PROJECT65_MAX_STEPS;
-	bW65C816 = geTestProject65Target == CPPT_W65C816;
 	pcMemory = NewMalloc<CAsm65Memory>();
-	if (bW65C816)
+	if (geTestProject65Target == CPPT_W65C816)
 	{
 		pcMemory->Init(TEST_PROJECT_W65C816_MEMORY_SIZE);
 		pcMemory->Load(pcBuilder->GetOutput());
@@ -605,11 +608,40 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 		pcMemory->Init(TEST_PROJECT65_MEMORY_SIZE);
 		pcMemory->LoadProgram(pcBuilder->GetOutput(), CPP65_PROGRAM_ADDRESS);
 	}
+	return pcMemory;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs the program loaded in pcMemory (TestProject65Load), its host files
+// in szDirectory, and kills the memory.  pszConsole gets what it printed,
+// and pszFaults a W65C816 program's stores to a caller's stack
+// (TestProject65RunW65C816; not when it is timed, TEST_PROJECT65_RUN_TIME).
+// szMap is its link's map, to name where it stopped; pcBuilder its builder,
+// for the profile (whose programs run one at a time).  Returns true if main
+// returned.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestProject65Run(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, const char* szMap, const char* szDirectory, CChars* pszConsole, CChars* pszFaults)
+{
+	CAsm65HostFiles		cHostFiles;
+	CFast65C64			cMPU;
+	CFastW65C816			cMPUW65C816;
+	CAsm65Profiled65C64		cProfiled65C64;
+	CAsm65ProfiledW65C816	cProfiledW65C816;
+	uint64				uiSteps;
+	uint64				uiMaxSteps;
+	bool				bReturned;
+	bool				bW65C816;
+	clock_t				iStart;
+
+	//TEST_PROJECT65_STEPS (millions of instructions) gives a slow test longer, for timing it.
+	uiMaxSteps = getenv("TEST_PROJECT65_STEPS") ? (uint64)strtoul(getenv("TEST_PROJECT65_STEPS"), NULL, 10) * 1000000 : TEST_PROJECT65_MAX_STEPS;
+	bW65C816 = geTestProject65Target == CPPT_W65C816;
 	pcMemory->SetConsole(pszConsole);
 	cHostFiles.Init();
-	TestProject65OutputDirectory(psProject, &szOutput);
-	cHostFiles.SetDirectory(szOutput.Text());
-	szOutput.Kill();
+	cHostFiles.SetDirectory(szDirectory);
 	pcMemory->SetHostFiles(&cHostFiles);
 
 	//TEST_PROJECT65_RUN_TIME prints how long each program ran on the host (not its compiling or linking).
@@ -646,7 +678,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 			for (ui = (uiTrace > 64) ? uiTrace - 64 : 0; ui < uiTrace; ui++)
 			{
 				pszConsole->Append("  ");
-				TestProject65AppendSymbol(pcBuilder, auiTrace[ui % 64], pszConsole);
+				TestProject65AppendSymbol(szMap, auiTrace[ui % 64], pszConsole);
 				pszConsole->Append(" S 0x");
 				pszConsole->AppendHexHiLo(&auiTraceS[ui % 64], sizeof(uint32));
 				pszConsole->AppendNewLine();
@@ -654,7 +686,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 		}
 		else
 		{
-			uiSteps = TestProject65RunW65C816(pcBuilder, pcMemory, &cMPUW65C816, uiMaxSteps, getenv("TEST_PROJECT65_RUN_TIME") ? NULL : pszFaults);
+			uiSteps = TestProject65RunW65C816(szMap, pcMemory, &cMPUW65C816, uiMaxSteps, getenv("TEST_PROJECT65_RUN_TIME") ? NULL : pszFaults);
 		}
 		bReturned = cMPUW65C816.IsStopped() && (cMPUW65C816.GetS() == GetCPPTarget(CPPT_W65C816)->GetStackTop());
 		if (getenv("TEST_PROJECT65_CYCLES"))
@@ -664,7 +696,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 		}
 		if (!bReturned)
 		{
-			TestProject65AppendStop(pcBuilder, cMPUW65C816.GetProgramAddress(), cMPUW65C816.GetS(), uiSteps / 1000000, pszConsole, pcMemory);
+			TestProject65AppendStop(szMap, cMPUW65C816.GetProgramAddress(), cMPUW65C816.GetS(), uiSteps / 1000000, pszConsole, pcMemory);
 		}
 		cMPUW65C816.Kill();
 	}
@@ -698,7 +730,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 			for (ui = (uiTrace > 64) ? uiTrace - 64 : 0; ui < uiTrace; ui++)
 			{
 				pszConsole->Append("  ");
-				TestProject65AppendSymbol(pcBuilder, auiTrace[ui % 64], pszConsole);
+				TestProject65AppendSymbol(szMap, auiTrace[ui % 64], pszConsole);
 				pszConsole->Append(" S 0x");
 				pszConsole->AppendHexHiLo(&auiTraceS[ui % 64], sizeof(uint32));
 				pszConsole->AppendNewLine();
@@ -720,7 +752,7 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 		}
 		if (!bReturned)
 		{
-			TestProject65AppendStop(pcBuilder, cMPU.GetProgramCounter(), cMPU.GetS(), uiSteps / 1000000, pszConsole);
+			TestProject65AppendStop(szMap, cMPU.GetProgramCounter(), cMPU.GetS(), uiSteps / 1000000, pszConsole);
 		}
 		cMPU.Kill();
 	}
@@ -734,6 +766,84 @@ static bool TestProject65Run(STestProject65* psProject, CCPP65Builder* pcBuilder
 	cHostFiles.Kill();
 	SafeKill(pcMemory);
 	return bReturned;
+}
+
+
+//The workers that run programs side by side, each with its own directory (TestProject65OutputDirectory): which are
+//running one, under the mutex, the condition woken as one finishes.
+struct STestProject65Workers
+{
+	CMutex				cMutex;
+	CConditionVariable	cFinished;
+	size				uiWorkers;
+	bool				abBusy[TEST_PROJECT65_MAX_RUNS];
+	CChars				aszDirectories[TEST_PROJECT65_MAX_RUNS];
+};
+
+
+//A test's program: linked (or why not) and run, its results kept until all the programs have run, then asserted in
+//their order, so Log.txt and the counts are as if they had run one after another.
+struct STestProject65Program
+{
+	CChars					szExpected;		//The test's name.
+	CChars					szActual;		//The name, and why it didn't link or what was missing.
+	bool					bRun;			//It linked with nothing missing, and runs.
+	CAsm65Memory*			pcMemory;		//The program loaded, until it has run.
+	CChars					szMap;			//Its link's map.
+	CChars					szConsole;
+	CChars					szFaults;
+	bool					bReturned;
+	size					uiWorker;
+	STestProject65Workers*	psWorkers;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker's job: runs the program in its worker's directory, and frees
+// the worker.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestProject65RunProgram(void* pvData)
+{
+	STestProject65Program*	psProgram;
+	STestProject65Workers*	psWorkers;
+
+	psProgram = (STestProject65Program*)pvData;
+	psWorkers = psProgram->psWorkers;
+	psProgram->bReturned = TestProject65Run(NULL, psProgram->pcMemory, psProgram->szMap.Text(), psWorkers->aszDirectories[psProgram->uiWorker].Text(), &psProgram->szConsole, &psProgram->szFaults);
+	psProgram->pcMemory = NULL;
+	psWorkers->cMutex.Lock();
+	psWorkers->abBusy[psProgram->uiWorker] = false;
+	psWorkers->cFinished.WakeAll();
+	psWorkers->cMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker that isn't running a program, waiting for one to finish if
+// they all are.
+//
+//////////////////////////////////////////////////////////////////////////
+static size TestProject65FreeWorker(STestProject65Workers* psWorkers)
+{
+	size	ui;
+
+	psWorkers->cMutex.Lock();
+	for (;;)
+	{
+		for (ui = 0; ui < psWorkers->uiWorkers; ui++)
+		{
+			if (!psWorkers->abBusy[ui])
+			{
+				psWorkers->abBusy[ui] = true;
+				psWorkers->cMutex.Unlock();
+				return ui;
+			}
+		}
+		psWorkers->cFinished.Wait(&psWorkers->cMutex);
+	}
 }
 
 
@@ -754,21 +864,45 @@ void TestProject65RunTests(STestProject65* psProject)
 	CChars			szText;
 	CChars			szMain;
 	CChars			szMainFile;
-	CChars			szConsole;
-	CChars			szFaults;
 	CChars			szMissing;
-	CChars			szExpected;
-	CChars			szActual;
+	STestProject65Workers	sWorkers;
+	STestProject65Program*	asPrograms;
+	STestProject65Program*	psProgram;
+	size			uiNumPrograms;
 	size			i;
+	size			uiWorker;
 	int				iRun;
 	int				iFailed;
 	int				iTotalRun;
 	size			uiPrograms;
-	bool			bReturned;
 	bool			bLinked;
 	bool			bCompiled;
 
-	TestProject65CopyDirectory(psProject);
+	//The programs run side by side on TEST_PROJECT65_RUNS workers (default TEST_PROJECT65_RUNS), each its own copy of
+	//the test project's directory; one after another, in the one copy, for the profile, TEST_PROJECT65_CYCLES and
+	//TEST_PROJECT65_TRACE (which print as they go, or share the profile).
+	sWorkers.uiWorkers = getenv("TEST_PROJECT65_RUNS") ? (size)atoi(getenv("TEST_PROJECT65_RUNS")) : TEST_PROJECT65_RUNS;
+	if (TestProject65ProfileFile() || getenv("TEST_PROJECT65_CYCLES") || getenv("TEST_PROJECT65_TRACE") || (sWorkers.uiWorkers < 1))
+	{
+		sWorkers.uiWorkers = 1;
+	}
+	if (sWorkers.uiWorkers > TEST_PROJECT65_MAX_RUNS)
+	{
+		sWorkers.uiWorkers = TEST_PROJECT65_MAX_RUNS;
+	}
+	sWorkers.cMutex.Init();
+	sWorkers.cFinished.Init();
+	for (uiWorker = 0; uiWorker < sWorkers.uiWorkers; uiWorker++)
+	{
+		sWorkers.abBusy[uiWorker] = false;
+		TestProject65CopyDirectory(psProject, (sWorkers.uiWorkers == 1) ? TEST_PROJECT65_NO_WORKER : uiWorker);
+		TestProject65OutputDirectory(psProject, &sWorkers.aszDirectories[uiWorker], (sWorkers.uiWorkers == 1) ? TEST_PROJECT65_NO_WORKER : uiWorker);
+	}
+	if (sWorkers.uiWorkers > 1)
+	{
+		//The 65C64s share their decoded opcodes: all are decoded before they run side by side.
+		CFast65C64::DecodeAll();
+	}
 
 	cBuilder.Init();
 	cBuilder.SetTarget(geTestProject65Target);
@@ -876,8 +1010,10 @@ void TestProject65RunTests(STestProject65* psProject)
 	szMainFile.Init(psProject->szTestProject);
 	szMainFile.Append(".cpp");
 
-	iTotalRun = 0;
-	uiPrograms = 0;
+	//Each program is linked here, one after another (the builder's objects are reused), loaded into a memory of its
+	//own and run by the next free worker while the next is linked.
+	asPrograms = (STestProject65Program*)malloc(sizeof(STestProject65Program) * (aszTests.NumElements() + 1));
+	uiNumPrograms = 0;
 	for (i = 0; i < aszTests.NumElements(); i++)
 	{
 		if (!getenv("TEST_PROJECT65_ONLY") && TestProject65IsExcluded(psProject, aszTests.GetText(i)))
@@ -901,52 +1037,91 @@ void TestProject65RunTests(STestProject65* psProject)
 			cBuilder.GetMissingNames(&szMissing);
 		}
 
-		//The test's name, and how it went if it did not pass.
-		szExpected.Init(aszTests.GetText(i));
-		szActual.Init(aszTests.GetText(i));
-		szConsole.Init();
-		szFaults.Init();
+		//The test's name, and how it went if it did not link.
+		psProgram = &asPrograms[uiNumPrograms];
+		uiNumPrograms++;
+		psProgram->szExpected.Init(aszTests.GetText(i));
+		psProgram->szActual.Init(aszTests.GetText(i));
+		psProgram->szConsole.Init();
+		psProgram->szFaults.Init();
+		psProgram->szMap.Init();
+		psProgram->pcMemory = NULL;
+		psProgram->bReturned = false;
+		psProgram->psWorkers = &sWorkers;
+		psProgram->bRun = false;
 		if (!bLinked)
 		{
-			szActual.Append(" did not link: ");
-			szActual.Append(cBuilder.GetErrors());
+			psProgram->szActual.Append(" did not link: ");
+			psProgram->szActual.Append(cBuilder.GetErrors());
 		}
 		else if (!szMissing.Empty())
 		{
-			szActual.Append(" is missing: ");
-			szActual.Append(szMissing);
+			psProgram->szActual.Append(" is missing: ");
+			psProgram->szActual.Append(szMissing);
 		}
 		else
 		{
-			uiPrograms++;
-			if (getenv("TEST_PROJECT65_CYCLES"))
+			psProgram->bRun = true;
+			psProgram->pcMemory = TestProject65Load(&cBuilder);
+			psProgram->szMap.Append(cBuilder.GetMap());
+			if (sWorkers.uiWorkers == 1)
 			{
-				//With each program's cycles (TestProject65Run), its size: the bytes of its linked image.
-				printf("SIZE %llu %s\n", (unsigned long long)cBuilder.GetOutput()->NumBytes(), aszTests.GetText(i));
+				if (getenv("TEST_PROJECT65_CYCLES"))
+				{
+					//With each program's cycles (TestProject65Run), its size: the bytes of its linked image.
+					printf("SIZE %llu %s\n", (unsigned long long)cBuilder.GetOutput()->NumBytes(), aszTests.GetText(i));
+				}
+				psProgram->bReturned = TestProject65Run(&cBuilder, psProgram->pcMemory, psProgram->szMap.Text(), sWorkers.aszDirectories[0].Text(), &psProgram->szConsole, &psProgram->szFaults);
+				psProgram->pcMemory = NULL;
 			}
-			bReturned = TestProject65Run(psProject, &cBuilder, &szConsole, &szFaults);
-			iRun = TestProject65ConsoleNumber(&szConsole, "Total Tests Run: ");
-			iFailed = TestProject65ConsoleNumber(&szConsole, "Total Failed: ");
-			if (!bReturned || (iFailed > 0) || !szFaults.Empty())
+			else
 			{
-				szActual.Append(bReturned ? " failed:\n" : " did not finish:\n");
-				szActual.Append(szFaults);
-				szActual.Append(szConsole);
-			}
-			iTotalRun += (iRun > 0) ? iRun : 0;
-			if (getenv("TEST_PROJECT65_CYCLES"))
-			{
-				//And the asserts it ran, to find the program when two runs' totals differ.
-				printf("ASSERTS %d %s\n", iRun, aszTests.GetText(i));
+				psProgram->uiWorker = TestProject65FreeWorker(&sWorkers);
+				cJobs.Run(TestProject65RunProgram, psProgram);
 			}
 		}
-		AssertString(szExpected.Text(), szActual.Text());
 		szMissing.Kill();
-		szFaults.Kill();
-		szConsole.Kill();
-		szActual.Kill();
-		szExpected.Kill();
 	}
+	cJobs.Wait();
+
+	//The results, in the programs' order.
+	iTotalRun = 0;
+	uiPrograms = 0;
+	for (i = 0; i < uiNumPrograms; i++)
+	{
+		psProgram = &asPrograms[i];
+		if (psProgram->bRun)
+		{
+			uiPrograms++;
+			iRun = TestProject65ConsoleNumber(&psProgram->szConsole, "Total Tests Run: ");
+			iFailed = TestProject65ConsoleNumber(&psProgram->szConsole, "Total Failed: ");
+			if (!psProgram->bReturned || (iFailed > 0) || !psProgram->szFaults.Empty())
+			{
+				psProgram->szActual.Append(psProgram->bReturned ? " failed:\n" : " did not finish:\n");
+				psProgram->szActual.Append(psProgram->szFaults);
+				psProgram->szActual.Append(psProgram->szConsole);
+			}
+			iTotalRun += (iRun > 0) ? iRun : 0;
+			if (getenv("TEST_PROJECT65_COUNTS"))
+			{
+				//TEST_PROJECT65_COUNTS: each program's asserts, to compare runs.
+				printf("COUNT %d %s\n", iRun, psProgram->szExpected.Text());
+			}
+		}
+		AssertString(psProgram->szExpected.Text(), psProgram->szActual.Text());
+		psProgram->szMap.Kill();
+		psProgram->szFaults.Kill();
+		psProgram->szConsole.Kill();
+		psProgram->szActual.Kill();
+		psProgram->szExpected.Kill();
+	}
+	free(asPrograms);
+	for (uiWorker = 0; uiWorker < sWorkers.uiWorkers; uiWorker++)
+	{
+		sWorkers.aszDirectories[uiWorker].Kill();
+	}
+	sWorkers.cFinished.Kill();
+	sWorkers.cMutex.Kill();
 	printf("%s: %d programs, %d asserts\n", psProject->szTestProject, (int)uiPrograms, iTotalRun);
 	if (!getenv("TEST_PROJECT65_ONLY"))
 	{

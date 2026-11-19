@@ -2,6 +2,7 @@
 #define __MEMORY_32_H__
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "PrimitiveTypes.h"
 
 
@@ -21,6 +22,8 @@ inline lsize	strlen32(const char* sz)										{ return strlen(sz); }
 inline void*	malloc32(lsize uiBytes)											{ return malloc(uiBytes); }
 inline void*	calloc32(lsize uiCount, lsize uiBytes)							{ return calloc(uiCount, uiBytes); }
 inline void*	realloc32(void* pv, lsize uiBytes)								{ return realloc(pv, uiBytes); }
+inline lsize	fread32(void* pv, lsize uiSize, lsize uiCount, FILE* pcFile)	{ return fread(pv, uiSize, uiCount, pcFile); }
+inline lsize	fwrite32(const void* pv, lsize uiSize, lsize uiCount, FILE* pcFile)	{ return fwrite(pv, uiSize, uiCount, pcFile); }
 #endif // !__W65C816__
 
 

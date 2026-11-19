@@ -65,6 +65,23 @@ IDE checks the same passes and failures) as a run in one process.
    Questions for the user: (d) changes what the usages/find checks run against, from the real ModPlay to a small copy, so
    they no longer check the IDE on a big solution.  Keep a handful on ModPlay (as above), or keep them all and accept ~20 min?
    The user, 2026-11-18: "2d, run on a small solution".
+   (a) measured 2026-11-19 (Reference x64, usages-rename on HCP65ModPlay.sln): 49.0 s as it is (42.8 s run again), 42.6 s
+   without its edit, 3.3 s without its edit or WAIT_INDEX: starting and opening ModPlay is 3 s, waiting for BaseLib to
+   be indexed ~39 s (90%), the check itself under 6 s.  So (d) first, then (b) and (c) if the light checks are worth
+   running side by side.  The table has 113 checks, 63 with WAIT_INDEX: 31 open CalcParentheses.h, 9
+   CalculatorParser.cpp, 2 Calculator.cpp, 1 each CalculatorParser.h and CalcExpression.h (the Calc files), 8 their own
+   solution; the rest Shape.h, Engine.h, Main.cpp, Codabase.h or nothing.
+   (d) DONE 2026-11-19 (HCP65-IDE beb49b1): HCP65IDE/Checks/Input/Calculator/Calculator.sln, a project named BaseLib
+   (as the checks' output names it) listing the real Calc and Calculator files by relative path, so what the checks
+   watch is unchanged; IDEChecks.py's CALCULATOR_RECENT opens it for 46 checks.  A check moved only if it passes or
+   fails on it as on ModPlay: of the 44 on the Calc files, 41 pass on both and 3 fail on both (menus,
+   hierarchy-after-edits, virtual-after-edits: failing on ModPlay before this); of the 11 other heavy ones 6 pass on
+   both.  Nine stay on ModPlay: rename-while-reindexing, recolour-off-ui-thread, usages-typing and
+   usages-step-behind-build (indexing at ModPlay's scale, as planned), and gotosource-popup-scrolls,
+   find-jump-to-source, find-preview, find-row-parts and find-in-solution (their results are ModPlay's).  The 44
+   measured: 1934 s on ModPlay, 272 s now (the four on ModPlay most of that); the six more 23 s.  The IDE checks'
+   ~50 minutes are about 15 now.  (b) and (c), running them side by side, would now save a few minutes for copies of
+   ModPlay and Kernal per worker: not done unless the user wants them.
 
 3. The *65 suites: their programs' runs on worker threads                            TestSupportLib65 816 ~243 s -> ~90 s (estimate)
    a. Measure each suite's compile, link and run times (TEST_PROJECT65_RUN_TIME prints each program's run).
@@ -89,6 +106,21 @@ IDE checks the same passes and failures) as a run in one process.
    runs 34.6, 34.3 and 32.0 s.  The frame check about doubles a run (the same suite with it: 664 s).  With four workers
    the runs would take about the longest few of them (~80 s), so the suite ~135 s without the frame check and ~200 s
    with it.
+   DONE 2026-11-19.  TestProject65.cpp: each program linked on the main thread, loaded into a memory of its own
+   (TestProject65Load) with a copy of its map, and run by the next free worker (TestProject65FreeWorker,
+   TestProject65RunProgram) on the compile's CWorkerThreadJobs while the next is linked; its console, faults and
+   result kept, and all asserted in the programs' order once they have run.  TEST_PROJECT65_RUNS workers (4; 1 runs them
+   one after another as before, in the one directory), each with its own copy of the test project's directory,
+   Output/<target>/<project>.<n>; the profile, TEST_PROJECT65_CYCLES and TEST_PROJECT65_TRACE run them one at a time.
+   The 65C64s' shared table of decoded opcodes is filled before they run side by side (CFast65C64::DecodeAll), as each
+   decoded an opcode the first time it met it.  TEST_PROJECT65_COUNTS prints each program's asserts.  Release x64, one
+   at a time against side by side, the same programs and asserts (each program's count the same, TestBaseLib65 65C64
+   checked with TEST_PROJECT65_COUNTS):
+     TestBaseLib65       65C64 123 s ->  46 s   W65C816 225 s ->  84 s
+     TestStandardLib65   65C64 191 s ->  85 s   W65C816 170 s ->  71 s
+     TestSupportLib65    65C64 464 s -> 167 s   W65C816 664 s -> 214 s
+   1837 s -> 667 s for the six (2.75 times).  The suites' own Tests Run counts are higher: each worker's directory copy
+   asserts as it copies.
 
 4. TestCPPW65C816: where its 309 s goes, then the biggest costs                       (unknown until measured)
    The plan said "compile Libc65 once per process", but a trivial build is 0.15 s a target, so that is small.  Instead:
@@ -100,6 +132,14 @@ IDE checks the same passes and failures) as a run in one process.
       text's hash and the options.
    c. Check: the same 3203 tests pass; nothing is tested less (a lockstep run removed is listed in the commit with why).
    Questions: any lockstep run to drop goes to the user first.
+   DONE 2026-11-19.  (a) Its calls' times are RunParallel.py's (Output/RunParallel.times, from TEST_PART_TIMES): of
+   TestCPPW65C816's 267 s, TestCPP816TestBaseLibBugs was 145 s and TestCPP816SizeLsizeBugs 87 s (87%), the next 4 s.
+   Between them they build eight programs with all of BaseLib (TestCPP816RunProject's bBaseLib), ~29 s each, as the
+   builder compiled BaseLib's units one at a time.  (b) TestCPP816RunProject gives a whole-BaseLib build a
+   CWorkerThreadJobs (CCPP65Builder::SetJobs), as TestProject65's compile has: they are 54 s and 35 s now, the file
+   125 s, and RunParallel 156 s -> 124 s (its longest process is no longer TestCPP816TestBaseLibBugs).  Nothing tested
+   less, no lockstep run touched: 268694 passed as before.  The object cache across those eight builds would save
+   ~40 s of CPU but not of wall time (other files are the longest processes now): not done.
 
 5. The sweep: build while the last suite runs                                        ~3.5 h -> ~1.5 h with 1 and 6
    Planned in detail 2026-11-19 (the user: "Plan step 5 please").

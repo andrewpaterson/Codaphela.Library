@@ -173,6 +173,7 @@ typedef uint128			ulongint;
 #if defined(__W65C816__)
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 //On the W65C816 size_t is 16 bits, so the C library's memcpy, malloc and the others take at most 65535 bytes, and Libc65
 //has 32 suffixed ones for more (memcpy32, malloc32 ...).  An lsize is a count that can pass 64KB, so a call with one is
 //a call of the 32 suffixed function: these overloads choose by the count's type, and no call says which it wants.  A
@@ -191,6 +192,10 @@ template<class T> inline void*	malloc(T uiBytes)										{ return LARGE_COUNT(T
 template<class T> inline void*	realloc(void* pv, T uiBytes)							{ return LARGE_COUNT(T) ? realloc32(pv, (lsize)uiBytes) : realloc(pv, (size_t)uiBytes); }
 //calloc32 when either the count or the size is wider than a size_t.
 template<class C, class B> inline void*	calloc(C uiCount, B uiBytes)					{ return (LARGE_COUNT(C) || LARGE_COUNT(B)) ? calloc32((lsize)uiCount, (lsize)uiBytes) : calloc((size_t)uiCount, (size_t)uiBytes); }
+//fread32 and fwrite32 likewise, for a size or a count wider than a size_t (the user, 2026-11-19: "fread and fwrite need
+//to work with 32 bit values"); what they read into or write from is then malloc32's.  They give the items as an lsize.
+template<class S, class C> inline lsize	fread(void* pv, S uiSize, C uiCount, FILE* pcFile)			{ return (LARGE_COUNT(S) || LARGE_COUNT(C)) ? fread32(pv, (lsize)uiSize, (lsize)uiCount, pcFile) : fread(pv, (size_t)uiSize, (size_t)uiCount, pcFile); }
+template<class S, class C> inline lsize	fwrite(const void* pv, S uiSize, C uiCount, FILE* pcFile)	{ return (LARGE_COUNT(S) || LARGE_COUNT(C)) ? fwrite32(pv, (lsize)uiSize, (lsize)uiCount, pcFile) : fwrite(pv, (size_t)uiSize, (size_t)uiCount, pcFile); }
 #endif // __W65C816__
 
 
