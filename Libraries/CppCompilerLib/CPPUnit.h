@@ -757,6 +757,7 @@ public:
 	bool					BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound);
 	CCPPSymbol*				MemberEnumerator(CCPPSyntaxMemberExpression* pcMember);
 	SCPPField*				BitFieldOf(CCPPSyntax* pcExpression);
+	CCPPSyntaxIdExpression*	MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress);
 	SCPP65Type*				OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression);
 	SCPP65Type*				VariadicArgumentType(SCPP65Type* psType);
 	SCPP65Type*				CalleePointerType(CCPPSyntax* pcCallee);

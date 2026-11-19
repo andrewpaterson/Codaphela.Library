@@ -411,6 +411,7 @@ void CCPP65TypeChecker::VisitNoexceptExpression(CCPPSyntaxNoexceptExpression* pc
 void CCPP65TypeChecker::VisitTypeidExpression(CCPPSyntaxTypeidExpression* pcNode)
 {
 	CCPPClass*	pcTypeInfo;
+	SCPP65Type*	psOf;
 	bool		bDynamic;
 
 	mpsResult = NULL;
@@ -424,9 +425,15 @@ void CCPP65TypeChecker::VisitTypeidExpression(CCPPSyntaxTypeidExpression* pcNode
 	{
 		return;
 	}
-	if (!mpcUnit->TypeidType(pcNode, &bDynamic))
+	psOf = mpcUnit->TypeidType(pcNode, &bDynamic);
+	if (!psOf)
 	{
 		Error(pcNode, "typeid of this is not supported by the compiler yet");
+		return;
+	}
+	if (psOf->WithoutReference()->IsClass() && !mpcUnit->CompleteClass(psOf->WithoutReference()->pcClass, pcNode))
+	{
+		//[expr.typeid] 4
 		return;
 	}
 	mpsResult = mpcTypes->Reference(mpcTypes->Const(pcTypeInfo->mpsType));
@@ -792,9 +799,15 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		{
 			pcId = (CCPPSyntaxIdExpression*)pcOperand;
 			pcSymbol = pcId->mpcName->mpcSymbol;
-			if (pcId->mpcName->IsQualifiedByClass() && MemberAddress(pcId, NULL, &psType))
+			if (mpcUnit->MemberPointerName(pcUnary) && MemberAddress(pcId, NULL, &psType))
 			{
 				return psType;
+			}
+			if (!mpcUnit->MemberPointerName(pcUnary) && !mpcUnit->ThisClass() && mpcUnit->QualifiedFieldType(pcId))
+			{
+				//&(Class::field), which is no pointer to a member, where there is no object for the field to be in.
+				Error(pcUnary, "A pointer to a member is &Class::member, with no brackets about the name");
+				return NULL;
 			}
 			if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 			{
@@ -806,6 +819,12 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 			}
 		}
 		psType = Place(pcUnary->mpcOperand);
+		if (psType && mpcUnit->IsRvalue(pcOperand))
+		{
+			//[expr.unary.op] 3
+			Error(pcUnary, "The address of a temporary can't be taken");
+			return NULL;
+		}
 		return psType ? mpcTypes->Pointer(psType) : NULL;
 	default:
 		break;
@@ -1264,7 +1283,7 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 	}
 
 	psType = mpcUnit->ConditionalType(psTrue, psFalse);
-	if (!psType)
+	if (!psType || !ConditionalResultsFit(pcConditional, psTrue, psFalse))
 	{
 		Error(pcConditional, "The two results of ? : have no type in common");
 		return NULL;
@@ -1276,6 +1295,35 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 		return NULL;
 	}
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether c ? x : y's results, a psTrue and a psFalse that have a type in
+// common (CCPPUnit::ConditionalType, which sees only their types), are
+// what the type is for: one that is void goes with another, or with a
+// throw; and a number with a pointer is 0.  [expr.cond] 2, 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConditionalResultsFit(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse)
+{
+	CCPPSyntax*	pcOther;
+
+	if (psTrue->IsVoid() != psFalse->IsVoid())
+	{
+		pcOther = mpcUnit->SkipParentheses(psTrue->IsVoid() ? pcConditional->mpcTrue : pcConditional->mpcFalse);
+		return pcOther->GetKind() == CPPS_ThrowExpression;
+	}
+	if ((psTrue->IsPointer() || psTrue->IsMemberPointer()) && psFalse->IsInteger())
+	{
+		return mpcUnit->IsNullPointerConstant(pcConditional->mpcFalse);
+	}
+	if ((psFalse->IsPointer() || psFalse->IsMemberPointer()) && psTrue->IsInteger())
+	{
+		return mpcUnit->IsNullPointerConstant(pcConditional->mpcTrue);
+	}
+	return true;
 }
 
 
@@ -2618,13 +2666,19 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 {
 	CArraySyntax*	papcElements;
 	SCPP65Type*		psElement;
+	int64			lliBound;
 	size			i;
 
-	//The bound is an integer, or an object that converts to one.  [expr.new] 6
+	//The bound is an integer, or an object that converts to one; a constant one isn't negative.  [expr.new] 6, 7
 	psElement = mpcUnit->GetBinder()->ContextualType(pcNew->macpArraySizes.GetPtr(0), false);
 	if (psElement && !psElement->IsInteger())
 	{
 		Error(pcNew->macpArraySizes.GetPtr(0), "A new array's bound must be an integer");
+		return NULL;
+	}
+	if (psElement && psElement->bSigned && mpcUnit->Constant(pcNew->macpArraySizes.GetPtr(0), &lliBound) && (lliBound < 0))
+	{
+		Error(pcNew->macpArraySizes.GetPtr(0), "A new array's bound can't be negative");
 		return NULL;
 	}
 	if (!psElement || !Convert(ValueFor(pcNew->macpArraySizes.GetPtr(0), psElement, false), &mpcTypes->msUnsignedInt, pcNew))
@@ -2667,7 +2721,8 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 
 //////////////////////////////////////////////////////////////////////////
 //
-// delete pointer and delete[] pointer: void.
+// delete pointer and delete[] pointer: void.  The pointer is to an object,
+// whose destructor may be called here.  [expr.delete] 1, 10
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete)
@@ -2682,13 +2737,13 @@ SCPP65Type* CCPP65TypeChecker::DeleteExpression(CCPPSyntaxDeleteExpression* pcDe
 	{
 		return NULL;
 	}
-	if (!psPointer->IsPointer())
+	if (!psPointer->IsPointer() || psPointer->psBase->IsFunction())
 	{
-		Error(pcDelete, "delete needs a pointer");
+		Error(pcDelete, "delete needs a pointer to an object");
 		return NULL;
 	}
 	psType = psPointer->psBase;
-	if (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, pcDelete))
+	if (psType->IsClass() && !(mpcUnit->CompleteClass(psType->pcClass, pcDelete) && mpcUnit->GetBinder()->ReachesDestructor(psType->pcClass, pcDelete)))
 	{
 		return NULL;
 	}

@@ -233,15 +233,29 @@ CCPPSyntaxIdExpression* CCPPUnit::FunctionNameFor(CCPPSyntax* pcExpression, SCPP
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxIdExpression* CCPPUnit::MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 {
-	CCPPSyntax*	pcOperand;
-
 	pcExpression = SkipParentheses(pcExpression);
 	if (!pcExpression || !psTo || !psTo->IsMemberPointer() || !psTo->psBase->IsFunction() || (pcExpression->GetKind() != CPPS_UnaryExpression) || (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator != CT_BitwiseAnd))
 	{
 		return NULL;
 	}
-	pcOperand = SkipParentheses(((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand);
-	if ((pcOperand->GetKind() != CPPS_IdExpression) || !((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
+	return MemberPointerName((CCPPSyntaxUnaryExpression*)pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name &Class::member forms a pointer to a member from, or NULL: the
+// operand of & as it is written, a name a class qualifies with no brackets
+// about it (&(Class::member) is the member's own address, where it has
+// one).  [expr.unary.op] 4
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPPUnit::MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress)
+{
+	CCPPSyntax*	pcOperand;
+
+	pcOperand = pcAddress->mpcOperand;
+	if (!pcOperand || (pcOperand->GetKind() != CPPS_IdExpression) || !((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
 	{
 		return NULL;
 	}

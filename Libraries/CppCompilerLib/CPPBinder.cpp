@@ -1288,7 +1288,7 @@ bool CCPPBinder::IsAssignable(SCPP65Type* psTo, SCPP65Type* psFrom)
 			return true;
 		}
 	}
-	return !bOwn && !pcClass->IsCopyDeleted() && psFrom->WithoutReference()->IsClass() && mpcUnit->IsDerived(psFrom->WithoutReference()->pcClass, pcClass, NULL);
+	return !bOwn && !pcClass->IsAssignmentDeleted() && psFrom->WithoutReference()->IsClass() && mpcUnit->IsDerived(psFrom->WithoutReference()->pcClass, pcClass, NULL);
 }
 
 
@@ -1655,6 +1655,19 @@ bool CCPPBinder::HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass
 bool CCPPBinder::ReachesBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode)
 {
 	return HasOneBase(pcClass, pcBase, pcNode) && mcAccess.CheckBase(pcClass, pcBase, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an object of pcClass may be destroyed at pcNode: the destructor
+// the class declares, if it does, may be named there.  An error (and false)
+// if not.  [class.dtor] 11
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ReachesDestructor(CCPPClass* pcClass, CCPPSyntax* pcNode)
+{
+	return !pcClass->mpcDestructor || mcAccess.CheckFunction(pcClass->mpcDestructor, pcClass, pcNode);
 }
 
 

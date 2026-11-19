@@ -196,6 +196,7 @@ public:
 	bool	HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
 	bool	HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass* pcDeclaring, CCPPSyntax* pcNode);
 	bool	ReachesBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
+	bool	ReachesDestructor(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void	CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	bool			IsConvertible(SCPP65Type* psTo, SCPP65Type* psFrom);
 	bool			IsConstructible(SCPP65Type* psType, CArrayCPP65Types* papsArguments);

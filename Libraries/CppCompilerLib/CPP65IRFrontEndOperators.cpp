@@ -71,8 +71,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_BitwiseAnd:
 		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
 		bMember = false;
-		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass() &&
-			MemberAddress((CCPPSyntaxIdExpression*)pcOperand, NULL, psValue, &bMember))
+		if (mpcUnit->MemberPointerName(pcUnary) && MemberAddress((CCPPSyntaxIdExpression*)pcOperand, NULL, psValue, &bMember))
 		{
 			return true;
 		}
@@ -95,10 +94,11 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		}
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
 		{
-			//&Class::member of a static data member is its address, a pointer like any variable's ([expr.unary.op] 3).
-			//Anything else a class qualifies that isn't a field or a member function isn't done.
+			//&Class::member of a static data member is its address, a pointer like any variable's ([expr.unary.op] 3),
+			//and &(Class::field) the address of this's field.  Anything else a class qualifies that isn't a field or a
+			//member function isn't done.
 			mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcOperand, &cBound);
-			if ((cBound.meWhat != CPPBN_Variable) || !cBound.mpcVariable)
+			if (((cBound.meWhat != CPPBN_Variable) || !cBound.mpcVariable) && (cBound.meWhat != CPPBN_Field))
 			{
 				return Unsupported(__FILE__, __LINE__);
 			}
@@ -347,9 +347,9 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 			return Unsupported(__FILE__, __LINE__);
 		}
 		//The right before the left, as for a scalar.  [expr.ass] 1
-		if (psLeft->pcClass->IsCopyDeleted())
+		if (psLeft->pcClass->IsAssignmentDeleted())
 		{
-			return CopyDeleted(pcBinary);
+			return AssignmentDeleted(pcBinary);
 		}
 		if (!AssignedObject(pcBinary->mpcRight, psLeft->Unqualified(), &sRight) || !Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass())
 		{

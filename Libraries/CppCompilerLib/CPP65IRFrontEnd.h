@@ -438,6 +438,7 @@ protected:
 	bool			CopyPlace(SCPP65IRPlace* psPlace, SCPP65IRPlace* psSource, SIRReference* psAddress);
 	bool			CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyDeleted(CCPPSyntax* pcNode);
+	bool			AssignmentDeleted(CCPPSyntax* pcNode);
 	bool			CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, CCPPClass* pcComplete, int iVTTIndex);
 	bool			CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, CCPPClass* pcComplete, int iVTTIndex);
 	bool			AssignMembers(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource, CCPPSyntax* pcSource);

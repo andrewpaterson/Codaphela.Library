@@ -487,6 +487,50 @@ bool CCPPClass::IsCopyDeleted(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the class's objects can't be assigned unless it says how: the
+// compiler may not write its operator=, as its copies are taken away
+// (IsCopyDeleted), or a field is const or a reference, or a base's or a
+// field's class can't be assigned.  [class.copy] 23
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPClass::IsAssignmentDeleted(void)
+{
+	SCPP65Type*	psType;
+	size		i;
+
+	if (GetCopier(true, false))
+	{
+		return false;
+	}
+	if (IsCopyDeleted())
+	{
+		return true;
+	}
+	for (i = 0; i < macBases.NumElements(); i++)
+	{
+		if (macBases.Get(i)->pcClass->IsAssignmentDeleted())
+		{
+			return true;
+		}
+	}
+	for (i = 0; i < macFields.NumElements(); i++)
+	{
+		psType = macFields.Get(i)->psType;
+		while (psType->IsArray())
+		{
+			psType = psType->psBase;
+		}
+		if (psType->IsReference() || psType->bConst || (psType->IsClass() && psType->pcClass->IsAssignmentDeleted()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if assigning the class's objects copies their bytes: neither it nor
 // its bases and fields have an operator= for their own objects.
 //

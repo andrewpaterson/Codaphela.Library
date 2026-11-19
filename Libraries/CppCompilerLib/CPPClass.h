@@ -169,6 +169,7 @@ public:
 	CCPPFunction*	GetCopier(bool bAssignment, bool bMove);
 	CCPPFunction*	GetPartCopier(bool bAssignment, bool bMove);
 	bool			IsCopyDeleted(void);
+	bool			IsAssignmentDeleted(void);
 	bool			IsTriviallyCopyable(void);
 	bool			IsTriviallyAssignable(void);
 	bool			IsPolymorphic(void) const;

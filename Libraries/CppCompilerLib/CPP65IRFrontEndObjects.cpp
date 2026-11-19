@@ -1905,6 +1905,19 @@ bool CCPP65IRFrontEnd::CopyDeleted(CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The error that an object is assigned whose class's operator= the
+// compiler may not write (CCPPClass::IsAssignmentDeleted).  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::AssignmentDeleted(CCPPSyntax* pcNode)
+{
+	mpcUnit->ReportError(pcNode, "The object cannot be assigned: its class has a const or reference member, or declares a move and no copy");
+	return Unsupported(__FILE__, __LINE__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Zeroes iBytes from sAddress on: a long at a time (in a loop when there
 // are many), then the bytes left.
 //
@@ -2235,9 +2248,9 @@ bool CCPP65IRFrontEnd::AssignPart(CCPPClass* pcClass, SIRReference sDestination,
 	pcOperator = pcClass->GetPartCopier(true, bMove);
 	if (!pcOperator)
 	{
-		if (pcClass->IsCopyDeleted())
+		if (pcClass->IsAssignmentDeleted())
 		{
-			return CopyDeleted(mpcValue);
+			return AssignmentDeleted(mpcValue);
 		}
 		if (!pcClass->IsTriviallyAssignable() || pcClass->IsPolymorphic())
 		{
