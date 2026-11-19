@@ -928,3 +928,20 @@ Progress
        - The cycles and bytes baseline is still to be taken again (it was last taken before 16 bit size_t and the
          inliner's change): before stage 6, whose check it is.
 
+  The user, 2026-11-19: "Begin with the before stage cycles-and-bytes baseline re-taking. Then carry on with stage 6.
+  Clean up and commit (with no co-author) as you go.", and "Also the main work tree is yours now."
+
+  The third baseline, taken 2026-11-19 with the compiler of the merge 98bdc1a23 (stages 0 to 5 and 4, exceptions off;
+  master to the other session's test speed work, with 16 bit size_t on the W65C816 and the inliner's copy count), the
+  same way as the others (Tests\CompilerMeasure.py --serial, one suite and processor at a time; the programs run one
+  at a time when their cycles are asked for).  Raw outputs in D:\gameengine-exceptions\Baseline3.  It is the one
+  stages 6 to 9 compare with.
+
+    Suite              CPU      Passed Programs  Asserts           Cycles        Bytes  Seconds  Peak MB
+    TestBaseLib65      65C64    yes         180   163821       7077610766     19456197      168      551
+    TestBaseLib65      W65C816  yes         178   157337      27922437461     75963348      275      571
+    TestStandardLib65  65C64    yes          68    13317      14114963116     28944000      238      648
+    TestStandardLib65  W65C816  yes          66    12765      21667618793     67153525      243      669
+    TestSupportLib65   65C64    yes          76    36013      34282018729     35118492      546      946
+    TestSupportLib65   W65C816  yes          72    27222      96441829522     75347783      792      934
+
