@@ -521,19 +521,6 @@ void CCPP65IRFrontEnd::MarkSigned(SCPP65Type* psType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether psFrom and psTo are pointers to different classes, psFrom's
-// derived from psTo's (so psFrom converts to psTo, moved to the base).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::IsClassPointerTo(SCPP65Type* psFrom, SCPP65Type* psTo)
-{
-	return psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() &&
-		   (psFrom->psBase->pcClass != psTo->psBase->pcClass) && mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // An i1: the comparison of left and right.  Pointers compare unsigned;
 // integers after the usual arithmetic conversions; floats as floats.
 //
@@ -545,6 +532,7 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	SCPP65IRValue	sRight;
 	bool			bSigned;
 	bool			bFloat;
+	bool			bMemberOrder;
 	uint16			uiOpcode;
 
 	sLeft = *psLeft;
@@ -560,38 +548,21 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 		psType = mpcTypes->FloatArithmetic(sLeft.psType, sRight.psType);
 		bFloat = true;
 	}
-	else if (sLeft.psType->IsPointer() || sRight.psType->IsPointer())
-	{
-		//A pointer to a derived class and one to its base compare as the base's (the derived one moved to it).
-		psType = sLeft.psType->IsPointer() ? sLeft.psType : sRight.psType;
-		if (IsClassPointerTo(sLeft.psType, sRight.psType))
-		{
-			psType = sRight.psType;
-		}
-	}
-	else if ((sLeft.psType->IsMemberPointer() || sRight.psType->IsMemberPointer()) && ((eOperator == CT_EqualTo) || (eOperator == CT_NotEqualTo)))
-	{
-		//Pointers to members (an address or an offset, 0 for none) are equal or not, a base's as the derived class's.
-		psType = sLeft.psType->IsMemberPointer() ? sLeft.psType : sRight.psType;
-		if (sLeft.psType->IsMemberPointer() && sRight.psType->IsMemberPointer() && (sLeft.psType->pcClass != sRight.psType->pcClass) &&
-			mpcUnit->IsDerived(sRight.psType->pcClass, sLeft.psType->pcClass, NULL))
-		{
-			psType = sRight.psType;
-		}
-	}
 	else if (sLeft.psType->IsInteger() && sRight.psType->IsInteger())
 	{
 		psType = mpcTypes->Arithmetic(sLeft.psType, sRight.psType);
 		bSigned = psType->bSigned;
 	}
-	else if (sLeft.psType->IsNullPointer() && sRight.psType->IsNullPointer())
-	{
-		//Two std::nullptr_t: null pointers both.  (With a pointer or a pointer to a member, above, it becomes one.)
-		psType = sLeft.psType;
-	}
 	else
 	{
-		return Unsupported(__FILE__, __LINE__);
+		//Pointers, std::nullptr_t and pointers to members (which are only equal or not) are compared as their composite
+		//pointer type: a pointer to a derived class is moved to the base the other points to.
+		bMemberOrder = (sLeft.psType->IsMemberPointer() || sRight.psType->IsMemberPointer()) && (eOperator != CT_EqualTo) && (eOperator != CT_NotEqualTo);
+		psType = bMemberOrder ? NULL : mpcUnit->CompositePointerType(sLeft.psType, sRight.psType);
+		if (!psType)
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
 	}
 	if (!Convert(&sLeft, psType) || !Convert(&sRight, psType))
 	{
@@ -636,8 +607,8 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	psType = mpcTypes->Conditional(psTrue, psFalse);
-	if (!psType->IsVoid() && (psTrue->IsArray() || psFalse->IsArray()))
+	psType = mpcUnit->ConditionalType(psTrue, psFalse);
+	if (!psType || (!psType->IsVoid() && (psTrue->IsArray() || psFalse->IsArray())))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

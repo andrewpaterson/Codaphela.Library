@@ -744,6 +744,9 @@ public:
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	SCPP65Type*				ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	SCPP65Type*				CompositePointerType(SCPP65Type* psLeft, SCPP65Type* psRight);
+	SCPP65Type*				CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, bool bFirstLevel);
 	bool					IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName);
 	bool					IsNamed(int64 lliName, const char* szName);
 	CCPPClass*				TypeInfoClass(void);

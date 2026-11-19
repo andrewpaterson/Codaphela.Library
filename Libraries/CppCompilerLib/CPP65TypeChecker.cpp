@@ -1094,8 +1094,9 @@ bool CCPP65TypeChecker::CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNod
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether left and right can be compared: numbers, pointers (with each other or 0),
-// and pointers to members for equality.
+// Whether left and right can be compared: numbers, and pointers, or for equality
+// pointers to members, that have a composite pointer type (with each other or 0).
+// [expr.rel] 2, [expr.eq] 2
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight, CCPPSyntax* pcNode)
@@ -1126,26 +1127,31 @@ bool CCPP65TypeChecker::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65
 		}
 		return true;
 	}
-	if (psLeft->IsPointer() || psRight->IsPointer())
-	{
-		return true;
-	}
-	if ((psLeft->IsMemberPointer() || psRight->IsMemberPointer()) && ((eOperator == CT_EqualTo) || (eOperator == CT_NotEqualTo)))
-	{
-		return true;
-	}
 	if (psLeft->IsInteger() && psRight->IsInteger())
 	{
 		return true;
 	}
-	return Error(pcNode, "These operands cannot be compared");
+	if ((psLeft->IsMemberPointer() || psRight->IsMemberPointer()) && (eOperator != CT_EqualTo) && (eOperator != CT_NotEqualTo))
+	{
+		return Error(pcNode, "Pointers to members are only compared for equality");
+	}
+	if ((psLeft->IsPointer() || psLeft->IsMemberPointer()) && (psRight->IsPointer() || psRight->IsMemberPointer()) && !mpcUnit->CompositePointerType(psLeft, psRight))
+	{
+		//int* with long*, a pointer to a function with one to an object, pointers to members of unrelated classes.
+		return Error(pcNode, "These pointers cannot be compared: neither's type converts to the other's");
+	}
+	if (!mpcUnit->CompositePointerType(psLeft, psRight))
+	{
+		return Error(pcNode, "These operands cannot be compared");
+	}
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // c ? x : y.  Objects of a class make an object of it (ObjectConditional), scalars
-// the type CCPP65Types::Conditional gives.
+// the type CCPPUnit::ConditionalType gives.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpression* pcConditional)
@@ -1174,7 +1180,12 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 		return ObjectConditional(pcConditional, psTrue, psFalse);
 	}
 
-	psType = mpcTypes->Conditional(psTrue, psFalse);
+	psType = mpcUnit->ConditionalType(psTrue, psFalse);
+	if (!psType)
+	{
+		Error(pcConditional, "The two results of ? : have no type in common");
+		return NULL;
+	}
 	if (!Condition(pcConditional->mpcCondition) ||
 		!Convert(Value(pcConditional->mpcTrue), psType, pcConditional->mpcTrue) ||
 		!Convert(Value(pcConditional->mpcFalse), psType, pcConditional->mpcFalse))

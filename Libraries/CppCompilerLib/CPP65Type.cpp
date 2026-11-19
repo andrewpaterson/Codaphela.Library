@@ -1287,33 +1287,3 @@ SCPP65Type* CCPP65Types::Operation(ECppTokens eOperator, SCPP65Type* psLeft, SCP
 		return NULL;
 	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The type of c ? x : y for scalar (or void) x and y: a float with a number is the
-// float arithmetic's type, the same enum stays that enum, integers take the usual
-// arithmetic conversions, a void side makes it void, and otherwise it is the
-// pointer's type.  [expr.cond]
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::Conditional(SCPP65Type* psTrue, SCPP65Type* psFalse)
-{
-	if ((psTrue->IsFloat() && psFalse->IsScalar() && !psFalse->IsPointer()) || (psFalse->IsFloat() && psTrue->IsScalar() && !psTrue->IsPointer()))
-	{
-		return FloatArithmetic(psTrue, psFalse);
-	}
-	if ((psTrue == psFalse) && psTrue->pcEnum)
-	{
-		return psTrue;
-	}
-	if (psTrue->IsInteger() && psFalse->IsInteger())
-	{
-		return Arithmetic(psTrue, psFalse);
-	}
-	if (psTrue->IsVoid() || psFalse->IsVoid())
-	{
-		return &msVoid;
-	}
-	return psTrue->IsPointer() ? psTrue : psFalse;
-}

@@ -165,6 +165,126 @@ bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the types two pointers point to, or two pointers to members point
+// to as members, have in common: one type with the const and volatile of
+// both, where they are the same type but for those.  At the first level
+// (bFirstLevel: what the pointers themselves point to) void with an object
+// type is void, and a class with one it is derived from is the base.
+// Pointers that differ further in point to what those have in common, and
+// are const as const was added there.  NULL if they have nothing in
+// common.  [expr] 13, [conv.qual] 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, bool bFirstLevel)
+{
+	SCPP65Type*	psCommon;
+	SCPP65Type*	psInner;
+	CCPPClass*	pcBase;
+	bool		bConst;
+
+	bConst = psLeft->bConst || psRight->bConst;
+	pcBase = bFirstLevel ? ConditionalClass(psLeft, psRight) : NULL;
+	psCommon = NULL;
+	if (psLeft->Unqualified()->Equals(psRight->Unqualified()))
+	{
+		psCommon = psLeft;
+	}
+	else if (bFirstLevel && (psLeft->IsVoid() || psRight->IsVoid()) && !psLeft->IsFunction() && !psRight->IsFunction())
+	{
+		psCommon = &mcTypes.msVoid;
+	}
+	else if (pcBase)
+	{
+		psCommon = pcBase->mpsType;
+	}
+	else if (psLeft->IsPointer() && psRight->IsPointer())
+	{
+		psInner = CompositePointee(psLeft->psBase, psRight->psBase, false);
+		psCommon = psInner ? mcTypes.Pointer(psInner) : NULL;
+		bConst = true;
+	}
+	return psCommon ? mcTypes.Qualified(psCommon->Unqualified(), bConst, psLeft->bVolatile || psRight->bVolatile) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The composite pointer type of two operands: the type both are converted
+// to before two pointers, or two pointers to members, are compared, and
+// the type of c ? x : y of them.  A null pointer constant (a std::nullptr_t,
+// or an integer, which its user has seen is one) with a pointer is the
+// pointer's type and with a std::nullptr_t that; two pointers are a
+// pointer to what they point to in common (CompositePointee); two
+// pointers to members are the derived class's, to what the members are in
+// common.  NULL if there is no such type.  [expr] 13
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::CompositePointerType(SCPP65Type* psLeft, SCPP65Type* psRight)
+{
+	SCPP65Type*	psPointee;
+	CCPPClass*	pcDerived;
+	bool		bLeftNull;
+	bool		bRightNull;
+
+	bLeftNull = psLeft->IsNullPointer() || psLeft->IsInteger();
+	bRightNull = psRight->IsNullPointer() || psRight->IsInteger();
+	if (bRightNull && (psLeft->IsPointer() || psLeft->IsMemberPointer() || psLeft->IsNullPointer()))
+	{
+		return psLeft->Unqualified();
+	}
+	if (bLeftNull && (psRight->IsPointer() || psRight->IsMemberPointer() || psRight->IsNullPointer()))
+	{
+		return psRight->Unqualified();
+	}
+	if (psLeft->IsPointer() && psRight->IsPointer())
+	{
+		psPointee = CompositePointee(psLeft->psBase, psRight->psBase, true);
+		return psPointee ? mcTypes.Pointer(psPointee) : NULL;
+	}
+	if (psLeft->IsMemberPointer() && psRight->IsMemberPointer())
+	{
+		//A pointer to a base's member is one to the derived class's.  [conv.mem] 2
+		pcDerived = IsDerived(psLeft->pcClass, psRight->pcClass, NULL) ? psLeft->pcClass : (IsDerived(psRight->pcClass, psLeft->pcClass, NULL) ? psRight->pcClass : NULL);
+		psPointee = CompositePointee(psLeft->psBase, psRight->psBase, false);
+		return (pcDerived && psPointee) ? mcTypes.MemberPointer(pcDerived, psPointee) : NULL;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of c ? x : y for x and y that aren't objects, NULL if they have
+// none in common: void if either is; their own type where it is one type,
+// which isn't promoted (two chars are a char, two bools a bool); the usual
+// arithmetic conversions' for numbers and enums; otherwise their composite
+// pointer type.  [expr.cond] 2, 6
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse)
+{
+	if (psTrue->IsVoid() || psFalse->IsVoid())
+	{
+		return &mcTypes.msVoid;
+	}
+	if (psTrue->Unqualified()->Equals(psFalse->Unqualified()))
+	{
+		return psTrue->Unqualified();
+	}
+	if (psTrue->IsFloat() || psFalse->IsFloat())
+	{
+		return ((psTrue->IsFloat() || psTrue->IsInteger()) && (psFalse->IsFloat() || psFalse->IsInteger())) ? mcTypes.FloatArithmetic(psTrue, psFalse) : NULL;
+	}
+	if (psTrue->IsInteger() && psFalse->IsInteger())
+	{
+		return mcTypes.Arithmetic(psTrue, psFalse);
+	}
+	return CompositePointerType(psTrue, psFalse);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The class of c ? x : y with objects: x's and y's if they are the same,
 // otherwise the one the other is derived from (the derived one is converted
 // to its base).  NULL if they aren't both objects, or neither class is the
