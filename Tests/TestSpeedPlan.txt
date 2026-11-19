@@ -71,6 +71,17 @@ IDE checks the same passes and failures) as a run in one process.
    running side by side.  The table has 113 checks, 63 with WAIT_INDEX: 31 open CalcParentheses.h, 9
    CalculatorParser.cpp, 2 Calculator.cpp, 1 each CalculatorParser.h and CalcExpression.h (the Calc files), 8 their own
    solution; the rest Shape.h, Engine.h, Main.cpp, Codabase.h or nothing.
+   (d) DONE 2026-11-19 (HCP65-IDE beb49b1): HCP65IDE/Checks/Input/Calculator/Calculator.sln, a project named BaseLib
+   (as the checks' output names it) listing the real Calc and Calculator files by relative path, so what the checks
+   watch is unchanged; IDEChecks.py's CALCULATOR_RECENT opens it for 46 checks.  A check moved only if it passes or
+   fails on it as on ModPlay: of the 44 on the Calc files, 41 pass on both and 3 fail on both (menus,
+   hierarchy-after-edits, virtual-after-edits: failing on ModPlay before this); of the 11 other heavy ones 6 pass on
+   both.  Nine stay on ModPlay: rename-while-reindexing, recolour-off-ui-thread, usages-typing and
+   usages-step-behind-build (indexing at ModPlay's scale, as planned), and gotosource-popup-scrolls,
+   find-jump-to-source, find-preview, find-row-parts and find-in-solution (their results are ModPlay's).  The 44
+   measured: 1934 s on ModPlay, 272 s now (the four on ModPlay most of that); the six more 23 s.  The IDE checks'
+   ~50 minutes are about 15 now.  (b) and (c), running them side by side, would now save a few minutes for copies of
+   ModPlay and Kernal per worker: not done unless the user wants them.
 
 3. The *65 suites: their programs' runs on worker threads                            TestSupportLib65 816 ~243 s -> ~90 s (estimate)
    a. Measure each suite's compile, link and run times (TEST_PROJECT65_RUN_TIME prints each program's run).
