@@ -167,6 +167,16 @@ void CCharsImmutable::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CCharsImmutable::Text(void)
 {
+	return (char*)((const CCharsImmutable*)this)->Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+const char* CCharsImmutable::Text(void) const
+{
 	if (mbMallocated)
 	{
 		return muString.sStringAlloc.szString;
@@ -233,7 +243,7 @@ bool CCharsImmutable::Empty(void) const
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCharsImmutable::Dump(void)
+void CCharsImmutable::Dump(void) const
 {
 	EngineOutput(Text());
 }
@@ -243,7 +253,7 @@ void CCharsImmutable::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::Equals(const char* szString)
+bool CCharsImmutable::Equals(const char* szString) const
 {
 	if (szString)
 	{
@@ -260,7 +270,7 @@ bool CCharsImmutable::Equals(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::Equals(const char* szString, size uiLen)
+bool CCharsImmutable::Equals(const char* szString, size uiLen) const
 {
 	if (uiLen == Length())
 	{
@@ -277,7 +287,7 @@ bool CCharsImmutable::Equals(const char* szString, size uiLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::Equals(CChars* pszString)
+bool CCharsImmutable::Equals(CChars* pszString) const
 {
 	return Equals(pszString->Text());
 }
@@ -287,7 +297,7 @@ bool CCharsImmutable::Equals(CChars* pszString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::EqualsIgnoreCase(const char* szString)
+bool CCharsImmutable::EqualsIgnoreCase(const char* szString) const
 {
 	if (StringInsensitiveCompare(Text(), szString) == 0)
 	{
@@ -301,7 +311,7 @@ bool CCharsImmutable::EqualsIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::EqualsIgnoreCase(CChars* pszString)
+bool CCharsImmutable::EqualsIgnoreCase(CChars* pszString) const
 {
 	return EqualsIgnoreCase(pszString->Text());
 }
@@ -311,9 +321,9 @@ bool CCharsImmutable::EqualsIgnoreCase(CChars* pszString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::Contains(const char* szString)
+bool CCharsImmutable::Contains(const char* szString) const
 {
-	char* pc;
+	const char*	pc;
 
 	if (!szString)
 	{
@@ -333,9 +343,9 @@ bool CCharsImmutable::Contains(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::ContainsIgnoreCase(const char* szString)
+bool CCharsImmutable::ContainsIgnoreCase(const char* szString) const
 {
-	char* pc;
+	const char*	pc;
 
 	pc = StrIStr(Text(), szString);
 	if (pc)
@@ -350,7 +360,7 @@ bool CCharsImmutable::ContainsIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::Contains(char c)
+bool CCharsImmutable::Contains(char c) const
 {
 	return Find(0, c) != ARRAY_ELEMENT_NOT_FOUND;
 }
@@ -360,7 +370,7 @@ bool CCharsImmutable::Contains(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::EndsWith(const char* szString)
+bool CCharsImmutable::EndsWith(const char* szString) const
 {
 	size	uiLen;
 
@@ -383,7 +393,7 @@ bool CCharsImmutable::EndsWith(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::EndsWith(char c)
+bool CCharsImmutable::EndsWith(char c) const
 {
 	size		iLength;
 
@@ -403,7 +413,7 @@ bool CCharsImmutable::EndsWith(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::EndsWithIgnoreCase(const char* szString)
+bool CCharsImmutable::EndsWithIgnoreCase(const char* szString) const
 {
 	size	uiLen;
 
@@ -426,7 +436,7 @@ bool CCharsImmutable::EndsWithIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::StartsWith(const char* szString)
+bool CCharsImmutable::StartsWith(const char* szString) const
 {
 	if (szString == NULL)
 	{
@@ -441,7 +451,7 @@ bool CCharsImmutable::StartsWith(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::StartsWithIgnoreCase(const char* szString)
+bool CCharsImmutable::StartsWithIgnoreCase(const char* szString) const
 {
 	if (szString == NULL)
 	{
@@ -456,7 +466,7 @@ bool CCharsImmutable::StartsWithIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::StartsWith(char c)
+bool CCharsImmutable::StartsWith(char c) const
 {
 	size		iLength;
 
@@ -475,7 +485,7 @@ bool CCharsImmutable::StartsWith(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCharsImmutable::FindFromEnd(const char* szString)
+size CCharsImmutable::FindFromEnd(const char* szString) const
 {
 	size iOtherLen;
 
@@ -488,7 +498,7 @@ size CCharsImmutable::FindFromEnd(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCharsImmutable::FindFromEnd(size iIndex, const char* szString)
+size CCharsImmutable::FindFromEnd(size iIndex, const char* szString) const
 {
 	size	i;
 
@@ -515,7 +525,7 @@ size CCharsImmutable::FindFromEnd(size iIndex, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCharsImmutable::FindFromEnd(char c)
+size CCharsImmutable::FindFromEnd(char c) const
 {
 	if (Length() == 0)
 	{
@@ -531,10 +541,10 @@ size CCharsImmutable::FindFromEnd(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCharsImmutable::FindFromEnd(size iIndex, char c)
+size CCharsImmutable::FindFromEnd(size iIndex, char c) const
 {
-	size	i;
-	char*	szText;
+	size		i;
+	const char*	szText;
 
 	szText = Text();
 	i = iIndex + 1;
@@ -555,7 +565,7 @@ size CCharsImmutable::FindFromEnd(size iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCharsImmutable::Find(const char* szString)
+size CCharsImmutable::Find(const char* szString) const
 {
 	return Find(0, szString);
 }
@@ -565,7 +575,7 @@ size CCharsImmutable::Find(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCharsImmutable::Find(size iIndex, const char* szString)
+size CCharsImmutable::Find(size iIndex, const char* szString) const
 {
 	size	iOtherLen;
 	size	i;
@@ -600,11 +610,11 @@ size CCharsImmutable::Find(size iIndex, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCharsImmutable::Find(size iIndex, char c)
+size CCharsImmutable::Find(size iIndex, char c) const
 {
-	size	i;
-	size	uiLen;
-	char*	szText;
+	size		i;
+	size		uiLen;
+	const char*	szText;
 
 	szText = Text();
 	uiLen = Length();
@@ -623,7 +633,7 @@ size CCharsImmutable::Find(size iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCharsImmutable::Find(char c)
+size CCharsImmutable::Find(char c) const
 {
 	return Find(0, c);
 }
@@ -633,7 +643,7 @@ size CCharsImmutable::Find(char c)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::WriteString(CFileWriter* pcWriter)
+bool CCharsImmutable::WriteString(CFileWriter* pcWriter) const
 {
 	bool	bResult;
 	size	iStrLen;
@@ -693,13 +703,13 @@ bool CCharsImmutable::ReadString(CFileReader* pcReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::SubStringEquals(size iStart, const char* szString)
+bool CCharsImmutable::SubStringEquals(size iStart, const char* szString) const
 {
-	size	i;
-	size	j;
-	size	uiLen;
-	size	iSubLen;
-	char*	szText;
+	size		i;
+	size		j;
+	size		uiLen;
+	size		iSubLen;
+	const char*	szText;
 
 	szText = Text();
 	uiLen = Length();
@@ -743,14 +753,14 @@ bool CCharsImmutable::SubStringEquals(size iStart, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCharsImmutable::SubStringEqualsIgnoreCase(size iStart, const char* szString)
+bool CCharsImmutable::SubStringEqualsIgnoreCase(size iStart, const char* szString) const
 {
 	size	i;
 	size	j;
 	size	uiLen;
 	size    c1;
 	size    c2;
-	char*	szText;
+	const char*	szText;
 
 	szText = Text();
 	uiLen = Length();

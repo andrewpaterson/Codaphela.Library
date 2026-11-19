@@ -480,7 +480,7 @@ char* StrRev(char* szString)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* StrIStr(char* ps1, const char* ps2)
+const char* StrIStr(const char* ps1, const char* ps2)
 {
 	lsize iS1Len;
 	lsize iS2Len;

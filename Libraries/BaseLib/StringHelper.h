@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 int			StringCompare(const char* ps1, const char* ps2);
 int			StringInsensitiveCompare(const char* ps1, const char* ps2);
-char*		StrIStr(char* ps1, const char* ps2);
+const char*	StrIStr(const char* ps1, const char* ps2);
 int			MemICmp(const void* pv1, const void* pv2, size iLength);
 int			MemICmpLarge(const void* pv1, const void* pv2, lsize iLength);
 int			MemCmp(const void* pv1, size iLen1, const void* pv2, size iLen2);

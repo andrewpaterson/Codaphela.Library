@@ -86,8 +86,8 @@ void TestStrICmp(void)
 //////////////////////////////////////////////////////////////////////////
 void TestStrIStr(void)
 {
-    char    szFooBar[] = "FooBar";
-    char*   sz;
+	char		szFooBar[] = "FooBar";
+	const char*	sz;
 
     sz = StrIStr(szFooBar, "bar");
     AssertString("Bar", sz);

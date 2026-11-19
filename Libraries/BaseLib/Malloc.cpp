@@ -71,7 +71,7 @@ bool CMalloc::IsMallocInitialised(void) const
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMalloc::IsMalloc(CMallocator* pcMalloc)
+bool CMalloc::IsMalloc(CMallocator* pcMalloc) const
 {
 	return mpcMalloc == pcMalloc;
 }
