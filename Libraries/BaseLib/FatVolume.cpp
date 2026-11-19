@@ -3259,7 +3259,7 @@ uint16 CFatVolume::GetRootDirectorySectors(void) const noexcept { return muiRoot
 bool CFatVolume::IsUseLongFilenames(void) const noexcept { return mbUseLongFilenames; }
 EFatFileSystemType CFatVolume::GetFileSystemType(void) const noexcept { return meFileSystem; }
 uint8 CFatVolume::GetNoOfFatTables(void) const noexcept { return muiNoOfFatTables; }
-char* CFatVolume::GetLabel(void) noexcept { return mszLabel.Text(); }
+const char* CFatVolume::GetLabel(void) const noexcept { return mszLabel.Text(); }
 CFileDrive* CFatVolume::GetFileDrive(void) const noexcept { return mpcDevice; }
 CFatInfoSectorCache* CFatVolume::GetSectorCache(void) noexcept { return &mcSectorCache; }
 

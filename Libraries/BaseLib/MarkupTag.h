@@ -73,20 +73,20 @@ public:
 	bool				Is(const char* szName);
 	bool				GetText(CChars* psz, bool bFirstContiguous = true, bool bFirstTag = false);
 	void				SetName(char* szName);
-	char*				GetName(void);
+	const char*			GetName(void) const;
 	CMarkupTag*			AppendTag(void);
-	CMarkupTag*			AppendTag(char* szName);
+	CMarkupTag*			AppendTag(const char* szName);
 	CMarkupText*		AppendText(void);
 	CMarkupText*		AppendText(char* szText);
 	CMarkupNamedRef*	AppendNamedReference(char* szIdentifier);
-	bool				AddStringAttribute(char* szString);
-	bool				AddStringAttribute(char* szAttribute, char* szString, bool bAllowDuplicates);
+	bool				AddStringAttribute(const char* szString);
+	bool				AddStringAttribute(const char* szAttribute, const char* szString, bool bAllowDuplicates);
 	bool				AddNumberAttribute(CNumber* pcNumber);
-	bool				AddNumberAttribute(char* szAttribute, CNumber* pcNumber, bool bAllowDuplicates);
+	bool				AddNumberAttribute(const char* szAttribute, CNumber* pcNumber, bool bAllowDuplicates);
 	bool				AddBooleanAttribute(bool bValue);
-	bool				AddBooleanAttribute(char* szAttribute, bool bValue, bool bAllowDuplicates);
+	bool				AddBooleanAttribute(const char* szAttribute, bool bValue, bool bAllowDuplicates);
 	bool				AddNullAttribute(void);
-	bool				AddNullAttribute(char* szAttribute, bool bAllowDuplicates);
+	bool				AddNullAttribute(const char* szAttribute, bool bAllowDuplicates);
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
 	CMallocator*		GetMalloc(void) const;
@@ -96,7 +96,7 @@ public:
 
 protected:
 	void				PrintType(CChars* psz, char* szValue, uint uiType);
-	char*				MallocString(char* szSource);
+	char*				MallocString(const char* szSource);
 };
 
 

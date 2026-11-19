@@ -352,7 +352,7 @@ bool CDiskFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CDiskFile::GetFilename(void)
+const char* CDiskFile::GetFilename(void) const
 {
 	if (!mszFilename.Empty())
 	{

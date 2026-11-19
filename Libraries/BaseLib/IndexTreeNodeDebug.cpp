@@ -58,7 +58,7 @@ bool CIndexTreeNodeDebug::GenerateBadKey(CArrayChar* acKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexTreeNodeDebug::GetBadKey(void)
+const char* CIndexTreeNodeDebug::GetBadKey(void) const
 {
 	return mszBadKey.Text();
 }
@@ -68,7 +68,7 @@ char* CIndexTreeNodeDebug::GetBadKey(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexTreeNodeDebug::GetBadNode(void)
+const char* CIndexTreeNodeDebug::GetBadNode(void) const
 {
 	return mszBadNode.Text();
 }

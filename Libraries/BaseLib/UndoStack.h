@@ -78,7 +78,7 @@ public:
 	void	Kill(void);
 
 	void	Clear(void);
-	void	Push(char* szData, bool bSelectionOnly, size* pauiMarks = NULL);
+	void	Push(const char* szData, bool bSelectionOnly, size* pauiMarks = NULL);
 	void	ReplaceCurrent(char* szData, size* pauiMarks = NULL);
 	size	FindUndo(bool bStep);
 	size	FindRedo(bool bStep);
@@ -95,7 +95,7 @@ public:
 
 protected:
 	void	MakeCurrentNewest(void);
-	void	SetDifference(SUndoSnapshot* psSnapshot, char* szState, char* szNext);
+	void	SetDifference(SUndoSnapshot* psSnapshot, char* szState, const char* szNext);
 	void	RemoveFrom(size uiIndex);
 	void	RemoveFirst(void);
 	void	SetMarks(SUndoSnapshot* psSnapshot, size* pauiMarks);

@@ -67,18 +67,18 @@ protected:
 	CChars	mszPattern;
 
 public:
-	void	Init(const char* szPattern);
-	void	Kill(void);
+	void		Init(const char* szPattern);
+	void		Kill(void);
 
-	bool	IsEmpty(void) const;
-	char*	GetPattern(void);
-	bool	Match(const char* szName, SNameMatch* psDest);
-	bool	Match(const char* szName, size uiLength, const char* szPattern, size uiPatternLength, SNameMatch* psDest);
-	bool	MatchPath(const char* szPath, SNameMatch* psDest);
+	bool		IsEmpty(void) const;
+	const char*	GetPattern(void) const;
+	bool		Match(const char* szName, SNameMatch* psDest);
+	bool		Match(const char* szName, size uiLength, const char* szPattern, size uiPatternLength, SNameMatch* psDest);
+	bool		MatchPath(const char* szPath, SNameMatch* psDest);
 
 protected:
-	bool	Find(const char* szName, size uiLength, const char* szPattern, size uiPatternLength, size uiPattern, size uiName, bool bAnywhere, size* auiMatched, uint8* auiFailed);
-	int32	Score(const char* szName, size uiLength, const char* szPattern, size uiPatternLength, size* auiMatched, SNameMatch* psDest);
+	bool		Find(const char* szName, size uiLength, const char* szPattern, size uiPatternLength, size uiPattern, size uiName, bool bAnywhere, size* auiMatched, uint8* auiFailed);
+	int32		Score(const char* szName, size uiLength, const char* szPattern, size uiPatternLength, size* auiMatched, SNameMatch* psDest);
 };
 
 

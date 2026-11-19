@@ -404,8 +404,8 @@ filePos CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 size CIndexedFile::GetFileIndex(void) const { return muiFileIndex; }
 uint32 CIndexedFile::GetFileNumber(void) const { return muiFileNumber; }
 bool CIndexedFile::IsFileIndex(size uiFileIndex) { return muiFileIndex == uiFileIndex; }
-const char* CIndexedFile::GetFilename(void) { return mcFile.GetFilename(); }
-char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
+const char* CIndexedFile::GetFilename(void) const { return mcFile.GetFilename(); }
+const char* CIndexedFile::GetRewriteName(void) const { return mcFile.GetRewriteName(); }
 lsize CIndexedFile::GetDataSize(void) const { return muiDataSize; }
 filePos	CIndexedFile::NumDatas(void) const { return miNumDatas; }
 filePos	CIndexedFile::GetFileSize(void) { return mcFile.Size(); };

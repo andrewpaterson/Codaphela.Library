@@ -587,7 +587,7 @@ void CMarkupTag::SetName(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMarkupTag::GetName(void)
+const char* CMarkupTag::GetName(void) const
 {
 	return mszName.Text();
 }
@@ -612,7 +612,7 @@ CMarkupTag* CMarkupTag::AppendTag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupTag::AppendTag(char* szName)
+CMarkupTag* CMarkupTag::AppendTag(const char* szName)
 {
 	CMarkupTag*	pcTag;
 
@@ -673,7 +673,7 @@ CMarkupNamedRef* CMarkupTag::AppendNamedReference(char* szIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMarkupTag::MallocString(char* szSource)
+char* CMarkupTag::MallocString(const char* szSource)
 {
 	lsize			uiLength;
 	char*			szAllocatedString;
@@ -696,7 +696,7 @@ char* CMarkupTag::MallocString(char* szSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::AddStringAttribute(char* szAttribute, char* szString, bool bAllowDuplicates)
+bool CMarkupTag::AddStringAttribute(const char* szAttribute, const char* szString, bool bAllowDuplicates)
 {
 	char*	szAllocatedString;
 	char*	szAllocatedName;
@@ -728,7 +728,7 @@ bool CMarkupTag::AddStringAttribute(char* szAttribute, char* szString, bool bAll
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::AddStringAttribute(char* szString)
+bool CMarkupTag::AddStringAttribute(const char* szString)
 {
 	char*			szAllocatedString;
 
@@ -743,7 +743,7 @@ bool CMarkupTag::AddStringAttribute(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::AddNumberAttribute(char* szAttribute, CNumber* pcNumber, bool bAllowDuplicates)
+bool CMarkupTag::AddNumberAttribute(const char* szAttribute, CNumber* pcNumber, bool bAllowDuplicates)
 {
 	CMallocator*	pcMalloc;
 	size			uiByteSize;
@@ -799,7 +799,7 @@ bool CMarkupTag::AddNumberAttribute(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::AddBooleanAttribute(char* szAttribute, bool bValue, bool bAllowDuplicates)
+bool CMarkupTag::AddBooleanAttribute(const char* szAttribute, bool bValue, bool bAllowDuplicates)
 {
 	CMallocator*	pcMalloc;
 	bool*			pbValue;
@@ -850,7 +850,7 @@ bool CMarkupTag::AddBooleanAttribute(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::AddNullAttribute(char* szAttribute, bool bAllowDuplicates)
+bool CMarkupTag::AddNullAttribute(const char* szAttribute, bool bAllowDuplicates)
 {
 	char*	szAllocatedName;
 	bool	bExists;

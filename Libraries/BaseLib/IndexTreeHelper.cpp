@@ -62,7 +62,7 @@ void CIndexTreeHelper::Kill(bool bRemoveWorkingDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexTreeHelper::GetPrimaryDirectory(void)
+const char* CIndexTreeHelper::GetPrimaryDirectory(void) const
 {
 	return mszDirectory.Text();
 }
@@ -72,7 +72,7 @@ char* CIndexTreeHelper::GetPrimaryDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexTreeHelper::GetBackupDirectory(void)
+const char* CIndexTreeHelper::GetBackupDirectory(void) const
 {
 	if (mszRewriteDirectory.Length() > 0)
 	{

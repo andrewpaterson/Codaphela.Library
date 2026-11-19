@@ -231,7 +231,7 @@ bool CChunkFileFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CChunkFileFile::GetFilename(void)
+const char* CChunkFileFile::GetFilename(void) const
 {
 	return NULL;
 }

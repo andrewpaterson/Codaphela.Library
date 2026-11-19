@@ -40,7 +40,7 @@ public:
 	void Init(void);
 	void Kill(void);
 
-	char*			GetSymbol(void);
+	const char*		GetSymbol(void) const;
 	ECalcOperator	GetOperator(void) const;
 	uint16			GetPrecedence(void) const;
 };

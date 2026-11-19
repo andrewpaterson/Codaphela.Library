@@ -71,7 +71,7 @@ void CFiles::Kill(void)
 bool CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
 {
 	CPackFileOffset*				pcPackFiles;
-	char*							szFullName;
+	const char*						szFullName;
 	CChars							szPackFileOffset;
 	CChars*							pszFullDirectory;
 	size							iLength;
@@ -204,7 +204,7 @@ CDiskFile* CFiles::GetSystemFile(const char* szFullName)
 {
 	CChars					szRemain;
 	CFileNodeSystemFile*	pcNode;
-	char*					szName;
+	const char*				szName;
 	CDiskFile*				pcDiskFile;
 
 	szRemain.Init();

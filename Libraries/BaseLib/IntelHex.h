@@ -54,7 +54,7 @@ public:
 
 	bool				Read(const char* szFilename);
 	bool				Parse(const char* szText);
-	char*				GetError(void);
+	const char*			GetError(void) const;
 
 	size				NumSegments(void) const;
 	SIntelHexSegment*	GetSegment(size uiIndex);

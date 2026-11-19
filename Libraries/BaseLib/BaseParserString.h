@@ -10,9 +10,9 @@ struct SBaseParserString
 	lsize	uiLine;
 	lsize	uiColumn;
 
-	void	Init(lsize uiColumn, lsize uiLine);
-	void	Kill(void);
-	char*	GetString(void);
+	void		Init(lsize uiColumn, lsize uiLine);
+	void		Kill(void);
+	const char*	GetString(void) const;
 };
 
 

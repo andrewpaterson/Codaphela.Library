@@ -120,7 +120,7 @@ TRISTATE CBaseParser::Error(const char* szError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CBaseParser::AddStringAttribute(char* szElementName, char* szString, bool bAllowDuplicates)
+TRISTATE CBaseParser::AddStringAttribute(const char* szElementName, const char* szString, bool bAllowDuplicates)
 {
 	bool	bNoName;
 	bool	bResult;
@@ -144,7 +144,7 @@ TRISTATE CBaseParser::AddStringAttribute(char* szElementName, char* szString, bo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CBaseParser::AddNumberAttribute(char* szElementName, CNumber* pcNumber, bool bAllowDuplicates)
+TRISTATE CBaseParser::AddNumberAttribute(const char* szElementName, CNumber* pcNumber, bool bAllowDuplicates)
 {
 	bool	bNoName;
 	bool	bResult;
@@ -168,7 +168,7 @@ TRISTATE CBaseParser::AddNumberAttribute(char* szElementName, CNumber* pcNumber,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CBaseParser::AddNullAttribute(char* szElementName, bool bAllowDuplicates)
+TRISTATE CBaseParser::AddNullAttribute(const char* szElementName, bool bAllowDuplicates)
 {
 	bool	bNoName;
 	bool	bResult;
@@ -192,7 +192,7 @@ TRISTATE CBaseParser::AddNullAttribute(char* szElementName, bool bAllowDuplicate
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CBaseParser::AddBooleanAttribute(char* szElementName, bool bValue, bool bAllowDuplicates)
+TRISTATE CBaseParser::AddBooleanAttribute(const char* szElementName, bool bValue, bool bAllowDuplicates)
 {
 	bool	bNoName;
 	bool	bResult;

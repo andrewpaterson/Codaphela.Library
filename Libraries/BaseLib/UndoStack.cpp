@@ -72,7 +72,7 @@ void CUndoStack::Clear(void)
 // pauiMarks (UNDO_STACK_MARKS of them, NULL for zeros) are kept with it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CUndoStack::Push(char* szData, bool bSelectionOnly, size* pauiMarks)
+void CUndoStack::Push(const char* szData, bool bSelectionOnly, size* pauiMarks)
 {
 	SUndoSnapshot*	psSnapshot;
 
@@ -169,7 +169,7 @@ void CUndoStack::MakeCurrentNewest(void)
 // szState has between them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CUndoStack::SetDifference(SUndoSnapshot* psSnapshot, char* szState, char* szNext)
+void CUndoStack::SetDifference(SUndoSnapshot* psSnapshot, char* szState, const char* szNext)
 {
 	size	uiStateLength;
 	size	uiNextLength;

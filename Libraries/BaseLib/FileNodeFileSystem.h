@@ -32,13 +32,13 @@ protected:
 	int			miExtensionIndex;
 
 public:
-	void 	Init(void);
-	void 	Kill(void);
+	void 		Init(void);
+	void 		Kill(void);
 
-	char*	GetFullName(void);
-	void	SetFullName(char* szFullName);
+	const char*	GetFullName(void) const;
+	void		SetFullName(char* szFullName);
 
-	char*	GetExtension(void);
+	const char*	GetExtension(void) const;
 };
 
 

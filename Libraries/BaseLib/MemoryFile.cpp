@@ -381,7 +381,7 @@ bool CMemoryFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CMemoryFile::GetFilename(void)
+const char* CMemoryFile::GetFilename(void) const
 {
 	return NULL;
 }

@@ -41,7 +41,7 @@ void CCalculatorOperator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCalculatorOperator::GetSymbol(void)
+const char* CCalculatorOperator::GetSymbol(void) const
 {
 	return mszSymbol.Text();
 }

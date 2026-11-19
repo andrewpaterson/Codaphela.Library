@@ -41,20 +41,20 @@ protected:
 	CChars		mszOpen;
 
 public:
-	void	Init(size uiMaxFiles = RECENT_FILES_DEFAULT);
-	void	Kill(void);
+	void		Init(size uiMaxFiles = RECENT_FILES_DEFAULT);
+	void		Kill(void);
 
-	void	Add(const char* szFile);
-	bool	Remove(const char* szFile);
-	void	Clear(void);
-	size	Find(const char* szFile);
-	size	NumFiles(void) const;
-	char*	GetFile(size uiIndex);
-	void	SetOpen(const char* szFile);
-	char*	GetOpen(void);
+	void		Add(const char* szFile);
+	bool		Remove(const char* szFile);
+	void		Clear(void);
+	size		Find(const char* szFile);
+	size		NumFiles(void) const;
+	char*		GetFile(size uiIndex);
+	void		SetOpen(const char* szFile);
+	const char*	GetOpen(void) const;
 
-	bool	Read(const char* szFile);
-	bool	Write(const char* szFile);
+	bool		Read(const char* szFile);
+	bool		Write(const char* szFile);
 };
 
 

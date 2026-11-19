@@ -253,9 +253,9 @@ CDurableFile* CDurableFileController::GetFile(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableFileController::IsBegun(void) const { return mcDurableSet.HasBegun(); }
 
-char* CDurableFileController::GetDirectory(void) { return mszDirectory.Text(); }
+const char* CDurableFileController::GetDirectory(void) const { return mszDirectory.Text(); }
 
-char* CDurableFileController::GetRewriteDirectory(void) { return mszRewriteDirectory.Text(); }
+const char* CDurableFileController::GetRewriteDirectory(void) const { return mszRewriteDirectory.Text(); }
 
 bool CDurableFileController::IsDurable(void) const { return mbDurable; }
 

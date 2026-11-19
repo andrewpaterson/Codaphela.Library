@@ -97,7 +97,7 @@ public:
 	bool					IsUseLongFilenames(void) const noexcept;
 	EFatFileSystemType		GetFileSystemType(void) const noexcept;
 	uint8					GetNoOfFatTables(void) const noexcept;
-	char*					GetLabel(void) noexcept;
+	const char*				GetLabel(void) const noexcept;
 	CFileDrive*				GetFileDrive(void) const noexcept;
 	uint32					GetRootCluster(void) const noexcept;
 	uint32					GetRootSector(void) const noexcept;

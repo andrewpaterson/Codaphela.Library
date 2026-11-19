@@ -86,7 +86,7 @@ void CFileSystem::ReadDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileSystem::GetFilename(const char* szFilename)
+const char* CFileSystem::GetFilename(const char* szFilename)
 {
 	CSystemFileNode*	pcNode;
 

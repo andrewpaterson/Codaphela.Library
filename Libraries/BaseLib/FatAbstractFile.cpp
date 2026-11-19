@@ -198,7 +198,7 @@ bool CFatAbstractFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CFatAbstractFile::GetFilename(void)
+const char* CFatAbstractFile::GetFilename(void) const
 {
 	return "";
 }

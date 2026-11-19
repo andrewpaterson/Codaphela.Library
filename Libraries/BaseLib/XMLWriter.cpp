@@ -321,7 +321,7 @@ bool CXMLWriter::IsComplete(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CXMLWriter::GetText(void)
+const char* CXMLWriter::GetText(void) const
 {
 	return mszText.Text();
 }

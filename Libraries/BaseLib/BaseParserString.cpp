@@ -27,7 +27,7 @@ void SBaseParserString::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* SBaseParserString::GetString(void)
+const char* SBaseParserString::GetString(void) const
 {
 	return szString.Text();
 }

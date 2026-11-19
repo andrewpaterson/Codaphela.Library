@@ -37,7 +37,7 @@ public:
 	void					Init(const char* szDirectory);
 	void					Kill(void);
 
-	char*					GetFilename(const char* szFilename);
+	const char*				GetFilename(const char* szFilename);
 	CFileNodeSystemFile*	GetFileNode(const char* szName, CChars* pszRemainingName);
 	CChars*					GetFullDirectoryName(void);
 	void					GetFiles(CArraySystemFilePtr* pcSystemFiles);

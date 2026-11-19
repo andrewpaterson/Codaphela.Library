@@ -10,14 +10,14 @@ protected:
 	bool		mbUseUserError;
 
 public:
-	void	Init(bool bUseUserError);
-	void	Kill(void);
+	void		Init(bool bUseUserError);
+	void		Kill(void);
 
-	void	SetError(const char* szError);
-	bool	HasError(void) const;
-	char*	GetError(void);
+	void		SetError(const char* szError);
+	bool		HasError(void) const;
+	const char*	GetError(void) const;
 
-	bool	UseUserError(void);
+	bool		UseUserError(void);
 };
 
 

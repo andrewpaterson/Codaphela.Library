@@ -46,9 +46,9 @@ public:
 	TRISTATE	ParseValue(SBaseParserString* psElement);
 	TRISTATE	ParseObject(SBaseParserString* psElement);
 	TRISTATE	ParseArray(SBaseParserString* psElement);
-	TRISTATE	ParseLiteral(char* szElementName);
-	TRISTATE	ParseString(char* szElementName);
-	TRISTATE	ParseNumber(char* szElementName);
+	TRISTATE	ParseLiteral(const char* szElementName);
+	TRISTATE	ParseString(const char* szElementName);
+	TRISTATE	ParseNumber(const char* szElementName);
 	TRISTATE	ParseMember(void);
 };
 

@@ -1724,7 +1724,7 @@ void TestIndexTreeFileRemoveBeforeFlush(void)
 	CIndexTreeFileAccess	cAccess;
 	CTestIndexTreeObject2	a;
 	char					sz[MAX_DATA_SIZE];
-	char*					szDirectory;
+	const char*				szDirectory;
 	CFileUtil				cFileUtil;
 	CArrayChars				acFiles;
 	CIndexTreeNodeFile*		pcNode;

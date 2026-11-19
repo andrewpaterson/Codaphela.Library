@@ -1398,7 +1398,7 @@ bool CLogFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CLogFile::GetFilename(void)
+const char* CLogFile::GetFilename(void) const
 {
 	return mpcBackingFile->GetFilename();
 }

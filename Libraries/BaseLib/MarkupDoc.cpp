@@ -80,7 +80,7 @@ CMarkupTag* CMarkupDoc::GetRootTag(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupDoc::SetRootTag(char* szTagName)
+CMarkupTag* CMarkupDoc::SetRootTag(const char* szTagName)
 {
 	CMarkupTag* pcTag;
 
@@ -99,7 +99,7 @@ CMarkupTag* CMarkupDoc::SetRootTag(char* szTagName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupDoc::AppendTag(CMarkupTag* pcCurrent, char* szTagName, lsize iLine, lsize iColumn)
+CMarkupTag* CMarkupDoc::AppendTag(CMarkupTag* pcCurrent, const char* szTagName, lsize iLine, lsize iColumn)
 {
 	if (!pcCurrent)
 	{

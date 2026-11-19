@@ -50,7 +50,7 @@ void CFileNodeSystemFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileNodeSystemFile::GetFullName(void)
+const char* CFileNodeSystemFile::GetFullName(void) const
 {
 	return mszFullPath.Text();
 }
@@ -73,7 +73,7 @@ void CFileNodeSystemFile::SetFullName(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileNodeSystemFile::GetExtension(void)
+const char* CFileNodeSystemFile::GetExtension(void) const
 {
 	return mszFullPath.Text(miExtensionIndex+1);
 }

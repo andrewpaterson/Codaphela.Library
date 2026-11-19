@@ -56,8 +56,8 @@ public:
 	CDurableFile*	GetFile(size iIndex);
 
 	bool			IsBegun(void) const;
-	char*			GetDirectory(void);
-	char*			GetRewriteDirectory(void);
+	const char*		GetDirectory(void) const;
+	const char*		GetRewriteDirectory(void) const;
 	bool			IsDurable(void) const;
 	void			SetSync(EDurableSync eSync);
 	bool			IsSync(void) const;

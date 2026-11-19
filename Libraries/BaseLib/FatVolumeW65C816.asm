@@ -671,13 +671,13 @@ _CFatVolume__GetSectorCache:
 		jmp Leave
 
 
-; char* CFatVolume::GetLabel(void)
+; const char* CFatVolume::GetLabel(void) const
 		.global _CFatVolume__GetLabel
 _CFatVolume__GetLabel:
 		.width (A, X), 16
 		jsr Enter
 		jsr PushLabel
-		jsl _CCharsBase__T_C6CChars_C10CArrayChar__Text
+		jsl _CCharsBase__T_C6CChars_C10CArrayChar__Text__K
 		ply
 		ply
 		jmp Leave

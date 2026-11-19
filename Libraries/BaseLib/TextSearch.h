@@ -42,19 +42,19 @@ protected:
 	char	mcFirstUpper;
 
 public:
-	void	Init(const char* szPattern, bool bMatchCase, bool bWholeWords);
-	void	Kill(void);
+	void		Init(const char* szPattern, bool bMatchCase, bool bWholeWords);
+	void		Kill(void);
 
-	size	Find(const char* szText, size uiLength, size uiFrom = 0);
-	size	Count(const char* szText, size uiLength);
-	bool	IsEmpty(void) const;
-	size	Length(void) const;
-	char*	GetPattern(void);
-	bool	IsMatchCase(void) const;
-	bool	IsWholeWords(void) const;
+	size		Find(const char* szText, size uiLength, size uiFrom = 0);
+	size		Count(const char* szText, size uiLength);
+	bool		IsEmpty(void) const;
+	size		Length(void) const;
+	const char*	GetPattern(void) const;
+	bool		IsMatchCase(void) const;
+	bool		IsWholeWords(void) const;
 
 protected:
-	bool	IsAt(const char* szText, size uiLength, size uiPosition);
+	bool		IsAt(const char* szText, size uiLength, size uiPosition);
 };
 
 

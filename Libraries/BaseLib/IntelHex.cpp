@@ -379,7 +379,7 @@ bool CIntelHex::Error(uint32 uiLine, const char* szMessage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIntelHex::GetError(void)
+const char* CIntelHex::GetError(void) const
 {
 	return mszError.Text();
 }

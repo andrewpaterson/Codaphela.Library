@@ -792,7 +792,7 @@ CFileBasic*	CDurableFile::DumpGetPrimaryFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CDurableFile::GetFilename(void)
+const char* CDurableFile::GetFilename(void) const
 {
 	return mszFilename.Text();
 }
@@ -802,7 +802,7 @@ const char* CDurableFile::GetFilename(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CDurableFile::GetRewriteName(void)
+const char* CDurableFile::GetRewriteName(void) const
 {
 	return mszRewriteName.Text();
 }

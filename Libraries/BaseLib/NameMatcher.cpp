@@ -121,7 +121,7 @@ bool CNameMatcher::IsEmpty(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CNameMatcher::GetPattern(void)
+const char* CNameMatcher::GetPattern(void) const
 {
 	return mszPattern.Text();
 }

@@ -41,31 +41,31 @@ protected:
 	CChars			mszIndent;			//What indents each level.
 
 public:
-	void	Init(void);
-	void	Kill(void);
+	void		Init(void);
+	void		Kill(void);
 
-	void	SetIndent(const char* szIndent);
+	void		SetIndent(const char* szIndent);
 
-	void	Begin(const char* szName);
-	void	End(void);
+	void		Begin(const char* szName);
+	void		End(void);
 
-	void	Attribute(const char* szName, const char* szValue);
-	void	Attribute(const char* szName, int32 iValue);
-	void	Attribute(const char* szName, int64 iValue);
-	void	Attribute(const char* szName, bool bValue);
-	void	Attribute(const char* szName, float32 fValue);
-	void	Attribute(const char* szName, float64 fValue);
-	void	Text(const char* szText);
-	void	Comment(const char* szText);
+	void		Attribute(const char* szName, const char* szValue);
+	void		Attribute(const char* szName, int32 iValue);
+	void		Attribute(const char* szName, int64 iValue);
+	void		Attribute(const char* szName, bool bValue);
+	void		Attribute(const char* szName, float32 fValue);
+	void		Attribute(const char* szName, float64 fValue);
+	void		Text(const char* szText);
+	void		Comment(const char* szText);
 
-	bool	IsComplete(void) const;
-	char*	GetText(void);
-	bool	Write(const char* szFilename);
+	bool		IsComplete(void) const;
+	const char*	GetText(void) const;
+	bool		Write(const char* szFilename);
 
 protected:
-	void	CloseStart(void);
-	void	AppendEscaped(const char* szText, bool bAttribute);
-	void	Indent(size uiLevels);
+	void		CloseStart(void);
+	void		AppendEscaped(const char* szText, bool bAttribute);
+	void		Indent(size uiLevels);
 };
 
 

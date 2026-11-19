@@ -327,7 +327,7 @@ CCalcOperator* CCalculatorParser::Operator(void)
 {
 	TRISTATE					tResult;
 	size						i;
-	char*						szSimpleOp;
+	const char*					szSimpleOp;
 	ECalcOperator				eOp;
 	CArrayCalculatorOperators*	pacOperators;
 	size						uiNumOperators;

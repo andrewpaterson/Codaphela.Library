@@ -53,7 +53,7 @@ public:
 	filePos		Size(void) override;
 	bool		Flush(void) override;
 	bool		Delete(void) override;
-	const char*		GetFilename(void) override;
+	const char*	GetFilename(void) const override;
 };
 
 

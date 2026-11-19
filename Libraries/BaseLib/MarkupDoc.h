@@ -50,9 +50,9 @@ public:
 	void			Kill(void);
 
 	CMarkupTag*		GetRootTag(void) const;
-	CMarkupTag*		SetRootTag(char* szTagName);
+	CMarkupTag*		SetRootTag(const char* szTagName);
 
-	CMarkupTag*		AppendTag(CMarkupTag* pcCurrent, char* szTagName, lsize iLine, lsize iColumn);
+	CMarkupTag*		AppendTag(CMarkupTag* pcCurrent, const char* szTagName, lsize iLine, lsize iColumn);
 
 	bool			Is(const char* szName);
 	void			AddReference(CMarkupReference* pcRef);

@@ -207,7 +207,7 @@ size CTextSearch::Count(const char* szText, size uiLength)
 
 bool CTextSearch::IsEmpty(void) const { return mszPattern.Empty(); }
 size CTextSearch::Length(void) const { return mszPattern.Length(); }
-char* CTextSearch::GetPattern(void) { return mszPattern.Text(); }
+const char* CTextSearch::GetPattern(void) const { return mszPattern.Text(); }
 bool CTextSearch::IsMatchCase(void) const { return mbMatchCase; }
 bool CTextSearch::IsWholeWords(void) const { return mbWholeWords; }
 

@@ -154,7 +154,7 @@ bool CStdErrFile::Delete(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-const char* CStdErrFile::GetFilename(void)
+const char* CStdErrFile::GetFilename(void) const
 {
 	return (char*)"StdErr";
 }

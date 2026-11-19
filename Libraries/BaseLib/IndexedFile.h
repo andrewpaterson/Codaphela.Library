@@ -68,9 +68,9 @@ public:
 	bool			IsFileIndex(size uiFileIndex);
 
 	CFileBasic*		DumpGetPrimaryFile(void);
-	const char*			GetFilename(void);
+	const char*		GetFilename(void) const;
 	uint32			GetFileNumber(void) const;
-	char*			GetRewriteName(void);
+	const char*		GetRewriteName(void) const;
 	lsize			GetDataSize(void) const;
 	filePos			NumDatas(void) const;
 	filePos			GetUsedDataIndices(CArrayBit* pab);

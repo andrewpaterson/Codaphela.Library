@@ -68,7 +68,7 @@ public:
 	void						Print(CChars* psz, CCalcObject* pcExpression);
 	void						Print(CChars* psz);
 	bool						HasError(void) const;
-	char*						GetError(void);
+	const char*					GetError(void) const;
 	void						ClearError(void);
 
 	CArrayCalculatorOperators*	GetOperators(void) const;

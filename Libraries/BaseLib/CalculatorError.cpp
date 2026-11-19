@@ -52,7 +52,7 @@ bool CCalculatorError::HasError(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCalculatorError::GetError(void)
+const char* CCalculatorError::GetError(void) const
 {
 	return mszError.Text();
 }

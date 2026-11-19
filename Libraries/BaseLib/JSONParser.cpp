@@ -384,7 +384,7 @@ TRISTATE CJSONParser::ParseMember(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CJSONParser::ParseLiteral(char* szElementName)
+TRISTATE CJSONParser::ParseLiteral(const char* szElementName)
 {
 	TRISTATE	tResult;
 	
@@ -417,7 +417,7 @@ TRISTATE CJSONParser::ParseLiteral(char* szElementName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CJSONParser::ParseString(char* szElementName)
+TRISTATE CJSONParser::ParseString(const char* szElementName)
 {
 	TRISTATE			tResult;
 	SBaseParserString	sString;
@@ -442,7 +442,7 @@ TRISTATE CJSONParser::ParseString(char* szElementName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CJSONParser::ParseNumber(char* szElementName)
+TRISTATE CJSONParser::ParseNumber(const char* szElementName)
 {
 	TRISTATE	tResult;
 	CNumber		cNumber;

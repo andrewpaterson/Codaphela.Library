@@ -226,5 +226,5 @@ void CRecentFiles::Clear(void)				{ maszFiles.ReInit(); }
 size CRecentFiles::NumFiles(void) const			{ return maszFiles.NumElements(); }
 char* CRecentFiles::GetFile(size uiIndex)	{ return maszFiles.GetText(uiIndex); }
 void CRecentFiles::SetOpen(const char* szFile)	{ mszOpen.Set(szFile ? szFile : ""); }  //The file open when the app was closed, "" for none.
-char* CRecentFiles::GetOpen(void)			{ return mszOpen.Text(); }
+const char* CRecentFiles::GetOpen(void) const	{ return mszOpen.Text(); }
 

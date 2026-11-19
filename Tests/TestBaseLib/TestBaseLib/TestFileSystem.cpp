@@ -11,7 +11,7 @@
 void TestFileSystemInit(void)
 {
 	CFileSystem		cSystem;
-	char*			szFullName;
+	const char*		szFullName;
 	CFileUtil		cFileUtil;
 	CChars			szWorkingDirectory;
 	CChars			szTemp;

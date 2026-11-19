@@ -15,8 +15,8 @@ public:
 	void Kill(void);
 
 	void GenerateBad(CIndexTreeNode* pcCurrent, CArrayChar* acKey);
-	char* GetBadKey(void);
-	char* GetBadNode(void);
+	const char* GetBadKey(void) const;
+	const char* GetBadNode(void) const;
 
 protected:
 	void GenerateBadNode(CIndexTreeNode* pcCurrent, bool bHex);

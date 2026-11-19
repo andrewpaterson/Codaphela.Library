@@ -31,7 +31,7 @@ public:
 	void						InsertInName(size iIndex, const char* szText);
 
 	EFileIteratorReturnType		GetType(void) const;
-	char*						GetFullName(void);
+	const char*					GetFullName(void) const;
 	CBaseFileNode*				GetNode(void) const;
 	uint32						GetFileRank(void) const;
 };

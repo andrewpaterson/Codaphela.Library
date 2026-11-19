@@ -509,7 +509,7 @@ void CCalculator::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCalculator::GetError(void)
+const char* CCalculator::GetError(void) const
 {
 	return mcErrors.GetError();
 }

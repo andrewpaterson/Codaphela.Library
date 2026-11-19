@@ -215,7 +215,7 @@ bool CPackFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CPackFile::GetFilename(void)
+const char* CPackFile::GetFilename(void) const
 {
 	return NULL;
 }

@@ -100,8 +100,8 @@ public:
 
 	bool		TestGetOpenedSinceBegin(void);
 	bool		IsOpen(void);
-	const char*		GetFilename(void);
-	char*		GetRewriteName(void);
+	const char*	GetFilename(void) const;
+	const char*	GetRewriteName(void) const;
 
 	void		Dump(void);
 	CFileBasic*	DumpGetPrimaryFile(void);
