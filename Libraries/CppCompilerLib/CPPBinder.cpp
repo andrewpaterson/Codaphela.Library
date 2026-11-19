@@ -36,6 +36,7 @@ void CCPPBoundCall::Init(void)
 	mpapcArguments = NULL;
 	mpcObject = NULL;
 	mpcClass = NULL;
+	mpcQualifier = NULL;
 	mbArrow = false;
 	mbVirtual = false;
 	mpcLeft = NULL;
@@ -543,6 +544,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		{
 			return;
 		}
+		pcBound->mpcQualifier = pcLookup;
 		bVirtual = false;
 	}
 

@@ -67,6 +67,7 @@ public:
 	//A member's call and a destructor's.
 	CCPPSyntax*			mpcObject;		//What it is called on: the left of . or ->, or NULL for this.
 	CCPPClass*			mpcClass;		//The object's class (this's, or the one that qualifies the name, without an object).
+	CCPPClass*			mpcQualifier;	//The base of the object's class that the name's qualifier names (p->C::f()): the function's object is in it.  NULL without one.
 	bool				mbArrow;		//The object is the left of ->.
 	bool				mbVirtual;		//A virtual function is called through the vtable: not for a named object or a qualified name.
 

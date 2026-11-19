@@ -349,6 +349,7 @@ protected:
 	bool			ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo);
 	bool			ConvertObjectBy(SCPP65IRValue* psValue, CCPPBoundConversion* pcBound, SCPP65Type* psTo);
 	bool			CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
+	bool			MemberCall(CCPPBoundCall* pcBound, SCPP65IRValue* psValue);
 	bool			CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, SCPP65IRValue* psValue);
 	bool			GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);
 	bool			Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject = NULL, bool bArrow = false, CCPPClass* pcObjectClass = NULL, bool bVirtual = false, SIRReference sGivenObject = IRNone(), bool bObjectLast = false);

@@ -49,12 +49,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	switch (cBound.meHow)
 	{
 	case CPPBC_Member:
-		//this's, where there is none to call it on.
-		if (!cBound.mpcObject && !cBound.mpcFunction->mbStatic && msThis.IsNone())
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
-		return Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, cBound.mpapcArguments, psValue, cBound.mpcObject, cBound.mbArrow, cBound.mpcObject ? cBound.mpcClass : NULL, cBound.mbVirtual);
+		return MemberCall(&cBound, psValue);
 	case CPPBC_Destructor:
 		return DestructorCall(pcCall, cBound.mpapcArguments, cBound.mpcClass, cBound.mpcObject, cBound.mbArrow, cBound.mbVirtual, psValue);
 	case CPPBC_MemberPointer:
@@ -391,6 +386,45 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArr
 	}
 	msElide = sElide;
 	return Call(NULL, sCallee.sValue, psType->psBase, papcArguments, psValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call of a member function, as the binder bound it.  The object's
+// expression is worked out for a static member function too, which has no
+// use for it ([expr.ref] 1).  A name qualified by a base, p->C::f(), calls
+// the function on the part of the object that is in that base: f's class
+// may be a base of the object's class more than once, and the first isn't
+// then the one meant.  [class.member.lookup]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::MemberCall(CCPPBoundCall* pcBound, SCPP65IRValue* psValue)
+{
+	CCPPFunction*	pcFunction;
+	SIRReference	sObject;
+
+	pcFunction = pcBound->mpcFunction;
+	if (!pcBound->mpcObject && !pcFunction->mbStatic && msThis.IsNone())
+	{
+		//this's, where there is none to call it on.
+		return Unsupported(__FILE__, __LINE__);
+	}
+	if (!pcBound->mpcObject || !(pcFunction->mbStatic || pcBound->mpcQualifier))
+	{
+		return Call(pcFunction, FunctionSymbol(pcFunction), NULL, pcBound->mpapcArguments, psValue, pcBound->mpcObject, pcBound->mbArrow, pcBound->mpcObject ? pcBound->mpcClass : NULL, pcBound->mbVirtual);
+	}
+
+	if (!ObjectAddress(pcBound->mpcObject, pcBound->mbArrow, &sObject))
+	{
+		return false;
+	}
+	if (pcFunction->mbStatic)
+	{
+		return Call(pcFunction, FunctionSymbol(pcFunction), NULL, pcBound->mpapcArguments, psValue);
+	}
+	sObject = BaseAddress(sObject, pcBound->mpcClass, pcBound->mpcQualifier, false);
+	return Call(pcFunction, FunctionSymbol(pcFunction), NULL, pcBound->mpapcArguments, psValue, NULL, false, pcBound->mpcQualifier, false, sObject);
 }
 
 
