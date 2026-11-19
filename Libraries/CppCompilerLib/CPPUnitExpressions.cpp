@@ -1802,8 +1802,9 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			psType = UnevaluatedTypeOf(pcSizeof->mpcOperand);
 		}
-		if (!psType || psType->IsVoid() || psType->IsFunction())
+		if (!psType || psType->IsVoid() || psType->IsFunction() || (psType->IsArray() && (psType->iCount == 0)))
 		{
+			//Nothing that has no size: void, a function, an array of unknown bound.  [expr.sizeof] 1
 			return false;
 		}
 		psType = psType->WithoutReference();

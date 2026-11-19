@@ -2333,6 +2333,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		}
 		pcVariable->mbDefined = true;
 		pcVariable->mpsType = psType;
+		CompleteDeclaredArrays(pcVariable);
 		if ((pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !mpcConstants->CheckVariable(pcVariable, pcInit))
 		{
 			bResult = false;
@@ -2540,6 +2541,34 @@ void CCPPUnit::FreeVariables(CArrayCPPVariables* papcVariables)
 		free(papcVariables->GetPtr(i));
 	}
 	papcVariables->ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// extern int a[]; declared an array of unknown bound that the definition
+// of pcDefined, int a[3], has now completed: the earlier declaration's
+// variable, which what was written before the definition names, is of the
+// same array.  [dcl.array] 3
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CompleteDeclaredArrays(CCPPVariable* pcDefined)
+{
+	CCPPSymbol*		pcSymbol;
+	CCPPVariable*	pcDeclared;
+
+	if (!pcDefined->mpsType->IsArray() || !pcDefined->mpcSymbol->mpcScope)
+	{
+		return;
+	}
+	for (pcSymbol = pcDefined->mpcSymbol->mpcScope->FindHere(pcDefined->mpcSymbol->mlliName); pcSymbol; pcSymbol = pcSymbol->mpcNext)
+	{
+		pcDeclared = (pcSymbol != pcDefined->mpcSymbol) ? GetVariable(pcSymbol) : NULL;
+		if (pcDeclared && pcDeclared->mpsType->IsArray() && (pcDeclared->mpsType->iCount == 0) && pcDeclared->mpsType->psBase->Same(pcDefined->mpsType->psBase))
+		{
+			pcDeclared->mpsType = pcDefined->mpsType;
+		}
+	}
 }
 
 

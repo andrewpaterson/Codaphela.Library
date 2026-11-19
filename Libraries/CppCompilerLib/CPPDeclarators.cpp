@@ -72,7 +72,57 @@ SCPP65Type* CCPPDeclarators::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCP
 	{
 		return psType;
 	}
-	return GetDeclaratorType(psType, pcDeclarator, pcNode, pcInitialiser);
+	psType = GetDeclaratorType(psType, pcDeclarator, pcNode, pcInitialiser);
+	return psType ? CompletedArray(psType, pcInitialiser) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An array of unknown bound (a typedef of one: typedef int A[]; A a = {1,
+// 2};) with the bound its initialiser gives it; any other type, or with no
+// initialiser, as it is.  [dcl.array] 3
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDeclarators::CompletedArray(SCPP65Type* psType, CCPPSyntax* pcInitialiser)
+{
+	SCPP65Type*	psArray;
+	int64		lliCount;
+
+	if (!psType->IsArray() || (psType->iCount != 0) || !pcInitialiser)
+	{
+		return psType;
+	}
+	lliCount = GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType->psBase));
+	if (lliCount <= 0)
+	{
+		return psType;
+	}
+	psArray = mpcUnit->GetTypes()->Array(psType->psBase, (int)lliCount);
+	return mpcUnit->GetTypes()->Qualified(psArray, psType->bConst, psType->bVolatile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a declarator is of a declaration that makes no object:
+// an extern one, or a typedef.  An array there may have no bound, an
+// incomplete type that is completed where the object is defined.
+// [dcl.array] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeclarators::DeclaresNoObject(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntax*	pcDeclaration;
+
+	for (pcDeclaration = pcDeclarator->mpcParent; pcDeclaration && ((pcDeclaration->GetKind() == CPPS_Declarator) || (pcDeclaration->GetKind() == CPPS_InitDeclarator)); pcDeclaration = pcDeclaration->mpcParent)
+	{
+	}
+	if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || !((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->mpcSpecifiers)
+	{
+		return false;
+	}
+	return (((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->mpcSpecifiers->muiFlags & (CPPDS_EXTERN | CPPDS_TYPEDEF)) != 0;
 }
 
 
@@ -144,9 +194,10 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			psType = mpcUnit->GetTypes()->Pointer(psType);
 			continue;
 		}
-		if (!pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && pcDeclarator->mpcParent && (pcDeclarator->mpcParent->GetKind() == CPPS_TypeId) && !pcInitialiser)
+		if (!pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && !pcInitialiser && ((pcDeclarator->mpcParent && (pcDeclarator->mpcParent->GetKind() == CPPS_TypeId)) || DeclaresNoObject(pcDeclarator)))
 		{
-			//A<int[]>: an array of unknown bound, an incomplete type, its count 0.  [dcl.array] 5
+			//A<int[]>, extern int a[]; and typedef int A[];: an array of unknown bound, an incomplete type, its count 0.
+			//[dcl.array] 3
 			lliCount = 0;
 		}
 		else if (!pcArray->mpcSize)
