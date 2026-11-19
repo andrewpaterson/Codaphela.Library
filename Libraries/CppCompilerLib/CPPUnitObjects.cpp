@@ -165,6 +165,62 @@ bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The bit-field an expression names, or NULL: a field of this named alone,
+// or one after . or ->, that is declared with a width.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPField* CCPPUnit::BitFieldOf(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxMemberExpression*	pcMember;
+	CCPPBoundName				cBound;
+	SCPP65Type*					psObject;
+
+	pcExpression = SkipParentheses(pcExpression);
+	cBound.meWhat = CPPBN_Nothing;
+	BeginQuiet();
+	if (pcExpression->GetKind() == CPPS_IdExpression)
+	{
+		mcBinder.BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
+	}
+	else if (pcExpression->GetKind() == CPPS_MemberExpression)
+	{
+		pcMember = (CCPPSyntaxMemberExpression*)pcExpression;
+		psObject = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : ValueTypeOf(pcMember->mpcObject);
+		if (psObject && pcMember->mbArrow)
+		{
+			psObject = psObject->IsPointer() ? psObject->psBase : NULL;
+		}
+		if (!psObject || !psObject->IsClass() || !mcBinder.BindMember(psObject->pcClass, pcMember->mpcName, pcMember, &cBound))
+		{
+			cBound.meWhat = CPPBN_Nothing;
+		}
+	}
+	EndQuiet();
+	return ((cBound.meWhat == CPPBN_Field) && cBound.mpsField->IsBitField()) ? cBound.mpsField : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type the value of pcExpression, a psType, has where integral
+// promotion is applied to it (an operator's operand, an argument that has
+// no parameter, a switch's condition): its own, but for a bit-field, which
+// is promoted by its width and not by its type.  An unsigned field of
+// three bits is an int there, so that field - 4 is less than 0.
+// [conv.prom] 3
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression)
+{
+	SCPPField*	psField;
+
+	psField = psType->IsInteger() ? BitFieldOf(pcExpression) : NULL;
+	return psField ? mcTypes.PromoteBitField(psType, psField->iBitWidth) : psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the types two pointers point to, or two pointers to members point
 // to as members, have in common: one type with the const and volatile of
 // both, where they are the same type but for those.  At the first level

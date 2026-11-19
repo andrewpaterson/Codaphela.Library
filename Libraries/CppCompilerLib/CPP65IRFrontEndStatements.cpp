@@ -1219,7 +1219,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		return Unsupported(__FILE__, __LINE__);
 	}
 	uiTemporaries = masTemporaries.NumElements();
-	if (!Value(pcSwitch->mpcCondition, &sValue))
+	if (!Operand(pcSwitch->mpcCondition, &sValue))
 	{
 		return false;
 	}

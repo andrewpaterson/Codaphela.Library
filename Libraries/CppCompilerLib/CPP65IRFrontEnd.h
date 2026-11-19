@@ -333,6 +333,7 @@ protected:
 	bool			IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue);
 	bool			BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue);
 	bool			Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue, SCPP65IRPlace* psStored = NULL);
+	bool			Operand(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP65IRValue* psRight, SCPP65IRValue* psResult);
 	bool			Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP65IRValue* psRight, SIRReference* psCondition);
 	bool			ConditionalExpression(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRValue* psValue);

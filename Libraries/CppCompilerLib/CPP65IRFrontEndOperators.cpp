@@ -124,7 +124,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 
 	//Operators on constants are worked out by the IR (the generator's Constant does its arithmetic in signed 64
 	//bits, which isn't right for every type).
-	if (!Value(pcUnary->mpcOperand, &sOperand))
+	if (!Operand(pcUnary->mpcOperand, &sOperand))
 	{
 		return false;
 	}
@@ -162,6 +162,19 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		break;
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of an operand that integral promotion is applied to: a
+// bit-field's becomes the type its width promotes it to
+// (CCPPUnit::OperandType).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::Operand(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
+{
+	return Value(pcExpression, psValue) && Convert(psValue, mpcUnit->OperandType(psValue->psType, pcExpression));
 }
 
 
@@ -267,7 +280,7 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 		{
 			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, psValue);
 		}
-		if (!Value(pcBinary->mpcLeft, &sLeft) || !Value(pcBinary->mpcRight, &sRight))
+		if (!Operand(pcBinary->mpcLeft, &sLeft) || !Operand(pcBinary->mpcRight, &sRight))
 		{
 			return false;
 		}
@@ -366,7 +379,12 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	case CT_AssignmentLeftShift:	eOperator = CT_LeftShift;	break;
 	default:						eOperator = CT_RightShift;	break;
 	}
-	if (!Load(&sPlace, &sOld) || !Operate(eOperator, &sOld, &sRight, psValue) || !Convert(psValue, sPlace.psType))
+	//x op= y is x = x op y: both are operands, a bit-field promoted as one is.  [expr.ass] 7
+	if (!Load(&sPlace, &sOld) || !Convert(&sOld, mpcUnit->OperandType(sOld.psType, pcBinary->mpcLeft)) || !Convert(&sRight, mpcUnit->OperandType(sRight.psType, pcBinary->mpcRight)))
+	{
+		return false;
+	}
+	if (!Operate(eOperator, &sOld, &sRight, psValue) || !Convert(psValue, sPlace.psType))
 	{
 		return false;
 	}
@@ -792,7 +810,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 				return true;
 			}
 			mpcUnit->ComparisonRange(pcBinary);
-			if (!Value(pcBinary->mpcLeft, &sLeft) || !Value(pcBinary->mpcRight, &sRight) || !Compare(pcBinary->meOperator, &sLeft, &sRight, &sCondition))
+			if (!Operand(pcBinary->mpcLeft, &sLeft) || !Operand(pcBinary->mpcRight, &sRight) || !Compare(pcBinary->meOperator, &sLeft, &sRight, &sCondition))
 			{
 				return false;
 			}

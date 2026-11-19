@@ -109,6 +109,7 @@ protected:
 	bool			Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight, CCPPSyntax* pcNode);
 	bool			CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNode);
 	bool			Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65Type** ppsLeft, SCPP65Type** ppsRight);
+	SCPP65Type*		Operand(CCPPSyntax* pcExpression);
 	SCPP65Type*		ConditionalExpression(CCPPSyntaxConditionalExpression* pcConditional);
 	SCPP65Type*		ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse);
 	SCPP65Type*		ConditionValue(CCPPSyntax* pcExpression);

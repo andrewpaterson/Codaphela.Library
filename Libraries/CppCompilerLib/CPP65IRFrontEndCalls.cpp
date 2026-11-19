@@ -729,7 +729,7 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 	for (ui = uiArguments; ui > uiParameters; ui--)
 	{
 		pcArgument = papcArguments->GetPtr(ui - 1);
-		if (!Value(pcArgument, &sArgument))
+		if (!Operand(pcArgument, &sArgument))
 		{
 			return false;
 		}

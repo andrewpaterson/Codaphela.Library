@@ -802,11 +802,11 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		psType = mpcUnit->TypeOf(pcUnary->mpcOperand);
 		if (psType && psType->IsInteger())
 		{
-			return mpcTypes->Promote(psType);
+			return mpcTypes->Promote(mpcUnit->OperandType(psType, pcUnary->mpcOperand));
 		}
 	}
 
-	psType = Value(pcUnary->mpcOperand);
+	psType = Operand(pcUnary->mpcOperand);
 	if (!psType)
 	{
 		return NULL;
@@ -1011,13 +1011,28 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65Type** ppsLeft, SCPP65Type** ppsRight)
 {
-	*ppsLeft = Value(pcLeft);
+	*ppsLeft = Operand(pcLeft);
 	if (!*ppsLeft)
 	{
 		return false;
 	}
-	*ppsRight = Value(pcRight);
+	*ppsRight = Operand(pcRight);
 	return *ppsRight != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the value of an operand that integral promotion is applied
+// to (CCPPUnit::OperandType: a bit-field's is promoted by its width).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::Operand(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	psType = Value(pcExpression);
+	return psType ? mpcUnit->OperandType(psType, pcExpression) : NULL;
 }
 
 
@@ -1463,7 +1478,7 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 	for (i = uiArguments; i > uiParameters; i--)
 	{
 		pcArgument = papcArguments->GetPtr(i - 1);
-		psType = Value(pcArgument);
+		psType = Operand(pcArgument);
 		if (!psType)
 		{
 			return false;

@@ -1100,6 +1100,27 @@ SCPP65Type* CCPP65Types::Promote(SCPP65Type* psType)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Integral promotion of a bit-field iBits wide that is declared as psType:
+// int if an int holds every value it can have, unsigned int if that does,
+// and otherwise its own type.  An enum's bit-field is promoted as the enum
+// is.  [conv.prom] 3
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::PromoteBitField(SCPP65Type* psType, int iBits)
+{
+	int	iIntBits;
+
+	iIntBits = msInt.iBytes * 8;
+	if (psType->pcEnum || (iBits > iIntBits))
+	{
+		return Promote(psType);
+	}
+	return ((iBits < iIntBits) || psType->bSigned) ? &msInt : &msUnsignedInt;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The first of int, unsigned int, long, unsigned long, long long and
 // unsigned long long that holds every value of an integer iBytes wide (and
 // bSigned): a promotion's type.  [conv.prom]
