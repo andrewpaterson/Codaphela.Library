@@ -179,6 +179,13 @@ Steps (a commit each, after the checks it lists)
    The *65 suites (Release x64): TestBaseLib65's W65C816 run found CFileCopier::Copy's buffer malloc'd with a 64 bit
    length narrowed to 16 bits (the copy then ran over it): the sweep had looked only for 32 bit values narrowed, and
    with 64 bit ones too it finds only that, now malloc32.
+   Passed 2026-11-19 with the inliner change (CommonLibraries 0f656fe0c, on the upstream thread safety work, whose
+   StandardLib the narrowing warnings find nothing in), Release x64:
+     TestBaseLib65       65C64 180 programs, 163825 asserts   W65C816 178 programs, 157337 asserts
+     TestStandardLib65   65C64  68 programs,  13317 asserts   W65C816  66 programs,  12765 asserts
+     TestSupportLib65    65C64  76 programs,  36013 asserts   W65C816  72 programs,  27222 asserts (664 s)
+     TestHCP65Lib        2143 passed (24 minutes, was 29)
+   Size16Plan.txt is done.
 
 
 Risks
