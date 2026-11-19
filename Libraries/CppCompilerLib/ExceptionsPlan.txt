@@ -875,3 +875,56 @@ Progress
        the W65C816 now and master has an inliner change still to be merged (0f656fe0c, which changes what is compiled
        everywhere).  It is to be taken again after the next merge and before the next stage that is checked by it.
 
+  The user, 2026-11-19: "Carry on with stage 4 when the other session is done with its test run".  Master was merged
+  first (CommonLibraries 070805565, with the other session's inliner change: both sides' new functions kept in
+  IRInliner.cpp; HCP65 5786632).
+
+  4. Done (CommonLibraries 708f6af15, HCP65 3a4386f), but for what is listed at the end.
+     - What was there already: the other session's question 8 and 13 had built the header (name and kind), a pointer's
+       and a member pointer's pointee type infos, nullptr_t's kind, the class entries' public and virtual flags, and
+       types that are each their own (int and long, char and signed char), so 4a's check of the manglings was theirs
+       and is done.  There was no <typeinfo> in Libc65: it is this stage's.
+     - 4a, the type info (CPPVtable.h says the layout).  In words that existed: a pointer's and member pointer's kind
+       word has CPP65_TYPE_INFO_POINTEE_CONST and _VOLATILE (bits 8 and 9); a class entry's flags word has in bits 8
+       to 15 one more than the index of the virtual base the subobject is or is in, and the class's own (first)
+       entry has in bits 16 to 31 one more than where its vtable pointer is.  Not in the plan: the last two, which a
+       handler of a pointer to a base needs when the object pointed to is itself a base of a bigger object, since a
+       virtual base is then not where the entry's offset says.
+     - dynamic_cast, not as planned.  "A base that isn't public is not found" is only half of 5.2.7/8, and by itself
+       it would have refused a cast that is right: from a public base of a D to that D when the D is a private part
+       of the whole object.  Both bullets are written: the operand is the one public base of a target object
+       (CCPPUnit::IsOnePublicBase, known when it is compiled, then checked against each target found); or the
+       operand's own entry is public and the target is found once and public.  DynamicCastAccess has each.
+     - 4b, the runtime: Libc65's exception.cpp, <exception> and <typeinfo>, as planned, with these differences.
+       - An exception can be in flight and being handled at once (rethrown from its handler), so the header has a
+         link for each list and a count of handlers; it is destroyed when the count is 0 and it isn't in flight.
+       - __BeginCatch gives the thrown object (for catch (...), which asks __Match nothing).
+       - __Match gives, for a handler of a pointer type whose value isn't the thrown pointer as it is (moved to a
+         base, or nullptr), the address of a word in the exception's header that it has put the value in.
+       - A null pointer to member is taken to be 0 when nullptr is caught as one: not checked against the compiler.
+       - CallRuntime's list of arguments, and marking the routines register calls and nothrow, are the front end's
+         when it first calls them: stage 6.
+       - exception_ptr, nested_exception and <new> are stage 8's, as planned; __Unexpected only calls the handler and
+         terminates (the list's check is stage 8's).
+     - A pure virtual call (R_Pure) calls __Terminate through a weak reference in a program built with exceptions
+       (CCPPTarget::AppendCallTerminate); with the option off it is the stop it was.  Not run by a test.
+     - 4c, the tests.  TestLibc65Exception (81 asserts, both processors): every rule of 15.3/3 and what must not
+       match (a private base, an ambiguous base, a pointer that would lose const, a pointer to a pointer to a derived
+       class, const added at one level only), a pointer to a class that is part of two different bigger objects
+       caught as a pointer to its virtual base, nullptr, the two stacks with a rethrow, the object destroyed when its
+       last handler leaves and not before, the pool when malloc has nothing, terminate's handler through _Exit.
+       Conformance: DynamicCastAccess (the compiler before returns 43 for 63; the Microsoft compiler and g++ 15 give
+       63) and TypeidOfOtherTypes (the Microsoft compiler agrees; the case's own declaration of type_info doesn't
+       link with g++, as the older typeid cases' doesn't).  TestCppCompilerLib passes (269054).
+     - The three Lib65 suites, whose every class's type info and every dynamic_cast changed, run and pass on both
+       processors (D:\gameengine-exceptions\Stage4): TestBaseLib65 (180 programs on the 65C64, 178 on the W65C816), TestStandardLib65 (68 and 66) and TestSupportLib65 (76 and 72).
+     - Found on the way and told to the other session (CppParserTodo.txt's small gaps, master 8d320bc9d): &typeid(T)
+       is refused, and so is a destructor's call through a template parameter that is a built-in type.
+     - Not done, and whose it is:
+       - The kernal's ROM wasn't measured after 4a.  No word was added to a type info, so its size is the same;
+         dynamic_cast's code is longer where it is used.  Stage 9 measures.
+       - The start-ups' weak reference to ___Terminate (3c) is satisfied when exception.cpp is linked, but no test
+         leaves main with an exception yet: stage 6's first.
+       - The cycles and bytes baseline is still to be taken again (it was last taken before 16 bit size_t and the
+         inliner's change): before stage 6, whose check it is.
+
