@@ -4049,11 +4049,13 @@ bool CCPPUnit::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 // dynamic_cast to a reference that fails calls, R_RecursiveInit, which a
 // static local reached again while it is being made calls, and the
 // target's own (CCPPTarget::AppendRuntime).  They stop: there is nothing to
-// throw.
+// throw.  And in a program built with exceptions, R_Exceptions.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::AppendRuntime(void)
 {
+	CChars	szLabel;
+
 	if (mbPureVirtual && BeginRuntime("R_Pure"))
 	{
 		//A pure virtual function was called: std::terminate, in a program built with exceptions that has their
@@ -4071,6 +4073,21 @@ void CCPPUnit::AppendRuntime(void)
 		//A dynamic_cast to a reference failed (bad_cast, were there exceptions).
 		Line("stp")->AppendNewLine();
 		mszCode.AppendNewLine();
+	}
+	if (mpcOptions->mbExceptions)
+	{
+		//The program is built with exceptions: a byte that a start up the compiler doesn't write (HCP65's UserStart.asm)
+		//finds through a weak reference, to know that main's carry is the exception flag.  One for the program (COMDAT),
+		//kept though nothing refers to it but weakly.
+		szLabel.Init(CPP_EXCEPTIONS_LABEL);
+		if (Emit(&szLabel))
+		{
+			CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat, keep");
+			CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
+			mcData.GetText()->Append(&szLabel)->Append(':')->AppendNewLine();
+			mcData.GetText()->Append("\t\t.byte 1")->AppendNewLine();
+		}
+		szLabel.Kill();
 	}
 	if (mbRecursiveInit && BeginRuntime("R_RecursiveInit"))
 	{

@@ -23,6 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //The memory map (the user, 2026-10-23): 0000:0000 to 0000:FFFF are pseudo registers and
 //scratch memory, programs start at 0001:0000 and the stack works down from 001F:FFFC.
 #define CPP65_PROGRAM_ADDRESS		0x10000
+#define CPP_EXCEPTIONS_LABEL		"R_Exceptions"	//Defined by a program built with exceptions (CCPPUnit::AppendRuntime).
 #define CPP65_STACK_TOP				0x1FFFFF
 #define CPP65_HEAP_ADDRESS			0x80000		//Libc65's malloc heap (stdlib.cpp HEAP_START); a program ends below it.
 #define CPP65_MAX_ASSOCIATED_DEPTH	16		//How deep a type's bases and template arguments are followed for associated namespaces.
