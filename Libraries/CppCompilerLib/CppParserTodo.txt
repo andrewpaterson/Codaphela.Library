@@ -553,15 +553,14 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     - InitializerList (CPP65IRFrontEndObjects.cpp) puts its backing array on no destruction list, so elements with
       destructors aren't destroyed, if that case compiles at all.
   And by the exceptions work's stage 4 tests (2026-11-19, worked round):
-    - &typeid(T) is refused: "This lvalue is not supported by the compiler yet [typeid]" (binding it to a const
-      std::type_info& and taking that's address works).
-    - A pseudo-destructor call through a template parameter that is a built-in type, ((T*)pv)->~T() with T = int, is
-      refused: "Member functions need an object of a class".
+    - DONE 2026-11-19 (by the clause sweep, below).  &typeid(T) was refused: "This lvalue is not supported by the
+      compiler yet [typeid]".
+    - DONE 2026-11-19 (CommonLibraries 19e8d1a63).  A pseudo-destructor call through a template parameter that is a
+      built-in type, ((T*)pv)->~T() with T = int, was refused: "Member functions need an object of a class".
   And by question 13's cases:
-    - A string literal argument doesn't deduce: template<class T, int N> int Count(const T (&)[N]); Count("ab") says
-      "The template argument is not a type the compiler supports" (a named const char a[] = "ab" deduces T and N).
-    - decltype of a subscript of a string literal isn't its element's const reference: decltype("ab"[0]) is not
-      const char& (auto p = "ab" is a const char* as it should be).
+    - DONE 2026-11-19 (a string literal is the array of const characters it is: 6ac6dbfc4, bc3d5c815).  A string
+      literal argument didn't deduce: template<class T, int N> int Count(const T (&)[N]); Count("ab").
+    - DONE 2026-11-19 (the same).  decltype("ab"[0]) was not const char&.
 
   And by a probe of library style code, 2026-11-19 (48 small programs, each checked with g++ first: traits by SFINAE,
   pair, tuple, smart pointers, allocator_traits, containers, function, bind; 8 compiled, on both targets).  Seen, not yet
@@ -583,13 +582,33 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     - A T(&)[N] parameter beside a T* overload; a string literal for one (above).
     - Bases: two packs expanded together (leaf<I, T>...), a dependent base (a rebound allocator, a template
       parameter as the base of a nested class).
-    - p->~T() for a scalar T; const_cast and reinterpret_cast to a reference, assigned through.
+    - DONE 2026-11-19 (19e8d1a63, 4608f1cd0).  p->~T() for a scalar T; const_cast and reinterpret_cast to a
+      reference, assigned through.
     - A range-for over a member; a proxy reference (vector<bool>'s); decltype(auto) of a forwarded subscript.
     - An out of class definition of a specialisation's static member; b(S(3)) read as a function's declaration.
     - A generic lambda with a pack; copying an object through a class with a virtual base.
     - "This function uses C++ the W65C816 compiler doesn't support yet" at CPP65IRFrontEndObjects.cpp 1048 (8 of
       the programs), CPP65IRFrontEndConversions.cpp 366 (4), CPP65IRFrontEndValues.cpp 156,
       CPP65IRFrontEndOperators.cpp 904 and CPP65IRFrontEndStatements.cpp 111 (the line numbers are that day's).
+  The clause by clause sweep, from 2026-11-19 (the user: "Start with a clause-by-clause sweep of the standard", "Measure
+  first, then show me the list of fixes needed", then "Fix them all in your suggested order leaving out anything that
+  touches exception"): cases for each clause of N4140, written before anything is changed for them and checked with
+  g++, are groups of TestCPPConformance (TestCPPConformanceClauseCases.h: Clause4, Clause5, Clause8), whose lists name
+  what the compiler doesn't do.  As measured: clause 4 39 of 68, clause 5 180 of 329, clause 8 49 of 89.  After the
+  fixes so far (wrong code first, then valid code refused): 46 of 68, 232 of 331 and 52 of 89.  The commits say what
+  each fixed.  Waiting for the user: dynamic_cast and private bases (the exact rule needs a runtime function); delete
+  through a base with a virtual destructor (the object's class's operator delete and size); noexcept of a constructor
+  that may throw (the exceptions work's).  Seen on the way and not done:
+    - Volatile member functions aren't told apart: this isn't volatile in one, and const volatile doesn't overload.
+    - static_cast<int>(3 > 2) isn't a constant expression (a named cast in one).
+    - delete[] of objects with destructors is always the runtime's operator delete[], whatever the class declares.
+    - A function declared by a typedef of its type (typedef int F(); F f;), at namespace scope or as a member (which
+      is refused; it was miscompiled).
+    - new (int[3]), a parenthesised array type; c ? x : y that picks a bit-field to change; a member function pointer
+      converted to a derived class's when the base isn't at its start.
+    - The type checker takes every named cast for a C cast (CCPP65TypeChecker::CastExpression is given no cast kind),
+      which is most of the invalid casts it accepts.
+
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or
       another pointer's type (CCPP65TypeChecker::Convert: "Any number or pointer converts to any other"): int* p = 5,
