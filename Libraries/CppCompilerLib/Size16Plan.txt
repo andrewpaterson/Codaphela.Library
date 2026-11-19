@@ -157,6 +157,21 @@ Steps (a commit each, after the checks it lists)
 5. Measure against step 0 and write it here: OS.SYS, modplay.exe, the profile's cycles.  Then the *65 suites
    themselves, run once as the sweep runs them (the user's rule is not to run them for ordinary feature work; this
    changes what every BaseLib array and string call on the W65C816 compiles to, so ask the user first).
+   Measured 2026-11-19 (scratchpad s16/measure.sh, as step 0's), at CommonLibraries ba505b9d3, HCP65 f8b4fed:
+     OS.SYS                                  182854 bytes of segments (step 0 180258: +2596, +1.4%)
+     modplay.exe                             816810 bytes (step 0 788757: +28053, +3.6%)
+     TestLibc65 65C64                        154775 passed, 13s
+     TestBaseLib65 816, the same six tests   3188998207 cycles (step 0 3164739188: +24.3M, +0.8%)
+   Where modplay's bytes went (its units' listings against a step 0 build, D:\gameengine-size16base): the code
+   compiled is 11618 instructions smaller in all (SceneFileReader -10410, Number -3793, stdio -3413 ...: 16 bit counts
+   and size_t arithmetic), but CTypeNames::Init grew from 811 instructions to 12479.  With 16 bit counts
+   CTypeNames::AddType is small enough for the inliner (CIRInliner::CanInline's muiMaxInstructions), and Init calls it
+   43 times: each call is now a copy of it (its strlen, strcpy, memcpy, malloc and CMapBlock::Put calls).  The
+   inliner weighs a callee's size against the limit at each call, not by how many calls copy it.  stdlib.cpp's heap by
+   banks and the 32 suffixed functions are +2594.  The cycles: the profile's top lines are the sorts and their
+   comparators, as at step 0; what the 0.8% is wasn't found (a step 0 profile to set beside it would say).
+   For the user: whether the inliner should count a callee's copies (inline a callee at many calls only if that
+   costs no more than its calls), and the *65 suites.
 
 
 Risks
