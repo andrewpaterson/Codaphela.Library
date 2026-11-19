@@ -227,6 +227,7 @@ protected:
 	CCPPSyntaxDeclaration*			ParseFunctionDefinition(CCPPSyntax* pcParent, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, ECPPDeclarationContext eContext, int iFirstToken);
 	bool							ParseFunctionBody(CCPPSyntaxFunctionDefinition* pcFunction);
 	bool							ParseMemberInitializers(CCPPSyntaxFunctionDefinition* pcFunction);
+	void							ResolveMemberInitializerName(CCPPSyntaxName* pcName);
 	bool							IsFunctionDefinitionStart(void);
 	bool							IsDeclaringSpecifiers(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	CCPPSymbol*						DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcDeclaration, ECPPDeclarationContext eContext);

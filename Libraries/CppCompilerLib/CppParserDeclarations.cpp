@@ -857,6 +857,7 @@ bool CCPPParser::ParseMemberInitializers(CCPPSyntaxFunctionDefinition* pcFunctio
 		{
 			return false;
 		}
+		ResolveMemberInitializerName(pcInitializer->mpcName);
 		if (!Is(CT_OpenRoundBracket) && !Is(CT_OpenCurlyBracket))
 		{
 			return Error("Expected '(' or '{' after the member initializer name.");
@@ -875,6 +876,37 @@ bool CCPPParser::ParseMemberInitializers(CCPPSyntaxFunctionDefinition* pcFunctio
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member initialiser names a member of the constructor's class before
+// anything else of the name: the parameter in S(int v) : v(v) hides the
+// member in the initialiser's value and in the body, but not there.
+// [class.base.init] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::ResolveMemberInitializerName(CCPPSyntaxName* pcName)
+{
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPScope*					pcClass;
+	CCPPSymbol*					pcMember;
+
+	pcComponent = pcName->GetLast();
+	pcClass = mpcScope->GetMemberFunctionClass();
+	if (!pcClass || (pcName->macpComponents.NumElements() != 1) || (pcComponent->meKind != CPPNC_Identifier))
+	{
+		return;
+	}
+
+	pcMember = pcClass->FindMember(GetTokenIdentifier(pcComponent->miName));
+	if (pcMember && (pcMember != pcName->mpcSymbol))
+	{
+		pcComponent->mpcSymbol = pcMember;
+		pcName->mpcSymbol = pcMember;
+		Resolve(pcComponent->miName, pcMember, CPPTR_Reference);
+	}
 }
 
 
