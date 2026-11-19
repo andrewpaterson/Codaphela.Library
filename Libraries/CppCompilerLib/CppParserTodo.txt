@@ -369,6 +369,18 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
   Open:
     1. Exceptions (B2): implement them (chained setjmp-style unwinding through V is likely cheaper on these processors than tables, at a cost for each try), or a documented mode with none?  Held for the end of Part B, at the user's word.
     2. The library (B-4): only the language support headers (<initializer_list>, <typeinfo>, <exception>, <cstddef>, <type_traits>, move and forward), or the C++14 library; and where it lives (Libc65 or a library of its own).  Held for the end of Part B.
+       The user, 2026-11-19, twice:
+       - "I don't use the C++ Std Libs, and don't want to include the library with their source code in any of my
+         projects.  The problem is LibC already exists and has useful intrinsic (or close to intrinsic methods)."
+       - "We're aiming for a freestanding C++14 implementation first, then the standard libaries afterwards".
+       So the first target is a conforming freestanding implementation ([compliance] 17.6.1.3).  Its headers are N4140's
+       Table 16, read that day: <ciso646>, <cstddef>, <cfloat>, <limits>, <climits>, <cstdint>, <cstdlib>, <new>,
+       <typeinfo>, <exception>, <initializer_list>, <cstdalign>, <cstdarg>, <cstdbool>, <type_traits> and <atomic>.
+       <cstdlib> "shall declare at least the functions abort, atexit, at_quick_exit, exit, and quick_exit"; the others
+       "shall meet the same requirements as for a hosted implementation".  Libc65 stays, a C library.  How the standard
+       libraries are come by afterwards, given the first answer, is not decided.  Nothing of this is planned yet: where
+       the headers live and in what order they are written are for the user and the plan.  Exceptions, and so
+       <exception>, are another session's (the user, 2026-11-19: "another session is handling exceptions only").
 
   Answered 2026-11-18 (the user: "For each of 2.'s open questions pick the answer that is most correct for the standard, I'm not worried
   about performance for any of them").  Each is to be done:
@@ -605,6 +617,6 @@ Decisions (made 2026-11-15)
 
 Decisions for the user (when the rest of Part B is done)
   - Exceptions: strict compliance needs them.  A documented mode without them (as many embedded compilers have) would remove the largest item.
-  - The library: only the B-4 headers, or the whole C++14 library, which is a separate project of about the same size again.
+  - The library: only the B-4 headers, or the whole C++14 library, which is a separate project of about the same size again.  Answered 2026-11-19: freestanding first, then the standard libraries (question 2 above).
 
 Compliance can only be measured by tests: add a test file for each item as it is done, in TestCppCompilerLib.
