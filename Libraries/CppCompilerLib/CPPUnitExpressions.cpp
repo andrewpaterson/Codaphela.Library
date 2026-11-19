@@ -1448,6 +1448,37 @@ bool CCPPUnit::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A local declared constexpr is initialised with a constant expression:
+// one of an integer type is worked out here, and is an error (and false)
+// where it has no value.  A local of any other type is still left to be
+// made when the function runs: it has no label for CCPPConstants::
+// CheckVariable, which does this for a global, to make it under.
+// [dcl.constexpr] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit)
+{
+	CChars	szError;
+	int64	lliValue;
+
+	if (!pcInit->mpcInitializer)
+	{
+		return ReportError(pcInit, "A constexpr variable needs an initialiser");
+	}
+	if (!pcVariable->mpsType->IsInteger() || Constant(pcInit->mpcInitializer, &lliValue))
+	{
+		return true;
+	}
+	szError.Init();
+	ConstantMessage("A constexpr variable's initialiser must be a constant", &szError);
+	ReportError(pcInit, szError.Text());
+	szError.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The value of a constant expression of an integer type: what the syntax
 // tree folds to (FoldConstant), or else what running it gives
 // (RunConstant).  False if it isn't a constant.
@@ -1624,6 +1655,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	bool							bResult;
 	int64							lliLeft;
 	int64							lliRight;
+	double							dOperand;
 
 	pcExpression = SkipParentheses(pcExpression);
 	if (!pcExpression)
@@ -1755,7 +1787,17 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		if (!Constant(pcBinary->mpcLeft, &lliLeft) || !Constant(pcBinary->mpcRight, &lliRight))
+		if (!Constant(pcBinary->mpcLeft, &lliLeft))
+		{
+			return false;
+		}
+		if (((pcBinary->meOperator == CT_LogicalAnd) && (lliLeft == 0)) || ((pcBinary->meOperator == CT_LogicalOr) && (lliLeft != 0)))
+		{
+			//The right isn't worked out, so needn't be a constant.  [expr.const] 2
+			*plliValue = (lliLeft != 0);
+			return true;
+		}
+		if (!Constant(pcBinary->mpcRight, &lliRight))
 		{
 			return false;
 		}
@@ -1772,9 +1814,18 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	case CPPS_CastExpression:
 		pcCast = (CCPPSyntaxCastExpression*)pcExpression;
 		psType = mcDeclarators.GetTypeIdType(pcCast->mpcType);
-		if (!psType || !(psType->IsInteger() || psType->IsPointer()) || !Constant(pcCast->mpcOperand, &lliLeft))
+		if (!psType || !(psType->IsInteger() || psType->IsPointer()))
 		{
 			return false;
+		}
+		if (!Constant(pcCast->mpcOperand, &lliLeft))
+		{
+			//(int)1.5: a floating point constant, the part after its point taken away.  [conv.fpint] 1
+			if (!psType->IsInteger() || !FloatConstant(pcCast->mpcOperand, &dOperand))
+			{
+				return false;
+			}
+			lliLeft = (int64)dOperand;
 		}
 		*plliValue = ConstantOfType(psType, lliLeft);
 		return true;

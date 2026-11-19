@@ -2553,6 +2553,11 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 	}
 	if (papcElements && (papcElements->NumElements() == 1))
 	{
+		if (psType && (pcConstruct->mpcInitializer->GetKind() == CPPS_InitializerList) && !NotNarrowed(papcElements->GetPtr(0), psType))
+		{
+			//T{value} doesn't narrow the value, as T(value) may.  [expr.type.conv] 3, [dcl.init.list] 3
+			return NULL;
+		}
 		return CastExpression(pcConstruct->mpcType, papcElements->GetPtr(0), pcConstruct);
 	}
 	Error(pcConstruct, "This construction is not supported by the compiler yet");

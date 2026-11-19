@@ -443,6 +443,10 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		{
 			*ppcLast = pcVariable;
 		}
+		if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !mpcUnit->CheckConstexprLocal(pcVariable, pcInit))
+		{
+			return false;
+		}
 		sPlace.sAddress = *mcAddresses.Get((int64)(size)pcVariable);
 		sPlace.psType = pcVariable->mpsType;
 		uiTemporaries = masTemporaries.NumElements();

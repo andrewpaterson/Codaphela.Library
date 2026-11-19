@@ -709,6 +709,7 @@ public:
 
 
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
+	bool					CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit);
 	bool					ConstantError(CCPPSyntax* pcNode, const char* szMessage);
 	void					ConstantMessage(const char* szMessage, CChars* pszDest);
 	bool					FoldConstant(CCPPSyntax* pcExpression, int64* plliValue);
@@ -807,6 +808,7 @@ public:
 	//Floating point.  CPPUnitFloat.cpp
 	int64					FloatBits(SCPP65Type* psType, double dValue);
 	bool					FloatConstant(CCPPSyntax* pcExpression, double* pdValue);
+	bool					ConstexprFloat(CCPPSyntaxIdExpression* pcId, double* pdValue, SCPP65Type** ppsType);
 	bool					FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
 	bool					TokenFloat(CCPPToken* pcToken, double* pdValue, SCPP65Type** ppsType);
 	bool					FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
