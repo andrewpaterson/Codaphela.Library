@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Validation.h"
 #include "Chars.h"
 #include "GeneralMemory.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -426,7 +427,7 @@ void CGeneralMemory::CopyAllocation(void* pvDest, void* pvSource, lsize uiDestSi
 	lsize	uiSize;
 
 	uiSize = (uiDestSize < uiSourceSize) ? uiDestSize : uiSourceSize;
-	memcpy(pvDest, pvSource, uiSize);
+	memcpy32(pvDest, pvSource, uiSize);
 }
 
 

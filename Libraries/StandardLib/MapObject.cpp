@@ -44,7 +44,8 @@ void CMapObject::Init(void)
 {
 	PreInit();
 	CCollection::Init();
-	mcMap.Init(false, true);
+	//Keys in index order: a key loaded in place of its hollow keeps its place.
+	mcMap.Init(false, true, &CEmbeddedObject::CompareIndex);
 	mbSorted = true;
 	PostInit();
 }
@@ -304,8 +305,10 @@ void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
 	bool			bExists;
+	size			uiFirst;
 
 	//No need to EnsureSorted().  If the pointers come out in an unsorted order it doesn't matter.
+	uiFirst = papcTos->NumElements();
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	while (bExists)
 	{
@@ -316,6 +319,7 @@ void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 		}
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
+	KeepWorkersOwnTos(papcTos, uiFirst);
 }
 
 
@@ -391,8 +395,8 @@ bool CMapObject::Save(CObjectWriter* pcFile)
 		pcMapPtrPtr->GetInSorted(ui, &pvKey, &pvValue);
 		pcPointedToKey = *((CBaseObject**)pvKey);
 		pcPointedToValue = *((CBaseObject**)pvValue);
-		ReturnOnFalse(pcFile->WriteDependent(pcPointedToKey, true));
-		ReturnOnFalse(pcFile->WriteDependent(pcPointedToValue, false));
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedToKey));
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedToValue));
 	}
 	return true;
 }
@@ -411,7 +415,7 @@ bool CMapObject::Load(CObjectReader* pcFile)
 	size				i;
 
 	KillMemberLocations();
-	ReturnOnFalse(mcMap.ReadMapUnknownHeader(pcFile));
+	ReturnOnFalse(mcMap.ReadMapUnknownHeader(pcFile, &CEmbeddedObject::CompareIndex));
 
 	pcMapPtrPtr = mcMap.GetPointerMap();
 	uiNumElements = pcMapPtrPtr->GetSortedSize();
@@ -422,7 +426,8 @@ bool CMapObject::Load(CObjectReader* pcFile)
 		ReturnOnFalse(pcFile->ReadDependent((CEmbeddedObject**)pcPointedToValue, this));
 	}
 
-	mbSorted = false;
+	//It was saved in order, and its keys keep their indexes.
+	mbSorted = true;
 	return true;
 }
 
@@ -610,7 +615,7 @@ size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 			if (pcPointedToKey == pcOld)
 			{
 				mcMap.SetKey(&sMapIter, pcNew);
-				mbSorted = false;
+				mbSorted = mbSorted && (CEmbeddedObject::CompareIndex(&pcOld, &pcNew) == 0);
 				iCount++;
 			}
 			if (pcPointedToValue == pcOld)
@@ -623,14 +628,24 @@ size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 		return iCount;
 	}
 
-	//Where pcOld is a value, then where it is a key: that entry is put again under pcNew, which keeps the map sorted.
+	//Where pcOld is a value, then where it is a key.  A key that sorts as pcNew does (a hollow's loaded object) is
+	//changed where it is, as another thread may be reading the map; otherwise its entry is put again under pcNew,
+	//which keeps the map sorted.  (pcOld's key may sort with pcNew's and already be pcNew: this is called again for
+	//each pointer pcOld had here.)
 	iCount = RemapLocatedMember(pcOld, pcNew);
-	if (mcMap.GetNode(pcOld) != NULL)
+	if (mcMap.GetKey(pcOld) == pcOld)
 	{
 		pcValue = (CEmbeddedObject*)mcMap.Get(pcOld);
-		mcMap.Remove(pcOld);
 		RemoveValueLocation(pcValue, pcOld);
-		mcMap.Put(pcNew, pcValue);
+		if (CEmbeddedObject::CompareIndex(&pcOld, &pcNew) == 0)
+		{
+			mcMap.ReplaceKey(pcOld, pcNew);
+		}
+		else
+		{
+			mcMap.Remove(pcOld);
+			mcMap.Put(pcNew, pcValue);
+		}
 		AddValueLocation(pcValue, pcNew);
 		iCount++;
 	}

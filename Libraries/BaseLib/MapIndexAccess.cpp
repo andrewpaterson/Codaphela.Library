@@ -1,5 +1,6 @@
 #include "MapBlock.h"
 #include "MapIndexAccess.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -88,7 +89,7 @@ bool CMapIndexAccess::Get(uint8* pvKey, size iKeySize, void* pvDestData, size* p
 	if (bResult)
 	{
 		SafeAssign(piDataSize, uiDataSize);
-		memcpy(pvDestData, pvData, MinDataSize(uiDataSize, uiMaxDataSize));
+		memcpy32(pvDestData, pvData, MinDataSize(uiDataSize, uiMaxDataSize));
 	}
 	return bResult;
 }

@@ -44,6 +44,7 @@ protected:
 	bool			MatchLinear(size uiLoop, SIRReference sValue, SIRReference* psStart, int64* plliStep, bool* pbNext);
 	SIRReference	IdiomStart(CIRBlock* pcBlock, SIRIdiomAddress* psAddress, SIRIdiomCounter* psCounter);
 	SIRReference	IdiomBytes(CIRBlock* pcBlock, SIRIdiomCounter* psCounter, int64 lliBytes);
+	const char*		LibrarySize(CIRBlock* pcBlock, const char* szName, const char* szName32, SIRIdiomCounter* psCounter, int64 lliBytes, SIRReference* psBytes, SIRType* psType);
 	bool			OnlyLoads(CIRBlock* pcBlock, int iLoads, SIRInstruction** apsLoads);
 	bool			GuardedBy(size uiLoop, uint16 uiOpcode, SIRReference sLeft, SIRReference sRight);
 	SIRReference	LibraryCall(CIRBlock* pcBlock, const char* szName, SIRType sResultType, SIRReference sFirst, SIRType sFirstType, SIRReference sSecond = IRNone(), SIRType sSecondType = IRType(IRTK_I32), SIRReference sThird = IRNone(), SIRType sThirdType = IRType(IRTK_I32));

@@ -206,7 +206,7 @@ public:
 template <typename ... Args>
 Ptr<CString> OString(Args&& ... args)
 {
-	Ptr<CString> pObject = gcObjects.Malloc<CString>();
+	Ptr<CString> pObject = ObjectsCurrent()->Malloc<CString>();
 	if (pObject.IsNotNull())
 	{
 		pObject->Init(args...);

@@ -216,7 +216,7 @@ CBaseObject* CInternalObjectDeserialiser::GetFromMemoryOrAllocateHollow(CObjectI
 	{
 		return pcObject;
 	}
-	return mpcObjects->AllocateInternalHollow(pcIdentifier->IsNamed() ? pcIdentifier->GetName() : "", pcIdentifier->moi, iNumEmbedded, pcIdentifier->GetFatSize());
+	return mpcObjects->AllocateInternalHollow(pcIdentifier->IsNamed() ? pcIdentifier->GetName() : "", pcIdentifier->moi, iNumEmbedded);
 }
 
 

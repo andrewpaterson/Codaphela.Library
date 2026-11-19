@@ -127,7 +127,7 @@ Ptr<M> Ptr<M>::operator + (const char* sz)
 template<class M>
 Ptr<M>::operator bool() const 
 {
-	return mpcObject != NULL;
+	return IsNotNull();
 }
 
 

@@ -31,6 +31,7 @@ SIRAttributeName	gasIRAttributeNames[IRA_NumWordAttributes] =
 	{ IRA_NoReturn, "noreturn" },
 	{ IRA_Inline, "inline" },
 	{ IRA_ThisCall, "thiscall" },
+	{ IRA_NoInline, "noinline" },
 };
 
 

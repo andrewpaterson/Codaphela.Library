@@ -965,7 +965,8 @@ bool CCPP65IRFrontEnd::CallObject(CCPPFunction* pcFunction, SIRReference sObject
 
 //////////////////////////////////////////////////////////////////////////
 //
-// __builtin_memcpy(Dest, Source, Count) is a call of Libc65's memcpy.
+// __builtin_memcpy(Dest, Source, Count) is a call of Libc65's memcpy, its
+// count a size_t (16 bits on the W65C816, as memcpy's is).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, SCPP65IRValue* psValue)
@@ -974,7 +975,7 @@ bool CCPP65IRFrontEnd::BuiltinMemcpy(CCPPSyntaxCallExpression* pcCall, CArraySyn
 
 	apsParameter[0] = mpcTypes->Pointer(&mpcTypes->msVoid);
 	apsParameter[1] = apsParameter[0];
-	apsParameter[2] = mpcTypes->Long(false);
+	apsParameter[2] = mpcTypes->Size();
 	mcModule.SetRegisterCall(mcModule.AddSymbol("_memcpy"));
 	return CallWithArguments(pcCall, papcArguments, apsParameter, 3, "_memcpy", apsParameter[0], psValue);
 }

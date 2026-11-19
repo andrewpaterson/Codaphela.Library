@@ -23,6 +23,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FixedPoint.h"
 #include "BaseLib/IntegerHelper.h"
 #include "CoverageRasteriser.h"
+#include "BaseLib/Memory32.h"
 
 
 //A pixel completely covered accumulates cover * 2 - area of this many pixels' area.
@@ -86,9 +87,9 @@ bool CCoverageRasteriser::Begin(int iWidth, int iHeight)
 	if (uiCells > muiCapacity)
 	{
 		End();
-		mpsCover = (SCoverageSubpixel*)malloc(uiCells * sizeof(SCoverageSubpixel));
-		mpsArea = (SCoverageArea*)malloc(uiCells * sizeof(SCoverageArea));
-		mpuiCoverage = (uint8*)malloc(uiCells);
+		mpsCover = (SCoverageSubpixel*)malloc32(uiCells * sizeof(SCoverageSubpixel));
+		mpsArea = (SCoverageArea*)malloc32(uiCells * sizeof(SCoverageArea));
+		mpuiCoverage = (uint8*)malloc32(uiCells);
 		if ((mpsCover == NULL) || (mpsArea == NULL) || (mpuiCoverage == NULL))
 		{
 			End();
@@ -99,8 +100,8 @@ bool CCoverageRasteriser::Begin(int iWidth, int iHeight)
 
 	miWidth = iWidth;
 	miHeight = iHeight;
-	memset(mpsCover, 0, uiCells * sizeof(SCoverageSubpixel));
-	memset(mpsArea, 0, uiCells * sizeof(SCoverageArea));
+	memset32(mpsCover, 0, uiCells * sizeof(SCoverageSubpixel));
+	memset32(mpsArea, 0, uiCells * sizeof(SCoverageArea));
 	return true;
 }
 

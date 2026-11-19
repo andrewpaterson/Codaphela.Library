@@ -309,6 +309,9 @@
     <ClCompile Include="TestIndexTreeMemory.cpp">
       <Filter>Source\IndexTreeMemory</Filter>
     </ClCompile>
+    <ClCompile Include="TestIndexedObjects.cpp">
+      <Filter>Source\IndexTreeMemory</Filter>
+    </ClCompile>
     <ClCompile Include="TestStackEmbeddedReInit.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>

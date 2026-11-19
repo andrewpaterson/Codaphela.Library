@@ -15,6 +15,7 @@
 #include "SupportLib/MeshUnwrap.h"
 #include "SupportLib/MeshBake.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 //How many texels to a unit the box the modifier's tests bake is unwrapped at.  On the 65C64 and the W65C816 a
@@ -445,6 +446,71 @@ void TestMeshBakeModifier(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A bake told to stop bakes no faces and no further levels: what's left
+// of the first level is the colour of a texel no face covers.  One whose
+// stop is never set is the bake it would be without.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshBakeStopped(void)
+{
+	Ptr<CMeshEditor>	pEditor;
+	Ptr<CMeshBake>		pBake;
+	Ptr<CMesh>			pMesh;
+	Ptr<CImage>			pWhole;
+	Ptr<CImage>			pImage;
+	CMaterialImage*		pcDiffuse;
+	SFloat32Vec3		sX;
+	SFloat32Vec3		sY;
+	SFloat32Vec3		sZ;
+	SFloat32Vec3		sStart;
+	int32				iStop;
+	size				uiLevels;
+	size				uiBytes;
+	size				i;
+	bool				bAll;
+
+	sX.Init(2, 0, 0);
+	sY.Init(0, 1, 0);
+	sZ.Init(0, 0, 0.5f);
+	sStart.Init(-1, -0.5f, -0.25f);
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddModifier<CMeshBoxEditor>(&sX, &sY, &sZ, &sStart, 1, 1, 1);
+	pEditor->AddModifier<CMeshUnwrap>(TEST_MESH_BAKE_TEXELS_PER_UNIT);
+	pBake = pEditor->AddModifier<CMeshBake>(OMalloc<CSolidChecker>(0.25f, Set32BitColour((uint8)0, (uint8)0, (uint8)0), Set32BitColour((uint8)0, (uint8)0, (uint8)0)));
+	pMesh = pEditor->GetOutput();
+	pWhole = pBake->mpImage;
+	uiLevels = pMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse)->mapLevels.NumElements();
+	uiBytes = (size)pWhole->GetWidth() * (size)pWhole->GetHeight() * 3;
+	AssertTrue(uiLevels > 0);
+
+	//Not set: the same bake, every level.
+	iStop = 0;
+	pBake->SetStop(&iStop);
+	pEditor->mcModifiers.Touch();
+	pMesh = pEditor->GetOutput();
+	AssertSize(uiLevels, pMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse)->mapLevels.NumElements());
+	AssertInt(0, memcmp(pWhole->GetData(), pBake->mpImage->GetData(), uiBytes));
+
+	//Set: the first level alone, with nothing of the black texture in it.
+	iStop = 1;
+	pEditor->mcModifiers.Touch();
+	pMesh = pEditor->GetOutput();
+	pcDiffuse = pMesh->mcMaterials.mapMaterials.Get(0)->GetImage(MI_Diffuse);
+	AssertSize(0, pcDiffuse->mapLevels.NumElements());
+	pImage = pcDiffuse->mpImage;
+	AssertInt((int)pWhole->GetWidth(), (int)pImage->GetWidth());
+	bAll = true;
+	for (i = 0; i < uiBytes; i++)
+	{
+		bAll &= (((uint8*)pImage->GetData())[i] == 255);
+	}
+	AssertTrue(bAll);
+	AssertFalse(memcmp(pWhole->GetData(), pImage->GetData(), uiBytes) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A mid grey whose height rises mfSlope for each unit along x, and which
 // glows mfGlow.
 //
@@ -665,7 +731,7 @@ void TestMeshBakeModifierSamples(void)
 		for (i = 0; i < 4; i++)
 		{
 			pExpected = BakeMeshTexture(&pMesh, 0, &pStep, (int)pLevel->GetWidth(), (int)pLevel->GetHeight(), NULL, &sSettings);
-			AssertInt(0, memcmp(pExpected->GetData(), pLevel->GetData(), pLevel->GetWidth() * pLevel->GetHeight() * 3));
+			AssertInt(0, memcmp32(pExpected->GetData(), pLevel->GetData(), pLevel->GetWidth() * pLevel->GetHeight() * 3));
 			pLevel = pcDiffuse->mapLevels.Get(i);
 			if ((sSettings.iSamples * 2) <= iMost)
 			{
@@ -1000,6 +1066,7 @@ void TestMeshBake(void)
 	TestMeshBakeNormals();
 	ObjectsFlush();
 	TestMeshBakeModifier();
+	TestMeshBakeStopped();
 	TestMeshBakeModifierSamples();
 	TestMeshBakeModifierNormals();
 #ifndef __LIBC65__

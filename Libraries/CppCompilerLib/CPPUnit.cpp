@@ -868,23 +868,85 @@ SCPP65Type* CCPPUnit::QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOper
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator)
 {
+	return HasAttribute(pcDeclarator, "used");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the declarator has __attribute__((szName)) or ((__szName__)):
+// after it, after a function's parameters (int f(int) __attribute__((noinline));),
+// where it is among the qualifiers (const, volatile) or after the exception
+// specification, or before the declaration among its specifiers
+// (__attribute__((noinline)) static int f(int), as BaseLib's NO_INLINE).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::HasAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName)
+{
+	CCPPSyntaxFunctionSuffix*	pcFunction;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSyntax*					pcDeclaration;
+
+	if (!pcDeclarator)
+	{
+		return false;
+	}
+	pcFunction = pcDeclarator->GetFunctionSuffix();
+	if (HasAttribute(&pcDeclarator->macpAttributes, szName) ||
+		(pcFunction && (HasAttribute(&pcFunction->macpQualifiers, szName) || HasAttribute(&pcFunction->macpAttributes, szName))))
+	{
+		return true;
+	}
+
+	//The declaration the declarator is in (through its init-declarator).
+	pcSpecifiers = NULL;
+	for (pcDeclaration = pcDeclarator->mpcParent; pcDeclaration && !pcSpecifiers; pcDeclaration = pcDeclaration->mpcParent)
+	{
+		if (pcDeclaration->GetKind() == CPPS_SimpleDeclaration)
+		{
+			pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->mpcSpecifiers;
+		}
+		else if (pcDeclaration->GetKind() == CPPS_FunctionDefinition)
+		{
+			pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;
+		}
+		else if ((pcDeclaration->GetKind() != CPPS_InitDeclarator) && (pcDeclaration->GetKind() != CPPS_Declarator))
+		{
+			break;
+		}
+	}
+	return pcSpecifiers && HasAttribute(&pcSpecifiers->macpSpecifiers, szName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether one of the attributes in the list is szName or __szName__ (what
+// else is in it, qualifiers, isn't looked at).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::HasAttribute(CArraySyntax* papcAttributes, const char* szName)
+{
 	size		i;
 	int32		iToken;
 	CCPPSyntax*	pcAttribute;
 	CCPPToken*	pcToken;
-	char*		szName;
+	char*		szIdentifier;
 	int			iLength;
+	size		uiName;
 
-	for (i = 0; i < pcDeclarator->macpAttributes.NumElements(); i++)
+	uiName = strlen(szName);
+	for (i = 0; i < papcAttributes->NumElements(); i++)
 	{
-		pcAttribute = pcDeclarator->macpAttributes.GetPtr(i);
-		for (iToken = pcAttribute->miFirstToken; iToken <= pcAttribute->miLastToken; iToken++)
+		pcAttribute = papcAttributes->GetPtr(i);
+		for (iToken = pcAttribute->miFirstToken; (pcAttribute->GetKind() == CPPS_Attribute) && (iToken <= pcAttribute->miLastToken); iToken++)
 		{
 			pcToken = mpcTokeniser->Get(iToken);
 			if (pcToken->IsIdentifier())
 			{
-				szName = mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->miIdentifier, &iLength);
-				if (((iLength == 4) && (memcmp(szName, "used", 4) == 0)) || ((iLength == 8) && (memcmp(szName, "__used__", 8) == 0)))
+				szIdentifier = mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->miIdentifier, &iLength);
+				if ((((size)iLength == uiName) && (memcmp(szIdentifier, szName, uiName) == 0)) ||
+					(((size)iLength == uiName + 4) && (memcmp(szIdentifier, "__", 2) == 0) && (memcmp(szIdentifier + 2, szName, uiName) == 0) && (memcmp(szIdentifier + 2 + uiName, "__", 2) == 0)))
 				{
 					return true;
 				}

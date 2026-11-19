@@ -2732,6 +2732,17 @@ static const SConformanceCase gasConformanceStage10[] =
 		"enum D : unsigned short { S };\n"
 		"int main() { return Same<__underlying_type(A), long>::V + Same<__underlying_type(B), signed char>::V * 2 + Same<__underlying_type(C), char>::V * 4 + Same<__underlying_type(D), unsigned short>::V * 8; }\n"
 	},
+	//18.2/6, /7, 5.3.3/6, 5.7/6: sizeof's and offsetof's type is size_t, a pointer difference's ptrdiff_t (on the W65C816
+	//size_t is 16 bits and ptrdiff_t 32).
+	{
+		"SizeTypes", 15,
+		"#include <stddef.h>\n"
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct S { int a; int b; };\n"
+		"int main() { int ai[4]; int* p = &ai[3]; int* q = &ai[0];\n"
+		" return Same<decltype(sizeof(int)), size_t>::V + Same<decltype(p - q), ptrdiff_t>::V * 2 + Same<decltype(offsetof(S, b)), size_t>::V * 4 + (p - q == 3) * 8; }\n"
+	},
 };
 
 

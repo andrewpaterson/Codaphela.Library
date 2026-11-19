@@ -22,6 +22,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "StandardLib/Objects.h"
 #include "ModPlayer.h"
+#include "BaseLib/Memory32.h"
 
 
 #define MOD_NUM_NOTES			36
@@ -290,7 +291,7 @@ void CModPlayer::Init(Ptr<CModSong> pSong, uint32 uiSampleRate, EModInterpolatio
 		}
 		else
 		{
-			mpiBank16 = (int16*)malloc((lsize)sizeof(int16) * (uiBankFrames + 1));
+			mpiBank16 = (int16*)malloc32((lsize)sizeof(int16) * (uiBankFrames + 1));
 			for (uiFrame = 0; uiFrame < uiBankFrames; uiFrame++)
 			{
 				fSample = pBank->GetSample(uiFrame, 0) * 32768.0;
@@ -300,7 +301,7 @@ void CModPlayer::Init(Ptr<CModSong> pSong, uint32 uiSampleRate, EModInterpolatio
 		}
 	}
 	mpsMix = (SModMix*)malloc(sizeof(SModMix));
-	mpsGainTables = (SModGainTable*)malloc((lsize)sizeof(SModGainTable) * 2 * (uiNumChannels > 0 ? uiNumChannels : 1));
+	mpsGainTables = (SModGainTable*)malloc32((lsize)sizeof(SModGainTable) * 2 * (uiNumChannels > 0 ? uiNumChannels : 1));
 	muiStepNumerator = (uint32)(MOD_PAULA_CLOCK_PAL / 2.0 * 65536.0 / (float64)muiSampleRate + 0.5);
 	mpuiPlayedRows = (uint8*)malloc(MOD_MAX_ORDERS * MOD_ROWS_PER_PATTERN);
 	Restart();
@@ -545,8 +546,8 @@ Ptr<CSound> CModPlayer::RenderSong(EPrimitiveType eType, lsize uiMaxFrames)
 	Restart();
 
 	pSound = OMalloc<CSound>(muiSampleRate, uiFrames, eType, SOUND_LEFT, SOUND_RIGHT, CHANNEL_STOP);
-	pfStereo = (float64*)malloc((lsize)sizeof(float64) * 2 * MOD_RENDER_BLOCK);
-	pfChannel = (float64*)malloc((lsize)sizeof(float64) * MOD_RENDER_BLOCK);
+	pfStereo = (float64*)malloc32((lsize)sizeof(float64) * 2 * MOD_RENDER_BLOCK);
+	pfChannel = (float64*)malloc32((lsize)sizeof(float64) * MOD_RENDER_BLOCK);
 	if ((pfStereo == NULL) || (pfChannel == NULL) || ((uiFrames > 0) && (pSound->GetData() == NULL)))
 	{
 		SafeFree(pfStereo);

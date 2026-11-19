@@ -283,7 +283,7 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 //////////////////////////////////////////////////////////////////////////
 int32 TestCPP816Run(const char* szSource, bool bLockstep = false)
 {
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 
 	return TestCPP816RunProject(aszUnits, "", szSource, bLockstep);
 }
@@ -308,8 +308,8 @@ void TestCPP816Basics(void)
 	AssertInt(1234, TestCPP816Run("int main(void) { long a = 100000; long b = a * 3 + 1234; return (int)(b - 300000); }\n", true));
 	AssertInt(3, TestCPP816Run("int main(void) { long a = 1000000; long b = 300000; return (int)(a / b); }\n"));
 
-	//Libc65's headers: the 32 bit types are long, size_t is 32 bits and INT_MAX is 16 bits'.
-	AssertInt(4 * 1000 + 4 * 100 + 2 * 10 + 1, TestCPP816Run(
+	//Libc65's headers: the 32 bit types are long, size_t is 16 bits (as sizeof's type is) and INT_MAX is 16 bits'.
+	AssertInt(4 * 1000 + 2 * 100 + 2 * 10 + 1, TestCPP816Run(
 		"#include <stdint.h>\n"
 		"#include <stddef.h>\n"
 		"#include <limits.h>\n"
@@ -1902,7 +1902,7 @@ void TestCPP816Builtins(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816LoopIdioms(void)
 {
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 
 	AssertInt(0, TestCPP816RunProject(aszUnits, "",
 		"unsigned char	gauc[300];\n"
@@ -2074,17 +2074,17 @@ void TestCPP816LoopIdioms(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// MemSwp in stringW65C816.asm (BaseLib's is left out for the W65C816): every
+// MemSwp32 in stringW65C816.asm (BaseLib's MemSwp is left out for the W65C816): every
 // length from 0 to 40 and 255 to 257, both buffers swapped and the bytes
 // after them unchanged.  Returns the bytes wrong.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816MemSwp(void)
 {
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 
 	AssertInt(0, TestCPP816RunProject(aszUnits, "",
-		"void MemSwp(const void* pv1, const void* pv2, unsigned long uiLength);\n"
+		"void MemSwp32(const void* pv1, const void* pv2, unsigned long uiLength);\n"
 		"unsigned char gauc1[300];\n"
 		"unsigned char gauc2[300];\n"
 		"int Check(unsigned long uiLength)\n"
@@ -2096,7 +2096,7 @@ void TestCPP816MemSwp(void)
 		"		gauc1[i] = (unsigned char)(i + 1);\n"
 		"		gauc2[i] = (unsigned char)(i * 3 + 7);\n"
 		"	}\n"
-		"	MemSwp(gauc1, gauc2, uiLength);\n"
+		"	MemSwp32(gauc1, gauc2, uiLength);\n"
 		"	iWrong = 0;\n"
 		"	for (i = 0; i < 300; i++)\n"
 		"	{\n"
@@ -2133,10 +2133,10 @@ void TestCPP816MemSwp(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816BaseLib(void)
 {
-	static const char*	aszMD5[] = { "BaseLib/MD5.cpp", "Libc65/string.cpp", "Libc65/stringW65C816.asm", "Input/CPP65/MD5Project/Main.cpp", NULL };
+	static const char*	aszMD5[] = { "BaseLib/MD5.cpp", "Libc65/string.cpp", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Input/CPP65/MD5Project/Main.cpp", NULL };
 	static const char*	aszMersenneTwister[] = { "BaseLib/MersenneTwister.cpp", "Libc65/time.cpp", "Input/CPP65/MersenneTwisterProject/Main.cpp", NULL };
 	static const char*	aszSort[] = { "BaseLib/QuickSort.cpp", "BaseLib/BubbleSort.cpp", "BaseLib/BinarySearch.cpp", "Input/CPP65/SortProject/MemSwpStub.cpp", "Input/CPP65/SortProject/Main.cpp", NULL };
-	static const char*	aszRedBlackTree[] = { "BaseLib/RedBlackTree.cpp", "Libc65/string.cpp", "Libc65/stringW65C816.asm", "Libc65/stdlib.cpp", "BaseLib/TrueMallocator.cpp", "Libc65/ctype.cpp", "Input/CPP65/RedBlackTreeProject/FreeListStub.cpp", "Input/CPP65/RedBlackTreeProject/Main.cpp", NULL };
+	static const char*	aszRedBlackTree[] = { "BaseLib/RedBlackTree.cpp", "Libc65/string.cpp", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Libc65/stdlib.cpp", "BaseLib/TrueMallocator.cpp", "Libc65/ctype.cpp", "Input/CPP65/RedBlackTreeProject/FreeListStub.cpp", "Input/CPP65/RedBlackTreeProject/Main.cpp", NULL };
 	static const char*	aszStatic[] = { "Input/CPP65/StaticProject/Other.cpp", NULL };
 
 	AssertInt(0x3F, TestCPP816RunProject(aszMD5, "", NULL));
@@ -2176,7 +2176,7 @@ void TestCPP816CompiledAgain(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Sprites(void)
 {
-	static const char*	aszSprites[] = { "Input/CPP65/SpriteProject/Sprite.cpp", "Input/CPP65/SpriteProject/Image.cpp", "Libc65/stringW65C816.asm", "Input/CPP65/SpriteProject/Main.cpp", NULL };
+	static const char*	aszSprites[] = { "Input/CPP65/SpriteProject/Sprite.cpp", "Input/CPP65/SpriteProject/Image.cpp", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Input/CPP65/SpriteProject/Main.cpp", NULL };
 	uint32				auiResults[2];
 
 	CCPP65Builder		cBuilder;
@@ -2216,7 +2216,7 @@ void TestCPP816Sprites(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816LocalSymbols(void)
 {
-	static const char*	aszUnits[] = { "Input/CPP65/LocalSymbolsProject/Name.cpp", "Libc65/stringW65C816.asm", "Input/CPP65/LocalSymbolsProject/Main.cpp", NULL };
+	static const char*	aszUnits[] = { "Input/CPP65/LocalSymbolsProject/Name.cpp", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Input/CPP65/LocalSymbolsProject/Main.cpp", NULL };
 
 	AssertInt(7, TestCPP816RunProject(aszUnits, "", NULL));
 }
@@ -2369,7 +2369,7 @@ void TestCPP816RestrictParameter(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816TideVideo(void)
 {
-	static const char*	aszUnits[] = { "Input/CPP65/TideVideoProject/Image.c", "Input/CPP65/TideVideoProject/Sprite.c", "Libc65/stringW65C816.asm", "Input/CPP65/TideVideoProject/Main.c", NULL };
+	static const char*	aszUnits[] = { "Input/CPP65/TideVideoProject/Image.c", "Input/CPP65/TideVideoProject/Sprite.c", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Input/CPP65/TideVideoProject/Main.c", NULL };
 	STestCPP816Memory	sMemory;
 	CFileBasic			cFile;
 	CFileUtil			cFileUtil;
@@ -2438,8 +2438,8 @@ void TestCPP816TideVideo(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Floats(void)
 {
-	static const char*	aszFloatHelper[] = { "BaseLib/FloatHelper.cpp", "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/math.cpp", "Libc65/stringW65C816.asm", "Input/CPP65/FloatHelperProject/Main.cpp", NULL };
-	static const char*	aszQuaternion[] = { "BaseLib/Quaternion.cpp", "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/stringW65C816.asm", "Input/CPP65/QuaternionProject/Main.cpp", NULL };
+	static const char*	aszFloatHelper[] = { "BaseLib/FloatHelper.cpp", "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/math.cpp", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Input/CPP65/FloatHelperProject/Main.cpp", NULL };
+	static const char*	aszQuaternion[] = { "BaseLib/Quaternion.cpp", "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Input/CPP65/QuaternionProject/Main.cpp", NULL };
 	uint32				auiResults[256];
 	size				i;
 	uint32				uiExpected;
@@ -2564,7 +2564,7 @@ void TestCPP816NoFloats(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816NewDelete(void)
 {
-	static const char*	aszUnits[] = { "Libc65/new.cpp", "Libc65/stdlib.cpp", "BaseLib/TrueMallocator.cpp", "Libc65/string.cpp", "Libc65/stringW65C816.asm", "Libc65/ctype.cpp", NULL };
+	static const char*	aszUnits[] = { "Libc65/new.cpp", "Libc65/stdlib.cpp", "BaseLib/TrueMallocator.cpp", "Libc65/string.cpp", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Libc65/ctype.cpp", NULL };
 
 	AssertInt(7, TestCPP816RunProject(aszUnits, "", "int main() { int* p = new int(7); int r = *p; delete p; return r; }\n"));
 
@@ -3205,7 +3205,7 @@ void TestCPP816OverloadedFunctionPointers(void)
 //////////////////////////////////////////////////////////////////////////
 int32 TestCPP816RunProfiled(const char* szSource, CAsm65Profile* pcProfile, CAsm65Profile* pcMeasure, uint64* puiCycles, CChars* pszMap = NULL)
 {
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
 	CFastW65C816			cFast;
@@ -4733,7 +4733,7 @@ bool TestCPP816IsAligned(CCPP65Builder* pcBuilder, CAsm65Memory* pcMemory, const
 //////////////////////////////////////////////////////////////////////////
 int32 TestCPP816RunFrames(const char* szSource, CAsm65Profile* pcProfile, CAsm65Profile* pcMeasure, uint64* puiCycles, const char** aszPrefixes, bool* abAligned)
 {
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
 	CFastW65C816			cFast;
@@ -4901,7 +4901,7 @@ void TestCPP816AlignedFrameUnreadArguments(void)
 		"	int c = gpAll(v, 2, 20);\n"
 		"	return ((a == 1225) && (b == 45) && (c == 380)) ? 7 : 1;\n"
 		"}\n";
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	CCPP65Builder		cBuilder;
 	CAsm65Memory		cMemory;
 	CFastW65C816			cFast;
@@ -5487,7 +5487,7 @@ bool TestCPP816Calls(const char* szListing, const char* szPrefix, const char* sz
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816RegisterArguments(void)
 {
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	static const char*	szSource =
 		"#include <stdarg.h>\n"
 		"extern \"C\" long CAdd(long a, int b) { return a + b; }\n"
@@ -5631,7 +5631,7 @@ namespace TestCPP816FloatNative
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816FrameOperandFloats(void)
 {
-	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/math.cpp", "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/math.cpp", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	CChars				szSource;
 	CChars				szListing;
 	uint32				auiResults[256];
@@ -5678,7 +5678,7 @@ void TestCPP816FrameOperandFloats(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816RegisterFloats(void)
 {
-	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/math.cpp", "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/math.cpp", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	CChars				szSource;
 	CChars				szListing;
 	uint32				auiResults[256];
@@ -5877,6 +5877,36 @@ void TestCPP816KeepUnusedObjects(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// __attribute__((noinline)) keeps a function out of its callers wherever
+// GCC takes it: before the declaration (BaseLib's NO_INLINE), after the
+// parameters of a declaration, and of a definition.  A function as small
+// without it is inlined.  The results are as natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816NoInline(void)
+{
+	static const char*	aszNone[] = { NULL };
+	CChars				szListing;
+
+	szListing.Init();
+	AssertInt(3 * 2 + 1 + 4 * 2 + 1 + 3 * 3 + 1 + 5 * 3 + 1 + 3 * 5 + 1 + 3 * 7 + 1, TestCPP816RunListed(
+		"__attribute__((noinline)) static int Twice(int a) { return a * 2 + 1; }\n"
+		"static int Thrice(int a) __attribute__((noinline));\n"
+		"static int Thrice(int a) { return a * 3 + 1; }\n"
+		"static int Five(int a) __attribute__((__noinline__)) { return a * 5 + 1; }\n"
+		"static int Seven(int a) { return a * 7 + 1; }\n"
+		"volatile int gi = 3;\n"
+		"int main(void) { return Twice(gi) + Twice(gi + 1) + Thrice(gi) + Thrice(gi + 2) + Five(gi) + Seven(gi); }\n", aszNone, &szListing, NULL, 0, true));
+	AssertTrue(szListing.Contains("jsl _Twice__Fi"));
+	AssertTrue(szListing.Contains("jsl _Thrice__Fi"));
+	AssertTrue(szListing.Contains("jsl _Five__Fi"));
+	AssertFalse(szListing.Contains("jsl _Seven__Fi"));
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // typeid(x).name() is the type as the program writes it
 // (TestCPP65GeneratorTypeNames' program, for the W65C816).
 //
@@ -5998,18 +6028,20 @@ namespace TestCPP816StringNative
 // The C string functions in stringW65C816.asm and stringW65C816_16.asm with C
 // linkage taking register arguments: each called straight (its register
 // entry, name.ax or name.axy) and through a function pointer (its stack
-// entry, which loads the registers), the same as natively.  Then the 16 bit
-// count ones, memset's and memcpy's moves across a bank's end, and BaseLib's
-// MemSwp16 and bit array finders (register entries and stack entries),
-// checked on the W65C816 against plain loops.
+// entry, which loads the registers), the same as natively (size_t is 16
+// bits).  Then the 32 suffixed ones, memset's and memcpy's moves across a
+// bank's end, and BaseLib's MemSwp, MemSwp32 and bit array finders
+// (register entries and stack entries), checked on the W65C816 against
+// plain loops.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816StringRegisters(void)
 {
 	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
-	static const char*	szSixteen =
+	static const char*	szThirtyTwo =
 		"#include <string.h>\n"
-		"void MemSwp16(const void* pv1, const void* pv2, unsigned int uiLength);\n"
+		"void MemSwp(const void* pv1, const void* pv2, unsigned int uiLength);\n"
+		"void MemSwp32(const void* pv1, const void* pv2, unsigned long uiLength);\n"
 		"unsigned int FindFirstSetBit(void* pvArray, unsigned int iArraySize);\n"
 		"unsigned int FindFirstClearBit(void* pvArray, unsigned int iArraySize);\n"
 		"unsigned int FindLastSetBit(void* pvArray, unsigned int iArraySize);\n"
@@ -6017,12 +6049,14 @@ void TestCPP816StringRegisters(void)
 		"unsigned long FindFirstSetBitLarge(void* pvArray, unsigned long iArraySize);\n"
 		"unsigned long FindLastClearBitLarge(void* pvArray, unsigned long iArraySize);\n"
 		"unsigned short FindFirstClearBit(unsigned long uiBits);\n"
-		"void* (*volatile gpMemcpy16)(void*, const void*, unsigned short) = memcpy16;\n"
-		"void* (*volatile gpMemmove16)(void*, const void*, unsigned short) = memmove16;\n"
-		"void* (*volatile gpMemset16)(void*, int, unsigned short) = memset16;\n"
-		"int (*volatile gpMemcmp16)(const void*, const void*, unsigned short) = memcmp16;\n"
-		"unsigned short (*volatile gpStrlen16)(const char*) = strlen16;\n"
-		"void (*volatile gpMemSwp16)(const void*, const void*, unsigned int) = MemSwp16;\n"
+		"void* (*volatile gpMemcpy32)(void*, const void*, unsigned long) = memcpy32;\n"
+		"void* (*volatile gpMemmove32)(void*, const void*, unsigned long) = memmove32;\n"
+		"void* (*volatile gpMemset32)(void*, int, unsigned long) = memset32;\n"
+		"int (*volatile gpMemcmp32)(const void*, const void*, unsigned long) = memcmp32;\n"
+		"void* (*volatile gpMemchr32)(const void*, int, unsigned long) = memchr32;\n"
+		"unsigned long (*volatile gpStrlen32)(const char*) = strlen32;\n"
+		"void (*volatile gpMemSwp)(const void*, const void*, unsigned int) = MemSwp;\n"
+		"void (*volatile gpMemSwp32)(const void*, const void*, unsigned long) = MemSwp32;\n"
 		"unsigned int (*volatile gpFindFirstSetBit)(void*, unsigned int) = FindFirstSetBit;\n"
 		"unsigned int (*volatile gpFindLastClearBit)(void*, unsigned int) = FindLastClearBit;\n"
 		"unsigned long (*volatile gpFindFirstSetBitLarge)(void*, unsigned long) = FindFirstSetBitLarge;\n"
@@ -6037,20 +6071,22 @@ void TestCPP816StringRegisters(void)
 		"	int i;\n"
 		"	unsigned char* pBank = (unsigned char*)0x10FFF0;\n"
 		"	for (i = 0; i < 200; i++) { gauc[i] = (unsigned char)(i * 7 + 1); gauc2[i] = 0; }\n"
-		"	if (memcpy16(gauc2, gauc, 50) != gauc2 || !Same(gauc2, gauc, 50) || gauc2[50] != 0) { w |= 1; }\n"
-		"	if (gpMemcpy16(gauc2 + 60, gauc, 33) != gauc2 + 60 || !Same(gauc2 + 60, gauc, 33)) { w |= 2; }\n"
-		"	memmove16(gauc2 + 1, gauc2, 40);\n"
+		"	if (memcpy32(gauc2, gauc, 50) != gauc2 || !Same(gauc2, gauc, 50) || gauc2[50] != 0) { w |= 1; }\n"
+		"	if (gpMemcpy32(gauc2 + 60, gauc, 33) != gauc2 + 60 || !Same(gauc2 + 60, gauc, 33)) { w |= 2; }\n"
+		"	memmove32(gauc2 + 1, gauc2, 40);\n"
 		"	if (!Same(gauc2 + 1, gauc, 40)) { w |= 4; }\n"
-		"	gpMemmove16(gauc2, gauc2 + 1, 40);\n"
+		"	gpMemmove32(gauc2, gauc2 + 1, 40);\n"
 		"	if (!Same(gauc2, gauc, 40)) { w |= 8; }\n"
-		"	if (memset16(gauc2, 0x5A, 21) != gauc2 || gauc2[20] != 0x5A || gauc2[21] != gauc[21]) { w |= 16; }\n"
-		"	gpMemset16(gauc2, 0xA5, 3);\n"
+		"	if (memset32(gauc2, 0x5A, 21) != gauc2 || gauc2[20] != 0x5A || gauc2[21] != gauc[21]) { w |= 16; }\n"
+		"	gpMemset32(gauc2, 0xA5, 3);\n"
 		"	if (gauc2[2] != 0xA5 || gauc2[3] != 0x5A) { w |= 32; }\n"
-		"	if (memcmp16(gauc, gauc, 100) != 0 || gpMemcmp16(gauc2, gauc, 5) <= 0 || memcmp16(gauc, gauc2, 5) >= 0) { w |= 64; }\n"
-		"	if (strlen16(\"hello\") != 5 || gpStrlen16(\"\") != 0) { w |= 128; }\n"
+		"	if (memcmp32(gauc, gauc, 100) != 0 || gpMemcmp32(gauc2, gauc, 5) <= 0 || memcmp32(gauc, gauc2, 5) >= 0) { w |= 64; }\n"
+		"	if (strlen32(\"hello\") != 5 || gpStrlen32(\"\") != 0 || memchr32(gauc, gauc[77], 200) != gauc + 77 || gpMemchr32(gauc, 0x5B, 10) != 0) { w |= 128; }\n"
 		"	memcpy(gauc2, gauc, 200);\n"
-		"	MemSwp16(gauc, gauc2 + 100, 31);\n"
-		"	gpMemSwp16(gauc, gauc2 + 100, 31);\n"
+		"	MemSwp(gauc, gauc2 + 100, 31);\n"
+		"	gpMemSwp(gauc, gauc2 + 100, 31);\n"
+		"	MemSwp32(gauc, gauc2 + 100, 33);\n"
+		"	gpMemSwp32(gauc, gauc2 + 100, 33);\n"
 		"	if (!Same(gauc, gauc2, 200)) { w |= 256; }\n"
 		"	memset(pBank, 7, 32);\n"
 		"	for (i = 0; i < 32; i++) { if (pBank[i] != 7) { w |= 512; } }\n"
@@ -6095,9 +6131,10 @@ void TestCPP816StringRegisters(void)
 	szListing.Kill();
 	szSource.Kill();
 
-	AssertInt(0, TestCPP816RunListed(szSixteen, aszUnits, &szListing, NULL, 0));
-	AssertTrue(TestCPP816Calls(szListing.Text(), "_memcpy16", ".axssy"));
-	AssertTrue(TestCPP816Calls(szListing.Text(), "_memset16", ".axy"));
+	AssertInt(0, TestCPP816RunListed(szThirtyTwo, aszUnits, &szListing, NULL, 0));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_memcpy32", ".ax"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_memset32", ".axy"));
+	AssertTrue(TestCPP816Calls(szListing.Text(), "_MemSwp__", ".axssy"));
 	AssertTrue(TestCPP816Calls(szListing.Text(), "_FindFirstSetBit__", ".axy"));
 	szListing.Kill();
 }
@@ -6156,7 +6193,7 @@ namespace TestCPP816MathNative
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816MathRegisters(void)
 {
-	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/math.cpp", "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", "Libc65/math.cpp", "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	CChars				szSource;
 	CChars				szListing;
 	uint32				auiResults[256];
@@ -6302,7 +6339,7 @@ bool TestCPP816Within(const char* szStart, const char* szEnd, const char* szFind
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816ConstantArguments(void)
 {
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	CChars				szSource;
 	CChars				szListing;
 	uint64				ulliExpected;
@@ -6350,7 +6387,7 @@ void TestCPP816WideMultiplies(void)
 		"	}\n"
 		"	return (int)((h ^ (h >> 16) ^ (h >> 32) ^ (h >> 48)) & 0x7FFF);\n"
 		"}\n";
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	uint64	x;
 	uint64	y;
 	uint64	h;
@@ -6539,6 +6576,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816SharedInline());
 	TEST_PART(TestCPP816KeepUnusedObjects());
 	TEST_PART(TestCPP816TypeNames());
+	TEST_PART(TestCPP816NoInline());
 	TEST_PART(TestCPP816StringRegisters());
 	TEST_PART(TestCPP816MathRegisters());
 	TEST_PART(TestCPP816WideMultiplies());

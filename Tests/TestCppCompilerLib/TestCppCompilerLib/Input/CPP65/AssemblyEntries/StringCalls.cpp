@@ -13,10 +13,10 @@ void*			gpv;
 void StringCalls(char* sz1, char* sz2)
 {
 	size_t			uiCount;
-	unsigned short	uiCount16;
+	unsigned long	ulCount;
 
 	uiCount = (size_t)giCount;
-	uiCount16 = (unsigned short)giCount;
+	ulCount = (unsigned long)giCount;
 
 	gpv = memcpy(sz1, sz2, uiCount);
 	gpv = memmove(sz1, sz2, uiCount);
@@ -33,14 +33,15 @@ void StringCalls(char* sz1, char* sz2)
 	gpv = strchr(sz1, giCount);
 	gpv = strrchr(sz1, giCount);
 
-	gpv = memcpy16(sz1, sz2, uiCount16);
-	gpv = memmove16(sz1, sz2, uiCount16);
-	gpv = memset16(sz1, giCount, uiCount16);
-	giCount += memcmp16(sz1, sz2, uiCount16);
-	giCount += (int)strlen16(sz1);
+	gpv = memcpy32(sz1, sz2, ulCount);
+	gpv = memmove32(sz1, sz2, ulCount);
+	gpv = memset32(sz1, giCount, ulCount);
+	giCount += memcmp32(sz1, sz2, ulCount);
+	gpv = memchr32(sz1, giCount, ulCount);
+	giCount += (int)strlen32(sz1);
 
-	MemSwp(sz1, sz2, (lsize)giCount);
-	MemSwp16(sz1, sz2, (size)giCount);
+	MemSwp(sz1, sz2, (size)giCount);
+	MemSwp32(sz1, sz2, (lsize)giCount);
 	giCount += (int)FindFirstSetBitLarge(sz1, (lsize)giCount);
 	giCount += (int)FindFirstClearBitLarge(sz1, (lsize)giCount);
 	giCount += (int)FindLastSetBitLarge(sz1, (lsize)giCount);

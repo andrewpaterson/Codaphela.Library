@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DataTypes.h"
 #include "EscapeCodes.h"
 #include "ArrayElementNotFound.h"
+#include "Memory32.h"
 #include "StringHelper.h"
 
 
@@ -491,8 +492,8 @@ char* StrIStr(char* ps1, const char* ps2)
         return NULL;
     }
 
-    iS1Len = strlen(ps1);
-    iS2Len = strlen(ps2);
+    iS1Len = strlen32(ps1);
+    iS2Len = strlen32(ps2);
 
     if ((iS1Len == 0) || (iS2Len == 0))
     {
@@ -531,7 +532,7 @@ const char* FindChar(const char* szString, char c, bool bReverse)
 	{
 		if (bReverse)
 		{
-			iLen = strlen(szString);
+			iLen = strlen32(szString);
 			if (iLen == 0)
 			{
 				return NULL;
@@ -604,7 +605,7 @@ void StrCpySafeStripSurroundingSpaces(char* szDest, char* szSource, size uiMaxLe
 	uiLastChar = 0;
 	szFirstCharOfDest = szDest;
 
-	uiSourceLength = strlen(szSource);
+	uiSourceLength = strlen32(szSource);
 
 	for (i = 0; i < uiSourceLength && szSource[i] == ' '; i++)
 	{
@@ -713,7 +714,7 @@ char* ToLower(char* szString)
 
 	if (szString)
 	{
-		iLen = strlen(szString);
+		iLen = strlen32(szString);
 		for (i = 0; i < iLen; i++)
 		{
 			c = szString[i];
@@ -739,7 +740,7 @@ char* ToUpper(char* szString)
 
 	if (szString)
 	{
-		iLen = strlen(szString);
+		iLen = strlen32(szString);
 		for (i = 0; i < iLen; i++)
 		{
 			c = szString[i];
@@ -845,14 +846,11 @@ size StrPrintable(const char* szString, size iLength)
 //////////////////////////////////////////////////////////////////////////
 size StrLen(const char* szString)
 {
-#if defined(__W65C816__)
-	return strlen16(szString);
-#else
-	lsize	uiLength;
+	size_t	uiLength;
 
+	//On the W65C816 size is size_t, and strlen is MAX_SIZE when szString is that long or longer.
 	uiLength = strlen(szString);
 	return (uiLength >= MAX_SIZE) ? MAX_SIZE : (size)uiLength;
-#endif // __W65C816__
 }
 
 

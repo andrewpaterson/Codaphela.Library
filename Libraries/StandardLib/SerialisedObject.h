@@ -42,7 +42,6 @@ protected:
 	int32				meType;  //See ObjectFileGeneral.h
 
 	OIndex				moi;
-	uint16				muiSize;
 
 	SSerialisedName		msName;
 

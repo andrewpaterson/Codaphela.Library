@@ -70,6 +70,8 @@ protected:
 			bool			ReplaceObjectFrom(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);
 			bool			RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bValidate);
 			bool			RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRemoved, bool bValidate);
+			void			AddAcrossFrom(CEmbeddedObject* pcObject);
+			bool			RemoveAcrossTryFree(CEmbeddedObject* pcObject);
 
 			CPointerLocations*	GetMemberLocations(void);
 			void			KillMemberLocations(void);

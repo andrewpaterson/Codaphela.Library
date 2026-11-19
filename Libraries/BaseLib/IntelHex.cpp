@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "TextFile.h"
 #include "IntelHex.h"
+#include "Memory32.h"
 
 
 #define INTEL_HEX_DATA				0x00
@@ -486,7 +487,7 @@ void CIntelHex::Fill(uint32 uiAddress, uint32 uiLength, uint8 uiFill, uint8* pui
 	uint64				ulliSegmentEnd;
 	size				uiNumElements;
 
-	memset(puiDest, uiFill, uiLength);
+	memset32(puiDest, uiFill, uiLength);
 	ulliEnd = (uint64)uiAddress + uiLength;
 	uiNumElements = macSegments.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -500,7 +501,7 @@ void CIntelHex::Fill(uint32 uiAddress, uint32 uiLength, uint8 uiFill, uint8* pui
 		}
 		if (ulliStart < ulliSegmentEnd)
 		{
-			memcpy(&puiDest[ulliStart - uiAddress], psSegment->cBytes.Get((lsize)(ulliStart - psSegment->uiAddress)), (lsize)(ulliSegmentEnd - ulliStart));
+			memcpy32(&puiDest[ulliStart - uiAddress], psSegment->cBytes.Get((lsize)(ulliStart - psSegment->uiAddress)), (lsize)(ulliSegmentEnd - ulliStart));
 		}
 	}
 }

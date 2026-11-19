@@ -25,6 +25,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "CatmullRom.h"
 #include "SoundResampler.h"
+#include "BaseLib/Memory32.h"
 
 
 //A table of every phase's taps is only built when it is smaller than this many taps.
@@ -180,7 +181,7 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pSource)
 		uiNumTaps = GetNumSincTaps(fCutoff);
 		if ((uint64)uiNumPhases * (uint64)uiNumTaps <= SOUND_RESAMPLER_MAX_TABLE_TAPS)
 		{
-			pfTable = (float64*)malloc((lsize)sizeof(float64) * uiNumPhases * uiNumTaps);
+			pfTable = (float64*)malloc32((lsize)sizeof(float64) * uiNumPhases * uiNumTaps);
 			for (uiPhase = 0; uiPhase < uiNumPhases; uiPhase++)
 			{
 				CalculateSincTaps((float64)uiPhase / (float64)uiNumPhases, fCutoff, &pfTable[uiPhase * uiNumTaps], uiNumTaps);
@@ -188,8 +189,8 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pSource)
 		}
 	}
 
-	pfSource = (float64*)malloc((lsize)sizeof(float64) * (uiSourceFrames + 1));
-	pfDest = (float64*)malloc((lsize)sizeof(float64) * (uiDestFrames + 1));
+	pfSource = (float64*)malloc32((lsize)sizeof(float64) * (uiSourceFrames + 1));
+	pfDest = (float64*)malloc32((lsize)sizeof(float64) * (uiDestFrames + 1));
 	uiNumChannels = pSource->NumChannels();
 	for (uiChannel = 0; uiChannel < uiNumChannels; uiChannel++)
 	{
@@ -243,7 +244,7 @@ void CSoundResampler::ResampleChannel(float64* pfSource, lsize uiSourceFrames, f
 	{
 		fCutoff = GetCutoff(uiSourceRate, uiDestRate);
 		uiNumTaps = GetNumSincTaps(fCutoff);
-		pfTaps = (float64*)malloc((lsize)sizeof(float64) * uiNumTaps);
+		pfTaps = (float64*)malloc32((lsize)sizeof(float64) * uiNumTaps);
 	}
 	else if (meResample == SR_Sinc)
 	{

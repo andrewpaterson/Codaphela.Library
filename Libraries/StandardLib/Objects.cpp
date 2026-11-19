@@ -42,6 +42,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 CObjects	gcObjects;
 bool		gbObjects = false;
+size		guiObjectsForwarders = 0;
+#ifndef __LIBC65__
+OBJECTS_PER_THREAD CObjects*	gpcObjectsOwn = NULL;
+#endif // __LIBC65__
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -139,6 +143,8 @@ CObjects::CObjects()
 	mpcDataConnection = NULL;
 	mpcSequenceConnection = NULL;
 	muiWalkStamp = 0;
+	muiForwardersMarked = 0;
+	mbWorker = false;
 }
 
 
@@ -167,6 +173,25 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	mcRemovalContext.Init();
 	mcWeakFroms.Init();
 	mapcWaitingToBeFreed.Init();
+	masForwarders.Init();
+	muiForwardersMarked = 0;
+	mbWorker = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker thread's own object system (ThreadSafetyPlan.txt, Level 3 as
+// built): no database, its indexes from the main object system's
+// sequence, and the worker its home.  Its unknowns allocate from what the
+// main one's do (CUnknowns::InitSharing), and it validates as main does.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::InitWorker(CObjects* pcMain, CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CSequenceConnection* pcSequenceConnection)
+{
+	Init(pcUnknowns, pcStackPointers, NULL, pcSequenceConnection);
+	mbValidateConsistency = pcMain->mbValidateConsistency;
+	mbWorker = true;
 }
 
 
@@ -181,11 +206,13 @@ void CObjects::Kill(void)
 	mbInitialised = false;
 
 	//The objects' memory is given back one by one: what allocates them (the global unknowns, from gcSystemAllocator)
-	//outlives this, and doesn't give its memory back as a whole.
+	//outlives this, and doesn't give its memory back as a whole.  No other thread uses objects now.
 	Collect();
+	FreeForwardersInside(true);
 	ValidateNoDirty();
 	FreeAllInKillOrder(true);
 
+	masForwarders.Kill();
 	mapcWaitingToBeFreed.Kill();
 	mcRemovalContext.Kill();
 	mcWeakFroms.Kill();
@@ -293,24 +320,37 @@ uint32 CObjects::StartWalk(void)
 {
 	OBJECTS_INSIDE();
 
-	SIndexesIterator	sIter;
-	CBaseObject*		pcBaseObject;
-
 	muiWalkStamp += WALK_STAMP_STEP;
 	if (muiWalkStamp == 0)
 	{
-		if (mbInitialised)
-		{
-			pcBaseObject = mcMemory.StartIteration(&sIter);
-			while (pcBaseObject)
-			{
-				pcBaseObject->SetWalkStamp(0);
-				pcBaseObject = mcMemory.Iterate(&sIter);
-			}
-		}
-		muiWalkStamp = WALK_STAMP_STEP;
+		ClearWalkStamps();
 	}
 	return muiWalkStamp;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stamps have come round to 0: every object's is cleared, so that
+// none looks visited to the walks to come.  Apart from StartWalk, which
+// every walk calls: this is seldom.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE void CObjects::ClearWalkStamps(void)
+{
+	SIndexesIterator	sIter;
+	CBaseObject*		pcBaseObject;
+
+	if (mbInitialised)
+	{
+		pcBaseObject = mcMemory.StartIteration(&sIter);
+		while (pcBaseObject)
+		{
+			pcBaseObject->SetWalkStamp(0);
+			pcBaseObject = mcMemory.Iterate(&sIter);
+		}
+	}
+	muiWalkStamp = WALK_STAMP_STEP;
 }
 
 
@@ -1283,7 +1323,7 @@ void CObjects::Collect(void)
 	CArrayBaseObjectPtr		apcDead;
 	size					i;
 
-	if (mapcWaitingToBeFreed.IsEmpty() || !ObjectsIsHomeThread() || mcRemovalContext.IsBusy())
+	if (mapcWaitingToBeFreed.IsEmpty() || !IsHomeThread() || mcRemovalContext.IsBusy())
 	{
 		return;
 	}
@@ -1309,10 +1349,223 @@ void CObjects::Collect(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Putting hollows in place of objects (eviction, the Kill of a stored object that is still held) takes them from under
-// any thread that is using them: it is done between the other threads' work, when none of them holds a pointer
-// (ThreadSafetyPlan.txt, decision 4).  A Debug build knows whose stack each pointer is on and refuses otherwise;
-// elsewhere it is the caller's to see to.
+// The main object system's home is the thread that called ObjectsInit; a
+// worker's own object system's is the worker.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::IsHomeThread(void)
+{
+	return mbWorker ? (ObjectsOwn() == this) : ObjectsIsHomeThread();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::IsWorker(void)
+{
+	return mbWorker;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a hollow loaded now forwards (ThreadSafetyPlan.txt, Forwarding
+// hollows): another thread may have read a pointer to it in operator->
+// and not yet asked it for its object.  With no other thread registered
+// it is freed at once, as on one thread.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::MustForward(void)
+{
+	return IsObjectsLocking() && (ObjectsNumThreads() > 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcHollow, loaded as pcObject (and everything that pointed to it now
+// pointing to pcObject), is kept until no thread can still ask it for its
+// object: it answers with pcObject.  A pointer to one of its embedded
+// hollows that pcObject has no place for is cleared now, as the hollow's
+// Kill would clear it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::Forward(CHollowObject* pcHollow, CBaseObject* pcObject)
+{
+	CBaseObject*		pcBaseHollow;
+	SForwardingHollow*	psForwarder;
+
+	pcBaseHollow = pcHollow;
+	pcBaseHollow->RemoveAllStackFroms();
+	pcBaseHollow->RemoveAllHeapFroms();
+
+	//Not attached to the root (nothing points to it), so a pointer pointed at it once it forwards can't be by a
+	//reader: it is a writer's, which points it at pcObject instead (Forwarded).
+	pcBaseHollow->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+
+	psForwarder = masForwarders.Add();
+	psForwarder->pcHollow = pcHollow;
+	psForwarder->pcObject = pcObject;
+	guiObjectsForwarders++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What pcHollow was loaded as, if it forwards; otherwise NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::GetForwarded(CHollowObject* pcHollow)
+{
+	SForwardingHollow*	psForwarder;
+	size				i;
+
+	for (i = 0; i < masForwarders.NumElements(); i++)
+	{
+		psForwarder = masForwarders.Get(i);
+		if (psForwarder->pcHollow == pcHollow)
+		{
+			return psForwarder->pcObject;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What pcObject was loaded as, if it is a forwarding hollow (or a hollow
+// embedded in one); otherwise pcObject.  A pointer is about to be pointed
+// at it by a thread that read it before the load, from a collection's
+// element say, and must be pointed at what it stands for instead.
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CObjects::Forwarded(CEmbeddedObject* pcObject)
+{
+	OBJECTS_INSIDE();
+
+	CBaseObject*	pcContainer;
+	CBaseObject*	pcLoaded;
+
+	if (masForwarders.IsEmpty() || !pcObject->IsHollow())
+	{
+		return pcObject;
+	}
+	pcContainer = pcObject->GetEmbeddingContainer();
+	pcLoaded = GetForwarded((CHollowObject*)pcContainer);
+	if (pcLoaded == NULL)
+	{
+		return pcObject;
+	}
+	return pcLoaded->GetEmbeddedObject(pcContainer->GetEmbeddedIndex(pcObject));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A thread that read a pointer to a hollow before it was loaded asks it
+// for its object without coming into the object system in between, and
+// asks it under the lock (Dehollow(CHollowObject*)).  So once every other
+// thread has come in since a mark (taken the lock, or read) none can still
+// be about to ask a hollow that was forwarding at the mark: those go.  The
+// rest are marked now, for the next time.  With no other thread registered
+// they all go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::FreeForwarders(void)
+{
+	OBJECTS_WRITE();
+
+	if (!IsHomeThread() || mcRemovalContext.IsBusy())
+	{
+		return;
+	}
+	FreeForwardersInside(ObjectsNumThreads() == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// bAll: every one, as no other thread uses objects.
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::FreeForwardersInside(bool bAll)
+{
+	CArrayBaseObjectPtr		apcHollows;
+	size					uiFree;
+	size					i;
+
+	//The count of every object system's forwarders isn't touched by one that has none (a worker's never has).
+	if (masForwarders.IsEmpty())
+	{
+		return;
+	}
+
+	if (bAll)
+	{
+		uiFree = masForwarders.NumElements();
+	}
+	else if (muiForwardersMarked == 0)
+	{
+		uiFree = 0;
+	}
+	else if (ObjectsThreadsAllInSinceMark())
+	{
+		uiFree = muiForwardersMarked;
+	}
+	else
+	{
+		return;
+	}
+
+	//Taken out first: a Kill runs callbacks.  Each is as a loaded hollow was freed before it forwarded.
+	apcHollows.Init();
+	for (i = 0; i < uiFree; i++)
+	{
+		apcHollows.Add(masForwarders.Get(i)->pcHollow);
+	}
+	masForwarders.RemoveRange(0, uiFree);
+	guiObjectsForwarders -= uiFree;
+	muiForwardersMarked = masForwarders.NumElements();
+	if (muiForwardersMarked > 0)
+	{
+		ObjectsThreadsMarkWaysIn();
+	}
+
+	for (i = 0; i < uiFree; i++)
+	{
+#ifdef _DEBUG
+		//Nothing may point to a forwarder (Forwarded): its Kill would leave such a pointer NULL.
+		if (apcHollows.GetPtr(i)->HasHeapFroms() || apcHollows.GetPtr(i)->HasStackFroms())
+		{
+			gcLogger.Error2(__METHOD__, " A forwarding hollow is pointed to as it is freed.", NULL);
+		}
+#endif // _DEBUG
+		apcHollows.GetPtr(i)->KillInternal(true, true);
+	}
+	apcHollows.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CObjects::NumForwarders(void)
+{
+	OBJECTS_READ();
+
+	return masForwarders.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Evicting everything in memory puts hollows in place of objects under any thread using them: it is done between the
+// other threads' work, and refused while any of them holds a stack pointer (in its table, or, as a Debug build knows,
+// on an object).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::ValidateNoOtherThreadHolds(const char* szMethod)
@@ -1328,6 +1581,39 @@ bool CObjects::ValidateNoOtherThreadHolds(const char* szMethod)
 	if (uiHeld > 0)
 	{
 		return gcLogger.Error2(szMethod, " Cannot put hollows in place of objects while other threads hold [", SizeToString(uiHeld), "] stack pointers to objects.", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Putting a hollow in place of pcObject (the Kill of a stored object that
+// is still held) takes it from under any other thread holding it: refused
+// while one does.  Another thread's stack pointers to an object attached
+// to the root are in that thread's table; those on the object are the
+// home thread's, so are another's unless this is the home thread.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::ValidateNoOtherThreadHolds(const char* szMethod, CBaseObject* pcObject)
+{
+	CEmbeddedObject*	pcEmbedded;
+	size				i;
+	bool				bHome;
+
+	if (!IsObjectsLocking())
+	{
+		return true;
+	}
+
+	bHome = IsHomeThread();
+	for (i = 0; i < pcObject->NumEmbedded(); i++)
+	{
+		pcEmbedded = pcObject->GetEmbeddedObject(i);
+		if (ThreadStackFromsHasOnAnotherThread(pcEmbedded) || (!bHome && (pcEmbedded->GetFirstStackFrom() != NULL)))
+		{
+			return gcLogger.Error2(szMethod, " Cannot put a hollow in place of {", ObjectToString(pcObject), "}: other threads hold stack pointers to it.", NULL);
+		}
 	}
 	return true;
 }
@@ -1771,9 +2057,48 @@ CBaseObject* CObjects::GetFromSources(const char* szObjectName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Under the index lock alone: a worker taking a block doesn't wait for
+// the object system's writers, only for another index being handed out.
+// With it held no other index comes between them: they are in a row.
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CObjects::GetNextIndex(void) const
+OIndex CObjects::ReserveIndexes(size uiCount)
+{
+	OIndex	oiFirst;
+	size	i;
+
+	mcIndexLock.Lock();
+	oiFirst = NextIndex();
+	for (i = 1; i < uiCount; i++)
+	{
+		NextIndex();
+	}
+	mcIndexLock.Unlock();
+	return oiFirst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While the locking is on, workers take blocks from the main object
+// system's sequence too.  A worker's own sequence is its alone.
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CObjects::GetNextIndex(void)
+{
+	if (OBJECTS_SELDOM(IsObjectsLocking()) && !mbWorker)
+	{
+		return ReserveIndexes(1);
+	}
+	return NextIndex();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CObjects::NextIndex(void)
 {
 	if (mpcSequenceConnection)
 	{
@@ -1845,6 +2170,44 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 		LogPointedToMissing(__METHOD__, IndexToString(oi), "the database");
 	}
 	return pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object pcHollow stands for (CHollowObject::Dehollow, for a pointer
+// to it): loaded now, or if it has been loaded already while another
+// thread read the pointer, what it was loaded as.  Nothing of pcHollow's
+// that a load changes is read before the lock is held.
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::Dehollow(CHollowObject* pcHollow)
+{
+	OBJECTS_WRITE();
+
+	CBaseObject*	pcObject;
+
+	if (!masForwarders.IsEmpty())
+	{
+		pcObject = GetForwarded(pcHollow);
+		if (pcObject != NULL)
+		{
+#ifdef _DEBUG
+			//The pointer read is the one the load pointed at pcObject, which holds it: still in memory.
+			if ((pcHollow->IsNamed() ? GetFromMemory(pcHollow->GetName()) : GetFromMemory(pcHollow->GetIndex())) != pcObject)
+			{
+				gcLogger.Error2(__METHOD__, " A hollow was asked for the object it was loaded as once that object had gone.", NULL);
+			}
+#endif // _DEBUG
+			return pcObject;
+		}
+	}
+
+	if (pcHollow->IsNamed())
+	{
+		return Dehollow(pcHollow->GetName());
+	}
+	return Dehollow(pcHollow->GetIndex());
 }
 
 
@@ -1952,7 +2315,7 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papc
 
 	//Only the home thread frees: an object's Free(), and what it frees, belong to the thread the objects were made
 	//for.  Another thread leaves what it found dead for it.
-	if (!ObjectsIsHomeThread())
+	if (!IsHomeThread())
 	{
 		WaitToBeFreed(papcKilled);
 		if (bKilledAfter)
@@ -2141,114 +2504,6 @@ bool CObjects::ValidateCanAllocate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Makes a fat hollow into an uninitialised object of szClassName, in the
-// same memory: a fat hollow was allocated at the size of the object it
-// stands in for, so whatever points to it needn't change.  The object has
-// its class's embedded objects, which may not be what the hollow was saved
-// with.  NULL (and the hollow is left as it was) if szClassName can't be
-// allocated or isn't the hollow's size.
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::ConvertFatHollowToUninitialisedByClassName(CHollowObject* pcHollowObject, const char* szClassName)
-{
-	CBaseObject*	pcObject;
-	bool			bResult;
-	size			uiClassSize;
-	size			uiHollowSize;
-	void*			pvConstructor;
-	CHollowObject	cHollow;
-	CStackMemory<>	cStackEmbedded;
-	void*			pvHollowEmbedded;
-	size			uiNumEmbedded;
-	size			uiHollowEmbeddedSize;
-
-	bResult = ValidateCanAllocate(szClassName);
-	if (!bResult)
-	{
-		return NULL;
-	}
-
-	pvConstructor = mpcUnknownsAllocatingFrom->GetConstructors()->Get(szClassName, &uiClassSize);
-	if (!pvConstructor)
-	{
-		gcLogger.Error2(__METHOD__, " No constructor found for class [", szClassName, "].", NULL);
-		return NULL;
-	}
-
-	uiHollowSize = pcHollowObject->GetFatSize();
-	if (uiHollowSize != uiClassSize)
-	{
-		gcLogger.Error2(__METHOD__, " Class [", szClassName, "] size [", SizeToString(uiClassSize), "] does not match fat Hollow size [", SizeToString(uiHollowSize), "].", NULL);
-		return NULL;
-	}
-
-	//The embedded hollows are overwritten by the new object so their froms must be copied out first.
-	uiNumEmbedded = pcHollowObject->NumEmbedded();
-	uiHollowEmbeddedSize = sizeof(CHollowEmbeddedObject) * (uiNumEmbedded - 1);
-	pvHollowEmbedded = cStackEmbedded.Init(uiHollowEmbeddedSize);
-	memcpy(pvHollowEmbedded, RemapSinglePointer(pcHollowObject, sizeof(CHollowObject)), uiHollowEmbeddedSize);
-	memcpy(&cHollow, pcHollowObject, sizeof(CHollowObject));
-
-	pcObject = pcHollowObject;
-	memcpy(pcObject, pvConstructor, uiClassSize);
-	pcObject->Allocate(this);
-	pcObject->CopyFields(&cHollow);
-	RemapFatHollowEmbeddedObjects(pcObject, uiNumEmbedded, pvHollowEmbedded);
-
-	cStackEmbedded.Kill();
-	cHollow.StopDestructor();
-	return pcObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjects::RemapFatHollowEmbeddedObjects(CBaseObject* pcObject, size uiNumEmbedded, void* pvHollowEmbedded)
-{
-	//pvHollowEmbedded is a copy of the embedded hollows that were at the end of the fat hollow now overwritten by pcObject.
-	//Anything pointing to an embedded hollow points to its original address, not to the copy.
-
-	CObjectRemapFrom		cRemapper;
-	size					i;
-	CEmbeddedObject*		pcOldEmbedded;
-	CHollowEmbeddedObject*	pcOldEmbeddedFroms;
-	CEmbeddedObject*		pcNewEmbedded;
-	size					uiNumInObject;
-	bool					bDropped;
-	CBaseObject*			pcClosest;
-
-	bDropped = false;
-	uiNumInObject = pcObject->NumEmbedded();
-	for (i = 1; i < uiNumEmbedded; i++)
-	{
-		pcOldEmbedded = (CEmbeddedObject*)RemapSinglePointer(pcObject, sizeof(CHollowObject) + ((lsize)sizeof(CHollowEmbeddedObject) * (i - 1)));
-		pcOldEmbeddedFroms = (CHollowEmbeddedObject*)RemapSinglePointer(pvHollowEmbedded, (lsize)sizeof(CHollowEmbeddedObject) * (i - 1));
-		if (i < uiNumInObject)
-		{
-			pcNewEmbedded = pcObject->GetEmbeddedObject(i);
-			cRemapper.RemapEmbedded(pcNewEmbedded, pcOldEmbedded, pcOldEmbeddedFroms);
-		}
-		else if (pcOldEmbeddedFroms->ClearFromsOfCopy(pcOldEmbedded) != 0)
-		{
-			//The class has fewer embedded objects than when this was saved.  As in CObjectRemapFrom::Remap: on purpose, but the pointers lose what they pointed to.
-			gcLogger.Warning2(__METHOD__, " Object {", ObjectToString(pcObject), "} was loaded without its embedded object [", SizeToString(i), "]: the pointers to it are cleared.", NULL);
-			bDropped = true;
-		}
-	}
-
-	if (bDropped)
-	{
-		//A dropped pointer may have been what held this to the root.  An object not yet loaded points to nothing, so no other object's distance depends on this one's.
-		pcClosest = pcObject->GetClosestFromToRoot();
-		pcObject->SetDistToRoot((pcClosest != NULL) ? pcClosest->GetDistToRoot() + 1 : UNATTACHED_DIST_TO_ROOT);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName, const char* szObjectName, OIndex oi)
@@ -2315,18 +2570,13 @@ CNamedIndexedObjects* CObjects::GetMemory(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A hollow with its embedded hollows after it.  A fat hollow (uiFatSize
-// not OBJECT_IDENTIFIER_SIZE_NOT_SET) takes the size of the object it
-// will be loaded as, so it can become that object in place (a uint16: a
-// class too big for one isn't written fat).  An empty name is an unnamed
-// hollow.
+// A hollow with its embedded hollows after it.  An empty name is an
+// unnamed hollow.
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize)
+CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi)
 {
 	CHollowObject*	pcHollow;
-	size			uiHollowSize;
-	CHollowObject*	pcConstructor;
 	void*			pvEmbedded;
 
 	if (uiNumEmbedded == 0)
@@ -2334,35 +2584,12 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 		return NULL;
 	}
 
-	if (uiFatSize == OBJECT_IDENTIFIER_SIZE_NOT_SET)
+	pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, sizeof(CHollowEmbeddedObject) * (uiNumEmbedded - 1));
+	if (pcHollow == NULL)
 	{
-		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, sizeof(CHollowEmbeddedObject) * (uiNumEmbedded - 1));
-		if (pcHollow == NULL)
-		{
-			return NULL;
-		}
-		pcHollow->Init(uiNumEmbedded);
+		return NULL;
 	}
-	else
-	{
-		pcConstructor = mpcUnknownsAllocatingFrom->GetConstructor<CHollowObject>(&uiHollowSize);
-		if (pcConstructor == NULL)
-		{
-			gcLogger.Error2(__METHOD__, " Could not find HollowObject constructor.", NULL);
-			return NULL;
-		}
-		if (uiHollowSize > uiFatSize)
-		{
-			gcLogger.Error2(__METHOD__, " Hollow size [", SizeToString(uiHollowSize), "] is larger than Fat Object size [", SizeToString(uiFatSize), "].", NULL);
-			return NULL;
-		}
-		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, uiFatSize - uiHollowSize);
-		if (pcHollow == NULL)
-		{
-			return NULL;
-		}
-		pcHollow->Init(uiNumEmbedded, uiFatSize);
-	}
+	pcHollow->Init(uiNumEmbedded);
 
 	pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
 	AppendHollowEmbeddedObjects(pcHollow, uiNumEmbedded, pvEmbedded);
@@ -2415,6 +2642,16 @@ CClasses* CObjects::GetClasses(void)
 CConstructors* CObjects::GetConstructors(void) const
 {
 	return mpcUnknownsAllocatingFrom->GetConstructors();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CUnknowns* CObjects::GetUnknowns(void) const
+{
+	return mpcUnknownsAllocatingFrom;
 }
 
 
@@ -2524,12 +2761,12 @@ CBaseObject* CObjects::AllocateReplacingNamed(const char* szClassName, const cha
 //////////////////////////////////////////////////////////////////////////
 //
 // The object the InternalObjectDeserialiser is about to read: a hollow
-// already in memory for it is replaced, or if fat (and with the same
-// index) becomes it in place.  The hollow is found by index, or for a
+// already in memory for it is replaced.  The hollow is found by index, or for a
 // named object by name: a hollow made for a name alone (by an external
-// read) has an index of its own, and the object loaded for it takes the
-// database's.  An empty name is an unnamed object; a name taken by an
-// object that isn't hollow fails to go into memory.
+// read) before the database had the name has an index of its own, and the
+// object loaded for it takes the database's.  An empty name is an unnamed
+// object; a name taken by an object that isn't hollow fails to go into
+// memory.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassName, const char* szObjectName, OIndex oi)
@@ -2569,11 +2806,6 @@ CBaseObject* CObjects::AllocateForInternalDeserialisation(const char* szClassNam
 	}
 
 	pcHollowObject = (CHollowObject*)pcObject;
-	if (pcHollowObject->IsFatHollow() && (pcHollowObject->GetIndex() == oi))
-	{
-		return ConvertFatHollowToUninitialisedByClassName(pcHollowObject, szClassName);
-	}
-
 	pcObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
 	if (pcObject == NULL)
 	{
@@ -2620,7 +2852,15 @@ bool CObjects::ReplaceBaseObject(CBaseObject* pcExisting, CBaseObject* pcObject)
 		return false;
 	}
 
-	cRemapper.Remap(pcExisting, pcObject);
+	if (pcExisting->IsHollow() && !pcObject->IsHollow() && MustForward())
+	{
+		cRemapper.RemapFroms(pcExisting, pcObject);
+		Forward((CHollowObject*)pcExisting, pcObject);
+	}
+	else
+	{
+		cRemapper.Remap(pcExisting, pcObject);
+	}
 	return AddIntoMemory(pcObject);
 }
 
@@ -2641,7 +2881,7 @@ bool CObjects::TestRemoveMemoryIdentifiers(CBaseObject* pvObject)
 // to, before reading it.  An empty name is an unnamed hollow.
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize)
+CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex oi, size uiNumEmbedded)
 {
 	OBJECTS_INSIDE();
 
@@ -2653,7 +2893,7 @@ CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex
 		return NULL;
 	}
 
-	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi, uiObjectSize);
+	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi);
 	if (pcHollow == NULL)
 	{
 		LOG_OBJECT_ALLOCATION_FAILURE("CHollowObject", oi, szObjectName);
@@ -2672,8 +2912,10 @@ CHollowObject* CObjects::AllocateInternalHollow(const char* szObjectName, OIndex
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The object named szObjectName in memory, or a hollow for it (with the
-// next index) to be loaded later.
+// The object named szObjectName in memory, or a hollow for it to be loaded
+// later.  The hollow has the database's index for the name, which the
+// object loaded for it keeps (so it keeps its place in a set), or else the
+// next index.
 //
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::GetNamedOrAllocateHollow(const char* szObjectName, size uiNumEmbedded)
@@ -2696,8 +2938,12 @@ CBaseObject* CObjects::GetNamedOrAllocateHollow(const char* szObjectName, size u
 		return pvExisting;
 	}
 
-	oi = GetNextIndex();
-	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	oi = (mpcDataConnection != NULL) ? mpcDataConnection->GetIndex(szObjectName) : INVALID_O_INDEX;
+	if (oi == INVALID_O_INDEX)
+	{
+		oi = GetNextIndex();
+	}
+	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi);
 	if (!pcHollow)
 	{
 		return NULL;
@@ -2729,7 +2975,7 @@ void CObjects::ReplaceWithHollow(CBaseObject* pcObject)
 
 	CHollowObject*	pcHollow;
 
-	pcHollow = AllocateHollow(pcObject->NumEmbedded(), pcObject->GetName(), pcObject->GetIndex(), OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	pcHollow = AllocateHollow(pcObject->NumEmbedded(), pcObject->GetName(), pcObject->GetIndex());
 	if ((pcHollow != NULL) && !ReplaceBaseObject(pcObject, pcHollow))
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
@@ -2862,6 +3108,7 @@ void ObjectsCollect(void)
 	if (ObjectsValidate())
 	{
 		gcObjects.Collect();
+		gcObjects.FreeForwarders();
 	}
 }
 
@@ -2917,6 +3164,6 @@ void ObjectsDump(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CRoot> ORoot(void)
 {
-	return gcObjects.Root();
+	return ObjectsCurrent()->Root();
 }
 

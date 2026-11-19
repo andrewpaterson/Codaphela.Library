@@ -347,10 +347,8 @@ AllocateZeroed:
 		.width (A, X), 16
 		sta [D + F_LENGTH]
 		sty [D + F_INDEX]
-		pea 0
 		pha
 		jsl _malloc
-		ply
 		ply
 		ldy [D + F_INDEX]
 		sta [[D + F_CLUSTER]:24 + Y]
@@ -360,7 +358,6 @@ AllocateZeroed:
 		txa
 		sta [[D + F_CLUSTER]:24 + Y]
 		pla
-		pea 0
 		pei [D + F_LENGTH]
 		pea 0
 		phx
@@ -368,7 +365,7 @@ AllocateZeroed:
 		jsl _memset
 		tsc
 		clc
-		adc 10
+		adc 8
 		tcs
 		rts
 
@@ -695,7 +692,6 @@ ReadRunCached:
 ReadCopy:
 		lda [D + F_ARGUMENT4]
 		jsr OffsetPointer
-		pei [D + F_LENGTH + 2]
 		pei [D + F_LENGTH]
 		pei [D + F_POINTER + 2]
 		pei [D + F_POINTER]
@@ -704,7 +700,7 @@ ReadCopy:
 		jsl _memcpy
 		tsc
 		clc
-		adc 12
+		adc 10
 		tcs
 		jmp ReturnTrue
 
@@ -841,7 +837,6 @@ EndsInSectorOffset:
 WriteSector:
 		.width (A, X), 16
 		sta [D + F_END]
-		pea 0
 		pei [D + F_SECTOR_LENGTH]
 		lda [D + F_ARGUMENT1]
 		clc
@@ -858,7 +853,7 @@ WriteSector:
 		jsl _memcpy
 		tsc
 		clc
-		adc 12
+		adc 10
 		tcs
 		ldx [D + F_END]
 		ldy CACHED
@@ -1008,7 +1003,6 @@ FlushClean:
 ; memset(F_CLUSTER's bit array at offset Y, 0, muiBytesForBits)
 ClearBits:
 		.width (A, X), 16
-		pea 0
 		phy
 		ldy CFatClusterCache_muiBytesForBits
 		lda [[D + F_THIS]:24 + Y]
@@ -1026,7 +1020,7 @@ ClearBits:
 		jsl _memset
 		tsc
 		clc
-		adc 10
+		adc 8
 		tcs
 		rts
 
@@ -1148,7 +1142,6 @@ InvalidateNext:
 		beq InvalidateSkip
 		ldy CFatClusterCache_muiSectorSize
 		lda [[D + F_THIS]:24 + Y]
-		pea 0
 		pha
 		pea 0
 		lda [D + F_START]
@@ -1158,7 +1151,7 @@ InvalidateNext:
 		jsl _memset
 		tsc
 		clc
-		adc 10
+		adc 8
 		tcs
 InvalidateSkip:
 		inc [D + F_START]

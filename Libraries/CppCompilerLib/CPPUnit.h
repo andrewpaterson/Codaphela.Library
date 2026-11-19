@@ -498,6 +498,8 @@ public:
 	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy, bool bThread);
 	bool					BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset, bool* pbResult);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
+	bool					HasAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName);
+	bool					HasAttribute(CArraySyntax* papcAttributes, const char* szName);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer);
 	SCPP65Type*				ParameterType(SCPP65Type* psType);

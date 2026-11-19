@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __POINTER_OBJECT_H__
 #define __POINTER_OBJECT_H__
+#include "BaseLib/Atomic.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/IndexedGeneral.h"
 #include "EmbeddedObject.h"
@@ -114,6 +115,7 @@ public:
 
 	CEmbeddedObject*	Return(void);
 	void				UnsafeClearObject(void);
+	void				ReleaseAcross(void);  //A worker's object's field lets go of the main object it points at, with the main lock.
 
 	size				NumStackFroms(void) const;
 	size				NumHeapFroms(void) const;
@@ -130,7 +132,28 @@ protected:
 	void				PointToFromOutside(CEmbeddedObject* const* ppcObject);
 	bool				PointToReading(CEmbeddedObject* const* ppcObject);
 	bool				IsEmbeddingHeld(void) const;
+
+private:
+	void				PointToLocking(CEmbeddedObject* const* ppcObject);
+	void				AssignObjectLocking(CEmbeddedObject* pcObject);
+	bool				IsAllThreadsOwn(CEmbeddedObject* pcNewObject);
+	bool				IsFieldAcross(CEmbeddedObject* pcOldObject);
+	void				PointFieldAcross(CEmbeddedObject* pcOldObject);
+	CEmbeddedObject*	Dehollow(CEmbeddedObject* pcObject);
+	CEmbeddedObject*	LoadObject(void) const;
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object pointed to, read whole: a load on another thread may be
+// pointing this at what a hollow was loaded as (UnsafePointTo).
+//
+//////////////////////////////////////////////////////////////////////////
+inline CEmbeddedObject* CPointer::LoadObject(void) const
+{
+	return (CEmbeddedObject*)AtomicLoadPointer((void**)&mpcObject);
+}
 
 
 void LogPointerDebug(CPointer* pvThis, const char* szMethod);

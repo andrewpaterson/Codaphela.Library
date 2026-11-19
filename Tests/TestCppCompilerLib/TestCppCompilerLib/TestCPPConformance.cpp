@@ -147,7 +147,7 @@ static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECP
 static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bExceptions, bool bSoftFloat, CChars* pszErrors)
 {
 	static const char*	aszString65C64[] = { "Libc65/string.asm", NULL };
-	static const char*	aszStringW65C816[] = { "Libc65/stringW65C816.asm", NULL };
+	static const char*	aszStringW65C816[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	static const char*	aszSoftFloat[] = { "Libc65/softfloat.cpp", "Libc65/softfloat.asm", "Libc65/softfloatW65C816.asm", NULL };
 	CFileUtil			cFileUtil;
 	CChars				szLibc65;

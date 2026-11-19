@@ -40,7 +40,7 @@ public:
 	bool					Add(CEmbeddedObject* pcObject);
 	bool					AddAll(CArrayCommonObject* pcArray);
 	bool					Set(size iIndex, CPointer& pObject);
-	CEmbeddedObject*		Dereference(CEmbeddedObject** ppcObject);
+	CEmbeddedObject*		Dereference(size iIndex);
 
 	bool					Remove(CPointer& pObject);
 	bool					Remove(CEmbeddedObject* pcObject);

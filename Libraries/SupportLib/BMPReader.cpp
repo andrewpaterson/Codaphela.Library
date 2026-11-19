@@ -28,6 +28,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageReaderCommon.h"
 #include "ImageReaderHelper.h"
 #include "BMPReader.h"
+#include "BaseLib/Memory32.h"
 
 
 #define BMP_FILE_HEADER_SIZE		14
@@ -411,12 +412,12 @@ bool BMPDecodeRLEPixels(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 	CRLEBitmapDecoder	cDecoder;
 	bool				bResult;
 
-	puiIndices = (uint8*)malloc((lsize)psInfo->iWidth * psInfo->iHeight);
+	puiIndices = (uint8*)malloc32((lsize)psInfo->iWidth * psInfo->iHeight);
 	if (puiIndices == NULL)
 	{
 		return false;
 	}
-	memset(puiIndices, 0, (lsize)psInfo->iWidth * psInfo->iHeight);
+	memset32(puiIndices, 0, (lsize)psInfo->iWidth * psInfo->iHeight);
 
 	cDecoder.Init(psInfo->iWidth, psInfo->iHeight, psInfo->uiCompression == BMP_RLE4);
 	bResult = pcFile->Seek(psInfo->uiPixelOffset) && cDecoder.Decode(pcFile, puiIndices);
@@ -510,7 +511,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug, const char* szObjectName)
 		bValid = BMPReadInfo(&cFile, uiFileSize, &sInfo);
 		if (bValid)
 		{
-			puiRGBA = (uint8*)malloc((lsize)sInfo.iWidth * sInfo.iHeight * 4);
+			puiRGBA = (uint8*)malloc32((lsize)sInfo.iWidth * sInfo.iHeight * 4);
 			bDecoded = (puiRGBA != NULL) && BMPDecodePixels(&cFile, uiFileSize, &sInfo, puiRGBA);
 		}
 		cFile.Close();

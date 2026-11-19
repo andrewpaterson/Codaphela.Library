@@ -34,6 +34,7 @@ private:
 public:	
 	void		_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
+	void		Init(bool bKillElements, bool bOverwriteExisting, DataCompare fKeyCompare);
 	void		Kill(void) override;
 	void		ReInit(void);
 
@@ -42,6 +43,7 @@ public:
 
 	bool		WriteMapUnknownHeader(CFileWriter* pcFileWriter);
 	bool		ReadMapUnknownHeader(CFileReader* pcFileReader);
+	bool		ReadMapUnknownHeader(CFileReader* pcFileReader, DataCompare fKeyCompare);
 
 	template<class M, class N>
 	N*			Put(M* pcKey);  //Note this allocates N and returns a pointer to it.  Not a pointer to the pointer in the map.
@@ -51,9 +53,11 @@ public:
 	N*			Get(M* pcKey);
 	CUnknown*	Get(CUnknown* pcKey);
 	SMNode*		GetNode(CUnknown* pcKey);
+	CUnknown*	GetKey(CUnknown* pcKey);
 	bool		Contains(CUnknown* pcKey);
 
 	void		SetKey(SMapIterator* psIter, CUnknown* pcNewKey);
+	bool		ReplaceKey(CUnknown* pcKey, CUnknown* pcNewKey);
 	void		SetValue(SMapIterator* psIter, CUnknown* pcNewValue);
 
 	size		NumElements(void) override;
@@ -78,6 +82,7 @@ protected:
 	bool		WriteData(CFileWriter* pcFile, void* pvData) override;
 	bool		ReadData(CFileReader* pcFile, void* pvData) override;
 	void		ReplaceValue(CUnknown** ppcValue, CUnknown* pcKey, CUnknown* pcValue);
+	void		SetNodeKey(SMNode* psNode, CUnknown* pcNewKey);
 };
 
 

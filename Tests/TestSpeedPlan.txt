@@ -89,13 +89,62 @@ IDE checks the same passes and failures) as a run in one process.
    Questions: any lockstep run to drop goes to the user first.
 
 5. The sweep: build while the last suite runs                                        ~3.5 h -> ~1.5 h with 1 and 6
-   a. sweep.py: while one solution's suite runs, the next solution builds (-m:2), if free memory is over 3 GB; otherwise in
-      turn as now.  Builds of one configuration never run alongside each other.
-   b. Debug|Win32 only for a solution whose Release build or suite failed (the user's rule above).
-   c. The order: the long suites (TestCppCompilerLib, the *65 suites, TestHCP65Lib) first in each configuration, so the short
-      ones fill in behind them.
-   d. It records what ran and when (the build, the run, the result) in sweep_results.txt as now, resuming where it stopped.
-   Questions: none.
+   Planned in detail 2026-11-19 (the user: "Plan step 5 please").
+
+   Where it is now.  The sweep is a script in a session's scratchpad (getters/sweep.py, 88 lines), so it is lost when the
+   scratchpad is: an item is a solution in one configuration, built (MSBuild -m:2) and then its suites run, one item after
+   another, each result a line in sweep_results.txt (an item already there is skipped, so a stopped sweep goes on).  Its
+   last results (2026-11-17/18, stopped after TestSupportLib65 Release|x64, the power cut) add up to, per configuration:
+     Release|x64    builds  427 s, runs 1201 s (TestCppCompilerLib 599 s of them)
+     Release|Win32  builds  359 s, runs  782 s (675 s)
+     Debug|x64      builds  527 s, runs 2963 s (2507 s)
+     Debug|Win32    builds  496 s, runs 6651 s (5660 s)
+   for the twelve CommonLibraries solutions; the *65 suites, LogiCim's, HCP65's, the IDE's and TestHCP65Lib (29 minutes in
+   Release|x64 since the Blitter Board work) come on top.  Nothing overlaps: a build waits for the run before it.
+
+   a. The script into the repository: Tests/Sweep.py beside RunParallel.py, with the list of what is tested (the memory's
+      "only list", test-sweep-howto) as its table: each solution, the suites it builds and how each runs (directory,
+      arguments, which configurations).  So the list and the way it runs are in one place that every session can read.
+   b. Two lanes.  A builder builds the items in order, one at a time (one MSBuild -m:2 -nodeReuse:false); a runner runs each
+      built item's suites, one at a time, in the same order.  The builder may be at most one item ahead of the runner, and
+      starts a build alongside a run only when free memory is over 3 GB (else it waits for the run to end), as RunParallel
+      does.  An item's suites run only after its build has ended, and no build is of the item that is running (MSBuild would
+      relink its exe): the builder's next item is always a later one.  The CommonLibraries libraries are built into shared
+      folders by many solutions, but only by the builder, so never twice at once; what a run reads (its exe, BaseLib's and
+      Libc65's sources for the compiler suites) no build writes.
+   c. The order within a configuration: the longest runs first (TestCppCompilerLib, TestHCP65Lib, the *65 suites, then the
+      rest by their last time, kept in sweep_results.txt), so the short items' builds are done while the long ones run, and
+      the configurations one after another (Release|x64, Release|Win32, Debug|x64).  TestCppCompilerLib runs through
+      RunParallel.py (step 1: 4 processes), and while it runs the builder waits (four processes and a build don't fit
+      in 7.9 GB with another session's work).
+   d. Debug|Win32: an item in it only when that solution's build or a suite failed in Release|x64 or Release|Win32 (the
+      user's rule, 2026-11-18), added once both Release configurations are done.
+   e. Sharing the machine.  Before each build and each run the sweep looks for Tests/Output/Sweep.pause and waits while it
+      is there, so another session (or the user) can hold it between items without stopping it; the session running the
+      sweep relays each long run's start and end to the others (the sweep prints them).  A run is never started under
+      2 GB free.  The sweep is one process for hours, so it runs in the background, and if it is stopped (low memory, a
+      power cut) it is started again: sweep_results.txt says what is done, and an item half done is done again.
+   f. sweep_results.txt as now (an item, the build's result and time, each suite's exit, totals, first failure and time),
+      plus when each began, so how much overlapped can be seen; a summary at the end: the failures, the totals per
+      configuration, the wall time.
+   g. Check: one sweep with Sweep.py gives the same results as the last one item by item (the same totals, allowing the
+      known platform differences in test-sweep-howto), and its wall time is compared with the sum of the old one's.
+
+   Expected: per configuration about the longest of (all builds, all runs), as the builds hide behind the runs; with step
+   1's RunParallel (TestCppCompilerLib 599 s -> ~165 s in Release|x64, 2507 s -> ~700 s in Debug|x64) and no Debug|Win32
+   unless a Release one fails, the sweep goes from ~3.5 h to about 1-1.5 h, most of it TestHCP65Lib and Debug|x64's runs.
+
+   Questions for the user:
+   1. The list.  The scratchpad script also has TestSceneViewLib, TestTemplateLib (in HCP65IDE.sln) and HCP65-Sculpt
+      (TestSculptLib and the HCP65Sculpt app), which the memory's list doesn't.  Are they on it?
+   2. TestHCP65Lib in every configuration?  It is 29 minutes in Release|x64 (more in Debug), runs the kernal on the
+      emulator and has been reaped for low memory here before; the *65 suites run only in Release|x64 (the user,
+      2026-11-08).  Release|x64 only for it too?
+   3. The *65 suites: the sweep has only ever run them for the 65C64.  Run them for the W65C816 too (TestSupportLib65 816
+      ~13 minutes), now that it is the target most work is for?
+   The user's answers, 2026-11-19: 1 yes, they are on the list; 2 TestHCP65Lib in Release|x64 only (the other
+   configurations still build HCP65Emulator.sln); 3 the *65 suites on both processors (each suite run twice in
+   Release|x64: no argument, then 816).
 
 Order: 1 and 5 (the biggest win, small and safe), then 3, then 2 (a to c, then d after the user's answer), then 4 (measure,
 then the user decides on lockstep).  Each step is announced to the other sessions before its runs.

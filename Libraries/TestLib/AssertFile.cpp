@@ -1,5 +1,6 @@
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/FileCompare.h"
+#include "BaseLib/Memory32.h"
 #include "AssertFile.h"
 
 
@@ -146,7 +147,7 @@ bool PrivateAssertFileString(const char* szExpectedFilename, const char* szStrin
 {
 	lsize iLength;
 
-	iLength = strlen(szString);
+	iLength = strlen32(szString);
 	return PrivateAssertFileMemory(szExpectedFilename, (void*)szString, iLength, szPrefix, iLine, szFile);
 }
 

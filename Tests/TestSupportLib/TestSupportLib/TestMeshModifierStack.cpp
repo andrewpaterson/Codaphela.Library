@@ -29,7 +29,6 @@ size CountMeshMemoryObjects(const char* szClassName)
 		}
 		oi = gcObjects.IterateMemory(&sIter);
 	}
-	sIter.Kill();
 	p = NULL;
 	return uiCount;
 }
@@ -333,6 +332,55 @@ void TestMeshEditorModifierChanges(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An output made elsewhere is the editor's until something changes: it
+// counts as a change of the modifiers, no modifier is called for it, and
+// once it's let go, or the mesh has changed, the editor makes its own.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMeshEditorSetOutput(void)
+{
+	Ptr<CMeshEditor>			pEditor;
+	Ptr<CMeshTestMoveModifier>	pAdd;
+	Ptr<CMesh>					pMade;
+
+	pEditor = OMalloc<CMeshEditor>(OMalloc<CMesh>());
+	pEditor->AddCorner(3, 0, 0);
+	pAdd = pEditor->AddModifier<CMeshTestMoveModifier>(1.0f, 1.0f);
+	AssertSize(1, pEditor->NumModifierChanges());
+
+	pMade = TestMeshOneCorner(4);
+	pEditor->SetOutput(pMade);
+	AssertSize(2, pEditor->NumModifierChanges());
+	AssertTrue(pEditor->GetOutput() == pMade);
+	AssertTrue(pEditor->GetOutput() == pMade);
+	AssertInt(0, pAdd->miCalls);
+
+	//Let go, the editor makes it.
+	pEditor->ClearOutput();
+	AssertSize(2, pEditor->NumModifierChanges());
+	AssertFalse(pEditor->GetOutput() == pMade);
+	AssertFloat(4, pEditor->GetOutput()->GetPosition(0)->x, 3);
+	AssertInt(1, pAdd->miCalls);
+
+	//Given after the mesh changed, it is of the mesh as it is now; another change of the mesh and it is made again.
+	pEditor->AddCorner(1, 1, 1);
+	pEditor->SetOutput(pMade);
+	AssertTrue(pEditor->GetOutput() == pMade);
+	AssertInt(1, pAdd->miCalls);
+	pEditor->AddCorner(2, 2, 2);
+	AssertFalse(pEditor->GetOutput() == pMade);
+	AssertInt(2, pAdd->miCalls);
+
+	//A setting changed after it was given: made again.
+	pEditor->SetOutput(pMade);
+	pEditor->mcModifiers.Touch();
+	AssertFalse(pEditor->GetOutput() == pMade);
+	AssertInt(3, pAdd->miCalls);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Scaling moves every position and is a change of shape, so the output is
 // made again from the scaled mesh.  Normals stay as they were.
 //
@@ -443,6 +491,8 @@ void TestMeshModifierStack(void)
 	TestMeshEditorOutputChanges();
 	ObjectsFlush();
 	TestMeshEditorModifierChanges();
+	ObjectsFlush();
+	TestMeshEditorSetOutput();
 	ObjectsFlush();
 	TestMeshEditorScale();
 	ObjectsFlush();

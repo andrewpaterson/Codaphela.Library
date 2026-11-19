@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "GlobalMemory.h"
 #include "ArrayBit.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,7 +75,7 @@ void CArrayBit::Zero(void)
 	lsize	iAllocatedBytes;
 	
 	iAllocatedBytes = ByteSize(miNumBits);
-	memset(GetData(), 0, iAllocatedBytes);
+	memset32(GetData(), 0, iAllocatedBytes);
 }
 
 
@@ -117,7 +118,7 @@ void CArrayBit::GrowBy(lsize iNumBits)
 	if ((uiOldByteSize <= uiTransitionSize) && (uiNewByteSize > uiTransitionSize))
 	{
 		pvData = Malloc(uiNewByteSize);
-		memcpy(pvData, GetData(), uiOldByteSize);
+		memcpy32(pvData, GetData(), uiOldByteSize);
         u.aLarge.mpvData = pvData;
 		miNumBits += iNumBits;
 		return;

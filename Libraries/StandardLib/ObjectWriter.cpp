@@ -21,7 +21,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectFileGeneral.h"
 #include "PointerObject.h"
 #include "Object.h"
-#include "FatHollowConfiguration.h"
 #include "ObjectWriter.h"
 
 
@@ -76,7 +75,7 @@ bool CObjectWriter::Write(CBaseObject* pcThis)
 		return gcLogger.Error2(__METHOD__, " Could not write object magic saving object [", ObjectToString(pcThis), "].", NULL);
 	}
 
-	InitObjectHeader(&sHeader, pcThis, false);
+	InitObjectHeader(&sHeader, pcThis);
 	if (!WriteObjectHeader(&sHeader))
 	{
 		return gcLogger.Error2(__METHOD__, " Could not write object header saving object [", ObjectToString(pcThis), "].", NULL);
@@ -137,7 +136,7 @@ bool CObjectWriter::WritePointer(CPointer& pObject)
 	CEmbeddedObject* pcEmbeddedObject;
 
 	pcEmbeddedObject = pObject.Object();
-	return WriteDependent(pcEmbeddedObject, false);
+	return WriteDependent(pcEmbeddedObject);
 }
 
 
@@ -150,7 +149,7 @@ bool CObjectWriter::WritePointer(CPointer* pObject)
 	CEmbeddedObject* pcEmbeddedObject;
 
 	pcEmbeddedObject = pObject->Object();
-	return WriteDependent(pcEmbeddedObject, false);
+	return WriteDependent(pcEmbeddedObject);
 }
 
 
@@ -158,7 +157,7 @@ bool CObjectWriter::WritePointer(CPointer* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent, bool bFatHollow)
+bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 {
 	bool				bResult;
 	CBaseObject*		pcContainer;
@@ -175,12 +174,8 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent, bool bFatHollow
 			return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcDependent), "} is not embedded in its container {", ObjectToString(pcContainer), "}.", NULL);
 		}
 		iNumEmbedded = pcContainer->NumEmbedded();
-		if ((bFatHollow || gbForceFatHollows) && (pcContainer->ClassSize() >= OBJECT_IDENTIFIER_SIZE_NOT_SET))
-		{
-			return gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcContainer), "} of [", SizeToString(pcContainer->ClassSize()), "] bytes is too big to be a fat hollow (65534 at most).", NULL);
-		}
 
-		InitIdentifier(&sIdentifier, pcContainer, bFatHollow || gbForceFatHollows);
+		InitIdentifier(&sIdentifier, pcContainer);
 		bResult = WriteIdentifier(&sIdentifier);
 		bResult &= WriteInt16((uint16)iNumEmbedded);
 		bResult &= WriteInt16((uint16)iEmbeddedIndex);
@@ -196,7 +191,7 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent, bool bFatHollow
 	}
 	else
 	{
-		InitIdentifier(&sIdentifier, NULL, bFatHollow);
+		InitIdentifier(&sIdentifier, NULL);
 		bResult = WriteIdentifier(&sIdentifier);
 		return bResult;
 	}
@@ -207,11 +202,11 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent, bool bFatHollow
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObject, bool bFatHollow)
+void CObjectWriter::InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObject)
 {
 	const char* szClassName;
 
-	InitIdentifier(pcHeader, pcObject, bFatHollow);
+	InitIdentifier(pcHeader, pcObject);
 
 	if (pcObject)
 	{
@@ -229,34 +224,23 @@ void CObjectWriter::InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObj
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::InitIdentifier(CObjectIdentifier* pcObjectIdentifier, CBaseObject* pcObject, bool bFatHollow)
+void CObjectWriter::InitIdentifier(CObjectIdentifier* pcObjectIdentifier, CBaseObject* pcObject)
 {
 	OIndex			oi;
 	const char*		szObjectName;
-	uint16			uiSize;
 
 	if (pcObject)
 	{
-		if (bFatHollow)
-		{
-			//WriteDependent refuses classes too big to say (the only fat hollows written).
-			uiSize = (uint16)pcObject->ClassSize();
-		}
-		else
-		{
-			uiSize = OBJECT_IDENTIFIER_SIZE_NOT_SET;
-		}
-
 		oi = pcObject->GetIndex();
 
 		if (!pcObject->IsNamed())
 		{
-			pcObjectIdentifier->Init(oi, uiSize);
+			pcObjectIdentifier->Init(oi);
 		}
 		else
 		{
 			szObjectName = pcObject->GetName();
-			pcObjectIdentifier->Init(szObjectName, oi, uiSize);
+			pcObjectIdentifier->Init(szObjectName, oi);
 		}
 	}
 	else
@@ -288,7 +272,6 @@ bool CObjectWriter::WriteIdentifier(CObjectIdentifier* pcObjectIdentifier)
 	if (pcObjectIdentifier->meType != OBJECT_POINTER_NULL)
 	{
 		ReturnOnFalse(WriteInt64(pcObjectIdentifier->moi));
-		ReturnOnFalse(WriteInt16(pcObjectIdentifier->muiSize));
 
 		if (pcObjectIdentifier->meType == OBJECT_POINTER_NAMED)
 		{

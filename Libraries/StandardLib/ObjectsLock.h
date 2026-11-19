@@ -65,8 +65,24 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //with a lock of its own can check the second where it takes that lock: ObjectsAssertNoFree says (in a Debug build)
 //when it is reached from inside a Free().
 //
+//Stored objects.  Any registered thread may use stored objects, loading them as it goes.  A hollow loaded while other
+//threads are registered isn't freed at once, as another thread may have read it and not yet asked it for its object:
+//it forwards to the object until the home thread's ObjectsCollect finds every other thread has come in since
+//(CObjects::FreeForwarders), so a registered thread that does nothing with objects keeps a hollow or two waiting.  The
+//Kill of a stored object (which leaves a hollow for what held it) is refused while another thread holds a Ptr to it,
+//and EvictInMemory while another thread holds any.  Flush, and the save of a dirty stored object as it is freed, read
+//its fields: a class whose fields other threads write saves under its own lock, or the program flushes between jobs.
+//
 //What it doesn't do: it keeps the object system right, and no object is freed while a thread holds a Ptr to it, but
 //an object's own fields are the object's to guard (as are a collection's elements) when threads share it.
+
+//A test that is seldom true, for the compilers that can be told.
+#if defined(_MSC_VER) || defined(__LIBC65__)
+#define OBJECTS_SELDOM(b)	(b)
+#else
+#define OBJECTS_SELDOM(b)	__builtin_expect(!!(b), 0)
+#endif // _MSC_VER || __LIBC65__
+
 
 #ifdef __LIBC65__
 
@@ -80,6 +96,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 inline bool ObjectsLocking(bool bLocking) { return !bLocking; }
 inline bool IsObjectsLocking(void) { return false; }
 inline bool ObjectsThreadInit(void) { return false; }
+inline bool ObjectsWorkerInit(void) { return false; }
 inline bool ObjectsThreadKill(void) { return false; }
 inline size ObjectsNumThreads(void) { return 0; }
 inline void ObjectsHomeThread(bool bHome) {}
@@ -89,6 +106,8 @@ inline bool ObjectsAreFreesWaiting(void) { return false; }
 inline bool ObjectsAssertNoFree(const char* szMethod) { return true; }
 inline void ObjectsLock(void) {}
 inline void ObjectsUnlock(void) {}
+inline void ObjectsOwnEnters(void) {}
+inline void ObjectsOwnLeaves(void) {}
 inline size ObjectsNumWaysIn(void) { return 0; }
 inline size ObjectsNumThreadErrors(void) { return 0; }
 
@@ -101,17 +120,18 @@ inline size ObjectsNumThreadErrors(void) { return 0; }
 #include "BaseLib/SpinLock.h"
 
 
+//A variable each thread has its own of: a plain one (no constructor) read in a couple of instructions.
+#ifdef _MSC_VER
+#define OBJECTS_PER_THREAD	__declspec(thread)
+#else
+#define OBJECTS_PER_THREAD	__thread
+#endif // _MSC_VER
+
+
 //Debug builds on the hosts remember which thread each stack pointer is on.
 #ifdef _DEBUG
 #define OBJECTS_THREAD_CHECKS
 #endif // _DEBUG
-
-
-#ifdef _MSC_VER
-#define OBJECTS_SELDOM(b)	(b)
-#else
-#define OBJECTS_SELDOM(b)	__builtin_expect(!!(b), 0)
-#endif // _MSC_VER
 
 
 extern bool					gbObjectsLocking;	//Changed by the home thread alone, while no other thread uses objects.
@@ -121,7 +141,8 @@ extern int32				giObjectsFreesWaiting;	//Other threads have found objects dead. 
 bool	ObjectsLocking(bool bLocking);		//The home thread's.  False (and nothing changed) if it can't be done now.
 bool	IsObjectsLocking(void);
 bool	ObjectsThreadInit(void);			//Every other thread's, before it touches an object.
-bool	ObjectsThreadKill(void);			//And when it has finished.
+bool	ObjectsWorkerInit(void);			//Or, for a thread that makes objects of its own: ObjectsThreadInit and an object system of its own (ObjectsWorker.h).
+bool	ObjectsThreadKill(void);			//And when it has finished (a worker's own object system, and what is left in it, goes).
 size	ObjectsNumThreads(void);			//The other threads registered now.
 void	ObjectsHomeThread(bool bHome);		//ObjectsInit's: the running thread is the home thread.  ObjectsKill's: no thread is.
 bool	ObjectsIsHomeThread(void);			//Always, while the locking is off.
@@ -147,35 +168,110 @@ size	ObjectsNumThreadErrors(void);		//How many times a thread has been told it u
 											//machinery reached without the lock, or objects used by a thread that isn't registered.
 
 
-//Holds the lock from where it is declared to the end of the block, when the locking is on.
+class CObjects;
+class CEmbeddedObject;
+
+
+//What a guard holds: nothing (the locking is off), the lock, or a way into the running thread's own object system (a
+//worker's), which takes no lock (ThreadSafetyPlan.txt, Level 3 as built).
+#define OBJECTS_HELD_NOTHING	0
+#define OBJECTS_HELD_LOCK		1
+#define OBJECTS_HELD_OWN		2
+
+
+//A way into pcObjects, or into pcObject's object system: the lock taken, or the thread's own.  And let go of.
+int		ObjectsEnterFor(const CObjects* pcObjects);
+int		ObjectsEnterForObject(const CEmbeddedObject* pcObject);
+void	ObjectsLeave(int iHeld);
+void	ObjectsOwnEnters(void);  //The running thread's own object system is used without a guard (a pointer's ways in).
+void	ObjectsOwnLeaves(void);
+
+
+//Holds the lock from where it is declared to the end of the block, when the locking is on.  It is given what the way
+//in is a method of (`this`): of an object system or an object, it is the lock that object system needs (none for the
+//running thread's own); of anything else (a pointer, a weak pointer), the main object system's.
 class CObjectsGuard
 {
 protected:
-	bool	mbLocked;
+	int		miHeld;
 
 public:
-	CObjectsGuard();
+	CObjectsGuard(const void* pvOther);
+	CObjectsGuard(const CObjects* pcObjects);
+	CObjectsGuard(const CEmbeddedObject* pcObject);
 	~CObjectsGuard();
+
+protected:
+	void	NotLocking(void);
 };
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The locking of it is out of line: what is here is the test every way in pays.
+// The locking is out of line: what is here is the test every way in pays,
+// which is all one thread pays.
 //
 //////////////////////////////////////////////////////////////////////////
-inline CObjectsGuard::CObjectsGuard()
+inline CObjectsGuard::CObjectsGuard(const void* pvOther)
 {
-	mbLocked = gbObjectsLocking;
-	if (OBJECTS_SELDOM(mbLocked))
+	miHeld = OBJECTS_HELD_NOTHING;
+	if (OBJECTS_SELDOM(gbObjectsLocking))
 	{
 		ObjectsLock();
+		miHeld = OBJECTS_HELD_LOCK;
 	}
-#ifdef OBJECTS_THREAD_CHECKS
 	else
 	{
-		ObjectsNotLocking();
+		NotLocking();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+inline CObjectsGuard::CObjectsGuard(const CObjects* pcObjects)
+{
+	miHeld = OBJECTS_HELD_NOTHING;
+	if (OBJECTS_SELDOM(gbObjectsLocking))
+	{
+		miHeld = ObjectsEnterFor(pcObjects);
+	}
+	else
+	{
+		NotLocking();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+inline CObjectsGuard::CObjectsGuard(const CEmbeddedObject* pcObject)
+{
+	miHeld = OBJECTS_HELD_NOTHING;
+	if (OBJECTS_SELDOM(gbObjectsLocking))
+	{
+		miHeld = ObjectsEnterForObject(pcObject);
+	}
+	else
+	{
+		NotLocking();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A Debug build checks the thread with the locking off.
+//
+//////////////////////////////////////////////////////////////////////////
+inline void CObjectsGuard::NotLocking(void)
+{
+#ifdef OBJECTS_THREAD_CHECKS
+	ObjectsNotLocking();
 #endif // OBJECTS_THREAD_CHECKS
 }
 
@@ -186,15 +282,15 @@ inline CObjectsGuard::CObjectsGuard()
 //////////////////////////////////////////////////////////////////////////
 inline CObjectsGuard::~CObjectsGuard()
 {
-	if (OBJECTS_SELDOM(mbLocked))
+	if (OBJECTS_SELDOM(miHeld != OBJECTS_HELD_NOTHING))
 	{
-		ObjectsUnlock();
+		ObjectsLeave(miHeld);
 	}
 }
 
 
-#define OBJECTS_WRITE()		CObjectsGuard cObjectsGuard
-#define OBJECTS_READ()		CObjectsGuard cObjectsGuard
+#define OBJECTS_WRITE()		CObjectsGuard cObjectsGuard(this)
+#define OBJECTS_READ()		CObjectsGuard cObjectsGuard(this)
 
 #ifdef _DEBUG
 #define OBJECTS_INSIDE()	do { if (gbObjectsLocking && !ObjectsIsInside()) { ObjectsNotInside(__METHOD__); } } while (false)

@@ -106,7 +106,6 @@ void TestObjectsInMemoryIteration(void)
 	oi = gcObjects.IterateMemory(&sIter);
 	AssertLong(9LL, oi);
 	oi = gcObjects.IterateMemory(&sIter);
-	sIter.Kill();
 	AssertLong(INVALID_O_INDEX, oi);
 
 	ObjectsFlush();
@@ -151,7 +150,7 @@ void TestObjectsObjectSave(void)
 	AssertLong(9, gcObjects.NumMemoryIndexes());
 	AssertLong(6, gcObjects.NumMemoryNames());
 	iSerialisedSize = pDouble->SerialisedSize();
-	AssertLSize(146, pDouble->SerialisedSize());
+	AssertLSize(138, pDouble->SerialisedSize());
 	AssertLong(1, pcDatabase->NumDataCached(NamedIndexedHeaderSize(pDouble->GetName(), iSerialisedSize)));
 	AssertLong(1, pcDatabase->NumDataCached());
 	Pass();
@@ -159,7 +158,7 @@ void TestObjectsObjectSave(void)
 	AssertTrue(pDouble.BaseObject()->Flush());
 	AssertLong(1, pcDatabase->NumIndices());
 	iSerialisedSize = pDouble->SerialisedSize();
-	AssertLSize(146, iSerialisedSize);
+	AssertLSize(138, iSerialisedSize);
 	AssertLong(1, pcDatabase->NumDataCached(NamedIndexedHeaderSize(pDouble->GetName(), iSerialisedSize)));
 	AssertLong(1, pcDatabase->NumDataCached());
 	
@@ -169,18 +168,18 @@ void TestObjectsObjectSave(void)
 	AssertTrue(pDouble.BaseObject()->Flush());
 	AssertLong(1, pcDatabase->NumIndices());
 	iSerialisedSize = pDouble->SerialisedSize();
-	AssertLSize(160, iSerialisedSize);
+	AssertLSize(150, iSerialisedSize);
 	AssertLong(1, pcDatabase->NumDataCached(NamedIndexedHeaderSize(pDouble->GetName(), iSerialisedSize)));
 	AssertLong(1, pcDatabase->NumDataCached());
 
 	pDouble->mszString = OMalloc<CString>("Different Object");
 
 	iSerialisedSize = pDouble->SerialisedSize();
-	AssertLSize(160, iSerialisedSize);
+	AssertLSize(150, iSerialisedSize);
 	AssertTrue(pDouble.BaseObject()->Flush());
 	AssertLong(1, pcDatabase->NumIndices());
 	iSerialisedSize = pDouble->SerialisedSize();
-	AssertLSize(160, iSerialisedSize);
+	AssertLSize(150, iSerialisedSize);
 	AssertLong(1, pcDatabase->NumDataCached(NamedIndexedHeaderSize(pDouble->GetName(), iSerialisedSize)));
 	AssertLong(1, pcDatabase->NumDataCached());
 
@@ -278,15 +277,15 @@ void TestObjectsFlushDurable(void)
 
 
 	//The index files left out (Index/38_0.IDAT, Index/Files.IDX, Index/Index.IDX and Names/Index.IDX) hold sizes as wide as the build.
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "90_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "90_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "86_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "86_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "96_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "96_0.DAT");
 	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "100_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "100_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "104_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "104_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "129_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "129_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "154_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "154_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "157_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "157_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "158_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "158_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "169_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "169_0.DAT");
-	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "181_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "181_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "123_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "123_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "148_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "148_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "149_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "149_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "152_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "152_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "161_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "161_0.DAT");
+	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "173_0.DAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "173_0.DAT");
 	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "22_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "22_0.IDAT");
 	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "86_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "86_0.IDAT");
 	AssertFile("Input" _FS_ "Dehollowfication" _FS_ "Primary" _FS_ "Index" _FS_ "2062_0.IDAT", "Output" _FS_ "Flush2" _FS_ "Primary" _FS_ "Index" _FS_ "2062_0.IDAT");
@@ -955,7 +954,7 @@ void TestObjectsCallbacks(void)
 		AssertSize(0, guiTestObjectsDestroyed);
 		AssertPointer(pObject.Object(), gpcTestObjectsCallbackObject);
 
-		pcHollow = gcObjects.AllocateInternalHollow("", gcObjects.GetIndexGenerator()->GetNext(), 1, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+		pcHollow = gcObjects.AllocateInternalHollow("", gcObjects.GetIndexGenerator()->GetNext(), 1);
 		AssertNotNull(pcHollow);
 		AssertSize(2, guiTestObjectsAllocated);
 		AssertSize(1, guiTestObjectsHollows);

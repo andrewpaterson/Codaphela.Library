@@ -19,7 +19,6 @@
 #include "StandardLib/SetObject.h"
 #include "StandardLib/ChunkFileObjectWriter.h"
 #include "StandardLib/ExternalObjectSerialiser.h"
-#include "StandardLib/FatHollowConfiguration.h"
 #include "TestLib/Assert.h"
 #include "ObjectTestClasses.h"
 #include "ChunkFileObjectWriterTestClasses.h"
@@ -522,10 +521,8 @@ void TestDehollowficationFromChunkFileSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void TestDehollowficationFatFromDatabaseSimple(void)
+void TestDehollowficationEmbeddedFromDatabase(void)
 {
-	ForceFatHollows();
-
 	CCodabase*					pcDatabase;
 	CSequence*					pcSequence;
 	CFileUtil					cFileUtil;
@@ -625,11 +622,8 @@ void TestDehollowficationFatFromDatabaseSimple(void)
 		pPtr3 = gcObjects.Get("3");
 
 		AssertString("CHollowObject", pPtr1->PointerObject()->ClassName());
-		AssertTrue(((CHollowObject*)pPtr1->PointerObject())->IsFatHollow());
 		AssertString("CHollowObject", pPtr2->PointerObject()->ClassName());
-		AssertTrue(((CHollowObject*)pPtr2->PointerObject())->IsFatHollow());
 		AssertString("CHollowObject", pPtr3->PointerObject()->ClassName());
-		AssertTrue(((CHollowObject*)pPtr3->PointerObject())->IsFatHollow());
 
 		AssertPointer(&pPtr1, pPtr1->mp.Embedding());
 		&(pPtr1->mp);
@@ -672,7 +666,6 @@ void TestDehollowficationFatFromDatabaseSimple(void)
 
 	cFileUtil.RemoveDir(szDirectory);
 
-	UnforceFatHollows();
 }
 
 
@@ -680,10 +673,8 @@ void TestDehollowficationFatFromDatabaseSimple(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void TestDehollowficationFatFromDatabaseEmbeddedPointer(void)
+void TestDehollowficationFromDatabaseEmbeddedPointer(void)
 {
-	ForceFatHollows();
-
 	CCodabase*					pcDatabase;
 	CSequence*					pcSequence;
 	CFileUtil					cFileUtil;
@@ -736,12 +727,11 @@ void TestDehollowficationFatFromDatabaseEmbeddedPointer(void)
 		Ptr<CString>				pString2;
 		CEmbeddedObject*			pcHollowEmbedded;
 
-		//Loading "2" first makes the fat hollow with a heap from on its embedded hollow for mString2.
+		//Loading "2" first makes the hollow with a heap from on its embedded hollow for mString2.
 		pPtr2 = gcObjects.Get("2");
 		pPtr1 = gcObjects.Get("1");
 
 		AssertString("CHollowObject", pPtr1->PointerObject()->ClassName());
-		AssertTrue(((CHollowObject*)pPtr1->PointerObject())->IsFatHollow());
 		pcHollowEmbedded = pPtr2->mp.Object();
 		AssertTrue(pcHollowEmbedded->IsHollow());
 		AssertPointer(pPtr1->mp.Object(), pcHollowEmbedded->GetEmbeddingContainer());
@@ -770,7 +760,6 @@ void TestDehollowficationFatFromDatabaseEmbeddedPointer(void)
 
 	cFileUtil.RemoveDir(szDirectory);
 
-	UnforceFatHollows();
 }
 
 
@@ -817,16 +806,14 @@ void SaveDehollowficationEmbeddedPointers(char* szDirectory)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A fat hollow pointed to only through one of its embedded hollows (once
+// A hollow pointed to only through one of its embedded hollows (once
 // the pointer to the hollow itself goes) is still reached from the root:
 // it keeps its distance to the root and isn't freed, and loading it gives
 // the pointer the real embedded object.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestDehollowficationFatHeldOnlyThroughEmbedded(void)
+void TestDehollowficationHeldOnlyThroughEmbedded(void)
 {
-	ForceFatHollows();
-
 	CCodabase*					pcDatabase;
 	CSequence*					pcSequence;
 	CFileUtil					cFileUtil;
@@ -887,7 +874,6 @@ void TestDehollowficationFatHeldOnlyThroughEmbedded(void)
 
 	cFileUtil.RemoveDir(szDirectory);
 
-	UnforceFatHollows();
 }
 
 
@@ -900,8 +886,6 @@ void TestDehollowficationFatHeldOnlyThroughEmbedded(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowficationEmbeddedPointerToLoadedObject(void)
 {
-	ForceFatHollows();
-
 	CCodabase*					pcDatabase;
 	CSequence*					pcSequence;
 	CFileUtil					cFileUtil;
@@ -945,7 +929,6 @@ void TestDehollowficationEmbeddedPointerToLoadedObject(void)
 
 	cFileUtil.RemoveDir(szDirectory);
 
-	UnforceFatHollows();
 }
 
 
@@ -958,8 +941,6 @@ void TestDehollowficationEmbeddedPointerToLoadedObject(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowficationStackPointerToEmbeddedHollow(void)
 {
-	ForceFatHollows();
-
 	CCodabase*		pcDatabase;
 	CSequence*		pcSequence;
 	CFileUtil		cFileUtil;
@@ -1035,7 +1016,6 @@ void TestDehollowficationStackPointerToEmbeddedHollow(void)
 
 	cFileUtil.RemoveDir(szDirectory);
 
-	UnforceFatHollows();
 }
 
 
@@ -1048,8 +1028,6 @@ void TestDehollowficationStackPointerToEmbeddedHollow(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowficationLoadedByName(void)
 {
-	ForceFatHollows();
-
 	CCodabase*		pcDatabase;
 	CSequence*		pcSequence;
 	CFileUtil		cFileUtil;
@@ -1087,7 +1065,6 @@ void TestDehollowficationLoadedByName(void)
 
 	cFileUtil.RemoveDir(szDirectory);
 
-	UnforceFatHollows();
 }
 
 
@@ -1099,8 +1076,6 @@ void TestDehollowficationLoadedByName(void)
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowficationFreedObjectUnlinksFromEmbeddedHollow(void)
 {
-	ForceFatHollows();
-
 	CCodabase*		pcDatabase;
 	CSequence*		pcSequence;
 	CFileUtil		cFileUtil;
@@ -1143,7 +1118,6 @@ void TestDehollowficationFreedObjectUnlinksFromEmbeddedHollow(void)
 
 	cFileUtil.RemoveDir(szDirectory);
 
-	UnforceFatHollows();
 }
 
 
@@ -1463,7 +1437,7 @@ void TestDehollowficationLoadMapMembers(void)
 //
 // Loading the hollow members of a big array and an unsorted set remaps
 // each through the indices the collection keeps.  (A sorted set's members
-// are fat hollows: they are loaded where they are and not remapped.)
+// are remapped the same way, and keep their order: TestSetObjectLoadKeepsOrder.)
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDehollowficationLoadArrayAndSetMembers(void)
@@ -1593,16 +1567,16 @@ void TestDehollowficationLoadArrayAndSetMembers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A hub loaded as a fat hollow (it is in a sorted set) gets its many froms
-// while hollow, then is loaded in place: it keeps where they are.
+// A hub in a set gets its many froms while hollow, then is loaded: they
+// all move to the loaded object, through where they are kept.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestDehollowficationLoadFatHub(void)
+void TestDehollowficationLoadHub(void)
 {
 	CCodabase*		pcDatabase;
 	CSequence*		pcSequence;
 	CFileUtil		cFileUtil;
-	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "FatHub";
+	char			szDirectory[] = "Output" _FS_ "Dehollowfication" _FS_ "Hub";
 	char			szErrors[1024];
 	size			i;
 	OIndex			oiHub;
@@ -1702,9 +1676,9 @@ void TestDehollowfication(void)
 	TestDehollowficationFromDatabaseComplex();
 	TestDehollowficationFromDatabaseOfTwoPointers();
 	TestDehollowficationFromChunkFileSource();
-	TestDehollowficationFatFromDatabaseSimple();
-	TestDehollowficationFatFromDatabaseEmbeddedPointer();
-	TestDehollowficationFatHeldOnlyThroughEmbedded();
+	TestDehollowficationEmbeddedFromDatabase();
+	TestDehollowficationFromDatabaseEmbeddedPointer();
+	TestDehollowficationHeldOnlyThroughEmbedded();
 	TestDehollowficationEmbeddedPointerToLoadedObject();
 	TestDehollowficationStackPointerToEmbeddedHollow();
 	TestDehollowficationLoadedByName();
@@ -1713,7 +1687,7 @@ void TestDehollowfication(void)
 	TestDehollowficationLoadIndexMembers();
 	TestDehollowficationLoadMapMembers();
 	TestDehollowficationLoadArrayAndSetMembers();
-	TestDehollowficationLoadFatHub();
+	TestDehollowficationLoadHub();
 
 	DataIOKill();
 	TypesKill();

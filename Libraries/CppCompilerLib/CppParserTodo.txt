@@ -498,6 +498,27 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         sizeof(a) / sizeof(a[0]) loop bound and BaseLib's size arithmetic is then 32 bit unless the constant is folded
         narrow, which costs code and cycles), or keep it 16 bits and make Libc65's size_t unsigned int on the W65C816
         (objects over 64KB can't be sized, as now)?
+        The user, 2026-11-18: "make Libc65's size_t 16-bit", though it limits what malloc can be asked for, and asked
+        whether the 32 bit allocation should then be the special case, as CTrueMallocator::MallocWithin (memory that
+        doesn't cross a bank) is the special case now.  Proposed (waiting for the user's word on the open points):
+        - size_t is unsigned int and ptrdiff_t int on the W65C816, as sizeof already is; malloc, calloc, realloc and
+          the string functions take and give 16 bit counts.  memcpy16 and the other 16 bit ones (stringW65C816_16.asm)
+          become memcpy and the others, and today's 32 bit bodies (stringW65C816.asm) get a suffix: malloc32, calloc32,
+          realloc32, memcpy32, memmove32, memset32, memcmp32, memchr32, strlen32 (the suffix as memcpy16's is now).
+          BaseLib's lsize paths call them: CSystemAllocator::Malloc and Realloc (lsize) on Libc65, and the copies of
+          lsize bytes.  Where an lsize reaches a size_t is found with the narrowing warning on in the *65 compiles.
+        - malloc's blocks never cross a bank: the heap is a CTrueMallocator region per 64KB bank, so no block can, and
+          Malloc stays constant time (MallocWithin walks every block when the first found doesn't fit, so making it the
+          ordinary path would lose that).  The kernal's bOneBank allocation is then plain Malloc.
+        - malloc32 of more than a bank takes whole adjacent banks, as the kernal's KernalTakeHeapBanks does for its main
+          heap; a bank goes back when its blocks are all free (IsRegionFree, RemoveRegion, as the kernal does).  The cost
+          is up to 64KB less one rounding a large allocation up, and banks the small heap holds can't be taken whole.
+        - Open for the user: the suffix (malloc32 and memcpy32, or an l prefix as BaseLib's lsize); whole banks for large
+          allocations, or one TLSF region that crosses banks for them (less rounding, more fragmentation); whether the
+          16 suffixed names stay as aliases.  The labels with a size_t parameter change again on the W65C816 (m to j).
+        Decided, 2026-11-18: "32 suffix please.  Whole banks.  Drop 16 suffixes", and ptrdiff_t stays long ("ptrdiff_t as
+        long, agreed": a difference within a malloc32 block mustn't be cut; not int as proposed above).  The user noted
+        that size and size_t are then one type on the W65C816.  The plan is Size16Plan.txt (steps 0-5, not started).
 
   Small gaps found on 2026-11-18 (by the exceptions work), not done yet:
     - A function template declared and never defined can't be named in an unevaluated operand: noexcept(ref<A>()) with

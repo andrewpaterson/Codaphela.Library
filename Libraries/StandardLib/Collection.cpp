@@ -170,7 +170,11 @@ void CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate)
 		return;
 	}
 
-	if (IsEmbeddingContainerAllocatedInObjects())
+	if (OBJECTS_SELDOM(IsAcross(GetWorkerObjects(), pcObject)))
+	{
+		AddAcrossFrom(pcObject);
+	}
+	else if (IsEmbeddingContainerAllocatedInObjects())
 	{
 		pcObject->AddHeapFrom(this, bValidate);
 	}
@@ -178,6 +182,28 @@ void CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bValidate)
 	{
 		pcObject->AddStackFrom(this, bValidate);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcObject, a main object, was put in this, a worker's collection
+// (ThreadSafetyPlan.txt, Level 3): it is held as a collection on the
+// worker's stack holds an object, under the main lock.  A hollow is loaded
+// now, which points this at what it is loaded as: a load later would
+// change this collection under the main lock while the worker uses it
+// without.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCollection::AddAcrossFrom(CEmbeddedObject* pcObject)
+{
+	ObjectsLock();
+	pcObject->AddStackFrom(this, false);
+	if (pcObject->IsHollow())
+	{
+		pcObject->Dehollow();
+	}
+	ObjectsUnlock();
 }
 
 
@@ -225,7 +251,16 @@ void CCollection::MembersChanged(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCollection::UnlinkFrom(CEmbeddedObject* pcObject)
 {
-	if (IsEmbeddingContainerAllocatedInObjects())
+	bool	bResult;
+
+	if (OBJECTS_SELDOM(IsAcross(GetWorkerObjects(), pcObject)))
+	{
+		ObjectsLock();
+		bResult = pcObject->UnlinkStackFrom(this);
+		ObjectsUnlock();
+		return bResult;
+	}
+	else if (IsEmbeddingContainerAllocatedInObjects())
 	{
 		return pcObject->UnlinkHeapFrom(this);
 	}
@@ -247,6 +282,12 @@ bool CCollection::UnlinkFromUnlessFreed(CEmbeddedObject* pcObject)
 	if ((pcObject == NULL) || pcObject->IsBeingFreed())
 	{
 		return true;
+	}
+
+	//A main object a worker's collection holds is the main object system's to free, if nothing else holds it.
+	if (OBJECTS_SELDOM(IsAcross(GetWorkerObjects(), pcObject)))
+	{
+		return RemoveObjectTryFree(pcObject, false);
 	}
 	return UnlinkFrom(pcObject);
 }
@@ -274,6 +315,11 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bValidate)
 		return true;
 	}
 
+	if (OBJECTS_SELDOM(IsAcross(GetWorkerObjects(), pcObject)))
+	{
+		return RemoveAcrossTryFree(pcObject);
+	}
+
 	if (!UnlinkFrom(pcObject))
 	{
 		return gcLogger.Error2(__METHOD__, " Could not remove Collection {", ObjectToString(this), "} From from Object {", ObjectToString(pcObject), "}.", NULL);
@@ -292,6 +338,33 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bValidate)
 	}
 #endif // _DEBUG
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcObject, a main object, was taken out of this, a worker's collection
+// (AddAcrossFrom): under the main lock its from goes, and the main object
+// system frees it (as it does: queued for its home thread) if nothing else
+// holds it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCollection::RemoveAcrossTryFree(CEmbeddedObject* pcObject)
+{
+	bool	bResult;
+
+	ObjectsLock();
+	bResult = pcObject->UnlinkStackFrom(this);
+	if (bResult)
+	{
+		bResult = pcObject->GetObjectsOrDefault()->FromRemoved(pcObject, false) != FR_Error;
+	}
+	ObjectsUnlock();
+	if (!bResult)
+	{
+		return gcLogger.Error2(__METHOD__, " Could not remove Collection {", ObjectToString(this), "} From from Object {", ObjectToString(pcObject), "}.", NULL);
+	}
+	return true;
 }
 
 

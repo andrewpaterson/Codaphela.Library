@@ -1,6 +1,7 @@
 #include "PointerFunctions.h"
 #include "MapHelper.h"
 #include "MapMapIterator.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,7 +51,7 @@ void* CMapMapIterator::Iterate(size* puiDataSize, void* pvDestKey, size* puiKeyS
 	{
 		if (pvDestKey)
 		{
-			memcpy(pvDestKey, pvKey, MinDataSize(iKeySize, uiMaxKeySize));
+			memcpy32(pvDestKey, pvKey, MinDataSize(iKeySize, uiMaxKeySize));
 		}
 		SafeAssign(puiDataSize, iDataSize);
 		SafeAssign(puiKeySize, iKeySize);

@@ -27,6 +27,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "VectorShapes.h"
 #include "ImageCel.h"
 #include "GeometryMap.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -493,7 +494,7 @@ void CGeometryMap::AddPolylinePath(CVectorPath* pcPath, SGeometryCommand* psComm
 	fHalf = psCommand->fThickness / 2;
 	asSource = masPoints.Get(psCommand->uiFirstPoint);
 
-	asPoints = (SFloat64Vec2*)malloc((lsize)sizeof(SFloat64Vec2) * psCommand->uiNumPoints);
+	asPoints = (SFloat64Vec2*)malloc32((lsize)sizeof(SFloat64Vec2) * psCommand->uiNumPoints);
 	uiNumPoints = 0;
 	for (i = 0; i < psCommand->uiNumPoints; i++)
 	{

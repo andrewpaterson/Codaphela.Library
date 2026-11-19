@@ -278,6 +278,7 @@
     <ClInclude Include="IndexTemplateTemplate.h" />
     <ClInclude Include="LogToMemory.h" />
     <ClInclude Include="Malloc.h" />
+    <ClInclude Include="Memory32.h" />
     <ClInclude Include="ArrayBlock.h" />
     <ClInclude Include="ArrayBlockSorted.h" />
     <ClInclude Include="ArraySizer.h" />

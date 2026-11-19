@@ -27,6 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Objects.h"
 #include "ObjectsLock.h"
 #include "ObjectsThreads.h"
+#include "ObjectsWorker.h"
 #include "StackPointers.h"
 
 
@@ -38,7 +39,6 @@ CRecursiveSpinLock			gcObjectsLock;
 
 static int					giObjectsHomeThread = 0;	//0 until ObjectsInit.
 int32						giObjectsFreesWaiting = 0;
-static size					guiObjectsLocksTaken = 0;	//Under the lock.
 static int32				giObjectsThreadErrors = 0;
 
 //Whether the running thread may use objects: it is the home thread, or has registered.
@@ -46,6 +46,9 @@ static thread_local bool	gbObjectsThread = false;
 
 //How many Free()s the running thread is inside (a Free() frees other objects).
 static thread_local int		giObjectsFrees = 0;
+
+//How many ways into its own object system (a worker's) the running thread is inside.
+static OBJECTS_PER_THREAD int	giObjectsOwnDepth = 0;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,8 +90,10 @@ bool ObjectsLocking(bool bLocking)
 	}
 	else if (!bLocking && gbObjectsLocking)
 	{
-		//What the threads left to be freed is freed while there is still a lock to free it under.
+		//What the threads left to be freed is freed while there is still a lock to free it under, the forwarding hollows
+		//too: no other thread is registered.
 		gcObjects.Collect();
+		gcObjects.FreeForwarders();
 		ObjectsThreadsRemoveHome();
 	}
 	gbObjectsLocking = bLocking;
@@ -154,10 +159,27 @@ bool ObjectsThreadInit(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The running thread is going to make objects of its own: it registers,
+// and OMalloc, ONMalloc and ORoot on it then go to an object system of its
+// own (ObjectsWorker.h).
+//
+//////////////////////////////////////////////////////////////////////////
+bool ObjectsWorkerInit(void)
+{
+	if (!ObjectsThreadInit())
+	{
+		return false;
+	}
+	return ObjectsWorkerOwnInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The running thread has finished with objects.  It should hold no Ptr.  Those it kept the froms of itself are let
 // go of for it, and it is said; those kept on their objects (of objects that weren't attached to the root) keep their
-// objects for good, which a Debug build, which counts them, says too.  False if it wasn't registered or still held
-// some.
+// objects for good, which a Debug build, which counts them, says too.  A worker's own object system goes, with what
+// is left in it (its pointers into it are cleared).  False if it wasn't registered or still held some.
 //
 //////////////////////////////////////////////////////////////////////////
 bool ObjectsThreadKill(void)
@@ -169,8 +191,10 @@ bool ObjectsThreadKill(void)
 		return gcLogger.Error2(__METHOD__, " The thread is not registered.", NULL);
 	}
 
+	uiStackPointers = ObjectsWorkerOwnKill();
+
 	ObjectsLock();
-	uiStackPointers = gcStackPointers.NumOnThread(CurrentThreadId());
+	uiStackPointers += gcStackPointers.NumOnThread(CurrentThreadId());
 	uiStackPointers += ObjectsThreadsRemove();
 	ObjectsUnlock();
 	gbObjectsThread = false;
@@ -214,7 +238,7 @@ void ObjectsLock(void)
 	gcObjectsLock.Lock();
 	if (gcObjectsLock.Depth() == 1)
 	{
-		guiObjectsLocksTaken++;
+		ObjectsThreadLocked();
 		ObjectsWriteBegins();
 
 		//The home thread, coming in from outside, first frees what the other threads have found dead.
@@ -223,6 +247,74 @@ void ObjectsLock(void)
 			gcObjects.Collect();
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE int ObjectsEnterFor(const CObjects* pcObjects)
+{
+	if ((pcObjects != NULL) && (pcObjects == gpcObjectsOwn))
+	{
+		ObjectsOwnEnters();
+		return OBJECTS_HELD_OWN;
+	}
+	ObjectsLock();
+	return OBJECTS_HELD_LOCK;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object in no object system (on the stack, say) is the main one's
+// business, as anything else is.  GetObjectsThisIn only reads (it isn't
+// const as GetEmbeddingContainer isn't).
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE int ObjectsEnterForObject(const CEmbeddedObject* pcObject)
+{
+	return ObjectsEnterFor(((CEmbeddedObject*)pcObject)->GetObjectsThisIn());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsLeave(int iHeld)
+{
+	if (iHeld == OBJECTS_HELD_LOCK)
+	{
+		ObjectsUnlock();
+	}
+	else
+	{
+		ObjectsOwnLeaves();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How deep the running thread is in its own object system: inside it as a
+// lock holder is in the main one, for OBJECTS_INSIDE.
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsOwnEnters(void)
+{
+	giObjectsOwnDepth++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsOwnLeaves(void)
+{
+	giObjectsOwnDepth--;
 }
 
 
@@ -268,7 +360,7 @@ bool ObjectsIsLockedByThisThread(void)
 //////////////////////////////////////////////////////////////////////////
 bool ObjectsIsInside(void)
 {
-	return gcObjectsLock.IsLockedByThisThread() || ObjectsIsReading();
+	return gcObjectsLock.IsLockedByThisThread() || ObjectsIsReading() || (giObjectsOwnDepth > 0);
 }
 
 
@@ -328,12 +420,7 @@ void ObjectsNotInside(const char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 size ObjectsNumWaysIn(void)
 {
-	size	uiLocksTaken;
-
-	gcObjectsLock.Lock();
-	uiLocksTaken = guiObjectsLocksTaken;
-	gcObjectsLock.Unlock();
-	return uiLocksTaken + ObjectsNumReads();
+	return ObjectsThreadsNumWaysIn();
 }
 
 

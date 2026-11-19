@@ -84,7 +84,7 @@ CEmbeddedObject* CArrayObject::GetPlain(size iIndex)
 {
 	if (iIndex < mcArray.UnsafeNumElements())
 	{
-		return Dereference((CEmbeddedObject**)mcArray.UnsafeGetPointer(iIndex));
+		return Dereference(iIndex);
 	}
 	return NULL;
 }

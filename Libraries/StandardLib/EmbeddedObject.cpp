@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Atomic.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
@@ -176,6 +177,77 @@ CBaseObject* CEmbeddedObject::GetEmbeddingContainer(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The order of a set's members and a map's keys (ppvObject1 and 2 point to
+// pointers to objects): by index, which a hollow shares with the object
+// loaded for it, so the two are the same as far as order goes and loading
+// moves nothing.  An embedded object goes by its container's index, then
+// its place in the container (as it is written: CObjectWriter::
+// WriteDependent).  Objects with no index (not allocated in Objects) go by
+// address.  NULL is first.
+//
+//////////////////////////////////////////////////////////////////////////
+int CEmbeddedObject::CompareIndex(const void* ppvObject1, const void* ppvObject2)
+{
+	CEmbeddedObject*	pc1;
+	CEmbeddedObject*	pc2;
+	OIndex				oi1;
+	OIndex				oi2;
+
+	//Read whole: a load may be rewriting a set's element.  Nearly always two objects, not embedded, with indexes of
+	//their own: no call.
+	pc1 = (CEmbeddedObject*)AtomicLoadPointer((void**)ppvObject1);
+	pc2 = (CEmbeddedObject*)AtomicLoadPointer((void**)ppvObject2);
+	if ((pc1 != NULL) && (pc2 != NULL) && (pc1->mpcEmbedded == NULL) && (pc2->mpcEmbedded == NULL))
+	{
+		oi1 = ((CBaseObject*)pc1)->moi;
+		oi2 = ((CBaseObject*)pc2)->moi;
+		if (oi1 != oi2)
+		{
+			return (oi1 < oi2) ? -1 : 1;
+		}
+	}
+	return CompareIndexOtherwise(pc1, pc2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// CompareIndex's other cases: NULL, embedded objects, an object compared
+// with itself, a hollow and the object loaded for it, objects with no
+// index.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE int CEmbeddedObject::CompareIndexOtherwise(CEmbeddedObject* pc1, CEmbeddedObject* pc2)
+{
+	CBaseObject*		pcContainer1;
+	CBaseObject*		pcContainer2;
+	size				uiPlace1;
+	size				uiPlace2;
+
+	if ((pc1 == pc2) || (pc1 == NULL) || (pc2 == NULL))
+	{
+		return ComparePtr(pc1, pc2);
+	}
+
+	pcContainer1 = (pc1->mpcEmbedded == NULL) ? (CBaseObject*)pc1 : pc1->GetEmbeddingContainer();
+	pcContainer2 = (pc2->mpcEmbedded == NULL) ? (CBaseObject*)pc2 : pc2->GetEmbeddingContainer();
+	if (pcContainer1->moi != pcContainer2->moi)
+	{
+		return (pcContainer1->moi < pcContainer2->moi) ? -1 : 1;
+	}
+	if ((pcContainer1 != pcContainer2) && (pcContainer1->moi == INVALID_O_INDEX))
+	{
+		return ComparePtr(pcContainer1, pcContainer2);
+	}
+
+	uiPlace1 = pcContainer1->GetEmbeddedIndex(pc1);
+	uiPlace2 = pcContainer2->GetEmbeddedIndex(pc2);
+	return (uiPlace1 < uiPlace2) ? -1 : ((uiPlace1 > uiPlace2) ? 1 : 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::LogicalDirty(void)
@@ -329,45 +401,6 @@ void CEmbeddedObject::PostRemapFroms(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// This is a copy of pcOriginal, which has been overwritten (a fat hollow
-// converted in place) and has no place in what replaced it.  The pointers
-// to pcOriginal that this holds as froms are cleared.  Returns how many
-// froms there were.
-//
-//////////////////////////////////////////////////////////////////////////
-size CEmbeddedObject::ClearFromsOfCopy(CEmbeddedObject* pcOriginal)
-{
-	size			i;
-	size			uiNumFroms;
-	size			uiNumHeapFroms;
-	CStackPointer*	pcStackPointer;
-
-	uiNumHeapFroms = CEmbeddedObject::NumHeapFroms();
-	for (i = 0; i < uiNumHeapFroms; i++)
-	{
-		CEmbeddedObject::GetHeapFrom(i)->RemovePointerTo(pcOriginal);
-	}
-
-	uiNumFroms = uiNumHeapFroms;
-	pcStackPointer = mpcStackFroms;
-	while (pcStackPointer)
-	{
-		pcStackPointer = pcStackPointer->ClearPointerGetNext(pcOriginal);
-		uiNumFroms++;
-	}
-	if (mpcStackFroms)
-	{
-		GetStackPointers()->RemoveAll(mpcStackFroms);
-	}
-	uiNumFroms += ThreadStackFromsClear(pcOriginal);
-
-	PostRemapFroms();
-	return uiNumFroms;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::RemoveAllHeapFroms(void)
@@ -418,6 +451,9 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 
 	if (pcFromObject != NULL)
 	{
+#ifdef _DEBUG
+		ValidateWorkersOwn(pcFromObject);
+#endif // _DEBUG
 		iDistToRoot = pcFromObject->GetDistToRoot();
 		AddHeapPointer(pcFromObject);
 		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
@@ -924,12 +960,13 @@ bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 {
 	OBJECTS_INSIDE();
 
+#ifdef _DEBUG
+	ValidateWorkersOwn(NULL);
+#endif // _DEBUG
+
 	//A registered thread keeps its own stack froms of objects attached to the root (ObjectsThreads.h).
 	if (ThreadStackFromAdd(this, pcPointer))
 	{
-#ifdef _DEBUG
-		ValidateStoredOnOneThread();
-#endif // _DEBUG
 		return true;
 	}
 	return StackFromLinked(LinkStackFrom(GetStackPointers()->Add(pcPointer)), bValidate);
@@ -960,43 +997,10 @@ bool CEmbeddedObject::StackFromLinked(bool bAdded, bool bValidate)
 	{
 		GetEmbeddingContainer()->StackFromAdded();
 #ifdef _DEBUG
-		ValidateStoredOnOneThread();
 		ValidateObjectsConsistency(bValidate);
 #endif // _DEBUG
 	}
 	return bAdded;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// While threads share objects, an object in the database (or the hollow standing for one) is used by one thread at a
-// time (ThreadSafetyPlan.txt, decision 4): loading it, or putting a hollow in its place, rewrites every pointer that
-// points at it, and another thread's would be rewritten while that thread used it.  A Debug build, which knows the
-// thread each stack pointer is on, says so when two threads' stacks hold one.
-//
-//////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ValidateStoredOnOneThread(void)
-{
-	CStackPointer*	pcStackPointer;
-	int				iThread;
-	bool			bOnAnother;
-
-	if (!IsObjectsLocking() || !IsStoredOrHollow())
-	{
-		return;
-	}
-
-	iThread = CurrentThreadId();
-	bOnAnother = ThreadStackFromsHasOnAnotherThread(this);
-	for (pcStackPointer = mpcStackFroms; !bOnAnother && pcStackPointer; pcStackPointer = pcStackPointer->GetNext())
-	{
-		bOnAnother = pcStackPointer->IsOnAnotherThread(iThread);
-	}
-	if (bOnAnother)
-	{
-		gcLogger.Error2(__METHOD__, " Stored object {", ObjectToString(this), "} is held from the stacks of two threads: a stored object is used by one thread at a time.", NULL);
-	}
 }
 
 
@@ -1097,7 +1101,7 @@ bool CEmbeddedObject::UnlinkStackFrom(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 NO_INLINE bool CEmbeddedObject::UnlinkStackFromOfThreads(CPointer* pcPointer)
 {
-	return ThreadStackFromRemove(pcPointer) || UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer) || ThreadStackFromRemoveAnywhere(pcPointer);
+	return ThreadStackFromRemove(this, pcPointer) || UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer) || ThreadStackFromRemoveAnywhere(this, pcPointer);
 }
 
 
@@ -1127,33 +1131,22 @@ bool CEmbeddedObject::IsAttachedToRoot(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// In the database, or standing for an object that is.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::IsStoredOrHollow(void)
-{
-	return IsHollow() || GetEmbeddingContainer()->IsStored();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The stack from of a pointer that has been pointed at this, added by a thread that is reading (ObjectsThreads.h)
-// and has seen this attached to the root.  A registered thread keeps the from itself; the home thread's goes on
-// this, where only it and writers look.
+// and has seen this attached to the root.  A registered thread keeps the from of a main object itself; the home
+// thread's goes on this, where only it and writers look, and a worker's of its own object on this, where only it does.
 //
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddStackFromReading(CPointer* pcPointer)
 {
 	OBJECTS_INSIDE();
 
-	if (ObjectsReaderIsHome())
+#ifdef _DEBUG
+	ValidateWorkersOwn(NULL);
+#endif // _DEBUG
+
+	if (ObjectsReaderIsHome() || !ThreadStackFromAdd(this, pcPointer))
 	{
 		LinkStackFrom(GetStackPointers()->Add(pcPointer));
-	}
-	else
-	{
-		ThreadStackFromAdd(this, pcPointer);
 	}
 }
 
@@ -1169,11 +1162,100 @@ bool CEmbeddedObject::UnlinkStackFromReading(CPointer* pcPointer)
 {
 	OBJECTS_INSIDE();
 
-	if (ObjectsReaderIsHome())
+	if (ObjectsReaderIsHome() || IsThreadsOwn())
 	{
 		return UnlinkStackFromList(GetStackPointers(), &mpcStackFroms, pcPointer);
 	}
-	return ThreadStackFromRemove(pcPointer);
+	return ThreadStackFromRemove(this, pcPointer);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In the running thread's own object system (a worker's): only it uses
+// this, so this keeps its froms itself, whatever the locking.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::IsThreadsOwn(void)
+{
+	CObjects*	pcOwn;
+
+	pcOwn = ObjectsOwn();
+	return (pcOwn != NULL) && (GetObjectsThisIn() == pcOwn);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// KeepWorkersOwnTos with the locking on.
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::KeepWorkersOwnTosLocking(CArrayEmbeddedObjectPtr* papcTos, size uiFirst)
+{
+	CObjects*	pcWorker;
+	size		i;
+
+	pcWorker = GetWorkerObjectsLocking();
+	if (pcWorker != NULL)
+	{
+		i = papcTos->NumElements();
+		while (i > uiFirst)
+		{
+			i--;
+			if (IsAcross(pcWorker, papcTos->GetPtr(i)))
+			{
+				papcTos->RemoveAt(i, true);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// GetWorkerObjects with the locking on.
+//
+//////////////////////////////////////////////////////////////////////////
+CObjects* CEmbeddedObject::GetWorkerObjectsLocking(void)
+{
+	CObjects*	pcObjects;
+
+	pcObjects = GetObjectsThisIn();
+	return ((pcObjects != NULL) && pcObjects->IsWorker()) ? pcObjects : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A worker's objects are its own until it adopts them (ThreadSafetyPlan.txt,
+// Level 3): no object of another object system points at one (pcFromObject
+// is about to), and no other thread holds one (pcFromObject NULL: the
+// running thread is about to).
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateWorkersOwn(CBaseObject* pcFromObject)
+{
+	CObjects*	pcWorker;
+	CObjects*	pcFromObjects;
+
+	pcWorker = GetWorkerObjects();
+	if (pcWorker == NULL)
+	{
+		return;
+	}
+
+	if (pcFromObject != NULL)
+	{
+		pcFromObjects = pcFromObject->GetObjectsThisIn();
+		if ((pcFromObjects != NULL) && (pcFromObjects != pcWorker))
+		{
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(pcFromObject), "} of another object system points at {", ObjectToString(this), "}, of a worker's: a worker's objects are its own until it adopts them.", NULL);
+		}
+	}
+	else if (ObjectsOwn() != pcWorker)
+	{
+		gcLogger.Error2(__METHOD__, " A thread that isn't its worker holds {", ObjectToString(this), "}: a worker's objects are its own until it adopts them.", NULL);
+	}
 }
 
 
@@ -1231,7 +1313,7 @@ CObjects* CEmbeddedObject::GetObjectsOrDefault(void)
 	{
 		return pcObjects;
 	}
-	return &gcObjects;
+	return ObjectsCurrent();
 }
 
 
@@ -1251,24 +1333,9 @@ CObjects* CEmbeddedObject::GetObjects(void)
 			return NULL;
 		}
 
-		pcObjects = &gcObjects;
+		pcObjects = ObjectsCurrent();
 	}
 	return pcObjects;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Takes pcOther's froms (and their hub): pcOther, a copy of a fat hollow
-// this has overwritten in place, is dropped without being killed.
-//
-//////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::CopyFields(CEmbeddedObject* pcOther)
-{
-	mapHeapFromObjects = pcOther->mapHeapFromObjects;
-	mapHeapFromCollections = pcOther->mapHeapFromCollections;
-	mpcStackFroms = pcOther->mpcStackFroms;
-	mpsHub = pcOther->mpsHub;
 }
 
 

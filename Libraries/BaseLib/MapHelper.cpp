@@ -1,6 +1,7 @@
 #include <string.h>
 #include "StringHelper.h"
 #include "MapHelper.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -32,7 +33,7 @@ bool CopyString(char* pvDest, char* pvSource, size iSourceLength, size iMaxDestL
 {
 	if (pvDest)
 	{
-		memcpy(pvDest, pvSource, MinDataSize(iSourceLength, iMaxDestLength));
+		memcpy32(pvDest, pvSource, MinDataSize(iSourceLength, iMaxDestLength));
 		if ((iSourceLength < iMaxDestLength) || (iMaxDestLength == 0))
 		{
 			pvDest[iSourceLength] = '\0';
@@ -56,7 +57,7 @@ void CopyData(void* pvDest, void* pvSource, size iSourceLength, size iMaxDestLen
 {
 	if (pvDest)
 	{
-		memcpy(pvDest, pvSource, MinDataSize(iSourceLength, iMaxDestLength));
+		memcpy32(pvDest, pvSource, MinDataSize(iSourceLength, iMaxDestLength));
 		if ((iSourceLength < iMaxDestLength) || (iMaxDestLength == 0))
 		{
 			((char*)pvDest)[iSourceLength] = '\0';

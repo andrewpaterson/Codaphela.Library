@@ -50,11 +50,11 @@ void CObjects::PrintMemoryUseIteration(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::PrintMemoryUseRecursion(CChars* psz)
+void CObjects::PrintMemoryPages(CChars* psz)
 {
 	OBJECTS_READ();
 
-	mcMemory.GetObjects()->Print(psz, true, true);
+	mcMemory.GetObjects()->Print(psz);
 }
 
 
@@ -104,8 +104,9 @@ void CObjects::DumpMemoryUseIteration(void)
 	sz.Init("------------------------------------------------------------ \n");
 	sz.DumpKill();
 
-	mcMemory.GetObjects()->GetIndexes()->Dump();
-	sz.Init("------------------------------------------------------------ \n");
+	sz.Init();
+	PrintMemoryPages(&sz);
+	sz.Append("------------------------------------------------------------ \n");
 	sz.DumpKill();
 }
 
@@ -114,12 +115,12 @@ void CObjects::DumpMemoryUseIteration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::DumpMemoryUseRecursion(void)
+void CObjects::DumpMemoryPages(void)
 {
 	CChars	sz;
 
-	sz.Init("-------------------------- Indices --------------------------- \n");
-	PrintMemoryUseRecursion(&sz);
+	sz.Init("--------------------------- Pages ---------------------------- \n");
+	PrintMemoryPages(&sz);
 	sz.Append("------------------------------------------------------------ \n");
 	sz.DumpKill();
 }

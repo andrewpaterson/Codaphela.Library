@@ -37,8 +37,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 //happen in one order they all agree on (so of two threads that each Exchange a flag of their own and then Load the
 //other's, at least one sees the other's set).  A Store promises only the first.
 //
-//The sizes' and the pointers' Load and Store promise neither: they are for a value one thread writes and others
-//only need some whole value of.  The pointers' Exchange and CompareExchange are as the int32's.
+//A pointer's Store and Load publish what it points at: what a thread wrote before it Stored the pointer is seen by a
+//thread whose Load reads it (so an object made and then pointed at is whole to the thread that follows the pointer).
+//On x86-64 they are the plain instructions.  The pointers' Exchange and CompareExchange are as the int32's.
+//
+//The sizes' Load and Store promise neither: they are for a value one thread writes and others only need some whole
+//value of.
 //
 //The 65C64 and the W65C816 run one thread, so there they are plain reads and writes.
 
@@ -248,7 +252,7 @@ inline void AtomicStoreSize(lsize* pui, lsize uiValue)
 
 inline void* AtomicLoadPointer(void** ppv)
 {
-	return __atomic_load_n(ppv, __ATOMIC_RELAXED);
+	return __atomic_load_n(ppv, __ATOMIC_ACQUIRE);
 }
 
 

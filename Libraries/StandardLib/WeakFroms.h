@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __WEAK_FROMS_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/MapPtrPtr.h"
+#include "ObjectPointerArrays.h"
 
 
 class CEmbeddedObject;
@@ -70,6 +71,7 @@ public:
 	size			NumWeakFroms(CEmbeddedObject* pcObject);
 	SWeakFrom*		GetWeakFrom(CEmbeddedObject* pcObject, size uiIndex);
 	size			NumObjects(void);
+	void			GetObjects(CArrayEmbeddedObjectPtr* papcObjects);  //Every weakly held object.
 	bool			Contains(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
 	void			ValidateConsistency(void);  //Every holder points back at its object, whose container has OBJECT_FLAGS_WEAKLY_HELD and isn't freed.
 };

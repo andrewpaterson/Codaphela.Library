@@ -107,7 +107,7 @@ CBaseObject* ReadNamedObjectFile(const char* szFilename, const char* szObjectNam
 	if (cFileUtil.Exists(szFile.Text()))
 	{
 		cReader.Init(szDirectory.Text(), szName.Text());
-		cDeserialiser.Init(&cReader, false, &gcObjects);
+		cDeserialiser.Init(&cReader, false, ObjectsCurrent());
 		pcObject = cDeserialiser.Read(szObjectName);
 		cDeserialiser.Kill();
 		cReader.Kill();

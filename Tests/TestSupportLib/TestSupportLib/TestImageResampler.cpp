@@ -12,6 +12,7 @@
 #include "SupportLib/ImageWriter.h"
 #include "AssertImage.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 #define TEST_IMAGE_RESAMPLER_PI		3.14159265358979323846
@@ -563,7 +564,7 @@ int CountBlended(Ptr<CImage> pcImage, int32 iLow, int32 iHigh)
 	int		iCount;
 
 	uiNumPixels = (lsize)pcImage->GetWidth() * pcImage->GetHeight();
-	pai = (int32*)malloc(sizeof(int32) * uiNumPixels);
+	pai = (int32*)malloc32(sizeof(int32) * uiNumPixels);
 	GetResampleIntegers(pcImage, 0, pai);
 	iCount = 0;
 	for (i = 0; i < uiNumPixels; i++)
@@ -891,7 +892,7 @@ void GetRealImageRGB(Ptr<CImage> pcImage, int32** papaiRGB)
 	uiNumPixels = (lsize)pcImage->GetWidth() * pcImage->GetHeight();
 	for (c = 0; c < 3; c++)
 	{
-		papaiRGB[c] = (int32*)malloc(sizeof(int32) * uiNumPixels);
+		papaiRGB[c] = (int32*)malloc32(sizeof(int32) * uiNumPixels);
 		GetResampleIntegers(pcImage, pcImage->GetChannels()->GetIndexOfChannel(aeChannels[c]), papaiRGB[c]);
 	}
 }

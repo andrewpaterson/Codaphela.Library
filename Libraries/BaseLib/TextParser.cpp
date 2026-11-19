@@ -30,6 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "EscapeCodes.h"
 #include "CPPWhitespace.h"
 #include "CPPString.h"
+#include "Memory32.h"
 #include "CPPIdentifier.h"
 
 
@@ -39,7 +40,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 bool CTextParser::Init(const char* szText)
 {
-	return Init(szText, (lsize)strlen(szText));
+	return Init(szText, (lsize)strlen32(szText));
 }
 
 
@@ -83,7 +84,7 @@ bool CTextParser::Init(const char* szText, lsize iTextLen)
 //////////////////////////////////////////////////////////////////////////
 bool CTextParser::Init(const char* szText, STextParserConfig* psConfig)
 {
-	return Init(szText, (lsize)strlen(szText), psConfig);
+	return Init(szText, (lsize)strlen32(szText), psConfig);
 }
 
 

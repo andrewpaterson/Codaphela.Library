@@ -62,9 +62,11 @@ protected:
 public:
 						void			Init(const char* szName, CConstructors* pcConstructors);
 						void			Init(CLifeInit<CMallocator> cMalloc, const char* szName, CConstructors* pcConstructors);
+						void			InitSharing(CUnknowns* pcShared, const char* szName);  //pcShared's allocator and constructors: what it adds can be moved to pcShared.
 						void			Kill(void);
 
 						bool			Remove(CUnknown* pcUnknown);
+						void			MoveTo(CArrayUnknownPtr* papcUnknowns, CUnknowns* pcTo);
 
 	template<class M>	M*				Add(void);
 	template<class M>	M*				Add(size uiAdditionalSize);

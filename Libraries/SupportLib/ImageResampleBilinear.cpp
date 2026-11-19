@@ -20,6 +20,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "ImageResampleChannel.h"
 #include "ImageResampleBilinear.h"
+#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,9 +38,9 @@ void SBilinearAxis::Init(uint32 uiSourceSize, uint32 uiDestSize)
 	int32	iFraction;
 	int32	iLast;
 
-	paiFirst = (int32*)malloc(sizeof(int32) * (uiDestSize + 1));
-	paiSecond = (int32*)malloc(sizeof(int32) * (uiDestSize + 1));
-	paiFraction = (int32*)malloc(sizeof(int32) * (uiDestSize + 1));
+	paiFirst = (int32*)malloc32(sizeof(int32) * (uiDestSize + 1));
+	paiSecond = (int32*)malloc32(sizeof(int32) * (uiDestSize + 1));
+	paiFraction = (int32*)malloc32(sizeof(int32) * (uiDestSize + 1));
 
 	iLast = (int32)uiSourceSize - 1;
 	for (d = 0; d < uiDestSize; d++)
@@ -212,8 +213,8 @@ bool ResampleBilinear(Ptr<CImage> pSource, Ptr<CImage> pDest)
 		{
 			if (cSourceChannel.IsSmallInteger())
 			{
-				paiSource = (int32*)malloc(sizeof(int32) * cSourceChannel.NumPixels());
-				paiDest = (int32*)malloc(sizeof(int32) * cDestChannel.NumPixels());
+				paiSource = (int32*)malloc32(sizeof(int32) * cSourceChannel.NumPixels());
+				paiDest = (int32*)malloc32(sizeof(int32) * cDestChannel.NumPixels());
 				cSourceChannel.GetIntegers(paiSource);
 				ResampleBilinearIntegers(paiSource, uiSourceWidth, paiDest, uiDestWidth, uiDestHeight, &sX, &sY);
 				cDestChannel.SetIntegers(paiDest);
@@ -222,8 +223,8 @@ bool ResampleBilinear(Ptr<CImage> pSource, Ptr<CImage> pDest)
 			}
 			else
 			{
-				pafSource = (float64*)malloc(sizeof(float64) * cSourceChannel.NumPixels());
-				pafDest = (float64*)malloc(sizeof(float64) * cDestChannel.NumPixels());
+				pafSource = (float64*)malloc32(sizeof(float64) * cSourceChannel.NumPixels());
+				pafDest = (float64*)malloc32(sizeof(float64) * cDestChannel.NumPixels());
 				cSourceChannel.GetFloats(pafSource);
 				ResampleBilinearFloats(pafSource, uiSourceWidth, pafDest, uiDestWidth, uiDestHeight, &sX, &sY);
 				cDestChannel.SetFloats(pafDest);

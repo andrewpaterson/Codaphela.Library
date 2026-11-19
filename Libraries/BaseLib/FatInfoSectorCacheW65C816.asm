@@ -455,7 +455,6 @@ _CFatInfoSectorCache__AddNewCache:
 		ply
 		sta [D + W_OLDEST]
 		stx [D + W_OLDEST + 2]
-		pea 0
 		pei [D + W_EMPTY]
 		pea 0
 		phx
@@ -463,7 +462,7 @@ _CFatInfoSectorCache__AddNewCache:
 		jsl _memset
 		tsc
 		clc
-		adc 10
+		adc 8
 		tcs
 		ldx [D + W_OLDEST + 2]
 		lda [D + W_OLDEST]

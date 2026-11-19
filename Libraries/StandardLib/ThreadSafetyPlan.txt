@@ -4,7 +4,7 @@ Thread safety plan for the object system
 Today every part of the object system assumes one thread: Ptrs, froms, the distance walks, freeing, hollows, the
 allocator under gcUnknowns.  The apps that have threads (the IDE's code model and build, the emulator runner, the sound
 mixer) keep objects off them, and Sculpt's bake can't be shared among cores without "no Ptr is copied on a worker".
-This plan makes the object system itself safe to use from several threads.  Nothing here is built.
+This plan makes the object system itself safe to use from several threads.  What is built is said under each step.
 
 
 What "safe" means (the contract)
@@ -22,6 +22,9 @@ What "safe" means (the contract)
   One rule for users follows from 2: a thread that uses an object across a point where another thread could let go of
   it holds a Ptr of its own.  `pWindow->mpCanvas->Draw()` through a field, with no stack Ptr, is only safe while
   whatever guards mpCanvas is held.  The single-threaded version of this rule (a Free() re-entering) exists already.
+  And one from 4 for a program with a database (step 24f): Flush, and the save of a dirty stored object as it is
+  freed, read the object's fields on the thread doing it, so a class whose fields other threads write saves under its
+  own lock (in its Save), or the program flushes between jobs.
 
 
 What is not safe today (survey)
@@ -120,13 +123,14 @@ The design
     from the free list), 14 to 25 ns on 12 threads, the same object or not.  The thread that called ObjectsInit keeps
     its stack froms on the objects as now, so nothing changes for one thread.
     The cost moves to the writer: "has this object a stack from?" is the object's own list and then a look in each
-    worker's table.  It is asked only of objects found detached from the root.  Not built or measured yet; nor are
-    stack Ptrs to unattached objects, which stay under the lock (unrooted graphs are slow on any number of threads).
+    worker's table.  It is asked only of objects found detached from the root.  (Built and measured in step 18.  Stack
+    Ptrs to unattached objects stay under the lock: unrooted graphs are slow on any number of threads.)
     The dumps, validation and the remap of a loaded hollow's stack Ptrs read the tables too.
     The call sites don't change: step 9 already marks each entry point as a reader or a writer (ObjectsRead / ObjectsWrite
     guards that are the same lock in level 1).
     Allocation leaves the writer side here: OMalloc is allocate (the allocator's own safety), add to mcMemory (its own
-    small mutex), then a reader's stack from.  That is when the allocator has to scale.
+    small mutex), then a reader's stack from.  That is when the allocator has to scale.  (Step 21, not built: decision 8.
+    Allocating as a reader can't let threads make more objects while every free is a writer's; level 3 is the way.)
 
   Level 3: a CObjects per thread (only if objects must be BUILT in parallel)
     Levels 1 and 2 serialise every heap pointer change, so threads that build object graphs gain nothing.  The answer
@@ -134,7 +138,9 @@ The design
     is handed to the main CObjects in one step (Adopt: re-register its objects in the other memory index; no copy when
     both allocate from the same thread-safe allocator; OIndexes come from one locked sequence).  Pointers between two
     CObjects stay forbidden and validated.  OMalloc/ORoot would go through a thread_local "current objects" in place of
-    gcObjects.  Not planned in detail until something needs it.
+    gcObjects.
+    (Planned in detail and built as step 25: see Level 3 as built.  Decisions 11 to 15 changed "Pointers between two
+    CObjects stay forbidden": a worker's objects may point at main objects.)
 
   Threads register
     The home thread (the one that called ObjectsInit) switches the locking on, ObjectsLocking(true), before any other
@@ -160,8 +166,8 @@ The design
     moves: the kill order, the destruction callback, every Free(), the pointer tos and froms coming off, the memory.
     Until the home thread gets to them the dead objects still point at live ones and are still in those objects' froms;
     the walks pass over FREED froms already (a batch whose Free() changes pointers relies on it today).
-    A dirty stored object in the batch is saved before it leaves the index, on the thread that let go: left for later,
-    a Get of it would load the old one from the database in the meantime.
+    A dirty stored object in the batch is saved before it leaves the index, on the thread that let go, or a Get of it
+    would load the old one from the database in the meantime (built in step 14).
     (The alternative, freeing on the thread that let go, needs every Free() in WindowLib, the
     native canvases and the renderers to be safe on any thread.)
 
@@ -180,9 +186,11 @@ The design
     until the Codabase transaction work decides how CObjects and transactions meet (open there already), or (b) a
     hollow that has been loaded stays as a forwarder while another thread's stack Ptr still points at it (its Dehollow,
     which only a Ptr to a hollow ever calls, takes the lock and answers with the loaded object), so the cost falls
-    only on Ptrs to hollows.  (b) is to be designed with the transaction work; (a) until then.
-    Eviction and killing a held stored object are only allowed while no other registered thread is inside the object
-    system or holding a stack pointer (checked from the per-thread counts): in practice, between jobs.
+    only on Ptrs to hollows.  (b) was to be designed with the transaction work, and (a) kept until then; (b) was
+    designed and built on its own instead (Forwarding hollows, below: step 24), and (a) lifted (24f).
+    Eviction is only allowed while no other registered thread is inside the object system or holding a stack pointer
+    (checked from the per-thread counts): in practice, between jobs.  Killing a held stored object is refused while
+    another thread holds a stack pointer to it or to an object embedded in it (24f).
 
   Flags (J)
     All flag writes go under the lock in level 1 (SetDirty included).  If SetDirty from users shows up in profiles, the
@@ -438,6 +446,84 @@ The allocator
   not used by workers in level 2 (their tables).
 
 
+Forwarding hollows (step 24, planned and built 2026-11-18)
+----------------------------------------------------------
+  What it is for: a program with a database whose threads share its stored objects.  Until it was built decision 4
+  kept a stored object to one thread at a time; 24f lifted that.
+
+  The Codabase transaction work and this don't touch.  Every thread here shares one CObjects and its one data
+  connection, which is only called with the object lock held (and a CCodabase session takes calls from any thread
+  already).  A thread that wants a view of the database of its own (a read-only transaction's snapshot: the open item
+  in CodabaseTransactions.txt) wants a CObjects of its own: level 3, step 25, with that CObjects over the thread's
+  transaction.
+
+  What happens today, right on one thread.  Using a Ptr to a hollow loads the object (CObjects::Dehollow).  The loaded
+  object takes the hollow's place (ReplaceBaseObject: every pointer to the hollow, in objects, on the home thread's
+  stack and in any thread's table, is rewritten to the object; weak froms move) and the hollow is freed there and
+  then.  With other threads:
+    1. Thread B has read a pointer's mpcObject (the hollow) in operator-> and not yet called the hollow's Dehollow,
+       which is where a lock can first be taken.  Thread A loads the object and frees the hollow.  B calls into freed
+       memory.  The window is a few instructions in Dereference, and nothing can be put there (decision 4).
+    2. Two threads using one hollow: the second, once it has the lock, finds the hollow freed (1), or would load the
+       object a second time.
+    3. A rewrites words that B reads without a way in: B's own stack Ptrs, and the fields and collection elements B
+       reads through operator->.  A pointer is written whole by the hardware, so nothing breaks, but it is a race as
+       far as the language (and ThreadSanitizer) goes.
+    4. A set, and a map's keys, are kept in address order.  A loaded object has a new address, so a load leaves the
+       collection out of order and the next read sorts it: a read that writes, and two readers can sort at once.  That
+       is why their members are saved as fat hollows: a fat hollow is allocated at the object's size and the object is
+       made in place, so the address doesn't change.  But made in place, the object's class (its vtable) is there from
+       the start of its load, so a thread that reads the address meanwhile (through a field or an element) calls
+       straight into a half loaded object.  With threads a fat hollow can't be loaded in place.
+
+  The design
+    A loaded hollow forwards.  Pointers are rewritten as today, so any pointer read after the load gives the object.
+    The hollow isn't freed: it is put aside on its CObjects, paired with the object it was loaded as (nothing is added
+    to the hollow, whose size the 65 targets assert).  A hollow's Dehollow takes the lock before it reads anything of
+    its own, then asks whether it forwards; if it does it answers the object and loads nothing (1 and 2).
+    A forwarder is freed once no thread can still be in 1's window.  Each thread counts its reads and the times it
+    takes the lock, which it can't do inside the window (the window ends in the hollow's Dehollow, under the lock).  The
+    home thread checks as it collects: the forwarders put aside before its last check are freed if every other
+    registered thread's count has moved since; those put aside since wait for the next.  A thread that does nothing
+    with objects keeps them waiting (a hollow each, nothing more); a thread that ends no longer counts.  With no other
+    thread registered, or the locking off, a hollow is freed at once as today: one thread sees nothing new.
+    The words a load rewrites are read and written as relaxed atomics on the hosts (3): CPointer::Dereference's read
+    of mpcObject, the remap's writes, and the reads of a collection's elements that take no way in.  On x86-64 and
+    ARM64 these are the instructions used now (checked by counting operator->).  Plain on the 65C64 and the 816.
+    Dereference stops writing back what the hollow's Dehollow answered: the remap has rewritten the pointer already.
+    A Debug assertion shows that first; CArrayCommonObject::Dereference likewise.
+    The object a forwarder names is alive whenever a forwarder is rightly asked: the pointer B read is the one the
+    load rewrote to that object.  A Debug build checks that the object is still in memory under the hollow's index
+    when a forwarder answers.
+
+    Sets and maps (4) are decision 10: (a), the user's choice with step 24a's measurements.
+      a. Ordered by object index (an embedded member by its container's index, then its place in it).  A load changes
+         no order, and fat hollows are retired: every hollow loads into memory of its own and forwards.  The order is
+         the order objects were made in, the same on every run and under every allocator (address order broke four
+         tests when gcUnknowns changed allocator, step 23).  Costs: a comparison reads both objects' indexes where it
+         compared two addresses (the speed to be measured first); and a hollow made for a name alone must have the
+         database's index for that name from the start (today the object loaded for it takes the database's, a
+         different one, which would move it in a set).
+      b. Address order kept, and fat hollows on one thread.  While other threads are registered a fat hollow is loaded
+         into memory of its own like any other, the sets and maps it is in are put back in order at once under the
+         lock, and a read never sorts.  But an iteration on one thread can see a member move when another thread loads
+         one (it is skipped, or seen twice), and no lock of the user's can stop that: a load is somebody's read.
+
+  What doesn't change
+    EvictInMemory evicts everything in memory, so it stays between jobs (refused while another thread holds a stack
+    pointer).  Evicting part of memory while threads run (the game's paging) needs a design of its own: an object
+    another thread is using mustn't be evicted, and the only sign of that the object system sees is a stack Ptr.
+    The Kill of a stored object (it leaves a hollow behind for its holders): step 13 refuses it while another thread
+    holds any stack pointer.  Narrowed to a stack pointer to that object or one embedded in it.  Killing an object
+    another thread is using is otherwise the user's business, as it is for any object.
+    Written through (IWT_Yes): no readers, level 1, as now.
+    Flush, and the save of a dirty stored object being freed, read the object's fields.  Decision 1 already makes a
+    class guard its own fields: a class whose fields are written on several threads saves under its own lock (in its
+    Save), or the program flushes between jobs.
+
+  What goes: ValidateStoredOnOneThread, and the Debug rule that leaves a stored object's pointers to writers.
+
+
 Steps
 -----
   One list, in the order to be built.  Each step ends with TestBaseLib, TestStandardLib, TestWindowLib and
@@ -607,7 +693,8 @@ Steps
       others had let go of: with frees waiting it takes the lock, which frees them.  The times above didn't move.
   20. Level 2 proved: ThreadSanitizer, the mutation harness, the full sweep, and Sculpt (or the IDE's indexing) with
       workers that do copy Ptrs.
-      Done 2026-11-17, but for the full sweep, which is run once after step 23.
+      Done 2026-11-17, and the full sweep once step 23 was done (2026-11-18): what it found in this work is under
+      step 22; four failures that weren't this work's were mended in b0d0c146e.
       ThreadSanitizer reports nothing in TestStandardLib (79151) or in TestSculptLib's bakes.
       The guards again: the pointers' own ways in have no guard now, which leaves 100.  Each taken out in turn, 97
       make a test fail; the three that don't are step 16's three.
@@ -690,10 +777,439 @@ Steps
       Objects made on one thread and freed on another (which is every object a registered thread makes): the two
       allocators came out the same within what the measurement can tell.
 
-  Later, when something needs it
-  24. Forwarding hollows (a loaded hollow stays while another thread's stack Ptr points at it), designed with the
-      Codabase transaction decisions; decision 4's rule is lifted then.
-  25. Level 3: a CObjects for each thread, and Adopt.
+  Forwarding hollows (the design is above, under Forwarding hollows; decision 4's rule is lifted at 24f)
+  24. a. Measured first, for decision 10: a load speed test in TestObjectsSpeed (a stored tree walked through its
+         pointers, so every node is loaded: instructions a load, one thread); and sets of 10, 1000 and 100000 members,
+         Add, Contains and Remove, ordered by address and (a prototype) by index.  Today's numbers recorded.
+         Done 2026-11-18 (TestObjectsSpeedLoadTree and TestObjectsSpeedSets; OBJECTS_SPEED_SET_MEMBERS runs one size
+         of set alone, for counting).  Two builds of one commit, Release, 64 bit: as it is, and with a prototype that
+         orders a set's members by their container's index (a comparison that reads both objects; nothing else
+         changed).  Instructions by callgrind at OBJECTS_SPEED=1; time the least of five runs of the whole test
+         program each, the two builds taking turns, OBJECTS_SPEED=100.
+                                                    address order            index order
+                                                    instructions    ns       instructions    ns
+           Contains, a set of 10                         104          5.2         193          9.2
+                     1000                                181         31.7         440         51.6
+                     100000                              264        139           703        229
+           Add, filling a set of 10                      510          -           576           -
+                                 1000                    721         76           959        107
+                                 100000                19377       2497         19796       2694
+           a member removed and added back, of 10       2101        113          2436        133
+                                               1000   228853       7797        228054       7931
+                                               100000  26.6 M     2.95 ms      26.6 M     2.94 ms
+           an object loaded (the tree, 4373 objects)   28994       4063         28963       3923
+         (The clock can't time ten Adds.)  By index, Contains takes 1.6 to 1.9 times as long: 4 ns more on a set of
+         10, 20 on 1000, 90 on 100000.  An Add takes 41% longer on 1000 members and 8% on 100000, where moving the
+         members after it is most of an Add.  The prototype compares through a function pointer and tests every case
+         each time; a comparison written for objects alone would take fewer instructions, but at 100000 members it is
+         reading the objects that costs, and that stays.
+         The whole of TestStandardLib passes with the prototype: no test leans on address order.
+         Found on the way, the same in either order:
+           A set of 64 members or more (COLLECTION_MEMBER_LOCATIONS_THRESHOLD) that has had a member added anywhere
+           but at its end works out where every member is again (its member locations) the next time one is
+           removed: 229 instructions a member, 83% of the time above, 7.8 microseconds to remove one from 1000 and
+           3 milliseconds from 100000.  A sorted set can find a member by searching it.
+           A load is 29000 instructions, 4 microseconds, an object.  A third of that is the database being asked
+           whether it has the object before it is read (GetFromDatabase calls CCodabase::Contains), which in a
+           session takes a lock through the session's write transaction (CWriteTransaction::LockOrDie, 30%).  Those
+           locks are held until Close, and a load costs more the more have been read: 24000 instructions an object
+           when 485 are read, 29000 when 4373 are.
+      b. Decision 10 built.  (a): sets and maps by index, a hollow made for a name alone given the database's index,
+         fat hollows retired and the size they were made at taken out of the record format (2 bytes less in every
+         record's header and every pointer it writes; nothing outside the tests reads the format yet, the user said).
+         (b): fat hollows loaded into memory of their own while other threads are registered, the sets and maps
+         re-sorted under the lock, no sort on a read.  One thread passes as before either way.
+         Done 2026-11-18, (a), in two commits.
+         The order.  A set's members and a map's keys are ordered by CEmbeddedObject::CompareIndex: an object by its
+         index, an embedded object by its container's then its place in it (as CObjectWriter::WriteDependent writes
+         it), objects with no index by address.  A hollow and the object loaded for it sort as one, so a load or a
+         remap leaves a set or map unsorted only when the member changed what it is (MorphInto); a set or map is saved
+         in order and read back in order; a hollow made for a name alone has the database's index for it.  Lookups
+         that mean one object find that object among those that sort with it (a map's remap found the new key's entry
+         when asked again for the old one: TestMapObject's member locations).  The common case (two objects with
+         indexes of their own) is compared without a call.
+         Fat hollows retired: the in-place conversion, FatHollowConfiguration, CopyFields, and the size in the record
+         format (2 bytes less in every record's header and in every pointer it writes).  The files tests compare
+         what they write with (Input/*.DRG and the Codabase's data files in Input/Dehollowfication) were written
+         again; the Codabase's index and name files came out byte for byte the same.
+         Found on the way:
+           A map that was killed sorted its holding entries first, comparing keys its Kill had already freed
+           (ASan, once a comparison read the keys).  CMapBlock::Kill frees the entries where they are.
+           A hollow killed with pointers to its embedded hollows (an object loaded for it with fewer embedded objects
+           than it was saved with) left them pointing at freed memory: the fat path cleared them itself, the other
+           path relied on Kill, which a hollow didn't extend to its embedded hollows.  CHollowObject now does, as
+           CObject does (RemoveAllHeapFroms, RemoveAllStackFroms); TestEmbedded's two fat tests, made ordinary loads,
+           found it.
+         Instructions (callgrind, OBJECTS_SPEED=1), next to 24a's:
+                                              address order    prototype    as built
+           Contains, a set of 10                    104            193          205
+                     1000                           181            440          412
+                     100000                         264            703          639
+           Add, filling a set of 10                 510            576          567
+                                 1000               721            959          917
+                                 100000           19377          19796        19717
+           an object loaded (4373)                28994          28963        28779
+         Time, the least of five runs of the whole test program each, taking turns with 24a's address-order build
+         (the machine busier than for 24a), ns:  Contains 5.2, 30.8 and 155 by address against 9.2, 53.3 and 238 as
+         built; an Add filling a set of 1000 74 against 90, of 100000 2451 against 2704; a load 3938 against 3972.
+         The prototype's times, in other words: at 100000 members it is reading the members that costs, and fewer
+         instructions don't change that.
+      c. Forwarders: the pairs put aside on the CObjects; the remap leaving a hollow forwarding when another thread is
+         registered; the hollow's Dehollow taking the lock first and answering; each thread's count; the home thread's
+         check as it collects; ObjectsKill and ObjectsLocking(false) freeing what is left; NumForwarders for the
+         tests; the Debug check of the object a forwarder names.
+         Done 2026-11-18.  A hollow loaded while another thread is registered is remapped as before
+         (CObjectRemapFrom::RemapFroms, the remap without the Kill), pointers to embedded hollows the object has no
+         place for are cleared, and the hollow is put aside on its CObjects with what it was loaded as (out of
+         memory's index, as a loaded hollow always was).  A hollow's Dehollow is CObjects::Dehollow(CHollowObject*),
+         which takes the lock and then answers a forwarder's object, loading nothing.  Each thread counts its ways in,
+         its reads and the times it takes the lock (SObjectsReader's iReads and iLocks, on its own cache line, written
+         by the thread alone); the home thread's ObjectsCollect marks the other threads' counts, and a later
+         ObjectsCollect frees what was forwarding at the mark once every count has moved (FreeForwarders).  It isn't
+         done as the home thread takes the lock, as the free of queued batches is: that can be inside the hollow's
+         own Dehollow.  With no other thread registered (ObjectsLocking(false), ObjectsKill) they all go, and with
+         none registered a loaded hollow is freed at once, as before.  The counts replaced the one count of the
+         locks taken: ObjectsNumWaysIn is the running thread's, which is what the tests of the ways in counted.
+         One thread, by instructions: a load 28789 an object (28779 before; the call into CObjects), a stack Ptr's
+         copy and drop 331.
+         Tests: TestObjectsThreadsForwardingHollow (a plain pointer kept to a hollow that is then loaded is answered
+         with the object; marked, kept while the other thread stays out, freed once it has come in; freed at once
+         with no other thread; ObjectsLocking(false) frees what is left; a root's set, loaded on the way, forwards
+         too).  TestObjectsThreadsEveryWayIn takes the new ways in (Dehollow of a hollow, FreeForwarders,
+         NumForwarders).
+      d. The words a load rewrites read and written as relaxed atomics; Dereference's write-backs gone (asserted
+         first).  Held to step 7: operator-> and a collection's Get counted, no more instructions than now.
+         Done 2026-11-18.  A pointer's object is read whole where operator-> reads it (CPointer::LoadObject) and
+         written whole by a remap (UnsafePointTo); a set's or array's elements are read through UnsafeGet and written
+         by a remap through UnsafeSet, both whole; a map of pointers reads its keys and values whole (CMapPtrPtr) and
+         CMapUnknownUnknown writes them whole; the order comparison reads its two elements whole.  A key loaded for
+         its hollow is changed where it is in a map that keeps its members' locations (ReplaceKey): putting the entry
+         again was a change to the map's arrays while another thread could be reading them.
+         The write-backs are gone, from CPointer::Dereference and CArrayCommonObject::Dereference (which now takes the
+         element's place, not a pointer to it); a Debug build says so if a load ever leaves the pointer or element
+         behind, and in the whole of TestStandardLib it never did.
+         Counted (callgrind, one thread): operator-> and a method call 19 instructions to 16, an array's Get and a
+         method call 727 to 707 (a new speed case), a stack Ptr's copy and drop 331 and a field pointed elsewhere
+         unchanged.
+         Left as it was: an index object's values are copied in and out of its tree by BaseLib's memcpy, so one read
+         while a load rewrites it is still a race as far as ThreadSanitizer goes (the hardware reads it whole).
+      e. Tests (TestObjectsThreads.cpp, with a database): threads walking one stored graph and loading it as they go
+         (each object loaded once, the same objects reached, counts and distances exact, no forwarders left after);
+         two threads using one hollow at once, over and over; a raw pointer to a hollow kept by one thread while
+         another loads it (1's window held open: it forwards, and isn't freed until that thread does something); sets
+         and maps of stored objects iterated on threads while others load their members; a stored object killed
+         while no other thread holds it, and refused while one does; Flush on the home thread while others read; an
+         idle registered thread keeping forwarders and ObjectsThreadKill letting them go.  ThreadSanitizer and ASan,
+         repeated.
+         Done 2026-11-18, with f.  TestObjectsThreadsLoadStoredTree (8 threads walk one stored tree of 127 nodes from
+         its name, loading it as they go, three rounds with the tree evicted between: every thread reaches every node,
+         memory holds as many objects as before it was evicted, the object system is consistent and no forwarder is
+         left), TestObjectsThreadsStoredCollections (a set of 64 stored nodes and a map keyed by them: half the
+         threads iterate them 20 times, finding each member's value, while the others load the members and values;
+         every pass sees every member and the set is never sorted again), TestObjectsThreadsFlushWhileRead (the home
+         thread dirties the top and flushes, over and over, while the threads walk the tree), TestObjectsThreadsKill
+         StoredHeld (refused and said while another thread holds the object, done once it has let go; another
+         stored object killed meanwhile), and TestObjectsThreadsForwardingHollow taking a thread that unregisters
+         while forwarders wait on it.  A thread's stored rounds are the stored helpers (BeginStored, StoredRound,
+         EndStored: the database and sequence of their own, the home thread collecting as it waits).  Two threads
+         using one hollow at once is what the tree's walk does at every node.
+         Found on the way:
+           A registered thread's stack froms were taken off its table by pointer alone.  PointToInside adds the new
+           from before it takes the old one off (p = p->mpNext), so for a moment the table holds two for the pointer,
+           and the search from the end found the new one: the old object kept a stack from it no longer had and the
+           new one lost its, so it could be freed while pointed at, and a load didn't move the pointer (which is how
+           the walk found it: a stack pointer left on a freed forwarder).  A level 2 fault, there since step 19: the
+           froms are matched on the pointer and the object now, and TestObjectsThreadsKeptStackFroms points a
+           worker's pointer from one object to another with the lock held.
+           A collection's element read before a load (an iteration's raw pointer) and then pointed at under the lock
+           pointed the pointer at the forwarder.  The ways in from outside that take the lock (PointToFromOutside's,
+           AssignObject's) ask the forwarders first (NotForwarding: a test of the count of forwarders, and the
+           lookup out of line); a reader can't point at one, as a forwarder isn't attached to the root.
+           A pointer's own read-only methods (IsNull, the comparisons, Object, GetIndex and the rest that read
+           mpcObject without a guard) and its destructor's first look read the word whole now, as operator-> does:
+           ThreadSanitizer saw IsNull on a thread's stack pointer while a load on another thread rewrote it.
+           A pointer read whole could still be read before what it points at was: a map's key rewritten to the object
+           a load made, and a thread comparing keys reading that object's index as the load wrote it.  A pointer's
+           Store was a release already; its Load is an acquire now (BaseLib's Atomic.h says what they promise), the
+           same instruction on x86-64.
+           A load building a big set's member locations cleared the set's slots-moved bit, in the flags word that
+           threads iterating the set read (for ignore-NULL and the sort).  The bit, never saved, is a byte of its own
+           (mbSlotsMoved, in the padding after the flags), which only the lock's holders read.
+           OBJECTS_SELDOM is defined for the 65 targets too (as the plain test).
+           The threads tests alone, 16 times under ThreadSanitizer and 10 under ASan: nothing reported.
+         One thread, by instructions (callgrind, Release, against 24d): a stack Ptr's copy and drop 331, operator->
+         unchanged (one instruction more in the test's own method, which LTO laid out differently), an array's Get
+         and a method call 707 to 690, a field pointed elsewhere unchanged, a tree built +0.17%, freed +0.15%, loaded
+         +0.1%.  Asking the forwarders on every PointToInside had cost 5 instructions a copy (and 30 while it stopped
+         PointToInside being inlined), which is why only the locked ways in ask.
+      f. Decision 4 lifted: ValidateStoredOnOneThread and the Debug writer rule gone, the Kill refusal narrowed,
+         EvictInMemory's kept.  The contract gets its rule for Flush (above).
+         Done 2026-11-18.  ValidateStoredOnOneThread, IsStoredOrHollow and the Debug rule that left a stored object's
+         pointers to writers are gone.  The Kill of a stored object that is still held is refused while another thread
+         holds a stack pointer to it or to one of its embedded objects (CObjects::ValidateNoOtherThreadHolds(szMethod,
+         pcObject)), not while it holds any; EvictInMemory's refusal is as it was.  A forwarder is unattached (its
+         distance to the root), and the Debug build says if one is pointed to when it is freed.  The contract has the
+         Flush rule, and ObjectsLock.h says what threads may do with stored objects.
+      g. Proved: the mutation harness over the new pieces (a hollow freed at once, Dehollow reading before it locks, a
+         count not raised, the check freeing a turn early, an atomic made plain), the full sweep, the 65 suites with
+         their sizes unchanged, the MinGW compile.
+         Done 2026-11-18.  ~/Codaphela/documents/ThreadSafetyPrototype/mutation/forwarding.py: 22 mutants of step 24's
+         pieces, each built and run with the threads tests in Debug and, if they pass, under ThreadSanitizer (up to
+         TSAN_TRIES times, as a race shows in some runs and not others).  21 killed:
+           by a test's assertion or a crash in Debug: a loaded hollow freed at once; the hollow's Dehollow reading the
+             forwarders before it locks (a crash); a read, or a lock taken, not counted; the check not waiting for
+             every thread; a pointer pointed under the lock (PointToLocking, AssignObject) at a forwarder; a
+             forwarder left attached to the root; the forwarders not counted; a thread's stack from taken off by its
+             pointer alone; a stored object another thread holds killed;
+           by ThreadSanitizer: the check freeing a turn early (a thread called Dehollow on a forwarder freed under
+             it: a crash in that build); operator->, IsNull or a pointer's destructor reading the word plain; a remap
+             writing it plain; a collection's element read or written plain; slots-moved cleared in the flags word.
+         Survived: a pointer's Load made relaxed.  The race it allows (a key a load rewrote, read and followed before
+         the object's index is seen) was seen once in 12 runs before it was fixed, and not in 6 tries here: a reader
+         mostly synchronises with the load through the reader protocol anyway.  Kept as explained.
+         Two tests were added for survivors of the first pass: a pointer pointed at a plain pointer kept to a hollow
+         after the hollow loaded (TestObjectsThreadsForwardingHollow, before anything has been freed), and the count
+         of forwarders asserted (a count never raised wraps when forwarders are freed, and so passed as non-zero).
+         Repeated: the threads tests 16 times under ThreadSanitizer and 10 under ASan, nothing reported.  The 65
+         suites 185 and 183 passed (mbSlotsMoved fits the padding there too: their layout asserts pass).  MinGW, 32
+         and 64 bit: StandardLib's 131 files compile with nothing said.  TestBaseLib (64, Release, ThreadSanitizer)
+         and TestThreadLib pass with the pointers' acquire Load.
+         The full sweep, of the step's last commit (3a4f5accf): the 147 builds made, and the 144 runs, the 65C64's
+         and the W65C816's among them, all passed with no test failing.
+
+  Level 3: a CObjects for each thread (decisions 11 to 15)
+    Level 3 as built (worked out 2026-11-18, before 25b):
+      Which object system.  A thread_local current object system, ObjectsCurrent(): gcObjects unless the thread has
+        one of its own.  OMalloc, ONMalloc, ORoot and GetObjectsOrDefault (an object in none) go to it; ObjectsInit,
+        ObjectsKill, ObjectsFlush, ObjectsDiscard and ObjectsCollect stay the main object system's, the home
+        thread's.
+      A worker's object system.  ObjectsWorkerInit registers the thread as ObjectsThreadInit does (it may still use
+        main objects through its stack pointers and table) and makes it a CObjects: unknowns of its own to allocate
+        from (gcUnknowns' allocator, which is safe for threads, and its constructors), a CStackPointers of its own,
+        classes of its own, no database, its own root.  Its indexes come from the main sequence a page at a time (256
+        in a row, under the sequence's own lock, not the main lock: 25f).  The worker is its home: Free() runs there,
+        nothing is queued, ObjectsThreadKill frees what is left and kills it.
+      The guards.  OBJECTS_WRITE() and OBJECTS_READ() pass `this` (every guard is in a member function: of CObjects,
+        an object, CPointer or CWeakPointer): CObjectsGuard has a constructor for each.  The inline part is as it is
+        (the test of gbObjectsLocking, all one thread pays); the locked part, out of line, decides by the object
+        system the way in is about: the running thread's own (a worker's) takes no lock, any other the main lock.
+        A pointer's ways in that do their own locking (constructors, assignments, destructor, AssignObject) do the
+        same by the objects they point from and to: both the worker's own (or NULL) is as with the locking off.
+      A worker's object pointing at a main object (decision 11).  The field's pointer goes in the worker's table of
+        stack froms, as the worker's stack pointers to main objects do: the main object stays while it is pointed
+        at, a load remaps the field, a Kill clears it.  Never a heap from on the main object (its froms are the main
+        lock's), and no walk of either system crosses into the other: to a worker's walk the main object is a leaf,
+        to a main walk the field is a stack pointer.  A main object pointed at a worker object is refused (validated
+        in Debug): a worker's object isn't attached to main's root, and main's walks can't see into the worker.
+      Adopt(pTop), by the worker, under the main lock.  The graph is pTop and every worker object it reaches.  A name
+        main already has refuses the whole graph (decision 14) and nothing moves.  Otherwise each object leaves the
+        worker's memory index and enters main's (its index is from main's sequence already), takes main's class of
+        its name, and its object system and unknowns are main's.  Its fields that point at main objects leave the
+        worker's table and become heap froms of those objects; the worker's objects that point into the graph go the
+        other way (into the table).  The worker's stack pointers to adopted objects move from the worker's
+        CStackPointers to the objects (they aren't attached until the caller attaches them, so they aren't for a
+        thread's table).  The graph is unattached in main until the caller points something attached at the returned
+        pointer.
+  25. a. The memory index replaced: an object found, put and taken out by its index in a few instructions, where the
+         trie by index's bytes takes about 1800 to put and 1600 to take out (37% of an OMalloc and free, 40% of a tree
+         built).  A hash table (iteration sorted when it is asked for: Flush, Kill and Evict go in index order) and a
+         paged table (in order as it is) are both measured, on OMalloc and free, the tree and the load, and the faster
+         kept.  Names keep their trie.
+         Done 2026-11-18: a table of two levels.  An index's bits above 16 pick a directory (an array of them grown as
+         indexes rise, NULL where none), its next 8 a page in the directory and its low 8 the object's place in the
+         page (CIndexedObjects; 256 objects a page, 256 pages a directory: 2 KB each on the hosts, 1 KB on the 65
+         targets, and a pointer for every 65536 indexes up to the highest).  A get is three loads in any order; the
+         page last used is tried first; a page that empties stays until another page empties, and the page taken out
+         is kept for the next one needed, so an object made and freed over and over makes and frees no page.
+         Iteration goes in index order from an index (SIndexesIterator is that index), so objects can be added and
+         taken out as it goes and an iteration left early has nothing to free (the iterator's Kill is gone, from six
+         callers in CommonLibraries and LogiCim).  PrintMemoryUseRecursion, which printed the trie, is
+         PrintMemoryPages.  TestIndexedObjects tests the table alone.
+         Chosen by a model first (scratchpad bench, instructions each, a table holding 300 objects then 4373, and
+         100000; gets and frees in no order, as a graph's):
+                                          sorted pages    hash table    two levels
+           made and freed, over and over      40              69            40
+           added in a row                     25          148 (107)         29
+           got, in no order                   53              15            26
+           taken out, in no order             58              31            34
+         The hash (Fibonacci hashing, linear probing, backward shift deletion) gets fastest, but grows by rehashing
+         and has no order: Flush, Kill, Evict and validation iterate in index order, which a hash would sort for
+         each time, holding the sorted keys somewhere an iteration left early would leak.  Pages found by binary
+         search over a sorted directory (with a guess from each end, exact while indexes run in a row) search on
+         every change of page in a graph's order.  Two levels need no search and keep the order, so only they were
+         built into the object system; the hash was measured in the model alone.
+         In the object system (callgrind, Release, one thread, against HEAD, instructions each): OMalloc and free 9097
+         to 5441 (-40%), held by a field 8905 to 5350, added to an array 9199 to 5677, a tree's node built 21097 to
+         12733 (-40%) and freed 9271 to 6308 (-32%), a stored object loaded 28811 to 23492 (-18%: the database's part
+         is the rest).  A stack Ptr's copy and drop, operator->, an array's Get and a field pointed elsewhere are as
+         they were within what LTO's inlining moves (a copy and drop has read 331 to 338 in builds of the same pointer
+         code: how many destructors LTO inlines into the test's loop).  StartWalk's reset of every stamp, seldom, is
+         out of line (ClearWalkStamps): inlined, it had grown StartWalk enough that CDistCalculator::Init stopped being
+         inlined into FromRemoved, 16 instructions on every field change.
+         By the clock, once 25b to 25e were in too (Release, one thread, the least of five runs of the speed tests,
+         taking turns with the commit before 25a): OMalloc and free 478 to 299 ns (-38%), held by a field 468 to 293,
+         added to an array 488 to 314, a tree's node built 779 to 459 (-41%) and freed 587 to 361 (-39%), a stored
+         object loaded 3938 to 3330 (-15%).  A stack Ptr's copy and drop 21 ns as it was; a field pointed elsewhere
+         45 to 88 ns from run to run in both; an array's Get 29 to 31 ns, with 0.7% fewer instructions (where LTO put
+         the code).
+      b. A worker's object system: a variant of ObjectsThreadInit that gives the thread a CObjects of its own, with
+         its own root, stack pointers and completed classes.  OMalloc, ONMalloc and ORoot on that thread go to it (a
+         current object system for each thread, gcObjects where none is set).  Its objects take their indexes from
+         the main object system's sequence, and it has no database.  The worker is its home thread: Free() runs there,
+         and ObjectsThreadKill frees what is left in it.  Its objects' own ways in take no lock.
+         Done 2026-11-18, in two commits.  The groundwork (43026582e): ObjectsCurrent() (a plain per-thread pointer,
+         gpcObjectsOwn, or gcObjects) for OMalloc, ONMalloc, OString, ORoot and GetObjectsOrDefault; OBJECTS_WRITE()
+         and OBJECTS_READ() give the guard `this`, so a way into an object system or an object decides by that object
+         system (ObjectsEnterFor: the running thread's own takes no lock) and anything else takes the main lock as
+         before; a pointer's ways with the locking on out of line (PointToLocking, AssignObjectLocking).
+         Then the worker: ObjectsWorkerInit registers the thread and makes it an SObjectsWorker (ObjectsWorker.h): a
+         CObjects (InitWorker: no database, main's unknowns and validation), a CStackPointers, and a sequence that
+         takes indexes from main's 256 in a row (CObjects::ReserveIndexes, under the main lock) and hands them out
+         without it.  CObjects::IsHomeThread is the worker for its own object system (it frees its own, nothing is
+         queued).  ObjectsThreadKill discards and kills it, its pointers into it cleared.  A guard into the worker's
+         own object system counts how deep the thread is (OBJECTS_INSIDE knows it is inside).  A pointer whose
+         object, new object and holder are all the worker's own (or NULL) is pointed as with the locking off; only a
+         worker reads the new object before the reader flag or the lock, and reads it whole.  A worker's own objects
+         keep their stack froms on themselves (never in the thread tables, which are for main objects attached to
+         the main root), and the tables' questions about one object pass over them: the worker asks without the
+         lock.  A worker's stack pointers still point at main objects as any registered thread's do, and move
+         between its own objects and main ones as a reader or with the lock.
+         Found on the way: the flag that a thread is registered (now guiObjectsThreads) and the count of forwarders
+         were read or written by a worker's own machinery without the lock (relaxed atomic; an object system with no
+         forwarders doesn't touch the count); a worker validating its own object system read the threads' tables (it
+         leaves them out).  A weak pointer doesn't know the object it is in, and what it points at may be a main
+         object another thread frees, so its ways in take the main lock on a worker too; letting go of a NULL one,
+         which every freed object with a weak field does, takes none.  The tables' functions are out of line: LTO
+         inlined one, with its new check, into HasStackFroms, and every caller paid for its registers.
+         Tests: TestObjectsThreadsWorkerOwnGraphs (8 workers build and drop 6000 objects each in cycles: no way into
+         the main object system but a block of indexes and the weak pointer's, every object freed once on its
+         worker), TestObjectsThreadsWorkerLeftObjects (a tree in each worker's own root, indexes unique in the
+         process and not main's, freed when the worker unregisters, validation on), TestObjectsThreadsWorkerHoldsMain
+         (a worker's stack pointers between its own objects and a main object: held exactly while pointed at).
+         One thread, by instructions against the groundwork: within LTO's band, a copy and drop 332 to 335, OMalloc
+         and free 5385 to 5303, a tree built +0.5%, freed -0.9%.
+         A worker's object pointing at a main object came next (25c).
+      c. A worker's object pointing at a main object: held as the worker's stack pointers hold main objects (the
+         thread's table), so the main object stays while it is pointed at.  Neither object system's walks cross into
+         the other.  A main object pointed into an unadopted graph is an error, found by validation.
+         Done 2026-11-18.  An object of a worker's object system (CEmbeddedObject::GetWorkerObjects) holds a main
+         object (IsAcross) by a stack from, under the main lock, where its own objects get heap froms:
+           a field (CPointer::PointFieldAcross, from PointToInside when the field or its old object is across): its
+           pointer is the stack from, in the worker's table if the main object is attached to the main root, on the
+           main object if not, so a load remaps the field and a Kill clears it; the new from before the old goes, and
+           a main object let go of is the main object system's to free (queued for its home thread);
+           a collection (CCollection::AddAcrossFrom, RemoveAcrossTryFree): the collection is the stack from, as a
+           collection on a stack is, on the main object; a main hollow is loaded as it is added, so that no load later
+           changes the worker's collection under the main lock while the worker uses it without.
+         When a worker's object is freed, its fields across let go first (CObject::ReleaseFieldsAcross) and its
+         collections' members across are removed as when taken out (FromRemoved on the main object system), whether
+         or not it is freed alone.  A worker's walks leave main objects out: each BaseGetPointerTos keeps what it
+         added less the main objects (KeepWorkersOwnTos), so the dist to root, the kill order and validation stay in
+         the worker's object system; main's walks see the stack froms and nothing past them.  A Debug build says when
+         an object of another object system is to point at a worker's object, or a thread that isn't its worker is
+         to hold one (CEmbeddedObject::ValidateWorkersOwn, in AddHeapFrom, AddStackFrom and AddStackFromReading).
+         Tests: TestObjectsThreadsWorkerObjectsPointAtMain (8 workers' objects point at 16 main nodes by fields and in
+         arrays, and are pointed between those and their own, 2000 times each: the main nodes end with one heap from
+         and one stack from, as before, and every worker object is freed on its worker),
+         TestObjectsThreadsWorkerObjectHoldsMain (a main node off main's root that only a worker's object holds
+         stays, and is freed by main's home thread once the worker's object goes), and
+         TestObjectsThreadsWorkerObjectsAreItsOwn (main holding a worker's object, and a main object pointed at one:
+         said in Debug).
+         One thread, by instructions against 25b: the checks are an inline test of gbObjectsLocking, and what a
+         worker needs is out of line: a copy and drop 335 to 324, an array's Get 696 to 677, a field pointed
+         elsewhere 1052 to 1048, a tree built -1.5%, freed +0.55%, OMalloc and free +0.6% (LTO's band).
+      d. Adopt(pTop), by the worker, under the main lock: pTop and every object reachable from it that is still the
+         worker's are put in the main memory index (a name the main object system already has refuses the whole
+         graph, and nothing moves), their class pointers made the main object system's, their pointers at main
+         objects made ordinary heap froms, and the worker's stack pointers to them kept as its thread's stack froms.
+         Returns a pointer to pTop in the main object system for the caller to attach.  What the worker keeps that
+         points into the adopted graph is a worker object pointing at main objects (c).
+         Done 2026-11-18: ObjectsAdopt(pTop) (CObjects::Adopt on the main object system, ObjectsAdopt.cpp), by the
+         worker, under the main lock.  It returns whether it adopted; pTop, the worker's own pointer, then points at a
+         main object that isn't attached to the main root until something attached points at it.
+           The graph: pTop's container and every object of the worker's it reaches, stamped with a walk of the
+           worker's (a worker's walk leaves main objects out, so the graph ends at them).
+           Names: one the main object system has, in memory or in its database, refuses the whole graph and is said;
+           nothing has moved.
+           Each object's froms that aren't the graph's come off (unlinked, so nothing is freed): the worker's stack
+           pointers and collections, and the heap froms of the worker's objects outside the graph (a field, found by
+           GetPointerFieldsTo, or a place in a collection).
+           Weak references: those within the graph move to the main object system's table; those across its edge,
+           in or out, are cleared (a holder is the graph's if it lies in the memory of one of its objects).
+           Each object leaves the worker's memory index for main's (its index is from main's sequence already), its
+           object system is main's, its classes and its embedded objects' are main's (completed now if main has
+           none, the embedded objects' first: a class records its embedded fields' classes), it is unattached and
+           dirty.
+           Its fields and collections that held main objects as a worker's do (IsAcross) hold them by heap froms.
+           The froms taken off go back on as stack froms: the worker's stack pointers and collections, and the
+           worker's objects outside the graph, which now hold main objects (c).
+      e. Tests (TestObjectsThreads.cpp): workers building graphs at once and adopting them (counts, distances,
+         names, indexes, and the database after a flush); a worker's objects holding main objects; a clashing name
+         refusing Adopt; objects left at ObjectsThreadKill; scratch objects kept and freed by the worker.
+         ThreadSanitizer and ASan, repeated.
+         Done 2026-11-18, with b, c and d: TestObjectsThreadsWorkerOwnGraphs, WorkerLeftObjects, WorkerHoldsMain,
+         WorkerObjectsPointAtMain, WorkerObjectHoldsMain, WorkerObjectsAreItsOwn (b and c, above), and for d:
+         TestObjectsThreadsWorkersAdopt (8 workers each build a named tree of 127 nodes in its own root, the leaves
+         pointing at a main node, keep a pointer into it, adopt it and put it in the main root: main holds every
+         tree by name with every node, the main node one heap from from each leaf, main's validation passes, and
+         every node is freed on the home thread once main lets go), TestObjectsThreadsWorkersAdoptStored (the same
+         into a main object system with a database: flushed, evicted, and loaded again through the root, whole),
+         TestObjectsThreadsWorkerAdoptClash (a graph with a name main has is refused, said, and freed with the
+         worker).  The threads tests 3 times in Debug, and under ASan and ThreadSanitizer: nothing reported.
+         Found on the way: a tree loaded by its name alone (gcObjects.Get) while its holders are hollows isn't
+         attached, and goes again when the pointer to it does: the open item on objects loaded by name alone
+         (memory stored-objects-without-path), not Adopt's; the test loads through the root.
+      f. Measured: OMalloc and free on 1 to 12 workers each in its own object system (step 22's table again), and
+         Adopt for each object.
+         Done 2026-11-19 (TestObjectsSpeed with OBJECTS_SPEED_THREADS_WORK=workermalloc, Release, 64 bit, the least
+         of three runs; each worker makes and frees objects while the home thread runs the speed tests).  The first
+         measurement found the workers still taking turns: one OMalloc and free cost 0.4 microseconds on one worker
+         and 14 on twelve, and slowed the home thread's own as much.  Stopped every 150 ms in gdb (perf isn't allowed
+         on this machine), four workers were nearly always waiting, for one of two locks they shared:
+           the main lock, once every 256 objects: a worker took its block of indexes under it, and the home thread
+           holds it for as long as a write takes (2.8 ms for a member of a set of 100000 taken out and put back).
+           The main sequence has a lock of its own now (CObjects::mcIndexLock): a worker's block is taken under it
+           alone, and while the locking is on the main object system's own indexes are too (GetNextIndex is then
+           ReserveIndexes(1));
+           gcUnknowns' lock, twice an OMalloc and once a free: every object, on every thread, was one of the global
+           unknowns.  A worker's object system has unknowns of its own (CUnknowns::InitSharing: gcUnknowns'
+           allocator, which is safe for threads since step 23, and its constructors), and Adopt moves the graph to
+           main's (CUnknowns::MoveTo).  TestObjectsThreadsWorkersAdopt counts gcUnknowns: the trees join it when
+           adopted and leave it when freed.
+         ns for each OMalloc and free on each worker, while the home thread copies pointers and makes objects, and
+         while it builds and frees a tree:
+                          before            after
+           1 worker      415   2995        367    370
+           2             476   5558        380    394
+           4            1252   5643        380    441
+           8            4642  14198        392    405
+           12          13821  10815        422    423
+         Against step 22's level 2, every thread in the main object system with the lock (here, after: 665 ns with
+         one thread, 4710 with four, 39074 with twelve).  The home thread meanwhile: its OMalloc and free 387 to 425
+         ns with 1 to 8 workers (398 to 4425 before), 609 with 12 (17219); its tree's node built 695 to 794 ns (734
+         to 2570), 1390 with 12 (14689).  With twelve workers its tree is freed at 967 ns a node, 420 before: thirteen
+         threads run now on the machine's 16 cores, 8 of them the slower kind, where before the workers mostly waited.
+         A tree built on a worker, 501 ns a node (459 in the main object system with no other thread); Adopt, 147 ns
+         an object.
+         One thread, by instructions against 25e: OMalloc and free and a stack Ptr's copy and drop the same to the
+         instruction, a tree built -0.4%, freed and Adopt the same.
+      g. Proved: the mutation harness over the new guards, the full sweep, the 65 suites (with level 3 compiled
+         out), the MinGW compile.
+         The mutation harness, 2026-11-18: ~/Codaphela/documents/ThreadSafetyPrototype/mutation/level3.py, 13 mutants
+         of step 25's pieces, all killed: a worker's guard taking no lock for any object system; a worker's pointer to
+         a main object pointed without the lock; a worker's own objects in the threads' tables; the tables asked about
+         a worker's own objects; a worker's walks going into main objects; a worker's field to a main object a heap
+         from; a worker's object freed without letting go of its main objects; a main object a worker's collection let
+         go of not freed; a worker's block of indexes one index; a worker not its object system's home; Adopt not
+         checking names, keeping the worker's classes, or not putting the stack pointers back.  Two survived the
+         first pass, for want of a test: TestObjectsThreadsWorkerHoldsMain now has the home thread read every
+         thread's table (a node's stack froms, with the lock) while the workers move their pointers, and
+         TestObjectsThreadsWorkerObjectHoldsMain a main node held by a worker's collection alone.
+         With 25f's changes, three more, each caught by an assertion in Debug: a worker's block of indexes taken
+         without the index lock, a worker allocating from the main unknowns, and Adopt leaving the graph in the
+         worker's unknowns.
+         The 65 suites (level 3 compiled out: ObjectsOwn() is NULL there, ObjectsAdopt refuses) pass at every step,
+         187 and 185, and the MinGW compile of every changed file says nothing, 32 and 64 bit.
 
   Tests (TestStandardLib/TestObjectsThreads.cpp, not on the 65 targets)
     Threads copying and dropping Ptrs to one rooted object; to a hub; to objects another thread is re-pointing a field
@@ -728,3 +1244,15 @@ Decisions (the user's, 2026-11-17)
      for the 16% on OMalloc and free.  The second asking said a tree's build and free would be 17 and 23% slower;
      measured like for like afterwards they are the same and about 3% (step 23 says how the first figures came to
      be wrong).
+  10. (2026-11-18, with step 24a's measurements) Sets and maps are ordered by object index, not address: a load
+     never changes an order, so fat hollows are retired and the size they were made at leaves the record format.
+     Contains costs 4 to 90 ns more and an Add 8 to 41% more, for sets of 10 to 100000.
+  11. (2026-11-18, for step 25) A worker's objects may point at main objects, held as the worker's stack pointers hold
+     them and made ordinary pointers at Adopt; main objects may not point into a graph that hasn't been adopted.
+  12. Adopt(pTop) moves pTop and every object reachable from it that is still the worker's, and returns a pointer to it
+     in the main object system.  Anything else the worker made stays with the worker, which carries on building.
+  13. A worker's object system has no database: its objects take their indexes from the main object system's sequence
+     and are saved when the main one flushes after Adopt.
+  14. A name a worker's object has that the main object system already uses is found at Adopt, which then refuses the
+     whole graph and moves nothing.  (Not at creation, as Codabase transactions do it.)
+  15. The memory index is replaced within step 25, before level 3 is built on it.

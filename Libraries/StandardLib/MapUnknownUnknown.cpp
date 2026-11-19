@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Atomic.h"
 #include "BaseLib/DataCompare.h"
 #include "Unknowns.h"
 #include "MapUnknownUnknown.h"
@@ -40,8 +41,20 @@ void CMapUnknownUnknown::_Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapUnknownUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
+	Init(bKillElements, bOverwriteExisting, &ComparePtrPtr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Keys ordered by fKeyCompare (given pointers to two keys) rather than by
+// address.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapUnknownUnknown::Init(bool bKillElements, bool bOverwriteExisting, DataCompare fKeyCompare)
+{
 	CMapCommonUnknown::Init(bKillElements, bOverwriteExisting);
-	mcMap.Init();
+	mcMap.Init(&gcSystemAllocator, fKeyCompare);
 	mcMap.SetDataFreeCallback(this);
 	mcMap.SetDataIOCallback(this);
 }
@@ -114,8 +127,19 @@ bool CMapUnknownUnknown::WriteMapUnknownHeader(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader)
 {
+	return ReadMapUnknownHeader(pcFileReader, &ComparePtrPtr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The keys to be ordered by fKeyCompare, as Init's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader, DataCompare fKeyCompare)
+{
 	ReturnOnFalse(pcFileReader->ReadInt16(&muiFlags));
-	return mcMap.ReadMapBlockHeader(pcFileReader, &ComparePtrPtr, this, this);
+	return mcMap.ReadMapBlockHeader(pcFileReader, fKeyCompare, this, this);
 }
 
 
@@ -171,6 +195,26 @@ CUnknown* CMapUnknownUnknown::Get(CUnknown* pcKey)
 SMNode* CMapUnknownUnknown::GetNode(CUnknown* pcKey)
 {
 	return mcMap.GetNode(&pcKey, sizeof(CUnknown*));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The key the map has that sorts with pcKey: pcKey if it is in the map, or
+// one its order can't tell from pcKey (keys ordered by object index: a
+// hollow and the object loaded for it), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CUnknown* CMapUnknownUnknown::GetKey(CUnknown* pcKey)
+{
+	SMNode*		psNode;
+
+	psNode = GetNode(pcKey);
+	if (psNode == NULL)
+	{
+		return NULL;
+	}
+	return *((CUnknown**)mcMap.GetKey(psNode));
 }
 
 
@@ -245,17 +289,42 @@ bool CMapUnknownUnknown::Remove(CUnknown* pcKey)
 //////////////////////////////////////////////////////////////////////////
 void CMapUnknownUnknown::SetKey(SMapIterator* psIter, CUnknown* pcNewKey)
 {
-	SMNode*		psNode;
+	SetNodeKey(mcMap.GetNode(psIter), pcNewKey);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcKey's entry is put under pcNewKey where it is, for a key that sorts
+// as pcKey does (a hollow's loaded object, keys ordered by object index).
+// False if pcKey itself isn't a key.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapUnknownUnknown::ReplaceKey(CUnknown* pcKey, CUnknown* pcNewKey)
+{
+	if (GetKey(pcKey) != pcKey)
+	{
+		return false;
+	}
+	SetNodeKey(GetNode(pcKey), pcNewKey);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Written whole: a load may be rewriting a key that another thread reads.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapUnknownUnknown::SetNodeKey(SMNode* psNode, CUnknown* pcNewKey)
+{
 	void*		pvValue;
 	void*		pvKey;
-	CUnknown**	ppcKey;
 	CUnknown*	pcOldKey;
 
-	psNode = mcMap.GetNode(psIter);
 	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
-	ppcKey = (CUnknown**)pvKey;
-	pcOldKey = *ppcKey;
-	*ppcKey = pcNewKey;
+	pcOldKey = *(CUnknown**)pvKey;
+	AtomicStorePointer((void**)pvKey, pcNewKey);
 	if (IsKillElements() && pcOldKey && (pcOldKey != pcNewKey) && (pcOldKey != *(CUnknown**)pvValue))
 	{
 		pcOldKey->Kill();
@@ -291,7 +360,7 @@ void CMapUnknownUnknown::ReplaceValue(CUnknown** ppcValue, CUnknown* pcKey, CUnk
 	CUnknown*	pcOldValue;
 
 	pcOldValue = *ppcValue;
-	*ppcValue = pcValue;
+	AtomicStorePointer((void**)ppcValue, pcValue);
 	if (IsKillElements() && pcOldValue && (pcOldValue != pcValue) && (pcOldValue != pcKey))
 	{
 		pcOldValue->Kill();

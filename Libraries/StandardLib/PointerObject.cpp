@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Atomic.h"
 #include "BaseLib/Define.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/Numbers.h"
@@ -159,19 +160,22 @@ CPointer::CPointer(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 CPointer::~CPointer()
 {
+	CEmbeddedObject*	pcObject;
+
 	LOG_POINTER_DEBUG();
 
-	if (mpcObject)
+	//Read whole: a load on another thread may be rewriting it.  With the locking on it is read again inside, where
+	//nothing can be.
+	pcObject = LoadObject();
+	if (pcObject != NULL)
 	{
 		if (!OBJECTS_LOCKING())
 		{
-			mpcObject->RemoveStackFromTryFree(this);
+			pcObject->RemoveStackFromTryFree(this);
 		}
-		else if (!PointToReading(&gpcPointerNoObject))
+		else
 		{
-			ObjectsLock();
-			mpcObject->RemoveStackFromTryFree(this);
-			ObjectsUnlock();
+			PointToLocking(&gpcPointerNoObject);
 		}
 	}
 }
@@ -239,7 +243,7 @@ CEmbeddedObject* CPointer::operator & ()
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator ! ()
 {
-	return mpcObject == NULL;
+	return LoadObject() == NULL;
 }
 
 
@@ -249,7 +253,7 @@ bool CPointer::operator ! ()
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator == (const CPointer& pPointer)
 {
-	return mpcObject == pPointer.Object();
+	return LoadObject() == pPointer.Object();
 }
 
 
@@ -259,7 +263,7 @@ bool CPointer::operator == (const CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator != (const CPointer& pPointer)
 {
-	return mpcObject != pPointer.Object();
+	return LoadObject() != pPointer.Object();
 }
 
 
@@ -269,7 +273,7 @@ bool CPointer::operator != (const CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator == (void* pcPointer)
 {
-	return mpcObject == pcPointer;
+	return LoadObject() == pcPointer;
 }
 
 
@@ -279,7 +283,7 @@ bool CPointer::operator == (void* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::operator != (void* pcPointer)
 {
-	return mpcObject != pcPointer;
+	return LoadObject() != pcPointer;
 }
 
 
@@ -388,7 +392,8 @@ void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 {
 	OBJECTS_INSIDE();
 
-	mpcObject = pcNewObject;
+	//Whole: a load remaps pointers that other threads may be reading (Dereference).
+	AtomicStorePointer((void**)&mpcObject, pcNewObject);
 }
 
 
@@ -404,11 +409,35 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcObject, or if it is a hollow that was read before it was loaded on
+// another thread (a collection's element, read and then pointed at) and
+// forwards now, what it was loaded as: a pointer is never pointed at a
+// forwarder.  Only a way in from outside that has taken the lock asks: a
+// forwarder exists only while the locking is on, isn't attached to the
+// root (so a reader never points at one), and the object system's own
+// callers read what they point at under the lock, after any load has
+// pointed it at the object.
+//
+//////////////////////////////////////////////////////////////////////////
+static NO_INLINE CEmbeddedObject* PointerForwarded(CEmbeddedObject* pcObject)
+{
+	return (pcObject != NULL) ? pcObject->GetObjectsOrDefault()->Forwarded(pcObject) : NULL;
+}
+
+
+static inline CEmbeddedObject* NotForwarding(CEmbeddedObject* pcObject)
+{
+	return OBJECTS_SELDOM(guiObjectsForwarders != 0) ? PointerForwarded(pcObject) : pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Points this at *ppcObject, from outside the object system: what the constructors and the assignments do.
 // *ppcObject (another pointer's object, where this is to point at what that does) is read once nothing can be
 // changing it.
 //
-// With the locking on it is first tried as a reader, without the lock (PointToReading).
+// With the locking on it is first tried as a reader, without the lock (PointToLocking).
 //
 //////////////////////////////////////////////////////////////////////////
 void CPointer::PointToFromOutside(CEmbeddedObject* const* ppcObject)
@@ -417,12 +446,70 @@ void CPointer::PointToFromOutside(CEmbeddedObject* const* ppcObject)
 	{
 		PointToInside(*ppcObject);
 	}
-	else if (!PointToReading(ppcObject))
+	else
+	{
+		PointToLocking(ppcObject);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// PointToFromOutside with the locking on: in the running thread's own
+// object system (a worker's) as with the locking off; as a reader if it
+// can be (PointToReading); otherwise with the lock.  Apart, so that the
+// ways with the locking off (the constructors, assignments and destructor)
+// stay as short as they are.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE void CPointer::PointToLocking(CEmbeddedObject* const* ppcObject)
+{
+	CEmbeddedObject*	pcNewObject;
+
+	//Only a worker asks.  What it points this at is its own, or a main object held by what it is read from, read
+	//whole: a load may be rewriting it.
+	if (ObjectsOwn() != NULL)
+	{
+		pcNewObject = (CEmbeddedObject*)AtomicLoadPointer((void**)ppcObject);
+		if (IsAllThreadsOwn(pcNewObject))
+		{
+			ObjectsOwnEnters();
+			PointToInside(pcNewObject);
+			ObjectsOwnLeaves();
+			return;
+		}
+	}
+
+	if (!PointToReading(ppcObject))
 	{
 		ObjectsLock();
-		PointToInside(*ppcObject);
+		PointToInside(NotForwarding(*ppcObject));
 		ObjectsUnlock();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this, pointed from its object at pcNewObject, changes nothing
+// but the running thread's own object system: the object it points at,
+// pcNewObject and the object it is a field of are each its own (or NULL).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPointer::IsAllThreadsOwn(CEmbeddedObject* pcNewObject)
+{
+	CObjects*			pcOwn;
+	CEmbeddedObject*	pcOldObject;
+
+	pcOwn = ObjectsOwn();
+	if ((pcOwn == NULL) || ((char*)this < CORRUPT_MEMORY))
+	{
+		return false;
+	}
+	pcOldObject = LoadObject();
+	return ((pcOldObject == NULL) || (pcOldObject->GetObjectsThisIn() == pcOwn)) &&
+		   ((pcNewObject == NULL) || (pcNewObject->GetObjectsThisIn() == pcOwn)) &&
+		   ((mpcEmbedding == NULL) || (mpcEmbedding->GetObjectsThisIn() == pcOwn));
 }
 
 
@@ -452,11 +539,6 @@ bool CPointer::PointToReading(CEmbeddedObject* const* ppcObject)
 
 	//The home thread with objects waiting for it to free takes the lock instead, which frees them.
 	bDone = bDone && !(ObjectsReaderIsHome() && ObjectsAreFreesWaiting());
-#ifdef OBJECTS_THREAD_CHECKS
-	//A Debug build checks that an object in the database is one thread's at a time (ValidateStoredOnOneThread),
-	//which looks where a reader may not: such an object's pointers are left for a writer.
-	bDone = bDone && ((pcNewObject == NULL) || !pcNewObject->IsStoredOrHollow());
-#endif // OBJECTS_THREAD_CHECKS
 	if (bDone && (pcNewObject != pcOldObject))
 	{
 		//The old from goes first: taking it off is what can fail, and with both objects held by the root the order
@@ -476,6 +558,22 @@ bool CPointer::PointToReading(CEmbeddedObject* const* ppcObject)
 	}
 	ObjectsReadEnds(bDone);
 	return bDone;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this field, of a worker's object, was or is now pointed at a
+// main object (ThreadSafetyPlan.txt, Level 3).  Never with the locking
+// off.
+//
+//////////////////////////////////////////////////////////////////////////
+inline bool CPointer::IsFieldAcross(CEmbeddedObject* pcOldObject)
+{
+	CObjects*	pcWorker;
+
+	pcWorker = mpcEmbedding->GetWorkerObjects();
+	return CEmbeddedObject::IsAcross(pcWorker, pcOldObject) || CEmbeddedObject::IsAcross(pcWorker, mpcObject);
 }
 
 
@@ -505,7 +603,11 @@ void CPointer::PointToInside(CEmbeddedObject* pcNewObject)
 
 		if (IsEmbeddingAllocatedInObjects())
 		{
-			if (pcOldObject)
+			if (OBJECTS_SELDOM(IsFieldAcross(pcOldObject)))
+			{
+				PointFieldAcross(pcOldObject);
+			}
+			else if (pcOldObject)
 			{
 				//Removing the heap from on the old object can free the embedding (and this pointer) if nothing else holds the embedding.
 				//Hold it until this method is done; it is freed when cHoldEmbedding is destroyed.
@@ -549,6 +651,75 @@ void CPointer::PointToInside(CEmbeddedObject* pcNewObject)
 	{
 		mpcObject->LogicalDirty();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// PointToInside for a field of a worker's object pointed from pcOldObject
+// at mpcObject, either of them a main object.  An object of the worker's
+// own has a heap from of it, as any field's object does; a main object is
+// held as the worker's stack pointers hold one (its from in the worker's
+// table, or on it), under the main lock: the new before the old goes, and
+// a main object let go of is the main object system's to free.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE void CPointer::PointFieldAcross(CEmbeddedObject* pcOldObject)
+{
+	CPointer	cHoldEmbedding;
+	CObjects*	pcWorker;
+
+	if ((pcOldObject != NULL) && !IsEmbeddingHeld())
+	{
+		cHoldEmbedding.PointToInside(mpcEmbedding);
+	}
+
+	pcWorker = mpcEmbedding->GetWorkerObjects();
+	ObjectsLock();
+	if (mpcObject != NULL)
+	{
+		if (CEmbeddedObject::IsAcross(pcWorker, mpcObject))
+		{
+			mpcObject->AddStackFrom(this, false);
+		}
+		else
+		{
+			mpcObject->AddHeapFrom(mpcEmbedding, pcOldObject == NULL);
+			mpcObject->SetDirty(true);
+		}
+	}
+	if (pcOldObject != NULL)
+	{
+		if (CEmbeddedObject::IsAcross(pcWorker, pcOldObject))
+		{
+			pcOldObject->RemoveStackFromTryFree(this);
+		}
+		else
+		{
+			pcOldObject->SetDirty(true);
+			pcOldObject->RemoveHeapFromTryFree(mpcEmbedding);
+		}
+	}
+	ObjectsUnlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// This field, of a worker's object that is being freed, lets go of the
+// main object it points at (PointFieldAcross), and is NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointer::ReleaseAcross(void)
+{
+	CEmbeddedObject*	pcObject;
+
+	//Read and cleared under the lock: a load of the main object rewrites it.
+	ObjectsLock();
+	pcObject = mpcObject;
+	UnsafePointTo(NULL);
+	pcObject->RemoveStackFromTryFree(this);
+	ObjectsUnlock();
 }
 
 
@@ -612,7 +783,7 @@ CEmbeddedObject* CPointer::Return(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsNotNull(void) const
 {
-	return mpcObject != NULL;
+	return LoadObject() != NULL;
 }
 
 
@@ -622,7 +793,7 @@ bool CPointer::IsNotNull(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsNull(void) const
 {
-	return mpcObject == NULL;
+	return LoadObject() == NULL;
 }
 
 
@@ -632,7 +803,7 @@ bool CPointer::IsNull(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsNotEqual(CPointer& pPointer)
 {
-	return mpcObject != pPointer.Object();
+	return LoadObject() != pPointer.Object();
 }
 
 
@@ -642,7 +813,7 @@ bool CPointer::IsNotEqual(CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsEqual(CPointer& pPointer)
 {
-	return mpcObject == pPointer.Object();
+	return LoadObject() == pPointer.Object();
 }
 
 
@@ -652,7 +823,7 @@ bool CPointer::IsEqual(CPointer& pPointer)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsEqual(CEmbeddedObject* pcObject)
 {
-	return mpcObject == pcObject;
+	return LoadObject() == pcObject;
 }
 
 
@@ -674,7 +845,7 @@ CPointer* CPointer::This(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::Object(void) const
 {
-	return mpcObject;
+	return LoadObject();
 }
 
 
@@ -694,9 +865,12 @@ CEmbeddedObject** CPointer::ObjectPtr(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CPointer::BaseObject(void)
 {
-	if (mpcObject && mpcObject->IsBaseObject())
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject && pcObject->IsBaseObject())
 	{
-		return (CBaseObject*)mpcObject;
+		return (CBaseObject*)pcObject;
 	}
 	else
 	{
@@ -717,28 +891,24 @@ CObject* CPointer::Embedding(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The object, loaded if it is a hollow (the pointer then points to the
-// loaded object).  NULL for a NULL pointer, or a hollow that can't be
-// loaded: the pointer is then left pointing to the hollow, to try again.
+// The object, loaded if it is a hollow.  NULL for a NULL pointer, or a
+// hollow that can't be loaded (the pointer is left pointing to it, to try
+// again).  Nothing is written: a load points every pointer to the hollow
+// at the object, this one too.  The pointer is read whole, as a load on
+// another thread may be rewriting it (ThreadSafetyPlan.txt, Forwarding
+// hollows).
 //
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::Dereference(void)
 {
-	CEmbeddedObject*	pcLoaded;
+	CEmbeddedObject*	pcObject;
 
-	if (mpcObject == NULL)
+	pcObject = LoadObject();
+	if (pcObject == NULL)
 	{
 		return NULL;
 	}
-
-	//Written only when it pointed at a hollow that has now been loaded: using a pointer that two threads share (a
-	//field of an object they both use) mustn't write to it.
-	pcLoaded = mpcObject->Dehollow();
-	if ((pcLoaded != NULL) && (pcLoaded != mpcObject))
-	{
-		mpcObject = pcLoaded;
-	}
-	return pcLoaded;
+	return Dehollow(pcObject);
 }
 
 
@@ -749,12 +919,36 @@ CEmbeddedObject* CPointer::Dereference(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::DereferenceArrow(void)
 {
-	if (mpcObject == NULL)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject == NULL)
 	{
 		gcLogger.Error2(__METHOD__, " Attempted to dereference NULL Pointer.", NULL);
 		return NULL;
 	}
-	return Dereference();
+	return Dehollow(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcObject, what this pointed to when it was read, or if that was a
+// hollow what it is loaded as (which this points to now).
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CPointer::Dehollow(CEmbeddedObject* pcObject)
+{
+	CEmbeddedObject*	pcLoaded;
+
+	pcLoaded = pcObject->Dehollow();
+#ifdef _DEBUG
+	if ((pcLoaded != NULL) && (pcLoaded != pcObject) && (LoadObject() != pcLoaded))
+	{
+		gcLogger.Error2(__METHOD__, " A pointer ", (mpcEmbedding != NULL) ? "field" : "on the stack", " to hollow {", ObjectToString(pcObject), "} wasn't pointed at what the hollow was loaded as, {", ObjectToString(pcLoaded), "}: it points at {", ObjectToString(LoadObject()), "}.", NULL);
+	}
+#endif // _DEBUG
+	return pcLoaded;
 }
 
 
@@ -781,9 +975,12 @@ size CPointer::MorphInto(CEmbeddedObject* pcNew)
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsHollow(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->IsHollow();
+		return pcObject->IsHollow();
 	}
 	else
 	{
@@ -834,9 +1031,12 @@ int CPointer::GetDistToRoot(void) const
 //////////////////////////////////////////////////////////////////////////
 OIndex CPointer::GetIndex(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->GetIndex();
+		return pcObject->GetIndex();
 	}
 	else
 	{
@@ -851,9 +1051,12 @@ OIndex CPointer::GetIndex(void) const
 //////////////////////////////////////////////////////////////////////////
 char* CPointer::GetName(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->GetName();
+		return pcObject->GetName();
 	}
 	else
 	{
@@ -868,9 +1071,12 @@ char* CPointer::GetName(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CPointer::IsNamed(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->IsNamed();
+		return pcObject->IsNamed();
 	}
 	else
 	{
@@ -885,9 +1091,12 @@ bool CPointer::IsNamed(void) const
 //////////////////////////////////////////////////////////////////////////
 const char* CPointer::ClassName(void)
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->ClassName();
+		return pcObject->ClassName();
 	}
 	else
 	{
@@ -902,9 +1111,12 @@ const char* CPointer::ClassName(void)
 //////////////////////////////////////////////////////////////////////////
 CClass* CPointer::GetClass(void) const
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		return mpcObject->GetClass();
+		return pcObject->GetClass();
 	}
 	else
 	{
@@ -938,9 +1150,12 @@ bool CPointer::IsDirty(void) const
 //////////////////////////////////////////////////////////////////////////
 void CPointer::LogicalDirty(void)
 {
-	if (mpcObject)
+	CEmbeddedObject*	pcObject;
+
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		mpcObject->LogicalDirty();
+		pcObject->LogicalDirty();
 	}
 }
 
@@ -968,10 +1183,13 @@ bool CPointer::IsEmbeddingAllocatedInObjects(void) const
 //////////////////////////////////////////////////////////////////////////
 void CPointer::Kill(void)
 {
+	CEmbeddedObject*	pcObject;
+
 	//This method exists so that its object can be killed without invoking -> and potentially loading it first.
-	if (mpcObject)
+	pcObject = LoadObject();
+	if (pcObject)
 	{
-		mpcObject->Kill();
+		pcObject->Kill();
 	}
 }
 
@@ -982,15 +1200,36 @@ void CPointer::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::AssignObject(CEmbeddedObject* pcObject)
 {
-	//A pointer that points at nothing yet is pointed at pcObject as any is, which a reader may do.
 	if (!OBJECTS_LOCKING())
 	{
 		AssignObjectInside(pcObject);
 	}
-	else if ((mpcObject != NULL) || !PointToReading(&pcObject))
+	else
+	{
+		AssignObjectLocking(pcObject);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// AssignObject with the locking on.  A pointer that points at nothing yet
+// is pointed at pcObject as any is, which a reader may do.  Apart, as
+// PointToLocking is.
+//
+//////////////////////////////////////////////////////////////////////////
+NO_INLINE void CPointer::AssignObjectLocking(CEmbeddedObject* pcObject)
+{
+	if (IsAllThreadsOwn(pcObject))
+	{
+		ObjectsOwnEnters();
+		AssignObjectInside(pcObject);
+		ObjectsOwnLeaves();
+	}
+	else if ((LoadObject() != NULL) || !PointToReading(&pcObject))
 	{
 		ObjectsLock();
-		AssignObjectInside(pcObject);
+		AssignObjectInside(NotForwarding(pcObject));
 		ObjectsUnlock();
 	}
 }

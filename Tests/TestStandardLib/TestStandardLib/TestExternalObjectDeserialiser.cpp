@@ -1279,7 +1279,7 @@ void TestExternalObjectDeserialiserInternalEmbeddedIndex(void)
 		cDeserialiser.Init(&gcObjects, NULL, gcObjects.GetMemory());
 
 		//Not in memory, and a hollow with one embedded object has no embedded object 1.
-		cIdentifier.Init(1000LL, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+		cIdentifier.Init(1000LL);
 		StartCapturingLog(&cLog, &sLogConfig);
 		bResult = cDeserialiser.TestAddDependent(&cIdentifier, pFrom->mpObject.ObjectPtr(), &pFrom, 1, 1);
 		StopCapturingLog(&cLog, &sLogConfig, szLog, 1024);
@@ -1290,7 +1290,7 @@ void TestExternalObjectDeserialiserInternalEmbeddedIndex(void)
 		AssertTrue(strstr(szLog, "} has no embedded object [1].") != NULL);
 
 		//In memory, but it has no embedded object 3.
-		cIdentifier.Init(pExisting->GetIndex(), OBJECT_IDENTIFIER_SIZE_NOT_SET);
+		cIdentifier.Init(pExisting->GetIndex());
 		StartCapturingLog(&cLog, &sLogConfig);
 		bResult = cDeserialiser.TestAddDependent(&cIdentifier, pFrom->mpObject.ObjectPtr(), &pFrom, 1, 3);
 		StopCapturingLog(&cLog, &sLogConfig, szLog, 1024);
@@ -1301,7 +1301,7 @@ void TestExternalObjectDeserialiserInternalEmbeddedIndex(void)
 		AssertSize(0, pExisting->NumHeapFroms());
 
 		//In memory and pointing at the object itself.
-		cIdentifier.Init(pExisting->GetIndex(), OBJECT_IDENTIFIER_SIZE_NOT_SET);
+		cIdentifier.Init(pExisting->GetIndex());
 		bResult = cDeserialiser.TestAddDependent(&cIdentifier, pFrom->mpObject.ObjectPtr(), &pFrom, 1, 0);
 		cIdentifier.Kill();
 		AssertTrue(bResult);
@@ -1312,7 +1312,7 @@ void TestExternalObjectDeserialiserInternalEmbeddedIndex(void)
 		//Not in memory: a hollow with three embedded objects is made and its third pointed to.
 		pFrom->mpObject.UnsafeClearObject();
 		pExisting->TestRemoveHeapFrom(&pFrom);
-		cIdentifier.Init(1001LL, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+		cIdentifier.Init(1001LL);
 		bResult = cDeserialiser.TestAddDependent(&cIdentifier, pFrom->mpObject.ObjectPtr(), &pFrom, 3, 2);
 		cIdentifier.Kill();
 		AssertTrue(bResult);
@@ -1502,9 +1502,9 @@ void TestExternalObjectDeserialiserDependentWithoutIndex(void)
 	SLogConfig					sLogConfig;
 	char						szLogged[1024];
 
-	cIdentifier.Init(12, 345);
+	cIdentifier.Init(12);
 	cDependent.Init(&cIdentifier);
-	AssertShort((uint16)345, cDependent.muiSize);
+	AssertLong(12, cDependent.moi);
 	cDependent.Kill();
 	cIdentifier.Kill();
 
@@ -1514,7 +1514,7 @@ void TestExternalObjectDeserialiserDependentWithoutIndex(void)
 		cReader.Init(EXTERNAL_FILES_DIRECTORY);
 		cDeserialiser.Init(&cReader, false, &gcObjects);
 
-		cIdentifier.Init("Nowhere", INVALID_O_INDEX, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+		cIdentifier.Init("Nowhere", INVALID_O_INDEX);
 		pcPointedTo = NULL;
 		StartCapturingLog(&cLog, &sLogConfig);
 		AssertFalse(((CDependentReadObjects*)&cDeserialiser)->AddDependent(&cIdentifier, &pcPointedTo, NULL, 1, 0));  //As the object reader sees it.

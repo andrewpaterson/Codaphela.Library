@@ -351,6 +351,42 @@ SIRReference CIRIdiomPasses::IdiomBytes(CIRBlock* pcBlock, SIRIdiomCounter* psCo
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The library function (szName or szName32) taking *psBytes, IdiomBytes's
+// 32 bit count of a loop lliBytes at a time, and the type to pass it as
+// (*psType, *psBytes narrowed to it at the end of pcBlock).  The plain
+// function takes the library's size_t (msLibrarySize): when that is 16
+// bits only a count that fits is passed to it (a counter of 16 bits or
+// fewer, a byte at a time), else the count stays 32 bits for szName32
+// (the W65C816's memset32 and the others).  A NULL psCounter: the count
+// isn't known to fit.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CIRIdiomPasses::LibrarySize(CIRBlock* pcBlock, const char* szName, const char* szName32, SIRIdiomCounter* psCounter, int64 lliBytes, SIRReference* psBytes, SIRType* psType)
+{
+	SIRType		sSize;
+
+	sSize = mpcContext->msLibrarySize;
+	if (sSize.Is(IRTK_I32))
+	{
+		*psType = sSize;
+		return szName;
+	}
+	if (psCounter && (lliBytes == 1) && (mpcFunction->TypeOf(psCounter->sInit).IntegerBits() <= sSize.IntegerBits()))
+	{
+		*psType = sSize;
+		if (psBytes && !psBytes->IsNone())
+		{
+			*psBytes = mpcFunction->Add(pcBlock, IRO_Trunc, sSize, *psBytes);
+		}
+		return szName;
+	}
+	*psType = IRType(IRTK_I32);
+	return szName32;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether pcBlock does nothing with an effect but iLoads loads, none
 // volatile: they go in apsLoads in order.
 //
@@ -442,6 +478,7 @@ bool CIRIdiomPasses::ReplaceLoopIdioms(void)
 	SIRReference		sValue;
 	SIRReference		sTest;
 	SIRType				sPointer;
+	SIRType				sSize;
 	uint64				ulliValue;
 	int64				lliBytes;
 	int64				lliTimes;
@@ -452,6 +489,7 @@ bool CIRIdiomPasses::ReplaceLoopIdioms(void)
 	bool				bChanged;
 	bool				bSame;
 	char*				szName;
+	const char*			szLibrary;
 
 	szName = mpcModule->GetSymbolName(mpcFunction->muiSymbol);
 	if (mpcContext->msLibraryInt.IsNone() || (strcmp(szName, "_memset") == 0) || (strcmp(szName, "_memmove") == 0) || (strcmp(szName, "_memcpy") == 0) ||
@@ -579,7 +617,8 @@ bool CIRIdiomPasses::ReplaceLoopIdioms(void)
 			{
 				sValue = mpcFunction->Add(pcPreheader, IRO_ZExt, mpcContext->msLibraryInt, sValue);
 			}
-			LibraryCall(pcPreheader, "_memset", sPointer, sDestinationStart, sPointer, sValue, mpcContext->msLibraryInt, sBytes, IRType(IRTK_I32));
+			szLibrary = LibrarySize(pcPreheader, "_memset", "_memset32", &sCounter, lliBytes, &sBytes, &sSize);
+			LibraryCall(pcPreheader, szLibrary, sPointer, sDestinationStart, sPointer, sValue, mpcContext->msLibraryInt, sBytes, sSize);
 			pcCall = pcPreheader;
 			mpcContext->mpcBlockPasses->RemovePhiArguments(pcLoop, pcPreheader);
 			pcPreheader->Jump(pcExit);
@@ -592,7 +631,8 @@ bool CIRIdiomPasses::ReplaceLoopIdioms(void)
 			sValue = mpcFunction->Add(pcPreheader, IRO_UGe, sPointer, sDestinationStart, sValue);
 			sTest = mpcFunction->Add(pcPreheader, IRO_Or, IRType(IRTK_I1), sTest, sValue);
 			pcCall = mpcFunction->AddBlock();
-			LibraryCall(pcCall, "_memmove", sPointer, sDestinationStart, sPointer, sSourceStart, sPointer, sBytes, IRType(IRTK_I32));
+			szLibrary = LibrarySize(pcCall, "_memmove", "_memmove32", &sCounter, lliBytes, &sBytes, &sSize);
+			LibraryCall(pcCall, szLibrary, sPointer, sDestinationStart, sPointer, sSourceStart, sPointer, sBytes, sSize);
 			pcCall->Jump(pcExit);
 			pcPreheader->Branch(sTest, pcCall, pcLoop);
 		}
@@ -665,11 +705,13 @@ bool CIRIdiomPasses::ReplaceStrlen(size uiLoop)
 	SIRReference	sStart;
 	SIRReference	sTimes;
 	SIRType			sType;
+	SIRType			sSize;
 	CArrayIRReferences	asValues;
 	size			ui;
 	size			uj;
 	uint16			uiOpcode;
 	int64			lliStep;
+	const char*		szLibrary;
 	bool			bNext;
 	bool			bResult;
 	uint32			uiExitUses;
@@ -759,7 +801,8 @@ bool CIRIdiomPasses::ReplaceStrlen(size uiLoop)
 	//The length on the way in, and the values that leave from it.
 	pcPreheader = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
 	sStart = IdiomStart(pcPreheader, &sAddress, &sCounter);
-	sLength = LibraryCall(pcPreheader, "_strlen", IRType(IRTK_I32), sStart, IRType(IRTK_Pointer));
+	szLibrary = LibrarySize(pcPreheader, "_strlen", "_strlen32", NULL, 1, NULL, &sSize);  //The length is 32 bits.
+	sLength = LibraryCall(pcPreheader, szLibrary, sSize, sStart, IRType(IRTK_Pointer));
 	for (ui = 0; ui < pcExit->masPhis.NumElements(); ui++)
 	{
 		psExitPhi = pcExit->masPhis.Get(ui);
@@ -886,10 +929,12 @@ bool CIRIdiomPasses::ReplaceMemcmp(size uiLoop)
 	SIRReference	sBytes;
 	SIRReference	sResult;
 	SIRReference	sTest;
+	SIRType			sSize;
 	int64			lliBytes;
 	int64			lliTimes;
 	size			ui;
 	uint16			uiOpcode;
+	const char*		szLibrary;
 
 	psLoop = mpcContext->mcLoops.GetLoop(uiLoop);
 	pcHead = psLoop->pcHead;
@@ -967,7 +1012,8 @@ bool CIRIdiomPasses::ReplaceMemcmp(size uiLoop)
 	sFirstStart = IdiomStart(pcPreheader, &sFirst, &sCounter);
 	sSecondStart = IdiomStart(pcPreheader, &sSecond, &sCounter);
 	sBytes = IdiomBytes(pcPreheader, &sCounter, lliBytes);
-	sResult = LibraryCall(pcPreheader, "_memcmp", mpcContext->msLibraryInt, sFirstStart, IRType(IRTK_Pointer), sSecondStart, IRType(IRTK_Pointer), sBytes, IRType(IRTK_I32));
+	szLibrary = LibrarySize(pcPreheader, "_memcmp", "_memcmp32", &sCounter, lliBytes, &sBytes, &sSize);
+	sResult = LibraryCall(pcPreheader, szLibrary, mpcContext->msLibraryInt, sFirstStart, IRType(IRTK_Pointer), sSecondStart, IRType(IRTK_Pointer), sBytes, sSize);
 	sTest = mpcFunction->Add(pcPreheader, IRO_Ne, mpcContext->msLibraryInt, sResult, mpcFunction->AddInteger(mpcContext->msLibraryInt, 0));
 	for (ui = 0; ui < pcDiffer->masPhis.NumElements(); ui++)
 	{
@@ -1219,9 +1265,11 @@ bool CIRIdiomPasses::ReplaceMemchr(size uiLoop)
 	SIRReference		sResult;
 	SIRReference		sTimes;
 	SIRReference		sTest;
+	SIRType				sSize;
 	size				ui;
 	uint16				uiOpcode;
 	bool				bResult;
+	const char*			szLibrary;
 
 	psLoop = mpcContext->mcLoops.GetLoop(uiLoop);
 	pcHead = psLoop->pcHead;
@@ -1310,7 +1358,8 @@ bool CIRIdiomPasses::ReplaceMemchr(size uiLoop)
 		sValue = mpcFunction->Add(pcPreheader, IRO_ZExt, mpcContext->msLibraryInt, sValue);
 	}
 	sTimes = IdiomBytes(pcPreheader, &sCounter, 1);
-	sResult = LibraryCall(pcPreheader, "_memchr", IRType(IRTK_Pointer), sStart, IRType(IRTK_Pointer), sValue, mpcContext->msLibraryInt, sTimes, IRType(IRTK_I32));
+	szLibrary = LibrarySize(pcPreheader, "_memchr", "_memchr32", &sCounter, 1, &sTimes, &sSize);
+	sResult = LibraryCall(pcPreheader, szLibrary, IRType(IRTK_Pointer), sStart, IRType(IRTK_Pointer), sValue, mpcContext->msLibraryInt, sTimes, sSize);
 	sTest = mpcFunction->Add(pcPreheader, IRO_Eq, IRType(IRTK_Pointer), sResult, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
 	pcAt = mpcFunction->AddBlock();
 	sTimes = mpcFunction->Add(pcAt, IRO_PtrToI, IRType(IRTK_I32), sResult);

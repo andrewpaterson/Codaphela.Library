@@ -92,6 +92,7 @@ protected:
 	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo) override;
 	bool				ClearPointerTos(bool bFree) override;
+	void				ReleaseFieldsAcross(CObjects* pcWorker);
 	void				RemoveAllHeapFroms(void) override;
 	void				RemoveAllStackFroms(void) override;
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;

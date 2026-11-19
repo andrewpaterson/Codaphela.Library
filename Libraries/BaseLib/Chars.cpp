@@ -38,6 +38,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "SystemAllocator.h"
 #include "FloatPrinter.h"
 #include "Chars.h"
+#include "Memory32.h"
 #include "PointerFunctions.h"
 
 
@@ -493,7 +494,7 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::CStringLength(const char* szStrin
 {
 	lsize	uiLength;
 
-	uiLength = strlen(szString);
+	uiLength = strlen32(szString);
 	if (TEXT::SizePolicy::CheckSize && (uiLength >= TEXT::SizePolicy::Max))
 	{
 #ifdef _DEBUG

@@ -32,7 +32,7 @@ class CMapObject : public CCollection
 CONSTRUCTABLE(CMapObject)
 protected:
 	CMapUnknownUnknown		mcMap;
-	bool					mbSorted;	//Whether mcMap is in key order: it keeps no flag of its own, and a key loaded or remapped where it is changes the order.
+	bool					mbSorted;	//Whether mcMap is in key order: it keeps no flag of its own, and a key remapped where it is to another object (not one loaded for its hollow, which has its index) changes the order.
 
 public:
 						~CMapObject();

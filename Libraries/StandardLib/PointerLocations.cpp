@@ -25,6 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/Logger.h"
 #include "PointerLocations.h"
+#include "BaseLib/Memory32.h"
 
 
 #define POINTER_LOCATIONS_MIN_SLOTS		16
@@ -355,7 +356,7 @@ bool CPointerLocations::Grow(void)
 		//Grow is called while the slots are at most half full, so they still have room, just slower.
 		return muiNumSlots != 0;
 	}
-	memset(asNewSlots, 0, (lsize)uiNumSlots * sizeof(SPointerLocation));
+	memset32(asNewSlots, 0, (lsize)uiNumSlots * sizeof(SPointerLocation));
 
 	asOldSlots = masSlots;
 	uiOldNumSlots = muiNumSlots;

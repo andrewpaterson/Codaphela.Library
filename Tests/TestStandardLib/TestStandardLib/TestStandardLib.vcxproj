@@ -261,6 +261,7 @@
     <ClCompile Include="TestFreeEmbedded.cpp" />
     <ClCompile Include="TestHollowObject.cpp" />
     <ClCompile Include="TestIndexTreeMemory.cpp" />
+    <ClCompile Include="TestIndexedObjects.cpp" />
     <ClCompile Include="TestKill.cpp" />
     <ClCompile Include="TestNamedObject.cpp" />
     <ClCompile Include="TestObjectAllocator.cpp" />

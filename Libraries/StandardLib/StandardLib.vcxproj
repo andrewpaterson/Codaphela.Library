@@ -200,7 +200,6 @@
     <ClInclude Include="Class.h" />
     <ClInclude Include="ClassDefines.h" />
     <ClInclude Include="Classes.h" />
-    <ClInclude Include="FatHollowConfiguration.h" />
     <ClInclude Include="FreeObjects.h" />
     <ClInclude Include="Index.h" />
     <ClInclude Include="IndexObject.h" />
@@ -302,6 +301,7 @@
     <ClInclude Include="MultiFileObjectWriter.h" />
     <ClInclude Include="HollowObject.h" />
     <ClInclude Include="IndexedObjects.h" />
+    <ClInclude Include="ObjectsWorker.h" />
     <ClInclude Include="ObjectSource.h" />
     <ClInclude Include="Action.h" />
     <ClInclude Include="Actions.h" />
@@ -341,7 +341,6 @@
     <ClCompile Include="ChannelsAccessorCreatorParams.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Classes.cpp" />
-    <ClCompile Include="FatHollowConfiguration.cpp" />
     <ClCompile Include="FreeObjects.cpp" />
     <ClCompile Include="IndexObject.cpp" />
     <ClCompile Include="IndexUnknown.cpp" />
@@ -439,6 +438,8 @@
     <ClCompile Include="MultiFileObjectWriter.cpp" />
     <ClCompile Include="HollowObject.cpp" />
     <ClCompile Include="IndexedObjects.cpp" />
+    <ClCompile Include="ObjectsWorker.cpp" />
+    <ClCompile Include="ObjectsAdopt.cpp" />
     <ClCompile Include="ObjectSource.cpp" />
     <ClCompile Include="Action.cpp" />
     <ClCompile Include="Actions.cpp" />

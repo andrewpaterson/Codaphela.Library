@@ -31,7 +31,6 @@ void CObjectIdentifier::Init(void)
 	meType = OBJECT_POINTER_NULL;
 	moi = INVALID_O_INDEX;
 	mszObjectName.Init();
-	muiSize = 0;
 }
 
 
@@ -39,12 +38,11 @@ void CObjectIdentifier::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectIdentifier::Init(OIndex oi, uint16 uiSize)
+void CObjectIdentifier::Init(OIndex oi)
 {
 	meType = OBJECT_POINTER_ID;
 	moi = oi;
 	mszObjectName.Init();
-	muiSize = uiSize;
 }
 
 
@@ -52,12 +50,11 @@ void CObjectIdentifier::Init(OIndex oi, uint16 uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectIdentifier::Init(const char* szName, OIndex oi, uint16 uiSize)
+void CObjectIdentifier::Init(const char* szName, OIndex oi)
 {
 	meType = OBJECT_POINTER_NAMED;
 	moi = oi;
 	mszObjectName.Fake(szName);
-	muiSize = uiSize;
 }
 
 
@@ -115,16 +112,6 @@ bool CObjectIdentifier::IsIndexed(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectIdentifier::IsFat(void) const
-{
-	return muiSize != OBJECT_IDENTIFIER_SIZE_NOT_SET;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 const char* CObjectIdentifier::GetName(void)
 {
 	if (meType == OBJECT_POINTER_NAMED)
@@ -175,16 +162,6 @@ const char* CObjectIdentifier::GetType(void) const
 	{
 		return NULL;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-uint16 CObjectIdentifier::GetFatSize(void) const
-{
-	return muiSize;
 }
 
 

@@ -340,7 +340,6 @@ bool CNamedIndexedObjects::ValidateNoDirty(void)
 			pcObject->PrintIdentifier(&szIdentifier);
 			gcLogger.Error2(__METHOD__, " Object [", szIdentifier.Text(), "] is dirty.", NULL);
 			szIdentifier.Kill();
-			sIter.Kill();
 			return false;
 		}
 		oi = mcMemoryIndexedObjects.Iterate(&sIter);
@@ -426,8 +425,7 @@ void CNamedIndexedObjects::Dump(void)
 	mcMemoryNames.Dump();
 
 	sz.Init("\n============================== Memory Indexes ==============================\n");
+	mcMemoryIndexedObjects.Print(&sz);
 	sz.DumpKill();
-
-	mcMemoryIndexedObjects.GetIndexes()->Dump();
 }
 

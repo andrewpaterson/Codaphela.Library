@@ -140,7 +140,7 @@ see this source is this one", so extern "C" functions take them too):
   returns 64 bits (then the hidden result pointer is, and this is pushed).
 - The function's code is at its label plus a suffix naming each argument word's place:
   a dot, then a, x or y for a register or s for a pushed word, without the pushed words
-  at the end (_Add__Fii.ax; _MemSwp16__FPKvPKvt.axssy).  No suffix when nothing is in a
+  at the end (_Add__Fii.ax; _MemSwp__FPKvPKvj.axssy).  No suffix when nothing is in a
   register.  C++ labels have no dot, so the suffix can't clash, and a caller and a
   definition that don't agree don't link.
 - The prologue pushes the register words into the top of the frame (phd, phy, phx, pha,
@@ -157,7 +157,7 @@ see this source is this one", so extern "C" functions take them too):
 - Assembly defines the suffixed labels too, its plain labels being stack entries (load the
   registers from the stack and call or go on to the register entries):
   - Libc65's stringW65C816.asm and stringW65C816_16.asm: the register entries are the real code
-    (memcpy, memset, strlen, strcmp ... memcpy16 ..., MemSwp, the bit array finders),
+    (memcpy, memset, strlen, strcmp ... memcpy32 ..., MemSwp, MemSwp32, the bit array finders),
     pushing the register words where the code wants them in memory.
   - softfloatW65C816.asm's <math.h> functions: fabs's are real; trunc, floor, ceil, round and
     frexp push A and X before D (only the result pointer, or a float's x, moves); sqrt,

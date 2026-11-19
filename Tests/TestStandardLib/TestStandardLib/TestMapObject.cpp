@@ -5,6 +5,8 @@
 #include "BaseLib/Codabase.h"
 #include "BaseLib/CodabaseFactory.h"
 #include "BaseLib/SequenceFactory.h"
+#include "BaseLib/FileUtil.h"
+#include "StandardLib/ArrayObject.h"
 #include "TestLib/Assert.h"
 #include "TestMapObject.h"
 #include "NamedObjectTestClasses.h"
@@ -1277,13 +1279,13 @@ void TestMapObjectInternalSerialisation(size uiNumMapItems)
 		pMap = gcObjects.Get("Map");
 		AssertTrue(pMap.IsNotNull());
 		AssertSize(uiNumMapItems, pMap->NumElements());
-		AssertFalse(pMap->IsSorted());
 
-		//Questions about an unsorted map answer it without sorting it: the count, and the validator's (big enough maps
-		//keep their members' locations, which the validator checks with IsMemberAt).
+		//Read back in the order it was saved in (its keys keep their indexes), so nothing sorts it: not the count,
+		//nor the validator (big enough maps keep their members' locations, which it checks with IsMemberAt).
+		AssertTrue(pMap->IsSorted());
 		pMap->NonNullElements();
 		pMap->ValidateConsistency();
-		AssertFalse(pMap->IsSorted());
+		AssertTrue(pMap->IsSorted());
 
 		bResult = true;
 		for (ui = 0; ui < uiNumMapItems; ui++)
@@ -1950,6 +1952,96 @@ void TestMapObjectConstKeys(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A map read from the database holds hollows for its keys, which are loaded
+// later, one at a time, into memory of their own (they were read first as
+// an array's members).  The map stays in key order through every load and
+// finds each key, without being sorted again.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMapObjectLoadKeepsOrder(size uiNumKeys)
+{
+	CFileUtil		cFileUtil;
+	CCodabase*		pcDatabase;
+	CSequence*		pcSequence;
+	char			szDirectory[] = "Output" _FS_ "MapObjectOrder";
+	size			i;
+	bool			bResult;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	TestMapObjectAddConstructors();
+	{
+		Ptr<CMapObject>		pMap;
+		Ptr<CArrayObject>	pKeys;
+		Ptr<CTestObject>	pKey;
+		Ptr<CTestObject>	pValue;
+
+		pMap = ONMalloc<CMapObject>("Map");
+		pKeys = ONMalloc<CArrayObject>("Keys");
+		ORoot()->Add(pMap);
+		ORoot()->Add(pKeys);
+		for (i = 0; i < uiNumKeys; i++)
+		{
+			pKey = OMalloc<CTestObject>();
+			pKeys->Add(pKey);
+		}
+		for (i = uiNumKeys; i > 0; i--)
+		{
+			pKey = pKeys->Get(i - 1);
+			pValue = OMalloc<CTestObject>();
+			pMap->Put(pKey, pValue);
+		}
+		AssertSize(uiNumKeys, pMap->NumElements());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	TestMapObjectAddConstructors();
+	{
+		Ptr<CRoot>			pRoot;
+		Ptr<CMapObject>		pMap;
+		Ptr<CArrayObject>	pKeys;
+		CPointer			pKey;
+
+		pRoot = ORoot();
+		pKeys = pRoot->Get("Keys");
+		AssertSize(uiNumKeys, pKeys->NumElements());
+		pMap = pRoot->Get("Map");
+		AssertSize(uiNumKeys, pMap->NumElements());
+		AssertTrue(pMap->IsSorted());
+
+		bResult = true;
+		for (i = 0; (i < uiNumKeys) && bResult; i++)
+		{
+			pKey = pKeys->Get(i);
+			bResult = !pKey.IsHollow() && pMap->IsSorted() && pMap->Get(pKey).IsNotNull();
+		}
+		AssertTrue(bResult);
+		AssertTrue(pMap->IsSorted());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcDatabase);
+	SafeKill(pcSequence);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMapObject(void)
@@ -1990,6 +2082,8 @@ void TestMapObject(void)
 	TestMapObjectRemapSelfEntry(10);
 	TestMapObjectRemapSelfEntry(100);
 	TestMapObjectEmbeddedInObjectsKill();
+	TestMapObjectLoadKeepsOrder(10);
+	TestMapObjectLoadKeepsOrder(200);
 
 	DataIOKill();
 	TypesKill();

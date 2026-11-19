@@ -173,7 +173,6 @@ void TestHollowObjectMemoryIteration(void)
 	p = gcObjects.TestGetFromMemory(oi);
 	AssertTrue(p.IsHollow());
 	oi = gcObjects.IterateMemory(&sIter);
-	sIter.Kill();
 	AssertLong(INVALID_O_INDEX, oi);
 	AssertString("CTestObject", p->ClassName());
 	AssertFalse(p.IsHollow());
@@ -304,13 +303,13 @@ void TestHollowObjectInternalAllocation(void)
 	gcObjects.SetHollowAllocationCallback(&TestHollowObjectCountHollow);
 
 	oiUnnamed = gcObjects.GetIndexGenerator()->GetNext();
-	pcHollow = gcObjects.AllocateInternalHollow("", oiUnnamed, 1, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	pcHollow = gcObjects.AllocateInternalHollow("", oiUnnamed, 1);
 	AssertNotNull(pcHollow);
 	AssertLong(oiUnnamed, pcHollow->GetIndex());
 	AssertSize(1, guiHollowsAllocated);
 
 	oiNamed = gcObjects.GetIndexGenerator()->GetNext();
-	pcHollow = gcObjects.AllocateInternalHollow("Hollow", oiNamed, 3, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+	pcHollow = gcObjects.AllocateInternalHollow("Hollow", oiNamed, 3);
 	AssertNotNull(pcHollow);
 	AssertString("Hollow", pcHollow->GetName());
 	AssertSize(2, guiHollowsAllocated);
@@ -318,8 +317,8 @@ void TestHollowObjectInternalAllocation(void)
 	uiIndexes = gcObjects.NumMemoryIndexes();
 	uiNames = gcObjects.NumMemoryNames();
 	sLogConfig = gcLogger.SetSilent();
-	AssertNull(gcObjects.AllocateInternalHollow("", oiUnnamed, 1, OBJECT_IDENTIFIER_SIZE_NOT_SET));
-	AssertNull(gcObjects.AllocateInternalHollow("Hollow", gcObjects.GetIndexGenerator()->GetNext(), 1, OBJECT_IDENTIFIER_SIZE_NOT_SET));
+	AssertNull(gcObjects.AllocateInternalHollow("", oiUnnamed, 1));
+	AssertNull(gcObjects.AllocateInternalHollow("Hollow", gcObjects.GetIndexGenerator()->GetNext(), 1));
 	gcLogger.SetConfig(&sLogConfig);
 	AssertSize(2, guiHollowsAllocated);
 	AssertSize(uiIndexes, gcObjects.NumMemoryIndexes());
@@ -328,6 +327,82 @@ void TestHollowObjectInternalAllocation(void)
 
 	ObjectsFlush();
 	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A hollow made for a name alone (as an external read makes one for a
+// named object it finds a pointer to) has the database's index for the
+// name, which the object loaded for it keeps.  A name the database doesn't
+// have gets the next index.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestHollowObjectNamedHasDatabaseIndex(void)
+{
+	CFileUtil			cFileUtil;
+	CCodabase*			pcDatabase;
+	CSequence*			pcSequence;
+	char				szDirectory[] = "Output" _FS_ "HollowObjectNamed";
+	OIndex				oiPavel;
+
+	cFileUtil.RemoveDir(szDirectory);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	TestHollowObjectAddConstructors();
+	{
+		Ptr<CTestObject>	pPavel;
+
+		pPavel = ONMalloc<CTestObject>("Pavel");
+		ORoot()->Add(pPavel);
+		oiPavel = pPavel.GetIndex();
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcSequence);
+	SafeKill(pcDatabase);
+	ObjectsKill(false);
+
+	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
+	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);
+	pcDatabase->Open();
+	ObjectsInit(pcDatabase, pcSequence);
+	TestHollowObjectAddConstructors();
+	{
+		CPointer	pHollow;
+		CPointer	pNobody;
+		CPointer	pMember;
+		Ptr<CRoot>	pRoot;
+
+		pHollow = gcObjects.GetNamedOrAllocateHollow("Pavel", 1);
+		AssertTrue(pHollow.IsHollow());
+		AssertLong(oiPavel, pHollow.GetIndex());
+
+		pNobody = gcObjects.GetNamedOrAllocateHollow("Nobody", 1);
+		AssertTrue(pNobody.IsHollow());
+		AssertTrue(pNobody.GetIndex() != oiPavel);
+		AssertTrue(pNobody.GetIndex() != INVALID_O_INDEX);
+		pNobody = NULL;
+
+		//The root holds Pavel by index: it finds the hollow, and both are the one object once it is loaded.
+		pRoot = ORoot();
+		pMember = pRoot->Get("Pavel");
+		AssertFalse(gcObjects.Get("Pavel").IsHollow());
+		AssertFalse(pHollow.IsHollow());
+		AssertPointer(pHollow.Object(), pMember.Object());
+		AssertLong(oiPavel, pHollow.GetIndex());
+		AssertString("Pavel", pHollow.GetName());
+	}
+	ObjectsFlush();
+	pcDatabase->Close();
+	SafeKill(pcSequence);
+	SafeKill(pcDatabase);
+	ObjectsKill(false);
+
+	cFileUtil.RemoveDir(szDirectory);
 }
 
 
@@ -346,6 +421,7 @@ void TestHollowObject(void)
 	TestHollowObjectMemoryIteration();
 	TestHollowObjectInternalAllocation();
 	TestHollowObjectGetLoads();
+	TestHollowObjectNamedHasDatabaseIndex();
 
 	DataIOKill();
 	TypesKill();

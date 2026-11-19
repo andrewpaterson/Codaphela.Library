@@ -1,6 +1,7 @@
 #include "DataMacro.h"
 #include "Validation.h"
 #include "ScratchPadAllocator.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,11 +79,11 @@ void* CScratchPadAllocator::Realloc(void* pv, lsize uiSize)
 	psNode->bUsed = false;
 	if (psNode->iSize > uiSize)
 	{
-		memcpy(pvNew, pv, uiSize);
+		memcpy32(pvNew, pv, uiSize);
 	}
 	else
 	{
-		memcpy(pvNew, pv, psNode->iSize);
+		memcpy32(pvNew, pv, psNode->iSize);
 	}
 	return pvNew;
 }

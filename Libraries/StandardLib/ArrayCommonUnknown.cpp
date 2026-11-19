@@ -18,8 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Atomic.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/PrimitiveTypes.h"
+#include "EmbeddedObject.h"
 #include "SetIterator.h"
 #include "Unknowns.h"
 #include "ArrayUnknown.h"
@@ -33,6 +35,7 @@ void CArrayCommonUnknown::_Init(void)
 {
 	mcArray.Init(&gcSystemAllocator);  //Nothing is allocated until something is added, which an array still can be.
 	muiFlags = 0;
+	mbSlotsMoved = false;
 	miNonNullElements = 0;
 }
 
@@ -49,6 +52,7 @@ void CArrayCommonUnknown::Init(uint16 uiFlags, size iChunkSize)
 	mcArray.Init(&gcSystemAllocator, iChunkSize);
 	muiFlags = uiFlags & ARRAY_COMMON_INIT_FLAGS;
 	SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, FixBool(uiFlags & ARRAY_COMMON_SORT_POINTERS));
+	mbSlotsMoved = false;
 	miNonNullElements = 0;
 }
 
@@ -100,7 +104,7 @@ void CArrayCommonUnknown::PrivateKill(void)
 		uiNumElements = mcArray.NumElements();
 		for (i = 0; i < uiNumElements; i++)
 		{
-			pcUnknown = *mcArray.Get(i);
+			pcUnknown = UnsafeGet(i);
 			if (pcUnknown)
 			{
 				pcUnknown->Kill();
@@ -142,7 +146,7 @@ bool CArrayCommonUnknown::WriteArrayHeader(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteSize(mcArray.NumElements()));
 	ReturnOnFalse(pcFile->WriteSize(miNonNullElements));
 	ReturnOnFalse(pcFile->WriteSize(mcArray.ChunkSize()));
-	return pcFile->WriteInt16((uint16)(muiFlags & ~ARRAY_COMMON_SLOTS_MOVED));
+	return pcFile->WriteInt16(muiFlags);
 }
 
 
@@ -219,7 +223,7 @@ bool CArrayCommonUnknown::WriteElements(CFileWriter* pcFile)
 	uiNumElements = mcArray.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		ReturnOnFalse(WriteElement(pcFile, *mcArray.Get(i)));
+		ReturnOnFalse(WriteElement(pcFile, UnsafeGet(i)));
 	}
 	return true;
 }
@@ -250,6 +254,7 @@ bool CArrayCommonUnknown::ReadElements(CFileReader* pcFile, size iNumElements)
 void CArrayCommonUnknown::PostLoad(uint16 iFlags)
 {
 	muiFlags = iFlags;
+	mbSlotsMoved = false;
 
 	//If the array was saved sorted it must be sorted after it is loaded.
 	//Which might not be the case as pointer position will depend on allocation,
@@ -264,13 +269,15 @@ void CArrayCommonUnknown::PostLoad(uint16 iFlags)
 //////////////////////////////////////////////////////////////////////////
 //
 // The flags of an array whose elements were read as pointers to objects
-// (hollows, or objects already in memory): their addresses aren't those
-// saved, so it isn't sorted until it is sorted again.
+// (hollows, or objects already in memory).  Sorted by index it is in the
+// order it was saved in; sorted by address it isn't, as their addresses
+// aren't those saved, until it is sorted again.
 //
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::PostLoadPointers(uint16 iFlags)
 {
-	muiFlags = iFlags & ~ARRAY_COMMON_IS_PTR_SORTED;
+	muiFlags = (iFlags & ARRAY_COMMON_SORT_BY_INDEX) ? iFlags : (iFlags & ~ARRAY_COMMON_IS_PTR_SORTED);
+	mbSlotsMoved = false;
 }
 
 
@@ -357,7 +364,7 @@ void CArrayCommonUnknown::PreserveOrder(bool bPreserveOrder)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::Sort(void)
 {
-	mcArray.QuickSort(ComparePtrPtr);
+	mcArray.QuickSort(SortCompare());
 	SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, true);
 	SlotsMoved();
 }
@@ -395,6 +402,49 @@ size CArrayCommonUnknown::Find(CUnknown* pcUnknown)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The index of the first of pcUnknown from uiStartIndex on, in a sorted
+// array where iFound is an element that sorts with it but isn't it.  Sorted
+// by index a hollow and the object loaded for it sort as one: they are
+// next to each other, and next to any copies of pcUnknown.
+//
+//////////////////////////////////////////////////////////////////////////
+size CArrayCommonUnknown::FindNextSortedWith(CUnknown* pcUnknown, size iFound, size uiStartIndex)
+{
+	DataCompare		fCompare;
+	CUnknown*		pcCurrent;
+	size			iIndex;
+	size			uiNumElements;
+
+	fCompare = SortCompare();
+	iIndex = iFound;
+	while ((iIndex > uiStartIndex) && (fCompare(mcArray.Get(iIndex - 1), &pcUnknown) == 0))
+	{
+		iIndex--;
+	}
+	if (iIndex < uiStartIndex)
+	{
+		iIndex = uiStartIndex;
+	}
+
+	uiNumElements = mcArray.NumElements();
+	for (; iIndex < uiNumElements; iIndex++)
+	{
+		pcCurrent = UnsafeGet(iIndex);
+		if (pcCurrent == pcUnknown)
+		{
+			return iIndex;
+		}
+		if (fCompare(&pcCurrent, &pcUnknown) != 0)
+		{
+			break;
+		}
+	}
+	return ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The index of the first of pcUnknown from uiStartIndex on.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -412,21 +462,25 @@ size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 	if (muiFlags & ARRAY_COMMON_IS_PTR_SORTED)
 	{
 		CleanNullsBeforeBinarySearch();
-		if (!mcArray.FindInSorted(&pcUnknown, ComparePtrPtr, &iIndex))
+		if (!mcArray.FindInSorted(&pcUnknown, SortCompare(), &iIndex))
 		{
 			return ARRAY_ELEMENT_NOT_FOUND;
+		}
+		if (UnsafeGet(iIndex) != pcUnknown)
+		{
+			return FindNextSortedWith(pcUnknown, iIndex, uiStartIndex);
 		}
 
 		//The search finds any one of the same element.  They are next to each other.
 		if (iIndex < uiStartIndex)
 		{
-			if ((uiStartIndex < mcArray.NumElements()) && (*mcArray.Get(uiStartIndex) == pcUnknown))
+			if ((uiStartIndex < mcArray.NumElements()) && (UnsafeGet(uiStartIndex) == pcUnknown))
 			{
 				return uiStartIndex;
 			}
 			return ARRAY_ELEMENT_NOT_FOUND;
 		}
-		while ((iIndex > uiStartIndex) && (*mcArray.Get(iIndex - 1) == pcUnknown))
+		while ((iIndex > uiStartIndex) && (UnsafeGet(iIndex - 1) == pcUnknown))
 		{
 			iIndex--;
 		}
@@ -437,7 +491,7 @@ size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 		uiNumElements = mcArray.NumElements();
 		for (iIndex = uiStartIndex; iIndex < uiNumElements; iIndex++)
 		{
-			pcCurrent = *mcArray.Get(iIndex);
+			pcCurrent = UnsafeGet(iIndex);
 			if (pcCurrent == pcUnknown)
 			{
 				return iIndex;
@@ -474,7 +528,7 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 	if (((muiFlags & ARRAY_COMMON_IS_PTR_SORTED) || mcArray.NumElements() < 2) && (muiFlags & ARRAY_COMMON_SORT_POINTERS))
 	{
 		CleanNullsBeforeBinarySearch();
-		uiIndex = mcArray.InsertIntoSorted(ComparePtrPtr, &pcUnknown, false);
+		uiIndex = mcArray.InsertIntoSorted(SortCompare(), &pcUnknown, false);
 		if (uiIndex + 1 != mcArray.NumElements())
 		{
 			SlotsMoved();
@@ -515,7 +569,7 @@ bool CArrayCommonUnknown::Set(size iIndex, CUnknown* pcUnknown, bool bCleanNulls
 		return false;
 	}
 
-	pcOld = *mcArray.Get(iIndex);
+	pcOld = UnsafeGet(iIndex);
 	if (pcOld == pcUnknown)
 	{
 		return true;
@@ -529,7 +583,7 @@ bool CArrayCommonUnknown::Set(size iIndex, CUnknown* pcUnknown, bool bCleanNulls
 		//Searched without Contains: a binary search can clean the NULLs, moving the element at iIndex.
 		for (i = 0; i < uiNumElements; i++)
 		{
-			if (*mcArray.Get(i) == pcUnknown)
+			if (UnsafeGet(i) == pcUnknown)
 			{
 				return false;
 			}
@@ -582,7 +636,7 @@ bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 	{
 		for (i = 0; i < uiNumElements; i++)
 		{
-			pcUnknown = *pcSource->mcArray.Get(i);
+			pcUnknown = pcSource->UnsafeGet(i);
 			if ((pcUnknown != NULL) || !bSkipNulls)
 			{
 				Add(pcUnknown, false);
@@ -595,7 +649,7 @@ bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 	{
 		for (i = 0; i < uiNumElements; i++)
 		{
-			pcUnknown = *pcSource->mcArray.Get(i);
+			pcUnknown = pcSource->UnsafeGet(i);
 			if (pcUnknown != NULL)
 			{
 				mcArray.Add(pcUnknown);
@@ -671,7 +725,7 @@ size CArrayCommonUnknown::InsertIntoSorted(CUnknown* pcUnknown)
 	}
 	CleanNullsBeforeBinarySearch();
 
-	uiIndex = mcArray.InsertIntoSorted(ComparePtrPtr, &pcUnknown, false);
+	uiIndex = mcArray.InsertIntoSorted(SortCompare(), &pcUnknown, false);
 	if (uiIndex + 1 != mcArray.NumElements())
 	{
 		SlotsMoved();
@@ -748,7 +802,7 @@ size CArrayCommonUnknown::CountNonNull(void)
 	uiNumElements = mcArray.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		if (*mcArray.Get(i) != NULL)
+		if (UnsafeGet(i) != NULL)
 		{
 			uiNonNull++;
 		}
@@ -780,7 +834,7 @@ void CArrayCommonUnknown::CleanNulls(void)
 	do
 	{
 		uiLastNotNull--;
-		pcSource = *mcArray.Get(uiLastNotNull);
+		pcSource = UnsafeGet(uiLastNotNull);
 		if (pcSource)
 		{
 			break;
@@ -796,7 +850,7 @@ void CArrayCommonUnknown::CleanNulls(void)
 		{
 			do
 			{
-				pcSource = *mcArray.Get(iSource);
+				pcSource = UnsafeGet(iSource);
 				iSource++;
 			}
 			while (pcSource == NULL);
@@ -867,7 +921,7 @@ bool CArrayCommonUnknown::RemoveLast(bool bCleanNullsIfNecessary)
 			do
 			{
 				i--;
-				pcUnknown = *mcArray.Get(i);
+				pcUnknown = UnsafeGet(i);
 				if (pcUnknown)
 				{
 					return Remove(i, bCleanNullsIfNecessary);
@@ -936,7 +990,7 @@ EArrayUnsetReturn CArrayCommonUnknown::Unset(size iIndex)
 		return eReturn;
 	}
 
-	pcUnknown = *mcArray.Get(iIndex);
+	pcUnknown = UnsafeGet(iIndex);
 	if (muiFlags & ARRAY_COMMON_IGNORE_NULL)
 	{
 		if (pcUnknown != NULL)
@@ -1037,7 +1091,7 @@ bool CArrayCommonUnknown::RemoveEnd(size iIndexInclusive)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::UnsafeSet(size iIndex, CUnknown* pcUnknown)
 {
-	mcArray.Set(iIndex, &pcUnknown);
+	AtomicStorePointer((void**)mcArray.Get(iIndex), pcUnknown);
 }
 
 
@@ -1047,7 +1101,7 @@ void CArrayCommonUnknown::UnsafeSet(size iIndex, CUnknown* pcUnknown)
 //////////////////////////////////////////////////////////////////////////
 CUnknown* CArrayCommonUnknown::UnsafeGet(size iIndex)
 {
-	return *mcArray.Get(iIndex);
+	return (CUnknown*)AtomicLoadPointer((void**)mcArray.Get(iIndex));
 }
 
 
@@ -1122,7 +1176,7 @@ CUnknown* CArrayCommonUnknown::Last(void)
 				do
 				{
 					i--;
-					pcUnknown = *mcArray.Get(i);
+					pcUnknown = UnsafeGet(i);
 					if (pcUnknown)
 					{
 						return pcUnknown;
@@ -1152,7 +1206,7 @@ bool CArrayCommonUnknown::StartIteration(SSetIterator* psIter, CUnknown** ppcUnk
 	{
 		psIter->iIndex = 0;
 		psIter->bStepFirst = true;
-		pcUnknown = *mcArray.Get(psIter->iIndex);
+		pcUnknown = UnsafeGet(psIter->iIndex);
 
 		if ((pcUnknown == NULL) && (muiFlags & ARRAY_COMMON_IGNORE_NULL))
 		{
@@ -1235,7 +1289,7 @@ bool CArrayCommonUnknown::PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnk
 			psIter->iIndex++;
 		}
 		psIter->bStepFirst = true;
-		*ppcUnknown = *mcArray.Get(psIter->iIndex);
+		*ppcUnknown = UnsafeGet(psIter->iIndex);
 		return true;
 	}
 	else
@@ -1290,7 +1344,7 @@ bool CArrayCommonUnknown::CalculateIsSorted(void)
 		pcLeft = UnsafeGet(ui);
 		pcRight = UnsafeGet(ui + 1);
 
-		iResult = ComparePtrPtr(&pcLeft, &pcRight);
+		iResult = SortCompare()(&pcLeft, &pcRight);
 		if (iResult > 0)
 		{
 			return false;
@@ -1312,13 +1366,30 @@ bool CArrayCommonUnknown::IsMustSort(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An element was changed where it is (a hollow loaded, or remapped): the
-// array may no longer be in pointer order.
+// pcOld was replaced by pcNew where it is (a hollow loaded, or remapped):
+// the array is out of order unless pcNew sorts where pcOld did.  An object
+// loaded for a hollow has the hollow's index, so an array sorted by index
+// stays in order.
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::PointersChanged(void)
+void CArrayCommonUnknown::PointerReplaced(CUnknown* pcOld, CUnknown* pcNew)
 {
-	SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, false);
+	if (SortCompare()(&pcOld, &pcNew) != 0)
+	{
+		SetFlagShort(&muiFlags, ARRAY_COMMON_IS_PTR_SORTED, false);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The order the array is sorted in: by address, or (ARRAY_COMMON_SORT_BY_
+// INDEX) by the indexes of the objects it holds.
+//
+//////////////////////////////////////////////////////////////////////////
+DataCompare CArrayCommonUnknown::SortCompare(void) const
+{
+	return (muiFlags & ARRAY_COMMON_SORT_BY_INDEX) ? &CEmbeddedObject::CompareIndex : &ComparePtrPtr;
 }
 
 
@@ -1363,7 +1434,7 @@ bool CArrayCommonUnknown::IsIgnoreNull(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::HaveSlotsMoved(void)
 {
-	return FixBool(muiFlags & ARRAY_COMMON_SLOTS_MOVED);
+	return mbSlotsMoved;
 }
 
 
@@ -1373,7 +1444,7 @@ bool CArrayCommonUnknown::HaveSlotsMoved(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::ClearSlotsMoved(void)
 {
-	SetFlagShort(&muiFlags, ARRAY_COMMON_SLOTS_MOVED, false);
+	mbSlotsMoved = false;
 }
 
 
@@ -1383,7 +1454,7 @@ void CArrayCommonUnknown::ClearSlotsMoved(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::SlotsMoved(void)
 {
-	SetFlagShort(&muiFlags, ARRAY_COMMON_SLOTS_MOVED, true);
+	mbSlotsMoved = true;
 }
 
 

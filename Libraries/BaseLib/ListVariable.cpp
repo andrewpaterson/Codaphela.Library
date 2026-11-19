@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "ListVariable.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,7 +165,7 @@ void* CListVariable::Add(void* pvElement, lsize iElementSize)
 	pvDest = Add(iElementSize);
 	if (pvDest)
 	{
-		memcpy(pvDest, pvElement, iElementSize);
+		memcpy32(pvDest, pvElement, iElementSize);
 	}
 	
 	return pvDest;
@@ -192,14 +193,14 @@ void CListVariable::Set(size iIndex, void* pvData, lsize iElementSize)
 
 	if (psType->iSize == iElementSize)
 	{
-		memcpy(psType->pvData, pvData, iElementSize);
+		memcpy32(psType->pvData, pvData, iElementSize);
 	}
 	else
 	{
 		PrivateFree(psType);
 		psType->pvData = PrivateMalloc(iElementSize);
 		psType->iSize = iElementSize;
-		memcpy(psType->pvData, pvData, iElementSize);
+		memcpy32(psType->pvData, pvData, iElementSize);
 	}
 }
 
@@ -395,7 +396,7 @@ size CListVariable::InsertIntoSorted(DataCompare fCompare, void* pvElement, bool
 			pvData = InsertAt(iPos, iElementSize);
 			if (pvData)
 			{
-				memcpy(pvData, pvElement, iElementSize);
+				memcpy32(pvData, pvElement, iElementSize);
 			}
 		}
 		else
@@ -408,7 +409,7 @@ size CListVariable::InsertIntoSorted(DataCompare fCompare, void* pvElement, bool
 		pvData = Add(iElementSize);
 		if (pvData)
 		{
-			memcpy(pvData, pvElement, iElementSize);
+			memcpy32(pvData, pvElement, iElementSize);
 		}
 	}
 	return iPos;

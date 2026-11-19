@@ -291,8 +291,8 @@ void CBaseObject::Kill(void)
 		return;
 	}
 
-	//A stored object that is still held is replaced by a hollow, which no other thread may be using it for.
-	if (HasHeapFroms() && IsStored() && IsAllocatedInObjects() && !GetObjectsThisIn()->ValidateNoOtherThreadHolds(__METHOD__))
+	//A stored object that is still held is replaced by a hollow, under any thread that holds it.
+	if (HasHeapFroms() && IsStored() && IsAllocatedInObjects() && !GetObjectsThisIn()->ValidateNoOtherThreadHolds(__METHOD__, this))
 	{
 		return;
 	}
@@ -437,25 +437,6 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 bool CBaseObject::IsKilled(void)
 {
 	return FixBool(GetFlags() & OBJECT_FLAGS_CALLED_KILL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::CopyFields(CEmbeddedObject* pcOther)
-{
-	CBaseObject* pcBaseObject;
-
-	pcBaseObject = (CBaseObject*)pcOther;
-	moi = pcBaseObject->moi;
-	mon = pcBaseObject->mon;
-	miDistToRoot = pcBaseObject->miDistToRoot;
-	muiWalkStamp = pcBaseObject->muiWalkStamp;
-	muiPreInits = 1;
-	muiPostInits = 1;
-	CEmbeddedObject::CopyFields(pcOther);
 }
 
 
@@ -1281,7 +1262,7 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcHeapFrom = CEmbeddedObject::GetHeapFrom(i);
-		bResult = pcFile->WriteDependent(pcHeapFrom, false);
+		bResult = pcFile->WriteDependent(pcHeapFrom);
 		ReturnOnFalse(bResult);
 	}
 	

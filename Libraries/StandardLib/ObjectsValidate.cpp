@@ -193,7 +193,12 @@ void CObjects::GetStackPointerAddresses(CArrayVoidPtr* papvAddresses)
 		}
 		pcStackPointer = GetStackPointers()->Iterate(&sIter);
 	}
-	ThreadStackFromsAddresses(papvAddresses);
+
+	//The threads' tables hold main objects' froms (a worker's own objects keep theirs), and are read with the lock.
+	if (!mbWorker)
+	{
+		ThreadStackFromsAddresses(papvAddresses);
+	}
 }
 
 
@@ -317,4 +322,5 @@ void CObjects::DisableValidation(void)
 {
 	mbValidateConsistency = false;
 }
+
 

@@ -799,8 +799,9 @@ void TestProject65RunTests(STestProject65* psProject)
 	cBuilder.GetOptions()->mbHomeV = getenv("TEST_PROJECT65_FRAME_V") == NULL;
 	//TEST_PROJECT65_ZERO_W=1: the 65C64's W is always 0 (CCPPCompileOptions::mbHomeW off), to compare.
 	cBuilder.GetOptions()->mbHomeW = getenv("TEST_PROJECT65_ZERO_W") == NULL;
-	//TEST_PROJECT65_ZERO_W=1: the 65C64's W is always 0 (CCPPCompileOptions::mbHomeW off), to compare.
-	cBuilder.GetOptions()->mbHomeW = getenv("TEST_PROJECT65_ZERO_W") == NULL;
+	//TEST_PROJECT65_WARN_NARROWING=1: an implicit conversion to a narrower integer is warned about
+	//(CCPPCompileOptions::mbWarnNarrowing), to find the counts a 16 bit size_t would cut (Size16Plan.txt).
+	cBuilder.GetOptions()->mbWarnNarrowing = getenv("TEST_PROJECT65_WARN_NARROWING") != NULL;
 	//TEST_PROJECT65_PREFER_SIZE=1: the compiler prefers size to speed (CCPPCompileOptions::mePrefer).
 	if (getenv("TEST_PROJECT65_PREFER_SIZE"))
 	{

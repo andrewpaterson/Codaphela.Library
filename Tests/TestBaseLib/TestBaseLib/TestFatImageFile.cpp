@@ -6,6 +6,7 @@
 #include "BaseLib/FatImageFile.h"
 #include "BaseLib/FatAbstractFile.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 #define TEST_FAT_IMAGE_FILE		"Output" _FS_ "FatImage.img"
@@ -37,11 +38,11 @@ static void TestFatImageFileRead(const char* szName, uint8* puiExpected, uint32 
 	AssertInt(FAT_SUCCESS, cVolume.Mount(&cDrive));
 	cFile.Init(&cVolume);
 	AssertInt(FAT_SUCCESS, cFile.Open(szName, FAT_FILE_ACCESS_READ));
-	puiRead = (uint8*)malloc(uiSize + 16);
+	puiRead = (uint8*)malloc32(uiSize + 16);
 	uiRead = 0;
 	AssertInt(FAT_SUCCESS, cFile.Read(puiRead, uiSize + 16, &uiRead));
 	AssertLong(uiSize, (int64)uiRead);
-	AssertTrue(memcmp(puiRead, puiExpected, uiSize) == 0);
+	AssertTrue(memcmp32(puiRead, puiExpected, uiSize) == 0);
 	free(puiRead);
 	AssertInt(FAT_SUCCESS, cFile.Close());
 	AssertInt(FAT_SUCCESS, cVolume.Unmount());

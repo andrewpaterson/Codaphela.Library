@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StackMemory.h"
 #include "NamedIndexedHeader.h"
 #include "NamedIndexedData.h"
+#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -465,7 +466,7 @@ bool CNamedIndexedData::GetWithName(OIndex oi, CChars* pszName, lsize* puiDataSi
 		SafeAssign(puiDataSize, uiDataSize);
 		if (pvData)
 		{
-			memcpy(pvData, pcHeader->GetData(), MinDataSize(uiDataSize, uiMaxDataSize));
+			memcpy32(pvData, pcHeader->GetData(), MinDataSize(uiDataSize, uiMaxDataSize));
 		}
 	}
 	cStack.Kill();
@@ -583,7 +584,7 @@ bool CNamedIndexedData::Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize u
 		{
 			pvHeaderData = pcHeader->GetData();
 			
-			memcpy(pvData, pvHeaderData, MinDataSize(uiDataSize, uiMaxDataSize));
+			memcpy32(pvData, pvHeaderData, MinDataSize(uiDataSize, uiMaxDataSize));
 		}
 		cStack.Kill();
 		return true;
@@ -1189,7 +1190,7 @@ OIndex CNamedIndexedData::StartIndexIteration(SIndexTreeFileIterator* psIterator
 		SafeAssign(piDataSize, iDataSize);
 		if (iMaxDataSize > 0)
 		{
-			memcpy(pvData, pvHeaderData, MinDataSize(iDataSize, iMaxDataSize));
+			memcpy32(pvData, pvHeaderData, MinDataSize(iDataSize, iMaxDataSize));
 		}
 	}
 	
@@ -1222,7 +1223,7 @@ OIndex CNamedIndexedData::IndexIterate(SIndexTreeFileIterator* psIterator, void*
 		SafeAssign(piDataSize, iDataSize);
 		if (iMaxDataSize > 0)
 		{
-			memcpy(pvData, pvHeaderData, MinDataSize(iDataSize, iMaxDataSize));
+			memcpy32(pvData, pvHeaderData, MinDataSize(iDataSize, iMaxDataSize));
 		}
 	}
 

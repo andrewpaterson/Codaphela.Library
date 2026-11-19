@@ -34,7 +34,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IRA_Inline		0x10		//Functions: may be inlined.
 #define IRA_ThisCall	0x20		//Functions: the first parameter is a member function's this (in X on the 65C64).
 #define IRA_Variadic	0x40		//Functions; written as ... after the parameters.
-#define IRA_NumWordAttributes	6
+#define IRA_NoInline	0x80		//Functions: never inlined (__attribute__((noinline))).
+#define IRA_NumWordAttributes	7
 
 
 struct SIRAttributeName

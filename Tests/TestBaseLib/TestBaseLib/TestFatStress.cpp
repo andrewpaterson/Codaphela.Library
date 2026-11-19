@@ -8,6 +8,7 @@
 #include "TestFat32Common.h"
 #include "BaseLib/Fat32.h"
 #include "TestLib/Assert.h"
+#include "BaseLib/Memory32.h"
 
 
 //Random file system operations (creates, deletes, renames, overwrites, appends, truncates, directories, remounts) on
@@ -436,7 +437,7 @@ static bool FatStressCheckContents(SFatStress* ps, SFatStressFile* psFile)
 			AssertLSize(uiLength, uiBytesRead);
 			bResult = false;
 		}
-		else if (memcmp(&psFile->puiData[uiDone], ps->puiBuffer, uiLength) != 0)
+		else if (memcmp32(&psFile->puiData[uiDone], ps->puiBuffer, uiLength) != 0)
 		{
 			AssertMemory(&psFile->puiData[uiDone], ps->puiBuffer, uiLength);
 			bResult = false;
@@ -475,7 +476,7 @@ static bool FatStressCheck(SFatStress* ps, bool bFull)
 	uint32		uiFree;
 	uint32		i;
 
-	memset(ps->puiClusterOwners, 0, (ps->uiClusters + 2 + 7) / 8);
+	memset32(ps->puiClusterOwners, 0, (ps->uiClusters + 2 + 7) / 8);
 	if (!FatStressMarkChain(ps, ps->cVolume.GetRootCluster(), &uiRootClusters))
 	{
 		return false;
@@ -879,7 +880,7 @@ static void FatStressRun(uint8 uiSectorsPerCluster, uint64 uiSectors, uint32 uiS
 	AssertInt(FAT_SUCCESS, eResult);
 
 	ps->uiClusters = ps->cVolume.GetNumClusters();
-	ps->puiClusterOwners = (uint8*)malloc((ps->uiClusters + 2 + 7) / 8);
+	ps->puiClusterOwners = (uint8*)malloc32((ps->uiClusters + 2 + 7) / 8);
 	ps->puiBuffer = (uint8*)malloc(4096);
 	ps->asDirectories[0].szPath[0] = '\0';
 	ps->uiDirectories = 1;

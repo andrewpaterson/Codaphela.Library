@@ -32,7 +32,6 @@ void CDependentReadObject::Init(CObjectIdentifier* pcObjectIdentifier)
 	meType = pcObjectIdentifier->meType;
 	moi = pcObjectIdentifier->moi;
 	mszObjectName.Init(pcObjectIdentifier->GetName());
-	muiSize = pcObjectIdentifier->muiSize;
 	muiFlags = 0;
 }
 

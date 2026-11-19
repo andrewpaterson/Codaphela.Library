@@ -66,6 +66,20 @@ void CUnknowns::Init(CLifeInit<CMallocator> cMalloc, const char* szName, CConstr
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Unknowns of their own (a worker's object system's, whose thread then
+// takes no lock that another takes) that allocate from what pcShared's
+// allocator does and make what it can make.  What they add can be moved
+// to pcShared (MoveTo).
+//
+//////////////////////////////////////////////////////////////////////////
+void CUnknowns::InitSharing(CUnknowns* pcShared, const char* szName)
+{
+	Init(LifeLocal<CMallocator>(pcShared->mpcMalloc), szName, pcShared->mpcConstructors);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CUnknowns::Kill(void)
@@ -286,6 +300,48 @@ bool CUnknowns::Remove(CUnknown* pcUnknown)
 
 	gcLogger.Error2(__METHOD__, " Cannot remove [", pcUnknown->ClassName(), "] from Unknowns [", mszName.Text(), "]: it is in Unknowns [", pcThisIn->mszName.Text(), "].", NULL);
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// papcUnknowns, these', become pcTo's: counted, iterated and freed by it.
+// Nothing moves in memory, so pcTo must allocate from the same allocator
+// (InitSharing).  This's lock is taken before pcTo's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CUnknowns::MoveTo(CArrayUnknownPtr* papcUnknowns, CUnknowns* pcTo)
+{
+	size		i;
+	size		uiCount;
+	CUnknown*	pcUnknown;
+
+	if (pcTo == this)
+	{
+		return;
+	}
+	if (pcTo->mpcMalloc != mpcMalloc)
+	{
+		gcLogger.Error2(__METHOD__, " Unknowns [", mszName.Text(), "] can't give unknowns to [", pcTo->mszName.Text(), "]: they don't allocate from the same allocator.", NULL);
+		return;
+	}
+
+	CUnknownsGuard	cGuard(&mcLock);
+	CUnknownsGuard	cGuardTo(&pcTo->mcLock);
+
+	uiCount = papcUnknowns->NumElements();
+	for (i = 0; i < uiCount; i++)
+	{
+		pcUnknown = *papcUnknowns->Get(i);
+		if (pcUnknown->Iterable())
+		{
+			mcIterables.Remove(pcUnknown);
+			pcTo->mcIterables.Add(pcUnknown);
+		}
+		pcUnknown->SetUnknowns(pcTo);
+	}
+	miNumElements -= uiCount;
+	pcTo->miNumElements += uiCount;
 }
 
 
