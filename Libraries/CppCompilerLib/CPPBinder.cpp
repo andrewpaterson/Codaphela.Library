@@ -1497,8 +1497,14 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	}
 
 	//A field of this, of the base a qualifier names (B::a) if it does; a name in a template that the parser could not
-	//resolve may be one too.
+	//resolve may be one too.  In a static member function it is the class's field still, which has no object there:
+	//only what doesn't evaluate it (sizeof, decltype) can name it.  [expr.prim.general] 13
 	pcClass = mpcUnit->ThisClass();
+	pcIn = mpcUnit->OuterFunction();
+	if (!pcClass && pcIn && pcIn->mbStatic)
+	{
+		pcClass = pcIn->mpcClass;
+	}
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass)
 	{
 		pcLookup = pcId->mpcName->IsQualifiedByClass() ? mpcUnit->GetComponentClass(pcId->mpcName->GetQualifier(), NULL, pcId, pcClass) : NULL;

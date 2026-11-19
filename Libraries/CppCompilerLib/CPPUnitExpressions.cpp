@@ -1253,9 +1253,11 @@ SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 // The type of an operand that isn't evaluated and isn't converted as a
 // value is (sizeof's and typeid's): an lvalue stays what it is, so an array
 // (a variable, a field, a row of another array, a string) is not the
-// pointer it would become, and a function is not a pointer to it.  S::m
-// alone is the member's type.  NULL if it is wrong.  [expr.sizeof] 4,
-// [expr.typeid] 3
+// pointer it would become, and a function is not a pointer to it.  A name
+// is the thing it names (CCPPDeclarators::EntityType), which needs no
+// object: S::m alone, and m in a static member function, are the member's
+// type.  NULL if it is wrong.  [expr.sizeof] 4, [expr.typeid] 3,
+// [expr.prim.general] 13
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
@@ -1264,7 +1266,7 @@ SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
 
 	BeginUnevaluated();
 	pcExpression = SkipParentheses(pcExpression);
-	psType = QualifiedFieldType(pcExpression);
+	psType = mcDeclarators.EntityType(pcExpression);
 	if (!psType)
 	{
 		psType = PlaceTypeOf(pcExpression);
@@ -1272,10 +1274,6 @@ SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
 	if (!psType)
 	{
 		psType = TypeOf(pcExpression);
-		if (psType && psType->IsPointer() && psType->psBase->IsFunction() && NamesFunction(pcExpression))
-		{
-			psType = psType->psBase;
-		}
 	}
 	EndUnevaluated();
 	return psType;
