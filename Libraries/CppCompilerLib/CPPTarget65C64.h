@@ -35,6 +35,7 @@ public:
 	bool		WidensResults(void) override;
 	uint32		GetStackTop(void) override;
 	void		AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions) override;
+	void		AppendCallTerminate(CChars* pszDest, const char* szAfter) override;
 	void		AppendStartUp(CChars* pszDest, bool bExceptions = false) override;
 	void		AppendRuntime(CCPPRuntimeWriter* pcWriter) override;
 	void		AppendAdjustThunk(CChars* pszDest, int iAdjust, const char* szFunction) override;

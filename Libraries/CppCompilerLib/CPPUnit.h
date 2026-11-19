@@ -621,9 +621,11 @@ public:
 	void					AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset, CChars* pszWords);
 	size					VTTEntries(CCPPClass* pcClass);
 	int						VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase);
-	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags);
+	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags, uint32 uiHigh);
+	bool					IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
+	void					CountBasePaths(CCPPClass* pcClass, CCPPClass* pcBase, int iOffset, bool bPublic, bool bVirtual, int* piPaths, int* piVirtual, int* piOffset, bool* pbPublic);
 	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
-	void					AppendTypeInfoHeader(CChars* pszName, ECPP65TypeInfoKind eKind);
+	void					AppendTypeInfoHeader(CChars* pszName, uint32 uiKind);
 	void					AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bShared, CChars* pszName);
 	void					AppendTypeName(CChars* psz, SCPP65Type* psType);
 	void					AppendTypeNameAround(CChars* psz, SCPP65Type* psType, CChars* pszInner);

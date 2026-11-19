@@ -123,6 +123,23 @@ void CCPPTarget65C64::AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Calls std::terminate (Libc65's __Terminate) if the exceptions' runtime is
+// linked, and goes on at szAfter if it isn't: the reference is weak, so
+// asking pulls nothing in.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget65C64::AppendCallTerminate(CChars* pszDest, const char* szAfter)
+{
+	pszDest->Append("\t\t.weak ___Terminate")->AppendNewLine();
+	pszDest->Append("\t\tcpy Y, ___Terminate")->AppendNewLine();
+	pszDest->Append("\t\tcmp Y, 0")->AppendNewLine();
+	pszDest->Append("\t\tbras z, ")->Append(szAfter)->AppendNewLine();
+	pszDest->Append("\t\tjsr Y")->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The start up sets the stack to 001F:FFFF (the first 4 bytes pushed are at
 // 001F:FFFC), W to the pseudo registers at 0000:0000 and the registers to 32 bits,
 // calls the init table (each global's R_Initialise, in link order), calls main, calls

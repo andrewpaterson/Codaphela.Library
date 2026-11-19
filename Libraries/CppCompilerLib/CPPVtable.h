@@ -54,9 +54,12 @@ typedef CArrayTemplate<SCPPSecondaryVtable>	CArrayCPPSecondaryVtables;
 //first nearest the header.  A vtable pointer points at its part's first function, and the label (_Class__2) at the
 //first part's.  A type info (_Class__3 for a class, _3 and the type mangled for any other, CCPPUnit::AppendTypeidLabel) is
 //its name (type_info::name, written as the program would write the type) and a word whose low byte is its kind
-//(ECPP65TypeInfoKind; bits 8 to 15 are the exceptions', ExceptionsPlan.txt), then for a class an entry per subobject, its
-//class's type info, its offset and its flags, and a zero; for a pointer its pointee's type info; for a pointer to a
-//member the member's type's type info and the class's.
+//(ECPP65TypeInfoKind), then for a class an entry per subobject, its class's type info, its offset and its flags, and a
+//zero; for a pointer its pointee's type info; for a pointer to a member the member's type's type info and the class's.
+//What a handler's match needs beyond that (Libc65's exception.cpp reads it; ExceptionsPlan.txt stage 4): a pointer's
+//and a member pointer's kind word says whether what is pointed to is const or volatile, and a class's entries say how
+//to find a subobject of an object that may itself be a base of a bigger one, which the offsets alone (they are an
+//object's that is complete) don't when a virtual base is on the way.
 #define CPP65_VTABLE_ENTRY_BYTES		4
 #define CPP65_VTABLE_HEADER_ENTRIES		2
 #define CPP65_VTABLE_TOP_OFFSET			(-CPP65_VTABLE_HEADER_ENTRIES * CPP65_VTABLE_ENTRY_BYTES)	//From a vtable pointer: the distance to the object's start.
@@ -69,7 +72,12 @@ typedef CArrayTemplate<SCPPSecondaryVtable>	CArrayCPPSecondaryVtables;
 #define CPP65_TYPE_INFO_OFFSET_OFFSET	CPP65_VTABLE_ENTRY_BYTES				//...its offset in the object...
 #define CPP65_TYPE_INFO_FLAGS_OFFSET	(2 * CPP65_VTABLE_ENTRY_BYTES)			//...and its flags:
 #define CPP65_TYPE_INFO_PUBLIC			0x01									//reached from the object through public bases only,
-#define CPP65_TYPE_INFO_VIRTUAL			0x02									//a virtual base.
+#define CPP65_TYPE_INFO_VIRTUAL			0x02									//a virtual base,
+#define CPP65_TYPE_INFO_IN_VIRTUAL_SHIFT	8									//bits 8 to 15: 1 + the index (CCPPClass::GetVirtualBaseIndex) of the virtual base it is, or is in; 0 for none,
+#define CPP65_TYPE_INFO_IN_VIRTUAL_MASK		0xFF00
+#define CPP65_TYPE_INFO_VTABLE_SHIFT	16										//and in the class's own entry (the first), bits 16 to 31: 1 + where its vtable pointer is; 0 if it has none.
+#define CPP65_TYPE_INFO_POINTEE_CONST	0x100									//In a pointer's or member pointer's kind word: what it points to is const,
+#define CPP65_TYPE_INFO_POINTEE_VOLATILE	0x200								//volatile.
 #define CPP65_VTABLE_LABEL				"2"
 #define CPP65_TYPE_INFO_LABEL			"3"
 #define CPP65_VTT_LABEL					"4"

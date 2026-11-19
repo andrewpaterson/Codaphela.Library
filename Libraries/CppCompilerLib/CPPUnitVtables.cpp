@@ -332,7 +332,8 @@ void CCPPUnit::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 // kind (CPP65_TYPE_INFO_NAME_OFFSET), then every subobject of an object of the
 // class, the object itself first: the subobject class's type info, its
 // offset in the object and its flags (CPP65_TYPE_INFO_PUBLIC,
-// CPP65_TYPE_INFO_VIRTUAL).  A zero ends it.  Each unit that needs it writes
+// CPP65_TYPE_INFO_VIRTUAL, which virtual base it is or is in, and in the
+// class's own entry where its vtable pointer is).  A zero ends it.  Each unit that needs it writes
 // it in a COMDAT section (the linker keeps one) so its address identifies the
 // class.  The type infos of the bases are written too.
 //
@@ -343,6 +344,7 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 	CChars		szName;
 	CCPPClass*	pcVirtual;
 	size		i;
+	uint32		uiVtable;
 
 	if (pcClass->mbTypeInfo)
 	{
@@ -375,11 +377,17 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 	mcData.GetText()->Append(':');
 	mcData.GetText()->AppendNewLine();
 	AppendTypeInfoHeader(&szName, CPP65TIK_Class);
-	AppendTypeInfoBases(pcClass, 0, CPP65_TYPE_INFO_PUBLIC);
+	uiVtable = 0;
+	if (pcClass->IsPolymorphic() || (pcClass->macVirtualBases.NumElements() > 0))
+	{
+		uiVtable = ((uint32)pcClass->GetVtablePointerOffset() + 1) << CPP65_TYPE_INFO_VTABLE_SHIFT;
+	}
+	AppendTypeInfoBases(pcClass, 0, CPP65_TYPE_INFO_PUBLIC, uiVtable);
 	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
 	{
 		pcVirtual = pcClass->macVirtualBases.Get(i)->pcClass;
-		AppendTypeInfoBases(pcVirtual, pcClass->macVirtualBases.Get(i)->iOffset, CPP65_TYPE_INFO_VIRTUAL | (IsPublicBase(pcClass, pcVirtual) ? CPP65_TYPE_INFO_PUBLIC : 0));
+		AppendTypeInfoBases(pcVirtual, pcClass->macVirtualBases.Get(i)->iOffset, CPP65_TYPE_INFO_VIRTUAL | (IsPublicBase(pcClass, pcVirtual) ? CPP65_TYPE_INFO_PUBLIC : 0),
+							((uint32)pcClass->GetVirtualBaseIndex(pcVirtual) + 1) << CPP65_TYPE_INFO_IN_VIRTUAL_SHIFT);
 	}
 	mcData.GetText()->Append("\t\t.long 0");
 	mcData.GetText()->AppendNewLine();
@@ -397,10 +405,12 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 // The type info entries for the class's subobject at iOffset and its non-
 // virtual bases' (a virtual base's are the complete object's, once), with
 // its flags (uiFlags): whether only public bases lead to it, and whether it
-// is a virtual base.
+// is a virtual base.  uiHigh is the flags word's bits from 8 up: which
+// virtual base the subobject is or is in, which its bases have too, and for
+// the class's own entry where its vtable pointer is, which they don't.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags)
+void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags, uint32 uiHigh)
 {
 	SCPPBase*	psBase;
 	size		i;
@@ -412,16 +422,76 @@ void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFla
 	mcData.GetText()->Append(iOffset);
 	mcData.GetText()->AppendNewLine();
 	mcData.GetText()->Append("\t\t.long ");
-	mcData.GetText()->Append((int)uiFlags);
+	mcData.GetText()->Append((int)(uiFlags | uiHigh));
 	mcData.GetText()->AppendNewLine();
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
 		if (!psBase->bVirtual)
 		{
-			AppendTypeInfoBases(psBase->pcClass, iOffset + psBase->iOffset, (psBase->eAccess == CPPA_Public) ? (uiFlags & CPP65_TYPE_INFO_PUBLIC) : 0);
+			AppendTypeInfoBases(psBase->pcClass, iOffset + psBase->iOffset, (psBase->eAccess == CPPA_Public) ? (uiFlags & CPP65_TYPE_INFO_PUBLIC) : 0, uiHigh & CPP65_TYPE_INFO_IN_VIRTUAL_MASK);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Counts the ways pcBase is a base of pcClass: the paths that pass no
+// virtual base (*piPaths; the last one's offset and whether every step of
+// it is public), and those that do (*piVirtual).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CountBasePaths(CCPPClass* pcClass, CCPPClass* pcBase, int iOffset, bool bPublic, bool bVirtual, int* piPaths, int* piVirtual, int* piOffset, bool* pbPublic)
+{
+	SCPPBase*	psBase;
+	size		i;
+
+	if (pcClass == pcBase)
+	{
+		if (bVirtual)
+		{
+			(*piVirtual)++;
+		}
+		else
+		{
+			(*piPaths)++;
+			*piOffset = iOffset;
+			*pbPublic = bPublic;
+		}
+		return;
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		CountBasePaths(psBase->pcClass, pcBase, iOffset + psBase->iOffset, bPublic && (psBase->eAccess == CPPA_Public), bVirtual || psBase->bVirtual, piPaths, piVirtual, piOffset, pbPublic);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcBase is a base of pcClass in one way only, which passes no
+// virtual base and is public at every step: a pcBase is then the base of at
+// most one pcClass object, *piOffset bytes into it.  (pcClass itself isn't.)
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
+{
+	int		iPaths;
+	int		iVirtual;
+	bool	bPublic;
+
+	if (pcClass == pcBase)
+	{
+		return false;
+	}
+	iPaths = 0;
+	iVirtual = 0;
+	bPublic = false;
+	*piOffset = 0;
+	CountBasePaths(pcClass, pcBase, 0, true, false, &iPaths, &iVirtual, piOffset, &bPublic);
+	return (iPaths == 1) && (iVirtual == 0) && bPublic;
 }
 
 
@@ -455,16 +525,17 @@ bool CCPPUnit::IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase)
 //////////////////////////////////////////////////////////////////////////
 //
 // A type info's header, in the section being written: its name's label
-// (pszName, AppendTypeInfoName) and its kind's word.
+// (pszName, AppendTypeInfoName) and its kind's word (an ECPP65TypeInfoKind,
+// and for a pointer CPP65_TYPE_INFO_POINTEE_CONST and _VOLATILE).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendTypeInfoHeader(CChars* pszName, ECPP65TypeInfoKind eKind)
+void CCPPUnit::AppendTypeInfoHeader(CChars* pszName, uint32 uiKind)
 {
 	mcData.GetText()->Append("\t\t.long ");
 	mcData.GetText()->Append(pszName);
 	mcData.GetText()->AppendNewLine();
 	mcData.GetText()->Append("\t\t.long ");
-	mcData.GetText()->Append((int)eKind);
+	mcData.GetText()->Append((int)uiKind);
 	mcData.GetText()->AppendNewLine();
 }
 

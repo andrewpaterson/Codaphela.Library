@@ -288,7 +288,8 @@ SCPP65Type* CCPPUnit::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbD
 // and the type mangled, in a COMDAT section, so its address is the type's in
 // the whole program (no name starts with a digit).  Its name and kind, then
 // for a pointer its pointee's type info, for a pointer to a member the
-// member's type's and the class's (CPP65_TYPE_INFO_NAME_OFFSET).  The type
+// member's type's and the class's (CPP65_TYPE_INFO_NAME_OFFSET); the kind
+// word of both says whether what is pointed to is const or volatile.  The type
 // infos it points to are written first, each a section of its own.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -299,6 +300,7 @@ void CCPPUnit::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
 	CChars				szFirst;
 	CChars				szSecond;
 	ECPP65TypeInfoKind	eKind;
+	uint32				uiPointee;
 
 	if (psType->IsClass())
 	{
@@ -312,14 +314,17 @@ void CCPPUnit::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
 	{
 		szFirst.Init();
 		szSecond.Init();
+		uiPointee = 0;
 		switch (psType->eKind)
 		{
 		case CPP65TK_Pointer:
 			eKind = CPP65TIK_Pointer;
+			uiPointee = (psType->psBase->bConst ? CPP65_TYPE_INFO_POINTEE_CONST : 0) | (psType->psBase->bVolatile ? CPP65_TYPE_INFO_POINTEE_VOLATILE : 0);
 			AppendTypeidLabel(&szFirst, psType->psBase->Unqualified());
 			break;
 		case CPP65TK_MemberPointer:
 			eKind = CPP65TIK_MemberPointer;
+			uiPointee = (psType->psBase->bConst ? CPP65_TYPE_INFO_POINTEE_CONST : 0) | (psType->psBase->bVolatile ? CPP65_TYPE_INFO_POINTEE_VOLATILE : 0);
 			AppendTypeidLabel(&szFirst, psType->psBase->Unqualified());
 			AppendTypeidLabel(&szSecond, psType->pcClass->mpsType);
 			break;
@@ -337,7 +342,7 @@ void CCPPUnit::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
 		mcData.GetText()->Append(&szLabel);
 		mcData.GetText()->Append(':');
 		mcData.GetText()->AppendNewLine();
-		AppendTypeInfoHeader(&szName, eKind);
+		AppendTypeInfoHeader(&szName, (uint32)eKind | uiPointee);
 		if (szFirst.Length() > 0)
 		{
 			mcData.GetText()->Append("\t\t.long ")->Append(&szFirst);

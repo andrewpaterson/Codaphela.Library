@@ -193,10 +193,18 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The object sAddress (a psFrom, NULL stays NULL) as a psTo, NULL if it isn't
-// one, or ambiguously one.  A NULL psTo gives the start of the whole object
-// (dynamic_cast<void*>).  The vtable pointer finds the start and the type info
-// (its part's header, CPP65_VTABLE_TOP_OFFSET); the type info lists every subobject.
+// The object sAddress (a pcFrom, NULL stays NULL) as a pcTo, NULL if it isn't
+// one.  A NULL pcTo gives the start of the whole object (dynamic_cast<void*>).
+// The vtable pointer finds the start and the type info (its part's header,
+// CPP65_VTABLE_TOP_OFFSET); the type info lists every subobject.
+// [expr.dynamic.cast] 8: if sAddress is a public base of a pcTo object, and
+// of one only, it is that object (a pcTo found in the list with sAddress
+// where its pcFrom is: asked only when pcFrom is a base of pcTo in one way,
+// public and through no virtual base, so that no two pcTo objects can share
+// it).  Otherwise sAddress must be a public base of the whole object (its
+// own entry in the list, the pcFrom at sAddress, says), and the whole object
+// must have one pcTo subobject, reached through public bases: one found
+// twice, or found where a base on the way isn't public, is no answer.
 //
 //////////////////////////////////////////////////////////////////////////
 SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo)
@@ -206,30 +214,50 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	CIRBlock*		pcLoop;
 	CIRBlock*		pcCheck;
 	CIRBlock*		pcMatch;
+	CIRBlock*		pcAccess;
 	CIRBlock*		pcFirst;
+	CIRBlock*		pcTake;
+	CIRBlock*		pcSpoil;
 	CIRBlock*		pcNext;
+	CIRBlock*		pcDone;
+	CIRBlock*		pcSpoilt;
 	CIRBlock*		pcEnd;
+	CIRBlock*		pcIsSource;
+	CIRBlock*		pcSourceHere;
+	CIRBlock*		pcSourcePublic;
+	CIRBlock*		pcTarget;
+	CIRBlock*		pcUnspoilt;
 	SIRType			sPointer;
 	SIRType			sOffset;
+	SIRType			sWord;
 	SIRReference	sNullPointer;
+	SIRReference	sSpoilt;
 	SIRReference	sCondition;
 	SIRReference	sVtablePointer;
 	SIRReference	sVtable;
 	SIRReference	sTop;
 	SIRReference	sInfo;
 	SIRReference	sTarget;
+	SIRReference	sSource;
 	SIRReference	sEntry;
 	SIRReference	sFound;
+	SIRReference	sFrom;
+	SIRReference	sNextFrom;
+	SIRReference	sHere;
 	SIRReference	sClass;
 	SIRReference	sCandidate;
+	SIRReference	sFlags;
 	SIRReference	sNextEntry;
 	SIRReference	sNextFound;
 	SIRReference	sResult;
 	SIRPhi*			psPhi;
 	CChars			szLabel;
+	int				iDown;
+	bool			bDown;
 
 	sPointer = IRType(IRTK_Pointer);
 	sOffset = IRIntegerType(mcModule.GetPointerSize(0));
+	sWord = IRIntegerType(CPP65_VTABLE_ENTRY_BYTES);
 	sNullPointer = mpcFunction->AddConstant(sPointer, 0);
 	pcLook = NewBlock();
 	pcEnd = NewBlock();
@@ -242,7 +270,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	StartBlock(pcLook);
 	sVtablePointer = AddressAt(sAddress, pcFrom->GetVtablePointerOffset());
 	sVtable = mpcFunction->Load(mpcBlock, sPointer, sVtablePointer);
-	sTop = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), AddressAt(sVtable, CPP65_VTABLE_TOP_OFFSET)), IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), sOffset, true);
+	sTop = ConvertIR(mpcFunction->Load(mpcBlock, sWord, AddressAt(sVtable, CPP65_VTABLE_TOP_OFFSET)), sWord, sOffset, true);
 	sTop = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sVtablePointer, sTop);
 	if (!pcTo)
 	{
@@ -260,51 +288,142 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	{
 		mcModule.SetLocal(sTarget.Index());
 	}
+	mpcUnit->EnsureTypeInfo(pcFrom);
+	szLabel.Init();
+	mpcUnit->GetMangler()->AppendTypeInfoLabel(&szLabel, pcFrom);
+	sSource = mcModule.Symbol(szLabel.Text());
+	szLabel.Kill();
+	if (pcFrom->IsUnnamed())
+	{
+		mcModule.SetLocal(sSource.Index());
+	}
 	sInfo = AddressAt(mpcFunction->Load(mpcBlock, sPointer, AddressAt(sVtable, CPP65_VTABLE_TYPE_INFO_OFFSET)), CPP65_TYPE_INFO_ENTRIES_OFFSET);
+	bDown = mpcUnit->IsOnePublicBase(pcTo, pcFrom, &iDown);
 
 	//After the type info's header, each entry is a subobject's class's type info, its offset and its flags; a zero ends
-	//them.  sFound is the match so far.
+	//them.  sFound is the one pcTo found so far: null for none, and sSpoilt (an address no object has) once the
+	//answer can only be null.  sFrom is whether sAddress's own entry has been met and is public (null until then).
+	sSpoilt = mpcFunction->AddConstant(sPointer, 1);
 	pcLoop = NewBlock();
 	pcCheck = NewBlock();
 	pcMatch = NewBlock();
+	pcAccess = NewBlock();
 	pcFirst = NewBlock();
+	pcTake = NewBlock();
+	pcSpoil = NewBlock();
 	pcNext = NewBlock();
+	pcDone = NewBlock();
+	pcSpoilt = NewBlock();
+	pcIsSource = NewBlock();
+	pcSourceHere = NewBlock();
+	pcSourcePublic = NewBlock();
+	pcTarget = NewBlock();
+	pcUnspoilt = NewBlock();
 	JumpTo(pcLoop);
 
 	StartBlock(pcLoop);
 	sEntry = LoopPhi(pcLoop, sPointer, pcLook, sInfo);
 	sFound = LoopPhi(pcLoop, sPointer, pcLook, sNullPointer);
+	sFrom = LoopPhi(pcLoop, sPointer, pcLook, sNullPointer);
 	sClass = mpcFunction->Load(mpcBlock, sPointer, sEntry);
 	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sClass, sNullPointer);
-	mpcBlock->Branch(sCondition, pcEnd, pcCheck);
+	mpcBlock->Branch(sCondition, pcDone, pcCheck);
 
+	//sAddress's own entry: a pcFrom, where sAddress is.
 	StartBlock(pcCheck);
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sClass, sSource);
+	mpcBlock->Branch(sCondition, pcIsSource, pcTarget);
+
+	StartBlock(pcIsSource);
+	sHere = ConvertIR(mpcFunction->Load(mpcBlock, sWord, AddressAt(sEntry, CPP65_TYPE_INFO_OFFSET_OFFSET)), sWord, sOffset, true);
+	sHere = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sTop, sHere);
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sHere, sAddress);
+	mpcBlock->Branch(sCondition, pcSourceHere, pcTarget);
+
+	StartBlock(pcSourceHere);
+	sFlags = mpcFunction->Load(mpcBlock, sWord, AddressAt(sEntry, CPP65_TYPE_INFO_FLAGS_OFFSET));
+	sFlags = mpcFunction->Add(mpcBlock, IRO_And, sWord, sFlags, mpcFunction->AddConstant(sWord, CPP65_TYPE_INFO_PUBLIC));
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Ne, sWord, sFlags, mpcFunction->AddConstant(sWord, 0));
+	mpcBlock->Branch(sCondition, pcSourcePublic, pcTarget);
+
+	StartBlock(pcSourcePublic);
+	JumpTo(pcTarget);
+
+	StartBlock(pcTarget);
+	sNextFrom = mpcFunction->AddTemporary(sPointer);
+	psPhi = pcTarget->AddPhi(sPointer, sNextFrom);
+	pcTarget->AddPhiArgument(psPhi, pcCheck, sFrom);
+	pcTarget->AddPhiArgument(psPhi, pcIsSource, sFrom);
+	pcTarget->AddPhiArgument(psPhi, pcSourceHere, sFrom);
+	pcTarget->AddPhiArgument(psPhi, pcSourcePublic, sSpoilt);
 	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sClass, sTarget);
 	mpcBlock->Branch(sCondition, pcMatch, pcNext);
 
-	//A second match: the class is an ambiguous base of the object.
+	//A pcTo subobject.  With sAddress its pcFrom it is the answer, whatever else there is.
 	StartBlock(pcMatch);
-	sCondition = mpcFunction->Add(mpcBlock, IRO_Ne, sPointer, sFound, sNullPointer);
-	mpcBlock->Branch(sCondition, pcEnd, pcFirst);
+	sCandidate = ConvertIR(mpcFunction->Load(mpcBlock, sWord, AddressAt(sEntry, CPP65_TYPE_INFO_OFFSET_OFFSET)), sWord, sOffset, true);
+	sCandidate = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sTop, sCandidate);
+	if (bDown)
+	{
+		sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, AddressAt(sCandidate, iDown), sAddress);
+		mpcBlock->Branch(sCondition, pcEnd, pcAccess);
+	}
+	else
+	{
+		JumpTo(pcAccess);
+	}
+
+	//A second one, or one not reached through public bases, spoils the answer.
+	StartBlock(pcAccess);
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sFound, sNullPointer);
+	mpcBlock->Branch(sCondition, pcFirst, pcSpoil);
 
 	StartBlock(pcFirst);
-	sCandidate = ConvertIR(mpcFunction->Load(mpcBlock, IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), AddressAt(sEntry, CPP65_TYPE_INFO_OFFSET_OFFSET)), IRIntegerType(CPP65_VTABLE_ENTRY_BYTES), sOffset, true);
-	sCandidate = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sTop, sCandidate);
+	sFlags = mpcFunction->Load(mpcBlock, sWord, AddressAt(sEntry, CPP65_TYPE_INFO_FLAGS_OFFSET));
+	sFlags = mpcFunction->Add(mpcBlock, IRO_And, sWord, sFlags, mpcFunction->AddConstant(sWord, CPP65_TYPE_INFO_PUBLIC));
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Ne, sWord, sFlags, mpcFunction->AddConstant(sWord, 0));
+	mpcBlock->Branch(sCondition, pcTake, pcSpoil);
+
+	StartBlock(pcTake);
+	JumpTo(pcNext);
+
+	StartBlock(pcSpoil);
 	JumpTo(pcNext);
 
 	StartBlock(pcNext);
-	sNextFound = Phi(pcNext, sPointer, pcCheck, sFound, pcFirst, sCandidate);
+	sNextFound = mpcFunction->AddTemporary(sPointer);
+	psPhi = pcNext->AddPhi(sPointer, sNextFound);
+	pcNext->AddPhiArgument(psPhi, pcTarget, sFound);
+	pcNext->AddPhiArgument(psPhi, pcTake, sCandidate);
+	pcNext->AddPhiArgument(psPhi, pcSpoil, sSpoilt);
 	sNextEntry = AddressAt(sEntry, CPP65_TYPE_INFO_ENTRY_BYTES);
 	JumpTo(pcLoop);
 	ClosePhi(pcLoop, sEntry, pcNext, sNextEntry);
 	ClosePhi(pcLoop, sFound, pcNext, sNextFound);
+	ClosePhi(pcLoop, sFrom, pcNext, sNextFrom);
+
+	//The list's end: sFound is the answer if it wasn't spoilt and sAddress was seen to be a public base.
+	StartBlock(pcDone);
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sFound, sSpoilt);
+	mpcBlock->Branch(sCondition, pcSpoilt, pcUnspoilt);
+
+	StartBlock(pcUnspoilt);
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sFrom, sNullPointer);
+	mpcBlock->Branch(sCondition, pcSpoilt, pcEnd);
+
+	StartBlock(pcSpoilt);
+	JumpTo(pcEnd);
 
 	StartBlock(pcEnd);
 	sResult = mpcFunction->AddTemporary(sPointer);
 	psPhi = pcEnd->AddPhi(sPointer, sResult);
 	pcEnd->AddPhiArgument(psPhi, pcStart, sNullPointer);
-	pcEnd->AddPhiArgument(psPhi, pcLoop, sFound);
-	pcEnd->AddPhiArgument(psPhi, pcMatch, sNullPointer);
+	if (bDown)
+	{
+		pcEnd->AddPhiArgument(psPhi, pcMatch, sCandidate);
+	}
+	pcEnd->AddPhiArgument(psPhi, pcUnspoilt, sFound);
+	pcEnd->AddPhiArgument(psPhi, pcSpoilt, sNullPointer);
 	return sResult;
 }
 

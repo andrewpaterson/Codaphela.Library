@@ -78,6 +78,7 @@ public:
 	virtual void		AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions);
 
 	//What the generator and the IR front end write differently.
+	virtual void		AppendCallTerminate(CChars* pszDest, const char* szAfter);	//Calls std::terminate if the exceptions' runtime is linked (a weak reference), and goes on at szAfter if not.
 	virtual void		AppendStartUp(CChars* pszDest, bool bExceptions = false);	//A program's start up, as an object linked first.  bExceptions: it is built with them, and main
 																				//returning with the carry set is an exception nobody caught.
 	void				AppendExitLists(CChars* pszDest);		//The start up's exit lists, empty.

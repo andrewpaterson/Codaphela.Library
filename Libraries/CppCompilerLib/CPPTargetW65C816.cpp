@@ -229,7 +229,7 @@ const char* CCPPTargetW65C816::GetAssemblyUnitSuffix(void)
 //////////////////////////////////////////////////////////////////////////
 const char** CCPPTargetW65C816::GetLibc65Units(void)
 {
-	static const char*	aszUnits[] = { "string.cpp", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "new.cpp", "signal.cpp", "stdio.cpp", "host.cpp", "stringW65C816.asm", "stringW65C816_16.asm", "softfloatW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "string.cpp", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "new.cpp", "exception.cpp", "signal.cpp", "stdio.cpp", "host.cpp", "stringW65C816.asm", "stringW65C816_16.asm", "softfloatW65C816.asm", NULL };
 
 	return aszUnits;
 }
@@ -283,6 +283,24 @@ int CCPPTargetW65C816::GetStubOpcode(void)
 const char* CCPPTargetW65C816::GetRuntimePrefix(void)
 {
 	return "R816_";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Calls std::terminate (Libc65's __Terminate) if the exceptions' runtime is
+// linked, and goes on at szAfter if it isn't: the reference is weak, so
+// asking pulls nothing in.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTargetW65C816::AppendCallTerminate(CChars* pszDest, const char* szAfter)
+{
+	pszDest->Append("\t\t.width (A, X), 16\n");
+	pszDest->Append("\t\t.weak ___Terminate\n");
+	pszDest->Append("\t\tlda ___Terminate & 0xFFFF\n");
+	pszDest->Append("\t\tora ___Terminate >> 16\n");
+	pszDest->Append("\t\tbeq ")->Append(szAfter)->AppendNewLine();
+	pszDest->Append("\t\tjsl ___Terminate\n");
 }
 
 

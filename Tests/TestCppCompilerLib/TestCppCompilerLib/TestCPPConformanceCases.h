@@ -342,6 +342,49 @@ static const SConformanceCase gasConformanceWorks[] =
 		"int main() { int r = make().v() + T().v(); return r + g; }\n"
 	},
 	{
+		"DynamicCastAccess", 1 + 2 + 4 + 8 + 16 + 32,	//5.2.7/8: public bases only
+		"struct A { virtual ~A() {} int a; };\n"
+		"struct D : A { int d; };\n"
+		"struct P : private D { int p; A* base() { return this; } D* middle() { return this; } };\n"
+		"struct R { virtual ~R() {} int r; };\n"
+		"struct M : D, R { int m; };\n"
+		"struct N : D, private R { int n; };\n"
+		"int main()\n"
+		"{\n"
+		"	D d; P p; M m; N n;\n"
+		"	A* ad = &d; A* ap = p.base(); A* am = &m; A* an = &n;\n"
+		"	int r = 0;\n"
+		"	r += (dynamic_cast<D*>(ad) == &d) * 1;\n"				//a public base of a D
+		"	r += (dynamic_cast<D*>(ap) == p.middle()) * 2;\n"		//still a public base of a D, which is a private part of a P
+		"	r += (dynamic_cast<P*>(ap) == 0) * 4;\n"					//not a public base of the P
+		"	r += (dynamic_cast<R*>(am) == (R*)&m) * 8;\n"			//across, both public
+		"	r += (dynamic_cast<R*>(an) == 0) * 16;\n"				//across to a private base
+		"	r += (dynamic_cast<void*>(ap) == (void*)&p) * 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	{
+		"TypeidOfOtherTypes", 1 + 2 + 4 + 8 + 16 + 32,	//5.2.8: a pointer's, an enum's and nullptr's type are types like any
+		"#ifdef _MSC_VER\n"
+		"#include <typeinfo>\n"
+		"#else\n"
+		"namespace std { class type_info { public: bool operator==(const type_info& o) const noexcept; bool operator!=(const type_info& o) const noexcept; const char* name() const noexcept; }; }\n"
+		"#endif\n"
+		"enum E { e1 }; enum class F { f1 };\n"
+		"struct S { int m; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0; int* p = 0; const int* q = 0; E e = e1;\n"
+		"	r += (typeid(p) == typeid(int*)) * 1;\n"
+		"	r += (typeid(q) != typeid(p)) * 2;\n"
+		"	r += (typeid(e) == typeid(E) && typeid(E) != typeid(F) && typeid(E) != typeid(int)) * 4;\n"
+		"	r += (typeid(nullptr) == typeid(decltype(nullptr)) && typeid(nullptr) != typeid(void*)) * 8;\n"
+		"	r += (typeid(&S::m) == typeid(int S::*) && typeid(int S::*) != typeid(const int S::*)) * 16;\n"
+		"	r += (typeid(int**) != typeid(int*) && typeid(int[3]) != typeid(int[4])) * 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	{
 		"TemporariesReverseOrder", 3,	//12.2/3: destroyed in the reverse of the order their construction finished
 		"int g = 0;\n"
 		"struct T { int n; T(int i) : n(i) {} ~T() { g = g * 10 + n; } };\n"

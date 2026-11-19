@@ -3738,7 +3738,13 @@ void CCPPUnit::AppendRuntime(void)
 {
 	if (mbPureVirtual && BeginRuntime("R_Pure"))
 	{
-		//A pure virtual function was called.
+		//A pure virtual function was called: std::terminate, in a program built with exceptions that has their
+		//runtime; a stop without.
+		if (mpcOptions->mbExceptions)
+		{
+			mpcTarget->AppendCallTerminate(&mszCode, "R_PureStop");
+			mszCode.Append("R_PureStop:")->AppendNewLine();
+		}
 		Line("stp")->AppendNewLine();
 		mszCode.AppendNewLine();
 	}
