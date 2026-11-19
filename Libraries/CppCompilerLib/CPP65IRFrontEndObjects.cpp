@@ -1612,6 +1612,7 @@ bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpr
 bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 {
 	SCPP65IRPlace					sPlace;
+	SCPP65IRValue					sLeft;
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	SCPP65Type*						psType;
 	CArraySyntax					apcArguments;
@@ -1681,6 +1682,11 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	case CPPS_ConditionalExpression:
 		return ObjectConditional((CCPPSyntaxConditionalExpression*)pcExpression, NULL, psValue);
 	case CPPS_BinaryExpression:
+		if ((((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma((CCPPSyntaxBinaryExpression*)pcExpression))
+		{
+			//(x, object) with no operator, of its own: x is worked out, then the object.  [expr.comma] 1
+			return Value(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft, &sLeft) && Value(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight, psValue);
+		}
 		if (!mpcUnit->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator))
 		{
 			return OperatorExpression(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight, psValue);

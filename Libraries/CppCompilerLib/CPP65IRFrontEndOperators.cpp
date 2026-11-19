@@ -117,6 +117,11 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_Add:
 	case CT_Subtract:
 	case CT_BitwiseNot:
+		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//+object, -object, ~object: the object's operator, whatever it returns.
+			return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, psValue);
+		}
 		break;
 	default:
 		return Unsupported(__FILE__, __LINE__);
@@ -135,6 +140,12 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		{
 			psValue->sValue = mpcFunction->Add(mpcBlock, IRO_FNeg, IRTypeOf(sOperand.psType), sOperand.sValue);
 		}
+		return true;
+	}
+	if (sOperand.psType->IsPointer() && (pcUnary->meOperator == CT_Add))
+	{
+		//+pointer is the pointer (an array's, or a function's, is the pointer to it).  [expr.unary.op] 7
+		*psValue = sOperand;
 		return true;
 	}
 	if (!sOperand.psType->IsInteger())
@@ -203,7 +214,7 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 		return false;
 	}
 	psType = sPlace.psType;
-	if (!psType->IsScalar() || (psType->eKind == CPP65TK_Bool))
+	if (!psType->IsScalar())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -217,7 +228,16 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 		sOne.sValue = Integer(&mpcTypes->msInt, 1);
 		sOne.psType = &mpcTypes->msInt;
 	}
-	if (!Operate((pcUnary->meOperator == CT_Increment) ? CT_Add : CT_Subtract, &sOld, &sOne, &sNew) || !Convert(&sNew, psType))
+	if (psType->eKind == CPP65TK_Bool)
+	{
+		//++b and b++ make a bool true: deprecated, and C++14's still.  [expr.pre.incr] 1
+		sNew = sOne;
+	}
+	else if (!Operate((pcUnary->meOperator == CT_Increment) ? CT_Add : CT_Subtract, &sOld, &sOne, &sNew))
+	{
+		return false;
+	}
+	if (!Convert(&sNew, psType))
 	{
 		return false;
 	}

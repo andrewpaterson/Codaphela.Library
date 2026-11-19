@@ -812,13 +812,14 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	{
 		return NULL;
 	}
-	if (psType->IsFloat() && ((pcUnary->meOperator == CT_Add) || (pcUnary->meOperator == CT_Subtract)))
+	if ((psType->IsFloat() && ((pcUnary->meOperator == CT_Add) || (pcUnary->meOperator == CT_Subtract))) || (psType->IsPointer() && (pcUnary->meOperator == CT_Add)))
 	{
+		//-float and +float; +pointer is the pointer.  [expr.unary.op] 7, 8
 		return psType;
 	}
 	if (!psType->IsInteger())
 	{
-		Error(pcUnary, "The operand must be an integer");
+		Error(pcUnary, (pcUnary->meOperator == CT_BitwiseNot) ? "The operand of ~ must be an integer" : "The operand must be a number");
 		return NULL;
 	}
 	if (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcUnary, psType, psType, CPPEC_ARITHMETIC))
@@ -861,6 +862,12 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 	if (!psType->IsScalar() || (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcUnary, psType, psType, CPPEC_INCREMENT)))
 	{
 		Error(pcUnary, "Only integers and pointers can be incremented");
+		return NULL;
+	}
+	if ((psType->eKind == CPP65TK_Bool) && (pcUnary->meOperator == CT_Decrement))
+	{
+		//++b makes it true; there is no --b.  [expr.pre.incr] 2
+		Error(pcUnary, "A bool can't be decremented");
 		return NULL;
 	}
 	if (psType->IsPointer() && !CompletePointee(psType, pcUnary))
