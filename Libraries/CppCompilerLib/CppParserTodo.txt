@@ -581,6 +581,14 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       base's ([conv.ptr]).  BaseLib and the kernal may lean on it: to be tried with the *65 compiles.
     - An allocation function's first parameter must be std::size_t ([basic.stc.dynamic.allocation] 1): operator
       new(unsigned long) is accepted where size_t is unsigned int (both targets).
+    - DONE 2026-11-19.  new T[n] gave its bytes, worked out as wide as the count (32 bits), to the allocation
+      function as they were: on the W65C816, where size_t is 16 bits, the runtime's operator new[] took the low word
+      (new long[40000] was given 28928 bytes) and a declared one was called by a label for a 32 bit size, which
+      nothing defines.  The size is a size_t, of new T too, and when n elements with the count in front of them
+      don't fit one no allocation function is called, nothing is constructed and the pointer is null ([expr.new] 7;
+      the user: "Rather return null instead of a short block", and "It should throw if exceptions are enabled":
+      std::bad_array_new_length, in CCPP65IRFrontEnd::NewArray's block for too many, is the exceptions work's).
+      On the 65C64 the same test catches bytes past 32 bits.  TestCPP816NewDelete, conformance case NewSizeIsSizeT.
 
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.

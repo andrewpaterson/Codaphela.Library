@@ -2743,6 +2743,19 @@ static const SConformanceCase gasConformanceStage10[] =
 		"int main() { int ai[4]; int* p = &ai[3]; int* q = &ai[0];\n"
 		" return Same<decltype(sizeof(int)), size_t>::V + Same<decltype(p - q), ptrdiff_t>::V * 2 + Same<decltype(offsetof(S, b)), size_t>::V * 4 + (p - q == 3) * 8; }\n"
 	},
+	//A new expression's size is a std::size_t ([expr.new] 10): a program's own operator new and new[] are given it.
+	{
+		"NewSizeIsSizeT", 7,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gac[64];\n"
+		"size_t gn;\n"
+		"void* operator new(size_t n) { gn = n; return gac; }\n"
+		"void operator delete(void* p) noexcept {}\n"
+		"void* operator new[](size_t n) { gn = n; return gac; }\n"
+		"void operator delete[](void* p) noexcept {}\n"
+		"struct S { char c[10]; };\n"
+		"int main() { S* p = new S; int r = (gn == 10); delete p; char* q = new char[20]; r += (gn == 20) * 2; delete[] q; return r + 4; }\n"
+	},
 	//A function that isn't a template's is called rather than a template's instance that takes the arguments no better;
 	//the instance when it converts one better and none worse ([over.match.best] 1).  The first f is the function's though
 	//its pointer is converted, as the instance's is.  (BaseLib's memcpy and malloc overloads on the W65C816 lean on it.)

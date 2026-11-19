@@ -2635,6 +2635,43 @@ void TestCPP816NewDelete(void)
 		"	return n;\n"
 		"}\n"));
 
+	//new T[n]'s bytes are a size_t, 16 bits here, though n is counted in 32.  When n elements (with a class's count in
+	//front of them) don't fit a size_t the allocation function isn't called, nothing is constructed and the pointer is
+	//null: never a block for a size that wrapped ([expr.new] 7; std::bad_array_new_length when there are exceptions).
+	//The program's own operator new[] says what it was asked for, and how often.
+	AssertInt(2047, TestCPP816Run(
+		"#include <stddef.h>\n"
+		"size_t guiAsked;\n"
+		"int giCalls;\n"
+		"char gac[64];\n"
+		"void* operator new[](size_t n) { guiAsked = n; giCalls++; return gac; }\n"
+		"void operator delete[](void* p) noexcept {}\n"
+		"struct C { long m; ~C() {} };\n"
+		"struct D { long m; D() : m(7) {} };\n"
+		"volatile unsigned long gulCount = 40000;\n"
+		"volatile unsigned int guiCount = 5;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	char* a = new char[guiCount]; if (a == gac && guiAsked == 5) r |= 1;\n"
+		"	long* b = new long[guiCount]; if (b && guiAsked == 20) r |= 2;\n"
+		"	char* c = new char[gulCount]; if (c && guiAsked == 40000) r |= 4;\n"
+		"	giCalls = 0;\n"
+		"	long* d = new long[gulCount]; if (d == 0 && giCalls == 0) r |= 8;\n"
+		"	gulCount = 0x10005;\n"
+		"	char* e = new char[gulCount]; if (e == 0 && giCalls == 0) r |= 16;\n"
+		"	gulCount = 16383;\n"
+		"	long* f = new long[gulCount]; if (f && guiAsked == 65532 && giCalls == 1) r |= 32;\n"
+		"	C* g = new C[gulCount]; if (g == 0 && giCalls == 1) r |= 64;\n"
+		"	C* h = new C[guiCount]; if (h && guiAsked == 24) r |= 128;\n"
+		"	gulCount = 16384;\n"
+		"	long* i = new long[gulCount]; if (i == 0) r |= 256;\n"
+		"	D* j = new D[gulCount]; if (j == 0) r |= 512;\n"
+		"	gulCount = 3;\n"
+		"	D* k = new D[gulCount]; if (k && k[2].m == 7) r |= 1024;\n"
+		"	return r;\n"
+		"}\n"));
+
 	//new T() and new T{} value initialise: a class without constructors of its own is zeroed (arrays in it too), in
 	//place or (big ones) with memset, before a member's constructor runs.  The heap block is dirtied first.
 	AssertInt(7, TestCPP816RunProject(aszUnits, "",
