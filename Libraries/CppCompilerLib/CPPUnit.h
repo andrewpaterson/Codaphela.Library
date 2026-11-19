@@ -737,6 +737,7 @@ public:
 	void					DecodeRawStringToken(CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
 	int						StringElementBytes(CCPPSyntax* pcString);
 	SCPP65Type*				StringElementType(CCPPSyntax* pcString);
+	SCPP65Type*				StringArrayType(CCPPSyntax* pcString);
 	uint32					StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement);
 
 	//Objects and copies.  CPPUnitObjects.cpp

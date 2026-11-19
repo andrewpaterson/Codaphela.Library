@@ -1125,9 +1125,20 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		psPlace->psType = sAddress.psType->psBase;
 		return true;
 
+	case CPPS_StringExpression:
+		if (mpcUnit->IsStringLiteral(pcExpression))
+		{
+			//The array of its characters, where its data is.
+			if (!StringLiteral(pcExpression, &sAddress))
+			{
+				return false;
+			}
+			psPlace->sAddress = sAddress.sValue;
+			psPlace->psType = mpcUnit->StringArrayType(pcExpression);
+			return true;
+		}
 	case CPPS_CallExpression:
 	case CPPS_LiteralExpression:
-	case CPPS_StringExpression:
 		//What a call (or a user-defined literal's) that returns a reference refers to, or the object it makes.
 		psType = mpcUnit->DeclaredTypeOf(pcExpression);
 		if (!psType || !(psType->IsReference() || psType->IsClass()) || ((pcExpression->GetKind() != CPPS_CallExpression) && !mpcUnit->UserLiteralToken(pcExpression)))

@@ -2080,6 +2080,14 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 	case CPPS_SubscriptExpression:
 		return SubscriptPlace((CCPPSyntaxSubscriptExpression*)pcExpression);
 
+	case CPPS_StringExpression:
+		//A string literal is the array of its characters ("text"_s is its literal operator's call, below).
+		if (mpcUnit->IsStringLiteral(pcExpression))
+		{
+			return mpcUnit->StringArrayType(pcExpression);
+		}
+		break;
+
 	case CPPS_CallExpression:
 		//A function that returns a reference, or an object (its temporary).
 		return ResultPlace(Result(pcExpression), pcExpression);

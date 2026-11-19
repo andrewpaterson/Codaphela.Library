@@ -1744,22 +1744,13 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		}
 		else
 		{
-			//sizeof an array variable is the array's size, not a pointer's.  Its operand isn't evaluated.
+			//The operand isn't evaluated, and an lvalue stays what it is: an array (a variable, a field, a row of
+			//another array, a string) is not the pointer it would become.  [expr.sizeof] 4
 			BeginUnevaluated();
 			pcOperand = SkipParentheses(pcSizeof->mpcOperand);
-			psType = NULL;
-			if (pcOperand && (pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol)
-			{
-				pcVariable = GetVariable(((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol);
-				psType = pcVariable ? pcVariable->mpsType : NULL;
-			}
+			psType = QualifiedFieldType(pcOperand);
 			if (!psType)
 			{
-				psType = QualifiedFieldType(pcOperand);
-			}
-			if (!psType && pcOperand && ((pcOperand->GetKind() == CPPS_IdExpression) || (pcOperand->GetKind() == CPPS_MemberExpression)))
-			{
-				//A field (this's or an object's) that is an array.
 				psType = PlaceTypeOf(pcOperand);
 			}
 			if (!psType)
@@ -3292,6 +3283,26 @@ int CCPPUnit::StringElementBytes(CCPPSyntax* pcString)
 		}
 	}
 	return iBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the array a string literal is: its elements and the zero
+// after them (NULL if it can't be decoded).  It is an lvalue: sizeof and
+// & are of the array, and its value is a pointer to its first element.
+// [lex.string] 8, [expr.prim.general] 1
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::StringArrayType(CCPPSyntax* pcString)
+{
+	CArrayUint8		auiBytes;
+	SCPP65Type*		psArray;
+
+	auiBytes.Init();
+	psArray = DecodeString(pcString, &auiBytes) ? mcTypes.Array(StringElementType(pcString), (int)(auiBytes.NumElements() / StringElementBytes(pcString)) + 1) : NULL;
+	auiBytes.Kill();
+	return psArray;
 }
 
 
