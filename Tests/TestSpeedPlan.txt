@@ -65,6 +65,12 @@ IDE checks the same passes and failures) as a run in one process.
    Questions for the user: (d) changes what the usages/find checks run against, from the real ModPlay to a small copy, so
    they no longer check the IDE on a big solution.  Keep a handful on ModPlay (as above), or keep them all and accept ~20 min?
    The user, 2026-11-18: "2d, run on a small solution".
+   (a) measured 2026-11-19 (Reference x64, usages-rename on HCP65ModPlay.sln): 49.0 s as it is (42.8 s run again), 42.6 s
+   without its edit, 3.3 s without its edit or WAIT_INDEX: starting and opening ModPlay is 3 s, waiting for BaseLib to
+   be indexed ~39 s (90%), the check itself under 6 s.  So (d) first, then (b) and (c) if the light checks are worth
+   running side by side.  The table has 113 checks, 63 with WAIT_INDEX: 31 open CalcParentheses.h, 9
+   CalculatorParser.cpp, 2 Calculator.cpp, 1 each CalculatorParser.h and CalcExpression.h (the Calc files), 8 their own
+   solution; the rest Shape.h, Engine.h, Main.cpp, Codabase.h or nothing.
 
 3. The *65 suites: their programs' runs on worker threads                            TestSupportLib65 816 ~243 s -> ~90 s (estimate)
    a. Measure each suite's compile, link and run times (TEST_PROJECT65_RUN_TIME prints each program's run).
