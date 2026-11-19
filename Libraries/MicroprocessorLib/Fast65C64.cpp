@@ -189,6 +189,24 @@ static inline SFast65C64Op* GetFast65C64Op(uint16 uiOpcode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Decodes every opcode into the table the CFast65C64s share, which each
+// otherwise decodes as it first meets an opcode: before CPUs run on
+// threads side by side, which would write the same entries at once.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFast65C64::DecodeAll(void)
+{
+	uint32	uiOpcode;
+
+	for (uiOpcode = 0; uiOpcode < NUM_FAST_65C64_OPCODES; uiOpcode++)
+	{
+		GetFast65C64Op((uint16)uiOpcode);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 static inline uint64 Extend(uint64 uiValue, uint8 uiFromBytes, uint8 uiToBytes, bool bSigned)

@@ -89,6 +89,21 @@ IDE checks the same passes and failures) as a run in one process.
    runs 34.6, 34.3 and 32.0 s.  The frame check about doubles a run (the same suite with it: 664 s).  With four workers
    the runs would take about the longest few of them (~80 s), so the suite ~135 s without the frame check and ~200 s
    with it.
+   DONE 2026-11-19.  TestProject65.cpp: each program linked on the main thread, loaded into a memory of its own
+   (TestProject65Load) with a copy of its map, and run by the next free worker (TestProject65FreeWorker,
+   TestProject65RunProgram) on the compile's CWorkerThreadJobs while the next is linked; its console, faults and
+   result kept, and all asserted in the programs' order once they have run.  TEST_PROJECT65_RUNS workers (4; 1 runs them
+   one after another as before, in the one directory), each with its own copy of the test project's directory,
+   Output/<target>/<project>.<n>; the profile, TEST_PROJECT65_CYCLES and TEST_PROJECT65_TRACE run them one at a time.
+   The 65C64s' shared table of decoded opcodes is filled before they run side by side (CFast65C64::DecodeAll), as each
+   decoded an opcode the first time it met it.  TEST_PROJECT65_COUNTS prints each program's asserts.  Release x64, one
+   at a time against side by side, the same programs and asserts (each program's count the same, TestBaseLib65 65C64
+   checked with TEST_PROJECT65_COUNTS):
+     TestBaseLib65       65C64 123 s ->  46 s   W65C816 225 s ->  84 s
+     TestStandardLib65   65C64 191 s ->  85 s   W65C816 170 s ->  71 s
+     TestSupportLib65    65C64 464 s -> 167 s   W65C816 664 s -> 214 s
+   1837 s -> 667 s for the six (2.75 times).  The suites' own Tests Run counts are higher: each worker's directory copy
+   asserts as it copies.
 
 4. TestCPPW65C816: where its 309 s goes, then the biggest costs                       (unknown until measured)
    The plan said "compile Libc65 once per process", but a trivial build is 0.15 s a target, so that is small.  Instead:
