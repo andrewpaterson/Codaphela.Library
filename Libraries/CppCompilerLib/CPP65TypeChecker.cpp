@@ -2008,14 +2008,16 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 //////////////////////////////////////////////////////////////////////////
 //
 // The pointer to member's type of object.*member or pointer->*member, once the
-// object is an object of a class.
+// object is an object of the member's class or of a class derived from it,
+// where that base is once and may be reached.  *ppsObject (if not NULL) is
+// the object's type, with its const and volatile.  [expr.mptr.oper] 2, 3
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary)
+SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type** ppsObject)
 {
 	SCPP65Type*		psMember;
 	SCPP65Type*		psObject;
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 
 	psMember = mpcUnit->TypeOf(pcBinary->mpcRight);
 	if (!psMember)
@@ -2041,7 +2043,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* p
 			Error(pcBinary, "The left of ->* must be a pointer to an object");
 			return NULL;
 		}
-		pcClass = psObject->psBase->pcClass;
+		psObject = psObject->psBase;
 	}
 	else
 	{
@@ -2055,12 +2057,28 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* p
 			Error(pcBinary, "The left of .* must be an object");
 			return NULL;
 		}
-		pcClass = psObject->pcClass;
 	}
+	pcClass = psObject->pcClass;
 	if (psMember->pcClass && (pcClass != psMember->pcClass))
 	{
 		//A base further on in the object is where the member is.
-		mpcUnit->CompleteClass(pcClass, pcBinary);
+		if (!mpcUnit->CompleteClass(pcClass, pcBinary))
+		{
+			return NULL;
+		}
+		if (!mpcUnit->IsDerived(pcClass, psMember->pcClass, NULL))
+		{
+			Error(pcBinary, "The object isn't of the class the pointer to a member is of, or of a class derived from it");
+			return NULL;
+		}
+		if (!mpcUnit->GetBinder()->ReachesBase(pcClass, psMember->pcClass, pcBinary))
+		{
+			return NULL;
+		}
+	}
+	if (ppsObject)
+	{
+		*ppsObject = psObject;
 	}
 	return psMember;
 }
@@ -2068,24 +2086,33 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// object.*field and pointer->*field: the field's type.
+// object.*field and pointer->*field: the field's type, with the object's
+// const and volatile (a mutable field's too: no pointer to a member says
+// that it is one).  [expr.mptr.oper] 5
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary)
 {
 	SCPP65Type*	psMember;
+	SCPP65Type*	psObject;
+	SCPP65Type*	psField;
 
-	psMember = MemberPointerObject(pcBinary);
+	psMember = MemberPointerObject(pcBinary, &psObject);
 	if (!psMember)
 	{
 		return NULL;
 	}
-	if (psMember->psBase->IsFunction())
+	psField = psMember->psBase;
+	if (psField->IsFunction())
 	{
 		Error(pcBinary, "A pointer to a member function can only be called");
 		return NULL;
 	}
-	return Value(pcBinary->mpcRight) ? psMember->psBase : NULL;
+	if (!Value(pcBinary->mpcRight))
+	{
+		return NULL;
+	}
+	return mpcTypes->Qualified(psField->Unqualified(), psField->bConst || psObject->bConst, psField->bVolatile || psObject->bVolatile);
 }
 
 
@@ -2108,7 +2135,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCal
 	}
 	psFunctionType = psMember->psBase;
 	if (!Arguments(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, papcArguments, pcCall, psFunctionType->psBase) ||
-		!MemberPointerObject(pcBinary) ||
+		!MemberPointerObject(pcBinary, NULL) ||
 		!Value(pcBinary->mpcRight))
 	{
 		return NULL;

@@ -144,7 +144,7 @@ protected:
 	SCPP65Type*		OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode);
 	SCPP65Type*		ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	SCPP65Type*		MemberPlace(CCPPSyntaxMemberExpression* pcMember);
-	SCPP65Type*		MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary);
+	SCPP65Type*		MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type** ppsObject);
 	SCPP65Type*		MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*		MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*		SubscriptPlace(CCPPSyntaxSubscriptExpression* pcSubscript);
