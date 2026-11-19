@@ -606,7 +606,9 @@ bool CIRModule::NeverThrown(CIRBlock* pcBlock, size uiInstruction)
 // True if a block that ends in throw can be reached from the function's
 // entry.  A brif on a constant goes one way, and so does one on the thrown
 // of a call to a function that never throws (the way that isn't taken is
-// the code for its exception, until the optimiser takes it away).
+// the code for its exception, until the optimiser takes it away), or on a
+// phi of the block's whose values are all the same constant (what the
+// inliner makes of the thrown of a call to such a function).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRModule::MayThrow(CIRFunction* pcFunction)
@@ -615,8 +617,11 @@ bool CIRModule::MayThrow(CIRFunction* pcFunction)
 	CArrayTemplate<size>	auiStack;
 	CIRBlock*				pcBlock;
 	SIRJump*				psJump;
+	SIRPhi*					psPhi;
 	size					ui;
 	size					uiInstruction;
+	size					uiPhi;
+	size					uiArgument;
 	bool					bThen;
 	bool					bElse;
 	bool					bThrows;
@@ -662,6 +667,32 @@ bool CIRModule::MayThrow(CIRFunction* pcFunction)
 				if (pcBlock->masInstructions.Get(uiInstruction - 1)->sResult.Equals(psJump->sArgument))
 				{
 					bThen = !NeverThrown(pcBlock, uiInstruction - 1);
+					break;
+				}
+			}
+			for (uiPhi = 0; psJump->sArgument.IsTemporary() && (uiPhi < pcBlock->masPhis.NumElements()); uiPhi++)
+			{
+				psPhi = pcBlock->masPhis.Get(uiPhi);
+				if (psPhi->sResult.Equals(psJump->sArgument))
+				{
+					bThen = false;
+					bElse = false;
+					for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+					{
+						if (!psPhi->asArguments.Get(uiArgument)->sValue.IsConstant())
+						{
+							bThen = true;
+							bElse = true;
+						}
+						else if (pcFunction->GetConstant(psPhi->asArguments.Get(uiArgument)->sValue)->ulliBits & 1)
+						{
+							bThen = true;
+						}
+						else
+						{
+							bElse = true;
+						}
+					}
 					break;
 				}
 			}

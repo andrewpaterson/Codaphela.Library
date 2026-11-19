@@ -36,6 +36,9 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	masMap.Init();
 	mapcCopies.Init();
 	masReturns.Init();
+	masThrows.Init();
+	mbJoinThrows = false;
+	mpcThrowsTo = NULL;
 	mabInLoop.Init();
 	maiArgumentOffsets.Init();
 	masArguments.Init();
@@ -65,6 +68,7 @@ void CIRInliner::Kill(void)
 	masArguments.Kill();
 	maiArgumentOffsets.Kill();
 	mabInLoop.Kill();
+	masThrows.Kill();
 	masReturns.Kill();
 	mapcCopies.Kill();
 	masMap.Kill();
@@ -184,13 +188,29 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 	{
 		pcBlock = pcCallee->GetBlock(ui);
 		bReturns |= pcBlock->msJump.uiKind == IRJ_Return;
-		if (pcBlock->msJump.uiKind == IRJ_Throw)
+		if ((pcBlock->msJump.uiKind == IRJ_Throw) && !CalleeNeverThrows(pcCallee))
 		{
-			//Its throw would become the caller's, past the test the caller makes of the call.
-			return false;
+			//Its throws go to the test the caller makes of the call (InlineCall).  With no test (a front end always writes
+			//one after a call that may throw) a throw would become the caller's own: it is left a call.
+			if (!pcCallBlock || (uiCall + 1 >= pcCallBlock->masInstructions.NumElements()) || (pcCallBlock->masInstructions.Get(uiCall + 1)->uiOpcode != IRO_Thrown))
+			{
+				return false;
+			}
 		}
 	}
 	return bReturns;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the callee (of this module, or of the imports') is marked as never
+// throwing: a throw in it is not reached.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::CalleeNeverThrows(CIRFunction* pcCallee)
+{
+	return (mpcCalleeModule ? mpcCalleeModule : mpcModule)->IsNoThrow(pcCallee->muiSymbol);
 }
 
 
@@ -867,6 +887,17 @@ void CIRInliner::StoreArguments(CIRBlock* pcBlock, CIRFunction* pcCallee)
 // copy of pcCallee.  Returns false (changing nothing) if the arguments
 // don't match its parameters.
 //
+// A thrown straight after the call, with nothing after it but a brif on it
+// and read by nothing else (what a front end writes), needs no test once the
+// callee is copied: each of the callee's returns goes on to where the brif
+// went when nothing was thrown, and each of its throws jumps straight to the
+// caller's code for the exception.  In any other shape the thrown becomes a
+// phi at the head of the rest of the block, false from each return and true
+// from each throw, which jump there too (the result's phi has a zero from
+// them, which nothing reads).  A callee that never throws has no throw that
+// is reached (one behind the test of a call to another that never throws
+// becomes unreachable), so the caller's code for its exception goes.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee)
 {
@@ -878,8 +909,16 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 	CIRBlock*				pcSuccessor;
 	SIRPhiArgument*			psArgument;
 	SIRInstruction			sCall;
+	SIRInstruction			sThrown;
 	SIRPhi*					psPhi;
 	SIRInlineReturn*		psReturn;
+	CArrayTemplate<uint32>	auiUses;
+	CIRBlock*				pcLanding;
+	SIRReference			sValue;
+	size					uiRest;
+	size					uiArgument;
+	bool					bTested;
+	bool					bDirect;
 
 	uiFirst = uiCall;
 	while ((uiFirst > 0) && (pcBlock->masInstructions.Get(uiFirst - 1)->uiOpcode == IRO_Arg))
@@ -891,6 +930,22 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 		return false;
 	}
 	sCall = *pcBlock->masInstructions.Get(uiCall);
+	uiRest = uiCall + 1;
+	bTested = (uiRest < pcBlock->masInstructions.NumElements()) && (pcBlock->masInstructions.Get(uiRest)->uiOpcode == IRO_Thrown);
+	if (bTested)
+	{
+		sThrown = *pcBlock->masInstructions.Get(uiRest);
+		uiRest++;
+	}
+	mbJoinThrows = bTested && !CalleeNeverThrows(pcCallee);
+	bDirect = bTested && (uiRest == pcBlock->masInstructions.NumElements()) && (pcBlock->msJump.uiKind == IRJ_Branch) && pcBlock->msJump.sArgument.Equals(sThrown.sResult);
+	if (bDirect)
+	{
+		auiUses.Init();
+		mpcCaller->CountUses(&auiUses);
+		bDirect = *auiUses.Get(sThrown.sResult.Index()) == 1;
+		auiUses.Kill();
+	}
 
 	//Another unit's function's sources are its tokens, not this unit's: its copy is the call's line's code (a listing
 	//shows it under the call).
@@ -908,9 +963,9 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 
 	//The rest of the block, after the call, goes to a block of its own with the block's jump.
 	pcRest = mpcCaller->AddBlock();
-	if (uiCall + 1 < pcBlock->masInstructions.NumElements())
+	if (uiRest < pcBlock->masInstructions.NumElements())
 	{
-		pcRest->masInstructions.InsertBlockAt(pcBlock->masInstructions.Get(uiCall + 1), pcBlock->masInstructions.NumElements() - (uiCall + 1), 0);
+		pcRest->masInstructions.InsertBlockAt(pcBlock->masInstructions.Get(uiRest), pcBlock->masInstructions.NumElements() - uiRest, 0);
 	}
 	pcRest->msJump = pcBlock->msJump;
 	for (uiSuccessor = 0; uiSuccessor < pcRest->NumSuccessors(); uiSuccessor++)
@@ -936,13 +991,16 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 		pcCallee->GetBlock(ui)->muiIndex = ui;
 	}
 	masReturns.FakeSetUsedElements(0);
+	masThrows.FakeSetUsedElements(0);
+	pcLanding = bDirect ? pcRest->msJump.pcThen : NULL;
+	mpcThrowsTo = bDirect ? pcLanding : pcRest;
 	for (ui = 0; ui < pcCallee->NumBlocks(); ui++)
 	{
 		CopyBlock(pcCallee->GetBlock(ui), pcCallee, pcRest);
 	}
 	pcBlock->Jump(mapcCopies.GetPtr(0));
 
-	//The call's result is a phi of the values returned.
+	//The call's result is a phi of the values returned (and a zero from each throw, where it isn't read).
 	if (sCall.sResult.IsTemporary())
 	{
 		psPhi = pcRest->AddPhi(mpcCaller->GetTemporaryType(sCall.sResult), sCall.sResult);
@@ -950,6 +1008,51 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 		{
 			psReturn = masReturns.Get(ui);
 			pcRest->AddPhiArgument(psPhi, psReturn->pcBlock, psReturn->sValue);
+		}
+		for (ui = 0; !bDirect && (ui < masThrows.NumElements()); ui++)
+		{
+			pcRest->AddPhiArgument(psPhi, masThrows.Get(ui)->pcBlock, mpcCaller->AddConstant(mpcCaller->GetTemporaryType(sCall.sResult), 0));
+		}
+	}
+
+	if (bDirect)
+	{
+		//The returns go on; the throws have gone to the caller's code for the exception, whose phis have from each of them
+		//what they had from the block with the test (the call's result isn't a value there: a zero).
+		for (uiPhi = 0; uiPhi < pcLanding->masPhis.NumElements(); uiPhi++)
+		{
+			psPhi = pcLanding->masPhis.Get(uiPhi);
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				if (psPhi->asArguments.Get(uiArgument)->pcBlock == pcRest)
+				{
+					sValue = psPhi->asArguments.Get(uiArgument)->sValue;
+					if (sValue.Equals(sCall.sResult))
+					{
+						sValue = mpcCaller->AddConstant(mpcCaller->GetTemporaryType(sCall.sResult), 0);
+					}
+					psPhi->asArguments.RemoveAt(uiArgument, true);
+					for (ui = 0; ui < masThrows.NumElements(); ui++)
+					{
+						pcLanding->AddPhiArgument(psPhi, masThrows.Get(ui)->pcBlock, sValue);
+					}
+					break;
+				}
+			}
+		}
+		pcRest->Jump(pcRest->msJump.pcElse);
+	}
+	else if (bTested && sThrown.sResult.IsTemporary())
+	{
+		//The call's thrown is a phi of which way the callee was left.
+		psPhi = pcRest->AddPhi(IRType(IRTK_I1), sThrown.sResult);
+		for (ui = 0; ui < masReturns.NumElements(); ui++)
+		{
+			pcRest->AddPhiArgument(psPhi, masReturns.Get(ui)->pcBlock, mpcCaller->AddConstant(IRType(IRTK_I1), 0));
+		}
+		for (ui = 0; ui < masThrows.NumElements(); ui++)
+		{
+			pcRest->AddPhiArgument(psPhi, masThrows.Get(ui)->pcBlock, mpcCaller->AddConstant(IRType(IRTK_I1), 1));
 		}
 	}
 	return true;
@@ -1026,7 +1129,18 @@ void CIRInliner::CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pc
 		pcCopy->Jump(pcRest);
 		break;
 	case IRJ_Throw:
-		pcCopy->Throw();
+		if (mbJoinThrows)
+		{
+			psReturn = masThrows.Add();
+			psReturn->pcBlock = pcCopy;
+			psReturn->sValue = IRNone();
+			pcCopy->Jump(mpcThrowsTo);
+		}
+		else
+		{
+			//Not reached: the callee never throws (CanInline, CalleeNeverThrows).
+			pcCopy->Unreachable();
+		}
 		break;
 	default:
 		pcCopy->Unreachable();

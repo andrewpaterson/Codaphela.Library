@@ -92,6 +92,9 @@ protected:
 	CArrayIRReferences		masMap;						//Per callee temporary: what it is in the caller, IRNone until it is made.
 	CArrayIRBlocks			mapcCopies;					//Per callee block index: its copy.
 	CArrayIRInlineReturns	masReturns;
+	CArrayIRInlineReturns	masThrows;					//The copies of the callee's blocks that end in throw, when the call is tested (sValue isn't used).
+	bool					mbJoinThrows;				//The call being inlined has a thrown after it and the callee may throw: its throws go to mpcThrowsTo.
+	CIRBlock*				mpcThrowsTo;				//Where: the caller's code for the exception, or the block with the test.
 	CArrayTemplate<bool>	mabInLoop;					//Per caller block index.
 	CIRImports*				mpcImports;					//Other units' functions, NULL for none.
 	CArrayChars*			mpaszMissing;				//Named callees with no body here or in mpcImports, NULL to not keep.
@@ -136,6 +139,7 @@ protected:
 	size			HotLimit(uint64 ulliCount);
 	SIRReference	Map(SIRReference sValue, CIRFunction* pcCallee);
 	bool			InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee);
+	bool			CalleeNeverThrows(CIRFunction* pcCallee);
 	void			CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pcRest);
 	bool			TakesArgumentAddress(CIRFunction* pcCallee);
 	void			StoreArguments(CIRBlock* pcBlock, CIRFunction* pcCallee);

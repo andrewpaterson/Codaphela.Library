@@ -5621,6 +5621,191 @@ void TestIRNoThrow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Inlines the call(s) in the function named szCaller of szText, verifies,
+// and (bOptimise) optimises it; the function must then print as szExpected.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertIRInlined(const char* szExpected, const char* szText, const char* szCaller, bool bOptimise)
+{
+	CIRModule		cModule;
+	CCPPErrors		cErrors;
+	CIRParser		cParser;
+	CIRVerifier		cVerifier;
+	CIRInliner		cInliner;
+	CIROptimiser	cOptimiser;
+	CIRPrinter		cPrinter;
+	CChars			szPrinted;
+	CIRFunction*	pcCaller;
+
+	cErrors.Init();
+	cModule.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse(szText));
+	cParser.Kill();
+	pcCaller = cModule.FindFunction((uint32)cModule.FindSymbol(szCaller));
+	AssertNotNull(pcCaller);
+	cInliner.Init(&cModule, 64, 64, 8);
+	cInliner.InlineCalls(pcCaller);
+	cInliner.Kill();
+	pcCaller->ComputePredecessors();
+	cVerifier.Init(&cModule, &cErrors);
+	cVerifier.Verify();
+	cVerifier.Kill();
+	AssertString("", cErrors.Text());
+	if (bOptimise)
+	{
+		cOptimiser.Init(&cModule);
+		cOptimiser.Optimise(pcCaller);
+		cOptimiser.Kill();
+		cVerifier.Init(&cModule, &cErrors);
+		cVerifier.Verify();
+		cVerifier.Kill();
+		AssertString("", cErrors.Text());
+	}
+	szPrinted.Init();
+	cPrinter.Init(&cModule, &szPrinted);
+	cPrinter.PrintFunction(pcCaller);
+	cPrinter.Kill();
+	AssertString(szExpected, szPrinted.Text());
+	szPrinted.Kill();
+	cModule.Kill();
+	cErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A callee that returns on one path and throws on the other, inlined at a
+// tested call: its throw goes to the caller's code for the exception and its
+// return goes on, with no test left.  One that only returns leaves no code
+// for the exception.  A call with no test of a callee that throws stays a
+// call; so does nothing else.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRInlineThrows(void)
+{
+#define TEST_IR_CHECKED \
+	"function i32 @_Checked__Fi(i32 %x)\n{\nentry:\n\t%c = slt i32 %x, 0\n\tbrif %c, bad, good\nbad:\n\tthrow\ngood:\n\t%d = add i32 %x, %x\n\tret i32 %d\n}\n\n"
+#define TEST_IR_TESTED_CALLER(callee) \
+	"function i32 @_Caller__Fi(i32 %n)\n{\nentry:\n\t%r = call i32 @" callee "(i32 %n)\n\t%t = thrown i1\n\tbrif %t, land, on\n" \
+	"land:\n\tcall void @_Undo__Fv()\n\tthrow\non:\n\t%s = add i32 %r, 1\n\tret i32 %s\n}\n"
+
+	//As the inliner leaves it: the callee's throw jumps to the caller's code for the exception, its return goes on.
+	AssertIRInlined(
+		"function i32 @_Caller__Fi(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\tjmp 1\n"
+		"land:\n"
+		"\tcall void @_Undo__Fv()\n"
+		"\tthrow\n"
+		"on:\n"
+		"\t%s = add i32 %r, 1\n"
+		"\tret i32 %s\n"
+		"0:\n"
+		"\t%r = phi i32 [3, %1]\n"
+		"\tjmp on\n"
+		"1:\n"
+		"\t%0 = slt i32 %n, 0\n"
+		"\tbrif %0, 2, 3\n"
+		"2:\n"
+		"\tjmp land\n"
+		"3:\n"
+		"\t%1 = add i32 %n, %n\n"
+		"\tjmp 0\n"
+		"}\n",
+		"space default 4\n\n" TEST_IR_CHECKED TEST_IR_TESTED_CALLER("_Checked__Fi"), "_Caller__Fi", false);
+
+	//Optimised: each way out of the callee goes straight where the caller's test would have sent it.
+	AssertIRInlined(
+		"function i32 @_Caller__Fi(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\t%0 = slt i32 %n, 0\n"
+		"\tbrif %0, land, 0\n"
+		"land:\n"
+		"\tcall void @_Undo__Fv()\n"
+		"\tthrow\n"
+		"0:\n"
+		"\t%1 = add i32 %n, %n\n"
+		"\t%s = add i32 %1, 1\n"
+		"\tret i32 %s\n"
+		"}\n",
+		"space default 4\n\n" TEST_IR_CHECKED TEST_IR_TESTED_CALLER("_Checked__Fi"), "_Caller__Fi", true);
+
+	//Something between the thrown and its brif (not what a front end writes): the thrown is a phi of the ways out.
+	AssertIRInlined(
+		"function i32 @_Caller__Fi(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\tjmp 1\n"
+		"land:\n"
+		"\tthrow\n"
+		"on:\n"
+		"\tret i32 %s\n"
+		"0:\n"
+		"\t%r = phi i32 [3, %1], [2, 0]\n"
+		"\t%t = phi i1 [3, 0], [2, 1]\n"
+		"\t%s = add i32 %r, 1\n"
+		"\tbrif %t, land, on\n"
+		"1:\n"
+		"\t%0 = slt i32 %n, 0\n"
+		"\tbrif %0, 2, 3\n"
+		"2:\n"
+		"\tjmp 0\n"
+		"3:\n"
+		"\t%1 = add i32 %n, %n\n"
+		"\tjmp 0\n"
+		"}\n",
+		"space default 4\n\n" TEST_IR_CHECKED
+		"function i32 @_Caller__Fi(i32 %n)\n{\nentry:\n\t%r = call i32 @_Checked__Fi(i32 %n)\n\t%t = thrown i1\n\t%s = add i32 %r, 1\n\tbrif %t, land, on\n"
+		"land:\n\tthrow\non:\n\tret i32 %s\n}\n", "_Caller__Fi", false);
+
+	//A callee that only returns: the caller's code for an exception goes.
+	AssertIRInlined(
+		"function i32 @_Caller__Fi(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\t%0 = add i32 %n, %n\n"
+		"\t%s = add i32 %0, 1\n"
+		"\tret i32 %s\n"
+		"}\n",
+		"space default 4\n\n"
+		"function i32 @_Twice__Fi(i32 %x)\n{\nentry:\n\t%d = add i32 %x, %x\n\tret i32 %d\n}\n\n"
+		TEST_IR_TESTED_CALLER("_Twice__Fi"), "_Caller__Fi", true);
+
+	//No test after the call: the callee's throw would be the caller's, so the call stays.
+	AssertIRInlined(
+		"function i32 @_Caller__Fi(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\t%r = call i32 @_Checked__Fi(i32 %n)\n"
+		"\tret i32 %r\n"
+		"}\n",
+		"space default 4\n\n" TEST_IR_CHECKED
+		"function i32 @_Caller__Fi(i32 %n)\n{\nentry:\n\t%r = call i32 @_Checked__Fi(i32 %n)\n\tret i32 %r\n}\n", "_Caller__Fi", false);
+
+	//A callee marked nothrow whose throw is behind the test of a call to another that is: the throw isn't reached, in
+	//the callee or in its copy, and the caller (nothrow too) verifies before it is optimised and after.
+	AssertIRInlined(
+		"function i32 @_Caller__Fi(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\t%0 = call i32 @_Safe__Fi(i32 %n)\n"
+		"\t%s = add i32 %0, 1\n"
+		"\tret i32 %s\n"
+		"}\n",
+		"space default 4\n"
+		"nothrow @_Safe__Fi\n"
+		"nothrow @_Wraps__Fi\n"
+		"nothrow @_Caller__Fi\n\n"
+		"function i32 @_Wraps__Fi(i32 %x)\n{\nentry:\n\t%v = call i32 @_Safe__Fi(i32 %x)\n\t%t = thrown i1\n\tbrif %t, bad, good\nbad:\n\tthrow\ngood:\n\tret i32 %v\n}\n\n"
+		TEST_IR_TESTED_CALLER("_Wraps__Fi"), "_Caller__Fi", true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR(void)
@@ -5689,6 +5874,7 @@ void TestIR(void)
 	TestIRThrow();
 	TestIRThrown();
 	TestIRNoThrow();
+	TestIRInlineThrows();
 
 	TestStatistics();
 }
