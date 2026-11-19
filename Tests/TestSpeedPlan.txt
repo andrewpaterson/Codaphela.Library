@@ -76,6 +76,14 @@ IDE checks the same passes and failures) as a run in one process.
       TEST_PROJECT65_CYCLES and the profiling options stay one at a time.
    d. Check: TestBaseLib65, TestStandardLib65 and TestSupportLib65, both processors, the same counts and results.
    Questions: none.
+   Found 2026-11-19, reading TestProject65.cpp for (b): every program reads and writes the host's files in one directory,
+   Output/<target>/<project> (TestProject65CopyDirectory: a copy of the test project's folder, 147 MB for TestBaseLib,
+   51 MB TestSupportLib, 2 MB TestStandardLib), and some write there (TestFileUtil's test directories, the FAT images):
+   two programs at once would trip over each other.  So each worker has its own copy, Output/<target>/<project>/Worker<n>,
+   made once when the suite starts (a few seconds), and a program runs in the next free worker's.  A failed program's
+   stop is named by its link's map (TestProject65AppendStop, AppendSymbol): the map goes with the image to the run.
+   Programs that need one another's files (none known) would show as a difference in (d).  The times in the heading are
+   still the plan's estimate: (a) comes first, on a machine no other session is using.
 
 4. TestCPPW65C816: where its 309 s goes, then the biggest costs                       (unknown until measured)
    The plan said "compile Libc65 once per process", but a trivial build is 0.15 s a target, so that is small.  Instead:
