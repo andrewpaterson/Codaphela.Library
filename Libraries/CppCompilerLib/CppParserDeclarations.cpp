@@ -1486,6 +1486,7 @@ CCPPSyntaxNamedTypeSpecifier* CCPPParser::ParseTypenameSpecifier(CCPPSyntaxDeclS
 CCPPSyntaxDecltypeSpecifier* CCPPParser::ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken)
 {
 	CCPPSyntaxDecltypeSpecifier*	pcDecltype;
+	bool							bNoGreater;
 
 	pcDecltype = mpcMemory->Create<CCPPSyntaxDecltypeSpecifier>(pcSpecifiers);
 	pcDecltype->miFirstToken = CurrentToken();
@@ -1495,7 +1496,12 @@ CCPPSyntaxDecltypeSpecifier* CCPPParser::ParseDecltypeSpecifier(CCPPSyntaxDeclSp
 	{
 		return NULL;
 	}
+
+	//In its brackets a '>' is an operator, though the decltype is a template argument: X<decltype(a >> 1)>.
+	bNoGreater = mbNoGreater;
+	mbNoGreater = false;
 	pcDecltype->mpcOperand = ParseTypeIdOrExpression(pcDecltype, false);
+	mbNoGreater = bNoGreater;
 	if (!pcDecltype->mpcOperand || !Expect(CT_CloseRoundBracket))
 	{
 		return NULL;

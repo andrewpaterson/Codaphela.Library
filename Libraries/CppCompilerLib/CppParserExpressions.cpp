@@ -350,6 +350,7 @@ CCPPSyntaxExpression* CCPPParser::ParseUnaryExpression(CCPPSyntax* pcParent)
 	CCPPSyntaxNoexceptExpression*	pcNoexcept;
 	CCPPToken*						pcToken;
 	ECppTokens						eToken;
+	bool							bNoGreater;
 
 	//[expr.unary]
 	pcToken = Peek(0);
@@ -397,7 +398,10 @@ CCPPSyntaxExpression* CCPPParser::ParseUnaryExpression(CCPPSyntax* pcParent)
 			{
 				return NULL;
 			}
+			bNoGreater = mbNoGreater;
+			mbNoGreater = false;
 			pcNoexcept->mpcOperand = ParseExpression(pcNoexcept);
+			mbNoGreater = bNoGreater;
 			if (!pcNoexcept->mpcOperand || !Expect(CT_CloseRoundBracket))
 			{
 				return NULL;
@@ -672,6 +676,8 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 			{
 				return NULL;
 			}
+			bNoGreater = mbNoGreater;
+			mbNoGreater = false;
 			if (IsTypeIdStart() && IsTypeIdAhead(CT_CloseRoundBracket))
 			{
 				pcTypeid->mpcType = ParseTypeId(pcTypeid);
@@ -680,6 +686,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 			{
 				pcTypeid->mpcOperand = ParseExpression(pcTypeid);
 			}
+			mbNoGreater = bNoGreater;
 			if ((!pcTypeid->mpcType && !pcTypeid->mpcOperand) || !Expect(CT_CloseRoundBracket))
 			{
 				return NULL;
