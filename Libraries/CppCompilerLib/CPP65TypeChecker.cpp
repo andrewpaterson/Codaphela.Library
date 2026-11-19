@@ -320,6 +320,13 @@ void CCPP65TypeChecker::VisitThisExpression(CCPPSyntaxThisExpression* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitLambdaExpression(CCPPSyntaxLambdaExpression* pcNode)
 {
+	if (mpcUnit->IsInUnevaluatedOperand(pcNode))
+	{
+		//[expr.prim.lambda] 2
+		Error(pcNode, "A lambda can't be written in the operand of sizeof, decltype, noexcept or typeid");
+		mpsResult = NULL;
+		return;
+	}
 	mpsResult = mpcUnit->LambdaType(pcNode);
 }
 

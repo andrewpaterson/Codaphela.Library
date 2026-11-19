@@ -503,8 +503,9 @@ bool CCPPClass::IsAssignmentDeleted(void)
 	{
 		return false;
 	}
-	if (IsCopyDeleted())
+	if (IsCopyDeleted() || mpsLambda)
 	{
+		//(A lambda's closure has no copy assignment.  [expr.prim.lambda] 20)
 		return true;
 	}
 	for (i = 0; i < macBases.NumElements(); i++)

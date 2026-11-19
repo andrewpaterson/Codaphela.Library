@@ -1787,6 +1787,11 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 	{
 		return false;
 	}
+	if (pcClass->mpsLambda && (papcArguments->NumElements() == 0))
+	{
+		//decltype(lambda) object;  [expr.prim.lambda] 20
+		return mcAccess.Refuse(pcNode, "A lambda's closure has no default constructor: it is made by its lambda, or copied");
+	}
 	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
 	{
 		pcBound->mpcConstructor = mcOverloads.FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);

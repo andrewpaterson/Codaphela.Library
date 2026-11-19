@@ -1296,6 +1296,36 @@ SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcNode is written in an operand that isn't evaluated, of sizeof,
+// decltype, noexcept or typeid, in the function (or lambda) it is in.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsInUnevaluatedOperand(CCPPSyntax* pcNode)
+{
+	CCPPSyntax*	pcParent;
+
+	for (pcParent = pcNode->mpcParent; pcParent; pcParent = pcParent->mpcParent)
+	{
+		switch (pcParent->GetKind())
+		{
+		case CPPS_SizeofExpression:
+		case CPPS_DecltypeSpecifier:
+		case CPPS_NoexceptExpression:
+		case CPPS_TypeidExpression:
+			return true;
+		case CPPS_FunctionDefinition:
+		case CPPS_LambdaExpression:
+			return false;
+		default:
+			break;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether an expression is a function's name: the function itself, an
 // lvalue, where it isn't converted to a pointer to it.
 //

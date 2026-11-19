@@ -929,6 +929,12 @@ CCPPSyntaxLambdaCapture* CCPPParser::ParseLambdaCapture(CCPPSyntaxLambdaExpressi
 		Error("Capturing a pack is not supported by the compiler yet.");
 		return NULL;
 	}
+	if (!pcCapture->mpcInitializer && (pcCapture->meKind == pcLambda->meDefault))
+	{
+		//[=, a] and [&, &a].  [expr.prim.lambda] 8
+		Error("The lambda captures that way already: after = a name is captured as &name, and after & as name.");
+		return NULL;
+	}
 	pcCapture->miLastToken = PreviousToken();
 	return pcCapture;
 }
