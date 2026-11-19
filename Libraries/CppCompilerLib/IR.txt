@@ -36,7 +36,8 @@ What is taken from QBE
 - Operands are references: a 32 bit kind and index into the function's temporaries or
   constants, or the module's symbols.  Not pointers.
 - Calls are an arg instruction for each argument followed by the call.
-- Each block ends with a jump (jmp, brif, ret, unreachable) that is not an instruction.
+- Each block ends with a jump (jmp, brif, ret, unreachable, throw) that is not an
+  instruction.
 - Phi instructions are kept apart from a block's instructions, at its start.
 - Both levels are the same structures: instruction selection turns the generic opcodes
   into the target's, and references can then also be physical registers and memory
@@ -144,6 +145,9 @@ address, but IR may mix the two.  The 65C64 gives an addressed parameter a home 
 own; the W65C816, which reads parameters where they arrived, copies one that is both
 addressed and used first thing (CopyAddressedParameters, 2026-11-14).
 
+	thrown							i1, straight after a call: whether the call was left
+									with an exception (see Exceptions below)
+
 A call may read and write any memory whose address has escaped.  The calling
 convention (pushing each argument at its own size, the caller removing them, the
 result in A) belongs to the back end.  va_start is still to do (the front end walks the
@@ -155,9 +159,38 @@ Jumps (a block's last, and only there):
 	brif c, then, else				c is i1
 	ret {v}
 	unreachable						after a noreturn call
+	throw							the function is left with an exception
 
-A switch is written as compares and branches, as the generator does now.  Exceptions
-are not in the IR (the front end does not support them).
+A switch is written as compares and branches, as the generator does now.
+
+Exceptions (2026-11-19; ExceptionsPlan.txt has the whole scheme): the IR says only which
+way a function is left, not what was thrown, which is the runtime's.  A function is left
+by ret or by throw.  A caller that wants to know asks straight after the call:
+
+		%r = call i32 @f(i32 %a)
+		%t = thrown i1
+		brif %t, landing, on
+
+and landing is the caller's code for the exception: it destroys what the caller has, and
+ends in throw itself or goes to a handler.  There are no tables and no unwinder: a throw
+is a return with a flag (the carry, on both targets), and thrown reads the flag, so
+nothing may come between a call and its thrown (the verifier says so, and a pass that
+puts an instruction after a call puts it after the thrown).  thrown has no operands; it
+is pure, so that it is no barrier to anything and goes when nothing reads it, but one is
+never the same as another and it is never moved.
+
+A function whose symbol is marked nothrow is never left by throw.  The thrown after a
+call to it is false (FoldConstants; CIRModule::NeverThrown), so the landing code goes.
+A front end marks what a declaration says and MarkNoThrow (below) finds the rest of the
+unit's.  A call through a pointer, and a call to an unmarked function with no IR here,
+may throw.  A nothrow function may still have a throw, behind the test of a call to
+another nothrow function, until the optimiser takes that away: CIRModule::MayThrow is
+what "can be left by throw" means (a throw reachable from the entry, not following the
+thrown side of such a test), and the verifier holds a nothrow function to it.
+
+The interpreter (constant expressions) doesn't throw: reaching a throw fails with "It
+throws an exception", so thrown is always false there.  Both back ends refuse throw and
+thrown until they are taught them (ExceptionsPlan.txt stage 3).
 
 Globals:
 
@@ -206,6 +239,12 @@ Text form
 - Flags follow the opcode: load volatile i32 %a, ptradd inbank ptr.far %p, %o.
 - Calls print with their args: %r = call i32 @f(i32 %a, ptr %b); call void @printf(ptr
   @Str1, ..., i32 %x) for a variadic call (... after the named arguments).
+- A thrown is its type and no more: %t = thrown i1.
+- Lines before the globals mark symbols, one each: restrict @p (a pointer variable
+  declared restrict: what is reached through its value is reached no other way),
+  regcall @f (a function a back end may pass arguments to in registers), nowrites @f (a
+  function that writes no memory its callers can see) and nothrow @f (a function that
+  is never left with an exception).
 - ; starts a comment to the end of the line.
 
 The printer and parser round trip exactly, so a pass is tested with IR text before and
@@ -217,6 +256,8 @@ debug builds:
 - each temporary is defined once, and its definition dominates its uses
 - operand types are what the opcode needs; no i1 in memory or in an arg
 - args only straight before a call, and no more named arguments than args
+- a thrown only straight after a call
+- a function marked nothrow can't reach a throw (CIRModule::MayThrow)
 
 
 Passes
@@ -279,8 +320,13 @@ own, p + init * k before the loop and stepped by c * k going round.
 Interprocedural passes (CIRInterprocedural, IRInterprocedural.h/.cpp): over a unit's functions,
 before inlining.  SpecialiseConstantArguments gives a function only the unit calls a copy
 (name__K<parameter>_<value>) per constant its strong parameter gets, RemoveDeadArguments takes away
-parameters never read and their arguments, and MarkNoWrites finds the functions that write no
-memory their callers can see.  They ask a CIRUnitFunctions for the functions and how to optimise,
+parameters never read and their arguments, MarkNoWrites finds the functions that write no
+memory their callers can see, and MarkNoThrow (only in a unit built with exceptions) those that
+are never left with an exception: each is taken not to throw until a throw is seen to be reachable
+in it, again until none changes, and a mark a front end set stays.  A function that tests a call to
+one of them is optimised again (TestsNoThrow), which folds the test.  The marks go with a function
+to the imports, to a unit that inlines it from there and to a specialised copy, as regcall does.
+They ask a CIRUnitFunctions for the functions and how to optimise,
 and tell it what was added or can go, so they know nothing of the C++ or the generated text.
 
 Inlining (CIRInliner, IRInliner.h/.cpp, 2026-10-25): a call of a function of the same
@@ -288,8 +334,13 @@ module with at most 16 instructions (32 when the call is in a loop, 8 more for e
 constant argument whose parameter it compares or branches on, as those fold; not variadic,
 not taking its parameters' addresses, not itself) is replaced by a copy of its blocks: the
 block is split after the call, the arguments are the parameters, returns jump to the rest
-and the result is a phi there.  Calls in the copies are inlined too, up to 24 in a function
-a round.  The front end keeps each unit's functions as IR until the generator has written
+and the result is a phi there.  A callee that has a throw is inlined only where the call has
+a thrown after it (or the callee is marked nothrow, when the throw isn't reached and its copy
+is unreachable): with a brif on the thrown next and nothing else reading it, which is what a
+front end writes, the returns go on to the brif's else and the throws jump straight to its
+then, the caller's landing code, with no test left; in any other shape the thrown becomes a
+phi beside the result's, false from each return and true from each throw.  Calls in the
+copies are inlined too, up to 24 in a function a round.  The front end keeps each unit's functions as IR until the generator has written
 them all (CCPP65IRFrontEnd::FinishUnit, called from CCPPUnit::Generate), inlines
 (callees first: they are written after their callers), optimises, and inlines again what
 optimising made direct (up to 4 rounds), then generates them again; a function that fails
