@@ -422,6 +422,37 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 
 //////////////////////////////////////////////////////////////////////////
 //
+// object.~T() or pointer->~T() of a psType that isn't a class, as a
+// template writes for any T: it does nothing but work the object out.  T
+// is the object's type, and nothing is in the brackets.  [expr.pseudo]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPBinder::ResolvePseudoDestructor(CCPPSyntaxMemberExpression* pcMember, SCPP65Type* psType, CCPPBoundCall* pcBound)
+{
+	CCPPSymbol*	pcNamed;
+	SCPP65Type*	psNamed;
+
+	pcNamed = pcMember->mpcName->GetLast()->mpcSymbol;
+	psNamed = pcNamed ? mpcUnit->GetDeclarators()->GetSymbolType(pcNamed, pcMember) : NULL;
+	if (psNamed && !psNamed->Unqualified()->Same(psType->Unqualified()))
+	{
+		mpcUnit->Error(pcMember, "The destructor's name is not the type of the object");
+		return;
+	}
+	if (pcBound->mpapcArguments->NumElements() != 0)
+	{
+		mpcUnit->Error(pcMember, "A destructor takes no arguments");
+		return;
+	}
+	pcBound->meHow = CPPBC_PseudoDestructor;
+	pcBound->mpcName = pcMember->mpcName;
+	pcBound->mpcObject = pcMember->mpcObject;
+	pcBound->mbArrow = pcMember->mbArrow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A call on an object, or one in a member function that means a member: the object
 // and its class, then the destructor, a field that points to a function, or the member
 // function of the name chosen for the arguments and for whether the object is const
@@ -475,6 +506,11 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		else
 		{
 			psType = psType->WithoutReference();
+		}
+		if (psType && psType->IsScalar() && (pcMember->mpcName->GetLast()->meKind == CPPNC_Destructor))
+		{
+			ResolvePseudoDestructor(pcMember, psType, pcBound);
+			return;
 		}
 		if (!psType || !psType->IsClass())
 		{

@@ -38,6 +38,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue)
 {
 	CCPPBoundCall				cBound;
+	SCPP65IRValue				sObject;
 	CCPPSyntax*					pcCallee;
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psOperandType;
@@ -52,6 +53,10 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 		return MemberCall(&cBound, psValue);
 	case CPPBC_Destructor:
 		return DestructorCall(pcCall, cBound.mpapcArguments, cBound.mpcClass, cBound.mpcObject, cBound.mbArrow, cBound.mbVirtual, psValue);
+	case CPPBC_PseudoDestructor:
+		//Nothing is destroyed: the object's expression is worked out.  [expr.pseudo] 1
+		psValue->psType = &mpcTypes->msVoid;
+		return Value(cBound.mpcObject, &sObject);
 	case CPPBC_MemberPointer:
 		return MemberPointerCall(pcCall, cBound.mpapcArguments, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee, psValue);
 	case CPPBC_Function:
@@ -372,10 +377,10 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArr
 	SCPP65IRValue	sCallee;
 	SIRReference	sElide;
 
-	psType = mpcUnit->TypeOf(pcCallee);
+	psType = mpcUnit->CalleePointerType(pcCallee);
 	sElide = msElide;
 	msElide = IRNone();
-	if (!psType || !psType->IsPointer() || !psType->psBase->IsFunction())
+	if (!psType)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

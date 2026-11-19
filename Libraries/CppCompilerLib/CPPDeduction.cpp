@@ -442,9 +442,9 @@ SCPP65Type* CCPPDeduction::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcA
 		return psArgument->Unqualified();
 	}
 
-	//An array's type here is already the pointer it decays to, but its place is the array.
+	//An array's or a function's type here is already the pointer it becomes, but its place is the array or the function.
 	psPlace = mpcUnit->PlaceOf(pcArgument);
-	if (psPlace && psPlace->WithoutReference()->IsArray())
+	if (psPlace && (psPlace->WithoutReference()->IsArray() || psPlace->WithoutReference()->IsFunction()))
 	{
 		return pcTypes->Qualified(psArgument, true, psArgument->bVolatile);
 	}

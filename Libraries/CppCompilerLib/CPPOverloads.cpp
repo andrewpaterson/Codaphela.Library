@@ -1294,12 +1294,20 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	bool			bReference;
 	bool			bRvalue;
 	CCPPFunction*	pcConversion;
+	SCPP65Type*		psPlace;
 	int				iOffset;
 
 	bReference = psParameter->IsReference();
 	bRvalue = psParameter->IsRvalueReference();
 	psParameter = bReference ? psParameter->psBase : psParameter;
 	psArgument = psArgument->WithoutReference();
+	if (bReference && psParameter->IsFunction() && pcArgument)
+	{
+		//A reference to a function binds to the function, which the argument's value, a pointer to it, isn't: its place.
+		//[dcl.init.ref] 5
+		psPlace = mpcUnit->PlaceOf(pcArgument);
+		psArgument = psPlace ? psPlace : psArgument;
+	}
 	if (bRvalue)
 	{
 		if (pcArgument && !mpcUnit->IsRvalue(pcArgument))

@@ -270,6 +270,26 @@ SCPP65Type* CCPPUnit::OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type of what a call is made through when it isn't a function by its
+// name: a pointer to a function, which a function (what a reference to one
+// refers to) is converted to.  NULL if the callee is neither.  [conv.func]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::CalleePointerType(CCPPSyntax* pcCallee)
+{
+	SCPP65Type*	psType;
+
+	psType = TypeOf(pcCallee);
+	if (psType && psType->IsFunction())
+	{
+		psType = mcTypes.Pointer(psType);
+	}
+	return (psType && psType->IsPointer() && psType->psBase->IsFunction()) ? psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type an argument with no parameter (one of a function's ...) is
 // passed as, after the default argument promotions: a bool or an integer
 // smaller than an int is promoted, a float is a double, an array or a

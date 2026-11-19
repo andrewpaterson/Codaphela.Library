@@ -293,7 +293,8 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A place's value: an array gives the address of its first element.
+// A place's value: an array gives the address of its first element, and a
+// function its own.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
@@ -309,6 +310,13 @@ bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 		//An object used as a value is its address (as in the generator).
 		psValue->sValue = psPlace->sAddress;
 		psValue->psType = psPlace->psType;
+		return true;
+	}
+	if (psPlace->psType->IsFunction())
+	{
+		//A function used as a value is a pointer to it.  [conv.func]
+		psValue->sValue = psPlace->sAddress;
+		psValue->psType = mpcTypes->Pointer(psPlace->psType);
 		return true;
 	}
 	if (!psPlace->psType->IsScalar())
@@ -1067,6 +1075,17 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		{
 			return Place(cBound.mpcArgument, psPlace);
 		}
+		if (cBound.meWhat == CPPBN_Function)
+		{
+			//A function's name is the function, an lvalue: what a reference to a function refers to.
+			if (!FunctionAddress(pcId, NULL, &sAddress))
+			{
+				return false;
+			}
+			psPlace->sAddress = sAddress.sValue;
+			psPlace->psType = sAddress.psType->psBase;
+			return true;
+		}
 		if (cBound.meWhat == CPPBN_Capture)
 		{
 			//What a lambda captures is its closure's field (a reference's is what it refers to).
@@ -1116,7 +1135,8 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		{
 			return false;
 		}
-		if (!sPointer.psType->IsPointer() || sPointer.psType->psBase->IsVoid() || !IsPlaceType(sPointer.psType->psBase))
+		//*pointer; a function's is the function, which is its pointer again as a value, so (**f)() is f().
+		if (!sPointer.psType->IsPointer() || sPointer.psType->psBase->IsVoid() || !(IsPlaceType(sPointer.psType->psBase) || sPointer.psType->psBase->IsFunction()))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}

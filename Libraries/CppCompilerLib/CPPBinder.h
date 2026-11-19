@@ -43,6 +43,7 @@ enum ECPPBoundCall
 	CPPBC_Member,			//A member function, on the object (this's if there is none): object.f(), pointer->f(), Class::f(), f(); and
 							//object(), which is its operator().
 	CPPBC_Destructor,		//object.~X(), pointer->~X() or ~X(): the class's destructor, or nothing if it has none.
+	CPPBC_PseudoDestructor,	//object.~T() and pointer->~T() of a type that isn't a class: only the object's expression is worked out.
 	CPPBC_MemberPointer,	//(object.*pointer)() and (pointer->*pointer)().
 	CPPBC_Function,			//The function, by its label.
 	CPPBC_Pointer,			//Through a pointer to a function, which the callee is.
@@ -224,6 +225,7 @@ protected:
 	void	ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
 	void	CheckAccess(CCPPBoundCall* pcBound, CCPPSyntax* pcNode);
 	void	ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
+	void	ResolvePseudoDestructor(CCPPSyntaxMemberExpression* pcMember, SCPP65Type* psType, CCPPBoundCall* pcBound);
 	bool	ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	bool	BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly);
 	void	ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound);

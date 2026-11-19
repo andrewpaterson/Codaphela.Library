@@ -752,6 +752,7 @@ public:
 	SCPPField*				BitFieldOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression);
 	SCPP65Type*				VariadicArgumentType(SCPP65Type* psType);
+	SCPP65Type*				CalleePointerType(CCPPSyntax* pcCallee);
 	SCPP65Type*				ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse);
 	SCPP65Type*				CompositePointerType(SCPP65Type* psLeft, SCPP65Type* psRight);
 	SCPP65Type*				CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, bool bFirstLevel);

@@ -1421,6 +1421,8 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		return MemberFunctionCall(pcCall, &cBound);
 	case CPPBC_Destructor:
 		return cBound.mpcFunction ? MemberFunctionCall(pcCall, &cBound) : &mpcTypes->msVoid;
+	case CPPBC_PseudoDestructor:
+		return Value(cBound.mpcObject) ? &mpcTypes->msVoid : NULL;
 	case CPPBC_MemberPointer:
 		return MemberPointerCall(pcCall, cBound.mpapcArguments, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee);
 	case CPPBC_Function:
@@ -1432,8 +1434,8 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	case CPPBC_Unchecked:
 		return UncheckedCall(cBound.mpapcArguments);
 	case CPPBC_Pointer:
-		psType = mpcUnit->TypeOf(cBound.mpcCallee);
-		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
+		psType = mpcUnit->CalleePointerType(cBound.mpcCallee);
+		if (psType)
 		{
 			return CallThroughPointer(pcCall, cBound.mpapcArguments, psType->psBase);
 		}
@@ -2071,6 +2073,12 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		if (cBound.meWhat == CPPBN_TemplateArgument)
 		{
 			return Place(cBound.mpcArgument);
+		}
+		if (cBound.meWhat == CPPBN_Function)
+		{
+			//A function's name is the function, an lvalue.
+			psType = FunctionAddress(pcId, cBound.mpcSymbol->mlliName, NULL);
+			return psType ? psType->psBase : NULL;
 		}
 		if (cBound.meWhat == CPPBN_Capture)
 		{
