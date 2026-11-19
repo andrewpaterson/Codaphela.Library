@@ -96,6 +96,7 @@ public:
 	bool			ReinterpretCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
 	bool			KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool			NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo);
+	bool			ConstantNotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo);
 	bool			Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool bBraced = false);
 
 protected:

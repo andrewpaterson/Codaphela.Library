@@ -1260,6 +1260,10 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
+		if (!mpcUnit->GetTypeChecker()->ConstantNotNarrowed(psCase->pcCase->mpcValue, sValue.psType))
+		{
+			return false;
+		}
 		pcNext = NewBlock();
 		sEqual = mpcFunction->Add(mpcBlock, IRO_Eq, IRTypeOf(sValue.psType), sValue.sValue, Integer(sValue.psType, lliValue));
 		mpcBlock->Branch(sEqual, masCases.Get(ui)->pcBlock, pcNext);

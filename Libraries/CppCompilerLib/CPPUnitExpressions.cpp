@@ -1741,8 +1741,9 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 			return false;
 		}
 		pcVariable = (pcSymbol->meKind == CPPSK_Variable) ? GetVariable(pcSymbol) : NULL;
-		if (pcVariable && !pcVariable->mpsType->IsInteger())
+		if (pcVariable && (!pcVariable->mpsType->IsInteger() || pcVariable->mpsType->bVolatile))
 		{
+			//(A volatile const's value is read when the program runs.  [expr.const] 2)
 			return false;
 		}
 		if (pcClass)

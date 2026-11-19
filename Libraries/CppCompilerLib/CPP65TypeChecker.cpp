@@ -2871,6 +2871,20 @@ bool CCPP65TypeChecker::NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A constant converted to a psTo where the language asks for a converted
+// constant expression (a case's value, as the switch's condition's type):
+// an error, wherever it is asked, if converting it narrows it.
+// [expr.const] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConstantNotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
+{
+	return !Narrows(pcSource, psTo) || mpcUnit->ReportError(pcSource, "The constant's value isn't one of the type it is converted to");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a psType can be made from pcInitialiser (Construct), asked by
 // overload resolution: what is wrong isn't an error.
 //
