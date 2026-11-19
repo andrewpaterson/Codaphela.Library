@@ -491,6 +491,19 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
         Left: step 3's sizeof (an unsigned int, 2 bytes on the W65C816, while Libc65's size_t is unsigned long there:
         question 14) and step 6 (std::nullptr_t).  Step 5 is built (2026-11-18): IntegerKindName names an integer as declared
         for messages (SCPP65Type::Append), CCPPTypeWriter and typeid (AppendTypeNameAround), in place of three namings by size.
+        Step 6 is built (2026-11-19), and with question 14's switch that day (sizeof's type is size_t on both targets) the
+        question is closed.  std::nullptr_t is CPP65TK_NullPointer (CCPP65Types::msNullPointer, a pointer wide, an IR
+        pointer): nullptr's type and decltype(nullptr)'s, not void*, so f(nullptr_t) and f(void*) are two overloads and T
+        is deduced as it.  It converts to any pointer and pointer to member (the null one, 0), to bool only where it
+        directly initialises one or is tested, and to nothing else without a cast; only a null pointer constant (nullptr, a
+        literal 0: CCPPUnit::IsNullPointerConstant) converts to it (CCPP65TypeChecker::KeepsNullPointer, asked by the
+        IR front end's ConvertImplicit as KeepsScopedEnum is, and CCPPOverloads::ConversionRank).  It is compared with a
+        pointer, a pointer to a member (== and !=) or another nullptr_t, and has no arithmetic.  Its label is Dn, its
+        name std::nullptr_t, its type info's kind CPP65TIK_NullPointer.  Conformance cases NullPointerOwnType,
+        NullPointerConversions, NullPointerNotBool, NullPointerFromPointer, NullPointerArithmetic, NullPointerTypeid,
+        NullPointerNotInteger and NullPointerCasts (checked with g++; not yet with the Microsoft compiler), and
+        TestCPP816NullPointerLabel.  Not done: static_cast<int>(nullptr) is accepted (only reinterpret_cast and a C cast
+        may), and nullptr_t <= nullptr_t isn't folded to true.
     14. sizeof's type is std::size_t ([expr.sizeof] 6): on the W65C816 Libc65's size_t is unsigned long (4 bytes, as
         an object can be more than 64KB), but the compiler's sizeof is an unsigned int, 2 bytes.  They are different
         types now, so a template or overload sees sizeof(x) as an unsigned int and a size_t as an unsigned long, and an
@@ -532,6 +545,34 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       "The template argument is not a type the compiler supports" (a named const char a[] = "ab" deduces T and N).
     - decltype of a subscript of a string literal isn't its element's const reference: decltype("ab"[0]) is not
       const char& (auto p = "ab" is a const char* as it should be).
+
+  And by a probe of library style code, 2026-11-19 (48 small programs, each checked with g++ first: traits by SFINAE,
+  pair, tuple, smart pointers, allocator_traits, containers, function, bind; 8 compiled, on both targets).  Seen, not yet
+  narrowed down; a case each for the conformance test when they are:
+    - A static constexpr member of a class template that uses a template parameter, used where it needs an address or
+      defined out of the class: "A template parameter used outside an instantiation".
+    - decltype(...) as a default template argument: "Expected a name".
+    - A partial specialisation chosen through void_t isn't chosen; ones on function types with const or an ellipsis,
+      and on pointers to member functions, aren't matched; max<T> and max<T, U...> "match equally".
+    - noexcept(...) as a template argument; noexcept(noexcept(e)) -> decltype(e); a friend template's declaration.
+    - A T(&)[N] parameter beside a T* overload; a string literal for one (above).
+    - Bases: two packs expanded together (leaf<I, T>...), a dependent base (a rebound allocator, a template
+      parameter as the base of a nested class).
+    - p->~T() for a scalar T; const_cast and reinterpret_cast to a reference, assigned through.
+    - A range-for over a member; a proxy reference (vector<bool>'s); decltype(auto) of a forwarded subscript.
+    - An out of class definition of a specialisation's static member; b(S(3)) read as a function's declaration.
+    - A generic lambda with a pack; copying an object through a class with a virtual base.
+    - "This function uses C++ the W65C816 compiler doesn't support yet" at CPP65IRFrontEndObjects.cpp 1048 (8 of
+      the programs), CPP65IRFrontEndConversions.cpp 366 (4), CPP65IRFrontEndValues.cpp 156,
+      CPP65IRFrontEndOperators.cpp 904 and CPP65IRFrontEndStatements.cpp 111 (the line numbers are that day's).
+  And by question 13's step 6, 2026-11-19:
+    - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or
+      another pointer's type (CCPP65TypeChecker::Convert: "Any number or pointer converts to any other"): int* p = 5,
+      int i = p and char* q = p are accepted in an initialiser or an assignment (tried; a call's arguments are refused,
+      by the overloads' ranks), where only a null pointer constant becomes a pointer, and a pointer only a void* or its
+      base's ([conv.ptr]).  BaseLib and the kernal may lean on it: to be tried with the *65 compiles.
+    - An allocation function's first parameter must be std::size_t ([basic.stc.dynamic.allocation] 1): operator
+      new(unsigned long) is accepted where size_t is unsigned int (both targets).
 
 Decisions (made 2026-11-15)
   - __cplusplus stays 201402L, with a CConfig setting for 201703L.

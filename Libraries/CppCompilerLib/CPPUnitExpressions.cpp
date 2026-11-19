@@ -81,7 +81,8 @@ SCPP65Type* CCPPUnit::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 	{
 		return &mcTypes.msBool;
 	}
-	return mcTypes.Pointer(&mcTypes.msVoid);
+	//nullptr is a std::nullptr_t.  [lex.nullptr]
+	return &mcTypes.msNullPointer;
 }
 
 
@@ -3124,6 +3125,32 @@ bool CCPPUnit::IsNullPointerLiteral(CCPPSyntax* pcExpression)
 {
 	pcExpression = SkipParentheses(pcExpression);
 	return pcExpression && (pcExpression->GetKind() == CPPS_LiteralExpression) && mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral)->Is(CT_nullptr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the expression is a null pointer constant: nullptr, or an
+// integer literal whose value is 0.  [conv.ptr] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsNullPointerConstant(CCPPSyntax* pcExpression)
+{
+	CCPPToken*	pcToken;
+	int64		lliValue;
+
+	pcExpression = pcExpression ? pcExpression->WithoutParentheses() : NULL;
+	if (!pcExpression || (pcExpression->GetKind() != CPPS_LiteralExpression))
+	{
+		return false;
+	}
+	pcToken = mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral);
+	if (pcToken->Is(CT_nullptr))
+	{
+		return true;
+	}
+	return pcToken->IsNumber() && !pcToken->IsUserLiteral() && (((CCTNumber*)pcToken)->meType != CTNT_Float) && (((CCTNumber*)pcToken)->meType != CTNT_Double) &&
+		   (((CCTNumber*)pcToken)->meType != CTNT_LongDouble) && Constant(pcExpression, &lliValue) && (lliValue == 0);
 }
 
 

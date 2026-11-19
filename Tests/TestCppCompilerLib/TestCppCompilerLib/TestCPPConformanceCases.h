@@ -2743,4 +2743,61 @@ static const SConformanceCase gasConformanceStage10[] =
 		"int main() { int ai[4]; int* p = &ai[3]; int* q = &ai[0];\n"
 		" return Same<decltype(sizeof(int)), size_t>::V + Same<decltype(p - q), ptrdiff_t>::V * 2 + Same<decltype(offsetof(S, b)), size_t>::V * 4 + (p - q == 3) * 8; }\n"
 	},
+	//std::nullptr_t is a type of its own ([basic.fundamental] 10, [lex.nullptr], [conv.ptr] 1, [conv.mem] 1, [conv.bool]):
+	//nullptr's and decltype(nullptr)'s, not void*; it converts to any pointer and pointer to member, and to bool only in
+	//a direct initialisation or a condition; nothing but a null pointer constant converts to it, and it has no arithmetic.
+	{
+		"NullPointerOwnType", 255,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int f(void*) { return 1; }\n"
+		"int f(nullptr_t) { return 2; }\n"
+		"template<class T> int h(T) { return Same<T, nullptr_t>::V; }\n"
+		"int main() { void* pv = 0; nullptr_t n = nullptr; return (Same<nullptr_t, void*>::V == 0) + (f(pv) == 1) * 2 + (f(nullptr) == 2) * 4 + (f(n) == 2) * 8 + (h(nullptr) == 1) * 16 + (h(pv) == 0) * 32 + (sizeof(nullptr_t) == sizeof(void*)) * 64 + Same<decltype(nullptr), nullptr_t>::V * 128; }\n"
+	},
+	{
+		"NullPointerConversions", 4095,
+		"struct S { int m; int f() { return 1; } };\n"
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"nullptr_t gn;\n"
+		"int* id(int* p) { return p; }\n"
+		"nullptr_t pass(nullptr_t n) { return n; }\n"
+		"int main() { int i = 1; nullptr_t n = nullptr; nullptr_t z = 0; int* p = n; int S::*pm = n; int (S::*pf)() = nullptr; bool b(n); int* q = &i;\n"
+		" return (p == 0) + (pm == nullptr) * 2 + (pf == nullptr) * 4 + (b == false) * 8 + (n == nullptr) * 16 + !(n != z) * 32 + (nullptr == p) * 64 + ((i ? q : nullptr) == q) * 128 + (id(nullptr) == 0) * 256 + (pass(gn) == nullptr) * 512 + (q != nullptr) * 1024 + (n ? 0 : 2048); }\n"
+	},
+	{
+		"NullPointerNotBool", CONFORMANCE_REFUSED,
+		"int main() { bool b = nullptr; return b + 1; }\n"
+	},
+	{
+		"NullPointerFromPointer", CONFORMANCE_REFUSED,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { int* p = 0; nullptr_t n = p; return 1; }\n"
+	},
+	{
+		"NullPointerArithmetic", CONFORMANCE_REFUSED,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { nullptr_t n = nullptr; return (n + 1) == n; }\n"
+	},
+	{
+		"NullPointerTypeid", 7,
+		"#ifdef _MSC_VER\n"
+		"#include <typeinfo>\n"
+		"#else\n"
+		"namespace std { class type_info { public: bool operator==(const type_info& o) const noexcept; bool operator!=(const type_info& o) const noexcept; const char* name() const noexcept; }; }\n"
+		"#endif\n"
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { nullptr_t n = nullptr; return (typeid(nullptr) == typeid(nullptr_t)) + (typeid(n) != typeid(void*)) * 2 + (typeid(nullptr_t) != typeid(int*)) * 4; }\n"
+	},
+	{
+		"NullPointerNotInteger", CONFORMANCE_REFUSED,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { nullptr_t n = nullptr; int i = n; return i + 1; }\n"
+	},
+	{
+		"NullPointerCasts", 7,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { nullptr_t n = nullptr; long l = (long)n; long m = reinterpret_cast<long>(nullptr); void* p = static_cast<void*>(n); return (l == 0) + (m == 0) * 2 + (p == 0) * 4; }\n"
+	},
 };

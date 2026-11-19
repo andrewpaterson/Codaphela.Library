@@ -76,8 +76,7 @@ typedef CArrayTemplate<SCPPSecondaryVtable>	CArrayCPPSecondaryVtables;
 #define CPP65_CONSTRUCTION_LABEL		"5"
 
 
-//A type info's kind, its kind word's low byte (CPP65_TYPE_INFO_KIND_OFFSET).  There is no type of its own for nullptr
-//yet (CppParserTodo.txt question 13), so CPP65TIK_NullPointer isn't written.
+//A type info's kind, its kind word's low byte (CPP65_TYPE_INFO_KIND_OFFSET).  CPP65TIK_NullPointer is std::nullptr_t's.
 enum ECPP65TypeInfoKind
 {
 	CPP65TIK_Fundamental = 1,

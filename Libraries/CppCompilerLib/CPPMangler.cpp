@@ -473,6 +473,10 @@ void CCPPMangler::AppendType(CChars* psz, SCPP65Type* psType)
 	case CPP65TK_Bool:
 		psz->Append('b');
 		break;
+	case CPP65TK_NullPointer:
+		//std::nullptr_t, as the Itanium ABI has it.
+		psz->Append("Dn");
+		break;
 	case CPP65TK_Integer:
 		if (psType->pcEnum)
 		{

@@ -2559,6 +2559,31 @@ void TestCPP816NoFloats(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// std::nullptr_t in a function's label is Dn, the Itanium code (as the
+// other fundamental types have theirs), so f(nullptr_t) and f(void*) are
+// two functions; it is passed as a pointer is, and is a null one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816NullPointerLabel(void)
+{
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
+	CChars				szListing;
+
+	AssertInt(5 + 60 + 700, TestCPP816RunListed(
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"__attribute__((noinline)) int Take(nullptr_t n, int* p) { return (p == n) ? 5 : 6; }\n"
+		"__attribute__((noinline)) int Take(void* pv, int* p) { return 7; }\n"
+		"int gi;\n"
+		"int main() { nullptr_t n = nullptr; return Take(nullptr, 0) + Take(n, &gi) * 10 + Take(&gi, 0) * 100; }\n",
+		aszUnits, &szListing, NULL, 0, true));
+	AssertTrue(strstr(szListing.Text(), "_Take__FDnPi") != NULL);
+	AssertTrue(strstr(szListing.Text(), "_Take__FPvPi") != NULL);
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // new and delete over Libc65's operator new, operator delete and malloc, as TestCPP65GeneratorNewDelete.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -6576,6 +6601,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816MovedCode());
 	TEST_PART(TestCPP816CompileBaseLibUnits());
 	TEST_PART(TestCPP816NewDelete());
+	TEST_PART(TestCPP816NullPointerLabel());
 	TEST_PART(TestCPP816Floats());
 	TEST_PART(TestCPP816NoFloats());
 	TEST_PART(TestCPP816TestBaseLibBugs());

@@ -1313,10 +1313,20 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 		}
 		return CPPCR_Conversion;
 	}
-	if ((psParameter->IsPointer() || psParameter->IsMemberPointer()) && pcArgument && mpcUnit->IsNullPointerLiteral(pcArgument))
+	if (psArgument->IsNullPointer())
 	{
-		//nullptr is a null pointer of any type.  [conv.ptr] 1
-		return CPPCR_Conversion;
+		//A std::nullptr_t is one exactly, becomes a null pointer or pointer to a member of any type ([conv.ptr] 1,
+		//[conv.mem] 1), and nothing else without a cast: not a bool ([conv.bool]: direct initialisation only).
+		if (psParameter->WithoutReference()->IsNullPointer())
+		{
+			return CPPCR_Exact;
+		}
+		return (psParameter->IsPointer() || psParameter->IsMemberPointer()) ? CPPCR_Conversion : CPPCR_None;
+	}
+	if (psParameter->IsNullPointer())
+	{
+		//Only a null pointer constant becomes a std::nullptr_t.
+		return (pcArgument && mpcUnit->IsNullPointerConstant(pcArgument)) ? CPPCR_Conversion : CPPCR_None;
 	}
 	if (psParameter->IsPointer() && psArgument->IsPointer())
 	{

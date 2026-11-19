@@ -330,6 +330,17 @@ bool CCPP65IRFrontEnd::ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo,
 			return false;
 		}
 	}
+	if (psValue->psType && psTo && (psValue->psType->WithoutReference()->IsNullPointer() || psTo->WithoutReference()->IsNullPointer()))
+	{
+		//std::nullptr_t converts only as it may; pcNode is the value converted (a literal 0 becomes one).
+		mpcUnit->BeginLoud();
+		bKept = mpcUnit->GetTypeChecker()->KeepsNullPointer(psValue->psType, psTo, pcNode, pcNode);
+		mpcUnit->EndLoud();
+		if (!bKept)
+		{
+			return false;
+		}
+	}
 	return Convert(psValue, psTo);
 }
 
@@ -573,7 +584,12 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 	int				iOffset;
 
 	psFrom = psValue->psType;
-	if (psTo->IsMemberPointer() && psFrom->IsInteger())
+	if (psTo->IsMemberPointer() && psFrom->IsNullPointer())
+	{
+		//A std::nullptr_t is the null pointer to a member, which is 0.  [conv.mem] 1
+		psValue->sValue = mpcFunction->AddInteger(IRTypeOf(psTo), 0);
+	}
+	else if (psTo->IsMemberPointer() && psFrom->IsInteger())
 	{
 		psValue->sValue = ConvertIR(psValue->sValue, IRTypeOf(psFrom), IRTypeOf(psTo), psFrom->bSigned);
 	}

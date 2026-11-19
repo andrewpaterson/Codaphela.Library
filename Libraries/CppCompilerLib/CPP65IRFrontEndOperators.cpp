@@ -577,6 +577,11 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 		psType = mpcTypes->Arithmetic(sLeft.psType, sRight.psType);
 		bSigned = psType->bSigned;
 	}
+	else if (sLeft.psType->IsNullPointer() && sRight.psType->IsNullPointer())
+	{
+		//Two std::nullptr_t: null pointers both.  (With a pointer or a pointer to a member, above, it becomes one.)
+		psType = sLeft.psType;
+	}
 	else
 	{
 		return Unsupported(__FILE__, __LINE__);
