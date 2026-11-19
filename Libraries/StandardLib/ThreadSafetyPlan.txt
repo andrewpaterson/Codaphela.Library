@@ -1210,6 +1210,17 @@ Steps
          worker's unknowns.
          The 65 suites (level 3 compiled out: ObjectsOwn() is NULL there, ObjectsAdopt refuses) pass at every step,
          187 and 185, and the MinGW compile of every changed file says nothing, 32 and 64 bit.
+         The full sweep, 2026-11-19, of 25f's commit (1e0edb4d6, beside HCP65's 8f76e57): the 147 builds made, and
+         138 of the 144 runs passed with no test failing, every suite of StandardLib's and of what is built on it
+         among them, in every configuration.  The six that didn't are other work, in progress when the sweep took its
+         sources, and are left to it.  TestHCP65Lib's five are the kernal's video driver and console sprite tests
+         (TestHCP65Kernal.cpp 2028 to 2633, the Blitter Board work): the driver isn't loaded, the test reads its name
+         all the same, and the 32 and 64 bit Debug and Release runs end there on a segmentation fault (in the test's
+         own StringCompare), the ASan run a little later.  TestLibc65's on the W65C816 fails three assertions
+         (TestLibc65Context.cpp 141, TestLibc65String.cpp 358 and 359): its MemSwp16 test declared the count an
+         unsigned short where BaseLib's is an unsigned int, which the compiler has told apart since each fundamental
+         type got a code of its own (CppParserTodo.txt, question 13), so the label it called wasn't the assembly's.
+         That one is mended since (HCP65 54ede49).
 
   Tests (TestStandardLib/TestObjectsThreads.cpp, not on the 65 targets)
     Threads copying and dropping Ptrs to one rooted object; to a hub; to objects another thread is re-pointing a field
