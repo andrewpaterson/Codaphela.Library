@@ -84,6 +84,11 @@ public:
 	bool			RecordsEnumOperands(CCPPSyntax* pcNode, SCPP65Type* psLeft, SCPP65Type* psRight, uint8 uiKind);
 	bool			CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode);
 	bool			KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	bool			LosesPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo);
+	bool			NamedCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo);
+	bool			ConstCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
+	bool			StaticCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
+	bool			ReinterpretCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
 	bool			KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool			NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo);
 	bool			Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool bBraced = false);

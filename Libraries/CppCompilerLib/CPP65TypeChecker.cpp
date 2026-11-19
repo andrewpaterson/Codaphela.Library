@@ -337,13 +337,17 @@ void CCPP65TypeChecker::VisitCastExpression(CCPPSyntaxCastExpression* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitNamedCastExpression(CCPPSyntaxNamedCastExpression* pcNode)
 {
+	SCPP65Type*	psResult;
+
 	if (pcNode->meCast == CT_dynamic_cast)
 	{
 		//Its pointer or reference type, whatever the operand (CCPP65IRFrontEnd::DynamicCastExpression checks it).
 		mpsResult = mpcUnit->GetDeclarators()->GetTypeIdType(pcNode->mpcType);
 		return;
 	}
-	mpsResult = CastExpression(pcNode->mpcType, pcNode->mpcOperand, pcNode);
+	//(The check types the operand again, which leaves its type in mpsResult.)
+	psResult = CastExpression(pcNode->mpcType, pcNode->mpcOperand, pcNode);
+	mpsResult = (psResult && NamedCastAllowed(pcNode, psResult)) ? psResult : NULL;
 }
 
 
@@ -3255,6 +3259,166 @@ bool CCPP65TypeChecker::KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a pointer psFrom as a psTo lets what is const or volatile be
+// written through: what psTo points to has less of them, at some level.
+// [conv.qual], [expr.const.cast] 8
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::LosesPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	if (psFrom->psBase->Equals(psTo->psBase))
+	{
+		return !mpcUnit->GetBinder()->KeepsQualifiers(psTo, psFrom);
+	}
+	return !psTo->psBase->HasQualifiersOf(psFrom->psBase);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a named cast makes a conversion that is its own to make, the
+// operand's value to psTo (a cast in brackets tries each of them in turn,
+// so it makes them all).  const_cast changes only const and volatile;
+// static_cast makes what no cast is needed for and those conversions' ways
+// back, and reinterpret_cast the conversions between pointers and between
+// a pointer and an integer; neither takes const away.  A cast to a
+// reference or to a class, or of an object, is checked where it is made.
+// [expr.const.cast], [expr.static.cast], [expr.reinterpret.cast]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::NamedCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo)
+{
+	SCPP65Type*	psFrom;
+
+	psFrom = mpcUnit->ValueTypeOf(pcCast->mpcOperand);
+	if (!psFrom || psTo->IsReference() || psTo->IsClass() || psTo->IsVoid() || psFrom->IsClass())
+	{
+		return (pcCast->meCast != CT_const_cast) || psTo->IsReference() || Error(pcCast, "const_cast makes a pointer, a pointer to a member or a reference");
+	}
+	psFrom = psFrom->Unqualified();
+	psTo = psTo->Unqualified();
+	switch (pcCast->meCast)
+	{
+	case CT_const_cast:
+		return ConstCastAllowed(pcCast, psFrom, psTo);
+	case CT_reinterpret_cast:
+		return ReinterpretCastAllowed(pcCast, psFrom, psTo);
+	default:
+		return StaticCastAllowed(pcCast, psFrom, psTo);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// const_cast<T>(x): T is a pointer or a pointer to a member, and x's type
+// but for const and volatile, which it changes at any level.  Not a pointer
+// to a function.  [expr.const.cast] 1, 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConstCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	if (!(psTo->IsPointer() || psTo->IsMemberPointer()) || psTo->psBase->IsFunction())
+	{
+		return Error(pcCast, "const_cast makes a pointer, a pointer to a member or a reference");
+	}
+	if (!(psFrom->IsNullPointer() || psFrom->Equals(psTo)))
+	{
+		return Error(pcCast, "const_cast only changes const and volatile: the types are different");
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// static_cast<T>(x) of numbers and pointers: not between a pointer and a
+// number (but a null pointer constant, and a pointer as a bool), not
+// between pointers to unrelated types (void* is related to every object's,
+// a class's to its base's and to a class's derived from it), and not one
+// that takes const away.  [expr.static.cast] 1, 4, 11, 13
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::StaticCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	SCPP65Type*	psFromBase;
+	SCPP65Type*	psToBase;
+
+	if (psFrom->IsNullPointer())
+	{
+		return true;
+	}
+	if ((psTo->IsPointer() || psTo->IsMemberPointer()) && !(psFrom->IsPointer() || psFrom->IsMemberPointer()))
+	{
+		return mpcUnit->IsNullPointerConstant(pcCast->mpcOperand) || Error(pcCast, "static_cast doesn't make a pointer from a number: reinterpret_cast does");
+	}
+	if ((psFrom->IsPointer() || psFrom->IsMemberPointer()) && !(psTo->IsPointer() || psTo->IsMemberPointer()))
+	{
+		return (psTo->eKind == CPP65TK_Bool) || Error(pcCast, "static_cast doesn't make a number from a pointer: reinterpret_cast does");
+	}
+	if (!psFrom->IsPointer() || !psTo->IsPointer())
+	{
+		return true;
+	}
+
+	psFromBase = psFrom->psBase;
+	psToBase = psTo->psBase;
+	if (LosesPointerQualifiers(psFrom, psTo))
+	{
+		return Error(pcCast, "static_cast doesn't take const away: const_cast does");
+	}
+	if (psFromBase->Equals(psToBase) || psFromBase->IsVoid() || (psToBase->IsVoid() && !psFromBase->IsFunction()) || mpcUnit->ConditionalClass(psFromBase, psToBase))
+	{
+		return true;
+	}
+	return Error(pcCast, "static_cast doesn't convert between pointers to unrelated types: reinterpret_cast does");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// reinterpret_cast<T>(x) of numbers and pointers: a pointer as an integer
+// big enough for it and back, a pointer as another pointer (to an object or
+// to a function) and a pointer to a member as another, a std::nullptr_t as
+// an integer, and a value as its own type.  Nothing else (no number as
+// another number's type), and not one that takes const away.
+// [expr.reinterpret.cast] 1, 2, 4 to 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ReinterpretCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	bool	bAllowed;
+
+	if (psFrom->IsPointer() && psTo->IsPointer())
+	{
+		return !LosesPointerQualifiers(psFrom, psTo) || Error(pcCast, "reinterpret_cast doesn't take const away: const_cast does");
+	}
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer())
+	{
+		bAllowed = psFrom->psBase->IsFunction() == psTo->psBase->IsFunction();
+	}
+	else if (psFrom->IsPointer())
+	{
+		bAllowed = psTo->IsInteger() && (psTo->iBytes >= psFrom->iBytes) && (psTo->eKind != CPP65TK_Bool);
+	}
+	else if (psTo->IsPointer())
+	{
+		bAllowed = psFrom->IsInteger();
+	}
+	else if (psFrom->IsNullPointer())
+	{
+		bAllowed = psTo->IsInteger();
+	}
+	else
+	{
+		bAllowed = psFrom->IsInteger() && psFrom->Same(psTo);
+	}
+	return bAllowed || Error(pcCast, "reinterpret_cast doesn't make this conversion");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether pointer psFrom converts to psTo (any other types do here) without
 // losing const or volatile from what it points to.  A string literal's
 // conversion to a char* is let through, with a warning if they are on.
@@ -3269,7 +3433,7 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 	{
 		return true;
 	}
-	bKept = psFrom->psBase->Equals(psTo->psBase) ? mpcUnit->GetBinder()->KeepsQualifiers(psTo, psFrom) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
+	bKept = !LosesPointerQualifiers(psFrom, psTo);
 	if (!bKept && psFrom->psBase->Equals(psTo->psBase) && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcNode)))
 	{
 		//char* p = "abc": a string literal's characters are const, and the conversion that let that be forgotten went
