@@ -527,7 +527,8 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A string literal is a pointer to its first character.
+// A string literal's value is a pointer to its first character, which is
+// const as all of them are.  [lex.string] 8
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::StringLiteral(CCPPSyntaxStringExpression* pcString)
@@ -538,7 +539,7 @@ SCPP65Type* CCPP65TypeChecker::StringLiteral(CCPPSyntaxStringExpression* pcStrin
 	auiBytes.Init();
 	bDecoded = mpcUnit->DecodeString(pcString, &auiBytes);
 	auiBytes.Kill();
-	return bDecoded ? mpcTypes->Pointer(mpcUnit->StringElementType(pcString)) : NULL;
+	return bDecoded ? mpcTypes->Pointer(mpcTypes->Const(mpcUnit->StringElementType(pcString))) : NULL;
 }
 
 
@@ -3179,7 +3180,9 @@ bool CCPP65TypeChecker::KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pointer psFrom converts to psTo (any other types do here) without
-// losing const or volatile from what it points to.  [conv.qual]
+// losing const or volatile from what it points to.  A string literal's
+// conversion to a char* is let through, with a warning if they are on.
+// [conv.qual]
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
@@ -3191,6 +3194,17 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 		return true;
 	}
 	bKept = psFrom->psBase->Equals(psTo->psBase) ? mpcUnit->GetBinder()->KeepsQualifiers(psTo, psFrom) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
+	if (!bKept && psFrom->psBase->Equals(psTo->psBase) && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcNode)))
+	{
+		//char* p = "abc": a string literal's characters are const, and the conversion that let that be forgotten went
+		//with C++11.  It is still made, as code written before is full of it, and is warned about when that is asked
+		//for (CCPPCompileOptions::mbWarnStringToPointer).  [diff.cpp03.lex]
+		if (mpcUnit->GetOptions()->mbWarnStringToPointer)
+		{
+			mpcUnit->Warning(pcNode, "A string literal is const: this conversion to a pointer its characters can be written through is not C++14's");
+		}
+		return true;
+	}
 	return bKept || Error(pcNode, "This conversion takes const away from what the pointer points to");
 }
 

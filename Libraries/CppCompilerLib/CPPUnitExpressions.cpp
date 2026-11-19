@@ -3343,7 +3343,7 @@ SCPP65Type* CCPPUnit::StringArrayType(CCPPSyntax* pcString)
 	SCPP65Type*		psArray;
 
 	auiBytes.Init();
-	psArray = DecodeString(pcString, &auiBytes) ? mcTypes.Array(StringElementType(pcString), (int)(auiBytes.NumElements() / StringElementBytes(pcString)) + 1) : NULL;
+	psArray = DecodeString(pcString, &auiBytes) ? mcTypes.Array(mcTypes.Const(StringElementType(pcString)), (int)(auiBytes.NumElements() / StringElementBytes(pcString)) + 1) : NULL;
 	auiBytes.Kill();
 	return psArray;
 }

@@ -535,7 +535,7 @@ bool CCPP65IRFrontEnd::StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValu
 	//StringData's data ends with one zero byte.
 	auiBytes.GrowToAtLeastNumElements(auiBytes.NumElements() + mpcUnit->StringElementBytes(pcString) - 1, true, 0);
 	StringData((char*)auiBytes.GetData(), auiBytes.NumElements(), psValue);
-	psValue->psType = mpcTypes->Pointer(mpcUnit->StringElementType(pcString));
+	psValue->psType = mpcTypes->Pointer(mpcTypes->Const(mpcUnit->StringElementType(pcString)));
 	auiBytes.Kill();
 	return true;
 }
