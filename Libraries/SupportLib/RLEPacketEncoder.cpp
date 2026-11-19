@@ -20,7 +20,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "RLEPacketEncoder.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,7 +96,7 @@ size CRLEPacketEncoder::Encode(uint8* puiSource, int iNumElements, uint8* puiDes
 				iRaw++;
 			}
 			puiDest[uiPos] = (uint8)(iRaw - 1);
-			memcpy32(&puiDest[uiPos + 1], &puiSource[(lsize)x * muiElementSize], (lsize)iRaw * muiElementSize);
+			memcpy(&puiDest[uiPos + 1], &puiSource[(lsize)x * muiElementSize], (lsize)iRaw * muiElementSize);
 			uiPos += 1 + iRaw * muiElementSize;
 			x += iRaw;
 		}

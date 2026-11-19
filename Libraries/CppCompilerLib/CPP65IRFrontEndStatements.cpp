@@ -567,7 +567,10 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	CArraySyntax*	papcElements;
 	SCPP65IRValue	sValue;
 	SCPP65IRPlace	sReferred;
+	bool			bDirect;
 
+	//T x(value) and T x{value} initialise directly: a std::nullptr_t may make a bool so.  [conv.bool]
+	bDirect = (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) || (pcInitialiser->GetKind() == CPPS_InitializerList);
 	if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
 	{
 		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
@@ -642,7 +645,18 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		return true;
 	}
 	mpcUnit->ConversionOverflow(pcInitialiser, psPlace->psType);
-	if (!ValueFor(pcInitialiser, psPlace->psType, &sValue) || !ConvertImplicit(&sValue, psPlace->psType, pcInitialiser))
+	if (!ValueFor(pcInitialiser, psPlace->psType, &sValue))
+	{
+		return false;
+	}
+	if (bDirect && (psPlace->psType->eKind == CPP65TK_Bool) && sValue.psType->WithoutReference()->IsNullPointer())
+	{
+		if (!Convert(&sValue, psPlace->psType))
+		{
+			return false;
+		}
+	}
+	else if (!ConvertImplicit(&sValue, psPlace->psType, pcInitialiser))
 	{
 		return false;
 	}

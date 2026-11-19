@@ -215,7 +215,20 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_ConditionalExpression:
 		return ConditionalExpression((CCPPSyntaxConditionalExpression*)pcExpression, psValue);
 	case CPPS_CallExpression:
-		return CallExpression((CCPPSyntaxCallExpression*)pcExpression, psValue);
+		if (!CallExpression((CCPPSyntaxCallExpression*)pcExpression, psValue))
+		{
+			return false;
+		}
+		if (psValue->psType && psValue->psType->IsReference() && psValue->psType->psBase->IsScalar())
+		{
+			//The value of a call that returns a reference to a number or a pointer is what it refers to, read
+			//([conv.lval]); its place is Place's.  (A reference to an object stays one: IsObjectValue.)
+			sPlace.sAddress = psValue->sValue;
+			sPlace.psType = psValue->psType->psBase;
+			sPlace.psBitField = NULL;
+			return Load(&sPlace, psValue);
+		}
+		return true;
 	case CPPS_SubscriptExpression:
 		if (IsObjectSubscript((CCPPSyntaxSubscriptExpression*)pcExpression))
 		{

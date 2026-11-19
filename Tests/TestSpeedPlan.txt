@@ -76,6 +76,19 @@ IDE checks the same passes and failures) as a run in one process.
       TEST_PROJECT65_CYCLES and the profiling options stay one at a time.
    d. Check: TestBaseLib65, TestStandardLib65 and TestSupportLib65, both processors, the same counts and results.
    Questions: none.
+   Found 2026-11-19, reading TestProject65.cpp for (b): every program reads and writes the host's files in one directory,
+   Output/<target>/<project> (TestProject65CopyDirectory: a copy of the test project's folder, 147 MB for TestBaseLib,
+   51 MB TestSupportLib, 2 MB TestStandardLib), and some write there (TestFileUtil's test directories, the FAT images):
+   two programs at once would trip over each other.  So each worker has its own copy, Output/<target>/<project>/Worker<n>,
+   made once when the suite starts (a few seconds), and a program runs in the next free worker's.  A failed program's
+   stop is named by its link's map (TestProject65AppendStop, AppendSymbol): the map goes with the image to the run.
+   Programs that need one another's files (none known) would show as a difference in (d).  The times in the heading are
+   still the plan's estimate: (a) comes first, on a machine no other session is using.
+   (a) measured 2026-11-19 (TestSupportLib65 W65C816, Release x64, TEST_PROJECT65_RUN_TIME, which leaves the frame check
+   out): 335 s in all, the compile 31 s, the 72 programs' runs 282 s (84%), their links and the rest 22 s; the longest
+   runs 34.6, 34.3 and 32.0 s.  The frame check about doubles a run (the same suite with it: 664 s).  With four workers
+   the runs would take about the longest few of them (~80 s), so the suite ~135 s without the frame check and ~200 s
+   with it.
 
 4. TestCPPW65C816: where its 309 s goes, then the biggest costs                       (unknown until measured)
    The plan said "compile Libc65 once per process", but a trivial build is 0.15 s a target, so that is small.  Instead:
@@ -145,6 +158,13 @@ IDE checks the same passes and failures) as a run in one process.
    The user's answers, 2026-11-19: 1 yes, they are on the list; 2 TestHCP65Lib in Release|x64 only (the other
    configurations still build HCP65Emulator.sln); 3 the *65 suites on both processors (each suite run twice in
    Release|x64: no argument, then 816).
+   Built 2026-11-19: Tests/Sweep.py, as above (a to f), with its results in Tests/Output/SweepResults.txt (the item,
+   when it began, the result) and its last build's output in Tests/Output/SweepBuild.log, both ignored by git.  -only
+   takes several names, -configs a list, -new starts a fresh results file.  Until a sweep has kept its own times the
+   order starts from DEFAULT_SECONDS (TestHCP65Lib, TestSupportLib65, TestStandardLib65, TestBaseLib65,
+   TestCppCompilerLib).  Tried on TestInputLib and TestThreadLib in Release|x64 (55 s, both passed; run again it does
+   nothing).  Check (g), a whole sweep against the last one's results, waits for a machine with no other session's
+   builds and runs on it.
 
 Order: 1 and 5 (the biggest win, small and safe), then 3, then 2 (a to c, then d after the user's answer), then 4 (measure,
 then the user decides on lockstep).  Each step is announced to the other sessions before its runs.

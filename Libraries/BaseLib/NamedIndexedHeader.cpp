@@ -2,7 +2,6 @@
 #include "StringHelper.h"
 #include "PointerRemapper.h"
 #include "NamedIndexedHeader.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -23,7 +22,7 @@ void CNamedIndexedHeader::Init(const char* szName, int iNameLength, void* pvData
 		szDestName[iNameLength] = '\0';
 
 		szDestData = GetData();
-		memcpy32(szDestData, pvData, uiDataSize);
+		memcpy(szDestData, pvData, uiDataSize);
 	}
 	else
 	{
@@ -43,7 +42,7 @@ void CNamedIndexedHeader::Init(void* pvData, lsize uiDataSize)
 	miNameLength = 0;
 
 	szDestData = GetData();
-	memcpy32(szDestData, pvData, uiDataSize);
+	memcpy(szDestData, pvData, uiDataSize);
 }
 
 

@@ -26,7 +26,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "ConstructorCall.h"
 #include "MemoryFile.h"
-#include "Memory32.h"
 
 
 #define MEMORY_FILE_READ_FLAG         0x0001
@@ -180,7 +179,7 @@ lsize CMemoryFile::Read(void* pvBuffer, lsize iSize, lsize iCount)
 				miFlags &= ~MEMORY_FILE_EOF_FLAG;
 			}
 		}
-		memcpy32(pvBuffer, mcArray.Get(iOldPos), uiAmountToCopy);
+		memcpy(pvBuffer, mcArray.Get(iOldPos), uiAmountToCopy);
 		return iNumCopied;
 	}
 	return 0;
@@ -295,7 +294,7 @@ lsize CMemoryFile::Write(const void* pvBuffer, lsize iSize, lsize iCount)
 			}
 		}
 
-		memcpy32(mcArray.Get(miPos), pvBuffer, uiAmountToCopy);
+		memcpy(mcArray.Get(miPos), pvBuffer, uiAmountToCopy);
 		miPos += uiAmountToCopy;
 
 		if (miPos == mcArray.NumElements())

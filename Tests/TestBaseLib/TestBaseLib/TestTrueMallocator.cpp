@@ -2,7 +2,6 @@
 #include "BaseLib/TrueMallocator.h"
 #include "BaseLib/StdRandom.h"
 #include "TestLib/Assert.h"
-#include "BaseLib/Memory32.h"
 
 
 #define TEST_TRUE_MALLOCATOR_MEMORY		0x10000
@@ -64,7 +63,7 @@ void TestTrueMallocatorMallocFree(void)
 		AssertNotNull(apui[i]);
 		bAligned &= ((ptr)apui[i] & (TRUE_MALLOCATOR_ALIGNMENT - 1)) == 0;
 		AssertTrue(cMallocator.Size(apui[i]) >= i * 13);
-		memset32(apui[i], (int)i, (lsize)i * 13);
+		memset(apui[i], (int)i, (lsize)i * 13);
 	}
 	AssertTrue(bAligned);
 	AssertSize(10, cMallocator.NumAllocations());
@@ -335,10 +334,10 @@ void TestTrueMallocatorLarge(void)
 	pui1 = (uint8*)cMallocator.Malloc(100000);
 	AssertNotNull(pui1);
 	AssertTrue(cMallocator.Size(pui1) >= 100000);
-	memset32(pui1, 0x5A, 100000);
+	memset(pui1, 0x5A, 100000);
 	pui2 = (uint8*)cMallocator.Malloc(70000);
 	AssertNotNull(pui2);
-	memset32(pui2, 0xA5, 70000);
+	memset(pui2, 0xA5, 70000);
 	AssertTrue((pui2 >= pui1 + 100000) || (pui2 + 70000 <= pui1));
 	AssertTrue(cMallocator.IsValid());
 	AssertLSize(2, cMallocator.NumAllocations());
@@ -665,7 +664,7 @@ void TestTrueMallocatorWithin(void)
 		}
 		AssertSize(0, (lsize)apv[uiCount] & (TRUE_MALLOCATOR_ALIGNMENT - 1));
 		AssertTrue(cMallocator.Size(apv[uiCount]) >= uiBytes);
-		memset32(apv[uiCount], (int)(uiCount & 0xFF), uiBytes);
+		memset(apv[uiCount], (int)(uiCount & 0xFF), uiBytes);
 		auiBytes[uiCount] = uiBytes;
 		uiCount++;
 
@@ -677,7 +676,7 @@ void TestTrueMallocatorWithin(void)
 			uiCount--;
 			apv[j] = apv[uiCount];
 			auiBytes[j] = auiBytes[uiCount];
-			memset32(apv[j], (int)(j & 0xFF), auiBytes[j]);
+			memset(apv[j], (int)(j & 0xFF), auiBytes[j]);
 		}
 	}
 	AssertTrue(cMallocator.IsValid());

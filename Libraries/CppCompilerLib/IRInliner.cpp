@@ -183,6 +183,10 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 	{
 		return false;
 	}
+	if ((uiHotLimit == 0) && pcCallBlock && !GrowsWithin(pcCallee, pcCallBlock->masInstructions.Get(uiCall)->asArguments[0], uiLimit))
+	{
+		return false;
+	}
 	bReturns = false;
 	for (ui = 0; ui < pcCallee->NumBlocks(); ui++)
 	{
@@ -211,6 +215,62 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 bool CIRInliner::CalleeNeverThrows(CIRFunction* pcCallee)
 {
 	return (mpcCalleeModule ? mpcCalleeModule : mpcModule)->IsNoThrow(pcCallee->muiSymbol);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether inlining every call of pcCallee (sSymbol) left in mpcCaller grows
+// it by at most uiLimit instructions: each would be a copy, less the call
+// and its arguments that the copy replaces.  One call always does (the
+// callee is no bigger than uiLimit); a function called from many places in
+// one caller (43 calls of CTypeNames::AddType in Init) stays a call.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::GrowsWithin(CIRFunction* pcCallee, SIRReference sSymbol, size uiLimit)
+{
+	size	uiInstructions;
+	size	uiReplaced;
+	size	uiCopies;
+
+	uiInstructions = NumInstructions(pcCallee);
+	uiReplaced = 1 + pcCallee->masParameters.NumElements();
+	if (uiInstructions <= uiReplaced)
+	{
+		return true;
+	}
+	uiCopies = NumCallsOf(sSymbol);
+	return uiCopies * (uiInstructions - uiReplaced) <= uiLimit;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many calls of sSymbol mpcCaller makes.
+//
+//////////////////////////////////////////////////////////////////////////
+size CIRInliner::NumCallsOf(SIRReference sSymbol)
+{
+	size				uiBlock;
+	size				ui;
+	size				uiCalls;
+	CIRBlock*			pcBlock;
+	SIRInstruction*		psInstruction;
+
+	uiCalls = 0;
+	for (uiBlock = 0; uiBlock < mpcCaller->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcCaller->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(ui);
+			if ((psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].Equals(sSymbol))
+			{
+				uiCalls++;
+			}
+		}
+	}
+	return uiCalls;
 }
 
 

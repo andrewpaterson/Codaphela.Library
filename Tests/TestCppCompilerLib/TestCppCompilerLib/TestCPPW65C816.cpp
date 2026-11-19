@@ -2559,6 +2559,31 @@ void TestCPP816NoFloats(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// std::nullptr_t in a function's label is Dn, the Itanium code (as the
+// other fundamental types have theirs), so f(nullptr_t) and f(void*) are
+// two functions; it is passed as a pointer is, and is a null one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816NullPointerLabel(void)
+{
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
+	CChars				szListing;
+
+	AssertInt(5 + 60 + 700, TestCPP816RunListed(
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"__attribute__((noinline)) int Take(nullptr_t n, int* p) { return (p == n) ? 5 : 6; }\n"
+		"__attribute__((noinline)) int Take(void* pv, int* p) { return 7; }\n"
+		"int gi;\n"
+		"int main() { nullptr_t n = nullptr; return Take(nullptr, 0) + Take(n, &gi) * 10 + Take(&gi, 0) * 100; }\n",
+		aszUnits, &szListing, NULL, 0, true));
+	AssertTrue(strstr(szListing.Text(), "_Take__FDnPi") != NULL);
+	AssertTrue(strstr(szListing.Text(), "_Take__FPvPi") != NULL);
+	szListing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // new and delete over Libc65's operator new, operator delete and malloc, as TestCPP65GeneratorNewDelete.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2608,6 +2633,43 @@ void TestCPP816NewDelete(void)
 		"	int n = 0;\n"
 		"	for (int i = 0; i < 1000; i++) { int* p = new int[1000]; if (p) n++; delete[] p; }\n"
 		"	return n;\n"
+		"}\n"));
+
+	//new T[n]'s bytes are a size_t, 16 bits here, though n is counted in 32.  When n elements (with a class's count in
+	//front of them) don't fit a size_t the allocation function isn't called, nothing is constructed and the pointer is
+	//null: never a block for a size that wrapped ([expr.new] 7; std::bad_array_new_length when there are exceptions).
+	//The program's own operator new[] says what it was asked for, and how often.
+	AssertInt(2047, TestCPP816Run(
+		"#include <stddef.h>\n"
+		"size_t guiAsked;\n"
+		"int giCalls;\n"
+		"char gac[64];\n"
+		"void* operator new[](size_t n) { guiAsked = n; giCalls++; return gac; }\n"
+		"void operator delete[](void* p) noexcept {}\n"
+		"struct C { long m; ~C() {} };\n"
+		"struct D { long m; D() : m(7) {} };\n"
+		"volatile unsigned long gulCount = 40000;\n"
+		"volatile unsigned int guiCount = 5;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	char* a = new char[guiCount]; if (a == gac && guiAsked == 5) r |= 1;\n"
+		"	long* b = new long[guiCount]; if (b && guiAsked == 20) r |= 2;\n"
+		"	char* c = new char[gulCount]; if (c && guiAsked == 40000) r |= 4;\n"
+		"	giCalls = 0;\n"
+		"	long* d = new long[gulCount]; if (d == 0 && giCalls == 0) r |= 8;\n"
+		"	gulCount = 0x10005;\n"
+		"	char* e = new char[gulCount]; if (e == 0 && giCalls == 0) r |= 16;\n"
+		"	gulCount = 16383;\n"
+		"	long* f = new long[gulCount]; if (f && guiAsked == 65532 && giCalls == 1) r |= 32;\n"
+		"	C* g = new C[gulCount]; if (g == 0 && giCalls == 1) r |= 64;\n"
+		"	C* h = new C[guiCount]; if (h && guiAsked == 24) r |= 128;\n"
+		"	gulCount = 16384;\n"
+		"	long* i = new long[gulCount]; if (i == 0) r |= 256;\n"
+		"	D* j = new D[gulCount]; if (j == 0) r |= 512;\n"
+		"	gulCount = 3;\n"
+		"	D* k = new D[gulCount]; if (k && k[2].m == 7) r |= 1024;\n"
+		"	return r;\n"
 		"}\n"));
 
 	//new T() and new T{} value initialise: a class without constructors of its own is zeroed (arrays in it too), in
@@ -5905,6 +5967,56 @@ void TestCPP816NoInline(void)
 }
 
 
+//The function TestCPP816InlineCopies' program calls, natively for its result.
+static int TestCPP816InlineMix(int a, int b)
+{
+	return ((a * 3 + b) ^ (a >> 1)) + ((b * 5) ^ a) + (a & b) * 7;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function small enough to inline is still called when one caller calls
+// it from so many places that its copies would grow the caller past the
+// inline limit (CIRInliner::GrowsWithin: CTypeNames::Init's 43 calls of
+// AddType), and inlined where it is called once.  The results are as
+// natively.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816InlineCopies(void)
+{
+	static const char*	aszNone[] = { NULL };
+	CChars				szSource;
+	CChars				szListing;
+	int					i;
+	int					iExpected;
+
+	szSource.Init();
+	szSource.Append("static int Mix(int a, int b) { return ((a * 3 + b) ^ (a >> 1)) + ((b * 5) ^ a) + (a & b) * 7; }\n");
+	szSource.Append("static int Once(int a, int b) { return ((a * 3 + b) ^ (a >> 1)) + ((b * 5) ^ a) + (a & b) * 7; }\n");
+	szSource.Append("volatile int gi = 3;\n");
+	szSource.Append("int Many(void) { int s = 0;");
+	iExpected = 0;
+	for (i = 1; i <= 20; i++)
+	{
+		szSource.Append(" s += Mix(gi, ");
+		szSource.Append(i);
+		szSource.Append(");");
+		iExpected += TestCPP816InlineMix(3, i);
+	}
+	szSource.Append(" return s; }\n");
+	szSource.Append("int main(void) { return Many() + Once(gi, 9); }\n");
+	iExpected += TestCPP816InlineMix(3, 9);
+
+	szListing.Init();
+	AssertInt(iExpected, TestCPP816RunListed(szSource.Text(), aszNone, &szListing, NULL, 0, true));
+	AssertTrue(szListing.Contains("jsl _Mix__Fii"));
+	AssertFalse(szListing.Contains("jsl _Once__Fii"));
+	szListing.Kill();
+	szSource.Kill();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // typeid(x).name() is the type as the program writes it
@@ -6526,6 +6638,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816MovedCode());
 	TEST_PART(TestCPP816CompileBaseLibUnits());
 	TEST_PART(TestCPP816NewDelete());
+	TEST_PART(TestCPP816NullPointerLabel());
 	TEST_PART(TestCPP816Floats());
 	TEST_PART(TestCPP816NoFloats());
 	TEST_PART(TestCPP816TestBaseLibBugs());
@@ -6577,6 +6690,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816KeepUnusedObjects());
 	TEST_PART(TestCPP816TypeNames());
 	TEST_PART(TestCPP816NoInline());
+	TEST_PART(TestCPP816InlineCopies());
 	TEST_PART(TestCPP816StringRegisters());
 	TEST_PART(TestCPP816MathRegisters());
 	TEST_PART(TestCPP816WideMultiplies());

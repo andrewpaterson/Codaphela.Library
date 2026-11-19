@@ -325,6 +325,7 @@ void CCPPUnit::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
 			break;
 		case CPP65TK_Array:		eKind = CPP65TIK_Array;		break;
 		case CPP65TK_Function:	eKind = CPP65TIK_Function;	break;
+		case CPP65TK_NullPointer:	eKind = CPP65TIK_NullPointer;	break;
 		default:				eKind = psType->pcEnum ? CPP65TIK_Enum : CPP65TIK_Fundamental;	break;
 		}
 		szName.Init();
@@ -461,6 +462,9 @@ void CCPPUnit::AppendTypeNameAround(CChars* psz, SCPP65Type* psType, CChars* psz
 		break;
 	case CPP65TK_Bool:
 		psz->Append("bool");
+		break;
+	case CPP65TK_NullPointer:
+		psz->Append("std::nullptr_t");
 		break;
 	case CPP65TK_Integer:
 		if (psType->pcEnum)

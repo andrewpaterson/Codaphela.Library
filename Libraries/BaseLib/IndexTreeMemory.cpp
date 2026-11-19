@@ -5,7 +5,6 @@
 #include "Logger.h"
 #include "MapHelper.h"
 #include "IndexTreeMemory.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -372,7 +371,7 @@ bool CIndexTreeMemory::GetNodeData(CIndexTreeNodeMemory* pcNode, size& uiDataSiz
 		if (pvDestData)
 		{
 			pvData = pcNode->GetDataPtr();
-			memcpy32(pvDestData, pvData, MinDataSize(uiDataSize, uiMaxDataSize));
+			memcpy(pvDestData, pvData, MinDataSize(uiDataSize, uiMaxDataSize));
 		}
 
 		return true;

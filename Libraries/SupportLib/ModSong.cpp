@@ -21,7 +21,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/StringHelper.h"
 #include "StandardLib/ClassDefines.h"
 #include "ModSong.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,8 +48,8 @@ void CModSong::Init(size uiNumChannels, size uiNumSamples, size uiNumPatterns)
 	memset(mauiOrders, 0, sizeof(mauiOrders));
 	muiNumPatterns = uiNumPatterns;
 	uiNumNotes = (lsize)uiNumPatterns * MOD_ROWS_PER_PATTERN * uiNumChannels;
-	mpsNotes = (SModNote*)malloc32((lsize)sizeof(SModNote) * (uiNumNotes + 1));
-	memset32(mpsNotes, 0, (lsize)sizeof(SModNote) * (uiNumNotes + 1));
+	mpsNotes = (SModNote*)malloc((lsize)sizeof(SModNote) * (uiNumNotes + 1));
+	memset(mpsNotes, 0, (lsize)sizeof(SModNote) * (uiNumNotes + 1));
 	mpSamples = NULL;
 
 	PostInit();

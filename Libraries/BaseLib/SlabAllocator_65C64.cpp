@@ -22,7 +22,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifdef __LIBC65__
 #include <stdlib.h>
-#include "Memory32.h"
 #include "SlabAllocator.h"
 
 
@@ -37,7 +36,7 @@ void* CSlabAllocator::AllocateSlab(void)
 	char*	pcMemory;
 	char*	pcSlab;
 
-	pcMemory = (char*)malloc32(SLAB_SIZE * 2);
+	pcMemory = (char*)malloc(SLAB_SIZE * 2);
 	if (pcMemory == NULL)
 	{
 		return NULL;

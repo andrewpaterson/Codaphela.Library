@@ -8,7 +8,9 @@
 //The 32 suffixed memory functions, for counts that can pass 64KB (lsize), on every target.  On the W65C816 size_t
 //is 16 bits and memcpy and the others take 16 bit counts: Libc65's memcpy32, malloc32 and the others take 32 bit ones
 //(and malloc32's blocks of more than a bank have whole banks).  Everywhere else size_t holds an lsize and these are
-//the plain functions.
+//the plain functions.  A call needn't name them: memcpy, malloc and the others called with an lsize count are these on
+//the W65C816 (PrimitiveTypes.h's overloads choose by the count's type).  They are named where the code means the 32 bit
+//one whatever it is given (SArrayLargeSize, CSystemAllocator), and strlen32 always is, as a result's type chooses nothing.
 #if !defined(__W65C816__)
 inline void*	memcpy32(void* pvDest, const void* pvSource, lsize uiBytes)	{ return memcpy(pvDest, pvSource, uiBytes); }
 inline void*	memmove32(void* pvDest, const void* pvSource, lsize uiBytes)	{ return memmove(pvDest, pvSource, uiBytes); }

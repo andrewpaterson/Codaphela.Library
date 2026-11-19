@@ -58,7 +58,9 @@ public:
 //blocks.  The block the call is in is split after it; the arguments become the copy's parameters, its returns
 //jump to the rest of the block, and the call's result is a phi there of the values returned.  A function is
 //small if it has at most muiMaxInstructions instructions (muiMaxLoopInstructions for a call in a loop, and
-//IR_INLINE_CONSTANT_BONUS more for each constant argument whose parameter it compares or branches on); variadic
+//IR_INLINE_CONSTANT_BONUS more for each constant argument whose parameter it compares or branches on), and if
+//copies at all of the caller's calls of it, less the calls and arguments they replace, grow the caller by no more
+//than that (GrowsWithin: a function called from many places in one function stays a call); variadic
 //functions and calls of the function itself aren't inlined.  A callee that takes its parameters' addresses (argaddr:
 //an object passed by value as pieces) gets a slot in the caller laid out as its parameters, with the arguments
 //stored to it.  The copies' own calls are inlined too, up to muiMaxInlines in one caller.  The caller should be optimised
@@ -132,6 +134,8 @@ protected:
 	void			FindLoops(void);
 	CIRFunction*	Callee(SIRReference sSymbol, bool bMissing);
 	size			NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlock, size uiCall);
+	bool			GrowsWithin(CIRFunction* pcCallee, SIRReference sSymbol, size uiLimit);
+	size			NumCallsOf(SIRReference sSymbol);
 	bool			HasLoopCandidate(void);
 	bool			InlineHottest(void);
 	CIRFunction*	DirectCallee(SIRInstruction* psInstruction);

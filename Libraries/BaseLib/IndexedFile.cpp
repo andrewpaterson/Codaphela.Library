@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DataTypes.h"
 #include "StackMemory.h"
 #include "IndexedFile.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -263,7 +262,7 @@ bool CIndexedFile::Delete(filePos iIndex, lsize uiCount)
 	}
 
 	pvData = cTemp.Init(uiChunkCount * muiDataSize);
-	memset32(pvData, INDEX_FILE_EMPTY_CHAR, uiChunkCount * muiDataSize);
+	memset(pvData, INDEX_FILE_EMPTY_CHAR, uiChunkCount * muiDataSize);
 	iPosition = iIndex * muiDataSize;
 	while (uiCount > 0)
 	{
@@ -372,7 +371,7 @@ filePos CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 	filePos				iUsed;
 
 	pvCompare = cCompare.Init(muiDataSize);
-	memset32(pvCompare, INDEX_FILE_EMPTY_CHAR, muiDataSize);
+	memset(pvCompare, INDEX_FILE_EMPTY_CHAR, muiDataSize);
 
 	iUsed = 0;
 	pv = cData.Init(muiDataSize);
@@ -383,7 +382,7 @@ filePos CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 			return -1;
 		}
 
-		bUsed = memcmp32(pv, pvCompare, muiDataSize) != 0;
+		bUsed = memcmp(pv, pvCompare, muiDataSize) != 0;
 		pab->Add(bUsed);
 
 		if (bUsed)

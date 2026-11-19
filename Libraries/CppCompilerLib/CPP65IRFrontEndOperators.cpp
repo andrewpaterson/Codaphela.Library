@@ -34,6 +34,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 {
 	SCPP65IRPlace	sPlace;
 	SCPP65IRValue	sOperand;
+	CCPPBoundName	cBound;
 	CCPPSyntax*		pcOperand;
 	SCPP65Type*		psType;
 	SIRType			sType;
@@ -94,7 +95,13 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		}
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
 		{
-			return Unsupported(__FILE__, __LINE__);
+			//&Class::member of a static data member is its address, a pointer like any variable's ([expr.unary.op] 3).
+			//Anything else a class qualifies that isn't a field or a member function isn't done.
+			mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcOperand, &cBound);
+			if ((cBound.meWhat != CPPBN_Variable) || !cBound.mpcVariable)
+			{
+				return Unsupported(__FILE__, __LINE__);
+			}
 		}
 		if (!Place(pcOperand, &sPlace))
 		{
@@ -576,6 +583,11 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	{
 		psType = mpcTypes->Arithmetic(sLeft.psType, sRight.psType);
 		bSigned = psType->bSigned;
+	}
+	else if (sLeft.psType->IsNullPointer() && sRight.psType->IsNullPointer())
+	{
+		//Two std::nullptr_t: null pointers both.  (With a pointer or a pointer to a member, above, it becomes one.)
+		psType = sLeft.psType;
 	}
 	else
 	{

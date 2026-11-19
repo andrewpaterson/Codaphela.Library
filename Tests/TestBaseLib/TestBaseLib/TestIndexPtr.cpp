@@ -5,7 +5,6 @@
 #include "BaseLib/IndexPtr.h"
 #include "BaseLib/ArrayBit.h"
 #include "TestLib/Assert.h"
-#include "BaseLib/Memory32.h"
 
 
 struct SIndexTemplateKey
@@ -101,7 +100,7 @@ void TestIndexPtrIterate(void)
 	memset(szExpected, 0, 6);
 	cIndex.Init();
 
-	szMemory = (char*)malloc32((lsize)12000 * 6);
+	szMemory = (char*)malloc((lsize)12000 * 6);
 	bValid = true;
 	for (ui = 0; ui < 12000; ui++)
 	{

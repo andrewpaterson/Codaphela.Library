@@ -1005,7 +1005,7 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	if (pcBinary->meOperator == CT_Assignment)
 	{
 		psRight = ValueFor(pcBinary->mpcRight, psPlace, false);
-		return ImplicitConvert(psRight, psPlace, pcBinary->mpcRight) ? psPlace : NULL;
+		return ImplicitConvert(psRight, psPlace, pcBinary->mpcRight, pcBinary->mpcRight) ? psPlace : NULL;
 	}
 
 	psRight = Value(pcBinary->mpcRight);
@@ -1130,6 +1130,20 @@ bool CCPP65TypeChecker::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65
 	if ((psLeft->IsScopedEnum() || psRight->IsScopedEnum()) && (psLeft->Unqualified() != psRight->Unqualified()) && !RecordsEnumOperands(pcNode, psLeft, psRight, CPPEC_COMPARE))
 	{
 		return Error(pcNode, "An enum class's value is compared only with its own values");
+	}
+	if (psLeft->IsNullPointer() || psRight->IsNullPointer())
+	{
+		//A std::nullptr_t is compared with another, with a pointer, and for equality with a pointer to a member: not
+		//with a number.  [expr.rel] 4, [expr.eq] 2
+		if ((psLeft->IsNullPointer() || psLeft->IsPointer()) && (psRight->IsNullPointer() || psRight->IsPointer()))
+		{
+			return true;
+		}
+		if ((psLeft->IsMemberPointer() || psRight->IsMemberPointer()) && ((eOperator == CT_EqualTo) || (eOperator == CT_NotEqualTo)))
+		{
+			return true;
+		}
+		return Error(pcNode, "nullptr is compared only with a pointer, a pointer to a member or another nullptr");
 	}
 	if (psLeft->IsFloat() || psRight->IsFloat())
 	{
@@ -1549,7 +1563,7 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 			//An integer to a narrow integer parameter keeps its low bytes.
 			continue;
 		}
-		if (!ImplicitConvert(psType, psParameter, pcArgument))
+		if (!ImplicitConvert(psType, psParameter, pcArgument, pcArgument))
 		{
 			return false;
 		}
@@ -2681,7 +2695,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 			}
 			pcInitialiser = (papcArguments->NumElements() == 1) ? papcArguments->GetPtr(0) : NULL;
 		}
-		bResult = !pcInitialiser || ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcInitialiser);
+		bResult = !pcInitialiser || ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcInitialiser, pcInitialiser);
 		bResult = bResult && (!bBraced || !pcInitialiser || NotNarrowed(pcInitialiser, psType));
 		apcArguments.Kill();
 		return bResult;
@@ -2974,7 +2988,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		if (mpcUnit->BindsToTemporary(psType, pcInitialiser))
 		{
 			//It refers to a temporary holding the value.
-			return ImplicitConvert(ValueFor(pcInitialiser, psType->psBase, false), psType->psBase, pcNode);
+			return ImplicitConvert(ValueFor(pcInitialiser, psType->psBase, false), psType->psBase, pcNode, pcInitialiser);
 		}
 		mpcUnit->BeginQuiet();
 		psValue = Place(pcInitialiser);
@@ -2985,7 +2999,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		}
 		return psValue ? CanBind(psType, psValue, pcNode) : (Value(pcInitialiser) != NULL);
 	}
-	return ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcNode) && (!bBraced || NotNarrowed(pcInitialiser, psType));
+	return ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcNode, pcInitialiser) && (!bBraced || NotNarrowed(pcInitialiser, psType));
 }
 
 
@@ -3056,13 +3070,51 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 //////////////////////////////////////////////////////////////////////////
 //
 // Convert, for a conversion no cast asks for: a pointer can't lose const or
-// volatile (KeepsPointerQualifiers), and an enum class's value stays one
-// (KeepsScopedEnum).
+// volatile (KeepsPointerQualifiers), an enum class's value stays one
+// (KeepsScopedEnum), and std::nullptr_t converts only as it may
+// (KeepsNullPointer).  pcValue is the expression converted, when there is
+// one to look at.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65TypeChecker::ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
+bool CCPP65TypeChecker::ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue)
 {
-	return Convert(psFrom, psTo, pcNode) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsScopedEnum(psFrom, psTo, pcNode);
+	return Convert(psFrom, psTo, pcNode) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsScopedEnum(psFrom, psTo, pcNode) && KeepsNullPointer(psFrom, psTo, pcNode, pcValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psFrom converts to psTo with no cast as far as std::nullptr_t
+// goes.  A nullptr_t becomes a pointer or a pointer to a member, both null
+// ([conv.ptr] 1, [conv.mem] 1), and nothing else: not an integer, and a
+// bool only where it is tested or directly initialises one ([conv.bool]),
+// which doesn't come here.  Only a null pointer constant (nullptr, or a
+// literal 0: pcValue) becomes a nullptr_t.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::KeepsNullPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue)
+{
+	if (psTo->IsReference())
+	{
+		psTo = psTo->psBase;
+	}
+	if (psFrom->IsReference())
+	{
+		psFrom = psFrom->psBase;
+	}
+	if (psFrom->IsNullPointer())
+	{
+		if (psTo->IsNullPointer() || psTo->IsPointer() || psTo->IsMemberPointer())
+		{
+			return true;
+		}
+		return Error(pcNode, (psTo->eKind == CPP65TK_Bool) ? "nullptr is a bool only where it is tested or directly initialises one" : "nullptr converts only to a pointer or a pointer to a member");
+	}
+	if (psTo->IsNullPointer() && !(pcValue && mpcUnit->IsNullPointerConstant(pcValue)))
+	{
+		return Error(pcNode, "Only nullptr or a literal 0 converts to std::nullptr_t");
+	}
+	return true;
 }
 
 

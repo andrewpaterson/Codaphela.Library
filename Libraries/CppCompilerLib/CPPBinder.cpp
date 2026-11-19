@@ -150,6 +150,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	CCPPSymbol*					pcDeclaration;
 	CCPPTemplate*				pcTemplate;
 	size						uiErrors;
+	bool						bInlineMemcpy;
 	int64						lliName;
 
 	pcCallee = pcCall->mpcCallee->WithoutParentheses();
@@ -232,10 +233,16 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 			pcBound->mpcFunction = pcFunction;
 			return;
 		}
-		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
-		if (!pcFunction)
+		pcInstance = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
+		if (!pcInstance)
 		{
 			return;
+		}
+		if (!pcFunction || mcOverloads.IsBetterFunction(pcInstance, pcFunction, pcBound->mpapcArguments))
+		{
+			//The instance, unless the function that isn't a template's takes the arguments as well as it does.
+			//[over.match.best] 1
+			pcFunction = pcInstance;
 		}
 		mpcUnit->Resolved(pcName, pcFunction);
 		pcBound->meHow = CPPBC_Function;
@@ -299,7 +306,8 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	}
 
 	//The name may be a template's as well (declared after the function the name was first): its instance is the
-	//better match unless a function takes the arguments as they are.
+	//better match when it converts an argument better than the function does and none worse; else the function, which
+	//isn't a template's, is.  [over.match.best] 1
 	for (pcDeclaration = pcSymbol->mpcNext; pcDeclaration && (pcDeclaration->meKind != CPPSK_FunctionTemplate); pcDeclaration = pcDeclaration->mpcNext)
 	{
 	}
@@ -308,17 +316,28 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		uiErrors = mpcUnit->GetErrors()->NumErrors();
 		mpcUnit->BeginTrial();
 		pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, pcBound->mpapcArguments, pcCall);
-		if (!pcFunction || !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments))
+		bInlineMemcpy = pcFunction && mpcUnit->IsInlineMemcpy(lliName, pcBound->mpapcArguments);
+		if (!bInlineMemcpy && (!pcFunction || !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments)))
 		{
 			pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, lliName, pcCall, pcBound->mpapcArguments, NULL);
 			pcInstance = pcTemplate ? mpcUnit->InstantiateFunction(pcTemplate, NULL, pcBound->mpapcArguments, pcCall) : NULL;
-			pcFunction = pcInstance ? pcInstance : pcFunction;
+			if (pcInstance && (!pcFunction || mcOverloads.IsBetterFunction(pcInstance, pcFunction, pcBound->mpapcArguments)))
+			{
+				pcFunction = pcInstance;
+			}
 		}
 		mpcUnit->EndTrial();
 		mpcUnit->GetErrors()->Truncate(uiErrors);
 		if (pcFunction)
 		{
 			mpcUnit->Resolved(pcName, pcFunction);
+			if (bInlineMemcpy)
+			{
+				//A few bytes, a constant count: copied where it is called (as below), whichever memcpy a template of
+				//the name would have made for the count's type (BaseLib's on the W65C816 choose memcpy32 by it).
+				pcBound->meHow = CPPBC_InlineMemcpy;
+				return;
+			}
 			pcBound->meHow = CPPBC_Function;
 			pcBound->mpcFunction = pcFunction;
 			return;

@@ -18,6 +18,9 @@ us.stackdump
 # its own input)
 /Tests/*/*/Output/
 /Tests/*/*/Post/
+# The sweep's results and logs (Tests/Sweep.py), and Python's caches of the scripts it imports
+/Tests/Output/
+__pycache__/
 !/Tests/TestJavaParserLib/TestJavaParserLib/Post/
 /Tests/TestStandardLib/TestStandardLib120427.vsp
 /Tests/TestStandardLib/TestStandardLib.psess

@@ -97,6 +97,7 @@ public:
 	void				Draw(CRasteriser* pcRasteriser, CRasterTarget* pcTarget);
 
 	CRasterCamera*		GetCamera(void);
+	Ptr<CRenderScene>	GetRenderScene(void) const;
 	SRasterInstance*	GetInstances(void) const;
 	size				NumInstances(void) const;
 

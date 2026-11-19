@@ -2,7 +2,6 @@
 #include "IndexedGeneral.h"
 #include "StackMemory.h"
 #include "CodabaseVersions.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -95,7 +94,7 @@ bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedDa
 		pcStore->Get(oi, &uiDataSize, pvData, uiDataSize);
 	}
 
-	pcVersion = (CVersion*)malloc32(sizeof(CVersion) + szName.Length() + 1 + uiDataSize);
+	pcVersion = (CVersion*)malloc(sizeof(CVersion) + szName.Length() + 1 + uiDataSize);
 	pcVersion->iValidUntil = iValidUntil;
 	pcVersion->pcNext = NULL;
 	pcVersion->bExists = bExists;
@@ -104,7 +103,7 @@ bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedDa
 	memcpy(pcVersion->GetName(), szName.Text(), szName.Length() + 1);
 	if (uiDataSize > 0)
 	{
-		memcpy32(pcVersion->GetData(), pvData, uiDataSize);
+		memcpy(pcVersion->GetData(), pvData, uiDataSize);
 	}
 	cStack.Kill();
 

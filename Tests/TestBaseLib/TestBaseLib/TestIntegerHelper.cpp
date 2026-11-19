@@ -2,7 +2,6 @@
 #include <string.h>
 #include "BaseLib/IntegerHelper.h"
 #include "TestLib/Assert.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -697,9 +696,9 @@ void TestIntegerHelperFindBitsLarge(void)
 
 	uiBytes = 70000;
 	uiBits = uiBytes * 8;
-	puiBits = (uint8*)malloc32(uiBytes);
+	puiBits = (uint8*)malloc(uiBytes);
 	AssertNotNull(puiBits);
-	memset32(puiBits, 0, uiBytes);
+	memset(puiBits, 0, uiBytes);
 
 	AssertLSize(ARRAY_LARGE_ELEMENT_NOT_FOUND, FindFirstSetBitLarge(puiBits, uiBits));
 	AssertLSize(ARRAY_LARGE_ELEMENT_NOT_FOUND, FindLastSetBitLarge(puiBits, uiBits));
@@ -721,7 +720,7 @@ void TestIntegerHelperFindBitsLarge(void)
 	AssertLSize(524290, FindLastSetBitLarge(puiBits, 553333));
 	AssertLSize(70001, FindLastSetBitLarge(puiBits, 524290));
 
-	memset32(puiBits, 0xFF, uiBytes);
+	memset(puiBits, 0xFF, uiBytes);
 	AssertLSize(ARRAY_LARGE_ELEMENT_NOT_FOUND, FindFirstClearBitLarge(puiBits, uiBits));
 	AssertLSize(ARRAY_LARGE_ELEMENT_NOT_FOUND, FindLastClearBitLarge(puiBits, uiBits));
 	SetBitLarge(524287, puiBits, false);

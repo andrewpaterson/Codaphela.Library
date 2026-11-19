@@ -4,7 +4,6 @@
 #include "SupportLib/Sound.h"
 #include "SupportLib/ImageChannel.h"
 #include "TestLib/Assert.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -165,7 +164,7 @@ void TestSoundSilence(void)
 	int		iMismatches;
 
 	Ptr<CSound> pcSound = OMalloc<CSound>(8000, 20, PT_uint8, SOUND_LEFT, SOUND_RIGHT, CHANNEL_STOP);
-	memset32(pcSound->GetData(), 7, pcSound->GetByteSize());
+	memset(pcSound->GetData(), 7, pcSound->GetByteSize());
 	pcSound->Silence();
 
 	pui = (uint8*)pcSound->GetData();
@@ -181,7 +180,7 @@ void TestSoundSilence(void)
 	AssertDouble(0.0, pcSound->GetSample(19, 1), 12);
 
 	pcSound = OMalloc<CSound>(8000, 20, PT_int16, SOUND_MONO, CHANNEL_STOP);
-	memset32(pcSound->GetData(), 7, pcSound->GetByteSize());
+	memset(pcSound->GetData(), 7, pcSound->GetByteSize());
 	pcSound->Silence();
 	AssertDouble(0.0, pcSound->GetSample(5, 0), 12);
 

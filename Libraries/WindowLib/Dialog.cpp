@@ -108,6 +108,7 @@ void CDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle
 	msApprover.Clear();
 	mszClicked.Init();
 	mpExtra = NULL;
+	mbOK = true;
 	mbCancel = true;
 	miRows = 0;
 
@@ -169,6 +170,7 @@ void CDialog::Class(void)
 	U_Unknown(SMemberCall, msApprover);
 	U_String(mszClicked);
 	U_Int32(miRows);
+	U_Bool(mbOK);
 	U_Bool(mbCancel);
 }
 
@@ -407,12 +409,25 @@ void CDialog::SetFirstEditor(Ptr<CComponent> pFirstEditor)
 //////////////////////////////////////////////////////////////////////////
 //
 // OK's caption, like Open or Refactor.  It still closes the dialog as OK.
+// With NULL there's no OK button and enter clicks nothing: the dialog is
+// closed as OK by what it waits for (Close), or not at all.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDialog::SetOKCaption(const char* szCaption)
 {
-	mpOK->SetCaption(szCaption);
-	SizeButton(mpOK);
+	if (szCaption == NULL)
+	{
+		mpDialog->SetDefaultButton(NULL);
+		mbOK = false;
+	}
+	else
+	{
+		mpOK->SetCaption(szCaption);
+		SizeButton(mpOK);
+		mpDialog->SetDefaultButton(mpOK);
+		mbOK = true;
+	}
+	ArrangeButtons();
 }
 
 
@@ -443,7 +458,7 @@ void CDialog::SetCancelCaption(const char* szCaption)
 //////////////////////////////////////////////////////////////////////////
 //
 // The buttons along the bottom, on the right: the extra button, OK, then
-// Cancel.
+// Cancel, those of them that are shown.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDialog::ArrangeButtons(void)
@@ -453,7 +468,10 @@ void CDialog::ArrangeButtons(void)
 	{
 		mpButtons->AddComponent(mpExtra);
 	}
-	mpButtons->AddComponent(mpOK);
+	if (mbOK)
+	{
+		mpButtons->AddComponent(mpOK);
+	}
 	if (mbCancel)
 	{
 		mpButtons->AddComponent(mpCancel);

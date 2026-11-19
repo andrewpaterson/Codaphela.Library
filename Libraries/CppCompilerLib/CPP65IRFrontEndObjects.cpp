@@ -1139,8 +1139,9 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	{
 		return NewArray(pcNew, psType, psValue);
 	}
-	sBytes.psType = mpcTypes->Integer(4, false);
-	sBytes.sValue = mpcFunction->AddInteger(IRType(IRTK_I32), psType->iBytes);
+	//The size is a std::size_t ([expr.new] 10).
+	sBytes.psType = mpcTypes->Size();
+	sBytes.sValue = mpcFunction->AddInteger(IRTypeOf(sBytes.psType), psType->iBytes);
 	if (!Allocate(pcNew, psType, &sBytes, &sPlace.sAddress))
 	{
 		return false;
@@ -1224,6 +1225,14 @@ bool CCPP65IRFrontEnd::CallWithValue(CCPPFunction* pcFunction, CArraySyntax* pap
 // Each is default initialised, or value initialised by (), or from a list
 // in braces the first of them and the rest value initialised.
 // [expr.new] 17
+// The bytes asked for are a std::size_t.  When count elements, and the
+// count in front of them, are more than one holds (the W65C816's is 16
+// bits and the count 32), no allocation function is called, nothing is
+// made and the pointer is null: the bytes cut to a size_t would be given
+// less memory than is then used ([expr.new] 7).  With exceptions on that
+// is where std::bad_array_new_length is to be thrown (the user, 2026-11-19:
+// null, and "It should throw if exceptions are enabled"; ExceptionsPlan.txt
+// stage 8): the block the test goes to when there are too many.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue)
@@ -1234,9 +1243,16 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	CArraySyntax*		papcElements;
 	SCPP65Type*			psElement;
 	SIRType				sSize;
+	SIRType				sBytesType;
 	SIRReference		sMemory;
 	SIRReference		sIndex;
+	SIRReference		sTooMany;
 	SCPP65IRCountedLoop	sLoop;
+	CIRBlock*			pcStart;
+	CIRBlock*			pcAllocate;
+	CIRBlock*			pcEnd;
+	uint64				ulliMost;
+	uint64				ulliCookie;
 	size				uiFirst;
 	size				i;
 	bool				bCookie;
@@ -1256,12 +1272,33 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	sSize = IRTypeOf(sCount.psType);
 	bCookie = psType->IsClass() && psType->pcClass->mpcDestructor;
 
-	sBytes.psType = sCount.psType;
+	//The most elements whose bytes, with the count in front, a size_t holds.  When the count can be more, more than
+	//that goes straight to the end with a null pointer.
+	sBytes.psType = mpcTypes->Size();
+	sBytesType = IRTypeOf(sBytes.psType);
+	ulliCookie = bCookie ? (uint64)mcModule.GetPointerSize(0) : 0;
+	pcStart = NULL;
+	pcEnd = NULL;
+	if (psType->iBytes > 0)
+	{
+		ulliMost = (IRTruncate(sBytesType, ~(uint64)0) - ulliCookie) / (uint64)psType->iBytes;
+		if (ulliMost < IRTruncate(sSize, ~(uint64)0))
+		{
+			pcStart = mpcBlock;
+			pcAllocate = NewBlock();
+			pcEnd = NewBlock();
+			sTooMany = mpcFunction->Add(mpcBlock, IRO_UGt, sSize, sCount.sValue, mpcFunction->AddInteger(sSize, (int64)ulliMost));
+			mpcBlock->Branch(sTooMany, pcEnd, pcAllocate);
+			StartBlock(pcAllocate);
+		}
+	}
+
 	sBytes.sValue = mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sCount.sValue, mpcFunction->AddInteger(sSize, psType->iBytes));
 	if (bCookie)
 	{
-		sBytes.sValue = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes.sValue, mpcFunction->AddInteger(sSize, mcModule.GetPointerSize(0)));
+		sBytes.sValue = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes.sValue, mpcFunction->AddInteger(sSize, (int64)ulliCookie));
 	}
+	sBytes.sValue = ConvertIR(sBytes.sValue, sSize, sBytesType, false);
 	if (!Allocate(pcNew, psType, &sBytes, &sMemory))
 	{
 		return false;
@@ -1296,6 +1333,14 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 			return false;
 		}
 		EndCountedLoop(&sLoop, mpcFunction->Add(mpcBlock, IRO_Add, sSize, sIndex, mpcFunction->AddInteger(sSize, 1)));
+	}
+	if (pcEnd)
+	{
+		//Null when there were too many, else the elements.
+		pcAllocate = mpcBlock;
+		JumpTo(pcEnd);
+		StartBlock(pcEnd);
+		sMemory = Phi(pcEnd, IRType(IRTK_Pointer), pcStart, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0), pcAllocate, sMemory);
 	}
 	psValue->sValue = sMemory;
 	psValue->psType = mpcTypes->Pointer(psType);

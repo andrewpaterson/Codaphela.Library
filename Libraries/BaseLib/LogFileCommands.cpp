@@ -2,7 +2,6 @@
 #include "PointerRemapper.h"
 #include <string.h>
 #include "LogFileCommands.h"
-#include "Memory32.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -146,7 +145,7 @@ void CLogFileCommandWrite::Init(filePos iPosition, void* pvSource, lsize iSize)
 	Init(iPosition, iSize);
 
 	pvData = RemapSinglePointer(this, sizeof(CLogFileCommandWrite));
-	memcpy32(pvData, (void*)pvSource, iSize);
+	memcpy(pvData, (void*)pvSource, iSize);
 }
 
 

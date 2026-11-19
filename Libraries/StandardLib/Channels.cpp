@@ -28,7 +28,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/LogString.h"
 #include "Channels.h"
 #include "BaseLib/ErrorHandler.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1246,7 +1245,7 @@ void CChannels::Black(void)
 		if (IsUserAllocated())
 		{
 			//mabData is empty when the data belongs to the user.
-			memset32(mpvUserData, 0, GetByteSize());
+			memset(mpvUserData, 0, GetByteSize());
 		}
 		else
 		{
@@ -1267,7 +1266,7 @@ void CChannels::White(void)
 		if (IsUserAllocated())
 		{
 			//mabData is empty when the data belongs to the user.
-			memset32(mpvUserData, 0xff, GetByteSize());
+			memset(mpvUserData, 0xff, GetByteSize());
 		}
 		else
 		{

@@ -25,7 +25,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "BaseLib/IntegerHelper.h"
 #include "Adler32.h"
-#include "BaseLib/Memory32.h"
 #include "Deflater.h"
 
 
@@ -207,7 +206,7 @@ bool CDeflater::Deflate(const uint8* puiData, lsize uiSize)
 
 	mpuiData = puiData;
 	muiDataSize = uiSize;
-	memset32(maiHead, 0xFF, DEFLATER_HASH_SIZE * sizeof(int32));
+	memset(maiHead, 0xFF, DEFLATER_HASH_SIZE * sizeof(int32));
 	mcBits.Init(mpcOutput);
 
 	if (mbZLib)

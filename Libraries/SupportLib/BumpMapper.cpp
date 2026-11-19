@@ -29,7 +29,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageAccessorCreator.h"
 #include "ImageAccessor.h"
 #include "BumpMapper.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -221,7 +220,7 @@ Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pIma
 	}
 
 	iNumNormals = (pImageDest->GetImageWidth() + 1) * (pImageDest->GetImageHeight() + 1);
-	pasNormals = (SFloat32Vec3*)malloc32((lsize)sizeof(SFloat32Vec3) * iNumNormals);
+	pasNormals = (SFloat32Vec3*)malloc((lsize)sizeof(SFloat32Vec3) * iNumNormals);
 
 	GenerateNormalMapFromMono(&pImageSource, pasNormals, eHeightChannel);
 	if (bNormalMap)

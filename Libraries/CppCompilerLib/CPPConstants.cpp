@@ -561,6 +561,7 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 	CCPPSyntax*				pcInitialiser;
 	CIRFunction*			pcIR;
 	CChars					szInitialiser;
+	CCPPTemplateArguments*	pcBindings;
 	SIRValue				sObject;
 	SIRValue				sResult;
 	uint32					uiObject;
@@ -589,7 +590,19 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 	}
 	szInitialiser.Init();
 	NewName("__initialise", &szInitialiser);
-	mpcUnit->GetContext()->EnterBindings(pcVariable->mpcBindings);
+	//A variable template's instance has its own bindings.  A class template instance's static member has the class's:
+	//those its definition is being made with (CCPPUnit::DefineInstanceStatics', under its own parameter names, with the
+	//class's outside them for the initialiser the class gave it) when it is, else the class's.
+	pcBindings = pcVariable->mpcBindings;
+	if (!pcBindings && pcVariable->mpcClass && pcVariable->mpcClass->mpcBindings)
+	{
+		pcBindings = mpcUnit->GetContext()->GetBindings();
+		if (!pcBindings || (pcBindings->mpcClass != pcVariable->mpcClass))
+		{
+			pcBindings = pcVariable->mpcClass->mpcBindings;
+		}
+	}
+	mpcUnit->GetContext()->EnterBindings(pcBindings);
 	pcIR = pcFrontEnd->ConstantInitialiser(szInitialiser.Text(), pcVariable->mpsType, pcInitialiser);
 	mpcUnit->GetContext()->LeaveBindings();
 	szInitialiser.Kill();

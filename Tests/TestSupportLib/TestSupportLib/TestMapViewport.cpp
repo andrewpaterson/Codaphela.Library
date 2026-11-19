@@ -11,7 +11,6 @@
 #include "TestReadImage.h"
 #include "SupportAssert.h"
 #include "TestLib/AssertFile.h"
-#include "BaseLib/Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -156,8 +155,8 @@ void TestMapViewportBooleanLayer(void)
 
 		pDestImage1 = OMalloc<CImage>(32, 32, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 		pDestImage2 = OMalloc<CImage>(32, 32, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
-		memset32(pDestImage1->GetData(), 0, pDestImage1->GetByteSize());
-		memset32(pDestImage2->GetData(), 0, pDestImage2->GetByteSize());
+		memset(pDestImage1->GetData(), 0, pDestImage1->GetByteSize());
+		memset(pDestImage2->GetData(), 0, pDestImage2->GetByteSize());
 		pBlitterCache1 = OMalloc<CImageCelBlitterCache>(pDestImage1);
 		cMaps.Init(pBlitterCache1, pDestImage1);
 

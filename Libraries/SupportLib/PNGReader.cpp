@@ -31,7 +31,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageReaderCommon.h"
 #include "PNGCommon.h"
 #include "PNGReader.h"
-#include "BaseLib/Memory32.h"
 
 
 //Compressed data can claim a huge image in a tiny file, so the size is limited (8192 x 8192).
@@ -473,12 +472,12 @@ bool PNGDecodeRows(uint8* puiFiltered, SPNGInfo* psInfo, uint8* puiPixels)
 		}
 		for (y = 0; y < (uint32)psInfo->iHeight; y++)
 		{
-			memcpy32(&puiPixels[y * psInfo->uiRowBytes], &puiFiltered[y * (psInfo->uiRowBytes + 1) + 1], psInfo->uiRowBytes);
+			memcpy(&puiPixels[y * psInfo->uiRowBytes], &puiFiltered[y * (psInfo->uiRowBytes + 1) + 1], psInfo->uiRowBytes);
 		}
 		return true;
 	}
 
-	memset32(puiPixels, 0, psInfo->uiRowBytes * psInfo->iHeight);
+	memset(puiPixels, 0, psInfo->uiRowBytes * psInfo->iHeight);
 	for (iPass = 0; iPass < PNG_ADAM7_PASSES; iPass++)
 	{
 		iPassWidth = (psInfo->iWidth - gaiAdam7StartX[iPass] + gaiAdam7StepX[iPass] - 1) / gaiAdam7StepX[iPass];
@@ -577,7 +576,7 @@ Ptr<CImage> PNGCreatePaletteImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddD
 		}
 	}
 
-	puiRGBA = (uint8*)malloc32((lsize)psInfo->iWidth * psInfo->iHeight * 4);
+	puiRGBA = (uint8*)malloc((lsize)psInfo->iWidth * psInfo->iHeight * 4);
 	if (puiRGBA == NULL)
 	{
 		return NULL;
@@ -786,7 +785,7 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug, const char* szObjectName)
 		return NULL;
 	}
 
-	puiPixels = (uint8*)malloc32(sInfo.uiRowBytes * sInfo.iHeight);
+	puiPixels = (uint8*)malloc(sInfo.uiRowBytes * sInfo.iHeight);
 	bDecoded = (puiPixels != NULL) && PNGDecodeImage(&acCompressed, &sInfo, puiPixels);
 	acCompressed.Kill();
 	if (!bDecoded)

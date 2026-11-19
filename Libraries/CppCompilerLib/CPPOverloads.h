@@ -75,6 +75,9 @@ typedef CMapLongTemplate<char>	CMapCPPResolved;
 //can be deduced; each is ranked by the conversions its parameters need of the arguments, and the best is the
 //answer, or none is if two are as good as each other.  It asks the unit what a name is and where the compiler
 //is; it keeps only what it has chosen for before, to count the calls it is asked about again.
+#define CPP_BETTER_FUNCTION_ARGUMENTS	32
+
+
 class CCPPOverloads
 {
 protected:
@@ -112,6 +115,7 @@ public:
 	int						DeclarationToken(CCPPFunction* pcFunction);
 	bool					IsCandidate(CCPPCandidates* pcCandidates, CCPPFunction* pcFunction);
 	bool					RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArguments, CArraySyntax* papcArguments, int* aiRanks);
+	bool					IsBetterFunction(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments);
 	int						ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList);
 	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
 	bool					HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);

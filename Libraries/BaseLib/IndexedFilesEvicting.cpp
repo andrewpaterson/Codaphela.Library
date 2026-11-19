@@ -5,7 +5,6 @@
 #include "IndexTree.h"
 #include "IndexedFilesEvictionCallback.h"
 #include "IndexedFilesEvicting.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,7 +70,7 @@ bool CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 	{
 		//Data already in cache so just copy it into pvData.  Assume pvData is large enough.
 		uiDataSize = pcExistingDescriptor->GetCacheDataSize();
-		memcpy32(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
+		memcpy(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
 		return true;
 	}
 	else
@@ -88,7 +87,7 @@ bool CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 				bResult = mcDataFiles.Read(&cDataIndex, pvCache);
 				if (bResult)
 				{
-					memcpy32(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
+					memcpy(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
 					mpcEvictionCallback->UpdateDescriptorCache(oi, pvCache, uiDataSize);
 					return true;
 				}
@@ -403,7 +402,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 			return NULL;
 		}
 		pvNewCache = cCacheResult.GetCache();
-		memcpy32(pvNewCache, pvData, uiDataSize);
+		memcpy(pvNewCache, pvData, uiDataSize);
 		return pvNewCache;
 	}
 	else
@@ -411,7 +410,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 		if (uiDataSize == pcDescriptor->GetCacheDataSize())
 		{
 			//Descriptor size same as Set size.  Cached data.  File exists.
-			memcpy32(pvExistingCache, pvData, uiDataSize);
+			memcpy(pvExistingCache, pvData, uiDataSize);
 			return pvExistingCache;
 		}
 		else
@@ -423,7 +422,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 			}
 
 			pvNewCache = cCacheResult.GetCache();
-			memcpy32(pvNewCache, pvData, uiDataSize);
+			memcpy(pvNewCache, pvData, uiDataSize);
 			mcDataCache.Invalidate(pvExistingCache);
 			return pvNewCache;
 		}
@@ -669,7 +668,7 @@ bool CIndexedFilesEvicting::CompareDiskToMemory(CIndexedDataDescriptor* pcDescri
 
 		cDataIndex = pcDescriptor->GetFileDataIndex();
 		mcDataFiles.Read(&cDataIndex, pvTemp);
-		bResult = memcmp32(pvTemp, pvData, uiDataSize) == 0;
+		bResult = memcmp(pvTemp, pvData, uiDataSize) == 0;
 		cStack.Kill();
 		return bResult;
 	}

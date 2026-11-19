@@ -81,6 +81,7 @@ public:
 	bool	Draw(uint32* puiPixels, int32 iWidth, int32 iHeight, uint32 uiBackground);
 
 	size	NumInstances(void) const;
+	Ptr<CRenderScene>	GetRenderScene(void) const;
 
 protected:
 	void	ExtractInstances(void);

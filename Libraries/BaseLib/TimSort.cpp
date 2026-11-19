@@ -23,7 +23,6 @@
 #include <stddef.h>		// size, NULL
 #include <stdlib.h>		// malloc, free
 #include <string.h>		// memcpy, memmove
-#include "Memory32.h"	// malloc32
 #include "TimSort.h"
 
 
@@ -210,7 +209,7 @@ static int timsort_init(struct timsort* ts, void* a, lsize len,
 	ts->tmp_length = (len < 2 * INITIAL_TMP_STORAGE_LENGTH ?
 		len >> 1 : INITIAL_TMP_STORAGE_LENGTH);
 	if (ts->tmp_length) {
-		ts->tmp = malloc32(ts->tmp_length * width);
+		ts->tmp = malloc(ts->tmp_length * width);
 		err |= ts->tmp == NULL;
 	}
 	else {
@@ -386,7 +385,7 @@ static void* ensureCapacity(struct timsort* ts, lsize minCapacity,
 
 		free(ts->tmp);
 		ts->tmp_length = newSize;
-		ts->tmp = malloc32(ts->tmp_length * width);
+		ts->tmp = malloc(ts->tmp_length * width);
 	}
 
 	return ts->tmp;

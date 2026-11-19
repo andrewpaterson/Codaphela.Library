@@ -221,6 +221,9 @@ bool CCPPTypeWriter::Named(SCPP65Type* psType, CChars* pszDest)
 	case CPP65TK_Bool:
 		pszDest->Append("bool");
 		return true;
+	case CPP65TK_NullPointer:
+		pszDest->Append("std::nullptr_t");
+		return true;
 	case CPP65TK_Integer:
 		if (psType->pcEnum)
 		{

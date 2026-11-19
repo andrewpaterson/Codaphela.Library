@@ -269,6 +269,7 @@
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="SettingsDialog.h" />
     <ClInclude Include="MessageDialog.h" />
+    <ClInclude Include="ProgressDialog.h" />
     <ClInclude Include="FileChooser.h" />
     <ClInclude Include="GoToDialog.h" />
     <ClInclude Include="PasteHistoryDialog.h" />
@@ -372,6 +373,7 @@
     <ClCompile Include="Dialog.cpp" />
     <ClCompile Include="SettingsDialog.cpp" />
     <ClCompile Include="MessageDialog.cpp" />
+    <ClCompile Include="ProgressDialog.cpp" />
     <ClCompile Include="FileChooser.cpp" />
     <ClCompile Include="GoToDialog.cpp" />
     <ClCompile Include="PasteHistoryDialog.cpp" />

@@ -751,6 +751,7 @@ public:
 	SCPP65Type*				EnumeratorType(CCPPSymbol* pcSymbol);
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
 	bool					IsNullPointerLiteral(CCPPSyntax* pcExpression);
+	bool					IsNullPointerConstant(CCPPSyntax* pcExpression);
 	SCPP65Type*				QualifiedFieldType(CCPPSyntax* pcExpression);
 	bool					DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes);
 	bool					DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);

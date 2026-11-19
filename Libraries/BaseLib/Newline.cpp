@@ -119,7 +119,7 @@ lsize PassifyNewlines(char *szString)
 		return MAX_LSIZE;
 	}
 
-	szNewString	= (char*)malloc32(uiLen-uiNumCarriageReturns+1);
+	szNewString	= (char*)malloc(uiLen-uiNumCarriageReturns+1);
 
 	uiPos = 0;
 	for (i = 0; i <= uiLen; i++)
@@ -131,7 +131,7 @@ lsize PassifyNewlines(char *szString)
 		}
 	}
 
-	memcpy32(szString, szNewString, uiPos);
+	memcpy(szString, szNewString, uiPos);
 	SafeFree(szNewString);
 	return uiPos - 1;
 }

@@ -2759,6 +2759,118 @@ static const SConformanceCase gasConformanceStage10[] =
 		"int main() { int ai[4]; int* p = &ai[3]; int* q = &ai[0];\n"
 		" return Same<decltype(sizeof(int)), size_t>::V + Same<decltype(p - q), ptrdiff_t>::V * 2 + Same<decltype(offsetof(S, b)), size_t>::V * 4 + (p - q == 3) * 8; }\n"
 	},
+	//A new expression's size is a std::size_t ([expr.new] 10): a program's own operator new and new[] are given it.
+	{
+		"NewSizeIsSizeT", 7,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gac[64];\n"
+		"size_t gn;\n"
+		"void* operator new(size_t n) { gn = n; return gac; }\n"
+		"void operator delete(void* p) noexcept {}\n"
+		"void* operator new[](size_t n) { gn = n; return gac; }\n"
+		"void operator delete[](void* p) noexcept {}\n"
+		"struct S { char c[10]; };\n"
+		"int main() { S* p = new S; int r = (gn == 10); delete p; char* q = new char[20]; r += (gn == 20) * 2; delete[] q; return r + 4; }\n"
+	},
+	//A function that isn't a template's is called rather than a template's instance that takes the arguments no better;
+	//the instance when it converts one better and none worse ([over.match.best] 1).  The first f is the function's though
+	//its pointer is converted, as the instance's is.  (BaseLib's memcpy and malloc overloads on the W65C816 lean on it.)
+	{
+		"TemplateOrFunction", 19121,
+		"int f(const void* p, unsigned n) { return 1; }\n"
+		"template<class T> int f(const void* p, T n) { return 2; }\n"
+		"template<class T> int g(T a, long b) { return 3; }\n"
+		"int g(int a, int b) { return 4; }\n"
+		"char ga[4];\n"
+		"int main() { unsigned u = 3; int i = 3; return f(ga, u) + f(ga, i) * 10 + f((const void*)ga, u) * 100 + g(1, 2) * 1000 + g('a', 2L) * 5000; }\n"
+	},
+	//std::nullptr_t is a type of its own ([basic.fundamental] 10, [lex.nullptr], [conv.ptr] 1, [conv.mem] 1, [conv.bool]):
+	//nullptr's and decltype(nullptr)'s, not void*; it converts to any pointer and pointer to member, and to bool only in
+	//a direct initialisation or a condition; nothing but a null pointer constant converts to it, and it has no arithmetic.
+	{
+		"NullPointerOwnType", 255,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int f(void*) { return 1; }\n"
+		"int f(nullptr_t) { return 2; }\n"
+		"template<class T> int h(T) { return Same<T, nullptr_t>::V; }\n"
+		"int main() { void* pv = 0; nullptr_t n = nullptr; return (Same<nullptr_t, void*>::V == 0) + (f(pv) == 1) * 2 + (f(nullptr) == 2) * 4 + (f(n) == 2) * 8 + (h(nullptr) == 1) * 16 + (h(pv) == 0) * 32 + (sizeof(nullptr_t) == sizeof(void*)) * 64 + Same<decltype(nullptr), nullptr_t>::V * 128; }\n"
+	},
+	{
+		"NullPointerConversions", 4095,
+		"struct S { int m; int f() { return 1; } };\n"
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"nullptr_t gn;\n"
+		"int* id(int* p) { return p; }\n"
+		"nullptr_t pass(nullptr_t n) { return n; }\n"
+		"int main() { int i = 1; nullptr_t n = nullptr; nullptr_t z = 0; int* p = n; int S::*pm = n; int (S::*pf)() = nullptr; bool b(n); int* q = &i;\n"
+		" return (p == 0) + (pm == nullptr) * 2 + (pf == nullptr) * 4 + (b == false) * 8 + (n == nullptr) * 16 + !(n != z) * 32 + (nullptr == p) * 64 + ((i ? q : nullptr) == q) * 128 + (id(nullptr) == 0) * 256 + (pass(gn) == nullptr) * 512 + (q != nullptr) * 1024 + (n ? 0 : 2048); }\n"
+	},
+	{
+		"NullPointerNotBool", CONFORMANCE_REFUSED,
+		"int main() { bool b = nullptr; return b + 1; }\n"
+	},
+	{
+		"NullPointerFromPointer", CONFORMANCE_REFUSED,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { int* p = 0; nullptr_t n = p; return 1; }\n"
+	},
+	{
+		"NullPointerArithmetic", CONFORMANCE_REFUSED,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { nullptr_t n = nullptr; return (n + 1) == n; }\n"
+	},
+	{
+		"NullPointerTypeid", 7,
+		"#ifdef _MSC_VER\n"
+		"#include <typeinfo>\n"
+		"#else\n"
+		"namespace std { class type_info { public: bool operator==(const type_info& o) const noexcept; bool operator!=(const type_info& o) const noexcept; const char* name() const noexcept; }; }\n"
+		"#endif\n"
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { nullptr_t n = nullptr; return (typeid(nullptr) == typeid(nullptr_t)) + (typeid(n) != typeid(void*)) * 2 + (typeid(nullptr_t) != typeid(int*)) * 4; }\n"
+	},
+	{
+		"NullPointerNotInteger", CONFORMANCE_REFUSED,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { nullptr_t n = nullptr; int i = n; return i + 1; }\n"
+	},
+	{
+		"NullPointerCasts", 7,
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"int main() { nullptr_t n = nullptr; long l = (long)n; long m = reinterpret_cast<long>(nullptr); void* p = static_cast<void*>(n); return (l == 0) + (m == 0) * 2 + (p == 0) * 4; }\n"
+	},
+	//Found 2026-11-19 by a probe of library style code (CppParserTodo.txt): both had been refused.  The value of a call
+	//that returns a reference to a number or a pointer is what it refers to ([conv.lval]).  A static data member's
+	//address is taken through its class's name, a reference is bound to it, and a class template's constexpr one
+	//defined outside the class has the initialiser the class gave it, with the instance's arguments ([class.static.data]).
+	{
+		"ReferenceResultRead", 30317,
+		"int gi = 3;\n"
+		"int& same() { return gi; }\n"
+		"const long& pick(const long& a) { return a; }\n"
+		"struct V { int a[4]; int& at(int i) { return a[i]; } char c; char& ch() { return c; } };\n"
+		"int take(int v) { return v; }\n"
+		"int* gp = &gi;\n"
+		"int*& ptr() { return gp; }\n"
+		"int main() { V v; v.at(1) = 7; v.ch() = 'A'; long l = 40; int x = v.at(1); int r = same() + 1; if (same() == 3) { r += 10; } long m = same(); return r + take(same()) * 100 + x * 1000 + (int)pick(l) * 100 + (v.ch() == 'A') * 10000 + *ptr() * 3000 + (int)m; }\n"
+	},
+	{
+		"StaticMemberAddress", 32375,
+		"template<class T, T v> struct ic { static constexpr T value = v; };\n"
+		"template<class T, T v> constexpr T ic<T, v>::value;\n"
+		"template<class T> struct S { static constexpr int size = sizeof(T); static const int twice = sizeof(T) * 2; static int count; };\n"
+		"template<class T> constexpr int S<T>::size;\n"
+		"template<class T> const int S<T>::twice;\n"
+		"template<class T> int S<T>::count = 3;\n"
+		"struct N { static constexpr int k = 5; static int n; };\n"
+		"constexpr int N::k;\n"
+		"int N::n = 6;\n"
+		"const int& ref(const int& r) { return r; }\n"
+		"int main() { const int* p = &ic<int, 5>::value; const int* q = &N::k; int* c = &S<char>::count; int* n = &N::n; *c += 1; *n += 1;\n"
+		" return *p + ref(ic<int, 7>::value) * 10 + ref(S<char>::size) * 100 + ref(S<char>::twice) * 200 + *q * 1000 + S<char>::count * 2000 + N::n * 400 + (p == &ic<int, 5>::value) * 16000; }\n"
+	},
 };
 
 

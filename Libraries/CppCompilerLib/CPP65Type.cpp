@@ -39,7 +39,7 @@ bool SCPP65Type::IsInteger(void) const
 //////////////////////////////////////////////////////////////////////////
 bool SCPP65Type::IsScalar(void) const
 {
-	return IsInteger() || (eKind == CPP65TK_Pointer) || (eKind == CPP65TK_Float) || (eKind == CPP65TK_MemberPointer);
+	return IsInteger() || (eKind == CPP65TK_Pointer) || (eKind == CPP65TK_Float) || (eKind == CPP65TK_MemberPointer) || (eKind == CPP65TK_NullPointer);
 }
 
 
@@ -60,6 +60,18 @@ bool SCPP65Type::IsPointer(void) const
 bool SCPP65Type::IsMemberPointer(void) const
 {
 	return eKind == CPP65TK_MemberPointer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// std::nullptr_t (const or not): nullptr's type.  It isn't a pointer
+// (IsPointer), though its one value is a null pointer and it is as wide.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsNullPointer(void) const
+{
+	return eKind == CPP65TK_NullPointer;
 }
 
 
@@ -284,6 +296,9 @@ void SCPP65Type::Append(CChars* psz)
 	case CPP65TK_Bool:
 		psz->Append("bool");
 		break;
+	case CPP65TK_NullPointer:
+		psz->Append("std::nullptr_t");
+		break;
 	case CPP65TK_Integer:
 		if (pcEnum)
 		{
@@ -430,6 +445,7 @@ void CCPP65Types::Init(int iIntBytes, int iPointerBytes)
 	InitBuiltin(&msVoid, CPP65TK_Void, 0, false);
 	InitBuiltin(&msUndeduced, CPP65TK_Void, 0, false);
 	InitBuiltin(&msBool, CPP65TK_Bool, 1, false);
+	InitBuiltin(&msNullPointer, CPP65TK_NullPointer, iPointerBytes, false);
 	InitInteger(&msChar, CPP65IK_Char, 1, true);
 	InitInteger(&msSignedChar, CPP65IK_SignedChar, 1, true);
 	InitInteger(&msUnsignedChar, CPP65IK_UnsignedChar, 1, false);

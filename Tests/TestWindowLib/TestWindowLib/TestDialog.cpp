@@ -12,6 +12,7 @@
 #include "WindowLib/CheckBox.h"
 #include "WindowLib/JewelColours.h"
 #include "WindowLib/MessageDialog.h"
+#include "WindowLib/ProgressDialog.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
 #include "TestLib/AssertFile.h"
@@ -508,7 +509,8 @@ static void InitTestDialogLook(SDialogLook* psLook, Ptr<CWindowTheme> pTheme)
 //
 // Every button is at least the theme's dialog button width wide, or as
 // wide as its caption.  The extra button goes before OK and closes the
-// dialog as its caption; without Cancel, escape clicks OK.
+// dialog as its caption; without Cancel, escape clicks OK.  Without OK
+// there is no default button, until it has a caption again.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDialogButtons(void)
@@ -561,6 +563,19 @@ void TestDialogButtons(void)
 		AssertTrue(pDialog->IsShown(pDialog->GetOK()));
 		pDialog->GetWindow()->InputCommand(CIC_ClearSelection, true);
 		AssertString("OK", pDialog->GetClicked());
+
+		pDialog->SetCancelCaption("Cancel");
+		pDialog->SetOKCaption(NULL);
+		AssertFalse(pDialog->IsShown(pDialog->GetOK()));
+		AssertTrue(pDialog->IsShown(pDialog->GetCancel()));
+		AssertTrue(pDialog->GetWindow()->GetDefaultButton().IsNull());
+		pDialog->GetWindow()->InputCommand(CIC_ClearSelection, true);
+		AssertString("Cancel", pDialog->GetClicked());
+		pDialog->SetOKCaption("Go");
+		AssertTrue(pDialog->IsShown(pDialog->GetOK()));
+		AssertTrue(pDialog->GetWindow()->GetDefaultButton() == pDialog->GetOK());
+		pDialog->GetWindow()->Layout();
+		AssertTrue(pDialog->GetOK()->GetPosition().x < pDialog->GetCancel()->GetPosition().x);
 
 		ORoot()->Remove(pDialog);
 		pDialog = NULL;
@@ -705,6 +720,130 @@ void TestMessageDialog(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A progress dialog shown from its owner's tick, and the work it shows:
+// done after a few of the dialog's ticks, or never.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestProgressDialog
+{
+public:
+	SDialogLook				sLook;
+	Ptr<CWindowTheme>		pTheme;
+	Ptr<CProgressDialog>	pProgress;
+	int32					iTicks;  //Of the dialog showing.
+	int32					iWork;  //The ticks the work takes.
+	int32					iCancel;  //The tick escape is pressed at, 0 for never.
+	float					fHalfway;  //The bar when half the work was done.
+
+	void Tick(void)
+	{
+		char	szText[32];
+
+		iTicks++;
+		sprintf(szText, "Step %d of %d", (int)iTicks, (int)iWork);
+		pProgress->SetText(szText);
+		pProgress->SetProgress(iTicks, iWork);
+		if (iTicks * 2 == iWork)
+		{
+			fHalfway = pProgress->GetFraction();
+		}
+		if (iTicks == iCancel)
+		{
+			pProgress->GetDialog()->GetWindow()->InputCommand(CIC_ClearSelection, true);
+		}
+		else if (iTicks == iWork)
+		{
+			pProgress->Finish();
+		}
+	}
+
+	bool Show(Ptr<CWindow> pOwner, int32 iWorkTicks, int32 iCancelTick)
+	{
+		iTicks = 0;
+		iWork = iWorkTicks;
+		iCancel = iCancelTick;
+		fHalfway = 0.0f;
+		pProgress = OMalloc<CProgressDialog>(pOwner, &sLook, "Working", "Starting");
+		pProgress->SetTicker(this, &CTestProgressDialog::Tick);
+		return pProgress->Show();
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The owner shows work that finishes, which closes the dialog by itself,
+// and work that escape cancels first.
+//
+//////////////////////////////////////////////////////////////////////////
+bool ProgressDialogOwnerFrames(Ptr<CWindow> pWindow, int32 iFrame, void* pvContext)
+{
+	CTestProgressDialog*	pcTest;
+
+	if (iFrame != 0)
+	{
+		return false;
+	}
+	pcTest = (CTestProgressDialog*)pvContext;
+
+	//Ticked until the work is done: only Cancel to click, and nothing for enter.
+	AssertTrue(pcTest->Show(pWindow, 6, 0));
+	AssertInt(6, pcTest->iTicks);
+	AssertString("OK", pcTest->pProgress->GetDialog()->GetClicked());
+	AssertString("Step 6 of 6", pcTest->pProgress->GetText());
+	AssertFloat(0.5f, pcTest->fHalfway, 3);
+	AssertFloat(1.0f, pcTest->pProgress->GetFraction(), 3);
+	AssertTrue(pcTest->pProgress->GetDialog()->GetWindow()->GetDefaultButton().IsNull());
+	AssertTrue(pcTest->pProgress->GetDialog()->GetWindow()->GetCancelButton().IsNotNull());
+
+	//Cancelled before it's done: the dialog closes then, the work no further on.
+	AssertFalse(pcTest->Show(pWindow, 6, 2));
+	AssertInt(2, pcTest->iTicks);
+	AssertString("Cancel", pcTest->pProgress->GetDialog()->GetClicked());
+	AssertString("Step 2 of 6", pcTest->pProgress->GetText());
+
+	pcTest->pProgress = NULL;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestProgressDialog(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CScriptFramesTick>		pTick;
+		CTestProgressDialog			cTest;
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTick = OMalloc<CScriptFramesTick>(ProgressDialogOwnerFrames, &cTest);
+		pTestWindow = OMalloc<CWindow>("Progress Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		cTest.pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		InitTestDialogLook(&cTest.sLook, cTest.pTheme);
+
+		pTestWindow->Show();
+
+		cTest.sLook.Kill();
+		cTest.pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDialog(void)
@@ -716,6 +855,7 @@ void TestDialog(void)
 	TestDialogTab();
 	TestDialogButtons();
 	TestMessageDialog();
+	TestProgressDialog();
 	TestWindowCloseApprover();
 	TestWindowPost();
 

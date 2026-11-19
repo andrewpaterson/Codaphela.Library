@@ -39,6 +39,7 @@ enum ECPP65TypeKind
 	CPP65TK_Float,
 	CPP65TK_Reference,
 	CPP65TK_MemberPointer,
+	CPP65TK_NullPointer,	//std::nullptr_t: nullptr's type, a pointer wide, that is no pointer.  [basic.fundamental] 10
 };
 
 
@@ -108,6 +109,7 @@ struct SCPP65Type
 	bool	IsRvalueReference(void) const;
 	bool	IsLvalueReference(void) const;
 	bool	IsMemberPointer(void) const;
+	bool	IsNullPointer(void) const;
 	bool	IsFloat(void) const;
 	bool	IsSupported(void) const;
 	bool	IsWide(void) const;
@@ -150,6 +152,7 @@ public:
 	SCPP65Type			msVoid;
 	SCPP65Type			msUndeduced;	//What auto f() returns until its definition says (CCPPUnit::ResolveReturn): void, but itself.
 	SCPP65Type			msBool;
+	SCPP65Type			msNullPointer;		//std::nullptr_t.
 	SCPP65Type			msChar;				//Signed, but not signed char.
 	SCPP65Type			msSignedChar;
 	SCPP65Type			msUnsignedChar;

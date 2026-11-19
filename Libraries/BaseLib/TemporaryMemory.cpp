@@ -2,7 +2,6 @@
 #include "Define.h"
 #include "PointerFunctions.h"
 #include "TemporaryMemory.h"
-#include "Memory32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,7 +35,7 @@ void* CTemporaryMemory::Size(lsize uiSize)
 	if (uiSize > muiTempSize)
 	{
 		SafeFree(mpvTemp);
-		mpvTemp = malloc32(uiSize);
+		mpvTemp = malloc(uiSize);
 		muiTempSize = uiSize;
 	}
 

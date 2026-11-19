@@ -1128,6 +1128,53 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcFirst is a better function for the arguments than pcSecond: it
+// converts one of them better and none worse (as CCPPCandidates::Compare
+// has it).  A template's instance must be, to be called rather than a
+// function of the name that isn't a template's.  [over.match.best] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::IsBetterFunction(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments)
+{
+	SCPP65Type*	apsArguments[CPP_BETTER_FUNCTION_ARGUMENTS];
+	int			aiFirst[CPP_BETTER_FUNCTION_ARGUMENTS];
+	int			aiSecond[CPP_BETTER_FUNCTION_ARGUMENTS];
+	size		uiArguments;
+	size		i;
+	bool		bBetter;
+
+	uiArguments = papcArguments ? papcArguments->NumElements() : 0;
+	if (uiArguments > CPP_BETTER_FUNCTION_ARGUMENTS)
+	{
+		return true;
+	}
+	for (i = 0; i < uiArguments; i++)
+	{
+		apsArguments[i] = mpcUnit->TypeOf(papcArguments->GetPtr(i));
+	}
+	if (!RankArguments(pcSecond, apsArguments, papcArguments, aiSecond))
+	{
+		return true;
+	}
+	if (!RankArguments(pcFirst, apsArguments, papcArguments, aiFirst))
+	{
+		return false;
+	}
+	bBetter = false;
+	for (i = 0; i < uiArguments; i++)
+	{
+		if (aiFirst[i] < aiSecond[i])
+		{
+			return false;
+		}
+		bBetter |= aiFirst[i] > aiSecond[i];
+	}
+	return bBetter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The rank of each argument's conversion to its parameter, in aiRanks.  Returns
 // false if the function cannot take the arguments.
 //
@@ -1313,10 +1360,20 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 		}
 		return CPPCR_Conversion;
 	}
-	if ((psParameter->IsPointer() || psParameter->IsMemberPointer()) && pcArgument && mpcUnit->IsNullPointerLiteral(pcArgument))
+	if (psArgument->IsNullPointer())
 	{
-		//nullptr is a null pointer of any type.  [conv.ptr] 1
-		return CPPCR_Conversion;
+		//A std::nullptr_t is one exactly, becomes a null pointer or pointer to a member of any type ([conv.ptr] 1,
+		//[conv.mem] 1), and nothing else without a cast: not a bool ([conv.bool]: direct initialisation only).
+		if (psParameter->WithoutReference()->IsNullPointer())
+		{
+			return CPPCR_Exact;
+		}
+		return (psParameter->IsPointer() || psParameter->IsMemberPointer()) ? CPPCR_Conversion : CPPCR_None;
+	}
+	if (psParameter->IsNullPointer())
+	{
+		//Only a null pointer constant becomes a std::nullptr_t.
+		return (pcArgument && mpcUnit->IsNullPointerConstant(pcArgument)) ? CPPCR_Conversion : CPPCR_None;
 	}
 	if (psParameter->IsPointer() && psArgument->IsPointer())
 	{
