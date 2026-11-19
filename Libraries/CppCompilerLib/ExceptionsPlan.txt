@@ -945,3 +945,64 @@ Progress
     TestSupportLib65   65C64    yes          76    36013      34282018729     35118492      546      946
     TestSupportLib65   W65C816  yes          72    27222      96441829522     75347783      792      934
 
+  6. Done (CommonLibraries 69df0fcde, 373d2ed88, b55429bc8, 53443c621, b9c4b31d1; HCP65 cc6b797, a604c06, f015fc5).
+     - The front end (CPP65IRFrontEndExceptions.cpp).  After a call that may throw (CallMayThrow: any function not
+       declared noexcept, and every call through a pointer) it writes thrown and a brif to Landing: the block of the
+       cleanup stack's newest entry, which undoes it and goes on to the one below's (UndoBlock: made when first asked
+       for and kept in the entry, so every call that can throw past an entry shares its block; an entry forgets it when
+       what is under it changes), down to the try being written, then that try's handlers, else the function's way out
+       (WayOut: one block that ends in throw, or a call of std::terminate for a function declared noexcept and for the
+       routines the compiler writes for itself).  A call that throws while a cleanup is written for an exception on its
+       way is terminate ([except.ctor] 3).  The runtime's routines are called as C functions with their arguments on
+       the stack (ExceptionCall), and their symbols are nothrow.
+     - Not as planned: CallRuntime wasn't given a list of arguments, and the routines aren't register calls: a routine
+       of the runtime is called seldom, and ExceptionCall is the one place.  A function declared noexcept is marked
+       nothrow where it is written, so its callers' tests fold away.
+     - throw (ThrowExpression): __AllocateException, the object made in it as a variable from its initialiser (a class
+       by Construct, anything else stored), __Throw with its type info and a function that destroys it (R_DestroyThrown
+       and the type mangled, written once a program for each class thrown: CCPPUnit::ThrownDestroyer); throw; is
+       __Rethrow.  The thrown type drops a reference and top-level const and volatile and decays an array or a function;
+       an abstract or incomplete class, or void, is refused (CCPPUnit::CheckThrown).  throw as an operand of ?: gives the
+       other's type and value ([expr.cond] 2), in a constant expression too (it fails only when it is reached).
+     - try (TryStatement): the block with the try on a stack of tries, then a block that asks __Match of each handler in
+       turn and goes to the first that takes the exception, or on as from outside the try.  A handler: __BeginCatch, an
+       entry of the cleanup stack that calls __EndCatch by whichever way it is left (it is counted with the locals), the
+       parameter made from what the match gave (a reference bound to it; an object copied, with a throw from the copy
+       std::terminate, and destroyed with the handler's scope; one with no name made all the same), the block.  The
+       handler's parameter is a local of the function (CCPPUnit::HandlerLocal); an rvalue reference, an incomplete class,
+       catch (...) not last, and a goto or a switch into a try block or a handler are refused (CheckTryJumps).
+     - Found on the way and mended (it is wrong code with exceptions off too, and is on master): a member function called
+       on a name was always called by its label, as a named object's may be, even when the name was a reference's, so a
+       derived class's override wasn't called through a parameter const B&, a local reference or a reference field
+       (CCPPBinder::IsNamedObject; case VirtualThroughReferenceName).  Told to the other session.
+     - 3d, the builder's check of assembly (CCPP65Builder::CheckTested): the front end notes the functions it calls by
+       name and tests, but the unit's own static ones; after the link one that no object compiled from C++ defines is an
+       error that says to declare it noexcept.  TestCPP65IRTestedAssemblies.  For it, as the plan's question 3 and 4
+       said: Libc65's C functions are noexcept, declarations and definitions (all but qsort, whose comparison is the
+       program's), and so are BaseLib's functions the W65C816 has in assembly (the FAT classes' members and
+       FatFilenameHelper's functions, MemSwp and the bit finders).  std::exception's and the others' members moved from
+       the headers into exception.cpp, so that a program that derives from one has them.
+     - HCP65's start up (question 15), not as assumed: the assembler has no conditionals, so a program built with
+       exceptions defines a kept COMDAT byte, R_Exceptions (CCPPUnit::AppendRuntime), and UserStart.asm tests main's carry
+       only when its weak reference to it is set, and calls __Terminate if that is linked.  UserStart.asm also gained
+       __Exit.a, _Exit with its argument in A as C++ calls it: a program that called _Exit itself had a stop linked in its
+       place (the exe builder stubs what is missing).  TestHCP65KernalExceptions runs a program built with exceptions as a
+       user process: it catches one thrown two calls down, with a local destroyed on the way, and the terminate handler
+       of one that leaves main exits with 77.
+     - The conformance test links the runtime for the Exceptions group, which passes 136 of 174 on each target; what is
+       left is stages 7 and 8's (constructors and arrays half made, new, function-try-blocks, the library's exceptions,
+       exception_ptr, throw lists) and StandardExceptionsDerive (a template argument the compiler can't take).  Cases
+       changed to mean what they test: a global that is used (an unused one is dropped with its constructor), a function
+       that throws an abstract class called (one that isn't is never compiled).
+     - TestCppCompilerLib passes (269208), TestLibc65 on both processors.
+     - HoistCommon put what both ways out of a brif worked out in the branching block before the instruction the brif
+       reads, which split a thrown from its call (TestScene, W65C816, with exceptions): it leaves such a block alone
+       (b9c4b31d1, in TestIRThrown).
+     - The Lib65 suites pass on both processors with exceptions on and off.  Off, every program's bytes and cycles are
+       the third baseline's exactly (Stage6/off against Baseline3): the reference fix and the noexcept declarations
+       change no code there.
+     - TestHCP65Lib passes but for TestHCP65KernalVideo (vidtest.exe exits 504: VideoTestScreen's check 4), which fails
+       the same on main's own build: not this stage's.
+     - Still to come in later stages: what ExceptionsPlan.txt's stages 7 to 10 say, and the cost of exceptions on
+       (stage 9, measured against these runs with --exceptions).
+
