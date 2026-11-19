@@ -56,6 +56,20 @@ struct SCPP65IRValue
 //(SCPP65IRPlace, where a C++ lvalue is, is CPP65IRCleanups.h's.)
 
 
+//A temporary that has its place (CCPP65IRFrontEnd::Temporary) and is still to be made: it is registered for destroying
+//when its construction has finished (TemporaryMade), never before, so that what leaves in the middle of making it
+//doesn't destroy it, and so that temporaries are destroyed in the reverse of the order they were finished in
+//([class.temporary] 3).  bDestroy: it has a destructor to run.  One made in an operand that may not be worked out has a
+//flag (sFlag), set when it is made.
+struct SCPP65IRMade
+{
+	SCPP65IRPlace	sPlace;
+	bool			bDestroy;
+	bool			bConditional;
+	SIRReference	sFlag;
+};
+
+
 //Where break and continue go (NULL for continue in a switch), and how many objects were living there
 //(CCPP65IRCleanups::NumLocals): those after them are destroyed on the way.
 struct SCPP65IRJump
@@ -328,9 +342,9 @@ protected:
 	bool			ConvertObjectBy(SCPP65IRValue* psValue, CCPPBoundConversion* pcBound, SCPP65Type* psTo);
 	bool			CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
 	bool			CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, SCPP65IRValue* psValue);
-	bool			GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);
+	bool			GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, SCPP65IRMade* psReturned, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);
 	bool			Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject = NULL, bool bArrow = false, CCPPClass* pcObjectClass = NULL, bool bVirtual = false, SIRReference sGivenObject = IRNone(), bool bObjectLast = false);
-	bool			ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayIRReferences* pasPieces);
+	bool			ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, SCPP65IRMade* psReturned, CArrayIRReferences* pasPieces);
 	void			CallResult(SCPP65Type* psReturn, SIRReference sMade, SIRReference sResult, SCPP65IRValue* psValue);
 	bool			ThisObject(CCPPFunction* pcFunction, CCPPSyntax* pcObject, bool bArrow, CCPPClass* pcObjectClass, bool bVirtual, SIRReference sGivenObject, SIRReference* psObject, SIRReference* psCallee);
 	bool			CastExpression(CCPPSyntax* pcCast, CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue);
@@ -399,7 +413,8 @@ protected:
 	bool			DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass);
 	bool			DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue);
 	bool			ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
-	bool			Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, bool bDestroy);
+	bool			Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, SCPP65IRMade* psMade);
+	void			TemporaryMade(SCPP65IRMade* psMade);
 	bool			ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, SCPP65IRPlace* psPlace);
 	bool			CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyObject(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);

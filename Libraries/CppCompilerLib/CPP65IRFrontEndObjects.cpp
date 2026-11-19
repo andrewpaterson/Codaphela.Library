@@ -45,6 +45,7 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	SCPP65IRPlace	sTrue;
 	SCPP65IRPlace	sFalse;
 	SCPP65IRPlace	sPlace;
+	SCPP65IRMade	sTemporary;
 	SCPP65Type*		psType;
 	CCPPClass*		pcClass;
 	bool			bLvalue;
@@ -65,7 +66,7 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 		{
 			sPlace = *psInto;
 		}
-		else if (!Temporary(psType, &sPlace, true))
+		else if (!Temporary(psType, &sPlace, &sTemporary))
 		{
 			return false;
 		}
@@ -111,6 +112,11 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 		psValue->sValue = sPlace.sAddress;
 	}
 	StartBlock(pcEnd);
+	if (!bLvalue && !psInto)
+	{
+		//Made on whichever way was taken.
+		TemporaryMade(&sTemporary);
+	}
 	return true;
 }
 
@@ -1530,6 +1536,8 @@ bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpr
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 {
+	SCPP65IRMade	sTemporary;
+	bool			bTemporary = false;
 	SCPP65IRPlace					sPlace;
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	SCPP65Type*						psType;
@@ -1553,13 +1561,21 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 			sPlace.psType = psType;
 			msElide = IRNone();
 		}
-		else if (!Temporary(psType, &sPlace, true))
+		else if (!Temporary(psType, &sPlace, &sTemporary))
 		{
 			return false;
+		}
+		else
+		{
+			bTemporary = true;
 		}
 		if (!LambdaObject(&sPlace, (CCPPSyntaxLambdaExpression*)pcExpression))
 		{
 			return false;
+		}
+		if (bTemporary)
+		{
+			TemporaryMade(&sTemporary);
 		}
 		psValue->sValue = sPlace.sAddress;
 		psValue->psType = psType;
@@ -1608,7 +1624,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	case CPPS_ConstructExpression:
 		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
 		psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType);
-		if (!psType || !psType->IsClass() || !Temporary(psType, &sPlace, true))
+		if (!psType || !psType->IsClass() || !Temporary(psType, &sPlace, &sTemporary))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -1616,6 +1632,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		{
 			return false;
 		}
+		TemporaryMade(&sTemporary);
 		psValue->sValue = sPlace.sAddress;
 		psValue->psType = psType;
 		return true;
@@ -1643,7 +1660,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 			return Unsupported(__FILE__, __LINE__);
 		}
 		psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcType);
-		if (!psType || !psType->IsClass() || !Temporary(psType, &sPlace, true))
+		if (!psType || !psType->IsClass() || !Temporary(psType, &sPlace, &sTemporary))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -1655,6 +1672,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 		{
 			return false;
 		}
+		TemporaryMade(&sTemporary);
 		psValue->sValue = sPlace.sAddress;
 		psValue->psType = psType;
 		return true;
@@ -1680,16 +1698,22 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 bool CCPP65IRFrontEnd::ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, SCPP65IRPlace* psPlace)
 {
 	SCPP65IRValue	sValue;
+	SCPP65IRMade	sTemporary;
 
 	psType = psType->Unqualified();
 	if (psType->IsClass())
 	{
 		//Made as a variable is from its initialiser (const S& s = 3 and const S& s = {1, 2}).
-		if (!Temporary(psType, psPlace, true))
+		if (!Temporary(psType, psPlace, &sTemporary))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		return Construct(psPlace, NULL, pcValue);
+		if (!Construct(psPlace, NULL, pcValue))
+		{
+			return false;
+		}
+		TemporaryMade(&sTemporary);
+		return true;
 	}
 	if (!IsSupportedType(psType))
 	{
@@ -1708,33 +1732,39 @@ bool CCPP65IRFrontEnd::ValueTemporary(CCPPSyntax* pcValue, SCPP65Type* psType, S
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A place in the frame for a temporary object.  One that needs destroying
-// (and bDestroy: not a copy of an argument's bytes, which the callee
-// destroys) is destroyed at the end of the full expression
-// (DestroyTemporaries); one that may not be made (miConditional) only if it
-// was, so its place and flag are in the entry block (which reaches the
-// destroying).
+// A place in the frame for a temporary object.  psMade: it is to be
+// destroyed at the end of the full expression if its class has a destructor
+// (NULL for a copy of an argument's bytes, which the callee destroys); the
+// caller says when it has been made (TemporaryMade), which is when it is
+// registered.  One that may not be made (miConditional: in an operand of
+// &&, || or ?: that may not be worked out) has its place and a flag in the
+// entry block (which reaches the destroying), the flag 0 there.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, bool bDestroy)
+bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, SCPP65IRMade* psMade)
 {
-	bool				bDestructor;
-	SIRReference		sMade;
-	CIRBlock*			pcEntry;
-	SIRType				sFlag;
+	bool		bDestructor;
+	CIRBlock*	pcEntry;
+	SIRType		sFlag;
 
 	if (!mpcUnit->CompleteClass(psType->pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	bDestructor = bDestroy && psType->pcClass->NeedsDestructor();
+	bDestructor = psMade && psType->pcClass->NeedsDestructor();
 	psPlace->psType = psType;
+	if (psMade)
+	{
+		psMade->bDestroy = bDestructor;
+		psMade->bConditional = false;
+		psMade->sFlag = IRNone();
+	}
 	if (!bDestructor || (miConditional == 0))
 	{
 		psPlace->sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)psType->iBytes, 4);
-		if (bDestructor)
+		if (psMade)
 		{
-			mcCleanups.PushTemporary(psPlace, false, IRNone());
+			psMade->sPlace = *psPlace;
 		}
 		return true;
 	}
@@ -1742,11 +1772,36 @@ bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, boo
 	pcEntry = mpcFunction->GetBlock(0);
 	sFlag = IRTypeOf(&mpcTypes->msBool);
 	psPlace->sAddress = mpcFunction->Slot(pcEntry, IRType(IRTK_Pointer), (uint32)psType->iBytes, 4);
-	sMade = mpcFunction->Slot(pcEntry, IRType(IRTK_Pointer), 1, 1);
-	mcCleanups.PushTemporary(psPlace, true, sMade);
-	mpcFunction->Store(pcEntry, sFlag, mpcFunction->AddConstant(sFlag, 0), sMade);
-	mpcFunction->Store(mpcBlock, sFlag, mpcFunction->AddConstant(sFlag, 1), sMade);
+	psMade->sPlace = *psPlace;
+	psMade->bConditional = true;
+	psMade->sFlag = mpcFunction->Slot(pcEntry, IRType(IRTK_Pointer), 1, 1);
+	mpcFunction->Store(pcEntry, sFlag, mpcFunction->AddConstant(sFlag, 0), psMade->sFlag);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The temporary Temporary gave a place to has been made (its constructor,
+// or the call that returns it, has finished): it is registered, to be
+// destroyed at the end of the full expression (DestroyTemporaries), and a
+// conditional one's flag says so from here.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::TemporaryMade(SCPP65IRMade* psMade)
+{
+	SIRType	sFlag;
+
+	if (!psMade->bDestroy)
+	{
+		return;
+	}
+	if (psMade->bConditional)
+	{
+		sFlag = IRTypeOf(&mpcTypes->msBool);
+		mpcFunction->Store(mpcBlock, sFlag, mpcFunction->AddConstant(sFlag, 1), psMade->sFlag);
+	}
+	mcCleanups.PushTemporary(&psMade->sPlace, psMade->bConditional, psMade->sFlag);
 }
 
 

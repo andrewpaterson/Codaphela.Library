@@ -342,6 +342,22 @@ static const SConformanceCase gasConformanceWorks[] =
 		"int main() { int r = make().v() + T().v(); return r + g; }\n"
 	},
 	{
+		"TemporariesReverseOrder", 3,	//12.2/3: destroyed in the reverse of the order their construction finished
+		"int g = 0;\n"
+		"struct T { int n; T(int i) : n(i) {} ~T() { g = g * 10 + n; } };\n"
+		"struct S { int n; S(const T& t) : n(t.n + 1) {} ~S() { g = g * 10 + n; } };\n"
+		"int f(const S& s) { return s.n; }\n"
+		"int main() { int r = f(S(T(1))); return (g == 21) + 2 * (r == 2); }\n"
+	},
+	{
+		"ConditionalTemporaryOrder", 3,	//12.2/3, in an operand that isn't always worked out
+		"int g = 0;\n"
+		"struct T { int n; T(int i) : n(i) {} ~T() { g = g * 10 + n; } };\n"
+		"struct S { int n; S(const T& t) : n(t.n + 1) {} ~S() { g = g * 10 + n; } };\n"
+		"int f(const S& s) { return s.n; }\n"
+		"int main() { int r = 0; for (int i = 0; i < 2; i++) { r += (i == 1 && f(S(T(3))) == 4) ? 5 : 1; } return (g == 43) + 2 * (r == 6); }\n"
+	},
+	{
 		"ArraysOfObjects", 33,
 		"int g = 0;\n"
 		"struct T { int v; T() : v(++g) {} ~T() { g--; } };\n"

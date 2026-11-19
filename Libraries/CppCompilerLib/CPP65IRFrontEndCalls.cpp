@@ -461,6 +461,7 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 	SIRReference		sObject;
 	bool				bThisCall;
 	SIRReference		sMade;
+	SCPP65IRMade		sReturned;
 	SIRReference		sVTT;
 	CArrayIRReferences	asPieces;		//Every argument's value, an object's in pieces.
 
@@ -503,7 +504,8 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 	}
 
 	asPieces.Init();
-	if (!ArgumentPieces(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, &sMade, &asPieces))
+	sReturned.bDestroy = false;
+	if (!ArgumentPieces(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, &sMade, &sReturned, &asPieces))
 	{
 		asPieces.Kill();
 		return false;
@@ -538,6 +540,9 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 	asPieces.Kill();
 
 	CallResult(psReturn, sMade, mpcFunction->Call(mpcBlock, ReturnIRType(psReturn), sCallee, bVariadic ? (int)uiParameters : -1, bThisCall), psValue);
+
+	//The object the call returned in a temporary has been made now, and not before.
+	TemporaryMade(&sReturned);
 	return true;
 }
 
@@ -602,7 +607,7 @@ bool CCPP65IRFrontEnd::TypeInfoCall(CCPPFunction* pcFunction, SIRReference sObje
 // order in pasPieces, objects passed by value as their pieces.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, CArrayIRReferences* pasPieces)
+bool CCPP65IRFrontEnd::ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, SCPP65IRMade* psReturned, CArrayIRReferences* pasPieces)
 {
 	CArrayTemplate<SCPP65IRValue>	asArguments;
 	CArrayIRReferences				asLoaded;		//The pieces of the objects passed by value...
@@ -620,7 +625,7 @@ bool CCPP65IRFrontEnd::ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Ty
 	asLoaded.Init();
 	aiLoaded.Init();
 	aiLoaded.GrowToAtLeastNumElements(asArguments.NumElements(), true, 0xFF);
-	bResult = GatherArguments(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, psMade, &asArguments, &asLoaded, &aiLoaded);
+	bResult = GatherArguments(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, psMade, psReturned, &asArguments, &asLoaded, &aiLoaded);
 	for (ui = 0; bResult && (ui < asArguments.NumElements()); ui++)
 	{
 		iLoaded = *aiLoaded.Get(ui);
@@ -671,10 +676,11 @@ void CCPP65IRFrontEnd::CallResult(SCPP65Type* psReturn, SIRReference sMade, SIRR
 // (missing ones are the defaults; a variadic function's extra ones are
 // promoted), an object passed by value loaded as its pieces into pasLoaded
 // (paiLoaded: per argument where its pieces start, -1 for none), and the
-// temporary an object returned is made in (*psMade, unless it is given).
+// temporary an object returned is made in (*psMade, unless it is given;
+// psReturned for the caller to register once the call has returned).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade,
+bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, SCPP65IRMade* psReturned,
 									   CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded)
 {
 	size			uiArguments;
@@ -685,6 +691,7 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 	SCPP65IRValue	sArgument;
 	SCPP65IRPlace	sPlace;
 	SCPP65IRPlace	sCopy;
+	SCPP65IRMade	sTemporary;
 	SIRType			sPiece;
 	SIRReference	sLoaded;
 	int				iOffset;
@@ -733,10 +740,11 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 		{
 			//A copy made here (and destroyed at the end of the full expression) is passed by its address.  Not a variadic
 			//function's last named parameter, whose address va_start takes for the arguments after it.
-			if (!Temporary(psParameter, &sCopy, true) || !Construct(&sCopy, NULL, pcArgument))
+			if (!Temporary(psParameter, &sCopy, &sTemporary) || !Construct(&sCopy, NULL, pcArgument))
 			{
 				return false;
 			}
+			TemporaryMade(&sTemporary);
 			sArgument.sValue = sCopy.sAddress;
 			sArgument.psType = mpcTypes->Pointer(psParameter);
 			*pasArguments->Get(ui - 1) = sArgument;
@@ -756,7 +764,7 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 			//made in a temporary the caller doesn't destroy.
 			if (!mpcUnit->IsObjectLvalue(pcArgument) || !IsObjectOf(pcArgument, psParameter->pcClass))
 			{
-				if (!Temporary(psParameter, &sCopy, false) || !Construct(&sCopy, NULL, pcArgument))
+				if (!Temporary(psParameter, &sCopy, NULL) || !Construct(&sCopy, NULL, pcArgument))
 				{
 					return false;
 				}
@@ -779,7 +787,7 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 			//class with vtables so the copy has its own class's.
 			if (psParameter->pcClass->IsPolymorphic())
 			{
-				if (!Temporary(psParameter, &sCopy, false) || !CopyBytes(&sCopy, &sArgument))
+				if (!Temporary(psParameter, &sCopy, NULL) || !CopyBytes(&sCopy, &sArgument))
 				{
 					return false;
 				}
@@ -818,9 +826,11 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 	}
 
 	//An object returned is made at the address passed first on the stack (a temporary's, or msElide's).
+	//It is registered when the call has returned (the caller's TemporaryMade of psReturned).
+	psReturned->bDestroy = false;
 	if (psReturn->IsClass() && psMade->IsNone())
 	{
-		if (!Temporary(psReturn, &sPlace, true))
+		if (!Temporary(psReturn, &sPlace, psReturned))
 		{
 			return false;
 		}
