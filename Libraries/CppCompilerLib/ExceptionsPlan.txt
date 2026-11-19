@@ -836,3 +836,42 @@ Progress
   when the configuration has Exceptions on, and UserStart.asm tests it (an .if), so there is one file; done in stage 6,
   when a program can first be built that throws.
 
+  The user, 2026-11-19: "Go ahead with setep 5 when the other session is not running tests", and after a break
+  "Continue with 5a and 5b once the other session is quiet (keep coordinating)".  Master was merged first
+  (CommonLibraries a89652daa: the other session's 16 bit size_t on the W65C816 to its step 4; HCP65 d0a2739, where
+  main had been rewritten under a commit this branch had merged, and main's files were taken).
+
+  5. Done (4f5ba27cf 5a, d7a1da23c 5b).
+     - 5a.  CCPP65IRCleanups (CPP65IRCleanups.h and .cpp, with SCPP65IRPlace moved there): one array of entries in the
+       order they were registered, each a local or a temporary (a conditional one with its flag), with room for the
+       block that undoes it (pcUndo, stage 6's).  Not as planned: the marks are not heights of the stack but counts of
+       each kind (NumLocals, NumTemporaries; CutLocals, CutTemporaries; GetLocal and GetTemporary by ordinal), which is
+       exactly what the two lists' lengths were, so nothing can differ whatever the entries' order is; a height would
+       have been wrong for a mark taken above temporaries that are removed under it.  The front end keeps its own
+       functions (AddLiving, LeaveScope, DestroyLiving, DestroyTemporaries, DestroyTemporaryPlaces, ExtendTemporary),
+       now over the class; DestroyPlaces went.  Temporary still asks NeedsDestructor() and AddLiving mpcDestructor, as
+       they did: left as found.
+       The proof: the listings of the three Lib65 suites' compile on both processors (TEST_PROJECT65_LISTINGS, serial),
+       4179 of them, are the same byte for byte before and after (D:\gameengine-exceptions\Stage5\before and
+       after5a).  TestCppCompilerLib passes (268999).
+     - 5b.  Temporary gives the place and what TemporaryMade needs (SCPP65IRMade); TemporaryMade registers it and sets
+       a conditional temporary's flag.  It is called after the Construct of an argument's copy, of a construct
+       expression, of a cast to a class and of a reference's temporary; after a lambda's captures are made; after the
+       call that returns an object in a temporary (GatherArguments hands the pending temporary out through
+       ArgumentPieces to Call); and after both arms of a ?: whose result is a temporary.
+       What changed in what is compiled: 13 units of 2090 on each processor (D:\gameengine-exceptions\Stage5\after5b),
+       all in TestStandardLib65 and TestSupportLib65.  23 of the 26 listings have the same lines in another order
+       (two temporaries' destructors swapped); the other three were read (TestUsage on the W65C816, where the swapped
+       temporaries also changed places on the direct page; AnimationPlayer on both, where a ?: with conditional
+       temporaries has three destructors in a new order and two destructor functions are written in another order).
+       Nothing else differs.
+       The cases: TemporariesReverseOrder and ConditionalTemporaryOrder (the Works group).  The compiler before 5b
+       returns 2 for both (the main tree's build of 2026-11-18), this one 3, and the Microsoft compiler and g++ 15
+       -std=c++14 give 3.  TestCppCompilerLib passes (269001), with no expectation of an older test changed.
+       The two suites whose units changed were run (Stage5\run): all pass: TestStandardLib65 (68 programs on the 65C64, 66 on the W65C816) and TestSupportLib65 (76 and 72).
+     - Not looked at here, as the plan said: a std::initializer_list's array of objects with destructors
+       (InitializerList registers nothing).
+     - The cycles and bytes baseline (the second, of 664bc9b7a) is out of date since the merge: size_t is 16 bits on
+       the W65C816 now and master has an inliner change still to be merged (0f656fe0c, which changes what is compiled
+       everywhere).  It is to be taken again after the next merge and before the next stage that is checked by it.
+
