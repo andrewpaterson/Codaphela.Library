@@ -935,6 +935,10 @@ bool CIRInterpreter::Step(SIRFrame* psFrame, SIRInstruction* psInstruction)
 		psFrame->asPending.Add(&sLeft);
 		psFrame->asPendingTypes.Add(&sType);
 		return true;
+	case IRO_Thrown:
+		//A callee that threw has failed already (RunFrame): here the call returned.
+		sResult.Set(0);
+		break;
 	default:
 		if (sType.IsFloat() || pcFunction->TypeOf(psInstruction->asArguments[0]).IsFloat())
 		{

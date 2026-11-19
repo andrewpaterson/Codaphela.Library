@@ -106,6 +106,10 @@ SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 	IR_OPCODE("store", IRSH_Operands, IRTM_Memory, 0, IROK_Same, IROK_Pointer, IRRS_None, IRF_Volatile, 0),
 	IR_OPCODE("arg", IRSH_Operands, IRTM_Memory, 0, IROK_Same, IROK_None, IRRS_None, 0, 0),
 	IR_OPCODE("call", IRSH_Call, IRTM_Memory | IRTM_Void, 0, IROK_Pointer, IROK_None, IRRS_Optional, IRF_ThisCall | IRF_Variadic, 0),
+
+	//Pure, so that it is no write to memory and goes when nothing reads it; but it speaks of the call before it, so it is
+	//never the same as another (IROptimiserSameInstruction) and is never moved (IROptimiserHoistable doesn't list it).
+	IR_OPCODE("thrown", IRSH_Operands, IRTM_I1, 0, IROK_None, IROK_None, IRRS_Same, 0, IR_PURE),
 };
 
 

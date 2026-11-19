@@ -805,6 +805,11 @@ bool IROptimiserSameInstruction(CIRFunction* pcFunction, SIRInstruction* psEarli
 	bool	bSame;
 	bool	bSwapped;
 
+	if (psInstruction->uiOpcode == IRO_Thrown)
+	{
+		//Each speaks of its own call.
+		return false;
+	}
 	if ((psEarlier->uiOpcode != psInstruction->uiOpcode) || !psEarlier->sType.Equals(psInstruction->sType) || (psEarlier->uiFlags != psInstruction->uiFlags) ||
 		!psEarlier->sResult.IsTemporary() || !pcFunction->GetTemporaryType(psEarlier->sResult).Equals(pcFunction->GetTemporaryType(psInstruction->sResult)))
 	{

@@ -1849,6 +1849,7 @@ static SIR816XOpcode gasIR816XOpcodes[IRO_NumGeneric] =
 	{ { IR816_X_READ, IR816_X_BAD }, IR816XA_No, IR816XA_No },				//store
 	{ IR816_X_READS, IR816XA_No, IR816XA_No },								//arg
 	{ IR816_X_NO_USE, IR816XA_Yes, IR816XA_Yes },							//call
+	{ IR816_X_NO_USE, IR816XA_No, IR816XA_No },								//thrown
 };
 
 

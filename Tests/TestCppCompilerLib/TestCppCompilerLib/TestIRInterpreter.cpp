@@ -580,6 +580,46 @@ static void TestIRInterpreterFloats(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An exception can't be worked out: a function that throws on one path has
+// a value on the other only.  thrown is false after a call that returned.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestIRInterpreterThrow(void)
+{
+	const char*	szChecked =
+		"space default 4\n"
+		"\n"
+		"function i32 @Checked(i32 %n)\n"
+		"{\n"
+		"b0:\n"
+		"\t%c = slt i32 %n, 0\n"
+		"\tbrif %c, bad, good\n"
+		"bad:\n"
+		"\tthrow\n"
+		"good:\n"
+		"\tret i32 %n\n"
+		"}\n"
+		"\n"
+		"function i32 @Test(i32 %n)\n"
+		"{\n"
+		"b0:\n"
+		"\t%r = call i32 @Checked(i32 %n)\n"
+		"\t%t = thrown i1\n"
+		"\tbrif %t, caught, fine\n"
+		"caught:\n"
+		"\tret i32 -1\n"
+		"fine:\n"
+		"\t%s = add i32 %r, 1\n"
+		"\tret i32 %s\n"
+		"}\n";
+
+	AssertIRValue(6, szChecked, 1, 5);
+	AssertIRNoValue("It throws an exception", szChecked, 1, -5);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIRInterpreter(void)
@@ -591,6 +631,7 @@ void TestIRInterpreter(void)
 	TestIRInterpreterMemory();
 	TestIRInterpreterPointers();
 	TestIRInterpreterFloats();
+	TestIRInterpreterThrow();
 
 	TestStatistics();
 }

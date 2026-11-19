@@ -8,6 +8,7 @@
 #include "CppCompilerLib/IRInliner.h"
 #include "CppCompilerLib/IRSSAUpdater.h"
 #include "CppCompilerLib/IRLiveness.h"
+#include "CppCompilerLib/IRBackendPasses.h"
 #include "CppCompilerLib/CPPTarget.h"
 #include "TestLib/Assert.h"
 
@@ -5380,6 +5381,151 @@ void TestIRThrow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// thrown is whether the call straight before it was left with an exception.
+// Nothing may come between the two.  Two of them are never one (each speaks
+// of its own call), and the back ends' pass that moves a loop's step to
+// after the call that last reads the counter puts it after the thrown too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRThrown(void)
+{
+	CIRModule			cModule;
+	CCPPErrors			cErrors;
+	CIRParser			cParser;
+	CIRVerifier			cVerifier;
+	CIRPrinter			cPrinter;
+	CIRBackendPasses	cPasses;
+	CChars				szPrinted;
+	const char*			szTwice =
+		"space default 4\n"
+		"\n"
+		"function i32 @_Twice__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = call i32 @_Get__Fv()\n"
+		"\t%t = thrown i1\n"
+		"\tbrif %t, fail, next\n"
+		"next:\n"
+		"\t%b = call i32 @_Get__Fv()\n"
+		"\t%u = thrown i1\n"
+		"\tbrif %u, fail, done\n"
+		"done:\n"
+		"\t%s = add i32 %a, %b\n"
+		"\tret i32 %s\n"
+		"fail:\n"
+		"\tthrow\n"
+		"}\n";
+
+	AssertIRRoundTrip(
+		"space default 4\n"
+		"\n"
+		"function void @_Tested__FPv(ptr %p)\n"
+		"{\n"
+		"entry:\n"
+		"\tcall void %p(i32 1)\n"
+		"\t%t = thrown i1\n"
+		"\tbrif %t, fail, done\n"
+		"done:\n"
+		"\tret\n"
+		"fail:\n"
+		"\tthrow\n"
+		"}\n");
+
+	AssertIRErrors("@f b: thrown not straight after a call.\n",
+		"function void @f()\n{\nb:\n\t%t = thrown i1\n\tret\n}\n");
+	AssertIRErrors("@f b: thrown not straight after a call.\n",
+		"function i32 @f()\n{\nb:\n\t%r = call i32 @g()\n\t%s = add i32 %r, 1\n\t%t = thrown i1\n\tret i32 %s\n}\n");
+	AssertIRErrors("@f b: Type not allowed for the opcode. [thrown]\n",
+		"function void @f()\n{\nb:\n\tcall void @g()\n\t%t = thrown i32\n\tret\n}\n");
+
+	//The second call's thrown is not the first's.
+	AssertIROptimised(szTwice, szTwice);
+
+	//One that nothing reads goes.
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function void @_Untested__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\tcall void @_Get__Fv()\n"
+		"\tret\n"
+		"}\n",
+		"space default 4\n"
+		"\n"
+		"function void @_Untested__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\tcall void @_Get__Fv()\n"
+		"\t%t = thrown i1\n"
+		"\tret\n"
+		"}\n");
+
+	cModule.Init();
+	cErrors.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse(
+		"space default 4\n"
+		"\n"
+		"function void @_Each__Fi(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\tjmp loop\n"
+		"loop:\n"
+		"\t%i = phi i32 [entry, 0], [next, %j]\n"
+		"\t%j = add i32 %i, 1\n"
+		"\tcall void @_Use__Fi(i32 %i)\n"
+		"\t%t = thrown i1\n"
+		"\tbrif %t, fail, next\n"
+		"next:\n"
+		"\t%c = slt i32 %j, %n\n"
+		"\tbrif %c, loop, exit\n"
+		"exit:\n"
+		"\tret\n"
+		"fail:\n"
+		"\tthrow\n"
+		"}\n"));
+	cParser.Kill();
+	cPasses.Init();
+	cPasses.SinkSteps(cModule.GetFunction(0));
+	cPasses.Kill();
+	cVerifier.Init(&cModule, &cErrors);
+	AssertTrue(cVerifier.Verify());
+	cVerifier.Kill();
+	AssertString("", cErrors.Text());
+	szPrinted.Init();
+	cPrinter.Init(&cModule, &szPrinted);
+	cPrinter.PrintModule();
+	cPrinter.Kill();
+	AssertString(
+		"space default 4\n"
+		"\n"
+		"function void @_Each__Fi(i32 %n)\n"
+		"{\n"
+		"entry:\n"
+		"\tjmp loop\n"
+		"loop:\n"
+		"\t%i = phi i32 [entry, 0], [next, %j]\n"
+		"\tcall void @_Use__Fi(i32 %i)\n"
+		"\t%t = thrown i1\n"
+		"\t%j = add i32 %i, 1\n"
+		"\tbrif %t, fail, next\n"
+		"next:\n"
+		"\t%c = slt i32 %j, %n\n"
+		"\tbrif %c, loop, exit\n"
+		"exit:\n"
+		"\tret\n"
+		"fail:\n"
+		"\tthrow\n"
+		"}\n", szPrinted.Text());
+	szPrinted.Kill();
+	cErrors.Kill();
+	cModule.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR(void)
@@ -5446,6 +5592,7 @@ void TestIR(void)
 	TestIRVerifierFlagErrors();
 	TestIRVerifierUnusedOperand();
 	TestIRThrow();
+	TestIRThrown();
 
 	TestStatistics();
 }

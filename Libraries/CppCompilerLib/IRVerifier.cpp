@@ -644,6 +644,14 @@ void CIRVerifier::CheckInstruction(CIRBlock* pcBlock, size uiIndex)
 			Error("arg not followed by a call.");
 		}
 	}
+	else if (psInstruction->uiOpcode == IRO_Thrown)
+	{
+		//It reads what the call left (the carry, on both targets): nothing may come between them.
+		if ((uiIndex == 0) || (pcBlock->masInstructions.Get(uiIndex - 1)->uiOpcode != IRO_Call))
+		{
+			Error("thrown not straight after a call.");
+		}
+	}
 	else if ((psInstruction->uiOpcode == IRO_Call) && (psInstruction->uiFlags & IRF_Variadic))
 	{
 		uiArguments = 0;

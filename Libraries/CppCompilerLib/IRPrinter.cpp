@@ -666,12 +666,16 @@ size CIRPrinter::PrintInstruction(CIRFunction* pcFunction, CIRBlock* pcBlock, si
 	else
 	{
 		PrintType(psInstruction->sType);
-		mpszDest->Append(' ');
-		PrintOperand(pcFunction, psOpcode ? psOpcode->auiOperands[0] : IROK_Same, psInstruction->asArguments[0]);
-		if (!psInstruction->asArguments[1].IsNone())
+		if (!psOpcode || (psOpcode->NumOperands() != 0) || !psInstruction->asArguments[0].IsNone())
 		{
-			mpszDest->Append(", ");
-			PrintOperand(pcFunction, psOpcode ? psOpcode->auiOperands[1] : IROK_Same, psInstruction->asArguments[1]);
+			//An opcode with no operands (thrown) is its type and no more.
+			mpszDest->Append(' ');
+			PrintOperand(pcFunction, psOpcode ? psOpcode->auiOperands[0] : IROK_Same, psInstruction->asArguments[0]);
+			if (!psInstruction->asArguments[1].IsNone())
+			{
+				mpszDest->Append(", ");
+				PrintOperand(pcFunction, psOpcode ? psOpcode->auiOperands[1] : IROK_Same, psInstruction->asArguments[1]);
+			}
 		}
 	}
 	mpszDest->AppendNewLine();

@@ -446,6 +446,12 @@ void CIRBackendPasses::SinkStep(CIRBlock* pcBlock, SIRReference sStep, SIRRefere
 		}
 		uiLast++;
 	}
+	psLater = pcBlock->masInstructions.SafeGet(uiLast + 1);
+	if ((uiLast > uiStep) && (pcBlock->masInstructions.Get(uiLast)->uiOpcode == IRO_Call) && psLater && (psLater->uiOpcode == IRO_Thrown))
+	{
+		//The call's thrown stays straight after it: the step goes after both.
+		uiLast++;
+	}
 	if (uiLast == uiStep)
 	{
 		return;

@@ -89,6 +89,7 @@ enum EIROpcode
 	IRO_Store,
 	IRO_Arg,
 	IRO_Call,
+	IRO_Thrown,			//%t = thrown i1, straight after a call: whether the call was left with an exception.
 
 	IRO_NumGeneric
 };
