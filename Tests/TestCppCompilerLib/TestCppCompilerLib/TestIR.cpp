@@ -5395,6 +5395,7 @@ void TestIRThrown(void)
 	CIRVerifier			cVerifier;
 	CIRPrinter			cPrinter;
 	CIRBackendPasses	cPasses;
+	CIROptimiser		cOptimiser;
 	CChars				szPrinted;
 	const char*			szTwice =
 		"space default 4\n"
@@ -5519,6 +5520,39 @@ void TestIRThrown(void)
 		"\tthrow\n"
 		"}\n", szPrinted.Text());
 	szPrinted.Kill();
+	cErrors.Kill();
+	cModule.Kill();
+
+	//The optimiser keeps a thrown straight after its call: what both ways out of its brif work out isn't hoisted
+	//between them (HoistCommon put the add there, and TestScene's W65C816 build with exceptions didn't verify).
+	cModule.Init();
+	cErrors.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse(
+		"space default 4\n"
+		"\n"
+		"function i32 @_Both__Fii(i32 %a, i32 %b)\n"
+		"{\n"
+		"entry:\n"
+		"\tcall void @_Get__Fv()\n"
+		"\t%t = thrown i1\n"
+		"\tbrif %t, fail, done\n"
+		"fail:\n"
+		"\t%p = add i32 %a, %b\n"
+		"\tcall void @_Use__Fi(i32 %p)\n"
+		"\tthrow\n"
+		"done:\n"
+		"\t%q = add i32 %a, %b\n"
+		"\tret i32 %q\n"
+		"}\n"));
+	cParser.Kill();
+	cOptimiser.Init(&cModule);
+	cOptimiser.Optimise(cModule.GetFunction(0));
+	cOptimiser.Kill();
+	cVerifier.Init(&cModule, &cErrors);
+	AssertTrue(cVerifier.Verify());
+	cVerifier.Kill();
+	AssertString("", cErrors.Text());
 	cErrors.Kill();
 	cModule.Kill();
 

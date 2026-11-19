@@ -776,7 +776,8 @@ bool CIRLoopPasses::DeleteDeadLoops(void)
 // from it), reading values from before them, is worked out once at the end
 // of the branching block (before the comparison it branches on), and the
 // second block's uses read the first's.  Only what can't trap and doesn't
-// read memory (IROptimiserHoistable, but loads).
+// read memory (IROptimiserHoistable, but loads).  Not into a block that
+// branches on a thrown: that must stay straight after its call.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRLoopPasses::HoistCommon(void)
@@ -805,6 +806,10 @@ bool CIRLoopPasses::HoistCommon(void)
 		pcElse = pcBlock->msJump.pcElse;
 		if ((pcBlock->msJump.uiKind != IRJ_Branch) || (pcThen == pcElse) || (pcThen == pcBlock) || (pcElse == pcBlock) ||
 			(pcThen->mapcPredecessors.NumElements() != 1) || (pcElse->mapcPredecessors.NumElements() != 1))
+		{
+			continue;
+		}
+		if ((pcBlock->masInstructions.NumElements() > 0) && (pcBlock->masInstructions.Tail()->uiOpcode == IRO_Thrown))
 		{
 			continue;
 		}
