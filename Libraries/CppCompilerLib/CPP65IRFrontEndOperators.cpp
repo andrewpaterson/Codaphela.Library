@@ -629,6 +629,8 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	CIRBlock*		pcTrueEnd;
 	SCPP65IRValue	sTrue;
 	SCPP65IRValue	sFalse;
+	bool			bThrowTrue;
+	bool			bThrowFalse;
 
 	psTrue = mpcUnit->TypeOf(pcConditional->mpcTrue);
 	psFalse = mpcUnit->TypeOf(pcConditional->mpcFalse);
@@ -636,7 +638,22 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	psType = mpcTypes->Conditional(psTrue, psFalse);
+
+	//A throw for one operand: the result is the other's, and that way never comes to the end.  [expr.cond] 2
+	bThrowTrue = pcConditional->mpcTrue->WithoutParentheses()->GetKind() == CPPS_ThrowExpression;
+	bThrowFalse = pcConditional->mpcFalse->WithoutParentheses()->GetKind() == CPPS_ThrowExpression;
+	if (bThrowTrue || bThrowFalse)
+	{
+		psType = mpcUnit->TypeOf(pcConditional);
+		if (!psType)
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+	}
+	else
+	{
+		psType = mpcTypes->Conditional(psTrue, psFalse);
+	}
 	if (!psType->IsVoid() && (psTrue->IsArray() || psFalse->IsArray()))
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -652,16 +669,25 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	//A temporary made by only one of them is destroyed only if it was made (Temporary).
 	miConditional++;
 	StartBlock(pcTrue);
-	if (!Value(pcConditional->mpcTrue, &sTrue) || !Convert(&sTrue, psType))
+	if (!Value(pcConditional->mpcTrue, &sTrue) || (!bThrowTrue && !Convert(&sTrue, psType)))
 	{
 		return false;
+	}
+	if (bThrowTrue && !psType->IsVoid())
+	{
+		//Where the throw's block (which isn't reached) joins: a value for the phi.
+		sTrue.sValue = mpcFunction->AddConstant(IRTypeOf(psType), 0);
 	}
 	pcTrueEnd = mpcBlock;
 	JumpTo(pcEnd);
 	StartBlock(pcFalse);
-	if (!Value(pcConditional->mpcFalse, &sFalse) || !Convert(&sFalse, psType))
+	if (!Value(pcConditional->mpcFalse, &sFalse) || (!bThrowFalse && !Convert(&sFalse, psType)))
 	{
 		return false;
+	}
+	if (bThrowFalse && !psType->IsVoid())
+	{
+		sFalse.sValue = mpcFunction->AddConstant(IRTypeOf(psType), 0);
 	}
 	miConditional--;
 	JumpTo(pcEnd);

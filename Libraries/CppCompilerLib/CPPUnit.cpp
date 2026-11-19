@@ -698,6 +698,166 @@ bool CCPPUnit::IsSharedFunction(CCPPFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What throw's operand makes can be thrown: not an object of an incomplete
+// or abstract class, nor a pointer to an incomplete class.  [except.throw] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckThrown(CCPPSyntaxThrowExpression* pcThrow)
+{
+	SCPP65Type*	psType;
+
+	psType = TypeOf(pcThrow->mpcOperand);
+	if (!psType)
+	{
+		return false;
+	}
+	psType = psType->WithoutReference()->Unqualified();
+	if (psType->IsVoid())
+	{
+		return Error(pcThrow, "A throw's operand can't be void");
+	}
+	if (psType->IsClass())
+	{
+		if (!CompleteClass(psType->pcClass, pcThrow))
+		{
+			return false;
+		}
+		if (psType->pcClass->IsAbstract())
+		{
+			return Error(pcThrow, "An object of an abstract class can't be thrown");
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The innermost try block or handler pcNode is in, looking no further out
+// than pcStop: the block's or the handler's node, or NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPUnit::TryRegionOf(CCPPSyntax* pcNode, CCPPSyntax* pcStop)
+{
+	CCPPSyntax*	pcParent;
+
+	for (pcParent = pcNode->mpcParent; pcParent && (pcNode != pcStop); pcNode = pcParent, pcParent = pcParent->mpcParent)
+	{
+		if (pcParent->GetKind() == CPPS_CatchHandler)
+		{
+			return pcParent;
+		}
+		if ((pcParent->GetKind() == CPPS_TryStatement) && (((CCPPSyntaxTryStatement*)pcParent)->mpcBlock == pcNode))
+		{
+			return pcNode;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The body's labels and gotos, for CheckTryJumps; and each case label is
+// checked here: it can't be in a try block or a handler that is inside its
+// switch.  A lambda's body is its own function's.  [except] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CollectTryJumps(CCPPSyntax* pcNode, CCPPSyntax* pcBody, CArraySyntax* papcLabels, CArraySyntax* papcGotos)
+{
+	CCPPSyntax*	pcSwitch;
+	size		i;
+	bool		bResult;
+
+	if (!pcNode || (pcNode->GetKind() == CPPS_LambdaExpression))
+	{
+		return true;
+	}
+	bResult = true;
+	if (pcNode->GetKind() == CPPS_LabelStatement)
+	{
+		papcLabels->Add(pcNode);
+	}
+	else if (pcNode->GetKind() == CPPS_GotoStatement)
+	{
+		papcGotos->Add(pcNode);
+	}
+	else if (pcNode->GetKind() == CPPS_CaseStatement)
+	{
+		for (pcSwitch = pcNode->mpcParent; pcSwitch && (pcSwitch->GetKind() != CPPS_SwitchStatement) && (pcSwitch != pcBody); pcSwitch = pcSwitch->mpcParent)
+		{
+		}
+		if (pcSwitch && (pcSwitch->GetKind() == CPPS_SwitchStatement) && TryRegionOf(pcNode, pcSwitch))
+		{
+			bResult = Error(pcNode, "A switch can't jump into a try block or a handler");
+		}
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		bResult &= CollectTryJumps(pcNode->GetChild(i), pcBody, papcLabels, papcGotos);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No goto or switch of the function's body jumps into a try block or a
+// handler: a goto whose label is in one must be in it too.  [except] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckTryJumps(CCPPSyntax* pcBody)
+{
+	CArraySyntax	apcLabels;
+	CArraySyntax	apcGotos;
+	CCPPSyntax*		pcGoto;
+	CCPPSyntax*		pcLabel;
+	CCPPSyntax*		pcRegion;
+	CCPPSyntax*		pcParent;
+	CCPPToken*		pcGotoName;
+	CCPPToken*		pcLabelName;
+	size			i;
+	size			j;
+	bool			bResult;
+
+	if (!mpcOptions->mbExceptions || !pcBody)
+	{
+		return true;
+	}
+	apcLabels.Init();
+	apcGotos.Init();
+	bResult = CollectTryJumps(pcBody, pcBody, &apcLabels, &apcGotos);
+	for (i = 0; i < apcGotos.NumElements(); i++)
+	{
+		pcGoto = apcGotos.GetPtr(i);
+		pcGotoName = mpcTokeniser->Get(((CCPPSyntaxGotoStatement*)pcGoto)->miLabel);
+		for (j = 0; j < apcLabels.NumElements(); j++)
+		{
+			pcLabel = apcLabels.GetPtr(j);
+			pcLabelName = mpcTokeniser->Get(((CCPPSyntaxLabelStatement*)pcLabel)->miName);
+			if (!pcGotoName || !pcLabelName || !pcGotoName->IsIdentifier() || !pcLabelName->IsIdentifier() ||
+				(((CCTIdentifier*)pcGotoName)->miIdentifier != ((CCTIdentifier*)pcLabelName)->miIdentifier))
+			{
+				continue;
+			}
+			pcRegion = TryRegionOf(pcLabel, pcBody);
+			for (pcParent = pcGoto; pcRegion && pcParent && (pcParent != pcRegion); pcParent = pcParent->mpcParent)
+			{
+			}
+			if (pcRegion && !pcParent)
+			{
+				bResult = Error(pcGoto, "A goto can't jump into a try block or a handler");
+			}
+		}
+	}
+	apcGotos.Kill();
+	apcLabels.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type a handler is written with (catch (const E& e): const E&); NULL,
 // with the error said, if it can't be worked out.
 //
@@ -722,11 +882,18 @@ SCPP65Type* CCPPUnit::HandlerType(CCPPSyntaxCatchHandler* pcHandler)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::HandlerLocal(CCPPSyntaxCatchHandler* pcHandler)
 {
-	SCPP65Type*	psType;
-	SCPP65Type*	psObject;
+	CCPPSyntaxTryStatement*	pcTry;
+	SCPP65Type*				psType;
+	SCPP65Type*				psObject;
 
 	if (!pcHandler->mpcParameter)
 	{
+		//catch (...) is its try's last handler.  [except.handle] 5
+		pcTry = (pcHandler->mpcParent && (pcHandler->mpcParent->GetKind() == CPPS_TryStatement)) ? (CCPPSyntaxTryStatement*)pcHandler->mpcParent : NULL;
+		if (pcTry && (pcTry->macpHandlers.NumElements() > 0) && (pcTry->macpHandlers.GetPtr(pcTry->macpHandlers.NumElements() - 1) != pcHandler))
+		{
+			return Error(pcHandler, "catch (...) must be the last handler of its try");
+		}
 		return true;
 	}
 	psType = HandlerType(pcHandler);
@@ -3320,7 +3487,7 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 
 	BeginFunction(pcFunction);
 	AddParameters(pcFunction);
-	if (!AllocateLocals(pcDefinition->mpcBody))
+	if (!AllocateLocals(pcDefinition->mpcBody) || !CheckTryJumps(pcDefinition->mpcBody))
 	{
 		EndFunction(pcFunction);
 		return false;

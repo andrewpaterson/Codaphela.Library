@@ -389,15 +389,15 @@ void CCPP65TypeChecker::VisitNoexceptExpression(CCPPSyntaxNoexceptExpression* pc
 //
 // throw, and throw with an operand.  A program built without exceptions
 // (CCPPCompileOptions::mbExceptions) can't have one; with them it is void
-// ([expr.throw] 1), and the front end doesn't write it yet
-// (ExceptionsPlan.txt).
+// ([expr.throw] 1) and what is thrown must be something that can be
+// (CCPPUnit::CheckThrown).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitThrowExpression(CCPPSyntaxThrowExpression* pcNode)
 {
 	if (mpcUnit->GetOptions()->mbExceptions)
 	{
-		mpsResult = (!pcNode->mpcOperand || Value(pcNode->mpcOperand)) ? &mpcTypes->msVoid : NULL;
+		mpsResult = (!pcNode->mpcOperand || (Value(pcNode->mpcOperand) && mpcUnit->CheckThrown(pcNode))) ? &mpcTypes->msVoid : NULL;
 	}
 	else
 	{
@@ -1180,6 +1180,8 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 	SCPP65Type*		psTrue;
 	SCPP65Type*		psFalse;
 	SCPP65Type*		psType;
+	bool			bThrowTrue;
+	bool			bThrowFalse;
 
 	psTrue = mpcUnit->TypeOf(pcConditional->mpcTrue);
 	psFalse = mpcUnit->TypeOf(pcConditional->mpcFalse);
@@ -1195,6 +1197,26 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 			Value(pcConditional->mpcFalse);
 		}
 		return NULL;
+	}
+	bThrowTrue = pcConditional->mpcTrue->WithoutParentheses()->GetKind() == CPPS_ThrowExpression;
+	bThrowFalse = pcConditional->mpcFalse->WithoutParentheses()->GetKind() == CPPS_ThrowExpression;
+	if (bThrowTrue || bThrowFalse)
+	{
+		//With a throw for one operand the result is the other's, as a value; with two it is void.  [expr.cond] 2
+		if (!Condition(pcConditional->mpcCondition))
+		{
+			return NULL;
+		}
+		if (bThrowTrue && bThrowFalse)
+		{
+			return &mpcTypes->msVoid;
+		}
+		psType = (bThrowTrue ? psFalse : psTrue)->WithoutReference()->Unqualified();
+		if (psType->IsArray())
+		{
+			psType = mpcTypes->Pointer(psType->psBase);
+		}
+		return Value(bThrowTrue ? pcConditional->mpcFalse : pcConditional->mpcTrue) ? psType : NULL;
 	}
 	if (mpcUnit->IsObject(pcConditional->mpcTrue) || mpcUnit->IsObject(pcConditional->mpcFalse))
 	{

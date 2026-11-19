@@ -342,6 +342,25 @@ static const SConformanceCase gasConformanceWorks[] =
 		"int main() { int r = make().v() + T().v(); return r + g; }\n"
 	},
 	{
+		"VirtualThroughReferenceName", 1 + 2 + 4 + 8 + 16,	//10.3/7: a reference's name isn't an object's
+		"struct B { virtual int f() const { return 1; } int operator+(int i) const { return g() + i; } virtual int g() const { return 10; } virtual ~B() {} };\n"
+		"struct D : B { int f() const override { return 17; } int g() const override { return 20; } };\n"
+		"struct H { const B& r; B o; H(const B& b) : r(b), o(b) {} int viaRef() const { return r.f(); } int viaObject() const { return o.f(); } };\n"
+		"int byRef(const B& b) { return b.f(); }\n"
+		"int byValue(B b) { return b.f(); }\n"
+		"int main()\n"
+		"{\n"
+		"	D d; const B& rb = d; H h(d);\n"
+		"	int r = 0;\n"
+		"	r += (byRef(d) == 17) * 1;\n"
+		"	r += (rb.f() == 17) * 2;\n"
+		"	r += (byValue(d) == 1 && d.f() == 17) * 4;\n"
+		"	r += (h.viaRef() == 17 && h.viaObject() == 1) * 8;\n"
+		"	r += (rb + 1 == 21) * 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	{
 		"DynamicCastAccess", 1 + 2 + 4 + 8 + 16 + 32,	//5.2.7/8: public bases only
 		"struct A { virtual ~A() {} int a; };\n"
 		"struct D : A { int d; };\n"
@@ -3617,7 +3636,7 @@ static const SConformanceCase gasConformanceExceptions[] =
 		"void bye() { _Exit(118); }\n"
 		"struct G { G() { std::set_terminate(bye); throw 1; } };\n"
 		"G gg;\n"
-		"int main() { return 1; }\n"
+		"int main() { return &gg != 0; }\n"
 	},
 	{
 		"SetTerminateReturnsPrevious", 119,	//18.8.3.2
@@ -3739,8 +3758,9 @@ static const SConformanceCase gasConformanceExceptions[] =
 	{
 		"ThrowAbstractRefused", CONFORMANCE_REFUSED,	//15.1/3
 		"struct A { virtual void f() = 0; };\n"
-		"void f(A& a) { throw a; }\n"
-		"int main() { return 1; }\n"
+		"struct D : A { void f() {} };\n"
+		"void g(A& a) { throw a; }\n"
+		"int main() { D d; try { g(d); } catch (...) { } return 1; }\n"
 	},
 	{
 		"GotoIntoTryRefused", CONFORMANCE_REFUSED,	//15/2

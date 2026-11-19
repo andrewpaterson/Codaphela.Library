@@ -371,6 +371,38 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the expression is the name of an object: a variable or a field
+// that is declared as the object itself, so what it is is known and its
+// virtual functions needn't be found through its vtable.  The name of a
+// reference isn't: what it refers to may be of a class derived from the one
+// it is declared with.  [class.virtual] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsNamedObject(CCPPSyntax* pcObject)
+{
+	CCPPBoundName	cBound;
+
+	pcObject = pcObject->WithoutParentheses();
+	if (pcObject->GetKind() != CPPS_IdExpression)
+	{
+		return false;
+	}
+	BindName((CCPPSyntaxIdExpression*)pcObject, &cBound);
+	switch (cBound.meWhat)
+	{
+	case CPPBN_Variable:
+		return cBound.mpcVariable && cBound.mpcVariable->mpsType && !cBound.mpcVariable->mpsType->IsReference();
+	case CPPBN_Field:
+	case CPPBN_Capture:
+		return cBound.mpsField && cBound.mpsField->psType && !cBound.mpsField->psType->IsReference();
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // object(arguments) for an object of a class: its operator(), a member
 // called on it.  False if the callee isn't an object of a class; true with
 // the call still failed if no operator() takes the arguments.  [over.call]
@@ -414,7 +446,7 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	pcBound->mpcFunction = pcFunction;
 	pcBound->mpcObject = pcBound->mpcCallee;
 	pcBound->mpcClass = psType->pcClass;
-	pcBound->mbVirtual = pcBound->mpcCallee->GetKind() != CPPS_IdExpression;
+	pcBound->mbVirtual = !IsNamedObject(pcBound->mpcCallee);
 	return true;
 }
 
@@ -489,7 +521,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		pcName = pcMember->mpcName;
 
 		//A named object is what it is declared as: its virtual functions are called by their labels.
-		if (!bArrow && (pcObject->WithoutParentheses()->GetKind() == CPPS_IdExpression))
+		if (!bArrow && IsNamedObject(pcObject))
 		{
 			bVirtual = false;
 		}
@@ -710,7 +742,7 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 			pcBound->mpcFunction = pcFunction;
 			pcBound->mpcObject = pcBound->mpcLeft;
 			pcBound->mpcClass = psType->pcClass;
-			pcBound->mbVirtual = pcBound->mpcLeft->WithoutParentheses()->GetKind() != CPPS_IdExpression;
+			pcBound->mbVirtual = !IsNamedObject(pcBound->mpcLeft);
 			return;
 		}
 		apcArguments.ReInit();
@@ -773,7 +805,7 @@ void CCPPBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	pcBound->mpcFunction = pcFunction;
 	pcBound->mpcObject = pcBound->mpcLeft;
 	pcBound->mpcClass = psType->pcClass;
-	pcBound->mbVirtual = pcBound->mpcLeft->WithoutParentheses()->GetKind() != CPPS_IdExpression;
+	pcBound->mbVirtual = !IsNamedObject(pcBound->mpcLeft);
 }
 
 

@@ -774,6 +774,10 @@ public:
 	bool					IsNamed(int64 lliName, const char* szName);
 	CCPPClass*				TypeInfoClass(void);
 	SCPP65Type*				HandlerType(CCPPSyntaxCatchHandler* pcHandler);
+	bool					CheckThrown(CCPPSyntaxThrowExpression* pcThrow);
+	bool					CheckTryJumps(CCPPSyntax* pcBody);
+	bool					CollectTryJumps(CCPPSyntax* pcNode, CCPPSyntax* pcBody, CArraySyntax* papcLabels, CArraySyntax* papcGotos);
+	CCPPSyntax*				TryRegionOf(CCPPSyntax* pcNode, CCPPSyntax* pcStop);
 	void					ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel);
 	bool					IsTypeInfoMember(CCPPFunction* pcFunction);
 	SCPP65Type*				TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbDynamic);

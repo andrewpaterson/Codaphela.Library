@@ -190,6 +190,7 @@ public:
 	bool	BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
 
 	void	BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
+	bool			IsNamedObject(CCPPSyntax* pcObject);
 	bool	BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound);
 	void	CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	bool			IsConvertible(SCPP65Type* psTo, SCPP65Type* psFrom);

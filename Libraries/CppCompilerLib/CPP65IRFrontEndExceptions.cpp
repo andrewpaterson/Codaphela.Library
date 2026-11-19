@@ -302,6 +302,7 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 	SIRType			asTypes[3];
 	SIRReference	asArguments[3];
 	CChars			szDestroyer;
+	bool			bThrown;
 
 	psValue->psType = &mpcTypes->msVoid;
 	psValue->sValue = IRNone();
@@ -320,6 +321,15 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 	if (!psType)
 	{
 		mpcUnit->ReportTypeOf(pcThrow->mpcOperand);
+		return Unsupported(__FILE__, __LINE__);
+	}
+
+	//What can't be thrown is said aloud (the front end works quietly).
+	mpcUnit->BeginLoud();
+	bThrown = mpcUnit->CheckThrown(pcThrow);
+	mpcUnit->EndLoud();
+	if (!bThrown)
+	{
 		return Unsupported(__FILE__, __LINE__);
 	}
 	psType = ThrownType(psType);
@@ -518,7 +528,7 @@ bool CCPP65IRFrontEnd::Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference s
 // The handler's parameter, a local of the function's: a reference refers to
 // what the match gave; an object is copied from it, and destroyed with the
 // handler's scope; anything else is read from it.  A parameter with no name
-// is nothing.
+// is nothing, unless it is an object.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::HandlerParameter(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched)
@@ -527,18 +537,29 @@ bool CCPP65IRFrontEnd::HandlerParameter(CCPPSyntaxCatchHandler* pcHandler, SIRRe
 	SCPP65IRPlace	sPlace;
 	SCPP65IRPlace	sSource;
 	SCPP65IRValue	sValue;
+	bool			bUnwinding;
+	bool			bResult;
 
 	if (!pcHandler->mpcParameter->mpcSymbol)
 	{
-		return true;
+		//With no name: an object is made all the same (its copy constructor and destructor run), in a place of its own.
+		sPlace.psType = mpcUnit->HandlerType(pcHandler);
+		if (!sPlace.psType || !sPlace.psType->IsClass())
+		{
+			return sPlace.psType != NULL;
+		}
+		sPlace.sAddress = mpcFunction->Slot(mpcFunction->GetBlock(0), IRType(IRTK_Pointer), (uint32)sPlace.psType->iBytes, 4);
 	}
-	pcVariable = mpcUnit->GetVariable(pcHandler->mpcParameter->mpcSymbol);
-	if (!pcVariable || (pcVariable->meStorage != CPPVS_Local))
+	else
 	{
-		return Unsupported(__FILE__, __LINE__);
+		pcVariable = mpcUnit->GetVariable(pcHandler->mpcParameter->mpcSymbol);
+		if (!pcVariable || (pcVariable->meStorage != CPPVS_Local))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		sPlace.sAddress = *mcAddresses.Get((int64)(size)pcVariable);
+		sPlace.psType = pcVariable->mpsType;
 	}
-	sPlace.sAddress = *mcAddresses.Get((int64)(size)pcVariable);
-	sPlace.psType = pcVariable->mpsType;
 	if (sPlace.psType->IsReference())
 	{
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sMatched, sPlace.sAddress);
@@ -546,7 +567,13 @@ bool CCPP65IRFrontEnd::HandlerParameter(CCPPSyntaxCatchHandler* pcHandler, SIRRe
 	}
 	if (sPlace.psType->IsClass())
 	{
-		if (!CopyFromAddress(&sPlace, sMatched))
+		//The handler isn't active until its parameter is made: an exception from the copy is std::terminate.
+		//[except.terminate] 1, [except.handle] 7
+		bUnwinding = mbUnwinding;
+		mbUnwinding = true;
+		bResult = CopyFromAddress(&sPlace, sMatched);
+		mbUnwinding = bUnwinding;
+		if (!bResult)
 		{
 			return false;
 		}
