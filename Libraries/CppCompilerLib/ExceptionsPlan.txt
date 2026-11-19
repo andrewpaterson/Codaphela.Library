@@ -739,3 +739,34 @@ Progress
   instruction with thrown straight after it, tied by position, where the others end the block at the call): "Those are
   fine then thanks".  No go for stage 2 yet.
 
+  The user, 2026-11-19: "Go ahead with stage 2".
+
+  2. Done in the compiler (eb2dd3452 2a, 22a795f8b 2b, 1f3f37f11 2c, 412732d53 2d, 32d736109 2e); one of the six runs
+     that show nothing changed with the option off is still to be made (below).
+     - 2a, 2b as planned.  The loop unswitcher's case for a throw can't be reached (a block that ends in throw is in no
+       loop); it is there for the same reason its ret is.
+     - 2c, not as planned:
+       - The optimiser's library calls (CIRIdiomPasses::LibraryCall) aren't marked nothrow.  No thrown follows a call the
+         optimiser makes, so there is no test for a mark to fold, and the mark printed a nothrow line in every IR text
+         that has a memset.
+       - MarkNoThrow is only called for a unit built with exceptions (CCPP65IRFrontEnd::InlineUnit): without them there
+         is no thrown to fold, and the marks would be lines in the IR text of every unit.
+       - The verifier's rule is "a nothrow function can't reach a throw" (CIRModule::MayThrow, the same search
+         MarkNoThrow makes), not "has no block that ends in throw": a function found nothrow still has its landing
+         blocks for calls to nothrow functions until it is optimised.
+       - A function that tests a call to a nothrow function is optimised again (TestsNoThrow, as CallsNoWrites).
+       - Weak functions are marked as the others are (as nowrites does): one replaced at link time by one that throws
+         would be wrong.  Nothing in the compiler makes a weak function that isn't the same everywhere.
+     - 2d, not as planned: ThreadPhis doesn't send the callee's ways out through a block of phis and a brif when the
+       call's result is read after it (its phi is used outside the block), which is every call with a result.  So the
+       inliner does it itself where the shape is what a front end writes (call, thrown, brif on it, the thrown read by
+       nothing else): the returns go on to the brif's else, the throws jump to its then, and no test is left.  The phi
+       form is kept for any other shape.
+     - Tests: TestIRThrow, TestIRThrown, TestIRNoThrow, TestIRInlineThrows (TestIR.cpp), TestIRInterpreterThrow,
+       TestIRInterproceduralNoThrow.  TestCppCompilerLib passes (268740, RunParallel.py).  Not tested: the marks going
+       through the imports and the inliner's symbols from another unit (the two lines beside regcall's).
+     - Nothing changed with the option off: Tests\CompilerMeasure.py --serial as the baseline, raw outputs in
+       D:\gameengine-exceptions\Stage2.  The same cycles and bytes as the second baseline, to the last digit:
+       TestBaseLib65 on both processors, TestStandardLib65 on both, TestSupportLib65 on the 65C64.  TestSupportLib65 on
+       the W65C816 was stopped by the machine running low on memory (not a failure of the run) and is still to be made.
+
