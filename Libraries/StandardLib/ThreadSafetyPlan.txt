@@ -123,13 +123,14 @@ The design
     from the free list), 14 to 25 ns on 12 threads, the same object or not.  The thread that called ObjectsInit keeps
     its stack froms on the objects as now, so nothing changes for one thread.
     The cost moves to the writer: "has this object a stack from?" is the object's own list and then a look in each
-    worker's table.  It is asked only of objects found detached from the root.  Not built or measured yet; nor are
-    stack Ptrs to unattached objects, which stay under the lock (unrooted graphs are slow on any number of threads).
+    worker's table.  It is asked only of objects found detached from the root.  (Built and measured in step 18.  Stack
+    Ptrs to unattached objects stay under the lock: unrooted graphs are slow on any number of threads.)
     The dumps, validation and the remap of a loaded hollow's stack Ptrs read the tables too.
     The call sites don't change: step 9 already marks each entry point as a reader or a writer (ObjectsRead / ObjectsWrite
     guards that are the same lock in level 1).
     Allocation leaves the writer side here: OMalloc is allocate (the allocator's own safety), add to mcMemory (its own
-    small mutex), then a reader's stack from.  That is when the allocator has to scale.
+    small mutex), then a reader's stack from.  That is when the allocator has to scale.  (Step 21, not built: decision 8.
+    Allocating as a reader can't let threads make more objects while every free is a writer's; level 3 is the way.)
 
   Level 3: a CObjects per thread (only if objects must be BUILT in parallel)
     Levels 1 and 2 serialise every heap pointer change, so threads that build object graphs gain nothing.  The answer
@@ -137,9 +138,9 @@ The design
     is handed to the main CObjects in one step (Adopt: re-register its objects in the other memory index; no copy when
     both allocate from the same thread-safe allocator; OIndexes come from one locked sequence).  Pointers between two
     CObjects stay forbidden and validated.  OMalloc/ORoot would go through a thread_local "current objects" in place of
-    gcObjects.  Not planned in detail until something needs it.
-    (Decisions 11 to 15 changed the last but one sentence: a worker's objects may point at main objects.  How it is
-    built is under step 25, Level 3 as built.)
+    gcObjects.
+    (Planned in detail and built as step 25: see Level 3 as built.  Decisions 11 to 15 changed "Pointers between two
+    CObjects stay forbidden": a worker's objects may point at main objects.)
 
   Threads register
     The home thread (the one that called ObjectsInit) switches the locking on, ObjectsLocking(true), before any other
@@ -165,8 +166,8 @@ The design
     moves: the kill order, the destruction callback, every Free(), the pointer tos and froms coming off, the memory.
     Until the home thread gets to them the dead objects still point at live ones and are still in those objects' froms;
     the walks pass over FREED froms already (a batch whose Free() changes pointers relies on it today).
-    A dirty stored object in the batch is saved before it leaves the index, on the thread that let go: left for later,
-    a Get of it would load the old one from the database in the meantime.
+    A dirty stored object in the batch is saved before it leaves the index, on the thread that let go, or a Get of it
+    would load the old one from the database in the meantime (built in step 14).
     (The alternative, freeing on the thread that let go, needs every Free() in WindowLib, the
     native canvases and the renderers to be safe on any thread.)
 
@@ -185,10 +186,11 @@ The design
     until the Codabase transaction work decides how CObjects and transactions meet (open there already), or (b) a
     hollow that has been loaded stays as a forwarder while another thread's stack Ptr still points at it (its Dehollow,
     which only a Ptr to a hollow ever calls, takes the lock and answers with the loaded object), so the cost falls
-    only on Ptrs to hollows.  (b) is to be designed with the transaction work; (a) until then.  (b) is designed under
-    Forwarding hollows, below (2026-11-18).
-    Eviction and killing a held stored object are only allowed while no other registered thread is inside the object
-    system or holding a stack pointer (checked from the per-thread counts): in practice, between jobs.
+    only on Ptrs to hollows.  (b) was to be designed with the transaction work, and (a) kept until then; (b) was
+    designed and built on its own instead (Forwarding hollows, below: step 24), and (a) lifted (24f).
+    Eviction is only allowed while no other registered thread is inside the object system or holding a stack pointer
+    (checked from the per-thread counts): in practice, between jobs.  Killing a held stored object is refused while
+    another thread holds a stack pointer to it or to an object embedded in it (24f).
 
   Flags (J)
     All flag writes go under the lock in level 1 (SetDirty included).  If SetDirty from users shows up in profiles, the
@@ -444,10 +446,10 @@ The allocator
   not used by workers in level 2 (their tables).
 
 
-Forwarding hollows (step 24, planned 2026-11-18)
-------------------------------------------------
-  What it is for: a program with a database whose threads share its stored objects.  Until it is built decision 4
-  keeps a stored object to one thread at a time.
+Forwarding hollows (step 24, planned and built 2026-11-18)
+----------------------------------------------------------
+  What it is for: a program with a database whose threads share its stored objects.  Until it was built decision 4
+  kept a stored object to one thread at a time; 24f lifted that.
 
   The Codabase transaction work and this don't touch.  Every thread here shares one CObjects and its one data
   connection, which is only called with the object lock held (and a CCodabase session takes calls from any thread
@@ -691,7 +693,8 @@ Steps
       others had let go of: with frees waiting it takes the lock, which frees them.  The times above didn't move.
   20. Level 2 proved: ThreadSanitizer, the mutation harness, the full sweep, and Sculpt (or the IDE's indexing) with
       workers that do copy Ptrs.
-      Done 2026-11-17, but for the full sweep, which is run once after step 23.
+      Done 2026-11-17, and the full sweep once step 23 was done (2026-11-18): what it found in this work is under
+      step 22; four failures that weren't this work's were mended in b0d0c146e.
       ThreadSanitizer reports nothing in TestStandardLib (79151) or in TestSculptLib's bakes.
       The guards again: the pointers' own ways in have no guard now, which leaves 100.  Each taken out in turn, 97
       make a test fail; the three that don't are step 16's three.
@@ -1085,8 +1088,7 @@ Steps
          (a worker's stack pointers between its own objects and a main object: held exactly while pointed at).
          One thread, by instructions against the groundwork: within LTO's band, a copy and drop 332 to 335, OMalloc
          and free 5385 to 5303, a tree built +0.5%, freed -0.9%.
-         Not yet: a worker's object pointing at a main object (25c).  Until it is built, a worker's objects point at
-         its own objects only.
+         A worker's object pointing at a main object came next (25c).
       c. A worker's object pointing at a main object: held as the worker's stack pointers hold main objects (the
          thread's table), so the main object stays while it is pointed at.  Neither object system's walks cross into
          the other.  A main object pointed into an unadopted graph is an error, found by validation.
