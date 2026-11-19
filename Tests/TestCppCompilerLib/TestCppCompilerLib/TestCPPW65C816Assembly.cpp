@@ -322,6 +322,54 @@ void TestCPP816AssemblyLargeBitFinders(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// BaseLib's overloads of the C library's memory and file functions on the
+// W65C816 (PrimitiveTypes.h) choose by the count's type: a unit that calls
+// each with counts wider than a size_t uses the 32 suffixed functions and
+// none of the plain ones, and one that calls each with counts no wider
+// uses the plain ones and none of the 32 suffixed.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816AssemblyLargeCounts(void)
+{
+	static const char*	aszLarge[] = { "Input/CPP65/AssemblyEntries/LargeCounts.cpp", NULL };
+	static const char*	aszNatural[] = { "Input/CPP65/AssemblyEntries/NaturalCounts.cpp", NULL };
+	static const char*	aszNames[] = { "_memcpy", "_memmove", "_memset", "_memcmp", "_memchr", "_malloc", "_realloc", "_calloc", "_fread", "_fwrite", NULL };
+	STestCPP816Labels	sLarge;
+	STestCPP816Labels	sNatural;
+	CChars				szWrong;
+	CChars				szName32;
+	size				i;
+
+	TestCPP816AssemblyLabels(&sLarge, aszLarge, true, true);
+	TestCPP816AssemblyLabels(&sNatural, aszNatural, true, true);
+	AssertString("", sLarge.szErrors.Text());
+	AssertString("", sNatural.szErrors.Text());
+
+	szWrong.Init();
+	for (i = 0; aszNames[i]; i++)
+	{
+		szName32.Init(aszNames[i]);
+		szName32.Append("32");
+		if (!sLarge.aszCalled.Contains(szName32.Text()) || sLarge.aszCalled.Contains((char*)aszNames[i]))
+		{
+			szWrong.Append("large ")->Append(aszNames[i])->Append(" ");
+		}
+		if (!sNatural.aszCalled.Contains((char*)aszNames[i]) || sNatural.aszCalled.Contains(szName32.Text()))
+		{
+			szWrong.Append("natural ")->Append(aszNames[i])->Append(" ");
+		}
+		szName32.Kill();
+	}
+	AssertString("", szWrong.Text());
+
+	szWrong.Kill();
+	TestCPP816AssemblyKill(&sNatural);
+	TestCPP816AssemblyKill(&sLarge);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // stringW65C816.asm's memcpy copies up to 32 bytes itself and more with the
 // block move: every size either side of that, odd and even, from odd and
 // even addresses, with the bytes either side of the destination left; one
@@ -460,6 +508,7 @@ void TestCPP816Assembly(void)
 	TestCPP816AssemblyReplacesCPlusPlus();
 	TestCPP816AssemblyLargeBitFinders();
 	TestCPP816AssemblyMemcpySizes();
+	TestCPP816AssemblyLargeCounts();
 
 	TestStatistics();
 }

@@ -152,6 +152,14 @@ Steps (a commit each, after the checks it lists)
      compiles' narrowing warnings are the same but for ASSIGN's, which is gone; step 0's six TestBaseLib65 tests
      pass in 3216384758 cycles (3216382570 before); OS.SYS 171230 bytes of segments (171212), modplay.exe 754754
      (754440).
+     fread and fwrite too (the user, 2026-11-19: "fread and fwrite need to work with 32 bit values (which probably
+     means anything allocating memory for them needs to used malloc32)").  Libc65's multiplied size by count in a
+     size_t, so 500 by 200 read 34464 bytes: they multiply in 32 bits, and on the W65C816 fread32 and fwrite32 take
+     a size or a count of 32 bits (HCP65).  PrimitiveTypes.h's overloads choose them as the others', Memory32.h
+     names them on every target, and CStdErrFile's fwrite of lsizes is fwrite32's there.  What is read into or
+     written from is malloc32's when it is that big, which malloc with an lsize is.  TestLibc65Stdio reads and
+     writes 100000 and 170000 bytes on the host file device; TestCPP816AssemblyLargeCounts compiles each of the ten
+     functions with wide counts and with natural ones and looks at which it calls.
    - Found by TestHCP65Lib's console test, from before this step: KernalCopy.asm's and the export table's
      KernalMainCopy were labelled with unsigned short counts (tt), as the Blitter Board work was written before
      question 13 made uint16 unsigned int (jj), so VIDEO.DRV's import of it wasn't found and the driver didn't load.
