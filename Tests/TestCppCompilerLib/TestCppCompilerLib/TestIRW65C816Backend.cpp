@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "CppCompilerLib/CPPCompileOptions.h"
 #include <stdlib.h>
 #include <string.h>
 #include "BaseLib/TypeNames.h"
@@ -89,6 +90,7 @@ static bool TestIR816Assemble(CAsm65Object* pcObject, const char* szName, const 
 //The runtime (Libc65's IRW65C816Runtime-*.asm) and the maths tables, assembled once and linked when used: [0] with the
 //tables (IRW65C816Runtime-MathTables.asm, MathMult and MathInvert), [1] without them (IRW65C816Runtime-MathSafe.asm).
 static CAsm65Library*	gapcTestIR816Runtime[2] = { NULL, NULL };
+extern bool				gbTestIRExceptions;		//TestIR65Backend.cpp: the run helpers build with exceptions on.
 static bool				gbTestIR816MathSafe = false;	//TestIR816Run links [1] and the back end reads no table.
 
 
@@ -226,6 +228,7 @@ int64 TestIR816RunW65C816(const char* szIR, bool bLockstep, CChars* pszAssembly)
 	SIRType			sReturn;
 	int64			iResult;
 	int64			lliResult;
+	CCPPCompileOptions	cOptions;
 	size			uiSteps;
 	bool			bWide;
 	int				i;
@@ -249,6 +252,9 @@ int64 TestIR816RunW65C816(const char* szIR, bool bLockstep, CChars* pszAssembly)
 	szRuntime.Init();
 	iLabels = 0;
 	cBackend.Init(&cModule, &iLabels);
+	cOptions = *GetDefaultCPPCompileOptions();
+	cOptions.mbExceptions = gbTestIRExceptions;
+	cBackend.SetOptions(&cOptions);
 	cBackend.SetMathTables(!gbTestIR816MathSafe);
 	AssertTrue(cBackend.GenerateModule(&szCode, &cErrors));
 	AssertTrue(CIRW65C816Runtime::GenerateRuntime(cBackend.GetRuntime(), &szRuntime, &cErrors));
@@ -2288,6 +2294,17 @@ void TestIR816BackendPeepholeTransfers(void)
 // What IR816TidyExits makes of szCode.
 //
 //////////////////////////////////////////////////////////////////////////
+static void AssertIR816ClearExitCarries(const char* szExpected, const char* szCode)
+{
+	CChars	sz;
+
+	sz.Init(szCode);
+	IR816ClearExitCarries(&sz, 0);
+	AssertString(szExpected, sz.Text());
+	sz.Kill();
+}
+
+
 static void AssertIR816TidyExits(const char* szExpected, const char* szCode, bool bNoResult)
 {
 	CChars	sz;
@@ -2979,6 +2996,193 @@ void TestIR816BackendXOpcodes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Exceptions (ExceptionsPlan.txt stage 3): a block that ends in throw
+// returns with the carry set, and the thrown after a call reads it.  Each
+// program runs on both processors.
+//
+//////////////////////////////////////////////////////////////////////////
+//Returns x + x, or throws when x is negative.
+#define TEST_IR_THROWS \
+	"function i32 @_Throws__Fi(i32 %x)\n{\nentry:\n\t%c = slt i32 %x, 0\n\tbrif %c, bad, good\nbad:\n\tthrow\ngood:\n\t%d = add i32 %x, %x\n\tret i32 %d\n}\n\n"
+//Calls it, and passes an exception on: one more frame.
+#define TEST_IR_MIDDLE \
+	"function i32 @_Middle__Fi(i32 %x)\n{\nentry:\n\t%r = call i32 @_Throws__Fi(i32 %x)\n\t%t = thrown i1\n\tbrif %t, land, on\nland:\n\tthrow\non:\n\t%s = add i32 %r, 1\n\tret i32 %s\n}\n\n"
+
+#define TEST_IR_DUMP_PROGRAM \
+		"regcall @_Reg__Fiii\nregcall @_Big__Fiiiii\n\n" \
+		TEST_IR_THROWS \
+		"function i32 @_Frame__Fi(i32 %x)\n{\nentry:\n\t%s = slot ptr 4, 4\n\tstore volatile i32 %x, %s\n\t%r = call i32 @_Throws__Fi(i32 %x)\n\t%t = thrown i1\n\tbrif %t, land, on\n" \
+		"land:\n\tthrow\non:\n\t%v = load volatile i32 %s\n\t%q = add i32 %r, %v\n\tret i32 %q\n}\n\n" \
+		"function i32 @_Reg__Fiii(i32 %x, i32 %y, i32 %z)\n{\nentry:\n\t%c = slt i32 %x, 0\n\tbrif %c, bad, good\nbad:\n\tthrow\ngood:\n\t%d = add i32 %y, %z\n\tret i32 %d\n}\n\n" \
+		"function i32 @_Big__Fiiiii(i32 %x, i32 %a, i32 %b, i32 %c, i32 %d)\n{\nentry:\n\t%n = slt i32 %x, 0\n\tbrif %n, bad, good\nbad:\n\tthrow\ngood:\n\t%s = add i32 %c, %d\n\tret i32 %s\n}\n\n" \
+		"function i32 @_Compares__Fii(i32 %x, i32 %y)\n{\nentry:\n\t%c = uge i32 %x, %y\n\t%r = zext i1 %c to i32\n\tret i32 %r\n}\n\n" \
+		"function i32 @_Six__Fiiiiii(i32 %x, i32 %a, i32 %b, i32 %c, i32 %d, i32 %e)\n{\nentry:\n\t%n = slt i32 %x, 0\n\tbrif %n, bad, good\nbad:\n\tthrow\ngood:\n\t%s = add i32 %c, %e\n\tret i32 %s\n}\n\n" \
+		"function i32 @_main()\n{\nentry:\n\t%p = slot ptr 4, 4\n\tstore volatile ptr @_Frame__Fi, %p\n\t%f = load volatile ptr %p\n" \
+		"\t%a = call i32 %f(i32 20)\n\t%t = thrown i1\n\tbrif %t, wrong, b1\n" \
+		"b1:\n\t%b = call i32 @_Reg__Fiii(i32 1, i32 1, i32 2)\n\t%u = thrown i1\n\tbrif %u, wrong, b3\n" \
+		"b3:\n\t%d = call i32 @_Big__Fiiiii(i32 1, i32 2, i32 3, i32 4, i32 5)\n\t%w = thrown i1\n\tbrif %w, wrong, b4\n" \
+		"b4:\n\t%e = call i32 @_Six__Fiiiiii(i32 -1, i32 2, i32 3, i32 4, i32 5, i32 6)\n\t%x = thrown i1\n\tbrif %x, b5, wrong\n" \
+		"b5:\n\t%g = call i32 @_Compares__Fii(i32 3, i32 1)\n\t%y = thrown i1\n\tbrif %y, wrong, b6\n" \
+		"b6:\n\t%s1 = add i32 %a, %b\n\t%s3 = add i32 %s1, %d\n\t%s4 = add i32 %s3, %g\n\tret i32 %s4\n" \
+		"wrong:\n\tret i32 -1\n}\n"
+
+#define TEST_IR_PLAIN_PROGRAM \
+		"function i32 @_Compares__Fii(i32 %x, i32 %y)\n{\nentry:\n\t%c = uge i32 %x, %y\n\t%r = zext i1 %c to i32\n\tret i32 %r\n}\n\n" \
+		"function i32 @_main()\n{\nentry:\n\t%g = call i32 @_Compares__Fii(i32 3, i32 1)\n\tret i32 %g\n}\n"
+
+static void TestIR816BackendExceptions(void)
+{
+	CChars	sz816;
+	CChars	sz65;
+
+	gbTestIRExceptions = true;
+
+	//The code itself, for one program with each kind of exit and call.
+	sz816.Init();
+	sz65.Init();
+	AssertLong(2 * 20 + 20 + 3 + 9 + 1, TestIR816RunW65C816(TEST_IR_DUMP_PROGRAM, false, &sz816));
+	AssertLong(2 * 20 + 20 + 3 + 9 + 1, TestIR65Run65C64(TEST_IR_DUMP_PROGRAM, false, &sz65));
+
+	//W65C816.  A throw's exit sets the carry; an exit that doesn't add to S clears it; the usual exit's add leaves it
+	//clear, so it has no clc.
+	AssertTrue(sz816.Contains("\t\tpld\n\t\tsec\n\t\trtl\n"));
+	AssertTrue(sz816.Contains("\t\tpld\n\t\tclc\n\t\trtl\n"));
+	AssertTrue(sz816.Contains("\t\tadc 44\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n"));
+	//Up to 8 bytes of arguments are pulled, which keeps the carry for the brif; the call through a pointer's rtl has
+	//no clc before it.
+	AssertTrue(sz816.Contains("\t\tjsl _Throws__Fi\n\t\tply\n\t\tply\n\t\tsta [D + 40]\n\t\tstx [D + 42]\n\t\tbcc L"));
+	AssertTrue(sz816.Contains("\t\tjsl _Reg__Fiii.ax\n\t\tply\n\t\tply\n\t\tply\n\t\tply\n"));
+	AssertTrue(sz816.Contains("\t\tsta [S + 1]\n\t\trtl\nL"));
+	//More than that: the thrown is made a word before S is moved.
+	AssertTrue(sz816.Contains("\t\tjsl _Big__Fiiiii.ax\n\t\tldy 0\n\t\tbcc L"));
+	AssertTrue(sz816.Contains("\t\tiny\nL"));
+	AssertTrue(sz816.Contains("\t\tsty [D + 13]\n\t\ttay\n\t\ttsc\n\t\tclc\n\t\tadc 16\n\t\ttcs\n"));
+
+	//65C64.  cmp S, S sets the carry and add S, 0 clears it; removing a frame clears it.  A tested call branches
+	//straight after the jsr to code after the function's ret, which removes the arguments.
+	AssertTrue(sz65.Contains("\t\tcmp S, S\n\t\tret\n"));
+	AssertTrue(sz65.Contains("\t\tadd S, 0\n\t\tret\n"));
+	AssertTrue(sz65.Contains("\t\tadd S, 16\n\t\tpul V\n\t\tret\n"));
+	AssertTrue(sz65.Contains("\t\tjsr _Throws__Fi\n\t\tbras c, L"));
+	AssertTrue(sz65.Contains("\t\tadd S, 24\n\t\tbra L"));
+	//A register function's stub that pushes and calls its body leaves by an exit of its own when the body threw.
+	AssertTrue(sz65.Contains("\t\tjsr _Big__Fiiiii.aby\n\t\tbras c, L"));
+	AssertTrue(sz65.Contains("\t\tadd S, 8\n\t\tcmp S, S\n\t\tret\n"));
+	sz65.Kill();
+	sz816.Kill();
+
+	//Without exceptions the same functions have none of it.
+	gbTestIRExceptions = false;
+	sz816.Init();
+	sz65.Init();
+	AssertLong(1, TestIR816RunW65C816(TEST_IR_PLAIN_PROGRAM, false, &sz816));
+	AssertLong(1, TestIR65Run65C64(TEST_IR_PLAIN_PROGRAM, false, &sz65));
+	AssertFalse(sz816.Contains("\t\tclc\n\t\trtl\n"));
+	AssertTrue(sz816.Contains("\t\tpld\n\t\trtl\n"));
+	AssertFalse(sz65.Contains("add S, 0"));
+	sz65.Kill();
+	sz816.Kill();
+	gbTestIRExceptions = true;
+
+	//The W65C816's register stub that calls its body (three register words and A's place moved over).
+	sz816.Init();
+	AssertLong(7 + 100, TestIR816Run(
+		"regcall @_Three__Fisi\n\n"
+		"function i32 @_Three__Fisi(i32 %x, i16 %y, i32 %z)\n{\nentry:\n\t%c = slt i32 %x, 0\n\tbrif %c, bad, good\nbad:\n\tthrow\ngood:\n\t%w = sext i16 %y to i32\n\t%s = add i32 %w, %z\n\tret i32 %s\n}\n\n"
+		"function i32 @_main()\n{\nentry:\n\t%p = slot ptr 4, 4\n\tstore volatile ptr @_Three__Fisi, %p\n\t%f = load volatile ptr %p\n"
+		"\t%a = call i32 %f(i32 1, i16 3, i32 4)\n\t%t = thrown i1\n\tbrif %t, wrong, next\n"
+		"next:\n\t%b = call i32 %f(i32 -1, i16 3, i32 4)\n\t%u = thrown i1\n\tbrif %u, done, wrong\n"
+		"done:\n\t%r = add i32 %a, 100\n\tret i32 %r\nwrong:\n\tret i32 -1\n}\n", false, &sz816));
+	AssertTrue(sz816.Contains("\t\tjsl _Three__Fisi.axy\n\t\tbcs L"));
+	AssertTrue(sz816.Contains("\t\tadc 4\n\t\ttcs\n\t\ttya\n\t\trtl\nL"));
+	AssertTrue(sz816.Contains("\t\tadc 4\n\t\ttcs\n\t\tsec\n\t\trtl\n"));
+	sz816.Kill();
+
+	//Through one frame and through two; the way that didn't throw uses the call's result.
+	AssertIR816(111,
+		TEST_IR_THROWS TEST_IR_MIDDLE
+		"function i32 @_main()\n{\nentry:\n"
+		"\t%a = call i32 @_Middle__Fi(i32 5)\n\t%t = thrown i1\n\tbrif %t, wrong, next\n"
+		"wrong:\n\tret i32 -1\n"
+		"next:\n\t%b = call i32 @_Middle__Fi(i32 -5)\n\t%u = thrown i1\n\tbrif %u, caught, missed\n"
+		"missed:\n\tret i32 -2\n"
+		"caught:\n\t%r = add i32 %a, 100\n\tret i32 %r\n}\n");
+
+	//Arguments on the stack (4, 12 and 20 bytes of them: pulled, and more than is pulled), with the test's two ways
+	//both taken in a loop: i from -3 to 3, the sum of what returned and a count of what threw.
+	AssertIR816(1000 * 3 + (0 + 2 + 4 + 6) + (11 + 12 + 13 + 14) - 4 + (100 + 101 + 102 + 103),
+		"function i32 @_Many__Fiii(i32 %x, i32 %y, i32 %z)\n{\nentry:\n\t%c = slt i32 %x, 0\n\tbrif %c, bad, good\nbad:\n\tthrow\ngood:\n\t%d = add i32 %x, %y\n\tret i32 %d\n}\n\n"
+		"function i32 @_More__Fiiiii(i32 %x, i32 %a, i32 %b, i32 %c, i32 %d)\n{\nentry:\n\t%n = slt i32 %x, 0\n\tbrif %n, bad, good\nbad:\n\tthrow\ngood:\n\t%s = add i32 %x, %d\n\tret i32 %s\n}\n\n"
+		TEST_IR_THROWS
+		"function i32 @_main()\n{\nentry:\n\tjmp loop\n"
+		"loop:\n\t%i = phi i32 [entry, -3], [step, %j]\n\t%sum = phi i32 [entry, 0], [step, %sum4]\n"
+		"\t%a = call i32 @_Throws__Fi(i32 %i)\n\t%t = thrown i1\n\tbrif %t, threw, second\n"
+		"second:\n\t%sum1 = add i32 %sum, %a\n\t%b = call i32 @_Many__Fiii(i32 %i, i32 11, i32 12)\n\t%u = thrown i1\n\tbrif %u, threw, third\n"
+		"third:\n\t%sum2 = add i32 %sum1, %b\n\t%sum2a = sub i32 %sum2, 1\n\t%c = call i32 @_More__Fiiiii(i32 %i, i32 1, i32 2, i32 3, i32 100)\n\t%v = thrown i1\n\tbrif %v, threw, fine\n"
+		"fine:\n\t%sum3 = add i32 %sum2a, %c\n\tjmp step\n"
+		"threw:\n\t%sum5 = add i32 %sum, 1000\n\tjmp step\n"
+		"step:\n\t%sum4 = phi i32 [fine, %sum3], [threw, %sum5]\n\t%j = add i32 %i, 1\n\t%e = sle i32 %j, 3\n\tbrif %e, loop, done\n"
+		"done:\n\tret i32 %sum4\n}\n");
+
+	//A thrown that is a value: read twice, and after something else.
+	AssertIR816(1 * 10 + 1 + 0 * 10 + 0 + 7,
+		TEST_IR_THROWS
+		"function i32 @_Value__Fi(i32 %x)\n{\nentry:\n\t%r = call i32 @_Throws__Fi(i32 %x)\n\t%t = thrown i1\n\t%w = zext i1 %t to i32\n\t%m = mul i32 %w, 10\n\t%s = add i32 %m, %w\n\tret i32 %s\n}\n\n"
+		"function i32 @_main()\n{\nentry:\n\t%a = call i32 @_Value__Fi(i32 -1)\n\t%b = call i32 @_Value__Fi(i32 1)\n\t%c = add i32 %a, %b\n\t%d = add i32 %c, 7\n\tret i32 %d\n}\n");
+
+	//Through a pointer, a function with locals in a frame, one with no frame, and a function called with its
+	//arguments in registers (three and five of them, so the second has a stub that pushes).
+	AssertIR816(2 * 20 + 20 + 3 + 500 + 9 + 5000,
+		"regcall @_Reg__Fiii\nregcall @_Big__Fiiiii\n\n"
+		TEST_IR_THROWS
+		"function i32 @_Frame__Fi(i32 %x)\n{\nentry:\n\t%s = slot ptr 4, 4\n\tstore volatile i32 %x, %s\n\t%r = call i32 @_Throws__Fi(i32 %x)\n\t%t = thrown i1\n\tbrif %t, land, on\n"
+		"land:\n\tthrow\non:\n\t%v = load volatile i32 %s\n\t%q = add i32 %r, %v\n\tret i32 %q\n}\n\n"
+		"function i32 @_Reg__Fiii(i32 %x, i32 %y, i32 %z)\n{\nentry:\n\t%c = slt i32 %x, 0\n\tbrif %c, bad, good\nbad:\n\tthrow\ngood:\n\t%d = add i32 %y, %z\n\tret i32 %d\n}\n\n"
+		"function i32 @_Big__Fiiiii(i32 %x, i32 %a, i32 %b, i32 %c, i32 %d)\n{\nentry:\n\t%n = slt i32 %x, 0\n\tbrif %n, bad, good\nbad:\n\tthrow\ngood:\n\t%s = add i32 %c, %d\n\tret i32 %s\n}\n\n"
+		"function i32 @_main()\n{\nentry:\n\t%p = slot ptr 4, 4\n\tstore volatile ptr @_Frame__Fi, %p\n\t%f = load volatile ptr %p\n"
+		"\t%a = call i32 %f(i32 20)\n\t%t = thrown i1\n\tbrif %t, wrong, b1\n"
+		"b1:\n\t%b = call i32 @_Reg__Fiii(i32 1, i32 1, i32 2)\n\t%u = thrown i1\n\tbrif %u, wrong, b2\n"
+		"b2:\n\t%c = call i32 %f(i32 -20)\n\t%v = thrown i1\n\tbrif %v, b3, wrong\n"
+		"b3:\n\t%d = call i32 @_Big__Fiiiii(i32 1, i32 2, i32 3, i32 4, i32 5)\n\t%w = thrown i1\n\tbrif %w, wrong, b4\n"
+		"b4:\n\t%e = call i32 @_Big__Fiiiii(i32 -1, i32 2, i32 3, i32 4, i32 5)\n\t%x = thrown i1\n\tbrif %x, b5, wrong\n"
+		"b5:\n\t%g = call i32 @_Reg__Fiii(i32 -1, i32 1, i32 2)\n\t%y = thrown i1\n\tbrif %y, b6, wrong\n"
+		"b6:\n\t%s1 = add i32 %a, %b\n\t%s2 = add i32 %s1, 500\n\t%s3 = add i32 %s2, %d\n\t%s4 = add i32 %s3, 5000\n\tret i32 %s4\n"
+		"wrong:\n\tret i32 -1\n}\n");
+
+	//A function that throws nothing returns with the carry clear whatever it did last (a comparison that sets it), with
+	//and without a frame; the caller's test is for a function that might.
+	AssertIR816(1 + 1,
+		"function i32 @_Compares__Fii(i32 %x, i32 %y)\n{\nentry:\n\t%c = uge i32 %x, %y\n\t%r = zext i1 %c to i32\n\tret i32 %r\n}\n\n"
+		"function i32 @_Kept__Fii(i32 %x, i32 %y)\n{\nentry:\n\t%s = slot ptr 4, 4\n\tstore volatile i32 %x, %s\n\t%v = load volatile i32 %s\n\t%c = uge i32 %v, %y\n\t%r = zext i1 %c to i32\n\tret i32 %r\n}\n\n"
+		"function i32 @_main()\n{\nentry:\n\t%a = call i32 @_Compares__Fii(i32 9, i32 3)\n\t%t = thrown i1\n\tbrif %t, wrong, next\n"
+		"next:\n\t%b = call i32 @_Kept__Fii(i32 9, i32 3)\n\t%u = thrown i1\n\tbrif %u, wrong, done\n"
+		"done:\n\t%r = add i32 %a, %b\n\tret i32 %r\nwrong:\n\tret i32 -1\n}\n");
+
+	gbTestIRExceptions = false;
+
+	//The exits' text passes.  A throw's exit (sec before the rtl) returns nothing in A, in a function that returns a
+	//value too: the tay and tya go.  The other exit of the same function is tidied as it was (its result in Y).
+	AssertIR816TidyExits(
+		"\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\tpld\n\t\tsec\n\t\trtl\nL1:\n\t\tldy [D + 3]\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n",
+		"\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\tsec\n\t\trtl\nL1:\n\t\tlda [D + 3]\n\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n", false);
+	AssertIR816TidyExits("\t\tlda [D + 41]\n\t\ttcs\n\t\tpld\n\t\tsec\n\t\trtl\n", "\t\ttay\n\t\tlda [D + 41]\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\tsec\n\t\trtl\n", false);
+
+	//IR816ClearExitCarries: a clc before every rtl that the carry isn't already clear at.
+	//The usual exit, with a result loaded after S's move, and a throw's: as they are.
+	AssertIR816ClearExitCarries("\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\tlda 65535\n\t\tpld\n\t\trtl\n\t\tpld\n\t\tsec\n\t\trtl\n",
+		"\t\ttdc\n\t\tclc\n\t\tadc 36\n\t\ttcs\n\t\tlda 65535\n\t\tpld\n\t\trtl\n\t\tpld\n\t\tsec\n\t\trtl\n");
+	//A frame on a page, no frame, and an exit a label leads into after S's move.
+	AssertIR816ClearExitCarries("\t\tlda [D + 41]\n\t\ttcs\n\t\tpld\n\t\tclc\n\t\trtl\n", "\t\tlda [D + 41]\n\t\ttcs\n\t\tpld\n\t\trtl\n");
+	AssertIR816ClearExitCarries("_F:\n\t\tcmp [S + 4]\n\t\tclc\n\t\trtl\n", "_F:\n\t\tcmp [S + 4]\n\t\trtl\n");
+	AssertIR816ClearExitCarries("\t\tclc\n\t\tadc 36\n\t\ttcs\nL1:\n\t\tpld\n\t\tclc\n\t\trtl\n", "\t\tclc\n\t\tadc 36\n\t\ttcs\nL1:\n\t\tpld\n\t\trtl\n");
+	//The rtl of a call through a pointer isn't an exit; the exit after it is.  Done twice it changes nothing more.
+	AssertIR816ClearExitCarries("\t\tsta [S + 1]\n\t\trtl\nL2:\n\t\tpha\n\t\trtl\nL3:\n\t\tclc\n\t\trtl\n", "\t\tsta [S + 1]\n\t\trtl\nL2:\n\t\tpha\n\t\trtl\nL3:\n\t\trtl\n");
+	AssertIR816ClearExitCarries("L3:\n\t\tclc\n\t\trtl\n", "L3:\n\t\tclc\n\t\trtl\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR816Backend(void)
@@ -3030,6 +3234,7 @@ void TestIR816Backend(void)
 	TEST_PART(TestIR816BackendMathSafe());
 	TEST_PART(TestIR816BackendInlineMultiply());
 	TEST_PART(TestIR816BackendRuntimeRoutines());
+	TEST_PART(TestIR816BackendExceptions());
 
 	SafeKill(gapcTestIR816Runtime[0]);
 	SafeKill(gapcTestIR816Runtime[1]);

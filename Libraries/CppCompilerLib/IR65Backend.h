@@ -116,6 +116,7 @@ struct SIR65Stub
 	int32		iLabel;
 	CIRBlock*	pcFrom;
 	CIRBlock*	pcTo;
+	int32		iRemove;	//Bytes of a call's arguments still on the stack on the way in (the way a tested call threw).
 };
 
 
@@ -289,7 +290,7 @@ protected:
 	void				CountLoaded(bool bLoaded);
 	void				Prologue(const char* szLabel);
 	void				Epilogue(void);
-	void				ReturnCode(void);
+	void				ReturnCode(bool bThrow = false);
 	int					ReturnInstructions(void);
 	CChars*				Line(const char* szText);
 	void				Branch(const char* szBranch, int32 iLabel);

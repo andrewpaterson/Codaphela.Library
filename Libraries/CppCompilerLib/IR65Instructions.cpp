@@ -269,6 +269,10 @@ bool CIR65Selector::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_Call:
 		return mpcBackend->mcCalls.Call(pcBlock, uiIndex);
 
+	case IRO_Thrown:
+		//The call before it branched on the carry (CIR65Calls::Call).
+		return true;
+
 	default:
 		return mpcBackend->Error("Opcode not supported by the 65C64 back end.", GetIROpcode(psInstruction->uiOpcode) ? GetIROpcode(psInstruction->uiOpcode)->szName : NULL);
 	}

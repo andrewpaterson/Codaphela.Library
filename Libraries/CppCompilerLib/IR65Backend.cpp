@@ -152,6 +152,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	muiSource = 0;
 
 	ExpandMultiplies();
+	mcBackendPasses.IsolateThrowns(pcFunction);
 	pcFunction->Renumber();
 	pcFunction->ComputePredecessors();
 	mpcFunction->CountUses(&mauiUses);
@@ -237,6 +238,9 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	//the body's label is theirs to start from (the stub's jsr of it is no branch they know).
 	mpcModule->Begin(CPPCP_CodePasses);
 	Peephole(muiBodyStart);
+	mcFlags.SetExceptions(mpcOptions->mbExceptions);
+	mcWidths.SetExceptions(mpcOptions->mbExceptions);
+	mcPeephole.SetExceptions(mpcOptions->mbExceptions);
 	mcFlags.Optimise(pszDest, muiBodyStart);
 	CountLoaded(mcFlags.IsLoaded());
 	mcWidths.Optimise(pszDest, muiBodyStart);
@@ -278,9 +282,18 @@ void CIR65Backend::Reallocate(SIR65Frame* psLaidOut, bool bHomeB)
 // What the epilogue does after its label: the kept pseudo registers
 // pulled, the frame removed and V pulled, then ret.
 //
+// With exceptions (ExceptionsPlan.txt) a function returns with the carry
+// clear unless it threw, whether or not it can throw (it may be called
+// through a pointer, and that call is tested).  Removing the frame (add S,
+// n) leaves it clear; with no frame to remove, add S, 0 does.  bThrow: the
+// exit of a block that ends in throw, which sets it (cmp S, S: no borrow).
+// pul and ret leave the flags alone.
+//
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::ReturnCode(void)
+void CIR65Backend::ReturnCode(bool bThrow)
 {
+	bool	bClear;
+
 	int32	iUnit;
 
 	for (iUnit = IR65_PSEUDO_UNITS - 1; iUnit >= 0; iUnit--)
@@ -290,17 +303,27 @@ void CIR65Backend::ReturnCode(void)
 			Line("pul [")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]")->AppendNewLine();
 		}
 	}
+	bClear = false;
 	if (!msFrame.bFrameless)
 	{
 		if (msFrame.iFrameBytes > 0)
 		{
 			Line("add S, ")->Append(msFrame.iFrameBytes)->AppendNewLine();
+			bClear = true;
 		}
 		Line("pul V")->AppendNewLine();
 	}
 	if (msFrame.bHomeV)
 	{
 		Line("pul V")->AppendNewLine();
+	}
+	if (bThrow)
+	{
+		Line("cmp S, S")->AppendNewLine();
+	}
+	else if (mpcOptions->mbExceptions && !bClear)
+	{
+		Line("add S, 0")->AppendNewLine();
 	}
 	Line("ret")->AppendNewLine();
 }
@@ -319,6 +342,11 @@ int CIR65Backend::ReturnInstructions(void)
 	if (!msFrame.bFrameless)
 	{
 		iInstructions += (msFrame.iFrameBytes > 0) ? 2 : 1;
+	}
+	if (mpcOptions->mbExceptions && (msFrame.bFrameless || (msFrame.iFrameBytes == 0)))
+	{
+		//The add S, 0 that clears the carry.
+		iInstructions++;
 	}
 	if (msFrame.bHomeV)
 	{
@@ -602,6 +630,7 @@ void CIR65Backend::RegisterStub(const char* szBody)
 	size				uiFirst;
 	int32				iOffset;
 	int32				iPushed;
+	int32				iThrown;
 	int					iBytes;
 	int					i;
 
@@ -664,8 +693,22 @@ void CIR65Backend::RegisterStub(const char* szBody)
 	if (iPushed > 0)
 	{
 		Line("jsr ")->Append(szBody)->AppendNewLine();
+		iThrown = -1;
+		if (mpcOptions->mbExceptions && !mpcModule->IsNoThrow(mpcFunction->muiSymbol))
+		{
+			//Removing the pushed bytes clears the carry: a body that threw leaves by an exit of its own.
+			iThrown = NewLabel();
+			Branch("bras c, ", iThrown);
+		}
 		Line("add S, ")->Append(iPushed)->AppendNewLine();
 		Line("ret")->AppendNewLine();
+		if (iThrown >= 0)
+		{
+			Label(iThrown);
+			Line("add S, ")->Append(iPushed)->AppendNewLine();
+			Line("cmp S, S")->AppendNewLine();
+			Line("ret")->AppendNewLine();
+		}
 	}
 }
 
@@ -694,6 +737,10 @@ void CIR65Backend::Epilogue(void)
 		psStub = masStubs.Get(ui);
 		uiText = mpszOut->Length();
 		Label(psStub->iLabel);
+		if (psStub->iRemove > 0)
+		{
+			Line("add S, ")->Append(psStub->iRemove)->AppendNewLine();
+		}
 		Edge(psStub->pcFrom, psStub->pcTo);
 		Branch("bra ", *maiBlockLabels.Get(psStub->pcTo->muiIndex));
 		mcPlaces.AddChunk(mcLiveness.Jump(psStub->pcFrom), mcLiveness.Jump(psStub->pcFrom), uiText);
@@ -820,6 +867,7 @@ bool CIR65Backend::Skipped(SIRInstruction* psInstruction)
 	case IRO_Slot:
 	case IRO_ArgAddress:
 	case IRO_Arg:
+	case IRO_Thrown:
 		return true;
 	case IRO_Call:
 	case IRO_Store:
@@ -1252,6 +1300,17 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 		break;
 
 	case IRJ_Branch:
+		if ((pcBlock->masInstructions.NumElements() > 0) && (pcBlock->masInstructions.Tail()->uiOpcode == IRO_Thrown) && pcBlock->masInstructions.Tail()->sResult.Equals(psJump->sArgument))
+		{
+			//A tested call (IsolateThrowns: a thrown is always this): the call branched on the carry to the code for the
+			//way that threw, which is after the function's ret (CIR65Calls::Call).  This is the way that didn't.
+			Edge(pcBlock, psJump->pcElse);
+			if (psJump->pcElse != pcNext)
+			{
+				Branch("bra ", *maiBlockLabels.Get(psJump->pcElse->muiIndex));
+			}
+			break;
+		}
 		bThenMoves = HasMoves(pcBlock, psJump->pcThen);
 		bElseMoves = HasMoves(pcBlock, psJump->pcElse);
 		if ((psJump->pcElse == pcNext) && (psJump->pcThen != pcNext) && bThenMoves && !bElseMoves)
@@ -1261,6 +1320,7 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 			psStub->iLabel = NewLabel();
 			psStub->pcFrom = pcBlock;
 			psStub->pcTo = psJump->pcThen;
+			psStub->iRemove = 0;
 			bResult = BranchOn(psFused, psJump->sArgument, true, psStub->iLabel);
 			break;
 		}
@@ -1310,7 +1370,9 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 		break;
 
 	case IRJ_Throw:
-		return Error("throw is not supported yet.");
+		//The function's exit with the carry set: the caller's thrown.
+		ReturnCode(true);
+		break;
 
 	default:
 		return Error("Block has no jump.");

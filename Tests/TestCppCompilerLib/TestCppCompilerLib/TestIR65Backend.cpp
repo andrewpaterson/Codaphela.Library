@@ -1,4 +1,5 @@
 #include "BaseLib/FileUtil.h"
+#include "CppCompilerLib/CPPCompileOptions.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
 #include "BaseLib/NumberControl.h"
@@ -78,6 +79,10 @@ const char*	gszTestIR65DivideSigned64 =
 int64 TestIR816RunW65C816(const char* szIR, bool bLockstep, CChars* pszAssembly);
 
 
+//The run helpers (this file's and TestIRW65C816Backend.cpp's) build with exceptions on: a throw and a tested call compile.
+bool	gbTestIRExceptions = false;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Parses and verifies szIR, generates it with the 65C64 back end, links it
@@ -88,6 +93,7 @@ int64 TestIR816RunW65C816(const char* szIR, bool bLockstep, CChars* pszAssembly)
 //////////////////////////////////////////////////////////////////////////
 int64 TestIR65Run65C64(const char* szIR, bool bFloat, CChars* pszAssembly)
 {
+	CCPPCompileOptions	cOptions;
 	CIRModule		cModule;
 	CCPPErrors		cErrors;
 	CIRParser		cParser;
@@ -116,6 +122,9 @@ int64 TestIR65Run65C64(const char* szIR, bool bFloat, CChars* pszAssembly)
 	szCode.Init();
 	iLabels = 0;
 	cBackend.Init(&cModule, &iLabels);
+	cOptions = *GetDefaultCPPCompileOptions();
+	cOptions.mbExceptions = gbTestIRExceptions;
+	cBackend.SetOptions(&cOptions);
 	AssertTrue(cBackend.GenerateModule(&szCode, &cErrors));
 	AssertString("", cErrors.Text());
 	if (cBackend.GetRuntime()->Contains("R_DivideSigned"))

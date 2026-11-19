@@ -32,6 +32,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CIRW65C816Calls::Init(CIRW65C816Backend* pcBackend)
 {
 	mpcBackend = pcBackend;
+	mbThrownInCarry = false;
 }
 
 
@@ -48,10 +49,11 @@ void CIRW65C816Calls::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // After a call: the arguments are removed (pulled into Y, or S moved with A kept in Y; X is kept), then the result (A,
-// and X for 32 bits) goes to its place.
+// and X for 32 bits) goes to its place.  bKeepCarry: the carry is the call's thrown and the block's brif reads it, so
+// up to IR816_CARRY_PULL_BYTES are pulled (moving S adds, which loses the carry).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Calls::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction)
+void CIRW65C816Calls::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction, bool bKeepCarry)
 {
 	bool	bResult;
 	int		iWords;
@@ -59,7 +61,7 @@ void CIRW65C816Calls::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction)
 
 	bResult = !psInstruction->sResult.IsNone() && !mpcBackend->IsHiddenResult(psInstruction->sType);
 	iWords = bResult ? mpcBackend->Words(psInstruction->sType) : 0;
-	if ((iBytes == 2) || (iBytes == 4))
+	if ((iBytes == 2) || (iBytes == 4) || (bKeepCarry && (iBytes != 0)))
 	{
 		//Pulled into Y, which keeps A and X.
 		for (i = 0; i < iBytes; i += 2)
@@ -124,6 +126,9 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	CChars					sz;
 	CArrayIRRegisterArguments	asArguments;
 	SIRRegisterArgument*			psPlaced;
+	SIRInstruction*			psThrown;
+	size					uiIndex;
+	int32					iThrown;
 
 	//The arguments as passed: the hidden result pointer first, each pushed unless a register function takes it in
 	//registers.
@@ -197,7 +202,63 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	}
 	sz.Kill();
 	asArguments.Kill();
-	CallerCleanUp(iBytes, psInstruction);
+
+	//A thrown comes next (the verifier: straight after its call): the callee returned with the carry set if it threw.
+	//When the block's brif is all that reads it and nothing between here and the brif changes the carry, it stays in
+	//the carry and the brif is a bcs or bcc (CIRW65C816Backend::BranchWhen).  Else it is made a word now, in a scratch
+	//word, before the arguments are removed, and Thrown puts it in its place.
+	uiIndex = (size)(psInstruction - pcBlock->masInstructions.Get(0));
+	psThrown = pcBlock->masInstructions.SafeGet(uiIndex + 1);
+	mbThrownInCarry = false;
+	if (psThrown && (psThrown->uiOpcode == IRO_Thrown))
+	{
+		mbThrownInCarry = (uiIndex + 2 == pcBlock->masInstructions.NumElements()) && (pcBlock->msJump.uiKind == IRJ_Branch) && psThrown->sResult.IsTemporary() &&
+			pcBlock->msJump.sArgument.Equals(psThrown->sResult) && (psThrown->sResult.Index() < mpcBackend->masTemporaries.NumElements()) &&
+			(mpcBackend->masTemporaries.Get(psThrown->sResult.Index())->iUses == 1) && (iBytes <= IR816_CARRY_PULL_BYTES) && ResultKeepsCarry(psInstruction);
+		if (!mbThrownInCarry)
+		{
+			iThrown = mpcBackend->NewLabel();
+			mpcBackend->Line("ldy 0");
+			mpcBackend->Branch("bcc", iThrown);
+			mpcBackend->Line("iny");
+			mpcBackend->Label(iThrown);
+			mpcBackend->mcSelector.Frame("sty", IR816_SCRATCH_COUNT);
+		}
+	}
+	CallerCleanUp(iBytes, psInstruction, mbThrownInCarry);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether putting the call's result in its place (CallerCleanUp) leaves the carry as it is: a result on the direct
+// page is stored with sta and stx.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Calls::ResultKeepsCarry(SIRInstruction* psInstruction)
+{
+	if (psInstruction->sResult.IsNone() || mpcBackend->IsHiddenResult(psInstruction->sType))
+	{
+		return true;
+	}
+	return psInstruction->sResult.IsTemporary() && IR816OnDirectPage(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2 * mpcBackend->Words(psInstruction->sType));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A thrown: nothing when the call left it in the carry for the brif (Call), else the word Call made of it goes to its
+// place.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Calls::Thrown(SIRInstruction* psInstruction)
+{
+	if (mbThrownInCarry)
+	{
+		return;
+	}
+	mpcBackend->mcSelector.Frame("lda", IR816_SCRATCH_COUNT);
+	mpcBackend->mcSelector.Store(psInstruction->sResult, 0);
 }
 
 

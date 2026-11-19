@@ -51,6 +51,7 @@ class CIRW65C816Groups;
 #define IR816_SCRATCH_ARGUMENT_B	19
 #define IR816_SCRATCH_REMAINDER		5		//Where the divide routines leave the remainder (RemainderLeft).
 #define IR816_MAX_FUSED			4
+#define IR816_CARRY_PULL_BYTES	8		//A tested call's arguments are pulled, which keeps the carry, up to this many bytes (a ply each two).
 #define IR816_FIRST_TEMPORARY	23
 
 //The bytes between the frame and the arguments: the caller's D (phd) and the return address (jsl).

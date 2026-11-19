@@ -155,7 +155,8 @@ static const char* IR816ExitNumberLine(const char* szLine, const char* szMnemoni
 // With nothing returned in A (bNoResult) the tay and tya go.  After an lda
 // of a constant the lda is done once S is back instead; after an lda of a
 // direct page word it is an ldy (the word can't be read once S is back: an
-// interrupt may have pushed over it), and the tay goes.
+// interrupt may have pushed over it), and the tay goes.  A throw's exit (a
+// sec before the rtl) returns nothing in A whatever the function returns.
 //
 //////////////////////////////////////////////////////////////////////////
 void IR816TidyExits(CChars* pszCode, bool bNoResult)
@@ -169,9 +170,11 @@ void IR816TidyExits(CChars* pszCode, bool bNoResult)
 	const char*	szEnd;
 	const char*	szLoad;
 	const char*	szCopied;
+	const char*	szSec;
 	bool		bConstant;
 	bool		bDirect;
 	bool		bAny;
+	bool		bNothing;
 
 	szStart = pszCode->Text();
 	if (strstr(szStart, "\t\ttay\n") == NULL)
@@ -209,6 +212,9 @@ void IR816TidyExits(CChars* pszCode, bool bNoResult)
 		szAt = szAt ? IR816ExitLine(szAt, "tya") : NULL;
 		szEnd = szAt;
 		szAt = szAt ? IR816ExitLine(szAt, "pld") : NULL;
+		szSec = szAt ? IR816ExitLine(szAt, "sec") : NULL;
+		bNothing = bNoResult || (szSec != NULL);
+		szAt = szSec ? szSec : szAt;
 		szAt = szAt ? IR816ExitLine(szAt, "rtl") : NULL;
 		if (!szAt)
 		{
@@ -219,7 +225,7 @@ void IR816TidyExits(CChars* pszCode, bool bNoResult)
 		szLoad = NULL;
 		bConstant = false;
 		bDirect = false;
-		if (!bNoResult && (szCode - szCopied >= 2))
+		if (!bNothing && (szCode - szCopied >= 2))
 		{
 			for (szLoad = szCode - 1; (szLoad > szCopied) && (szLoad[-1] != '\n'); szLoad--)
 			{
@@ -233,13 +239,13 @@ void IR816TidyExits(CChars* pszCode, bool bNoResult)
 				bDirect = true;
 			}
 		}
-		if (!bNoResult && !bConstant && !bDirect)
+		if (!bNothing && !bConstant && !bDirect)
 		{
 			continue;
 		}
 
 		bAny = true;
-		if (bNoResult)
+		if (bNothing)
 		{
 			sz.Append(szCopied, (size)(szCode - szCopied));
 			sz.Append(szMove, (size)(szMoved - szMove));
@@ -262,6 +268,118 @@ void IR816TidyExits(CChars* pszCode, bool bNoResult)
 	if (bAny)
 	{
 		sz.Append(szCopied);
+		pszCode->Kill();
+		pszCode->Init(sz);
+	}
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line starting at szLine is an instruction that leaves the carry as it
+// is and can stand between S's move back and the rtl (a load or a transfer,
+// or pld).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816ExitKeepsCarry(const char* szLine)
+{
+	static const char*	aszKeep[] = { "pld\n", "tya\n", "tay\n", "tax\n", "txa\n", "lda ", "ldx ", "ldy " };
+	size				ui;
+
+	if ((szLine[0] != '\t') || (szLine[1] != '\t'))
+	{
+		return false;
+	}
+	for (ui = 0; ui < sizeof(aszKeep) / sizeof(aszKeep[0]); ui++)
+	{
+		if (strncmp(szLine + 2, aszKeep[ui], strlen(aszKeep[ui])) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Exceptions (ExceptionsPlan.txt): a function returns with the carry clear
+// unless it threw, whether or not it can throw (it may be called through a
+// pointer, and that call is tested).  The usual exit's move of S back up
+// (clc / adc n / tcs, then only loads, transfers and pld) leaves it clear.
+// Every other rtl in the code from uiStart gets a clc before it: the exits
+// of a function with no frame (DropFrame) or with its frame on a page
+// (AlignFrame).  Not a throw's exit (sec before it), nor the rtl that is a
+// call through a pointer (after the pha or sta [S + 1] that pushed where it
+// goes).  Written last, after every pass that matches an exit's text.
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816ClearExitCarries(CChars* pszCode, size uiStart)
+{
+	CArrayTemplate<size>	auiLines;		//Where each line starts.
+	CChars					sz;
+	const char*				szCode;
+	const char*				szLine;
+	size					uiLength;
+	size					ui;
+	size					uiLine;
+	size					uiCopied;
+	bool					bClear;
+
+	szCode = pszCode->Text();
+	uiLength = pszCode->Length();
+	if (strstr(szCode + uiStart, "\t\trtl\n") == NULL)
+	{
+		return;
+	}
+	auiLines.Init();
+	auiLines.Add()[0] = uiStart;
+	for (ui = uiStart; ui < uiLength; ui++)
+	{
+		if ((szCode[ui] == '\n') && (ui + 1 < uiLength))
+		{
+			auiLines.Add()[0] = ui + 1;
+		}
+	}
+
+	sz.Init(CIRW65C816Backend::GetScratch());
+	uiCopied = 0;
+	for (ui = 0; ui < auiLines.NumElements(); ui++)
+	{
+		szLine = szCode + *auiLines.Get(ui);
+		if (strncmp(szLine, "\t\trtl\n", 6) != 0)
+		{
+			continue;
+		}
+		bClear = false;
+		if (ui > 0)
+		{
+			szLine = szCode + *auiLines.Get(ui - 1);
+			if ((strncmp(szLine, "\t\tsec\n", 6) == 0) || (strncmp(szLine, "\t\tclc\n", 6) == 0) || (strncmp(szLine, "\t\tpha\n", 6) == 0) || (strncmp(szLine, "\t\tsta [S + 1]\n", 14) == 0))
+			{
+				bClear = true;
+			}
+			for (uiLine = ui; !bClear && (uiLine > 0) && IR816ExitKeepsCarry(szCode + *auiLines.Get(uiLine - 1)); uiLine--)
+			{
+			}
+			if (!bClear && (uiLine >= 3))
+			{
+				bClear = (strncmp(szCode + *auiLines.Get(uiLine - 1), "\t\ttcs\n", 6) == 0) && (strncmp(szCode + *auiLines.Get(uiLine - 2), "\t\tadc ", 6) == 0) &&
+					(strncmp(szCode + *auiLines.Get(uiLine - 3), "\t\tclc\n", 6) == 0);
+			}
+		}
+		if (!bClear)
+		{
+			sz.Append(szCode + uiCopied, *auiLines.Get(ui) - uiCopied);
+			sz.Append("\t\tclc\n");
+			uiCopied = *auiLines.Get(ui);
+		}
+	}
+	auiLines.Kill();
+	if (uiCopied != 0)
+	{
+		sz.Append(szCode + uiCopied);
 		pszCode->Kill();
 		pszCode->Init(sz);
 	}

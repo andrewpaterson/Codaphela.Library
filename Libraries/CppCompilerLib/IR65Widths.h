@@ -44,6 +44,7 @@ protected:
 
 public:
 	void	Init(void);
+	void	SetExceptions(bool bExceptions);
 	void	Kill(void);
 
 	void	Optimise(CChars* pszCode, size uiStart);

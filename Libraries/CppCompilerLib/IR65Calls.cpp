@@ -69,6 +69,8 @@ bool CIR65Calls::Call(CIRBlock* pcBlock, size uiIndex)
 	int							iRegisters;
 	bool						bThisCall;
 	CChars						szCallee;
+	SIRInstruction*				psThrown;
+	SIR65Stub*					psStub;
 
 	psCall = pcBlock->masInstructions.Get(uiIndex);
 	uiFirst = CallArguments(pcBlock, uiIndex);
@@ -97,6 +99,20 @@ bool CIR65Calls::Call(CIRBlock* pcBlock, size uiIndex)
 	mpcBackend->Line("jsr ")->Append(szCallee)->AppendNewLine();
 	szCallee.Kill();
 	asArguments.Kill();
+
+	//A thrown comes next (it is the block's last instruction, and its brif's: IsolateThrowns).  The callee returned with
+	//the carry set if it threw: the way to the brif's then block, with the arguments still to remove (which would clear
+	//the carry), is written after the function's ret.
+	psThrown = pcBlock->masInstructions.SafeGet(uiIndex + 1);
+	if (psThrown && (psThrown->uiOpcode == IRO_Thrown))
+	{
+		psStub = mpcBackend->masStubs.Add();
+		psStub->iLabel = mpcBackend->NewLabel();
+		psStub->pcFrom = pcBlock;
+		psStub->pcTo = pcBlock->msJump.pcThen;
+		psStub->iRemove = iBytes;
+		mpcBackend->Branch("bras c, ", psStub->iLabel);
+	}
 	CallerCleanUp(iBytes, psCall);
 	return true;
 }

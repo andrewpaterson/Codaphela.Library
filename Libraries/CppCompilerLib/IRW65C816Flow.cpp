@@ -803,6 +803,7 @@ static bool IR816LinkFlowBlock(size uiBlock, bool bFrame, CArrayTemplate<SIR816F
 	SIR816FlowBlock*	psBlock;
 	SIR816FlowLine*		psLast;
 	SIR816FlowLine*		psPrevious;
+	SIR816FlowLine*		psBefore;
 	size				ui;
 	int					iTarget;
 	uint16				uiMnemonic;
@@ -810,13 +811,20 @@ static bool IR816LinkFlowBlock(size uiBlock, bool bFrame, CArrayTemplate<SIR816F
 	psBlock = pasBlocks->Get(uiBlock);
 	psLast = NULL;
 	psPrevious = NULL;
+	psBefore = NULL;
 	for (ui = psBlock->uiFirst; ui < psBlock->uiEnd; ui++)
 	{
 		if (pasLines->Get(ui)->iKind == IR816FL_INSTRUCTION)
 		{
+			psBefore = psPrevious;
 			psPrevious = psLast;
 			psLast = pasLines->Get(ui);
 		}
+	}
+	if (psLast && (psLast->sLine.uiMnemonic == IR816M_Rtl) && psPrevious && (psPrevious->sLine.uiMnemonic == IR816M_Sec))
+	{
+		//A throw's exit: the sec comes between the pld and the rtl.
+		psPrevious = psBefore;
 	}
 	if (!psLast || !IR816EndsFlowBlock(psLast))
 	{

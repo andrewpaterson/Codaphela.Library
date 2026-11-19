@@ -499,6 +499,9 @@ bool CIRW65C816Selector::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_Call:
 		mpcBackend->mcCalls.Call(pcBlock, psInstruction);
 		return true;
+	case IRO_Thrown:
+		mpcBackend->mcCalls.Thrown(psInstruction);
+		return true;
 	case IRO_FAdd:
 	case IRO_FSub:
 	case IRO_FMul:

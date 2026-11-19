@@ -121,10 +121,12 @@ protected:
 	CArrayTemplate<uint8>	mauiJumpedBack;	//Per line: 1 for a label a branch after it goes to.
 	CArrayTemplate<uint8>	mauiRemoved;	//Per line: 1 for a line a pass took out (now IR65CK_Other).
 	CMapStringInt			mmLabels;		//Label name to line.
+	bool					mbReturnReadsCarry;	//A ret reads c: the caller's thrown (a program built with exceptions).
 
 public:
 	void			Init(void);
 	void			Kill(void);
+	void			SetReturnReadsCarry(bool bReads);
 
 	bool			Load(CChars* pszCode, size uiStart, bool bConflicts);
 	bool			IsLoaded(void) const;

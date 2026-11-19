@@ -34,6 +34,8 @@ protected:
 	CIRW65C816Backend*	mpcBackend;
 
 public:
+	bool				mbThrownInCarry;	//The call just written left its thrown in the carry for the block's brif (Call).
+
 	void	Init(CIRW65C816Backend* pcBackend);
 	void	Kill(void);
 
@@ -43,7 +45,9 @@ public:
 	void			LoadRegisters(SIRReference* asValues, int* aiWords, int32* aiHidden, int iRegisters);
 	bool			LoadsRegisterDirectly(SIRReference sValue, int iWord);
 	void			LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult);
-	void			CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction);
+	void			CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction, bool bKeepCarry = false);
+	void			Thrown(SIRInstruction* psInstruction);
+	bool			ResultKeepsCarry(SIRInstruction* psInstruction);
 };
 
 

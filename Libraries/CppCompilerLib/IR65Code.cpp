@@ -380,6 +380,19 @@ void CIR65Code::Init(void)
 	mauiJumpedBack.Init();
 	mauiRemoved.Init();
 	mmLabels.Init();
+	mbReturnReadsCarry = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a ret reads the carry (the flag a caller's thrown tests), so that
+// what sets it before a ret isn't taken to be for nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::SetReturnReadsCarry(bool bReads)
+{
+	mbReturnReadsCarry = bReads;
 }
 
 
@@ -717,6 +730,11 @@ bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
 	psLine->bShift = psMnemonic->bShift;
 	psLine->bResultFlags = psMnemonic->bResultFlags;
 	psLine->uiFlagsWritten = psMnemonic->uiFlags;
+	if (mbReturnReadsCarry && (psMnemonic->uiKind == IR65CK_Return) && !psMnemonic->bReadsFirst)
+	{
+		//ret (not stp).
+		psLine->uiFlagsRead = IR65_FLAG_C;
+	}
 	switch (psMnemonic->uiKind)
 	{
 	case IR65CK_Alu:

@@ -5521,6 +5521,75 @@ void TestIRThrown(void)
 	szPrinted.Kill();
 	cErrors.Kill();
 	cModule.Kill();
+
+	//IsolateThrowns (for a back end that branches on the carry at the call): a thrown that isn't the last thing in its
+	//block, read by its brif alone, becomes one that is, and a phi of the two ways.  One that is already is left.
+	cModule.Init();
+	cErrors.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse(
+		"space default 4\n"
+		"\n"
+		"function i32 @_Value__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\t%r = call i32 @_Get__Fv()\n"
+		"\t%t = thrown i1\n"
+		"\t%w = zext i1 %t to i32\n"
+		"\t%s = add i32 %r, %w\n"
+		"\tbrif %t, a, b\n"
+		"a:\n"
+		"\tret i32 %s\n"
+		"b:\n"
+		"\tcall void @_Get__Fv()\n"
+		"\t%u = thrown i1\n"
+		"\tbrif %u, c, a\n"
+		"c:\n"
+		"\tthrow\n"
+		"}\n"));
+	cParser.Kill();
+	cPasses.Init();
+	AssertTrue(cPasses.IsolateThrowns(cModule.GetFunction(0)));
+	AssertFalse(cPasses.IsolateThrowns(cModule.GetFunction(0)));
+	cPasses.Kill();
+	cVerifier.Init(&cModule, &cErrors);
+	AssertTrue(cVerifier.Verify());
+	cVerifier.Kill();
+	AssertString("", cErrors.Text());
+	szPrinted.Init();
+	cPrinter.Init(&cModule, &szPrinted);
+	cPrinter.PrintModule();
+	cPrinter.Kill();
+	AssertString(
+		"space default 4\n"
+		"\n"
+		"function i32 @_Value__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\t%r = call i32 @_Get__Fv()\n"
+		"\t%0 = thrown i1\n"
+		"\tbrif %0, 1, 2\n"
+		"a:\n"
+		"\tret i32 %s\n"
+		"b:\n"
+		"\tcall void @_Get__Fv()\n"
+		"\t%u = thrown i1\n"
+		"\tbrif %u, c, a\n"
+		"c:\n"
+		"\tthrow\n"
+		"0:\n"
+		"\t%t = phi i1 [1, 1], [2, 0]\n"
+		"\t%w = zext i1 %t to i32\n"
+		"\t%s = add i32 %r, %w\n"
+		"\tbrif %t, a, b\n"
+		"1:\n"
+		"\tjmp 0\n"
+		"2:\n"
+		"\tjmp 0\n"
+		"}\n", szPrinted.Text());
+	szPrinted.Kill();
+	cErrors.Kill();
+	cModule.Kill();
 }
 
 

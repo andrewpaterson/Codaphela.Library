@@ -49,6 +49,7 @@ public:
 	void	MoveLoopTests(CIRFunction* pcFunction);
 	void	SinkLoads(CIRFunction* pcFunction);
 	void	SinkSteps(CIRFunction* pcFunction);
+	bool	IsolateThrowns(CIRFunction* pcFunction);
 
 protected:
 	int32	SharedDepth(CIRBlock* pcBlock, CIRBlock* pcSuccessor);

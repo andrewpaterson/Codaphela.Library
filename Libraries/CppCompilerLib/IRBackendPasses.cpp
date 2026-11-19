@@ -312,6 +312,114 @@ void CIRBackendPasses::SinkLoads(CIRFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Leaves every thrown as the last instruction of its block, read only by the
+// block's brif: the shape a front end writes, and the only one a back end
+// that branches on the carry straight after the call need know.  A thrown in
+// any other shape (something after it, another reader) ends its block with a
+// brif on a new thrown, and the old one is a phi of 1 and 0 from the two
+// ways, in the block the rest goes to.  True if anything changed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRBackendPasses::IsolateThrowns(CIRFunction* pcFunction)
+{
+	CArrayTemplate<uint32>	auiUses;
+	CIRBlock*				pcBlock;
+	CIRBlock*				pcRest;
+	CIRBlock*				pcThrew;
+	CIRBlock*				pcReturned;
+	CIRBlock*				pcSuccessor;
+	SIRInstruction*			psThrown;
+	SIRPhi*					psPhi;
+	SIRPhiArgument*			psArgument;
+	SIRReference			sOld;
+	SIRReference			sNew;
+	size					ui;
+	size					uiInstruction;
+	size					uiSuccessor;
+	size					uiPhi;
+	size					uiNum;
+	bool					bChanged;
+	bool					bCounted;
+
+	auiUses.Init();
+	bChanged = false;
+	bCounted = false;
+	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = pcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psThrown = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psThrown->uiOpcode != IRO_Thrown) || !psThrown->sResult.IsTemporary())
+			{
+				continue;
+			}
+			if (!bCounted)
+			{
+				pcFunction->CountUses(&auiUses);
+				bCounted = true;
+			}
+			uiNum = pcBlock->masInstructions.NumElements();
+			if ((uiInstruction + 1 == uiNum) && (pcBlock->msJump.uiKind == IRJ_Branch) && pcBlock->msJump.sArgument.Equals(psThrown->sResult) &&
+				(psThrown->sResult.Index() < auiUses.NumElements()) && (*auiUses.Get(psThrown->sResult.Index()) == 1))
+			{
+				continue;
+			}
+
+			//The rest of the block, with its jump, is a block of its own (the blocks it goes to have their phis' values
+			//from there now); the two ways go to it through an empty block each.
+			sOld = psThrown->sResult;
+			sNew = pcFunction->AddTemporary(IRType(IRTK_I1));
+			pcRest = pcFunction->AddBlock();
+			pcThrew = pcFunction->AddBlock();
+			pcReturned = pcFunction->AddBlock();
+			pcBlock = pcFunction->GetBlock(ui);
+			psThrown = pcBlock->masInstructions.Get(uiInstruction);
+			psThrown->sResult = sNew;
+			if (uiInstruction + 1 < uiNum)
+			{
+				pcRest->masInstructions.InsertBlockAt(pcBlock->masInstructions.Get(uiInstruction + 1), uiNum - (uiInstruction + 1), 0);
+			}
+			pcRest->msJump = pcBlock->msJump;
+			for (uiSuccessor = 0; uiSuccessor < pcRest->NumSuccessors(); uiSuccessor++)
+			{
+				pcSuccessor = pcRest->GetSuccessor(uiSuccessor);
+				for (uiPhi = 0; uiPhi < pcSuccessor->masPhis.NumElements(); uiPhi++)
+				{
+					psArgument = pcSuccessor->FindPhiArgument(pcSuccessor->masPhis.Get(uiPhi), pcBlock);
+					if (psArgument)
+					{
+						psArgument->pcBlock = pcRest;
+					}
+				}
+			}
+			pcBlock->masInstructions.FakeSetUsedElements(uiInstruction + 1);
+			pcBlock->Branch(sNew, pcThrew, pcReturned);
+			pcThrew->Jump(pcRest);
+			pcReturned->Jump(pcRest);
+			pcThrew->msJump.uiSource = psThrown->uiSource;
+			pcReturned->msJump.uiSource = psThrown->uiSource;
+			pcBlock->msJump.uiSource = psThrown->uiSource;
+			psPhi = pcRest->AddPhi(IRType(IRTK_I1), sOld);
+			pcRest->AddPhiArgument(psPhi, pcThrew, pcFunction->AddConstant(IRType(IRTK_I1), 1));
+			pcRest->AddPhiArgument(psPhi, pcReturned, pcFunction->AddConstant(IRType(IRTK_I1), 0));
+			bChanged = true;
+			bCounted = false;
+			break;
+		}
+	}
+	auiUses.Kill();
+	if (bChanged)
+	{
+		pcFunction->Renumber();
+		pcFunction->ComputePredecessors();
+	}
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A loop's step p2 = p + q (add, sub or ptradd; p a phi and p2 the value it
 // takes from round the loop: *p++, i + 1) moves down its block past the
 // instructions after it that read p, so p dies where p2 is made and the two

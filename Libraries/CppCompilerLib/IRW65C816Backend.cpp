@@ -456,6 +456,10 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	}
 	GenerateBody(szLabel, uiStart);
 	DropFrame(uiStart);
+	if (mpcOptions->mbExceptions)
+	{
+		IR816ClearExitCarries(pszDest, uiStart);
+	}
 	if (mbSourceMarkers)
 	{
 		mcSourceMarkers.Put(pszDest, uiStart);
@@ -558,6 +562,11 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 	cMarkers.Take(pszCode, 0);
 	AlignFrame(pszCode, szLabel, &sFrame, bRecursive, pcProfile);
 	IR816TidyExits(pszCode, sFrame.bNoResult);
+	if (mpcOptions->mbExceptions)
+	{
+		//An exit AlignFrame rewrote no longer adds to S, which is what left the carry clear.
+		IR816ClearExitCarries(pszCode, 0);
+	}
 	cMarkers.Put(pszCode, 0);
 	cMarkers.Kill();
 }
@@ -1176,6 +1185,12 @@ bool CIRW65C816Backend::Forwarder(CChars* pszJump)
 	{
 		return false;
 	}
+	if (mpcOptions->mbExceptions && (mpcModule->FindFunction(sCallee.Index()) == NULL))
+	{
+		//A jump to the callee returns with the carry as the callee left it, which is only known to be clear (nothing
+		//thrown) for a function compiled here: another unit's may be assembly, which leaves it as it falls.
+		return false;
+	}
 
 	//It returns the call's result, of its own type, or nothing.
 	if (mpcFunction->msReturnType.IsNone())
@@ -1603,6 +1618,7 @@ void CIRW65C816Backend::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, in
 	int				iPushed;
 	int				iWord;
 	int				i;
+	int32			iThrown;
 	size			ui;
 	SIRRegisterArgument*	psArgument;
 
@@ -1628,6 +1644,13 @@ void CIRW65C816Backend::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, in
 	sz.Init("jsl ");
 	sz.Append(pszBodyLabel);
 	Line(sz.Text());
+	iThrown = -1;
+	if (mpcOptions->mbExceptions && !mpcModule->IsNoThrow(mpcFunction->muiSymbol))
+	{
+		//Removing the pushed words loses the carry: a body that threw leaves by an exit of its own.
+		iThrown = NewLabel();
+		Branch("bcs", iThrown);
+	}
 	Line("tay");
 	Line("tsc");
 	Line("clc");
@@ -1635,6 +1658,16 @@ void CIRW65C816Backend::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, in
 	Line("tcs");
 	Line("tya");
 	Line("rtl");
+	if (iThrown >= 0)
+	{
+		Label(iThrown);
+		Line("tsc");
+		Line("clc");
+		Line("adc ", 2 * iStacked);
+		Line("tcs");
+		Line("sec");
+		Line("rtl");
+	}
 	sz.Kill();
 }
 
@@ -1931,12 +1964,19 @@ bool CIRW65C816Backend::HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 //////////////////////////////////////////////////////////////////////////
 //
 // Branches to iLabel when the block's brif condition is bWhen: the fused
-// comparison's flags (FusedBranch) or the condition's word.
+// comparison's flags (FusedBranch), the carry a tested call left, or the
+// condition's word.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel)
 {
-	if ((pcBlock->masInstructions.NumElements() > 0) && mcSelector.IsFusedCompare(pcBlock, pcBlock->masInstructions.NumElements() - 1))
+	if ((pcBlock->masInstructions.NumElements() > 0) && (pcBlock->masInstructions.Tail()->uiOpcode == IRO_Thrown) && mcCalls.mbThrownInCarry &&
+		pcBlock->masInstructions.Tail()->sResult.Equals(pcBlock->msJump.sArgument))
+	{
+		//The call left its thrown in the carry (CIRW65C816Calls::Call).
+		Branch(bWhen ? "bcs" : "bcc", iLabel);
+	}
+	else if ((pcBlock->masInstructions.NumElements() > 0) && mcSelector.IsFusedCompare(pcBlock, pcBlock->masInstructions.NumElements() - 1))
 	{
 		mcSelector.FusedBranch(pcBlock->masInstructions.Get(pcBlock->masInstructions.NumElements() - 1), bWhen, iLabel, mcSelector.FlagsKnown(pcBlock), mcSelector.SubtractsSigned(pcBlock));
 	}
@@ -1998,7 +2038,10 @@ void CIRW65C816Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext)
 		Return(pcBlock);
 		break;
 	case IRJ_Throw:
-		Error("throw is not supported yet");
+		//The function's exit with no value and the carry set: the caller's thrown (CIRW65C816Calls::Call).
+		IR816AppendFrameExit(mpszOut, msFrame.iFrameBytes);
+		Line("sec");
+		Line("rtl");
 		break;
 	default:
 		Line("stp");
