@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Numbers.h"
 #include "PointerFunctions.h"
 #include "FileCopier.h"
+#include "Memory32.h"
 
 
 #define FILE_COPIER_BLOCK_SIZE	(1 MB)		//The most read before it is written.
@@ -70,7 +71,7 @@ bool CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 	iRemaining = cSource.GetFileLength();
 	if (iRemaining > 0)
 	{
-		pvData = malloc((iRemaining > FILE_COPIER_BLOCK_SIZE) ? FILE_COPIER_BLOCK_SIZE : (lsize)iRemaining);
+		pvData = malloc32((iRemaining > FILE_COPIER_BLOCK_SIZE) ? FILE_COPIER_BLOCK_SIZE : (lsize)iRemaining);
 	}
 	while (bResult && (iRemaining > 0))
 	{
