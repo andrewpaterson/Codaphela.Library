@@ -74,6 +74,9 @@ Steps (a commit each, after the checks it lists)
    small ones malloc), memcpy32, memmove32, memset32, memcmp32, memchr32, strlen32: today's 32 bit bodies under the
    new names, the old names still there.  TestLibc65's 32 bit tests call the new names.
    Checks: TestLibc65.
+   Built 2026-11-19: stringW65C816.asm's bodies carry a second, 32 suffixed label each; the heap copies large blocks
+   with memcpy32.  TestLibc65String32 works on malloc32's 100000 byte blocks.  TestLibc65 65C64 154774, W65C816
+   154819 passed.
 
 3. BaseLib's large paths call them (CommonLibraries): SArrayLargeSize, CSystemAllocator::Malloc and Realloc,
    MemSwp32 (today's MemSwp body: stringW65C816.asm's _MemSwp__FPKvPKvm becomes _MemSwp32), FindFirstSetBitLarge and
