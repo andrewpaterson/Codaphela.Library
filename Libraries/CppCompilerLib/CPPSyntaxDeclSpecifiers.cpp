@@ -49,6 +49,26 @@ void CCPPSyntaxDeclSpecifiers::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the specifiers define the type they name: a class with its
+// members, or an enum with its enumerators.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxDeclSpecifiers::DefinesType(void)
+{
+	if (!mpcType)
+	{
+		return false;
+	}
+	if (mpcType->GetKind() == CPPS_EnumSpecifier)
+	{
+		return ((CCPPSyntaxEnumSpecifier*)mpcType)->mbBody;
+	}
+	return mpcType->GetKind() == CPPS_ClassSpecifier;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A simple type keyword counted in the specifiers: what the type the
 // keywords name is worked out from (CCPPDeclarators).
 //

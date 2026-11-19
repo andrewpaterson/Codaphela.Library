@@ -1174,6 +1174,12 @@ CCPPSyntaxExpression* CCPPParser::ParseSizeofExpression(CCPPSyntax* pcParent)
 				Rewind(sPosition);
 				bType = false;
 			}
+			else if (pcSizeof->mpcType->mpcSpecifiers && pcSizeof->mpcType->mpcSpecifiers->DefinesType())
+			{
+				//[expr.sizeof] 5, [expr.alignof] 1
+				Error("A type can't be defined in sizeof or alignof.");
+				return NULL;
+			}
 			else
 			{
 				Next();
@@ -1187,6 +1193,12 @@ CCPPSyntaxExpression* CCPPParser::ParseSizeofExpression(CCPPSyntax* pcParent)
 
 	if (!bType)
 	{
+		if (pcSizeof->meKeyword == CT_alignof)
+		{
+			//alignof ( type-id ) only.  [expr.alignof] 1
+			Error("alignof takes a type in brackets.");
+			return NULL;
+		}
 		pcSizeof->mpcType = NULL;
 		pcSizeof->mpcOperand = ParseUnaryExpression(pcSizeof);
 		if (!pcSizeof->mpcOperand)

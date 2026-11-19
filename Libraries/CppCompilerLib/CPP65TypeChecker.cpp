@@ -1100,6 +1100,12 @@ SCPP65Type* CCPP65TypeChecker::Operate(ECppTokens eOperator, SCPP65Type* psLeft,
 		{
 			return NULL;
 		}
+		if (psLeft->IsPointer() && psRight->IsPointer() && !psLeft->psBase->Equals(psRight->psBase))
+		{
+			//[expr.add] 2
+			Error(pcNode, "Pointers to different types can't be subtracted");
+			return NULL;
+		}
 		return psType;
 	}
 
@@ -1146,13 +1152,38 @@ bool CCPP65TypeChecker::CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNod
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether left and right can be compared: numbers, and pointers, or for equality
-// pointers to members, that have a composite pointer type (with each other or 0).
+// Whether pcBinary's operands, a psLeft and a psRight, can be compared:
+// numbers, and pointers, or for equality pointers to members, that have a
+// composite pointer type (with each other, or for equality with 0 or
+// nullptr: no other number, and a null pointer is before or after nothing).
 // [expr.rel] 2, [expr.eq] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65TypeChecker::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight, CCPPSyntax* pcNode)
+bool CCPP65TypeChecker::Compare(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type* psLeft, SCPP65Type* psRight)
 {
+	CCPPSyntax*	pcNode;
+	ECppTokens	eOperator;
+	bool		bEquality;
+	bool		bLeftPointer;
+	bool		bRightPointer;
+
+	pcNode = pcBinary;
+	eOperator = pcBinary->meOperator;
+	bEquality = (eOperator == CT_EqualTo) || (eOperator == CT_NotEqualTo);
+	bLeftPointer = psLeft->IsPointer() || psLeft->IsMemberPointer();
+	bRightPointer = psRight->IsPointer() || psRight->IsMemberPointer();
+	if ((bLeftPointer && psRight->IsInteger()) || (bRightPointer && psLeft->IsInteger()))
+	{
+		if (!mpcUnit->IsNullPointerConstant(bLeftPointer ? pcBinary->mpcRight : pcBinary->mpcLeft))
+		{
+			return Error(pcNode, "A pointer is compared with a pointer, 0 or nullptr: not with a number");
+		}
+	}
+	if (!bEquality && (bLeftPointer != bRightPointer) && !psLeft->IsFloat() && !psRight->IsFloat() && !mpcUnit->IsCSource())
+	{
+		//(C compilers let p > 0 by.)
+		return Error(pcNode, "A pointer is compared with a null pointer only for equality");
+	}
 	if ((psLeft->IsScopedEnum() || psRight->IsScopedEnum()) && (psLeft->Unqualified() != psRight->Unqualified()) && !RecordsEnumOperands(pcNode, psLeft, psRight, CPPEC_COMPARE))
 	{
 		return Error(pcNode, "An enum class's value is compared only with its own values");
@@ -1374,7 +1405,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 				return Truth(OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary), pcBinary);
 			}
 			mpcUnit->ComparisonRange(pcBinary);
-			return Operands(pcBinary->mpcLeft, pcBinary->mpcRight, &psLeft, &psRight) && Compare(pcBinary->meOperator, psLeft, psRight, pcBinary);
+			return Operands(pcBinary->mpcLeft, pcBinary->mpcRight, &psLeft, &psRight) && Compare(pcBinary, psLeft, psRight);
 		default:
 			break;
 		}
@@ -2457,13 +2488,20 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 //////////////////////////////////////////////////////////////////////////
 //
 // sizeof is an unsigned int, a type trait (__is_trivially_constructible(T) ...) a
-// bool; both are constants.
+// bool; both are constants.  A bit-field has no size.  [expr.sizeof] 1
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::SizeofExpression(CCPPSyntax* pcSizeof)
 {
-	int64	lliBytes;
+	CCPPSyntax*	pcOperand;
+	int64		lliBytes;
 
+	pcOperand = (pcSizeof->GetKind() == CPPS_SizeofExpression) ? ((CCPPSyntaxSizeofExpression*)pcSizeof)->mpcOperand : NULL;
+	if (pcOperand && mpcUnit->BitFieldOf(pcOperand))
+	{
+		Error(pcSizeof, "sizeof can't be applied to a bit-field");
+		return NULL;
+	}
 	if (mpcUnit->GetSemanticPass())
 	{
 		//Only checking: the value isn't needed, only the type (__builtin_va_arg(ap, T) is a T).
