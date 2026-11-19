@@ -142,6 +142,9 @@ IDE checks the same passes and failures) as a run in one process.
       2026-11-08).  Release|x64 only for it too?
    3. The *65 suites: the sweep has only ever run them for the 65C64.  Run them for the W65C816 too (TestSupportLib65 816
       ~13 minutes), now that it is the target most work is for?
+   The user's answers, 2026-11-19: 1 yes, they are on the list; 2 TestHCP65Lib in Release|x64 only (the other
+   configurations still build HCP65Emulator.sln); 3 the *65 suites on both processors (each suite run twice in
+   Release|x64: no argument, then 816).
 
 Order: 1 and 5 (the biggest win, small and safe), then 3, then 2 (a to c, then d after the user's answer), then 4 (measure,
 then the user decides on lockstep).  Each step is announced to the other sessions before its runs.
