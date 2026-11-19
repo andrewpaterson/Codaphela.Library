@@ -42,6 +42,15 @@ Steps (a commit each, after the checks it lists)
 0. Baseline, before anything changes: OS.SYS's code and data (the segment bytes hcp65build prints), modplay.exe's
    size, TestLibc65's and TestHCP65Lib's times, and a profile of a BaseLib-heavy *65 test (TestBaseLib65's
    TestArrayInt, say) for cycles.  Written into this file.
+   Done 2026-11-18, on master as rebased onto the Blitter Board work (HCP65 8f76e57, CommonLibraries 6b0b6a32b),
+   Release x64 tools, Debug|W65C816 builds (scratchpad s16/measure.sh):
+     OS.SYS                                  180258 bytes of segments
+     modplay.exe                             788757 bytes
+     TestLibc65 65C64                        154774 passed, 13s
+     TestLibc65 W65C816                      154790 passed, 18s
+     TestHCP65Lib                            1865 passed, about 22 minutes
+     TestBaseLib65 816, TEST_PROJECT65_ONLY=TestArrayInt,TestArrayBlock,TestArrayTemplate,TestChars,TestCharsHelper,
+       TestMapString with TEST_PROJECT65_CYCLES: 3164739188 cycles
 
 1. Libc65's heap by banks (HCP65; nothing else changes yet).  InitHeap gives CTrueMallocator one region per bank of
    the heap's memory (0008:0000-000F:FFFF and the high heap the same way), so no block crosses a bank.  A bank pool
@@ -50,9 +59,16 @@ Steps (a commit each, after the checks it lists)
    the top, so they meet only when memory is short.  A byte for each bank says what it is (free, the small heap's,
    the first of a large run, more of one), as the kernal's gauiKernalBanks does, so free knows which a pointer is.
    The kernal's main heap (KernalMemory.cpp, KernalMainMalloc's explicit uint32 sizes) is its own and stays as it
-   is.  Tests in TestLibc65: no block crosses
+   is.  Built 2026-11-18: __HeapInit(start, bytes) sets it up, for Libc65's start up and the kernal's
+   KernalInitHeap (which called gcHeap.Init itself).  The inliner copied the heap's helpers into each of malloc,
+   calloc, realloc and free (7.4KB more kernal); __attribute__((noinline)), which the compiler didn't have, keeps
+   HeapMalloc, HeapFree and __HeapInit one copy each (CommonLibraries 5df6a5f17), and the kernal is 2394 bytes
+   over the baseline, ending at $03D5CE of $040000.  Tests in TestLibc65: no block crosses
    a bank, freeing a bank's last block returns it, many small allocations then a large one.
    Checks: TestLibc65, TestHCP65Lib (the kernal), the *65 compiles.
+   Passed 2026-11-18: TestLibc65 (65C64 154774, W65C816 154804), the *65 compiles on both targets.  TestHCP65Lib was
+   stopped for low memory in its kernal tests (Font 271, Machine 795 and Debugger 234 passed, nothing failed); step 4
+   runs it whole.
 
 2. The 32 suffixed functions, beside today's (HCP65).  malloc32, calloc32, realloc32 (large ones by whole banks,
    small ones malloc), memcpy32, memmove32, memset32, memcmp32, memchr32, strlen32: today's 32 bit bodies under the
