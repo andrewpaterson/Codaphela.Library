@@ -286,6 +286,8 @@ protected:
 	bool					mbRecursiveInit;	//A guarded static local calls R_RecursiveInit if it is reached again while being made.
 	bool					mbExitLists;		//Something is pushed on an exit list: the unit writes R_RunExitLists (UseExitLists).
 	bool					mbExitListsWritten;
+	CArrayChars				maszThrownDestroyers;	//The labels of the functions that destroy thrown objects still to write (ThrownDestroyer)...
+	CArrayCPP65Types		mapsThrownDestroyers;	//...and the classes they destroy.
 	CArrayChars				maszExitFinalisers;	//The labels of static locals destroyed at exit whose R_Finalise is still to write...
 	CArrayCPP65Types		mapsExitFinalisers;	//...their types...
 	CArrayInt				maiExitShared;		//...and whether each is a shared function's (its R_Finalise COMDAT; WriteExitRoutines).
@@ -446,6 +448,7 @@ public:
 	CCPPSymbol*				NewHiddenVariable(const char* szName, CCPPSyntaxRangeForStatement* pcFor);
 	CCPPSyntaxIdExpression*	NewHiddenName(CCPPSymbol* pcSymbol, CCPPSyntax* pcParent);
 	bool					RangeForLocals(CCPPSyntaxRangeForStatement* pcFor);
+	bool					HandlerLocal(CCPPSyntaxCatchHandler* pcHandler);
 	SCPPLambda*				GetLambda(CCPPSyntaxLambdaExpression* pcSyntax);
 	void					NameLambda(SCPPLambda* psLambda);
 	bool					LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* pcLambda, size* puiNumber);
@@ -484,6 +487,7 @@ public:
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckEnumerators(CCPPSyntax* pcType);
 	bool					WriteExitRoutines(void);
+	bool					WriteThrownDestroyers(void);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable);
 	void					AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable);
@@ -769,6 +773,8 @@ public:
 	bool					IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName);
 	bool					IsNamed(int64 lliName, const char* szName);
 	CCPPClass*				TypeInfoClass(void);
+	SCPP65Type*				HandlerType(CCPPSyntaxCatchHandler* pcHandler);
+	void					ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel);
 	bool					IsTypeInfoMember(CCPPFunction* pcFunction);
 	SCPP65Type*				TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbDynamic);
 	void					AppendTypeidLabel(CChars* psz, SCPP65Type* psType);

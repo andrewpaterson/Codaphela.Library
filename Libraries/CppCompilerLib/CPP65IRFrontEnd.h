@@ -56,6 +56,15 @@ struct SCPP65IRValue
 //(SCPP65IRPlace, where a C++ lvalue is, is CPP65IRCleanups.h's.)
 
 
+//A try block being written: how many entries the cleanup stack had when it began (an exception from the block undoes
+//those above), and the block that tries its handlers.
+struct SCPP65IRTry
+{
+	size		uiBase;
+	CIRBlock*	pcDispatch;
+};
+
+
 //A temporary that has its place (CCPP65IRFrontEnd::Temporary) and is still to be made: it is registered for destroying
 //when its construction has finished (TemporaryMade), never before, so that what leaves in the middle of making it
 //doesn't destroy it, and so that temporaries are destroyed in the reverse of the order they were finished in
@@ -170,6 +179,11 @@ protected:
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
 	CArrayCPP65IRLabels		masLabels;
+	CArrayTemplate<SCPP65IRTry>	masTries;		//The try blocks being written, the outermost first.
+	CIRBlock*				mpcThrowExit;		//The function's block that ends in throw, once something needs it (WayOut).
+	CIRBlock*				mpcTerminate;		//Its block that calls std::terminate, once something needs it.
+	bool					mbUnwinding;		//A cleanup is being written for an exception on its way: a call that throws there is std::terminate.
+	bool					mbRoutine;			//The function is one the compiler writes for itself (a global's initialiser or finaliser): no exception leaves it.
 	CCPP65IRCleanups		mcCleanups;			//What needs destroying: the objects of the scopes being written and the temporaries of the full expression.
 	int						miConditional;		//Inside an operand that may not be worked out (of &&, || or ?:).
 	CIRBlock*				mpcExit;			//A destructor's last block (it destroys the fields and bases); NULL in others.
@@ -200,6 +214,7 @@ public:
 	CIRFunction*	ConstantExpression(const char* szLabel, CCPPSyntax* pcExpression, SCPP65Type* psType);
 	CIRFunction*	ConstantInitialiser(const char* szLabel, SCPP65Type* psType, CCPPSyntax* pcInitialiser);
 	CIRModule*		GetModule(void);
+	bool			ThrownDestroyerRoutine(const char* szLabel, SCPP65Type* psType);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise, const char* szExitNode = NULL, const char* szFinaliser = NULL, bool bThread = false, bool bLocal = true);
 	bool			ExitListsRoutine(const char* szLabel);
 	void			PushExitNode(const char* szNode, const char* szFinaliser, bool bThread);
@@ -271,6 +286,23 @@ protected:
 	void			MarkFullExpression(void);
 	void			MarkSigned(SCPP65Type* psType);
 	bool			DestroyTemporaryPlaces(size uiFrom);
+	bool			DestroyTemporary(SCPP65IRCleanup* psTemporary);
+	bool			CallMayThrow(CCPPFunction* pcFunction);
+	void			TestThrown(CCPPFunction* pcFunction);
+	CIRBlock*		Landing(void);
+	CIRBlock*		LandingBelow(void);
+	CIRBlock*		UndoBlock(size uiIndex);
+	bool			UndoEntry(SCPP65IRCleanup* psEntry);
+	CIRBlock*		WayOut(void);
+	CIRBlock*		TerminateBlock(void);
+	SIRReference	ExceptionCall(const char* szLabel, SIRType sResult, SIRType* pasTypes, SIRReference* pasArguments, int iArguments);
+	SCPP65Type*		ThrownType(SCPP65Type* psType);
+	SIRReference	TypeInfoSymbol(SCPP65Type* psType);
+	bool			ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP65IRValue* psValue);
+	bool			TryStatement(CCPPSyntaxTryStatement* pcTry);
+	bool			Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched);
+	bool			HandlerParameter(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched);
+	bool			CopyFromAddress(SCPP65IRPlace* psPlace, SIRReference sSource);
 	bool			DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);
 	bool			Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable** ppcLast);
 	bool			GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* pcInitialiser);

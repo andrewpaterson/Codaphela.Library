@@ -306,6 +306,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbExitListsWritten = false;
 	maszExitFinalisers.Init();
 	mapsExitFinalisers.Init();
+	maszThrownDestroyers.Init();
+	mapsThrownDestroyers.Init();
 	maiExitShared.Init();
 
 	mapcLocals.Init();
@@ -421,6 +423,8 @@ void CCPPUnit::Kill(void)
 	masClassErrors.Kill();
 	mcErrors.Kill();
 	maiExitShared.Kill();
+	mapsThrownDestroyers.Kill();
+	maszThrownDestroyers.Kill();
 	mapsExitFinalisers.Kill();
 	maszExitFinalisers.Kill();
 	maszRuntime.Kill();
@@ -507,7 +511,7 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	//class templates' static members and variable templates' instances.
 	GenerateQueued();
 	DefineInstanceData();
-	while (WriteExitRoutines())
+	while (WriteExitRoutines() || WriteThrownDestroyers())
 	{
 		GenerateQueued();
 	}
@@ -689,6 +693,130 @@ bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialis
 bool CCPPUnit::IsSharedFunction(CCPPFunction* pcFunction)
 {
 	return pcFunction && !pcFunction->IsUnitFunction() && (pcFunction->mbInline || pcFunction->mbImplicit || pcFunction->mpcTemplate);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type a handler is written with (catch (const E& e): const E&); NULL,
+// with the error said, if it can't be worked out.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::HandlerType(CCPPSyntaxCatchHandler* pcHandler)
+{
+	if (!pcHandler->mpcParameter)
+	{
+		return NULL;
+	}
+	return mcDeclarators.GetType(pcHandler->mpcParameter->mpcSpecifiers, pcHandler->mpcParameter->mpcDeclarator, pcHandler->mpcParameter, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A handler's parameter is a local variable of the function the handler is
+// in.  Its type can't be an rvalue reference, or an incomplete or abstract
+// class (a pointer or reference to an incomplete one neither, but void's).
+// [except.handle] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::HandlerLocal(CCPPSyntaxCatchHandler* pcHandler)
+{
+	SCPP65Type*	psType;
+	SCPP65Type*	psObject;
+
+	if (!pcHandler->mpcParameter)
+	{
+		return true;
+	}
+	psType = HandlerType(pcHandler);
+	if (!psType)
+	{
+		return false;
+	}
+	if (psType->IsReference() && psType->bRvalue)
+	{
+		return Error(pcHandler->mpcParameter, "A handler's parameter can't be an rvalue reference");
+	}
+	psObject = psType->WithoutReference()->Unqualified();
+	if (psObject->IsArray() || psObject->IsFunction())
+	{
+		return Error(pcHandler->mpcParameter, "A handler of an array or a function is not supported by the compiler yet");
+	}
+	if (psObject->IsClass() && !CompleteObjectClass(psObject->pcClass, pcHandler->mpcParameter))
+	{
+		return false;
+	}
+	if (pcHandler->mpcParameter->mpcSymbol)
+	{
+		AddVariable(&mapcLocals, pcHandler->mpcParameter->mpcSymbol, psType, CPPVS_Local, 0);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label of the function that destroys a thrown object of psType (a
+// class with a destructor), for the runtime to call when the exception's
+// last handler is left; the function is written with the unit's others
+// (WriteThrownDestroyers), in a COMDAT section, once.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel)
+{
+	CChars	szLabel;
+	size	i;
+
+	szLabel.Init("R_DestroyThrown");
+	mcMangler.AppendType(&szLabel, psType);
+	pszLabel->Append(&szLabel);
+	for (i = 0; i < maszThrownDestroyers.NumElements(); i++)
+	{
+		if (szLabel.Equals(maszThrownDestroyers.GetText(i)))
+		{
+			szLabel.Kill();
+			return;
+		}
+	}
+	if (Emit(&szLabel))
+	{
+		maszThrownDestroyers.Add(szLabel.Text());
+		mapsThrownDestroyers.Add(psType);
+	}
+	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Once the unit's functions are written: the functions that destroy the
+// thrown objects of the classes they throw (ThrownDestroyer).  True if it
+// wrote any (which may queue destructors to generate).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::WriteThrownDestroyers(void)
+{
+	CChars	szLabel;
+	size	i;
+	bool	bWritten;
+
+	bWritten = false;
+	for (i = 0; i < maszThrownDestroyers.NumElements(); i++)
+	{
+		szLabel.Init(maszThrownDestroyers.GetText(i));
+		CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(&mszCode, &szLabel);
+		if (!mpcIRFrontEnd->ThrownDestroyerRoutine(szLabel.Text(), mapsThrownDestroyers.GetPtr(i)))
+		{
+			ErrorAt(-1, "This thrown object's destruction uses C++ the IR front end doesn't support yet");
+		}
+		szLabel.Kill();
+		bWritten = true;
+	}
+	maszThrownDestroyers.ReInit();
+	mapsThrownDestroyers.ReInit();
+	return bWritten;
 }
 
 
@@ -3385,6 +3513,10 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 	}
 
 	if ((pcNode->GetKind() == CPPS_RangeForStatement) && !RangeForLocals((CCPPSyntaxRangeForStatement*)pcNode))
+	{
+		return false;
+	}
+	if ((pcNode->GetKind() == CPPS_CatchHandler) && !HandlerLocal((CCPPSyntaxCatchHandler*)pcNode))
 	{
 		return false;
 	}

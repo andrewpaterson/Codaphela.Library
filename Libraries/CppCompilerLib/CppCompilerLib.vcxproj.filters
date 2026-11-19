@@ -249,6 +249,9 @@
     <ClCompile Include="CPP65IRFrontEndUnit.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="CPP65IRFrontEndExceptions.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65IRFrontEndStatements.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>

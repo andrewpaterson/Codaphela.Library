@@ -85,6 +85,11 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	masCases.Init();
 	masLabels.Init();
 	mcCleanups.Init();
+	masTries.Init();
+	mpcThrowExit = NULL;
+	mpcTerminate = NULL;
+	mbUnwinding = false;
+	mbRoutine = false;
 	miConditional = 0;
 	mpcExit = NULL;
 	mapcNone.Init();
@@ -144,6 +149,7 @@ void CCPP65IRFrontEnd::Kill(void)
 	SafeFree(mpcBackend);
 	mcModule.Kill();
 	mapcNone.Kill();
+	masTries.Kill();
 	mcCleanups.Kill();
 	masLabels.Kill();
 	masCases.Kill();
@@ -210,6 +216,11 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction, mbBaseVersion);
 	BeginWriting(pcFunction, szLabel.Text(), ReturnIRType(pcFunction->mpsReturn), (pcFunction->mbVariadic ? IRA_Variadic : 0) | ((pcFunction->mpcClass && !pcFunction->mbStatic) ? IRA_ThisCall : 0) |
 		(mpcUnit->HasAttribute(pcFunction->mpcDeclarator, "noinline") ? IRA_NoInline : 0));
+	if (mpcUnit->GetOptions()->mbExceptions && mpcUnit->IsNoexcept(pcFunction))
+	{
+		//No exception leaves it (WayOut): a caller's test of it folds away.
+		mcModule.SetNoThrow(mpcFunction->muiSymbol, true);
+	}
 
 	//The generator's errors are not reported while the front end works (it reports them if it writes the function
 	//itself).  What it fails to work out comes back as NULL, which the front end doesn't support; quiet errors from
@@ -267,6 +278,11 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	masCases.ReInit();
 	masLabels.ReInit();
 	mcCleanups.ReInit();
+	masTries.ReInit();
+	mpcThrowExit = NULL;
+	mpcTerminate = NULL;
+	mbUnwinding = false;
+	mbRoutine = false;
 	miConditional = 0;
 	maszRuntime.ReInit();
 	mpcExit = NULL;
@@ -543,6 +559,7 @@ CIRFunction* CCPP65IRFrontEnd::ConstantInitialiser(const char* szLabel, SCPP65Ty
 	cFunction.meKind = CPPFK_Function;
 	cFunction.mpsReturn = &mpcTypes->msVoid;
 	BeginWriting(&cFunction, szLabel, IRType(IRTK_None), IRA_Local);
+	mbRoutine = true;
 	sPlace.sAddress = mpcFunction->AddParameter(IRType(IRTK_Pointer));
 	sPlace.psType = psType;
 	mpcUnit->BeginQuiet();
@@ -583,6 +600,7 @@ bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, 
 	cFunction.meKind = CPPFK_Function;
 	cFunction.mpsReturn = &mpcTypes->msVoid;
 	BeginWriting(&cFunction, szLabel, IRType(IRTK_None), bLocal ? IRA_Local : 0);
+	mbRoutine = true;
 	mpcUnit->BeginQuiet();
 	sPlace.sAddress = mcModule.Symbol(szGlobal);
 	sPlace.psType = psType;
@@ -652,6 +670,7 @@ bool CCPP65IRFrontEnd::ExitListsRoutine(const char* szLabel)
 	cFunction.meKind = CPPFK_Function;
 	cFunction.mpsReturn = &mpcTypes->msVoid;
 	BeginWriting(&cFunction, szLabel, IRType(IRTK_None), 0);
+	mbRoutine = true;
 	for (i = 0; i < 2; i++)
 	{
 		sHead = mcModule.Symbol((i == 0) ? "__ThreadExitList" : "__ExitList");

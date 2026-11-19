@@ -108,12 +108,13 @@ bool CCPP65IRFrontEnd::StatementOf(CCPPSyntax* pcStatement)
 		//[[fallthrough]], [[likely]] and the like change nothing.
 		return StatementOf(((CCPPSyntaxAttributedStatement*)pcStatement)->mpcStatement);
 	case CPPS_TryStatement:
-		//Not compiled yet (ExceptionsPlan.txt); in a program built without exceptions it never is.
+		//In a program built without exceptions it is an error (ExceptionsPlan.txt).
 		if (!mpcUnit->GetOptions()->mbExceptions)
 		{
 			mpcUnit->ReportError(pcStatement, CPP_EXCEPTIONS_OFF_TRY);
+			return Unsupported(__FILE__, __LINE__);
 		}
-		return Unsupported(__FILE__, __LINE__);
+		return TryStatement((CCPPSyntaxTryStatement*)pcStatement);
 	default:
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -235,13 +236,15 @@ bool CCPP65IRFrontEnd::LeaveScope(size uiLiving)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DestroyLiving(size uiLiving)
 {
-	SCPP65IRPlace	sPlace;
+	SCPP65IRCleanup	sEntry;
 	size			ui;
 
 	for (ui = mcCleanups.NumLocals(); ui > uiLiving; ui--)
 	{
-		sPlace = mcCleanups.GetLocal(ui - 1)->sPlace;
-		if (!Destroy(sPlace.sAddress, sPlace.psType))
+		//A copy: writing a destructor's call may register something, which moves the entries.  A handler's entry is
+		//among the locals: leaving its scope ends it (UndoEntry).
+		sEntry = *mcCleanups.GetLocal(ui - 1);
+		if (!UndoEntry(&sEntry))
 		{
 			return false;
 		}
@@ -302,53 +305,64 @@ void CCPP65IRFrontEnd::MarkFullExpression(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Destroys the temporaries made since uiFrom, last made first; one that may
-// not have been made only if its flag says it was (the flag is cleared for
-// the next time round a loop).
+// Destroys the temporaries made since uiFrom, last made first
+// (DestroyTemporary).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DestroyTemporaryPlaces(size uiFrom)
 {
-	SCPP65IRCleanup		sTemporary;
-	size				ui;
-	CIRBlock*			pcDestroy;
-	CIRBlock*			pcNext;
-	SCPP65IRValue		sMade;
-	SIRReference		sCondition;
-	SIRType				sFlag;
+	SCPP65IRCleanup	sTemporary;
+	size			ui;
 
-	sFlag = IRTypeOf(&mpcTypes->msBool);
 	for (ui = mcCleanups.NumTemporaries(); ui > uiFrom; ui--)
 	{
 		//A copy: writing a destructor's call may register something, which moves the entries.
 		sTemporary = *mcCleanups.GetTemporary(ui - 1);
-		if (!sTemporary.bConditional)
-		{
-			if (!Destroy(sTemporary.sPlace.sAddress, sTemporary.sPlace.psType))
-			{
-				return false;
-			}
-			continue;
-		}
-
-		pcDestroy = NewBlock();
-		pcNext = NewBlock();
-		sMade.sValue = mpcFunction->Load(mpcBlock, sFlag, sTemporary.sMade);
-		sMade.psType = &mpcTypes->msBool;
-		if (!Truth(&sMade, &sCondition))
+		if (!DestroyTemporary(&sTemporary))
 		{
 			return false;
 		}
-		mpcBlock->Branch(sCondition, pcDestroy, pcNext);
-		StartBlock(pcDestroy);
-		if (!Destroy(sTemporary.sPlace.sAddress, sTemporary.sPlace.psType))
-		{
-			return false;
-		}
-		mpcFunction->Store(mpcBlock, sFlag, mpcFunction->AddConstant(sFlag, 0), sTemporary.sMade);
-		JumpTo(pcNext);
-		StartBlock(pcNext);
 	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Destroys a temporary; one that may not have been made only if its flag
+// says it was (the flag is cleared for the next time round a loop).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DestroyTemporary(SCPP65IRCleanup* psTemporary)
+{
+	CIRBlock*		pcDestroy;
+	CIRBlock*		pcNext;
+	SCPP65IRValue	sMade;
+	SIRReference	sCondition;
+	SIRType			sFlag;
+
+	if (!psTemporary->bConditional)
+	{
+		return Destroy(psTemporary->sPlace.sAddress, psTemporary->sPlace.psType);
+	}
+	sFlag = IRTypeOf(&mpcTypes->msBool);
+	pcDestroy = NewBlock();
+	pcNext = NewBlock();
+	sMade.sValue = mpcFunction->Load(mpcBlock, sFlag, psTemporary->sMade);
+	sMade.psType = &mpcTypes->msBool;
+	if (!Truth(&sMade, &sCondition))
+	{
+		return false;
+	}
+	mpcBlock->Branch(sCondition, pcDestroy, pcNext);
+	StartBlock(pcDestroy);
+	if (!Destroy(psTemporary->sPlace.sAddress, psTemporary->sPlace.psType))
+	{
+		return false;
+	}
+	mpcFunction->Store(mpcBlock, sFlag, mpcFunction->AddConstant(sFlag, 0), psTemporary->sMade);
+	JumpTo(pcNext);
+	StartBlock(pcNext);
 	return true;
 }
 

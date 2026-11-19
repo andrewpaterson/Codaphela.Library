@@ -148,6 +148,11 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		return Unsupported(__FILE__, __LINE__);
 	}
 	mpcValue = pcExpression;
+	if ((pcExpression->GetKind() == CPPS_ThrowExpression) && mpcUnit->GetOptions()->mbExceptions)
+	{
+		//(Without exceptions it has no type, and the error below says why.)
+		return ThrowExpression((CCPPSyntaxThrowExpression*)pcExpression, psValue);
+	}
 	psType = mpcUnit->TypeOf(pcExpression);
 	if (!psType)
 	{

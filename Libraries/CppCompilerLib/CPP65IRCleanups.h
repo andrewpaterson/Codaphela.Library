@@ -43,6 +43,7 @@ enum ECPP65IRCleanup
 {
 	CPP65IRC_Local,			//An object (or array of them) of a scope being written: destroyed when the scope is left.
 	CPP65IRC_Temporary,		//A temporary: destroyed at the end of its full expression.
+	CPP65IRC_Catch,			//A handler being run: left (the runtime's __EndCatch) when its scope is, by any way out.  Counted with the locals.
 };
 
 
@@ -89,6 +90,7 @@ public:
 
 	void				PushLocal(SCPP65IRPlace* psPlace);
 	void				PushTemporary(SCPP65IRPlace* psPlace, bool bConditional, SIRReference sMade);
+	void				PushCatch(void);
 	SCPP65IRCleanup*	GetLocal(size uiOrdinal);
 	SCPP65IRCleanup*	GetTemporary(size uiOrdinal);
 	void				CutLocals(size uiCount);
@@ -96,8 +98,9 @@ public:
 	bool				TakeTemporary(SIRReference sAddress, SCPP65IRPlace* psPlace);
 
 protected:
-	SCPP65IRCleanup*	Get(ECPP65IRCleanup eKind, size uiOrdinal);
-	void				Cut(ECPP65IRCleanup eKind, size uiCount);
+	SCPP65IRCleanup*	Get(bool bTemporary, size uiOrdinal);
+	void				Cut(bool bTemporary, size uiCount);
+	void				ForgetUndoFrom(size uiIndex);
 };
 
 

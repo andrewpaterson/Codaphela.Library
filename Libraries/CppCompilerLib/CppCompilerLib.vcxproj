@@ -193,6 +193,7 @@
     <ClCompile Include="CPPTypeWriter.cpp" />
     <ClCompile Include="CPP65IRFrontEnd.cpp" />
     <ClCompile Include="CPP65IRFrontEndUnit.cpp" />
+    <ClCompile Include="CPP65IRFrontEndExceptions.cpp" />
     <ClCompile Include="CPP65IRFrontEndStatements.cpp" />
     <ClCompile Include="CPP65IRFrontEndValues.cpp" />
     <ClCompile Include="CPP65IRFrontEndOperators.cpp" />

@@ -142,22 +142,44 @@ void CCPP65IRCleanups::PushTemporary(SCPP65IRPlace* psPlace, bool bConditional, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The uiOrdinal'th entry of the kind, the oldest 0; NULL if there aren't so
-// many.  The entry is only good until the next one is registered.
+// A handler has begun: its entry ends it when its scope is left.  It is
+// counted with the locals, so that it is undone in its turn among them.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65IRCleanup* CCPP65IRCleanups::Get(ECPP65IRCleanup eKind, size uiOrdinal)
+void CCPP65IRCleanups::PushCatch(void)
+{
+	SCPP65IRCleanup*	psEntry;
+
+	psEntry = masEntries.Add();
+	psEntry->eKind = CPP65IRC_Catch;
+	psEntry->sPlace.sAddress = IRNone();
+	psEntry->sPlace.psType = NULL;
+	psEntry->sPlace.psBitField = NULL;
+	psEntry->bConditional = false;
+	psEntry->sMade = IRNone();
+	psEntry->pcUndo = NULL;
+	muiLocals++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The uiOrdinal'th temporary, or (a handler's entry is one of them) local,
+// the oldest 0; NULL if there aren't so many.  The entry is only good until the next one is registered.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65IRCleanup* CCPP65IRCleanups::Get(bool bTemporary, size uiOrdinal)
 {
 	SCPP65IRCleanup*	psEntry;
 	size				ui;
 	size				uiCount;
 
 	//From the top: what is asked for is nearly always the newest.
-	uiCount = (eKind == CPP65IRC_Local) ? muiLocals : muiTemporaries;
+	uiCount = bTemporary ? muiTemporaries : muiLocals;
 	for (ui = masEntries.NumElements(); (ui > 0) && (uiCount > uiOrdinal); ui--)
 	{
 		psEntry = masEntries.Get(ui - 1);
-		if (psEntry->eKind == eKind)
+		if ((psEntry->eKind == CPP65IRC_Temporary) == bTemporary)
 		{
 			uiCount--;
 			if (uiCount == uiOrdinal)
@@ -176,7 +198,7 @@ SCPP65IRCleanup* CCPP65IRCleanups::Get(ECPP65IRCleanup eKind, size uiOrdinal)
 //////////////////////////////////////////////////////////////////////////
 SCPP65IRCleanup* CCPP65IRCleanups::GetLocal(size uiOrdinal)
 {
-	return Get(CPP65IRC_Local, uiOrdinal);
+	return Get(false, uiOrdinal);
 }
 
 
@@ -186,29 +208,48 @@ SCPP65IRCleanup* CCPP65IRCleanups::GetLocal(size uiOrdinal)
 //////////////////////////////////////////////////////////////////////////
 SCPP65IRCleanup* CCPP65IRCleanups::GetTemporary(size uiOrdinal)
 {
-	return Get(CPP65IRC_Temporary, uiOrdinal);
+	return Get(true, uiOrdinal);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Forgets the newest entries of the kind until uiCount of it are left.  The
-// others keep their order.
+// Forgets the newest temporaries, or locals, until uiCount of them are left.
+// The others keep their order; one that had something taken from under it
+// forgets its block (ForgetUndoFrom).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRCleanups::Cut(ECPP65IRCleanup eKind, size uiCount)
+void CCPP65IRCleanups::Cut(bool bTemporary, size uiCount)
 {
 	size*	puiCount;
 	size	ui;
 
-	puiCount = (eKind == CPP65IRC_Local) ? &muiLocals : &muiTemporaries;
+	puiCount = bTemporary ? &muiTemporaries : &muiLocals;
 	for (ui = masEntries.NumElements(); (ui > 0) && (*puiCount > uiCount); ui--)
 	{
-		if (masEntries.Get(ui - 1)->eKind == eKind)
+		if ((masEntries.Get(ui - 1)->eKind == CPP65IRC_Temporary) == bTemporary)
 		{
 			masEntries.RemoveAt(ui - 1, true);
 			(*puiCount)--;
+			ForgetUndoFrom(ui - 1);
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The entries from uiIndex up forget their blocks (pcUndo): each goes on to
+// the block of the entry below it, and what is below them has changed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRCleanups::ForgetUndoFrom(size uiIndex)
+{
+	size	ui;
+
+	for (ui = uiIndex; ui < masEntries.NumElements(); ui++)
+	{
+		masEntries.Get(ui)->pcUndo = NULL;
 	}
 }
 
@@ -221,7 +262,7 @@ void CCPP65IRCleanups::Cut(ECPP65IRCleanup eKind, size uiCount)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRCleanups::CutLocals(size uiCount)
 {
-	Cut(CPP65IRC_Local, uiCount);
+	Cut(false, uiCount);
 }
 
 
@@ -233,7 +274,7 @@ void CCPP65IRCleanups::CutLocals(size uiCount)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRCleanups::CutTemporaries(size uiCount)
 {
-	Cut(CPP65IRC_Temporary, uiCount);
+	Cut(true, uiCount);
 }
 
 
@@ -257,6 +298,7 @@ bool CCPP65IRCleanups::TakeTemporary(SIRReference sAddress, SCPP65IRPlace* psPla
 			*psPlace = psEntry->sPlace;
 			masEntries.RemoveAt(ui - 1, true);
 			muiTemporaries--;
+			ForgetUndoFrom(ui - 1);
 			return true;
 		}
 	}
