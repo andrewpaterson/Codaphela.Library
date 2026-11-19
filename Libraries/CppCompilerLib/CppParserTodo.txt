@@ -595,8 +595,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
   touches exception"): cases for each clause of N4140, written before anything is changed for them and checked with
   g++, are groups of TestCPPConformance (TestCPPConformanceClauseCases.h: Clause4, Clause5, Clause8), whose lists name
   what the compiler doesn't do.  As measured: clause 4 39 of 68, clause 5 180 of 329, clause 8 49 of 89.  After the
-  fixes so far (wrong code first, then valid code refused): 46 of 68, 232 of 331 and 52 of 89.  The commits say what
-  each fixed.  Waiting for the user: dynamic_cast and private bases (the exact rule needs a runtime function); delete
+  fixes so far (wrong code, valid code refused, and most of the invalid code clauses 4 and 5 accepted): 67 of 68, 282
+  of 335 and 66 of 99 (cases were added as the fixes found more).  The commits say what each fixed.  Waiting for the user: dynamic_cast and private bases (the exact rule needs a runtime function); delete
   through a base with a virtual destructor (the object's class's operator delete and size); noexcept of a constructor
   that may throw (the exceptions work's).  Seen on the way and not done:
     - Volatile member functions aren't told apart: this isn't volatile in one, and const volatile doesn't overload.
@@ -606,8 +606,20 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       is refused; it was miscompiled).
     - new (int[3]), a parenthesised array type; c ? x : y that picks a bit-field to change; a member function pointer
       converted to a derived class's when the base isn't at its start.
-    - The type checker takes every named cast for a C cast (CCPP65TypeChecker::CastExpression is given no cast kind),
-      which is most of the invalid casts it accepts.
+    - DONE 2026-11-19.  The type checker took every named cast for a C cast, which was most of the invalid casts it
+      accepted (CCPP65TypeChecker::NamedCastAllowed and CastReachesBase now).
+    - A constructor template isn't kept (CCPPUnit::MemberTemplate leaves it out): a class whose only constructor is
+      one is filled as an aggregate, S s(3L) giving its first member the 3 whatever the template's body does, and
+      the class still gets a default constructor.  CCPPClass::mbConstructorTemplate marks such a class, so the rule
+      that only a list in braces fills an aggregate (CCPPBinder::ConstructsWithoutBraces) leaves it be.  StandardLib's
+      Ptr may have them: to be looked at before they are turned on.
+    - A function type doesn't carry a member function's const: int (S::*)() and int (S::*)() const are one type, so
+      a const object is called through a pointer to a member function that isn't const, and the two don't overload
+      or differ in a declaration (MemberPointerConstObjectRefused, DclMemberPointerToConstFunctionRefused).
+    - CCPPUnit::CheckFunction, the type checker's walk of a function's statements (CheckLocal, Initialise,
+      Construct), runs only in the IDE's semantic pass.  A compile is the IR front end asking the checker for each
+      expression's type, so what Construct refuses about a declaration, a copy or a reference's binding has to be
+      asked by the front end's own Construct, CopyConstruct and ReferenceAddress too: each rule in two places.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

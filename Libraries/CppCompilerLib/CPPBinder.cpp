@@ -1660,6 +1660,29 @@ bool CCPPBinder::ReachesBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether an object of pcClass is made from arguments that aren't a list in
+// braces: by a constructor, or from none.  A class with no constructor is
+// an aggregate, whose members only a list in braces gives values: S(1, 2),
+// S s = 1 and (S)1 are errors (and false) where S{1, 2} isn't.
+// [dcl.init] 17, [dcl.init.aggr]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+{
+	CCPPBoundConstruction	cBound;
+
+	if ((papcArguments->NumElements() == 0) || pcClass->mbConstructorTemplate || !BindConstruction(pcClass, papcArguments, pcNode, &cBound, false))
+	{
+		//(What doesn't bind is reported where it is made.  A constructor template isn't called yet: its class's
+		//members are given the arguments, as they were before this was asked.)
+		return true;
+	}
+	return (cBound.meHow != CPPBO_Aggregate) || mcAccess.Refuse(pcNode, "The class has no constructor for this: its members are given values by a list in braces");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether an object of pcClass may be destroyed at pcNode: the destructor
 // the class declares, if it does, may be named there.  An error (and false)
 // if not.  [class.dtor] 11

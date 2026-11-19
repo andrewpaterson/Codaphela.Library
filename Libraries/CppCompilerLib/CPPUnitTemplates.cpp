@@ -1947,6 +1947,7 @@ bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration*
 	lliName = GetFunctionName(pcName->GetLast());
 	if ((lliName == -1) || (lliName == pcClass->mlliName) || (pcName->GetLast()->meKind == CPPNC_Destructor))
 	{
+		pcClass->mbConstructorTemplate |= (lliName == pcClass->mlliName);
 		return true;
 	}
 

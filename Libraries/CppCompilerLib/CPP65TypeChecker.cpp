@@ -3036,7 +3036,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		apcArguments.Add(pcInitialiser);
 		papcArguments = &apcArguments;
 	}
-	bResult = ConstructClass(pcClass, papcArguments, pcNode);
+	bResult = (pcList || mpcUnit->GetBinder()->ConstructsWithoutBraces(pcClass, papcArguments, pcNode)) && ConstructClass(pcClass, papcArguments, pcNode);
 	apcArguments.Kill();
 	return bResult;
 }
@@ -3734,15 +3734,19 @@ bool CCPP65TypeChecker::ReinterpretCastAllowed(CCPPSyntaxNamedCastExpression* pc
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pointer psFrom converts to psTo (any other types do here) without
-// losing const or volatile from what it points to.  A string literal's
-// conversion to a char* is let through, with a warning if they are on.
-// [conv.qual]
+// losing const or volatile from what it points to, or a pointer to a member
+// from the member.  A string literal's conversion to a char* is let
+// through, with a warning if they are on.  [conv.qual]
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
 {
 	bool	bKept;
 
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer())
+	{
+		return psTo->psBase->HasQualifiersOf(psFrom->psBase) || Error(pcNode, "This conversion takes const away from the member the pointer points to");
+	}
 	if (!psFrom->IsPointer() || !psTo->IsPointer())
 	{
 		return true;

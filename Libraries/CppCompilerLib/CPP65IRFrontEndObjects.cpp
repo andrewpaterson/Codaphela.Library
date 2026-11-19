@@ -939,9 +939,13 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		}
 		apcArguments.Init();
 		apcArguments.Add(pcInitialiser);
-		bResult = ConstructClass(psPlace, pcClass, &apcArguments);
+		bResult = mpcUnit->GetBinder()->ConstructsWithoutBraces(pcClass, &apcArguments, pcInitialiser) && ConstructClass(psPlace, pcClass, &apcArguments);
 		apcArguments.Kill();
 		return bResult;
+	}
+	if (!pcList && !mpcUnit->GetBinder()->ConstructsWithoutBraces(pcClass, papcArguments, mpcValue))
+	{
+		return false;
 	}
 	return ConstructClass(psPlace, pcClass, papcArguments);
 }
