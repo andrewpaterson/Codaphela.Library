@@ -78,7 +78,8 @@ public:
 	virtual void		AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions);
 
 	//What the generator and the IR front end write differently.
-	virtual void		AppendStartUp(CChars* pszDest);			//A program's start up, as an object linked first.
+	virtual void		AppendStartUp(CChars* pszDest, bool bExceptions = false);	//A program's start up, as an object linked first.  bExceptions: it is built with them, and main
+																				//returning with the carry set is an exception nobody caught.
 	void				AppendExitLists(CChars* pszDest);		//The start up's exit lists, empty.
 	virtual void		AppendRuntime(CCPPRuntimeWriter* pcWriter);	//The runtime routines the unit's code calls that the unit writes itself.
 	virtual void		AppendAdjustThunk(CChars* pszDest, int iAdjust, const char* szFunction);	//After a thunk's label: this moved by iAdjust, then a jump to szFunction.

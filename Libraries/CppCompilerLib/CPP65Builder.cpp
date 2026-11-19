@@ -1070,7 +1070,7 @@ bool CCPP65Builder::AddStartUp(void)
 	bool	bResult;
 
 	szAssembly.Init();
-	mpcTarget->AppendStartUp(&szAssembly);
+	mpcTarget->AppendStartUp(&szAssembly, mcOptions.mbExceptions);
 	bResult = AddObject("start up", szAssembly.Text(), true);
 	szAssembly.Kill();
 	return bResult;

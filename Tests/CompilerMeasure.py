@@ -1,6 +1,7 @@
 """Measures the C++ compiler (CppCompilerLib) with the Lib65 test suites, the same way each time.
 
-    python CompilerMeasure.py [--compile] [--serial] [--size] [--configuration Release] [--only Suite,...] [--out file]
+    python CompilerMeasure.py [--compile] [--serial] [--size] [--exceptions] [--configuration Release] [--only Suite,...]
+                              [--out file]
                               [--raw directory]
 
 For each suite (TestBaseLib65, TestStandardLib65, TestSupportLib65) on each processor (65C64, W65C816) it runs the
@@ -10,6 +11,7 @@ memory, and the compiler's own times by phase and counts (TEST_PROJECT65_COMPILE
 
 --compile  only compiles the suite's project (no program is linked or run): for the compiler's own time and memory.
 --serial   compiles the units one at a time, for CPU time that other work on the machine disturbs less.
+--exceptions  builds the programs with exceptions on (ExceptionsPlan.txt): what the option costs programs that don't throw.
 --raw      keeps each run's own output there (Suite_Processor.txt): every program's cycles and size, to compare
            two compilers program by program.
 
@@ -73,6 +75,8 @@ def run(suite, processor, arguments, options):
         # Smaller code is slower code: a program gets more of the emulator's instructions before it is given up on.
         environment['TEST_PROJECT65_PREFER_SIZE'] = '1'
         environment.setdefault('TEST_PROJECT65_STEPS', '20000')
+    if options.exceptions:
+        environment['TEST_PROJECT65_EXCEPTIONS'] = '1'
     started = time.time()
     process = subprocess.Popen([executable] + arguments, cwd=directory, env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = process.communicate()[0].decode('latin-1')
@@ -149,6 +153,7 @@ def main():
     parser.add_argument('--compile', action='store_true')
     parser.add_argument('--serial', action='store_true')
     parser.add_argument('--size', action='store_true', help='the compiler prefers size to speed')
+    parser.add_argument('--exceptions', action='store_true', help='the programs are built with exceptions on')
     parser.add_argument('--configuration', default='Release')
     parser.add_argument('--only', default='')
     parser.add_argument('--processor', default='', help='65C64 or W65C816; both by default')

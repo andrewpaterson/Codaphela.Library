@@ -806,6 +806,12 @@ void TestProject65RunTests(STestProject65* psProject)
 	{
 		cBuilder.GetOptions()->mePrefer = CPPP_Size;
 	}
+	//TEST_PROJECT65_EXCEPTIONS=1: the programs are built with exceptions (CCPPCompileOptions::mbExceptions,
+	//ExceptionsPlan.txt), which none of them uses: they must run as they do without.
+	if (getenv("TEST_PROJECT65_EXCEPTIONS"))
+	{
+		cBuilder.GetOptions()->mbExceptions = true;
+	}
 	if (getenv("TEST_PROJECT65_LISTINGS"))
 	{
 		//TEST_PROJECT65_LISTINGS=directory: each unit's assembly with its C++ source lines as comments (Unit.lst).

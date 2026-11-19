@@ -144,7 +144,7 @@ void CCPPTarget65C64::AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pc
 // it is resident when functions are loaded lazily.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPTarget65C64::AppendStartUp(CChars* pszDest)
+void CCPPTarget65C64::AppendStartUp(CChars* pszDest, bool bExceptions)
 {
 	pszDest->Append("\t\t.section text, keep, resident")->AppendNewLine();
 	pszDest->Append("Start:")->AppendNewLine();
@@ -163,6 +163,20 @@ void CCPPTarget65C64::AppendStartUp(CChars* pszDest)
 	pszDest->Append("\t\tbra StartInitialise")->AppendNewLine();
 	pszDest->Append("StartMain:")->AppendNewLine();
 	pszDest->Append("\t\tjsr _main")->AppendNewLine();
+	if (bExceptions)
+	{
+		//main left with an exception nobody caught: std::terminate, which the runtime has when anything can throw (a
+		//weak reference, as ___RunAtExit below is); with no runtime linked the program stops here.
+		pszDest->Append("\t\tbrac c, StartReturned")->AppendNewLine();
+		pszDest->Append("\t\t.weak ___Terminate")->AppendNewLine();
+		pszDest->Append("\t\tcpy Y, ___Terminate")->AppendNewLine();
+		pszDest->Append("\t\tcmp Y, 0")->AppendNewLine();
+		pszDest->Append("\t\tbras z, StartUncaught")->AppendNewLine();
+		pszDest->Append("\t\tjsr Y")->AppendNewLine();
+		pszDest->Append("StartUncaught:")->AppendNewLine();
+		pszDest->Append("\t\tstp")->AppendNewLine();
+		pszDest->Append("StartReturned:")->AppendNewLine();
+	}
 	pszDest->Append("\t\tpsh A")->AppendNewLine();
 	pszDest->Append("\t\t.weak ___RunAtExit")->AppendNewLine();
 	pszDest->Append("\t\t.weak R_RunExitLists")->AppendNewLine();

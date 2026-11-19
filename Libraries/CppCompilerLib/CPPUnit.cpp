@@ -754,7 +754,7 @@ bool CCPPUnit::WriteExitRoutines(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::GenerateProgram(CChars* pszDest)
 {
-	mpcTarget->AppendStartUp(pszDest);
+	mpcTarget->AppendStartUp(pszDest, mpcOptions->mbExceptions);
 	return Generate(pszDest);
 }
 

@@ -235,7 +235,7 @@ const char* CCPPTarget::GetRuntimePrefix(void)
 // A target that is never generated for has no start up.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPTarget::AppendStartUp(CChars* pszDest)
+void CCPPTarget::AppendStartUp(CChars* pszDest, bool bExceptions)
 {
 
 }

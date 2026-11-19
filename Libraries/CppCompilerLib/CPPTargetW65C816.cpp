@@ -298,7 +298,7 @@ const char* CCPPTargetW65C816::GetRuntimePrefix(void)
 // register entry the compiler's callers use, and __Exit, the stack entry).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPTargetW65C816::AppendStartUp(CChars* pszDest)
+void CCPPTargetW65C816::AppendStartUp(CChars* pszDest, bool bExceptions)
 {
 	pszDest->Append("\t\t.section rodata.ResetVector, at 0xFFFC, keep\n");
 	pszDest->Append("\t\t.word ResetStub\n");
@@ -383,6 +383,20 @@ void CCPPTargetW65C816::AppendStartUp(CChars* pszDest)
 	pszDest->Append("\t\tbra StartInitialise\n");
 	pszDest->Append("StartMain:\n");
 	pszDest->Append("\t\tjsl _main\n");
+	if (bExceptions)
+	{
+		//main left with an exception nobody caught: std::terminate, which the runtime has when anything can throw (a
+		//weak reference, as ___RunAtExit below is); with no runtime linked the program stops here.
+		pszDest->Append("\t\tbcc StartReturned\n");
+		pszDest->Append("\t\t.weak ___Terminate\n");
+		pszDest->Append("\t\tlda ___Terminate & 0xFFFF\n");
+		pszDest->Append("\t\tora ___Terminate >> 16\n");
+		pszDest->Append("\t\tbeq StartUncaught\n");
+		pszDest->Append("\t\tjsl ___Terminate\n");
+		pszDest->Append("StartUncaught:\n");
+		pszDest->Append("\t\tstp\n");
+		pszDest->Append("StartReturned:\n");
+	}
 	pszDest->Append("\t\tpha\n");
 	pszDest->Append("\t\t.weak ___RunAtExit\n");
 	pszDest->Append("\t\t.weak R_RunExitLists\n");
