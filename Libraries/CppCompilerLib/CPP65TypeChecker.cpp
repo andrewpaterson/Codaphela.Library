@@ -2521,7 +2521,14 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 	SCPP65Type*		psElement;
 	size			i;
 
-	if (!Convert(Value(pcNew->macpArraySizes.GetPtr(0)), &mpcTypes->msUnsignedInt, pcNew))
+	//The bound is an integer, or an object that converts to one.  [expr.new] 6
+	psElement = mpcUnit->GetBinder()->ContextualType(pcNew->macpArraySizes.GetPtr(0), false);
+	if (psElement && !psElement->IsInteger())
+	{
+		Error(pcNew->macpArraySizes.GetPtr(0), "A new array's bound must be an integer");
+		return NULL;
+	}
+	if (!psElement || !Convert(ValueFor(pcNew->macpArraySizes.GetPtr(0), psElement, false), &mpcTypes->msUnsignedInt, pcNew))
 	{
 		return NULL;
 	}
@@ -2564,7 +2571,9 @@ SCPP65Type* CCPP65TypeChecker::DeleteExpression(CCPPSyntaxDeleteExpression* pcDe
 	SCPP65Type*		psPointer;
 	SCPP65Type*		psType;
 
-	psPointer = Value(pcDelete->mpcOperand);
+	//A pointer, or an object that converts to one.  [expr.delete] 1
+	psPointer = mpcUnit->GetBinder()->ContextualType(pcDelete->mpcOperand, true);
+	psPointer = psPointer ? ValueFor(pcDelete->mpcOperand, psPointer, false) : NULL;
 	if (!psPointer)
 	{
 		return NULL;

@@ -585,18 +585,27 @@ bool CCPPUnit::IsAmbiguousName(CCPPSyntaxName* pcName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What a new expression makes: its type-id's type, and for new
-// Type[count][N]... arrays of the inner bounds (constants).  NULL after an
-// error.  [expr.new] 5
+// What a new expression makes: its type-id's type (auto's is its
+// initialiser's), and for new Type[count][N]... arrays of the inner bounds
+// (constants).  NULL after an error.  [expr.new] 2, 5
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::NewElementType(CCPPSyntaxNewExpression* pcNew)
 {
-	SCPP65Type*	psType;
-	int64		lliCount;
-	size		i;
+	CArraySyntax*	papcElements;
+	CCPPSyntax*		pcInitialiser;
+	SCPP65Type*		psType;
+	int64			lliCount;
+	size			i;
 
-	psType = mcDeclarators.GetTypeIdType(pcNew->mpcType);
+	//new auto(x) is of x's type: the one thing in its brackets.  [expr.new] 2
+	pcInitialiser = NULL;
+	if (mcDeclarators.IsAuto(pcNew->mpcType->mpcSpecifiers) && pcNew->mpcInitializer)
+	{
+		papcElements = ListElements(pcNew->mpcInitializer);
+		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
+	}
+	psType = pcInitialiser ? mcDeclarators.GetType(pcNew->mpcType->mpcSpecifiers, pcNew->mpcType->mpcDeclarator, pcNew->mpcType, pcInitialiser) : mcDeclarators.GetTypeIdType(pcNew->mpcType);
 	for (i = pcNew->macpArraySizes.NumElements(); psType && (i > 1); i--)
 	{
 		if (!Constant(pcNew->macpArraySizes.GetPtr(i - 1), &lliCount) || (lliCount <= 0))

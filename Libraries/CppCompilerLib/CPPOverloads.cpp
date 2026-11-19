@@ -192,6 +192,50 @@ bool CCPPOverloads::IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, i
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The conversion function an object of pcClass is contextually implicitly
+// converted by, where an integer is wanted (a switch's condition, a new
+// array's bound) or, with bPointer, a pointer to an object (delete's
+// operand): the class's conversion function that isn't explicit and gives
+// such a type.  NULL if it has none, or (*pbAmbiguous) they give more than
+// one type.  [conv] 5
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPOverloads::FindContextualConversion(CCPPClass* pcClass, bool bPointer, CCPPSyntax* pcNode, bool* pbAmbiguous)
+{
+	CCPPFunction*	pcFunction;
+	CCPPFunction*	pcFound;
+	SCPP65Type*		psType;
+
+	*pbAmbiguous = false;
+	pcFound = NULL;
+	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	{
+		return NULL;
+	}
+	for (pcFunction = mpcUnit->FirstFunctionOfName(CPP_CONVERSION_NAME); pcFunction; pcFunction = pcFunction->mpcNextOfName)
+	{
+		if (pcFunction->mpcTemplate || pcFunction->mbExplicit || !mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL))
+		{
+			continue;
+		}
+		psType = pcFunction->mpsReturn->WithoutReference()->Unqualified();
+		if (bPointer ? !(psType->IsPointer() && !psType->psBase->IsFunction()) : !(psType->IsInteger() && !psType->IsScopedEnum()))
+		{
+			continue;
+		}
+		if (pcFound && !psType->Same(pcFound->mpsReturn->WithoutReference()->Unqualified()))
+		{
+			*pbAmbiguous = true;
+			return NULL;
+		}
+		pcFound = pcFunction;
+	}
+	return pcFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The conversion function (operator T, its class's own or a base's, or a
 // conversion template's instance) that converts an object of pcClass to psTo
 // best: by its result's conversion to psTo (see ConversionRank; a condition is

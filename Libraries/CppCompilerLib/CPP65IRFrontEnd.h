@@ -305,6 +305,7 @@ protected:
 	bool			Expression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue);
+	bool			ContextualValue(CCPPSyntax* pcExpression, bool bPointer, SCPP65IRValue* psValue);
 	bool			Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	void			Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	SIRReference	BitFieldValue(SCPP65Type* psType, int iOffset, int iWidth, SIRReference sUnit);

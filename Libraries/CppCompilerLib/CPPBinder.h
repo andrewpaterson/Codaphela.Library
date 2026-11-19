@@ -217,6 +217,7 @@ public:
 	bool			IsNearerDeallocation(CCPPFunction* pcFunction, CCPPFunction* pcFound);
 	bool			HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments);
 	bool			KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
+	SCPP65Type*		ContextualType(CCPPSyntax* pcExpression, bool bPointer);
 
 protected:
 	ECPPCalledObject	CalledObject(CCPPSyntax* pcObject, bool bArrow);

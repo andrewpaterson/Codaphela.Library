@@ -1260,7 +1260,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!Value(pcNew->macpArraySizes.GetPtr(0), &sCount) || !Convert(&sCount, mpcTypes->Integer(mcModule.GetPointerSize(0), false)))
+	if (!ContextualValue(pcNew->macpArraySizes.GetPtr(0), false, &sCount) || !Convert(&sCount, mpcTypes->Integer(mcModule.GetPointerSize(0), false)))
 	{
 		return false;
 	}
@@ -1448,7 +1448,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 	CIRBlock*		pcFree;
 	CIRBlock*		pcDone;
 
-	if (!Value(pcDelete->mpcOperand, &sPointer))
+	if (!ContextualValue(pcDelete->mpcOperand, true, &sPointer))
 	{
 		return false;
 	}

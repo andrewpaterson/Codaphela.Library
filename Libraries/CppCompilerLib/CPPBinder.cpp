@@ -1614,6 +1614,35 @@ void CCPPBinder::BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type an expression is contextually implicitly converted to where an
+// integer is wanted (a switch's condition, a new array's bound) or, with
+// bPointer, a pointer to an object (delete's operand): its own, or for an
+// object the type its class's one fitting conversion function gives
+// (CCPPOverloads::FindContextualConversion).  NULL, with why, for an
+// object of a class with none or with more than one.  [conv] 5
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPBinder::ContextualType(CCPPSyntax* pcExpression, bool bPointer)
+{
+	CCPPFunction*	pcConversion;
+	bool			bAmbiguous;
+
+	if (!mpcUnit->IsObject(pcExpression))
+	{
+		return mpcUnit->ValueTypeOf(pcExpression);
+	}
+	pcConversion = mcOverloads.FindContextualConversion(mpcUnit->ObjectClass(pcExpression), bPointer, pcExpression, &bAmbiguous);
+	if (!pcConversion)
+	{
+		mpcUnit->Error(pcExpression, bAmbiguous ? "The object converts to more than one type here" : (bPointer ? "The object doesn't convert to a pointer" : "The object doesn't convert to an integer"));
+		return NULL;
+	}
+	return pcConversion->mpsReturn->WithoutReference()->Unqualified();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A type named in a declaration (Class::Nested, or a name alone): if it is
 // a class's member (a nested class or enum, or a typedef) it must be one
 // that may be named there.

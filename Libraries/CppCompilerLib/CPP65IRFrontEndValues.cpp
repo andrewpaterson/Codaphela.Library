@@ -582,6 +582,27 @@ bool CCPP65IRFrontEnd::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember, SC
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The value of an expression where an integer is wanted (a switch's
+// condition, a new array's bound) or, with bPointer, a pointer to an object
+// (delete's operand): its own, or what an object's conversion function
+// gives (CCPPBinder::ContextualType).  [conv] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ContextualValue(CCPPSyntax* pcExpression, bool bPointer, SCPP65IRValue* psValue)
+{
+	SCPP65Type*	psTo;
+
+	if (!mpcUnit->IsObject(pcExpression))
+	{
+		return Operand(pcExpression, psValue);
+	}
+	psTo = mpcUnit->GetBinder()->ContextualType(pcExpression, bPointer);
+	return psTo ? ValueFor(pcExpression, psTo, psValue) : Unsupported(__FILE__, __LINE__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Type(), Type{}, Type(value) or Type{value} of a type that isn't a class: zero
 // (nothing, of void), or the value cast to it.  [expr.type.conv]
 //
