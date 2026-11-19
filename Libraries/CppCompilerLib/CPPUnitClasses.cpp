@@ -1184,6 +1184,12 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				bResult = false;
 				continue;
 			}
+			if (psType->IsFunction())
+			{
+				//typedef int F(); F f; declares a member function ([dcl.fct] 10): it is no field.
+				bResult &= Error(pcInit, "A member function declared by a typedef of its type is not supported by the compiler yet");
+				continue;
+			}
 			if (pcSpecifiers->muiFlags & CPPDS_STATIC)
 			{
 				pcVariable = AddVariable(&mapcGlobals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
