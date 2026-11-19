@@ -933,6 +933,11 @@ void TestProject65RunTests(STestProject65* psProject)
 				szActual.Append(szConsole);
 			}
 			iTotalRun += (iRun > 0) ? iRun : 0;
+			if (getenv("TEST_PROJECT65_CYCLES"))
+			{
+				//And the asserts it ran, to find the program when two runs' totals differ.
+				printf("ASSERTS %d %s\n", iRun, aszTests.GetText(i));
+			}
 		}
 		AssertString(szExpected.Text(), szActual.Text());
 		szMissing.Kill();
