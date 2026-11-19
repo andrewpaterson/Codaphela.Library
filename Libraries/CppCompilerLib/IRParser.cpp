@@ -1318,7 +1318,7 @@ bool CIRParser::ParseCall(bool bResult)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// jmp, brif, ret or unreachable.
+// jmp, brif, ret, unreachable or throw.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::ParseJump(void)
@@ -1369,6 +1369,11 @@ bool CIRParser::ParseJump(void)
 	if (GetKeyword("unreachable"))
 	{
 		mpcBlock->Unreachable();
+		return true;
+	}
+	if (GetKeyword("throw"))
+	{
+		mpcBlock->Throw();
 		return true;
 	}
 	return Error("Expected an instruction.");

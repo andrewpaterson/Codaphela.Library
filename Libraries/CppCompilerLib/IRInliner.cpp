@@ -184,6 +184,11 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCall
 	{
 		pcBlock = pcCallee->GetBlock(ui);
 		bReturns |= pcBlock->msJump.uiKind == IRJ_Return;
+		if (pcBlock->msJump.uiKind == IRJ_Throw)
+		{
+			//Its throw would become the caller's, past the test the caller makes of the call.
+			return false;
+		}
 	}
 	return bReturns;
 }
@@ -1015,6 +1020,9 @@ void CIRInliner::CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pc
 		psReturn->pcBlock = pcCopy;
 		psReturn->sValue = psJump->sType.IsNone() ? IRNone() : Map(psJump->sArgument, pcCallee);
 		pcCopy->Jump(pcRest);
+		break;
+	case IRJ_Throw:
+		pcCopy->Throw();
 		break;
 	default:
 		pcCopy->Unreachable();

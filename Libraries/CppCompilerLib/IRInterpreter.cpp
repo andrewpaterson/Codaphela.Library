@@ -1205,6 +1205,13 @@ bool CIRInterpreter::RunFrame(SIRFrame* psFrame)
 			}
 			psFrame->pcBlock = NULL;
 			break;
+		case IRJ_Throw:
+			bResult = Fail("It throws an exception");
+			if (muiErrorSource == 0)
+			{
+				muiErrorSource = pcBlock->msJump.uiSource;
+			}
+			break;
 		default:
 			bResult = Fail("It reaches where the program can't go on");
 			if (muiErrorSource == 0)

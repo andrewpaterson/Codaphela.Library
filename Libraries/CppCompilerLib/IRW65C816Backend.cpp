@@ -1997,6 +1997,9 @@ void CIRW65C816Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext)
 	case IRJ_Return:
 		Return(pcBlock);
 		break;
+	case IRJ_Throw:
+		Error("throw is not supported yet");
+		break;
 	default:
 		Line("stp");
 		break;

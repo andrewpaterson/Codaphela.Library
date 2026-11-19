@@ -78,6 +78,7 @@ enum EIRJumpKind
 	IRJ_Branch,
 	IRJ_Return,
 	IRJ_Unreachable,
+	IRJ_Throw,			//The function is left with an exception: the caller's thrown is true.
 };
 
 
@@ -131,6 +132,7 @@ public:
 	void			Return(SIRType sType, SIRReference sValue);
 	void			Return(void);
 	void			Unreachable(void);
+	void			Throw(void);
 	bool			HasJump(void) const;
 
 	size			NumSuccessors(void) const;

@@ -751,6 +751,9 @@ void CIRPrinter::PrintJump(CIRFunction* pcFunction, SIRJump* psJump)
 	case IRJ_Unreachable:
 		mpszDest->Append("unreachable");
 		break;
+	case IRJ_Throw:
+		mpszDest->Append("throw");
+		break;
 	}
 	mpszDest->AppendNewLine();
 }

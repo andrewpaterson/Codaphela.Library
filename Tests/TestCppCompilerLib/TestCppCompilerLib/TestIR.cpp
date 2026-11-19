@@ -5293,6 +5293,93 @@ void TestIRCompareIntegers(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A block that ends in throw: the function is left with an exception.  It has
+// no successors, as ret and unreachable have none.  The block passes skip the
+// empty block before one and join the block that only jumps to one, and the
+// throw stays the ending.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRThrow(void)
+{
+	AssertIRRoundTrip(
+		"function i32 @_Checked__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%c = slt i32 %x, 0\n"
+		"\tbrif %c, bad, good\n"
+		"bad:\n"
+		"\tthrow\n"
+		"good:\n"
+		"\tret i32 %x\n"
+		"}\n");
+
+	AssertIRErrors("(5, 2): Instruction after the block's jump. [ret]\n",
+		"function void @f()\n{\nb:\n\tthrow\n\tret\n}\n");
+	AssertIRErrors("(4, 2): Expected an instruction. [throws]\n",
+		"function void @f()\n{\nb:\n\tthrows\n}\n");
+
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function i32 @_Checked__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%c = slt i32 %x, 0\n"
+		"\tbrif %c, out, done\n"
+		"out:\n"
+		"\tcall void @_Report__Fv()\n"
+		"\tthrow\n"
+		"done:\n"
+		"\tret i32 %x\n"
+		"}\n",
+		"space default 4\n"
+		"\n"
+		"function i32 @_Checked__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%c = slt i32 %x, 0\n"
+		"\tbrif %c, bad, good\n"
+		"bad:\n"
+		"\tjmp out\n"
+		"out:\n"
+		"\tcall void @_Report__Fv()\n"
+		"\tjmp fail\n"
+		"fail:\n"
+		"\tthrow\n"
+		"good:\n"
+		"\tjmp done\n"
+		"done:\n"
+		"\tret i32 %x\n"
+		"}\n");
+
+	//Code after a throw's block that nothing else reaches goes, as it does after a ret.
+	AssertIROptimised(
+		"space default 4\n"
+		"\n"
+		"function void @_Always__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\tcall void @_Report__Fv()\n"
+		"\tthrow\n"
+		"}\n",
+		"space default 4\n"
+		"\n"
+		"function void @_Always__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\tcall void @_Report__Fv()\n"
+		"\tjmp fail\n"
+		"fail:\n"
+		"\tthrow\n"
+		"after:\n"
+		"\tcall void @_Report__Fv()\n"
+		"\tret\n"
+		"}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR(void)
@@ -5358,6 +5445,7 @@ void TestIR(void)
 	TestIRCopyFunction();
 	TestIRVerifierFlagErrors();
 	TestIRVerifierUnusedOperand();
+	TestIRThrow();
 
 	TestStatistics();
 }

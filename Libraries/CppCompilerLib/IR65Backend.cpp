@@ -1309,6 +1309,9 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 		Line("stp")->AppendNewLine();
 		break;
 
+	case IRJ_Throw:
+		return Error("throw is not supported yet.");
+
 	default:
 		return Error("Block has no jump.");
 	}

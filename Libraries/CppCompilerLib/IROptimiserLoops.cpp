@@ -1535,6 +1535,9 @@ bool CIRLoopPasses::UnswitchLoops(void)
 					pcCopy->Return(pcBlock->msJump.sType, IROptimiserMapped(&asMap, pcBlock->msJump.sArgument));
 				}
 				break;
+			case IRJ_Throw:
+				pcCopy->Throw();
+				break;
 			default:
 				pcCopy->Unreachable();
 				break;
