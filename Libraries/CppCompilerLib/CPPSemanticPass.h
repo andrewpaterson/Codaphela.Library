@@ -25,6 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/Chars.h"
 #include "CPPErrors.h"
 #include "CPPTarget.h"
+#include "CPPCompileOptions.h"
 
 
 class CCPPSymbol;
@@ -112,6 +113,7 @@ protected:
 	CChars				mszRecordedEnum;	//An enum, by its name with its scopes ("CMotor::EState"), to check as an enum class; empty for none.
 	SCPP65Type*			mpsRecordedEnum;	//Its type, once the check has met it.
 	CArrayCPPEnumCasts	masEnumCasts;		//Where its values would need casts.
+	CCPPCompileOptions	mcOptions;			//What the unit is checked with (SetOptions): the defaults, or a build's.
 
 public:
 	void				Init(void);
@@ -119,6 +121,8 @@ public:
 
 	bool				Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_Host, bool bKeep = false);
 	bool				IsKept(void) const;
+	void				SetOptions(CCPPCompileOptions* pcOptions);
+	CCPPCompileOptions*	GetOptions(void);
 	void				SetTemplatesAsThemselves(bool bTemplatesAsThemselves) { mbTemplatesAsThemselves = bTemplatesAsThemselves; }
 	bool				IsTemplatesAsThemselves(void) const;
 	void				SetRecordedEnum(const char* szQualifiedName);

@@ -39,6 +39,7 @@ void CCPPSemanticPass::Init(void)
 	mszRecordedEnum.Init();
 	mpsRecordedEnum = NULL;
 	masEnumCasts.Init();
+	mcOptions = *GetDefaultCPPCompileOptions();
 	mcTypes.Init(true);
 	mcPlaces.Init(true);
 	mcChanges.Init(true);
@@ -97,6 +98,7 @@ bool CCPPSemanticPass::Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget, bool bK
 		pcUnit = &cGenerator;
 	}
 	pcUnit->Init(pcTree, eTarget);
+	pcUnit->SetOptions(&mcOptions);
 	bResult = pcUnit->Check(this, bKeep);
 	pcUnit->GetErrors()->AppendTo(&mcErrors);
 	if (!bKeep)
@@ -105,6 +107,22 @@ bool CCPPSemanticPass::Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget, bool bK
 	}
 	return bResult;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The options the next check is made with (a copy of pcOptions; NULL for
+// the defaults): a build's, so that what is an error is what it says
+// (CCPPCompileOptions::mbExceptions, mbMultiWordCasts, mbCConversions).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSemanticPass::SetOptions(CCPPCompileOptions* pcOptions)
+{
+	mcOptions = pcOptions ? *pcOptions : *GetDefaultCPPCompileOptions();
+}
+
+
+CCPPCompileOptions* CCPPSemanticPass::GetOptions(void) { return &mcOptions; }
 
 
 //////////////////////////////////////////////////////////////////////////
