@@ -1349,7 +1349,7 @@ bool CCPP65IRFrontEnd::CopyFromAddress(SCPP65IRPlace* psPlace, SIRReference sSou
 	pcClass = psPlace->psType->pcClass;
 	if (pcClass->GetPartCopier(false, false))
 	{
-		return CopyPart(pcClass, psPlace->sAddress, sSource, false, NULL, 0);
+		return CopyPart(pcClass, psPlace->sAddress, sSource, false, IRNone());
 	}
 	if (pcClass->IsCopyDeleted())
 	{
@@ -1357,6 +1357,6 @@ bool CCPP65IRFrontEnd::CopyFromAddress(SCPP65IRPlace* psPlace, SIRReference sSou
 	}
 	sFrom.sAddress = sSource;
 	sFrom.psType = psPlace->psType->Unqualified();
-	return CopyPlace(psPlace, &sFrom, &sAddress) && (pcClass->IsTriviallyCopyable() || CopyParts(pcClass, psPlace->sAddress, sAddress, false, NULL, 0)) &&
+	return CopyPlace(psPlace, &sFrom, &sAddress) && (pcClass->IsTriviallyCopyable() || CopyParts(pcClass, psPlace->sAddress, sAddress, false, IRNone())) &&
 		   StoreVtables(psPlace->sAddress, pcClass);
 }

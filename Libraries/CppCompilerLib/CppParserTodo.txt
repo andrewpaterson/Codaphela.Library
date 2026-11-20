@@ -866,6 +866,14 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       one call of FindFunction each, with the instance from MemberInstance.  The compiler's own copy of an object
       with such a member or base copies it as const, so never by the template.  S(T) takes no S.
       TempConstructorTemplateCopies, TempConstructorTemplateCopiesForms.
+    - 1.  A copy constructor or assignment defaulted after a class with virtual bases (A::A(const A&) = default;)
+      is written: CCPP65IRFrontEnd::ImplicitCopy refused it.  The constructor has its two versions as any of
+      such a class has; the base version copies the class's own part, its bases and fields, and stores the
+      vtable pointers its VTT entries give.  CopyParts and CopyPart were given the complete class and an index
+      into its VTT, which a base version doesn't know: they take the VTT entries themselves (IRNone for a
+      complete object), a base's found in its class's by BaseVTT, which the two loops each worked out.  Found
+      doing it: a move assignment defaulted after its class copied the members (ImplicitCopy never said the
+      source was going).  ClassVirtualBaseCopyDefaultedOutside, DclDefaultedOutsideMoves.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

@@ -298,8 +298,11 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 // this one wrote before, call: its parameter's object is copied to this as
 // the compiler copies one of a class that declares neither (its bytes, the
 // parts that have copy functions of their own by them, and for a constructor
-// its vtable pointers), and an assignment gives *this.  One of a class with
-// virtual bases isn't written.  [class.copy] 12, 15, 28
+// its vtable pointers), and an assignment gives *this.  One that takes
+// S&& moves the parts that have a move of their own.  A constructor's
+// base version, of a class with virtual bases, copies the class's own part
+// and leaves the virtual bases to the complete object's, its vtable
+// pointers from the VTT entries it is given.  [class.copy] 12, 15, 28
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ImplicitCopy(CCPPFunction* pcFunction)
@@ -308,12 +311,10 @@ bool CCPP65IRFrontEnd::ImplicitCopy(CCPPFunction* pcFunction)
 	SCPP65IRPlace	sThis;
 	SCPP65IRPlace	sFrom;
 	SIRReference	sAddress;
+	bool			bMove;
 
 	pcClass = pcFunction->mpcClass;
-	if (pcClass->HasVirtualBases())
-	{
-		return Unsupported(__FILE__, __LINE__);
-	}
+	bMove = pcFunction->mapsParameters.GetPtr(0)->bRvalue;
 
 	//Its one parameter, a reference, is the function's last.
 	sAddress = mpcFunction->Add(mpcBlock, IRO_ArgAddress, IRType(IRTK_Pointer), mpcFunction->AddInteger(IRType(IRTK_I32), (int64)mpcFunction->masParameters.NumElements() - 1));
@@ -321,11 +322,16 @@ bool CCPP65IRFrontEnd::ImplicitCopy(CCPPFunction* pcFunction)
 	sFrom.psType = pcClass->mpsType;
 	sThis.sAddress = msThis;
 	sThis.psType = pcClass->mpsType;
+	if ((pcFunction->meKind == CPPFK_Constructor) && mbBaseVersion)
+	{
+		CopyPieces(msThis, sFrom.sAddress, pcClass->miOwnBytes);
+		return CopyParts(pcClass, msThis, sFrom.sAddress, bMove, msVTT) && StoreVtables(msThis, pcClass, true);
+	}
 	if (pcFunction->meKind == CPPFK_Constructor)
 	{
-		return CopyPlace(&sThis, &sFrom, &sAddress) && CopyParts(pcClass, msThis, sAddress, false, NULL, 0) && StoreVtables(msThis, pcClass);
+		return CopyPlace(&sThis, &sFrom, &sAddress) && CopyParts(pcClass, msThis, sAddress, bMove, IRNone()) && StoreVtables(msThis, pcClass);
 	}
-	if (!AssignParts(pcClass, msThis, sFrom.sAddress, false, true))
+	if (!AssignParts(pcClass, msThis, sFrom.sAddress, bMove, true))
 	{
 		return false;
 	}

@@ -520,8 +520,9 @@ protected:
 	bool			CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource);
 	bool			CopyDeleted(CCPPSyntax* pcNode);
 	bool			AssignmentDeleted(CCPPSyntax* pcNode);
-	bool			CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, CCPPClass* pcComplete, int iVTTIndex);
-	bool			CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, CCPPClass* pcComplete, int iVTTIndex);
+	bool			CopyParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, SIRReference sVTT);
+	bool			CopyPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, SIRReference sVTT);
+	SIRReference	BaseVTT(CCPPClass* pcClass, SIRReference sVTT, CCPPClass* pcBase);
 	bool			AssignMembers(SCPP65IRPlace* psPlace, SCPP65IRValue* psSource, CCPPSyntax* pcSource);
 	bool			AssignParts(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, bool bVirtualBases);
 	bool			AssignPart(CCPPClass* pcClass, SIRReference sDestination, SIRReference sSource, bool bMove, bool bVirtualBases);
