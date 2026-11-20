@@ -2303,6 +2303,142 @@ void TestTextAreaEditOccurrenceRanges(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Layers of highlights: each a set of ranges in its own colour, one of
+// them the current one in a second colour, drawn whatever is selected and
+// under the selection, and dropped when the text changes.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditHighlightLayers(void)
+{
+	STestWindow		cWindow;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		uint32						uiBackground;
+		STextRange					asRanges[3];
+		STextRange					sInt;
+		CArrayTextRange				asMany;
+		STextRange*					psRange;
+		CChars						szText;
+		size						auiStarts[3] = { 4, 17, 23 };
+		size						uiMatches;
+		size						uiOther;
+		size						i;
+
+		cWindow.Init("Text Area Window", 300, 200, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)));
+		pTestWindow = cWindow.pWindow;
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		//foo 4, 17 and 23; int 0 and 9; the space before 17 is 16.
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "int foo;\nint x = foo + foo;");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Show();
+		pTestWindow->Paint();
+		uiBackground = TextAreaPixelUnder(pTextArea, 16);
+
+		//A layer has nothing until it is given ranges.
+		uiMatches = pTextArea->AddHighlightLayer(Set32BitColour((uint8)0x80, (uint8)0x20, (uint8)0x20), Set32BitColour((uint8)0x20, (uint8)0x80, (uint8)0x20));
+		AssertSize(0, uiMatches);
+		AssertSize(0, pTextArea->NumHighlightRanges(uiMatches));
+		AssertSize(TEXT_AREA_NO_HIGHLIGHT, pTextArea->GetCurrentHighlight(uiMatches));
+
+		//Each "foo", the second the current one.
+		for (i = 0; i < 3; i++)
+		{
+			asRanges[i].uiStart = auiStarts[i];
+			asRanges[i].uiEnd = auiStarts[i] + 3;
+		}
+		pTextArea->SetHighlightRanges(uiMatches, asRanges, 3, 1);
+		AssertSize(3, pTextArea->NumHighlightRanges(uiMatches));
+		AssertSize(17, pTextArea->GetHighlightRange(uiMatches, 1)->uiStart);
+		AssertSize(1, pTextArea->GetCurrentHighlight(uiMatches));
+		pTestWindow->Paint();
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 5));
+		AssertInt(0x208020, TextAreaPixelUnder(pTextArea, 18));
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 24));
+		AssertTrue(TextAreaPixelUnder(pTextArea, 16) == uiBackground);
+
+		//The current one moves.
+		pTextArea->SetCurrentHighlight(uiMatches, 2);
+		pTestWindow->Paint();
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 18));
+		AssertInt(0x208020, TextAreaPixelUnder(pTextArea, 24));
+		pTextArea->SetCurrentHighlight(uiMatches, 7);
+		AssertSize(TEXT_AREA_NO_HIGHLIGHT, pTextArea->GetCurrentHighlight(uiMatches));
+		pTestWindow->Paint();
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 24));
+
+		//They stay while something is selected, under the selection.
+		pTextArea->Select(0, 3);
+		pTestWindow->Paint();
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 18));
+		pTextArea->Select(17, 20);
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 18) != 0x802020);
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 24));
+		pTextArea->SetCaretPosition(1);
+
+		//A second layer is drawn over the first, and each is cleared by itself.
+		uiOther = pTextArea->AddHighlightLayer(Set32BitColour((uint8)0x20, (uint8)0x20, (uint8)0x80), Set32BitColour((uint8)0x20, (uint8)0x20, (uint8)0x80));
+		AssertSize(1, uiOther);
+		sInt.uiStart = 9;
+		sInt.uiEnd = 12;
+		pTextArea->SetHighlightRanges(uiOther, &sInt, 1);
+		pTestWindow->Paint();
+		AssertInt(0x202080, TextAreaPixelUnder(pTextArea, 10));
+		AssertInt(0x802020, TextAreaPixelUnder(pTextArea, 18));
+		pTextArea->ClearHighlightRanges(uiMatches);
+		AssertSize(0, pTextArea->NumHighlightRanges(uiMatches));
+		AssertSize(1, pTextArea->NumHighlightRanges(uiOther));
+		pTestWindow->Paint();
+		AssertInt(0x202080, TextAreaPixelUnder(pTextArea, 10));
+		AssertTrue(TextAreaPixelUnder(pTextArea, 18) == uiBackground);
+
+		//The text changed: every layer's go.
+		pTextArea->SetHighlightRanges(uiMatches, asRanges, 3, 0);
+		pTextArea->GetEditing()->Printable('x', true);
+		AssertSize(0, pTextArea->NumHighlightRanges(uiMatches));
+		AssertSize(0, pTextArea->NumHighlightRanges(uiOther));
+		AssertSize(TEXT_AREA_NO_HIGHLIGHT, pTextArea->GetCurrentHighlight(uiMatches));
+		pTextArea->SetHighlightRanges(uiMatches, asRanges, 3, 0);
+		pTextArea->SetText("int foo;\nint x = foo + foo;");
+		AssertSize(0, pTextArea->NumHighlightRanges(uiMatches));
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 18) == uiBackground);
+
+		//A layer keeps as many ranges as it is given, however many are drawn.
+		szText.Init();
+		asMany.Init();
+		for (i = 0; i < 3000; i++)
+		{
+			szText.Append("ab ");
+			psRange = asMany.Add();
+			psRange->uiStart = i * 3;
+			psRange->uiEnd = i * 3 + 2;
+		}
+		pTextArea->SetText(szText.Text());
+		pTextArea->SetHighlightRanges(uiMatches, asMany.Get(0), asMany.NumElements(), 2900);
+		AssertSize(3000, pTextArea->NumHighlightRanges(uiMatches));
+		AssertSize(2900, pTextArea->GetCurrentHighlight(uiMatches));
+		pTestWindow->Paint();
+		asMany.Kill();
+		szText.Kill();
+
+		pTextArea = NULL;
+		pFill = NULL;
+		pTestWindow = NULL;
+	}
+
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A box selection is drawn as a rectangle on each of its rows, past a
 // short row's text; one with no width as a line in the caret's colour on
 // each row.  Escape ends one being dragged.  The right button keeps the
@@ -2653,6 +2789,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditRevealingUndo();
 	TestTextAreaEditOccurrences();
 	TestTextAreaEditOccurrenceRanges();
+	TestTextAreaEditHighlightLayers();
 	TestTextAreaEditBox();
 	TestTextAreaEditSpans();
 	TestTextAreaEditScrollPane();

@@ -213,6 +213,13 @@ public:
 	size				NumOccurrences(void);
 	STextRange*			GetOccurrence(size uiIndex);
 	void				FindOccurrences(void);
+	size				AddHighlightLayer(ARGB32 sColour, ARGB32 sCurrentColour);
+	void				SetHighlightRanges(size uiLayer, STextRange* asRanges, size uiNumRanges, size uiCurrent = TEXT_AREA_NO_HIGHLIGHT);
+	void				ClearHighlightRanges(size uiLayer);
+	void				SetCurrentHighlight(size uiLayer, size uiCurrent);
+	size				GetCurrentHighlight(size uiLayer);
+	size				NumHighlightRanges(size uiLayer);
+	STextRange*			GetHighlightRange(size uiLayer, size uiIndex);
 	size				GetCaretLine(void) const;
 	CTextEditing*		GetEditing(void);
 	size				GetCaretPosition(void) const;

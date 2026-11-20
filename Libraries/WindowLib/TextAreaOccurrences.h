@@ -29,6 +29,8 @@ class CTextAreaShapes;
 
 
 #define TEXT_AREA_MAX_OCCURRENCES	1000	//The most occurrences of the selected text found.
+#define TEXT_AREA_MAX_HIGHLIGHTS	2000	//The most of a layer's ranges drawn: those nearest its current one.
+#define TEXT_AREA_NO_HIGHLIGHT		MAX_SIZE	//A layer's current range when it has none.
 
 
 //A range of a text area's text drawn as an occurrence (CTextArea::SetOccurrenceRanges): a symbol's usage, or with
@@ -42,14 +44,34 @@ struct STextOccurrenceRange : public STextRange
 typedef CArrayTemplate<STextOccurrenceRange>	CArrayTextOccurrenceRange;
 
 
+//Ranges of a text area's text drawn under it in a colour of their own (CTextArea::AddHighlightLayer): a search's
+//matches, say.  One of them can be the current one, drawn in another colour.
+struct STextHighlightLayer
+{
+	CArrayTextRange	asRanges;  //In the text's order.
+	ARGB32			sColour;
+	ARGB32			sCurrentColour;
+	size			uiCurrent;  //TEXT_AREA_NO_HIGHLIGHT for none.
+};
+
+
+typedef CArrayTemplate<STextHighlightLayer>	CArrayTextHighlightLayer;
+
+
 //What a text area draws under its text as occurrences, as IntelliJ IDEA's editor does.  Highlighting (SetHighlighting),
 //they are the selected text's other places in the text, exactly, case and all: the text area asks for them when its
 //selection changes (Request) and finds them at a tick (Find), up to TEXT_AREA_MAX_OCCURRENCES of them; a selection
 //over more than one line, or of only spaces and tabs, has none.  Ranges can be given too (SetRanges), a symbol's usages
 //say, which the text area draws while nothing is selected.
 //
-//Both are of the text as it was: an edit of the document makes the found ones stale (they are asked for again) and
-//drops the ranges given, and so does setting or appending text, which isn't an edit, so the text area says (TextSet).
+//A text area can have layers of highlights too (AddLayer), each a set of ranges in its own colour that whoever made
+//the layer gives it (a Find bar's matches): they are drawn under the occurrences and the selection, selected text or
+//not, with the layer's current range in its second colour.  Of a layer with very many ranges only those nearest the
+//current one are drawn (TEXT_AREA_MAX_HIGHLIGHTS).
+//
+//All are of the text as it was: an edit of the document makes the found ones stale (they are asked for again) and
+//drops the ranges given and every layer's, and so does setting or appending text, which isn't an edit, so the text
+//area says (TextSet).  Whoever gave them gives them again for the text as it is.
 class CTextAreaOccurrences : public CTextDocumentListener
 {
 protected:
@@ -59,6 +81,7 @@ protected:
 	STextRange					msFoundFor;  //That selection, empty with nothing selected.
 	bool						mbStale;  //The text changed since they were found.
 	CArrayTextOccurrenceRange	masRanges;  //Given (SetRanges).
+	CArrayTextHighlightLayer	masLayers;
 
 public:
 	void					Init(CTextDocument* pcDocument);
@@ -81,6 +104,16 @@ public:
 	size					NumRanges(void) const;
 	STextOccurrenceRange*	GetRange(size uiIndex);
 	void					AddRanges(CTextAreaShapes* pcShapes, Ptr<CGeometryMap> pMap, ARGB32 sColour, ARGB32 sWriteColour);
+
+	size					AddLayer(ARGB32 sColour, ARGB32 sCurrentColour);
+	size					NumLayers(void) const;
+	void					SetLayerRanges(size uiLayer, STextRange* asRanges, size uiNumRanges, size uiCurrent);
+	bool					ClearLayer(size uiLayer);
+	bool					SetLayerCurrent(size uiLayer, size uiCurrent);
+	size					GetLayerCurrent(size uiLayer);
+	size					NumLayerRanges(size uiLayer);
+	STextRange*				GetLayerRange(size uiLayer, size uiIndex);
+	void					AddLayers(CTextAreaShapes* pcShapes, Ptr<CGeometryMap> pMap);
 };
 
 

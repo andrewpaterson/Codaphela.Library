@@ -1876,6 +1876,9 @@ void CTextArea::UpdateMarks(void)
 		return;
 	}
 
+	//The layers of highlights, a search's matches say, under everything and whatever is selected.
+	mcOccurrences.AddLayers(&mcShapes, mpSelectionMap);
+
 	//The selected text's other occurrences, once found for it, under the selection.
 	bSelected = GetSelection(&uiStart, &uiEnd);
 	if (mcOccurrences.IsFoundFor(uiStart, uiEnd))
@@ -1928,6 +1931,53 @@ void CTextArea::ClearOccurrenceRanges(void)
 
 
 size CTextArea::NumOccurrenceRanges(void) const { return mcOccurrences.NumRanges(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A layer of highlights: ranges of the text drawn under it in sColour,
+// one of them, the current one, in sCurrentColour, whatever is selected:
+// a search's matches, as an editor's Find bar shows them.  Its index names
+// it to the functions that give it its ranges (in the text's order), in
+// place of those it had; they go when the text changes, and are given
+// again by whoever made the layer.  A text area can have several, the
+// first made undermost.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::AddHighlightLayer(ARGB32 sColour, ARGB32 sCurrentColour)
+{
+	return mcOccurrences.AddLayer(sColour, sCurrentColour);
+}
+
+
+void CTextArea::SetHighlightRanges(size uiLayer, STextRange* asRanges, size uiNumRanges, size uiCurrent)
+{
+	mcOccurrences.SetLayerRanges(uiLayer, asRanges, uiNumRanges, uiCurrent);
+	UpdateMarks();
+}
+
+
+void CTextArea::ClearHighlightRanges(size uiLayer)
+{
+	if (mcOccurrences.ClearLayer(uiLayer))
+	{
+		UpdateMarks();
+	}
+}
+
+
+void CTextArea::SetCurrentHighlight(size uiLayer, size uiCurrent)
+{
+	if (mcOccurrences.SetLayerCurrent(uiLayer, uiCurrent))
+	{
+		UpdateMarks();
+	}
+}
+
+
+size CTextArea::GetCurrentHighlight(size uiLayer) { return mcOccurrences.GetLayerCurrent(uiLayer); }
+size CTextArea::NumHighlightRanges(size uiLayer) { return mcOccurrences.NumLayerRanges(uiLayer); }
+STextRange* CTextArea::GetHighlightRange(size uiLayer, size uiIndex) { return mcOccurrences.GetLayerRange(uiLayer, uiIndex); }
 STextOccurrenceRange* CTextArea::GetOccurrenceRange(size uiIndex) { return mcOccurrences.GetRange(uiIndex); }
 
 
