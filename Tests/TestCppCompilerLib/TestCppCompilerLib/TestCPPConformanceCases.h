@@ -1801,11 +1801,6 @@ static const SConformanceCase gasConformanceStage7[] =
 		"int main() { S a; a.v = 1; S b; b.v = 2; S c = (a, b); return c.v + (!a ? 100 : 200) + (~b).v + 3; }\n"
 	},
 	{
-		"FunctionTryBlock", 6,
-		"struct S { int v; S(int a) try : v(a) { } catch (...) { } };\n"
-		"int main() { S s(6); return s.v; }\n"
-	},
-	{
 		"ClassOperatorNew", 5,
 		"#ifdef _WIN64\n"
 		"typedef unsigned long long size_t;\n"
@@ -3793,9 +3788,14 @@ static const SConformanceCase gasConformanceExceptions[] =
 		"int main() { int x = 1; switch (x) { case 0: try { case 1: x = 2; } catch (...) { } } return x; }\n"
 	},
 	{
+		"FunctionTryBlock", 6,
+		"struct S { int v; S(int a) try : v(a) { } catch (...) { } };\n"
+		"int main() { S s(6); return s.v; }\n"
+	},
+	{
 		"ConstructorFunctionTryReturnRefused", CONFORMANCE_REFUSED,	//15.3/14
 		"struct S { S() try { } catch (...) { return; } };\n"
-		"int main() { return 1; }\n"
+		"int main() { S s; return 1; }\n"
 	},
 	{
 		"EllipsisNotLastRefused", CONFORMANCE_REFUSED,	//15.3/5

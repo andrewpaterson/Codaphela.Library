@@ -90,6 +90,7 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	mpcTerminate = NULL;
 	mbUnwinding = false;
 	muiLandingTop = MAX_SIZE;
+	mbConstructorHandler = false;
 	mbRoutine = false;
 	miConditional = 0;
 	mpcExit = NULL;
@@ -212,8 +213,9 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 {
-	CChars	szLabel;
-	bool	bResult;
+	CChars					szLabel;
+	CCPPSyntaxTryStatement*	pcTry;
+	bool					bResult;
 
 	szLabel.Init();
 	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction, mbBaseVersion);
@@ -230,7 +232,12 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	//its own probing (UsesFloat ...) are not failures.
 	mpcUnit->BeginQuiet();
 	bResult = Parameters() && Locals();
-	if (bResult && (pcFunction->meKind == CPPFK_Constructor))
+	pcTry = (pcFunction->mpcDefinition && pcFunction->mpcDefinition->mpcBody && (pcFunction->mpcDefinition->mpcBody->GetKind() == CPPS_TryStatement)) ? (CCPPSyntaxTryStatement*)pcFunction->mpcDefinition->mpcBody : NULL;
+	if (pcTry)
+	{
+		bResult = bResult && FunctionTryBlock(pcFunction, pcTry);
+	}
+	else if (bResult && (pcFunction->meKind == CPPFK_Constructor))
 	{
 		//A member initialiser's temporaries would need destroying after it (not supported).
 		bResult = ConstructorStart(pcFunction->mpcDefinition) && ((mcCleanups.NumTemporaries() == 0) || Unsupported(__FILE__, __LINE__));
@@ -243,7 +250,10 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 		bResult = StoreVtables(msThis, pcFunction->mpcClass, mbBaseVersion);
 		DestructorStart();
 	}
-	if (pcFunction->mpcAddressOf)
+	if (pcTry)
+	{
+	}
+	else if (pcFunction->mpcAddressOf)
 	{
 		//A closure's conversion to a pointer to a function.
 		bResult = bResult && ReturnAddressOf(pcFunction->mpcAddressOf);
@@ -287,6 +297,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mpcTerminate = NULL;
 	mbUnwinding = false;
 	muiLandingTop = MAX_SIZE;
+	mbConstructorHandler = false;
 	mbRoutine = false;
 	miConditional = 0;
 	maszRuntime.ReInit();

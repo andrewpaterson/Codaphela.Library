@@ -184,6 +184,7 @@ protected:
 	CIRBlock*				mpcTerminate;		//Its block that calls std::terminate, once something needs it.
 	bool					mbUnwinding;		//A cleanup is being written for an exception on its way: a call that throws there is std::terminate.
 	size					muiLandingTop;		//While a normal way out destroys the cleanup entry at this index, an exception goes to the ones below it (MAX_SIZE: all of them).
+	bool					mbConstructorHandler;	//A handler of a constructor's function-try-block is being written: it can't return.
 	bool					mbRoutine;			//The function is one the compiler writes for itself (a global's initialiser or finaliser): no exception leaves it.
 	CCPP65IRCleanups		mcCleanups;			//What needs destroying: the objects of the scopes being written and the temporaries of the full expression.
 	int						miConditional;		//Inside an operand that may not be worked out (of &&, || or ?:).
@@ -316,7 +317,9 @@ protected:
 	SIRReference	TypeInfoSymbol(SCPP65Type* psType);
 	bool			ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP65IRValue* psValue);
 	bool			TryStatement(CCPPSyntaxTryStatement* pcTry);
-	bool			Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched);
+	bool			FunctionTryBlock(CCPPFunction* pcFunction, CCPPSyntaxTryStatement* pcTry);
+	bool			TryHandlers(CCPPSyntaxTryStatement* pcTry, CIRBlock* pcDispatch, CIRBlock* pcAfter, bool bRethrow);
+	bool			Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched, bool bRethrow);
 	bool			HandlerParameter(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched);
 	bool			CopyFromAddress(SCPP65IRPlace* psPlace, SIRReference sSource);
 	bool			DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);

@@ -1367,6 +1367,11 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	SIRType			sType;
 	size			uiTemporaries;
 
+	if (mbConstructorHandler)
+	{
+		mpcUnit->ReportError(pcReturn, "A handler of a constructor's function-try-block can't return: it ends by rethrowing");
+		return Unsupported(__FILE__, __LINE__);
+	}
 	psReturn = mpcCPPFunction->mpsReturn;
 	sType = mpcFunction->msReturnType;
 	uiTemporaries = mcCleanups.NumTemporaries();

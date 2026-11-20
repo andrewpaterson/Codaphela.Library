@@ -830,25 +830,14 @@ bool CCPP65IRFrontEnd::ThrownDestroyerRoutine(const char* szLabel, SCPP65Type* p
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::TryStatement(CCPPSyntaxTryStatement* pcTry)
 {
-	SCPP65IRTry*			psTry;
-	CCPPSyntaxCatchHandler*	pcHandler;
-	CIRBlock*				pcDispatch;
-	CIRBlock*				pcAfter;
-	CIRBlock*				pcHandlerBlock;
-	CIRBlock*				pcNext;
-	SCPP65Type*				psHandled;
-	SIRReference			sMatched;
-	SIRReference			sCondition;
-	SIRType					sPointer;
-	SIRReference			sTypeInfo;
-	size					ui;
-	bool					bAll;
+	SCPP65IRTry*	psTry;
+	CIRBlock*		pcDispatch;
+	CIRBlock*		pcAfter;
 
 	if (!mpcUnit->GetOptions()->mbExceptions)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	sPointer = IRType(IRTK_Pointer);
 	pcDispatch = NewBlock();
 	pcAfter = NewBlock();
 	psTry = masTries.Add();
@@ -860,8 +849,34 @@ bool CCPP65IRFrontEnd::TryStatement(CCPPSyntaxTryStatement* pcTry)
 	}
 	masTries.RemoveTail();
 	JumpTo(pcAfter);
+	return TryHandlers(pcTry, pcDispatch, pcAfter, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A try's handlers, at pcDispatch, where an exception from its block comes
+// once what the block made is undone: tried in the order they are written,
+// and on to pcAfter from the end of one.  With none that takes it the
+// exception goes on.  bRethrow: they are a constructor's or destructor's
+// function-try-block's, and one that reaches its end rethrows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::TryHandlers(CCPPSyntaxTryStatement* pcTry, CIRBlock* pcDispatch, CIRBlock* pcAfter, bool bRethrow)
+{
+	CCPPSyntaxCatchHandler*	pcHandler;
+	CIRBlock*				pcHandlerBlock;
+	CIRBlock*				pcNext;
+	SCPP65Type*				psHandled;
+	SIRReference			sMatched;
+	SIRReference			sCondition;
+	SIRType					sPointer;
+	SIRReference			sTypeInfo;
+	size					ui;
+	bool					bAll;
 
 	//The handlers, tried in the order they are written.
+	sPointer = IRType(IRTK_Pointer);
 	StartBlock(pcDispatch);
 	bAll = false;
 	for (ui = 0; (ui < pcTry->macpHandlers.NumElements()) && !bAll; ui++)
@@ -888,7 +903,7 @@ bool CCPP65IRFrontEnd::TryStatement(CCPPSyntaxTryStatement* pcTry)
 			mpcBlock->Branch(sCondition, pcHandlerBlock, pcNext);
 		}
 		StartBlock(pcHandlerBlock);
-		if (!Handler(pcHandler, sMatched))
+		if (!Handler(pcHandler, sMatched, bRethrow))
 		{
 			return false;
 		}
@@ -916,10 +931,11 @@ bool CCPP65IRFrontEnd::TryStatement(CCPPSyntaxTryStatement* pcTry)
 // parameter is made from what the runtime's match gave (sMatched: the
 // thrown object, a base of it, or a pointer it worked out): a reference is
 // bound to it, an object is copied from it, and is a local like any other.
-// [except.handle] 15, 16
+// [except.handle] 15, 16  bRethrow: reaching its end is throw; (a
+// constructor's or destructor's function-try-block's, [except.handle] 15).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched)
+bool CCPP65IRFrontEnd::Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched, bool bRethrow)
 {
 	size	uiLiving;
 
@@ -930,7 +946,107 @@ bool CCPP65IRFrontEnd::Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference s
 	{
 		return false;
 	}
-	return Statement(pcHandler->mpcBlock) && LeaveScope(uiLiving);
+	if (!Statement(pcHandler->mpcBlock))
+	{
+		return false;
+	}
+	if (!bRethrow)
+	{
+		return LeaveScope(uiLiving);
+	}
+	ExceptionCall(CPP65_RETHROW, IRType(IRTK_None), NULL, NULL, 0);
+	JumpTo(Landing());
+	Terminated();
+	mcCleanups.CutLocals(uiLiving);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function's body that is a function-try-block: the try begins before a
+// constructor's member initialisers and bases, and before a destructor's
+// parts, and covers the body and a destructor's destruction of its members
+// and bases ([except] 4).  What the try made is undone before its handlers
+// are entered ([except.handle] 11: so its parts come off the stack, for
+// they are undone).  A constructor's or destructor's handler that reaches
+// its end rethrows, a constructor's can't return (14, 15), and a
+// destructor's that returns doesn't destroy the members again.  The
+// parameters are destroyed after the handlers (CPP65IRFrontEnd's WriteBody
+// isn't to write the destructor's end again).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FunctionTryBlock(CCPPFunction* pcFunction, CCPPSyntaxTryStatement* pcTry)
+{
+	SCPP65IRTry*	psTry;
+	CIRBlock*		pcDispatch;
+	CIRBlock*		pcAfter;
+	size			uiBase;
+	bool			bConstructor;
+	bool			bDestructor;
+	bool			bResult;
+
+	if (!mpcUnit->GetOptions()->mbExceptions)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	bConstructor = pcFunction->meKind == CPPFK_Constructor;
+	bDestructor = pcFunction->meKind == CPPFK_Destructor;
+	pcDispatch = NewBlock();
+	pcAfter = NewBlock();
+	uiBase = mcCleanups.NumEntries();
+	psTry = masTries.Add();
+	psTry->uiBase = uiBase;
+	psTry->pcDispatch = pcDispatch;
+	if (bConstructor && !(ConstructorStart(pcFunction->mpcDefinition) && ((mcCleanups.NumTemporaries() == 0) || Unsupported(__FILE__, __LINE__))))
+	{
+		return false;
+	}
+	if (bDestructor)
+	{
+		mpcExit = NewBlock();
+		if (!StoreVtables(msThis, pcFunction->mpcClass, mbBaseVersion))
+		{
+			return false;
+		}
+		DestructorStart();
+	}
+	if (!ScopedStatement(pcTry->mpcBlock))
+	{
+		return false;
+	}
+	if (bDestructor)
+	{
+		JumpTo(mpcExit);
+		StartBlock(mpcExit);
+		if (!DestructorEnd())
+		{
+			return false;
+		}
+	}
+	masTries.RemoveTail();
+	mcCleanups.RemovePartsFrom(uiBase);
+	JumpTo(pcAfter);
+
+	//A destructor's handler that returns has had its members destroyed.
+	mpcExit = NULL;
+	mbConstructorHandler = bConstructor;
+	bResult = TryHandlers(pcTry, pcDispatch, pcAfter, bConstructor || bDestructor);
+	mbConstructorHandler = false;
+	if (!bResult)
+	{
+		return false;
+	}
+	StartBlock(pcAfter);
+	if (!DestroyLiving(0))
+	{
+		return false;
+	}
+	if (bDestructor)
+	{
+		mpcBlock->Return();
+	}
+	return true;
 }
 
 
