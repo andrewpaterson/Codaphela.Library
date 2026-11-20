@@ -1,12 +1,13 @@
 # Sweep.py: the test sweep (Tests/TestSpeedPlan.txt step 5): every solution on the list built and its suites run, in
 # Release|x64, Release|Win32 and Debug|x64, and Debug|Win32 for a solution that failed in a Release configuration.
 #
-#   python Sweep.py [-only <text>,...] [-configs Release|x64,...] [-new]
+#   python Sweep.py [-only <text>,...] [-configs Release|x64,...] [-new] [-overlap]
 #
-# An item is a solution in one configuration: built (MSBuild -m:2), then its suites run.  A builder and a runner work
-# side by side: while one item's suites run the next item builds, at most one ahead, and only with BUILD_FREE free
-# (never while TestCppCompilerLib runs, which is RunParallel.py's four processes).  Within a configuration the items
-# whose suites took longest last time go first, so the short ones' builds hide behind them.  Each item's result is a
+# An item is a solution in one configuration: built (MSBuild -m:2), then its suites run, one item after another.  With
+# -overlap a builder and a runner work side by side: while one item's suites run the next item builds, at most one
+# ahead, and only with BUILD_FREE free, never beside the EXCLUSIVE suites (a build beside TestHCP65Lib ran this 7.9 GB
+# machine out of memory, 2026-11-19).  Within a configuration the items whose suites took longest last time go first,
+# so with -overlap the short ones' builds hide behind them.  Each item's result is a
 # line in Output/SweepResults.txt; an item already there isn't done again, so a stopped sweep goes on where it was
 # (-new starts again).  While Output/Sweep.pause exists the sweep waits before its next build and its next run, so
 # another session can have the machine between items.  -only runs the items whose name has one of the texts in it.
@@ -21,6 +22,7 @@ MSBUILD = r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBui
 RUN_PARALLEL = os.path.join(HERE, "TestCppCompilerLib", "RunParallel.py")
 BUILD_FREE = 3 << 30		#A build alongside a run needs this much memory free...
 RUN_FREE = 2 << 30			#...and a run this much.
+EXCLUSIVE = ["TestCppCompilerLib", "TestHCP65Lib"]	#Suites no build runs beside (RunParallel.py's four processes; the kernal's).
 RELEASE = ["Release|x64", "Release|Win32"]
 CONFIGS = RELEASE + ["Debug|x64"]
 CONDITIONAL = "Debug|Win32"	#Only for a solution whose build or suite failed in a Release configuration (the user, 2026-11-18).
@@ -119,7 +121,8 @@ class CSweep:
 		self.aBuilt = []					#Built and waiting to run: (index, build result text, build began, ok).
 		self.iNextBuild = 0
 		self.iRunning = -1					#The index of the item whose suites run, -1 for none.
-		self.bCompilerRunning = False		#TestCppCompilerLib (RunParallel.py's four processes) is running...
+		self.bOverlap = False				#Builds may run beside suites (-overlap).
+		self.bCompilerRunning = False		#An EXCLUSIVE suite is running...
 		self.bBuilding = False				#...which waits for a build going on to end first.
 		self.asFailed = set()				#Solutions that failed in a Release configuration.
 		self.fBegan = time.time()
@@ -127,8 +130,8 @@ class CSweep:
 	def Builder(self):
 		while True:
 			with self.cLock:
-				#At most one item ahead of the runner, and none built while TestCppCompilerLib runs.
-				while self.aBuilt or self.bCompilerRunning:
+				#At most one item ahead of the runner (none at all without -overlap), and none built beside an EXCLUSIVE suite.
+				while self.aBuilt or self.bCompilerRunning or ((not self.bOverlap) and (self.iRunning >= 0)):
 					self.cLock.wait()
 				if self.iNextBuild >= len(self.aOrder):
 					self.aBuilt.append(None)
@@ -206,7 +209,7 @@ class CSweep:
 						continue
 					WaitWhilePaused()
 					with self.cLock:
-						self.bCompilerRunning = sSuite[0] == "TestCppCompilerLib"
+						self.bCompilerRunning = sSuite[0] in EXCLUSIVE
 						while self.bCompilerRunning and self.bBuilding:
 							self.cLock.wait()
 					szResult = self.RunSuite(szSolution, szConfig, sSuite)
@@ -255,7 +258,8 @@ def main():
 	aItems = Items()
 	fBegan = time.time()
 	cSweep = CSweep(Order(aItems, aszConfigs, Done(), szOnly))
-	Say("%d items" % len(cSweep.aOrder))
+	cSweep.bOverlap = "-overlap" in aszArgs
+	Say("%d items%s" % (len(cSweep.aOrder), ", builds beside runs" if cSweep.bOverlap else ""))
 	cSweep.Run()
 
 	#Debug|Win32 for the solutions that failed in a Release configuration, this sweep or one it went on from.
@@ -270,6 +274,7 @@ def main():
 		aFailed = [sItem for sItem in aItems if (sItem[0] in asFailed) and not (sItem[2] and (CONDITIONAL not in sItem[2]))]
 		if aFailed:
 			cSweep = CSweep(Order(aFailed, [CONDITIONAL], asDone, szOnly))
+			cSweep.bOverlap = "-overlap" in aszArgs
 			Say("%d items in %s" % (len(cSweep.aOrder), CONDITIONAL))
 			cSweep.Run()
 
