@@ -33,7 +33,7 @@ void CCPPSyntaxNameComponent::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 	miName = -1;
 	mbTemplateArguments = false;
 	macpTemplateArguments.Init(NodeArrayMallocator());
-	mpcConversionType = NULL;
+	mpcType = NULL;
 	mpcSymbol = NULL;
 }
 
@@ -79,7 +79,12 @@ void CCPPSyntaxNameComponent::PrettyPrint(CChars* pszDest, int iDepth)
 	if (meKind == CPPNC_Conversion)
 	{
 		pszDest->Append("operator ");
-		PrintNode(pszDest, mpcConversionType, iDepth);
+		PrintNode(pszDest, mpcType, iDepth);
+		return;
+	}
+	if (meKind == CPPNC_Decltype)
+	{
+		PrintNode(pszDest, mpcType, iDepth);
 		return;
 	}
 
@@ -104,7 +109,7 @@ void CCPPSyntaxNameComponent::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Token(&miName);
 	pcFields->Bool(&mbTemplateArguments);
 	pcFields->Children(&macpTemplateArguments);
-	pcFields->Child(&mpcConversionType);
+	pcFields->Child(&mpcType);
 	pcFields->Symbol(&mpcSymbol);
 }
 

@@ -314,7 +314,7 @@ CCPPFunction* CCPPOverloads::ConversionInstance(CCPPTemplate* pcTemplate, SCPP65
 	mpcUnit->BeginTrial();
 	pcFunction = NULL;
 	pcDeclarator = mpcUnit->DefineMemberTemplate(pcTemplate, pcNode) ? pcTemplate->FunctionDeclarator() : NULL;
-	pcType = (pcDeclarator && pcDeclarator->GetName()) ? pcDeclarator->GetName()->GetLast()->mpcConversionType : NULL;
+	pcType = (pcDeclarator && pcDeclarator->GetName()) ? pcDeclarator->GetName()->GetLast()->mpcType : NULL;
 	if (pcType)
 	{
 		cDeduction.Init(mpcUnit, pcTemplate);

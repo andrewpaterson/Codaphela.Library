@@ -42,6 +42,7 @@ public:
 	CCPPSyntaxNameComponent*	GetLast(void);
 	CCPPSyntaxNameComponent*	GetQualifier(void);
 	bool						IsQualifiedByClass(void);
+	bool						IsQualifiedByDecltype(void);
 	bool					IsSimple(void);
 };
 

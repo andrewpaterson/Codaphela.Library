@@ -1475,7 +1475,7 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 			return NULL;
 		}
 	}
-	else if (pcName->macpComponents.NumElements() < 3)
+	else if ((pcName->macpComponents.NumElements() < 3) && (pcQualifier->meKind != CPPNC_Decltype))
 	{
 		return NULL;
 	}

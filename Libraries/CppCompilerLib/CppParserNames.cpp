@@ -30,7 +30,56 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 bool CCPPParser::IsNameStart(void)
 {
-	return IsIdentifier() || Is(CT_ScopeResolution) || Is(CT_operator) || (Is(CT_BitwiseNot) && IsIdentifierAhead(1));
+	return IsIdentifier() || Is(CT_ScopeResolution) || Is(CT_operator) || (Is(CT_BitwiseNot) && IsIdentifierAhead(1)) || IsDecltypeQualifier();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether decltype(e):: is next: the type of e as a name's first qualifier,
+// decltype(d)::s.  [expr.prim.general] 8
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsDecltypeQualifier(void)
+{
+	SCPPTentative	sTentative;
+	bool			bQualifier;
+
+	if (!Is(CT_decltype) || !IsAhead(1, CT_OpenRoundBracket))
+	{
+		return false;
+	}
+	BeginTentative(&sTentative);
+	Next();
+	bQualifier = SkipBalanced() && Is(CT_ScopeResolution);
+	return EndTentative(&sTentative, bQualifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The qualifier decltype(e):: of a name, as its first component.  What
+// follows is found in a type the parser doesn't know, as a template
+// parameter's members are.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxNameComponent* CCPPParser::ParseDecltypeQualifier(CCPPSyntaxName* pcName)
+{
+	CCPPSyntaxNameComponent*		pcComponent;
+	CCPPSyntaxDecltypeSpecifier*	pcDecltype;
+
+	pcComponent = mpcMemory->Create<CCPPSyntaxNameComponent>(pcName);
+	pcComponent->miFirstToken = CurrentToken();
+	pcComponent->meKind = CPPNC_Decltype;
+	pcDecltype = ParseDecltypeSpecifier(pcComponent, CT_decltype, false);
+	if (!pcDecltype || !Expect(CT_ScopeResolution))
+	{
+		return NULL;
+	}
+	pcComponent->mpcType = WrapTypeSpecifier(pcComponent, pcDecltype);
+	pcComponent->miLastToken = pcDecltype->miLastToken;
+	pcName->macpComponents.Add(pcComponent);
+	return pcComponent;
 }
 
 
@@ -66,6 +115,15 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 		pcName->mbGlobal = true;
 		pcScope = mpcSymbols->GetGlobalScope();
 		bQualified = true;
+	}
+	else if (IsDecltypeQualifier())
+	{
+		if (!ParseDecltypeQualifier(pcName))
+		{
+			return NULL;
+		}
+		bQualified = true;
+		bDependent = true;
 	}
 
 	for (;;)
@@ -334,8 +392,8 @@ CCPPSyntaxNameComponent* CCPPParser::ParseOperatorName(CCPPSyntax* pcParent)
 	else
 	{
 		pcComponent->meKind = CPPNC_Conversion;
-		pcComponent->mpcConversionType = ParseConversionTypeId(pcComponent);
-		if (!pcComponent->mpcConversionType)
+		pcComponent->mpcType = ParseConversionTypeId(pcComponent);
+		if (!pcComponent->mpcType)
 		{
 			return NULL;
 		}

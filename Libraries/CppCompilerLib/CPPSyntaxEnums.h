@@ -67,6 +67,7 @@ enum ECPPNameComponent
 	CPPNC_Conversion,	//operator int
 	CPPNC_Destructor,	//~X
 	CPPNC_Literal,		//operator "" _k: miName is the suffix (an identifier, or a user string ""_k).
+	CPPNC_Decltype,		//decltype(e)::, a name's first qualifier: the type of e.
 };
 
 

@@ -1436,6 +1436,11 @@ ECPPDeclSpecifierStep CCPPParser::ParseKeywordDeclSpecifier(CCPPSyntaxDeclSpecif
 	{
 		return CPPSetTypeSpecifier(pcSpecifiers, ParseTypenameSpecifier(pcSpecifiers), pbType);
 	}
+	if ((eToken == CT_decltype) && !*pbType && IsDecltypeQualifier())
+	{
+		//decltype(d)::T, a type that is a member of d's.
+		return ParseNamedDeclSpecifier(pcSpecifiers, eContext, pbType);
+	}
 	if (((eToken == CT_decltype) || (eToken == CT___typeof__)) && !*pbType)
 	{
 		return CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, eToken, false), pbType);
@@ -1481,13 +1486,13 @@ CCPPSyntaxNamedTypeSpecifier* CCPPParser::ParseTypenameSpecifier(CCPPSyntaxDeclS
 // decltype(e) and g++'s __typeof__(e) or __typeof__(type).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxDecltypeSpecifier* CCPPParser::ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken, bool bUnderlyingType)
+CCPPSyntaxDecltypeSpecifier* CCPPParser::ParseDecltypeSpecifier(CCPPSyntax* pcParent, ECppTokens eToken, bool bUnderlyingType)
 {
 	CCPPSyntaxDecltypeSpecifier*	pcDecltype;
 	bool							bNoGreater;
 	bool							bExpression;
 
-	pcDecltype = mpcMemory->Create<CCPPSyntaxDecltypeSpecifier>(pcSpecifiers);
+	pcDecltype = mpcMemory->Create<CCPPSyntaxDecltypeSpecifier>(pcParent);
 	pcDecltype->miFirstToken = CurrentToken();
 	pcDecltype->meKeyword = eToken;
 	pcDecltype->mbUnderlyingType = bUnderlyingType;
@@ -1562,7 +1567,8 @@ ECPPDeclSpecifierStep CCPPParser::ParseNamedDeclSpecifier(CCPPSyntaxDeclSpecifie
 		return CPPDSS_Next;
 	}
 
-	if (pcSymbol ? !pcSymbol->IsType() : !IsUnknownNameAType(eContext))
+	//Where only a type can be written, decltype(d)::T is one: the parser doesn't know what d's members are.
+	if (pcSymbol ? !pcSymbol->IsType() : !(IsUnknownNameAType(eContext) || ((eContext == CPPDC_TypeId) && pcName->IsQualifiedByDecltype())))
 	{
 		Rewind(sPosition);
 		return CPPDSS_Stop;

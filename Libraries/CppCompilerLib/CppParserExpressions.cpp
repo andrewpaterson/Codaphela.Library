@@ -571,6 +571,27 @@ CCPPSyntaxTypeId* CCPPParser::CreateSimpleTypeId(CCPPSyntax* pcParent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A type-id that is one type specifier and nothing else: the type of T(x)
+// and of decltype(e)(x), and decltype(e) as a name's qualifier.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxTypeId* CCPPParser::WrapTypeSpecifier(CCPPSyntax* pcParent, CCPPSyntaxTypeSpecifier* pcSpecifier)
+{
+	CCPPSyntaxTypeId*	pcType;
+
+	pcType = mpcMemory->Create<CCPPSyntaxTypeId>(pcParent);
+	pcType->mpcSpecifiers = mpcMemory->Create<CCPPSyntaxDeclSpecifiers>(pcType);
+	pcSpecifier->mpcParent = pcType->mpcSpecifiers;
+	pcType->mpcSpecifiers->mpcType = pcSpecifier;
+	pcType->mpcSpecifiers->macpSpecifiers.Add(pcSpecifier);
+	pcType->mpcSpecifiers->SetTokens(pcSpecifier->miFirstToken, pcSpecifier->miLastToken);
+	pcType->SetTokens(pcSpecifier->miFirstToken, pcSpecifier->miLastToken);
+	return pcType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxExpression* CCPPParser::ParseConstructExpression(CCPPSyntax* pcParent, CCPPSyntaxTypeId* pcType)
@@ -606,6 +627,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 	CCPPSyntaxTypeId*					pcType;
 	CCPPSyntaxTypeidExpression*			pcTypeid;
 	CCPPSyntaxNamedTypeSpecifier*		pcNamed;
+	CCPPSyntaxDecltypeSpecifier*		pcDecltype;
 	CCPPSyntaxName*						pcName;
 	CCPPToken*							pcToken;
 	ECppTokens							eToken;
@@ -702,6 +724,25 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 			}
 			return ParseConstructExpression(pcParent, pcType);
 
+		case CT_decltype:
+			if (IsDecltypeQualifier())
+			{
+				//decltype(e)::name
+				break;
+			}
+			//decltype(e)(x) and decltype(e){x} make an object of the type of e.  [expr.type.conv]
+			pcDecltype = ParseDecltypeSpecifier(pcParent, CT_decltype, false);
+			if (!pcDecltype)
+			{
+				return NULL;
+			}
+			if (!Is(CT_OpenRoundBracket) && !Is(CT_OpenCurlyBracket))
+			{
+				Error("Expected '(' or '{' after the type.");
+				return NULL;
+			}
+			return ParseConstructExpression(pcParent, WrapTypeSpecifier(pcParent, pcDecltype));
+
 		case CT_ScopeResolution:
 		case CT_operator:
 		case CT_BitwiseNot:
@@ -741,18 +782,11 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 		if (pcName->mpcSymbol && pcName->mpcSymbol->IsType() && (Is(CT_OpenRoundBracket) || Is(CT_OpenCurlyBracket)))
 		{
 			//A type name followed by ( or { makes an object.
-			pcType = mpcMemory->Create<CCPPSyntaxTypeId>(pcParent);
-			pcType->miFirstToken = pcId->miFirstToken;
-			pcType->mpcSpecifiers = mpcMemory->Create<CCPPSyntaxDeclSpecifiers>(pcType);
-			pcNamed = mpcMemory->Create<CCPPSyntaxNamedTypeSpecifier>(pcType->mpcSpecifiers);
+			pcNamed = mpcMemory->Create<CCPPSyntaxNamedTypeSpecifier>(pcParent);
 			pcNamed->mpcName = pcName;
 			pcName->mpcParent = pcNamed;
 			pcNamed->SetTokens(pcId->miFirstToken, PreviousToken());
-			pcType->mpcSpecifiers->mpcType = pcNamed;
-			pcType->mpcSpecifiers->macpSpecifiers.Add(pcNamed);
-			pcType->mpcSpecifiers->SetTokens(pcId->miFirstToken, PreviousToken());
-			pcType->miLastToken = PreviousToken();
-			return ParseConstructExpression(pcParent, pcType);
+			return ParseConstructExpression(pcParent, WrapTypeSpecifier(pcParent, pcNamed));
 		}
 
 		pcId->mpcName = pcName;

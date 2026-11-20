@@ -5635,6 +5635,48 @@ static const SConformanceCase gasConformanceClause5[] =
 		"struct S { int m; int f() { return m; } };\n"
 		"int main() { volatile S s; int (S::*p)() = &S::f; s.m = 1; return (s.*p)(); }\n"
 	},
+	//5.1.1 [expr.prim.general] p8, 7.1.6.2 [dcl.type.simple]: decltype(e):: as a name's first qualifier, and decltype(e)(x)
+	{
+		"PrimDecltypeQualifier", 63,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct B { int m; int f() { return 4; } static int s; static int g(int x) { return x + 1; } enum { E = 6 }; typedef long T; struct In { int v; }; };\n"
+		"int B::s = 5;\n"
+		"struct D : B { int m; };\n"
+		"template<class X> struct W { typedef X Type; static X Twice(X x) { return x + x; } };\n"
+		"int main()\n"
+		"{\n"
+		"	D d;\n"
+		"	W<int> w;\n"
+		"	int r = 0;\n"
+		"	if (decltype(d)::s == 5 && decltype(d)::E == 6) r += 1;\n"
+		"	decltype(d)::T t = 3;\n"
+		"	decltype(d)::In in;\n"
+		"	in.v = 2;\n"
+		"	if (Same<decltype(t), long>::V && t == 3 && in.v == 2 && sizeof(decltype(d)::T) == sizeof(long)) r += 2;\n"
+		"	if (decltype(d)::g(2) == 3 && decltype(w)::Twice(4) == 8 && Same<decltype(w)::Type, int>::V) r += 4;\n"
+		"	decltype(d)::s = 9;\n"
+		"	if (B::s == 9 && decltype(t)(7) == 7 && Same<decltype(decltype(t)(7)), long>::V) r += 8;\n"
+		"	d.m = 3;\n"
+		"	d.decltype(d)::m = 4;\n"
+		"	if (d.m == 4 && &decltype(d)::s == &B::s) r += 16;\n"
+		"	if ((decltype(d)::T)5 == 5 && static_cast<decltype(d)::T>(6) == 6 && alignof(decltype(d)::T) == alignof(long)) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.1.1 [expr.prim.general] p8: decltype(e):: needs a class or an enumeration
+	{
+		"PrimDecltypeQualifierNotClassRefused", CONFORMANCE_REFUSED,
+		"struct B { int m; };\n"
+		"int main() { int i = 0; return decltype(i)::m; }\n"
+	},
+	//5.1.1 [expr.prim.general] p8: decltype((b)) is a reference, which has no members to name
+	{
+		"PrimDecltypeQualifierReferenceRefused", CONFORMANCE_REFUSED,
+		"struct B { int m; static int s; };\n"
+		"int B::s = 2;\n"
+		"int main() { B b; return decltype((b))::s; }\n"
+	},
 };
 
 

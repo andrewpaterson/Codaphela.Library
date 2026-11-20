@@ -34,7 +34,7 @@ public:
 	int32					miName;
 	bool					mbTemplateArguments;
 	CArraySyntax			macpTemplateArguments;
-	CCPPSyntaxTypeId*		mpcConversionType;
+	CCPPSyntaxTypeId*		mpcType;	//operator int's type, and decltype(e)::'s.
 	CCPPSymbol*				mpcSymbol;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;

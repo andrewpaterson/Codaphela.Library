@@ -205,6 +205,7 @@ protected:
 	bool							EndTentative(SCPPTentative* psTentative, bool bParsed);
 	void							Resolve(int iToken, CCPPSymbol* pcSymbol, ECPPTokenRole eRole);
 	bool							SkipBalanced(void);
+	bool							IsDecltypeQualifier(void);
 	bool							SkipPragma(void);
 	bool							SkipFunctionBody(void);
 	void							SkipDeclaration(void);
@@ -238,7 +239,7 @@ protected:
 	ECPPDeclSpecifierStep			ParseNamedDeclSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext, bool* pbType);
 	void							AddKeywordSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken);
 	CCPPSyntaxNamedTypeSpecifier*	ParseTypenameSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
-	CCPPSyntaxDecltypeSpecifier*	ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken, bool bUnderlyingType);
+	CCPPSyntaxDecltypeSpecifier*	ParseDecltypeSpecifier(CCPPSyntax* pcParent, ECppTokens eToken, bool bUnderlyingType);
 	bool							IsUnknownNameAType(ECPPDeclarationContext eContext);
 	CCPPSyntaxAttribute*			ParseAttribute(CCPPSyntax* pcParent);
 	bool							IsAttributeStart(void);
@@ -286,6 +287,7 @@ protected:
 	//Names.  CppParserNames.cpp
 	CCPPSyntaxName*					ParseName(CCPPSyntax* pcParent, bool bDeclaration, CCPPScope** ppcQualifier);
 	CCPPSyntaxNameComponent*		ParseOperatorName(CCPPSyntax* pcParent);
+	CCPPSyntaxNameComponent*		ParseDecltypeQualifier(CCPPSyntaxName* pcName);
 	bool							ParseTemplateArguments(CCPPSyntaxNameComponent* pcComponent);
 	CCPPSyntax*						ParseTemplateArgument(CCPPSyntax* pcParent);
 	bool							IsTypeIdArgument(void);
@@ -334,6 +336,7 @@ protected:
 	bool							IsStringPart(void);
 	bool							IsCastAhead(void);
 	CCPPSyntaxTypeId*				CreateSimpleTypeId(CCPPSyntax* pcParent);
+	CCPPSyntaxTypeId*				WrapTypeSpecifier(CCPPSyntax* pcParent, CCPPSyntaxTypeSpecifier* pcSpecifier);
 };
 
 

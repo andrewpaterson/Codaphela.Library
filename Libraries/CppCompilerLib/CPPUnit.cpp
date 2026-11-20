@@ -2646,7 +2646,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	if (lliName == CPP_CONVERSION_NAME)
 	{
 		//operator T () returns T.
-		psReturn = pcComponent->mpcConversionType ? mcDeclarators.GetTypeIdType(pcComponent->mpcConversionType) : NULL;
+		psReturn = pcComponent->mpcType ? mcDeclarators.GetTypeIdType(pcComponent->mpcType) : NULL;
 		if (!psReturn)
 		{
 			return NULL;

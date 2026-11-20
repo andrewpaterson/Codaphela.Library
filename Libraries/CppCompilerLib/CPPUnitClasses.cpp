@@ -236,9 +236,9 @@ int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers)
 //////////////////////////////////////////////////////////////////////////
 //
 // The class a name component names: a class, a typedef of one, an instance of a
-// class template (Name<Arguments>), or a class template's own name inside it.  A
-// base template's name without arguments is psContext's (or else the current member
-// function's class's) base instance of it.
+// class template (Name<Arguments>), a class template's own name inside it, or the
+// type of decltype(e)::'s e.  A base template's name without arguments is psContext's
+// (or else the current member function's class's) base instance of it.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcContext)
@@ -253,6 +253,12 @@ CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCP
 	if (!pcSymbol && pcComponent)
 	{
 		pcSymbol = pcComponent->mpcSymbol;
+	}
+	if (pcComponent && (pcComponent->meKind == CPPNC_Decltype))
+	{
+		//[dcl.type.simple] 4: a class as it is, not a reference to one.
+		psType = mcDeclarators.GetTypeIdType(pcComponent->mpcType);
+		return (psType && psType->IsClass()) ? psType->pcClass : NULL;
 	}
 	if (!pcSymbol && pcComponent)
 	{
