@@ -1,0 +1,173 @@
+C++14 compliance: where it stands and what is left
+===================================================
+
+Written 2026-11-20 for the session that carries this on.  It replaces the to do part of CppParserTodo.txt, which stays
+as the record: the questions the user answered and the rulings, which the sources cite by number ("CppParserTodo.txt
+question 13"), and what each stage and step did.  Read this file first, and that one when a ruling is cited.
+
+
+What is aimed at
+----------------
+
+The user's rulings, which govern everything below:
+  - The compiler (CppCompilerLib: both targets, the 65C64 and the W65C816) is to compile C++14.  "We're aiming for a
+    freestanding C++14 implementation first, then the standard libaries afterwards" (2026-11-19).
+  - The library: "I don't use the C++ Std Libs, and don't want to include the library with their source code in any
+    of my projects.  The problem is LibC already exists and has useful intrinsic (or close to intrinsic methods)."
+    So nobody else's library source comes in, and Libc65 is where what is written goes.
+  - Exceptions are another session's work (ExceptionsPlan.txt).  Leave CONFORMANCE_EXCEPTIONS_GROUP, the Exceptions
+    group's cases and the exception paths of the front end to it; tell it what is found there.
+  - A sweep is measured first and shown as a list; the compiler is changed only for what the user then picks.  A
+    decision made while planning is not a go-ahead to build.
+  - Questions for the user are asked one at a time, in plain words, and kept in a list while work goes on.
+  - Commits have no co-author line, are made by pathspec, and are never pushed: the user pulls and pushes.  Other
+    sessions work in the same checkouts at the same time.
+
+
+Where it stands
+---------------
+
+Done: Part A (the preprocessor and tokeniser to C++17) and Part B's stages (the code generators to C++14), the clause
+by clause sweeps of clauses 4, 5 and 8 with everything they found, and the steps that followed (the 40 cases, the 35
+items, the 18 steps): CppParserTodo.txt says what each did, and git log has one commit for each.
+
+The conformance test (Tests/TestCppCompilerLib/TestCppCompilerLib/TestCPPConformance.cpp) on 2026-11-20, both targets:
+
+    group     cases   done
+    Clause3       4      4      a few cases from other work: never swept
+    Clause4      68     68      swept
+    Clause5     397    397      swept (396 on the 65C64: see 1 below)
+    Clause8     118    118      swept
+    Clause10     20     20      a few cases: never swept
+    Clause14     21     21      a few cases: never swept
+    Works and Stage1 to Stage10 (the hand written cases of Part B): all done
+    Exceptions: the other session's
+
+The whole of TestCppCompilerLib passes (269626 checks), BaseLib, StandardLib and SupportLib compile and pass their
+tests on both targets (TestBaseLib65, TestStandardLib65, TestSupportLib65), TestLibc65 passes on both, and the twenty
+HCP65 projects build.
+
+
+What is left, in the order suggested
+------------------------------------
+
+A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a list, then what they pick is fixed;
+   to start once the exceptions work has landed).
+   - Clauses 3, 6, 7, 9, 10, 11, 12, 13 and 14 of N4140, then 2 and 16 (lexing and the preprocessor, which have
+     tests from Part A and were never gone through by clause).  15 is the exceptions session's.
+   - How 4, 5 and 8 were done: read the clause paragraph by paragraph; write a small program for each rule that can be
+     tested, valid ones that return a number and invalid ones that must be refused; check every one against g++
+     first (clauses.py check); run them through the compiler on both targets; give the user the list of what differs,
+     worst first (wrong code, valid code refused, invalid code accepted), each with its paragraph.  Going by those
+     three clauses, expect more from this than from everything in B.
+   - A clause's cases go in Tests/TestCppCompilerLib/Conformance/Clauses/ClauseNN.txt ("How the cases are kept").
+
+B. Gaps that are known.  Each was probed against g++; none is common.
+   1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size
+      (the constant interpreter keeps bytes, not which member was last given a value).  It is the one case in the
+      lists (ConstantInactiveUnionMemberRefused).  The user, 2026-11-20: "no I don't want item 2".  Leave it.
+   2. A member template whose parameters are its class's pack and then its own: template<class... B> static int
+      Mix(A... a, B... b) in template<class... A> struct Pair.  The call isn't matched ("The number of arguments
+      does not match the function").
+   3. A partial specialisation, outside the class, of a class template's member variable template (template<class
+      C> template<class T> constexpr bool W<C>::same<T*> = true;).  The template itself, in the class or outside
+      it, works.
+   4. (decltype(f())::k) + 1: read as a cast.  The parser has no types; it decides by the member's name only where
+      decltype's operand is the name of a variable or parameter declared with a class's name
+      (CCPPParser::DecltypeMemberIsType).
+   5. final where nothing uses the class: checked for a class at namespace scope (CCPPUnit::CheckVirtSpecifiers), not
+      for one nested in a class or declared in a function.
+   6. A name two bases each have, named alone in a member function, where it is a type, a static member or an
+      enumerator: not reported (a field and a call are: CCPPBinder::HasOneMeaning).
+
+C. Checks that are owed.
+   1. A Microsoft build of CppCompilerLib and TestCppCompilerLib.  Everything since 2026-11-19 was built with g++
+      only.  CPPFunctionPacks.cpp and .h are new in CppCompilerLib.vcxproj and its filters.
+   2. The cases against the Microsoft compiler: Conformance/hostcheck.py, on Windows.  The cases added since
+      2026-11-19 were checked with g++ alone (-std=c++14 -pedantic-errors, -m32 and -m64).
+   3. The IDE's build configurations dialog: the rows for the three build switches (the string literal warning,
+      multi word casts, C conversions) were written and never looked at on a screen.
+
+D. Waiting for the user's word.  Don't start either unasked.
+   1. The freestanding headers ([compliance] 17.6.1.3, Table 16).  Libc65 has <new>, <exception> and <typeinfo>.
+      Missing: <ciso646>, <cstddef>, <cfloat>, <limits>, <climits>, <cstdint>, <cstdlib> (at least abort, atexit,
+      at_quick_exit, exit, quick_exit), <initializer_list>, <cstdalign>, <cstdarg>, <cstdbool>, <type_traits> and
+      <atomic>.  Where they live and in what order isn't decided.  A draft of nine of the <c...> headers is on
+      HCP65's branch freestanding-draft-dev7, built unasked and never run on a target: plan with the user before
+      using any of it.
+   2. The standard libraries after that.  How they are come by isn't decided (see the library ruling above).
+
+E. Small things noted long ago and not looked at again (2026-10-21 to 2026-11-08; check each against the code before
+   believing it).
+   - class X; and enum X; leave one node out of the syntax tree: the specifier made before it is known to be
+     elaborated.
+   - An error in an uncalled template instance doesn't fail CCPPSemanticPass::Check, and #define with nothing after
+     it is reported with no position.
+   - Name lookup in the parser: "using Base<M>::x;" naming a member of a template base class; field names inside
+     offsetof(...); goto labels (the highlighter guesses them).
+   - A Linux CMake build for TestJavaParserLib.
+
+
+How the cases are kept
+----------------------
+
+Tests/TestCppCompilerLib/Conformance has the tools:
+  - Clauses/ClauseNN.txt (Clause05a.txt to Clause05f.txt for clause 5; new clause 5 cases go in Clause05f.txt): the
+    clause cases as they are written.  A case is "### Name | expect | reference" and then its source: expect is what
+    main returns (the same on both targets and on the host: compare with sizeof, never return one) or REFUSED.
+  - clauses.py check: every case through g++.  A case is checked before the compiler is asked to agree with it.
+    clauses.py header: writes the cases into TestCppCompilerLib/TestCPPConformanceClauseCases.h, which is generated:
+    don't edit it.  A clause new to the test also needs its CONFORMANCE_GROUP line in TestCPPConformance.cpp.
+  - lists.py (-why, -write): which cases the compiler doesn't do, and writes that into TestCPPConformance.cpp's
+    lists.  Read what changed before committing it: a list that grows is a regression.  (On 2026-11-20 six cases
+    went into the lists unseen because the output was cut short.)
+  - hostcheck.py and gcccheck.sh: the cases the test exports (TEST_CPP_CONFORMANCE_EXPORT), the hand written ones
+    too, against the Microsoft compiler and g++.
+The test's own switches (in the environment): TEST_CPP_CONFORMANCE_TRY=<file> compiles and runs one program on both
+targets and says what it did, which is how a probe is tried; _LISTS prints the lists; _VERBOSE says why a case
+failed; _LISTINGS=<directory> writes the listings.
+The hand written cases (TestCPPConformanceCases.h) are edited where they are.
+
+
+How a change is checked
+-----------------------
+
+Before a commit, all of these, on both targets:
+  1. TestCppCompilerLib, the whole of it (RunParallel.py -exe <the test> -jobs 12: about two minutes).  0 failed.
+  2. The conformance lists unchanged but for the cases the change was for.
+  3. TestBaseLib65, TestStandardLib65 and TestSupportLib65: the three libraries compile and their tests pass.
+  4. TestLibc65.
+  5. The twenty HCP65 projects build (hcp65build <project>.hcp65build -config "Release|W65C816"), where the change
+     could refuse or change real code.
+A new language rule gets a case, g++ checked, in the clause it belongs to; a new refusal gets a Refused case and a
+valid one beside it that must still compile.  Release builds, x64.
+
+On dev7 (Linux) the session before kept its scripts in
+/home/r2d2/.claude/projects/-home-r2d2-Codaphela/sweep-clause4-5/ (their paths name a scratchpad that is gone:
+change the first lines).  verify.sh copies the checkouts to a snapshot and does 1 to 4 on the copy, so the source
+tree stays free for other sessions and for the next piece of work; snapcommit.sh commits the snapshot's files, which
+are the ones that were checked; try.sh is TEST_CPP_CONFORMANCE_TRY on one file; hcp65_all.sh is 5.
+
+Things that went wrong and needn't again:
+  - CppCompilerLib.vcxproj and its .filters have CRLF line endings; the sources have LF.  A script that rewrites a
+    file must keep its line endings (Python: open(..., newline='')).
+  - A new source file goes in CppCompilerLib.vcxproj and CppCompilerLib.vcxproj.filters: the CMake builds read the
+    project file.
+  - A value that depends on the target (sizeof(long), sizeof(int)) can't be a case's result: g++'s differs.
+  - An int is 16 bits on the W65C816: a probe that returns 41 * 1000 fails there and nowhere else.
+  - The checker (CCPP65TypeChecker) and the IR front end each decide what a program means.  The checker is asked
+    first and of every declaration (CCPPUnit::CheckDeclared); where the two disagree the IDE shows a false error.  A
+    rule goes in the binder (CCPPBinder) or the unit where both ask it.
+
+
+Where things are
+----------------
+
+  CppParserTodo.txt      the record: Part A and Part B's plans as they were done, the questions and the user's
+                         answers (cited by number in the sources), the steps of 2026-11-19 and 2026-11-20
+  ExceptionsPlan.txt     the exceptions work (another session's)
+  ConstexprPlan.txt      constant expressions by running the IR
+  Size16Plan.txt        the W65C816's 16 bit size_t and its heap by banks (done; Libc65's sources cite it)
+  W65C816.txt, IR.txt, CPP65Generator.txt    the back ends and the IR
+  HCP65/Website/docs/compiler/language.md    what the compiler does and doesn't, for its users: keep its "What
+                         isn't supported yet" table in step with B above

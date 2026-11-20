@@ -1,0 +1,736 @@
+### ConvContextualBool | 63 | 4 [conv] p4: contextual conversion to bool
+struct B { explicit operator bool() const { return v != 0; } int v; };
+int main()
+{
+	B t = { 3 };
+	B f = { 0 };
+	int r = 0;
+	if (t) r += 1;
+	if (!f) r += 2;
+	if (t && !f) r += 4;
+	if (f || t) r += 8;
+	while (f) { r += 100; break; }
+	for (; f; ) { r += 100; break; }
+	r += t ? 16 : 0;
+	do { r += 32; } while (f);
+	return r;
+}
+### ConvContextualBoolInitRefused | REFUSED | 4 [conv] p4: contextual conversion to bool
+struct B { explicit operator bool() const { return true; } };
+int main() { B b; bool x = b; return x ? 1 : 2; }
+### ConvContextualBoolArithmeticRefused | REFUSED | 4 [conv] p4: contextual conversion to bool
+struct B { explicit operator bool() const { return true; } };
+int main() { B b; return b + 1; }
+### ConvContextualBoolArgumentRefused | REFUSED | 4 [conv] p4: contextual conversion to bool
+struct B { explicit operator bool() const { return true; } };
+int f(bool b) { return b ? 1 : 2; }
+int main() { B b; return f(b); }
+### ConvContextualSwitch | 21 | 4 [conv] p5: contextual implicit conversion
+struct I { operator int() const { return v; } int v; };
+enum E { E0, E1, E2 };
+struct F { operator E() const { return E2; } };
+int main()
+{
+	I i = { 2 };
+	F f;
+	int r = 0;
+	switch (i) { case 1: r += 100; break; case 2: r += 1; break; default: r += 200; }
+	switch (f) { case E1: r += 100; break; case E2: r += 20; break; default: r += 200; }
+	return r;
+}
+### ConvContextualSwitchTwoRefused | REFUSED | 4 [conv] p5: contextual implicit conversion
+struct I { operator int() const { return 1; } operator long() const { return 2; } };
+int main() { I i; switch (i) { case 1: return 1; } return 2; }
+### ConvContextualSwitchExplicitRefused | REFUSED | 4 [conv] p5: contextual implicit conversion
+struct I { explicit operator int() const { return 1; } };
+int main() { I i; switch (i) { case 1: return 1; } return 2; }
+### ConvPrvalueCvStripped | 7 | 4.1 [conv.lval]: lvalue to rvalue
+@SAME@
+struct S { int v; };
+const S MakeS();
+const int MakeI();
+int main()
+{
+	const int c = 5;
+	volatile int v = 6;
+	int r = 0;
+	if (Same<decltype(static_cast<const int>(c)), int>::V) r += 1;
+	if (Same<decltype(MakeS()), const S>::V) r += 2;
+	if (Same<decltype(MakeI()), int>::V && Same<decltype(+v), int>::V) r += 4;
+	return r;
+}
+### ConvLvalueToRvalueIncompleteRefused | REFUSED | 4.1 [conv.lval]: lvalue to rvalue
+struct I;
+extern I gI;
+int f(...);
+int main() { return f(gI); }
+### ConvLvalueNotReadInSizeof | 3 | 4.1 [conv.lval]: lvalue to rvalue
+int gCalls = 0;
+int* Null() { gCalls++; return 0; }
+int main()
+{
+	int r = 0;
+	if (sizeof(*Null()) == sizeof(int)) r += 1;
+	if (gCalls == 0) r += 2;
+	return r;
+}
+### ConvArrayToPointer | 127 | 4.2 [conv.array]: array to pointer
+extern int gu[];
+int First() { return *gu; }
+int gu[2] = { 4, 5 };
+int ga[3] = { 1, 2, 3 };
+struct S { int a[2]; };
+S Make() { S s = { { 6, 7 } }; return s; }
+int Sum(const int* p, int n) { int t = 0; for (int i = 0; i < n; i++) t += p[i]; return t; }
+int main()
+{
+	int* p = ga;
+	int (*pa)[3] = &ga;
+	const char* sz = "abc";
+	int r = 0;
+	if (p == &ga[0]) r += 1;
+	if (*(ga + 2) == 3) r += 2;
+	if (sizeof(ga) == 3 * sizeof(int) && (*pa)[1] == 2) r += 4;
+	if (First() == 4) r += 8;
+	if (sz[1] == 'b' && *"xyz" == 'x') r += 16;
+	if (Make().a[1] == 7) r += 32;
+	if (Sum(ga, 3) == 6) r += 64;
+	return r;
+}
+### ConvArrayToPointerMulti | 15 | 4.2 [conv.array]: array to pointer
+@SAME@
+int gm[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } };
+int main()
+{
+	int (*p)[3] = gm;
+	int r = 0;
+	if (p[1][2] == 6) r += 1;
+	if (**gm == 1 && *(*(gm + 1) + 1) == 5) r += 2;
+	if (Same<decltype(+gm), int (*)[3]>::V) r += 4;
+	if (Same<decltype(*gm), int (&)[3]>::V && sizeof(*gm) == 3 * sizeof(int)) r += 8;
+	return r;
+}
+### ConvFunctionToPointer | 127 | 4.3 [conv.func]: function to pointer
+@SAME@
+int f(int x) { return x + 1; }
+int Call(int (*p)(int), int x) { return p(x); }
+int main()
+{
+	int (*p)(int) = f;
+	int (*q)(int) = &f;
+	int (&rf)(int) = f;
+	int r = 0;
+	if (p == q) r += 1;
+	if (Call(f, 1) == 2) r += 2;
+	if ((*f)(2) == 3 && (**f)(2) == 3) r += 4;
+	if ((*p)(3) == 4 && (**p)(3) == 4) r += 8;
+	if (rf(4) == 5 && Call(rf, 5) == 6) r += 16;
+	if (Same<decltype(+f), int (*)(int)>::V) r += 32;
+	if (Same<decltype(f), int(int)>::V && Same<decltype(*p), int (&)(int)>::V) r += 64;
+	return r;
+}
+### ConvMemberFunctionNoAmpersandRefused | REFUSED | 4.3 [conv.func]: function to pointer
+struct S { int f() { return 1; } };
+int main() { int (S::*p)() = S::f; S s; return (s.*p)(); }
+### ConvQualification | 31 | 4.4 [conv.qual]: qualification conversions
+struct S { int m; };
+int main()
+{
+	int i = 3;
+	int* p = &i;
+	int** pp = &p;
+	const int* cp = p;
+	const volatile int* cvp = cp;
+	const int* const* cpp = pp;
+	const int* const* const* cppp = &cpp;
+	volatile int* vp = p;
+	int S::* m = &S::m;
+	const int S::* cm = m;
+	S s = { 9 };
+	int r = 0;
+	if (*cp == 3) r += 1;
+	if (*cvp == 3 && *vp == 3) r += 2;
+	if (**cpp == 3) r += 4;
+	if (***cppp == 3) r += 8;
+	if (s.*cm == 9) r += 16;
+	return r;
+}
+### ConvQualificationMultiLevelRefused | REFUSED | 4.4 [conv.qual]: qualification conversions
+int main() { int** pp = 0; const int** cpp = pp; return cpp ? 1 : 2; }
+### ConvQualificationMiddleConstRefused | REFUSED | 4.4 [conv.qual]: qualification conversions
+int main() { int*** ppp = 0; const int** const* x = ppp; return x ? 1 : 2; }
+### ConvQualificationDropConstRefused | REFUSED | 4.4 [conv.qual]: qualification conversions
+int main() { const int* cp = 0; int* p = cp; return p ? 1 : 2; }
+### ConvQualificationDropVolatileRefused | REFUSED | 4.4 [conv.qual]: qualification conversions
+int main() { volatile int* vp = 0; const int* p = vp; return p ? 1 : 2; }
+### ConvQualificationMemberDropRefused | REFUSED | 4.4 [conv.qual]: qualification conversions
+struct S { int m; };
+int main() { const int S::* cm = &S::m; int S::* m = cm; S s; s.*m = 1; return 1; }
+### ConvQualificationMixedMember | 3 | 4.4 [conv.qual]: qualification conversions
+struct S { int* m; };
+int main()
+{
+	int i = 7;
+	S s = { &i };
+	int* S::* pm = &S::m;
+	const int* const S::* cpm = pm;
+	int* S::* * ppm = &pm;
+	const int* const S::* const* cppm = ppm;
+	int r = 0;
+	if (*(s.*cpm) == 7) r += 1;
+	if (*(s.**cppm) == 7) r += 2;
+	return r;
+}
+### ConvPromotionSmallTypes | 127 | 4.5 [conv.prom]: integral promotions
+@SAME@
+int main()
+{
+	char c = 1;
+	signed char sc = 1;
+	unsigned char uc = 1;
+	short s = 1;
+	unsigned short us = 1;
+	bool b = true;
+	int r = 0;
+	if (Same<decltype(+c), int>::V) r += 1;
+	if (Same<decltype(+sc), int>::V && Same<decltype(+uc), int>::V) r += 2;
+	if (Same<decltype(+s), int>::V) r += 4;
+	if (sizeof(int) > sizeof(short) ? Same<decltype(+us), int>::V : Same<decltype(+us), unsigned int>::V) r += 8;
+	if (Same<decltype(+b), int>::V && +b == 1) r += 16;
+	if (Same<decltype(-uc), int>::V && -uc == -1) r += 32;
+	if (Same<decltype(~uc), int>::V && ~uc == -2) r += 64;
+	return r;
+}
+### ConvPromotionUnsignedShortValue | 3 | 4.5 [conv.prom]: integral promotions
+int main()
+{
+	unsigned short us = 1;
+	unsigned char uc = 1;
+	int r = 0;
+	if ((us - 2 < 0) == (sizeof(int) > sizeof(short))) r += 1;
+	if (uc - 2 < 0) r += 2;
+	return r;
+}
+### ConvPromotionCharTypes | 7 | 4.5 [conv.prom]: integral promotions
+@SAME@
+int main()
+{
+	char16_t c16 = u'a';
+	char32_t c32 = U'a';
+	wchar_t w = L'a';
+	int r = 0;
+	if (sizeof(int) > 2 ? Same<decltype(+c16), int>::V : Same<decltype(+c16), unsigned int>::V) r += 1;
+	if (sizeof(int) > 4 ? Same<decltype(+c32), int>::V : (sizeof(int) == 4 ? Same<decltype(+c32), unsigned int>::V : Same<decltype(+c32), unsigned long>::V)) r += 2;
+	if (sizeof(+w) >= sizeof(int) && +w == 97 && +c16 == 97 && +c32 == 97) r += 4;
+	return r;
+}
+### ConvPromotionEnum | 31 | 4.5 [conv.prom]: integral promotions
+@SAME@
+enum Small { S0, S1 = 100 };
+enum Negative { N0 = -1, N1 = 1 };
+enum Big { B0 = 0, B1 = 0xFFFFFFFFu };
+enum Huge { H0 = -1, H1 = 0x7FFFFFFFFFLL };
+enum Fixed : unsigned char { F0, F1 };
+enum FixedLong : long { L0, L1 };
+int main()
+{
+	int r = 0;
+	if (Same<decltype(+S1), int>::V && Same<decltype(+N0), int>::V) r += 1;
+	if (sizeof(int) >= 4 ? Same<decltype(+B1), unsigned int>::V : Same<decltype(+B1), unsigned long>::V) r += 2;
+	if (sizeof(long) >= 8 ? Same<decltype(+H1), long>::V : Same<decltype(+H1), long long>::V) r += 4;
+	if (Same<decltype(+F1), int>::V) r += 8;
+	if (Same<decltype(+L1), long>::V) r += 16;
+	return r;
+}
+### ConvPromotionScopedEnumRefused | REFUSED | 4.5 [conv.prom]: integral promotions
+enum class E { A, B };
+int main() { return +E::B; }
+### ConvScopedEnumToIntRefused | REFUSED | 4.5 [conv.prom]: integral promotions
+enum class E { A, B };
+int main() { int i = E::B; return i + 1; }
+### ConvPromotionBitField | 15 | 4.5 [conv.prom]: integral promotions
+@SAME@
+struct S { unsigned int a : 3; unsigned int b : 15; signed int c : 4; bool d : 1; };
+int main()
+{
+	S s;
+	s.a = 3; s.b = 1; s.c = -3; s.d = true;
+	int r = 0;
+	if (Same<decltype(+s.a), int>::V && s.a - 4 < 0) r += 1;
+	if (Same<decltype(+s.b), int>::V && s.b - 2 < 0) r += 2;
+	if (Same<decltype(+s.c), int>::V && s.c == -3) r += 4;
+	if (Same<decltype(+s.d), int>::V && s.d + s.d == 2) r += 8;
+	return r;
+}
+### ConvPromotionOverload | 2047 | 4.5 [conv.prom], 4.6 [conv.fpprom]: a promotion is better than a conversion
+enum E { E0, E1 };
+int f(int) { return 1; }
+int f(long) { return 2; }
+int f(unsigned int) { return 3; }
+int f(double) { return 4; }
+int f(long double) { return 5; }
+int f(char) { return 6; }
+int main()
+{
+	short s = 1;
+	unsigned char uc = 1;
+	signed char sc = 1;
+	unsigned short us = 1;
+	float fl = 1.0f;
+	int r = 0;
+	if (f(s) == 1) r += 1;
+	if (f(uc) == 1) r += 2;
+	if (f(sc) == 1) r += 4;
+	if (f(us) == (sizeof(int) > sizeof(short) ? 1 : 3)) r += 8;
+	if (f(true) == 1) r += 16;
+	if (f(E1) == 1) r += 32;
+	if (f(fl) == 4) r += 64;
+	if (f('a') == 6) r += 128;
+	if (f(1L) == 2 && f(1u) == 3) r += 256;
+	if (f(1.0) == 4 && f(1.0L) == 5) r += 512;
+	if (f(u'a') == (sizeof(int) > 2 ? 1 : 3)) r += 1024;
+	return r;
+}
+### ConvFloatPromotionVariadic | 3 | 4.6 [conv.fpprom]: floating point promotion
+#include <stdarg.h>
+int First(int n, ...)
+{
+	va_list ap;
+	va_start(ap, n);
+	double d = va_arg(ap, double);
+	int i = va_arg(ap, int);
+	va_end(ap);
+	return (d == 2.5 ? 1 : 0) + (i == 7 ? 2 : 0);
+}
+int main() { float f = 2.5f; short s = 7; return First(2, f, s); }
+### ConvIntegralUnsigned | 127 | 4.7 [conv.integral]: integral conversions
+int main()
+{
+	int i = 300;
+	int m = -1;
+	long big = 0x12345678L;
+	long long huge = 0x123456789ABCDEF0LL;
+	unsigned char uc = i;
+	unsigned short us = m;
+	unsigned int u = m;
+	unsigned long ul = m;
+	unsigned long long ull = m;
+	unsigned char uc2 = big;
+	unsigned short us2 = big;
+	unsigned long ul2 = huge;
+	int r = 0;
+	if (uc == 44) r += 1;
+	if (us == 65535u) r += 2;
+	if (u == ~0u && u > 0) r += 4;
+	if (ul == ~0ul && ul > 0) r += 8;
+	if (ull == ~0ull && ull > 0) r += 16;
+	if (uc2 == 0x78 && us2 == 0x5678) r += 32;
+	if (sizeof(long) == 8 || ul2 == 0x9ABCDEF0ul) r += 64;
+	return r;
+}
+### ConvIntegralSigned | 127 | 4.7 [conv.integral]: integral conversions
+enum E { E5 = 5 };
+int main()
+{
+	signed char sc = -2;
+	short s = -3;
+	unsigned char uc = 200;
+	unsigned short us = 60000u;
+	int i = -4;
+	bool t = true;
+	long l1 = sc;
+	long l2 = s;
+	long l3 = uc;
+	long l4 = us;
+	long long ll1 = i;
+	long long ll2 = us;
+	long long ll3 = l1;
+	unsigned long long ull = sc;
+	int b = t;
+	int e = E5;
+	int r = 0;
+	if (l1 == -2 && l2 == -3) r += 1;
+	if (l3 == 200 && l4 == 60000L) r += 2;
+	if (ll1 == -4 && ll1 < 0) r += 4;
+	if (ll2 == 60000LL && ll3 == -2) r += 8;
+	if (ull == 0xFFFFFFFFFFFFFFFEull) r += 16;
+	if (b == 1 && e == 5) r += 32;
+	if ((long)(unsigned long)us == 60000L && (long long)(unsigned char)uc == 200) r += 64;
+	return r;
+}
+### ConvIntegralNarrowSigned | 15 | 4.7 [conv.integral]: integral conversions (implementation-defined: two's complement wrap)
+int main()
+{
+	int i = 200;
+	long l = 0x12348765L;
+	long long ll = 0x1234567887654321LL;
+	unsigned long ul = 0xFFFFFFFEul;
+	signed char sc = (signed char)i;
+	short s = (short)l;
+	long l2 = (long)ll;
+	long l3 = (long)ul;
+	int r = 0;
+	if (sc == -56) r += 1;
+	if (s == (short)0x8765 && s < 0) r += 2;
+	if (sizeof(long) == 8 || l2 == (long)0x87654321L) r += 4;
+	if (sizeof(long) == 8 || l3 == -2) r += 8;
+	return r;
+}
+### ConvFloating | 15 | 4.8 [conv.double]: floating point conversions
+int main()
+{
+	float f = 0.5f;
+	double d = f;
+	long double ld = d;
+	double third = 1.0 / 3.0;
+	float third_f = (float)third;
+	double back = third_f;
+	double big = 16777217.0;
+	float big_f = (float)big;
+	int r = 0;
+	if (d == 0.5 && ld == 0.5L) r += 1;
+	if ((float)ld == 0.5f && (double)ld == 0.5) r += 2;
+	if (back != third && back > 0.3333 && back < 0.3334) r += 4;
+	if (big_f == 16777216.0f || big_f == 16777218.0f) r += 8;
+	return r;
+}
+### ConvFloatToInt | 255 | 4.9 [conv.fpint]: floating-integral conversions
+int main()
+{
+	double d = 3.99;
+	double n = -3.99;
+	float f = 2.5f;
+	double big = 4000000000.0;
+	double huge = 1099511627776.0;
+	double small = 0.9;
+	int r = 0;
+	if ((int)d == 3) r += 1;
+	if ((int)n == -3) r += 2;
+	if ((int)f == 2 && (long)f == 2) r += 4;
+	if ((unsigned long)big == 4000000000ul) r += 8;
+	if ((long long)huge == 0x10000000000LL) r += 16;
+	if ((int)small == 0 && (int)-small == 0) r += 32;
+	if ((unsigned char)d == 3 && (short)n == -3 && (char)f == 2) r += 64;
+	if ((unsigned long long)huge == 0x10000000000ull && (long long)-huge == -0x10000000000LL) r += 128;
+	return r;
+}
+### ConvIntToFloat | 255 | 4.9 [conv.fpint]: floating-integral conversions
+int main()
+{
+	int i = 12345;
+	int m = -7;
+	unsigned long ul = 4000000000ul;
+	long long ll = 0x10000000000LL;
+	unsigned long long ull = 0x8000000000000000ull;
+	long inexact = 16777217L;
+	unsigned char uc = 200;
+	bool b = true;
+	int r = 0;
+	if ((double)i == 12345.0 && (float)i == 12345.0f) r += 1;
+	if ((double)m == -7.0 && (float)m == -7.0f) r += 2;
+	if ((double)ul == 4000000000.0 && (double)ul > 0) r += 4;
+	if ((double)ll == 1099511627776.0) r += 8;
+	if ((double)ull == 9223372036854775808.0 && (double)ull > 0) r += 16;
+	if ((float)inexact == 16777216.0f || (float)inexact == 16777218.0f) r += 32;
+	if ((double)uc == 200.0 && (float)uc == 200.0f) r += 64;
+	if ((double)b == 1.0 && (double)inexact == 16777217.0) r += 128;
+	return r;
+}
+### ConvNullPointerConstant | 63 | 4.10 [conv.ptr] p1: null pointer constants
+struct S { int m; };
+void g() {}
+int main()
+{
+	int* a = 0;
+	int* b = 0L;
+	int* c = nullptr;
+	char* d = 0u;
+	long* e = 0x0;
+	void (*f)() = 0;
+	void* v = 00;
+	const S* s = 0LL;
+	int i = 1;
+	int* p = &i;
+	int r = 0;
+	if (a == 0 && b == 0) r += 1;
+	if (c == nullptr && nullptr == c) r += 2;
+	if (!d && !e) r += 4;
+	if (f == 0 && v == 0 && s == nullptr) r += 8;
+	if (p != 0 && p != nullptr && 0 != p) r += 16;
+	p = 0;
+	f = g;
+	if (!p && f != 0) r += 32;
+	return r;
+}
+### ConvNullPointerConstVariableRefused | REFUSED | 4.10 [conv.ptr] p1: null pointer constants
+int main() { const int z = 0; int* p = z; return p ? 1 : 2; }
+### ConvNullPointerExpressionRefused | REFUSED | 4.10 [conv.ptr] p1: null pointer constants
+int main() { int* p = (1 - 1); return p ? 1 : 2; }
+### ConvIntegerToPointerRefused | REFUSED | 4.10 [conv.ptr] p1: null pointer constants
+int main() { int* p = 1; return p ? 1 : 2; }
+### ConvPointerToIntegerRefused | REFUSED | 4.10 [conv.ptr] p1: null pointer constants
+int main() { int i = 1; long l = &i; return l ? 1 : 2; }
+### ConvIntegerToPointerAssignRefused | REFUSED | 4.10 [conv.ptr] p1: null pointer constants
+int main() { int* p = 0; int i = 4; p = i; return p ? 1 : 2; }
+### ConvIntegerToPointerArgumentRefused | REFUSED | 4.10 [conv.ptr] p1: null pointer constants
+int f(int* p) { return p ? 1 : 2; }
+int main() { int i = 0; return f(i); }
+### ConvFalseToPointerRefused | REFUSED | 4.10 [conv.ptr] p1: null pointer constants
+int main() { int* p = false; return p ? 1 : 2; }
+### ConvPointerToVoid | 31 | 4.10 [conv.ptr] p2: object pointer to void pointer
+struct A { int a; };
+struct B { int b; };
+struct D : A, B { int d; };
+int Same(const void* p, const void* q) { return p == q; }
+int main()
+{
+	int i = 5;
+	const int ci = 6;
+	D d;
+	void* v = &i;
+	const void* cv = &ci;
+	const volatile void* cvv = v;
+	void* vd = &d;
+	B* pb = &d;
+	void* vb = pb;
+	int** pp = 0;
+	void* vpp = pp;
+	int r = 0;
+	if (*(int*)v == 5 && (int*)v == &i) r += 1;
+	if (*(const int*)cv == 6) r += 2;
+	if (cvv == v && Same(&i, v)) r += 4;
+	if (vd == (void*)(A*)&d && vb != vd) r += 8;
+	if (vpp == 0 && Same(&d, vd)) r += 16;
+	return r;
+}
+### ConvPointerToVoidDropConstRefused | REFUSED | 4.10 [conv.ptr] p2: object pointer to void pointer
+int main() { const int ci = 1; void* v = &ci; return v ? 1 : 2; }
+### ConvFunctionPointerToVoidRefused | REFUSED | 4.10 [conv.ptr] p2: object pointer to void pointer
+void f() {}
+int main() { void* v = f; return v ? 1 : 2; }
+### ConvVoidToObjectPointerRefused | REFUSED | 4.10 [conv.ptr] p2: object pointer to void pointer
+int main() { int i = 1; void* v = &i; int* p = v; return *p; }
+### ConvUnrelatedPointerRefused | REFUSED | 4.10 [conv.ptr]: pointer conversions
+int main() { int i = 1; long* p = &i; return p ? 1 : 2; }
+### ConvUnrelatedClassPointerRefused | REFUSED | 4.10 [conv.ptr]: pointer conversions
+struct A { int a; };
+struct B { int b; };
+int main() { A a; B* p = &a; return p ? 1 : 2; }
+### ConvPointerDerivedToBase | 63 | 4.10 [conv.ptr] p3: derived to base
+struct A { int a; };
+struct B { int b; };
+struct D : A, B { int d; };
+struct E : D { int e; };
+int ReadB(const B* p) { return p ? p->b : -1; }
+int main()
+{
+	D d;
+	E e;
+	d.a = 1; d.b = 2; d.d = 3;
+	e.a = 4; e.b = 5; e.d = 6; e.e = 7;
+	A* pa = &d;
+	B* pb = &d;
+	D* nd = 0;
+	B* nb = nd;
+	B* eb = &e;
+	const B* cb = &d;
+	int r = 0;
+	if (pa->a == 1 && (void*)pa == (void*)&d) r += 1;
+	if (pb->b == 2 && (char*)pb != (char*)&d) r += 2;
+	if (nb == 0 && !nb) r += 4;
+	if (eb->b == 5 && cb->b == 2) r += 8;
+	if (ReadB(&d) == 2 && ReadB(&e) == 5) r += 16;
+	if (ReadB(nd) == -1) r += 32;
+	return r;
+}
+### ConvPointerDerivedToVirtualBase | 15 | 4.10 [conv.ptr] p3: derived to base
+struct V { int v; };
+struct L : virtual V { int l; };
+struct R : virtual V { int r; };
+struct D : L, R { int d; };
+int ReadV(V* p) { return p ? p->v : -1; }
+int main()
+{
+	D d;
+	d.v = 9; d.l = 1; d.r = 2; d.d = 3;
+	V* pv = &d;
+	L* pl = &d;
+	R* pr = &d;
+	V* lv = pl;
+	V* rv = pr;
+	D* nd = 0;
+	V* nv = nd;
+	int r = 0;
+	if (pv->v == 9) r += 1;
+	if (lv == pv && rv == pv) r += 2;
+	if (nv == 0) r += 4;
+	if (ReadV(&d) == 9 && ReadV(pr) == 9 && ReadV(nd) == -1) r += 8;
+	return r;
+}
+### ConvPointerAmbiguousBaseRefused | REFUSED | 4.10 [conv.ptr] p3: derived to base
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main() { D d; A* p = &d; return p ? 1 : 2; }
+### ConvPointerInaccessibleBaseRefused | REFUSED | 4.10 [conv.ptr] p3: derived to base
+struct A { int a; };
+struct D : private A { };
+int main() { D d; A* p = &d; return p ? 1 : 2; }
+### ConvPointerBaseToDerivedRefused | REFUSED | 4.10 [conv.ptr] p3: derived to base
+struct A { int a; };
+struct D : A { };
+int main() { A a; D* p = &a; return p ? 1 : 2; }
+### ConvPointerIncompleteDerivedRefused | REFUSED | 4.10 [conv.ptr] p3: derived to base
+struct A { int a; };
+struct D;
+D* Get();
+int main() { A* p = Get(); return p ? 1 : 2; }
+### ConvMemberPointer | 63 | 4.11 [conv.mem]: pointer to member conversions
+struct A { int a; int f() { return a; } };
+struct B { int b; };
+struct D : B, A { int d; };
+int main()
+{
+	D d;
+	d.a = 5; d.b = 6; d.d = 7;
+	int A::* pm = &A::a;
+	int D::* pd = pm;
+	int (A::*pf)() = &A::f;
+	int (D::*pdf)() = pf;
+	int A::* na = 0;
+	int D::* nd = na;
+	int (A::*nf)() = nullptr;
+	int (D::*ndf)() = nf;
+	int D::* pb = &B::b;
+	int r = 0;
+	if (d.*pd == 5) r += 1;
+	if ((d.*pdf)() == 5) r += 2;
+	if (nd == 0 && !nd && na == nullptr) r += 4;
+	if (ndf == 0 && !ndf) r += 8;
+	if (d.*pb == 6 && pd != pb) r += 16;
+	if (pd != 0 && pdf != 0 && pm != nullptr) r += 32;
+	return r;
+}
+### ConvMemberPointerDerivedToBaseRefused | REFUSED | 4.11 [conv.mem]: pointer to member conversions
+struct A { int a; };
+struct D : A { int d; };
+int main() { int D::* pd = &D::d; int A::* pa = pd; return pa ? 1 : 2; }
+### ConvMemberPointerVirtualBaseRefused | REFUSED | 4.11 [conv.mem]: pointer to member conversions
+struct V { int v; };
+struct D : virtual V { int d; };
+int main() { int D::* p = &V::v; return p ? 1 : 2; }
+### ConvMemberPointerAmbiguousRefused | REFUSED | 4.11 [conv.mem]: pointer to member conversions
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main() { int D::* p = &A::a; return p ? 1 : 2; }
+### ConvMemberPointerFromIntegerRefused | REFUSED | 4.11 [conv.mem]: pointer to member conversions
+struct A { int a; };
+int main() { int A::* p = 1; return p ? 1 : 2; }
+### ConvMemberPointerUnrelatedRefused | REFUSED | 4.11 [conv.mem]: pointer to member conversions
+struct A { int a; };
+struct B { int b; };
+int main() { int B::* p = &A::a; return p ? 1 : 2; }
+### ConvBoolean | 1023 | 4.12 [conv.bool]: boolean conversions
+struct S { int m; int f() { return 1; } };
+enum E { E0, E2 = 2 };
+void g() {}
+int main()
+{
+	int i = 5;
+	int* p = &i;
+	int* n = 0;
+	int S::* pm = &S::m;
+	int S::* nm = 0;
+	int (S::*pf)() = &S::f;
+	bool b1 = 5;
+	bool b2 = 256;
+	bool b3 = 0x10000L;
+	bool b4 = 0x100000000LL;
+	bool b5 = 0.5;
+	bool b6 = 0.0;
+	bool b7 = p;
+	bool b8 = n;
+	bool b9 = pm;
+	bool b10 = nm;
+	bool b11 = E2;
+	bool b12 = E0;
+	bool b13 = -0.0f;
+	bool b14 = pf;
+	bool b15(nullptr);
+	bool b16 = 0.25f;
+	int r = 0;
+	if (b1 && b1 == true && (int)b1 == 1) r += 1;
+	if (b2 && (int)b2 == 1) r += 2;
+	if (b3 && (int)b3 == 1) r += 4;
+	if (b4 && (int)b4 == 1) r += 8;
+	if (b5 && !b6 && !b13 && b16) r += 16;
+	if (b7 && !b8) r += 32;
+	if (b9 && !b10 && b14) r += 64;
+	if (b11 && !b12) r += 128;
+	if (!b15) r += 256;
+	if (sizeof(bool) == 1 && (int)b5 == 1 && (int)b7 == 1 && (int)b9 == 1) r += 512;
+	return r;
+}
+### ConvBooleanAssign | 31 | 4.12 [conv.bool]: boolean conversions
+bool Is(bool b) { return b; }
+bool FromLong(long l) { return l; }
+bool FromDouble(double d) { return d; }
+int main()
+{
+	bool b = false;
+	long l = 0x10000L;
+	double d = 0.125;
+	const char* sz = "a";
+	int r = 0;
+	b = 0x4000;
+	if (b && (int)b == 1) r += 1;
+	b = l;
+	if (b && (int)b == 1) r += 2;
+	if (Is(0x100) && Is(l) && Is(d) && Is(sz)) r += 4;
+	if (FromLong(l) && !FromLong(0) && FromDouble(d) && !FromDouble(0.0)) r += 8;
+	b = d;
+	if ((int)b == 1 && (b + b) == 2) r += 16;
+	return r;
+}
+### ConvBoolFromNullptrCopyRefused | REFUSED | 4.12 [conv.bool]: boolean conversions
+int main() { bool b = nullptr; return b ? 1 : 2; }
+### ConvBoolFromScopedEnumRefused | REFUSED | 4.12 [conv.bool]: boolean conversions
+enum class E { A, B };
+int main() { bool b = E::B; return b ? 1 : 2; }
+### ConvRank | 255 | 4.13 [conv.rank], 5 [expr] p10: usual arithmetic conversions
+@SAME@
+int main()
+{
+	char c = 1; short s = 1; int i = 1; unsigned int u = 1; long l = 1; unsigned long ul = 1; long long ll = 1; unsigned long long ull = 1;
+	float f = 1; double d = 1; long double ld = 1;
+	int r = 0;
+	if (Same<decltype(c + c), int>::V && Same<decltype(s + c), int>::V) r += 1;
+	if (Same<decltype(i + u), unsigned int>::V && Same<decltype(i + l), long>::V) r += 2;
+	if (sizeof(long) > sizeof(int) ? Same<decltype(u + l), long>::V : Same<decltype(u + l), unsigned long>::V) r += 4;
+	if (Same<decltype(l + ul), unsigned long>::V && Same<decltype(ll + i), long long>::V) r += 8;
+	if (sizeof(long long) > sizeof(long) ? Same<decltype(ul + ll), long long>::V : Same<decltype(ul + ll), unsigned long long>::V) r += 16;
+	if (Same<decltype(ull + ll), unsigned long long>::V && Same<decltype(ull + c), unsigned long long>::V) r += 32;
+	if (Same<decltype(f + i), float>::V && Same<decltype(f + ull), float>::V && Same<decltype(d + f), double>::V) r += 64;
+	if (Same<decltype(ld + d), long double>::V && Same<decltype(ld + ll), long double>::V && Same<decltype(f + f), float>::V) r += 128;
+	return r;
+}
+### ConvRankValues | 31 | 4.13 [conv.rank], 5 [expr] p10: usual arithmetic conversions
+int main()
+{
+	int i = -1;
+	unsigned int u = 1;
+	long l = -1;
+	unsigned long ul = 1;
+	unsigned short us = 1;
+	long long ll = -1;
+	int r = 0;
+	if (i < u == false && i + u == 0) r += 1;
+	if ((l < u) == (sizeof(long) > sizeof(int))) r += 2;
+	if (!(l < ul) && !(ll < 1ull)) r += 4;
+	if ((i < us) == (sizeof(int) > sizeof(short))) r += 8;
+	if ((ll < ul) == (sizeof(long long) > sizeof(long)) && ll < u) r += 16;
+	return r;
+}

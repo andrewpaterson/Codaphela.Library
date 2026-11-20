@@ -1,0 +1,45 @@
+### BasicAllocationFunctions | 15 | 3.7.4.1 [basic.stc.dynamic.allocation] p1, 3.7.4.2 [basic.stc.dynamic.deallocation] p2: an allocation function returns void* and takes a std::size_t first, a deallocation function returns void and takes a void* first
+typedef decltype(sizeof(0)) size_t;
+char gacHeap[32];
+int giFreed = 0;
+void* operator new(size_t n) { return gacHeap; }
+void* operator new[](size_t n) { return gacHeap + 8; }
+void* operator new(size_t n, int k) { return gacHeap + k; }
+void operator delete(void* p) noexcept { giFreed += 1; }
+void operator delete[](void* p) noexcept { giFreed += 10; }
+void operator delete(void* p, int k) noexcept { giFreed += 100; }
+struct S
+{
+	int v;
+	static void* operator new(size_t n) { return gacHeap + 16; }
+	static void operator delete(void* p, size_t n) { giFreed += (int)n * 1000; }
+};
+int main()
+{
+	int r = 0;
+	int* a = new int;
+	int* b = new int[2];
+	int* c = new (4) int;
+	S* s = new S;
+	if ((char*)a == gacHeap && (char*)b == gacHeap + 8) r += 1;
+	if ((char*)c == gacHeap + 4) r += 2;
+	if ((char*)s == gacHeap + 16) r += 4;
+	delete a;
+	delete[] b;
+	delete s;
+	if (giFreed == 11 + (int)sizeof(S) * 1000) r += 8;
+	return r;
+}
+
+### BasicAllocationFirstParameterRefused | REFUSED | 3.7.4.1 [basic.stc.dynamic.allocation] p1: an allocation function's first parameter has type std::size_t
+void* operator new(unsigned long long n);
+int main() { return 0; }
+
+### BasicAllocationReturnRefused | REFUSED | 3.7.4.1 [basic.stc.dynamic.allocation] p1: an allocation function returns void*
+typedef decltype(sizeof(0)) size_t;
+int operator new(size_t n) { return 0; }
+int main() { return 0; }
+
+### BasicDeallocationFirstParameterRefused | REFUSED | 3.7.4.2 [basic.stc.dynamic.deallocation] p2: a deallocation function's first parameter has type void*
+void operator delete(int* p) noexcept { }
+int main() { return 0; }

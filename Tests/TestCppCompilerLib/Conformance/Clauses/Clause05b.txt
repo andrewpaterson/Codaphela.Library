@@ -1,0 +1,858 @@
+### SubscriptForms | 63 | 5.2.1 [expr.sub]: subscripting
+@SAME@
+struct S { int v; };
+int main()
+{
+	int a[4] = { 1, 2, 3, 4 };
+	int m[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } };
+	S as[2] = { { 7 }, { 8 } };
+	int* p = a + 2;
+	long l = 1;
+	unsigned char uc = 3;
+	int r = 0;
+	if (a[2] == *(a + 2) && 2[a] == 3 && 1[m][2] == 6) r += 1;
+	a[1] = 20;
+	1[a] += 2;
+	if (a[1] == 22 && &a[1] == a + 1) r += 2;
+	if (p[-1] == 22 && p[-2] == 1 && (-1)[p] == 22) r += 4;
+	if (a[l] == 22 && a[uc] == 4 && a[true] == 22 && "abc"[1] == 'b') r += 8;
+	if (Same<decltype(a[0]), int&>::V && Same<decltype(m[0]), int (&)[3]>::V && Same<decltype("ab"[0]), const char&>::V) r += 16;
+	if (as[1].v == 8 && (as + 1)->v == 8 && m[1][0] + m[0][2] == 7) r += 32;
+	return r;
+}
+### SubscriptEnumIndex | 3 | 5.2.1 [expr.sub]: subscripting
+enum E { E0, E1, E2 };
+enum class C : unsigned char { A, B };
+int main()
+{
+	int a[3] = { 5, 6, 7 };
+	E e = E2;
+	int r = 0;
+	if (a[e] == 7 && a[E1] == 6) r += 1;
+	if (a[(int)C::B] == 6) r += 2;
+	return r;
+}
+### SubscriptNotPointerRefused | REFUSED | 5.2.1 [expr.sub]: subscripting
+int main() { int i = 1; int j = 2; return i[j]; }
+### SubscriptFloatIndexRefused | REFUSED | 5.2.1 [expr.sub]: subscripting
+int main() { int a[3] = { 1, 2, 3 }; return a[1.0]; }
+### SubscriptVoidPointerRefused | REFUSED | 5.2.1 [expr.sub]: subscripting
+int main() { int a[3] = { 1, 2, 3 }; void* p = a; p[1]; return 1; }
+### SubscriptBracedOperator | 3 | 5.2.1 [expr.sub] p2: a braced list as the subscript of an overloaded operator
+struct P { int a; int b; };
+struct S { int operator[](P p) const { return p.a * 10 + p.b; } };
+int main()
+{
+	S s;
+	int r = 0;
+	if (s[{1, 2}] == 12) r += 1;
+	if (s[P{3, 4}] == 34) r += 2;
+	return r;
+}
+### SubscriptBracedBuiltInRefused | REFUSED | 5.2.1 [expr.sub] p2: a braced list as the subscript of an overloaded operator
+int main() { int a[3] = { 1, 2, 3 }; return a[{1}]; }
+### CallForms | 127 | 5.2.2 [expr.call] p1: function calls
+struct S { int v; int Get() const { return v; } static int Stat(int x) { return x + 1; } int operator()(int x) const { return v + x; } };
+int f(int a, int b = 10) { return a + b; }
+int (*GetF())(int, int) { return f; }
+int (&RefF())(int, int) { return f; }
+int main()
+{
+	S s = { 5 };
+	S* ps = &s;
+	int (*p)(int, int) = f;
+	int (&rf)(int, int) = f;
+	int (S::*pm)() const = &S::Get;
+	int r = 0;
+	if (f(1, 2) == 3 && f(1) == 11) r += 1;
+	if (p(1, 2) == 3 && (*p)(2, 2) == 4 && rf(3, 3) == 6) r += 2;
+	if (GetF()(4, 4) == 8 && RefF()(5, 5) == 10) r += 4;
+	if (s.Get() == 5 && ps->Get() == 5 && (*ps).Get() == 5 && (s.*pm)() == 5 && (ps->*pm)() == 5) r += 8;
+	if (S::Stat(1) == 2 && s.Stat(2) == 3 && ps->Stat(3) == 4) r += 16;
+	if (s(1) == 6 && (*ps)(2) == 7) r += 32;
+	if ((&f)(1, 1) == 2 && (***f)(1, 1) == 2 && (true ? f : f)(2, 1) == 3) r += 64;
+	return r;
+}
+### CallArgumentInitialisation | 63 | 5.2.2 [expr.call] p4: parameters are initialised from arguments
+int gCopies = 0;
+int gDestroyed = 0;
+struct S { S(int x) : v(x) { } S(const S& o) : v(o.v) { gCopies++; } ~S() { gDestroyed++; } int v; };
+struct B { int b; };
+struct D : B { int d; };
+int ByValue(S s) { s.v += 1; return s.v; }
+int ByRef(S& s) { s.v += 1; return s.v; }
+int ByConstRef(const S& s) { return s.v; }
+int Slice(B b) { return b.b; }
+long Widen(long l) { return l; }
+unsigned char Narrow(unsigned char c) { return c; }
+double ToDouble(double d) { return d; }
+int main()
+{
+	S s(1);
+	D d;
+	d.b = 7; d.d = 8;
+	int r = 0;
+	int v1 = ByValue(s);
+	if (v1 == 2 && s.v == 1 && gCopies == 1 && gDestroyed == 1) r += 1;
+	if (ByRef(s) == 2 && s.v == 2 && gCopies == 1) r += 2;
+	int v2 = ByConstRef(s) * 10 + ByConstRef(5);
+	if (v2 == 25 && gDestroyed == 2) r += 4;
+	int v3 = ByValue(9);
+	if (v3 == 10 && gCopies == 1 && gDestroyed == 3) r += 8;
+	if (Slice(d) == 7) r += 16;
+	if (Widen(-3) == -3L && Narrow(300) == 44 && ToDouble(3) == 3.0 && ToDouble(2.5f) == 2.5) r += 32;
+	return r;
+}
+### CallArgumentCountRefused | REFUSED | 5.2.2 [expr.call] p4: parameters are initialised from arguments
+int f(int a, int b) { return a + b; }
+int main() { return f(1); }
+### CallTooManyArgumentsRefused | REFUSED | 5.2.2 [expr.call] p4: parameters are initialised from arguments
+int f(int a, int b) { return a + b; }
+int main() { return f(1, 2, 3); }
+### CallNotAFunctionRefused | REFUSED | 5.2.2 [expr.call] p1: function calls
+int main() { int i = 1; return i(2); }
+### CallArgumentTypeRefused | REFUSED | 5.2.2 [expr.call] p4: parameters are initialised from arguments
+struct S { int v; };
+int f(S s) { return s.v; }
+int main() { return f(1); }
+### CallIncompleteParameterRefused | REFUSED | 5.2.2 [expr.call] p4: parameters are initialised from arguments
+struct I;
+int f(I i);
+I* g();
+int main() { return f(*g()); }
+### CallResultCategories | 31 | 5.2.2 [expr.call] p10: the value category of a call
+@SAME@
+int gi = 1;
+struct S { int v; };
+S gs = { 2 };
+int Value() { return gi; }
+int& Lvalue() { return gi; }
+int&& Xvalue() { return static_cast<int&&>(gi); }
+const int& ConstLvalue() { return gi; }
+S& Object() { return gs; }
+S ObjectValue() { return gs; }
+int main()
+{
+	int r = 0;
+	Lvalue() = 5;
+	if (gi == 5 && &Lvalue() == &gi) r += 1;
+	Lvalue()++;
+	++Lvalue();
+	Lvalue() += 10;
+	if (gi == 17 && Value() == 17 && ConstLvalue() == 17) r += 2;
+	if (Same<decltype(Value()), int>::V && Same<decltype(Lvalue()), int&>::V && Same<decltype(Xvalue()), int&&>::V && Same<decltype(ConstLvalue()), const int&>::V) r += 4;
+	Object().v = 6;
+	if (gs.v == 6 && ObjectValue().v == 6 && &Object() == &gs) r += 8;
+	int&& rr = Xvalue();
+	rr = 20;
+	if (gi == 20) r += 16;
+	return r;
+}
+### CallAssignToValueRefused | REFUSED | 5.2.2 [expr.call] p10: the value category of a call
+int f() { return 1; }
+int main() { f() = 2; return 1; }
+### CallAddressOfValueRefused | REFUSED | 5.2.2 [expr.call] p10: the value category of a call
+int f() { return 1; }
+int main() { int* p = &f(); return *p; }
+### CallIncompleteReturnInDecltype | 3 | 5.2.2 [expr.call] p11: a call that is a decltype operand need not have a complete type
+@SAME@
+struct I;
+I Make();
+template<class T> struct Holder { T t; };
+Holder<I> MakeHolder();
+int main()
+{
+	int r = 0;
+	if (Same<decltype(Make()), I>::V) r += 1;
+	if (Same<decltype(MakeHolder()), Holder<I> >::V) r += 2;
+	return r;
+}
+### CallIncompleteReturnRefused | REFUSED | 5.2.2 [expr.call] p11: a call that is a decltype operand need not have a complete type
+struct I;
+I Make();
+int main() { Make(); return 1; }
+### CallVariadicPromotions | 63 | 5.2.2 [expr.call] p7: arguments without a parameter
+#include <stdarg.h>
+enum E { E7 = 7 };
+int Check(int n, ...)
+{
+	va_list ap;
+	int r = 0;
+	va_start(ap, n);
+	if (va_arg(ap, int) == 'a') r += 1;
+	if (va_arg(ap, int) == -2) r += 2;
+	if (va_arg(ap, double) == 1.5) r += 4;
+	if (va_arg(ap, int) == 1) r += 8;
+	if (va_arg(ap, int) == 7) r += 16;
+	if (va_arg(ap, long) == 100000L && va_arg(ap, const char*)[1] == 'y' && va_arg(ap, void*) == 0) r += 32;
+	va_end(ap);
+	return r;
+}
+int main()
+{
+	char c = 'a';
+	short s = -2;
+	float f = 1.5f;
+	bool b = true;
+	return Check(8, c, s, f, b, E7, 100000L, "xyz", nullptr);
+}
+### CallVariadicUnsignedShort | 3 | 5.2.2 [expr.call] p7: arguments without a parameter
+#include <stdarg.h>
+int Check(int n, ...)
+{
+	va_list ap;
+	int r = 0;
+	va_start(ap, n);
+	if (sizeof(int) > sizeof(short) ? (va_arg(ap, int) == 65535L) : (va_arg(ap, unsigned int) == 65535u)) r += 1;
+	if (va_arg(ap, int) == 200) r += 2;
+	va_end(ap);
+	return r;
+}
+int main() { unsigned short us = 65535u; unsigned char uc = 200; return Check(2, us, uc); }
+### CallEvaluatedOnce | 15 | 5.2.2 [expr.call] p8: every argument is evaluated before the function is entered
+int gCalls = 0;
+int Next() { return ++gCalls; }
+int Sum(int a, int b, int c) { return gCalls * 100 + a + b + c; }
+int (*Pick())(int, int, int) { gCalls += 10; return Sum; }
+struct S { int v; S* Self() { gCalls += 20; return this; } int Add(int a) { return v + a + gCalls * 100; } };
+int main()
+{
+	S s = { 1 };
+	int r = 0;
+	if (Sum(Next(), Next(), Next()) == 306) r += 1;
+	if (Pick()(0, 0, 0) == 1300) r += 2;
+	if (s.Self()->Add(5) == 3306) r += 4;
+	if (gCalls == 33) r += 8;
+	return r;
+}
+### CallVirtualAndQualified | 31 | 5.2.2 [expr.call] p1: a qualified name suppresses the virtual call
+struct B { virtual int f() { return 1; } int g() { return f(); } virtual ~B() { } };
+struct D : B { int f() override { return 2; } int h() { return B::f() * 10 + f(); } };
+struct E : D { int f() override { return 3; } };
+int main()
+{
+	E e;
+	B* pb = &e;
+	D* pd = &e;
+	B& rb = e;
+	int r = 0;
+	if (pb->f() == 3 && rb.f() == 3 && pd->f() == 3) r += 1;
+	if (pb->B::f() == 1 && pd->D::f() == 2 && pd->B::f() == 1 && rb.B::f() == 1) r += 2;
+	if (pb->g() == 3 && pd->h() == 13) r += 4;
+	if (e.B::f() == 1 && e.D::f() == 2 && e.E::f() == 3 && e.f() == 3) r += 8;
+	B b = e;
+	if (b.f() == 1 && static_cast<B>(e).f() == 1) r += 16;
+	return r;
+}
+### CallThisAdjusted | 15 | 5.2.2 [expr.call] p4: this in a call of a base's member function
+struct A { int a; int GetA() { return a; } A* ThisA() { return this; } };
+struct B { int b; int GetB() { return b; } B* ThisB() { return this; } };
+struct D : A, B { int d; int Both() { return GetA() * 10 + GetB(); } };
+int main()
+{
+	D d;
+	D* pd = &d;
+	d.a = 1; d.b = 2; d.d = 3;
+	int r = 0;
+	if (d.GetB() == 2 && pd->GetB() == 2 && d.GetA() == 1) r += 1;
+	if (d.ThisB() == static_cast<B*>(&d) && (void*)d.ThisB() != (void*)&d && (void*)d.ThisA() == (void*)&d) r += 2;
+	if (d.Both() == 12) r += 4;
+	if (pd->B::GetB() == 2 && (pd->*(&B::GetB))() == 2) r += 8;
+	return r;
+}
+### CallConstObjectNonConstMemberRefused | REFUSED | 5.2.2 [expr.call] p4: this in a call of a member function
+struct S { int v; int f() { return v; } };
+int main() { const S s = { 1 }; return s.f(); }
+### FunctionalCastForms | 255 | 5.2.3 [expr.type.conv]: explicit type conversion, functional notation
+@SAME@
+struct S { int a; int b; };
+struct C { C() : v(5) { } C(int a, int b) : v(a * 10 + b) { } explicit C(int a) : v(a) { } int v; };
+typedef unsigned char Byte;
+typedef int* IntPtr;
+template<class T> T Zero() { return T(); }
+int main()
+{
+	int i = 300;
+	int r = 0;
+	if (int(3.7) == 3 && double(1) / 2 == 0.5 && Byte(i) == 44 && long(i) == 300L) r += 1;
+	if (int() == 0 && double() == 0.0 && bool() == false && IntPtr() == 0 && char() == 0) r += 2;
+	if (S().a == 0 && S().b == 0 && C().v == 5) r += 4;
+	if (C(1, 2).v == 12 && C(7).v == 7) r += 8;
+	if (int{} == 0 && int{5} == 5 && S{1, 2}.b == 2 && C{3, 4}.v == 34 && Byte{200} == 200) r += 16;
+	if (Zero<int>() == 0 && Zero<long>() == 0 && Zero<IntPtr>() == 0 && Zero<S>().b == 0) r += 32;
+	if (Same<decltype(int(3.7)), int>::V && Same<decltype(Byte(1)), unsigned char>::V && Same<decltype(S()), S>::V && Same<decltype(void()), void>::V) r += 64;
+	if (IntPtr(&i) == &i && bool(i) && !bool(0.0) && int('a') == 97) r += 128;
+	return r;
+}
+### FunctionalCastVoid | 3 | 5.2.3 [expr.type.conv] p2: T() for void
+int gCalls = 0;
+void Nothing() { gCalls++; return void(); }
+template<class T> T Make() { return T(); }
+int main()
+{
+	int r = 0;
+	Nothing();
+	Make<void>();
+	void();
+	if (gCalls == 1) r += 1;
+	if (sizeof(Make<char>()) == 1) r += 2;
+	return r;
+}
+### FunctionalCastNarrowingRefused | REFUSED | 5.2.3 [expr.type.conv] p3: a braced list
+int main() { return int{3.5}; }
+### FunctionalCastNarrowingCharRefused | REFUSED | 5.2.3 [expr.type.conv] p3: a braced list
+int main() { return char{300} ? 1 : 2; }
+### FunctionalCastTwoWordTypeRefused | REFUSED | 5.2.3 [expr.type.conv] p1: only a simple type specifier or typename specifier
+int main() { return unsigned int(3); }
+### FunctionalCastNoConversionRefused | REFUSED | 5.2.3 [expr.type.conv] p1: equivalent to the cast expression
+struct S { int a; };
+struct T { int a; };
+int main() { S s = { 1 }; return T(s).a; }
+### PseudoDestructor | 15 | 5.2.4 [expr.pseudo]: pseudo destructor call
+typedef int I;
+typedef int* P;
+typedef double F;
+enum E { E0 };
+template<class T> void Destroy(T* p) { p->~T(); }
+template<class T> void DestroyObject(T& t) { t.~T(); }
+template<class T> void DestroyQualified(T* p) { p->T::~T(); }
+int gCount = 0;
+struct S { ~S() { gCount++; } };
+int main()
+{
+	int i = 5;
+	I* pi = &i;
+	P p = &i;
+	F f = 1.5;
+	E e = E0;
+	char buffer[sizeof(S)];
+	int r = 0;
+	i.~I();
+	pi->~I();
+	pi->I::~I();
+	p.~P();
+	f.~F();
+	if (i == 5 && f == 1.5) r += 1;
+	Destroy(&i);
+	Destroy(&p);
+	Destroy(&f);
+	Destroy(&e);
+	DestroyObject(i);
+	DestroyQualified(&i);
+	if (i == 5 && p == &i) r += 2;
+	Destroy((S*)buffer);
+	DestroyObject(*(S*)buffer);
+	DestroyQualified((S*)buffer);
+	if (gCount == 3) r += 4;
+	i.I::~I();
+	(&i)->~I(), r += 8;
+	return r;
+}
+### PseudoDestructorWrongTypeRefused | REFUSED | 5.2.4 [expr.pseudo]: pseudo destructor call
+typedef int I;
+typedef long L;
+int main() { int i = 1; i.~L(); return 1; }
+### PseudoDestructorNotCalledRefused | REFUSED | 5.2.4 [expr.pseudo]: pseudo destructor call
+typedef int I;
+int main() { int i = 1; i.~I; return 1; }
+### MemberAccessForms | 127 | 5.2.5 [expr.ref]: class member access
+struct In { int x; int y; };
+struct S
+{
+	int m;
+	In in;
+	int a[3];
+	static int s;
+	enum { E = 9 };
+	int Get() { return m; }
+	static int Stat() { return 8; }
+	In* Inner() { return &in; }
+};
+int S::s = 7;
+int gCalls = 0;
+S gs;
+S& Global() { gCalls++; return gs; }
+S* GlobalPointer() { gCalls++; return &gs; }
+int main()
+{
+	S s;
+	S* p = &s;
+	S** pp = &p;
+	int r = 0;
+	s.m = 1; s.in.x = 2; s.in.y = 3; s.a[0] = 4; s.a[2] = 5;
+	if (p->m == 1 && (*p).m == 1 && (*pp)->m == 1 && (**pp).m == 1 && (&s)->m == 1) r += 1;
+	if (s.in.x == 2 && p->in.y == 3 && p->Inner()->x == 2 && (&p->in)->y == 3) r += 2;
+	if (s.a[2] == 5 && p->a[0] == 4 && *p->a == 4) r += 4;
+	if (s.s == 7 && p->s == 7 && s.E == 9 && p->E == 9 && s.Stat() == 8 && p->Stat() == 8) r += 8;
+	p->m = 10;
+	(*p).in.x += 1;
+	p->a[1] = 6;
+	if (s.m == 10 && s.in.x == 3 && s.a[1] == 6 && s.Get() == 10) r += 16;
+	if (Global().s == 7 && GlobalPointer()->s == 7 && Global().E == 9 && Global().Stat() == 8 && gCalls == 4) r += 32;
+	s.s = 11;
+	if (S::s == 11 && &s.s == &S::s && &p->s == &gs.s) r += 64;
+	return r;
+}
+### MemberAccessCategories | 63 | 5.2.5 [expr.ref] p4: the type and value category of a member access
+@SAME@
+int gi = 3;
+struct S { int m; mutable int mut; int& ref; const int c; static int s; int a[2]; };
+int S::s = 0;
+S Make() { S s = { 1, 2, gi, 4, { 5, 6 } }; return s; }
+int main()
+{
+	S s = { 1, 2, gi, 4, { 5, 6 } };
+	const S cs = { 1, 2, gi, 4, { 5, 6 } };
+	const S* pc = &cs;
+	volatile S* pv = 0;
+	int r = 0;
+	if (Same<decltype((s.m)), int&>::V && Same<decltype((cs.m)), const int&>::V && Same<decltype((pc->m)), const int&>::V) r += 1;
+	if (Same<decltype((cs.mut)), int&>::V && Same<decltype((cs.ref)), int&>::V && Same<decltype((s.c)), const int&>::V) r += 2;
+	if (Same<decltype((Make().m)), int&&>::V && Same<decltype((Make().ref)), int&>::V && Same<decltype((Make().s)), int&>::V) r += 4;
+	if (Same<decltype((pv->m)), volatile int&>::V && Same<decltype((cs.a)), const int (&)[2]>::V && Same<decltype((cs.s)), int&>::V) r += 8;
+	if (Same<decltype(s.m), int>::V && Same<decltype(cs.m), int>::V && Same<decltype(s.ref), int&>::V && Same<decltype(cs.c), const int>::V) r += 16;
+	cs.mut = 20;
+	cs.ref = 30;
+	if (cs.mut == 20 && gi == 30 && Make().m == 1 && Make().a[1] == 6) r += 32;
+	return r;
+}
+### MemberAccessConstWriteRefused | REFUSED | 5.2.5 [expr.ref] p4: the type and value category of a member access
+struct S { int m; };
+int main() { const S s = { 1 }; s.m = 2; return 1; }
+### MemberAccessConstPointerWriteRefused | REFUSED | 5.2.5 [expr.ref] p4: the type and value category of a member access
+struct S { int m; };
+int main() { S s = { 1 }; const S* p = &s; p->m = 2; return 1; }
+### MemberAccessDotOnPointerRefused | REFUSED | 5.2.5 [expr.ref] p2: . takes an object, -> a pointer
+struct S { int m; };
+int main() { S s = { 1 }; S* p = &s; return p.m; }
+### MemberAccessArrowOnObjectRefused | REFUSED | 5.2.5 [expr.ref] p2: . takes an object, -> a pointer
+struct S { int m; };
+int main() { S s = { 1 }; return s->m; }
+### MemberAccessIncompleteRefused | REFUSED | 5.2.5 [expr.ref] p2: the class must be complete
+struct S;
+S* Get();
+int main() { return Get()->m; }
+### MemberAccessNoSuchMemberRefused | REFUSED | 5.2.5 [expr.ref] p2: the name must be a member
+struct S { int m; };
+int main() { S s = { 1 }; return s.n; }
+### MemberAccessNestedTypeRefused | REFUSED | 5.2.5 [expr.ref] p4: a nested type is not a member access
+struct S { typedef int T; int m; };
+int main() { S s = { 1 }; return sizeof(s.T); }
+### MemberAccessAmbiguousBaseRefused | REFUSED | 5.2.5 [expr.ref] p5: ambiguous base
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main() { D d; return d.a; }
+### MemberAccessQualifiedBases | 15 | 5.2.5 [expr.ref] p5: a qualified member name picks the base
+struct A { int a; int f() { return a; } };
+struct B : A { int b; };
+struct C : A { int c; };
+struct D : B, C { int a; };
+int main()
+{
+	D d;
+	D* p = &d;
+	d.a = 1;
+	d.B::a = 2;
+	d.C::a = 3;
+	int r = 0;
+	if (d.a == 1 && p->a == 1 && d.D::a == 1) r += 1;
+	if (d.B::a == 2 && p->B::a == 2 && p->C::a == 3) r += 2;
+	if (d.B::f() == 2 && p->C::f() == 3) r += 4;
+	if (&d.B::a != &d.C::a && &d.B::a != &d.a) r += 8;
+	return r;
+}
+### MemberAccessObjectEvaluated | 7 | 5.2.5 [expr.ref] p1: the object expression is evaluated
+int gCalls = 0;
+struct S { int m; static int s; static int f() { return 3; } };
+int S::s = 2;
+S gs = { 1 };
+S* Next() { gCalls++; return &gs; }
+int main()
+{
+	int r = 0;
+	if (Next()->m == 1 && gCalls == 1) r += 1;
+	if (Next()->s == 2 && gCalls == 2) r += 2;
+	if (Next()->f() == 3 && (*Next()).f() == 3 && gCalls == 4) r += 4;
+	return r;
+}
+### PostIncrementForms | 255 | 5.2.6 [expr.post.incr]: increment and decrement
+@SAME@
+struct S { unsigned a : 3; int b : 4; };
+int main()
+{
+	int i = 5;
+	long l = 70000L;
+	unsigned char uc = 255;
+	signed char sc = 5;
+	double d = 1.5;
+	float f = 2.5f;
+	int a[3] = { 1, 2, 3 };
+	int* p = a;
+	long long ll = 0xFFFFFFFFLL;
+	S s;
+	s.a = 7; s.b = -8;
+	int r = 0;
+	if (i++ == 5 && i == 6 && i-- == 6 && i == 5) r += 1;
+	if (l++ == 70000L && l == 70001L && l-- == 70001L && l == 70000L) r += 2;
+	if (uc++ == 255 && uc == 0 && uc-- == 0 && uc == 255 && sc-- == 5 && sc == 4) r += 4;
+	if (d++ == 1.5 && d == 2.5 && f-- == 2.5f && f == 1.5f) r += 8;
+	if (*p++ == 1 && *p == 2 && p == a + 1 && *p-- == 2 && p == a) r += 16;
+	if (ll++ == 0xFFFFFFFFLL && ll == 0x100000000LL && ll-- == 0x100000000LL && ll == 0xFFFFFFFFLL) r += 32;
+	if (s.a++ == 7 && s.a == 0 && s.b-- == -8) r += 64;
+	if (Same<decltype(i++), int>::V && Same<decltype(uc++), unsigned char>::V && Same<decltype(p--), int*>::V && Same<decltype(d++), double>::V) r += 128;
+	return r;
+}
+### PostIncrementBool | 3 | 5.2.6 [expr.post.incr] p1: bool is set to true (deprecated)
+int main()
+{
+	bool b = false;
+	int r = 0;
+	if (b++ == false && b == true) r += 1;
+	if (b++ == true && b == true && (int)b == 1) r += 2;
+	return r;
+}
+### PostDecrementBoolRefused | REFUSED | 5.2.6 [expr.post.incr] p2: bool cannot be decremented
+int main() { bool b = true; b--; return b ? 1 : 2; }
+### PostIncrementAssignedRefused | REFUSED | 5.2.6 [expr.post.incr] p1: the result is a prvalue
+int main() { int i = 1; i++ = 5; return i; }
+### PostIncrementConstRefused | REFUSED | 5.2.6 [expr.post.incr] p1: the operand is a modifiable lvalue
+int main() { const int i = 1; i++; return i; }
+### PostIncrementRvalueRefused | REFUSED | 5.2.6 [expr.post.incr] p1: the operand is a modifiable lvalue
+int main() { int i = 1; (i + 1)++; return i; }
+### PostIncrementEnumRefused | REFUSED | 5.2.6 [expr.post.incr] p1: arithmetic or pointer type
+enum E { E0, E1 };
+int main() { E e = E0; e++; return e + 1; }
+### PostIncrementVoidPointerRefused | REFUSED | 5.2.6 [expr.post.incr] p1: a pointer to a complete object type
+int main() { int i = 1; void* p = &i; p++; return 1; }
+### PostIncrementPointerSizes | 7 | 5.2.6 [expr.post.incr] p1: a pointer moves by the size of what it points to
+struct S { char c[7]; };
+int main()
+{
+	S as[3];
+	long al[3];
+	int m[3][5];
+	S* ps = as;
+	long* pl = al;
+	int (*pm)[5] = m;
+	int r = 0;
+	ps++; pl++; pm++;
+	if ((char*)ps - (char*)as == 7 && ps == &as[1]) r += 1;
+	if ((char*)pl - (char*)al == (int)sizeof(long) && pl == al + 1) r += 2;
+	if ((char*)pm - (char*)m == 5 * (int)sizeof(int) && pm-- == m + 1 && pm == m) r += 4;
+	return r;
+}
+### DynamicCastForms | 127 | 5.2.7 [expr.dynamic.cast]: dynamic cast
+struct A { virtual ~A() { } int a; };
+struct B { virtual ~B() { } int b; };
+struct C : A, B { int c; };
+struct E : A { int e; };
+struct N { int n; };
+struct M : N { int m; };
+int main()
+{
+	C c;
+	E e;
+	M m;
+	c.a = 4;
+	A* pa = &c;
+	B* pb = &c;
+	A* pe = &e;
+	A* null = 0;
+	const A* pca = &c;
+	int r = 0;
+	if (dynamic_cast<C*>(pa) == &c && dynamic_cast<C*>(pb) == &c) r += 1;
+	if (dynamic_cast<B*>(pa) == pb && dynamic_cast<A*>(pb) == pa) r += 2;
+	if (dynamic_cast<C*>(pe) == 0 && dynamic_cast<B*>(pe) == 0 && dynamic_cast<E*>(pe) == &e) r += 4;
+	if (dynamic_cast<C*>(null) == 0 && dynamic_cast<void*>(null) == 0) r += 8;
+	if (dynamic_cast<void*>(pb) == (void*)&c && dynamic_cast<const void*>(pca) == (const void*)&c) r += 16;
+	if (dynamic_cast<N*>(&m) == (N*)&m && dynamic_cast<A*>(&c) == pa && dynamic_cast<const C*>(pca) == &c) r += 32;
+	if (&dynamic_cast<C&>(*pa) == &c && &dynamic_cast<B&>(*pa) == pb && dynamic_cast<A&&>(static_cast<C&&>(c)).a == 4) r += 64;
+	return r;
+}
+### DynamicCastAccessAndAmbiguity | 15 | 5.2.7 [expr.dynamic.cast] p8: the run-time check
+struct A { virtual ~A() { } };
+struct B { virtual ~B() { } };
+struct Private : A, private B { B* AsB() { return this; } };
+struct Left : A { };
+struct Right : A { };
+struct Both : Left, Right { };
+struct V { virtual ~V() { } };
+struct VL : virtual V { };
+struct VR : virtual V { };
+struct VD : VL, VR { };
+int main()
+{
+	Private p;
+	Both b;
+	VD vd;
+	A* pa = &p;
+	B* pb = p.AsB();
+	Left* pl = &b;
+	A* la = pl;
+	V* pv = &vd;
+	int r = 0;
+	if (dynamic_cast<B*>(pa) == 0 && dynamic_cast<Private*>(pa) == &p) r += 1;
+	if (dynamic_cast<A*>(pb) == 0 && dynamic_cast<Private*>(pb) == 0) r += 2;
+	if (dynamic_cast<Both*>(la) == &b && dynamic_cast<Right*>(la) == static_cast<Right*>(&b) && dynamic_cast<Right*>(pl) == static_cast<Right*>(&b)) r += 4;
+	if (dynamic_cast<VD*>(pv) == &vd && dynamic_cast<VL*>(pv) == static_cast<VL*>(&vd) && dynamic_cast<VR*>(static_cast<VL*>(&vd)) == static_cast<VR*>(&vd)) r += 8;
+	return r;
+}
+### DynamicCastNotPolymorphicRefused | REFUSED | 5.2.7 [expr.dynamic.cast] p6: the operand is polymorphic
+struct N { int n; };
+struct M : N { int m; };
+int main() { M m; N* p = &m; return dynamic_cast<M*>(p) ? 1 : 2; }
+### DynamicCastAwayConstRefused | REFUSED | 5.2.7 [expr.dynamic.cast] p1: constness is not cast away
+struct A { virtual ~A() { } };
+struct D : A { };
+int main() { D d; const A* p = &d; return dynamic_cast<D*>(p) ? 1 : 2; }
+### DynamicCastIncompleteRefused | REFUSED | 5.2.7 [expr.dynamic.cast] p2: the classes are complete
+struct A { virtual ~A() { } };
+struct I;
+int main() { A a; return dynamic_cast<I*>(&a) ? 1 : 2; }
+### DynamicCastToNonClassRefused | REFUSED | 5.2.7 [expr.dynamic.cast] p1: a pointer or reference to a class, or void pointer
+struct A { virtual ~A() { } };
+int main() { A a; return dynamic_cast<int*>(&a) ? 1 : 2; }
+### DynamicCastUpAmbiguousRefused | REFUSED | 5.2.7 [expr.dynamic.cast] p5: a cast to a base is the conversion
+struct A { virtual ~A() { } };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main() { D d; return dynamic_cast<A*>(&d) ? 1 : 2; }
+### TypeidRules | 127 | 5.2.8 [expr.typeid]: type identification
+#if defined(_MSC_VER) || defined(CONFORMANCE_HOST)
+#include <typeinfo>
+#else
+namespace std { class type_info { public: bool operator==(const type_info& o) const noexcept; bool operator!=(const type_info& o) const noexcept; const char* name() const noexcept; }; }
+#endif
+struct P { virtual ~P() { } };
+struct Q : P { };
+struct N { int n; };
+struct M : N { };
+typedef int I;
+enum E { E0 };
+int gCalls = 0;
+N& Plain() { gCalls++; static M m; return m; }
+P& Poly() { gCalls += 10; static Q q; return q; }
+int main()
+{
+	Q q;
+	M m;
+	P& rp = q;
+	N& rn = m;
+	const P& crp = q;
+	int a[3];
+	int r = 0;
+	if (typeid(rp) == typeid(Q) && typeid(rn) == typeid(N) && typeid(rn) != typeid(M)) r += 1;
+	if (typeid(const int) == typeid(int) && typeid(volatile Q) == typeid(Q) && typeid(crp) == typeid(Q)) r += 2;
+	if (typeid(int&) == typeid(int) && typeid(const P&) == typeid(P) && typeid(I) == typeid(int)) r += 4;
+	if (typeid(Plain()) == typeid(N) && gCalls == 0) r += 8;
+	if (typeid(Poly()) == typeid(Q) && gCalls == 10) r += 16;
+	if (typeid(a) == typeid(int[3]) && typeid(a) != typeid(int*) && typeid(main) == typeid(int()) && typeid(E0) == typeid(E)) r += 32;
+	if (typeid(1 + 1L) == typeid(long) && typeid('a') == typeid(char) && typeid(const char*) != typeid(char*) && typeid(&rp) == typeid(P*)) r += 64;
+	return r;
+}
+### TypeidIncompleteRefused | REFUSED | 5.2.8 [expr.typeid] p4: the class is complete
+#if defined(_MSC_VER) || defined(CONFORMANCE_HOST)
+#include <typeinfo>
+#else
+namespace std { class type_info { public: bool operator==(const type_info& o) const noexcept; bool operator!=(const type_info& o) const noexcept; const char* name() const noexcept; }; }
+#endif
+struct I;
+int main() { return typeid(I) == typeid(int) ? 1 : 2; }
+### TypeidWithoutHeaderRefused | REFUSED | 5.2.8 [expr.typeid] p6: <typeinfo> comes first
+int main() { return &typeid(int) ? 1 : 2; }
+### StaticCastForms | 255 | 5.2.9 [expr.static.cast]: static cast
+@SAME@
+enum E { E0, E1, E5 = 5 };
+enum class C : unsigned char { A, B = 200 };
+struct X { explicit X(int x) : v(x) { } explicit operator int() const { return v * 2; } explicit operator bool() const { return v != 0; } int v; };
+int gCalls = 0;
+int Call() { return ++gCalls; }
+int main()
+{
+	int i = 65;
+	double d = 3.9;
+	void* v = &i;
+	const void* cv = &i;
+	int r = 0;
+	if (static_cast<int>(d) == 3 && static_cast<char>(i) == 'A' && static_cast<double>(i) / 2 == 32.5 && static_cast<unsigned char>(-1) == 255) r += 1;
+	if (static_cast<E>(1) == E1 && static_cast<int>(E5) == 5 && static_cast<E>(3) == 3 && static_cast<C>(200) == C::B && static_cast<int>(C::B) == 200) r += 2;
+	if (static_cast<C>(E1) == C::A || static_cast<E>(C::A) == E0) r += 4;
+	if (static_cast<int*>(v) == &i && *static_cast<const int*>(cv) == 65 && static_cast<void*>(&i) == v) r += 8;
+	static_cast<void>(Call());
+	static_cast<void>(i);
+	if (gCalls == 1) r += 16;
+	if (static_cast<X>(4).v == 4 && static_cast<int>(X(4)) == 8 && static_cast<bool>(X(4)) && !static_cast<bool>(X(0))) r += 32;
+	if (Same<decltype(static_cast<int&&>(i)), int&&>::V && Same<decltype(static_cast<int&>(i)), int&>::V && Same<decltype(static_cast<const int&>(i)), const int&>::V && Same<decltype(static_cast<long>(i)), long>::V) r += 64;
+	static_cast<int&>(i) = 7;
+	if (i == 7 && static_cast<bool>(i) && static_cast<bool>(0.5) && static_cast<int>(true) == 1) r += 128;
+	return r;
+}
+### StaticCastClasses | 127 | 5.2.9 [expr.static.cast] p2, p11: base to derived
+struct A { int a; };
+struct B { int b; int f() { return b; } };
+struct D : A, B { int d; };
+int main()
+{
+	D d;
+	d.a = 1; d.b = 2; d.d = 3;
+	B* pb = &d;
+	B& rb = d;
+	const B* cb = &d;
+	B* nb = 0;
+	int B::* pmb = &B::b;
+	int D::* pmd = &D::b;
+	int (D::*pfd)() = &D::f;
+	int r = 0;
+	if (static_cast<D*>(pb) == &d && static_cast<D*>(pb)->d == 3) r += 1;
+	if (&static_cast<D&>(rb) == &d && static_cast<D&>(rb).a == 1) r += 2;
+	if (static_cast<D*>(nb) == 0 && static_cast<B*>(static_cast<D*>(0)) == 0) r += 4;
+	if (static_cast<const D*>(cb) == &d && static_cast<B*>(&d) == pb && static_cast<A*>(&d)->a == 1) r += 8;
+	if (d.*static_cast<int D::*>(pmb) == 2 && static_cast<int B::*>(pmd) == pmb) r += 16;
+	if ((static_cast<B&>(d).*static_cast<int (B::*)()>(pfd))() == 2) r += 32;
+	if (static_cast<B>(d).b == 2 && static_cast<B&&>(static_cast<D&&>(d)).b == 2 && static_cast<D&&>(rb).d == 3) r += 64;
+	return r;
+}
+### StaticCastAwayConstRefused | REFUSED | 5.2.9 [expr.static.cast] p1: constness is not cast away
+int main() { const int i = 1; const int* p = &i; int* q = static_cast<int*>(p); return *q; }
+### StaticCastVoidAwayConstRefused | REFUSED | 5.2.9 [expr.static.cast] p13: from a void pointer
+int main() { int i = 1; const void* p = &i; int* q = static_cast<int*>(p); return *q; }
+### StaticCastUnrelatedPointersRefused | REFUSED | 5.2.9 [expr.static.cast]: static cast
+int main() { int i = 1; long* p = static_cast<long*>(&i); return p ? 1 : 2; }
+### StaticCastIntToPointerRefused | REFUSED | 5.2.9 [expr.static.cast]: static cast
+int main() { long l = 16; int* p = static_cast<int*>(l); return p ? 1 : 2; }
+### StaticCastPointerToIntRefused | REFUSED | 5.2.9 [expr.static.cast]: static cast
+int main() { int i = 1; long l = static_cast<long>(&i); return l ? 1 : 2; }
+### StaticCastUnrelatedClassesRefused | REFUSED | 5.2.9 [expr.static.cast]: static cast
+struct A { int a; };
+struct B { int b; };
+int main() { A a; B* p = static_cast<B*>(&a); return p ? 1 : 2; }
+### StaticCastPrivateBaseRefused | REFUSED | 5.2.9 [expr.static.cast] p11: the base is accessible
+struct A { int a; };
+struct D : private A { };
+int main() { D d; A* p = static_cast<A*>(&d); return p ? 1 : 2; }
+### StaticCastFromPrivateBaseRefused | REFUSED | 5.2.9 [expr.static.cast] p11: the base is accessible
+struct A { int a; };
+struct D : private A { A* Base() { return this; } };
+int main() { D d; D* p = static_cast<D*>(d.Base()); return p ? 1 : 2; }
+### StaticCastAmbiguousBaseRefused | REFUSED | 5.2.9 [expr.static.cast] p11: the base is unambiguous
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main() { D d; A* pa = static_cast<B*>(&d); return static_cast<D*>(pa) ? 1 : 2; }
+### StaticCastNonConstReferenceToValueRefused | REFUSED | 5.2.9 [expr.static.cast] p4: as if the result were declared and initialised
+int main() { int& r = static_cast<int&>(5); return r; }
+### StaticCastFunctionOverload | 3 | 5.2.9 [expr.static.cast] p4: an overloaded function's address is chosen by the cast
+int f(int v) { return v + 1; }
+int f(long v) { return (int)v + 2; }
+int f(int a, int b) { return a + b; }
+int main()
+{
+	int r = 0;
+	if (static_cast<int (*)(long)>(f)(1) == 3 && static_cast<int (*)(int)>(f)(1) == 2) r += 1;
+	if (static_cast<int (*)(int, int)>(&f)(1, 2) == 3) r += 2;
+	return r;
+}
+### ReinterpretCastForms | 255 | 5.2.10 [expr.reinterpret.cast]: reinterpret cast
+@SAME@
+struct A { int a; int f() { return a; } };
+struct B { long b; };
+enum E { E0, E7 = 7 };
+int Function(int v) { return v + 1; }
+typedef decltype(sizeof(0)) Size;
+int main()
+{
+	int i = 0x1234;
+	A a = { 5 };
+	int* p = &i;
+	int r = 0;
+	unsigned long long address = reinterpret_cast<unsigned long long>(p);
+	if (reinterpret_cast<int*>(address) == p && *reinterpret_cast<int*>(address) == 0x1234) r += 1;
+	if (reinterpret_cast<int*>(reinterpret_cast<B*>(p)) == p && reinterpret_cast<A*>(reinterpret_cast<char*>(&a))->a == 5) r += 2;
+	void (*other)() = reinterpret_cast<void (*)()>(Function);
+	if (reinterpret_cast<int (*)(int)>(other)(1) == 2 && reinterpret_cast<int (*)(int)>(other) == Function) r += 4;
+	reinterpret_cast<unsigned int&>(i) = 0x4321;
+	if (i == 0x4321 && &reinterpret_cast<char&>(i) == reinterpret_cast<char*>(&i)) r += 8;
+	int B::* otherMember = reinterpret_cast<int B::*>(&A::a);
+	int (B::*otherFunction)() = reinterpret_cast<int (B::*)()>(&A::f);
+	if (a.*reinterpret_cast<int A::*>(otherMember) == 5 && (a.*reinterpret_cast<int (A::*)()>(otherFunction))() == 5) r += 16;
+	if (reinterpret_cast<int>(i) == 0x4321 && reinterpret_cast<int*>(p) == p && reinterpret_cast<E>(E7) == E7) r += 32;
+	if (reinterpret_cast<unsigned long long>(nullptr) == 0 && reinterpret_cast<int*>(0) == 0 && reinterpret_cast<unsigned long long>((int*)0) == 0) r += 64;
+	if (Same<decltype(reinterpret_cast<long&>(i)), long&>::V && Same<decltype(reinterpret_cast<char*>(p)), char*>::V && Same<decltype(reinterpret_cast<int&&>(i)), int&&>::V) r += 128;
+	return r;
+}
+### ReinterpretCastBytes | 3 | 5.2.10 [expr.reinterpret.cast] p7: object pointers
+int main()
+{
+	unsigned long l = 0x04030201ul;
+	unsigned char* p = reinterpret_cast<unsigned char*>(&l);
+	const unsigned short* ps = reinterpret_cast<const unsigned short*>(&l);
+	int r = 0;
+	if (p[0] + p[1] + p[2] + p[3] == 10 && (p[0] == 1 || p[0] == 4 || sizeof(long) == 8)) r += 1;
+	if (ps[0] == 0x0201 || ps[0] == 0x0403 || sizeof(long) == 8) r += 2;
+	return r;
+}
+### ReinterpretCastAwayConstRefused | REFUSED | 5.2.10 [expr.reinterpret.cast] p2: constness is not cast away
+int main() { const int i = 1; long* p = reinterpret_cast<long*>(&i); return p ? 1 : 2; }
+### ReinterpretCastPointerToSmallIntegerRefused | REFUSED | 5.2.10 [expr.reinterpret.cast] p4: a pointer to an integer large enough
+int main() { int i = 1; char c = reinterpret_cast<char>(&i); return c ? 1 : 2; }
+### ReinterpretCastFloatRefused | REFUSED | 5.2.10 [expr.reinterpret.cast] p1: only the listed conversions
+int main() { double d = 1.5; long long l = reinterpret_cast<long long>(d); return l ? 1 : 2; }
+### ReinterpretCastIntToLongRefused | REFUSED | 5.2.10 [expr.reinterpret.cast] p1: only the listed conversions
+int main() { int i = 1; long l = reinterpret_cast<long>(i); return l ? 1 : 2; }
+### ReinterpretCastToNullptrRefused | REFUSED | 5.2.10 [expr.reinterpret.cast] p1: only the listed conversions
+int main() { decltype(nullptr) n = reinterpret_cast<decltype(nullptr)>(0); return n ? 1 : 2; }
+### ReinterpretCastClassRefused | REFUSED | 5.2.10 [expr.reinterpret.cast] p1: only the listed conversions
+struct A { int a; };
+struct B { int b; };
+int main() { A a = { 1 }; return reinterpret_cast<B>(a).b; }
+### ReinterpretCastMemberToObjectPointerRefused | REFUSED | 5.2.10 [expr.reinterpret.cast] p1: only the listed conversions
+struct A { int a; };
+int main() { int A::* pm = &A::a; int* p = reinterpret_cast<int*>(pm); return p ? 1 : 2; }
+### ReinterpretCastRvalueToReferenceRefused | REFUSED | 5.2.10 [expr.reinterpret.cast] p11: a glvalue to a reference
+int main() { long& r = reinterpret_cast<long&>(5); return r ? 1 : 2; }
+### ConstCastForms | 127 | 5.2.11 [expr.const.cast]: const cast
+@SAME@
+struct S { int m; int Get() { return m; } };
+int main()
+{
+	int i = 1;
+	const int* cp = &i;
+	const int& cr = i;
+	const int* const* cpp = &cp;
+	volatile int* vp = &i;
+	S s = { 4 };
+	const S* cs = &s;
+	const int S::* cpm = &S::m;
+	const int* null = 0;
+	int r = 0;
+	*const_cast<int*>(cp) = 2;
+	if (i == 2 && const_cast<int*>(cp) == &i) r += 1;
+	const_cast<int&>(cr) = 3;
+	if (i == 3 && &const_cast<int&>(cr) == &i) r += 2;
+	**const_cast<int**>(cpp) = 5;
+	*const_cast<int*>(vp) += 1;
+	if (i == 6) r += 4;
+	if (const_cast<S*>(cs)->Get() == 4 && const_cast<S&>(*cs).Get() == 4) r += 8;
+	s.*const_cast<int S::*>(cpm) = 9;
+	if (s.m == 9 && const_cast<int*>(null) == 0) r += 16;
+	if (Same<decltype(const_cast<const int*>(&i)), const int*>::V && Same<decltype(const_cast<int&&>(i)), int&&>::V && Same<decltype(const_cast<const volatile int&>(i)), const volatile int&>::V) r += 32;
+	if (const_cast<int&&>(i) == 6 && *const_cast<const volatile int*>(&i) == 6 && const_cast<int*>(&i) == &i) r += 64;
+	return r;
+}
+### ConstCastChangesTypeRefused | REFUSED | 5.2.11 [expr.const.cast] p1: only constness changes
+int main() { const int i = 1; long* p = const_cast<long*>(&i); return p ? 1 : 2; }
+### ConstCastToValueRefused | REFUSED | 5.2.11 [expr.const.cast] p1: a pointer, reference or pointer to member
+int main() { const int i = 1; return const_cast<int>(i); }
+### ConstCastFunctionPointerRefused | REFUSED | 5.2.11 [expr.const.cast] p2: not function pointers
+int f() { return 1; }
+int main() { int (*p)() = f; return const_cast<int (*)()>(p)(); }
+### ConstCastRvalueToLvalueReferenceRefused | REFUSED | 5.2.11 [expr.const.cast] p4: a prvalue only to an rvalue reference of class type
+int main() { int& r = const_cast<int&>(5); return r; }
+### ConstCastDerivedRefused | REFUSED | 5.2.11 [expr.const.cast] p1: only constness changes
+struct B { int b; };
+struct D : B { };
+int main() { D d; const D* p = &d; B* q = const_cast<B*>(p); return q ? 1 : 2; }

@@ -1,0 +1,469 @@
+### TempSpecialisationFunctionTypes | 255 | 14.5.5.1 [temp.class.spec.match], 14.8.2.5 [temp.deduct.type] p8: a partial specialisation's arguments are matched as types of the forms T(T...), T(*)(T...), T T::*, T (T::*)(T...)
+@SAME@
+struct S { };
+template<class T> struct Kind { enum { V = 0 }; };
+template<class R, class... A> struct Kind<R(A...)> { enum { V = 1, N = sizeof...(A) }; };
+template<class R, class... A> struct Kind<R(A..., ...)> { enum { V = 2 }; };
+template<class R, class... A> struct Kind<R (*)(A...)> { enum { V = 3 }; };
+template<class R, class C, class... A> struct Kind<R (C::*)(A...)> { enum { V = 4 }; };
+template<class R, class C, class... A> struct Kind<R (C::*)(A...) const> { enum { V = 5 }; };
+template<class M, class C> struct Kind<M C::*> { enum { V = 6 }; };
+template<class T> struct Second;
+template<class R, class A> struct Second<R(int, A)> { typedef A Type; typedef R Result; };
+int main()
+{
+	int r = 0;
+	if (Kind<int(int)>::V == 1 && Kind<void(int, char)>::N == 2 && Kind<void()>::N == 0) r += 1;
+	if (Kind<int(int, ...)>::V == 2) r += 2;
+	if (Kind<int (*)(long)>::V == 3) r += 4;
+	if (Kind<int (S::*)(int)>::V == 4) r += 8;
+	if (Kind<int (S::*)() const>::V == 5) r += 16;
+	if (Kind<int S::*>::V == 6) r += 32;
+	if (Kind<int>::V == 0 && Kind<int*>::V == 0 && Kind<S>::V == 0) r += 64;
+	if (Same<Second<long(int, char*)>::Type, char*>::V && Same<Second<long(int, char*)>::Result, long>::V) r += 128;
+	return r;
+}
+
+### TempSpecialisationNonDeduced | 127 | 14.5.5.1 [temp.class.spec.match] p2, 14.8.2.5 [temp.deduct.type] p5: an argument its parameters can't be deduced from is the type they give it, and a specialisation they give no type isn't chosen
+template<class...> using Void = void;
+template<class T, class = void> struct HasType { enum { V = 0 }; };
+template<class T> struct HasType<T, Void<typename T::Type>> { enum { V = 1 }; };
+template<bool B, class T = void> struct EnableIf { };
+template<class T> struct EnableIf<true, T> { typedef T Type; };
+template<class T, class = void> struct IsSmall { enum { V = 0 }; };
+template<class T> struct IsSmall<T, typename EnableIf<(sizeof(T) == 1)>::Type> { enum { V = 1 }; };
+template<class T> struct Identity { typedef T Type; };
+template<class T, class U> struct Pair { enum { V = 0 }; };
+template<class T> struct Pair<T, typename Identity<T>::Type*> { enum { V = 1 }; };
+struct A { typedef int Type; long l; };
+struct B { };
+int main()
+{
+	int r = 0;
+	if (HasType<A>::V == 1) r += 1;
+	if (HasType<B>::V == 0) r += 2;
+	if (HasType<int>::V == 0) r += 4;
+	if (IsSmall<char>::V == 1 && IsSmall<A>::V == 0) r += 8;
+	if (IsSmall<long>::V == 0) r += 16;
+	if (Pair<int, int*>::V == 1 && Pair<A, A*>::V == 1) r += 32;
+	if (Pair<int, char*>::V == 0 && Pair<int, int>::V == 0) r += 64;
+	return r;
+}
+
+### TempVariablePartialSpecialisation | 63 | 14.5.5 [temp.class.spec], 14 [temp] p1: a variable template is partially specialised as a class template is
+template<class T> int gKind = 1;
+template<class T> int gKind<T*> = 2;
+template<class T, int N> int gKind<T[N]> = N;
+template<> int gKind<char> = 16;
+int main()
+{
+	int r = 0;
+	if (gKind<int> == 1) r += 1;
+	if (gKind<int*> == 2) r += 2;
+	if (gKind<long[8]> == 8) r += 4;
+	if (gKind<char> == 16) r += 8;
+	if (gKind<char*> == 2) r += 16;
+	gKind<int*> = 7;
+	if (gKind<int*> == 7 && gKind<char*> == 2 && gKind<int> == 1) r += 32;
+	return r;
+}
+
+### TempStaticMemberExplicitSpecialisation | 63 | 14.7.3 [temp.expl.spec] p1, p13: a static data member of a class template is explicitly specialised for an instance
+template<class T> struct S { static int k; static const int c; int Get() { return k; } };
+template<class T> int S<T>::k = 1;
+template<class T> const int S<T>::c = 3;
+template<> int S<int>::k = 5;
+template<> const int S<char>::c = 9;
+int main()
+{
+	int r = 0;
+	S<int> s;
+	if (S<int>::k == 5) r += 1;
+	if (S<char>::k == 1) r += 2;
+	if (S<long>::k == 1) r += 4;
+	if (s.Get() == 5) r += 8;
+	if (S<char>::c == 9 && S<int>::c == 3) r += 16;
+	S<int>::k = 6;
+	if (S<char>::k == 1 && S<int>::k == 6) r += 32;
+	return r;
+}
+
+### TempConstructorTemplate | 1023 | 14.5.2 [temp.mem] p5, 12.1 [class.ctor], 12.8 [class.copy] p6: a constructor template's instance constructs and converts, and never copies
+@NEW@
+struct S { int v; template<class T> S(T t) : v((int)t + 1) { } };
+struct P { int a; int b; P() : a(0), b(0) { } template<class T, class U> P(T t, U u); };
+template<class T, class U> P::P(T t, U u) : a((int)t), b((int)sizeof(U)) { }
+template<class T> struct Box { T v; template<class U> Box(U u) : v((T)u * 2) { } Box(const Box& o) : v(o.v + 100) { } };
+struct Exact { int v; Exact(int i) : v(i) { } template<class T> Exact(T t) : v(-1) { } };
+int Take(S s) { return s.v; }
+int main()
+{
+	int r = 0;
+	S s(3L);
+	if (s.v == 4) r += 1;
+	S t = 'a';
+	if (t.v == 'a' + 1) r += 2;
+	S u(s);
+	if (u.v == 4) r += 4;
+	P p(7, 'c');
+	if (p.a == 7 && p.b == 1) r += 8;
+	P q;
+	if (q.a == 0) r += 16;
+	Box<long> b(21);
+	if (b.v == 42) r += 32;
+	Box<long> c(b);
+	if (c.v == 142) r += 64;
+	if (Take(5) == 6) r += 128;
+	S* h = new S(9);
+	if (h->v == 10) r += 256;
+	Exact e(4);
+	Exact f(4L);
+	if (e.v == 4 && f.v == -1) r += 512;
+	return r;
+}
+
+### TempConstructorTemplateNoAggregateRefused | REFUSED | 14.5.2 [temp.mem], 8.5.1 [dcl.init.aggr] p1: a class that declares a constructor template is no aggregate, and has no default constructor
+struct S { int v; template<class T> S(T t, T u) : v((int)t) { } };
+int main()
+{
+	S s;
+	return s.v;
+}
+
+### TempDeduceThroughAlias | 7 | 14.5.7 [temp.alias] p2, 14.8.2.5 [temp.deduct.type]: an alias template's name with arguments is the type it names, which template arguments are deduced from
+template<class T> struct V { T v; };
+template<class T> using A = V<T>;
+template<class T> using Ptr = T*;
+template<class T, class U> using Second = V<U>;
+template<class T> T Get(A<T>& a) { return a.v; }
+template<class T> T Read(Ptr<T> p) { return *p; }
+template<class U> U Other(Second<int, U>* p) { return p->v; }
+int main()
+{
+	int r = 0;
+	V<int> v;
+	V<char> w;
+	long l = 7;
+	v.v = 5;
+	w.v = 'x';
+	if (Get(v) == 5) r += 1;
+	if (Read(&l) == 7 && sizeof(Read(&l)) == sizeof(long)) r += 2;
+	if (Other(&w) == 'x' && sizeof(Other(&w)) == 1) r += 4;
+	return r;
+}
+
+### TempDeduceTemplateTemplate | 7 | 14.8.2.5 [temp.deduct.type] p8: a template template parameter is deduced from TT<T>
+template<class T> struct V { T v; };
+template<class T, class U> struct Two { T a; U b; };
+template<template<class> class C, class T> T Get(C<T>& c) { return c.v; }
+template<template<class, class> class C, class T, class U> int Sizes(C<T, U>* p) { return (int)(sizeof(T) * 10 + sizeof(U)); }
+template<template<class> class C, class T> C<T*> Rebind(C<T>& c) { C<T*> r; r.v = &c.v; return r; }
+int main()
+{
+	int r = 0;
+	V<int> v;
+	Two<char, char[3]> p;
+	v.v = 6;
+	if (Get(v) == 6) r += 1;
+	if (Sizes(&p) == 13) r += 2;
+	V<int*> w = Rebind(v);
+	if (*w.v == 6) r += 4;
+	return r;
+}
+
+### TempVariableTemplateStaticMember | 31 | 14 [temp] p1, 14.5.1.3 [temp.static]: a variable template at class scope is a static data member template
+struct S
+{
+	template<class T> static const int size = sizeof(T);
+	template<class T> static T value;
+	template<class T> static int kind;
+};
+template<class T> const int S::size;
+template<class T> T S::value = T(7);
+template<class T> int S::kind = 1;
+template<class T> int S::kind<T*> = 2;
+int gaiRow[S::size<char[3]>];
+int main()
+{
+	int r = 0;
+	if (S::size<char> == 1 && S::size<char[2]> == 2) r += 1;
+	if (sizeof(gaiRow) == 3 * sizeof(int)) r += 2;
+	S::value<long> = 9;
+	if (S::value<long> == 9 && S::value<char> == 7 && sizeof(S::value<char>) == 1) r += 4;
+	if (S::kind<int> == 1 && S::kind<int*> == 2) r += 8;
+	if (S::value<int> == 7 && sizeof(S) == 1) r += 16;
+	return r;
+}
+
+### TempPackBases | 31 | 14.5.3 [temp.variadic] p4, p5: a base-specifier-list's pack expansion makes a base for each element, of type packs and non-type packs expanded together
+struct A { int a = 1; };
+struct B { int b = 2; };
+template<class... T> struct All : T... { };
+template<class T> struct Wrap : T { int w = 4; };
+template<class... T> struct Wrapped : Wrap<T>... { };
+template<int I, class T> struct Leaf { T v; };
+template<int... I> struct Index { };
+template<class X, class... T> struct Tuple;
+template<int... I, class... T> struct Tuple<Index<I...>, T...> : Leaf<I, T>... { };
+template<int... N> struct Sized : Leaf<N, char[N]>... { };
+int main()
+{
+	int r = 0;
+	All<A, B> x;
+	Wrapped<A, B> y;
+	Tuple<Index<0, 1>, int, char> t;
+	if (x.a == 1 && x.b == 2 && sizeof(All<>) == 1) r += 1;
+	if (static_cast<Wrap<A>&>(y).w == 4 && static_cast<Wrap<B>&>(y).b == 2) r += 2;
+	static_cast<Leaf<0, int>&>(t).v = 4;
+	static_cast<Leaf<1, char>&>(t).v = 3;
+	if (static_cast<Leaf<0, int>&>(t).v + static_cast<Leaf<1, char>&>(t).v == 7) r += 4;
+	if (sizeof(t) >= sizeof(int) + 1) r += 8;
+	if (sizeof(Sized<2, 3>) == 5) r += 16;
+	return r;
+}
+
+### TempMemberClassOfTemplate | 63 | 14.5.1.2 [temp.mem.class], 14.6.2 [temp.dep]: a member class of a class template is each instance's own, with the instance's template arguments
+template<class T> struct Outer
+{
+	struct Inner { T t; int Size() { return (int)sizeof(T); } };
+	struct Derived : T { int Next() { return this->v + 1; } };
+	struct Deep { struct Deeper { T d[2]; }; };
+	Inner i;
+	int Sizes() { return (int)sizeof(Inner) * 10 + i.Size(); }
+	static Inner Make(T t) { Inner n; n.t = t; return n; }
+};
+struct Base { int v = 4; };
+struct Big { long a; long b; };
+int main()
+{
+	int r = 0;
+	Outer<char> a;
+	Outer<Big> b;
+	Outer<char>::Inner ci;
+	Outer<Big>::Inner bi;
+	Outer<Base>::Derived d;
+	if (a.Sizes() == 11 && b.Sizes() == (int)sizeof(Big) * 11) r += 1;
+	if (sizeof(ci) == 1 && sizeof(bi) == sizeof(Big)) r += 2;
+	if (d.Next() == 5 && d.v == 4) r += 4;
+	if (sizeof(Outer<char>::Deep::Deeper) == 2 && sizeof(Outer<long>::Deep::Deeper) == 2 * sizeof(long)) r += 8;
+	bi = Outer<Big>::Make(Big());
+	ci = Outer<char>::Make('x');
+	if (ci.t == 'x') r += 16;
+	Outer<char>::Inner* p = &a.i;
+	p->t = 'y';
+	if (a.i.t == 'y') r += 32;
+	return r;
+}
+
+### TempFunctionTemplateDefinedLater | 15 | 14.6.4.1 [temp.point] p8, 14.5.6 [temp.fct], 8.3.6 [dcl.fct.default] p4: a function template is called where it is only declared, defined after, with the default arguments its declaration gave it
+struct S { int v; };
+template<class T> T Twice(T);
+template<class T> T Add(T a, T b = T(4));
+template<class T> int operator+(S, T);
+template<class T> int Size(T t = T());
+int Early() { S s = { 2 }; return Twice(2) + (s + 3) * 10 + Add(5) * 100; }
+template<class U> U Twice(U u) { return u * 2; }
+template<class U> U Add(U a, U b) { return a + b; }
+template<class U> int operator+(S s, U u) { return s.v + (int)u; }
+template<class U> int Size(U u) { return (int)sizeof(U) + (int)u; }
+int main()
+{
+	int r = 0;
+	S s = { 1 };
+	if (Early() == 954) r += 1;
+	if (Twice(3L) == 6 && Add(1, 1) == 2 && Add('a') == 'a' + 4 && s + 'b' == 'b' + 1) r += 2;
+	if (Size<char>() == 1 && Size<long>() == sizeof(long) && Size(2) == sizeof(int) + 2) r += 4;
+	if (sizeof(Twice('c')) == 1 && sizeof(Add(1L)) == sizeof(long)) r += 8;
+	return r;
+}
+
+### TempConstructorTemplateCopies | 15 | 14.5.2 [temp.mem] p5, 13.3.3 [over.match.best] p1, 12.8 [class.copy] p2: a constructor template's instance competes with the copy constructor for an object of its class: S(T&&) takes one that isn't const, the copy constructor (never a template's instance) a const one and one that is going; S(T) never takes its own class
+int gCopies = 0;
+struct S { int v; S() : v(1) { } template<class T> S(T&& t) : v(100) { } };
+struct D : S { D() { } };
+struct V { int v; V() : v(1) { } template<class T> V(T t) : v(200) { } };
+struct M { int v; M() : v(1) { } M(const M& o) : v(o.v + 10) { } M(M&& o) : v(o.v + 20) { } template<class T> M(T&& t) : v(300) { } };
+M Make() { return M(); }
+int main()
+{
+	int r = 0;
+	S a; const S c; D d; V x; M m; const M cm;
+	S b(a); S e(c); S f(d); S g = a;
+	if (b.v == 100 && e.v == 1 && f.v == 100 && g.v == 100) r += 1;
+	V y(x); V z = x;
+	if (y.v == 1 && z.v == 1) r += 2;
+	M n(m); M o(cm); M p(static_cast<M&&>(m));
+	if (n.v == 300 && o.v == 11 && p.v == 21) r += 4;
+	S h(3); V w('c');
+	if (h.v == 100 && w.v == 200) r += 8;
+	return r;
+}
+
+### TempConstructorTemplateCopiesForms | 127 | 14.5.2 [temp.mem] p5, 13.3.3 [over.match.best] p1: the same choice wherever an object is copied: an argument passed by value, a returned object, a member and a base of an object the compiler copies (const, so never the template), new, braces
+struct S { int v; S() : v(1) { } template<class T> S(T&& t) : v(100) { } };
+struct O { S s; int k; O() : k(2) { } };
+struct N { int v; N() : v(1) { } N(const N& o) : v(o.v + 10) { } };
+struct Q { N n; int v; Q() : v(1) { } template<class T> Q(T&& t) : v(100) { } };
+struct B { int v; B() : v(1) { } template<class T> B(T&& t) : v(100) { } };
+struct E : B { int w; E() : w(3) { } };
+void* operator new(decltype(sizeof(0)), void* p) { return p; }
+int Take(S s) { return s.v; }
+S Give(S& s) { return s; }
+S GiveConst(const S& s) { return s; }
+int main()
+{
+	int r = 0;
+	S a; const S c;
+	if (Take(a) == 100 && Take(c) == 1 && Take(S()) == 1) r += 1;
+	if (Give(a).v == 100 && GiveConst(a).v == 1) r += 2;
+	O o; O p(o); O q = o;
+	if (p.s.v == 1 && p.k == 2 && q.s.v == 1) r += 4;
+	Q x; const Q cx; Q y(x); Q z(cx);
+	if (y.v == 100 && y.n.v == 1 && z.v == 1 && z.n.v == 11) r += 8;
+	E e; E f(e);
+	if (f.v == 1 && f.w == 3) r += 16;
+	S m1; S m2; S* h = new (&m1) S(a); S* i = new (&m2) S(c);
+	if (h->v == 100 && i->v == 1) r += 32;
+	S j = static_cast<S&&>(a); S k{a}; S l = {c};
+	if (j.v == 1 && k.v == 100 && l.v == 1) r += 64;
+	return r;
+}
+
+### TempMemberTemplateDefinedLater | 31 | 14.5.2 [temp.mem] p1, 14.6.4.1 [temp.point] p8, 8.3.6 [dcl.fct.default] p4: a member template is called where it is only declared, in its class and after it, and defined outside the class later, with the default arguments its declaration gave it (which name its template parameter)
+struct S
+{
+	int v;
+	template<class T> T Twice(T t);
+	template<class T> static T Half(T t);
+	template<class T> int Size(T t = T());
+	template<class T> static int Count(T t, int n = sizeof(T));
+	int Early() { return Twice(2) + Half(8) * 10 + Size<char>() * 100; }
+};
+template<class C> struct W
+{
+	C c;
+	template<class T> T Add(T t);
+	int Early() { return Add(3); }
+};
+int Before(S& s) { return s.Twice(5) + S::Half(6); }
+template<class U> U S::Twice(U u) { return u * 2 + v; }
+template<class U> U S::Half(U u) { return u / 2; }
+template<class U> int S::Size(U u) { return (int)sizeof(U) + (int)u; }
+template<class U> int S::Count(U u, int n) { return n + (int)u; }
+template<class C> template<class T> T W<C>::Add(T t) { return t + c; }
+int main()
+{
+	int r = 0;
+	S s; s.v = 1;
+	W<int> w; w.c = 10;
+	if (s.Early() == 5 + 40 + 100) r += 1;
+	if (Before(s) == 11 + 3) r += 2;
+	if (w.Early() == 13 && w.Add('a') == 'a' + 10) r += 4;
+	if (s.Twice(3L) == 7 && sizeof(s.Twice('c')) == 1) r += 8;
+	if (S::Count('a') == 'a' + 1 && S::Count(2L) == sizeof(long) + 2 && S::Count(2, 5) == 7 && s.Size(3L) == sizeof(long) + 3) r += 16;
+	return r;
+}
+
+### TempExplicitSpecialisationDefaultArgumentRefused | REFUSED | 14.7.3 [temp.expl.spec] p21: an explicit specialisation of a function template is given no default argument
+template<class T> int Size(T t) { return sizeof(T); }
+template<> int Size<char>(char c = 'a') { return 7; }
+int main() { return Size('c'); }
+### TempMemberSpecialisationDefaultArgumentRefused | REFUSED | 14.7.3 [temp.expl.spec] p21: nor is one of a class template's member function
+template<class C> struct W { int F(int a); };
+template<> int W<char>::F(int a = 2) { return a; }
+int main() { W<char> w; return w.F(1); }
+
+### TempMemberClassDefinedOutside | 15 | 14.5.1.2 [temp.mem.class] p1, 14.5.2 [temp.mem] p1: a member class of a class template, and a member class template of one, defined outside it (each instance's own, the definition naming the template's parameters its own way); a member function of such a member class defined outside it too
+template<class T> struct Outer
+{
+	struct Inner;
+	struct Node;
+	template<class U> struct Pair;
+	Inner* Make(T t);
+	static int Size();
+};
+template<class T> struct Outer<T>::Inner { T t; int Twice() { return (int)t * 2; } };
+template<class T> struct Outer<T>::Node { T v; Node* next; Node(T a) : v(a), next(0) { } int Sum(); };
+template<class T> int Outer<T>::Node::Sum() { return (int)v + (next ? next->Sum() : 0); }
+template<class T> template<class U> struct Outer<T>::Pair { T a; U b; int Both() { return (int)a + (int)b; } };
+template<class T> typename Outer<T>::Inner* Outer<T>::Make(T t) { static Inner i; i.t = t; return &i; }
+template<class T> int Outer<T>::Size() { return (int)sizeof(Inner); }
+int main()
+{
+	int r = 0;
+	Outer<int>::Inner i; i.t = 4;
+	Outer<char>::Inner c; c.t = 3;
+	if (i.Twice() == 8 && c.Twice() == 6 && sizeof(c) == 1) r += 1;
+	Outer<int>::Node a(1), b(2); a.next = &b;
+	if (a.Sum() == 3) r += 2;
+	Outer<char>::Pair<long> p; p.a = 1; p.b = 5;
+	if (p.Both() == 6 && sizeof(p.b) == sizeof(long)) r += 4;
+	Outer<int> o;
+	if (o.Make(7)->Twice() == 14 && Outer<char>::Size() == 1) r += 8;
+	return r;
+}
+
+### TempMemberClassMembersOutside | 135 | 14.5.1.2 [temp.mem.class] p1, 9.7 [class.nest] p3: a member function of a class template's member class defined outside the template, a member class of the member class defined there, and a nested class of a class that is no template (its own names found before its enclosing class's)
+template<class T> struct Outer
+{
+	struct In { T t; int Get(); struct Deep; };
+};
+template<class T> int Outer<T>::In::Get() { return (int)t + 1; }
+template<class T> struct Outer<T>::In::Deep { T d[3]; };
+struct A { struct B; int k; };
+struct A::B { int x; int F() { return x + sizeof(A); } };
+int main()
+{
+	Outer<char>::In i; i.t = 4;
+	A::B b; b.x = 1;
+	return i.Get() + (int)sizeof(Outer<char>::In::Deep) * 10 + (b.F() == 1 + sizeof(A) ? 100 : 0);
+}
+
+### TempMemberClassThroughInstance | 31 | 14.5.1.2 [temp.mem.class], 5.1.1 [expr.prim.general] p8: Outer<char>::Node::name is that instance's member class's member: a static function, a static constant, an enumerator, a typedef, a function whose address is taken
+template<class T> struct Outer
+{
+	struct Node
+	{
+		T v;
+		static int Count() { return (int)sizeof(T); }
+		static const int size = sizeof(T) + 1;
+		enum { twice = sizeof(T) * 2 };
+		typedef T Type;
+		static int Add(int a) { return a + Count(); }
+	};
+	static int Use() { return Node::Count() + Node::size * 10; }
+};
+int (*gp)(int) = &Outer<char>::Node::Add;
+int main()
+{
+	int r = 0;
+	if (Outer<char>::Node::Count() == 1 && Outer<long>::Node::Count() == sizeof(long)) r += 1;
+	if (Outer<char>::Node::size == 2 && Outer<long>::Node::size == sizeof(long) + 1) r += 2;
+	if (Outer<char>::Node::twice == 2 && sizeof(Outer<long>::Node::Type) == sizeof(long)) r += 4;
+	if (Outer<char>::Use() == 21 && gp(4) == 5) r += 8;
+	if (sizeof(Outer<long>::Node::v) == sizeof(long)) r += 16;
+	return r;
+}
+
+### TempMemberVariableTemplateOfClassTemplate | 31 | 14 [temp] p1, 14.5.1.3 [temp.static] p1: a variable template that is a class template's static member is each instance's own and sees the instance's template arguments; defined in the class or outside it, named in the class, through an instance, an object and a derived class
+template<class C> struct W
+{
+	template<class T> static const int size = sizeof(T) + sizeof(C);
+	template<class T> static T value;
+	static int Use() { return size<char> + value<short>; }
+};
+template<class C> template<class T> T W<C>::value = T(sizeof(C) + 2);
+struct D : W<char> { };
+int ga[W<char>::size<char>];
+int main()
+{
+	int r = 0;
+	if (W<char>::size<char> == 2 && W<long>::size<char> == sizeof(long) + 1 && sizeof(ga) == 2 * sizeof(int)) r += 1;
+	if (W<char>::value<int> == 3 && W<long>::value<char> == (char)(sizeof(long) + 2)) r += 2;
+	W<char>::value<int> = 9;
+	if (W<char>::value<int> == 9 && W<char>::value<long> == 3) r += 4;
+	if (W<char>::Use() == 5 && W<long>::Use() == (int)sizeof(long) * 2 + 3) r += 8;
+	W<char> w; W<long>* p = 0;
+	if (w.size<long> == sizeof(long) + 1 && p->size<char> == sizeof(long) + 1 && D::size<char> == 2) r += 16;
+	return r;
+}

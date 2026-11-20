@@ -1,0 +1,1130 @@
+### CallVirtualThroughReference | 127 | 5.2.2 [expr.call] p1: a virtual function's final overrider in the object's dynamic type is called
+struct B { virtual int f() { return 1; } virtual int g(int x) const { return x + 1; } virtual ~B() { } };
+struct D : B { int f() override { return 2; } int g(int x) const override { return x + 2; } };
+struct E : D { int f() override { return 3; } };
+struct Holder { B& b; int Call() { return b.f(); } };
+int ByReference(B& b) { return b.f(); }
+int ByConstReference(const B& b) { return b.g(10); }
+int ByRvalueReference(B&& b) { return b.f(); }
+int main()
+{
+	D d;
+	E e;
+	B b;
+	B& rd = d;
+	B& re = e;
+	D& rde = e;
+	const B& crd = d;
+	B* pd = &d;
+	B& fromPointer = *pd;
+	Holder holder = { e };
+	int r = 0;
+	if (rd.f() == 2 && re.f() == 3 && rde.f() == 3) r += 1;
+	if (crd.g(10) == 12 && fromPointer.f() == 2) r += 2;
+	if (ByReference(d) == 2 && ByReference(e) == 3 && ByReference(b) == 1) r += 4;
+	if (ByConstReference(d) == 12 && ByConstReference(b) == 11) r += 8;
+	if (ByRvalueReference(D()) == 2 && ByRvalueReference(static_cast<B&&>(e)) == 3) r += 16;
+	if (holder.Call() == 3 && holder.b.f() == 3) r += 32;
+	if (b.f() == 1 && d.f() == 2 && e.f() == 3 && (*pd).f() == 2 && pd->f() == 2 && rd.B::f() == 1) r += 64;
+	return r;
+}
+### CallVirtualOperatorThroughReference | 7 | 5.2.2 [expr.call] p1: a virtual function's final overrider in the object's dynamic type is called
+struct B { virtual int operator+(int x) const { return x + 1; } virtual int operator-() const { return 1; } virtual int operator[](int x) const { return x; } virtual ~B() { } };
+struct D : B { int operator+(int x) const override { return x + 2; } int operator-() const override { return 2; } int operator[](int x) const override { return x * 2; } };
+int main()
+{
+	D d;
+	const B& rb = d;
+	int r = 0;
+	if (rb + 10 == 12) r += 1;
+	if (-rb == 2) r += 2;
+	if (rb[5] == 10) r += 4;
+	return r;
+}
+### FunctionalCastFloating | 31 | 5.2.3 [expr.type.conv] p1: T(x) is the cast (T)x
+int main()
+{
+	int i = 3;
+	long l = 7;
+	int r = 0;
+	if (double(3) / 2 == 1.5 && double(i) / 2 == 1.5) r += 1;
+	if (float(3) / 2 == 1.5f && float(i) / 2 == 1.5f) r += 2;
+	if (double(3.5) == 3.5 && float(0.25f) == 0.25f && double(0.5f) == 0.5) r += 4;
+	if (double(l) / 2 == 3.5 && (int)(double(i) * 2.5) == 7) r += 8;
+	double d = double(i) + double(1) / 4;
+	float f = float(l) / float(2);
+	if (d == 3.25 && f == 3.5f) r += 16;
+	return r;
+}
+### ConditionalKeepsSmallTypes | 15 | 5.16 [expr.cond] p6: operands of one type give that type
+int f(char) { return 1; }
+int f(int) { return 2; }
+int f(bool) { return 3; }
+int f(short) { return 4; }
+int f(unsigned char) { return 5; }
+int main()
+{
+	bool c = true;
+	char a = 'a';
+	char b = 'b';
+	short s = 1;
+	unsigned char uc = 2;
+	int r = 0;
+	if (f(c ? a : b) == 1 && f(c ? 'x' : 'y') == 1) r += 1;
+	if (f(c ? true : false) == 3 && f(c ? c : c) == 3) r += 2;
+	if (f(c ? s : s) == 4 && f(c ? uc : uc) == 5) r += 4;
+	if (f(c ? a : s) == 2 && f(c ? a : 1) == 2 && sizeof(c ? a : b) == 1 && sizeof(c ? s : s) == sizeof(short)) r += 8;
+	return r;
+}
+### MemberPointerNull | 127 | 4.11 [conv.mem] p1, 5.10 [expr.eq] p3: a null member pointer is distinct from every pointer to a member
+struct B { int b; int n; };
+struct A { int a; };
+struct D : B, A { int d; };
+int main()
+{
+	int B::* first = &B::b;
+	int B::* second = &B::n;
+	int B::* null = 0;
+	int A::* nullA = nullptr;
+	int D::* nullD = nullA;
+	int D::* firstD = first;
+	int D::* aD = &A::a;
+	int r = 0;
+	if (first && first != 0 && first != nullptr && first != null) r += 1;
+	if (second && second != null && first != second) r += 2;
+	if (!null && null == 0 && null == nullptr && !nullA) r += 4;
+	if (nullD == 0 && !nullD) r += 8;
+	if (firstD != 0 && firstD == first && aD != 0 && aD != firstD) r += 16;
+	bool b1 = first;
+	bool b2 = null;
+	if (b1 && !b2 && (first ? 1 : 2) == 1 && (null ? 1 : 2) == 2) r += 32;
+	null = first;
+	first = 0;
+	if (null && !first && null != first) r += 64;
+	return r;
+}
+### ParameterNamedAsMember | 31 | 12.6.2 [class.base.init] p15, 3.3.7 [basic.scope.class]: a parameter hides the member of its name (found by the clause 5 cases)
+struct S { S(int v) : v(v) { } int v; };
+struct T { T(int a, int b) : b(a), a(b) { } int a; int b; };
+struct U { U(int v) : twice(v * 2), v(v + 1) { } int v; int twice; };
+struct W { W(int v) { this->v = v; } int Get(int v) { return v + this->v; } int v; };
+struct X { constexpr X(int v) : v(v) { } constexpr int Get() const { return v; } int v; };
+constexpr X gx(6);
+int main()
+{
+	S s(7);
+	T t(7, 5);
+	U u(4);
+	W w(3);
+	X x(9);
+	int r = 0;
+	if (s.v == 7) r += 1;
+	if (t.a == 5 && t.b == 7) r += 2;
+	if (u.v == 5 && u.twice == 8) r += 4;
+	if (w.v == 3 && w.Get(10) == 13) r += 8;
+	if (x.Get() == 9 && gx.Get() == 6 && gx.v == 6) r += 16;
+	return r;
+}
+### NewCharArrayFromString | 7 | 5.3.4 [expr.new] p17, 8.5.2 [dcl.init.string]: a new array of characters from a string in braces
+@NEW@
+int main()
+{
+	char* sz = new char[4]{ "abc" };
+	char* longer = new char[6]{ "ab" };
+	wchar_t* wide = new wchar_t[3]{ L"xy" };
+	int r = 0;
+	if (sz[0] == 'a' && sz[2] == 'c' && sz[3] == 0) r += 1;
+	if (longer[1] == 'b' && longer[2] == 0 && longer[5] == 0) r += 2;
+	if (wide[0] == L'x' && wide[1] == L'y' && wide[2] == 0) r += 4;
+	return r;
+}
+### DeleteClassSizedExact | 31 | 5.3.5 [expr.delete] p10: a class's operator delete that takes a size is given the class's
+@NEW@
+size_t gSize = 0;
+int gCalls = 0;
+struct P { char c[5]; static void operator delete(void* p, size_t n) { gSize = n; gCalls += 1; } };
+struct Q : P { long l; };
+struct Both { static void operator delete(void* p) { gCalls += 100; } static void operator delete(void* p, size_t n) { gCalls += 1000; } };
+struct Hides : P { static void operator delete(void* p) { gCalls += 10; } };
+int main()
+{
+	int r = 0;
+	P* p = new P;
+	delete p;
+	if (gSize == 5 && gCalls == 1 && giDeletes == 0) r += 1;
+	Q* q = new Q;
+	delete q;
+	if (gSize == sizeof(Q) && gCalls == 2) r += 2;
+	Both* both = new Both;
+	delete both;
+	if (gCalls == 102) r += 4;
+	Hides* hides = new Hides;
+	delete hides;
+	if (gCalls == 112 && giDeletes == 0) r += 8;
+	p = new P;
+	::delete p;
+	if (gCalls == 112 && giDeletes == 1) r += 16;
+	return r;
+}
+### MemberAccessRepeatedBase | 63 | 5.2.5 [expr.ref] p5, 10.2 [class.member.lookup]: a member of a base the class has twice, named through each
+struct A { int a; int f() { return a; } static int s() { return 3; } };
+struct B : A { };
+struct C : A { };
+struct V : virtual A { };
+struct W : virtual A { };
+struct D : B, C { int k() { return B::a * 10 + C::f(); } int m() { return C::a * 10 + B::f() + s(); } };
+struct E : V, W { int k() { return a * 10 + f(); } };
+int main()
+{
+	D d;
+	E e;
+	d.B::a = 1; d.C::a = 2; e.a = 4;
+	A* p = &e;
+	A& ra = e;
+	int r = 0;
+	if (d.k() == 12) r += 1;
+	if (d.m() == 24) r += 2;
+	if (d.B::a == 1 && d.C::f() == 2 && d.s() == 3) r += 4;
+	if (e.k() == 44 && p->a == 4 && ra.a == 4) r += 8;
+	if (static_cast<A*>(static_cast<B*>(&d))->a == 1 && static_cast<A&>(static_cast<C&>(d)).a == 2) r += 16;
+	if (static_cast<E*>(static_cast<V*>(&e))->k() == 44) r += 32;
+	return r;
+}
+### MemberAccessAmbiguousBaseOnThisRefused | REFUSED | 5.2.5 [expr.ref] p5, 10.2 [class.member.lookup]: ambiguous base
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { int g() { return a; } };
+int main() { D d; return d.g(); }
+### MemberCallAmbiguousBaseRefused | REFUSED | 5.2.5 [expr.ref] p5, 10.2 [class.member.lookup]: ambiguous base
+struct A { int f() { return 1; } };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main() { D d; return d.f(); }
+### MemberCallAmbiguousBaseOnThisRefused | REFUSED | 5.2.5 [expr.ref] p5, 10.2 [class.member.lookup]: ambiguous base
+struct A { int f() { return 1; } };
+struct B : A { };
+struct C : A { };
+struct D : B, C { int h() { return f(); } };
+int main() { D d; return d.h(); }
+### DeleteThroughBase | 63 | 5.3.5 [expr.delete] p3, p9, p10: the object's own class frees it, whatever base the pointer is to
+@NEW@
+void* gFreed = 0;
+size_t gSize = 0;
+int gLog = 0;
+struct A { int a; virtual ~A() { gLog = gLog * 10 + 1; } };
+struct B { int b; virtual ~B() { gLog = gLog * 10 + 2; } };
+struct D : A, B { long d; ~D() { gLog = gLog * 10 + 3; } static void operator delete(void* p, size_t n) { gFreed = p; gSize = n; } };
+struct E : D { char e[7]; static void operator delete(void* p) { gFreed = p; gSize = 77; } };
+struct V { int v; virtual ~V() { gLog = gLog * 10 + 4; } };
+struct W : virtual V { int w; static void operator delete(void* p, size_t n) { gFreed = p; gSize = n; } };
+struct G : A { int g; };
+int main()
+{
+	int r = 0;
+	D* d = new D;
+	B* b = d;
+	delete b;
+	if (gFreed == d && gSize == sizeof(D) && gLog == 321 && giDeletes == 0) r += 1;
+	gLog = 0;
+	E* e = new E;
+	b = e;
+	delete b;
+	if (gFreed == e && gSize == 77 && gLog == 321) r += 2;
+	gLog = 0;
+	W* w = new W;
+	V* v = w;
+	delete v;
+	if (gFreed == w && gSize == sizeof(W) && gLog == 4) r += 4;
+	gLog = 0;
+	gFreed = 0;
+	A* a = new G;
+	delete a;
+	if (gFreed == 0 && giDeletes == 1 && gLog == 1) r += 8;
+	gLog = 0;
+	d = new D;
+	a = d;
+	::delete a;
+	if (gFreed == 0 && giDeletes == 2 && gLog == 321) r += 16;
+	b = 0;
+	delete b;
+	if (giDeletes == 2) r += 32;
+	return r;
+}
+### DeleteArrayClassOwn | 7 | 5.3.5 [expr.delete] p6, p9: an array of objects is destroyed and freed by its class's operator delete[]
+@NEW@
+void* gGiven = 0;
+void* gFreed = 0;
+int gCalls = 0;
+int gDestroyed = 0;
+struct S
+{
+	int v;
+	S() : v(1) { }
+	~S() { gDestroyed++; }
+	static void* operator new[](size_t n) { gGiven = Allocate(n); return gGiven; }
+	static void operator delete[](void* p) { gFreed = p; gCalls++; }
+};
+struct T { int v; ~T() { gDestroyed += 10; } };
+int main()
+{
+	int r = 0;
+	S* s = new S[3];
+	delete[] s;
+	if (gFreed == gGiven && gGiven != 0 && gCalls == 1 && gDestroyed == 3 && giDeletes == 0) r += 1;
+	s = new S[2];
+	::delete[] s;
+	if (gCalls == 1 && gDestroyed == 5 && giDeletes == 1) r += 2;
+	T* t = new T[2];
+	delete[] t;
+	if (gDestroyed == 25 && giDeletes == 2 && gCalls == 1) r += 4;
+	return r;
+}
+### PrimThisVolatile | 31 | 5.1.1 [expr.prim.general] p3, 9.3.2 [class.this]: this in a volatile member function, and which of the const and volatile overloads an object takes
+@SAME@
+struct S
+{
+	int m;
+	int f() { return 1; }
+	int f() const { return 2; }
+	int f() volatile { return 4; }
+	int f() const volatile { return 8; }
+	int g() volatile { return Same<decltype(this), volatile S*>::V + Same<decltype(m), int>::V + Same<decltype((m)), volatile int&>::V; }
+	int h() const volatile { return Same<decltype(this), const volatile S*>::V; }
+	int k() const { return 16; }
+	int k() const volatile { return 32; }
+};
+typedef int (S::*PV)() volatile;
+typedef int (S::*PP)();
+int main()
+{
+	S s; const S c = S(); volatile S v; const volatile S cv = S();
+	volatile S* pv = &s;
+	PV p = &S::g;
+	int r = 0;
+	if (s.f() == 1 && c.f() == 2 && v.f() == 4 && cv.f() == 8 && pv->f() == 4) r += 1;
+	if (s.g() == 3 && v.g() == 3 && s.h() == 1 && cv.h() == 1) r += 2;
+	if (s.k() == 16 && v.k() == 32) r += 4;
+	if ((v.*p)() == 3 && (s.*p)() == 3) r += 8;
+	if (!Same<PV, PP>::V && Same<decltype(&S::g), PV>::V) r += 16;
+	return r;
+}
+### PrimThisVolatileObjectRefused | REFUSED | 9.3.2 [class.this] p4: a volatile object takes only volatile member functions
+struct S { int m; int f() { return m; } };
+int main() { volatile S s; s.m = 1; return s.f(); }
+### PrimThisQualifierAmbiguousRefused | REFUSED | 13.3.3.2 [over.ics.rank] p3: neither of const and volatile is the better for an object that is neither
+struct S { int m; int f() const { return 1; } int f() volatile { return 2; } };
+int main() { S s; return s.f(); }
+### MemberPointerVolatileObjectRefused | REFUSED | 5.5 [expr.mptr.oper] p5: a volatile object's member function through a pointer to one that isn't volatile
+struct S { int m; int f() { return m; } };
+int main() { volatile S s; int (S::*p)() = &S::f; s.m = 1; return (s.*p)(); }
+### PrimDecltypeQualifier | 63 | 5.1.1 [expr.prim.general] p8, 7.1.6.2 [dcl.type.simple]: decltype(e):: as a name's first qualifier, and decltype(e)(x)
+@SAME@
+struct B { int m; int f() { return 4; } static int s; static int g(int x) { return x + 1; } enum { E = 6 }; typedef long T; struct In { int v; }; };
+int B::s = 5;
+struct D : B { int m; };
+template<class X> struct W { typedef X Type; static X Twice(X x) { return x + x; } };
+int main()
+{
+	D d;
+	W<int> w;
+	int r = 0;
+	if (decltype(d)::s == 5 && decltype(d)::E == 6) r += 1;
+	decltype(d)::T t = 3;
+	decltype(d)::In in;
+	in.v = 2;
+	if (Same<decltype(t), long>::V && t == 3 && in.v == 2 && sizeof(decltype(d)::T) == sizeof(long)) r += 2;
+	if (decltype(d)::g(2) == 3 && decltype(w)::Twice(4) == 8 && Same<decltype(w)::Type, int>::V) r += 4;
+	decltype(d)::s = 9;
+	if (B::s == 9 && decltype(t)(7) == 7 && Same<decltype(decltype(t)(7)), long>::V) r += 8;
+	d.m = 3;
+	d.decltype(d)::m = 4;
+	if (d.m == 4 && &decltype(d)::s == &B::s) r += 16;
+	if ((decltype(d)::T)5 == 5 && static_cast<decltype(d)::T>(6) == 6 && alignof(decltype(d)::T) == alignof(long)) r += 32;
+	return r;
+}
+### PrimDecltypeQualifierNotClassRefused | REFUSED | 5.1.1 [expr.prim.general] p8: decltype(e):: needs a class or an enumeration
+struct B { int m; };
+int main() { int i = 0; return decltype(i)::m; }
+### PrimDecltypeQualifierReferenceRefused | REFUSED | 5.1.1 [expr.prim.general] p8: decltype((b)) is a reference, which has no members to name
+struct B { int m; static int s; };
+int B::s = 2;
+int main() { B b; return decltype((b))::s; }
+### PrimMemberUnevaluatedOperands | 7 | 5.1.1 [expr.prim.general] p13: a non-static member named in an operand that isn't evaluated, with no object
+struct S
+{
+	int m;
+	char c[5];
+	long f();
+	static int g() { return sizeof(m + 1) == sizeof(int) && noexcept(m + 1) && sizeof(c[1]) == 1; }
+};
+int main()
+{
+	int r = 0;
+	if (sizeof(((S*)0)->f()) == sizeof(long)) r += 1;
+	if (noexcept(S::m + 1) && noexcept(S::c[2]) && sizeof(S::m + 1) == sizeof(int)) r += 2;
+	if (S::g()) r += 4;
+	return r;
+}
+### PrimMemberInStaticRefused | REFUSED | 5.1.1 [expr.prim.general] p13: a non-static member read in a static member function
+struct S { int m; static int g() { return m + 1; } };
+int main() { return S::g(); }
+### UnaryObjectConversions | 15 | 5.3.1 [expr.unary.op] p7-p10, 13.6 [over.built]: +, - and ~ of an object no operator function takes are the built-in ones on what its conversion function gives
+@SAME@
+struct C { int v; operator int*() { return &v; } };
+struct D { operator int() const { return 5; } };
+struct E { operator bool() const { return true; } };
+int main()
+{
+	auto pg = +[](int v) { return v + 1; };
+	C c; c.v = 3;
+	D d; E e;
+	int r = 0;
+	if (Same<decltype(pg), int (*)(int)>::V && pg(4) == 5) r += 1;
+	if (*+c == 3 && Same<decltype(+c), int*>::V) r += 2;
+	if (+d == 5 && -d == -5 && ~d == ~5 && !d == false && Same<decltype(-d), int>::V) r += 4;
+	if (!e == false && +e == 1 && Same<decltype(+e), int>::V) r += 8;
+	return r;
+}
+### UnaryMinusPointerObjectRefused | REFUSED | 5.3.1 [expr.unary.op], 13.6 [over.built]: - of an object that converts only to a pointer
+struct C { int v; operator int*() { return &v; } };
+int main() { C c; c.v = 3; return -c ? 1 : 2; }
+### UnaryObjectTwoConversionsRefused | REFUSED | 5.3.1 [expr.unary.op], 13.6 [over.built]: an object that converts to two arithmetic types
+struct X { operator int() const { return 1; } operator double() const { return 2.0; } };
+int main() { X x; return (int)-x; }
+### UnaryComplementFloatObjectRefused | REFUSED | 5.3.1 [expr.unary.op], 13.6 [over.built]: ~ of an object that converts only to a floating type
+struct F { operator double() const { return 2.0; } };
+int main() { F f; return (int)~f; }
+### UnaryPlusObjectNoConversionRefused | REFUSED | 5.3.1 [expr.unary.op], 13.6 [over.built]: + of an object with no operator and no conversion function
+struct S { int v; };
+int main() { S s; s.v = 1; return +s ? 1 : 2; }
+### LambdaInDefaultArgument | 6 | 5.1.2 [expr.prim.lambda] p13: a lambda in a default argument that captures nothing, and one inside it that captures its local
+int g = 3;
+int f(int v = [] { return g + 1; }()) { return v; }
+int h(int v = [] { int z = 2; return [z] { return z; }(); }()) { return v; }
+int main() { return f() + h(); }
+### LambdaDefaultArgumentDefaultCaptureRefused | REFUSED | 5.1.2 [expr.prim.lambda] p13: a lambda in a default argument captures nothing, by a default capture either
+int main() { int a = 1; struct L { static int f(int v = [=] { return a; }()) { return v; } }; return L::f(); }
+### LambdaArrayCapture | 31 | 5.1.2 [expr.prim.lambda] p15: an array captured by copy is the closure's own array, each element copied
+int gCopies = 0;
+int gDestroyed = 0;
+struct P { int v; P() : v(1) { } P(const P& o) : v(o.v + 10) { gCopies++; } ~P() { gDestroyed++; } };
+int Sum(const int* p, int n) { int s = 0; for (int i = 0; i < n; i++) s += p[i]; return s; }
+int main()
+{
+	int a[3] = { 4, 5, 6 };
+	int m[2][2] = { { 1, 2 }, { 3, 4 } };
+	int r = 0;
+	auto arr = [a] { return a[0] + a[1] + a[2] + (int)sizeof(a) / (int)sizeof(int); };
+	auto mut = [a]() mutable { a[0] = 20; return a[0] + a[1]; };
+	auto mat = [m] { return m[0][0] + m[1][1] * 10 + Sum(m[1], 2) * 100; };
+	auto all = [=] { return Sum(a, 3) + m[0][1]; };
+	a[1] = 50;
+	m[1][1] = 9;
+	if (arr() == 18) r += 1;
+	if (mut() == 25 && a[0] == 4) r += 2;
+	if (mat() == 741 && all() == 61 + 2 - 46 + 0) r += 4;
+	{
+		P p[2];
+		auto objs = [p] { return p[0].v + p[1].v; };
+		auto again = objs;
+		if (objs() == 22 && again() == 42 && gCopies == 4) r += 8;
+	}
+	if (gDestroyed == 6) r += 16;
+	return r;
+}
+### LambdaConstantDecltype | 4095 | 5.1.2 [expr.prim.lambda] p18, 3.2 [basic.def.odr] p3: decltype of a captured variable, and of a constant the lambda needn't capture
+@SAME@
+int main()
+{
+	int x = 1;
+	const int cx = 2;
+	auto g = [=]() mutable { return Same<decltype((x)), int&>::V + Same<decltype((cx)), const int&>::V * 2 + Same<decltype(cx), const int>::V * 4 + Same<decltype(x), int>::V * 8; };
+	auto h = [=]() mutable { int y = x + cx; return Same<decltype((cx)), const int&>::V + Same<decltype((x)), int&>::V * 2 + y * 4; };
+	auto k = [=]() { int y = x + cx; return Same<decltype((cx)), const int&>::V + Same<decltype((x)), const int&>::V * 2 + y * 4; };
+	return g() + h() * 16 + k() * 256;
+}
+### LambdaGenericConversion | 14 | 5.1.2 [expr.prim.lambda] p6: a generic lambda that captures nothing converts to a pointer to a function of each type its operator() can be
+int Apply(int (*p)(int), int v) { return p(v); }
+int main()
+{
+	auto twice = [](auto v) { return v + v; };
+	int (*p)(int) = twice;
+	long (*q)(long) = twice;
+	return Apply(twice, 4) + p(1) + (int)q(2);
+}
+### LambdaTrailingDeducedReturn | 63 | 5.1.2 [expr.prim.lambda] p5, 7.1.6.4 [dcl.spec.auto]: -> decltype(auto) is what the return gives, a reference where that is one
+@SAME@
+int main()
+{
+	auto forward = [](auto&& v) -> decltype(auto) { return static_cast<decltype(v)>(v); };
+	auto ref = [](auto&& v) { return Same<decltype(v), int&>::V + Same<decltype(v), int&&>::V * 2; };
+	auto plain = [](int& v) -> decltype(auto) { return static_cast<int&>(v); };
+	auto moved = [](int& v) -> decltype(auto) { return static_cast<int&&>(v); };
+	int i = 5;
+	int r = 0;
+	if (Same<decltype(forward(i)), int&>::V) r += 1;
+	if (Same<decltype(forward(5)), int&&>::V) r += 2;
+	if (ref(i) == 1 && ref(5) == 2) r += 4;
+	if (Same<decltype(plain(i)), int&>::V) r += 8;
+	if (Same<decltype(moved(i)), int&&>::V) r += 16;
+	forward(i) = 7;
+	if (i == 7) r += 32;
+	return r;
+}
+### LambdaGenericConversionReturnRefused | REFUSED | 5.1.2 [expr.prim.lambda] p6: the function pointed to must return what the lambda does for those parameters
+int main() { int (*p)(double) = [](auto v) { return v + v; }; return p(1.0); }
+### LambdaGenericConversionCaptureRefused | REFUSED | 5.1.2 [expr.prim.lambda] p6: a lambda that captures has no conversion to a pointer to a function
+int main() { int k = 1; int (*p)(int) = [k](auto v) { return v + k; }; return p(1); }
+### LambdaGenericConversionReferenceRefused | REFUSED | 5.1.2 [expr.prim.lambda] p6: auto& is no parameter of a function that takes an int
+int main() { int (*p)(int) = [](auto& v) { return v + 1; }; return p(1); }
+### CallIncompleteReturnDecltypeForms | 3 | 5.2.2 [expr.call] p11, 7.1.6.2 [dcl.type.simple] p5: the call in brackets, and as the right of a comma that is decltype's operand
+@SAME@
+struct I;
+I Make();
+I& Ref();
+int main()
+{
+	int r = 0;
+	if (Same<decltype((Make())), I>::V && Same<decltype(0, Make()), I>::V) r += 1;
+	if (Same<decltype(Ref()), I&>::V && Same<decltype((0, (Make()))), I>::V) r += 2;
+	return r;
+}
+### CommaValueCategory | 7 | 5.18 [expr.comma] p1: a comma expression is an lvalue or an rvalue as its right operand is
+struct S { int v; };
+int Take(S&) { return 1; }
+int Take(S&&) { return 2; }
+S Make() { S s; s.v = 3; return s; }
+int main()
+{
+	S a;
+	a.v = 1;
+	int r = 0;
+	if (Take((0, a)) == 1) r += 1;
+	if (Take((0, Make())) == 2) r += 2;
+	S&& moved = (a.v++, Make());
+	S& same = (a.v++, a);
+	if (moved.v == 3 && &same == &a && a.v == 3) r += 4;
+	return r;
+}
+### NewParenthesisedArray | 31 | 5.3.4 [expr.new] p5: a type-id that is an array by itself, new (T[N]) and new A for a typedef of one, makes the array and gives a pointer to its first element
+@NEW@
+@SAME@
+int gConstructed = 0;
+int gDestroyed = 0;
+struct C { C() : v(++gConstructed) { } ~C() { gDestroyed++; } int v; };
+typedef int A[4];
+typedef C Pair[2];
+int Three() { return 3; }
+int main()
+{
+	int r = 0;
+	int* a = new (int[3]);
+	a[2] = 5;
+	if (a[2] == 5 && guiLastSize == 3 * sizeof(int) && Same<decltype(new (int[3])), int*>::V) r += 1;
+	int (**pf)() = new (int (*[2])());
+	pf[1] = Three;
+	int (*m)[2] = new (int[3][2]);
+	m[2][1] = 7;
+	if (pf[1]() == 3 && m[2][1] == 7 && guiLastSize == 6 * sizeof(int) && Same<decltype(new (int[3][2])), int (*)[2]>::V) r += 2;
+	int* t = new A;
+	t[3] = 9;
+	int* z = new A();
+	if (t[3] == 9 && z[0] == 0 && z[3] == 0 && guiLastSize == 4 * sizeof(int) && Same<decltype(new A), int*>::V) r += 4;
+	C* c = new Pair;
+	C* d = new (C[3]);
+	if (gConstructed == 5 && c[1].v == 2 && d[2].v == 5) r += 8;
+	delete[] c;
+	delete[] d;
+	if (gDestroyed == 5 && giDeletes == 2) r += 16;
+	return r;
+}
+### NewParenthesisedArrayNoBoundRefused | REFUSED | 5.3.4 [expr.new] p1: an array of unknown bound can't be made
+void* operator new[](decltype(sizeof(0)) n);
+int main() { int* p = new (int[]); return p != 0; }
+### TemplateDeclaredOnly | 7 | 14.5.6 [temp.fct], 3.2 [basic.def.odr] p4: a function template that is only declared is called where the call is not evaluated, and is its definition once it has one
+template<class T> char Test(T*);
+template<class T> long Test(...);
+template<class T> T Declared(T) noexcept;
+template<class T, class U> U Pick(T, U);
+struct S { };
+template<class T> T f(T);
+typedef decltype(f(1)) X;
+template<class U> U f(U u) { return u + 1; }
+template<class T> T f(T);
+int main()
+{
+	int r = 0;
+	if (sizeof(Test<S>((S*)0)) == 1 && sizeof(Test<S>(1, 2)) == sizeof(long)) r += 1;
+	if (noexcept(Declared(1)) && sizeof(Declared('a')) == 1 && sizeof(Pick(1, 2L)) == sizeof(long)) r += 2;
+	X x = f(1);
+	if (x == 2 && f(2L) == 3 && sizeof(X) == sizeof(int)) r += 4;
+	return r;
+}
+### ConditionalBitFields | 15 | 5.16 [expr.cond] p4: c ? x : y of bit-fields, or of one and a variable of its type, is the one picked: assigned, counted and read
+struct Bits { unsigned x : 3; unsigned y : 5; int s : 4; int t : 6; unsigned whole; };
+int main()
+{
+	bool c = true;
+	bool n = false;
+	Bits b;
+	unsigned plain = 9;
+	b.x = 1; b.y = 2; b.s = -3; b.t = -20; b.whole = 100;
+	int r = 0;
+	(c ? b.x : b.y) = 5;
+	(n ? b.x : b.y) = 30;
+	if (b.x == 5 && b.y == 30 && b.s == -3 && b.t == -20 && b.whole == 100) r += 1;
+	(c ? b.x : b.y) += 2;
+	(n ? b.x : b.y)--;
+	++(c ? b.s : b.t);
+	if (b.x == 7 && b.y == 29 && b.s == -2 && (n ? b.s : b.t) == -20 && (c ? b.s : b.t) == -2) r += 2;
+	(c ? b.x : plain) = 3;
+	(n ? b.x : plain) = 7000;
+	if (b.x == 3 && plain == 7000 && (c ? plain : b.y) == 7000 && (n ? plain : b.y) == 29) r += 4;
+	if (((n ? b.x : b.y) = 0x7F) == 31 && b.y == 31 && b.x == 3) r += 8;
+	return r;
+}
+### ConditionalBitFieldAddressRefused | REFUSED | 5.3.1 [expr.unary.op] p4: the address of c ? x : y that picks a bit-field
+struct Bits { unsigned x : 3; unsigned y : 3; };
+int main() { Bits b; b.x = 1; b.y = 2; unsigned* p = &(b.x ? b.x : b.y); return *p; }
+### ConditionalBothConvertRefused | REFUSED | 5.16 [expr.cond] p3: each operand converts to the other's type
+struct X { X(int v) : v(v) { } operator int() const { return v; } int v; };
+int main() { X x(1); bool c = true; return (c ? x : 2) == 1; }
+### ConstantLocalObjects | 7 | 5.19 [expr.const] p2, p5, 7.1.5 [dcl.constexpr] p9: a constexpr local of a class, a floating or a pointer type is a constant, read by what follows
+struct P { int x; int y; constexpr int Sum() const { return x + y; } };
+constexpr double Half(double v) { return v / 2; }
+int gA = 5;
+int gArr[4];
+constexpr int Twice(int v) { return v * 2; }
+int main()
+{
+	constexpr P p = { 3, 4 };
+	constexpr double d = 2.5;
+	constexpr double e = d * 2 + Half(3.0);
+	constexpr int* pg = &gA;
+	constexpr int& rg = gA;
+	constexpr const int* pe = &gArr[p.x];
+	constexpr P q = { p.y, Twice(p.x) };
+	static constexpr int sLocal = 9;
+	constexpr const int* ps = &sLocal;
+	int a[p.x];
+	int b[p.Sum() + q.y];
+	int r = 0;
+	if (sizeof(a) == 3 * sizeof(int) && sizeof(b) == 13 * sizeof(int)) r += 1;
+	if (e == 6.5 && *pg == 5 && &rg == &gA && pe == &gArr[3]) r += 2;
+	if (q.x == 4 && q.y == 6 && *ps == 9) r += 4;
+	return r;
+}
+### ConstantMemberFunctionPointerData | 6 | 5.19 [expr.const] p5: a constexpr pointer to a member function that nothing else names
+struct S { int m; int f() const { return m; } };
+S gs = { 6 };
+constexpr int (S::*gpmf)() const = &S::f;
+int main() { return (gs.*gpmf)(); }
+### ConstantStaticMemberOutside | 15 | 5.19 [expr.const] p2: a static const member is a constant from its definition after the class
+struct S { static const int scIn = 7; static const int scOut; static const int scLate; };
+const int S::scOut = 8;
+int main()
+{
+	int e[S::scIn + S::scOut];
+	return sizeof(e) / sizeof(int);
+}
+### BuiltinOperatorsOnObjects | 63 | 13.6 [over.built], 5.6-5.13: a built-in binary operator on an object no operator function takes is done on what the object's conversion function gives
+struct T { operator int() const { return 7; } };
+struct U { U(int x) : v(x) { } operator long() const { return v; } long v; };
+struct Q { operator int*() const { return p; } int* p; };
+int ga[9];
+int main()
+{
+	T t;
+	U u(3);
+	Q q;
+	q.p = ga + 2;
+	int x = 1;
+	int* p = ga;
+	int r = 0;
+	if (t + 1 == 8 && 1 + t == 8 && t * t == 49 && t - u == 4 && t / 2.0 == 3.5) r += 1;
+	if (t % 4 == 3 && t << 1 == 14 && (t & 6) == 6 && (t | 8) == 15 && (t ^ u) == 4 && u >> 1 == 1) r += 2;
+	if (t < 9 && !(t == u) && t != u && t >= u && u <= t && t > 6L) r += 4;
+	if (t + p == p + 7 && q + 1 == ga + 3 && q - p == 2 && q == ga + 2 && q > p) r += 8;
+	x += t;
+	x <<= u;
+	x -= u;
+	p += t;
+	if (x == 61 && p == ga + 7) r += 16;
+	if ((t && u) && (t || u) && sizeof(t + u) == sizeof(long) && sizeof(t + 1) == sizeof(int)) r += 32;
+	return r;
+}
+### BuiltinOperatorObjectNoConversionRefused | REFUSED | 13.6 [over.built]: an object with no operator function and no conversion function
+struct T { operator int() const { return 7; } };
+struct S { int v; };
+int main() { T t; S s; s.v = 1; return t + s; }
+### BuiltinOperatorObjectTwoConversionsRefused | REFUSED | 13.6 [over.built]: an object that converts to two arithmetic types
+struct X { operator int() const { return 1; } operator double() const { return 2.0; } };
+int main() { X x; return (int)(x + 1); }
+### BuiltinOperatorPointerObjectTimesRefused | REFUSED | 13.6 [over.built]: * of an object that converts only to a pointer
+struct Q { operator int*() const { return 0; } };
+int main() { Q q; return q * 2; }
+### ConstantConvertedFits | 7 | 5.19 [expr.const] p3, 14.3.2 [temp.arg.nontype], 7.2 [dcl.enum] p5: template arguments and enumerators whose values are of the type they are converted to
+template<unsigned char C> struct Byte { enum { V = C }; };
+template<unsigned int N> struct Count { enum { V = 1 }; };
+template<class T, T v> struct Of { static const T V = v; };
+template<long L> struct Long { enum { V = L > 0 }; };
+template<bool B> struct Flag { enum { V = B }; };
+enum E : unsigned char { E0 = 255, E1 = 0 };
+enum class F : short { F0 = -32768, F1 = 32767 };
+const int gFits = 200;
+int main()
+{
+	int r = 0;
+	if (Byte<255>::V == 255 && Byte<gFits>::V == 200 && Byte<'a'>::V == 'a' && Count<65535u>::V == 1) r += 1;
+	if (Of<unsigned char, 255>::V == 255 && Of<signed char, -128>::V == -128 && Long<70000L>::V && Flag<(3 > 2)>::V) r += 2;
+	if (E0 == 255 && (int)F::F0 == -32768 && (int)F::F1 == 32767) r += 4;
+	return r;
+}
+### ConstantAddressAsNumberRefused | REFUSED | 5.19 [expr.const] p2: an address cast to an integer is not a constant
+int gi = 1;
+int main() { constexpr unsigned long long a = (unsigned long long)&gi; return a ? 1 : 2; }
+
+### DeleteGlobalSized | 31 | 5.3.5 [expr.delete] p10, 3.7.4.2 [basic.stc.dynamic.deallocation] p2: of the global operator delete that takes the pointer and the one that also takes the size, an object of a complete type is freed by the one that takes the size
+typedef decltype(sizeof(0)) size_t;
+char gacHeap[256];
+size_t guiHeap = 0;
+size_t guiNew = 0;
+size_t guiSized = 0;
+int giPlain = 0;
+int giSized = 0;
+void* Allocate(size_t n) { void* p = gacHeap + guiHeap; guiHeap += (n + 7) & ~(size_t)7; guiNew = n; return p; }
+void* operator new(size_t n) { return Allocate(n); }
+void* operator new[](size_t n) { return Allocate(n); }
+void operator delete(void* p) noexcept { giPlain++; }
+void operator delete[](void* p) noexcept { giPlain++; }
+void operator delete(void* p, size_t n) noexcept { giSized++; guiSized = n; }
+void operator delete[](void* p, size_t n) noexcept { giSized++; guiSized = n; }
+struct S { long a; long b; };
+struct D { int v; ~D() { } };
+struct V { long x; virtual ~V() { } };
+struct W : V { long y; };
+int main()
+{
+	int r = 0;
+	S* s = new S;
+	delete s;
+	if (giSized == 1 && guiSized == sizeof(S) && giPlain == 0) r += 1;
+	int* i = new int;
+	delete i;
+	if (giSized == 2 && guiSized == sizeof(int) && giPlain == 0) r += 2;
+	D* d = new D[3];
+	delete[] d;
+	if (giSized == 3 && guiSized == guiNew && guiSized > 3 * sizeof(D) && giPlain == 0) r += 4;
+	S* a = new S[2];
+	delete[] a;
+	if (giSized + giPlain == 4 && (giPlain == 1 || guiSized == guiNew)) r += 8;
+	giPlain = 0;
+	giSized = 0;
+	V* v = new W;
+	delete v;
+	if (giSized + giPlain == 1 && (giPlain == 1 || guiSized == sizeof(W))) r += 16;
+	return r;
+}
+
+### DeleteArraySizedClass | 15 | 5.3.5 [expr.delete] p10, 12.5 [class.free] p5: a class's operator delete[] that takes a size is given the size its array was allocated with
+typedef decltype(sizeof(0)) size_t;
+char gacHeap[256];
+size_t guiNew = 0;
+size_t guiDeleted = 0;
+int giDestroyed = 0;
+struct S
+{
+	int v;
+	S() : v(1) { }
+	~S() { giDestroyed++; }
+	static void* operator new[](size_t n) { guiNew = n; return gacHeap; }
+	static void operator delete[](void* p, size_t n) { guiDeleted = n; }
+};
+struct T : S { int w; };
+int main()
+{
+	int r = 0;
+	S* p = new S[3];
+	if (guiNew > 3 * sizeof(S)) r += 1;
+	delete[] p;
+	if (giDestroyed == 3) r += 2;
+	if (guiDeleted == guiNew) r += 4;
+	T* q = new T[2];
+	delete[] q;
+	if (giDestroyed == 5 && guiDeleted == guiNew && guiNew > 2 * sizeof(T)) r += 8;
+	return r;
+}
+
+### CallOperatorFunctionByName | 31 | 5.2.2 [expr.call], 13.5 [over.oper] p4: an operator function is called by its name, operator+(a, b), as another function is
+typedef decltype(sizeof(0)) size_t;
+char gacHeap[64];
+int giDeleted = 0;
+void* operator new(size_t n) { return gacHeap; }
+void operator delete(void* p) noexcept { giDeleted++; }
+struct V { int v; V operator-() const { V r = { -v }; return r; } int operator[](int i) const { return v + i; } };
+V operator+(const V& a, const V& b) { V r = { a.v + b.v }; return r; }
+bool operator==(const V& a, const V& b) { return a.v == b.v; }
+template<class T> T operator*(const V& a, T t) { return (T)(a.v * t); }
+int main()
+{
+	int r = 0;
+	V a = { 3 };
+	V b = { 4 };
+	void* p = operator new(8);
+	if (p == gacHeap) r += 1;
+	operator delete(p);
+	if (giDeleted == 1) r += 2;
+	if (operator+(a, b).v == 7 && operator==(a, a)) r += 4;
+	if (a.operator-().v == -3 && a.operator[](2) == 5) r += 8;
+	if (operator*(a, 5L) == 15 && sizeof(operator*(a, 5L)) == sizeof(long)) r += 16;
+	return r;
+}
+
+### LambdaCapturesPack | 31 | 5.1.2 [expr.prim.lambda] p24: a capture followed by an ellipsis is a pack expansion, and a default capture captures a pack the body expands
+int Sum(int a, int b, int c) { return a + b + c; }
+template<class... A> int ByCopy(A... a) { auto l = [a...] { return Sum(a...); }; return l(); }
+template<class... A> int ByReference(A&... a) { auto l = [&a...] { int x[] = { (a += 1)... }; return x[0] + x[1] + x[2]; }; return l(); }
+template<class... A> int ByDefault(A... a) { auto l = [=] { return Sum(a...) * 2; }; return l(); }
+template<class... A> int Count(A... a) { int n = 5; auto l = [n, a...] { return n + (int)sizeof...(a); }; return l(); }
+template<class... A> int Mutable(A... a) { auto l = [a...]() mutable { int x[] = { (a *= 2)... }; return x[0] + x[1] + x[2]; }; return l() + Sum(a...); }
+int main()
+{
+	int r = 0;
+	int i = 1;
+	int j = 2;
+	int k = 3;
+	if (ByCopy(1, 2, 3) == 6) r += 1;
+	if (ByReference(i, j, k) == 9 && i == 2 && j == 3 && k == 4) r += 2;
+	if (ByDefault(1, 2, 3) == 12) r += 4;
+	if (Count() == 5 && Count(1, 'c') == 7) r += 8;
+	if (Mutable(1, 2, 3) == 18) r += 16;
+	return r;
+}
+
+### LambdaGenericPack | 15 | 5.1.2 [expr.prim.lambda] p5: a generic lambda's parameter-declaration that is a function parameter pack makes its operator() template's last parameter a pack
+int Sum(int a, int b, int c) { return a + b + c; }
+template<class... A> int Count(A... a) { return (int)sizeof...(a); }
+int main()
+{
+	int r = 0;
+	auto all = [](auto... a) { return Sum(a...); };
+	auto rest = [](int x, auto... a) { int t[] = { a..., 0 }; return x + t[0]; };
+	auto count = [](auto... a) { return (int)sizeof...(a) * 10 + Count(a...); };
+	auto sizes = [](auto... a) { int s[] = { (int)sizeof(a)..., 0 }; return s[0] * 10 + s[1]; };
+	if (all(1, 2, 3) == 6) r += 1;
+	if (rest(4, 5, 6) == 9 && rest(7) == 7) r += 2;
+	if (count() == 0 && count(1, 'c', 2L) == 33) r += 4;
+	if (sizes('c', "ab") == 10 + (int)sizeof(const char*)) r += 8;
+	return r;
+}
+
+### SubscriptOperatorReturnsObject | 15 | 5.2.1 [expr.sub], 13.5.5 [over.sub], 5.17 [expr.ass]: object[index] is its operator[]'s result, an object too, which is assigned to and called on
+struct Bits
+{
+	unsigned b;
+	struct Ref
+	{
+		Bits& o;
+		int i;
+		Ref& operator=(bool v) { if (v) o.b |= 1u << i; else o.b &= ~(1u << i); return *this; }
+		operator bool() const { return (o.b >> i) & 1; }
+		void Flip() { o.b ^= 1u << i; }
+	};
+	Ref operator[](int i) { return Ref{ *this, i }; }
+};
+struct Cell { int* p; Cell& operator+=(int v) { *p += v; return *this; } Cell& operator++() { ++*p; return *this; } int Get() const { return *p; } };
+struct Row { int a[3]; Cell operator[](int i) { Cell c = { &a[i] }; return c; } };
+int main()
+{
+	int r = 0;
+	Bits x{ 0 };
+	x[2] = true;
+	x[0] = true;
+	if (x.b == 5 && x[2] && !x[1]) r += 1;
+	x[2] = false;
+	x[1].Flip();
+	if (x.b == 3) r += 2;
+	Row row = { { 1, 2, 3 } };
+	row[1] += 5;
+	++row[2];
+	if (row.a[1] == 7 && row.a[2] == 4 && row[1].Get() == 7) r += 4;
+	(x[3] = true) = false;
+	if (x.b == 3) r += 8;
+	return r;
+}
+
+### ConstantLiteralOperator | 15 | 5.19 [expr.const], 2.14.8 [lex.ext] p2: a user-defined literal is its literal operator's call, a constant expression when the operator is constexpr
+constexpr int operator"" _twice(unsigned long long v) { return (int)v * 2; }
+constexpr int operator"" _code(char c) { return c - 'a'; }
+constexpr unsigned operator"" _len(const char* s, decltype(sizeof(0)) n) { return (unsigned)n; }
+int operator"" _run(unsigned long long v) { return (int)v + 1; }
+int gaiRow[3_twice];
+enum { E = 4_twice + 'c'_code };
+template<int N> struct Count { enum { V = N }; };
+int main()
+{
+	int r = 0;
+	if (sizeof(gaiRow) == 6 * sizeof(int)) r += 1;
+	if (E == 10) r += 2;
+	if (Count<"four"_len>::V == 4) r += 4;
+	switch (5)
+	{
+	case 2_twice + 1:
+		r += 8;
+		break;
+	}
+	return r + (9_run == 10 ? 0 : 16);
+}
+
+### ConstantLiteralOperatorNotConstexprRefused | REFUSED | 5.19 [expr.const] p2: a call of a function that isn't constexpr is no constant expression, a literal operator's too
+int operator"" _run(unsigned long long v) { return (int)v + 1; }
+int gaiRow[3_run];
+int main() { return sizeof(gaiRow) / sizeof(int); }
+
+### LambdaDefaultArguments | 15 | 5.1.2 [expr.prim.lambda] p5, 8.3.6 [dcl.fct.default]: a lambda's parameters have default arguments, as its function call operator's
+int gCalls = 0;
+int Next() { return ++gCalls; }
+int main()
+{
+	int r = 0;
+	int k = 2;
+	auto add = [](int a, int b = 4) { return a + b; };
+	auto all = [k](int a = 5, int b = 6) { return a + b + k; };
+	auto each = [](int n = Next()) { return n; };
+	auto generic = [](auto a, int b = 3) { return (int)sizeof(a) * 10 + b; };
+	if ([](int w = 3) { return w; }() == 3) r += 1;
+	if (add(1) == 5 && add(1, 2) == 3) r += 2;
+	if (all() == 13 && all(1) == 9 && all(1, 1) == 4) r += 4;
+	if (each() == 1 && each() == 2 && each(7) == 7 && gCalls == 2) r += 8;
+	return r + (generic('c') == 13 && generic('c', 1) == 11 ? 0 : 16);
+}
+
+### DecltypeQualifiesMemberOrEnumerator | 63 | 5.1.1 [expr.prim.general] p8, 7.1.6.2 [dcl.type.simple] p4, 5.3.3 [expr.sizeof]: decltype(e)::name names a member of e's class, a type or not, or an enumerator of e's enumeration
+struct D { static char s; long m; typedef short T; enum { K = 3 }; };
+char D::s = 'x';
+enum class E { a = 1, b = 2 };
+enum U { u0, u1 = 5 };
+D d;
+E e;
+U u;
+int main()
+{
+	int r = 0;
+	int a[(int)decltype(e)::b + decltype(d)::K];
+	if (sizeof(decltype(d)::s) == 1) r += 1;
+	if (sizeof(decltype(d)::m) == sizeof(long)) r += 2;
+	if (sizeof(decltype(d)::T) == sizeof(short)) r += 4;
+	if ((int)decltype(e)::b == 2 && decltype(e)::a != decltype(e)::b) r += 8;
+	if (decltype(u)::u1 == 5) r += 16;
+	if (sizeof(a) == 5 * sizeof(int) && decltype(d)::s == 'x') r += 32;
+	return r;
+}
+
+### ConstantNamedCast | 15 | 5.19 [expr.const] p2, 5.2.9 [expr.static.cast]: a static_cast of a constant to an integer type is a constant expression
+int gaiRow[static_cast<int>(3 > 2) + 1];
+enum { E = static_cast<int>(7.9), F = static_cast<unsigned char>(300) };
+template<int N> struct Count { enum { V = N }; };
+int main()
+{
+	int r = 0;
+	if (sizeof(gaiRow) == 2 * sizeof(int)) r += 1;
+	if (E == 7 && F == 44) r += 2;
+	if (Count<static_cast<int>(sizeof(char)) + static_cast<char>(4)>::V == 5) r += 4;
+	switch (2)
+	{
+	case static_cast<int>(2L):
+		r += 8;
+		break;
+	}
+	return r;
+}
+
+### ConstantClassTemplateStaticMember | 15 | 5.19 [expr.const] p2, 14.5.1.3 [temp.static]: a class template's static const member defined after the class with a constant is a constant in each instance
+template<class T> struct W { static const int k; static const int big; enum { Twice = 2 * sizeof(T) }; };
+template<class T> const int W<T>::k = 3;
+template<class T> const int W<T>::big = sizeof(T) + 4;
+template<> const int W<char>::k = 7;
+int gaiRow[W<int>::k];
+int gaiBig[W<long>::big];
+int gaiChar[W<char>::k];
+template<int N> struct Count { enum { V = N }; };
+int main()
+{
+	int r = 0;
+	if (sizeof(gaiRow) == 3 * sizeof(int)) r += 1;
+	if (sizeof(gaiBig) == (sizeof(long) + 4) * sizeof(int)) r += 2;
+	if (sizeof(gaiChar) == 7 * sizeof(int) && W<char>::k == 7 && W<long>::k == 3) r += 4;
+	if (Count<W<short>::big>::V == sizeof(short) + 4) r += 8;
+	return r;
+}
+
+### StaticCastNullPointerToNumberRefused | REFUSED | 5.2.9 [expr.static.cast] p4, 4.12 [conv.bool]: nullptr becomes a pointer or, initialised directly, a bool; not a number
+int main()
+{
+	return static_cast<int>(nullptr);
+}
+
+### StaticCastNullPointer | 7 | 5.2.9 [expr.static.cast] p4, 4.10 [conv.ptr], 4.12 [conv.bool]: static_cast of nullptr to a pointer, a pointer to a member, bool and std::nullptr_t
+struct S { int m; };
+int main()
+{
+	int r = 0;
+	int* p = static_cast<int*>(nullptr);
+	int S::* q = static_cast<int S::*>(nullptr);
+	decltype(nullptr) n = static_cast<decltype(nullptr)>(nullptr);
+	if (p == 0 && q == 0) r += 1;
+	if (!static_cast<bool>(nullptr)) r += 2;
+	if (n == nullptr) r += 4;
+	return r;
+}
+
+### DeleteArraySizedNoDestructor | 15 | 5.3.5 [expr.delete] p10, 5.3.4 [expr.new] p11: a class's operator delete[] that takes a size is given its array's, for elements with no destructor too
+typedef decltype(sizeof(0)) size_t;
+char gacHeap[128];
+size_t guiNew = 0;
+size_t guiDeleted = 0;
+void* gpDeleted = 0;
+int giGlobal = 0;
+void* operator new[](size_t n) { return gacHeap + 64; }
+void operator delete[](void* p) noexcept { giGlobal++; }
+struct P
+{
+	long a;
+	long b;
+	static void* operator new[](size_t n) { guiNew = n; return gacHeap; }
+	static void operator delete[](void* p, size_t n) { guiDeleted = n; gpDeleted = p; }
+};
+struct Q : P { long c; };
+int main()
+{
+	int r = 0;
+	P* p = new P[3];
+	p[2].b = 7;
+	if (guiNew >= 3 * sizeof(P) && p[2].b == 7) r += 1;
+	delete[] p;
+	if (guiDeleted == guiNew && gpDeleted == gacHeap) r += 2;
+	Q* q = new Q[2];
+	delete[] q;
+	if (guiDeleted == guiNew && guiNew >= 2 * sizeof(Q)) r += 4;
+	P* g = ::new P[2];
+	::delete[] g;
+	if (giGlobal == 1) r += 8;
+	return r;
+}
+
+### ExprMemberVariableTemplate | 7 | 5.2.5 [expr.ref] p1, 14.2 [temp.names] p3: object.name<type> and pointer->name<type> name a member variable template's instance (a type is compared with nothing, so the < begins template arguments)
+struct S
+{
+	template<class T> static const int size = sizeof(T);
+	template<class T> static T value;
+	int k;
+};
+template<class T> T S::value = T(5);
+template<class C> struct W { template<class T> static const int twice = sizeof(T) * 2; };
+int main()
+{
+	int r = 0;
+	S s; S* p = &s;
+	if (s.size<char> == 1 && p->size<long> == sizeof(long)) r += 1;
+	s.value<int> = 7;
+	if (S::value<int> == 7 && p->value<int> == 7 && s.value<char> == 5) r += 2;
+	W<int> w;
+	if (w.twice<char> == 2) r += 4;
+	return r;
+}
+
+### ExprLambdaGenericPackToPointer | 63 | 5.1.2 [expr.prim.lambda] p6, 14.8.2.3 [temp.deduct.conv]: a generic lambda whose last parameter is a pack (auto... args) converts to a pointer to a function, the pack taking each of the function's parameters from its place on (none too)
+int Sum() { return 0; }
+template<class T, class... R> int Sum(T t, R... r) { return (int)t + Sum(r...); }
+int Call2(int (*f)(int, int)) { return f(3, 4); }
+int main()
+{
+	int r = 0;
+	int (*p)(int, int) = [](auto... a) { return Sum(a...); };
+	if (p(1, 2) == 3) r += 1;
+	int (*q)(char, long, int) = [](auto... a) { return (int)sizeof...(a) * 100 + Sum(a...); };
+	if (q(1, 2, 3) == 306) r += 2;
+	int (*z)() = [](auto... a) { return (int)sizeof...(a) + 5; };
+	if (z() == 5) r += 4;
+	if (Call2([](auto... a) { return Sum(a...) * 2; }) == 14) r += 8;
+	long (*m)(int, long) = [](int first, auto... rest) { return (long)first + Sum(rest...); };
+	if (m(10, 20L) == 30) r += 16;
+	auto g = [](auto... a) { return Sum(a...); };
+	int (*h)(int, char) = g;
+	if (h(5, 6) == 11 && g(1, 2, 3) == 6) r += 32;
+	return r;
+}
+
+### ExprLambdaCapturesPackBesideOwn | 127 | 5.1.2 [expr.prim.lambda] p24, 14.5.3 [temp.variadic] p5: a generic lambda with a parameter pack of its own captures the pack of the function it is in and expands both, apart and together; a lambda in it captures the two
+int Sum() { return 0; }
+template<class T, class... R> int Sum(T t, R... r) { return (int)t + Sum(r...); }
+template<class... A> int Both(A... a) { auto f = [a...](auto... b) { return Sum(a...) * 100 + Sum(b...); }; return f(1, 2); }
+template<class... A> int Two(int k, A... a) { auto f = [a..., k]() { return Sum(a...) + k; }; return f(); }
+template<class... A> int Count(A... a) { auto f = [=](auto... b) { return (int)sizeof...(a) * 10 + (int)sizeof...(b) + Sum(a...) * 100 + Sum(b...) * 1000; }; return f(1, 1); }
+template<class... A> int Nest(A... a) { auto f = [a...](auto... b) { auto g = [a..., b...]() { return Sum(a...) * 10 + Sum(b...); }; return g(); }; return f(1, 2); }
+template<class... A> int Refs(A... a) { auto f = [&a...](auto&... b) { int n = Sum(a...) + Sum(b...); return n; }; int x = 5; return f(x); }
+template<class... A> int Zip(A... a) { auto f = [a...](auto... b) { return Sum((a * b)...); }; return f(10, 100); }
+template<class... A> int None(A... a) { auto f = [a...](auto... b) { return (int)sizeof...(a) + (int)sizeof...(b) * 10; }; return f() + f(1) * 100; }
+int main()
+{
+	int r = 0;
+	if (Both(3, 4) == 703) r += 1;
+	if (Two(5, 1, 2) == 8) r += 2;
+	if (Count(2, 3) == 2522) r += 4;
+	if (Nest(3, 4) == 73) r += 8;
+	if (Refs(1, 2) == 8) r += 16;
+	if (Zip(2, 3) == 320) r += 32;
+	if (None() == 1000 && None(7, 8) == 2 + 1200) r += 64;
+	return r;
+}
+
+### ExprParenthesisedDecltypeMember | 31 | 5.4 [expr.cast] p2, 7.1.6.2 [dcl.type.simple] p4, 5.1.1 [expr.prim.general] p8: (decltype(e)::name) is a cast where the name is a type and the member's value in parentheses where it isn't, before + - * & and at the end of an expression
+struct D { static const int k = 5; enum { e = 7 }; static int F() { return 3; } typedef int Type; int m; };
+const int D::k;
+int Use(D p) { return (decltype(p)::k) + 1; }
+int main()
+{
+	int r = 0;
+	D d; int x = 2; int a[8]; a[5] = 4;
+	if ((decltype(d)::k) + 1 == 6 && (decltype(d)::e) + 1 == 8 && (decltype(d)::F()) + 1 == 4) r += 1;
+	if ((decltype(d)::k) - 1 == 4 && (decltype(d)::k) * x == 10 && -(decltype(d)::k) + 10 == 5) r += 2;
+	if ((decltype(d)::Type) +1.9 == 1 && (int)(decltype(d)::Type)1.5 + (decltype(d)::k) == 6) r += 4;
+	if (a[(decltype(d)::k)] == 4 && sizeof((decltype(d)::Type)0) == sizeof(int)) r += 8;
+	if (Use(d) == 6 && ((decltype(d)::k) & 4) == 4) r += 16;
+	return r;
+}
+
+### DeleteSizedGlobalPolymorphic | 15 | 5.3.5 [expr.delete] p10, 3.7.4.2 [basic.stc.dynamic.deallocation] p2, 12.4 [class.dtor] p13: the global operator delete that takes a size is given the size of the object's own class when an object with a virtual destructor is deleted through a base's pointer; a class's own operator delete is still the one called for it
+typedef decltype(sizeof(0)) size_t;
+static char gacHeap[256];
+static size_t guiUsed = 0;
+static size_t guiFreed = 0;
+static int giSized = 0;
+static int giPlain = 0;
+void* operator new(size_t n) { void* p = gacHeap + guiUsed; guiUsed += (n + 7) & ~(size_t)7; return p; }
+void operator delete(void* p) noexcept { giPlain++; }
+void operator delete(void* p, size_t n) noexcept { giSized++; guiFreed += n; }
+struct B { int b; virtual ~B() { } };
+struct D : B { long d[3]; };
+struct P { int p; };
+struct O { int o; virtual ~O() { } static int siOwn; void operator delete(void* p) { siOwn++; } };
+int O::siOwn = 0;
+int main()
+{
+	int r = 0;
+	B* pb = new D;
+	delete pb;
+	if (giSized == 1 && giPlain == 0 && guiFreed == sizeof(D)) r += 1;
+	B* pb2 = new B;
+	delete pb2;
+	if (giSized == 2 && guiFreed == sizeof(D) + sizeof(B)) r += 2;
+	P* pp = new P;
+	delete pp;
+	if (giSized == 3 && giPlain == 0 && guiFreed == sizeof(D) + sizeof(B) + sizeof(P)) r += 4;
+	O* po = new O;
+	delete po;
+	if (O::siOwn == 1 && giSized == 3 && giPlain == 0) r += 8;
+	return r;
+}

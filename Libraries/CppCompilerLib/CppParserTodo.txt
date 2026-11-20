@@ -1,112 +1,22 @@
-C++ Parser To Do
-================
+C++ Parser To Do: the record
+============================
 
-What is left after the preprocessor, tokeniser, parser and highlighter were written (2026-10-21).  In order of priority.  Goal: highlighting first, then refactoring, then compiling to a VM that is not written yet.
-
-The first back end, a 65C64 code generator (CCPPUnit), was started on 2026-10-23.  What it supports, its calling convention and what is left are in CPP65Generator.txt.  It works out the types it needs itself; item 2 below would let it share them with the highlighter.
-
-
-2. Expression types and member resolution
------------------------------------------
-
-The first part of the semantic pass, and the next thing to do.
-
-Today the highlighter cannot tell what p->x refers to.  It marks x as "member", which is hundreds of identifiers per file.  Knowing the type of each expression fixes that, and refactoring and compiling need it anyway.
-
-Steps:
-  - Build a table of types: built-ins, pointers, references, classes, typedefs, enums.
-  - Give every expression a type.
-  - Look up names after ".", "->" and "::" in that type, including base classes.
-  - Add a sweep check that counts the "member" highlight spans that remain.
-
-Overload resolution and template instantiation come after this.
-
-
-3. Name-lookup gaps in the parser
----------------------------------
-
-Small.  Some could be done along with item 2.
-  - "using Base<M>::x;" declarations that name members of a template base class.
-  - Field names inside offsetof(...).
-  - goto labels.  The highlighter guesses them now instead of looking them up.
-  - Qualified member calls inside templates, such as pvM->CBaseObject::CompleteClass(this) in StandardLib/Classes.h.
-
-
-4. Show the highlighting somewhere
-----------------------------------
-
-Right now the highlighting is only spans checked by tests.
-  - A small HTML export would be the quickest way to see it on real files.
-  - Colouring code in the WindowLib text components is the real use, but needs coloured text spans first, which CTextArea does not support.
-
-
-5. Smaller items
-----------------
-
-  - Add a Linux CMake build for TestJavaParserLib, so its tests run after the float128 fix.
-  - Instantiate every BaseLib template class in a test, to catch bugs the parser cannot see yet.  That is how the CArrayTemplateEmbeddedPrimitive bugs were found.
+What is left to do is in Cpp14CompliancePlan.txt.  This file is the record of what was done to bring the preprocessor
+and tokeniser to C++17 and the code generators to C++14: the plans of Part A and Part B as they were carried out, the
+questions the user was asked with their answers (the sources cite them by number: "CppParserTodo.txt question 13"),
+and what each stage and step did.  The parser's own to do list of 2026-10-21 (expression types, the highlighter) was
+done by the semantic pass and the IDE; the small items of it that weren't looked at again are in the plan's section E.
 
 
 6. C++ compliance: preprocessor and tokeniser to C++17, code generators to C++14
 -----------------------------------------------------------------------------------
 
-Part A is done (2026-11-15: the "Part A plan" below says how, step by step).  Part B is under way (started 2026-11-15): "Part B plan" below says what each stage did, and its notes (2026-11-07) were found by reading the code, so check an item not done yet against the code before relying on it.  The parser calls itself C++14 and the preprocessor defines __cplusplus as 201402L.  "C++14 compliance" for the generators includes the C++98/03 that is still missing, not only the C++11 and C++14 features.  Almost all of the generator work is in the shared front end (CPP65Generator*, CPP65TypeChecker, CPP65IRFrontEnd*); CIR65Backend and CIRW65C816Backend only see IR, except for exceptions.  Sizes are relative: S, M, L, XL.
+Part A (the preprocessor and tokeniser to C++17, items A1 to A7) was done on 2026-11-15: "Part A plan" below says
+how, step by step.  Part B (the code generators to C++14: B-1 what C++98/03 still lacked, B-2 C++11, B-3 C++14) was
+done in the stages of "Part B plan" below (started 2026-11-15) and the steps recorded after it.  Of its items, B2
+(exceptions) is ExceptionsPlan.txt's, and B-4 (the language support headers) and the library are the user's to call:
+Cpp14CompliancePlan.txt, D.
 
-Already done in the preprocessor and tokeniser: __has_include and __has_include_next, _Pragma, __VA_ARGS__ (with the ", ##" comma rule), digit separators, binary literals, hex floats (0x1p-3 pp-numbers, read by strtold), u8 character literals, digraphs and alternative tokens, and no trigraphs (C++17 removed them).
-
-A. Preprocessor and tokeniser to C++17
-  All done 2026-11-15: see "Part A plan" below, which replaces the notes on A1 to A7 here where they differ.
-  - A1 (L, the only structural item) Raw string literals.  The preprocessor reads source a line at a time and splices backslash-newlines.  A raw string can span lines, must not be spliced, and can hold ", //, /* and #.  PreprocessorLineTokeniser and PreprocessorParser must see R"delim( and scan to )delim" across lines, undoing splices inside it.  Check that PPBlock and PPHeaderCache cope with a token that spans lines, then remove the error at CppTokeniser.cpp:706.  IsStringPrefix (Preprocessor.cpp:563) already knows the R prefixes.
-  - A2 (S) User-defined literal suffixes (10_km, "x"_s): keep the suffix on number, character and string tokens instead of "Invalid integer literal suffix" (LiteralHelper.cpp, CppTokeniser.cpp).  operator "" itself is B17.
-  - A3 (M) Extended identifiers.  PreprocessorParser.cpp:302 treats bytes of 128 and over as white space, and IsIdentifierStart (Preprocessor.cpp:2273) is ASCII only.  UTF-8 and \u / \U in identifiers, both spellings the same identifier, and through # and ##.
-  - A4 (S) __has_cpp_attribute is always 0 (Preprocessor.cpp, "Attributes, builtins and features are not known").  C++17 wants fallthrough, nodiscard and maybe_unused 201603L, deprecated 201309L, noreturn and carries_dependency 200809L.
-  - A5 (S) Define __STDCPP_DEFAULT_NEW_ALIGNMENT__.  __cplusplus: see the decisions below.
-  - A6 (S-M) u, U and L literals: UTF-8 source to UTF-16 / UTF-32 code units.  u8'x' must be one code unit.
-  - A7 (S) Test <:: : with <: a digraph, X<::Y> must still be < then :: (the C++11 rule).  Not seen in the code.
-
-B. Code generators to C++14
-
-B-1. C++98/03 still missing
-  - B9a Done 2026-11-13.  Bit-fields: laid out as MSVC does (CCPPUnit::LayoutBitField: a unit of the type's size, a new one for another size, when the bits run out or after a zero width one), read and written through their place (SCPP65IRPlace::psBitField: CCPP65IRFrontEnd::Load and Store), unnamed ones left out of aggregate initialisers, a const reference bound to a copy, no address.  TestCPP816BitFields.
-  - B2 (XL) Exceptions: throw, try / catch, function-try-blocks, unwinding through destructors and temporaries, noexcept calling std::terminate, new throwing bad_alloc, dynamic_cast<T&> throwing bad_cast.  try is parsed but not a case in CCPP65IRFrontEnd::StatementOf, and throw is not lowered.  Needs exceptional edges in the IR, the optimiser respecting them (SSA, inliner, dead stores), and unwinding in both back ends.  setjmp-style unwinding chained through V is probably cheaper to build on these processors than tables, at a cost for each try.
-  - B3 (S-M) typeid and std::type_info.  dynamic_cast<T*> already finds an object's type info.
-  - B4 (L) Virtual inheritance.
-  - B5 (S-M) Static locals with initialisers that are not constant, and static local objects (a first time guard).
-  - B6 (M-L) const (and volatile) in SCPP65Type.  const is on declarations now, not types ("as types do not" in CPP65Generator.txt).  Overloads, deducing const T and forwarding need it, so do it before B10.
-  - B7 (L) Templates: SFINAE, template template parameters (also an error in the parser, CppParserClasses.cpp:722), dependent names looked up at the point of instantiation, partial ordering of function templates, constructor templates, member class templates, explicit specialisations of members.
-  - B8 (M) Overload resolution to [over.match].  It is a simplified ranking now.  = delete is parsed (CPPFB_Delete) but does not make a call an error.
-  - B9 (M, many small items) Class operator new and delete, placement new with more than an address, new[] with more than one dimension or an initialiser list, postfix ++ and -- on objects, operator-> that returns an object, conversion functions to classes and references, pointers to overloaded member functions, reference variables and fields bound to temporaries (and the temporary's lifetime; const reference parameters take them), wide strings.
-  - Done 2026-11-13.  Delegating constructors (CCPP65IRFrontEnd::DelegatedConstructor): they were skipped silently.  TestCPP816DelegatingConstructors.
-
-B-2. C++11
-  - B10 Done 2026-11-16 (Part B stage 2 below).  As it was: (L) Rvalue references as a type of their own: && is made a & now (GetDeclaratorType; rechecked 2026-11-08: item 103 of CppCompilerLibIssues.txt says what works), with T&& deduced so arguments can be passed through (ForwardedType).  Reference collapsing, deducing forwarding references as the standard does, & and && overloads, implicit move constructors and assignment (and when they are deleted), xvalues, ref-qualified members.
-  - B11 (M) auto variables (an error at CPPUnit.cpp:2636) and decltype (its specifier is never made a type).
-  - B12 (L) Lambdas: the parser (CppParserExpressions.cpp:665), closure classes, captures by value and by reference and this, and the conversion to a function pointer when nothing is captured.  A closure is a class, which the back ends already do well.
-  - B13 (L) constexpr functions and literal classes.  constexpr is only inline now, and Constant (CPPUnitExpressions.cpp:781) does integers without calls.  C++14's relaxed constexpr allows loops and assignment, so running the IR at compile time (an IR interpreter) may be better than growing the tree folder.
-  - B14 (M) Packs everywhere: base lists, initialisers, template arguments and member initialisers, sizeof..., nested packs.  Only args... in a call's arguments works now.
-  - B15 (M) std::initializer_list and list initialisation: a constructor taking one is preferred, narrowing is an error.
-  - B16 (S) Range-for lowering.  It is parsed but not a case in StatementOf.  Free begin and end need B1.
-  - B17 (M, many small items) Alias templates (CPP65Generator's TemplateDeclaration handles classes and functions only), nullptr_t, unions with members that have constructors, the noexcept operator and specifications, operator "" functions, raw and Unicode strings in generated code, thread_local (static storage on a single threaded target), extern locals.
-  - B18 (S) Check enum class: scoped lookup and no implicit conversion to int.
-
-B-3. C++14 (small once B-2 is done)
-  - Generic lambdas (operator() a member template: B12 and B7), init-captures, auto f() and decltype(auto) (B11), relaxed constexpr (B13), variable templates, [[deprecated]] warnings, sized deallocation.
-
-B-4. Language support headers
-  - Even without the rest of the library: <initializer_list>, <typeinfo>, <exception>, <cstddef> (nullptr_t), <type_traits> (over the __is_ intrinsics that exist), and move and forward from <utility>.  Libc65 has only <new>.
-
-Order
-  1. A4, A5 and A7, then A3, then A1 (done, with A6 and A2: Part A).
-  2. B9a (done).
-  3. B6.
-  4. B1.
-  5. B11, B16 and B18, then B10.
-  6. B12 and B14.
-  7. B13.
-  8. B7, B8, B15 and B17.
-  9. B-3 and B-4.
-  10. B3, B5 and B4.
-  11. B2 last, as a project of its own.
 
 Part A plan (2026-11-15)
   Step 1, small and independent.  Done 2026-11-15 (TestPreprocessorHasCppAttribute, TestPreprocessorDefaultNewAlignment, TestCppTokeniserDigraphBeforeScope).  The 65C64's and W65C816's alignment is 8 (CTrueMallocator's with 32 bit pointers), the host's 16 or 8.
@@ -543,7 +453,7 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
           16 suffixed names stay as aliases.  The labels with a size_t parameter change again on the W65C816 (m to j).
         Decided, 2026-11-18: "32 suffix please.  Whole banks.  Drop 16 suffixes", and ptrdiff_t stays long ("ptrdiff_t as
         long, agreed": a difference within a malloc32 block mustn't be cut; not int as proposed above).  The user noted
-        that size and size_t are then one type on the W65C816.  The plan is Size16Plan.txt (steps 0-5, not started).
+        that size and size_t are then one type on the W65C816.  The plan is Size16Plan.txt (steps 0 to 5, done 2026-11-19, with what it cost measured).
 
   Small gaps found on 2026-11-18 (by the exceptions work), not done yet:
     - A function template declared and never defined can't be named in an unevaluated operand: noexcept(ref<A>()) with

@@ -1,0 +1,697 @@
+### MultiplicativeIntegers | 255 | 5.6 [expr.mul]: multiplicative operators
+enum E { E3 = 3 };
+int main()
+{
+	int a = -7;
+	int b = 2;
+	int c = 7;
+	int d = -2;
+	unsigned int u = 7;
+	unsigned int minusOne = -1;
+	long l = 100000L;
+	long long ll = 10000000000LL;
+	unsigned long long ull = 0xFFFFFFFFFFFFFFFFull;
+	unsigned char uc = 100;
+	short s = -100;
+	int r = 0;
+	if (a / b == -3 && c / d == -3 && a / d == 3 && c / b == 3) r += 1;
+	if (a % b == -1 && c % d == 1 && a % d == -1 && c % b == 1) r += 2;
+	if ((a / b) * b + a % b == a && (c / d) * d + c % d == c && (a / d) * d + a % d == a) r += 4;
+	if (minusOne / u == ~0u / 7 && minusOne % u == ~0u % 7 && u * u == 49u && a * b == -14 && a * d == 14) r += 8;
+	if (l * 3 == 300000L && l / 7 == 14285L && l % 7 == 5 && -l / 7 == -14285L && -l % 7 == -5) r += 16;
+	if (ll / 3 == 3333333333LL && ll % 3 == 1 && l * (long long)l == ll && -ll / 7 == -1428571428LL && -ll % 7 == -4) r += 32;
+	if (ull / 10 == 1844674407370955161ull && ull % 10 == 5 && ull / 0x100000000ull == 0xFFFFFFFFull && ull * 2 == 0xFFFFFFFFFFFFFFFEull) r += 64;
+	if (uc * uc == 10000 && s * uc == -10000 && s / uc == -1 && s % 7 == -2 && E3 * 2 == 6 && 7 / E3 == 2 && 7 % E3 == 1) r += 128;
+	return r;
+}
+### MultiplicativeFloating | 31 | 5.6 [expr.mul]: multiplicative operators
+@SAME@
+int main()
+{
+	double d = 7.0;
+	float f = 2.5f;
+	int i = 2;
+	long long ll = 3;
+	int r = 0;
+	if (d / 2 == 3.5 && 1 / 2 == 0 && 1 / 2.0 == 0.5 && d * 2 == 14.0 && -d / 2 == -3.5) r += 1;
+	if (f * f == 6.25f && f / 2 == 1.25f && f * i == 5.0f && d / f == 2.8 && f * d == 17.5) r += 2;
+	if (Same<decltype(f * i), float>::V && Same<decltype(f * d), double>::V && Same<decltype(d / ll), double>::V && Same<decltype(f * ll), float>::V) r += 4;
+	if (d / ll > 2.33 && d / ll < 2.34 && ll * f == 7.5f && 1.0 / 4 * 4 == 1.0 && 0.1 * 3 != 0.3) r += 8;
+	if (d * 0 == 0.0 && -d * -d == 49.0 && (d / 3) * 3 > 6.99 && (d / 3) * 3 < 7.01 && 1e10 * 1e10 == 1e20) r += 16;
+	return r;
+}
+### MultiplicativeFloatRemainderRefused | REFUSED | 5.6 [expr.mul] p2: the remainder's operands are integral
+int main() { double d = 5.0; return (d % 2) ? 1 : 2; }
+### MultiplicativePointerRefused | REFUSED | 5.6 [expr.mul] p2: arithmetic or unscoped enumeration operands
+int main() { int i = 1; int* p = &i; return (p * 2) ? 1 : 2; }
+### MultiplicativeConstantDivideByZeroRefused | REFUSED | 5.6 [expr.mul] p4, 5.19 [expr.const]: a zero divisor is not a constant
+int main() { constexpr int z = 1 / 0; return z + 1; }
+### AdditiveArithmetic | 127 | 5.7 [expr.add]: additive operators
+@SAME@
+enum E { E3 = 3 };
+int main()
+{
+	unsigned int u = 0;
+	unsigned char uc = 200;
+	unsigned char uc2 = 100;
+	unsigned short us = 65535u;
+	long l = 0x7FFFL;
+	long long ll = 0xFFFFFFFFLL;
+	unsigned long ul = 0xFFFFFFFFul;
+	double d = 1.5;
+	float f = 0.25f;
+	int i = 3;
+	int r = 0;
+	if (u - 1 == ~0u && u - 1 > 0 && u + ~0u == ~0u) r += 1;
+	if (uc + uc2 == 300 && uc2 - uc == -100 && Same<decltype(uc + uc2), int>::V) r += 2;
+	if (l + 1 == 0x8000L && l + l == 0xFFFEL && ll + 1 == 0x100000000LL && ll - ll - 1 == -1) r += 4;
+	if (sizeof(long) == 8 || (ul + 1 == 0 && ul + ul == 0xFFFFFFFEul)) r += 8;
+	if (d + i == 4.5 && i - d == 1.5 && d + f == 1.75 && f - 1 == -0.75f && Same<decltype(f + 1), float>::V && Same<decltype(i - d), double>::V) r += 16;
+	if (sizeof(int) > sizeof(short) ? (us + 1 == 65536L) : (us + 1 == 0)) r += 32;
+	if (E3 + 1 == 4 && E3 - E3 == 0 && 1 - 2 - 3 == -4 && 1 - (2 - 3) == 2 && i + -i == 0 && i - -i == 6) r += 64;
+	return r;
+}
+### AdditivePointers | 255 | 5.7 [expr.add] p4-p7: pointer arithmetic
+#include <stddef.h>
+@SAME@
+struct S { char c[7]; };
+int main()
+{
+	int a[6] = { 10, 11, 12, 13, 14, 15 };
+	S as[4];
+	long al[4] = { 1, 2, 3, 4 };
+	int m[3][5];
+	int* p = a + 2;
+	int* q = &a[5];
+	const int* cp = a;
+	long idx = 3;
+	unsigned char small = 2;
+	short negative = -2;
+	int* null = 0;
+	int r = 0;
+	if (*(p + 1) == 13 && *(1 + p) == 13 && *(p - 2) == 10 && *(p + idx) == 15 && *(small + p) == 14 && *(p + negative) == 10) r += 1;
+	if (q - p == 3 && p - q == -3 && p - a == 2 && (a + 6) - a == 6 && q - cp == 5 && p - p == 0) r += 2;
+	if (Same<decltype(q - p), ptrdiff_t>::V && Same<decltype(p + 1), int*>::V && Same<decltype(cp + 1), const int*>::V && Same<decltype(a + 1), int*>::V) r += 4;
+	if (&as[3] - &as[0] == 3 && (char*)(as + 2) - (char*)as == 14 && (as + 3) - 2 == &as[1] && *(al + 2) == 3 && &al[3] - al == 3) r += 8;
+	if ((m + 2) - m == 2 && (char*)(m + 1) - (char*)m == 5 * (int)sizeof(int) && *(m + 1) + 2 == &m[1][2] && &m[2][4] - &m[2][0] == 4) r += 16;
+	if (null + 0 == 0 && null - null == 0 && p + 0 == p && p - 0 == p && (p + 3) - 3 == p) r += 32;
+	if (*(&a + 1) - a == 6 && (int*)(&a + 1) == a + 6 && a + 6 > a + 5 && &a[6] - &a[0] == 6) r += 64;
+	if ((p += 2) == a + 4 && (p -= idx) == a + 1 && p[1] == 12 && "abc" + 1 != 0 && *("abc" + 1) == 'b') r += 128;
+	return r;
+}
+### AdditiveVoidPointerRefused | REFUSED | 5.7 [expr.add] p1: a pointer to a complete object type
+int main() { int i = 1; void* p = &i; return (p + 1) ? 1 : 2; }
+### AdditiveFunctionPointerRefused | REFUSED | 5.7 [expr.add] p1: a pointer to a complete object type
+int f() { return 1; }
+int main() { int (*p)() = f; return (p + 1) ? 1 : 2; }
+### AdditiveIncompletePointerRefused | REFUSED | 5.7 [expr.add] p1: a pointer to a complete object type
+struct I;
+I* Get();
+int main() { return (Get() + 1) ? 1 : 2; }
+### AdditiveTwoPointersRefused | REFUSED | 5.7 [expr.add] p1: one operand is a pointer, the other integral
+int main() { int a[2] = { 1, 2 }; int* p = a; int* q = a + 1; return (p + q) ? 1 : 2; }
+### AdditiveDifferentPointersRefused | REFUSED | 5.7 [expr.add] p2: both pointers to the same type
+int main() { int i = 1; long l = 2; return (&i - &l) ? 1 : 2; }
+### AdditiveIntegerMinusPointerRefused | REFUSED | 5.7 [expr.add] p2: the pointer is the left operand of a subtraction
+int main() { int i = 1; int* p = &i; return (1 - p) ? 1 : 2; }
+### AdditivePointerPlusFloatRefused | REFUSED | 5.7 [expr.add] p1: one operand is a pointer, the other integral
+int main() { int i = 1; int* p = &i; return (p + 1.0) ? 1 : 2; }
+### ShiftRules | 255 | 5.8 [expr.shift]: shift operators
+@SAME@
+int main()
+{
+	char c = 1;
+	unsigned char uc = 0xFF;
+	int i = 1;
+	int negative = -8;
+	unsigned int u = ~0u;
+	long l = 1;
+	long long ll = 1;
+	unsigned long long ull = 0x8000000000000000ull;
+	int count = 3;
+	long longCount = 2;
+	unsigned char byteCount = 4;
+	int zero = 0;
+	int r = 0;
+	if (Same<decltype(c << l), int>::V && Same<decltype(1 << 2ull), int>::V && Same<decltype(l << 1), long>::V && Same<decltype(uc >> 1), int>::V && Same<decltype(u << 1ll), unsigned int>::V) r += 1;
+	if (i << count == 8 && i << longCount == 4 && i << byteCount == 16 && i << zero == 1 && 64 >> count == 8 && 64 >> zero == 64) r += 2;
+	if (uc << 4 == 0xFF0 && (unsigned char)(uc << 4) == 0xF0 && uc >> 4 == 0x0F && c << 9 == 512) r += 4;
+	if (u >> 1 == ~0u / 2 && (u << 1) == ~0u - 1 && u >> (sizeof(int) * 8 - 1) == 1 && 1u << (sizeof(int) * 8 - 1) == ~0u / 2 + 1) r += 8;
+	if (negative >> 1 == -4 && negative >> 3 == -1 && negative >> 10 == -1 && -1L >> 5 == -1L && (long long)negative >> 40 == -1) r += 16;
+	if (l << 20 == 0x100000L && ll << 40 == 0x10000000000LL && ull >> 63 == 1 && ull >> 33 == 0x40000000ull && (ll << 33) >> 33 == 1 && 0x12345678L >> 16 == 0x1234) r += 32;
+	if (1 << 2 + 1 == 8 && 1 << 2 << 3 == 32 && 256 >> 2 >> 1 == 32 && (1 << 2) + 1 == 5 && 16 >> 1 + 1 == 4) r += 64;
+	if ((ll << count) == 8 && (ll << (count * 10 + longCount)) == 0x100000000LL && (ull >> (count + 60)) == 1 && (l << (zero + 16)) >> 16 == 1) r += 128;
+	return r;
+}
+### ShiftFloatRefused | REFUSED | 5.8 [expr.shift] p1: integral or unscoped enumeration operands
+int main() { double d = 1.0; return (d << 2) ? 1 : 2; }
+### ShiftByFloatRefused | REFUSED | 5.8 [expr.shift] p1: integral or unscoped enumeration operands
+int main() { int i = 1; return (i << 2.0) ? 1 : 2; }
+### ShiftPointerRefused | REFUSED | 5.8 [expr.shift] p1: integral or unscoped enumeration operands
+int main() { int i = 1; int* p = &i; return (p >> 1) ? 1 : 2; }
+### RelationalRules | 255 | 5.9 [expr.rel]: relational operators
+@SAME@
+struct S { int a; int b; int c[3]; };
+enum E { E1 = 1, E2 = 2 };
+int main()
+{
+	int a[4] = { 1, 2, 3, 4 };
+	int* p = a + 1;
+	int* q = a + 3;
+	const int* cp = a + 2;
+	void* vp = p;
+	S s;
+	double d = 1.5;
+	float f = -1.5f;
+	long long big = 0x100000000LL;
+	long long negative = -1;
+	unsigned long long huge = 0x8000000000000000ull;
+	int i = 2;
+	int r = 0;
+	if (Same<decltype(i < i), bool>::V && Same<decltype(d >= d), bool>::V && Same<decltype(p < q), bool>::V && (i < 3) == 1 && (i > 3) == 0) r += 1;
+	if (p < q && q > p && p <= p && p >= p && !(p < p) && !(q < p) && a + 4 > a + 3 && p < cp && cp < q && vp < (void*)q) r += 2;
+	if (&s.a < &s.b && &s.c[0] < &s.c[2] && (void*)&s <= (void*)&s.a && (void*)&s.c[2] > (void*)&s.b) r += 4;
+	if (d < 2.5 && f < -1.0 && f < d && !(d < d) && d <= d && -0.0 < 0.5 && !(-0.0 < 0.0) && d > i - 1 && f < i) r += 8;
+	if (big > 0xFFFFFFFFLL && negative < 0 && negative < big && huge > 1 && huge > 0x7FFFFFFFFFFFFFFFull && big >= big && -big < negative) r += 16;
+	if (1 < 2 < 3 && !(3 > 2 > 1) && (1 < 2) + (2 < 1) == 1 && 1 < 2 == 2 < 3 && 1 + 1 < 3 && 1 << 1 < 3) r += 32;
+	if (E1 < E2 && E2 > 1 && true > false && 'a' < 'b' && (unsigned char)200 > 100 && (signed char)-56 < 0) r += 64;
+	if (0x7FFFFFFFL > -0x7FFFFFFFL - 1 && -32767 - 1 < 32767 && 65535u > 1 && 0x80000000ul > 0x7FFFFFFFul && -1L < 1L) r += 128;
+	return r;
+}
+### RelationalPointerIntegerRefused | REFUSED | 5.9 [expr.rel] p1: arithmetic, enumeration or pointer operands
+int main() { int i = 1; int* p = &i; return (p < 5) ? 1 : 2; }
+### RelationalUnrelatedPointersRefused | REFUSED | 5.9 [expr.rel] p2: the pointers are brought to their composite pointer type
+int main() { int i = 1; long l = 2; return (&i < &l) ? 1 : 2; }
+### RelationalMemberPointersRefused | REFUSED | 5.9 [expr.rel] p1: arithmetic, enumeration or pointer operands
+struct S { int a; int b; };
+int main() { return (&S::a < &S::b) ? 1 : 2; }
+### RelationalClassRefused | REFUSED | 5.9 [expr.rel] p1: arithmetic, enumeration or pointer operands
+struct S { int a; };
+int main() { S s = { 1 }; S t = { 2 }; return (s < t) ? 1 : 2; }
+### RelationalNullPointerRefused | REFUSED | 5.9 [expr.rel] p1: arithmetic, enumeration or pointer operands
+int main() { int i = 1; int* p = &i; return (p > nullptr) ? 1 : 2; }
+### EqualityRules | 255 | 5.10 [expr.eq]: equality operators
+@SAME@
+struct A { int a; };
+struct B { int b; int f() { return 1; } int g() { return 2; } };
+struct D : A, B { int d; };
+int F(int v) { return v; }
+int G(int v) { return v; }
+int main()
+{
+	D d;
+	D* pd = &d;
+	B* pb = &d;
+	A* pa = &d;
+	D* nd = 0;
+	B* nb = 0;
+	int i = 5;
+	void* v = &i;
+	const int* cp = &i;
+	int B::* pm = &B::b;
+	int D::* pdm = &B::b;
+	int B::* nm = 0;
+	int (B::*pf)() = &B::f;
+	decltype(nullptr) np = nullptr;
+	int r = 0;
+	if (Same<decltype(i == i), bool>::V && Same<decltype(pb != pb), bool>::V && (i == 5) == 1 && (i != 5) == 0) r += 1;
+	if (pb == pd && pd == pb && pa == pd && !(pb != pd) && (void*)pb != (void*)pd) r += 2;
+	if (nb == nd && nd == 0 && 0 == nb && nb == nullptr && nullptr != pb && pd != 0) r += 4;
+	if (v == &i && &i == v && cp == &i && cp == v && np == nullptr && nullptr == nullptr && !(np != np)) r += 8;
+	if (F == F && F != G && &F == F && F != 0 && static_cast<int (*)(int)>(0) == nullptr) r += 16;
+	if (pm == &B::b && pm != nm && nm == 0 && nm == nullptr && pdm == pm && pm == pdm && pdm != 0) r += 32;
+	if (pf == &B::f && pf != &B::g && pf != 0 && !(pf == nullptr)) r += 64;
+	if (true == 1 && 1.0 == 1 && 0.5f == 0.5 && 'a' == 97 && (1 < 2 == 3 < 4) && (1 == 1 == 1) && !(2 == 2 == 2) && 0.1f != 0.1) r += 128;
+	return r;
+}
+### EqualityPointerIntegerRefused | REFUSED | 5.10 [expr.eq] p1: the operands
+int main() { int i = 1; int* p = &i; return (p == 5) ? 1 : 2; }
+### EqualityUnrelatedPointersRefused | REFUSED | 5.10 [expr.eq] p2: the pointers are brought to their composite pointer type
+int main() { int i = 1; long l = 2; return (&i == &l) ? 1 : 2; }
+### EqualityMemberAndObjectPointerRefused | REFUSED | 5.10 [expr.eq] p1: the operands
+struct S { int m; };
+int main() { S s; int S::* pm = &S::m; int* p = &s.m; return (pm == p) ? 1 : 2; }
+### EqualityUnrelatedMemberPointersRefused | REFUSED | 5.10 [expr.eq] p3: pointers to members are brought to their composite type
+struct S { int m; };
+struct T { int m; };
+int main() { return (&S::m == &T::m) ? 1 : 2; }
+### EqualityClassRefused | REFUSED | 5.10 [expr.eq] p1: the operands
+struct S { int a; };
+int main() { S s = { 1 }; S t = { 1 }; return (s == t) ? 1 : 2; }
+### EqualityFunctionAndObjectPointerRefused | REFUSED | 5.10 [expr.eq] p2: the pointers are brought to their composite pointer type
+int f() { return 1; }
+int main() { int i = 1; return (&i == f) ? 1 : 2; }
+### BitwiseRules | 255 | 5.11 [expr.bit.and], 5.12 [expr.xor], 5.13 [expr.or]: bitwise operators
+@SAME@
+enum E { E1 = 1, E4 = 4 };
+int main()
+{
+	unsigned char uc = 0xFF;
+	int i = 0x5A;
+	int minusOne = -1;
+	unsigned int u = 0xF0u;
+	long l = 0x12345678L;
+	long long ll = 0x123456789ABCDEF0LL;
+	unsigned long long ull = 0xFF00FF00FF00FF00ull;
+	bool t = true;
+	bool f = false;
+	int r = 0;
+	if ((i & 0x0F) == 0x0A && (i | 0x05) == 0x5F && (i ^ 0xFF) == 0xA5 && (i ^ i) == 0 && (i & ~i) == 0 && (i | ~i) == -1) r += 1;
+	if ((uc | 0x100) == 0x1FF && (uc & 0x1F0) == 0xF0 && (uc ^ 0x1FF) == 0x100 && Same<decltype(uc & uc), int>::V) r += 2;
+	if ((t & t) == 1 && (t & f) == 0 && (t | f) == 1 && (t ^ t) == 0 && Same<decltype(t & f), int>::V && Same<decltype(t | f), int>::V) r += 4;
+	if ((minusOne & u) == 0xF0u && Same<decltype(minusOne & u), unsigned int>::V && (minusOne & l) == l && (minusOne | l) == -1L && Same<decltype(minusOne ^ l), long>::V) r += 8;
+	if ((l & 0xFFFF0000L) == 0x12340000L && (l | 0xFFL) == 0x123456FFL && (l ^ l) == 0 && (l & 0xFF) == 0x78) r += 16;
+	if ((ll & ull) == 0x120056009A00DE00ull && (ll | ~ll) == -1LL && (ll ^ ll) == 0 && (ull & 0xFFFFull) == 0xFF00ull) r += 32;
+	if ((E1 | E4) == 5 && (E4 & 5) == 4 && (E1 ^ E1) == 0 && Same<decltype(E1 | E4), int>::V) r += 64;
+	if ((1 | 2 ^ 3 & 4) == 3 && (6 & 3 == 3) == 0 && (1 ^ 3 | 4) == 6 && (~1 & 3) == 2 && (1 | 2 == 2) == 1 && (4 & 6 ^ 2) == 6) r += 128;
+	return r;
+}
+### BitwiseFloatRefused | REFUSED | 5.11 [expr.bit.and]: integral or unscoped enumeration operands
+int main() { double d = 1.5; return (d & 1) ? 1 : 2; }
+### BitwisePointerRefused | REFUSED | 5.13 [expr.or]: integral or unscoped enumeration operands
+int main() { int i = 1; int* p = &i; return (p | 1) ? 1 : 2; }
+### BitwiseXorFloatRefused | REFUSED | 5.12 [expr.xor]: integral or unscoped enumeration operands
+int main() { float f = 1.5f; return (1 ^ f) ? 1 : 2; }
+### LogicalRules | 255 | 5.14 [expr.log.and], 5.15 [expr.log.or]: logical operators
+@SAME@
+struct S { int m; };
+int gCalls = 0;
+bool Yes() { gCalls++; return true; }
+bool No() { gCalls += 10; return false; }
+int main()
+{
+	int i = 5;
+	int z = 0;
+	int* p = &i;
+	int* n = 0;
+	double d = 0.5;
+	int S::* pm = &S::m;
+	int S::* nm = 0;
+	long long big = 0x100000000LL;
+	int r = 0;
+	if (Same<decltype(i && i), bool>::V && Same<decltype(i || z), bool>::V && (i && 7) == 1 && (z || 9) == 1 && (i && z) == 0 && (z || z) == 0) r += 1;
+	if (No() && Yes()) r += 1000;
+	if (gCalls == 10) r += 2;
+	if (Yes() || No()) r += 4;
+	if (gCalls == 11 && (Yes() && No()) == false && gCalls == 22 && (No() || Yes()) && gCalls == 33) r += 8;
+	if (p && !n && (p || n) && !(p && n) && d && (d || z) && (big && i) && pm && !nm && (nm || pm)) r += 16;
+	int j = 0;
+	if ((j++ || j == 1) && j == 1 && (++j && j++ == 2 && j == 3) && !(z && ++j) && j == 3 && (i || ++j) && j == 3) r += 32;
+	if ((1 || 0 && 0) == 1 && (0 && 0 || 1) == 1 && (!0 && 1) && (0 || !0) && (1 && 2 && 3) && !(1 && 0 && 3) && (0 || 0 || 5)) r += 64;
+	if ((i > 3 && i < 7) && (i < 3 || i > 4) && (i & 1 && i & 4) && !(i & 2 || z) && (5 && 7) + (0 || 3) == 2) r += 128;
+	return r;
+}
+### LogicalClassRefused | REFUSED | 5.14 [expr.log.and] p1: the operands are contextually converted to bool
+struct S { int m; };
+int main() { S s = { 1 }; return (s && true) ? 1 : 2; }
+### LogicalScopedEnumRefused | REFUSED | 5.15 [expr.log.or] p1: the operands are contextually converted to bool
+enum class E { A, B };
+int main() { return (E::B || false) ? 1 : 2; }
+### LogicalVoidRefused | REFUSED | 5.14 [expr.log.and] p1: the operands are contextually converted to bool
+void f() { }
+int main() { return (true && f()) ? 1 : 2; }
+### ConditionalTypes | 1023 | 5.16 [expr.cond] p6: the type of a conditional expression
+@SAME@
+struct B { int b; };
+struct A { int a; };
+struct D : A, B { int d; };
+enum E { E1 = 1, E2 };
+enum F { F1 = 1 };
+int main()
+{
+	bool c = true;
+	bool n = false;
+	int i = 1;
+	long l = 2;
+	short s = 3;
+	char ch = 'a';
+	unsigned int u = 4;
+	D d;
+	D* pd = &d;
+	B* pb = 0;
+	int* p = &i;
+	const int* cp = &i;
+	void* v = 0;
+	int r = 0;
+	if (Same<decltype(c ? 1 : 2.0), double>::V && Same<decltype(c ? ch : 1), int>::V && Same<decltype(c ? 1u : -1), unsigned int>::V && Same<decltype(c ? (short)1 : (char)2), int>::V) r += 1;
+	if (Same<decltype(c ? l : i), long>::V && Same<decltype(c ? true : false), bool>::V && Same<decltype(c ? s : s), short&>::V && Same<decltype(c ? 1.5f : 2), float>::V) r += 2;
+	if ((c ? 1 : 2.0) == 1.0 && (n ? 1 : 2.5) == 2.5 && (c ? -1 : u) > 0 && (n ? ch : 1000) == 1000 && sizeof(c ? ch : s) == sizeof(int)) r += 4;
+	if (Same<decltype(c ? p : 0), int*>::V && Same<decltype(c ? nullptr : p), int*>::V && Same<decltype(c ? p : cp), const int*>::V && Same<decltype(c ? p : v), void*>::V && Same<decltype(c ? nullptr : nullptr), decltype(nullptr)>::V) r += 8;
+	if ((n ? p : 0) == 0 && (c ? p : 0) == &i && (c ? nullptr : p) == 0 && (c ? p : v) == &i && (n ? cp : p) == &i) r += 16;
+	if (Same<decltype(c ? pd : pb), B*>::V && (c ? pd : pb) == static_cast<B*>(&d) && (void*)(c ? pd : pb) != (void*)pd && (n ? pd : pb) == 0) r += 32;
+	if (Same<decltype(c ? E1 : E2), E>::V && Same<decltype(c ? E1 : F1), int>::V && Same<decltype(c ? E1 : 1), int>::V && (n ? E1 : E2) == E2) r += 64;
+	if (Same<decltype(c ? i : i), int&>::V && Same<decltype(c ? i : 1), int>::V && Same<decltype(c ? i : l), long>::V && Same<decltype(c ? *cp : i), const int&>::V) r += 128;
+	if (Same<decltype(c ? "ab" : "cd"), const char (&)[3]>::V && Same<decltype(c ? "ab" : "cde"), const char*>::V && sizeof(c ? "ab" : "cd") == 3 && (n ? "ab" : "cd")[0] == 'c') r += 256;
+	if (Same<decltype(c ? static_cast<int&&>(i) : static_cast<int&&>(i)), int&&>::V && Same<decltype(c ? (void)0 : (void)1), void>::V && Same<decltype(c ? d : d), D&>::V && Same<decltype(c ? D() : d), D>::V) r += 512;
+	return r;
+}
+### ConditionalEvaluation | 127 | 5.16 [expr.cond] p1: one of the second and third operands is evaluated
+int gCalls = 0;
+int One() { gCalls += 1; return 1; }
+int Two() { gCalls += 10; return 2; }
+void Nothing() { gCalls += 100; }
+void NothingElse() { gCalls += 1000; }
+int Plus(int v) { return v + 1; }
+int Minus(int v) { return v - 1; }
+int main()
+{
+	bool c = true;
+	bool n = false;
+	int a = 1;
+	int b = 2;
+	int r = 0;
+	if ((c ? One() : Two()) == 1 && gCalls == 1 && (n ? One() : Two()) == 2 && gCalls == 11) r += 1;
+	c ? Nothing() : NothingElse();
+	n ? Nothing() : NothingElse();
+	if (gCalls == 1111) r += 2;
+	if ((c ? n ? 1 : 2 : 3) == 2 && (n ? 1 : c ? 2 : 3) == 2 && (n ? 1 : n ? 2 : 3) == 3 && (c ? 1 : c ? 2 : 3) == 1) r += 4;
+	if ((c ? Plus : Minus)(5) == 6 && (n ? Plus : Minus)(5) == 4) r += 8;
+	c ? a : b = 20;
+	n ? a : b = 30;
+	if (a == 1 && b == 30) r += 16;
+	a = c ? 5 : 6;
+	b = n ? a++ : a--;
+	if (a == 4 && b == 5 && (c ? a, b : 0) == 5) r += 32;
+	int i = 0;
+	int k = (i++ ? 100 : i);
+	if (k == 1 && i == 1 && (1 ? 2 : 3) + 1 == 3 && (0 ? 2 : 3) * 2 == 6 && (c || n ? 7 : 8) == 7) r += 64;
+	return r;
+}
+### ConditionalLvalues | 127 | 5.16 [expr.cond] p4: both operands lvalues of one type give an lvalue
+struct S { int v; };
+struct B { int b; };
+struct A { int a; };
+struct D : A, B { int d; };
+struct Bits { unsigned x : 3; unsigned y : 3; };
+int main()
+{
+	bool c = true;
+	bool n = false;
+	int a = 1;
+	int b = 2;
+	int a1[3] = { 1, 2, 3 };
+	int a2[3] = { 4, 5, 6 };
+	S s1 = { 1 };
+	S s2 = { 2 };
+	D d;
+	B base;
+	Bits bits;
+	bits.x = 1; bits.y = 2;
+	d.b = 7; base.b = 8;
+	int r = 0;
+	(c ? a : b) = 10;
+	(n ? a : b) = 20;
+	if (a == 10 && b == 20 && &(c ? a : b) == &a && &(n ? a : b) == &b) r += 1;
+	(c ? a : b)++;
+	++(n ? a : b);
+	(c ? a : b) += 5;
+	if (a == 16 && b == 21) r += 2;
+	if (sizeof(c ? a1 : a2) == 3 * sizeof(int) && (n ? a1 : a2)[1] == 5 && &(c ? a1 : a2) == &a1) r += 4;
+	(c ? s1 : s2).v = 30;
+	(n ? s1 : s2) = s1;
+	if (s1.v == 30 && s2.v == 30 && &(c ? s1 : s2) == &s1) r += 8;
+	if (&(c ? d : base) == static_cast<B*>(&d) && (c ? d : base).b == 7 && (n ? d : base).b == 8 && &(n ? d : base) == &base) r += 16;
+	(c ? bits.x : bits.y) = 5;
+	(n ? bits.x : bits.y) = 6;
+	if (bits.x == 5 && bits.y == 6) r += 32;
+	int& ref = n ? a : b;
+	ref = 40;
+	if (b == 40 && (c ? S{ 3 } : s1).v == 3 && (n ? S{ 3 } : s1).v == 30) r += 64;
+	return r;
+}
+### ConditionalClassConversions | 15 | 5.16 [expr.cond] p3: an operand of class type is converted to the other's type
+struct FromInt { FromInt(int x) : v(x) { } int v; };
+struct ToInt { operator int() const { return 7; } };
+struct B { int b; };
+struct D : B { int d; };
+int main()
+{
+	bool c = true;
+	bool n = false;
+	FromInt f(1);
+	ToInt t;
+	D d;
+	d.b = 3; d.d = 4;
+	const B cb = { 5 };
+	int r = 0;
+	if ((c ? f : 9).v == 1 && (n ? f : 9).v == 9) r += 1;
+	if ((c ? t : 2) == 7 && (n ? t : 2) == 2 && sizeof(c ? t : 2) == sizeof(int)) r += 2;
+	if ((c ? d : cb).b == 3 && (n ? d : cb).b == 5) r += 4;
+	if ((c ? B() : d).b == 0 && (n ? B() : d).b == 3) r += 8;
+	return r;
+}
+### ConditionalMismatchRefused | REFUSED | 5.16 [expr.cond] p6: the operands have a common type
+int main() { bool c = true; return *(c ? "a" : 1) ? 1 : 2; }
+### ConditionalUnrelatedClassesRefused | REFUSED | 5.16 [expr.cond] p3: an operand of class type is converted to the other's type
+struct S { int v; };
+struct T { int v; };
+int main() { bool c = true; S s = { 1 }; T t = { 2 }; return (c ? s : t).v; }
+### ConditionalVoidAndValueRefused | REFUSED | 5.16 [expr.cond] p2: void operands
+void f() { }
+int main() { bool c = true; c ? f() : 1; return 1; }
+### ConditionalPrvalueAssignedRefused | REFUSED | 5.16 [expr.cond] p4: both operands lvalues of one type give an lvalue
+int main() { bool c = true; int a = 1; (c ? a : 1) = 2; return a; }
+### ConditionalMixedTypesAssignedRefused | REFUSED | 5.16 [expr.cond] p4: both operands lvalues of one type give an lvalue
+int main() { bool c = true; int a = 1; long b = 2; (c ? a : b) = 2; return a; }
+### ConditionalUnrelatedPointersRefused | REFUSED | 5.16 [expr.cond] p6: the operands have a common type
+int main() { bool c = true; int i = 1; long l = 2; return (c ? &i : &l) ? 1 : 2; }
+### ConditionalBothWaysRefused | REFUSED | 5.16 [expr.cond] p3: an operand of class type is converted to the other's type
+struct T;
+struct S { S() { } S(const T&) { } };
+struct T { T() { } T(const S&) { } };
+int main() { bool c = true; S s; T t; c ? s : t; return 1; }
+### ConditionalAmbiguousConversionRefused | REFUSED | 5.16 [expr.cond] p5: overload resolution picks the conversions
+struct S { S(int x) : v(x) { } operator int() const { return v; } int v; };
+int main() { bool c = true; S s(1); return (c ? s : 2) == 1 ? 1 : 2; }
+### AssignmentRules | 255 | 5.17 [expr.ass]: assignment
+@SAME@
+struct S { int a; int b; };
+struct Bits { unsigned x : 3; int y : 4; };
+enum E { E0, E1 };
+int main()
+{
+	int a = 1;
+	int b = 2;
+	int c = 3;
+	unsigned char uc = 0;
+	bool flag = false;
+	double d = 0;
+	float f = 0;
+	long long ll = 0;
+	S s1 = { 1, 2 };
+	S s2 = { 3, 4 };
+	Bits bits;
+	E e = E0;
+	int* p = 0;
+	int r = 0;
+	a = b = c;
+	if (a == 3 && b == 3) r += 1;
+	(a = 5) = 6;
+	if (a == 6 && &(a = 7) == &a && a == 7 && Same<decltype(a = b), int&>::V && Same<decltype(uc = 1), unsigned char&>::V) r += 2;
+	int stored = (uc = 300);
+	int truncated = (a = 2.9);
+	int boolean = (flag = 5);
+	if (stored == 44 && uc == 44 && truncated == 2 && a == 2 && boolean == 1 && flag == true) r += 4;
+	d = a;
+	f = 0.5;
+	ll = -a;
+	if (d == 2.0 && f == 0.5f && ll == -2 && (d = f) == 0.5 && (ll = 0x100000000LL) > 0xFFFFFFFFul * (sizeof(long) == 4)) r += 8;
+	s1 = s2;
+	s2.a = 9;
+	if (s1.a == 3 && s1.b == 4 && (s1 = s2).a == 9 && &(s1 = s2) == &s1) r += 16;
+	int field = (bits.x = 9);
+	bits.y = -3;
+	if (bits.x == 1 && field == 1 && bits.y == -3 && (bits.y = 7) == 7) r += 32;
+	e = E1;
+	p = &a;
+	*p = 11;
+	p = 0;
+	if (e == E1 && a == 11 && p == 0 && (p = &b) == &b && (*p = 12) == 12 && b == 12) r += 64;
+	int x;
+	int y;
+	x = y = a + 1;
+	x = (y = 3) + 4;
+	if (x == 7 && y == 3 && (x = y, y = 8, x + y) == 11) r += 128;
+	return r;
+}
+### CompoundAssignment | 1023 | 5.17 [expr.ass] p7: E1 op= E2 is E1 = E1 op E2 with E1 evaluated once
+@SAME@
+struct Bits { unsigned x : 3; int y : 5; };
+int gCalls = 0;
+int gValue = 10;
+int* Next() { gCalls++; return &gValue; }
+int main()
+{
+	int a[3] = { 1, 2, 3 };
+	int i = 0;
+	unsigned char uc = 200;
+	signed char sc = -128;
+	unsigned short us = 65535u;
+	unsigned int u = 0;
+	int n = 3;
+	long l = 100000L;
+	long long ll = 1;
+	double d = 1.5;
+	float f = 2.5f;
+	bool flag = false;
+	int* p = a;
+	Bits bits;
+	bits.x = 6; bits.y = 15;
+	int r = 0;
+	a[i++] += 10;
+	*Next() += 1;
+	*Next() *= 2;
+	if (a[0] == 11 && a[1] == 2 && i == 1 && gValue == 22 && gCalls == 2) r += 1;
+	uc += 100;
+	sc >>= 1;
+	us += 1;
+	u -= 1;
+	if (uc == 44 && sc == -64 && us == 0 && u == ~0u) r += 2;
+	uc = 0x81;
+	uc >>= 1;
+	uc <<= 2;
+	uc *= 3;
+	if (uc == 0) r += 4;
+	n *= 1.5;
+	int first = n;
+	n /= 0.5;
+	int second = n;
+	n += 0.7 + 0.7;
+	if (first == 4 && second == 8 && n == 9 && (n -= 0.5) == 8 && (n *= 0.5) == 4) r += 8;
+	l *= 3;
+	l /= 7;
+	l %= 1000;
+	ll <<= 33;
+	ll += u;
+	ll -= 1;
+	if (l == 857 && ll == 0x200000000LL + ~0u - 1) r += 16;
+	d += 1;
+	d *= 2;
+	d -= 0.5;
+	d /= 3;
+	f *= 2;
+	f -= 1;
+	f /= 4;
+	if (d == 1.5 && f == 1.0f && (d += f) == 2.5) r += 32;
+	n = 13;
+	n %= 4;
+	n |= 8;
+	n &= 0xD;
+	n ^= 0xF;
+	n <<= 2;
+	n >>= 1;
+	if (n == 12) r += 64;
+	p += 2;
+	p -= 1;
+	p += (long)1;
+	p -= (unsigned char)2;
+	flag |= true;
+	flag &= true;
+	flag ^= true;
+	if (p == a && flag == false && (flag |= 4) == true && (int)flag == 1) r += 128;
+	bits.x += 5;
+	bits.y -= 20;
+	bits.y *= 2;
+	if (bits.x == 3 && bits.y == -10 && (bits.x <<= 2) == 4) r += 256;
+	n = 1;
+	(n += 1) += 1;
+	(n *= 2) -= 1;
+	if (n == 5 && &(n += 1) == &n && Same<decltype(n += 1), int&>::V && Same<decltype(uc *= 2), unsigned char&>::V && Same<decltype(p += 1), int*&>::V) r += 512;
+	return r;
+}
+### AssignmentBraced | 15 | 5.17 [expr.ass] p9: a braced list on the right
+struct S { int a; int b; };
+struct C { C() : v(0) { } C(int a, int b) : v(a * 10 + b) { } int v; };
+int main()
+{
+	int i = 9;
+	double d = 9;
+	int* p = &i;
+	char c = 'x';
+	S s = { 9, 9 };
+	C k;
+	int r = 0;
+	i = { 5 };
+	d = { 1.5 };
+	c = { 'a' };
+	if (i == 5 && d == 1.5 && c == 'a') r += 1;
+	i = { };
+	p = { };
+	d = { };
+	if (i == 0 && p == 0 && d == 0.0) r += 2;
+	s = { 1, 2 };
+	k = { 3, 4 };
+	if (s.a == 1 && s.b == 2 && k.v == 34) r += 4;
+	s = { };
+	k = { };
+	if (s.a == 0 && s.b == 0 && k.v == 0 && (i = { 7 }) == 7) r += 8;
+	return r;
+}
+### AssignToLiteralRefused | REFUSED | 5.17 [expr.ass] p1: the left operand is a modifiable lvalue
+int main() { int i = 1; 5 = i; return i; }
+### AssignToSumRefused | REFUSED | 5.17 [expr.ass] p1: the left operand is a modifiable lvalue
+int main() { int i = 1; i + 1 = 2; return i; }
+### AssignToConstRefused | REFUSED | 5.17 [expr.ass] p1: the left operand is a modifiable lvalue
+int main() { const int i = 1; i = 2; return i; }
+### AssignArrayRefused | REFUSED | 5.17 [expr.ass] p1: the left operand is a modifiable lvalue
+int main() { int a[2] = { 1, 2 }; int b[2] = { 3, 4 }; a = b; return a[0]; }
+### AssignFunctionRefused | REFUSED | 5.17 [expr.ass] p1: the left operand is a modifiable lvalue
+int f() { return 1; }
+int g() { return 2; }
+int main() { f = g; return f(); }
+### AssignEnumFromIntRefused | REFUSED | 5.17 [expr.ass] p3: the right operand is implicitly converted to the left's type
+enum E { E0, E1 };
+int main() { E e = E0; e = 1; return e + 1; }
+### AssignEnumCompoundRefused | REFUSED | 5.17 [expr.ass] p7: E1 op= E2 is E1 = E1 op E2
+enum E { E0, E1 };
+int main() { E e = E0; e += 1; return e + 1; }
+### AssignNarrowingBracedRefused | REFUSED | 5.17 [expr.ass] p9: a braced list on the right
+int main() { int i = 1; i = { 1.5 }; return i; }
+### AssignTwoInBracesRefused | REFUSED | 5.17 [expr.ass] p9: a braced list on the right
+int main() { int i = 1; i = { 1, 2 }; return i; }
+### AssignPointerPlusFloatRefused | REFUSED | 5.17 [expr.ass] p7: += and -= take a pointer and an integer
+int main() { int a[2] = { 1, 2 }; int* p = a; p += 1.0; return *p; }
+### AssignPointerTimesRefused | REFUSED | 5.17 [expr.ass] p7: += and -= take a pointer and an integer
+int main() { int a[2] = { 1, 2 }; int* p = a; p *= 2; return *p; }
+### AssignFloatRemainderRefused | REFUSED | 5.17 [expr.ass] p7: E1 op= E2 is E1 = E1 op E2
+int main() { double d = 5.0; d %= 2; return d ? 1 : 2; }
+### AssignClassFromIntRefused | REFUSED | 5.17 [expr.ass] p4: a class's assignment is its operator=
+struct S { int a; int b; };
+int main() { S s = { 1, 2 }; s = 5; return s.a; }
+### AssignConstMemberClassRefused | REFUSED | 5.17 [expr.ass] p4: a class's assignment is its operator=
+struct S { const int a; };
+int main() { S s = { 1 }; S t = { 2 }; s = t; return s.a; }
+### CommaRules | 255 | 5.18 [expr.comma]: comma operator
+@SAME@
+int gCount = 0;
+int gOrder = 0;
+struct S { S(int x) : v(x) { gCount += 10; } ~S() { gCount += 1; } int v; };
+int Step(int v) { gOrder = gOrder * 10 + v; return v; }
+void Nothing() { gCount += 100; }
+int Twice(int v) { return v * 2; }
+int main()
+{
+	int a = 1;
+	int b = 2;
+	int arr[3] = { 5, 6, 7 };
+	int i;
+	int j;
+	int r = 0;
+	if ((a = 5, a + 1) == 6 && (Step(1), Step(2), Step(3)) == 3 && gOrder == 123) r += 1;
+	(a, b) = 9;
+	if (b == 9 && a == 5 && &(a, b) == &b) r += 2;
+	if (Same<decltype((a, b)), int&>::V && Same<decltype((a, 1.5)), double>::V && Same<decltype((1.5, a)), int&>::V && Same<decltype((a, Nothing())), void>::V) r += 4;
+	if (Twice((1, 2)) == 4 && arr[(0, 2)] == 7 && sizeof((0, arr)) == 3 * sizeof(int)) r += 8;
+	int total = 0;
+	for (i = 0, j = 10; i < j; i++, j--) total += j - i;
+	if (total == 30 && i == 5 && j == 5) r += 16;
+	int k = (Nothing(), 3);
+	a, Nothing();
+	if (k == 3 && gCount == 200) r += 32;
+	int v = (S(1), S(2), S(3).v);
+	if (v == 3 && gCount == 233) r += 64;
+	int x = 0;
+	int y = (x++, x++, x);
+	if (y == 2 && (x = 5, x += 1, x * 2) == 12 && (true ? x++, x : 0) == 7) r += 128;
+	return r;
+}

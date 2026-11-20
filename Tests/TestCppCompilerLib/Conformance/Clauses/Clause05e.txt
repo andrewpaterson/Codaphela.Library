@@ -1,0 +1,402 @@
+### ConstantContexts | 255 | 5.19 [expr.const] p3: where an integral constant expression is required
+@SAME@
+const int gThree = 3;
+constexpr int Square(int v) { return v * v; }
+enum E { E0 = gThree + 1, E1 = Square(3), E2 = sizeof(long) * 2 };
+struct Bits { unsigned a : gThree; unsigned b : Square(2); };
+template<int N> struct Size { enum { V = N }; char c[N]; };
+struct Class { static const int scMember = 6; static constexpr int scExpr = scMember * 2; enum { Local = scExpr + 1 }; };
+struct alignas(1 << 2) Aligned { char c; };
+int Switch(int v)
+{
+	switch (v)
+	{
+		case gThree: return 1;
+		case Square(3) + 1: return 2;
+		case E1: return 3;
+		case Class::scExpr: return 4;
+		case 'a' + 1: return 5;
+		case sizeof(char) + 100: return 6;
+	}
+	return 0;
+}
+int main()
+{
+	const int local = 5;
+	constexpr int expr = local * 2;
+	int a[gThree];
+	int b[Square(4)];
+	int c[local + expr];
+	int d[E1];
+	int r = 0;
+	if (sizeof(a) == 3 * sizeof(int) && sizeof(b) == 16 * sizeof(int) && sizeof(c) == 15 * sizeof(int) && sizeof(d) == 9 * sizeof(int)) r += 1;
+	if (E0 == 4 && E1 == 9 && E2 == 2 * sizeof(long) && Class::Local == 13) r += 2;
+	Bits bits;
+	bits.a = 15; bits.b = 31;
+	if (bits.a == 7 && bits.b == 15) r += 4;
+	if (Size<gThree>::V == 3 && Size<Square(5)>::V == 25 && sizeof(Size<local * 2>) == 10 && Size<Class::scMember + E1>::V == 15 && Size<sizeof(int[4]) / sizeof(int)>::V == 4) r += 8;
+	if (Switch(3) == 1 && Switch(10) == 2 && Switch(9) == 3 && Switch(12) == 4 && Switch('b') == 5 && Switch(101) == 6 && Switch(0) == 0) r += 16;
+	static_assert(gThree == 3 && Square(gThree) == 9 && local == 5 && expr == 10, "constants");
+	static_assert(sizeof(Aligned) == 4 && alignof(Aligned) == 4, "alignment");
+	if (alignof(Aligned) == 4 && noexcept(Square(2)) == false) r += 32;
+	if (Same<Size<2 + 1>, Size<gThree> >::V && Same<Size<Square(2)>, Size<E0> >::V && !Same<Size<1>, Size<2> >::V) r += 64;
+	char e[local > 3 ? 2 : 1][expr / 5];
+	if (sizeof(e) == 4 && sizeof(e[0]) == 2) r += 128;
+	return r;
+}
+### ConstantConstVariables | 15 | 5.19 [expr.const] p2: a const integer initialised with a constant is a constant
+enum E { E5 = 5 };
+const int gA = 4;
+const unsigned char gB = 200;
+const long gC = gA * 100000L;
+const E gE = E5;
+const bool gFlag = true;
+const char gChar = 'x';
+static const int gsStatic = gA + 1;
+struct S { static const int scIn = 7; static const int scOut; };
+const int S::scOut = 8;
+int main()
+{
+	const int local = gA + gB;
+	int a[gA];
+	int b[gB];
+	int c[local];
+	int d[gE + gFlag + (gChar == 'x')];
+	int e[gsStatic + S::scIn + S::scOut];
+	char f[gC / 100000L];
+	int r = 0;
+	if (sizeof(a) == 4 * sizeof(int) && sizeof(b) == 200 * sizeof(int) && sizeof(c) == 204 * sizeof(int)) r += 1;
+	if (sizeof(d) == 7 * sizeof(int) && sizeof(e) == 20 * sizeof(int) && sizeof(f) == 4) r += 2;
+	constexpr long product = gC * 2;
+	constexpr int fromEnum = gE * 3;
+	if (product == 800000L && fromEnum == 15) r += 4;
+	static_assert(gB == 200 && gC == 400000L && S::scOut == 8, "constants");
+	const int& reference = gA;
+	if (&reference == &gA && *&gA == 4) r += 8;
+	return r;
+}
+### ConstantRunTimeConstRefused | REFUSED | 5.19 [expr.const] p2: a const integer initialised with a constant is a constant
+int Get() { return 3; }
+int main() { const int n = Get(); constexpr int m = n; return m; }
+### ConstantNonConstVariableRefused | REFUSED | 5.19 [expr.const] p2: lvalue to rvalue conversion
+int main() { int n = 3; constexpr int m = n; return m; }
+### ConstantConstDoubleRefused | REFUSED | 5.19 [expr.const] p2: only a const of integral or enumeration type is read
+int main() { const double d = 1.5; constexpr double e = d; return e > 1 ? 1 : 2; }
+### ConstantVolatileRefused | REFUSED | 5.19 [expr.const] p2: a volatile object is not read
+int main() { const volatile int v = 1; constexpr int m = v; return m; }
+### ConstantArrayBoundNotConstantRefused | REFUSED | 5.19 [expr.const] p3: where an integral constant expression is required
+int main() { int n = 3; int a[n]; return sizeof(a) ? 1 : 2; }
+### ConstantCaseNotConstantRefused | REFUSED | 5.19 [expr.const] p3: where an integral constant expression is required
+int main() { int n = 3; int v = 3; switch (v) { case n: return 1; } return 2; }
+### ConstantEnumeratorNotConstantRefused | REFUSED | 5.19 [expr.const] p3: where an integral constant expression is required
+int gN = 3;
+enum E { E0 = gN };
+int main() { return E0; }
+### ConstantTemplateArgumentNotConstantRefused | REFUSED | 5.19 [expr.const] p3: where an integral constant expression is required
+template<int N> struct Size { enum { V = N }; };
+int main() { int n = 3; return Size<n>::V; }
+### ConstantBitFieldWidthNotConstantRefused | REFUSED | 5.19 [expr.const] p3: where an integral constant expression is required
+int gN = 3;
+struct S { int b : gN; };
+int main() { S s; s.b = 1; return s.b; }
+### ConstantConvertedNarrowingRefused | REFUSED | 5.19 [expr.const] p3: a converted constant expression does not narrow
+template<unsigned char C> struct Byte { enum { V = C }; };
+int main() { return Byte<300>::V; }
+### ConstantConvertedNegativeRefused | REFUSED | 5.19 [expr.const] p3: a converted constant expression does not narrow
+template<unsigned int N> struct Count { enum { V = 1 }; };
+int main() { return Count<-1>::V; }
+### ConstantConvertedFloatRefused | REFUSED | 5.19 [expr.const] p3: a converted constant expression is not converted from floating point
+template<int N> struct Size { enum { V = N }; };
+int main() { return Size<1.0>::V; }
+### ConstantEnumeratorNarrowingRefused | REFUSED | 5.19 [expr.const] p3: a converted constant expression does not narrow
+enum E : unsigned char { E0 = 256 };
+int main() { return E0 + 1; }
+### ConstantCaseNarrowingRefused | REFUSED | 5.19 [expr.const] p3: a converted constant expression does not narrow
+int main() { unsigned int v = 1; switch (v) { case -1: return 1; } return 2; }
+### ConstantArrayBoundFloatRefused | REFUSED | 5.19 [expr.const] p3: a converted constant expression is not converted from floating point
+int main() { int a[2.0]; return sizeof(a) ? 1 : 2; }
+### ConstantClassConversion | 15 | 5.19 [expr.const] p3: a class with a constexpr conversion function
+struct Three { constexpr operator int() const { return 3; } };
+struct Count { constexpr Count(int x) : v(x) { } constexpr operator unsigned char() const { return v; } unsigned char v; };
+template<int N> struct Size { enum { V = N }; };
+enum E { E0 = Three(), E1 = Count(7) };
+int main()
+{
+	constexpr Three three = Three();
+	constexpr Count five(5);
+	int a[three];
+	int b[Count(4)];
+	int r = 0;
+	if (sizeof(a) == 3 * sizeof(int) && sizeof(b) == 4 * sizeof(int)) r += 1;
+	if (E0 == 3 && E1 == 7 && Size<three>::V == 3 && Size<five>::V == 5) r += 2;
+	switch (5) { case five: r += 4; break; case three: r += 100; break; }
+	static_assert(three == 3 && five + 1 == 6, "conversions");
+	if (three + five == 8 && sizeof(char[three * five]) == 15) r += 8;
+	return r;
+}
+### ConstantOnlyEvaluatedMatters | 31 | 5.19 [expr.const] p2: only what is evaluated need be constant
+int NotConstant() { return 7; }
+int gVariable = 1;
+constexpr int Pick(int v) { return v > 0 ? v * 2 : NotConstant(); }
+constexpr int Guarded(int v) { if (v < 0) { return gVariable; } return v + 1; }
+constexpr int Divide(int a, int b) { return b == 0 ? 0 : a / b; }
+int main()
+{
+	constexpr int a = true ? 1 : NotConstant();
+	constexpr int b = false && NotConstant();
+	constexpr int c = true || NotConstant();
+	constexpr int d = Pick(3);
+	constexpr int e = Guarded(4);
+	constexpr int f = Divide(7, 0) + Divide(7, 2);
+	constexpr int g = sizeof(NotConstant()) + sizeof(gVariable);
+	int r = 0;
+	if (a == 1 && b == 0 && c == 1) r += 1;
+	if (d == 6 && e == 5 && f == 3) r += 2;
+	if (g == 2 * sizeof(int)) r += 4;
+	if (Pick(0) == 7 && Guarded(-1) == 1) r += 8;
+	gVariable = 9;
+	if (Guarded(-1) == 9 && Pick(-5) == 7 && Divide(9, 3) == 3) r += 16;
+	return r;
+}
+### ConstantUnevaluatedBranchTakenRefused | REFUSED | 5.19 [expr.const] p2: only what is evaluated need be constant
+int NotConstant() { return 7; }
+constexpr int Pick(int v) { return v > 0 ? v * 2 : NotConstant(); }
+int main() { constexpr int a = Pick(0); return a; }
+### ConstantUndefinedFunctionRefused | REFUSED | 5.19 [expr.const] p2: a constexpr function not yet defined
+constexpr int Later(int v);
+constexpr int gValue = Later(1);
+constexpr int Later(int v) { return v + 1; }
+int main() { return gValue; }
+### ConstantDefinedBeforeUse | 3 | 5.19 [expr.const] p2: a constexpr function not yet defined
+constexpr int Later(int v);
+constexpr int Caller(int v) { return Later(v) * 2; }
+constexpr int Later(int v) { return v + 1; }
+constexpr int gValue = Caller(2);
+int main()
+{
+	int a[gValue];
+	int r = 0;
+	if (gValue == 6) r += 1;
+	if (sizeof(a) == 6 * sizeof(int)) r += 2;
+	return r;
+}
+### ConstantLambdaRefused | REFUSED | 5.19 [expr.const] p2: a lambda expression is not constant
+int main() { constexpr int a = [] { return 1; }(); return a; }
+### ConstantReinterpretCastRefused | REFUSED | 5.19 [expr.const] p2: reinterpret_cast is not constant
+int gi = 1;
+int main() { constexpr unsigned long long a = reinterpret_cast<unsigned long long>(&gi); return a ? 1 : 2; }
+### ConstantModifiesGlobalRefused | REFUSED | 5.19 [expr.const] p2: only objects created in the evaluation are changed
+int gi = 1;
+constexpr int Bump() { return ++gi; }
+int main() { constexpr int a = Bump(); return a; }
+### ConstantAssignsGlobalRefused | REFUSED | 5.19 [expr.const] p2: only objects created in the evaluation are changed
+int gi = 1;
+constexpr int Set(int v) { gi = v; return v; }
+int main() { constexpr int a = Set(2); return a; }
+### ConstantNewRefused | REFUSED | 5.19 [expr.const] p2: a new expression is not constant
+@NEW@
+constexpr int Make() { return *new int(5); }
+int main() { constexpr int a = Make(); return a; }
+### ConstantNullDereferenceRefused | REFUSED | 5.19 [expr.const] p2: undefined behaviour is not constant
+constexpr int Read(const int* p) { return *p; }
+int main() { constexpr int a = Read(nullptr); return a; }
+### ConstantShiftTooFarRefused | REFUSED | 5.19 [expr.const] p2: undefined behaviour is not constant
+int main() { constexpr int a = 1 << (sizeof(int) * 8); return a + 1; }
+### ConstantNegativeShiftRefused | REFUSED | 5.19 [expr.const] p2: undefined behaviour is not constant
+constexpr int Shift(int v, int n) { return v << n; }
+int main() { constexpr int a = Shift(1, -1); return a + 1; }
+### ConstantInactiveUnionMemberRefused | REFUSED | 5.19 [expr.const] p2: a union member that is not active is not read
+union U { int i; long l; constexpr U(int v) : i(v) { } };
+int main() { constexpr U u(1); constexpr long a = u.l; return a ? 1 : 2; }
+### ConstantUnrelatedPointerCompareRefused | REFUSED | 5.19 [expr.const] p2: a comparison whose result is unspecified is not constant
+int ga;
+int gb;
+int main() { constexpr bool less = &ga < &gb; return less ? 1 : 2; }
+### ConstantThisOutsideRefused | REFUSED | 5.19 [expr.const] p2: this, outside a constexpr member function being evaluated
+struct S { int m; int f() { constexpr S* p = this; return p->m; } };
+int main() { S s = { 1 }; return s.f(); }
+### ConstantAddresses | 127 | 5.19 [expr.const] p5: address and reference constant expressions
+struct S { int m; int a[3]; int f() const { return m; } };
+int gi = 5;
+int ga[4] = { 1, 2, 3, 4 };
+S gs = { 6, { 7, 8, 9 } };
+int Function(int v) { return v + 1; }
+constexpr int* gp = &gi;
+constexpr int* gq = &ga[2];
+constexpr int* gm = &gs.a[1];
+constexpr const char* gsz = "abc";
+constexpr int (*gpf)(int) = Function;
+constexpr int S::* gpm = &S::m;
+constexpr int (S::*gpmf)() const = &S::f;
+constexpr int& gr = gi;
+constexpr S& grs = gs;
+constexpr int* gnull = nullptr;
+constexpr decltype(nullptr) gnp = nullptr;
+int main()
+{
+	static int sLocal = 3;
+	constexpr int* ps = &sLocal;
+	int r = 0;
+	if (*gp == 5 && gp == &gi && *gq == 3 && *gm == 8 && gq - ga == 2) r += 1;
+	if (gsz[1] == 'b' && gpf(1) == 2 && gs.*gpm == 6 && (gs.*gpmf)() == 6) r += 2;
+	gr = 10;
+	grs.m = 11;
+	if (gi == 10 && gs.m == 11 && &gr == &gi && &grs == &gs) r += 4;
+	if (gnull == 0 && gnp == nullptr && *ps == 3 && ps == &sLocal) r += 8;
+	constexpr long difference = &ga[3] - &ga[1];
+	constexpr bool before = &ga[1] < &ga[2];
+	constexpr bool same = &ga[1] == ga + 1;
+	constexpr bool notNull = &gi != nullptr;
+	if (difference == 2 && before && same && notNull) r += 16;
+	static_assert(gp != nullptr && gq == ga + 2 && gpf == Function && gnull == nullptr, "addresses");
+	constexpr char second = "abc"[1];
+	constexpr char last = gsz[3];
+	if (second == 'b' && last == 0 && sizeof(char[gsz[0] - 'a' + 2]) == 2) r += 32;
+	constexpr const int* const* gpp = &gp;
+	if (**gpp == 10 && *gpp == &gi) r += 64;
+	return r;
+}
+### ConstantAddressOfLocalRefused | REFUSED | 5.19 [expr.const] p5: an address constant is of an object with static storage
+int main() { int local = 1; constexpr int* p = &local; return *p; }
+### ConstantReferenceToLocalRefused | REFUSED | 5.19 [expr.const] p5: a reference constant refers to an object with static storage
+int main() { int local = 1; constexpr int& r = local; return r; }
+### ConstantObjects | 255 | 5.19 [expr.const] p2: literal objects and their subobjects are read
+struct P { int a; int b; };
+struct Line { P from; P to; constexpr int Length() const { return (to.a - from.a) + (to.b - from.b); } };
+struct C
+{
+	constexpr C(int x) : v(x), twice(x * 2) { }
+	constexpr int Sum() const { return v + twice; }
+	int v;
+	int twice;
+};
+constexpr P gp = { 1, 2 };
+constexpr Line gl = { { 1, 2 }, { 4, 6 } };
+constexpr int gt[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } };
+constexpr C gc(5);
+constexpr P gap[2] = { { 7, 8 }, { 9, 10 } };
+constexpr const P* gpp = &gap[1];
+constexpr double gd = 2.5;
+constexpr float gf = 0.5f;
+template<int N> struct Size { enum { V = N }; };
+int main()
+{
+	constexpr P local = { 3, 4 };
+	constexpr C made = C(4);
+	constexpr P copy = gp;
+	constexpr Line moved = { gl.to, gl.from };
+	int a[gp.b + local.a];
+	int r = 0;
+	if (sizeof(a) == 5 * sizeof(int) && Size<gl.to.b>::V == 6 && Size<gt[1][2]>::V == 6) r += 1;
+	if (Size<gc.twice>::V == 10 && Size<gc.Sum()>::V == 15 && Size<made.Sum()>::V == 12 && Size<C(2).Sum()>::V == 6) r += 2;
+	if (Size<gl.Length()>::V == 7 && Size<gap[1].a + gap[0].b>::V == 17 && Size<gpp->b>::V == 10 && Size<(*gpp).a>::V == 9) r += 4;
+	if (copy.a == 1 && copy.b == 2 && Size<copy.b>::V == 2 && moved.from.a == 4 && Size<moved.to.b>::V == 2) r += 8;
+	constexpr int fromDouble = (int)(gd * 2);
+	constexpr double sum = gd + gf;
+	constexpr int rounded = (int)(sum * sum * 100);
+	if (fromDouble == 5 && sum == 3.0 && Size<rounded>::V == 900 && Size<(int)(gd * gd * 4)>::V == 25) r += 16;
+	constexpr int total = gt[0][0] + gt[0][1] + gt[0][2] + gt[1][0] + gt[1][1] + gt[1][2];
+	constexpr unsigned long long size = sizeof(gt) / sizeof(gt[0]) + sizeof(gt[0]) / sizeof(int);
+	if (total == 21 && size == 5 && Size<sizeof(gap) / sizeof(P)>::V == 2) r += 32;
+	static_assert(gp.a == 1 && gl.to.a == 4 && gt[1][0] == 4 && gc.v == 5 && gap[0].a == 7, "objects");
+	const P* runtime = &gap[0];
+	if (runtime[1].b == 10 && gc.Sum() == 15 && gl.Length() == 7 && &gap[1] == gpp) r += 64;
+	constexpr bool compare = gp.a < gp.b && gd > 2 && gf == 0.5f && gpp == &gap[1];
+	if (compare) r += 128;
+	return r;
+}
+### ConstantEvaluationChangesLocals | 255 | 5.19 [expr.const] p2: objects created in the evaluation may be changed
+struct P { int a; int b; constexpr void Swap() { int t = a; a = b; b = t; } constexpr P& Add(int v) { a += v; b += v; return *this; } };
+constexpr int SumTo(int n) { int total = 0; for (int i = 1; i <= n; i++) total += i; return total; }
+constexpr void Increment(int& r) { r++; }
+constexpr void SetThrough(int* p, int v) { *p = v; }
+constexpr int ThroughReference(int v) { Increment(v); Increment(v); int& r = v; r *= 2; return v; }
+constexpr int ThroughPointer(int v) { int local = 0; int* p = &local; SetThrough(p, v + 1); *p += 1; return local; }
+constexpr int LocalArray(int n) { int a[5] = { 0, 0, 0, 0, 0 }; for (int i = 0; i < 5; i++) a[i] = i * n; int total = 0; for (int i = 4; i >= 0; i--) total += a[i]; return total; }
+constexpr int LocalObject(int v) { P p = { v, v + 1 }; p.Swap(); p.Add(10).Add(1); return p.a * 100 + p.b; }
+constexpr int Fibonacci(int n) { int a = 0; int b = 1; while (n-- > 0) { int t = a + b; a = b; b = t; } return a; }
+constexpr int Collatz(int n) { int steps = 0; while (n != 1) { if (n % 2 == 0) n /= 2; else n = n * 3 + 1; steps++; } return steps; }
+constexpr int Switch(int v) { int r = 0; switch (v) { case 1: r += 1; case 2: r += 2; break; case 3: r = 30; break; default: r = -1; } return r; }
+constexpr int Compound(int v) { int r = v; r += 3; r *= 2; r -= 1; r /= 3; r %= 5; r <<= 2; r >>= 1; r |= 1; r &= 7; r ^= 2; return r; }
+constexpr P MakeSwapped(int a, int b) { P p = { a, b }; p.Swap(); return p; }
+template<int N> struct Size { enum { V = N }; };
+int main()
+{
+	constexpr P swapped = MakeSwapped(1, 2);
+	int r = 0;
+	if (Size<SumTo(10)>::V == 55 && Size<SumTo(100)>::V == 5050) r += 1;
+	if (Size<ThroughReference(3)>::V == 10 && Size<ThroughPointer(5)>::V == 7) r += 2;
+	if (Size<LocalArray(3)>::V == 30 && Size<LocalObject(1)>::V == 1312) r += 4;
+	if (Size<Fibonacci(20)>::V == 6765 && Size<Collatz(27)>::V == 111) r += 8;
+	if (Size<Switch(1)>::V == 3 && Size<Switch(2)>::V == 2 && Size<Switch(3)>::V == 30 && Switch(9) == -1) r += 16;
+	if (Size<Compound(4)>::V == Compound(4) && Compound(4) == 3) r += 32;
+	if (swapped.a == 2 && swapped.b == 1 && Size<swapped.a>::V == 2) r += 64;
+	int n = 10;
+	if (SumTo(n) == 55 && Fibonacci(n) == 55 && LocalArray(n) == 100 && ThroughReference(n) == 24 && LocalObject(n) == 2221) r += 128;
+	return r;
+}
+### ConstantAgreesWithRunTime | 1023 | 5.19 [expr.const] p4: a constant has the value the expression has when the program runs
+constexpr int Div(int a, int b) { return a / b; }
+constexpr int Mod(int a, int b) { return a % b; }
+constexpr long ShiftRight(long v, int n) { return v >> n; }
+constexpr unsigned char ToByte(int v) { return (unsigned char)v; }
+constexpr signed char ToSignedByte(int v) { return (signed char)v; }
+constexpr long Widen(short v) { return v; }
+constexpr unsigned long WidenUnsigned(unsigned short v) { return v; }
+constexpr unsigned int Negate(unsigned int v) { return -v; }
+constexpr long long Multiply(long long a, long long b) { return a * b; }
+constexpr unsigned long long DivideUnsigned(unsigned long long a, unsigned long long b) { return a / b; }
+constexpr int Truncate(double d) { return (int)d; }
+constexpr double ToDouble(long long v) { return (double)v; }
+constexpr bool ToBool(long v) { return v; }
+constexpr int Compare(int a, unsigned int b) { return a < b; }
+constexpr int Promote(unsigned char a, unsigned char b) { return a + b; }
+constexpr int Complement(unsigned char v) { return ~v; }
+constexpr double Scale(double d, int n) { return d * n / 4; }
+int main()
+{
+	volatile int seven = 7;
+	volatile int two = 2;
+	volatile int big = 300;
+	volatile int negative = -1;
+	volatile long long million = 1000000;
+	volatile double fraction = -3.99;
+	int r = 0;
+	constexpr int d1 = Div(-7, 2);
+	constexpr int m1 = Mod(-7, 2);
+	constexpr int m2 = Mod(7, -2);
+	if (d1 == -3 && m1 == -1 && m2 == 1 && Div(-seven, two) == d1 && Mod(-seven, two) == m1 && Mod(seven, -two) == m2) r += 1;
+	constexpr long s1 = ShiftRight(-8L, 1);
+	constexpr long s2 = ShiftRight(-1L, 20);
+	if (s1 == -4 && s2 == -1 && ShiftRight(-8L * (two / 2), two - 1) == s1 && ShiftRight(negative, seven * 2 + 6) == s2) r += 2;
+	constexpr unsigned char b1 = ToByte(300);
+	constexpr signed char b2 = ToSignedByte(200);
+	if (b1 == 44 && b2 == -56 && ToByte(big) == b1 && ToSignedByte(big - 100) == b2) r += 4;
+	constexpr long w1 = Widen(-2);
+	constexpr unsigned long w2 = WidenUnsigned(65535u);
+	constexpr unsigned int n1 = Negate(1);
+	if (w1 == -2L && w2 == 65535ul && n1 == ~0u && Widen((short)(negative * two)) == w1 && WidenUnsigned((unsigned short)negative) == w2 && Negate(-negative) == n1) r += 8;
+	constexpr long long p1 = Multiply(1000000, 1000000);
+	constexpr unsigned long long q1 = DivideUnsigned(0xFFFFFFFFFFFFFFFFull, 10);
+	if (p1 == 1000000000000LL && q1 == 1844674407370955161ull && Multiply(million, million) == p1 && DivideUnsigned((unsigned long long)(long long)negative, seven + 3) == q1) r += 16;
+	constexpr int t1 = Truncate(-3.99);
+	constexpr int t2 = Truncate(3.99);
+	constexpr double f1 = ToDouble(1000000000000LL);
+	if (t1 == -3 && t2 == 3 && f1 == 1e12 && Truncate(fraction) == t1 && Truncate(-fraction) == t2 && ToDouble(million * million) == f1) r += 32;
+	constexpr bool c1 = ToBool(0x10000L);
+	constexpr int c2 = Compare(-1, 1);
+	if (c1 && c2 == 0 && ToBool(million * 0 + 0x10000L) == c1 && Compare(negative, 1u) == c2) r += 64;
+	constexpr int a1 = Promote(200, 100);
+	constexpr int a2 = Complement(0xF0);
+	if (a1 == 300 && a2 == -241 && Promote((unsigned char)(big - 100), 100) == a1 && Complement((unsigned char)(big - 60)) == a2) r += 128;
+	constexpr double x1 = Scale(2.5, 3);
+	constexpr double x2 = 1.0 / 3;
+	constexpr int x3 = (int)(x2 * 3000);
+	volatile double one = 1.0;
+	if (x1 == 1.875 && Scale(2.5, seven - 4) == x1 && x2 == one / 3 && (x3 == 1000 || x3 == 999) && (int)(one / 3 * 3000) == x3) r += 256;
+	constexpr long long shifted = 1LL << 40;
+	constexpr unsigned long long mask = ~0ull >> 4;
+	constexpr int precedence = 1 + 2 * 3 << 1 & 0xFE | 1;
+	if (shifted == 0x10000000000LL && mask == 0x0FFFFFFFFFFFFFFFull && precedence == 15 && (1LL << (seven * 5 + 5)) == shifted && (1 + two * 3 << 1 & 0xFE | 1) == precedence) r += 512;
+	return r;
+}

@@ -1,0 +1,398 @@
+### ExprScopedEnumNoConversion | 7 | 5 [expr] p10: usual arithmetic conversions, scoped enumerations
+enum class E { A, B, C };
+int main()
+{
+	E a = E::A;
+	E c = E::C;
+	int r = 0;
+	if (a < c && c > a && a <= a && c >= a) r += 1;
+	if (a != c && a == E::A) r += 2;
+	if ((c == E::C ? 4 : 0) == 4) r += 4;
+	return r;
+}
+### ExprScopedEnumArithmeticRefused | REFUSED | 5 [expr] p10: usual arithmetic conversions, scoped enumerations
+enum class E { A, B };
+int main() { E e = E::B; return (e + 1) ? 1 : 2; }
+### ExprScopedEnumMixedCompareRefused | REFUSED | 5 [expr] p10: usual arithmetic conversions, scoped enumerations
+enum class E { A, B };
+enum class F { A, B };
+int main() { return (E::A == F::A) ? 1 : 2; }
+### ExprScopedEnumBitwiseRefused | REFUSED | 5 [expr] p10: usual arithmetic conversions, scoped enumerations
+enum class E { A = 1, B = 2 };
+int main() { E e = E::A | E::B; return e == E::A ? 1 : 2; }
+### ExprUnscopedEnumArithmetic | 15 | 5 [expr] p10: usual arithmetic conversions
+@SAME@
+enum E { E1 = 1, E2 = 2 };
+enum F { F4 = 4 };
+int main()
+{
+	E e = E2;
+	int r = 0;
+	if (e + 1 == 3 && e * F4 == 8) r += 1;
+	if (Same<decltype(e + e), int>::V && Same<decltype(e | F4), int>::V) r += 2;
+	if (e < F4 && (E1 | E2) == 3) r += 4;
+	if (Same<decltype(e + 1.5), double>::V && e + 1.5 == 3.5) r += 8;
+	return r;
+}
+### ExprDiscardedValue | 15 | 5 [expr] p11: discarded-value expressions
+int gCount = 0;
+struct S { S(int x) : v(x) { gCount += 10; } ~S() { gCount += 1; } int v; };
+int Call() { gCount += 100; return 5; }
+int main()
+{
+	volatile int v = 3;
+	int i = 4;
+	int a[2] = { 1, 2 };
+	int r = 0;
+	S(1);
+	if (gCount == 11) r += 1;
+	Call();
+	(void)Call();
+	if (gCount == 211) r += 2;
+	v;
+	i;
+	a;
+	Call;
+	i, v;
+	(void)a;
+	if (gCount == 211 && v == 3) r += 4;
+	S(2), S(3), Call();
+	if (gCount == 333) r += 8;
+	return r;
+}
+### ExprReferenceAdjusted | 7 | 5 [expr] p5: an expression's type is never a reference
+@SAME@
+int gi = 3;
+int& Ref() { return gi; }
+int&& RRef() { return static_cast<int&&>(gi); }
+int main()
+{
+	int& ri = gi;
+	int r = 0;
+	if (Same<decltype(ri + 0), int>::V && sizeof(ri) == sizeof(int)) r += 1;
+	if (Same<decltype((ri)), int&>::V && Same<decltype(Ref()), int&>::V) r += 2;
+	if (Same<decltype(RRef()), int&&>::V && Same<decltype((RRef())), int&&>::V) r += 4;
+	return r;
+}
+### PrimLiteralCategories | 15 | 5.1.1 [expr.prim.general] p1: literals
+@SAME@
+int main()
+{
+	const char (*p)[4] = &"abc";
+	int r = 0;
+	if ((*p)[2] == 'c' && sizeof(*p) == 4) r += 1;
+	if (Same<decltype("abc"), const char (&)[4]>::V) r += 2;
+	if (Same<decltype(5), int>::V && Same<decltype('a'), char>::V && Same<decltype(true), bool>::V) r += 4;
+	if (Same<decltype(nullptr), decltype(nullptr)>::V && Same<decltype(1.5f), float>::V && Same<decltype(L'a'), wchar_t>::V) r += 8;
+	return r;
+}
+### PrimAddressOfLiteralRefused | REFUSED | 5.1.1 [expr.prim.general] p1: literals
+int main() { const int* p = &5; return *p; }
+### PrimThisType | 31 | 5.1.1 [expr.prim.general] p3: this
+@SAME@
+struct S
+{
+	int m;
+	int a = 2;
+	int b = this->a + 5;
+	int Plain() { return Same<decltype(this), S*>::V; }
+	int Const() const { return Same<decltype(this), const S*>::V; }
+	int Volatile() volatile { return Same<decltype(this), volatile S*>::V; }
+	auto Trailing() const -> decltype(this->m) { return m; }
+	S* Self() { return this; }
+	static int Size() { return sizeof(m); }
+};
+int main()
+{
+	S s;
+	s.m = 4;
+	int r = 0;
+	if (s.Plain() && s.Const() && s.Volatile()) r += 1;
+	if (s.b == 7) r += 2;
+	if (s.Trailing() == 4 && Same<decltype(s.Trailing()), int>::V) r += 4;
+	if (s.Self() == &s && (*s.Self()).m == 4) r += 8;
+	if (S::Size() == sizeof(int)) r += 16;
+	return r;
+}
+### PrimThisOutsideRefused | REFUSED | 5.1.1 [expr.prim.general] p3: this
+int f() { return this ? 1 : 2; }
+int main() { return f(); }
+### PrimThisInStaticRefused | REFUSED | 5.1.1 [expr.prim.general] p3: this
+struct S { int m; static int f() { return this->m; } };
+int main() { return S::f() + 1; }
+### PrimThisAssignRefused | REFUSED | 5.1.1 [expr.prim.general] p3: this
+struct S { int m; void f(S* p) { this = p; } };
+int main() { S a; S b; a.f(&b); return 1; }
+### PrimThisInConstWritesRefused | REFUSED | 5.1.1 [expr.prim.general] p3: this
+struct S { int m; void f() const { this->m = 1; } };
+int main() { S a; a.f(); return 1; }
+### PrimParentheses | 15 | 5.1.1 [expr.prim.general] p6: parenthesised expressions
+@SAME@
+int f(int x) { return x + 1; }
+int main()
+{
+	int x = 1;
+	int a[3] = { 1, 2, 3 };
+	int r = 0;
+	(x) = 3;
+	((x)) += 1;
+	if (x == 4 && &(x) == &x) r += 1;
+	if (Same<decltype(x), int>::V && Same<decltype((x)), int&>::V) r += 2;
+	if ((f)(1) == 2 && (*(&f))(2) == 3 && (a)[1] == 2 && sizeof((a)) == sizeof(a)) r += 4;
+	if (((1 + 2)) * (3) == 9 && (-(x)) == -4) r += 8;
+	return r;
+}
+### PrimQualifiedNames | 63 | 5.1.1 [expr.prim.general] p7-p11: qualified names
+int v = 1;
+namespace N { int v = 2; namespace M { int v = 3; } int f() { return ::v * 10 + v; } }
+struct B { int m; int f() { return 4; } static int s; enum { E = 6 }; typedef int T; };
+int B::s = 5;
+struct D : B { int m; int f() { return 7; } int Both() { return B::m * 10 + m; } int BaseF() { return B::f() * 10 + f(); } };
+enum U { U0, U1 };
+int main()
+{
+	int v = 9;
+	D d;
+	d.m = 2;
+	d.B::m = 1;
+	int r = 0;
+	if (::v == 1 && N::v == 2 && N::M::v == 3 && ::N::M::v == 3 && v == 9) r += 1;
+	if (N::f() == 12) r += 2;
+	if (d.Both() == 12 && d.BaseF() == 47 && d.B::f() == 4) r += 4;
+	if (B::s == 5 && D::s == 5 && d.s == 5 && B::E == 6 && D::E == 6) r += 8;
+	if (U::U1 == 1 && ::U1 == 1 && sizeof(B::T) == sizeof(int) && sizeof(D::T) == sizeof(int)) r += 16;
+	if (decltype(d)::s == 5 && decltype(d)::E == 6) r += 32;
+	return r;
+}
+### PrimMemberOutsideClassRefused | REFUSED | 5.1.1 [expr.prim.general] p13: a non-static member's name outside its class
+struct S { int m; };
+int main() { int x = S::m; return x + 1; }
+### PrimMemberFunctionOutsideClassRefused | REFUSED | 5.1.1 [expr.prim.general] p13: a non-static member's name outside its class
+struct S { int f() { return 1; } };
+int main() { return S::f(); }
+### PrimMemberUnevaluated | 7 | 5.1.1 [expr.prim.general] p13: a non-static member's name outside its class
+@SAME@
+struct S { int m; char c[5]; long f(); };
+int main()
+{
+	int r = 0;
+	if (sizeof(S::m) == sizeof(int) && sizeof(S::c) == 5) r += 1;
+	if (Same<decltype(S::m), int>::V && Same<decltype(S::c), char[5]>::V) r += 2;
+	if (sizeof(((S*)0)->f()) == sizeof(long) && noexcept(S::m)) r += 4;
+	return r;
+}
+### PrimEnumeratorIsPrvalueRefused | REFUSED | 5.1.1 [expr.prim.general] p8: an enumerator is a prvalue
+enum E { E0, E1 };
+int main() { const int* p = &E1; return *p; }
+### PrimDestructorName | 7 | 5.1.1 [expr.prim.general] p8: naming a destructor
+int gCount = 0;
+struct S { ~S() { gCount++; } };
+struct T : S { ~T() { gCount += 10; } };
+typedef S Alias;
+int main()
+{
+	char buffer[sizeof(T)];
+	S* p = (S*)buffer;
+	T* q = (T*)buffer;
+	int r = 0;
+	p->~S();
+	if (gCount == 1) r += 1;
+	p->S::~S();
+	(*p).~Alias();
+	if (gCount == 3) r += 2;
+	q->~T();
+	if (gCount == 14) r += 4;
+	return r;
+}
+### LambdaClosureType | 31 | 5.1.2 [expr.prim.lambda] p3-p6: closure types
+@SAME@
+int main()
+{
+	int x = 3;
+	auto a = [] { return 1; };
+	auto b = [] { return 1; };
+	auto c = [x] { return x; };
+	auto d = a;
+	int (*pf)(int) = [](int v) { return v * 2; };
+	auto pg = +[](int v) { return v + 1; };
+	auto dbl = [] { return 2.5; };
+	auto lng = []() -> long { return 1; };
+	int r = 0;
+	if (!Same<decltype(a), decltype(b)>::V && Same<decltype(a), decltype(d)>::V) r += 1;
+	if (sizeof(c) >= sizeof(int) && c() == 3 && d() == 1) r += 2;
+	if (pf(4) == 8 && Same<decltype(pg), int (*)(int)>::V && pg(4) == 5) r += 4;
+	if (Same<decltype(a()), int>::V && Same<decltype(dbl()), double>::V) r += 8;
+	if ([](int p, int q) -> long { return p + q; }(1, 2) == 3 && Same<decltype(lng()), long>::V) r += 16;
+	return r;
+}
+### LambdaReturnDeduction | 15 | 5.1.2 [expr.prim.lambda] p4: the return type is deduced as for auto
+@SAME@
+struct S { int v; };
+int gi = 5;
+int main()
+{
+	const int ci = 3;
+	auto several = [](int v) { if (v > 0) return 1; else if (v < 0) return -1; return 0; };
+	auto copy = [&]() { return ci; };
+	auto nothing = [] { };
+	auto reference = []() -> int& { return gi; };
+	auto list = [] { return S{ 7 }; };
+	int r = 0;
+	if (several(5) == 1 && several(-5) == -1 && several(0) == 0) r += 1;
+	if (Same<decltype(copy()), int>::V && Same<decltype(nothing()), void>::V) r += 2;
+	reference() = 6;
+	if (gi == 6 && Same<decltype(reference()), int&>::V) r += 4;
+	if (list().v == 7) r += 8;
+	return r;
+}
+### LambdaReturnDeductionMismatchRefused | REFUSED | 5.1.2 [expr.prim.lambda] p4: the return type is deduced as for auto
+int main() { auto f = [](int v) { if (v) return 1; return 2.5; }; return f(1) ? 1 : 2; }
+### LambdaCaptureForms | 127 | 5.1.2 [expr.prim.lambda] p8-p15: captures
+int main()
+{
+	int a = 1;
+	int b = 2;
+	int c = 3;
+	int r = 0;
+	auto byCopy = [a, b] { return a + b; };
+	auto byRef = [&a, &b] { a += 10; b += 10; };
+	auto mixed1 = [=, &c] { c = a + b; };
+	auto mixed2 = [&, a] { b = a + 100; };
+	a = 5;
+	if (byCopy() == 3) r += 1;
+	byRef();
+	if (a == 15 && b == 12) r += 2;
+	mixed1();
+	if (c == 3) r += 4;
+	a = 20;
+	mixed2();
+	if (b == 101) r += 8;
+	auto init = [s = a + b, &ra = a] { ra = 1; return s; };
+	if (init() == 121 && a == 1) r += 16;
+	auto counter = [n = 0]() mutable { return ++n; };
+	counter();
+	counter();
+	if (counter() == 3) r += 32;
+	auto copy = counter;
+	if (copy() == 4 && counter() == 4) r += 64;
+	return r;
+}
+### LambdaCaptureEqualThenCopyRefused | REFUSED | 5.1.2 [expr.prim.lambda] p8: captures
+int main() { int a = 1; auto f = [=, a] { return a; }; return f(); }
+### LambdaCaptureAndThenReferenceRefused | REFUSED | 5.1.2 [expr.prim.lambda] p8: captures
+int main() { int a = 1; auto f = [&, &a] { return a; }; return f(); }
+### LambdaCaptureTwiceRefused | REFUSED | 5.1.2 [expr.prim.lambda] p8: captures
+int main() { int a = 1; auto f = [a, a] { return a; }; return f(); }
+### LambdaCaptureGlobalRefused | REFUSED | 5.1.2 [expr.prim.lambda] p10: only automatic variables are captured
+int g = 1;
+int main() { auto f = [g] { return g; }; return f(); }
+### LambdaUncapturedLocalRefused | REFUSED | 5.1.2 [expr.prim.lambda] p12: an odr-used local must be captured
+int main() { int a = 1; auto f = [] { return a; }; return f(); }
+### LambdaCopyIsConstRefused | REFUSED | 5.1.2 [expr.prim.lambda] p5: the call operator is const unless mutable
+int main() { int a = 1; auto f = [a] { a = 2; return a; }; return f(); }
+### LambdaThisOutsideClassRefused | REFUSED | 5.1.2 [expr.prim.lambda] p9: this
+int main() { auto f = [this] { return 1; }; return f(); }
+### LambdaInUnevaluatedRefused | REFUSED | 5.1.2 [expr.prim.lambda] p2: not in an unevaluated operand
+int main() { return sizeof([] { return 1; }) ? 1 : 2; }
+### LambdaDefaultArgumentCaptureRefused | REFUSED | 5.1.2 [expr.prim.lambda] p13: default arguments
+int main() { int a = 1; struct L { static int f(int v = [a] { return a; }()) { return v; } }; return L::f(); }
+### LambdaCaptureTypes | 31 | 5.1.2 [expr.prim.lambda] p15-p19: types of captures
+@SAME@
+int main()
+{
+	int x = 1;
+	const int cx = 2;
+	int& rx = x;
+	int a[3] = { 4, 5, 6 };
+	int r = 0;
+	auto f = [=] { return Same<decltype(x), int>::V + Same<decltype((x)), const int&>::V * 2; };
+	auto g = [=]() mutable { return Same<decltype((x)), int&>::V + Same<decltype((cx)), const int&>::V * 2; };
+	auto h = [rx]() mutable { rx = 9; return rx; };
+	auto arr = [a] { return a[0] + a[1] + a[2] + (int)sizeof(a) / (int)sizeof(int); };
+	auto ref = [&a] { a[0] = 7; return sizeof(a) / sizeof(int); };
+	if (f() == 3) r += 1;
+	if (g() == 3) r += 2;
+	if (h() == 9 && x == 1) r += 4;
+	a[1] = 50;
+	if (arr() == 18) r += 8;
+	if (ref() == 3 && a[0] == 7) r += 16;
+	return r;
+}
+### LambdaThisCapture | 15 | 5.1.2 [expr.prim.lambda] p9, p18: this
+struct S
+{
+	int m;
+	int Explicit() { auto f = [this] { return m + this->m; }; return f(); }
+	int ByCopyDefault() { auto f = [=] { m += 1; return m; }; return f(); }
+	int ByRefDefault() { auto f = [&] { m += 10; return m; }; return f(); }
+	int Nested() { auto f = [this] { auto g = [this] { return m * 2; }; return g(); }; return f(); }
+};
+int main()
+{
+	S s;
+	s.m = 3;
+	int r = 0;
+	if (s.Explicit() == 6) r += 1;
+	if (s.ByCopyDefault() == 4 && s.m == 4) r += 2;
+	if (s.ByRefDefault() == 14 && s.m == 14) r += 4;
+	if (s.Nested() == 28) r += 8;
+	return r;
+}
+### LambdaGenericForms | 31 | 5.1.2 [expr.prim.lambda] p5: generic lambdas
+@SAME@
+int Apply(int (*p)(int), int v) { return p(v); }
+int main()
+{
+	auto twice = [](auto v) { return v + v; };
+	auto first = [](auto a, auto b) { return a; };
+	auto byRef = [](auto& v) { v = v + 1; };
+	auto forward = [](auto&& v) -> decltype(auto) { return static_cast<decltype(v)>(v); };
+	int i = 5;
+	int r = 0;
+	if (twice(2) == 4 && twice(1.5) == 3.0 && Same<decltype(twice(1.5f)), float>::V) r += 1;
+	if (first(1, 2.5) == 1 && first('a', 1) == 'a' && Same<decltype(first('a', 1)), char>::V) r += 2;
+	byRef(i);
+	if (i == 6) r += 4;
+	if (Same<decltype(forward(i)), int&>::V && Same<decltype(forward(5)), int&&>::V) r += 8;
+	if (Apply(twice, 4) == 8 && Apply([](auto v) { return v - 1; }, 4) == 3) r += 16;
+	return r;
+}
+### LambdaNestedCaptures | 15 | 5.1.2 [expr.prim.lambda] p16: nested lambdas
+int main()
+{
+	int a = 1;
+	int b = 2;
+	int r = 0;
+	auto outer = [=]() mutable { a += 10; auto inner = [=] { return a + b; }; return inner(); };
+	auto refs = [&] { auto inner = [&] { a += 100; }; inner(); return a; };
+	auto mixed = [&a, b] { return [&a, b] { a += b; return a; }(); };
+	if (outer() == 13 && a == 1) r += 1;
+	if (refs() == 101 && a == 101) r += 2;
+	if (mixed() == 103 && a == 103) r += 4;
+	auto maker = [](int n) { return [n](int v) { return n + v; }; };
+	if (maker(5)(6) == 11) r += 8;
+	return r;
+}
+### LambdaCopyAndDestroy | 7 | 5.1.2 [expr.prim.lambda] p20-p21: a closure's copy constructor and destructor
+int gCopies = 0;
+int gDestroyed = 0;
+struct S { S() { } S(const S&) { gCopies++; } ~S() { gDestroyed++; } int v = 4; };
+int main()
+{
+	int r = 0;
+	{
+		S s;
+		auto f = [s] { return s.v; };
+		if (gCopies == 1 && f() == 4) r += 1;
+		auto g = f;
+		if (gCopies == 2 && g() == 4) r += 2;
+	}
+	if (gDestroyed == 3) r += 4;
+	return r;
+}
+### LambdaNotDefaultConstructibleRefused | REFUSED | 5.1.2 [expr.prim.lambda] p20: no default constructor, no copy assignment
+int main() { auto f = [] { return 1; }; decltype(f) g; return g(); }
+### LambdaNotAssignableRefused | REFUSED | 5.1.2 [expr.prim.lambda] p20: no default constructor, no copy assignment
+int main() { auto f = [] { return 1; }; auto g = f; g = f; return g(); }
+### LambdaCapturingNotFunctionPointerRefused | REFUSED | 5.1.2 [expr.prim.lambda] p6: only a lambda without captures becomes a function pointer
+int main() { int a = 1; int (*p)() = [a] { return a; }; return p(); }

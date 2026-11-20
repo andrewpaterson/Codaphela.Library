@@ -1,7 +1,8 @@
-//The conformance cases of the clause by clause sweep of the standard (TestCPPConformance.cpp; section 6 of
-//CppCompilerLib/CppParserTodo.txt): each case is a rule of a clause of N4140, named in the comment above it, and a
-//group is a clause.  They were written to measure the compiler, not as it was made to do them, so most of what a
-//group's lists name is what the compiler has yet to do.  A case that runs returns a sum of powers of two, one for each
+//The conformance cases of the clause by clause sweep of the standard (TestCPPConformance.cpp;
+//CppCompilerLib/Cpp14CompliancePlan.txt): each case is a rule of a clause of N4140, named in the comment above it, and
+//a group is a clause.  The tables are written by Conformance/clauses.py from the cases in Conformance/Clauses: change
+//a case there, not here.  They were written to measure the compiler, not as it was made to do them, so what a group's
+//lists name is what the compiler has yet to do.  A case that runs returns a sum of powers of two, one for each
 //thing it checks, so what it returned says which of them went wrong; what depends on the target (an int's size, what
 //an unsigned short promotes to) is worked out from sizeof in the case, so that one value is right on every target.
 //

@@ -1,0 +1,740 @@
+### UnaryIndirection | 63 | 5.3.1 [expr.unary.op] p1: indirection
+@SAME@
+struct I;
+I* Through(I* p) { return &*p; }
+struct I { int v; };
+int f(int v) { return v + 1; }
+int main()
+{
+	int i = 5;
+	int* p = &i;
+	int** pp = &p;
+	const int* cp = &i;
+	int (*pf)(int) = f;
+	I in = { 3 };
+	int r = 0;
+	*p = 6;
+	**pp += 1;
+	if (i == 7 && &*p == p && *&i == 7) r += 1;
+	if (Same<decltype(*p), int&>::V && Same<decltype(*cp), const int&>::V && Same<decltype(**pp), int&>::V && Same<decltype(*pp), int*&>::V) r += 2;
+	if ((*pf)(1) == 2 && (*****pf)(1) == 2 && Same<decltype(*pf), int (&)(int)>::V) r += 4;
+	if (Through(&in) == &in && Through(&in)->v == 3) r += 8;
+	if (*"abc" == 'a' && *(char*)"xyz" == 'x') r += 16;
+	*pp = 0;
+	if (p == 0) r += 32;
+	return r;
+}
+### UnaryIndirectionVoidRefused | REFUSED | 5.3.1 [expr.unary.op] p1: indirection
+int main() { int i = 1; void* p = &i; *p; return 1; }
+### UnaryIndirectionNotPointerRefused | REFUSED | 5.3.1 [expr.unary.op] p1: indirection
+int main() { int i = 1; return *i; }
+### UnaryIndirectionConstWriteRefused | REFUSED | 5.3.1 [expr.unary.op] p1: indirection
+int main() { int i = 1; const int* p = &i; *p = 2; return i; }
+### UnaryAddressOf | 255 | 5.3.1 [expr.unary.op] p2-p6: address of
+@SAME@
+struct S { int m; mutable int mut; static int s; int f() { return m; } static int sf() { return 9; } int a[2]; };
+int S::s = 4;
+int g(int v) { return v + 1; }
+int g(long v) { return (int)v + 2; }
+int gi = 1;
+int& Ref() { return gi; }
+int main()
+{
+	int i = 5;
+	const int ci = 6;
+	int a[3] = { 1, 2, 3 };
+	int& ri = i;
+	S s = { 1, 2, { 3, 4 } };
+	int (*pg)(long) = &g;
+	int r = 0;
+	if (Same<decltype(&i), int*>::V && Same<decltype(&ci), const int*>::V && Same<decltype(&a), int (*)[3]>::V && Same<decltype(&a[1]), int*>::V) r += 1;
+	if (&ri == &i && &Ref() == &gi && &*a == a && (void*)&a == (void*)a && &a[1] == a + 1) r += 2;
+	if (Same<decltype(&S::m), int S::*>::V && Same<decltype(&S::mut), int S::*>::V && Same<decltype(&S::a), int (S::*)[2]>::V) r += 4;
+	if (Same<decltype(&S::s), int*>::V && Same<decltype(&S::sf), int (*)()>::V && Same<decltype(&S::f), int (S::*)()>::V) r += 8;
+	if (Same<decltype(&s.m), int*>::V && &s.m == (int*)&s && &s.a[1] == s.a + 1 && &s.s == &S::s) r += 16;
+	if (pg(1) == 3 && (&S::sf)() == 9 && *&S::s == 4) r += 32;
+	if (Same<decltype(&"ab"), const char (*)[3]>::V && Same<decltype(&main), int (*)()>::V) r += 64;
+	if (&(i) == &i && &((s).m) == &s.m && &*&*&i == &i) r += 128;
+	return r;
+}
+### UnaryAddressOfRvalueRefused | REFUSED | 5.3.1 [expr.unary.op] p3: the operand is an lvalue or a qualified name
+struct S { int m; };
+int main() { S* p = &S(); return p ? 1 : 2; }
+### UnaryAddressOfBitFieldRefused | REFUSED | 5.3.1 [expr.unary.op] p4: not a bit-field
+struct S { int b : 3; };
+int main() { S s; int* p = &s.b; return p ? 1 : 2; }
+### UnaryAddressOfParenthesisedMemberRefused | REFUSED | 5.3.1 [expr.unary.op] p4: a pointer to member is formed only by & and an unparenthesised qualified name
+struct S { int m; };
+int main() { int S::* p = &(S::m); return p ? 1 : 2; }
+### UnaryAddressOfUnqualifiedMemberRefused | REFUSED | 5.3.1 [expr.unary.op] p4: a pointer to member is formed only by & and an unparenthesised qualified name
+struct S { int m; int S::* f() { return &m; } };
+int main() { S s; return s.f() ? 1 : 2; }
+### UnaryAddressOfOverloadAmbiguousRefused | REFUSED | 5.3.1 [expr.unary.op] p6: an overloaded function's address needs a target
+int g(int v) { return v + 1; }
+int g(long v) { return (int)v + 2; }
+int main() { auto p = &g; return p ? 1 : 2; }
+### UnaryPlusMinus | 127 | 5.3.1 [expr.unary.op] p7-p8: unary plus and minus
+@SAME@
+enum E { E3 = 3 };
+int main()
+{
+	unsigned int u = 1;
+	unsigned long ul = 1;
+	unsigned long long ull = 1;
+	unsigned char uc = 1;
+	short s = -5;
+	long long ll = 5;
+	double d = 2.5;
+	float f = -1.5f;
+	int a[2] = { 1, 2 };
+	int* p = a;
+	int r = 0;
+	if (-u == ~0u && -u > 0 && Same<decltype(-u), unsigned int>::V) r += 1;
+	if (-ul == ~0ul && -ull == ~0ull && -ull > 0) r += 2;
+	if (-uc == -1 && Same<decltype(-uc), int>::V && -s == 5 && Same<decltype(-s), int>::V) r += 4;
+	if (-ll == -5 && -(-ll) == 5 && Same<decltype(-ll), long long>::V && - -ll == 5) r += 8;
+	if (-d == -2.5 && -f == 1.5f && +d == 2.5 && Same<decltype(-f), float>::V) r += 16;
+	if (+p == a && Same<decltype(+p), int*>::V && Same<decltype(+a), int*>::V && +E3 == 3 && -E3 == -3 && Same<decltype(+E3), int>::V) r += 32;
+	if (-(-2147483647L - 1) / 2 != 0 && -0 == 0 && 3 - -2 == 5 && 3 + +2 == 5 && - - -1 == -1) r += 64;
+	return r;
+}
+### UnaryMinusPointerRefused | REFUSED | 5.3.1 [expr.unary.op] p8: minus takes arithmetic or unscoped enumeration
+int main() { int i = 1; int* p = &i; return -p ? 1 : 2; }
+### UnaryPlusClassRefused | REFUSED | 5.3.1 [expr.unary.op] p7: plus takes arithmetic, enumeration or pointer
+struct S { int m; };
+int main() { S s = { 1 }; +s; return 1; }
+### UnaryNot | 31 | 5.3.1 [expr.unary.op] p9: logical negation
+@SAME@
+struct S { int m; };
+enum E { E0, E1 };
+int main()
+{
+	int i = 5;
+	int z = 0;
+	int* p = &i;
+	int* n = 0;
+	double d = 0.5;
+	double dz = 0.0;
+	int S::* pm = &S::m;
+	int S::* nm = 0;
+	long long big = 0x100000000LL;
+	int r = 0;
+	if (!z && !(!i) && !!i == 1 && Same<decltype(!i), bool>::V) r += 1;
+	if (!n && !(!p) && !nm && !(!pm)) r += 2;
+	if (!dz && !(!d) && !0.0f && !!0.25f) r += 4;
+	if (!(!big) && !E0 && !(!E1) && !false && !(!true)) r += 8;
+	if (!i + !z == 1 && Same<decltype(!i + !z), int>::V && !!big + !!d == 2) r += 16;
+	return r;
+}
+### UnaryComplement | 63 | 5.3.1 [expr.unary.op] p10: complement
+@SAME@
+enum E { E1 = 1 };
+struct X { int v; X(int x) : v(x) { } int operator~() const { return v + 100; } };
+int main()
+{
+	unsigned char uc = 0xF0;
+	unsigned short us = 1;
+	unsigned int u = 0;
+	long l = 0;
+	unsigned long long ull = 0xFFull;
+	bool b = true;
+	int r = 0;
+	if (~0 == -1 && ~5 == -6 && ~-1 == 0) r += 1;
+	if (~uc == -241 && (unsigned char)~uc == 0x0F && Same<decltype(~uc), int>::V) r += 2;
+	if (~u == (unsigned int)-1 && ~l == -1L && Same<decltype(~l), long>::V && ~ull == 0xFFFFFFFFFFFFFF00ull) r += 4;
+	if (~b == -2 && ~false == -1 && ~E1 == -2 && Same<decltype(~E1), int>::V) r += 8;
+	if ((sizeof(int) > sizeof(short)) ? (~us < 0) : (~us == 65534u)) r += 16;
+	if (~X(5) == 105 && ~~7 == 7) r += 32;
+	return r;
+}
+### UnaryComplementFloatRefused | REFUSED | 5.3.1 [expr.unary.op] p10: complement takes integral or unscoped enumeration
+int main() { double d = 1.5; return ~d ? 1 : 2; }
+### UnaryComplementPointerRefused | REFUSED | 5.3.1 [expr.unary.op] p10: complement takes integral or unscoped enumeration
+int main() { int i = 1; int* p = &i; return ~p ? 1 : 2; }
+### UnaryNotScopedEnumRefused | REFUSED | 5.3.1 [expr.unary.op] p9: the operand is contextually converted to bool
+enum class E { A, B };
+int main() { return !E::B ? 1 : 2; }
+### PreIncrementForms | 255 | 5.3.2 [expr.pre.incr]: prefix increment and decrement
+@SAME@
+struct S { unsigned a : 3; int b : 4; };
+int main()
+{
+	int i = 5;
+	unsigned char uc = 255;
+	long long ll = 0xFFFFFFFFLL;
+	double d = 1.5;
+	int a[3] = { 1, 2, 3 };
+	int* p = a;
+	volatile int v = 1;
+	S s;
+	s.a = 7; s.b = 7;
+	int r = 0;
+	if (++i == 6 && i == 6 && --i == 5 && i == 5) r += 1;
+	++i = 10;
+	if (i == 10 && &++i == &i && i == 11) r += 2;
+	++++i;
+	(++i)++;
+	if (i == 15 && Same<decltype(++i), int&>::V && Same<decltype(--p), int*&>::V) r += 4;
+	if (++uc == 0 && --uc == 255 && ++ll == 0x100000000LL && --ll == 0xFFFFFFFFLL) r += 8;
+	if (++d == 2.5 && --d == 1.5 && *++p == 2 && *--p == 1 && p == a) r += 16;
+	++s.a;
+	--s.b;
+	if (s.a == 0 && s.b == 6 && ++s.a == 1) r += 32;
+	++v;
+	if (v == 2 && --v == 1) r += 64;
+	int j = 3;
+	int k = ++j + j;
+	if (k == 8 && (j += 1, ++j) == 6) r += 128;
+	return r;
+}
+### PreIncrementBool | 3 | 5.3.2 [expr.pre.incr] p1: bool is set to true (deprecated)
+int main()
+{
+	bool b = false;
+	int r = 0;
+	if (++b == true && b == true) r += 1;
+	if (++b == true && (int)b == 1) r += 2;
+	return r;
+}
+### PreDecrementBoolRefused | REFUSED | 5.3.2 [expr.pre.incr] p2: bool cannot be decremented
+int main() { bool b = true; --b; return b ? 1 : 2; }
+### PreIncrementConstRefused | REFUSED | 5.3.2 [expr.pre.incr] p1: the operand is a modifiable lvalue
+int main() { const int i = 1; ++i; return i; }
+### PreIncrementRvalueRefused | REFUSED | 5.3.2 [expr.pre.incr] p1: the operand is a modifiable lvalue
+int main() { int i = 1; ++(i + 1); return i; }
+### PreIncrementPostResultRefused | REFUSED | 5.3.2 [expr.pre.incr] p1: the operand is a modifiable lvalue
+int main() { int i = 1; ++i++; return i; }
+### PreIncrementFunctionPointerTargetRefused | REFUSED | 5.3.2 [expr.pre.incr] p1: a pointer to a complete object type
+int f() { return 1; }
+int main() { int (*p)() = f; ++p; return 1; }
+### SizeofRules | 1023 | 5.3.3 [expr.sizeof]: sizeof
+#include <stddef.h>
+@SAME@
+struct Empty { };
+struct S { char c; long l; char a[3]; };
+struct D : S { int d; };
+int Undefined(double d);
+long UndefinedLong();
+int Param(int a[10]) { return sizeof(a) == sizeof(int*); }
+int main()
+{
+	int i = 5;
+	int a[7];
+	int m[2][3];
+	char& rc = *(char*)&i;
+	S s;
+	S& rs = s;
+	int* p = a;
+	int r = 0;
+	if (sizeof(char) == 1 && sizeof(signed char) == 1 && sizeof(unsigned char) == 1 && sizeof(bool) >= 1) r += 1;
+	if (sizeof(rc) == 1 && sizeof(char&) == 1 && sizeof(rs) == sizeof(S) && sizeof(S&) == sizeof(S)) r += 2;
+	if (sizeof a == 7 * sizeof(int) && sizeof a / sizeof a[0] == 7 && sizeof(m) == 6 * sizeof(int) && sizeof m[0] == 3 * sizeof(int) && sizeof(int[5]) == 5 * sizeof(int)) r += 4;
+	if (sizeof("abc") == 4 && sizeof 'a' == 1 && sizeof(true ? 'a' : 'b') == 1 && sizeof('a' + 1) == sizeof(int) && sizeof(L"ab") == 3 * sizeof(wchar_t)) r += 8;
+	if (sizeof(i++) == sizeof(int) && sizeof(Undefined(1.5)) == sizeof(int) && sizeof UndefinedLong() == sizeof(long) && i == 5) r += 16;
+	if (Same<decltype(sizeof(int)), size_t>::V && Same<decltype(sizeof i), size_t>::V) r += 32;
+	if (sizeof(Empty) >= 1 && sizeof(D) >= sizeof(S) + sizeof(int) && sizeof(S) >= 4 + sizeof(long) && sizeof(S::a) == 3 && sizeof s.l == sizeof(long)) r += 64;
+	if (Param(a) && sizeof p == sizeof(void*) && sizeof *p == sizeof(int) && sizeof(int (*)[3]) == sizeof(void*) && sizeof(&a) == sizeof(void*)) r += 128;
+	if (sizeof i + 1 == sizeof(int) + 1 && sizeof(int) * 2 == 2 * sizeof(int) && sizeof -i == sizeof(int) && sizeof(short) + sizeof(char) == 3) r += 256;
+	char sized[sizeof(long) + sizeof(S)];
+	if (sizeof(sized) == sizeof(long) + sizeof(S) && sizeof(sizeof(int)) == sizeof(size_t)) r += 512;
+	return r;
+}
+### SizeofFunctionRefused | REFUSED | 5.3.3 [expr.sizeof] p1: not a function
+int f() { return 1; }
+int main() { return sizeof(f) ? 1 : 2; }
+### SizeofIncompleteRefused | REFUSED | 5.3.3 [expr.sizeof] p1: not an incomplete type
+struct I;
+int main() { return sizeof(I) ? 1 : 2; }
+### SizeofIncompleteArrayRefused | REFUSED | 5.3.3 [expr.sizeof] p1: not an incomplete type
+extern int ga[];
+int main() { return sizeof(ga) ? 1 : 2; }
+### SizeofVoidRefused | REFUSED | 5.3.3 [expr.sizeof] p1: not an incomplete type
+int main() { return sizeof(void) ? 1 : 2; }
+### SizeofBitFieldRefused | REFUSED | 5.3.3 [expr.sizeof] p1: not a bit-field
+struct S { int b : 3; };
+int main() { S s; return sizeof(s.b) ? 1 : 2; }
+### SizeofDefinesTypeRefused | REFUSED | 5.3.3 [expr.sizeof] p5: no type is defined in a sizeof
+int main() { return sizeof(struct N { int a; }) ? 1 : 2; }
+### NewInitialisation | 255 | 5.3.4 [expr.new] p15-p17: what a new expression's object is initialised with
+@NEW@
+@SAME@
+struct P { int a; int b; };
+struct C { C() : v(5) { } C(int a, int b) : v(a * 10 + b) { } int v; };
+struct M { int a = 3; int b; };
+int main()
+{
+	int i = 7;
+	int r = 0;
+	int* zero = new int();
+	int* five = new int(5);
+	int* six = new int{6};
+	int* empty = new int{};
+	int* plain = new int;
+	if (*zero == 0 && *five == 5 && *six == 6 && *empty == 0 && plain != 0 && plain != five) r += 1;
+	P* pz = new P();
+	P* pb = new P{1, 2};
+	P* pe = new P{};
+	if (pz->a == 0 && pz->b == 0 && pb->a == 1 && pb->b == 2 && pe->a == 0 && pe->b == 0) r += 2;
+	C* cd = new C;
+	C* cv = new C();
+	C* ca = new C(1, 2);
+	C* cb = new C{3, 4};
+	if (cd->v == 5 && cv->v == 5 && ca->v == 12 && cb->v == 34) r += 4;
+	if (Same<decltype(new const int(5)), const int*>::V && Same<decltype(new int*), int**>::V && Same<decltype(new auto(5L)), long*>::V && Same<decltype(new P), P*>::V) r += 8;
+	const int* constant = new const int(8);
+	int** pointer = new int*(&i);
+	auto deduced = new auto('c');
+	if (*constant == 8 && **pointer == 7 && *deduced == 'c' && sizeof(*deduced) == 1) r += 16;
+	double* d = new double(2.5);
+	long long* ll = new long long(0x123456789LL);
+	bool* b = new bool(true);
+	if (*d == 2.5 && *ll == 0x123456789LL && *b && guiLastSize == sizeof(bool)) r += 32;
+	M* m = new M;
+	M* mz = new M();
+	if (m->a == 3 && mz->a == 3 && mz->b == 0) r += 64;
+	if (giNews == 20 && giDeletes == 0) r += 128;
+	return r;
+}
+### NewArrays | 255 | 5.3.4 [expr.new] p5-p7, p17: arrays
+@NEW@
+@SAME@
+int gConstructed = 0;
+struct C { C() : v(++gConstructed) { } int v; };
+struct P { int a; int b; };
+int Three() { return 3; }
+int main()
+{
+	int n = 4;
+	int r = 0;
+	int* a = new int[n];
+	for (int i = 0; i < n; i++) a[i] = i * 2;
+	if (a[3] == 6 && guiLastSize == 4 * sizeof(int)) r += 1;
+	int* z = new int[n]();
+	int* e = new int[n]{};
+	if (z[0] == 0 && z[3] == 0 && e[0] == 0 && e[3] == 0) r += 2;
+	int* b = new int[5]{ 1, 2 };
+	if (b[0] == 1 && b[1] == 2 && b[2] == 0 && b[4] == 0) r += 4;
+	C* c = new C[Three()];
+	if (gConstructed == 3 && c[0].v == 1 && c[1].v == 2 && c[2].v == 3) r += 8;
+	int (*m)[3] = new int[n][3];
+	m[3][2] = 9;
+	if (guiLastSize == 12 * sizeof(int) && m[3][2] == 9 && Same<decltype(new int[n][3]), int (*)[3]>::V && Same<decltype(new int[n]), int*>::V) r += 16;
+	int* none = new int[0];
+	int* none2 = new int[n - 4];
+	if (none != 0 && none2 != 0) r += 32;
+	P* p = new P[2]{ { 1, 2 }, { 3, 4 } };
+	char* sz = new char[4]{ "abc" };
+	if (p[1].a == 3 && p[0].b == 2 && sz[2] == 'c' && sz[3] == 0) r += 64;
+	int** pp = new int*[n]();
+	int (**pf)() = new (int (*[2])());
+	pf[1] = Three;
+	if (pp[3] == 0 && pf[1]() == 3 && Same<decltype(new int*[n]), int**>::V) r += 128;
+	return r;
+}
+### NewArrayBound | 15 | 5.3.4 [expr.new] p6: the bound is converted to size_t
+@NEW@
+enum E { E3 = 3 };
+struct Count { operator int() const { return 4; } };
+int gCalls = 0;
+int Next() { return ++gCalls + 1; }
+int main()
+{
+	unsigned char uc = 2;
+	long l = 5;
+	Count count;
+	int r = 0;
+	char* a = new char[uc];
+	if (a != 0 && guiLastSize == 2) r += 1;
+	a = new char[l];
+	if (guiLastSize == 5) r += 2;
+	a = new char[E3];
+	char* b = new char[count];
+	if (guiLastSize == 4 && a != b) r += 4;
+	a = new char[Next()];
+	if (guiLastSize == 2 && gCalls == 1) r += 8;
+	return r;
+}
+### NewPlacementForms | 31 | 5.3.4 [expr.new] p11-p13: placement
+typedef decltype(sizeof(0)) size_t;
+struct Place { void* p; };
+int gTag = 0;
+size_t gSize = 0;
+char gacBuffer[64];
+void* operator new(size_t n, Place at) { gSize = n; return at.p; }
+void* operator new[](size_t n, Place at) { gSize = n; return at.p; }
+void* operator new(size_t n, int tag, char c) { gTag = tag + c; gSize = n; return gacBuffer + 32; }
+struct C { C(int x) : v(x) { } int v; char c[6]; };
+int main()
+{
+	Place at = { gacBuffer };
+	int r = 0;
+	int* p = new (at) int(5);
+	if ((char*)p == gacBuffer && *p == 5 && gSize == sizeof(int)) r += 1;
+	C* c = new (at) C(7);
+	if ((char*)c == gacBuffer && c->v == 7 && gSize == sizeof(C)) r += 2;
+	long* l = new (3, 'a') long(9);
+	if ((char*)l == gacBuffer + 32 && *l == 9 && gTag == 100 && gSize == sizeof(long)) r += 4;
+	char* a = new (at) char[10];
+	if (a == gacBuffer && gSize == 10) r += 8;
+	int* q = new (Place{ gacBuffer + 8 }) int{ 6 };
+	if ((char*)q == gacBuffer + 8 && *q == 6) r += 16;
+	return r;
+}
+### NewClassAllocator | 31 | 5.3.4 [expr.new] p9: the allocation function is looked up in the class first
+@NEW@
+char gacClass[64];
+int gClassNews = 0;
+int gClassDeletes = 0;
+struct C
+{
+	int v;
+	C() : v(4) { }
+	static void* operator new(size_t n) { gClassNews++; return gacClass; }
+	static void operator delete(void* p) { gClassDeletes++; }
+};
+struct D : C { int d; };
+int main()
+{
+	int r = 0;
+	C* c = new C;
+	if ((char*)c == gacClass && gClassNews == 1 && giNews == 0 && c->v == 4) r += 1;
+	delete c;
+	if (gClassDeletes == 1 && giDeletes == 0) r += 2;
+	C* g = ::new C;
+	if ((char*)g != gacClass && gClassNews == 1 && giNews == 1 && g->v == 4) r += 4;
+	::delete g;
+	C* a = new C[2];
+	if (gClassNews == 1 && giNews == 2 && giDeletes == 1 && a[1].v == 4) r += 8;
+	delete[] a;
+	D* d = new D;
+	delete d;
+	if (gClassNews == 2 && gClassDeletes == 2 && giDeletes == 2) r += 16;
+	return r;
+}
+### NewLaterBoundNotConstantRefused | REFUSED | 5.3.4 [expr.new] p5: only the first bound may vary
+@NEW@
+int main() { int n = 3; int (*p)[3] = (int (*)[3])new int[2][n]; return p ? 1 : 2; }
+### NewNegativeBoundRefused | REFUSED | 5.3.4 [expr.new] p7: a constant bound is not negative
+@NEW@
+int main() { int* p = new int[-1]; return p ? 1 : 2; }
+### NewFloatBoundRefused | REFUSED | 5.3.4 [expr.new] p6: the bound is integral
+@NEW@
+int main() { int* p = new int[2.0]; return p ? 1 : 2; }
+### NewAbstractRefused | REFUSED | 5.3.4 [expr.new] p1: a complete object type that is not abstract
+@NEW@
+struct A { virtual int f() = 0; };
+int main() { A* p = new A; return p ? 1 : 2; }
+### NewIncompleteRefused | REFUSED | 5.3.4 [expr.new] p1: a complete object type that is not abstract
+@NEW@
+struct I;
+int main() { I* p = new I; return p ? 1 : 2; }
+### NewReferenceRefused | REFUSED | 5.3.4 [expr.new] p1: a complete object type that is not abstract
+@NEW@
+int main() { int* p = new int&; return p ? 1 : 2; }
+### NewVoidRefused | REFUSED | 5.3.4 [expr.new] p1: a complete object type that is not abstract
+@NEW@
+int main() { void* p = new void; return p ? 1 : 2; }
+### NewAutoNoInitialiserRefused | REFUSED | 5.3.4 [expr.new] p2: auto needs one initialiser
+@NEW@
+int main() { auto p = new auto; return p ? 1 : 2; }
+### NewTooManyInitialisersRefused | REFUSED | 5.3.4 [expr.new] p17: the object is initialised by the initialiser
+@NEW@
+int main() { int* p = new int(1, 2); return *p; }
+### NewPrivateConstructorRefused | REFUSED | 5.3.4 [expr.new] p17: the object is initialised by the initialiser
+@NEW@
+struct S { private: S() { } };
+int main() { S* p = new S; return p ? 1 : 2; }
+### NewDeletedAllocatorRefused | REFUSED | 5.3.4 [expr.new] p9: the allocation function is looked up in the class first
+@NEW@
+struct S { static void* operator new(size_t n) = delete; };
+int main() { S* p = new S; return p ? 1 : 2; }
+### NewNoMatchingPlacementRefused | REFUSED | 5.3.4 [expr.new] p12: the placement arguments choose the allocation function
+@NEW@
+struct T { };
+int main() { T t; int* p = new (t) int; return p ? 1 : 2; }
+### DeleteForms | 127 | 5.3.5 [expr.delete]: delete
+@NEW@
+@SAME@
+int gOrder = 0;
+int gCount = 0;
+struct C { int id; C() : id(0) { } ~C() { gCount++; gOrder = gOrder * 10 + id; } };
+struct B { virtual ~B() { gCount += 10; } };
+struct D : B { ~D() { gCount += 100; } };
+struct Handle { int* p; operator int*() const { return p; } };
+int main()
+{
+	int r = 0;
+	int* i = new int(5);
+	delete i;
+	if (giDeletes == 1) r += 1;
+	C* c = new C;
+	delete c;
+	if (gCount == 1 && giDeletes == 2) r += 2;
+	C* a = new C[3];
+	a[0].id = 1; a[1].id = 2; a[2].id = 3;
+	gOrder = 0;
+	delete[] a;
+	if (gCount == 4 && gOrder == 321 && giDeletes == 3) r += 4;
+	C* null = 0;
+	int* nullInt = 0;
+	delete null;
+	delete[] null;
+	delete nullInt;
+	if (gCount == 4) r += 8;
+	B* b = new D;
+	delete b;
+	if (gCount == 114 && giDeletes == 4) r += 16;
+	const int* constant = new const int(3);
+	Handle h = { new int(4) };
+	delete constant;
+	delete h;
+	if (giDeletes == 6) r += 32;
+	if (Same<decltype(delete i), void>::V && Same<decltype(delete[] a), void>::V) r += 64;
+	return r;
+}
+### DeleteClassSized | 15 | 5.3.5 [expr.delete] p10: the deallocation function and the size it is given
+@NEW@
+size_t gSize = 0;
+int gCalls = 0;
+struct B { virtual ~B() { } int b; static void operator delete(void* p, size_t n) { gSize = n; gCalls++; } };
+struct D : B { long d[3]; };
+struct P { char c[5]; static void operator delete(void* p, size_t n) { gSize = n; gCalls += 10; } };
+struct Both { static void operator delete(void* p) { gCalls += 100; } static void operator delete(void* p, size_t n) { gCalls += 1000; } };
+int main()
+{
+	int r = 0;
+	B* b = new D;
+	delete b;
+	if (gSize == sizeof(D) && gCalls == 1) r += 1;
+	b = new B;
+	delete b;
+	if (gSize == sizeof(B) && gCalls == 2) r += 2;
+	P* p = new P;
+	delete p;
+	if (gSize == 5 && gCalls == 12) r += 4;
+	Both* both = new Both;
+	delete both;
+	if (gCalls == 112 && giDeletes == 0) r += 8;
+	return r;
+}
+### DeleteNotPointerRefused | REFUSED | 5.3.5 [expr.delete] p1: the operand is a pointer to an object type
+@NEW@
+int main() { int i = 1; delete i; return 1; }
+### DeleteFunctionPointerRefused | REFUSED | 5.3.5 [expr.delete] p1: the operand is a pointer to an object type
+@NEW@
+int f() { return 1; }
+int main() { int (*p)() = f; delete p; return 1; }
+### DeleteTwoConversionsRefused | REFUSED | 5.3.5 [expr.delete] p1: a class with one conversion to a pointer
+@NEW@
+struct H { operator int*() const { return 0; } operator long*() const { return 0; } };
+int main() { H h; delete h; return 1; }
+### DeletePrivateDestructorRefused | REFUSED | 5.3.5 [expr.delete] p10: the destructor is accessible
+@NEW@
+struct S { private: ~S() { } };
+int main() { S* p = new S; delete p; return 1; }
+### AlignofRules | 31 | 5.3.6 [expr.alignof]: alignof
+#include <stddef.h>
+@SAME@
+struct S { char c; long l; };
+struct alignas(8) A8 { char c; };
+int main()
+{
+	int r = 0;
+	if (alignof(char) == 1 && alignof(signed char) == 1 && alignof(unsigned char) == 1) r += 1;
+	if (alignof(int&) == alignof(int) && alignof(int[4]) == alignof(int) && alignof(S&) == alignof(S) && alignof(S[2][3]) == alignof(S)) r += 2;
+	if (alignof(S) >= alignof(long) && alignof(S) >= alignof(char) && sizeof(S) % alignof(S) == 0 && alignof(long) <= sizeof(long)) r += 4;
+	if (Same<decltype(alignof(int)), size_t>::V && alignof(A8) == 8 && sizeof(A8) == 8) r += 8;
+	char sized[alignof(long long) + alignof(A8)];
+	if (sizeof(sized) == alignof(long long) + 8 && (alignof(double) & (alignof(double) - 1)) == 0) r += 16;
+	return r;
+}
+### AlignofIncompleteRefused | REFUSED | 5.3.6 [expr.alignof] p1: a complete object type
+struct I;
+int main() { return alignof(I) ? 1 : 2; }
+### AlignofVoidRefused | REFUSED | 5.3.6 [expr.alignof] p1: a complete object type
+int main() { return alignof(void) ? 1 : 2; }
+### AlignofFunctionRefused | REFUSED | 5.3.6 [expr.alignof] p1: a complete object type
+int main() { return alignof(int()) ? 1 : 2; }
+### AlignofExpressionRefused | REFUSED | 5.3.6 [expr.alignof] p1: the operand is a type
+int main() { int i = 1; return alignof(i) ? 1 : 2; }
+### NoexceptOperatorRules | 127 | 5.3.7 [expr.unary.noexcept]: the noexcept operator
+@SAME@
+void Never() noexcept;
+void May();
+int Value() noexcept(true);
+int Other() noexcept(false);
+struct S { S() noexcept; S(int); ~S(); void Never() noexcept; void May(); S& operator+=(int) noexcept; S operator+(int) const; };
+struct T { T(); ~T() noexcept(false); };
+template<class U> void Generic() noexcept(sizeof(U) == 1);
+int main()
+{
+	int i = 5;
+	S* ps = 0;
+	void (*pointer)() = 0;
+	int r = 0;
+	if (noexcept(Never()) && !noexcept(May()) && noexcept(Value()) && !noexcept(Other())) r += 1;
+	if (noexcept(1 + 2) && noexcept(i++) && noexcept(i = 7) && i == 5 && noexcept(May) && noexcept(&May)) r += 2;
+	if (noexcept(S()) && !noexcept(S(1)) && noexcept(ps->Never()) && !noexcept(ps->May())) r += 4;
+	if (noexcept(*ps += 1) && !noexcept(*ps + 1) && noexcept(ps->~S()) && !noexcept(T())) r += 8;
+	if (!noexcept(pointer()) && noexcept(pointer) && noexcept(noexcept(May())) && noexcept(sizeof(May(), 1))) r += 16;
+	if (Same<decltype(noexcept(1)), bool>::V && noexcept(Generic<char>()) && !noexcept(Generic<long>())) r += 32;
+	char sized[noexcept(Never()) ? 3 : 5];
+	static_assert(noexcept(Never()) && !noexcept(May()), "constant");
+	if (sizeof(sized) == 3 && !noexcept(Never(), May()) && noexcept(true ? Value() : 2) && !noexcept(i ? Value() : Other())) r += 64;
+	return r;
+}
+### CastNotation | 255 | 5.4 [expr.cast]: explicit type conversion, cast notation
+@SAME@
+struct A { int a; };
+struct B { int b; };
+struct D : A, B { int d; };
+enum E { E0, E3 = 3 };
+enum class C { A, B };
+int Function(int v) { return v + 1; }
+int gCalls = 0;
+int Call() { return ++gCalls; }
+int main()
+{
+	int i = 65;
+	const int ci = 7;
+	const int* cp = &i;
+	double d = 3.9;
+	D derived;
+	derived.a = 1; derived.b = 2; derived.d = 3;
+	const B* cb = &derived;
+	void* v = &i;
+	int r = 0;
+	if ((int)d == 3 && (char)i == 'A' && (unsigned char)-1 == 255 && (double)i / 2 == 32.5 && (long)(short)-3 == -3L && (bool)d) r += 1;
+	if ((E)3 == E3 && (int)E3 == 3 && (C)1 == C::B && (int)C::B == 1 && (E)C::A == E0) r += 2;
+	*(int*)cp = 66;
+	if (i == 66 && (int*)v == &i && (void*)cp == v && *(const char*)v == 66 + 0 * (int)sizeof(v)) r += 4;
+	if ((D*)cb == &derived && ((D*)cb)->d == 3 && &(D&)*cb == &derived && ((const D&)*cb).a == 1) r += 8;
+	(void)Call();
+	(void)i;
+	if (gCalls == 1 && (B*)&derived == cb && ((B)derived).b == 2 && ((A&)derived).a == 1) r += 16;
+	unsigned long long address = (unsigned long long)&i;
+	if ((int*)address == &i && ((int (*)(int))(void (*)())Function)(1) == 2 && *(unsigned char*)(long*)&i == (66 & 255) * (*(unsigned char*)&i == 66)) r += 32;
+	if (Same<decltype((long)i), long>::V && Same<decltype((int&)i), int&>::V && Same<decltype((int&&)i), int&&>::V && Same<decltype((const int)i), int>::V) r += 64;
+	(int&)ci;
+	(int&)i = 70;
+	if (i == 70 && (int)'a' == 97 && (int)3.99f == 3 && (float)1 / 2 == 0.5f) r += 128;
+	return r;
+}
+### CastNotationPrivateBase | 7 | 5.4 [expr.cast] p4: a cast to and from an inaccessible base
+struct A { int a; };
+struct B { int b; };
+struct D : A, private B { D() { b = 7; } B* Base() { return this; } int d; };
+int main()
+{
+	D d;
+	B* pb = (B*)&d;
+	int r = 0;
+	if (pb == d.Base() && pb->b == 7 && (void*)pb != (void*)&d) r += 1;
+	if ((D*)pb == &d && ((B&)d).b == 7) r += 2;
+	if (&(D&)*pb == &d) r += 4;
+	return r;
+}
+### CastNotationToArrayRefused | REFUSED | 5.4 [expr.cast]: explicit type conversion, cast notation
+int main() { int a[3] = { 1, 2, 3 }; return ((int[3])a)[0]; }
+### CastNotationNoConversionRefused | REFUSED | 5.4 [expr.cast]: explicit type conversion, cast notation
+struct S { int m; };
+int main() { int i = 1; return ((S)i).m; }
+### CastNotationClassToIntRefused | REFUSED | 5.4 [expr.cast]: explicit type conversion, cast notation
+struct S { int m; };
+int main() { S s = { 1 }; return (int)s; }
+### CastNotationFloatToPointerRefused | REFUSED | 5.4 [expr.cast]: explicit type conversion, cast notation
+int main() { double d = 1.5; int* p = (int*)d; return p ? 1 : 2; }
+### CastNotationPointerToFloatRefused | REFUSED | 5.4 [expr.cast]: explicit type conversion, cast notation
+int main() { int i = 1; double d = (double)&i; return d ? 1 : 2; }
+### CastNotationMemberPointerToPointerRefused | REFUSED | 5.4 [expr.cast]: explicit type conversion, cast notation
+struct S { int m; };
+int main() { int S::* pm = &S::m; int* p = (int*)pm; return p ? 1 : 2; }
+### MemberPointerOperators | 255 | 5.5 [expr.mptr.oper]: pointer to member operators
+@SAME@
+struct In { int x; };
+struct S
+{
+	int a; int b; In in; int arr[3]; int* ptr;
+	int Get() { return a; }
+	int GetConst() const { return b; }
+	int Add(int x, int y) { return a + x + y; }
+	virtual int Virtual() { return 1; }
+};
+struct D : S { int Virtual() override { return 2; } int d; };
+int main()
+{
+	S s;
+	D d;
+	S* p = &s;
+	const S* cp = &s;
+	int target = 9;
+	s.a = 1; s.b = 2; s.in.x = 3; s.arr[1] = 4; s.ptr = &target;
+	d.a = 5; d.b = 6;
+	int S::* pa = &S::a;
+	int S::* pb = &S::b;
+	In S::* pin = &S::in;
+	int (S::* parr)[3] = &S::arr;
+	int* S::* pptr = &S::ptr;
+	int (S::*pf)() = &S::Get;
+	int (S::*pc)() const = &S::GetConst;
+	int (S::*padd)(int, int) = &S::Add;
+	int (S::*pv)() = &S::Virtual;
+	int r = 0;
+	if (s.*pa == 1 && p->*pb == 2 && (*p).*pa == 1 && cp->*pb == 2) r += 1;
+	s.*pa = 10;
+	p->*pb += 5;
+	if (s.a == 10 && s.b == 7 && &(s.*pa) == &s.a && &(p->*pb) == &s.b) r += 2;
+	if ((s.*pin).x == 3 && (p->*parr)[1] == 4 && *(s.*pptr) == 9) r += 4;
+	if (s.*pa + 1 == 11 && -(s.*pa) == -10 && s.*pa * 2 == 20 && 2 * s.*pa - s.*pb == 13 && !(s.*pa) == false) r += 8;
+	if ((s.*pf)() == 10 && (p->*pf)() == 10 && (cp->*pc)() == 7 && (s.*padd)(1, 2) == 13) r += 16;
+	if ((s.*pv)() == 1 && (d.*pv)() == 2 && (static_cast<S*>(&d)->*pv)() == 2 && d.*pa == 5 && (d.*pf)() == 5) r += 32;
+	if (Same<decltype((s.*pa)), int&>::V && Same<decltype((cp->*pa)), const int&>::V && Same<decltype((p->*pin)), In&>::V && Same<decltype((s.*pf)()), int>::V) r += 64;
+	pa = pb;
+	pf = pv;
+	if (s.*pa == 7 && (s.*pf)() == 1 && (d.*pf)() == 2) r += 128;
+	return r;
+}
+### MemberPointerSecondBase | 7 | 5.5 [expr.mptr.oper] p2-p3: the object's class is the member's class or derived from it
+struct A { int a; };
+struct B { int b; int GetB() { return b; } };
+struct D : A, B { int d; };
+int main()
+{
+	D d;
+	D* p = &d;
+	d.a = 1; d.b = 2; d.d = 3;
+	int B::* pb = &B::b;
+	int (B::*pf)() = &B::GetB;
+	int r = 0;
+	if (d.*pb == 2 && p->*pb == 2) r += 1;
+	if ((d.*pf)() == 2 && (p->*pf)() == 2) r += 2;
+	d.*pb = 8;
+	if (d.b == 8 && d.a == 1 && d.d == 3) r += 4;
+	return r;
+}
+### MemberPointerConstWriteRefused | REFUSED | 5.5 [expr.mptr.oper] p5: constness of the object
+struct S { int m; };
+int main() { const S s = { 1 }; int S::* pm = &S::m; s.*pm = 2; return 1; }
+### MemberPointerMutableConstRefused | REFUSED | 5.5 [expr.mptr.oper] p5: constness of the object
+struct S { mutable int m; };
+int main() { const S s = { 1 }; int S::* pm = &S::m; s.*pm = 2; return 1; }
+### MemberPointerNotCalledRefused | REFUSED | 5.5 [expr.mptr.oper] p6: a member function is only called
+struct S { int f() { return 1; } };
+int main() { S s; int (S::*pf)() = &S::f; auto x = s.*pf; return 1; }
+### MemberPointerConstObjectRefused | REFUSED | 5.5 [expr.mptr.oper] p5: constness of the object
+struct S { int f() { return 1; } };
+int main() { const S s = S(); int (S::*pf)() = &S::f; return (s.*pf)(); }
+### MemberPointerOnPointerRefused | REFUSED | 5.5 [expr.mptr.oper] p2: .* takes an object, ->* a pointer
+struct S { int m; };
+int main() { S s = { 1 }; S* p = &s; int S::* pm = &S::m; return p.*pm; }
+### MemberPointerArrowOnObjectRefused | REFUSED | 5.5 [expr.mptr.oper] p3: .* takes an object, ->* a pointer
+struct S { int m; };
+int main() { S s = { 1 }; int S::* pm = &S::m; return s->*pm; }
+### MemberPointerUnrelatedClassRefused | REFUSED | 5.5 [expr.mptr.oper] p2: the object's class is the member's class or derived from it
+struct S { int m; };
+struct T { int m; };
+int main() { T t = { 1 }; int S::* pm = &S::m; return t.*pm; }
+### MemberPointerBaseObjectDerivedMemberRefused | REFUSED | 5.5 [expr.mptr.oper] p2: the object's class is the member's class or derived from it
+struct B { int b; };
+struct D : B { int d; };
+int main() { B b = { 1 }; int D::* pm = &D::d; return b.*pm; }

@@ -1,0 +1,1118 @@
+### DclTypeNames | 31 | 8.1 [dcl.name]: type names
+@SAME@
+typedef int* IntPointer;
+typedef int Row[3];
+typedef int Function(double);
+int Twice(double d) { return (int)(d * 2); }
+int main()
+{
+	int a[3] = { 1, 2, 3 };
+	int r = 0;
+	if (sizeof(int*) == sizeof(IntPointer) && sizeof(int[3]) == sizeof(Row) && sizeof(int*[3]) == 3 * sizeof(int*)) r += 1;
+	if (sizeof(int (*)[3]) == sizeof(void*) && sizeof(int (*)(double)) == sizeof(Function*)) r += 2;
+	if (Same<int (*)[3], Row*>::V && Same<int (*)(double), Function*>::V && Same<int* (*)(), IntPointer (*)()>::V) r += 4;
+	if (!Same<int*[3], int (*)[3]>::V && !Same<int* (), int (*)()>::V && Same<int[3], Row>::V) r += 8;
+	if (((int (*)(double))Twice)(2.5) == 5 && (*(int (*)[3])&a)[2] == 3 && static_cast<const int*>(a)[1] == 2) r += 16;
+	return r;
+}
+### DclAmbiguityFunctionOrObject | 15 | 8.2 [dcl.ambig.res] p1: what can be a declaration is one
+@SAME@
+struct S { S(int x) : v(x) { } S() : v(9) { } int v; };
+int ga = 4;
+int main()
+{
+	int a = 3;
+	S x(int(a));
+	S y((int)a);
+	S z(int(ga) + 1);
+	S w(S());
+	int r = 0;
+	if (Same<decltype(x), S(int)>::V) r += 1;
+	if (y.v == 3) r += 2;
+	if (z.v == 5) r += 4;
+	if (Same<decltype(w), S(S (*)())>::V) r += 8;
+	return r;
+}
+### DclAmbiguityStatement | 7 | 8.2 [dcl.ambig.res], 6.8 [stmt.ambig]: a statement that can be a declaration is one
+struct T { T(int v) : m(v) { } T* operator->() { return this; } int m; };
+int gCalls = 0;
+int Call(int v) { gCalls += v; return v; }
+int main()
+{
+	int a = 1;
+	int r = 0;
+	{
+		int(x);
+		x = 5;
+		if (x == 5) r += 1;
+	}
+	T(a)->m = 7;
+	int(Call(3));
+	if (gCalls == 3) r += 2;
+	{
+		T(b)(4);
+		if (b.m == 4) r += 4;
+	}
+	return r;
+}
+### DclAmbiguityTypeId | 7 | 8.2 [dcl.ambig.res] p2: what can be a type is one
+@SAME@
+template<class F> struct Holder { enum { IsFunction = Same<F, int()>::V }; };
+int main()
+{
+	int r = 0;
+	if (Holder<int()>::IsFunction) r += 1;
+	if (sizeof(int(*)()) == sizeof(void*)) r += 2;
+	if ((int)(1.5) == 1 && (int)1.5 + int(2.5) == 3) r += 4;
+	return r;
+}
+### DclPointers | 31 | 8.3.1 [dcl.ptr]: pointers
+@SAME@
+int main()
+{
+	int i = 1;
+	int j = 2;
+	const int ci = 3;
+	int* p = &i;
+	const int* pc = &ci;
+	int* const cp = &i;
+	const int* const cpc = &ci;
+	int** pp = &p;
+	int* const* pcp = &cp;
+	volatile int* pv = &i;
+	int r = 0;
+	*cp = 5;
+	pc = &i;
+	p = &j;
+	if (i == 5 && *pc == 5 && *p == 2 && **pp == 2) r += 1;
+	if (*cpc == 3 && **pcp == 5 && *pv == 5) r += 2;
+	if (Same<decltype(cp), int* const>::V && Same<decltype(pc), const int*>::V && Same<decltype(cpc), const int* const>::V) r += 4;
+	if (Same<decltype(*cp), int&>::V && Same<decltype(*pc), const int&>::V && Same<decltype(*pcp), int* const&>::V) r += 8;
+	int *a, b, *c;
+	a = &i; b = 7; c = &b;
+	if (*a == 5 && *c == 7 && sizeof(b) == sizeof(int)) r += 16;
+	return r;
+}
+### DclConstPointerAssignedRefused | REFUSED | 8.3.1 [dcl.ptr]: pointers
+int main() { int i = 1; int j = 2; int* const cp = &i; cp = &j; return *cp; }
+### DclPointerToConstWrittenRefused | REFUSED | 8.3.1 [dcl.ptr]: pointers
+int main() { int i = 1; const int* pc = &i; *pc = 2; return i; }
+### DclPointerToReferenceRefused | REFUSED | 8.3.1 [dcl.ptr] p4: no pointers to references
+int main() { int i = 1; int&* p = 0; return i; }
+### DclReferences | 63 | 8.3.2 [dcl.ref]: references
+@SAME@
+typedef int& LRef;
+typedef int&& RRef;
+typedef const int CInt;
+int gi = 4;
+int& Global() { return gi; }
+void Bump(int& r) { r++; }
+int main()
+{
+	int i = 1;
+	int& r = i;
+	int& rr = r;
+	const int& cr = i;
+	int a[3] = { 1, 2, 3 };
+	int (&ra)[3] = a;
+	int* p = &i;
+	int*& rp = p;
+	int r0 = 0;
+	r = 5;
+	rr += 1;
+	if (i == 6 && &r == &i && &rr == &i && cr == 6) r0 += 1;
+	Bump(i);
+	Bump(r);
+	Global() = 9;
+	if (i == 8 && gi == 9) r0 += 2;
+	ra[1] = 20;
+	rp = &gi;
+	if (a[1] == 20 && sizeof(ra) == sizeof(a) && p == &gi && *rp == 9) r0 += 4;
+	if (Same<LRef&, int&>::V && Same<LRef&&, int&>::V && Same<RRef&, int&>::V && Same<RRef&&, int&&>::V) r0 += 8;
+	if (Same<CInt&, const int&>::V && sizeof(LRef) == sizeof(int) && sizeof(r) == sizeof(int)) r0 += 16;
+	LRef& collapsed = i;
+	collapsed = 30;
+	if (i == 30 && Same<decltype(collapsed), int&>::V) r0 += 32;
+	return r0;
+}
+### DclReferenceNoInitialiserRefused | REFUSED | 8.3.2 [dcl.ref] p5: a reference is initialised
+int main() { int& r; return 1; }
+### DclReferenceToVoidRefused | REFUSED | 8.3.2 [dcl.ref] p1: no references to void
+int main() { int i = 1; void& r = i; return 1; }
+### DclArrayOfReferencesRefused | REFUSED | 8.3.2 [dcl.ref] p5: no arrays of references
+int main() { int i = 1; int& a[2] = { i, i }; return a[0]; }
+### DclReferenceToReferenceRefused | REFUSED | 8.3.2 [dcl.ref] p5: no references to references
+int main() { int i = 1; int& & r = i; return r; }
+### DclConstReferenceQualifierRefused | REFUSED | 8.3.2 [dcl.ref] p1: a reference has no cv-qualifiers of its own
+int main() { int i = 1; int& const r = i; return r; }
+### DclMemberPointers | 31 | 8.3.3 [dcl.mptr]: pointers to members
+@SAME@
+struct S { int a; int b; const int c; int f() { return a; } int g() const { return b; } static int s; static int sf() { return 7; } S() : a(1), b(2), c(3) { } };
+int S::s = 4;
+int main()
+{
+	S s;
+	int S::* pa = &S::a;
+	const int S::* pc = &S::c;
+	int (S::*pf)() = &S::f;
+	int (S::*pg)() const = &S::g;
+	int* ps = &S::s;
+	int (*psf)() = &S::sf;
+	int S::* const cpa = &S::b;
+	int r = 0;
+	if (s.*pa == 1 && s.*pc == 3 && (s.*pf)() == 1 && (s.*pg)() == 2) r += 1;
+	if (*ps == 4 && psf() == 7 && s.*cpa == 2) r += 2;
+	if (Same<decltype(pa), int S::*>::V && Same<decltype(pc), const int S::*>::V && Same<decltype(&S::g), int (S::*)() const>::V) r += 4;
+	if (!Same<int S::*, int*>::V && !Same<int (S::*)(), int (S::*)() const>::V && Same<decltype(&S::s), int*>::V) r += 8;
+	typedef int S::* MemberPointer;
+	MemberPointer table[2] = { &S::a, &S::b };
+	if (s.*table[0] + s.*table[1] == 3 && sizeof(table) == 2 * sizeof(MemberPointer)) r += 16;
+	return r;
+}
+### DclMemberPointerToStaticRefused | REFUSED | 8.3.3 [dcl.mptr] p3: not to a static member
+struct S { static int s; };
+int S::s = 1;
+int main() { int S::* p = &S::s; return p ? 1 : 2; }
+### DclMemberPointerToConstFunctionRefused | REFUSED | 8.3.3 [dcl.mptr]: pointers to members
+struct S { int g() const { return 1; } };
+int main() { int (S::*p)() = &S::g; S s; return (s.*p)(); }
+### DclArrays | 127 | 8.3.4 [dcl.array]: arrays
+@SAME@
+typedef int Unbounded[];
+extern int gLater[];
+int Peek() { return gLater[1]; }
+int gLater[3] = { 4, 5, 6 };
+const int gSize = 4;
+enum { Five = 5 };
+int main()
+{
+	int a[] = { 1, 2, 3 };
+	int m[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } };
+	int n[][2] = { { 1, 2 }, { 3, 4 }, { 5, 6 } };
+	Unbounded u = { 7, 8 };
+	char sized[gSize * 2 + Five];
+	const int c[2] = { 9, 10 };
+	int (*rows)[3] = m;
+	int r = 0;
+	if (sizeof(a) == 3 * sizeof(int) && sizeof(u) == 2 * sizeof(int) && sizeof(sized) == 13) r += 1;
+	if (sizeof(m) == 6 * sizeof(int) && sizeof(m[0]) == 3 * sizeof(int) && sizeof(n) == 6 * sizeof(int) && sizeof(n) / sizeof(n[0]) == 3) r += 2;
+	if (m[1][2] == 6 && n[2][0] == 5 && rows[1][0] == 4 && *(*(m + 1) + 1) == 5) r += 4;
+	if (Peek() == 5 && sizeof(gLater) == 3 * sizeof(int)) r += 8;
+	if (Same<decltype(a), int[3]>::V && Same<decltype(m), int[2][3]>::V && Same<decltype(c), const int[2]>::V && Same<decltype(c[0]), const int&>::V) r += 16;
+	if (Same<decltype(m[0]), int (&)[3]>::V && Same<decltype(&m), int (*)[2][3]>::V && Same<decltype(&m[0]), int (*)[3]>::V) r += 32;
+	int t[2][2][2] = { { { 1, 2 }, { 3, 4 } }, { { 5, 6 }, { 7, 8 } } };
+	if (t[1][0][1] == 6 && sizeof(t[0]) == 4 * sizeof(int) && c[1] == 10 && &a[3] - &a[0] == 3) r += 64;
+	return r;
+}
+### DclArrayNegativeBoundRefused | REFUSED | 8.3.4 [dcl.array] p1: the bound is greater than zero
+int main() { int a[-1]; return sizeof(a) ? 1 : 2; }
+### DclArrayZeroBoundRefused | REFUSED | 8.3.4 [dcl.array] p1: the bound is greater than zero
+int main() { int a[0]; return 1; }
+### DclArrayOfVoidRefused | REFUSED | 8.3.4 [dcl.array] p1: not of void, references or functions
+int main() { void a[2]; return 1; }
+### DclArrayOfFunctionsRefused | REFUSED | 8.3.4 [dcl.array] p1: not of void, references or functions
+int main() { int a[2](); return 1; }
+### DclArraySecondBoundMissingRefused | REFUSED | 8.3.4 [dcl.array] p3: only the first bound may be left out
+int main() { int a[2][] = { { 1 }, { 2 } }; return a[0][0]; }
+### DclArrayNoBoundNoInitialiserRefused | REFUSED | 8.3.4 [dcl.array] p3: a bound left out comes from the initialiser
+int main() { int a[]; return 1; }
+### DclArrayAssignedRefused | REFUSED | 8.3.4 [dcl.array]: an array is not a modifiable lvalue
+int main() { int a[2] = { 1, 2 }; int b[2] = { 3, 4 }; a = b; return a[0]; }
+### DclFunctionTypes | 127 | 8.3.5 [dcl.fct]: functions
+@SAME@
+typedef int Binary(int, int);
+Binary Add;
+int Add(int a, int b) { return a + b; }
+int ArrayParameter(int a[10]) { return sizeof(a) == sizeof(int*) ? a[1] : -1; }
+int FunctionParameter(int f(int), int v) { return f(v); }
+int Twice(int v) { return v * 2; }
+int ConstParameter(const int v);
+int ConstParameter(int v) { return v + 1; }
+int NoParameters(void) { return 7; }
+int Unnamed(int, int b) { return b; }
+auto Trailing(int v) -> long { return v; }
+int Variadic(int n, ...) { return n; }
+int (*Returned(int which))(int) { return which ? Twice : 0; }
+int main()
+{
+	int a[3] = { 1, 2, 3 };
+	Binary* p = Add;
+	int r = 0;
+	if (Add(1, 2) == 3 && p(3, 4) == 7) r += 1;
+	if (ArrayParameter(a) == 2 && FunctionParameter(Twice, 4) == 8) r += 2;
+	if (ConstParameter(1) == 2 && NoParameters() == 7 && Unnamed(1, 2) == 2) r += 4;
+	if (Trailing(5) == 5 && Same<decltype(Trailing(5)), long>::V && Variadic(3, 1, 2.5, "x") == 3) r += 8;
+	if (Returned(1)(6) == 12 && Returned(0) == 0) r += 16;
+	if (Same<decltype(ArrayParameter), int(int*)>::V && Same<decltype(FunctionParameter), int(int (*)(int), int)>::V && Same<decltype(ConstParameter), int(int)>::V) r += 32;
+	if (Same<decltype(NoParameters), int()>::V && Same<Binary, int(int, int)>::V && !Same<int(int), int(long)>::V && Same<decltype(Variadic), int(int, ...)>::V) r += 64;
+	return r;
+}
+### DclFunctionMemberTypes | 15 | 8.3.5 [dcl.fct] p6: a member function's const and reference qualifiers
+@SAME@
+struct S
+{
+	int v;
+	int Get() { return v; }
+	int Get() const { return v + 10; }
+	int Ref() & { return 1; }
+	int Ref() && { return 2; }
+	int Both() const & { return 3; }
+	typedef int Getter() const;
+	Getter Typed;
+};
+int S::Typed() const { return v + 20; }
+int main()
+{
+	S s = { 1 };
+	const S cs = { 2 };
+	int r = 0;
+	if (s.Get() == 1 && cs.Get() == 12) r += 1;
+	if (s.Ref() == 1 && S().Ref() == 2 && s.Both() == 3 && S().Both() == 3) r += 2;
+	if (cs.Typed() == 22 && s.Typed() == 21) r += 4;
+	if (!Same<int (S::*)(), int (S::*)() const>::V && Same<decltype(&S::Typed), int (S::*)() const>::V) r += 8;
+	return r;
+}
+### DclFunctionReturnsArrayRefused | REFUSED | 8.3.5 [dcl.fct] p8: a function returns no array or function
+typedef int Row[3];
+Row f();
+int main() { return 1; }
+### DclFunctionReturnsFunctionRefused | REFUSED | 8.3.5 [dcl.fct] p8: a function returns no array or function
+typedef int F(int);
+F g();
+int main() { return 1; }
+### DclVoidParameterWithOthersRefused | REFUSED | 8.3.5 [dcl.fct] p4: void is the whole parameter list or not there
+int f(void, int v) { return v; }
+int main() { return f(1); }
+### DclVoidParameterNamedRefused | REFUSED | 8.3.5 [dcl.fct] p4: void is the whole parameter list or not there
+int f(void v) { return 1; }
+int main() { return f(); }
+### DclFunctionRedeclaredDifferentReturnRefused | REFUSED | 8.3.5 [dcl.fct]: the return type is not part of what tells overloads apart
+int f(int v);
+long f(int v) { return v; }
+int main() { return (int)f(1); }
+### DclConstFreeFunctionRefused | REFUSED | 8.3.5 [dcl.fct] p6: only a member function has cv-qualifiers
+int f() const { return 1; }
+int main() { return f(); }
+### DclDefaultArguments | 127 | 8.3.6 [dcl.fct.default]: default arguments
+int gBase = 10;
+int gCalls = 0;
+int Next() { return ++gCalls; }
+int One(int a, int b = 2, int c = 3) { return a * 100 + b * 10 + c; }
+int Later(int a, int b);
+int Later(int a, int b = 5);
+int Later(int a, int b) { return a + b; }
+int More(int a, int b, int c = 3);
+int More(int a, int b = 2, int c);
+int More(int a, int b, int c) { return a * 100 + b * 10 + c; }
+int Global(int a = gBase) { return a; }
+int Counted(int a = Next()) { return a; }
+int Expression(int a = sizeof(long) * 2 + One(1)) { return a; }
+struct S { static int s; int m; int Member(int a = s) { return a + m; } static int Static(int a = 7) { return a; } };
+int S::s = 4;
+struct B { virtual int F(int a = 1) { return a; } virtual ~B() { } };
+struct D : B { int F(int a = 2) override { return a + 10; } };
+template<class T> T Templated(T a, T b = T(6)) { return a + b; }
+int main()
+{
+	S s;
+	D d;
+	B* pb = &d;
+	s.m = 1;
+	int r = 0;
+	if (One(1) == 123 && One(1, 5) == 153 && One(1, 5, 6) == 156) r += 1;
+	if (Later(1) == 6 && Later(1, 2) == 3 && More(1) == 123 && More(1, 4) == 143) r += 2;
+	gBase = 20;
+	if (Global() == 20 && Global(3) == 3) r += 4;
+	if (Counted() == 1 && Counted() == 2 && Counted(9) == 9 && gCalls == 2) r += 8;
+	if (Expression() == (int)sizeof(long) * 2 + 123 && s.Member() == 5 && s.Member(2) == 3 && S::Static() == 7) r += 16;
+	if (pb->F() == 11 && d.F() == 12 && pb->F(5) == 15) r += 32;
+	if (Templated(1) == 7 && Templated(1.5) == 7.5 && Templated(1, 2) == 3) r += 64;
+	return r;
+}
+### DclDefaultArgumentGapRefused | REFUSED | 8.3.6 [dcl.fct.default] p4: after a default argument every parameter has one
+int f(int a = 1, int b) { return a + b; }
+int main() { return f(1, 2); }
+### DclDefaultArgumentTwiceRefused | REFUSED | 8.3.6 [dcl.fct.default] p4: a default argument is given once
+int f(int a = 1);
+int f(int a = 1) { return a; }
+int main() { return f(); }
+### DclDefaultArgumentLocalRefused | REFUSED | 8.3.6 [dcl.fct.default] p7: not a local variable
+int main() { int local = 1; struct L { static int f(int a = local) { return a; } }; return L::f(); }
+### DclDefaultArgumentParameterRefused | REFUSED | 8.3.6 [dcl.fct.default] p9: not another parameter
+int f(int a, int b = a) { return a + b; }
+int main() { return f(1); }
+### DclDefaultArgumentThisRefused | REFUSED | 8.3.6 [dcl.fct.default] p8: not this
+struct S { int m; int f(int a = m) { return a; } };
+int main() { S s; s.m = 1; return s.f(); }
+### DclDefaultArgumentWrongTypeRefused | REFUSED | 8.3.6 [dcl.fct.default] p5: the default is converted as an argument is
+int f(int* p = 5) { return p ? 1 : 2; }
+int main() { return f(); }
+### DclDefaultedAndDeleted | 63 | 8.4 [dcl.fct.def]: defaulted and deleted functions
+struct D
+{
+	int v;
+	D() = default;
+	D(int x) : v(x) { }
+	D(const D&) = default;
+	D& operator=(const D&) = default;
+	~D() = default;
+};
+struct OutOfClass { int v; OutOfClass(); OutOfClass(const OutOfClass& o); };
+OutOfClass::OutOfClass() = default;
+OutOfClass::OutOfClass(const OutOfClass& o) = default;
+struct NoCopy { int v; NoCopy(int x) : v(x) { } NoCopy(const NoCopy&) = delete; NoCopy& operator=(const NoCopy&) = delete; };
+int Only(int v) { return v; }
+int Only(double) = delete;
+template<class T> int Exact(T) = delete;
+int Exact(int v) { return v + 1; }
+const char* Name() { return __func__; }
+int main()
+{
+	D a(3);
+	D b = a;
+	D c;
+	c = b;
+	D zero = D();
+	OutOfClass o = OutOfClass();
+	OutOfClass p = o;
+	NoCopy n(4);
+	NoCopy& rn = n;
+	int r = 0;
+	if (b.v == 3 && c.v == 3) r += 1;
+	if (zero.v == 0 && o.v == 0 && p.v == 0) r += 2;
+	if (rn.v == 4 && Only(5) == 5 && Only('a') == 'a') r += 4;
+	if (Exact(1) == 2) r += 8;
+	if (Name()[0] == 'N' && Name()[3] == 'e' && Name()[4] == 0) r += 16;
+	static_assert(noexcept(D()) && noexcept(D(a)), "defaulted functions don't throw");
+	if (sizeof(D) == sizeof(int)) r += 32;
+	return r;
+}
+### DclDeletedConversionCalledRefused | REFUSED | 8.4.3 [dcl.fct.def.delete] p2: a deleted function is not used
+int Only(int v) { return v; }
+int Only(double) = delete;
+int main() { return Only(1.5); }
+### DclDeletedTemplateInstanceRefused | REFUSED | 8.4.3 [dcl.fct.def.delete] p2: a deleted function is not used
+template<class T> int Exact(T) = delete;
+int Exact(int v) { return v + 1; }
+int main() { return Exact(1L); }
+### DclDeletedAfterDeclaredRefused | REFUSED | 8.4.3 [dcl.fct.def.delete] p4: deleted at its first declaration
+int f(int v);
+int f(int v) = delete;
+int main() { return 1; }
+### DclDefaultedNotSpecialRefused | REFUSED | 8.4.2 [dcl.fct.def.default] p1: only a special member function is defaulted
+struct S { int f() = default; };
+int main() { return 1; }
+### DclDefaultedWithDefaultArgumentRefused | REFUSED | 8.4.2 [dcl.fct.def.default] p1: a defaulted function has no default arguments
+struct S { S(int v = 1) = default; };
+int main() { return 1; }
+### DclFunctionDefinedTwiceRefused | REFUSED | 8.4.1 [dcl.fct.def.general], 3.2 [basic.def.odr]: one definition
+int f() { return 1; }
+int f() { return 2; }
+int main() { return f(); }
+### DclZeroAndDefaultInitialisation | 63 | 8.5 [dcl.init] p6-p8: zero, default and value initialisation
+struct P { int a; int* p; double d; char c[3]; };
+struct C { C() : v(5) { } int v; };
+struct M { int a = 3; int b; };
+struct Outer { P p; C c; int tail; };
+int gi;
+int* gp;
+double gd;
+P gs;
+int ga[3];
+static long sl;
+int Statics() { static int s; static P sp; return s + sp.a + (sp.p ? 1 : 0); }
+int main()
+{
+	C c;
+	C ca[2];
+	int r = 0;
+	if (gi == 0 && gp == 0 && gd == 0.0 && sl == 0 && ga[2] == 0) r += 1;
+	if (gs.a == 0 && gs.p == 0 && gs.d == 0.0 && gs.c[2] == 0 && Statics() == 0) r += 2;
+	if (c.v == 5 && ca[0].v == 5 && ca[1].v == 5) r += 4;
+	int vi = int();
+	int* vp = &vi;
+	P vs = P();
+	Outer vo = Outer();
+	if (vi == 0 && *vp == 0 && vs.a == 0 && vs.p == 0 && vs.c[1] == 0) r += 8;
+	if (vo.p.a == 0 && vo.p.d == 0.0 && vo.c.v == 5 && vo.tail == 0) r += 16;
+	M m = M();
+	int braced{};
+	P bracedObject{};
+	int bracedArray[3]{};
+	if (m.a == 3 && m.b == 0 && braced == 0 && bracedObject.d == 0.0 && bracedArray[2] == 0) r += 32;
+	return r;
+}
+### DclConstNeedsInitialiserRefused | REFUSED | 8.5 [dcl.init] p7: a const object is initialised
+int main() { const int x; return 1; }
+### DclConstClassNeedsConstructorRefused | REFUSED | 8.5 [dcl.init] p7: a const object is initialised
+struct P { int a; };
+int main() { const P p; return 1; }
+### DclConstClassWithConstructor | 5 | 8.5 [dcl.init] p7: a const object of a class with a default constructor
+struct C { C() : v(5) { } int v; };
+int main() { const C c; return c.v; }
+### DclDirectAndCopyInitialisation | 63 | 8.5 [dcl.init] p15-p17: direct and copy initialisation
+struct FromInt { FromInt(int x) : v(x) { } int v; };
+struct Explicit { explicit Explicit(int x) : v(x) { } int v; };
+struct ToInt { operator int() const { return 7; } };
+struct Wrapper { Wrapper(FromInt f) : v(f.v + 100) { } int v; };
+int Take(FromInt f) { return f.v; }
+FromInt Give() { return 9; }
+int main()
+{
+	FromInt a = 1;
+	FromInt b(2);
+	FromInt c = FromInt(3);
+	FromInt d{ 4 };
+	FromInt e = { 5 };
+	Explicit x(6);
+	Explicit y{ 7 };
+	Explicit z = Explicit(8);
+	ToInt t;
+	int fromObject = t;
+	int direct(t);
+	long widened = t;
+	Wrapper w = FromInt(1);
+	Wrapper w2(2);
+	int r = 0;
+	if (a.v == 1 && b.v == 2 && c.v == 3 && d.v == 4 && e.v == 5) r += 1;
+	if (x.v == 6 && y.v == 7 && z.v == 8) r += 2;
+	if (fromObject == 7 && direct == 7 && widened == 7) r += 4;
+	if (Take(10) == 10 && Take(a) == 1 && Give().v == 9) r += 8;
+	if (w.v == 101 && w2.v == 102) r += 16;
+	int i(3.9);
+	int j = 3.9;
+	char ch = 65;
+	double dd = 1;
+	bool flag = 5;
+	if (i == 3 && j == 3 && ch == 'A' && dd == 1.0 && flag == true) r += 32;
+	return r;
+}
+### DclCopyInitialisationExplicitRefused | REFUSED | 8.5 [dcl.init] p17: an explicit constructor is not used to copy initialise
+struct Explicit { explicit Explicit(int x) : v(x) { } int v; };
+int main() { Explicit e = 1; return e.v; }
+### DclCopyInitialisationTwoConversionsRefused | REFUSED | 8.5 [dcl.init] p17: one user-defined conversion
+struct FromInt { FromInt(int x) : v(x) { } int v; };
+struct Wrapper { Wrapper(FromInt f) : v(f.v) { } int v; };
+int main() { Wrapper w = 1; return w.v; }
+### DclFunctionNotObject | 3 | 8.5 [dcl.init] p11: empty parentheses declare a function
+struct C { C() : v(5) { } int v; };
+int main()
+{
+	C notAnObject();
+	C object;
+	C braced{};
+	int r = 0;
+	if (sizeof(notAnObject()) == sizeof(C)) r += 1;
+	if (object.v == 5 && braced.v == 5) r += 2;
+	return r;
+}
+### DclAggregates | 255 | 8.5.1 [dcl.init.aggr]: aggregates
+struct P { int a; int b; };
+struct Nested { P p; int c; P q[2]; };
+struct WithDefaults { int a = 1; int b = a + 1; int c; };
+struct WithStatic { int a; static int s; int b; };
+int WithStatic::s = 9;
+union U { int i; char c; };
+struct WithReference { int& r; int v; };
+struct Empty { };
+struct HoldsEmpty { Empty e; int v; };
+int main()
+{
+	int gi = 5;
+	P full = { 1, 2 };
+	P partial = { 1 };
+	P none = { };
+	int a[5] = { 1, 2 };
+	Nested n = { { 1, 2 }, 3, { { 4, 5 }, { 6, 7 } } };
+	Nested elided = { 1, 2, 3, 4, 5, 6, 7 };
+	Nested part = { { 1 }, 3 };
+	P pa[] = { { 1, 2 }, { 3, 4 }, { 5 } };
+	P flat[] = { 1, 2, 3, 4 };
+	WithDefaults d = { };
+	WithDefaults d2 = { 10 };
+	WithDefaults d3 = { 10, 20, 30 };
+	WithStatic ws = { 1, 2 };
+	U u = { 65 };
+	WithReference wr = { gi, 2 };
+	HoldsEmpty he = { { }, 4 };
+	int r = 0;
+	if (full.a == 1 && full.b == 2 && partial.a == 1 && partial.b == 0 && none.a == 0 && none.b == 0) r += 1;
+	if (a[1] == 2 && a[2] == 0 && a[4] == 0) r += 2;
+	if (n.p.b == 2 && n.c == 3 && n.q[0].a == 4 && n.q[1].b == 7) r += 4;
+	if (elided.p.b == 2 && elided.c == 3 && elided.q[1].a == 6 && part.p.b == 0 && part.c == 3 && part.q[1].b == 0) r += 8;
+	if (sizeof(pa) == 3 * sizeof(P) && pa[2].a == 5 && pa[2].b == 0 && sizeof(flat) == 2 * sizeof(P) && flat[1].a == 3) r += 16;
+	if (d.a == 1 && d.b == 2 && d.c == 0 && d2.a == 10 && d2.b == 11 && d3.b == 20 && d3.c == 30) r += 32;
+	if (ws.a == 1 && ws.b == 2 && WithStatic::s == 9 && u.i == 65 && u.c == 'A') r += 64;
+	wr.r = 8;
+	if (gi == 8 && wr.v == 2 && he.v == 4) r += 128;
+	return r;
+}
+### DclAggregateTooManyRefused | REFUSED | 8.5.1 [dcl.init.aggr] p6: no more initialisers than members
+struct P { int a; int b; };
+int main() { P p = { 1, 2, 3 }; return p.a; }
+### DclArrayTooManyRefused | REFUSED | 8.5.1 [dcl.init.aggr] p6: no more initialisers than elements
+int main() { int a[2] = { 1, 2, 3 }; return a[0]; }
+### DclAggregateWithBaseRefused | REFUSED | 8.5.1 [dcl.init.aggr] p1: a class with a base is not an aggregate
+struct B { int b; };
+struct D : B { int d; };
+int main() { D d = { 1, 2 }; return d.d; }
+### DclAggregateWithConstructorRefused | REFUSED | 8.5.1 [dcl.init.aggr] p1: a class with a constructor is not an aggregate
+struct C { C() : a(0), b(0) { } int a; int b; };
+int main() { C c = { 1, 2 }; return c.a; }
+### DclAggregatePrivateMemberRefused | REFUSED | 8.5.1 [dcl.init.aggr] p1: a class with private data is not an aggregate
+class C { int a; public: int b; };
+int main() { C c = { 1, 2 }; return c.b; }
+### DclAggregateReferenceMissingRefused | REFUSED | 8.5.1 [dcl.init.aggr] p9: a reference member is given something to refer to
+struct W { int v; int& r; };
+int main() { W w = { 1 }; return w.v; }
+### DclCharacterArrays | 63 | 8.5.2 [dcl.init.string]: character arrays
+int main()
+{
+	char a[] = "abc";
+	char b[6] = "ab";
+	char c[] = { "xyz" };
+	char d[4] = "abc";
+	wchar_t w[] = L"hi";
+	char16_t u[] = u"ok";
+	char32_t U[3] = U"";
+	const char e[] = "a" "b" "c";
+	unsigned char uc[] = "ab";
+	signed char sc[3] = "x";
+	int r = 0;
+	if (sizeof(a) == 4 && a[2] == 'c' && a[3] == 0) r += 1;
+	if (sizeof(b) == 6 && b[1] == 'b' && b[2] == 0 && b[5] == 0) r += 2;
+	if (sizeof(c) == 4 && c[0] == 'x' && sizeof(d) == 4 && d[3] == 0) r += 4;
+	if (sizeof(w) == 3 * sizeof(wchar_t) && w[1] == L'i' && w[2] == 0 && sizeof(u) == 3 * sizeof(char16_t) && u[0] == u'o') r += 8;
+	if (sizeof(U) == 3 * sizeof(char32_t) && U[0] == 0 && U[2] == 0 && sizeof(e) == 4 && e[1] == 'b') r += 16;
+	a[0] = 'z';
+	if (a[0] == 'z' && sizeof(uc) == 3 && uc[1] == 'b' && sc[0] == 'x' && sc[2] == 0) r += 32;
+	return r;
+}
+### DclCharacterArrayTooLongRefused | REFUSED | 8.5.2 [dcl.init.string] p2: no more characters than elements
+int main() { char a[3] = "abc"; return a[0]; }
+### DclCharacterArrayWideMismatchRefused | REFUSED | 8.5.2 [dcl.init.string] p1: the string's kind is the array's
+int main() { char a[] = L"abc"; return a[0]; }
+### DclWideArrayNarrowStringRefused | REFUSED | 8.5.2 [dcl.init.string] p1: the string's kind is the array's
+int main() { wchar_t a[] = "abc"; return a[0]; }
+### DclIntArrayFromStringRefused | REFUSED | 8.5.2 [dcl.init.string] p1: an array of a character type
+int main() { int a[] = "abc"; return a[0]; }
+### DclReferenceBinding | 255 | 8.5.3 [dcl.init.ref]: references
+struct B { int b; };
+struct D : B { int d; };
+struct ToRef { int v; operator int&() { return v; } };
+struct ToValue { operator long() const { return 9; } };
+int gCount = 0;
+struct T { T(int x) : v(x) { gCount += 10; } ~T() { gCount += 1; } int v; };
+int Value() { return 6; }
+int main()
+{
+	int i = 1;
+	D d;
+	d.b = 2; d.d = 3;
+	ToRef tr = { 4 };
+	ToValue tv;
+	int r = 0;
+	int& ri = i;
+	B& rb = d;
+	const B& crb = d;
+	int& fromConversion = tr;
+	if (&ri == &i && &rb == static_cast<B*>(&d) && crb.b == 2) r += 1;
+	fromConversion = 40;
+	if (tr.v == 40) r += 2;
+	const int& toTemporary = 5;
+	const long& widened = i;
+	const int& fromCall = Value();
+	const long& viaOperator = tv;
+	i = 100;
+	if (toTemporary == 5 && widened == 1 && fromCall == 6 && viaOperator == 9) r += 4;
+	int&& rvalue = 7;
+	int&& fromSum = i + 1;
+	int&& moved = static_cast<int&&>(i);
+	rvalue++;
+	moved = 50;
+	if (rvalue == 8 && fromSum == 101 && i == 50 && &moved == &i) r += 8;
+	{
+		const T& kept = T(3);
+		T&& alsoKept = T(4);
+		if (gCount == 20 && kept.v == 3 && alsoKept.v == 4) r += 16;
+	}
+	if (gCount == 22) r += 32;
+	const int& chain = ri;
+	const volatile int& cv = i;
+	int a[2] = { 1, 2 };
+	int (&ra)[2] = a;
+	const int (&cra)[2] = a;
+	int (&rf)() = Value;
+	if (&chain == &i && &cv == &i && &ra == &a && cra[1] == 2 && rf() == 6) r += 64;
+	B&& fromDerived = D();
+	const B& slicedTemporary = D();
+	(void)fromDerived; (void)slicedTemporary;
+	const D& cd = d;
+	const B& base = cd;
+	if (base.b == 2 && &base == static_cast<const B*>(&d)) r += 128;
+	return r;
+}
+### DclReferenceToRvalueRefused | REFUSED | 8.5.3 [dcl.init.ref] p5: an lvalue reference to non-const binds to an lvalue
+int main() { int& r = 5; return r; }
+### DclReferenceToOtherTypeRefused | REFUSED | 8.5.3 [dcl.init.ref] p5: an lvalue reference to non-const binds to its own type
+int main() { int i = 1; long& r = i; return (int)r; }
+### DclReferenceDropsConstRefused | REFUSED | 8.5.3 [dcl.init.ref] p5: the reference is at least as qualified
+int main() { const int i = 1; int& r = i; return r; }
+### DclRvalueReferenceToLvalueRefused | REFUSED | 8.5.3 [dcl.init.ref] p5: an rvalue reference binds to an rvalue
+int main() { int i = 1; int&& r = i; return r; }
+### DclReferenceToBitFieldRefused | REFUSED | 8.5.3 [dcl.init.ref] p5: a non-const reference does not bind to a bit-field
+struct S { int b : 3; };
+int main() { S s; s.b = 1; int& r = s.b; return r; }
+### DclReferenceToBaseFromUnrelatedRefused | REFUSED | 8.5.3 [dcl.init.ref] p5: reference-compatible types
+struct A { int a; };
+struct B { int b; };
+int main() { A a; B& r = a; return 1; }
+### DclReferenceToCallValueRefused | REFUSED | 8.5.3 [dcl.init.ref] p5: an lvalue reference to non-const binds to an lvalue
+int Value() { return 6; }
+int main() { int& r = Value(); return r; }
+### DclConstReferenceToBitField | 3 | 8.5.3 [dcl.init.ref] p5: a const reference to a bit-field is to a copy
+struct S { int b : 4; };
+int main()
+{
+	S s;
+	s.b = 3;
+	const int& r = s.b;
+	s.b = 5;
+	return r;
+}
+### DclListInitialisation | 255 | 8.5.4 [dcl.init.list]: list initialisation
+@NEW@
+struct P { int a; int b; };
+struct C { C() : v(1) { } C(int a) : v(a) { } C(int a, int b) : v(a * 10 + b) { } int v; };
+P MakeP() { return { 3, 4 }; }
+C MakeC() { return { 5, 6 }; }
+int SumP(P p) { return p.a + p.b; }
+int ValueOf(C c) { return c.v; }
+int main()
+{
+	int a{ 5 };
+	int b = { 6 };
+	int c{ };
+	double d{ 1.5 };
+	char ch{ 'x' };
+	long widened{ a };
+	int* null{ };
+	P p{ 1, 2 };
+	P q = { 3 };
+	C none{ };
+	C one{ 7 };
+	C two{ 8, 9 };
+	C copy = { 2, 3 };
+	int arr[]{ 1, 2, 3 };
+	P parr[2]{ { 1, 2 }, { 3, 4 } };
+	const int k = 100;
+	char fits{ k };
+	unsigned char fromConstant{ 200 };
+	float fromInt{ 16 };
+	int r = 0;
+	if (a == 5 && b == 6 && c == 0 && d == 1.5 && ch == 'x' && widened == 5 && null == 0) r += 1;
+	if (p.b == 2 && q.a == 3 && q.b == 0) r += 2;
+	if (none.v == 1 && one.v == 7 && two.v == 89 && copy.v == 23) r += 4;
+	if (sizeof(arr) == 3 * sizeof(int) && arr[2] == 3 && parr[1].a == 3) r += 8;
+	if (MakeP().b == 4 && MakeC().v == 56 && SumP({ 1, 2 }) == 3 && ValueOf({ 4, 5 }) == 45 && ValueOf({ }) == 1) r += 16;
+	if (fits == 100 && fromConstant == 200 && fromInt == 16.0f) r += 32;
+	a = { 9 };
+	p = { 7, 8 };
+	two = { 1, 1 };
+	if (a == 9 && p.a == 7 && two.v == 11 && int{ 3 } == 3 && P{ 5, 6 }.b == 6 && C{ 1, 2 }.v == 12) r += 64;
+	int* fresh = new int{ 12 };
+	P* freshP = new P{ 13, 14 };
+	if (*fresh == 12 && freshP->b == 14) r += 128;
+	return r;
+}
+### DclListNarrowingDoubleRefused | REFUSED | 8.5.4 [dcl.init.list] p7: no narrowing
+int main() { int x{ 2.5 }; return x; }
+### DclListNarrowingVariableRefused | REFUSED | 8.5.4 [dcl.init.list] p7: no narrowing
+int main() { long long l = 5; int x{ l }; return x; }
+### DclListNarrowingConstantRefused | REFUSED | 8.5.4 [dcl.init.list] p7: no narrowing
+int main() { unsigned char c{ 300 }; return c; }
+### DclListNarrowingNegativeRefused | REFUSED | 8.5.4 [dcl.init.list] p7: no narrowing
+int main() { unsigned int u{ -1 }; return u ? 1 : 2; }
+### DclListNarrowingToFloatRefused | REFUSED | 8.5.4 [dcl.init.list] p7: no narrowing
+int main() { double d = 1.5; float f{ d }; return f > 1 ? 1 : 2; }
+### DclListNarrowingIntToFloatRefused | REFUSED | 8.5.4 [dcl.init.list] p7: no narrowing
+int main() { long long big = 1; float f{ big }; return f > 0 ? 1 : 2; }
+### DclListNarrowingInAggregateRefused | REFUSED | 8.5.4 [dcl.init.list] p7: no narrowing
+struct P { char a; int b; };
+int main() { int i = 300; P p = { i, 2 }; return p.b; }
+### DclListNarrowingArgumentRefused | REFUSED | 8.5.4 [dcl.init.list] p7: no narrowing
+int Take(int v) { return v; }
+int main() { return Take({ 2.5 }); }
+### DclListTooManyForScalarRefused | REFUSED | 8.5.4 [dcl.init.list] p3: a scalar from a list of one
+int main() { int x{ 1, 2 }; return x; }
+### DclListExplicitCopyRefused | REFUSED | 8.5.4 [dcl.init.list] p3, 13.3.1.7: copy list initialisation does not use an explicit constructor
+struct E { explicit E(int a, int b) : v(a + b) { } int v; };
+int main() { E e = { 1, 2 }; return e.v; }
+### DclListNoConstructorRefused | REFUSED | 8.5.4 [dcl.init.list] p3: a constructor takes the list's elements
+struct C { C(int a) : v(a) { } int v; };
+int main() { C c{ 1, 2, 3 }; return c.v; }
+### DclListEmptyNoDefaultRefused | REFUSED | 8.5.4 [dcl.init.list] p3: an empty list is value initialisation
+struct C { C(int a) : v(a) { } int v; };
+int main() { C c{ }; return c.v; }
+### DclReferenceConversionFunction | 3 | 8.5.3 [dcl.init.ref] p5: an object whose conversion function gives the lvalue
+struct A { int a; };
+struct W { int v; A o; operator int&() { return v; } operator A&() { return o; } };
+int main()
+{
+	W w;
+	w.v = 1; w.o.a = 2;
+	int& ri = w;
+	A& ra = w;
+	ri = 5; ra.a = 6;
+	int r = 0;
+	if (w.v == 5) r += 1;
+	if (w.o.a == 6) r += 2;
+	return r;
+}
+### DclReferenceToRepeatedBaseRefused | REFUSED | 8.5.3 [dcl.init.ref] p4: reference-compatible with a base it has once
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main() { D d; A& r = d; return 1; }
+### DclReferenceToPrivateBaseRefused | REFUSED | 8.5.3 [dcl.init.ref] p4, 11.2: the base is accessible
+struct A { int a; };
+struct P : private A { };
+int main() { P p; const A& r = p; return 1; }
+### DclReferenceArgumentRepeatedBaseRefused | REFUSED | 8.5.3 [dcl.init.ref] p4: reference-compatible with a base it has once
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int Take(A& r) { return 1; }
+int main() { D d; return Take(d); }
+### DclReferenceToEnumRefused | REFUSED | 8.5.3 [dcl.init.ref] p5: an int& does not bind to an enum
+enum E { X, Y };
+int main() { E e = Y; int& r = e; return r; }
+### DclReferenceToOtherCharRefused | REFUSED | 8.5.3 [dcl.init.ref] p5: char and signed char are different types
+int main() { char c = 1; signed char& r = c; return r; }
+### DclCopyFromRepeatedBaseRefused | REFUSED | 8.5 [dcl.init] p17: an object from one of a derived class, by the base it has once
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main() { D d; A a = d; return 1; }
+### DclCopyFromPrivateBaseRefused | REFUSED | 8.5 [dcl.init] p17, 11.2: the base is accessible
+struct A { int a; };
+struct P : private A { };
+int main() { P p; A a(p); return 1; }
+### DclReturnCopyRepeatedBaseRefused | REFUSED | 8.5 [dcl.init] p17: an object from one of a derived class, by the base it has once
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+A Give(D& d) { return d; }
+int main() { D d; return Give(d).a; }
+### DclReferenceConversionResults | 255 | 8.5.3 [dcl.init.ref] p5, 13.3.1.6 [over.match.ref]: references and parameters bound through conversion functions
+struct A { int a; };
+struct B : A { int b; };
+struct W
+{
+	int pad; int v; B o; long l;
+	operator int&() { return v; }
+	operator B&() { return o; }
+	operator const long&() const { return l; }
+};
+struct N { int n; operator int() const { return n; } };
+int TakeI(int& r) { r += 1; return r; }
+int TakeA(const A& r) { return r.a; }
+int TakeB(B& r) { r.b += 1; return r.b; }
+int TakeC(const int& r) { return r; }
+int TakeR(int&& r) { return r; }
+int& GiveI(W& w) { return w; }
+int main()
+{
+	W w;
+	N n;
+	w.pad = 100; w.v = 1; w.o.a = 2; w.o.b = 3; w.l = 7; n.n = 9;
+	const W& cw = w;
+	const long& rl = cw;
+	A& ra = w;
+	const int& rc = n;
+	int&& rr = n;
+	long x = cw;
+	short s = 5;
+	int&& rs = s;
+	int r = 0;
+	if (TakeI(w) == 2 && w.v == 2 && w.pad == 100) r += 1;
+	if (TakeA(w) == 2 && TakeB(w) == 4 && w.o.b == 4) r += 2;
+	if (rl == 7 && x == 7) r += 4;
+	if (&ra == &w.o && ra.a == 2) r += 8;
+	GiveI(w) = 4;
+	if (w.v == 4) r += 16;
+	if (rc == 9 && rr == 9 && TakeC(n) == 9 && TakeR(n) == 9) r += 32;
+	if (TakeC(w) == 4) r += 64;
+	rs = 6;
+	if (s == 5 && rs == 6) r += 128;
+	return r;
+}
+### DclVolatileFreeFunctionRefused | REFUSED | 8.3.5 [dcl.fct] p6: only a member function is volatile
+int f() volatile { return 1; }
+int main() { return f(); }
+### DclAmbiguityInitialisers | 3 | 8.2 [dcl.ambig.res] p1: an initialiser in brackets that begins as a parameter does, and a declarator whose name is in brackets
+struct S { S(int x) : v(x) { } S(int x, int y) : v(x + y) { } int v; S Plus(int n) const { return S(v + n); } };
+typedef int Int;
+int ga = 4;
+int Twice(int v) { return v * 2; }
+int main()
+{
+	int a = 3;
+	S p(int(a) * 2);
+	S q(Int(a) + ga, int(ga));
+	S t(S(a).Plus(1));
+	S u(Twice(Int(a)));
+	S (w)(7);
+	Int (k)(a + 1);
+	Int f(Int(a));
+	int r = 0;
+	if (p.v == 6 && q.v == 11 && t.v == 4 && u.v == 6) r += 1;
+	if (w.v == 7 && k == 4 && sizeof(f(1)) == sizeof(int)) r += 2;
+	return r;
+}
+### DclFunctionsByTypedef | 7 | 8.3.5 [dcl.fct] p10: functions, member functions and a parameter declared by the name of a function type
+using Unary = int(int);
+typedef Unary Other;
+Unary Neg;
+Other Twice;
+extern Unary Declared;
+struct S
+{
+	int v;
+	typedef int Getter() const;
+	typedef int Setter(int);
+	Getter Get;
+	Setter Set;
+	static Unary Half;
+	virtual Getter Virtual;
+};
+int S::Get() const { return v; }
+int S::Set(int x) { v = x; return v; }
+int S::Half(int x) { return x / 2; }
+int S::Virtual() const { return v + 1; }
+int Neg(int v) { return -v; }
+int Twice(int v) { return v * 2; }
+int Declared(int v) { return v + 100; }
+int Apply(Unary f, int v) { return f(v); }
+int main()
+{
+	S s;
+	s.v = 0;
+	Unary* p = Neg;
+	int r = 0;
+	if (Neg(3) == -3 && Twice(4) == 8 && p(5) == -5 && Declared(1) == 101) r += 1;
+	if (s.Set(6) == 6 && s.Get() == 6 && S::Half(8) == 4 && s.Virtual() == 7) r += 2;
+	if (Apply(Twice, 5) == 10 && Apply(S::Half, 6) == 3) r += 4;
+	return r;
+}
+### DclDefaultArgumentUnevaluatedLocal | 1 | 8.3.6 [dcl.fct.default] p7: a default argument names a global, and a local where it is not evaluated
+int g = 4;
+int main() { const int c = 3; struct L { static int f(int a = g, int n = sizeof(c)) { return a + n; } }; return L::f() == 4 + (int)sizeof(int); }
+### DclDefaultArgumentStaticLocalRefused | REFUSED | 8.3.6 [dcl.fct.default] p7: not a static local variable either
+int main() { static int s = 2; struct L { static int f(int a = s) { return a; } }; return L::f(); }
+### DclDefaultedOutsideClass | 7 | 8.4.2 [dcl.fct.def.default] p5, 12.8 [class.copy]: a copy constructor and a copy assignment defaulted after their class are functions, called by what was written before
+int gCopies = 0;
+struct M { int v; M() : v(1) { } M(const M& o) : v(o.v) { gCopies++; } M& operator=(const M& o) { v = o.v; gCopies += 10; return *this; } };
+struct S { M m; int n; S(); S(const S&); S& operator=(const S&); virtual int f() { return 1; } };
+int CopyEarly(const S& s) { S t = s; return t.m.v + t.n; }
+S::S() : n(2) { }
+S::S(const S&) = default;
+S& S::operator=(const S&) = default;
+int main()
+{
+	S a;
+	a.m.v = 5;
+	int r = 0;
+	if (CopyEarly(a) == 7 && gCopies == 1) r += 1;
+	S b;
+	S& same = (b = a);
+	if (b.m.v == 5 && b.n == 2 && gCopies == 11 && b.f() == 1 && &same == &b) r += 2;
+	S c = b;
+	if (c.m.v == 5 && c.n == 2 && gCopies == 12 && c.f() == 1) r += 4;
+	return r;
+}
+### DclAggregateElision | 127 | 8.5.1 [dcl.init.aggr] p7, p12, p16: braces left out of nested aggregates, default member initialisers that name earlier members, a union's first member
+struct P { int a; int b; };
+struct Nested { P p; int c; P q[2]; };
+struct Deep { Nested n; char name[4]; P last; };
+struct WithDefaults { int a = 1; int b = a + 1; int c = b * 2; };
+union U { int i; char c; };
+struct HasUnion { U u; int v; };
+P MakeP() { P p = { 8, 9 }; return p; }
+Nested gn = { 1, 2, 3, 4, 5, 6, 7 };
+P gflat[] = { 1, 2, 3, 4, 5 };
+WithDefaults gd = { 10 };
+int gm[2][3] = { 1, 2, 3, 4 };
+int main()
+{
+	P p = { 3, 4 };
+	Deep d = { 1, 2, 3, 4, 5, 6, 7, "abc", p };
+	Deep e = { { p, 3, MakeP(), 6, 7 }, { 'x', 'y' }, 8 };
+	Nested arr[2] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	int m[2][3] = { 1, 2, 3, 4 };
+	WithDefaults w = { 5 };
+	WithDefaults w2 = { 5, 7 };
+	HasUnion hu = { 65, 2 };
+	int r = 0;
+	if (gn.p.b == 2 && gn.c == 3 && gn.q[1].a == 6 && sizeof(gflat) == 3 * sizeof(P) && gflat[2].a == 5 && gflat[2].b == 0) r += 1;
+	if (d.n.q[1].b == 7 && d.name[2] == 'c' && d.name[3] == 0 && d.last.b == 4) r += 2;
+	if (e.n.p.a == 3 && e.n.c == 3 && e.n.q[0].b == 9 && e.n.q[1].a == 6 && e.name[1] == 'y' && e.name[2] == 0 && e.last.a == 8 && e.last.b == 0) r += 4;
+	if (arr[0].q[1].b == 7 && arr[1].p.a == 8 && arr[1].p.b == 9 && arr[1].c == 0) r += 8;
+	if (m[0][2] == 3 && m[1][0] == 4 && m[1][2] == 0 && gm[1][0] == 4 && gm[1][1] == 0) r += 16;
+	if (w.b == 6 && w.c == 12 && w2.b == 7 && w2.c == 14 && gd.a == 10 && gd.b == 11 && gd.c == 22) r += 32;
+	if (hu.u.i == 65 && hu.v == 2) r += 64;
+	return r;
+}
+### DclAggregateTooManyElidedRefused | REFUSED | 8.5.1 [dcl.init.aggr] p6, p16: more values than the elements take, braces left out
+struct P { int a; int b; };
+int main() { P a[1] = { 1, 2, 3 }; return a[0].a; }
+### DclAggregateTooManyNestedRefused | REFUSED | 8.5.1 [dcl.init.aggr] p6, p16: more values than the members take, braces left out
+struct P { int a; int b; };
+struct N { P p; int c; };
+int main() { N n = { 1, 2, 3, 4 }; return n.c; }
+### DclUnionTwoValuesRefused | REFUSED | 8.5.1 [dcl.init.aggr] p6, p16: a union is given one value, its first member's
+union U { int i; char c; };
+int main() { U u = { 1, 2 }; return u.i; }
+
+### DclInitListObjectsDestroyed | 63 | 8.5.4 [dcl.init.list] p5, p6: a std::initializer_list's array of objects is made from the list's elements and destroyed with the temporary it is, or with the list it initialises
+@INITLIST@
+int giMade = 0;
+int giCopied = 0;
+int giDestroyed = 0;
+struct D
+{
+	int v;
+	D(int a) : v(a) { giMade++; }
+	D(const D& o) : v(o.v) { giCopied++; }
+	~D() { giDestroyed++; }
+};
+int Sum(std::initializer_list<D> l) { int s = 0; for (const D& d : l) s += d.v; return s; }
+struct Vec { int n; Vec(std::initializer_list<D> l) : n((int)l.size()) { } };
+int main()
+{
+	int r = 0;
+	int s = Sum({ D(1), D(2) });
+	if (s == 3 && giMade == 2 && giDestroyed == giMade + giCopied) r += 1;
+	s = Sum({ 4, 5, 6 });
+	if (s == 15 && giMade == 5 && giDestroyed == giMade + giCopied) r += 2;
+	{
+		D a(7);
+		s = Sum({ a, a });
+		if (s == 14 && giCopied >= 2 && giDestroyed == giMade + giCopied - 1) r += 4;
+	}
+	if (giDestroyed == giMade + giCopied) r += 8;
+	{
+		std::initializer_list<D> l = { D(8), D(9) };
+		s = 0;
+		for (const D& d : l) s += d.v;
+		if (s == 17 && giDestroyed == giMade + giCopied - 2) r += 16;
+	}
+	Vec v = { D(1), D(2), D(3) };
+	if (v.n == 3 && giDestroyed == giMade + giCopied) r += 32;
+	return r;
+}
+
+### DclInitListReferenceBinds | 255 | 8.5.4 [dcl.init.list] p3, 7.1.6.4 [dcl.spec.auto] p7: a reference initialised from a list of one element it can bind to is bound to that element, and to a temporary only where it can't be
+int gx = 3;
+int& gr{gx};
+const int& gc{gx};
+struct B { int v; };
+struct D : B { int w; };
+struct S { int& m; const int& k; S(int& a) : m{a}, k{a} { } };
+int Take(const int& p) { gx = 9; return p; }
+int main()
+{
+	int r = 0;
+	int x = 3;
+	int& lr{x};
+	const int& lc{x};
+	const int& le = {x};
+	const long& ll{x};
+	lr = 7;
+	if (x == 7 && lc == 7 && le == 7 && ll == 3) r += 1;
+	auto& ar{x};
+	const auto& ac{x};
+	auto&& af{x};
+	ar = 8;
+	af += 1;
+	if (x == 9 && ac == 9) r += 2;
+	int&& lm{(int&&)x};
+	lm = 4;
+	if (x == 4) r += 4;
+	gr = 5;
+	if (gx == 5 && gc == 5 && &gr == &gx && &gc == &gx) r += 8;
+	S s(gx);
+	s.m = 6;
+	if (gx == 6 && s.k == 6) r += 16;
+	if (Take({gx}) == 9) r += 32;
+	D d;
+	d.v = 1;
+	d.w = 2;
+	B& b{d};
+	b.v = 3;
+	if (d.v == 3 && &b == &d) r += 64;
+	int a[3] = { 1, 2, 3 };
+	int (&ra)[3]{a};
+	ra[1] = 5;
+	if (a[1] == 5 && sizeof(ra) == 3 * sizeof(int)) r += 128;
+	return r;
+}
+
+### DclGlobalArrayNarrowingRefused | REFUSED | 8.5.4 [dcl.init.list] p3, p7: a list's value isn't narrowed to an array's element, a global array's either
+unsigned gauValues[] = { 1, -1, 2 };
+int main() { return (int)gauValues[0]; }
+
+### DclDefaultedOutsideMoves | 15 | 8.4.2 [dcl.fct.def.default] p5, 12.8 [class.copy] p15 and p28: a move constructor and a move assignment defaulted after their class move the members that have a move of their own, as the copies copy them
+struct P { int k; P() : k(1) { } P(const P& o) : k(o.k + 10) { } P(P&& o) : k(o.k + 20) { } P& operator=(const P& o) { k = o.k + 100; return *this; } P& operator=(P&& o) { k = o.k + 200; return *this; } };
+struct S { P p; int n; S() : n(5) { } S(const S&); S(S&&); S& operator=(const S&); S& operator=(S&&); };
+S::S(const S&) = default;
+S::S(S&&) = default;
+S& S::operator=(const S&) = default;
+S& S::operator=(S&&) = default;
+struct V { int v; V() : v(1) { } };
+struct A : virtual V { P p; A() { } A(A&&); A& operator=(A&&); A(const A&) = default; };
+A::A(A&&) = default;
+A& A::operator=(A&&) = default;
+struct B : A { int b; B() : b(3) { } };
+int main()
+{
+	int r = 0;
+	S a; S b(a); S c(static_cast<S&&>(a));
+	if (b.p.k == 11 && c.p.k == 21 && b.n == 5 && c.n == 5) r += 1;
+	S d; S e; d = a; e = static_cast<S&&>(a);
+	if (d.p.k == 101 && e.p.k == 201) r += 2;
+	A f; f.v = 7; A g(static_cast<A&&>(f));
+	if (g.p.k == 21 && g.v == 7) r += 4;
+	B h; h.v = 8; B i(static_cast<B&&>(h)); B j; j = static_cast<B&&>(h);
+	if (i.p.k == 21 && i.v == 8 && i.b == 3 && j.p.k == 201 && j.v == 8) r += 8;
+	return r;
+}
+
+### DclDefaultArgumentsOutsideClass | 118 | 8.3.6 [dcl.fct.default] p4, p6: a member function's definition outside its class adds default arguments; a member template's and a class template's member's have the ones their class gave
+struct S { int F(int a, int b); template<class T> T G(T a, T b = T(2)); };
+int S::F(int a, int b = 2) { return a + b; }
+template<class T> T S::G(T a, T b) { return a + b; }
+template<class C> struct W { int F(int a, int b = 3); };
+template<class C> int W<C>::F(int a, int b) { return a + b; }
+int main() { S s; W<int> w; return s.F(1) + s.G(10) + w.F(100); }
+### DclDefaultArgumentAddedToTemplateRefused | REFUSED | 8.3.6 [dcl.fct.default] p4: only a function that isn't a template is given default arguments by a later declaration
+template<class T> T Add(T a, T b) { return a + b; }
+template<class T> T Add(T a, T b = T(4));
+int main() { return Add(5); }
+### DclDefaultArgumentAddedBeforeDefinitionRefused | REFUSED | 8.3.6 [dcl.fct.default] p4: nor by a second declaration before its definition
+template<class T> T Add(T a, T b);
+template<class T> T Add(T a, T b = T(4));
+template<class T> T Add(T a, T b) { return a + b; }
+int main() { return Add(5); }
+### DclDefaultArgumentMemberTemplateOutsideRefused | REFUSED | 8.3.6 [dcl.fct.default] p4, p6: a member template's definition outside its class adds none
+struct S { template<class T> static T Mul(T a, T b); };
+template<class T> T S::Mul(T a, T b = T(3)) { return a * b; }
+int main() { return S::Mul(4); }
+### DclDefaultArgumentClassTemplateMemberOutsideRefused | REFUSED | 8.3.6 [dcl.fct.default] p6: a class template's member function is given its default arguments in the class
+template<class C> struct W { int F(int a, int b); template<class T> T G(T a, T b); };
+template<class C> int W<C>::F(int a, int b = 2) { return a + b; }
+int main() { W<int> w; return w.F(1); }
