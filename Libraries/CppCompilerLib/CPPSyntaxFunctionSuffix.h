@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPSyntaxTypeId;
+class CCPPSyntaxParameter;
 
 
 class CCPPSyntaxFunctionSuffix : public CCPPSyntax
@@ -52,6 +53,7 @@ public:
 	size					RequiredParameters(void);
 	bool					EndsWithPack(void);
 	bool					TakesArgumentCount(size uiArguments);
+	CCPPSyntaxParameter*	ArgumentParameter(size uiArgument);
 };
 
 

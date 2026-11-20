@@ -920,6 +920,20 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       uses.  A base class declared final was never refused, used or not (AddBase).  Not done: a class nested
       in another, or in a function, that nothing uses.
       ClassMemberNameNotAmbiguous and seven Refused cases; ClassFinalAllowed and five Refused cases.
+    - 13, 12.  A function being written had one function parameter pack (CCPPContext's, with the unit's list of
+      its elements), so a lambda's body expanded the enclosing function's pack only if it had none of its own.
+      It has those it can expand (CCPPFunctionPacks, in CPPFunctionPacks.h): its own and, in a lambda's body,
+      each of the functions the lambda is in (SCPPLambda::cFunctionPacks, which CapturePack and IsPackCaptured
+      are given one of).  ExpandPattern expands the function packs a pattern names together, as it does
+      template ones ((a * b)...), and sizeof... counts any of them.  [a...](auto... b) { ... }, [=](auto... b),
+      a lambda in such a lambda capturing both.
+      A generic lambda whose last parameter is a pack converts to a pointer to a function: the conversion
+      asked for as many parameters as the function has (CCPPSyntaxFunctionSuffix::ArgumentParameter, which
+      GenericLambdaCall worked out for itself).
+      Found, not done: a member template of a class template with a pack, whose parameters are the class's
+      pack and then its own (template<class... B> static int Mix(A... a, B... b)), isn't called ("The number
+      of arguments does not match the function").
+      ExprLambdaGenericPackToPointer, ExprLambdaCapturesPackBesideOwn.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

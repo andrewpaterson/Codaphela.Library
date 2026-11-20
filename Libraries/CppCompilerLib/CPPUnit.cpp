@@ -308,7 +308,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcAllBindings.Init();
 	mapapsPacks.Init();
 	mapalliPacks.Init();
-	mapcPackElements.Init();
+	mcFunctionPacks.Init();
 	mapcObjectConstants.Init();
 	masBracedLists.Init();
 	mbValueArgumentRefused = false;
@@ -423,7 +423,7 @@ void CCPPUnit::Kill(void)
 		SafeKill(palliPack);
 	}
 	mapalliPacks.Kill();
-	mapcPackElements.Kill();
+	mcFunctionPacks.Kill();
 	mapcObjectConstants.Kill();
 	masBracedLists.Kill();
 	masPackElements.Kill();
@@ -2578,11 +2578,10 @@ SCPP65Type* CCPPUnit::ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDecla
 void CCPPUnit::EnterFunctionScope(SCPPFunctionScope* psScope, CCPPFunction* pcFunction)
 {
 	psScope->pcFunction = mcContext.GetFunction();
-	psScope->pcPackParameter = mcContext.GetPackParameter();
 	memcpy(&psScope->apcLocals, &mapcLocals, sizeof(CArrayCPPVariables));
-	memcpy(&psScope->apcPackElements, &mapcPackElements, sizeof(CArrayCPPSymbols));
+	memcpy(&psScope->cFunctionPacks, &mcFunctionPacks, sizeof(CCPPFunctionPacks));
 	mapcLocals.Init();
-	mapcPackElements.Init();
+	mcFunctionPacks.Init();
 	BeginFunction(pcFunction);
 }
 
@@ -2596,13 +2595,12 @@ void CCPPUnit::LeaveFunctionScope(SCPPFunctionScope* psScope)
 	mcContext.EndFunction();
 	FreeVariables(&mapcLocals);
 	mapcLocals.Kill();
-	mapcPackElements.Kill();
+	mcFunctionPacks.Kill();
 	memcpy(&mapcLocals, &psScope->apcLocals, sizeof(CArrayCPPVariables));
-	memcpy(&mapcPackElements, &psScope->apcPackElements, sizeof(CArrayCPPSymbols));
+	memcpy(&mcFunctionPacks, &psScope->cFunctionPacks, sizeof(CCPPFunctionPacks));
 	if (psScope->pcFunction)
 	{
 		mcContext.BeginFunction(psScope->pcFunction);
-		mcContext.SetPackParameter(psScope->pcPackParameter);
 	}
 }
 
@@ -3962,7 +3960,10 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 		if (bPack)
 		{
 			uiPack = pcFunction->mapsParameters.NumElements() - j;
-			mcContext.SetPackParameter(pcParameter->mpcSymbol);
+			if (pcParameter->mpcSymbol)
+			{
+				mcFunctionPacks.Add(pcParameter->mpcSymbol);
+			}
 		}
 		for (k = 0; k < uiPack; k++)
 		{
@@ -3982,13 +3983,12 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 		}
 	}
 
-	//A lambda's body expands the parameter pack of the function the lambda is in, into the elements it captured
-	//(CapturePack), where it has no pack of its own.
+	//A lambda's body expands the parameter packs of the functions the lambda is in too, into the elements it captured
+	//(CapturePack).
 	psLambda = BodyLambda(pcFunction);
-	if (psLambda && psLambda->pcPackParameter && !mcContext.GetPackParameter())
+	if (psLambda)
 	{
-		mcContext.SetPackParameter(psLambda->pcPackParameter);
-		mapcPackElements.Copy(&psLambda->apcPackElements);
+		mcFunctionPacks.AddAll(&psLambda->cFunctionPacks);
 	}
 }
 
@@ -4014,7 +4014,7 @@ void CCPPUnit::BeginFunction(CCPPFunction* pcFunction)
 {
 	mcContext.BeginFunction(pcFunction);
 	FreeVariables(&mapcLocals);
-	mapcPackElements.ReInit();
+	mcFunctionPacks.ReInit();
 }
 
 
@@ -4579,7 +4579,6 @@ CCPPTarget* CCPPUnit::GetTarget(void) const { return mpcTarget; }
 CIRImports* CCPPUnit::GetImports(void) const { return mpcImports; }
 CCPPTokeniser* CCPPUnit::GetTokeniser(void) const { return mpcTokeniser; }
 CCPPSyntaxTree* CCPPUnit::GetTree(void) const { return mpcTree; }
-const CArrayCPPSymbols* CCPPUnit::GetPackElements(void) const { return &mapcPackElements; }
 CSpillStore* CCPPUnit::GetSpillStore(void) const { return mpcSpillStore; }
 CCPPSemanticPass* CCPPUnit::GetSemanticPass(void) const { return mpcSemanticPass; }
 CAsm65Profile* CCPPUnit::GetFrameProfile(void) const { return mpcFrameProfile; }

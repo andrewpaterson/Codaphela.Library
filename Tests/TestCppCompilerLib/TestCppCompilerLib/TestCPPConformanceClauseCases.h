@@ -6568,6 +6568,55 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.1.2 [expr.prim.lambda] p6, 14.8.2.3 [temp.deduct.conv]: a generic lambda whose last parameter is a pack (auto... args) converts to a pointer to a function, the pack taking each of the function's parameters from its place on (none too)
+	{
+		"ExprLambdaGenericPackToPointer", 63,
+		"int Sum() { return 0; }\n"
+		"template<class T, class... R> int Sum(T t, R... r) { return (int)t + Sum(r...); }\n"
+		"int Call2(int (*f)(int, int)) { return f(3, 4); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int (*p)(int, int) = [](auto... a) { return Sum(a...); };\n"
+		"	if (p(1, 2) == 3) r += 1;\n"
+		"	int (*q)(char, long, int) = [](auto... a) { return (int)sizeof...(a) * 100 + Sum(a...); };\n"
+		"	if (q(1, 2, 3) == 306) r += 2;\n"
+		"	int (*z)() = [](auto... a) { return (int)sizeof...(a) + 5; };\n"
+		"	if (z() == 5) r += 4;\n"
+		"	if (Call2([](auto... a) { return Sum(a...) * 2; }) == 14) r += 8;\n"
+		"	long (*m)(int, long) = [](int first, auto... rest) { return (long)first + Sum(rest...); };\n"
+		"	if (m(10, 20L) == 30) r += 16;\n"
+		"	auto g = [](auto... a) { return Sum(a...); };\n"
+		"	int (*h)(int, char) = g;\n"
+		"	if (h(5, 6) == 11 && g(1, 2, 3) == 6) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.1.2 [expr.prim.lambda] p24, 14.5.3 [temp.variadic] p5: a generic lambda with a parameter pack of its own captures the pack of the function it is in and expands both, apart and together; a lambda in it captures the two
+	{
+		"ExprLambdaCapturesPackBesideOwn", 127,
+		"int Sum() { return 0; }\n"
+		"template<class T, class... R> int Sum(T t, R... r) { return (int)t + Sum(r...); }\n"
+		"template<class... A> int Both(A... a) { auto f = [a...](auto... b) { return Sum(a...) * 100 + Sum(b...); }; return f(1, 2); }\n"
+		"template<class... A> int Two(int k, A... a) { auto f = [a..., k]() { return Sum(a...) + k; }; return f(); }\n"
+		"template<class... A> int Count(A... a) { auto f = [=](auto... b) { return (int)sizeof...(a) * 10 + (int)sizeof...(b) + Sum(a...) * 100 + Sum(b...) * 1000; }; return f(1, 1); }\n"
+		"template<class... A> int Nest(A... a) { auto f = [a...](auto... b) { auto g = [a..., b...]() { return Sum(a...) * 10 + Sum(b...); }; return g(); }; return f(1, 2); }\n"
+		"template<class... A> int Refs(A... a) { auto f = [&a...](auto&... b) { int n = Sum(a...) + Sum(b...); return n; }; int x = 5; return f(x); }\n"
+		"template<class... A> int Zip(A... a) { auto f = [a...](auto... b) { return Sum((a * b)...); }; return f(10, 100); }\n"
+		"template<class... A> int None(A... a) { auto f = [a...](auto... b) { return (int)sizeof...(a) + (int)sizeof...(b) * 10; }; return f() + f(1) * 100; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Both(3, 4) == 703) r += 1;\n"
+		"	if (Two(5, 1, 2) == 8) r += 2;\n"
+		"	if (Count(2, 3) == 2522) r += 4;\n"
+		"	if (Nest(3, 4) == 73) r += 8;\n"
+		"	if (Refs(1, 2) == 8) r += 16;\n"
+		"	if (Zip(2, 3) == 320) r += 32;\n"
+		"	if (None() == 1000 && None(7, 8) == 2 + 1200) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };
 
 

@@ -168,6 +168,22 @@ bool CCPPSyntaxFunctionSuffix::TakesArgumentCount(size uiArguments)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The parameter a call's argument is for (the first is 0): its own, or the
+// last, a function parameter pack (auto... args), which takes each
+// argument from its place on.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxParameter* CCPPSyntaxFunctionSuffix::ArgumentParameter(size uiArgument)
+{
+	size	uiParameters;
+
+	uiParameters = NumParameters();
+	return (CCPPSyntaxParameter*)macpParameters.GetPtr((uiArgument < uiParameters) ? uiArgument : uiParameters - 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The number of parameters declared: none for (void).
 //
 //////////////////////////////////////////////////////////////////////////

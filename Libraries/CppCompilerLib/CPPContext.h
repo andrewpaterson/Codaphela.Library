@@ -74,7 +74,6 @@ protected:
 	bool					mbStaticLocal;			//A static local's data is being written.
 	bool					mbLinkageExtern;		//In extern "C" without braces: declarations are extern.
 	bool					mbCLinkage;				//In extern "C": functions declared have C linkage.
-	CCPPSymbol*				mpcPackParameter;		//The function parameter pack of the function being written, or NULL.
 	int						miQuiet;				//Above 0, errors are not reported, only noted in mbQuietFailed.
 	bool					mbQuietFailed;
 	CArrayCPPContextEntries	masEntered;
@@ -110,8 +109,6 @@ public:
 	void					LeaveStaticLocal(void);
 	bool					IsStaticLocal(void) const;
 
-	void					SetPackParameter(CCPPSymbol* pcSymbol) { mpcPackParameter = pcSymbol; }
-	CCPPSymbol*				GetPackParameter(void) const;
 
 	bool					BeginQuiet(void);
 	bool					EndQuiet(void);

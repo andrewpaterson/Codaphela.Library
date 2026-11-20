@@ -304,6 +304,7 @@
     <ClCompile Include="CPPUnitData.cpp" />
     <ClCompile Include="CPPDeclarators.cpp" />
     <ClCompile Include="CPPDeduction.cpp" />
+    <ClCompile Include="CPPFunctionPacks.cpp" />
     <ClCompile Include="CPPOverloads.cpp" />
     <ClCompile Include="CPPAccess.cpp" />
     <ClCompile Include="CPPBinder.cpp" />
@@ -575,6 +576,7 @@
     <ClInclude Include="CPPUnitData.h" />
     <ClInclude Include="CPPDeclarators.h" />
     <ClInclude Include="CPPDeduction.h" />
+    <ClInclude Include="CPPFunctionPacks.h" />
     <ClInclude Include="CPPOverloads.h" />
     <ClInclude Include="CPPAccess.h" />
     <ClInclude Include="CPPBinder.h" />

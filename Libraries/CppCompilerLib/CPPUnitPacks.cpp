@@ -24,13 +24,13 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //Finds the parameter packs a pack expansion's pattern names: the packs of the bindings in use whose parameters it
 //names, other than one already being expanded (a type pack whose type is one element for now), and the function
-//parameter pack being generated, if it names it.
+//parameter packs it names, of those the function being generated can expand (CCPPUnit::FindFunctionPack).
 class CCPPPackFinder : public CCPPSyntaxChildVisitor
 {
 public:
 	CCPPUnit*				mpcUnit;
 	CArrayCPPBindingPtrs*	mpapsPacks;
-	CCPPSymbol*				mpcFunctionPack;
+	CArrayCPPSymbols*		mpapcFunctionPacks;
 
 	void	Visit(CCPPSyntax* pcChild) override
 	{
@@ -41,9 +41,12 @@ public:
 	{
 		SCPPBinding*	psBinding;
 
-		if (*ppcSymbol && (*ppcSymbol == mpcUnit->GetContext()->GetPackParameter()))
+		if (*ppcSymbol && mpcUnit->FindFunctionPack(*ppcSymbol))
 		{
-			mpcFunctionPack = *ppcSymbol;
+			if (mpapcFunctionPacks && (mpapcFunctionPacks->Find(*ppcSymbol) == ARRAY_ELEMENT_NOT_FOUND))
+			{
+				mpapcFunctionPacks->Add(*ppcSymbol);
+			}
 			return;
 		}
 		psBinding = *ppcSymbol ? mpcUnit->FindBinding(*ppcSymbol) : NULL;
@@ -117,7 +120,7 @@ CCPPSymbol* CCPPUnit::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* 
 		psElement = masPackElements.Get(i);
 		if ((psElement->pcFunction == pcFunction) && (psElement->pcPack == pcPack) && (psElement->uiIndex == k))
 		{
-			mapcPackElements.Add(psElement->pcElement);
+			mcFunctionPacks.Add(pcPack)->apcElements.Add(psElement->pcElement);
 			return psElement->pcElement;
 		}
 	}
@@ -125,7 +128,7 @@ CCPPSymbol* CCPPUnit::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* 
 	pcSymbol = NewMalloc<CCPPSymbol>();
 	pcSymbol->Init(pcPack->mlliName, CPPSK_Variable, pcPack->mpcDeclaration, pcPack->mpcScope);
 	mapcPackSymbols.Add(pcSymbol);
-	mapcPackElements.Add(pcSymbol);
+	mcFunctionPacks.Add(pcPack)->apcElements.Add(pcSymbol);
 
 	psElement = masPackElements.Add();
 	psElement->pcBindings = NULL;
@@ -197,18 +200,31 @@ CArrayInt64* CCPPUnit::NewValuePack(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Adds the template parameter packs pcPattern names (CCPPPackFinder), and
-// returns the function parameter pack it names, or NULL.
+// to papcFunctionPacks, if it is given, the function parameter packs it
+// names.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPUnit::FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks)
+void CCPPUnit::FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks)
 {
 	CCPPPackFinder	cFinder;
 
 	cFinder.mpcUnit = this;
 	cFinder.mpapsPacks = papsPacks;
-	cFinder.mpcFunctionPack = NULL;
+	cFinder.mpapcFunctionPacks = papcFunctionPacks;
 	pcPattern->VisitFields(&cFinder);
-	return cFinder.mpcFunctionPack;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function parameter pack of the symbol, with its elements, if the
+// function being generated can expand it: its own, or in a lambda's body
+// one of a function the lambda is in.  NULL if the symbol isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPFunctionPack* CCPPUnit::FindFunctionPack(CCPPSymbol* pcSymbol)
+{
+	return mcFunctionPacks.Find(pcSymbol);
 }
 
 
@@ -219,7 +235,8 @@ CCPPSymbol* CCPPUnit::FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* pap
 // pattern names the pack.  A function parameter pack's elements are its
 // variables (FunctionPackElement), a template parameter pack's are parameters
 // of their own bound to its types or values (PackElement).  An error if
-// the pattern names no pack or packs of different lengths.
+// the pattern names no pack or packs of different lengths (function
+// parameter packs among them: a lambda's own and one it captured).
 // [temp.variadic] 5
 //
 //////////////////////////////////////////////////////////////////////////
@@ -227,8 +244,9 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 {
 	CArrayCPPBindingPtrs	apsFound;
 	CArrayCPPBindings		asPacks;
+	CArrayCPPSymbols		apcFunctionPacks;
 	CCPPSyntaxCopier		cCopier;
-	CCPPSymbol*				pcFunctionPack;
+	SCPPFunctionPack*		psFunctionPack;
 	CCPPSymbol*				pcElement;
 	size					uiElements;
 	size					i;
@@ -238,15 +256,20 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 	//The packs as they are: the elements' bindings are added to the bindings in use, which may have the packs.
 	apsFound.Init();
 	asPacks.Init();
-	pcFunctionPack = FindPacks(pcPattern, &apsFound);
+	apcFunctionPacks.Init();
+	FindPacks(pcPattern, &apsFound, &apcFunctionPacks);
 	for (i = 0; i < apsFound.NumElements(); i++)
 	{
 		*asPacks.Add() = *apsFound.GetPtr(i);
 	}
 	apsFound.Kill();
 
-	bResult = (pcFunctionPack || (asPacks.NumElements() > 0)) || Error(pcPattern, "The pack expansion names no parameter pack");
-	uiElements = pcFunctionPack ? mapcPackElements.NumElements() : ((asPacks.NumElements() > 0) ? asPacks.Get(0)->PackSize() : 0);
+	bResult = ((apcFunctionPacks.NumElements() > 0) || (asPacks.NumElements() > 0)) || Error(pcPattern, "The pack expansion names no parameter pack");
+	uiElements = (apcFunctionPacks.NumElements() > 0) ? FindFunctionPack(apcFunctionPacks.GetPtr(0))->apcElements.NumElements() : ((asPacks.NumElements() > 0) ? asPacks.Get(0)->PackSize() : 0);
+	for (i = 0; bResult && (i < apcFunctionPacks.NumElements()); i++)
+	{
+		bResult = (FindFunctionPack(apcFunctionPacks.GetPtr(i))->apcElements.NumElements() == uiElements) || Error(pcPattern, "The packs the pack expansion expands have different lengths");
+	}
 	for (i = 0; bResult && (i < asPacks.NumElements()); i++)
 	{
 		bResult = (asPacks.Get(i)->PackSize() == uiElements) || Error(pcPattern, "The packs the pack expansion expands have different lengths");
@@ -254,9 +277,10 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 	for (k = 0; bResult && (k < uiElements); k++)
 	{
 		cCopier.Init(mpcTree->GetMemory());
-		if (pcFunctionPack)
+		for (i = 0; i < apcFunctionPacks.NumElements(); i++)
 		{
-			cCopier.Substitute(pcFunctionPack, mapcPackElements.GetPtr(k));
+			psFunctionPack = FindFunctionPack(apcFunctionPacks.GetPtr(i));
+			cCopier.Substitute(psFunctionPack->pcPack, psFunctionPack->apcElements.GetPtr(k));
 		}
 		for (i = 0; bResult && (i < asPacks.NumElements()); i++)
 		{
@@ -271,6 +295,7 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 		}
 		cCopier.Kill();
 	}
+	apcFunctionPacks.Kill();
 	asPacks.Kill();
 	return bResult;
 }
@@ -376,7 +401,7 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 		}
 
 		apsPacks.ReInit();
-		FindPacks(pcPattern, &apsPacks);
+		FindPacks(pcPattern, &apsPacks, NULL);
 		if (apsPacks.NumElements() == 0)
 		{
 			bResult = Error(pcArgument, "The pack expansion names no parameter pack");
@@ -475,11 +500,13 @@ bool CCPPUnit::ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* pl
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::PackSize(CCPPSymbol* pcPack, int64* plliValue)
 {
-	SCPPBinding*	psBinding;
+	SCPPBinding*		psBinding;
+	SCPPFunctionPack*	psFunctionPack;
 
-	if (pcPack && (pcPack == mcContext.GetPackParameter()))
+	psFunctionPack = pcPack ? FindFunctionPack(pcPack) : NULL;
+	if (psFunctionPack)
 	{
-		*plliValue = (int64)mapcPackElements.NumElements();
+		*plliValue = (int64)psFunctionPack->apcElements.NumElements();
 		return true;
 	}
 	psBinding = pcPack ? FindBinding(pcPack) : NULL;

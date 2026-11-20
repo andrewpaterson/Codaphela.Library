@@ -35,7 +35,6 @@ void CCPPContext::Init(void)
 	mbStaticLocal = false;
 	mbLinkageExtern = false;
 	mbCLinkage = false;
-	mpcPackParameter = NULL;
 	miQuiet = 0;
 	mbQuietFailed = false;
 	masEntered.Init();
@@ -193,7 +192,6 @@ void CCPPContext::BeginFunction(CCPPFunction* pcFunction)
 {
 	mpcFunction = pcFunction;
 	mbThis = pcFunction->mpcClass && !pcFunction->mbStatic;
-	mpcPackParameter = NULL;
 }
 
 
@@ -387,6 +385,5 @@ bool CCPPContext::IsLinkageExtern(void) const { return mbLinkageExtern; }
 CCPPFunction* CCPPContext::GetFunction(void) const { return mpcFunction; }
 bool CCPPContext::HasThis(void) const { return mbThis; }
 bool CCPPContext::IsStaticLocal(void) const { return mbStaticLocal; }
-CCPPSymbol* CCPPContext::GetPackParameter(void) const { return mpcPackParameter; }
 bool CCPPContext::IsQuiet(void) const { return miQuiet > 0; }
 bool CCPPContext::IsBroken(void) const { return mbBroken || (masEntered.NumElements() != 0); }

@@ -223,9 +223,8 @@ typedef CMapLongTemplate<SCPPLiteralCall>	CMapCPPLiteralCalls;
 struct SCPPFunctionScope
 {
 	CCPPFunction*		pcFunction;
-	CCPPSymbol*			pcPackParameter;
 	CArrayCPPVariables	apcLocals;
-	CArrayCPPSymbols	apcPackElements;
+	CCPPFunctionPacks	cFunctionPacks;
 };
 
 
@@ -292,7 +291,7 @@ protected:
 	CCPPSyntaxImplicitArgument*	mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
 	CMapLongTemplate<CCPPSyntaxImplicitArgument*>	mcImplicitValues;	//The arguments the IR front end gives values (ImplicitValue).
 	int						miUnevaluated;		//How deep in operands that aren't evaluated (sizeof, decltype) the unit is.
-	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
+	CCPPFunctionPacks		mcFunctionPacks;	//The function parameter packs the function being written can expand.
 	CArraySyntax			mapcObjectConstants;	//The expressions ObjectConstantType is asked of now: a name's type may ask for its constant.
 	CArrayCPPBracedLists	masBracedLists;			//The lists BracedFor has made, each for the list and the type it was made of.
 	bool					mbValueArgumentRefused;	//A template argument's value wasn't one of its parameter's type (ValueArgumentFits), since it was cleared.
@@ -365,7 +364,6 @@ public:
 	CIRImports*				GetImports(void) const;
 	CCPPTokeniser*			GetTokeniser(void) const;
 	CCPPSyntaxTree*			GetTree(void) const;
-	const CArrayCPPSymbols*	GetPackElements(void) const;
 	CSpillStore*			GetSpillStore(void) const;
 	CCPPSemanticPass*		GetSemanticPass(void) const;
 	bool					RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind);
@@ -490,8 +488,8 @@ public:
 	bool					LambdaCaptures(SCPPLambda* psLambda);
 	bool					UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode);
 	bool					UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode);
-	bool					CapturePack(SCPPLambda* psLambda, CCPPSyntaxIdExpression* pcName, bool bReference, CCPPSyntax* pcNode);
-	bool					IsPackCaptured(SCPPLambda* psLambda);
+	bool					CapturePack(SCPPLambda* psLambda, SCPPFunctionPack* psPack, CCPPSyntaxIdExpression* pcName, bool bReference, CCPPSyntax* pcNode);
+	bool					IsPackCaptured(SCPPLambda* psLambda, SCPPFunctionPack* psPack);
 	bool					IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
 	bool					IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
 	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);
@@ -616,7 +614,8 @@ public:
 	CCPPTemplateArguments*			NewBindings(void);
 	CArrayCPP65Types*		NewPack(void);
 	CArrayInt64*			NewValuePack(void);
-	CCPPSymbol*				FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks);
+	void					FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks);
+	SCPPFunctionPack*		FindFunctionPack(CCPPSymbol* pcSymbol);
 	bool					ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArraySyntax* papcExpanded);
 	CArraySyntax*			ExpandArguments(CArraySyntax* papcArguments);
 	void					BeginUnevaluated(void) { miUnevaluated++; }
