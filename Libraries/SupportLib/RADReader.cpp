@@ -146,7 +146,7 @@ bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pImport, CChars* szRawFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug, const char* szObjectName)
+Ptr<CImage> LoadRAD(const char *szFilename, bool bAddDebug, const char* szObjectName)
 {
 	CTextParser 	cTextParser;
 	CTextFile		cTextFile;

@@ -46,7 +46,7 @@ public:
 	bool			Load(const char* szFilename);
 	bool			IsLoaded(void) const;
 	CTrueTypeFont*	GetFont(void);
-	char*			GetFilename(void);
+	const char*		GetFilename(void) const;
 };
 
 

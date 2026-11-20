@@ -405,7 +405,7 @@ bool TGADecodePixels(CFileBasic* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug, const char* szObjectName)
+Ptr<CImage> LoadTGA(const char* szFilename, bool bAddDebug, const char* szObjectName)
 {
 	lsize			uiFileSize;
 	CNaiveFile		cNaiveFile;

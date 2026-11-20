@@ -100,5 +100,5 @@ bool CTrueTypeFace::Load(const char* szFilename)
 
 bool CTrueTypeFace::IsLoaded(void) const { return mbLoaded; }
 CTrueTypeFont* CTrueTypeFace::GetFont(void) { return &mcFont; }
-char* CTrueTypeFace::GetFilename(void) { return mszFilename.Text(); }
+const char* CTrueTypeFace::GetFilename(void) const { return mszFilename.Text(); }
 

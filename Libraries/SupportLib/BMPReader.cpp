@@ -476,7 +476,7 @@ bool BMPDecodePixels(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo, uin
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug, const char* szObjectName)
+Ptr<CImage> LoadBMP(const char* szFilename, bool bAddDebug, const char* szObjectName)
 {
 	lsize			uiFileSize;
 	CNaiveFile		cNaiveFile;

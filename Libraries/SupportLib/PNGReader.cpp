@@ -744,7 +744,7 @@ bool PNGDecodeImage(CArrayLargeUint8* pacCompressed, SPNGInfo* psInfo, uint8* pu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug, const char* szObjectName)
+Ptr<CImage> LoadPNG(const char* szFilename, bool bAddDebug, const char* szObjectName)
 {
 	CNaiveFile		cNaiveFile;
 	uint8*			pvFile;

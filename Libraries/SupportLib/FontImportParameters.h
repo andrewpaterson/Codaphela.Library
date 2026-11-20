@@ -17,12 +17,12 @@ public:
 	SInt32Vec2	msInterspace;		//How much unused space between chars in the grid.
 
 public:
-	bool	Init(char* szFileName, char* szCharArray, int iCharWidth, int iCharHeight);
-	void	Kill(void);
+	bool		Init(char* szFileName, char* szCharArray, int iCharWidth, int iCharHeight);
+	void		Kill(void);
 
-	char*	FontName(void);
-	char*	GetImageFileName(void);
-	char*	GetCharacterFileName(void);
+	char*		FontName(void);
+	const char*	GetImageFileName(void) const;
+	const char*	GetCharacterFileName(void) const;
 };
 
 

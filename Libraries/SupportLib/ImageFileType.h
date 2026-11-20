@@ -43,7 +43,7 @@ enum EImageType
 };
 
 
-EImageType GuessImageType(char *szFilename);
+EImageType GuessImageType(const char *szFilename);
 char* ImageTypeToString(EImageType eType);
 
 

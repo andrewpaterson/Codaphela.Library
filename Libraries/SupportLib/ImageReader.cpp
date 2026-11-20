@@ -39,7 +39,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> ReadImage(char* szFilename, EImageType eType, bool bAddDebug, const char* szObjectName)
+Ptr<CImage> ReadImage(const char* szFilename, EImageType eType, bool bAddDebug, const char* szObjectName)
 {
 	if (eType == IT_Unknown)
 	{

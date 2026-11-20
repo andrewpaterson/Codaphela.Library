@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EImageType GuessImageType(char *szFilename)
+EImageType GuessImageType(const char *szFilename)
 {
 	//char*		szExtension;
 	int			iIndex;

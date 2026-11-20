@@ -56,7 +56,7 @@ char* CFontImportParameters::FontName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFontImportParameters::GetImageFileName(void)
+const char* CFontImportParameters::GetImageFileName(void) const
 {
 	return mszImageFileName.Text();
 }
@@ -66,7 +66,7 @@ char* CFontImportParameters::GetImageFileName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFontImportParameters::GetCharacterFileName(void)
+const char* CFontImportParameters::GetCharacterFileName(void) const
 {
 	return mszCharacterFileName.Text();
 }
