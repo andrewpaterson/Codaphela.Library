@@ -455,7 +455,7 @@ protected:
 	bool			CallWithValue(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcImplicit, SCPP65IRValue* psImplicit, SCPP65IRValue* psResult);
 	bool			ValueInitialise(SCPP65IRPlace* psPlace);
 	bool			NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue);
-	bool			DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass);
+	bool			DeleteArray(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psPointer, CCPPClass* pcClass);
 	bool			DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue);
 	bool			Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocation, bool bArray, int64 lliBytes, SIRReference sFree);
 	bool			ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);

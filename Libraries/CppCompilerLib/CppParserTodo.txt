@@ -621,7 +621,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
   Seen on the way and not done:
     - Volatile member functions aren't told apart: this isn't volatile in one, and const volatile doesn't overload.
     - static_cast<int>(3 > 2) isn't a constant expression (a named cast in one).
-    - delete[] of objects with destructors is always the runtime's operator delete[], whatever the class declares.
+    - DONE 2026-11-20 (one that takes a size is still refused).  delete[] of objects with destructors was always
+      the runtime's operator delete[], whatever the class declares.
     - A function declared by a typedef of its type (typedef int F(); F f;), at namespace scope or as a member (which
       is refused; it was miscompiled).
     - new (int[3]), a parenthesised array type; c ? x : y that picks a bit-field to change; a member function pointer

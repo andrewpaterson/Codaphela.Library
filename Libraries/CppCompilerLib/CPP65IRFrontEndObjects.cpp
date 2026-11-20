@@ -1416,11 +1416,13 @@ bool CCPP65IRFrontEnd::ValueInitialise(SCPP65IRPlace* psPlace)
 //
 // delete[] of objects with a destructor: the count is
 // in front of the elements, which are destroyed last first, and operator
-// delete[] is given the memory from the count on.  psPointer isn't null.
+// delete[], the class's own if it has one, is given the memory from the
+// count on.  psPointer isn't null.  [expr.delete] 6, 9
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass)
+bool CCPP65IRFrontEnd::DeleteArray(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psPointer, CCPPClass* pcClass)
 {
+	CCPPFunction*		pcDeallocation;
 	SIRType				sSize;
 	SIRReference		sBase;
 	SIRReference		sCount;
@@ -1442,8 +1444,15 @@ bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass)
 		return false;
 	}
 	EndCountedLoop(&sLoop, sNext);
-	CallRuntime("opDeleteArray", IRType(IRTK_None), IRType(IRTK_Pointer), sBase);
-	return true;
+
+	pcDeallocation = pcDelete->mbGlobal ? NULL : mpcUnit->GetBinder()->FindDeallocation(pcClass, true);
+	if (pcDeallocation && (pcDeallocation->mapsParameters.NumElements() == 2))
+	{
+		//One that takes a size is given the elements' and the count's, which only the count read here says.
+		mpcUnit->ReportError(pcDelete, "A class's operator delete[] that takes a size is not supported by the compiler yet for objects with destructors");
+		return Unsupported(__FILE__, __LINE__);
+	}
+	return Deallocate(pcDelete, pcDeallocation, true, 0, sBase);
 }
 
 
@@ -1492,7 +1501,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 	StartBlock(pcFree);
 	if (pcDelete->mbArray && psType->IsClass() && psType->pcClass->mpcDestructor)
 	{
-		if (!DeleteArray(&sPointer, psType->pcClass))
+		if (!DeleteArray(pcDelete, &sPointer, psType->pcClass))
 		{
 			return false;
 		}
