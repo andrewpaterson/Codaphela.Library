@@ -1264,6 +1264,7 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	sPlace.psType = psType;
 	sPlace.psBitField = NULL;
 	pcNull = NULL;
+	pcEnd = NULL;
 	if (IsNullable(pcAllocation) && (psType->IsClass() || pcNew->mpcInitializer))
 	{
 		//NULL: nothing is made.  [expr.new] 13
@@ -1500,6 +1501,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		return false;
 	}
 	pcNull = NULL;
+	pcNullEnd = NULL;
 	if (IsNullable(pcAllocation))
 	{
 		//NULL: nothing is made.  [expr.new] 13

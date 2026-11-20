@@ -1092,6 +1092,7 @@ bool CCPP65IRFrontEnd::TryHandlers(CCPPSyntaxTryStatement* pcTry, CIRBlock* pcDi
 	sPointer = IRType(IRTK_Pointer);
 	StartBlock(pcDispatch);
 	bAll = false;
+	pcNext = NULL;
 	for (ui = 0; (ui < pcTry->macpHandlers.NumElements()) && !bAll; ui++)
 	{
 		pcHandler = (CCPPSyntaxCatchHandler*)pcTry->macpHandlers.GetPtr(ui);
