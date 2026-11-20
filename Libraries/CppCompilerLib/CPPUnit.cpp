@@ -2911,16 +2911,18 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A class with a member function declared override or final is laid out
-// where it is defined, so what those say of it is checked (CheckOverrides:
-// one that overrides nothing, one that isn't virtual) whether or not
-// anything uses the class; any other class is laid out when it is first
-// needed whole, and one nothing uses never is.  [class.virtual] 4, 5
+// A class with a member function declared override or final, or with a
+// base, is laid out where it is defined, so what final and override say is
+// checked whether or not anything uses the class (CheckOverrides: one that
+// overrides nothing, one that isn't virtual, one that overrides a final
+// function; ResolveBases: a base that is final); any other class is laid
+// out when it is first needed whole, and one nothing uses never is.
+// [class.virtual] 4, 5, [class] 3
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
-	if (!pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !pcSpecifier->HasVirtSpecifiedMember())
+	if (!pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !(pcSpecifier->HasVirtSpecifiedMember() || (pcSpecifier->macpBases.NumElements() > 0)))
 	{
 		return true;
 	}

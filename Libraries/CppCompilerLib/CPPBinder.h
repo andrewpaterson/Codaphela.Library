@@ -195,6 +195,7 @@ public:
 	bool	BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound);
 	bool	HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
 	bool	HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass* pcDeclaring, CCPPSyntax* pcNode);
+	bool			HasOneMeaning(CCPPClass* pcClass, int64 lliName, CCPPSyntax* pcNode);
 	bool	ReachesBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
 	bool	ReachesDestructor(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void	CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);

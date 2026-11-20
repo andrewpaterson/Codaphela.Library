@@ -495,7 +495,8 @@ bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 //
 // The class a base specifier names (pcName: its name, or one of its pack
-// expansion's) is a base of pcClass, its bases found.
+// expansion's) is a base of pcClass, its bases found.  Not one declared
+// final.  [class] 3
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier, CCPPSyntaxName* pcName)
@@ -510,6 +511,10 @@ bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecif
 		return Error(pcBaseSpecifier, "This base class is not supported by the compiler yet");
 	}
 	bResult = ResolveBases(pcBaseClass, pcBaseSpecifier);
+	if (pcBaseClass->mpcSpecifier && pcBaseClass->mpcSpecifier->mbFinal)
+	{
+		bResult &= Error(pcBaseSpecifier, "The base class is declared final");
+	}
 	psBase = pcClass->macBases.Add();
 	psBase->pcClass = pcBaseClass;
 	psBase->iOffset = 0;

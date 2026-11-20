@@ -906,6 +906,20 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       template's instance, before the static of the name (an earlier instance is one).
       TempMemberClassDefinedOutside, TempMemberClassMembersOutside, TempMemberClassThroughInstance,
       TempMemberVariableTemplateOfClassTemplate, ExprMemberVariableTemplate.
+    - 14, 3.  A name two bases each have is ambiguous: CCPPUnit::FindInBases gathered the symbols lookup finds,
+      and two instances of one template share theirs, so struct C : X<int>, X<char> named Type, v and F() with
+      no complaint.  It gathers the classes that declare the name, and IsAmbiguousInBases takes away one that is
+      a virtual base of another (the nearer class's hides it: there is one of the base).  Found doing it: the
+      rule was asked only of a qualified name that names a type, a static member or an enumerator.  c.v, p->v,
+      c.F() and the name alone in a member function took the first base's, and two bases' functions of a name
+      were overloads of each other (CCPPBinder::HasOneMeaning, at BindMember, the member call and a field of
+      this).  C::X<char>::Type, which says whose, wasn't found: a base's name is found in the class
+      (MemberClass).  Not asked yet: an unqualified type, static member or enumerator in a member function.
+      Final: a class with a base is laid out where it is defined (CheckVirtSpecifiers, as one with a member
+      declared override or final was), so a function that overrides a final one is refused in a class nothing
+      uses.  A base class declared final was never refused, used or not (AddBase).  Not done: a class nested
+      in another, or in a function, that nothing uses.
+      ClassMemberNameNotAmbiguous and seven Refused cases; ClassFinalAllowed and five Refused cases.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

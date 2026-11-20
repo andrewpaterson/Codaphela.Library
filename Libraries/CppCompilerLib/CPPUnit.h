@@ -789,7 +789,7 @@ public:
 	CCPPSyntaxIdExpression*	DecltypeMember(CCPPSyntaxTypeId* pcType);
 	CCPPSymbol*				QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass);
 	bool					IsAmbiguousInBases(CCPPClass* pcClass, int64 lliName);
-	void					FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPSymbols* papcFound);
+	void					FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPClasses* papcFound);
 	CCPPClass*				QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	CCPPClass*				NameQualifierClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	CCPPClass*				QualifiedClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);

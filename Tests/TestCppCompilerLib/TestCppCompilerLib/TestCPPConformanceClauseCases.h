@@ -8174,6 +8174,133 @@ static const SConformanceCase gasConformanceClause10[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//10.2 [class.member.lookup] p3-p7, 3.4.3.1 [class.qual] p1: a name two bases have is no ambiguity where it is said whose (a base named through the class, two instances of a template among them), where one base's hides a virtual base's, where a using-declaration makes it the class's own, and for a type that one class reached twice declares
+	{
+		"ClassMemberNameNotAmbiguous", 15,
+		"template<class T> struct X { typedef T Type; T v; int F() { return 3; } static int s; enum { e = sizeof(T) }; };\n"
+		"template<class T> int X<T>::s = 4;\n"
+		"struct C : X<int>, X<char> { int G() { return X<int>::v + X<char>::F() + X<char>::e; } };\n"
+		"struct V { int f; int H() { return 1; } typedef long Type; };\n"
+		"struct A : virtual V { int f; int H() { return 2; } typedef char Type; };\n"
+		"struct B : virtual V { };\n"
+		"struct D : A, B { int K() { return f + H(); } };\n"
+		"struct P { int m; int M() { return 5; } };\n"
+		"struct Q { char m; int M(int) { return 6; } };\n"
+		"struct R : P, Q { using P::m; using Q::M; int m2; };\n"
+		"struct E1 : V { }; struct E2 : V { };\n"
+		"struct W : E1, E2 { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	C c; c.X<int>::v = 1; c.X<char>::v = 2;\n"
+		"	C::X<char>::Type t = 2;\n"
+		"	if (c.X<int>::F() + c.X<int>::v + t == 6 && sizeof(t) == 1 && c.G() == 1 + 3 + 1 && C::X<int>::s == 4) r += 1;\n"
+		"	D d; d.f = 7; d.V::f = 9;\n"
+		"	D* pd = &d;\n"
+		"	if (d.f == 7 && pd->H() == 2 && d.K() == 9 && sizeof(D::Type) == 1 && d.V::f == 9) r += 2;\n"
+		"	R x; x.m = 300; x.m2 = 1;\n"
+		"	if (x.m == 300 && x.M(1) == 6 && sizeof(x.m) == sizeof(int)) r += 4;\n"
+		"	W w; w.E1::f = 1; w.E2::f = 2;\n"
+		"	if (w.E1::f + w.E2::f == 3 && sizeof(W::Type) == sizeof(long)) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.2 [class.member.lookup] p6: a type two instances of one template each have, both bases of the class
+	{
+		"ClassMemberTypeTwoInstancesRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct X { typedef T Type; };\n"
+		"struct C : X<int>, X<char> { };\n"
+		"int main() { C::Type t = 0; return t; }\n"
+	},
+	//10.2 [class.member.lookup] p6: a field of each of two instances of a template, named in an object of the class derived from both
+	{
+		"ClassMemberFieldTwoInstancesRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct X { T v; };\n"
+		"struct C : X<int>, X<char> { };\n"
+		"int main() { C c; c.v = 0; return 0; }\n"
+	},
+	//10.2 [class.member.lookup] p6: a static member of each
+	{
+		"ClassMemberStaticTwoInstancesRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct X { static int s; enum { e = 1 }; };\n"
+		"template<class T> int X<T>::s = 2;\n"
+		"struct C : X<int>, X<char> { };\n"
+		"int main() { return C::s; }\n"
+	},
+	//10.2 [class.member.lookup] p6: object.name where two bases each have a field of the name
+	{
+		"ClassMemberFieldAmbiguousRefused", CONFORMANCE_REFUSED,
+		"struct A { int v; }; struct B { char v; };\n"
+		"struct C : A, B { };\n"
+		"int main() { C c; c.v = 0; return 0; }\n"
+	},
+	//10.2 [class.member.lookup] p6: pointer->name, and in sizeof
+	{
+		"ClassMemberArrowAmbiguousRefused", CONFORMANCE_REFUSED,
+		"struct A { int v; }; struct B { char v; };\n"
+		"struct C : A, B { };\n"
+		"int main() { C c; C* p = &c; return p->v + sizeof(c.v); }\n"
+	},
+	//10.2 [class.member.lookup] p6, 13.3 [over.match] p1: two bases' functions of one name aren't overloads of each other: the call is ambiguous though only one takes its arguments
+	{
+		"ClassMemberFunctionAmbiguousRefused", CONFORMANCE_REFUSED,
+		"struct A { int F() { return 1; } }; struct B { int F(int) { return 2; } };\n"
+		"struct C : A, B { };\n"
+		"int main() { C c; return c.F(1); }\n"
+	},
+	//10.2 [class.member.lookup] p6: the name alone, in a member function of the class derived from both
+	{
+		"ClassMemberUnqualifiedAmbiguousRefused", CONFORMANCE_REFUSED,
+		"struct A { int v; int F() { return 1; } static int s; }; struct B { char v; int F(int) { return 2; } static int s; };\n"
+		"int A::s = 1; int B::s = 2;\n"
+		"struct C : A, B { int G() { return v + F() + s; } };\n"
+		"int main() { C c; return c.G(); }\n"
+	},
+	//9 [class] p3, 10.3 [class.virtual] p4: a class declared final derives from another, and a function that isn't the final one of its name is overridden
+	{
+		"ClassFinalAllowed", 0,
+		"struct B { virtual void f(); };\n"
+		"struct D final : B { void f(); };\n"
+		"struct E { virtual void g() final; virtual void g(int); };\n"
+		"struct F : E { void g(int); };\n"
+		"int main() { return 0; }\n"
+	},
+	//10.3 [class.virtual] p4: a function declared final is overridden, in a class nothing uses
+	{
+		"ClassOverridesFinalUnusedRefused", CONFORMANCE_REFUSED,
+		"struct B { virtual void f() final; };\n"
+		"struct D : B { void f(); };\n"
+		"int main() { return 0; }\n"
+	},
+	//10.3 [class.virtual] p4: one made final by a class between
+	{
+		"ClassOverridesFinalIndirectRefused", CONFORMANCE_REFUSED,
+		"struct B { virtual void f(); };\n"
+		"struct M : B { void f() final; };\n"
+		"struct D : M { void f(); };\n"
+		"int main() { return 0; }\n"
+	},
+	//9 [class] p3: a class declared final is no base
+	{
+		"ClassFinalBaseRefused", CONFORMANCE_REFUSED,
+		"struct B final { int v; };\n"
+		"struct D : B { };\n"
+		"int main() { D d; d.v = 0; return d.v; }\n"
+	},
+	//9 [class] p3: nor of a class nothing uses
+	{
+		"ClassFinalBaseUnusedRefused", CONFORMANCE_REFUSED,
+		"struct B final { int v; };\n"
+		"struct D : B { };\n"
+		"int main() { return 0; }\n"
+	},
+	//9 [class] p3: nor is an instance of a class template declared final
+	{
+		"ClassFinalTemplateBaseRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct B final { T v; };\n"
+		"struct D : B<int> { };\n"
+		"int main() { return 0; }\n"
+	},
 };
 
 

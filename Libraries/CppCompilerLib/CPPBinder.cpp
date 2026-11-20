@@ -621,6 +621,10 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	pcComponent = pcName->GetLast();
 	papcExplicit = pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL;
 	eObject = CalledObject(pcObject, bArrow);
+	if (mpcUnit->CompleteClass(pcLookup, pcCall) && !HasOneMeaning(pcLookup, lliName, pcCallee))
+	{
+		return;
+	}
 	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcBound->mpapcArguments, papcExplicit, eObject) : NULL;
 	pcFunction = NULL;
 	if (!pcTemplate || !papcExplicit)
@@ -1635,6 +1639,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		pcBound->mpcClass = pcClass;
 		pcLookup = pcBound->mpcQualifier ? pcBound->mpcQualifier : pcClass;
 		HasOneMember(pcClass, pcLookup, pcLookup->FindFieldClass(pcBound->mpsField), pcId);
+		HasOneMeaning(pcLookup, pcBound->mpsField->pcSymbol->mlliName, pcId);
 	}
 }
 
@@ -1643,8 +1648,9 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 //
 // object.name and pointer->name, once the object's class is known: the class's field
 // of the name, or a base's, with where it is in the object (CPPBN_Field), or else its
-// static member, which a member variable template's instance is (CPPBN_Variable).  False if it has neither (CPPBN_Nothing), or the
-// class can't be completed, which is reported at pcNode.  In the class's own
+// static member, which a member variable template's instance is (CPPBN_Variable).
+// False if it has neither (CPPBN_Nothing), if two of its bases each have the name
+// (HasOneMeaning), or the class can't be completed, which is reported at pcNode.  In the class's own
 // definition it needn't be complete: a member function's trailing return type names
 // the members declared before it (auto Get(void) -> decltype(this->m)), which haven't
 // been placed yet.  [expr.ref] 2
@@ -1679,6 +1685,10 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 			return false;
 		}
 		pcBound->mpcQualifier = (pcLookup != pcClass) ? pcLookup : NULL;
+	}
+	if (!HasOneMeaning(pcLookup, lliName, pcNode))
+	{
+		return false;
 	}
 	pcBound->mpsField = pcLookup->FindField(lliName, &pcBound->miOffset, &pcBound->mpcVirtualBase);
 	if (pcBound->mpsField)
@@ -1733,6 +1743,20 @@ bool CCPPBinder::HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* p
 bool CCPPBinder::HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass* pcDeclaring, CCPPSyntax* pcNode)
 {
 	return HasOneBase(pcClass, pcLookup, pcNode) && (!pcDeclaring || HasOneBase(pcLookup, pcDeclaring, pcNode));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a member's name, looked up in the class, means one thing: an
+// error (and false) if two of its bases each declare it and neither's is
+// hidden (CCPPUnit::IsAmbiguousInBases), whatever each declares it as and
+// whether or not one would fit better.  [class.member.lookup] 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::HasOneMeaning(CCPPClass* pcClass, int64 lliName, CCPPSyntax* pcNode)
+{
+	return !mpcUnit->IsAmbiguousInBases(pcClass, lliName) || mcAccess.Refuse(pcNode, "The name is a member of more than one of the class's bases");
 }
 
 

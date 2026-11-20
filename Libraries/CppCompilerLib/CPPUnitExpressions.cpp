@@ -1684,41 +1684,61 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 //
 // Whether a name looked up in a class is found as different things in
 // its bases, neither hidden by one of the class's own (or of a class
-// nearer than both): struct C : A, B { } where A and B each have a T.
-// The same member reached through two bases is one thing.
-// [class.member.lookup] 3 - 6
+// nearer than both): struct C : A, B { } where A and B each have a T, or
+// are two instances of the template that has it.  The same class's member
+// reached through two bases is one thing, and one in a virtual base of
+// another class that has the name is hidden by that class's (there is one
+// of the base).  [class.member.lookup] 3 - 6
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsAmbiguousInBases(CCPPClass* pcClass, int64 lliName)
 {
-	CArrayCPPSymbols	apcFound;
-	bool				bAmbiguous;
+	CArrayCPPClasses	apcFound;
+	CCPPClass*			pcFound;
+	size				uiMeanings;
+	size				i;
+	size				j;
+	bool				bHidden;
 
+	if (pcClass->macBases.NumElements() == 0)
+	{
+		return false;
+	}
 	apcFound.Init();
 	FindInBases(pcClass, lliName, &apcFound);
-	bAmbiguous = apcFound.NumElements() > 1;
+	uiMeanings = 0;
+	for (i = 0; i < apcFound.NumElements(); i++)
+	{
+		pcFound = apcFound.GetPtr(i);
+		bHidden = false;
+		for (j = 0; !bHidden && (j < apcFound.NumElements()); j++)
+		{
+			bHidden = (j != i) && apcFound.GetPtr(j)->GetVirtualBase(pcFound);
+		}
+		uiMeanings += bHidden ? 0 : 1;
+	}
 	apcFound.Kill();
-	return bAmbiguous;
+	return uiMeanings > 1;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The different declarations of a name that lookup in a class finds: the
-// class's own, which hides its bases', or else each base's.
+// The classes whose declaration of a name lookup in a class finds: the
+// class itself, whose own hides its bases', or else each base's.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPSymbols* papcFound)
+void CCPPUnit::FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPClasses* papcFound)
 {
-	CCPPSymbol*	pcSymbol;
+	CCPPScope*	pcScope;
 	size		i;
 
-	pcSymbol = (pcClass->mpcSymbol && pcClass->mpcSymbol->mpcMembers) ? pcClass->mpcSymbol->mpcMembers->FindHere(lliName) : NULL;
-	if (pcSymbol)
+	pcScope = pcClass->mpcSpecifier ? pcClass->mpcSpecifier->mpcScope : ((pcClass->mpcSymbol) ? pcClass->mpcSymbol->mpcMembers : NULL);
+	if (pcScope && pcScope->FindHere(lliName))
 	{
-		if (papcFound->Find(pcSymbol) == ARRAY_ELEMENT_NOT_FOUND)
+		if (papcFound->Find(pcClass) == ARRAY_ELEMENT_NOT_FOUND)
 		{
-			papcFound->Add(pcSymbol);
+			papcFound->Add(pcClass);
 		}
 		return;
 	}
@@ -1754,12 +1774,13 @@ CCPPClass* CCPPUnit::QualifiedClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 // The member typedef or class of pcClass a name component names, worked out
 // with the bindings of the class that declares it, or the instance of its
 // member class template (In<long>, its arguments as they are where the name
-// is).  NULL if it isn't one.
+// is), or the base of pcClass it names.  NULL if it is none of them.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPUnit::MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
 {
 	CCPPClass*		pcDeclaring;
+	CCPPClass*		pcBase;
 	CCPPSymbol*		pcMember;
 	CCPPTemplate*	pcTemplate;
 	SCPP65Type*		psType;
@@ -1772,19 +1793,23 @@ CCPPClass* CCPPUnit::MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pc
 	lliName = GetComponentName(pcComponent);
 	pcDeclaring = NULL;
 	pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_ClassTemplate, &pcDeclaring);
-	if (pcMember)
+	pcTemplate = (pcMember && pcComponent->mbTemplateArguments) ? MemberClassTemplate(pcMember, pcDeclaring) : NULL;
+	if (pcTemplate)
 	{
-		pcTemplate = pcComponent->mbTemplateArguments ? MemberClassTemplate(pcMember, pcDeclaring) : NULL;
-		return pcTemplate ? InstantiateClass(pcTemplate, &pcComponent->macpTemplateArguments, pcNode) : NULL;
+		return InstantiateClass(pcTemplate, &pcComponent->macpTemplateArguments, pcNode);
 	}
-	pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_Typedef, &pcDeclaring);
+	pcMember = pcMember ? NULL : pcClass->FindMemberSymbol(lliName, CPPSK_Typedef, &pcDeclaring);
 	if (!pcMember)
 	{
 		pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_Class, &pcDeclaring);
 	}
-	if (!pcMember)
+	if (!pcMember || (pcMember == pcDeclaring->mpcSymbol))
 	{
-		return NULL;
+		//C::X<char>::Type, where X<char> is C's base: a base's name is found in the class (its injected class name).
+		//[class.qual] 1, [temp.local] 1
+		pcMember = pcComponent->mpcSymbol;
+		pcBase = (pcMember && ((pcMember->meKind == CPPSK_Class) || (pcMember->meKind == CPPSK_ClassTemplate))) ? GetComponentClass(pcComponent, NULL, pcNode) : NULL;
+		return (pcBase && IsDerived(pcClass, pcBase, NULL)) ? pcBase : NULL;
 	}
 	mcContext.EnterBindings(pcDeclaring->mpcBindings);
 	if (pcMember->meKind == CPPSK_Typedef)
