@@ -1055,6 +1055,7 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	CCPPBoundConstruction	cBound;
 	SCPPField*				psField;
 	SCPP65IRPlace			sField;
+	CCPPSyntax*				pcValue;
 	size					ui;
 	size					uiArgument;
 
@@ -1084,7 +1085,13 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 		sField.sAddress = AddressAt(psPlace->sAddress, psField->iOffset);
 		sField.psType = psField->psType;
 		sField.psBitField = psField->IsBitField() ? psField : NULL;
-		if (!Construct(&sField, NULL, (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : psField->pcInitialiser))
+		pcValue = (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : NULL;
+		if (pcValue && (psField->psType->IsInteger() || psField->psType->IsFloat()) && (pcValue->GetKind() != CPPS_InitializerList) && !mpcUnit->IsCSource() && !mpcUnit->CheckBracedValue(pcValue, psField->psType))
+		{
+			//A list's value isn't narrowed to its field.  [dcl.init.aggr] 12, [dcl.init.list] 7
+			return false;
+		}
+		if (!Construct(&sField, NULL, pcValue ? pcValue : psField->pcInitialiser))
 		{
 			return false;
 		}
