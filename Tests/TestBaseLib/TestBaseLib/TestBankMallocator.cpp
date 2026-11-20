@@ -265,6 +265,8 @@ void TestBankMallocatorLarge(void)
 	AssertTrue(cMallocator.IsValid());
 
 	cMallocator.Free(pui);
+	AssertTrue(cMallocator.PeakBytes() >= 3 * TEST_BANK_SIZE);
+	AssertSize(0, (size)cMallocator.AllocatedBytes());
 	AssertSize(1, cSource.NumHeld());
 	AssertTrue(cSource.mabHeld[13]);
 	AssertSize(BANK_MALLOCATOR_SPARE, cMallocator.GetBank(13));

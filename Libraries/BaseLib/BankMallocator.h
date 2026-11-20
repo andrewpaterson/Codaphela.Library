@@ -76,6 +76,7 @@ protected:
 	bool			mbHighFirst;		//Small blocks' banks are taken highest first.
 	lsize			muiNumLarge;		//Large allocations.
 	lsize			muiLargeBytes;		//Their banks' sizes.
+	lsize			muiPeakBytes;		//The most AllocatedBytes has been.
 	uint8			mauiBanks[BANK_MALLOCATOR_MAX_BANKS];	//BANK_MALLOCATOR_*.
 	uint16			mauiBlocks[BANK_MALLOCATOR_MAX_BANKS];	//How many of mcSmall's blocks each bank has.
 
@@ -95,6 +96,7 @@ public:
 	uint8			GetBank(size uiBank) const;
 	lsize			NumAllocations(void) const;
 	lsize			AllocatedBytes(void);
+	lsize			PeakBytes(void) const;
 	bool			Contains(void* pv) const;
 	bool			IsValid(void);
 
@@ -113,6 +115,7 @@ protected:
 	void*			MallocLarge(lsize uiBytes);
 	lsize			LargeBytes(size uiBank) const;
 	void			FreeLarge(size uiBank);
+	void			UpdatePeak(void);
 };
 
 

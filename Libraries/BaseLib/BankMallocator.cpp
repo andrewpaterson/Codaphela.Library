@@ -49,6 +49,7 @@ bool CBankMallocator::Init(void* pvMemory, lsize uiBytes, lsize uiBankSize, CBan
 	mbHighFirst = bHighFirst;
 	muiNumLarge = 0;
 	muiLargeBytes = 0;
+	muiPeakBytes = 0;
 	muiNumBanks = 0;
 	miBankShift = 0;
 	if ((uiBytes == 0) || (uiBankSize == 0) || ((uiBankSize & (uiBankSize - 1)) != 0))
@@ -143,11 +144,11 @@ bool CBankMallocator::Reserve(void* pvMemory, lsize uiBytes)
 //////////////////////////////////////////////////////////////////////////
 void* CBankMallocator::Malloc(lsize uiBytes)
 {
-	if (uiBytes <= MaxSmall())
-	{
-		return MallocSmall(uiBytes);
-	}
-	return MallocLarge(uiBytes);
+	void*	pv;
+
+	pv = (uiBytes <= MaxSmall()) ? MallocSmall(uiBytes) : MallocLarge(uiBytes);
+	UpdatePeak();
+	return pv;
 }
 
 
@@ -190,6 +191,7 @@ void* CBankMallocator::Realloc(void* pv, lsize uiBytes)
 					BlockCame(pvNew);
 					BlockGone(uiBank);
 				}
+				UpdatePeak();
 				return pvNew;
 			}
 		}
@@ -590,6 +592,24 @@ void CBankMallocator::FreeLarge(size uiBank)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The most that has been allocated at once, with the small blocks'
+// headers: AllocatedBytes's peak.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBankMallocator::UpdatePeak(void)
+{
+	lsize	uiBytes;
+
+	uiBytes = AllocatedBytes();
+	if (uiBytes > muiPeakBytes)
+	{
+		muiPeakBytes = uiBytes;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Bank uiBank's memory: all of it, or the part of it Init was given.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -620,6 +640,7 @@ size CBankMallocator::NumBanks(void) const { return muiNumBanks; }
 uint8 CBankMallocator::GetBank(size uiBank) const { return mauiBanks[uiBank]; }
 lsize CBankMallocator::NumAllocations(void) const { return mcSmall.NumAllocations() + muiNumLarge; }
 lsize CBankMallocator::AllocatedBytes(void) { return mcSmall.AllocatedBytes() + muiLargeBytes; }
+lsize CBankMallocator::PeakBytes(void) const { return muiPeakBytes; }
 size CBankMallocator::BankOf(void* pv) const { return (size)(((lsize)pv - muiFirst) >> miBankShift); }
 lsize CBankMallocator::BankAddress(size uiBank) const { return muiFirst + ((lsize)uiBank << miBankShift); }
 bool CBankMallocator::IsWhole(size uiBank) const { return (BankAddress(uiBank) >= muiStart) && (BankAddress(uiBank) + muiBankSize <= muiEnd); }
