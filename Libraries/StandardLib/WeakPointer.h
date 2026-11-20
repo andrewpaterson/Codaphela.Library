@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __WEAK_POINTER_H__
 #define __WEAK_POINTER_H__
+#include "ObjectsLock.h"
 #include "Pointer.h"
 #include "WeakFroms.h"
 
@@ -109,12 +110,14 @@ Weak<M>& Weak<M>::operator = (Weak& cWeak)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A pointer that holds the object for as long as it is used, NULL if the object has been freed.
+// A pointer that holds the object for as long as it is used, NULL if the object has been freed.  The whole of it is
+// one way in: without the return's copy elided (a Debug build) the copy and pHeld's going are inside the lock too.
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
 Ptr<M> Weak<M>::Get(void)
 {
+	OBJECTS_WRITE();
 	Ptr<M>	pHeld;
 
 	HoldObject(pHeld);

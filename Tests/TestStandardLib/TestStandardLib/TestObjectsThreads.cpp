@@ -374,9 +374,9 @@ void TestObjectsThreadsRegistration(void)
 	AssertSize(1, ObjectsNumThreads());
 	sLogConfig = gcLogger.SetSilent();
 	AssertFalse(ObjectsLocking(false));
-	gcLogger.SetConfig(&sLogConfig);
 	AssertTrue(IsObjectsLocking());
 	ObjectsKill();
+	gcLogger.SetConfig(&sLogConfig);
 	AssertTrue(gbObjects);
 	AtomicStore(&giTestObjectsThreadsRelease, 1);
 	cThread.Join();
@@ -390,10 +390,12 @@ void TestObjectsThreadsRegistration(void)
 	sHolding.iErrors = 0;
 	sHolding.bRegistered = false;
 	sHolding.bUnregistered = false;
+	sLogConfig = gcLogger.SetSilent();
 	cThread.Init();
 	cThread.Start(TestObjectsThreadsHoldingThread, &sHolding);
 	cThread.Join();
 	cThread.Kill();
+	gcLogger.SetConfig(&sLogConfig);
 	AssertTrue(sHolding.bRegistered);
 	AssertTrue(sHolding.bUnregistered);
 	AssertInt(0, sHolding.iErrors);
