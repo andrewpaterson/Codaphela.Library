@@ -1647,6 +1647,140 @@ void TestTextAreaEditEnterEvent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Records a text area's link event.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestLinkListener
+{
+public:
+	int		miPressed;
+	size	muiPosition;
+
+	void Init(void) { miPressed = 0; muiPosition = MAX_SIZE; }
+	void LinkPressed(CTextArea* pcTextArea, size uiPosition) { miPressed++; muiPosition = uiPosition; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A press with control held extends the selection, as a shift press does.
+// With the link event (SetLinkEvent) it calls the event with the position
+// of the character pressed and the selection is left alone; beside the
+// text it does nothing; with shift held too it still extends.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditLinkEvent(void)
+{
+	STestWindow		cWindow;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		CComponentInputTestDevices	cDevices;
+		Ptr<CWindowInputSource>		pInputSource;
+		CComponentInput				cComponentInput;
+		CTestLinkListener			cListener;
+		size						uiStart;
+		size						uiEnd;
+		int32						x;
+		int32						y;
+
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abcd efgh");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pTextArea);
+		cListener.Init();
+		pTextArea->GetLinkEvent()->Add(&cListener, &CTestLinkListener::LinkPressed);
+
+		cDevices.Init();
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
+		cComponentInput.Init(&pInputSource, &pTestWindow);
+		cDevices.mpcComponentInput = &cComponentInput;
+		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
+		pTestWindow->SetComponentInput(&cComponentInput);
+
+		//Over the 'f' of "efgh", the seventh character.
+		x = pTextArea->GetPosition().x + (pTextArea->GetPositionX(6, false) + pTextArea->GetPositionX(7, false)) / 2;
+		y = pTextArea->GetPosition().y + 4;
+
+		//Without the event a control press extends the selection from the caret.
+		pTextArea->SetCaretPosition(1);
+		cDevices.Press((char*)"Left Control");
+		pTestWindow->PointerMoved(x, y);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		cDevices.Release((char*)"Left Control");
+		AssertTrue(pTextArea->GetSelection(&uiStart, &uiEnd));
+		AssertSize(1, uiStart);
+		AssertInt(0, cListener.miPressed);
+
+		//With it the event is called with the character's position, and nothing is selected.
+		pTextArea->SetLinkEvent(true);
+		pTextArea->SetCaretPosition(1);
+		AssertFalse(pTextArea->GetSelection(&uiStart, &uiEnd));
+		cDevices.Press((char*)"Left Control");
+		pTestWindow->PointerMoved(x, y);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		cDevices.Release((char*)"Left Control");
+		AssertInt(1, cListener.miPressed);
+		AssertSize(6, cListener.muiPosition);
+		AssertFalse(pTextArea->GetSelection(&uiStart, &uiEnd));
+		AssertSize(1, pTextArea->GetCaretPosition());
+
+		//Beside the text, a control press does nothing.
+		cDevices.Press((char*)"Left Control");
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + 250, y + 100);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		cDevices.Release((char*)"Left Control");
+		AssertInt(1, cListener.miPressed);
+		AssertFalse(pTextArea->GetSelection(&uiStart, &uiEnd));
+
+		//A shift press still extends the selection.
+		cDevices.Press((char*)"Left Shift");
+		pTestWindow->PointerMoved(x, y);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		cDevices.Release((char*)"Left Shift");
+		AssertInt(1, cListener.miPressed);
+		AssertTrue(pTextArea->GetSelection(&uiStart, &uiEnd));
+		AssertSize(1, uiStart);
+
+		//Without the event again, control extends again.
+		pTextArea->SetLinkEvent(false);
+		pTextArea->SetCaretPosition(0);
+		cDevices.Press((char*)"Left Control");
+		pTestWindow->PointerMoved(x, y);
+		pTestWindow->InputCommand(CIC_StartDragSelect, true);
+		pTestWindow->InputCommand(CIC_StopDragSelect, true);
+		cDevices.Release((char*)"Left Control");
+		AssertInt(1, cListener.miPressed);
+		AssertTrue(pTextArea->GetSelection(&uiStart, &uiEnd));
+		AssertSize(0, uiStart);
+
+		pTestWindow->SetComponentInput(NULL);
+		pTextArea->GetLinkEvent()->Remove(&cListener);
+		cComponentInput.Kill();
+		pInputSource = NULL;
+		cDevices.Kill();
+		pTextArea = NULL;
+		pFill = NULL;
+		pTestWindow = NULL;
+	}
+
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A rename's places in a file replaced as one edit: one undo puts them
 // all back.  Ranges out of order, or in a text area that isn't editable,
 // change nothing.
@@ -2497,6 +2631,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditUndo();
 	TestTextAreaEditUndoEvent();
 	TestTextAreaEditEnterEvent();
+	TestTextAreaEditLinkEvent();
 	TestTextAreaEditReplaceRanges();
 	TestTextAreaEditDragText();
 	TestTextAreaEditKeysScroll();

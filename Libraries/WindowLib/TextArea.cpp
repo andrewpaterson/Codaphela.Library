@@ -100,6 +100,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mcUndoMessageEvent.Init();
 	mcChanged.Init();
 	mcEntered.Init();
+	mcLinkPressed.Init();
 	mbSelectable = true;
 
 	//The text is drawn over whatever is behind the text area.
@@ -135,6 +136,7 @@ void CTextArea::Free(void)
 	mcBands.Kill();
 	mcShapes.Kill();
 	mcBackgrounds.Kill();
+	mcLinkPressed.Kill();
 	mcEntered.Kill();
 	mcChanged.Kill();
 	mcUndoEvent.Kill();
@@ -163,6 +165,7 @@ void CTextArea::Class(void)
 	U_Unknown(CTextAreaMessageEvent, mcUndoMessageEvent);
 	U_Unknown(CComponentEvent<CTextArea>, mcChanged);
 	U_Unknown(CComponentEvent<CTextArea>, mcEntered);
+	U_Unknown(CTextAreaLinkEvent, mcLinkPressed);
 	M_Pointer(mpLayout);
 	M_Pointer(mpMaps);
 	M_Pointer(mpBackgroundMap);
@@ -1261,6 +1264,37 @@ void CTextArea::SetEnterEvent(bool bEnterEvent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With bLinkEvent a press with control held (and not shift or alt) on a
+// character calls the link event (GetLinkEvent) with the character's
+// position, rather than extending the selection to it: a text whose
+// names can be gone from, as IntelliJ IDEA's Control+click.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetLinkEvent(bool bLinkEvent)
+{
+	mcInput.SetLinkPresser(bLinkEvent ? this : NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A control press at x, y in a text area with a link event: the event
+// is called if a character is there.  Beside the text nothing is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::PressLink(int x, int y)
+{
+	size	uiPosition;
+
+	if (FindCharacterAt(x, y, &uiPosition))
+	{
+		mcLinkPressed.Call(this, uiPosition);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Enter was pressed in a text area with an enter event.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1641,6 +1675,7 @@ void CTextArea::AppendUndoWhere(bool bRedo, CChars* pszDest)
 		pszDest->Append((int64)FindLine(uiCaret) + 1);
 	}
 }
+CTextAreaLinkEvent* CTextArea::GetLinkEvent(void) { return &mcLinkPressed; }  //Called by a control press on a character, with its position, if SetLinkEvent.
 CComponentEvent<CTextArea>* CTextArea::GetEnterEvent(void) { return &mcEntered; }  //Called by enter in place of a line feed, if SetEnterEvent.
 CComponentEvent<CTextArea>* CTextArea::GetChangeEvent(void) { return &mcChanged; }  //Called after each edit (undo and redo too), with the text laid out again.
 

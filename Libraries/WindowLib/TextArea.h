@@ -45,6 +45,7 @@ class CTextArea;
 
 typedef CComponentValueEvent<CTextArea, STextUndoChange*>	CTextAreaUndoEvent;  //What happened to the undo history.
 typedef CComponentValueEvent<CTextArea, char*>				CTextAreaMessageEvent;  //What a press of undo did, for a status bar.
+typedef CComponentValueEvent<CTextArea, size>				CTextAreaLinkEvent;  //The position of the character a control press was on.
 
 
 //Lines of text drawn with a CMapsCanvasDraw.  Line feeds start new lines and, with word wrap on (it is off by default),
@@ -82,7 +83,7 @@ typedef CComponentValueEvent<CTextArea, char*>				CTextAreaMessageEvent;  //What
 //
 //The moves and edits themselves (Up, SelectRight, Printable, Paste ...) are the editing's: GetEditing gives it, and the
 //input actions reach it directly.  The text area has only what it adds to them: the text, its layout and what is drawn.
-class CTextArea : public CCanvas, public CTextEditingView, public CTextUndoPresser, public CRevealingUndoHost, public CTextEnterPresser
+class CTextArea : public CCanvas, public CTextEditingView, public CTextUndoPresser, public CRevealingUndoHost, public CTextEnterPresser, public CTextLinkPresser
 {
 CONSTRUCTABLE(CTextArea);
 DESTRUCTABLE(CTextArea);
@@ -119,6 +120,7 @@ protected:
 	CTextAreaMessageEvent		mcUndoMessageEvent;
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 	CComponentEvent<CTextArea>	mcEntered;  //Called by enter, if SetEnterEvent.
+	CTextAreaLinkEvent			mcLinkPressed;  //Called by a control press on a character, if SetLinkEvent.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pWhiteFont, const char* szText);
@@ -156,6 +158,9 @@ public:
 	void						SetEnterEvent(bool bEnterEvent);
 	CComponentEvent<CTextArea>*	GetEnterEvent(void);
 	void						PressEnter(void) override;
+	void						SetLinkEvent(bool bLinkEvent);
+	CTextAreaLinkEvent*			GetLinkEvent(void);
+	void						PressLink(int x, int y) override;
 	void						SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>					GetFont(void);
 	int32						GetTabPixels(void);

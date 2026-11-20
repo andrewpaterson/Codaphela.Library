@@ -65,6 +65,16 @@ public:
 };
 
 
+//What a control press on the text goes to instead of extending the selection, if it's set (CTextEditingInput::
+//SetLinkPresser): a text whose names can be gone from, as IntelliJ IDEA's Control+click goes to a declaration.  x and
+//y are where the press was, relative to the text.
+class CTextLinkPresser
+{
+public:
+	virtual void	PressLink(int x, int y) = 0;
+};
+
+
 //The input actions that edit a text (CTextArea, CTextField): the keys, given as commands, go to the text's
 //CTextEditing; the pointer puts the caret and selects; cut, copy and paste use the window's clipboard.  Paste from
 //History (Control+Shift+V, as IntelliJ IDEA's) asks the clipboard's history's chooser which of the texts copied
@@ -82,7 +92,8 @@ public:
 //and button one drag a box selection (StartDragBox); Shift+Alt and the arrows, Home and End move its corner.  A single
 //line text has no up and down, pages, tabs, line feeds or line commands.  The pointer's actions can be turned off (a
 //text that can't be selected), so its presses go on to the parent.  With an enter presser (SetEnterPresser) Enter
-//goes to it, and Enter at Line End (Shift+Enter) is the line feed at the caret that Enter was.
+//goes to it, and Enter at Line End (Shift+Enter) is the line feed at the caret that Enter was.  With a link presser
+//(SetLinkPresser) a press with control held, and not shift or alt, goes to it and selects nothing.
 class CTextEditingInput
 {
 protected:
@@ -100,6 +111,7 @@ protected:
 	bool					mbDropRowEnd;
 	CTextUndoPresser*		mpcUndoPresser;  //Not held, NULL for undo straight to the editing.
 	CTextEnterPresser*		mpcEnterPresser;  //Not held, NULL for enter as a line feed.
+	CTextLinkPresser*		mpcLinkPresser;  //Not held, NULL for a control press that extends the selection.
 
 public:
 	void	Init(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
@@ -109,6 +121,7 @@ public:
 	void	SetTextDragEnabled(bool bEnabled);
 	void	SetUndoPresser(CTextUndoPresser* pcPresser);
 	void	SetEnterPresser(CTextEnterPresser* pcPresser);
+	void	SetLinkPresser(CTextLinkPresser* pcPresser);
 	bool	GetDropPosition(size* puiPosition, bool* pbRowEnd);
 	void	FocusLost(void);
 
@@ -136,6 +149,7 @@ public:
 	void	ExecuteComponent(int x, int y);
 	void	ContextMenuClick(SComponentInputEvent* psEvent);
 	void	StartDragSelect(int x, int y);
+	void	StartDragSelectAction(SComponentInputEvent* psEvent);
 	void	ContDragSelect(int x, int y);
 	void	StopDragSelect(SComponentInputEvent* psEvent);
 	void	StartLineDrag(int x, int y, bool bExtend);

@@ -55,6 +55,7 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 	mbDropRowEnd = false;
 	mpcUndoPresser = NULL;
 	mpcEnterPresser = NULL;
+	mpcLinkPresser = NULL;
 
 	uiFirst = pcComponent->NumInputActions();
 	AddActions(pcComponent, pcEditing, bMultiLine);
@@ -73,7 +74,7 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 	pcComponent->AddInputAction(CIC_ActivateComponent, this, &CTextEditingInput::ActivateComponent);
 	pcComponent->AddInputAction(CIC_ExecuteComponent, this, &CTextEditingInput::ExecuteComponent);
 	pcComponent->AddInputAction(CIC_ContextMenu, this, &CTextEditingInput::ContextMenuClick);
-	pcComponent->AddInputAction(CIC_StartDragSelect, this, &CTextEditingInput::StartDragSelect);
+	pcComponent->AddInputAction(CIC_StartDragSelect, this, &CTextEditingInput::StartDragSelectAction);
 	pcComponent->AddInputAction(CIC_StartDragBox, this, &CTextEditingInput::StartDragBox);
 	pcComponent->AddInputAction(CIC_ContDragSelect, this, &CTextEditingInput::ContDragSelect);
 	pcComponent->AddInputAction(CIC_StopDragSelect, this, &CTextEditingInput::StopDragSelect);
@@ -240,6 +241,7 @@ void CTextEditingInput::SetUndoPresser(CTextUndoPresser* pcPresser) { mpcUndoPre
 void CTextEditingInput::EnterAction(void) { if (mpcEnterPresser != NULL) { mpcEnterPresser->PressEnter(); } else { mpcEditing->Enter(); } }
 void CTextEditingInput::EndEnterAction(void) { if (mpcEnterPresser != NULL) { mpcEditing->Enter(); } else { mpcEditing->EndEnter(); } }
 void CTextEditingInput::SetEnterPresser(CTextEnterPresser* pcPresser) { mpcEnterPresser = pcPresser; }
+void CTextEditingInput::SetLinkPresser(CTextLinkPresser* pcPresser) { mpcLinkPresser = pcPresser; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -460,6 +462,25 @@ void CTextEditingInput::StartDrag(ETextEditingDrag eDrag, int x, int y)
 	meStarting = eDrag;
 	mpcComponent->GetWindow()->GetFocus()->StartDrag(FD_Select, x, y);
 	meStarting = TED_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A drag's start as it comes from the focus: a press here starting one,
+// or a press with shift or control held.  With a link presser a press
+// with control alone is a press on a link: it goes to the presser, and
+// the selection is left as it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::StartDragSelectAction(SComponentInputEvent* psEvent)
+{
+	if ((meStarting == TED_None) && (mpcLinkPresser != NULL) && psEvent->bControl && !psEvent->bShift && !psEvent->bAlt)
+	{
+		mpcLinkPresser->PressLink(psEvent->x, psEvent->y);
+		return;
+	}
+	StartDragSelect(psEvent->x, psEvent->y);
 }
 
 
