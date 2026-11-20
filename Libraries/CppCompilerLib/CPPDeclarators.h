@@ -47,7 +47,7 @@ public:
 	SCPP65Type*				GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFunctionSuffix* pcSuffix, CCPPSyntax* pcNode);
 	bool					IsWholeVoid(CCPPSyntaxFunctionSuffix* pcSuffix, CCPPSyntaxParameter* pcParameter);
 	bool					IsReturnable(SCPP65Type* psReturn, CCPPSyntax* pcNode);
-	int						GetInitialiserCount(CCPPSyntax* pcInitialiser);
+	int						GetInitialiserCount(CCPPSyntax* pcInitialiser, SCPP65Type* psElement);
 	SCPP65Type*				GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntax* pcNode);
 	bool					IsAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					IsDecltypeAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers);

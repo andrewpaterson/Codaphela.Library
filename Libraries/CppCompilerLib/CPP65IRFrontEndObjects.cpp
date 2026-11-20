@@ -827,6 +827,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 
 	pcList = NULL;
 	psType = psPlace->psType;
+	pcInitialiser = mpcUnit->BracedFor(psType, pcInitialiser);
 	if (!papcArguments)
 	{
 		papcArguments = &mapcNone;
@@ -1130,8 +1131,10 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	SCPPField*				psField;
 	SCPP65IRPlace			sField;
 	CCPPSyntax*				pcValue;
+	SIRReference			sThis;
 	size					ui;
 	size					uiArgument;
+	bool					bResult;
 
 	papcArguments = mpcUnit->ExpandArguments(papcArguments);
 	if (!papcArguments || !mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, mpcCPPFunction->mpcDefinition, &cBound, false))
@@ -1147,9 +1150,10 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 		return true;
 	}
 
-	//An aggregate: the fields in order, the rest by their default member initialisers, or zero.
+	//An aggregate: the fields in order, the rest by their default member initialisers, or zero.  A union's first
+	//only: the others are where it is.  [dcl.init.aggr] 16
 	uiArgument = 0;
-	for (ui = 0; ui < pcClass->macFields.NumElements(); ui++)
+	for (ui = 0; (ui < pcClass->macFields.NumElements()) && !(pcClass->mbUnion && (uiArgument > 0)); ui++)
 	{
 		psField = pcClass->macFields.Get(ui);
 		if (psField->IsUnnamedBitField())
@@ -1165,7 +1169,21 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 			//A list's value isn't narrowed to its field.  [dcl.init.aggr] 12, [dcl.init.list] 7
 			return false;
 		}
-		if (!Construct(&sField, NULL, pcValue ? pcValue : psField->pcInitialiser))
+		if (pcValue || !psField->pcInitialiser)
+		{
+			bResult = Construct(&sField, NULL, pcValue);
+		}
+		else
+		{
+			//A default member initialiser is written in the class: its this is the object being filled.
+			sThis = msThis;
+			msThis = psPlace->sAddress;
+			mpcUnit->GetContext()->EnterObject(pcClass);
+			bResult = Construct(&sField, NULL, psField->pcInitialiser);
+			mpcUnit->GetContext()->LeaveObject();
+			msThis = sThis;
+		}
+		if (!bResult)
 		{
 			return false;
 		}

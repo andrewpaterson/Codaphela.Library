@@ -3139,6 +3139,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	{
 		papcArguments = &apcArguments;
 	}
+	pcInitialiser = mpcUnit->BracedFor(psType, pcInitialiser);
 	bBraced = pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList);
 	pcList = bBraced ? pcInitialiser : NULL;
 	if (pcInitialiser && ((pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) || (pcInitialiser->GetKind() == CPPS_InitializerList)))

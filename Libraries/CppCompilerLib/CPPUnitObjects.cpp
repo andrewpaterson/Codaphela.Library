@@ -505,6 +505,218 @@ CCPPClass* CCPPUnit::ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The list an aggregate is filled from, with the braces it leaves out put
+// back: Nested n = { 1, 2, 3, 4, 5, 6, 7 } is { { 1, 2 }, 3, { { 4, 5 },
+// { 6, 7 } } }.  A member that is itself an aggregate, given neither a list
+// of its own nor an object that is one of it, takes as many of the values
+// as it has members, and so on down.  pcList itself where nothing is left
+// out, or it isn't a list, or psType no aggregate.  A list made is kept:
+// asked for again, it is the same one.  [dcl.init.aggr] 12
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPUnit::BracedFor(SCPP65Type* psType, CCPPSyntax* pcList)
+{
+	CArraySyntax*				papcElements;
+	SCPPBracedList*				psBraced;
+	CCPPSyntaxInitializerList*	pcBraced;
+	size						uiNext;
+	size						i;
+
+	if (!pcList || (pcList->GetKind() != CPPS_InitializerList) || !IsAggregate(psType))
+	{
+		return pcList;
+	}
+	papcElements = ListElements(pcList);
+	if (!ElidesBraces(psType, papcElements))
+	{
+		return pcList;
+	}
+	for (i = 0; i < masBracedLists.NumElements(); i++)
+	{
+		psBraced = masBracedLists.Get(i);
+		if ((psBraced->pcList == pcList) && (psBraced->psType == psType))
+		{
+			return psBraced->pcBraced;
+		}
+	}
+
+	pcBraced = mpcTree->GetMemory()->Create<CCPPSyntaxInitializerList>(pcList->mpcParent);
+	pcBraced->SetTokens(pcList->miFirstToken, pcList->miLastToken);
+	uiNext = 0;
+	Regroup(psType, papcElements, &uiNext, pcBraced);
+	for (; uiNext < papcElements->NumElements(); uiNext++)
+	{
+		//More values than the aggregate takes are still too many.
+		pcBraced->macpElements.Add(papcElements->GetPtr(uiNext));
+	}
+	psBraced = masBracedLists.Add();
+	psBraced->pcList = pcList;
+	psBraced->psType = psType;
+	psBraced->pcBraced = pcBraced;
+	return pcBraced;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a type is an aggregate: an array, or a class with no constructor
+// of its own, no base and no virtual function, whose members a list in
+// braces gives values to.  [dcl.init.aggr] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsAggregate(SCPP65Type* psType)
+{
+	CCPPClass*	pcClass;
+	bool		bComplete;
+
+	if (psType->IsArray())
+	{
+		return true;
+	}
+	if (!psType->IsClass())
+	{
+		return false;
+	}
+	pcClass = psType->pcClass;
+	BeginQuiet();
+	bComplete = CompleteClass(pcClass, NULL);
+	EndQuiet();
+	return bComplete && !pcClass->mbConstructors && !pcClass->mbConstructorTemplate && !pcClass->mpsLambda && (pcClass->macBases.NumElements() == 0) && !pcClass->IsPolymorphic();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the member of an aggregate that its list's value number
+// uiIndex is for: an array's element, a class's field in the order they are
+// declared (a union's first only), bit-fields with no name left out.  NULL
+// past the last.  An array of unknown bound has an element for every value.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::AggregateMember(SCPP65Type* psType, size uiIndex)
+{
+	CCPPClass*	pcClass;
+	SCPPField*	psField;
+	size		i;
+
+	if (psType->IsArray())
+	{
+		return ((psType->iCount == 0) || (uiIndex < (size)psType->iCount)) ? psType->psBase : NULL;
+	}
+	pcClass = psType->pcClass;
+	if (pcClass->mbUnion && (uiIndex > 0))
+	{
+		return NULL;
+	}
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		if (psField->IsUnnamedBitField())
+		{
+			continue;
+		}
+		if (uiIndex == 0)
+		{
+			return psField->psType;
+		}
+		uiIndex--;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a value is all of an aggregate member by itself, not the first of
+// its members: an object of the member's class (or of one derived from it),
+// or for an array of characters a string.  [dcl.init.aggr] 12
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::InitialisesWhole(SCPP65Type* psMember, CCPPSyntax* pcValue)
+{
+	SCPP65Type*	psValue;
+
+	if (psMember->IsArray())
+	{
+		return psMember->psBase->IsInteger() && IsStringLiteral(SkipParentheses(pcValue));
+	}
+	BeginQuiet();
+	psValue = ValueTypeOf(pcValue);
+	EndQuiet();
+	return psValue && psValue->IsClass() && IsDerived(psValue->pcClass, psMember->pcClass, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a list leaves out the braces of a member of the aggregate it
+// fills: a member that is an aggregate is given a value that is no list and
+// not all of it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ElidesBraces(SCPP65Type* psType, CArraySyntax* papcElements)
+{
+	SCPP65Type*	psMember;
+	CCPPSyntax*	pcValue;
+	size		i;
+
+	for (i = 0; i < papcElements->NumElements(); i++)
+	{
+		psMember = AggregateMember(psType, i);
+		pcValue = papcElements->GetPtr(i);
+		if (!psMember)
+		{
+			return false;
+		}
+		if (IsAggregate(psMember) && (pcValue->GetKind() != CPPS_InitializerList) && !InitialisesWhole(psMember, pcValue))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives pcInto the values an aggregate of psType takes from papcElements,
+// from *puiNext on: one for each of its members, and for a member that is
+// an aggregate with its braces left out a list of the values that member
+// takes in turn.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::Regroup(SCPP65Type* psType, CArraySyntax* papcElements, size* puiNext, CCPPSyntaxInitializerList* pcInto)
+{
+	CCPPSyntaxInitializerList*	pcInner;
+	SCPP65Type*					psMember;
+	CCPPSyntax*					pcValue;
+	size						uiMember;
+
+	for (uiMember = 0; *puiNext < papcElements->NumElements(); uiMember++)
+	{
+		psMember = AggregateMember(psType, uiMember);
+		if (!psMember)
+		{
+			return;
+		}
+		pcValue = papcElements->GetPtr(*puiNext);
+		if (!IsAggregate(psMember) || (pcValue->GetKind() == CPPS_InitializerList) || InitialisesWhole(psMember, pcValue))
+		{
+			pcInto->macpElements.Add(pcValue);
+			(*puiNext)++;
+			continue;
+		}
+		pcInner = mpcTree->GetMemory()->Create<CCPPSyntaxInitializerList>(pcInto);
+		pcInner->miFirstToken = pcValue->miFirstToken;
+		Regroup(psMember, papcElements, puiNext, pcInner);
+		pcInner->miLastToken = papcElements->GetPtr(*puiNext - 1)->miLastToken;
+		pcInto->macpElements.Add(pcInner);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type of the lvalue c ? x : y is: x and y are lvalues of one type (it
 // has the const and volatile of both), or objects of a class and of one
 // derived from it, the base no less const (the derived object is its base

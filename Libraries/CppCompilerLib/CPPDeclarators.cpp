@@ -93,7 +93,7 @@ SCPP65Type* CCPPDeclarators::CompletedArray(SCPP65Type* psType, CCPPSyntax* pcIn
 	{
 		return psType;
 	}
-	lliCount = GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType->psBase));
+	lliCount = GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType->psBase), psType->psBase);
 	if (lliCount <= 0)
 	{
 		return psType;
@@ -214,7 +214,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		}
 		else if (!pcArray->mpcSize)
 		{
-			lliCount = ((i == 1) && !pcDeclarator->mpcNested) ? GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType)) : 0;
+			lliCount = ((i == 1) && !pcDeclarator->mpcNested) ? GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType), psType) : 0;
 			if (lliCount <= 0)
 			{
 				mpcUnit->Error(pcNode, "An array needs a size or an initialiser");
@@ -236,7 +236,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			return NULL;
 		}
 		if (pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && psType->IsInteger() && mpcUnit->IsStringLiteral(mpcUnit->StringInitialiser(pcInitialiser, psType)) &&
-			(GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType)) > lliCount + (mpcUnit->IsCSource() ? 1 : 0)))
+			(GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType), psType) > lliCount + (mpcUnit->IsCSource() ? 1 : 0)))
 		{
 			//char a[3] = "abc" has no room for the string's end (which C lets go).  [dcl.init.string] 2
 			mpcUnit->Error(pcNode, "The string has more characters, with its end, than the array has elements");
@@ -328,11 +328,13 @@ SCPP65Type* CCPPDeclarators::GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFun
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The number of elements an initialiser gives an array without a size: the
-// elements of a list, or a string's characters and its zero.  0 if it gives none.
+// The number of elements an initialiser gives an array of psElement without
+// a size: the elements of a list (its values grouped as the elements take
+// them: P a[] = { 1, 2, 3, 4 } is two of a P with two members), or a
+// string's characters and its zero.  0 if it gives none.
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser)
+int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser, SCPP65Type* psElement)
 {
 	CArrayUint8		auiBytes;
 	int				iCount;
@@ -343,7 +345,7 @@ int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser)
 	}
 	if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{
-		return (int)mpcUnit->ListElements(pcInitialiser)->NumElements();
+		return (int)mpcUnit->ListElements(mpcUnit->BracedFor(mpcUnit->GetTypes()->Array(psElement, 0), pcInitialiser))->NumElements();
 	}
 	if (mpcUnit->IsStringLiteral(pcInitialiser))
 	{

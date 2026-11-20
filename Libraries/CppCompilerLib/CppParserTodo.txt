@@ -631,6 +631,14 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       only a type can be written it is taken for a type, so sizeof(decltype(d)::s) and typeid(decltype(d)::s) of a
       member s are refused, and (decltype(d)::s) + 1 is read as a cast.  decltype(e):: of an enumeration isn't done.
     - A lambda's parameters can't have default arguments ([](int w = 3) { return w; }() finds no function).
+    - DONE 2026-11-20.  The last of the clause 8 cases: functions declared by a typedef of their type, default
+      arguments of template instances, copies defaulted after their class, deleted templates' instances, brace
+      elision (CCPPUnit::BracedFor puts the braces back once for the list and the type it fills), a default member
+      initialiser that names an earlier member where an aggregate's list is short (CCPPContext::EnterObject: the
+      aggregate is its this), a union filled by its first member only.  What a declaration alone shows to be wrong
+      is said by the parser, which reads every declaration, where the generator only checks what is used: a
+      function that returns an array or a function by a typedef's name, = default on what is no special member or
+      has a default argument (CCPPParser::CheckDefaulted).
     - DONE 2026-11-20.  A constexpr local that isn't an integer wasn't checked, nor a constant for what follows
       (int a[p.x] for a constexpr P p): it is a constant object now, as a global is, kept under a label of its own
       until its function is done (CCPPConstants::CheckLocal, LocalLabel, ForgetLocal).  Left: the member of a union

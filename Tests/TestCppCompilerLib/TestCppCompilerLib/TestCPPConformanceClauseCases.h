@@ -7390,4 +7390,58 @@ static const SConformanceCase gasConformanceClause8[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//8.5.1 [dcl.init.aggr] p7, p12, p16: braces left out of nested aggregates, default member initialisers that name earlier members, a union's first member
+	{
+		"DclAggregateElision", 127,
+		"struct P { int a; int b; };\n"
+		"struct Nested { P p; int c; P q[2]; };\n"
+		"struct Deep { Nested n; char name[4]; P last; };\n"
+		"struct WithDefaults { int a = 1; int b = a + 1; int c = b * 2; };\n"
+		"union U { int i; char c; };\n"
+		"struct HasUnion { U u; int v; };\n"
+		"P MakeP() { P p = { 8, 9 }; return p; }\n"
+		"Nested gn = { 1, 2, 3, 4, 5, 6, 7 };\n"
+		"P gflat[] = { 1, 2, 3, 4, 5 };\n"
+		"WithDefaults gd = { 10 };\n"
+		"int gm[2][3] = { 1, 2, 3, 4 };\n"
+		"int main()\n"
+		"{\n"
+		"	P p = { 3, 4 };\n"
+		"	Deep d = { 1, 2, 3, 4, 5, 6, 7, \"abc\", p };\n"
+		"	Deep e = { { p, 3, MakeP(), 6, 7 }, { 'x', 'y' }, 8 };\n"
+		"	Nested arr[2] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };\n"
+		"	int m[2][3] = { 1, 2, 3, 4 };\n"
+		"	WithDefaults w = { 5 };\n"
+		"	WithDefaults w2 = { 5, 7 };\n"
+		"	HasUnion hu = { 65, 2 };\n"
+		"	int r = 0;\n"
+		"	if (gn.p.b == 2 && gn.c == 3 && gn.q[1].a == 6 && sizeof(gflat) == 3 * sizeof(P) && gflat[2].a == 5 && gflat[2].b == 0) r += 1;\n"
+		"	if (d.n.q[1].b == 7 && d.name[2] == 'c' && d.name[3] == 0 && d.last.b == 4) r += 2;\n"
+		"	if (e.n.p.a == 3 && e.n.c == 3 && e.n.q[0].b == 9 && e.n.q[1].a == 6 && e.name[1] == 'y' && e.name[2] == 0 && e.last.a == 8 && e.last.b == 0) r += 4;\n"
+		"	if (arr[0].q[1].b == 7 && arr[1].p.a == 8 && arr[1].p.b == 9 && arr[1].c == 0) r += 8;\n"
+		"	if (m[0][2] == 3 && m[1][0] == 4 && m[1][2] == 0 && gm[1][0] == 4 && gm[1][1] == 0) r += 16;\n"
+		"	if (w.b == 6 && w.c == 12 && w2.b == 7 && w2.c == 14 && gd.a == 10 && gd.b == 11 && gd.c == 22) r += 32;\n"
+		"	if (hu.u.i == 65 && hu.v == 2) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5.1 [dcl.init.aggr] p6, p16: more values than the elements take, braces left out
+	{
+		"DclAggregateTooManyElidedRefused", CONFORMANCE_REFUSED,
+		"struct P { int a; int b; };\n"
+		"int main() { P a[1] = { 1, 2, 3 }; return a[0].a; }\n"
+	},
+	//8.5.1 [dcl.init.aggr] p6, p16: more values than the members take, braces left out
+	{
+		"DclAggregateTooManyNestedRefused", CONFORMANCE_REFUSED,
+		"struct P { int a; int b; };\n"
+		"struct N { P p; int c; };\n"
+		"int main() { N n = { 1, 2, 3, 4 }; return n.c; }\n"
+	},
+	//8.5.1 [dcl.init.aggr] p6, p16: a union is given one value, its first member's
+	{
+		"DclUnionTwoValuesRefused", CONFORMANCE_REFUSED,
+		"union U { int i; char c; };\n"
+		"int main() { U u = { 1, 2 }; return u.i; }\n"
+	},
 };

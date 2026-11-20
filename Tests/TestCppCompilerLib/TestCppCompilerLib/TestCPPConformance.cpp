@@ -79,9 +79,7 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Clause5,
 		"ConstantInactiveUnionMemberRefused(A) ",
 		""),
-	CONFORMANCE_GROUP(Clause8,
-		"DclAggregates(C) ",
-		"DclAggregates(C) "),
+	CONFORMANCE_GROUP(Clause8, "", ""),
 };
 
 

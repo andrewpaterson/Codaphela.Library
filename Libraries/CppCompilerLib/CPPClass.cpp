@@ -312,7 +312,8 @@ SCPPField* CCPPClass::FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset, CCPPC
 //////////////////////////////////////////////////////////////////////////
 //
 // How many of the class's fields an aggregate initialiser ({1, 2}) can
-// give values to: all but its unnamed bit-fields.
+// give values to: all but its unnamed bit-fields, and of a union's the
+// first.  [dcl.init.aggr] 16
 //
 //////////////////////////////////////////////////////////////////////////
 size CCPPClass::NumAggregateFields(void)
@@ -328,7 +329,7 @@ size CCPPClass::NumAggregateFields(void)
 			uiFields++;
 		}
 	}
-	return uiFields;
+	return (mbUnion && (uiFields > 1)) ? 1 : uiFields;
 }
 
 

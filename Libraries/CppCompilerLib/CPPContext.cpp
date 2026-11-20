@@ -31,6 +31,7 @@ void CCPPContext::Init(void)
 	mpcDeclaringNamespace = NULL;
 	mpcFunction = NULL;
 	mbThis = false;
+	mpcObject = NULL;
 	mbStaticLocal = false;
 	mbLinkageExtern = false;
 	mbCLinkage = false;
@@ -205,6 +206,45 @@ void CCPPContext::EndFunction(void)
 	mpcFunction = NULL;
 	mbThis = false;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An aggregate of pcClass is being filled where it is made: the default
+// member initialisers of the members its list leaves out are written in the
+// class, and their this is the aggregate (struct S { int a = 1; int b = a +
+// 1; }; S s = { 10 };).  [dcl.init.aggr] 7
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPContext::EnterObject(CCPPClass* pcClass)
+{
+	SCPPContextEntry*	psEntry;
+
+	psEntry = Enter(CPPCE_Object);
+	psEntry->pvSaved = mpcObject;
+	psEntry->bSaved = mbThis;
+	mpcObject = pcClass;
+	mbThis = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPContext::LeaveObject(void)
+{
+	SCPPContextEntry	sEntry;
+
+	if (Leave(CPPCE_Object, &sEntry))
+	{
+		mpcObject = (CCPPClass*)sEntry.pvSaved;
+		mbThis = sEntry.bSaved;
+	}
+}
+
+
+CCPPClass* CCPPContext::GetObject(void) const { return mpcObject; }
 
 
 //////////////////////////////////////////////////////////////////////////

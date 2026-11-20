@@ -63,8 +63,8 @@ CCPPFunction* CCPPUnit::ThisFunction(void)
 // function: its this points to an object that is.  [class.this] 1
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsConstThis(void) { return ThisFunction() && ThisFunction()->mbConstThis; }
-bool CCPPUnit::IsVolatileThis(void) { return ThisFunction() && ThisFunction()->mbVolatileThis; }
+bool CCPPUnit::IsConstThis(void) { return !mcContext.GetObject() && ThisFunction() && ThisFunction()->mbConstThis; }
+bool CCPPUnit::IsVolatileThis(void) { return !mcContext.GetObject() && ThisFunction() && ThisFunction()->mbVolatileThis; }
 
 
 //////////////////////////////////////////////////////////////////////////

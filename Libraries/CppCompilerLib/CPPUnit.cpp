@@ -310,6 +310,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapalliPacks.Init();
 	mapcPackElements.Init();
 	mapcObjectConstants.Init();
+	masBracedLists.Init();
 	mbValueArgumentRefused = false;
 	masPackElements.Init();
 	masExpandedArguments.Init();
@@ -421,6 +422,7 @@ void CCPPUnit::Kill(void)
 	mapalliPacks.Kill();
 	mapcPackElements.Kill();
 	mapcObjectConstants.Kill();
+	masBracedLists.Kill();
 	masPackElements.Kill();
 	for (i = 0; i < masExpandedArguments.NumElements(); i++)
 	{
@@ -3315,6 +3317,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 	bool						bResult;
 	double						dValue;
 
+	pcInitialiser = BracedFor(psType, pcInitialiser);
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
 	{
 		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;

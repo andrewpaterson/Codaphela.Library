@@ -977,6 +977,11 @@ CCPPClass* CCPPUnit::ThisClass(void)
 {
 	CCPPFunction*	pcFunction;
 
+	if (mcContext.GetObject())
+	{
+		//An aggregate being filled is this for its default member initialisers.
+		return mcContext.GetObject();
+	}
 	pcFunction = mcContext.GetFunction();
 	while (BodyLambda(pcFunction))
 	{

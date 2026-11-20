@@ -161,6 +161,19 @@ struct SCPPExpandedArguments
 typedef CArrayTemplate<SCPPExpandedArguments>	CArrayCPPExpandedArgumentLists;
 
 
+//A list in braces whose left out braces were put back for the aggregate it fills (CCPPUnit::BracedFor).
+class CCPPSyntaxInitializerList;
+struct SCPPBracedList
+{
+	CCPPSyntax*					pcList;
+	SCPP65Type*					psType;
+	CCPPSyntaxInitializerList*	pcBraced;
+};
+
+
+typedef CArrayTemplate<SCPPBracedList>	CArrayCPPBracedLists;
+
+
 //A remembered TypeOf: the type of an expression with some template arguments.
 struct SCPPTypeOf
 {
@@ -276,6 +289,7 @@ protected:
 	int						miUnevaluated;		//How deep in operands that aren't evaluated (sizeof, decltype) the unit is.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
 	CArraySyntax			mapcObjectConstants;	//The expressions ObjectConstantType is asked of now: a name's type may ask for its constant.
+	CArrayCPPBracedLists	masBracedLists;			//The lists BracedFor has made, each for the list and the type it was made of.
 	bool					mbValueArgumentRefused;	//A template argument's value wasn't one of its parameter's type (ValueArgumentFits), since it was cleared.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
@@ -810,6 +824,12 @@ public:
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	CCPPSyntax*				CommaResult(CCPPSyntax* pcExpression);
+	CCPPSyntax*				BracedFor(SCPP65Type* psType, CCPPSyntax* pcList);
+	bool					IsAggregate(SCPP65Type* psType);
+	SCPP65Type*				AggregateMember(SCPP65Type* psType, size uiIndex);
+	bool					InitialisesWhole(SCPP65Type* psMember, CCPPSyntax* pcValue);
+	bool					ElidesBraces(SCPP65Type* psType, CArraySyntax* papcElements);
+	void					Regroup(SCPP65Type* psType, CArraySyntax* papcElements, size* puiNext, CCPPSyntaxInitializerList* pcInto);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
 	SCPP65Type*				ConditionalLvalueType(CCPPSyntaxConditionalExpression* pcConditional);
 	SCPP65Type*				ConditionalXvalueType(CCPPSyntaxConditionalExpression* pcConditional);

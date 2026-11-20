@@ -33,6 +33,7 @@ enum ECPPContextEntry
 	CPPCE_Namespace,
 	CPPCE_Linkage,
 	CPPCE_StaticLocal,
+	CPPCE_Object,
 	CPPCE_Trial,
 	CPPCE_Loud,
 };
@@ -69,6 +70,7 @@ protected:
 	CCPPScope*				mpcDeclaringNamespace;	//The namespace declarations are in, NULL for the global one: of what has no symbol (an operator).
 	CCPPFunction*			mpcFunction;			//The function being written, or NULL.
 	bool					mbThis;					//It is a member function with this (not a global's or static local's initialiser).
+	CCPPClass*				mpcObject;				//An aggregate being filled, which is this for its default member initialisers; else NULL.
 	bool					mbStaticLocal;			//A static local's data is being written.
 	bool					mbLinkageExtern;		//In extern "C" without braces: declarations are extern.
 	bool					mbCLinkage;				//In extern "C": functions declared have C linkage.
@@ -101,6 +103,9 @@ public:
 	CCPPFunction*			GetFunction(void) const;
 	bool					HasThis(void) const;
 
+	void					EnterObject(CCPPClass* pcClass);
+	void					LeaveObject(void);
+	CCPPClass*				GetObject(void) const;
 	void					EnterStaticLocal(void);
 	void					LeaveStaticLocal(void);
 	bool					IsStaticLocal(void) const;
