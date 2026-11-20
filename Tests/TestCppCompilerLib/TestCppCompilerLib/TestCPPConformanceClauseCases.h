@@ -68,6 +68,1261 @@ static const SConformanceCase gasConformanceClause3[] =
 		"void operator delete(int* p) noexcept { }\n"
 		"int main() { return 0; }\n"
 	},
+	//3.1 [basic.def] p2: what only declares (extern, a function's declaration, a class's name, a static member in its class, typedef, using, extern "C", an opaque enum) and what defines
+	{
+		"BasicDeclarationsAndDefinitions", 31,
+		"extern int ga;\n"
+		"int Twice(int);\n"
+		"struct S;\n"
+		"struct T { static int k; int v; };\n"
+		"typedef int Int;\n"
+		"using Long = long;\n"
+		"extern \"C\" int gc;\n"
+		"enum class E : int;\n"
+		"int ga = 3;\n"
+		"int gc = 4;\n"
+		"int T::k = 5;\n"
+		"struct S { int s; };\n"
+		"int Twice(int x) { return x * 2; }\n"
+		"enum class E : int { A = 7 };\n"
+		"extern \"C\" { int gd = 6; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (ga == 3 && Twice(4) == 8) r += 1;\n"
+		"	S s; s.s = 2; Int i = s.s; Long l = 3;\n"
+		"	if (i == 2 && l == 3) r += 2;\n"
+		"	if (T::k == 5 && gc == 4 && gd == 6) r += 4;\n"
+		"	if ((int)E::A == 7) r += 8;\n"
+		"	extern int ge;\n"
+		"	if (ge == 9) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+		"int ge = 9;\n"
+	},
+	//3.1 [basic.def] p2, 3.2 [basic.def.odr] p1: a declaration inside extern "C" { } is a definition, so one more defines the variable twice
+	{
+		"BasicExternCBlockDefinesRefused", CONFORMANCE_REFUSED,
+		"extern \"C\" { int gz; }\n"
+		"int gz;\n"
+		"int main() { return gz; }\n"
+	},
+	//3.1 [basic.def] p3, 12 [special] p1: the members a class gets implicitly, each doing its members' own
+	{
+		"BasicImplicitMembers", 31,
+		"struct A { int v; A() : v(1) { } A(const A& a) : v(a.v + 10) { } A& operator=(const A& a) { v = a.v + 100; return *this; } };\n"
+		"struct C { A a; int k; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	C c;\n"
+		"	if (c.a.v == 1) r += 1;\n"
+		"	C d(c);\n"
+		"	if (d.a.v == 11) r += 2;\n"
+		"	C e; e = c;\n"
+		"	if (e.a.v == 101) r += 4;\n"
+		"	C f(static_cast<C&&>(c));\n"
+		"	if (f.a.v == 11) r += 8;\n"
+		"	C g; g = static_cast<C&&>(d);\n"
+		"	if (g.a.v == 111) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.2 [basic.def.odr] p1: a variable defined twice in a unit
+	{
+		"BasicVariableDefinedTwiceRefused", CONFORMANCE_REFUSED,
+		"int g;\n"
+		"int g;\n"
+		"int main() { return g; }\n"
+	},
+	//3.2 [basic.def.odr] p1: a function defined twice in a unit
+	{
+		"BasicFunctionDefinedTwiceRefused", CONFORMANCE_REFUSED,
+		"int F() { return 1; }\n"
+		"int F() { return 2; }\n"
+		"int main() { return F(); }\n"
+	},
+	//3.2 [basic.def.odr] p1: a class defined twice in a unit
+	{
+		"BasicClassDefinedTwiceRefused", CONFORMANCE_REFUSED,
+		"struct S { int a; };\n"
+		"struct S { int a; };\n"
+		"int main() { S s; s.a = 0; return s.a; }\n"
+	},
+	//3.2 [basic.def.odr] p3, 9.8 [class.local] p1: a constant whose value is used at once isn't odr-used, so a local class may use its function's; and its static locals
+	{
+		"BasicOdrConstantNotOdrUsed", 7,
+		"int main()\n"
+		"{\n"
+		"	const int k = 5;\n"
+		"	enum { N = 2 };\n"
+		"	struct L { int Get() { return k + N; } int Size() { return sizeof(int[k]) / sizeof(int); } };\n"
+		"	L l;\n"
+		"	int r = 0;\n"
+		"	if (l.Get() == 7) r += 1;\n"
+		"	if (l.Size() == 5) r += 2;\n"
+		"	static int s = 3;\n"
+		"	struct M { int Get() { return s; } };\n"
+		"	M m;\n"
+		"	if (m.Get() == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.2 [basic.def.odr] p3, 9.8 [class.local] p1: an automatic variable of the enclosing function can't be odr-used in a local class
+	{
+		"BasicOdrLocalClassUsesAutomaticRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	int x = 1;\n"
+		"	struct L { int Get() { return x; } };\n"
+		"	L l;\n"
+		"	return l.Get();\n"
+		"}\n"
+	},
+	//3.3.1 [basic.scope.declarative] p4: two enumerators of one name in one scope
+	{
+		"BasicEnumeratorRedeclaredRefused", CONFORMANCE_REFUSED,
+		"enum E { A, B };\n"
+		"enum F { C, A };\n"
+		"int main() { return B; }\n"
+	},
+	//3.3.1 [basic.scope.declarative] p4: a function and a variable of one name in one scope
+	{
+		"BasicFunctionAndVariableSameNameRefused", CONFORMANCE_REFUSED,
+		"int f;\n"
+		"int f();\n"
+		"int main() { return 0; }\n"
+	},
+	//3.3.1 [basic.scope.declarative] p4, 3.3.10 [basic.scope.hiding] p2: a class name is hidden by a variable or function of the name in its scope, and an elaborated type specifier still finds it
+	{
+		"BasicClassHiddenByVariable", 15,
+		"struct S { int v; };\n"
+		"int S = 4;\n"
+		"struct T { int w; };\n"
+		"int T(int a) { return a * 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (S == 4) r += 1;\n"
+		"	struct S s; s.v = 3;\n"
+		"	if (s.v == 3) r += 2;\n"
+		"	if (T(5) == 10) r += 4;\n"
+		"	struct T t; t.w = 6;\n"
+		"	if (t.w == 6 && sizeof(struct S) == sizeof(int)) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.2 [basic.scope.pdecl] p1, p3: a name is declared after its complete declarator, before its initialiser; an enumerator after its definition
+	{
+		"BasicPointOfDeclaration", 7,
+		"const int i = 2;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		int i[i];\n"
+		"		if (sizeof(i) == 2 * sizeof(int)) r += 1;\n"
+		"	}\n"
+		"	{\n"
+		"		enum { A = 3, B = A + 1 };\n"
+		"		if (B == 4) r += 2;\n"
+		"	}\n"
+		"	{\n"
+		"		int y = sizeof(y) == sizeof(int) ? 5 : 0;\n"
+		"		if (y == 5) r += 4;\n"
+		"	}\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.2 [basic.scope.pdecl] p2, p7: a class is declared after its name in its head; an elaborated type specifier in a function's declaration declares the class in the namespace
+	{
+		"BasicPointOfDeclarationClass", 7,
+		"struct Node { Node* next; int v; };\n"
+		"struct Q* Make(struct Q* p) { return p; }\n"
+		"struct Q { int q; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Node a, b; a.next = &b; b.v = 4;\n"
+		"	if (a.next->v == 4) r += 1;\n"
+		"	Q q; q.q = 5;\n"
+		"	if (Make(&q)->q == 5) r += 2;\n"
+		"	struct Node* p = &a;\n"
+		"	if (p->next == &b) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.3 [basic.scope.block] p1, p4: names declared in a for, if, while or switch are the statement's
+	{
+		"BasicBlockScopes", 31,
+		"int i = 100;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int n = 0;\n"
+		"	for (int i = 0; i < 3; i++) n += i;\n"
+		"	if (n == 3 && i == 100) r += 1;\n"
+		"	if (int k = n * 2) { if (k == 6) r += 2; } else { r += 64; }\n"
+		"	if (int z = 0) { r += 64; } else { if (z == 0) r += 4; }\n"
+		"	int count = 0;\n"
+		"	while (int w = 3 - count) { count++; if (w < 1) break; }\n"
+		"	if (count == 3) r += 8;\n"
+		"	switch (int s = n + 1) { case 4: if (s == 4) r += 16; break; default: break; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.3 [basic.scope.block] p4: the outermost block of a for's body can't declare a name its init-statement does
+	{
+		"BasicForBodyRedeclaresRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	for (int i = 0; i < 2; i++) { int i = 5; (void)i; }\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//3.3.3 [basic.scope.block] p4: an if's else can't declare a name its condition does
+	{
+		"BasicConditionRedeclaredRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	if (int x = 1) { return x; } else { int x = 2; return x; }\n"
+		"}\n"
+	},
+	//3.3.3 [basic.scope.block] p2: a function's outermost block can't declare a name of a parameter
+	{
+		"BasicParameterRedeclaredRefused", CONFORMANCE_REFUSED,
+		"int F(int a) { int a = 2; return a; }\n"
+		"int main() { return F(1); }\n"
+	},
+	//3.3.4 [basic.scope.proto]: a parameter's name ends with its declarator; the declarations of a function may name parameters differently
+	{
+		"BasicFunctionPrototypeScope", 3,
+		"int F(int a, int b);\n"
+		"int F(int b, int a);\n"
+		"int G(int a, int (*)(int a));\n"
+		"int F(int x, int y) { return x - y; }\n"
+		"int Neg(int v) { return -v; }\n"
+		"int G(int a, int (*f)(int)) { return f(a); }\n"
+		"int a = 7;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F(5, 2) == 3) r += 1;\n"
+		"	if (G(a, Neg) == -7) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.5 [basic.funscope]: a label is in scope in the whole function, before it and in other blocks, and doesn't clash with other names
+	{
+		"BasicFunctionScopeLabels", 7,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int L = 0;\n"
+		"	goto L;\n"
+		"	r += 64;\n"
+		"L:\n"
+		"	r += 1;\n"
+		"	{\n"
+		"		if (L == 0) { L = 1; goto Inner; }\n"
+		"		r += 64;\n"
+		"	}\n"
+		"	{\n"
+		"	Inner:\n"
+		"		r += 2;\n"
+		"	}\n"
+		"	int count = 0;\n"
+		"Again:\n"
+		"	count++;\n"
+		"	if (count < 3) goto Again;\n"
+		"	if (count == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.5 [basic.funscope], 6.1 [stmt.label] p1: a label declared twice in a function, though in another block
+	{
+		"BasicLabelDeclaredTwiceRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	goto A;\n"
+		"A:\n"
+		"	{\n"
+		"A:\n"
+		"		;\n"
+		"	}\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//3.3.7 [basic.scope.class] p1: a member is in scope in member function bodies, default arguments and mem-initialisers, though declared after them
+	{
+		"BasicClassScope", 31,
+		"struct S\n"
+		"{\n"
+		"	int Get() { return v + Later(); }\n"
+		"	int Default(int a = k) { return a; }\n"
+		"	S() : w(k * 2) { v = 1; }\n"
+		"	int v;\n"
+		"	int w;\n"
+		"	static const int k = 4;\n"
+		"	int Later() { return 10; }\n"
+		"	typedef int Int;\n"
+		"	Int Typed() { Int i = 3; return i; }\n"
+		"	struct In { int Twice() { return k * 2; } };\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	S s;\n"
+		"	int r = 0;\n"
+		"	if (s.Get() == 11) r += 1;\n"
+		"	if (s.Default() == 4) r += 2;\n"
+		"	if (s.w == 8) r += 4;\n"
+		"	if (s.Typed() == 3) r += 8;\n"
+		"	S::In in;\n"
+		"	if (in.Twice() == 8) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.7 [basic.scope.class] p1, 3.4.1 [basic.lookup.unqual] p8: after a member's declarator-id outside its class, the class's names are in scope
+	{
+		"BasicClassScopeOutOfClassDefinition", 7,
+		"struct S\n"
+		"{\n"
+		"	typedef int T;\n"
+		"	static const int k = 3;\n"
+		"	T Twice(T t);\n"
+		"	static T Data;\n"
+		"	enum Kind { One = 1, Two };\n"
+		"	Kind Next(Kind k);\n"
+		"};\n"
+		"S::T S::Twice(T t) { return t * 2 + k; }\n"
+		"S::T S::Data = k + 1;\n"
+		"S::Kind S::Next(Kind e) { return e == One ? Two : One; }\n"
+		"int main()\n"
+		"{\n"
+		"	S s;\n"
+		"	int r = 0;\n"
+		"	if (s.Twice(2) == 7) r += 1;\n"
+		"	if (S::Data == 4) r += 2;\n"
+		"	if (s.Next(S::One) == S::Two) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.8 [basic.scope.enum]: a scoped enumeration's enumerators are in its scope only; an unscoped one's are also its enclosing scope's, and may be qualified
+	{
+		"BasicEnumerationScope", 15,
+		"enum class Colour { Red = 1, Green = 2 };\n"
+		"enum Shape { Circle = 4, Square = 8 };\n"
+		"int Red = 16;\n"
+		"struct H { enum In { X = 32 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if ((int)Colour::Green == 2) r += 1;\n"
+		"	if (Red == 16) r += 2;\n"
+		"	if (Circle == 4 && Shape::Square == 8) r += 4;\n"
+		"	if (H::X == 32 && H::In::X == 32) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.8 [basic.scope.enum] p1: a scoped enumerator isn't in the enclosing scope
+	{
+		"BasicScopedEnumeratorUnqualifiedRefused", CONFORMANCE_REFUSED,
+		"enum class Colour { Red, Green };\n"
+		"int main() { Colour c = Green; return (int)c; }\n"
+	},
+	//3.3.9 [basic.scope.temp]: a template parameter is in scope from its declaration to the end of its template, in later parameters too, and hides a name outside
+	{
+		"BasicTemplateParameterScope", 7,
+		"typedef double T;\n"
+		"const int N = 100;\n"
+		"template<class T, T N = sizeof(T)> struct A { T a; static const T n = N; };\n"
+		"template<class T> T Same(T t) { return t; }\n"
+		"template<class U, class V = U*> struct P { V p; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (A<int, 3>::n == 3) r += 1;\n"
+		"	if (A<char>::n == 1 && Same(5) == 5) r += 2;\n"
+		"	int x = 4;\n"
+		"	P<int> p; p.p = &x;\n"
+		"	if (*p.p == 4 && sizeof(T) == sizeof(double)) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.9 [basic.scope.temp], 14.6.1 [temp.local] p6: a template parameter's name can't be declared again in its scope
+	{
+		"BasicTemplateParameterRedeclaredRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct S { int T; };\n"
+		"int main() { S<int> s; return 0; }\n"
+	},
+	//3.3.10 [basic.scope.hiding] p1: a name in a nested block hides the outer one, which :: still reaches
+	{
+		"BasicNameHiddenInBlock", 7,
+		"int v = 1;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int v = 2;\n"
+		"	{\n"
+		"		int v = 3;\n"
+		"		if (v == 3 && ::v == 1) r += 1;\n"
+		"	}\n"
+		"	if (v == 2) r += 2;\n"
+		"	{\n"
+		"		double v = 4.5;\n"
+		"		if (v > 4 && v < 5) r += 4;\n"
+		"	}\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.10 [basic.scope.hiding] p3, 10.2 [class.member.lookup]: a derived class's member hides every base member of the name, overloads too, but for what a using-declaration brings in
+	{
+		"BasicDerivedHidesBase", 15,
+		"struct B { int F(int a) { return a; } int F(double) { return 50; } int G() { return 1; } int x = 7; };\n"
+		"struct D : B { int F() { return 2; } int x = 8; };\n"
+		"struct U : B { using B::F; int F() { return 3; } };\n"
+		"int main()\n"
+		"{\n"
+		"	D d; U u;\n"
+		"	int r = 0;\n"
+		"	if (d.F() == 2 && d.B::F(4) == 4) r += 1;\n"
+		"	if (d.G() == 1 && d.x == 8 && d.B::x == 7) r += 2;\n"
+		"	if (u.F() == 3 && u.F(5) == 5 && u.F(1.5) == 50) r += 4;\n"
+		"	B& b = d;\n"
+		"	if (b.F(6) == 6) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.10 [basic.scope.hiding] p3: the base's overload a derived member hides isn't a candidate
+	{
+		"BasicDerivedHidesBaseRefused", CONFORMANCE_REFUSED,
+		"struct B { int F(int a) { return a; } };\n"
+		"struct D : B { int F() { return 2; } };\n"
+		"int main() { D d; return d.F(1); }\n"
+	},
+	//3.4.1 [basic.lookup.unqual] p4, p6: a name used in a function at namespace scope must be declared before its use
+	{
+		"BasicLookupDeclaredAfterRefused", CONFORMANCE_REFUSED,
+		"int F() { return g; }\n"
+		"int g = 1;\n"
+		"int main() { return F(); }\n"
+	},
+	//3.4.1 [basic.lookup.unqual] p8: in a member function: the block, the class and its bases, the enclosing classes, then the namespaces
+	{
+		"BasicLookupInMemberFunction", 7,
+		"int a = 1, b = 2, c = 3, d = 4;\n"
+		"namespace N\n"
+		"{\n"
+		"	int d = 40;\n"
+		"	struct Base { int b = 20; static const int e = 5; };\n"
+		"	struct Outer\n"
+		"	{\n"
+		"		static const int c = 30;\n"
+		"		typedef int OuterInt;\n"
+		"		struct Inner : Base\n"
+		"		{\n"
+		"			int Get(int a) { return a + b + c + d + e; }\n"
+		"			OuterInt Typed() { OuterInt v = 6; return v; }\n"
+		"			int Later() { return f; }\n"
+		"			int f = 9;\n"
+		"		};\n"
+		"	};\n"
+		"}\n"
+		"int main()\n"
+		"{\n"
+		"	N::Outer::Inner in;\n"
+		"	int r = 0;\n"
+		"	int v = in.Get(100);\n"
+		"	if (v == 100 + 20 + 30 + 40 + 5) r += 1;\n"
+		"	if (in.Typed() == 6) r += 2;\n"
+		"	if (in.Later() == 9) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.1 [basic.lookup.unqual] p8, 9.8 [class.local] p1: a local class's member function sees its function's types, static locals and enumerators, then the namespace
+	{
+		"BasicLookupLocalClass", 7,
+		"int g = 3;\n"
+		"int main()\n"
+		"{\n"
+		"	typedef int Local;\n"
+		"	static int s = 4;\n"
+		"	enum { E = 5 };\n"
+		"	struct L { Local Sum() { Local x = s + E + g; return x; } };\n"
+		"	L l;\n"
+		"	int r = 0;\n"
+		"	if (l.Sum() == 12) r += 1;\n"
+		"	s = 10;\n"
+		"	if (l.Sum() == 18) r += 2;\n"
+		"	struct M : L { int More() { return Sum() + 1; } };\n"
+		"	M m;\n"
+		"	if (m.More() == 19) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.1 [basic.lookup.unqual] p9: a friend function defined in its class looks names up as a member function does
+	{
+		"BasicLookupFriendDefinedInClass", 3,
+		"int k = 100;\n"
+		"struct S\n"
+		"{\n"
+		"	static const int k = 4;\n"
+		"	typedef int Int;\n"
+		"	int v;\n"
+		"	friend Int Get(const S& s) { return s.v + k; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	S s; s.v = 3;\n"
+		"	int r = 0;\n"
+		"	if (Get(s) == 7) r += 1;\n"
+		"	if (k == 100) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.1 [basic.lookup.unqual] p10: in a friend declaration of another class's member function, a parameter's type is looked up first in that member's class
+	{
+		"BasicLookupFriendMemberDeclaration", 3,
+		"struct A { typedef int AT; int F(AT a); int G(int a); };\n"
+		"struct B { typedef char AT; typedef int BT; friend int A::F(AT); friend int A::G(BT); private: int p = 7; };\n"
+		"int A::F(AT a) { B b; return b.p + a; }\n"
+		"int A::G(int a) { B b; return b.p * a; }\n"
+		"int main()\n"
+		"{\n"
+		"	A x;\n"
+		"	int r = 0;\n"
+		"	if (x.F(1) == 8) r += 1;\n"
+		"	if (x.G(2) == 14) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.1 [basic.lookup.unqual] p13: a static member's initialiser outside its class is looked up in the class
+	{
+		"BasicLookupStaticMemberDefinition", 7,
+		"int k = 100;\n"
+		"struct S { static int a; static const int k = 3; static int b; static int Twice(int x) { return x * 2; } };\n"
+		"int S::a = k + 1;\n"
+		"int S::b = Twice(k);\n"
+		"int c = k;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (S::a == 4) r += 1;\n"
+		"	if (S::b == 6) r += 2;\n"
+		"	if (c == 100) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.1 [basic.lookup.unqual] p8, 12.6.2 [class.base.init] p2, p15: a mem-initialiser's expression is in the constructor's scope, its parameters hiding members
+	{
+		"BasicLookupMemberInitialiser", 7,
+		"struct S\n"
+		"{\n"
+		"	int v; int w;\n"
+		"	S(int v) : v(v), w(v + this->v) { }\n"
+		"	S(int a, int b) : v(a), w(v * b) { }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	S s(3); S t(2, 5);\n"
+		"	int r = 0;\n"
+		"	if (s.v == 3) r += 1;\n"
+		"	if (s.w == 6) r += 2;\n"
+		"	if (t.w == 10) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.3 [basic.lookup.qual] p1: the name before :: is looked up among namespaces, types and templates only
+	{
+		"BasicQualifiedLookupIgnoresVariables", 3,
+		"namespace N { int v = 3; }\n"
+		"struct C { static const int k = 2; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int N = 1;\n"
+		"	if (N::v + N == 4) r += 1;\n"
+		"	int C = 5;\n"
+		"	if (C::k + C == 7) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.3 [basic.lookup.qual] p6: a qualified destructor name, the second type-name looked up as the first
+	{
+		"BasicQualifiedDestructorName", 3,
+		"void* operator new(decltype(sizeof(0)), void* p) noexcept { return p; }\n"
+		"int giGone = 0;\n"
+		"struct X { ~X() { giGone++; } };\n"
+		"typedef X XT;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	X x;\n"
+		"	x.X::~X();\n"
+		"	if (giGone == 1) r += 1;\n"
+		"	new (&x) X;\n"
+		"	x.XT::~XT();\n"
+		"	if (giGone == 2) r += 2;\n"
+		"	new (&x) X;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.3.1 [class.qual] p2: A::A, where a function's name may be, names the constructor and not the class
+	{
+		"BasicLookupConstructorNameRefused", CONFORMANCE_REFUSED,
+		"struct A { A() { } int v; };\n"
+		"int main() { A::A a; return 0; }\n"
+	},
+	//3.4.3.1 [class.qual] p2, 9 [class] p2: the injected-class-name: struct A::A and A::A:: are the class, and a template's name in it is its instance
+	{
+		"BasicLookupInjectedClassName", 7,
+		"struct A { int v; static int k; };\n"
+		"int A::k = 6;\n"
+		"template<class T> struct W { W* self; int Get() { W<T>* p = self; return p ? 1 : 2; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	struct A::A a; a.v = 3;\n"
+		"	if (a.v == 3) r += 1;\n"
+		"	if (A::A::k == 6) r += 2;\n"
+		"	W<int> w; w.self = 0;\n"
+		"	if (w.Get() == 2) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.4 [basic.lookup.elab]: an elaborated type specifier finds the class or enumeration a variable hides; one that finds nothing declares the class
+	{
+		"BasicLookupElaborated", 15,
+		"struct S { int v; };\n"
+		"int S = 5;\n"
+		"void Use(struct Fresh* p);\n"
+		"struct Fresh { int f; };\n"
+		"void Use(struct Fresh* p) { p->f = 8; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	struct S s; s.v = 2;\n"
+		"	if (s.v == 2 && S == 5) r += 1;\n"
+		"	Fresh f; Use(&f);\n"
+		"	if (f.f == 8) r += 2;\n"
+		"	{\n"
+		"		struct Local* p = 0;\n"
+		"		struct Local { int l; };\n"
+		"		Local l; l.l = 4; p = &l;\n"
+		"		if (p->l == 4) r += 4;\n"
+		"	}\n"
+		"	enum E { A = 9 };\n"
+		"	int E = 1;\n"
+		"	enum E e = A;\n"
+		"	if (e == 9 && E == 1) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.5 [basic.lookup.classref]: a name after . or -> is looked up in the object's class; a qualified one too; a template member through template; a pseudo-destructor's type-name in the context
+	{
+		"BasicLookupMemberAccess", 15,
+		"struct B { int v = 1; int F() { return 10; } };\n"
+		"struct D : B { int v = 2; typedef B Base; };\n"
+		"template<class T> struct H { template<class U> int Size() { return sizeof(U); } };\n"
+		"template<class T> int Call(T& t) { return t.template Size<char>(); }\n"
+		"int main()\n"
+		"{\n"
+		"	D d; D* p = &d;\n"
+		"	int r = 0;\n"
+		"	if (d.v == 2 && d.B::v == 1 && p->B::v == 1) r += 1;\n"
+		"	if (p->Base::v == 1 && d.D::Base::F() == 10) r += 2;\n"
+		"	H<int> h;\n"
+		"	if (Call(h) == 1) r += 4;\n"
+		"	typedef int I;\n"
+		"	I i = 5; i.~I();\n"
+		"	int* q = &i; q->~I();\n"
+		"	if (i == 5) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.5 [basic.lookup.classref] p7: the type in a conversion-function-id is looked up in the object's class, then in the context
+	{
+		"BasicLookupConversionFunctionId", 3,
+		"struct S { typedef int I; operator I() const { return 7; } operator double() const { return 2.5; } };\n"
+		"typedef double D;\n"
+		"int main()\n"
+		"{\n"
+		"	S s;\n"
+		"	int r = 0;\n"
+		"	if (s.operator I() == 7) r += 1;\n"
+		"	if (s.operator D() == 2.5) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.6 [basic.lookup.udir]: a using-directive and a namespace alias consider only namespace names
+	{
+		"BasicNamespaceNameLookup", 3,
+		"namespace A { int v = 4; int w = 8; }\n"
+		"int main()\n"
+		"{\n"
+		"	int A = 1;\n"
+		"	namespace B = A;\n"
+		"	using namespace A;\n"
+		"	int r = 0;\n"
+		"	if (B::v == 4 && A == 1) r += 1;\n"
+		"	if (w == 8) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.5 [basic.link] p3, p4, p6: static, unnamed-namespace and const names have internal linkage; a block scope extern names the static one
+	{
+		"BasicLinkageInternal", 15,
+		"static int Twice(int x) { return x * 2; }\n"
+		"static int gs = 3;\n"
+		"namespace { int gu = 4; int Thrice(int x) { return x * 3; } }\n"
+		"const int gc = 5;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Twice(gs) == 6) r += 1;\n"
+		"	if (Thrice(gu) == 12) r += 2;\n"
+		"	if (gc == 5) r += 4;\n"
+		"	extern int gs;\n"
+		"	if (gs == 3) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.5 [basic.link] p6, p7: a block scope extern or function declaration names the entity of the innermost enclosing namespace
+	{
+		"BasicLinkageBlockScopeDeclarations", 7,
+		"int F(int);\n"
+		"int gv = 2;\n"
+		"namespace N { int H() { extern int gw; return gw; } int gw = 6; }\n"
+		"int G() { int F(int); return F(3); }\n"
+		"int F(int x) { return x + 1; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (G() == 4) r += 1;\n"
+		"	if (N::H() == 6) r += 2;\n"
+		"	{\n"
+		"		extern int gv;\n"
+		"		if (gv == 2) r += 4;\n"
+		"	}\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.5 [basic.link] p10: every declaration of a variable has one type
+	{
+		"BasicLinkageConflictingTypesRefused", CONFORMANCE_REFUSED,
+		"int gx;\n"
+		"int main() { extern long gx; return (int)gx; }\n"
+	},
+	//3.5 [basic.link] p10: every declaration of a function has one type
+	{
+		"BasicLinkageConflictingReturnRefused", CONFORMANCE_REFUSED,
+		"int F();\n"
+		"long F();\n"
+		"int main() { return 0; }\n"
+	},
+	//3.5 [basic.link] p4, 7.1.3 [dcl.typedef] p9: an unnamed class or enumeration with a typedef name for linkage purposes
+	{
+		"BasicLinkageTypedefNameForUnnamedClass", 3,
+		"typedef struct { int a; int Twice() { return a * 2; } } T;\n"
+		"typedef enum { X = 3, Y } E;\n"
+		"int Use(T t) { return t.Twice(); }\n"
+		"int main()\n"
+		"{\n"
+		"	T t; t.a = 4;\n"
+		"	int r = 0;\n"
+		"	if (Use(t) == 8) r += 1;\n"
+		"	E e = Y;\n"
+		"	if (e == 4) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.6.2 [basic.start.init] p2: constant initialisation comes before any dynamic initialisation
+	{
+		"BasicStaticBeforeDynamicInitialisation", 3,
+		"int ReadB();\n"
+		"int a = ReadB();\n"
+		"int b = 7;\n"
+		"int Make() { return 9; }\n"
+		"int d = Make();\n"
+		"int ReadB() { return b; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (a == 7) r += 1;\n"
+		"	if (d == 9) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.6.2 [basic.start.init] p2: an object made by a constexpr constructor from constants, a reference to a static object and a pointer to one are initialised before any dynamic initialisation
+	{
+		"BasicConstantInitialisationOfObjects", 7,
+		"struct P { constexpr P(int a) : v(a) { } int v; };\n"
+		"int ReadP();\n"
+		"int ReadR();\n"
+		"int ReadQ();\n"
+		"int x = ReadP();\n"
+		"int y = ReadR();\n"
+		"int z = ReadQ();\n"
+		"P p(9);\n"
+		"int g = 3;\n"
+		"int& rg = g;\n"
+		"const int* pg = &g;\n"
+		"int ReadP() { return p.v; }\n"
+		"int ReadR() { return rg; }\n"
+		"int ReadQ() { return *pg; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (x == 9) r += 1;\n"
+		"	if (y == 3) r += 2;\n"
+		"	if (z == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.6.2 [basic.start.init] p2: the ordered dynamic initialisations of a unit are in the order of their definitions
+	{
+		"BasicDynamicInitialisationOrder", 7,
+		"int giStep = 0;\n"
+		"int Next(int k) { giStep = giStep * 10 + k; return giStep; }\n"
+		"int a = Next(1);\n"
+		"int b = Next(2);\n"
+		"struct C { int v; C() : v(Next(3)) { } };\n"
+		"C c;\n"
+		"int d = Next(4);\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (a == 1 && b == 12) r += 1;\n"
+		"	if (c.v == 123) r += 2;\n"
+		"	if (d == 1234) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.7.3 [basic.stc.auto] p1, p3: each call has its own automatic objects, which last to the end of their block however it is left; one with side effects isn't left out though unused
+	{
+		"BasicAutomaticStorage", 15,
+		"int giMade = 0, giGone = 0;\n"
+		"struct C { C() { giMade++; } ~C() { giGone++; } };\n"
+		"int Depth(int n, int* pOuter)\n"
+		"{\n"
+		"	int local = n;\n"
+		"	if (pOuter && pOuter == &local) return -1;\n"
+		"	if (n == 0) return 0;\n"
+		"	int v = Depth(n - 1, &local);\n"
+		"	return local == n ? v + 1 : -100;\n"
+		"}\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Depth(4, 0) == 4) r += 1;\n"
+		"	{ C unused; }\n"
+		"	if (giMade == 1 && giGone == 1) r += 2;\n"
+		"	for (int i = 0; i < 3; i++) { C each; }\n"
+		"	if (giMade == 4 && giGone == 4) r += 4;\n"
+		"	{\n"
+		"		C a;\n"
+		"		goto Out;\n"
+		"	}\n"
+		"Out:\n"
+		"	if (giGone == 5) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.7.4 [basic.stc.dynamic] p1: an allocation function declared in a namespace other than the global one
+	{
+		"BasicAllocationInNamespaceRefused", CONFORMANCE_REFUSED,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"namespace N { void* operator new(size_t n); }\n"
+		"int main() { return 0; }\n"
+	},
+	//3.7.4 [basic.stc.dynamic] p1: an allocation function declared static at global scope
+	{
+		"BasicAllocationStaticRefused", CONFORMANCE_REFUSED,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[8];\n"
+		"static void* operator new(size_t n) { return gacHeap; }\n"
+		"int main() { return 0; }\n"
+	},
+	//3.7.4 [basic.stc.dynamic] p1: a deallocation function declared in a namespace other than the global one
+	{
+		"BasicDeallocationInNamespaceRefused", CONFORMANCE_REFUSED,
+		"namespace N { void operator delete(void* p) noexcept; }\n"
+		"int main() { return 0; }\n"
+	},
+	//3.7.4.1 [basic.stc.dynamic.allocation] p2: an allocation of no bytes that succeeds gives a pointer that isn't null and isn't one already given
+	{
+		"BasicNewZeroBytes", 3,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"void* operator new(size_t n);\n"
+		"void operator delete(void* p) noexcept;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	void* a = ::operator new(0);\n"
+		"	void* b = ::operator new(0);\n"
+		"	if (a != 0 && b != 0 && a != b) r += 1;\n"
+		"	::operator delete(a);\n"
+		"	::operator delete(b);\n"
+		"	int* c = new int[0];\n"
+		"	int* d = new int[0];\n"
+		"	if (c != 0 && d != 0 && c != d) r += 2;\n"
+		"	delete[] c;\n"
+		"	delete[] d;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.7.4.1 [basic.stc.dynamic.allocation] p2: what an allocation function gives is aligned for any object of fundamental alignment
+	{
+		"BasicAllocationAligned", 1,
+		"struct Big { double d; long long l; int i; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Big* p = new Big; char* c = new char[3]; long long* q = new long long;\n"
+		"	if ((unsigned long long)p % alignof(Big) == 0 && (unsigned long long)c % alignof(Big) == 0 && (unsigned long long)q % alignof(long long) == 0) r += 1;\n"
+		"	delete p; delete[] c; delete q;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.7.4.2 [basic.stc.dynamic.deallocation] p2: a class's operator delete with one parameter is its usual one, not the one that also takes the size
+	{
+		"BasicClassDeleteOneParameterUsual", 1,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[16];\n"
+		"int giOne = 0, giTwo = 0;\n"
+		"struct S\n"
+		"{\n"
+		"	int v;\n"
+		"	static void* operator new(size_t n) { return gacHeap; }\n"
+		"	static void operator delete(void* p) { giOne++; }\n"
+		"	static void operator delete(void* p, size_t n) { giTwo++; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	S* p = new S;\n"
+		"	delete p;\n"
+		"	int r = 0;\n"
+		"	if (giOne == 1 && giTwo == 0) r += 1;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.8 [basic.life] p1, p4, p7: a destructor call ends an object's life; a new object made in its storage is reached through the old name
+	{
+		"BasicLifetimeReuse", 15,
+		"void* operator new(decltype(sizeof(0)), void* p) noexcept { return p; }\n"
+		"int giMade = 0, giGone = 0;\n"
+		"struct C { int v; C(int a) : v(a) { giMade++; } ~C() { giGone++; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	C c(1);\n"
+		"	c.~C();\n"
+		"	if (giGone == 1) r += 1;\n"
+		"	C* p = new (&c) C(5);\n"
+		"	if (p == &c && c.v == 5 && giMade == 2) r += 2;\n"
+		"	int i = 3;\n"
+		"	int* q = new (&i) int(8);\n"
+		"	if (i == 8 && q == &i) r += 4;\n"
+		"	struct T { int a; } t; t.a = 1;\n"
+		"	new (&t) T{9};\n"
+		"	if (t.a == 9) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.9 [basic.types] p2, p3: a trivially copyable object's bytes copied into another object of its type give it the same value
+	{
+		"BasicTriviallyCopyable", 7,
+		"struct P { int a; char b; double d; };\n"
+		"int main()\n"
+		"{\n"
+		"	P x = { 7, 'q', 2.5 }, y = { 0, 0, 0 };\n"
+		"	unsigned char buf[sizeof(P)];\n"
+		"	const unsigned char* s = (const unsigned char*)&x;\n"
+		"	for (unsigned i = 0; i < sizeof(P); i++) buf[i] = s[i];\n"
+		"	unsigned char* t = (unsigned char*)&y;\n"
+		"	for (unsigned i = 0; i < sizeof(P); i++) t[i] = buf[i];\n"
+		"	int r = 0;\n"
+		"	if (y.a == 7 && y.b == 'q') r += 1;\n"
+		"	if (y.d == 2.5) r += 2;\n"
+		"	int n = 300, m = 0;\n"
+		"	for (unsigned i = 0; i < sizeof(int); i++) ((unsigned char*)&m)[i] = ((unsigned char*)&n)[i];\n"
+		"	if (m == 300) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.9 [basic.types] p4: an object's representation is its sizeof unsigned chars
+	{
+		"BasicObjectRepresentation", 3,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int v = 1;\n"
+		"	unsigned sum = 0;\n"
+		"	for (unsigned i = 0; i < sizeof(v); i++) sum += ((unsigned char*)&v)[i];\n"
+		"	if (sum == 1) r += 1;\n"
+		"	unsigned u = ~0u;\n"
+		"	unsigned all = 0;\n"
+		"	for (unsigned i = 0; i < sizeof(u); i++) all += ((unsigned char*)&u)[i] == 255;\n"
+		"	if (all == sizeof(unsigned)) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.9 [basic.types] p5, p6: a pointer to an incomplete class; a class and an array of unknown bound completed later
+	{
+		"BasicIncompleteTypes", 15,
+		"struct X;\n"
+		"extern X* xp;\n"
+		"extern int arr[];\n"
+		"struct X { int i; };\n"
+		"X x = { 4 };\n"
+		"X* xp = &x;\n"
+		"int arr[10];\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (xp->i == 4) r += 1;\n"
+		"	if (sizeof(arr) == 10 * sizeof(int)) r += 2;\n"
+		"	arr[9] = 5;\n"
+		"	if (arr[9] == 5) r += 4;\n"
+		"	struct Y* yp = 0;\n"
+		"	X* p = 0;\n"
+		"	if (p == 0 && yp == 0) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.9 [basic.types] p5: an object of an incomplete class
+	{
+		"BasicIncompleteClassObjectRefused", CONFORMANCE_REFUSED,
+		"struct X;\n"
+		"X x;\n"
+		"int main() { return 0; }\n"
+	},
+	//3.9 [basic.types] p6, 5.3.3 [expr.sizeof] p1: sizeof an array of unknown bound, before it is completed
+	{
+		"BasicIncompleteArraySizeofRefused", CONFORMANCE_REFUSED,
+		"extern int arr[];\n"
+		"int main() { return sizeof(arr); }\n"
+		"int arr[3];\n"
+	},
+	//3.9 [basic.types] p5, 5.2.5 [expr.ref] p2: a member of a class used where the class is still incomplete
+	{
+		"BasicIncompleteClassMemberRefused", CONFORMANCE_REFUSED,
+		"struct X;\n"
+		"struct X* gp;\n"
+		"int main() { return gp->i; }\n"
+		"struct X { int i; };\n"
+	},
+	//3.9 [basic.types] p10: literal types: scalars, references, arrays of them, aggregates of them, and classes with a constexpr constructor and a trivial destructor
+	{
+		"BasicLiteralTypes", 7,
+		"struct L { int a; constexpr L(int x) : a(x) { } constexpr int Get() const { return a * 2; } };\n"
+		"struct Agg { int a; double d; };\n"
+		"constexpr L gl(3);\n"
+		"constexpr Agg ga = { 4, 1.5 };\n"
+		"constexpr int garr[3] = { 1, 2, 3 };\n"
+		"constexpr const int& gref = garr[1];\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	static_assert(gl.Get() == 6, \"\");\n"
+		"	if (gl.Get() == 6) r += 1;\n"
+		"	enum { E = ga.a + garr[2] };\n"
+		"	if (E == 7) r += 2;\n"
+		"	if (gref == 2) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.9 [basic.types] p10, 7.1.5 [dcl.constexpr] p9: a constexpr variable of a class with a destructor of its own isn't of a literal type
+	{
+		"BasicNonLiteralConstexprRefused", CONFORMANCE_REFUSED,
+		"struct N { int a; constexpr N(int x) : a(x) { } ~N() { } };\n"
+		"constexpr N n(1);\n"
+		"int main() { return n.a; }\n"
+	},
+	//3.9.1 [basic.fundamental]: the three char types are one byte, alike aligned and distinct; the integer sizes in order; signed and unsigned alike in size; unsigned arithmetic modulo 2^n; bool; the character types distinct
+	{
+		"BasicFundamentalTypes", 63,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (sizeof(char) == 1 && sizeof(signed char) == 1 && sizeof(unsigned char) == 1 && alignof(char) == alignof(signed char) && alignof(char) == alignof(unsigned char)) r += 1;\n"
+		"	if (sizeof(short) <= sizeof(int) && sizeof(int) <= sizeof(long) && sizeof(long) <= sizeof(long long) && sizeof(short) >= 2 && sizeof(long long) >= 8) r += 2;\n"
+		"	unsigned u = 0; u = u - 1;\n"
+		"	unsigned char uc = 255; uc = uc + 1;\n"
+		"	unsigned long long ull = 0; ull--;\n"
+		"	if (u == ~0u && uc == 0 && ull == ~0ull && u + 1 == 0) r += 4;\n"
+		"	if (sizeof(unsigned short) == sizeof(short) && sizeof(unsigned) == sizeof(int) && sizeof(unsigned long) == sizeof(long) && sizeof(unsigned long long) == sizeof(long long)) r += 8;\n"
+		"	bool b = true;\n"
+		"	int i = b + b;\n"
+		"	if (i == 2 && (bool)2 == true && !Same<char, signed char>::V && !Same<char, unsigned char>::V) r += 16;\n"
+		"	if (sizeof(char16_t) >= 2 && sizeof(char32_t) >= 4 && !Same<wchar_t, int>::V && !Same<wchar_t, unsigned short>::V && !Same<char16_t, unsigned short>::V) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.9.1 [basic.fundamental] p9: void expressions: a call of a void function, a cast to void, as an operand of , and ?: and in a return
+	{
+		"BasicVoid", 7,
+		"int giCalls = 0;\n"
+		"void Touch() { giCalls++; }\n"
+		"void Forward() { return Touch(); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Forward();\n"
+		"	(void)giCalls;\n"
+		"	if (giCalls == 1) r += 1;\n"
+		"	int v = (Touch(), 5);\n"
+		"	static_cast<void>(v);\n"
+		"	if (v == 5 && giCalls == 2) r += 2;\n"
+		"	bool b = true;\n"
+		"	b ? Touch() : Forward();\n"
+		"	if (giCalls == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.9.1 [basic.fundamental] p9: no object has type void
+	{
+		"BasicVoidObjectRefused", CONFORMANCE_REFUSED,
+		"int main() { void v; return 0; }\n"
+	},
+	//3.9.1 [basic.fundamental] p9, 5.3.3 [expr.sizeof] p1: void is incomplete, so has no size
+	{
+		"BasicSizeofVoidRefused", CONFORMANCE_REFUSED,
+		"int main() { return sizeof(void); }\n"
+	},
+	//3.9.2 [basic.compound] p3, p4: a void* holds any object pointer and gives it back; void* is a char*'s size and alignment; a pointer to a cv-qualified type is a pointer's size
+	{
+		"BasicCompoundTypes", 15,
+		"struct S { int a; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s; s.a = 6; int i = 4; double d = 1.5;\n"
+		"	void* p = &s; void* q = &i; const void* c = &d;\n"
+		"	if (static_cast<S*>(p)->a == 6 && *static_cast<int*>(q) == 4 && *static_cast<const double*>(c) == 1.5) r += 1;\n"
+		"	if (sizeof(void*) == sizeof(char*) && alignof(void*) == alignof(char*)) r += 2;\n"
+		"	const int* ci = &i; volatile int* vi = &i; const volatile int* cvi = ci;\n"
+		"	if (sizeof(ci) == sizeof(int*) && ci == &i && cvi == vi) r += 4;\n"
+		"	S* sp = &s; int* ap = &s.a;\n"
+		"	if ((void*)sp == (void*)ap) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.9.3 [basic.type.qualifier]: cv on an array type is its elements'; a const object's members are const but for mutable ones; adding cv at every level
+	{
+		"BasicCvQualifiers", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"typedef int A[2];\n"
+		"struct M { int v; mutable int m; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	const A a = { 1, 2 };\n"
+		"	if (Same<decltype(a[0]), const int&>::V && Same<const A, const int[2]>::V && a[1] == 2) r += 1;\n"
+		"	const M cm = { 3, 4 };\n"
+		"	cm.m = 5;\n"
+		"	if (Same<decltype((cm.v)), const int&>::V && Same<decltype((cm.m)), int&>::V && cm.m == 5) r += 2;\n"
+		"	int i = 7;\n"
+		"	int* p = &i;\n"
+		"	const volatile int* cv = p;\n"
+		"	const int* const* cpp = &p;\n"
+		"	if (*cv == 7 && **cpp == 7) r += 4;\n"
+		"	if (Same<const volatile int, volatile const int>::V && !Same<const int, int>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.9.3 [basic.type.qualifier] p2: cv on an array type applies to its elements
+	{
+		"BasicConstArrayElementRefused", CONFORMANCE_REFUSED,
+		"typedef int A[2];\n"
+		"int main() { const A a = { 1, 2 }; a[0] = 3; return a[0]; }\n"
+	},
+	//3.10 [basic.lval] p1, p5: lvalues, xvalues and prvalues; a class prvalue's member function may change it
+	{
+		"BasicValueCategories", 63,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int gi = 1;\n"
+		"int& L() { return gi; }\n"
+		"int&& X() { return static_cast<int&&>(gi); }\n"
+		"int P() { return gi; }\n"
+		"struct S { int m; };\n"
+		"S MakeS() { S s; s.m = 2; return s; }\n"
+		"struct T { int v; T& Set(int a) { v = a; return *this; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype((L())), int&>::V && Same<decltype((X())), int&&>::V && Same<decltype((P())), int>::V) r += 1;\n"
+		"	L() = 5;\n"
+		"	if (gi == 5) r += 2;\n"
+		"	if (Same<decltype((gi)), int&>::V && Same<decltype((\"ab\")), const char (&)[3]>::V) r += 4;\n"
+		"	if (Same<decltype((MakeS().m)), int&&>::V) r += 8;\n"
+		"	int a = 3;\n"
+		"	if (Same<decltype((static_cast<int&&>(a))), int&&>::V && Same<decltype((a + 1)), int>::V && Same<decltype((++a)), int&>::V && Same<decltype((a++)), int>::V) r += 16;\n"
+		"	MakeS() = MakeS();\n"
+		"	if (T().Set(4).v == 4) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.10 [basic.lval] p1, 5.17 [expr.ass] p1: a prvalue of a scalar type isn't assigned to
+	{
+		"BasicAssignToPrvalueRefused", CONFORMANCE_REFUSED,
+		"int P() { return 1; }\n"
+		"int main() { P() = 2; return 0; }\n"
+	},
+	//3.10 [basic.lval] p1, 5.3.1 [expr.unary.op] p3: the address of a prvalue
+	{
+		"BasicAddressOfPrvalueRefused", CONFORMANCE_REFUSED,
+		"int P() { return 1; }\n"
+		"int main() { int* p = &P(); return *p; }\n"
+	},
+	//3.10 [basic.lval] p10: an object may be reached through its signed or unsigned counterpart, and through unsigned char
+	{
+		"BasicAliasing", 7,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int x = -1;\n"
+		"	unsigned* pu = (unsigned*)&x;\n"
+		"	if (*pu == ~0u) r += 1;\n"
+		"	*pu = 5;\n"
+		"	if (x == 5) r += 2;\n"
+		"	long long big = 0x0102;\n"
+		"	unsigned char* c = (unsigned char*)&big;\n"
+		"	unsigned sum = 0;\n"
+		"	for (unsigned i = 0; i < sizeof(big); i++) sum += c[i];\n"
+		"	if (sum == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.11 [basic.align] p1, p2, p5: alignof of arrays and classes; sizes and offsets that follow from it; an alignment given by alignas, of a class and of an array
+	{
+		"BasicAlignment", 15,
+		"struct S { char c; int i; };\n"
+		"struct alignas(8) A8 { char c; };\n"
+		"struct Holder { char c; A8 a; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (alignof(char) == 1 && alignof(int[5]) == alignof(int) && alignof(S) == alignof(int)) r += 1;\n"
+		"	S s[2];\n"
+		"	if (sizeof(S) % alignof(S) == 0 && (unsigned)((char*)&s[1] - (char*)&s[0]) == sizeof(S)) r += 2;\n"
+		"	if (alignof(A8) == 8 && sizeof(A8) == 8 && sizeof(Holder) == 16) r += 4;\n"
+		"	alignas(8) char buf[3];\n"
+		"	alignas(int) char ibuf[sizeof(int)];\n"
+		"	if ((unsigned long long)buf % 8 == 0 && (unsigned long long)ibuf % alignof(int) == 0) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.11 [basic.align] p4: an alignment is a power of two
+	{
+		"BasicAlignmentNotPowerOfTwoRefused", CONFORMANCE_REFUSED,
+		"struct alignas(3) S { char c; };\n"
+		"int main() { return sizeof(S); }\n"
+	},
 };
 
 
