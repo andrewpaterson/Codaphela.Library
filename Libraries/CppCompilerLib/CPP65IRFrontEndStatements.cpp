@@ -424,6 +424,10 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
+		if (!pcInit->mpcInitializer && (pcVariable->meStorage != CPPVS_Global) && !mpcUnit->NeedsNoInitialiser(pcVariable->mpsType, pcInit))
+		{
+			return false;
+		}
 		if ((pcVariable->meStorage == CPPVS_Static) && pcVariable->mbGuarded)
 		{
 			if (!GuardedStaticLocal(pcVariable, pcInit->mpcInitializer))

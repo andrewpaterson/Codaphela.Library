@@ -2808,6 +2808,46 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a variable of psType may be defined with no initialiser: not a
+// reference, which must be bound to something, and not a const object (or
+// an array of them) that nothing would ever give a value: a number or a
+// pointer, or an object of a class with fields and no constructor to fill
+// them.  An error at pcNode (and false) if not.  [dcl.ref] 5, [dcl.init] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psElement;
+	CCPPClass*	pcClass;
+
+	if (psType->IsReference())
+	{
+		return ReportError(pcNode, "A reference must be initialised");
+	}
+	psElement = psType;
+	while (psElement->IsArray())
+	{
+		psElement = psElement->psBase;
+	}
+	if (!psElement->bConst)
+	{
+		return true;
+	}
+	if (!psElement->IsClass())
+	{
+		return ReportError(pcNode, "A const object must be initialised");
+	}
+	pcClass = psElement->pcClass;
+	if (!pcClass->mbConstructors && !pcClass->mbConstructorTemplate && !pcClass->NeedsConstructor() && (pcClass->macFields.NumElements() > 0))
+	{
+		return ReportError(pcNode, "A const object of a class with no constructor must be initialised");
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // After a parameter with a default argument every parameter has one, from
 // this declaration or one before it: an error at pcNode if not.
 // [dcl.fct.default] 4
@@ -3093,6 +3133,11 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		pcVariable->mbDefined = true;
 		pcVariable->mpsType = psType;
 		CompleteDeclaredArrays(pcVariable);
+		if (!pcInitialiser && !NeedsNoInitialiser(psType, pcInit))
+		{
+			bResult = false;
+			continue;
+		}
 		if ((pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !mpcConstants->CheckVariable(pcVariable, pcInit))
 		{
 			bResult = false;
