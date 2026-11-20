@@ -81,6 +81,7 @@ void CFileChooser::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* sz
 	mbReplacePending = false;
 	mbDeletePending = false;
 	mbShowHidden = false;
+	mbChoosesFolder = false;
 	masTypes = asTypes;
 	muiNumTypes = uiNumTypes;
 	mpFolderIcon = pFolderIcon;
@@ -164,6 +165,7 @@ void CFileChooser::Class(void)
 	U_Int32(miNumFolders);
 	U_String(mszChosen);
 	U_Bool(mbSave);
+	U_Bool(mbChoosesFolder);
 	U_Bool(mbNewFolderPending);
 	U_Bool(mbReplacePending);
 	U_Bool(mbDeletePending);
@@ -647,6 +649,41 @@ bool CFileChooser::Approve(void)
 	int32		iRow;
 
 	szText = mpFileName->GetText();
+	if (mbChoosesFolder)
+	{
+		//The folder selected, the folder named, or with neither the folder shown.
+		iRow = mpList->GetSelected();
+		if (!StrEmpty(szText))
+		{
+			if (cFileUtil.IsAbsolutePath(szText))
+			{
+				szPath.Init(szText);
+			}
+			else
+			{
+				szPath.Init(mszDirectory);
+				cFileUtil.AppendToPath(&szPath, szText);
+			}
+			cFileUtil.FullPath(&szPath);
+		}
+		else if ((iRow >= 0) && (iRow < miNumFolders))
+		{
+			szPath.Init(maszRows.GetText(iRow));
+		}
+		else
+		{
+			szPath.Init(mszDirectory);
+		}
+		if (!cFileUtil.IsDirectory(szPath.Text()))
+		{
+			szPath.Kill();
+			return false;
+		}
+		mszChosen.Set(szPath);
+		szPath.Kill();
+		return true;
+	}
+
 	if (StrEmpty(szText))
 	{
 		iRow = mpList->GetSelected();
@@ -700,6 +737,22 @@ bool CFileChooser::Approve(void)
 	}
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chooser chooses a folder, not a file: see the class's comment.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileChooser::SetChoosesFolder(void)
+{
+	mbChoosesFolder = true;
+	mpDialog->SetOKCaption("Choose");
+	mpFileName->SetText("");
+}
+
+
+bool CFileChooser::IsChoosingFolder(void) const { return mbChoosesFolder; }
 
 
 //////////////////////////////////////////////////////////////////////////

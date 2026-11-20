@@ -376,6 +376,31 @@ void TestFileChooserBrowse(void)
 		ORoot()->Remove(pChooser);
 		pChooser = NULL;
 
+		//Choosing a folder: the one shown with nothing selected, the one selected, or the one named; a file isn't one.
+		pChooser = OMalloc<CTestFileChooser>(pTestWindow, &sLook, "Choose Directory", false, szStart, gasTestFileChooserTypes, 2, pFolderIcon, pFileIcon);
+		ORoot()->Add(pChooser);
+		AssertFalse(pChooser->IsChoosingFolder());
+		pChooser->SetChoosesFolder();
+		AssertTrue(pChooser->IsChoosingFolder());
+		AssertString("", pChooser->GetFileName()->GetText());
+		pChooser->GetList()->Select(-1);
+		AssertTrue(pChooser->Approve());
+		AssertString(szFull.Text(), pChooser->GetChosen());
+		pChooser->GetList()->Select(0);
+		pChooser->GetFileName()->SetText("");
+		AssertTrue(pChooser->Approve());
+		AssertString(szFullSub.Text(), pChooser->GetChosen());
+		pChooser->GetList()->Select(-1);
+		pChooser->GetFileName()->SetText("Sub");
+		AssertTrue(pChooser->Approve());
+		AssertString(szFullSub.Text(), pChooser->GetChosen());
+		pChooser->GetFileName()->SetText("a.txt");
+		AssertFalse(pChooser->Approve());
+		pChooser->GetFileName()->SetText("Nowhere");
+		AssertFalse(pChooser->Approve());
+		ORoot()->Remove(pChooser);
+		pChooser = NULL;
+
 		pFolderIcon = NULL;
 		pFileIcon = NULL;
 		sLook.Kill();

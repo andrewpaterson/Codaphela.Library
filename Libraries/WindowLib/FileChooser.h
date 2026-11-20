@@ -55,6 +55,10 @@ struct SFileChooserType
 //
 //Saving with a type that has an extension, a name without it has it added.  The types are the caller's and must last
 //as long as the chooser; the first is chosen to start with.
+//
+//A chooser can choose a folder instead (SetChoosesFolder): its button is Choose, which chooses the folder selected in
+//the list, or with none selected the folder shown, or the folder File Name names.  A double click still opens a
+//folder, to look in it.
 class CFileChooser : public CObject
 {
 CONSTRUCTABLE(CFileChooser);
@@ -88,6 +92,7 @@ protected:
 	bool						mbReplacePending;  //The file chosen to save exists; whether to replace it is asked on the next tick.
 	bool						mbDeletePending;  //Delete was clicked; whether to delete is asked on the next tick.
 	bool						mbShowHidden;  //Hidden files and folders are listed.
+	bool						mbChoosesFolder;  //A folder is chosen, not a file (SetChoosesFolder).
 	SFileChooserType*			masTypes;
 	size						muiNumTypes;
 
@@ -99,6 +104,8 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
+	void			SetChoosesFolder(void);
+	bool			IsChoosingFolder(void) const;
 	bool			Show(void);
 	const char*		GetChosen(void) const;
 
