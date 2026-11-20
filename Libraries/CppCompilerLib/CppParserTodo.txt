@@ -690,6 +690,25 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       expression's type, so what Construct refuses about a declaration, a copy or a reference's binding has to be
       asked by the front end's own Construct, CopyConstruct and ReferenceAddress too: each rule in two places.
 
+  The older notes above, tried again on 2026-11-20 (each "not done" as a small program on both targets, checked with g++
+  first): twenty work now, and what doesn't was listed for the user, who said "Carry on now with steps 1 to 35".  Done,
+  with a group for clause 14 (templates) in TestCPPConformance for the cases:
+    - A partial specialisation's arguments are matched as the types they are, whatever a declarator makes of one
+      (CCPPSpecialisationMatch::MatchDeclarator, outside in as CCPPDeclarators::GetDeclaratorType applies it):
+      R(A...), R(A..., ...), R (*)(A...), M C::*, R (C::*)(A...) and R (C::*)(A...) const were never matched, so the
+      primary template was used and nothing said so (TempSpecialisationFunctionTypes).
+    - An argument the specialisation's parameters can't be deduced from (Void<typename T::Type>, typename
+      EnableIf<(sizeof(T) == 1)>::Type, typename Identity<T>::Type*) is worked out once they are known and must be the
+      instance's (MatchDeferred); a specialisation they give no type isn't chosen.  They were read with no parameters
+      known, so such a specialisation never matched (TempSpecialisationNonDeduced).
+    - A variable template is partially specialised (template<class T> int k<T*> = 2;): it was taken for the template
+      again.  Its specialisations are found as a class template's are (CCPPUnit::FindSpecialisation, which was
+      FindClassSpecialisation; FindVariableSpecialisation, which compared mangled arguments, is gone)
+      (TempVariablePartialSpecialisation).
+    - template<> int S<int>::k = 5; defines S<int>'s static member: it was dropped, and S<int>::k was the class
+      template's.  A static member's definition is its class's own member's (CCPPUnit::GlobalDeclaration, OwnStatic):
+      it was the first instance's of the symbol (TempStaticMemberExplicitSpecialisation).
+
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or
       another pointer's type (CCPP65TypeChecker::Convert: "Any number or pointer converts to any other"): int* p = 5,

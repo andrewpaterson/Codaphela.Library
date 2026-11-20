@@ -80,6 +80,7 @@ static const SConformanceGroup gasConformanceGroups[] =
 		"ConstantInactiveUnionMemberRefused(A) ",
 		""),
 	CONFORMANCE_GROUP(Clause8, "", ""),
+	CONFORMANCE_GROUP(Clause14, "", ""),
 };
 
 

@@ -206,9 +206,10 @@ CCPPSyntaxInitDeclarator* CCPPUnit::VariableDeclarator(CCPPVariable* pcVariable)
 //
 // The variable a variable template's name with its arguments (pi<int>)
 // names: its instance for the arguments, made the first time it is named,
-// of its explicit specialisation for them if it has one.  Defined with the
-// unit's data (DefineVariableInstances).  NULL after an error.
-// [temp.variable]
+// of the specialisation that matches them best if one does (an explicit
+// one, or a partial one with its own parameters deduced: FindSpecialisation).
+// Defined with the unit's data (DefineVariableInstances).  NULL after an
+// error.  [temp.variable], [temp.class.spec]
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPVariable* CCPPUnit::VariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
@@ -216,6 +217,7 @@ CCPPVariable* CCPPUnit::VariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNameCom
 	CCPPTemplate*				pcTemplate;
 	CCPPTemplate*				pcSource;
 	CCPPTemplateArguments*		pcBindings;
+	CCPPTemplateArguments*		pcSpecialised;
 	CCPPSyntaxInitDeclarator*	pcInit;
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
 	CCPPVariable*				pcVariable;
@@ -245,8 +247,8 @@ CCPPVariable* CCPPUnit::VariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNameCom
 		return pcVariable;
 	}
 
-	pcSource = FindVariableSpecialisation(pcTemplate, &szArguments, pcNode);
-	pcBindings = pcSource ? NULL : pcBindings;
+	pcSource = FindSpecialisation(pcTemplate, pcBindings, &pcSpecialised, pcNode);
+	pcBindings = pcSource ? pcSpecialised : pcBindings;
 	pcSource = pcSource ? pcSource : pcTemplate;
 	pcSimple = (CCPPSyntaxSimpleDeclaration*)pcSource->mpcDefinition;
 	pcInit = (CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0);
@@ -263,44 +265,6 @@ CCPPVariable* CCPPUnit::VariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNameCom
 	}
 	szArguments.Kill();
 	return pcVariable;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The explicit specialisation of a variable template for the mangled
-// arguments (template<> int size<char> = 9;), or NULL.  A specialisation's
-// arguments are worked out once.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPPUnit::FindVariableSpecialisation(CCPPTemplate* pcPrimary, CChars* pszArguments, CCPPSyntax* pcNode)
-{
-	CCPPTemplate*	pcTemplate;
-	size			i;
-
-	for (i = 0; i < mapcTemplates.NumElements(); i++)
-	{
-		pcTemplate = mapcTemplates.GetPtr(i);
-		if ((pcTemplate->mpcPrimary != pcPrimary) || (pcTemplate == pcPrimary) || !pcTemplate->mpcPattern)
-		{
-			continue;
-		}
-		if (!pcTemplate->mbArguments)
-		{
-			pcTemplate->mbArguments = true;
-			BeginQuiet();
-			if (!BindArguments(pcPrimary->mpcDeclaration, &pcTemplate->mpcPattern->macpTemplateArguments, NULL, &pcTemplate->mszArguments, pcNode))
-			{
-				pcTemplate->mszArguments.Clear();
-			}
-			EndQuiet();
-		}
-		if (!pcTemplate->mszArguments.Empty() && pcTemplate->mszArguments.Equals(pszArguments))
-		{
-			return pcTemplate;
-		}
-	}
-	return NULL;
 }
 
 
@@ -417,11 +381,16 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 			//template<class T> int S<T>::count = 3; is each instance's (DefineInstanceStatics).
 			mapcStaticMemberTemplates.Add(pcTemplateDeclaration);
 		}
+		else if (bExplicit && IsStaticMemberDefinition(pcSimple))
+		{
+			//template<> int S<int>::count = 5; defines that instance's, which DefineInstanceStatics then leaves be.  [temp.expl.spec] 13
+			return GlobalDeclaration(pcSimple);
+		}
 		else if (VariableTemplateName(pcSimple))
 		{
-			//template<class T> T pi = T(3); and template<> int size<char> = 9;
+			//template<class T> T pi = T(3);, template<> int size<char> = 9; and template<class T> int size<T*> = 2;
 			pcName = VariableTemplateName(pcSimple);
-			if (bExplicit)
+			if (bExplicit || pcName->GetLast()->mbTemplateArguments)
 			{
 				Specialisation(pcName->mpcSymbol, pcTemplateDeclaration, pcSimple, pcName->GetLast());
 			}
@@ -1559,7 +1528,7 @@ CCPPClass* CCPPUnit::InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTemplateArgum
 	}
 
 	pcSpecialised = NULL;
-	pcSpecialisation = pcBindings->mbSelf ? NULL : FindClassSpecialisation(pcTemplate, pcBindings, &pcSpecialised, pcNode);
+	pcSpecialisation = pcBindings->mbSelf ? NULL : FindSpecialisation(pcTemplate, pcBindings, &pcSpecialised, pcNode);
 	if (pcSpecialisation)
 	{
 		pcTemplate = pcSpecialisation;
@@ -1801,13 +1770,14 @@ CCPPClass* CCPPUnit::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcA
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The most specialised specialisation of a class template that matches the
-// arguments (psArguments), with its own parameters bound in *ppsBindings.  An
-// explicit specialisation is chosen first; of the partial ones, the one whose
-// arguments match more of the types' structure.  NULL if none matches.
+// The most specialised specialisation of a class template or a variable
+// template that matches the arguments (pcArguments), with its own parameters
+// bound in *ppcBindings.  An explicit specialisation is chosen first; of the
+// partial ones, the one whose arguments match more of the types' structure.
+// NULL if none matches.  [temp.class.spec.match]
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplate* CCPPUnit::FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode)
+CCPPTemplate* CCPPUnit::FindSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode)
 {
 	CCPPSpecialisationMatch	cMatch;
 	CCPPTemplate*			pcTemplate;
@@ -1856,7 +1826,7 @@ CCPPTemplate* CCPPUnit::FindClassSpecialisation(CCPPTemplate* pcPrimary, CCPPTem
 	if (bAmbiguous)
 	{
 		//Kept (ClassError): an instance is made once, and often where errors are dropped.
-		ClassError(pcNode ? pcNode->miFirstToken : -1, "More than one specialisation of the class template matches equally");
+		ClassError(pcNode ? pcNode->miFirstToken : -1, "More than one specialisation of the template matches equally");
 	}
 	*ppcBindings = pcBestDeduced;
 	return pcBest;

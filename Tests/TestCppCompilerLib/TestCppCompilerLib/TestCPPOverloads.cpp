@@ -177,8 +177,8 @@ void TestCPPSpecialisationMatch(void)
 	AssertInt(15, TestCPP65Main("template <class T> struct Box { T t; };\ntemplate <class T> struct K { enum { V = 1 }; };\ntemplate <class T> struct K<Box<T> > { enum { V = 5 }; };\nint main() { return K<int>::V * 10 + K<Box<int> >::V; }"));
 	AssertInt(23, TestCPP65Main("template <class T> struct K { enum { V = 1 }; };\ntemplate <class T> struct K<T*> { enum { V = 2 }; };\ntemplate <class T> struct K<const T*> { enum { V = 3 }; };\nint main() { return K<char*>::V * 10 + K<const char*>::V; }"));
 
-	AssertOverloadError("More than one specialisation of the class template matches equally", "template <class T, class U> struct P { enum { V = 1 }; };\ntemplate <class T> struct P<T, int> { enum { V = 2 }; };\ntemplate <class T> struct P<int, T> { enum { V = 3 }; };\nint main() { P<int, int> p; return sizeof(p); }");
-	AssertOverloadError("More than one specialisation of the class template matches equally", "template <class T, class U> struct P { enum { V = 1 }; };\ntemplate <class T> struct P<T, int> { enum { V = 2 }; };\ntemplate <class T> struct P<int, T> { enum { V = 3 }; };\nint main() { return P<int, int>::V; }");
+	AssertOverloadError("More than one specialisation of the template matches equally", "template <class T, class U> struct P { enum { V = 1 }; };\ntemplate <class T> struct P<T, int> { enum { V = 2 }; };\ntemplate <class T> struct P<int, T> { enum { V = 3 }; };\nint main() { P<int, int> p; return sizeof(p); }");
+	AssertOverloadError("More than one specialisation of the template matches equally", "template <class T, class U> struct P { enum { V = 1 }; };\ntemplate <class T> struct P<T, int> { enum { V = 2 }; };\ntemplate <class T> struct P<int, T> { enum { V = 3 }; };\nint main() { return P<int, int>::V; }");
 }
 
 

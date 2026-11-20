@@ -3167,16 +3167,18 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 
 		lliName = GetName(pcInit->mpcDeclarator);
 		pcName = pcInit->mpcDeclarator->GetName();
+		pcVariable = pcInit->mpcSymbol ? (mpcDefining ? mpcDefining : GetVariable(pcInit->mpcSymbol)) : NULL;
 		if ((lliName == -1) && pcName && pcName->IsQualifiedByClass())
 		{
-			//int CClass::siStatic = 0; defines a static data member, so the class is laid out.
+			//int CClass::siStatic = 0; defines a static data member, so the class is laid out.  The member is the
+			//class's own: each instance of a class template has one of the symbol (template<> int S<int>::k = 5;).
 			pcClass = mpcDefining ? mpcDefining->mpcClass : GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
 			if (pcClass)
 			{
 				CompleteClass(pcClass, pcInit);
+				pcVariable = (pcInit->mpcSymbol && !mpcDefining) ? OwnStatic(pcClass, pcInit->mpcSymbol) : pcVariable;
 			}
 		}
-		pcVariable = pcInit->mpcSymbol ? (mpcDefining ? mpcDefining : GetVariable(pcInit->mpcSymbol)) : NULL;
 		if (!pcInit->mpcSymbol || ((lliName == -1) && pcName && pcName->IsQualifiedByClass() && !(pcVariable && pcVariable->mpcClass)))
 		{
 			bResult &= Error(pcInit, "Only variables with simple names are supported by the compiler yet");

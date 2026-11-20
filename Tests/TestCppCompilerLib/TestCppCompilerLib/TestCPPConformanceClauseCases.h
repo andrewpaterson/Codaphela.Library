@@ -7445,3 +7445,108 @@ static const SConformanceCase gasConformanceClause8[] =
 		"int main() { U u = { 1, 2 }; return u.i; }\n"
 	},
 };
+
+
+//Clause 14, templates [temp].
+static const SConformanceCase gasConformanceClause14[] =
+{
+	//14.5.5.1 [temp.class.spec.match], 14.8.2.5 [temp.deduct.type] p8: a partial specialisation's arguments are matched as types of the forms T(T...), T(*)(T...), T T::*, T (T::*)(T...)
+	{
+		"TempSpecialisationFunctionTypes", 255,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct S { };\n"
+		"template<class T> struct Kind { enum { V = 0 }; };\n"
+		"template<class R, class... A> struct Kind<R(A...)> { enum { V = 1, N = sizeof...(A) }; };\n"
+		"template<class R, class... A> struct Kind<R(A..., ...)> { enum { V = 2 }; };\n"
+		"template<class R, class... A> struct Kind<R (*)(A...)> { enum { V = 3 }; };\n"
+		"template<class R, class C, class... A> struct Kind<R (C::*)(A...)> { enum { V = 4 }; };\n"
+		"template<class R, class C, class... A> struct Kind<R (C::*)(A...) const> { enum { V = 5 }; };\n"
+		"template<class M, class C> struct Kind<M C::*> { enum { V = 6 }; };\n"
+		"template<class T> struct Second;\n"
+		"template<class R, class A> struct Second<R(int, A)> { typedef A Type; typedef R Result; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Kind<int(int)>::V == 1 && Kind<void(int, char)>::N == 2 && Kind<void()>::N == 0) r += 1;\n"
+		"	if (Kind<int(int, ...)>::V == 2) r += 2;\n"
+		"	if (Kind<int (*)(long)>::V == 3) r += 4;\n"
+		"	if (Kind<int (S::*)(int)>::V == 4) r += 8;\n"
+		"	if (Kind<int (S::*)() const>::V == 5) r += 16;\n"
+		"	if (Kind<int S::*>::V == 6) r += 32;\n"
+		"	if (Kind<int>::V == 0 && Kind<int*>::V == 0 && Kind<S>::V == 0) r += 64;\n"
+		"	if (Same<Second<long(int, char*)>::Type, char*>::V && Same<Second<long(int, char*)>::Result, long>::V) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.5.1 [temp.class.spec.match] p2, 14.8.2.5 [temp.deduct.type] p5: an argument its parameters can't be deduced from is the type they give it, and a specialisation they give no type isn't chosen
+	{
+		"TempSpecialisationNonDeduced", 127,
+		"template<class...> using Void = void;\n"
+		"template<class T, class = void> struct HasType { enum { V = 0 }; };\n"
+		"template<class T> struct HasType<T, Void<typename T::Type>> { enum { V = 1 }; };\n"
+		"template<bool B, class T = void> struct EnableIf { };\n"
+		"template<class T> struct EnableIf<true, T> { typedef T Type; };\n"
+		"template<class T, class = void> struct IsSmall { enum { V = 0 }; };\n"
+		"template<class T> struct IsSmall<T, typename EnableIf<(sizeof(T) == 1)>::Type> { enum { V = 1 }; };\n"
+		"template<class T> struct Identity { typedef T Type; };\n"
+		"template<class T, class U> struct Pair { enum { V = 0 }; };\n"
+		"template<class T> struct Pair<T, typename Identity<T>::Type*> { enum { V = 1 }; };\n"
+		"struct A { typedef int Type; long l; };\n"
+		"struct B { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (HasType<A>::V == 1) r += 1;\n"
+		"	if (HasType<B>::V == 0) r += 2;\n"
+		"	if (HasType<int>::V == 0) r += 4;\n"
+		"	if (IsSmall<char>::V == 1 && IsSmall<A>::V == 0) r += 8;\n"
+		"	if (IsSmall<long>::V == 0) r += 16;\n"
+		"	if (Pair<int, int*>::V == 1 && Pair<A, A*>::V == 1) r += 32;\n"
+		"	if (Pair<int, char*>::V == 0 && Pair<int, int>::V == 0) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.5 [temp.class.spec], 14 [temp] p1: a variable template is partially specialised as a class template is
+	{
+		"TempVariablePartialSpecialisation", 63,
+		"template<class T> int gKind = 1;\n"
+		"template<class T> int gKind<T*> = 2;\n"
+		"template<class T, int N> int gKind<T[N]> = N;\n"
+		"template<> int gKind<char> = 16;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (gKind<int> == 1) r += 1;\n"
+		"	if (gKind<int*> == 2) r += 2;\n"
+		"	if (gKind<long[8]> == 8) r += 4;\n"
+		"	if (gKind<char> == 16) r += 8;\n"
+		"	if (gKind<char*> == 2) r += 16;\n"
+		"	gKind<int*> = 7;\n"
+		"	if (gKind<int*> == 7 && gKind<char*> == 2 && gKind<int> == 1) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.7.3 [temp.expl.spec] p1, p13: a static data member of a class template is explicitly specialised for an instance
+	{
+		"TempStaticMemberExplicitSpecialisation", 63,
+		"template<class T> struct S { static int k; static const int c; int Get() { return k; } };\n"
+		"template<class T> int S<T>::k = 1;\n"
+		"template<class T> const int S<T>::c = 3;\n"
+		"template<> int S<int>::k = 5;\n"
+		"template<> const int S<char>::c = 9;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S<int> s;\n"
+		"	if (S<int>::k == 5) r += 1;\n"
+		"	if (S<char>::k == 1) r += 2;\n"
+		"	if (S<long>::k == 1) r += 4;\n"
+		"	if (s.Get() == 5) r += 8;\n"
+		"	if (S<char>::c == 9 && S<int>::c == 3) r += 16;\n"
+		"	S<int>::k = 6;\n"
+		"	if (S<char>::k == 1 && S<int>::k == 6) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+};
