@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemLabel::Init(EKicadSchemLabelType eType, char* szText)
+void CKicadSchemLabel::Init(EKicadSchemLabelType eType, const char* szText)
 {
 	meType = eType;
 	mszText.Init(szText);

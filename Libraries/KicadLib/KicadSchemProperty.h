@@ -35,7 +35,7 @@ protected:
 	bool				mbHidden;
 
 public:
-	void				Init(char* szName, char* szValue);
+	void				Init(const char* szName, const char* szValue);
 	void				Kill(void);
 
 	void				SetPosition(SFloat64Vec2* psPosition, float64 fAngle);

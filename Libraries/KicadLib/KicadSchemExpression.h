@@ -76,7 +76,7 @@ public:
 	bool					GetDouble(size uiIndex, float64* pfValue);
 	bool					GetInt(size uiIndex, int32* piValue);
 
-	char*					GetChildText(const char* szName);
+	const char*				GetChildText(const char* szName);
 	bool					GetChildDouble(const char* szName, float64* pfValue);
 	bool					GetChildInt(const char* szName, int32* piValue);
 	bool					GetChildYesNo(const char* szName, bool* pbValue);

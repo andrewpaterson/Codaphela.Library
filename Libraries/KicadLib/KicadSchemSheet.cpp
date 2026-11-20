@@ -60,7 +60,7 @@ void CKicadSchemSheet::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSheet::SetUuid(char* szUuid)
+void CKicadSchemSheet::SetUuid(const char* szUuid)
 {
 	mszUuid.Set(szUuid);
 }
@@ -70,7 +70,7 @@ void CKicadSchemSheet::SetUuid(char* szUuid)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemSheetPin* CKicadSchemSheet::AddPin(char* szName, EKicadSchemLabelShape eShape)
+CKicadSchemSheetPin* CKicadSchemSheet::AddPin(const char* szName, EKicadSchemLabelShape eShape)
 {
 	CKicadSchemSheetPin*	pcPin;
 
@@ -124,9 +124,9 @@ CKicadSchemProperties* CKicadSchemSheet::GetProperties(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSheet::GetSheetName(void)
+const char* CKicadSchemSheet::GetSheetName(void)
 {
-	char*	szName;
+	const char*	szName;
 
 	//KiCad 6 named the fields "Sheet name" and "Sheet file".
 	szName = mcProperties.GetValue("Sheetname");
@@ -142,9 +142,9 @@ char* CKicadSchemSheet::GetSheetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSheet::GetSheetFile(void)
+const char* CKicadSchemSheet::GetSheetFile(void)
 {
-	char*	szFile;
+	const char*	szFile;
 
 	szFile = mcProperties.GetValue("Sheetfile");
 	if (szFile == NULL)

@@ -26,7 +26,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSymbol::Init(char* szLibId)
+void CKicadSchemSymbol::Init(const char* szLibId)
 {
 	mszLibId.Init(szLibId);
 	mszLibName.Init();
@@ -70,7 +70,7 @@ void CKicadSchemSymbol::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSymbol::SetLibName(char* szLibName)
+void CKicadSchemSymbol::SetLibName(const char* szLibName)
 {
 	mszLibName.Set(szLibName);
 }
@@ -80,7 +80,7 @@ void CKicadSchemSymbol::SetLibName(char* szLibName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSymbol::SetUuid(char* szUuid)
+void CKicadSchemSymbol::SetUuid(const char* szUuid)
 {
 	mszUuid.Set(szUuid);
 }
@@ -161,7 +161,7 @@ void CKicadSchemSymbol::SetDoNotPopulate(bool bDoNotPopulate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemSymbolInstance* CKicadSchemSymbol::AddInstance(char* szProject, char* szPath, char* szReference, int32 iUnit)
+CKicadSchemSymbolInstance* CKicadSchemSymbol::AddInstance(const char* szProject, const char* szPath, const char* szReference, int32 iUnit)
 {
 	CKicadSchemSymbolInstance*	pcInstance;
 
@@ -321,7 +321,7 @@ CKicadSchemProperties* CKicadSchemSymbol::GetProperties(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSymbol::GetReference(void)
+const char* CKicadSchemSymbol::GetReference(void)
 {
 	return mcProperties.GetValue("Reference");
 }
@@ -331,7 +331,7 @@ char* CKicadSchemSymbol::GetReference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSymbol::GetValue(void)
+const char* CKicadSchemSymbol::GetValue(void)
 {
 	return mcProperties.GetValue("Value");
 }

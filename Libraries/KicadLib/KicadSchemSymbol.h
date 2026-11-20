@@ -50,11 +50,11 @@ protected:
 	CListVariable			macInstances;
 
 public:
-	void						Init(char* szLibId);
+	void						Init(const char* szLibId);
 	void						Kill(void);
 
-	void						SetLibName(char* szLibName);
-	void						SetUuid(char* szUuid);
+	void						SetLibName(const char* szLibName);
+	void						SetUuid(const char* szUuid);
 	void						SetPosition(SFloat64Vec2* psPosition, float64 fAngle);
 	void						SetMirror(EKicadSchemMirror eMirror);
 	void						SetUnit(int32 iUnit);
@@ -62,7 +62,7 @@ public:
 	void						SetInBom(bool bInBom);
 	void						SetOnBoard(bool bOnBoard);
 	void						SetDoNotPopulate(bool bDoNotPopulate);
-	CKicadSchemSymbolInstance*	AddInstance(char* szProject, char* szPath, char* szReference, int32 iUnit);
+	CKicadSchemSymbolInstance*	AddInstance(const char* szProject, const char* szPath, const char* szReference, int32 iUnit);
 
 	const char*						GetLibId(void) const;
 	const char*						GetLibName(void) const;
@@ -78,8 +78,8 @@ public:
 	bool						IsOnBoard(void) const;
 	bool						IsDoNotPopulate(void) const;
 	CKicadSchemProperties*		GetProperties(void);
-	char*						GetReference(void);
-	char*						GetValue(void);
+	const char*					GetReference(void);
+	const char*					GetValue(void);
 
 	size						NumInstances(void) const;
 	CKicadSchemSymbolInstance*	GetInstance(size uiIndex);

@@ -210,7 +210,7 @@ void CKicadSchemFile::SetVersion(int32 iVersion)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemFile::SetGenerator(char* szGenerator, char* szGeneratorVersion)
+void CKicadSchemFile::SetGenerator(const char* szGenerator, const char* szGeneratorVersion)
 {
 	mszGenerator.Set(szGenerator);
 	mszGeneratorVersion.Set(szGeneratorVersion);
@@ -221,7 +221,7 @@ void CKicadSchemFile::SetGenerator(char* szGenerator, char* szGeneratorVersion)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemFile::SetUuid(char* szUuid)
+void CKicadSchemFile::SetUuid(const char* szUuid)
 {
 	mszUuid.Set(szUuid);
 }
@@ -231,7 +231,7 @@ void CKicadSchemFile::SetUuid(char* szUuid)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemFile::SetPaper(char* szPaper)
+void CKicadSchemFile::SetPaper(const char* szPaper)
 {
 	mszPaper.Set(szPaper);
 }
@@ -241,7 +241,7 @@ void CKicadSchemFile::SetPaper(char* szPaper)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemFile::SetTitleBlock(char* szTitle, char* szDate, char* szRevision, char* szCompany)
+void CKicadSchemFile::SetTitleBlock(const char* szTitle, const char* szDate, const char* szRevision, const char* szCompany)
 {
 	mszTitle.Set(szTitle);
 	mszDate.Set(szDate);
@@ -254,7 +254,7 @@ void CKicadSchemFile::SetTitleBlock(char* szTitle, char* szDate, char* szRevisio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemLibSymbol* CKicadSchemFile::AddLibSymbol(char* szName)
+CKicadSchemLibSymbol* CKicadSchemFile::AddLibSymbol(const char* szName)
 {
 	CKicadSchemLibSymbol*	pcLibSymbol;
 
@@ -268,7 +268,7 @@ CKicadSchemLibSymbol* CKicadSchemFile::AddLibSymbol(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemSymbol* CKicadSchemFile::AddSymbol(char* szLibId)
+CKicadSchemSymbol* CKicadSchemFile::AddSymbol(const char* szLibId)
 {
 	CKicadSchemSymbol*	pcSymbol;
 
@@ -338,7 +338,7 @@ CKicadSchemBusEntry* CKicadSchemFile::AddBusEntry(SFloat64Vec2* psPosition, SFlo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemLabel* CKicadSchemFile::AddLabel(EKicadSchemLabelType eType, char* szText)
+CKicadSchemLabel* CKicadSchemFile::AddLabel(EKicadSchemLabelType eType, const char* szText)
 {
 	CKicadSchemLabel*	pcLabel;
 
@@ -486,7 +486,7 @@ CKicadSchemLibSymbol* CKicadSchemFile::GetLibSymbol(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemLibSymbol* CKicadSchemFile::GetLibSymbol(char* szName)
+CKicadSchemLibSymbol* CKicadSchemFile::GetLibSymbol(const char* szName)
 {
 	size					i;
 	size					uiNumElements;
@@ -544,7 +544,7 @@ CKicadSchemSymbol* CKicadSchemFile::GetSymbol(char* szReference)
 	size				i;
 	size				uiNumElements;
 	CKicadSchemSymbol*	pcSymbol;
-	char*				szSymbolReference;
+	const char*			szSymbolReference;
 
 	uiNumElements = macSymbols.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -564,7 +564,7 @@ CKicadSchemSymbol* CKicadSchemFile::GetSymbol(char* szReference)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemSymbol* CKicadSchemFile::GetSymbolByUuid(char* szUuid)
+CKicadSchemSymbol* CKicadSchemFile::GetSymbolByUuid(const char* szUuid)
 {
 	size				i;
 	size				uiNumElements;

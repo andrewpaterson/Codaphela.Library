@@ -48,7 +48,7 @@ void CKicadSchemNet::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemNet::SetName(char* szName, EKicadSchemNetNameSource eSource)
+void CKicadSchemNet::SetName(const char* szName, EKicadSchemNetNameSource eSource)
 {
 	mszName.Set(szName);
 	meNameSource = eSource;

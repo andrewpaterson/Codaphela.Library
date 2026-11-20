@@ -64,18 +64,18 @@ public:
 	bool					Import(char* szText, lsize iTextLen, char* szFileName);
 
 	void					SetVersion(int32 iVersion);
-	void					SetGenerator(char* szGenerator, char* szGeneratorVersion);
-	void					SetUuid(char* szUuid);
-	void					SetPaper(char* szPaper);
-	void					SetTitleBlock(char* szTitle, char* szDate, char* szRevision, char* szCompany);
+	void					SetGenerator(const char* szGenerator, const char* szGeneratorVersion);
+	void					SetUuid(const char* szUuid);
+	void					SetPaper(const char* szPaper);
+	void					SetTitleBlock(const char* szTitle, const char* szDate, const char* szRevision, const char* szCompany);
 
-	CKicadSchemLibSymbol*	AddLibSymbol(char* szName);
-	CKicadSchemSymbol*		AddSymbol(char* szLibId);
+	CKicadSchemLibSymbol*	AddLibSymbol(const char* szName);
+	CKicadSchemSymbol*		AddSymbol(const char* szLibId);
 	CKicadSchemWire*		AddWire(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, bool bBus);
 	CKicadSchemJunction*	AddJunction(SFloat64Vec2* psPosition, float64 fDiameter);
 	CKicadSchemNoConnect*	AddNoConnect(SFloat64Vec2* psPosition);
 	CKicadSchemBusEntry*	AddBusEntry(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
-	CKicadSchemLabel*		AddLabel(EKicadSchemLabelType eType, char* szText);
+	CKicadSchemLabel*		AddLabel(EKicadSchemLabelType eType, const char* szText);
 	CKicadSchemSheet*		AddSheet(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
 
 	const char*					GetFileName(void) const;
@@ -91,13 +91,13 @@ public:
 
 	size					NumLibSymbols(void) const;
 	CKicadSchemLibSymbol*	GetLibSymbol(size uiIndex);
-	CKicadSchemLibSymbol*	GetLibSymbol(char* szName);
+	CKicadSchemLibSymbol*	GetLibSymbol(const char* szName);
 	CKicadSchemLibSymbol*	GetLibSymbol(CKicadSchemSymbol* pcSymbol);
 
 	size					NumSymbols(void) const;
 	CKicadSchemSymbol*		GetSymbol(size uiIndex);
 	CKicadSchemSymbol*		GetSymbol(char* szReference);
-	CKicadSchemSymbol*		GetSymbolByUuid(char* szUuid);
+	CKicadSchemSymbol*		GetSymbolByUuid(const char* szUuid);
 
 	size					NumWires(void) const;
 	CKicadSchemWire*		GetWire(size uiIndex);

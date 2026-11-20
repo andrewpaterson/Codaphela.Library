@@ -30,7 +30,7 @@ char* gaszKicadSchemLabelShapeNames[] = { "none", "input", "output", "bidirectio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EKicadSchemPinType ParseKicadSchemPinType(char* szType)
+EKicadSchemPinType ParseKicadSchemPinType(const char* szType)
 {
 	size	i;
 
@@ -49,7 +49,7 @@ EKicadSchemPinType ParseKicadSchemPinType(char* szType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EKicadSchemLabelShape ParseKicadSchemLabelShape(char* szShape)
+EKicadSchemLabelShape ParseKicadSchemLabelShape(const char* szShape)
 {
 	size	i;
 

@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemProperty::Init(char* szName, char* szValue)
+void CKicadSchemProperty::Init(const char* szName, const char* szValue)
 {
 	mszName.Init(szName);
 	mszValue.Init(szValue);

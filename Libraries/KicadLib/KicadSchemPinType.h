@@ -54,8 +54,8 @@ enum EKicadSchemLabelShape
 };
 
 
-EKicadSchemPinType		ParseKicadSchemPinType(char* szType);
-EKicadSchemLabelShape	ParseKicadSchemLabelShape(char* szShape);
+EKicadSchemPinType		ParseKicadSchemPinType(const char* szType);
+EKicadSchemLabelShape	ParseKicadSchemLabelShape(const char* szShape);
 char*					KicadSchemPinTypeName(EKicadSchemPinType eType);
 char*					KicadSchemLabelShapeName(EKicadSchemLabelShape eShape);
 

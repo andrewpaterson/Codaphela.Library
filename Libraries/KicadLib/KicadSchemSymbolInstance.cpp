@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSymbolInstance::Init(char* szProject, char* szPath, char* szReference, int32 iUnit)
+void CKicadSchemSymbolInstance::Init(const char* szProject, const char* szPath, const char* szReference, int32 iUnit)
 {
 	mszProject.Init(szProject);
 	mszPath.Init(szPath);

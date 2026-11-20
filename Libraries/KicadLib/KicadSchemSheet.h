@@ -39,15 +39,15 @@ public:
 	void					Init(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
 	void					Kill(void);
 
-	void					SetUuid(char* szUuid);
-	CKicadSchemSheetPin*	AddPin(char* szName, EKicadSchemLabelShape eShape);
+	void					SetUuid(const char* szUuid);
+	CKicadSchemSheetPin*	AddPin(const char* szName, EKicadSchemLabelShape eShape);
 
 	SFloat64Vec2*			GetPosition(void);
 	SFloat64Vec2*			GetSize(void);
 	const char*					GetUuid(void) const;
 	CKicadSchemProperties*	GetProperties(void);
-	char*					GetSheetName(void);
-	char*					GetSheetFile(void);
+	const char*				GetSheetName(void);
+	const char*				GetSheetFile(void);
 
 	size					NumPins(void) const;
 	CKicadSchemSheetPin*	GetPin(size uiIndex);

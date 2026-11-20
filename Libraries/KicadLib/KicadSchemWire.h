@@ -39,7 +39,7 @@ public:
 	void				Init(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, bool bBus);
 	void				Kill(void);
 
-	void				SetUuid(char* szUuid);
+	void				SetUuid(const char* szUuid);
 
 	SFloat64Vec2*		GetStart(void);
 	SFloat64Vec2*		GetEnd(void);

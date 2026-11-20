@@ -196,7 +196,7 @@ TRISTATE CKicadSchemImporter::ImportLibSymbols(CKicadSchemExpression* pcLibSymbo
 TRISTATE CKicadSchemImporter::ImportLibSymbol(CKicadSchemExpression* pcExpression)
 {
 	TRISTATE				tResult;
-	char*					szName;
+	const char*				szName;
 	CKicadSchemLibSymbol*	pcLibSymbol;
 	CKicadSchemExpression*	pcChild;
 	size					i;
@@ -256,7 +256,7 @@ TRISTATE CKicadSchemImporter::ImportLibSymbol(CKicadSchemExpression* pcExpressio
 TRISTATE CKicadSchemImporter::ImportLibSubSymbol(CKicadSchemExpression* pcExpression, CKicadSchemLibSymbol* pcLibSymbol)
 {
 	TRISTATE				tResult;
-	char*					szName;
+	const char*				szName;
 	int32					iUnit;
 	int32					iBodyStyle;
 	CKicadSchemExpression*	pcChild;
@@ -289,8 +289,8 @@ TRISTATE CKicadSchemImporter::ImportLibSubSymbol(CKicadSchemExpression* pcExpres
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CKicadSchemImporter::ImportLibPin(CKicadSchemExpression* pcExpression, CKicadSchemLibSymbol* pcLibSymbol, int32 iUnit, int32 iBodyStyle)
 {
-	char*					szType;
-	char*					szGraphicStyle;
+	const char*				szType;
+	const char*				szGraphicStyle;
 	EKicadSchemPinType		eType;
 	CKicadSchemLibPin*		pcPin;
 	SFloat64Vec2			sPosition;
@@ -336,8 +336,8 @@ TRISTATE CKicadSchemImporter::ImportLibPin(CKicadSchemExpression* pcExpression, 
 TRISTATE CKicadSchemImporter::ImportSymbol(CKicadSchemExpression* pcExpression)
 {
 	TRISTATE				tResult;
-	char*					szLibId;
-	char*					szMirror;
+	const char*				szLibId;
+	const char*				szMirror;
 	CKicadSchemSymbol*		pcSymbol;
 	SFloat64Vec2			sPosition;
 	float64					fAngle;
@@ -426,9 +426,9 @@ TRISTATE CKicadSchemImporter::ImportSymbolInstances(CKicadSchemExpression* pcIns
 	size					j;
 	CKicadSchemExpression*	pcProject;
 	CKicadSchemExpression*	pcPath;
-	char*					szProject;
-	char*					szPath;
-	char*					szReference;
+	const char*				szProject;
+	const char*				szPath;
+	const char*				szReference;
 	int32					iUnit;
 
 	//(instances (project "Name" (path "/uuid" (reference "R1") (unit 1))))
@@ -475,9 +475,9 @@ TRISTATE CKicadSchemImporter::ImportOldSymbolInstances(CKicadSchemExpression* pc
 {
 	size					i;
 	CKicadSchemExpression*	pcPath;
-	char*					szPath;
-	char*					szUuid;
-	char*					szReference;
+	const char*				szPath;
+	const char*				szUuid;
+	const char*				szReference;
 	int32					iUnit;
 	CKicadSchemSymbol*		pcSymbol;
 
@@ -528,8 +528,8 @@ TRISTATE CKicadSchemImporter::ImportProperties(CKicadSchemExpression* pcExpressi
 	CKicadSchemExpression*	pcChild;
 	CKicadSchemExpression*	pcEffects;
 	CKicadSchemProperty*	pcProperty;
-	char*					szName;
-	char*					szValue;
+	const char*				szName;
+	const char*				szValue;
 	SFloat64Vec2			sPosition;
 	float64					fAngle;
 	bool					bHidden;
@@ -665,8 +665,8 @@ TRISTATE CKicadSchemImporter::ImportBusEntry(CKicadSchemExpression* pcExpression
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CKicadSchemImporter::ImportLabel(CKicadSchemExpression* pcExpression, EKicadSchemLabelType eType)
 {
-	char*				szText;
-	char*				szShape;
+	const char*			szText;
+	const char*			szShape;
 	SFloat64Vec2		sPosition;
 	float64				fAngle;
 	CKicadSchemLabel*	pcLabel;
@@ -709,8 +709,8 @@ TRISTATE CKicadSchemImporter::ImportSheet(CKicadSchemExpression* pcExpression)
 	CKicadSchemExpression*	pcChild;
 	CKicadSchemSheet*		pcSheet;
 	CKicadSchemSheetPin*	pcPin;
-	char*					szName;
-	char*					szShape;
+	const char*				szName;
+	const char*				szShape;
 	size					i;
 
 	//(sheet (at 100 50) (size 30 20) ... (property "Sheetname" "LED Display" ...) (property "Sheetfile" "LED Display.kicad_sch" ...)
@@ -813,7 +813,7 @@ bool CKicadSchemImporter::IsHidden(CKicadSchemExpression* pcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CKicadSchemImporter::GetUnitAndBodyStyle(char* szSubSymbolName, int32* piUnit, int32* piBodyStyle)
+bool CKicadSchemImporter::GetUnitAndBodyStyle(const char* szSubSymbolName, int32* piUnit, int32* piBodyStyle)
 {
 	CChars	sz;
 	size	iBodyStyleSeparator;

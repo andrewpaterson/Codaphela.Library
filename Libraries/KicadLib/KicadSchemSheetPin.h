@@ -36,7 +36,7 @@ protected:
 	float64					mfAngle;
 
 public:
-	void					Init(char* szName, EKicadSchemLabelShape eShape);
+	void					Init(const char* szName, EKicadSchemLabelShape eShape);
 	void					Kill(void);
 
 	void					SetPosition(SFloat64Vec2* psPosition, float64 fAngle);

@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemSheetPin::Init(char* szName, EKicadSchemLabelShape eShape)
+void CKicadSchemSheetPin::Init(const char* szName, EKicadSchemLabelShape eShape)
 {
 	mszName.Init(szName);
 	meShape = eShape;

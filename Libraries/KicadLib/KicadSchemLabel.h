@@ -44,7 +44,7 @@ protected:
 	EKicadSchemLabelShape	meShape;
 
 public:
-	void					Init(EKicadSchemLabelType eType, char* szText);
+	void					Init(EKicadSchemLabelType eType, const char* szText);
 	void					Kill(void);
 
 	void					SetPosition(SFloat64Vec2* psPosition, float64 fAngle);

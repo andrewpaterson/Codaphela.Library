@@ -34,7 +34,7 @@ protected:
 	int32	miUnit;
 
 public:
-	void	Init(char* szProject, char* szPath, char* szReference, int32 iUnit);
+	void	Init(const char* szProject, const char* szPath, const char* szReference, int32 iUnit);
 	void	Kill(void);
 
 	const char*	GetProject(void) const;

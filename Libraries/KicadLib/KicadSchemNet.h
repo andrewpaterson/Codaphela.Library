@@ -45,7 +45,7 @@ public:
 	void						Init(void);
 	void						Kill(void);
 
-	void						SetName(char* szName, EKicadSchemNetNameSource eSource);
+	void						SetName(const char* szName, EKicadSchemNetNameSource eSource);
 	void						AddSubnet(CKicadSchemSubnet* pcSubnet);
 
 	const char*						GetName(void) const;

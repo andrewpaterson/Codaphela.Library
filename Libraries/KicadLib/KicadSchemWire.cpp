@@ -48,7 +48,7 @@ void CKicadSchemWire::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemWire::SetUuid(char* szUuid)
+void CKicadSchemWire::SetUuid(const char* szUuid)
 {
 	mszUuid.Set(szUuid);
 }

@@ -474,8 +474,8 @@ void CKicadSchemNetlist::NameNet(CKicadSchemNet* pcNet)
 	SKicadSchemNetPin*		psFirstPin;
 	CKicadSchemLibSymbol*	pcLibSymbol;
 	CKicadSchemLabel*		pcLabel;
-	char*					szGlobal;
-	char*					szLocal;
+	const char*				szGlobal;
+	const char*				szLocal;
 	const char*					szName;
 	int						iCompare;
 	CChars					szPinName;
@@ -585,8 +585,8 @@ bool CKicadSchemNetlist::IsWireNode(SKicadSchemNetNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 bool CKicadSchemNetlist::IsSharedPin(CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin)
 {
-	char*	szReference;
-	size	uiLength;
+	const char*	szReference;
+	size		uiLength;
 
 	if ((pcPin->GetUnit() != 0) || (pcLibSymbol->NumUnits() <= 1) || pcLibSymbol->IsPower())
 	{
@@ -617,7 +617,7 @@ bool CKicadSchemNetlist::IsGlobalPowerPin(CKicadSchemLibSymbol* pcLibSymbol, CKi
 //////////////////////////////////////////////////////////////////////////
 const char* CKicadSchemNetlist::GetGlobalPowerName(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin)
 {
-	char*	szValue;
+	const char*	szValue;
 
 	if (pcLibSymbol->IsPower())
 	{
@@ -777,7 +777,7 @@ void CKicadSchemNetlist::AddBusMembers(void)
 	CKicadSchemBus*		pcBus;
 	CKicadSchemBus*		pcOther;
 	CKicadSchemNet*		pcNet;
-	char*				szName;
+	const char*			szName;
 	CChars				szNetName;
 
 	aiDone.Init();
@@ -990,7 +990,7 @@ CKicadSchemSubnet* CKicadSchemNetlist::GetPinSubnet(CKicadSchemSymbol* pcSymbol,
 // symbol with the reference that has it.
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemSubnet* CKicadSchemNetlist::GetPinSubnet(char* szReference, char* szPinNumber)
+CKicadSchemSubnet* CKicadSchemNetlist::GetPinSubnet(const char* szReference, const char* szPinNumber)
 {
 	size				i;
 	size				j;
@@ -1017,7 +1017,7 @@ CKicadSchemSubnet* CKicadSchemNetlist::GetPinSubnet(char* szReference, char* szP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemNet* CKicadSchemNetlist::GetPinNet(char* szReference, const char* szPinNumber)
+CKicadSchemNet* CKicadSchemNetlist::GetPinNet(const char* szReference, const char* szPinNumber)
 {
 	CKicadSchemSubnet*	pcSubnet;
 

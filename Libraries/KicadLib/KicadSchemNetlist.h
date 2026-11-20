@@ -90,8 +90,8 @@ public:
 	CKicadSchemNet*		GetNet(size uiIndex);
 	CKicadSchemNet*		GetNet(char* szName);
 	CKicadSchemSubnet*	GetPinSubnet(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
-	CKicadSchemSubnet*	GetPinSubnet(char* szReference, char* szPinNumber);
-	CKicadSchemNet*		GetPinNet(char* szReference, const char* szPinNumber);
+	CKicadSchemSubnet*	GetPinSubnet(const char* szReference, const char* szPinNumber);
+	CKicadSchemNet*		GetPinNet(const char* szReference, const char* szPinNumber);
 	size				NumBuses(void) const;
 	CKicadSchemBus*		GetBus(size uiIndex);
 	CKicadSchemBus*		GetBus(char* szName);

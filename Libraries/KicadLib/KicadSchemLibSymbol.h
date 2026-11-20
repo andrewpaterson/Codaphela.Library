@@ -40,11 +40,11 @@ protected:
 	int32					miNumUnits;
 
 public:
-	void					Init(char* szName);
+	void					Init(const char* szName);
 	void					Kill(void);
 
-	CKicadSchemLibPin*		AddPin(EKicadSchemPinType eType, char* szGraphicStyle, int32 iUnit, int32 iBodyStyle);
-	void					SetExtends(char* szExtends);
+	CKicadSchemLibPin*		AddPin(EKicadSchemPinType eType, const char* szGraphicStyle, int32 iUnit, int32 iBodyStyle);
+	void					SetExtends(const char* szExtends);
 	void					SetPower(bool bPower);
 	void					SetPinNamesHidden(bool bHidden);
 	void					SetPinNumbersHidden(bool bHidden);

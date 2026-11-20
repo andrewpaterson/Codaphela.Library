@@ -54,7 +54,7 @@ void CKicadSchemProperties::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemProperty* CKicadSchemProperties::Add(char* szName, char* szValue)
+CKicadSchemProperty* CKicadSchemProperties::Add(const char* szName, const char* szValue)
 {
 	CKicadSchemProperty*	pcProperty;
 

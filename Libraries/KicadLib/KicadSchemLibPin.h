@@ -43,11 +43,11 @@ protected:
 	int32				miBodyStyle;
 
 public:
-	void				Init(EKicadSchemPinType eType, char* szGraphicStyle, int32 iUnit, int32 iBodyStyle);
+	void				Init(EKicadSchemPinType eType, const char* szGraphicStyle, int32 iUnit, int32 iBodyStyle);
 	void				Kill(void);
 
-	void				SetName(char* szName);
-	void				SetNumber(char* szNumber);
+	void				SetName(const char* szName);
+	void				SetNumber(const char* szNumber);
 	void				SetPosition(SFloat64Vec2* psPosition, float64 fAngle);
 	void				SetLength(float64 fLength);
 	void				SetHidden(bool bHidden);

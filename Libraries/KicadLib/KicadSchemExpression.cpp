@@ -314,7 +314,7 @@ bool CKicadSchemExpression::GetInt(size uiIndex, int32* piValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemExpression::GetChildText(const char* szName)
+const char* CKicadSchemExpression::GetChildText(const char* szName)
 {
 	CKicadSchemExpression*	pcChild;
 
@@ -368,7 +368,7 @@ bool CKicadSchemExpression::GetChildInt(const char* szName, int32* piValue)
 bool CKicadSchemExpression::GetChildYesNo(const char* szName, bool* pbValue)
 {
 	CKicadSchemExpression*	pcChild;
-	char*					szValue;
+	const char*				szValue;
 
 	//KiCad 6 wrote flags as an empty list, (fields_autoplaced), and later versions as (fields_autoplaced yes).
 	pcChild = FindChild(szName);

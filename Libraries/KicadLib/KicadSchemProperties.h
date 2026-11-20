@@ -33,7 +33,7 @@ public:
 	void					Init(void);
 	void					Kill(void);
 
-	CKicadSchemProperty*	Add(char* szName, char* szValue);
+	CKicadSchemProperty*	Add(const char* szName, const char* szValue);
 
 	CKicadSchemProperty*	Get(const char* szName);
 	const char*					GetValue(const char* szName);

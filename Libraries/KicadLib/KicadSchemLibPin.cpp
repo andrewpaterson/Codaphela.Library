@@ -25,7 +25,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemLibPin::Init(EKicadSchemPinType eType, char* szGraphicStyle, int32 iUnit, int32 iBodyStyle)
+void CKicadSchemLibPin::Init(EKicadSchemPinType eType, const char* szGraphicStyle, int32 iUnit, int32 iBodyStyle)
 {
 	meType = eType;
 	mszGraphicStyle.Init(szGraphicStyle);
@@ -56,7 +56,7 @@ void CKicadSchemLibPin::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemLibPin::SetName(char* szName)
+void CKicadSchemLibPin::SetName(const char* szName)
 {
 	mszName.Set(szName);
 }
@@ -66,7 +66,7 @@ void CKicadSchemLibPin::SetName(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemLibPin::SetNumber(char* szNumber)
+void CKicadSchemLibPin::SetNumber(const char* szNumber)
 {
 	mszNumber.Set(szNumber);
 }

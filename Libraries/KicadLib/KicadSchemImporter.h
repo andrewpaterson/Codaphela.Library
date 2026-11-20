@@ -59,7 +59,7 @@ protected:
 	bool		GetAt(CKicadSchemExpression* pcExpression, SFloat64Vec2* psPosition, float64* pfAngle);
 	bool		GetXY(CKicadSchemExpression* pcExpression, SFloat64Vec2* psPoint);
 	bool		IsHidden(CKicadSchemExpression* pcExpression);
-	bool		GetUnitAndBodyStyle(char* szSubSymbolName, int32* piUnit, int32* piBodyStyle);
+	bool		GetUnitAndBodyStyle(const char* szSubSymbolName, int32* piUnit, int32* piBodyStyle);
 
 	TRISTATE	Error(CKicadSchemExpression* pcExpression, char* szError);
 };
