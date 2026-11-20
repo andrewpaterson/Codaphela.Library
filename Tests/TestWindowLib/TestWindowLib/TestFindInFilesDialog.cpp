@@ -75,6 +75,17 @@ public:
 		mszDirectory.Kill();
 	}
 
+	bool FindChooseDirectory(const char* szDirectory, CChars* pszDest) override
+	{
+		//From /Code it chooses /Other; from anywhere else, nothing.
+		if (strcmp(szDirectory, "/Code") != 0)
+		{
+			return false;
+		}
+		pszDest->Append("/Other");
+		return true;
+	}
+
 	bool FindProblem(CChars* pszDest) override
 	{
 		if (mbStarted && !mcSearch.IsValid())
@@ -334,6 +345,18 @@ void TestFindInFilesDialogSearch(void)
 		AssertString("/Code", cSearcher.mszDirectory.Text());
 		AssertString("Alpha@Alpha.cpp 1,alpha@Alpha.cpp 3,Alpha@Beta.cpp 3,ALPHA@Beta.cpp 3", PrintFindResults(pDialog, &szResults));
 		AssertTrue(pDialogWindow->GetFocus()->GetFocussedComponent() == pDialog->GetField());
+		//The button beside the directory has the searcher choose one, at the next tick, and it is searched.
+		AssertTrue(pDialog->GetBrowseButton().IsNotNull());
+		pDialog->GetBrowseButton()->Click();
+		AssertString("/Code", pDialog->GetDirectory());
+		pDialogWindow->RunPosted();
+		AssertString("/Other", pDialog->GetDirectory());
+		pDialog->Finish();
+		AssertString("alpha@Gamma.cpp 1", PrintFindResults(pDialog, &szResults));
+		pDialog->GetBrowseButton()->Click();
+		pDialogWindow->RunPosted();
+		AssertString("/Other", pDialog->GetDirectory());
+		pDialog->SetDirectory("/Code");
 		pDialog->SetDirectory("/Other");
 		pDialog->Finish();
 		AssertString("alpha@Gamma.cpp 1", PrintFindResults(pDialog, &szResults));

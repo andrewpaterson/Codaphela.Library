@@ -106,6 +106,10 @@ public:
 	//Why the query as it was started can find nothing (its text isn't a regular expression, say), appended to
 	//pszDest.  False if nothing is wrong with it.
 	virtual bool	FindProblem(CChars* pszDest);
+
+	//The button beside a directory scope's field was pressed: a directory chosen some way (a file chooser), starting
+	//from szDirectory, appended to pszDest.  Called at a tick, so a dialog can be shown.  False if none was chosen.
+	virtual bool	FindChooseDirectory(const char* szDirectory, CChars* pszDest);
 };
 
 
@@ -161,6 +165,7 @@ protected:
 	Ptr<CGridContainer>		mpBottom;
 	bool					mbReplacing;
 	Ptr<CTextField>			mpDirectory;  //On the page of the scope that has one, NULL if none does.
+	Ptr<CButton>			mpBrowse;  //Beside it: the searcher chooses the directory.
 	Ptr<CScrollPane>		mpScrollPane;
 	Ptr<CListContainer>		mpList;
 	Ptr<CCodePreview>		mpPreview;
@@ -219,6 +224,7 @@ public:
 	Ptr<CTextField>		GetFileMaskField(void) const;
 	Ptr<CTextField>		GetReplaceField(void) const;
 	Ptr<CButton>		GetReplaceAllButton(void) const;
+	Ptr<CButton>		GetBrowseButton(void) const;
 	Ptr<CListContainer>	GetList(void) const;
 	Ptr<CCodeEditor>	GetPreview(void);
 	Ptr<CCodePreview>	GetCodePreview(void) const;
@@ -234,6 +240,8 @@ public:
 	void			ScopeSelected(void);
 	void			OpenInFindWindow(void);
 	void			ReplaceAll(void);
+	void			BrowseClicked(void);
+	void			ChooseDirectory(void);
 	void			Up(void);
 	void			Down(void);
 	void			PageUp(void);

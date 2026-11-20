@@ -130,6 +130,7 @@ void CFindInFilesSearcher::FindPreviewShown(SFindInFilesItem* psItem, Ptr<CTextA
 
 
 bool CFindInFilesSearcher::FindProblem(CChars* pszDest) { return false; }
+bool CFindInFilesSearcher::FindChooseDirectory(const char* szDirectory, CChars* pszDest) { return false; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -210,6 +211,7 @@ void CFindInFilesDialog::Class(void)
 	M_Pointer(mpBottom);
 	U_Bool(mbReplacing);
 	M_Pointer(mpDirectory);
+	M_Pointer(mpBrowse);
 	M_Pointer(mpScrollPane);
 	M_Pointer(mpList);
 	M_Pointer(mpPreview);
@@ -274,6 +276,10 @@ void CFindInFilesDialog::Free(void)
 	if (mpDirectory.IsNotNull())
 	{
 		mpDirectory->GetChangeEvent()->Remove(this);
+	}
+	if (mpBrowse.IsNotNull())
+	{
+		mpBrowse->GetClickEvent()->Remove(this);
 	}
 	if (mpList.IsNotNull())
 	{
@@ -514,6 +520,8 @@ size CFindInFilesDialog::AddScope(const char* szName, const char* szDescription)
 //////////////////////////////////////////////////////////////////////////
 size CFindInFilesDialog::AddDirectoryScope(const char* szName, const char* szDirectory)
 {
+	Ptr<CGridContainer>	pRow;
+
 	if (mpDirectory.IsNotNull())
 	{
 		mpDirectory->GetChangeEvent()->Remove(this);
@@ -522,7 +530,46 @@ size CFindInFilesDialog::AddDirectoryScope(const char* szName, const char* szDir
 	mpDirectory->SetColumns(10);
 	mpDirectory->SetAlignment(CSH_Stretch, CSV_Center);
 	mpDirectory->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
-	return AddScopePage(szName, mpDirectory);
+
+	//Beside it, a button that has the searcher choose the directory.
+	if (mpBrowse.IsNotNull())
+	{
+		mpBrowse->GetClickEvent()->Remove(this);
+	}
+	mpBrowse = OMalloc<CButton>(mpDialog->GetWindow(), mpDialog->GetLook()->pcTheme, "...");
+	mpBrowse->SetAlignment(CSH_Right, CSV_Center);
+	mpBrowse->GetClickEvent()->Add(this, &CFindInFilesDialog::BrowseClicked);
+	pRow = OMalloc<CGridContainer>(mpDialog->GetWindow());
+	pRow->SetAlignment(CSH_Stretch, CSV_Center);
+	pRow->AddComponent(mpDirectory, 0, 0, 1, 1, 1, 0);
+	pRow->AddComponent(CreateGap(), 1, 0);
+	pRow->AddComponent(mpBrowse, 2, 0);
+	return AddScopePage(szName, pRow);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The button beside the directory: the searcher chooses one at the next
+// tick (a dialog can't be shown from the click), and it is the field's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFindInFilesDialog::BrowseClicked(void)
+{
+	mpDialog->GetWindow()->Post(this, &CFindInFilesDialog::ChooseDirectory);
+}
+
+
+void CFindInFilesDialog::ChooseDirectory(void)
+{
+	CChars	szDirectory;
+
+	szDirectory.Init();
+	if ((mpcSearcher != NULL) && mpcSearcher->FindChooseDirectory(GetDirectory(), &szDirectory))
+	{
+		SetDirectory(szDirectory.Text());
+	}
+	szDirectory.Kill();
 }
 
 
@@ -1174,6 +1221,7 @@ Ptr<CCheckBox> CFindInFilesDialog::GetRegexBox(void) const { return mpRegex; }
 Ptr<CTextField> CFindInFilesDialog::GetFileMaskField(void) const { return mpFileMask; }
 Ptr<CTextField> CFindInFilesDialog::GetReplaceField(void) const { return mpReplace; }
 Ptr<CButton> CFindInFilesDialog::GetReplaceAllButton(void) const { return mpReplaceAll; }
+Ptr<CButton> CFindInFilesDialog::GetBrowseButton(void) const { return mpBrowse; }
 Ptr<CListContainer> CFindInFilesDialog::GetList(void) const { return mpList; }
 Ptr<CCodeEditor> CFindInFilesDialog::GetPreview(void) { return mpPreview->GetEditor(); }
 Ptr<CCodePreview> CFindInFilesDialog::GetCodePreview(void) const { return mpPreview; }
