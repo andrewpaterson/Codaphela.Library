@@ -1097,6 +1097,10 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			mapcFailed.Add(pcDefinition->mpcDeclarator);
 			return true;
 		}
+		if (!CheckDefaultedOrDeleted(pcFunction, pcDefinition))
+		{
+			return false;
+		}
 		pcFunction->SetDefinition(pcDefinition);
 		mpcConstants->CheckDefinition(pcFunction);
 		return true;

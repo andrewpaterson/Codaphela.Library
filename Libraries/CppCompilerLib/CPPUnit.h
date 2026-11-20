@@ -426,6 +426,7 @@ public:
 	CCPPFunction*			AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
 	bool					CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 	bool					NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode);
+	bool					CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition);
 	CCPPFunction*			FirstFunctionOfName(int64 lliName);
 	void					RequireFunction(CCPPFunction* pcFunction);
 	bool					Emit(CChars* pszLabel);

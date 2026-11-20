@@ -2808,6 +2808,48 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What = default and = delete ask of the function they define.  = default
+// is of a special member function: a constructor that takes nothing or
+// its own class (a copy or a move), a destructor, or an operator= that
+// takes its own class; and it has no default argument.  = delete is where
+// the function is first declared.  An error (and false) if not; true for
+// any other definition.  [dcl.fct.def.default] 1, [dcl.fct.def.delete] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition)
+{
+	SCPP65Type*	psParameter;
+	size		i;
+	bool		bOwnClass;
+
+	if (pcDefinition->meBody == CPPFB_Delete)
+	{
+		return (pcFunction->mpcDeclarator == pcDefinition->mpcDeclarator) || pcFunction->mpcTemplate || ReportError(pcDefinition, "A function is deleted where it is first declared");
+	}
+	if (pcDefinition->meBody != CPPFB_Default)
+	{
+		return true;
+	}
+	psParameter = (pcFunction->mapsParameters.NumElements() == 1) ? pcFunction->mapsParameters.GetPtr(0)->WithoutReference() : NULL;
+	bOwnClass = psParameter && psParameter->IsClass() && (psParameter->pcClass == pcFunction->mpcClass);
+	if (!pcFunction->mpcClass || ((pcFunction->meKind == CPPFK_Constructor) && (pcFunction->mapsParameters.NumElements() != 0) && !bOwnClass) ||
+		((pcFunction->meKind == CPPFK_Function) && !((pcFunction->mlliName == CPP_OPERATOR_NAME(CT_Assignment)) && bOwnClass)))
+	{
+		return ReportError(pcDefinition, "Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default");
+	}
+	for (i = 0; i < pcFunction->mapcDefaults.NumElements(); i++)
+	{
+		if (pcFunction->mapcDefaults.GetPtr(i))
+		{
+			return ReportError(pcDefinition, "A function that is = default has no default argument");
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a variable of psType may be defined with no initialiser: not a
 // reference, which must be bound to something, and not a const object (or
 // an array of them) that nothing would ever give a value: a number or a
@@ -3520,6 +3562,10 @@ bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* p
 	if (pcFunction->mpcDefinition || pcFunction->mbGenerated)
 	{
 		return Error(pcDefinition, "The function is defined twice");
+	}
+	if (!CheckDefaultedOrDeleted(pcFunction, pcDefinition))
+	{
+		return false;
 	}
 	pcFunction->SetDefinition(pcDefinition);
 	if (!pcFunction->mpcDefinition && !pcFunction->mbImplicit)
