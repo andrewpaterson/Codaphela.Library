@@ -209,6 +209,7 @@
     <ClInclude Include="ArrayUint16.h" />
     <ClInclude Include="ArrayUint32.h" />
     <ClInclude Include="ArrayUint8.h" />
+    <ClInclude Include="BankMallocator.h" />
     <ClInclude Include="BaseParser.h" />
     <ClInclude Include="BinarySearch.h" />
     <ClInclude Include="BubbleSort.h" />
@@ -676,6 +677,7 @@
     <ClCompile Include="ArrayUint16.cpp" />
     <ClCompile Include="ArrayUint32.cpp" />
     <ClCompile Include="ArrayUint8.cpp" />
+    <ClCompile Include="BankMallocator.cpp" />
     <ClCompile Include="BaseParser.cpp" />
     <ClCompile Include="BinarySearch.cpp" />
     <ClCompile Include="BubbleSort.cpp" />

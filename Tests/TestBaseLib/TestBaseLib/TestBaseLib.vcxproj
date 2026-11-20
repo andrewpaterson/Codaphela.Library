@@ -228,6 +228,7 @@
   <ItemGroup>
     <ClCompile Include="ArrayTemplateTestClasses.cpp" />
     <ClCompile Include="TestArrayTemplatePtr.cpp" />
+    <ClCompile Include="TestBankMallocator.cpp" />
     <ClCompile Include="TestCircularMemoryList.cpp" />
     <ClCompile Include="ConstructorCallTestClasses.cpp" />
     <ClCompile Include="ConstructorsTestClasses.cpp" />

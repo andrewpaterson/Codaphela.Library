@@ -414,6 +414,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BankMallocator.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
     <ClInclude Include="DataMacro.h">
       <Filter>Source\Data</Filter>
     </ClInclude>
@@ -1814,6 +1817,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BankMallocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
     <ClCompile Include="TreeBlock.cpp">
       <Filter>Source\Data\Types\Tree</Filter>
     </ClCompile>

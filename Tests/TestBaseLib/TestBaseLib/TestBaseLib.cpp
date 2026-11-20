@@ -94,6 +94,7 @@ void TestMemoryBlock(void);
 void TestFreeList(void);
 void TestFreeListAllocator(void);
 void TestTrueMallocator(void);
+void TestBankMallocator(void);
 void TestThreadMallocator(void);
 void TestThreadMallocatorSpeed(void);
 void TestIndexTreeNodeMemory(void);
@@ -286,6 +287,7 @@ int __cdecl main(void)
 	TestFreeList();
 	TestFreeListAllocator();
 	TestTrueMallocator();
+	TestBankMallocator();
 	TestThreadMallocator();
 	TestThreadMallocatorSpeed();
 	TestCharsHelper();

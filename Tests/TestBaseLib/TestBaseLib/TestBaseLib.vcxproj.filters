@@ -255,6 +255,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="TestBankMallocator.cpp">
+      <Filter>Source\Memory\FreeList</Filter>
+    </ClCompile>
     <ClCompile Include="TestBaseLib.cpp">
       <Filter>Source</Filter>
     </ClCompile>
