@@ -469,6 +469,7 @@ public:
 	bool					IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
 	bool					IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
 	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);
+	SCPP65Type*				EnclosingConstantObjectType(CCPPSymbol* pcSymbol);
 	bool					IsOdrUse(CCPPSyntax* pcNode);
 	bool					IsThisMember(CCPPSymbol* pcSymbol);
 	SCPPLambdaCapture*		FindLambdaCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol);
@@ -479,7 +480,11 @@ public:
 	bool					LambdaCall(SCPPLambda* psLambda);
 	CCPPFunction*			LambdaFunction(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters);
 	CCPPFunction*			AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, CArrayCPP65Types* papsParameters, SCPP65Type* psReturn);
+	void					AddLambdaConversion(SCPPLambda* psLambda, CCPPFunction* pcCall);
 	void					GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArguments);
+	CCPPFunction*			GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters);
+	void					GenericLambdaConversion(SCPPLambda* psLambda, SCPP65Type* psFunction);
+	bool					ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType);
 	SCPPLambda*				WritingLambda(void);
 	SCPPLambda*				BodyLambda(CCPPFunction* pcFunction);
 	bool					LambdaError(SCPPLambda* psLambda, CCPPSyntax* pcNode, const char* szMessage);

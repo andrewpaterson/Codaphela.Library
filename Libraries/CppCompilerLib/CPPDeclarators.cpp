@@ -651,6 +651,9 @@ SCPP65Type* CCPPDeclarators::EntityType(CCPPSyntax* pcOperand)
 	{
 	case CPPBN_Variable:
 		return cBound.mpcVariable->mpsType;
+	case CPPBN_EnclosingConstant:
+		//A constant of the function a lambda is in, which the lambda doesn't capture.
+		return mpcUnit->EnclosingConstantObjectType(cBound.mpcSymbol);
 	case CPPBN_Field:
 		return cBound.mpsField->psType;
 	case CPPBN_Capture:

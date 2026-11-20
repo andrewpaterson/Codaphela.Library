@@ -276,6 +276,11 @@ CCPPFunction* CCPPOverloads::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo
 	{
 		return NULL;
 	}
+	if (pcClass->mpsLambda && pcClass->mpsLambda->bGeneric && psTo->IsPointer() && psTo->psBase->IsFunction())
+	{
+		//A generic lambda's conversion to this pointer to a function is made when it is first wanted.
+		mpcUnit->GenericLambdaConversion(pcClass->mpsLambda, psTo->psBase);
+	}
 	pcBest = NULL;
 	iBest = CPPCR_None;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(CPP_CONVERSION_NAME); pcFunction; pcFunction = pcFunction->mpcNextOfName)

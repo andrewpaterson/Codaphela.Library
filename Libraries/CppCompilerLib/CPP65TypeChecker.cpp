@@ -2288,6 +2288,11 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 			}
 			if (cBound.meWhat == CPPBN_EnclosingConstant)
 			{
+				if (mpcUnit->IsUnevaluated())
+				{
+					//decltype((c)) names the variable, which nothing reads.
+					return mpcUnit->EnclosingConstantObjectType(cBound.mpcSymbol);
+				}
 				//Its object is wanted (its address, or a reference to it): that odr-uses it.  [basic.def.odr] 3
 				Error(pcExpression, "The lambda doesn't capture the variable");
 				return NULL;

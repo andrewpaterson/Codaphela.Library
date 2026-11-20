@@ -344,6 +344,7 @@ protected:
 	bool			Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched, bool bRethrow);
 	bool			HandlerParameter(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched);
 	bool			CopyFromAddress(SCPP65IRPlace* psPlace, SIRReference sSource);
+	bool			CopyArray(SCPP65IRPlace* psPlace, SIRReference sSource);
 	bool			DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);
 	bool			Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable** ppcLast);
 	bool			GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* pcInitialiser);

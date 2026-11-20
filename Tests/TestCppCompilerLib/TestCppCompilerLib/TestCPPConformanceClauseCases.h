@@ -5760,6 +5760,102 @@ static const SConformanceCase gasConformanceClause5[] =
 		"LambdaDefaultArgumentDefaultCaptureRefused", CONFORMANCE_REFUSED,
 		"int main() { int a = 1; struct L { static int f(int v = [=] { return a; }()) { return v; } }; return L::f(); }\n"
 	},
+	//5.1.2 [expr.prim.lambda] p15: an array captured by copy is the closure's own array, each element copied
+	{
+		"LambdaArrayCapture", 31,
+		"int gCopies = 0;\n"
+		"int gDestroyed = 0;\n"
+		"struct P { int v; P() : v(1) { } P(const P& o) : v(o.v + 10) { gCopies++; } ~P() { gDestroyed++; } };\n"
+		"int Sum(const int* p, int n) { int s = 0; for (int i = 0; i < n; i++) s += p[i]; return s; }\n"
+		"int main()\n"
+		"{\n"
+		"	int a[3] = { 4, 5, 6 };\n"
+		"	int m[2][2] = { { 1, 2 }, { 3, 4 } };\n"
+		"	int r = 0;\n"
+		"	auto arr = [a] { return a[0] + a[1] + a[2] + (int)sizeof(a) / (int)sizeof(int); };\n"
+		"	auto mut = [a]() mutable { a[0] = 20; return a[0] + a[1]; };\n"
+		"	auto mat = [m] { return m[0][0] + m[1][1] * 10 + Sum(m[1], 2) * 100; };\n"
+		"	auto all = [=] { return Sum(a, 3) + m[0][1]; };\n"
+		"	a[1] = 50;\n"
+		"	m[1][1] = 9;\n"
+		"	if (arr() == 18) r += 1;\n"
+		"	if (mut() == 25 && a[0] == 4) r += 2;\n"
+		"	if (mat() == 741 && all() == 61 + 2 - 46 + 0) r += 4;\n"
+		"	{\n"
+		"		P p[2];\n"
+		"		auto objs = [p] { return p[0].v + p[1].v; };\n"
+		"		auto again = objs;\n"
+		"		if (objs() == 22 && again() == 42 && gCopies == 4) r += 8;\n"
+		"	}\n"
+		"	if (gDestroyed == 6) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.1.2 [expr.prim.lambda] p18, 3.2 [basic.def.odr] p3: decltype of a captured variable, and of a constant the lambda needn't capture
+	{
+		"LambdaConstantDecltype", 4095,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int x = 1;\n"
+		"	const int cx = 2;\n"
+		"	auto g = [=]() mutable { return Same<decltype((x)), int&>::V + Same<decltype((cx)), const int&>::V * 2 + Same<decltype(cx), const int>::V * 4 + Same<decltype(x), int>::V * 8; };\n"
+		"	auto h = [=]() mutable { int y = x + cx; return Same<decltype((cx)), const int&>::V + Same<decltype((x)), int&>::V * 2 + y * 4; };\n"
+		"	auto k = [=]() { int y = x + cx; return Same<decltype((cx)), const int&>::V + Same<decltype((x)), const int&>::V * 2 + y * 4; };\n"
+		"	return g() + h() * 16 + k() * 256;\n"
+		"}\n"
+	},
+	//5.1.2 [expr.prim.lambda] p6: a generic lambda that captures nothing converts to a pointer to a function of each type its operator() can be
+	{
+		"LambdaGenericConversion", 14,
+		"int Apply(int (*p)(int), int v) { return p(v); }\n"
+		"int main()\n"
+		"{\n"
+		"	auto twice = [](auto v) { return v + v; };\n"
+		"	int (*p)(int) = twice;\n"
+		"	long (*q)(long) = twice;\n"
+		"	return Apply(twice, 4) + p(1) + (int)q(2);\n"
+		"}\n"
+	},
+	//5.1.2 [expr.prim.lambda] p5, 7.1.6.4 [dcl.spec.auto]: -> decltype(auto) is what the return gives, a reference where that is one
+	{
+		"LambdaTrailingDeducedReturn", 63,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	auto forward = [](auto&& v) -> decltype(auto) { return static_cast<decltype(v)>(v); };\n"
+		"	auto ref = [](auto&& v) { return Same<decltype(v), int&>::V + Same<decltype(v), int&&>::V * 2; };\n"
+		"	auto plain = [](int& v) -> decltype(auto) { return static_cast<int&>(v); };\n"
+		"	auto moved = [](int& v) -> decltype(auto) { return static_cast<int&&>(v); };\n"
+		"	int i = 5;\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(forward(i)), int&>::V) r += 1;\n"
+		"	if (Same<decltype(forward(5)), int&&>::V) r += 2;\n"
+		"	if (ref(i) == 1 && ref(5) == 2) r += 4;\n"
+		"	if (Same<decltype(plain(i)), int&>::V) r += 8;\n"
+		"	if (Same<decltype(moved(i)), int&&>::V) r += 16;\n"
+		"	forward(i) = 7;\n"
+		"	if (i == 7) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.1.2 [expr.prim.lambda] p6: the function pointed to must return what the lambda does for those parameters
+	{
+		"LambdaGenericConversionReturnRefused", CONFORMANCE_REFUSED,
+		"int main() { int (*p)(double) = [](auto v) { return v + v; }; return p(1.0); }\n"
+	},
+	//5.1.2 [expr.prim.lambda] p6: a lambda that captures has no conversion to a pointer to a function
+	{
+		"LambdaGenericConversionCaptureRefused", CONFORMANCE_REFUSED,
+		"int main() { int k = 1; int (*p)(int) = [k](auto v) { return v + k; }; return p(1); }\n"
+	},
+	//5.1.2 [expr.prim.lambda] p6: auto& is no parameter of a function that takes an int
+	{
+		"LambdaGenericConversionReferenceRefused", CONFORMANCE_REFUSED,
+		"int main() { int (*p)(int) = [](auto& v) { return v + 1; }; return p(1); }\n"
+	},
 };
 
 

@@ -1853,6 +1853,14 @@ bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpr
 			}
 			mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sAddress, sField.sAddress);
 		}
+		else if (psField->psType->IsArray())
+		{
+			//An array captured by copy: the closure has its elements.  [expr.prim.lambda] 15
+			if (!Place(psCapture->pcInitialiser, &sReferred) || !CopyArray(&sField, sReferred.sAddress))
+			{
+				return false;
+			}
+		}
 		else if (!Construct(&sField, NULL, psCapture->pcInitialiser))
 		{
 			return false;
@@ -1863,6 +1871,39 @@ bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpr
 		}
 	}
 	mcCleanups.RemovePartsFrom(uiMark);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Makes the array at psPlace a copy of the array of its type at sSource:
+// its bytes, or each element from the other's by its class's copying when
+// its bytes alone aren't the object.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::CopyArray(SCPP65IRPlace* psPlace, SIRReference sSource)
+{
+	SCPP65IRPlace	sElement;
+	int				iOffset;
+
+	for (sElement.psType = psPlace->psType; sElement.psType->IsArray(); sElement.psType = sElement.psType->psBase)
+	{
+	}
+	if (!sElement.psType->IsClass() || sElement.psType->pcClass->IsTriviallyCopyable())
+	{
+		CopyPieces(psPlace->sAddress, sSource, psPlace->psType->iBytes);
+		return true;
+	}
+	sElement.psBitField = NULL;
+	for (iOffset = 0; iOffset < psPlace->psType->iBytes; iOffset += sElement.psType->iBytes)
+	{
+		sElement.sAddress = AddressAt(psPlace->sAddress, iOffset);
+		if (!CopyFromAddress(&sElement, AddressAt(sSource, iOffset)))
+		{
+			return false;
+		}
+	}
 	return true;
 }
 

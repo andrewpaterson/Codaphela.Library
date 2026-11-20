@@ -2383,10 +2383,12 @@ bool CCPPUnit::ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers*
 {
 	CCPPSyntaxFunctionSuffix*		pcSuffix;
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPSyntaxTypeId*				pcTrailing;
 	SCPPFunctionScope				sScope;
 	SCPP65Type*						psReturn;
 	CArraySyntax					apcReturns;
 	size							i;
+	bool							bWritten;
 
 	pcSuffix = pcDeclarator->GetFunctionSuffix();
 	pcDefinition = (pcDeclarator->mpcParent && (pcDeclarator->mpcParent->GetKind() == CPPS_FunctionDefinition)) ? (CCPPSyntaxFunctionDefinition*)pcDeclarator->mpcParent : NULL;
@@ -2394,16 +2396,25 @@ bool CCPPUnit::ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers*
 	{
 		pcDefinition = NULL;
 	}
-	if (!pcSuffix->mpcTrailingReturn && !pcDefinition)
+
+	//-> auto and -> decltype(auto) are the returns' type still, as the specifiers before the function's name make it.
+	pcTrailing = pcSuffix->mpcTrailingReturn;
+	bWritten = pcTrailing && !mcDeclarators.IsAuto(pcTrailing->mpcSpecifiers) && !mcDeclarators.IsDecltypeAuto(pcTrailing->mpcSpecifiers);
+	if (!bWritten && !pcDefinition)
 	{
 		return true;
 	}
 
 	EnterFunctionScope(&sScope, pcFunction);
 	AddParameters(pcFunction, pcDeclarator);
-	if (pcSuffix->mpcTrailingReturn)
+	if (pcTrailing && !bWritten)
 	{
-		psReturn = mcDeclarators.GetTypeIdType(pcSuffix->mpcTrailingReturn);
+		pcSpecifiers = pcTrailing->mpcSpecifiers;
+		pcDeclarator = pcTrailing->mpcDeclarator;
+	}
+	if (bWritten)
+	{
+		psReturn = mcDeclarators.GetTypeIdType(pcTrailing);
 	}
 	else
 	{
@@ -2441,7 +2452,9 @@ bool CCPPUnit::ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers*
 //////////////////////////////////////////////////////////////////////////
 //
 // The type return value; gives a function declared auto (as it gives a
-// variable declared so, with the function's & or *) or decltype(auto).
+// variable declared so, with the function's & or *) or decltype(auto):
+// by the specifiers and declarator before its name, or those after its ->
+// (pcDeclarator is NULL when there is none there).
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::ReturnedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxReturnStatement* pcReturn)
@@ -2461,7 +2474,7 @@ SCPP65Type* CCPPUnit::ReturnedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPS
 	{
 		psType = mcTypes.Qualified(psType, psType->bConst || (pcSpecifiers->muiFlags & CPPDS_CONST), psType->bVolatile || (pcSpecifiers->muiFlags & CPPDS_VOLATILE));
 	}
-	return ReturnDeclaratorType(psType, pcDeclarator);
+	return pcDeclarator ? ReturnDeclaratorType(psType, pcDeclarator) : psType;
 }
 
 

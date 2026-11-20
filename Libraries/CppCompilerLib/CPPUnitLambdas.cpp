@@ -382,6 +382,19 @@ SCPP65Type* CCPPUnit::EnclosingConstantType(CCPPSymbol* pcSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type a local constant (IsEnclosingConstant) is declared with, which
+// is what decltype of its name in a lambda that doesn't capture it gives:
+// const, as constexpr makes it too.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::EnclosingConstantObjectType(CCPPSymbol* pcSymbol)
+{
+	return mcTypes.Qualified(EnclosingConstantType(pcSymbol), true, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if a name (pcNode, a variable's) is odr-used where it is because
 // its object is wanted, not its value: it is the operand of & or what a
 // reference is bound to in its declaration.  A reference parameter it is
@@ -481,15 +494,17 @@ SCPPLambdaCapture* CCPPUnit::FindLambdaCapture(SCPPLambda* psLambda, CCPPSymbol*
 //////////////////////////////////////////////////////////////////////////
 //
 // A capture of a variable or an init-capture (bOwn), and its field: of
-// the variable's type (a reference's, what it refers to) or an init-
-// capture's (what auto is from its initialiser), or a reference to it.
-// Worked out where the lambda is.  [expr.prim.lambda] 11, 15, 16
+// the variable's type (a reference's, what it refers to; an array's, the
+// array) or an init-capture's (what auto is from its initialiser), or a
+// reference to it.  Worked out where the lambda is.
+// [expr.prim.lambda] 11, 15, 16
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax* pcInitialiser, bool bReference, bool bOwn, CCPPSyntax* pcNode)
 {
 	SCPPLambdaCapture*	psCapture;
 	SCPP65Type*			psType;
+	SCPP65Type*			psObject;
 
 	if (bReference || !bOwn)
 	{
@@ -509,11 +524,10 @@ bool CCPPUnit::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax
 			return false;
 		}
 	}
-	if (psType->IsArray())
+	for (psObject = psType; psObject->IsArray(); psObject = psObject->psBase)
 	{
-		return LambdaError(psLambda, pcNode, "Capturing an array is not supported by the compiler yet");
 	}
-	if (psType->IsClass() && !CompleteObjectClass(psType->pcClass, pcNode))
+	if (psObject->IsClass() && !CompleteObjectClass(psObject->pcClass, pcNode))
 	{
 		return false;
 	}
@@ -610,9 +624,7 @@ bool CCPPUnit::LayoutClosure(SCPPLambda* psLambda)
 //////////////////////////////////////////////////////////////////////////
 //
 // The operator() of a lambda that isn't generic, and for one that captures
-// nothing the conversion to a pointer to a function: a static function
-// with the same body (the invoker), whose address the conversion gives.
-// [expr.prim.lambda] 6
+// nothing the conversion to a pointer to a function (AddLambdaConversion).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::LambdaCall(SCPPLambda* psLambda)
@@ -620,8 +632,6 @@ bool CCPPUnit::LambdaCall(SCPPLambda* psLambda)
 	CArrayCPP65Types			apsParameters;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntaxParameter*		pcParameter;
-	CCPPFunction*				pcInvoker;
-	CCPPFunction*				pcConversion;
 	SCPP65Type*					psType;
 	size						i;
 	bool						bResult;
@@ -644,18 +654,39 @@ bool CCPPUnit::LambdaCall(SCPPLambda* psLambda)
 		}
 	}
 	psLambda->pcCall = bResult ? LambdaFunction(psLambda, &apsParameters) : NULL;
-	if (psLambda->pcCall && (psLambda->asCaptures.NumElements() == 0) && (psLambda->pcCall->mpsReturn != &mcTypes.msUndeduced))
+	if (psLambda->pcCall)
 	{
-		pcInvoker = AddLambdaFunction(psLambda, mpcTokeniser->GetIdentifierID((char*)"__invoke"), &apsParameters, psLambda->pcCall->mpsReturn);
-		pcInvoker->mbStatic = true;
-		pcConversion = AddFunction(psLambda->pcClass, CPP_CONVERSION_NAME, CPPFK_Function, mcTypes.Pointer(mcTypes.Function(psLambda->pcCall->mpsReturn, &apsParameters, false)));
-		pcConversion->mbImplicit = true;
-		pcConversion->mbDefined = true;
-		pcConversion->mbConstThis = true;
-		pcConversion->mpcAddressOf = pcInvoker;
+		AddLambdaConversion(psLambda, psLambda->pcCall);
 	}
 	apsParameters.Kill();
 	return psLambda->pcCall != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The conversion of a closure that captures nothing to a pointer to a
+// function of its operator()'s type (pcCall): a static function with the
+// same body (the invoker), whose address the conversion gives.
+// [expr.prim.lambda] 6
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AddLambdaConversion(SCPPLambda* psLambda, CCPPFunction* pcCall)
+{
+	CCPPFunction*	pcInvoker;
+	CCPPFunction*	pcConversion;
+
+	if ((psLambda->asCaptures.NumElements() != 0) || (pcCall->mpsReturn == &mcTypes.msUndeduced))
+	{
+		return;
+	}
+	pcInvoker = AddLambdaFunction(psLambda, mpcTokeniser->GetIdentifierID((char*)"__invoke"), &pcCall->mapsParameters, pcCall->mpsReturn);
+	pcInvoker->mbStatic = true;
+	pcConversion = AddFunction(psLambda->pcClass, CPP_CONVERSION_NAME, CPPFK_Function, mcTypes.Pointer(mcTypes.Function(pcCall->mpsReturn, &pcCall->mapsParameters, false)));
+	pcConversion->mbImplicit = true;
+	pcConversion->mbDefined = true;
+	pcConversion->mbConstThis = true;
+	pcConversion->mpcAddressOf = pcInvoker;
 }
 
 
@@ -722,11 +753,8 @@ void CCPPUnit::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArgumen
 	CArrayCPP65Types			apsParameters;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntaxParameter*		pcParameter;
-	CCPPFunction*				pcFunction;
 	SCPP65Type*					psType;
 	size						i;
-	size						j;
-	bool						bSame;
 
 	pcSuffix = psLambda->pcSyntax->mpcDefinition->mpcDeclarator->GetFunctionSuffix();
 	if (pcSuffix->macpParameters.NumElements() != papcArguments->NumElements())
@@ -746,26 +774,133 @@ void CCPPUnit::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArgumen
 		apsParameters.Add(ParameterType(psType));
 	}
 
+	GenericLambdaInstance(psLambda, &apsParameters);
+	apsParameters.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A generic lambda's operator() for parameters of these types: the one made
+// for them before, or a new one.  NULL if its body is wrong for them.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPUnit::GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters)
+{
+	CCPPFunction*	pcFunction;
+	size			i;
+	size			j;
+	bool			bSame;
+
 	for (i = 0; i < psLambda->pcClass->mapcMembers.NumElements(); i++)
 	{
 		pcFunction = psLambda->pcClass->mapcMembers.GetPtr(i);
-		if ((pcFunction->mlliName != GetOperatorName(CT_OpenRoundBracket, false)) || (pcFunction->mapsParameters.NumElements() != apsParameters.NumElements()))
+		if ((pcFunction->mlliName != GetOperatorName(CT_OpenRoundBracket, false)) || (pcFunction->mapsParameters.NumElements() != papsParameters->NumElements()))
 		{
 			continue;
 		}
 		bSame = true;
-		for (j = 0; bSame && (j < apsParameters.NumElements()); j++)
+		for (j = 0; bSame && (j < papsParameters->NumElements()); j++)
 		{
-			bSame = pcFunction->mapsParameters.GetPtr(j)->Same(apsParameters.GetPtr(j));
+			bSame = pcFunction->mapsParameters.GetPtr(j)->Same(papsParameters->GetPtr(j));
 		}
 		if (bSame)
 		{
-			apsParameters.Kill();
+			return pcFunction;
+		}
+	}
+	return LambdaFunction(psLambda, papsParameters);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A generic lambda that captures nothing converts to a pointer to a function
+// (psFunction, its type) as a function template is deduced from one: its
+// operator() for the function's parameters, where each parameter's
+// declaration takes that type (auto anything, auto& a reference, auto* a
+// pointer, a type that isn't auto itself), has a conversion to a pointer to
+// it if it returns what the function does.  Made once for each type; nothing
+// is made, quietly, when it doesn't fit.  [expr.prim.lambda] 6
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::GenericLambdaConversion(SCPPLambda* psLambda, SCPP65Type* psFunction)
+{
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPFunction*				pcCall;
+	CCPPFunction*				pcConversion;
+	size						i;
+
+	pcSuffix = psLambda->pcSyntax->mpcDefinition->mpcDeclarator->GetFunctionSuffix();
+	if ((psLambda->asCaptures.NumElements() != 0) || psFunction->bVariadic || (pcSuffix->macpParameters.NumElements() != psFunction->papsParameters->NumElements()))
+	{
+		return;
+	}
+	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
+	{
+		if (!ParameterTakesType((CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i), psFunction->papsParameters->GetPtr(i)))
+		{
 			return;
 		}
 	}
-	LambdaFunction(psLambda, &apsParameters);
-	apsParameters.Kill();
+	for (pcConversion = FirstFunctionOfName(CPP_CONVERSION_NAME); pcConversion; pcConversion = pcConversion->mpcNextOfName)
+	{
+		if ((pcConversion->mpcClass == psLambda->pcClass) && pcConversion->mpsReturn->psBase->Same(psFunction))
+		{
+			return;
+		}
+	}
+	BeginQuiet();
+	pcCall = GenericLambdaInstance(psLambda, psFunction->papsParameters);
+	EndQuiet();
+	if (pcCall && pcCall->mpsReturn->Same(psFunction->psBase))
+	{
+		AddLambdaConversion(psLambda, pcCall);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a generic lambda's parameter, as it is declared, is of psType
+// for some type auto can be: one that isn't auto is its own type, auto alone
+// is any, and auto with a declarator is a reference or a pointer as its
+// last operator says (const auto& one to const).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType)
+{
+	SCPP65Type*	psDeclared;
+	size		uiPointers;
+	bool		bConst;
+
+	if (pcParameter->GetKind() != CPPS_Parameter)
+	{
+		return false;
+	}
+	if (!mcDeclarators.IsAuto(pcParameter->mpcSpecifiers))
+	{
+		psDeclared = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+		return psDeclared && ParameterType(psDeclared)->Same(psType);
+	}
+	uiPointers = pcParameter->mpcDeclarator ? pcParameter->mpcDeclarator->NumPointers() : 0;
+	if (uiPointers == 0)
+	{
+		return true;
+	}
+	bConst = (uiPointers == 1) && ((pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST) != 0);
+	switch (pcParameter->mpcDeclarator->GetPointer(uiPointers - 1)->meKind)
+	{
+	case CPPP_Reference:
+		return psType->IsReference() && !psType->bRvalue && (!bConst || psType->psBase->bConst);
+	case CPPP_RValueReference:
+		//auto&& is a reference to what has a name too.
+		return psType->IsReference() && (!bConst || (psType->bRvalue && psType->psBase->bConst));
+	case CPPP_Pointer:
+		return psType->IsPointer() && (!bConst || psType->psBase->bConst);
+	default:
+		return false;
+	}
 }
 
 
