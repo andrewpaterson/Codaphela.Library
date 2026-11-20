@@ -36,8 +36,12 @@ struct SCPP65IRPlace
 	SIRReference	sAddress;
 	SCPP65Type*		psType;
 	SCPPField*		psBitField;		//The bit-field the place is (bits of the unit of psType at sAddress), or NULL.
+	bool			bEither;		//c ? x : y where x or y is a bit-field: which bits of the unit it is was picked with it.
+	SIRReference	sFirst;			//...all ones (a psType) when x was picked, psBitField's bits (the whole unit's for NULL), and 0 for y...
+	SCPPField*		psElseBitField;	//...this bit-field's bits (or the whole unit's).
 
-	SCPP65IRPlace(void) : psBitField(NULL) {}
+	SCPP65IRPlace(void) : psBitField(NULL), bEither(false), psElseBitField(NULL) {}
+	bool	IsBitField(void) const { return (psBitField != NULL) || bEither; }
 };
 
 

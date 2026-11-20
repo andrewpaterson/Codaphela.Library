@@ -805,6 +805,9 @@ public:
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	CCPPSyntax*				CommaResult(CCPPSyntax* pcExpression);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	SCPP65Type*				ConditionalLvalueType(CCPPSyntaxConditionalExpression* pcConditional);
+	SCPP65Type*				ConditionalXvalueType(CCPPSyntaxConditionalExpression* pcConditional);
+	SCPP65Type*				ConditionalObjectType(CCPPSyntaxConditionalExpression* pcConditional, bool* pbAmbiguous);
 	CCPPClass*				MemberObjectClass(CCPPSyntaxMemberExpression* pcMember);
 	bool					BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound);
 	CCPPSymbol*				MemberEnumerator(CCPPSyntaxMemberExpression* pcMember);

@@ -915,7 +915,7 @@ bool CCPP65IRFrontEnd::ReferenceAddress(SCPP65IRPlace* psPlace, SCPP65Type* psRe
 	{
 		return ConvertedAddress(psPlace, psReference, psAddress);
 	}
-	if (psPlace->psBitField)
+	if (psPlace->IsBitField())
 	{
 		//A const reference to a bit-field refers to a temporary holding its value.  [dcl.init.ref] 5
 		if (!psReference->psBase->bConst || psReference->psBase->bVolatile || !Load(psPlace, &sValue))

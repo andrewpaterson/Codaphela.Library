@@ -28,10 +28,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// c ? x : y of a class (CCPPUnit::ConditionalClass).  Two objects that are
-// where they are (lvalues) give the address of one of them (a phi), a
-// derived one's base's; otherwise the one worked out is made at psInto (the
-// object being initialised) or a temporary, which both make.
+// c ? x : y that is an object, of the class the type checker gives it.  Two
+// objects that are where they are (lvalues) give the address of one of them
+// (a phi), a derived one's base's; otherwise the one worked out is made at
+// psInto (the object being initialised) or a temporary, which both make,
+// from an object of its class or from what the class is made of.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRPlace* psInto, SCPP65IRValue* psValue)
@@ -52,14 +53,14 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 
 	psTrue = mpcUnit->ValueTypeOf(pcConditional->mpcTrue);
 	psFalse = mpcUnit->ValueTypeOf(pcConditional->mpcFalse);
-	pcClass = (psTrue && psFalse) ? mpcUnit->ConditionalClass(psTrue, psFalse) : NULL;
-	if (!pcClass)
+	psType = mpcUnit->ValueTypeOf(pcConditional);
+	if (!psTrue || !psFalse || !psType || !psType->IsClass())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	psType = (psTrue->pcClass == pcClass) ? psTrue : psFalse;
+	pcClass = psType->pcClass;
 
-	bLvalue = !psInto && mpcUnit->IsObjectLvalue(pcConditional->mpcTrue) && mpcUnit->IsObjectLvalue(pcConditional->mpcFalse);
+	bLvalue = !psInto && mpcUnit->ConditionalClass(psTrue, psFalse) && mpcUnit->IsObjectLvalue(pcConditional->mpcTrue) && mpcUnit->IsObjectLvalue(pcConditional->mpcFalse);
 	if (!bLvalue)
 	{
 		if (psInto)

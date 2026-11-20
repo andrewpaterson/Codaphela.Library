@@ -125,7 +125,7 @@ protected:
 	SCPP65Type*		ConditionalExpression(CCPPSyntaxConditionalExpression* pcConditional);
 	bool			ConditionalResultsFit(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse);
 	SCPP65Type*		ConditionalPlace(CCPPSyntaxConditionalExpression* pcConditional);
-	SCPP65Type*		ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse);
+	SCPP65Type*		ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional);
 	SCPP65Type*		ConditionValue(CCPPSyntax* pcExpression);
 	bool			Condition(CCPPSyntax* pcExpression);
 

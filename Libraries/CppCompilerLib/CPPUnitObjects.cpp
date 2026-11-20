@@ -78,6 +78,9 @@ bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
 	{
 	case CPPS_StringExpression:
 		return false;
+	case CPPS_ConditionalExpression:
+		//One of two lvalues is an lvalue.  [expr.cond] 4
+		return ConditionalLvalueType((CCPPSyntaxConditionalExpression*)pcExpression) == NULL;
 	case CPPS_IdExpression:
 		return (PlaceOf(pcExpression) == NULL) || IsReturnedLocal((CCPPSyntaxIdExpression*)pcExpression);
 	case CPPS_MemberExpression:
@@ -250,15 +253,24 @@ CCPPSymbol* CCPPUnit::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember)
 //////////////////////////////////////////////////////////////////////////
 //
 // The bit-field an expression names, or NULL: a field of this named alone,
-// or one after . or ->, that is declared with a width.
+// or one after . or ->, that is declared with a width, and c ? x : y that
+// picks one (its first).
 //
 //////////////////////////////////////////////////////////////////////////
 SCPPField* CCPPUnit::BitFieldOf(CCPPSyntax* pcExpression)
 {
-	CCPPBoundName	cBound;
+	CCPPSyntaxConditionalExpression*	pcConditional;
+	CCPPBoundName						cBound;
+	SCPPField*							psField;
 
 	pcExpression = SkipParentheses(pcExpression);
 	cBound.meWhat = CPPBN_Nothing;
+	if (pcExpression->GetKind() == CPPS_ConditionalExpression)
+	{
+		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;
+		psField = BitFieldOf(pcConditional->mpcTrue);
+		return psField ? psField : BitFieldOf(pcConditional->mpcFalse);
+	}
 	if (pcExpression->GetKind() == CPPS_IdExpression)
 	{
 		BeginQuiet();
@@ -488,6 +500,100 @@ CCPPClass* CCPPUnit::ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse)
 		return psFalse->pcClass;
 	}
 	return IsDerived(psFalse->pcClass, psTrue->pcClass, NULL) ? psTrue->pcClass : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the lvalue c ? x : y is: x and y are lvalues of one type (it
+// has the const and volatile of both), or objects of a class and of one
+// derived from it, the base no less const (the derived object is its base
+// there).  NULL if c ? x : y is a value.  [expr.cond] 3, 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ConditionalLvalueType(CCPPSyntaxConditionalExpression* pcConditional)
+{
+	SCPP65Type*	psTrue;
+	SCPP65Type*	psFalse;
+	SCPP65Type*	psBase;
+	CCPPClass*	pcClass;
+
+	psTrue = PlaceOf(pcConditional->mpcTrue);
+	psFalse = PlaceOf(pcConditional->mpcFalse);
+	if (!psTrue || !psFalse || IsRvalue(pcConditional->mpcTrue) || IsRvalue(pcConditional->mpcFalse))
+	{
+		return NULL;
+	}
+	if (psTrue->Unqualified()->Same(psFalse->Unqualified()))
+	{
+		return mcTypes.Qualified(psTrue->Unqualified(), psTrue->bConst || psFalse->bConst, psTrue->bVolatile || psFalse->bVolatile);
+	}
+	pcClass = ConditionalClass(psTrue, psFalse);
+	if (!pcClass)
+	{
+		return NULL;
+	}
+	psBase = (psTrue->pcClass == pcClass) ? psTrue : psFalse;
+	return psBase->HasQualifiersOf((psBase == psTrue) ? psFalse : psTrue) ? psBase : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of c ? x : y when x and y are both about to go and of one type,
+// static_cast<T&&>(a) and a call that returns T&&: a T&& too.  NULL if they
+// aren't.  [expr.cond] 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ConditionalXvalueType(CCPPSyntaxConditionalExpression* pcConditional)
+{
+	SCPP65Type*	psTrue;
+	SCPP65Type*	psFalse;
+
+	psTrue = DeclaredTypeOf(pcConditional->mpcTrue);
+	psFalse = DeclaredTypeOf(pcConditional->mpcFalse);
+	return (psTrue && psFalse && psTrue->IsRvalueReference() && psFalse->IsRvalueReference() && psTrue->psBase->Same(psFalse->psBase)) ? psTrue : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of c ? x : y when x or y is an object and the result is a value:
+// the class of both; the base, when one's class is derived from the
+// other's; or else the type of the one operand that the other converts to
+// (an int for an object with a conversion function to it, the class for
+// what its constructor takes).  NULL if neither converts, or each does
+// (*pbAmbiguous).  [expr.cond] 3
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ConditionalObjectType(CCPPSyntaxConditionalExpression* pcConditional, bool* pbAmbiguous)
+{
+	SCPP65Type*	psTrue;
+	SCPP65Type*	psFalse;
+	CCPPClass*	pcClass;
+	bool		bToTrue;
+	bool		bToFalse;
+
+	*pbAmbiguous = false;
+	psTrue = ValueTypeOf(pcConditional->mpcTrue);
+	psFalse = ValueTypeOf(pcConditional->mpcFalse);
+	if (!psTrue || !psFalse || psTrue->IsVoid() || psFalse->IsVoid())
+	{
+		return NULL;
+	}
+	pcClass = ConditionalClass(psTrue, psFalse);
+	if (pcClass)
+	{
+		return (psTrue->pcClass == pcClass) ? psTrue : psFalse;
+	}
+	bToTrue = mcTypeChecker.CanInitialise(psTrue, pcConditional->mpcFalse);
+	bToFalse = mcTypeChecker.CanInitialise(psFalse, pcConditional->mpcTrue);
+	*pbAmbiguous = bToTrue && bToFalse;
+	if (bToTrue == bToFalse)
+	{
+		return NULL;
+	}
+	return (bToTrue ? psTrue : psFalse)->Unqualified();
 }
 
 

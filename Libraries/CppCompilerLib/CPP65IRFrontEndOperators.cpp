@@ -108,7 +108,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		{
 			return false;
 		}
-		if (sPlace.psBitField)
+		if (sPlace.IsBitField())
 		{
 			return BitFieldAddress(__FILE__, __LINE__);
 		}
@@ -674,21 +674,24 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	SCPP65IRValue	sFalse;
 	bool			bThrowTrue;
 	bool			bThrowFalse;
+	bool			bObject;
 
 	psTrue = mpcUnit->TypeOf(pcConditional->mpcTrue);
 	psFalse = mpcUnit->TypeOf(pcConditional->mpcFalse);
-	if (!psTrue || !psFalse || psTrue->IsReference() || psFalse->IsReference() || psTrue->IsClass() || psFalse->IsClass())
+	if (!psTrue || !psFalse || psTrue->IsReference() || psFalse->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
+	bObject = psTrue->IsClass() || psFalse->IsClass();
 
 	//A throw for one operand: the result is the other's, and that way never comes to the end.  [expr.cond] 2
 	bThrowTrue = pcConditional->mpcTrue->WithoutParentheses()->GetKind() == CPPS_ThrowExpression;
 	bThrowFalse = pcConditional->mpcFalse->WithoutParentheses()->GetKind() == CPPS_ThrowExpression;
-	if (bThrowTrue || bThrowFalse)
+	if (bThrowTrue || bThrowFalse || bObject)
 	{
+		//An object for one operand that converts to the other's type: the type checker says which.  [expr.cond] 3
 		psType = mpcUnit->TypeOf(pcConditional);
-		if (!psType)
+		if (!psType || psType->IsClass())
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -712,7 +715,7 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	//A temporary made by only one of them is destroyed only if it was made (Temporary).
 	miConditional++;
 	StartBlock(pcTrue);
-	if (!Value(pcConditional->mpcTrue, &sTrue) || (!bThrowTrue && !Convert(&sTrue, psType)))
+	if (!(bObject ? ValueFor(pcConditional->mpcTrue, psType, &sTrue) : Value(pcConditional->mpcTrue, &sTrue)) || (!bThrowTrue && !Convert(&sTrue, psType)))
 	{
 		return false;
 	}
@@ -724,7 +727,7 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	pcTrueEnd = mpcBlock;
 	JumpTo(pcEnd);
 	StartBlock(pcFalse);
-	if (!Value(pcConditional->mpcFalse, &sFalse) || (!bThrowFalse && !Convert(&sFalse, psType)))
+	if (!(bObject ? ValueFor(pcConditional->mpcFalse, psType, &sFalse) : Value(pcConditional->mpcFalse, &sFalse)) || (!bThrowFalse && !Convert(&sFalse, psType)))
 	{
 		return false;
 	}
@@ -751,7 +754,9 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 //////////////////////////////////////////////////////////////////////////
 //
 // c ? x : y of two lvalues of one type, as the place it is: x's or y's,
-// their addresses meeting in a phi.  [expr.cond] 4
+// their addresses meeting in a phi.  Where one is a bit-field, which bits of
+// the unit there the place is meets in a phi too (SCPP65IRPlace::bEither).
+// [expr.cond] 4
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConditionalPlace(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRPlace* psPlace)
@@ -762,9 +767,11 @@ bool CCPP65IRFrontEnd::ConditionalPlace(CCPPSyntaxConditionalExpression* pcCondi
 	CIRBlock*		pcTrueEnd;
 	SCPP65IRPlace	sTrue;
 	SCPP65IRPlace	sFalse;
+	SIRType			sType;
 
 	psPlace->psType = mpcUnit->PlaceTypeOf(pcConditional);
 	psPlace->psBitField = NULL;
+	psPlace->bEither = false;
 	if (!psPlace->psType)
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -793,7 +800,19 @@ bool CCPP65IRFrontEnd::ConditionalPlace(CCPPSyntaxConditionalExpression* pcCondi
 	}
 	miConditional--;
 	JumpTo(pcEnd);
+	if (sTrue.bEither || sFalse.bEither)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
 	psPlace->sAddress = Phi(pcEnd, IRType(IRTK_Pointer), pcTrueEnd, sTrue.sAddress, mpcBlock, sFalse.sAddress);
+	if (sTrue.psBitField || sFalse.psBitField)
+	{
+		sType = IRTypeOf(psPlace->psType);
+		psPlace->bEither = true;
+		psPlace->psBitField = sTrue.psBitField;
+		psPlace->psElseBitField = sFalse.psBitField;
+		psPlace->sFirst = Phi(pcEnd, sType, pcTrueEnd, mpcFunction->AddInteger(sType, -1), mpcBlock, mpcFunction->AddInteger(sType, 0));
+	}
 	StartBlock(pcEnd);
 	return true;
 }

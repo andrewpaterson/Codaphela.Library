@@ -377,6 +377,9 @@ protected:
 	void			Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	SIRReference	BitFieldValue(SCPP65Type* psType, int iOffset, int iWidth, SIRReference sUnit);
 	void			BitFieldResult(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
+	SIRReference	FieldValue(SCPP65Type* psType, SCPPField* psBitField, bool bStored, SIRReference sUnit);
+	SIRReference	UnitWithField(SCPP65IRPlace* psPlace, SCPPField* psBitField, SIRReference sValue);
+	SIRReference	Either(SCPP65IRPlace* psPlace, SIRReference sTrue, SIRReference sFalse);
 	bool			ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValue);
 	bool			ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruct, SCPP65IRValue* psValue);

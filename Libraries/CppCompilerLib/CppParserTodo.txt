@@ -637,7 +637,10 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     - A function declared by a typedef of its type (typedef int F(); F f;), at namespace scope or as a member (which
       is refused; it was miscompiled).
     - DONE 2026-11-20.  new (int[3]), a parenthesised array type.
-    - c ? x : y that picks a bit-field to change.
+    - DONE 2026-11-20.  c ? x : y that picks a bit-field to change (SCPP65IRPlace::bEither: which bits of the
+      unit the place is meets in a phi with its address), and c ? x : y of objects: two that are where they are
+      give the one picked itself, a derived one as its base (CCPPUnit::ConditionalLvalueType), and an object with
+      what converts to its class, or that it converts to, a value of that type (ConditionalObjectType).
     - DONE 2026-11-20.  A member function pointer converted to a derived class's when the base isn't at its start
       (a pointer to a member function is the function's address and, above it, what its this is moved by).
     - DONE 2026-11-19.  The type checker took every named cast for a C cast, which was most of the invalid casts it

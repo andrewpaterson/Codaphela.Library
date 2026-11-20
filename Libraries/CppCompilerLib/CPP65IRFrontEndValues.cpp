@@ -338,11 +338,47 @@ bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 	}
 	psValue->sValue = mpcFunction->Load(mpcBlock, IRTypeOf(psPlace->psType), psPlace->sAddress, psPlace->psType->bVolatile);
 	psValue->psType = psPlace->psType->Unqualified();
-	if (psPlace->psBitField)
+	if (psPlace->bEither)
 	{
-		psValue->sValue = BitFieldValue(psPlace->psType, psPlace->psBitField->iBitOffset, psPlace->psBitField->iBitWidth, psValue->sValue);
+		psValue->sValue = Either(psPlace, FieldValue(psPlace->psType, psPlace->psBitField, false, psValue->sValue), FieldValue(psPlace->psType, psPlace->psElseBitField, false, psValue->sValue));
+	}
+	else
+	{
+		psValue->sValue = FieldValue(psPlace->psType, psPlace->psBitField, false, psValue->sValue);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bit-field's value from its unit, sUnit, or with bStored from a value
+// assigned to it (cut to its width, as reading it back would give).  The
+// unit itself for no bit-field.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::FieldValue(SCPP65Type* psType, SCPPField* psBitField, bool bStored, SIRReference sUnit)
+{
+	return psBitField ? BitFieldValue(psType, bStored ? 0 : psBitField->iBitOffset, psBitField->iBitWidth, sUnit) : sUnit;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For a place that is one of two bit-fields (bEither): sTrue if the first
+// was picked, else sFalse, both worked out.  The place's sFirst is all ones
+// or 0, so it is sFalse with the bits that differ changed, or not.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::Either(SCPP65IRPlace* psPlace, SIRReference sTrue, SIRReference sFalse)
+{
+	SIRType			sType;
+	SIRReference	sDiffer;
+
+	sType = IRTypeOf(psPlace->psType);
+	sDiffer = mpcFunction->Add(mpcBlock, IRO_Xor, sType, sTrue, sFalse);
+	sDiffer = mpcFunction->Add(mpcBlock, IRO_And, sType, sDiffer, psPlace->sFirst);
+	return mpcFunction->Add(mpcBlock, IRO_Xor, sType, sFalse, sDiffer);
 }
 
 
@@ -394,39 +430,54 @@ SIRReference CCPP65IRFrontEnd::BitFieldValue(SCPP65Type* psType, int iOffset, in
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 {
+	SIRReference	sUnit;
+
+	sUnit = UnitWithField(psPlace, psPlace->psBitField, psValue->sValue);
+	if (psPlace->bEither)
+	{
+		sUnit = Either(psPlace, sUnit, UnitWithField(psPlace, psPlace->psElseBitField, psValue->sValue));
+	}
+	mpcFunction->Store(mpcBlock, IRTypeOf(psPlace->psType), sUnit, psPlace->sAddress, psPlace->psType->bVolatile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is stored at psPlace to give its bit-field sValue: the unit there
+// with the bit-field's bits replaced and the others kept.  sValue itself
+// for no bit-field, or one that is the whole unit.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::UnitWithField(SCPP65IRPlace* psPlace, SCPPField* psBitField, SIRReference sValue)
+{
 	SIRType			sType;
 	SIRReference	sUnit;
-	SIRReference	sBits;
 	uint64			ulliMask;
 	int				iBits;
 
-	sType = IRTypeOf(psPlace->psType);
-	if (!psPlace->psBitField)
+	if (!psBitField)
 	{
-		mpcFunction->Store(mpcBlock, sType, psValue->sValue, psPlace->sAddress, psPlace->psType->bVolatile);
-		return;
+		return sValue;
 	}
-
-	//A bit-field: its bits of the unit replaced, the others kept.
+	sType = IRTypeOf(psPlace->psType);
 	iBits = psPlace->psType->iBytes * 8;
-	ulliMask = ((psPlace->psBitField->iBitWidth < 64) ? (((uint64)1 << psPlace->psBitField->iBitWidth) - 1) : ~(uint64)0) << psPlace->psBitField->iBitOffset;
+	ulliMask = ((psBitField->iBitWidth < 64) ? (((uint64)1 << psBitField->iBitWidth) - 1) : ~(uint64)0) << psBitField->iBitOffset;
 	if (iBits < 64)
 	{
 		ulliMask &= ((uint64)1 << iBits) - 1;
 	}
-	sBits = psValue->sValue;
-	if (psPlace->psBitField->iBitOffset > 0)
+	if (psBitField->iBitOffset > 0)
 	{
-		sBits = mpcFunction->Add(mpcBlock, IRO_Shl, sType, sBits, mpcFunction->AddInteger(sType, psPlace->psBitField->iBitOffset));
+		sValue = mpcFunction->Add(mpcBlock, IRO_Shl, sType, sValue, mpcFunction->AddInteger(sType, psBitField->iBitOffset));
 	}
-	if (psPlace->psBitField->iBitWidth < iBits)
+	if (psBitField->iBitWidth < iBits)
 	{
-		sBits = mpcFunction->Add(mpcBlock, IRO_And, sType, sBits, mpcFunction->AddInteger(sType, (int64)ulliMask));
+		sValue = mpcFunction->Add(mpcBlock, IRO_And, sType, sValue, mpcFunction->AddInteger(sType, (int64)ulliMask));
 		sUnit = mpcFunction->Load(mpcBlock, sType, psPlace->sAddress, psPlace->psType->bVolatile);
 		sUnit = mpcFunction->Add(mpcBlock, IRO_And, sType, sUnit, mpcFunction->AddInteger(sType, (int64)(~ulliMask & ((iBits < 64) ? (((uint64)1 << iBits) - 1) : ~(uint64)0))));
-		sBits = mpcFunction->Add(mpcBlock, IRO_Or, sType, sUnit, sBits);
+		sValue = mpcFunction->Add(mpcBlock, IRO_Or, sType, sUnit, sValue);
 	}
-	mpcFunction->Store(mpcBlock, sType, sBits, psPlace->sAddress, psPlace->psType->bVolatile);
+	return sValue;
 }
 
 
@@ -438,9 +489,13 @@ void CCPP65IRFrontEnd::Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::BitFieldResult(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 {
-	if (psPlace->psBitField)
+	if (psPlace->bEither)
 	{
-		psValue->sValue = BitFieldValue(psPlace->psType, 0, psPlace->psBitField->iBitWidth, psValue->sValue);
+		psValue->sValue = Either(psPlace, FieldValue(psPlace->psType, psPlace->psBitField, true, psValue->sValue), FieldValue(psPlace->psType, psPlace->psElseBitField, true, psValue->sValue));
+	}
+	else
+	{
+		psValue->sValue = FieldValue(psPlace->psType, psPlace->psBitField, true, psValue->sValue);
 	}
 }
 

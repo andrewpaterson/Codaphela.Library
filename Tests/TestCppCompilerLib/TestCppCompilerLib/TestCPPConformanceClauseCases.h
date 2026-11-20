@@ -5968,6 +5968,44 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.16 [expr.cond] p4: c ? x : y of bit-fields, or of one and a variable of its type, is the one picked: assigned, counted and read
+	{
+		"ConditionalBitFields", 15,
+		"struct Bits { unsigned x : 3; unsigned y : 5; int s : 4; int t : 6; unsigned whole; };\n"
+		"int main()\n"
+		"{\n"
+		"	bool c = true;\n"
+		"	bool n = false;\n"
+		"	Bits b;\n"
+		"	unsigned plain = 9;\n"
+		"	b.x = 1; b.y = 2; b.s = -3; b.t = -20; b.whole = 100;\n"
+		"	int r = 0;\n"
+		"	(c ? b.x : b.y) = 5;\n"
+		"	(n ? b.x : b.y) = 30;\n"
+		"	if (b.x == 5 && b.y == 30 && b.s == -3 && b.t == -20 && b.whole == 100) r += 1;\n"
+		"	(c ? b.x : b.y) += 2;\n"
+		"	(n ? b.x : b.y)--;\n"
+		"	++(c ? b.s : b.t);\n"
+		"	if (b.x == 7 && b.y == 29 && b.s == -2 && (n ? b.s : b.t) == -20 && (c ? b.s : b.t) == -2) r += 2;\n"
+		"	(c ? b.x : plain) = 3;\n"
+		"	(n ? b.x : plain) = 7000;\n"
+		"	if (b.x == 3 && plain == 7000 && (c ? plain : b.y) == 7000 && (n ? plain : b.y) == 29) r += 4;\n"
+		"	if (((n ? b.x : b.y) = 0x7F) == 31 && b.y == 31 && b.x == 3) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.3.1 [expr.unary.op] p4: the address of c ? x : y that picks a bit-field
+	{
+		"ConditionalBitFieldAddressRefused", CONFORMANCE_REFUSED,
+		"struct Bits { unsigned x : 3; unsigned y : 3; };\n"
+		"int main() { Bits b; b.x = 1; b.y = 2; unsigned* p = &(b.x ? b.x : b.y); return *p; }\n"
+	},
+	//5.16 [expr.cond] p3: each operand converts to the other's type
+	{
+		"ConditionalBothConvertRefused", CONFORMANCE_REFUSED,
+		"struct X { X(int v) : v(v) { } operator int() const { return v; } int v; };\n"
+		"int main() { X x(1); bool c = true; return (c ? x : 2) == 1; }\n"
+	},
 };
 
 

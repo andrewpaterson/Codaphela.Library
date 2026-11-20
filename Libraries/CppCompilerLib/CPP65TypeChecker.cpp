@@ -1292,7 +1292,8 @@ bool CCPP65TypeChecker::Compare(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type
 
 //////////////////////////////////////////////////////////////////////////
 //
-// c ? x : y.  Objects of a class make an object of it (ObjectConditional), scalars
+// c ? x : y.  With an object for x or y it is ObjectConditional's; two values
+// about to go of one type are one (CCPPUnit::ConditionalXvalueType); scalars are
 // the type CCPPUnit::ConditionalType gives.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1339,9 +1340,14 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 		}
 		return Value(bThrowTrue ? pcConditional->mpcFalse : pcConditional->mpcTrue) ? psType : NULL;
 	}
+	psType = mpcUnit->ConditionalXvalueType(pcConditional);
+	if (psType)
+	{
+		return (Condition(pcConditional->mpcCondition) && Value(pcConditional->mpcTrue) && Value(pcConditional->mpcFalse)) ? psType : NULL;
+	}
 	if (mpcUnit->IsObject(pcConditional->mpcTrue) || mpcUnit->IsObject(pcConditional->mpcFalse))
 	{
-		return ObjectConditional(pcConditional, psTrue, psFalse);
+		return ObjectConditional(pcConditional);
 	}
 
 	psType = mpcUnit->ConditionalType(psTrue, psFalse);
@@ -1391,64 +1397,65 @@ bool CCPP65TypeChecker::ConditionalResultsFit(CCPPSyntaxConditionalExpression* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// c ? x : y as a place: x and y are lvalues of one type, which the result
-// is, with the const and volatile of both.  NULL, with why, if they aren't.
-// (One that picks between bit-fields isn't done.)  [expr.cond] 3, 4
+// c ? x : y as a place: x and y are lvalues of one type, or objects of a
+// class and of one derived from it (CCPPUnit::ConditionalLvalueType, which
+// gives the place's type).  NULL, with why, if they aren't.  [expr.cond] 3, 4
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ConditionalPlace(CCPPSyntaxConditionalExpression* pcConditional)
 {
-	SCPP65Type*	psTrue;
-	SCPP65Type*	psFalse;
+	SCPP65Type*	psType;
 
-	psTrue = mpcUnit->PlaceOf(pcConditional->mpcTrue);
-	psFalse = mpcUnit->PlaceOf(pcConditional->mpcFalse);
-	if (!psTrue || !psFalse || mpcUnit->IsRvalue(pcConditional->mpcTrue) || mpcUnit->IsRvalue(pcConditional->mpcFalse) || !psTrue->Unqualified()->Same(psFalse->Unqualified()))
+	psType = mpcUnit->ConditionalLvalueType(pcConditional);
+	if (!psType)
 	{
 		Error(pcConditional, "This is not an lvalue: the two results of ? : are not lvalues of one type");
-		return NULL;
-	}
-	if (mpcUnit->BitFieldOf(pcConditional->mpcTrue) || mpcUnit->BitFieldOf(pcConditional->mpcFalse))
-	{
-		Error(pcConditional, "c ? x : y that picks a bit-field to change is not supported by the compiler yet");
 		return NULL;
 	}
 	if (!Condition(pcConditional->mpcCondition) || !Place(pcConditional->mpcTrue) || !Place(pcConditional->mpcFalse))
 	{
 		return NULL;
 	}
-	return mpcTypes->Qualified(psTrue->Unqualified(), psTrue->bConst || psFalse->bConst, psTrue->bVolatile || psFalse->bVolatile);
+	return psType;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// c ? x : y with objects of the same class, or one derived from the other's
-// (CCPPUnit::ConditionalClass): an object of the class made from the
-// operand the condition picks.
+// c ? x : y where x or y is an object.  Two objects that are where they are
+// give the one picked, itself (ConditionalPlace).  Otherwise it is a value of
+// the type CCPPUnit::ConditionalObjectType gives: an object of the class made
+// from the operand the condition picks, or what the object picked converts
+// to.  [expr.cond] 3-6
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse)
+SCPP65Type* CCPP65TypeChecker::ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional)
 {
-	CCPPClass*		pcClass;
 	SCPP65Type*		psType;
+	bool			bAmbiguous;
 
-	pcClass = mpcUnit->ConditionalClass(psTrue, psFalse);
-	if (!pcClass)
+	if (mpcUnit->ConditionalLvalueType(pcConditional))
 	{
-		Error(pcConditional, "c ? x : y with objects of different types is not supported by the compiler yet");
+		return ConditionalPlace(pcConditional);
+	}
+	psType = mpcUnit->ConditionalObjectType(pcConditional, &bAmbiguous);
+	if (!psType)
+	{
+		Error(pcConditional, bAmbiguous ? "Each of the two results of ? : converts to the other's type" : "The two results of ? : have no type in common");
 		return NULL;
 	}
-	psTrue = psTrue->WithoutReference();
-	psType = (psTrue->pcClass == pcClass) ? psTrue : psFalse->WithoutReference();
-	if (!mpcUnit->CompleteClass(pcClass, pcConditional) ||
-		!Condition(pcConditional->mpcCondition) ||
-		!Construct(psType, NULL, pcConditional->mpcTrue, pcConditional->mpcTrue) ||
-		!Construct(psType, NULL, pcConditional->mpcFalse, pcConditional->mpcFalse))
+	if (!Condition(pcConditional->mpcCondition))
 	{
 		return NULL;
 	}
-	return psType;
+	if (psType->IsClass())
+	{
+		return (mpcUnit->CompleteClass(psType->pcClass, pcConditional) &&
+				Construct(psType, NULL, pcConditional->mpcTrue, pcConditional->mpcTrue) &&
+				Construct(psType, NULL, pcConditional->mpcFalse, pcConditional->mpcFalse)) ? psType : NULL;
+	}
+	return (Convert(ValueFor(pcConditional->mpcTrue, psType, false), psType, pcConditional->mpcTrue) &&
+			Convert(ValueFor(pcConditional->mpcFalse, psType, false), psType, pcConditional->mpcFalse)) ? psType : NULL;
 }
 
 
@@ -2388,9 +2395,16 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		break;
 
 	case CPPS_ConditionalExpression:
-		if (!mpcUnit->IsObject(pcExpression))
+		//One of two lvalues; of objects any other is the object it makes.  What is wrong with one that has no type is
+		//said as its value's error.
+		if (mpcUnit->ConditionalLvalueType((CCPPSyntaxConditionalExpression*)pcExpression) || (!mpcUnit->IsObject(pcExpression) && mpcUnit->TypeOf(pcExpression)))
 		{
 			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression);
+		}
+		if (!mpcUnit->IsObject(pcExpression))
+		{
+			Value(pcExpression);
+			return NULL;
 		}
 		break;
 
