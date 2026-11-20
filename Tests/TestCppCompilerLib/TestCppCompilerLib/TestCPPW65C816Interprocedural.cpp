@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "BaseLib/Chars.h"
 #include "BaseLib/FileUtil.h"
@@ -445,7 +447,11 @@ static void TestCPP816ReadListing(CChars* pszDest, const char* szDirectory, cons
 //////////////////////////////////////////////////////////////////////////
 #define TEST_CPP816_ARRAY_LAYERS_NOT_DONE	(2048 | 4096)
 
-void TestCPP816ArrayLayers(void)
+//With exceptions on (ExceptionsPlan.txt stage 9): what the tests after calls cost the layers.  A forwarder to a function
+//of another unit is a tested call, not a jump, when the option is on, and so is one through a member it adjusts to.
+#define TEST_CPP816_ARRAY_LAYERS_EXCEPTIONS_NOT_DONE	(8191 & ~512)	//All but GrowTo, which calls the work itself (7679).
+
+static int TestCPP816ArrayLayersWith(bool bExceptions)
 {
 	static const char*	aszUnits[] = { "StandardLib/ArrayCommonUnknown.cpp", "StandardLib/ArrayCommonObject.cpp", "StandardLib/ArrayObject.cpp", "Input/CPP65/ArrayChainProject/Use.cpp", NULL };
 	CCPP65Builder		cBuilder;
@@ -458,6 +464,7 @@ void TestCPP816ArrayLayers(void)
 	cFileUtil.RemoveDir("Output" _FS_ "CPP816ArrayLayers");
 	cBuilder.Init();
 	cBuilder.SetTarget(CPPT_W65C816);
+	cBuilder.GetOptions()->mbExceptions = bExceptions;
 	cBuilder.SetListingDirectory("Output" _FS_ "CPP816ArrayLayers");
 	TestCPP65AddIncludeDirectories(&cBuilder);
 	TestCPP65AddUnits(&cBuilder, aszUnits, false);
@@ -490,11 +497,24 @@ void TestCPP816ArrayLayers(void)
 	if (!TestCPP816AdjustsAndJumpsTo(szUse.Text(), "_UseArrayIsEmpty__FPC24CArray__T_C11CBaseObject.ax", "_CArrayCommonObject__IsEmpty.ax") &&
 		!TestCPP816AdjustsAndJumpsTo(szUse.Text(), "_UseArrayIsEmpty__FPC24CArray__T_C11CBaseObject.ax", "_CArrayCommonUnknown__IsEmpty.ax")) { w |= 4096; }
 
-	AssertInt(TEST_CPP816_ARRAY_LAYERS_NOT_DONE, w);
-
 	szUse.Kill();
 	szCommon.Kill();
 	szObject.Kill();
+	return w;
+}
+
+
+void TestCPP816ArrayLayers(void)
+{
+	int	w;
+
+	AssertInt(TEST_CPP816_ARRAY_LAYERS_NOT_DONE, TestCPP816ArrayLayersWith(false));
+	w = TestCPP816ArrayLayersWith(true);
+	if (getenv("TEST_CPP816_ARRAY_LAYERS_PRINT"))
+	{
+		printf("Array layers with exceptions: %d\n", w);
+	}
+	AssertInt(TEST_CPP816_ARRAY_LAYERS_EXCEPTIONS_NOT_DONE, w);
 }
 
 
