@@ -1078,6 +1078,6 @@ Progress
        W65C816 ones -27); the rest is in 19 units of TestStandardLib65 (17 around Ptr and CObject, plus exception.cpp and
        new.cpp), which a listing comparison with master as merged finds: constructors whose member initialisers make
        temporaries, which the IR front end refused before and the unit's own writer wrote, are the IR front end's now.
-       (Master as merged was measured from D:\gameengine, whose longer path strings are 11 bytes shorter: not
+       (Master as merged was measured from D:\gameengine, whose path strings are 11 bytes shorter: not
        comparable byte for byte, so the third baseline is the comparison.)
 
