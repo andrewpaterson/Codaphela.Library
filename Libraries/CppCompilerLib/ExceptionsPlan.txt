@@ -1131,7 +1131,7 @@ Progress
 
   9. Done, as the user had it ("I don't use exceptions ... Make them fast if needed but I'm not fussed"; then "Stop the
      speed ups here please"), 2026-11-20 (CommonLibraries 35ca17d65, 816d96315; HCP65
-     0bd1496, 5fc28dd).
+     537ef6f, 5fc28dd).
      - 9a, 9b: the six Lib65 runs with the option off and on from D:\gameengine (D:\gameengine\ExceptionsMeasures
        \Stage9Before, and Stage9After with 9d); every suite passes on both processors both ways.  A first run
        (Stage9Mixed, Stage9Bad) was spoilt by a pull and by 9d's edits being built while it ran: 9d then went into a
