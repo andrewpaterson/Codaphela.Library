@@ -2062,6 +2062,29 @@ uint32 TextAreaPixelUnder(Ptr<CTextArea> pTextArea, size uiPosition)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window's painted pixel on the top row of the line of the character
+// at uiPosition, in the middle of it, as 0xRRGGBB.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 TextAreaPixelOver(Ptr<CTextArea> pTextArea, size uiPosition)
+{
+	CInt32Rect		cLine;
+	uint8*			puiPixel;
+	Ptr<CWindow>	pWindow;
+	int32			iX;
+	int32			iY;
+
+	pWindow = pTextArea->GetWindow();
+	pTextArea->GetLineBounds(pTextArea->FindLine(uiPosition), &cLine);
+	iX = pTextArea->GetPosition().x + (pTextArea->GetPositionX(uiPosition, false) + pTextArea->GetPositionX(uiPosition + 1, false)) / 2;
+	iY = pTextArea->GetPosition().y + cLine.GetTop();
+	puiPixel = &pWindow->GetCanvas()->GetPixelData()[(iY * pWindow->GetCanvas()->GetActualSize().x + iX) * 3];
+	return ((uint32)puiPixel[0] << 16) | ((uint32)puiPixel[1] << 8) | (uint32)puiPixel[2];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Highlighting occurrences, the selected text's other places in the text
 // are found at the next tick (RunPosted) and drawn under it: again after
 // the selection or the text changes, none for a selection over lines or
@@ -2325,6 +2348,7 @@ void TestTextAreaEditHighlightLayers(void)
 		size						auiStarts[3] = { 4, 17, 23 };
 		size						uiMatches;
 		size						uiOther;
+		size						uiLink;
 		size						i;
 
 		cWindow.Init("Text Area Window", 300, 200, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x10, (uint8)0x10, (uint8)0x10)));
@@ -2427,6 +2451,23 @@ void TestTextAreaEditHighlightLayers(void)
 		pTestWindow->Paint();
 		asMany.Kill();
 		szText.Kill();
+
+		//An underline layer's ranges are a line along the bottom of their rows, not blocks: the first "foo" is
+		//underlined, the top of its row as it was, and the layer is cleared as any other.
+		pTextArea->SetText("int foo;\nint x = foo + foo;");
+		pTestWindow->Paint();
+		uiBackground = TextAreaPixelUnder(pTextArea, 16);
+		uiLink = pTextArea->AddUnderlineLayer(Set32BitColour((uint8)0x30, (uint8)0x90, (uint8)0xF0));
+		AssertSize(2, uiLink);
+		pTextArea->SetHighlightRanges(uiLink, asRanges, 1);
+		pTestWindow->Paint();
+		AssertInt(0x3090F0, TextAreaPixelUnder(pTextArea, 5));
+		AssertTrue(TextAreaPixelOver(pTextArea, 5) == uiBackground);
+		AssertTrue(TextAreaPixelUnder(pTextArea, 18) == uiBackground);
+		AssertTrue(TextAreaPixelUnder(pTextArea, 2) == uiBackground);
+		pTextArea->ClearHighlightRanges(uiLink);
+		pTestWindow->Paint();
+		AssertTrue(TextAreaPixelUnder(pTextArea, 5) == uiBackground);
 
 		pTextArea = NULL;
 		pFill = NULL;

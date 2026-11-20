@@ -393,6 +393,9 @@
     <ClInclude Include="ChooserPopup.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
+    <ClInclude Include="InfoPopup.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
     <ClInclude Include="PromptPopup.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
@@ -840,6 +843,9 @@
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="ChooserPopup.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="InfoPopup.cpp">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="PromptPopup.cpp">

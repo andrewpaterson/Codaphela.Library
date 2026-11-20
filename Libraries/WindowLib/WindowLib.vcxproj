@@ -275,6 +275,7 @@
     <ClInclude Include="GoToDialog.h" />
     <ClInclude Include="NameRow.h" />
     <ClInclude Include="ChooserPopup.h" />
+    <ClInclude Include="InfoPopup.h" />
     <ClInclude Include="PromptPopup.h" />
     <ClInclude Include="PasteHistoryDialog.h" />
     <ClInclude Include="CodePreview.h" />
@@ -382,6 +383,7 @@
     <ClCompile Include="GoToDialog.cpp" />
     <ClCompile Include="NameRow.cpp" />
     <ClCompile Include="ChooserPopup.cpp" />
+    <ClCompile Include="InfoPopup.cpp" />
     <ClCompile Include="PromptPopup.cpp" />
     <ClCompile Include="PasteHistoryDialog.cpp" />
     <ClCompile Include="CodePreview.cpp" />

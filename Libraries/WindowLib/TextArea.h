@@ -214,6 +214,7 @@ public:
 	STextRange*			GetOccurrence(size uiIndex);
 	void				FindOccurrences(void);
 	size				AddHighlightLayer(ARGB32 sColour, ARGB32 sCurrentColour);
+	size				AddUnderlineLayer(ARGB32 sColour, int32 iThickness = 1);
 	void				SetHighlightRanges(size uiLayer, STextRange* asRanges, size uiNumRanges, size uiCurrent = TEXT_AREA_NO_HIGHLIGHT);
 	void				ClearHighlightRanges(size uiLayer);
 	void				SetCurrentHighlight(size uiLayer, size uiCurrent);

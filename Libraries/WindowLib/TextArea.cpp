@@ -1951,6 +1951,20 @@ size CTextArea::AddHighlightLayer(ARGB32 sColour, ARGB32 sCurrentColour)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A layer of highlights whose ranges are underlined in sColour, a line
+// iThickness pixels thick along the bottom of their rows, as a link is:
+// a name that a press would go from, while control is held over it.  It
+// is given ranges, and loses them, as any layer.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextArea::AddUnderlineLayer(ARGB32 sColour, int32 iThickness)
+{
+	return mcOccurrences.AddLayer(sColour, sColour, (iThickness > 0) ? iThickness : 1);
+}
+
+
 void CTextArea::SetHighlightRanges(size uiLayer, STextRange* asRanges, size uiNumRanges, size uiCurrent)
 {
 	mcOccurrences.SetLayerRanges(uiLayer, asRanges, uiNumRanges, uiCurrent);

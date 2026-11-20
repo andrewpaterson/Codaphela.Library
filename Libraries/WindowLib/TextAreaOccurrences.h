@@ -45,13 +45,15 @@ typedef CArrayTemplate<STextOccurrenceRange>	CArrayTextOccurrenceRange;
 
 
 //Ranges of a text area's text drawn under it in a colour of their own (CTextArea::AddHighlightLayer): a search's
-//matches, say.  One of them can be the current one, drawn in another colour.
+//matches, say.  One of them can be the current one, drawn in another colour.  With iUnderline they are lines that
+//thick along the bottom of their rows (CTextArea::AddUnderlineLayer), as a link is underlined, not blocks.
 struct STextHighlightLayer
 {
 	CArrayTextRange	asRanges;  //In the text's order.
 	ARGB32			sColour;
 	ARGB32			sCurrentColour;
 	size			uiCurrent;  //TEXT_AREA_NO_HIGHLIGHT for none.
+	int32			iUnderline;  //0 for blocks.
 };
 
 
@@ -105,7 +107,7 @@ public:
 	STextOccurrenceRange*	GetRange(size uiIndex);
 	void					AddRanges(CTextAreaShapes* pcShapes, Ptr<CGeometryMap> pMap, ARGB32 sColour, ARGB32 sWriteColour);
 
-	size					AddLayer(ARGB32 sColour, ARGB32 sCurrentColour);
+	size					AddLayer(ARGB32 sColour, ARGB32 sCurrentColour, int32 iUnderline = 0);
 	size					NumLayers(void) const;
 	void					SetLayerRanges(size uiLayer, STextRange* asRanges, size uiNumRanges, size uiCurrent);
 	bool					ClearLayer(size uiLayer);

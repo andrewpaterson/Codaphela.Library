@@ -7,6 +7,7 @@
 #include "WindowLib/JewelColours.h"
 #include "WindowLib/ChooserPopup.h"
 #include "WindowLib/PromptPopup.h"
+#include "WindowLib/InfoPopup.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TickTestRefWindow.h"
@@ -538,6 +539,139 @@ void TestPromptPopup(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An info popup shows a few lines of text at a point of the window, under
+// it or over it, and is kept inside the window; the pointer passes
+// through it and it takes no keys.  Setting its text while it is shown
+// sizes it again.  Hidden, a popup opened over it stays open; a press
+// anywhere closes it as it does any popup.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInfoPopup(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	ObjectsInit();
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		SDialogLook					sLook;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextField>				pOwner;
+		Ptr<CInfoPopup>				pInfo;
+		Ptr<CPromptPopup>			pPrompt;
+		SInt32Vec2					sPoint;
+		SInt32Vec2					sSize;
+		SInt32Vec2					sWide;
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 800, 600, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Info Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		sLook.pcTheme = &pTheme;
+		sLook.pcDimFont = &pTheme->GetFont();
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pOwner = OMalloc<CTextField>(pTestWindow, pTheme, "owner");
+		pFill->AddComponent(pOwner);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pOwner);
+
+		pInfo = OMalloc<CInfoPopup>(pTestWindow, pTheme, CreateMonoTextAreaFamily(14.0f));
+		ORoot()->Add(pInfo);
+		AssertFalse(pInfo->IsShown());
+		AssertFalse(pInfo->Hide());
+
+		//Shown under a point: its top is a little under it, its left on it, and the keys stay where they were.
+		pInfo->SetText("int Area(void)");
+		AssertString("int Area(void)", pInfo->GetText());
+		sPoint.Init(100, 200);
+		pInfo->Show(sPoint, false);
+		AssertTrue(pInfo->IsShown());
+		AssertSize(1, pTestWindow->NumPopups());
+		pTestWindow->Layout();
+		AssertInt(100, pInfo->GetPopup()->GetPosition().x);
+		AssertInt(200 + INFO_POPUP_GAP, pInfo->GetPopup()->GetPosition().y);
+		sSize = pInfo->GetPopup()->GetActualSize();
+		AssertTrue(sSize.x > 80);
+		AssertTrue(sSize.y > 14);
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pOwner);
+
+		//The pointer passes through it to what is under it.
+		AssertTrue(pInfo->GetPopup()->FindComponentAt(104, 206).IsNull());
+
+		//Shown over a point: its bottom is a little over it.  Shown again it moves, still one popup.
+		pInfo->Show(sPoint, true);
+		AssertSize(1, pTestWindow->NumPopups());
+		pTestWindow->Layout();
+		AssertInt(200 - INFO_POPUP_GAP - sSize.y, pInfo->GetPopup()->GetPosition().y);
+		AssertTrue(pInfo->IsAbove());
+
+		//With no room over the point it goes under it; past the right edge it is moved back in.
+		sPoint.Init(790, 4);
+		pInfo->Show(sPoint, true);
+		pTestWindow->Layout();
+		AssertInt(4 + INFO_POPUP_GAP, pInfo->GetPopup()->GetPosition().y);
+		AssertInt(800 - sSize.x, pInfo->GetPopup()->GetPosition().x);
+
+		//More text while it is shown: it is wider and taller, and a span is taken.
+		sPoint.Init(100, 200);
+		pInfo->Show(sPoint, false);
+		pInfo->SetText("int Area(void)\nvirtual void Draw(int iX, int iY)");
+		AssertTrue(pInfo->AddSpan(0, 3, Set32BitColour((uint8)0x30, (uint8)0x90, (uint8)0xF0)));
+		pTestWindow->Layout();
+		sWide = pInfo->GetPopup()->GetActualSize();
+		AssertTrue(sWide.x > sSize.x);
+		AssertTrue(sWide.y > sSize.y);
+		AssertSize(1, pInfo->GetTextArea()->NumSpans());
+		pInfo->SetText("x");
+		AssertSize(0, pInfo->GetTextArea()->NumSpans());
+
+		//A popup opened over it stays when it is hidden.
+		pPrompt = OMalloc<CPromptPopup>(pTestWindow, &sLook);
+		ORoot()->Add(pPrompt);
+		sPoint.Init(300, 300);
+		pPrompt->Open(sPoint, pOwner, "Line:", "1");
+		AssertSize(2, pTestWindow->NumPopups());
+		AssertTrue(pInfo->Hide());
+		AssertFalse(pInfo->IsShown());
+		AssertSize(1, pTestWindow->NumPopups());
+		AssertTrue(pPrompt->IsOpen());
+		pPrompt->Close();
+		AssertSize(0, pTestWindow->NumPopups());
+
+		//Every popup closing closes it too, and it can be shown again.
+		sPoint.Init(100, 200);
+		pInfo->Show(sPoint, false);
+		AssertTrue(pInfo->IsShown());
+		pTestWindow->CloseAllPopups();
+		AssertFalse(pInfo->IsShown());
+		pInfo->Show(sPoint, false);
+		AssertTrue(pInfo->IsShown());
+		AssertSize(1, pTestWindow->NumPopups());
+		AssertTrue(pInfo->Hide());
+		AssertSize(0, pTestWindow->NumPopups());
+
+		pPrompt = NULL;
+		pInfo = NULL;
+		pOwner = NULL;
+		pFill = NULL;
+		pTheme = NULL;
+		pTick = NULL;
+		pTestWindow = NULL;
+	}
+
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChooserPopup(void)
@@ -552,6 +686,7 @@ void TestChooserPopup(void)
 	ObjectsKill();
 
 	TestPromptPopup();
+	TestInfoPopup();
 	TestStatistics();
 }
 

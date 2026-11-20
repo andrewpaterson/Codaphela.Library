@@ -244,10 +244,11 @@ void CTextAreaOccurrences::AddRanges(CTextAreaShapes* pcShapes, Ptr<CGeometryMap
 //////////////////////////////////////////////////////////////////////////
 //
 // A layer of highlights, with no ranges until it is given some: its
-// index, which is how it is named from then on.
+// index, which is how it is named from then on.  With iUnderline its
+// ranges are underlined that thickly, not drawn as blocks.
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextAreaOccurrences::AddLayer(ARGB32 sColour, ARGB32 sCurrentColour)
+size CTextAreaOccurrences::AddLayer(ARGB32 sColour, ARGB32 sCurrentColour, int32 iUnderline)
 {
 	STextHighlightLayer*	psLayer;
 
@@ -256,6 +257,7 @@ size CTextAreaOccurrences::AddLayer(ARGB32 sColour, ARGB32 sCurrentColour)
 	psLayer->sColour = sColour;
 	psLayer->sCurrentColour = sCurrentColour;
 	psLayer->uiCurrent = TEXT_AREA_NO_HIGHLIGHT;
+	psLayer->iUnderline = iUnderline;
 	return masLayers.NumElements() - 1;
 }
 
@@ -366,7 +368,7 @@ void CTextAreaOccurrences::AddLayers(CTextAreaShapes* pcShapes, Ptr<CGeometryMap
 		for (i = uiFirst; i < uiLast; i++)
 		{
 			psRange = psLayer->asRanges.Get(i);
-			pcShapes->AddRange(pMap, psRange->uiStart, psRange->uiEnd, (i == psLayer->uiCurrent) ? psLayer->sCurrentColour : psLayer->sColour);
+			pcShapes->AddRange(pMap, psRange->uiStart, psRange->uiEnd, (i == psLayer->uiCurrent) ? psLayer->sCurrentColour : psLayer->sColour, psLayer->iUnderline);
 		}
 	}
 }

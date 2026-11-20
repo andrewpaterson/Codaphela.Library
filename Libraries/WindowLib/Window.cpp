@@ -1271,6 +1271,41 @@ bool CWindow::ClosePopup(Ptr<CComponent> pContent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Closes the popup holding pContent alone, whatever was opened after it
+// staying open: for one that shows something and opens nothing, like a
+// tip, which others can be opened over.  Its closed event is called and
+// its owner told.  False if pContent isn't in an open popup.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::CloseOnePopup(Ptr<CComponent> pContent)
+{
+	size			uiIndex;
+	Ptr<CPopup>		pPopup;
+	Ptr<CComponent>	pOwner;
+
+	if (!FindPopup(pContent, &uiIndex))
+	{
+		return false;
+	}
+
+	InvalidateLayout();
+	pPopup = maPopups.Get(uiIndex);
+	pOwner = pPopup->GetOwner();
+	mpCanvas->RemoveComponent(pPopup);
+	pPopup->RemoveAllComponents();
+	maPopups.RemoveAt(uiIndex);
+	pPopup->GetClosedEvent()->Call(&pPopup);
+	pPopup = NULL;
+	if (pOwner.IsNotNull())
+	{
+		pOwner->PopupClosed(pContent);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::CloseAllPopups(void)

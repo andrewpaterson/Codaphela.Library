@@ -130,6 +130,7 @@ public:
 	void						SetScreenRectangle(CInt32Rect* pcRectangle);
 	void						GetScreenRectangle(CInt32Rect* pcDest);
 	void						GetPointerScreenPosition(SInt32Vec2* psDest);
+	bool						CloseOnePopup(Ptr<CComponent> pContent);
 	bool						GetScreenArea(CInt32Rect* pcDest);
 	void						UpdateCursor(void);
 	void						Raise(void);

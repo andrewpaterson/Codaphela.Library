@@ -180,11 +180,12 @@ void CTextAreaShapes::AddBoundary(Ptr<CGeometryMap> pMap, STextAreaBackground* p
 //////////////////////////////////////////////////////////////////////////
 //
 // A block on each row uiStart to uiEnd is on, to the end of rows it goes
-// past and a space further where they end at a line feed.  The text must
-// have rows.
+// past and a space further where they end at a line feed.  With
+// iUnderline it is a line that thick along the bottom of each row
+// instead, to the end of a row's text.  The text must have rows.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextAreaShapes::AddRange(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd, ARGB32 sColour)
+void CTextAreaShapes::AddRange(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd, ARGB32 sColour, int32 iUnderline)
 {
 	size				uiRow;
 	size				uiStartRow;
@@ -206,14 +207,21 @@ void CTextAreaShapes::AddRange(Ptr<CGeometryMap> pMap, size uiStart, size uiEnd,
 		else
 		{
 			iRight = mpcLayout->GetRowRight(uiRow);
-			if (!mpcLayout->IsRowWrapped(uiRow))
+			if (!mpcLayout->IsRowWrapped(uiRow) && (iUnderline == 0))
 			{
 				iRight += mpcLayout->GetNewLineWidth();
 			}
 		}
 		if (iRight > iLeft)
 		{
-			pMap->AddRectangle(iLeft, psLine->iTop, iRight - iLeft, psLine->iHeight, sColour);
+			if ((iUnderline > 0) && (iUnderline < psLine->iHeight))
+			{
+				pMap->AddRectangle(iLeft, psLine->iTop + psLine->iHeight - iUnderline, iRight - iLeft, iUnderline, sColour);
+			}
+			else
+			{
+				pMap->AddRectangle(iLeft, psLine->iTop, iRight - iLeft, psLine->iHeight, sColour);
+			}
 		}
 	}
 }
