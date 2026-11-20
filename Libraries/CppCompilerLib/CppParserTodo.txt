@@ -708,6 +708,45 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     - template<> int S<int>::k = 5; defines S<int>'s static member: it was dropped, and S<int>::k was the class
       template's.  A static member's definition is its class's own member's (CCPPUnit::GlobalDeclaration, OwnStatic):
       it was the first instance's of the symbol (TempStaticMemberExplicitSpecialisation).
+    - Constructor templates (the user had said "Later"): a constructor template is a member template like another
+      (CCPPUnit::MemberTemplate left it out and marked the class, CCPPClass::mbConstructorTemplate, which is gone), so
+      its class is no aggregate and has no default constructor, and the instance the arguments deduce is a candidate
+      with the constructors that are declared (CCPPOverloads::FindConstructor; FindFunctionOrInstance, which
+      FindOperator is now too: the instance was only tried when no declared function took the arguments, and is
+      weighed with them now, a declared one winning a tie, CompareTied, [over.match.best] 1).  An argument converts
+      through one (HasConvertingConstructor, ConstructorInstance).  S s(3L) gave s's first member the 3.  Not as
+      the standard has it: an object of the class is always copied by its copy constructor, where S(T&&) would be
+      chosen before S(const S&) for an S that isn't const (TempConstructorTemplate).
+    - The global operator delete that takes a size is called, with the size, where the program has declared it
+      (<new> does; Libc65 defines it), for an object and for an array whose count is kept; a class's operator
+      delete[] that takes a size is given its array's, counted from the count in front of it, where it was refused
+      (CCPPBinder::FindDeallocation, CCPP65IRFrontEnd::Deallocate, DeleteArray; DeleteGlobalSized,
+      DeleteArraySizedClass).  A program that doesn't declare the one with the size calls the one without, where the
+      standard has it declared in every unit.  The one without is also what frees an array whose elements have no
+      destructor (its size isn't kept) and an object whose destructor is virtual: its deleting destructor's call
+      must be one a program with no heap needn't have (CallRuntime's bWeak), and ::delete of one doesn't know its
+      size.  Libc65's own that take a size call those that don't (they called free), so replacing those replaces
+      both.
+    - A function template's arguments are deduced through an alias template (f(Alias<T>&): the arguments that make
+      the alias's type the argument's are found as a specialisation's are, CCPPDeduction::AliasArguments over
+      CCPPPatternMatch, which was CCPPSpecialisationMatch) and a template template parameter is deduced
+      (get(C<T>&): C is the class template of the argument's class, kept as that class until
+      CCPPUnit::BindArguments binds it).  CCPPDeduction::DeduceType and DeduceValue are the one place a
+      parameter takes what was deduced, which five loops did (TempDeduceThroughAlias, TempDeduceTemplateTemplate).
+    - An operator function is called by its name (operator delete(p), operator+(a, b), operator*(a, 5L) of a
+      template): the name has no symbol, and the call was "Only calls to functions and pointers to functions are
+      supported" (CCPPBinder::Resolve; CallOperatorFunctionByName).  Libc65's sized operator delete needed it.
+    - A lambda captures a function parameter pack ([args...], [&args...], or by its default capture where its body
+      expands it): each element, which is a variable of its own, is captured (CCPPUnit::CapturePack), and the body
+      expands the pack into them (SCPPLambda::pcPackParameter, apcPackElements; AddParameters).  One pack of the
+      function the lambda is in, and not beside a pack of the lambda's own (LambdaCapturesPack).
+    - A generic lambda's auto... args takes the rest of a call's arguments (GenericLambdaCall), a function
+      parameter pack with no template pack: a pack's size is the parameters the function has more than the others
+      declared (AddParameters, CCPPSyntaxFunctionSuffix::EndsWithPack) and sizeof... of it its elements
+      (LambdaGenericPack).  Found with it: a function pack's elements were new symbols each time its parameters
+      were made, and an argument list expanded while its return type was worked out named the old ones when it
+      was written (any function with a pack that returns auto): they are the same symbols each time now
+      (FunctionPackElement, which was NewPackElement).
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

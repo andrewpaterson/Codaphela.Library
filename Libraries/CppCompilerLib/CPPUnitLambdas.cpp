@@ -19,6 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
+#include "CPPSyntaxCopier.h"
 #include "CPPUnit.h"
 #include "CPPSyntaxes.h"
 
@@ -60,6 +61,9 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 	psLambda->pcBindings = mcContext.GetBindings();
 	psLambda->asCaptures.Init();
 	psLambda->bThis = false;
+	psLambda->pcPackParameter = mcContext.GetPackParameter();
+	psLambda->apcPackElements.Init();
+	psLambda->apcPackElements.Copy(&mapcPackElements);
 	psLambda->bMutable = pcSyntax->IsMutable();
 	psLambda->bFailed = false;
 	psLambda->pcErrorNode = pcSyntax;
@@ -195,6 +199,16 @@ bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
 			continue;
 		}
 		pcSymbol = pcCapture->mpcName ? pcCapture->mpcName->mpcName->mpcSymbol : NULL;
+		if (pcCapture->mbPack)
+		{
+			if (!pcSymbol || (pcSymbol != psLambda->pcPackParameter))
+			{
+				bResult &= LambdaError(psLambda, pcCapture, "Only the parameter pack of the function the lambda is in can be captured as a pack");
+				continue;
+			}
+			bResult &= CapturePack(psLambda, pcCapture->mpcName, pcCapture->meKind == CPPLC_Reference, pcCapture);
+			continue;
+		}
 		if (!IsEnclosingLocal(pcSymbol, psLambda))
 		{
 			bResult &= LambdaError(psLambda, pcCapture, "Only a variable of the function the lambda is in can be captured");
@@ -240,6 +254,19 @@ bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 	else if (pcNode->GetKind() == CPPS_IdExpression)
 	{
 		pcSymbol = ((CCPPSyntaxIdExpression*)pcNode)->mpcName->mpcSymbol;
+		if (pcSymbol && (pcSymbol == psLambda->pcPackParameter))
+		{
+			//The enclosing function's parameter pack (args in f(args...)): its elements are what is captured, all of them.
+			if (IsPackCaptured(psLambda))
+			{
+				return true;
+			}
+			if (psLambda->pcSyntax->meDefault == CPPLC_None)
+			{
+				return LambdaError(psLambda, pcNode, "The lambda doesn't capture the parameter pack");
+			}
+			return CapturePack(psLambda, (CCPPSyntaxIdExpression*)pcNode, psLambda->pcSyntax->meDefault == CPPLC_Reference, pcNode);
+		}
 		if (IsEnclosingLocal(pcSymbol, psLambda) && !FindLambdaCapture(psLambda, pcSymbol))
 		{
 			//A constant whose value is used at once isn't odr-used: it isn't captured, even by a default capture.
@@ -264,6 +291,53 @@ bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 		bResult = UsedCaptures(psLambda, pcNode->GetChild(i));
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Captures each element of the enclosing function's parameter pack, which
+// pcName names: [args...], [&args...], or a default capture whose body
+// expands it.  An element is a variable of its own (FunctionPackElement), and
+// is captured as one, by a copy of the name that names it.
+// [expr.prim.lambda] 24
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CapturePack(SCPPLambda* psLambda, CCPPSyntaxIdExpression* pcName, bool bReference, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxCopier	cCopier;
+	CCPPSymbol*			pcElement;
+	CCPPSyntax*			pcElementName;
+	size				k;
+	bool				bResult;
+
+	if (IsPackCaptured(psLambda) && (psLambda->apcPackElements.NumElements() > 0))
+	{
+		return LambdaError(psLambda, pcNode, "The variable is captured twice");
+	}
+	bResult = true;
+	for (k = 0; bResult && (k < psLambda->apcPackElements.NumElements()); k++)
+	{
+		pcElement = psLambda->apcPackElements.GetPtr(k);
+		cCopier.Init(mpcTree->GetMemory());
+		cCopier.Substitute(psLambda->pcPackParameter, pcElement);
+		pcElementName = cCopier.Copy(pcName, pcName->mpcParent);
+		cCopier.Kill();
+		bResult = AddCapture(psLambda, pcElement, pcElementName, bReference, false, pcNode);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the lambda has captured the enclosing function's parameter
+// pack: its elements, of which an empty pack has none to capture.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsPackCaptured(SCPPLambda* psLambda)
+{
+	return (psLambda->apcPackElements.NumElements() == 0) || (FindLambdaCapture(psLambda, psLambda->apcPackElements.GetPtr(0)) != NULL);
 }
 
 
@@ -754,17 +828,20 @@ void CCPPUnit::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArgumen
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntaxParameter*		pcParameter;
 	SCPP65Type*					psType;
+	size						uiParameters;
 	size						i;
 
 	pcSuffix = psLambda->pcSyntax->mpcDefinition->mpcDeclarator->GetFunctionSuffix();
-	if (pcSuffix->macpParameters.NumElements() != papcArguments->NumElements())
+	uiParameters = pcSuffix->macpParameters.NumElements();
+	if (pcSuffix->EndsWithPack() ? (papcArguments->NumElements() + 1 < uiParameters) : (papcArguments->NumElements() != uiParameters))
 	{
 		return;
 	}
 	apsParameters.Init();
-	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
+	for (i = 0; i < papcArguments->NumElements(); i++)
 	{
-		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
+		//A last parameter that is a pack (auto... args) is each of the rest of the arguments'.
+		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr((i < uiParameters) ? i : uiParameters - 1);
 		psType = (pcParameter->GetKind() == CPPS_Parameter) ? mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter, papcArguments->GetPtr(i)) : NULL;
 		if (!psType)
 		{
@@ -1020,6 +1097,7 @@ void CCPPUnit::FreeLambdas(void)
 	for (i = 0; i < mapsLambdas.NumElements(); i++)
 	{
 		mapsLambdas.GetPtr(i)->asCaptures.Kill();
+		mapsLambdas.GetPtr(i)->apcPackElements.Kill();
 		mapsLambdas.GetPtr(i)->szError.Kill();
 		mapsLambdas.GetPtr(i)->szName.Kill();
 		free(mapsLambdas.GetPtr(i));

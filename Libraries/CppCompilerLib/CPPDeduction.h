@@ -33,7 +33,8 @@ class CCPPUnit;
 
 //One deduction of a function template's arguments from a call's.  [temp.deduct.call]  It is made for the
 //template, Deduce is given the call's arguments, and what it found is kept here: for each of the template's
-//parameters the type deduced, or NULL if none was, and for a parameter that isn't a type its value.  A parameter
+//parameters the type deduced, or NULL if none was, for a parameter that isn't a type its value, and for a
+//template template parameter a class that is an instance of the template deduced.  A parameter
 //pack's types follow the last parameter's.  The unit binds them (BindArguments), with the defaults for those
 //not deduced.
 class CCPPDeduction
@@ -64,6 +65,10 @@ protected:
 	SCPP65Type*			ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcArgument);
 	void				DeduceMemberPointer(CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type* psArgument);
 	void				DeduceFromInstance(CCPPSyntaxNameComponent* pcComponent, SCPP65Type* psArgument);
+	CCPPTemplateArguments*	ArgumentsFor(CCPPSymbol* pcTemplate, SCPP65Type* psType);
+	CCPPTemplateArguments*	AliasArguments(CCPPSymbol* pcTemplate, SCPP65Type* psType);
+	void				DeduceType(CCPPSymbol* pcSymbol, SCPP65Type* psType);
+	void				DeduceValue(CCPPSymbol* pcSymbol, int64 lliValue);
 	CCPPClass*			FindInstanceBase(CCPPClass* pcClass, CCPPSymbol* pcTemplate);
 	CCPPSymbol*			GetArgumentSymbol(CCPPSyntax* pcArgument);
 };
@@ -81,23 +86,25 @@ struct SCPPDeferredPattern
 typedef CArrayTemplate<SCPPDeferredPattern>	CArrayCPPDeferredPatterns;
 
 
-//One try at a template's specialisation: whether its pattern (X<T*, int>) matches the arguments an instance is
-//wanted for, and if so what its own parameters are (GetDeduced) and how special it is (GetScore: the
-//specialisation with the highest score that matches is the one used).  [temp.class.spec.match]
-class CCPPSpecialisationMatch
+//One try at matching what is written with a template declaration's parameters against what it must be: a
+//specialisation's arguments (X<T*, int>) against those an instance is wanted for, or an alias template's type
+//against a type.  If it matches, GetDeduced is what the parameters are, and GetScore how special the pattern is
+//(the specialisation with the highest score that matches is the one used).  [temp.class.spec.match],
+//[temp.deduct.type]
+class CCPPPatternMatch
 {
 protected:
 	CCPPUnit*					mpcUnit;
-	CCPPTemplate*				mpcSpecialisation;
-	CCPPTemplateArguments*		mpcDeduced;		//The specialisation's parameters, deduced as its pattern is matched.  The unit's.
+	CCPPTemplateArguments*		mpcDeduced;		//The parameters, deduced as the pattern is matched.  The unit's.
 	CArrayCPPDeferredPatterns	masDeferred;
 	int							miScore;
 
 public:
-	void					Init(CCPPUnit* pcUnit, CCPPTemplate* pcSpecialisation);
+	void					Init(CCPPUnit* pcUnit, CCPPSyntaxTemplateDeclaration* pcDeclaration);
 	void					Kill(void);
 
-	bool					Match(CCPPTemplateArguments* pcArguments);
+	bool					Match(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments);
+	bool					MatchTypeId(CCPPSyntaxTypeId* pcPattern, SCPP65Type* psType);
 	CCPPTemplateArguments*	GetDeduced(void) const;
 	int						GetScore(void) const;
 
@@ -110,6 +117,7 @@ protected:
 	bool					MatchClass(CCPPSyntaxName* pcName, CCPPClass* pcClass);
 	bool					MatchFunction(CCPPSyntaxFunctionSuffix* pcSuffix, SCPP65Type* psType);
 	bool					MatchBound(CCPPSyntax* pcSize, int iCount);
+	bool					IsDeduced(void);
 	bool					MatchDeferred(void);
 	bool					Deduce(SCPPBinding* psBinding, SCPP65Type* psType);
 	void					FlattenArguments(CCPPTemplateArguments* pcArguments, CArrayCPPBindings* pasArguments);

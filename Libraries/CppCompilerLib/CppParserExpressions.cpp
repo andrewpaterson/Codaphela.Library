@@ -960,8 +960,14 @@ CCPPSyntaxLambdaCapture* CCPPParser::ParseLambdaCapture(CCPPSyntaxLambdaExpressi
 	}
 	if (Is(CT_Elipsis))
 	{
-		Error("Capturing a pack is not supported by the compiler yet.");
-		return NULL;
+		//[args...] and [&args...]; an init-capture is no pack.  [expr.prim.lambda] 24
+		if (pcCapture->mpcInitializer)
+		{
+			Error("A capture with an initialiser can't be a pack expansion.");
+			return NULL;
+		}
+		pcCapture->mbPack = true;
+		Next();
 	}
 	if (!pcCapture->mpcInitializer && (pcCapture->meKind == pcLambda->meDefault))
 	{

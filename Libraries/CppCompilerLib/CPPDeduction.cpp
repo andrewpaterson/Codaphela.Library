@@ -85,10 +85,8 @@ void CCPPDeduction::DeduceConversion(CCPPSyntaxTypeId* pcType, SCPP65Type* psTo)
 	CCPPSyntaxDeclarator*		pcDeclarator;
 	CCPPSyntaxTypeSpecifier*	pcSpecifier;
 	CCPPSymbol*					pcSymbol;
-	CCPPSyntax*					pcParameter;
 	SCPP65Type*					psType;
 	ECPPPointer					eOuter;
-	size						j;
 
 	pcDeclarator = pcType->mpcDeclarator;
 	pcSpecifier = pcType->mpcSpecifiers ? pcType->mpcSpecifiers->mpcType : NULL;
@@ -105,13 +103,51 @@ void CCPPDeduction::DeduceConversion(CCPPSyntaxTypeId* pcType, SCPP65Type* psTo)
 	{
 		return;
 	}
-	psType = WithoutQualifiersOf(pcType->mpcSpecifiers, psType);
+	DeduceType(pcSymbol, WithoutQualifiersOf(pcType->mpcSpecifiers, psType));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The template's type parameter of the symbol, if it has one that isn't
+// deduced yet, is the type.  A template template parameter's is a class
+// that is an instance of its template (CCPPUnit::BindArguments).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDeduction::DeduceType(CCPPSymbol* pcSymbol, SCPP65Type* psType)
+{
+	CCPPSyntax*	pcParameter;
+	size		j;
+
 	for (j = 0; j < mpcTemplate->mpcDeclaration->macpParameters.NumElements(); j++)
 	{
 		pcParameter = mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
 		if ((pcParameter->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol == pcSymbol) && !mapsDeduced.GetPtr(j))
 		{
 			mapsDeduced.SetPtr(j, psType);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The template's non-type parameter of the symbol, if it has one that
+// isn't deduced yet, is the value.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDeduction::DeduceValue(CCPPSymbol* pcSymbol, int64 lliValue)
+{
+	CCPPSyntax*	pcParameter;
+	size		j;
+
+	for (j = 0; j < mpcTemplate->mpcDeclaration->macpParameters.NumElements(); j++)
+	{
+		pcParameter = mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
+		if ((pcParameter->GetKind() == CPPS_Parameter) && (((CCPPSyntaxParameter*)pcParameter)->mpcSymbol == pcSymbol) && !mapsDeduced.GetPtr(j))
+		{
+			mapsDeduced.SetPtr(j, &mpcUnit->GetTypes()->msInt);
+			malliDeduced.SetValue(j, lliValue);
 		}
 	}
 }
@@ -370,18 +406,11 @@ SCPP65Type* CCPPDeduction::StripDeclarator(CCPPSyntaxDeclarator* pcDeclarator, S
 void CCPPDeduction::DeduceBound(CCPPSyntax* pcSize, int iCount)
 {
 	CCPPSymbol*	pcSymbol;
-	CCPPSyntax*	pcTemplateParameter;
-	size		j;
 
 	pcSymbol = (pcSize && (iCount > 0)) ? GetArgumentSymbol(pcSize) : NULL;
-	for (j = 0; pcSymbol && (j < mpcTemplate->mpcDeclaration->macpParameters.NumElements()); j++)
+	if (pcSymbol)
 	{
-		pcTemplateParameter = mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
-		if ((pcTemplateParameter->GetKind() == CPPS_Parameter) && (((CCPPSyntaxParameter*)pcTemplateParameter)->mpcSymbol == pcSymbol) && !mapsDeduced.GetPtr(j))
-		{
-			mapsDeduced.SetPtr(j, &mpcUnit->GetTypes()->msInt);
-			malliDeduced.SetValue(j, iCount);
-		}
+		DeduceValue(pcSymbol, iCount);
 	}
 }
 
@@ -465,10 +494,7 @@ void CCPPDeduction::DeduceMemberPointer(CCPPSyntaxDeclarator* pcDeclarator, SCPP
 	CCPPSyntaxPointerOperator*	pcPointer;
 	CCPPSyntaxDeclarator*		pcOuter;
 	CCPPSyntax*					pcSuffix;
-	CCPPSyntax*					pcTemplateParameter;
-	CCPPSymbol*					pcSymbol;
 	size						i;
-	size						j;
 
 	psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
 	if (!psArgument || !psArgument->IsMemberPointer() || !psArgument->pcClass)
@@ -484,14 +510,9 @@ void CCPPDeduction::DeduceMemberPointer(CCPPSyntaxDeclarator* pcDeclarator, SCPP
 			{
 				continue;
 			}
-			pcSymbol = pcPointer->mpcClass ? pcPointer->mpcClass->mpcSymbol : NULL;
-			for (j = 0; pcSymbol && (j < mpcTemplate->mpcDeclaration->macpParameters.NumElements()); j++)
+			if (pcPointer->mpcClass && pcPointer->mpcClass->mpcSymbol)
 			{
-				pcTemplateParameter = mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
-				if ((pcTemplateParameter->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)pcTemplateParameter)->mpcSymbol == pcSymbol) && !mapsDeduced.GetPtr(j))
-				{
-					mapsDeduced.SetPtr(j, psArgument->pcClass->mpsType);
-				}
+				DeduceType(pcPointer->mpcClass->mpcSymbol, psArgument->pcClass->mpsType);
 			}
 
 			//The member function's parameters follow the parentheses around (M::*f).
@@ -508,46 +529,101 @@ void CCPPDeduction::DeduceMemberPointer(CCPPSyntaxDeclarator* pcDeclarator, SCPP
 //////////////////////////////////////////////////////////////////////////
 //
 // Deduces the template parameters named in a parameter's template arguments,
-// Name<M, J>, from psArgument's class: an instance of the class template Name, or a
-// class derived from one.  Only instances of the primary template are looked in.
+// Name<M, J>, from the template arguments psArgument has for Name
+// (ArgumentsFor): each that is just a parameter's name takes the argument
+// in its place.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPDeduction::DeduceFromInstance(CCPPSyntaxNameComponent* pcComponent, SCPP65Type* psArgument)
 {
-	CCPPClass*	pcInstance;
-	SCPPBinding*	psBinding;
-	CCPPSyntax*		pcTemplateParameter;
-	CCPPSymbol*		pcSymbol;
-	size			i;
-	size			j;
+	CCPPTemplateArguments*	pcArguments;
+	SCPPBinding*			psBinding;
+	CCPPSymbol*				pcSymbol;
+	size					i;
 
-	if (!psArgument || !psArgument->IsClass() || !pcComponent->mpcSymbol)
-	{
-		return;
-	}
-	pcInstance = FindInstanceBase(psArgument->pcClass, pcComponent->mpcSymbol);
-	if (!pcInstance || (pcInstance->mpcTemplate->mpcPrimary != pcInstance->mpcTemplate) || !pcInstance->mpcBindings)
-	{
-		return;
-	}
-	for (i = 0; (i < pcComponent->macpTemplateArguments.NumElements()) && (i < pcInstance->mpcBindings->macBindings.NumElements()); i++)
+	pcArguments = (psArgument && pcComponent->mpcSymbol) ? ArgumentsFor(pcComponent->mpcSymbol, psArgument) : NULL;
+	for (i = 0; pcArguments && (i < pcComponent->macpTemplateArguments.NumElements()) && (i < pcArguments->macBindings.NumElements()); i++)
 	{
 		pcSymbol = GetArgumentSymbol(pcComponent->macpTemplateArguments.GetPtr(i));
-		psBinding = pcInstance->mpcBindings->macBindings.Get(i);
-		for (j = 0; pcSymbol && (j < mpcTemplate->mpcDeclaration->macpParameters.NumElements()); j++)
+		psBinding = pcArguments->macBindings.Get(i);
+		if (pcSymbol && psBinding->psType)
 		{
-			pcTemplateParameter = mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
-			if ((pcTemplateParameter->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)pcTemplateParameter)->mpcSymbol == pcSymbol) && psBinding->psType && !mapsDeduced.GetPtr(j))
-			{
-				mapsDeduced.SetPtr(j, psBinding->psType);
-			}
-			else if ((pcTemplateParameter->GetKind() == CPPS_Parameter) && (((CCPPSyntaxParameter*)pcTemplateParameter)->mpcSymbol == pcSymbol) && !psBinding->psType && !mapsDeduced.GetPtr(j))
-			{
-				mapsDeduced.SetPtr(j, &mpcUnit->GetTypes()->msInt);
-				malliDeduced.SetValue(j, psBinding->lliValue);
-			}
+			DeduceType(pcSymbol, psBinding->psType);
+		}
+		else if (pcSymbol)
+		{
+			DeduceValue(pcSymbol, psBinding->lliValue);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The template arguments a type has for the template a parameter names
+// (Name of Name<M, J>), or NULL if it has none:
+// - a class template's: those of the type's class if it is an instance of
+//   it, or else of the first of its bases that is.  Only instances of the
+//   primary template are looked in.
+// - a template template parameter's (C of C<T>): those of the type's class,
+//   whose class template C then is.  [temp.deduct.type] 8
+// - an alias template's: those that make its type the type (int for
+//   template<class T> using Ptr = T*; and int*).  [temp.alias] 2
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPTemplateArguments* CCPPDeduction::ArgumentsFor(CCPPSymbol* pcTemplate, SCPP65Type* psType)
+{
+	CCPPClass*	pcInstance;
+
+	if (pcTemplate->meKind == CPPSK_AliasTemplate)
+	{
+		return AliasArguments(pcTemplate, psType);
+	}
+	if (!psType->IsClass())
+	{
+		return NULL;
+	}
+	if (pcTemplate->meKind == CPPSK_TemplateTemplateParameter)
+	{
+		pcInstance = psType->pcClass->mpcTemplate ? psType->pcClass : NULL;
+	}
+	else
+	{
+		pcInstance = FindInstanceBase(psType->pcClass, pcTemplate);
+	}
+	if (!pcInstance || (pcInstance->mpcTemplate->mpcPrimary != pcInstance->mpcTemplate) || !pcInstance->mpcBindings)
+	{
+		return NULL;
+	}
+	if (pcTemplate->meKind == CPPSK_TemplateTemplateParameter)
+	{
+		DeduceType(pcTemplate, pcInstance->mpsType);
+	}
+	return pcInstance->mpcBindings;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The arguments of an alias template that make its type psType, or NULL
+// if none do.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPTemplateArguments* CCPPDeduction::AliasArguments(CCPPSymbol* pcTemplate, SCPP65Type* psType)
+{
+	CCPPSyntaxAliasDeclaration*	pcAlias;
+	CCPPPatternMatch			cMatch;
+	CCPPTemplateArguments*		pcArguments;
+
+	pcAlias = (CCPPSyntaxAliasDeclaration*)pcTemplate->mpcDeclaration;
+	if (!pcAlias || (pcAlias->GetKind() != CPPS_AliasDeclaration) || !pcAlias->mpcParent || (pcAlias->mpcParent->GetKind() != CPPS_TemplateDeclaration))
+	{
+		return NULL;
+	}
+	cMatch.Init(mpcUnit, (CCPPSyntaxTemplateDeclaration*)pcAlias->mpcParent);
+	pcArguments = cMatch.MatchTypeId(pcAlias->mpcType, psType) ? cMatch.GetDeduced() : NULL;
+	cMatch.Kill();
+	return pcArguments;
 }
 
 
@@ -619,28 +695,27 @@ CCPPSymbol* CCPPDeduction::GetArgumentSymbol(CCPPSyntax* pcArgument)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// None of the specialisation's parameters is deduced yet.  A full specialisation (template <>) is more special
-// than any partial one.
+// None of the declaration's template parameters is deduced yet.  What has none (template <>, an explicit
+// specialisation) is more special than any that has.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSpecialisationMatch::Init(CCPPUnit* pcUnit, CCPPTemplate* pcSpecialisation)
+void CCPPPatternMatch::Init(CCPPUnit* pcUnit, CCPPSyntaxTemplateDeclaration* pcDeclaration)
 {
 	CCPPSyntax*		pcParameter;
 	SCPPBinding*	psBinding;
 	size			i;
 
 	mpcUnit = pcUnit;
-	mpcSpecialisation = pcSpecialisation;
 	mpcDeduced = pcUnit->NewBindings();
 	masDeferred.Init();
-	for (i = 0; i < pcSpecialisation->mpcDeclaration->macpParameters.NumElements(); i++)
+	for (i = 0; i < pcDeclaration->macpParameters.NumElements(); i++)
 	{
-		pcParameter = pcSpecialisation->mpcDeclaration->macpParameters.GetPtr(i);
+		pcParameter = pcDeclaration->macpParameters.GetPtr(i);
 		psBinding = mpcDeduced->macBindings.Add();
 		memset(psBinding, 0, sizeof(SCPPBinding));
 		psBinding->pcParameter = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol;
 	}
-	miScore = (pcSpecialisation->mpcDeclaration->macpParameters.NumElements() == 0) ? 1000 : 0;
+	miScore = (pcDeclaration->macpParameters.NumElements() == 0) ? 1000 : 0;
 }
 
 
@@ -648,32 +723,54 @@ void CCPPSpecialisationMatch::Init(CCPPUnit* pcUnit, CCPPTemplate* pcSpecialisat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSpecialisationMatch::Kill(void)
+void CCPPPatternMatch::Kill(void)
 {
 	masDeferred.Kill();
 	mpcDeduced = NULL;
-	mpcSpecialisation = NULL;
 	mpcUnit = NULL;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the specialisation's pattern matches pcArguments, with every one
-// of its type parameters deduced, and what it deduced them from left (the
-// types its parameters are only used in: MatchDeferred) the arguments' too.
+// Whether a specialisation's template arguments (papcPattern, X<T*, int>'s)
+// match pcArguments, an instance's, with every one of its type parameters
+// deduced (IsDeduced).  [temp.class.spec.match]
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::Match(CCPPTemplateArguments* pcArguments)
+bool CCPPPatternMatch::Match(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments)
+{
+	return MatchPattern(papcPattern, pcArguments) && IsDeduced();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a type written with the parameters (an alias template's, T* of
+// template<class T> using Ptr = T*;) is psType for some arguments.  A
+// parameter the type doesn't show (T of template<class T, class U> using
+// Second = V<U>;) is left without one.  [temp.alias] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPPatternMatch::MatchTypeId(CCPPSyntaxTypeId* pcPattern, SCPP65Type* psType)
+{
+	return MatchType(pcPattern, psType) && MatchDeferred();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether every type parameter was deduced, and the types the parameters
+// are only used in (left until they were known: MatchDeferred) are their
+// arguments'.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPPatternMatch::IsDeduced(void)
 {
 	CCPPSymbol*		pcSymbol;
 	SCPPBinding*	psBinding;
 	size			i;
 
-	if (!MatchPattern(&mpcSpecialisation->mpcPattern->macpTemplateArguments, pcArguments))
-	{
-		return false;
-	}
 	for (i = 0; i < mpcDeduced->macBindings.NumElements(); i++)
 	{
 		psBinding = mpcDeduced->macBindings.Get(i);
@@ -694,7 +791,7 @@ bool CCPPSpecialisationMatch::Match(CCPPTemplateArguments* pcArguments)
 // (FlattenArguments).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchPattern(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments)
+bool CCPPPatternMatch::MatchPattern(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments)
 {
 	CArrayCPPBindings	asArguments;
 	bool				bResult;
@@ -711,13 +808,13 @@ bool CCPPSpecialisationMatch::MatchPattern(CArraySyntax* papcPattern, CCPPTempla
 //
 // Whether a list of patterns (a specialisation's template arguments, or
 // the parameters of a function type in one) matches the arguments, one
-// each.  The specialisation's parameters are deduced as they are met; a
+// each.  The parameters are deduced as they are met; a
 // last pattern that expands one of its parameter packs (T...) takes the
 // rest of the arguments (MatchPack).  The score counts how much of the
 // arguments' structure the patterns name.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchArguments(CArraySyntax* papcPattern, CArrayCPPBindings* pasArguments)
+bool CCPPPatternMatch::MatchArguments(CArraySyntax* papcPattern, CArrayCPPBindings* pasArguments)
 {
 	CCPPSyntax*		pcPattern;
 	SCPPBinding*	psArgument;
@@ -775,7 +872,7 @@ bool CCPPSpecialisationMatch::MatchArguments(CArraySyntax* papcPattern, CArrayCP
 // each an argument.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSpecialisationMatch::FlattenArguments(CCPPTemplateArguments* pcArguments, CArrayCPPBindings* pasArguments)
+void CCPPPatternMatch::FlattenArguments(CCPPTemplateArguments* pcArguments, CArrayCPPBindings* pasArguments)
 {
 	SCPPBinding*	psBinding;
 	SCPPBinding*	psElement;
@@ -810,7 +907,7 @@ void CCPPSpecialisationMatch::FlattenArguments(CCPPTemplateArguments* pcArgument
 // function type.  False if the pattern is neither.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::PatternParts(CCPPSyntax* pcPattern, CCPPSyntaxDeclSpecifiers** ppcSpecifiers, CCPPSyntaxDeclarator** ppcDeclarator)
+bool CCPPPatternMatch::PatternParts(CCPPSyntax* pcPattern, CCPPSyntaxDeclSpecifiers** ppcSpecifiers, CCPPSyntaxDeclarator** ppcDeclarator)
 {
 	if (pcPattern->GetKind() == CPPS_TypeId)
 	{
@@ -834,7 +931,7 @@ bool CCPPSpecialisationMatch::PatternParts(CCPPSyntax* pcPattern, CCPPSyntaxDecl
 // type's parameters, A... (the declarator has the dots).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::IsPackExpansion(CCPPSyntax* pcPattern)
+bool CCPPPatternMatch::IsPackExpansion(CCPPSyntax* pcPattern)
 {
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	CCPPSyntaxDeclarator*		pcDeclarator;
@@ -853,11 +950,11 @@ bool CCPPSpecialisationMatch::IsPackExpansion(CCPPSyntax* pcPattern)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The binding of the specialisation's parameter pack a pack expansion
+// The binding of the parameter pack a pack expansion
 // expands, if that is all it is (T..., not T*...), or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPBinding* CCPPSpecialisationMatch::ExpandedParameter(CCPPSyntax* pcPattern)
+SCPPBinding* CCPPPatternMatch::ExpandedParameter(CCPPSyntax* pcPattern)
 {
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	CCPPSyntaxDeclarator*		pcDeclarator;
@@ -886,7 +983,7 @@ SCPPBinding* CCPPSpecialisationMatch::ExpandedParameter(CCPPSyntax* pcPattern)
 // The type specifiers name by a name (T, X<T>, typename T::Type), or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxNamedTypeSpecifier* CCPPSpecialisationMatch::NamedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers)
+CCPPSyntaxNamedTypeSpecifier* CCPPPatternMatch::NamedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers)
 {
 	return (pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_NamedTypeSpecifier)) ? (CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType : NULL;
 }
@@ -898,7 +995,7 @@ CCPPSyntaxNamedTypeSpecifier* CCPPSpecialisationMatch::NamedType(CCPPSyntaxDeclS
 // types for a type pack, all values for a non-type pack.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchPack(SCPPBinding* psPack, CArrayCPPBindings* pasArguments, size uiFirst)
+bool CCPPPatternMatch::MatchPack(SCPPBinding* psPack, CArrayCPPBindings* pasArguments, size uiFirst)
 {
 	SCPPBinding*	psArgument;
 	bool			bTypes;
@@ -940,7 +1037,7 @@ bool CCPPSpecialisationMatch::MatchPack(SCPPBinding* psPack, CArrayCPPBindings* 
 // specialisation's parameters takes a known one; a constant must equal it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchBound(CCPPSyntax* pcSize, int iCount)
+bool CCPPPatternMatch::MatchBound(CCPPSyntax* pcSize, int iCount)
 {
 	CCPPSymbol*		pcSymbol;
 	SCPPBinding*	psBinding;
@@ -972,13 +1069,13 @@ bool CCPPSpecialisationMatch::MatchBound(CCPPSyntax* pcSize, int iCount)
 // Whether a pattern for a type matches a type argument: T, const T, a
 // class template's instance X<T>, and what a declarator makes of one (T*,
 // T&, T[N], T[], R(A...), R (*)(A), M C::*, R (C::*)(A...) const), each of
-// the specialisation's parameters taking what stands where it is written.
+// the parameters taking what stands where it is written.
 // A type that names none of them where one can be deduced from (int,
 // typename T::Type, an alias template's Void<T>) is the argument once they
 // are known (MatchDeferred).  [temp.deduct.type] 8
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchType(CCPPSyntax* pcPattern, SCPP65Type* psArgument)
+bool CCPPPatternMatch::MatchType(CCPPSyntax* pcPattern, SCPP65Type* psArgument)
 {
 	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
 	CCPPSyntaxDeclarator*			pcDeclarator;
@@ -1036,11 +1133,11 @@ bool CCPPSpecialisationMatch::MatchType(CCPPSyntax* pcPattern, SCPP65Type* psArg
 
 //////////////////////////////////////////////////////////////////////////
 //
-// One of the specialisation's parameters takes the type, which every
+// One of the parameters takes the type, which every
 // place it is written must agree on (X<T, T> isn't X<int, char>).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::Deduce(SCPPBinding* psBinding, SCPP65Type* psType)
+bool CCPPPatternMatch::Deduce(SCPPBinding* psBinding, SCPP65Type* psType)
 {
 	if (psBinding->psType)
 	{
@@ -1060,7 +1157,7 @@ bool CCPPSpecialisationMatch::Deduce(SCPPBinding* psBinding, SCPP65Type* psType)
 // if the argument isn't made so.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchDeclarator(CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type** ppsType)
+bool CCPPPatternMatch::MatchDeclarator(CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type** ppsType)
 {
 	CCPPSyntax*		pcSuffix;
 	SCPP65Type*		psType;
@@ -1110,7 +1207,7 @@ bool CCPPSpecialisationMatch::MatchDeclarator(CCPPSyntaxDeclarator* pcDeclarator
 // the operator names (MatchClass).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchPointer(CCPPSyntaxPointerOperator* pcOperator, SCPP65Type* psType)
+bool CCPPPatternMatch::MatchPointer(CCPPSyntaxPointerOperator* pcOperator, SCPP65Type* psType)
 {
 	switch (pcOperator->meKind)
 	{
@@ -1131,11 +1228,11 @@ bool CCPPSpecialisationMatch::MatchPointer(CCPPSyntaxPointerOperator* pcOperator
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether the class a pointer to a member is of in a pattern (C::*) is
-// pcClass: one of the specialisation's parameters takes it, a class's name
+// pcClass: one of the parameters takes it, a class's name
 // must be its.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchClass(CCPPSyntaxName* pcName, CCPPClass* pcClass)
+bool CCPPPatternMatch::MatchClass(CCPPSyntaxName* pcName, CCPPClass* pcClass)
 {
 	SCPPBinding*	psBinding;
 	CCPPClass*		pcNamed;
@@ -1164,7 +1261,7 @@ bool CCPPSpecialisationMatch::MatchClass(CCPPSyntaxName* pcName, CCPPClass* pcCl
 // is declared an array, or const, isn't adjusted first ([dcl.fct] 5).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchFunction(CCPPSyntaxFunctionSuffix* pcSuffix, SCPP65Type* psType)
+bool CCPPPatternMatch::MatchFunction(CCPPSyntaxFunctionSuffix* pcSuffix, SCPP65Type* psType)
 {
 	CArrayCPPBindings	asParameters;
 	SCPPBinding*		psParameter;
@@ -1190,14 +1287,14 @@ bool CCPPSpecialisationMatch::MatchFunction(CCPPSyntaxFunctionSuffix* pcSuffix, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether each pattern that was left until the specialisation's
-// parameters were known (MatchType) is the type of its argument with them:
+// Whether each pattern that was left until the parameters were known
+// (MatchType) is the type of its argument with them:
 // Void<typename T::Type> is void for a T that has a Type, and no type at
 // all, so no match, for one that hasn't.  [temp.class.spec.match] 2,
 // [temp.deduct] 8
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSpecialisationMatch::MatchDeferred(void)
+bool CCPPPatternMatch::MatchDeferred(void)
 {
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	CCPPSyntaxDeclarator*		pcDeclarator;
@@ -1224,5 +1321,5 @@ bool CCPPSpecialisationMatch::MatchDeferred(void)
 
 CArrayCPP65Types* CCPPDeduction::GetTypes(void) { return &mapsDeduced; }
 CArrayInt64* CCPPDeduction::GetValues(void) { return &malliDeduced; }
-CCPPTemplateArguments* CCPPSpecialisationMatch::GetDeduced(void) const { return mpcDeduced; }
-int CCPPSpecialisationMatch::GetScore(void) const { return miScore; }
+CCPPTemplateArguments* CCPPPatternMatch::GetDeduced(void) const { return mpcDeduced; }
+int CCPPPatternMatch::GetScore(void) const { return miScore; }

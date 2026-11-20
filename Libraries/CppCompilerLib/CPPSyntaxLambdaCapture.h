@@ -46,6 +46,7 @@ public:
 	int32					miName;
 	CCPPSyntax*				mpcInitializer;
 	CCPPSymbol*				mpcSymbol;
+	bool					mbPack;			//name... or &name...: each element of the function parameter pack.
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	CPP_SYNTAX_NODE(LambdaCapture)

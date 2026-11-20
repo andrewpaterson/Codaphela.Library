@@ -1134,6 +1134,7 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 	CCPPSyntax*					pcParameter;
 	CCPPSyntaxTypeParameter*	pcType;
 	CCPPSyntaxParameter*		pcValue;
+	CCPPTemplate*				pcDeduced;
 	size						i;
 	bool						bResult;
 
@@ -1166,7 +1167,9 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 			}
 			if (pcType->mpcTemplate)
 			{
-				bResult = BindTemplate(psBinding, psArgument ? psArgument->pcArgument : pcType->mpcDefault, pcNode, pszArguments);
+				//Deduced, it is the class template of the instance deduced for it (CCPPDeduction).
+				pcDeduced = (!psArgument && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i)) ? papsDeduced->GetPtr(i)->pcClass->mpcTemplate->mpcPrimary : NULL;
+				bResult = BindTemplate(psBinding, psArgument ? psArgument->pcArgument : pcType->mpcDefault, pcDeduced, pcNode, pszArguments);
 				if (!bResult)
 				{
 					break;
@@ -1356,11 +1359,12 @@ bool CCPPUnit::BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgume
 //////////////////////////////////////////////////////////////////////////
 //
 // A template template parameter takes the class template its argument (or
-// default) names: Use<Box, long>'s C is Box.  Mangled as _Y, the template's
+// default) names: Use<Box, long>'s C is Box; or, with no argument, the one
+// a call's arguments deduced (pcDeduced).  Mangled as _Y, the template's
 // scopes and name, E.  [temp.arg.template]
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CChars* pszArguments)
+bool CCPPUnit::BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPPTemplate* pcDeduced, CCPPSyntax* pcNode, CChars* pszArguments)
 {
 	CCPPSyntaxTypeId*			pcTypeId;
 	CCPPSyntaxTypeSpecifier*	pcType;
@@ -1371,7 +1375,11 @@ bool CCPPUnit::BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPP
 	pcTypeId = (pcArgument && (pcArgument->GetKind() == CPPS_TypeId)) ? (CCPPSyntaxTypeId*)pcArgument : NULL;
 	pcType = (pcTypeId && pcTypeId->mpcSpecifiers) ? pcTypeId->mpcSpecifiers->mpcType : NULL;
 	pcName = (pcType && (pcType->GetKind() == CPPS_NamedTypeSpecifier) && (!pcTypeId->mpcDeclarator || pcTypeId->mpcDeclarator->IsEmpty())) ? ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName : NULL;
-	if (pcName && pcName->mpcSymbol && (pcName->mpcSymbol->meKind == CPPSK_TemplateTemplateParameter))
+	if (pcDeduced)
+	{
+		psBinding->pcTemplate = pcDeduced;
+	}
+	else if (pcName && pcName->mpcSymbol && (pcName->mpcSymbol->meKind == CPPSK_TemplateTemplateParameter))
 	{
 		//A template template parameter passed on: what it is bound to.
 		psBinding->pcTemplate = FindBinding(pcName->mpcSymbol) ? FindBinding(pcName->mpcSymbol)->pcTemplate : NULL;
@@ -1779,7 +1787,7 @@ CCPPClass* CCPPUnit::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcA
 //////////////////////////////////////////////////////////////////////////
 CCPPTemplate* CCPPUnit::FindSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode)
 {
-	CCPPSpecialisationMatch	cMatch;
+	CCPPPatternMatch		cMatch;
 	CCPPTemplate*			pcTemplate;
 	CCPPTemplate*			pcBest;
 	CCPPTemplateArguments*	pcDeduced;
@@ -1802,8 +1810,8 @@ CCPPTemplate* CCPPUnit::FindSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplate
 			continue;
 		}
 
-		cMatch.Init(this, pcTemplate);
-		bMatches = cMatch.Match(pcArguments);
+		cMatch.Init(this, pcTemplate->mpcDeclaration);
+		bMatches = cMatch.Match(&pcTemplate->mpcPattern->macpTemplateArguments, pcArguments);
 		pcDeduced = cMatch.GetDeduced();
 		iScore = cMatch.GetScore();
 		cMatch.Kill();
@@ -2133,11 +2141,14 @@ bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration*
 		return true;
 	}
 	lliName = GetFunctionName(pcName->GetLast());
-	if ((lliName == -1) || (lliName == pcClass->mlliName) || (pcName->GetLast()->meKind == CPPNC_Destructor))
+	if ((lliName == -1) || (pcName->GetLast()->meKind == CPPNC_Destructor))
 	{
-		pcClass->mbConstructorTemplate |= (lliName == pcClass->mlliName);
 		return true;
 	}
+
+	//A constructor template is a constructor the class declares: it is no aggregate, and is given no default constructor.
+	//[class.ctor] 4, [dcl.init.aggr] 1
+	pcClass->mbConstructors |= (lliName == pcClass->mlliName);
 
 	pcTemplate = NewTemplate(pcName->mpcSymbol, pcTemplateDeclaration, (pcDeclaration->GetKind() == CPPS_FunctionDefinition) ? pcDeclaration : NULL, true);
 	pcTemplate->mbMemberTemplate = true;

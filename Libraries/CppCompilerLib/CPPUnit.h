@@ -134,10 +134,12 @@ typedef CArrayTemplatePtr<CArrayCPP65Types>	CArrayCPPPacks;
 typedef CArrayTemplatePtr<CArrayInt64>		CArrayCPPValuePacks;
 
 
-//A template parameter pack's element as a parameter of its own (CCPPUnit::PackElement), in the bindings it is bound in.
+//A template parameter pack's element as a parameter of its own (CCPPUnit::PackElement), in the bindings it is bound
+//in; or a function parameter pack's as a variable of its own (FunctionPackElement), in the function it is of.
 struct SCPPPackElement
 {
 	CCPPTemplateArguments*	pcBindings;
+	CCPPFunction*			pcFunction;
 	CCPPSymbol*				pcPack;
 	size					uiIndex;
 	CCPPSymbol*				pcElement;
@@ -272,7 +274,7 @@ protected:
 	CArrayCPPPacks		mapapsPacks;		//The packs' types (NewPack).
 	CArrayCPPValuePacks	mapalliPacks;		//The non-type packs' values (NewValuePack).
 	CArrayCPPSymbols		mapcPackSymbols;	//The symbols made for function and template parameter packs' elements.
-	CArrayCPPPackElements	masPackElements;	//Template parameter packs' elements in each bindings (PackElement).
+	CArrayCPPPackElements	masPackElements;	//Template parameter packs' elements in each bindings (PackElement), and function ones' in each function.
 	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
@@ -482,6 +484,8 @@ public:
 	bool					LambdaCaptures(SCPPLambda* psLambda);
 	bool					UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode);
 	bool					UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode);
+	bool					CapturePack(SCPPLambda* psLambda, CCPPSyntaxIdExpression* pcName, bool bReference, CCPPSyntax* pcNode);
+	bool					IsPackCaptured(SCPPLambda* psLambda);
 	bool					IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
 	bool					IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
 	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);
@@ -616,7 +620,7 @@ public:
 	bool					PackSize(CCPPSymbol* pcPack, int64* plliValue);
 	bool					IsEntityParameter(CCPPSyntaxParameter* pcParameter);
 	bool					BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgument, CChars* pszArguments);
-	bool					BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CChars* pszArguments);
+	bool					BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPPTemplate* pcDeduced, CCPPSyntax* pcNode, CChars* pszArguments);
 	bool					BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CArrayCPP65Types* papsDeduced, CChars* pszArguments);
 	bool					BindValuePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CChars* pszArguments);
 	void					AppendMangledValue(CChars* pszArguments, int64 lliValue);
@@ -705,7 +709,7 @@ public:
 	//Literals, constants, warnings and TypeOf.  CPPUnitExpressions.cpp
 	SCPP65Type*				IntegerLiteralType(CCTInt* pcInt);
 
-	CCPPSymbol*				NewPackElement(CCPPSymbol* pcPack);
+	CCPPSymbol*				FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* pcPack, size k);
 	bool					HasPackExpansion(CArraySyntax* papcArguments);
 	CCPPSyntax*				ExpansionPattern(CCPPSyntax* pcNode);
 

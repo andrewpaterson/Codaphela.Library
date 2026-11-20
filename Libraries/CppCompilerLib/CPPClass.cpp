@@ -50,7 +50,6 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 	mbUnion = false;
 	mbTypeInfo = false;
 	mbConstructors = false;
-	mbConstructorTemplate = false;
 	mpcInheritedBase = NULL;
 	mpcDestructor = NULL;
 	mpcSpecifier = NULL;

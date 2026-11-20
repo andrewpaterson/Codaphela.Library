@@ -131,6 +131,21 @@ bool CCPPSyntaxFunctionSuffix::IsMutable(void) { return CPPHasKeyword(&macpQuali
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the last parameter is a function parameter pack (Args... args,
+// auto... args), which takes any number of arguments.  [dcl.fct] 13
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxFunctionSuffix::EndsWithPack(void)
+{
+	CCPPSyntaxParameter*	pcLast;
+
+	pcLast = (macpParameters.NumElements() > 0) ? (CCPPSyntaxParameter*)macpParameters.GetPtr(macpParameters.NumElements() - 1) : NULL;
+	return pcLast && (pcLast->GetKind() == CPPS_Parameter) && pcLast->mpcDeclarator && pcLast->mpcDeclarator->mbPack;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The number of parameters declared: none for (void).
 //
 //////////////////////////////////////////////////////////////////////////

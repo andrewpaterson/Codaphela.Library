@@ -303,6 +303,19 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 			return;
 		}
 	}
+	if (!pcSymbol && pcComponent && (pcComponent->meKind == CPPNC_Operator))
+	{
+		//operator delete(p), operator+(a, b): an operator function called by its name, which no symbol has.  [over.oper] 4
+		pcFunction = mcOverloads.FindFreeOperator(lliName, NULL, pcBound->mpapcArguments, pcCall);
+		if (!pcFunction)
+		{
+			mpcUnit->Error(pcCallee, "No operator function of the name takes these arguments");
+			return;
+		}
+		pcBound->meHow = CPPBC_Function;
+		pcBound->mpcFunction = pcFunction;
+		return;
+	}
 	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
 	{
 		//A variable, or an expression: an object with an operator(), or else a pointer to a function if it is anything.
@@ -1020,27 +1033,34 @@ bool CCPPBinder::IsBuiltinPlacement(CArraySyntax* papcArguments)
 //////////////////////////////////////////////////////////////////////////
 //
 // The deallocation function delete (or delete[], bArray) of an object of
-// pcClass calls, or NULL for the runtime's: the operator delete of the
+// pcClass calls (NULL for what is no class's, and for ::delete), or NULL
+// for the one that takes the pointer alone and is no class's, which is the
+// runtime's unless the program defines it: the operator delete of the
 // class, or of the nearest base that declares one, that takes the pointer
-// alone, or failing that the pointer and a size_t.  [expr.delete] 9,
+// alone, or failing that the pointer and a size_t; and for a class that
+// has none, where the size freed is known (bSized), the global one that
+// takes the size, if the program has declared it (<new> does), which is
+// chosen before the one that doesn't.  [expr.delete] 9, 10,
 // [basic.stc.dynamic.deallocation] 2
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray)
+CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray, bool bSized)
 {
 	CCPPFunction*	pcFunction;
 	CCPPFunction*	pcFound;
 	int64			lliName;
+	bool			bMember;
 
 	lliName = mpcUnit->GetOperatorName(CT_delete, bArray);
-	if (!pcClass || !mpcUnit->HasMember(pcClass, lliName))
-	{
-		return NULL;
-	}
+	bMember = pcClass && mpcUnit->HasMember(pcClass, lliName);
 	pcFound = NULL;
-	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
+	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); (bMember || bSized) && pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if (IsUsualDeallocation(pcFunction) && mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL) && IsNearerDeallocation(pcFunction, pcFound))
+		if (!IsUsualDeallocation(pcFunction))
+		{
+			continue;
+		}
+		if (bMember ? (pcFunction->mpcClass && mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL) && IsNearerDeallocation(pcFunction, pcFound)) : IsGlobalSizedDeallocation(pcFunction))
 		{
 			pcFound = pcFunction;
 		}
@@ -1051,8 +1071,8 @@ CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a class's operator delete is one a delete expression calls: it
-// takes the pointer, or the pointer and the size as a size_t.
+// Whether an operator delete is one a delete expression calls: it takes
+// the pointer, or the pointer and the size as a size_t.
 // [basic.stc.dynamic.deallocation] 2
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1061,7 +1081,19 @@ bool CCPPBinder::IsUsualDeallocation(CCPPFunction* pcFunction)
 	size	uiParameters;
 
 	uiParameters = pcFunction->mapsParameters.NumElements();
-	return pcFunction->mpcClass && ((uiParameters == 1) || ((uiParameters == 2) && pcFunction->mapsParameters.GetPtr(1)->Unqualified()->Equals(mpcUnit->GetTypes()->Size())));
+	return (uiParameters == 1) || ((uiParameters == 2) && pcFunction->mapsParameters.GetPtr(1)->Unqualified()->Equals(mpcUnit->GetTypes()->Size()));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a usual deallocation function is the global one that takes the
+// size: void operator delete(void*, std::size_t).  [new.delete.single] 16
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsGlobalSizedDeallocation(CCPPFunction* pcFunction)
+{
+	return !pcFunction->mpcClass && !pcFunction->mpcNamespace && !pcFunction->mpcTemplate && (pcFunction->mapsParameters.NumElements() == 2);
 }
 
 
@@ -1684,10 +1716,9 @@ bool CCPPBinder::ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcA
 {
 	CCPPBoundConstruction	cBound;
 
-	if ((papcArguments->NumElements() == 0) || pcClass->mbConstructorTemplate || !BindConstruction(pcClass, papcArguments, pcNode, &cBound, false))
+	if ((papcArguments->NumElements() == 0) || !BindConstruction(pcClass, papcArguments, pcNode, &cBound, false))
 	{
-		//(What doesn't bind is reported where it is made.  A constructor template isn't called yet: its class's
-		//members are given the arguments, as they were before this was asked.)
+		//(What doesn't bind is reported where it is made.)
 		return true;
 	}
 	return (cBound.meHow != CPPBO_Aggregate) || mcAccess.Refuse(pcNode, "The class has no constructor for this: its members are given values by a list in braces");
@@ -1869,7 +1900,7 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 	}
 	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
 	{
-		pcBound->mpcConstructor = mcOverloads.FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode);
+		pcBound->mpcConstructor = mcOverloads.FindConstructor(pcClass, papcArguments, pcNode);
 		if (pcBound->mpcConstructor)
 		{
 			if (!mcAccess.CheckFunction(pcBound->mpcConstructor, pcClass, pcNode))
@@ -1892,7 +1923,7 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 	}
 
 	if ((pcClass->macBases.NumElements() > 0) || pcClass->IsPolymorphic() || (papcArguments->NumElements() > pcClass->NumAggregateFields()) ||
-		(!pcClass->mbConstructorTemplate && !mcAccess.HasOnlyPublicFields(pcClass)))
+		!mcAccess.HasOnlyPublicFields(pcClass))
 	{
 		if (bReport)
 		{

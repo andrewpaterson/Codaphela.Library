@@ -507,7 +507,8 @@ protected:
 	bool			NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue);
 	bool			DeleteArray(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psPointer, CCPPClass* pcClass);
 	bool			DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue);
-	bool			Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocation, bool bArray, int64 lliBytes, SIRReference sFree);
+	bool			Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocation, bool bArray, SCPP65IRValue* psBytes, SIRReference sFree);
+	SCPP65IRValue	ByteCount(int64 lliBytes);
 	bool			ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, SCPP65IRMade* psMade);
 	void			TemporaryMade(SCPP65IRMade* psMade);

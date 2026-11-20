@@ -2940,7 +2940,7 @@ bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
 		return ReportError(pcNode, "A const object must be initialised");
 	}
 	pcClass = psElement->pcClass;
-	if (!pcClass->mbConstructors && !pcClass->mbConstructorTemplate && !pcClass->NeedsConstructor() && (pcClass->macFields.NumElements() > 0))
+	if (!pcClass->mbConstructors && !pcClass->NeedsConstructor() && (pcClass->macFields.NumElements() > 0))
 	{
 		return ReportError(pcNode, "A const object of a class with no constructor must be initialised");
 	}
@@ -3815,32 +3815,36 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 	CCPPSyntaxParameter*			pcParameter;
 	SCPP65Type*						psType;
 	CCPPVariable*					pcVariable;
-	SCPPBinding*					psPack;
+	SCPPLambda*						psLambda;
 	CCPPSymbol*						pcSymbol;
 	size							i;
 	size							j;
 	size							k;
 	size							uiPack;
+	bool							bPack;
 
 	pcSuffix = (pcDeclarator ? pcDeclarator : pcFunction->mpcDefinition->mpcDeclarator)->GetFunctionSuffix();
 	j = 0;
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
+		//A function parameter pack (Args... args, or a generic lambda's auto... args), which is the last, is as
+		//many parameters as the function has more than the others declared.
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		psPack = PackBinding(pcParameter);
-		uiPack = psPack ? psPack->papsPack->NumElements() : ((j < pcFunction->mapsParameters.NumElements()) ? 1 : 0);
-		if (psPack)
+		bPack = pcSuffix->EndsWithPack() && (i + 1 == pcSuffix->macpParameters.NumElements());
+		uiPack = (j < pcFunction->mapsParameters.NumElements()) ? 1 : 0;
+		if (bPack)
 		{
+			uiPack = pcFunction->mapsParameters.NumElements() - j;
 			mcContext.SetPackParameter(pcParameter->mpcSymbol);
 		}
 		for (k = 0; k < uiPack; k++)
 		{
 			psType = pcFunction->mapsParameters.GetPtr(j);
-			pcSymbol = (psPack && pcParameter->mpcSymbol) ? NewPackElement(pcParameter->mpcSymbol) : pcParameter->mpcSymbol;
+			pcSymbol = (bPack && pcParameter->mpcSymbol) ? FunctionPackElement(pcFunction, pcParameter->mpcSymbol, k) : pcParameter->mpcSymbol;
 			if (pcSymbol)
 			{
 				pcVariable = AddVariable(&mapcLocals, pcSymbol, ParameterVariableType(psType, pcParameter), CPPVS_Parameter, (int)j);
-				pcVariable->mbRestrict = !psPack && pcParameter->mpcDeclarator && IsRestrictPointer(pcParameter->mpcDeclarator);
+				pcVariable->mbRestrict = !bPack && pcParameter->mpcDeclarator && IsRestrictPointer(pcParameter->mpcDeclarator);
 				if (psType->IsClass())
 				{
 					//Laid out now, as the IR front end needs it.
@@ -3849,6 +3853,15 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 			}
 			j++;
 		}
+	}
+
+	//A lambda's body expands the parameter pack of the function the lambda is in, into the elements it captured
+	//(CapturePack), where it has no pack of its own.
+	psLambda = BodyLambda(pcFunction);
+	if (psLambda && psLambda->pcPackParameter && !mcContext.GetPackParameter())
+	{
+		mcContext.SetPackParameter(psLambda->pcPackParameter);
+		mapcPackElements.Copy(&psLambda->apcPackElements);
 	}
 }
 

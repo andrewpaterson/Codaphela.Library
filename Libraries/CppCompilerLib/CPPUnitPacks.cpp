@@ -98,18 +98,41 @@ SCPPBinding* CCPPUnit::PackBinding(CCPPSyntaxParameter* pcParameter)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A symbol for an element of the function parameter pack being generated: a
-// variable with the pack's name, kept until the generator is killed.
+// The symbol for element k of a function's parameter pack, which is one of
+// the elements of the function being generated from here: a variable with
+// the pack's name, kept until the generator is killed.  It is the same one
+// each time the function's parameters are made (for what it returns, to
+// check it, to write it), as its argument lists are expanded once
+// (ExpandArguments) and name it.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPUnit::NewPackElement(CCPPSymbol* pcPack)
+CCPPSymbol* CCPPUnit::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* pcPack, size k)
 {
-	CCPPSymbol*	pcSymbol;
+	SCPPPackElement*	psElement;
+	CCPPSymbol*			pcSymbol;
+	size				i;
+
+	for (i = 0; i < masPackElements.NumElements(); i++)
+	{
+		psElement = masPackElements.Get(i);
+		if ((psElement->pcFunction == pcFunction) && (psElement->pcPack == pcPack) && (psElement->uiIndex == k))
+		{
+			mapcPackElements.Add(psElement->pcElement);
+			return psElement->pcElement;
+		}
+	}
 
 	pcSymbol = NewMalloc<CCPPSymbol>();
 	pcSymbol->Init(pcPack->mlliName, CPPSK_Variable, pcPack->mpcDeclaration, pcPack->mpcScope);
 	mapcPackSymbols.Add(pcSymbol);
 	mapcPackElements.Add(pcSymbol);
+
+	psElement = masPackElements.Add();
+	psElement->pcBindings = NULL;
+	psElement->pcFunction = pcFunction;
+	psElement->pcPack = pcPack;
+	psElement->uiIndex = k;
+	psElement->pcElement = pcSymbol;
 	return pcSymbol;
 }
 
@@ -194,7 +217,7 @@ CCPPSymbol* CCPPUnit::FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* pap
 // Adds a copy of pcPattern, pcParent's child, for each element of the
 // packs it names (FindPacks): each copy names the element where the
 // pattern names the pack.  A function parameter pack's elements are its
-// variables (NewPackElement), a template parameter pack's are parameters
+// variables (FunctionPackElement), a template parameter pack's are parameters
 // of their own bound to its types or values (PackElement).  An error if
 // the pattern names no pack or packs of different lengths.
 // [temp.variadic] 5
@@ -276,7 +299,7 @@ CCPPSymbol* CCPPUnit::PackElement(SCPPBinding* psPack, size k)
 	for (i = 0; i < masPackElements.NumElements(); i++)
 	{
 		psElement = masPackElements.Get(i);
-		if ((psElement->pcBindings == pcBindings) && (psElement->pcPack == psPack->pcParameter) && (psElement->uiIndex == k))
+		if ((psElement->pcBindings == pcBindings) && !psElement->pcFunction && (psElement->pcPack == psPack->pcParameter) && (psElement->uiIndex == k))
 		{
 			return psElement->pcElement;
 		}
@@ -297,6 +320,7 @@ CCPPSymbol* CCPPUnit::PackElement(SCPPBinding* psPack, size k)
 
 	psElement = masPackElements.Add();
 	psElement->pcBindings = pcBindings;
+	psElement->pcFunction = NULL;
 	psElement->pcPack = psPack->pcParameter;
 	psElement->uiIndex = k;
 	psElement->pcElement = pcSymbol;
@@ -444,14 +468,20 @@ bool CCPPUnit::ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* pl
 //////////////////////////////////////////////////////////////////////////
 //
 // sizeof...(pcPack): how many elements the parameter pack has, a template
-// parameter pack or a function parameter pack (by its template pack).
-// [expr.sizeof] 5
+// parameter pack or a function parameter pack (the one being generated's
+// elements, as a generic lambda's auto... args has no template pack; or
+// else by its template pack).  [expr.sizeof] 5
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::PackSize(CCPPSymbol* pcPack, int64* plliValue)
 {
 	SCPPBinding*	psBinding;
 
+	if (pcPack && (pcPack == mcContext.GetPackParameter()))
+	{
+		*plliValue = (int64)mapcPackElements.NumElements();
+		return true;
+	}
 	psBinding = pcPack ? FindBinding(pcPack) : NULL;
 	if (!psBinding && pcPack && pcPack->mpcDeclaration && (pcPack->mpcDeclaration->GetKind() == CPPS_Parameter))
 	{

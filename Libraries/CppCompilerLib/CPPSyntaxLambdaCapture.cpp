@@ -33,6 +33,7 @@ void CCPPSyntaxLambdaCapture::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
 	miName = -1;
 	mpcInitializer = NULL;
 	mpcSymbol = NULL;
+	mbPack = false;
 }
 
 
@@ -58,6 +59,10 @@ void CCPPSyntaxLambdaCapture::PrettyPrint(CChars* pszDest, int iDepth)
 	else
 	{
 		AppendToken(pszDest, miName);
+	}
+	if (mbPack)
+	{
+		pszDest->Append("...");
 	}
 	if (mpcInitializer)
 	{

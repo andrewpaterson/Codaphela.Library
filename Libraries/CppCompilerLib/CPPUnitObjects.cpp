@@ -581,7 +581,7 @@ bool CCPPUnit::IsAggregate(SCPP65Type* psType)
 	BeginQuiet();
 	bComplete = CompleteClass(pcClass, NULL);
 	EndQuiet();
-	return bComplete && !pcClass->mbConstructors && !pcClass->mbConstructorTemplate && !pcClass->mpsLambda && (pcClass->macBases.NumElements() == 0) && !pcClass->IsPolymorphic();
+	return bComplete && !pcClass->mbConstructors && !pcClass->mpsLambda && (pcClass->macBases.NumElements() == 0) && !pcClass->IsPolymorphic();
 }
 
 

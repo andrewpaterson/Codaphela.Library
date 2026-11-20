@@ -50,6 +50,7 @@ public:
 	bool					IsMutable(void);
 	size					NumParameters(void);
 	size					RequiredParameters(void);
+	bool					EndsWithPack(void);
 };
 
 

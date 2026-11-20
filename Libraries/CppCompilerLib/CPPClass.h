@@ -138,7 +138,6 @@ public:
 	bool						mbUnion;
 	bool						mbTypeInfo;			//The type info (for dynamic_cast) has been written.
 	bool						mbConstructors;		//The class declares a constructor.
-	bool						mbConstructorTemplate;	//The class declares a constructor template, which isn't done yet (CCPPUnit::MemberTemplate): it is no aggregate.
 	CCPPClass*					mpcInheritedBase;	//The base whose constructors are inherited (using Base::Base), or NULL.
 	CCPPFunction*				mpcDestructor;
 	CCPPSyntaxClassSpecifier*	mpcSpecifier;		//The definition, NULL until it is seen.

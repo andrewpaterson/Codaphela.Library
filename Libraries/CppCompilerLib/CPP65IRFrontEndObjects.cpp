@@ -1255,8 +1255,7 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 		return NewArray(pcNew, psType, psValue);
 	}
 	//The size is a std::size_t ([expr.new] 10).
-	sBytes.psType = mpcTypes->Size();
-	sBytes.sValue = mpcFunction->AddInteger(IRTypeOf(sBytes.psType), psType->iBytes);
+	sBytes = ByteCount(psType->iBytes);
 	if (!Allocate(pcNew, psType, &sBytes, &sPlace.sAddress, &sFree, &pcAllocation))
 	{
 		return false;
@@ -1656,7 +1655,7 @@ bool CCPP65IRFrontEnd::ValueInitialise(SCPP65IRPlace* psPlace)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeleteArray(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psPointer, CCPPClass* pcClass)
 {
-	CCPPFunction*		pcDeallocation;
+	SCPP65IRValue		sBytes;
 	SIRType				sSize;
 	SIRReference		sBase;
 	SIRReference		sCount;
@@ -1679,14 +1678,11 @@ bool CCPP65IRFrontEnd::DeleteArray(CCPPSyntaxDeleteExpression* pcDelete, SCPP65I
 	}
 	EndCountedLoop(&sLoop, sNext);
 
-	pcDeallocation = pcDelete->mbGlobal ? NULL : mpcUnit->GetBinder()->FindDeallocation(pcClass, true);
-	if (pcDeallocation && (pcDeallocation->mapsParameters.NumElements() == 2))
-	{
-		//One that takes a size is given the elements' and the count's, which only the count read here says.
-		mpcUnit->ReportError(pcDelete, "A class's operator delete[] that takes a size is not supported by the compiler yet for objects with destructors");
-		return Unsupported(__FILE__, __LINE__);
-	}
-	return Deallocate(pcDelete, pcDeallocation, true, 0, sBase);
+	//An operator delete[] that takes a size is given the elements' and the count's, which only the count read here says.
+	sBytes.psType = mpcTypes->Integer(mcModule.GetPointerSize(0), false);
+	sBytes.sValue = mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sCount, mpcFunction->AddInteger(sSize, pcClass->mpsType->iBytes));
+	sBytes.sValue = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes.sValue, mpcFunction->AddInteger(sSize, mcModule.GetPointerSize(0)));
+	return Deallocate(pcDelete, mpcUnit->GetBinder()->FindDeallocation(pcDelete->mbGlobal ? NULL : pcClass, true, true), true, &sBytes, sBase);
 }
 
 
@@ -1704,12 +1700,14 @@ bool CCPP65IRFrontEnd::DeleteArray(CCPPSyntaxDeleteExpression* pcDelete, SCPP65I
 bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue)
 {
 	SCPP65IRValue	sPointer;
+	SCPP65IRValue	sBytes;
 	SCPP65Type*		psType;
 	CCPPFunction*	pcDeallocation;
 	SIRReference	sCondition;
 	SIRReference	sFree;
 	CIRBlock*		pcFree;
 	CIRBlock*		pcDone;
+	bool			bSized;
 
 	if (!ContextualValue(pcDelete->mpcOperand, CPPXT_ObjectPointer, &sPointer))
 	{
@@ -1760,8 +1758,14 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 		{
 			return false;
 		}
-		pcDeallocation = (psType->IsClass() && !pcDelete->mbGlobal) ? mpcUnit->GetBinder()->FindDeallocation(psType->pcClass, pcDelete->mbArray) : NULL;
-		if (!Deallocate(pcDelete, pcDeallocation, pcDelete->mbArray, psType->iBytes, sFree))
+		//The global operator delete that takes a size is called where the size is known: not for an array whose
+		//elements have no destructor, which has no count in front of it (the one that takes the pointer alone is
+		//called, as [expr.delete] 10 leaves the compiler free to), nor for ::delete of an object whose destructor
+		//is virtual, whose own class only its vtable knows.
+		bSized = !pcDelete->mbArray && !(psType->IsClass() && psType->pcClass->mpcDeleting);
+		pcDeallocation = mpcUnit->GetBinder()->FindDeallocation((psType->IsClass() && !pcDelete->mbGlobal) ? psType->pcClass : NULL, pcDelete->mbArray, bSized);
+		sBytes = ByteCount(psType->iBytes);
+		if (!Deallocate(pcDelete, pcDeallocation, pcDelete->mbArray, &sBytes, sFree))
 		{
 			return false;
 		}
@@ -1776,24 +1780,24 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Frees the memory at sFree that an object of lliBytes was in: by
-// pcDeallocation, its class's own operator delete
+// Frees the memory at sFree that what was psBytes long was in: by
+// pcDeallocation, the operator delete its delete calls
 // (CCPPBinder::FindDeallocation), which is given the size if it takes one;
 // or, when that is NULL, by the runtime's operator delete or delete[]
-// (bArray), as ::delete does whatever the class has.  pcFor is the syntax
+// (bArray).  pcFor is the syntax
 // it is done for (a delete, or a class for its deleting destructor), which
 // the arguments are kept by.  A deleting destructor's call of the runtime's
 // is weak: the program has an operator delete if anything in it deletes,
 // and needn't have one for a virtual destructor alone.  [expr.delete] 9, 10
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocation, bool bArray, int64 lliBytes, SIRReference sFree)
+bool CCPP65IRFrontEnd::Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocation, bool bArray, SCPP65IRValue* psBytes, SIRReference sFree)
 {
-	CCPPSyntaxImplicitArgument*	pcSize;
-	CArraySyntax				apcArguments;
-	SCPP65IRValue				sAddress;
-	SCPP65IRValue				sResult;
-	bool						bCalled;
+	CCPPSyntax*		pcSize;
+	CArraySyntax	apcArguments;
+	SCPP65IRValue	sAddress;
+	SCPP65IRValue	sResult;
+	bool			bCalled;
 
 	if (!pcDeallocation)
 	{
@@ -1803,18 +1807,38 @@ bool CCPP65IRFrontEnd::Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocatio
 
 	apcArguments.Init();
 	apcArguments.Add(mpcUnit->ImplicitValue(pcFor, mpcTypes->Pointer(&mpcTypes->msVoid)));
+	pcSize = NULL;
 	if (pcDeallocation->mapsParameters.NumElements() == 2)
 	{
-		pcSize = mpcUnit->ImplicitValue(pcFor, mpcTypes->Size(), 1);
-		pcSize->mbConstant = true;
-		pcSize->mlliValue = lliBytes;
+		pcSize = mpcUnit->ImplicitValue(pcFor, psBytes->psType, 1);
 		apcArguments.Add(pcSize);
+		mcImplicitValues.Put((int64)(size)pcSize, psBytes);
 	}
 	sAddress.psType = mpcTypes->Pointer(&mpcTypes->msVoid);
 	sAddress.sValue = sFree;
 	bCalled = CallWithValue(pcDeallocation, &apcArguments, apcArguments.GetPtr(0), &sAddress, &sResult);
+	if (pcSize)
+	{
+		mcImplicitValues.Remove((int64)(size)pcSize);
+	}
 	apcArguments.Kill();
 	return bCalled;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A number of bytes that is known, as the size_t an allocation or a
+// deallocation function is given.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65IRValue CCPP65IRFrontEnd::ByteCount(int64 lliBytes)
+{
+	SCPP65IRValue	sBytes;
+
+	sBytes.psType = mpcTypes->Size();
+	sBytes.sValue = mpcFunction->AddInteger(IRTypeOf(sBytes.psType), lliBytes);
+	return sBytes;
 }
 
 
@@ -1823,16 +1847,21 @@ bool CCPP65IRFrontEnd::Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocatio
 // The body of pcClass's deleting destructor (CCPPClass::mpcDeleting): the
 // object, this, is destroyed by the class's destructor and freed by the
 // class's operator delete, given the class's size if it takes one, or by
-// the runtime's.  [class.dtor] 13
+// the runtime's, which takes the pointer alone: a program that never
+// deletes needn't have one (Deallocate's weak call), so the global one that
+// takes a size isn't asked for here.  [class.dtor] 13
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeletingDestructor(CCPPClass* pcClass)
 {
+	SCPP65IRValue	sBytes;
+
 	if (!CallObject(pcClass->mpcDestructor, msThis, pcClass, NULL, false))
 	{
 		return false;
 	}
-	return Deallocate(pcClass->mpcSpecifier, mpcUnit->GetBinder()->FindDeallocation(pcClass, false), false, pcClass->mpsType->iBytes, msThis);
+	sBytes = ByteCount(pcClass->mpsType->iBytes);
+	return Deallocate(pcClass->mpcSpecifier, mpcUnit->GetBinder()->FindDeallocation(pcClass, false), false, &sBytes, msThis);
 }
 
 

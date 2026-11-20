@@ -23,11 +23,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/Chars.h"
+#include "CPPSymbol.h"
 
 
 class CCPPClass;
 class CCPPFunction;
-class CCPPSymbol;
 class CCPPSyntax;
 class CCPPSyntaxLambdaExpression;
 class CCPPTemplateArguments;
@@ -59,6 +59,8 @@ struct SCPPLambda
 	CCPPClass*					pcClass;
 	CArrayCPPLambdaCaptures		asCaptures;
 	bool						bThis;			//It captures this: the enclosing object's members are reached through it.
+	CCPPSymbol*					pcPackParameter;	//The enclosing function's parameter pack, or NULL, and its elements' symbols, which
+	CArrayCPPSymbols			apcPackElements;	//are what the lambda captures of it and its body expands it into (AddParameters).
 	bool						bGeneric;		//A parameter is auto: operator() is made for each call's arguments.
 	bool						bMutable;		//operator() isn't const: its copies can be changed.
 	bool						bFailed;		//What it captures couldn't be worked out: an error said why...

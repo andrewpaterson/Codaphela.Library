@@ -100,7 +100,9 @@ public:
 	bool					TemplateParameterTypes(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, size uiArguments, CArrayCPP65Types* papsTypes);
 	bool					TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size uiArguments);
 	bool					IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, int64 lliName);
-	CCPPFunction*			FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, ECPPCalledObject eObject = CPPCO_None, CCPPOverloadScopes* papcNamespaces = NULL);
+	CCPPFunction*			FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, ECPPCalledObject eObject = CPPCO_None, CCPPOverloadScopes* papcNamespaces = NULL, CCPPFunction* pcInstance = NULL);
+	CCPPFunction*			FindFunctionOrInstance(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, ECPPCalledObject eObject);
+	CCPPFunction*			FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	CCPPFunction*			FindNamedFunction(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	CCPPFunction*			FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded);
 	CCPPFunction*			FindAssociatedFunction(CCPPSyntaxName* pcName, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments);
@@ -119,9 +121,13 @@ public:
 	int						ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList);
 	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
 	bool					HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
+	bool					Converts(CCPPFunction* pcConstructor, CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
+	CCPPFunction*			ConstructorInstance(CCPPClass* pcClass, CCPPSyntax* pcArgument);
+	bool					IsObjectOf(CCPPClass* pcClass, CCPPSyntax* pcArgument);
 	CCPPFunction*			ChooseFunction(CCPPCandidates* pcCandidates, CArraySyntax* papcArguments, ECPPCalledObject eObject, bool* pbAmbiguous);
 	int						QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool bTopLevel);
 	bool					IsTemporary(CCPPSyntax* pcArgument, CCPPClass* pcClass);
+	int						CompareTied(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, ECPPCalledObject eObject);
 	int						CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, ECPPCalledObject eObject);
 	CCPPFunction*			FindConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);
 	bool					RefersTo(SCPP65Type* psReturn, SCPP65Type* psReferred);
