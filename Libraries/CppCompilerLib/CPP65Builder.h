@@ -281,7 +281,7 @@ public:
 	CAsm65Linker*	GetLinker(void);
 	const char*		GetErrors(void) const;
 	const char*		GetWarnings(void) const;
-	char*			GetMap(void);
+	const char*		GetMap(void);
 	size			NumMissing(void);
 	char*			GetMissing(size uiIndex);
 	size			NumUnitObjects(void) const;

@@ -1373,7 +1373,7 @@ const char* CCPP65Builder::GetWarnings(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPP65Builder::GetMap(void)
+const char* CCPP65Builder::GetMap(void)
 {
 	return mcLinker.GetMap();
 }
