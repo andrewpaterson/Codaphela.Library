@@ -595,33 +595,14 @@ bool CCPPUnit::IsAggregate(SCPP65Type* psType)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::AggregateMember(SCPP65Type* psType, size uiIndex)
 {
-	CCPPClass*	pcClass;
 	SCPPField*	psField;
-	size		i;
 
 	if (psType->IsArray())
 	{
 		return ((psType->iCount == 0) || (uiIndex < (size)psType->iCount)) ? psType->psBase : NULL;
 	}
-	pcClass = psType->pcClass;
-	if (pcClass->mbUnion && (uiIndex > 0))
-	{
-		return NULL;
-	}
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		psField = pcClass->macFields.Get(i);
-		if (psField->IsUnnamedBitField())
-		{
-			continue;
-		}
-		if (uiIndex == 0)
-		{
-			return psField->psType;
-		}
-		uiIndex--;
-	}
-	return NULL;
+	psField = psType->pcClass->AggregateField(uiIndex);
+	return psField ? psField->psType : NULL;
 }
 
 

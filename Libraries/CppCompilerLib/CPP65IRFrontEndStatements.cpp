@@ -813,7 +813,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 			}
 			pcElement = papcOne->GetPtr(0);
 		}
-		if ((psElement->IsInteger() || psElement->IsFloat()) && !mpcUnit->IsCSource() && !mpcUnit->CheckBracedValue(pcElement, psElement))
+		if ((psElement->IsInteger() || psElement->IsFloat()) && !mpcUnit->CheckBracedValue(pcElement, psElement))
 		{
 			//A list's value isn't narrowed to its element.  [dcl.init.aggr] 12, [dcl.init.list] 7
 			return false;

@@ -429,6 +429,31 @@ void TestCppSemanticPassQueued(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A variable's declaration is checked as it is compiled (CCPPUnit::
+// CheckDeclared): what the compiler makes isn't an error here (an
+// aggregate's default member initialiser that names an earlier member, an
+// array of characters from a string in braces or as a member's value, a
+// bool initialised directly with nullptr, a reference to an object made
+// from a value, string literals for an array of char*), and what it
+// refuses is (an object nothing can make, a reference with nothing to
+// refer to).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppSemanticPassDeclarations(void)
+{
+	AssertTrue(TestCppSemanticPassCheck("struct W { int a = 1; int b = a + 1; int c; };\nint F(void) { W w = { 10 }; return w.b; }\n"));
+	AssertTrue(TestCppSemanticPassCheck("struct N { char sz[4]; int i; };\nint F(void) { char c[] = { \"xyz\" }; N n = { \"ab\", 3 }; return c[0] + n.i; }\n"));
+	AssertTrue(TestCppSemanticPassCheck("int F(void) { bool b{nullptr}; bool c(nullptr); return b || c; }\n"));
+	AssertTrue(TestCppSemanticPassCheck("struct S { int v; S(int a) : v(a) {} };\nint F(void) { const S& r = 4; return r.v; }\n"));
+	AssertTrue(TestCppSemanticPassCheck("int F(void) { char* asz[] = { \"one\", \"two\" }; return asz[1][0]; }\n"));
+	AssertFalse(TestCppSemanticPassCheck("struct S { int v; S(int a) : v(a) {} };\nint F(void) { S s; return s.v; }\n"));
+	AssertFalse(TestCppSemanticPassCheck("struct S { int v; S(int a) : v(a) {} };\nint F(void) { S s(1, 2); return s.v; }\n"));
+	AssertFalse(TestCppSemanticPassCheck("int F(void) { int& r; return 0; }\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A lambda's body is checked where the lambda is, whether or not anything
 // calls it: what is wrong in it is found, a lambda in it too.
 //
@@ -2012,6 +2037,7 @@ void TestCppIndex(void)
 	TestCppIndexSemanticPass();
 	TestCppSemanticPassQueued();
 	TestCppSemanticPassLambdaBodies();
+	TestCppSemanticPassDeclarations();
 	TestCppSemanticPassUndeclaredTypes();
 	TestCppSemanticPassRecordedEnum();
 	TestCppSemanticPassHost();

@@ -110,6 +110,8 @@ static void AssertCPP65Operator(const char* szOperator, const char* szType, bool
 	szSource.Append("int Value(")->Append(szType)->Append(" a, ")->Append(szType)->Append(" b) { return a ")->Append(szOperator)->Append(" b; }\n");
 	szSource.Append("int Branch(")->Append(szType)->Append(" a, ")->Append(szType)->Append(" b) { if (a ")->Append(szOperator)->Append(" b) return 1; return 0; }\n");
 
+	//(Each value is cast to the table's type: a negative one in braces for an unsigned element is a narrowing, which
+	//a list may not make.  [dcl.init.list] 7)
 	uiPairs = 0;
 	szSource.Append(szType)->Append(" gA[] = {");
 	for (i = 0; i < uiValues; i++)
@@ -118,7 +120,7 @@ static void AssertCPP65Operator(const char* szOperator, const char* szType, bool
 		{
 			if (TestCPP65Expected(szOperator, gaiValues[i], aiRight[j], bSigned, &iExpected))
 			{
-				szSource.Append((int64)gaiValues[i])->Append(", ");
+				szSource.Append("(")->Append(szType)->Append(")")->Append((int64)gaiValues[i])->Append(", ");
 				uiPairs++;
 			}
 		}
@@ -130,7 +132,7 @@ static void AssertCPP65Operator(const char* szOperator, const char* szType, bool
 		{
 			if (TestCPP65Expected(szOperator, gaiValues[i], aiRight[j], bSigned, &iExpected))
 			{
-				szSource.Append((int64)aiRight[j])->Append(", ");
+				szSource.Append("(")->Append(szType)->Append(")")->Append((int64)aiRight[j])->Append(", ");
 			}
 		}
 	}
@@ -262,6 +264,7 @@ static void AssertCPP65Operator64(const char* szOperator, const char* szType, bo
 		{
 			if (TestCPP65Expected64(szOperator, gaiValues64[i], aiRight[j], bSigned, &iExpected))
 			{
+				szSource.Append("(")->Append(szType)->Append(")");
 				TestCPP65AppendLiteral64(&szSource, gaiValues64[i], true);
 				szSource.Append(", ");
 				uiPairs++;
@@ -275,6 +278,7 @@ static void AssertCPP65Operator64(const char* szOperator, const char* szType, bo
 		{
 			if (TestCPP65Expected64(szOperator, gaiValues64[i], aiRight[j], bSigned, &iExpected))
 			{
+				szSource.Append("(")->Append(szType)->Append(")");
 				TestCPP65AppendLiteral64(&szSource, aiRight[j], true);
 				szSource.Append(", ");
 			}

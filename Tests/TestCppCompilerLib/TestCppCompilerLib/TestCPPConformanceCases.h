@@ -484,11 +484,7 @@ static const SConformanceCase gasConformanceWorks[] =
 	},
 	{
 		"SizedDelete", 1,
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"char gacArena[256];\n"
 		"size_t guiArena = 0;\n"
 		"void* Take(size_t n) { void* p = &gacArena[guiArena]; guiArena += (n + 7) & ~(size_t)7; return p; }\n"
@@ -1728,11 +1724,7 @@ static const SConformanceCase gasConformanceStage7[] =
 	},
 	{
 		"NewArrayForms", 3457,
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"char gacArena[256];\n"
 		"size_t guiArena = 0;\n"
 		"void* Take(size_t n) { void* p = &gacArena[guiArena]; guiArena += (n + 7) & ~(size_t)7; return p; }\n"
@@ -1743,11 +1735,7 @@ static const SConformanceCase gasConformanceStage7[] =
 	},
 	{
 		"PlacementNewArguments", 442,
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"struct Tag { int k; };\n"
 		"void* operator new(size_t n, const Tag& t, void* p) { return (char*)p + t.k; }\n"
 		"void* operator new(size_t n, void* p) noexcept { return p; }\n"
@@ -1802,11 +1790,7 @@ static const SConformanceCase gasConformanceStage7[] =
 	},
 	{
 		"ClassOperatorNew", 5,
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"char gacArena[256];\n"
 		"size_t guiArena = 0;\n"
 		"void* Take(size_t n) { void* p = &gacArena[guiArena]; guiArena += (n + 7) & ~(size_t)7; return p; }\n"
@@ -1816,11 +1800,7 @@ static const SConformanceCase gasConformanceStage7[] =
 	},
 	{
 		"DeleteThroughSecondaryBase", 3,
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"char gacArena[256];\n"
 		"size_t guiArena = 0;\n"
 		"void* gpLast = 0;\n"
@@ -1873,11 +1853,7 @@ static const SConformanceCase gasConformanceStage8[] =
 		"#ifdef _MSC_VER\n"
 		"#include <initializer_list>\n"
 		"#else\n"
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr size_t size() const noexcept { return muiSize; } constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
 		"#endif\n"
 		"struct V { int s; int n; V(std::initializer_list<int> l) : s(0), n((int)l.size()) { for (const int* i = l.begin(); i != l.end(); ++i) { s += *i; } } };\n"
@@ -1889,11 +1865,7 @@ static const SConformanceCase gasConformanceStage8[] =
 		"#ifdef _MSC_VER\n"
 		"#include <initializer_list>\n"
 		"#else\n"
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr size_t size() const noexcept { return muiSize; } constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
 		"#endif\n"
 		"struct V { int k; V(int a, int b) : k(1) {} V(std::initializer_list<int> l) : k(2) {} };\n"
@@ -1905,11 +1877,7 @@ static const SConformanceCase gasConformanceStage8[] =
 		"#ifdef _MSC_VER\n"
 		"#include <initializer_list>\n"
 		"#else\n"
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr size_t size() const noexcept { return muiSize; } constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
 		"#endif\n"
 		"int main() { int s = 0; for (int x : { 1, 2, 3 }) { s += x; } auto l = { 4, 5 }; for (int x : l) { s += x; } return s; }\n"
@@ -1927,11 +1895,7 @@ static const SConformanceCase gasConformanceStage8[] =
 	},
 	{
 		"LiteralOperators", 2542,
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"long long operator\"\" _k(unsigned long long v) { return (long long)v * 1000; }\n"
 		"long double operator\"\" _half(long double v) { return v / 2; }\n"
 		"int operator\"\" _len(const char* s, size_t n) { return (int)n; }\n"
@@ -1946,11 +1910,7 @@ static const SConformanceCase gasConformanceStage8[] =
 	},
 	{
 		"LiteralOperatorForms", 8241,
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"struct M { long v; };\n"
 		"M operator\"\" _m(unsigned long long v) { M m; m.v = (long)v * 2; return m; }\n"
 		"int operator\"\" _len(const char* s, size_t n) { return (int)n; }\n"
@@ -2167,11 +2127,7 @@ static const SConformanceCase gasConformanceStage9[] =
 	},
 	{
 		"VirtualBaseDeleteThrough", 22333,
-		"#ifdef _WIN64\n"
-		"typedef unsigned long long size_t;\n"
-		"#else\n"
-		"typedef unsigned long size_t;\n"
-		"#endif\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
 		"char gacArena[512];\n"
 		"size_t guiArena = 0;\n"
 		"void* gpLast = 0;\n"

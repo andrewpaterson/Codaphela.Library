@@ -3071,12 +3071,13 @@ bool CCPP65TypeChecker::Narrows(CCPPSyntax* pcSource, SCPP65Type* psTo)
 //////////////////////////////////////////////////////////////////////////
 //
 // A value in braces for a psTo: an error if converting it narrows it.
-// [dcl.init.list] 3
+// Not in a source compiled with C's conversions (CCPPUnit::IsCSource): C has
+// no such rule.  [dcl.init.list] 3
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
 {
-	if (Narrows(pcSource, psTo))
+	if (!mpcUnit->IsCSource() && Narrows(pcSource, psTo))
 	{
 		return Error(pcSource, "The conversion could lose some of the value, which an initialiser in braces may not");
 	}
@@ -3157,6 +3158,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	CCPPFunction*					pcConversion;
 	CCPPFunction*					pcConstructor;
 	CCPPSyntax*						pcList;
+	CCPPSyntax*						pcString;
 	SCPP65Type*						psElement;
 	int								i;
 	bool							bResult;
@@ -3189,6 +3191,13 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 
 	if (psType->IsArray())
 	{
+		//char a[4] = "abc"; and = { "abc" }: an array of characters is its string's.  [dcl.init.string]
+		pcString = pcInitialiser ? pcInitialiser : ((papcArguments->NumElements() == 1) ? papcArguments->GetPtr(0) : NULL);
+		if (pcString && mpcUnit->IsStringLiteral(pcString) && psType->psBase->IsInteger() && (psType->psBase->iBytes == mpcUnit->StringElementBytes(pcString)))
+		{
+			apcArguments.Kill();
+			return true;
+		}
 		if (pcInitialiser || (papcArguments->NumElements() > (size)psType->iCount))
 		{
 			apcArguments.Kill();
@@ -3341,8 +3350,8 @@ bool CCPP65TypeChecker::InitializerListElements(SCPP65Type* psType, SCPP65Type* 
 bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
 	CCPPBoundConstruction	cBound;
+	SCPPField*				psField;
 	size					i;
-	size					uiArgument;
 	bool					bResult;
 
 	papcArguments = mpcUnit->ExpandArguments(papcArguments);
@@ -3359,16 +3368,19 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 		return true;
 	}
 
+	//An aggregate: its fields in order, the rest by their default member initialisers, which are written in the
+	//class, so their this is the object being filled.  [dcl.init.aggr] 7
 	bResult = true;
-	uiArgument = 0;
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	for (i = 0; (psField = pcClass->AggregateField(i)) != NULL; i++)
 	{
-		if (pcClass->macFields.Get(i)->IsUnnamedBitField())
+		if ((i < papcArguments->NumElements()) || !psField->pcInitialiser)
 		{
+			bResult &= Construct(psField->psType, NULL, (i < papcArguments->NumElements()) ? papcArguments->GetPtr(i) : NULL, pcNode);
 			continue;
 		}
-		bResult &= Construct(pcClass->macFields.Get(i)->psType, NULL, (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : pcClass->macFields.Get(i)->pcInitialiser, pcNode);
-		uiArgument++;
+		mpcUnit->GetContext()->EnterObject(pcClass);
+		bResult &= Construct(psField->psType, NULL, psField->pcInitialiser, pcNode);
+		mpcUnit->GetContext()->LeaveObject();
 	}
 	return bResult;
 }
@@ -3458,6 +3470,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	SCPP65Type*		psValue;
 	size			i;
 	bool			bResult;
+	bool			bDirect;
 
 	psElement = psType;
 	while (psElement->IsArray())
@@ -3472,16 +3485,25 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	{
 		return true;
 	}
+	if (psType->IsArray())
+	{
+		//char a[] = { "abc" } is char a[] = "abc".  [dcl.init.string]
+		pcInitialiser = mpcUnit->StringInitialiser(pcInitialiser, psType->psBase);
+	}
 
+	//T x(value) and T x{value} initialise directly: a std::nullptr_t may make a bool so.  [conv.bool]
 	papcElements = NULL;
+	bDirect = false;
 	if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
 	{
 		papcElements = mpcUnit->ListElements(pcInitialiser);
+		bDirect = true;
 	}
 	else if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{
 		papcElements = mpcUnit->ListElements(pcInitialiser);
 		bBraced = true;
+		bDirect = true;
 	}
 	if (papcElements && (papcElements->NumElements() == 1) && !psType->IsArray())
 	{
@@ -3510,7 +3532,11 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		}
 		if (mpcUnit->BindsToTemporary(psType, pcInitialiser))
 		{
-			//It refers to a temporary holding the value.
+			//It refers to a temporary holding the value: an object made from it (const S& r = 4;), or the value converted.
+			if (psType->psBase->IsClass())
+			{
+				return Construct(psType->psBase->Unqualified(), NULL, pcInitialiser, pcNode);
+			}
 			return ImplicitConvert(ValueFor(pcInitialiser, psType->psBase, false), psType->psBase, pcNode, pcInitialiser);
 		}
 		mpcUnit->BeginQuiet();
@@ -3522,7 +3548,14 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		}
 		return psValue ? CanBind(psType, psValue, pcNode) : (Value(pcInitialiser) != NULL);
 	}
-	return ImplicitConvert(ValueFor(pcInitialiser, psType, false), psType, pcNode, pcInitialiser) && (!bBraced || NotNarrowed(pcInitialiser, psType));
+	psValue = ValueFor(pcInitialiser, psType, false);
+	if (bDirect && psValue && psValue->WithoutReference()->IsNullPointer() && (psType->eKind == CPP65TK_Bool))
+	{
+		return true;
+	}
+
+	//What is wrong with the value is said at the value.
+	return ImplicitConvert(psValue, psType, pcInitialiser, pcInitialiser) && (!bBraced || NotNarrowed(pcInitialiser, psType));
 }
 
 
@@ -3597,7 +3630,7 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue)
 {
-	return Convert(psFrom, psTo, pcNode) && ConvertsPointer(psFrom, psTo, pcNode, pcValue) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsEnum(psFrom, psTo, pcNode) && KeepsNullPointer(psFrom, psTo, pcNode, pcValue);
+	return Convert(psFrom, psTo, pcNode) && ConvertsPointer(psFrom, psTo, pcNode, pcValue) && KeepsPointerQualifiers(psFrom, psTo, pcValue ? pcValue : pcNode) && KeepsEnum(psFrom, psTo, pcNode) && KeepsNullPointer(psFrom, psTo, pcNode, pcValue);
 }
 
 

@@ -838,6 +838,22 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       destructor (their count wasn't kept).  new[] keeps the count in front of the elements whenever delete[] will
       need it (CCPPBinder::KeepsArrayCount: a destructor, or the class's operator delete[] takes the size), which
       NewArray and DeleteExpression each decided for themselves (DeleteArraySizedNoDestructor).
+    - 17, 16.  The type checker is the one place that says what a variable's initialiser can make: CCPPUnit::
+      CheckDeclared asks its Initialise of every declaration (it asked only of an object with no initialiser), so
+      the IR front end, GlobalDeclaration and the semantic pass ask the same thing, and S s(1, 2); that nothing
+      takes is said at the variable.  Measured first, behind a switch, over the suite and the three libraries:
+      the checker refused what the front end makes in five places, each a false error the semantic pass showed -
+      an aggregate's default member initialiser that names an earlier member (its this is the object:
+      CCPPContext::EnterObject), an array of characters from a string in braces or as a member's value, bool
+      b{nullptr}, const S& r = 4 and string literals for an array of char* (the qualifier rule was given the
+      declarator, not the value).  What is wrong with a value is said at the value.  The fields a list fills are
+      CCPPClass::AggregateField's (four loops skipped unnamed bit-fields and stopped at a union's first), and
+      C's exemption from the narrowing rule is in the rule (NotNarrowed), which three of its five callers had
+      asked.  Refused now, as a local's was: a negative constant in braces for an unsigned element of a global
+      array (DclGlobalArrayNarrowingRefused; TestCPP65Generator's tables cast their values).
+      TestCppSemanticPassDeclarations.  Found by the measuring: the check of operator new's first parameter
+      (item 30) had broken six older cases that declared size_t as unsigned long, and the lists had been written
+      with them as not done; they declare it as decltype(sizeof(0)) now and pass.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

@@ -2880,18 +2880,15 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 // What a variable's declaration must be, wherever it is (a local, a static
 // local, a global; the semantic pass's check too): initialised where its
 // type needs it to be (NeedsNoInitialiser), not copy-initialised through an
-// explicit constructor (CopyInitialises), and an object with no initialiser
-// one its class can make from nothing (the type checker's Initialise,
-// which S s;, having no expression, isn't otherwise asked of; what an
-// initialiser can't make is said where it is used:
-// CCPP65IRFrontEnd::ConstructClass).  Its errors are reported, where it is
-// quiet too.  [dcl.init]
+// explicit constructor (CopyInitialises), and what its initialiser, or none,
+// can make (the type checker's Initialise: the one place that says so, of
+// an object, a reference, a number and an array alike).  Its errors are
+// reported, where it is quiet too.  [dcl.init]
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcInit, CCPPSyntax* pcInitialiser)
 {
-	SCPP65Type*	psElement;
-	bool		bResult;
+	bool	bResult;
 
 	if (!pcInitialiser && !NeedsNoInitialiser(psType, pcInit))
 	{
@@ -2901,15 +2898,8 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 	{
 		return false;
 	}
-	for (psElement = psType; psElement->IsArray(); psElement = psElement->psBase)
-	{
-	}
-	if (pcInitialiser || !psElement->IsClass())
-	{
-		return true;
-	}
 	BeginLoud();
-	bResult = mcTypeChecker.Initialise(psType, NULL, pcInit);
+	bResult = mcTypeChecker.Initialise(psType, pcInitialiser, pcInit);
 	EndLoud();
 	return bResult;
 }

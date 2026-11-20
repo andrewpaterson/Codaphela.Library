@@ -7955,6 +7955,12 @@ static const SConformanceCase gasConformanceClause8[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//8.5.4 [dcl.init.list] p3, p7: a list's value isn't narrowed to an array's element, a global array's either
+	{
+		"DclGlobalArrayNarrowingRefused", CONFORMANCE_REFUSED,
+		"unsigned gauValues[] = { 1, -1, 2 };\n"
+		"int main() { return (int)gauValues[0]; }\n"
+	},
 };
 
 

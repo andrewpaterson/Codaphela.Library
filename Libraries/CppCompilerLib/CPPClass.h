@@ -173,6 +173,7 @@ public:
 	CCPPClass*		FindFieldClass(SCPPField* psField);
 	CCPPSymbol*		FindMemberSymbol(int64 lliName, ECPPSymbolKind eKind, CCPPClass** ppcClass);
 	size			NumAggregateFields(void);
+	SCPPField*		AggregateField(size uiValue);
 	bool			NeedsConstructor(void);
 	bool			NeedsDestructor(void);
 	bool			HasCopyConstructor(void);

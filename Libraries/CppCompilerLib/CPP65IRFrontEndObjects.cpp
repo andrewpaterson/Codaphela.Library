@@ -1133,7 +1133,6 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	CCPPSyntax*				pcValue;
 	SIRReference			sThis;
 	size					ui;
-	size					uiArgument;
 	size					uiErrors;
 	bool					bResult;
 
@@ -1161,21 +1160,15 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 		return true;
 	}
 
-	//An aggregate: the fields in order, the rest by their default member initialisers, or zero.  A union's first
-	//only: the others are where it is.  [dcl.init.aggr] 16
-	uiArgument = 0;
-	for (ui = 0; (ui < pcClass->macFields.NumElements()) && !(pcClass->mbUnion && (uiArgument > 0)); ui++)
+	//An aggregate: the fields its list fills (CCPPClass::AggregateField), in order, the rest by their default member
+	//initialisers, or zero.  [dcl.init.aggr] 7, 16
+	for (ui = 0; (psField = pcClass->AggregateField(ui)) != NULL; ui++)
 	{
-		psField = pcClass->macFields.Get(ui);
-		if (psField->IsUnnamedBitField())
-		{
-			continue;
-		}
 		sField.sAddress = AddressAt(psPlace->sAddress, psField->iOffset);
 		sField.psType = psField->psType;
 		sField.psBitField = psField->IsBitField() ? psField : NULL;
-		pcValue = (uiArgument < papcArguments->NumElements()) ? papcArguments->GetPtr(uiArgument) : NULL;
-		if (pcValue && (psField->psType->IsInteger() || psField->psType->IsFloat()) && (pcValue->GetKind() != CPPS_InitializerList) && !mpcUnit->IsCSource() && !mpcUnit->CheckBracedValue(pcValue, psField->psType))
+		pcValue = (ui < papcArguments->NumElements()) ? papcArguments->GetPtr(ui) : NULL;
+		if (pcValue && (psField->psType->IsInteger() || psField->psType->IsFloat()) && (pcValue->GetKind() != CPPS_InitializerList) && !mpcUnit->CheckBracedValue(pcValue, psField->psType))
 		{
 			//A list's value isn't narrowed to its field.  [dcl.init.aggr] 12, [dcl.init.list] 7
 			return false;
@@ -1198,7 +1191,6 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 		{
 			return false;
 		}
-		uiArgument++;
 	}
 	return true;
 }

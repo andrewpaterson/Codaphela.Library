@@ -318,18 +318,44 @@ SCPPField* CCPPClass::FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset, CCPPC
 //////////////////////////////////////////////////////////////////////////
 size CCPPClass::NumAggregateFields(void)
 {
-	size	i;
 	size	uiFields;
 
-	uiFields = 0;
+	for (uiFields = 0; AggregateField(uiFields); uiFields++)
+	{
+	}
+	return uiFields;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The field an aggregate initialiser's value uiValue (its place in the
+// list, from 0) fills, or NULL when the class has no more to fill: its
+// fields in order but for its unnamed bit-fields, and of a union the
+// first only.  [dcl.init.aggr] 6, 16
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPField* CCPPClass::AggregateField(size uiValue)
+{
+	size	i;
+
+	if (mbUnion && (uiValue > 0))
+	{
+		return NULL;
+	}
 	for (i = 0; i < macFields.NumElements(); i++)
 	{
-		if (!macFields.Get(i)->IsUnnamedBitField())
+		if (macFields.Get(i)->IsUnnamedBitField())
 		{
-			uiFields++;
+			continue;
 		}
+		if (uiValue == 0)
+		{
+			return macFields.Get(i);
+		}
+		uiValue--;
 	}
-	return (mbUnion && (uiFields > 1)) ? 1 : uiFields;
+	return NULL;
 }
 
 
