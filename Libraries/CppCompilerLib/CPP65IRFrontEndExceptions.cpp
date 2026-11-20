@@ -252,7 +252,7 @@ bool CCPP65IRFrontEnd::UndoPart(SCPP65IRCleanup* psPart)
 	case CPP65IRP_FreeException:
 		asTypes[0] = IRType(IRTK_Pointer);
 		asArguments[0] = psPart->sPlace.sAddress;
-		ExceptionCall(CPP65_FREE_EXCEPTION, IRType(IRTK_None), asTypes, asArguments, 1);
+		CallNoThrow(CPP65_FREE_EXCEPTION, IRType(IRTK_None), asTypes, asArguments, 1);
 		return true;
 	case CPP65IRP_Guard:
 		mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 0), psPart->sPlace.sAddress);
@@ -696,11 +696,11 @@ CIRBlock* CCPP65IRFrontEnd::UnexpectedBlock(void)
 	MatchListed(pcSpec, ThrowExit());
 
 	//Not allowed: it is being handled while the handler runs, and ended when the handler throws.
-	ExceptionCall(CPP65_BEGIN_CATCH, IRType(IRTK_Pointer), NULL, NULL, 0);
+	CallNoThrow(CPP65_BEGIN_CATCH, IRType(IRTK_Pointer), NULL, NULL, 0);
 	pcThrown = NewBlock();
 	TestedRoutine(CPP65_UNEXPECTED, pcThrown, TerminateBlock());
 	StartBlock(pcThrown);
-	ExceptionCall(CPP65_END_CATCH, IRType(IRTK_None), NULL, NULL, 0);
+	CallNoThrow(CPP65_END_CATCH, IRType(IRTK_None), NULL, NULL, 0);
 	MatchListed(pcSpec, ThrowExit());
 	bBadException = false;
 	for (ui = 0; ui < pcSpec->mapsTypes.NumElements(); ui++)
@@ -744,7 +744,7 @@ void CCPP65IRFrontEnd::MatchListed(CCPPExceptionSpec* pcSpec, CIRBlock* pcAllowe
 	for (ui = 0; ui < pcSpec->mapsTypes.NumElements(); ui++)
 	{
 		sTypeInfo = TypeInfoSymbol(ThrownType(pcSpec->mapsTypes.GetPtr(ui)));
-		sMatched = ExceptionCall(CPP65_MATCH, sPointer, &sPointer, &sTypeInfo, 1);
+		sMatched = CallNoThrow(CPP65_MATCH, sPointer, &sPointer, &sTypeInfo, 1);
 		sCondition = mpcFunction->Add(mpcBlock, IRO_Ne, sPointer, sMatched, mpcFunction->AddConstant(sPointer, 0));
 		pcNext = NewBlock();
 		mpcBlock->Branch(sCondition, pcAllowed, pcNext);
@@ -1167,7 +1167,7 @@ bool CCPP65IRFrontEnd::Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference s
 	{
 		return LeaveScope(uiLiving);
 	}
-	ExceptionCall(CPP65_RETHROW, IRType(IRTK_None), NULL, NULL, 0);
+	CallNoThrow(CPP65_RETHROW, IRType(IRTK_None), NULL, NULL, 0);
 	JumpTo(Landing());
 	Terminated();
 	mcCleanups.CutLocals(uiLiving);
