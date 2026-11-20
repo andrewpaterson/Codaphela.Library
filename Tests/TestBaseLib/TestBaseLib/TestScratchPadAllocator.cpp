@@ -86,7 +86,7 @@ void TestScratchPadAllocatorReadWrite(void)
 	AssertSize(0, cAllocIn.GetScratchPad()->GetMemorySize());
 	AssertSize(0, cAllocIn.GetScratchPad()->GetUsedSize());
 	cAllocIn.GetScratchPad()->GetParams(&sParams);
-	AssertInt(32 KB, sParams.iChunkSize);
+	AssertInt((int32)(32 KB), sParams.iChunkSize);
 	cFile.Close();
 	cFile.Kill();
 	cAlloc.Kill();

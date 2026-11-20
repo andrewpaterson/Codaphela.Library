@@ -481,6 +481,26 @@ bool PrivateAssertInt(uint16 iExpected, uint16 iActual, const char* szPrefix, si
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool PrivateAssertInt(int16 iExpected, int32 iActual, const char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertInt((int32)iExpected, iActual, szPrefix, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertInt(int16 iExpected, uint32 iActual, const char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertInt((int32)iExpected, (int32)iActual, szPrefix, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool PrivateAssertIntHex(int16 iExpected, int16 iActual, char* szPrefix, size iLine, const char* szFile)
 {
 	return PrivateAssertIntHex((int32)iExpected, (int32)iActual, szPrefix, iLine, szFile);
@@ -504,6 +524,26 @@ bool PrivateAssertIntHex(int16 iExpected, uint16 iActual, char* szPrefix, size i
 bool PrivateAssertIntHex(uint16 iExpected, uint16 iActual, char* szPrefix, size iLine, const char* szFile)
 {
 	return PrivateAssertIntHex((int32)iExpected, (int32)iActual, szPrefix, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertIntHex(int16 iExpected, int32 iActual, char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertIntHex((int32)iExpected, iActual, szPrefix, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertIntHex(int16 iExpected, uint32 iActual, char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertIntHex((int32)iExpected, iActual, szPrefix, iLine, szFile);
 }
 #endif // __W65C816__
 

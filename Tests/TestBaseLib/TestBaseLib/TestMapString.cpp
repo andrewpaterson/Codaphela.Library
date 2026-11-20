@@ -79,8 +79,7 @@ void TestMapStringInt(void)
 	AssertNotNull(szKey);
 	AssertNotNull(piResult);
 	AssertString("Dock", szKey);
-	iResult = *piResult;
-	AssertInt(17, iResult);
+	AssertInt(17, *piResult);
 
 	piResult = cMap.CMapStringTemplate::Get("EZ");
 	AssertNotNull(piResult);
