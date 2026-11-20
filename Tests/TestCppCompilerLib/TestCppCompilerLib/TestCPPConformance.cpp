@@ -80,8 +80,8 @@ static const SConformanceGroup gasConformanceGroups[] =
 		"ConstantInactiveUnionMemberRefused(A) ",
 		""),
 	CONFORMANCE_GROUP(Clause8,
-		"DclFunctionTypes(C) DclFunctionMemberTypes(C) DclFunctionReturnsArrayRefused(A) DclFunctionReturnsFunctionRefused(A) DclDefaultArguments(C) DclDefaultArgumentLocalRefused(A) DclDefaultedAndDeleted(C) DclDeletedTemplateInstanceRefused(A) DclDefaultedNotSpecialRefused(A) DclDefaultedWithDefaultArgumentRefused(A) DclAggregates(C) ",
-		"DclFunctionTypes(C) DclFunctionMemberTypes(C) DclFunctionReturnsArrayRefused(A) DclFunctionReturnsFunctionRefused(A) DclDefaultArguments(C) DclDefaultArgumentLocalRefused(A) DclDefaultedAndDeleted(C) DclDeletedTemplateInstanceRefused(A) DclDefaultedNotSpecialRefused(A) DclDefaultedWithDefaultArgumentRefused(A) DclAggregates(C) "),
+		"DclFunctionReturnsArrayRefused(A) DclFunctionReturnsFunctionRefused(A) DclDefaultedAndDeleted(C) DclDeletedTemplateInstanceRefused(A) DclDefaultedNotSpecialRefused(A) DclDefaultedWithDefaultArgumentRefused(A) DclAggregates(C) ",
+		"DclFunctionReturnsArrayRefused(A) DclFunctionReturnsFunctionRefused(A) DclDefaultedAndDeleted(C) DclDeletedTemplateInstanceRefused(A) DclDefaultedNotSpecialRefused(A) DclDefaultedWithDefaultArgumentRefused(A) DclAggregates(C) "),
 };
 
 

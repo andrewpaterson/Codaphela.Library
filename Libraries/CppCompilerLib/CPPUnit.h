@@ -552,6 +552,7 @@ public:
 	bool					ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* pcInit, bool bExtern);
 	bool					IsInstantiatedElsewhere(CCPPFunction* pcFunction);
 	CCPPTemplate*			GetTemplate(CCPPSymbol* pcSymbol);
+	bool					IsFunctionByType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
 	bool					ValueArgumentFits(CCPPSyntaxParameter* pcParameter, SCPPExpandedArgument* psArgument, int64 lliValue, CCPPTemplateArguments* pcBindings);
 	bool					ConstantFits(SCPP65Type* psType, int64 lliValue);
 	void					CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue);

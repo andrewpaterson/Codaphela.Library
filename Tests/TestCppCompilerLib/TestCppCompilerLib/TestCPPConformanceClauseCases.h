@@ -7317,4 +7317,53 @@ static const SConformanceCase gasConformanceClause8[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//8.3.5 [dcl.fct] p10: functions, member functions and a parameter declared by the name of a function type
+	{
+		"DclFunctionsByTypedef", 7,
+		"using Unary = int(int);\n"
+		"typedef Unary Other;\n"
+		"Unary Neg;\n"
+		"Other Twice;\n"
+		"extern Unary Declared;\n"
+		"struct S\n"
+		"{\n"
+		"	int v;\n"
+		"	typedef int Getter() const;\n"
+		"	typedef int Setter(int);\n"
+		"	Getter Get;\n"
+		"	Setter Set;\n"
+		"	static Unary Half;\n"
+		"	virtual Getter Virtual;\n"
+		"};\n"
+		"int S::Get() const { return v; }\n"
+		"int S::Set(int x) { v = x; return v; }\n"
+		"int S::Half(int x) { return x / 2; }\n"
+		"int S::Virtual() const { return v + 1; }\n"
+		"int Neg(int v) { return -v; }\n"
+		"int Twice(int v) { return v * 2; }\n"
+		"int Declared(int v) { return v + 100; }\n"
+		"int Apply(Unary f, int v) { return f(v); }\n"
+		"int main()\n"
+		"{\n"
+		"	S s;\n"
+		"	s.v = 0;\n"
+		"	Unary* p = Neg;\n"
+		"	int r = 0;\n"
+		"	if (Neg(3) == -3 && Twice(4) == 8 && p(5) == -5 && Declared(1) == 101) r += 1;\n"
+		"	if (s.Set(6) == 6 && s.Get() == 6 && S::Half(8) == 4 && s.Virtual() == 7) r += 2;\n"
+		"	if (Apply(Twice, 5) == 10 && Apply(S::Half, 6) == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.3.6 [dcl.fct.default] p7: a default argument names a global, and a local where it is not evaluated
+	{
+		"DclDefaultArgumentUnevaluatedLocal", 1,
+		"int g = 4;\n"
+		"int main() { const int c = 3; struct L { static int f(int a = g, int n = sizeof(c)) { return a + n; } }; return L::f() == 4 + (int)sizeof(int); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p7: not a static local variable either
+	{
+		"DclDefaultArgumentStaticLocalRefused", CONFORMANCE_REFUSED,
+		"int main() { static int s = 2; struct L { static int f(int a = s) { return a; } }; return L::f(); }\n"
+	},
 };

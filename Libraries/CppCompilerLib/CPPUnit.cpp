@@ -2509,6 +2509,22 @@ void CCPPUnit::FindReturns(CCPPSyntax* pcNode, CArraySyntax* papcReturns)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a declarator that is only a name declares a function, by its
+// specifiers naming a function's type: typedef int Binary(int, int);
+// Binary Add;  [dcl.fct] 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsFunctionByType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxDeclSpecifiers*	pcTypeSpecifiers;
+	CCPPSyntaxDeclarator*		pcShape;
+
+	return pcSpecifiers && pcDeclarator && pcDeclarator->IsNameAlone() && pcSpecifiers->NamesFunctionType(&pcTypeSpecifiers, &pcShape);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What a function's declarator makes of the type before it: int (*Pick())(int)
 // returns what the declarators around its name make of the int, and int*& f()
 // a reference to a pointer.  NULL after an error.
@@ -2616,6 +2632,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	ECPPRefQualifier			eRefQualifier;
 	bool						bFriend;
 	CCPPScope*					pcNamespace;
+	CCPPSyntaxDeclSpecifiers*	pcTypeSpecifiers;
 
 	pcName = pcDeclarator->GetName();
 	pcComponent = pcName ? pcName->GetLast() : NULL;
@@ -2645,14 +2662,22 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		eKind = CPPFK_Constructor;
 	}
 
+	//typedef int Binary(int, int); Binary Add; declares a function by the name of its type: the typedef's declarator
+	//has its parameters, and the typedef's specifiers what it returns.  [dcl.fct] 10
+	pcTypeSpecifiers = pcSpecifiers;
+	if (!pcDeclarator->GetFunctionSuffix() && !(pcSpecifiers && pcSpecifiers->NamesFunctionType(&pcTypeSpecifiers, &pcDeclarator)))
+	{
+		Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
+		return NULL;
+	}
 	pcSuffix = pcDeclarator->GetFunctionSuffix();
 	if (!pcDeclarator->mpcNested && (pcDeclarator->macpSuffixes.NumElements() != 1))
 	{
 		Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
 		return NULL;
 	}
-	bUndeduced = mcDeclarators.IsAuto(pcSpecifiers) || mcDeclarators.IsDecltypeAuto(pcSpecifiers);
-	if (pcSuffix->mpcTrailingReturn && (!mcDeclarators.IsAuto(pcSpecifiers) || pcDeclarator->mpcNested || (pcDeclarator->NumPointers() != 0)))
+	bUndeduced = mcDeclarators.IsAuto(pcTypeSpecifiers) || mcDeclarators.IsDecltypeAuto(pcTypeSpecifiers);
+	if (pcSuffix->mpcTrailingReturn && (!mcDeclarators.IsAuto(pcTypeSpecifiers) || pcDeclarator->mpcNested || (pcDeclarator->NumPointers() != 0)))
 	{
 		Error(pcDeclarator, "A function whose return type is written after it is declared auto, and nothing more");
 		return NULL;
@@ -2671,7 +2696,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	else if (eKind == CPPFK_Function)
 	{
 		//auto: the type is worked out once the function is known (ResolveReturn).
-		psReturn = bUndeduced ? &mcTypes.msUndeduced : ReturnDeclaratorType(mcDeclarators.GetType(pcSpecifiers, NULL, pcDeclarator, NULL), pcDeclarator);
+		psReturn = bUndeduced ? &mcTypes.msUndeduced : ReturnDeclaratorType(mcDeclarators.GetType(pcTypeSpecifiers, NULL, pcDeclarator, NULL), pcDeclarator);
 		if (!psReturn || !mcDeclarators.IsReturnable(psReturn, pcDeclarator))
 		{
 			return NULL;
@@ -3126,7 +3151,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 	for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
 	{
 		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
-		if (pcInit->mpcDeclarator->IsFunction())
+		if (pcInit->mpcDeclarator->IsFunction() || IsFunctionByType(pcSpecifiers, pcInit->mpcDeclarator))
 		{
 			BeginQuiet();
 			pcFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);

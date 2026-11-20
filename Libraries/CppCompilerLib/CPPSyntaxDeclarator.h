@@ -46,6 +46,7 @@ public:
 	bool					IsEmpty(void) const;
 	bool					IsFunction(void);
 	bool					IsParenthesisedName(void) const;
+	bool					IsNameAlone(void) const;
 	CCPPSyntaxFunctionSuffix*	GetFunctionSuffix(void);
 	CCPPSyntaxName*			GetName(void) const;
 	size					NumPointers(void);

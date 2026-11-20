@@ -144,3 +144,58 @@ void CCPPSyntaxDeclSpecifiers::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Child(&mpcType);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the specifiers name a function's type, and the specifiers and the
+// declarator it was written with: typedef int Binary(int, int); or using
+// Binary = int(int, int);, through typedefs of that typedef.  A function
+// declared by the type's name (Binary Add;) takes its parameters and what
+// it returns from them.  [dcl.fct] 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxDeclSpecifiers::NamesFunctionType(CCPPSyntaxDeclSpecifiers** ppcSpecifiers, CCPPSyntaxDeclarator** ppcDeclarator)
+{
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSymbol*					pcSymbol;
+	CCPPSyntax*					pcDeclaration;
+	CCPPSyntaxDeclarator*		pcDeclarator;
+	CCPPSyntaxTypeId*			pcType;
+
+	pcSpecifiers = this;
+	for (;;)
+	{
+		if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_NamedTypeSpecifier))
+		{
+			return false;
+		}
+		pcSymbol = ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType)->mpcName->mpcSymbol;
+		pcDeclaration = (pcSymbol && (pcSymbol->meKind == CPPSK_Typedef)) ? pcSymbol->mpcDeclaration : NULL;
+		if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+		{
+			pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers;
+			pcDeclarator = ((CCPPSyntaxInitDeclarator*)pcDeclaration)->mpcDeclarator;
+		}
+		else if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_AliasDeclaration))
+		{
+			pcType = ((CCPPSyntaxAliasDeclaration*)pcDeclaration)->mpcType;
+			pcSpecifiers = pcType->mpcSpecifiers;
+			pcDeclarator = pcType->mpcDeclarator;
+		}
+		else
+		{
+			return false;
+		}
+		if (pcDeclarator && (pcDeclarator->mpcNested || (pcDeclarator->macpPrefix.NumElements() != 0) || (pcDeclarator->macpSuffixes.NumElements() > 1)))
+		{
+			//A pointer to a function, an array: no function's type.
+			return false;
+		}
+		if (pcDeclarator && (pcDeclarator->macpSuffixes.NumElements() == 1))
+		{
+			*ppcSpecifiers = pcSpecifiers;
+			*ppcDeclarator = pcDeclarator;
+			return pcDeclarator->GetFunctionSuffix() != NULL;
+		}
+	}
+}

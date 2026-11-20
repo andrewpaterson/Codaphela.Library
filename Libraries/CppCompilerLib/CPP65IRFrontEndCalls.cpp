@@ -548,7 +548,7 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 
 	asPieces.Init();
 	sReturned.bDestroy = false;
-	if (!ArgumentPieces(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, &sMade, &sReturned, &asPieces))
+	if (!ArgumentPieces(papcArguments, papsParameters, papcDefaults, pcFunction ? pcFunction->mpcBindings : NULL, bVariadic, psReturn, &sMade, &sReturned, &asPieces))
 	{
 		asPieces.Kill();
 		return false;
@@ -653,7 +653,8 @@ bool CCPP65IRFrontEnd::TypeInfoCall(CCPPFunction* pcFunction, SIRReference sObje
 // order in pasPieces, objects passed by value as their pieces.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, SCPP65IRMade* psReturned, CArrayIRReferences* pasPieces)
+bool CCPP65IRFrontEnd::ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPTemplateArguments* pcDefaultBindings, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade,
+									  SCPP65IRMade* psReturned, CArrayIRReferences* pasPieces)
 {
 	CArrayTemplate<SCPP65IRValue>	asArguments;
 	CArrayIRReferences				asLoaded;		//The pieces of the objects passed by value...
@@ -671,7 +672,7 @@ bool CCPP65IRFrontEnd::ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Ty
 	asLoaded.Init();
 	aiLoaded.Init();
 	aiLoaded.GrowToAtLeastNumElements(asArguments.NumElements(), true, 0xFF);
-	bResult = GatherArguments(papcArguments, papsParameters, papcDefaults, bVariadic, psReturn, psMade, psReturned, &asArguments, &asLoaded, &aiLoaded);
+	bResult = GatherArguments(papcArguments, papsParameters, papcDefaults, pcDefaultBindings, bVariadic, psReturn, psMade, psReturned, &asArguments, &asLoaded, &aiLoaded);
 	for (ui = 0; bResult && (ui < asArguments.NumElements()); ui++)
 	{
 		iLoaded = *aiLoaded.Get(ui);
@@ -726,22 +727,18 @@ void CCPP65IRFrontEnd::CallResult(SCPP65Type* psReturn, SIRReference sMade, SIRR
 // psReturned for the caller to register once the call has returned).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, SCPP65IRMade* psReturned,
-									   CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded)
+bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPTemplateArguments* pcDefaultBindings, bool bVariadic, SCPP65Type* psReturn,
+									   SIRReference* psMade, SCPP65IRMade* psReturned, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded)
 {
 	size			uiArguments;
 	size			uiParameters;
+	size			uiGiven;
 	size			ui;
 	CCPPSyntax*		pcArgument;
 	SCPP65Type*		psParameter;
 	SCPP65IRValue	sArgument;
 	SCPP65IRPlace	sPlace;
-	SCPP65IRPlace	sCopy;
-	SCPP65IRMade	sTemporary;
-	SIRType			sPiece;
-	SIRReference	sLoaded;
-	int				iOffset;
-	int				iPiece;
+	bool			bResult;
 
 	uiArguments = papcArguments->NumElements();
 	uiParameters = papsParameters ? papsParameters->NumElements() : 0;
@@ -763,9 +760,59 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 		}
 		*pasArguments->Get(ui - 1) = sArgument;
 	}
-	for (ui = uiParameters; ui > 0; ui--)
+	//The parameters given none take their default arguments, the last first, written where the function is declared: a
+	//template's instance's with its template arguments.  [dcl.fct.default] 5
+	uiGiven = (uiArguments < uiParameters) ? uiArguments : uiParameters;
+	mpcUnit->GetContext()->EnterBindings(pcDefaultBindings ? pcDefaultBindings : mpcUnit->GetContext()->GetBindings());
+	bResult = ParameterArguments(papcDefaults, papsParameters, uiParameters, uiGiven, bVariadic, pasArguments, pasLoaded, paiLoaded);
+	mpcUnit->GetContext()->LeaveBindings();
+	if (!bResult || !ParameterArguments(papcArguments, papsParameters, uiGiven, 0, bVariadic, pasArguments, pasLoaded, paiLoaded))
 	{
-		pcArgument = (ui <= uiArguments) ? papcArguments->GetPtr(ui - 1) : (papcDefaults ? papcDefaults->GetPtr(ui - 1) : NULL);
+		return false;
+	}
+
+	//An object returned is made at the address passed first on the stack (a temporary's, or msElide's).
+	//It is registered when the call has returned (the caller's TemporaryMade of psReturned).
+	psReturned->bDestroy = false;
+	if (psReturn->IsClass() && psMade->IsNone())
+	{
+		if (!Temporary(psReturn, &sPlace, psReturned))
+		{
+			return false;
+		}
+		*psMade = sPlace.sAddress;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// GatherArguments for the parameters from uiFrom down to the one after
+// uiTo, each its parameter's argument in papcArguments (the call's, or the
+// function's default arguments).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, size uiFrom, size uiTo, bool bVariadic, CArrayTemplate<SCPP65IRValue>* pasArguments,
+										  CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded)
+{
+	size			uiParameters;
+	size			ui;
+	CCPPSyntax*		pcArgument;
+	SCPP65Type*		psParameter;
+	SCPP65IRValue	sArgument;
+	SCPP65IRPlace	sPlace;
+	SCPP65IRPlace	sCopy;
+	SCPP65IRMade	sTemporary;
+	SIRType			sPiece;
+	SIRReference	sLoaded;
+	int				iOffset;
+	int				iPiece;
+
+	uiParameters = papsParameters ? papsParameters->NumElements() : 0;
+	for (ui = uiFrom; ui > uiTo; ui--)
+	{
+		pcArgument = papcArguments ? papcArguments->GetPtr(ui - 1) : NULL;
 		psParameter = papsParameters->GetPtr(ui - 1);
 		if (pcArgument && psParameter->IsClass() && (!bVariadic || (ui < uiParameters)) && mpcUnit->CompleteClass(psParameter->pcClass, NULL) && IsPassedByAddress(psParameter))
 		{
@@ -854,18 +901,6 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 			return false;
 		}
 		*pasArguments->Get(ui - 1) = sArgument;
-	}
-
-	//An object returned is made at the address passed first on the stack (a temporary's, or msElide's).
-	//It is registered when the call has returned (the caller's TemporaryMade of psReturned).
-	psReturned->bDestroy = false;
-	if (psReturn->IsClass() && psMade->IsNone())
-	{
-		if (!Temporary(psReturn, &sPlace, psReturned))
-		{
-			return false;
-		}
-		*psMade = sPlace.sAddress;
 	}
 	return true;
 }

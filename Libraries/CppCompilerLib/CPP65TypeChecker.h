@@ -133,7 +133,8 @@ protected:
 	SCPP65Type*		UncheckedCall(CArraySyntax* papcArguments);
 	SCPP65Type*		CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, SCPP65Type* psFunctionType);
 	SCPP65Type*		Call(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	bool			Arguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn);
+	bool			Arguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn, CCPPTemplateArguments* pcDefaultBindings = NULL);
+	bool			ParameterArguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcArguments, size uiFrom, size uiTo, CCPPSyntax* pcNode);
 	SCPP65Type*		Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, int64 lliName);
 	SCPP65Type*		InlineMemcpy(CArraySyntax* papcArguments);
 

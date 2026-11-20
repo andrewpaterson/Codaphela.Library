@@ -1180,7 +1180,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
 		{
 			pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
-			if (pcInit->mpcDeclarator->IsFunction())
+			if (pcInit->mpcDeclarator->IsFunction() || (!pcInit->mpcBitField && IsFunctionByType(pcSpecifiers, pcInit->mpcDeclarator)))
 			{
 				//virtual int f() = 0;
 				bPure = pcInit->mpcInitializer && Constant(pcInit->mpcInitializer, &lliZero) && (lliZero == 0);
@@ -1220,8 +1220,9 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			}
 			if (psType->IsFunction())
 			{
-				//typedef int F(); F f; declares a member function ([dcl.fct] 10): it is no field.
-				bResult &= Error(pcInit, "A member function declared by a typedef of its type is not supported by the compiler yet");
+				//A function's type that IsFunctionByType didn't take for a member function's (one made of a template's
+				//parameter): it is no field.  [temp.arg.type] 3
+				bResult &= Error(pcInit, "A member function declared by a type that depends on a template parameter is not supported by the compiler yet");
 				continue;
 			}
 			if (pcSpecifiers->muiFlags & CPPDS_STATIC)

@@ -954,6 +954,8 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 	ECPPSymbolKind				eKind;
 	CCPPSymbol*					pcSymbol;
 	CCPPSymbol*					pcType;
+	CCPPSyntaxDeclSpecifiers*	pcTypeSpecifiers;
+	CCPPSyntaxDeclarator*		pcShape;
 	int64						lliName;
 	CCPPScope*					pcScope;
 	uint32						uiFlags;
@@ -1001,13 +1003,15 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 	{
 		eKind = CPPSK_Typedef;
 	}
-	else if (pcDeclarator->IsFunction())
-	{
-		eKind = IsDeclaringTemplate() ? CPPSK_FunctionTemplate : CPPSK_Function;
-	}
 	else if (eContext == CPPDC_Parameter)
 	{
+		//A parameter declared as a function, int f(int), is a pointer to one: no function of the name.  [dcl.fct] 5
 		eKind = CPPSK_Parameter;
+	}
+	else if (pcDeclarator->IsFunction() || (pcSpecifiers && pcDeclarator->IsNameAlone() && pcSpecifiers->NamesFunctionType(&pcTypeSpecifiers, &pcShape)))
+	{
+		//Binary Add; for a typedef of a function's type declares a function too.  [dcl.fct] 10
+		eKind = IsDeclaringTemplate() ? CPPSK_FunctionTemplate : CPPSK_Function;
 	}
 	else if (eContext == CPPDC_Class)
 	{

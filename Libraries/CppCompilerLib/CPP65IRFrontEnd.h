@@ -427,9 +427,13 @@ protected:
 	bool			CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue);
 	bool			MemberCall(CCPPBoundCall* pcBound, SCPP65IRValue* psValue);
 	bool			CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntax* pcCallee, SCPP65IRValue* psValue);
-	bool			GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, SCPP65IRMade* psReturned, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);
+	bool			GatherArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPTemplateArguments* pcDefaultBindings, bool bVariadic, SCPP65Type* psReturn,
+									SIRReference* psMade, SCPP65IRMade* psReturned, CArrayTemplate<SCPP65IRValue>* pasArguments, CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);
+	bool			ParameterArguments(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, size uiFrom, size uiTo, bool bVariadic, CArrayTemplate<SCPP65IRValue>* pasArguments,
+									   CArrayIRReferences* pasLoaded, CArrayTemplate<int32>* paiLoaded);
 	bool			Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP65Type* psFunctionType, CArraySyntax* papcArguments, SCPP65IRValue* psValue, CCPPSyntax* pcObject = NULL, bool bArrow = false, CCPPClass* pcObjectClass = NULL, bool bVirtual = false, SIRReference sGivenObject = IRNone(), bool bObjectLast = false);
-	bool			ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade, SCPP65IRMade* psReturned, CArrayIRReferences* pasPieces);
+	bool			ArgumentPieces(CArraySyntax* papcArguments, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPTemplateArguments* pcDefaultBindings, bool bVariadic, SCPP65Type* psReturn, SIRReference* psMade,
+								   SCPP65IRMade* psReturned, CArrayIRReferences* pasPieces);
 	void			CallResult(SCPP65Type* psReturn, SIRReference sMade, SIRReference sResult, SCPP65IRValue* psValue);
 	bool			ThisObject(CCPPFunction* pcFunction, CCPPSyntax* pcObject, bool bArrow, CCPPClass* pcObjectClass, bool bVirtual, SIRReference sGivenObject, SIRReference* psObject, SIRReference* psCallee);
 	bool			CastExpression(CCPPSyntax* pcCast, CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, SCPP65IRValue* psValue);

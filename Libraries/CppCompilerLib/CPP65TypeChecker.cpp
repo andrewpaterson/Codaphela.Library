@@ -1712,7 +1712,7 @@ SCPP65Type* CCPP65TypeChecker::Call(CCPPFunction* pcFunction, CArraySyntax* papc
 		Error(pcNode, pcFunction->mpcTemplate->mbMemberTemplate ? "The member template has not been defined" : "The function template has not been defined");
 		return NULL;
 	}
-	if (!Arguments(&pcFunction->mapsParameters, &pcFunction->mapcDefaults, pcFunction->mbVariadic, papcArguments, pcNode, pcFunction->mpsReturn))
+	if (!Arguments(&pcFunction->mapsParameters, &pcFunction->mapcDefaults, pcFunction->mbVariadic, papcArguments, pcNode, pcFunction->mpsReturn, pcFunction->mpcBindings))
 	{
 		return NULL;
 	}
@@ -1730,14 +1730,16 @@ SCPP65Type* CCPP65TypeChecker::Call(CCPPFunction* pcFunction, CArraySyntax* papc
 // but where the call is decltype's operand, which makes none.  [expr.call] 11
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn)
+bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn, CCPPTemplateArguments* pcDefaultBindings)
 {
 	size			uiArguments;
 	size			uiParameters;
+	size			uiGiven;
 	size			i;
 	SCPP65Type*		psType;
 	SCPP65Type*		psParameter;
 	CCPPSyntax*		pcArgument;
+	bool			bResult;
 
 	uiArguments = papcArguments ? papcArguments->NumElements() : 0;
 	uiParameters = papsParameters->NumElements();
@@ -1765,9 +1767,37 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 		}
 	}
 
-	for (i = uiParameters; i > 0; i--)
+	//The parameters given none take their default arguments, the last first.  Those are written where the function is
+	//declared: a template's instance's with its template arguments (T b = T(6)).  [dcl.fct.default] 5
+	uiGiven = (uiArguments < uiParameters) ? uiArguments : uiParameters;
+	mpcUnit->GetContext()->EnterBindings(pcDefaultBindings ? pcDefaultBindings : mpcUnit->GetContext()->GetBindings());
+	bResult = ParameterArguments(papsParameters, papcDefaults, uiParameters, uiGiven, pcNode);
+	mpcUnit->GetContext()->LeaveBindings();
+	if (!bResult || !ParameterArguments(papsParameters, papcArguments, uiGiven, 0, pcNode))
 	{
-		pcArgument = (i <= uiArguments) ? papcArguments->GetPtr(i - 1) : (papcDefaults ? papcDefaults->GetPtr(i - 1) : NULL);
+		return false;
+	}
+	return !(psReturn && psReturn->IsClass()) || mpcUnit->IsDecltypeOperand(pcNode) || mpcUnit->CompleteClass(psReturn->pcClass, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Arguments for the parameters from uiFrom down to the one after uiTo, each
+// its parameter's argument in papcArguments (the call's, or the function's
+// default arguments).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ParameterArguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcArguments, size uiFrom, size uiTo, CCPPSyntax* pcNode)
+{
+	size			i;
+	SCPP65Type*		psType;
+	SCPP65Type*		psParameter;
+	CCPPSyntax*		pcArgument;
+
+	for (i = uiFrom; i > uiTo; i--)
+	{
+		pcArgument = papcArguments ? papcArguments->GetPtr(i - 1) : NULL;
 		if (!pcArgument)
 		{
 			return Error(pcNode, "The number of arguments does not match the function");
@@ -1811,8 +1841,7 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 			return false;
 		}
 	}
-
-	return !(psReturn && psReturn->IsClass()) || mpcUnit->IsDecltypeOperand(pcNode) || mpcUnit->CompleteClass(psReturn->pcClass, pcNode);
+	return true;
 }
 
 
@@ -2317,6 +2346,12 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		mpcUnit->GetBinder()->BindName(pcId, &cBound);
 		if (cBound.meWhat == CPPBN_Variable)
 		{
+			if ((cBound.mpcVariable->meStorage != CPPVS_Global) && !mpcUnit->IsUnevaluated() && mpcUnit->DefaultArgumentOf(pcId))
+			{
+				//A default argument is worked out where the function is called.  [dcl.fct.default] 7, 9
+				mpcUnit->ReportOnce(pcId, "A default argument can't use a variable or a parameter of a function");
+				return NULL;
+			}
 			return cBound.mpcVariable->mpsType->WithoutReference();
 		}
 		if (cBound.meWhat == CPPBN_TemplateArgument)
