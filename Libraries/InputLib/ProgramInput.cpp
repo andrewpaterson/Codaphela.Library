@@ -183,7 +183,7 @@ CProgramDeviceDetail* CProgramInput::AddDetail(const char* szID, const char* szF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CProgramInput::GetCategoryName(void) const
+const char* CProgramInput::GetCategoryName(void) const
 {
 	return mpcCategory->GetCategoryName();
 }

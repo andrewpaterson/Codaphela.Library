@@ -82,7 +82,7 @@ public:
 	bool					AddDevice(CInputDevice* pcDevice);
 	size					GetDevices(CArrayInputDevicePtr* papcDevices, const char* szCategory);
 	CInputSourceDesc*		GetSource(CInputDevice* pcDevice, const char* szFriendlyName);
-	char*					GetName(CInputSourceDesc* pcSource);
+	const char*				GetName(CInputSourceDesc* pcSource);
 	CInputChord*			AddChord(const char* szName);
 	bool					AddKeyChord(const char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
 	bool					AddKeyChord(const char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc** apcModifiers, size uiNumModifiers, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);

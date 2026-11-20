@@ -1654,7 +1654,7 @@ size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInpu
 	SComponentInputChordCommand*	psChordCommand;
 	CComponentInputDevice*			pcDevice;
 	EComponentInputCommand			eCommand;
-	char*							szName;
+	const char*						szName;
 	bool							bDown;
 
 	pcDevice = GetDevice(psWindowEvent->pcDevice);
