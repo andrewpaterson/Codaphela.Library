@@ -703,6 +703,10 @@ CCPPSyntaxDeclaration* CCPPParser::ParseFunctionDefinition(CCPPSyntax* pcParent,
 	if (Accept(CT_Assignment))
 	{
 		pcFunction->meBody = Is(CT_default) ? CPPFB_Default : CPPFB_Delete;
+		if (pcFunction->meBody == CPPFB_Default)
+		{
+			CheckDefaulted(pcDeclarator);
+		}
 		Next();
 		if (!Expect(CT_SemiColon))
 		{
@@ -1012,6 +1016,11 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 	{
 		//Binary Add; for a typedef of a function's type declares a function too.  [dcl.fct] 10
 		eKind = IsDeclaringTemplate() ? CPPSK_FunctionTemplate : CPPSK_Function;
+		if (pcSpecifiers && !pcDeclarator->mpcNested && (pcDeclarator->NumPointers() == 0) && (pcDeclarator->macpSuffixes.NumElements() == 1) && pcSpecifiers->NamesArrayOrFunctionType())
+		{
+			//Said here, as a function nothing calls is never declared to the generator.  [dcl.fct] 8
+			ErrorAt(pcComponent->miFirstToken, (char*)"A function can't return an array or a function: it returns a pointer or a reference to one");
+		}
 	}
 	else if (eContext == CPPDC_Class)
 	{
@@ -1180,6 +1189,47 @@ bool CCPPParser::IsConstructorName(CCPPSyntaxName* pcName)
 		return pcScope->mpcOwner->mlliName == lliName;
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What = default is written on, as far as the declaration alone tells: a
+// constructor, a destructor or an operator=, with no default argument.  An
+// error if not, said here as a class nothing uses is never laid out by the
+// generator (CCPPUnit::CheckDefaultedOrDeleted says the rest, of one that
+// is).  [dcl.fct.def.default] 1
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckDefaulted(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcLast;
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	size						i;
+
+	pcName = pcDeclarator->GetName();
+	pcLast = pcName ? pcName->GetLast() : NULL;
+	if (!pcLast)
+	{
+		return;
+	}
+	if ((pcLast->meKind != CPPNC_Destructor) && !IsConstructorName(pcName) && !((pcLast->meKind == CPPNC_Operator) && mpcTokeniser->Get(pcLast->miName)->Is(CT_Assignment)))
+	{
+		ErrorAt(pcLast->miFirstToken, (char*)"Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default");
+		return;
+	}
+	pcSuffix = pcDeclarator->GetFunctionSuffix();
+	for (i = 0; pcSuffix && (i < pcSuffix->macpParameters.NumElements()); i++)
+	{
+		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
+		if ((pcParameter->GetKind() == CPPS_Parameter) && pcParameter->mpcDefault)
+		{
+			ErrorAt(pcParameter->miFirstToken, (char*)"A function that is = default has no default argument");
+			return;
+		}
+	}
 }
 
 

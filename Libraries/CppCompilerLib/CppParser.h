@@ -276,6 +276,7 @@ protected:
 	CCPPSyntaxExceptionSpecification*	ParseExceptionSpecification(CCPPSyntax* pcParent);
 	bool							IsParameterClause(void);
 	bool							IsFunctionSuffixAhead(void);
+	void							CheckDefaulted(CCPPSyntaxDeclarator* pcDeclarator);
 	bool							IsNestedDeclarator(ECPPDeclaratorKind eKind);
 	void							ParseQualifiers(CArraySyntax* papcQualifiers, CCPPSyntax* pcParent, bool bRefQualifiers);
 	CCPPSyntaxTypeId*				ParseTypeId(CCPPSyntax* pcParent);

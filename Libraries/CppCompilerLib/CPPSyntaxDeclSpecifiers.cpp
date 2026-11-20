@@ -147,14 +147,14 @@ void CCPPSyntaxDeclSpecifiers::VisitFields(CCPPSyntaxFields* pcFields)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the specifiers name a function's type, and the specifiers and the
-// declarator it was written with: typedef int Binary(int, int); or using
-// Binary = int(int, int);, through typedefs of that typedef.  A function
-// declared by the type's name (Binary Add;) takes its parameters and what
-// it returns from them.  [dcl.fct] 10
+// The declarator the type the specifiers name was made by, when they name a
+// typedef (or an alias) whose declarator is more than its name: typedef int
+// Row[3]; and typedef int Binary(int, int);, through typedefs of the
+// typedef.  *ppcSpecifiers are the specifiers that declarator stands after.
+// NULL if they name no such type.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPSyntaxDeclSpecifiers::NamesFunctionType(CCPPSyntaxDeclSpecifiers** ppcSpecifiers, CCPPSyntaxDeclarator** ppcDeclarator)
+CCPPSyntaxDeclarator* CCPPSyntaxDeclSpecifiers::TypedefDeclarator(CCPPSyntaxDeclSpecifiers** ppcSpecifiers)
 {
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	CCPPSymbol*					pcSymbol;
@@ -167,7 +167,7 @@ bool CCPPSyntaxDeclSpecifiers::NamesFunctionType(CCPPSyntaxDeclSpecifiers** ppcS
 	{
 		if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_NamedTypeSpecifier))
 		{
-			return false;
+			return NULL;
 		}
 		pcSymbol = ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType)->mpcName->mpcSymbol;
 		pcDeclaration = (pcSymbol && (pcSymbol->meKind == CPPSK_Typedef)) ? pcSymbol->mpcDeclaration : NULL;
@@ -184,18 +184,51 @@ bool CCPPSyntaxDeclSpecifiers::NamesFunctionType(CCPPSyntaxDeclSpecifiers** ppcS
 		}
 		else
 		{
-			return false;
+			return NULL;
 		}
-		if (pcDeclarator && (pcDeclarator->mpcNested || (pcDeclarator->macpPrefix.NumElements() != 0) || (pcDeclarator->macpSuffixes.NumElements() > 1)))
-		{
-			//A pointer to a function, an array: no function's type.
-			return false;
-		}
-		if (pcDeclarator && (pcDeclarator->macpSuffixes.NumElements() == 1))
+		if (pcDeclarator && (pcDeclarator->mpcNested || (pcDeclarator->macpPrefix.NumElements() != 0) || (pcDeclarator->macpSuffixes.NumElements() != 0)))
 		{
 			*ppcSpecifiers = pcSpecifiers;
-			*ppcDeclarator = pcDeclarator;
-			return pcDeclarator->GetFunctionSuffix() != NULL;
+			return pcDeclarator;
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the specifiers name a function's type, and the specifiers and the
+// declarator it was written with: typedef int Binary(int, int); or using
+// Binary = int(int, int);.  A function declared by the type's name (Binary
+// Add;) takes its parameters and what it returns from them.  [dcl.fct] 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxDeclSpecifiers::NamesFunctionType(CCPPSyntaxDeclSpecifiers** ppcSpecifiers, CCPPSyntaxDeclarator** ppcDeclarator)
+{
+	CCPPSyntaxDeclarator*	pcDeclarator;
+
+	pcDeclarator = TypedefDeclarator(ppcSpecifiers);
+	if (!pcDeclarator || pcDeclarator->mpcNested || (pcDeclarator->macpPrefix.NumElements() != 0) || (pcDeclarator->macpSuffixes.NumElements() != 1) || !pcDeclarator->GetFunctionSuffix())
+	{
+		return false;
+	}
+	*ppcDeclarator = pcDeclarator;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the specifiers name an array's type or a function's, typedef int
+// Row[3]; or typedef int Binary(int, int);: what no function returns.
+// [dcl.fct] 8
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxDeclSpecifiers::NamesArrayOrFunctionType(void)
+{
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSyntaxDeclarator*		pcDeclarator;
+
+	pcDeclarator = TypedefDeclarator(&pcSpecifiers);
+	return pcDeclarator && !pcDeclarator->mpcNested && (pcDeclarator->NumPointers() == 0) && (pcDeclarator->macpSuffixes.NumElements() != 0);
 }
