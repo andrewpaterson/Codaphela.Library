@@ -51,6 +51,7 @@ public:
 
 	const CDirectInput*	GetJoystick(void) const;
 	const CWinRawInput*	GetRaw(void) const;
+	CWinRawInput*		GetRaw(void);		//For the raw input callback's context, which it writes to.
 	const CWinXInput*	GetXInput(void) const;
 	HWND				GetHWnd(void) const;
 	bool				IsExclusive(void) const;
