@@ -623,14 +623,17 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
     - Constructor templates: "Later".
 
   Seen on the way and not done:
-    - Volatile member functions aren't told apart: this isn't volatile in one, and const volatile doesn't overload.
+    - DONE 2026-11-20.  Volatile member functions weren't told apart: this wasn't volatile in one, and const
+      volatile didn't overload (CCPPFunction::mbVolatileThis, SCPP65Type::bVolatileFunction, ECPPCalledObject's
+      CPPCO_Volatile; a function's label ends __V).
     - static_cast<int>(3 > 2) isn't a constant expression (a named cast in one).
     - DONE 2026-11-20 (one that takes a size is still refused).  delete[] of objects with destructors was always
       the runtime's operator delete[], whatever the class declares.
     - A function declared by a typedef of its type (typedef int F(); F f;), at namespace scope or as a member (which
       is refused; it was miscompiled).
-    - new (int[3]), a parenthesised array type; c ? x : y that picks a bit-field to change; a member function pointer
-      converted to a derived class's when the base isn't at its start.
+    - new (int[3]), a parenthesised array type; c ? x : y that picks a bit-field to change.
+    - DONE 2026-11-20.  A member function pointer converted to a derived class's when the base isn't at its start
+      (a pointer to a member function is the function's address and, above it, what its this is moved by).
     - DONE 2026-11-19.  The type checker took every named cast for a C cast, which was most of the invalid casts it
       accepted (CCPP65TypeChecker::NamedCastAllowed and CastReachesBase now).
     - A constructor template isn't kept (CCPPUnit::MemberTemplate leaves it out): a class whose only constructor is

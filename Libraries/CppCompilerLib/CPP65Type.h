@@ -89,6 +89,7 @@ struct SCPP65Type
 	CArrayTemplatePtr<SCPP65Type>*	papsParameters;		//A function type's parameters.
 	bool			bVariadic;
 	bool			bConstFunction;	//A function type: a member function's that is const (int() const), a type of its own.  [dcl.fct] 6
+	bool			bVolatileFunction;	//And one that is volatile (int() volatile).
 	bool			bLongDouble;	//long double: a double, but a type of its own.
 	bool			bRvalue;		//A reference: T&&, which binds to what has no name or is about to go; else T&.
 	CCPPSymbol*		pcEnum;			//An enum: an integer (int unless its values need more), but a type of its own.
@@ -111,6 +112,7 @@ struct SCPP65Type
 	bool	IsLvalueReference(void) const;
 	bool	IsMemberPointer(void) const;
 	bool	IsMemberFunctionPointer(void) const;
+	const char*	FunctionEnd(void) const;
 	bool	IsNullPointer(void) const;
 	bool	IsFloat(void) const;
 	bool	IsSupported(void) const;
@@ -182,7 +184,7 @@ public:
 	SCPP65Type*			Size(void);
 	SCPP65Type*			Pointer(SCPP65Type* psBase);
 	SCPP65Type*			Array(SCPP65Type* psElement, int iCount);
-	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic, bool bConstFunction = false);
+	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic, bool bConstFunction = false, bool bVolatileFunction = false);
 	SCPP65Type*			Reference(SCPP65Type* psBase, bool bRvalue = false);
 	SCPP65Type*			MemberPointer(CCPPClass* pcClass, SCPP65Type* psMember);
 	SCPP65Type*			Enum(CCPPSymbol* pcEnum, SCPP65Type* psUnderlying, bool bScoped);

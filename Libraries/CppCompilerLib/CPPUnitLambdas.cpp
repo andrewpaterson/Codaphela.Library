@@ -543,7 +543,7 @@ bool CCPPUnit::AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 	psCapture = psLambda->asCaptures.Add();
 	psCapture->pcSymbol = NULL;
 	psCapture->pcInitialiser = NULL;
-	psCapture->uiField = AddClosureField(psLambda, mcTypes.Pointer(mcTypes.Qualified(pcThisClass->mpsType, IsConstThis(), false)));
+	psCapture->uiField = AddClosureField(psLambda, ThisType(pcThisClass));
 	psCapture->bReference = false;
 	psCapture->bThis = true;
 	psLambda->bThis = true;

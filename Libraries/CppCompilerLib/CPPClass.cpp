@@ -730,7 +730,8 @@ CCPPSymbol* CCPPClass::FindMemberSymbol(int64 lliName, ECPPSymbolKind eKind, CCP
 bool SCPPField::IsBitField(void) const { return iBitWidth >= 0; }
 bool SCPPField::IsUnnamedBitField(void) const { return (iBitWidth >= 0) && (pcSymbol == NULL); }
 bool CCPPClass::IsComplete(void) const { return meState == CPPCS_Complete; }
-bool CCPPClass::IsBeingMade(void) const { return (meState == CPPCS_ResolvingBases) || (meState == CPPCS_LayingOut); }
+bool CCPPClass::IsBeingMade(void) const { return (meState == CPPCS_ResolvingBases) || IsLayingOut(); }
+bool CCPPClass::IsLayingOut(void) const { return meState == CPPCS_LayingOut; }
 bool CCPPClass::HasBases(void) const { return meState >= CPPCS_ResolvingBases; }
 bool CCPPClass::HasVirtualBases(void) const { return macVirtualBases.NumElements() > 0; }
 bool CCPPClass::IsUnnamed(void) const { return mlliName < 0; }

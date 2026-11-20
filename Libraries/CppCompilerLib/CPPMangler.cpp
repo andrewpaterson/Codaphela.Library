@@ -129,10 +129,14 @@ void CCPPMangler::AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction, boo
 		//overloads.  Without parameters (only one such overload can exist) or with C linkage it is just its name.
 		//So does an instance of a function template, as Add<M>(void) and Add<M>(size) are both Add__T_..., and an
 		//overloaded member (hand-written assembly calls it by a label that doesn't depend on the order of its
-		//overloads); a const one ends in K, and one declared & or && in R or O.
+		//overloads); a const one ends in K, a volatile one in V, and one declared & or && in R or O.
 		if (pcFunction->mbConstThis)
 		{
 			psz->Append("__K");
+		}
+		if (pcFunction->mbVolatileThis)
+		{
+			psz->Append("__V");
 		}
 		if (pcFunction->meRefQualifier != CPPRQ_None)
 		{
@@ -532,6 +536,10 @@ void CCPPMangler::AppendType(CChars* psz, SCPP65Type* psType)
 		AppendType(psz, psType->psBase);
 		break;
 	case CPP65TK_Function:
+		if (psType->bVolatileFunction)
+		{
+			psz->Append('V');
+		}
 		psz->Append(psType->bConstFunction ? "KF" : "F");
 		AppendType(psz, psType->psBase);
 		for (i = 0; i < psType->papsParameters->NumElements(); i++)

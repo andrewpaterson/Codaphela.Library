@@ -1161,32 +1161,13 @@ int CCPPUnit::DataAlignment(SCPP65Type* psType, bool bClass)
 bool CCPPUnit::IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator)
 {
 	CCPPSyntaxPointerOperator*	pcPointer;
-	CCPPSyntax*					pcQualifier;
-	ECppTokens					eKeyword;
-	size						i;
 
 	if (pcDeclarator->mpcNested || (pcDeclarator->macpSuffixes.NumElements() != 0) || (pcDeclarator->NumPointers() == 0))
 	{
 		return false;
 	}
 	pcPointer = pcDeclarator->GetPointer(pcDeclarator->NumPointers() - 1);
-	if (pcPointer->meKind != CPPP_Pointer)
-	{
-		return false;
-	}
-	for (i = 0; i < pcPointer->macpQualifiers.NumElements(); i++)
-	{
-		pcQualifier = pcPointer->macpQualifiers.GetPtr(i);
-		if (pcQualifier->GetKind() == CPPS_KeywordSpecifier)
-		{
-			eKeyword = ((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword;
-			if ((eKeyword == CT___restrict) || (eKeyword == CT___restrict__))
-			{
-				return true;
-			}
-		}
-	}
-	return false;
+	return (pcPointer->meKind == CPPP_Pointer) && CPPHasKeyword(&pcPointer->macpQualifiers, CT___restrict, CT___restrict__);
 }
 
 
@@ -1198,25 +1179,7 @@ bool CCPPUnit::IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer)
 {
-	CCPPSyntax*	pcQualifier;
-	ECppTokens	eKeyword;
-	size		i;
-	bool		bConst;
-	bool		bVolatile;
-
-	bConst = false;
-	bVolatile = false;
-	for (i = 0; i < pcPointer->macpQualifiers.NumElements(); i++)
-	{
-		pcQualifier = pcPointer->macpQualifiers.GetPtr(i);
-		if (pcQualifier->GetKind() == CPPS_KeywordSpecifier)
-		{
-			eKeyword = ((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword;
-			bConst |= (eKeyword == CT_const) || (eKeyword == CT___const__);
-			bVolatile |= (eKeyword == CT_volatile) || (eKeyword == CT___volatile__);
-		}
-	}
-	return mcTypes.Qualified(psType, bConst, bVolatile);
+	return mcTypes.Qualified(psType, CPPHasKeyword(&pcPointer->macpQualifiers, CT_const, CT___const__), CPPHasKeyword(&pcPointer->macpQualifiers, CT_volatile, CT___volatile__));
 }
 
 
@@ -1939,12 +1902,15 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 //////////////////////////////////////////////////////////////////////////
 //
 // A function's type: its return type, parameters, whether it is variadic,
-// and whether it is a member function that is const.
+// and whether it is a member function that is const or volatile.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::FunctionType(CCPPFunction* pcFunction)
 {
-	return mcTypes.Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic, pcFunction->mpcClass && !pcFunction->mbStatic && pcFunction->mbConstThis);
+	bool	bMember;
+
+	bMember = pcFunction->mpcClass && !pcFunction->mbStatic;
+	return mcTypes.Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic, bMember && pcFunction->mbConstThis, bMember && pcFunction->mbVolatileThis);
 }
 
 
@@ -2629,6 +2595,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	size						uiPack;
 	uint32						uiFlags;
 	bool						bConstThis;
+	bool						bVolatileThis;
 	bool						bUndeduced;
 	ECPPRefQualifier			eRefQualifier;
 	bool						bFriend;
@@ -2694,16 +2661,17 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			return NULL;
 		}
 	}
-	if (!pcClass && IsConstSuffix(pcSuffix))
+	if (!pcClass && (pcSuffix->IsConst() || pcSuffix->IsVolatile()))
 	{
 		//[dcl.fct] 6
-		Error(pcDeclarator, "Only a member function is const");
+		Error(pcDeclarator, pcSuffix->IsConst() ? "Only a member function is const" : "Only a member function is volatile");
 		return NULL;
 	}
 
 	apsParameters.Init();
 	apcDefaults.Init();
-	bConstThis = pcClass && IsConstSuffix(pcSuffix);
+	bConstThis = pcClass && pcSuffix->IsConst();
+	bVolatileThis = pcClass && pcSuffix->IsVolatile();
 	eRefQualifier = pcClass ? RefQualifier(pcSuffix) : CPPRQ_None;
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
@@ -2757,7 +2725,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		{
 			continue;
 		}
-		if ((pcOther->IsConversion() && !pcOther->mpsReturn->Equals(psReturn)) || (pcOther->mbConstThis != bConstThis) || (pcOther->meRefQualifier != eRefQualifier))
+		if ((pcOther->IsConversion() && !pcOther->mpsReturn->Equals(psReturn)) || (pcOther->mbConstThis != bConstThis) || (pcOther->mbVolatileThis != bVolatileThis) || (pcOther->meRefQualifier != eRefQualifier))
 		{
 			continue;
 		}
@@ -2815,6 +2783,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		pcFunction->mapcDefaults.Add(apcDefaults.GetPtr(i));
 	}
 	pcFunction->mbConstThis = bConstThis;
+	pcFunction->mbVolatileThis = bVolatileThis;
 	pcFunction->meRefQualifier = eRefQualifier;
 	apcDefaults.Kill();
 	apsParameters.Kill();

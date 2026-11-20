@@ -5584,6 +5584,57 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.1.1 [expr.prim.general] p3, 9.3.2 [class.this]: this in a volatile member function, and which of the const and volatile overloads an object takes
+	{
+		"PrimThisVolatile", 31,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct S\n"
+		"{\n"
+		"	int m;\n"
+		"	int f() { return 1; }\n"
+		"	int f() const { return 2; }\n"
+		"	int f() volatile { return 4; }\n"
+		"	int f() const volatile { return 8; }\n"
+		"	int g() volatile { return Same<decltype(this), volatile S*>::V + Same<decltype(m), int>::V + Same<decltype((m)), volatile int&>::V; }\n"
+		"	int h() const volatile { return Same<decltype(this), const volatile S*>::V; }\n"
+		"	int k() const { return 16; }\n"
+		"	int k() const volatile { return 32; }\n"
+		"};\n"
+		"typedef int (S::*PV)() volatile;\n"
+		"typedef int (S::*PP)();\n"
+		"int main()\n"
+		"{\n"
+		"	S s; const S c = S(); volatile S v; const volatile S cv = S();\n"
+		"	volatile S* pv = &s;\n"
+		"	PV p = &S::g;\n"
+		"	int r = 0;\n"
+		"	if (s.f() == 1 && c.f() == 2 && v.f() == 4 && cv.f() == 8 && pv->f() == 4) r += 1;\n"
+		"	if (s.g() == 3 && v.g() == 3 && s.h() == 1 && cv.h() == 1) r += 2;\n"
+		"	if (s.k() == 16 && v.k() == 32) r += 4;\n"
+		"	if ((v.*p)() == 3 && (s.*p)() == 3) r += 8;\n"
+		"	if (!Same<PV, PP>::V && Same<decltype(&S::g), PV>::V) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.3.2 [class.this] p4: a volatile object takes only volatile member functions
+	{
+		"PrimThisVolatileObjectRefused", CONFORMANCE_REFUSED,
+		"struct S { int m; int f() { return m; } };\n"
+		"int main() { volatile S s; s.m = 1; return s.f(); }\n"
+	},
+	//13.3.3.2 [over.ics.rank] p3: neither of const and volatile is the better for an object that is neither
+	{
+		"PrimThisQualifierAmbiguousRefused", CONFORMANCE_REFUSED,
+		"struct S { int m; int f() const { return 1; } int f() volatile { return 2; } };\n"
+		"int main() { S s; return s.f(); }\n"
+	},
+	//5.5 [expr.mptr.oper] p5: a volatile object's member function through a pointer to one that isn't volatile
+	{
+		"MemberPointerVolatileObjectRefused", CONFORMANCE_REFUSED,
+		"struct S { int m; int f() { return m; } };\n"
+		"int main() { volatile S s; int (S::*p)() = &S::f; s.m = 1; return (s.*p)(); }\n"
+	},
 };
 
 
@@ -6744,5 +6795,11 @@ static const SConformanceCase gasConformanceClause8[] =
 		"	if (s == 5 && rs == 6) r += 128;\n"
 		"	return r;\n"
 		"}\n"
+	},
+	//8.3.5 [dcl.fct] p6: only a member function is volatile
+	{
+		"DclVolatileFreeFunctionRefused", CONFORMANCE_REFUSED,
+		"int f() volatile { return 1; }\n"
+		"int main() { return f(); }\n"
 	},
 };

@@ -564,7 +564,6 @@ public:
 	CCPPTemplate*			NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember);
 	bool					IsClassTemplateDefinition(CCPPSyntax* pcDeclaration);
 	bool					MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
-	bool					IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix);
 	ECPPRefQualifier		RefQualifier(CCPPSyntaxFunctionSuffix* pcSuffix);
 	bool					DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode);
 	CCPPTemplateArguments*			RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
@@ -657,8 +656,10 @@ public:
 	void					ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing);
 	void					InheritConstructors(CCPPClass* pcClass);
 	bool					IsConstObject(CCPPSyntax* pcExpression);
-	bool					IsConstPointer(CCPPSyntax* pcExpression);
+	CCPPFunction*			ThisFunction(void);
 	bool					IsConstThis(void);
+	bool					IsVolatileThis(void);
+	SCPP65Type*				ThisType(CCPPClass* pcClass);
 	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	size					CountBases(CCPPClass* pcClass, CCPPClass* pcBase);
 	void					CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual);

@@ -785,7 +785,7 @@ SCPP65Type* CCPP65TypeChecker::ThisExpression(CCPPSyntax* pcThis)
 		Error(pcThis, mpcUnit->WritingLambda() ? "The lambda doesn't capture this" : "this is only in member functions");
 		return NULL;
 	}
-	return mpcTypes->Pointer(mpcTypes->Qualified(pcClass->mpsType, mpcUnit->IsConstThis(), false));
+	return mpcUnit->ThisType(pcClass);
 }
 
 
@@ -2197,10 +2197,10 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCal
 	{
 		return NULL;
 	}
-	if (psObject->bConst && !psFunctionType->bConstFunction)
+	if ((psObject->bConst && !psFunctionType->bConstFunction) || (psObject->bVolatile && !psFunctionType->bVolatileFunction))
 	{
 		//[expr.mptr.oper] 5
-		Error(pcBinary, "A const object's member function is called through a pointer to one that is const");
+		Error(pcBinary, (psObject->bConst && !psFunctionType->bConstFunction) ? "A const object's member function is called through a pointer to one that is const" : "A volatile object's member function is called through a pointer to one that is volatile");
 		return NULL;
 	}
 	return psFunctionType->psBase;
@@ -2294,7 +2294,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 			Error(pcExpression, "A field needs an object");
 			return NULL;
 		}
-		return FieldType(cBound.mpsField, mpcUnit->IsConstThis(), false);
+		return FieldType(cBound.mpsField, mpcUnit->IsConstThis(), mpcUnit->IsVolatileThis());
 
 	case CPPS_MemberExpression:
 		return MemberPlace((CCPPSyntaxMemberExpression*)pcExpression);

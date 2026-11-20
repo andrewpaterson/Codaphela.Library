@@ -47,6 +47,7 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 	mbCLinkage = false;
 	mbExplicit = false;
 	mbConstThis = false;
+	mbVolatileThis = false;
 	mbConstexpr = false;
 	mcExceptions.Init();
 	mbExceptionsWritten = false;
@@ -157,8 +158,9 @@ bool CCPPFunction::Overrides(CCPPFunction* pcVirtual)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a function can be called on the object (eObject): a const object
-// takes only const and static member functions, and a function declared &
-// or && only an object that is, or isn't, an rvalue.  [over.match.funcs] 4
+// takes only const and static member functions (a volatile one, volatile),
+// and a function declared & or && only an object that is, or isn't, an
+// rvalue.  [over.match.funcs] 4
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPFunction::TakesObject(ECPPCalledObject eObject)
@@ -175,7 +177,20 @@ bool CCPPFunction::TakesObject(ECPPCalledObject eObject)
 			return false;
 		}
 	}
-	return !CPPCalledConst(eObject) || mbConstThis;
+	return (!CPPCalledConst(eObject) || mbConstThis) && (!CPPCalledVolatile(eObject) || mbVolatileThis);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many of const and volatile a member function's this has that the
+// object it is called on (eObject) hasn't: of two functions that take the
+// object, the one that adds fewer is the better.  [over.ics.rank] 3
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPFunction::QualifiersAdded(ECPPCalledObject eObject)
+{
+	return ((mbConstThis && !CPPCalledConst(eObject)) ? 1 : 0) + ((mbVolatileThis && !CPPCalledVolatile(eObject)) ? 1 : 0);
 }
 
 

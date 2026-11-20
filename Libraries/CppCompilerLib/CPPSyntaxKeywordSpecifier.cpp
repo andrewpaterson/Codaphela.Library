@@ -51,3 +51,42 @@ void CCPPSyntaxKeywordSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Enum(&meKeyword);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a list of nodes (a declarator's qualifiers) has a keyword.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPPHasKeyword(CArraySyntax* pacpNodes, ECppTokens eKeyword)
+{
+	return CPPHasKeyword(pacpNodes, eKeyword, eKeyword);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a list of nodes has a keyword that is spelled two ways (const and
+// __const__).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPPHasKeyword(CArraySyntax* pacpNodes, ECppTokens eKeyword, ECppTokens eAlsoSpelled)
+{
+	CCPPSyntax*	pcNode;
+	ECppTokens	eNode;
+	size		i;
+
+	for (i = 0; i < pacpNodes->NumElements(); i++)
+	{
+		pcNode = pacpNodes->GetPtr(i);
+		if (pcNode->GetKind() == CPPS_KeywordSpecifier)
+		{
+			eNode = ((CCPPSyntaxKeywordSpecifier*)pcNode)->meKeyword;
+			if ((eNode == eKeyword) || (eNode == eAlsoSpelled))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+

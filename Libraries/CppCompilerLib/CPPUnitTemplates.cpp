@@ -1964,50 +1964,16 @@ bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration*
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a function's parameters are followed by const: int Get(void) const.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix)
-{
-	CCPPSyntax*	pcQualifier;
-	size		i;
-
-	for (i = 0; pcSuffix && (i < pcSuffix->macpQualifiers.NumElements()); i++)
-	{
-		pcQualifier = pcSuffix->macpQualifiers.GetPtr(i);
-		if ((pcQualifier->GetKind() == CPPS_KeywordSpecifier) && ((((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword == CT_const) || (((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword == CT___const__)))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The & or && after a member function's parameters.
 //
 //////////////////////////////////////////////////////////////////////////
 ECPPRefQualifier CCPPUnit::RefQualifier(CCPPSyntaxFunctionSuffix* pcSuffix)
 {
-	CCPPSyntax*	pcQualifier;
-	ECppTokens	eKeyword;
-	size		i;
-
-	for (i = 0; pcSuffix && (i < pcSuffix->macpQualifiers.NumElements()); i++)
+	if (CPPHasKeyword(&pcSuffix->macpQualifiers, CT_LogicalAnd))
 	{
-		pcQualifier = pcSuffix->macpQualifiers.GetPtr(i);
-		if (pcQualifier->GetKind() == CPPS_KeywordSpecifier)
-		{
-			eKeyword = ((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword;
-			if ((eKeyword == CT_BitwiseAnd) || (eKeyword == CT_LogicalAnd))
-			{
-				return (eKeyword == CT_LogicalAnd) ? CPPRQ_Rvalue : CPPRQ_Lvalue;
-			}
-		}
+		return CPPRQ_Rvalue;
 	}
-	return CPPRQ_None;
+	return CPPHasKeyword(&pcSuffix->macpQualifiers, CT_BitwiseAnd) ? CPPRQ_Lvalue : CPPRQ_None;
 }
 
 

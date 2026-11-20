@@ -40,34 +40,42 @@ bool CCPPUnit::IsConstObject(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether an expression is a pointer to const.
+// The function whose this the function being generated has: itself, or in
+// a lambda's body the member function the lambda is in.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsConstPointer(CCPPSyntax* pcExpression)
-{
-	SCPP65Type*	psType;
-
-	psType = ValueTypeOf(pcExpression);
-	return psType && psType->IsPointer() && psType->psBase->bConst;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the function being generated is a const member function.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsConstThis(void)
+CCPPFunction* CCPPUnit::ThisFunction(void)
 {
 	CCPPFunction*	pcFunction;
 
-	//In a lambda's body, this is the enclosing member function's.
 	pcFunction = mcContext.GetFunction();
 	while (BodyLambda(pcFunction))
 	{
 		pcFunction = BodyLambda(pcFunction)->pcEnclosing;
 	}
-	return pcFunction && pcFunction->mbConstThis;
+	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the function being generated is a const, or a volatile, member
+// function: its this points to an object that is.  [class.this] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsConstThis(void) { return ThisFunction() && ThisFunction()->mbConstThis; }
+bool CCPPUnit::IsVolatileThis(void) { return ThisFunction() && ThisFunction()->mbVolatileThis; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of this in the function being generated, for an object of
+// pcClass: a pointer to it, const or volatile as the function is.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ThisType(CCPPClass* pcClass)
+{
+	return mcTypes.Pointer(mcTypes.Qualified(pcClass->mpsType, IsConstThis(), IsVolatileThis()));
 }
 
 

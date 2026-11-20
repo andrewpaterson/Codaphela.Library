@@ -160,6 +160,7 @@ public:
 	bool			IsUnnamed(void) const;	//Its labels are the unit's own.
 	bool			IsComplete(void) const;
 	bool			IsBeingMade(void) const;
+	bool			IsLayingOut(void) const;
 	bool			HasBases(void) const;
 	bool			HasVirtualBases(void) const;
 	SCPPVirtualBase*	GetVirtualBase(CCPPClass* pcBase);

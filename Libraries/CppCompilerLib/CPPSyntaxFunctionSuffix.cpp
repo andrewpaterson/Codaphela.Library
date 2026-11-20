@@ -119,6 +119,18 @@ void CCPPSyntaxFunctionSuffix::VisitFields(CCPPSyntaxFields* pcFields)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The const, volatile and mutable after the parameters: a member function's
+// (int Get(void) const), whose this points to an object that is, and a
+// lambda's.  [dcl.fct] 6, [expr.prim.lambda] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxFunctionSuffix::IsConst(void) { return CPPHasKeyword(&macpQualifiers, CT_const, CT___const__); }
+bool CCPPSyntaxFunctionSuffix::IsVolatile(void) { return CPPHasKeyword(&macpQualifiers, CT_volatile, CT___volatile__); }
+bool CCPPSyntaxFunctionSuffix::IsMutable(void) { return CPPHasKeyword(&macpQualifiers, CT_mutable); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The number of parameters declared: none for (void).
 //
 //////////////////////////////////////////////////////////////////////////

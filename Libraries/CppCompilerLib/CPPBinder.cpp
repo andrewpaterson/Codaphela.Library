@@ -1118,7 +1118,7 @@ CCPPFunction* CCPPBinder::FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcOb
 	CCPPFunction*	pcFunction;
 
 	apcNone.Init();
-	pcFunction = mcOverloads.FindFunction(pcClass, mpcUnit->GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, CPPCalledObject(pcObject && mpcUnit->IsConstObject(pcObject)));
+	pcFunction = mcOverloads.FindFunction(pcClass, mpcUnit->GetOperatorName(CT_MemberByPointer, false), CPPFK_Function, &apcNone, true, pcNode, pcObject ? CalledObject(pcObject, false) : CPPCalledObject(false));
 	apcNone.Kill();
 	return pcFunction;
 }
@@ -1373,15 +1373,18 @@ bool CCPPBinder::IsNamedObject(CCPPSyntax* pcObject)
 //////////////////////////////////////////////////////////////////////////
 ECPPCalledObject CCPPBinder::CalledObject(CCPPSyntax* pcObject, bool bArrow)
 {
+	SCPP65Type*	psType;
+
 	if (!pcObject)
 	{
-		return CPPCalledObject(mpcUnit->IsConstThis());
+		return CPPCalledObject(mpcUnit->IsConstThis(), mpcUnit->IsVolatileThis());
 	}
+	psType = mpcUnit->ValueTypeOf(pcObject);
 	if (bArrow)
 	{
-		return CPPCalledObject(mpcUnit->IsConstPointer(pcObject));
+		psType = (psType && psType->IsPointer()) ? psType->psBase : NULL;
 	}
-	return CPPCalledObject(mpcUnit->IsConstObject(pcObject), mpcUnit->IsRvalue(pcObject));
+	return CPPCalledObject(psType && psType->bConst, psType && psType->bVolatile, !bArrow && mpcUnit->IsRvalue(pcObject));
 }
 
 
@@ -1560,7 +1563,10 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 // object.name and pointer->name, once the object's class is known: the class's field
 // of the name, or a base's, with where it is in the object (CPPBN_Field), or else its
 // static member (CPPBN_Variable).  False if it has neither (CPPBN_Nothing), or the
-// class can't be completed, which is reported at pcNode.
+// class can't be completed, which is reported at pcNode.  In the class's own
+// definition it needn't be complete: a member function's trailing return type names
+// the members declared before it (auto Get(void) -> decltype(this->m)), which haven't
+// been placed yet.  [expr.ref] 2
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound)
@@ -1576,7 +1582,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	pcBound->miOffset = 0;
 	pcBound->mpcQualifier = NULL;
 	pcBound->mpcVirtualBase = NULL;
-	if (!pcClass || !mpcUnit->CompleteClass(pcClass, pcNode))
+	if (!pcClass || !(pcClass->IsLayingOut() || mpcUnit->CompleteClass(pcClass, pcNode)))
 	{
 		return false;
 	}

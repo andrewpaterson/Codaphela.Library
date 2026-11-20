@@ -670,7 +670,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	char				cResolved;
 	bool				bAmbiguous;
 	bool				bFound;
-	bool				bConstObject;
+	bool				bQualifiedObject;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindFunction);
 	lliResolved = (int64)(size)pcNode + lliName * 31;
@@ -709,7 +709,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	//The candidates: the functions of the name that the call can see, that take its arguments.
 	cCandidates.Init(uiArguments);
 	uiLooked = 0;
-	bConstObject = false;
+	bQualifiedObject = false;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
 		if ((pcFunction->meKind != eKind) || pcFunction->mpcTemplate || !IsOverloadOf(pcClass, pcFunction, lliName) || (papcNamespaces && !papcNamespaces->Takes(pcFunction->mpcNamespace, DeclarationToken(pcFunction))))
@@ -728,10 +728,10 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 				cCandidates.Add(pcFunction, NULL);
 			}
 		}
-		else if (CPPCalledConst(eObject) && pcFunction->TakesObject(CPPCalledObject(false, CPPCalledRvalue(eObject))) && RankArguments(pcFunction, apsArguments, papcArguments, cCandidates.NextRanks()))
+		else if (pcFunction->TakesObject(CPPCalledUnqualified(eObject)) && RankArguments(pcFunction, apsArguments, papcArguments, cCandidates.NextRanks()))
 		{
-			//It would take the arguments, but not a const object.
-			bConstObject = true;
+			//It would take the arguments, but not an object that is const or volatile.
+			bQualifiedObject = true;
 		}
 	}
 	bFound = uiLooked > 0;
@@ -760,9 +760,9 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 		mpcUnit->Error(pcNode, "The call is ambiguous");
 		return NULL;
 	}
-	if (bFound && bConstObject)
+	if (bFound && bQualifiedObject)
 	{
-		mpcUnit->Error(pcNode, "The object is const and the function that takes these arguments isn't a const member function");
+		mpcUnit->Error(pcNode, CPPCalledConst(eObject) ? "The object is const and the function that takes these arguments isn't a const member function" : "The object is volatile and the function that takes these arguments isn't a volatile member function");
 		return NULL;
 	}
 	if (bFound)
@@ -1657,16 +1657,11 @@ int CCPPOverloads::CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSeco
 			bSecond = true;
 		}
 	}
-	else if ((eObject != CPPCO_None) && (pcFirst->mbConstThis != pcSecond->mbConstThis))
+	else if (eObject != CPPCO_None)
 	{
-		if (pcFirst->mbConstThis == CPPCalledConst(eObject))
-		{
-			bFirst = true;
-		}
-		else
-		{
-			bSecond = true;
-		}
+		//Both take the object: f() before f() const for one that isn't const, as T& before const T&.
+		bFirst = pcFirst->QualifiersAdded(eObject) < pcSecond->QualifiersAdded(eObject);
+		bSecond = pcSecond->QualifiersAdded(eObject) < pcFirst->QualifiersAdded(eObject);
 	}
 	for (i = 0; papcArguments && (i < papcArguments->NumElements()) && (i < pcFirst->mapsParameters.NumElements()) && (i < pcSecond->mapsParameters.NumElements()); i++)
 	{
@@ -1886,18 +1881,19 @@ void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpress
 // the ones whose arguments convert best (as plain overloads are ranked), as
 // CObjects::Get<M>(OIndex) and Get<M>(const char*) differ only in their
 // parameter's type, and of those the most specialised (MostSpecialised:
-// f(T*) before f(T) for a pointer).  Then the first whose const matches the object's
-// (eObject) is chosen, or else the first.  pcCall is NULL to choose by the number
+// f(T*) before f(T) for a pointer).  Then the first whose const and volatile match the
+// object's (eObject) is chosen, or else the first.  pcCall is NULL to choose by the number
 // of arguments alone.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, ECPPCalledObject eObject, CArraySyntax* papcExplicit, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments)
 {
-	CCPPCandidates			cTaken;
-	CArrayCPPTemplates		apcChosen;
-	CArrayCPPTemplates*		papcChosen;
-	CCPPTemplate*			pcTemplate;
-	size					uiArguments;
+	CCPPCandidates				cTaken;
+	CArrayCPPTemplates			apcChosen;
+	CArrayCPPTemplates*			papcChosen;
+	CCPPTemplate*				pcTemplate;
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	size						uiArguments;
 	size					uiBetter;
 	size					i;
 
@@ -1945,7 +1941,8 @@ CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, 
 	pcTemplate = (papcChosen->NumElements() > 0) ? papcChosen->GetPtr(0) : NULL;
 	for (i = 0; (eObject != CPPCO_None) && (i < papcChosen->NumElements()); i++)
 	{
-		if (mpcUnit->IsConstSuffix(papcChosen->GetPtr(i)->mpcDeclarator->GetFunctionSuffix()) == CPPCalledConst(eObject))
+		pcSuffix = papcChosen->GetPtr(i)->mpcDeclarator->GetFunctionSuffix();
+		if (pcSuffix && (pcSuffix->IsConst() == CPPCalledConst(eObject)) && (pcSuffix->IsVolatile() == CPPCalledVolatile(eObject)))
 		{
 			pcTemplate = papcChosen->GetPtr(i);
 			break;

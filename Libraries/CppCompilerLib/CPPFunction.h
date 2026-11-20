@@ -43,34 +43,35 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP_LITERAL_SUFFIX(lliName)		(CPP_DELETING_NAME - 1 - (lliName))
 
 
-//The object a member function is called on, which chooses between a const function and one that isn't, and
-//between one declared & and one declared &&.
+//The object a member function is called on, which chooses between a const or volatile function and one that isn't,
+//and between one declared & and one declared &&: CPPCO_None when there is none to choose by, else CPPCO_Object with
+//what the object is.
 enum ECPPCalledObject
 {
-	CPPCO_None,
-	CPPCO_Mutable,
-	CPPCO_Const,
-	CPPCO_MutableRvalue,	//An object with no name, or one about to go (CCPPUnit::IsRvalue).
-	CPPCO_ConstRvalue,
+	CPPCO_None = 0,
+	CPPCO_Object = 1,
+	CPPCO_Const = 2,
+	CPPCO_Volatile = 4,
+	CPPCO_Rvalue = 8,	//An object with no name, or one about to go (CCPPUnit::IsRvalue).
 };
 
 
-//The object called on, from whether it is const and whether it is an rvalue.
-inline ECPPCalledObject CPPCalledObject(bool bConst, bool bRvalue = false)
+//The object called on, from whether it is const, volatile and an rvalue.
+inline ECPPCalledObject CPPCalledObject(bool bConst, bool bVolatile = false, bool bRvalue = false)
 {
-	return bRvalue ? (bConst ? CPPCO_ConstRvalue : CPPCO_MutableRvalue) : (bConst ? CPPCO_Const : CPPCO_Mutable);
+	return (ECPPCalledObject)(CPPCO_Object | (bConst ? CPPCO_Const : 0) | (bVolatile ? CPPCO_Volatile : 0) | (bRvalue ? CPPCO_Rvalue : 0));
 }
 
 
-inline bool CPPCalledConst(ECPPCalledObject eObject)
-{
-	return (eObject == CPPCO_Const) || (eObject == CPPCO_ConstRvalue);
-}
+inline bool CPPCalledConst(ECPPCalledObject eObject) { return (eObject & CPPCO_Const) != 0; }
+inline bool CPPCalledVolatile(ECPPCalledObject eObject) { return (eObject & CPPCO_Volatile) != 0; }
+inline bool CPPCalledRvalue(ECPPCalledObject eObject) { return (eObject & CPPCO_Rvalue) != 0; }
 
 
-inline bool CPPCalledRvalue(ECPPCalledObject eObject)
+//The object without its const and volatile: what a function that takes the arguments but not the object would take.
+inline ECPPCalledObject CPPCalledUnqualified(ECPPCalledObject eObject)
 {
-	return (eObject == CPPCO_MutableRvalue) || (eObject == CPPCO_ConstRvalue);
+	return (ECPPCalledObject)(eObject & ~(CPPCO_Const | CPPCO_Volatile));
 }
 
 
@@ -129,6 +130,7 @@ public:
 	bool							mbCLinkage;		//Declared in extern "C": its label is only its name.
 	bool							mbExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
 	bool							mbConstThis;	//A const member function: an overload of the same function without const.
+	bool							mbVolatileThis;	//A volatile member function: another overload again.
 	bool							mbConstexpr;	//Declared constexpr: its value may be worked out when the program is compiled.
 	CCPPExceptionSpec				mcExceptions;	//What it may throw.  Ask CCPPUnit::ExceptionsOf: one that wasn't written is worked out when it is asked for.
 	bool							mbExceptionsWritten;	//mcExceptions is what a declaration says (or what an operator delete declared without one has).
@@ -164,6 +166,7 @@ public:
 	bool	SameParameters(CCPPFunction* pcOther);
 	bool	Overrides(CCPPFunction* pcVirtual);
 	bool	TakesObject(ECPPCalledObject eObject);
+	int		QualifiersAdded(ECPPCalledObject eObject);
 	bool	IsUnitFunction(void) const;
 	void	SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition);
 };

@@ -103,17 +103,7 @@ void CCPPSyntaxLambdaExpression::VisitFields(CCPPSyntaxFields* pcFields)
 bool CCPPSyntaxLambdaExpression::IsMutable(void) const
 {
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
-	CCPPSyntax*					pcQualifier;
-	size						i;
 
 	pcSuffix = (mpcDefinition && mpcDefinition->mpcDeclarator) ? mpcDefinition->mpcDeclarator->GetFunctionSuffix() : NULL;
-	for (i = 0; pcSuffix && (i < pcSuffix->macpQualifiers.NumElements()); i++)
-	{
-		pcQualifier = pcSuffix->macpQualifiers.GetPtr(i);
-		if ((pcQualifier->GetKind() == CPPS_KeywordSpecifier) && (((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword == CT_mutable))
-		{
-			return true;
-		}
-	}
-	return false;
+	return pcSuffix && pcSuffix->IsMutable();
 }

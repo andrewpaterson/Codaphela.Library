@@ -45,6 +45,9 @@ public:
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 
+	bool					IsConst(void);
+	bool					IsVolatile(void);
+	bool					IsMutable(void);
 	size					NumParameters(void);
 	size					RequiredParameters(void);
 };

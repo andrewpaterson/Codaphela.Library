@@ -35,5 +35,9 @@ public:
 };
 
 
+bool	CPPHasKeyword(CArraySyntax* pacpNodes, ECppTokens eKeyword);
+bool	CPPHasKeyword(CArraySyntax* pacpNodes, ECppTokens eKeyword, ECppTokens eAlsoSpelled);
+
+
 #endif // __C_P_P_SYNTAX_KEYWORD_SPECIFIER_H__
 
