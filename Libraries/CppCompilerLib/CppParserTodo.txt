@@ -14,7 +14,8 @@ done by the semantic pass and the IDE; the small items of it that weren't looked
 Part A (the preprocessor and tokeniser to C++17, items A1 to A7) was done on 2026-11-15: "Part A plan" below says
 how, step by step.  Part B (the code generators to C++14: B-1 what C++98/03 still lacked, B-2 C++11, B-3 C++14) was
 done in the stages of "Part B plan" below (started 2026-11-15) and the steps recorded after it.  Of its items, B2
-(exceptions) is ExceptionsPlan.txt's, and B-4 (the language support headers) and the library are the user's to call:
+(exceptions) was done by ExceptionsPlan.txt (stages 0 to 9, 2026-11-18 to 20; stage 10, the IDE and the documents, is
+left), and B-4 (the language support headers) and the library are the user's to call:
 Cpp14CompliancePlan.txt, D.
 
 
@@ -153,7 +154,8 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        - 5: temporaries bound to references: a local reference keeps its temporary to the end of its scope
          (CCPP65IRFrontEnd::ExtendTemporary), and so range-for over an object made for it; a global reference's temporary is
          a global of its own (CCPPUnit::BoundTemporary, _r__Bound).
-       Not done: FunctionTryBlock waits for exceptions (B2); a static local object whose class needs a destructor (question
+       Not done: FunctionTryBlock waited for exceptions (B2), and passes since them (in the Exceptions group: without the
+       option a try is refused); a static local object whose class needs a destructor (question
        11); a temporary bound through another reference or a field (const int& r = S(1).v), which is refused; the W65C816
        links a duplicate label without complaint (found when two conversion functions had one).
        As it was planned: (M, many small) B5 and B9.  Objects: static locals that need a guard, postfix ++ and -- on objects,
@@ -170,7 +172,8 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
        of the temporaries e makes, or a lambda's captures' copies; a constexpr literal operator isn't a constant.
        As it was planned: (M) B15 and the rest of B17: std::initializer_list, operator "" functions (which finish Part A's
        user-defined literals), the noexcept operator.
-    9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  A dynamic_cast<T&> that fails traps (the user), there being nothing to throw until exceptions are decided.  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.
+    9. (L) B3 and B4: typeid, dynamic_cast<T&>, virtual inheritance.  A dynamic_cast<T&> that fails traps (the user), there being nothing to throw until exceptions are decided (since
+       ExceptionsPlan.txt stage 8 it throws std::bad_cast in a program built with exceptions, and traps in one without).  Virtual inheritance stays in the plan and is to be tested thoroughly (the user): diamonds, constructors' order and which constructor makes the virtual base, virtual functions through it, casts each way, pointers to members, and layouts against MSVC's.
        Part 1 DONE 2026-11-16 (dd64c57d2): typeid, dynamic_cast<T&>.
        Virtual inheritance, as the user chose (question 9), Itanium style:
        - Layout: a class's own part is its non-virtual bases (each only its own part), its vtable pointer (a class with a
@@ -261,7 +264,7 @@ Part B plan (2026-11-15; stages 0 to 5 done 2026-11-16)
     The order from here (the user, 2026-11-16: "get to namespaces as soon as possible but still complete 7 to 10 in a reasonable
     order"): stage 10 first, as name lookup is what the rest stands on (its two wrong lookups first); then the five stage 6 cases
     left (dependent template names and member class templates lean on lookup); then 7, 8 and 9.
-    Then, when all of the above is done, come back to the user for: exceptions (B2), and the language support headers (B-4) and how much of the library.
+    Then, when all of the above is done, come back to the user for: exceptions (B2, since built: question 1), and the language support headers (B-4) and how much of the library.
 
   Why this order: wrong code with no error first; rvalue references before what is built on them (moves, forwarding, the library's move and forward); auto before lambdas; constexpr before the templates that lean on it.  Stages 6, 7 and 9 depend on little and can move.
 
@@ -278,6 +281,10 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
 
   Open:
     1. Exceptions (B2): implement them (chained setjmp-style unwinding through V is likely cheaper on these processors than tables, at a cost for each try), or a documented mode with none?  Held for the end of Part B, at the user's word.
+       ANSWERED and built (the user, 2026-11-18: implement them, "Keep it off by default, programs opt in"): ExceptionsPlan.txt.
+       Neither setjmp nor tables: a function that throws returns with the carry set and its caller tests it.  Stages 0 to 9
+       done 2026-11-20 (all of clause 15, what the language throws, exception_ptr and nested_exception; what turning the
+       option on costs is on the website); stage 10, the IDE and the documents, is left.
     2. The library (B-4): only the language support headers (<initializer_list>, <typeinfo>, <exception>, <cstddef>, <type_traits>, move and forward), or the C++14 library; and where it lives (Libc65 or a library of its own).  Held for the end of Part B.
        The user, 2026-11-19, twice:
        - "I don't use the C++ Std Libs, and don't want to include the library with their source code in any of my
@@ -290,7 +297,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
        "shall meet the same requirements as for a hosted implementation".  Libc65 stays, a C library.  How the standard
        libraries are come by afterwards, given the first answer, is not decided.  Nothing of this is planned yet: where
        the headers live and in what order they are written are for the user and the plan.  Exceptions, and so
-       <exception>, are another session's (the user, 2026-11-19: "another session is handling exceptions only").
+       <exception>, were another session's (the user, 2026-11-19: "another session is handling exceptions only"): Libc65's
+       <exception>, <new> and <typeinfo> have what the language needs since (ExceptionsPlan.txt stages 4 and 8).
 
   Answered 2026-11-18 (the user: "For each of 2.'s open questions pick the answer that is most correct for the standard, I'm not worried
   about performance for any of them").  Each is to be done:
@@ -322,7 +330,7 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
        recursive_init_error.  If the initialisation exits by an exception (once there are exceptions) it isn't done, and is tried again
        the next time.  If threads come, another thread entering it waits until it is done.
        Done 2026-11-18: the guard byte is 0, 1 being made, 2 done; reached at 1 it calls R_RecursiveInit (stp).  An
-       exception leaving the initialiser is to store 0 back (ExceptionsPlan.txt).
+       exception leaving the initialiser stores 0 back (done: ExceptionsPlan.txt stage 7, case StaticLocalRetried).
     7. thread_local is one object per thread ([basic.stc.thread]).  A program has one thread, so it is static storage now, with the
        same dynamic initialisation and destruction a thread's objects have (initialised before first use, destroyed at exit, before the
        static objects); per thread if threads come.  A process is a program of its own, so the kernal running several changes nothing.
@@ -460,8 +468,14 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       template<class T> T& ref() noexcept; says "The function template has not been defined" (CPPBinder.cpp:223).
     - A class nothing uses is never laid out, so CheckOverrides' errors (override that overrides nothing, overriding a
       final function) aren't reported for it.
-    - InitializerList (CPP65IRFrontEndObjects.cpp) puts its backing array on no destruction list, so elements with
-      destructors aren't destroyed, if that case compiles at all.
+    - DONE 2026-11-20 (ExceptionsPlan.txt stage 7).  InitializerList (CPP65IRFrontEndObjects.cpp) put its backing array
+      on no destruction list, so elements with destructors weren't destroyed: they live as long as the list now.
+  And by the exceptions work's stage 8 (2026-11-20, worked round):
+    - A function defined inline in a Libc65 header that isn't a template is never written: the parser skims a system
+      header's bodies (CCPPParser::IsSkimming), so a program that calls one links it as missing.  Stage 8 made a
+      template's bodies parsed (an instance of one was an empty function), and moved std::exception_ptr's and
+      std::nested_exception's members into exception.cpp, as std::exception's are; Libc65's headers are to define
+      nothing inline that isn't a template until this is decided.
   And by the exceptions work's stage 4 tests (2026-11-19, worked round):
     - DONE 2026-11-19 (by the clause sweep, below).  &typeid(T) was refused: "This lvalue is not supported by the
       compiler yet [typeid]".
@@ -892,15 +906,17 @@ Decisions (made 2026-11-15)
   - Feature-test macros: with each item (see above).
   For Part B (the user, 2026-11-15):
   - Virtual inheritance: "Keep it in scope but test it thoroughly."
-  - Exceptions: "Come back to exceptions when the rest of Plan B is done."  Until then throw and try stay errors.
+  - Exceptions: "Come back to exceptions when the rest of Plan B is done."  Until then throw and try stay errors.  (Came back
+    to 2026-11-18: built, ExceptionsPlan.txt; off by default, and with it off throw and try are still errors.)
   - Language support headers: "Come back to Language-support headers when the rest of Plan B is done."
   - Access control: "enforce it."
-  - A dynamic_cast<T&> that fails, while there are no exceptions: "Trap."
+  - A dynamic_cast<T&> that fails, while there are no exceptions: "Trap."  (With exceptions on it throws std::bad_cast.)
   - What enforcing access control and enum class breaks in BaseLib and the HCP65 sources: "fix those sources as part of the stage."
   - constexpr: "run the IR at compile time but plan this step out all on its own" (ConstexprPlan.txt).
 
 Decisions for the user (when the rest of Part B is done)
   - Exceptions: strict compliance needs them.  A documented mode without them (as many embedded compilers have) would remove the largest item.
+    Answered: both, a build option (question 1).
   - The library: only the B-4 headers, or the whole C++14 library, which is a separate project of about the same size again.  Answered 2026-11-19: freestanding first, then the standard libraries (question 2 above).
 
 Compliance can only be measured by tests: add a test file for each item as it is done, in TestCppCompilerLib.

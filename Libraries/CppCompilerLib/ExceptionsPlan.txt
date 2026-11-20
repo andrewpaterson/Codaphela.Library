@@ -1,7 +1,7 @@
 Exceptions: throw, try and catch to C++14
 ==========================================
 
-Planned 2026-11-18, at the user's word ("plan out how you would add exceptions to the CppCompiler").  It is B2 of CppParserTodo.txt (section 6) and the first of its open questions.  Nothing here is built.  The statements about the code were found by reading it on 2026-11-18; check each before relying on it.
+Planned 2026-11-18, at the user's word ("plan out how you would add exceptions to the CppCompiler").  It is B2 of CppParserTodo.txt (section 6) and the first of its open questions.  Stages 0 to 9 are built (2026-11-18 to 20, Progress below); stage 10 is planned.  The statements about the code were found by reading it on 2026-11-18; check each before relying on it.
 
 The standard meant is N4140: clause 15 (exception handling), 5.17 (throw), 5.3.4 and 3.7.4 (new that fails), 5.2.7 and 5.2.8 (bad_cast, bad_typeid), 6.7 (a static local whose initialisation throws), 12.4 and 12.6.2 (destructors, constructors that fail), 18.6 and 18.8 (the language support library's part of it).
 
@@ -610,6 +610,45 @@ Each ends with the whole of TestCppCompilerLib passing in Release x64 and a comm
 
   10. Around it: the IDE (throw as a way out in CIDEExitFinder; the refactorings' cases for try, handlers and their parameters; the checks), the website's pages, CppParserTodo.txt's B2 and question 1 closed, IR.txt and CPP65Generator.txt.
 
+     Planned 2026-11-20 (the user: "Clean up the to do docs and plan out step 10").  The compiler is done; this is what
+     is around it.  The user doesn't build with exceptions, so the bar is that the IDE does nothing wrong to code that
+     does: it reads it without false errors, and a refactoring keeps its meaning or says why it won't.  CppParserTodo.txt's
+     B2 and question 1 were closed with the to-do documents' clean up of the same day (and Cpp14CompliancePlan.txt's
+     notes), so they aren't a step.  Each step is built in a worktree of its own (HCP65-IDE and what it builds against:
+     D:\gameengine-exceptions10), merged when its checks pass, and announced to the other sessions first.
+
+     10a. The IDE reads code as its configuration builds it.  The code model compiles with the default options
+          (CCPPCompileOptions: nothing in HCP65-IDE sets one), so with Exceptions="true" every try and throw would be an
+          error to it ("try can't be used: the program is built without exceptions").  First see that it is so, on a
+          small solution with the option on; then the code model takes the active configuration's compile options
+          (Exceptions, and the others a configuration has that change what is an error: MultiWordCasts, CConversions,
+          NoFloats), and reads again when they change.  Assumed (question 17): all of them, not Exceptions alone.
+     10b. Extract Method: a throw is a way out (CIDEExitFinder).  A selection that returns part of the way through is
+          refused unless it ends with a return; one that ends with a throw (if (a) return 1; throw E();) leaves on every
+          path too, and is extracted as return F(...);.  A throw anywhere else needs nothing (the exception leaves the new
+          function as it left the statements), nor throw; in a handler (the exception is still the one being handled
+          when the new function runs).  A handler's parameter used in the selection is an argument, as a local is.
+     10c. Inline Function: a function whose body is a function-try-block is refused, with why (its body isn't a block
+          of statements, and its handlers can't be inlined); so is one declared noexcept whose body may throw (inlined,
+          the exception would leave the caller where the function would have called std::terminate).  A body with try
+          statements in it is inlined as it is: only its returns matter, as now.
+     10d. Rename and Find Usages: what exceptions add names to.  A handler's parameter (a local of the handler), a class
+          named in a handler's type, in a throw expression, and in a throw(A, B) list, and a function named in a
+          noexcept(e).  Cases for each; whatever they find is fixed.
+     10e. The other refactorings on code with exceptions: Change Signature keeps a function's noexcept or throw(A, B)
+          after the parameters it rewrites; Move Members and Move to File move a function-try-block definition whole, its
+          handlers too; Safe Delete finds a class that is only thrown or caught; Introduce Variable and Inline Variable
+          inside a handler and a try block.  A case for each; whatever they find is fixed.
+     10f. The IDE checks: Checks/Input/Exceptions, a small solution with Exceptions="true" holding the cases of 10a to
+          10e, a check for each (Checks/IDEChecks.py); the sweep of all the checks (ide-checks-on-windows: in batches,
+          the known failures as they are).
+     10g. The documents: IR.txt (lines 192 and 193 still say the back ends refuse throw and thrown: they are taught;
+          what each back end does with them, from stage 3, and 9d's order), CPP65Generator.txt (a section on how the
+          front end writes exceptions: the cleanup stack and its parts, Landing and WayOut, try and its handlers,
+          function-try-blocks, the runtime's routines, R_Exceptions), and the website's IDE pages (what each refactoring
+          of 10b to 10e does with exceptions, among its refusals).
+     10h. The record in Progress, the memory, a commit for each step (no co-author); then the plan is finished.
+
 
 Sizes
 -----
@@ -651,6 +690,7 @@ Questions for the user
   13. Stage 4 waits for the other session's question 8 (the type info's header).  Stages 2, 3 and 5 don't; 5 is best done when the other session has left the front end's statement files.  Assumed order: 1, 2, 3, 5, 4.
   14. Types the compiler doesn't keep apart (the other session, 2026-11-18, answering 4a's check): long is int where they are one size (CCPP65Types::Long is Integer(4), so on the 65C64 they are one type), char is signed char, wchar_t and char16_t are unsigned short, char32_t is unsigned long, and nullptr has no type of its own.  So catch (long) catches a thrown int, catch (signed char) a thrown char, and throw nullptr can't be caught as std::nullptr_t; typeid and overloads have the same fault.  It is the type system's, not exceptions' or question 8's, and is question 13 of CppParserTodo.txt for the user.  Until it is answered and built, the cases of the Exceptions group that lean on it (CatchNullPointer and any that throws one of these and catches the other) stay not done, and stage 4a's check of the labels is this.  The type info has a kind for nullptr_t ready (CPP65TIK_NullPointer) that nothing writes.  Assumed: exceptions go on without it.  Overtaken 2026-11-18: the other session built steps 1, 2, 4 and 5 of its question 13 (master 390c71f1a, 16abb5c62), so int and long, char and signed char and the rest have type infos of their own and catch (long) no longer takes an int; what is left of it there is its steps 3 and 6.
   16. Stage 9's bar for speeding exceptions up (9c): only if the option on costs a program more than 5% in size or 2% in time on either processor.  The user doesn't use the option (2026-11-20: "Make them fast if needed but I'm not fussed").  Assumed: yes.
+  17. Stage 10a's options for the IDE's code model: all of a configuration's compile options that change what is an error, not Exceptions alone (a code model that reads a program otherwise than it is built shows errors it hasn't, or none it has).  Assumed: yes.
 
 Progress
 --------

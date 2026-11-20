@@ -15,8 +15,9 @@ The user's rulings, which govern everything below:
   - The library: "I don't use the C++ Std Libs, and don't want to include the library with their source code in any
     of my projects.  The problem is LibC already exists and has useful intrinsic (or close to intrinsic methods)."
     So nobody else's library source comes in, and Libc65 is where what is written goes.
-  - Exceptions are another session's work (ExceptionsPlan.txt).  Leave CONFORMANCE_EXCEPTIONS_GROUP, the Exceptions
-    group's cases and the exception paths of the front end to it; tell it what is found there.
+  - Exceptions were another session's work (ExceptionsPlan.txt), done to its stage 9 and merged on 2026-11-20 (stage 10,
+    the IDE and the documents, is left).  The Exceptions group (CONFORMANCE_EXCEPTIONS_GROUP) passes all its cases on
+    both targets: a change that touches the front end's exception paths keeps it so.
   - A sweep is measured first and shown as a list; the compiler is changed only for what the user then picks.  A
     decision made while planning is not a go-ahead to build.
   - Questions for the user are asked one at a time, in plain words, and kept in a list while work goes on.
@@ -41,7 +42,7 @@ The conformance test (Tests/TestCppCompilerLib/TestCppCompilerLib/TestCPPConform
     Clause10     20     20      a few cases: never swept
     Clause14     21     21      a few cases: never swept
     Works and Stage1 to Stage10 (the hand written cases of Part B): all done
-    Exceptions: the other session's
+    Exceptions  180    180      all done (ExceptionsPlan.txt), compiled with the option on
 
 The whole of TestCppCompilerLib passes (269626 checks), BaseLib, StandardLib and SupportLib compile and pass their
 tests on both targets (TestBaseLib65, TestStandardLib65, TestSupportLib65), TestLibc65 passes on both, and the twenty
@@ -54,7 +55,7 @@ What is left, in the order suggested
 A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a list, then what they pick is fixed;
    to start once the exceptions work has landed).
    - Clauses 3, 6, 7, 9, 10, 11, 12, 13 and 14 of N4140, then 2 and 16 (lexing and the preprocessor, which have
-     tests from Part A and were never gone through by clause).  15 is the exceptions session's.
+     tests from Part A and were never gone through by clause).  15 was done by the exceptions work (its 180 cases).
    - How 4, 5 and 8 were done: read the clause paragraph by paragraph; write a small program for each rule that can be
      tested, valid ones that return a number and invalid ones that must be refused; check every one against g++
      first (clauses.py check); run them through the compiler on both targets; give the user the list of what differs,
@@ -165,7 +166,7 @@ Where things are
 
   CppParserTodo.txt      the record: Part A and Part B's plans as they were done, the questions and the user's
                          answers (cited by number in the sources), the steps of 2026-11-19 and 2026-11-20
-  ExceptionsPlan.txt     the exceptions work (another session's)
+  ExceptionsPlan.txt     the exceptions work: stages 0 to 9 done 2026-11-20, 10 left
   ConstexprPlan.txt      constant expressions by running the IR
   Size16Plan.txt        the W65C816's 16 bit size_t and its heap by banks (done; Libc65's sources cite it)
   W65C816.txt, IR.txt, CPP65Generator.txt    the back ends and the IR
