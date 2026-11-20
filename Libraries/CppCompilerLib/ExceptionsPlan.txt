@@ -1,7 +1,7 @@
 Exceptions: throw, try and catch to C++14
 ==========================================
 
-Planned 2026-11-18, at the user's word ("plan out how you would add exceptions to the CppCompiler").  It is B2 of CppParserTodo.txt (section 6) and the first of its open questions.  Stages 0 to 9 are built (2026-11-18 to 20, Progress below); stage 10 is planned.  The statements about the code were found by reading it on 2026-11-18; check each before relying on it.
+Planned 2026-11-18, at the user's word ("plan out how you would add exceptions to the CppCompiler").  It is B2 of CppParserTodo.txt (section 6) and the first of its open questions.  All of it is built (2026-11-18 to 21, Progress below).  The statements about the code were found by reading it on 2026-11-18; check each before relying on it.
 
 The standard meant is N4140: clause 15 (exception handling), 5.17 (throw), 5.3.4 and 3.7.4 (new that fails), 5.2.7 and 5.2.8 (bad_cast, bad_typeid), 6.7 (a static local whose initialisation throws), 12.4 and 12.6.2 (destructors, constructors that fail), 18.6 and 18.8 (the language support library's part of it).
 
@@ -1206,3 +1206,43 @@ Progress
        costs, that it is off by default and costs nothing off, what a program with it must do, what isn't there yet),
        building.md's rows linking to it.  Built with mkdocs.
 
+  The user, 2026-11-20: "Go for it, stage 10.  Clean up and commit (with no co-author) as necessary.  Coordinate runs
+  with the other session."  Built in the worktrees D:\gameengine-exceptions10 (branch exceptions10 in CommonLibraries,
+  HCP65 and HCP65-IDE).
+
+  10. Done.
+     - 10a: the code model checks a file with its build configuration's compile options, made by the code the build
+       makes them with (question 17, the user's answer): CBuildConfiguration::SetCompileOptions, which CHCP65Build::
+       Start calls in place of its seven lines; ParseUnit gives each CIDEParsedUnit its options (mcOptions, from
+       FindBuildConfiguration, factored out of GetSolutionConfiguration); CCPPSemanticPass::SetOptions hands them to
+       the unit it checks (the indexer's GatherUnit and CIDERefactorUnit).  Saving the configurations dialog already
+       resets the code model and indexes again.  What it changes: with Exceptions="true" a throw was an error to the
+       IDE's check (CPP_EXCEPTIONS_OFF_THROW); the index's names were found all the same (Find Usages found a throw's
+       operand with the option off too), but what reads a check's errors (Optimise #includes' lines, the trial checks
+       of the refactorings) saw them.  A solution with no build configuration is checked with the defaults, as before.
+     - 10b: Extract Method takes a selection that returns and ends with a throw (CIDEExitFinder::EndsLeaving), called
+       as return Name(...); a handler's parameter is an argument as a local is (no change was needed for it).
+     - 10c: Inline Function refuses a function-try-block ("its handlers can't be written where it is called"; it was
+       refused before, but as "a macro makes it"), and, when the configuration has exceptions (CIDERefactorUnit::
+       IsExceptions), a function with an exception specification other than throw(...) whose body has a call, a new
+       or a throw (CIDEThrowFinder).
+     - 10d, 10e: Find Usages (a throw's operand, a handler's type and parameter, a throw(A) list, a function named in
+       noexcept(e)), Rename of a handler's parameter, Change Signature (throw(CFault) kept on the declaration and the
+       definition), Introduce Variable in a handler, Safe Delete of a class only thrown and caught (refused: used), and
+       Move to File of a function-try-block (moved whole, the #include added): all right already, nothing changed.
+     - 10f: Checks/Input/Exceptions (Exceptions.sln with Exceptions="true", Fault.h/.cpp, Other.h/.cpp) and twelve
+       checks on it (exceptions-*), among them exceptions-check-options and -off through a new script step,
+       printcheckerrors (a refactoring check's errors in the active file).  The whole sweep, 403 checks, with the
+       worktree's Release x64 IDE: 380 passed; three of the 23 failures were my checks' expectations, since fixed and
+       passing; the other 20 fail the same way with the main tree's IDE (built before stage 10): the 15 known
+       (debug-dialog, commands, five system-directories-*, build-configuration-rules and -remove-kept, four
+       run-configuration-*, breakpoint) and menus, hierarchy-after-edits, virtual-after-edits, editor-drag-text,
+       editor-box-selection and enum-to-class (Convert Enum writes "eFlags |= EF_Read" as "(EFlag)(eFlags = ...)", a
+       cast too many: for the IDE's owner).  TestBuildLib passes (785).
+     - 10g: IR.txt says what the back ends make of throw and thrown, no longer that they refuse them; CPP65Generator.txt
+       has an Exceptions section (the option, the scheme, the cleanup stack and its parts, the ways out, throw, try,
+       function-try-blocks, the runtime); the website's refactoring pages say what Extract Method and Inline Function
+       do with exceptions and that the type checking uses the configuration's options (built with mkdocs).
+     - On the way: the other session's 736f445bb (getters return const X*) broke HCP65IDE.cpp and four other apps;
+       it fixed it in 24bc0f0fb.
+     So the plan is finished.
