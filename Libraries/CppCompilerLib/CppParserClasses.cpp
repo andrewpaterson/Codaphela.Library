@@ -587,7 +587,15 @@ CCPPSyntaxDeclaration* CCPPParser::ParseTemplateDeclaration(CCPPSyntax* pcParent
 
 	//template<> declares specialisations, not templates.
 	mbDeclaringTemplate = pcTemplate->macpParameters.NumElements() > 0;
+	if (mbDeclaringTemplate)
+	{
+		miTemplates++;
+	}
 	pcTemplate->mpcDeclaration = ParseDeclaration(pcTemplate, eContext);
+	if (pcTemplate->macpParameters.NumElements() > 0)
+	{
+		miTemplates--;
+	}
 	mbDeclaringTemplate = bDeclaringTemplate;
 	PopScope(pcScope);
 	if (!pcTemplate->mpcDeclaration)

@@ -204,6 +204,24 @@ void CCPP65IRCleanups::PushPart(SCPP65IRCleanup* psPart)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A part put in at uiIndex, under what was registered since: what it is
+// for was finished there (a member made, whose initialiser's temporaries
+// are above it).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRCleanups::InsertPart(size uiIndex, SCPP65IRCleanup* psPart)
+{
+	SCPP65IRCleanup*	psEntry;
+
+	psEntry = masEntries.InsertAt(uiIndex);
+	*psEntry = *psPart;
+	psEntry->eKind = CPP65IRC_Part;
+	ForgetUndoFrom(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Takes out the parts from uiIndex up (what they were for is done); the
 // locals and temporaries there stay, in their order.
 //

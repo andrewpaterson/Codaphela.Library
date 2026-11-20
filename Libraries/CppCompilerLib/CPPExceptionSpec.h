@@ -40,6 +40,7 @@ class CCPPExceptionSpec
 public:
 	ECPPExceptionSpecKind	meKind;
 	CArrayCPP65Types		mapsTypes;
+	bool					mbDynamic;		//Written throw(A, B) or throw(): an exception it doesn't allow calls std::unexpected, not std::terminate.
 
 	void	Init(void);
 	void	Kill(void);

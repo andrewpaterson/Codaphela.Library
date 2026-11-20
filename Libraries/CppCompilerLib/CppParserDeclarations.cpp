@@ -712,9 +712,10 @@ CCPPSyntaxDeclaration* CCPPParser::ParseFunctionDefinition(CCPPSyntax* pcParent,
 		return pcFunction;
 	}
 
-	if (IsSkimming() || (eContext == CPPDC_Class))
+	if ((IsSkimming() && (miTemplates == 0)) || (eContext == CPPDC_Class))
 	{
-		//System header bodies are skipped.  Member function bodies are parsed when their class is complete.
+		//System header bodies are skipped, but a template's: an instance needs its body.  Member function bodies are
+		//parsed when their class is complete.
 		pcFunction->meBody = CPPFB_Skipped;
 		pcFunction->miBodyStart = CurrentToken();
 		if (!SkipFunctionBody())
@@ -724,7 +725,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseFunctionDefinition(CCPPSyntax* pcParent,
 		}
 		pcFunction->miBodyEnd = PreviousToken();
 
-		if (!IsSkimming(pcFunction->miBodyStart) && (miTentative == 0))
+		if ((!IsSkimming(pcFunction->miBodyStart) || (miTemplates > 0)) && (miTentative == 0))
 		{
 			psDeferred = macDeferred.Add();
 			psDeferred->pcFunction = pcFunction;

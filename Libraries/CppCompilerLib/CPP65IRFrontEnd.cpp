@@ -87,6 +87,7 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	mcCleanups.Init();
 	masTries.Init();
 	mpcThrowExit = NULL;
+	mpcUnexpected = NULL;
 	mpcTerminate = NULL;
 	mbUnwinding = false;
 	muiLandingTop = MAX_SIZE;
@@ -221,7 +222,7 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	szLabel.Init();
 	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction, mbBaseVersion);
 	BeginWriting(pcFunction, szLabel.Text(), ReturnIRType(pcFunction->mpsReturn), (pcFunction->mbVariadic ? IRA_Variadic : 0) | ((pcFunction->mpcClass && !pcFunction->mbStatic) ? IRA_ThisCall : 0) |
-		(mpcUnit->HasAttribute(pcFunction->mpcDeclarator, "noinline") ? IRA_NoInline : 0));
+		(mpcUnit->HasAttribute(pcFunction->mpcDeclarator, "noinline") ? IRA_NoInline : 0) | (IsWeak(pcFunction) ? IRA_Weak : 0));
 	if (mpcUnit->GetOptions()->mbExceptions && mpcUnit->IsNoexcept(pcFunction))
 	{
 		//No exception leaves it (WayOut): a caller's test of it folds away.
@@ -240,8 +241,7 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	}
 	else if (bResult && (pcFunction->meKind == CPPFK_Constructor))
 	{
-		//A member initialiser's temporaries would need destroying after it (not supported).
-		bResult = ConstructorStart(pcFunction->mpcDefinition) && ((mcCleanups.NumTemporaries() == 0) || Unsupported(__FILE__, __LINE__));
+		bResult = ConstructorStart(pcFunction->mpcDefinition);
 	}
 	else if (bResult && (pcFunction->meKind == CPPFK_Destructor))
 	{
@@ -295,6 +295,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mcCleanups.ReInit();
 	masTries.ReInit();
 	mpcThrowExit = NULL;
+	mpcUnexpected = NULL;
 	mpcTerminate = NULL;
 	mbUnwinding = false;
 	muiLandingTop = MAX_SIZE;

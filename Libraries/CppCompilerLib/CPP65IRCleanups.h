@@ -126,6 +126,7 @@ public:
 	void				PushTemporary(SCPP65IRPlace* psPlace, bool bConditional, SIRReference sMade);
 	void				PushCatch(void);
 	void				PushPart(SCPP65IRCleanup* psPart);
+	void				InsertPart(size uiIndex, SCPP65IRCleanup* psPart);
 	void				RemovePartsFrom(size uiIndex);
 	bool				RemoveNewestPart(void);
 	size				IndexOfLocal(size uiOrdinal);
