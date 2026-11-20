@@ -150,6 +150,7 @@ public:
 	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool			GetRowBounds(int32 iRow, int32* piTop, int32* piHeight) override;
+	bool			GetRowText(int32 iRow, CChars* pszDest) override;
 	size			NumRowComponents(void);
 	Ptr<CTreeRow>	GetRowComponent(int32 iRow);
 	void			ActivateComponent(int x, int y) override;

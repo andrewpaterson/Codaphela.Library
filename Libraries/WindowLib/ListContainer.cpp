@@ -22,6 +22,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "Window.h"
+#include "BaseLib/NameMatcher.h"
+#include "ScrollPane.h"
 #include "ListContainer.h"
 
 
@@ -54,6 +56,11 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mbMultiSelect = false;
 	mabSelected.Init();
 	miAnchor = -1;
+	mpTheme = pTheme;
+	mbTypeToFind = false;
+	mbFindActions = false;
+	mbFindMatched = false;
+	mszFind.Init();
 	SetCanGetFocus(true);
 
 	mpSelectedDraw = OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_ListSelected));
@@ -72,7 +79,7 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	AddInputAction(CIC_DocumentEnd, this, &CListContainer::DocumentEnd);
 	AddInputAction(CIC_PageUp, this, &CListContainer::PageUp);
 	AddInputAction(CIC_PageDown, this, &CListContainer::PageDown);
-	AddInputAction(CIC_Space, this, &CListContainer::Activate);
+	AddInputAction(CIC_Space, this, &CListContainer::Space);
 	AddInputAction(CIC_Enter, this, &CListContainer::Activate);
 	AddInputAction(CIC_JumpToSource, this, &CListContainer::Activate);
 
@@ -108,6 +115,14 @@ void CListContainer::Class(void)
 	U_Unknown(CArrayBit, mabSelected);
 	U_Int32(miAnchor);
 	M_Pointer(mpSelectedBands);
+	M_Pointer(mpTheme);
+	U_Bool(mbTypeToFind);
+	U_Bool(mbFindActions);
+	U_Bool(mbFindMatched);
+	U_String(mszFind);
+	M_Pointer(mpFindNote);
+	M_Pointer(mpFindBorder);
+	M_Pointer(mpFindLabel);
 }
 
 
@@ -117,6 +132,7 @@ void CListContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::Free(void)
 {
+	mszFind.Kill();
 	mcActivated.Kill();
 	mcSelectionChanged.Kill();
 	mabSelected.Kill();
@@ -509,6 +525,7 @@ void CListContainer::ClearSelected(void)
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::Activate(void)
 {
+	StopFinding();
 	if (miSelected >= 0)
 	{
 		RowActivated(miSelected);
@@ -707,7 +724,7 @@ bool CListContainer::WantsEnter(void)
 // escape from, as a dialog's list has while what was typed filters it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CListContainer::WantsEscape(void) { return mbWantsEscape; }
+bool CListContainer::WantsEscape(void) { return mbWantsEscape || IsFinding(); }
 void CListContainer::SetWantsEscape(bool bWantsEscape) { mbWantsEscape = bWantsEscape; }
 
 
@@ -718,6 +735,7 @@ void CListContainer::SetWantsEscape(bool bWantsEscape) { mbWantsEscape = bWantsE
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::FocusLost(void)
 {
+	StopFinding();
 	mbPressed = false;
 }
 
@@ -757,6 +775,7 @@ void CListContainer::ActivateComponent(int x, int y)
 	SInt32Vec2	sPosition;
 	int32		iRow;
 
+	StopFinding();
 	sPosition = GetPosition();
 	iRow = FindRowAt(x + sPosition.x, y + sPosition.y);
 	mbPressed = iRow >= 0;
@@ -844,14 +863,430 @@ void CListContainer::ExecuteComponent(int x, int y)
 // first.
 //
 //////////////////////////////////////////////////////////////////////////
-void CListContainer::Up(void) { SelectEnabled(FindMove(CIC_Up)); }
-void CListContainer::Down(void) { SelectEnabled(FindMove(CIC_Down)); }
-void CListContainer::Home(void) { SelectEnabled(FindMove(CIC_Home)); }
-void CListContainer::End(void) { SelectEnabled(FindMove(CIC_End)); }
-void CListContainer::DocumentHome(void) { SelectEnabled(FindMove(CIC_Home)); }
-void CListContainer::DocumentEnd(void) { SelectEnabled(FindMove(CIC_End)); }
-void CListContainer::PageUp(void) { SelectEnabled(FindMove(CIC_PageUp)); }
-void CListContainer::PageDown(void) { SelectEnabled(FindMove(CIC_PageDown)); }
+void CListContainer::Home(void) { StopFinding(); SelectEnabled(FindMove(CIC_Home)); }
+void CListContainer::End(void) { StopFinding(); SelectEnabled(FindMove(CIC_End)); }
+void CListContainer::DocumentHome(void) { StopFinding(); SelectEnabled(FindMove(CIC_Home)); }
+void CListContainer::DocumentEnd(void) { StopFinding(); SelectEnabled(FindMove(CIC_End)); }
+void CListContainer::PageUp(void) { StopFinding(); SelectEnabled(FindMove(CIC_PageUp)); }
+void CListContainer::PageDown(void) { StopFinding(); SelectEnabled(FindMove(CIC_PageDown)); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// While a row is being found by what is typed, up and down go to the
+// previous and the next row that matches and space is typed too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::Up(void)
+{
+	if (IsFinding())
+	{
+		FindNext(-1);
+	}
+	else
+	{
+		SelectEnabled(FindMove(CIC_Up));
+	}
+}
+
+
+void CListContainer::Down(void)
+{
+	if (IsFinding())
+	{
+		FindNext(1);
+	}
+	else
+	{
+		SelectEnabled(FindMove(CIC_Down));
+	}
+}
+
+
+void CListContainer::Space(void)
+{
+	if (IsFinding())
+	{
+		FindType(' ');
+	}
+	else
+	{
+		Activate();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Typed characters find a row, or don't.  The actions that take them are
+// added the first time it is asked for: a character, backspace and escape
+// that aren't the list's (nothing is being found) go on to its parents.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::SetTypeToFind(bool bTypeToFind)
+{
+	if (bTypeToFind && !mbFindActions)
+	{
+		AddInputAction(IAF_Printable, NULL, this, &CListContainer::FindPrintableAction);
+		AddInputAction(CIC_Backspace, this, &CListContainer::FindBackspaceAction);
+		AddInputAction(CIC_ClearSelection, this, &CListContainer::FindEscapeAction);
+		mbFindActions = true;
+	}
+	if (!bTypeToFind)
+	{
+		StopFinding();
+	}
+	mbTypeToFind = bTypeToFind;
+}
+
+
+void CListContainer::FindPrintableAction(SComponentInputEvent* psEvent)
+{
+	if (!mbTypeToFind || !FindType(psEvent->cPrintable))
+	{
+		psEvent->bPass = true;
+	}
+}
+
+
+void CListContainer::FindBackspaceAction(SComponentInputEvent* psEvent)
+{
+	if (!FindBackspace())
+	{
+		psEvent->bPass = true;
+	}
+}
+
+
+void CListContainer::FindEscapeAction(SComponentInputEvent* psEvent)
+{
+	if (IsFinding())
+	{
+		StopFinding();
+	}
+	else
+	{
+		psEvent->bPass = true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// c typed: it is added to the pattern and the first row that matches it,
+// from the selected one, is selected.  False if it isn't the list's: it
+// doesn't find rows, c isn't a character, or it is a space with nothing
+// typed before it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::FindType(char c)
+{
+	if (!mbTypeToFind || ((uint8)c < 32) || ((c == ' ') && mszFind.Empty()))
+	{
+		return false;
+	}
+	if (mszFind.Length() < NAME_MATCHER_PATTERN - 1)
+	{
+		mszFind.Append(c);
+		mbFindMatched = FindNext(0);
+		ShowFindNote();
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last character typed is taken back: with none left nothing is
+// being found any more.  False if nothing was.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::FindBackspace(void)
+{
+	if (!IsFinding())
+	{
+		return false;
+	}
+	mszFind.RemoveFromEnd(1);
+	if (mszFind.Empty())
+	{
+		StopFinding();
+	}
+	else
+	{
+		mbFindMatched = FindNext(0);
+		ShowFindNote();
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selected row if iStep is 0 and it matches, else the next (1) or
+// previous (-1) row that does, round the ends, is selected and shown.
+// False if no row matches, or no other row with a step.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::FindNext(int32 iStep)
+{
+	int32	iRow;
+
+	if (!IsFinding())
+	{
+		return false;
+	}
+	if (iStep == 0)
+	{
+		iRow = FindMatch(miSelected < 0 ? 0 : miSelected, 1);
+	}
+	else
+	{
+		iRow = FindMatch(miSelected < 0 ? 0 : miSelected + iStep, iStep);
+		if (iRow == miSelected)
+		{
+			return false;
+		}
+	}
+	if (iRow < 0)
+	{
+		return false;
+	}
+	Select(iRow);
+	ShowRow(iRow);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first enabled row that matches what has been typed, from iFrom
+// going by iStep (1 or -1) round the ends and back to it; -1 for none.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CListContainer::FindMatch(int32 iFrom, int32 iStep)
+{
+	int32	i;
+	int32	iRow;
+	int32	iNumRows;
+
+	iNumRows = NumRows();
+	for (i = 0; i < iNumRows; i++)
+	{
+		iRow = (((iFrom + i * iStep) % iNumRows) + iNumRows) % iNumRows;
+		if (IsRowEnabled(iRow) && IsRowFound(iRow))
+		{
+			return iRow;
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether iRow's text matches what has been typed: as a name matches in
+// Go to, or with all of it anywhere in the text, ignoring case.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::IsRowFound(int32 iRow)
+{
+	CChars			szText;
+	CNameMatcher	cMatcher;
+	SNameMatch		sMatch;
+	bool			bFound;
+
+	szText.Init();
+	bFound = false;
+	if (GetRowText(iRow, &szText))
+	{
+		cMatcher.Init(mszFind.Text());
+		bFound = cMatcher.Match(szText.Text(), &sMatch) || szText.ContainsIgnoreCase(mszFind.Text());
+		cMatcher.Kill();
+	}
+	szText.Kill();
+	return bFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The texts of the labels in pComponent, in order, joined.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AppendLabelTexts(Ptr<CComponent> pComponent, CChars* pszDest)
+{
+	CLabel*		pcLabel;
+	CContainer*	pcContainer;
+	size		i;
+
+	pcLabel = dynamic_cast<CLabel*>(&pComponent);
+	if (pcLabel)
+	{
+		pszDest->Append(pcLabel->GetText());
+		return;
+	}
+	pcContainer = dynamic_cast<CContainer*>(&pComponent);
+	if (pcContainer)
+	{
+		for (i = 0; i < pcContainer->NumComponents(); i++)
+		{
+			AppendLabelTexts(pcContainer->GetComponent(i), pszDest);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What iRow is found by: the text of the first of its components, by
+// column, that has any.  False if none has.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::GetRowText(int32 iRow, CChars* pszDest)
+{
+	Ptr<CComponent>	pChild;
+	CGridCell*		pcCell;
+	CChars			szText;
+	size			i;
+	int32			iColumn;
+
+	iColumn = -1;
+	szText.Init();
+	for (i = 0; i < maChildren.NumElements(); i++)
+	{
+		pChild = maChildren.Get(i);
+		pcCell = GetCell(i);
+		if ((pcCell->msPosition.y == iRow) && ((iColumn < 0) || (pcCell->msPosition.x < iColumn)) && (pChild != mpSelectedHighlight) && (pChild != mpHoverHighlight))
+		{
+			szText.Clear();
+			AppendLabelTexts(pChild, &szText);
+			if (!szText.Empty())
+			{
+				iColumn = pcCell->msPosition.x;
+				pszDest->Clear();
+				pszDest->Append(szText);
+			}
+		}
+	}
+	szText.Kill();
+	return iColumn >= 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The scroll pane the list is shown by, NULL if it is in none.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CScrollPane> CListContainer::FindScrollPane(void)
+{
+	Ptr<CComponent>	pParent;
+	CScrollPane*	pcPane;
+
+	for (pParent = GetParent(); pParent.IsNotNull(); pParent = pParent->GetParent())
+	{
+		pcPane = dynamic_cast<CScrollPane*>(&pParent);
+		if (pcPane)
+		{
+			return Ptr<CScrollPane>(pcPane);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What has been typed is shown in the scroll pane's corner: in a box as a
+// tool tip's, its border the theme's failure colour while no row matches.
+// A list in no scroll pane shows nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::ShowFindNote(void)
+{
+	Ptr<CScrollPane>	pPane;
+	Ptr<CCanvas>		pBorder;
+	Ptr<CCanvas>		pBackground;
+	Ptr<CFillContainer>	pInside;
+	Ptr<CFillContainer>	pText;
+	SInt32Vec2			sSize;
+	int32				iPaddingX;
+	int32				iPaddingY;
+
+	pPane = FindScrollPane();
+	if (pPane.IsNull())
+	{
+		return;
+	}
+	iPaddingX = mpTheme->GetMetric(TM_ToolTipPaddingX);
+	iPaddingY = mpTheme->GetMetric(TM_ToolTipPaddingY);
+	if (mpFindNote.IsNull())
+	{
+		mpFindBorder = OMalloc<CClearCanvasDraw>(mpTheme->GetColour(TC_ToolTipBorder));
+		pBorder = OMalloc<CCanvas>(mpWindow, mpFindBorder);
+		pBorder->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pBackground = OMalloc<CCanvas>(mpWindow, OMalloc<CClearCanvasDraw>(mpTheme->GetColour(TC_ToolTip)));
+		pBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pInside = OMalloc<CFillContainer>(mpWindow);
+		pInside->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pInside->SetInsets(1, 1, 1, 1);
+		pInside->AddComponent(pBackground);
+		mpFindLabel = OMalloc<CLabel>(mpWindow, mpTheme->GetFont(), "");
+		mpFindLabel->SetAlignment(CSH_Left, CSV_Center);
+		pText = OMalloc<CFillContainer>(mpWindow);
+		pText->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pText->SetInsets(iPaddingY + 1, iPaddingX + 1, iPaddingY + 1, iPaddingX + 1);
+		pText->AddComponent(mpFindLabel);
+		mpFindNote = OMalloc<CFillContainer>(mpWindow);
+		mpFindNote->AddComponent(pBorder);
+		mpFindNote->AddComponent(pInside);
+		mpFindNote->AddComponent(pText);
+	}
+	mpFindBorder->SetColour(mpTheme->GetColour(mbFindMatched ? TC_ToolTipBorder : TC_Failure));
+	mpFindLabel->SetText(mszFind.Text());
+	sSize = mpFindLabel->GetRequiredSize();
+	mpFindNote->SetDesiredSize(sSize.x + (iPaddingX + 1) * 2, sSize.y + (iPaddingY + 1) * 2);
+	if (pPane->GetNote() != mpFindNote)
+	{
+		pPane->SetNote(mpFindNote);
+	}
+	mpWindow->InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Nothing is being found any more: what was typed is forgotten and its
+// note taken off the scroll pane.  The selection stays.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::StopFinding(void)
+{
+	Ptr<CScrollPane>	pPane;
+
+	if (!IsFinding())
+	{
+		return;
+	}
+	mszFind.Clear();
+	mbFindMatched = false;
+	if (mpFindNote.IsNotNull())
+	{
+		pPane = FindScrollPane();
+		if (pPane.IsNotNull() && (pPane->GetNote() == mpFindNote))
+		{
+			pPane->SetNote(NULL);
+		}
+	}
+}
+
+
+bool CListContainer::IsTypeToFind(void) const { return mbTypeToFind; }
+bool CListContainer::IsFinding(void) const { return !mszFind.Empty(); }
+bool CListContainer::IsFindMatched(void) const { return mbFindMatched; }
+const char* CListContainer::GetFindText(void) { return mszFind.Text(); }
+Ptr<CComponent> CListContainer::GetFindNote(void) const { return mpFindNote; }
 
 
 //////////////////////////////////////////////////////////////////////////

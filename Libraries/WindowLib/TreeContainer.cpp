@@ -449,6 +449,27 @@ int32 CTreeContainer::GetRowNode(int32 iRow)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a row is found by when typing finds one: its node's text.  Only the
+// nodes that can be seen are rows, so those are the ones found.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTreeContainer::GetRowText(int32 iRow, CChars* pszDest)
+{
+	int32	iNode;
+
+	iNode = GetRowNode(iRow);
+	if (iNode == TREE_NO_NODE)
+	{
+		return false;
+	}
+	pszDest->Clear();
+	GetNodeText(iNode, pszDest);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // -1 if the node can't be seen.
 //
 //////////////////////////////////////////////////////////////////////////

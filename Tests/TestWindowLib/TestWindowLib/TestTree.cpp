@@ -567,6 +567,100 @@ void TestTreeManyRows(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Typing finds a row of a tree by its node's text: only the nodes that
+// can be seen are found.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTreeTypeToFind(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTreeContainer>		pTree;
+		Ptr<CScrollPane>		pScrollPane;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CPointer				pNull;
+		CChars					sz;
+		int32					iProject;
+		int32					iSource;
+		int32					iMap;
+		int32					iMain;
+		int32					iHeader;
+
+		sz.Init();
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 200, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Tree Find Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pTheme = CreateTestTheme(ReadLabelFont());
+		CJewelTheme::SetImages(pTheme, pTestWindow);
+		pScrollPane = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pTestWindow->SetContainer(pScrollPane);
+		pTree = OMalloc<CTreeContainer>(pTestWindow, pTheme);
+		pScrollPane->SetContent(pTree);
+
+		iProject = pTree->AddNode(TREE_NO_NODE, "Project");
+		iSource = pTree->AddNode(iProject, "Source");
+		iMap = pTree->AddNode(iSource, "Map.cpp");
+		iMain = pTree->AddNode(iSource, "Main.cpp");
+		iHeader = pTree->AddNode(iProject, "Header.h");
+		pTree->SetExpanded(iProject, true);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pTree);
+
+		AssertTrue(pTree->GetRowText(1, &sz));
+		AssertString("Source", sz.Text());
+		AssertFalse(pTree->GetRowText(3, &sz));
+
+		//Source is closed, so Main.cpp in it isn't a row and isn't found: "m" finds nothing but "h" finds the header.
+		pTree->SetTypeToFind(true);
+		pTree->SelectNode(iProject);
+		pTestWindow->InputPrintable('m', true);
+		AssertTrue(pTree->IsFinding());
+		AssertFalse(pTree->IsFindMatched());
+		AssertInt(iProject, pTree->GetSelectedNode());
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		AssertFalse(pTree->IsFinding());
+		pTestWindow->InputPrintable('h', true);
+		AssertTrue(pTree->IsFindMatched());
+		AssertInt(iHeader, pTree->GetSelectedNode());
+		AssertTrue(pScrollPane->GetNote() == pTree->GetFindNote());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pTree->IsFinding());
+
+		//Open, its files are found, the next with down.
+		pTree->SetExpanded(iSource, true);
+		pTree->SelectNode(iProject);
+		pTestWindow->InputPrintable('m', true);
+		AssertInt(iMap, pTree->GetSelectedNode());
+		pTestWindow->InputPrintable('a', true);
+		AssertInt(iMap, pTree->GetSelectedNode());
+		pTestWindow->InputCommand(CIC_Down, true);
+		AssertInt(iMain, pTree->GetSelectedNode());
+		pTestWindow->InputPrintable('i', true);
+		AssertString("mai", pTree->GetFindText());
+		AssertInt(iMain, pTree->GetSelectedNode());
+		pTree->StopFinding();
+		AssertTrue(pScrollPane->GetNote().IsNull());
+
+		sz.Kill();
+		pTree = NULL;
+		pScrollPane = NULL;
+		pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTree(void)
@@ -577,6 +671,7 @@ void TestTree(void)
 	TestTreeNodes();
 	TestTreeRowComponents();
 	TestTreeManyRows();
+	TestTreeTypeToFind();
 
 	ObjectsFlush();
 	ObjectsKill();

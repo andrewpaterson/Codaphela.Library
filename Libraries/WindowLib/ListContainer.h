@@ -23,12 +23,17 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayBit.h"
 #include "SupportLib/ColourARGB32.h"
 #include "GridContainer.h"
+#include "FillContainer.h"
+#include "Label.h"
 #include "Canvas.h"
 #include "ClearCanvasDraw.h"
 #include "BandsCanvasDraw.h"
 #include "DoubleClick.h"
 #include "WindowTheme.h"
 #include "ComponentEvent.h"
+
+
+class CScrollPane;
 
 
 //Rows one below the other that one row at a time can be selected in; what menus, combo boxes and list boxes are made
@@ -54,6 +59,15 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //Like a button, a list keeps the size its rows need unless a desired size is set on an axis, so in a scroll pane it is
 //its rows' height.
+//
+//A list can find a row by what is typed while it has the keys (SetTypeToFind), as IntelliJ IDEA's speed search: the
+//characters typed are a pattern, shown in a note over the corner of the scroll pane the list is in, and the first row
+//from the selected one whose text it matches is selected and shown.  A row matches as a name matches in Go to
+//(CNameMatcher: "sexp" finds "Solution Explorer"), or with the pattern anywhere in it, ignoring case.  Up and down go
+//to the previous and the next row that matches, round the ends; backspace takes the last character back; escape, a
+//press, enter, any other move or the keys going elsewhere end it.  While nothing matches the note's border is the
+//theme's failure colour and the selection stays where it was.  A row's text is its first component with any, the
+//labels in it joined (GetRowText); what derives from the list can say otherwise, as a tree does.
 //
 //Where its rows are the list asks itself (GetRowBounds, FindRowAtY): the grid's rows, unless what derives from it has
 //rows that aren't the grid's, as a tree's, which only has components for the rows in view.
@@ -82,6 +96,14 @@ protected:
 	CArrayBit						mabSelected;  //One for each row, used when several can be selected.
 	int32							miAnchor;  //The row a selection of several started at, -1 for none.
 	Ptr<CBandsCanvasDraw>			mpSelectedBands;  //Draws the selected rows when several can be; NULL until then.
+	Ptr<CWindowTheme>				mpTheme;
+	bool							mbTypeToFind;  //Typed characters find a row.
+	bool							mbFindActions;  //The actions that take them have been added.
+	bool							mbFindMatched;  //A row matches what has been typed.
+	CChars							mszFind;  //What has been typed to find a row, empty when none is being found.
+	Ptr<CFillContainer>				mpFindNote;  //Shows it: the scroll pane's note while a row is being found.
+	Ptr<CClearCanvasDraw>			mpFindBorder;
+	Ptr<CLabel>						mpFindLabel;
 
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -113,6 +135,18 @@ public:
 	int32			FindRowAt(int x, int y);
 	virtual bool	GetRowBounds(int32 iRow, int32* piTop, int32* piHeight);
 	void			ShowRow(int32 iRow);
+
+	void			SetTypeToFind(bool bTypeToFind);
+	bool			IsTypeToFind(void) const;
+	bool			IsFinding(void) const;
+	bool			IsFindMatched(void) const;
+	const char*		GetFindText(void);
+	bool			FindType(char c);
+	bool			FindBackspace(void);
+	bool			FindNext(int32 iStep);
+	void			StopFinding(void);
+	virtual bool	GetRowText(int32 iRow, CChars* pszDest);
+	Ptr<CComponent>	GetFindNote(void) const;
 
 	void			SetSelectOnHover(bool bSelectOnHover);
 	bool			IsSelectOnHover(void) const;
@@ -152,6 +186,10 @@ public:
 	void			SelectMove(SComponentInputEvent* psEvent);
 	void			SelectPress(SComponentInputEvent* psEvent);
 	void			SelectAllAction(SComponentInputEvent* psEvent);
+	void			Space(void);
+	void			FindPrintableAction(SComponentInputEvent* psEvent);
+	void			FindBackspaceAction(SComponentInputEvent* psEvent);
+	void			FindEscapeAction(SComponentInputEvent* psEvent);
 
 protected:
 	virtual void	RowSelected(int32 iRow);  //Called before the listeners are told, iRow is -1 when the selection is cleared.
@@ -171,6 +209,10 @@ protected:
 	void			ClearSelected(void);
 	int32			GetPageRows(void);
 	void			SetHover(int32 iRow);
+	bool			IsRowFound(int32 iRow);
+	int32			FindMatch(int32 iFrom, int32 iStep);
+	void			ShowFindNote(void);
+	Ptr<CScrollPane>	FindScrollPane(void);
 };
 
 

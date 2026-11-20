@@ -54,6 +54,9 @@ typedef CComponentValueEvent<CScrollPane, SInt32Vec2>	CScrollEvent;
 //however it was scrolled: a thumb dragged, the wheel, a track clicked, SetScrollPosition, ScrollToShow, or the position
 //limited because the content got smaller.  Its functions can scroll other scroll panes then, while the window is being
 //laid out.
+//
+//A note (SetNote) is a small component shown over the view's top right corner, inside the vertical scroll bar, at its
+//desired size, whatever the scroll position: what a list shows what is being typed to find a row in.
 class CScrollPane : public CContainer
 {
 CONSTRUCTABLE(CScrollPane);
@@ -62,6 +65,7 @@ protected:
 	Ptr<CComponent>		mpContent;
 	Ptr<CScrollBar>		mpHorizontal;
 	Ptr<CScrollBar>		mpVertical;
+	Ptr<CComponent>		mpNote;  //Over the view's top right corner, NULL for none.
 	EScrollPanePolicy	meHorizontalPolicy;
 	EScrollPanePolicy	meVerticalPolicy;
 	SInt32Vec2			msScrollPosition;  //As asked for, it is kept between 0 and the maximum when used.
@@ -82,6 +86,8 @@ public:
 	void				SetContent(Ptr<CComponent> pContent);
 	Ptr<CComponent>		GetContent(void) const;
 	bool				AddComponent(Ptr<CComponent> pComponent) override;
+	void				SetNote(Ptr<CComponent> pNote);
+	Ptr<CComponent>		GetNote(void) const;
 
 	void				SetPolicy(EScrollBarOrientation eOrientation, EScrollPanePolicy ePolicy);
 	EScrollPanePolicy	GetPolicy(EScrollBarOrientation eOrientation);

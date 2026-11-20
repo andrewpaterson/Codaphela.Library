@@ -5,6 +5,7 @@
 #include "WindowLib/Window.h"
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WindowLib/ListContainer.h"
+#include "WindowLib/Label.h"
 #include "WindowLib/ScrollPane.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
@@ -14,6 +15,7 @@
 
 
 Ptr<CWindowTheme> CreateTestTheme(Ptr<CFont> pFont);
+Ptr<CFont> ReadLabelFont(void);
 
 
 #define AssertLog(e)	AssertString(e, szLog.Text()); szLog.Clear()
@@ -716,6 +718,219 @@ void TestListMultiSelect(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Typing finds a row (SetTypeToFind).  Nine rows of labels in a scroll
+// pane that shows a few of them:
+//   0 Solution Explorer, 1 Find Usages, 2 Find, 3 Duplicates, 4 Build,
+//   5 Indexing, 6 Run, 7 Debug, 8 Claude
+//
+//////////////////////////////////////////////////////////////////////////
+void TestListTypeToFind(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CScrollPane>		pScrollPane;
+		Ptr<CListContainer>		pList;
+		Ptr<CLabel>				pLabel;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CFont>				pFont;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CTestListListener		cListener;
+		CPointer				pNull;
+		CInt32Rect				cNote;
+		CInt32Rect				cRow;
+		CChars					szLog;
+		CChars					sz;
+		size					i;
+		int32					iTop;
+		int32					iHeight;
+		const char*				aszRows[9] = { "Solution Explorer", "Find Usages", "Find", "Duplicates", "Build", "Indexing", "Run", "Debug", "Claude" };
+
+		szLog.Init();
+		sz.Init();
+		cListener.Init(&szLog);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 60, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("List Find Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pFont = ReadLabelFont();
+		pTheme = CreateTestTheme(pFont);
+		pScrollPane = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pTestWindow->SetContainer(pScrollPane);
+		pList = OMalloc<CListContainer>(pTestWindow, pTheme);
+		pList->SetAlignment(CSH_Stretch, CSV_Top);
+		pList->GetActivationEvent()->Add(&cListener, &CTestListListener::ItemActivated);
+		pScrollPane->SetContent(pList);
+		for (i = 0; i < 9; i++)
+		{
+			pLabel = OMalloc<CLabel>(pTestWindow, pFont, aszRows[i]);
+			pList->AddItem(pLabel);
+		}
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pList);
+
+		//A row's text is its label's.
+		AssertTrue(pList->GetRowText(3, &sz));
+		AssertString("Duplicates", sz.Text());
+		AssertFalse(pList->GetRowText(9, &sz));
+
+		//Until it is asked for a typed character does nothing.
+		AssertFalse(pList->IsTypeToFind());
+		pTestWindow->InputPrintable('b', true);
+		AssertFalse(pList->IsFinding());
+		AssertInt(-1, pList->GetSelected());
+		AssertFalse(pList->FindType('b'));
+
+		//Each character typed selects the first row from the selected one that has what has been typed: anywhere in it...
+		pList->SetTypeToFind(true);
+		AssertTrue(pList->IsTypeToFind());
+		pTestWindow->InputPrintable('d', true);
+		AssertTrue(pList->IsFinding());
+		AssertTrue(pList->IsFindMatched());
+		AssertString("d", pList->GetFindText());
+		AssertInt(1, pList->GetSelected());
+		pTestWindow->InputPrintable('e', true);
+		AssertInt(5, pList->GetSelected());
+		pTestWindow->InputPrintable('b', true);
+		AssertString("deb", pList->GetFindText());
+		AssertInt(7, pList->GetSelected());
+
+		//...which is shown in the scroll pane's top right corner, and the row is scrolled to.
+		AssertTrue(pList->GetFindNote().IsNotNull());
+		AssertTrue(pScrollPane->GetNote() == pList->GetFindNote());
+		pTestWindow->Layout();
+		pList->GetFindNote()->GetActualBounds(&cNote);
+		AssertInt(2, cNote.GetTop());
+		AssertTrue(cNote.GetRight() <= 200);
+		AssertTrue(cNote.GetRight() > 180);
+		AssertTrue(cNote.GetWidth() > 10);
+		AssertTrue(cNote.GetHeight() > 8);
+		AssertTrue(pList->GetRowBounds(7, &iTop, &iHeight));
+		AssertTrue(iTop >= 0);
+		AssertTrue(iTop + iHeight <= 60);
+
+		//Nothing matches: the selection stays, and the list is still finding.
+		pTestWindow->InputPrintable('x', true);
+		AssertString("debx", pList->GetFindText());
+		AssertTrue(pList->IsFinding());
+		AssertFalse(pList->IsFindMatched());
+		AssertInt(7, pList->GetSelected());
+
+		//Backspace takes the last character back.
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		AssertString("deb", pList->GetFindText());
+		AssertTrue(pList->IsFindMatched());
+		AssertInt(7, pList->GetSelected());
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		AssertString("d", pList->GetFindText());
+		AssertInt(7, pList->GetSelected());
+
+		//Down and up go to the next and the previous row that matches, round the ends.
+		pTestWindow->InputCommand(CIC_Down, true);
+		AssertInt(8, pList->GetSelected());
+		pTestWindow->InputCommand(CIC_Down, true);
+		AssertInt(1, pList->GetSelected());
+		pTestWindow->InputCommand(CIC_Up, true);
+		AssertInt(8, pList->GetSelected());
+		AssertTrue(pList->IsFinding());
+
+		//Escape ends it: the note goes, the selection stays, and the keys move by a row again.
+		AssertTrue(pList->WantsEscape());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pList->IsFinding());
+		AssertFalse(pList->WantsEscape());
+		AssertTrue(pScrollPane->GetNote().IsNull());
+		AssertInt(8, pList->GetSelected());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		AssertFalse(pList->IsFinding());
+		pTestWindow->InputCommand(CIC_Up, true);
+		AssertInt(7, pList->GetSelected());
+
+		//As a name is matched in Go to: the starts of its words.  Enter activates the row found and ends it.
+		pTestWindow->InputPrintable('s', true);
+		AssertInt(0, pList->GetSelected());
+		pTestWindow->InputPrintable('e', true);
+		AssertInt(0, pList->GetSelected());
+		pTestWindow->InputPrintable('x', true);
+		AssertString("sex", pList->GetFindText());
+		AssertTrue(pList->IsFindMatched());
+		AssertInt(0, pList->GetSelected());
+		szLog.Clear();
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertString("Activated:0;", szLog.Text());
+		AssertFalse(pList->IsFinding());
+
+		//Space activates the selected row, unless a row is being found: then it is typed.
+		szLog.Clear();
+		pTestWindow->InputCommand(CIC_Space, true);
+		AssertString("Activated:0;", szLog.Text());
+		szLog.Clear();
+		pList->FindType('f');
+		pList->FindType('i');
+		pList->FindType('n');
+		pList->FindType('d');
+		AssertInt(1, pList->GetSelected());
+		pTestWindow->InputCommand(CIC_Space, true);
+		pList->FindType('u');
+		AssertString("find u", pList->GetFindText());
+		AssertTrue(pList->IsFindMatched());
+		AssertInt(1, pList->GetSelected());
+		AssertString("", szLog.Text());
+
+		//A move that isn't up or down ends it.
+		pTestWindow->InputCommand(CIC_End, true);
+		AssertFalse(pList->IsFinding());
+		AssertInt(8, pList->GetSelected());
+
+		//A disabled row isn't found.
+		pList->SetRowEnabled(7, false);
+		pList->Select(1);
+		pList->FindType('d');
+		pList->FindType('e');
+		AssertInt(5, pList->GetSelected());
+		pList->FindType('b');
+		AssertFalse(pList->IsFindMatched());
+		AssertInt(5, pList->GetSelected());
+
+		//The keys going elsewhere ends it, as a press does.
+		pList->FocusLost();
+		AssertFalse(pList->IsFinding());
+		AssertTrue(pScrollPane->GetNote().IsNull());
+		pList->FindType('r');
+		AssertInt(6, pList->GetSelected());
+		pList->ActivateComponent(5, 5);
+		AssertFalse(pList->IsFinding());
+
+		//Turned off, what was being found is forgotten.
+		pList->FindType('c');
+		AssertTrue(pList->IsFinding());
+		pList->SetTypeToFind(false);
+		AssertFalse(pList->IsFinding());
+		pTestWindow->InputPrintable('c', true);
+		AssertFalse(pList->IsFinding());
+
+		sz.Kill();
+		szLog.Kill();
+		pLabel = NULL;
+		pList = NULL;
+		pScrollPane = NULL;
+		pTheme = NULL;
+		pFont = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestList(void)
@@ -727,6 +942,7 @@ void TestList(void)
 	TestListDraw();
 	TestListKeysScroll();
 	TestListMultiSelect();
+	TestListTypeToFind();
 
 	ObjectsFlush();
 	ObjectsKill();

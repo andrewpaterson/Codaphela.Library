@@ -82,6 +82,7 @@ void CScrollPane::Class(void)
 	M_Pointer(mpContent);
 	M_Pointer(mpHorizontal);
 	M_Pointer(mpVertical);
+	M_Pointer(mpNote);
 	U_Enum(meHorizontalPolicy);
 	U_Enum(meVerticalPolicy);
 	U_2Int32(msScrollPosition);
@@ -150,6 +151,31 @@ void CScrollPane::SetContent(Ptr<CComponent> pContent)
 	//What it is laid out from has changed.
 	LayoutChanged();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pNote is shown over the view's top right corner, at its desired size,
+// in place of any note there was; NULL for none.  It is the last child,
+// so it is drawn over the content.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollPane::SetNote(Ptr<CComponent> pNote)
+{
+	if (mpNote.IsNotNull())
+	{
+		RemoveComponent(mpNote);
+	}
+	mpNote = pNote;
+	if (mpNote.IsNotNull())
+	{
+		CContainer::AddComponent(mpNote);
+	}
+	LayoutChanged();
+}
+
+
+Ptr<CComponent> CScrollPane::GetNote(void) const { return mpNote; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -366,6 +392,8 @@ void CScrollPane::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	SInt32Vec2	sContentPosition;
 	SInt32Vec2	sTrackPosition;
 	SInt32Vec2	sTrackSize;
+	SInt32Vec2	sNotePosition;
+	SInt32Vec2	sNoteSize;
 	int32		iThickness;
 	bool		bHorizontal;
 	bool		bVertical;
@@ -410,6 +438,20 @@ void CScrollPane::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	sTrackPosition.Init(sPosition.x + sAreaSize.x - iThickness - miMargin, sPosition.y + miMargin);
 	sTrackSize.Init(iThickness, sAreaSize.y - miMargin * 2 - (bHorizontal ? iThickness + miMargin : 0));
 	mpVertical->Layout(sTrackPosition, sTrackSize);
+
+	if (mpNote.IsNotNull())
+	{
+		//Inside the vertical scroll bar's track, shown or not, so it doesn't move as rows come and go.
+		sNoteSize = mpNote->GetDesiredSize();
+		sNoteSize.x = (sNoteSize.x < 0) ? 0 : sNoteSize.x;
+		sNoteSize.y = (sNoteSize.y < 0) ? 0 : sNoteSize.y;
+		sNoteSize.x = (sNoteSize.x > sAreaSize.x) ? sAreaSize.x : sNoteSize.x;
+		sNoteSize.y = (sNoteSize.y > sAreaSize.y) ? sAreaSize.y : sNoteSize.y;
+		sNotePosition.x = sPosition.x + sAreaSize.x - iThickness - miMargin * 2 - sNoteSize.x;
+		sNotePosition.x = (sNotePosition.x < sPosition.x) ? sPosition.x : sNotePosition.x;
+		sNotePosition.y = sPosition.y + miMargin;
+		mpNote->Layout(sNotePosition, sNoteSize);
+	}
 
 	if ((sScrollPosition.x != sPreviousScroll.x) || (sScrollPosition.y != sPreviousScroll.y))
 	{
