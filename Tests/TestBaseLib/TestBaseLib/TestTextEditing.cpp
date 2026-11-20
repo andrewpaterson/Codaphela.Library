@@ -1,3 +1,4 @@
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/TextEditing.h"
 #include "TestLib/Assert.h"
@@ -401,6 +402,7 @@ void TestTextEditingLines(void)
 //////////////////////////////////////////////////////////////////////////
 void TestTextEditingUndo(void)
 {
+	CArrayChars		aszTexts;
 	STestTextEditing	s;
 	STextRange			asRanges[2];
 	size				uiId;
@@ -440,6 +442,23 @@ void TestTextEditingUndo(void)
 
 	AssertTrue(s.cEditing.UndoTo(uiId));
 	AssertString("x yab", s.Text());
+
+	//Each range its own text, as one edit too: a text for each, or nothing is replaced.
+	asRanges[0].uiStart = 0;
+	asRanges[0].uiEnd = 1;
+	asRanges[1].uiStart = 2;
+	asRanges[1].uiEnd = 5;
+	aszTexts.Init();
+	aszTexts.Add("first");
+	AssertFalse(s.cEditing.ReplaceRanges(asRanges, 2, &aszTexts));
+	AssertString("x yab", s.Text());
+	aszTexts.Add("");
+	AssertTrue(s.cEditing.ReplaceRanges(asRanges, 2, &aszTexts));
+	AssertString("first ", s.Text());
+	aszTexts.Kill();
+	AssertTrue(s.cEditing.Undo());
+	AssertString("x yab", s.Text());
+
 	AssertTrue(s.cEditing.Undo());
 	AssertFalse(s.cEditing.Undo());
 	AssertString("x y", s.Text());

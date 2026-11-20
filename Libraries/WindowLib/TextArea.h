@@ -257,6 +257,7 @@ public:
 	void				GetBoxRanges(CArrayTextRange* pasDest);
 	void				SelectAll(void);
 	bool				ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText);
+	bool				ReplaceRanges(STextRange* asRanges, size uiNumRanges, CArrayChars* paszTexts);
 
 	void				LineUp(void);
 	void				LineDown(void);

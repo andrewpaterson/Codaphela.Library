@@ -273,6 +273,8 @@ public:
 	void		Paste(const char* szSource);
 	void		PasteBlock(char* szSource);
 	bool		ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText);
+	bool		ReplaceRanges(STextRange* asRanges, size uiNumRanges, CArrayChars* paszTexts);
+	bool		ReplaceRanges(STextRange* asRanges, size uiNumRanges, CArrayChars* paszTexts, const char* szText);
 	bool		MoveText(size uiStart, size uiEnd, size uiTo, bool bCopy);
 	void		ReplaceText(const char* szText);
 	void		MakeInsertable(CChars* pszText);

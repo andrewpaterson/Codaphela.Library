@@ -1159,6 +1159,7 @@ bool CTextArea::GetLineGapBounds(size uiLine, CInt32Rect* pcDest)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SelectAll(void) { Select(0, mcDocument.Length()); }
 bool CTextArea::ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText) { return mcEditing.ReplaceRanges(asRanges, uiNumRanges, szText); }
+bool CTextArea::ReplaceRanges(STextRange* asRanges, size uiNumRanges, CArrayChars* paszTexts) { return mcEditing.ReplaceRanges(asRanges, uiNumRanges, paszTexts); }
 
 
 //////////////////////////////////////////////////////////////////////////

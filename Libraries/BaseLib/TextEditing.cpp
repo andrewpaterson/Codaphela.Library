@@ -1855,6 +1855,29 @@ bool CTextEditing::MoveText(size uiStart, size uiEnd, size uiTo, bool bCopy)
 //////////////////////////////////////////////////////////////////////////
 bool CTextEditing::ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText)
 {
+	return ReplaceRanges(asRanges, uiNumRanges, NULL, szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each range becomes its own text, paszTexts' at its index, as one edit:
+// a find's matches replaced with what a regular expression's groups make
+// of each.  False too if there isn't a text for each range.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::ReplaceRanges(STextRange* asRanges, size uiNumRanges, CArrayChars* paszTexts)
+{
+	if (paszTexts->NumElements() != uiNumRanges)
+	{
+		return false;
+	}
+	return ReplaceRanges(asRanges, uiNumRanges, paszTexts, NULL);
+}
+
+
+bool CTextEditing::ReplaceRanges(STextRange* asRanges, size uiNumRanges, CArrayChars* paszTexts, const char* szText)
+{
 	size	i;
 
 	if (!mbEditable || (uiNumRanges == 0))
@@ -1870,7 +1893,7 @@ bool CTextEditing::ReplaceRanges(STextRange* asRanges, size uiNumRanges, const c
 	}
 
 	BeginEdit();
-	ReplaceEachRange(asRanges, uiNumRanges, NULL, szText);
+	ReplaceEachRange(asRanges, uiNumRanges, paszTexts, szText);
 	EditDone();
 	return true;
 }
