@@ -620,9 +620,11 @@ Each ends with the whole of TestCppCompilerLib passing in Release x64 and a comm
      10a. The IDE reads code as its configuration builds it.  The code model compiles with the default options
           (CCPPCompileOptions: nothing in HCP65-IDE sets one), so with Exceptions="true" every try and throw would be an
           error to it ("try can't be used: the program is built without exceptions").  First see that it is so, on a
-          small solution with the option on; then the code model takes the active configuration's compile options
-          (Exceptions, and the others a configuration has that change what is an error: MultiWordCasts, CConversions,
-          NoFloats), and reads again when they change.  Assumed (question 17): all of them, not Exceptions alone.
+          small solution with the option on; then the code model compiles with the same options the build does, from
+          the same code that makes them (question 17, the user's answer): BuildLib's turning of a configuration into
+          CCPPCompileOptions is one function that the build and the code model both call.  It reads again when the
+          active configuration changes, as switching configuration does; an option that only changes the code written
+          (PreferSize, MathTables) mustn't make it read everything again.
      10b. Extract Method: a throw is a way out (CIDEExitFinder).  A selection that returns part of the way through is
           refused unless it ends with a return; one that ends with a throw (if (a) return 1; throw E();) leaves on every
           path too, and is extracted as return F(...);.  A throw anywhere else needs nothing (the exception leaves the new
@@ -690,7 +692,7 @@ Questions for the user
   13. Stage 4 waits for the other session's question 8 (the type info's header).  Stages 2, 3 and 5 don't; 5 is best done when the other session has left the front end's statement files.  Assumed order: 1, 2, 3, 5, 4.
   14. Types the compiler doesn't keep apart (the other session, 2026-11-18, answering 4a's check): long is int where they are one size (CCPP65Types::Long is Integer(4), so on the 65C64 they are one type), char is signed char, wchar_t and char16_t are unsigned short, char32_t is unsigned long, and nullptr has no type of its own.  So catch (long) catches a thrown int, catch (signed char) a thrown char, and throw nullptr can't be caught as std::nullptr_t; typeid and overloads have the same fault.  It is the type system's, not exceptions' or question 8's, and is question 13 of CppParserTodo.txt for the user.  Until it is answered and built, the cases of the Exceptions group that lean on it (CatchNullPointer and any that throws one of these and catches the other) stay not done, and stage 4a's check of the labels is this.  The type info has a kind for nullptr_t ready (CPP65TIK_NullPointer) that nothing writes.  Assumed: exceptions go on without it.  Overtaken 2026-11-18: the other session built steps 1, 2, 4 and 5 of its question 13 (master 390c71f1a, 16abb5c62), so int and long, char and signed char and the rest have type infos of their own and catch (long) no longer takes an int; what is left of it there is its steps 3 and 6.
   16. Stage 9's bar for speeding exceptions up (9c): only if the option on costs a program more than 5% in size or 2% in time on either processor.  The user doesn't use the option (2026-11-20: "Make them fast if needed but I'm not fussed").  Assumed: yes.
-  17. Stage 10a's options for the IDE's code model: all of a configuration's compile options that change what is an error, not Exceptions alone (a code model that reads a program otherwise than it is built shows errors it hasn't, or none it has).  Assumed: yes.
+  17. Stage 10a's options for the IDE's code model.  Answered 2026-11-20 (the user: "the code model compiles with the same options the build does, from the same code that makes them"): all of them, made by the code BuildLib's build makes them with, so the two can't disagree and an option added later needs nothing more.
 
 Progress
 --------
