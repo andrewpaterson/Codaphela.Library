@@ -155,7 +155,7 @@ public:
 	void				Free(void) override;
 
 	bool				IsReady(void) const;
-	const char*			GetDeviceName(void);
+	const char*			GetDeviceName(void) const;
 	CVulkanFunctions*	GetFunctions(void);
 	VkDevice			GetDevice(void) const;
 

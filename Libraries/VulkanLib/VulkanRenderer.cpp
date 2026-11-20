@@ -1549,7 +1549,7 @@ bool CVulkanRenderer::EndFrame(uint32* puiPixels)
 //
 //////////////////////////////////////////////////////////////////////////
 bool CVulkanRenderer::IsReady(void) const { return mbReady; }
-const char* CVulkanRenderer::GetDeviceName(void) { return mszDeviceName.Text(); }
+const char* CVulkanRenderer::GetDeviceName(void) const { return mszDeviceName.Text(); }
 CVulkanFunctions* CVulkanRenderer::GetFunctions(void) { return &mcVulkan; }
 VkDevice CVulkanRenderer::GetDevice(void) const { return mhDevice; }
 
