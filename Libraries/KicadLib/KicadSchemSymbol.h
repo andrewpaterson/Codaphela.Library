@@ -64,10 +64,10 @@ public:
 	void						SetDoNotPopulate(bool bDoNotPopulate);
 	CKicadSchemSymbolInstance*	AddInstance(char* szProject, char* szPath, char* szReference, int32 iUnit);
 
-	char*						GetLibId(void);
-	char*						GetLibName(void);
-	char*						GetLibSymbolName(void);
-	char*						GetUuid(void);
+	const char*						GetLibId(void) const;
+	const char*						GetLibName(void) const;
+	const char*						GetLibSymbolName(void) const;
+	const char*						GetUuid(void) const;
 	SFloat64Vec2*				GetPosition(void);
 	float64						GetAngle(void) const;
 	EKicadSchemMirror			GetMirror(void) const;

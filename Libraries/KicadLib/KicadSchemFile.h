@@ -78,16 +78,16 @@ public:
 	CKicadSchemLabel*		AddLabel(EKicadSchemLabelType eType, char* szText);
 	CKicadSchemSheet*		AddSheet(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
 
-	char*					GetFileName(void);
+	const char*					GetFileName(void) const;
 	int32					GetVersion(void) const;
-	char*					GetGenerator(void);
-	char*					GetGeneratorVersion(void);
-	char*					GetUuid(void);
-	char*					GetPaper(void);
-	char*					GetTitle(void);
-	char*					GetDate(void);
-	char*					GetRevision(void);
-	char*					GetCompany(void);
+	const char*					GetGenerator(void) const;
+	const char*					GetGeneratorVersion(void) const;
+	const char*					GetUuid(void) const;
+	const char*					GetPaper(void) const;
+	const char*					GetTitle(void) const;
+	const char*					GetDate(void) const;
+	const char*					GetRevision(void) const;
+	const char*					GetCompany(void) const;
 
 	size					NumLibSymbols(void) const;
 	CKicadSchemLibSymbol*	GetLibSymbol(size uiIndex);

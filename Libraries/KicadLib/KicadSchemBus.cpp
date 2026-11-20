@@ -115,7 +115,7 @@ void CKicadSchemBus::AddMember(char* szMember)
 // The bus's first label, or NULL if it has none.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemBus::GetName(void)
+const char* CKicadSchemBus::GetName(void)
 {
 	if (mapcLabels.NumElements() == 0)
 	{
@@ -129,7 +129,7 @@ char* CKicadSchemBus::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CKicadSchemBus::GetMemberIndex(char* szMember)
+size CKicadSchemBus::GetMemberIndex(const char* szMember)
 {
 	return maszMembers.GetIndex(szMember);
 }

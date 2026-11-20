@@ -62,7 +62,7 @@ public:
 	bool					Is(const char* szName);
 	bool					IsSymbol(const char* szText);
 
-	char*					GetText(void);
+	const char*					GetText(void) const;
 	size					GetLine(void) const;
 
 	size					NumChildren(void) const;
@@ -72,7 +72,7 @@ public:
 	size					CountChildren(const char* szName);
 	bool					ContainsSymbol(const char* szSymbol);
 
-	char*					GetAtomText(size uiIndex);
+	const char*					GetAtomText(size uiIndex);
 	bool					GetDouble(size uiIndex, float64* pfValue);
 	bool					GetInt(size uiIndex, int32* piValue);
 

@@ -88,7 +88,7 @@ bool CKicadSchemWire::IsBus(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemWire::GetUuid(void)
+const char* CKicadSchemWire::GetUuid(void) const
 {
 	return mszUuid.Text();
 }

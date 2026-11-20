@@ -175,7 +175,7 @@ CKicadSchemSymbolInstance* CKicadSchemSymbol::AddInstance(char* szProject, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSymbol::GetLibId(void)
+const char* CKicadSchemSymbol::GetLibId(void) const
 {
 	return mszLibId.Text();
 }
@@ -185,7 +185,7 @@ char* CKicadSchemSymbol::GetLibId(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSymbol::GetLibName(void)
+const char* CKicadSchemSymbol::GetLibName(void) const
 {
 	return mszLibName.Text();
 }
@@ -195,7 +195,7 @@ char* CKicadSchemSymbol::GetLibName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSymbol::GetLibSymbolName(void)
+const char* CKicadSchemSymbol::GetLibSymbolName(void) const
 {
 	if (mszLibName.Empty())
 	{
@@ -209,7 +209,7 @@ char* CKicadSchemSymbol::GetLibSymbolName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSymbol::GetUuid(void)
+const char* CKicadSchemSymbol::GetUuid(void) const
 {
 	return mszUuid.Text();
 }

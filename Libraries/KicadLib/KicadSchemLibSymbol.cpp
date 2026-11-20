@@ -122,7 +122,7 @@ void CKicadSchemLibSymbol::SetPinNumbersHidden(bool bHidden)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemLibSymbol::GetName(void)
+const char* CKicadSchemLibSymbol::GetName(void) const
 {
 	return mszName.Text();
 }
@@ -132,7 +132,7 @@ char* CKicadSchemLibSymbol::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemLibSymbol::GetExtends(void)
+const char* CKicadSchemLibSymbol::GetExtends(void) const
 {
 	return mszExtends.Text();
 }

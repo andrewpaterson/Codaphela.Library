@@ -50,7 +50,7 @@ void CKicadSchemSymbolInstance::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSymbolInstance::GetProject(void)
+const char* CKicadSchemSymbolInstance::GetProject(void) const
 {
 	return mszProject.Text();
 }
@@ -60,7 +60,7 @@ char* CKicadSchemSymbolInstance::GetProject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSymbolInstance::GetPath(void)
+const char* CKicadSchemSymbolInstance::GetPath(void) const
 {
 	return mszPath.Text();
 }
@@ -70,7 +70,7 @@ char* CKicadSchemSymbolInstance::GetPath(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSymbolInstance::GetReference(void)
+const char* CKicadSchemSymbolInstance::GetReference(void) const
 {
 	return mszReference.Text();
 }

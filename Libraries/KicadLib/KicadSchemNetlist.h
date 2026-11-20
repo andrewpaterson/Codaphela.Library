@@ -91,7 +91,7 @@ public:
 	CKicadSchemNet*		GetNet(char* szName);
 	CKicadSchemSubnet*	GetPinSubnet(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
 	CKicadSchemSubnet*	GetPinSubnet(char* szReference, char* szPinNumber);
-	CKicadSchemNet*		GetPinNet(char* szReference, char* szPinNumber);
+	CKicadSchemNet*		GetPinNet(char* szReference, const char* szPinNumber);
 	size				NumBuses(void) const;
 	CKicadSchemBus*		GetBus(size uiIndex);
 	CKicadSchemBus*		GetBus(char* szName);
@@ -102,7 +102,7 @@ public:
 
 	static bool			IsGlobalPowerPin(CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin);
 	static bool			IsSharedPin(CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
-	static char*		GetGlobalPowerName(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin);
+	static const char*		GetGlobalPowerName(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin);
 
 protected:
 	bool				AddNodes(void);
@@ -111,7 +111,7 @@ protected:
 	void				CreateSubnets(void);
 	void				CreateNets(void);
 	void				AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents);
-	void				AddSubnetName(char* szScope, char* szName, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents);
+	void				AddSubnetName(char* szScope, const char* szName, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents);
 	void				NameNet(CKicadSchemNet* pcNet);
 	void				CreateBuses(void);
 	void				AddBusTaps(void);

@@ -36,7 +36,7 @@ public:
 	CKicadSchemProperty*	Add(char* szName, char* szValue);
 
 	CKicadSchemProperty*	Get(const char* szName);
-	char*					GetValue(const char* szName);
+	const char*					GetValue(const char* szName);
 	size					NumProperties(void) const;
 	CKicadSchemProperty*	GetProperty(size uiIndex);
 };

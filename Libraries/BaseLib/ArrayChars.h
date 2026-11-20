@@ -52,7 +52,7 @@ public:
 	CChars*		Add(const char* szString, size iStartInclusive, size iEndExclusive);
 	CChars*		Add(const char* szText, char* szLastCharInclusive);
 	CChars*		AddLength(size uiLength);
-	CChars*		AddIfUnique(char* szString);
+	CChars*		AddIfUnique(const char* szString);
 	CChars*		AddIfUnique(CChars cChars);
 	void		AddList(const char* sz, ...);
 	CChars*		InsertIntoSorted(char* szText, char* szLastCharInclusive);

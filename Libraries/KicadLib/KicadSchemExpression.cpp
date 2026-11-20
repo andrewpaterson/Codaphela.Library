@@ -144,7 +144,7 @@ bool CKicadSchemExpression::IsSymbol(const char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemExpression::GetText(void)
+const char* CKicadSchemExpression::GetText(void) const
 {
 	return mszText.Text();
 }
@@ -263,7 +263,7 @@ bool CKicadSchemExpression::ContainsSymbol(const char* szSymbol)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemExpression::GetAtomText(size uiIndex)
+const char* CKicadSchemExpression::GetAtomText(size uiIndex)
 {
 	CKicadSchemExpression*	pcChild;
 

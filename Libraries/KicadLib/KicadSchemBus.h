@@ -64,14 +64,14 @@ public:
 	void					AddMember(char* szMember);
 
 	CKicadSchemSubnet*		GetSubnet(void);
-	char*					GetName(void);
+	const char*					GetName(void);
 	size					NumLabels(void) const;
 	CKicadSchemLabel*		GetLabel(size uiIndex);
 	size					NumTaps(void) const;
 	SKicadSchemBusTap*		GetTap(size uiIndex);
 	size					NumMembers(void) const;
 	char*					GetMember(size uiIndex);
-	size					GetMemberIndex(char* szMember);
+	size					GetMemberIndex(const char* szMember);
 	bool					Contains(SFloat64Vec2* psPoint, bool* pbVertical);
 };
 

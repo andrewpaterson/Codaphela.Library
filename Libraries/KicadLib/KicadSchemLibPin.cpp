@@ -117,7 +117,7 @@ EKicadSchemPinType CKicadSchemLibPin::GetType(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemLibPin::GetGraphicStyle(void)
+const char* CKicadSchemLibPin::GetGraphicStyle(void) const
 {
 	return mszGraphicStyle.Text();
 }
@@ -127,7 +127,7 @@ char* CKicadSchemLibPin::GetGraphicStyle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemLibPin::GetName(void)
+const char* CKicadSchemLibPin::GetName(void) const
 {
 	return mszName.Text();
 }
@@ -137,7 +137,7 @@ char* CKicadSchemLibPin::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemLibPin::GetNumber(void)
+const char* CKicadSchemLibPin::GetNumber(void) const
 {
 	return mszNumber.Text();
 }

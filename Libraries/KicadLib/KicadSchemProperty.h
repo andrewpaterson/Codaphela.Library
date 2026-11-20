@@ -41,8 +41,8 @@ public:
 	void				SetPosition(SFloat64Vec2* psPosition, float64 fAngle);
 	void				SetHidden(bool bHidden);
 
-	char*				GetName(void);
-	char*				GetValue(void);
+	const char*				GetName(void) const;
+	const char*				GetValue(void) const;
 	SFloat64Vec2*		GetPosition(void);
 	float64				GetAngle(void) const;
 	bool				IsHidden(void) const;

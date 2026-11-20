@@ -366,7 +366,7 @@ CKicadSchemSheet* CKicadSchemFile::AddSheet(SFloat64Vec2* psPosition, SFloat64Ve
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemFile::GetFileName(void)
+const char* CKicadSchemFile::GetFileName(void) const
 {
 	return mszFileName.Text();
 }
@@ -386,7 +386,7 @@ int32 CKicadSchemFile::GetVersion(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemFile::GetGenerator(void)
+const char* CKicadSchemFile::GetGenerator(void) const
 {
 	return mszGenerator.Text();
 }
@@ -396,7 +396,7 @@ char* CKicadSchemFile::GetGenerator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemFile::GetGeneratorVersion(void)
+const char* CKicadSchemFile::GetGeneratorVersion(void) const
 {
 	return mszGeneratorVersion.Text();
 }
@@ -406,7 +406,7 @@ char* CKicadSchemFile::GetGeneratorVersion(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemFile::GetUuid(void)
+const char* CKicadSchemFile::GetUuid(void) const
 {
 	return mszUuid.Text();
 }
@@ -416,7 +416,7 @@ char* CKicadSchemFile::GetUuid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemFile::GetPaper(void)
+const char* CKicadSchemFile::GetPaper(void) const
 {
 	return mszPaper.Text();
 }
@@ -426,7 +426,7 @@ char* CKicadSchemFile::GetPaper(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemFile::GetTitle(void)
+const char* CKicadSchemFile::GetTitle(void) const
 {
 	return mszTitle.Text();
 }
@@ -436,7 +436,7 @@ char* CKicadSchemFile::GetTitle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemFile::GetDate(void)
+const char* CKicadSchemFile::GetDate(void) const
 {
 	return mszDate.Text();
 }
@@ -446,7 +446,7 @@ char* CKicadSchemFile::GetDate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemFile::GetRevision(void)
+const char* CKicadSchemFile::GetRevision(void) const
 {
 	return mszRevision.Text();
 }
@@ -456,7 +456,7 @@ char* CKicadSchemFile::GetRevision(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemFile::GetCompany(void)
+const char* CKicadSchemFile::GetCompany(void) const
 {
 	return mszCompany.Text();
 }

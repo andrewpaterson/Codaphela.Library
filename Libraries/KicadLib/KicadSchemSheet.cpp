@@ -104,7 +104,7 @@ SFloat64Vec2* CKicadSchemSheet::GetSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSheet::GetUuid(void)
+const char* CKicadSchemSheet::GetUuid(void) const
 {
 	return mszUuid.Text();
 }

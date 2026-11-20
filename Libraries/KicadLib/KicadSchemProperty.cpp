@@ -71,7 +71,7 @@ void CKicadSchemProperty::SetHidden(bool bHidden)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemProperty::GetName(void)
+const char* CKicadSchemProperty::GetName(void) const
 {
 	return mszName.Text();
 }
@@ -81,7 +81,7 @@ char* CKicadSchemProperty::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemProperty::GetValue(void)
+const char* CKicadSchemProperty::GetValue(void) const
 {
 	return mszValue.Text();
 }

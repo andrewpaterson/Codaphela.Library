@@ -432,7 +432,7 @@ void CKicadSchemNetlist::AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemNetlist::AddSubnetName(char* szScope, char* szName, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents)
+void CKicadSchemNetlist::AddSubnetName(char* szScope, const char* szName, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents)
 {
 	CChars	szKey;
 	size	uiIndex;
@@ -476,7 +476,7 @@ void CKicadSchemNetlist::NameNet(CKicadSchemNet* pcNet)
 	CKicadSchemLabel*		pcLabel;
 	char*					szGlobal;
 	char*					szLocal;
-	char*					szName;
+	const char*					szName;
 	int						iCompare;
 	CChars					szPinName;
 
@@ -615,7 +615,7 @@ bool CKicadSchemNetlist::IsGlobalPowerPin(CKicadSchemLibSymbol* pcLibSymbol, CKi
 // pin's name, which was the same) or a hidden power pin's name.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemNetlist::GetGlobalPowerName(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin)
+const char* CKicadSchemNetlist::GetGlobalPowerName(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin)
 {
 	char*	szValue;
 
@@ -1017,7 +1017,7 @@ CKicadSchemSubnet* CKicadSchemNetlist::GetPinSubnet(char* szReference, char* szP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CKicadSchemNet* CKicadSchemNetlist::GetPinNet(char* szReference, char* szPinNumber)
+CKicadSchemNet* CKicadSchemNetlist::GetPinNet(char* szReference, const char* szPinNumber)
 {
 	CKicadSchemSubnet*	pcSubnet;
 

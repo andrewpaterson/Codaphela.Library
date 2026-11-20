@@ -59,7 +59,7 @@ void CKicadSchemSheetPin::SetPosition(SFloat64Vec2* psPosition, float64 fAngle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemSheetPin::GetName(void)
+const char* CKicadSchemSheetPin::GetName(void) const
 {
 	return mszName.Text();
 }

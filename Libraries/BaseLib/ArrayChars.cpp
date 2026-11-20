@@ -382,7 +382,7 @@ void CArrayChars::AddList(const char* sz, ...)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayChars::AddIfUnique(char* szString)
+CChars* CArrayChars::AddIfUnique(const char* szString)
 {
 	size		i;
 	CChars*		pcExisting;

@@ -91,7 +91,7 @@ CKicadSchemProperty* CKicadSchemProperties::Get(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemProperties::GetValue(const char* szName)
+const char* CKicadSchemProperties::GetValue(const char* szName)
 {
 	CKicadSchemProperty*	pcProperty;
 

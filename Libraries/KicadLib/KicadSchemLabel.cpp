@@ -80,7 +80,7 @@ EKicadSchemLabelType CKicadSchemLabel::GetType(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CKicadSchemLabel::GetText(void)
+const char* CKicadSchemLabel::GetText(void) const
 {
 	return mszText.Text();
 }

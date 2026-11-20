@@ -37,9 +37,9 @@ public:
 	void	Init(char* szProject, char* szPath, char* szReference, int32 iUnit);
 	void	Kill(void);
 
-	char*	GetProject(void);
-	char*	GetPath(void);
-	char*	GetReference(void);
+	const char*	GetProject(void) const;
+	const char*	GetPath(void) const;
+	const char*	GetReference(void) const;
 	int32	GetUnit(void) const;
 };
 
