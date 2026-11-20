@@ -447,6 +447,7 @@ public:
 	CCPPFunction*			AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
 	bool					CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 	bool					NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode);
+	bool					CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcInit, CCPPSyntax* pcInitialiser);
 	bool					CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition);
 	bool					CheckAllocationFunction(int64 lliName, SCPP65Type* psReturn, CArrayCPP65Types* papsParameters, CCPPSyntax* pcNode);
 	bool					IsAllocationName(CCPPSyntaxDeclarator* pcDeclarator);
@@ -903,6 +904,8 @@ public:
 	void					CheckNode(CCPPSyntax* pcNode);
 	void					CheckChildren(CCPPSyntax* pcNode);
 	void					CheckExpression(CCPPSyntax* pcExpression);
+	void					CheckLambdas(CCPPSyntax* pcNode);
+	void					CheckLambda(CCPPSyntaxLambdaExpression* pcLambda);
 	void					CheckLocal(CCPPSyntaxInitDeclarator* pcInit);
 	bool					IsCheckedExpression(CCPPSyntax* pcNode);
 	void					Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction);

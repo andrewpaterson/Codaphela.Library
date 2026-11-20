@@ -46,6 +46,7 @@ protected:
 
 public:
 	bool			CanInitialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser);
+	const char*		NotAPlace(CCPPSyntaxName* pcName);
 	void			VisitDefault(CCPPSyntax* pcNode) override;
 	void			VisitLiteralExpression(CCPPSyntaxLiteralExpression* pcNode) override;
 	void			VisitStringExpression(CCPPSyntaxStringExpression* pcNode) override;

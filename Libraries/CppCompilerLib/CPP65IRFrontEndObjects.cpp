@@ -1134,12 +1134,23 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	SIRReference			sThis;
 	size					ui;
 	size					uiArgument;
+	size					uiErrors;
 	bool					bResult;
 
 	papcArguments = mpcUnit->ExpandArguments(papcArguments);
 	if (!papcArguments || !mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, mpcCPPFunction->mpcDefinition, &cBound, false))
 	{
-		return Unsupported(__FILE__, __LINE__);
+		//Why it can't be made is said where the type checker is asked: of an expression, and of a variable's
+		//declaration (CCPPUnit::CheckDeclared).  It isn't asked of a base or a member its constructor gives
+		//nothing, so that is said here.
+		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		if (papcArguments)
+		{
+			mpcUnit->BeginLoud();
+			mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, mpcCPPFunction->mpcDefinition, &cBound, true);
+			mpcUnit->EndLoud();
+		}
+		return (mpcUnit->GetErrors()->NumErrors() > uiErrors) ? false : Unsupported(__FILE__, __LINE__);
 	}
 	if (cBound.meHow == CPPBO_Constructor)
 	{

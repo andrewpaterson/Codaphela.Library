@@ -1708,6 +1708,11 @@ SCPP65Type* CCPP65TypeChecker::CallThroughPointer(CCPPSyntaxCallExpression* pcCa
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::Call(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
+	if (pcFunction->mbDeprecated)
+	{
+		//[[deprecated]]: it can still be called, and the program is told.  [dcl.attr.deprecated] 4
+		mpcUnit->Warning(pcNode, "The function is deprecated");
+	}
 	if (pcFunction->mpcTemplate && !pcFunction->mpcDefinition && pcFunction->mpcTemplate->mbMemberTemplate && !mpcUnit->IsUnevaluated())
 	{
 		//A template only declared can be named in sizeof and decltype, not called.  [basic.def.odr] 4
@@ -2397,7 +2402,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 			psType = mpcUnit->IsUnevaluated() ? mpcUnit->QualifiedFieldType(pcExpression) : NULL;
 			if (!psType)
 			{
-				Error(pcExpression, "Only variables are supported by the compiler here yet");
+				Error(pcExpression, NotAPlace(((CCPPSyntaxIdExpression*)pcExpression)->mpcName));
 			}
 			return psType;
 		}
@@ -3090,6 +3095,27 @@ bool CCPP65TypeChecker::NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
 bool CCPP65TypeChecker::ConstantNotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
 {
 	return !Narrows(pcSource, psTo) || mpcUnit->ReportError(pcSource, "The constant's value isn't one of the type it is converted to");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is wrong with a name that is used as an object and names none:
+// Class::name where the class has no such member, or a member that isn't
+// static, which only an object has ([expr.prim.general] 13).
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CCPP65TypeChecker::NotAPlace(CCPPSyntaxName* pcName)
+{
+	if (pcName->IsQualifiedByClass() && !pcName->mpcSymbol)
+	{
+		return "The class has no member of that name";
+	}
+	if (pcName->IsQualifiedByClass() && (pcName->mpcSymbol->meKind == CPPSK_Field))
+	{
+		return "A member that isn't static is used without an object";
+	}
+	return "Only variables are supported by the compiler here yet";
 }
 
 

@@ -429,6 +429,27 @@ void TestCppSemanticPassQueued(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A lambda's body is checked where the lambda is, whether or not anything
+// calls it: what is wrong in it is found, a lambda in it too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppSemanticPassLambdaBodies(void)
+{
+	AssertTrue(TestCppSemanticPassCheck(
+		"int Take(int (*pf)(int)) { return pf(2); }\n"
+		"int First(int x) { auto l = [x](int y) { int z = x + y; return z; }; return Take([](int v) { return v + 1; }) + l(1); }\n"));
+	AssertFalse(TestCppSemanticPassCheck(
+		"int First(int x) { auto l = [x](int y) { return x + y + giNotDeclared; }; return 0; }\n"));
+	AssertFalse(TestCppSemanticPassCheck(
+		"int Take(int (*pf)(int)) { return pf(2); }\n"
+		"int First(int x) { return Take([](int v) { return v + giNotDeclared; }); }\n"));
+	AssertFalse(TestCppSemanticPassCheck(
+		"int First(int x) { auto l = [x]() { auto m = [](int y) { return y + giNotDeclared; }; return 1; }; return 0; }\n"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A kept check of szSource with szEnum taken as an enum class
 // (CCPPSemanticPass::SetRecordedEnum; NULL for none): whether it checked
 // without an error, and the kinds (CPPEC_, a digit each, in order of
@@ -1990,6 +2011,7 @@ void TestCppIndex(void)
 	TestCppIndexConstructorDefinitions();
 	TestCppIndexSemanticPass();
 	TestCppSemanticPassQueued();
+	TestCppSemanticPassLambdaBodies();
 	TestCppSemanticPassUndeclaredTypes();
 	TestCppSemanticPassRecordedEnum();
 	TestCppSemanticPassHost();

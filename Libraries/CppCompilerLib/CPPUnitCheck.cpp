@@ -387,11 +387,77 @@ void CCPPUnit::CheckExpression(CCPPSyntax* pcExpression)
 {
 	if (mcTypeChecker.Value(pcExpression))
 	{
+		CheckLambdas(pcExpression);
 		return;
 	}
 	BeginQuiet();
 	CheckChildren(pcExpression);
 	EndQuiet();
+}
+
+
+//Checks the lambdas in each of a node's children (CCPPUnit::CheckLambdas).
+class CCPP65CheckLambdas : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPUnit*	mpcUnit;
+
+	void	Visit(CCPPSyntax* pcChild) override	{ mpcUnit->CheckLambdas(pcChild); }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bodies of the lambdas in an expression that has been typed: typing
+// one makes its closure, and says nothing of what its body does.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CheckLambdas(CCPPSyntax* pcNode)
+{
+	CCPP65CheckLambdas	cChildren;
+
+	if (!pcNode)
+	{
+		return;
+	}
+	if (pcNode->GetKind() == CPPS_LambdaExpression)
+	{
+		CheckLambda((CCPPSyntaxLambdaExpression*)pcNode);
+		return;
+	}
+	cChildren.mpcUnit = this;
+	pcNode->VisitFields(&cChildren);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A lambda's body is checked as its closure's operator() (a lambda in it
+// in its turn), in the function the lambda is in, whether or not anything
+// calls it.  A generic lambda's operator() is one for each call's
+// arguments, checked when it is called.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
+{
+	SCPPFunctionScope	sScope;
+	SCPPLambda*			psLambda;
+	CCPPFunction*		pcCall;
+
+	BeginQuiet();
+	psLambda = GetLambda(pcLambda);
+	EndQuiet();
+	pcCall = psLambda ? psLambda->pcCall : NULL;
+	if (!pcCall || pcCall->mbGenerated)
+	{
+		return;
+	}
+	pcCall->mbGenerated = true;
+	EnterFunctionScope(&sScope, pcCall);
+	AddParameters(pcCall, pcCall->mpcDeclarator);
+	AllocateLocals(pcLambda->mpcDefinition->mpcBody);
+	CheckNode(pcLambda->mpcDefinition->mpcBody);
+	LeaveFunctionScope(&sScope);
 }
 
 
@@ -412,7 +478,7 @@ void CCPPUnit::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 	}
 	CheckPointerExceptions(pcInit);
 	pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
-	if (pcVariable && mcTypeChecker.Initialise(pcVariable->mpsType, pcInit->mpcInitializer, pcInit))
+	if (pcVariable && CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer) && mcTypeChecker.Initialise(pcVariable->mpsType, pcInit->mpcInitializer, pcInit))
 	{
 		return;
 	}

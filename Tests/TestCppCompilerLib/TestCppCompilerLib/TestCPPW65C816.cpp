@@ -5191,6 +5191,26 @@ void TestCPP816OverrideWarnings(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A call of a function a declaration marks [[deprecated]] is warned of,
+// each call once: one marked where it is declared and defined later, a
+// member function, and a template's instances.  A function that isn't
+// marked isn't.  [dcl.attr.deprecated]
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816DeprecatedWarnings(void)
+{
+	const char*	szWarning = "is deprecated";
+
+	AssertInt(1, TestCPP816CountWarnings("[[deprecated(\"old\")]] int F(void) { return 3; }\nint G(void) { return 4; }\nint H(void) { return F() + G(); }\n", szWarning));
+	AssertInt(2, TestCPP816CountWarnings("[[deprecated]] int F(int i);\nint F(int i) { return i; }\nint H(void) { return F(1) + F(2); }\n", szWarning));
+	AssertInt(1, TestCPP816CountWarnings("struct S { [[deprecated]] int F(void) { return 1; } int G(void) { return 2; } };\nint H(void) { S s; return s.F() + s.G(); }\n", szWarning));
+	AssertInt(2, TestCPP816CountWarnings("template<class T> [[deprecated]] T F(T t) { return t; }\nint H(void) { return F(1) + (int)F(2L); }\n", szWarning));
+	AssertInt(0, TestCPP816CountWarnings("int F(void) { return 3; }\nint H(void) { return F(); }\n", szWarning));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A string literal is const, and its conversion to a char*, which C++14
 // doesn't have, is still made: warned about when that is asked for
 // (mbWarnStringToPointer), a variable's initialiser, an argument and an
@@ -6794,6 +6814,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816RangeWarnings());
 	TEST_PART(TestCPP816LoopCounterWarnings());
 	TEST_PART(TestCPP816OverrideWarnings());
+	TEST_PART(TestCPP816DeprecatedWarnings());
 	TEST_PART(TestCPP816StringLiteralWarnings());
 	TEST_PART(TestCPP816CConversions());
 	TEST_PART(TestCPP816MultiWordCasts());

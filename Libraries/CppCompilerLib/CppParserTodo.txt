@@ -811,6 +811,26 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       CCPP65IRFrontEnd::CopyParts takes from the complete class, known where an object is copied and not in
       the function); and the member of a union read in a constant that isn't the one last given a value, where
       the two are as long (the interpreter keeps bytes).
+    - What a variable's declaration must be is asked in one place, CCPPUnit::CheckDeclared (an initialiser where
+      its type needs one, no copy initialisation through an explicit constructor, and for an object with no
+      initialiser the type checker's Initialise): of a local by the IR front end, of a global by GlobalDeclaration
+      and of either by the semantic pass's CheckLocal, which asked none of the three.  So S s; with no default
+      constructor says "No function matches the arguments (): it takes (int)" at the variable, and S s(1, 2);
+      that no constructor takes says it where the IR front end can't bind it
+      (CCPP65IRFrontEnd::ConstructClass, which says it of a base or a member too); they were "This function
+      uses C++ the compiler doesn't support yet", and of a global "This global's construction or destruction uses
+      C++ the IR front end doesn't support yet".  The type checker isn't asked of a declaration that has an
+      initialiser: its Construct refuses what the front end makes (a default member initialiser that names an
+      earlier member in an aggregate, some arrays of objects), which is where the two still differ.  Class::name of a name the
+      class doesn't have is "The class has no member of that name", and of a member that isn't static, with no
+      object, "A member that isn't static is used without an object" (CCPP65TypeChecker::NotAPlace); both were
+      "Only variables are supported by the compiler here yet".
+    - The semantic pass checks a lambda's body where the lambda is, whether or not anything calls it
+      (CCPPUnit::CheckLambdas, CheckLambda; TestCppSemanticPassLambdaBodies).  A generic lambda's is checked for
+      each call.
+    - A call of a function a declaration marks [[deprecated]] is warned of (CCPPFunction::mbDeprecated;
+      TestCPP816DeprecatedWarnings).  Not a variable, a class or an enumerator that is marked, nor the
+      attribute's message.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

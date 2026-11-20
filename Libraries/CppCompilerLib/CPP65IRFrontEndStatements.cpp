@@ -425,8 +425,9 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if (!pcInit->mpcInitializer && (pcVariable->meStorage != CPPVS_Global) && !mpcUnit->NeedsNoInitialiser(pcVariable->mpsType, pcInit))
+		if ((pcVariable->meStorage != CPPVS_Global) && !mpcUnit->CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer))
 		{
+			//(An extern declaration in a function only names a global.)
 			return false;
 		}
 		if ((pcVariable->meStorage == CPPVS_Static) && pcVariable->mbGuarded)
@@ -461,10 +462,6 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		{
 			//Objects are constructed (by default without an initialiser) and destroyed when their scope is left; a
 			//std::initializer_list's array lives as long as it does.
-			if (pcVariable->mpsType->IsClass() && !mpcUnit->GetBinder()->CopyInitialises(pcVariable->mpsType->pcClass, pcInit))
-			{
-				return false;
-			}
 			mbListLocal = mpcUnit->InitializerListElement(pcVariable->mpsType) != NULL;
 			bResult = Construct(&sPlace, NULL, pcInit->mpcInitializer);
 			mbListLocal = false;
