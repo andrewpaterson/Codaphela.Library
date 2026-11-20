@@ -3259,7 +3259,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	}
 
 	//(object) copies it, as = object does, when no copy constructor of the class's own is to be called.
-	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !pcClass->HasCopyConstructor())
+	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !mpcUnit->GetBinder()->CopiesByConstructor(pcClass, papcArguments->GetPtr(0)))
 	{
 		psSource = ObjectType(papcArguments->GetPtr(0));
 		if (psSource && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
@@ -3397,7 +3397,7 @@ bool CCPP65TypeChecker::CopyConstruct(CCPPClass* pcClass, CCPPSyntax* pcSource, 
 	CArraySyntax	apcArguments;
 	bool			bResult;
 
-	if (pcClass->HasCopyConstructor())
+	if (mpcUnit->GetBinder()->CopiesByConstructor(pcClass, pcSource))
 	{
 		apcArguments.Init();
 		apcArguments.Add(pcSource);

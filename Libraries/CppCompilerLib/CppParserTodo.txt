@@ -854,6 +854,18 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       TestCppSemanticPassDeclarations.  Found by the measuring: the check of operator new's first parameter
       (item 30) had broken six older cases that declared size_t as unsigned long, and the lists had been written
       with them as not done; they declare it as decltype(sizeof(0)) now and pass.
+    - 11.  template<class T> S(T&& t) is chosen for a copy when it takes the object better than the copy
+      constructor: an S that isn't const (it is S(S&)), and an object of a derived class (as itself, not as its
+      base).  A const S and one that is going deduce S(const S&) and S(S&&), which the copy and move constructors
+      already are, and the one that isn't a template's is used.  Where an object is made from another the question
+      was "does the class declare a copy constructor": it is CCPPBinder::CopiesByConstructor now, which is that or
+      CCPPOverloads::InstanceCopies, and the four places that asked (the checker's and the IR front end's
+      Construct and CopyConstruct) and the copy of an argument passed by value (whose bytes were pushed) ask it.
+      A template's instance is never the class's copy constructor (CCPPClass::GetCopier: once S(const S&) had
+      been made from the template every later copy called it).  FindConstructor and FindFunctionOrInstance are
+      one call of FindFunction each, with the instance from MemberInstance.  The compiler's own copy of an object
+      with such a member or base copies it as const, so never by the template.  S(T) takes no S.
+      TempConstructorTemplateCopies, TempConstructorTemplateCopiesForms.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

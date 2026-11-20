@@ -839,8 +839,8 @@ bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP
 			//An object passed by value is copied a piece at a time (only objects whose copy is their bytes).  One made
 			//for the call (not an object lvalue of the parameter's class: a call's, Class(...)'s, or one a converting
 			//constructor or conversion function makes) is the parameter, which the called function destroys, so it's
-			//made in a temporary the caller doesn't destroy.
-			if (!mpcUnit->IsObjectLvalue(pcArgument) || !IsObjectOf(pcArgument, psParameter->pcClass))
+			//made in a temporary the caller doesn't destroy.  So is one a constructor template's instance copies.
+			if (!mpcUnit->IsObjectLvalue(pcArgument) || !IsObjectOf(pcArgument, psParameter->pcClass) || mpcUnit->GetBinder()->CopiesByConstructor(psParameter->pcClass, pcArgument))
 			{
 				if (!Temporary(psParameter, &sCopy, NULL) || !Construct(&sCopy, NULL, pcArgument))
 				{

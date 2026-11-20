@@ -121,8 +121,9 @@ public:
 	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
 	bool					HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
 	bool					Converts(CCPPFunction* pcConstructor, CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
-	CCPPFunction*			ConstructorInstance(CCPPClass* pcClass, CCPPSyntax* pcArgument);
-	bool					IsObjectOf(CCPPClass* pcClass, CCPPSyntax* pcArgument);
+	CCPPFunction*			MemberInstance(CCPPClass* pcClass, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode, ECPPCalledObject eObject);
+	CCPPFunction*			ConstructorInstance(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	bool					InstanceCopies(CCPPClass* pcClass, CCPPSyntax* pcSource);
 	CCPPFunction*			ChooseFunction(CCPPCandidates* pcCandidates, CArraySyntax* papcArguments, ECPPCalledObject eObject, bool* pbAmbiguous);
 	int						QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool bTopLevel);
 	bool					IsTemporary(CCPPSyntax* pcArgument, CCPPClass* pcClass);

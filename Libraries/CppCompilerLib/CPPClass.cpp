@@ -479,7 +479,8 @@ bool CCPPClass::HasCopyConstructor(void)
 // constructor) or, with bAssignment, gives one the value of another
 // (operator=): the one taking the other by T& or const T&, a copy, or with
 // bMove by T&&, a move.  Any other parameters have defaults.  NULL if it
-// declares none.
+// declares none.  A template's instance is never one, whatever it takes
+// (CCPPOverloads::InstanceCopies).  [class.copy] 2 and 17
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPClass::GetCopier(bool bAssignment, bool bMove)
@@ -495,7 +496,7 @@ CCPPFunction* CCPPClass::GetCopier(bool bAssignment, bool bMove)
 		{
 			continue;
 		}
-		if (pcFunction->mbImplicit || (pcFunction->mapsParameters.NumElements() == 0) || (pcFunction->RequiredParameters() != 1))
+		if (pcFunction->mbImplicit || pcFunction->mpcTemplate || (pcFunction->mapsParameters.NumElements() == 0) || (pcFunction->RequiredParameters() != 1))
 		{
 			continue;
 		}

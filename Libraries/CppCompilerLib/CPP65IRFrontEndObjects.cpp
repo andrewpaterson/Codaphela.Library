@@ -935,7 +935,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	}
 
 	//(object) and = object copy an object, when no copy constructor of the class's own is to be called.
-	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !pcClass->HasCopyConstructor())
+	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !mpcUnit->GetBinder()->CopiesByConstructor(pcClass, papcArguments->GetPtr(0)))
 	{
 		psSource = mpcUnit->ValueTypeOf(papcArguments->GetPtr(0));
 		if (psSource && psSource->IsClass() && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
@@ -2288,7 +2288,7 @@ bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSourc
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (pcClass->HasCopyConstructor())
+	if (mpcUnit->GetBinder()->CopiesByConstructor(pcClass, pcSource))
 	{
 		apcArguments.Init();
 		apcArguments.Add(pcSource);

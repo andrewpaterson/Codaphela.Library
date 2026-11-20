@@ -1071,6 +1071,22 @@ CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray, bool
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a constructor copies pcSource, an object of pcClass or of a class
+// derived from it, into a new one: the class's own copy or move
+// constructor, or a constructor template's instance that takes the object
+// better than the copy constructor the compiler declares would
+// (CCPPOverloads::InstanceCopies).  Otherwise the compiler copies it, part
+// by part or as its bytes.  [class.copy] 7, [over.match.best] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::CopiesByConstructor(CCPPClass* pcClass, CCPPSyntax* pcSource)
+{
+	return pcClass->HasCopyConstructor() || mcOverloads.InstanceCopies(pcClass, pcSource);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether new[] of elements of psElement keeps their count in front of
 // them, which delete[] reads: objects that have a destructor (each is
 // destroyed), and objects whose class's operator delete[] takes the size
