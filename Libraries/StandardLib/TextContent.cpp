@@ -194,7 +194,7 @@ void CTextContent::SplitLines(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTextContent::GetTitle(void)
+const char* CTextContent::GetTitle(void) const
 {
 	return mszTitle.Text();
 }

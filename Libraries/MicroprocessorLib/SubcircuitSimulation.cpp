@@ -114,7 +114,7 @@ CCircuitSimulation* CSubcircuitSimulation::GetCircuitSimulation(void) const { re
 CCircuit* CSubcircuitSimulation::GetCircuit(void) const { return mpcCircuitSimulation->GetCircuit(); }
 CTimeline* CSubcircuitSimulation::GetTimeline(void) const { return mpcCircuitSimulation->GetTimeline(); }
 int64 CSubcircuitSimulation::GetTime(void) const { return mpcCircuitSimulation->GetTime(); }
-char* CSubcircuitSimulation::GetName(void) const { return mpcCircuitSimulation->GetName(); }
+const char* CSubcircuitSimulation::GetName(void) const { return mpcCircuitSimulation->GetName(); }
 bool CSubcircuitSimulation::RunSimultaneous(void) { return mpcCircuitSimulation->RunSimultaneous(); }
 bool CSubcircuitSimulation::RunToTime(int64 iTimeForward) { return mpcCircuitSimulation->RunToTime(iTimeForward); }
 

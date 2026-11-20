@@ -118,7 +118,7 @@ public:
 	virtual int					GetDistToRoot(void) =0;
 	virtual OIndex				GetIndex(void) const;
 	virtual bool				IsNamed(void) const;
-	virtual char*				GetName(void);
+	virtual const char*			GetName(void) const;
 	virtual void				FreeIdentifiers(void);
 	virtual bool				IsDirty(void) =0;
 	virtual void				SetDirty(bool bDirty) =0;

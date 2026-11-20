@@ -68,7 +68,7 @@ public:
 	void				Set(const char* szTitle, const char* szText, lsize uiLength);
 	bool				SetFromFile(const char* szTitle, const char* szFilename);
 
-	char*				GetTitle(void);
+	const char*			GetTitle(void) const;
 	char*				Text(void);
 	lsize				Length(void) const;
 

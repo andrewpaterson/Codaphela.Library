@@ -85,7 +85,7 @@ public:
 	void				Init(const char* szTitle);
 	void				Kill(void);
 
-	char*				GetTitle(void);
+	const char*			GetTitle(void) const;
 	CTextContent*		GetContent1(void);
 	CTextContent*		GetContent2(void);
 	ETextDiffWhitespace	GetWhitespace(void) const;

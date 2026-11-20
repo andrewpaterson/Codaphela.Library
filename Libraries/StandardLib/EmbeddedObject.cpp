@@ -132,7 +132,7 @@ bool CEmbeddedObject::IsNamed(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CEmbeddedObject::GetName(void)
+const char* CEmbeddedObject::GetName(void) const
 {
 	return NULL;
 }

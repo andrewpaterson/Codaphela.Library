@@ -286,7 +286,7 @@ void CCommand::SetStandardCommand(EComponentInputCommand eStandard) { meStandard
 EComponentInputCommand CCommand::GetStandardCommand(void) const { return meStandard; }
 void CCommand::SetGivesStandard(bool bGivesStandard) { mbGivesStandard = bGivesStandard; }  //Its keys give its standard command (SetStandardCommand) for the parts of the window to take.
 bool CCommand::IsGivingStandard(void) const { return mbGivesStandard; }
-char* CCommand::GetName(void) { return mszName.Text(); }
+const char* CCommand::GetName(void) const { return mszName.Text(); }
 char* CCommand::GetCaption(void) { return mszCaption.Text(); }
 size CCommand::NumContexts(void) const { return maszContexts.NumElements(); }
 char* CCommand::GetContext(size uiIndex) { return maszContexts.GetText(uiIndex); }

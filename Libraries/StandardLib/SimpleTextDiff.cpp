@@ -98,7 +98,7 @@ void CSimpleTextDiff::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CSimpleTextDiff::GetTitle(void)
+const char* CSimpleTextDiff::GetTitle(void) const
 {
 	return mszTitle.Text();
 }

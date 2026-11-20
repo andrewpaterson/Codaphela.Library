@@ -67,7 +67,7 @@ public:
 	bool							RunToTime(int64 iTimeForward);
 	bool							RemoveEvent(CEvent* pcEvent);
 	int64							GetID(void) const;
-	char*							GetName(void);
+	const char*						GetName(void) const override;
 	void							AppendDescription(CChars* psz);
 	CSubcircuitTopSimulation*		GetSubcircuitTopSimulation(void) const;
 	size							NumInstanceSimulations(void) const;

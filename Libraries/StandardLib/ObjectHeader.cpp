@@ -112,7 +112,7 @@ bool CObjectIdentifier::IsIndexed(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CObjectIdentifier::GetName(void)
+const char* CObjectIdentifier::GetName(void) const
 {
 	if (meType == OBJECT_POINTER_NAMED)
 	{

@@ -38,18 +38,18 @@ protected:
 	CChars			mszName;
 
 public:
-	void 	Init(const char* szName);
-	void 	Kill(void) override;
+	void 		Init(const char* szName);
+	void 		Kill(void) override;
 
 	template<class M, class O>
-	void	Add(O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext));
-	bool	Remove(void* pvObject);
-	size	NumCalls(void) const;
+	void		Add(O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext));
+	bool		Remove(void* pvObject);
+	size		NumCalls(void) const;
 
-	void	Call(void* pvContext);
+	void		Call(void* pvContext);
 
-	bool	Is(const char* szName);
-	char*	GetName(void);
+	bool		Is(const char* szName);
+	const char*	GetName(void) const;
 };
 
 

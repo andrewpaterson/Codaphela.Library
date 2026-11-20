@@ -92,7 +92,7 @@ bool CAction::Is(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CAction::GetName(void)
+const char* CAction::GetName(void) const
 {
 	return mszName.Text();
 }

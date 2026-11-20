@@ -1868,7 +1868,7 @@ bool CBaseObject::FailHasClassField(const char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CBaseObject::GetName(void)
+const char* CBaseObject::GetName(void) const
 {
 	return mon.Text();
 }

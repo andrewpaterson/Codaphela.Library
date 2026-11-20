@@ -1049,7 +1049,7 @@ OIndex CPointer::GetIndex(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPointer::GetName(void) const
+const char* CPointer::GetName(void) const
 {
 	CEmbeddedObject*	pcObject;
 

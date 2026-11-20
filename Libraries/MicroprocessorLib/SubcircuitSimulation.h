@@ -55,7 +55,7 @@ public:
 			CCircuit*			GetCircuit(void) const;
 			CTimeline*			GetTimeline(void) const;
 			int64				GetTime(void) const;
-			char*				GetName(void) const;
+			const char*			GetName(void) const;
 			bool				RunSimultaneous(void);
 			bool				RunToTime(int64 iTimeForward);
 

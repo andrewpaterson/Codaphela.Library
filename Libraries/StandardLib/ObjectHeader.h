@@ -33,16 +33,16 @@ public:
 	CChars	mszObjectName;
 	OIndex	moi;
 
-	void	Init(void);
-	void	Init(OIndex oi);
-	void	Init(const char* szName, OIndex oi);
-	void	Kill(void);
+	void		Init(void);
+	void		Init(OIndex oi);
+	void		Init(const char* szName, OIndex oi);
+	void		Kill(void);
 
-	bool	IsNamed(void) const;
-	bool	IsIndexed(void) const;
+	bool		IsNamed(void) const;
+	bool		IsIndexed(void) const;
 
-	const char*	GetName(void);
-	OIndex	GetIndex();
+	const char*	GetName(void) const;
+	OIndex		GetIndex();
 	const char*	GetType(void) const;
 };
 

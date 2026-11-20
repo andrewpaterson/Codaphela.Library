@@ -18,7 +18,7 @@ public:
 };
 
 
-lsize NamedIndexedHeaderSize(char* szName, lsize uiDataSize);
+lsize NamedIndexedHeaderSize(const char* szName, lsize uiDataSize);
 lsize NamedIndexedHeaderSize(lsize uiDataSize);
 lsize NamedIndexedHeaderSize(int iNameLength, lsize uiDataSize);
 

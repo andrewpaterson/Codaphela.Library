@@ -114,7 +114,7 @@ bool CNamedIndexedHeader::HasName(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-lsize NamedIndexedHeaderSize(char* szName, lsize uiDataSize)
+lsize NamedIndexedHeaderSize(const char* szName, lsize uiDataSize)
 {
 	return NamedIndexedHeaderSize((int)strlen(szName), uiDataSize);
 }

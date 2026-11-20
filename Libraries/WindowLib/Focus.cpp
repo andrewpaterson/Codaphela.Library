@@ -631,7 +631,7 @@ void CFocus::FindTabStops(Ptr<CComponent> pComponent, SFocusTabStops* psStops)
 // False if there is none or it can't run now.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFocus::RunCommand(Ptr<CWindow> pWindow, char* szKeys, const char* szContext)
+bool CFocus::RunCommand(Ptr<CWindow> pWindow, const char* szKeys, const char* szContext)
 {
 	Ptr<CCommandSet>	pCommands;
 
@@ -814,7 +814,7 @@ bool CFocus::Keys(const char* szKeys)
 	}
 	InitEvent(&sEvent, CIET_Command, true);
 	sEvent.eCommand = CIC_Command;
-	sEvent.szName = (char*)szKeys;
+	sEvent.szName = szKeys;
 	pcInput = mpWindow->GetComponentInput();
 	if (pcInput != NULL)
 	{

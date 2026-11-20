@@ -97,7 +97,7 @@ public:
 	bool				Load(CObjectReader* pcFile);
 	int					GetDistToRoot(void) const;
 	OIndex				GetIndex(void) const;
-	char*				GetName(void) const;
+	const char*			GetName(void) const;
 	bool				IsNamed(void) const;
 	const char*			ClassName(void);
 	CClass*				GetClass(void) const;

@@ -35,15 +35,15 @@ protected:
 	uint16	muiFlags;
 
 public:
-	void	Init(CObjectIdentifier* pcObjectIdentifier);
-	void	Kill(void);
+	void		Init(CObjectIdentifier* pcObjectIdentifier);
+	void		Kill(void);
 
-	char*	GetName(void);
-	OIndex	GetOldIndex(void) const;
-	void	SetRead(void);
-	void	SetExisting(void);
-	bool	IsRead(void) const;
-	bool	ExistsInObjects(void);
+	const char*	GetName(void) const;
+	OIndex		GetOldIndex(void) const;
+	void		SetRead(void);
+	void		SetExisting(void);
+	bool		IsRead(void) const;
+	bool		ExistsInObjects(void);
 };
 
 

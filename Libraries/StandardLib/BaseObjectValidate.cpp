@@ -272,7 +272,7 @@ void CBaseObject::ValidateEmbeddedConsistency(void)
 void CBaseObject::ValidateObjectIdentifiers(void)
 {
 	CBaseObject*	pcContainer;
-	char*			szName;
+	const char*		szName;
 	CBaseObject*	pcThis;
 	OIndex			oi;
 

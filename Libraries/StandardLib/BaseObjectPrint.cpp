@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 char* CBaseObject::PrintIdentifier(CChars* psz)
 {
-	char*	szName;
+	const char*	szName;
 
 	psz->Append(ClassName());
 	psz->Append(":");

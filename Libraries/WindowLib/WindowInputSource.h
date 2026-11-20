@@ -41,7 +41,7 @@ struct SWindowInputEvent
 	CInputSourceDesc*		pcSource;  //Of a chord, its last input.
 	float					fValue;
 	uint32					uiTime;  //Milliseconds since the source was made.
-	char*					szChord;  //The chord's name, NULL if not a chord.
+	const char*				szChord;  //The chord's name, NULL if not a chord.
 };
 
 

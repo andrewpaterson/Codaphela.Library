@@ -263,7 +263,7 @@ bool CCircuitSimulation::RunSimultaneous(void) { return mcTimeline.RunSimultaneo
 bool CCircuitSimulation::RunToTime(int64 iTimeForward) { return mcTimeline.RunToTime(iTimeForward); }
 bool CCircuitSimulation::RemoveEvent(CEvent* pcEvent) { return mcTimeline.Remove(pcEvent); }
 int64 CCircuitSimulation::GetID(void) const { return miID; }
-char* CCircuitSimulation::GetName(void) { return mszName.Text(); }
+const char* CCircuitSimulation::GetName(void) const { return mszName.Text(); }
 CSubcircuitTopSimulation* CCircuitSimulation::GetSubcircuitTopSimulation(void) const { return mpcSubcircuitTopSimulation; }
 size CCircuitSimulation::NumInstanceSimulations(void) const { return mapcInstanceSimulations.NumElements(); }
 CSubcircuitInstanceSimulation* CCircuitSimulation::GetInstanceSimulation(size uiIndex) { return (CSubcircuitInstanceSimulation*)mapcInstanceSimulations.SafeGetPtr(uiIndex); }

@@ -166,7 +166,7 @@ public:
 			bool					IsKilled(void);
 			bool					IsNamed(const char* szName);
 
-			char*					GetName(void) override;
+			const char*				GetName(void) const override;
 			lsize					SerialisedSize(void);
 	virtual char*					PrintIdentifier(CChars* psz);
 			void					PrintState(CChars* psz);

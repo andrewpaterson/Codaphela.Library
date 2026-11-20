@@ -552,7 +552,7 @@ CClasses* CClass::GetClasses(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CClass::GetName(void)
+const char* CClass::GetName(void) const
 {
 	return mszClassName.Text();
 }

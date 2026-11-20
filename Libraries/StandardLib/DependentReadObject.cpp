@@ -50,7 +50,7 @@ void CDependentReadObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CDependentReadObject::GetName(void)
+const char* CDependentReadObject::GetName(void) const
 {
 	return mszObjectName.Text();
 }

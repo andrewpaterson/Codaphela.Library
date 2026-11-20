@@ -252,7 +252,7 @@ void TestMapObjectIterate(void)
 		bool						abFound[5] = { false, false, false, false, false };
 		size						i;
 		size						iExpected;
-		char*						szName;
+		const char*					szName;
 
 		pRoot = ORoot();
 		pMap = OMalloc<CMapObject>();

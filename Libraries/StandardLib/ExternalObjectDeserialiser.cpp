@@ -164,7 +164,7 @@ bool CExternalObjectDeserialiser::ReadDependentObjects(void)
 bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 {
 	CSerialisedObject*	pcSerialised;
-	char*				szObjectName;
+	const char*			szObjectName;
 	CBaseObject*		pcObject;
 	OIndex				oiOld;
 

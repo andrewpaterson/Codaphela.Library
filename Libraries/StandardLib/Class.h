@@ -85,7 +85,7 @@ public:
 	CEmbeddedObjectField*	Embedded(CBaseObject* pcThis, CBaseObject* pcObject, const char* szFieldName);
 
 	CClasses*				GetClasses(void) const;
-	char*					GetName(void);
+	const char*				GetName(void) const;
 	EPrimitiveType			GetType(void) const;
 	size					GetSizeOf(void) const;
 

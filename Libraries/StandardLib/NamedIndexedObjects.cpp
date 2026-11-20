@@ -197,8 +197,8 @@ bool CNamedIndexedObjects::RemoveName(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexedObjects::CanAdd(CBaseObject* pcObject)
 {
-	OIndex	oi;
-	char*	szName;
+	OIndex		oi;
+	const char*	szName;
 
 	oi = pcObject->GetIndex();
 	szName = pcObject->GetName();
@@ -225,7 +225,7 @@ bool CNamedIndexedObjects::CanAdd(CBaseObject* pcObject)
 bool CNamedIndexedObjects::Add(CBaseObject* pcObject)
 {
 	OIndex					oi;
-	char*					szName;
+	const char*				szName;
 	bool					bResult;
 	CIndexTreeMemoryAccess	cAccess;
 
@@ -390,8 +390,8 @@ void CNamedIndexedObjects::FreeObject(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexedObjects::RemoveIdentifiers(CBaseObject* pcObject)
 {
-	char*	szName;
-	bool	bResult;
+	const char*	szName;
+	bool		bResult;
 
 	//Only if they are its: an object found dead on another thread than the home thread is taken out when it is found
 	//and freed later, by when its index and name may be another object's.
