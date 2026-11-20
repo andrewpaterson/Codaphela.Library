@@ -205,6 +205,21 @@ IDE checks the same passes and failures) as a run in one process.
    TestCppCompilerLib).  Tried on TestInputLib and TestThreadLib in Release|x64 (55 s, both passed; run again it does
    nothing).  Check (g), a whole sweep against the last one's results, waits for a machine with no other session's
    builds and runs on it.
+   (g) DONE 2026-11-20, on master with the exceptions work merged.  Building beside a run was too much for this
+   7.9 GB machine: Claude Code stopped the sweep for low memory with a build beside TestHCP65Lib, then with
+   TestHCP65Lib alone, then in TestBaseLib65's four workers.  So Sweep.py builds and runs one item after another unless
+   -overlap is given (and then never beside the EXCLUSIVE suites), -skip leaves suites out, and the sweep ran with
+   TEST_PROJECT65_RUNS=2 and without TestHCP65Lib (the user's call; it passed on the merged main run by itself).  82
+   items, 7290 s (6130 s, then 1160 s redoing the 20 Release items a const break had stopped): about 2 hours against
+   the last sweep's ~3.5, with no overlap, TestHCP65Lib left out and Debug|Win32 only for the ten solutions that had
+   failed in Release.  Every suite that ran in a Release configuration passed, as in the last sweep.  What failed, all
+   in Debug and all in other work: CPP65IRFrontEndExceptions.cpp(1126) C4703, pcNext potentially uninitialised (Debug
+   builds make it an error: TestCppCompilerLib, TestLibc65, HCP65Emulator, HCP65IDE); KicadSchemExpression.cpp(326)
+   returning GetAtomText's const char* as char* (LogiCim, TestKicadImporterLib, HCP65Emulator Debug|Win32); and the
+   object locking's checks, which Debug stops on (TestStandardLib's TestObjectsThreads, ObjectsLock.cpp:145;
+   TestSupportLib's TestMeshBake, ObjectsLock.cpp:332; TestSculptLib's TestSculptBake, SculptBaker.cpp:98).  The first
+   const break (CProgramInput::GetCategoryName, CWindowInputSource::GetName returning char*) was fixed in c142a1ddb
+   during the sweep.
 
 Order: 1 and 5 (the biggest win, small and safe), then 3, then 2 (a to c, then d after the user's answer), then 4 (measure,
 then the user decides on lockstep).  Each step is announced to the other sessions before its runs.
