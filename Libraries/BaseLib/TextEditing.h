@@ -234,6 +234,11 @@ public:
 	void		SelectPageDown(void);
 	void		ExtendSelection(void);
 	void		ShrinkSelection(void);
+	void		MatchingBracket(void);
+	void		BlockStart(void);
+	void		BlockEnd(void);
+	void		SelectBlockStart(void);
+	void		SelectBlockEnd(void);
 	void		SetSelectionRanges(CTextSelectionRanges* pcRanges);
 
 	void		BoxSelect(size uiAnchorRow, int32 iAnchorX, size uiCaretRow, int32 iCaretX);
@@ -285,6 +290,7 @@ protected:
 	void		MoveHome(bool bSelect);
 	void		MoveEnd(bool bSelect);
 	bool		FindExtension(size uiStart, size uiEnd, STextRange* psDest);
+	void		MoveToBlock(bool bEnd, bool bSelect);
 	void		AddTextRanges(size uiStart, size uiEnd, CArrayTextRange* pasDest);
 	void		GetAnchorAndCaret(STextSelection* psDest);
 	bool		IsExtended(void);

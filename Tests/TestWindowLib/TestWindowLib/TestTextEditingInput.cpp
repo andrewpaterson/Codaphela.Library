@@ -670,6 +670,67 @@ void TestTextEditingInputExtendSelection(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Move Caret to Matching Brace (Control+Shift+M) and to Code Block Start
+// and End (Control+[ and Control+]), and those with Selection, reach the
+// text's editing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingInputBrackets(void)
+{
+	STestEditingInput	s;
+
+	ObjectsInit();
+	//      012345678901234567890123456
+	s.Init("f(a[1]) { g(b); { h(); } }", true);
+
+	//Before a bracket the caret goes to its pair, and back again.
+	s.cEditing.SetCaretPosition(1);
+	AssertTrue(s.Command(CIC_MatchingBracket));
+	AssertSize(6, s.Caret());
+	AssertTrue(s.Command(CIC_MatchingBracket));
+	AssertSize(1, s.Caret());
+
+	//After a bracket, with none before it, its pair's; beside none, the bracket that closes what it is in.
+	s.cEditing.SetCaretPosition(26);
+	AssertTrue(s.Command(CIC_MatchingBracket));
+	AssertSize(8, s.Caret());
+	s.cEditing.SetCaretPosition(12);
+	AssertTrue(s.Command(CIC_MatchingBracket));
+	AssertSize(13, s.Caret());
+	s.cEditing.SetCaretPosition(0);
+	AssertTrue(s.Command(CIC_MatchingBracket));
+	AssertSize(0, s.Caret());
+
+	//The block's start is before its brace and its end after its closing one; again goes out a block, then stays.
+	s.cEditing.SetCaretPosition(19);
+	AssertTrue(s.Command(CIC_BlockStart));
+	AssertSize(16, s.Caret());
+	AssertTrue(s.Command(CIC_BlockStart));
+	AssertSize(8, s.Caret());
+	AssertTrue(s.Command(CIC_BlockStart));
+	AssertSize(8, s.Caret());
+	s.cEditing.SetCaretPosition(19);
+	AssertTrue(s.Command(CIC_BlockEnd));
+	AssertSize(24, s.Caret());
+	AssertTrue(s.Command(CIC_BlockEnd));
+	AssertSize(26, s.Caret());
+	AssertFalse(s.cEditing.IsSelected());
+
+	//With Selection the text between is selected.
+	s.cEditing.SetCaretPosition(19);
+	AssertTrue(s.Command(CIC_SelectBlockEnd));
+	s.AssertSelection(19, 24, 24);
+	s.cEditing.SetCaretPosition(19);
+	AssertTrue(s.Command(CIC_SelectBlockStart));
+	s.AssertSelection(16, 19, 16);
+	s.Kill();
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Shift+Alt and the arrows, Home and End move a box's corner; Shift+Alt
 // (or Alt) and button one drag a box from the press, past a short row's
 // end as far as the pointer goes.  The release ends the drag and a plain
@@ -919,6 +980,7 @@ void TestTextEditingInput(void)
 	TestTextEditingInputDragText();
 	TestTextEditingInputPasteFromHistory();
 	TestTextEditingInputExtendSelection();
+	TestTextEditingInputBrackets();
 	TestTextEditingInputBox();
 	TestTextEditingInputKeepsLayout();
 

@@ -97,6 +97,11 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 	pcComponent->AddInputAction(CIC_SelectDocumentEnd, pcEditing, &CTextEditing::SelectDocumentEnd);
 	pcComponent->AddInputAction(CIC_ExtendSelection, pcEditing, &CTextEditing::ExtendSelection);
 	pcComponent->AddInputAction(CIC_ShrinkSelection, pcEditing, &CTextEditing::ShrinkSelection);
+	pcComponent->AddInputAction(CIC_MatchingBracket, pcEditing, &CTextEditing::MatchingBracket);
+	pcComponent->AddInputAction(CIC_BlockStart, pcEditing, &CTextEditing::BlockStart);
+	pcComponent->AddInputAction(CIC_BlockEnd, pcEditing, &CTextEditing::BlockEnd);
+	pcComponent->AddInputAction(CIC_SelectBlockStart, pcEditing, &CTextEditing::SelectBlockStart);
+	pcComponent->AddInputAction(CIC_SelectBlockEnd, pcEditing, &CTextEditing::SelectBlockEnd);
 	pcComponent->AddInputAction(CIC_BoxSelectUp, pcEditing, &CTextEditing::BoxSelectUp);
 	pcComponent->AddInputAction(CIC_BoxSelectDown, pcEditing, &CTextEditing::BoxSelectDown);
 	pcComponent->AddInputAction(CIC_BoxSelectLeft, pcEditing, &CTextEditing::BoxSelectLeft);

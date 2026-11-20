@@ -60,6 +60,11 @@ enum EComponentInputCommand
 	CIC_SelectPageDown,
 	CIC_ExtendSelection,
 	CIC_ShrinkSelection,
+	CIC_MatchingBracket,	//The caret to the bracket that pairs with the one it is beside.
+	CIC_BlockStart,			//The caret to the start of the block it is in,
+	CIC_BlockEnd,			//or its end,
+	CIC_SelectBlockStart,	//and those selecting to there.
+	CIC_SelectBlockEnd,
 	CIC_BoxSelectUp,
 	CIC_BoxSelectDown,
 	CIC_BoxSelectLeft,

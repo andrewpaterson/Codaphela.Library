@@ -61,6 +61,11 @@ static SComponentInputChordRow	gasKeyboardChordRows[] =
 	{ false, true,  false, "Page Down",	CIC_SelectPageDown,				CIC_Ignored },
 	{ true,  false, false, "W",			CIC_ExtendSelection,			CIC_Ignored },
 	{ true,  true,  false, "W",			CIC_ShrinkSelection,			CIC_Ignored },
+	{ true,  true,  false, "M",			CIC_MatchingBracket,			CIC_Ignored },
+	{ true,  false, false, "[",			CIC_BlockStart,					CIC_Ignored },
+	{ true,  false, false, "]",			CIC_BlockEnd,					CIC_Ignored },
+	{ true,  true,  false, "[",			CIC_SelectBlockStart,			CIC_Ignored },
+	{ true,  true,  false, "]",			CIC_SelectBlockEnd,				CIC_Ignored },
 	{ false, true,  true,  "Cursor Up",	CIC_BoxSelectUp,				CIC_Ignored },
 	{ false, true,  true,  "Cursor Down",	CIC_BoxSelectDown,				CIC_Ignored },
 	{ false, true,  true,  "Cursor Left",	CIC_BoxSelectLeft,				CIC_Ignored },
@@ -952,6 +957,11 @@ bool CComponentInput::IsWidgetCommand(EComponentInputCommand eCommand)
 	case CIC_SelectAll:
 	case CIC_ExtendSelection:
 	case CIC_ShrinkSelection:
+	case CIC_MatchingBracket:
+	case CIC_BlockStart:
+	case CIC_BlockEnd:
+	case CIC_SelectBlockStart:
+	case CIC_SelectBlockEnd:
 	case CIC_BoxSelectUp:
 	case CIC_BoxSelectDown:
 	case CIC_BoxSelectLeft:

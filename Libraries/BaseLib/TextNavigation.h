@@ -73,6 +73,9 @@ public:
 	bool		FindQuotesAround(size uiStart, size uiEnd, size* puiOpen, size* puiClose);
 	bool		FindBracketsAround(size uiStart, size uiEnd, size* puiOpen, size* puiClose);
 	bool		FindClosingBracket(size uiOpen, size* puiClose);
+	bool		FindOpeningBracket(size uiClose, size* puiOpen);
+	bool		FindMatchingBracket(size uiBracket, size* puiMatch);
+	bool		FindBlockAround(size uiPosition, size* puiOpen, size* puiClose);
 	bool		FindCommentAround(size uiStart, size uiEnd, size* puiStart, size* puiEnd);
 
 	static bool	IsSpaceOrTab(char c);

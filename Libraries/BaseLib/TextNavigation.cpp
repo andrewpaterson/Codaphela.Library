@@ -596,6 +596,106 @@ bool CTextNavigation::FindClosingBracket(size uiOpen, size* puiClose)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The bracket that opens the closing bracket at uiClose, the brackets
+// before it paired as they nest.  False if it isn't opened, or is opened
+// by another kind.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::FindOpeningBracket(size uiClose, size* puiOpen)
+{
+	char*	szText;
+	size	i;
+	size	uiDepth;
+	char	cOpen;
+
+	szText = mpszText->Text();
+	cOpen = (szText[uiClose] == ')') ? '(' : ((szText[uiClose] == ']') ? '[' : '{');
+	uiDepth = 0;
+	for (i = uiClose; i > 0; i--)
+	{
+		if (IsClosingBracket(szText[i - 1]))
+		{
+			uiDepth++;
+		}
+		else if (IsOpeningBracket(szText[i - 1]))
+		{
+			if (uiDepth == 0)
+			{
+				*puiOpen = i - 1;
+				return szText[i - 1] == cOpen;
+			}
+			uiDepth--;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bracket that pairs with the bracket at uiBracket: the one that
+// closes an opening bracket, or opens a closing one.  False if the
+// character there isn't a bracket, or it has no pair.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::FindMatchingBracket(size uiBracket, size* puiMatch)
+{
+	char*	szText;
+
+	szText = mpszText->Text();
+	if (uiBracket >= mpszText->Length())
+	{
+		return false;
+	}
+	if (IsOpeningBracket(szText[uiBracket]))
+	{
+		return FindClosingBracket(uiBracket, puiMatch);
+	}
+	if (IsClosingBracket(szText[uiBracket]))
+	{
+		return FindOpeningBracket(uiBracket, puiMatch);
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The block uiPosition is in: the nearest { before it that isn't closed
+// before it, and the } that closes it.  A position just before a { is in
+// the block around that one, not in it; one just after a } likewise.
+// False if it is in none.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNavigation::FindBlockAround(size uiPosition, size* puiOpen, size* puiClose)
+{
+	char*	szText;
+	size	uiStart;
+	size	uiEnd;
+	size	uiOpen;
+	size	uiClose;
+
+	szText = mpszText->Text();
+	uiStart = uiPosition;
+	uiEnd = uiPosition;
+	while (FindBracketsAround(uiStart, uiEnd, &uiOpen, &uiClose))
+	{
+		if (szText[uiOpen] == '{')
+		{
+			*puiOpen = uiOpen;
+			*puiClose = uiClose;
+			return true;
+		}
+		//The brackets found, whole, are what to look around next.
+		uiStart = uiOpen;
+		uiEnd = uiClose + 1;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The comment uiStart to uiEnd is in: a // comment to its line's end
 // (not one in quotes), or a /* */ comment with its ends.  False if they
 // aren't in one.

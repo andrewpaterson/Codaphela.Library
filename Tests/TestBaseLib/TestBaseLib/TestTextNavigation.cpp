@@ -351,6 +351,50 @@ void TestTextNavigationRanges(void)
 	szText.Set("(a]");
 	AssertFalse(cNavigation.FindBracketsAround(1, 1, &uiStart, &uiEnd));
 
+	//A bracket's pair, either way; a character that isn't a bracket, and a bracket alone, have none.
+	//       0123456789012345678901234
+	szText.Set("f(a[1]) { g(b); { h(); } }");
+	AssertTrue(cNavigation.FindMatchingBracket(1, &uiEnd));
+	AssertSize(6, uiEnd);
+	AssertTrue(cNavigation.FindMatchingBracket(6, &uiStart));
+	AssertSize(1, uiStart);
+	AssertTrue(cNavigation.FindMatchingBracket(3, &uiEnd));
+	AssertSize(5, uiEnd);
+	AssertTrue(cNavigation.FindMatchingBracket(5, &uiStart));
+	AssertSize(3, uiStart);
+	AssertTrue(cNavigation.FindMatchingBracket(8, &uiEnd));
+	AssertSize(25, uiEnd);
+	AssertTrue(cNavigation.FindMatchingBracket(25, &uiStart));
+	AssertSize(8, uiStart);
+	AssertTrue(cNavigation.FindOpeningBracket(23, &uiStart));
+	AssertSize(16, uiStart);
+	AssertFalse(cNavigation.FindMatchingBracket(0, &uiEnd));
+	AssertFalse(cNavigation.FindMatchingBracket(26, &uiEnd));
+	AssertFalse(cNavigation.FindMatchingBracket(100, &uiEnd));
+
+	//The block a position is in is the nearest braces around it, whatever other brackets are nearer.
+	AssertTrue(cNavigation.FindBlockAround(13, &uiStart, &uiEnd));
+	AssertSize(8, uiStart);
+	AssertSize(25, uiEnd);
+	AssertTrue(cNavigation.FindBlockAround(20, &uiStart, &uiEnd));
+	AssertSize(16, uiStart);
+	AssertSize(23, uiEnd);
+	AssertTrue(cNavigation.FindBlockAround(18, &uiStart, &uiEnd));
+	AssertSize(16, uiStart);
+	AssertSize(23, uiEnd);
+	//Just before an inner block's brace, and just after its closing one, is in the outer block.
+	AssertTrue(cNavigation.FindBlockAround(16, &uiStart, &uiEnd));
+	AssertSize(8, uiStart);
+	AssertTrue(cNavigation.FindBlockAround(24, &uiStart, &uiEnd));
+	AssertSize(8, uiStart);
+	//In brackets that aren't in braces, and outside everything, there is none.
+	AssertFalse(cNavigation.FindBlockAround(4, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindBlockAround(7, &uiStart, &uiEnd));
+	AssertFalse(cNavigation.FindBlockAround(26, &uiStart, &uiEnd));
+	szText.Set("(a}");
+	AssertFalse(cNavigation.FindMatchingBracket(0, &uiEnd));
+	AssertFalse(cNavigation.FindMatchingBracket(2, &uiStart));
+
 	szText.Kill();
 }
 

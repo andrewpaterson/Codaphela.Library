@@ -389,6 +389,57 @@ void CTextEditing::SelectAll(void) { Select(0, mpcDocument->Length()); }
 
 //////////////////////////////////////////////////////////////////////////
 //
+// As IntelliJ's Move Caret to Matching Brace: the caret goes to the
+// bracket that pairs with the one it is before, or else the one it is
+// after; or, beside no bracket, to the bracket that closes the nearest
+// brackets it is in.  It is put before the bracket, so the same again
+// goes back.  Beside no bracket and in none, nothing happens.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::MatchingBracket(void)
+{
+	size	uiMatch;
+	size	uiOpen;
+
+	if (mpcNavigation->FindMatchingBracket(muiCaret, &uiMatch) ||
+		((muiCaret > 0) && mpcNavigation->FindMatchingBracket(muiCaret - 1, &uiMatch)) ||
+		mpcNavigation->FindBracketsAround(muiCaret, muiCaret, &uiOpen, &uiMatch))
+	{
+		MoveCaret(uiMatch, false);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As IntelliJ's Move Caret to Code Block Start and End, and those with
+// Selection: the caret goes to before the { of the block it is in, or to
+// after the } that closes it, selecting to there if asked.  From before a
+// block's { the start is that of the block around it, and from after its
+// } the end likewise, so the same again goes out a block.  In no block,
+// nothing happens.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::BlockStart(void) { MoveToBlock(false, false); }
+void CTextEditing::BlockEnd(void) { MoveToBlock(true, false); }
+void CTextEditing::SelectBlockStart(void) { MoveToBlock(false, true); }
+void CTextEditing::SelectBlockEnd(void) { MoveToBlock(true, true); }
+
+
+void CTextEditing::MoveToBlock(bool bEnd, bool bSelect)
+{
+	size	uiOpen;
+	size	uiClose;
+
+	if (mpcNavigation->FindBlockAround(muiCaret, &uiOpen, &uiClose))
+	{
+		MoveCaret(bEnd ? uiClose + 1 : uiOpen, bSelect);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The selection (or the caret) grows to the smallest range around it that
 // is bigger (FindExtension), as IntelliJ's Extend Selection: the first
 // from a caret is the word it is in or next to.  What it grew from is kept
