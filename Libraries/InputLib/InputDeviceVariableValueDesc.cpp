@@ -120,7 +120,7 @@ void CInputDeviceVariableValueDesc::AddCondition(CInputDeviceVariableValueDesc* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CInputDeviceVariableValueDesc::GetName(void)
+const char* CInputDeviceVariableValueDesc::GetName(void) const
 {
 	return mszName.Text();
 }

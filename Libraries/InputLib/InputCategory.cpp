@@ -163,7 +163,7 @@ void CInputCategory::GetDevices(CArrayInputDevicePtr* pcDevices, bool bPhysical)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CInputCategory::GetCategoryName(void)
+const char* CInputCategory::GetCategoryName(void) const
 {
 	return mszCategory.Text();
 }

@@ -63,8 +63,8 @@ public:
 	void 							AddEvent(const char* szName, float fValue);
 	int  							GetSourceID(const char* szName);
 	void 							ClearEvents(void);
-	char*							GetFriendlyName(void);
-	char*							GetID(void);
+	const char*							GetFriendlyName(void) const;
+	const char*							GetID(void) const;
 };
 
 

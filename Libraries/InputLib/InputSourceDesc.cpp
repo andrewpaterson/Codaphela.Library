@@ -197,7 +197,7 @@ CInputDeviceDesc* CInputSourceDesc::GetDeviceDesc(void) const { return mpcDevice
 CArrayInputCategoryGenericPtr* CInputSourceDesc::GetGenerics(void) { return &mapcGenerics; }
 EInputSourceType CInputSourceDesc::GetType(void) const { return meType; }
 size CInputSourceDesc::GetStateIndex(void) const { return miStateIndex; }
-char* CInputSourceDesc::GetFriendlyName(void) { return mszFriendlyName.Text(); }
+const char* CInputSourceDesc::GetFriendlyName(void) const { return mszFriendlyName.Text(); }
 bool CInputSourceDesc::GetEmitRestEvent(void) const { return mbEmitRestEvent; }
 void CInputSourceDesc::SetFriendlyName(const char* szFriendlyName) { mszFriendlyName.Set(szFriendlyName); }
 

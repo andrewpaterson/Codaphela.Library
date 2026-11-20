@@ -87,8 +87,8 @@ public:
 	CInputDataFormat*			GetDataFormat(void) const;
 	CInputChordDescs*			GetVariableChordDescs(void);
 	bool						IsPhysical(void) const;
-	char*						GetID(void);
-	char*						GetFriendlyName(void);
+	const char*						GetID(void) const;
+	const char*						GetFriendlyName(void) const;
 	void						Dump(void);
 };
 

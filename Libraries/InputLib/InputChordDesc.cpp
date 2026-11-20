@@ -160,4 +160,4 @@ CInputChordCollectiveDesc* CInputChordDesc::AsGroup(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CInputChordCriteriaDesc* CInputChordDesc::GetRootCriteriaDesc(void) const { return mpcRootCriteriaDesc; }
-char* CInputChordDesc::GetActionName(void) { return mszActionName.Text(); }
+const char* CInputChordDesc::GetActionName(void) const { return mszActionName.Text(); }

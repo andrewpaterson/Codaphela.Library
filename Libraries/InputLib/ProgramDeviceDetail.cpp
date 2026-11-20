@@ -145,5 +145,5 @@ void CProgramDeviceDetail::ClearEvents(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CProgramDeviceDetail::GetFriendlyName(void) { return mszFriendlyName.Text(); }
-char* CProgramDeviceDetail::GetID(void) { return mszID.Text(); }
+const char* CProgramDeviceDetail::GetFriendlyName(void) const { return mszFriendlyName.Text(); }
+const char* CProgramDeviceDetail::GetID(void) const { return mszID.Text(); }

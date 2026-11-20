@@ -59,7 +59,7 @@ public:
 
 	bool		IsCommon(void) const;
 	bool		IsCommonName(const char* szName);
-	char*		GetCommonName(void);
+	const char*		GetCommonName(void) const;
 };
 
 

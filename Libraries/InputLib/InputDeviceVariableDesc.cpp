@@ -158,7 +158,7 @@ bool CInputDeviceVariableDesc::IterateValues(SSetIterator* psIter, CInputDeviceV
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CInputDeviceVariableDesc::GetName(void) { return mszName.Text(); }
+const char* CInputDeviceVariableDesc::GetName(void) const { return mszName.Text(); }
 CInputDeviceDesc* CInputDeviceVariableDesc::GetDeviceDesc(void) const { return mpcDeviceDesc; }
 
 

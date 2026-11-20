@@ -553,8 +553,8 @@ size CInputDeviceDesc::NumInputs(void) const { return mlcInputs.NumElements(); }
 CInputDataFormat* CInputDeviceDesc::GetDataFormat(void) const { return mpcDataFormat; }
 bool CInputDeviceDesc::IsPhysical(void) const { return mbPhysical; }
 CInputChordDescs* CInputDeviceDesc::GetVariableChordDescs(void) { return &mcVariableChordDescs; }
-char* CInputDeviceDesc::GetID(void) { return mszID.Text(); }
-char* CInputDeviceDesc::GetFriendlyName(void) { return mszFriendlyName.Text(); }
+const char* CInputDeviceDesc::GetID(void) const { return mszID.Text(); }
+const char* CInputDeviceDesc::GetFriendlyName(void) const { return mszFriendlyName.Text(); }
 
 
 //////////////////////////////////////////////////////////////////////////
