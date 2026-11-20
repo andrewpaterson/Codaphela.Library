@@ -285,6 +285,8 @@ bool CCPPParser::IsCastAhead(void)
 {
 	SCPPTentative		sTentative;
 	CCPPSyntaxTypeId*	pcType;
+	CCPPSyntax*			pcSpecifier;
+	bool				bCast;
 
 	//( type-id ) cast-expression.  The current token is '('.  [expr.cast]
 	BeginTentative(&sTentative);
@@ -296,7 +298,134 @@ bool CCPPParser::IsCastAhead(void)
 	}
 
 	pcType = ParseTypeId(NULL);
-	return EndTentative(&sTentative, pcType && Is(CT_CloseRoundBracket));
+	bCast = pcType && Is(CT_CloseRoundBracket);
+	pcSpecifier = (bCast && pcType->mpcSpecifiers) ? pcType->mpcSpecifiers->mpcType : NULL;
+	if (pcSpecifier && (pcSpecifier->GetKind() == CPPS_NamedTypeSpecifier) && ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifier)->mpcName->IsQualifiedByDecltype())
+	{
+		//( decltype(e)::name ) is a cast only if the name is a type, which the parser was not told.
+		Next();
+		bCast = IsDecltypeMemberCast(((CCPPSyntaxNamedTypeSpecifier*)pcSpecifier)->mpcName);
+	}
+	return EndTentative(&sTentative, bCast);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether ( decltype(e)::name ), which read as a type-id and has been
+// passed, is a cast: it is if its operand follows, and is the member's
+// value in parentheses if what follows is no operand (;  ]  /  == ...).
+// Before + - * and &, which begin an operand and also continue an
+// expression, the name says which (DecltypeMemberIsType), and where the
+// parser can't tell it is taken as a cast.  [expr.cast], [dcl.type.simple]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsDecltypeMemberCast(CCPPSyntaxName* pcName)
+{
+	CCPPToken*	pcToken;
+	int			iType;
+
+	pcToken = Peek(0);
+	if (!pcToken)
+	{
+		return false;
+	}
+	iType = DecltypeMemberIsType(pcName);
+	if (iType != -1)
+	{
+		return iType == 1;
+	}
+	if (!pcToken->IsReservedWord())
+	{
+		return true;
+	}
+	switch (((CCTReservedWord*)pcToken)->GetToken())
+	{
+	case CT_Add:
+	case CT_Subtract:
+	case CT_Multiply:
+	case CT_BitwiseAnd:
+		return true;
+	case CT_SemiColon:
+	case CT_CloseRoundBracket:
+	case CT_CloseSquareBracket:
+	case CT_CloseCurlyBracket:
+	case CT_OpenSquareBracket:
+	case CT_Comma:
+	case CT_QuestionMark:
+	case CT_Colon:
+	case CT_Member:
+	case CT_MemberByPointer:
+	case CT_Assignment:
+	case CT_AssignmentAdd:
+	case CT_AssignmentSubtract:
+	case CT_AssignmentMultiply:
+	case CT_AssignmentDivide:
+	case CT_AssignmentModulus:
+	case CT_AssignmentBitwiseAnd:
+	case CT_AssignmentBitwiseOr:
+	case CT_AssignmentBitwiseXor:
+	case CT_AssignmentLeftShift:
+	case CT_AssignmentRightShift:
+		return false;
+	default:
+		return GetBinaryPrecedence() == 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the member decltype(e)::name names is a type (1) or not (0),
+// where the parser can tell (-1 where it can't): e is the name of a
+// variable or a parameter declared with a class's name, in which the
+// member is found.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPParser::DecltypeMemberIsType(CCPPSyntaxName* pcName)
+{
+	CCPPSyntaxTypeId*			pcDecltype;
+	CCPPSyntax*					pcOperand;
+	CCPPSyntax*					pcDeclaration;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSyntaxDeclarator*		pcDeclarator;
+	CCPPSymbol*					pcSymbol;
+
+	if (pcName->macpComponents.NumElements() != 2)
+	{
+		return -1;
+	}
+	pcDecltype = ((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0))->mpcType;
+	pcOperand = (pcDecltype && pcDecltype->mpcSpecifiers && pcDecltype->mpcSpecifiers->mpcType && (pcDecltype->mpcSpecifiers->mpcType->GetKind() == CPPS_DecltypeSpecifier)) ? ((CCPPSyntaxDecltypeSpecifier*)pcDecltype->mpcSpecifiers->mpcType)->mpcOperand : NULL;
+	pcSymbol = (pcOperand && (pcOperand->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol : NULL;
+	pcDeclaration = pcSymbol ? pcSymbol->mpcDeclaration : NULL;
+	pcSpecifiers = NULL;
+	pcDeclarator = NULL;
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_Parameter))
+	{
+		pcSpecifiers = ((CCPPSyntaxParameter*)pcDeclaration)->mpcSpecifiers;
+		pcDeclarator = ((CCPPSyntaxParameter*)pcDeclaration)->mpcDeclarator;
+	}
+	else if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+	{
+		pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers;
+		pcDeclarator = ((CCPPSyntaxInitDeclarator*)pcDeclaration)->mpcDeclarator;
+	}
+	if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_NamedTypeSpecifier) || (pcDeclarator && ((pcDeclarator->NumPointers() != 0) || pcDeclarator->mpcNested || (pcDeclarator->macpSuffixes.NumElements() != 0))))
+	{
+		return -1;
+	}
+	pcSymbol = ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType)->mpcName->mpcSymbol;
+	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Class) || !pcSymbol->mpcMembers)
+	{
+		return -1;
+	}
+	pcSymbol = pcSymbol->mpcMembers->FindMember(GetTokenIdentifier(((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(1))->miName));
+	if (!pcSymbol)
+	{
+		return -1;
+	}
+	return pcSymbol->IsType() ? 1 : 0;
 }
 
 

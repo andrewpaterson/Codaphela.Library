@@ -6617,6 +6617,24 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.4 [expr.cast] p2, 7.1.6.2 [dcl.type.simple] p4, 5.1.1 [expr.prim.general] p8: (decltype(e)::name) is a cast where the name is a type and the member's value in parentheses where it isn't, before + - * & and at the end of an expression
+	{
+		"ExprParenthesisedDecltypeMember", 31,
+		"struct D { static const int k = 5; enum { e = 7 }; static int F() { return 3; } typedef int Type; int m; };\n"
+		"const int D::k;\n"
+		"int Use(D p) { return (decltype(p)::k) + 1; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d; int x = 2; int a[8]; a[5] = 4;\n"
+		"	if ((decltype(d)::k) + 1 == 6 && (decltype(d)::e) + 1 == 8 && (decltype(d)::F()) + 1 == 4) r += 1;\n"
+		"	if ((decltype(d)::k) - 1 == 4 && (decltype(d)::k) * x == 10 && -(decltype(d)::k) + 10 == 5) r += 2;\n"
+		"	if ((decltype(d)::Type) +1.9 == 1 && (int)(decltype(d)::Type)1.5 + (decltype(d)::k) == 6) r += 4;\n"
+		"	if (a[(decltype(d)::k)] == 4 && sizeof((decltype(d)::Type)0) == sizeof(int)) r += 8;\n"
+		"	if (Use(d) == 6 && ((decltype(d)::k) & 4) == 4) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };
 
 

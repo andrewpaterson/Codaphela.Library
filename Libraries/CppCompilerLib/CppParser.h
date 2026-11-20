@@ -338,6 +338,8 @@ protected:
 	bool							IsTypeTraitName(void);
 	bool							IsStringPart(void);
 	bool							IsCastAhead(void);
+	bool							IsDecltypeMemberCast(CCPPSyntaxName* pcName);
+	int								DecltypeMemberIsType(CCPPSyntaxName* pcName);
 	CCPPSyntaxTypeId*				CreateSimpleTypeId(CCPPSyntax* pcParent);
 	CCPPSyntaxTypeId*				WrapTypeSpecifier(CCPPSyntax* pcParent, CCPPSyntaxTypeSpecifier* pcSpecifier);
 };

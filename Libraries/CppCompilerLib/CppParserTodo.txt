@@ -934,6 +934,12 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       pack and then its own (template<class... B> static int Mix(A... a, B... b)), isn't called ("The number
       of arguments does not match the function").
       ExprLambdaGenericPackToPointer, ExprLambdaCapturesPackBesideOwn.
+    - 7.  (decltype(d)::k) + 1 was read as a cast of +1 to a type: the parser, which has no types, takes
+      decltype(e)::name in parentheses for a type-id.  CCPPParser::IsCastAhead asks IsDecltypeMemberCast of
+      one: no cast where what follows the ) is no operand (; ] / == ...), and before + - * & by what the name
+      is, where the parser can find it: e a variable or parameter declared with a class's name, the member
+      looked up in that class (DecltypeMemberIsType).  Where it can't (decltype(f())::k, a typedef'd class) it
+      is a cast still, as before.  ExprParenthesisedDecltypeMember.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or
