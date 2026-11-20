@@ -6,6 +6,7 @@
 #include "WindowLib/JewelTheme.h"
 #include "WindowLib/JewelColours.h"
 #include "WindowLib/ChooserPopup.h"
+#include "WindowLib/PromptPopup.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/Assert.h"
 #include "TickTestRefWindow.h"
@@ -368,6 +369,148 @@ void TestChooserPopupHeadings(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Counts a prompt's events.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestPromptListener
+{
+public:
+	CPromptPopup*		mpcPrompt;  //Not held.
+	int					miAccepted;
+	int					miClosed;
+	CChars				mszText;
+
+	void Init(CPromptPopup* pcPrompt) { mpcPrompt = pcPrompt; miAccepted = 0; miClosed = 0; mszText.Init(); }
+	void Kill(void) { mszText.Kill(); }
+	void Closed(void) { miClosed++; }
+
+	//A number is taken and the prompt closed; anything else is said to be wrong.
+	void Accepted(void)
+	{
+		miAccepted++;
+		mszText.Set(mpcPrompt->GetText());
+		if ((mszText.Length() > 0) && (mszText.Text()[0] >= '0') && (mszText.Text()[0] <= '9'))
+		{
+			mpcPrompt->Close();
+		}
+		else
+		{
+			mpcPrompt->SetProblem("Type a number.");
+		}
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A prompt opens with its text selected and the keys; Enter gives the
+// text to whoever listens, who closes it or says what is wrong, which
+// stays until it is typed in again; Escape closes it, and what had the
+// keys has them back.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPromptPopup(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	ObjectsInit();
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		SDialogLook					sLook;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextField>				pOwner;
+		Ptr<CPromptPopup>			pPrompt;
+		CTestPromptListener			cListener;
+		SInt32Vec2					sPosition;
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 800, 600, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Prompt Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		sLook.pcTheme = &pTheme;
+		sLook.pcDimFont = &pTheme->GetFont();
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pOwner = OMalloc<CTextField>(pTestWindow, pTheme, "owner");
+		pFill->AddComponent(pOwner);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pOwner);
+
+		pPrompt = OMalloc<CPromptPopup>(pTestWindow, &sLook);
+		ORoot()->Add(pPrompt);
+		cListener.Init(&pPrompt);
+		pPrompt->GetAcceptedEvent()->Add(&cListener, &CTestPromptListener::Accepted);
+		pPrompt->GetClosedEvent()->Add(&cListener, &CTestPromptListener::Closed);
+		AssertFalse(pPrompt->IsOpen());
+
+		//Opened with its caption and its text, the field with the keys; it has a size.
+		sPosition.Init(40, 40);
+		pPrompt->Open(sPosition, pOwner, "Line[:column]:", "12:5");
+		AssertTrue(pPrompt->IsOpen());
+		AssertSize(1, pTestWindow->NumPopups());
+		AssertString("Line[:column]:", pPrompt->GetCaption());
+		AssertString("12:5", pPrompt->GetText());
+		AssertString("", pPrompt->GetProblem());
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pPrompt->GetField());
+		pTestWindow->Layout();
+		AssertTrue(pPrompt->GetPanel()->GetActualSize().x > 150);
+		AssertTrue(pPrompt->GetPanel()->GetActualSize().y > pPrompt->GetField()->GetActualSize().y);
+
+		//Typing replaces the text, which was selected.  Enter gives it to the listener, who says what is wrong: it stays open.
+		pTestWindow->InputPrintable('x', true);
+		AssertString("x", pPrompt->GetText());
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertInt(1, cListener.miAccepted);
+		AssertString("x", cListener.mszText.Text());
+		AssertTrue(pPrompt->IsOpen());
+		AssertString("Type a number.", pPrompt->GetProblem());
+
+		//Typing again takes what was wrong away; Enter on what is right closes it and gives the keys back.
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		AssertString("", pPrompt->GetProblem());
+		pTestWindow->InputPrintable('4', true);
+		pTestWindow->InputPrintable('2', true);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertInt(2, cListener.miAccepted);
+		AssertString("42", cListener.mszText.Text());
+		AssertFalse(pPrompt->IsOpen());
+		AssertInt(1, cListener.miClosed);
+		AssertSize(0, pTestWindow->NumPopups());
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pOwner);
+
+		//Escape closes it and accepts nothing.
+		pPrompt->Open(sPosition, pOwner, "Line[:column]:", "7");
+		AssertString("7", pPrompt->GetText());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pPrompt->IsOpen());
+		AssertInt(2, cListener.miAccepted);
+		AssertInt(2, cListener.miClosed);
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pOwner);
+
+		pPrompt->GetAcceptedEvent()->Remove(&cListener);
+		pPrompt->GetClosedEvent()->Remove(&cListener);
+		cListener.Kill();
+		pPrompt = NULL;
+		pOwner = NULL;
+		pFill = NULL;
+		pTheme = NULL;
+		pTick = NULL;
+		pTestWindow = NULL;
+	}
+
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+	ObjectsFlush();
+	ObjectsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChooserPopup(void)
@@ -380,6 +523,8 @@ void TestChooserPopup(void)
 
 	ObjectsFlush();
 	ObjectsKill();
+
+	TestPromptPopup();
 	TestStatistics();
 }
 

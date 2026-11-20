@@ -121,6 +121,7 @@ protected:
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 	CComponentEvent<CTextArea>	mcEntered;  //Called by enter, if SetEnterEvent.
 	CTextAreaLinkEvent			mcLinkPressed;  //Called by a control press on a character, if SetLinkEvent.
+	CComponentEvent<CTextArea>	mcCaretMoved;  //Called when the caret or the selection changes.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pWhiteFont, const char* szText);
@@ -160,6 +161,7 @@ public:
 	void						PressEnter(void) override;
 	void						SetLinkEvent(bool bLinkEvent);
 	CTextAreaLinkEvent*			GetLinkEvent(void);
+	CComponentEvent<CTextArea>*	GetCaretEvent(void);
 	void						PressLink(int x, int y) override;
 	void						SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>					GetFont(void);

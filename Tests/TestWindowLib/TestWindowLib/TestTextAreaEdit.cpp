@@ -1569,9 +1569,11 @@ class CTestEnterListener
 {
 public:
 	int		miEntered;
+	int		miCaretMoved;
 
-	void Init(void) { miEntered = 0; }
+	void Init(void) { miEntered = 0; miCaretMoved = 0; }
 	void Entered(CTextArea* pcTextArea) { miEntered++; }
+	void CaretMoved(CTextArea* pcTextArea) { miCaretMoved++; }
 };
 
 
@@ -1634,6 +1636,19 @@ void TestTextAreaEditEnterEvent(void)
 		pTestWindow->InputCommand(CIC_Enter, true);
 		AssertString("ab\n\ncd", pTextArea->GetText());
 		AssertInt(2, cListener.miEntered);
+
+		//The caret event is called when the caret moves and when the selection changes; not when neither does.
+		pTextArea->GetCaretEvent()->Add(&cListener, &CTestEnterListener::CaretMoved);
+		pTextArea->SetCaretPosition(0);
+		cListener.miCaretMoved = 0;
+		pTestWindow->InputCommand(CIC_Right, true);
+		AssertInt(1, cListener.miCaretMoved);
+		AssertSize(1, pTextArea->GetCaretPosition());
+		pTestWindow->InputCommand(CIC_SelectRight, true);
+		AssertInt(2, cListener.miCaretMoved);
+		pTextArea->Select(0, 2);
+		AssertTrue(cListener.miCaretMoved >= 3);
+		pTextArea->GetCaretEvent()->Remove(&cListener);
 
 		pTextArea->GetEnterEvent()->Remove(&cListener);
 		pTextArea = NULL;

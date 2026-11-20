@@ -101,6 +101,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mcChanged.Init();
 	mcEntered.Init();
 	mcLinkPressed.Init();
+	mcCaretMoved.Init();
 	mbSelectable = true;
 
 	//The text is drawn over whatever is behind the text area.
@@ -136,6 +137,7 @@ void CTextArea::Free(void)
 	mcBands.Kill();
 	mcShapes.Kill();
 	mcBackgrounds.Kill();
+	mcCaretMoved.Kill();
 	mcLinkPressed.Kill();
 	mcEntered.Kill();
 	mcChanged.Kill();
@@ -166,6 +168,7 @@ void CTextArea::Class(void)
 	U_Unknown(CComponentEvent<CTextArea>, mcChanged);
 	U_Unknown(CComponentEvent<CTextArea>, mcEntered);
 	U_Unknown(CTextAreaLinkEvent, mcLinkPressed);
+	U_Unknown(CComponentEvent<CTextArea>, mcCaretMoved);
 	M_Pointer(mpLayout);
 	M_Pointer(mpMaps);
 	M_Pointer(mpBackgroundMap);
@@ -1675,6 +1678,7 @@ void CTextArea::AppendUndoWhere(bool bRedo, CChars* pszDest)
 		pszDest->Append((int64)FindLine(uiCaret) + 1);
 	}
 }
+CComponentEvent<CTextArea>* CTextArea::GetCaretEvent(void) { return &mcCaretMoved; }  //Called when the caret or the selection changes, as it does: while a key or a drag is being handled, so a listener only notes it.
 CTextAreaLinkEvent* CTextArea::GetLinkEvent(void) { return &mcLinkPressed; }  //Called by a control press on a character, with its position, if SetLinkEvent.
 CComponentEvent<CTextArea>* CTextArea::GetEnterEvent(void) { return &mcEntered; }  //Called by enter in place of a line feed, if SetEnterEvent.
 CComponentEvent<CTextArea>* CTextArea::GetChangeEvent(void) { return &mcChanged; }  //Called after each edit (undo and redo too), with the text laid out again.
@@ -1773,6 +1777,7 @@ void CTextArea::MarksChanged(void)
 	RequestOccurrences();
 	UpdateMarks();
 	UpdateCaretLine();
+	mcCaretMoved.Call(this);
 }
 
 
