@@ -6271,6 +6271,95 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.2.1 [expr.sub], 13.5.5 [over.sub], 5.17 [expr.ass]: object[index] is its operator[]'s result, an object too, which is assigned to and called on
+	{
+		"SubscriptOperatorReturnsObject", 15,
+		"struct Bits\n"
+		"{\n"
+		"	unsigned b;\n"
+		"	struct Ref\n"
+		"	{\n"
+		"		Bits& o;\n"
+		"		int i;\n"
+		"		Ref& operator=(bool v) { if (v) o.b |= 1u << i; else o.b &= ~(1u << i); return *this; }\n"
+		"		operator bool() const { return (o.b >> i) & 1; }\n"
+		"		void Flip() { o.b ^= 1u << i; }\n"
+		"	};\n"
+		"	Ref operator[](int i) { return Ref{ *this, i }; }\n"
+		"};\n"
+		"struct Cell { int* p; Cell& operator+=(int v) { *p += v; return *this; } Cell& operator++() { ++*p; return *this; } int Get() const { return *p; } };\n"
+		"struct Row { int a[3]; Cell operator[](int i) { Cell c = { &a[i] }; return c; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Bits x{ 0 };\n"
+		"	x[2] = true;\n"
+		"	x[0] = true;\n"
+		"	if (x.b == 5 && x[2] && !x[1]) r += 1;\n"
+		"	x[2] = false;\n"
+		"	x[1].Flip();\n"
+		"	if (x.b == 3) r += 2;\n"
+		"	Row row = { { 1, 2, 3 } };\n"
+		"	row[1] += 5;\n"
+		"	++row[2];\n"
+		"	if (row.a[1] == 7 && row.a[2] == 4 && row[1].Get() == 7) r += 4;\n"
+		"	(x[3] = true) = false;\n"
+		"	if (x.b == 3) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.19 [expr.const], 2.14.8 [lex.ext] p2: a user-defined literal is its literal operator's call, a constant expression when the operator is constexpr
+	{
+		"ConstantLiteralOperator", 15,
+		"constexpr int operator\"\" _twice(unsigned long long v) { return (int)v * 2; }\n"
+		"constexpr int operator\"\" _code(char c) { return c - 'a'; }\n"
+		"constexpr unsigned operator\"\" _len(const char* s, decltype(sizeof(0)) n) { return (unsigned)n; }\n"
+		"int operator\"\" _run(unsigned long long v) { return (int)v + 1; }\n"
+		"int gaiRow[3_twice];\n"
+		"enum { E = 4_twice + 'c'_code };\n"
+		"template<int N> struct Count { enum { V = N }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (sizeof(gaiRow) == 6 * sizeof(int)) r += 1;\n"
+		"	if (E == 10) r += 2;\n"
+		"	if (Count<\"four\"_len>::V == 4) r += 4;\n"
+		"	switch (5)\n"
+		"	{\n"
+		"	case 2_twice + 1:\n"
+		"		r += 8;\n"
+		"		break;\n"
+		"	}\n"
+		"	return r + (9_run == 10 ? 0 : 16);\n"
+		"}\n"
+	},
+	//5.19 [expr.const] p2: a call of a function that isn't constexpr is no constant expression, a literal operator's too
+	{
+		"ConstantLiteralOperatorNotConstexprRefused", CONFORMANCE_REFUSED,
+		"int operator\"\" _run(unsigned long long v) { return (int)v + 1; }\n"
+		"int gaiRow[3_run];\n"
+		"int main() { return sizeof(gaiRow) / sizeof(int); }\n"
+	},
+	//5.1.2 [expr.prim.lambda] p5, 8.3.6 [dcl.fct.default]: a lambda's parameters have default arguments, as its function call operator's
+	{
+		"LambdaDefaultArguments", 15,
+		"int gCalls = 0;\n"
+		"int Next() { return ++gCalls; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int k = 2;\n"
+		"	auto add = [](int a, int b = 4) { return a + b; };\n"
+		"	auto all = [k](int a = 5, int b = 6) { return a + b + k; };\n"
+		"	auto each = [](int n = Next()) { return n; };\n"
+		"	auto generic = [](auto a, int b = 3) { return (int)sizeof(a) * 10 + b; };\n"
+		"	if ([](int w = 3) { return w; }() == 3) r += 1;\n"
+		"	if (add(1) == 5 && add(1, 2) == 3) r += 2;\n"
+		"	if (all() == 13 && all(1) == 9 && all(1, 1) == 4) r += 4;\n"
+		"	if (each() == 1 && each() == 2 && each(7) == 7 && gCalls == 2) r += 8;\n"
+		"	return r + (generic('c') == 13 && generic('c', 1) == 11 ? 0 : 16);\n"
+		"}\n"
+	},
 };
 
 
@@ -7976,6 +8065,30 @@ static const SConformanceCase gasConformanceClause14[] =
 		"	Outer<char>::Inner* p = &a.i;\n"
 		"	p->t = 'y';\n"
 		"	if (a.i.t == 'y') r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.6.4.1 [temp.point] p8, 14.5.6 [temp.fct], 8.3.6 [dcl.fct.default] p4: a function template is called where it is only declared, defined after, with the default arguments its declaration gave it
+	{
+		"TempFunctionTemplateDefinedLater", 15,
+		"struct S { int v; };\n"
+		"template<class T> T Twice(T);\n"
+		"template<class T> T Add(T a, T b = T(4));\n"
+		"template<class T> int operator+(S, T);\n"
+		"template<class T> int Size(T t = T());\n"
+		"int Early() { S s = { 2 }; return Twice(2) + (s + 3) * 10 + Add(5) * 100; }\n"
+		"template<class U> U Twice(U u) { return u * 2; }\n"
+		"template<class U> U Add(U a, U b) { return a + b; }\n"
+		"template<class U> int operator+(S s, U u) { return s.v + (int)u; }\n"
+		"template<class U> int Size(U u) { return (int)sizeof(U) + (int)u; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s = { 1 };\n"
+		"	if (Early() == 954) r += 1;\n"
+		"	if (Twice(3L) == 6 && Add(1, 1) == 2 && Add('a') == 'a' + 4 && s + 'b' == 'b' + 1) r += 2;\n"
+		"	if (Size<char>() == 1 && Size<long>() == sizeof(long) && Size(2) == sizeof(int) + 2) r += 4;\n"
+		"	if (sizeof(Twice('c')) == 1 && sizeof(Add(1L)) == sizeof(long)) r += 8;\n"
 		"	return r;\n"
 		"}\n"
 	},

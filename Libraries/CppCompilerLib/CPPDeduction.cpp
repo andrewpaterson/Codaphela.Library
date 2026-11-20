@@ -701,7 +701,6 @@ CCPPSymbol* CCPPDeduction::GetArgumentSymbol(CCPPSyntax* pcArgument)
 //////////////////////////////////////////////////////////////////////////
 void CCPPPatternMatch::Init(CCPPUnit* pcUnit, CCPPSyntaxTemplateDeclaration* pcDeclaration)
 {
-	CCPPSyntax*		pcParameter;
 	SCPPBinding*	psBinding;
 	size			i;
 
@@ -710,10 +709,9 @@ void CCPPPatternMatch::Init(CCPPUnit* pcUnit, CCPPSyntaxTemplateDeclaration* pcD
 	masDeferred.Init();
 	for (i = 0; i < pcDeclaration->macpParameters.NumElements(); i++)
 	{
-		pcParameter = pcDeclaration->macpParameters.GetPtr(i);
 		psBinding = mpcDeduced->macBindings.Add();
 		memset(psBinding, 0, sizeof(SCPPBinding));
-		psBinding->pcParameter = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol;
+		psBinding->pcParameter = pcDeclaration->ParameterSymbol(i);
 	}
 	miScore = (pcDeclaration->macpParameters.NumElements() == 0) ? 1000 : 0;
 }

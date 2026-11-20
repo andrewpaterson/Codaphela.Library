@@ -2269,6 +2269,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	CCPPVariable*					pcVariable;
 	SCPP65Type*						psType;
 	SCPPBinding*					psBinding;
+	SCPPLiteralCall*				psCall;
 	CCPPClass*					pcClass;
 	CCPPSymbol*						pcEnumerator;
 	CCPPSymbol*						pcMember;
@@ -2290,6 +2291,17 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		return ((CCPPSyntaxImplicitArgument*)pcExpression)->mbConstant && !((CCPPSyntaxImplicitArgument*)pcExpression)->mpsType->IsFloat();
 
 	case CPPS_LiteralExpression:
+	case CPPS_StringExpression:
+		if (UserLiteralToken(pcExpression))
+		{
+			//12_km and "abc"_len are their literal operators' calls.  [lex.ext] 2
+			psCall = GetLiteralCall(pcExpression);
+			return psCall && ConstexprResult(psCall->pcFunction, pcExpression, plliValue);
+		}
+		if (pcExpression->GetKind() == CPPS_StringExpression)
+		{
+			return false;
+		}
 		return TokenConstant(mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral), plliValue);
 
 	case CPPS_IdExpression:
@@ -2581,28 +2593,42 @@ SCPP65Type* CCPPUnit::ConstantTypeOf(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue)
 {
-	CCPPBoundCall				cBound;
-	CCPPSyntaxFunctionDefinition*	pcDefinition;
-	SCPP65Type*					psType;
-	size						uiErrors;
-	bool						bBound;
+	CCPPBoundCall	cBound;
+	size			uiErrors;
+	bool			bBound;
 
 	uiErrors = mcErrors.NumErrors();
 	BeginQuiet();
 	bBound = mcBinder.Bind(pcCall, &cBound, false);
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
-	pcDefinition = (bBound && cBound.mpcFunction) ? cBound.mpcFunction->mpcDefinition : NULL;
+	return bBound && ConstexprResult(cBound.mpcFunction, pcCall, plliValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The integer an expression that is a call of pcFunction gives (a call, or
+// a literal with a suffix, which is its literal operator's), if the
+// function is constexpr: the call is run.  False if it isn't a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* pcExpression, int64* plliValue)
+{
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	SCPP65Type*						psType;
+
+	pcDefinition = pcFunction ? pcFunction->mpcDefinition : NULL;
 	if (!pcDefinition || !pcDefinition->mpcSpecifiers || !(pcDefinition->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR))
 	{
 		return false;
 	}
-	psType = TypeOf(pcCall);
+	psType = TypeOf(pcExpression);
 	if (!psType || !(psType->IsInteger() || (psType->eKind == CPP65TK_Bool)))
 	{
 		return false;
 	}
-	return mpcConstants->Value(pcCall, psType, plliValue);
+	return mpcConstants->Value(pcExpression, psType, plliValue);
 }
 
 

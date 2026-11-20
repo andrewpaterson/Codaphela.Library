@@ -98,7 +98,6 @@ public:
 	void					MostSpecialised(CArrayCPPTemplates* papcTemplates, size uiArguments, CCPPSyntax* pcNode);
 	bool					AtLeastAsSpecialised(CCPPTemplate* pcFirst, CCPPTemplate* pcSecond, size uiArguments, CCPPSyntax* pcNode);
 	bool					TemplateParameterTypes(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, size uiArguments, CArrayCPP65Types* papsTypes);
-	bool					TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size uiArguments);
 	bool					IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, int64 lliName);
 	CCPPFunction*			FindFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, ECPPCalledObject eObject = CPPCO_None, CCPPOverloadScopes* papcNamespaces = NULL, CCPPFunction* pcInstance = NULL);
 	CCPPFunction*			FindFunctionOrInstance(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, ECPPCalledObject eObject);

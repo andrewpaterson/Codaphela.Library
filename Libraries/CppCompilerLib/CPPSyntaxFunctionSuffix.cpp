@@ -146,6 +146,28 @@ bool CCPPSyntaxFunctionSuffix::EndsWithPack(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a function with these parameters takes uiArguments arguments:
+// defaults make up the rest, and ... or a function parameter pack (Args...
+// args) take any number more.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxFunctionSuffix::TakesArgumentCount(size uiArguments)
+{
+	size	uiParameters;
+	size	uiRequired;
+
+	uiParameters = NumParameters();
+	uiRequired = RequiredParameters();
+	if (EndsWithPack())
+	{
+		return uiArguments + 1 >= uiRequired;
+	}
+	return (uiArguments >= uiRequired) && ((uiArguments <= uiParameters) || mbVariadic);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The number of parameters declared: none for (void).
 //
 //////////////////////////////////////////////////////////////////////////

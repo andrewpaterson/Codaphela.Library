@@ -601,6 +601,8 @@ public:
 	ECPPRefQualifier		RefQualifier(CCPPSyntaxFunctionSuffix* pcSuffix);
 	bool					DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode);
 	CCPPTemplateArguments*			RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
+	CCPPTemplateArguments*	RenamedBindings(CCPPTemplateArguments* pcFrom, CCPPSyntaxTemplateDeclaration* pcDeclaration);
+	void					DeclaredDefaultArguments(CCPPSyntaxTemplateDeclaration* pcDeclared, CCPPSyntaxDeclarator* pcDeclaredDeclarator, CCPPSyntaxTemplateDeclaration* pcDefined, CCPPSyntaxDeclarator* pcDefinedDeclarator);
 	CCPPTemplateArguments*			NewBindings(void);
 	CArrayCPP65Types*		NewPack(void);
 	CArrayInt64*			NewValuePack(void);
@@ -793,6 +795,7 @@ public:
 	bool					NamesConstexpr(CCPPSyntax* pcNode);
 	int64					ConstantOfType(SCPP65Type* psType, int64 lliValue);
 	bool					ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue);
+	bool					ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* pcExpression, int64* plliValue);
 	SCPP65Type*				ConstantTypeOf(CCPPSyntax* pcExpression);
 	bool					BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue);
 	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);

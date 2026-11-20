@@ -1268,18 +1268,15 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		pcSubscript = (CCPPSyntaxSubscriptExpression*)pcExpression;
 		if (IsObjectSubscript(pcSubscript))
 		{
-			//object[index] is a call to the object's operator[], which must return a reference here.
+			//object[index] is a call to the object's operator[]: what its reference refers to, or the object it
+			//returns (a proxy whose operator= stores: bits[2] = true).
 			if (!OperatorCall(pcSubscript->mpcArray, CT_OpenSquareBracket, pcSubscript->mpcIndex, &sAddress))
 			{
 				return false;
 			}
-			if (!sAddress.psType->IsReference())
-			{
-				return Unsupported(__FILE__, __LINE__);
-			}
 			psPlace->sAddress = sAddress.sValue;
-			psPlace->psType = sAddress.psType->psBase;
-			return true;
+			psPlace->psType = sAddress.psType->WithoutReference();
+			return sAddress.psType->IsReference() || sAddress.psType->IsClass() || Unsupported(__FILE__, __LINE__);
 		}
 		if (!mpcUnit->TypeOf(pcSubscript->mpcArray))
 		{

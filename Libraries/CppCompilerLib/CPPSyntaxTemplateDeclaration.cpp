@@ -83,3 +83,17 @@ void CCPPSyntaxTemplateDeclaration::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Scope(&mpcScope);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The symbol of a template parameter: a type's (class T, a template for
+// one) or a non-type's (int N).
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPSyntaxTemplateDeclaration::ParameterSymbol(size uiParameter)
+{
+	CCPPSyntax*	pcParameter;
+
+	pcParameter = macpParameters.GetPtr(uiParameter);
+	return (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol;
+}

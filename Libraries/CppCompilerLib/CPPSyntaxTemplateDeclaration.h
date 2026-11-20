@@ -37,6 +37,7 @@ public:
 	CPP_SYNTAX_NODE(TemplateDeclaration)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
+	CCPPSymbol*				ParameterSymbol(size uiParameter);
 };
 
 

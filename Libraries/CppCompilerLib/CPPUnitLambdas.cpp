@@ -788,19 +788,24 @@ CCPPFunction* CCPPUnit::LambdaFunction(SCPPLambda* psLambda, CArrayCPP65Types* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A function of the closure defined by the lambda's body.
+// A function of the closure defined by the lambda's body, with the default
+// arguments the lambda's parameters have.  [expr.prim.lambda] 5
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPUnit::AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, CArrayCPP65Types* papsParameters, SCPP65Type* psReturn)
 {
-	CCPPFunction*	pcFunction;
-	size			i;
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntax*					pcParameter;
+	CCPPFunction*				pcFunction;
+	size						i;
 
+	pcSuffix = psLambda->pcSyntax->mpcDefinition->mpcDeclarator->GetFunctionSuffix();
 	pcFunction = AddFunction(psLambda->pcClass, lliName, CPPFK_Function, psReturn);
 	for (i = 0; i < papsParameters->NumElements(); i++)
 	{
+		pcParameter = (i < pcSuffix->macpParameters.NumElements()) ? pcSuffix->macpParameters.GetPtr(i) : NULL;
 		pcFunction->mapsParameters.Add(papsParameters->GetPtr(i));
-		pcFunction->mapcDefaults.Add(NULL);
+		pcFunction->mapcDefaults.Add((pcParameter && (pcParameter->GetKind() == CPPS_Parameter)) ? ((CCPPSyntaxParameter*)pcParameter)->mpcDefault : NULL);
 	}
 	pcFunction->mpcDefinition = psLambda->pcSyntax->mpcDefinition;
 	pcFunction->mpcDeclarator = psLambda->pcSyntax->mpcDefinition->mpcDeclarator;
@@ -818,8 +823,9 @@ CCPPFunction* CCPPUnit::AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, C
 //
 // The operator() of a generic lambda for a call's arguments: each auto
 // parameter's type is what auto is from its argument, as from a variable's
-// initialiser.  Made once for each set of types, as a template's instance
-// is.  [expr.prim.lambda] 5
+// initialiser; a parameter the call gives no argument takes its default,
+// which says nothing of what auto is ([temp.deduct.type] 5).  Made once for
+// each set of types, as a template's instance is.  [expr.prim.lambda] 5
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArguments)
@@ -827,22 +833,31 @@ void CCPPUnit::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArgumen
 	CArrayCPP65Types			apsParameters;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntaxParameter*		pcParameter;
+	CCPPSyntax*					pcArgument;
 	SCPP65Type*					psType;
 	size						uiParameters;
+	size						uiTypes;
 	size						i;
 
 	pcSuffix = psLambda->pcSyntax->mpcDefinition->mpcDeclarator->GetFunctionSuffix();
-	uiParameters = pcSuffix->macpParameters.NumElements();
-	if (pcSuffix->EndsWithPack() ? (papcArguments->NumElements() + 1 < uiParameters) : (papcArguments->NumElements() != uiParameters))
+	if (!pcSuffix->TakesArgumentCount(papcArguments->NumElements()) || pcSuffix->mbVariadic)
 	{
 		return;
 	}
+
+	//Its parameters: those declared, or with a last one that is a pack (auto... args) one for each argument.
+	uiParameters = pcSuffix->NumParameters();
+	uiTypes = pcSuffix->EndsWithPack() ? ((papcArguments->NumElements() + 1 > uiParameters) ? papcArguments->NumElements() : uiParameters - 1) : uiParameters;
 	apsParameters.Init();
-	for (i = 0; i < papcArguments->NumElements(); i++)
+	for (i = 0; i < uiTypes; i++)
 	{
-		//A last parameter that is a pack (auto... args) is each of the rest of the arguments'.
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr((i < uiParameters) ? i : uiParameters - 1);
-		psType = (pcParameter->GetKind() == CPPS_Parameter) ? mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter, papcArguments->GetPtr(i)) : NULL;
+		pcArgument = (i < papcArguments->NumElements()) ? papcArguments->GetPtr(i) : NULL;
+		psType = NULL;
+		if ((pcParameter->GetKind() == CPPS_Parameter) && (pcArgument || !mcDeclarators.IsAuto(pcParameter->mpcSpecifiers)))
+		{
+			psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter, pcArgument);
+		}
 		if (!psType)
 		{
 			apsParameters.Kill();

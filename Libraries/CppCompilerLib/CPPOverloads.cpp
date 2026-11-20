@@ -547,7 +547,6 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcE
 {
 	CCPPFunction*					pcFunction;
 	CCPPTemplate*					pcTemplate;
-	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPSyntaxName*					pcName;
 	CCPPScope*						pcLookup;
 	CCPPOverloadScopes				apcNamespaces;
@@ -587,12 +586,11 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcE
 	for (i = 0; !pcFunction && (i < mpcUnit->GetTemplates()->NumElements()); i++)
 	{
 		pcTemplate = mpcUnit->GetTemplates()->GetPtr(i);
-		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->mpcDefinition || (pcTemplate->mpcDefinition->GetKind() != CPPS_FunctionDefinition))
+		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->IsFunction())
 		{
 			continue;
 		}
-		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition;
-		pcName = pcDefinition->mpcDeclarator ? pcDefinition->mpcDeclarator->GetName() : NULL;
+		pcName = pcTemplate->FunctionDeclarator() ? pcTemplate->FunctionDeclarator()->GetName() : NULL;
 		if (pcName && (pcName->macpComponents.NumElements() == 1) && (mpcUnit->GetFunctionName(pcName->GetLast()) == lliName) && (apcNamespaces.Has(pcTemplate->mpcNamespace)))
 		{
 			//An instance made only from explicit arguments (template<char... C> operator "" _k) may not take the arguments.
@@ -1838,28 +1836,6 @@ int CCPPOverloads::CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSeco
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a function with these parameters takes uiArguments arguments: defaults
-// make up the rest, and ... or a function parameter pack (Args ... args) take any
-// number more.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPOverloads::TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size uiArguments)
-{
-	size					uiParameters;
-	size					uiRequired;
-
-	uiParameters = pcSuffix->NumParameters();
-	uiRequired = pcSuffix->RequiredParameters();
-	if (pcSuffix->EndsWithPack())
-	{
-		return uiArguments + 1 >= uiRequired;
-	}
-	return (uiArguments >= uiRequired) && ((uiArguments <= uiParameters) || pcSuffix->mbVariadic);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A member template of pcClass (or of a base) named lliName that takes uiArguments
 // arguments.  Of two that do, the one whose const matches the object's (eObject)
 // is chosen.
@@ -1919,7 +1895,7 @@ void CCPPOverloads::GetMemberTemplates(CCPPClass* pcClass, int64 lliName, size u
 			continue;
 		}
 		pcSuffix = pcTemplate->mpcDeclarator->GetFunctionSuffix();
-		if (pcSuffix && TakesArguments(pcSuffix, uiArguments))
+		if (pcSuffix && pcSuffix->TakesArgumentCount(uiArguments))
 		{
 			papcCandidates->Add(pcTemplate);
 		}
@@ -2004,7 +1980,7 @@ void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpress
 				continue;
 			}
 			pcSuffix = pcTemplate->FunctionDeclarator()->GetFunctionSuffix();
-			if (pcSuffix && TakesArguments(pcSuffix, papcArguments->NumElements()))
+			if (pcSuffix && pcSuffix->TakesArgumentCount(papcArguments->NumElements()))
 			{
 				papcCandidates->Add(pcTemplate);
 			}

@@ -769,6 +769,24 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       parameters ("A template parameter used outside an instantiation"), so not as a base either
       (TempMemberClassOfTemplate).  Not done: one defined outside the class template (template<class T> struct
       Outer<T>::Inner { ... };), and its members defined outside it.
+    - object[index] whose operator[] returns an object is that object, assigned to and called on (bits[2] = true
+      through a proxy): its place had to be a reference's (CCPP65IRFrontEnd::Place; SubscriptOperatorReturnsObject).
+    - A literal with a suffix is a constant where its literal operator is constexpr (int a[3_k], an enumerator, a
+      template argument, a case): CCPPUnit::FoldConstant runs it as it runs a constexpr function's call
+      (ConstexprResult; ConstantLiteralOperator, ConstantLiteralOperatorNotConstexprRefused).
+    - A lambda's parameters have default arguments (AddLambdaFunction gave its operator() none), a generic lambda's
+      too, for the parameters after those a call's arguments deduce (GenericLambdaCall;
+      CCPPSyntaxFunctionSuffix::TakesArgumentCount, which was CCPPOverloads::TakesArguments;
+      LambdaDefaultArguments).
+    - A function template is called where it is only declared and defined after (it was "The function template has
+      not been defined"): the instances made of its declaration become instances of its definition, and those
+      that were called are written (CCPPUnit::DefineFunctionTemplate, RenamedBindings).  One never defined in
+      the unit is another unit's, or a missing label when it is linked.  An operator template that is only
+      declared is kept as one (DeclareFunctionTemplate, FindFunctionTemplate, FindFreeOperator).  The default
+      arguments a function template's declaration gives are its definition's, copied to it with its template
+      parameters' names (DeclaredDefaultArguments, [dcl.fct.default] 4)  (TempFunctionTemplateDefinedLater).  Not
+      done: a member template called before its definition outside its class, and default arguments a later
+      declaration adds to a template already defined.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

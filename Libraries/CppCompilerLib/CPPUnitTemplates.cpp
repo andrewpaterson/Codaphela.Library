@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "CPPSyntaxCopier.h"
 #include "CPPUnit.h"
 #include "CPPSymbolKey.h"
 #include <ctype.h>
@@ -545,9 +546,13 @@ void CCPPUnit::DeclareFunctionTemplate(CCPPSyntaxTemplateDeclaration* pcDeclarat
 	CCPPTemplate*			pcTemplate;
 
 	pcDeclarator = (pcSimple->macpDeclarators.NumElements() == 1) ? ((CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0))->mpcDeclarator : NULL;
+	//(An operator template has no symbol: it is found by its operator, FindFreeOperator.)
 	pcName = (pcDeclarator && pcDeclarator->GetFunctionSuffix()) ? pcDeclarator->GetName() : NULL;
-	if (!pcName || (pcName->macpComponents.NumElements() != 1) || !pcName->mpcSymbol || (pcName->mpcSymbol->meKind != CPPSK_FunctionTemplate) ||
-		(pcSimple->mpcSpecifiers && (pcSimple->mpcSpecifiers->muiFlags & (CPPDS_FRIEND | CPPDS_TYPEDEF))))
+	if (!pcName || (pcName->macpComponents.NumElements() != 1) || (pcSimple->mpcSpecifiers && (pcSimple->mpcSpecifiers->muiFlags & (CPPDS_FRIEND | CPPDS_TYPEDEF))))
+	{
+		return;
+	}
+	if (pcName->mpcSymbol ? (pcName->mpcSymbol->meKind != CPPSK_FunctionTemplate) : ((pcName->GetLast()->meKind != CPPNC_Operator) && (pcName->GetLast()->meKind != CPPNC_Literal)))
 	{
 		return;
 	}
@@ -572,11 +577,76 @@ void CCPPUnit::DeclareFunctionTemplate(CCPPSyntaxTemplateDeclaration* pcDeclarat
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::DefineFunctionTemplate(CCPPTemplate* pcTemplate, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxFunctionDefinition* pcDefinition)
 {
+	CArrayCPPFunctions	apcDeclared;
+	CCPPFunction*		pcDeclared;
+	CCPPFunction*		pcFunction;
+	size				i;
+
+	DeclaredDefaultArguments(pcTemplate->mpcDeclaration, pcTemplate->mpcDeclarator, pcDeclaration, pcDefinition->mpcDeclarator);
+	apcDeclared.Init();
+	apcDeclared.Copy(&pcTemplate->mapcInstances);
 	pcTemplate->mpcDeclaration = pcDeclaration;
 	pcTemplate->mpcDefinition = pcDefinition;
 	pcTemplate->mpcDeclarator = NULL;
 	pcTemplate->mpcSpecifiers = NULL;
 	pcTemplate->mapcInstances.ReInit();
+
+	//An instance that was called while the template was only declared is an instance of its definition: it is
+	//written.  [temp.point] 8
+	for (i = 0; i < apcDeclared.NumElements(); i++)
+	{
+		pcDeclared = apcDeclared.GetPtr(i);
+		pcFunction = pcDeclared->mbCalled ? InstanceOfFunction(pcTemplate, RenamedBindings(pcDeclared->mpcBindings, pcDeclaration), &pcDeclared->mszArguments, pcDefinition) : NULL;
+		if (pcFunction)
+		{
+			RequireFunction(pcFunction);
+		}
+	}
+	apcDeclared.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The default arguments a function template's declaration gave its
+// parameters are its definition's too, where that gives none
+// (template<class T> T Add(T a, T b = 4); template<class T> T Add(T a, T b)
+// { ... }): each is copied to the definition's parameter, naming the
+// definition's template parameters.  [dcl.fct.default] 4
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DeclaredDefaultArguments(CCPPSyntaxTemplateDeclaration* pcDeclared, CCPPSyntaxDeclarator* pcDeclaredDeclarator, CCPPSyntaxTemplateDeclaration* pcDefined, CCPPSyntaxDeclarator* pcDefinedDeclarator)
+{
+	CCPPSyntaxFunctionSuffix*	pcFrom;
+	CCPPSyntaxFunctionSuffix*	pcTo;
+	CCPPSyntaxParameter*		pcFromParameter;
+	CCPPSyntaxParameter*		pcToParameter;
+	CCPPSyntaxCopier			cCopier;
+	size						i;
+	size						j;
+
+	pcFrom = pcDeclaredDeclarator ? pcDeclaredDeclarator->GetFunctionSuffix() : NULL;
+	pcTo = pcDefinedDeclarator->GetFunctionSuffix();
+	if (!pcFrom || !pcTo || (pcFrom->macpParameters.NumElements() != pcTo->macpParameters.NumElements()))
+	{
+		return;
+	}
+	for (i = 0; i < pcFrom->macpParameters.NumElements(); i++)
+	{
+		pcFromParameter = (CCPPSyntaxParameter*)pcFrom->macpParameters.GetPtr(i);
+		pcToParameter = (CCPPSyntaxParameter*)pcTo->macpParameters.GetPtr(i);
+		if ((pcFromParameter->GetKind() != CPPS_Parameter) || (pcToParameter->GetKind() != CPPS_Parameter) || !pcFromParameter->mpcDefault || pcToParameter->mpcDefault)
+		{
+			continue;
+		}
+		cCopier.Init(mpcTree->GetMemory());
+		for (j = 0; (j < pcDeclared->macpParameters.NumElements()) && (j < pcDefined->macpParameters.NumElements()); j++)
+		{
+			cCopier.Substitute(pcDeclared->ParameterSymbol(j), pcDefined->ParameterSymbol(j));
+		}
+		pcToParameter->mpcDefault = cCopier.Copy(pcFromParameter->mpcDefault, pcToParameter);
+		cCopier.Kill();
+	}
 }
 
 
@@ -594,21 +664,24 @@ CCPPTemplate* CCPPUnit::FindFunctionTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTem
 	CCPPTemplate*	pcFound;
 	CChars			szSignature;
 	CChars			szOther;
+	int64			lliName;
 	size			i;
 
-	if (!pcSymbol)
-	{
-		return NULL;
-	}
+	lliName = GetFunctionName(pcDeclarator->GetName()->GetLast());
 	szSignature.Init();
 	FunctionTemplateSignature(pcDeclaration, pcDeclarator, &szSignature);
 	pcFound = NULL;
 	for (i = 0; !pcFound && (i < mapcTemplates.NumElements()); i++)
 	{
 		pcTemplate = mapcTemplates.GetPtr(i);
-		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->mpcSymbol || !pcTemplate->IsFunction() ||
-			(pcTemplate->mpcSymbol->mlliName != pcSymbol->mlliName) || (pcTemplate->mpcSymbol->mpcScope != pcSymbol->mpcScope))
+		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->IsFunction() || ((pcTemplate->mpcSymbol != NULL) != (pcSymbol != NULL)))
 		{
+			continue;
+		}
+		if (pcSymbol ? ((pcTemplate->mpcSymbol->mlliName != pcSymbol->mlliName) || (pcTemplate->mpcSymbol->mpcScope != pcSymbol->mpcScope)) :
+			((pcTemplate->mpcNamespace != mcContext.GetNamespace()) || (GetFunctionName(pcTemplate->FunctionDeclarator()->GetName()->GetLast()) != lliName)))
+		{
+			//An operator template, which has no symbol, is one of its operator in its namespace.
 			continue;
 		}
 		szOther.Init();
@@ -2110,18 +2183,33 @@ CCPPTemplate* CCPPUnit::FindFunctionSpecialisation(CCPPTemplate* pcPrimary, CCha
 CCPPTemplateArguments* CCPPUnit::RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration)
 {
 	CCPPTemplateArguments*	pcBindings;
-	CCPPSyntax*		pcParameter;
-	size			i;
 
-	pcBindings = NewBindings();
+	pcBindings = RenamedBindings(pcClass->mpcBindings, pcDeclaration);
 	pcBindings->mpcOuter = pcClass->mpcBindings;
 	pcBindings->mpcClass = pcClass;
 	pcBindings->mbSelf = pcClass->mpcBindings->mbSelf;
-	for (i = 0; (i < pcDeclaration->macpParameters.NumElements()) && (i < pcClass->mpcBindings->macBindings.NumElements()); i++)
+	return pcBindings;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Template arguments as another declaration of their template names its
+// parameters: each parameter of pcDeclaration bound to what the one in its
+// place is bound to.  (Each declaration of a template has parameters of its
+// own: template<class T> T Twice(T); and template<class U> U Twice(U u) { }.)
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPTemplateArguments* CCPPUnit::RenamedBindings(CCPPTemplateArguments* pcFrom, CCPPSyntaxTemplateDeclaration* pcDeclaration)
+{
+	CCPPTemplateArguments*	pcBindings;
+	size					i;
+
+	pcBindings = NewBindings();
+	for (i = 0; (i < pcDeclaration->macpParameters.NumElements()) && (i < pcFrom->macBindings.NumElements()); i++)
 	{
-		pcParameter = pcDeclaration->macpParameters.GetPtr(i);
-		*pcBindings->macBindings.Add() = *pcClass->mpcBindings->macBindings.Get(i);
-		pcBindings->macBindings.Tail()->pcParameter = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol;
+		*pcBindings->macBindings.Add() = *pcFrom->macBindings.Get(i);
+		pcBindings->macBindings.Tail()->pcParameter = pcDeclaration->ParameterSymbol(i);
 	}
 	return pcBindings;
 }
