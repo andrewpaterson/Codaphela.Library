@@ -28,6 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 void CCPPExceptionSpec::Init(void)
 {
+	mbDynamic = false;
 	meKind = CPPES_Anything;
 	mapsTypes.Init();
 }
@@ -49,6 +50,7 @@ void CCPPExceptionSpec::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPExceptionSpec::SetAnything(void)
 {
+	mbDynamic = false;
 	meKind = CPPES_Anything;
 	mapsTypes.ReInit();
 }
@@ -60,6 +62,7 @@ void CCPPExceptionSpec::SetAnything(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPExceptionSpec::SetNothing(void)
 {
+	mbDynamic = false;
 	meKind = CPPES_Nothing;
 	mapsTypes.ReInit();
 }
@@ -93,6 +96,7 @@ void CCPPExceptionSpec::Set(CCPPExceptionSpec* pcSource)
 {
 	size	i;
 
+	mbDynamic = pcSource->mbDynamic;
 	meKind = pcSource->meKind;
 	mapsTypes.ReInit();
 	for (i = 0; i < pcSource->mapsTypes.NumElements(); i++)

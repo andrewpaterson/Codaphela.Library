@@ -712,6 +712,7 @@ public:
 	bool					ValueAllowsOnly(CCPPSyntax* pcValue, SCPP65Type* psPointer, CCPPExceptionSpec* pcPointer);
 	CCPPExceptionSpec*		ExceptionsOf(CCPPFunction* pcFunction);
 	bool					IsNoexcept(CCPPFunction* pcFunction);
+	bool					IsWeakFunction(CCPPFunction* pcFunction);
 	void					ClassExceptions(CCPPClass* pcClass, ECPPSpecialMember eMember, CCPPExceptionSpec* pcDest);
 	bool					ClassMayThrow(CCPPClass* pcClass, ECPPSpecialMember eMember);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);

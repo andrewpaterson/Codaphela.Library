@@ -130,6 +130,7 @@ protected:
 	bool					mbMemberName;			//The name after . or ->, which is a member of a type the parser doesn't know.
 	int						miClassDepth;
 	bool					mbDeclaringTemplate;	//The declaration directly in a template declaration declares a template.
+	int						miTemplates;			//Templates being parsed, nested: their bodies are parsed in a system header too (ParseFunctionDefinition).
 	CArrayDeferredBodies	macDeferred;			//The bodies of member functions to parse once their class is complete, first found first...
 	size					muiDeferredNext;		//...from this one: those before it have been.
 	int						miErrors;

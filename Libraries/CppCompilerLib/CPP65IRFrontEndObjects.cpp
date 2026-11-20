@@ -328,7 +328,12 @@ bool CCPP65IRFrontEnd::InlineMemcpy(CArraySyntax* papcArguments, SCPP65Type* psR
 // The start of a constructor: the bases
 // (from the member initialiser list or their default constructors), the
 // vtable pointers, then the fields from the member initialisers, the
-// default member initialisers or their own constructors.
+// default member initialisers or their own constructors.  With exceptions
+// each is a part once it is made, so that an exception from what comes
+// after it, the body included, destroys it ([except.ctor] 2).  The parts
+// stay for the rest of the function: no normal way out sees them.  Each
+// member initialiser is a full expression, whose temporaries are destroyed
+// at its end ([intro.execution] 10).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction)
@@ -345,6 +350,8 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	CCPPClass*					pcNamed;
 	size							ui;
 	size							uiMember;
+	size							uiAt;
+	size							uiTemporaries;
 	int								iOffset;
 
 	//An implicit constructor has no definition, so no member initialisers.
@@ -371,7 +378,15 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 			{
 				return Unsupported(__FILE__, __LINE__);
 			}
-			return DelegatedConstructor(pcClass, pcMember);
+			uiAt = mcCleanups.NumEntries();
+			uiTemporaries = mcCleanups.NumTemporaries();
+			if (!DelegatedConstructor(pcClass, pcMember))
+			{
+				return false;
+			}
+
+			//The object is made: an exception from the body destroys it.  [except.ctor] 2
+			return MemberInitialised(uiAt, uiTemporaries, msThis, pcClass->mpsType, mbBaseVersion ? pcClass : NULL);
 		}
 	}
 
@@ -380,7 +395,10 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	for (ui = 0; !mbBaseVersion && (ui < pcClass->macVirtualBases.NumElements()); ui++)
 	{
 		psVirtual = pcClass->macVirtualBases.Get(ui);
-		if (!ConstructBase(papcInitialisers, psVirtual->pcClass, AddressAt(msThis, psVirtual->iOffset)))
+		uiAt = mcCleanups.NumEntries();
+		uiTemporaries = mcCleanups.NumTemporaries();
+		if (!ConstructBase(papcInitialisers, psVirtual->pcClass, AddressAt(msThis, psVirtual->iOffset)) ||
+			!MemberInitialised(uiAt, uiTemporaries, AddressAt(msThis, psVirtual->iOffset), psVirtual->pcClass->mpsType, psVirtual->pcClass))
 		{
 			return false;
 		}
@@ -390,7 +408,14 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	for (ui = 0; ui < pcClass->macBases.NumElements(); ui++)
 	{
 		psBase = pcClass->macBases.Get(ui);
-		if (!psBase->bVirtual && !ConstructBase(papcInitialisers, psBase->pcClass, AddressAt(msThis, psBase->iOffset)))
+		if (psBase->bVirtual)
+		{
+			continue;
+		}
+		uiAt = mcCleanups.NumEntries();
+		uiTemporaries = mcCleanups.NumTemporaries();
+		if (!ConstructBase(papcInitialisers, psBase->pcClass, AddressAt(msThis, psBase->iOffset)) ||
+			!MemberInitialised(uiAt, uiTemporaries, AddressAt(msThis, psBase->iOffset), psBase->pcClass->mpsType, psBase->pcClass))
 		{
 			return false;
 		}
@@ -420,7 +445,9 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 			sPlace.sAddress = AddressAt(msThis, psField->iOffset);
 			sPlace.psType = psField->psType;
 			sPlace.psBitField = psField->IsBitField() ? psField : NULL;
-			if (!Construct(&sPlace, NULL, pcInitialiser))
+			uiAt = mcCleanups.NumEntries();
+			uiTemporaries = mcCleanups.NumTemporaries();
+			if (!Construct(&sPlace, NULL, pcInitialiser) || !MemberInitialised(uiAt, uiTemporaries, sPlace.sAddress, psField->psType, NULL))
 			{
 				return false;
 			}
@@ -483,6 +510,11 @@ bool CCPP65IRFrontEnd::ConstructBase(CArraySyntax* papcInitialisers, CCPPClass* 
 		//An inherited constructor (using Base::Base) passes its parameters to the base's.
 		bResult = InheritedConstructorCall(&sPlace);
 	}
+	else if ((papcArguments->NumElements() == 1) && !pcBase->HasVirtualBases())
+	{
+		//(B(b) of a B without a copy constructor of its own copies it, as Construct does.)
+		bResult = Construct(&sPlace, papcArguments, NULL);
+	}
 	else
 	{
 		bResult = ConstructClass(&sPlace, pcBase, papcArguments);
@@ -529,7 +561,8 @@ bool CCPP65IRFrontEnd::DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMember
 //
 // The end of a destructor, after its body: the fields in reverse, then the
 // non-virtual bases in reverse, then (but in a base version) the virtual
-// bases in reverse.
+// bases in reverse.  Each one's part (DestructorStart) is taken out before
+// it is destroyed: an exception from its destructor destroys the rest.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DestructorEnd(void)
@@ -544,6 +577,7 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 	for (ui = pcClass->macFields.NumElements(); ui > 0; ui--)
 	{
 		psField = pcClass->macFields.Get(ui - 1);
+		TakeDestroyPart(psField->psType);
 		if (!Destroy(AddressAt(msThis, psField->iOffset), psField->psType))
 		{
 			return false;
@@ -552,7 +586,12 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 	for (ui = pcClass->macBases.NumElements(); ui > 0; ui--)
 	{
 		psBase = pcClass->macBases.Get(ui - 1);
-		if (!psBase->bVirtual && !DestroyBase(AddressAt(msThis, psBase->iOffset), psBase->pcClass))
+		if (psBase->bVirtual)
+		{
+			continue;
+		}
+		TakeDestroyPart(psBase->pcClass->mpsType);
+		if (!DestroyBase(AddressAt(msThis, psBase->iOffset), psBase->pcClass))
 		{
 			return false;
 		}
@@ -560,6 +599,7 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 	for (ui = mbBaseVersion ? 0 : pcClass->macVirtualBases.NumElements(); ui > 0; ui--)
 	{
 		psVirtual = pcClass->macVirtualBases.Get(ui - 1);
+		TakeDestroyPart(psVirtual->pcClass->mpsType);
 		if (!DestroyBase(AddressAt(msThis, psVirtual->iOffset), psVirtual->pcClass))
 		{
 			return false;
@@ -780,6 +820,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	SCPP65Type*						psElement;
 	SCPP65IRValue					sMade;
 	int								i;
+	size							uiMark;
 	bool							bResult;
 	bool							bValueInitialise;
 
@@ -850,7 +891,9 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
+		//Each element made is a part until the array is: an exception destroys those made.  [except.ctor] 2
 		sElement.psType = psType->psBase;
+		uiMark = mcCleanups.NumEntries();
 		for (i = 0; i < psType->iCount; i++)
 		{
 			sElement.sAddress = AddressAt(psPlace->sAddress, i * psType->psBase->iBytes);
@@ -858,7 +901,9 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 			{
 				return false;
 			}
+			PushDestroyPart(sElement.sAddress, sElement.psType, NULL);
 		}
+		mcCleanups.RemovePartsFrom(uiMark);
 		return true;
 	}
 
@@ -994,7 +1039,11 @@ bool CCPP65IRFrontEnd::ConvertToObject(SCPP65IRPlace* psPlace, CCPPFunction* pcC
 //
 // A std::initializer_list<psElement> at psPlace from the elements of a list
 // in braces: they are an array in the frame, which it points to with their
-// count (or end).  [dcl.init.list] 5
+// count (or end).  [dcl.init.list] 5  An exception from an element
+// destroys those made before it.  Objects that need destroying are then
+// living ones of the local list being declared (mbListLocal), whose scope
+// they end with, or temporaries of the full expression: the array lives as
+// long as the list.  [dcl.init.list] 6, [class.temporary] 5
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::InitializerList(SCPP65IRPlace* psPlace, SCPP65Type* psElement, CArraySyntax* papcElements)
@@ -1006,23 +1055,47 @@ bool CCPP65IRFrontEnd::InitializerList(SCPP65IRPlace* psPlace, SCPP65Type* psEle
 	SCPPField*		psFirst;
 	SCPPField*		psSecond;
 	size			uiCount;
+	size			uiMark;
 	size			i;
 	bool			bEnd;
+	bool			bListLocal;
 
 	if (!mpcUnit->InitializerListLayout(psPlace->psType->pcClass, &bEnd))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
+	bListLocal = mbListLocal;
+	mbListLocal = false;
 	uiCount = papcElements->NumElements();
+	if (NeedsDestroying(psElement) && !bListLocal && (miConditional > 0))
+	{
+		//A temporary made where it may not be would need a flag for each element.
+		return Unsupported(__FILE__, __LINE__);
+	}
 	sArray = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)((uiCount > 0) ? uiCount * psElement->iBytes : 1), 4);
 	sElement.psType = psElement->Unqualified();
 	sElement.psBitField = NULL;
+	uiMark = mcCleanups.NumEntries();
 	for (i = 0; i < uiCount; i++)
 	{
 		sElement.sAddress = AddressAt(sArray, (int)(i * psElement->iBytes));
 		if (sElement.psType->IsClass() ? !Construct(&sElement, NULL, papcElements->GetPtr(i)) : !LocalInitialiser(&sElement, papcElements->GetPtr(i), false))
 		{
 			return false;
+		}
+		PushDestroyPart(sElement.sAddress, sElement.psType, NULL);
+	}
+	mcCleanups.RemovePartsFrom(uiMark);
+	for (i = 0; NeedsDestroying(sElement.psType) && (i < uiCount); i++)
+	{
+		sElement.sAddress = AddressAt(sArray, (int)(i * psElement->iBytes));
+		if (bListLocal)
+		{
+			AddLiving(&sElement);
+		}
+		else
+		{
+			mcCleanups.PushTemporary(&sElement, false, IRNone());
 		}
 	}
 
@@ -1146,6 +1219,12 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	SCPP65Type*		psType;
 	SCPP65IRPlace	sPlace;
 	SCPP65IRValue	sBytes;
+	SCPP65IRCleanup	sFree;
+	CCPPFunction*	pcAllocation;
+	CIRBlock*		pcNull;
+	CIRBlock*		pcMake;
+	CIRBlock*		pcEnd;
+	size			uiMark;
 
 	psType = mpcUnit->NewElementType(pcNew);
 	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsReference() || (psType->IsArray() && (pcNew->macpArraySizes.NumElements() == 0)))
@@ -1159,15 +1238,39 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	//The size is a std::size_t ([expr.new] 10).
 	sBytes.psType = mpcTypes->Size();
 	sBytes.sValue = mpcFunction->AddInteger(IRTypeOf(sBytes.psType), psType->iBytes);
-	if (!Allocate(pcNew, psType, &sBytes, &sPlace.sAddress))
+	if (!Allocate(pcNew, psType, &sBytes, &sPlace.sAddress, &sFree, &pcAllocation))
 	{
 		return false;
 	}
 	sPlace.psType = psType;
 	sPlace.psBitField = NULL;
+	pcNull = NULL;
+	if (IsNullable(pcAllocation) && (psType->IsClass() || pcNew->mpcInitializer))
+	{
+		//NULL: nothing is made.  [expr.new] 13
+		pcNull = mpcBlock;
+		pcMake = NewBlock();
+		pcEnd = NewBlock();
+		mpcBlock->Branch(mpcFunction->Add(mpcBlock, IRO_Ne, IRType(IRTK_Pointer), sPlace.sAddress, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0)), pcMake, pcEnd);
+		StartBlock(pcMake);
+	}
+	uiMark = mcCleanups.NumEntries();
+	if (PartsWanted() && psType->IsClass() && (sFree.pcFunction || sFree.szRuntime))
+	{
+		sFree.sPlace.sAddress = sPlace.sAddress;
+		mcCleanups.PushPart(&sFree);
+	}
 	if ((psType->IsClass() || pcNew->mpcInitializer) && !Construct(&sPlace, NULL, pcNew->mpcInitializer))
 	{
 		return false;
+	}
+	mcCleanups.RemovePartsFrom(uiMark);
+	if (pcNull)
+	{
+		pcMake = mpcBlock;
+		JumpTo(pcEnd);
+		StartBlock(pcEnd);
+		sPlace.sAddress = Phi(pcEnd, IRType(IRTK_Pointer), pcNull, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0), pcMake, sPlace.sAddress);
 	}
 	psValue->sValue = sPlace.sAddress;
 	psValue->psType = mpcTypes->Pointer(psType);
@@ -1180,10 +1283,13 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 // The memory a new expression makes its object in, psBytes long: from the
 // allocation function its type and placement arguments choose
 // (CCPPBinder::FindAllocation), the runtime's operator new or new[], or
-// new (address) Type's address.  [expr.new] 9
+// new (address) Type's address.  [expr.new] 9  psFree (if it is wanted)
+// says how the memory is given back if the object's construction throws
+// (Deallocation); *ppcAllocation (if it is wanted) is the allocation
+// function, NULL for the runtime's or the address.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psBytes, SIRReference* psMemory)
+bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psBytes, SIRReference* psMemory, SCPP65IRCleanup* psFree, CCPPFunction** ppcAllocation)
 {
 	CArraySyntax	apcArguments;
 	CCPPFunction*	pcAllocation;
@@ -1197,6 +1303,21 @@ bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	mpcUnit->NewArguments(pcNew, &apcArguments);
 	pcAllocation = mpcUnit->GetBinder()->FindAllocation(pcNew, psType, &apcArguments, &bFailed);
 	bResult = !bFailed;
+	if (ppcAllocation)
+	{
+		*ppcAllocation = pcAllocation;
+	}
+	if (bResult && psFree)
+	{
+		if (PartsWanted())
+		{
+			bResult = Deallocation(pcNew, pcAllocation, psType, &apcArguments, psBytes, psFree);
+		}
+		else
+		{
+			psFree->Clear(CPP65IRC_Part);
+		}
+	}
 	if (bResult && pcAllocation)
 	{
 		bResult = CallWithValue(pcAllocation, &apcArguments, apcArguments.GetPtr(0), psBytes, &sResult);
@@ -1210,7 +1331,9 @@ bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	}
 	else if (bResult)
 	{
+		//The global operator new or new[] (the program's, or Libc65's, which throws std::bad_alloc).
 		*psMemory = CallRuntime(bArray ? "opNewArray" : "opNew", IRType(IRTK_Pointer), IRTypeOf(psBytes->psType), psBytes->sValue);
+		TestThrown(NULL, mcModule.Symbol(bArray ? "_opNewArray" : "_opNew"));
 	}
 	apcArguments.Kill();
 	return bResult || Unsupported(__FILE__, __LINE__);
@@ -1247,9 +1370,10 @@ bool CCPP65IRFrontEnd::CallWithValue(CCPPFunction* pcFunction, CArraySyntax* pap
 // bits and the count 32), no allocation function is called, nothing is
 // made and the pointer is null: the bytes cut to a size_t would be given
 // less memory than is then used ([expr.new] 7).  With exceptions on that
-// is where std::bad_array_new_length is to be thrown (the user, 2026-11-19:
+// is where std::bad_array_new_length is thrown (the user, 2026-11-19:
 // null, and "It should throw if exceptions are enabled"; ExceptionsPlan.txt
-// stage 8): the block the test goes to when there are too many.
+// stage 8).  An allocation function declared noexcept that gives NULL
+// makes nothing, and the result is NULL.  [expr.new] 13
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue)
@@ -1265,13 +1389,23 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	SIRReference		sMemory;
 	SIRReference		sIndex;
 	SIRReference		sTooMany;
+	SIRReference		sMade;
+	SIRReference		sNext;
+	SCPP65IRCleanup		sFree;
+	SCPP65IRCleanup		sElements;
 	SCPP65IRCountedLoop	sLoop;
+	CCPPFunction*		pcAllocation;
+	CIRBlock*			pcNull;
+	CIRBlock*			pcMake;
+	CIRBlock*			pcNullEnd;
+	CIRBlock*			pcTooMany;
 	CIRBlock*			pcStart;
 	CIRBlock*			pcAllocate;
 	CIRBlock*			pcEnd;
 	uint64				ulliMost;
 	uint64				ulliCookie;
 	size				uiFirst;
+	size				uiMark;
 	size				i;
 	bool				bCookie;
 	bool				bValue;
@@ -1306,7 +1440,20 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 			pcAllocate = NewBlock();
 			pcEnd = NewBlock();
 			sTooMany = mpcFunction->Add(mpcBlock, IRO_UGt, sSize, sCount.sValue, mpcFunction->AddInteger(sSize, (int64)ulliMost));
-			mpcBlock->Branch(sTooMany, pcEnd, pcAllocate);
+			if (mpcUnit->GetOptions()->mbExceptions)
+			{
+				//Too many: std::bad_array_new_length.  [expr.new] 7
+				pcTooMany = NewBlock();
+				mpcBlock->Branch(sTooMany, pcTooMany, pcAllocate);
+				StartBlock(pcTooMany);
+				ThrowRoutine(CPP65_THROW_BAD_LENGTH);
+				JumpTo(pcEnd);
+				pcStart = mpcBlock;
+			}
+			else
+			{
+				mpcBlock->Branch(sTooMany, pcEnd, pcAllocate);
+			}
 			StartBlock(pcAllocate);
 		}
 	}
@@ -1317,14 +1464,44 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		sBytes.sValue = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes.sValue, mpcFunction->AddInteger(sSize, (int64)ulliCookie));
 	}
 	sBytes.sValue = ConvertIR(sBytes.sValue, sSize, sBytesType, false);
-	if (!Allocate(pcNew, psType, &sBytes, &sMemory))
+	if (!Allocate(pcNew, psType, &sBytes, &sMemory, &sFree, &pcAllocation))
 	{
 		return false;
+	}
+	pcNull = NULL;
+	if (IsNullable(pcAllocation))
+	{
+		//NULL: nothing is made.  [expr.new] 13
+		pcNull = mpcBlock;
+		pcMake = NewBlock();
+		pcNullEnd = NewBlock();
+		mpcBlock->Branch(mpcFunction->Add(mpcBlock, IRO_Ne, IRType(IRTK_Pointer), sMemory, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0)), pcMake, pcNullEnd);
+		StartBlock(pcMake);
+	}
+
+	//If an element's construction throws, the elements made are destroyed and the memory given back.  [expr.new] 20
+	uiMark = mcCleanups.NumEntries();
+	if (PartsWanted() && (sFree.pcFunction || sFree.szRuntime) && (psType->IsClass() || pcNew->mpcInitializer))
+	{
+		sFree.sPlace.sAddress = sMemory;
+		mcCleanups.PushPart(&sFree);
 	}
 	if (bCookie)
 	{
 		mpcFunction->Store(mpcBlock, sSize, sCount.sValue, sMemory);
 		sMemory = AddressAt(sMemory, mcModule.GetPointerSize(0));
+	}
+	sMade = IRNone();
+	if (PartsWanted() && NeedsDestroying(psType))
+	{
+		sMade = mpcFunction->Slot(mpcBlock, sSize, (uint32)mcModule.GetPointerSize(0), (uint32)mcModule.GetPointerSize(0));
+		mpcFunction->Store(mpcBlock, sSize, mpcFunction->AddInteger(sSize, 0), sMade);
+		sElements.Clear(CPP65IRC_Part);
+		sElements.ePart = CPP65IRP_Elements;
+		sElements.sPlace.sAddress = sMemory;
+		sElements.sPlace.psType = psType;
+		sElements.sCount = sMade;
+		mcCleanups.PushPart(&sElements);
 	}
 
 	//The elements a list in braces gives (or the characters of the string it holds, as an array's are: new
@@ -1353,6 +1530,10 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		{
 			return false;
 		}
+		if (!sMade.IsNone())
+		{
+			mpcFunction->Store(mpcBlock, sSize, mpcFunction->AddInteger(sSize, (int64)(i + 1)), sMade);
+		}
 	}
 	if ((psType->IsClass() && psType->pcClass->NeedsConstructor()) || (bValue && !psType->IsClass()))
 	{
@@ -1363,7 +1544,20 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		{
 			return false;
 		}
-		EndCountedLoop(&sLoop, mpcFunction->Add(mpcBlock, IRO_Add, sSize, sIndex, mpcFunction->AddInteger(sSize, 1)));
+		sNext = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sIndex, mpcFunction->AddInteger(sSize, 1));
+		if (!sMade.IsNone())
+		{
+			mpcFunction->Store(mpcBlock, sSize, sNext, sMade);
+		}
+		EndCountedLoop(&sLoop, sNext);
+	}
+	mcCleanups.RemovePartsFrom(uiMark);
+	if (pcNull)
+	{
+		pcMake = mpcBlock;
+		JumpTo(pcNullEnd);
+		StartBlock(pcNullEnd);
+		sMemory = Phi(pcNullEnd, IRType(IRTK_Pointer), pcNull, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0), pcMake, sMemory);
 	}
 	if (pcEnd)
 	{
@@ -1613,7 +1807,8 @@ bool CCPP65IRFrontEnd::DeletingDestructor(CCPPClass* pcClass)
 //
 // Makes a lambda's closure at psPlace: each field from what it captures,
 // where the lambda is: a copy (constructed as a variable is from its
-// initialiser), the address of what it refers to, or this.
+// initialiser), the address of what it refers to, or this.  An exception
+// from a copy destroys the copies made before it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpression* pcSyntax)
@@ -1625,12 +1820,16 @@ bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpr
 	SCPP65IRPlace		sReferred;
 	SIRReference		sAddress;
 	size				i;
+	size				uiMark;
 
 	psLambda = mpcUnit->GetLambda(pcSyntax);
 	if (!psLambda)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
+
+	//Each capture copied is a part until the closure is made.  [except.ctor] 2
+	uiMark = mcCleanups.NumEntries();
 	for (i = 0; i < psLambda->asCaptures.NumElements(); i++)
 	{
 		psCapture = psLambda->asCaptures.Get(i);
@@ -1658,7 +1857,12 @@ bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpr
 		{
 			return false;
 		}
+		else
+		{
+			PushDestroyPart(sField.sAddress, sField.psType, NULL);
+		}
 	}
+	mcCleanups.RemovePartsFrom(uiMark);
 	return true;
 }
 
@@ -2093,10 +2297,13 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 	SCPP65Type*			psType;
 	CCPPClass*			pcBaseComplete;
 	size				i;
+	size				uiMark;
 	int					j;
 	int					iCount;
 	int					iOffset;
 
+	//Each part copied is a part until the object is: an exception from a later one's copy destroys it.  [except.ctor] 2
+	uiMark = mcCleanups.NumEntries();
 	for (i = 0; !pcComplete && (i < pcClass->macVirtualBases.NumElements()); i++)
 	{
 		psVirtual = pcClass->macVirtualBases.Get(i);
@@ -2106,6 +2313,7 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 		{
 			return false;
 		}
+		PushDestroyPart(AddressAt(sDestination, psVirtual->iOffset), psVirtual->pcClass->mpsType, psVirtual->pcClass);
 	}
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
@@ -2120,6 +2328,7 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 		{
 			return false;
 		}
+		PushDestroyPart(AddressAt(sDestination, psBase->iOffset), psBase->pcClass->mpsType, psBase->pcClass);
 	}
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
 	{
@@ -2142,8 +2351,10 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 			{
 				return false;
 			}
+			PushDestroyPart(AddressAt(sDestination, iOffset), psType, NULL);
 		}
 	}
+	mcCleanups.RemovePartsFrom(uiMark);
 	return true;
 }
 

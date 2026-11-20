@@ -1975,6 +1975,7 @@ void CCPPUnit::WrittenExceptions(CCPPSyntaxExceptionSpecification* pcSpecificati
 		return;
 	}
 	pcDest->SetNothing();
+	pcDest->mbDynamic = true;
 	for (i = 0; i < pcSpecification->macpTypes.NumElements(); i++)
 	{
 		psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcSpecification->macpTypes.GetPtr(i));
@@ -2135,6 +2136,21 @@ CCPPExceptionSpec* CCPPUnit::ExceptionsOf(CCPPFunction* pcFunction)
 bool CCPPUnit::IsNoexcept(CCPPFunction* pcFunction)
 {
 	return ExceptionsOf(pcFunction)->IsNonThrowing();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function's label is weak, so that another object's definition
+// takes its place: __attribute__((weak)) on its definition, or on the
+// declaration it is known by (Libc65's replaceable operator new and delete
+// say it where they are defined, so that a program's own, declared by the
+// same header, isn't).  [replacement.functions]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsWeakFunction(CCPPFunction* pcFunction)
+{
+	return HasAttribute(pcFunction->mpcDeclarator, "weak") || (pcFunction->mpcDefinition && HasAttribute(pcFunction->mpcDefinition->mpcDeclarator, "weak"));
 }
 
 
@@ -3677,7 +3693,7 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 	CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, bShared ? ", comdat" : NULL);
 	if (!pcFunction->IsUnitFunction())
 	{
-		CCPPUnitData::AppendGlobal(&mszCode, &szLabel);
+		mszCode.Append(IsWeakFunction(pcFunction) ? "\t\t.weak " : "\t\t.global ")->Append(&szLabel)->AppendNewLine();
 	}
 	szLabel.Kill();
 	mcContext.EnterBindings(pcFunction->mpcBindings);

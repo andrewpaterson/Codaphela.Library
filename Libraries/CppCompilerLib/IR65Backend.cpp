@@ -444,7 +444,7 @@ void CIR65Backend::Prologue(const char* szLabel)
 		RegisterStub(szBody.Text());
 		if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
 		{
-			mpszOut->Append("\t\t.global ");
+			mpszOut->Append((mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
 			mpszOut->Append(szBody);
 			mpszOut->AppendNewLine();
 		}

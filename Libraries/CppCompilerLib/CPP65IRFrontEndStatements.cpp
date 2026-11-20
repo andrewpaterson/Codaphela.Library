@@ -244,7 +244,7 @@ bool CCPP65IRFrontEnd::DestroyLiving(size uiLiving)
 		//A copy: writing a destructor's call may register something, which moves the entries.  A handler's entry is
 		//among the locals: leaving its scope ends it (UndoEntry).
 		sEntry = *mcCleanups.GetLocal(ui - 1);
-		if (!UndoEntry(&sEntry))
+		if (!UndoEntryBelow(&sEntry, mcCleanups.IndexOfLocal(ui - 1)))
 		{
 			return false;
 		}
@@ -318,7 +318,7 @@ bool CCPP65IRFrontEnd::DestroyTemporaryPlaces(size uiFrom)
 	{
 		//A copy: writing a destructor's call may register something, which moves the entries.
 		sTemporary = *mcCleanups.GetTemporary(ui - 1);
-		if (!DestroyTemporary(&sTemporary))
+		if (!UndoEntryBelow(&sTemporary, mcCleanups.IndexOfTemporary(ui - 1)))
 		{
 			return false;
 		}
@@ -406,6 +406,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 	SCPP65IRPlace					sPlace;
 	size							ui;
 	size							uiTemporaries;
+	bool							bResult;
 
 	if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_TYPEDEF))
 	{
@@ -458,12 +459,16 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		uiTemporaries = mcCleanups.NumTemporaries();
 		if (ElementType(pcVariable->mpsType)->IsClass())
 		{
-			//Objects are constructed (by default without an initialiser) and destroyed when their scope is left.
+			//Objects are constructed (by default without an initialiser) and destroyed when their scope is left; a
+			//std::initializer_list's array lives as long as it does.
 			if (pcVariable->mpsType->IsClass() && !mpcUnit->GetBinder()->CopyInitialises(pcVariable->mpsType->pcClass, pcInit))
 			{
 				return false;
 			}
-			if (!Construct(&sPlace, NULL, pcInit->mpcInitializer))
+			mbListLocal = mpcUnit->InitializerListElement(pcVariable->mpsType) != NULL;
+			bResult = Construct(&sPlace, NULL, pcInit->mpcInitializer);
+			mbListLocal = false;
+			if (!bResult)
 			{
 				return false;
 			}
@@ -495,8 +500,9 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 // guard byte is still 0 (not started).  It is 1 while the object is being
 // made and 2 once it is: reaching the declaration again while it is 1
 // (from its own initialiser, or an interrupt) stops the program at
-// R_RecursiveInit.  The object isn't one of the scope's living ones: it
-// outlives the function.  [stmt.dcl] 4
+// R_RecursiveInit.  An exception from its initialiser puts the guard back to
+// 0, so it is made again the next time.  The object isn't one of the scope's
+// living ones: it outlives the function.  [stmt.dcl] 4
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* pcInitialiser)
@@ -512,6 +518,7 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 	CIRBlock*		pcAgain;
 	SIRReference	sState;
 	size			uiTemporaries;
+	size			uiMark;
 
 	if (!VariablePlace(pcVariable, &sPlace))
 	{
@@ -545,6 +552,8 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 
 	StartBlock(pcMake);
 	mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 1), sGuard);
+	uiMark = mcCleanups.NumEntries();
+	PushAddressPart(CPP65IRP_Guard, sGuard);
 	uiTemporaries = mcCleanups.NumTemporaries();
 	if (ElementType(pcVariable->mpsType)->IsClass())
 	{
@@ -561,6 +570,7 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 	{
 		return false;
 	}
+	mcCleanups.RemovePartsFrom(uiMark);
 	if (pcVariable->mbExitNode)
 	{
 		//Made: it is destroyed from an exit list, by the R_Finalise the unit writes for it (WriteExitRoutines).
@@ -1375,6 +1385,11 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	SIRType			sType;
 	size			uiTemporaries;
 
+	if (mbConstructorHandler)
+	{
+		mpcUnit->ReportError(pcReturn, "A handler of a constructor's function-try-block can't return: it ends by rethrowing");
+		return Unsupported(__FILE__, __LINE__);
+	}
 	psReturn = mpcCPPFunction->mpsReturn;
 	sType = mpcFunction->msReturnType;
 	uiTemporaries = mcCleanups.NumTemporaries();

@@ -103,6 +103,37 @@ SCPP65IRCleanup* CCPP65IRCleanups::GetEntry(size uiIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An entry of eNewKind with nothing in it yet.
+//
+//////////////////////////////////////////////////////////////////////////
+void SCPP65IRCleanup::Clear(ECPP65IRCleanup eNewKind)
+{
+	size	ui;
+
+	eKind = eNewKind;
+	sPlace.sAddress = IRNone();
+	sPlace.psType = NULL;
+	sPlace.psBitField = NULL;
+	bConditional = false;
+	sMade = IRNone();
+	pcUndo = NULL;
+	ePart = CPP65IRP_Destroy;
+	pcBaseObject = NULL;
+	pcFunction = NULL;
+	pcFor = NULL;
+	szRuntime = NULL;
+	sCount = IRNone();
+	for (ui = 0; ui < CPP65_IR_PART_VALUES; ui++)
+	{
+		asValues[ui] = IRNone();
+		apsValueTypes[ui] = NULL;
+	}
+	uiValues = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An object (or array of them) destroyed when its scope is left.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -111,11 +142,8 @@ void CCPP65IRCleanups::PushLocal(SCPP65IRPlace* psPlace)
 	SCPP65IRCleanup*	psEntry;
 
 	psEntry = masEntries.Add();
-	psEntry->eKind = CPP65IRC_Local;
+	psEntry->Clear(CPP65IRC_Local);
 	psEntry->sPlace = *psPlace;
-	psEntry->bConditional = false;
-	psEntry->sMade = IRNone();
-	psEntry->pcUndo = NULL;
 	muiLocals++;
 }
 
@@ -131,11 +159,10 @@ void CCPP65IRCleanups::PushTemporary(SCPP65IRPlace* psPlace, bool bConditional, 
 	SCPP65IRCleanup*	psEntry;
 
 	psEntry = masEntries.Add();
-	psEntry->eKind = CPP65IRC_Temporary;
+	psEntry->Clear(CPP65IRC_Temporary);
 	psEntry->sPlace = *psPlace;
 	psEntry->bConditional = bConditional;
 	psEntry->sMade = sMade;
-	psEntry->pcUndo = NULL;
 	muiTemporaries++;
 }
 
@@ -151,14 +178,126 @@ void CCPP65IRCleanups::PushCatch(void)
 	SCPP65IRCleanup*	psEntry;
 
 	psEntry = masEntries.Add();
-	psEntry->eKind = CPP65IRC_Catch;
-	psEntry->sPlace.sAddress = IRNone();
-	psEntry->sPlace.psType = NULL;
-	psEntry->sPlace.psBitField = NULL;
-	psEntry->bConditional = false;
-	psEntry->sMade = IRNone();
-	psEntry->pcUndo = NULL;
+	psEntry->Clear(CPP65IRC_Catch);
 	muiLocals++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Something only an exception undoes (a part, ECPP65IRPart), from psPart.
+// It is counted with neither the locals nor the temporaries, so a normal
+// way out never sees it; it is taken out when what it is for is done
+// (RemovePartsFrom, RemoveNewestPart).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRCleanups::PushPart(SCPP65IRCleanup* psPart)
+{
+	SCPP65IRCleanup*	psEntry;
+
+	psEntry = masEntries.Add();
+	*psEntry = *psPart;
+	psEntry->eKind = CPP65IRC_Part;
+	psEntry->pcUndo = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A part put in at uiIndex, under what was registered since: what it is
+// for was finished there (a member made, whose initialiser's temporaries
+// are above it).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRCleanups::InsertPart(size uiIndex, SCPP65IRCleanup* psPart)
+{
+	SCPP65IRCleanup*	psEntry;
+
+	psEntry = masEntries.InsertAt(uiIndex);
+	*psEntry = *psPart;
+	psEntry->eKind = CPP65IRC_Part;
+	ForgetUndoFrom(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes out the parts from uiIndex up (what they were for is done); the
+// locals and temporaries there stay, in their order.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRCleanups::RemovePartsFrom(size uiIndex)
+{
+	size	ui;
+
+	for (ui = masEntries.NumElements(); ui > uiIndex; ui--)
+	{
+		if (masEntries.Get(ui - 1)->eKind == CPP65IRC_Part)
+		{
+			masEntries.RemoveAt(ui - 1, true);
+			ForgetUndoFrom(ui - 1);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes out the newest part; false if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRCleanups::RemoveNewestPart(void)
+{
+	size	ui;
+
+	for (ui = masEntries.NumElements(); ui > 0; ui--)
+	{
+		if (masEntries.Get(ui - 1)->eKind == CPP65IRC_Part)
+		{
+			masEntries.RemoveAt(ui - 1, true);
+			ForgetUndoFrom(ui - 1);
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the uiOrdinal'th local (GetLocal), or temporary, is among all the
+// entries; MAX_SIZE if there aren't so many.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65IRCleanups::IndexOfLocal(size uiOrdinal)
+{
+	size	uiIndex;
+
+	return Get(false, uiOrdinal, &uiIndex) ? uiIndex : MAX_SIZE;
+}
+
+
+size CCPP65IRCleanups::IndexOfTemporary(size uiOrdinal)
+{
+	size	uiIndex;
+
+	return Get(true, uiOrdinal, &uiIndex) ? uiIndex : MAX_SIZE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an entry is one of the temporaries (bTemporary) or of the locals,
+// which a handler's is among.  A part is neither.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRCleanups::IsCounted(SCPP65IRCleanup* psEntry, bool bTemporary)
+{
+	if (bTemporary)
+	{
+		return psEntry->eKind == CPP65IRC_Temporary;
+	}
+	return (psEntry->eKind == CPP65IRC_Local) || (psEntry->eKind == CPP65IRC_Catch);
 }
 
 
@@ -166,9 +305,10 @@ void CCPP65IRCleanups::PushCatch(void)
 //
 // The uiOrdinal'th temporary, or (a handler's entry is one of them) local,
 // the oldest 0; NULL if there aren't so many.  The entry is only good until the next one is registered.
+// *puiIndex (if it is wanted) is where it is among all the entries.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65IRCleanup* CCPP65IRCleanups::Get(bool bTemporary, size uiOrdinal)
+SCPP65IRCleanup* CCPP65IRCleanups::Get(bool bTemporary, size uiOrdinal, size* puiIndex)
 {
 	SCPP65IRCleanup*	psEntry;
 	size				ui;
@@ -179,11 +319,15 @@ SCPP65IRCleanup* CCPP65IRCleanups::Get(bool bTemporary, size uiOrdinal)
 	for (ui = masEntries.NumElements(); (ui > 0) && (uiCount > uiOrdinal); ui--)
 	{
 		psEntry = masEntries.Get(ui - 1);
-		if ((psEntry->eKind == CPP65IRC_Temporary) == bTemporary)
+		if (IsCounted(psEntry, bTemporary))
 		{
 			uiCount--;
 			if (uiCount == uiOrdinal)
 			{
+				if (puiIndex)
+				{
+					*puiIndex = ui - 1;
+				}
 				return psEntry;
 			}
 		}
@@ -227,7 +371,7 @@ void CCPP65IRCleanups::Cut(bool bTemporary, size uiCount)
 	puiCount = bTemporary ? &muiTemporaries : &muiLocals;
 	for (ui = masEntries.NumElements(); (ui > 0) && (*puiCount > uiCount); ui--)
 	{
-		if ((masEntries.Get(ui - 1)->eKind == CPP65IRC_Temporary) == bTemporary)
+		if (IsCounted(masEntries.Get(ui - 1), bTemporary))
 		{
 			masEntries.RemoveAt(ui - 1, true);
 			(*puiCount)--;

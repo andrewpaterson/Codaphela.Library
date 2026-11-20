@@ -1801,11 +1801,6 @@ static const SConformanceCase gasConformanceStage7[] =
 		"int main() { S a; a.v = 1; S b; b.v = 2; S c = (a, b); return c.v + (!a ? 100 : 200) + (~b).v + 3; }\n"
 	},
 	{
-		"FunctionTryBlock", 6,
-		"struct S { int v; S(int a) try : v(a) { } catch (...) { } };\n"
-		"int main() { S s(6); return s.v; }\n"
-	},
-	{
 		"ClassOperatorNew", 5,
 		"#ifdef _WIN64\n"
 		"typedef unsigned long long size_t;\n"
@@ -3416,6 +3411,45 @@ static const SConformanceCase gasConformanceExceptions[] =
 		"int main() { int r = 0; for (int i = 0; i < 5; i++) { try { r += f(); } catch (int e) { r += e * 10; } } return r + 30; }\n"
 	},
 	{
+		"InitializerListObjectsDestroyed", 76,	//8.5.4/6, 15.2/2
+		"#ifdef _MSC_VER\n"
+		"#include <initializer_list>\n"
+		"#else\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
+		"#endif\n"
+		"long g; void t(int k) { g = g * 10 + k; }\n"
+		"struct E { int k; E(int a) : k(a) { if (a == 3) throw 0; } E(const E& o) : k(o.k) {} ~E() { t(k); } };\n"
+		"int Sum(const E* b, const E* e) { int s = 0; for (; b != e; ++b) { s += b->k; } return s; }\n"
+		"int main() { int s; { std::initializer_list<E> l = { 1, 2 }; s = Sum(l.begin(), l.end()); t(5); }\n"
+		"try { std::initializer_list<E> m = { 1, 3 }; (void)m; } catch (int) { t(6); }\n"
+		"return (s == 3) && (g == 52116) ? 76 : 1; }\n"
+	},
+	{
+		"LambdaCapturesDestroyed", 75,	//5.1.2/21, 15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct A { A() {} A(const A&) { t(1); } ~A() { t(2); } }; struct B { B() {} B(const B&) { throw 0; } };\n"
+		"int main() { A a; B b; try { auto l = [a, b] { }; (void)l; } catch (int) { t(3); } return g == 123 ? 75 : 1; }\n"
+	},
+	{
+		"ThrownCopyThrows", 72,	//15.1/3, 15.2/2
+		"struct C { C() {} C(const C&) { throw 2; } };\n"
+		"int main() { try { C c; throw c; } catch (int e) { return e + 70; } catch (...) { return 1; } return 3; }\n"
+	},
+	{
+		"ImplicitCopyPartsDestroyed", 73,	//12.8/15, 15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct A { A() {} A(const A&) { t(1); } ~A() { t(2); } }; struct B { B() {} B(const B&) { throw 0; } };\n"
+		"struct X { A a; B b; };\n"
+		"int main() { X x; try { X y(x); } catch (int) { t(3); } return g == 123 ? 73 : 1; }\n"
+	},
+	{
+		"ArrayOfArraysPartlyConstructed", 74,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"int n; struct E { int k; E() : k(++n) { if (k == 4) throw 0; } ~E() { t(k); } };\n"
+		"int main() { try { E a[2][3]; } catch (int) { t(5); } return g == 3215 ? 74 : 1; }\n"
+	},
+	{
 		"TryInConstructorBody", 99,	//15/1
 		"struct S { int v; S() { try { throw 99; } catch (int e) { v = e; } } };\n"
 		"int main() { S s; return s.v; }\n"
@@ -3775,9 +3809,14 @@ static const SConformanceCase gasConformanceExceptions[] =
 		"int main() { int x = 1; switch (x) { case 0: try { case 1: x = 2; } catch (...) { } } return x; }\n"
 	},
 	{
+		"FunctionTryBlock", 6,
+		"struct S { int v; S(int a) try : v(a) { } catch (...) { } };\n"
+		"int main() { S s(6); return s.v; }\n"
+	},
+	{
 		"ConstructorFunctionTryReturnRefused", CONFORMANCE_REFUSED,	//15.3/14
 		"struct S { S() try { } catch (...) { return; } };\n"
-		"int main() { return 1; }\n"
+		"int main() { S s; return 1; }\n"
 	},
 	{
 		"EllipsisNotLastRefused", CONFORMANCE_REFUSED,	//15.3/5

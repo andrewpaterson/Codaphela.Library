@@ -1423,7 +1423,7 @@ void CIRW65C816Backend::GenerateForwarder(const char* szLabel, CChars* pszJump)
 		RegisterStub(&szBody);
 		if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
 		{
-			mpszOut->Append("\t\t.global ");
+			mpszOut->Append((mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
 			mpszOut->Append(szBody);
 			mpszOut->AppendNewLine();
 		}
@@ -1463,7 +1463,7 @@ void CIRW65C816Backend::Prologue(const char* szLabel)
 	RegisterStub(&szBody);
 	if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
 	{
-		mpszOut->Append("\t\t.global ");
+		mpszOut->Append((mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
 		mpszOut->Append(szBody);
 		mpszOut->AppendNewLine();
 	}

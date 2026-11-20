@@ -37,6 +37,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP65_BEGIN_CATCH			"___BeginCatch"
 #define CPP65_END_CATCH				"___EndCatch"
 #define CPP65_TERMINATE				"___Terminate"
+#define CPP65_FREE_EXCEPTION		"___FreeException"
+#define CPP65_UNEXPECTED			"___Unexpected"
+#define CPP65_THROW_BAD_EXCEPTION	"___ThrowBadException"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,19 +95,41 @@ void CCPP65IRFrontEnd::TestThrown(CCPPFunction* pcFunction, SIRReference sCallee
 // Where an exception goes from here: the block that undoes the newest
 // entry of the cleanup stack (which goes on to the one below's), down to the
 // try being written, then that try's handlers; with no try, the function's
-// way out.
+// way out.  While a normal way out destroys an entry (muiLandingTop), from
+// the entry below it.  In a function no exception leaves, outside any try,
+// straight to std::terminate: whether the stack is unwound first is the
+// implementation's to say.  [except.terminate] 2
 //
 //////////////////////////////////////////////////////////////////////////
 CIRBlock* CCPP65IRFrontEnd::Landing(void)
 {
 	size	uiBase;
+	size	uiTop;
 
-	uiBase = (masTries.NumElements() > 0) ? masTries.Tail()->uiBase : 0;
-	if (mcCleanups.NumEntries() > uiBase)
+	if ((masTries.NumElements() == 0) && FunctionTerminates())
 	{
-		return UndoBlock(mcCleanups.NumEntries() - 1);
+		return TerminateBlock();
+	}
+	uiBase = (masTries.NumElements() > 0) ? masTries.Tail()->uiBase : 0;
+	uiTop = (mcCleanups.NumEntries() < muiLandingTop) ? mcCleanups.NumEntries() : muiLandingTop;
+	if (uiTop > uiBase)
+	{
+		return UndoBlock(uiTop - 1);
 	}
 	return LandingBelow();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether no exception leaves the function being written: one declared
+// noexcept, a destructor that isn't noexcept(false), and the routines the
+// compiler writes for itself (mbRoutine).  [except.spec] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FunctionTerminates(void)
+{
+	return mbRoutine || !mpcCPPFunction || (mpcUnit->IsNoexcept(mpcCPPFunction) && !mpcUnit->ExceptionsOf(mpcCPPFunction)->mbDynamic);
 }
 
 
@@ -176,9 +201,409 @@ bool CCPP65IRFrontEnd::UndoEntry(SCPP65IRCleanup* psEntry)
 	case CPP65IRC_Catch:
 		CallNoThrow(CPP65_END_CATCH, IRType(IRTK_None), NULL, NULL, 0);
 		return true;
+	case CPP65IRC_Part:
+		return UndoPart(psEntry);
 	default:
 		return Destroy(psEntry->sPlace.sAddress, psEntry->sPlace.psType);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A normal way out's undoing of the entry at uiIndex (a scope's end, a
+// jump, a full expression's end): an exception from its destructor goes to
+// the entries below it, not to itself again.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::UndoEntryBelow(SCPP65IRCleanup* psEntry, size uiIndex)
+{
+	size	uiTop;
+	bool	bResult;
+
+	uiTop = muiLandingTop;
+	muiLandingTop = uiIndex;
+	bResult = UndoEntry(psEntry);
+	muiLandingTop = uiTop;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What an exception undoes of something half made (ECPP65IRPart).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::UndoPart(SCPP65IRCleanup* psPart)
+{
+	CCPPClass*		pcBaseObject;
+	SIRReference	asArguments[1];
+	SIRType			asTypes[1];
+	bool			bResult;
+
+	switch (psPart->ePart)
+	{
+	case CPP65IRP_Destroy:
+		pcBaseObject = mpcBaseObject;
+		mpcBaseObject = psPart->pcBaseObject;
+		bResult = Destroy(psPart->sPlace.sAddress, psPart->sPlace.psType);
+		mpcBaseObject = pcBaseObject;
+		return bResult;
+	case CPP65IRP_FreeException:
+		asTypes[0] = IRType(IRTK_Pointer);
+		asArguments[0] = psPart->sPlace.sAddress;
+		ExceptionCall(CPP65_FREE_EXCEPTION, IRType(IRTK_None), asTypes, asArguments, 1);
+		return true;
+	case CPP65IRP_Guard:
+		mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 0), psPart->sPlace.sAddress);
+		return true;
+	case CPP65IRP_Elements:
+		return UndoElements(psPart);
+	case CPP65IRP_Deallocate:
+		return UndoDeallocate(psPart);
+	default:
+		return Unsupported(__FILE__, __LINE__);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// new T[n]'s elements made so far (the count in the part's slot), the last
+// first.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::UndoElements(SCPP65IRCleanup* psPart)
+{
+	SIRType				sSize;
+	SIRReference		sCount;
+	SIRReference		sIndex;
+	SIRReference		sNext;
+	SIRReference		sElement;
+	SCPP65IRCountedLoop	sLoop;
+
+	sSize = IRIntegerType(mcModule.GetPointerSize(0));
+	sCount = mpcFunction->Load(mpcBlock, sSize, psPart->sCount);
+
+	//loop: the index counts down from the count.
+	sIndex = BeginCountedLoop(&sLoop, sSize, sCount, IRO_Ne, mpcFunction->AddInteger(sSize, 0));
+	sNext = mpcFunction->Add(mpcBlock, IRO_Sub, sSize, sIndex, mpcFunction->AddInteger(sSize, 1));
+	sElement = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), psPart->sPlace.sAddress, mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sNext, mpcFunction->AddInteger(sSize, psPart->sPlace.psType->iBytes)));
+	if (!Destroy(sElement, psPart->sPlace.psType))
+	{
+		return false;
+	}
+	EndCountedLoop(&sLoop, sNext);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new expression's memory given back, its object not made: to the
+// operator delete that matches the allocation function, called with the
+// pointer then the values the part keeps (the placement arguments, or the
+// size), or the runtime's.  [expr.new] 20
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::UndoDeallocate(SCPP65IRCleanup* psPart)
+{
+	CArraySyntax				apcArguments;
+	CCPPSyntaxImplicitArgument*	pcArgument;
+	SCPP65IRValue				sValue;
+	SCPP65IRValue				sResult;
+	size						ui;
+	bool						bResult;
+
+	if (!psPart->pcFunction)
+	{
+		CallRuntime(psPart->szRuntime, IRType(IRTK_None), IRType(IRTK_Pointer), psPart->sPlace.sAddress);
+		return true;
+	}
+	apcArguments.Init();
+	pcArgument = mpcUnit->ImplicitValue(psPart->pcFor, mpcTypes->Pointer(&mpcTypes->msVoid), 1);
+	apcArguments.Add(pcArgument);
+	sValue.psType = pcArgument->mpsType;
+	sValue.sValue = psPart->sPlace.sAddress;
+	mcImplicitValues.Put((int64)(size)pcArgument, &sValue);
+	for (ui = 0; ui < psPart->uiValues; ui++)
+	{
+		pcArgument = mpcUnit->ImplicitValue(psPart->pcFor, psPart->apsValueTypes[ui], (int)(2 + ui));
+		apcArguments.Add(pcArgument);
+		sValue.psType = psPart->apsValueTypes[ui];
+		sValue.sValue = psPart->asValues[ui];
+		mcImplicitValues.Put((int64)(size)pcArgument, &sValue);
+	}
+	bResult = Call(psPart->pcFunction, FunctionSymbol(psPart->pcFunction), NULL, &apcArguments, &sResult, NULL, false, NULL, false, IRNone());
+	for (ui = 0; ui < apcArguments.NumElements(); ui++)
+	{
+		mcImplicitValues.Remove((int64)(size)apcArguments.GetPtr(ui));
+	}
+	apcArguments.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether what is half made is to be undone by an exception (parts are
+// pushed): in a program built with exceptions.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::PartsWanted(void)
+{
+	return mpcUnit->GetOptions()->mbExceptions && !mbConstants;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an object of psType (or each element of an array of them) has a
+// destructor to call.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::NeedsDestroying(SCPP65Type* psType)
+{
+	psType = ElementType(psType);
+	return psType->IsClass() && (psType->pcClass->mpcDestructor != NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A part made, to be destroyed (pcBaseObject: a base, with the base version
+// of its destructor) if an exception comes before what it is part of is
+// made: when parts are wanted and it has a destructor.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::PushDestroyPart(SIRReference sAddress, SCPP65Type* psType, CCPPClass* pcBaseObject, size uiAt)
+{
+	SCPP65IRCleanup	sPart;
+
+	if (!PartsWanted() || !NeedsDestroying(psType))
+	{
+		return;
+	}
+	sPart.Clear(CPP65IRC_Part);
+	sPart.ePart = CPP65IRP_Destroy;
+	sPart.sPlace.sAddress = sAddress;
+	sPart.sPlace.psType = psType;
+	sPart.pcBaseObject = pcBaseObject;
+	if (uiAt < mcCleanups.NumEntries())
+	{
+		mcCleanups.InsertPart(uiAt, &sPart);
+	}
+	else
+	{
+		mcCleanups.PushPart(&sPart);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A base or member made by a constructor's member initialiser (or by
+// default), whose temporaries are the ones since uiTemporaries: it is a part
+// from uiAt, where the cleanup stack was when it began (under those
+// temporaries), and they are destroyed, its initialiser being a full
+// expression.  [intro.execution] 10, [except.ctor] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::MemberInitialised(size uiAt, size uiTemporaries, SIRReference sAddress, SCPP65Type* psType, CCPPClass* pcBaseObject)
+{
+	PushDestroyPart(sAddress, psType, pcBaseObject, uiAt);
+	return DestroyTemporaries(uiTemporaries);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A destructor's end takes out the part DestructorStart pushed for the
+// part of psType it is about to destroy (there is one when it has a
+// destructor).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::TakeDestroyPart(SCPP65Type* psType)
+{
+	if (PartsWanted() && NeedsDestroying(psType))
+	{
+		mcCleanups.RemoveNewestPart();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A part that is an address: a thrown object being made (to free) or a
+// guard byte (to clear).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::PushAddressPart(ECPP65IRPart ePart, SIRReference sAddress)
+{
+	SCPP65IRCleanup	sPart;
+
+	if (!PartsWanted())
+	{
+		return;
+	}
+	sPart.Clear(CPP65IRC_Part);
+	sPart.ePart = ePart;
+	sPart.sPlace.sAddress = sAddress;
+	mcCleanups.PushPart(&sPart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A destructor's start, with exceptions: its fields and bases are parts, so
+// that an exception from its body (it is noexcept(false)) or from one of
+// their destructors still destroys the rest.  They are pushed in the order
+// they were made; DestructorEnd takes each out as it destroys it.
+// [except.ctor] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::DestructorStart(void)
+{
+	CCPPClass*			pcClass;
+	SCPPField*			psField;
+	SCPPBase*			psBase;
+	SCPPVirtualBase*	psVirtual;
+	size				ui;
+
+	pcClass = mpcCPPFunction->mpcClass;
+	for (ui = 0; !mbBaseVersion && (ui < pcClass->macVirtualBases.NumElements()); ui++)
+	{
+		psVirtual = pcClass->macVirtualBases.Get(ui);
+		PushDestroyPart(AddressAt(msThis, psVirtual->iOffset), psVirtual->pcClass->mpsType, psVirtual->pcClass);
+	}
+	for (ui = 0; ui < pcClass->macBases.NumElements(); ui++)
+	{
+		psBase = pcClass->macBases.Get(ui);
+		if (!psBase->bVirtual)
+		{
+			PushDestroyPart(AddressAt(msThis, psBase->iOffset), psBase->pcClass->mpsType, psBase->pcClass);
+		}
+	}
+	for (ui = 0; ui < pcClass->macFields.NumElements(); ui++)
+	{
+		psField = pcClass->macFields.Get(ui);
+		PushDestroyPart(AddressAt(msThis, psField->iOffset), psField->psType, NULL);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How a new expression's memory is given back if its object's construction
+// throws (*psFree, a Deallocate part; neither pcFunction nor szRuntime if it
+// isn't).  A placement allocation function's is the operator delete whose
+// parameters after the first are the same (none: nothing), given the
+// placement arguments, which are worked out here, before the allocation
+// call, and given to it as values (papcArguments' are swapped for them).
+// Another's is what delete would call: the class's own operator delete
+// (with the size if it takes one), else the runtime's.  new (address) T
+// allocates nothing.  [expr.new] 20 to 22
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::Deallocation(CCPPSyntaxNewExpression* pcNew, CCPPFunction* pcAllocation, SCPP65Type* psType, CArraySyntax* papcArguments, SCPP65IRValue* psBytes, SCPP65IRCleanup* psFree)
+{
+	CCPPSyntaxImplicitArgument*	pcArgument;
+	CCPPFunction*				pcDeallocation;
+	SCPP65IRValue				sValue;
+	size						ui;
+	bool						bArray;
+
+	psFree->Clear(CPP65IRC_Part);
+	psFree->ePart = CPP65IRP_Deallocate;
+	psFree->pcFor = pcNew;
+	bArray = pcNew->macpArraySizes.NumElements() > 0;
+	if (!pcAllocation)
+	{
+		psFree->szRuntime = pcNew->mbPlacement ? NULL : (bArray ? "opDeleteArray" : "opDelete");
+		return true;
+	}
+	if (papcArguments->NumElements() > 1)
+	{
+		pcDeallocation = PlacementDeallocation(pcAllocation, bArray);
+		if (!pcDeallocation || (papcArguments->NumElements() - 1 > CPP65_IR_PART_VALUES))
+		{
+			return true;
+		}
+		for (ui = 1; ui < papcArguments->NumElements(); ui++)
+		{
+			if (pcAllocation->mapsParameters.GetPtr(ui)->IsReference())
+			{
+				return true;
+			}
+		}
+		for (ui = 1; ui < papcArguments->NumElements(); ui++)
+		{
+			if (!Value(papcArguments->GetPtr(ui), &sValue))
+			{
+				return false;
+			}
+			pcArgument = mpcUnit->ImplicitValue(pcNew, sValue.psType, (int)(1 + ui));
+			mcImplicitValues.Put((int64)(size)pcArgument, &sValue);
+			papcArguments->SetPtr(ui, pcArgument);
+			psFree->asValues[ui - 1] = sValue.sValue;
+			psFree->apsValueTypes[ui - 1] = sValue.psType;
+		}
+		psFree->uiValues = papcArguments->NumElements() - 1;
+		psFree->pcFunction = pcDeallocation;
+		return true;
+	}
+	pcDeallocation = psType->IsClass() && !pcNew->mbGlobal ? mpcUnit->GetBinder()->FindDeallocation(psType->pcClass, bArray) : NULL;
+	if (!pcDeallocation)
+	{
+		psFree->szRuntime = bArray ? "opDeleteArray" : "opDelete";
+		return true;
+	}
+	psFree->pcFunction = pcDeallocation;
+	if (pcDeallocation->mapsParameters.NumElements() == 2)
+	{
+		psFree->asValues[0] = psBytes->sValue;
+		psFree->apsValueTypes[0] = psBytes->psType;
+		psFree->uiValues = 1;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The operator delete (or delete[]) that matches a placement allocation
+// function: of the same class (or both global), its parameters after the
+// pointer the same as the allocation function's after the size.  NULL if
+// there is none.  [expr.new] 20
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPP65IRFrontEnd::PlacementDeallocation(CCPPFunction* pcAllocation, bool bArray)
+{
+	CCPPFunction*	pcFunction;
+	int64			lliName;
+	size			uiParameters;
+	size			ui;
+	bool			bSame;
+
+	lliName = mpcUnit->GetOperatorName(CT_delete, bArray);
+	uiParameters = pcAllocation->mapsParameters.NumElements();
+	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
+	{
+		if ((pcFunction->mpcClass != pcAllocation->mpcClass) || (pcFunction->mapsParameters.NumElements() != uiParameters))
+		{
+			continue;
+		}
+		bSame = pcFunction->mapsParameters.GetPtr(0)->Unqualified()->IsPointer();
+		for (ui = 1; bSame && (ui < uiParameters); ui++)
+		{
+			bSame = pcFunction->mapsParameters.GetPtr(ui)->Equals(pcAllocation->mapsParameters.GetPtr(ui));
+		}
+		if (bSame)
+		{
+			return pcFunction;
+		}
+	}
+	return NULL;
 }
 
 
@@ -189,21 +614,209 @@ bool CCPP65IRFrontEnd::UndoEntry(SCPP65IRCleanup* psEntry)
 // A function declared noexcept, a destructor that isn't noexcept(false) and
 // the routines the compiler writes for itself (an object's initialiser run
 // at start up, a finaliser: mbRoutine) have none: std::terminate.
-// [except.spec] 9
+// [except.spec] 9  One with a throw(A, B) list, or throw(), first checks
+// that the list allows the exception (UnexpectedBlock).
 //
 //////////////////////////////////////////////////////////////////////////
 CIRBlock* CCPP65IRFrontEnd::WayOut(void)
 {
-	if (mbRoutine || !mpcCPPFunction || mpcUnit->IsNoexcept(mpcCPPFunction))
+	if (!mbRoutine && mpcCPPFunction && mpcUnit->ExceptionsOf(mpcCPPFunction)->mbDynamic)
+	{
+		return UnexpectedBlock();
+	}
+	if (FunctionTerminates())
 	{
 		return TerminateBlock();
 	}
+	return ThrowExit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function's label is weak, so that a program's definition takes
+// its place: __attribute__((weak)) on its definition, or on the
+// declaration it is known by (Libc65's replaceable operator new and delete
+// say it where they are defined, so that a program's own, declared by the
+// same header, isn't).  [replacement.functions]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IsWeak(CCPPFunction* pcFunction)
+{
+	return mpcUnit->IsWeakFunction(pcFunction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The block that ends in throw, one for the function.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CCPP65IRFrontEnd::ThrowExit(void)
+{
 	if (!mpcThrowExit)
 	{
 		mpcThrowExit = NewBlock();
 		mpcThrowExit->Throw();
 	}
 	return mpcThrowExit;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A throw(A, B) list's check of the exception leaving the function, one
+// for it: one the list allows (one of the types, or a class publicly
+// derived from one: the runtime's match) goes on.  One it doesn't is being
+// handled while std::unexpected's handler is called (__Unexpected), which
+// may throw: what it throws goes on if the list allows it, is replaced by
+// std::bad_exception if the list has that, and is std::terminate otherwise.
+// A handler that returns is std::terminate (the runtime's).  throw() allows
+// nothing.  [except.unexpected]
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CCPP65IRFrontEnd::UnexpectedBlock(void)
+{
+	CCPPExceptionSpec*	pcSpec;
+	CIRBlock*			pcBlock;
+	CIRBlock*			pcThrown;
+	CIRBlock*			pcReplace;
+	SCPP65Type*			psType;
+	size				ui;
+	bool				bBadException;
+
+	if (mpcUnexpected)
+	{
+		return mpcUnexpected;
+	}
+	pcSpec = mpcUnit->ExceptionsOf(mpcCPPFunction);
+	mpcUnexpected = NewBlock();
+	pcBlock = mpcBlock;
+	StartBlock(mpcUnexpected);
+	MatchListed(pcSpec, ThrowExit());
+
+	//Not allowed: it is being handled while the handler runs, and ended when the handler throws.
+	ExceptionCall(CPP65_BEGIN_CATCH, IRType(IRTK_Pointer), NULL, NULL, 0);
+	pcThrown = NewBlock();
+	TestedRoutine(CPP65_UNEXPECTED, pcThrown, TerminateBlock());
+	StartBlock(pcThrown);
+	ExceptionCall(CPP65_END_CATCH, IRType(IRTK_None), NULL, NULL, 0);
+	MatchListed(pcSpec, ThrowExit());
+	bBadException = false;
+	for (ui = 0; ui < pcSpec->mapsTypes.NumElements(); ui++)
+	{
+		psType = pcSpec->mapsTypes.GetPtr(ui);
+		bBadException |= psType->IsClass() && psType->pcClass->mpcSymbol && mpcUnit->IsStdName(psType->pcClass->mlliName, psType->pcClass->mpcSymbol->mpcScope, "bad_exception");
+	}
+	if (bBadException)
+	{
+		pcReplace = NewBlock();
+		JumpTo(pcReplace);
+		StartBlock(pcReplace);
+		TestedRoutine(CPP65_THROW_BAD_EXCEPTION, ThrowExit(), TerminateBlock());
+	}
+	else
+	{
+		JumpTo(TerminateBlock());
+	}
+	StartBlock(pcBlock);
+	return mpcUnexpected;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For each type a throw(A, B) list allows, the runtime's match of the
+// exception in flight: to pcAllowed if it takes it.  What follows is for
+// one none of them takes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::MatchListed(CCPPExceptionSpec* pcSpec, CIRBlock* pcAllowed)
+{
+	SIRType			sPointer;
+	SIRReference	sTypeInfo;
+	SIRReference	sMatched;
+	SIRReference	sCondition;
+	CIRBlock*		pcNext;
+	size			ui;
+
+	sPointer = IRType(IRTK_Pointer);
+	for (ui = 0; ui < pcSpec->mapsTypes.NumElements(); ui++)
+	{
+		sTypeInfo = TypeInfoSymbol(ThrownType(pcSpec->mapsTypes.GetPtr(ui)));
+		sMatched = ExceptionCall(CPP65_MATCH, sPointer, &sPointer, &sTypeInfo, 1);
+		sCondition = mpcFunction->Add(mpcBlock, IRO_Ne, sPointer, sMatched, mpcFunction->AddConstant(sPointer, 0));
+		pcNext = NewBlock();
+		mpcBlock->Branch(sCondition, pcAllowed, pcNext);
+		StartBlock(pcNext);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Calls one of the runtime's routines that may throw (C++ in Libc65, with no
+// arguments), and goes to pcThrown if it did, else to pcReturned.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::TestedRoutine(const char* szLabel, CIRBlock* pcThrown, CIRBlock* pcReturned)
+{
+	SIRReference	sSymbol;
+	SIRReference	sThrown;
+
+	sSymbol = mcModule.Symbol(szLabel);
+	maszTested.AddIfUnique(mcModule.GetSymbolName(sSymbol.Index()));
+	mpcFunction->Call(mpcBlock, IRType(IRTK_None), sSymbol);
+	sThrown = mpcFunction->AddTemporary(IRType(IRTK_I1));
+	mpcBlock->AddInstruction(IRO_Thrown, IRType(IRTK_I1), sThrown, IRNone(), IRNone());
+	mpcBlock->Branch(sThrown, pcThrown, pcReturned);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Calls one of the runtime's routines that throws what the language does
+// (std::bad_cast, std::bad_typeid, std::bad_array_new_length): the
+// exception goes on its way from here (Landing).  The code after it isn't
+// reached.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::ThrowRoutine(const char* szLabel)
+{
+	CIRBlock*	pcLanding;
+
+	pcLanding = mbUnwinding ? TerminateBlock() : Landing();
+	TestedRoutine(szLabel, pcLanding, TerminateBlock());
+	Terminated();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a new expression's allocation function may give it NULL, so that
+// nothing is made and the result is NULL: one with a non-throwing exception
+// specification.  Not the reserved placement form, new (address) Type,
+// which is given its address back (one that is NULL is the program's
+// mistake: CWG 1748).  [expr.new] 13
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IsNullable(CCPPFunction* pcAllocation)
+{
+	SCPP65Type*	psSecond;
+
+	if (!pcAllocation || !mpcUnit->IsNoexcept(pcAllocation))
+	{
+		return false;
+	}
+	if (!pcAllocation->mpcClass && (pcAllocation->mapsParameters.NumElements() == 2))
+	{
+		psSecond = pcAllocation->mapsParameters.GetPtr(1)->Unqualified();
+		if (psSecond->IsPointer() && psSecond->psBase->IsVoid())
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
@@ -309,6 +922,7 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 	SIRType			asTypes[3];
 	SIRReference	asArguments[3];
 	CChars			szDestroyer;
+	size			uiMark;
 	bool			bThrown;
 
 	psValue->psType = &mpcTypes->msVoid;
@@ -351,10 +965,13 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 	sPlace.psType = psType;
 	if (psType->IsClass())
 	{
+		uiMark = mcCleanups.NumEntries();
+		PushAddressPart(CPP65IRP_FreeException, sPlace.sAddress);
 		if (!Construct(&sPlace, NULL, pcThrow->mpcOperand))
 		{
 			return false;
 		}
+		mcCleanups.RemovePartsFrom(uiMark);
 	}
 	else
 	{
@@ -426,25 +1043,14 @@ bool CCPP65IRFrontEnd::ThrownDestroyerRoutine(const char* szLabel, SCPP65Type* p
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::TryStatement(CCPPSyntaxTryStatement* pcTry)
 {
-	SCPP65IRTry*			psTry;
-	CCPPSyntaxCatchHandler*	pcHandler;
-	CIRBlock*				pcDispatch;
-	CIRBlock*				pcAfter;
-	CIRBlock*				pcHandlerBlock;
-	CIRBlock*				pcNext;
-	SCPP65Type*				psHandled;
-	SIRReference			sMatched;
-	SIRReference			sCondition;
-	SIRType					sPointer;
-	SIRReference			sTypeInfo;
-	size					ui;
-	bool					bAll;
+	SCPP65IRTry*	psTry;
+	CIRBlock*		pcDispatch;
+	CIRBlock*		pcAfter;
 
 	if (!mpcUnit->GetOptions()->mbExceptions)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	sPointer = IRType(IRTK_Pointer);
 	pcDispatch = NewBlock();
 	pcAfter = NewBlock();
 	psTry = masTries.Add();
@@ -456,8 +1062,34 @@ bool CCPP65IRFrontEnd::TryStatement(CCPPSyntaxTryStatement* pcTry)
 	}
 	masTries.RemoveTail();
 	JumpTo(pcAfter);
+	return TryHandlers(pcTry, pcDispatch, pcAfter, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A try's handlers, at pcDispatch, where an exception from its block comes
+// once what the block made is undone: tried in the order they are written,
+// and on to pcAfter from the end of one.  With none that takes it the
+// exception goes on.  bRethrow: they are a constructor's or destructor's
+// function-try-block's, and one that reaches its end rethrows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::TryHandlers(CCPPSyntaxTryStatement* pcTry, CIRBlock* pcDispatch, CIRBlock* pcAfter, bool bRethrow)
+{
+	CCPPSyntaxCatchHandler*	pcHandler;
+	CIRBlock*				pcHandlerBlock;
+	CIRBlock*				pcNext;
+	SCPP65Type*				psHandled;
+	SIRReference			sMatched;
+	SIRReference			sCondition;
+	SIRType					sPointer;
+	SIRReference			sTypeInfo;
+	size					ui;
+	bool					bAll;
 
 	//The handlers, tried in the order they are written.
+	sPointer = IRType(IRTK_Pointer);
 	StartBlock(pcDispatch);
 	bAll = false;
 	for (ui = 0; (ui < pcTry->macpHandlers.NumElements()) && !bAll; ui++)
@@ -484,7 +1116,7 @@ bool CCPP65IRFrontEnd::TryStatement(CCPPSyntaxTryStatement* pcTry)
 			mpcBlock->Branch(sCondition, pcHandlerBlock, pcNext);
 		}
 		StartBlock(pcHandlerBlock);
-		if (!Handler(pcHandler, sMatched))
+		if (!Handler(pcHandler, sMatched, bRethrow))
 		{
 			return false;
 		}
@@ -512,10 +1144,11 @@ bool CCPP65IRFrontEnd::TryStatement(CCPPSyntaxTryStatement* pcTry)
 // parameter is made from what the runtime's match gave (sMatched: the
 // thrown object, a base of it, or a pointer it worked out): a reference is
 // bound to it, an object is copied from it, and is a local like any other.
-// [except.handle] 15, 16
+// [except.handle] 15, 16  bRethrow: reaching its end is throw; (a
+// constructor's or destructor's function-try-block's, [except.handle] 15).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched)
+bool CCPP65IRFrontEnd::Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference sMatched, bool bRethrow)
 {
 	size	uiLiving;
 
@@ -526,7 +1159,107 @@ bool CCPP65IRFrontEnd::Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference s
 	{
 		return false;
 	}
-	return Statement(pcHandler->mpcBlock) && LeaveScope(uiLiving);
+	if (!Statement(pcHandler->mpcBlock))
+	{
+		return false;
+	}
+	if (!bRethrow)
+	{
+		return LeaveScope(uiLiving);
+	}
+	ExceptionCall(CPP65_RETHROW, IRType(IRTK_None), NULL, NULL, 0);
+	JumpTo(Landing());
+	Terminated();
+	mcCleanups.CutLocals(uiLiving);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function's body that is a function-try-block: the try begins before a
+// constructor's member initialisers and bases, and before a destructor's
+// parts, and covers the body and a destructor's destruction of its members
+// and bases ([except] 4).  What the try made is undone before its handlers
+// are entered ([except.handle] 11: so its parts come off the stack, for
+// they are undone).  A constructor's or destructor's handler that reaches
+// its end rethrows, a constructor's can't return (14, 15), and a
+// destructor's that returns doesn't destroy the members again.  The
+// parameters are destroyed after the handlers (CPP65IRFrontEnd's WriteBody
+// isn't to write the destructor's end again).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FunctionTryBlock(CCPPFunction* pcFunction, CCPPSyntaxTryStatement* pcTry)
+{
+	SCPP65IRTry*	psTry;
+	CIRBlock*		pcDispatch;
+	CIRBlock*		pcAfter;
+	size			uiBase;
+	bool			bConstructor;
+	bool			bDestructor;
+	bool			bResult;
+
+	if (!mpcUnit->GetOptions()->mbExceptions)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	bConstructor = pcFunction->meKind == CPPFK_Constructor;
+	bDestructor = pcFunction->meKind == CPPFK_Destructor;
+	pcDispatch = NewBlock();
+	pcAfter = NewBlock();
+	uiBase = mcCleanups.NumEntries();
+	psTry = masTries.Add();
+	psTry->uiBase = uiBase;
+	psTry->pcDispatch = pcDispatch;
+	if (bConstructor && !ConstructorStart(pcFunction->mpcDefinition))
+	{
+		return false;
+	}
+	if (bDestructor)
+	{
+		mpcExit = NewBlock();
+		if (!StoreVtables(msThis, pcFunction->mpcClass, mbBaseVersion))
+		{
+			return false;
+		}
+		DestructorStart();
+	}
+	if (!ScopedStatement(pcTry->mpcBlock))
+	{
+		return false;
+	}
+	if (bDestructor)
+	{
+		JumpTo(mpcExit);
+		StartBlock(mpcExit);
+		if (!DestructorEnd())
+		{
+			return false;
+		}
+	}
+	masTries.RemoveTail();
+	mcCleanups.RemovePartsFrom(uiBase);
+	JumpTo(pcAfter);
+
+	//A destructor's handler that returns has had its members destroyed.
+	mpcExit = NULL;
+	mbConstructorHandler = bConstructor;
+	bResult = TryHandlers(pcTry, pcDispatch, pcAfter, bConstructor || bDestructor);
+	mbConstructorHandler = false;
+	if (!bResult)
+	{
+		return false;
+	}
+	StartBlock(pcAfter);
+	if (!DestroyLiving(0))
+	{
+		return false;
+	}
+	if (bDestructor)
+	{
+		mpcBlock->Return();
+	}
+	return true;
 }
 
 

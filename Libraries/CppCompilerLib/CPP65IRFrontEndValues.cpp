@@ -966,8 +966,9 @@ bool CCPP65IRFrontEnd::ReferenceCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefe
 //////////////////////////////////////////////////////////////////////////
 //
 // dynamic_cast<T&>(x): the T of the object x is part of, found as
-// dynamic_cast<T*>(&x) finds it.  If there is none the program stops
-// (R_BadCast), as there is nothing to throw.  [expr.dynamic.cast] 9
+// dynamic_cast<T*>(&x) finds it.  If there is none std::bad_cast is thrown
+// (without exceptions the program stops at R_BadCast).
+// [expr.dynamic.cast] 9
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DynamicCastPlace(CCPPSyntax* pcCast, SCPP65Type* psReference, SCPP65IRPlace* psPlace)
@@ -1009,8 +1010,15 @@ bool CCPP65IRFrontEnd::DynamicCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefere
 	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_Pointer), psPlace->sAddress, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
 	mpcBlock->Branch(sCondition, pcFailed, pcFound);
 	StartBlock(pcFailed);
-	mpcUnit->UseBadCast();
-	mpcFunction->Call(mpcBlock, IRType(IRTK_None), mcModule.Symbol("R_BadCast"));
+	if (mpcUnit->GetOptions()->mbExceptions)
+	{
+		ThrowRoutine(CPP65_THROW_BAD_CAST_LABEL);
+	}
+	else
+	{
+		mpcUnit->UseBadCast();
+		mpcFunction->Call(mpcBlock, IRType(IRTK_None), mcModule.Symbol("R_BadCast"));
+	}
 	JumpTo(pcFound);
 	StartBlock(pcFound);
 	return true;
@@ -1021,8 +1029,9 @@ bool CCPP65IRFrontEnd::DynamicCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefere
 //
 // typeid's std::type_info: the type info of its type (CCPPUnit::
 // AppendTypeidLabel), or for an lvalue of a polymorphic class its object's
-// own, which its vtable points to (a null one, *p of a null p, stops the
-// program at R_BadCast, there being no bad_typeid to throw).  [expr.typeid]
+// own, which its vtable points to (a null one, *p of a null p, throws
+// std::bad_typeid; without exceptions it stops the program at R_BadCast).
+// [expr.typeid] 2
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::TypeidPlace(CCPPSyntaxTypeidExpression* pcTypeid, SCPP65IRPlace* psPlace)
@@ -1054,8 +1063,15 @@ bool CCPP65IRFrontEnd::TypeidPlace(CCPPSyntaxTypeidExpression* pcTypeid, SCPP65I
 		sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_Pointer), sObject.sAddress, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
 		mpcBlock->Branch(sCondition, pcNull, pcObject);
 		StartBlock(pcNull);
-		mpcUnit->UseBadCast();
-		mpcFunction->Call(mpcBlock, IRType(IRTK_None), mcModule.Symbol("R_BadCast"));
+		if (mpcUnit->GetOptions()->mbExceptions)
+		{
+			ThrowRoutine(CPP65_THROW_BAD_TYPEID_LABEL);
+		}
+		else
+		{
+			mpcUnit->UseBadCast();
+			mpcFunction->Call(mpcBlock, IRType(IRTK_None), mcModule.Symbol("R_BadCast"));
+		}
 		JumpTo(pcObject);
 		StartBlock(pcObject);
 		sVtable = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sObject.sAddress, sObject.psType->pcClass->GetVtablePointerOffset()));
