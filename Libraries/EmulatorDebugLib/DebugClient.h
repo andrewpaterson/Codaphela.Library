@@ -171,7 +171,7 @@ public:
 	uint32				GetDisassemblyRequest(void) const;
 	size				NumDisassemblies(void);
 
-	const char*			GetError(void);
+	const char*			GetError(void) const;
 	uint32				GetErrorType(void) const;
 	uint32				GetErrorRequest(void) const;
 	size				NumErrors(void);

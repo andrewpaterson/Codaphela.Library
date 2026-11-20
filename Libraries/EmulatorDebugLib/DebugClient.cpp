@@ -973,7 +973,7 @@ size CDebugClient::NumMemoryReplies(void)				{ return muiNumMemoryReplies; }
 size CDebugClient::NumInstructions(void) const				{ return muiNumInstructions; }
 uint32 CDebugClient::GetDisassemblyRequest(void) const		{ return muiDisassemblyRequest; }
 size CDebugClient::NumDisassemblies(void)				{ return muiNumDisassemblies; }
-const char* CDebugClient::GetError(void)				{ return mszError.Text(); }
+const char* CDebugClient::GetError(void) const				{ return mszError.Text(); }
 uint32 CDebugClient::GetErrorType(void) const					{ return muiErrorType; }
 uint32 CDebugClient::GetErrorRequest(void) const				{ return muiErrorRequest; }
 size CDebugClient::NumErrors(void)						{ return muiNumErrors; }
