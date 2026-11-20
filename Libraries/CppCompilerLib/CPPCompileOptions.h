@@ -63,6 +63,10 @@ public:
 	bool		mbExceptions;			//throw, try and catch are compiled (ExceptionsPlan.txt); without it they are errors and nothing pays for them.
 	bool		mbKeepUnusedObjects;	//A global whose making or destroying runs code (R_Initialise, R_Finalise) is linked though
 									//nothing refers to it ([basic.stc.static] 2); off, it goes with the rest of what is unused.
+	bool		mbMultiWordCasts;		//unsigned int(3), a cast in the form T(x) whose type is more than one word, is accepted as the
+									//Microsoft compiler accepts it; off, it is the error C++14 has it be ([expr.type.conv] 1).
+	bool		mbCConversions;			//The sources are C: a void* becomes any object's pointer and a number an enum's value with no
+									//cast, an enum is incremented and a pointer compared with 0 by < and > (C11 6.3.2.3, 6.5.16.1).
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);

@@ -164,7 +164,7 @@ struct STestCPP816Memory
 //////////////////////////////////////////////////////////////////////////
 //
 // Compiles and links szSource (if given) and the units (TestCPP65AddUnits, without the 65C64 assembly ones) for
-// the W65C816 and runs it in CAsm65Memory's 2MB (with psMemory's bytes put in and taken out, if given).  The labels
+// the W65C816, with gcTestCPP816Options, and runs it in CAsm65Memory's 2MB (with psMemory's bytes put in and taken out, if given).  The labels
 // in szStubs must be exactly the ones used but defined by no unit.  The first uiResults longs at 0010:0000 are copied
 // to puiResults.  It may run uiMaxSteps instructions.  Returns main's int (16 bits, sign extended), or -1000000 if it
 // didn't build or stop.
@@ -186,6 +186,7 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 
 	iResult = -1000000;
 	cBuilder.Init();
+	*cBuilder.GetOptions() = gcTestCPP816Options;
 	cBuilder.SetTarget(CPPT_W65C816);
 	if (bBaseLib)
 	{
@@ -2375,7 +2376,8 @@ void TestCPP816RestrictParameter(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Tide/Video's sprites (Input/CPP65/TideVideoProject: Image.c, Image.h, Sprite.c and Sprite.h as they are but for
-// guiImageMemory declared __restrict, Main.c as MainSprites.c without its font and heap) drawn from Input/SFT/Graphics.sft (put at 0008:0000) into an 8 bit
+// guiImageMemory declared __restrict, Main.c as MainSprites.c without its font and heap; C, so built with C's
+// conversions, CCPPCompileOptions::mbCConversions) drawn from Input/SFT/Graphics.sft (put at 0008:0000) into an 8 bit
 // 320 x 200 screen at 0011:0000: the background, Maki standing and walking (clipped at both sides).  The expected
 // hash is the same sources built natively; the screen is saved to Output/Graphics.raw.  DrawPixel, which reads
 // globals, is inlined across the units.
@@ -2411,6 +2413,7 @@ void TestCPP816TideVideo(void)
 	sMemory.puiSave = puiScreen;
 	sMemory.uiSaveBytes = 320 * 200;
 	sMemory.uiSaveAddress = 0x110000;
+	gcTestCPP816Options.mbCConversions = true;
 	AssertInt(8, TestCPP816RunProject(aszUnits, "", NULL, false, auiResults, 2, TEST_CPP816_STEPS, false, &sMemory));
 	AssertIntHex(0xD06A69C6, auiResults[0]);
 	AssertInt(8, auiResults[1]);
@@ -2427,6 +2430,8 @@ void TestCPP816TideVideo(void)
 	//DrawPixel (Image.c, which reads Image.c's globals) is inlined into DrawSprite (Sprite.c) across the units, the
 	//globals named the same: it is left out of the program.
 	cBuilder.Init();
+	*cBuilder.GetOptions() = gcTestCPP816Options;
+	gcTestCPP816Options.mbCConversions = false;
 	cBuilder.SetTarget(CPPT_W65C816);
 	TestCPP65AddIncludeDirectories(&cBuilder);
 	AssertTrue(cBuilder.AddStartUp());
@@ -4716,6 +4721,47 @@ int TestCPP816CountWarnings(const char* szSource, const char* szWarning, ECPPTar
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Compiles szSource for the W65C816, with gcTestCPP816Options, and returns
+// how many of its errors mention szError (all of them for "").
+//
+//////////////////////////////////////////////////////////////////////////
+int TestCPP816CountErrors(const char* szSource, const char* szError)
+{
+	CCPP65Builder	cBuilder;
+	CChars			szAssembly;
+	CChars			szErrors;
+	CChars			szWarnings;
+	CArrayChars		aszLines;
+	int				iCount;
+	size			i;
+
+	cBuilder.Init();
+	szAssembly.Init();
+	szErrors.Init();
+	szWarnings.Init();
+	CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, CPPT_W65C816, &szWarnings, NULL, false, false, false, true, &gcTestCPP816Options);
+
+	iCount = 0;
+	aszLines.Init();
+	szErrors.SplitLines(&aszLines);
+	for (i = 0; i < aszLines.NumElements(); i++)
+	{
+		if (!aszLines.Get(i)->Empty() && aszLines.Get(i)->Contains(szError))
+		{
+			iCount++;
+		}
+	}
+	aszLines.Kill();
+	szWarnings.Kill();
+	szErrors.Kill();
+	szAssembly.Kill();
+	cBuilder.Kill();
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the function whose label starts with szPrefix (in the linked
 // program's map) starts with an aligned frame's prologue: phd, tsc, tax (a
 // frame that isn't aligned is phd, tsc, sec).
@@ -5164,6 +5210,68 @@ void TestCPP816StringLiteralWarnings(void)
 	AssertInt(3, TestCPP816CountWarnings(szLoses, szWarning));
 	AssertInt(0, TestCPP816CountWarnings(szKeeps, szWarning));
 	gcTestCPP816Options.mbWarnStringToPointer = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// C's conversions, which C++ refuses, are made when the build says its
+// sources are C (mbCConversions): a void* as any object's pointer, a
+// number as an enum's value (by =, ++ and +=), and a pointer compared with
+// 0 by >.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816CConversions(void)
+{
+	const char*	aszSources[] =
+	{
+		"int F(void* pv) { int* pi = pv; return *pi; }\n",
+		"enum E { E0, E1 };\nint F(void) { E e = E0; e = 1; return e; }\n",
+		"enum E { E0, E1 };\nint F(void) { E e = E0; e++; return e; }\n",
+		"enum E { E0, E1 };\nint F(void) { E e = E0; e += 1; return e; }\n",
+		"int F(int* p) { return p > 0; }\n",
+		NULL
+	};
+	const char*	aszErrors[] = { "only by a cast", "An enum is given only its own values", "An enum can't be incremented", "An enum is given only its own values", "only for equality" };
+	size		i;
+
+	for (i = 0; aszSources[i]; i++)
+	{
+		AssertInt(1, TestCPP816CountErrors(aszSources[i], aszErrors[i]));
+	}
+
+	gcTestCPP816Options.mbCConversions = true;
+	for (i = 0; aszSources[i]; i++)
+	{
+		AssertInt(0, TestCPP816CountErrors(aszSources[i], ""));
+	}
+	gcTestCPP816Options.mbCConversions = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// unsigned int(3), a cast written as a type of more than one word and
+// brackets, is the Microsoft compiler's and an error ([expr.type.conv] 1)
+// unless the build asks for it (mbMultiWordCasts).  One word, and the same
+// type in a cast's own brackets, are C++.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816MultiWordCasts(void)
+{
+	const char*	szError = "has a type of one word";
+	const char*	szTwoWords = "int F(int i) { return (int)unsigned int(i); }\n";
+	const char*	szThreeWords = "int F(int i) { return (int)unsigned long long(i); }\n";
+	const char*	szOneWord = "int F(int i) { return (int)(unsigned(i) + long(i) + (unsigned long)i); }\n";
+
+	AssertInt(1, TestCPP816CountErrors(szTwoWords, szError));
+	AssertInt(1, TestCPP816CountErrors(szThreeWords, szError));
+	AssertInt(0, TestCPP816CountErrors(szOneWord, ""));
+
+	gcTestCPP816Options.mbMultiWordCasts = true;
+	AssertInt(0, TestCPP816CountErrors(szTwoWords, ""));
+	AssertInt(0, TestCPP816CountErrors(szThreeWords, ""));
+	gcTestCPP816Options.mbMultiWordCasts = false;
 }
 
 
@@ -6687,6 +6795,8 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816LoopCounterWarnings());
 	TEST_PART(TestCPP816OverrideWarnings());
 	TEST_PART(TestCPP816StringLiteralWarnings());
+	TEST_PART(TestCPP816CConversions());
+	TEST_PART(TestCPP816MultiWordCasts());
 	TEST_PART(TestCPP816SizeLsizeBugs());
 	TEST_PART(TestCPP816DestructorCalls());
 	TEST_PART(TestCPP816DynamicCast());

@@ -43,6 +43,8 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	CPP_CONSTANT_DEPTH,			//muiConstantDepth
 	false,						//mbExceptions: a program opts in (the user, 2026-11-18).
 	false,						//mbKeepUnusedObjects: what nothing uses is dropped (the user, 2026-11-18: "I suspect it's usually fine").
+	false,						//mbMultiWordCasts (the user, 2026-11-20: "Refuse it by default, build switch").
+	false,						//mbCConversions (the user, 2026-11-20: "Build option", not the file's name).
 };
 
 

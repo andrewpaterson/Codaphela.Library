@@ -188,25 +188,15 @@ void CCPPUnit::SetLineTable(bool bLineTable, int64 lliCompileTime)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The unit's source is C (a .c file): what C allows and C++ doesn't, of the
-// little that is told apart, is allowed in it.  A void* is a pointer to
-// any object there without a cast (C11 6.3.2.3 1), as malloc's result is
-// used.  See CCPP65Builder::IsCSource.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::SetCSource(bool bCSource)
-{
-	mbCSource = bCSource;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// Whether the build's sources are C (CCPPCompileOptions::mbCConversions):
+// what C allows and C++ doesn't, of the little that is told apart, is
+// allowed in them.  A void* is a pointer to any object without a cast (C11
+// 6.3.2.3 1), as malloc's result is used, and a number is an enum's value.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsCSource(void) const
 {
-	return mbCSource;
+	return mpcOptions->mbCConversions;
 }
 
 
@@ -284,7 +274,6 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbListing = false;
 	mbLineTable = false;
 	mbNoFloats = false;
-	mbCSource = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;

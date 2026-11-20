@@ -49,6 +49,26 @@ void CCPPSyntaxDeclSpecifiers::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many simple type keywords the specifiers name their type with: one
+// for int, two for unsigned int and three for unsigned long long.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPSyntaxDeclSpecifiers::NumTypeKeywords(void) const
+{
+	uint32	uiKeywords;
+	size	uiCount;
+
+	uiCount = (size)miLongs;
+	for (uiKeywords = muiTypeKeywords; uiKeywords != 0; uiKeywords &= uiKeywords - 1)
+	{
+		uiCount++;
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the specifiers define the type they name: a class with its
 // members, or an enum with its enumerators.
 //

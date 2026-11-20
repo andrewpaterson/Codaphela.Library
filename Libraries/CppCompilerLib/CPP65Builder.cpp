@@ -1538,7 +1538,6 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cGenerator.SetListing(bListing);
 	cGenerator.SetLineTable(bLineTable, (int64)time(NULL));
 	cGenerator.SetNoFloats(bNoFloats);
-	cGenerator.SetCSource(IsCSource(szName));
 	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
 	if (paszExternals)
 	{
@@ -2269,23 +2268,6 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a unit's source is C by its name: a .c file (CCPPUnit::SetCSource).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::IsCSource(const char* szName)
-{
-	CChars	sz;
-	bool	bCSource;
-
-	sz.Init(szName);
-	bCSource = sz.EndsWithIgnoreCase(".c");
-	sz.Kill();
-	return bCSource;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A generator for psUnit's syntax tree, into its assembly (which it
 // initialises).
 //
@@ -2299,7 +2281,6 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	psCompile->cGenerator.Init(&psCompile->cTree, mpcTarget->GetTarget());
 	psCompile->cGenerator.SetStatistics(&psUnit->cStatistics);
 	psCompile->cGenerator.SetOptions(&mcOptions);
-	psCompile->cGenerator.SetCSource(IsCSource(psUnit->pcFile->ShortName()));
 	psCompile->cGenerator.SetSpillStore(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
 	if (mpcTarget->InlinesAcrossUnits())
 	{

@@ -2589,7 +2589,9 @@ bool CCPP65TypeChecker::CastReachesBase(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 //////////////////////////////////////////////////////////////////////////
 //
 // Type(arguments) or Type{arguments}: a temporary of a class, or of any other
-// type a cast of one value, or zero for none.  [expr.type.conv]
+// type a cast of one value, or zero for none.  The type is one word:
+// unsigned int(3) is the Microsoft compiler's, and an error unless it is
+// asked for (CCPPCompileOptions::mbMultiWordCasts).  [expr.type.conv] 1
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression* pcConstruct)
@@ -2597,6 +2599,11 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 	SCPP65Type*		psType;
 	CArraySyntax*	papcElements;
 
+	if (pcConstruct->mpcType->mpcSpecifiers && (pcConstruct->mpcType->mpcSpecifiers->NumTypeKeywords() > 1) && !mpcUnit->GetOptions()->mbMultiWordCasts)
+	{
+		Error(pcConstruct, "A cast written as a type and brackets has a type of one word: unsigned(3) or (unsigned int)3, not unsigned int(3)");
+		return NULL;
+	}
 	psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType);
 	if (psType && psType->IsClass())
 	{

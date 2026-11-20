@@ -39,6 +39,7 @@ public:
 	void						Kill(void) override;
 	void						CountTypeKeyword(ECppTokens eToken);
 	bool						DefinesType(void);
+	size						NumTypeKeywords(void) const;
 	CPP_SYNTAX_NODE(DeclSpecifiers)
 	void						PrettyPrint(CChars* pszDest, int iDepth) override;
 	void						VisitFields(CCPPSyntaxFields* pcFields) override;
