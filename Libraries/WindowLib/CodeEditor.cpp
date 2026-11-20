@@ -45,6 +45,10 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont
 	mbGlyphColumn = false;
 	masGlyphs.Init();
 	mcGlyphClicked.Init();
+	muiIconColumns = 0;
+	muiClickedColumn = 0;
+	masIcons.Init();
+	mcIconClicked.Init();
 	msBandNumberColour = pTheme->GetColour(TC_LineNumberActive);
 	mcGutterClicked.Init();
 	mcChangeBarClicked.Init();
@@ -95,6 +99,8 @@ void CCodeEditor::Free(void)
 	mcChanged.Kill();
 	mcGutterClicked.Kill();
 	mcChangeBarClicked.Kill();
+	mcIconClicked.Kill();
+	masIcons.Kill();
 	mcGlyphClicked.Kill();
 	masGlyphs.Kill();
 	masChangeBars.Kill();
@@ -127,6 +133,10 @@ void CCodeEditor::Class(void)
 	U_Bool(mbGlyphColumn);
 	U_Unknown(CArrayCodeEditorGlyphs, masGlyphs);
 	U_Unknown(CGutterClickEvent, mcGlyphClicked);
+	U_Size(muiIconColumns);
+	U_Size(muiClickedColumn);
+	U_Unknown(CArrayCodeEditorGlyphs, masIcons);
+	U_Unknown(CGutterIconClickEvent, mcIconClicked);
 	U_UInt32(msBandNumberColour);
 	U_Unknown(CGutterClickEvent, mcGutterClicked);
 	U_Unknown(CGutterClickEvent, mcChangeBarClicked);
@@ -530,6 +540,7 @@ void CCodeEditor::UpdateGutter(void)
 	size	uiLines;
 	size	uiDigits;
 	size	uiLine;
+	size	uiColumn;
 	char	cMark;
 	CChars	szRows;
 
@@ -548,6 +559,11 @@ void CCodeEditor::UpdateGutter(void)
 			if (mbGlyphColumn)
 			{
 				cMark = GetLineGlyph(uiLine) ? GetLineGlyph(uiLine)->cGlyph : '\0';
+				szRows.Append((cMark != '\0') ? cMark : ' ');
+			}
+			for (uiColumn = 0; uiColumn < muiIconColumns; uiColumn++)
+			{
+				cMark = GetLineIcon(uiColumn, uiLine) ? GetLineIcon(uiColumn, uiLine)->cGlyph : '\0';
 				szRows.Append((cMark != '\0') ? cMark : ' ');
 			}
 			cMark = GetLineMark(uiLine);
@@ -844,14 +860,11 @@ void CCodeEditor::ClearLineGlyphs(void)
 void CCodeEditor::DrawGlyphs(void)
 {
 	size				uiLine;
+	size				uiColumn;
 	size				uiStart;
 	SCodeEditorGlyph*	psGlyph;
 
-	if (!mbGlyphColumn)
-	{
-		return;
-	}
-	for (uiLine = 0; (uiLine < masGlyphs.NumElements()) && (uiLine < mpGutter->NumLines()); uiLine++)
+	for (uiLine = 0; mbGlyphColumn && (uiLine < masGlyphs.NumElements()) && (uiLine < mpGutter->NumLines()); uiLine++)
 	{
 		psGlyph = GetLineGlyph(uiLine);
 		if (psGlyph)
@@ -864,6 +877,141 @@ void CCodeEditor::DrawGlyphs(void)
 			mpGutter->AddSpan(uiStart, 1, psGlyph->sColour);
 		}
 	}
+
+	//The icons, in their columns after the glyphs'.
+	for (uiLine = 0; (muiIconColumns > 0) && (uiLine * muiIconColumns < masIcons.NumElements()) && (uiLine < mpGutter->NumLines()); uiLine++)
+	{
+		for (uiColumn = 0; uiColumn < muiIconColumns; uiColumn++)
+		{
+			psGlyph = GetLineIcon(uiColumn, uiLine);
+			if (psGlyph)
+			{
+				uiStart = mpGutter->GetLineStart(uiLine) + (mbGlyphColumn ? 1 : 0) + uiColumn;
+				if (psGlyph->bBackground)
+				{
+					mpGutter->AddBackground(uiStart, uiStart + 1, psGlyph->sBackground);
+				}
+				mpGutter->AddSpan(uiStart, 1, psGlyph->sColour);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many columns of icons the gutter has, after the glyphs' column.
+// Changing it forgets the icons there were.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::SetIconColumns(size uiColumns)
+{
+	if (muiIconColumns != uiColumns)
+	{
+		muiIconColumns = uiColumns;
+		masIcons.ReInit();
+		mbMarksChanged = true;
+		LayoutChanged();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// cIcon in sColour is shown in icon column uiColumn beside line uiLine
+// ('\0' for none), on a cell of sBackground if given.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::SetLineIcon(size uiColumn, size uiLine, char cIcon, ARGB32 sColour)
+{
+	SetLineIcon(uiColumn, uiLine, cIcon, sColour, 0, false);
+}
+void CCodeEditor::SetLineIcon(size uiColumn, size uiLine, char cIcon, ARGB32 sColour, ARGB32 sBackground)
+{
+	SetLineIcon(uiColumn, uiLine, cIcon, sColour, sBackground, true);
+}
+
+
+void CCodeEditor::SetLineIcon(size uiColumn, size uiLine, char cIcon, ARGB32 sColour, ARGB32 sBackground, bool bBackground)
+{
+	SCodeEditorGlyph*	psGlyph;
+	size				uiIndex;
+
+	if (uiColumn >= muiIconColumns)
+	{
+		return;
+	}
+	psGlyph = GetLineIcon(uiColumn, uiLine);
+	if (psGlyph && (psGlyph->cGlyph == cIcon) && (psGlyph->sColour == sColour) && (psGlyph->bBackground == bBackground) && (!bBackground || (psGlyph->sBackground == sBackground)))
+	{
+		return;
+	}
+	if ((psGlyph == NULL) && (cIcon == '\0'))
+	{
+		return;
+	}
+	uiIndex = uiLine * muiIconColumns + uiColumn;
+	while (masIcons.NumElements() < (uiLine + 1) * muiIconColumns)
+	{
+		psGlyph = masIcons.Add();
+		psGlyph->cGlyph = '\0';
+		psGlyph->sColour = 0;
+		psGlyph->sBackground = 0;
+		psGlyph->bBackground = false;
+	}
+	psGlyph = masIcons.Get(uiIndex);
+	psGlyph->cGlyph = cIcon;
+	psGlyph->sColour = sColour;
+	psGlyph->sBackground = sBackground;
+	psGlyph->bBackground = bBackground;
+	mbMarksChanged = true;
+	LayoutChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Line uiLine's icon in column uiColumn, NULL if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+SCodeEditorGlyph* CCodeEditor::GetLineIcon(size uiColumn, size uiLine)
+{
+	SCodeEditorGlyph*	psGlyph;
+
+	if (uiColumn >= muiIconColumns)
+	{
+		return NULL;
+	}
+	psGlyph = masIcons.SafeGet(uiLine * muiIconColumns + uiColumn);
+	return (psGlyph && (psGlyph->cGlyph != '\0')) ? psGlyph : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every line's icon in a column goes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodeEditor::ClearLineIcons(size uiColumn)
+{
+	size	i;
+	bool	bChanged;
+
+	if (uiColumn >= muiIconColumns)
+	{
+		return;
+	}
+	bChanged = false;
+	for (i = uiColumn; i < masIcons.NumElements(); i += muiIconColumns)
+	{
+		bChanged = bChanged || (masIcons.Get(i)->cGlyph != '\0');
+		masIcons.Get(i)->cGlyph = '\0';
+	}
+	if (bChanged)
+	{
+		mbMarksChanged = true;
+		LayoutChanged();
+	}
 }
 
 
@@ -874,7 +1022,7 @@ void CCodeEditor::DrawGlyphs(void)
 //////////////////////////////////////////////////////////////////////////
 size CCodeEditor::GetMarkColumn(void) const
 {
-	return mbGlyphColumn ? 1 : 0;
+	return (mbGlyphColumn ? 1 : 0) + muiIconColumns;
 }
 
 
@@ -989,6 +1137,8 @@ bool CCodeEditor::IsChangeBarAt(size uiLine)
 
 CGutterClickEvent* CCodeEditor::GetChangeBarClickEvent(void) { return &mcChangeBarClicked; }
 CGutterClickEvent* CCodeEditor::GetGlyphClickEvent(void) { return &mcGlyphClicked; }
+CGutterIconClickEvent* CCodeEditor::GetIconClickEvent(void) { return &mcIconClicked; }
+size CCodeEditor::NumIconColumns(void) const { return muiIconColumns; }
 bool CCodeEditor::HasGlyphColumn(void) const { return mbGlyphColumn; }
 size CCodeEditor::NumChangeBars(void) const { return masChangeBars.NumElements(); }
 SCodeEditorChangeBar* CCodeEditor::GetChangeBar(size uiIndex) { return masChangeBars.SafeGet(uiIndex); }
@@ -1004,7 +1154,8 @@ SCodeEditorChangeBar* CCodeEditor::GetChangeBar(size uiIndex) { return masChange
 //////////////////////////////////////////////////////////////////////////
 void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
 {
-	size	uiLine;
+	SInt32Vec2	sIcon;
+	size		uiLine;
 
 	mpWindow->GetFocus()->SetFocus(mpTextArea);
 
@@ -1012,6 +1163,10 @@ void CCodeEditor::ClickAction(SComponentInputEvent* psEvent)
 	{
 	case CEGC_Glyph:
 		mcGlyphClicked.Call(this, uiLine);
+		break;
+	case CEGC_Icon:
+		sIcon.Init((int32)(muiClickedColumn - (mbGlyphColumn ? 1 : 0)), (int32)uiLine);
+		mcIconClicked.Call(this, sIcon);
 		break;
 	case CEGC_ChangeBar:
 		mcChangeBarClicked.Call(this, uiLine);
@@ -1069,8 +1224,8 @@ void CCodeEditor::StartLineDrag(SComponentInputEvent* psEvent, bool bExtend)
 // The gutter's column the press at x, y (relative to the code editor) is
 // in, and the line it is next to.  The gutter's rows are the code's, and
 // so are its lines.  The first column is the glyphs' when there are
-// glyphs, then the marks', the number and last the change bars'.  Past a
-// row's end is its last column.
+// glyphs, then the icons' columns, then the marks', the number and last
+// the change bars'.  Past a row's end is its last column.
 //
 //////////////////////////////////////////////////////////////////////////
 ECodeEditorGutterColumn CCodeEditor::FindGutterColumn(int32 x, int32 y, size* puiLine)
@@ -1094,9 +1249,14 @@ ECodeEditorGutterColumn CCodeEditor::FindGutterColumn(int32 x, int32 y, size* pu
 	*puiLine = mpGutter->FindLine(uiPosition);
 	uiColumn = bCharacter ? uiPosition - mpGutter->GetLineStart(*puiLine) : uiBarColumn;
 
+	muiClickedColumn = uiColumn;
 	if (mbGlyphColumn && (uiColumn == 0))
 	{
 		return CEGC_Glyph;
+	}
+	if (uiColumn < GetMarkColumn())
+	{
+		return CEGC_Icon;
 	}
 	if (uiColumn == GetMarkColumn())
 	{

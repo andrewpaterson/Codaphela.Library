@@ -71,6 +71,7 @@ enum ECodeEditorGutterColumn
 {
 	CEGC_None,		//Not in the gutter.
 	CEGC_Glyph,
+	CEGC_Icon,		//One of the icon columns.
 	CEGC_Mark,
 	CEGC_Number,	//The line's number, or the change bar column on a line without a change bar.
 	CEGC_ChangeBar,
@@ -80,6 +81,10 @@ enum ECodeEditorGutterColumn
 //A press in the gutter, and the line it was next to.
 class CCodeEditor;
 typedef CComponentValueEvent<CCodeEditor, size>	CGutterClickEvent;
+
+
+//A press on an icon column: the column (x) and the line it was next to (y).
+typedef CComponentValueEvent<CCodeEditor, SInt32Vec2>	CGutterIconClickEvent;
 
 
 //Source code to edit: a gutter of line numbers on the left of a text area (GetTextArea) of the code, and components
@@ -106,6 +111,11 @@ typedef CComponentValueEvent<CCodeEditor, size>	CGutterClickEvent;
 //With a glyph column (SetGlyphColumn) the gutter's first column is a glyph for each line (SetLineGlyph), as Visual
 //Studio's margin shows breakpoints and the current line, and the marks are the second.  Glyphs are by line number too.
 //Clicking the glyph column calls the glyph click event with the line, not the gutter click event.
+//
+//After the glyphs the gutter can have columns of icons (SetIconColumns): each a character for each line, in a colour
+//and on a cell of another if wanted (SetLineIcon), a column for each kind of thing that marks lines, so a line can
+//have one of each: a bookmark and an override mark, say.  They are by line number, as glyphs are.  Clicking one calls
+//the icon click event with its column and line.
 class CCodeEditor : public CContainer
 {
 CONSTRUCTABLE(CCodeEditor);
@@ -126,6 +136,10 @@ protected:
 	bool							mbGlyphColumn;  //The gutter's first column is the glyphs'.
 	CArrayCodeEditorGlyphs			masGlyphs;  //By line, as the marks are.
 	CGutterClickEvent				mcGlyphClicked;
+	size							muiIconColumns;  //After the glyphs' column, before the marks'.
+	CArrayCodeEditorGlyphs			masIcons;  //A line's are together: line times the columns, and the column.
+	CGutterIconClickEvent			mcIconClicked;
+	size							muiClickedColumn;  //The gutter's column the last press looked at was in.
 	ARGB32							msBandNumberColour;  //Line numbers on a change band.
 	CGutterClickEvent				mcGutterClicked;
 	CGutterClickEvent				mcChangeBarClicked;
@@ -168,6 +182,13 @@ public:
 	void					SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground);
 	SCodeEditorGlyph*		GetLineGlyph(size uiLine);
 	void					ClearLineGlyphs(void);
+	void					SetIconColumns(size uiColumns);
+	size					NumIconColumns(void) const;
+	void					SetLineIcon(size uiColumn, size uiLine, char cIcon, ARGB32 sColour);
+	void					SetLineIcon(size uiColumn, size uiLine, char cIcon, ARGB32 sColour, ARGB32 sBackground);
+	SCodeEditorGlyph*		GetLineIcon(size uiColumn, size uiLine);
+	void					ClearLineIcons(size uiColumn);
+	CGutterIconClickEvent*	GetIconClickEvent(void);
 
 	CGutterClickEvent*				GetGutterClickEvent(void);
 	CGutterClickEvent*				GetChangeBarClickEvent(void);
@@ -195,6 +216,7 @@ protected:
 	void				ChangeBarsChanged(void);
 	void				DrawGlyphs(void);
 	void				SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground, bool bBackground);
+	void				SetLineIcon(size uiColumn, size uiLine, char cIcon, ARGB32 sColour, ARGB32 sBackground, bool bBackground);
 	size				GetMarkColumn(void) const;
 	bool				IsChangeBarAt(size uiLine);
 	ECodeEditorGutterColumn	FindGutterColumn(int32 x, int32 y, size* puiLine);

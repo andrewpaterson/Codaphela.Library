@@ -48,17 +48,26 @@ class CTestCodeEditorListener
 public:
 	size	muiClicks;
 	size	muiLine;
+	size	muiColumn;
 
 	void Init(void)
 	{
 		muiClicks = 0;
 		muiLine = MAX_SIZE;
+		muiColumn = MAX_SIZE;
 	}
 
 	void GutterClicked(CCodeEditor* pcEditor, size uiLine)
 	{
 		muiClicks++;
 		muiLine = uiLine;
+	}
+
+	void IconClicked(CCodeEditor* pcEditor, SInt32Vec2 sIcon)
+	{
+		muiClicks++;
+		muiLine = (size)sIcon.y;
+		muiColumn = (size)sIcon.x;
 	}
 };
 
@@ -893,6 +902,7 @@ void TestCodeEditorGlyphs(void)
 		CTestCodeEditorListener		cGutter;
 		CTestCodeEditorListener		cGlyphs;
 		CTestCodeEditorListener		cBars;
+		CTestCodeEditorListener		cIcons;
 		SCodeEditorGlyph*			psGlyph;
 		int32						iLine;
 		int32						iCell;
@@ -979,6 +989,75 @@ void TestCodeEditorGlyphs(void)
 		pEditor->SetGlyphColumn(false);
 		pTestWindow->Layout();
 		AssertString(" 1 \n 2 \n+3 ", pGutter->GetText());
+
+		//Columns of icons, before the marks': a line can have one in each.  Without the columns none is kept.
+		cIcons.Init();
+		pEditor->GetIconClickEvent()->Add(&cIcons, &CTestCodeEditorListener::IconClicked);
+		pEditor->SetLineIcon(0, 1, 'B', TEST_CHANGE_ADDED);
+		AssertTrue(pEditor->GetLineIcon(0, 1) == NULL);
+		AssertSize(0, pEditor->NumIconColumns());
+		pEditor->SetIconColumns(2);
+		AssertSize(2, pEditor->NumIconColumns());
+		pTestWindow->Layout();
+		AssertString("   1 \n   2 \n  +3 ", pGutter->GetText());
+		pEditor->SetLineIcon(0, 1, 'B', TEST_CHANGE_ADDED);
+		pEditor->SetLineIcon(1, 1, '^', TEST_CHANGE_MODIFIED, TEST_CHANGE_REMOVED);
+		pEditor->SetLineIcon(1, 2, 'v', TEST_CHANGE_MODIFIED);
+		pEditor->SetLineIcon(2, 0, 'x', TEST_CHANGE_MODIFIED);
+		pTestWindow->Layout();
+		AssertString("   1 \nB^ 2 \n v+3 ", pGutter->GetText());
+		AssertInt('B', pEditor->GetLineIcon(0, 1)->cGlyph);
+		AssertFalse(pEditor->GetLineIcon(0, 1)->bBackground);
+		AssertInt('^', pEditor->GetLineIcon(1, 1)->cGlyph);
+		AssertTrue(pEditor->GetLineIcon(1, 1)->bBackground);
+		AssertInt(TEST_CHANGE_REMOVED, pEditor->GetLineIcon(1, 1)->sBackground);
+		AssertTrue(pEditor->GetLineIcon(0, 2) == NULL);
+		AssertTrue(pEditor->GetLineIcon(0, 0) == NULL);
+		AssertTrue(pEditor->GetLineIcon(2, 0) == NULL);
+		AssertTrue(pEditor->GetLineIcon(0, 9) == NULL);
+
+		//A press on one says which column and line; the marks' column is after them.
+		pTestWindow->PointerMoved(iLeft + iCell + iCell / 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(1, cIcons.muiClicks);
+		AssertSize(1, cIcons.muiColumn);
+		AssertSize(1, cIcons.muiLine);
+		pTestWindow->PointerMoved(iLeft + iCell / 2, iTop + 2 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(2, cIcons.muiClicks);
+		AssertSize(0, cIcons.muiColumn);
+		AssertSize(2, cIcons.muiLine);
+		pTestWindow->PointerMoved(iLeft + 2 * iCell + iCell / 2, iTop + 2 * iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(2, cIcons.muiClicks);
+		AssertSize(2, cGutter.muiClicks);
+		AssertSize(2, cGutter.muiLine);
+
+		//With the glyphs' column they are after it.
+		pEditor->SetGlyphColumn(true);
+		pEditor->SetLineGlyph(1, 'o', TEST_CHANGE_MODIFIED);
+		pTestWindow->Layout();
+		AssertString("    1 \noB^ 2 \n  v+3 ", pGutter->GetText());
+		pTestWindow->PointerMoved(iLeft + iCell + iCell / 2, iTop + iLine + iLine / 2);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		AssertSize(3, cIcons.muiClicks);
+		AssertSize(0, cIcons.muiColumn);
+		AssertSize(1, cIcons.muiLine);
+		pEditor->SetGlyphColumn(false);
+		pEditor->ClearLineGlyphs();
+
+		//A column cleared, an icon taken off, and the columns gone.
+		pEditor->ClearLineIcons(1);
+		pTestWindow->Layout();
+		AssertString("   1 \nB  2 \n  +3 ", pGutter->GetText());
+		pEditor->SetLineIcon(0, 1, '\0', 0);
+		pTestWindow->Layout();
+		AssertString("   1 \n   2 \n  +3 ", pGutter->GetText());
+		pEditor->SetLineIcon(0, 0, 'B', TEST_CHANGE_ADDED);
+		pEditor->SetIconColumns(0);
+		pTestWindow->Layout();
+		AssertString(" 1 \n 2 \n+3 ", pGutter->GetText());
+		AssertTrue(pEditor->GetIconClickEvent()->Remove(&cIcons));
 
 		AssertTrue(pEditor->GetGutterClickEvent()->Remove(&cGutter));
 		AssertTrue(pEditor->GetGlyphClickEvent()->Remove(&cGlyphs));
