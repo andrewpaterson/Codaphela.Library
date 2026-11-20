@@ -459,6 +459,10 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		if (ElementType(pcVariable->mpsType)->IsClass())
 		{
 			//Objects are constructed (by default without an initialiser) and destroyed when their scope is left.
+			if (pcVariable->mpsType->IsClass() && !mpcUnit->GetBinder()->CopyInitialises(pcVariable->mpsType->pcClass, pcInit))
+			{
+				return false;
+			}
 			if (!Construct(&sPlace, NULL, pcInit->mpcInitializer))
 			{
 				return false;

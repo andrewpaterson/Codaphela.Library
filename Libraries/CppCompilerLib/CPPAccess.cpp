@@ -122,6 +122,30 @@ bool CCPPAccess::Check(CCPPSyntax* pcDeclaration, CCPPClass* pcNaming, CCPPSynta
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether every field of the class is public: one of what makes it an
+// aggregate, which a list in braces fills field by field.  [dcl.init.aggr] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPAccess::HasOnlyPublicFields(CCPPClass* pcClass)
+{
+	CCPPSyntaxClassSpecifier*	pcDeclaring;
+	SCPPField*					psField;
+	size						i;
+
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		if (psField->pcSymbol && psField->pcSymbol->mpcDeclaration && (DeclaredAccess(psField->pcSymbol->mpcDeclaration, &pcDeclaring) > CPPA_Public))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a pcClass may be used as its base pcBase at pcNode (a pointer or
 // a reference to the one made one to the other): an error (and false) if
 // not.  The base is reached where a public member of it could be named as

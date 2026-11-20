@@ -3133,7 +3133,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		pcVariable->mbDefined = true;
 		pcVariable->mpsType = psType;
 		CompleteDeclaredArrays(pcVariable);
-		if (!pcInitialiser && !NeedsNoInitialiser(psType, pcInit))
+		if ((!pcInitialiser && !NeedsNoInitialiser(psType, pcInit)) || (psType->IsClass() && !mcBinder.CopyInitialises(psType->pcClass, pcInit)))
 		{
 			bResult = false;
 			continue;

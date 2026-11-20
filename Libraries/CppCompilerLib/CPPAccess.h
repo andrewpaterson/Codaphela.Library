@@ -62,6 +62,7 @@ public:
 	bool	CheckSymbol(CCPPSymbol* pcSymbol, CCPPClass* pcNaming, CCPPSyntax* pcNode);
 	bool	Check(CCPPSyntax* pcDeclaration, CCPPClass* pcNaming, CCPPSyntax* pcNode);
 	bool	CheckBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
+	bool	HasOnlyPublicFields(CCPPClass* pcClass);
 	bool	Refuse(CCPPSyntax* pcNode, const char* szMessage);
 
 protected:

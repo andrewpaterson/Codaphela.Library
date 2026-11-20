@@ -235,6 +235,13 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		{
 			return NULL;
 		}
+		if (pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && psType->IsInteger() && mpcUnit->IsStringLiteral(mpcUnit->StringInitialiser(pcInitialiser, psType)) &&
+			(GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType)) > lliCount + (mpcUnit->IsCSource() ? 1 : 0)))
+		{
+			//char a[3] = "abc" has no room for the string's end (which C lets go).  [dcl.init.string] 2
+			mpcUnit->Error(pcNode, "The string has more characters, with its end, than the array has elements");
+			return NULL;
+		}
 		if (psType->IsVoid() || psType->IsReference() || psType->IsFunction())
 		{
 			//[dcl.array] 1

@@ -1683,6 +1683,51 @@ bool CCPPBinder::ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcA
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcInit's = value, or = { values }, may make an object of pcClass
+// by the constructor that takes it: copy initialisation uses no explicit
+// constructor, and the constructor is the one conversion of the program's
+// own there is, so its parameter takes the value by none.  An error (and
+// false) if not.  Any other initialiser may.  [dcl.init] 17,
+// [over.match.copy], [over.match.list], [class.conv] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* pcInit)
+{
+	CCPPBoundConstruction	cBound;
+	CArraySyntax			apcValue;
+	CArraySyntax*			papcArguments;
+	SCPP65Type*				psValue;
+	SCPP65Type*				psParameter;
+	bool					bResult;
+
+	if ((pcInit->meInitializer != CPPI_Equals) || !pcInit->mpcInitializer || !pcClass->mbConstructors)
+	{
+		return true;
+	}
+	apcValue.Init();
+	apcValue.Add(pcInit->mpcInitializer);
+	papcArguments = (pcInit->mpcInitializer->GetKind() == CPPS_InitializerList) ? mpcUnit->ListElements(pcInit->mpcInitializer) : &apcValue;
+	bResult = true;
+	if ((papcArguments->NumElements() > 0) && BindConstruction(pcClass, papcArguments, pcInit, &cBound, false) && (cBound.meHow == CPPBO_Constructor))
+	{
+		psValue = (papcArguments == &apcValue) ? mpcUnit->ValueTypeOf(pcInit->mpcInitializer) : NULL;
+		psParameter = (cBound.mpcConstructor->mapsParameters.NumElements() > 0) ? cBound.mpcConstructor->mapsParameters.GetPtr(0)->WithoutReference() : NULL;
+		if (cBound.mpcConstructor->mbExplicit)
+		{
+			bResult = mcAccess.Refuse(pcInit, "An explicit constructor isn't used by = : write the class's name before the value");
+		}
+		else if (psValue && psParameter && !(psParameter->IsClass() && (psParameter->pcClass == pcClass)) && (mcOverloads.ConversionRank(psParameter, psValue, pcInit->mpcInitializer, false) == CPPCR_None))
+		{
+			bResult = mcAccess.Refuse(pcInit, "= converts the value by one constructor or conversion function of the program's, not two");
+		}
+	}
+	apcValue.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether an object of pcClass may be destroyed at pcNode: the destructor
 // the class declares, if it does, may be named there.  An error (and false)
 // if not.  [class.dtor] 11
@@ -1816,7 +1861,8 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 		return true;
 	}
 
-	if ((pcClass->macBases.NumElements() > 0) || pcClass->IsPolymorphic() || (papcArguments->NumElements() > pcClass->NumAggregateFields()))
+	if ((pcClass->macBases.NumElements() > 0) || pcClass->IsPolymorphic() || (papcArguments->NumElements() > pcClass->NumAggregateFields()) ||
+		(!pcClass->mbConstructorTemplate && !mcAccess.HasOnlyPublicFields(pcClass)))
 	{
 		if (bReport)
 		{
