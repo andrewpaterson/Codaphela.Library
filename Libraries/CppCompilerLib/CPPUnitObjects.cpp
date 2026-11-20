@@ -1477,6 +1477,46 @@ SCPP65Type* CCPPUnit::PlaceOf(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a reference is initialised from: a list in braces with one element
+// the reference binds to as it is (its type the reference's, or a class
+// derived from it) is that element, int& r{x}; any other list makes a
+// temporary the reference is bound to (BindsToTemporary).
+// [dcl.init.list] 3
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPUnit::BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pcInitialiser)
+{
+	CArraySyntax*	papcElements;
+	CCPPSyntax*		pcElement;
+	SCPP65Type*		psElement;
+	SCPP65Type*		psReferred;
+
+	if (!pcInitialiser || (pcInitialiser->GetKind() != CPPS_InitializerList))
+	{
+		return pcInitialiser;
+	}
+	papcElements = ListElements(pcInitialiser);
+	pcElement = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
+	if (!pcElement || (pcElement->GetKind() == CPPS_InitializerList))
+	{
+		return pcInitialiser;
+	}
+	BeginQuiet();
+	psElement = PlaceOf(pcElement);
+	psElement = psElement ? psElement : ValueTypeOf(pcElement);
+	EndQuiet();
+	psElement = psElement ? psElement->WithoutReference()->Unqualified() : NULL;
+	psReferred = psReference->psBase->Unqualified();
+	if (psElement && (psElement->Equals(psReferred) || (psElement->IsClass() && psReferred->IsClass() && IsDerived(psElement->pcClass, psReferred->pcClass, NULL))))
+	{
+		return pcElement;
+	}
+	return pcInitialiser;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if a reference gets a temporary holding the value, not the value's
 // address: a const reference or T&&, and a value that has no address or
 // is of another type (const long& of a char, const char* const& of an

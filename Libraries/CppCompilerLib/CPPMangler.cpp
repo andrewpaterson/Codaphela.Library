@@ -182,14 +182,16 @@ void CCPPMangler::AppendGlobalLabel(CChars* psz, CCPPVariable* pcVariable)
 		szName.Init(szIdentifier, 0, iLength);
 		AppendClassLabel(psz, pcVariable->mpcClass, szName.Text());
 		szName.Kill();
-		return;
 	}
-	psz->Append('_');
-	if (!pcVariable->mbCLinkage)
+	else
 	{
-		AppendScopeNames(psz, pcVariable->mpcSymbol->mpcScope->GetNamespace());
+		psz->Append('_');
+		if (!pcVariable->mbCLinkage)
+		{
+			AppendScopeNames(psz, pcVariable->mpcSymbol->mpcScope->GetNamespace());
+		}
+		psz->Append(szIdentifier, iLength);
 	}
-	psz->Append(szIdentifier, iLength);
 	if (pcVariable->mszArguments.Length() > 0)
 	{
 		//A variable template's instance, as a class template's is.
@@ -349,6 +351,12 @@ void CCPPMangler::AppendClassName(CChars* psz, CCPPClass* pcClass)
 	{
 		//A member class template's instance is its class's (P<char>::Q<long>), which may be an instance too.
 		AppendClassName(psz, pcClass->mpcTemplate->mpcPrimary->mpcClass);
+		psz->Append("__");
+	}
+	else if (pcClass->mpcEnclosing)
+	{
+		//A class template's instance's member class is its instance's (P<char>::Inner).
+		AppendClassName(psz, pcClass->mpcEnclosing);
 		psz->Append("__");
 	}
 	else if (pcClass->mpcSymbol)

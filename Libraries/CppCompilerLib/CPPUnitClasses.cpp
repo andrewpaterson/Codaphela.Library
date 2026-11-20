@@ -46,22 +46,48 @@ CCPPClass* CCPPUnit::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
 //
 // The class (not a template instance) a symbol names.  A class used before it is
 // defined, or only through pointers, is laid out when it is first needed whole.
+// A member class of a class template is each instance's own, with the instance's
+// template arguments: the instance's (pcEnclosing) that is given or that the
+// bindings in use are of (EnclosingInstance).  [temp.mem.class]
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPPUnit::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
+CCPPClass* CCPPUnit::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcEnclosing)
 {
 	CCPPClass*	pcClass;
-	size			i;
+	size		i;
 
+	pcEnclosing = pcEnclosing ? pcEnclosing : EnclosingInstance(pcSymbol);
 	for (i = 0; i < mapcClasses.NumElements(); i++)
 	{
 		pcClass = mapcClasses.GetPtr(i);
-		if ((pcClass->mpcSymbol == pcSymbol) && !pcClass->mpcTemplate)
+		if ((pcClass->mpcSymbol == pcSymbol) && !pcClass->mpcTemplate && (pcClass->mpcEnclosing == pcEnclosing))
 		{
 			return pcClass;
 		}
 	}
-	return NewClass(pcSymbol, pcSymbol->mlliName);
+	pcClass = NewClass(pcSymbol, pcSymbol->mlliName);
+	if (pcEnclosing)
+	{
+		pcClass->mpcEnclosing = pcEnclosing;
+		pcClass->mpcBindings = pcEnclosing->mpcBindings;
+	}
+	return pcClass;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class template's instance, or the member class of one, that a symbol
+// is a member of with the bindings in use, or NULL if it is a member of
+// neither.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::EnclosingInstance(CCPPSymbol* pcSymbol)
+{
+	CCPPClass*	pcClass;
+
+	pcClass = MemberScopeClass(pcSymbol);
+	return (pcClass && (pcClass->mpcTemplate || pcClass->mpcEnclosing)) ? pcClass : NULL;
 }
 
 
@@ -404,12 +430,27 @@ CCPPClass* CCPPUnit::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent*
 CCPPClass* CCPPUnit::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 {
 	CCPPSymbol*	pcSymbol;
+	CCPPClass*	pcClass;
+	size		uiErrors;
 
 	//P<char>::Q<long>: P<char>'s member class template's instance.
 	pcSymbol = pcName->mpcSymbol;
 	if (pcName->GetQualifier() && pcSymbol && (pcSymbol->meKind == CPPSK_ClassTemplate) && pcSymbol->mpcScope && (pcSymbol->mpcScope->meKind == CPPSC_Class))
 	{
 		return QualifiedClass(pcName, pcNode);
+	}
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_Class) && pcName->IsQualifiedByInstance())
+	{
+		//P<char>::Inner: that instance's member class.  [temp.mem.class]
+		uiErrors = mcErrors.NumErrors();
+		BeginQuiet();
+		pcClass = QualifiedClass(pcName, pcNode);
+		EndQuiet();
+		mcErrors.Truncate(uiErrors);
+		if (pcClass)
+		{
+			return pcClass;
+		}
 	}
 	return GetComponentClass(pcName->GetLast(), pcSymbol, pcNode);
 }
@@ -446,7 +487,7 @@ bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	for (i = 0; i < pcClass->mpcSpecifier->macpBases.NumElements(); i++)
 	{
 		pcBaseSpecifier = (CCPPSyntaxBaseSpecifier*)pcClass->mpcSpecifier->macpBases.GetPtr(i);
-		bResult &= pcBaseSpecifier->mbPack ? AddPackBases(pcClass, pcBaseSpecifier) : AddBase(pcClass, pcBaseSpecifier);
+		bResult &= pcBaseSpecifier->mbPack ? AddPackBases(pcClass, pcBaseSpecifier) : AddBase(pcClass, pcBaseSpecifier, pcBaseSpecifier->mpcName);
 	}
 	pcClass->mpcBase = (pcClass->macBases.NumElements() > 0) ? pcClass->macBases.Get(0)->pcClass : NULL;
 	pcClass->meState = CPPCS_BasesKnown;
@@ -457,16 +498,17 @@ bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The class a base specifier names is a base of pcClass, its bases found.
+// The class a base specifier names (pcName: its name, or one of its pack
+// expansion's) is a base of pcClass, its bases found.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier)
+bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier, CCPPSyntaxName* pcName)
 {
 	CCPPClass*	pcBaseClass;
 	SCPPBase*	psBase;
 	bool		bResult;
 
-	pcBaseClass = GetNameClass(pcBaseSpecifier->mpcName, pcBaseSpecifier);
+	pcBaseClass = GetNameClass(pcName, pcBaseSpecifier);
 	if (!pcBaseClass)
 	{
 		return Error(pcBaseSpecifier, "This base class is not supported by the compiler yet");
@@ -483,41 +525,24 @@ bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecif
 
 //////////////////////////////////////////////////////////////////////////
 //
-// : T... has a base for each of the type pack's classes, in order, the
-// pack's parameter bound to one at a time.  [temp.variadic] 5
+// : T... and : Leaf<I, T>... have a base for each element of the packs the
+// name names, in order: the name expanded as any pattern is (ExpandPattern),
+// of type packs and value packs alike.  [temp.variadic] 5
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::AddPackBases(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier)
 {
-	CArrayCPPBindingPtrs	apsPacks;
-	SCPPBinding*			psPack;
-	size					uiElements;
-	size					j;
-	size					k;
-	bool					bResult;
+	CArraySyntax	apcNames;
+	size			k;
+	bool			bResult;
 
-	apsPacks.Init();
-	FindPacks(pcBaseSpecifier->mpcName, &apsPacks);
-	bResult = (apsPacks.NumElements() > 0) || Error(pcBaseSpecifier, "The pack expansion names no parameter pack");
-	uiElements = bResult ? apsPacks.GetPtr(0)->PackSize() : 0;
-	for (j = 0; bResult && (j < apsPacks.NumElements()); j++)
+	apcNames.Init();
+	bResult = ExpandPattern(pcBaseSpecifier->mpcName, pcBaseSpecifier, &apcNames);
+	for (k = 0; bResult && (k < apcNames.NumElements()); k++)
 	{
-		bResult = (apsPacks.GetPtr(j)->papsPack && (apsPacks.GetPtr(j)->PackSize() == uiElements)) || Error(pcBaseSpecifier, "This base class is not supported by the compiler yet");
+		bResult = AddBase(pcClass, pcBaseSpecifier, (CCPPSyntaxName*)apcNames.GetPtr(k));
 	}
-	for (k = 0; bResult && (k < uiElements); k++)
-	{
-		for (j = 0; j < apsPacks.NumElements(); j++)
-		{
-			psPack = apsPacks.GetPtr(j);
-			psPack->psType = psPack->papsPack->GetPtr(k);
-		}
-		bResult = AddBase(pcClass, pcBaseSpecifier);
-		for (j = 0; j < apsPacks.NumElements(); j++)
-		{
-			apsPacks.GetPtr(j)->psType = NULL;
-		}
-	}
-	apsPacks.Kill();
+	apcNames.Kill();
 	return bResult;
 }
 

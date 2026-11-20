@@ -555,8 +555,9 @@ public:
 	//Classes, templates, virtual functions, overloads and labels.  CPPUnitClasses.cpp, CPPUnitTemplates.cpp,
 	//CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
 	CCPPClass*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
-	CCPPClass*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
+	CCPPClass*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcEnclosing = NULL);
 	CCPPClass*				MemberScopeClass(CCPPSymbol* pcSymbol);
+	CCPPClass*				EnclosingInstance(CCPPSymbol* pcSymbol);
 	CCPPClass*			GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier);
 	CCPPClass*			FindClass(int64 lliName, CCPPScope* pcLookup);
 	CCPPScope*				ComponentLookup(CCPPSyntaxNameComponent* pcComponent);
@@ -635,7 +636,7 @@ public:
 	bool					CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					CompleteObjectClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode);
-	bool					AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier);
+	bool					AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier, CCPPSyntaxName* pcName);
 	bool					AddPackBases(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
@@ -645,6 +646,8 @@ public:
 	bool					DefineInstanceStatics(bool* pbResult);
 	bool					DefineVariableInstances(bool* pbResult);
 	CCPPSyntaxName*			VariableTemplateName(CCPPSyntaxSimpleDeclaration* pcSimple);
+	CCPPSyntaxName*			MemberVariableTemplateName(CCPPSyntaxSimpleDeclaration* pcSimple);
+	CCPPTemplate*			VariableTemplate(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	CCPPVariable*			VariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	CCPPSyntaxInitDeclarator*	VariableDeclarator(CCPPVariable* pcVariable);
 	bool					VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue);
@@ -874,6 +877,7 @@ public:
 	bool					IsUncapturedConstant(CCPPSyntax* pcExpression);
 	SCPP65Type*				PlaceOf(CCPPSyntax* pcExpression);
 	bool					BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument);
+	CCPPSyntax*				BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pcInitialiser);
 	bool					MakesObject(CCPPSyntax* pcExpression);
 
 	//Check only.  CPPUnitCheck.cpp

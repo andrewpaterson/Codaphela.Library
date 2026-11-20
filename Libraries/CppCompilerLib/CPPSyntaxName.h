@@ -43,6 +43,7 @@ public:
 	CCPPSyntaxNameComponent*	GetQualifier(void);
 	bool						IsQualifiedByClass(void);
 	bool						IsQualifiedByDecltype(void);
+	bool						IsQualifiedByInstance(void);
 	bool					IsSimple(void);
 };
 

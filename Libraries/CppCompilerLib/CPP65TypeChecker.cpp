@@ -3293,10 +3293,6 @@ bool CCPP65TypeChecker::InitializerListElements(SCPP65Type* psType, SCPP65Type* 
 	{
 		return false;
 	}
-	if (psElement->IsClass() && psElement->pcClass->NeedsDestructor())
-	{
-		return Error(pcNode, "A std::initializer_list of objects that are destroyed is not supported by the compiler yet");
-	}
 	bResult = true;
 	for (i = 0; i < papcElements->NumElements(); i++)
 	{

@@ -882,6 +882,7 @@ bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP
 		}
 		else if (psParameter->IsReference())
 		{
+			pcArgument = mpcUnit->BoundInitialiser(psParameter, pcArgument);
 			if (mpcUnit->BindsToTemporary(psParameter, pcArgument))
 			{
 				if (!ValueTemporary(pcArgument, psParameter->psBase, &sPlace))

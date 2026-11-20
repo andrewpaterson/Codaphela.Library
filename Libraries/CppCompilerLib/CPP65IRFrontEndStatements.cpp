@@ -659,6 +659,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 
 	if (psPlace->psType->IsReference())
 	{
+		pcInitialiser = mpcUnit->BoundInitialiser(psPlace->psType, pcInitialiser);
 		if (mpcUnit->BindsToTemporary(psPlace->psType, pcInitialiser))
 		{
 			//const int& r = 3, int&& r = 3 and const S& r = 3: a temporary in the function's frame, which lasts as

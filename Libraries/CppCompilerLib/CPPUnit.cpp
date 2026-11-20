@@ -3220,6 +3220,10 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			bResult = false;
 			continue;
 		}
+		if (psType->IsReference())
+		{
+			pcInitialiser = BoundInitialiser(psType, pcInitialiser);
+		}
 		psElement = psType->IsArray() ? psType->psBase : psType;
 		if (psElement->IsClass() && !CompleteObjectClass(psElement->pcClass, pcInit))
 		{

@@ -747,6 +747,28 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       were made, and an argument list expanded while its return type was worked out named the old ones when it
       was written (any function with a pack that returns auto): they are the same symbols each time now
       (FunctionPackElement, which was NewPackElement).
+    - A variable template is a class's static member (template<class T> static const int size = sizeof(T);): the
+      parser made it a field, and S::size<char> was a comparison.  It is a variable template of its class
+      (CCPPUnit::MemberTemplate, VariableTemplate), defined or specialised outside the class
+      (MemberVariableTemplateName), its instances labelled as the class's with their arguments
+      (TempVariableTemplateStaticMember).  Not done: object.size<char> (the parser can't tell the < of a member it
+      doesn't know), and one that is a member of a class template.
+    - A std::initializer_list of objects that are destroyed is passed, and initialises a class by its
+      initializer-list constructor: the IR front end has destroyed the list's array since the exceptions work, and
+      only the type checker still refused it (DclInitListObjectsDestroyed).
+    - A reference initialised from a list of one element it can bind to is bound to that element
+      (CCPPUnit::BoundInitialiser, [dcl.init.list] 3): int& r{x}; and auto& r{x}; were "uses C++ the compiler doesn't
+      support yet", and const int& c{x};, const int& c = {x}; and int&& m{...} were bound to a copy, which nothing
+      said (DclInitListReferenceBinds).
+    - A base-specifier's pack expansion is expanded as any pattern is (CCPPUnit::AddPackBases over ExpandPattern,
+      where it bound each type pack's parameter to an element in turn): Leaf<I, T>... of a type pack and a non-type
+      pack together was refused (TempPackBases).
+    - A member class of a class template is each instance's own, with its instance's template arguments
+      (CCPPClass::mpcEnclosing; CCPPUnit::GetClass, EnclosingInstance; Outer<char>::Inner is found through its
+      qualifier, GetNameClass): there was one class for the symbol, which could use none of the template's
+      parameters ("A template parameter used outside an instantiation"), so not as a base either
+      (TempMemberClassOfTemplate).  Not done: one defined outside the class template (template<class T> struct
+      Outer<T>::Inner { ... };), and its members defined outside it.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

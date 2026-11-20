@@ -142,6 +142,7 @@ public:
 	CCPPFunction*				mpcDestructor;
 	CCPPSyntaxClassSpecifier*	mpcSpecifier;		//The definition, NULL until it is seen.
 	CCPPTemplate*				mpcTemplate;		//The class template this is an instance of.
+	CCPPClass*					mpcEnclosing;		//A member class of a class template's instance (or of a member class of one): the class it is in.  Each instance has its own.  [temp.mem.class]
 	CCPPTemplateArguments*		mpcBindings;
 	CChars						mszArguments;		//The instance's template arguments, mangled for its label.
 	bool						mbExternInstance;	//extern template class Name<Arguments>; names it: its members defined outside it

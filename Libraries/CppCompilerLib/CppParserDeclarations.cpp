@@ -1022,13 +1022,14 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 			ErrorAt(pcComponent->miFirstToken, (char*)"A function can't return an array or a function: it returns a pointer or a reference to one");
 		}
 	}
-	else if (eContext == CPPDC_Class)
+	else if (IsDeclaringTemplate())
 	{
-		eKind = CPPSK_Field;
+		//At namespace scope, or a class's static member: template<class T> static const int size = sizeof(T);  [temp] 1
+		eKind = CPPSK_VariableTemplate;
 	}
 	else
 	{
-		eKind = IsDeclaringTemplate() ? CPPSK_VariableTemplate : CPPSK_Variable;
+		eKind = (eContext == CPPDC_Class) ? CPPSK_Field : CPPSK_Variable;
 	}
 
 	//A template's non-type parameter is in the template's scope, not the one enclosing it.
