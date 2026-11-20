@@ -110,6 +110,7 @@ struct SCPP65Type
 	bool	IsRvalueReference(void) const;
 	bool	IsLvalueReference(void) const;
 	bool	IsMemberPointer(void) const;
+	bool	IsMemberFunctionPointer(void) const;
 	bool	IsNullPointer(void) const;
 	bool	IsFloat(void) const;
 	bool	IsSupported(void) const;

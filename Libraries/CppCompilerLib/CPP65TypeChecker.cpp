@@ -3414,11 +3414,6 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 	{
 		return Error(pcNode, "A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it");
 	}
-	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->pcClass && psTo->pcClass && (psFrom->pcClass != psTo->pcClass) && mpcUnit->CompleteClass(psTo->pcClass, pcNode) && mpcUnit->IsDerived(psTo->pcClass, psFrom->pcClass, &iOffset) && (iOffset != 0) && psFrom->psBase->IsFunction())
-	{
-		return Error(pcNode, "A pointer to a member function of a base further on in the class is not supported by the compiler yet");
-	}
-
 	if ((psFrom->IsFloat() || psTo->IsFloat()) && (psTo->eKind != CPP65TK_Bool) && (psFrom->IsPointer() || psTo->IsPointer()))
 	{
 		return Error(pcNode, "A pointer cannot be converted to or from floating point");

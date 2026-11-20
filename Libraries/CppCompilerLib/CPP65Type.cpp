@@ -65,6 +65,20 @@ bool SCPP65Type::IsMemberPointer(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pointer to a member function: the function's address and, above it,
+// what is added to the object's address for the function's this (the
+// function may be a base's, further on in the object).  A pointer to a
+// data member is the member's offset alone (CPP_MEMBER_POINTER_BIAS).
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsMemberFunctionPointer(void) const
+{
+	return (eKind == CPP65TK_MemberPointer) && psBase->IsFunction();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // std::nullptr_t (const or not): nullptr's type.  It isn't a pointer
 // (IsPointer), though its one value is a null pointer and it is as wide.
 //
@@ -975,7 +989,7 @@ SCPP65Type* CCPP65Types::MemberPointer(CCPPClass* pcClass, SCPP65Type* psMember)
 		}
 	}
 
-	psType = NewType(CPP65TK_MemberPointer, miPointerBytes);
+	psType = NewType(CPP65TK_MemberPointer, psMember->IsFunction() ? 2 * miPointerBytes : miPointerBytes);
 	psType->psBase = psMember;
 	psType->pcClass = pcClass;
 	AddType(psType);

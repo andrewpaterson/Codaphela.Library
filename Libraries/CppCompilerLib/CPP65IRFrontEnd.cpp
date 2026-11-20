@@ -778,7 +778,7 @@ SIRType CCPP65IRFrontEnd::IRTypeOf(SCPP65Type* psType)
 		NoFloats();
 		return IRType((psType->iBytes == 8) ? IRTK_F64 : IRTK_F32);
 	case CPP65TK_MemberPointer:
-		return IRType(IRTK_I32);
+		return IRType(psType->IsMemberFunctionPointer() ? IRTK_I64 : IRTK_I32);
 	default:
 		return IRType(IRTK_Pointer);
 	}

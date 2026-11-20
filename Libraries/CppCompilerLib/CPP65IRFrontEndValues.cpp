@@ -740,7 +740,8 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* p
 		{
 			sSymbol = FunctionSymbol(pcFound);
 		}
-		psValue->sValue = ConvertIR(sSymbol, IRType(IRTK_Pointer), IRType(IRTK_I32), false);
+		//The function's address, and nothing to add to the object's for its this.
+		psValue->sValue = ConvertIR(sSymbol, IRType(IRTK_Pointer), IRType(IRTK_I64), false);
 		psValue->psType = mpcTypes->MemberPointer(pcFoundClass, mpcUnit->FunctionType(pcFound));
 		return true;
 	}
@@ -807,9 +808,10 @@ bool CCPP65IRFrontEnd::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// (object.*function)(...) and (pointer->*function)(...): the object is
-// this.  The object and the pointer are worked out before the arguments,
-// as the callee is.  [expr.call] 8
+// (object.*function)(...) and (pointer->*function)(...): the object,
+// moved on by what the pointer says (SCPP65Type::IsMemberFunctionPointer),
+// is this.  The object and the pointer are worked out before the
+// arguments, as the callee is.  [expr.call] 8
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue)
@@ -817,6 +819,9 @@ bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArra
 	SCPP65Type*		psMember;
 	SCPP65IRValue	sFunction;
 	SIRReference	sObject;
+	SIRReference	sMove;
+	SIRType			sPair;
+	SIRType			sOffset;
 
 	if (!MemberPointerObject(pcBinary, &sObject, &psMember))
 	{
@@ -830,7 +835,11 @@ bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArra
 	{
 		return false;
 	}
-	return Call(NULL, ConvertIR(sFunction.sValue, IRType(IRTK_I32), IRType(IRTK_Pointer), false), psMember->psBase, papcArguments, psValue, NULL, false, NULL, false, sObject);
+	sPair = IRType(IRTK_I64);
+	sOffset = IRIntegerType(mcModule.GetPointerSize(0));
+	sMove = ConvertIR(mpcFunction->Add(mpcBlock, IRO_LShr, sPair, sFunction.sValue, mpcFunction->AddConstant(sPair, CPP_MEMBER_FUNCTION_MOVE_SHIFT)), sPair, sOffset, false);
+	sObject = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sObject, sMove);
+	return Call(NULL, ConvertIR(sFunction.sValue, sPair, IRType(IRTK_Pointer), false), psMember->psBase, papcArguments, psValue, NULL, false, NULL, false, sObject);
 }
 
 

@@ -443,7 +443,7 @@ protected:
 	bool			CallWithArguments(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, SCPP65Type** apsParameters, int iCount, const char* szSymbol, SCPP65Type* psResult, SCPP65IRValue* psValue);
 	bool			VerifyIR(CIRFunction* pcFunction, const char* szFile, int iLine);
 	SIRReference	ConvertIR(SIRReference sValue, SIRType sFrom, SIRType sTo, bool bSigned);
-	SIRReference	MovedUnlessNull(SIRType sType, SIRReference sValue, int iOffset);
+	SIRReference	MovedUnlessNull(SIRType sType, SIRReference sValue, int64 lliOffset);
 	SIRReference	BaseAddress(SIRReference sAddress, int iOffset);
 	SIRReference	BaseAddress(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo, bool bNull);
 	SIRReference	VirtualBaseAddress(SIRReference sAddress, CCPPClass* pcClass, CCPPClass* pcBase);

@@ -86,6 +86,11 @@ typedef CArrayTemplate<SCPPVirtualBase>	CArrayCPPVirtualBases;
 //[conv.mem] 1
 #define CPP_MEMBER_POINTER_BIAS	1
 
+//A pointer to a member function is the function's address and, above these bits, what the object's address is moved
+//by for the function's this: 0 until it is converted to a pointer to a member of a class the function's class is
+//further on in.  The null one is 0 too.  [conv.mem] 2
+#define CPP_MEMBER_FUNCTION_MOVE_SHIFT	32
+
 
 //using Base::f; in a class: Base's functions named f are overloads of the class's own.
 struct SCPPUsing

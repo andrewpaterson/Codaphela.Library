@@ -697,12 +697,12 @@ SIRReference CCPP65IRFrontEnd::ConvertIR(SIRReference sValue, SIRType sFrom, SIR
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A pointer, or a pointer to a data member (an I32), moved iOffset bytes
-// on as its conversion to a base's or a derived class's moves it; null
-// stays null.  [conv.ptr] 3, [conv.mem] 2
+// A pointer moved lliOffset bytes on, or a pointer to a member (an integer)
+// with lliOffset added, as its conversion to a base's or a derived class's
+// moves it; null stays null.  [conv.ptr] 3, [conv.mem] 2
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CCPP65IRFrontEnd::MovedUnlessNull(SIRType sType, SIRReference sValue, int iOffset)
+SIRReference CCPP65IRFrontEnd::MovedUnlessNull(SIRType sType, SIRReference sValue, int64 lliOffset)
 {
 	CIRBlock*		pcAdd;
 	CIRBlock*		pcEnd;
@@ -716,7 +716,7 @@ SIRReference CCPP65IRFrontEnd::MovedUnlessNull(SIRType sType, SIRReference sValu
 	sNull = mpcFunction->Add(mpcBlock, IRO_Eq, sType, sValue, mpcFunction->AddConstant(sType, 0));
 	mpcBlock->Branch(sNull, pcEnd, pcAdd);
 	StartBlock(pcAdd);
-	sMoved = sType.IsPointer() ? AddressAt(sValue, iOffset) : mpcFunction->Add(mpcBlock, IRO_Add, sType, sValue, mpcFunction->AddInteger(sType, iOffset));
+	sMoved = sType.IsPointer() ? AddressAt(sValue, (int)lliOffset) : mpcFunction->Add(mpcBlock, IRO_Add, sType, sValue, mpcFunction->AddInteger(sType, lliOffset));
 	JumpTo(pcEnd);
 	StartBlock(pcEnd);
 	return Phi(pcEnd, sType, pcFrom, sValue, pcAdd, sMoved);
@@ -809,11 +809,12 @@ SIRReference CCPP65IRFrontEnd::VirtualBaseAddress(SIRReference sAddress, CCPPCla
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Conversions to and from pointers to members (an address or an offset, 4
-// bytes): an integer (0, null) is one as it is, one
-// is a bool when it isn't 0, a pointer to a field of a base is one to the
-// derived class's field (the base's offset added) and back again by a cast
-// (taken off), and other pointers to members (to members of unrelated
+// Conversions to and from pointers to members (a data member's offset, or
+// a member function's address with what its this is moved by): an integer
+// (0, null) is one as it is, one is a bool when it isn't 0, a pointer to a
+// member of a base is one to the derived class's member (the base's offset
+// added: to a field's offset, to a function's this) and back again by a
+// cast (taken off), and other pointers to members (to members of unrelated
 // classes, by a cast) keep the value.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -852,13 +853,9 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 			return Unsupported(__FILE__, __LINE__);
 		}
 		iOffset = BaseOffset(psTo->pcClass, psFrom->pcClass) - BaseOffset(psFrom->pcClass, psTo->pcClass);
-		if ((iOffset != 0) && psFrom->psBase->IsFunction())
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
 		if (iOffset != 0)
 		{
-			psValue->sValue = MovedUnlessNull(IRType(IRTK_I32), psValue->sValue, iOffset);
+			psValue->sValue = MovedUnlessNull(IRTypeOf(psFrom), psValue->sValue, psFrom->IsMemberFunctionPointer() ? ((int64)iOffset << CPP_MEMBER_FUNCTION_MOVE_SHIFT) : iOffset);
 		}
 	}
 	else if (!psFrom->Equals(psTo))
