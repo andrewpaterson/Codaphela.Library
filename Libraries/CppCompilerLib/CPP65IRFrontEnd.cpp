@@ -91,6 +91,7 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	mbUnwinding = false;
 	muiLandingTop = MAX_SIZE;
 	mbConstructorHandler = false;
+	mbListLocal = false;
 	mbRoutine = false;
 	miConditional = 0;
 	mpcExit = NULL;
@@ -298,6 +299,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mbUnwinding = false;
 	muiLandingTop = MAX_SIZE;
 	mbConstructorHandler = false;
+	mbListLocal = false;
 	mbRoutine = false;
 	miConditional = 0;
 	maszRuntime.ReInit();

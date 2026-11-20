@@ -184,6 +184,7 @@ protected:
 	CIRBlock*				mpcTerminate;		//Its block that calls std::terminate, once something needs it.
 	bool					mbUnwinding;		//A cleanup is being written for an exception on its way: a call that throws there is std::terminate.
 	size					muiLandingTop;		//While a normal way out destroys the cleanup entry at this index, an exception goes to the ones below it (MAX_SIZE: all of them).
+	bool					mbListLocal;		//A local std::initializer_list is being made: its array lives as long as the local does (InitializerList).
 	bool					mbConstructorHandler;	//A handler of a constructor's function-try-block is being written: it can't return.
 	bool					mbRoutine;			//The function is one the compiler writes for itself (a global's initialiser or finaliser): no exception leaves it.
 	CCPP65IRCleanups		mcCleanups;			//What needs destroying: the objects of the scopes being written and the temporaries of the full expression.

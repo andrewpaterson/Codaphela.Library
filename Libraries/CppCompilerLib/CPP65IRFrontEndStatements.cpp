@@ -406,6 +406,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 	SCPP65IRPlace					sPlace;
 	size							ui;
 	size							uiTemporaries;
+	bool							bResult;
 
 	if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_TYPEDEF))
 	{
@@ -454,8 +455,12 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		uiTemporaries = mcCleanups.NumTemporaries();
 		if (ElementType(pcVariable->mpsType)->IsClass())
 		{
-			//Objects are constructed (by default without an initialiser) and destroyed when their scope is left.
-			if (!Construct(&sPlace, NULL, pcInit->mpcInitializer))
+			//Objects are constructed (by default without an initialiser) and destroyed when their scope is left; a
+			//std::initializer_list's array lives as long as it does.
+			mbListLocal = mpcUnit->InitializerListElement(pcVariable->mpsType) != NULL;
+			bResult = Construct(&sPlace, NULL, pcInit->mpcInitializer);
+			mbListLocal = false;
+			if (!bResult)
 			{
 				return false;
 			}

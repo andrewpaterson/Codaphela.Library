@@ -1024,7 +1024,11 @@ bool CCPP65IRFrontEnd::ConvertToObject(SCPP65IRPlace* psPlace, CCPPFunction* pcC
 //
 // A std::initializer_list<psElement> at psPlace from the elements of a list
 // in braces: they are an array in the frame, which it points to with their
-// count (or end).  [dcl.init.list] 5
+// count (or end).  [dcl.init.list] 5  An exception from an element
+// destroys those made before it.  Objects that need destroying are then
+// living ones of the local list being declared (mbListLocal), whose scope
+// they end with, or temporaries of the full expression: the array lives as
+// long as the list.  [dcl.init.list] 6, [class.temporary] 5
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::InitializerList(SCPP65IRPlace* psPlace, SCPP65Type* psElement, CArraySyntax* papcElements)
@@ -1036,23 +1040,47 @@ bool CCPP65IRFrontEnd::InitializerList(SCPP65IRPlace* psPlace, SCPP65Type* psEle
 	SCPPField*		psFirst;
 	SCPPField*		psSecond;
 	size			uiCount;
+	size			uiMark;
 	size			i;
 	bool			bEnd;
+	bool			bListLocal;
 
 	if (!mpcUnit->InitializerListLayout(psPlace->psType->pcClass, &bEnd))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
+	bListLocal = mbListLocal;
+	mbListLocal = false;
 	uiCount = papcElements->NumElements();
+	if (NeedsDestroying(psElement) && !bListLocal && (miConditional > 0))
+	{
+		//A temporary made where it may not be would need a flag for each element.
+		return Unsupported(__FILE__, __LINE__);
+	}
 	sArray = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)((uiCount > 0) ? uiCount * psElement->iBytes : 1), 4);
 	sElement.psType = psElement->Unqualified();
 	sElement.psBitField = NULL;
+	uiMark = mcCleanups.NumEntries();
 	for (i = 0; i < uiCount; i++)
 	{
 		sElement.sAddress = AddressAt(sArray, (int)(i * psElement->iBytes));
 		if (sElement.psType->IsClass() ? !Construct(&sElement, NULL, papcElements->GetPtr(i)) : !LocalInitialiser(&sElement, papcElements->GetPtr(i), false))
 		{
 			return false;
+		}
+		PushDestroyPart(sElement.sAddress, sElement.psType, NULL);
+	}
+	mcCleanups.RemovePartsFrom(uiMark);
+	for (i = 0; NeedsDestroying(sElement.psType) && (i < uiCount); i++)
+	{
+		sElement.sAddress = AddressAt(sArray, (int)(i * psElement->iBytes));
+		if (bListLocal)
+		{
+			AddLiving(&sElement);
+		}
+		else
+		{
+			mcCleanups.PushTemporary(&sElement, false, IRNone());
 		}
 	}
 
@@ -1652,7 +1680,8 @@ bool CCPP65IRFrontEnd::Deallocate(CCPPSyntaxDeleteExpression* pcDelete, SCPP65Ty
 //
 // Makes a lambda's closure at psPlace: each field from what it captures,
 // where the lambda is: a copy (constructed as a variable is from its
-// initialiser), the address of what it refers to, or this.
+// initialiser), the address of what it refers to, or this.  An exception
+// from a copy destroys the copies made before it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpression* pcSyntax)
@@ -1664,12 +1693,16 @@ bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpr
 	SCPP65IRPlace		sReferred;
 	SIRReference		sAddress;
 	size				i;
+	size				uiMark;
 
 	psLambda = mpcUnit->GetLambda(pcSyntax);
 	if (!psLambda)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
+
+	//Each capture copied is a part until the closure is made.  [except.ctor] 2
+	uiMark = mcCleanups.NumEntries();
 	for (i = 0; i < psLambda->asCaptures.NumElements(); i++)
 	{
 		psCapture = psLambda->asCaptures.Get(i);
@@ -1697,7 +1730,12 @@ bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpr
 		{
 			return false;
 		}
+		else
+		{
+			PushDestroyPart(sField.sAddress, sField.psType, NULL);
+		}
 	}
+	mcCleanups.RemovePartsFrom(uiMark);
 	return true;
 }
 

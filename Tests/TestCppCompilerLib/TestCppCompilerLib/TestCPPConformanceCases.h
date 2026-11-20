@@ -3411,6 +3411,27 @@ static const SConformanceCase gasConformanceExceptions[] =
 		"int main() { int r = 0; for (int i = 0; i < 5; i++) { try { r += f(); } catch (int e) { r += e * 10; } } return r + 30; }\n"
 	},
 	{
+		"InitializerListObjectsDestroyed", 76,	//8.5.4/6, 15.2/2
+		"#ifdef _MSC_VER\n"
+		"#include <initializer_list>\n"
+		"#else\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
+		"#endif\n"
+		"long g; void t(int k) { g = g * 10 + k; }\n"
+		"struct E { int k; E(int a) : k(a) { if (a == 3) throw 0; } E(const E& o) : k(o.k) {} ~E() { t(k); } };\n"
+		"int Sum(const E* b, const E* e) { int s = 0; for (; b != e; ++b) { s += b->k; } return s; }\n"
+		"int main() { int s; { std::initializer_list<E> l = { 1, 2 }; s = Sum(l.begin(), l.end()); t(5); }\n"
+		"try { std::initializer_list<E> m = { 1, 3 }; (void)m; } catch (int) { t(6); }\n"
+		"return (s == 3) && (g == 52116) ? 76 : 1; }\n"
+	},
+	{
+		"LambdaCapturesDestroyed", 75,	//5.1.2/21, 15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct A { A() {} A(const A&) { t(1); } ~A() { t(2); } }; struct B { B() {} B(const B&) { throw 0; } };\n"
+		"int main() { A a; B b; try { auto l = [a, b] { }; (void)l; } catch (int) { t(3); } return g == 123 ? 75 : 1; }\n"
+	},
+	{
 		"ThrownCopyThrows", 72,	//15.1/3, 15.2/2
 		"struct C { C() {} C(const C&) { throw 2; } };\n"
 		"int main() { try { C c; throw c; } catch (int e) { return e + 70; } catch (...) { return 1; } return 3; }\n"
