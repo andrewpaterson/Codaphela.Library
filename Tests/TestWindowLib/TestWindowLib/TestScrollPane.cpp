@@ -527,6 +527,130 @@ void TestScrollPaneDragPaints(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Marks on a scroll bar's track: each where its place is along the
+// content, at least three pixels long, each source's set and cleared by
+// itself, painted under the thumb.  The vertical track stops short of
+// the horizontal one: 86 long for content 300 long.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestScrollPaneMarks(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CScrollPane>		pScrollPane;
+		Ptr<CCanvas>			pContent;
+		Ptr<CScrollBar>			pVertical;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		SInt32Vec2				asMarks[3];
+		SInt32Vec2				sChanged;
+		CInt32Rect				cBounds;
+		CInt32Rect				cTrack;
+		CPointer				pNull;
+		uint8*					puiPixel;
+		ARGB32					sFound;
+		ARGB32					sChangedColour;
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 100, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Scroll Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+
+		pScrollPane = OMalloc<CScrollPane>(pTestWindow, CreateScrollPaneTheme(CreateScrollBarImages()));
+		pFill->AddComponent(pScrollPane);
+		pContent = OMalloc<CCanvas>(pTestWindow, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)90, (uint8)30, (uint8)30)));
+		pContent->SetDesiredSize(400, 300);
+		pScrollPane->SetContent(pContent);
+		pVertical = pScrollPane->GetScrollBar(SBO_Vertical);
+		pTestWindow->Paint();
+		pVertical->GetActualBounds(&cTrack);
+		AssertInt(86, cTrack.GetHeight());
+		AssertSize(0, pVertical->NumMarks());
+
+		//A source's marks: at the content's start, 150 down it (half way) for 30, and at its end.
+		sFound = Set32BitColour((uint8)0xF0, (uint8)0xC0, (uint8)0x20);
+		asMarks[0].Init(0, 10);
+		asMarks[1].Init(150, 30);
+		asMarks[2].Init(290, 10);
+		pVertical->SetMarks(1, asMarks, 3, sFound);
+		AssertSize(3, pVertical->NumMarks());
+		AssertInt(150, pVertical->GetMark(1)->iStart);
+		AssertInt(1, pVertical->GetMark(1)->uiSource);
+
+		//86 * 10 / 300 is 2: a mark is never shorter than three.
+		pVertical->GetMarkBounds(0, &cBounds);
+		AssertInt(cTrack.GetTop(), cBounds.GetTop());
+		AssertInt(3, cBounds.GetHeight());
+		AssertInt(cTrack.GetLeft(), cBounds.GetLeft());
+		AssertInt(cTrack.GetRight(), cBounds.GetRight());
+		//86 * 150 / 300 is 43, and 86 * 30 / 300 is 8.
+		pVertical->GetMarkBounds(1, &cBounds);
+		AssertInt(cTrack.GetTop() + 43, cBounds.GetTop());
+		AssertInt(8, cBounds.GetHeight());
+		//The last is kept inside the track.
+		pVertical->GetMarkBounds(2, &cBounds);
+		AssertInt(cTrack.GetBottom(), cBounds.GetBottom());
+		AssertInt(3, cBounds.GetHeight());
+
+		//Painted in its colour where the thumb isn't (the thumb is at the top).
+		pTestWindow->Paint();
+		puiPixel = &pTestWindow->GetCanvas()->GetPixelData()[((cTrack.GetTop() + 47) * 200 + cTrack.GetLeft() + 3) * 3];
+		AssertInt(0xF0, puiPixel[0]);
+		AssertInt(0xC0, puiPixel[1]);
+		AssertInt(0x20, puiPixel[2]);
+		puiPixel = &pTestWindow->GetCanvas()->GetPixelData()[((cTrack.GetTop() + 60) * 200 + cTrack.GetLeft() + 3) * 3];
+		AssertInt(90, puiPixel[0]);
+
+		//Another source's are its own.
+		sChangedColour = Set32BitColour((uint8)0x20, (uint8)0x80, (uint8)0xF0);
+		sChanged.Init(225, 6);
+		pVertical->SetMarks(2, &sChanged, 1, sChangedColour);
+		AssertSize(4, pVertical->NumMarks());
+		pVertical->SetMarks(1, asMarks, 1, sFound);
+		AssertSize(2, pVertical->NumMarks());
+		AssertInt(2, pVertical->GetMark(0)->uiSource);
+		AssertInt(1, pVertical->GetMark(1)->uiSource);
+		pVertical->ClearMarks(1);
+		AssertSize(1, pVertical->NumMarks());
+		AssertInt(225, pVertical->GetMark(0)->iStart);
+		pTestWindow->Paint();
+		puiPixel = &pTestWindow->GetCanvas()->GetPixelData()[((cTrack.GetTop() + 47) * 200 + cTrack.GetLeft() + 3) * 3];
+		AssertInt(90, puiPixel[0]);
+		puiPixel = &pTestWindow->GetCanvas()->GetPixelData()[((cTrack.GetTop() + 65) * 200 + cTrack.GetLeft() + 3) * 3];
+		AssertInt(0x20, puiPixel[0]);
+		AssertInt(0x80, puiPixel[1]);
+		AssertInt(0xF0, puiPixel[2]);
+
+		//The content longer: the mark is further up the track.  86 * 225 / 600 is 32.
+		pContent->SetDesiredSize(400, 600);
+		pTestWindow->Paint();
+		pVertical->GetMarkBounds(0, &cBounds);
+		AssertInt(cTrack.GetTop() + 32, cBounds.GetTop());
+		pVertical->ClearMarks(2);
+		pVertical->ClearMarks(2);
+		AssertSize(0, pVertical->NumMarks());
+
+		pVertical = NULL;
+		pContent = NULL;
+		pScrollPane = NULL;
+		pFill = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	pNativeFactory = NULL;
+	AssertScrollPaneObjectsRemoved();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The wheel scrolls the scroll pane under the pointer.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -932,6 +1056,7 @@ void TestScrollPane(void)
 	TestScrollPaneLayout();
 	TestScrollPaneDrag();
 	TestScrollPaneDragPaints();
+	TestScrollPaneMarks();
 	TestScrollPaneWheel();
 	TestScrollPaneScrollEvent();
 	TestScrollPaneDraws();

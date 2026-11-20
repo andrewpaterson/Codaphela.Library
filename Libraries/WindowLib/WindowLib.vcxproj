@@ -200,6 +200,7 @@
     <ClInclude Include="ListContainer.h" />
     <ClInclude Include="Table.h" />
     <ClInclude Include="BandsCanvasDraw.h" />
+    <ClInclude Include="ScrollBarMarks.h" />
     <ClInclude Include="TreeContainer.h" />
     <ClInclude Include="TreeRow.h" />
     <ClInclude Include="IconComponent.h" />
@@ -411,6 +412,7 @@
     <ClCompile Include="ListContainer.cpp" />
     <ClCompile Include="Table.cpp" />
     <ClCompile Include="BandsCanvasDraw.cpp" />
+    <ClCompile Include="ScrollBarMarks.cpp" />
     <ClCompile Include="TreeContainer.cpp" />
     <ClCompile Include="TreeRow.cpp" />
     <ClCompile Include="IconComponent.cpp" />

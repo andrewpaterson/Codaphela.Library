@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Canvas.h"
 #include "ImageCanvasDraw.h"
 #include "ScrollBarImages.h"
+#include "ScrollBarMarks.h"
 
 
 //A scroll pane's scroll bar in the style of IntelliJ IDEA: only a translucent thumb, drawn over what is being
@@ -36,6 +37,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //track is hit, even though only the thumb is drawn.  Pressing the thumb and dragging it scrolls the scroll pane.
 //Pressing the track elsewhere jumps the thumb's middle to the pointer and drags it from there.  A scroll bar is only
 //shown, and only hit, while the content is longer than the view and its track is long enough for the thumb's ends.
+//
+//Places in the content can be marked on the track (SetMarks), as IntelliJ IDEA marks a search's matches and changed
+//lines beside its scroll bar: each a band in a colour where the place is along the content, under the thumb.  Each
+//source of marks (a number its owner chooses) sets and clears its own.  Pressing the track at a mark scrolls there,
+//as pressing it anywhere does.
 class CScrollPane;
 class CScrollBar : public CContainer
 {
@@ -48,6 +54,8 @@ protected:
 	Ptr<CCanvas>			mpStart;
 	Ptr<CCanvas>			mpMiddle;
 	Ptr<CCanvas>			mpEnd;
+	Ptr<CCanvas>			mpMarks;  //Over the whole track, under the thumb.
+	Ptr<CScrollBarMarksDraw>	mpMarksDraw;
 	int32					miContentLength;
 	int32					miViewLength;
 	int32					miPosition;
@@ -71,6 +79,11 @@ public:
 	EScrollBarOrientation	GetOrientation(void) const;
 	bool					IsDragging(void) const;
 	bool					IsHoverShown(void) const;
+	void					SetMarks(uint16 uiSource, SInt32Vec2* asMarks, size uiNumMarks, ARGB32 sColour);
+	void					ClearMarks(uint16 uiSource);
+	size					NumMarks(void);
+	SScrollBarMark*			GetMark(size uiIndex);
+	void					GetMarkBounds(size uiIndex, CInt32Rect* pcDest);
 
 	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;

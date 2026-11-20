@@ -285,6 +285,9 @@
     <ClInclude Include="BandsCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
+    <ClInclude Include="ScrollBarMarks.h">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClInclude>
     <ClInclude Include="FillContainer.h">
       <Filter>Source\Component\Container\Fill</Filter>
     </ClInclude>
@@ -729,6 +732,9 @@
       <Filter>Source\Image\Canvas</Filter>
     </ClCompile>
     <ClCompile Include="BandsCanvasDraw.cpp">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollBarMarks.cpp">
       <Filter>Source\Image\Canvas</Filter>
     </ClCompile>
     <ClCompile Include="FillContainer.cpp">

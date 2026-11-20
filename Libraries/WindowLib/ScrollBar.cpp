@@ -51,6 +51,12 @@ void CScrollBar::Init(Ptr<CWindow> pWindow, Ptr<CScrollPane> pScrollPane, Ptr<CS
 	SetCanGetFocus(true);
 	SetHitAsWhole(true);
 
+	//The marks are the first child, so the thumb is drawn over them.
+	mpMarksDraw = OMalloc<CScrollBarMarksDraw>(eOrientation == SBO_Horizontal);
+	mpMarks = OMalloc<CCanvas>(pWindow, mpMarksDraw);
+	mpMarks->SetTransparent(true);
+	AddComponent(mpMarks);
+
 	mpStart = CreatePiece(pWindow, SBP_Start);
 	mpMiddle = CreatePiece(pWindow, SBP_Middle);
 	mpEnd = CreatePiece(pWindow, SBP_End);
@@ -78,6 +84,8 @@ void CScrollBar::Class(void)
 	M_Pointer(mpStart);
 	M_Pointer(mpMiddle);
 	M_Pointer(mpEnd);
+	M_Pointer(mpMarks);
+	M_Pointer(mpMarksDraw);
 	U_Int32(miContentLength);
 	U_Int32(miViewLength);
 	U_Int32(miPosition);
@@ -140,7 +148,65 @@ void CScrollBar::SetRange(int32 iContentLength, int32 iViewLength, int32 iPositi
 	miContentLength = iContentLength;
 	miViewLength = iViewLength;
 	miPosition = iPosition;
+	if (mpMarksDraw->SetContentLength(iContentLength) && (mpMarksDraw->NumMarks() > 0))
+	{
+		mpMarks->Invalidate();
+	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A source's marks on the track, in place of those it had: each a start
+// (x) and a length (y) along the content, in the content's pixels, all in
+// sColour.  uiSource is a number its owner chooses to tell its marks from
+// others' (a search's from the changed lines').
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollBar::SetMarks(uint16 uiSource, SInt32Vec2* asMarks, size uiNumMarks, ARGB32 sColour)
+{
+	mpMarksDraw->SetMarks(uiSource, asMarks, uiNumMarks, sColour);
+	mpMarks->Invalidate();
+}
+
+
+void CScrollBar::ClearMarks(uint16 uiSource)
+{
+	if (mpMarksDraw->ClearMarks(uiSource))
+	{
+		mpMarks->Invalidate();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a mark is drawn, in window client space.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollBar::GetMarkBounds(size uiIndex, CInt32Rect* pcDest)
+{
+	SInt32Vec2	sPosition;
+	SInt32Vec2	sSize;
+	int32		iStart;
+	int32		iLength;
+
+	sPosition = GetPosition();
+	sSize = GetActualSize();
+	mpMarksDraw->GetMarkAlong(uiIndex, GetTrackLength(), &iStart, &iLength);
+	if (meOrientation == SBO_Horizontal)
+	{
+		pcDest->Init(sPosition.x + iStart, sPosition.y, sPosition.x + iStart + iLength, sPosition.y + sSize.y);
+	}
+	else
+	{
+		pcDest->Init(sPosition.x, sPosition.y + iStart, sPosition.x + sSize.x, sPosition.y + iStart + iLength);
+	}
+}
+
+
+size CScrollBar::NumMarks(void) { return mpMarksDraw->NumMarks(); }
+SScrollBarMark* CScrollBar::GetMark(size uiIndex) { return mpMarksDraw->GetMark(uiIndex); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -215,6 +281,7 @@ void CScrollBar::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	//A track too short for the thumb's two round ends has no thumb; it would be drawn with a middle shorter than
 	//nothing.  The content can still be scrolled with the wheel.
+	mpMarks->Layout(sPosition, sAreaSize);
 	iTrackLength = GetTrackLength();
 	iCapLength = mpImages->GetCapLength();
 	if (!IsShown() || (iTrackLength < iCapLength * 2))
