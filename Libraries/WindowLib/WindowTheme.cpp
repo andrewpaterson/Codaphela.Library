@@ -38,7 +38,7 @@ static const char*	gaszThemeMetricNames[] =
 	"DialogMinWidth", "MessageItemsGap", "MessageItemIndent", "FileChooserWidth", "FileChooserHeight",
 	"FileChooserMinWidth", "FileChooserMinHeight", "FileChooserRowHeight", "FileChooserIconWidth", "FileChooserGap",
 	"GoToWidth", "GoToHeight", "GoToRowHeight", "GoToIconWidth", "GoToGap",
-	"FindWidth", "FindHeight",
+	"FindWidth", "FindHeight", "ChooserWidth", "ChooserPreviewWidth", "ChooserRows",
 	"DockFrameBorder", "DockGuideSize", "DockGuideStep", "DockGuideInset", "DockGuideArrowLength", "DockGuideArrowTip",
 	"DockGuideIconInset", "DockGuideIconTitle", "DockGuideBarInset", "DockGuideBarWidth", "DockGuideBarEnd",
 	"DockSashSize", "DockTitleBarHeight", "DockTitleGap", "DockTitleButtonWidth",

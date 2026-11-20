@@ -81,6 +81,9 @@ static int32	gaiJewelThemeMetrics[] =
 	8,		//TM_GoToGap
 	900,	//TM_FindWidth
 	680,	//TM_FindHeight
+	460,	//TM_ChooserWidth
+	560,	//TM_ChooserPreviewWidth
+	14,		//TM_ChooserRows
 	4,		//TM_DockFrameBorder
 	30,		//TM_DockGuideSize
 	32,		//TM_DockGuideStep

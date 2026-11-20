@@ -78,6 +78,9 @@ enum EThemeMetric
 	TM_GoToGap,					//Between a Go To dialog's field and results, and after a result's name.
 	TM_FindWidth,				//A Find in Files dialog as it opens; it can be resized to half this.
 	TM_FindHeight,
+	TM_ChooserWidth,			//A chooser popup's rows.
+	TM_ChooserPreviewWidth,		//The code previewed beside them, if it has a preview.
+	TM_ChooserRows,				//The most rows a chooser popup shows without scrolling.
 	TM_DockFrameBorder,			//A floating window's edge, dragged to resize it.
 	TM_DockGuideSize,			//A docking guide's square.
 	TM_DockGuideStep,			//From one guide of a compass to the next.

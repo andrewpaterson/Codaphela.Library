@@ -30,112 +30,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CGoToItems::Init(void)
-{
-	masItems.Init();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CGoToItems::Kill(void)
-{
-	Clear();
-	masItems.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CGoToItems::Clear(void)
-{
-	size		i;
-	SGoToItem*	psItem;
-
-	for (i = 0; i < masItems.NumElements(); i++)
-	{
-		psItem = masItems.Get(i);
-		psItem->szName.Kill();
-		psItem->szLocation.Kill();
-	}
-	masItems.RemoveRange(0, masItems.NumElements());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// psMatch is the matcher's match of the name.
-//
-//////////////////////////////////////////////////////////////////////////
-SGoToItem* CGoToItems::Add(const char* szName, const char* szLocation, int32 iIcon, size uiData, SNameMatch* psMatch)
-{
-	SGoToItem*	psItem;
-
-	psItem = masItems.Add();
-	psItem->szName.Init(szName);
-	psItem->szLocation.Init(szLocation == NULL ? "" : szLocation);
-	psItem->iIcon = iIcon;
-	psItem->uiData = uiData;
-	memcpy(&psItem->sMatch, psMatch, sizeof(SNameMatch));
-	return psItem;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The best score first, then by name, then by where it is.
-//
-//////////////////////////////////////////////////////////////////////////
-static int __cdecl CompareGoToItems(const void* pv1, const void* pv2)
-{
-	SGoToItem*	ps1;
-	SGoToItem*	ps2;
-	int			iResult;
-
-	ps1 = (SGoToItem*)pv1;
-	ps2 = (SGoToItem*)pv2;
-	if (ps1->sMatch.iScore != ps2->sMatch.iScore)
-	{
-		return (ps1->sMatch.iScore > ps2->sMatch.iScore) ? -1 : 1;
-	}
-	iResult = StringInsensitiveCompare(ps1->szName.Text(), ps2->szName.Text());
-	if (iResult != 0)
-	{
-		return iResult;
-	}
-	return StringCompare(ps1->szLocation.Text(), ps2->szLocation.Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CGoToItems::Sort(void)
-{
-	if (masItems.NumElements() > 1)
-	{
-		qsort(masItems.GetData(), masItems.NumElements(), sizeof(SGoToItem), CompareGoToItems);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CGoToItems::NumItems(void) const { return masItems.NumElements(); }
-SGoToItem* CGoToItems::Get(size uiIndex) { return masItems.Get(uiIndex); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // pMatchFont draws the characters the pattern matched; the rest of a
 // name is in the look's font and where it is in its dim font.  The
 // searcher isn't held.
@@ -503,102 +397,18 @@ int32 CGoToDialog::GetMetric(EThemeMetric eMetric)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The icon, the name and where it is.
+// The icon, the name and where it is (AddNameRow).
 //
 //////////////////////////////////////////////////////////////////////////
 void CGoToDialog::AddRow(SGoToItem* psItem)
 {
-	Ptr<CWindow>			pWindow;
-	Ptr<CIconComponent>		pIcon;
-	Ptr<CLabel>				pLocation;
-	Ptr<CImageCel>			pCel;
-	int32					iRow;
+	Ptr<CImageCel>	pCel;
 
-	pWindow = mpDialog->GetWindow();
-	iRow = mpList->AddRow(true);
 	if ((psItem->iIcon >= 0) && ((size)psItem->iIcon < maIcons.NumElements()))
 	{
 		pCel = maIcons.Get((size)psItem->iIcon);
 	}
-	pIcon = OMalloc<CIconComponent>(pWindow, pCel, GetMetric(TM_GoToIconWidth), GetMetric(TM_GoToRowHeight));
-	pIcon->SetCelAlignment(CSH_Center, CSV_Center);
-	mpList->AddToRow(iRow, pIcon, 0);
-	mpList->AddToRow(iRow, CreateName(psItem), 1);
-
-	pLocation = OMalloc<CLabel>(pWindow, mpDialog->GetLook()->pcDimFont, psItem->szLocation.Text());
-	pLocation->SetAlignment(CSH_Left, CSV_Center);
-	mpList->AddToRow(iRow, pLocation, 2, 1, 1);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The name as a label for each run of it the pattern matched, in the
-// match font, and for each run between, in the look's font.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CGoToDialog::CreateName(SGoToItem* psItem)
-{
-	Ptr<CWindow>			pWindow;
-	Ptr<CGridContainer>		pName;
-	Ptr<CLabel>				pLabel;
-	Ptr<CFont>				pFont;
-	CChars					szPiece;
-	size					uiPosition;
-	size					uiEnd;
-	size					uiRange;
-	size					uiLength;
-	bool					bMatched;
-	int						iColumn;
-	int32					iWidth;
-	int32					iHeight;
-
-	pWindow = mpDialog->GetWindow();
-	pFont = mpDialog->GetLook()->pcTheme->GetFont();
-	pName = OMalloc<CGridContainer>(pWindow);
-	pName->SetAlignment(CSH_Left, CSV_Center);
-
-	uiLength = psItem->szName.Length();
-	uiPosition = 0;
-	uiRange = 0;
-	iColumn = 0;
-	iWidth = 0;
-	iHeight = 0;
-	while (uiPosition < uiLength)
-	{
-		if ((uiRange < psItem->sMatch.uiNumRanges) && (psItem->sMatch.asRanges[uiRange].uiStart == uiPosition))
-		{
-			uiEnd = uiPosition + psItem->sMatch.asRanges[uiRange].uiLength;
-			uiRange++;
-			bMatched = true;
-		}
-		else
-		{
-			uiEnd = (uiRange < psItem->sMatch.uiNumRanges) ? psItem->sMatch.asRanges[uiRange].uiStart : uiLength;
-			bMatched = false;
-		}
-		if (uiEnd > uiLength)
-		{
-			uiEnd = uiLength;
-		}
-		szPiece.Init();
-		szPiece.AppendSubString(psItem->szName.Text(), uiPosition, uiEnd);
-		pLabel = OMalloc<CLabel>(pWindow, (bMatched && mpMatchFont.IsNotNull()) ? mpMatchFont : pFont, szPiece.Text());
-		szPiece.Kill();
-		pLabel->SetAlignment(CSH_Left, CSV_Center);
-		pName->AddComponent(pLabel, iColumn, 0);
-		iWidth += pLabel->GetDesiredSize().x;
-		if (pLabel->GetDesiredSize().y > iHeight)
-		{
-			iHeight = pLabel->GetDesiredSize().y;
-		}
-		iColumn++;
-		uiPosition = uiEnd;
-	}
-
-	//A grid in a grid is the size it's given, not the size its parts need.  A gap keeps where it is apart.
-	pName->SetDesiredSize(iWidth + GetMetric(TM_GoToGap), iHeight);
-	return pName;
+	AddNameRow(mpList, mpDialog->GetWindow(), mpDialog->GetLook(), mpMatchFont, pCel, psItem);
 }
 
 

@@ -66,6 +66,7 @@ void TestCompletionField(void);
 void TestDialog(void);
 void TestFileChooser(void);
 void TestGoToDialog(void);
+void TestChooserPopup(void);
 void TestFindInFilesDialog(void);
 void TestCaretBlink(void);
 void TestSoundMixer(void);
@@ -141,6 +142,7 @@ void RunWindowTests(void)
 	TestDialog();
 	TestFileChooser();
 	TestGoToDialog();
+	TestChooserPopup();
 	TestFindInFilesDialog();
 	TestCaretBlink();
 	TestSoundMixer();

@@ -384,6 +384,12 @@
     <ClInclude Include="GoToDialog.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
+    <ClInclude Include="NameRow.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="ChooserPopup.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
     <ClInclude Include="PasteHistoryDialog.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
@@ -819,6 +825,12 @@
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="GoToDialog.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="NameRow.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="ChooserPopup.cpp">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="PasteHistoryDialog.cpp">

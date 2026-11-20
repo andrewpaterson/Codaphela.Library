@@ -1,0 +1,371 @@
+#include "BaseLib/GlobalMemory.h"
+#include "StandardLib/Objects.h"
+#include "WindowLib/Window.h"
+#include "WindowLib/ClearCanvasDraw.h"
+#include "WindowLib/FillContainer.h"
+#include "WindowLib/JewelTheme.h"
+#include "WindowLib/JewelColours.h"
+#include "WindowLib/ChooserPopup.h"
+#include "WinRefLib/WinRefWindowFactory.h"
+#include "TestLib/Assert.h"
+#include "TickTestRefWindow.h"
+#include "DataTestRefWindow.h"
+
+
+Ptr<CFont>			GenerateMenuFont(Ptr<CWindow> pWindow);
+Ptr<CFontFamily>	CreateMonoTextAreaFamily(float32 fDefaultPixelSize);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Counts a chooser's events.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestChooserListener
+{
+public:
+	int		miChosen;
+	int		miSelected;
+	int		miButton;
+	int		miClosed;
+
+	void Init(void) { miChosen = 0; miSelected = 0; miButton = 0; miClosed = 0; }
+	void Chosen(void) { miChosen++; }
+	void Selected(void) { miSelected++; }
+	void Button(void) { miButton++; }
+	void Closed(void) { miClosed++; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rows' names as "a,b,c", a heading's in brackets.
+//
+//////////////////////////////////////////////////////////////////////////
+static char* PrintChooserRows(Ptr<CChooserPopup> pChooser, CChars* pszDest)
+{
+	SGoToItem*	psItem;
+	size		i;
+
+	pszDest->Clear();
+	for (i = 0; i < pChooser->NumRows(); i++)
+	{
+		if (i > 0)
+		{
+			pszDest->Append(",");
+		}
+		psItem = pChooser->GetRowItem(i);
+		if (psItem->uiData == CHOOSER_HEADING)
+		{
+			pszDest->Append("[");
+			pszDest->Append(psItem->szName.Text());
+			pszDest->Append("]");
+		}
+		else
+		{
+			pszDest->Append(psItem->szName.Text());
+		}
+	}
+	return pszDest->Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A chooser with a filter: typing filters its rows, the keys move through
+// them from the field, enter chooses, escape closes, and what had the
+// keys gets them back.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChooserPopupFilter(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		SDialogLook					sLook;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextField>				pOwner;
+		Ptr<CChooserPopup>			pChooser;
+		CTestChooserListener		cListener;
+		CChars						szRows;
+		SInt32Vec2					sPosition;
+
+		szRows.Init();
+		cListener.Init();
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 800, 600, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Chooser Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		sLook.pcTheme = &pTheme;
+		sLook.pcDimFont = &pTheme->GetFont();
+
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pOwner = OMalloc<CTextField>(pTestWindow, pTheme, "owner");
+		pFill->AddComponent(pOwner);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pOwner);
+
+		pChooser = OMalloc<CChooserPopup>(pTestWindow, &sLook, pTheme->GetFont());
+		ORoot()->Add(pChooser);
+		pChooser->GetChosenEvent()->Add(&cListener, &CTestChooserListener::Chosen);
+		pChooser->GetSelectedEvent()->Add(&cListener, &CTestChooserListener::Selected);
+		pChooser->GetClosedEvent()->Add(&cListener, &CTestChooserListener::Closed);
+		pChooser->SetTitle("Usages of Init  5 usages");
+		pChooser->AddFilter();
+		pChooser->AddItem("CTextArea", "TextArea.cpp:12", -1, 10);
+		pChooser->AddItem("CTextField", "TextField.cpp:40", -1, 11);
+		pChooser->AddItem("CTabbedContainer", "TabbedContainer.cpp:7", -1, 12);
+		pChooser->AddItem("CListContainer", "ListContainer.cpp:90", -1, 13);
+		pChooser->AddItem("CGoToDialog", "GoToDialog.cpp:3", -1, 14);
+		AssertFalse(pChooser->IsOpen());
+		AssertSize(5, pChooser->NumItems());
+
+		//Opened with every item listed in the order added, the item asked for selected and the field with the keys.
+		sPosition.Init(20, 30);
+		pChooser->Open(sPosition, pOwner, 1);
+		AssertTrue(pChooser->IsOpen());
+		AssertSize(1, pTestWindow->NumPopups());
+		AssertString("CTextArea,CTextField,CTabbedContainer,CListContainer,CGoToDialog", PrintChooserRows(pChooser, &szRows));
+		AssertInt(1, pChooser->GetSelectedRow());
+		AssertString("Usages of Init  5 usages", pChooser->GetTitle());
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pChooser->GetField());
+		AssertInt(5, pChooser->GetList()->NumRows());
+
+		//Typing filters, as Go to matches, the rows keeping their order; the first is selected.
+		pTestWindow->InputPrintable('C', true);
+		pTestWindow->InputPrintable('T', true);
+		AssertString("CT", pChooser->GetFilterText());
+		AssertString("CTextArea,CTextField,CTabbedContainer,CGoToDialog", PrintChooserRows(pChooser, &szRows));
+		AssertInt(0, pChooser->GetSelectedRow());
+		AssertSize(1, pChooser->GetRowItem(0)->sMatch.uiNumRanges);
+		pTestWindow->InputPrintable('F', true);
+		AssertString("CTextField", PrintChooserRows(pChooser, &szRows));
+		AssertString("CTextField", pChooser->GetSelectedItem()->szName.Text());
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		AssertSize(5, pChooser->NumRows());
+		AssertSize(0, pChooser->GetRowItem(0)->sMatch.uiNumRanges);
+
+		//Down and up move through the rows from the field, going round at the ends.
+		pTestWindow->InputCommand(CIC_Down, true);
+		AssertInt(1, pChooser->GetSelectedRow());
+		pTestWindow->InputCommand(CIC_Up, true);
+		pTestWindow->InputCommand(CIC_Up, true);
+		AssertInt(4, pChooser->GetSelectedRow());
+		pTestWindow->InputCommand(CIC_Down, true);
+		AssertInt(0, pChooser->GetSelectedRow());
+		AssertTrue(cListener.miSelected > 0);
+
+		//Nothing matched, nothing to choose: enter leaves it open.
+		pChooser->SetFilterText("zzz");
+		AssertSize(0, pChooser->NumRows());
+		AssertInt(-1, pChooser->GetSelectedRow());
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertTrue(pChooser->IsOpen());
+		AssertInt(0, cListener.miChosen);
+
+		//Enter chooses the selected row's item and closes the chooser; what had the keys has them back.
+		pChooser->SetFilterText("list");
+		AssertString("CListContainer", PrintChooserRows(pChooser, &szRows));
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertFalse(pChooser->IsOpen());
+		AssertSize(0, pTestWindow->NumPopups());
+		AssertInt(1, cListener.miChosen);
+		AssertInt(1, cListener.miClosed);
+		AssertTrue(pChooser->GetChosen() != NULL);
+		AssertString("CListContainer", pChooser->GetChosen()->szName.Text());
+		AssertSize(13, pChooser->GetChosen()->uiData);
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pOwner);
+
+		//Opened again it starts unfiltered with nothing chosen; escape closes it and chooses nothing.
+		pChooser->Open(sPosition, pOwner);
+		AssertTrue(pChooser->IsOpen());
+		AssertString("", pChooser->GetFilterText());
+		AssertSize(5, pChooser->NumRows());
+		AssertInt(0, pChooser->GetSelectedRow());
+		AssertTrue(pChooser->GetChosen() == NULL);
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pChooser->IsOpen());
+		AssertInt(1, cListener.miChosen);
+		AssertInt(2, cListener.miClosed);
+		AssertTrue(pChooser->GetChosen() == NULL);
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pOwner);
+
+		//Sorted, the best match is first whatever order they were added in.
+		pChooser->SetSortMatches(true);
+		pChooser->Open(sPosition, pOwner);
+		pChooser->SetFilterText("ta");
+		AssertString("CTabbedContainer,CTextArea", PrintChooserRows(pChooser, &szRows));
+		pChooser->Close();
+		AssertInt(3, cListener.miClosed);
+
+		pChooser->GetChosenEvent()->Remove(&cListener);
+		pChooser->GetSelectedEvent()->Remove(&cListener);
+		pChooser->GetClosedEvent()->Remove(&cListener);
+		szRows.Kill();
+		pChooser = NULL;
+		pOwner = NULL;
+		pFill = NULL;
+		pTheme = NULL;
+		pTick = NULL;
+		pTestWindow = NULL;
+	}
+
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A chooser without a filter: the list has the keys.  Headings can't be
+// chosen and stay over what is under them; the button and the preview
+// are there when asked for.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChooserPopupHeadings(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		SDialogLook					sLook;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CChooserPopup>			pChooser;
+		Ptr<CChooserPopup>			pFiltered;
+		CTestChooserListener		cListener;
+		CChars						szRows;
+		SInt32Vec2					sPosition;
+
+		szRows.Init();
+		cListener.Init();
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 1200, 700, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Chooser Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		sLook.pcTheme = &pTheme;
+		sLook.pcDimFont = &pTheme->GetFont();
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pTestWindow->Layout();
+
+		pChooser = OMalloc<CChooserPopup>(pTestWindow, &sLook, pTheme->GetFont());
+		ORoot()->Add(pChooser);
+		pChooser->GetChosenEvent()->Add(&cListener, &CTestChooserListener::Chosen);
+		pChooser->GetButtonClickEvent()->Add(&cListener, &CTestChooserListener::Button);
+		pChooser->GetClosedEvent()->Add(&cListener, &CTestChooserListener::Closed);
+		pChooser->AddPreview(pTheme->GetFont(), CreateMonoTextAreaFamily(14.0f));
+		pChooser->AddButton("Open in Find Window");
+		pChooser->AddHeading("Super methods");
+		pChooser->AddItem("CVessel::Fill", "Vessel.h:10", -1, 1);
+		pChooser->AddHeading("Implementations");
+		pChooser->AddItem("CDrum::Fill", "Drum.h:22", -1, 2);
+		pChooser->AddItem("CRack::Fill", "Rack.h:31", -1, 3);
+		AssertTrue(pChooser->GetField().IsNull());
+		AssertTrue(pChooser->GetPreview().IsNotNull());
+		AssertTrue(pChooser->GetButton().IsNotNull());
+
+		//The first row that can be chosen is selected, not the heading over it; the list has the keys.
+		sPosition.Init(10, 10);
+		pChooser->Open(sPosition, pFill);
+		AssertString("[Super methods],CVessel::Fill,[Implementations],CDrum::Fill,CRack::Fill", PrintChooserRows(pChooser, &szRows));
+		AssertInt(1, pChooser->GetSelectedRow());
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pChooser->GetList());
+		AssertFalse(pChooser->GetList()->IsRowEnabled(0));
+		AssertTrue(pChooser->GetList()->IsRowEnabled(1));
+
+		//Down steps over a heading; a heading can't be selected or chosen.
+		pTestWindow->InputCommand(CIC_Down, true);
+		AssertInt(3, pChooser->GetSelectedRow());
+		AssertFalse(pChooser->SelectRow(2));
+		AssertInt(3, pChooser->GetSelectedRow());
+
+		//Enter in the list chooses.
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertFalse(pChooser->IsOpen());
+		AssertInt(1, cListener.miChosen);
+		AssertSize(2, pChooser->GetChosen()->uiData);
+
+		//The button closes the chooser and calls its event; nothing is chosen.
+		pChooser->Open(sPosition, pFill, 4);
+		AssertInt(4, pChooser->GetSelectedRow());
+		pChooser->GetButton()->Click();
+		AssertFalse(pChooser->IsOpen());
+		AssertInt(1, cListener.miButton);
+		AssertInt(1, cListener.miChosen);
+		AssertTrue(pChooser->GetChosen() == NULL);
+		AssertInt(2, cListener.miClosed);
+
+		//The items can be replaced between openings.
+		pChooser->RemoveAllItems();
+		pChooser->AddItem("One", NULL, -1, 7);
+		pChooser->Open(sPosition, pFill);
+		AssertString("One", PrintChooserRows(pChooser, &szRows));
+		pChooser->Close();
+
+		//Filtered, a heading is listed only while something under it is.
+		pFiltered = OMalloc<CChooserPopup>(pTestWindow, &sLook, pTheme->GetFont());
+		ORoot()->Add(pFiltered);
+		pFiltered->AddFilter();
+		pFiltered->AddHeading("Super methods");
+		pFiltered->AddItem("CVessel::Fill", "Vessel.h:10", -1, 1);
+		pFiltered->AddHeading("Implementations");
+		pFiltered->AddItem("CDrum::Fill", "Drum.h:22", -1, 2);
+		pFiltered->AddItem("CRack::Fill", "Rack.h:31", -1, 3);
+		pFiltered->Open(sPosition, pFill);
+		pFiltered->SetFilterText("rack");
+		AssertString("[Implementations],CRack::Fill", PrintChooserRows(pFiltered, &szRows));
+		AssertInt(1, pFiltered->GetSelectedRow());
+		pFiltered->SetFilterText("fill");
+		AssertString("[Super methods],CVessel::Fill,[Implementations],CDrum::Fill,CRack::Fill", PrintChooserRows(pFiltered, &szRows));
+
+		//A chooser freed while it is open closes its popup.
+		AssertSize(1, pTestWindow->NumPopups());
+		ORoot()->Remove(pFiltered);
+		pFiltered = NULL;
+		AssertSize(0, pTestWindow->NumPopups());
+
+		pChooser->GetChosenEvent()->Remove(&cListener);
+		pChooser->GetButtonClickEvent()->Remove(&cListener);
+		pChooser->GetClosedEvent()->Remove(&cListener);
+		szRows.Kill();
+		pChooser = NULL;
+		pFill = NULL;
+		pTheme = NULL;
+		pTick = NULL;
+		pTestWindow = NULL;
+	}
+
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChooserPopup(void)
+{
+	BeginTests();
+	ObjectsInit();
+
+	TestChooserPopupFilter();
+	TestChooserPopupHeadings();
+
+	ObjectsFlush();
+	ObjectsKill();
+	TestStatistics();
+}
+

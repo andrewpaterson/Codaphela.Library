@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/NameMatcher.h"
 #include "ListContainer.h"
+#include "NameRow.h"
 #include "ScrollPane.h"
 #include "TabbedContainer.h"
 #include "Label.h"
@@ -32,38 +33,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define GO_TO_DIALOG_ROWS		100		//The most results shown; IntelliJ shows a page and "more".
-
-
-//A result: the name the pattern matched, where it is (a class's file, a file's folder), the dialog's icon for it (see
-//CGoToDialog::AddIcon, -1 for none) and what it is to whoever found it.
-struct SGoToItem
-{
-	CChars		szName;
-	CChars		szLocation;
-	int32		iIcon;
-	size		uiData;
-	SNameMatch	sMatch;
-};
-
-
-typedef CArrayTemplate<SGoToItem>	CArrayGoToItems;
-
-
-//The results a search found, best first once sorted.
-class CGoToItems
-{
-public:
-	CArrayGoToItems		masItems;
-
-	void		Init(void);
-	void		Kill(void);
-	void		Clear(void);
-
-	SGoToItem*	Add(const char* szName, const char* szLocation, int32 iIcon, size uiData, SNameMatch* psMatch);
-	size		NumItems(void) const;
-	SGoToItem*	Get(size uiIndex);
-	void		Sort(void);
-};
 
 
 //Finds what a tab of a Go to dialog lists: every item the matcher matches, with its match.
@@ -147,7 +116,6 @@ protected:
 	Ptr<CComponent>	CreateBody(void);
 	void			FillList(void);
 	void			AddRow(SGoToItem* psItem);
-	Ptr<CComponent>	CreateName(SGoToItem* psItem);
 	void			SplitLine(CChars* pszPattern);
 };
 
