@@ -51,6 +51,7 @@ void CChooserPopup::Init(Ptr<CWindow> pWindow, SDialogLook* psLook, Ptr<CFont> p
 	maiRows.Init();
 	mcMatcher.Init("");
 	mbSortMatches = false;
+	mbOpensAbove = false;
 	miChosen = -1;
 	mcChosen.Init();
 	mcSelected.Init();
@@ -88,6 +89,7 @@ void CChooserPopup::Class(void)
 	U_Unknown(CArrayInt, maiRows);
 	U_Unknown(CNameMatcher, mcMatcher);
 	U_Bool(mbSortMatches);
+	U_Bool(mbOpensAbove);
 	U_Int32(miChosen);
 	U_Unknown(CComponentEvent<CChooserPopup>, mcChosen);
 	U_Unknown(CComponentEvent<CChooserPopup>, mcSelected);
@@ -233,6 +235,18 @@ void CChooserPopup::AddButton(const char* szCaption)
 void CChooserPopup::SetSortMatches(bool bSortMatches)
 {
 	mbSortMatches = bSortMatches;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Open's position is where the chooser's bottom left goes, not its top
+// left: for one opened from something at the bottom of the window.
+//
+//////////////////////////////////////////////////////////////////////////
+void CChooserPopup::SetOpensAbove(bool bOpensAbove)
+{
+	mbOpensAbove = bOpensAbove;
 }
 
 
@@ -432,6 +446,10 @@ void CChooserPopup::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, size uiSe
 		iHeight += iGap / 2 + mpButton->GetDesiredSize().y;
 	}
 	mpPanel->SetDesiredSize(iWidth, iHeight);
+	if (mbOpensAbove)
+	{
+		sPosition.y = (sPosition.y > iHeight) ? sPosition.y - iHeight : 0;
+	}
 
 	mpPreviousFocus = mpWindow->GetFocus()->GetFocussedComponent();
 	mpPopup = mpWindow->OpenPopup(mpPanel, sPosition, pOwner);

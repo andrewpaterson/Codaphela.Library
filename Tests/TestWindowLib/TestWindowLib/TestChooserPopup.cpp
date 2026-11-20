@@ -345,6 +345,17 @@ void TestChooserPopupHeadings(void)
 		AssertString("One", PrintChooserRows(pChooser, &szRows));
 		pChooser->Close();
 
+		//Opened above: the position is where its bottom left goes.
+		pChooser->SetOpensAbove(true);
+		sPosition.Init(10, 500);
+		pChooser->Open(sPosition, pFill);
+		pTestWindow->Layout();
+		AssertInt(500 - pChooser->GetPanel()->GetActualSize().y, pChooser->GetPopup()->GetPosition().y);
+		AssertInt(10, pChooser->GetPopup()->GetPosition().x);
+		pChooser->Close();
+		pChooser->SetOpensAbove(false);
+		sPosition.Init(10, 10);
+
 		//Filtered, a heading is listed only while something under it is.
 		pFiltered = OMalloc<CChooserPopup>(pTestWindow, &sLook, pTheme->GetFont());
 		ORoot()->Add(pFiltered);

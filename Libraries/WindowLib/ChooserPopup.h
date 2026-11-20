@@ -42,7 +42,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //What it has is chosen before it is opened (SetTitle, AddFilter, AddPreview, AddButton), then its icons and items are
 //added (AddIcon, AddItem, AddHeading) and it is opened at a point of the window (Open), no taller than its rows need
-//or the theme's TM_ChooserRows of them.  With a filter the keys stay with the field: up, down, page up and page down
+//or the theme's TM_ChooserRows of them: its top left there, or its bottom left for a chooser that opens above what
+//it is for (SetOpensAbove), as one opened from the bottom of the window is.  With a filter the keys stay with the field: up, down, page up and page down
 //move through the rows and enter chooses the selected one.  Without one the list has them, and typing finds a row
 //(CListContainer::SetTypeToFind).  A click chooses too.
 //Escape, or a press outside it, closes it.  Filtered items keep the order they were added in unless they are sorted
@@ -75,6 +76,7 @@ protected:
 	CArrayInt				maiRows;  //The item each row shows.
 	CNameMatcher			mcMatcher;
 	bool					mbSortMatches;
+	bool					mbOpensAbove;  //Open's position is where its bottom left goes.
 	int32					miChosen;  //The item chosen, -1 until one is.
 
 	CComponentEvent<CChooserPopup>	mcChosen;
@@ -94,6 +96,7 @@ public:
 	void			AddPreview(Ptr<CFont> pTitleFont, Ptr<CFontFamily> pCodeFamily);
 	void			AddButton(const char* szCaption);
 	void			SetSortMatches(bool bSortMatches);
+	void			SetOpensAbove(bool bOpensAbove);
 
 	int32			AddIcon(Ptr<CImageCel> pIcon);
 	SGoToItem*		AddItem(const char* szName, const char* szLocation, int32 iIcon, size uiData);
