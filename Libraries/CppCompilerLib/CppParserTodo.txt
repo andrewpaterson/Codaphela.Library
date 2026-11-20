@@ -948,6 +948,16 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       is deprecated: use G" (WarnDeprecated; FindAttribute gives the attribute's token, which HasAttribute's
       two forms only said was there).  An enumerator's is C++17's, taken as g++ takes it.  Not warned of: a
       namespace's, a template specialisation's.  TestCPP816DeprecatedWarnings.
+    - 10.  delete of an object whose destructor is virtual frees it in its class's deleting destructor, which
+      called the runtime's operator delete(void*) even where the program has declared the global one that
+      takes a size (<new> does), though that function alone knows the size.  It calls the sized one, given
+      its class's size (FindDeallocation's bSized).  A deleting destructor is written for every class with a
+      virtual destructor, in programs that never delete and have no operator delete: the call is weak, as the
+      runtime's is, made by the function's plain label with both arguments pushed (the label a register call
+      uses is the back end's, and a weak name is declared by the front end: Deallocate).  One the unit
+      defines is called as any function is.  Left as they are: delete[] of elements with no destructor, which
+      keeps no count, and ::delete of such an object, whose class only its vtable knows; each calls the one
+      that takes the pointer alone, as [expr.delete] 10 allows.  DeleteSizedGlobalPolymorphic.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

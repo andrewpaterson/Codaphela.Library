@@ -6635,6 +6635,41 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.3.5 [expr.delete] p10, 3.7.4.2 [basic.stc.dynamic.deallocation] p2, 12.4 [class.dtor] p13: the global operator delete that takes a size is given the size of the object's own class when an object with a virtual destructor is deleted through a base's pointer; a class's own operator delete is still the one called for it
+	{
+		"DeleteSizedGlobalPolymorphic", 15,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"static char gacHeap[256];\n"
+		"static size_t guiUsed = 0;\n"
+		"static size_t guiFreed = 0;\n"
+		"static int giSized = 0;\n"
+		"static int giPlain = 0;\n"
+		"void* operator new(size_t n) { void* p = gacHeap + guiUsed; guiUsed += (n + 7) & ~(size_t)7; return p; }\n"
+		"void operator delete(void* p) noexcept { giPlain++; }\n"
+		"void operator delete(void* p, size_t n) noexcept { giSized++; guiFreed += n; }\n"
+		"struct B { int b; virtual ~B() { } };\n"
+		"struct D : B { long d[3]; };\n"
+		"struct P { int p; };\n"
+		"struct O { int o; virtual ~O() { } static int siOwn; void operator delete(void* p) { siOwn++; } };\n"
+		"int O::siOwn = 0;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	B* pb = new D;\n"
+		"	delete pb;\n"
+		"	if (giSized == 1 && giPlain == 0 && guiFreed == sizeof(D)) r += 1;\n"
+		"	B* pb2 = new B;\n"
+		"	delete pb2;\n"
+		"	if (giSized == 2 && guiFreed == sizeof(D) + sizeof(B)) r += 2;\n"
+		"	P* pp = new P;\n"
+		"	delete pp;\n"
+		"	if (giSized == 3 && giPlain == 0 && guiFreed == sizeof(D) + sizeof(B) + sizeof(P)) r += 4;\n"
+		"	O* po = new O;\n"
+		"	delete po;\n"
+		"	if (O::siOwn == 1 && giSized == 3 && giPlain == 0) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };
 
 

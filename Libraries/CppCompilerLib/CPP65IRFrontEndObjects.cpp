@@ -1795,7 +1795,10 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 // it is done for (a delete, or a class for its deleting destructor), which
 // the arguments are kept by.  A deleting destructor's call of the runtime's
 // is weak: the program has an operator delete if anything in it deletes,
-// and needn't have one for a virtual destructor alone.  [expr.delete] 9, 10
+// and needn't have one for a virtual destructor alone.  So is its call of
+// the global one that takes a size, where another unit defines it: by its
+// plain label, with both arguments pushed, as the runtime's is called.
+// [expr.delete] 9, 10
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocation, bool bArray, SCPP65IRValue* psBytes, SIRReference sFree)
@@ -1804,11 +1807,23 @@ bool CCPP65IRFrontEnd::Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocatio
 	CArraySyntax	apcArguments;
 	SCPP65IRValue	sAddress;
 	SCPP65IRValue	sResult;
+	CChars			szLabel;
 	bool			bCalled;
 
 	if (!pcDeallocation)
 	{
 		CallRuntime(bArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sFree, mpcCPPFunction->mbDeleting);
+		return true;
+	}
+	if (mpcCPPFunction->mbDeleting && !pcDeallocation->mpcClass && !pcDeallocation->mpcDefinition)
+	{
+		szLabel.Init();
+		mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcDeallocation, false);
+		maszWeakRuntime.AddIfUnique(szLabel);
+		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sFree);
+		mpcFunction->Argument(mpcBlock, IRTypeOf(psBytes->psType), psBytes->sValue);
+		mpcFunction->Call(mpcBlock, IRType(IRTK_None), mcModule.Symbol(szLabel.Text()));
+		szLabel.Kill();
 		return true;
 	}
 
@@ -1853,10 +1868,13 @@ SCPP65IRValue CCPP65IRFrontEnd::ByteCount(int64 lliBytes)
 //
 // The body of pcClass's deleting destructor (CCPPClass::mpcDeleting): the
 // object, this, is destroyed by the class's destructor and freed by the
-// class's operator delete, given the class's size if it takes one, or by
-// the runtime's, which takes the pointer alone: a program that never
-// deletes needn't have one (Deallocate's weak call), so the global one that
-// takes a size isn't asked for here.  [class.dtor] 13
+// class's operator delete, given the class's size if it takes one; or by
+// the global one that takes a size, if the program has declared it, given
+// the class's, which only this function knows (the object deleted may be
+// of a class derived from the pointer's); or by the runtime's, which takes
+// the pointer alone.  A program that never deletes needn't have either of
+// the last two (Deallocate's weak calls).  [class.dtor] 13,
+// [expr.delete] 10
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeletingDestructor(CCPPClass* pcClass)
@@ -1868,7 +1886,7 @@ bool CCPP65IRFrontEnd::DeletingDestructor(CCPPClass* pcClass)
 		return false;
 	}
 	sBytes = ByteCount(pcClass->mpsType->iBytes);
-	return Deallocate(pcClass->mpcSpecifier, mpcUnit->GetBinder()->FindDeallocation(pcClass, false), false, &sBytes, msThis);
+	return Deallocate(pcClass->mpcSpecifier, mpcUnit->GetBinder()->FindDeallocation(pcClass, false, true), false, &sBytes, msThis);
 }
 
 
