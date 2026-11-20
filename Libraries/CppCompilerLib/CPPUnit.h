@@ -291,6 +291,7 @@ protected:
 	CCPPSyntaxImplicitArgument*	mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
 	CMapLongTemplate<CCPPSyntaxImplicitArgument*>	mcImplicitValues;	//The arguments the IR front end gives values (ImplicitValue).
 	int						miUnevaluated;		//How deep in operands that aren't evaluated (sizeof, decltype) the unit is.
+	int						miSaysDeprecated;	//Whether the source says deprecated anywhere (SaysDeprecated): 1, 0, or -1 until it is asked.
 	CCPPFunctionPacks		mcFunctionPacks;	//The function parameter packs the function being written can expand.
 	CArraySyntax			mapcObjectConstants;	//The expressions ObjectConstantType is asked of now: a name's type may ask for its constant.
 	CArrayCPPBracedLists	masBracedLists;			//The lists BracedFor has made, each for the list and the type it was made of.
@@ -410,6 +411,8 @@ public:
 	//Declarations, functions and statements.  CPPUnit.cpp
 	bool					Error(CCPPSyntax* pcNode, const char* szMessage);
 	void					Warning(CCPPSyntax* pcNode, const char* szMessage);
+	void					WarnDeprecated(CCPPSyntax* pcNode, const char* szWhat, int32 iAttribute);
+	void					WarnDeprecatedSymbol(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 
 	bool					ErrorAt(int iToken, const char* szMessage);
 	void					AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMessage);
@@ -544,7 +547,10 @@ public:
 	bool					BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset, bool* pbResult);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					HasAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName);
-	bool					HasAttribute(CArraySyntax* papcAttributes, const char* szName);
+	int32					FindAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName);
+	int32					FindAttribute(CArraySyntax* papcAttributes, const char* szName);
+	int32					DeprecatedAttribute(CCPPSymbol* pcSymbol);
+	bool					SaysDeprecated(void);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer);
 	SCPP65Type*				ParameterType(SCPP65Type* psType);

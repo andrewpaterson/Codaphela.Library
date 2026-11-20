@@ -46,7 +46,7 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 	miSlot = -1;
 	mbCLinkage = false;
 	mbExplicit = false;
-	mbDeprecated = false;
+	miDeprecated = -1;
 	mbConstThis = false;
 	mbVolatileThis = false;
 	mbConstexpr = false;

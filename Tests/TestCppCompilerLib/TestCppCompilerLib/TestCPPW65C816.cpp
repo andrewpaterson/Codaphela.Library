@@ -5194,7 +5194,10 @@ void TestCPP816OverrideWarnings(void)
 // A call of a function a declaration marks [[deprecated]] is warned of,
 // each call once: one marked where it is declared and defined later, a
 // member function, and a template's instances.  A function that isn't
-// marked isn't.  [dcl.attr.deprecated]
+// marked isn't.  So is each naming of a variable, a member, a class, an
+// enumeration, an enumerator and a typedef that is marked, outside its
+// own declaration, and the warning says what the attribute says.
+// [dcl.attr.deprecated]
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816DeprecatedWarnings(void)
@@ -5206,6 +5209,20 @@ void TestCPP816DeprecatedWarnings(void)
 	AssertInt(1, TestCPP816CountWarnings("struct S { [[deprecated]] int F(void) { return 1; } int G(void) { return 2; } };\nint H(void) { S s; return s.F() + s.G(); }\n", szWarning));
 	AssertInt(2, TestCPP816CountWarnings("template<class T> [[deprecated]] T F(T t) { return t; }\nint H(void) { return F(1) + (int)F(2L); }\n", szWarning));
 	AssertInt(0, TestCPP816CountWarnings("int F(void) { return 3; }\nint H(void) { return F(); }\n", szWarning));
+
+	//What the attribute says.
+	AssertInt(1, TestCPP816CountWarnings("[[deprecated(\"use G\")]] int F(void) { return 3; }\nint H(void) { return F(); }\n", "The function is deprecated: use G"));
+	AssertInt(1, TestCPP816CountWarnings("[[deprecated(\"gone soon\")]] int g = 1;\nint H(void) { return g; }\n", "The variable is deprecated: gone soon"));
+
+	//What else can be marked.
+	AssertInt(2, TestCPP816CountWarnings("[[deprecated]] int g = 1;\nint h = 2;\nint H(void) { return g + h + g; }\n", "The variable is deprecated"));
+	AssertInt(2, TestCPP816CountWarnings("struct S { [[deprecated]] int old; int v; };\nint H(void) { S s; s.old = 1; s.v = 2; return s.old + s.v; }\n", "The member is deprecated"));
+	AssertInt(1, TestCPP816CountWarnings("struct S { [[deprecated]] static int n; static int m; };\nint S::n = 1;\nint S::m = 2;\nint H(void) { return S::n + S::m; }\n", szWarning));
+	AssertInt(1, TestCPP816CountWarnings("struct [[deprecated]] S { int v; S* Self(void) { return this; } };\nint H(void) { S s; s.v = 1; return s.Self()->v; }\n", "The class is deprecated"));
+	AssertInt(1, TestCPP816CountWarnings("enum [[deprecated]] E { A, B };\nenum F { C [[deprecated]], D };\nint H(void) { E e = A; return (int)e + C + D; }\n", "The enumeration is deprecated"));
+	AssertInt(1, TestCPP816CountWarnings("enum [[deprecated]] E { A, B };\nenum F { C [[deprecated]], D };\nint H(void) { E e = A; return (int)e + C + D; }\n", "The enumerator is deprecated"));
+	AssertInt(1, TestCPP816CountWarnings("[[deprecated]] typedef int Old;\nint H(void) { Old a = 1; int b = 2; return a + b; }\n", "The type is deprecated"));
+	AssertInt(0, TestCPP816CountWarnings("int g = 1;\nstruct S { int v; };\nenum E { A };\nint H(void) { S s; s.v = g + A; return s.v; }\n", szWarning));
 }
 
 

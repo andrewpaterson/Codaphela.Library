@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/PointerFunctions.h"
 #include "SourceFile.h"
 #include "CTIdentifier.h"
+#include "CTReservedWord.h"
 #include "CTString.h"
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
@@ -329,6 +330,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcDefining = NULL;
 	mapcVariableInstances.Init();
 	miUnevaluated = 0;
+	miSaysDeprecated = -1;
 	mpcImplicitZero = NULL;
 	mcImplicitValues.Init(true);
 	mapcQueue.Init();
@@ -1217,19 +1219,37 @@ bool CCPPUnit::HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::HasAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName)
 {
+	return FindAttribute(pcDeclarator, szName) != -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// HasAttribute's attribute: the token that names it, or -1 if the
+// declarator has none of the name.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CCPPUnit::FindAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName)
+{
 	CCPPSyntaxFunctionSuffix*	pcFunction;
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	CCPPSyntax*					pcDeclaration;
+	int32						iAttribute;
 
 	if (!pcDeclarator)
 	{
-		return false;
+		return -1;
 	}
 	pcFunction = pcDeclarator->GetFunctionSuffix();
-	if (HasAttribute(&pcDeclarator->macpAttributes, szName) ||
-		(pcFunction && (HasAttribute(&pcFunction->macpQualifiers, szName) || HasAttribute(&pcFunction->macpAttributes, szName))))
+	iAttribute = FindAttribute(&pcDeclarator->macpAttributes, szName);
+	if ((iAttribute == -1) && pcFunction)
 	{
-		return true;
+		iAttribute = FindAttribute(&pcFunction->macpQualifiers, szName);
+		iAttribute = (iAttribute != -1) ? iAttribute : FindAttribute(&pcFunction->macpAttributes, szName);
+	}
+	if (iAttribute != -1)
+	{
+		return iAttribute;
 	}
 
 	//The declaration the declarator is in (through its init-declarator).
@@ -1249,17 +1269,17 @@ bool CCPPUnit::HasAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szNa
 			break;
 		}
 	}
-	return pcSpecifiers && HasAttribute(&pcSpecifiers->macpSpecifiers, szName);
+	return pcSpecifiers ? FindAttribute(&pcSpecifiers->macpSpecifiers, szName) : -1;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether one of the attributes in the list is szName or __szName__ (what
-// else is in it, qualifiers, isn't looked at).
+// The token that names the attribute szName, or __szName__, in the list
+// (what else is in it, qualifiers, isn't looked at), or -1 if none does.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::HasAttribute(CArraySyntax* papcAttributes, const char* szName)
+int32 CCPPUnit::FindAttribute(CArraySyntax* papcAttributes, const char* szName)
 {
 	size		i;
 	int32		iToken;
@@ -1282,12 +1302,77 @@ bool CCPPUnit::HasAttribute(CArraySyntax* papcAttributes, const char* szName)
 				if ((((size)iLength == uiName) && (memcmp(szIdentifier, szName, uiName) == 0)) ||
 					(((size)iLength == uiName + 4) && (memcmp(szIdentifier, "__", 2) == 0) && (memcmp(szIdentifier + 2, szName, uiName) == 0) && (memcmp(szIdentifier + 2 + uiName, "__", 2) == 0)))
 				{
-					return true;
+					return iToken;
 				}
 			}
 		}
 	}
-	return false;
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The token of the [[deprecated]] the symbol's declaration is marked with
+// (a variable, a typedef, a member, a class, an enumeration, an
+// enumerator), or -1.  [dcl.attr.deprecated] 2
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CCPPUnit::DeprecatedAttribute(CCPPSymbol* pcSymbol)
+{
+	CCPPSyntax*	pcDeclaration;
+
+	pcDeclaration = pcSymbol->mpcDeclaration;
+	if (!pcDeclaration)
+	{
+		return -1;
+	}
+	switch (pcDeclaration->GetKind())
+	{
+	case CPPS_InitDeclarator:
+		return FindAttribute(((CCPPSyntaxInitDeclarator*)pcDeclaration)->mpcDeclarator, "deprecated");
+	case CPPS_ClassSpecifier:
+		return FindAttribute(&((CCPPSyntaxClassSpecifier*)pcDeclaration)->macpAttributes, "deprecated");
+	case CPPS_ElaboratedTypeSpecifier:
+		return FindAttribute(&((CCPPSyntaxElaboratedTypeSpecifier*)pcDeclaration)->macpAttributes, "deprecated");
+	case CPPS_EnumSpecifier:
+		return FindAttribute(&((CCPPSyntaxEnumSpecifier*)pcDeclaration)->macpAttributes, "deprecated");
+	case CPPS_Enumerator:
+		return FindAttribute(&((CCPPSyntaxEnumerator*)pcDeclaration)->macpAttributes, "deprecated");
+	default:
+		return -1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the source says deprecated anywhere: where it doesn't, which is
+// nearly everywhere, no name is asked whether it is (WarnDeprecatedSymbol).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::SaysDeprecated(void)
+{
+	CCPPToken*	pcToken;
+	int64		lliDeprecated;
+	int64		lliUnderscored;
+	size		i;
+
+	if (miSaysDeprecated == -1)
+	{
+		miSaysDeprecated = 0;
+		lliDeprecated = mpcTokeniser->GetIdentifierID((char*)"deprecated");
+		lliUnderscored = mpcTokeniser->GetIdentifierID((char*)"__deprecated__");
+		for (i = 0; (miSaysDeprecated == 0) && (i < mpcTokeniser->NumTokens()); i++)
+		{
+			pcToken = mpcTokeniser->Get((int32)i);
+			if (pcToken->IsIdentifier() && ((((CCTIdentifier*)pcToken)->miIdentifier == lliDeprecated) || (((CCTIdentifier*)pcToken)->miIdentifier == lliUnderscored)))
+			{
+				miSaysDeprecated = 1;
+			}
+		}
+	}
+	return miSaysDeprecated == 1;
 }
 
 
@@ -1448,6 +1533,71 @@ void CCPPUnit::Warning(CCPPSyntax* pcNode, const char* szMessage)
 	mpcTokeniser->mpcSource->AddError(&mcWarnings, psSource, iToken, szMessageText.Text(), szDetail.Text());
 	szDetail.Kill();
 	szMessageText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The warning that what pcNode names (szWhat: a function, a variable ...)
+// is deprecated, with what its attribute says of it, if it says anything:
+// [[deprecated("use G")]].  iAttribute: the attribute's token.
+// [dcl.attr.deprecated] 1, 4
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::WarnDeprecated(CCPPSyntax* pcNode, const char* szWhat, int32 iAttribute)
+{
+	CChars		szText;
+	CCPPToken*	pcOpen;
+	CCTString*	pcString;
+
+	szText.Init("The ");
+	szText.Append(szWhat);
+	szText.Append(" is deprecated");
+	pcOpen = ((size)iAttribute + 2 < mpcTokeniser->NumTokens()) ? mpcTokeniser->Get(iAttribute + 1) : NULL;
+	if (pcOpen && pcOpen->IsReservedWord() && (((CCTReservedWord*)pcOpen)->GetToken() == CT_OpenRoundBracket) && mpcTokeniser->Get(iAttribute + 2)->IsString())
+	{
+		pcString = (CCTString*)mpcTokeniser->Get(iAttribute + 2);
+		szText.Append(": ");
+		szText.Append(pcString->mszStart + 1, (size)(pcString->mszEnd - pcString->mszStart - 1));
+	}
+	Warning(pcNode, szText.Text());
+	szText.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// WarnDeprecated for a name that isn't a function's: a variable, a member,
+// an enumerator, or a type (a class, an enumeration, a typedef) whose
+// declaration is marked [[deprecated]], where it is named outside that
+// declaration.  [dcl.attr.deprecated] 2, 4
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::WarnDeprecatedSymbol(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
+{
+	const char*	szWhat;
+	int32		iAttribute;
+
+	if (!pcSymbol || !pcNode || !SaysDeprecated())
+	{
+		return;
+	}
+	switch (pcSymbol->meKind)
+	{
+	case CPPSK_Variable:	szWhat = "variable"; break;
+	case CPPSK_Field:		szWhat = "member"; break;
+	case CPPSK_Enumerator:	szWhat = "enumerator"; break;
+	case CPPSK_Class:		szWhat = "class"; break;
+	case CPPSK_Enum:		szWhat = "enumeration"; break;
+	case CPPSK_Typedef:		szWhat = "type"; break;
+	default:				return;
+	}
+	iAttribute = DeprecatedAttribute(pcSymbol);
+	if ((iAttribute == -1) || ((pcNode->miFirstToken >= pcSymbol->mpcDeclaration->miFirstToken) && (pcNode->miFirstToken <= pcSymbol->mpcDeclaration->miLastToken)))
+	{
+		return;
+	}
+	WarnDeprecated(pcNode, szWhat, iAttribute);
 }
 
 
@@ -2853,7 +3003,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcFunction->mpcTemplate = pcTemplate;
 	pcFunction->mbCLinkage = mcContext.IsCLinkage() && !pcClass;
 	pcFunction->mbExplicit = (uiFlags & CPPDS_EXPLICIT) != 0;
-	pcFunction->mbDeprecated |= HasAttribute(pcDeclarator, "deprecated");
+	pcFunction->miDeprecated = (pcFunction->miDeprecated != -1) ? pcFunction->miDeprecated : FindAttribute(pcDeclarator, "deprecated");
 	SetDeclaredExceptions(pcFunction, pcDeclarator);
 	pcFunction->mbOverride |= HasVirtSpecifier(pcSuffix, mpcTokeniser->mlliOverride);
 	pcFunction->mbFinal |= HasVirtSpecifier(pcSuffix, mpcTokeniser->mlliFinal);

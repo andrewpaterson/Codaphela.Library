@@ -190,7 +190,7 @@ public:
 	int								miSlot;			//A virtual function's place in the vtable.
 	bool							mbCLinkage;		//Declared in extern "C": its label is only its name.
 	bool							mbExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
-	bool							mbDeprecated;	//A declaration of it is marked [[deprecated]]: a call of it is warned of.  [dcl.attr.deprecated]
+	int32							miDeprecated;	//The token of the [[deprecated]] a declaration of it is marked with, or -1: a call of it is warned of.  [dcl.attr.deprecated]
 	bool							mbConstThis;	//A const member function: an overload of the same function without const.
 	bool							mbVolatileThis;	//A volatile member function: another overload again.
 	bool							mbConstexpr;	//Declared constexpr: its value may be worked out when the program is compiled.

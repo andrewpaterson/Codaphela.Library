@@ -940,6 +940,14 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       is, where the parser can find it: e a variable or parameter declared with a class's name, the member
       looked up in that class (DecltypeMemberIsType).  Where it can't (decltype(f())::k, a typedef'd class) it
       is a cast still, as before.  ExprParenthesisedDecltypeMember.
+    - 15.  [[deprecated]] was a function's alone.  A variable, a member, an enumerator, a class, an enumeration
+      and a typedef marked with it are warned of where they are named outside their own declaration
+      (CCPPUnit::WarnDeprecatedSymbol, from the checker's names and members and the declarators' type names;
+      the attribute is looked for on the symbol's declaration, and only in a source that says deprecated at
+      all: SaysDeprecated).  The warning says what the attribute says: [[deprecated("use G")]] is "The function
+      is deprecated: use G" (WarnDeprecated; FindAttribute gives the attribute's token, which HasAttribute's
+      two forms only said was there).  An enumerator's is C++17's, taken as g++ takes it.  Not warned of: a
+      namespace's, a template specialisation's.  TestCPP816DeprecatedWarnings.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or
