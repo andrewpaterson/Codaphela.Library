@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "CPPUnit.h"
 #include "CPPSymbolKey.h"
+#include <ctype.h>
 
 
 //The generator's templates: declaring them, binding and deducing their arguments, and instantiating classes and functions.
@@ -429,6 +430,11 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 				NewTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcSimple, false);
 			}
 		}
+		else if (!bExplicit)
+		{
+			//template<class T> T Twice(T v);
+			DeclareFunctionTemplate(pcTemplateDeclaration, pcSimple);
+		}
 	}
 	else if (pcDeclaration->GetKind() == CPPS_FunctionDefinition)
 	{
@@ -475,10 +481,172 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 		else if (pcName && !pcClassTemplate && !bExplicit && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator) || (pcName->GetLast()->meKind == CPPNC_Literal)))
 		{
 			//An operator template (and a literal operator template) has no symbol; it is found by its operator (FindFreeOperator).
-			NewTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction, false);
+			pcTemplate = FindFunctionTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction->mpcDeclarator);
+			if (pcTemplate && !pcTemplate->mpcDefinition)
+			{
+				DefineFunctionTemplate(pcTemplate, pcTemplateDeclaration, pcFunction);
+			}
+			else
+			{
+				NewTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction, false);
+			}
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// template<class T> T Twice(T v); declares a function template: its
+// instances are declarations (what sizeof, decltype and noexcept ask of a
+// call needs no more) until it is defined.  Declared again, or after its
+// definition, it is the same template.  [temp.fct], [basic.def.odr] 4
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DeclareFunctionTemplate(CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxSimpleDeclaration* pcSimple)
+{
+	CCPPSyntaxDeclarator*	pcDeclarator;
+	CCPPSyntaxName*			pcName;
+	CCPPTemplate*			pcTemplate;
+
+	pcDeclarator = (pcSimple->macpDeclarators.NumElements() == 1) ? ((CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0))->mpcDeclarator : NULL;
+	pcName = (pcDeclarator && pcDeclarator->GetFunctionSuffix()) ? pcDeclarator->GetName() : NULL;
+	if (!pcName || (pcName->macpComponents.NumElements() != 1) || !pcName->mpcSymbol || (pcName->mpcSymbol->meKind != CPPSK_FunctionTemplate) ||
+		(pcSimple->mpcSpecifiers && (pcSimple->mpcSpecifiers->muiFlags & (CPPDS_FRIEND | CPPDS_TYPEDEF))))
+	{
+		return;
+	}
+	if (FindFunctionTemplate(pcName->mpcSymbol, pcDeclaration, pcDeclarator))
+	{
+		return;
+	}
+	pcTemplate = NewTemplate(pcName->mpcSymbol, pcDeclaration, NULL, false);
+	pcTemplate->mpcDeclarator = pcDeclarator;
+	pcTemplate->mpcSpecifiers = pcSimple->mpcSpecifiers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function template declared before is defined: the template is the
+// definition's from here on, whose parameters' names its body uses.  The
+// instances made of its declaration were declarations only, which nothing
+// that is evaluated could call: they are left behind, and the next use of
+// one makes it from the definition.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DefineFunctionTemplate(CCPPTemplate* pcTemplate, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxFunctionDefinition* pcDefinition)
+{
+	pcTemplate->mpcDeclaration = pcDeclaration;
+	pcTemplate->mpcDefinition = pcDefinition;
+	pcTemplate->mpcDeclarator = NULL;
+	pcTemplate->mpcSpecifiers = NULL;
+	pcTemplate->mapcInstances.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function template of the name pcSymbol is, in its scope, that has
+// this signature (FunctionTemplateSignature): the one a declaration
+// declares again, or a definition defines.  NULL if there is none, and for
+// an operator template, which has no symbol.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPTemplate* CCPPUnit::FindFunctionTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPTemplate*	pcTemplate;
+	CCPPTemplate*	pcFound;
+	CChars			szSignature;
+	CChars			szOther;
+	size			i;
+
+	if (!pcSymbol)
+	{
+		return NULL;
+	}
+	szSignature.Init();
+	FunctionTemplateSignature(pcDeclaration, pcDeclarator, &szSignature);
+	pcFound = NULL;
+	for (i = 0; !pcFound && (i < mapcTemplates.NumElements()); i++)
+	{
+		pcTemplate = mapcTemplates.GetPtr(i);
+		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->mpcSymbol || !pcTemplate->IsFunction() ||
+			(pcTemplate->mpcSymbol->mlliName != pcSymbol->mlliName) || (pcTemplate->mpcSymbol->mpcScope != pcSymbol->mpcScope))
+		{
+			continue;
+		}
+		szOther.Init();
+		FunctionTemplateSignature(pcTemplate->mpcDeclaration, pcTemplate->FunctionDeclarator(), &szOther);
+		pcFound = szOther.Equals(&szSignature) ? pcTemplate : NULL;
+		szOther.Kill();
+	}
+	szSignature.Kill();
+	return pcFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function template's parameters as they are written, after the number of
+// its template parameters and with each of those named by its place: what
+// template<class T> T f(T) and template<class U> U f(U u) { ... } have the
+// same, and another overload of f hasn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::FunctionTemplateSignature(CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxDeclarator* pcDeclarator, CChars* pszDest)
+{
+	CCPPSymbolKey	cKey;
+	CChars			szWritten;
+	CCPPSyntax*		pcParameter;
+	CCPPSymbol*		pcSymbol;
+	char*			szText;
+	char*			szName;
+	size			uiStart;
+	size			uiEnd;
+	size			i;
+	int				iLength;
+	bool			bNamed;
+
+	szWritten.Init();
+	cKey.Init(mpcTokeniser, mpcTree);
+	cKey.GetSignature(pcDeclarator->GetFunctionSuffix(), &szWritten);
+	cKey.Kill();
+
+	pszDest->Append((int32)pcDeclaration->macpParameters.NumElements());
+	szText = szWritten.Text();
+	for (uiStart = 0; uiStart < szWritten.Length(); uiStart = uiEnd)
+	{
+		//A word, or one character that isn't of one.
+		for (uiEnd = uiStart; (uiEnd < szWritten.Length()) && (isalnum((unsigned char)szText[uiEnd]) || (szText[uiEnd] == '_')); uiEnd++)
+		{
+		}
+		if (uiEnd == uiStart)
+		{
+			uiEnd++;
+			pszDest->Append(szText[uiStart]);
+			continue;
+		}
+		bNamed = false;
+		for (i = 0; !bNamed && (i < pcDeclaration->macpParameters.NumElements()); i++)
+		{
+			pcParameter = pcDeclaration->macpParameters.GetPtr(i);
+			pcSymbol = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((pcParameter->GetKind() == CPPS_Parameter) ? ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol : NULL);
+			szName = pcSymbol ? mpcTokeniser->GetIdentifier(pcSymbol->mlliName, &iLength) : NULL;
+			if (szName && ((size)iLength == uiEnd - uiStart) && (memcmp(szName, &szText[uiStart], iLength) == 0))
+			{
+				pszDest->Append('$');
+				pszDest->Append((int32)i);
+				bNamed = true;
+			}
+		}
+		if (!bNamed)
+		{
+			pszDest->Append(&szText[uiStart], uiEnd - uiStart);
+		}
+	}
+	szWritten.Kill();
 }
 
 
@@ -789,7 +957,7 @@ bool CCPPUnit::ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* pcInit, b
 	}
 	pcComponent = pcName->GetLast();
 	pcTemplate = pcName->mpcSymbol ? GetTemplate(pcName->mpcSymbol) : NULL;
-	if (!pcTemplate || (pcTemplate->mpcDefinition->GetKind() != CPPS_FunctionDefinition))
+	if (!pcTemplate || !pcTemplate->IsFunction())
 	{
 		lliName = GetComponentName(pcComponent);
 		pcTemplate = (lliName != -1) ? GetTemplateByName(lliName, CPPS_FunctionDefinition, ComponentLookup(pcComponent)) : NULL;

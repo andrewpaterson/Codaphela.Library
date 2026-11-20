@@ -1882,11 +1882,11 @@ void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpress
 		for (i = 0; i < mpcUnit->GetTemplates()->NumElements(); i++)
 		{
 			pcTemplate = mpcUnit->GetTemplates()->GetPtr(i);
-			if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || (pcTemplate->mpcSymbol != pcDeclaration) || !pcTemplate->mpcDefinition || (pcTemplate->mpcDefinition->GetKind() != CPPS_FunctionDefinition))
+			if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || (pcTemplate->mpcSymbol != pcDeclaration) || !pcTemplate->IsFunction())
 			{
 				continue;
 			}
-			pcSuffix = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcDeclarator->GetFunctionSuffix();
+			pcSuffix = pcTemplate->FunctionDeclarator()->GetFunctionSuffix();
 			if (pcSuffix && TakesArguments(pcSuffix, papcArguments->NumElements()))
 			{
 				papcCandidates->Add(pcTemplate);

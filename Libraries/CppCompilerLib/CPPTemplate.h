@@ -109,13 +109,14 @@ public:
 	CCPPSymbol*						mpcSymbol;		//The template's name; for an outside member, the class's.
 	CCPPSyntaxTemplateDeclaration*	mpcDeclaration;
 	CCPPSyntax*						mpcDefinition;	//A class specifier or a function definition; a class template only declared
-													//so far, its elaborated type specifier (template<class T> struct S;).
+													//so far, its elaborated type specifier (template<class T> struct S;), and a
+													//function template only declared, NULL (mpcDeclarator is its declarator).
 	bool							mbMember;
 	bool							mbMemberTemplate;
 	CCPPClass*						mpcClass;
 	int64							mlliName;
 	CCPPSyntaxTemplateDeclaration*	mpcClassDeclaration;
-	CCPPSyntaxDeclarator*			mpcDeclarator;	//A member template's declarator in its class...
+	CCPPSyntaxDeclarator*			mpcDeclarator;	//A member template's declarator in its class, or a function template's declared before it is defined...
 	CCPPSyntaxDeclSpecifiers*		mpcSpecifiers;	//...and its specifiers there.
 	bool							mbStatic;
 	CCPPTemplate*					mpcPrimary;
@@ -132,6 +133,7 @@ public:
 
 	ECPPSyntax	DefinitionKind(void);
 	bool		IsDeclaredClass(void) const;
+	bool		IsFunction(void) const;
 
 	CCPPSyntaxDeclarator*		FunctionDeclarator(void);
 	CCPPSyntaxDeclSpecifiers*	FunctionSpecifiers(void);

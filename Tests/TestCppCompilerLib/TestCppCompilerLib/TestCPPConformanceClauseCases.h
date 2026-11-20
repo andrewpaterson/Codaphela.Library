@@ -5946,6 +5946,28 @@ static const SConformanceCase gasConformanceClause5[] =
 		"void* operator new[](decltype(sizeof(0)) n);\n"
 		"int main() { int* p = new (int[]); return p != 0; }\n"
 	},
+	//14.5.6 [temp.fct], 3.2 [basic.def.odr] p4: a function template that is only declared is called where the call is not evaluated, and is its definition once it has one
+	{
+		"TemplateDeclaredOnly", 7,
+		"template<class T> char Test(T*);\n"
+		"template<class T> long Test(...);\n"
+		"template<class T> T Declared(T) noexcept;\n"
+		"template<class T, class U> U Pick(T, U);\n"
+		"struct S { };\n"
+		"template<class T> T f(T);\n"
+		"typedef decltype(f(1)) X;\n"
+		"template<class U> U f(U u) { return u + 1; }\n"
+		"template<class T> T f(T);\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (sizeof(Test<S>((S*)0)) == 1 && sizeof(Test<S>(1, 2)) == sizeof(long)) r += 1;\n"
+		"	if (noexcept(Declared(1)) && sizeof(Declared('a')) == 1 && sizeof(Pick(1, 2L)) == sizeof(long)) r += 2;\n"
+		"	X x = f(1);\n"
+		"	if (x == 2 && f(2L) == 3 && sizeof(X) == sizeof(int)) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };
 
 

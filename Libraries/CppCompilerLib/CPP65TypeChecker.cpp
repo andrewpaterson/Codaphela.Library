@@ -1642,16 +1642,16 @@ SCPP65Type* CCPP65TypeChecker::CallThroughPointer(CCPPSyntaxCallExpression* pcCa
 //////////////////////////////////////////////////////////////////////////
 //
 // A call to pcFunction with papcArguments (NULL for none): its result.  An
-// instance of a member template that is only declared is called only where
-// the call isn't evaluated.
+// instance of a function template (or member template) that is only declared
+// is called only where the call isn't evaluated.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::Call(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
-	if (pcFunction->mpcTemplate && !pcFunction->mpcDefinition && pcFunction->mpcTemplate->mbMemberTemplate && !mpcUnit->IsUnevaluated())
+	if (pcFunction->mpcTemplate && !pcFunction->mpcDefinition && (pcFunction->mpcTemplate->mbMemberTemplate || !pcFunction->mpcTemplate->mbMember) && !mpcUnit->IsUnevaluated())
 	{
-		//A member template only declared can be named in sizeof and decltype, not called.  [basic.def.odr] 4
-		Error(pcNode, "The member template has not been defined");
+		//A template only declared can be named in sizeof and decltype, not called.  [basic.def.odr] 4
+		Error(pcNode, pcFunction->mpcTemplate->mbMemberTemplate ? "The member template has not been defined" : "The function template has not been defined");
 		return NULL;
 	}
 	if (!Arguments(&pcFunction->mapsParameters, &pcFunction->mapcDefaults, pcFunction->mbVariadic, papcArguments, pcNode, pcFunction->mpsReturn))

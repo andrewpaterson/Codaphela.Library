@@ -636,7 +636,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       the runtime's operator delete[], whatever the class declares.
     - A function declared by a typedef of its type (typedef int F(); F f;), at namespace scope or as a member (which
       is refused; it was miscompiled).
-    - new (int[3]), a parenthesised array type; c ? x : y that picks a bit-field to change.
+    - DONE 2026-11-20.  new (int[3]), a parenthesised array type.
+    - c ? x : y that picks a bit-field to change.
     - DONE 2026-11-20.  A member function pointer converted to a derived class's when the base isn't at its start
       (a pointer to a member function is the function's address and, above it, what its this is moved by).
     - DONE 2026-11-19.  The type checker took every named cast for a C cast, which was most of the invalid casts it
@@ -653,10 +654,15 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       f() = default; }; alone, typedef int Row[3]; Row f(); alone: DclDefaultedNotSpecialRefused,
       DclDefaultedWithDefaultArgumentRefused, DclFunctionReturnsArrayRefused, DclFunctionReturnsFunctionRefused).
       The rules are there and refuse them once they are used.
-    - A function template that is declared and not defined, or deleted, isn't kept as a template (CCPPUnit::
-      TemplateDeclaration keeps a FunctionDefinition's): a call of it in an operand that isn't evaluated is "The
-      function template has not been defined" (NoexceptOperatorRules), and a deleted template's instance isn't
-      chosen (DclDeletedTemplateInstanceRefused).
+    - DONE 2026-11-20 for one that is declared.  A function template that is declared and not defined wasn't kept
+      as a template (CCPPUnit::TemplateDeclaration kept a FunctionDefinition's): a call of it in an operand that
+      isn't evaluated was "The function template has not been defined" (NoexceptOperatorRules).  It is kept now
+      (CCPPUnit::DeclareFunctionTemplate, CCPPTemplate::IsFunction), its instances declarations, and its definition,
+      found by its parameters as they are written with its template parameters named by their place
+      (FunctionTemplateSignature), makes it the template defined (DefineFunctionTemplate).  Left: a call that is
+      evaluated before the definition is read is still refused; the default arguments of a declaration are lost
+      when the definition has none; an operator template only declared isn't kept.  A deleted template's instance
+      isn't chosen (DclDeletedTemplateInstanceRefused).
     - CCPPUnit::CheckFunction, the type checker's walk of a function's statements (CheckLocal, Initialise,
       Construct), runs only in the IDE's semantic pass.  A compile is the IR front end asking the checker for each
       expression's type, so what Construct refuses about a declaration, a copy or a reference's binding has to be

@@ -170,7 +170,22 @@ void CCPPTemplate::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 ECPPSyntax CCPPTemplate::DefinitionKind(void)
 {
-	return IsDeclaredClass() ? CPPS_ClassSpecifier : mpcDefinition->GetKind();
+	if (IsDeclaredClass())
+	{
+		return CPPS_ClassSpecifier;
+	}
+	return IsFunction() ? CPPS_FunctionDefinition : mpcDefinition->GetKind();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if it is a function template: defined, or only declared.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTemplate::IsFunction(void) const
+{
+	return mpcDefinition ? (mpcDefinition->GetKind() == CPPS_FunctionDefinition) : (mpcDeclarator != NULL);
 }
 
 
@@ -187,9 +202,9 @@ bool CCPPTemplate::IsDeclaredClass(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A function template's declarator: its definition's, or for a member
-// template only declared in its class (template<class U> static char
-// t(int U::*);), its declaration's there.
+// A function template's declarator: its definition's, or for one only
+// declared (template<class T> T Twice(T v); and in a class template<class U>
+// static char t(int U::*);), its declaration's.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxDeclarator* CCPPTemplate::FunctionDeclarator(void)
