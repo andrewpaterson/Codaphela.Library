@@ -874,6 +874,15 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       complete object), a base's found in its class's by BaseVTT, which the two loops each worked out.  Found
       doing it: a move assignment defaulted after its class copied the members (ImplicitCopy never said the
       source was going).  ClassVirtualBaseCopyDefaultedOutside, DclDefaultedOutsideMoves.
+    - 8, 9.  A member template called before its definition outside the class already worked; what didn't was
+      one whose declaration gives a default argument that names its template parameter (int Size(T t = T());):
+      CCPPUnit::DefineMemberTemplate gives the definition the declaration's defaults (DeclaredDefaultArguments,
+      as a function template's).  9 as it was written is ill-formed: only a function that isn't a template is
+      given default arguments by a later declaration ([dcl.fct.default] 4 and 6, [temp.expl.spec] 21; g++
+      refuses each).  They were accepted and ignored, or accepted and used: NoDefaultArguments refuses them at
+      the default argument - a function template's second declaration or its definition after a declaration, a
+      member template's or a class template's member's definition outside the class, an explicit
+      specialisation.  TempMemberTemplateDefinedLater, DclDefaultArgumentsOutsideClass and six Refused cases.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

@@ -509,6 +509,7 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 		if (pcName && pcName->IsQualifiedByClass() && !bExplicit)
 		{
 			//template<class M> M* CArrayTemplate<M>::Get(size iIndex) { ... }
+			NoDefaultArguments(pcFunction->mpcDeclarator, "A template's member is given its default arguments in its class");
 			pcClassName = pcName->GetQualifier();
 			pcOwnerTemplate = GetComponentTemplate(pcClassName);
 			if (pcOwnerTemplate && pcClassTemplate)
@@ -537,11 +538,13 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 		else if (pcName && pcName->IsQualifiedByClass() && bExplicit && !pcClassTemplate)
 		{
 			//template<> int S<char>::f() { ... }
+			NoDefaultArguments(pcFunction->mpcDeclarator, "An explicit specialisation is given no default argument");
 			MemberSpecialisation(pcFunction);
 		}
 		else if (pcName && (pcName->macpComponents.NumElements() == 1) && bExplicit && !pcClassTemplate)
 		{
 			//template<> int Size<char>(char c) { ... } and template<> int Size(short s) { ... }
+			NoDefaultArguments(pcFunction->mpcDeclarator, "An explicit specialisation is given no default argument");
 			Specialisation(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction, pcName->GetLast());
 		}
 		else if (pcName && !pcClassTemplate && !bExplicit && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator) || (pcName->GetLast()->meKind == CPPNC_Literal)))
@@ -550,6 +553,7 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 			pcTemplate = FindFunctionTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction->mpcDeclarator);
 			if (pcTemplate && !pcTemplate->mpcDefinition)
 			{
+				NoDefaultArguments(pcFunction->mpcDeclarator, "A function template is given its default arguments where it is first declared");
 				DefineFunctionTemplate(pcTemplate, pcTemplateDeclaration, pcFunction);
 			}
 			else
@@ -567,7 +571,9 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 // template<class T> T Twice(T v); declares a function template: its
 // instances are declarations (what sizeof, decltype and noexcept ask of a
 // call needs no more) until it is defined.  Declared again, or after its
-// definition, it is the same template.  [temp.fct], [basic.def.odr] 4
+// definition, it is the same template, and is given no more default
+// arguments: only a function that isn't a template is.  [temp.fct],
+// [basic.def.odr] 4, [dcl.fct.default] 4
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::DeclareFunctionTemplate(CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxSimpleDeclaration* pcSimple)
@@ -589,6 +595,7 @@ void CCPPUnit::DeclareFunctionTemplate(CCPPSyntaxTemplateDeclaration* pcDeclarat
 	}
 	if (FindFunctionTemplate(pcName->mpcSymbol, pcDeclaration, pcDeclarator))
 	{
+		NoDefaultArguments(pcDeclarator, "A function template is given its default arguments where it is first declared");
 		return;
 	}
 	pcTemplate = NewTemplate(pcName->mpcSymbol, pcDeclaration, NULL, false);
@@ -634,6 +641,32 @@ void CCPPUnit::DefineFunctionTemplate(CCPPTemplate* pcTemplate, CCPPSyntaxTempla
 		}
 	}
 	apcDeclared.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A declaration that may give no default argument (a template's after its
+// first, a template's member's outside its class, an explicit
+// specialisation's): szError at each it gives.  [dcl.fct.default] 4 and 6,
+// [temp.expl.spec] 21
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::NoDefaultArguments(CCPPSyntaxDeclarator* pcDeclarator, const char* szError)
+{
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	size						i;
+
+	pcSuffix = pcDeclarator->GetFunctionSuffix();
+	for (i = 0; pcSuffix && (i < pcSuffix->macpParameters.NumElements()); i++)
+	{
+		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
+		if ((pcParameter->GetKind() == CPPS_Parameter) && pcParameter->mpcDefault)
+		{
+			Error(pcParameter->mpcDefault, szError);
+		}
+	}
 }
 
 
@@ -2373,6 +2406,7 @@ ECPPRefQualifier CCPPUnit::RefQualifier(CCPPSyntaxFunctionSuffix* pcSuffix)
 // definition with its name and parameters (and its template parameters, which the
 // definition uses): the one whose parameters are written the same, as overloads
 // that differ only in their parameters' types are, or else the first with as many.
+// The default arguments are the declaration's (DeclaredDefaultArguments).
 // One with no definition stays only declared (its declarator and specifiers in the
 // class: CCPPTemplate::FunctionDeclarator), as SFINAE's test functions are.
 //
@@ -2437,6 +2471,7 @@ bool CCPPUnit::DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode
 		//Only declared: its instances are declarations, which only a call needs defined (CCPP65TypeChecker::Call).
 		return true;
 	}
+	DeclaredDefaultArguments(pcTemplate->mpcDeclaration, pcTemplate->mpcDeclarator, pcFound->mpcDeclaration, ((CCPPSyntaxFunctionDefinition*)pcFound->mpcDefinition)->mpcDeclarator);
 	pcTemplate->mpcDeclaration = pcFound->mpcDeclaration;
 	pcTemplate->mpcDefinition = pcFound->mpcDefinition;
 	pcTemplate->mpcClassDeclaration = pcFound->mpcClassDeclaration;

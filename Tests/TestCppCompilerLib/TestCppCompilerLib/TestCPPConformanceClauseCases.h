@@ -7989,6 +7989,45 @@ static const SConformanceCase gasConformanceClause8[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//8.3.6 [dcl.fct.default] p4, p6: a member function's definition outside its class adds default arguments; a member template's and a class template's member's have the ones their class gave
+	{
+		"DclDefaultArgumentsOutsideClass", 118,
+		"struct S { int F(int a, int b); template<class T> T G(T a, T b = T(2)); };\n"
+		"int S::F(int a, int b = 2) { return a + b; }\n"
+		"template<class T> T S::G(T a, T b) { return a + b; }\n"
+		"template<class C> struct W { int F(int a, int b = 3); };\n"
+		"template<class C> int W<C>::F(int a, int b) { return a + b; }\n"
+		"int main() { S s; W<int> w; return s.F(1) + s.G(10) + w.F(100); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p4: only a function that isn't a template is given default arguments by a later declaration
+	{
+		"DclDefaultArgumentAddedToTemplateRefused", CONFORMANCE_REFUSED,
+		"template<class T> T Add(T a, T b) { return a + b; }\n"
+		"template<class T> T Add(T a, T b = T(4));\n"
+		"int main() { return Add(5); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p4: nor by a second declaration before its definition
+	{
+		"DclDefaultArgumentAddedBeforeDefinitionRefused", CONFORMANCE_REFUSED,
+		"template<class T> T Add(T a, T b);\n"
+		"template<class T> T Add(T a, T b = T(4));\n"
+		"template<class T> T Add(T a, T b) { return a + b; }\n"
+		"int main() { return Add(5); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p4, p6: a member template's definition outside its class adds none
+	{
+		"DclDefaultArgumentMemberTemplateOutsideRefused", CONFORMANCE_REFUSED,
+		"struct S { template<class T> static T Mul(T a, T b); };\n"
+		"template<class T> T S::Mul(T a, T b = T(3)) { return a * b; }\n"
+		"int main() { return S::Mul(4); }\n"
+	},
+	//8.3.6 [dcl.fct.default] p6: a class template's member function is given its default arguments in the class
+	{
+		"DclDefaultArgumentClassTemplateMemberOutsideRefused", CONFORMANCE_REFUSED,
+		"template<class C> struct W { int F(int a, int b); template<class T> T G(T a, T b); };\n"
+		"template<class C> int W<C>::F(int a, int b = 2) { return a + b; }\n"
+		"int main() { W<int> w; return w.F(1); }\n"
+	},
 };
 
 
@@ -8489,5 +8528,56 @@ static const SConformanceCase gasConformanceClause14[] =
 		"	if (j.v == 1 && k.v == 100 && l.v == 1) r += 64;\n"
 		"	return r;\n"
 		"}\n"
+	},
+	//14.5.2 [temp.mem] p1, 14.6.4.1 [temp.point] p8, 8.3.6 [dcl.fct.default] p4: a member template is called where it is only declared, in its class and after it, and defined outside the class later, with the default arguments its declaration gave it (which name its template parameter)
+	{
+		"TempMemberTemplateDefinedLater", 31,
+		"struct S\n"
+		"{\n"
+		"	int v;\n"
+		"	template<class T> T Twice(T t);\n"
+		"	template<class T> static T Half(T t);\n"
+		"	template<class T> int Size(T t = T());\n"
+		"	template<class T> static int Count(T t, int n = sizeof(T));\n"
+		"	int Early() { return Twice(2) + Half(8) * 10 + Size<char>() * 100; }\n"
+		"};\n"
+		"template<class C> struct W\n"
+		"{\n"
+		"	C c;\n"
+		"	template<class T> T Add(T t);\n"
+		"	int Early() { return Add(3); }\n"
+		"};\n"
+		"int Before(S& s) { return s.Twice(5) + S::Half(6); }\n"
+		"template<class U> U S::Twice(U u) { return u * 2 + v; }\n"
+		"template<class U> U S::Half(U u) { return u / 2; }\n"
+		"template<class U> int S::Size(U u) { return (int)sizeof(U) + (int)u; }\n"
+		"template<class U> int S::Count(U u, int n) { return n + (int)u; }\n"
+		"template<class C> template<class T> T W<C>::Add(T t) { return t + c; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s; s.v = 1;\n"
+		"	W<int> w; w.c = 10;\n"
+		"	if (s.Early() == 5 + 40 + 100) r += 1;\n"
+		"	if (Before(s) == 11 + 3) r += 2;\n"
+		"	if (w.Early() == 13 && w.Add('a') == 'a' + 10) r += 4;\n"
+		"	if (s.Twice(3L) == 7 && sizeof(s.Twice('c')) == 1) r += 8;\n"
+		"	if (S::Count('a') == 'a' + 1 && S::Count(2L) == sizeof(long) + 2 && S::Count(2, 5) == 7 && s.Size(3L) == sizeof(long) + 3) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.7.3 [temp.expl.spec] p21: an explicit specialisation of a function template is given no default argument
+	{
+		"TempExplicitSpecialisationDefaultArgumentRefused", CONFORMANCE_REFUSED,
+		"template<class T> int Size(T t) { return sizeof(T); }\n"
+		"template<> int Size<char>(char c = 'a') { return 7; }\n"
+		"int main() { return Size('c'); }\n"
+	},
+	//14.7.3 [temp.expl.spec] p21: nor is one of a class template's member function
+	{
+		"TempMemberSpecialisationDefaultArgumentRefused", CONFORMANCE_REFUSED,
+		"template<class C> struct W { int F(int a); };\n"
+		"template<> int W<char>::F(int a = 2) { return a; }\n"
+		"int main() { W<char> w; return w.F(1); }\n"
 	},
 };
