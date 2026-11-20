@@ -69,16 +69,29 @@ protected:
 };
 
 
-//One try at a class template's specialisation: whether its pattern (X<T*, int>) matches the arguments an
-//instance is wanted for, and if so what its own parameters are (GetDeduced) and how special it is (GetScore: the
+//A pattern whose type can only be worked out once the specialisation's parameters are known, and the argument it
+//must then be.
+struct SCPPDeferredPattern
+{
+	CCPPSyntax*	pcPattern;
+	SCPP65Type*	psArgument;
+};
+
+
+typedef CArrayTemplate<SCPPDeferredPattern>	CArrayCPPDeferredPatterns;
+
+
+//One try at a template's specialisation: whether its pattern (X<T*, int>) matches the arguments an instance is
+//wanted for, and if so what its own parameters are (GetDeduced) and how special it is (GetScore: the
 //specialisation with the highest score that matches is the one used).  [temp.class.spec.match]
 class CCPPSpecialisationMatch
 {
 protected:
-	CCPPUnit*		mpcUnit;
-	CCPPTemplate*			mpcSpecialisation;
-	CCPPTemplateArguments*	mpcDeduced;		//The specialisation's parameters, deduced as its pattern is matched.  The unit's.
-	int						miScore;
+	CCPPUnit*					mpcUnit;
+	CCPPTemplate*				mpcSpecialisation;
+	CCPPTemplateArguments*		mpcDeduced;		//The specialisation's parameters, deduced as its pattern is matched.  The unit's.
+	CArrayCPPDeferredPatterns	masDeferred;
+	int							miScore;
 
 public:
 	void					Init(CCPPUnit* pcUnit, CCPPTemplate* pcSpecialisation);
@@ -90,11 +103,20 @@ public:
 
 protected:
 	bool					MatchPattern(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments);
-	bool					MatchType(CCPPSyntaxTypeId* pcPattern, SCPPBinding* psArgument);
+	bool					MatchArguments(CArraySyntax* papcPattern, CArrayCPPBindings* pasArguments);
+	bool					MatchType(CCPPSyntax* pcPattern, SCPP65Type* psArgument);
+	bool					MatchDeclarator(CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type** ppsType);
+	bool					MatchPointer(CCPPSyntaxPointerOperator* pcOperator, SCPP65Type* psType);
+	bool					MatchClass(CCPPSyntaxName* pcName, CCPPClass* pcClass);
+	bool					MatchFunction(CCPPSyntaxFunctionSuffix* pcSuffix, SCPP65Type* psType);
 	bool					MatchBound(CCPPSyntax* pcSize, int iCount);
+	bool					MatchDeferred(void);
+	bool					Deduce(SCPPBinding* psBinding, SCPP65Type* psType);
 	void					FlattenArguments(CCPPTemplateArguments* pcArguments, CArrayCPPBindings* pasArguments);
+	bool					PatternParts(CCPPSyntax* pcPattern, CCPPSyntaxDeclSpecifiers** ppcSpecifiers, CCPPSyntaxDeclarator** ppcDeclarator);
 	bool					IsPackExpansion(CCPPSyntax* pcPattern);
 	SCPPBinding*			ExpandedParameter(CCPPSyntax* pcPattern);
+	CCPPSyntaxNamedTypeSpecifier*	NamedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					MatchPack(SCPPBinding* psPack, CArrayCPPBindings* pasArguments, size uiFirst);
 };
 
