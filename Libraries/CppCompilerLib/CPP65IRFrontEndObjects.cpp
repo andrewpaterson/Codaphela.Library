@@ -2014,6 +2014,8 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 				//object++ and object--: the object's operator with an int 0.  [over.inc] 1
 				return OperatorExpression(((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand, mpcUnit->ImplicitZero(), psValue);
 			}
+			//++object and --object are the object's operator, as -object is.
+			//Falls through.
 		case CT_Subtract:
 		case CT_Add:
 		case CT_BitwiseNot:

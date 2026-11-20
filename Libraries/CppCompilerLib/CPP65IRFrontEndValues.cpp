@@ -1314,6 +1314,8 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			psPlace->psType = mpcUnit->StringArrayType(pcExpression);
 			return true;
 		}
+		//A string with a suffix is its literal operator's call, as a number with one is.
+		//Falls through.
 	case CPPS_CallExpression:
 	case CPPS_LiteralExpression:
 		//What a call (or a user-defined literal's) that returns a reference refers to, or the object it makes.
