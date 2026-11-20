@@ -227,6 +227,7 @@ public:
 	bool	SameParameters(CCPPFunction* pcOther);
 	bool	Overrides(CCPPFunction* pcVirtual);
 	bool	TakesObject(ECPPCalledObject eObject);
+	bool	IsCopy(void);
 	int		QualifiersAdded(ECPPCalledObject eObject);
 	bool	IsUnitFunction(void) const;
 	void	SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition);

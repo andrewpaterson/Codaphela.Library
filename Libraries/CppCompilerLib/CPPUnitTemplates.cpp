@@ -1975,7 +1975,9 @@ CCPPFunction* CCPPUnit::InstanceOfFunction(CCPPTemplate* pcTemplate, CCPPTemplat
 	}
 	if (pcFunction)
 	{
-		pcFunction->mpcDefinition = pcDefinition;
+		//template<class T> int Exact(T) = delete;: each instance is deleted.  [dcl.fct.def.delete]
+		pcFunction->mbDeleted = pcDefinition && (pcDefinition->meBody == CPPFB_Delete);
+		pcFunction->mpcDefinition = pcFunction->mbDeleted ? NULL : pcDefinition;
 		pcFunction->mpcBindings = pcBindings;
 		pcFunction->mbInline = true;
 		pcFunction->mbStatic |= pcTemplate->mbStatic;

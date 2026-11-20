@@ -222,6 +222,7 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	CChars					szLabel;
 	CCPPSyntaxTryStatement*	pcTry;
 	bool					bResult;
+	bool					bCopy;
 
 	szLabel.Init();
 	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction, mbBaseVersion);
@@ -237,13 +238,14 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	//itself).  What it fails to work out comes back as NULL, which the front end doesn't support; quiet errors from
 	//its own probing (UsesFloat ...) are not failures.
 	mpcUnit->BeginQuiet();
+	bCopy = pcFunction->mbImplicit && pcFunction->IsCopy();
 	bResult = Parameters() && Locals();
 	pcTry = (pcFunction->mpcDefinition && pcFunction->mpcDefinition->mpcBody && (pcFunction->mpcDefinition->mpcBody->GetKind() == CPPS_TryStatement)) ? (CCPPSyntaxTryStatement*)pcFunction->mpcDefinition->mpcBody : NULL;
 	if (pcTry)
 	{
 		bResult = bResult && FunctionTryBlock(pcFunction, pcTry);
 	}
-	else if (bResult && (pcFunction->meKind == CPPFK_Constructor))
+	else if (bResult && (pcFunction->meKind == CPPFK_Constructor) && !bCopy)
 	{
 		bResult = ConstructorStart(pcFunction->mpcDefinition);
 	}
@@ -267,6 +269,10 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	{
 		bResult = bResult && DeletingDestructor(pcFunction->mpcClass);
 	}
+	else if (bCopy)
+	{
+		bResult = bResult && ImplicitCopy(pcFunction);
+	}
 	else
 	{
 		bResult = bResult && (!pcFunction->mpcDefinition || Statement(pcFunction->mpcDefinition->mpcBody)) && DestroyLiving(0);
@@ -282,6 +288,49 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	bResult = FinishWriting(bResult, szLabel.Text());
 	szLabel.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The body of a copy constructor or a copy assignment that is defaulted
+// after its class (S::S(const S&) = default;), which other units, and what
+// this one wrote before, call: its parameter's object is copied to this as
+// the compiler copies one of a class that declares neither (its bytes, the
+// parts that have copy functions of their own by them, and for a constructor
+// its vtable pointers), and an assignment gives *this.  One of a class with
+// virtual bases isn't written.  [class.copy] 12, 15, 28
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ImplicitCopy(CCPPFunction* pcFunction)
+{
+	CCPPClass*		pcClass;
+	SCPP65IRPlace	sThis;
+	SCPP65IRPlace	sFrom;
+	SIRReference	sAddress;
+
+	pcClass = pcFunction->mpcClass;
+	if (pcClass->HasVirtualBases())
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+
+	//Its one parameter, a reference, is the function's last.
+	sAddress = mpcFunction->Add(mpcBlock, IRO_ArgAddress, IRType(IRTK_Pointer), mpcFunction->AddInteger(IRType(IRTK_I32), (int64)mpcFunction->masParameters.NumElements() - 1));
+	sFrom.sAddress = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), sAddress);
+	sFrom.psType = pcClass->mpsType;
+	sThis.sAddress = msThis;
+	sThis.psType = pcClass->mpsType;
+	if (pcFunction->meKind == CPPFK_Constructor)
+	{
+		return CopyPlace(&sThis, &sFrom, &sAddress) && CopyParts(pcClass, msThis, sAddress, false, NULL, 0) && StoreVtables(msThis, pcClass);
+	}
+	if (!AssignParts(pcClass, msThis, sFrom.sAddress, false, true))
+	{
+		return false;
+	}
+	mpcBlock->Return(IRType(IRTK_Pointer), msThis);
+	return Terminated();
 }
 
 

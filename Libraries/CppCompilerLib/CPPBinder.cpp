@@ -122,6 +122,13 @@ bool CCPPBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, 
 	if (pcBound->mpapcArguments)
 	{
 		Resolve(pcCall, pcBound);
+		if ((pcBound->meHow != CPPBC_Failed) && pcBound->mpcFunction && pcBound->mpcFunction->mbDeleted && pcBound->mpcFunction->mpcTemplate)
+		{
+			//A deleted function template's instance was the best match (one that is no template's is refused where it
+			//is chosen, CCPPOverloads::FindFunction).  [dcl.fct.def.delete] 2
+			mpcUnit->Error(pcCall, "The function chosen is deleted");
+			pcBound->meHow = CPPBC_Failed;
+		}
 		CheckAccess(pcBound, pcCall);
 	}
 	else

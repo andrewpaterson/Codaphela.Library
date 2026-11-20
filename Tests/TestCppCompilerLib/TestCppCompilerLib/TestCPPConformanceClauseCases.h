@@ -7366,4 +7366,28 @@ static const SConformanceCase gasConformanceClause8[] =
 		"DclDefaultArgumentStaticLocalRefused", CONFORMANCE_REFUSED,
 		"int main() { static int s = 2; struct L { static int f(int a = s) { return a; } }; return L::f(); }\n"
 	},
+	//8.4.2 [dcl.fct.def.default] p5, 12.8 [class.copy]: a copy constructor and a copy assignment defaulted after their class are functions, called by what was written before
+	{
+		"DclDefaultedOutsideClass", 7,
+		"int gCopies = 0;\n"
+		"struct M { int v; M() : v(1) { } M(const M& o) : v(o.v) { gCopies++; } M& operator=(const M& o) { v = o.v; gCopies += 10; return *this; } };\n"
+		"struct S { M m; int n; S(); S(const S&); S& operator=(const S&); virtual int f() { return 1; } };\n"
+		"int CopyEarly(const S& s) { S t = s; return t.m.v + t.n; }\n"
+		"S::S() : n(2) { }\n"
+		"S::S(const S&) = default;\n"
+		"S& S::operator=(const S&) = default;\n"
+		"int main()\n"
+		"{\n"
+		"	S a;\n"
+		"	a.m.v = 5;\n"
+		"	int r = 0;\n"
+		"	if (CopyEarly(a) == 7 && gCopies == 1) r += 1;\n"
+		"	S b;\n"
+		"	S& same = (b = a);\n"
+		"	if (b.m.v == 5 && b.n == 2 && gCopies == 11 && b.f() == 1 && &same == &b) r += 2;\n"
+		"	S c = b;\n"
+		"	if (c.m.v == 5 && c.n == 2 && gCopies == 12 && c.f() == 1) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };

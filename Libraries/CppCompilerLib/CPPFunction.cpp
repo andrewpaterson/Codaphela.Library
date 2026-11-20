@@ -183,6 +183,26 @@ bool CCPPFunction::TakesObject(ECPPCalledObject eObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether it is its class's copy (or move) constructor or assignment: a
+// constructor or operator= whose one parameter is a reference to the class.
+// [class.copy] 2, 17
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunction::IsCopy(void)
+{
+	SCPP65Type*	psParameter;
+
+	if (!mpcClass || (mapsParameters.NumElements() != 1) || !((meKind == CPPFK_Constructor) || ((meKind == CPPFK_Function) && (mlliName == CPP_OPERATOR_NAME(CT_Assignment)))))
+	{
+		return false;
+	}
+	psParameter = mapsParameters.GetPtr(0);
+	return psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->pcClass == mpcClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // How many of const and volatile a member function's this has that the
 // object it is called on (eObject) hasn't: of two functions that take the
 // object, the one that adds fewer is the better.  [over.ics.rank] 3
@@ -229,8 +249,9 @@ bool CCPPFunction::IsUnitFunction(void) const
 //////////////////////////////////////////////////////////////////////////
 void CCPPFunction::SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition)
 {
-	if ((pcDefinition->meBody == CPPFB_Default) && (meKind != CPPFK_Function))
+	if ((pcDefinition->meBody == CPPFB_Default) && ((meKind != CPPFK_Function) || IsCopy()))
 	{
+		//A copy assignment's too, defaulted after its class (in the class it isn't declared: = does what it would).
 		mbImplicit = true;
 		mbDefined = true;
 		return;

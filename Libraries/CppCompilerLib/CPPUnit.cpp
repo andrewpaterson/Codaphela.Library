@@ -3718,9 +3718,9 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 
 	if (pcFunction->mbImplicit)
 	{
-		//An implicit default constructor, an inherited one or a destructor.
+		//An implicit default constructor, an inherited one or a destructor, or a copy defaulted after its class.
 		BeginFunction(pcFunction);
-		if (((pcFunction->mapsParameters.NumElements() != 0) && !pcFunction->mpcInherited) || !WriteBody(pcFunction))
+		if (((pcFunction->mapsParameters.NumElements() != 0) && !pcFunction->mpcInherited && !pcFunction->IsCopy()) || !WriteBody(pcFunction))
 		{
 			szLabel.Init("An implicit copy constructor or assignment (or one the IR front end can't write) is not supported on this target yet: ");
 			mcMangler.AppendFunctionLabel(&szLabel, pcFunction);

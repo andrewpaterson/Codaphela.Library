@@ -80,8 +80,8 @@ static const SConformanceGroup gasConformanceGroups[] =
 		"ConstantInactiveUnionMemberRefused(A) ",
 		""),
 	CONFORMANCE_GROUP(Clause8,
-		"DclFunctionReturnsArrayRefused(A) DclFunctionReturnsFunctionRefused(A) DclDefaultedAndDeleted(C) DclDeletedTemplateInstanceRefused(A) DclDefaultedNotSpecialRefused(A) DclDefaultedWithDefaultArgumentRefused(A) DclAggregates(C) ",
-		"DclFunctionReturnsArrayRefused(A) DclFunctionReturnsFunctionRefused(A) DclDefaultedAndDeleted(C) DclDeletedTemplateInstanceRefused(A) DclDefaultedNotSpecialRefused(A) DclDefaultedWithDefaultArgumentRefused(A) DclAggregates(C) "),
+		"DclFunctionReturnsArrayRefused(A) DclFunctionReturnsFunctionRefused(A) DclDefaultedNotSpecialRefused(A) DclDefaultedWithDefaultArgumentRefused(A) DclAggregates(C) ",
+		"DclFunctionReturnsArrayRefused(A) DclFunctionReturnsFunctionRefused(A) DclDefaultedNotSpecialRefused(A) DclDefaultedWithDefaultArgumentRefused(A) DclAggregates(C) "),
 };
 
 
