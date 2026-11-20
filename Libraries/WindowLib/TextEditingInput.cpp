@@ -54,6 +54,7 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 	muiDrop = 0;
 	mbDropRowEnd = false;
 	mpcUndoPresser = NULL;
+	mpcEnterPresser = NULL;
 
 	uiFirst = pcComponent->NumInputActions();
 	AddActions(pcComponent, pcEditing, bMultiLine);
@@ -133,9 +134,9 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 
 	pcComponent->AddInputAction(CIC_Tab, this, &CTextEditingInput::TabAction);
 	pcComponent->AddInputAction(CIC_BackTab, pcEditing, &CTextEditing::BackTab);
-	pcComponent->AddInputAction(CIC_Enter, pcEditing, &CTextEditing::Enter);
+	pcComponent->AddInputAction(CIC_Enter, this, &CTextEditingInput::EnterAction);
 	pcComponent->AddInputAction(CIC_HomeEnter, pcEditing, &CTextEditing::HomeEnter);
-	pcComponent->AddInputAction(CIC_EndEnter, pcEditing, &CTextEditing::EndEnter);
+	pcComponent->AddInputAction(CIC_EndEnter, this, &CTextEditingInput::EndEnterAction);
 	pcComponent->AddInputAction(CIC_Duplicate, pcEditing, &CTextEditing::Duplicate);
 	pcComponent->AddInputAction(CIC_DeleteLine, pcEditing, &CTextEditing::DeleteLine);
 }
@@ -227,6 +228,18 @@ void CTextEditingInput::TabAction(SComponentInputEvent* psEvent) { mpcEditing->T
 void CTextEditingInput::UndoAction(void) { if (mpcUndoPresser != NULL) { mpcUndoPresser->PressUndo(false); } else { mpcEditing->Undo(); } }
 void CTextEditingInput::RedoAction(void) { if (mpcUndoPresser != NULL) { mpcUndoPresser->PressUndo(true); } else { mpcEditing->Redo(); } }
 void CTextEditingInput::SetUndoPresser(CTextUndoPresser* pcPresser) { mpcUndoPresser = pcPresser; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Enter is a line feed at the caret and Enter at Line End (Shift+Enter)
+// starts a line after the caret's.  With an enter presser Enter goes to
+// it, and Enter at Line End is the line feed at the caret.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::EnterAction(void) { if (mpcEnterPresser != NULL) { mpcEnterPresser->PressEnter(); } else { mpcEditing->Enter(); } }
+void CTextEditingInput::EndEnterAction(void) { if (mpcEnterPresser != NULL) { mpcEditing->Enter(); } else { mpcEditing->EndEnter(); } }
+void CTextEditingInput::SetEnterPresser(CTextEnterPresser* pcPresser) { mpcEnterPresser = pcPresser; }
 
 
 //////////////////////////////////////////////////////////////////////////

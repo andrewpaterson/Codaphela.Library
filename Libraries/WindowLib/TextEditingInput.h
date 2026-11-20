@@ -56,6 +56,15 @@ public:
 };
 
 
+//What enter goes to instead of the editing, if it's set (CTextEditingInput::SetEnterPresser): a text whose enter sends
+//what was typed, as a request's box does, rather than starting a line.
+class CTextEnterPresser
+{
+public:
+	virtual void	PressEnter(void) = 0;
+};
+
+
 //The input actions that edit a text (CTextArea, CTextField): the keys, given as commands, go to the text's
 //CTextEditing; the pointer puts the caret and selects; cut, copy and paste use the window's clipboard.  Paste from
 //History (Control+Shift+V, as IntelliJ IDEA's) asks the clipboard's history's chooser which of the texts copied
@@ -72,7 +81,8 @@ public:
 //dragged stays where it is, selected; any other drag's selection is cleared.  Shift+Alt (or Alt)
 //and button one drag a box selection (StartDragBox); Shift+Alt and the arrows, Home and End move its corner.  A single
 //line text has no up and down, pages, tabs, line feeds or line commands.  The pointer's actions can be turned off (a
-//text that can't be selected), so its presses go on to the parent.
+//text that can't be selected), so its presses go on to the parent.  With an enter presser (SetEnterPresser) Enter
+//goes to it, and Enter at Line End (Shift+Enter) is the line feed at the caret that Enter was.
 class CTextEditingInput
 {
 protected:
@@ -89,6 +99,7 @@ protected:
 	size					muiDrop;  //Where the dragged text would be dropped.
 	bool					mbDropRowEnd;
 	CTextUndoPresser*		mpcUndoPresser;  //Not held, NULL for undo straight to the editing.
+	CTextEnterPresser*		mpcEnterPresser;  //Not held, NULL for enter as a line feed.
 
 public:
 	void	Init(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
@@ -97,6 +108,7 @@ public:
 	void	SetPointerEnabled(bool bEnabled);
 	void	SetTextDragEnabled(bool bEnabled);
 	void	SetUndoPresser(CTextUndoPresser* pcPresser);
+	void	SetEnterPresser(CTextEnterPresser* pcPresser);
 	bool	GetDropPosition(size* puiPosition, bool* pbRowEnd);
 	void	FocusLost(void);
 
@@ -105,6 +117,8 @@ public:
 	void	TabAction(SComponentInputEvent* psEvent);
 	void	UndoAction(void);
 	void	RedoAction(void);
+	void	EnterAction(void);
+	void	EndEnterAction(void);
 	void	CutToClipboard(void);
 	void	CopyToClipboard(void);
 	void	PasteFromClipboard(void);

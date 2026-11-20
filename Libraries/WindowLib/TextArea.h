@@ -82,7 +82,7 @@ typedef CComponentValueEvent<CTextArea, char*>				CTextAreaMessageEvent;  //What
 //
 //The moves and edits themselves (Up, SelectRight, Printable, Paste ...) are the editing's: GetEditing gives it, and the
 //input actions reach it directly.  The text area has only what it adds to them: the text, its layout and what is drawn.
-class CTextArea : public CCanvas, public CTextEditingView, public CTextUndoPresser, public CRevealingUndoHost
+class CTextArea : public CCanvas, public CTextEditingView, public CTextUndoPresser, public CRevealingUndoHost, public CTextEnterPresser
 {
 CONSTRUCTABLE(CTextArea);
 DESTRUCTABLE(CTextArea);
@@ -118,6 +118,7 @@ protected:
 	CTextUndoPresser*			mpcUndoPresser;  //Not held: what the undo keys go to, NULL for the editing.
 	CTextAreaMessageEvent		mcUndoMessageEvent;
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
+	CComponentEvent<CTextArea>	mcEntered;  //Called by enter, if SetEnterEvent.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont> pWhiteFont, const char* szText);
@@ -152,6 +153,9 @@ public:
 	bool						DoUndo(bool bRedo) override;
 	void						AppendUndoWhere(bool bRedo, CChars* pszDest) override;
 	CComponentEvent<CTextArea>*	GetChangeEvent(void);
+	void						SetEnterEvent(bool bEnterEvent);
+	CComponentEvent<CTextArea>*	GetEnterEvent(void);
+	void						PressEnter(void) override;
 	void						SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>					GetFont(void);
 	int32						GetTabPixels(void);

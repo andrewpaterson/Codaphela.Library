@@ -99,6 +99,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mpcUndoPresser = NULL;
 	mcUndoMessageEvent.Init();
 	mcChanged.Init();
+	mcEntered.Init();
 	mbSelectable = true;
 
 	//The text is drawn over whatever is behind the text area.
@@ -134,6 +135,7 @@ void CTextArea::Free(void)
 	mcBands.Kill();
 	mcShapes.Kill();
 	mcBackgrounds.Kill();
+	mcEntered.Kill();
 	mcChanged.Kill();
 	mcUndoEvent.Kill();
 	mcUndoMessageEvent.Kill();
@@ -160,6 +162,7 @@ void CTextArea::Class(void)
 	U_Pointer(mpcUndoPresser);
 	U_Unknown(CTextAreaMessageEvent, mcUndoMessageEvent);
 	U_Unknown(CComponentEvent<CTextArea>, mcChanged);
+	U_Unknown(CComponentEvent<CTextArea>, mcEntered);
 	M_Pointer(mpLayout);
 	M_Pointer(mpMaps);
 	M_Pointer(mpBackgroundMap);
@@ -1243,6 +1246,30 @@ bool CTextArea::WantsEnter(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// With bEnterEvent Enter calls the enter event (GetEnterEvent) rather
+// than starting a line, and Enter at Line End (Shift+Enter) is the line
+// feed at the caret: a box whose text Enter sends, as a request's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetEnterEvent(bool bEnterEvent)
+{
+	mcInput.SetEnterPresser(bEnterEvent ? this : NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Enter was pressed in a text area with an enter event.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::PressEnter(void)
+{
+	mcEntered.Call(this);
+}
+
+
 const char* CTextArea::GetKeyContext(void) { return COMPONENT_INPUT_EDITOR_CONTEXT; }  //The keys an application has bound in the Editor context, outside of a dialog.
 bool CTextArea::TakesTyping(void) { return true; }
 
@@ -1614,6 +1641,7 @@ void CTextArea::AppendUndoWhere(bool bRedo, CChars* pszDest)
 		pszDest->Append((int64)FindLine(uiCaret) + 1);
 	}
 }
+CComponentEvent<CTextArea>* CTextArea::GetEnterEvent(void) { return &mcEntered; }  //Called by enter in place of a line feed, if SetEnterEvent.
 CComponentEvent<CTextArea>* CTextArea::GetChangeEvent(void) { return &mcChanged; }  //Called after each edit (undo and redo too), with the text laid out again.
 
 

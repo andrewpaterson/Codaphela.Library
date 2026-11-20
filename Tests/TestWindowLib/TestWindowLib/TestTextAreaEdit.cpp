@@ -1562,6 +1562,91 @@ void TestTextAreaEditUndoEvent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Counts a text area's enter event.
+//
+//////////////////////////////////////////////////////////////////////////
+class CTestEnterListener
+{
+public:
+	int		miEntered;
+
+	void Init(void) { miEntered = 0; }
+	void Entered(CTextArea* pcTextArea) { miEntered++; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Enter is a line feed at the caret and Enter at Line End starts a line
+// after the caret's.  With the enter event (SetEnterEvent) Enter calls it
+// and changes nothing, and Enter at Line End is the line feed at the
+// caret; without it again they are as they were.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditEnterEvent(void)
+{
+	STestWindow		cWindow;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextArea>				pTextArea;
+		CTestEnterListener			cListener;
+
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abcd");
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pTextArea);
+		cListener.Init();
+		pTextArea->GetEnterEvent()->Add(&cListener, &CTestEnterListener::Entered);
+
+		pTextArea->SetCaretPosition(2);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertString("ab\ncd", pTextArea->GetText());
+		AssertInt(3, (int)pTextArea->GetCaretPosition());
+		pTextArea->SetCaretPosition(1);
+		pTestWindow->InputCommand(CIC_EndEnter, true);
+		AssertString("ab\n\ncd", pTextArea->GetText());
+		AssertInt(3, (int)pTextArea->GetCaretPosition());
+		AssertInt(0, cListener.miEntered);
+
+		pTextArea->SetText("abcd");
+		pTextArea->SetEnterEvent(true);
+		AssertTrue(pTextArea->WantsEnter());
+		pTextArea->SetCaretPosition(2);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertString("abcd", pTextArea->GetText());
+		AssertInt(2, (int)pTextArea->GetCaretPosition());
+		AssertInt(1, cListener.miEntered);
+		pTestWindow->InputCommand(CIC_EndEnter, true);
+		AssertString("ab\ncd", pTextArea->GetText());
+		AssertInt(3, (int)pTextArea->GetCaretPosition());
+		AssertInt(1, cListener.miEntered);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertString("ab\ncd", pTextArea->GetText());
+		AssertInt(2, cListener.miEntered);
+
+		pTextArea->SetEnterEvent(false);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertString("ab\n\ncd", pTextArea->GetText());
+		AssertInt(2, cListener.miEntered);
+
+		pTextArea->GetEnterEvent()->Remove(&cListener);
+		pTextArea = NULL;
+		pFill = NULL;
+		pTestWindow = NULL;
+	}
+
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A rename's places in a file replaced as one edit: one undo puts them
 // all back.  Ranges out of order, or in a text area that isn't editable,
 // change nothing.
@@ -2411,6 +2496,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditModification();
 	TestTextAreaEditUndo();
 	TestTextAreaEditUndoEvent();
+	TestTextAreaEditEnterEvent();
 	TestTextAreaEditReplaceRanges();
 	TestTextAreaEditDragText();
 	TestTextAreaEditKeysScroll();
