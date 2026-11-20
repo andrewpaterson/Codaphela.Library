@@ -560,6 +560,54 @@ Each ends with the whole of TestCppCompilerLib passing in Release x64 and a comm
      - nothrow across the whole program: a virtual function none of whose overriders throws
      - the option stays off by default (the user); what turning it on costs a program, in size and in time, goes in the website's page so that a program can decide
 
+     Planned 2026-11-20, after the user: "I don't use exceptions so I'll not be turning them on.  i.e. Make them fast
+     if needed but I'm not fussed."  So what is firm in this stage is that the option off costs nothing (not a byte
+     changes) and that the cost of the option on is measured and written down; the speed-ups are only done where the
+     numbers ask for them and the change is small, and none is done for its own sake.
+
+     9a. A baseline in D:\gameengine.  Stage 8's measurements were taken in the worktree, whose longer path makes every
+         __FILE__ string 11 bytes longer, so they aren't the baseline any more.  The six Lib65 runs again, with the option
+         off and on (CompilerMeasure.py --serial, and --exceptions), from D:\gameengine, kept in
+         D:\gameengine\ExceptionsMeasures\Stage9Before.  Each later step is proven against it: off, every program's bytes
+         and cycles the same; on, every suite passing.  Run when the other session's sweep isn't (Sweep.pause), the
+         suites one program at a time if memory is short (TEST_PROJECT65_RUNS=1): its runs have been stopped for low
+         memory three times.
+
+     9b. The cost, measured.  For each suite and processor, the option on against off: bytes and cycles, with the ten
+         programs that pay most, and what in them pays (listings of one or two units: the tests after calls, the
+         landing blocks, the forwarders that are no longer jmls).  And the two figures the plan named:
+         - TestCPP816ArrayLayers' 6144, with the option on (a one-off build of its program; it leans on forwarders, which
+           a tested call stops being when the call isn't to a function of the same unit).
+         - The kernal's ROM, built with the option on as a one-off: it never is, but it is the biggest program and the
+           one with the least room, so it shows the worst a program can expect.
+         The table goes in Progress.
+
+     9c. Whether to speed it up.  Assumed (question 16): only if the option on costs a program more than 5% in size or
+         2% in time on either processor; else 9d and 9e are skipped and the stage ends with 9f.  The user doesn't use the
+         option, so the bar is the cost a program that did would notice.
+
+     9d. If 9c says so, the cheapest first, each on its own, each proven by 9a's off runs being unchanged:
+         - Landing blocks last.  OrderBlocks puts the blocks that only an exception reaches (undo blocks, the throw exit,
+           a try's dispatch and its handlers) after the function's other blocks, so the normal path falls through its
+           tests.  The loop passes and the inliner's size limit don't count them.  Small: an ordering rule and a weight.
+         - A call that passes an exception straight on.  A call with nothing to undo before the function's way out, in a
+           function that does nothing after it but return its result (a forwarder), needs no test: the carry is already
+           what the caller's caller tests.  The IR's call gets a flag for it (the plan's "second form of call", LLVM's call
+           against invoke), the front end sets it where Landing is the throw exit and the call is in return position, and
+           the back ends' forwarders are jmls again.  Medium: the IR, the verifier, the inliner (which must keep the flag
+           right when it inlines into a function that has something to undo) and both back ends.
+     9e. Not planned: nothrow across the whole program (a virtual function none of whose overriders throws).  It needs
+         the whole program's classes at once, which the builder's units don't have, and it only pays where virtual calls
+         are many.  Left for the user to ask for.
+
+     9f. The website (HCP65's Website/docs/compiler): building.md's Exceptions="true" and -exceptions rows, and
+         language.md's exceptions section, say what the option costs (9b's table, rounded: size and time on each
+         processor), that it is off by default and costs nothing off, and what a program must do with it on (assembly
+         declared noexcept; the builder says which).  Built with mkdocs to check it.
+
+     9g. The record: the measurements, what 9d did (or that it wasn't needed), in Progress; the memory file; a commit
+         (no co-author).
+
   10. Around it: the IDE (throw as a way out in CIDEExitFinder; the refactorings' cases for try, handlers and their parameters; the checks), the website's pages, CppParserTodo.txt's B2 and question 1 closed, IR.txt and CPP65Generator.txt.
 
 
@@ -602,7 +650,7 @@ Questions for the user
   12. Stage 5b changes the order in which the temporaries of one expression are destroyed, to the standard's (the reverse of the order they were finished).  A program that leans on today's order changes.  Assumed: yes.
   13. Stage 4 waits for the other session's question 8 (the type info's header).  Stages 2, 3 and 5 don't; 5 is best done when the other session has left the front end's statement files.  Assumed order: 1, 2, 3, 5, 4.
   14. Types the compiler doesn't keep apart (the other session, 2026-11-18, answering 4a's check): long is int where they are one size (CCPP65Types::Long is Integer(4), so on the 65C64 they are one type), char is signed char, wchar_t and char16_t are unsigned short, char32_t is unsigned long, and nullptr has no type of its own.  So catch (long) catches a thrown int, catch (signed char) a thrown char, and throw nullptr can't be caught as std::nullptr_t; typeid and overloads have the same fault.  It is the type system's, not exceptions' or question 8's, and is question 13 of CppParserTodo.txt for the user.  Until it is answered and built, the cases of the Exceptions group that lean on it (CatchNullPointer and any that throws one of these and catches the other) stay not done, and stage 4a's check of the labels is this.  The type info has a kind for nullptr_t ready (CPP65TIK_NullPointer) that nothing writes.  Assumed: exceptions go on without it.  Overtaken 2026-11-18: the other session built steps 1, 2, 4 and 5 of its question 13 (master 390c71f1a, 16abb5c62), so int and long, char and signed char and the rest have type infos of their own and catch (long) no longer takes an int; what is left of it there is its steps 3 and 6.
-
+  16. Stage 9's bar for speeding exceptions up (9c): only if the option on costs a program more than 5% in size or 2% in time on either processor.  The user doesn't use the option (2026-11-20: "Make them fast if needed but I'm not fussed").  Assumed: yes.
 
 Progress
 --------
