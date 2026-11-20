@@ -532,6 +532,59 @@ Not done: a using declaration of a name its scope already declares is ignored, a
 one symbol for a name (AddAlias), so the two sets of overloads aren't merged.
 
 
+Exceptions
+----------
+
+throw, try and catch are compiled when the Exceptions option is on
+(CCPPCompileOptions::mbExceptions, a build configuration's Exceptions="true", hcp65build's
+-exceptions); off, which is the default, a throw or a try is an error that says so
+(CPP_EXCEPTIONS_OFF_THROW, CPP_EXCEPTIONS_OFF_TRY) and nothing pays for them.  The plan,
+its decisions and its measurements are ExceptionsPlan.txt; what a program pays is on the
+website (compiler/language.md, Exceptions).
+
+There are no tables and no unwinder.  A function that throws returns through its own exit
+with the carry set, and its caller tests the carry after the call (the IR's thrown and a
+block ending in throw: IR.txt).  Each function undoes its own part and returns the same
+way, until a handler takes the exception or main returns with the carry set and the
+start-up calls std::terminate.
+
+The IR front end (CPP65IRFrontEndExceptions.cpp):
+- After a call that may throw (CallMayThrow: through a pointer, or to a function not declared
+  noexcept), TestThrown writes the thrown and a branch to Landing: where an exception goes
+  from that place.  The IR's MarkNoThrow then finds the unit's functions that throw nothing,
+  and the tests of calls to them fold away.
+- The cleanup stack (CCPP65IRCleanups) is what has been made and must be undone: Local and
+  Temporary entries (what a normal exit destroys too), Catch (a handler being run, ended by
+  ___EndCatch), and Part entries, which only an exception undoes: Destroy (a member or base
+  a constructor has made), Deallocate (the memory of a new whose constructor threw, given to
+  the matching operator delete), FreeException (a thrown object whose construction threw),
+  Elements (the made elements of an array, destroyed newest first) and Guard (a static
+  local's guard set back to 0, so the next pass tries again).  Each entry's undoing is a
+  block made when first asked for (UndoBlock) that goes on to the one below it, so a
+  function has one such block per entry however many calls it makes.
+- Below the bottom entry is the function's way out (WayOut): the handlers of the try the
+  place is in, or a throw block (ThrowExit), or in a function no exception may leave
+  (noexcept, a destructor) a call of ___Terminate (TerminateBlock); a throw(A, B) list
+  matches what leaves against its types and calls std::unexpected for the rest
+  (UnexpectedBlock).
+- throw e (ThrowExpression): ___AllocateException, e constructed there, ___Throw with its
+  type info and destructor, then Landing.  throw; is ___Rethrow.
+- try (TryStatement, TryHandlers, Handler): the handlers are tried in order with ___Match
+  (which gives the address the parameter refers to, or null); a handler that matches calls
+  ___BeginCatch, makes its parameter (HandlerParameter), runs, and ends with ___EndCatch
+  however it leaves; none matching goes on to the way out below the try.  A
+  function-try-block (FunctionTryBlock) is a try around the body and, in a constructor, the
+  member initializers; its handlers of a constructor or destructor rethrow at their end.
+
+The runtime is Libc65's exception.cpp (___AllocateException, ___FreeException, ___Throw,
+___Match, ___BeginCatch, ___EndCatch, ___Rethrow, ___Terminate, ___Unexpected) with
+<exception>, <new> and <typeinfo>; what the language throws itself is thrown by Libc65's
+C++ (__ThrowBadCast, __ThrowBadTypeid, __ThrowBadArrayNewLength, __ThrowBadException), so it
+throws the ordinary way.  An assembly routine leaves the carry as it falls, so a call to one
+must not be tested: one that C++ calls is declared noexcept (the builder refuses a tested
+call to a symbol an assembly unit defines).
+
+
 Not supported yet
 -----------------
 

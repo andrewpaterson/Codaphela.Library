@@ -189,8 +189,25 @@ what "can be left by throw" means (a throw reachable from the entry, not followi
 thrown side of such a test), and the verifier holds a nothrow function to it.
 
 The interpreter (constant expressions) doesn't throw: reaching a throw fails with "It
-throws an exception", so thrown is always false there.  Both back ends refuse throw and
-thrown until they are taught them (ExceptionsPlan.txt stage 3).
+throws an exception", so thrown is always false there.
+
+What the back ends make of them (ExceptionsPlan.txt stage 3).  The fact is the carry flag:
+set on return means the function threw.  A block ending in throw leaves by the function's
+own exit with the carry set (sec before rtl on the W65C816; the 65C64's ret keeps the
+flags), and every other exit leaves it clear (IR816ClearExitCarries on the W65C816's
+finished text; the 65C64's flag passes are told that ret reads c, SetReturnReadsCarry,
+only with the option on).  The test of a thrown is a branch on the carry after the call:
+on the W65C816 a bcs or bcc straight after it when its brif is all that reads it, the
+arguments are 8 bytes or fewer (pulled with ply, which keeps the carry) and the result
+goes to the direct page, and otherwise a word made from the carry before S is moved; on
+the 65C64 a bras c to a stub after the function's ret that removes the arguments, does
+the edge's copies and goes on to the landing block (stubs with nothing to copy and the
+same arguments to remove are shared: CIR65Backend::Epilogue).  IsolateThrowns
+(CIRBackendPasses) first makes every thrown the last thing in its block, read by its
+brif alone, so each back end knows one shape, and OrderBlocks puts the blocks only an
+exception reaches last (ExceptionalLast), where the normal path doesn't jump over them.
+With the option off none of this is written: a program that has no throw compiles to
+the same bytes.
 
 Globals:
 
