@@ -111,6 +111,8 @@ bool CIR65Calls::Call(CIRBlock* pcBlock, size uiIndex)
 		psStub->pcFrom = pcBlock;
 		psStub->pcTo = pcBlock->msJump.pcThen;
 		psStub->iRemove = iBytes;
+		psStub->bTested = true;
+		psStub->bWritten = false;
 		mpcBackend->Branch("bras c, ", psStub->iLabel);
 	}
 	CallerCleanUp(iBytes, psCall);

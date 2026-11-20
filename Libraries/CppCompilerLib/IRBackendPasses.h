@@ -46,6 +46,8 @@ public:
 	void	Kill(void);
 
 	void	OrderBlocks(CIRFunction* pcFunction, bool bLoopsTogether);
+	void	ExceptionalLast(CArrayIRBlocks* papcOrder);
+	bool	IsThrownBranch(CIRBlock* pcBlock);
 	void	MoveLoopTests(CIRFunction* pcFunction);
 	void	SinkLoads(CIRFunction* pcFunction);
 	void	SinkSteps(CIRFunction* pcFunction);

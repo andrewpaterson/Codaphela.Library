@@ -3030,6 +3030,36 @@ void TestIR816BackendXOpcodes(void)
 		"function i32 @_Compares__Fii(i32 %x, i32 %y)\n{\nentry:\n\t%c = uge i32 %x, %y\n\t%r = zext i1 %c to i32\n\tret i32 %r\n}\n\n" \
 		"function i32 @_main()\n{\nentry:\n\t%g = call i32 @_Compares__Fii(i32 3, i32 1)\n\tret i32 %g\n}\n"
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the 65C64's code has two labels one after the other, each the
+// target of a bras c, before the stub's add: the stubs of two tested calls
+// sharing their code.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestIR65SharedStub(const char* szCode)
+{
+	const char*	szAt;
+	const char*	szSecond;
+	const char*	szAfter;
+
+	for (szAt = strstr(szCode, "\nL"); szAt; szAt = strstr(szAt + 1, "\nL"))
+	{
+		szSecond = strstr(szAt + 1, ":\n");
+		if (!szSecond || (szSecond[2] != 'L'))
+		{
+			continue;
+		}
+		szAfter = strstr(szSecond + 2, ":\n");
+		if (szAfter && (strncmp(szAfter + 2, "\t\tadd S, ", 9) == 0))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
 static void TestIR816BackendExceptions(void)
 {
 	CChars	sz816;
@@ -3050,7 +3080,7 @@ static void TestIR816BackendExceptions(void)
 	AssertTrue(sz816.Contains("\t\tadc 44\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n"));
 	//Up to 8 bytes of arguments are pulled, which keeps the carry for the brif; the call through a pointer's rtl has
 	//no clc before it.
-	AssertTrue(sz816.Contains("\t\tjsl _Throws__Fi\n\t\tply\n\t\tply\n\t\tsta [D + 40]\n\t\tstx [D + 42]\n\t\tbcc L"));
+	AssertTrue(sz816.Contains("\t\tjsl _Throws__Fi\n\t\tply\n\t\tply\n\t\tsta [D + 40]\n\t\tstx [D + 42]\n\t\tbcs L"));
 	AssertTrue(sz816.Contains("\t\tjsl _Reg__Fiii.ax\n\t\tply\n\t\tply\n\t\tply\n\t\tply\n"));
 	AssertTrue(sz816.Contains("\t\tsta [S + 1]\n\t\trtl\nL"));
 	//More than that: the thrown is made a word before S is moved.
@@ -3068,6 +3098,18 @@ static void TestIR816BackendExceptions(void)
 	//A register function's stub that pushes and calls its body leaves by an exit of its own when the body threw.
 	AssertTrue(sz65.Contains("\t\tjsr _Big__Fiiiii.aby\n\t\tbras c, L"));
 	AssertTrue(sz65.Contains("\t\tadd S, 8\n\t\tcmp S, S\n\t\tret\n"));
+	sz65.Kill();
+
+	//The 65C64's stubs for two tested calls that remove as many bytes and go to one landing, copying nothing, are one
+	//stub with both labels (ExceptionsPlan.txt stage 9d).
+	sz65.Init();
+	AssertLong(20, TestIR65Run65C64(TEST_IR_THROWS
+		"function i32 @_Two__Fi(i32 %x)\n{\nentry:\n\t%a = call i32 @_Throws__Fi(i32 %x)\n\t%t = thrown i1\n\tbrif %t, land, b1\n"
+		"b1:\n\t%b = call i32 @_Throws__Fi(i32 %a)\n\t%u = thrown i1\n\tbrif %u, land, b2\n"
+		"b2:\n\tret i32 %b\nland:\n\tthrow\n}\n\n"
+		"function i32 @_main()\n{\nentry:\n\t%r = call i32 @_Two__Fi(i32 5)\n\t%t = thrown i1\n\tbrif %t, wrong, good\n"
+		"good:\n\tret i32 %r\nwrong:\n\tret i32 -1\n}\n", false, &sz65));
+	AssertTrue(TestIR65SharedStub(sz65.Text()));
 	sz65.Kill();
 	sz816.Kill();
 

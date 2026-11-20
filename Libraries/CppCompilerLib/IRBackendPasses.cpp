@@ -60,7 +60,8 @@ void CIRBackendPasses::Kill(void)
 // is in, so they finish first and go after the loop: a loop's blocks stay
 // together (a latch found first would otherwise go last, after all the code
 // after the loop, and the W65C816 places the loop's values as if live over
-// all of it).  Blocks nothing reaches go last.
+// all of it).  The blocks only an exception reaches go after the others
+// (ExceptionalLast), and blocks nothing reaches go last.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRBackendPasses::OrderBlocks(CIRFunction* pcFunction, bool bLoopsTogether)
@@ -130,6 +131,7 @@ void CIRBackendPasses::OrderBlocks(CIRFunction* pcFunction, bool bLoopsTogether)
 		}
 	}
 	apcOrder.Reverse();
+	ExceptionalLast(&apcOrder);
 
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -141,6 +143,103 @@ void CIRBackendPasses::OrderBlocks(CIRFunction* pcFunction, bool bLoopsTogether)
 	mpcFunction->SetBlockOrder(&apcOrder);
 	mpcFunction->ComputePredecessors();
 	apcOrder.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves the blocks of papcOrder that only an exception reaches after the
+// others, keeping the order of each: those the entry can't reach without
+// taking a thrown's way (the then of a brif on a thrown, IsThrownBranch).
+// So a tested call's normal way falls through, and the landing blocks, the
+// undo blocks and the throw exit are out of the way.  A function with no
+// thrown keeps its order.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackendPasses::ExceptionalLast(CArrayIRBlocks* papcOrder)
+{
+	CArrayIRBlocks	apcCold;
+	CArrayIRBlocks	apcWork;
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcSuccessor;
+	size			ui;
+	size			uiSuccessor;
+	size			uiHot;
+	bool			bThrown;
+
+	bThrown = false;
+	for (ui = 0; !bThrown && (ui < papcOrder->NumElements()); ui++)
+	{
+		bThrown = IsThrownBranch(papcOrder->GetPtr(ui));
+	}
+	if (!bThrown)
+	{
+		return;
+	}
+
+	//The blocks the entry reaches by normal ways (maiVisited: 2).
+	apcWork.Init();
+	apcWork.Add(mpcFunction->GetBlock(0));
+	*maiVisited.Get(0) = 2;
+	while (apcWork.NumElements() > 0)
+	{
+		pcBlock = apcWork.Pop();
+		for (uiSuccessor = 0; uiSuccessor < pcBlock->NumSuccessors(); uiSuccessor++)
+		{
+			if ((uiSuccessor == 0) && IsThrownBranch(pcBlock))
+			{
+				//The then, where an exception goes.
+				continue;
+			}
+			pcSuccessor = pcBlock->GetSuccessor(uiSuccessor);
+			if (pcSuccessor && (*maiVisited.Get(pcSuccessor->muiIndex) == 1))
+			{
+				*maiVisited.Get(pcSuccessor->muiIndex) = 2;
+				apcWork.Add(pcSuccessor);
+			}
+		}
+	}
+	apcWork.Kill();
+
+	apcCold.Init();
+	uiHot = 0;
+	for (ui = 0; ui < papcOrder->NumElements(); ui++)
+	{
+		pcBlock = papcOrder->GetPtr(ui);
+		if (*maiVisited.Get(pcBlock->muiIndex) == 2)
+		{
+			papcOrder->SetPtr(uiHot, pcBlock);
+			uiHot++;
+		}
+		else
+		{
+			apcCold.Add(pcBlock);
+		}
+	}
+	for (ui = 0; ui < apcCold.NumElements(); ui++)
+	{
+		papcOrder->SetPtr(uiHot + ui, apcCold.GetPtr(ui));
+	}
+	apcCold.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the block ends with a brif on a thrown it worked out last (its
+// then is where an exception goes).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRBackendPasses::IsThrownBranch(CIRBlock* pcBlock)
+{
+	SIRInstruction*	psLast;
+
+	if ((pcBlock->msJump.uiKind != IRJ_Branch) || (pcBlock->masInstructions.NumElements() == 0))
+	{
+		return false;
+	}
+	psLast = pcBlock->masInstructions.Tail();
+	return (psLast->uiOpcode == IRO_Thrown) && psLast->sResult.Equals(pcBlock->msJump.sArgument);
 }
 
 

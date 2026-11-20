@@ -725,18 +725,37 @@ void CIR65Backend::RegisterStub(const char* szBody)
 void CIR65Backend::Epilogue(void)
 {
 	size		ui;
+	size		uj;
 	size		uiText;
 	SIR65Stub*	psStub;
+	SIR65Stub*	psSame;
 
 	Label(miReturnLabel);
 	ReturnCode();
 
-	//Edges whose copies were moved out of the way.
+	//Edges whose copies were moved out of the way.  Tested calls' that copy nothing share their code when they go to the
+	//same block with the same bytes to remove (the tested calls of one landing): their labels are written together.
 	for (ui = 0; ui < masStubs.NumElements(); ui++)
 	{
 		psStub = masStubs.Get(ui);
+		if (psStub->bWritten)
+		{
+			continue;
+		}
 		uiText = mpszOut->Length();
 		Label(psStub->iLabel);
+		if (psStub->bTested && !EdgeCopies(psStub->pcFrom, psStub->pcTo))
+		{
+			for (uj = ui + 1; uj < masStubs.NumElements(); uj++)
+			{
+				psSame = masStubs.Get(uj);
+				if (psSame->bTested && !psSame->bWritten && (psSame->pcTo == psStub->pcTo) && (psSame->iRemove == psStub->iRemove) && !EdgeCopies(psSame->pcFrom, psSame->pcTo))
+				{
+					Label(psSame->iLabel);
+					psSame->bWritten = true;
+				}
+			}
+		}
 		if (psStub->iRemove > 0)
 		{
 			Line("add S, ")->Append(psStub->iRemove)->AppendNewLine();
@@ -1134,6 +1153,31 @@ bool CIR65Backend::FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the edge from pcFrom to pcTo copies anything (Edge): a phi of
+// pcTo's whose value from pcFrom isn't in its place already.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
+{
+	size			ui;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+
+	for (ui = 0; ui < pcTo->masPhis.NumElements(); ui++)
+	{
+		psPhi = pcTo->masPhis.Get(ui);
+		psArgument = pcTo->FindPhiArgument(psPhi, pcFrom);
+		if (!psArgument || ((mcPlaces.PlaceOf(psPhi->sResult)->uiKind != IR65P_None) && !mcPlaces.SamePlace(psArgument->sValue, psPhi->sResult)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The copies pcTo's phis need from pcFrom, as one parallel copy
 // (ParallelCopy): a cycle is broken through B.
 //
@@ -1321,6 +1365,8 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 			psStub->pcFrom = pcBlock;
 			psStub->pcTo = psJump->pcThen;
 			psStub->iRemove = 0;
+			psStub->bTested = false;
+			psStub->bWritten = false;
 			bResult = BranchOn(psFused, psJump->sArgument, true, psStub->iLabel);
 			break;
 		}

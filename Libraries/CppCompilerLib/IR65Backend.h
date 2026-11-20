@@ -117,6 +117,8 @@ struct SIR65Stub
 	CIRBlock*	pcFrom;
 	CIRBlock*	pcTo;
 	int32		iRemove;	//Bytes of a call's arguments still on the stack on the way in (the way a tested call threw).
+	bool		bTested;	//A tested call's way when it threw: one that copies nothing shares its code with those like it (Epilogue).
+	bool		bWritten;	//Written already, as one of the stubs that share their code.
 };
 
 
@@ -298,6 +300,7 @@ protected:
 	int					ValueBytes(SIRType sType);
 	bool				IsWide(SIRType sType);
 	bool				IsNarrow(SIRType sType);
+	bool				EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void				RegisterStub(const char* szBody);
 	void				StoreRegisterParameters(void);
 	void				StoreArrivedRegister(const char* szRegister, SIR65Place* psPlace, SIRType sType, const char** aszSources, SIR65Place** apsPlaces, int* piMoves);

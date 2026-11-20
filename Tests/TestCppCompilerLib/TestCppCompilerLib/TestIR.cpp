@@ -5624,6 +5624,71 @@ void TestIRThrown(void)
 	szPrinted.Kill();
 	cErrors.Kill();
 	cModule.Kill();
+
+	//OrderBlocks (ExceptionsPlan.txt stage 9d): the blocks only an exception reaches, a tested call's landing and what
+	//only it reaches, go after the others in their order, so each tested call's normal way falls through.
+	cModule.Init();
+	cErrors.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse(
+		"space default 4\n"
+		"\n"
+		"function i32 @_Order__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\t%r = call i32 @_Get__Fv()\n"
+		"\t%t = thrown i1\n"
+		"\tbrif %t, land, on\n"
+		"land:\n"
+		"\tcall void @_Undo__Fv()\n"
+		"\tjmp out\n"
+		"out:\n"
+		"\tthrow\n"
+		"on:\n"
+		"\t%s = call i32 @_Get__Fv()\n"
+		"\t%u = thrown i1\n"
+		"\tbrif %u, out, done\n"
+		"done:\n"
+		"\t%v = add i32 %r, %s\n"
+		"\tret i32 %v\n"
+		"}\n"));
+	cParser.Kill();
+	cPasses.Init();
+	cPasses.OrderBlocks(cModule.GetFunction(0), false);
+	cPasses.Kill();
+	cVerifier.Init(&cModule, &cErrors);
+	AssertTrue(cVerifier.Verify());
+	cVerifier.Kill();
+	AssertString("", cErrors.Text());
+	szPrinted.Init();
+	cPrinter.Init(&cModule, &szPrinted);
+	cPrinter.PrintModule();
+	cPrinter.Kill();
+	AssertString(
+		"space default 4\n"
+		"\n"
+		"function i32 @_Order__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\t%r = call i32 @_Get__Fv()\n"
+		"\t%t = thrown i1\n"
+		"\tbrif %t, land, on\n"
+		"on:\n"
+		"\t%s = call i32 @_Get__Fv()\n"
+		"\t%u = thrown i1\n"
+		"\tbrif %u, out, done\n"
+		"done:\n"
+		"\t%v = add i32 %r, %s\n"
+		"\tret i32 %v\n"
+		"land:\n"
+		"\tcall void @_Undo__Fv()\n"
+		"\tjmp out\n"
+		"out:\n"
+		"\tthrow\n"
+		"}\n", szPrinted.Text());
+	szPrinted.Kill();
+	cErrors.Kill();
+	cModule.Kill();
 }
 
 
