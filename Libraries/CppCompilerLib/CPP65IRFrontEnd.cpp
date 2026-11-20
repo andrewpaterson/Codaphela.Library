@@ -89,6 +89,7 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	mpcThrowExit = NULL;
 	mpcTerminate = NULL;
 	mbUnwinding = false;
+	muiLandingTop = MAX_SIZE;
 	mbRoutine = false;
 	miConditional = 0;
 	mpcExit = NULL;
@@ -240,6 +241,7 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 		//bases.
 		mpcExit = NewBlock();
 		bResult = StoreVtables(msThis, pcFunction->mpcClass, mbBaseVersion);
+		DestructorStart();
 	}
 	if (pcFunction->mpcAddressOf)
 	{
@@ -284,6 +286,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mpcThrowExit = NULL;
 	mpcTerminate = NULL;
 	mbUnwinding = false;
+	muiLandingTop = MAX_SIZE;
 	mbRoutine = false;
 	miConditional = 0;
 	maszRuntime.ReInit();

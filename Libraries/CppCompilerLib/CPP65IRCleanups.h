@@ -28,6 +28,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //Where a C++ lvalue is: its address (an IR pointer) and its type.
 struct SCPPField;
+class CCPPClass;
+class CCPPFunction;
+class CCPPSyntax;
 struct SCPP65IRPlace
 {
 	SIRReference	sAddress;
@@ -44,7 +47,25 @@ enum ECPP65IRCleanup
 	CPP65IRC_Local,			//An object (or array of them) of a scope being written: destroyed when the scope is left.
 	CPP65IRC_Temporary,		//A temporary: destroyed at the end of its full expression.
 	CPP65IRC_Catch,			//A handler being run: left (the runtime's __EndCatch) when its scope is, by any way out.  Counted with the locals.
+	CPP65IRC_Part,			//What only an exception undoes (ECPP65IRPart): counted with neither, so no normal way out sees it.
 };
+
+
+//What an exception undoes that a normal way out doesn't (ExceptionsPlan.txt stage 7: what is half made).
+enum ECPP65IRPart
+{
+	CPP65IRP_Destroy,		//A part made so far (a base, a member, an element, a delegated constructor's object): sPlace, with
+							//pcBaseObject's base version of its destructor when it is a base.
+	CPP65IRP_Deallocate,	//A new expression's memory, sPlace.sAddress, while its object is made: given back to pcFunction (the
+							//matching operator delete, called as pcFor's, with asValues after the pointer), or the runtime's
+							//szRuntime.  [expr.new] 20
+	CPP65IRP_FreeException,	//A thrown object being made, sPlace.sAddress (the runtime's __FreeException).
+	CPP65IRP_Elements,		//new T[n]'s elements of sPlace.psType from sPlace.sAddress, as many as the count in sCount's slot.
+	CPP65IRP_Guard,			//A static local being made: its guard byte, sPlace.sAddress, goes back to 0.  [stmt.dcl] 4
+};
+
+
+#define CPP65_IR_PART_VALUES	4	//The placement arguments a Deallocate part keeps for a placement operator delete.
 
 
 //One thing to undo.  A temporary made in an operand that may not be worked out (of &&, || or ?:) is conditional: its
@@ -58,6 +79,19 @@ struct SCPP65IRCleanup
 	bool			bConditional;
 	SIRReference	sMade;
 	CIRBlock*		pcUndo;
+
+	//A part's (CPP65IRC_Part).
+	ECPP65IRPart	ePart;
+	CCPPClass*		pcBaseObject;
+	CCPPFunction*	pcFunction;
+	CCPPSyntax*		pcFor;
+	const char*		szRuntime;
+	SIRReference	sCount;
+	SIRReference	asValues[CPP65_IR_PART_VALUES];
+	SCPP65Type*		apsValueTypes[CPP65_IR_PART_VALUES];
+	size			uiValues;
+
+	void			Clear(ECPP65IRCleanup eNewKind);
 };
 
 
@@ -91,6 +125,11 @@ public:
 	void				PushLocal(SCPP65IRPlace* psPlace);
 	void				PushTemporary(SCPP65IRPlace* psPlace, bool bConditional, SIRReference sMade);
 	void				PushCatch(void);
+	void				PushPart(SCPP65IRCleanup* psPart);
+	void				RemovePartsFrom(size uiIndex);
+	bool				RemoveNewestPart(void);
+	size				IndexOfLocal(size uiOrdinal);
+	size				IndexOfTemporary(size uiOrdinal);
 	SCPP65IRCleanup*	GetLocal(size uiOrdinal);
 	SCPP65IRCleanup*	GetTemporary(size uiOrdinal);
 	void				CutLocals(size uiCount);
@@ -98,7 +137,8 @@ public:
 	bool				TakeTemporary(SIRReference sAddress, SCPP65IRPlace* psPlace);
 
 protected:
-	SCPP65IRCleanup*	Get(bool bTemporary, size uiOrdinal);
+	SCPP65IRCleanup*	Get(bool bTemporary, size uiOrdinal, size* puiIndex = NULL);
+	static bool			IsCounted(SCPP65IRCleanup* psEntry, bool bTemporary);
 	void				Cut(bool bTemporary, size uiCount);
 	void				ForgetUndoFrom(size uiIndex);
 };

@@ -328,7 +328,10 @@ bool CCPP65IRFrontEnd::InlineMemcpy(CArraySyntax* papcArguments, SCPP65Type* psR
 // The start of a constructor: the bases
 // (from the member initialiser list or their default constructors), the
 // vtable pointers, then the fields from the member initialisers, the
-// default member initialisers or their own constructors.
+// default member initialisers or their own constructors.  With exceptions
+// each is a part once it is made, so that an exception from what comes
+// after it, the body included, destroys it ([except.ctor] 2).  The parts
+// stay for the rest of the function: no normal way out sees them.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction)
@@ -371,7 +374,14 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 			{
 				return Unsupported(__FILE__, __LINE__);
 			}
-			return DelegatedConstructor(pcClass, pcMember);
+			if (!DelegatedConstructor(pcClass, pcMember))
+			{
+				return false;
+			}
+
+			//The object is made: an exception from the body destroys it.  [except.ctor] 2
+			PushDestroyPart(msThis, pcClass->mpsType, mbBaseVersion ? pcClass : NULL);
+			return true;
 		}
 	}
 
@@ -384,16 +394,22 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		{
 			return false;
 		}
+		PushDestroyPart(AddressAt(msThis, psVirtual->iOffset), psVirtual->pcClass->mpsType, psVirtual->pcClass);
 	}
 
 	//The non-virtual bases, in order.
 	for (ui = 0; ui < pcClass->macBases.NumElements(); ui++)
 	{
 		psBase = pcClass->macBases.Get(ui);
-		if (!psBase->bVirtual && !ConstructBase(papcInitialisers, psBase->pcClass, AddressAt(msThis, psBase->iOffset)))
+		if (psBase->bVirtual)
+		{
+			continue;
+		}
+		if (!ConstructBase(papcInitialisers, psBase->pcClass, AddressAt(msThis, psBase->iOffset)))
 		{
 			return false;
 		}
+		PushDestroyPart(AddressAt(msThis, psBase->iOffset), psBase->pcClass->mpsType, psBase->pcClass);
 	}
 
 	if (!StoreVtables(msThis, pcClass, mbBaseVersion))
@@ -424,6 +440,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 			{
 				return false;
 			}
+			PushDestroyPart(sPlace.sAddress, psField->psType, NULL);
 		}
 	}
 
@@ -529,7 +546,8 @@ bool CCPP65IRFrontEnd::DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMember
 //
 // The end of a destructor, after its body: the fields in reverse, then the
 // non-virtual bases in reverse, then (but in a base version) the virtual
-// bases in reverse.
+// bases in reverse.  Each one's part (DestructorStart) is taken out before
+// it is destroyed: an exception from its destructor destroys the rest.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DestructorEnd(void)
@@ -544,6 +562,7 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 	for (ui = pcClass->macFields.NumElements(); ui > 0; ui--)
 	{
 		psField = pcClass->macFields.Get(ui - 1);
+		TakeDestroyPart(psField->psType);
 		if (!Destroy(AddressAt(msThis, psField->iOffset), psField->psType))
 		{
 			return false;
@@ -552,7 +571,12 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 	for (ui = pcClass->macBases.NumElements(); ui > 0; ui--)
 	{
 		psBase = pcClass->macBases.Get(ui - 1);
-		if (!psBase->bVirtual && !DestroyBase(AddressAt(msThis, psBase->iOffset), psBase->pcClass))
+		if (psBase->bVirtual)
+		{
+			continue;
+		}
+		TakeDestroyPart(psBase->pcClass->mpsType);
+		if (!DestroyBase(AddressAt(msThis, psBase->iOffset), psBase->pcClass))
 		{
 			return false;
 		}
@@ -560,6 +584,7 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 	for (ui = mbBaseVersion ? 0 : pcClass->macVirtualBases.NumElements(); ui > 0; ui--)
 	{
 		psVirtual = pcClass->macVirtualBases.Get(ui - 1);
+		TakeDestroyPart(psVirtual->pcClass->mpsType);
 		if (!DestroyBase(AddressAt(msThis, psVirtual->iOffset), psVirtual->pcClass))
 		{
 			return false;
@@ -780,6 +805,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	SCPP65Type*						psElement;
 	SCPP65IRValue					sMade;
 	int								i;
+	size							uiMark;
 	bool							bResult;
 	bool							bValueInitialise;
 
@@ -850,7 +876,9 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
+		//Each element made is a part until the array is: an exception destroys those made.  [except.ctor] 2
 		sElement.psType = psType->psBase;
+		uiMark = mcCleanups.NumEntries();
 		for (i = 0; i < psType->iCount; i++)
 		{
 			sElement.sAddress = AddressAt(psPlace->sAddress, i * psType->psBase->iBytes);
@@ -858,7 +886,9 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 			{
 				return false;
 			}
+			PushDestroyPart(sElement.sAddress, sElement.psType, NULL);
 		}
+		mcCleanups.RemovePartsFrom(uiMark);
 		return true;
 	}
 
@@ -1139,6 +1169,8 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	SCPP65Type*		psType;
 	SCPP65IRPlace	sPlace;
 	SCPP65IRValue	sBytes;
+	SCPP65IRCleanup	sFree;
+	size			uiMark;
 
 	psType = mpcUnit->NewElementType(pcNew);
 	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsReference() || (psType->IsArray() && (pcNew->macpArraySizes.NumElements() == 0)))
@@ -1152,16 +1184,23 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	//The size is a std::size_t ([expr.new] 10).
 	sBytes.psType = mpcTypes->Size();
 	sBytes.sValue = mpcFunction->AddInteger(IRTypeOf(sBytes.psType), psType->iBytes);
-	if (!Allocate(pcNew, psType, &sBytes, &sPlace.sAddress))
+	if (!Allocate(pcNew, psType, &sBytes, &sPlace.sAddress, &sFree))
 	{
 		return false;
 	}
 	sPlace.psType = psType;
 	sPlace.psBitField = NULL;
+	uiMark = mcCleanups.NumEntries();
+	if (PartsWanted() && psType->IsClass() && (sFree.pcFunction || sFree.szRuntime))
+	{
+		sFree.sPlace.sAddress = sPlace.sAddress;
+		mcCleanups.PushPart(&sFree);
+	}
 	if ((psType->IsClass() || pcNew->mpcInitializer) && !Construct(&sPlace, NULL, pcNew->mpcInitializer))
 	{
 		return false;
 	}
+	mcCleanups.RemovePartsFrom(uiMark);
 	psValue->sValue = sPlace.sAddress;
 	psValue->psType = mpcTypes->Pointer(psType);
 	return true;
@@ -1173,10 +1212,12 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 // The memory a new expression makes its object in, psBytes long: from the
 // allocation function its type and placement arguments choose
 // (CCPPBinder::FindAllocation), the runtime's operator new or new[], or
-// new (address) Type's address.  [expr.new] 9
+// new (address) Type's address.  [expr.new] 9  psFree (if it is wanted)
+// says how the memory is given back if the object's construction throws
+// (Deallocation).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psBytes, SIRReference* psMemory)
+bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psBytes, SIRReference* psMemory, SCPP65IRCleanup* psFree)
 {
 	CArraySyntax	apcArguments;
 	CCPPFunction*	pcAllocation;
@@ -1190,6 +1231,17 @@ bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	mpcUnit->NewArguments(pcNew, &apcArguments);
 	pcAllocation = mpcUnit->GetBinder()->FindAllocation(pcNew, psType, &apcArguments, &bFailed);
 	bResult = !bFailed;
+	if (bResult && psFree)
+	{
+		if (PartsWanted())
+		{
+			bResult = Deallocation(pcNew, pcAllocation, psType, &apcArguments, psBytes, psFree);
+		}
+		else
+		{
+			psFree->Clear(CPP65IRC_Part);
+		}
+	}
 	if (bResult && pcAllocation)
 	{
 		bResult = CallWithValue(pcAllocation, &apcArguments, apcArguments.GetPtr(0), psBytes, &sResult);
@@ -1258,6 +1310,10 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	SIRReference		sMemory;
 	SIRReference		sIndex;
 	SIRReference		sTooMany;
+	SIRReference		sMade;
+	SIRReference		sNext;
+	SCPP65IRCleanup		sFree;
+	SCPP65IRCleanup		sElements;
 	SCPP65IRCountedLoop	sLoop;
 	CIRBlock*			pcStart;
 	CIRBlock*			pcAllocate;
@@ -1265,6 +1321,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	uint64				ulliMost;
 	uint64				ulliCookie;
 	size				uiFirst;
+	size				uiMark;
 	size				i;
 	bool				bCookie;
 	bool				bValue;
@@ -1310,14 +1367,34 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		sBytes.sValue = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes.sValue, mpcFunction->AddInteger(sSize, (int64)ulliCookie));
 	}
 	sBytes.sValue = ConvertIR(sBytes.sValue, sSize, sBytesType, false);
-	if (!Allocate(pcNew, psType, &sBytes, &sMemory))
+	if (!Allocate(pcNew, psType, &sBytes, &sMemory, &sFree))
 	{
 		return false;
+	}
+
+	//If an element's construction throws, the elements made are destroyed and the memory given back.  [expr.new] 20
+	uiMark = mcCleanups.NumEntries();
+	if (PartsWanted() && (sFree.pcFunction || sFree.szRuntime) && (psType->IsClass() || pcNew->mpcInitializer))
+	{
+		sFree.sPlace.sAddress = sMemory;
+		mcCleanups.PushPart(&sFree);
 	}
 	if (bCookie)
 	{
 		mpcFunction->Store(mpcBlock, sSize, sCount.sValue, sMemory);
 		sMemory = AddressAt(sMemory, mcModule.GetPointerSize(0));
+	}
+	sMade = IRNone();
+	if (PartsWanted() && NeedsDestroying(psType))
+	{
+		sMade = mpcFunction->Slot(mpcBlock, sSize, (uint32)mcModule.GetPointerSize(0), (uint32)mcModule.GetPointerSize(0));
+		mpcFunction->Store(mpcBlock, sSize, mpcFunction->AddInteger(sSize, 0), sMade);
+		sElements.Clear(CPP65IRC_Part);
+		sElements.ePart = CPP65IRP_Elements;
+		sElements.sPlace.sAddress = sMemory;
+		sElements.sPlace.psType = psType;
+		sElements.sCount = sMade;
+		mcCleanups.PushPart(&sElements);
 	}
 
 	//The elements a list in braces gives (or the characters of the string it holds, as an array's are: new
@@ -1346,6 +1423,10 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		{
 			return false;
 		}
+		if (!sMade.IsNone())
+		{
+			mpcFunction->Store(mpcBlock, sSize, mpcFunction->AddInteger(sSize, (int64)(i + 1)), sMade);
+		}
 	}
 	if ((psType->IsClass() && psType->pcClass->NeedsConstructor()) || (bValue && !psType->IsClass()))
 	{
@@ -1356,8 +1437,14 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		{
 			return false;
 		}
-		EndCountedLoop(&sLoop, mpcFunction->Add(mpcBlock, IRO_Add, sSize, sIndex, mpcFunction->AddInteger(sSize, 1)));
+		sNext = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sIndex, mpcFunction->AddInteger(sSize, 1));
+		if (!sMade.IsNone())
+		{
+			mpcFunction->Store(mpcBlock, sSize, sNext, sMade);
+		}
+		EndCountedLoop(&sLoop, sNext);
 	}
+	mcCleanups.RemovePartsFrom(uiMark);
 	if (pcEnd)
 	{
 		//Null when there were too many, else the elements.
@@ -2045,10 +2132,13 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 	SCPP65Type*			psType;
 	CCPPClass*			pcBaseComplete;
 	size				i;
+	size				uiMark;
 	int					j;
 	int					iCount;
 	int					iOffset;
 
+	//Each part copied is a part until the object is: an exception from a later one's copy destroys it.  [except.ctor] 2
+	uiMark = mcCleanups.NumEntries();
 	for (i = 0; !pcComplete && (i < pcClass->macVirtualBases.NumElements()); i++)
 	{
 		psVirtual = pcClass->macVirtualBases.Get(i);
@@ -2058,6 +2148,7 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 		{
 			return false;
 		}
+		PushDestroyPart(AddressAt(sDestination, psVirtual->iOffset), psVirtual->pcClass->mpsType, psVirtual->pcClass);
 	}
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
@@ -2072,6 +2163,7 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 		{
 			return false;
 		}
+		PushDestroyPart(AddressAt(sDestination, psBase->iOffset), psBase->pcClass->mpsType, psBase->pcClass);
 	}
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
 	{
@@ -2094,8 +2186,10 @@ bool CCPP65IRFrontEnd::CopyParts(CCPPClass* pcClass, SIRReference sDestination, 
 			{
 				return false;
 			}
+			PushDestroyPart(AddressAt(sDestination, iOffset), psType, NULL);
 		}
 	}
+	mcCleanups.RemovePartsFrom(uiMark);
 	return true;
 }
 

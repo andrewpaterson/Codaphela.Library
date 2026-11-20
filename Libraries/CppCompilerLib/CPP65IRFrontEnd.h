@@ -183,6 +183,7 @@ protected:
 	CIRBlock*				mpcThrowExit;		//The function's block that ends in throw, once something needs it (WayOut).
 	CIRBlock*				mpcTerminate;		//Its block that calls std::terminate, once something needs it.
 	bool					mbUnwinding;		//A cleanup is being written for an exception on its way: a call that throws there is std::terminate.
+	size					muiLandingTop;		//While a normal way out destroys the cleanup entry at this index, an exception goes to the ones below it (MAX_SIZE: all of them).
 	bool					mbRoutine;			//The function is one the compiler writes for itself (a global's initialiser or finaliser): no exception leaves it.
 	CCPP65IRCleanups		mcCleanups;			//What needs destroying: the objects of the scopes being written and the temporaries of the full expression.
 	int						miConditional;		//Inside an operand that may not be worked out (of &&, || or ?:).
@@ -296,6 +297,18 @@ protected:
 	CIRBlock*		LandingBelow(void);
 	CIRBlock*		UndoBlock(size uiIndex);
 	bool			UndoEntry(SCPP65IRCleanup* psEntry);
+	bool			UndoEntryBelow(SCPP65IRCleanup* psEntry, size uiIndex);
+	bool			UndoPart(SCPP65IRCleanup* psPart);
+	bool			UndoElements(SCPP65IRCleanup* psPart);
+	bool			UndoDeallocate(SCPP65IRCleanup* psPart);
+	bool			FunctionTerminates(void);
+	bool			PartsWanted(void);
+	bool			NeedsDestroying(SCPP65Type* psType);
+	void			PushDestroyPart(SIRReference sAddress, SCPP65Type* psType, CCPPClass* pcBaseObject);
+	void			PushAddressPart(ECPP65IRPart ePart, SIRReference sAddress);
+	void			DestructorStart(void);
+	bool			Deallocation(CCPPSyntaxNewExpression* pcNew, CCPPFunction* pcAllocation, SCPP65Type* psType, CArraySyntax* papcArguments, SCPP65IRValue* psBytes, SCPP65IRCleanup* psFree);
+	CCPPFunction*	PlacementDeallocation(CCPPFunction* pcAllocation, bool bArray);
 	CIRBlock*		WayOut(void);
 	CIRBlock*		TerminateBlock(void);
 	SIRReference	ExceptionCall(const char* szLabel, SIRType sResult, SIRType* pasTypes, SIRReference* pasArguments, int iArguments);
@@ -427,6 +440,7 @@ protected:
 	bool			DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMemberInitializer* pcMember);
 	bool			ConstructBase(CArraySyntax* papcInitialisers, CCPPClass* pcBase, SIRReference sAddress);
 	bool			DestructorEnd(void);
+	void			TakeDestroyPart(SCPP65Type* psType);
 	bool			StoreVtables(SIRReference sObject, CCPPClass* pcClass, bool bConstruction = false);
 	SIRReference	VTTOf(CCPPClass* pcClass);
 	SIRReference	CompleteVTT(CCPPClass* pcClass);
@@ -448,7 +462,7 @@ protected:
 	bool			CallObject(CCPPFunction* pcFunction, SIRReference sObject, CCPPClass* pcObjectClass, CArraySyntax* papcArguments, bool bVirtual);
 	SIRReference	CallRuntime(const char* szName, SIRType sResult, SIRType sArgument, SIRReference sValue);
 	bool			NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRValue* psValue);
-	bool			Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psBytes, SIRReference* psMemory);
+	bool			Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psBytes, SIRReference* psMemory, SCPP65IRCleanup* psFree = NULL);
 	bool			CallWithValue(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcImplicit, SCPP65IRValue* psImplicit, SCPP65IRValue* psResult);
 	bool			ValueInitialise(SCPP65IRPlace* psPlace);
 	bool			NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue);

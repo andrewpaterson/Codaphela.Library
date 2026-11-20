@@ -3416,6 +3416,24 @@ static const SConformanceCase gasConformanceExceptions[] =
 		"int main() { int r = 0; for (int i = 0; i < 5; i++) { try { r += f(); } catch (int e) { r += e * 10; } } return r + 30; }\n"
 	},
 	{
+		"ThrownCopyThrows", 72,	//15.1/3, 15.2/2
+		"struct C { C() {} C(const C&) { throw 2; } };\n"
+		"int main() { try { C c; throw c; } catch (int e) { return e + 70; } catch (...) { return 1; } return 3; }\n"
+	},
+	{
+		"ImplicitCopyPartsDestroyed", 73,	//12.8/15, 15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"struct A { A() {} A(const A&) { t(1); } ~A() { t(2); } }; struct B { B() {} B(const B&) { throw 0; } };\n"
+		"struct X { A a; B b; };\n"
+		"int main() { X x; try { X y(x); } catch (int) { t(3); } return g == 123 ? 73 : 1; }\n"
+	},
+	{
+		"ArrayOfArraysPartlyConstructed", 74,	//15.2/2
+		"int g; void t(int k) { g = g * 10 + k; }\n"
+		"int n; struct E { int k; E() : k(++n) { if (k == 4) throw 0; } ~E() { t(k); } };\n"
+		"int main() { try { E a[2][3]; } catch (int) { t(5); } return g == 3215 ? 74 : 1; }\n"
+	},
+	{
 		"TryInConstructorBody", 99,	//15/1
 		"struct S { int v; S() { try { throw 99; } catch (int e) { v = e; } } };\n"
 		"int main() { S s; return s.v; }\n"
