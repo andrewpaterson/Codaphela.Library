@@ -172,7 +172,7 @@ EGerberBoardSide CGerberLayerFile::GetSide(char* szSide)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CGerberLayerFile::GetFileName(void) {return mszFileName.Text();}
+const char* CGerberLayerFile::GetFileName(void) const {return mszFileName.Text();}
 CGerberCommands* CGerberLayerFile::GetCommands(void) {return &mcCommands;}
 EGerberBoardLayer CGerberLayerFile::GetLayer(void) const {return meLayer;}
 EGerberBoardSide CGerberLayerFile::GetSide(void) const {return meSide;}

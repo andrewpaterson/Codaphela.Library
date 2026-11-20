@@ -26,8 +26,8 @@ public:
 
 	bool				Load(char* szDirectory);
 
-	char*				GetName(void);
-	char*				GetDirectory(void);
+	const char*			GetName(void) const;
+	const char*			GetDirectory(void) const;
 
 	size				NumLayers(void) const;
 	CGerberLayerFile*	GetLayer(size uiIndex);

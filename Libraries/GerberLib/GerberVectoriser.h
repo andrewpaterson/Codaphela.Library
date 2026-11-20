@@ -41,22 +41,22 @@ protected:
 	CChars								mszError;
 
 public:
-	void	Init(CGerberVectorImage* pcImage);
-	void	Kill(void);
+	void		Init(CGerberVectorImage* pcImage);
+	void		Kill(void);
 
-	bool	HasError(void) const;
-	char*	GetError(void);
+	bool		HasError(void) const;
+	const char*	GetError(void) const;
 
-	void	Move(CGerberGraphicsState* pcState, SGerberPoint* psPoint);
-	void	Draw(CGerberGraphicsState* pcState, SGerberPoint* psStart, SGerberPoint* psEnd);
-	void	Arc(CGerberGraphicsState* pcState, SGerberPoint* psStart, SGerberPoint* psEnd, SGerberPoint* psCenter, bool bClockwise);
-	void	Flash(CGerberGraphicsState* pcState, SGerberPoint* psPoint);
-	void	BeginRegion(CGerberGraphicsState* pcState);
-	void	EndRegion(CGerberGraphicsState* pcState);
-	void	BeginBlock(CGerberGraphicsState* pcState, CGerberCommandApertureBlock* pcBlock);
-	void	EndBlock(CGerberGraphicsState* pcState, CGerberAperture* pcAperture);
-	void	BeginStepAndRepeat(CGerberGraphicsState* pcState, CGerberCommandStepAndRepeat* pcStepAndRepeat);
-	void	EndStepAndRepeat(CGerberGraphicsState* pcState);
+	void		Move(CGerberGraphicsState* pcState, SGerberPoint* psPoint);
+	void		Draw(CGerberGraphicsState* pcState, SGerberPoint* psStart, SGerberPoint* psEnd);
+	void		Arc(CGerberGraphicsState* pcState, SGerberPoint* psStart, SGerberPoint* psEnd, SGerberPoint* psCenter, bool bClockwise);
+	void		Flash(CGerberGraphicsState* pcState, SGerberPoint* psPoint);
+	void		BeginRegion(CGerberGraphicsState* pcState);
+	void		EndRegion(CGerberGraphicsState* pcState);
+	void		BeginBlock(CGerberGraphicsState* pcState, CGerberCommandApertureBlock* pcBlock);
+	void		EndBlock(CGerberGraphicsState* pcState, CGerberAperture* pcAperture);
+	void		BeginStepAndRepeat(CGerberGraphicsState* pcState, CGerberCommandStepAndRepeat* pcStepAndRepeat);
+	void		EndStepAndRepeat(CGerberGraphicsState* pcState);
 
 protected:
 	float64					GetUnit(CGerberGraphicsState* pcState);

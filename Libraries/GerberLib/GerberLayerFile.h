@@ -22,7 +22,7 @@ public:
 
 	bool				Load(char* szPathName);
 
-	char*				GetFileName(void);
+	const char*			GetFileName(void) const;
 	CGerberCommands*	GetCommands(void);
 	EGerberBoardLayer	GetLayer(void) const;
 	EGerberBoardSide	GetSide(void) const;

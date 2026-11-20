@@ -112,7 +112,7 @@ void CGerberDrillFile::IdentifyPlating(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CGerberDrillFile::GetFileName(void) {return mszFileName.Text();}
+const char* CGerberDrillFile::GetFileName(void) const {return mszFileName.Text();}
 CExcellonCommands* CGerberDrillFile::GetCommands(void) {return &mcCommands;}
 EGerberDrillPlating CGerberDrillFile::GetPlating(void) const {return mePlating;}
 

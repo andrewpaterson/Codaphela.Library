@@ -18,7 +18,7 @@ public:
 
 	size			NumSets(void) const;
 	CGerberFileSet*	Get(size uiIndex);
-	CGerberFileSet*	Get(char* szName);
+	CGerberFileSet*	Get(const char* szName);
 };
 
 

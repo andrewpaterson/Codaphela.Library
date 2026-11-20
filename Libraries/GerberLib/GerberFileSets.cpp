@@ -97,7 +97,7 @@ bool CGerberFileSets::AddDirectories(char* szParentDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberFileSet* CGerberFileSets::Get(char* szName)
+CGerberFileSet* CGerberFileSets::Get(const char* szName)
 {
 	size			i;
 	CGerberFileSet*	pcSet;

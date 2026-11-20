@@ -64,7 +64,7 @@ bool CGerberVectoriser::HasError(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CGerberVectoriser::GetError(void)
+const char* CGerberVectoriser::GetError(void) const
 {
 	return mszError.Text();
 }

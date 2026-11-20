@@ -27,7 +27,7 @@ public:
 
 	bool					Load(char* szPathName);
 
-	char*					GetFileName(void);
+	const char*				GetFileName(void) const;
 	CExcellonCommands*		GetCommands(void);
 	EGerberDrillPlating		GetPlating(void) const;
 
