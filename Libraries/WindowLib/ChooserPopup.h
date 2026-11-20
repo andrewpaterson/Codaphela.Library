@@ -43,7 +43,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //What it has is chosen before it is opened (SetTitle, AddFilter, AddPreview, AddButton), then its icons and items are
 //added (AddIcon, AddItem, AddHeading) and it is opened at a point of the window (Open), no taller than its rows need
 //or the theme's TM_ChooserRows of them.  With a filter the keys stay with the field: up, down, page up and page down
-//move through the rows and enter chooses the selected one.  Without one the list has them.  A click chooses too.
+//move through the rows and enter chooses the selected one.  Without one the list has them, and typing finds a row
+//(CListContainer::SetTypeToFind).  A click chooses too.
 //Escape, or a press outside it, closes it.  Filtered items keep the order they were added in unless they are sorted
 //best match first (SetSortMatches).
 //

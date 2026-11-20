@@ -306,6 +306,22 @@ void TestChooserPopupHeadings(void)
 		AssertFalse(pChooser->SelectRow(2));
 		AssertInt(3, pChooser->GetSelectedRow());
 
+		//With no field, typing finds a row by its name: "ra" is CRack::Fill, and "ve" back round the end CVessel::Fill.
+		pTestWindow->InputPrintable('r', true);
+		pTestWindow->InputPrintable('a', true);
+		AssertTrue(pChooser->GetList()->IsFinding());
+		AssertInt(4, pChooser->GetSelectedRow());
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		AssertFalse(pChooser->GetList()->IsFinding());
+		pTestWindow->InputPrintable('v', true);
+		pTestWindow->InputPrintable('e', true);
+		AssertInt(1, pChooser->GetSelectedRow());
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		pTestWindow->InputCommand(CIC_Backspace, true);
+		AssertTrue(pChooser->IsOpen());
+		pChooser->SelectRow(3);
+
 		//Enter in the list chooses.
 		pTestWindow->InputCommand(CIC_Enter, true);
 		AssertFalse(pChooser->IsOpen());

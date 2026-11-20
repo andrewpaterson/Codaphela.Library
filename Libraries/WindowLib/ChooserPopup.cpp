@@ -328,6 +328,11 @@ void CChooserPopup::CreatePanel(void)
 	mpList->SetWrapAround(true);
 	mpList->GetSelectionEvent()->Add(this, &CChooserPopup::RowSelected);
 	mpList->GetActivationEvent()->Add(this, &CChooserPopup::RowActivated);
+	if (mpField.IsNull())
+	{
+		//With no field to filter them, typing finds a row.
+		mpList->SetTypeToFind(true);
+	}
 	mpScrollPane->SetContent(mpList);
 	mpScrollPane->SetAlignment(CSH_Stretch, CSV_Stretch);
 
