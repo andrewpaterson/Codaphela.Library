@@ -1252,7 +1252,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	if (bQualified)
 	{
 		mpcUnit->BeginQuiet();
-		pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcNode);
+		pcClass = mpcUnit->NameQualifierClass(pcName, pcNode);
 		mpcUnit->EndQuiet();
 	}
 	else if (mpcUnit->OuterFunction() && mpcUnit->OuterFunction()->mpcClass)
@@ -2282,7 +2282,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		//The parameters' types are worked out as InstantiateFunction declares them.
 		if (pcTemplate->mpcClass)
 		{
-			pcBindings->mpcOuter = pcTemplate->mpcClassDeclaration ? mpcUnit->RenameBindings(pcTemplate->mpcClass, pcTemplate->mpcClassDeclaration) : pcTemplate->mpcClass->mpcBindings;
+			pcBindings->mpcOuter = mpcUnit->MemberTemplateClassBindings(pcTemplate);
 		}
 		else
 		{

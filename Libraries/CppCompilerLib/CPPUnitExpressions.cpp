@@ -1599,7 +1599,7 @@ bool CCPPUnit::VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliVa
 	CCPPSyntaxInitDeclarator*		pcInit;
 	bool							bResult;
 
-	pcVariable = VariableInstance(pcId->mpcName->mpcSymbol, pcId->mpcName->GetLast(), pcId);
+	pcVariable = VariableInstance(pcId->mpcName, pcId);
 	if (!pcVariable || !pcVariable->mpsType->IsInteger())
 	{
 		return false;
@@ -1834,6 +1834,28 @@ CCPPClass* CCPPUnit::QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 		}
 	}
 	return pcClass;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class a qualified name's last qualifier names (GetComponentClass).
+// One the parser couldn't resolve is found in the class before it
+// (TEXT::SizePolicy::Copy(...)), and so is a member class named through a
+// class template's instance, which is that instance's own
+// (Outer<char>::Inner::Count()): QualifiersClass.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::NameQualifierClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxNameComponent*	pcQualifier;
+
+	pcQualifier = pcName->GetQualifier();
+	if (pcQualifier->mpcSymbol && !((pcQualifier->mpcSymbol->meKind == CPPSK_Class) && pcName->IsQualifiedByInstance()))
+	{
+		return GetComponentClass(pcQualifier, NULL, pcNode);
+	}
+	return QualifiersClass(pcName, pcNode);
 }
 
 
@@ -4114,7 +4136,7 @@ SCPP65Type* CCPPUnit::QualifiedFieldType(CCPPSyntax* pcExpression)
 	{
 		return NULL;
 	}
-	pcClass = GetComponentClass(pcName->GetQualifier(), NULL, pcExpression);
+	pcClass = NameQualifierClass(pcName, pcExpression);
 	psField = (pcClass && CompleteClass(pcClass, pcExpression)) ? pcClass->FindFieldSymbol(pcName->mpcSymbol, &iOffset) : NULL;
 	return psField ? psField->psType : NULL;
 }

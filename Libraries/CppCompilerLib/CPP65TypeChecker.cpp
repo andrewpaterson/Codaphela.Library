@@ -747,7 +747,7 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* 
 
 	pcName = pcId->mpcName;
 	mpcUnit->BeginQuiet();
-	pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcId);
+	pcClass = mpcUnit->NameQualifierClass(pcName, pcId);
 	mpcUnit->EndQuiet();
 	lliName = mpcUnit->GetFunctionName(pcName->GetLast());
 	*ppsType = NULL;

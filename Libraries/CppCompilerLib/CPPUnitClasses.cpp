@@ -472,11 +472,7 @@ bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	{
 		return true;
 	}
-	if (!pcClass->mpcSpecifier && pcClass->mpcSymbol && pcClass->mpcSymbol->mpcDeclaration && (pcClass->mpcSymbol->mpcDeclaration->GetKind() == CPPS_ClassSpecifier))
-	{
-		pcClass->mpcSpecifier = (CCPPSyntaxClassSpecifier*)pcClass->mpcSymbol->mpcDeclaration;
-	}
-	if (!pcClass->mpcSpecifier)
+	if (!FindSpecifier(pcClass))
 	{
 		return Error(pcNode, "The class has not been defined");
 	}
@@ -570,6 +566,40 @@ bool CCPPUnit::CompleteObjectClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class's definition (mpcSpecifier), if it has been seen: its symbol's,
+// or for a member class of a class template that is defined outside it
+// (template<class T> struct Outer<T>::Inner { ... };) that definition, whose
+// template parameters are bound to the arguments of the instance the class
+// is a member of.  [temp.mem.class] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::FindSpecifier(CCPPClass* pcClass)
+{
+	CCPPSyntaxTemplateDeclaration*	pcDeclaration;
+	CCPPSyntaxClassSpecifier*		pcSpecifier;
+
+	if (pcClass->mpcSpecifier)
+	{
+		return true;
+	}
+	if (pcClass->mpcSymbol && pcClass->mpcSymbol->mpcDeclaration && (pcClass->mpcSymbol->mpcDeclaration->GetKind() == CPPS_ClassSpecifier))
+	{
+		pcClass->mpcSpecifier = (CCPPSyntaxClassSpecifier*)pcClass->mpcSymbol->mpcDeclaration;
+		return true;
+	}
+	pcSpecifier = (pcClass->mpcEnclosing && pcClass->mpcSymbol) ? MemberClassDefinition(pcClass->mpcSymbol, &pcDeclaration) : NULL;
+	if (!pcSpecifier)
+	{
+		return false;
+	}
+	pcClass->mpcSpecifier = pcSpecifier;
+	pcClass->mpcBindings = RenameBindings(pcClass->mpcEnclosing, pcDeclaration);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Lays out a class the first time it is needed whole.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -583,11 +613,7 @@ bool CCPPUnit::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	{
 		return Error(pcNode, "A class cannot contain itself");
 	}
-	if (!pcClass->mpcSpecifier && pcClass->mpcSymbol && pcClass->mpcSymbol->mpcDeclaration && (pcClass->mpcSymbol->mpcDeclaration->GetKind() == CPPS_ClassSpecifier))
-	{
-		pcClass->mpcSpecifier = (CCPPSyntaxClassSpecifier*)pcClass->mpcSymbol->mpcDeclaration;
-	}
-	if (!pcClass->mpcSpecifier)
+	if (!FindSpecifier(pcClass))
 	{
 		return Error(pcNode, "The class has not been defined");
 	}
@@ -720,6 +746,29 @@ void CCPPUnit::DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether pcMember, a function defined outside a class template, is the
+// class's: of the template (or the partial specialisation) the class is an
+// instance of, or of the member class of a class template (template<class
+// T> int Outer<T>::Inner::Size() { ... }, which has no owner: its symbol is
+// the member class's) that the class is, in one instance.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsOutsideMemberOf(CCPPTemplate* pcMember, CCPPClass* pcClass)
+{
+	if (!pcMember->mbMember || pcMember->mbMemberTemplate)
+	{
+		return false;
+	}
+	if (pcClass->mpcTemplate)
+	{
+		return pcMember->mpcOwner == pcClass->mpcTemplate;
+	}
+	return pcClass->mpcEnclosing && !pcMember->mpcOwner && (pcMember->mpcSymbol == pcClass->mpcSymbol);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A function of a class template defined outside it (pcMember) after some of its
 // instances were laid out (a CChars used whole by a header Chars.cpp includes
 // before CCharsBase's functions): they get it too.
@@ -733,7 +782,7 @@ void CCPPUnit::DefineOutsideMembers(CCPPTemplate* pcMember)
 	for (i = 0; i < mapcClasses.NumElements(); i++)
 	{
 		pcClass = mapcClasses.GetPtr(i);
-		if (pcClass->mpcTemplate && (pcClass->mpcTemplate == pcMember->mpcOwner) && pcClass->IsComplete())
+		if (IsOutsideMemberOf(pcMember, pcClass) && pcClass->IsComplete())
 		{
 			mcContext.EnterBindings(pcClass->mpcBindings);
 			DefineOutsideMember(pcClass, pcMember);
@@ -791,17 +840,14 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	mcContext.LeaveNamespace();
 
-	//A class template's members defined outside it (so far: one defined later is given to the instances already laid
-	//out then, DefineOutsideMembers).
-	if (pcClass->mpcTemplate)
+	//A class template's members, and its member classes', defined outside it (so far: one defined later is given to
+	//the instances already laid out then, DefineOutsideMembers).
+	for (i = 0; (pcClass->mpcTemplate || pcClass->mpcEnclosing) && (i < mapcTemplates.NumElements()); i++)
 	{
-		for (i = 0; i < mapcTemplates.NumElements(); i++)
+		pcMember = mapcTemplates.GetPtr(i);
+		if (IsOutsideMemberOf(pcMember, pcClass))
 		{
-			pcMember = mapcTemplates.GetPtr(i);
-			if (pcMember->mbMember && !pcMember->mbMemberTemplate && (pcMember->mpcOwner == pcClass->mpcTemplate))
-			{
-				DefineOutsideMember(pcClass, pcMember);
-			}
+			DefineOutsideMember(pcClass, pcMember);
 		}
 	}
 

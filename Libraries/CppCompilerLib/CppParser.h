@@ -333,6 +333,7 @@ protected:
 	CCPPSyntax*						ParseInitializerClause(CCPPSyntax* pcParent);
 	bool							ParseExpressionList(CArraySyntax* papcExpressions, CCPPSyntax* pcParent, ECppTokens eClose);
 	bool							SkipCallArguments(CCPPSyntax* pcParent);
+	bool							HasTypeArgument(CCPPSyntaxNameComponent* pcComponent);
 	int								GetBinaryPrecedence(void);
 	bool							IsTypeTraitName(void);
 	bool							IsStringPart(void);

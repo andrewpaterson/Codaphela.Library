@@ -323,6 +323,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcTypeInfo = NULL;
 	mapsLambdas.Init();
 	mapcMemberSpecialisations.Init();
+	mapcMemberClassTemplates.Init();
+	mapcMemberVariableTemplates.Init();
 	mapcStaticMemberTemplates.Init();
 	mpcDefining = NULL;
 	mapcVariableInstances.Init();
@@ -451,6 +453,8 @@ void CCPPUnit::Kill(void)
 	FreeLambdas();
 	mapcMemberSpecialisations.Kill();
 	mapcStaticMemberTemplates.Kill();
+	mapcMemberVariableTemplates.Kill();
+	mapcMemberClassTemplates.Kill();
 	mapcVariableInstances.Kill();
 	mcImplicitValues.Kill();
 	mapcConstantTypes.Kill();

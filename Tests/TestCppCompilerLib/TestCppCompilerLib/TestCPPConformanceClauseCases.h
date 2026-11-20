@@ -6545,6 +6545,29 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.2.5 [expr.ref] p1, 14.2 [temp.names] p3: object.name<type> and pointer->name<type> name a member variable template's instance (a type is compared with nothing, so the < begins template arguments)
+	{
+		"ExprMemberVariableTemplate", 7,
+		"struct S\n"
+		"{\n"
+		"	template<class T> static const int size = sizeof(T);\n"
+		"	template<class T> static T value;\n"
+		"	int k;\n"
+		"};\n"
+		"template<class T> T S::value = T(5);\n"
+		"template<class C> struct W { template<class T> static const int twice = sizeof(T) * 2; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s; S* p = &s;\n"
+		"	if (s.size<char> == 1 && p->size<long> == sizeof(long)) r += 1;\n"
+		"	s.value<int> = 7;\n"
+		"	if (S::value<int> == 7 && p->value<int> == 7 && s.value<char> == 5) r += 2;\n"
+		"	W<int> w;\n"
+		"	if (w.twice<char> == 2) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };
 
 
@@ -8579,5 +8602,108 @@ static const SConformanceCase gasConformanceClause14[] =
 		"template<class C> struct W { int F(int a); };\n"
 		"template<> int W<char>::F(int a = 2) { return a; }\n"
 		"int main() { W<char> w; return w.F(1); }\n"
+	},
+	//14.5.1.2 [temp.mem.class] p1, 14.5.2 [temp.mem] p1: a member class of a class template, and a member class template of one, defined outside it (each instance's own, the definition naming the template's parameters its own way); a member function of such a member class defined outside it too
+	{
+		"TempMemberClassDefinedOutside", 15,
+		"template<class T> struct Outer\n"
+		"{\n"
+		"	struct Inner;\n"
+		"	struct Node;\n"
+		"	template<class U> struct Pair;\n"
+		"	Inner* Make(T t);\n"
+		"	static int Size();\n"
+		"};\n"
+		"template<class T> struct Outer<T>::Inner { T t; int Twice() { return (int)t * 2; } };\n"
+		"template<class T> struct Outer<T>::Node { T v; Node* next; Node(T a) : v(a), next(0) { } int Sum(); };\n"
+		"template<class T> int Outer<T>::Node::Sum() { return (int)v + (next ? next->Sum() : 0); }\n"
+		"template<class T> template<class U> struct Outer<T>::Pair { T a; U b; int Both() { return (int)a + (int)b; } };\n"
+		"template<class T> typename Outer<T>::Inner* Outer<T>::Make(T t) { static Inner i; i.t = t; return &i; }\n"
+		"template<class T> int Outer<T>::Size() { return (int)sizeof(Inner); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Outer<int>::Inner i; i.t = 4;\n"
+		"	Outer<char>::Inner c; c.t = 3;\n"
+		"	if (i.Twice() == 8 && c.Twice() == 6 && sizeof(c) == 1) r += 1;\n"
+		"	Outer<int>::Node a(1), b(2); a.next = &b;\n"
+		"	if (a.Sum() == 3) r += 2;\n"
+		"	Outer<char>::Pair<long> p; p.a = 1; p.b = 5;\n"
+		"	if (p.Both() == 6 && sizeof(p.b) == sizeof(long)) r += 4;\n"
+		"	Outer<int> o;\n"
+		"	if (o.Make(7)->Twice() == 14 && Outer<char>::Size() == 1) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.1.2 [temp.mem.class] p1, 9.7 [class.nest] p3: a member function of a class template's member class defined outside the template, a member class of the member class defined there, and a nested class of a class that is no template (its own names found before its enclosing class's)
+	{
+		"TempMemberClassMembersOutside", 135,
+		"template<class T> struct Outer\n"
+		"{\n"
+		"	struct In { T t; int Get(); struct Deep; };\n"
+		"};\n"
+		"template<class T> int Outer<T>::In::Get() { return (int)t + 1; }\n"
+		"template<class T> struct Outer<T>::In::Deep { T d[3]; };\n"
+		"struct A { struct B; int k; };\n"
+		"struct A::B { int x; int F() { return x + sizeof(A); } };\n"
+		"int main()\n"
+		"{\n"
+		"	Outer<char>::In i; i.t = 4;\n"
+		"	A::B b; b.x = 1;\n"
+		"	return i.Get() + (int)sizeof(Outer<char>::In::Deep) * 10 + (b.F() == 1 + sizeof(A) ? 100 : 0);\n"
+		"}\n"
+	},
+	//14.5.1.2 [temp.mem.class], 5.1.1 [expr.prim.general] p8: Outer<char>::Node::name is that instance's member class's member: a static function, a static constant, an enumerator, a typedef, a function whose address is taken
+	{
+		"TempMemberClassThroughInstance", 31,
+		"template<class T> struct Outer\n"
+		"{\n"
+		"	struct Node\n"
+		"	{\n"
+		"		T v;\n"
+		"		static int Count() { return (int)sizeof(T); }\n"
+		"		static const int size = sizeof(T) + 1;\n"
+		"		enum { twice = sizeof(T) * 2 };\n"
+		"		typedef T Type;\n"
+		"		static int Add(int a) { return a + Count(); }\n"
+		"	};\n"
+		"	static int Use() { return Node::Count() + Node::size * 10; }\n"
+		"};\n"
+		"int (*gp)(int) = &Outer<char>::Node::Add;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Outer<char>::Node::Count() == 1 && Outer<long>::Node::Count() == sizeof(long)) r += 1;\n"
+		"	if (Outer<char>::Node::size == 2 && Outer<long>::Node::size == sizeof(long) + 1) r += 2;\n"
+		"	if (Outer<char>::Node::twice == 2 && sizeof(Outer<long>::Node::Type) == sizeof(long)) r += 4;\n"
+		"	if (Outer<char>::Use() == 21 && gp(4) == 5) r += 8;\n"
+		"	if (sizeof(Outer<long>::Node::v) == sizeof(long)) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14 [temp] p1, 14.5.1.3 [temp.static] p1: a variable template that is a class template's static member is each instance's own and sees the instance's template arguments; defined in the class or outside it, named in the class, through an instance, an object and a derived class
+	{
+		"TempMemberVariableTemplateOfClassTemplate", 31,
+		"template<class C> struct W\n"
+		"{\n"
+		"	template<class T> static const int size = sizeof(T) + sizeof(C);\n"
+		"	template<class T> static T value;\n"
+		"	static int Use() { return size<char> + value<short>; }\n"
+		"};\n"
+		"template<class C> template<class T> T W<C>::value = T(sizeof(C) + 2);\n"
+		"struct D : W<char> { };\n"
+		"int ga[W<char>::size<char>];\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (W<char>::size<char> == 2 && W<long>::size<char> == sizeof(long) + 1 && sizeof(ga) == 2 * sizeof(int)) r += 1;\n"
+		"	if (W<char>::value<int> == 3 && W<long>::value<char> == (char)(sizeof(long) + 2)) r += 2;\n"
+		"	W<char>::value<int> = 9;\n"
+		"	if (W<char>::value<int> == 9 && W<char>::value<long> == 3) r += 4;\n"
+		"	if (W<char>::Use() == 5 && W<long>::Use() == (int)sizeof(long) * 2 + 3) r += 8;\n"
+		"	W<char> w; W<long>* p = 0;\n"
+		"	if (w.size<long> == sizeof(long) + 1 && p->size<char> == sizeof(long) + 1 && D::size<char> == 2) r += 16;\n"
+		"	return r;\n"
+		"}\n"
 	},
 };

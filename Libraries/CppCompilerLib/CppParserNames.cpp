@@ -169,10 +169,12 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 				{
 					//An unknown name, as a member of a dependent or unknown type, is a template if what follows the
 					//'<' is a template argument list followed by a call's arguments or by '::'.  s.a < b && (void*)p > q
-					//is not one: (void*) is no argument.
+					//is not one: (void*) is no argument.  Nor is anything compared with a type: s.size<char> is a member
+					//variable template's instance.
 					BeginTentative(&sTentative);
 					bArguments = ParseTemplateArguments(pcComponent);
-					bTemplate = EndTentative(&sTentative, bArguments && (Is(CT_ScopeResolution) || SkipCallArguments(pcComponent)));
+					bArguments = bArguments && (HasTypeArgument(pcComponent) || Is(CT_ScopeResolution) || SkipCallArguments(pcComponent));
+					bTemplate = EndTentative(&sTentative, bArguments);
 					pcComponent->macpTemplateArguments.ReInit();
 					pcComponent->mbTemplateArguments = false;
 				}
@@ -303,6 +305,27 @@ static bool IsOverloadableOperator(CCPPToken* pcToken)
 static bool IsEmptyString(CCPPToken* pcToken)
 {
 	return pcToken && pcToken->IsString() && (((CCTString*)pcToken)->mszEnd - ((CCTString*)pcToken)->mszStart == 1) && (*((CCTString*)pcToken)->mszStart == '"');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether one of the template arguments just parsed for the component is a
+// type: no expression is, so the '<' before them wasn't less than.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::HasTypeArgument(CCPPSyntaxNameComponent* pcComponent)
+{
+	size	i;
+
+	for (i = 0; i < pcComponent->macpTemplateArguments.NumElements(); i++)
+	{
+		if (pcComponent->macpTemplateArguments.GetPtr(i)->GetKind() == CPPS_TypeId)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

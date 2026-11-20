@@ -555,8 +555,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
 		if (pcName->IsQualifiedByClass())
 		{
-			//TEXT::SizePolicy::Copy(...): a qualifier the parser couldn't resolve is found in the class before it.
-			pcClass = pcName->GetQualifier()->mpcSymbol ? mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcCallee) : mpcUnit->QualifiersClass(pcName, pcCallee);
+			pcClass = mpcUnit->NameQualifierClass(pcName, pcCallee);
 			bVirtual = false;
 		}
 		else
@@ -1575,7 +1574,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	//A local, a parameter, a global or a static member; pi<int> a variable template's instance.
 	if (!pcBound->mpcVariable && pcSymbol && (pcSymbol->meKind == CPPSK_VariableTemplate))
 	{
-		pcBound->mpcVariable = mpcUnit->VariableInstance(pcSymbol, pcId->mpcName->GetLast(), pcId);
+		pcBound->mpcVariable = mpcUnit->VariableInstance(pcId->mpcName, pcId);
 	}
 	if (!pcBound->mpcVariable && pcSymbol)
 	{
@@ -1644,7 +1643,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 //
 // object.name and pointer->name, once the object's class is known: the class's field
 // of the name, or a base's, with where it is in the object (CPPBN_Field), or else its
-// static member (CPPBN_Variable).  False if it has neither (CPPBN_Nothing), or the
+// static member, which a member variable template's instance is (CPPBN_Variable).  False if it has neither (CPPBN_Nothing), or the
 // class can't be completed, which is reported at pcNode.  In the class's own
 // definition it needn't be complete: a member function's trailing return type names
 // the members declared before it (auto Get(void) -> decltype(this->m)), which haven't
@@ -1655,6 +1654,8 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 {
 	int64		lliName;
 	CCPPClass*	pcLookup;
+	CCPPClass*	pcDeclaring;
+	CCPPSymbol*	pcSymbol;
 
 	pcBound->meWhat = CPPBN_Nothing;
 	pcBound->mpcSymbol = NULL;
@@ -1688,7 +1689,10 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	}
 	else
 	{
-		pcBound->mpcVariable = mpcUnit->FindStatic(pcClass, lliName);
+		//object.size<char> is its class's member variable template's instance for the arguments (each a static member
+		//of the name).  [temp.variable] 1
+		pcSymbol = pcName->GetLast()->mbTemplateArguments ? pcLookup->FindMemberSymbol(lliName, CPPSK_VariableTemplate, &pcDeclaring) : NULL;
+		pcBound->mpcVariable = pcSymbol ? mpcUnit->ClassVariableInstance(pcSymbol, pcName->GetLast(), pcLookup, pcNode) : mpcUnit->FindStatic(pcClass, lliName);
 		if (!pcBound->mpcVariable)
 		{
 			return false;

@@ -163,7 +163,10 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 	}
 
 	//A symbol declared before is only changed by the real parse: a tentative one is rewound, its class dropped.
-	pcClass->mpcScope = mpcSymbols->CreateScope(CPPSC_Class, pcQualifier ? pcQualifier : mpcScope, pcSymbol);
+	//A nested class defined outside its class is in the scope it is defined in (whose template parameters it names),
+	//the class it is a member of searched first, as a member function's defined outside is.
+	pcClass->mpcScope = mpcSymbols->CreateScope(CPPSC_Class, mpcScope, pcSymbol);
+	pcClass->mpcScope->mpcQualifier = pcQualifier;
 	if (pcSymbol && (miTentative == 0))
 	{
 		if (!pcSymbol->mpcMembers || bSimple)

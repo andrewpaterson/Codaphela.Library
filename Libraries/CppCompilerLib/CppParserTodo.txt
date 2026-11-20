@@ -883,6 +883,29 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       the default argument - a function template's second declaration or its definition after a declaration, a
       member template's or a class template's member's definition outside the class, an explicit
       specialisation.  TempMemberTemplateDefinedLater, DclDefaultArgumentsOutsideClass and six Refused cases.
+    - 4, 6, 5.  What a class template's members can be, defined outside it.
+      A member class (template<class T> struct Outer<T>::Inner { ... };) is each instance's own class, which had
+      no definition: CCPPUnit::FindSpecifier (the two places that asked for a class's definition) finds the one
+      outside (MemberClassDefinition) and binds its template parameters to the instance's arguments.  The parser
+      gave a nested class defined outside its class the enclosing class as its scope's parent, so the template
+      parameters of the declaration it is in weren't found: the scope's parent is where it is defined, the
+      enclosing class its qualifier, searched first, as a member function's defined outside is.  A member class
+      template defined outside (template<class T> template<class U> struct Outer<T>::Pair { ... };) is given to
+      the instance by MemberTemplate; a member function of a member class defined outside (template<class T> int
+      Outer<T>::Node::Sum() { ... }) was read as a member template of Node, and is the member class's in each
+      instance (IsOutsideMemberOf).  Found doing it: Outer<char>::Node::Count() looked Node up with no instance
+      (NameQualifierClass, at four places that took the last qualifier alone).
+      A variable template that is a class template's static member is each instance's own: the template was
+      found by its symbol alone, which every instance shares, with none of the class's arguments.
+      VariableTemplate takes the class (the name's qualifier's, or the one in use) and its instances see the
+      class's bindings; one defined outside (template<class C> template<class T> T W<C>::value = ...;) is
+      DefineMemberVariableTemplate's.  MemberTemplateClassBindings is the three copies of "the class's bindings
+      as the outside definition names them".  Not done: a partial specialisation of one outside the class.
+      object.size<char>: the parser took the < after a member's name as less than unless a call followed; a type
+      among the arguments settles it (nothing is compared with a type).  BindMember finds the member variable
+      template's instance, before the static of the name (an earlier instance is one).
+      TempMemberClassDefinedOutside, TempMemberClassMembersOutside, TempMemberClassThroughInstance,
+      TempMemberVariableTemplateOfClassTemplate, ExprMemberVariableTemplate.
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or
