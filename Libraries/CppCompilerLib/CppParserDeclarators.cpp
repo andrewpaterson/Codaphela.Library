@@ -108,14 +108,14 @@ CCPPSyntaxDeclarator* CCPPParser::ParseDeclarator(CCPPSyntax* pcParent, ECPPDecl
 	}
 
 	//A '(' after a simple name in a block or namespace is a function declarator only if it holds parameters; otherwise
-	//it starts an initialiser, as in CChars sz(szOther).  [dcl.ambig.res]
+	//it starts an initialiser, as in CChars sz(szOther), and with the name in brackets, T(b)(4).  [dcl.ambig.res]
 	pcName = pcDeclarator->mpcName;
 	for (;;)
 	{
 		if (Is(CT_OpenRoundBracket))
 		{
 			bFunctionAllowed = true;
-			if (pcName && pcName->IsSimple() && (eKind == CPPDK_Named) && (eContext != CPPDC_Class) && (pcDeclarator->macpSuffixes.NumElements() == 0))
+			if (((pcName && pcName->IsSimple()) || (pcDeclarator->mpcNested && pcDeclarator->IsParenthesisedName())) && (eKind == CPPDK_Named) && (eContext != CPPDC_Class) && (pcDeclarator->macpSuffixes.NumElements() == 0))
 			{
 				bFunctionAllowed = IsParameterClause();
 			}
@@ -409,7 +409,8 @@ bool CCPPParser::IsParameterClause(void)
 		eToken = ((CCTReservedWord*)pcNext)->GetToken();
 		if (IsTypeStartKeyword(eToken) || IsDeclSpecifierKeyword(eToken) || (eToken == CT___attribute__) || (eToken == CT___declspec))
 		{
-			return true;
+			//int(a) is a parameter in brackets, and int(a) + 1 an expression.
+			return !(IsSimpleTypeKeyword(eToken) && IsAhead(2, CT_OpenRoundBracket)) || IsFunctionSuffixAhead();
 		}
 
 		//[[attributes]] start a parameter (a lambda can't start with [[).  [dcl.attr.grammar] 7
@@ -427,9 +428,27 @@ bool CCPPParser::IsParameterClause(void)
 			bType = true;
 		}
 		Rewind(sPosition);
-		return bType;
+		return bType && (!(pcNext->IsIdentifier() && IsAhead(2, CT_OpenRoundBracket)) || IsFunctionSuffixAhead());
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether what is at the '(' is a function's parameters, tried by parsing
+// them: S z(int(a) + 1) and S z(T(a).m) begin as parameters do, and aren't.
+// [dcl.ambig.res] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsFunctionSuffixAhead(void)
+{
+	SCPPTentative	sTentative;
+	bool			bSuffix;
+
+	BeginTentative(&sTentative);
+	bSuffix = ParseFunctionSuffix(NULL, NULL) != NULL;
+	return EndTentative(&sTentative, bSuffix);
 }
 
 

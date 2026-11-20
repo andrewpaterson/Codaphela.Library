@@ -275,6 +275,8 @@ protected:
 	CMapLongTemplate<CCPPSyntaxImplicitArgument*>	mcImplicitValues;	//The arguments the IR front end gives values (ImplicitValue).
 	int						miUnevaluated;		//How deep in operands that aren't evaluated (sizeof, decltype) the unit is.
 	CArrayCPPSymbols		mapcPackElements;	//Its elements' symbols.
+	CArraySyntax			mapcObjectConstants;	//The expressions ObjectConstantType is asked of now: a name's type may ask for its constant.
+	bool					mbValueArgumentRefused;	//A template argument's value wasn't one of its parameter's type (ValueArgumentFits), since it was cleared.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
 	CArraySyntax			mapcFailed;			//Declarators of functions whose declarations were not supported.
@@ -550,6 +552,9 @@ public:
 	bool					ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* pcInit, bool bExtern);
 	bool					IsInstantiatedElsewhere(CCPPFunction* pcFunction);
 	CCPPTemplate*			GetTemplate(CCPPSymbol* pcSymbol);
+	bool					ValueArgumentFits(CCPPSyntaxParameter* pcParameter, SCPPExpandedArgument* psArgument, int64 lliValue, CCPPTemplateArguments* pcBindings);
+	bool					ConstantFits(SCPP65Type* psType, int64 lliValue);
+	void					CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue);
 	void					DeclareFunctionTemplate(CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxSimpleDeclaration* pcSimple);
 	void					DefineFunctionTemplate(CCPPTemplate* pcTemplate, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxFunctionDefinition* pcDefinition);
 	CCPPTemplate*			FindFunctionTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxDeclarator* pcDeclarator);
@@ -869,6 +874,7 @@ public:
 	int64					FloatBits(SCPP65Type* psType, double dValue);
 	bool					FloatConstant(CCPPSyntax* pcExpression, double* pdValue);
 	bool					ConstexprFloat(CCPPSyntaxIdExpression* pcId, double* pdValue, SCPP65Type** ppsType);
+	SCPP65Type*				ObjectConstantType(CCPPSyntax* pcExpression);
 	bool					FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
 	bool					TokenFloat(CCPPToken* pcToken, double* pdValue, SCPP65Type** ppsType);
 	bool					FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);

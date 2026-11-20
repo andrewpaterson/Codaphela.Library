@@ -161,6 +161,9 @@ protected:
 	SCPP65Type*		NewExpression(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*		NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType);
 	bool			NewArrayBound(CCPPSyntax* pcBound);
+	bool			HasOperatorFunction(CCPPSyntaxBinaryExpression* pcBinary);
+	bool			Operands(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type** ppsLeft, SCPP65Type** ppsRight);
+	SCPP65Type*		BuiltinOperand(CCPPSyntax* pcOperand, ECPPContextualTypes eWanted);
 	SCPP65Type*		DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete);
 
 	SCPP65Type*		FieldType(SCPPField* psField, bool bConst, bool bVolatile);

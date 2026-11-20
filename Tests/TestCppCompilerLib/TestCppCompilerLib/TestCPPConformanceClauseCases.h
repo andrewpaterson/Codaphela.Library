@@ -6006,6 +6006,127 @@ static const SConformanceCase gasConformanceClause5[] =
 		"struct X { X(int v) : v(v) { } operator int() const { return v; } int v; };\n"
 		"int main() { X x(1); bool c = true; return (c ? x : 2) == 1; }\n"
 	},
+	//5.19 [expr.const] p2, p5, 7.1.5 [dcl.constexpr] p9: a constexpr local of a class, a floating or a pointer type is a constant, read by what follows
+	{
+		"ConstantLocalObjects", 7,
+		"struct P { int x; int y; constexpr int Sum() const { return x + y; } };\n"
+		"constexpr double Half(double v) { return v / 2; }\n"
+		"int gA = 5;\n"
+		"int gArr[4];\n"
+		"constexpr int Twice(int v) { return v * 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	constexpr P p = { 3, 4 };\n"
+		"	constexpr double d = 2.5;\n"
+		"	constexpr double e = d * 2 + Half(3.0);\n"
+		"	constexpr int* pg = &gA;\n"
+		"	constexpr int& rg = gA;\n"
+		"	constexpr const int* pe = &gArr[p.x];\n"
+		"	constexpr P q = { p.y, Twice(p.x) };\n"
+		"	static constexpr int sLocal = 9;\n"
+		"	constexpr const int* ps = &sLocal;\n"
+		"	int a[p.x];\n"
+		"	int b[p.Sum() + q.y];\n"
+		"	int r = 0;\n"
+		"	if (sizeof(a) == 3 * sizeof(int) && sizeof(b) == 13 * sizeof(int)) r += 1;\n"
+		"	if (e == 6.5 && *pg == 5 && &rg == &gA && pe == &gArr[3]) r += 2;\n"
+		"	if (q.x == 4 && q.y == 6 && *ps == 9) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.19 [expr.const] p5: a constexpr pointer to a member function that nothing else names
+	{
+		"ConstantMemberFunctionPointerData", 6,
+		"struct S { int m; int f() const { return m; } };\n"
+		"S gs = { 6 };\n"
+		"constexpr int (S::*gpmf)() const = &S::f;\n"
+		"int main() { return (gs.*gpmf)(); }\n"
+	},
+	//5.19 [expr.const] p2: a static const member is a constant from its definition after the class
+	{
+		"ConstantStaticMemberOutside", 15,
+		"struct S { static const int scIn = 7; static const int scOut; static const int scLate; };\n"
+		"const int S::scOut = 8;\n"
+		"int main()\n"
+		"{\n"
+		"	int e[S::scIn + S::scOut];\n"
+		"	return sizeof(e) / sizeof(int);\n"
+		"}\n"
+	},
+	//13.6 [over.built], 5.6-5.13: a built-in binary operator on an object no operator function takes is done on what the object's conversion function gives
+	{
+		"BuiltinOperatorsOnObjects", 63,
+		"struct T { operator int() const { return 7; } };\n"
+		"struct U { U(int x) : v(x) { } operator long() const { return v; } long v; };\n"
+		"struct Q { operator int*() const { return p; } int* p; };\n"
+		"int ga[9];\n"
+		"int main()\n"
+		"{\n"
+		"	T t;\n"
+		"	U u(3);\n"
+		"	Q q;\n"
+		"	q.p = ga + 2;\n"
+		"	int x = 1;\n"
+		"	int* p = ga;\n"
+		"	int r = 0;\n"
+		"	if (t + 1 == 8 && 1 + t == 8 && t * t == 49 && t - u == 4 && t / 2.0 == 3.5) r += 1;\n"
+		"	if (t % 4 == 3 && t << 1 == 14 && (t & 6) == 6 && (t | 8) == 15 && (t ^ u) == 4 && u >> 1 == 1) r += 2;\n"
+		"	if (t < 9 && !(t == u) && t != u && t >= u && u <= t && t > 6L) r += 4;\n"
+		"	if (t + p == p + 7 && q + 1 == ga + 3 && q - p == 2 && q == ga + 2 && q > p) r += 8;\n"
+		"	x += t;\n"
+		"	x <<= u;\n"
+		"	x -= u;\n"
+		"	p += t;\n"
+		"	if (x == 61 && p == ga + 7) r += 16;\n"
+		"	if ((t && u) && (t || u) && sizeof(t + u) == sizeof(long) && sizeof(t + 1) == sizeof(int)) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//13.6 [over.built]: an object with no operator function and no conversion function
+	{
+		"BuiltinOperatorObjectNoConversionRefused", CONFORMANCE_REFUSED,
+		"struct T { operator int() const { return 7; } };\n"
+		"struct S { int v; };\n"
+		"int main() { T t; S s; s.v = 1; return t + s; }\n"
+	},
+	//13.6 [over.built]: an object that converts to two arithmetic types
+	{
+		"BuiltinOperatorObjectTwoConversionsRefused", CONFORMANCE_REFUSED,
+		"struct X { operator int() const { return 1; } operator double() const { return 2.0; } };\n"
+		"int main() { X x; return (int)(x + 1); }\n"
+	},
+	//13.6 [over.built]: * of an object that converts only to a pointer
+	{
+		"BuiltinOperatorPointerObjectTimesRefused", CONFORMANCE_REFUSED,
+		"struct Q { operator int*() const { return 0; } };\n"
+		"int main() { Q q; return q * 2; }\n"
+	},
+	//5.19 [expr.const] p3, 14.3.2 [temp.arg.nontype], 7.2 [dcl.enum] p5: template arguments and enumerators whose values are of the type they are converted to
+	{
+		"ConstantConvertedFits", 7,
+		"template<unsigned char C> struct Byte { enum { V = C }; };\n"
+		"template<unsigned int N> struct Count { enum { V = 1 }; };\n"
+		"template<class T, T v> struct Of { static const T V = v; };\n"
+		"template<long L> struct Long { enum { V = L > 0 }; };\n"
+		"template<bool B> struct Flag { enum { V = B }; };\n"
+		"enum E : unsigned char { E0 = 255, E1 = 0 };\n"
+		"enum class F : short { F0 = -32768, F1 = 32767 };\n"
+		"const int gFits = 200;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Byte<255>::V == 255 && Byte<gFits>::V == 200 && Byte<'a'>::V == 'a' && Count<65535u>::V == 1) r += 1;\n"
+		"	if (Of<unsigned char, 255>::V == 255 && Of<signed char, -128>::V == -128 && Long<70000L>::V && Flag<(3 > 2)>::V) r += 2;\n"
+		"	if (E0 == 255 && (int)F::F0 == -32768 && (int)F::F1 == 32767) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.19 [expr.const] p2: an address cast to an integer is not a constant
+	{
+		"ConstantAddressAsNumberRefused", CONFORMANCE_REFUSED,
+		"int gi = 1;\n"
+		"int main() { constexpr unsigned long long a = (unsigned long long)&gi; return a ? 1 : 2; }\n"
+	},
 };
 
 
@@ -7172,5 +7293,28 @@ static const SConformanceCase gasConformanceClause8[] =
 		"DclVolatileFreeFunctionRefused", CONFORMANCE_REFUSED,
 		"int f() volatile { return 1; }\n"
 		"int main() { return f(); }\n"
+	},
+	//8.2 [dcl.ambig.res] p1: an initialiser in brackets that begins as a parameter does, and a declarator whose name is in brackets
+	{
+		"DclAmbiguityInitialisers", 3,
+		"struct S { S(int x) : v(x) { } S(int x, int y) : v(x + y) { } int v; S Plus(int n) const { return S(v + n); } };\n"
+		"typedef int Int;\n"
+		"int ga = 4;\n"
+		"int Twice(int v) { return v * 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int a = 3;\n"
+		"	S p(int(a) * 2);\n"
+		"	S q(Int(a) + ga, int(ga));\n"
+		"	S t(S(a).Plus(1));\n"
+		"	S u(Twice(Int(a)));\n"
+		"	S (w)(7);\n"
+		"	Int (k)(a + 1);\n"
+		"	Int f(Int(a));\n"
+		"	int r = 0;\n"
+		"	if (p.v == 6 && q.v == 11 && t.v == 4 && u.v == 6) r += 1;\n"
+		"	if (w.v == 7 && k == 4 && sizeof(f(1)) == sizeof(int)) r += 2;\n"
+		"	return r;\n"
+		"}\n"
 	},
 };

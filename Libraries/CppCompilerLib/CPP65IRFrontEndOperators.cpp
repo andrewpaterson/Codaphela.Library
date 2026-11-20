@@ -303,11 +303,11 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 	case CT_GreaterThanEqualTo:
 		return ConditionValue(pcBinary, psValue);
 	default:
-		if (mpcUnit->IsObject(pcBinary->mpcLeft) || mpcUnit->IsObject(pcBinary->mpcRight))
+		if (HasOperatorFunction(pcBinary))
 		{
 			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, psValue);
 		}
-		if (!Operand(pcBinary->mpcLeft, &sLeft) || !Operand(pcBinary->mpcRight, &sRight))
+		if (!Operands(pcBinary, &sLeft, &sRight))
 		{
 			return false;
 		}
@@ -334,6 +334,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	ECppTokens		eOperator;
 	SCPP65Type*		psLeft;
 	bool			bBytes;
+	bool			bResult;
 
 	psLeft = mpcUnit->TypeOf(pcBinary->mpcLeft);
 	if (psLeft && psLeft->IsClass())
@@ -367,8 +368,18 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 		psValue->psType = sPlace.psType;
 		return true;
 	}
-	//f = g chooses the overload of g with the type of f (worked out without its code, as the right is first).
-	if (!ValueFor(pcBinary->mpcRight, (pcBinary->meOperator == CT_Assignment) ? mpcUnit->PlaceTypeOf(pcBinary->mpcLeft) : NULL, &sRight) || !Place(pcBinary->mpcLeft, &sPlace))
+	//f = g chooses the overload of g with the type of f (worked out without its code, as the right is first).  x op= y
+	//with an object for y takes what it converts to for the operator.
+	eOperator = CPPCompoundOperation(pcBinary->meOperator);
+	if (pcBinary->meOperator == CT_Assignment)
+	{
+		bResult = ValueFor(pcBinary->mpcRight, mpcUnit->PlaceTypeOf(pcBinary->mpcLeft), &sRight);
+	}
+	else
+	{
+		bResult = mpcUnit->IsObject(pcBinary->mpcRight) ? ContextualValue(pcBinary->mpcRight, CPPBinaryOperandTypes(eOperator), &sRight) : ValueFor(pcBinary->mpcRight, NULL, &sRight);
+	}
+	if (!bResult || !Place(pcBinary->mpcLeft, &sPlace))
 	{
 		return false;
 	}
@@ -393,19 +404,6 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 		return true;
 	}
 
-	switch (pcBinary->meOperator)
-	{
-	case CT_AssignmentAdd:			eOperator = CT_Add;			break;
-	case CT_AssignmentSubtract:		eOperator = CT_Subtract;	break;
-	case CT_AssignmentMultiply:		eOperator = CT_Multiply;	break;
-	case CT_AssignmentDivide:		eOperator = CT_Divide;		break;
-	case CT_AssignmentModulus:		eOperator = CT_Modulus;		break;
-	case CT_AssignmentBitwiseAnd:	eOperator = CT_BitwiseAnd;	break;
-	case CT_AssignmentBitwiseOr:	eOperator = CT_BitwiseOr;	break;
-	case CT_AssignmentBitwiseXor:	eOperator = CT_BitwiseXor;	break;
-	case CT_AssignmentLeftShift:	eOperator = CT_LeftShift;	break;
-	default:						eOperator = CT_RightShift;	break;
-	}
 	//x op= y is x = x op y: both are operands, a bit-field promoted as one is.  [expr.ass] 7
 	if (!Load(&sPlace, &sOld) || !Convert(&sOld, mpcUnit->OperandType(sOld.psType, pcBinary->mpcLeft)) || !Convert(&sRight, mpcUnit->OperandType(sRight.psType, pcBinary->mpcRight)))
 	{
@@ -753,6 +751,37 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a binary operator with an object for an operand is an operator
+// function's call: the type checker's question (CCPP65TypeChecker::
+// HasOperatorFunction).  Otherwise it is the built-in operator.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::HasOperatorFunction(CCPPSyntaxBinaryExpression* pcBinary)
+{
+	CCPPBoundCall	cBound;
+
+	return (mpcUnit->IsObject(pcBinary->mpcLeft) || mpcUnit->IsObject(pcBinary->mpcRight)) &&
+		   mpcUnit->GetBinder()->BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A built-in binary operator's operands' values, the left first: an object
+// is what its conversion function gives for the operator.  [over.built]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::Operands(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psLeft, SCPP65IRValue* psRight)
+{
+	ECPPContextualTypes	eWanted;
+
+	eWanted = CPPBinaryOperandTypes(pcBinary->meOperator);
+	return ContextualValue(pcBinary->mpcLeft, eWanted, psLeft) && ContextualValue(pcBinary->mpcRight, eWanted, psRight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // c ? x : y of two lvalues of one type, as the place it is: x's or y's,
 // their addresses meeting in a phi.  Where one is a bit-field, which bits of
 // the unit there the place is meets in a phi too (SCPP65IRPlace::bEither).
@@ -949,7 +978,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		case CT_LessThanEqualTo:
 		case CT_GreaterThan:
 		case CT_GreaterThanEqualTo:
-			if (mpcUnit->IsObject(pcBinary->mpcLeft) || mpcUnit->IsObject(pcBinary->mpcRight))
+			if (HasOperatorFunction(pcBinary))
 			{
 				//An operator function's result.
 				if (!OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, &sValue) || !sValue.psType->IsScalar() || !Truth(&sValue, &sCondition))
@@ -960,7 +989,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 				return true;
 			}
 			mpcUnit->ComparisonRange(pcBinary);
-			if (!Operand(pcBinary->mpcLeft, &sLeft) || !Operand(pcBinary->mpcRight, &sRight) || !Compare(pcBinary->meOperator, &sLeft, &sRight, &sCondition))
+			if (!Operands(pcBinary, &sLeft, &sRight) || !Compare(pcBinary->meOperator, &sLeft, &sRight, &sCondition))
 			{
 				return false;
 			}

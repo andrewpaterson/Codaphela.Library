@@ -546,6 +546,7 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 	CCPPClass*	pcClass;
 	int64			lliValue;
 	double			dValue;
+	size			uiErrors;
 
 	pcExpression = mpcUnit->SkipParentheses(pcExpression);
 	if (pcExpression->GetKind() == CPPS_IdExpression)
@@ -571,7 +572,16 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 	}
 	if (!mpcUnit->Constant(pcExpression, &lliValue))
 	{
-		mpcUnit->ConstantError(pcExpression, "The value is not a constant");
+		//A class its name is qualified by that couldn't be made (Byte<300>::V) says why itself, asked for here.
+		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		if ((pcExpression->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->IsQualifiedByClass())
+		{
+			mpcUnit->QualifiersClass(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression);
+		}
+		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		{
+			mpcUnit->ConstantError(pcExpression, "The value is not a constant");
+		}
 		return NULL;
 	}
 	return psType;
@@ -871,10 +881,8 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		{
 			return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary);
 		}
-		//No operator function takes the object: the built-in operator, on what the object's conversion function gives
-		//(+lambda is the pointer to its function).  [over.built]
-		psType = mpcUnit->GetBinder()->ContextualType(pcUnary->mpcOperand, CPPUnaryOperandTypes(pcUnary->meOperator));
-		psType = psType ? ValueFor(pcUnary->mpcOperand, psType, false) : NULL;
+		//No operator function takes the object: the built-in operator, on what the object's conversion function gives.
+		psType = BuiltinOperand(pcUnary->mpcOperand, CPPUnaryOperandTypes(pcUnary->meOperator));
 	}
 	else
 	{
@@ -1013,11 +1021,11 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 	case CT_GreaterThanEqualTo:
 		return ConditionValue(pcBinary);
 	default:
-		if (mpcUnit->IsObject(pcBinary->mpcLeft) || mpcUnit->IsObject(pcBinary->mpcRight))
+		if (HasOperatorFunction(pcBinary))
 		{
 			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary);
 		}
-		if (!Operands(pcBinary->mpcLeft, pcBinary->mpcRight, &psLeft, &psRight))
+		if (!Operands(pcBinary, &psLeft, &psRight))
 		{
 			return NULL;
 		}
@@ -1076,25 +1084,13 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 		return ImplicitConvert(psRight, psPlace, pcBinary->mpcRight, pcBinary->mpcRight) ? psPlace : NULL;
 	}
 
-	psRight = Value(pcBinary->mpcRight);
+	//x op= y is x = x op y, and an object for y what it converts to for the operator.  [expr.ass] 7
+	eOperator = CPPCompoundOperation(pcBinary->meOperator);
+	psRight = mpcUnit->IsObject(pcBinary->mpcRight) ? BuiltinOperand(pcBinary->mpcRight, CPPBinaryOperandTypes(eOperator)) : Value(pcBinary->mpcRight);
 	if (!psRight)
 	{
 		return NULL;
 	}
-	switch (pcBinary->meOperator)
-	{
-	case CT_AssignmentAdd:			eOperator = CT_Add;			break;
-	case CT_AssignmentSubtract:		eOperator = CT_Subtract;	break;
-	case CT_AssignmentMultiply:		eOperator = CT_Multiply;	break;
-	case CT_AssignmentDivide:		eOperator = CT_Divide;		break;
-	case CT_AssignmentModulus:		eOperator = CT_Modulus;		break;
-	case CT_AssignmentBitwiseAnd:	eOperator = CT_BitwiseAnd;	break;
-	case CT_AssignmentBitwiseOr:	eOperator = CT_BitwiseOr;	break;
-	case CT_AssignmentBitwiseXor:	eOperator = CT_BitwiseXor;	break;
-	case CT_AssignmentLeftShift:	eOperator = CT_LeftShift;	break;
-	default:						eOperator = CT_RightShift;	break;
-	}
-	//x op= y is x = x op y.  [expr.ass] 7
 	psResult = Operate(eOperator, psPlace, psRight, pcBinary);
 	return ImplicitConvert(psResult, psPlace, pcBinary, NULL) ? psPlace : NULL;
 }
@@ -1114,6 +1110,61 @@ bool CCPP65TypeChecker::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65
 	}
 	*ppsRight = Operand(pcRight);
 	return *ppsRight != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a binary operator with an object for an operand is an operator
+// function's call (the object's own or a free one).  Where it is none, the
+// operator is the built-in one, on what the object converts to
+// (BuiltinOperand).  [over.match.oper] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::HasOperatorFunction(CCPPSyntaxBinaryExpression* pcBinary)
+{
+	CCPPBoundCall	cBound;
+
+	return (mpcUnit->IsObject(pcBinary->mpcLeft) || mpcUnit->IsObject(pcBinary->mpcRight)) &&
+		   mpcUnit->GetBinder()->BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The types of a built-in binary operator's operands' values.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::Operands(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type** ppsLeft, SCPP65Type** ppsRight)
+{
+	ECPPContextualTypes	eWanted;
+
+	eWanted = CPPBinaryOperandTypes(pcBinary->meOperator);
+	*ppsLeft = BuiltinOperand(pcBinary->mpcLeft, eWanted);
+	*ppsRight = *ppsLeft ? BuiltinOperand(pcBinary->mpcRight, eWanted) : NULL;
+	return *ppsRight != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the value of a built-in operator's operand: as Operand gives
+// it, and for an object what its class's one conversion function to a type
+// the operator takes (eWanted) gives, +lambda the pointer to its function
+// and Count + 1 an integer.  NULL, with why, for an object with none or with
+// more than one.  [over.built]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::BuiltinOperand(CCPPSyntax* pcOperand, ECPPContextualTypes eWanted)
+{
+	SCPP65Type*	psType;
+
+	if (!mpcUnit->IsObject(pcOperand))
+	{
+		return Operand(pcOperand);
+	}
+	psType = mpcUnit->GetBinder()->ContextualType(pcOperand, eWanted);
+	return psType ? ValueFor(pcOperand, psType, false) : NULL;
 }
 
 
@@ -1517,12 +1568,12 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 		case CT_LessThanEqualTo:
 		case CT_GreaterThan:
 		case CT_GreaterThanEqualTo:
-			if (mpcUnit->IsObject(pcBinary->mpcLeft) || mpcUnit->IsObject(pcBinary->mpcRight))
+			if (HasOperatorFunction(pcBinary))
 			{
 				return Truth(OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary), pcBinary);
 			}
 			mpcUnit->ComparisonRange(pcBinary);
-			return Operands(pcBinary->mpcLeft, pcBinary->mpcRight, &psLeft, &psRight) && Compare(pcBinary, psLeft, psRight);
+			return Operands(pcBinary, &psLeft, &psRight) && Compare(pcBinary, psLeft, psRight);
 		default:
 			break;
 		}

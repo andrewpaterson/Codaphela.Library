@@ -224,6 +224,7 @@ public:
 	bool			HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments);
 	bool			KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
 	SCPP65Type*		ContextualType(CCPPSyntax* pcExpression, ECPPContextualTypes eWanted);
+	CCPPFunction*	FindIntegerConversion(CCPPClass* pcClass, CCPPSyntax* pcNode);
 
 protected:
 	ECPPCalledObject	CalledObject(CCPPSyntax* pcObject, bool bArrow);

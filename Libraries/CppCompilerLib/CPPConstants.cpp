@@ -189,7 +189,11 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 	EndWriting();
 	if (!pcIR)
 	{
-		mszReason.Append("It uses what has no value until the program runs");
+		//The front end says why when it knows (SetReason).
+		if (mszReason.Empty())
+		{
+			mszReason.Append("It uses what has no value until the program runs");
+		}
 		return false;
 	}
 
@@ -197,6 +201,12 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 	pcFrontEnd->GetModule()->RemoveFunction(pcIR);
 	if (!bResult)
 	{
+		return false;
+	}
+	if (sResult.bPointer && !psType->IsPointer())
+	{
+		//(long)&g: where g is isn't known until the program is linked.  [expr.const] 2.13
+		mszReason.Append("It is an address, which is no number until the program is linked");
 		return false;
 	}
 	*plliValue = mpcUnit->ConstantOfType(psType, (int64)sResult.ulliBits);
@@ -521,8 +531,9 @@ CCPPSyntax* CCPPConstants::VariableInitialiser(CCPPVariable* pcVariable, uint32*
 //////////////////////////////////////////////////////////////////////////
 //
 // True if a variable's value can be read in a constant expression: one
-// declared constexpr, or a const integer or enum with an initialiser.
-// [expr.const] 2.7
+// declared constexpr, a global or a local of the function being written,
+// or a const integer or enum global with an initialiser (a local one's
+// value is what the tree's folder gives).  [expr.const] 2.7
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPConstants::IsConstantVariable(CCPPVariable* pcVariable)
@@ -530,7 +541,7 @@ bool CCPPConstants::IsConstantVariable(CCPPVariable* pcVariable)
 	SCPP65Type*	psType;
 	uint32		uiFlags;
 
-	if ((pcVariable->meStorage != CPPVS_Global) || !VariableInitialiser(pcVariable, &uiFlags))
+	if (((pcVariable->meStorage != CPPVS_Global) && (pcVariable->meStorage != CPPVS_Local)) || !VariableInitialiser(pcVariable, &uiFlags))
 	{
 		return false;
 	}
@@ -539,7 +550,7 @@ bool CCPPConstants::IsConstantVariable(CCPPVariable* pcVariable)
 		return true;
 	}
 	psType = pcVariable->mpsType;
-	return psType->bConst && !psType->bVolatile && (psType->IsInteger() || (psType->eKind == CPP65TK_Bool));
+	return (pcVariable->meStorage == CPPVS_Global) && psType->bConst && !psType->bVolatile && (psType->IsInteger() || (psType->eKind == CPP65TK_Bool));
 }
 
 
@@ -594,6 +605,11 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 	//those its definition is being made with (CCPPUnit::DefineInstanceStatics', under its own parameter names, with the
 	//class's outside them for the initialiser the class gave it) when it is, else the class's.
 	pcBindings = pcVariable->mpcBindings;
+	if (pcVariable->meStorage == CPPVS_Local)
+	{
+		//A local is of the function being written, whose bindings are in use.
+		pcBindings = mpcUnit->GetContext()->GetBindings();
+	}
 	if (!pcBindings && pcVariable->mpcClass && pcVariable->mpcClass->mpcBindings)
 	{
 		pcBindings = mpcUnit->GetContext()->GetBindings();
@@ -602,6 +618,7 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 			pcBindings = pcVariable->mpcClass->mpcBindings;
 		}
 	}
+	mszReason.Clear();
 	mpcUnit->GetContext()->EnterBindings(pcBindings);
 	pcIR = pcFrontEnd->ConstantInitialiser(szInitialiser.Text(), pcVariable->mpsType, pcInitialiser);
 	mpcUnit->GetContext()->LeaveBindings();
@@ -609,7 +626,11 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 	EndWriting();
 	if (!pcIR)
 	{
-		mszReason.Append("Its initialiser uses what the compiler can't work out yet");
+		//The front end says why when it is what can never be a constant (SetReason); anything else it can't write yet.
+		if (mszReason.Empty())
+		{
+			mszReason.Append("Its initialiser uses what the compiler can't work out yet");
+		}
 		return 0;
 	}
 
@@ -640,7 +661,6 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 bool CCPPConstants::CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode)
 {
 	CChars		szLabel;
-	CChars		szMessage;
 	uint32		uiFlags;
 	bool		bResult;
 
@@ -651,17 +671,125 @@ bool CCPPConstants::CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode)
 	szLabel.Init();
 	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
 	NoteVariable(szLabel.Text(), pcVariable);
-	mszReason.Clear();
-	bResult = (ConstantObject(szLabel.Text()) != 0) || (strncmp(mszReason.Text(), "Its initialiser uses", 20) == 0);
+	bResult = CheckObject(szLabel.Text(), pcNode);
 	szLabel.Kill();
-	if (!bResult)
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// CheckVariable for the variable noted as szLabel.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::CheckObject(const char* szLabel, CCPPSyntax* pcNode)
+{
+	CChars	szMessage;
+
+	mszReason.Clear();
+	if ((ConstantObject(szLabel) != 0) || (strncmp(mszReason.Text(), "Its initialiser uses", 20) == 0))
 	{
-		szMessage.Init("A constexpr variable's initialiser must be a constant: ");
-		szMessage.Append(mszReason.Text());
-		mpcUnit->ReportError(pcNode, szMessage.Text());
-		szMessage.Kill();
+		return true;
+	}
+	szMessage.Init("A constexpr variable's initialiser must be a constant: ");
+	szMessage.Append(mszReason.Text());
+	mpcUnit->ReportError(pcNode, szMessage.Text());
+	szMessage.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// CheckVariable for a local of the function being written, whose value is
+// kept under a label of its own (LocalLabel) until the function is done
+// (ForgetLocal).  A pointer or a reference is to what has static storage:
+// not to a variable of the function, another constexpr one either.
+// [expr.const] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::CheckLocal(CCPPVariable* pcVariable, CCPPSyntax* pcNode)
+{
+	CChars		szLabel;
+	uint32		uiObject;
+	bool		bResult;
+
+	szLabel.Init();
+	LocalLabel(pcVariable, &szLabel);
+	bResult = CheckObject(szLabel.Text(), pcNode);
+	uiObject = bResult ? ConstantObject(szLabel.Text()) : 0;
+	szLabel.Kill();
+	if ((uiObject != 0) && (pcVariable->mpsType->IsPointer() || pcVariable->mpsType->IsReference()) && PointsToLocal(uiObject))
+	{
+		return mpcUnit->ReportError(pcNode, "A constexpr variable's initialiser must be a constant: It is the address of a variable of the function, which has none until the program runs");
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the pointer an object is (a pointer's, or a reference's) points
+// into a local's object (LocalLabel).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::PointsToLocal(uint32 uiObject)
+{
+	SIRObject*	psObject;
+	uint32		uiTarget;
+
+	psObject = mcInterpreter.GetObject(uiObject);
+	uiTarget = (psObject->uiSize > 0) ? IR_SOURCE_OBJECT(psObject->pauiSource[0]) : 0;
+	return (uiTarget != 0) && mcInterpreter.GetObject(uiTarget)->szName.StartsWith("__local");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label a constexpr local of the function being written is known to
+// the interpreter by: one made for it the first time it is asked for.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPConstants::LocalLabel(CCPPVariable* pcVariable, CChars* pszLabel)
+{
+	size	i;
+
+	for (i = 0; i < masVariables.NumElements(); i++)
+	{
+		if (masVariables.Get(i)->pcVariable == pcVariable)
+		{
+			pszLabel->Append(masVariables.Get(i)->szLabel);
+			return;
+		}
+	}
+	NewName("__local", pszLabel);
+	NoteVariable(pszLabel->Text(), pcVariable);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A local is freed with its function: what was kept of it goes too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPConstants::ForgetLocal(CCPPVariable* pcVariable)
+{
+	SCPPConstantVariable*	psVariable;
+	size					i;
+
+	for (i = masVariables.NumElements(); i > 0; i--)
+	{
+		psVariable = masVariables.Get(i - 1);
+		if (psVariable->pcVariable == pcVariable)
+		{
+			if (psVariable->uiObject != 0)
+			{
+				mcInterpreter.Forget(psVariable->uiObject);
+			}
+			psVariable->szLabel.Kill();
+			masVariables.RemoveAt(i - 1);
+		}
+	}
 }
 
 
@@ -1054,9 +1182,9 @@ bool CCPPConstants::PointerData(SIRObject* psObject, size uiOffset, int iPointer
 	}
 	else
 	{
-		if (pcData && (psTarget->uiKind == IROB_Function))
+		if (pcData && (psTarget->uiKind != IROB_Global))
 		{
-			//A function's address in data: it must be written.
+			//A function's address in data: it must be written.  (One the interpreter never ran is of no kind to it.)
 			psFunction = FindFunction(psTarget->szName.Text());
 			if (psFunction)
 			{

@@ -631,6 +631,17 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       only a type can be written it is taken for a type, so sizeof(decltype(d)::s) and typeid(decltype(d)::s) of a
       member s are refused, and (decltype(d)::s) + 1 is read as a cast.  decltype(e):: of an enumeration isn't done.
     - A lambda's parameters can't have default arguments ([](int w = 3) { return w; }() finds no function).
+    - DONE 2026-11-20.  A constexpr local that isn't an integer wasn't checked, nor a constant for what follows
+      (int a[p.x] for a constexpr P p): it is a constant object now, as a global is, kept under a label of its own
+      until its function is done (CCPPConstants::CheckLocal, LocalLabel, ForgetLocal).  Left: the member of a union
+      read in a constant that isn't the one last given a value is refused only where the two differ in size (the
+      interpreter keeps bytes, not which member is active: ConstantInactiveUnionMemberRefused on the 65C64); and a
+      class template's static const member defined after the class (template<class T> const int W<T>::k = ...) is
+      no constant.
+    - DONE 2026-11-20.  A built-in operator on an object with a conversion function (t + 1, t < u, x += t, -t, +t
+      for a pointer) was "No operator matches the operands" unless the class had the operator: it is the built-in
+      one on what the object's one fitting conversion function gives (CCPP65TypeChecker::BuiltinOperand,
+      ECPPContextualTypes).
     - A name that names nothing in its class is reported as "Only variables are supported by the compiler here yet".
     - DONE 2026-11-20 (one that takes a size is still refused).  delete[] of objects with destructors was always
       the runtime's operator delete[], whatever the class declares.

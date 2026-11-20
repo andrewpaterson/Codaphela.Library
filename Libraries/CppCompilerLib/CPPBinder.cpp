@@ -1812,6 +1812,20 @@ SCPP65Type* CCPPBinder::ContextualType(CCPPSyntax* pcExpression, ECPPContextualT
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The one conversion function of a class that gives an integer, by which an
+// object of it is one where an integer is wanted, or NULL.  [conv] 5
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::FindIntegerConversion(CCPPClass* pcClass, CCPPSyntax* pcNode)
+{
+	bool	bAmbiguous;
+
+	return mcOverloads.FindContextualConversion(pcClass, CPPXT_Integer, pcNode, &bAmbiguous);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A type named in a declaration (Class::Nested, or a name alone): if it is
 // a class's member (a nested class or enum, or a typedef) it must be one
 // that may be named there.

@@ -87,6 +87,9 @@ public:
 	void			SetReason(const char* szReason);
 
 	bool			CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode);
+	bool			CheckLocal(CCPPVariable* pcVariable, CCPPSyntax* pcNode);
+	void			LocalLabel(CCPPVariable* pcVariable, CChars* pszLabel);
+	void			ForgetLocal(CCPPVariable* pcVariable);
 	bool			AppendData(CCPPVariable* pcVariable, CCPPUnitData* pcData);
 	bool			CheckDefinition(CCPPFunction* pcFunction);
 	bool			IsLiteralType(SCPP65Type* psType);
@@ -109,6 +112,8 @@ protected:
 	void					AppendRepeats(size uiRepeats);
 	CCPPSyntax*				VariableInitialiser(CCPPVariable* pcVariable, uint32* puiFlags);
 	bool					PointerData(SIRObject* psObject, size uiOffset, int iPointerBytes, CCPPUnitData* pcData, CChars* pszText);
+	bool					CheckObject(const char* szLabel, CCPPSyntax* pcNode);
+	bool					PointsToLocal(uint32 uiObject);
 	bool					CheckBody(CCPPSyntax* pcNode);
 	bool					CheckConstructor(CCPPFunction* pcFunction);
 	bool					IsInitialisedMember(CCPPSyntaxFunctionDefinition* pcDefinition, int64 lliName);

@@ -2012,10 +2012,9 @@ bool CCPPUnit::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 //
 // A local declared constexpr is initialised with a constant expression:
-// one of an integer type is worked out here, and is an error (and false)
-// where it has no value.  A local of any other type is still left to be
-// made when the function runs: it has no label for CCPPConstants::
-// CheckVariable, which does this for a global, to make it under.
+// one of an integer type is worked out here, and any other as a global's is
+// (CCPPConstants::CheckLocal), and is an error (and false) where it has no
+// value.  The local is still made when the function runs.
 // [dcl.constexpr] 9
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2028,7 +2027,11 @@ bool CCPPUnit::CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDecla
 	{
 		return ReportError(pcInit, "A constexpr variable needs an initialiser");
 	}
-	if (!pcVariable->mpsType->IsInteger() || Constant(pcInit->mpcInitializer, &lliValue))
+	if (!pcVariable->mpsType->IsInteger())
+	{
+		return mpcConstants->CheckLocal(pcVariable, pcInit);
+	}
+	if (Constant(pcInit->mpcInitializer, &lliValue))
 	{
 		return true;
 	}
@@ -2095,8 +2098,11 @@ void CCPPUnit::ConstantMessage(const char* szMessage, CChars* pszDest)
 //
 // What the tree folder can't give: a member or an element of a constant
 // object, what a pointer or reference to one is, a cast of a floating
-// point constant.  Only an expression that names a constexpr variable or
-// function, or has a string, is run; its value is the interpreter's.
+// point constant, a comparison or a difference of two that aren't integers
+// (floating point constants, addresses), and an object where an integer is
+// wanted, which is what its constexpr conversion function gives
+// (ObjectConstantType).  Only an expression that needs running
+// (NamesConstexpr) is run; its value is the interpreter's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
@@ -2127,8 +2133,30 @@ bool CCPPUnit::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 			return false;
 		}
 		break;
+	case CPPS_BinaryExpression:
+		switch (((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator)
+		{
+		case CT_EqualTo:
+		case CT_NotEqualTo:
+		case CT_LessThan:
+		case CT_LessThanEqualTo:
+		case CT_GreaterThan:
+		case CT_GreaterThanEqualTo:
+		case CT_Subtract:
+			break;
+		default:
+			return false;
+		}
+		break;
+	case CPPS_ConstructExpression:
+		break;
 	default:
 		return false;
+	}
+	psType = ObjectConstantType(pcExpression);
+	if (psType)
+	{
+		return mpcConstants->Value(pcExpression, psType, plliValue);
 	}
 	if (!NamesConstexpr(pcExpression))
 	{
@@ -2145,8 +2173,36 @@ bool CCPPUnit::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The integer type an object is where an integer constant is wanted: what
+// its class's one conversion function to an integer gives, when that is
+// constexpr.  NULL for anything else.  [expr.const] 5
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ObjectConstantType(CCPPSyntax* pcExpression)
+{
+	CCPPFunction*	pcConversion;
+	SCPP65Type*		psType;
+
+	if (mapcObjectConstants.Find(pcExpression) != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		//Its type is being worked out, which asked whether it is a constant: it isn't known to be an object.
+		return NULL;
+	}
+	mapcObjectConstants.Add(pcExpression);
+	BeginQuiet();
+	psType = ValueTypeOf(pcExpression);
+	pcConversion = (psType && psType->IsClass()) ? mcBinder.FindIntegerConversion(psType->pcClass, pcExpression) : NULL;
+	EndQuiet();
+	mapcObjectConstants.Pop();
+	return (pcConversion && pcConversion->mbConstexpr) ? pcConversion->mpsReturn->WithoutReference()->Unqualified() : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if the expression names a variable or function declared constexpr,
-// or has a string literal: what only running it can give the value of.
+// has a string literal, or takes an address: what only running it can give
+// the value of.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::NamesConstexpr(CCPPSyntax* pcNode)
@@ -2160,7 +2216,7 @@ bool CCPPUnit::NamesConstexpr(CCPPSyntax* pcNode)
 	{
 		return false;
 	}
-	if (IsStringLiteral(pcNode))
+	if (IsStringLiteral(pcNode) || ((pcNode->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcNode)->meOperator == CT_BitwiseAnd)))
 	{
 		return true;
 	}
@@ -2208,6 +2264,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	CCPPSyntaxIdExpression*			pcId;
 	CCPPSymbol*						pcSymbol;
 	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntax*						pcInitialiser;
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
 	CCPPVariable*					pcVariable;
 	SCPP65Type*						psType;
@@ -2240,6 +2297,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		pcSymbol = pcId->mpcName->mpcSymbol;
 		if (!pcSymbol || (pcSymbol->meKind == CPPSK_Enumerator))
 		{
+			mbValueArgumentRefused = false;
 			pcEnumerator = QualifiedEnumerator(pcId->mpcName, pcExpression, &pcClass);
 			if (pcEnumerator)
 			{
@@ -2247,6 +2305,11 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 				bResult = EnumeratorValue(pcEnumerator, plliValue);
 				mcContext.LeaveBindings();
 				return bResult;
+			}
+			if (mbValueArgumentRefused)
+			{
+				//Count<-1>::V: there is no such class for V to be the enumerator of.
+				return false;
 			}
 		}
 
@@ -2288,9 +2351,20 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 			return true;
 		}
 
-		//A const integer initialised with a constant, or a static const member initialised in its class.
+		//A const integer initialised with a constant, or a static const member initialised in its class, or after it
+		//by its definition (const int S::k = 8;) once that is read.
 		pcInit = (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration;
-		if (((pcSymbol->meKind != CPPSK_Variable) && (pcSymbol->meKind != CPPSK_Field)) || !pcInit || (pcInit->GetKind() != CPPS_InitDeclarator) || !pcInit->mpcInitializer)
+		if (((pcSymbol->meKind != CPPSK_Variable) && (pcSymbol->meKind != CPPSK_Field)) || !pcInit || (pcInit->GetKind() != CPPS_InitDeclarator))
+		{
+			return false;
+		}
+		pcInitialiser = pcInit->mpcInitializer;
+		if (!pcInitialiser && (pcSymbol->meKind == CPPSK_Field))
+		{
+			pcVariable = pcClass ? FindStatic(pcClass, pcSymbol->mlliName) : GetVariable(pcSymbol);
+			pcInitialiser = pcVariable ? pcVariable->mpcOutsideInitialiser : NULL;
+		}
+		if (!pcInitialiser)
 		{
 			return false;
 		}
@@ -2312,11 +2386,11 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		if (pcClass)
 		{
 			mcContext.EnterBindings(pcClass->mpcBindings);
-			bResult = Constant(pcInit->mpcInitializer, plliValue);
+			bResult = Constant(pcInitialiser, plliValue);
 			mcContext.LeaveBindings();
 			return bResult;
 		}
-		return Constant(pcInit->mpcInitializer, plliValue);
+		return Constant(pcInitialiser, plliValue);
 
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
@@ -3630,9 +3704,18 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 	psBase = NULL;
 	if (pcSpecifier && pcSpecifier->mpcBase)
 	{
-		//Fixed: enum E : short is a short underneath, though int is as wide.
+		//Fixed: enum E : short is a short underneath, though int is as wide.  Each value given is one of that type's.
+		//[dcl.enum] 5
 		psBase = mcDeclarators.GetTypeIdType(pcSpecifier->mpcBase);
 		psBase = (psBase && psBase->IsInteger()) ? psBase->Unqualified() : NULL;
+		for (i = 0; psBase && (i < pcSpecifier->macpEnumerators.NumElements()); i++)
+		{
+			pcEnumerator = (CCPPSyntaxEnumerator*)pcSpecifier->macpEnumerators.GetPtr(i);
+			if (pcEnumerator->mpcValue && Constant(pcEnumerator->mpcValue, &lliValue))
+			{
+				CheckEnumeratorFits(pcSpecifier, pcEnumerator, lliValue);
+			}
+		}
 	}
 	else if (pcSpecifier && !pcSpecifier->mbScoped)
 	{
@@ -3749,12 +3832,32 @@ bool CCPPUnit::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
 			{
 				return false;
 			}
+			CheckEnumeratorFits(pcEnum, pcOther, lliValue);
 			uiValued = i - 1;
 			break;
 		}
 	}
 	*plliValue = lliValue + (int64)(uiIndex - uiValued);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value an enumerator is given in an enum with a fixed underlying type
+// (enum E : unsigned char) is one of that type's: an error if not.
+// [dcl.enum] 5
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue)
+{
+	SCPP65Type*	psBase;
+
+	psBase = pcEnum->mpcBase ? mcDeclarators.GetTypeIdType(pcEnum->mpcBase) : NULL;
+	if (psBase && !ConstantFits(psBase->Unqualified(), lliValue))
+	{
+		ReportOnce(pcEnumerator->mpcValue, "The constant's value isn't one of the type it is converted to");
+	}
 }
 
 

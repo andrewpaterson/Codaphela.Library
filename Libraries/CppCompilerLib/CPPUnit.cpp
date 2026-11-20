@@ -309,6 +309,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapapsPacks.Init();
 	mapalliPacks.Init();
 	mapcPackElements.Init();
+	mapcObjectConstants.Init();
+	mbValueArgumentRefused = false;
 	masPackElements.Init();
 	masExpandedArguments.Init();
 	mapcPackSymbols.Init();
@@ -418,6 +420,7 @@ void CCPPUnit::Kill(void)
 	}
 	mapalliPacks.Kill();
 	mapcPackElements.Kill();
+	mapcObjectConstants.Kill();
 	masPackElements.Kill();
 	for (i = 0; i < masExpandedArguments.NumElements(); i++)
 	{
@@ -3171,11 +3174,15 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			continue;
 		}
 
-		//const int CClass::k; has the initialiser the class gave it.
+		//const int CClass::k; has the initialiser the class gave it, and const int CClass::k = 5; is what k is from here.
 		pcInitialiser = pcInit->mpcInitializer;
 		if (!pcInitialiser && pcVariable)
 		{
 			pcInitialiser = pcVariable->mpcInClassInitialiser;
+		}
+		else if (pcVariable && pcVariable->mpcClass)
+		{
+			pcVariable->mpcOutsideInitialiser = pcInitialiser;
 		}
 
 		psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInitialiser);
@@ -3413,6 +3420,10 @@ void CCPPUnit::FreeVariables(CArrayCPPVariables* papcVariables)
 
 	for (i = 0; i < papcVariables->NumElements(); i++)
 	{
+		if (mpcConstants && (papcVariables->GetPtr(i)->meStorage == CPPVS_Local))
+		{
+			mpcConstants->ForgetLocal(papcVariables->GetPtr(i));
+		}
 		papcVariables->GetPtr(i)->Kill();
 		free(papcVariables->GetPtr(i));
 	}

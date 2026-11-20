@@ -55,6 +55,7 @@ public:
 	int				miOffset;				//Parameters: the index in the function's parameters.  Static locals: the number (the label's S<n>_).  Members of an anonymous union or struct (mpcAnonymous): the offset in it.
 	CCPPClass*		mpcClass;				//The class of a static data member.
 	CCPPSyntax*		mpcInClassInitialiser;	//static const int k = 5; in the class: what its definition has if it has none.
+	CCPPSyntax*		mpcOutsideInitialiser;	//const int S::k = 5; after the class: the member's value in what follows.
 	bool			mbInternal;				//A static global, or one in a namespace without a name: the unit's own.
 	bool			mbCLinkage;				//Declared in extern "C": its label is only its name.
 	bool			mbDefined;				//A global's data has been written.

@@ -247,6 +247,11 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_ThisExpression:
 		if (msThis.IsNone())
 		{
+			if (mbConstants)
+			{
+				//[expr.const] 2.1
+				mpcUnit->GetConstants()->SetReason("It uses this, which has no value until the program runs");
+			}
 			return Unsupported(__FILE__, __LINE__);
 		}
 		if (!mpcUnit->ThisClass())
@@ -1437,11 +1442,28 @@ bool CCPP65IRFrontEnd::VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* ps
 	if ((pcVariable->meStorage == CPPVS_Local) || (pcVariable->meStorage == CPPVS_Parameter))
 	{
 		psAddress = mcAddresses.Get((int64)(size)pcVariable);
-		if (!psAddress)
+		if (!psAddress && !(mbConstants && (pcVariable->meStorage == CPPVS_Local)))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		psPlace->sAddress = *psAddress;
+		if (!psAddress)
+		{
+			//A constant that names a variable of the function it is written in: one declared constexpr is an object
+			//the interpreter is given under a label of its own; no other has a value before the program runs.
+			if (!mpcUnit->GetConstants()->IsConstantVariable(pcVariable))
+			{
+				mpcUnit->GetConstants()->SetReason("It uses a variable that isn't a constant");
+				return Unsupported(__FILE__, __LINE__);
+			}
+			szLabel.Init();
+			mpcUnit->GetConstants()->LocalLabel(pcVariable, &szLabel);
+			psPlace->sAddress = mcModule.Symbol(szLabel.Text());
+			szLabel.Kill();
+		}
+		else
+		{
+			psPlace->sAddress = *psAddress;
+		}
 	}
 	else
 	{

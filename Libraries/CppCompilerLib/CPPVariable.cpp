@@ -37,6 +37,7 @@ void CCPPVariable::Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eS
 	miOffset = iOffset;
 	mpcClass = NULL;
 	mpcInClassInitialiser = NULL;
+	mpcOutsideInitialiser = NULL;
 	mbDefined = false;
 	mbUsed = false;
 	mbInternal = pcSymbol && pcSymbol->mpcScope && pcSymbol->mpcScope->IsInUnnamedNamespace();

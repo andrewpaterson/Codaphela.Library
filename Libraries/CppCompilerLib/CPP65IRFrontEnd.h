@@ -372,6 +372,8 @@ protected:
 	bool			Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue);
 	bool			ContextualValue(CCPPSyntax* pcExpression, ECPPContextualTypes eWanted, SCPP65IRValue* psValue);
+	bool			HasOperatorFunction(CCPPSyntaxBinaryExpression* pcBinary);
+	bool			Operands(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psLeft, SCPP65IRValue* psRight);
 	bool			ReadReferred(SCPP65IRValue* psValue);
 	bool			Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	void			Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);

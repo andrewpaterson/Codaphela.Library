@@ -1250,7 +1250,7 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 			}
 			if (psArgument)
 			{
-				bResult = ExpandedArgumentValue(psArgument, &psBinding->lliValue);
+				bResult = ExpandedArgumentValue(psArgument, &psBinding->lliValue) && ValueArgumentFits(pcValue, psArgument, psBinding->lliValue, pcBindings);
 			}
 			else if (palliDeduced && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
 			{
@@ -1278,6 +1278,54 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 	}
 	asArguments.Kill();
 	return bResult ? pcBindings : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a template argument written for a parameter of an integer type
+// is a value of that type, as a converted constant expression must be:
+// Byte<300> for an unsigned char isn't, nor Count<-1> for an unsigned int.
+// An error (and false) if not.  The parameter's type is worked out with the
+// arguments before it (pcBindings); one that can't be yet isn't checked.
+// [temp.arg.nontype] 1, [expr.const] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ValueArgumentFits(CCPPSyntaxParameter* pcParameter, SCPPExpandedArgument* psArgument, int64 lliValue, CCPPTemplateArguments* pcBindings)
+{
+	SCPP65Type*	psType;
+	size		uiErrors;
+
+	if (psArgument->bExpanded)
+	{
+		return true;
+	}
+	uiErrors = mcErrors.NumErrors();
+	mcContext.EnterBindings(pcBindings);
+	BeginQuiet();
+	psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+	EndQuiet();
+	mcContext.LeaveBindings();
+	mcErrors.Truncate(uiErrors);
+	if (!psType || ConstantFits(psType, lliValue))
+	{
+		return true;
+	}
+	//Said again where the instance is named for good (CCPP65TypeChecker::ConstantValue): this may only be a try.
+	mbValueArgumentRefused = true;
+	return ReportOnce(psArgument->pcArgument, "The constant's value isn't one of the type it is converted to");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a constant's value is one of an integer type's (any is a bool's,
+// and an enum's isn't asked).  [expr.const] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ConstantFits(SCPP65Type* psType, int64 lliValue)
+{
+	return !psType->IsInteger() || psType->pcEnum || (psType->eKind == CPP65TK_Bool) || (ConstantOfType(psType, lliValue) == lliValue);
 }
 
 

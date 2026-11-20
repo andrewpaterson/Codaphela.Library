@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "CPPUnit.h"
 #include "CPP65IRFrontEnd.h"
+#include "CPPConstants.h"
 
 
 //The IR front end's conversions: casts, dynamic_cast, conversions between types, base class addresses and member
@@ -39,6 +40,12 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntax* pcCast, CCPPSyntaxTypeId* pcTy
 	psTo = mpcUnit->GetDeclarators()->GetTypeIdType(pcTypeId);
 	if (!psTo || psTo->IsClass() || psTo->IsReference())
 	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	if (mbConstants && IsReinterpretCast(pcCast))
+	{
+		//[expr.const] 2.13
+		mpcUnit->GetConstants()->SetReason("It uses reinterpret_cast");
 		return Unsupported(__FILE__, __LINE__);
 	}
 
