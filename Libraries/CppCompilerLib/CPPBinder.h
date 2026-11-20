@@ -219,6 +219,7 @@ public:
 	bool			IsBuiltinPlacement(CArraySyntax* papcArguments);
 	bool			IsReservedPlacement(CCPPFunction* pcFunction);
 	CCPPFunction*	FindDeallocation(CCPPClass* pcClass, bool bArray, bool bSized = false);
+	bool			KeepsArrayCount(SCPP65Type* psElement);
 	bool			IsUsualDeallocation(CCPPFunction* pcFunction);
 	bool			IsGlobalSizedDeallocation(CCPPFunction* pcFunction);
 	bool			IsNearerDeallocation(CCPPFunction* pcFunction, CCPPFunction* pcFound);

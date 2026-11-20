@@ -832,6 +832,13 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       TestCPP816DeprecatedWarnings).  Not a variable, a class or an enumerator that is marked, nor the
       attribute's message.
 
+  What the list left and what was found doing it, as eighteen steps (the user, 2026-11-20: "Carry on with all 18 in the
+  order you've suggested"), each written here as it is done:
+    - 18.  A class's operator delete[] that takes a size was given one element's size where the elements have no
+      destructor (their count wasn't kept).  new[] keeps the count in front of the elements whenever delete[] will
+      need it (CCPPBinder::KeepsArrayCount: a destructor, or the class's operator delete[] takes the size), which
+      NewArray and DeleteExpression each decided for themselves (DeleteArraySizedNoDestructor).
+
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or
       another pointer's type (CCPP65TypeChecker::Convert: "Any number or pointer converts to any other"): int* p = 5,

@@ -1464,7 +1464,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		return false;
 	}
 	sSize = IRTypeOf(sCount.psType);
-	bCookie = psType->IsClass() && psType->pcClass->mpcDestructor;
+	bCookie = mpcUnit->GetBinder()->KeepsArrayCount(psType);
 
 	//The most elements whose bytes, with the count in front, a size_t holds.  When the count can be more, more than
 	//that goes straight to the end with a null pointer.
@@ -1658,10 +1658,11 @@ bool CCPP65IRFrontEnd::ValueInitialise(SCPP65IRPlace* psPlace)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// delete[] of objects with a destructor: the count is
-// in front of the elements, which are destroyed last first, and operator
-// delete[], the class's own if it has one, is given the memory from the
-// count on.  psPointer isn't null.  [expr.delete] 6, 9
+// delete[] of an array whose count is kept (CCPPBinder::KeepsArrayCount):
+// the count is in front of the elements, which are destroyed last first
+// if they have a destructor, and operator delete[], the class's own if it
+// has one, is given the memory from the count on, and its size if it takes
+// one.  psPointer isn't null.  [expr.delete] 6, 9, 10
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeleteArray(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psPointer, CCPPClass* pcClass)
@@ -1679,15 +1680,18 @@ bool CCPP65IRFrontEnd::DeleteArray(CCPPSyntaxDeleteExpression* pcDelete, SCPP65I
 	sBase = AddressAt(psPointer->sValue, -mcModule.GetPointerSize(0));
 	sCount = mpcFunction->Load(mpcBlock, sSize, sBase);
 
-	//loop: the index counts down from the count.
-	sIndex = BeginCountedLoop(&sLoop, sSize, sCount, IRO_Ne, mpcFunction->AddInteger(sSize, 0));
-	sNext = mpcFunction->Add(mpcBlock, IRO_Sub, sSize, sIndex, mpcFunction->AddInteger(sSize, 1));
-	sElement = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), psPointer->sValue, mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sNext, mpcFunction->AddInteger(sSize, pcClass->mpsType->iBytes)));
-	if (!CallObject(pcClass->mpcDestructor, sElement, pcClass, NULL, false))
+	if (pcClass->mpcDestructor)
 	{
-		return false;
+		//loop: the index counts down from the count.
+		sIndex = BeginCountedLoop(&sLoop, sSize, sCount, IRO_Ne, mpcFunction->AddInteger(sSize, 0));
+		sNext = mpcFunction->Add(mpcBlock, IRO_Sub, sSize, sIndex, mpcFunction->AddInteger(sSize, 1));
+		sElement = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), psPointer->sValue, mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sNext, mpcFunction->AddInteger(sSize, pcClass->mpsType->iBytes)));
+		if (!CallObject(pcClass->mpcDestructor, sElement, pcClass, NULL, false))
+		{
+			return false;
+		}
+		EndCountedLoop(&sLoop, sNext);
 	}
-	EndCountedLoop(&sLoop, sNext);
 
 	//An operator delete[] that takes a size is given the elements' and the count's, which only the count read here says.
 	sBytes.psType = mpcTypes->Integer(mcModule.GetPointerSize(0), false);
@@ -1742,7 +1746,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 	}
 	mpcBlock->Branch(sCondition, pcFree, pcDone);
 	StartBlock(pcFree);
-	if (pcDelete->mbArray && psType->IsClass() && psType->pcClass->mpcDestructor)
+	if (pcDelete->mbArray && mpcUnit->GetBinder()->KeepsArrayCount(psType))
 	{
 		if (!DeleteArray(pcDelete, &sPointer, psType->pcClass))
 		{

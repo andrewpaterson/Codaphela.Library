@@ -6509,6 +6509,42 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.3.5 [expr.delete] p10, 5.3.4 [expr.new] p11: a class's operator delete[] that takes a size is given its array's, for elements with no destructor too
+	{
+		"DeleteArraySizedNoDestructor", 15,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[128];\n"
+		"size_t guiNew = 0;\n"
+		"size_t guiDeleted = 0;\n"
+		"void* gpDeleted = 0;\n"
+		"int giGlobal = 0;\n"
+		"void* operator new[](size_t n) { return gacHeap + 64; }\n"
+		"void operator delete[](void* p) noexcept { giGlobal++; }\n"
+		"struct P\n"
+		"{\n"
+		"	long a;\n"
+		"	long b;\n"
+		"	static void* operator new[](size_t n) { guiNew = n; return gacHeap; }\n"
+		"	static void operator delete[](void* p, size_t n) { guiDeleted = n; gpDeleted = p; }\n"
+		"};\n"
+		"struct Q : P { long c; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	P* p = new P[3];\n"
+		"	p[2].b = 7;\n"
+		"	if (guiNew >= 3 * sizeof(P) && p[2].b == 7) r += 1;\n"
+		"	delete[] p;\n"
+		"	if (guiDeleted == guiNew && gpDeleted == gacHeap) r += 2;\n"
+		"	Q* q = new Q[2];\n"
+		"	delete[] q;\n"
+		"	if (guiDeleted == guiNew && guiNew >= 2 * sizeof(Q)) r += 4;\n"
+		"	P* g = ::new P[2];\n"
+		"	::delete[] g;\n"
+		"	if (giGlobal == 1) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };
 
 

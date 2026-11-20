@@ -1071,6 +1071,33 @@ CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray, bool
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether new[] of elements of psElement keeps their count in front of
+// them, which delete[] reads: objects that have a destructor (each is
+// destroyed), and objects whose class's operator delete[] takes the size
+// (only the count says it).  Every unit decides the same, from the class
+// alone: the global operator delete[] that takes a size isn't asked, as a
+// unit may not have its declaration.  [expr.new] 11, [expr.delete] 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::KeepsArrayCount(SCPP65Type* psElement)
+{
+	CCPPFunction*	pcDeallocation;
+
+	if (!psElement->IsClass())
+	{
+		return false;
+	}
+	if (psElement->pcClass->mpcDestructor)
+	{
+		return true;
+	}
+	pcDeallocation = FindDeallocation(psElement->pcClass, true);
+	return pcDeallocation && (pcDeallocation->mapsParameters.NumElements() == 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether an operator delete is one a delete expression calls: it takes
 // the pointer, or the pointer and the size as a size_t.
 // [basic.stc.dynamic.deallocation] 2
