@@ -1001,6 +1001,7 @@ void TestMeshBakeJobs(void)
 	size					i;
 	int						iImage;
 	bool					bSame;
+	SLogConfig				sLogConfig;
 
 	uiThreadErrors = ObjectsNumThreadErrors();
 	pChecker = OMalloc<CSolidChecker>(0.25f, Set32BitColour((uint8)0, (uint8)0, (uint8)0), Set32BitColour((uint8)255, (uint8)255, (uint8)255));
@@ -1032,7 +1033,9 @@ void TestMeshBakeJobs(void)
 	cJobs.Init(true);
 	sSettings.Init();
 	sSettings.pcJobs = &cJobs;
+	sLogConfig = gcLogger.SetSilent();
 	pImage = BakeMeshTexture(&cMesh, 0, &pHolder, 4, 4, NULL, &sSettings);
+	gcLogger.SetConfig(&sLogConfig);
 	AssertTrue(TestBakeSameImage(pImage, BakeMeshTexture(&cMesh, 0, &pChecker, 4, 4)));
 	AssertInt(4, cJobs.miRunElsewhere);
 #ifdef _DEBUG

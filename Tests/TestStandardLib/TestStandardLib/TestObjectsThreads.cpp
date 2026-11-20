@@ -332,12 +332,14 @@ void TestObjectsThreadsRegistration(void)
 	Ptr<CTestThreadNode>	pNode;
 	bool					bRegistered;
 	bool					bSwitched;
+	SLogConfig				sLogConfig;
 
 	ObjectsInit();
 	AssertFalse(IsObjectsLocking());
 	AssertSize(0, ObjectsNumThreads());
 
 	//No registering while the locking is off, and no switching it on from another thread.
+	sLogConfig = gcLogger.SetSilent();
 	AtomicStore(&giTestObjectsThreadsRelease, 1);
 	bRegistered = true;
 	cThread.Init();
@@ -359,6 +361,7 @@ void TestObjectsThreadsRegistration(void)
 	AssertTrue(IsObjectsLocking());
 	AssertFalse(ObjectsThreadInit());
 	AssertFalse(ObjectsThreadKill());
+	gcLogger.SetConfig(&sLogConfig);
 
 	AtomicStore(&giTestObjectsThreadsRelease, 0);
 	bRegistered = false;
@@ -369,7 +372,9 @@ void TestObjectsThreadsRegistration(void)
 		ThreadYield();
 	}
 	AssertSize(1, ObjectsNumThreads());
+	sLogConfig = gcLogger.SetSilent();
 	AssertFalse(ObjectsLocking(false));
+	gcLogger.SetConfig(&sLogConfig);
 	AssertTrue(IsObjectsLocking());
 	ObjectsKill();
 	AssertTrue(gbObjects);
