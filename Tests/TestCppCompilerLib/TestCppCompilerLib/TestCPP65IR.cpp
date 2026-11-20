@@ -656,7 +656,8 @@ void TestCPP65IRInlineConstants(void)
 //
 // dynamic_cast: down from a first and a second base, across, to void*, a NULL
 // pointer, up (a conversion), to a class the object isn't, and an ambiguous
-// base (a diamond) which gives NULL.
+// base (a diamond) which gives NULL.  One of the functions written is
+// R_DynamicCast, which the casts that look for their answer call.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IRDynamicCast(void)
@@ -688,7 +689,7 @@ void TestCPP65IRDynamicCast(void)
 		"	if (dynamic_cast<CDerived*>(pl)->Who() == 2) r += 2048;\n"
 		"	if (dynamic_cast<CDerived*>((CBase*)&o) == 0) r += 4096;\n"
 		"	return r;\n"
-		"}\n", 12));
+		"}\n", 13));
 }
 
 
@@ -712,7 +713,7 @@ void TestCPP65IRVtableLayout(void)
 		"struct CB { int mb; virtual int G() { return 2; } };\n"
 		"struct CC : CA, CB { int mc; virtual int F() { return 10; } virtual int G() { return 20 + mc; } };\n"
 		"int main() { CC c; c.mc = 3; CA* pa = &c; CB* pb = &c; return pa->F() + pb->G() * 100 + (dynamic_cast<CC*>(pb) == &c) * 10000; }\n";
-	AssertInt(10 + 23 * 100 + 10000, TestCPP65IRMain(szSource, 8));
+	AssertInt(10 + 23 * 100 + 10000, TestCPP65IRMain(szSource, 9));
 
 	szAssembly.Init();
 	szErrors.Init();

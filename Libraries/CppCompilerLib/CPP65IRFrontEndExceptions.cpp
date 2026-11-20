@@ -174,7 +174,7 @@ bool CCPP65IRFrontEnd::UndoEntry(SCPP65IRCleanup* psEntry)
 	case CPP65IRC_Temporary:
 		return DestroyTemporary(psEntry);
 	case CPP65IRC_Catch:
-		ExceptionCall(CPP65_END_CATCH, IRType(IRTK_None), NULL, NULL, 0);
+		CallNoThrow(CPP65_END_CATCH, IRType(IRTK_None), NULL, NULL, 0);
 		return true;
 	default:
 		return Destroy(psEntry->sPlace.sAddress, psEntry->sPlace.psType);
@@ -221,7 +221,7 @@ CIRBlock* CCPP65IRFrontEnd::TerminateBlock(void)
 		mpcTerminate = NewBlock();
 		pcBlock = mpcBlock;
 		StartBlock(mpcTerminate);
-		ExceptionCall(CPP65_TERMINATE, IRType(IRTK_None), NULL, NULL, 0);
+		CallNoThrow(CPP65_TERMINATE, IRType(IRTK_None), NULL, NULL, 0);
 		mpcBlock->Unreachable();
 		StartBlock(pcBlock);
 	}
@@ -231,12 +231,12 @@ CIRBlock* CCPP65IRFrontEnd::TerminateBlock(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Calls one of the runtime's routines (Libc65's exception.cpp) with its
-// arguments on the stack, as any caller of a C function may.  None of them
-// throws.
+// Calls one of the runtime's routines by its label (Libc65's exception.cpp's,
+// or one the unit writes: R_DynamicCast) with its arguments on the stack,
+// as any caller of a C function may.  None of them throws.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CCPP65IRFrontEnd::ExceptionCall(const char* szLabel, SIRType sResult, SIRType* pasTypes, SIRReference* pasArguments, int iArguments)
+SIRReference CCPP65IRFrontEnd::CallNoThrow(const char* szLabel, SIRType sResult, SIRType* pasTypes, SIRReference* pasArguments, int iArguments)
 {
 	SIRReference	sSymbol;
 	int				i;
@@ -319,7 +319,7 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 	}
 	if (!pcThrow->mpcOperand)
 	{
-		ExceptionCall(CPP65_RETHROW, IRType(IRTK_None), NULL, NULL, 0);
+		CallNoThrow(CPP65_RETHROW, IRType(IRTK_None), NULL, NULL, 0);
 		JumpTo(Landing());
 		return Terminated();
 	}
@@ -347,7 +347,7 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 
 	asTypes[0] = IRTypeOf(&mpcTypes->msUnsignedInt);
 	asArguments[0] = mpcFunction->AddConstant(asTypes[0], (uint64)psType->iBytes);
-	sPlace.sAddress = ExceptionCall(CPP65_ALLOCATE_EXCEPTION, IRType(IRTK_Pointer), asTypes, asArguments, 1);
+	sPlace.sAddress = CallNoThrow(CPP65_ALLOCATE_EXCEPTION, IRType(IRTK_Pointer), asTypes, asArguments, 1);
 	sPlace.psType = psType;
 	if (psType->IsClass())
 	{
@@ -378,7 +378,7 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 		asArguments[2] = mcModule.Symbol(szDestroyer.Text());
 		szDestroyer.Kill();
 	}
-	ExceptionCall(CPP65_THROW, IRType(IRTK_None), asTypes, asArguments, 3);
+	CallNoThrow(CPP65_THROW, IRType(IRTK_None), asTypes, asArguments, 3);
 	JumpTo(Landing());
 	return Terminated();
 }
@@ -478,7 +478,7 @@ bool CCPP65IRFrontEnd::TryStatement(CCPPSyntaxTryStatement* pcTry)
 				return Unsupported(__FILE__, __LINE__);
 			}
 			sTypeInfo = TypeInfoSymbol(ThrownType(psHandled));
-			sMatched = ExceptionCall(CPP65_MATCH, sPointer, &sPointer, &sTypeInfo, 1);
+			sMatched = CallNoThrow(CPP65_MATCH, sPointer, &sPointer, &sTypeInfo, 1);
 			sCondition = mpcFunction->Add(mpcBlock, IRO_Ne, sPointer, sMatched, mpcFunction->AddConstant(sPointer, 0));
 			pcNext = NewBlock();
 			mpcBlock->Branch(sCondition, pcHandlerBlock, pcNext);
@@ -520,7 +520,7 @@ bool CCPP65IRFrontEnd::Handler(CCPPSyntaxCatchHandler* pcHandler, SIRReference s
 	size	uiLiving;
 
 	uiLiving = mcCleanups.NumLocals();
-	ExceptionCall(CPP65_BEGIN_CATCH, IRType(IRTK_Pointer), NULL, NULL, 0);
+	CallNoThrow(CPP65_BEGIN_CATCH, IRType(IRTK_Pointer), NULL, NULL, 0);
 	mcCleanups.PushCatch();
 	if (pcHandler->mpcParameter && !HandlerParameter(pcHandler, sMatched))
 	{

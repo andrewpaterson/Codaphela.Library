@@ -80,6 +80,11 @@ typedef CArrayTemplate<SCPPSecondaryVtable>	CArrayCPPSecondaryVtables;
 #define CPP65_TYPE_INFO_POINTEE_VOLATILE	0x200								//volatile.
 #define CPP65_VTABLE_LABEL				"2"
 #define CPP65_TYPE_INFO_LABEL			"3"
+
+//The routine a dynamic_cast that looks for its answer calls, which a unit that casts writes (CCPP65IRFrontEnd::
+//DynamicCastRoutine), and its fourth argument when the object's place in a target can't be known beforehand.
+#define CPP65_DYNAMIC_CAST				"R_DynamicCast"
+#define CPP65_DYNAMIC_CAST_NO_PLACE		(-1)
 #define CPP65_VTT_LABEL					"4"
 #define CPP65_CONSTRUCTION_LABEL		"5"
 

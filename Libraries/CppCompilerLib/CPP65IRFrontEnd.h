@@ -220,6 +220,7 @@ public:
 	bool			ThrownDestroyerRoutine(const char* szLabel, SCPP65Type* psType);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise, const char* szExitNode = NULL, const char* szFinaliser = NULL, bool bThread = false, bool bLocal = true);
 	bool			ExitListsRoutine(const char* szLabel);
+	bool			DynamicCastRoutine(const char* szLabel);
 	void			PushExitNode(const char* szNode, const char* szFinaliser, bool bThread);
 	void			InlineUnit(void);
 	bool			FinishUnit(void);
@@ -301,7 +302,7 @@ protected:
 	bool			UndoEntry(SCPP65IRCleanup* psEntry);
 	CIRBlock*		WayOut(void);
 	CIRBlock*		TerminateBlock(void);
-	SIRReference	ExceptionCall(const char* szLabel, SIRType sResult, SIRType* pasTypes, SIRReference* pasArguments, int iArguments);
+	SIRReference	CallNoThrow(const char* szLabel, SIRType sResult, SIRType* pasTypes, SIRReference* pasArguments, int iArguments);
 	SCPP65Type*		ThrownType(SCPP65Type* psType);
 	SIRReference	TypeInfoSymbol(SCPP65Type* psType);
 	bool			ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP65IRValue* psValue);
@@ -396,6 +397,9 @@ protected:
 	bool			DerivedAddress(SIRReference* psAddress, CCPPClass* pcFrom, CCPPClass* pcTo, bool bNull, CCPPSyntax* pcCast);
 	bool			DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue);
 	SIRReference	DynamicCast(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo);
+	SIRReference	TypeInfoSymbol(CCPPClass* pcClass);
+	SIRReference	WholeObject(SIRReference sAddress, CCPPClass* pcFrom);
+	SIRReference	ObjectTop(SIRReference sVtablePointer, SIRReference* psVtable);
 	bool			Convert(SCPP65IRValue* psValue, SCPP65Type* psTo);
 	bool			ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			CountTable(bool bLeading, SCPP65IRValue* psArgument, SCPP65Type* psType, SCPP65IRValue* psValue);

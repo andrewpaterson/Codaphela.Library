@@ -287,6 +287,8 @@ protected:
 	bool					mbRecursiveInit;	//A guarded static local calls R_RecursiveInit if it is reached again while being made.
 	bool					mbExitLists;		//Something is pushed on an exit list: the unit writes R_RunExitLists (UseExitLists).
 	bool					mbExitListsWritten;
+	bool					mbDynamicCast;		//Something casts with dynamic_cast: the unit writes R_DynamicCast (UseDynamicCast).
+	bool					mbDynamicCastWritten;
 	CArrayChars				maszThrownDestroyers;	//The labels of the functions that destroy thrown objects still to write (ThrownDestroyer)...
 	CArrayCPP65Types		mapsThrownDestroyers;	//...and the classes they destroy.
 	CArrayChars				maszExitFinalisers;	//The labels of static locals destroyed at exit whose R_Finalise is still to write...
@@ -502,6 +504,8 @@ public:
 	void					UseBadCast(void) { mbBadCast = true; }
 	void					UseRecursiveInit(void) { mbRecursiveInit = true; }
 	void					UseExitLists(void) { mbExitLists = true; }
+	void					UseDynamicCast(void) { mbDynamicCast = true; }
+	bool					WriteDynamicCast(void);
 	CArrayChars*			GetRuntimeCalls(void) override;
 	bool					BeginRuntime(const char* szName) override;
 	CChars*					GetRuntimeCode(void) override;

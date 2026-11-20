@@ -337,6 +337,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbRecursiveInit = false;
 	mbExitLists = false;
 	mbExitListsWritten = false;
+	mbDynamicCast = false;
+	mbDynamicCastWritten = false;
 	maszExitFinalisers.Init();
 	mapsExitFinalisers.Init();
 	maszThrownDestroyers.Init();
@@ -544,7 +546,7 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	//class templates' static members and variable templates' instances.
 	GenerateQueued();
 	DefineInstanceData();
-	while (WriteExitRoutines() || WriteThrownDestroyers())
+	while (WriteExitRoutines() || WriteThrownDestroyers() || WriteDynamicCast())
 	{
 		GenerateQueued();
 	}
@@ -1070,6 +1072,36 @@ bool CCPPUnit::WriteExitRoutines(void)
 		}
 		szLabel.Kill();
 	}
+	return bWritten;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// R_DynamicCast, the routine the unit's dynamic_casts call (UseDynamicCast),
+// in a section the linker keeps one of, once.  True if it was written now.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::WriteDynamicCast(void)
+{
+	CChars	szLabel;
+	bool	bWritten;
+
+	if (!mbDynamicCast || mbDynamicCastWritten)
+	{
+		return false;
+	}
+	mbDynamicCastWritten = true;
+	bWritten = false;
+	szLabel.Init(CPP65_DYNAMIC_CAST);
+	if (Emit(&szLabel))
+	{
+		CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(&mszCode, &szLabel);
+		mpcIRFrontEnd->DynamicCastRoutine(szLabel.Text());
+		bWritten = true;
+	}
+	szLabel.Kill();
 	return bWritten;
 }
 

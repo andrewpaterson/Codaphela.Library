@@ -611,8 +611,12 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       a program with virtual destructors and no heap still links.  ::delete keeps the old way.
     - A member function's const ("Fix it now"): SCPP65Type::bConstFunction.
     - dynamic_cast and private bases ("Build it", a runtime function): the exceptions work's stage 4a made the
-      lookup written at each cast exact meanwhile (DynamicCastAccessAndAmbiguity passes).  The runtime function
-      would now only make each cast smaller; not built, the user to say.
+      lookup written at each cast exact meanwhile (DynamicCastAccessAndAmbiguity passes), so the function was left
+      to make each cast smaller, and the user, asked again with the sizes, chose "Build the runtime function".  The
+      lookup is R_DynamicCast now, the same search with its classes' type infos as arguments, which a unit that
+      casts writes once in a section the linker keeps one of (CCPP65IRFrontEnd::DynamicCastRoutine, CCPPUnit::
+      WriteDynamicCast), as R_RunExitLists is written: no library has to be linked for a cast.  A function with one
+      cast was 423 to 451 bytes on the W65C816 and 188 to 202 on the 65C64; it is 59 and 34.
     - noexcept of a constructor or destructor that may throw: done by the exceptions work (CCPPUnit::MayThrow).
     - The kernal, ModPlay and the other HCP65 projects built with the stricter rules ("yes please"): all 20 build,
       nothing to fix.

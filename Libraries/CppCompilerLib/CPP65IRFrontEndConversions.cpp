@@ -194,26 +194,149 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 //////////////////////////////////////////////////////////////////////////
 //
 // The object sAddress (a pcFrom, NULL stays NULL) as a pcTo, NULL if it isn't
-// one.  A NULL pcTo gives the start of the whole object (dynamic_cast<void*>).
-// The vtable pointer finds the start and the type info (its part's header,
-// CPP65_VTABLE_TOP_OFFSET); the type info lists every subobject.
-// [expr.dynamic.cast] 8: if sAddress is a public base of a pcTo object, and
-// of one only, it is that object (a pcTo found in the list with sAddress
-// where its pcFrom is: asked only when pcFrom is a base of pcTo in one way,
-// public and through no virtual base, so that no two pcTo objects can share
-// it).  Otherwise sAddress must be a public base of the whole object (its
-// own entry in the list, the pcFrom at sAddress, says), and the whole object
-// must have one pcTo subobject, reached through public bases: one found
-// twice, or found where a base on the way isn't public, is no answer.
+// one.  A NULL pcTo gives the start of the whole object (dynamic_cast<void*>),
+// read from the vtable here.  Any other is looked for by R_DynamicCast, a
+// routine the unit writes once (DynamicCastRoutine), which is given the two
+// classes' type infos and, when pcFrom is a base of pcTo in one way, public
+// and through no virtual base, where in a pcTo it is: no two pcTo objects
+// can share it then, so a pcTo found there is the answer at once.
 //
 //////////////////////////////////////////////////////////////////////////
 SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcFrom, CCPPClass* pcTo)
 {
+	SIRType			asTypes[4];
+	SIRReference	asArguments[4];
+	int				iDown;
+
+	if (!pcTo)
+	{
+		return WholeObject(sAddress, pcFrom);
+	}
+	asTypes[0] = IRType(IRTK_Pointer);
+	asTypes[1] = IRType(IRTK_Pointer);
+	asTypes[2] = IRType(IRTK_Pointer);
+	asTypes[3] = IRIntegerType(mcModule.GetPointerSize(0));
+	asArguments[0] = sAddress;
+	asArguments[1] = TypeInfoSymbol(pcFrom);
+	asArguments[2] = TypeInfoSymbol(pcTo);
+	asArguments[3] = mpcFunction->AddInteger(asTypes[3], mpcUnit->IsOnePublicBase(pcTo, pcFrom, &iDown) ? iDown : CPP65_DYNAMIC_CAST_NO_PLACE);
+	mpcUnit->UseDynamicCast();
+	return CallNoThrow(CPP65_DYNAMIC_CAST, IRType(IRTK_Pointer), asTypes, asArguments, 4);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class's type info (written if it hasn't been), as a symbol.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::TypeInfoSymbol(CCPPClass* pcClass)
+{
+	SIRReference	sSymbol;
+	CChars			szLabel;
+
+	mpcUnit->EnsureTypeInfo(pcClass);
+	szLabel.Init();
+	mpcUnit->GetMangler()->AppendTypeInfoLabel(&szLabel, pcClass);
+	sSymbol = mcModule.Symbol(szLabel.Text());
+	szLabel.Kill();
+	if (pcClass->IsUnnamed())
+	{
+		mcModule.SetLocal(sSymbol.Index());
+	}
+	return sSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The start of the whole object that the pcFrom at sAddress is, or is a
+// base of (dynamic_cast<void*>): NULL stays NULL.  The part's vtable has
+// the distance from its vtable pointer (CPP65_VTABLE_TOP_OFFSET).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::WholeObject(SIRReference sAddress, CCPPClass* pcFrom)
+{
+	CIRBlock*		pcStart;
+	CIRBlock*		pcLook;
+	CIRBlock*		pcEnd;
+	SIRType			sPointer;
+	SIRReference	sNullPointer;
+	SIRReference	sCondition;
+	SIRReference	sTop;
+
+	sPointer = IRType(IRTK_Pointer);
+	sNullPointer = mpcFunction->AddConstant(sPointer, 0);
+	pcLook = NewBlock();
+	pcEnd = NewBlock();
+
+	pcStart = mpcBlock;
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sAddress, sNullPointer);
+	mpcBlock->Branch(sCondition, pcEnd, pcLook);
+
+	StartBlock(pcLook);
+	sTop = ObjectTop(AddressAt(sAddress, pcFrom->GetVtablePointerOffset()), NULL);
+	JumpTo(pcEnd);
+	StartBlock(pcEnd);
+	return Phi(pcEnd, sPointer, pcStart, sNullPointer, pcLook, sTop);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The start of the whole object whose part's vtable pointer is at
+// sVtablePointer, and that part's vtable (*psVtable, if wanted).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::ObjectTop(SIRReference sVtablePointer, SIRReference* psVtable)
+{
+	SIRType			sPointer;
+	SIRType			sWord;
+	SIRReference	sVtable;
+	SIRReference	sTop;
+
+	sPointer = IRType(IRTK_Pointer);
+	sWord = IRIntegerType(CPP65_VTABLE_ENTRY_BYTES);
+	sVtable = mpcFunction->Load(mpcBlock, sPointer, sVtablePointer);
+	sTop = ConvertIR(mpcFunction->Load(mpcBlock, sWord, AddressAt(sVtable, CPP65_VTABLE_TOP_OFFSET)), sWord, IRIntegerType(mcModule.GetPointerSize(0)), true);
+	if (psVtable)
+	{
+		*psVtable = sVtable;
+	}
+	return mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sVtablePointer, sTop);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// R_DynamicCast, which every dynamic_cast that looks for its answer calls
+// (DynamicCast): the object at the first parameter, of the class whose type
+// info is the second, as an object of the class whose type info is the
+// third, or NULL.  Written once in a unit that casts, in a section the
+// linker keeps one of (CCPPUnit::WriteDynamicCast).
+//
+// The object's vtable pointer (its place is in its class's type info's own
+// entry) finds the start of the whole object and the whole object's type
+// info, which lists every subobject.  [expr.dynamic.cast] 8: if the object
+// is a public base of a target object, and of one only, it is that object
+// (a target found in the list with the object where the fourth parameter
+// says its base is; CPP65_DYNAMIC_CAST_NO_PLACE when two targets could share
+// it).  Otherwise the object must be a public base of the whole object (its
+// own entry in the list, the source class at its address, says), and the
+// whole object must have one target subobject, reached through public
+// bases: one found twice, or found where a base on the way isn't public, is
+// no answer.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DynamicCastRoutine(const char* szLabel)
+{
+	CCPPFunction	cFunction;
 	CIRBlock*		pcStart;
 	CIRBlock*		pcLook;
 	CIRBlock*		pcLoop;
 	CIRBlock*		pcCheck;
 	CIRBlock*		pcMatch;
+	CIRBlock*		pcPlace;
 	CIRBlock*		pcAccess;
 	CIRBlock*		pcFirst;
 	CIRBlock*		pcTake;
@@ -230,15 +353,18 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	SIRType			sPointer;
 	SIRType			sOffset;
 	SIRType			sWord;
+	SIRReference	sAddress;
+	SIRReference	sSource;
+	SIRReference	sTarget;
+	SIRReference	sDown;
+	SIRReference	sHasPlace;
 	SIRReference	sNullPointer;
 	SIRReference	sSpoilt;
 	SIRReference	sCondition;
-	SIRReference	sVtablePointer;
+	SIRReference	sVtableOffset;
 	SIRReference	sVtable;
 	SIRReference	sTop;
 	SIRReference	sInfo;
-	SIRReference	sTarget;
-	SIRReference	sSource;
 	SIRReference	sEntry;
 	SIRReference	sFound;
 	SIRReference	sFrom;
@@ -251,62 +377,44 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	SIRReference	sNextFound;
 	SIRReference	sResult;
 	SIRPhi*			psPhi;
-	CChars			szLabel;
-	int				iDown;
-	bool			bDown;
 
+	memset(&cFunction, 0, sizeof(CCPPFunction));
+	cFunction.meKind = CPPFK_Function;
+	cFunction.mpsReturn = mpcTypes->Pointer(&mpcTypes->msVoid);
 	sPointer = IRType(IRTK_Pointer);
 	sOffset = IRIntegerType(mcModule.GetPointerSize(0));
 	sWord = IRIntegerType(CPP65_VTABLE_ENTRY_BYTES);
+	BeginWriting(&cFunction, szLabel, sPointer, IRA_NoInline);
+	mbRoutine = true;
+	sAddress = mpcFunction->AddParameter(sPointer);
+	sSource = mpcFunction->AddParameter(sPointer);
+	sTarget = mpcFunction->AddParameter(sPointer);
+	sDown = mpcFunction->AddParameter(sOffset);
+
 	sNullPointer = mpcFunction->AddConstant(sPointer, 0);
 	pcLook = NewBlock();
 	pcEnd = NewBlock();
-
 	pcStart = mpcBlock;
 	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sAddress, sNullPointer);
 	mpcBlock->Branch(sCondition, pcEnd, pcLook);
 
-	//The start of the whole object.
+	//The start of the whole object, and its type info's entries.
 	StartBlock(pcLook);
-	sVtablePointer = AddressAt(sAddress, pcFrom->GetVtablePointerOffset());
-	sVtable = mpcFunction->Load(mpcBlock, sPointer, sVtablePointer);
-	sTop = ConvertIR(mpcFunction->Load(mpcBlock, sWord, AddressAt(sVtable, CPP65_VTABLE_TOP_OFFSET)), sWord, sOffset, true);
-	sTop = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sVtablePointer, sTop);
-	if (!pcTo)
-	{
-		JumpTo(pcEnd);
-		StartBlock(pcEnd);
-		return Phi(pcEnd, sPointer, pcStart, sNullPointer, pcLook, sTop);
-	}
-
-	mpcUnit->EnsureTypeInfo(pcTo);
-	szLabel.Init();
-	mpcUnit->GetMangler()->AppendTypeInfoLabel(&szLabel, pcTo);
-	sTarget = mcModule.Symbol(szLabel.Text());
-	szLabel.Kill();
-	if (pcTo->IsUnnamed())
-	{
-		mcModule.SetLocal(sTarget.Index());
-	}
-	mpcUnit->EnsureTypeInfo(pcFrom);
-	szLabel.Init();
-	mpcUnit->GetMangler()->AppendTypeInfoLabel(&szLabel, pcFrom);
-	sSource = mcModule.Symbol(szLabel.Text());
-	szLabel.Kill();
-	if (pcFrom->IsUnnamed())
-	{
-		mcModule.SetLocal(sSource.Index());
-	}
+	sFlags = mpcFunction->Load(mpcBlock, sWord, AddressAt(sSource, CPP65_TYPE_INFO_ENTRIES_OFFSET + CPP65_TYPE_INFO_FLAGS_OFFSET));
+	sVtableOffset = mpcFunction->Add(mpcBlock, IRO_LShr, sWord, sFlags, mpcFunction->AddConstant(sWord, CPP65_TYPE_INFO_VTABLE_SHIFT));
+	sVtableOffset = ConvertIR(mpcFunction->Add(mpcBlock, IRO_Sub, sWord, sVtableOffset, mpcFunction->AddConstant(sWord, 1)), sWord, sOffset, true);
+	sTop = ObjectTop(mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sAddress, sVtableOffset), &sVtable);
 	sInfo = AddressAt(mpcFunction->Load(mpcBlock, sPointer, AddressAt(sVtable, CPP65_VTABLE_TYPE_INFO_OFFSET)), CPP65_TYPE_INFO_ENTRIES_OFFSET);
-	bDown = mpcUnit->IsOnePublicBase(pcTo, pcFrom, &iDown);
+	sHasPlace = mpcFunction->Add(mpcBlock, IRO_Ne, sOffset, sDown, mpcFunction->AddInteger(sOffset, CPP65_DYNAMIC_CAST_NO_PLACE));
 
 	//After the type info's header, each entry is a subobject's class's type info, its offset and its flags; a zero ends
-	//them.  sFound is the one pcTo found so far: null for none, and sSpoilt (an address no object has) once the
-	//answer can only be null.  sFrom is whether sAddress's own entry has been met and is public (null until then).
+	//them.  sFound is the one target found so far: null for none, and sSpoilt (an address no object has) once the
+	//answer can only be null.  sFrom is whether the object's own entry has been met and is public (null until then).
 	sSpoilt = mpcFunction->AddConstant(sPointer, 1);
 	pcLoop = NewBlock();
 	pcCheck = NewBlock();
 	pcMatch = NewBlock();
+	pcPlace = NewBlock();
 	pcAccess = NewBlock();
 	pcFirst = NewBlock();
 	pcTake = NewBlock();
@@ -329,7 +437,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sClass, sNullPointer);
 	mpcBlock->Branch(sCondition, pcDone, pcCheck);
 
-	//sAddress's own entry: a pcFrom, where sAddress is.
+	//The object's own entry: a source class's, where the object is.
 	StartBlock(pcCheck);
 	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sClass, sSource);
 	mpcBlock->Branch(sCondition, pcIsSource, pcTarget);
@@ -359,19 +467,15 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sClass, sTarget);
 	mpcBlock->Branch(sCondition, pcMatch, pcNext);
 
-	//A pcTo subobject.  With sAddress its pcFrom it is the answer, whatever else there is.
+	//A target subobject.  With the object where its source base is, it is the answer, whatever else there is.
 	StartBlock(pcMatch);
 	sCandidate = ConvertIR(mpcFunction->Load(mpcBlock, sWord, AddressAt(sEntry, CPP65_TYPE_INFO_OFFSET_OFFSET)), sWord, sOffset, true);
 	sCandidate = mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sTop, sCandidate);
-	if (bDown)
-	{
-		sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, AddressAt(sCandidate, iDown), sAddress);
-		mpcBlock->Branch(sCondition, pcEnd, pcAccess);
-	}
-	else
-	{
-		JumpTo(pcAccess);
-	}
+	mpcBlock->Branch(sHasPlace, pcPlace, pcAccess);
+
+	StartBlock(pcPlace);
+	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, mpcFunction->Add(mpcBlock, IRO_PtrAdd, sPointer, sCandidate, sDown), sAddress);
+	mpcBlock->Branch(sCondition, pcEnd, pcAccess);
 
 	//A second one, or one not reached through public bases, spoils the answer.
 	StartBlock(pcAccess);
@@ -402,7 +506,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	ClosePhi(pcLoop, sFound, pcNext, sNextFound);
 	ClosePhi(pcLoop, sFrom, pcNext, sNextFrom);
 
-	//The list's end: sFound is the answer if it wasn't spoilt and sAddress was seen to be a public base.
+	//The list's end: sFound is the answer if it wasn't spoilt and the object was seen to be a public base.
 	StartBlock(pcDone);
 	sCondition = mpcFunction->Add(mpcBlock, IRO_Eq, sPointer, sFound, sSpoilt);
 	mpcBlock->Branch(sCondition, pcSpoilt, pcUnspoilt);
@@ -418,13 +522,11 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	sResult = mpcFunction->AddTemporary(sPointer);
 	psPhi = pcEnd->AddPhi(sPointer, sResult);
 	pcEnd->AddPhiArgument(psPhi, pcStart, sNullPointer);
-	if (bDown)
-	{
-		pcEnd->AddPhiArgument(psPhi, pcMatch, sCandidate);
-	}
+	pcEnd->AddPhiArgument(psPhi, pcPlace, sCandidate);
 	pcEnd->AddPhiArgument(psPhi, pcUnspoilt, sFound);
 	pcEnd->AddPhiArgument(psPhi, pcSpoilt, sNullPointer);
-	return sResult;
+	mpcBlock->Return(sPointer, sResult);
+	return FinishWriting(true, szLabel);
 }
 
 
