@@ -249,7 +249,7 @@ void CButton::UpdateContent(void)
 //////////////////////////////////////////////////////////////////////////
 bool CButton::HasCaption(void)
 {
-	char*	szCaption;
+	const char*	szCaption;
 
 	szCaption = mpCaption->GetText();
 	return (szCaption != NULL) && (szCaption[0] != '\0');
@@ -489,7 +489,7 @@ void CButton::UpdateLook(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CButton::GetCaption(void) { return mpCaption->GetText(); }
+const char* CButton::GetCaption(void) { return mpCaption->GetText(); }
 Ptr<CImageCel> CButton::GetIcon(void) { return mpIcon->GetCel(); }
 Ptr<CIconComponent> CButton::GetIconComponent(void) const { return mpIcon; }
 Ptr<CLabel> CButton::GetCaptionLabel(void) const { return mpCaption; }

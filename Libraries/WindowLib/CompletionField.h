@@ -58,8 +58,8 @@ public:
 	void				CloseCompletions(void);
 	bool				IsCompleting(void);
 	size				NumCompletions(void);
-	char*				GetCompletion(size uiIndex);
-	char*				GetCompletionNote(size uiIndex);
+	const char*			GetCompletion(size uiIndex);
+	const char*			GetCompletionNote(size uiIndex);
 	bool				TakeCompletion(size uiIndex);
 	Ptr<CMenuContainer>	GetMenu(void) const;
 

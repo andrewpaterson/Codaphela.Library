@@ -62,7 +62,7 @@ public:
 	void				SetSelected(bool bSelected);
 	bool				IsSelected(void) const;
 	bool				IsClosable(void) const;
-	char*				GetText(void);
+	const char*			GetText(void);
 	void				SetText(const char* szName);
 	void				SetTextFont(Ptr<CFont> pFont);
 	Ptr<CIconComponent>	GetIcon(void) const;

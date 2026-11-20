@@ -199,7 +199,7 @@ public:
 	Ptr<CToolTips>			GetToolTips(void) const;
 	bool					ShowToolTip(int64 iNow);
 
-	const char*				GetWindowTitle(void);
+	const char*				GetWindowTitle(void) const;
 	void					SetWindowTitle(const char* szTitle);
 	Ptr<CCanvas>			GetCanvas(void) const;
 	Ptr<CFocus>				GetFocus(void);

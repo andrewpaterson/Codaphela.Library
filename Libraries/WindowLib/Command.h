@@ -123,7 +123,7 @@ public:
 	bool					IsGivingStandard(void) const;
 
 	const char*			GetName(void) const override;
-	char*				GetCaption(void);
+	const char*			GetCaption(void) const;
 	void				SetContext(const char* szContext);
 	void				AllowContext(const char* szContext);
 	bool				IsContextAllowed(const char* szContext);

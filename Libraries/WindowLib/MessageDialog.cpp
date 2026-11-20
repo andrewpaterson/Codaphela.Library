@@ -176,7 +176,7 @@ bool CMessageDialog::Show(void)
 // its caption), empty if the window manager closed it.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMessageDialog::GetClicked(void)
+const char* CMessageDialog::GetClicked(void)
 {
 	return mpDialog->GetClicked();
 }

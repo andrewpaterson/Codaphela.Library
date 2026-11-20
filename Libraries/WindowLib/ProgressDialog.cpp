@@ -179,7 +179,7 @@ void CProgressDialog::Finish(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CProgressDialog::GetText(void) { return mpText->GetText(); }
+const char* CProgressDialog::GetText(void) { return mpText->GetText(); }
 float CProgressDialog::GetFraction(void) { return mpBar->GetFraction(); }
 Ptr<CDialog> CProgressDialog::GetDialog(void) const { return mpDialog; }
 

@@ -719,7 +719,7 @@ SInt32Vec2 CTextArea::GetTextSize(void)
 }
 
 
-char* CTextArea::GetText(void) { return mcDocument.Text(); }
+const char* CTextArea::GetText(void) const { return mcDocument.Text(); }
 size CTextArea::GetChangeCount(void) const { return mcDocument.GetChangeCount(); }  //Each edit counts one more, so the text's owner can tell it changed since it last looked.
 Ptr<CFontFamily> CTextArea::GetFontFamily(void) { return mpLayout->GetFontFamily(); }
 bool CTextArea::IsWordWrap(void) { return mpLayout->IsWordWrap(); }

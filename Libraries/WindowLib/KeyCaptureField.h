@@ -36,20 +36,20 @@ protected:
 	CComponentEvent<CKeyCaptureField>	mcCaptured;
 
 public:
-	void	Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
-	void	Class(void) override;
-	void	Free(void) override;
+	void		Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
+	void		Class(void) override;
+	void		Free(void) override;
 
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
+	bool		Save(CObjectWriter* pcFile) override;
+	bool		Load(CObjectReader* pcFile) override;
 
-	char*	GetKeys(void);
-	void	SetKeys(const char* szKeys);
+	const char*	GetKeys(void) const;
+	void		SetKeys(const char* szKeys);
 
 	CComponentEvent<CKeyCaptureField>*	GetCapturedEvent(void);
 
-	void	KeyDownAction(SComponentInputEvent* psEvent);
-	void	ChordAction(SComponentInputEvent* psEvent);
+	void		KeyDownAction(SComponentInputEvent* psEvent);
+	void		ChordAction(SComponentInputEvent* psEvent);
 };
 
 

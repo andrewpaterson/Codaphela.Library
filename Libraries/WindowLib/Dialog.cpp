@@ -671,7 +671,7 @@ void CDialog::Close(const char* szClicked)
 // closed by the window manager.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CDialog::GetClicked(void)
+const char* CDialog::GetClicked(void) const
 {
 	return mszClicked.Text();
 }

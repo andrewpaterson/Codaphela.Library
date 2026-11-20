@@ -14,7 +14,7 @@ struct STestTextEditing
 	CTestTextEditingView	cView;
 	CTextEditing			cEditing;
 
-	void	Init(const char* szText)
+	void		Init(const char* szText)
 	{
 		cDocument.Init(szText);
 		cDocument.GetUndo()->SetTypingPause(TEST_TEXT_EDITING_NO_PAUSE);
@@ -23,15 +23,15 @@ struct STestTextEditing
 		cEditing.ClearUndo();
 	}
 
-	void	Kill(void)
+	void		Kill(void)
 	{
 		cEditing.Kill();
 		cView.Kill();
 		cDocument.Kill();
 	}
 
-	char*	Text(void) { return cDocument.Text(); }
-	size	Caret(void) { return cEditing.GetCaretPosition(); }
+	const char*	Text(void) { return cDocument.Text(); }
+	size		Caret(void) { return cEditing.GetCaretPosition(); }
 };
 
 

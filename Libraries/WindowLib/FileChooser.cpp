@@ -624,7 +624,7 @@ bool CFileChooser::Show(void)
 // The whole path of the file chosen.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileChooser::GetChosen(void)
+const char* CFileChooser::GetChosen(void) const
 {
 	return mszChosen.Text();
 }
@@ -642,7 +642,7 @@ bool CFileChooser::Approve(void)
 {
 	CFileUtil	cFileUtil;
 	CChars		szPath;
-	char*		szText;
+	const char*	szText;
 	const char*	szExtension;
 	int32		iRow;
 

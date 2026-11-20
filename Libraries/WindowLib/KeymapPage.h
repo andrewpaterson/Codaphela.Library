@@ -89,7 +89,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	bool			Show(void);
-	char*			GetKeys(void);
+	const char*		GetKeys(void);
 	void			SetKeys(const char* szKeys);
 	Ptr<CDialog>	GetDialog(void) const;
 	const char*		GetContext(void);

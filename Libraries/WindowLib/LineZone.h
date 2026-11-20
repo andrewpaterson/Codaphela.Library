@@ -67,8 +67,8 @@ public:
 
 	size			NumPages(void) const;
 	size			GetPage(void) const;
-	char*			GetTitle(void);
-	char*			GetText(void);
+	const char*		GetTitle(void);
+	const char*		GetText(void);
 	bool			IsOutOfDate(void) const;
 	bool			HasButtons(void);
 	Ptr<CButton>	GetPreviousButton(void) const;

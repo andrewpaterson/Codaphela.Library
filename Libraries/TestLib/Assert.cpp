@@ -1097,7 +1097,7 @@ bool PrivateAssertNumber(const char* szExpected, CNumber* pcActual, char* szPref
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertPointer(void* pvExpected, void* pvActual, char* szPrefix, size iLine, const char* szFile)
+bool PrivateAssertPointer(const void* pvExpected, const void* pvActual, char* szPrefix, size iLine, const char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
@@ -1119,7 +1119,7 @@ bool PrivateAssertPointer(void* pvExpected, void* pvActual, char* szPrefix, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertNotPointer(void* pvExpected, void* pvActual, char* szPrefix, size iLine, const char* szFile)
+bool PrivateAssertNotPointer(const void* pvExpected, const void* pvActual, char* szPrefix, size iLine, const char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
@@ -1173,7 +1173,7 @@ bool PrivateAssertMD5(uint8* pucExpected, uint8* pucActual, char* szPrefix, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertNotNull(void* pvActual, char* szPrefix, size iLine, const char* szFile)
+bool PrivateAssertNotNull(const void* pvActual, char* szPrefix, size iLine, const char* szFile)
 {
 	if (NULL == pvActual)
 	{
@@ -1190,7 +1190,7 @@ bool PrivateAssertNotNull(void* pvActual, char* szPrefix, size iLine, const char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertNull(void* pvActual, char* szPrefix, size iLine, const char* szFile)
+bool PrivateAssertNull(const void* pvActual, char* szPrefix, size iLine, const char* szFile)
 {
 	if (NULL != pvActual)
 	{

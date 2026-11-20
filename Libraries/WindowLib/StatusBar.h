@@ -49,7 +49,7 @@ public:
 
 	void				ShowMessage(const char* szText, int32 iMilliseconds, int64 iNow);
 	int64				UpdateMessage(int64 iNow);
-	char*				GetMessage(void);
+	const char*			GetMessage(void);
 };
 
 

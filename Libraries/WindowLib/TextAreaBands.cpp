@@ -266,7 +266,7 @@ void CTextAreaBands::AddRows(CTextAreaLayout* pcLayout, CTextDocument* pcDocumen
 	STextStyle*			psStyles;
 	STextStyle*			psStyle;
 	STextStyle*			psLast;
-	char*				szText;
+	const char*			szText;
 
 	uiNumRows = pcLayout->NumLayoutLines();
 	uiFirstRow = pcLayout->FindRowAt(iTop);

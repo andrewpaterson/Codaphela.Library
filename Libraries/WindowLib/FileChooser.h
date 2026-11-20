@@ -100,7 +100,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	bool			Show(void);
-	char*			GetChosen(void);
+	const char*		GetChosen(void) const;
 
 	bool			Approve(void);
 	void			DialogTick(void);

@@ -76,7 +76,7 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	void				SetTitle(const char* szTitle);
-	char*				GetTitle(void);
+	const char*			GetTitle(void);
 	void				SetActive(bool bActive);
 	bool				IsActive(void) const;
 	void				SetPinned(bool bPinned);

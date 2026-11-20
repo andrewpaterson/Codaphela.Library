@@ -98,7 +98,7 @@ public:
 	void					Insert(size uiPosition, const char* szText);
 	void					Remove(size uiStart, size uiEnd);
 
-	char*					Text(void);
+	const char*				Text(void) const;
 	size					Length(void) const;
 	size					GetChangeCount(void) const;
 	CTextNavigation*		GetNavigation(void);

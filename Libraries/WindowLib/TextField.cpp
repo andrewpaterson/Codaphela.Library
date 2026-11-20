@@ -515,7 +515,7 @@ void CTextField::UpdateLook(void)
 // clipboard is the window's.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTextField::GetText(void) { return mcDocument.Text(); }
+const char* CTextField::GetText(void) const { return mcDocument.Text(); }
 CTextEditing* CTextField::GetEditing(void) { return &mcEditing; }  //The caret, the selection and the edits: its moves and edits are made through it.
 size CTextField::GetCaretPosition(void) const { return mcEditing.GetCaretPosition(); }
 void CTextField::SetCaretPosition(size uiPosition) { mcEditing.SetCaretPosition(uiPosition); }

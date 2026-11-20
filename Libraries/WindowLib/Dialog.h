@@ -130,7 +130,7 @@ public:
 	bool				Show(int32 iWidth, int32 iHeight);
 	SInt32Vec2			GetFormSize(void);
 	void				Close(const char* szClicked);
-	char*				GetClicked(void);
+	const char*			GetClicked(void) const;
 	Ptr<CWindow>		GetWindow(void) const;
 	void				SetOwner(Ptr<CWindow> pOwner);
 	SDialogLook*		GetLook(void) const;

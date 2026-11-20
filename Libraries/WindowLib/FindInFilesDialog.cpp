@@ -1023,8 +1023,8 @@ SFindInFilesItem* CFindInFilesDialog::GetChosen(void)
 
 
 EFindInFilesResult CFindInFilesDialog::GetOutcome(void) const { return meResult; }  //How it was last closed, as Show returned.
-char* CFindInFilesDialog::GetText(void) { return mpField->GetText(); }
-char* CFindInFilesDialog::GetDirectory(void) { return mpDirectory.IsNotNull() ? mpDirectory->GetText() : (char*)""; }
+const char* CFindInFilesDialog::GetText(void) { return mpField->GetText(); }
+const char* CFindInFilesDialog::GetDirectory(void) { return mpDirectory.IsNotNull() ? mpDirectory->GetText() : ""; }
 bool CFindInFilesDialog::IsMatchCase(void) { return mpMatchCase->IsTicked(); }
 bool CFindInFilesDialog::IsWholeWords(void) { return mpWholeWords->IsTicked(); }
 bool CFindInFilesDialog::IsSearching(void) const { return mbSearching; }
@@ -1032,8 +1032,8 @@ bool CFindInFilesDialog::HasMore(void) const { return mbMore; }
 size CFindInFilesDialog::NumResults(void) const { return mcItems.NumItems(); }
 SFindInFilesItem* CFindInFilesDialog::GetResult(size uiIndex) { return mcItems.Get(uiIndex); }
 int32 CFindInFilesDialog::GetSelected(void) { return mpList->GetSelected(); }
-char* CFindInFilesDialog::GetPreviewTitle(void) { return mpPreview->GetTitle(); }
-char* CFindInFilesDialog::GetStatus(void) { return mpStatus->GetText(); }
+const char* CFindInFilesDialog::GetPreviewTitle(void) { return mpPreview->GetTitle(); }
+const char* CFindInFilesDialog::GetStatus(void) { return mpStatus->GetText(); }
 Ptr<CTextField> CFindInFilesDialog::GetField(void) const { return mpField; }
 Ptr<CTextField> CFindInFilesDialog::GetDirectoryField(void) const { return mpDirectory; }
 Ptr<CCheckBox> CFindInFilesDialog::GetMatchCaseBox(void) const { return mpMatchCase; }

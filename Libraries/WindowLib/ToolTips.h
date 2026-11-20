@@ -69,7 +69,7 @@ public:
 	int64				GetWait(int64 iNow);
 	bool				ShowIfDue(int64 iNow);
 	bool				IsShown(void) const;
-	char*				GetText(void);
+	const char*			GetText(void);
 	Ptr<CComponent>		GetTipped(void) const;
 
 protected:

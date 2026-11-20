@@ -445,7 +445,7 @@ void CNodeBox::SetSelected(bool bSelected)
 }
 
 
-char* CNodeBox::GetTitle(void) { return mpTitle->GetText(); }
+const char* CNodeBox::GetTitle(void) { return mpTitle->GetText(); }
 ARGB32 CNodeBox::GetHeaderColour(void) const { return msHeader; }
 Ptr<CWindowTheme> CNodeBox::GetTheme(void) const { return mpTheme; }
 void CNodeBox::SetNodePosition(int32 x, int32 y) { msNodePosition.Init(x, y); InvalidateLayout(); }

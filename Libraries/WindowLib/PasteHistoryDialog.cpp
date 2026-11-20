@@ -229,7 +229,7 @@ bool CPasteHistoryDialog::Show(void)
 
 
 bool CPasteHistoryDialog::IsChosen(void) const { return mbChosen; }
-char* CPasteHistoryDialog::GetChosen(void) { return mszChosen.Text(); }
+const char* CPasteHistoryDialog::GetChosen(void) const { return mszChosen.Text(); }
 Ptr<CListContainer> CPasteHistoryDialog::GetList(void) const { return mpList; }
 Ptr<CTextArea> CPasteHistoryDialog::GetPreview(void) const { return mpPreview; }
 Ptr<CLabel> CPasteHistoryDialog::GetFilterLabel(void) const { return mpFilter; }
@@ -478,7 +478,7 @@ void CPasteHistoryDialog::SetFilter(const char* szFilter)
 }
 
 
-char* CPasteHistoryDialog::GetFilter(void) { return mszFilter.Text(); }
+const char* CPasteHistoryDialog::GetFilter(void) const { return mszFilter.Text(); }
 
 
 //////////////////////////////////////////////////////////////////////////

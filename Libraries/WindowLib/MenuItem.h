@@ -68,13 +68,13 @@ public:
 	bool					Load(CObjectReader* pcFile) override;
 
 	void						SetText(const char* szText);
-	char*						GetText(void);
+	const char*					GetText(void);
 	void						SetIcon(Ptr<CImageCel> pIcon);
 	Ptr<CImageCel>				GetIcon(void);
 	Ptr<CMenuContainer>			GetSubMenu(void) const;
 	void						SetShortcut(const char* szShortcut);
 	void						SetShortcut(EComponentInputCommand eCommand);
-	char*						GetShortcut(void);
+	const char*					GetShortcut(void);
 	void						SetEnabled(bool bEnabled);
 	bool						IsEnabled(void) const;
 	void						SetTag(int32 iTag);

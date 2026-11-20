@@ -277,7 +277,7 @@ bool CNumberField::Change(float64 fValue)
 
 
 float64 CNumberField::GetValue(void) const { return mfValue; }
-char* CNumberField::GetNumberText(void) { return mpNumber->GetText(); }
+const char* CNumberField::GetNumberText(void) { return mpNumber->GetText(); }
 CComponentEvent<CNumberField>* CNumberField::GetChangeEvent(void) { return &mcChanged; }
 bool CNumberField::IsEditing(void) const { return mpEdit.IsNotNull(); }
 Ptr<CTextField> CNumberField::GetEdit(void) const { return mpEdit; }
@@ -406,7 +406,7 @@ void CNumberField::BeginEdit(void)
 void CNumberField::EndEdit(bool bCommit)
 {
 	Ptr<CNumberFieldEdit>	pEdit;
-	char*					szText;
+	const char*				szText;
 	char*					szEnd;
 	float64					fValue;
 	bool					bNumber;

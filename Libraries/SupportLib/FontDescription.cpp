@@ -333,7 +333,7 @@ size CFontDescription::ReadKey(CUnicodeReader* pcUTFReader, uint8* puiKey, size 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CFontDescription::CalculateWidth(char* szText)
+size CFontDescription::CalculateWidth(const char* szText)
 {
 	return CalculateWidth(szText, StrLen(szText));
 }
@@ -344,7 +344,7 @@ size CFontDescription::CalculateWidth(char* szText)
 // The width of the first uiLength bytes of szText.
 //
 //////////////////////////////////////////////////////////////////////////
-size CFontDescription::CalculateWidth(char* szText, size uiLength)
+size CFontDescription::CalculateWidth(const char* szText, size uiLength)
 {
 	CUTF8				cUTF8;
 	size				uiUTFElementLength;

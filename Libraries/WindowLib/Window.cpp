@@ -1359,7 +1359,7 @@ size CWindow::NumPopups(void) { return maPopups.NumElements(); }
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CWindow::GetWindowTitle(void)
+const char* CWindow::GetWindowTitle(void) const
 {
 	return mszWindowTitle.Text();
 }

@@ -881,10 +881,10 @@ void TestTextAreaEditTiles(void)
 //////////////////////////////////////////////////////////////////////////
 void AssertTextAreaLineStarts(Ptr<CTextArea> pTextArea)
 {
-	char*	szText;
-	size	uiLength;
-	size	uiPosition;
-	size	uiLine;
+	const char*	szText;
+	size		uiLength;
+	size		uiPosition;
+	size		uiLine;
 
 	szText = pTextArea->GetText();
 	uiLength = StrLen(szText);

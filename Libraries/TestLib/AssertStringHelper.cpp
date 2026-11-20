@@ -425,7 +425,7 @@ void ToLongHexString(uint64 i, char* szString, size iStringLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToPointerString(void* pv, char* szString, size iStringLength)
+void ToPointerString(const void* pv, char* szString, size iStringLength)
 {
 	CChars	c;
 

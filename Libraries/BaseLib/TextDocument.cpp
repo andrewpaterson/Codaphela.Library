@@ -225,7 +225,7 @@ void CTextDocument::Changed(STextDocumentChange* psChange)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTextDocument::Text(void) { return mszText.Text(); }
+const char* CTextDocument::Text(void) const { return mszText.Text(); }
 size CTextDocument::Length(void) const { return mszText.Length(); }
 size CTextDocument::GetChangeCount(void) const { return muiChangeCount; }  //Each edit ended counts one more, so the text's owner can tell it changed since it last looked.
 CTextNavigation* CTextDocument::GetNavigation(void) { return &mcNavigation; }

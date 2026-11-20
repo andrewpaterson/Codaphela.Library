@@ -82,7 +82,7 @@ public:
 	bool				IsVertical(void) const;
 	int32				GetLength(void);
 	void				TitleChanged(void);
-	char*				GetText(void);
+	const char*			GetText(void);
 	void				FocusOrMouseOverChanged(void) override;
 	void				ActivateComponent(int x, int y);
 	void				Hover(void);

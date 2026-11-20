@@ -84,7 +84,7 @@ public:
 	void			Start(Ptr<CClipboardHistory> pHistory);
 	bool			Show(void);
 	bool			IsChosen(void) const;
-	char*			GetChosen(void);
+	const char*		GetChosen(void) const;
 
 	Ptr<CListContainer>	GetList(void) const;
 	Ptr<CTextArea>		GetPreview(void) const;
@@ -101,7 +101,7 @@ public:
 	void			Backspace(void);
 	void			Escape(void);
 	void			SetFilter(const char* szFilter);
-	char*			GetFilter(void);
+	const char*		GetFilter(void) const;
 
 protected:
 	void			Init(Ptr<CWindow> pOwner, SDialogLook* psLook, Ptr<CFontFamily> pPreviewFamily, Ptr<CFont> pPreviewFont);

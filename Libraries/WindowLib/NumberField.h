@@ -101,7 +101,7 @@ public:
 	void							SetWhole(bool bWhole);
 	void							SetValue(float64 fValue);
 	float64							GetValue(void) const;
-	char*							GetNumberText(void);
+	const char*						GetNumberText(void);
 	CComponentEvent<CNumberField>*	GetChangeEvent(void);
 
 	void							ActivateComponent(int x, int y);

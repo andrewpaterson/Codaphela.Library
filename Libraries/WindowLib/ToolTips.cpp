@@ -270,6 +270,6 @@ Ptr<CComponent> CToolTips::FindTipped(Ptr<CComponent> pOver)
 
 
 bool CToolTips::IsShown(void) const { return mbShown; }
-char* CToolTips::GetText(void) { return mbShown ? mpLabel->GetText() : NULL; }
+const char* CToolTips::GetText(void) { return mbShown ? mpLabel->GetText() : NULL; }
 Ptr<CComponent> CToolTips::GetTipped(void) const { return mpTipped; }
 

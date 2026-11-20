@@ -56,7 +56,7 @@ public:
 	size				NumLookIn(void) { return maszLookIn.NumElements(); }
 	char*				GetLookInPath(size uiIndex) { return maszLookIn.GetText(uiIndex); }
 	char*				GetRowPath(int32 iRow) { return maszRows.GetText(iRow); }
-	char*				GetClicked(void) { return mpDialog->GetClicked(); }
+	const char*			GetClicked(void) { return mpDialog->GetClicked(); }
 };
 
 

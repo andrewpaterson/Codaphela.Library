@@ -63,7 +63,7 @@ public:
 	bool				IsTicked(void) const;
 	void				Toggle(void);
 	void				SetCaption(const char* szCaption);
-	char*				GetCaption(void);
+	const char*			GetCaption(void);
 	void				SetGap(int32 iGap);
 	ECheckBoxState		GetState(void) const;
 	Ptr<CIconComponent>	GetBoxComponent(void) const;

@@ -78,7 +78,7 @@ public:
 
 	bool					Is(char* szName);
 	char*					GetFontName(void);  //Not GetName, that is the object's name.
-	size 					CalculateWidth(char* szText);
+	size 					CalculateWidth(const char* szText);
 	size 					CalculateWidth(char* szText, size uiLength);
 	bool					IsWhitespace(uint16 c);
 	int16					GetAscent(void);

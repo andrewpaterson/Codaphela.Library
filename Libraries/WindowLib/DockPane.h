@@ -127,9 +127,9 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	const char*			GetID(void);
+	const char*			GetID(void) const;
 	void				SetID(const char* szID);
-	const char*			GetTitle(void);
+	const char*			GetTitle(void) const;
 	void				SetTitle(const char* szTitle);
 	Ptr<CImageCel>		GetIcon(void) const;
 	void				SetIcon(Ptr<CImageCel> pIcon);
@@ -153,7 +153,7 @@ public:
 	EDockPlaceKind		GetDefaultKind(void) const;
 	EDockSide			GetDefaultSide(void) const;
 	int32				GetDefaultSize(void) const;
-	const char*			GetDefaultPane(void);
+	const char*			GetDefaultPane(void) const;
 
 	void				SetRestore(SDockRestore* psRestore);
 	SDockRestore*		GetRestore(void);

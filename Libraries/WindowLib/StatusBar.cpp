@@ -163,7 +163,7 @@ int64 CStatusBar::UpdateMessage(int64 iNow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CStatusBar::GetMessage(void)
+const char* CStatusBar::GetMessage(void)
 {
 	return mpMessage.IsNotNull() ? mpMessage->GetText() : NULL;
 }

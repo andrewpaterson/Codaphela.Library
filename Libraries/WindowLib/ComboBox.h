@@ -67,10 +67,10 @@ public:
 	size				AddItem(const char* szText);
 	void				RemoveAllItems(void);
 	size				NumItems(void);
-	char*				GetItemText(size uiIndex);
+	const char*			GetItemText(size uiIndex);
 	void				Select(int32 iIndex);
 	int32				GetSelected(void) const;
-	char*				GetSelectedText(void);
+	const char*			GetSelectedText(void);
 
 	void				Open(void);
 	void				Close(void);

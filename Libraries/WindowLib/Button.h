@@ -69,7 +69,7 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	void				SetCaption(const char* szCaption);
-	char*				GetCaption(void);
+	const char*			GetCaption(void);
 	void				SetIcon(Ptr<CImageCel> pIcon);
 	Ptr<CImageCel>		GetIcon(void);
 	void				SetIconGap(int32 iIconGap);

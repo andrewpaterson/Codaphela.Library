@@ -403,8 +403,8 @@ void CDockPane::SetID(const char* szID)
 }
 
 
-const char*			CDockPane::GetID(void) { return mszID.Text(); }
-const char*			CDockPane::GetTitle(void) { return mszTitle.Text(); }
+const char*			CDockPane::GetID(void) const { return mszID.Text(); }
+const char*			CDockPane::GetTitle(void) const { return mszTitle.Text(); }
 Ptr<CImageCel>		CDockPane::GetIcon(void) const { return mpIcon; }
 Ptr<CComponent>		CDockPane::GetContent(void) const { return mpContent; }
 Ptr<CComponent>		CDockPane::GetFocusTarget(void) const { return mpFocusTarget; }
@@ -434,7 +434,7 @@ bool				CDockPane::IsShown(void) const { return (meState == DPS_Docked) || (meSt
 EDockPlaceKind		CDockPane::GetDefaultKind(void) const { return meDefaultKind; }
 EDockSide			CDockPane::GetDefaultSide(void) const { return meDefaultSide; }
 int32				CDockPane::GetDefaultSize(void) const { return miDefaultSize; }
-const char*			CDockPane::GetDefaultPane(void) { return mszDefaultPane.Text(); }
+const char*			CDockPane::GetDefaultPane(void) const { return mszDefaultPane.Text(); }
 bool				CDockPane::HasRestore(void) const { return msRestore.IsSet(); }
 SDockRestore*		CDockPane::GetRestore(void) { return &msRestore; }
 EDockSide			CDockPane::GetAutoHideSide(void) const { return meAutoHideSide; }

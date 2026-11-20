@@ -945,7 +945,7 @@ void CTextEditing::DeleteInBox(bool bBackwards)
 // anything else goes on every row.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextEditing::PasteInBox(char* szSource)
+void CTextEditing::PasteInBox(const char* szSource)
 {
 	CArrayTextRange	asRanges;
 	CArrayChars		aszLines;
@@ -1208,8 +1208,8 @@ void CTextEditing::MoveEnd(bool bSelect)
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Printable(char c, bool bInsert)
 {
-	char	sz[2];
-	char*	szText;
+	char		sz[2];
+	const char*	szText;
 
 	sz[0] = c;
 	sz[1] = '\0';
@@ -1647,7 +1647,7 @@ void CTextEditing::Copy(CChars* pszDest)
 // it is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextEditing::Paste(char* szSource)
+void CTextEditing::Paste(const char* szSource)
 {
 	CChars	szText;
 
@@ -2101,7 +2101,7 @@ void CTextEditing::OutdentLines(size uiStart, size uiEnd)
 	size				uiLine;
 	size				i;
 	size				uiRemove;
-	char*				szText;
+	const char*			szText;
 
 	auiLineStarts.Init();
 	FindLines(uiStart, uiEnd, &auiLineStarts);

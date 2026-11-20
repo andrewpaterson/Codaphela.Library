@@ -211,7 +211,7 @@ void CCodePreview::Clear(void)
 }
 
 
-char* CCodePreview::GetTitle(void) { return mszTitle.Text(); }
+const char* CCodePreview::GetTitle(void) const { return mszTitle.Text(); }
 Ptr<CCodeEditor> CCodePreview::GetEditor(void) const { return mpEditor; }
 Ptr<CTextArea> CCodePreview::GetTextArea(void) { return mpEditor->GetTextArea(); }
 Ptr<CScrollPane> CCodePreview::GetScrollPane(void) const { return mpScrollPane; }

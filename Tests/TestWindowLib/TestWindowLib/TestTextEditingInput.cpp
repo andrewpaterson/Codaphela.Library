@@ -25,7 +25,7 @@ struct STestEditingInput
 	CTextEditing				cEditing;
 	CTextEditingInput			cInput;
 
-	void	Init(const char* szText, bool bMultiLine)
+	void		Init(const char* szText, bool bMultiLine)
 	{
 		CPointer	pNull;
 
@@ -43,7 +43,7 @@ struct STestEditingInput
 		cInput.Init(&pCanvas, &cEditing, bMultiLine);
 	}
 
-	void	Kill(void)
+	void		Kill(void)
 	{
 		cInput.Kill();
 		cEditing.Kill();
@@ -56,7 +56,7 @@ struct STestEditingInput
 		pFactory = NULL;
 	}
 
-	bool	Command(EComponentInputCommand eCommand, int x = 0, int y = 0, bool bControl = false)
+	bool		Command(EComponentInputCommand eCommand, int x = 0, int y = 0, bool bControl = false)
 	{
 		SComponentInputEvent	sEvent;
 
@@ -68,7 +68,7 @@ struct STestEditingInput
 		return pCanvas->CallInputActions(&sEvent);
 	}
 
-	bool	Type(char c)
+	bool		Type(char c)
 	{
 		SComponentInputEvent	sEvent;
 
@@ -77,7 +77,7 @@ struct STestEditingInput
 		return pCanvas->CallInputActions(&sEvent);
 	}
 
-	void	InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType)
+	void		InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType)
 	{
 		memset(psEvent, 0, sizeof(SComponentInputEvent));
 		psEvent->eType = eType;
@@ -85,12 +85,12 @@ struct STestEditingInput
 		psEvent->bInsert = true;
 	}
 
-	char*	Text(void) { return cDocument.Text(); }
-	size	Caret(void) { return cEditing.GetCaretPosition(); }
+	const char*	Text(void) { return cDocument.Text(); }
+	size		Caret(void) { return cEditing.GetCaretPosition(); }
 
 	//A press and release of button one at x, y, the canvas focussed so the press starts a drag.  The drag's end is
 	//where the window's pointer is.
-	bool	Click(int x, int y)
+	bool		Click(int x, int y)
 	{
 		bool	bTaken;
 
@@ -100,13 +100,13 @@ struct STestEditingInput
 		return bTaken;
 	}
 
-	void	Release(int x, int y)
+	void		Release(int x, int y)
 	{
 		pWindow->PointerMoved(x, y);
 		Command(CIC_ExecuteComponent, x, y);
 	}
 
-	void	AssertSelection(size uiExpectedStart, size uiExpectedEnd, size uiExpectedCaret)
+	void		AssertSelection(size uiExpectedStart, size uiExpectedEnd, size uiExpectedCaret)
 	{
 		size	uiStart;
 		size	uiEnd;

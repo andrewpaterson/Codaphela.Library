@@ -219,5 +219,5 @@ SInt32Vec2 CLabel::GetDesiredSize(void)
 }
 
 
-char* CLabel::GetText(void) { return mszText.Text(); }
+const char* CLabel::GetText(void) const { return mszText.Text(); }
 Ptr<CFont> CLabel::GetFont(void) const { return mpFont; }

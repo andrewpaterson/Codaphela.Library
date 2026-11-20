@@ -164,7 +164,7 @@ size CComboBox::NumItems(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CComboBox::GetItemText(size uiIndex)
+const char* CComboBox::GetItemText(size uiIndex)
 {
 	if (uiIndex >= mpMenu->NumItems())
 	{
@@ -212,7 +212,7 @@ void CComboBox::Choose(int32 iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CComboBox::GetSelectedText(void)
+const char* CComboBox::GetSelectedText(void)
 {
 	if (miSelected == -1)
 	{

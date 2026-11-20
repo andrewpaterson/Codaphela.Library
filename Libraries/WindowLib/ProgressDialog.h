@@ -68,7 +68,7 @@ public:
 	bool				Show(void);
 	void				Finish(void);
 
-	char*				GetText(void);
+	const char*			GetText(void);
 	float				GetFraction(void);
 	Ptr<CDialog>		GetDialog(void) const;
 

@@ -157,7 +157,7 @@ void CKeyCaptureDialog::Free(void)
 bool CKeyCaptureDialog::Save(CObjectWriter* pcFile) { return false; }
 bool CKeyCaptureDialog::Load(CObjectReader* pcFile) { return false; }
 bool CKeyCaptureDialog::Show(void) { return mpDialog->Show(KEYMAP_CAPTURE_WIDTH); }
-char* CKeyCaptureDialog::GetKeys(void) { return mpField->GetKeys(); }
+const char* CKeyCaptureDialog::GetKeys(void) { return mpField->GetKeys(); }
 void CKeyCaptureDialog::SetKeys(const char* szKeys) { mpField->SetKeys(szKeys); }
 Ptr<CDialog> CKeyCaptureDialog::GetDialog(void) const { return mpDialog; }
 
@@ -504,7 +504,7 @@ bool CKeymapPage::IsShown(size uiRow)
 {
 	SKeymapRow*	psRow;
 	CChars			szKeys;
-	char*			szFilter;
+	const char*		szFilter;
 	bool			bResult;
 
 	psRow = masRows.Get(uiRow);

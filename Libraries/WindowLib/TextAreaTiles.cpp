@@ -175,7 +175,7 @@ void CTextAreaTiles::Append(Ptr<CFontColours> pColours, int32 iTabWidth, STextSt
 	size				uiRow;
 	size				uiLineStart;
 	size				uiLineEnd;
-	char*				szText;
+	const char*			szText;
 	CArrayTileTextSpan	asSpans;
 
 	//The old end stop goes: the text goes on from where it was.
@@ -339,7 +339,7 @@ size CTextAreaTiles::AddStops(STextTileCursor* psCursor)
 	size				uiEnd;
 	size				uiNextColumn;
 	size				uiLength;
-	char*				szText;
+	const char*			szText;
 	STextLayoutStop*	psStop;
 
 	szText = mpcDocument->Text();

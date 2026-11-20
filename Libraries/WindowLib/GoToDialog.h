@@ -125,7 +125,7 @@ public:
 	int32				GetSelected(void);
 	SGoToItem*			GetChosen(void);
 	int32				GetLine(void) const;
-	char*				GetPattern(void);
+	const char*		GetPattern(void);
 	Ptr<CTextField>		GetField(void) const;
 	Ptr<CListContainer>	GetList(void) const;
 	Ptr<CDialog>		GetDialog(void) const;

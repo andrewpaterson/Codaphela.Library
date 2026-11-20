@@ -389,7 +389,7 @@ Ptr<CDockPane> CAutoHideTab::GetPane(void) const { return mpPane; }
 // The title shown, turned or upright.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CAutoHideTab::GetText(void)
+const char* CAutoHideTab::GetText(void)
 {
 	return mpText->GetText();
 }

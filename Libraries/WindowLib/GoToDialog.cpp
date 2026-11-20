@@ -732,7 +732,7 @@ size CGoToDialog::NumResults(void) const { return mcItems.NumItems(); }
 SGoToItem* CGoToDialog::GetResult(size uiIndex) { return mcItems.Get(uiIndex); }
 int32 CGoToDialog::GetSelected(void) { return mpList->GetSelected(); }
 int32 CGoToDialog::GetLine(void) const { return miLine; }
-char* CGoToDialog::GetPattern(void) { return mpField->GetText(); }
+const char* CGoToDialog::GetPattern(void) { return mpField->GetText(); }
 Ptr<CTextField> CGoToDialog::GetField(void) const { return mpField; }
 Ptr<CListContainer> CGoToDialog::GetList(void) const { return mpList; }
 Ptr<CDialog> CGoToDialog::GetDialog(void) const { return mpDialog; }

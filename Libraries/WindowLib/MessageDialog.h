@@ -56,7 +56,7 @@ public:
 	void				AddItem(const char* szItem);
 	Ptr<CDialog>		GetDialog(void) const;
 	bool				Show(void);
-	char*				GetClicked(void);
+	const char*			GetClicked(void);
 
 protected:
 	Ptr<CLabel>			AddLabel(Ptr<CGridContainer> pGrid, int32 iRow, const char* szText);

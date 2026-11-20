@@ -55,7 +55,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	void			SetText(const char* szText);
-	char*			GetText(void);
+	const char*		GetText(void) const;
 	void			SetFont(Ptr<CFont> pFont);
 	void			SetFontAndText(Ptr<CFont> pFont, const char* szText);
 	Ptr<CFont>		GetFont(void) const;

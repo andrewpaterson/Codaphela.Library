@@ -265,7 +265,7 @@ public:
 	void		Cut(CChars* pszDest);
 	void		CutLine(CChars* pszDest);
 	void		Copy(CChars* pszDest);
-	void		Paste(char* szSource);
+	void		Paste(const char* szSource);
 	void		PasteBlock(char* szSource);
 	bool		ReplaceRanges(STextRange* asRanges, size uiNumRanges, const char* szText);
 	bool		MoveText(size uiStart, size uiEnd, size uiTo, bool bCopy);
@@ -297,7 +297,7 @@ protected:
 	size		FindBoxReferenceRow(void);
 	void		TypeInBox(const char* szText);
 	void		DeleteInBox(bool bBackwards);
-	void		PasteInBox(char* szSource);
+	void		PasteInBox(const char* szSource);
 	void		CopyBox(CChars* pszDest);
 	void		ReplaceBoxRanges(CArrayTextRange* pasRanges, CArrayChars* paszTexts, const char* szText);
 

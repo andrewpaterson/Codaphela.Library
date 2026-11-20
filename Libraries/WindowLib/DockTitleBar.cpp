@@ -357,7 +357,7 @@ void CDockTitleBar::StopDragSelect(int x, int y)
 }
 
 
-char*				CDockTitleBar::GetTitle(void) { return mpTitle->GetText(); }
+const char*			CDockTitleBar::GetTitle(void) { return mpTitle->GetText(); }
 bool				CDockTitleBar::IsActive(void) const { return mbActive; }
 bool				CDockTitleBar::IsPinned(void) const { return mbPinned; }
 Ptr<CIconComponent>	CDockTitleBar::GetButton(EDockTitleButton eButton) { return mapButtons[eButton]; }

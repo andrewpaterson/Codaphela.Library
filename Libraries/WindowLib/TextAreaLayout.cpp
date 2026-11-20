@@ -710,7 +710,7 @@ void CTextAreaLayout::FindStopStarts(size uiFrom)
 	size				uiCount;
 	size				uiPosition;
 	size*				puiStart;
-	char*				szText;
+	const char*			szText;
 	CTextNavigation*	pcNavigation;
 
 	//The first stop start at or after uiFrom, and all after it, go at once.

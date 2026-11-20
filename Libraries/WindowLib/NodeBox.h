@@ -114,7 +114,7 @@ public:
 	void				SetInputLinked(size uiIndex, bool bLinked);
 	bool				IsInputLinked(size uiIndex);
 
-	char*				GetTitle(void);
+	const char*			GetTitle(void);
 	ARGB32				GetHeaderColour(void) const;
 	int32				GetHeaderHeight(void);
 	Ptr<CWindowTheme>	GetTheme(void) const;

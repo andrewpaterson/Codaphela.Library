@@ -78,7 +78,7 @@ bool CKeyCaptureField::Save(CObjectWriter* pcFile) { return false; }
 bool CKeyCaptureField::Load(CObjectReader* pcFile) { return false; }
 
 
-char* CKeyCaptureField::GetKeys(void) { return mszKeys.Text(); }
+const char* CKeyCaptureField::GetKeys(void) const { return mszKeys.Text(); }
 CComponentEvent<CKeyCaptureField>* CKeyCaptureField::GetCapturedEvent(void) { return &mcCaptured; }
 
 

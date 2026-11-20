@@ -71,7 +71,7 @@ public:
 	bool						Load(CObjectReader* pcFile) override;
 
 	void						SetText(const char* szText);
-	char*						GetText(void);
+	const char*					GetText(void) const;
 	CTextEditing*				GetEditing(void);
 	size						GetCaretPosition(void) const;
 	void						SetCaretPosition(size uiPosition);

@@ -163,7 +163,7 @@ void CMenuItem::SetIcon(Ptr<CImageCel> pIcon)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMenuItem::GetText(void) { return mpLabel->GetText(); }
+const char* CMenuItem::GetText(void) { return mpLabel->GetText(); }
 Ptr<CImageCel> CMenuItem::GetIcon(void) { return mpIcon->GetCel(); }
 Ptr<CMenuContainer> CMenuItem::GetSubMenu(void) const { return mpSubMenu; }
 bool CMenuItem::HasSubMenu(void) const { return mpSubMenu.IsNotNull(); }
@@ -305,9 +305,9 @@ void CMenuItem::ShowShortcut(const char* szShortcut)
 // Without the gap.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMenuItem::GetShortcut(void)
+const char* CMenuItem::GetShortcut(void)
 {
-	char*	szText;
+	const char*	szText;
 
 	szText = mpShortcut->GetText();
 	if (szText[0] == '\0')

@@ -171,8 +171,8 @@ public:
 	void				SetDirectory(const char* szDirectory);
 	void				SelectScope(size uiScope);
 	size				GetScope(void);
-	char*				GetText(void);
-	char*				GetDirectory(void);
+	const char*		GetText(void);
+	const char*		GetDirectory(void);
 	bool				IsMatchCase(void);
 	bool				IsWholeWords(void);
 	bool				IsSearching(void) const;
@@ -182,8 +182,8 @@ public:
 	int32				GetSelected(void);
 	SFindInFilesItem*	GetChosen(void);
 	EFindInFilesResult	GetOutcome(void) const;
-	char*				GetPreviewTitle(void);
-	char*				GetStatus(void);
+	const char*		GetPreviewTitle(void);
+	const char*		GetStatus(void);
 	Ptr<CTextField>		GetField(void) const;
 	Ptr<CTextField>		GetDirectoryField(void) const;
 	Ptr<CCheckBox>		GetMatchCaseBox(void) const;
