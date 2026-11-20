@@ -209,6 +209,10 @@ void CFastW65C816::Reset(void)
 		mfSignal(mpvContext, FAST_W65C816_SIGNAL_VECTOR_PULL);
 	}
 	uiLow = Read(0xFFFC);
+	if (mfSignal)
+	{
+		mfSignal(mpvContext, FAST_W65C816_SIGNAL_VECTOR_SECOND);
+	}
 	uiHigh = Read(0xFFFD);
 	muiPC = (uint16)(uiLow | (uiHigh << 8));
 	Decide();
@@ -598,6 +602,10 @@ void CFastW65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, bo
 		mfSignal(mpvContext, FAST_W65C816_SIGNAL_VECTOR_PULL);
 	}
 	uiLow = Read(uiVector);
+	if (mfSignal)
+	{
+		mfSignal(mpvContext, FAST_W65C816_SIGNAL_VECTOR_SECOND);
+	}
 	uiHigh = Read(uiVector + 1);
 	muiPC = (uint16)(uiLow | (uiHigh << 8));
 }
