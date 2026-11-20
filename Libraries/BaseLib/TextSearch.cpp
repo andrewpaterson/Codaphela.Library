@@ -49,11 +49,24 @@ static char ToTextSearchUpper(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextSearch::Init(const char* szPattern, bool bMatchCase, bool bWholeWords)
+void CTextSearch::Init(const char* szPattern, bool bMatchCase, bool bWholeWords, bool bRegex)
 {
 	mszPattern.Init(szPattern);
 	mbMatchCase = bMatchCase;
 	mbWholeWords = bWholeWords;
+	mbRegex = bRegex;
+	mbValid = true;
+	msFound.uiStart = 0;
+	msFound.uiEnd = 0;
+	mcRegex.Init();
+	if (mbRegex)
+	{
+		//A regular expression keeps its case: \D isn't \d.  The expression matches without it.
+		mbValid = mszPattern.Empty() || mcRegex.Compile(szPattern, bMatchCase);
+		mcFirst = '\0';
+		mcFirstUpper = '\0';
+		return;
+	}
 	if (!mbMatchCase)
 	{
 		ToLower(mszPattern.Text());
@@ -69,6 +82,7 @@ void CTextSearch::Init(const char* szPattern, bool bMatchCase, bool bWholeWords)
 //////////////////////////////////////////////////////////////////////////
 void CTextSearch::Kill(void)
 {
+	mcRegex.Kill();
 	mszPattern.Kill();
 }
 
@@ -123,10 +137,69 @@ bool CTextSearch::IsAt(const char* szText, size uiLength, size uiPosition)
 //////////////////////////////////////////////////////////////////////////
 //
 // Where the pattern first is in szText at or after uiFrom,
-// TEXT_SEARCH_NOT_FOUND if it isn't.
+// TEXT_SEARCH_NOT_FOUND if it isn't.  GetFoundLength is how much of the
+// text it is.
 //
 //////////////////////////////////////////////////////////////////////////
 size CTextSearch::Find(const char* szText, size uiLength, size uiFrom)
+{
+	size	uiPosition;
+
+	uiPosition = mbRegex ? FindRegex(szText, uiLength, uiFrom) : FindText(szText, uiLength, uiFrom);
+	if (!mbRegex && (uiPosition != TEXT_SEARCH_NOT_FOUND))
+	{
+		msFound.uiStart = uiPosition;
+		msFound.uiEnd = uiPosition + mszPattern.Length();
+	}
+	return uiPosition;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The regular expression's first match at or after uiFrom that isn't of
+// nothing and, with whole words, isn't part of a longer word.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextSearch::FindRegex(const char* szText, size uiLength, size uiFrom)
+{
+	size	uiPosition;
+
+	if (!mbValid || mszPattern.Empty())
+	{
+		return TEXT_SEARCH_NOT_FOUND;
+	}
+	for (uiPosition = uiFrom; (uiPosition <= uiLength) && mcRegex.Find(szText, uiLength, uiPosition, &msFound); uiPosition = msFound.uiStart + 1)
+	{
+		if (msFound.uiEnd == msFound.uiStart)
+		{
+			continue;
+		}
+		if (mbWholeWords)
+		{
+			if ((msFound.uiStart > 0) && IsTextSearchWordCharacter(szText[msFound.uiStart]) && IsTextSearchWordCharacter(szText[msFound.uiStart - 1]))
+			{
+				continue;
+			}
+			if ((msFound.uiEnd < uiLength) && IsTextSearchWordCharacter(szText[msFound.uiEnd - 1]) && IsTextSearchWordCharacter(szText[msFound.uiEnd]))
+			{
+				continue;
+			}
+		}
+		return msFound.uiStart;
+	}
+	msFound.uiStart = 0;
+	msFound.uiEnd = 0;
+	return TEXT_SEARCH_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text's.
+//
+//////////////////////////////////////////////////////////////////////////
+size CTextSearch::FindText(const char* szText, size uiLength, size uiFrom)
 {
 	const char*	pcFound;
 	const char*	pcUpper;
@@ -199,13 +272,51 @@ size CTextSearch::Count(const char* szText, size uiLength)
 	while (uiPosition != TEXT_SEARCH_NOT_FOUND)
 	{
 		uiCount++;
-		uiPosition = Find(szText, uiLength, uiPosition + mszPattern.Length());
+		uiPosition = Find(szText, uiLength, uiPosition + GetFoundLength());
 	}
 	return uiCount;
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// What Find last found is replaced with this: szReplacement, or for a
+// regular expression what CRegex::AppendReplacement makes of it.  szText
+// is the text Find was given.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextSearch::AppendReplacement(const char* szText, const char* szReplacement, CChars* pszDest)
+{
+	if (mbRegex)
+	{
+		mcRegex.AppendReplacement(szText, &msFound, szReplacement, pszDest);
+	}
+	else
+	{
+		pszDest->Append(szReplacement);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a replacement can be used: a regular expression's must name
+// only the groups it has (GetError says which it doesn't).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextSearch::CheckReplacement(const char* szReplacement)
+{
+	return !mbRegex || !mbValid || mcRegex.CheckReplacement(szReplacement);
+}
+
+
 bool CTextSearch::IsEmpty(void) const { return mszPattern.Empty(); }
+bool CTextSearch::IsRegex(void) const { return mbRegex; }
+bool CTextSearch::IsValid(void) const { return mbValid; }
+const char* CTextSearch::GetError(void) { return mcRegex.GetError(); }
+size CTextSearch::GetErrorPosition(void) const { return mcRegex.GetErrorPosition(); }
+bool CTextSearch::GaveUp(void) const { return mbRegex && mcRegex.GaveUp(); }
+size CTextSearch::GetFoundLength(void) const { return msFound.uiEnd - msFound.uiStart; }
 size CTextSearch::Length(void) const { return mszPattern.Length(); }
 const char* CTextSearch::GetPattern(void) const { return mszPattern.Text(); }
 bool CTextSearch::IsMatchCase(void) const { return mbMatchCase; }
