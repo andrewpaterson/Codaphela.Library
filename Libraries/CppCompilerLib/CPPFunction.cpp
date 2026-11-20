@@ -56,6 +56,7 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 	mpcAddressOf = NULL;
 	meRefQualifier = CPPRQ_None;
 	mbImplicit = false;
+	mbDeleting = false;
 	mbDeleted = false;
 	mpcInherited = NULL;
 	mapcDefaults.Init();

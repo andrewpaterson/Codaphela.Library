@@ -1076,17 +1076,19 @@ bool CCPP65IRFrontEnd::BuiltinBCD(CCPPSyntaxCallExpression* pcCall, CArraySyntax
 //////////////////////////////////////////////////////////////////////////
 //
 // Calls a runtime routine (_ and its name) with one argument; the generator
-// adds it to the unit if the function is written.
+// adds it to the unit if the function is written.  A weak call (bWeak) is
+// of a routine the program needn't have: the unit doesn't ask for it, and
+// its address is 0 where nothing else in the program does (FinishUnit).
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CCPP65IRFrontEnd::CallRuntime(const char* szName, SIRType sResult, SIRType sArgument, SIRReference sValue)
+SIRReference CCPP65IRFrontEnd::CallRuntime(const char* szName, SIRType sResult, SIRType sArgument, SIRReference sValue, bool bWeak)
 {
 	CChars			szLabel;
 	SIRReference	sSymbol;
 
 	szLabel.Init("_");
 	szLabel.Append(szName);
-	maszRuntime.AddIfUnique(szLabel);
+	(bWeak ? &maszWeakRuntime : &maszRuntime)->AddIfUnique(szLabel);
 	sSymbol = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
 	mpcFunction->Argument(mpcBlock, sArgument, sValue);

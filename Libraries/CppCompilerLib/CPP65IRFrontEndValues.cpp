@@ -1301,12 +1301,12 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 
 	case CPPS_CastExpression:
 	case CPPS_NamedCastExpression:
-		if (IsReferenceCast(pcExpression))
+	case CPPS_ConditionalExpression:
+		if ((pcExpression->GetKind() != CPPS_ConditionalExpression) && IsReferenceCast(pcExpression))
 		{
 			return ReferenceCastPlace(pcExpression, mpcUnit->DeclaredTypeOf(pcExpression), psPlace);
 		}
-		//Any other cast is the object it makes, as below.
-	case CPPS_ConditionalExpression:
+		//Any other cast is the object it makes, as c ? x : y is.
 		psType = mpcUnit->TypeOf(pcExpression);
 		if ((pcExpression->GetKind() == CPPS_ConditionalExpression) && psType && !psType->IsClass())
 		{

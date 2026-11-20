@@ -94,6 +94,8 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	mpcExit = NULL;
 	mapcNone.Init();
 	maszRuntime.Init();
+	maszWeakRuntime.Init();
+	maszUnitWeak.Init();
 	maszMissing.Init();
 	maszTested.Init();
 	maszNotImported.Init();
@@ -134,6 +136,8 @@ void CCPP65IRFrontEnd::Kill(void)
 	maszNotImported.Kill();
 	maszTested.Kill();
 	maszMissing.Kill();
+	maszUnitWeak.Kill();
+	maszWeakRuntime.Kill();
 	maszRuntime.Kill();
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
 	{
@@ -246,6 +250,10 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 		//A closure's conversion to a pointer to a function.
 		bResult = bResult && ReturnAddressOf(pcFunction->mpcAddressOf);
 	}
+	else if (pcFunction->mbDeleting)
+	{
+		bResult = bResult && DeletingDestructor(pcFunction->mpcClass);
+	}
 	else
 	{
 		bResult = bResult && (!pcFunction->mpcDefinition || Statement(pcFunction->mpcDefinition->mpcBody)) && DestroyLiving(0);
@@ -287,6 +295,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mbRoutine = false;
 	miConditional = 0;
 	maszRuntime.ReInit();
+	maszWeakRuntime.ReInit();
 	mpcExit = NULL;
 	mauiStringBytes.ReInit();
 	mauiStringLengths.ReInit();
@@ -427,6 +436,10 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			for (ui = 0; ui < maszRuntime.NumElements(); ui++)
 			{
 				mpcUnit->GetRuntimeCalls()->AddIfUnique(*maszRuntime.Get(ui));
+			}
+			for (ui = 0; ui < maszWeakRuntime.NumElements(); ui++)
+			{
+				maszUnitWeak.AddIfUnique(*maszWeakRuntime.Get(ui));
 			}
 			uiStart = 0;
 			for (ui = 0; ui < mauiStringLengths.NumElements(); ui++)

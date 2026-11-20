@@ -420,6 +420,11 @@ void CCPPMangler::AppendFunctionName(CChars* psz, int64 lliName)
 		psz->Append("opConvert");
 		return;
 	}
+	if (lliName == CPP_DELETING_NAME)
+	{
+		psz->Append("opDeleting");
+		return;
+	}
 	if (CPP_IS_LITERAL_NAME(lliName))
 	{
 		//operator "" _k is opLiteral_k.

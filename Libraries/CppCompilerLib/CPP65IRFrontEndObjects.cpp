@@ -1449,16 +1449,20 @@ bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// delete pointer: unless it is null, the object's destructor (virtual if
-// it is) then operator delete, the class's own if it has one, of the whole
-// object when the destructor is virtual.  delete[] of objects with
-// destructors is DeleteArray's.
+// delete pointer: unless it is null, the object's destructor then operator
+// delete, the class's own if it has one.  An object whose destructor is
+// virtual is destroyed and freed by its own class's deleting destructor
+// (CCPPClass::mpcDeleting), called through its vtable: only that knows the
+// class's operator delete and size.  ::delete of one frees the whole
+// object, found from its vtable, by the global operator delete.  delete[]
+// of objects with destructors is DeleteArray's.  [expr.delete] 3, 9, 10
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue)
 {
 	SCPP65IRValue	sPointer;
 	SCPP65Type*		psType;
+	CCPPFunction*	pcDeallocation;
 	SIRReference	sCondition;
 	SIRReference	sFree;
 	CIRBlock*		pcFree;
@@ -1493,12 +1497,19 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 			return false;
 		}
 	}
+	else if (psType->IsClass() && psType->pcClass->mpcDeleting && !pcDelete->mbGlobal)
+	{
+		if (!CallObject(psType->pcClass->mpcDeleting, sPointer.sValue, psType->pcClass, NULL, true))
+		{
+			return false;
+		}
+	}
 	else
 	{
-		//A virtual destructor destroys the whole object, which is what is freed: its start, from the vtable before the
-		//destructors change it (a base class's pointer isn't the start of a derived object).  [expr.delete] 3
+		//::delete of an object whose destructor is virtual: the whole object is what is freed, its start read from the
+		//vtable before the destructors change it (a base class's pointer isn't the start of a derived object).
 		sFree = sPointer.sValue;
-		if (psType->IsClass() && psType->pcClass->mpcDestructor && psType->pcClass->mpcDestructor->mbVirtual)
+		if (psType->IsClass() && psType->pcClass->mpcDeleting)
 		{
 			sFree = DynamicCast(sPointer.sValue, psType->pcClass, NULL);
 		}
@@ -1506,7 +1517,8 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 		{
 			return false;
 		}
-		if (!Deallocate(pcDelete, psType, sFree))
+		pcDeallocation = (psType->IsClass() && !pcDelete->mbGlobal) ? mpcUnit->GetBinder()->FindDeallocation(psType->pcClass, pcDelete->mbArray) : NULL;
+		if (!Deallocate(pcDelete, pcDeallocation, pcDelete->mbArray, psType->iBytes, sFree))
 		{
 			return false;
 		}
@@ -1521,36 +1533,38 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Frees the memory at sFree that the object of psType a delete expression
-// destroyed was in: by the class's own operator delete
-// (CCPPBinder::FindDeallocation), which is given the class's size if it
-// takes one, or by the runtime's operator delete or delete[], as ::delete
-// does whatever the class has.  [expr.delete] 9, 10
+// Frees the memory at sFree that an object of lliBytes was in: by
+// pcDeallocation, its class's own operator delete
+// (CCPPBinder::FindDeallocation), which is given the size if it takes one;
+// or, when that is NULL, by the runtime's operator delete or delete[]
+// (bArray), as ::delete does whatever the class has.  pcFor is the syntax
+// it is done for (a delete, or a class for its deleting destructor), which
+// the arguments are kept by.  A deleting destructor's call of the runtime's
+// is weak: the program has an operator delete if anything in it deletes,
+// and needn't have one for a virtual destructor alone.  [expr.delete] 9, 10
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Deallocate(CCPPSyntaxDeleteExpression* pcDelete, SCPP65Type* psType, SIRReference sFree)
+bool CCPP65IRFrontEnd::Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocation, bool bArray, int64 lliBytes, SIRReference sFree)
 {
-	CCPPFunction*				pcDeallocation;
 	CCPPSyntaxImplicitArgument*	pcSize;
 	CArraySyntax				apcArguments;
 	SCPP65IRValue				sAddress;
 	SCPP65IRValue				sResult;
 	bool						bCalled;
 
-	pcDeallocation = (psType->IsClass() && !pcDelete->mbGlobal) ? mpcUnit->GetBinder()->FindDeallocation(psType->pcClass, pcDelete->mbArray) : NULL;
 	if (!pcDeallocation)
 	{
-		CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sFree);
+		CallRuntime(bArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sFree, mpcCPPFunction->mbDeleting);
 		return true;
 	}
 
 	apcArguments.Init();
-	apcArguments.Add(mpcUnit->ImplicitValue(pcDelete, mpcTypes->Pointer(&mpcTypes->msVoid)));
+	apcArguments.Add(mpcUnit->ImplicitValue(pcFor, mpcTypes->Pointer(&mpcTypes->msVoid)));
 	if (pcDeallocation->mapsParameters.NumElements() == 2)
 	{
-		pcSize = mpcUnit->ImplicitValue(pcDelete, mpcTypes->Size(), 1);
+		pcSize = mpcUnit->ImplicitValue(pcFor, mpcTypes->Size(), 1);
 		pcSize->mbConstant = true;
-		pcSize->mlliValue = psType->iBytes;
+		pcSize->mlliValue = lliBytes;
 		apcArguments.Add(pcSize);
 	}
 	sAddress.psType = mpcTypes->Pointer(&mpcTypes->msVoid);
@@ -1558,6 +1572,24 @@ bool CCPP65IRFrontEnd::Deallocate(CCPPSyntaxDeleteExpression* pcDelete, SCPP65Ty
 	bCalled = CallWithValue(pcDeallocation, &apcArguments, apcArguments.GetPtr(0), &sAddress, &sResult);
 	apcArguments.Kill();
 	return bCalled;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The body of pcClass's deleting destructor (CCPPClass::mpcDeleting): the
+// object, this, is destroyed by the class's destructor and freed by the
+// class's operator delete, given the class's size if it takes one, or by
+// the runtime's.  [class.dtor] 13
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DeletingDestructor(CCPPClass* pcClass)
+{
+	if (!CallObject(pcClass->mpcDestructor, msThis, pcClass, NULL, false))
+	{
+		return false;
+	}
+	return Deallocate(pcClass->mpcSpecifier, mpcUnit->GetBinder()->FindDeallocation(pcClass, false), false, pcClass->mpsType->iBytes, msThis);
 }
 
 

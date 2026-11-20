@@ -227,6 +227,17 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 	}
 	mbCodeGiven = true;
 
+	//A runtime routine the unit calls only if the program has it (a deleting destructor's operator delete, in a
+	//program that may never delete) is a weak name, unless something else in the unit needs it.
+	for (ui = 0; ui < maszUnitWeak.NumElements(); ui++)
+	{
+		if (mpcUnit->GetRuntimeCalls()->GetIndex(maszUnitWeak.GetText(ui)) == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			mpcUnit->GetCode()->Append("\t\t.weak ")->Append(maszUnitWeak.GetText(ui))->AppendNewLine();
+		}
+	}
+	maszUnitWeak.ReInit();
+
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
 	{
 		masWritten.Get(ui)->szLabel.Kill();

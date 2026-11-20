@@ -189,6 +189,8 @@ protected:
 	CIRBlock*				mpcExit;			//A destructor's last block (it destroys the fields and bases); NULL in others.
 	CArraySyntax			mapcNone;			//No arguments.
 	CArrayChars				maszRuntime;		//Runtime routines called, given to the generator if the function is written.
+	CArrayChars				maszWeakRuntime;	//...and those called only if the program has them (CallRuntime's bWeak).
+	CArrayChars				maszUnitWeak;		//The unit's written functions' maszWeakRuntime: declared .weak by FinishUnit unless the unit needs them.
 	CArrayChars				maszTested;			//The functions called by name whose calls are tested for an exception (GetTestedCallees).
 	CArrayChars				maszMissing;		//Named callees with no body in the unit or the imports (GetMissingCallees).
 	CArrayChars				maszNotImported;	//Every name the inliner looked for in the imports and didn't find (CIRImports::Missed).
@@ -270,6 +272,7 @@ protected:
 	void			ClosureThis(void);
 	bool			LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpression* pcSyntax);
 	bool			ReturnAddressOf(CCPPFunction* pcFunction);
+	bool			DeletingDestructor(CCPPClass* pcClass);
 	void			AddPieces(int iBytes);
 	int				PieceCount(int iBytes);
 	int				PieceBytes(int iLeft);
@@ -446,7 +449,7 @@ protected:
 	void			MarkFunctionSymbol(CCPPFunction* pcFunction, uint32 uiSymbol);
 	bool			FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue);
 	bool			CallObject(CCPPFunction* pcFunction, SIRReference sObject, CCPPClass* pcObjectClass, CArraySyntax* papcArguments, bool bVirtual);
-	SIRReference	CallRuntime(const char* szName, SIRType sResult, SIRType sArgument, SIRReference sValue);
+	SIRReference	CallRuntime(const char* szName, SIRType sResult, SIRType sArgument, SIRReference sValue, bool bWeak = false);
 	bool			NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRValue* psValue);
 	bool			Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psBytes, SIRReference* psMemory);
 	bool			CallWithValue(CCPPFunction* pcFunction, CArraySyntax* papcArguments, CCPPSyntax* pcImplicit, SCPP65IRValue* psImplicit, SCPP65IRValue* psResult);
@@ -454,7 +457,7 @@ protected:
 	bool			NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue);
 	bool			DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass);
 	bool			DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue);
-	bool			Deallocate(CCPPSyntaxDeleteExpression* pcDelete, SCPP65Type* psType, SIRReference sFree);
+	bool			Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocation, bool bArray, int64 lliBytes, SIRReference sFree);
 	bool			ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, SCPP65IRMade* psMade);
 	void			TemporaryMade(SCPP65IRMade* psMade);

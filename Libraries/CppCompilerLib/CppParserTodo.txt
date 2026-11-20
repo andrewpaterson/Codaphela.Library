@@ -596,9 +596,29 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
   g++, are groups of TestCPPConformance (TestCPPConformanceClauseCases.h: Clause4, Clause5, Clause8), whose lists name
   what the compiler doesn't do.  As measured: clause 4 39 of 68, clause 5 180 of 329, clause 8 49 of 89.  After the
   fixes so far (wrong code, valid code refused, and most of the invalid code clauses 4 and 5 accepted): 67 of 68, 282
-  of 335 and 66 of 99 (cases were added as the fixes found more).  The commits say what each fixed.  Waiting for the user: dynamic_cast and private bases (the exact rule needs a runtime function); delete
-  through a base with a virtual destructor (the object's class's operator delete and size); noexcept of a constructor
-  that may throw (the exceptions work's).  Seen on the way and not done:
+  of 335 and 66 of 99 (cases were added as the fixes found more).  The commits say what each fixed.
+
+  The user's answers, 2026-11-20, and what came of them:
+    - A string literal given to a char* ("A build swith"), unsigned int(3) ("Refuse it by default, build switch") and
+      C's conversions ("Build option", not the file's name): CCPPCompileOptions::mbWarnStringToPointer,
+      mbMultiWordCasts and mbCConversions, each off unless a build configuration sets it (WarnStringToPointer,
+      MultiWordCasts, CConversions; hcp65build -warn-string-to-pointer, -multi-word-casts, -c-conversions; three tick
+      boxes in the IDE's build configurations).
+    - delete through a base with a virtual destructor ("Deleting destructor"): a class whose destructor is virtual
+      has one more virtual function, written for it (CCPPClass::mpcDeleting, CPP_DELETING_NAME, _Class__opDeleting),
+      that destroys the object and frees it by its own class's operator delete and size; delete calls it through the
+      vtable.  Its call of the global operator delete is a weak reference (CCPP65IRFrontEnd::CallRuntime's bWeak), so
+      a program with virtual destructors and no heap still links.  ::delete keeps the old way.
+    - A member function's const ("Fix it now"): SCPP65Type::bConstFunction.
+    - dynamic_cast and private bases ("Build it", a runtime function): the exceptions work's stage 4a made the
+      lookup written at each cast exact meanwhile (DynamicCastAccessAndAmbiguity passes).  The runtime function
+      would now only make each cast smaller; not built, the user to say.
+    - noexcept of a constructor or destructor that may throw: done by the exceptions work (CCPPUnit::MayThrow).
+    - The kernal, ModPlay and the other HCP65 projects built with the stricter rules ("yes please"): all 20 build,
+      nothing to fix.
+    - Constructor templates: "Later".
+
+  Seen on the way and not done:
     - Volatile member functions aren't told apart: this isn't volatile in one, and const volatile doesn't overload.
     - static_cast<int>(3 > 2) isn't a constant expression (a named cast in one).
     - delete[] of objects with destructors is always the runtime's operator delete[], whatever the class declares.
@@ -613,9 +633,8 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       the class still gets a default constructor.  CCPPClass::mbConstructorTemplate marks such a class, so the rule
       that only a list in braces fills an aggregate (CCPPBinder::ConstructsWithoutBraces) leaves it be.  StandardLib's
       Ptr may have them: to be looked at before they are turned on.
-    - A function type doesn't carry a member function's const: int (S::*)() and int (S::*)() const are one type, so
-      a const object is called through a pointer to a member function that isn't const, and the two don't overload
-      or differ in a declaration (MemberPointerConstObjectRefused, DclMemberPointerToConstFunctionRefused).
+    - DONE 2026-11-20 (SCPP65Type::bConstFunction).  A function type didn't carry a member function's const: int
+      (S::*)() and int (S::*)() const were one type.
     - CCPPUnit::CheckFunction, the type checker's walk of a function's statements (CheckLocal, Initialise,
       Construct), runs only in the IDE's semantic pass.  A compile is the IR front end asking the checker for each
       expression's type, so what Construct refuses about a declaration, a copy or a reference's binding has to be

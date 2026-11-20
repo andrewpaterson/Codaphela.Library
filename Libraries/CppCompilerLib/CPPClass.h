@@ -143,6 +143,9 @@ public:
 	bool						mbExternInstance;	//extern template class Name<Arguments>; names it: its members defined outside it
 													//that aren't inline are another unit's (CCPPUnit::IsInstantiatedElsewhere).
 	SCPPLambda*					mpsLambda;			//The lambda this is the closure of, or NULL (CCPPUnit::GetLambda).
+	CCPPFunction*				mpcDeleting;		//The deleting destructor of a class whose destructor is virtual: a virtual
+													//function the compiler writes that destroys the object and frees it as its
+													//own class frees ([expr.delete] 9, 10; [class.dtor] 13), which delete calls.
 	bool						mbPlaceholder;		//It stands for a template's type parameter, whose symbol is its: a class with
 													//nothing in it, written as the parameter's name (CCPPUnit::PlaceholderClass).
 
@@ -169,6 +172,7 @@ public:
 	bool			HasCopyConstructor(void);
 	CCPPFunction*	GetCopier(bool bAssignment, bool bMove);
 	CCPPFunction*	GetPartCopier(bool bAssignment, bool bMove);
+	bool			HasVirtualDestructor(void);
 	bool			IsCopyDeleted(void);
 	bool			IsAssignmentDeleted(void);
 	bool			IsTriviallyCopyable(void);

@@ -60,6 +60,7 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 	mbExternInstance = false;
 	mbPlaceholder = false;
 	mpsLambda = NULL;
+	mpcDeleting = NULL;
 }
 
 
@@ -363,6 +364,31 @@ bool CCPPClass::NeedsConstructor(void)
 		}
 		psType = psField->psType->IsArray() ? psField->psType->psBase : psField->psType;
 		if (psType->IsClass() && psType->pcClass->NeedsConstructor())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the class's destructor is virtual: declared so, or a base's is
+// (which makes the class's own virtual, written or not).  [class.dtor] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPClass::HasVirtualDestructor(void)
+{
+	size	i;
+
+	if (mpcDestructor && mpcDestructor->mbVirtual)
+	{
+		return true;
+	}
+	for (i = 0; i < macBases.NumElements(); i++)
+	{
+		if (macBases.Get(i)->pcClass->HasVirtualDestructor())
 		{
 			return true;
 		}

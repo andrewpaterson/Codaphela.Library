@@ -2143,6 +2143,12 @@ void CCPPUnit::ImplicitExceptions(CCPPFunction* pcFunction, CCPPExceptionSpec* p
 	{
 		eMember = bMove ? CPPSM_MoveAssign : CPPSM_Assign;
 	}
+	else if (pcFunction->mbDeleting)
+	{
+		//A deleting destructor lets out what the destructor it calls does.
+		pcDest->Add(ExceptionsOf(pcClass->mpcDestructor));
+		return;
+	}
 	else
 	{
 		//A closure's conversion to a pointer to a function, which does nothing that throws.

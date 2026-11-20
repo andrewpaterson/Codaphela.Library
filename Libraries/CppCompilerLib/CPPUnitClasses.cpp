@@ -787,6 +787,17 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		pcFunction->mbImplicit = true;
 		pcClass->mpcDestructor = pcFunction;
 	}
+	if (pcClass->HasVirtualDestructor())
+	{
+		//delete of a pointer to a base frees the object as its own class does, which only the object knows: by a
+		//virtual function of its class, written for it, that destroys it and frees it.  [expr.delete] 3, 9, 10
+		pcFunction = AddFunction(pcClass, CPP_DELETING_NAME, CPPFK_Function, &mcTypes.msVoid);
+		pcFunction->mbImplicit = true;
+		pcFunction->mbDeleting = true;
+		pcFunction->mbVirtual = true;
+		pcFunction->mbDefined = true;
+		pcClass->mpcDeleting = pcFunction;
+	}
 	pcClass->mcVtable.LayoutOwn(pcClass);
 
 	//The bases, the vtable pointer, then the fields.

@@ -300,7 +300,8 @@ void TestCPP65IRConstructors(void)
 	AssertInt(2121345, TestCPP65IRMain(sz.Text(), 6));
 	sz.Kill();
 
-	//new and delete through a virtual destructor; the vtable is the derived class's after construction.
+	//new and delete through a virtual destructor; the vtable is the derived class's after construction.  The two
+	//classes' deleting destructors, which delete p calls through the vtable, are written too.
 	sz.Init(szLog);
 	sz.Append(
 		"unsigned char gacHeap[64]; int giHeap = 0;\n"
@@ -309,7 +310,7 @@ void TestCPP65IRConstructors(void)
 		"struct CShape { CShape() { Log(1); } virtual ~CShape() { Log(2); } virtual int Sides() { return 0; } };\n"
 		"struct CSquare : CShape { int* mpi; CSquare() { mpi = new int(4); Log(3); } ~CSquare() { delete mpi; Log(4); } virtual int Sides() { return *mpi; } };\n"
 		"int main() { CShape* p = new CSquare(); int s = p->Sides(); delete p; CShape* q = 0; delete q; return LogValue() * 10 + s; }");
-	AssertInt(13424, TestCPP65IRMain(sz.Text(), 11));
+	AssertInt(13424, TestCPP65IRMain(sz.Text(), 13));
 	sz.Kill();
 
 	//Temporaries that need destroying go at the end of their full expression, last made first (+ works out its left
