@@ -150,10 +150,22 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		switch (pcPointer->meKind)
 		{
 		case CPPP_Pointer:
+			if (psType->IsReference())
+			{
+				//[dcl.ptr] 4
+				mpcUnit->Error(pcNode, "A pointer to a reference can't be declared");
+				return NULL;
+			}
 			psType = mpcUnit->QualifiedPointer(mpcUnit->GetTypes()->Pointer(psType), pcPointer);
 			break;
 		case CPPP_Reference:
 		case CPPP_RValueReference:
+			if ((i > 0) && ((pcDeclarator->GetPointer(i - 1)->meKind == CPPP_Reference) || (pcDeclarator->GetPointer(i - 1)->meKind == CPPP_RValueReference)))
+			{
+				//Written out, int& & r: one a typedef or a template's parameter brings is the one reference.  [dcl.ref] 5, 6
+				mpcUnit->Error(pcNode, "A reference to a reference can't be declared");
+				return NULL;
+			}
 			psType = mpcUnit->GetTypes()->Reference(psType, pcPointer->meKind == CPPP_RValueReference);
 			break;
 		case CPPP_MemberPointer:
@@ -223,6 +235,12 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		{
 			return NULL;
 		}
+		if (psType->IsVoid() || psType->IsReference() || psType->IsFunction())
+		{
+			//[dcl.array] 1
+			mpcUnit->Error(pcNode, "An array's elements can't be void, references or functions");
+			return NULL;
+		}
 		psType = mpcUnit->GetTypes()->Array(psType, (int)lliCount);
 	}
 
@@ -231,6 +249,35 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		return GetDeclaratorType(psType, pcDeclarator->mpcNested, pcNode, pcInitialiser, pcFunction);
 	}
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function may return a psReturn: not an array or a function,
+// which is an error (and false).  [dcl.fct] 8
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeclarators::IsReturnable(SCPP65Type* psReturn, CCPPSyntax* pcNode)
+{
+	return !(psReturn->IsArray() || psReturn->IsFunction()) || mpcUnit->Error(pcNode, "A function can't return an array or a function: it returns a pointer or a reference to one");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a parameter of type void is what one may be: a function's whole
+// parameter list, with no name, (void), which is no parameters.  An error
+// (and false) if not.  [dcl.fct] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeclarators::IsWholeVoid(CCPPSyntaxFunctionSuffix* pcSuffix, CCPPSyntaxParameter* pcParameter)
+{
+	if ((pcSuffix->macpParameters.NumElements() == 1) && !(pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->GetName()))
+	{
+		return true;
+	}
+	return mpcUnit->Error(pcParameter, "A parameter can't be void: (void) alone, with no name, is no parameters");
 }
 
 
@@ -246,17 +293,21 @@ SCPP65Type* CCPPDeclarators::GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFun
 	SCPP65Type*				psType;
 	size					i;
 
+	if (!IsReturnable(psReturn, pcNode))
+	{
+		return NULL;
+	}
 	apsParameters.Init();
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
 		psType = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-		if (!psType)
+		if (!psType || (psType->IsVoid() && !IsWholeVoid(pcSuffix, pcParameter)))
 		{
 			apsParameters.Kill();
 			return NULL;
 		}
-		if (psType->IsVoid() && (pcSuffix->macpParameters.NumElements() == 1))
+		if (psType->IsVoid())
 		{
 			break;
 		}

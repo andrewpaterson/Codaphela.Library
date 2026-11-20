@@ -2641,10 +2641,16 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	{
 		//auto: the type is worked out once the function is known (ResolveReturn).
 		psReturn = bUndeduced ? &mcTypes.msUndeduced : ReturnDeclaratorType(mcDeclarators.GetType(pcSpecifiers, NULL, pcDeclarator, NULL), pcDeclarator);
-		if (!psReturn)
+		if (!psReturn || !mcDeclarators.IsReturnable(psReturn, pcDeclarator))
 		{
 			return NULL;
 		}
+	}
+	if (!pcClass && IsConstSuffix(pcSuffix))
+	{
+		//[dcl.fct] 6
+		Error(pcDeclarator, "Only a member function is const");
+		return NULL;
 	}
 
 	apsParameters.Init();
@@ -2668,13 +2674,13 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			{
 				psPack->psType = NULL;
 			}
-			if (!psType)
+			if (!psType || (psType->IsVoid() && !mcDeclarators.IsWholeVoid(pcSuffix, pcParameter)))
 			{
 				apcDefaults.Kill();
 				apsParameters.Kill();
 				return NULL;
 			}
-			if (psType->IsVoid() && (pcSuffix->macpParameters.NumElements() == 1))
+			if (psType->IsVoid())
 			{
 				break;
 			}
@@ -2720,12 +2726,26 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		{
 			continue;
 		}
+		if (!pcTemplate && !pcFunction->IsConversion() && !pcFunction->mpsReturn->Same(psReturn) && (pcFunction->mpsReturn != &mcTypes.msUndeduced) && (psReturn != &mcTypes.msUndeduced))
+		{
+			//What a function returns doesn't tell it from another: one declared twice returns one type.  [dcl.fct] 5, [over.load] 2
+			Error(pcDeclarator, "The function is declared again with another return type");
+		}
 		for (j = 0; j < apcDefaults.NumElements(); j++)
 		{
+			if (apcDefaults.GetPtr(j) && pcFunction->mapcDefaults.GetPtr(j) && (apcDefaults.GetPtr(j) != pcFunction->mapcDefaults.GetPtr(j)) && !pcTemplate)
+			{
+				//[dcl.fct.default] 4
+				Error(apcDefaults.GetPtr(j), "The parameter's default argument is given once: an earlier declaration has it");
+			}
 			if (apcDefaults.GetPtr(j))
 			{
 				pcFunction->mapcDefaults.SetPtr(j, apcDefaults.GetPtr(j));
 			}
+		}
+		if (!pcTemplate)
+		{
+			CheckDefaultsFollow(pcFunction, pcDeclarator);
 		}
 		apcDefaults.Kill();
 		apsParameters.Kill();
@@ -2750,6 +2770,10 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcFunction->meRefQualifier = eRefQualifier;
 	apcDefaults.Kill();
 	apsParameters.Kill();
+	if (!pcTemplate)
+	{
+		CheckDefaultsFollow(pcFunction, pcDeclarator);
+	}
 	pcFunction->mbVariadic = pcSuffix->mbVariadic;
 	pcFunction->mbStatic = ((uiFlags & CPPDS_STATIC) != 0) || (pcClass && IsAllocationFunction(lliName));
 	pcFunction->mbVirtual = (uiFlags & CPPDS_VIRTUAL) != 0;
@@ -2779,6 +2803,31 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		pcClass->mpcDestructor = pcFunction;
 	}
 	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After a parameter with a default argument every parameter has one, from
+// this declaration or one before it: an error at pcNode if not.
+// [dcl.fct.default] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode)
+{
+	size	i;
+	bool	bDefault;
+
+	bDefault = false;
+	for (i = 0; i < pcFunction->mapcDefaults.NumElements(); i++)
+	{
+		if (bDefault && !pcFunction->mapcDefaults.GetPtr(i))
+		{
+			return Error(pcNode, "A parameter after one with a default argument needs one too");
+		}
+		bDefault |= pcFunction->mapcDefaults.GetPtr(i) != NULL;
+	}
+	return true;
 }
 
 
