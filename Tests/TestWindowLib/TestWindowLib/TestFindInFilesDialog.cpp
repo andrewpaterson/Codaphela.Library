@@ -36,6 +36,9 @@ class CTestFindSearcher : public CFindInFilesSearcher
 public:
 	CTextSearch	mcSearch;
 	CChars		mszDirectory;
+	CChars		mszFileMask;
+	CChars		mszReplace;
+	bool		mbReplace;
 	size		muiScope;
 	size		muiFile;
 	size		muiStarts;
@@ -48,6 +51,9 @@ public:
 	void Init(void)
 	{
 		mszDirectory.Init();
+		mszFileMask.Init();
+		mszReplace.Init();
+		mbReplace = false;
 		muiScope = 0;
 		muiFile = 0;
 		muiStarts = 0;
@@ -64,7 +70,20 @@ public:
 		{
 			mcSearch.Kill();
 		}
+		mszReplace.Kill();
+		mszFileMask.Kill();
 		mszDirectory.Kill();
+	}
+
+	bool FindProblem(CChars* pszDest) override
+	{
+		if (mbStarted && !mcSearch.IsValid())
+		{
+			pszDest->Append("Not a regular expression: ");
+			pszDest->Append(mcSearch.GetError());
+			return true;
+		}
+		return false;
 	}
 
 	void FindStart(SFindInFilesQuery* psQuery) override
@@ -73,9 +92,12 @@ public:
 		{
 			mcSearch.Kill();
 		}
-		mcSearch.Init(psQuery->szText, psQuery->bMatchCase, psQuery->bWholeWords);
+		mcSearch.Init(psQuery->szText, psQuery->bMatchCase, psQuery->bWholeWords, psQuery->bRegex);
 		mbStarted = true;
 		mszDirectory.Set(psQuery->szDirectory);
+		mszFileMask.Set(psQuery->szFileMask);
+		mbReplace = psQuery->szReplace != NULL;
+		mszReplace.Set(mbReplace ? psQuery->szReplace : "");
 		muiScope = psQuery->uiScope;
 		muiFile = 0;
 		muiStarts++;
@@ -127,11 +149,11 @@ public:
 				szLocation.Append((uint32)(uiLine + 1));
 				for (i = 0; i < muiRepeat; i++)
 				{
-					pcDest->Add(szShown.Text(), uiPosition - (size)(szLine - szText), mcSearch.Length(), szLocation.Text(), muiFile, uiPosition);
+					pcDest->Add(szShown.Text(), uiPosition - (size)(szLine - szText), mcSearch.GetFoundLength(), szLocation.Text(), muiFile, uiPosition);
 				}
 				szLocation.Kill();
 				szShown.Kill();
-				uiPosition = mcSearch.Find(szText, uiLength, uiPosition + mcSearch.Length());
+				uiPosition = mcSearch.Find(szText, uiLength, uiPosition + mcSearch.GetFoundLength());
 			}
 		}
 		muiFile++;
@@ -338,6 +360,43 @@ void TestFindInFilesDialogSearch(void)
 		AssertString("100+ matches in 1+ files", pDialog->GetStatus());
 		cSearcher.muiRepeat = 1;
 
+		//A regular expression: what it finds, and what is wrong with one that isn't.
+		pDialog->Start(0, "al.ha\\w");
+		pDialog->Finish();
+		AssertSize(0, pDialog->NumResults());
+		AssertFalse(pDialog->IsRegex());
+		pDialog->GetRegexBox()->Toggle();
+		pDialog->Finish();
+		AssertTrue(pDialog->IsRegex());
+		AssertString("alphab@Alpha.cpp 3", PrintFindResults(pDialog, &szResults));
+		pDialog->SetText("al(");
+		pDialog->Finish();
+		AssertSize(0, pDialog->NumResults());
+		AssertString("Not a regular expression: A ( has no ) after it.", pDialog->GetStatus());
+		pDialog->SetOptions(false, false, true);
+		AssertTrue(pDialog->IsRegex());
+		pDialog->SetOptions(false, false);
+		AssertFalse(pDialog->IsRegex());
+
+		//The file mask is the searcher's to use: typing one searches again.
+		pDialog->SetText("alpha");
+		pDialog->Finish();
+		cSearcher.muiStarts = 0;
+		AssertString("", cSearcher.mszFileMask.Text());
+		pDialog->GetFileMaskField()->SetText("*.h");
+		pDialog->Finish();
+		AssertSize(1, cSearcher.muiStarts);
+		AssertString("*.h", cSearcher.mszFileMask.Text());
+		AssertString("*.h", pDialog->GetFileMask());
+		pDialog->SetFileMask("");
+		AssertSize(1, cSearcher.muiStarts);
+
+		//A dialog that only finds has nothing to replace with, and Replace All does nothing.
+		AssertFalse(pDialog->IsReplacing());
+		AssertFalse(cSearcher.mbReplace);
+		pDialog->ReplaceAll();
+		AssertInt(FIFR_Cancelled, pDialog->GetOutcome());
+
 		//Open in Find Window closes it, unless nothing is typed.
 		pDialog->Start(0, "");
 		pDialog->OpenInFindWindow();
@@ -345,6 +404,29 @@ void TestFindInFilesDialogSearch(void)
 		pDialog->Start(0, "alpha");
 		pDialog->OpenInFindWindow();
 		AssertInt(FIFR_FindWindow, pDialog->GetOutcome());
+
+		ORoot()->Remove(pDialog);
+		pDialog = NULL;
+
+		//A dialog that replaces has what to replace with, which the searcher is told, and Replace All closes it.
+		pDialog = OMalloc<CFindInFilesDialog>(pTestWindow, &sLook, "Replace in Files", &cSearcher, pTheme->GetFont(), CreateMonoTextAreaFamily(15.0f));
+		ORoot()->Add(pDialog);
+		pDialog->AddScope("In Project", "Every file");
+		pDialog->SetReplacing("beta");
+		AssertTrue(pDialog->IsReplacing());
+		AssertString("beta", pDialog->GetReplaceText());
+		pDialog->Start(0, "");
+		pDialog->ReplaceAll();
+		AssertInt(FIFR_Cancelled, pDialog->GetOutcome());
+		pDialog->Start(0, "alpha");
+		pDialog->Finish();
+		AssertTrue(cSearcher.mbReplace);
+		AssertString("beta", cSearcher.mszReplace.Text());
+		AssertSize(5, pDialog->NumResults());
+		pDialog->GetReplaceField()->SetText("gamma");
+		AssertString("gamma", pDialog->GetReplaceText());
+		pDialog->GetReplaceAllButton()->Click();
+		AssertInt(FIFR_ReplaceAll, pDialog->GetOutcome());
 
 		ORoot()->Remove(pDialog);
 		pDialog = NULL;

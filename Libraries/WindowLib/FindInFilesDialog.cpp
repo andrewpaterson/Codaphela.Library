@@ -129,6 +129,9 @@ void CFindInFilesSearcher::FindPreviewShown(SFindInFilesItem* psItem, Ptr<CTextA
 }
 
 
+bool CFindInFilesSearcher::FindProblem(CChars* pszDest) { return false; }
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // pMatchFont draws the text found in a result's line; the rest of the
@@ -150,6 +153,7 @@ void CFindInFilesDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const ch
 	mbMore = false;
 	miChosen = -1;
 	meResult = FIFR_Cancelled;
+	mbReplacing = false;
 	maScopeContents.Init();
 	maScopePages.Init();
 
@@ -165,6 +169,9 @@ void CFindInFilesDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const ch
 	mpField->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
 	mpMatchCase->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
 	mpWholeWords->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
+	mpRegex->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
+	mpFileMask->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
+	mpReplaceAll->GetClickEvent()->Add(this, &CFindInFilesDialog::ReplaceAll);
 	mpList->GetActivationEvent()->Add(this, &CFindInFilesDialog::ResultActivated);
 	mpList->GetSelectionEvent()->Add(this, &CFindInFilesDialog::ResultSelected);
 	mpFindWindow->GetClickEvent()->Add(this, &CFindInFilesDialog::OpenInFindWindow);
@@ -194,6 +201,14 @@ void CFindInFilesDialog::Class(void)
 	M_Pointer(mpField);
 	M_Pointer(mpMatchCase);
 	M_Pointer(mpWholeWords);
+	M_Pointer(mpRegex);
+	M_Pointer(mpFileMask);
+	M_Pointer(mpReplace);
+	M_Pointer(mpReplaceRow);
+	M_Pointer(mpMaskRow);
+	M_Pointer(mpReplaceAll);
+	M_Pointer(mpBottom);
+	U_Bool(mbReplacing);
 	M_Pointer(mpDirectory);
 	M_Pointer(mpScrollPane);
 	M_Pointer(mpList);
@@ -243,6 +258,18 @@ void CFindInFilesDialog::Free(void)
 	if (mpWholeWords.IsNotNull())
 	{
 		mpWholeWords->GetChangeEvent()->Remove(this);
+	}
+	if (mpRegex.IsNotNull())
+	{
+		mpRegex->GetChangeEvent()->Remove(this);
+	}
+	if (mpFileMask.IsNotNull())
+	{
+		mpFileMask->GetChangeEvent()->Remove(this);
+	}
+	if (mpReplaceAll.IsNotNull())
+	{
+		mpReplaceAll->GetClickEvent()->Remove(this);
 	}
 	if (mpDirectory.IsNotNull())
 	{
@@ -313,7 +340,9 @@ Ptr<CComponent> CFindInFilesDialog::CreateBody(void)
 	Ptr<CWindowTheme>		pTheme;
 	Ptr<CGridContainer>		pBody;
 	Ptr<CGridContainer>		pFind;
-	Ptr<CGridContainer>		pBottom;
+	Ptr<CGridContainer>		pOptions;
+	Ptr<CLabel>				pLabel;
+	Ptr<CFillContainer>		pFiller;
 	SInsets					sInsets;
 
 	pWindow = mpDialog->GetWindow();
@@ -344,7 +373,42 @@ Ptr<CComponent> CFindInFilesDialog::CreateBody(void)
 	mpWholeWords = OMalloc<CCheckBox>(pWindow, pTheme, "Words", false);
 	mpWholeWords->SetAlignment(CSH_Left, CSV_Center);
 	pFind->AddComponent(mpWholeWords, 4, 0);
-	pBody->AddComponent(pFind, 0, 2, 1, 1, 1, 0);
+	pFind->AddComponent(CreateGap(), 5, 0);
+	mpRegex = OMalloc<CCheckBox>(pWindow, pTheme, "Regex", false);
+	mpRegex->SetAlignment(CSH_Left, CSV_Center);
+	pFind->AddComponent(mpRegex, 6, 0);
+
+	//Which files, and in a dialog that replaces, with what (SetReplacing puts that row in).
+	mpMaskRow = OMalloc<CGridContainer>(pWindow);
+	mpMaskRow->SetAlignment(CSH_Stretch, CSV_Center);
+	mpMaskRow->SetInsets(GetMetric(TM_GoToGap) / 2, 0, 0, 0);
+	pLabel = OMalloc<CLabel>(pWindow, pTheme->GetFont(), "File mask:");
+	pLabel->SetAlignment(CSH_Left, CSV_Center);
+	mpMaskRow->AddComponent(pLabel, 0, 0);
+	mpMaskRow->AddComponent(CreateGap(), 1, 0);
+	mpFileMask = OMalloc<CTextField>(pWindow, pTheme, "");
+	mpFileMask->SetColumns(16);
+	mpFileMask->SetAlignment(CSH_Left, CSV_Center);
+	mpMaskRow->AddComponent(mpFileMask, 2, 0);
+	mpMaskRow->AddComponent(CreateGap(), 3, 0);
+	mpReplaceRow = OMalloc<CGridContainer>(pWindow);
+	mpReplaceRow->SetAlignment(CSH_Stretch, CSV_Center);
+	pLabel = OMalloc<CLabel>(pWindow, pTheme->GetFont(), "Replace with:");
+	pLabel->SetAlignment(CSH_Left, CSV_Center);
+	mpReplaceRow->AddComponent(pLabel, 0, 0);
+	mpReplaceRow->AddComponent(CreateGap(), 1, 0);
+	mpReplace = OMalloc<CTextField>(pWindow, pTheme, "");
+	mpReplace->SetColumns(10);
+	mpReplace->SetAlignment(CSH_Stretch, CSV_Center);
+	mpReplaceRow->AddComponent(mpReplace, 2, 0, 1, 1, 1, 0);
+	pFiller = OMalloc<CFillContainer>(pWindow);
+	mpMaskRow->AddComponent(pFiller, 4, 0, 1, 1, 1, 0);
+
+	pOptions = OMalloc<CGridContainer>(pWindow);
+	pOptions->SetAlignment(CSH_Stretch, CSV_Center);
+	pOptions->AddComponent(pFind, 0, 0, 1, 1, 1, 0);
+	pOptions->AddComponent(mpMaskRow, 0, 1, 1, 1, 1, 0);
+	pBody->AddComponent(pOptions, 0, 2, 1, 1, 1, 0);
 	pBody->AddComponent(CreateGap(), 0, 3);
 
 	//The results, never scrolled sideways: a row is as wide as the view and shares it between its parts.
@@ -367,16 +431,18 @@ Ptr<CComponent> CFindInFilesDialog::CreateBody(void)
 	pBody->AddComponent(mpPreview, 0, 6, 1, 1, 1, 1);
 	pBody->AddComponent(CreateGap(), 0, 7);
 
-	//How many were found, and Open in Find Window.
-	pBottom = OMalloc<CGridContainer>(pWindow);
-	pBottom->SetAlignment(CSH_Stretch, CSV_Center);
+	//How many were found, Open in Find Window and, in a dialog that replaces, Replace All before it (SetReplacing).
+	mpBottom = OMalloc<CGridContainer>(pWindow);
+	mpBottom->SetAlignment(CSH_Stretch, CSV_Center);
 	mpStatus = OMalloc<CLabel>(pWindow, psLook->pcDimFont, " ");
 	mpStatus->SetAlignment(CSH_Left, CSV_Center);
-	pBottom->AddComponent(mpStatus, 0, 0, 1, 1, 1, 0);
+	mpBottom->AddComponent(mpStatus, 0, 0, 1, 1, 1, 0);
+	mpReplaceAll = OMalloc<CButton>(pWindow, pTheme, "Replace All");
+	mpReplaceAll->SetAlignment(CSH_Right, CSV_Center);
 	mpFindWindow = OMalloc<CButton>(pWindow, pTheme, "Open in Find Window");
 	mpFindWindow->SetAlignment(CSH_Right, CSV_Center);
-	pBottom->AddComponent(mpFindWindow, 1, 0);
-	pBody->AddComponent(pBottom, 0, 8, 1, 1, 1, 0);
+	mpBottom->AddComponent(mpFindWindow, 3, 0);
+	pBody->AddComponent(mpBottom, 0, 8, 1, 1, 1, 0);
 	return pBody;
 }
 
@@ -465,14 +531,50 @@ size CFindInFilesDialog::AddDirectoryScope(const char* szName, const char* szDir
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFindInFilesDialog::SetOptions(bool bMatchCase, bool bWholeWords)
+void CFindInFilesDialog::SetOptions(bool bMatchCase, bool bWholeWords, bool bRegex)
 {
 	mpMatchCase->GetChangeEvent()->Remove(this);
 	mpWholeWords->GetChangeEvent()->Remove(this);
+	mpRegex->GetChangeEvent()->Remove(this);
 	mpMatchCase->SetTicked(bMatchCase);
 	mpWholeWords->SetTicked(bWholeWords);
+	mpRegex->SetTicked(bRegex);
 	mpMatchCase->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
 	mpWholeWords->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
+	mpRegex->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The file mask, before the dialog is started: which of a scope's files
+// are looked in.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFindInFilesDialog::SetFileMask(const char* szFileMask)
+{
+	mpFileMask->GetChangeEvent()->Remove(this);
+	mpFileMask->SetText(szFileMask);
+	mpFileMask->GetChangeEvent()->Add(this, &CFindInFilesDialog::Search);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The dialog replaces: it has what to replace with, beside the file mask,
+// and Replace All before Open in Find Window.  Before it is started.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFindInFilesDialog::SetReplacing(const char* szReplace)
+{
+	if (!mbReplacing)
+	{
+		mbReplacing = true;
+		mpMaskRow->AddComponent(mpReplaceRow, 5, 0, 1, 1, 3, 0);
+		mpBottom->AddComponent(mpReplaceAll, 1, 0);
+		mpBottom->AddComponent(CreateGap(), 2, 0);
+	}
+	mpReplace->SetText(szReplace);
 }
 
 
@@ -511,6 +613,10 @@ EFindInFilesResult CFindInFilesDialog::Show(void)
 
 	bOK = mpDialog->Show(GetMetric(TM_FindWidth), GetMetric(TM_FindHeight));
 	mpDialog->GetWindow()->CancelPosted(this);
+	if (meResult == FIFR_ReplaceAll)
+	{
+		return FIFR_ReplaceAll;
+	}
 	if (meResult == FIFR_FindWindow)
 	{
 		return FIFR_FindWindow;
@@ -586,8 +692,11 @@ void CFindInFilesDialog::Search(void)
 	sQuery.uiScope = GetScope();
 	sQuery.szText = mpField->GetText();
 	sQuery.szDirectory = GetDirectory();
+	sQuery.szFileMask = mpFileMask->GetText();
+	sQuery.szReplace = mbReplacing ? mpReplace->GetText() : NULL;
 	sQuery.bMatchCase = mpMatchCase->IsTicked();
 	sQuery.bWholeWords = mpWholeWords->IsTicked();
+	sQuery.bRegex = mpRegex->IsTicked();
 	mbSearching = (mpcSearcher != NULL) && !StrEmpty(sQuery.szText);
 	if (mbSearching)
 	{
@@ -702,7 +811,10 @@ void CFindInFilesDialog::ShowStatus(void)
 	}
 	else if (!StrEmpty(mpField->GetText()))
 	{
-		szStatus.Append("Nothing found");
+		if ((mpcSearcher == NULL) || !mpcSearcher->FindProblem(&szStatus))
+		{
+			szStatus.Append("Nothing found");
+		}
 	}
 	if (!szStatus.Equals(mpStatus->GetText()))
 	{
@@ -968,6 +1080,22 @@ void CFindInFilesDialog::OpenInFindWindow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The dialog closes for its owner to replace everything the query finds.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFindInFilesDialog::ReplaceAll(void)
+{
+	if (!mbReplacing || StrEmpty(mpField->GetText()))
+	{
+		return;
+	}
+	meResult = FIFR_ReplaceAll;
+	mpDialog->Close("Replace All");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The keys typed into the field move the results' selection: the list
 // keeps it in view, and up from the first result goes to the last and
 // down from the last to the first, as IntelliJ's.
@@ -1027,6 +1155,10 @@ const char* CFindInFilesDialog::GetText(void) { return mpField->GetText(); }
 const char* CFindInFilesDialog::GetDirectory(void) { return mpDirectory.IsNotNull() ? mpDirectory->GetText() : ""; }
 bool CFindInFilesDialog::IsMatchCase(void) { return mpMatchCase->IsTicked(); }
 bool CFindInFilesDialog::IsWholeWords(void) { return mpWholeWords->IsTicked(); }
+bool CFindInFilesDialog::IsRegex(void) { return mpRegex->IsTicked(); }
+const char* CFindInFilesDialog::GetFileMask(void) { return mpFileMask->GetText(); }
+const char* CFindInFilesDialog::GetReplaceText(void) { return mpReplace->GetText(); }
+bool CFindInFilesDialog::IsReplacing(void) const { return mbReplacing; }
 bool CFindInFilesDialog::IsSearching(void) const { return mbSearching; }
 bool CFindInFilesDialog::HasMore(void) const { return mbMore; }
 size CFindInFilesDialog::NumResults(void) const { return mcItems.NumItems(); }
@@ -1038,6 +1170,10 @@ Ptr<CTextField> CFindInFilesDialog::GetField(void) const { return mpField; }
 Ptr<CTextField> CFindInFilesDialog::GetDirectoryField(void) const { return mpDirectory; }
 Ptr<CCheckBox> CFindInFilesDialog::GetMatchCaseBox(void) const { return mpMatchCase; }
 Ptr<CCheckBox> CFindInFilesDialog::GetWholeWordsBox(void) const { return mpWholeWords; }
+Ptr<CCheckBox> CFindInFilesDialog::GetRegexBox(void) const { return mpRegex; }
+Ptr<CTextField> CFindInFilesDialog::GetFileMaskField(void) const { return mpFileMask; }
+Ptr<CTextField> CFindInFilesDialog::GetReplaceField(void) const { return mpReplace; }
+Ptr<CButton> CFindInFilesDialog::GetReplaceAllButton(void) const { return mpReplaceAll; }
 Ptr<CListContainer> CFindInFilesDialog::GetList(void) const { return mpList; }
 Ptr<CCodeEditor> CFindInFilesDialog::GetPreview(void) { return mpPreview->GetEditor(); }
 Ptr<CCodePreview> CFindInFilesDialog::GetCodePreview(void) const { return mpPreview; }

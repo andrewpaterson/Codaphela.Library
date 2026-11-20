@@ -67,14 +67,19 @@ public:
 
 
 //What a Find in Files dialog is looking for: the text typed, in which of its scopes (and the directory typed, for a
-//scope that has one), and how it must match.
+//scope that has one), how it must match (the text can be a regular expression), and which files of the scope are
+//looked in (the file mask typed: "*.cpp, *.h", empty for all of them).  A dialog that replaces has what to replace
+//with, NULL for one that only finds.
 struct SFindInFilesQuery
 {
 	size		uiScope;
 	const char*	szText;
 	const char*	szDirectory;
+	const char*	szFileMask;
+	const char*	szReplace;
 	bool		bMatchCase;
 	bool		bWholeWords;
+	bool		bRegex;
 };
 
 
@@ -97,6 +102,10 @@ public:
 
 	//The preview shows the result, with new text if bNewText: it can be coloured.
 	virtual void	FindPreviewShown(SFindInFilesItem* psItem, Ptr<CTextArea> pPreview, bool bNewText);
+
+	//Why the query as it was started can find nothing (its text isn't a regular expression, say), appended to
+	//pszDest.  False if nothing is wrong with it.
+	virtual bool	FindProblem(CChars* pszDest);
 };
 
 
@@ -106,11 +115,14 @@ enum EFindInFilesResult
 	FIFR_Cancelled,
 	FIFR_Chosen,		//A result was chosen (GetChosen), to be opened.
 	FIFR_FindWindow,	//Open in Find Window was clicked: everything the query finds is wanted.
+	FIFR_ReplaceAll,	//Replace All was clicked (a dialog that replaces): everything the query finds is to be replaced.
 };
 
 
 //IntelliJ IDEA's Find in Files: a tab for each scope searched along the top (a scope can have a directory to type),
-//the text to find with how it must match (the case, whole words) beside it, and under it a quick preview of what was
+//the text to find with how it must match (the case, whole words, as a regular expression) beside it, under that the
+//file mask (which of the scope's files are looked in) and, in a dialog that replaces (SetReplacing), what to replace
+//with, and under those a quick preview of what was
 //found: each result's line on the left, the text found highlighted, and its file and line, dimmer, on the right.  A
 //result's two parts are sized by what they hold: when both don't fit each gets its share of the row in proportion to
 //its own width, so a short line doesn't crowd a long file name nor a long line a short one (each row is its own grid:
@@ -122,7 +134,8 @@ enum EFindInFilesResult
 //
 //Up, down, page up and page down move through the results while typing.  Enter, or a double click, chooses the
 //selected result and closes the dialog; escape closes it; Open in Find Window closes it for its owner to list every
-//result.
+//result, and a replacing dialog's Replace All for its owner to replace every one.  What the searcher says is wrong
+//with the query (FindProblem) is shown where the count is.
 //
 //It is shown in its own window.  A Find in Files dialog is an object: make it with OMalloc and keep it in the root, or
 //an object that is, while it's shown.
@@ -139,6 +152,14 @@ protected:
 	Ptr<CTextField>			mpField;
 	Ptr<CCheckBox>			mpMatchCase;
 	Ptr<CCheckBox>			mpWholeWords;
+	Ptr<CCheckBox>			mpRegex;
+	Ptr<CTextField>			mpFileMask;
+	Ptr<CTextField>			mpReplace;
+	Ptr<CGridContainer>		mpReplaceRow;  //The replacement's label and field, shown in a dialog that replaces.
+	Ptr<CGridContainer>		mpMaskRow;
+	Ptr<CButton>			mpReplaceAll;
+	Ptr<CGridContainer>		mpBottom;
+	bool					mbReplacing;
 	Ptr<CTextField>			mpDirectory;  //On the page of the scope that has one, NULL if none does.
 	Ptr<CScrollPane>		mpScrollPane;
 	Ptr<CListContainer>		mpList;
@@ -163,7 +184,9 @@ public:
 
 	size				AddScope(const char* szName, const char* szDescription);
 	size				AddDirectoryScope(const char* szName, const char* szDirectory);
-	void				SetOptions(bool bMatchCase, bool bWholeWords);
+	void				SetOptions(bool bMatchCase, bool bWholeWords, bool bRegex = false);
+	void				SetFileMask(const char* szFileMask);
+	void				SetReplacing(const char* szReplace);
 	void				Start(size uiScope, const char* szText);
 	EFindInFilesResult	Show(void);
 
@@ -175,6 +198,10 @@ public:
 	const char*		GetDirectory(void);
 	bool				IsMatchCase(void);
 	bool				IsWholeWords(void);
+	bool				IsRegex(void);
+	const char*		GetFileMask(void);
+	const char*		GetReplaceText(void);
+	bool				IsReplacing(void) const;
 	bool				IsSearching(void) const;
 	bool				HasMore(void) const;
 	size				NumResults(void) const;
@@ -188,6 +215,10 @@ public:
 	Ptr<CTextField>		GetDirectoryField(void) const;
 	Ptr<CCheckBox>		GetMatchCaseBox(void) const;
 	Ptr<CCheckBox>		GetWholeWordsBox(void) const;
+	Ptr<CCheckBox>		GetRegexBox(void) const;
+	Ptr<CTextField>		GetFileMaskField(void) const;
+	Ptr<CTextField>		GetReplaceField(void) const;
+	Ptr<CButton>		GetReplaceAllButton(void) const;
 	Ptr<CListContainer>	GetList(void) const;
 	Ptr<CCodeEditor>	GetPreview(void);
 	Ptr<CCodePreview>	GetCodePreview(void) const;
@@ -202,6 +233,7 @@ public:
 	void			ResultSelected(void);
 	void			ScopeSelected(void);
 	void			OpenInFindWindow(void);
+	void			ReplaceAll(void);
 	void			Up(void);
 	void			Down(void);
 	void			PageUp(void);
