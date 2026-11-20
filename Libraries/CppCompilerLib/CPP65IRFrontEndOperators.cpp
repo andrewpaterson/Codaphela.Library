@@ -71,8 +71,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_BitwiseAnd:
 		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
 		bMember = false;
-		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass() &&
-			MemberAddress((CCPPSyntaxIdExpression*)pcOperand, NULL, psValue, &bMember))
+		if (mpcUnit->MemberPointerName(pcUnary) && MemberAddress((CCPPSyntaxIdExpression*)pcOperand, NULL, psValue, &bMember))
 		{
 			return true;
 		}
@@ -95,10 +94,11 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		}
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
 		{
-			//&Class::member of a static data member is its address, a pointer like any variable's ([expr.unary.op] 3).
-			//Anything else a class qualifies that isn't a field or a member function isn't done.
+			//&Class::member of a static data member is its address, a pointer like any variable's ([expr.unary.op] 3),
+			//and &(Class::field) the address of this's field.  Anything else a class qualifies that isn't a field or a
+			//member function isn't done.
 			mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcOperand, &cBound);
-			if ((cBound.meWhat != CPPBN_Variable) || !cBound.mpcVariable)
+			if (((cBound.meWhat != CPPBN_Variable) || !cBound.mpcVariable) && (cBound.meWhat != CPPBN_Field))
 			{
 				return Unsupported(__FILE__, __LINE__);
 			}
@@ -117,6 +117,11 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_Add:
 	case CT_Subtract:
 	case CT_BitwiseNot:
+		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//+object, -object, ~object: the object's operator, whatever it returns.
+			return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, psValue);
+		}
 		break;
 	default:
 		return Unsupported(__FILE__, __LINE__);
@@ -124,7 +129,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 
 	//Operators on constants are worked out by the IR (the generator's Constant does its arithmetic in signed 64
 	//bits, which isn't right for every type).
-	if (!Value(pcUnary->mpcOperand, &sOperand))
+	if (!Operand(pcUnary->mpcOperand, &sOperand))
 	{
 		return false;
 	}
@@ -135,6 +140,12 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		{
 			psValue->sValue = mpcFunction->Add(mpcBlock, IRO_FNeg, IRTypeOf(sOperand.psType), sOperand.sValue);
 		}
+		return true;
+	}
+	if (sOperand.psType->IsPointer() && (pcUnary->meOperator == CT_Add))
+	{
+		//+pointer is the pointer (an array's, or a function's, is the pointer to it).  [expr.unary.op] 7
+		*psValue = sOperand;
 		return true;
 	}
 	if (!sOperand.psType->IsInteger())
@@ -167,11 +178,25 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 
 //////////////////////////////////////////////////////////////////////////
 //
-// ++x and --x give the new value, x++ and x-- the old one.  Pointers step by
-// the size of what they point to.
+// The value of an operand that integral promotion is applied to: a
+// bit-field's becomes the type its width promotes it to
+// (CCPPUnit::OperandType).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::Operand(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
+{
+	return Value(pcExpression, psValue) && Convert(psValue, mpcUnit->OperandType(psValue->psType, pcExpression));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ++x and --x give the new value, x++ and x-- the old one.  Pointers step by
+// the size of what they point to.  psStored (if not NULL) gets the place
+// that was stepped: what ++x and --x are as lvalues.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP65IRValue* psValue, SCPP65IRPlace* psStored)
 {
 	SCPP65IRPlace	sPlace;
 	SCPP65IRValue	sOld;
@@ -189,7 +214,7 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 		return false;
 	}
 	psType = sPlace.psType;
-	if (!psType->IsScalar() || (psType->eKind == CPP65TK_Bool))
+	if (!psType->IsScalar())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -203,13 +228,26 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 		sOne.sValue = Integer(&mpcTypes->msInt, 1);
 		sOne.psType = &mpcTypes->msInt;
 	}
-	if (!Operate((pcUnary->meOperator == CT_Increment) ? CT_Add : CT_Subtract, &sOld, &sOne, &sNew) || !Convert(&sNew, psType))
+	if (psType->eKind == CPP65TK_Bool)
+	{
+		//++b and b++ make a bool true: deprecated, and C++14's still.  [expr.pre.incr] 1
+		sNew = sOne;
+	}
+	else if (!Operate((pcUnary->meOperator == CT_Increment) ? CT_Add : CT_Subtract, &sOld, &sOne, &sNew))
+	{
+		return false;
+	}
+	if (!Convert(&sNew, psType))
 	{
 		return false;
 	}
 	Store(&sPlace, &sNew);
 	BitFieldResult(&sPlace, &sNew);
 	*psValue = pcUnary->mbPostfix ? sOld : sNew;
+	if (psStored)
+	{
+		*psStored = sPlace;
+	}
 	return true;
 }
 
@@ -267,7 +305,7 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 		{
 			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, psValue);
 		}
-		if (!Value(pcBinary->mpcLeft, &sLeft) || !Value(pcBinary->mpcRight, &sRight))
+		if (!Operand(pcBinary->mpcLeft, &sLeft) || !Operand(pcBinary->mpcRight, &sRight))
 		{
 			return false;
 		}
@@ -309,11 +347,11 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 			return Unsupported(__FILE__, __LINE__);
 		}
 		//The right before the left, as for a scalar.  [expr.ass] 1
-		if (psLeft->pcClass->IsCopyDeleted())
+		if (psLeft->pcClass->IsAssignmentDeleted())
 		{
-			return CopyDeleted(pcBinary);
+			return AssignmentDeleted(pcBinary);
 		}
-		if (!Value(pcBinary->mpcRight, &sRight) || !Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass())
+		if (!AssignedObject(pcBinary->mpcRight, psLeft->Unqualified(), &sRight) || !Place(pcBinary->mpcLeft, &sPlace) || !sPlace.psType->IsClass())
 		{
 			return false;
 		}
@@ -366,12 +404,44 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	case CT_AssignmentLeftShift:	eOperator = CT_LeftShift;	break;
 	default:						eOperator = CT_RightShift;	break;
 	}
-	if (!Load(&sPlace, &sOld) || !Operate(eOperator, &sOld, &sRight, psValue) || !Convert(psValue, sPlace.psType))
+	//x op= y is x = x op y: both are operands, a bit-field promoted as one is.  [expr.ass] 7
+	if (!Load(&sPlace, &sOld) || !Convert(&sOld, mpcUnit->OperandType(sOld.psType, pcBinary->mpcLeft)) || !Convert(&sRight, mpcUnit->OperandType(sRight.psType, pcBinary->mpcRight)))
+	{
+		return false;
+	}
+	if (!Operate(eOperator, &sOld, &sRight, psValue) || !Convert(psValue, sPlace.psType))
 	{
 		return false;
 	}
 	Store(&sPlace, psValue);
 	BitFieldResult(&sPlace, psValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What an object of psClass is assigned: the right operand's object, or
+// for a list in braces a temporary of the class made from the list, as
+// x = {1, 2} is x = X{1, 2}.  [expr.ass] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::AssignedObject(CCPPSyntax* pcRight, SCPP65Type* psClass, SCPP65IRValue* psValue)
+{
+	SCPP65IRPlace	sTemporary;
+	SCPP65IRMade	sMade;
+
+	if (mpcUnit->SkipParentheses(pcRight)->GetKind() != CPPS_InitializerList)
+	{
+		return Value(pcRight, psValue);
+	}
+	if (!Temporary(psClass, &sTemporary, &sMade) || !Construct(&sTemporary, NULL, pcRight))
+	{
+		return false;
+	}
+	TemporaryMade(&sMade);
+	psValue->sValue = sTemporary.sAddress;
+	psValue->psType = psClass;
 	return true;
 }
 
@@ -521,19 +591,6 @@ void CCPP65IRFrontEnd::MarkSigned(SCPP65Type* psType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether psFrom and psTo are pointers to different classes, psFrom's
-// derived from psTo's (so psFrom converts to psTo, moved to the base).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::IsClassPointerTo(SCPP65Type* psFrom, SCPP65Type* psTo)
-{
-	return psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() &&
-		   (psFrom->psBase->pcClass != psTo->psBase->pcClass) && mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // An i1: the comparison of left and right.  Pointers compare unsigned;
 // integers after the usual arithmetic conversions; floats as floats.
 //
@@ -545,6 +602,7 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	SCPP65IRValue	sRight;
 	bool			bSigned;
 	bool			bFloat;
+	bool			bMemberOrder;
 	uint16			uiOpcode;
 
 	sLeft = *psLeft;
@@ -560,38 +618,21 @@ bool CCPP65IRFrontEnd::Compare(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 		psType = mpcTypes->FloatArithmetic(sLeft.psType, sRight.psType);
 		bFloat = true;
 	}
-	else if (sLeft.psType->IsPointer() || sRight.psType->IsPointer())
-	{
-		//A pointer to a derived class and one to its base compare as the base's (the derived one moved to it).
-		psType = sLeft.psType->IsPointer() ? sLeft.psType : sRight.psType;
-		if (IsClassPointerTo(sLeft.psType, sRight.psType))
-		{
-			psType = sRight.psType;
-		}
-	}
-	else if ((sLeft.psType->IsMemberPointer() || sRight.psType->IsMemberPointer()) && ((eOperator == CT_EqualTo) || (eOperator == CT_NotEqualTo)))
-	{
-		//Pointers to members (an address or an offset, 0 for none) are equal or not, a base's as the derived class's.
-		psType = sLeft.psType->IsMemberPointer() ? sLeft.psType : sRight.psType;
-		if (sLeft.psType->IsMemberPointer() && sRight.psType->IsMemberPointer() && (sLeft.psType->pcClass != sRight.psType->pcClass) &&
-			mpcUnit->IsDerived(sRight.psType->pcClass, sLeft.psType->pcClass, NULL))
-		{
-			psType = sRight.psType;
-		}
-	}
 	else if (sLeft.psType->IsInteger() && sRight.psType->IsInteger())
 	{
 		psType = mpcTypes->Arithmetic(sLeft.psType, sRight.psType);
 		bSigned = psType->bSigned;
 	}
-	else if (sLeft.psType->IsNullPointer() && sRight.psType->IsNullPointer())
-	{
-		//Two std::nullptr_t: null pointers both.  (With a pointer or a pointer to a member, above, it becomes one.)
-		psType = sLeft.psType;
-	}
 	else
 	{
-		return Unsupported(__FILE__, __LINE__);
+		//Pointers, std::nullptr_t and pointers to members (which are only equal or not) are compared as their composite
+		//pointer type: a pointer to a derived class is moved to the base the other points to.
+		bMemberOrder = (sLeft.psType->IsMemberPointer() || sRight.psType->IsMemberPointer()) && (eOperator != CT_EqualTo) && (eOperator != CT_NotEqualTo);
+		psType = bMemberOrder ? NULL : mpcUnit->CompositePointerType(sLeft.psType, sRight.psType);
+		if (!psType)
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
 	}
 	if (!Convert(&sLeft, psType) || !Convert(&sRight, psType))
 	{
@@ -652,9 +693,9 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	}
 	else
 	{
-		psType = mpcTypes->Conditional(psTrue, psFalse);
+		psType = mpcUnit->ConditionalType(psTrue, psFalse);
 	}
-	if (!psType->IsVoid() && (psTrue->IsArray() || psFalse->IsArray()))
+	if (!psType || (!psType->IsVoid() && (psTrue->IsArray() || psFalse->IsArray())))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -700,6 +741,57 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	{
 		psValue->sValue = IRNone();
 	}
+	StartBlock(pcEnd);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// c ? x : y of two lvalues of one type, as the place it is: x's or y's,
+// their addresses meeting in a phi.  [expr.cond] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ConditionalPlace(CCPPSyntaxConditionalExpression* pcConditional, SCPP65IRPlace* psPlace)
+{
+	CIRBlock*		pcTrue;
+	CIRBlock*		pcFalse;
+	CIRBlock*		pcEnd;
+	CIRBlock*		pcTrueEnd;
+	SCPP65IRPlace	sTrue;
+	SCPP65IRPlace	sFalse;
+
+	psPlace->psType = mpcUnit->PlaceTypeOf(pcConditional);
+	psPlace->psBitField = NULL;
+	if (!psPlace->psType)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+
+	pcTrue = NewBlock();
+	pcFalse = NewBlock();
+	pcEnd = NewBlock();
+	if (!Condition(pcConditional->mpcCondition, pcTrue, pcFalse))
+	{
+		return false;
+	}
+	//A temporary made by only one of them is destroyed only if it was made (Temporary).
+	miConditional++;
+	StartBlock(pcTrue);
+	if (!Place(pcConditional->mpcTrue, &sTrue))
+	{
+		return false;
+	}
+	pcTrueEnd = mpcBlock;
+	JumpTo(pcEnd);
+	StartBlock(pcFalse);
+	if (!Place(pcConditional->mpcFalse, &sFalse))
+	{
+		return false;
+	}
+	miConditional--;
+	JumpTo(pcEnd);
+	psPlace->sAddress = Phi(pcEnd, IRType(IRTK_Pointer), pcTrueEnd, sTrue.sAddress, mpcBlock, sFalse.sAddress);
 	StartBlock(pcEnd);
 	return true;
 }
@@ -847,7 +939,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 				return true;
 			}
 			mpcUnit->ComparisonRange(pcBinary);
-			if (!Value(pcBinary->mpcLeft, &sLeft) || !Value(pcBinary->mpcRight, &sRight) || !Compare(pcBinary->meOperator, &sLeft, &sRight, &sCondition))
+			if (!Operand(pcBinary->mpcLeft, &sLeft) || !Operand(pcBinary->mpcRight, &sRight) || !Compare(pcBinary->meOperator, &sLeft, &sRight, &sCondition))
 			{
 				return false;
 			}

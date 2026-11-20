@@ -50,6 +50,7 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 	mbUnion = false;
 	mbTypeInfo = false;
 	mbConstructors = false;
+	mbConstructorTemplate = false;
 	mpcInheritedBase = NULL;
 	mpcDestructor = NULL;
 	mpcSpecifier = NULL;
@@ -215,6 +216,35 @@ SCPPField* CCPPClass::FindField(int64 lliName, int* piOffset, CCPPClass** ppcVir
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class that declares the field, this one or a base of it: NULL for a
+// field of neither (and for one of an anonymous union or struct, which is
+// that's).
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPClass::FindFieldClass(SCPPField* psField)
+{
+	CCPPClass*	pcClass;
+	size		i;
+
+	for (i = 0; i < macFields.NumElements(); i++)
+	{
+		if (macFields.Get(i) == psField)
+		{
+			return this;
+		}
+	}
+	pcClass = NULL;
+	for (i = 0; !pcClass && (i < macBases.NumElements()); i++)
+	{
+		pcClass = macBases.Get(i)->pcClass->FindFieldClass(psField);
+	}
+	return pcClass;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// FindField, for the field a symbol declares.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPPField* CCPPClass::FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset, CCPPClass** ppcVirtual)
@@ -453,6 +483,51 @@ CCPPFunction* CCPPClass::GetPartCopier(bool bAssignment, bool bMove)
 bool CCPPClass::IsCopyDeleted(void)
 {
 	return GetCopier(false, true) || GetCopier(true, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the class's objects can't be assigned unless it says how: the
+// compiler may not write its operator=, as its copies are taken away
+// (IsCopyDeleted), or a field is const or a reference, or a base's or a
+// field's class can't be assigned.  [class.copy] 23
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPClass::IsAssignmentDeleted(void)
+{
+	SCPP65Type*	psType;
+	size		i;
+
+	if (GetCopier(true, false))
+	{
+		return false;
+	}
+	if (IsCopyDeleted() || mpsLambda)
+	{
+		//(A lambda's closure has no copy assignment.  [expr.prim.lambda] 20)
+		return true;
+	}
+	for (i = 0; i < macBases.NumElements(); i++)
+	{
+		if (macBases.Get(i)->pcClass->IsAssignmentDeleted())
+		{
+			return true;
+		}
+	}
+	for (i = 0; i < macFields.NumElements(); i++)
+	{
+		psType = macFields.Get(i)->psType;
+		while (psType->IsArray())
+		{
+			psType = psType->psBase;
+		}
+		if (psType->IsReference() || psType->bConst || (psType->IsClass() && psType->pcClass->IsAssignmentDeleted()))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

@@ -432,17 +432,19 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 //
 // Converts a value to psTo where no cast asks for it (a variable given its
 // value, an argument, what a function returns, an assignment): an enum
-// class's value stays one (CCPP65TypeChecker::KeepsScopedEnum).
+// class's value stays one, and an enum is given its own values
+// (CCPP65TypeChecker::KeepsEnum); an object's explicit conversion function
+// isn't used.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo, CCPPSyntax* pcNode)
 {
 	bool	bKept;
 
-	if (psValue->psType && psTo && (psValue->psType->IsScopedEnum() || psTo->IsScopedEnum() || (psTo->IsReference() && psTo->psBase->IsScopedEnum())))
+	if (psValue->psType && psTo && (psValue->psType->IsScopedEnum() || psTo->WithoutReference()->pcEnum))
 	{
 		mpcUnit->BeginLoud();
-		bKept = mpcUnit->GetTypeChecker()->KeepsScopedEnum(psValue->psType, psTo, pcNode);
+		bKept = mpcUnit->GetTypeChecker()->KeepsEnum(psValue->psType, psTo, pcNode);
 		mpcUnit->EndLoud();
 		if (!bKept)
 		{
@@ -459,6 +461,10 @@ bool CCPP65IRFrontEnd::ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo,
 		{
 			return false;
 		}
+	}
+	if (psValue->psType && psTo && IsObjectValue(psValue) && psTo->IsScalar())
+	{
+		return ConvertObject(psValue, psTo, false);
 	}
 	return Convert(psValue, psTo);
 }
@@ -589,11 +595,12 @@ SIRReference CCPP65IRFrontEnd::ConvertIR(SIRReference sValue, SIRType sFrom, SIR
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The address of a derived object's base iOffset bytes in; null stays
-// null.
+// A pointer, or a pointer to a data member (an I32), moved iOffset bytes
+// on as its conversion to a base's or a derived class's moves it; null
+// stays null.  [conv.ptr] 3, [conv.mem] 2
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, int iOffset)
+SIRReference CCPP65IRFrontEnd::MovedUnlessNull(SIRType sType, SIRReference sValue, int iOffset)
 {
 	CIRBlock*		pcAdd;
 	CIRBlock*		pcEnd;
@@ -604,13 +611,25 @@ SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, int iOffset)
 	pcAdd = NewBlock();
 	pcEnd = NewBlock();
 	pcFrom = mpcBlock;
-	sNull = mpcFunction->Add(mpcBlock, IRO_Eq, IRType(IRTK_Pointer), sAddress, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
+	sNull = mpcFunction->Add(mpcBlock, IRO_Eq, sType, sValue, mpcFunction->AddConstant(sType, 0));
 	mpcBlock->Branch(sNull, pcEnd, pcAdd);
 	StartBlock(pcAdd);
-	sMoved = AddressAt(sAddress, iOffset);
+	sMoved = sType.IsPointer() ? AddressAt(sValue, iOffset) : mpcFunction->Add(mpcBlock, IRO_Add, sType, sValue, mpcFunction->AddInteger(sType, iOffset));
 	JumpTo(pcEnd);
 	StartBlock(pcEnd);
-	return Phi(pcEnd, IRType(IRTK_Pointer), pcFrom, sAddress, pcAdd, sMoved);
+	return Phi(pcEnd, sType, pcFrom, sValue, pcAdd, sMoved);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The address of a derived object's base iOffset bytes in; null stays
+// null.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, int iOffset)
+{
+	return MovedUnlessNull(IRType(IRTK_Pointer), sAddress, iOffset);
 }
 
 
@@ -737,7 +756,7 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 		}
 		if (iOffset != 0)
 		{
-			psValue->sValue = mpcFunction->Add(mpcBlock, IRO_Add, IRType(IRTK_I32), psValue->sValue, mpcFunction->AddInteger(IRType(IRTK_I32), iOffset));
+			psValue->sValue = MovedUnlessNull(IRType(IRTK_I32), psValue->sValue, iOffset);
 		}
 	}
 	else if (!psFrom->Equals(psTo))

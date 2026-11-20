@@ -466,6 +466,26 @@ CCPPScope* CCPPScope::NominationLevel(CCPPScope* pcNominated)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The scope of the class a member function is of, from the function's own
+// scope: the class its name is qualified by where it is defined outside
+// it, or the class it is defined in.  NULL for a function of no class.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPScope* CCPPScope::GetMemberFunctionClass(void)
+{
+	CCPPScope*	pcEnclosing;
+
+	if (mpcQualifier)
+	{
+		return mpcQualifier;
+	}
+	pcEnclosing = mpcParent ? mpcParent->GetDeclarationScope() : NULL;
+	return (pcEnclosing && (pcEnclosing->meKind == CPPSC_Class)) ? pcEnclosing : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPScope* CCPPScope::GetDeclarationScope(void)

@@ -122,10 +122,29 @@ bool CCPPAccess::Check(CCPPSyntax* pcDeclaration, CCPPClass* pcNaming, CCPPSynta
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The error that a member may not be named at pcNode: reported in quiet
-// code too, and once for the place however often it is asked about (the
-// errors of something that was only tried are taken away again, so it is
-// the errors there are that say whether it has been).  Always false.
+// Whether a pcClass may be used as its base pcBase at pcNode (a pointer or
+// a reference to the one made one to the other): an error (and false) if
+// not.  The base is reached where a public member of it could be named as
+// a member of the class.  [class.access.base] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPAccess::CheckBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode)
+{
+	if ((pcClass == pcBase) || !pcClass->mpcSpecifier || !pcBase->mpcSpecifier)
+	{
+		return true;
+	}
+	return IsAccessible(pcClass, pcBase->mpcSpecifier, CPPA_Public, pcNode) || Refuse(pcNode, "The base class is private or protected: it can't be reached from here");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The error that a member may not be named at pcNode, or a base not used
+// there (CCPPBinder::HasOneBase): reported in quiet code too, and once for
+// the place however often it is asked about (the errors of something that
+// was only tried are taken away again, so it is the errors there are that
+// say whether it has been).  Always false.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPAccess::Refuse(CCPPSyntax* pcNode, const char* szMessage)

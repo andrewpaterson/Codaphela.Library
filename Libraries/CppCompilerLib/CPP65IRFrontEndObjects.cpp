@@ -186,19 +186,25 @@ bool CCPP65IRFrontEnd::IsObjectValue(SCPP65IRValue* psValue)
 //
 // An object converted to a scalar by its class's conversion function (the
 // generator's FindConversion: operator T, its own or a base's), then the
-// result to psTo.
+// result to psTo.  An explicit one is used only with bExplicit: by a cast
+// or a condition, not where no cast asks (ConvertImplicit).
+// [class.conv.fct] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
+bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo, bool bExplicit)
 {
 	CCPPBoundConversion	cBound;
+	CCPPBoundConversion	cExplicit;
+	CCPPClass*			pcClass;
 
-	mpcUnit->GetBinder()->BindObjectConversion(psValue->psType->WithoutReference()->pcClass, psTo, true, NULL, &cBound);
+	pcClass = psValue->psType->WithoutReference()->pcClass;
+	mpcUnit->GetBinder()->BindObjectConversion(pcClass, psTo, bExplicit, NULL, &cBound);
 	if (cBound.meHow != CPPBV_Function)
 	{
+		mpcUnit->GetBinder()->BindObjectConversion(pcClass, psTo, true, NULL, &cExplicit);
 		if (mpcValue)
 		{
-			mpcUnit->ReportError(mpcValue, "The object has no conversion to the type it is used as");
+			mpcUnit->ReportError(mpcValue, (cExplicit.meHow == CPPBV_Function) ? "The object's conversion to the type it is used as is explicit: it needs a cast" : "The object has no conversion to the type it is used as");
 		}
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -209,7 +215,7 @@ bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
 //////////////////////////////////////////////////////////////////////////
 //
 // The object at psValue converted by the conversion function bound for it, then the
-// result to psTo.
+// result (what it refers to, if it returns a reference) to psTo.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConvertObjectBy(SCPP65IRValue* psValue, CCPPBoundConversion* pcBound, SCPP65Type* psTo)
@@ -221,7 +227,7 @@ bool CCPP65IRFrontEnd::ConvertObjectBy(SCPP65IRValue* psValue, CCPPBoundConversi
 		return false;
 	}
 	*psValue = sResult;
-	return Convert(psValue, psTo);
+	return ReadReferred(psValue) && Convert(psValue, psTo);
 }
 
 
@@ -939,9 +945,13 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		}
 		apcArguments.Init();
 		apcArguments.Add(pcInitialiser);
-		bResult = ConstructClass(psPlace, pcClass, &apcArguments);
+		bResult = mpcUnit->GetBinder()->ConstructsWithoutBraces(pcClass, &apcArguments, pcInitialiser) && ConstructClass(psPlace, pcClass, &apcArguments);
 		apcArguments.Kill();
 		return bResult;
+	}
+	if (!pcList && !mpcUnit->GetBinder()->ConstructsWithoutBraces(pcClass, papcArguments, mpcValue))
+	{
+		return false;
 	}
 	return ConstructClass(psPlace, pcClass, papcArguments);
 }
@@ -1178,7 +1188,7 @@ bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	bArray = pcNew->macpArraySizes.NumElements() > 0;
 	apcArguments.Init();
 	mpcUnit->NewArguments(pcNew, &apcArguments);
-	pcAllocation = mpcUnit->GetBinder()->FindAllocation(psType, bArray, &apcArguments, pcNew, &bFailed);
+	pcAllocation = mpcUnit->GetBinder()->FindAllocation(pcNew, psType, &apcArguments, &bFailed);
 	bResult = !bFailed;
 	if (bResult && pcAllocation)
 	{
@@ -1241,6 +1251,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	SCPP65IRValue		sBytes;
 	SCPP65IRPlace		sElement;
 	CArraySyntax*		papcElements;
+	CCPPSyntax*			pcString;
 	SCPP65Type*			psElement;
 	SIRType				sSize;
 	SIRType				sBytesType;
@@ -1265,7 +1276,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!Value(pcNew->macpArraySizes.GetPtr(0), &sCount) || !Convert(&sCount, mpcTypes->Integer(mcModule.GetPointerSize(0), false)))
+	if (!ContextualValue(pcNew->macpArraySizes.GetPtr(0), false, &sCount) || !Convert(&sCount, mpcTypes->Integer(mcModule.GetPointerSize(0), false)))
 	{
 		return false;
 	}
@@ -1309,13 +1320,26 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 		sMemory = AddressAt(sMemory, mcModule.GetPointerSize(0));
 	}
 
-	//The elements a list in braces gives, then the rest.
+	//The elements a list in braces gives (or the characters of the string it holds, as an array's are: new
+	//char[n]{"abc"}, [dcl.init.string]), then the rest.
+	pcString = mpcUnit->StringInitialiser(pcNew->mpcInitializer, psType);
 	papcElements = pcNew->mpcInitializer ? mpcUnit->ListElements(pcNew->mpcInitializer) : NULL;
 	bValue = pcNew->mpcInitializer != NULL;
 	uiFirst = papcElements ? papcElements->NumElements() : 0;
-	sElement.psType = psType;
 	sElement.psBitField = NULL;
-	for (i = 0; i < uiFirst; i++)
+	if (mpcUnit->IsStringLiteral(pcString))
+	{
+		uiFirst = mpcUnit->StringArrayType(pcString)->iCount;
+		sElement.sAddress = sMemory;
+		sElement.psType = mpcTypes->Array(psType, (int)uiFirst);
+		if (!ArrayInitialiser(&sElement, pcString))
+		{
+			return false;
+		}
+		papcElements = NULL;
+	}
+	sElement.psType = psType;
+	for (i = 0; papcElements && (i < uiFirst); i++)
 	{
 		sElement.sAddress = AddressAt(sMemory, (int)(i * psType->iBytes));
 		if (psType->IsClass() ? !Construct(&sElement, NULL, papcElements->GetPtr(i)) : !LocalInitialiser(&sElement, papcElements->GetPtr(i), false))
@@ -1434,18 +1458,13 @@ bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, CCPPClass* pcClass)
 bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue)
 {
 	SCPP65IRValue	sPointer;
-	SCPP65IRValue	sAddress;
-	SCPP65IRValue	sResult;
-	CCPPFunction*	pcDeallocation;
-	CArraySyntax	apcArguments;
-	bool			bCalled;
 	SCPP65Type*		psType;
 	SIRReference	sCondition;
 	SIRReference	sFree;
 	CIRBlock*		pcFree;
 	CIRBlock*		pcDone;
 
-	if (!Value(pcDelete->mpcOperand, &sPointer))
+	if (!ContextualValue(pcDelete->mpcOperand, true, &sPointer))
 	{
 		return false;
 	}
@@ -1487,24 +1506,9 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 		{
 			return false;
 		}
-		pcDeallocation = psType->IsClass() ? mpcUnit->GetBinder()->FindDeallocation(psType->pcClass, pcDelete->mbArray) : NULL;
-		if (pcDeallocation)
+		if (!Deallocate(pcDelete, psType, sFree))
 		{
-			//The class's own operator delete.  [expr.delete] 9
-			apcArguments.Init();
-			apcArguments.Add(mpcUnit->ImplicitValue(pcDelete, mpcTypes->Pointer(&mpcTypes->msVoid)));
-			sAddress.psType = mpcTypes->Pointer(&mpcTypes->msVoid);
-			sAddress.sValue = sFree;
-			bCalled = CallWithValue(pcDeallocation, &apcArguments, apcArguments.GetPtr(0), &sAddress, &sResult);
-			apcArguments.Kill();
-			if (!bCalled)
-			{
-				return false;
-			}
-		}
-		else
-		{
-			CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sFree);
+			return false;
 		}
 	}
 	JumpTo(pcDone);
@@ -1512,6 +1516,48 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 	psValue->sValue = IRNone();
 	psValue->psType = &mpcTypes->msVoid;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Frees the memory at sFree that the object of psType a delete expression
+// destroyed was in: by the class's own operator delete
+// (CCPPBinder::FindDeallocation), which is given the class's size if it
+// takes one, or by the runtime's operator delete or delete[], as ::delete
+// does whatever the class has.  [expr.delete] 9, 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::Deallocate(CCPPSyntaxDeleteExpression* pcDelete, SCPP65Type* psType, SIRReference sFree)
+{
+	CCPPFunction*				pcDeallocation;
+	CCPPSyntaxImplicitArgument*	pcSize;
+	CArraySyntax				apcArguments;
+	SCPP65IRValue				sAddress;
+	SCPP65IRValue				sResult;
+	bool						bCalled;
+
+	pcDeallocation = (psType->IsClass() && !pcDelete->mbGlobal) ? mpcUnit->GetBinder()->FindDeallocation(psType->pcClass, pcDelete->mbArray) : NULL;
+	if (!pcDeallocation)
+	{
+		CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sFree);
+		return true;
+	}
+
+	apcArguments.Init();
+	apcArguments.Add(mpcUnit->ImplicitValue(pcDelete, mpcTypes->Pointer(&mpcTypes->msVoid)));
+	if (pcDeallocation->mapsParameters.NumElements() == 2)
+	{
+		pcSize = mpcUnit->ImplicitValue(pcDelete, mpcTypes->Size(), 1);
+		pcSize->mbConstant = true;
+		pcSize->mlliValue = psType->iBytes;
+		apcArguments.Add(pcSize);
+	}
+	sAddress.psType = mpcTypes->Pointer(&mpcTypes->msVoid);
+	sAddress.sValue = sFree;
+	bCalled = CallWithValue(pcDeallocation, &apcArguments, apcArguments.GetPtr(0), &sAddress, &sResult);
+	apcArguments.Kill();
+	return bCalled;
 }
 
 
@@ -1584,6 +1630,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	SCPP65IRMade	sTemporary;
 	bool			bTemporary = false;
 	SCPP65IRPlace					sPlace;
+	SCPP65IRValue					sLeft;
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	SCPP65Type*						psType;
 	CArraySyntax					apcArguments;
@@ -1661,6 +1708,11 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	case CPPS_ConditionalExpression:
 		return ObjectConditional((CCPPSyntaxConditionalExpression*)pcExpression, NULL, psValue);
 	case CPPS_BinaryExpression:
+		if ((((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma((CCPPSyntaxBinaryExpression*)pcExpression))
+		{
+			//(x, object) with no operator, of its own: x is worked out, then the object.  [expr.comma] 1
+			return Value(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft, &sLeft) && Value(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight, psValue);
+		}
 		if (!mpcUnit->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator))
 		{
 			return OperatorExpression(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight, psValue);
@@ -1853,18 +1905,25 @@ void CCPP65IRFrontEnd::TemporaryMade(SCPP65IRMade* psMade)
 //////////////////////////////////////////////////////////////////////////
 //
 // Copy constructs the object at psPlace from pcSource (of its class or one
-// derived from it): with a constructor the class declares for that (the
-// one chosen for the source, so a move for what is going), or as the
-// compiler's own does, its parts one by one (CopyMembers) or its bytes.
+// derived from it, as which it is one of the class: CCPPBinder::ReachesBase):
+// with a constructor the class declares for that (the one chosen for the
+// source, so a move for what is going), or as the compiler's own does, its
+// parts one by one (CopyMembers) or its bytes.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 {
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
+	CCPPClass*		pcSourceClass;
 	CArraySyntax	apcArguments;
 	bool			bResult;
 
 	pcClass = psPlace->psType->pcClass;
+	pcSourceClass = mpcUnit->ObjectClass(pcSource);
+	if (pcSourceClass && !mpcUnit->GetBinder()->ReachesBase(pcSourceClass, pcClass, pcSource))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
 	if (pcClass->HasCopyConstructor())
 	{
 		apcArguments.Init();
@@ -1894,6 +1953,19 @@ bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSourc
 bool CCPP65IRFrontEnd::CopyDeleted(CCPPSyntax* pcNode)
 {
 	mpcUnit->ReportError(pcNode, "The object cannot be copied: its class declares a move and no copy");
+	return Unsupported(__FILE__, __LINE__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The error that an object is assigned whose class's operator= the
+// compiler may not write (CCPPClass::IsAssignmentDeleted).  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::AssignmentDeleted(CCPPSyntax* pcNode)
+{
+	mpcUnit->ReportError(pcNode, "The object cannot be assigned: its class has a const or reference member, or declares a move and no copy");
 	return Unsupported(__FILE__, __LINE__);
 }
 
@@ -2232,9 +2304,9 @@ bool CCPP65IRFrontEnd::AssignPart(CCPPClass* pcClass, SIRReference sDestination,
 	pcOperator = pcClass->GetPartCopier(true, bMove);
 	if (!pcOperator)
 	{
-		if (pcClass->IsCopyDeleted())
+		if (pcClass->IsAssignmentDeleted())
 		{
-			return CopyDeleted(mpcValue);
+			return AssignmentDeleted(mpcValue);
 		}
 		if (!pcClass->IsTriviallyAssignable() || pcClass->IsPolymorphic())
 		{

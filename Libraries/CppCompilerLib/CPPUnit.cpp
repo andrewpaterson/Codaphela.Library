@@ -188,6 +188,30 @@ void CCPPUnit::SetLineTable(bool bLineTable, int64 lliCompileTime)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The unit's source is C (a .c file): what C allows and C++ doesn't, of the
+// little that is told apart, is allowed in it.  A void* is a pointer to
+// any object there without a cast (C11 6.3.2.3 1), as malloc's result is
+// used.  See CCPP65Builder::IsCSource.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SetCSource(bool bCSource)
+{
+	mbCSource = bCSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsCSource(void) const
+{
+	return mbCSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Floating point in any code the unit writes (a float or double value,
 // variable, literal or conversion) is an error at its statement.  Only
 // what is written: a declaration that is never used (a header's float
@@ -260,6 +284,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbListing = false;
 	mbLineTable = false;
 	mbNoFloats = false;
+	mbCSource = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
@@ -3022,6 +3047,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		}
 		pcVariable->mbDefined = true;
 		pcVariable->mpsType = psType;
+		CompleteDeclaredArrays(pcVariable);
 		if ((pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !mpcConstants->CheckVariable(pcVariable, pcInit))
 		{
 			bResult = false;
@@ -3229,6 +3255,34 @@ void CCPPUnit::FreeVariables(CArrayCPPVariables* papcVariables)
 		free(papcVariables->GetPtr(i));
 	}
 	papcVariables->ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// extern int a[]; declared an array of unknown bound that the definition
+// of pcDefined, int a[3], has now completed: the earlier declaration's
+// variable, which what was written before the definition names, is of the
+// same array.  [dcl.array] 3
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CompleteDeclaredArrays(CCPPVariable* pcDefined)
+{
+	CCPPSymbol*		pcSymbol;
+	CCPPVariable*	pcDeclared;
+
+	if (!pcDefined->mpsType->IsArray() || !pcDefined->mpcSymbol->mpcScope)
+	{
+		return;
+	}
+	for (pcSymbol = pcDefined->mpcSymbol->mpcScope->FindHere(pcDefined->mpcSymbol->mlliName); pcSymbol; pcSymbol = pcSymbol->mpcNext)
+	{
+		pcDeclared = (pcSymbol != pcDefined->mpcSymbol) ? GetVariable(pcSymbol) : NULL;
+		if (pcDeclared && pcDeclared->mpsType->IsArray() && (pcDeclared->mpsType->iCount == 0) && pcDeclared->mpsType->psBase->Same(pcDefined->mpsType->psBase))
+		{
+			pcDeclared->mpsType = pcDefined->mpsType;
+		}
+	}
 }
 
 

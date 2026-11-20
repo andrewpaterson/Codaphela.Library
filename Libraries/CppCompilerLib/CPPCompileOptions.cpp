@@ -31,6 +31,7 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	CPP_NO_FUNCTION_LIMIT,
 	false,						//mbWarnNarrowing: code written for a 32 bit int and size has many that are correct.
 	true,						//mbWarnMissingOverride (the user, 2026-11-16).
+	false,						//mbWarnStringToPointer: the libraries pass string literals as char* throughout (their g++ builds have -Wno-write-strings).
 	true,						//mbAssemblyUnits
 	true,						//mbSoftFloatInFrame
 	true,						//mbRegisterArguments

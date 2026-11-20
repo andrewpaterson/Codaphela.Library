@@ -37,6 +37,8 @@ public:
 
 	void						Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	void						Kill(void) override;
+	void						CountTypeKeyword(ECppTokens eToken);
+	bool						DefinesType(void);
 	CPP_SYNTAX_NODE(DeclSpecifiers)
 	void						PrettyPrint(CChars* pszDest, int iDepth) override;
 	void						VisitFields(CCPPSyntaxFields* pcFields) override;

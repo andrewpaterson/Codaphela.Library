@@ -311,6 +311,7 @@ protected:
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
 	bool					mbNoFloats;			//Floating point in the code it writes is an error (SetNoFloats): a kernal's units.
+	bool					mbCSource;			//The source is C, not C++ (SetCSource): a void* needs no cast.
 	int64					mlliCompileTime;	//When the unit was compiled (seconds since 1970), for .fingerprint.
 	CSpillStore*			mpcSpillStore;		//Where the functions' code waits until the unit is assembled (SetSpillStore),
 	uint32					muiSpillUnit;		//by the unit's number.
@@ -375,6 +376,8 @@ public:
 	void					SetListing(bool bListing);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetNoFloats(bool bNoFloats);
+	void					SetCSource(bool bCSource);
+	bool					IsCSource(void) const;
 	void					SetSpillStore(CSpillStore* pcStore, uint32 uiUnit = 0);
 	void					SetStatistics(CCPPCompileStatistics* pcStatistics);
 	void					SetOptions(CCPPCompileOptions* pcOptions);
@@ -434,6 +437,7 @@ public:
 	CCPPVariable*			AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset);
 	void					FreeVariables(CArrayCPPVariables* papcVariables);
 	CCPPVariable*			GetVariable(CCPPSymbol* pcSymbol);
+	void					CompleteDeclaredArrays(CCPPVariable* pcDefined);
 	CCPPSyntax*				StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement);
 
 	bool					Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* pcClass);
@@ -568,6 +572,7 @@ public:
 	void					BeginUnevaluated(void) { miUnevaluated++; }
 	void					EndUnevaluated(void) { miUnevaluated--; }
 	bool					IsUnevaluated(void) const;
+	bool					IsInUnevaluatedOperand(CCPPSyntax* pcNode);
 	CArraySyntax*			ListElements(CCPPSyntax* pcList);
 	CCPPSymbol*				PackElement(SCPPBinding* psPack, size k);
 	bool					ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded);
@@ -650,6 +655,9 @@ public:
 	bool					IsConstPointer(CCPPSyntax* pcExpression);
 	bool					IsConstThis(void);
 	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
+	size					CountBases(CCPPClass* pcClass, CCPPClass* pcBase);
+	void					CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual);
+	size					CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase);
 	SCPPVirtualBase*		VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, int* piBelow);
 	bool					CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
@@ -703,7 +711,7 @@ public:
 	bool					ClassMayThrow(CCPPClass* pcClass, ECPPSpecialMember eMember);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
 	CCPPSyntax*				ImplicitZero(void);
-	CCPPSyntax*				ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType);
+	CCPPSyntaxImplicitArgument*	ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType, int iWhich = 0);
 	CCPPSyntax*				NewSize(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*				NewElementType(CCPPSyntaxNewExpression* pcNew);
 	void					NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcArguments);
@@ -719,6 +727,8 @@ public:
 	void					ReportFailedDeclaration(int64 lliName);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				DeclaredTypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				UnevaluatedTypeOf(CCPPSyntax* pcExpression);
+	bool					NamesFunction(CCPPSyntax* pcExpression);
 	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);
 	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);
@@ -729,6 +739,7 @@ public:
 
 
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
+	bool					CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit);
 	bool					ConstantError(CCPPSyntax* pcNode, const char* szMessage);
 	void					ConstantMessage(const char* szMessage, CChars* pszDest);
 	bool					FoldConstant(CCPPSyntax* pcExpression, int64* plliValue);
@@ -766,12 +777,24 @@ public:
 	void					DecodeRawStringToken(CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
 	int						StringElementBytes(CCPPSyntax* pcString);
 	SCPP65Type*				StringElementType(CCPPSyntax* pcString);
+	SCPP65Type*				StringArrayType(CCPPSyntax* pcString);
 	uint32					StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement);
 
 	//Objects and copies.  CPPUnitObjects.cpp
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	CCPPClass*				MemberObjectClass(CCPPSyntaxMemberExpression* pcMember);
+	bool					BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound);
+	CCPPSymbol*				MemberEnumerator(CCPPSyntaxMemberExpression* pcMember);
+	SCPPField*				BitFieldOf(CCPPSyntax* pcExpression);
+	CCPPSyntaxIdExpression*	MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress);
+	SCPP65Type*				OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression);
+	SCPP65Type*				VariadicArgumentType(SCPP65Type* psType);
+	SCPP65Type*				CalleePointerType(CCPPSyntax* pcCallee);
+	SCPP65Type*				ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	SCPP65Type*				CompositePointerType(SCPP65Type* psLeft, SCPP65Type* psRight);
+	SCPP65Type*				CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, bool bFirstLevel);
 	bool					IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName);
 	bool					IsNamed(int64 lliName, const char* szName);
 	CCPPClass*				TypeInfoClass(void);
@@ -821,6 +844,7 @@ public:
 	//Floating point.  CPPUnitFloat.cpp
 	int64					FloatBits(SCPP65Type* psType, double dValue);
 	bool					FloatConstant(CCPPSyntax* pcExpression, double* pdValue);
+	bool					ConstexprFloat(CCPPSyntaxIdExpression* pcId, double* pdValue, SCPP65Type** ppsType);
 	bool					FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
 	bool					TokenFloat(CCPPToken* pcToken, double* pdValue, SCPP65Type** ppsType);
 	bool					FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);

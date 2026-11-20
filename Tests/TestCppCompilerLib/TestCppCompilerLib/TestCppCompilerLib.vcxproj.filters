@@ -135,6 +135,9 @@
     <ClInclude Include="TestCPPConformanceCases.h">
       <Filter>Source\Parser</Filter>
     </ClInclude>
+    <ClInclude Include="TestCPPConformanceClauseCases.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
     <ClInclude Include="TestHeader.h">
       <Filter>Source\Project</Filter>
     </ClInclude>

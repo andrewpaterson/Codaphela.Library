@@ -38,7 +38,7 @@ struct SSpriteHeader* SpritesIterate(struct SSpriteIterator* psIter)
     uint32_t                    uiSkipToNext;
     struct SSpriteNext*            psSpriteNext;
 
-    pvData = psIter->pvData;
+    pvData = (uint8_t*)psIter->pvData;
     if (pvData == NULL)
     {
         return NULL;
@@ -92,7 +92,7 @@ void DrawSprite(int16_t x, int16_t y, struct SSpriteHeader* psSprite)
     
     if (psSprite->uiType == SFT_TYPE_OPAQUE)
     {
-        puiData = (void*)((uint32_t)psSprite + (uint32_t)(sizeof(struct SSpriteHeader)));
+        puiData = (uint8_t*)((uint32_t)psSprite + (uint32_t)(sizeof(struct SSpriteHeader)));
         
         for (yd = 0; yd < uiHeight; yd++)
         {
@@ -108,9 +108,9 @@ void DrawSprite(int16_t x, int16_t y, struct SSpriteHeader* psSprite)
     }
     else if (psSprite->uiType == SFT_TYPE_TRANSPARENT)
     {
-        puiData = (void*)((uint32_t)psSprite + (uint32_t)(sizeof(struct SSpriteHeader)));
+        puiData = (uint8_t*)((uint32_t)psSprite + (uint32_t)(sizeof(struct SSpriteHeader)));
         psRun = (struct SSpriteRowRun*)puiData;
-        puiData = (void*)((uint32_t)puiData + (uint32_t)(sizeof(struct SSpriteRowRun)));
+        puiData = (uint8_t*)((uint32_t)puiData + (uint32_t)(sizeof(struct SSpriteRowRun)));
         
         xs = x;
         while ((psRun->uiFlags != 0) && (psRun->uiRunLength != 0))
@@ -132,7 +132,7 @@ void DrawSprite(int16_t x, int16_t y, struct SSpriteHeader* psSprite)
             }
     
             psRun = (struct SSpriteRowRun*)puiData;        
-            puiData = (void*)((uint32_t)puiData + (uint32_t)(sizeof(struct SSpriteRowRun)));
+            puiData = (uint8_t*)((uint32_t)puiData + (uint32_t)(sizeof(struct SSpriteRowRun)));
         }
     }
 }

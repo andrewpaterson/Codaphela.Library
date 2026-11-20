@@ -227,6 +227,7 @@ protected:
 	CCPPSyntaxDeclaration*			ParseFunctionDefinition(CCPPSyntax* pcParent, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, ECPPDeclarationContext eContext, int iFirstToken);
 	bool							ParseFunctionBody(CCPPSyntaxFunctionDefinition* pcFunction);
 	bool							ParseMemberInitializers(CCPPSyntaxFunctionDefinition* pcFunction);
+	void							ResolveMemberInitializerName(CCPPSyntaxName* pcName);
 	bool							IsFunctionDefinitionStart(void);
 	bool							IsDeclaringSpecifiers(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	CCPPSymbol*						DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcDeclaration, ECPPDeclarationContext eContext);
@@ -236,7 +237,7 @@ protected:
 	ECPPDeclSpecifierStep			ParseNamedDeclSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext, bool* pbType);
 	void							AddKeywordSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken);
 	CCPPSyntaxNamedTypeSpecifier*	ParseTypenameSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
-	CCPPSyntaxDecltypeSpecifier*	ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken);
+	CCPPSyntaxDecltypeSpecifier*	ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken, bool bUnderlyingType);
 	bool							IsUnknownNameAType(ECPPDeclarationContext eContext);
 	CCPPSyntaxAttribute*			ParseAttribute(CCPPSyntax* pcParent);
 	bool							IsAttributeStart(void);
@@ -326,6 +327,7 @@ protected:
 	CCPPSyntaxInitializerList*		ParseBracedInitList(CCPPSyntax* pcParent);
 	CCPPSyntax*						ParseInitializerClause(CCPPSyntax* pcParent);
 	bool							ParseExpressionList(CArraySyntax* papcExpressions, CCPPSyntax* pcParent, ECppTokens eClose);
+	bool							SkipCallArguments(CCPPSyntax* pcParent);
 	int								GetBinaryPrecedence(void);
 	bool							IsTypeTraitName(void);
 	bool							IsStringPart(void);

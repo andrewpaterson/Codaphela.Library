@@ -430,14 +430,12 @@ void TestCPP65GeneratorOperatorTypes(void)
 {
 	CCPP65Types		cTypes;
 	SCPP65Type*		psPointer;
-	SCPP65Type*		psVoidPointer;
 	int				iIntBytes;
 
 	for (iIntBytes = 4; iIntBytes >= 2; iIntBytes -= 2)
 	{
 		cTypes.Init(iIntBytes, 4);
 		psPointer = cTypes.Pointer(&cTypes.msShort);
-		psVoidPointer = cTypes.Pointer(&cTypes.msVoid);
 
 		//The usual arithmetic conversions; a shift is its left operand's promoted type.
 		AssertPointer(&cTypes.msInt, cTypes.Operation(CT_Add, &cTypes.msChar, &cTypes.msShort));
@@ -469,12 +467,6 @@ void TestCPP65GeneratorOperatorTypes(void)
 		AssertPointer(cTypes.PointerDifference(), cTypes.Operation(CT_Subtract, psPointer, psPointer));
 		AssertInt(4, cTypes.PointerDifference()->iBytes);
 		AssertTrue(cTypes.PointerDifference()->bSigned);
-
-		//c ? x : y.
-		AssertPointer(&cTypes.msDouble, cTypes.Conditional(&cTypes.msInt, &cTypes.msDouble));
-		AssertPointer(&cTypes.msUnsignedInt, cTypes.Conditional(&cTypes.msShort, &cTypes.msUnsignedInt));
-		AssertPointer(&cTypes.msVoid, cTypes.Conditional(&cTypes.msVoid, psPointer));
-		AssertPointer(psVoidPointer, cTypes.Conditional(&cTypes.msInt, psVoidPointer));
 		cTypes.Kill();
 	}
 }

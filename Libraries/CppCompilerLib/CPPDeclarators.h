@@ -42,6 +42,8 @@ public:
 
 	SCPP65Type*				GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser = NULL);
 	SCPP65Type*				GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser, CCPPSyntaxFunctionSuffix* pcFunction = NULL);
+	SCPP65Type*				CompletedArray(SCPP65Type* psType, CCPPSyntax* pcInitialiser);
+	bool					DeclaresNoObject(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFunctionSuffix* pcSuffix, CCPPSyntax* pcNode);
 	int						GetInitialiserCount(CCPPSyntax* pcInitialiser);
 	SCPP65Type*				GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntax* pcNode);
@@ -53,6 +55,7 @@ public:
 	SCPP65Type*				UnderlyingType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				DecltypeType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				OperandType(CCPPSyntax* pcOperand);
+	SCPP65Type*				EntityType(CCPPSyntax* pcOperand);
 	SCPP65Type*				GetTypeIdType(CCPPSyntaxTypeId* pcTypeId);
 	SCPP65Type*				GetSymbolType(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 };

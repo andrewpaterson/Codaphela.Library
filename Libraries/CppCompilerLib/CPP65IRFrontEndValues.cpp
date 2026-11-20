@@ -220,20 +220,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_ConditionalExpression:
 		return ConditionalExpression((CCPPSyntaxConditionalExpression*)pcExpression, psValue);
 	case CPPS_CallExpression:
-		if (!CallExpression((CCPPSyntaxCallExpression*)pcExpression, psValue))
-		{
-			return false;
-		}
-		if (psValue->psType && psValue->psType->IsReference() && psValue->psType->psBase->IsScalar())
-		{
-			//The value of a call that returns a reference to a number or a pointer is what it refers to, read
-			//([conv.lval]); its place is Place's.  (A reference to an object stays one: IsObjectValue.)
-			sPlace.sAddress = psValue->sValue;
-			sPlace.psType = psValue->psType->psBase;
-			sPlace.psBitField = NULL;
-			return Load(&sPlace, psValue);
-		}
-		return true;
+		return CallExpression((CCPPSyntaxCallExpression*)pcExpression, psValue) && ReadReferred(psValue);
 	case CPPS_SubscriptExpression:
 		if (IsObjectSubscript((CCPPSyntaxSubscriptExpression*)pcExpression))
 		{
@@ -252,6 +239,10 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		}
 		break;
 	case CPPS_MemberExpression:
+		if (mpcUnit->MemberEnumerator((CCPPSyntaxMemberExpression*)pcExpression))
+		{
+			return MemberEnumerator((CCPPSyntaxMemberExpression*)pcExpression, psValue);
+		}
 		break;
 	case CPPS_ThisExpression:
 		if (msThis.IsNone())
@@ -294,7 +285,29 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A place's value: an array gives the address of its first element.
+// A call's result as a value: what a reference to a number or a pointer
+// refers to, read ([conv.lval]; its place is Place's).  A reference to an
+// object stays one (IsObjectValue), and any other result is the value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ReadReferred(SCPP65IRValue* psValue)
+{
+	SCPP65IRPlace	sPlace;
+
+	if (!psValue->psType || !psValue->psType->IsReference() || !psValue->psType->psBase->IsScalar())
+	{
+		return true;
+	}
+	sPlace.sAddress = psValue->sValue;
+	sPlace.psType = psValue->psType->psBase;
+	return Load(&sPlace, psValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A place's value: an array gives the address of its first element, and a
+// function its own.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
@@ -310,6 +323,13 @@ bool CCPP65IRFrontEnd::Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue)
 		//An object used as a value is its address (as in the generator).
 		psValue->sValue = psPlace->sAddress;
 		psValue->psType = psPlace->psType;
+		return true;
+	}
+	if (psPlace->psType->IsFunction())
+	{
+		//A function used as a value is a pointer to it.  [conv.func]
+		psValue->sValue = psPlace->sAddress;
+		psValue->psType = mpcTypes->Pointer(psPlace->psType);
 		return true;
 	}
 	if (!psPlace->psType->IsScalar())
@@ -540,9 +560,57 @@ bool CCPP65IRFrontEnd::StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValu
 	//StringData's data ends with one zero byte.
 	auiBytes.GrowToAtLeastNumElements(auiBytes.NumElements() + mpcUnit->StringElementBytes(pcString) - 1, true, 0);
 	StringData((char*)auiBytes.GetData(), auiBytes.NumElements(), psValue);
-	psValue->psType = mpcTypes->Pointer(mpcUnit->StringElementType(pcString));
+	psValue->psType = mpcTypes->Pointer(mpcTypes->Const(mpcUnit->StringElementType(pcString)));
 	auiBytes.Kill();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// object.Enumerator and pointer->Enumerator: the object's expression is
+// worked out, and the value is the enumerator's.  [expr.ref] 1, 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember, SCPP65IRValue* psValue)
+{
+	CCPPSymbol*		pcEnumerator;
+	SCPP65IRValue	sObject;
+	int64			lliValue;
+
+	pcEnumerator = mpcUnit->MemberEnumerator(pcMember);
+	if (!Value(pcMember->mpcObject, &sObject))
+	{
+		return false;
+	}
+	psValue->psType = mpcUnit->EnumeratorType(pcEnumerator);
+	if (!psValue->psType || !mpcUnit->EnumeratorValue(pcEnumerator, &lliValue))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	psValue->sValue = Integer(psValue->psType, lliValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of an expression where an integer is wanted (a switch's
+// condition, a new array's bound) or, with bPointer, a pointer to an object
+// (delete's operand): its own, or what an object's conversion function
+// gives (CCPPBinder::ContextualType).  [conv] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ContextualValue(CCPPSyntax* pcExpression, bool bPointer, SCPP65IRValue* psValue)
+{
+	SCPP65Type*	psTo;
+
+	if (!mpcUnit->IsObject(pcExpression))
+	{
+		return Operand(pcExpression, psValue);
+	}
+	psTo = mpcUnit->GetBinder()->ContextualType(pcExpression, bPointer);
+	return psTo ? ValueFor(pcExpression, psTo, psValue) : Unsupported(__FILE__, __LINE__);
 }
 
 
@@ -683,7 +751,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* p
 		return false;
 	}
 	*pbMember = true;
-	psValue->sValue = mpcFunction->AddInteger(IRType(IRTK_I32), iOffset);
+	psValue->sValue = mpcFunction->AddInteger(IRType(IRTK_I32), iOffset + CPP_MEMBER_POINTER_BIAS);
 	psValue->psType = mpcTypes->MemberPointer(pcClass, psField->psType);
 	return true;
 }
@@ -769,14 +837,15 @@ bool CCPP65IRFrontEnd::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArra
 //////////////////////////////////////////////////////////////////////////
 //
 // object.*field and pointer->*field: the object's address plus the
-// field's offset.
+// field's offset, which the pointer to the member is with its bias.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRPlace* psPlace)
 {
 	SCPP65Type*		psMember;
-	SCPP65IRValue	sOffset;
+	SCPP65IRValue	sMember;
 	SIRReference	sObject;
+	SIRReference	sOffset;
 
 	psPlace->psBitField = NULL;
 
@@ -788,11 +857,12 @@ bool CCPP65IRFrontEnd::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, 
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!Value(pcBinary->mpcRight, &sOffset))
+	if (!Value(pcBinary->mpcRight, &sMember))
 	{
 		return false;
 	}
-	psPlace->sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sObject, sOffset.sValue);
+	sOffset = mpcFunction->Add(mpcBlock, IRO_Sub, IRType(IRTK_I32), sMember.sValue, mpcFunction->AddInteger(IRType(IRTK_I32), CPP_MEMBER_POINTER_BIAS));
+	psPlace->sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sObject, sOffset);
 	psPlace->psType = psMember->psBase;
 	return true;
 }
@@ -1015,6 +1085,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	CCPPBoundName					cBound;
 	CCPPSyntaxIdExpression*			pcId;
 	CCPPSyntaxUnaryExpression*		pcUnary;
+	CCPPSyntaxBinaryExpression*		pcBinary;
 	CCPPSyntaxSubscriptExpression*	pcSubscript;
 	SCPP65IRValue					sPointer;
 	SCPP65IRValue					sIndex;
@@ -1038,6 +1109,17 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		{
 			return Place(cBound.mpcArgument, psPlace);
 		}
+		if (cBound.meWhat == CPPBN_Function)
+		{
+			//A function's name is the function, an lvalue: what a reference to a function refers to.
+			if (!FunctionAddress(pcId, NULL, &sAddress))
+			{
+				return false;
+			}
+			psPlace->sAddress = sAddress.sValue;
+			psPlace->psType = sAddress.psType->psBase;
+			return true;
+		}
 		if (cBound.meWhat == CPPBN_Capture)
 		{
 			//What a lambda captures is its closure's field (a reference's is what it refers to).
@@ -1055,6 +1137,11 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		if (((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement)) && !pcUnary->mbPostfix && !mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//++x and --x are x, once it is stepped.  [expr.pre.incr] 1
+			return IncrementExpression(pcUnary, &sAddress, psPlace);
+		}
 		if (pcUnary->meOperator != CT_Multiply)
 		{
 			//-object, +object, ~object: the temporary its operator made.
@@ -1082,7 +1169,8 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		{
 			return false;
 		}
-		if (!sPointer.psType->IsPointer() || sPointer.psType->psBase->IsVoid() || !IsPlaceType(sPointer.psType->psBase))
+		//*pointer; a function's is the function, which is its pointer again as a value, so (**f)() is f().
+		if (!sPointer.psType->IsPointer() || sPointer.psType->psBase->IsVoid() || !(IsPlaceType(sPointer.psType->psBase) || sPointer.psType->psBase->IsFunction()))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -1128,9 +1216,20 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		psPlace->psType = sAddress.psType->psBase;
 		return true;
 
+	case CPPS_StringExpression:
+		if (mpcUnit->IsStringLiteral(pcExpression))
+		{
+			//The array of its characters, where its data is.
+			if (!StringLiteral(pcExpression, &sAddress))
+			{
+				return false;
+			}
+			psPlace->sAddress = sAddress.sValue;
+			psPlace->psType = mpcUnit->StringArrayType(pcExpression);
+			return true;
+		}
 	case CPPS_CallExpression:
 	case CPPS_LiteralExpression:
-	case CPPS_StringExpression:
 		//What a call (or a user-defined literal's) that returns a reference refers to, or the object it makes.
 		psType = mpcUnit->DeclaredTypeOf(pcExpression);
 		if (!psType || !(psType->IsReference() || psType->IsClass()) || ((pcExpression->GetKind() != CPPS_CallExpression) && !mpcUnit->UserLiteralToken(pcExpression)))
@@ -1175,6 +1274,13 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			return MemberPointerPlace((CCPPSyntaxBinaryExpression*)pcExpression, psPlace);
 		}
 
+		//(x, y) is y, once x is worked out.  [expr.comma] 1
+		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
+		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma(pcBinary))
+		{
+			return Value(pcBinary->mpcLeft, &sAddress) && Place(pcBinary->mpcRight, psPlace);
+		}
+
 		//(x = y) and (x op= y) of a scalar are x's place after the assignment.
 		psType = mpcUnit->TypeOf(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft);
 		if (mpcUnit->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator) && psType && !psType->IsClass() &&
@@ -1202,6 +1308,10 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		//Any other cast is the object it makes, as below.
 	case CPPS_ConditionalExpression:
 		psType = mpcUnit->TypeOf(pcExpression);
+		if ((pcExpression->GetKind() == CPPS_ConditionalExpression) && psType && !psType->IsClass())
+		{
+			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression, psPlace);
+		}
 		if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
 		{
 			return Unsupported(__FILE__, __LINE__);

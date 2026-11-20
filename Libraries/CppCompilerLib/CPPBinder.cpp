@@ -36,6 +36,7 @@ void CCPPBoundCall::Init(void)
 	mpapcArguments = NULL;
 	mpcObject = NULL;
 	mpcClass = NULL;
+	mpcQualifier = NULL;
 	mbArrow = false;
 	mbVirtual = false;
 	mpcLeft = NULL;
@@ -371,38 +372,6 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if the expression is the name of an object: a variable or a field
-// that is declared as the object itself, so what it is is known and its
-// virtual functions needn't be found through its vtable.  The name of a
-// reference isn't: what it refers to may be of a class derived from the one
-// it is declared with.  [class.virtual] 7
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPBinder::IsNamedObject(CCPPSyntax* pcObject)
-{
-	CCPPBoundName	cBound;
-
-	pcObject = pcObject->WithoutParentheses();
-	if (pcObject->GetKind() != CPPS_IdExpression)
-	{
-		return false;
-	}
-	BindName((CCPPSyntaxIdExpression*)pcObject, &cBound);
-	switch (cBound.meWhat)
-	{
-	case CPPBN_Variable:
-		return cBound.mpcVariable && cBound.mpcVariable->mpsType && !cBound.mpcVariable->mpsType->IsReference();
-	case CPPBN_Field:
-	case CPPBN_Capture:
-		return cBound.mpsField && cBound.mpsField->psType && !cBound.mpsField->psType->IsReference();
-	default:
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // object(arguments) for an object of a class: its operator(), a member
 // called on it.  False if the callee isn't an object of a class; true with
 // the call still failed if no operator() takes the arguments.  [over.call]
@@ -453,6 +422,37 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 
 //////////////////////////////////////////////////////////////////////////
 //
+// object.~T() or pointer->~T() of a psType that isn't a class, as a
+// template writes for any T: it does nothing but work the object out.  T
+// is the object's type, and nothing is in the brackets.  [expr.pseudo]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPBinder::ResolvePseudoDestructor(CCPPSyntaxMemberExpression* pcMember, SCPP65Type* psType, CCPPBoundCall* pcBound)
+{
+	CCPPSymbol*	pcNamed;
+	SCPP65Type*	psNamed;
+
+	pcNamed = pcMember->mpcName->GetLast()->mpcSymbol;
+	psNamed = pcNamed ? mpcUnit->GetDeclarators()->GetSymbolType(pcNamed, pcMember) : NULL;
+	if (psNamed && !psNamed->Unqualified()->Same(psType->Unqualified()))
+	{
+		mpcUnit->Error(pcMember, "The destructor's name is not the type of the object");
+		return;
+	}
+	if (pcBound->mpapcArguments->NumElements() != 0)
+	{
+		mpcUnit->Error(pcMember, "A destructor takes no arguments");
+		return;
+	}
+	pcBound->meHow = CPPBC_PseudoDestructor;
+	pcBound->mpcName = pcMember->mpcName;
+	pcBound->mpcObject = pcMember->mpcObject;
+	pcBound->mbArrow = pcMember->mbArrow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A call on an object, or one in a member function that means a member: the object
 // and its class, then the destructor, a field that points to a function, or the member
 // function of the name chosen for the arguments and for whether the object is const
@@ -470,7 +470,9 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	CCPPSyntax*					pcObject;
 	CCPPClass*					pcClass;
 	CCPPClass*					pcLookup;
+	CCPPClass*					pcThis;
 	CCPPFunction*				pcFunction;
+	CCPPFunction*				pcInstance;
 	CCPPFunction*				pcIn;
 	CCPPTemplate*				pcTemplate;
 	SCPP65Type*					psType;
@@ -478,6 +480,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	int							iOffset;
 	ECPPCalledObject			eObject;
 	size						uiErrors;
+	size						uiTrial;
 	bool						bArrow;
 	bool						bVirtual;
 
@@ -507,6 +510,11 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		{
 			psType = psType->WithoutReference();
 		}
+		if (psType && psType->IsScalar() && (pcMember->mpcName->GetLast()->meKind == CPPNC_Destructor))
+		{
+			ResolvePseudoDestructor(pcMember, psType, pcBound);
+			return;
+		}
 		if (!psType || !psType->IsClass())
 		{
 			mpcUnit->Error(pcCallee, "Member functions need an object of a class");
@@ -520,11 +528,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		pcObject = pcMember->mpcObject;
 		pcName = pcMember->mpcName;
 
-		//A named object is what it is declared as: its virtual functions are called by their labels.
-		if (!bArrow && IsNamedObject(pcObject))
-		{
-			bVirtual = false;
-		}
+		bVirtual = bArrow || !IsNamedObject(pcObject);
 	}
 	else
 	{
@@ -579,6 +583,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		{
 			return;
 		}
+		pcBound->mpcQualifier = pcLookup;
 		bVirtual = false;
 	}
 
@@ -616,6 +621,20 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	{
 		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
 	}
+	else if (pcFunction && pcTemplate && !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments))
+	{
+		//The member template's instance, if it takes the arguments better than the function that converts them, as a
+		//function's is chosen (Resolve).  [over.match.best] 1
+		uiTrial = mpcUnit->GetErrors()->NumErrors();
+		mpcUnit->BeginTrial();
+		pcInstance = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
+		mpcUnit->EndTrial();
+		mpcUnit->GetErrors()->Truncate(uiTrial);
+		if (pcInstance && mcOverloads.IsBetterFunction(pcInstance, pcFunction, pcBound->mpapcArguments))
+		{
+			pcFunction = pcInstance;
+		}
+	}
 	if (!pcFunction)
 	{
 		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
@@ -628,6 +647,16 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	{
 		mpcUnit->Error(pcCallee, "A member function needs an object");
 		return;
+	}
+	pcThis = pcObject ? pcClass : mpcUnit->ThisClass();
+	if (pcThis && !pcFunction->mbStatic && !HasOneMember(pcThis, pcLookup, pcFunction->mpcClass, pcCallee))
+	{
+		return;
+	}
+	if (!pcObject && pcThis && (pcLookup != pcThis) && mpcUnit->IsDerived(pcThis, pcLookup, NULL))
+	{
+		//C::f() on this, in a member function of a class derived from C.
+		pcBound->mpcQualifier = pcLookup;
 	}
 	mpcUnit->Resolved(pcName, pcFunction);
 	pcBound->meHow = CPPBC_Member;
@@ -896,16 +925,17 @@ CCPPFunction* CCPPBinder::FindLiteralOperator(int64 lliName, CArraySyntax* papcE
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The allocation function new Type (or new Type[count], bArray) calls with
-// papcArguments, its size (CCPPUnit::NewSize) then its placement arguments:
-// the class's own operator new (or a base's), or one of the program's
-// global ones that the placement arguments choose.  NULL for the runtime's
-// operator new, or for new (address) Type with no operator new of the
-// program's that takes a pointer, the address itself; *pbFailed when no
-// operator new takes placement arguments.  [expr.new] 9
+// The allocation function a new expression of psType (an array's element)
+// calls with papcArguments, its size (CCPPUnit::NewSize) then its
+// placement arguments: the class's own operator new or new[] (or a
+// base's), unless it is ::new, or one of the program's global ones that
+// the placement arguments choose.  NULL for the runtime's operator new,
+// or for new (address) Type with no operator new of the program's that
+// takes a pointer, the address itself; *pbFailed when no operator new
+// takes placement arguments.  [expr.new] 9
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPBinder::FindAllocation(SCPP65Type* psType, bool bArray, CArraySyntax* papcArguments, CCPPSyntax* pcNode, bool* pbFailed)
+CCPPFunction* CCPPBinder::FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, CArraySyntax* papcArguments, bool* pbFailed)
 {
 	CCPPFunction*	pcFunction;
 	CCPPClass*		pcClass;
@@ -913,11 +943,11 @@ CCPPFunction* CCPPBinder::FindAllocation(SCPP65Type* psType, bool bArray, CArray
 	size			uiErrors;
 
 	*pbFailed = false;
-	lliName = mpcUnit->GetOperatorName(CT_new, bArray);
-	pcClass = psType->IsClass() ? psType->pcClass : NULL;
+	lliName = mpcUnit->GetOperatorName(CT_new, pcNew->macpArraySizes.NumElements() > 0);
+	pcClass = (psType->IsClass() && !pcNew->mbGlobal) ? psType->pcClass : NULL;
 	if (pcClass && mpcUnit->HasMember(pcClass, lliName))
 	{
-		pcFunction = mcOverloads.FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNode, CPPCO_None);
+		pcFunction = mcOverloads.FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNew, CPPCO_None);
 		*pbFailed = !pcFunction;
 		return pcFunction;
 	}
@@ -928,7 +958,7 @@ CCPPFunction* CCPPBinder::FindAllocation(SCPP65Type* psType, bool bArray, CArray
 
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
 	mpcUnit->BeginTrial();
-	pcFunction = mcOverloads.FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, CPPCO_None);
+	pcFunction = mcOverloads.FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNew, CPPCO_None);
 	mpcUnit->EndTrial();
 	mpcUnit->GetErrors()->Truncate(uiErrors);
 	if (pcFunction && IsReservedPlacement(pcFunction))
@@ -983,13 +1013,16 @@ bool CCPPBinder::IsBuiltinPlacement(CArraySyntax* papcArguments)
 //////////////////////////////////////////////////////////////////////////
 //
 // The deallocation function delete (or delete[], bArray) of an object of
-// pcClass calls: the class's own operator delete (or a base's) that takes
-// the pointer alone, or NULL for the runtime's.  [expr.delete] 9
+// pcClass calls, or NULL for the runtime's: the operator delete of the
+// class, or of the nearest base that declares one, that takes the pointer
+// alone, or failing that the pointer and a size_t.  [expr.delete] 9,
+// [basic.stc.dynamic.deallocation] 2
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray)
 {
 	CCPPFunction*	pcFunction;
+	CCPPFunction*	pcFound;
 	int64			lliName;
 
 	lliName = mpcUnit->GetOperatorName(CT_delete, bArray);
@@ -997,14 +1030,52 @@ CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray)
 	{
 		return NULL;
 	}
+	pcFound = NULL;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if (pcFunction->mpcClass && mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL) && (pcFunction->mapsParameters.NumElements() == 1))
+		if (IsUsualDeallocation(pcFunction) && mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL) && IsNearerDeallocation(pcFunction, pcFound))
 		{
-			return pcFunction;
+			pcFound = pcFunction;
 		}
 	}
-	return NULL;
+	return pcFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a class's operator delete is one a delete expression calls: it
+// takes the pointer, or the pointer and the size as a size_t.
+// [basic.stc.dynamic.deallocation] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsUsualDeallocation(CCPPFunction* pcFunction)
+{
+	size	uiParameters;
+
+	uiParameters = pcFunction->mapsParameters.NumElements();
+	return pcFunction->mpcClass && ((uiParameters == 1) || ((uiParameters == 2) && pcFunction->mapsParameters.GetPtr(1)->Unqualified()->Equals(mpcUnit->GetTypes()->Size())));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a class's operator delete, pcFunction, is chosen before pcFound
+// (NULL for none yet): it is a more derived class's, which hides a base's,
+// or it is the same class's and takes the pointer alone.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsNearerDeallocation(CCPPFunction* pcFunction, CCPPFunction* pcFound)
+{
+	if (!pcFound)
+	{
+		return true;
+	}
+	if (pcFunction->mpcClass == pcFound->mpcClass)
+	{
+		return pcFunction->mapsParameters.NumElements() == 1;
+	}
+	return mpcUnit->IsDerived(pcFunction->mpcClass, pcFound->mpcClass, NULL);
 }
 
 
@@ -1217,7 +1288,7 @@ bool CCPPBinder::IsAssignable(SCPP65Type* psTo, SCPP65Type* psFrom)
 			return true;
 		}
 	}
-	return !bOwn && !pcClass->IsCopyDeleted() && psFrom->WithoutReference()->IsClass() && mpcUnit->IsDerived(psFrom->WithoutReference()->pcClass, pcClass, NULL);
+	return !bOwn && !pcClass->IsAssignmentDeleted() && psFrom->WithoutReference()->IsClass() && mpcUnit->IsDerived(psFrom->WithoutReference()->pcClass, pcClass, NULL);
 }
 
 
@@ -1255,6 +1326,41 @@ CCPPFunction* CCPPBinder::BindRangeFunction(int64 lliName, CCPPClass* pcClass, C
 		return NULL;
 	}
 	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the object a member function is called on can only be of the
+// class it is declared as, so that its virtual functions are called by
+// their labels: an object that is named.  A name that is a reference is
+// not one: what it refers to may be of a derived class, as what a pointer
+// points to may, and its virtual functions are called through its vtable.
+// [expr.call] 1, [class.virtual] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsNamedObject(CCPPSyntax* pcObject)
+{
+	CCPPBoundName	cBound;
+
+	pcObject = pcObject->WithoutParentheses();
+	if (pcObject->GetKind() != CPPS_IdExpression)
+	{
+		return false;
+	}
+
+	ResolveName((CCPPSyntaxIdExpression*)pcObject, &cBound);
+	switch (cBound.meWhat)
+	{
+	case CPPBN_Variable:
+		return !cBound.mpcVariable->mpsType->IsReference();
+	case CPPBN_Field:
+		return !cBound.mpsField->psType->IsReference();
+	case CPPBN_Capture:
+		return !cBound.mpsCapture->bReference && !cBound.mpsField->psType->IsReference();
+	default:
+		return false;
+	}
 }
 
 
@@ -1418,8 +1524,14 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	}
 
 	//A field of this, of the base a qualifier names (B::a) if it does; a name in a template that the parser could not
-	//resolve may be one too.
+	//resolve may be one too.  In a static member function it is the class's field still, which has no object there:
+	//only what doesn't evaluate it (sizeof, decltype) can name it.  [expr.prim.general] 13
 	pcClass = mpcUnit->ThisClass();
+	pcIn = mpcUnit->OuterFunction();
+	if (!pcClass && pcIn && pcIn->mbStatic)
+	{
+		pcClass = pcIn->mpcClass;
+	}
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass)
 	{
 		pcLookup = pcId->mpcName->IsQualifiedByClass() ? mpcUnit->GetComponentClass(pcId->mpcName->GetQualifier(), NULL, pcId, pcClass) : NULL;
@@ -1437,6 +1549,8 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	{
 		pcBound->meWhat = CPPBN_Field;
 		pcBound->mpcClass = pcClass;
+		pcLookup = pcBound->mpcQualifier ? pcBound->mpcQualifier : pcClass;
+		HasOneMember(pcClass, pcLookup, pcLookup->FindFieldClass(pcBound->mpsField), pcId);
 	}
 }
 
@@ -1482,6 +1596,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	{
 		pcBound->meWhat = CPPBN_Field;
 		pcBound->mpcSymbol = pcBound->mpsField->pcSymbol;
+		HasOneMember(pcClass, pcLookup, pcLookup->FindFieldClass(pcBound->mpsField), pcNode);
 	}
 	else
 	{
@@ -1497,6 +1612,85 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	//It is the member whether or not it may be named here: that it may not is an error of its own.
 	mcAccess.CheckSymbol(pcBound->mpcSymbol, pcClass, pcNode);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an object of pcClass has one pcBase to be (the class itself, or a
+// base it has once): an error (and false) for a base it has more than once,
+// which a pcClass doesn't become, nor is a member of it the class's without
+// saying whose.  [class.mi] 4, [class.member.lookup]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode)
+{
+	return (mpcUnit->CountBases(pcClass, pcBase) <= 1) || mcAccess.Refuse(pcNode, "The base class is in the class more than once: say which is meant with a qualified name or a cast to a class between");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a member that pcDeclaring declares (a field or a member function
+// that isn't static; NULL when it isn't known), found in pcLookup, is one
+// member of an object of pcClass: the object has one pcLookup (itself, or
+// the base that qualifies the member's name) and that one pcDeclaring.  An
+// error (and false) if not.  [class.member.lookup], [expr.ref] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass* pcDeclaring, CCPPSyntax* pcNode)
+{
+	return HasOneBase(pcClass, pcLookup, pcNode) && (!pcDeclaring || HasOneBase(pcLookup, pcDeclaring, pcNode));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a pcClass becomes its base pcBase at pcNode, or the base the
+// class, as a pointer, a reference or a pointer to a member does: the base
+// is there once and may be reached.  An error (and false) if not.
+// [conv.ptr] 3, [conv.mem] 2, [expr.static.cast] 2, 11, 12
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ReachesBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode)
+{
+	return HasOneBase(pcClass, pcBase, pcNode) && mcAccess.CheckBase(pcClass, pcBase, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an object of pcClass is made from arguments that aren't a list in
+// braces: by a constructor, or from none.  A class with no constructor is
+// an aggregate, whose members only a list in braces gives values: S(1, 2),
+// S s = 1 and (S)1 are errors (and false) where S{1, 2} isn't.
+// [dcl.init] 17, [dcl.init.aggr]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+{
+	CCPPBoundConstruction	cBound;
+
+	if ((papcArguments->NumElements() == 0) || pcClass->mbConstructorTemplate || !BindConstruction(pcClass, papcArguments, pcNode, &cBound, false))
+	{
+		//(What doesn't bind is reported where it is made.  A constructor template isn't called yet: its class's
+		//members are given the arguments, as they were before this was asked.)
+		return true;
+	}
+	return (cBound.meHow != CPPBO_Aggregate) || mcAccess.Refuse(pcNode, "The class has no constructor for this: its members are given values by a list in braces");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an object of pcClass may be destroyed at pcNode: the destructor
+// the class declares, if it does, may be named there.  An error (and false)
+// if not.  [class.dtor] 11
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ReachesDestructor(CCPPClass* pcClass, CCPPSyntax* pcNode)
+{
+	return !pcClass->mpcDestructor || mcAccess.CheckFunction(pcClass->mpcDestructor, pcClass, pcNode);
 }
 
 
@@ -1535,6 +1729,35 @@ void CCPPBinder::BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type an expression is contextually implicitly converted to where an
+// integer is wanted (a switch's condition, a new array's bound) or, with
+// bPointer, a pointer to an object (delete's operand): its own, or for an
+// object the type its class's one fitting conversion function gives
+// (CCPPOverloads::FindContextualConversion).  NULL, with why, for an
+// object of a class with none or with more than one.  [conv] 5
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPBinder::ContextualType(CCPPSyntax* pcExpression, bool bPointer)
+{
+	CCPPFunction*	pcConversion;
+	bool			bAmbiguous;
+
+	if (!mpcUnit->IsObject(pcExpression))
+	{
+		return mpcUnit->ValueTypeOf(pcExpression);
+	}
+	pcConversion = mcOverloads.FindContextualConversion(mpcUnit->ObjectClass(pcExpression), bPointer, pcExpression, &bAmbiguous);
+	if (!pcConversion)
+	{
+		mpcUnit->Error(pcExpression, bAmbiguous ? "The object converts to more than one type here" : (bPointer ? "The object doesn't convert to a pointer" : "The object doesn't convert to an integer"));
+		return NULL;
+	}
+	return pcConversion->mpsReturn->WithoutReference()->Unqualified();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A type named in a declaration (Class::Nested, or a name alone): if it is
 // a class's member (a nested class or enum, or a typedef) it must be one
 // that may be named there.
@@ -1563,6 +1786,11 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 	if (!mpcUnit->CompleteClass(pcClass, pcNode))
 	{
 		return false;
+	}
+	if (pcClass->mpsLambda && (papcArguments->NumElements() == 0))
+	{
+		//decltype(lambda) object;  [expr.prim.lambda] 20
+		return mcAccess.Refuse(pcNode, "A lambda's closure has no default constructor: it is made by its lambda, or copied");
 	}
 	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
 	{

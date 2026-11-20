@@ -46,6 +46,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
 {
 	CCPPSyntaxMemberExpression*	pcMember;
+	CCPPBoundName				cBound;
 	SCPP65Type*					psType;
 
 	pcExpression = SkipParentheses(pcExpression);
@@ -56,8 +57,9 @@ bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
 	case CPPS_IdExpression:
 		return (PlaceOf(pcExpression) == NULL) || IsReturnedLocal((CCPPSyntaxIdExpression*)pcExpression);
 	case CPPS_MemberExpression:
+		//An rvalue object's field, unless the field is a reference: that, and a static member, are lvalues.  [expr.ref] 4
 		pcMember = (CCPPSyntaxMemberExpression*)pcExpression;
-		return !pcMember->mbArrow && IsRvalue(pcMember->mpcObject);
+		return !pcMember->mbArrow && IsRvalue(pcMember->mpcObject) && BindMemberOf(pcMember, &cBound) && (cBound.meWhat == CPPBN_Field) && !cBound.mpsField->psType->IsReference();
 	default:
 		break;
 	}
@@ -160,6 +162,284 @@ bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 	default:
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class of the object in object.member or pointer->member, or NULL if
+// it isn't an object of a class.  Nothing is reported.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPUnit::MemberObjectClass(CCPPSyntaxMemberExpression* pcMember)
+{
+	SCPP65Type*	psObject;
+
+	BeginQuiet();
+	psObject = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : ValueTypeOf(pcMember->mpcObject);
+	EndQuiet();
+	if (psObject && pcMember->mbArrow)
+	{
+		psObject = psObject->IsPointer() ? psObject->psBase : NULL;
+	}
+	return (psObject && psObject->IsClass()) ? psObject->pcClass : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the member of object.member or pointer->member is, in *pcBound
+// (CCPPBinder::BindMember, in the object's class), with nothing reported:
+// false if it is nothing, or the object isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound)
+{
+	CCPPClass*	pcClass;
+	bool		bBound;
+
+	pcClass = MemberObjectClass(pcMember);
+	BeginQuiet();
+	bBound = pcClass && mcBinder.BindMember(pcClass, pcMember->mpcName, pcMember, pcBound);
+	EndQuiet();
+	return bBound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The enumerator that object.name or pointer->name names, a member of the
+// object's class (s.E is S::E, once s is worked out), or NULL.
+// [expr.ref] 4
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPUnit::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember)
+{
+	CCPPClass*	pcClass;
+	CCPPClass*	pcDeclaring;
+
+	pcClass = MemberObjectClass(pcMember);
+	return (pcClass && CompleteClass(pcClass, pcMember)) ? pcClass->FindMemberSymbol(GetComponentName(pcMember->mpcName->GetLast()), CPPSK_Enumerator, &pcDeclaring) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bit-field an expression names, or NULL: a field of this named alone,
+// or one after . or ->, that is declared with a width.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPField* CCPPUnit::BitFieldOf(CCPPSyntax* pcExpression)
+{
+	CCPPBoundName	cBound;
+
+	pcExpression = SkipParentheses(pcExpression);
+	cBound.meWhat = CPPBN_Nothing;
+	if (pcExpression->GetKind() == CPPS_IdExpression)
+	{
+		BeginQuiet();
+		mcBinder.BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
+		EndQuiet();
+	}
+	else if ((pcExpression->GetKind() == CPPS_MemberExpression) && !BindMemberOf((CCPPSyntaxMemberExpression*)pcExpression, &cBound))
+	{
+		cBound.meWhat = CPPBN_Nothing;
+	}
+	return ((cBound.meWhat == CPPBN_Field) && cBound.mpsField->IsBitField()) ? cBound.mpsField : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type the value of pcExpression, a psType, has where integral
+// promotion is applied to it (an operator's operand, an argument that has
+// no parameter, a switch's condition): its own, but for a bit-field, which
+// is promoted by its width and not by its type.  An unsigned field of
+// three bits is an int there, so that field - 4 is less than 0.
+// [conv.prom] 3
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression)
+{
+	SCPPField*	psField;
+
+	psField = psType->IsInteger() ? BitFieldOf(pcExpression) : NULL;
+	return psField ? mcTypes.PromoteBitField(psType, psField->iBitWidth) : psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of what a call is made through when it isn't a function by its
+// name: a pointer to a function, which a function (what a reference to one
+// refers to) is converted to.  NULL if the callee is neither.  [conv.func]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::CalleePointerType(CCPPSyntax* pcCallee)
+{
+	SCPP65Type*	psType;
+
+	psType = TypeOf(pcCallee);
+	if (psType && psType->IsFunction())
+	{
+		psType = mcTypes.Pointer(psType);
+	}
+	return (psType && psType->IsPointer() && psType->psBase->IsFunction()) ? psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type an argument with no parameter (one of a function's ...) is
+// passed as, after the default argument promotions: a bool or an integer
+// smaller than an int is promoted, a float is a double, an array or a
+// function is a pointer to it and nullptr is a void*.  NULL for what isn't
+// passed so (an object).  [expr.call] 7
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::VariadicArgumentType(SCPP65Type* psType)
+{
+	if (psType->IsFloat())
+	{
+		return &mcTypes.msDouble;
+	}
+	if (psType->IsInteger())
+	{
+		return mcTypes.Promote(psType);
+	}
+	if (psType->IsArray())
+	{
+		return mcTypes.Pointer(psType->psBase);
+	}
+	if (psType->IsFunction())
+	{
+		return mcTypes.Pointer(psType);
+	}
+	if (psType->IsNullPointer())
+	{
+		return mcTypes.Pointer(&mcTypes.msVoid);
+	}
+	return (psType->IsPointer() || psType->IsMemberPointer()) ? psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the types two pointers point to, or two pointers to members point
+// to as members, have in common: one type with the const and volatile of
+// both, where they are the same type but for those.  At the first level
+// (bFirstLevel: what the pointers themselves point to) void with an object
+// type is void, and a class with one it is derived from is the base.
+// Pointers that differ further in point to what those have in common, and
+// are const as const was added there.  NULL if they have nothing in
+// common.  [expr] 13, [conv.qual] 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, bool bFirstLevel)
+{
+	SCPP65Type*	psCommon;
+	SCPP65Type*	psInner;
+	CCPPClass*	pcBase;
+	bool		bConst;
+
+	bConst = psLeft->bConst || psRight->bConst;
+	pcBase = bFirstLevel ? ConditionalClass(psLeft, psRight) : NULL;
+	psCommon = NULL;
+	if (psLeft->Unqualified()->Same(psRight->Unqualified()))
+	{
+		psCommon = psLeft;
+	}
+	else if (bFirstLevel && (psLeft->IsVoid() || psRight->IsVoid()) && !psLeft->IsFunction() && !psRight->IsFunction())
+	{
+		psCommon = &mcTypes.msVoid;
+	}
+	else if (pcBase)
+	{
+		psCommon = pcBase->mpsType;
+	}
+	else if (psLeft->IsPointer() && psRight->IsPointer())
+	{
+		psInner = CompositePointee(psLeft->psBase, psRight->psBase, false);
+		psCommon = psInner ? mcTypes.Pointer(psInner) : NULL;
+		bConst = true;
+	}
+	return psCommon ? mcTypes.Qualified(psCommon->Unqualified(), bConst, psLeft->bVolatile || psRight->bVolatile) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The composite pointer type of two operands: the type both are converted
+// to before two pointers, or two pointers to members, are compared, and
+// the type of c ? x : y of them.  A null pointer constant (a std::nullptr_t,
+// or an integer, which its user has seen is one) with a pointer is the
+// pointer's type and with a std::nullptr_t that; two pointers are a
+// pointer to what they point to in common (CompositePointee); two
+// pointers to members are the derived class's, to what the members are in
+// common.  NULL if there is no such type.  [expr] 13
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::CompositePointerType(SCPP65Type* psLeft, SCPP65Type* psRight)
+{
+	SCPP65Type*	psPointee;
+	CCPPClass*	pcDerived;
+	bool		bLeftNull;
+	bool		bRightNull;
+
+	bLeftNull = psLeft->IsNullPointer() || psLeft->IsInteger();
+	bRightNull = psRight->IsNullPointer() || psRight->IsInteger();
+	if (bRightNull && (psLeft->IsPointer() || psLeft->IsMemberPointer() || psLeft->IsNullPointer()))
+	{
+		return psLeft->Unqualified();
+	}
+	if (bLeftNull && (psRight->IsPointer() || psRight->IsMemberPointer() || psRight->IsNullPointer()))
+	{
+		return psRight->Unqualified();
+	}
+	if (psLeft->IsPointer() && psRight->IsPointer())
+	{
+		psPointee = CompositePointee(psLeft->psBase, psRight->psBase, true);
+		return psPointee ? mcTypes.Pointer(psPointee) : NULL;
+	}
+	if (psLeft->IsMemberPointer() && psRight->IsMemberPointer())
+	{
+		//A pointer to a base's member is one to the derived class's.  [conv.mem] 2
+		pcDerived = IsDerived(psLeft->pcClass, psRight->pcClass, NULL) ? psLeft->pcClass : (IsDerived(psRight->pcClass, psLeft->pcClass, NULL) ? psRight->pcClass : NULL);
+		psPointee = CompositePointee(psLeft->psBase, psRight->psBase, false);
+		return (pcDerived && psPointee) ? mcTypes.MemberPointer(pcDerived, psPointee) : NULL;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of c ? x : y for x and y that aren't objects, NULL if they have
+// none in common: void if either is; their own type where it is one type,
+// which isn't promoted (two chars are a char, two bools a bool); the usual
+// arithmetic conversions' for numbers and enums; otherwise their composite
+// pointer type.  [expr.cond] 2, 6
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse)
+{
+	if (psTrue->IsVoid() || psFalse->IsVoid())
+	{
+		return &mcTypes.msVoid;
+	}
+	if (psTrue->Unqualified()->Same(psFalse->Unqualified()))
+	{
+		return psTrue->Unqualified();
+	}
+	if (psTrue->IsFloat() || psFalse->IsFloat())
+	{
+		return ((psTrue->IsFloat() || psTrue->IsInteger()) && (psFalse->IsFloat() || psFalse->IsInteger())) ? mcTypes.FloatArithmetic(psTrue, psFalse) : NULL;
+	}
+	if (psTrue->IsInteger() && psFalse->IsInteger())
+	{
+		return mcTypes.Arithmetic(psTrue, psFalse);
+	}
+	return CompositePointerType(psTrue, psFalse);
 }
 
 
@@ -273,7 +553,7 @@ SCPP65Type* CCPPUnit::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbD
 	}
 	else
 	{
-		psType = TypeOf(pcTypeid->mpcOperand);
+		psType = UnevaluatedTypeOf(pcTypeid->mpcOperand);
 		psType = psType ? psType->WithoutReference() : NULL;
 		*pbDynamic = psType && psType->IsClass() && CompleteClass(psType->pcClass, pcTypeid) && psType->pcClass->IsPolymorphic() && IsObjectLvalue(pcTypeid->mpcOperand);
 	}
@@ -814,7 +1094,7 @@ bool CCPPUnit::IsObjectLvalue(CCPPSyntax* pcExpression)
 	SCPP65Type*	psType;
 
 	pcExpression = SkipParentheses(pcExpression);
-	psType = TypeOf(pcExpression);
+	psType = DeclaredTypeOf(pcExpression);
 	if (psType && psType->IsReference())
 	{
 		return true;

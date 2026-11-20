@@ -315,7 +315,7 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		psValue = (pcValue && mcContext.GetFunction() && mcContext.GetFunction()->mpsReturn) ? TypeOf(pcValue) : NULL;
 		if (psValue && !psValue->IsClass() && !mcContext.GetFunction()->mpsReturn->IsClass() && !mcContext.GetFunction()->mpsReturn->IsVoid())
 		{
-			mcTypeChecker.KeepsScopedEnum(psValue, mcContext.GetFunction()->mpsReturn, pcValue);
+			mcTypeChecker.KeepsEnum(psValue, mcContext.GetFunction()->mpsReturn, pcValue);
 		}
 		return;
 	case CPPS_IfStatement:

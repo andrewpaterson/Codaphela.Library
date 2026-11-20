@@ -83,7 +83,8 @@ SCPP65Type* CCPP65TypeChecker::Value(CCPPSyntax* pcExpression, SCPP65Type** ppsD
 // known): a function's name for a pointer to a function is the overload of that
 // type (&Class::f for a pointer to a member function the member of that type),
 // an object is converted by its conversion function to psTo (only an
-// explicit one when bExplicit), and a list in braces is its one value or zero.
+// explicit one when bExplicit; what it refers to, if it returns a reference to
+// a number or a pointer), and a list in braces is its one value or zero.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit)
@@ -91,6 +92,7 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 	CCPPBoundConversion			cBound;
 	CCPPSyntaxIdExpression*		pcFunctionName;
 	SCPP65Type*					psMember;
+	SCPP65Type*					psConverted;
 
 	if (pcExpression && (pcExpression->GetKind() == CPPS_InitializerList) && psTo && !psTo->IsClass())
 	{
@@ -111,7 +113,8 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 	mpcUnit->GetBinder()->BindConversion(pcExpression, psTo, bExplicit, &cBound);
 	if (cBound.meHow == CPPBV_Function)
 	{
-		return ObjectCall(pcExpression, cBound.mpcFunction, NULL, pcExpression);
+		psConverted = ObjectCall(pcExpression, cBound.mpcFunction, NULL, pcExpression);
+		return (psConverted && psConverted->IsReference() && psConverted->psBase->IsScalar()) ? psConverted->psBase : psConverted;
 	}
 	return Value(pcExpression);
 }
@@ -287,6 +290,15 @@ void CCPP65TypeChecker::VisitCallExpression(CCPPSyntaxCallExpression* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitMemberExpression(CCPPSyntaxMemberExpression* pcNode)
 {
+	CCPPSymbol*	pcEnumerator;
+
+	//object.Enumerator is the enumerator, the object worked out first; anything else is a field or a static member.
+	pcEnumerator = mpcUnit->MemberEnumerator(pcNode);
+	if (pcEnumerator)
+	{
+		mpsResult = Value(pcNode->mpcObject) ? mpcUnit->EnumeratorType(pcEnumerator) : NULL;
+		return;
+	}
 	mpsResult = Load(Place(pcNode), pcNode);
 }
 
@@ -308,6 +320,13 @@ void CCPP65TypeChecker::VisitThisExpression(CCPPSyntaxThisExpression* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitLambdaExpression(CCPPSyntaxLambdaExpression* pcNode)
 {
+	if (mpcUnit->IsInUnevaluatedOperand(pcNode))
+	{
+		//[expr.prim.lambda] 2
+		Error(pcNode, "A lambda can't be written in the operand of sizeof, decltype, noexcept or typeid");
+		mpsResult = NULL;
+		return;
+	}
 	mpsResult = mpcUnit->LambdaType(pcNode);
 }
 
@@ -328,13 +347,18 @@ void CCPP65TypeChecker::VisitCastExpression(CCPPSyntaxCastExpression* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitNamedCastExpression(CCPPSyntaxNamedCastExpression* pcNode)
 {
+	SCPP65Type*	psResult;
+
 	if (pcNode->meCast == CT_dynamic_cast)
 	{
-		//Its pointer or reference type, whatever the operand (CCPP65IRFrontEnd::DynamicCastExpression checks it).
-		mpsResult = mpcUnit->GetDeclarators()->GetTypeIdType(pcNode->mpcType);
+		//Its pointer or reference type (CCPP65IRFrontEnd::DynamicCastExpression checks what the operand is).
+		psResult = mpcUnit->GetDeclarators()->GetTypeIdType(pcNode->mpcType);
+		mpsResult = (psResult && DynamicCastAllowed(pcNode, psResult)) ? psResult : NULL;
 		return;
 	}
-	mpsResult = CastExpression(pcNode->mpcType, pcNode->mpcOperand, pcNode);
+	//(The check types the operand again, which leaves its type in mpsResult.)
+	psResult = CastExpression(pcNode->mpcType, pcNode->mpcOperand, pcNode);
+	mpsResult = (psResult && NamedCastAllowed(pcNode, psResult)) ? psResult : NULL;
 }
 
 
@@ -416,6 +440,7 @@ void CCPP65TypeChecker::VisitThrowExpression(CCPPSyntaxThrowExpression* pcNode)
 void CCPP65TypeChecker::VisitTypeidExpression(CCPPSyntaxTypeidExpression* pcNode)
 {
 	CCPPClass*	pcTypeInfo;
+	SCPP65Type*	psOf;
 	bool		bDynamic;
 
 	mpsResult = NULL;
@@ -429,9 +454,15 @@ void CCPP65TypeChecker::VisitTypeidExpression(CCPPSyntaxTypeidExpression* pcNode
 	{
 		return;
 	}
-	if (!mpcUnit->TypeidType(pcNode, &bDynamic))
+	psOf = mpcUnit->TypeidType(pcNode, &bDynamic);
+	if (!psOf)
 	{
 		Error(pcNode, "typeid of this is not supported by the compiler yet");
+		return;
+	}
+	if (psOf->WithoutReference()->IsClass() && !mpcUnit->CompleteClass(psOf->WithoutReference()->pcClass, pcNode))
+	{
+		//[expr.typeid] 4
 		return;
 	}
 	mpsResult = mpcTypes->Reference(mpcTypes->Const(pcTypeInfo->mpsType));
@@ -549,7 +580,8 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A string literal is a pointer to its first character.
+// A string literal's value is a pointer to its first character, which is
+// const as all of them are.  [lex.string] 8
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::StringLiteral(CCPPSyntaxStringExpression* pcString)
@@ -560,7 +592,7 @@ SCPP65Type* CCPP65TypeChecker::StringLiteral(CCPPSyntaxStringExpression* pcStrin
 	auiBytes.Init();
 	bDecoded = mpcUnit->DecodeString(pcString, &auiBytes);
 	auiBytes.Kill();
-	return bDecoded ? mpcTypes->Pointer(mpcUnit->StringElementType(pcString)) : NULL;
+	return bDecoded ? mpcTypes->Pointer(mpcTypes->Const(mpcUnit->StringElementType(pcString))) : NULL;
 }
 
 
@@ -796,9 +828,15 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		{
 			pcId = (CCPPSyntaxIdExpression*)pcOperand;
 			pcSymbol = pcId->mpcName->mpcSymbol;
-			if (pcId->mpcName->IsQualifiedByClass() && MemberAddress(pcId, NULL, &psType))
+			if (mpcUnit->MemberPointerName(pcUnary) && MemberAddress(pcId, NULL, &psType))
 			{
 				return psType;
+			}
+			if (!mpcUnit->MemberPointerName(pcUnary) && !mpcUnit->ThisClass() && mpcUnit->QualifiedFieldType(pcId))
+			{
+				//&(Class::field), which is no pointer to a member, where there is no object for the field to be in.
+				Error(pcUnary, "A pointer to a member is &Class::member, with no brackets about the name");
+				return NULL;
 			}
 			if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 			{
@@ -810,6 +848,12 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 			}
 		}
 		psType = Place(pcUnary->mpcOperand);
+		if (psType && mpcUnit->IsRvalue(pcOperand))
+		{
+			//[expr.unary.op] 3
+			Error(pcUnary, "The address of a temporary can't be taken");
+			return NULL;
+		}
 		return psType ? mpcTypes->Pointer(psType) : NULL;
 	default:
 		break;
@@ -822,24 +866,25 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	if (((pcUnary->meOperator == CT_Subtract) || (pcUnary->meOperator == CT_BitwiseNot) || (pcUnary->meOperator == CT_Add)) && mpcUnit->Constant(pcUnary, &lliValue))
 	{
 		psType = mpcUnit->TypeOf(pcUnary->mpcOperand);
-		if (psType && psType->IsInteger())
+		if (psType && psType->IsInteger() && !psType->IsScopedEnum())
 		{
-			return mpcTypes->Promote(psType);
+			return mpcTypes->Promote(mpcUnit->OperandType(psType, pcUnary->mpcOperand));
 		}
 	}
 
-	psType = Value(pcUnary->mpcOperand);
+	psType = Operand(pcUnary->mpcOperand);
 	if (!psType)
 	{
 		return NULL;
 	}
-	if (psType->IsFloat() && ((pcUnary->meOperator == CT_Add) || (pcUnary->meOperator == CT_Subtract)))
+	if ((psType->IsFloat() && ((pcUnary->meOperator == CT_Add) || (pcUnary->meOperator == CT_Subtract))) || (psType->IsPointer() && (pcUnary->meOperator == CT_Add)))
 	{
+		//-float and +float; +pointer is the pointer.  [expr.unary.op] 7, 8
 		return psType;
 	}
 	if (!psType->IsInteger())
 	{
-		Error(pcUnary, "The operand must be an integer");
+		Error(pcUnary, (pcUnary->meOperator == CT_BitwiseNot) ? "The operand of ~ must be an integer" : "The operand must be a number");
 		return NULL;
 	}
 	if (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcUnary, psType, psType, CPPEC_ARITHMETIC))
@@ -882,6 +927,18 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 	if (!psType->IsScalar() || (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcUnary, psType, psType, CPPEC_INCREMENT)))
 	{
 		Error(pcUnary, "Only integers and pointers can be incremented");
+		return NULL;
+	}
+	if (psType->pcEnum && !psType->IsScopedEnum() && !mpcUnit->IsCSource())
+	{
+		//The next value is a number, which an enum isn't given.  [expr.pre.incr] 1, [expr.post.incr] 1
+		Error(pcUnary, "An enum can't be incremented: it is given only its own values, or a cast");
+		return NULL;
+	}
+	if ((psType->eKind == CPP65TK_Bool) && (pcUnary->meOperator == CT_Decrement))
+	{
+		//++b makes it true; there is no --b.  [expr.pre.incr] 2
+		Error(pcUnary, "A bool can't be decremented");
 		return NULL;
 	}
 	if (psType->IsPointer() && !CompletePointee(psType, pcUnary))
@@ -994,6 +1051,11 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 	if (psPlace->IsClass() && (pcBinary->meOperator == CT_Assignment))
 	{
+		if (mpcUnit->SkipParentheses(pcBinary->mpcRight)->GetKind() == CPPS_InitializerList)
+		{
+			//x = {1, 2} is x = X{1, 2}: a temporary made from the list.  [expr.ass] 9
+			return TemporaryObject(psPlace->Unqualified(), pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
+		}
 		return CopyObject(psPlace->pcClass, pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
 	}
 	if (!psPlace->IsScalar())
@@ -1026,8 +1088,9 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	case CT_AssignmentLeftShift:	eOperator = CT_LeftShift;	break;
 	default:						eOperator = CT_RightShift;	break;
 	}
+	//x op= y is x = x op y.  [expr.ass] 7
 	psResult = Operate(eOperator, psPlace, psRight, pcBinary);
-	return Convert(psResult, psPlace, pcBinary) ? psPlace : NULL;
+	return ImplicitConvert(psResult, psPlace, pcBinary, NULL) ? psPlace : NULL;
 }
 
 
@@ -1038,13 +1101,28 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65Type** ppsLeft, SCPP65Type** ppsRight)
 {
-	*ppsLeft = Value(pcLeft);
+	*ppsLeft = Operand(pcLeft);
 	if (!*ppsLeft)
 	{
 		return false;
 	}
-	*ppsRight = Value(pcRight);
+	*ppsRight = Operand(pcRight);
 	return *ppsRight != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the value of an operand that integral promotion is applied
+// to (CCPPUnit::OperandType: a bit-field's is promoted by its width).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::Operand(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	psType = Value(pcExpression);
+	return psType ? mpcUnit->OperandType(psType, pcExpression) : NULL;
 }
 
 
@@ -1073,6 +1151,12 @@ SCPP65Type* CCPP65TypeChecker::Operate(ECppTokens eOperator, SCPP65Type* psLeft,
 	{
 		if ((psLeft->IsPointer() && !CompletePointee(psLeft, pcNode)) || (psRight->IsPointer() && !CompletePointee(psRight, pcNode)))
 		{
+			return NULL;
+		}
+		if (psLeft->IsPointer() && psRight->IsPointer() && !psLeft->psBase->Equals(psRight->psBase))
+		{
+			//[expr.add] 2
+			Error(pcNode, "Pointers to different types can't be subtracted");
 			return NULL;
 		}
 		return psType;
@@ -1121,12 +1205,38 @@ bool CCPP65TypeChecker::CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNod
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether left and right can be compared: numbers, pointers (with each other or 0),
-// and pointers to members for equality.
+// Whether pcBinary's operands, a psLeft and a psRight, can be compared:
+// numbers, and pointers, or for equality pointers to members, that have a
+// composite pointer type (with each other, or for equality with 0 or
+// nullptr: no other number, and a null pointer is before or after nothing).
+// [expr.rel] 2, [expr.eq] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65TypeChecker::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight, CCPPSyntax* pcNode)
+bool CCPP65TypeChecker::Compare(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type* psLeft, SCPP65Type* psRight)
 {
+	CCPPSyntax*	pcNode;
+	ECppTokens	eOperator;
+	bool		bEquality;
+	bool		bLeftPointer;
+	bool		bRightPointer;
+
+	pcNode = pcBinary;
+	eOperator = pcBinary->meOperator;
+	bEquality = (eOperator == CT_EqualTo) || (eOperator == CT_NotEqualTo);
+	bLeftPointer = psLeft->IsPointer() || psLeft->IsMemberPointer();
+	bRightPointer = psRight->IsPointer() || psRight->IsMemberPointer();
+	if ((bLeftPointer && psRight->IsInteger()) || (bRightPointer && psLeft->IsInteger()))
+	{
+		if (!mpcUnit->IsNullPointerConstant(bLeftPointer ? pcBinary->mpcRight : pcBinary->mpcLeft))
+		{
+			return Error(pcNode, "A pointer is compared with a pointer, 0 or nullptr: not with a number");
+		}
+	}
+	if (!bEquality && (bLeftPointer != bRightPointer) && !psLeft->IsFloat() && !psRight->IsFloat() && !mpcUnit->IsCSource())
+	{
+		//(C compilers let p > 0 by.)
+		return Error(pcNode, "A pointer is compared with a null pointer only for equality");
+	}
 	if ((psLeft->IsScopedEnum() || psRight->IsScopedEnum()) && (psLeft->Unqualified() != psRight->Unqualified()) && !RecordsEnumOperands(pcNode, psLeft, psRight, CPPEC_COMPARE))
 	{
 		return Error(pcNode, "An enum class's value is compared only with its own values");
@@ -1153,26 +1263,31 @@ bool CCPP65TypeChecker::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65
 		}
 		return true;
 	}
-	if (psLeft->IsPointer() || psRight->IsPointer())
-	{
-		return true;
-	}
-	if ((psLeft->IsMemberPointer() || psRight->IsMemberPointer()) && ((eOperator == CT_EqualTo) || (eOperator == CT_NotEqualTo)))
-	{
-		return true;
-	}
 	if (psLeft->IsInteger() && psRight->IsInteger())
 	{
 		return true;
 	}
-	return Error(pcNode, "These operands cannot be compared");
+	if ((psLeft->IsMemberPointer() || psRight->IsMemberPointer()) && (eOperator != CT_EqualTo) && (eOperator != CT_NotEqualTo))
+	{
+		return Error(pcNode, "Pointers to members are only compared for equality");
+	}
+	if ((psLeft->IsPointer() || psLeft->IsMemberPointer()) && (psRight->IsPointer() || psRight->IsMemberPointer()) && !mpcUnit->CompositePointerType(psLeft, psRight))
+	{
+		//int* with long*, a pointer to a function with one to an object, pointers to members of unrelated classes.
+		return Error(pcNode, "These pointers cannot be compared: neither's type converts to the other's");
+	}
+	if (!mpcUnit->CompositePointerType(psLeft, psRight))
+	{
+		return Error(pcNode, "These operands cannot be compared");
+	}
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // c ? x : y.  Objects of a class make an object of it (ObjectConditional), scalars
-// the type CCPP65Types::Conditional gives.
+// the type CCPPUnit::ConditionalType gives.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpression* pcConditional)
@@ -1223,7 +1338,12 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 		return ObjectConditional(pcConditional, psTrue, psFalse);
 	}
 
-	psType = mpcTypes->Conditional(psTrue, psFalse);
+	psType = mpcUnit->ConditionalType(psTrue, psFalse);
+	if (!psType || !ConditionalResultsFit(pcConditional, psTrue, psFalse))
+	{
+		Error(pcConditional, "The two results of ? : have no type in common");
+		return NULL;
+	}
 	if (!Condition(pcConditional->mpcCondition) ||
 		!Convert(Value(pcConditional->mpcTrue), psType, pcConditional->mpcTrue) ||
 		!Convert(Value(pcConditional->mpcFalse), psType, pcConditional->mpcFalse))
@@ -1231,6 +1351,67 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 		return NULL;
 	}
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether c ? x : y's results, a psTrue and a psFalse that have a type in
+// common (CCPPUnit::ConditionalType, which sees only their types), are
+// what the type is for: one that is void goes with another, or with a
+// throw; and a number with a pointer is 0.  [expr.cond] 2, 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConditionalResultsFit(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse)
+{
+	CCPPSyntax*	pcOther;
+
+	if (psTrue->IsVoid() != psFalse->IsVoid())
+	{
+		pcOther = mpcUnit->SkipParentheses(psTrue->IsVoid() ? pcConditional->mpcTrue : pcConditional->mpcFalse);
+		return pcOther->GetKind() == CPPS_ThrowExpression;
+	}
+	if ((psTrue->IsPointer() || psTrue->IsMemberPointer()) && psFalse->IsInteger())
+	{
+		return mpcUnit->IsNullPointerConstant(pcConditional->mpcFalse);
+	}
+	if ((psFalse->IsPointer() || psFalse->IsMemberPointer()) && psTrue->IsInteger())
+	{
+		return mpcUnit->IsNullPointerConstant(pcConditional->mpcTrue);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// c ? x : y as a place: x and y are lvalues of one type, which the result
+// is, with the const and volatile of both.  NULL, with why, if they aren't.
+// (One that picks between bit-fields isn't done.)  [expr.cond] 3, 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::ConditionalPlace(CCPPSyntaxConditionalExpression* pcConditional)
+{
+	SCPP65Type*	psTrue;
+	SCPP65Type*	psFalse;
+
+	psTrue = mpcUnit->PlaceOf(pcConditional->mpcTrue);
+	psFalse = mpcUnit->PlaceOf(pcConditional->mpcFalse);
+	if (!psTrue || !psFalse || mpcUnit->IsRvalue(pcConditional->mpcTrue) || mpcUnit->IsRvalue(pcConditional->mpcFalse) || !psTrue->Unqualified()->Same(psFalse->Unqualified()))
+	{
+		Error(pcConditional, "This is not an lvalue: the two results of ? : are not lvalues of one type");
+		return NULL;
+	}
+	if (mpcUnit->BitFieldOf(pcConditional->mpcTrue) || mpcUnit->BitFieldOf(pcConditional->mpcFalse))
+	{
+		Error(pcConditional, "c ? x : y that picks a bit-field to change is not supported by the compiler yet");
+		return NULL;
+	}
+	if (!Condition(pcConditional->mpcCondition) || !Place(pcConditional->mpcTrue) || !Place(pcConditional->mpcFalse))
+	{
+		return NULL;
+	}
+	return mpcTypes->Qualified(psTrue->Unqualified(), psTrue->bConst || psFalse->bConst, psTrue->bVolatile || psFalse->bVolatile);
 }
 
 
@@ -1328,7 +1509,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 				return Truth(OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary), pcBinary);
 			}
 			mpcUnit->ComparisonRange(pcBinary);
-			return Operands(pcBinary->mpcLeft, pcBinary->mpcRight, &psLeft, &psRight) && Compare(pcBinary->meOperator, psLeft, psRight, pcBinary);
+			return Operands(pcBinary->mpcLeft, pcBinary->mpcRight, &psLeft, &psRight) && Compare(pcBinary, psLeft, psRight);
 		default:
 			break;
 		}
@@ -1390,6 +1571,8 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		return MemberFunctionCall(pcCall, &cBound);
 	case CPPBC_Destructor:
 		return cBound.mpcFunction ? MemberFunctionCall(pcCall, &cBound) : &mpcTypes->msVoid;
+	case CPPBC_PseudoDestructor:
+		return Value(cBound.mpcObject) ? &mpcTypes->msVoid : NULL;
 	case CPPBC_MemberPointer:
 		return MemberPointerCall(pcCall, cBound.mpapcArguments, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee);
 	case CPPBC_Function:
@@ -1401,8 +1584,8 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	case CPPBC_Unchecked:
 		return UncheckedCall(cBound.mpapcArguments);
 	case CPPBC_Pointer:
-		psType = mpcUnit->TypeOf(cBound.mpcCallee);
-		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
+		psType = mpcUnit->CalleePointerType(cBound.mpcCallee);
+		if (psType)
 		{
 			return CallThroughPointer(pcCall, cBound.mpapcArguments, psType->psBase);
 		}
@@ -1501,42 +1684,15 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 	for (i = uiArguments; i > uiParameters; i--)
 	{
 		pcArgument = papcArguments->GetPtr(i - 1);
-		psType = Value(pcArgument);
+		psType = Operand(pcArgument);
 		if (!psType)
 		{
 			return false;
 		}
-		if (psType->eKind == CPP65TK_Bool)
+		psParameter = mpcUnit->VariadicArgumentType(psType);
+		if (!psParameter)
 		{
-			psParameter = &mpcTypes->msInt;
-		}
-		else if (psType->IsFloat())
-		{
-			psParameter = &mpcTypes->msDouble;
-		}
-		else if (psType->IsInteger())
-		{
-			psParameter = mpcTypes->Promote(psType);
-		}
-		else if (psType->IsArray())
-		{
-			psParameter = mpcTypes->Pointer(psType->psBase);
-		}
-		else if (psType->IsFunction())
-		{
-			psParameter = mpcTypes->Pointer(psType);
-		}
-		else if (psType->IsPointer())
-		{
-			psParameter = psType;
-		}
-		else if (psType->IsClass())
-		{
-			return Error(pcArgument, "Objects cannot be passed by value by the compiler yet; pass a pointer or a reference");
-		}
-		else
-		{
-			return Error(pcArgument, "This variable argument is not supported by the compiler yet");
+			return Error(pcArgument, psType->IsClass() ? "Objects cannot be passed by value by the compiler yet; pass a pointer or a reference" : "This variable argument is not supported by the compiler yet");
 		}
 		if (!Convert(psType, psParameter, pcArgument))
 		{
@@ -1908,14 +2064,16 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 //////////////////////////////////////////////////////////////////////////
 //
 // The pointer to member's type of object.*member or pointer->*member, once the
-// object is an object of a class.
+// object is an object of the member's class or of a class derived from it,
+// where that base is once and may be reached.  *ppsObject (if not NULL) is
+// the object's type, with its const and volatile.  [expr.mptr.oper] 2, 3
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary)
+SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type** ppsObject)
 {
 	SCPP65Type*		psMember;
 	SCPP65Type*		psObject;
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 
 	psMember = mpcUnit->TypeOf(pcBinary->mpcRight);
 	if (!psMember)
@@ -1941,7 +2099,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* p
 			Error(pcBinary, "The left of ->* must be a pointer to an object");
 			return NULL;
 		}
-		pcClass = psObject->psBase->pcClass;
+		psObject = psObject->psBase;
 	}
 	else
 	{
@@ -1955,12 +2113,28 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* p
 			Error(pcBinary, "The left of .* must be an object");
 			return NULL;
 		}
-		pcClass = psObject->pcClass;
 	}
+	pcClass = psObject->pcClass;
 	if (psMember->pcClass && (pcClass != psMember->pcClass))
 	{
 		//A base further on in the object is where the member is.
-		mpcUnit->CompleteClass(pcClass, pcBinary);
+		if (!mpcUnit->CompleteClass(pcClass, pcBinary))
+		{
+			return NULL;
+		}
+		if (!mpcUnit->IsDerived(pcClass, psMember->pcClass, NULL))
+		{
+			Error(pcBinary, "The object isn't of the class the pointer to a member is of, or of a class derived from it");
+			return NULL;
+		}
+		if (!mpcUnit->GetBinder()->ReachesBase(pcClass, psMember->pcClass, pcBinary))
+		{
+			return NULL;
+		}
+	}
+	if (ppsObject)
+	{
+		*ppsObject = psObject;
 	}
 	return psMember;
 }
@@ -1968,24 +2142,33 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// object.*field and pointer->*field: the field's type.
+// object.*field and pointer->*field: the field's type, with the object's
+// const and volatile (a mutable field's too: no pointer to a member says
+// that it is one).  [expr.mptr.oper] 5
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary)
 {
 	SCPP65Type*	psMember;
+	SCPP65Type*	psObject;
+	SCPP65Type*	psField;
 
-	psMember = MemberPointerObject(pcBinary);
+	psMember = MemberPointerObject(pcBinary, &psObject);
 	if (!psMember)
 	{
 		return NULL;
 	}
-	if (psMember->psBase->IsFunction())
+	psField = psMember->psBase;
+	if (psField->IsFunction())
 	{
 		Error(pcBinary, "A pointer to a member function can only be called");
 		return NULL;
 	}
-	return Value(pcBinary->mpcRight) ? psMember->psBase : NULL;
+	if (!Value(pcBinary->mpcRight))
+	{
+		return NULL;
+	}
+	return mpcTypes->Qualified(psField->Unqualified(), psField->bConst || psObject->bConst, psField->bVolatile || psObject->bVolatile);
 }
 
 
@@ -2008,7 +2191,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCal
 	}
 	psFunctionType = psMember->psBase;
 	if (!Arguments(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, papcArguments, pcCall, psFunctionType->psBase) ||
-		!MemberPointerObject(pcBinary) ||
+		!MemberPointerObject(pcBinary, NULL) ||
 		!Value(pcBinary->mpcRight))
 	{
 		return NULL;
@@ -2068,6 +2251,12 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		{
 			return Place(cBound.mpcArgument);
 		}
+		if (cBound.meWhat == CPPBN_Function)
+		{
+			//A function's name is the function, an lvalue.
+			psType = FunctionAddress(pcId, cBound.mpcSymbol->mlliName, NULL);
+			return psType ? psType->psBase : NULL;
+		}
 		if (cBound.meWhat == CPPBN_Capture)
 		{
 			//What the closure holds: a copy, const unless the lambda is mutable, or a reference to it.
@@ -2105,6 +2294,11 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		if (((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement)) && !pcUnary->mbPostfix && !mpcUnit->IsObject(pcUnary->mpcOperand))
+		{
+			//++x and --x are x, once it is stepped.  [expr.pre.incr] 1
+			return IncrementExpression(pcUnary) ? Place(pcUnary->mpcOperand) : NULL;
+		}
 		if (pcUnary->meOperator != CT_Multiply)
 		{
 			break;
@@ -2129,6 +2323,14 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 	case CPPS_SubscriptExpression:
 		return SubscriptPlace((CCPPSyntaxSubscriptExpression*)pcExpression);
 
+	case CPPS_StringExpression:
+		//A string literal is the array of its characters ("text"_s is its literal operator's call, below).
+		if (mpcUnit->IsStringLiteral(pcExpression))
+		{
+			return mpcUnit->StringArrayType(pcExpression);
+		}
+		break;
+
 	case CPPS_CallExpression:
 		//A function that returns a reference, or an object (its temporary).
 		return ResultPlace(Result(pcExpression), pcExpression);
@@ -2140,10 +2342,31 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		}
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
 		pcLeft = mpcUnit->SkipParentheses(pcBinary->mpcLeft);
-		if (mpcUnit->IsAssignmentOperator(pcBinary->meOperator) && (pcLeft->GetKind() == CPPS_IdExpression) && !mpcUnit->IsObject(pcLeft))
+		if (mpcUnit->IsAssignmentOperator(pcBinary->meOperator) && !mpcUnit->IsObject(pcLeft))
 		{
-			//&(c = 'A'): the assignment, then its variable's place.
+			//(x = y) and (x op= y) are x, once it is assigned.  [expr.ass] 1
 			return Assignment(pcBinary) ? Place(pcLeft) : NULL;
+		}
+		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma(pcBinary))
+		{
+			//(x, y) is y, once x is worked out.  [expr.comma] 1
+			return Value(pcBinary->mpcLeft) ? Place(pcBinary->mpcRight) : NULL;
+		}
+		break;
+
+	case CPPS_CastExpression:
+	case CPPS_NamedCastExpression:
+		//A cast to a reference is what it refers to.  [expr.static.cast] 1
+		if (Value(pcExpression, &psType) && psType->IsReference())
+		{
+			return psType->psBase;
+		}
+		break;
+
+	case CPPS_ConditionalExpression:
+		if (!mpcUnit->IsObject(pcExpression))
+		{
+			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression);
 		}
 		break;
 
@@ -2232,7 +2455,8 @@ SCPP65Type* CCPP65TypeChecker::ResultPlace(SCPP65Type* psType, CCPPSyntax* pcNod
 //
 // A cast to a reference, (T&)x or static_cast<T&&>(x): x itself as a T,
 // which is its own type (const taken away or not) or, for an object, a
-// base or a derived class of its class.  [expr.static.cast] 2, 3
+// base or a derived class of its class; any other type only by
+// reinterpret_cast, or by (T&)x.  [expr.static.cast] 2, 3
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::ReferenceCast(SCPP65Type* psTo, CCPPSyntax* pcOperand, CCPPSyntax* pcNode)
@@ -2252,9 +2476,15 @@ SCPP65Type* CCPP65TypeChecker::ReferenceCast(SCPP65Type* psTo, CCPPSyntax* pcOpe
 	}
 	if (psReferred->IsClass() && psPlace->IsClass() && (mpcUnit->IsDerived(psPlace->pcClass, psReferred->pcClass, NULL) || mpcUnit->IsDerived(psReferred->pcClass, psPlace->pcClass, NULL)))
 	{
+		return CastReachesBase(psPlace, psReferred, pcNode) ? psTo : NULL;
+	}
+	if ((pcNode->GetKind() == CPPS_CastExpression) || ((pcNode->GetKind() == CPPS_NamedCastExpression) && (((CCPPSyntaxNamedCastExpression*)pcNode)->meCast == CT_reinterpret_cast)))
+	{
+		//reinterpret_cast<T&>(x) is *reinterpret_cast<T*>(&x), and (T&)x is that where it can be nothing else.
+		//[expr.reinterpret.cast] 11, [expr.cast] 4
 		return psTo;
 	}
-	Error(pcNode, "A cast to a reference to another type is not supported by the compiler yet");
+	Error(pcNode, "This cast can't make a reference to another type: reinterpret_cast does");
 	return NULL;
 }
 
@@ -2306,7 +2536,53 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 		Error(pcNode, "Only casts to integers and pointers are supported by the compiler yet");
 		return NULL;
 	}
-	return Convert(psFrom, psTo, pcNode) ? psTo : NULL;
+	return (Convert(psFrom, psTo, pcNode) && CastReachesBase(psFrom, psTo, pcNode)) ? psTo : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the cast pcNode may take a psFrom to a psTo where they are two
+// classes (a reference's cast), pointers to two or pointers to members of
+// two, and one class is the other's base: the base is in the derived class
+// once, and may be reached there, which only (T)x doesn't ask.  True for
+// any other types, and for reinterpret_cast, which makes no use of the
+// classes.  [expr.static.cast] 2, 11, 12; [expr.cast] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::CastReachesBase(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxNamedCastExpression*	pcNamed;
+	CCPPClass*						pcFrom;
+	CCPPClass*						pcTo;
+	CCPPClass*						pcDerived;
+
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer())
+	{
+		pcFrom = psFrom->pcClass;
+		pcTo = psTo->pcClass;
+	}
+	else
+	{
+		if (psFrom->IsPointer() && psTo->IsPointer())
+		{
+			psFrom = psFrom->psBase;
+			psTo = psTo->psBase;
+		}
+		pcFrom = psFrom->IsClass() ? psFrom->pcClass : NULL;
+		pcTo = psTo->IsClass() ? psTo->pcClass : NULL;
+	}
+	pcNamed = (pcNode->GetKind() == CPPS_NamedCastExpression) ? (CCPPSyntaxNamedCastExpression*)pcNode : NULL;
+	if (!pcFrom || !pcTo || (pcFrom == pcTo) || (pcNamed && (pcNamed->meCast == CT_reinterpret_cast)))
+	{
+		return true;
+	}
+	pcDerived = mpcUnit->IsDerived(pcFrom, pcTo, NULL) ? pcFrom : pcTo;
+	if (pcNamed)
+	{
+		return mpcUnit->GetBinder()->ReachesBase(pcDerived, (pcDerived == pcFrom) ? pcTo : pcFrom, pcNode);
+	}
+	return mpcUnit->GetBinder()->HasOneBase(pcDerived, (pcDerived == pcFrom) ? pcTo : pcFrom, pcNode);
 }
 
 
@@ -2333,6 +2609,11 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 	}
 	if (papcElements && (papcElements->NumElements() == 1))
 	{
+		if (psType && (pcConstruct->mpcInitializer->GetKind() == CPPS_InitializerList) && !NotNarrowed(papcElements->GetPtr(0), psType))
+		{
+			//T{value} doesn't narrow the value, as T(value) may.  [expr.type.conv] 3, [dcl.init.list] 3
+			return NULL;
+		}
 		return CastExpression(pcConstruct->mpcType, papcElements->GetPtr(0), pcConstruct);
 	}
 	Error(pcConstruct, "This construction is not supported by the compiler yet");
@@ -2343,13 +2624,20 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 //////////////////////////////////////////////////////////////////////////
 //
 // sizeof is an unsigned int, a type trait (__is_trivially_constructible(T) ...) a
-// bool; both are constants.
+// bool; both are constants.  A bit-field has no size.  [expr.sizeof] 1
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::SizeofExpression(CCPPSyntax* pcSizeof)
 {
-	int64	lliBytes;
+	CCPPSyntax*	pcOperand;
+	int64		lliBytes;
 
+	pcOperand = (pcSizeof->GetKind() == CPPS_SizeofExpression) ? ((CCPPSyntaxSizeofExpression*)pcSizeof)->mpcOperand : NULL;
+	if (pcOperand && mpcUnit->BitFieldOf(pcOperand))
+	{
+		Error(pcSizeof, "sizeof can't be applied to a bit-field");
+		return NULL;
+	}
 	if (mpcUnit->GetSemanticPass())
 	{
 		//Only checking: the value isn't needed, only the type (__builtin_va_arg(ap, T) is a T).
@@ -2426,7 +2714,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 
 	apcArguments.Init();
 	mpcUnit->NewArguments(pcNew, &apcArguments);
-	pcAllocation = mpcUnit->GetBinder()->FindAllocation(psType, pcNew->macpArraySizes.NumElements() > 0, &apcArguments, pcNew, &bFailed);
+	pcAllocation = mpcUnit->GetBinder()->FindAllocation(pcNew, psType, &apcArguments, &bFailed);
 	psResult = pcAllocation ? Call(pcAllocation, &apcArguments, pcNew) : &mpcTypes->msVoid;
 	apcArguments.Kill();
 	if (bFailed)
@@ -2466,9 +2754,22 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 {
 	CArraySyntax*	papcElements;
 	SCPP65Type*		psElement;
+	int64			lliBound;
 	size			i;
 
-	if (!Convert(Value(pcNew->macpArraySizes.GetPtr(0)), &mpcTypes->msUnsignedInt, pcNew))
+	//The bound is an integer, or an object that converts to one; a constant one isn't negative.  [expr.new] 6, 7
+	psElement = mpcUnit->GetBinder()->ContextualType(pcNew->macpArraySizes.GetPtr(0), false);
+	if (psElement && !psElement->IsInteger())
+	{
+		Error(pcNew->macpArraySizes.GetPtr(0), "A new array's bound must be an integer");
+		return NULL;
+	}
+	if (psElement && psElement->bSigned && mpcUnit->Constant(pcNew->macpArraySizes.GetPtr(0), &lliBound) && (lliBound < 0))
+	{
+		Error(pcNew->macpArraySizes.GetPtr(0), "A new array's bound can't be negative");
+		return NULL;
+	}
+	if (!psElement || !Convert(ValueFor(pcNew->macpArraySizes.GetPtr(0), psElement, false), &mpcTypes->msUnsignedInt, pcNew))
 	{
 		return NULL;
 	}
@@ -2482,6 +2783,11 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 	{
 		Error(pcNew, "A new array of arrays with a list of initialisers is not supported by the compiler yet");
 		return NULL;
+	}
+	if (mpcUnit->IsStringLiteral(mpcUnit->StringInitialiser(pcNew->mpcInitializer, psType)))
+	{
+		//new char[n]{"abc"}: the string's characters, as an array of them is initialised.  [dcl.init.string]
+		papcElements = NULL;
 	}
 	for (i = 0; papcElements && (i < papcElements->NumElements()); i++)
 	{
@@ -2503,7 +2809,8 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 
 //////////////////////////////////////////////////////////////////////////
 //
-// delete pointer and delete[] pointer: void.
+// delete pointer and delete[] pointer: void.  The pointer is to an object,
+// whose destructor may be called here.  [expr.delete] 1, 10
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete)
@@ -2511,18 +2818,20 @@ SCPP65Type* CCPP65TypeChecker::DeleteExpression(CCPPSyntaxDeleteExpression* pcDe
 	SCPP65Type*		psPointer;
 	SCPP65Type*		psType;
 
-	psPointer = Value(pcDelete->mpcOperand);
+	//A pointer, or an object that converts to one.  [expr.delete] 1
+	psPointer = mpcUnit->GetBinder()->ContextualType(pcDelete->mpcOperand, true);
+	psPointer = psPointer ? ValueFor(pcDelete->mpcOperand, psPointer, false) : NULL;
 	if (!psPointer)
 	{
 		return NULL;
 	}
-	if (!psPointer->IsPointer())
+	if (!psPointer->IsPointer() || psPointer->psBase->IsFunction())
 	{
-		Error(pcDelete, "delete needs a pointer");
+		Error(pcDelete, "delete needs a pointer to an object");
 		return NULL;
 	}
 	psType = psPointer->psBase;
-	if (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, pcDelete))
+	if (psType->IsClass() && !(mpcUnit->CompleteClass(psType->pcClass, pcDelete) && mpcUnit->GetBinder()->ReachesDestructor(psType->pcClass, pcDelete)))
 	{
 		return NULL;
 	}
@@ -2613,6 +2922,20 @@ bool CCPP65TypeChecker::NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
 		return Error(pcSource, "The conversion could lose some of the value, which an initialiser in braces may not");
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A constant converted to a psTo where the language asks for a converted
+// constant expression (a case's value, as the switch's condition's type):
+// an error, wherever it is asked, if converting it narrows it.
+// [expr.const] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConstantNotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
+{
+	return !Narrows(pcSource, psTo) || mpcUnit->ReportError(pcSource, "The constant's value isn't one of the type it is converted to");
 }
 
 
@@ -2788,7 +3111,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		apcArguments.Add(pcInitialiser);
 		papcArguments = &apcArguments;
 	}
-	bResult = ConstructClass(pcClass, papcArguments, pcNode);
+	bResult = (pcList || mpcUnit->GetBinder()->ConstructsWithoutBraces(pcClass, papcArguments, pcNode)) && ConstructClass(pcClass, papcArguments, pcNode);
 	apcArguments.Kill();
 	return bResult;
 }
@@ -2904,7 +3227,8 @@ bool CCPP65TypeChecker::CopyConstruct(CCPPClass* pcClass, CCPPSyntax* pcSource, 
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcSource's bytes can be copied to an object of pcClass: it must be an
-// object of pcClass or a class derived from it.
+// object of pcClass or a class derived from it, as which it is a pcClass
+// (CCPPBinder::ReachesBase).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::CopyObject(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode)
@@ -2920,7 +3244,7 @@ bool CCPP65TypeChecker::CopyObject(CCPPClass* pcClass, CCPPSyntax* pcSource, CCP
 	{
 		return Error(pcNode, "The object cannot be copied to that class");
 	}
-	return true;
+	return mpcUnit->GetBinder()->ReachesBase(psSource->pcClass, pcClass, pcNode);
 }
 
 
@@ -3091,16 +3415,17 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Convert, for a conversion no cast asks for: a pointer can't lose const or
-// volatile (KeepsPointerQualifiers), an enum class's value stays one
-// (KeepsScopedEnum), and std::nullptr_t converts only as it may
-// (KeepsNullPointer).  pcValue is the expression converted, when there is
-// one to look at.
+// Convert, for a conversion no cast asks for: a pointer is made from and
+// becomes only what it may (ConvertsPointer), it can't lose const or
+// volatile (KeepsPointerQualifiers), an enum class's value stays one and
+// an enum is given its own values (KeepsEnum), and std::nullptr_t converts
+// only as it may (KeepsNullPointer).  pcValue is the expression converted,
+// when there is one to look at.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue)
 {
-	return Convert(psFrom, psTo, pcNode) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsScopedEnum(psFrom, psTo, pcNode) && KeepsNullPointer(psFrom, psTo, pcNode, pcValue);
+	return Convert(psFrom, psTo, pcNode) && ConvertsPointer(psFrom, psTo, pcNode, pcValue) && KeepsPointerQualifiers(psFrom, psTo, pcNode) && KeepsEnum(psFrom, psTo, pcNode) && KeepsNullPointer(psFrom, psTo, pcNode, pcValue);
 }
 
 
@@ -3160,12 +3485,13 @@ bool CCPP65TypeChecker::RecordsEnumOperands(CCPPSyntax* pcNode, SCPP65Type* psLe
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether psFrom converts to psTo with no cast as far as an enum class
-// goes: its value is only its own type's, and only its own values are its.
-// [conv.prom] and [conv.integral] leave a scoped enum out.
+// Whether psFrom converts to psTo with no cast as far as enums go: an
+// enum class's value is only its own type's, and only an enum's own values
+// are its (in C a number is an enum's value too).  [conv.prom] and
+// [conv.integral] leave a scoped enum out, and convert nothing to an enum.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65TypeChecker::KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
+bool CCPP65TypeChecker::KeepsEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
 {
 	if (psTo->IsReference())
 	{
@@ -3187,25 +3513,331 @@ bool CCPP65TypeChecker::KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 	{
 		return mpcUnit->RecordEnumCast(pcNode, psFrom, psTo, CPPEC_TO_ENUM) || Error(pcNode, "An enum class is given only its own values, or a cast");
 	}
+	if (psTo->pcEnum && !mpcUnit->IsCSource())
+	{
+		return Error(pcNode, "An enum is given only its own values, or a cast");
+	}
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether psFrom converts to psTo with no cast as far as pointers go (any
+// other types do here).  Only a null pointer constant, pcValue, becomes a
+// pointer or a pointer to a member; a pointer becomes no number but a bool;
+// a pointer to an object becomes a void* and a pointer to a class one to
+// its base, and no other pointer; a pointer to a base's member becomes one
+// to a derived class's, and no other.  [conv.ptr], [conv.mem], [conv.bool]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue)
+{
+	bool	bFromPointer;
+	bool	bToPointer;
+
+	psFrom = psFrom->WithoutReference();
+	psTo = psTo->WithoutReference();
+	bFromPointer = psFrom->IsPointer() || psFrom->IsMemberPointer();
+	bToPointer = psTo->IsPointer() || psTo->IsMemberPointer();
+	if ((!bFromPointer && !bToPointer) || psFrom->IsNullPointer() || psTo->IsNullPointer() || !psFrom->IsScalar() || !psTo->IsScalar())
+	{
+		return true;
+	}
+	if (!bFromPointer)
+	{
+		return (psFrom->IsInteger() && (!pcValue || mpcUnit->IsNullPointerConstant(pcValue))) || Error(pcNode, "Only 0 or nullptr becomes a pointer without a cast");
+	}
+	if (!bToPointer)
+	{
+		return (psTo->eKind == CPP65TK_Bool) || Error(pcNode, "A pointer becomes a number only by a cast");
+	}
+	if (psFrom->IsPointer() && psTo->IsPointer())
+	{
+		if (psFrom->psBase->Equals(psTo->psBase) || (psTo->psBase->IsVoid() && !psFrom->psBase->IsFunction()))
+		{
+			return true;
+		}
+		if (psFrom->psBase->IsClass() && psTo->psBase->IsClass() && mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL))
+		{
+			return mpcUnit->GetBinder()->ReachesBase(psFrom->psBase->pcClass, psTo->psBase->pcClass, pcNode);
+		}
+		if (psFrom->psBase->IsVoid() && !psTo->psBase->IsFunction() && mpcUnit->IsCSource())
+		{
+			//C's void* is any object's pointer.  (C11 6.3.2.3 1)
+			return true;
+		}
+		return ConversionError(pcNode, psFrom, psTo);
+	}
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->psBase->Equals(psTo->psBase) && mpcUnit->IsDerived(psTo->pcClass, psFrom->pcClass, NULL))
+	{
+		return mpcUnit->GetBinder()->ReachesBase(psTo->pcClass, psFrom->pcClass, pcNode);
+	}
+	return ConversionError(pcNode, psFrom, psTo);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The error of a conversion that needs a cast, with the two types.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConversionError(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	return TypesError(pcNode, "", psFrom, " becomes ", psTo, " only by a cast");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An error that names two types, in the words around them.  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::TypesError(CCPPSyntax* pcNode, const char* szBefore, SCPP65Type* psFirst, const char* szBetween, SCPP65Type* psSecond, const char* szAfter)
+{
+	CChars	szError;
+
+	szError.Init(szBefore);
+	mpcUnit->AppendTypeName(&szError, psFirst);
+	szError.Append(szBetween);
+	mpcUnit->AppendTypeName(&szError, psSecond);
+	szError.Append(szAfter);
+	Error(pcNode, szError.Text());
+	szError.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a pointer psFrom as a psTo lets what is const or volatile be
+// written through: what psTo points to has less of them, at some level.
+// [conv.qual], [expr.const.cast] 8
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::LosesPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	if (psFrom->psBase->Equals(psTo->psBase))
+	{
+		return !mpcUnit->GetBinder()->KeepsQualifiers(psTo, psFrom);
+	}
+	return !psTo->psBase->HasQualifiersOf(psFrom->psBase);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a named cast makes a conversion that is its own to make, the
+// operand's value to psTo (a cast in brackets tries each of them in turn,
+// so it makes them all).  const_cast changes only const and volatile;
+// static_cast makes what no cast is needed for and those conversions' ways
+// back, and reinterpret_cast the conversions between pointers and between
+// a pointer and an integer; neither takes const away.  A cast to a
+// reference or to a class, or of an object, is checked where it is made.
+// [expr.const.cast], [expr.static.cast], [expr.reinterpret.cast]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::NamedCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo)
+{
+	SCPP65Type*	psFrom;
+
+	psFrom = mpcUnit->ValueTypeOf(pcCast->mpcOperand);
+	if (!psFrom || psTo->IsReference() || psTo->IsClass() || psTo->IsVoid() || psFrom->IsClass())
+	{
+		return (pcCast->meCast != CT_const_cast) || psTo->IsReference() || Error(pcCast, "const_cast makes a pointer, a pointer to a member or a reference");
+	}
+	psFrom = psFrom->Unqualified();
+	psTo = psTo->Unqualified();
+	switch (pcCast->meCast)
+	{
+	case CT_const_cast:
+		return ConstCastAllowed(pcCast, psFrom, psTo);
+	case CT_reinterpret_cast:
+		return ReinterpretCastAllowed(pcCast, psFrom, psTo);
+	default:
+		return StaticCastAllowed(pcCast, psFrom, psTo);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether dynamic_cast<psTo>(x) may be made of an x that is a pointer to
+// an object, or an object for a reference: it takes no const away, and a
+// cast to a base of x's class is the conversion to it, which the base is
+// in the class once and reached for.  [expr.dynamic.cast] 1, 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo)
+{
+	SCPP65Type*	psFrom;
+
+	psFrom = psTo->IsReference() ? Place(pcCast->mpcOperand) : mpcUnit->ValueTypeOf(pcCast->mpcOperand);
+	if (!psFrom)
+	{
+		return false;
+	}
+	if (psTo->IsPointer() && psFrom->IsPointer())
+	{
+		psFrom = psFrom->psBase;
+	}
+	else if (!psTo->IsReference())
+	{
+		return true;
+	}
+	psTo = psTo->psBase;
+	if (!psTo->HasQualifiersOf(psFrom))
+	{
+		return Error(pcCast, "dynamic_cast doesn't take const away: const_cast does");
+	}
+	if (psFrom->IsClass() && psTo->IsClass() && mpcUnit->IsDerived(psFrom->pcClass, psTo->pcClass, NULL))
+	{
+		return mpcUnit->GetBinder()->ReachesBase(psFrom->pcClass, psTo->pcClass, pcCast);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// const_cast<T>(x): T is a pointer or a pointer to a member, and x's type
+// but for const and volatile, which it changes at any level.  Not a pointer
+// to a function.  [expr.const.cast] 1, 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ConstCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	if (!(psTo->IsPointer() || psTo->IsMemberPointer()) || psTo->psBase->IsFunction())
+	{
+		return Error(pcCast, "const_cast makes a pointer, a pointer to a member or a reference");
+	}
+	if (!(psFrom->IsNullPointer() || psFrom->Equals(psTo)))
+	{
+		return Error(pcCast, "const_cast only changes const and volatile: the types are different");
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// static_cast<T>(x) of numbers and pointers: not between a pointer and a
+// number (but a null pointer constant, and a pointer as a bool), not
+// between pointers to unrelated types (void* is related to every object's,
+// a class's to its base's and to a class's derived from it), and not one
+// that takes const away.  [expr.static.cast] 1, 4, 11, 13
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::StaticCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	SCPP65Type*	psFromBase;
+	SCPP65Type*	psToBase;
+
+	if (psFrom->IsNullPointer())
+	{
+		return true;
+	}
+	if ((psTo->IsPointer() || psTo->IsMemberPointer()) && !(psFrom->IsPointer() || psFrom->IsMemberPointer()))
+	{
+		return mpcUnit->IsNullPointerConstant(pcCast->mpcOperand) || Error(pcCast, "static_cast doesn't make a pointer from a number: reinterpret_cast does");
+	}
+	if ((psFrom->IsPointer() || psFrom->IsMemberPointer()) && !(psTo->IsPointer() || psTo->IsMemberPointer()))
+	{
+		return (psTo->eKind == CPP65TK_Bool) || Error(pcCast, "static_cast doesn't make a number from a pointer: reinterpret_cast does");
+	}
+	if (!psFrom->IsPointer() || !psTo->IsPointer())
+	{
+		return true;
+	}
+
+	psFromBase = psFrom->psBase;
+	psToBase = psTo->psBase;
+	if (LosesPointerQualifiers(psFrom, psTo))
+	{
+		return Error(pcCast, "static_cast doesn't take const away: const_cast does");
+	}
+	if (psFromBase->Equals(psToBase) || psFromBase->IsVoid() || (psToBase->IsVoid() && !psFromBase->IsFunction()) || mpcUnit->ConditionalClass(psFromBase, psToBase))
+	{
+		return true;
+	}
+	return Error(pcCast, "static_cast doesn't convert between pointers to unrelated types: reinterpret_cast does");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// reinterpret_cast<T>(x) of numbers and pointers: a pointer as an integer
+// big enough for it and back, a pointer as another pointer (to an object or
+// to a function) and a pointer to a member as another, a std::nullptr_t as
+// an integer, and a value as its own type.  Nothing else (no number as
+// another number's type), and not one that takes const away.
+// [expr.reinterpret.cast] 1, 2, 4 to 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::ReinterpretCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo)
+{
+	bool	bAllowed;
+
+	if (psFrom->IsPointer() && psTo->IsPointer())
+	{
+		return !LosesPointerQualifiers(psFrom, psTo) || Error(pcCast, "reinterpret_cast doesn't take const away: const_cast does");
+	}
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer())
+	{
+		bAllowed = psFrom->psBase->IsFunction() == psTo->psBase->IsFunction();
+	}
+	else if (psFrom->IsPointer())
+	{
+		bAllowed = psTo->IsInteger() && (psTo->iBytes >= psFrom->iBytes) && (psTo->eKind != CPP65TK_Bool);
+	}
+	else if (psTo->IsPointer())
+	{
+		bAllowed = psFrom->IsInteger();
+	}
+	else if (psFrom->IsNullPointer())
+	{
+		bAllowed = psTo->IsInteger();
+	}
+	else
+	{
+		bAllowed = psFrom->IsInteger() && psFrom->Same(psTo);
+	}
+	return bAllowed || Error(pcCast, "reinterpret_cast doesn't make this conversion");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether pointer psFrom converts to psTo (any other types do here) without
-// losing const or volatile from what it points to.  [conv.qual]
+// losing const or volatile from what it points to, or a pointer to a member
+// from the member.  A string literal's conversion to a char* is let
+// through, with a warning if they are on.  [conv.qual]
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
 {
 	bool	bKept;
 
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer())
+	{
+		return psTo->psBase->HasQualifiersOf(psFrom->psBase) || Error(pcNode, "This conversion takes const away from the member the pointer points to");
+	}
 	if (!psFrom->IsPointer() || !psTo->IsPointer())
 	{
 		return true;
 	}
-	bKept = psFrom->psBase->Equals(psTo->psBase) ? mpcUnit->GetBinder()->KeepsQualifiers(psTo, psFrom) : psTo->psBase->HasQualifiersOf(psFrom->psBase);
+	bKept = !LosesPointerQualifiers(psFrom, psTo);
+	if (!bKept && psFrom->psBase->Equals(psTo->psBase) && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcNode)))
+	{
+		//char* p = "abc": a string literal's characters are const, and the conversion that let that be forgotten went
+		//with C++11.  It is still made, as code written before is full of it, and is warned about when that is asked
+		//for (CCPPCompileOptions::mbWarnStringToPointer).  [diff.cpp03.lex]
+		if (mpcUnit->GetOptions()->mbWarnStringToPointer)
+		{
+			mpcUnit->Warning(pcNode, "A string literal is const: this conversion to a pointer its characters can be written through is not C++14's");
+		}
+		return true;
+	}
 	return bKept || Error(pcNode, "This conversion takes const away from what the pointer points to");
 }
 
@@ -3224,36 +3856,68 @@ bool CCPP65TypeChecker::CanChange(SCPP65Type* psPlace, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcValue is the kind of expression a reference of type
-// psReference binds to: T&& only to what has no name or is about to go.
-// [dcl.init.ref] 5.2
+// psReference binds to: T&& only to what has no name or is about to go,
+// or to the temporary a value of another type is converted to (long&& of
+// an int, int&& of an object with operator int).  [dcl.init.ref] 5.2
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::BindsCategory(SCPP65Type* psReference, CCPPSyntax* pcValue, CCPPSyntax* pcNode)
 {
-	return !psReference->bRvalue || mpcUnit->IsRvalue(pcValue) || Error(pcNode, "A reference declared && cannot be bound to something with a name");
+	return !psReference->bRvalue || mpcUnit->IsRvalue(pcValue) || mpcUnit->BindsToTemporary(psReference, pcValue) || Error(pcNode, "A reference declared && cannot be bound to something with a name");
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether reference psReference can bind to a place of type psPlace: it has
-// the place's const and volatile.  [dcl.init.ref]
+// Whether reference psReference can bind to a place of type psPlace: the
+// place is of the type referred to, or an object of a class derived from
+// it (which has the base once, where it may be reached), and the reference
+// has the place's const and volatile; or the place is an object whose
+// conversion function gives what it binds to.  [dcl.init.ref] 4, 5
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode)
 {
-	if (psPlace->IsArray() && psReference->psBase->IsPointer())
+	SCPP65Type*			psReferred;
+	CCPPBoundConversion	cBound;
+
+	psReferred = psReference->psBase;
+	if (psPlace->IsArray() && psReferred->IsPointer())
 	{
 		return Error(pcNode, "An array cannot be bound to a reference to a pointer that isn't const");
 	}
-	return psReference->psBase->HasQualifiersOf(psPlace) || Error(pcNode, "A const object cannot be bound to a reference that is not const");
+	if (psPlace->IsClass() && !(psReferred->IsClass() && mpcUnit->IsDerived(psPlace->pcClass, psReferred->pcClass, NULL)))
+	{
+		mpcUnit->GetBinder()->BindObjectConversion(psPlace->pcClass, psReference, false, pcNode, &cBound);
+		return cBound.mpcFunction || TypesError(pcNode, "A reference to ", psReferred, " doesn't bind to ", psPlace, "");
+	}
+	if (!psReferred->HasQualifiersOf(psPlace))
+	{
+		return Error(pcNode, "A const object cannot be bound to a reference that is not const");
+	}
+	if (psPlace->IsClass())
+	{
+		return mpcUnit->GetBinder()->ReachesBase(psPlace->pcClass, psReferred->pcClass, pcNode);
+	}
+	if (psReferred->IsFunction())
+	{
+		//A function's name: the overload of the reference's type (FunctionAddress chooses it).
+		return true;
+	}
+	if (psReferred->IsArray() && psPlace->IsPointer() && psReferred->psBase->Equals(psPlace->psBase))
+	{
+		//An array's place is typed as its first element's address.
+		return true;
+	}
+	return psReferred->Equals(psPlace) || TypesError(pcNode, "A reference to ", psReferred, " doesn't bind to ", psPlace, "");
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcValue can initialise a psTo (a variable, or what a function
-// returns) with the const and volatile it has.
+// returns): as a pointer it is one that converts (ConvertsPointer), with
+// the const and volatile it has.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
@@ -3269,7 +3933,13 @@ bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
 	{
 		return BindsCategory(psTo, pcValue, pcValue) && (mpcUnit->BindsToTemporary(psTo, pcValue) || CanBind(psTo, psValue, pcValue));
 	}
-	return KeepsPointerQualifiers(psValue->IsArray() ? mpcTypes->Pointer(psValue->psBase) : psValue, psTo, pcValue);
+	psValue = psValue->IsArray() ? mpcTypes->Pointer(psValue->psBase) : psValue;
+	if (!mpcUnit->FunctionNameFor(pcValue, psTo) && !ConvertsPointer(psValue, psTo, pcValue, pcValue))
+	{
+		//(A function's name for a pointer to a function is the overload of that type, whatever type it is alone.)
+		return false;
+	}
+	return KeepsPointerQualifiers(psValue, psTo, pcValue);
 }
 
 

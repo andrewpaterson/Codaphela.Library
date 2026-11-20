@@ -80,13 +80,24 @@ public:
 	bool			Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			ImplicitConvert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue = NULL);
 	bool			KeepsNullPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue);
-	bool			KeepsScopedEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	bool			KeepsEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
 	bool			Truth(SCPP65Type* psType, CCPPSyntax* pcNode);
 	bool			RecordsEnumOperands(CCPPSyntax* pcNode, SCPP65Type* psLeft, SCPP65Type* psRight, uint8 uiKind);
 	bool			CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CCPPSyntax* pcNode);
+	bool			ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode, CCPPSyntax* pcValue);
+	bool			ConversionError(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo);
+	bool			TypesError(CCPPSyntax* pcNode, const char* szBefore, SCPP65Type* psFirst, const char* szBetween, SCPP65Type* psSecond, const char* szAfter);
 	bool			KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	bool			LosesPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* psTo);
+	bool			NamedCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo);
+	bool			ConstCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
+	bool			StaticCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
+	bool			DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psTo);
+	bool			CastReachesBase(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	bool			ReinterpretCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, SCPP65Type* psFrom, SCPP65Type* psTo);
 	bool			KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool			NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo);
+	bool			ConstantNotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo);
 	bool			Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool bBraced = false);
 
 protected:
@@ -107,10 +118,13 @@ protected:
 	SCPP65Type*		BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*		Assignment(CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*		Operate(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight, CCPPSyntax* pcNode);
-	bool			Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight, CCPPSyntax* pcNode);
+	bool			Compare(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type* psLeft, SCPP65Type* psRight);
 	bool			CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNode);
 	bool			Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65Type** ppsLeft, SCPP65Type** ppsRight);
+	SCPP65Type*		Operand(CCPPSyntax* pcExpression);
 	SCPP65Type*		ConditionalExpression(CCPPSyntaxConditionalExpression* pcConditional);
+	bool			ConditionalResultsFit(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse);
+	SCPP65Type*		ConditionalPlace(CCPPSyntaxConditionalExpression* pcConditional);
 	SCPP65Type*		ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse);
 	SCPP65Type*		ConditionValue(CCPPSyntax* pcExpression);
 	bool			Condition(CCPPSyntax* pcExpression);
@@ -132,7 +146,7 @@ protected:
 	SCPP65Type*		OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode);
 	SCPP65Type*		ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	SCPP65Type*		MemberPlace(CCPPSyntaxMemberExpression* pcMember);
-	SCPP65Type*		MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary);
+	SCPP65Type*		MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type** ppsObject);
 	SCPP65Type*		MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*		MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CCPPSyntaxBinaryExpression* pcBinary);
 	SCPP65Type*		SubscriptPlace(CCPPSyntaxSubscriptExpression* pcSubscript);

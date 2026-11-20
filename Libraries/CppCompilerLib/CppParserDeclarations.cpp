@@ -858,6 +858,7 @@ bool CCPPParser::ParseMemberInitializers(CCPPSyntaxFunctionDefinition* pcFunctio
 		{
 			return false;
 		}
+		ResolveMemberInitializerName(pcInitializer->mpcName);
 		if (!Is(CT_OpenRoundBracket) && !Is(CT_OpenCurlyBracket))
 		{
 			return Error("Expected '(' or '{' after the member initializer name.");
@@ -876,6 +877,37 @@ bool CCPPParser::ParseMemberInitializers(CCPPSyntaxFunctionDefinition* pcFunctio
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member initialiser names a member of the constructor's class before
+// anything else of the name: the parameter in S(int v) : v(v) hides the
+// member in the initialiser's value and in the body, but not there.
+// [class.base.init] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::ResolveMemberInitializerName(CCPPSyntaxName* pcName)
+{
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPScope*					pcClass;
+	CCPPSymbol*					pcMember;
+
+	pcComponent = pcName->GetLast();
+	pcClass = mpcScope->GetMemberFunctionClass();
+	if (!pcClass || (pcName->macpComponents.NumElements() != 1) || (pcComponent->meKind != CPPNC_Identifier))
+	{
+		return;
+	}
+
+	pcMember = pcClass->FindMember(GetTokenIdentifier(pcComponent->miName));
+	if (pcMember && (pcMember != pcName->mpcSymbol))
+	{
+		pcComponent->mpcSymbol = pcMember;
+		pcName->mpcSymbol = pcMember;
+		Resolve(pcComponent->miName, pcMember, CPPTR_Reference);
+	}
 }
 
 
@@ -1303,11 +1335,7 @@ CCPPSyntaxDeclSpecifiers* CCPPParser::ParseDeclSpecifiers(CCPPSyntax* pcParent, 
 		}
 		else if (!bType && IsUnderlyingTypeAhead())
 		{
-			eStep = CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, CT_decltype), &bType);
-			if (eStep != CPPDSS_Failed)
-			{
-				((CCPPSyntaxDecltypeSpecifier*)pcSpecifiers->mpcType)->mbUnderlyingType = true;
-			}
+			eStep = CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, CT_decltype, true), &bType);
 		}
 		else if ((pcToken->IsIdentifier() || pcToken->Is(CT_ScopeResolution)) && !bType)
 		{
@@ -1369,39 +1397,6 @@ static ECPPDeclSpecifierStep CPPSetTypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpe
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A simple type keyword counted in the specifiers.
-//
-//////////////////////////////////////////////////////////////////////////
-static void CPPCountTypeKeyword(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken)
-{
-	switch (eToken)
-	{
-	case CT_void:		pcSpecifiers->muiTypeKeywords |= CPPTK_VOID;		break;
-	case CT_bool:		pcSpecifiers->muiTypeKeywords |= CPPTK_BOOL;		break;
-	case CT_char:		pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR;		break;
-	case CT_wchar_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_WCHAR_T;		break;
-	case CT_char16_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR16_T;	break;
-	case CT_char32_t:	pcSpecifiers->muiTypeKeywords |= CPPTK_CHAR32_T;	break;
-	case CT_short:		pcSpecifiers->muiTypeKeywords |= CPPTK_SHORT;		break;
-	case CT_int:		pcSpecifiers->muiTypeKeywords |= CPPTK_INT;			break;
-	case CT_long:		pcSpecifiers->miLongs++;							break;
-	case CT_signed:
-	case CT___signed__:	pcSpecifiers->muiTypeKeywords |= CPPTK_SIGNED;		break;
-	case CT_unsigned:	pcSpecifiers->muiTypeKeywords |= CPPTK_UNSIGNED;	break;
-	case CT_float:		pcSpecifiers->muiTypeKeywords |= CPPTK_FLOAT;		break;
-	case CT_double:		pcSpecifiers->muiTypeKeywords |= CPPTK_DOUBLE;		break;
-	case CT_auto:		pcSpecifiers->muiTypeKeywords |= CPPTK_AUTO;		break;
-	case CT___int8:		pcSpecifiers->muiTypeKeywords |= CPPTK_INT8;		break;
-	case CT___int16:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT16;		break;
-	case CT___int32:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT32;		break;
-	case CT___int64:	pcSpecifiers->muiTypeKeywords |= CPPTK_INT64;		break;
-	default:																break;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The specifier a keyword, eToken, starts.  CPPDSS_Stop if it doesn't start
 // one (or another type can't be here).
 //
@@ -1419,7 +1414,7 @@ ECPPDeclSpecifierStep CCPPParser::ParseKeywordDeclSpecifier(CCPPSyntaxDeclSpecif
 	}
 	if (IsSimpleTypeKeyword(eToken))
 	{
-		CPPCountTypeKeyword(pcSpecifiers, eToken);
+		pcSpecifiers->CountTypeKeyword(eToken);
 		AddKeywordSpecifier(pcSpecifiers, eToken);
 		*pbType = true;
 		return CPPDSS_Next;
@@ -1442,7 +1437,7 @@ ECPPDeclSpecifierStep CCPPParser::ParseKeywordDeclSpecifier(CCPPSyntaxDeclSpecif
 	}
 	if (((eToken == CT_decltype) || (eToken == CT___typeof__)) && !*pbType)
 	{
-		return CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, eToken), pbType);
+		return CPPSetTypeSpecifier(pcSpecifiers, ParseDecltypeSpecifier(pcSpecifiers, eToken, false), pbType);
 	}
 	if (eToken == CT_alignas)
 	{
@@ -1485,19 +1480,30 @@ CCPPSyntaxNamedTypeSpecifier* CCPPParser::ParseTypenameSpecifier(CCPPSyntaxDeclS
 // decltype(e) and g++'s __typeof__(e) or __typeof__(type).
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntaxDecltypeSpecifier* CCPPParser::ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken)
+CCPPSyntaxDecltypeSpecifier* CCPPParser::ParseDecltypeSpecifier(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECppTokens eToken, bool bUnderlyingType)
 {
 	CCPPSyntaxDecltypeSpecifier*	pcDecltype;
+	bool							bNoGreater;
+	bool							bExpression;
 
 	pcDecltype = mpcMemory->Create<CCPPSyntaxDecltypeSpecifier>(pcSpecifiers);
 	pcDecltype->miFirstToken = CurrentToken();
 	pcDecltype->meKeyword = eToken;
+	pcDecltype->mbUnderlyingType = bUnderlyingType;
 	Next();
 	if (!Expect(CT_OpenRoundBracket))
 	{
 		return NULL;
 	}
-	pcDecltype->mpcOperand = ParseTypeIdOrExpression(pcDecltype, false);
+
+	//decltype's operand is an expression (S() makes an S; it is no function's type), or auto; __typeof__'s may be a
+	//type and __underlying_type's is one.  In the brackets a '>' is an operator, though the specifier is a template
+	//argument: X<decltype(a >> 1)>.
+	bExpression = (eToken == CT_decltype) && !bUnderlyingType && !Is(CT_auto);
+	bNoGreater = mbNoGreater;
+	mbNoGreater = false;
+	pcDecltype->mpcOperand = bExpression ? ParseExpression(pcDecltype) : ParseTypeIdOrExpression(pcDecltype, false);
+	mbNoGreater = bNoGreater;
 	if (!pcDecltype->mpcOperand || !Expect(CT_CloseRoundBracket))
 	{
 		return NULL;

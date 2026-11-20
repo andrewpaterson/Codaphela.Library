@@ -350,6 +350,7 @@ CCPPSyntaxExpression* CCPPParser::ParseUnaryExpression(CCPPSyntax* pcParent)
 	CCPPSyntaxNoexceptExpression*	pcNoexcept;
 	CCPPToken*						pcToken;
 	ECppTokens						eToken;
+	bool							bNoGreater;
 
 	//[expr.unary]
 	pcToken = Peek(0);
@@ -397,7 +398,10 @@ CCPPSyntaxExpression* CCPPParser::ParseUnaryExpression(CCPPSyntax* pcParent)
 			{
 				return NULL;
 			}
+			bNoGreater = mbNoGreater;
+			mbNoGreater = false;
 			pcNoexcept->mpcOperand = ParseExpression(pcNoexcept);
+			mbNoGreater = bNoGreater;
 			if (!pcNoexcept->mpcOperand || !Expect(CT_CloseRoundBracket))
 			{
 				return NULL;
@@ -556,14 +560,7 @@ CCPPSyntaxTypeId* CCPPParser::CreateSimpleTypeId(CCPPSyntax* pcParent)
 		pcKeyword->meKeyword = eToken;
 		pcKeyword->SetTokens(CurrentToken(), CurrentToken());
 		pcType->mpcSpecifiers->macpSpecifiers.Add(pcKeyword);
-		if (eToken == CT_long)
-		{
-			pcType->mpcSpecifiers->miLongs++;
-		}
-		else
-		{
-			pcType->mpcSpecifiers->muiTypeKeywords |= CPPTK_INT;
-		}
+		pcType->mpcSpecifiers->CountTypeKeyword(eToken);
 		Next();
 	}
 	pcType->mpcSpecifiers->miLastToken = PreviousToken();
@@ -679,6 +676,8 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 			{
 				return NULL;
 			}
+			bNoGreater = mbNoGreater;
+			mbNoGreater = false;
 			if (IsTypeIdStart() && IsTypeIdAhead(CT_CloseRoundBracket))
 			{
 				pcTypeid->mpcType = ParseTypeId(pcTypeid);
@@ -687,6 +686,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePrimaryExpression(CCPPSyntax* pcParent)
 			{
 				pcTypeid->mpcOperand = ParseExpression(pcTypeid);
 			}
+			mbNoGreater = bNoGreater;
 			if ((!pcTypeid->mpcType && !pcTypeid->mpcOperand) || !Expect(CT_CloseRoundBracket))
 			{
 				return NULL;
@@ -927,6 +927,12 @@ CCPPSyntaxLambdaCapture* CCPPParser::ParseLambdaCapture(CCPPSyntaxLambdaExpressi
 	if (Is(CT_Elipsis))
 	{
 		Error("Capturing a pack is not supported by the compiler yet.");
+		return NULL;
+	}
+	if (!pcCapture->mpcInitializer && (pcCapture->meKind == pcLambda->meDefault))
+	{
+		//[=, a] and [&, &a].  [expr.prim.lambda] 8
+		Error("The lambda captures that way already: after = a name is captured as &name, and after & as name.");
 		return NULL;
 	}
 	pcCapture->miLastToken = PreviousToken();
@@ -1174,6 +1180,12 @@ CCPPSyntaxExpression* CCPPParser::ParseSizeofExpression(CCPPSyntax* pcParent)
 				Rewind(sPosition);
 				bType = false;
 			}
+			else if (pcSizeof->mpcType->mpcSpecifiers && pcSizeof->mpcType->mpcSpecifiers->DefinesType())
+			{
+				//[expr.sizeof] 5, [expr.alignof] 1
+				Error("A type can't be defined in sizeof or alignof.");
+				return NULL;
+			}
 			else
 			{
 				Next();
@@ -1187,6 +1199,12 @@ CCPPSyntaxExpression* CCPPParser::ParseSizeofExpression(CCPPSyntax* pcParent)
 
 	if (!bType)
 	{
+		if (pcSizeof->meKeyword == CT_alignof)
+		{
+			//alignof ( type-id ) only.  [expr.alignof] 1
+			Error("alignof takes a type in brackets.");
+			return NULL;
+		}
 		pcSizeof->mpcType = NULL;
 		pcSizeof->mpcOperand = ParseUnaryExpression(pcSizeof);
 		if (!pcSizeof->mpcOperand)

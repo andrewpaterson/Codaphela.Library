@@ -193,11 +193,11 @@ public:
 	SCPP65Type*			Volatile(SCPP65Type* psType);
 	void				SetClassBytes(SCPP65Type* psType, int iBytes);
 	SCPP65Type*			Promote(SCPP65Type* psType);
+	SCPP65Type*			PromoteBitField(SCPP65Type* psType, int iBits);
 	SCPP65Type*			Arithmetic(SCPP65Type* psLeft, SCPP65Type* psRight);
 	SCPP65Type*			FloatArithmetic(SCPP65Type* psLeft, SCPP65Type* psRight);
 	SCPP65Type*			PointerDifference(void);
 	SCPP65Type*			Operation(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight);
-	SCPP65Type*			Conditional(SCPP65Type* psTrue, SCPP65Type* psFalse);
 
 protected:
 	void				InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iBytes, bool bSigned);

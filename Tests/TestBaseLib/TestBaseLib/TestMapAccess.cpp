@@ -57,13 +57,13 @@ void TestMapAccessMapBlock(void)
 	STestMapAccessKey		sk2;
 	STestMapAccessKey		sk3;
 	void**					ppv1;
-	int*					pi2;
+	int32*					pi2;
 	int64*					plli3;
 	char*					pc4;
 	char*					sz5;
 	void*					pv6;
 	void**					ppv7;
-	int*					pi8;
+	int32*					pi8;
 	int64*					plli9;
 	char*					pc10;
 	char*					sz11;
@@ -71,11 +71,11 @@ void TestMapAccessMapBlock(void)
 	void**					ppv13;
 	void*					pv14;
 	char*					pc15;
-	int*					pi16;
+	int32*					pi16;
 	int64*					plli17;
 	char*					sz18;
 	void*					pv19;
-	int*					pi20;
+	int32*					pi20;
 	char*					sz21;
 
 	s1.Init(1, 2, 3, 4);
@@ -121,7 +121,7 @@ void TestMapAccessMapBlock(void)
 	AssertInt(s1.mc, (*((STestMapAccessData**)ppv1))->mc);
 	AssertInt(s1.md, (*((STestMapAccessData**)ppv1))->md);
 	AssertInt((int32)*pi2, cAccess.GetLongInt(0x1000000000000004L));
-	AssertInt(102, *pi2);
+	AssertInt(102, (int)*pi2);
 	AssertLong(*plli3, cAccess.GetLongLong(0x1000000000000006L));
 	AssertLong(0x1000000000000022L, *plli3);
 	AssertChar(*pc4, cAccess.GetLongChar(0x1000000000000003L));
@@ -136,7 +136,7 @@ void TestMapAccessMapBlock(void)
 	AssertInt(s3.mc, (*((STestMapAccessData**)ppv7))->mc);
 	AssertInt(s3.md, (*((STestMapAccessData**)ppv7))->md);
 	AssertInt((int32)*pi8, cAccess.GetIntInt(0x10000001, 101));
-	AssertInt(101, *pi8);
+	AssertInt(101, (int)*pi8);
 	AssertLong(*plli9, cAccess.GetIntLong(0x10000004));
 	AssertLong(0x1000000000000004L, *plli9);
 	AssertChar(*pc10, cAccess.GetIntChar(0x10000002));
@@ -155,7 +155,7 @@ void TestMapAccessMapBlock(void)
 	AssertChar(*pc15, cAccess.GetStringChar("1"));
 	AssertChar('e', *pc15);
 	AssertInt((int32)*pi16, cAccess.GetStringInt("10"));
-	AssertInt(203, *pi16);
+	AssertInt(203, (int)*pi16);
 	AssertLong(*plli17, cAccess.GetStringLong("11"));
 	AssertLong(0x1000000000000001L, *plli17);
 	AssertString(sz18, cAccess.GetStringString("12"));
@@ -163,7 +163,7 @@ void TestMapAccessMapBlock(void)
 	AssertPointer(pv19, cAccess.GetKeyData(&sk1, sizeof(STestMapAccessKey)));
 	AssertMemory(&s7, pv19, sizeof(STestMapAccessData));
 	AssertInt((int32)*pi20, cAccess.GetKeyInt(&sk2, sizeof(STestMapAccessKey)));
-	AssertInt(88, *pi20);
+	AssertInt(88, (int)*pi20);
 	AssertString(sz21, cAccess.GetKeyString(&sk3, sizeof(STestMapAccessKey)));
 	AssertString("Dangerous", sz21);
 
@@ -191,13 +191,13 @@ void TestMapAccessIndexBlock(void)
 	STestMapAccessKey		sk2;
 	STestMapAccessKey		sk3;
 	void**					ppv1;
-	int*					pi2;
+	int32*					pi2;
 	int64*					plli3;
 	char*					pc4;
 	char*					sz5;
 	void*					pv6;
 	void**					ppv7;
-	int*					pi8;
+	int32*					pi8;
 	int64*					plli9;
 	char*					pc10;
 	char*					sz11;
@@ -205,11 +205,11 @@ void TestMapAccessIndexBlock(void)
 	void**					ppv13;
 	void*					pv14;
 	char*					pc15;
-	int*					pi16;
+	int32*					pi16;
 	int64*					plli17;
 	char*					sz18;
 	void*					pv19;
-	int*					pi20;
+	int32*					pi20;
 	char*					sz21;
 
 	s1.Init(1, 2, 3, 4);
@@ -255,7 +255,7 @@ void TestMapAccessIndexBlock(void)
 	AssertInt(s1.mc, (*((STestMapAccessData**)ppv1))->mc);
 	AssertInt(s1.md, (*((STestMapAccessData**)ppv1))->md);
 	AssertInt((int32)*pi2, cAccess.GetLongInt(0x1000000000000004L));
-	AssertInt(102, *pi2);
+	AssertInt(102, (int)*pi2);
 	AssertLong(*plli3, cAccess.GetLongLong(0x1000000000000006L));
 	AssertLong(0x1000000000000022L, *plli3);
 	AssertChar(*pc4, cAccess.GetLongChar(0x1000000000000003L));
@@ -270,7 +270,7 @@ void TestMapAccessIndexBlock(void)
 	AssertInt(s3.mc, (*((STestMapAccessData**)ppv7))->mc);
 	AssertInt(s3.md, (*((STestMapAccessData**)ppv7))->md);
 	AssertInt((int32)*pi8, cAccess.GetIntInt(0x10000001, 101));
-	AssertInt(101, *pi8);
+	AssertInt(101, (int)*pi8);
 	AssertLong(*plli9, cAccess.GetIntLong(0x10000004));
 	AssertLong(0x1000000000000004L, *plli9);
 	AssertChar(*pc10, cAccess.GetIntChar(0x10000002));
@@ -289,7 +289,7 @@ void TestMapAccessIndexBlock(void)
 	AssertChar(*pc15, cAccess.GetStringChar("1"));
 	AssertChar('e', *pc15);
 	AssertInt((int32)*pi16, cAccess.GetStringInt("10"));
-	AssertInt(203, *pi16);
+	AssertInt(203, (int)*pi16);
 	AssertLong(*plli17, cAccess.GetStringLong("11"));
 	AssertLong(0x1000000000000001L, *plli17);
 	AssertString(sz18, cAccess.GetStringString("12"));
@@ -297,7 +297,7 @@ void TestMapAccessIndexBlock(void)
 	AssertPointer(pv19, cAccess.GetKeyData(&sk1, sizeof(STestMapAccessKey)));
 	AssertMemory(&s7, pv19, sizeof(STestMapAccessData));
 	AssertInt((int32)*pi20, cAccess.GetKeyInt(&sk2, sizeof(STestMapAccessKey)));
-	AssertInt(88, *pi20);
+	AssertInt(88, (int)*pi20);
 	AssertString(sz21, cAccess.GetKeyString(&sk3, sizeof(STestMapAccessKey)));
 	AssertString("Dangerous", sz21);
 

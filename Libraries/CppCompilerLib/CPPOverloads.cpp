@@ -192,6 +192,50 @@ bool CCPPOverloads::IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, i
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The conversion function an object of pcClass is contextually implicitly
+// converted by, where an integer is wanted (a switch's condition, a new
+// array's bound) or, with bPointer, a pointer to an object (delete's
+// operand): the class's conversion function that isn't explicit and gives
+// such a type.  NULL if it has none, or (*pbAmbiguous) they give more than
+// one type.  [conv] 5
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPOverloads::FindContextualConversion(CCPPClass* pcClass, bool bPointer, CCPPSyntax* pcNode, bool* pbAmbiguous)
+{
+	CCPPFunction*	pcFunction;
+	CCPPFunction*	pcFound;
+	SCPP65Type*		psType;
+
+	*pbAmbiguous = false;
+	pcFound = NULL;
+	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	{
+		return NULL;
+	}
+	for (pcFunction = mpcUnit->FirstFunctionOfName(CPP_CONVERSION_NAME); pcFunction; pcFunction = pcFunction->mpcNextOfName)
+	{
+		if (pcFunction->mpcTemplate || pcFunction->mbExplicit || !mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL))
+		{
+			continue;
+		}
+		psType = pcFunction->mpsReturn->WithoutReference()->Unqualified();
+		if (bPointer ? !(psType->IsPointer() && !psType->psBase->IsFunction()) : !(psType->IsInteger() && !psType->IsScopedEnum()))
+		{
+			continue;
+		}
+		if (pcFound && !psType->Same(pcFound->mpsReturn->WithoutReference()->Unqualified()))
+		{
+			*pbAmbiguous = true;
+			return NULL;
+		}
+		pcFound = pcFunction;
+	}
+	return pcFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The conversion function (operator T, its class's own or a base's, or a
 // conversion template's instance) that converts an object of pcClass to psTo
 // best: by its result's conversion to psTo (see ConversionRank; a condition is
@@ -1293,18 +1337,29 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	int64			lliValue;
 	bool			bReference;
 	bool			bRvalue;
+	bool			bTemporary;
 	CCPPFunction*	pcConversion;
+	SCPP65Type*		psPlace;
+	SCPP65Type*		psResult;
 	int				iOffset;
 
 	bReference = psParameter->IsReference();
 	bRvalue = psParameter->IsRvalueReference();
+	bTemporary = bReference && pcArgument && mpcUnit->BindsToTemporary(psParameter, pcArgument);
 	psParameter = bReference ? psParameter->psBase : psParameter;
 	psArgument = psArgument->WithoutReference();
+	if (bReference && psParameter->IsFunction() && pcArgument)
+	{
+		//A reference to a function binds to the function, which the argument's value, a pointer to it, isn't: its place.
+		//[dcl.init.ref] 5
+		psPlace = mpcUnit->PlaceOf(pcArgument);
+		psArgument = psPlace ? psPlace : psArgument;
+	}
 	if (bRvalue)
 	{
-		if (pcArgument && !mpcUnit->IsRvalue(pcArgument))
+		if (pcArgument && !mpcUnit->IsRvalue(pcArgument) && !bTemporary)
 		{
-			//What has a name doesn't bind to T&&.  [dcl.init.ref] 5.2
+			//What has a name doesn't bind to T&&, but for the temporary it is converted to.  [dcl.init.ref] 5.2
 			return CPPCR_None;
 		}
 	}
@@ -1411,25 +1466,41 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	{
 		return CPPCR_UserDefinedExact;
 	}
-	if (bUserDefined && !bReference && !psParameter->IsClass() && psArgument->IsClass())
+	if (bUserDefined && !psParameter->IsClass() && psArgument->IsClass())
 	{
-		//The conversion function's result is then converted to the parameter, which tells overloads apart.
+		//The conversion function's result is then converted to the parameter, which tells overloads apart.  A
+		//reference binds to a temporary of it, or to what the function refers to.  [over.match.conv], [over.match.ref]
 		pcConversion = FindConversion(psArgument->pcClass, psParameter, false, pcArgument);
-		if (pcConversion)
+		if (pcConversion && (!bReference || bTemporary || RefersTo(pcConversion->mpsReturn, psParameter)))
 		{
 			return (ConversionRank(psParameter, pcConversion->mpsReturn, NULL, false) >= CPPCR_Promotion) ? CPPCR_UserDefinedExact : CPPCR_UserDefined;
 		}
 	}
-	if (bUserDefined && psParameter->IsClass() && psArgument->IsClass() && (!bReference || psParameter->bConst))
+	if (bUserDefined && psParameter->IsClass() && psArgument->IsClass())
 	{
-		//An object of another class with a conversion function to the parameter's class.  [over.match.copy]
+		//An object of another class with a conversion function to the parameter's class, or to a reference to it,
+		//which is all a reference that isn't const takes.  [over.match.copy], [over.match.ref]
 		pcConversion = FindConversion(psArgument->pcClass, psParameter->Unqualified(), false, pcArgument);
-		if (pcConversion && pcConversion->mpsReturn->WithoutReference()->IsClass() && mpcUnit->IsDerived(pcConversion->mpsReturn->WithoutReference()->pcClass, psParameter->pcClass, NULL))
+		psResult = pcConversion ? pcConversion->mpsReturn->WithoutReference() : NULL;
+		if (psResult && psResult->IsClass() && mpcUnit->IsDerived(psResult->pcClass, psParameter->pcClass, NULL) && (!bReference || psParameter->bConst || RefersTo(pcConversion->mpsReturn, psParameter)))
 		{
 			return CPPCR_UserDefinedExact;
 		}
 	}
 	return CPPCR_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a reference to psReferred binds to what a function returning
+// psReturn gives, itself: the function returns T&, and what it refers to
+// has no const or volatile the reference lacks.  [dcl.init.ref] 5.1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::RefersTo(SCPP65Type* psReturn, SCPP65Type* psReferred)
+{
+	return psReturn->IsReference() && !psReturn->bRvalue && psReferred->HasQualifiersOf(psReturn->psBase);
 }
 
 

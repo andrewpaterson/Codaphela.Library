@@ -872,7 +872,8 @@ bool CCPP65IRFrontEnd::IsLocalType(SCPP65Type* psType)
 //////////////////////////////////////////////////////////////////////////
 //
 // The address a reference of type psReference bound to psPlace holds: a
-// derived class's object is referred to as its base.
+// derived class's object is referred to as its base, and an object of any
+// other class as what its conversion function gives (ConvertedAddress).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ReferenceAddress(SCPP65IRPlace* psPlace, SCPP65Type* psReference, SIRReference* psAddress)
@@ -880,6 +881,10 @@ bool CCPP65IRFrontEnd::ReferenceAddress(SCPP65IRPlace* psPlace, SCPP65Type* psRe
 	SCPP65IRValue	sPointer;
 	SCPP65IRValue	sValue;
 
+	if (psPlace->psType->IsClass() && !(psReference->psBase->IsClass() && mpcUnit->IsDerived(psPlace->psType->pcClass, psReference->psBase->pcClass, NULL)))
+	{
+		return ConvertedAddress(psPlace, psReference, psAddress);
+	}
 	if (psPlace->psBitField)
 	{
 		//A const reference to a bit-field refers to a temporary holding its value.  [dcl.init.ref] 5
@@ -900,6 +905,35 @@ bool CCPP65IRFrontEnd::ReferenceAddress(SCPP65IRPlace* psPlace, SCPP65Type* psRe
 	}
 	*psAddress = sPointer.sValue;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The address a reference of type psReference holds, bound to an object
+// (psPlace) of a class that isn't what it refers to: the place the class's
+// conversion function to such a reference returns (operator T&).
+// [dcl.init.ref] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ConvertedAddress(SCPP65IRPlace* psPlace, SCPP65Type* psReference, SIRReference* psAddress)
+{
+	CCPPBoundConversion	cBound;
+	SCPP65IRValue		sResult;
+	SCPP65IRPlace		sConverted;
+
+	mpcUnit->GetBinder()->BindObjectConversion(psPlace->psType->pcClass, psReference, false, NULL, &cBound);
+	if ((cBound.meHow != CPPBV_Function) || !cBound.mpcFunction->mpsReturn->IsReference() || cBound.mpcFunction->mpsReturn->psBase->Equals(psPlace->psType))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	if (!Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, &mapcNone, &sResult, NULL, false, cBound.mpcClass, true, psPlace->sAddress))
+	{
+		return false;
+	}
+	sConverted.sAddress = sResult.sValue;
+	sConverted.psType = sResult.psType->psBase;
+	return ReferenceAddress(&sConverted, psReference, psAddress);
 }
 
 

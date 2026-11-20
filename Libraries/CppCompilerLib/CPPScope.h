@@ -106,6 +106,7 @@ public:
 	bool			IsAmbiguousMember(int64 lliName);
 	static bool		AreDifferent(CArrayCPPSymbols* papcFound);
 	CCPPScope*		NominationLevel(CCPPScope* pcNominated);
+	CCPPScope*		GetMemberFunctionClass(void);
 	CCPPScope*		GetDeclarationScope(void);
 	CCPPScope*		GetEnclosingNamespace(void);
 	CCPPScope*		GetNamespace(void);

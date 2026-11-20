@@ -81,6 +81,12 @@ typedef CArrayTemplate<SCPPVirtualBase>	CArrayCPPVirtualBases;
 #define CPP_VIRTUAL_PATH	(-0x7FFFFFFF)
 
 
+//A pointer to a data member is the member's offset in its class and this much more: the null pointer to a member is
+//then 0, as every null pointer is (so that zeroed memory holds null ones), and it is no member's, the first's too.
+//[conv.mem] 1
+#define CPP_MEMBER_POINTER_BIAS	1
+
+
 //using Base::f; in a class: Base's functions named f are overloads of the class's own.
 struct SCPPUsing
 {
@@ -127,6 +133,7 @@ public:
 	bool						mbUnion;
 	bool						mbTypeInfo;			//The type info (for dynamic_cast) has been written.
 	bool						mbConstructors;		//The class declares a constructor.
+	bool						mbConstructorTemplate;	//The class declares a constructor template, which isn't done yet (CCPPUnit::MemberTemplate): it is no aggregate.
 	CCPPClass*					mpcInheritedBase;	//The base whose constructors are inherited (using Base::Base), or NULL.
 	CCPPFunction*				mpcDestructor;
 	CCPPSyntaxClassSpecifier*	mpcSpecifier;		//The definition, NULL until it is seen.
@@ -154,6 +161,7 @@ public:
 	bool			IsInstanceNamed(CCPPSymbol* pcSymbol);
 	SCPPField*		FindField(int64 lliName, int* piOffset, CCPPClass** ppcVirtual = NULL);
 	SCPPField*		FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset, CCPPClass** ppcVirtual = NULL);
+	CCPPClass*		FindFieldClass(SCPPField* psField);
 	CCPPSymbol*		FindMemberSymbol(int64 lliName, ECPPSymbolKind eKind, CCPPClass** ppcClass);
 	size			NumAggregateFields(void);
 	bool			NeedsConstructor(void);
@@ -162,6 +170,7 @@ public:
 	CCPPFunction*	GetCopier(bool bAssignment, bool bMove);
 	CCPPFunction*	GetPartCopier(bool bAssignment, bool bMove);
 	bool			IsCopyDeleted(void);
+	bool			IsAssignmentDeleted(void);
 	bool			IsTriviallyCopyable(void);
 	bool			IsTriviallyAssignable(void);
 	bool			IsPolymorphic(void) const;

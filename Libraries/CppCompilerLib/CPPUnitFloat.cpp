@@ -211,6 +211,13 @@ bool CCPPUnit::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type*
 		}
 		break;
 
+	case CPPS_IdExpression:
+		if (ConstexprFloat((CCPPSyntaxIdExpression*)pcExpression, pdValue, ppsType))
+		{
+			return true;
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -222,6 +229,47 @@ bool CCPPUnit::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type*
 	}
 	*pdValue = (double)lliValue;
 	*ppsType = NULL;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of a name that is a floating point variable declared constexpr
+// (a const one isn't a constant: [expr.const] 2), which is its
+// initialiser's as its type; *ppsType is the type.  False for any other
+// name.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ConstexprFloat(CCPPSyntaxIdExpression* pcId, double* pdValue, SCPP65Type** ppsType)
+{
+	CCPPSymbol*						pcSymbol;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPVariable*					pcVariable;
+	SCPP65Type*						psValue;
+
+	pcSymbol = pcId->mpcName->mpcSymbol;
+	pcInit = pcSymbol ? (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration : NULL;
+	if (!pcInit || (pcSymbol->meKind != CPPSK_Variable) || (pcInit->GetKind() != CPPS_InitDeclarator) || !pcInit->mpcInitializer)
+	{
+		return false;
+	}
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+	if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR))
+	{
+		return false;
+	}
+	pcVariable = GetVariable(pcSymbol);
+	if (!pcVariable || !pcVariable->mpsType->IsFloat() || !FloatValue(pcInit->mpcInitializer, pdValue, &psValue))
+	{
+		return false;
+	}
+	if (pcVariable->mpsType->iBytes == 4)
+	{
+		*pdValue = (float)*pdValue;
+	}
+	*ppsType = pcVariable->mpsType->Unqualified();
 	return true;
 }
 

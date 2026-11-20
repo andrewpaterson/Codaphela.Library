@@ -38,6 +38,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IRValue* psValue)
 {
 	CCPPBoundCall				cBound;
+	SCPP65IRValue				sObject;
 	CCPPSyntax*					pcCallee;
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psOperandType;
@@ -49,14 +50,13 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	switch (cBound.meHow)
 	{
 	case CPPBC_Member:
-		//this's, where there is none to call it on.
-		if (!cBound.mpcObject && !cBound.mpcFunction->mbStatic && msThis.IsNone())
-		{
-			return Unsupported(__FILE__, __LINE__);
-		}
-		return Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, cBound.mpapcArguments, psValue, cBound.mpcObject, cBound.mbArrow, cBound.mpcObject ? cBound.mpcClass : NULL, cBound.mbVirtual);
+		return MemberCall(&cBound, psValue);
 	case CPPBC_Destructor:
 		return DestructorCall(pcCall, cBound.mpapcArguments, cBound.mpcClass, cBound.mpcObject, cBound.mbArrow, cBound.mbVirtual, psValue);
+	case CPPBC_PseudoDestructor:
+		//Nothing is destroyed: the object's expression is worked out.  [expr.pseudo] 1
+		psValue->psType = &mpcTypes->msVoid;
+		return Value(cBound.mpcObject, &sObject);
 	case CPPBC_MemberPointer:
 		return MemberPointerCall(pcCall, cBound.mpapcArguments, (CCPPSyntaxBinaryExpression*)cBound.mpcCallee, psValue);
 	case CPPBC_Function:
@@ -377,10 +377,10 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArr
 	SCPP65IRValue	sCallee;
 	SIRReference	sElide;
 
-	psType = mpcUnit->TypeOf(pcCallee);
+	psType = mpcUnit->CalleePointerType(pcCallee);
 	sElide = msElide;
 	msElide = IRNone();
-	if (!psType || !psType->IsPointer() || !psType->psBase->IsFunction())
+	if (!psType)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -391,6 +391,48 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArr
 	}
 	msElide = sElide;
 	return Call(NULL, sCallee.sValue, psType->psBase, papcArguments, psValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call of a member function, as the binder bound it.  The object's
+// expression is worked out for a static member function too, which has no
+// use for it ([expr.ref] 1).  A name qualified by a base, p->C::f() or
+// this's C::f(), calls the function on the part of the object that is in
+// that base: f's class may be a base of the object's class more than once,
+// and the first isn't then the one meant.  [class.member.lookup]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::MemberCall(CCPPBoundCall* pcBound, SCPP65IRValue* psValue)
+{
+	CCPPFunction*	pcFunction;
+	CCPPClass*		pcClass;
+	SIRReference	sObject;
+
+	pcFunction = pcBound->mpcFunction;
+	if (!pcBound->mpcObject && !pcFunction->mbStatic && msThis.IsNone())
+	{
+		//this's, where there is none to call it on.
+		return Unsupported(__FILE__, __LINE__);
+	}
+	if (!pcFunction->mbStatic && !pcBound->mpcQualifier)
+	{
+		return Call(pcFunction, FunctionSymbol(pcFunction), NULL, pcBound->mpapcArguments, psValue, pcBound->mpcObject, pcBound->mbArrow, pcBound->mpcObject ? pcBound->mpcClass : NULL, pcBound->mbVirtual);
+	}
+
+	sObject = msThis;
+	pcClass = pcBound->mpcObject ? pcBound->mpcClass : mpcUnit->ThisClass();
+	if (pcBound->mpcObject && !ObjectAddress(pcBound->mpcObject, pcBound->mbArrow, &sObject))
+	{
+		return false;
+	}
+	if (pcFunction->mbStatic)
+	{
+		return Call(pcFunction, FunctionSymbol(pcFunction), NULL, pcBound->mpapcArguments, psValue);
+	}
+	sObject = BaseAddress(sObject, pcClass, pcBound->mpcQualifier, false);
+	return Call(pcFunction, FunctionSymbol(pcFunction), NULL, pcBound->mpapcArguments, psValue, NULL, false, pcBound->mpcQualifier, false, sObject);
 }
 
 
@@ -706,27 +748,12 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 	for (ui = uiArguments; ui > uiParameters; ui--)
 	{
 		pcArgument = papcArguments->GetPtr(ui - 1);
-		if (!Value(pcArgument, &sArgument))
+		if (!Operand(pcArgument, &sArgument))
 		{
 			return false;
 		}
-		if (sArgument.psType->eKind == CPP65TK_Bool)
-		{
-			psParameter = &mpcTypes->msInt;
-		}
-		else if (sArgument.psType->IsFloat())
-		{
-			psParameter = &mpcTypes->msDouble;
-		}
-		else if (sArgument.psType->IsInteger())
-		{
-			psParameter = mpcTypes->Promote(sArgument.psType);
-		}
-		else if (sArgument.psType->IsPointer())
-		{
-			psParameter = sArgument.psType;
-		}
-		else
+		psParameter = mpcUnit->VariadicArgumentType(sArgument.psType);
+		if (!psParameter)
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}

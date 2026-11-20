@@ -445,6 +445,10 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		{
 			*ppcLast = pcVariable;
 		}
+		if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !mpcUnit->CheckConstexprLocal(pcVariable, pcInit))
+		{
+			return false;
+		}
 		sPlace.sAddress = *mcAddresses.Get((int64)(size)pcVariable);
 		sPlace.psType = pcVariable->mpsType;
 		uiTemporaries = mcCleanups.NumTemporaries();
@@ -588,6 +592,11 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
 	{
 		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
+		if (papcElements->NumElements() == 0)
+		{
+			//T(), as new int() has: zero.  [dcl.init] 11
+			return ValueInitialise(psPlace);
+		}
 		if (papcElements->NumElements() != 1)
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -1221,7 +1230,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		return Unsupported(__FILE__, __LINE__);
 	}
 	uiTemporaries = mcCleanups.NumTemporaries();
-	if (!Value(pcSwitch->mpcCondition, &sValue))
+	if (!ContextualValue(pcSwitch->mpcCondition, false, &sValue))
 	{
 		return false;
 	}
@@ -1252,6 +1261,10 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		if (!mpcUnit->Constant(psCase->pcCase->mpcValue, &lliValue))
 		{
 			return Unsupported(__FILE__, __LINE__);
+		}
+		if (!mpcUnit->GetTypeChecker()->ConstantNotNarrowed(psCase->pcCase->mpcValue, sValue.psType))
+		{
+			return false;
 		}
 		pcNext = NewBlock();
 		sEqual = mpcFunction->Add(mpcBlock, IRO_Eq, IRTypeOf(sValue.psType), sValue.sValue, Integer(sValue.psType, lliValue));

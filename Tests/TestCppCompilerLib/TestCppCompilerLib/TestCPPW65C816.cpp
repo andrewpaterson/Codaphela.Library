@@ -2181,7 +2181,8 @@ void TestCPP816CompiledAgain(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Sprite drawing in C style (Input/CPP65/SpriteProject: Sprite.h and Sprite.cpp as given, Image.cpp's DrawPixel on a
+// Sprite drawing in C style (Input/CPP65/SpriteProject: Sprite.h and Sprite.cpp as given but for the casts C++ asks
+// of a void* that becomes a uint8_t*, Image.cpp's DrawPixel on a
 // 320 x 200 byte screen at 0011:0000): a container of an opaque and a transparent sprite, iterated and drawn.  The
 // expected values are from the same sources built natively (with DrawPixel on an array): 20 pixels set, 2 images and
 // the screen's hash.  DrawPixel is inlined across the units.
@@ -5144,6 +5145,30 @@ void TestCPP816OverrideWarnings(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A string literal is const, and its conversion to a char*, which C++14
+// doesn't have, is still made: warned about when that is asked for
+// (mbWarnStringToPointer), a variable's initialiser, an argument and an
+// assignment each.  One that keeps the const, and an array of characters
+// made from one, are neither.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816StringLiteralWarnings(void)
+{
+	const char*	szWarning = "A string literal is const";
+	const char*	szLoses = "int F(char* p) { return p[0]; }\nint H(void) { char* p = \"ab\"; char* q; q = \"cd\"; return F(\"ef\") + p[0] + q[0]; }\n";
+	const char*	szKeeps = "int F(const char* p) { return p[0]; }\nint H(void) { const char* p = \"ab\"; char a[] = \"cd\"; return F(\"ef\") + p[0] + a[0]; }\n";
+
+	AssertInt(0, TestCPP816CountWarnings(szLoses, szWarning));
+
+	gcTestCPP816Options.mbWarnStringToPointer = true;
+	AssertInt(3, TestCPP816CountWarnings(szLoses, szWarning));
+	AssertInt(0, TestCPP816CountWarnings(szKeeps, szWarning));
+	gcTestCPP816Options.mbWarnStringToPointer = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A for loop's counter compared with a wider value that isn't a constant
 // wraps before it can pass one that doesn't fit: a 16 bit i against a 32 bit
 // count goes round forever once the count passes 65535.
@@ -6661,6 +6686,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816RangeWarnings());
 	TEST_PART(TestCPP816LoopCounterWarnings());
 	TEST_PART(TestCPP816OverrideWarnings());
+	TEST_PART(TestCPP816StringLiteralWarnings());
 	TEST_PART(TestCPP816SizeLsizeBugs());
 	TEST_PART(TestCPP816DestructorCalls());
 	TEST_PART(TestCPP816DynamicCast());

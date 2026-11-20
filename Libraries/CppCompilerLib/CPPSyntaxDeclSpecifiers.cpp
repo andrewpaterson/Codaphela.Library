@@ -49,6 +49,60 @@ void CCPPSyntaxDeclSpecifiers::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the specifiers define the type they name: a class with its
+// members, or an enum with its enumerators.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxDeclSpecifiers::DefinesType(void)
+{
+	if (!mpcType)
+	{
+		return false;
+	}
+	if (mpcType->GetKind() == CPPS_EnumSpecifier)
+	{
+		return ((CCPPSyntaxEnumSpecifier*)mpcType)->mbBody;
+	}
+	return mpcType->GetKind() == CPPS_ClassSpecifier;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A simple type keyword counted in the specifiers: what the type the
+// keywords name is worked out from (CCPPDeclarators).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSyntaxDeclSpecifiers::CountTypeKeyword(ECppTokens eToken)
+{
+	switch (eToken)
+	{
+	case CT_void:		muiTypeKeywords |= CPPTK_VOID;		break;
+	case CT_bool:		muiTypeKeywords |= CPPTK_BOOL;		break;
+	case CT_char:		muiTypeKeywords |= CPPTK_CHAR;		break;
+	case CT_wchar_t:	muiTypeKeywords |= CPPTK_WCHAR_T;	break;
+	case CT_char16_t:	muiTypeKeywords |= CPPTK_CHAR16_T;	break;
+	case CT_char32_t:	muiTypeKeywords |= CPPTK_CHAR32_T;	break;
+	case CT_short:		muiTypeKeywords |= CPPTK_SHORT;		break;
+	case CT_int:		muiTypeKeywords |= CPPTK_INT;		break;
+	case CT_long:		miLongs++;							break;
+	case CT_signed:
+	case CT___signed__:	muiTypeKeywords |= CPPTK_SIGNED;	break;
+	case CT_unsigned:	muiTypeKeywords |= CPPTK_UNSIGNED;	break;
+	case CT_float:		muiTypeKeywords |= CPPTK_FLOAT;		break;
+	case CT_double:		muiTypeKeywords |= CPPTK_DOUBLE;	break;
+	case CT_auto:		muiTypeKeywords |= CPPTK_AUTO;		break;
+	case CT___int8:		muiTypeKeywords |= CPPTK_INT8;		break;
+	case CT___int16:	muiTypeKeywords |= CPPTK_INT16;		break;
+	case CT___int32:	muiTypeKeywords |= CPPTK_INT32;		break;
+	case CT___int64:	muiTypeKeywords |= CPPTK_INT64;		break;
+	default:													break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxDeclSpecifiers::PrettyPrint(CChars* pszDest, int iDepth)

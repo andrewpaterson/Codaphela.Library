@@ -110,10 +110,11 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 				if (!bTemplate && !pcSymbol && !bDeclaration)
 				{
 					//An unknown name, as a member of a dependent or unknown type, is a template if what follows the
-					//'<' is a template argument list followed by '(' or '::'.
+					//'<' is a template argument list followed by a call's arguments or by '::'.  s.a < b && (void*)p > q
+					//is not one: (void*) is no argument.
 					BeginTentative(&sTentative);
 					bArguments = ParseTemplateArguments(pcComponent);
-					bTemplate = EndTentative(&sTentative, bArguments && (Is(CT_OpenRoundBracket) || Is(CT_ScopeResolution)));
+					bTemplate = EndTentative(&sTentative, bArguments && (Is(CT_ScopeResolution) || SkipCallArguments(pcComponent)));
 					pcComponent->macpTemplateArguments.ReInit();
 					pcComponent->mbTemplateArguments = false;
 				}
@@ -244,6 +245,33 @@ static bool IsOverloadableOperator(CCPPToken* pcToken)
 static bool IsEmptyString(CCPPToken* pcToken)
 {
 	return pcToken && pcToken->IsString() && (((CCTString*)pcToken)->mszEnd - ((CCTString*)pcToken)->mszStart == 1) && (*((CCTString*)pcToken)->mszStart == '"');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves past a call's arguments, from the '(' to after the ')'; false if
+// what is there isn't that.  For looking ahead in a tentative parse, which
+// takes back what it made.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::SkipCallArguments(CCPPSyntax* pcParent)
+{
+	CArraySyntax	apcArguments;
+	bool			bNoGreater;
+	bool			bArguments;
+
+	if (!Accept(CT_OpenRoundBracket))
+	{
+		return false;
+	}
+	bNoGreater = mbNoGreater;
+	mbNoGreater = false;
+	apcArguments.Init();
+	bArguments = ParseExpressionList(&apcArguments, pcParent, CT_CloseRoundBracket) && Accept(CT_CloseRoundBracket);
+	apcArguments.Kill();
+	mbNoGreater = bNoGreater;
+	return bArguments;
 }
 
 

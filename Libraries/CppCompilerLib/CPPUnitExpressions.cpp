@@ -233,15 +233,29 @@ CCPPSyntaxIdExpression* CCPPUnit::FunctionNameFor(CCPPSyntax* pcExpression, SCPP
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxIdExpression* CCPPUnit::MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 {
-	CCPPSyntax*	pcOperand;
-
 	pcExpression = SkipParentheses(pcExpression);
 	if (!pcExpression || !psTo || !psTo->IsMemberPointer() || !psTo->psBase->IsFunction() || (pcExpression->GetKind() != CPPS_UnaryExpression) || (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator != CT_BitwiseAnd))
 	{
 		return NULL;
 	}
-	pcOperand = SkipParentheses(((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand);
-	if ((pcOperand->GetKind() != CPPS_IdExpression) || !((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
+	return MemberPointerName((CCPPSyntaxUnaryExpression*)pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name &Class::member forms a pointer to a member from, or NULL: the
+// operand of & as it is written, a name a class qualifies with no brackets
+// about it (&(Class::member) is the member's own address, where it has
+// one).  [expr.unary.op] 4
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPPUnit::MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress)
+{
+	CCPPSyntax*	pcOperand;
+
+	pcOperand = pcAddress->mpcOperand;
+	if (!pcOperand || (pcOperand->GetKind() != CPPS_IdExpression) || !((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
 	{
 		return NULL;
 	}
@@ -615,15 +629,19 @@ bool CCPPUnit::NewMayThrow(CCPPSyntaxNewExpression* pcNew)
 {
 	CCPPFunction*	pcAllocation;
 	SCPP65Type*		psType;
+	CArraySyntax	apcArguments;
 	bool			bFailed;
 
-	psType = mcDeclarators.GetTypeIdType(pcNew->mpcType);
+	psType = NewElementType(pcNew);
 	if (!psType)
 	{
 		return true;
 	}
 	bFailed = false;
-	pcAllocation = mcBinder.FindAllocation(psType, pcNew->macpArraySizes.NumElements() > 0, &pcNew->macpPlacement, pcNew, &bFailed);
+	apcArguments.Init();
+	NewArguments(pcNew, &apcArguments);
+	pcAllocation = mcBinder.FindAllocation(pcNew, psType, &apcArguments, &bFailed);
+	apcArguments.Kill();
 	if (bFailed || (pcAllocation ? !IsNoexcept(pcAllocation) : !pcNew->mbPlacement))
 	{
 		return true;
@@ -1018,18 +1036,27 @@ bool CCPPUnit::IsAmbiguousName(CCPPSyntaxName* pcName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What a new expression makes: its type-id's type, and for new
-// Type[count][N]... arrays of the inner bounds (constants).  NULL after an
-// error.  [expr.new] 5
+// What a new expression makes: its type-id's type (auto's is its
+// initialiser's), and for new Type[count][N]... arrays of the inner bounds
+// (constants).  NULL after an error.  [expr.new] 2, 5
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::NewElementType(CCPPSyntaxNewExpression* pcNew)
 {
-	SCPP65Type*	psType;
-	int64		lliCount;
-	size		i;
+	CArraySyntax*	papcElements;
+	CCPPSyntax*		pcInitialiser;
+	SCPP65Type*		psType;
+	int64			lliCount;
+	size			i;
 
-	psType = mcDeclarators.GetTypeIdType(pcNew->mpcType);
+	//new auto(x) is of x's type: the one thing in its brackets.  [expr.new] 2
+	pcInitialiser = NULL;
+	if (mcDeclarators.IsAuto(pcNew->mpcType->mpcSpecifiers) && pcNew->mpcInitializer)
+	{
+		papcElements = ListElements(pcNew->mpcInitializer);
+		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
+	}
+	psType = pcInitialiser ? mcDeclarators.GetType(pcNew->mpcType->mpcSpecifiers, pcNew->mpcType->mpcDeclarator, pcNew->mpcType, pcInitialiser) : mcDeclarators.GetTypeIdType(pcNew->mpcType);
 	for (i = pcNew->macpArraySizes.NumElements(); psType && (i > 1); i--)
 	{
 		if (!Constant(pcNew->macpArraySizes.GetPtr(i - 1), &lliCount) || (lliCount <= 0))
@@ -1081,25 +1108,29 @@ CCPPSyntax* CCPPUnit::ImplicitZero(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An argument the IR front end gives a value, pcFor's own (as a new
-// expression in a new expression's placement arguments mustn't change its
-// size's), of the type psType: the size a new expression's allocation
-// function is given, or the address delete gives a class's operator delete.
+// An argument the IR front end gives a value, pcFor's own iWhich'th (as a
+// new expression in a new expression's placement arguments mustn't change
+// its size's), of the type psType: the size a new expression's allocation
+// function is given, or the address, and then the size, that delete gives
+// a class's operator delete.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPUnit::ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType)
+CCPPSyntaxImplicitArgument* CCPPUnit::ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType, int iWhich)
 {
 	CCPPSyntaxImplicitArgument**	ppcValue;
 	CCPPSyntaxImplicitArgument*		pcValue;
+	int64							lliKey;
 
-	ppcValue = mcImplicitValues.Get((int64)(size)pcFor);
+	//A node's address and those of the few bytes after it are no other node's.
+	lliKey = (int64)(size)pcFor + iWhich;
+	ppcValue = mcImplicitValues.Get(lliKey);
 	if (ppcValue)
 	{
 		return *ppcValue;
 	}
 	pcValue = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitArgument>(NULL);
 	pcValue->mpsType = psType;
-	mcImplicitValues.Put((int64)(size)pcFor, &pcValue);
+	mcImplicitValues.Put(lliKey, &pcValue);
 	return pcValue;
 }
 
@@ -1670,6 +1701,87 @@ SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type of an operand that isn't evaluated and isn't converted as a
+// value is (sizeof's and typeid's): an lvalue stays what it is, so an array
+// (a variable, a field, a row of another array, a string) is not the
+// pointer it would become, and a function is not a pointer to it.  A name
+// is the thing it names (CCPPDeclarators::EntityType), which needs no
+// object: S::m alone, and m in a static member function, are the member's
+// type.  NULL if it is wrong.  [expr.sizeof] 4, [expr.typeid] 3,
+// [expr.prim.general] 13
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	BeginUnevaluated();
+	pcExpression = SkipParentheses(pcExpression);
+	psType = mcDeclarators.EntityType(pcExpression);
+	if (!psType)
+	{
+		psType = PlaceTypeOf(pcExpression);
+	}
+	if (!psType)
+	{
+		psType = TypeOf(pcExpression);
+	}
+	EndUnevaluated();
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcNode is written in an operand that isn't evaluated, of sizeof,
+// decltype, noexcept or typeid, in the function (or lambda) it is in.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsInUnevaluatedOperand(CCPPSyntax* pcNode)
+{
+	CCPPSyntax*	pcParent;
+
+	for (pcParent = pcNode->mpcParent; pcParent; pcParent = pcParent->mpcParent)
+	{
+		switch (pcParent->GetKind())
+		{
+		case CPPS_SizeofExpression:
+		case CPPS_DecltypeSpecifier:
+		case CPPS_NoexceptExpression:
+		case CPPS_TypeidExpression:
+			return true;
+		case CPPS_FunctionDefinition:
+		case CPPS_LambdaExpression:
+			return false;
+		default:
+			break;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an expression is a function's name: the function itself, an
+// lvalue, where it isn't converted to a pointer to it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::NamesFunction(CCPPSyntax* pcExpression)
+{
+	CCPPSymbol*	pcSymbol;
+
+	if (pcExpression->GetKind() != CPPS_IdExpression)
+	{
+		return false;
+	}
+	pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
+	return pcSymbol && (pcSymbol->meKind == CPPSK_Function);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type the expression is declared to give: TypeOf's, or the reference
 // to it that a call of a function returning T& or T&&, or a cast to one,
 // gives.  A variable declared as a reference is its own type here, as its
@@ -1798,6 +1910,37 @@ bool CCPPUnit::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 		return Error(pcNode, "Integers wider than 64 bits are not supported by the compiler");
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A local declared constexpr is initialised with a constant expression:
+// one of an integer type is worked out here, and is an error (and false)
+// where it has no value.  A local of any other type is still left to be
+// made when the function runs: it has no label for CCPPConstants::
+// CheckVariable, which does this for a global, to make it under.
+// [dcl.constexpr] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit)
+{
+	CChars	szError;
+	int64	lliValue;
+
+	if (!pcInit->mpcInitializer)
+	{
+		return ReportError(pcInit, "A constexpr variable needs an initialiser");
+	}
+	if (!pcVariable->mpsType->IsInteger() || Constant(pcInit->mpcInitializer, &lliValue))
+	{
+		return true;
+	}
+	szError.Init();
+	ConstantMessage("A constexpr variable's initialiser must be a constant", &szError);
+	ReportError(pcInit, szError.Text());
+	szError.Kill();
+	return false;
 }
 
 
@@ -1967,7 +2110,6 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	CArraySyntax*					papcElements;
 	CCPPSyntaxIdExpression*			pcId;
-	CCPPSyntax*						pcOperand;
 	CCPPSymbol*						pcSymbol;
 	CCPPSyntaxInitDeclarator*		pcInit;
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
@@ -1980,6 +2122,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	bool							bResult;
 	int64							lliLeft;
 	int64							lliRight;
+	double							dOperand;
 
 	pcExpression = SkipParentheses(pcExpression);
 	if (!pcExpression)
@@ -2065,8 +2208,9 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 			return false;
 		}
 		pcVariable = (pcSymbol->meKind == CPPSK_Variable) ? GetVariable(pcSymbol) : NULL;
-		if (pcVariable && !pcVariable->mpsType->IsInteger())
+		if (pcVariable && (!pcVariable->mpsType->IsInteger() || pcVariable->mpsType->bVolatile))
 		{
+			//(A volatile const's value is read when the program runs.  [expr.const] 2)
 			return false;
 		}
 		if (pcClass)
@@ -2111,7 +2255,17 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		if (!Constant(pcBinary->mpcLeft, &lliLeft) || !Constant(pcBinary->mpcRight, &lliRight))
+		if (!Constant(pcBinary->mpcLeft, &lliLeft))
+		{
+			return false;
+		}
+		if (((pcBinary->meOperator == CT_LogicalAnd) && (lliLeft == 0)) || ((pcBinary->meOperator == CT_LogicalOr) && (lliLeft != 0)))
+		{
+			//The right isn't worked out, so needn't be a constant.  [expr.const] 2
+			*plliValue = (lliLeft != 0);
+			return true;
+		}
+		if (!Constant(pcBinary->mpcRight, &lliRight))
 		{
 			return false;
 		}
@@ -2128,9 +2282,18 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	case CPPS_CastExpression:
 		pcCast = (CCPPSyntaxCastExpression*)pcExpression;
 		psType = mcDeclarators.GetTypeIdType(pcCast->mpcType);
-		if (!psType || !(psType->IsInteger() || psType->IsPointer()) || !Constant(pcCast->mpcOperand, &lliLeft))
+		if (!psType || !(psType->IsInteger() || psType->IsPointer()))
 		{
 			return false;
+		}
+		if (!Constant(pcCast->mpcOperand, &lliLeft))
+		{
+			//(int)1.5: a floating point constant, the part after its point taken away.  [conv.fpint] 1
+			if (!psType->IsInteger() || !FloatConstant(pcCast->mpcOperand, &dOperand))
+			{
+				return false;
+			}
+			lliLeft = (int64)dOperand;
 		}
 		*plliValue = ConstantOfType(psType, lliLeft);
 		return true;
@@ -2177,32 +2340,11 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		}
 		else
 		{
-			//sizeof an array variable is the array's size, not a pointer's.  Its operand isn't evaluated.
-			BeginUnevaluated();
-			pcOperand = SkipParentheses(pcSizeof->mpcOperand);
-			psType = NULL;
-			if (pcOperand && (pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol)
-			{
-				pcVariable = GetVariable(((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol);
-				psType = pcVariable ? pcVariable->mpsType : NULL;
-			}
-			if (!psType)
-			{
-				psType = QualifiedFieldType(pcOperand);
-			}
-			if (!psType && pcOperand && ((pcOperand->GetKind() == CPPS_IdExpression) || (pcOperand->GetKind() == CPPS_MemberExpression)))
-			{
-				//A field (this's or an object's) that is an array.
-				psType = PlaceTypeOf(pcOperand);
-			}
-			if (!psType)
-			{
-				psType = TypeOf(pcOperand);
-			}
-			EndUnevaluated();
+			psType = UnevaluatedTypeOf(pcSizeof->mpcOperand);
 		}
-		if (!psType || psType->IsVoid() || psType->IsFunction())
+		if (!psType || psType->IsVoid() || psType->IsFunction() || (psType->IsArray() && (psType->iCount == 0)))
 		{
+			//Nothing that has no size: void, a function, an array of unknown bound.  [expr.sizeof] 1
 			return false;
 		}
 		psType = psType->WithoutReference();
@@ -3725,6 +3867,26 @@ int CCPPUnit::StringElementBytes(CCPPSyntax* pcString)
 		}
 	}
 	return iBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the array a string literal is: its elements and the zero
+// after them (NULL if it can't be decoded).  It is an lvalue: sizeof and
+// & are of the array, and its value is a pointer to its first element.
+// [lex.string] 8, [expr.prim.general] 1
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::StringArrayType(CCPPSyntax* pcString)
+{
+	CArrayUint8		auiBytes;
+	SCPP65Type*		psArray;
+
+	auiBytes.Init();
+	psArray = DecodeString(pcString, &auiBytes) ? mcTypes.Array(mcTypes.Const(StringElementType(pcString)), (int)(auiBytes.NumElements() / StringElementBytes(pcString)) + 1) : NULL;
+	auiBytes.Kill();
+	return psArray;
 }
 
 
