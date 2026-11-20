@@ -1,7 +1,7 @@
 # Sweep.py: the test sweep (Tests/TestSpeedPlan.txt step 5): every solution on the list built and its suites run, in
 # Release|x64, Release|Win32 and Debug|x64, and Debug|Win32 for a solution that failed in a Release configuration.
 #
-#   python Sweep.py [-only <text>,...] [-configs Release|x64,...] [-new] [-overlap]
+#   python Sweep.py [-only <text>,...] [-configs Release|x64,...] [-skip <suite>,...] [-new] [-overlap]
 #
 # An item is a solution in one configuration: built (MSBuild -m:2), then its suites run, one item after another.  With
 # -overlap a builder and a runner work side by side: while one item's suites run the next item builds, at most one
@@ -10,7 +10,8 @@
 # so with -overlap the short ones' builds hide behind them.  Each item's result is a
 # line in Output/SweepResults.txt; an item already there isn't done again, so a stopped sweep goes on where it was
 # (-new starts again).  While Output/Sweep.pause exists the sweep waits before its next build and its next run, so
-# another session can have the machine between items.  -only runs the items whose name has one of the texts in it.
+# another session can have the machine between items.  -only runs the items whose name has one of the texts in it; -skip leaves those suites out (their solutions are still
+# built), saying so in the item's result.
 import os, re, subprocess, sys, threading, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -122,6 +123,7 @@ class CSweep:
 		self.iNextBuild = 0
 		self.iRunning = -1					#The index of the item whose suites run, -1 for none.
 		self.bOverlap = False				#Builds may run beside suites (-overlap).
+		self.aszSkip = []					#Suites left out (-skip).
 		self.bCompilerRunning = False		#An EXCLUSIVE suite is running...
 		self.bBuilding = False				#...which waits for a build going on to end first.
 		self.asFailed = set()				#Solutions that failed in a Release configuration.
@@ -207,6 +209,9 @@ class CSweep:
 				for sSuite in aSuites:
 					if (len(sSuite) > 4) and (szConfig not in sSuite[4]):
 						continue
+					if sSuite[0] in self.aszSkip:
+						aszParts.append("%s: skipped" % sSuite[0])
+						continue
 					WaitWhilePaused()
 					with self.cLock:
 						self.bCompilerRunning = sSuite[0] in EXCLUSIVE
@@ -252,6 +257,7 @@ def main():
 	aszArgs = sys.argv[1:]
 	szOnly = aszArgs[aszArgs.index("-only") + 1] if "-only" in aszArgs else ""
 	aszConfigs = aszArgs[aszArgs.index("-configs") + 1].split(",") if "-configs" in aszArgs else CONFIGS
+	aszSkip = aszArgs[aszArgs.index("-skip") + 1].split(",") if "-skip" in aszArgs else []
 	os.makedirs(OUTPUT, exist_ok=True)
 	if ("-new" in aszArgs) and os.path.exists(RESULTS):
 		os.rename(RESULTS, RESULTS + time.strftime(".%Y%m%d-%H%M%S"))
@@ -259,6 +265,7 @@ def main():
 	fBegan = time.time()
 	cSweep = CSweep(Order(aItems, aszConfigs, Done(), szOnly))
 	cSweep.bOverlap = "-overlap" in aszArgs
+	cSweep.aszSkip = aszSkip
 	Say("%d items%s" % (len(cSweep.aOrder), ", builds beside runs" if cSweep.bOverlap else ""))
 	cSweep.Run()
 
@@ -275,6 +282,7 @@ def main():
 		if aFailed:
 			cSweep = CSweep(Order(aFailed, [CONDITIONAL], asDone, szOnly))
 			cSweep.bOverlap = "-overlap" in aszArgs
+			cSweep.aszSkip = aszSkip
 			Say("%d items in %s" % (len(cSweep.aOrder), CONDITIONAL))
 			cSweep.Run()
 
