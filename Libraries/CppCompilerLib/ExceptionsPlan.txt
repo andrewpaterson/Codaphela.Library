@@ -1129,3 +1129,38 @@ Progress
        (Master as merged was measured from D:\gameengine, whose path strings are 11 bytes shorter: not
        comparable byte for byte, so the third baseline is the comparison.)
 
+  9. Done, as the user had it ("I don't use exceptions ... Make them fast if needed but I'm not fussed"; then "Stop the
+     speed ups here please"), 2026-11-20 (CommonLibraries 35ca17d65, 816d96315; HCP65
+     0bd1496, 5fc28dd).
+     - 9a, 9b: the six Lib65 runs with the option off and on from D:\gameengine (D:\gameengine\ExceptionsMeasures
+       \Stage9Before, and Stage9After with 9d); every suite passes on both processors both ways.  A first run
+       (Stage9Mixed, Stage9Bad) was spoilt by a pull and by 9d's edits being built while it ran: 9d then went into a
+       worktree of its own.  What the option on costs, against off, after 9d (before it in brackets):
+         TestBaseLib65      65C64    bytes +3.9% (+4.7%)  cycles +2.3% (+2.5%)
+         TestBaseLib65      W65C816  bytes +0.6% (+0.6%)  cycles +1.1% (+1.2%)
+         TestStandardLib65  65C64    bytes +5.9% (+6.8%)  cycles +2.4% (+2.6%)
+         TestStandardLib65  W65C816  bytes +1.0% (+1.0%)  cycles +1.7% (+1.7%)
+         TestSupportLib65   65C64    bytes +6.1% (+6.8%)  cycles +1.9% (+2.0%)
+         TestSupportLib65   W65C816  bytes +1.0% (+0.9%)  cycles +0.4% (+0.4%)
+       The 65C64 pays most: its tested call branches to a stub after the function's ret that removes the call's
+       arguments and copies for the landing, and in TestStandardLib65 those are most of the 23% more instructions
+       (bras, add, cpy, bra) with the throw exits (ret, pul, cmp).  The W65C816 keeps the thrown in the carry and
+       branches on it.
+     - The kernal built with the option on, a one-off: its nine assembly routines that C++ calls had to be declared
+       noexcept (KernalDebugTell, KernalEnterUser, the interrupt and SD card ones; with the option off OS.SYS is the
+       same byte for byte), and it is then 4776 bytes bigger (2.8%), with 18814 left.  Libc65's derived exceptions say
+       override (their warnings were in every build that includes their headers).
+     - TestCPP816ArrayLayers is built with the option on too: 7679 against 6144, every layer it checks but GrowTo a
+       tested call and not a jump.  The test keeps the number.
+     - 9c: past the bar (question 16) on the 65C64, so 9d.
+     - 9d, done: the blocks only an exception reaches go after the function's others (CIRBackendPasses::ExceptionalLast),
+       and the 65C64's stubs of tested calls that copy nothing for their edge share their code (CIR65Backend::
+       Epilogue).  With the option off nothing changes: every program's bytes and cycles are Stage9Before's exactly.
+       With it on, the 65C64 is 0.7% to 0.8% smaller and up to 0.2% faster; the W65C816 up to 0.06% faster and up to
+       0.09% bigger (a landing at the function's end is a long branch away).
+     - 9d, not done (the user, 2026-11-20: "Stop the speed ups here"): a call that passes an exception straight on,
+       so that forwarders are jumps again.  9e, not done: nothrow across the whole program.
+     - 9f: the website's compiler pages (HCP65 5fc28dd): language.md's Exceptions section (what the option does and
+       costs, that it is off by default and costs nothing off, what a program with it must do, what isn't there yet),
+       building.md's rows linking to it.  Built with mkdocs.
+
