@@ -50,7 +50,7 @@ public:
 	bool							StartValuesIteration(SSetIterator* psIter, CInputDeviceVariableValueDesc** ppcVariableValueDesc);
 	bool							IterateValues(SSetIterator* psIter, CInputDeviceVariableValueDesc** ppcVariableValueDesc);
 
-	const char*								GetName(void) const;
+	const char*						GetName(void) const;
 	CInputDeviceDesc*					GetDeviceDesc(void) const;
 };
 

@@ -66,7 +66,7 @@ public:
 	CArrayInputCategoryGenericPtr*	GetGenerics(void);
 	EInputSourceType				GetType(void) const;
 	size							GetStateIndex(void) const;
-	const char*							GetFriendlyName(void) const;
+	const char*						GetFriendlyName(void) const;
 	void							SetFriendlyName(const char* szFriendlyName);
 	bool							GetEmitRestEvent(void) const;
 	void							ToString(CChars* psz);

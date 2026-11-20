@@ -46,7 +46,7 @@ public:
 	bool 											Equals(const char* szName);
 	void 											AddCondition(CInputChordDesc* pcChordDesc);
 	void 											AddCondition(CInputDeviceVariableValueDesc* pcVariableValueDesc);
-	const char*											GetName(void) const;
+	const char*										GetName(void) const;
 	bool											IsInitial(void) const;
 	CArrayInputDeviceVariableValueConditionDesc*	GetConditions(void);
 	CInputDeviceVariableDesc*						GetVariableDesc(void) const;

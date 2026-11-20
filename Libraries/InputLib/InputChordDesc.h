@@ -51,7 +51,7 @@ public:
 	CInputChordCollectiveDesc*	AsOrdered(void);
 	CInputChordCollectiveDesc*	AsGroup(void);
 	CInputChordCriteriaDesc*	GetRootCriteriaDesc(void) const;
-	const char*						GetActionName(void) const;
+	const char*					GetActionName(void) const;
 };
 
 

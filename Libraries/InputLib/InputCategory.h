@@ -49,7 +49,7 @@ public:
 	CInputDevice*			GetFirstDevice(bool bPhysical = true);
 	void					GetDevices(CArrayInputDevicePtr* pcDevices, bool bPhysical = true);
 	CInputCategoryGeneric*	GetGeneric(const char* szGeneric);
-	const char*					GetCategoryName(void) const;
+	const char*				GetCategoryName(void) const;
 	CInputDevices*			GetInputDevices(void) const;
 	bool					Is(const char* szName);
 };
