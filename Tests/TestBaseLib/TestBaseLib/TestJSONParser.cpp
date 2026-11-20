@@ -195,6 +195,40 @@ void TestJSONParserReadAttributes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// true, false and null are bare, in an object and in an array; in quotes they are strings.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestJSONParserReadLiterals(void)
+{
+	TRISTATE		tResult;
+	CMarkup			cMarkup;
+	CJSONParser		cJSONParser;
+	CChars			sz;
+	char			szJSON[] = "{\"widget\": {\"on\": true, \"off\": false, \"parent\": null, \"word\": \"true\", \"list\": [true, false, null]}}\n";
+
+	cMarkup.Init();
+	cJSONParser.Init(szJSON, "", &cMarkup, &gcLogger);
+	tResult = cJSONParser.Parse();
+	cJSONParser.Kill();
+
+	AssertTritrue(tResult);
+
+	sz.Init();
+	cMarkup.Print(&sz);
+	AssertString(
+		"<>\n"
+		"  <widget on=true, off=false, parent=null, word=\"true\">\n"
+		"    <list true, false, null/>\n"
+		"  </widget>\n"
+		"</>\n", sz.Text());
+	sz.Kill();
+
+	cMarkup.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A null attribute's name is the tag's own copy, as every attribute's is: the tag frees it, not the caller's.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -331,6 +365,7 @@ void TestJSONParser(void)
 	TestJSONParserRead1();
 	TestJSONParserRead2();
 	TestJSONParserReadAttributes();
+	TestJSONParserReadLiterals();
 	TestJSONParserNullAttribute();
 	TestJSONParser65816SampleTest();
 

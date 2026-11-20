@@ -388,21 +388,22 @@ TRISTATE CJSONParser::ParseLiteral(const char* szElementName)
 {
 	TRISTATE	tResult;
 	
-	tResult = mcParser.GetExactCharacterSequence("\"true\"");
+	//true, false and null are bare (RFC 8259 3), and each is a whole name: "trueish" isn't true.
+	tResult = mcParser.GetExactIdentifier("true");
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
 		return AddBooleanAttribute(szElementName, true, true);
 	}
 
-	tResult = mcParser.GetExactCharacterSequence("\"false\"");
+	tResult = mcParser.GetExactIdentifier("false");
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
-		return AddBooleanAttribute(szElementName, true, true);
+		return AddBooleanAttribute(szElementName, false, true);
 	}
 
-	tResult = mcParser.GetExactCharacterSequence("\"null\"");
+	tResult = mcParser.GetExactIdentifier("null");
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
