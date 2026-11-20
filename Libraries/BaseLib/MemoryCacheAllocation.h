@@ -20,7 +20,7 @@ public:
 	SMemoryCacheDescriptor*		Get(size iIndex);
 	size						NumElements(void) const;
 
-	CArrayVoidPtr*				GetEvictedArray(void);
+	const CArrayVoidPtr*		GetEvictedArray(void) const;
 
 	void						Dump(size iDescriptorSize);
 };

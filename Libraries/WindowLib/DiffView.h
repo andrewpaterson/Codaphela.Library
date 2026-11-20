@@ -125,18 +125,18 @@ public:
 	bool				PreviousDifference(void);
 	lsize				GetCurrentBlock(void) const;
 
-	CSimpleTextDiff*		GetDiff(void);
-	CTextDiffProducer*		GetProducer(void);
-	Ptr<CCodeEditor>		GetEditor(ETextDiffSide eSide);
-	Ptr<CScrollPane>		GetPane(ETextDiffSide eSide);
-	Ptr<CLabel>				GetTitle(ETextDiffSide eSide);
-	Ptr<CDiffDividerDraw>	GetDividerDraw(void) const;
-	float64					GetMiddleLine(ETextDiffSide eSide);
-	Ptr<CButton>			GetPreviousButton(void) const;
-	Ptr<CButton>			GetNextButton(void) const;
-	Ptr<CComboBox>			GetWhitespaceBox(void) const;
-	Ptr<CComboBox>			GetHighlightBox(void) const;
-	Ptr<CLabel>				GetCountLabel(void) const;
+	CSimpleTextDiff*			GetDiff(void);
+	const CTextDiffProducer*	GetProducer(void) const;
+	Ptr<CCodeEditor>			GetEditor(ETextDiffSide eSide);
+	Ptr<CScrollPane>			GetPane(ETextDiffSide eSide);
+	Ptr<CLabel>					GetTitle(ETextDiffSide eSide);
+	Ptr<CDiffDividerDraw>		GetDividerDraw(void) const;
+	float64						GetMiddleLine(ETextDiffSide eSide);
+	Ptr<CButton>				GetPreviousButton(void) const;
+	Ptr<CButton>				GetNextButton(void) const;
+	Ptr<CComboBox>				GetWhitespaceBox(void) const;
+	Ptr<CComboBox>				GetHighlightBox(void) const;
+	Ptr<CLabel>					GetCountLabel(void) const;
 
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	void				Scrolled(CScrollPane* pcPane);

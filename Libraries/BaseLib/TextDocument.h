@@ -87,42 +87,42 @@ protected:
 	CArrayTextDocumentListener	mapcListeners;  //Not held.
 
 public:
-	void					Init(const char* szText);
-	void					Kill(void);
+	void						Init(const char* szText);
+	void						Kill(void);
 
-	void					AddListener(CTextDocumentListener* pcListener);
-	void					RemoveListener(CTextDocumentListener* pcListener);
+	void						AddListener(CTextDocumentListener* pcListener);
+	void						RemoveListener(CTextDocumentListener* pcListener);
 
-	void					SetText(const char* szText);
-	void					Append(const char* szText);
-	void					Insert(size uiPosition, const char* szText);
-	void					Remove(size uiStart, size uiEnd);
+	void						SetText(const char* szText);
+	void						Append(const char* szText);
+	void						Insert(size uiPosition, const char* szText);
+	void						Remove(size uiStart, size uiEnd);
 
-	const char*				Text(void) const;
-	size					Length(void) const;
-	size					GetChangeCount(void) const;
-	CTextNavigation*		GetNavigation(void);
+	const char*					Text(void) const;
+	size						Length(void) const;
+	size						GetChangeCount(void) const;
+	CTextNavigation*			GetNavigation(void);
 
-	size					NumLines(void) const;
-	size					GetLineStart(size uiLine);
-	size					GetLineEnd(size uiLine);
-	size					FindLine(size uiPosition);
-	CArrayTextLineStart*	GetLineStarts(void);
+	size						NumLines(void) const;
+	size						GetLineStart(size uiLine);
+	size						GetLineEnd(size uiLine);
+	size						FindLine(size uiPosition);
+	const CArrayTextLineStart*	GetLineStarts(void) const;
 
-	void					SetUndoable(bool bUndoable);
-	bool					IsUndoable(void) const;
-	CTextUndo*				GetUndo(void);
-	void					BeginEdit(size uiCaret, size uiAnchor);
-	void					StartEdit(size uiCaret, size uiAnchor);
-	ETextUndoKeep			EndEdit(size uiCaret, size uiAnchor);
-	void					ClearUndo(size uiCaret, size uiAnchor);
-	bool					CanUndo(void);
-	bool					CanRedo(void);
-	bool					Load(size uiIndex, size* puiCaret, size* puiAnchor);
+	void						SetUndoable(bool bUndoable);
+	bool						IsUndoable(void) const;
+	CTextUndo*					GetUndo(void);
+	void						BeginEdit(size uiCaret, size uiAnchor);
+	void						StartEdit(size uiCaret, size uiAnchor);
+	ETextUndoKeep				EndEdit(size uiCaret, size uiAnchor);
+	void						ClearUndo(size uiCaret, size uiAnchor);
+	bool						CanUndo(void);
+	bool						CanRedo(void);
+	bool						Load(size uiIndex, size* puiCaret, size* puiAnchor);
 
 protected:
-	void					FindLineStarts(size uiFrom);
-	void					Changed(STextDocumentChange* psChange);
+	void						FindLineStarts(size uiFrom);
+	void						Changed(STextDocumentChange* psChange);
 };
 
 

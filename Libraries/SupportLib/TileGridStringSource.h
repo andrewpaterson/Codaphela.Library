@@ -15,20 +15,20 @@ protected:
 	SSizeVec2		msSize;
 
 public:
-	void			Init(char* szConstantName, CArrayChars* paszStrings);
-	void			Free(void) override;
-	void			Class(void) override;
+	void				Init(char* szConstantName, CArrayChars* paszStrings);
+	void				Free(void) override;
+	void				Class(void) override;
 
-	bool			StartGeneration(void) override;
-	void			StopGeneration(void) override;
+	bool				StartGeneration(void) override;
+	void				StopGeneration(void) override;
 
-	bool			Load(CObjectReader* pcFile) override;
-	bool			Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
+	bool				Save(CObjectWriter* pcFile) override;
 
-	CArrayChars*	GetStrings(void);
+	const CArrayChars*	GetStrings(void) const;
 
-	bool			Matches(CTileCelSource* pcTileCelSource, int x, int y) override;
-	SSizeVec2		GetSize(void) override;
+	bool				Matches(CTileCelSource* pcTileCelSource, int x, int y) override;
+	SSizeVec2			GetSize(void) override;
 };
 
 

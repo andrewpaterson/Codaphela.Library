@@ -35,10 +35,10 @@ public:
 	CImageColourARGB	mcARGB1111;
 	CImageColourARGB	mcARGB0111;
 
-	void 				Init(CInt32Rect* pcRectangle = NULL);
-	void 				Class(void) override;
+	void 					Init(CInt32Rect* pcRectangle = NULL);
+	void 					Class(void) override;
 
-	CImageColourARGB*	GetBlack(void);
+	const CImageColourARGB*	GetBlack(void) const;
 };
 
 

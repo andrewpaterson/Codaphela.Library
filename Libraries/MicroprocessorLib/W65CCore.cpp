@@ -2356,7 +2356,7 @@ CW65Instruction* CW65CCore::GetOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65Address* CW65CCore::GetNewProgramCounter(void)
+const CW65Address* CW65CCore::GetNewProgramCounter(void) const
 {
 	return &msState.cNewProgramCounter;
 }

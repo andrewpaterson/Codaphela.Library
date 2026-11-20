@@ -55,7 +55,7 @@ public:
 	void 							ToString(CChars* psz);
 	int								GetChannel(void) const;
 	EInputSourceChannelComparator	GetCompare(void) const;
-	char*							GetTest(void);
+	const char*						GetTest(void) const;
 
 };
 

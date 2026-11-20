@@ -336,7 +336,7 @@ public:
 			uint16				GetStackPointer16Bit(void) const;
 
 			CW65Instruction*	GetOpcode(void);
-			CW65Address*		GetNewProgramCounter(void);
+			const CW65Address*	GetNewProgramCounter(void) const;
 			void				IncrementProgramAddress(void);
 			void				DecrementProgramCounter(void);
 			void				IncrementStackPointer(void);

@@ -85,29 +85,29 @@ protected:
 	float				mfDeltaSensitivity;
 
 public:
-	void 							Init(void);
-	void 							Kill(void);
-	void							Copy(CInputSourceEvaluator* pcSource, CInputDevice* pcDevice);
-	void							ToString(CChars* psz);
+	void 								Init(void);
+	void 								Kill(void);
+	void								Copy(CInputSourceEvaluator* pcSource, CInputDevice* pcDevice);
+	void								ToString(CChars* psz);
 
-	void							SetSpecificSource(CInputVirtualDeviceSource* pcSource, EInputChordType eType);
-	void							SetSpecificSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource, EInputChordType eType);
-	void							SetGenericSource(CInputCategoryGeneric* pcGeneric, EInputChordType eType);
-	void							SetAnyToggleSource(void);
-	bool							Evaluate(SInputDeviceValue* psEvent, float* pfValue);
-	bool							EvaluateSpecificSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigSpecificSource* psConfig);
-	bool							EvaluateGenericSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigGenericSource* psConfig);
-	bool							EvaluateAnyToggleSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigAnyToggleSource* psConfig);
-	bool							EvaluateMatching(float* pfValue, SInputDeviceValue* psEvent);
+	void								SetSpecificSource(CInputVirtualDeviceSource* pcSource, EInputChordType eType);
+	void								SetSpecificSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource, EInputChordType eType);
+	void								SetGenericSource(CInputCategoryGeneric* pcGeneric, EInputChordType eType);
+	void								SetAnyToggleSource(void);
+	bool								Evaluate(SInputDeviceValue* psEvent, float* pfValue);
+	bool								EvaluateSpecificSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigSpecificSource* psConfig);
+	bool								EvaluateGenericSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigGenericSource* psConfig);
+	bool								EvaluateAnyToggleSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigAnyToggleSource* psConfig);
+	bool								EvaluateMatching(float* pfValue, SInputDeviceValue* psEvent);
 
-	EInputEvaluatorType				GetEvaluatorType(void) const;
-	EInputChordType					GetChordType(void) const;
-	UInputConfig*					GetConfig(void);
-	float							GetStateDeadzone(void) const;
-	float							GetDeltaSensitivity(void) const;
-	SInputConfigSpecificSource*		GetDeviceSource(void);
-	SInputConfigGenericSource*		GetDeviceGeneric(void);
-	SInputConfigAnyToggleSource*	GetDeviceAny(void);
+	EInputEvaluatorType					GetEvaluatorType(void) const;
+	EInputChordType						GetChordType(void) const;
+	const UInputConfig*					GetConfig(void) const;
+	float								GetStateDeadzone(void) const;
+	float								GetDeltaSensitivity(void) const;
+	SInputConfigSpecificSource*			GetDeviceSource(void);
+	SInputConfigGenericSource*			GetDeviceGeneric(void);
+	const SInputConfigAnyToggleSource*	GetDeviceAny(void) const;
 };
 
 

@@ -59,34 +59,34 @@ protected:
 	void*			mpvContext;
 
 public:
-	void			Init(C65C64MetaTick fTickHigh, C65C64MetaTick fTickLow, void* pvContext);
-	void			Kill(void);
+	void				Init(C65C64MetaTick fTickHigh, C65C64MetaTick fTickLow, void* pvContext);
+	void				Kill(void);
 
-	C65C64*			GetMPU(void);
-	CMetaBus32*		GetAddress(void);
-	CMetaBus16*		GetData(void);
-	CMetaTrace*		GetPHI2(void);
-	CMetaTrace*		GetRESB(void);
-	CMetaTrace*		GetRWB(void);
-	CMetaTrace*		GetLowerByte(void);
-	CMetaTrace*		GetUpperByte(void);
-	CMetaTrace*		GetOPV(void);
-	CMetaTrace*		GetVPA(void);
-	CMetaTrace*		GetVDA(void);
-	CMetaTrace*		GetVPB(void);
-	CMetaTrace*		GetEIRQB(size uiInterrupt);
-	CMetaTrace*		GetLIRQB(void);
+	C65C64*				GetMPU(void);
+	CMetaBus32*			GetAddress(void);
+	CMetaBus16*			GetData(void);
+	const CMetaTrace*	GetPHI2(void) const;
+	CMetaTrace*			GetRESB(void);
+	const CMetaTrace*	GetRWB(void) const;
+	const CMetaTrace*	GetLowerByte(void) const;
+	const CMetaTrace*	GetUpperByte(void) const;
+	const CMetaTrace*	GetOPV(void) const;
+	const CMetaTrace*	GetVPA(void) const;
+	const CMetaTrace*	GetVDA(void) const;
+	const CMetaTrace*	GetVPB(void) const;
+	CMetaTrace*			GetEIRQB(size uiInterrupt);
+	CMetaTrace*			GetLIRQB(void);
 
-	bool			TickInstruction(void);
-	bool			TestTickCycle(void);
+	bool				TickInstruction(void);
+	bool				TestTickCycle(void);
 
-	void			Print(CChars* psz);
-	void			Dump(void);
+	void				Print(CChars* psz);
+	void				Dump(void);
 
 protected:
-	void			InputTransition(void);
-	void			CallTickHigh(void);
-	void			CallTickLow(void);
+	void				InputTransition(void);
+	void				CallTickHigh(void);
+	void				CallTickLow(void);
 };
 
 

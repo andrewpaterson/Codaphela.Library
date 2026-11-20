@@ -30,11 +30,11 @@ public:
 
 	CW65CCore*		GetCore(void) override;
 	CW65C816*		GetMPU(void);
-	CMetaTrace* 	GetABORTB(void);
-	CMetaTrace* 	GetVPA(void);
-	CMetaTrace* 	GetVDA(void);
-	CMetaTrace* 	GetMX(void);
-	CMetaTrace* 	GetE(void);
+	const CMetaTrace* 	GetABORTB(void) const;
+	const CMetaTrace* 	GetVPA(void) const;
+	const CMetaTrace* 	GetVDA(void) const;
+	const CMetaTrace* 	GetMX(void) const;
+	const CMetaTrace* 	GetE(void) const;
 
 	bool			IsResetInstruction(void);
 	bool			IsStopInstruction(void);

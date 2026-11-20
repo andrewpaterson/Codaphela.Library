@@ -857,7 +857,7 @@ void CCPP65Builder::SetHeaderCache(bool bHeaderCache)
 // The headers kept, and how often units found them (CPPHeaderCache).
 //
 //////////////////////////////////////////////////////////////////////////
-CPPHeaderCache* CCPP65Builder::GetHeaderCache(void)
+const CPPHeaderCache* CCPP65Builder::GetHeaderCache(void) const
 {
 	return &mcHeaderCache;
 }

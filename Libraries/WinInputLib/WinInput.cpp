@@ -92,9 +92,9 @@ void CWinInput::Update(CInputDevices* pcDevices, uint32 uiSequence)
 }
 
 
-CDirectInput* CWinInput::GetJoystick(void) { return &mcJoystick; }
-CWinRawInput* CWinInput::GetRaw(void) { return &mcRaw; }
-CWinXInput* CWinInput::GetXInput(void) { return &mcXInput; }
+const CDirectInput* CWinInput::GetJoystick(void) const { return &mcJoystick; }
+const CWinRawInput* CWinInput::GetRaw(void) const { return &mcRaw; }
+const CWinXInput* CWinInput::GetXInput(void) const { return &mcXInput; }
 HWND CWinInput::GetHWnd(void) const { return mhWnd; }
 bool CWinInput::IsExclusive(void) const { return mbExclusive; }
 bool CWinInput::IsNotInitialised(void) const { return mbNotInitialised; }

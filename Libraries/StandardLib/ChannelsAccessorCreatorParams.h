@@ -51,30 +51,30 @@ protected:
 	size					muiByteSize;
 
 public:
-	void					Init(CChannels* pcChannels);
-	void					Kill(void);
+	void						Init(CChannels* pcChannels);
+	void						Kill(void);
 
-	bool 					AddAccess(size iChannel, EPrimitiveType eType = PT_Undefined);
-	bool 					AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType = PT_Undefined);
-	bool					AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType = PT_Undefined);
-	bool					AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType = PT_Undefined);
-	bool					AddAccess(CArraySize* paiChannels, EPrimitiveType eType = PT_Undefined);
-	void					AddAccess(CChannel* pcChannel);
-	void					AddAccess(CChannels* pcChannels);
-	void					AddAccess(CChannelAccessor* pcChannel);
-	void					AddAccess(CChannelsAccessor* pcChannels);
+	bool 						AddAccess(size iChannel, EPrimitiveType eType = PT_Undefined);
+	bool 						AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType = PT_Undefined);
+	bool						AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType = PT_Undefined);
+	bool						AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType = PT_Undefined);
+	bool						AddAccess(CArraySize* paiChannels, EPrimitiveType eType = PT_Undefined);
+	void						AddAccess(CChannel* pcChannel);
+	void						AddAccess(CChannels* pcChannels);
+	void						AddAccess(CChannelAccessor* pcChannel);
+	void						AddAccess(CChannelsAccessor* pcChannels);
 
-	bool					CreateAccessorParams(void);
+	bool						CreateAccessorParams(void);
 
-	CArrayChannelAccessor*	GetAccessors(void);
-	CArrayChannelAccess*	GetAccesses(void);
-	bool					IsContiguous(void) const;
-	bool					IsSourceTypesSame(void) const;
-	bool					IsChannelByteAligned(void) const;
-	bool					IsAccessByteAligned(void) const;
-	size					GetBitSize(void) const;
-	size					GetByteSize(void) const;
-	CChannels*				GetChannels(void) const;
+	CArrayChannelAccessor*		GetAccessors(void);
+	const CArrayChannelAccess*	GetAccesses(void) const;
+	bool						IsContiguous(void) const;
+	bool						IsSourceTypesSame(void) const;
+	bool						IsChannelByteAligned(void) const;
+	bool						IsAccessByteAligned(void) const;
+	size						GetBitSize(void) const;
+	size						GetByteSize(void) const;
+	CChannels*					GetChannels(void) const;
 
 protected:
 	bool	CalculateEmpty(void);

@@ -49,13 +49,13 @@ public:
 	void AddDevicesTo(CInputDevices* pcDevices) override;
 	void Update(CInputDevices* pcDevices, uint32 uiSequence) override;
 
-	CDirectInput*	GetJoystick(void);
-	CWinRawInput*	GetRaw(void);
-	CWinXInput*		GetXInput(void);
-	HWND			GetHWnd(void) const;
-	bool			IsExclusive(void) const;
-	bool			IsNotInitialised(void) const;
-	bool			IsUsable(void) const;
+	const CDirectInput*	GetJoystick(void) const;
+	const CWinRawInput*	GetRaw(void) const;
+	const CWinXInput*	GetXInput(void) const;
+	HWND				GetHWnd(void) const;
+	bool				IsExclusive(void) const;
+	bool				IsNotInitialised(void) const;
+	bool				IsUsable(void) const;
 };
 
 

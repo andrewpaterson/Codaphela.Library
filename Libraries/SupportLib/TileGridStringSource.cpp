@@ -70,7 +70,7 @@ bool CTileGridStringSource::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayChars* CTileGridStringSource::GetStrings(void)
+const CArrayChars* CTileGridStringSource::GetStrings(void) const
 {
 	return &maszStrings;
 }

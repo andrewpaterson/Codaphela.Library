@@ -150,55 +150,55 @@ protected:
 	bool								mbReady;
 
 public:
-	void				Init(void);
-	void				Class(void) override;
-	void				Free(void) override;
+	void					Init(void);
+	void					Class(void) override;
+	void					Free(void) override;
 
-	bool				IsReady(void) const;
-	const char*			GetDeviceName(void) const;
-	CVulkanFunctions*	GetFunctions(void);
-	VkDevice			GetDevice(void) const;
+	bool					IsReady(void) const;
+	const char*				GetDeviceName(void) const;
+	const CVulkanFunctions*	GetFunctions(void) const;
+	VkDevice				GetDevice(void) const;
 
-	bool				CreateBuffer(SVulkanBuffer* psBuffer, VkDeviceSize uiSize, VkBufferUsageFlags uiUsage);
-	void				DestroyBuffer(SVulkanBuffer* psBuffer);
-	Ptr<CVulkanTexture>	GetTexture(CMaterialImage* pcImage);  //NULL for none: the mesh is drawn with GetWhite.
-	VkDescriptorSet		GetWhite(void) const;
-	size				NumTextures(void);  //Those some mesh still holds.
-	VkDescriptorSet		AllocateSkin(SVulkanBuffer* psVertices, SVulkanBuffer* psWeights);
-	void				FreeSkin(VkDescriptorSet hSkin);
-	void				ClearPalette(void);
-	bool				AddPalette(float32* paf4x4s, uint32 uiNumMatrices, uint32* puiOffset);
+	bool					CreateBuffer(SVulkanBuffer* psBuffer, VkDeviceSize uiSize, VkBufferUsageFlags uiUsage);
+	void					DestroyBuffer(SVulkanBuffer* psBuffer);
+	Ptr<CVulkanTexture>		GetTexture(CMaterialImage* pcImage);  //NULL for none: the mesh is drawn with GetWhite.
+	VkDescriptorSet			GetWhite(void) const;
+	size					NumTextures(void);  //Those some mesh still holds.
+	VkDescriptorSet			AllocateSkin(SVulkanBuffer* psVertices, SVulkanBuffer* psWeights);
+	void					FreeSkin(VkDescriptorSet hSkin);
+	void					ClearPalette(void);
+	bool					AddPalette(float32* paf4x4s, uint32 uiNumMatrices, uint32* puiOffset);
 
-	bool				BeginFrame(int32 iWidth, int32 iHeight, uint32 uiBackground, SVulkanFrameData* psFrame);
-	VkCommandBuffer		GetCommands(void) const;
-	void				UseOpaque(void);
-	void				UseTransparent(void);
-	void				UseTexture(VkDescriptorSet hTexture);
-	void				UseSkin(VkDescriptorSet hSkin, uint32 uiPaletteOffset);
-	void				UseNoSkin(void);
-	void				Draw(SVulkanDraw* psDraw, bool bMirrored, uint32 uiFirstIndex, uint32 uiNumIndices);
-	bool				EndFrame(uint32* puiPixels);
+	bool					BeginFrame(int32 iWidth, int32 iHeight, uint32 uiBackground, SVulkanFrameData* psFrame);
+	VkCommandBuffer			GetCommands(void) const;
+	void					UseOpaque(void);
+	void					UseTransparent(void);
+	void					UseTexture(VkDescriptorSet hTexture);
+	void					UseSkin(VkDescriptorSet hSkin, uint32 uiPaletteOffset);
+	void					UseNoSkin(void);
+	void					Draw(SVulkanDraw* psDraw, bool bMirrored, uint32 uiFirstIndex, uint32 uiNumIndices);
+	bool					EndFrame(uint32* puiPixels);
 
 protected:
-	bool				CreateInstance(void);
-	bool				ChooseDevice(void);
-	bool				CreateDevice(void);
-	bool				CreateCommands(void);
-	bool				CreateDescriptors(void);
-	bool				CreateTextureDescriptors(void);
-	bool				CreateSkinDescriptors(void);
-	bool				CreateTexture(SVulkanTexture* psTexture, int32 iNumLevels, int32* paiWidths, int32* paiHeights, uint32* puiTexels);
-	void				DestroyTexture(SVulkanTexture* psTexture);
-	bool				Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iNumLevels, int32* paiWidths, int32* paiHeights);
-	bool				CreatePipelines(void);
-	VkPipeline			CreatePipeline(VkShaderModule hVertex, VkShaderModule hFragment, bool bTransparent);
-	VkShaderModule		CreateShader(const uint32* puiCode, size uiSize);
-	bool				CreateTarget(int32 iWidth, int32 iHeight);
-	void				DestroyTarget(void);
-	bool				CreateImage(SVulkanImage* psImage, int32 iWidth, int32 iHeight, VkFormat eFormat, VkImageUsageFlags uiUsage, VkImageAspectFlags uiAspect, uint32 uiLevels = 1);
-	void				DestroyImage(SVulkanImage* psImage);
-	bool				AllocateMemory(VkDeviceMemory* phMemory, VkMemoryRequirements* psRequirements, VkMemoryPropertyFlags uiProperties);
-	void				Barrier(VkImage hImage, VkImageAspectFlags uiAspect, VkImageLayout eFrom, VkImageLayout eTo, VkAccessFlags uiFromAccess, VkAccessFlags uiToAccess, VkPipelineStageFlags uiFromStage, VkPipelineStageFlags uiToStage, uint32 uiLevels = 1);
+	bool					CreateInstance(void);
+	bool					ChooseDevice(void);
+	bool					CreateDevice(void);
+	bool					CreateCommands(void);
+	bool					CreateDescriptors(void);
+	bool					CreateTextureDescriptors(void);
+	bool					CreateSkinDescriptors(void);
+	bool					CreateTexture(SVulkanTexture* psTexture, int32 iNumLevels, int32* paiWidths, int32* paiHeights, uint32* puiTexels);
+	void					DestroyTexture(SVulkanTexture* psTexture);
+	bool					Upload(SVulkanImage* psImage, SVulkanBuffer* psPixels, int32 iNumLevels, int32* paiWidths, int32* paiHeights);
+	bool					CreatePipelines(void);
+	VkPipeline				CreatePipeline(VkShaderModule hVertex, VkShaderModule hFragment, bool bTransparent);
+	VkShaderModule			CreateShader(const uint32* puiCode, size uiSize);
+	bool					CreateTarget(int32 iWidth, int32 iHeight);
+	void					DestroyTarget(void);
+	bool					CreateImage(SVulkanImage* psImage, int32 iWidth, int32 iHeight, VkFormat eFormat, VkImageUsageFlags uiUsage, VkImageAspectFlags uiAspect, uint32 uiLevels = 1);
+	void					DestroyImage(SVulkanImage* psImage);
+	bool					AllocateMemory(VkDeviceMemory* phMemory, VkMemoryRequirements* psRequirements, VkMemoryPropertyFlags uiProperties);
+	void					Barrier(VkImage hImage, VkImageAspectFlags uiAspect, VkImageLayout eFrom, VkImageLayout eTo, VkAccessFlags uiFromAccess, VkAccessFlags uiToAccess, VkPipelineStageFlags uiFromStage, VkPipelineStageFlags uiToStage, uint32 uiLevels = 1);
 };
 
 

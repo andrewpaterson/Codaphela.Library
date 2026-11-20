@@ -356,9 +356,9 @@ void CW65C816Meta::CallTickLow(void)
 //////////////////////////////////////////////////////////////////////////
 CW65C816*   CW65C816Meta::GetMPU(void)     { return &mcMPU; }
 CW65CCore*  CW65C816Meta::GetCore(void)    { return &mcMPU; }
-CMetaTrace* CW65C816Meta::GetABORTB(void)  { return &mcABORTB; }
-CMetaTrace* CW65C816Meta::GetVPA(void)	   { return &mcVPA; }
-CMetaTrace* CW65C816Meta::GetVDA(void)	   { return &mcVDA; }
-CMetaTrace* CW65C816Meta::GetMX(void)	   { return &mcMX; }
-CMetaTrace* CW65C816Meta::GetE(void)	   { return &mcE; }
+const CMetaTrace* CW65C816Meta::GetABORTB(void) const  { return &mcABORTB; }
+const CMetaTrace* CW65C816Meta::GetVPA(void) const	   { return &mcVPA; }
+const CMetaTrace* CW65C816Meta::GetVDA(void) const	   { return &mcVDA; }
+const CMetaTrace* CW65C816Meta::GetMX(void) const	   { return &mcMX; }
+const CMetaTrace* CW65C816Meta::GetE(void) const	   { return &mcE; }
 

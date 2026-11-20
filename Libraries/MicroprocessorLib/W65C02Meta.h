@@ -26,7 +26,7 @@ public:
 
 	CW65CCore*		GetCore(void) override;
 	CW65C02*		GetMPU(void);
-	CMetaTrace* 	GetSYNC(void);
+	const CMetaTrace* 	GetSYNC(void) const;
 	CMetaTrace* 	GetSOB(void);
 
 	bool			IsResetInstruction(void);

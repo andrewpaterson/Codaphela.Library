@@ -441,7 +441,7 @@ void CChannelsAccessorCreatorParams::AddAccess(CChannelsAccessor* pcChannels)
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayChannelAccessor* CChannelsAccessorCreatorParams::GetAccessors(void) { return &macAccessors; }
-CArrayChannelAccess* CChannelsAccessorCreatorParams::GetAccesses(void) { return &masAccesses; }
+const CArrayChannelAccess* CChannelsAccessorCreatorParams::GetAccesses(void) const { return &masAccesses; }
 bool CChannelsAccessorCreatorParams::IsContiguous(void) const { return mbContiguous; }
 bool CChannelsAccessorCreatorParams::IsSourceTypesSame(void) const { return mbSourceTypesSame; }
 bool CChannelsAccessorCreatorParams::IsChannelByteAligned(void) const { return mbChannelByteAligned; }

@@ -866,7 +866,7 @@ Ptr<CComboBox> CDiffView::GetWhitespaceBox(void) const { return mpWhitespaceBox;
 Ptr<CComboBox> CDiffView::GetHighlightBox(void) const { return mpHighlightBox; }
 Ptr<CLabel> CDiffView::GetCountLabel(void) const { return mpCountLabel; }
 CSimpleTextDiff* CDiffView::GetDiff(void) { return &mcDiff; }
-CTextDiffProducer* CDiffView::GetProducer(void) { return &mcProducer; }
+const CTextDiffProducer* CDiffView::GetProducer(void) const { return &mcProducer; }
 CTextContent* CDiffView::GetContent(ETextDiffSide eSide) { return (eSide == TDS_Left) ? mcDiff.GetContent1() : mcDiff.GetContent2(); }
 Ptr<CCodeEditor> CDiffView::GetEditor(ETextDiffSide eSide) { return (eSide == TDS_Left) ? mpLeftEditor : mpRightEditor; }
 Ptr<CScrollPane> CDiffView::GetPane(ETextDiffSide eSide) { return (eSide == TDS_Left) ? mpLeftPane : mpRightPane; }

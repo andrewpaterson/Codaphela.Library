@@ -35,15 +35,15 @@ public:
 
 	CMetaBus16*			GetAddress(void);
 	CMetaBus8*			GetData(void);
-	CMetaTrace* 	GetVPB(void);
-	CMetaTrace* 	GetRDY(void);
+	const CMetaTrace* 	GetVPB(void) const;
+	const CMetaTrace* 	GetRDY(void) const;
 	CMetaTrace* 	GetIRQB(void);
 	CMetaTrace* 	GetNMIB(void);
-	CMetaTrace* 	GetMLB(void);
+	const CMetaTrace* 	GetMLB(void) const;
 	CMetaTrace* 	GetRESB(void);
-	CMetaTrace* 	GetPHI2(void);
-	CMetaTrace* 	GetBE(void);
-	CMetaTrace* 	GetRWB(void);
+	const CMetaTrace* 	GetPHI2(void) const;
+	const CMetaTrace* 	GetBE(void) const;
+	const CMetaTrace* 	GetRWB(void) const;
 
 	bool			TickInstruction(void);
 	bool			TestTickCycle(void);

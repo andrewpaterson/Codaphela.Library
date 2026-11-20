@@ -363,7 +363,7 @@ public:
 	CIRImports*				GetImports(void) const;
 	CCPPTokeniser*			GetTokeniser(void) const;
 	CCPPSyntaxTree*			GetTree(void) const;
-	CArrayCPPSymbols*		GetPackElements(void);
+	const CArrayCPPSymbols*	GetPackElements(void) const;
 	CSpillStore*			GetSpillStore(void) const;
 	CCPPSemanticPass*		GetSemanticPass(void) const;
 	bool					RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind);

@@ -203,13 +203,13 @@ uint8 CW65CMeta::GetBank(void) const
 //////////////////////////////////////////////////////////////////////////
 CMetaBus16* CW65CMeta::GetAddress(void) { return &mcAddress; }
 CMetaBus8*  CW65CMeta::GetData(void)    { return &mcData; }
-CMetaTrace* CW65CMeta::GetVPB(void)     { return &mcVPB; }
-CMetaTrace* CW65CMeta::GetRDY(void)     { return &mcRDY; }
+const CMetaTrace* CW65CMeta::GetVPB(void) const     { return &mcVPB; }
+const CMetaTrace* CW65CMeta::GetRDY(void) const     { return &mcRDY; }
 CMetaTrace* CW65CMeta::GetIRQB(void)	{ return &mcIRQB; }
 CMetaTrace* CW65CMeta::GetNMIB(void)	{ return &mcNMIB; }
-CMetaTrace* CW65CMeta::GetMLB(void)	    { return &mcMLB; }
+const CMetaTrace* CW65CMeta::GetMLB(void) const	    { return &mcMLB; }
 CMetaTrace* CW65CMeta::GetRESB(void)	{ return &mcRESB; }
-CMetaTrace* CW65CMeta::GetPHI2(void)	{ return &mcPHI2; }
-CMetaTrace* CW65CMeta::GetBE(void)	    { return &mcBE; }
-CMetaTrace* CW65CMeta::GetRWB(void)	    { return &mcRWB; }
+const CMetaTrace* CW65CMeta::GetPHI2(void) const	{ return &mcPHI2; }
+const CMetaTrace* CW65CMeta::GetBE(void) const	    { return &mcBE; }
+const CMetaTrace* CW65CMeta::GetRWB(void) const	    { return &mcRWB; }
 

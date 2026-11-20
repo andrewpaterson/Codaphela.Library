@@ -60,7 +60,7 @@ size CMemoryCacheAllocation::NumElements(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayVoidPtr* CMemoryCacheAllocation::GetEvictedArray(void)
+const CArrayVoidPtr* CMemoryCacheAllocation::GetEvictedArray(void) const
 {
 	return &mapEvictedCacheDescriptors;
 }

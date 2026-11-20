@@ -237,5 +237,5 @@ CFileDataIndex CIndexedDataDescriptor::GetFileDataIndex(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedDataDescriptor::GetFileIndex(void) const { return msFileDescriptor.mcFileIndex.miFile; }
 filePos CIndexedDataDescriptor::GetPositionInFile(void) const { return msFileDescriptor.mcFileIndex.mulliFilePos; }
-CFilePosIndex* CIndexedDataDescriptor::GetFilePosIndex(void) { return &msFileDescriptor.mcFileIndex; }
+const CFilePosIndex* CIndexedDataDescriptor::GetFilePosIndex(void) const { return &msFileDescriptor.mcFileIndex; }
 

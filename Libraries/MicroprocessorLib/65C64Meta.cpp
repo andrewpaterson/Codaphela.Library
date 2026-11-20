@@ -289,15 +289,15 @@ void C65C64Meta::Dump(void)
 C65C64* C65C64Meta::GetMPU(void) { return &mcMPU; }
 CMetaBus32* C65C64Meta::GetAddress(void) { return &mcAddress; }
 CMetaBus16* C65C64Meta::GetData(void) { return &mcData; }
-CMetaTrace* C65C64Meta::GetPHI2(void) { return &mcPHI2; }
+const CMetaTrace* C65C64Meta::GetPHI2(void) const { return &mcPHI2; }
 CMetaTrace* C65C64Meta::GetRESB(void) { return &mcRESB; }
-CMetaTrace* C65C64Meta::GetRWB(void) { return &mcRWB; }
-CMetaTrace* C65C64Meta::GetLowerByte(void) { return &mcLowerByte; }
-CMetaTrace* C65C64Meta::GetUpperByte(void) { return &mcUpperByte; }
-CMetaTrace* C65C64Meta::GetOPV(void) { return &mcOPV; }
-CMetaTrace* C65C64Meta::GetVPA(void) { return &mcVPA; }
-CMetaTrace* C65C64Meta::GetVDA(void) { return &mcVDA; }
-CMetaTrace* C65C64Meta::GetVPB(void) { return &mcVPB; }
+const CMetaTrace* C65C64Meta::GetRWB(void) const { return &mcRWB; }
+const CMetaTrace* C65C64Meta::GetLowerByte(void) const { return &mcLowerByte; }
+const CMetaTrace* C65C64Meta::GetUpperByte(void) const { return &mcUpperByte; }
+const CMetaTrace* C65C64Meta::GetOPV(void) const { return &mcOPV; }
+const CMetaTrace* C65C64Meta::GetVPA(void) const { return &mcVPA; }
+const CMetaTrace* C65C64Meta::GetVDA(void) const { return &mcVDA; }
+const CMetaTrace* C65C64Meta::GetVPB(void) const { return &mcVPB; }
 CMetaTrace* C65C64Meta::GetEIRQB(size uiInterrupt) { return &macEIRQB[uiInterrupt]; }
 CMetaTrace* C65C64Meta::GetLIRQB(void) { return &mcLIRQB; }
 

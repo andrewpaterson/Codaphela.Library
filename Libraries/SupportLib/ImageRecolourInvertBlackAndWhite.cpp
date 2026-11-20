@@ -61,7 +61,7 @@ void CImageRecolourInvertBlackAndWhite::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageColourARGB* CImageRecolourInvertBlackAndWhite::GetBlack(void)
+const CImageColourARGB* CImageRecolourInvertBlackAndWhite::GetBlack(void) const
 {
 	return &mcARGB0000;
 }

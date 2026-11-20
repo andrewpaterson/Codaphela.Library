@@ -4583,7 +4583,7 @@ CCPPTarget* CCPPUnit::GetTarget(void) const { return mpcTarget; }
 CIRImports* CCPPUnit::GetImports(void) const { return mpcImports; }
 CCPPTokeniser* CCPPUnit::GetTokeniser(void) const { return mpcTokeniser; }
 CCPPSyntaxTree* CCPPUnit::GetTree(void) const { return mpcTree; }
-CArrayCPPSymbols* CCPPUnit::GetPackElements(void) { return &mapcPackElements; }
+const CArrayCPPSymbols* CCPPUnit::GetPackElements(void) const { return &mapcPackElements; }
 CSpillStore* CCPPUnit::GetSpillStore(void) const { return mpcSpillStore; }
 CCPPSemanticPass* CCPPUnit::GetSemanticPass(void) const { return mpcSemanticPass; }
 CAsm65Profile* CCPPUnit::GetFrameProfile(void) const { return mpcFrameProfile; }

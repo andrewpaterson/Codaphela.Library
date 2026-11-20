@@ -230,7 +230,7 @@ size CTextDocument::Length(void) const { return mszText.Length(); }
 size CTextDocument::GetChangeCount(void) const { return muiChangeCount; }  //Each edit ended counts one more, so the text's owner can tell it changed since it last looked.
 CTextNavigation* CTextDocument::GetNavigation(void) { return &mcNavigation; }
 size CTextDocument::NumLines(void) const { return mauiLineStarts.NumElements(); }
-CArrayTextLineStart* CTextDocument::GetLineStarts(void) { return &mauiLineStarts; }
+const CArrayTextLineStart* CTextDocument::GetLineStarts(void) const { return &mauiLineStarts; }
 
 
 //////////////////////////////////////////////////////////////////////////
