@@ -64,7 +64,7 @@ public:
 	CHeaderFile*	FindOutside(char* szAbsoluteFileName);
 	bool			HasSubDirectories(void) const;
 	
-	char*			GetBaseDirectory(void);
+	const char*		GetBaseDirectory(void) const;
 	size			GetBaseDirectoryLength(void) const;
 
 	void			Dump(void);

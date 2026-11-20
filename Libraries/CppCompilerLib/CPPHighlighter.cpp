@@ -689,11 +689,11 @@ bool CCPPHighlighter::IsWrittenInFile(SPreprocessedToken* psSource)
 //////////////////////////////////////////////////////////////////////////
 int CCPPHighlighter::SourceLength(int iOffset, SPreprocessedToken* psToken)
 {
-	char*	sz;
-	int		iEnd;
-	int		iContentsLength;
-	size	uiName;
-	size	i;
+	const char*	sz;
+	int			iEnd;
+	int			iContentsLength;
+	size		uiName;
+	size		i;
 
 	sz = mpcFile->GetContents();
 	iContentsLength = (int)mpcFile->GetContentsLength();
@@ -750,9 +750,9 @@ int CCPPHighlighter::SourceLength(int iOffset, SPreprocessedToken* psToken)
 //////////////////////////////////////////////////////////////////////////
 int CCPPHighlighter::LineLength(int iLine)
 {
-	size	iStart;
-	size	iEnd;
-	char*	sz;
+	size		iStart;
+	size		iEnd;
+	const char*	sz;
 
 	iStart = mpcFile->GetOffset(iLine, 0);
 	if (iStart == ARRAY_ELEMENT_NOT_FOUND)

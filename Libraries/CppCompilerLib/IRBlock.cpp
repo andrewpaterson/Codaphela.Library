@@ -67,7 +67,7 @@ void CIRBlock::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIRBlock::GetName(void)
+const char* CIRBlock::GetName(void) const
 {
 	return mszName.Text();
 }

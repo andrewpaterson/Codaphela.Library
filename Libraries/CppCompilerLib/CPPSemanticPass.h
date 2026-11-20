@@ -122,7 +122,7 @@ public:
 	void				SetTemplatesAsThemselves(bool bTemplatesAsThemselves) { mbTemplatesAsThemselves = bTemplatesAsThemselves; }
 	bool				IsTemplatesAsThemselves(void) const;
 	void				SetRecordedEnum(const char* szQualifiedName);
-	char*				GetRecordedEnum(void);
+	const char*			GetRecordedEnum(void) const;
 	void				SetRecordedEnumType(SCPP65Type* psType) { mpsRecordedEnum = psType; }
 	SCPP65Type*			GetRecordedEnumType(void) const;
 	bool				IsRecordedEnum(SCPP65Type* psType);

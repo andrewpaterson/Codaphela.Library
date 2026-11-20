@@ -279,8 +279,8 @@ public:
 
 	CAsm65Output*	GetOutput(void);
 	CAsm65Linker*	GetLinker(void);
-	char*			GetErrors(void);
-	char*			GetWarnings(void);
+	const char*		GetErrors(void) const;
+	const char*		GetWarnings(void) const;
 	char*			GetMap(void);
 	size			NumMissing(void);
 	char*			GetMissing(size uiIndex);

@@ -47,7 +47,7 @@ public:
 	void 							Init(char* pcName, EPreprocessorSpecialOperator eType, int64 lliID);
 	void 							Kill(void);
 	bool 							Equals(CSpecialOperator* pcOther);
-	char*							GetName(void);
+	const char*						GetName(void) const;
 	EPreprocessorSpecialOperator	GetType(void) const;
 	void							Dump(void);
 };

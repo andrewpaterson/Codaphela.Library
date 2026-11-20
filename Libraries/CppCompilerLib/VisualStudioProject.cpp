@@ -165,7 +165,7 @@ void CVisualStudioProject::MatchCase(CChars* pszSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CVisualStudioProject::GetDirectory(void)
+const char* CVisualStudioProject::GetDirectory(void) const
 {
 	return mszDirectory.Text();
 }

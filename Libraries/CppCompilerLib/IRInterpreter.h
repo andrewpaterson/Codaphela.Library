@@ -155,7 +155,7 @@ public:
 	SIRObject*	GetObject(uint32 uiObject);
 	bool		IsWritten(uint32 uiObject);
 
-	char*		GetError(void);
+	const char*	GetError(void) const;
 	uint32		GetErrorSource(void) const;
 	CArrayChars*	GetTrail(void);
 

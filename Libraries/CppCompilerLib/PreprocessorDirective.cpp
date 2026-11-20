@@ -49,7 +49,7 @@ void CPreprocessorDirective::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPreprocessorDirective::GetName(void)
+const char* CPreprocessorDirective::GetName(void) const
 {
 	return mszName.Text();
 }

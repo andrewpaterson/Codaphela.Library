@@ -33,13 +33,13 @@ class CPreprocessorLineTokeniser
 {
 protected:
 	CPPTokenList*			mpcTokenHolder;
-	char*					mszWhitespaceStart;
-	char*					mszIdentifierStart;
-	char*					mszDecorationStart;
-	char*					mszDoubleQuoteStart;
-	char*					mszSingleQuoteStart;
-	char*					mszHashStart;
-	char*					mszNumberStart;
+	const char*				mszWhitespaceStart;
+	const char*				mszIdentifierStart;
+	const char*				mszDecorationStart;
+	const char*				mszDoubleQuoteStart;
+	const char*				mszSingleQuoteStart;
+	const char*				mszHashStart;
+	const char*				mszNumberStart;
 	bool					mbOnlyWhitespace;
 	CPreprocessorParser*	mpcParser;
 	CPPTokenMemory*			mpcTokens;
@@ -56,17 +56,17 @@ public:
 	void		Kill(void);
 	void		Preprocess(void);
 	bool		PossibleComment(void);
-	void		Quote(char** pszStart, bool bInOther);
-	void		EndQuoted(char** pszStart, bool bString);
+	void		Quote(const char** pszStart, bool bInOther);
+	void		EndQuoted(const char** pszStart, bool bString);
 	void		IdentifierCharacter(void);
 	bool		IsDigitSeparator(void) const;
 	bool		IsPPNumberContinuation(void) const;
 	bool		IsPPNumberStart(void) const;
 	void		AddRelevantToken(void);
-	CPPText* 	AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive);
+	CPPText* 	AddText(EPreprocessorText eType, const char* szStart, const char* szEndExclusive);
 	void		NullAll(void);
 	void		MarkStart(void);
-	void		Respell(CChars* psz, char* szStart, char* szEnd);
+	void		Respell(CChars* psz, const char* szStart, const char* szEnd);
 };
 
 

@@ -64,7 +64,7 @@ bool CSpecialOperator::Equals(CSpecialOperator* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CSpecialOperator::GetName(void)
+const char* CSpecialOperator::GetName(void) const
 {
 	return mszName.Text();
 }

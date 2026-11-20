@@ -44,7 +44,7 @@ public:
 	void					SetComments(CArrayPPComments* pacComments);
 	void 					Kill(void);
 
-	bool					TokeniseIntoBlockSets(CPPBlockSetArray* pacBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength);
+	bool					TokeniseIntoBlockSets(CPPBlockSetArray* pacBlockSets, CPPTokenMemory* pcTokenMemory, const char* szPos, int iLength);
 	void					TokeniseDefine(CPPTokenList* pcHolder, char* sz, CPPTokenMemory* pcTokens);
 	EPreprocessorDirective	GetDirective(void);
 	CPPDirective*			TokeniseDirective(CPPTokenMemory* pcTokens, EPreprocessorDirective eDirective, int iBlock, int iIndex);

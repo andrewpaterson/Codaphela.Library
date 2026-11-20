@@ -272,7 +272,7 @@ void CSourceFile::Path(CChars* pszPath)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CSourceFile::GetContents(void)
+const char* CSourceFile::GetContents(void) const
 {
 	return mszContents.Text();
 }

@@ -331,7 +331,7 @@ size CHeaderFiles::GetBaseDirectoryLength(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CHeaderFiles::GetBaseDirectory(void)
+const char* CHeaderFiles::GetBaseDirectory(void) const
 {
 	return mszBaseDirectory.Text();
 }

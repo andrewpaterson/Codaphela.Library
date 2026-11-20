@@ -38,36 +38,36 @@ typedef CArrayTemplate<SPPComment>	CArrayPPComments;
 class CPreprocessorParser
 {
 public:
-	char*				mszStartOfText;
-	char*				mszParserPos;
-	char*				mszEndOfText;
+	const char*			mszStartOfText;
+	const char*			mszParserPos;
+	const char*			mszEndOfText;
 	bool				mbEndOfFile;
 	int					miLine;
 	int					miColumn;
 	char*				mszFileName;
 	CArrayPPComments*	mpacComments;
 
-	void	Init(char* szStart, char* szEnd, char* szFileName);
-	void	SetComments(CArrayPPComments* pacComments);
-	void	AddComment(char* szStart);
+	void		Init(const char* szStart, const char* szEnd, char* szFileName);
+	void		SetComments(CArrayPPComments* pacComments);
+	void		AddComment(const char* szStart);
 
-	void	StepRight(void);
-	void	StepRight(int iDist);
-	void	StepLeft(void);
-	void	SkipWhitespace(void);
-	void	TestEnd(void);
-	bool	IsWhitespace(void) const;
-	void	SkipCStyleComment(void);
-	void	SkipCPPStyleComment(void);
-	bool	IsFirstIdentifier(void) const;
-	bool	IsDigit(void) const;
-	void	SkipNewLine(void);
-	int		CalculateColumn(void);
-	void	BackupNewLine(void);
-	bool	IsNewLine(void) const;
-	char*	GetPos(void) const;
-	char*	GetEnd(void) const;
-	void	Dump(void);
+	void		StepRight(void);
+	void		StepRight(int iDist);
+	void		StepLeft(void);
+	void		SkipWhitespace(void);
+	void		TestEnd(void);
+	bool		IsWhitespace(void) const;
+	void		SkipCStyleComment(void);
+	void		SkipCPPStyleComment(void);
+	bool		IsFirstIdentifier(void) const;
+	bool		IsDigit(void) const;
+	void		SkipNewLine(void);
+	int			CalculateColumn(void);
+	void		BackupNewLine(void);
+	bool		IsNewLine(void) const;
+	const char*	GetPos(void) const;
+	const char*	GetEnd(void) const;
+	void		Dump(void);
 };
 
 

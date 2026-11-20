@@ -119,7 +119,7 @@ public:
 	void			Init(uint32* puiSource, const char* szName = NULL);
 	void			Kill(void);
 
-	char*			GetName(void);
+	const char*		GetName(void) const;
 
 	SIRInstruction*	AddInstruction(uint16 uiOpcode, SIRType sType, SIRReference sResult, SIRReference sArgument0, SIRReference sArgument1);
 	SIRPhi*			AddPhi(SIRType sType, SIRReference sResult);

@@ -82,7 +82,7 @@ public:
 	void			Kill(void);
 
 	bool			Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* plliValue);
-	char*			GetReason(void);
+	const char*		GetReason(void) const;
 	void			ClearReason(void);
 	void			SetReason(const char* szReason);
 

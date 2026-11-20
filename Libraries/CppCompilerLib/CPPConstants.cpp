@@ -84,7 +84,7 @@ void CCPPConstants::Kill(void)
 // Why the last expression Value was asked for had none.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPPConstants::GetReason(void)
+const char* CCPPConstants::GetReason(void) const
 {
 	return mszReason.Text();
 }

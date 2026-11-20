@@ -37,7 +37,7 @@ public:
 	void					Init(CExternalString* pcName, EPreprocessorDirective eType, int64 lliID, CDirectiveMap* pcDirectiveMap);
 	void					Kill(void);
 
-	char*					GetName(void);
+	const char*				GetName(void) const;
 	int						GetNameLength(void) const;
 	EPreprocessorDirective	GetType(void) const;
 

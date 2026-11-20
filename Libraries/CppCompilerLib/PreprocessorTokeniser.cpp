@@ -79,9 +79,9 @@ void CPreprocessorTokeniser::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength)
+bool CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBlockSets, CPPTokenMemory* pcTokenMemory, const char* szPos, int iLength)
 {
-	char*					szEnd;
+	const char*				szEnd;
 	EPreprocessorDirective	eDirective;
 	CPPBlockSet*			pcBlockSet;
 	bool					bLastDirective;
@@ -195,8 +195,8 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 {
 	CPreprocessorDirective* pcDirective;
 	CExternalString			cName;
-	char*					szName;
-	char*					szEnd;
+	const char*				szName;
+	const char*				szEnd;
 
 	mcParser.SkipWhitespace();
 	if (mcParser.mbEndOfFile)

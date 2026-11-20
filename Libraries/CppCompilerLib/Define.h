@@ -58,7 +58,7 @@ public:
 	void 			AddArgument(CExternalString* pcName);
 	void			SetVariadic(void);
 	void 			AddReplacementToken(CPPToken* pcToken);
-	char*			GetName(void);
+	const char*		GetName(void) const;
 	size			GetNameLength(void) const;
 	uint32			GetNameHash(void) const;
 	void			SetNameHash(uint32 uiHash);

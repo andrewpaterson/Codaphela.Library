@@ -305,7 +305,7 @@ void CDefine::SetBracketed(bool b)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CDefine::GetName(void)
+const char* CDefine::GetName(void) const
 {
 	return mszName.Text();
 }

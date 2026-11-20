@@ -1304,7 +1304,7 @@ bool CCPPPreprocessor::ProcessHashUndef(CPPDirective* pcDirective, CPreprocessor
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-static bool IsPathPrefix(char* szPath, char* szBase, size iBaseLength)
+static bool IsPathPrefix(char* szPath, const char* szBase, size iBaseLength)
 {
 	size	i;
 	char	c1;
@@ -1412,7 +1412,7 @@ void CCPPPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemF
 	CHeaderFile*				pcHeaderFile;
 	CHeaderNameMapDirectory*	pcCurrentDirectory;
 	SPPSource*					psSource;
-	char*						szBase;
+	const char*					szBase;
 	bool						bCovered;
 	bool						bLeaves;
 	CFileUtil					cFileUtil;
@@ -2660,7 +2660,7 @@ void CCPPPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psTo
 {
 	SPPSource*		psSource;
 	CChars			sz;
-	char*			szName;
+	const char*		szName;
 	char*			szFileName;
 	time_t			tNow;
 	struct tm		sTime;
@@ -2997,8 +2997,8 @@ CCPPErrors* CCPPPreprocessor::GetWarnings(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPPreprocessor::EmitToken(SPreprocessedToken* psToken)
 {
-	char*	szContents;
-	size	iLength;
+	const char*	szContents;
+	size		iLength;
 
 	//The output can outlive the preprocessor and #undef'd macros, so its tokens' text must be in a source file or in
 	//the output.

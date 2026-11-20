@@ -30,7 +30,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorParser::Init(char* szStart, char* szEnd, char* szFileName)
+void CPreprocessorParser::Init(const char* szStart, const char* szEnd, char* szFileName)
 {
 	int		iLen;
 
@@ -180,8 +180,8 @@ void CPreprocessorParser::SkipWhitespace(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorParser::SkipCStyleComment(void)
 {
-	char	cCurrent;		
-	char*	szStart;
+	char		cCurrent;		
+	const char*	szStart;
 
 	//It's assumed that the initial /* has already been consumed.  Comments do not nest.
 	szStart = mszParserPos - 2;
@@ -216,7 +216,7 @@ void CPreprocessorParser::SkipCStyleComment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorParser::AddComment(char* szStart)
+void CPreprocessorParser::AddComment(const char* szStart)
 {
 	SPPComment*		psComment;
 
@@ -238,7 +238,7 @@ void CPreprocessorParser::SkipCPPStyleComment(void)
 	char	cCurrent;
 	int		iCharNum;
 
-	char*	szStart;
+	const char*	szStart;
 
 	//It's assumed that the initial // has already been consumed.
 	szStart = mszParserPos - 2;
@@ -368,9 +368,9 @@ void CPreprocessorParser::SkipNewLine(void)
 //////////////////////////////////////////////////////////////////////////
 int CPreprocessorParser::CalculateColumn(void)
 {
-	char*	sz;
-	int		iCount;
-	bool	bAny;
+	const char*	sz;
+	int			iCount;
+	bool		bAny;
 
 	iCount = 0;
 	sz = mszParserPos;
@@ -437,7 +437,7 @@ bool CPreprocessorParser::IsNewLine(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPreprocessorParser::GetPos(void) const
+const char* CPreprocessorParser::GetPos(void) const
 {
 	return mszParserPos;
 }
@@ -447,7 +447,7 @@ char* CPreprocessorParser::GetPos(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPreprocessorParser::GetEnd(void) const
+const char* CPreprocessorParser::GetEnd(void) const
 {
 	return mszEndOfText;
 }

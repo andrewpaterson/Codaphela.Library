@@ -1353,7 +1353,7 @@ CAsm65Linker* CCPP65Builder::GetLinker(void)
 // Every stage's errors: preprocessing, tokenising, parsing, generating, assembling and linking.
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPP65Builder::GetErrors(void)
+const char* CCPP65Builder::GetErrors(void) const
 {
 	return mszErrors.Text();
 }
@@ -1363,7 +1363,7 @@ char* CCPP65Builder::GetErrors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCPP65Builder::GetWarnings(void)
+const char* CCPP65Builder::GetWarnings(void) const
 {
 	return mszWarnings.Text();
 }

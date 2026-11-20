@@ -124,7 +124,7 @@ CArrayChars* CIRInterpreter::GetTrail(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIRInterpreter::GetError(void)
+const char* CIRInterpreter::GetError(void) const
 {
 	return mszLastError.Text();
 }

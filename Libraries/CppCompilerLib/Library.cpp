@@ -168,7 +168,7 @@ CTranslationUnit* CLibrary::GetNextTranslationUnit(SCFileIter* psIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CLibrary::GetBaseDir(void)
+const char* CLibrary::GetBaseDir(void) const
 {
 	return mszBaseDirectory.Text();
 }

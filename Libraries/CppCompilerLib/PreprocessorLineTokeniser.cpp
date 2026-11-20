@@ -259,12 +259,12 @@ void CPreprocessorLineTokeniser::IdentifierCharacter(void)
 // [lex.ext]
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokeniser::Quote(char** pszStart, bool bInOther)
+void CPreprocessorLineTokeniser::Quote(const char** pszStart, bool bInOther)
 {
-	bool	bString;
-	char*	szPrefix;
-	char*	szRawEnd;
-	size	uiRaw;
+	bool		bString;
+	const char*	szPrefix;
+	const char*	szRawEnd;
+	size		uiRaw;
 
 	if (bInOther)
 	{
@@ -321,7 +321,7 @@ void CPreprocessorLineTokeniser::Quote(char** pszStart, bool bInOther)
 // *pszStart: its token ends after its user-defined suffix, if it has one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokeniser::EndQuoted(char** pszStart, bool bString)
+void CPreprocessorLineTokeniser::EndQuoted(const char** pszStart, bool bString)
 {
 	mpcParser->StepRight();
 	while (!mpcParser->mbEndOfFile && IsCPPNameCharacter(*mpcParser->GetPos()))
@@ -555,7 +555,7 @@ void CPreprocessorLineTokeniser::AddRelevantToken(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPText* CPreprocessorLineTokeniser::AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive)
+CPPText* CPreprocessorLineTokeniser::AddText(EPreprocessorText eType, const char* szStart, const char* szEndExclusive)
 {
 	CPPText*			pcText;
 	CChars				sz;
@@ -621,9 +621,9 @@ void CPreprocessorLineTokeniser::NullAll(void)
 // is the same however it is spelled.  [lex.phases] 1 and 2
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokeniser::Respell(CChars* psz, char* szStart, char* szEnd)
+void CPreprocessorLineTokeniser::Respell(CChars* psz, const char* szStart, const char* szEnd)
 {
-	char*		pc;
+	const char*	pc;
 	const char*	szName;
 	size		uiLength;
 	uint32		uiCharacter;

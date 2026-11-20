@@ -51,7 +51,7 @@ public:
 	CConfig*			GetConfig(char* szConfiguration);
 	CTranslationUnit*	GetFirstTranslationUnit(SCFileIter* psIter);
 	CTranslationUnit*	GetNextTranslationUnit(SCFileIter* psIter);
-	char*				GetBaseDir(void);
+	const char*			GetBaseDir(void) const;
 	bool				IsNamed(char* szName);
 	CHeaderFiles*		GetHeaderFiles(void);
 };

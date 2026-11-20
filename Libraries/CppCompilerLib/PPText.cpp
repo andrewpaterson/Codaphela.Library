@@ -48,7 +48,7 @@ void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFile
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, char* szEndExclusive)
+void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, const char* szStart, const char* szEndExclusive)
 {
 	Init(eType, iLine, iColumn, szFileName, szStart, (int)(szEndExclusive - szStart));
 }
