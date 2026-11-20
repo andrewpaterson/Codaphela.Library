@@ -291,6 +291,9 @@
     <ClCompile Include="TestNameMatcher.cpp">
       <Filter>Source\Data\Array\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="TestRegex.cpp">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClCompile>
     <ClCompile Include="TestTextSearch.cpp">
       <Filter>Source\Data\Array\Tree</Filter>
     </ClCompile>

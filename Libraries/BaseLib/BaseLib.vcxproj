@@ -523,6 +523,7 @@
     <ClInclude Include="Define.h" />
     <ClInclude Include="TypeConverter.h" />
     <ClInclude Include="NameMatcher.h" />
+    <ClInclude Include="Regex.h" />
     <ClInclude Include="TextSearch.h" />
     <ClInclude Include="UndoLog.h" />
     <ClInclude Include="UndoStack.h" />
@@ -948,6 +949,7 @@
     <ClCompile Include="PointerFunctions.cpp" />
     <ClCompile Include="TypeConverter.cpp" />
     <ClCompile Include="NameMatcher.cpp" />
+    <ClCompile Include="Regex.cpp" />
     <ClCompile Include="TextSearch.cpp" />
     <ClCompile Include="UndoLog.cpp" />
     <ClCompile Include="UndoStack.cpp" />

@@ -891,6 +891,9 @@
     <ClInclude Include="NameMatcher.h">
       <Filter>Source\Text</Filter>
     </ClInclude>
+    <ClInclude Include="Regex.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
     <ClInclude Include="TextSearch.h">
       <Filter>Source\Text</Filter>
     </ClInclude>
@@ -2235,6 +2238,9 @@
       <Filter>Source\Data\Types\Converter</Filter>
     </ClCompile>
     <ClCompile Include="NameMatcher.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="Regex.cpp">
       <Filter>Source\Text</Filter>
     </ClCompile>
     <ClCompile Include="TextSearch.cpp">

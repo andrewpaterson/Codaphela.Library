@@ -46,6 +46,7 @@ void TestTextDocument(void);
 void TestTextEditing(void);
 void TestTextNavigation(void);
 void TestNameMatcher(void);
+void TestRegex(void);
 void TestTextSearch(void);
 void TestLine(void);
 void TestArrayBlockSorted(void);
@@ -310,6 +311,7 @@ int __cdecl main(void)
 	TestTextEditing();
 	TestTextNavigation();
 	TestNameMatcher();
+	TestRegex();
 	TestTextSearch();
 	TestLine();
 	TestMemoryFile();
