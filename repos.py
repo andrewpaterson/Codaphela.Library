@@ -195,7 +195,9 @@ def clone():
 
 
 def pull():
-    return for_each_repo_concurrently("pull", "--rebase")
+    # --rebase=merges keeps local merge commits: a plain --rebase flattens them and replays every commit of the merged
+    # branch, which conflicts even when the remote has nothing new.
+    return for_each_repo_concurrently("pull", "--rebase=merges")
 
 
 def push():
