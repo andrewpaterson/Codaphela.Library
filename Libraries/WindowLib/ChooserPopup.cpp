@@ -374,6 +374,9 @@ void CChooserPopup::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, size uiSe
 	int32		iRowHeight;
 	int32		iMaximum;
 	int32		iRow;
+	int32		iGap;
+	int32		iWidth;
+	int32		iHeight;
 
 	Close();
 	if (mpPanel.IsNull())
@@ -406,6 +409,24 @@ void CChooserPopup::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, size uiSe
 		iRows = 1;
 	}
 	mpScrollPane->SetDesiredSize(mpsLook->pcTheme->GetMetric(TM_ChooserWidth), iRows * iRowHeight);
+
+	//A grid is the size it is given, not the size its parts need: the panel is given what they add up to.
+	iGap = mpsLook->pcTheme->GetMetric(TM_GoToGap);
+	iWidth = mpsLook->pcTheme->GetMetric(TM_ChooserWidth);
+	iHeight = mpTitle->GetDesiredSize().y + iGap / 2 + iRows * iRowHeight;
+	if (mpField.IsNotNull())
+	{
+		iHeight += mpField->GetDesiredSize().y + iGap / 2;
+	}
+	if (mpPreview.IsNotNull())
+	{
+		iWidth += iGap + mpsLook->pcTheme->GetMetric(TM_ChooserPreviewWidth);
+	}
+	if (mpButton.IsNotNull())
+	{
+		iHeight += iGap / 2 + mpButton->GetDesiredSize().y;
+	}
+	mpPanel->SetDesiredSize(iWidth, iHeight);
 
 	mpPreviousFocus = mpWindow->GetFocus()->GetFocussedComponent();
 	mpPopup = mpWindow->OpenPopup(mpPanel, sPosition, pOwner);

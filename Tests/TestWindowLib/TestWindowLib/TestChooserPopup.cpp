@@ -137,6 +137,13 @@ void TestChooserPopupFilter(void)
 		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pChooser->GetField());
 		AssertInt(5, pChooser->GetList()->NumRows());
 
+		//It is as wide as the theme says and tall enough for its title, its field and its five rows.
+		pTestWindow->Layout();
+		AssertInt(pTheme->GetMetric(TM_ChooserWidth), pChooser->GetPanel()->GetActualSize().x);
+		AssertTrue(pChooser->GetPanel()->GetActualSize().y >= 5 * pTheme->GetMetric(TM_GoToRowHeight) + pChooser->GetField()->GetActualSize().y);
+		AssertInt(5 * pTheme->GetMetric(TM_GoToRowHeight), pChooser->GetList()->GetParent()->GetActualSize().y);
+		AssertTrue(pChooser->GetField()->GetActualSize().x > 100);
+
 		//Typing filters, as Go to matches, the rows keeping their order; the first is selected.
 		pTestWindow->InputPrintable('C', true);
 		pTestWindow->InputPrintable('T', true);
@@ -282,6 +289,13 @@ void TestChooserPopupHeadings(void)
 		AssertString("[Super methods],CVessel::Fill,[Implementations],CDrum::Fill,CRack::Fill", PrintChooserRows(pChooser, &szRows));
 		AssertInt(1, pChooser->GetSelectedRow());
 		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pChooser->GetList());
+
+		//With a preview it is the theme's most rows tall, the preview beside them; the button is under them.
+		pTestWindow->Layout();
+		AssertInt(pTheme->GetMetric(TM_ChooserWidth) + pTheme->GetMetric(TM_GoToGap) + pTheme->GetMetric(TM_ChooserPreviewWidth), pChooser->GetPanel()->GetActualSize().x);
+		AssertInt(pTheme->GetMetric(TM_ChooserRows) * pTheme->GetMetric(TM_GoToRowHeight), pChooser->GetPreview()->GetActualSize().y);
+		AssertTrue(pChooser->GetPreview()->GetActualSize().x >= pTheme->GetMetric(TM_ChooserPreviewWidth));
+		AssertTrue(pChooser->GetButton()->GetPosition().y > pChooser->GetPreview()->GetPosition().y);
 		AssertFalse(pChooser->GetList()->IsRowEnabled(0));
 		AssertTrue(pChooser->GetList()->IsRowEnabled(1));
 
