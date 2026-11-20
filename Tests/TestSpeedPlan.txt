@@ -220,6 +220,13 @@ IDE checks the same passes and failures) as a run in one process.
    TestSupportLib's TestMeshBake, ObjectsLock.cpp:332; TestSculptLib's TestSculptBake, SculptBaker.cpp:98).  The first
    const break (CProgramInput::GetCategoryName, CWindowInputSource::GetName returning char*) was fixed in c142a1ddb
    during the sweep.
+   TestHCP65Lib's memory, after (g) (2026-11-20): it kept the kernal's and the boot loader's compilers, two whole
+   programs' units, objects and links, from its first build to its end, under every program its tests build.  HCP65
+   281703a frees them once TestKernalBuild has checked them.  Peak working set, the same tree built with and without it
+   (TEST_HCP65_KERNAL_ONLY, one kernal test, foreground): Boot 1716 MB to 1318 MB, Exceptions 1283 MB to 920 MB, both
+   passing and as fast.  The 798 MB seen during the merged main's run was a single sample, not its peak.  Nothing
+   showed it had grown: the exceptions work costs nothing in a build without them, and the system headers' template
+   bodies are only <exception>'s.  Whether TestHCP65Lib can go back into the sweep is the user's call.
 
 Order: 1 and 5 (the biggest win, small and safe), then 3, then 2 (a to c, then d after the user's answer), then 4 (measure,
 then the user decides on lockstep).  Each step is announced to the other sessions before its runs.
