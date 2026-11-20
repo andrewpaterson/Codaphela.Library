@@ -169,7 +169,8 @@ bool CCPPUnit::LambdaError(SCPPLambda* psLambda, CCPPSyntax* pcNode, const char*
 // capture what its body uses of the enclosing function's (a variable, or
 // this through a member or this itself) that it doesn't name.  Without a
 // default, a use of what it doesn't capture is an error.  A lambda inside
-// it is its body too.  [expr.prim.lambda] 11, 12
+// it is its body too.  One in a default argument captures nothing.
+// [expr.prim.lambda] 11, 12, 13
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
@@ -206,7 +207,13 @@ bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
 		}
 		bResult &= AddCapture(psLambda, pcSymbol, pcCapture->mpcName, pcCapture->meKind == CPPLC_Reference, false, pcCapture);
 	}
-	return bResult && UsedCaptures(psLambda, psLambda->pcSyntax->mpcDefinition->mpcBody);
+	bResult = bResult && UsedCaptures(psLambda, psLambda->pcSyntax->mpcDefinition->mpcBody);
+	if (bResult && (psLambda->asCaptures.NumElements() > 0) && DefaultArgumentOf(psLambda->pcSyntax))
+	{
+		//[expr.prim.lambda] 13
+		return LambdaError(psLambda, psLambda->pcSyntax, "A lambda in a default argument can't capture anything");
+	}
+	return bResult;
 }
 
 

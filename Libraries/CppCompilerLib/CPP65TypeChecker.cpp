@@ -801,6 +801,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	CCPPSyntax*				pcOperand;
 	CCPPSyntaxIdExpression*	pcId;
 	CCPPSymbol*				pcSymbol;
+	CCPPBoundCall			cBound;
 	int64					lliValue;
 
 	switch (pcUnary->meOperator)
@@ -859,20 +860,34 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		break;
 	}
 
-	if (((pcUnary->meOperator == CT_Subtract) || (pcUnary->meOperator == CT_Add) || (pcUnary->meOperator == CT_BitwiseNot)) && mpcUnit->IsObject(pcUnary->mpcOperand))
+	if ((pcUnary->meOperator != CT_Subtract) && (pcUnary->meOperator != CT_Add) && (pcUnary->meOperator != CT_BitwiseNot))
 	{
-		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary);
+		Error(pcUnary, "This operator is not supported by the compiler yet");
+		return NULL;
 	}
-	if (((pcUnary->meOperator == CT_Subtract) || (pcUnary->meOperator == CT_BitwiseNot) || (pcUnary->meOperator == CT_Add)) && mpcUnit->Constant(pcUnary, &lliValue))
+	if (mpcUnit->IsObject(pcUnary->mpcOperand))
 	{
-		psType = mpcUnit->TypeOf(pcUnary->mpcOperand);
-		if (psType && psType->IsInteger() && !psType->IsScopedEnum())
+		if (mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
 		{
-			return mpcTypes->Promote(mpcUnit->OperandType(psType, pcUnary->mpcOperand));
+			return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary);
 		}
+		//No operator function takes the object: the built-in operator, on what the object's conversion function gives
+		//(+lambda is the pointer to its function).  [over.built]
+		psType = mpcUnit->GetBinder()->ContextualType(pcUnary->mpcOperand, CPPUnaryOperandTypes(pcUnary->meOperator));
+		psType = psType ? ValueFor(pcUnary->mpcOperand, psType, false) : NULL;
 	}
-
-	psType = Operand(pcUnary->mpcOperand);
+	else
+	{
+		if (mpcUnit->Constant(pcUnary, &lliValue))
+		{
+			psType = mpcUnit->TypeOf(pcUnary->mpcOperand);
+			if (psType && psType->IsInteger() && !psType->IsScopedEnum())
+			{
+				return mpcTypes->Promote(mpcUnit->OperandType(psType, pcUnary->mpcOperand));
+			}
+		}
+		psType = Operand(pcUnary->mpcOperand);
+	}
 	if (!psType)
 	{
 		return NULL;
@@ -892,16 +907,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		Error(pcUnary, "An enum class has no arithmetic: cast its value to an integer");
 		return NULL;
 	}
-	switch (pcUnary->meOperator)
-	{
-	case CT_Add:
-	case CT_Subtract:
-	case CT_BitwiseNot:
-		return mpcTypes->Promote(psType);
-	default:
-		Error(pcUnary, "This operator is not supported by the compiler yet");
-		return NULL;
-	}
+	return mpcTypes->Promote(psType);
 }
 
 
@@ -2286,10 +2292,15 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 				Error(pcExpression, "The lambda doesn't capture the variable");
 				return NULL;
 			}
-			Error(pcExpression, "Only variables are supported by the compiler here yet");
-			return NULL;
+			//S::m with no object, in an operand that isn't evaluated: nothing is read.  [expr.prim.general] 13
+			psType = mpcUnit->IsUnevaluated() ? mpcUnit->QualifiedFieldType(pcExpression) : NULL;
+			if (!psType)
+			{
+				Error(pcExpression, "Only variables are supported by the compiler here yet");
+			}
+			return psType;
 		}
-		if (!mpcUnit->GetContext()->HasThis())
+		if (!mpcUnit->GetContext()->HasThis() && !mpcUnit->IsUnevaluated())
 		{
 			Error(pcExpression, "A field needs an object");
 			return NULL;
@@ -2772,7 +2783,7 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 	size			i;
 
 	//The bound is an integer, or an object that converts to one; a constant one isn't negative.  [expr.new] 6, 7
-	psElement = mpcUnit->GetBinder()->ContextualType(pcNew->macpArraySizes.GetPtr(0), false);
+	psElement = mpcUnit->GetBinder()->ContextualType(pcNew->macpArraySizes.GetPtr(0), CPPXT_Integer);
 	if (psElement && !psElement->IsInteger())
 	{
 		Error(pcNew->macpArraySizes.GetPtr(0), "A new array's bound must be an integer");
@@ -2833,7 +2844,7 @@ SCPP65Type* CCPP65TypeChecker::DeleteExpression(CCPPSyntaxDeleteExpression* pcDe
 	SCPP65Type*		psType;
 
 	//A pointer, or an object that converts to one.  [expr.delete] 1
-	psPointer = mpcUnit->GetBinder()->ContextualType(pcDelete->mpcOperand, true);
+	psPointer = mpcUnit->GetBinder()->ContextualType(pcDelete->mpcOperand, CPPXT_ObjectPointer);
 	psPointer = psPointer ? ValueFor(pcDelete->mpcOperand, psPointer, false) : NULL;
 	if (!psPointer)
 	{

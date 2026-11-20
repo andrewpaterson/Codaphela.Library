@@ -1253,7 +1253,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		return Unsupported(__FILE__, __LINE__);
 	}
 	uiTemporaries = mcCleanups.NumTemporaries();
-	if (!ContextualValue(pcSwitch->mpcCondition, false, &sValue))
+	if (!ContextualValue(pcSwitch->mpcCondition, CPPXT_Integer, &sValue))
 	{
 		return false;
 	}

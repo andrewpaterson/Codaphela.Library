@@ -35,6 +35,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	SCPP65IRPlace	sPlace;
 	SCPP65IRValue	sOperand;
 	CCPPBoundName	cBound;
+	CCPPBoundCall	cCall;
 	CCPPSyntax*		pcOperand;
 	SCPP65Type*		psType;
 	SIRType			sType;
@@ -117,7 +118,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_Add:
 	case CT_Subtract:
 	case CT_BitwiseNot:
-		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		if (mpcUnit->IsObject(pcUnary->mpcOperand) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cCall, false))
 		{
 			//+object, -object, ~object: the object's operator, whatever it returns.
 			return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, psValue);
@@ -128,8 +129,9 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	}
 
 	//Operators on constants are worked out by the IR (the generator's Constant does its arithmetic in signed 64
-	//bits, which isn't right for every type).
-	if (!Operand(pcUnary->mpcOperand, &sOperand))
+	//bits, which isn't right for every type).  An object no operator function takes is what its conversion function
+	//gives: +lambda is the pointer to its function.  [over.built]
+	if (!ContextualValue(pcUnary->mpcOperand, CPPUnaryOperandTypes(pcUnary->meOperator), &sOperand))
 	{
 		return false;
 	}

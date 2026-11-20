@@ -1733,6 +1733,33 @@ SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The parameter whose default argument pcNode is written in (not in the
+// body of a lambda written there, which is a function of its own), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxParameter* CCPPUnit::DefaultArgumentOf(CCPPSyntax* pcNode)
+{
+	CCPPSyntax*	pcParent;
+
+	for (pcParent = pcNode->mpcParent; pcParent; pcNode = pcParent, pcParent = pcParent->mpcParent)
+	{
+		switch (pcParent->GetKind())
+		{
+		case CPPS_Parameter:
+			return (((CCPPSyntaxParameter*)pcParent)->mpcDefault == pcNode) ? (CCPPSyntaxParameter*)pcParent : NULL;
+		case CPPS_FunctionDefinition:
+		case CPPS_LambdaExpression:
+			return NULL;
+		default:
+			break;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether pcNode is written in an operand that isn't evaluated, of sizeof,
 // decltype, noexcept or typeid, in the function (or lambda) it is in.
 //

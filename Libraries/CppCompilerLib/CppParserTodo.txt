@@ -627,6 +627,11 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       volatile didn't overload (CCPPFunction::mbVolatileThis, SCPP65Type::bVolatileFunction, ECPPCalledObject's
       CPPCO_Volatile; a function's label ends __V).
     - static_cast<int>(3 > 2) isn't a constant expression (a named cast in one).
+    - decltype(d)::name is a type or a member, which only the type of d tells and the parser doesn't know: where
+      only a type can be written it is taken for a type, so sizeof(decltype(d)::s) and typeid(decltype(d)::s) of a
+      member s are refused, and (decltype(d)::s) + 1 is read as a cast.  decltype(e):: of an enumeration isn't done.
+    - A lambda's parameters can't have default arguments ([](int w = 3) { return w; }() finds no function).
+    - A name that names nothing in its class is reported as "Only variables are supported by the compiler here yet".
     - DONE 2026-11-20 (one that takes a size is still refused).  delete[] of objects with destructors was always
       the runtime's operator delete[], whatever the class declares.
     - A function declared by a typedef of its type (typedef int F(); F f;), at namespace scope or as a member (which

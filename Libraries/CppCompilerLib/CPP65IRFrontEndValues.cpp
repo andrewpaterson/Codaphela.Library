@@ -595,13 +595,14 @@ bool CCPP65IRFrontEnd::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember, SC
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The value of an expression where an integer is wanted (a switch's
-// condition, a new array's bound) or, with bPointer, a pointer to an object
-// (delete's operand): its own, or what an object's conversion function
-// gives (CCPPBinder::ContextualType).  [conv] 5
+// The value of an expression where one of the types of eWanted is wanted
+// (an integer for a switch's condition or a new array's bound, a pointer to
+// an object for delete's operand, a number for the built-in -): its own, or
+// what an object's conversion function gives (CCPPBinder::ContextualType).
+// [conv] 5, [over.built]
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::ContextualValue(CCPPSyntax* pcExpression, bool bPointer, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::ContextualValue(CCPPSyntax* pcExpression, ECPPContextualTypes eWanted, SCPP65IRValue* psValue)
 {
 	SCPP65Type*	psTo;
 
@@ -609,7 +610,7 @@ bool CCPP65IRFrontEnd::ContextualValue(CCPPSyntax* pcExpression, bool bPointer, 
 	{
 		return Operand(pcExpression, psValue);
 	}
-	psTo = mpcUnit->GetBinder()->ContextualType(pcExpression, bPointer);
+	psTo = mpcUnit->GetBinder()->ContextualType(pcExpression, eWanted);
 	return psTo ? ValueFor(pcExpression, psTo, psValue) : Unsupported(__FILE__, __LINE__);
 }
 

@@ -5677,6 +5677,89 @@ static const SConformanceCase gasConformanceClause5[] =
 		"int B::s = 2;\n"
 		"int main() { B b; return decltype((b))::s; }\n"
 	},
+	//5.1.1 [expr.prim.general] p13: a non-static member named in an operand that isn't evaluated, with no object
+	{
+		"PrimMemberUnevaluatedOperands", 7,
+		"struct S\n"
+		"{\n"
+		"	int m;\n"
+		"	char c[5];\n"
+		"	long f();\n"
+		"	static int g() { return sizeof(m + 1) == sizeof(int) && noexcept(m + 1) && sizeof(c[1]) == 1; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (sizeof(((S*)0)->f()) == sizeof(long)) r += 1;\n"
+		"	if (noexcept(S::m + 1) && noexcept(S::c[2]) && sizeof(S::m + 1) == sizeof(int)) r += 2;\n"
+		"	if (S::g()) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.1.1 [expr.prim.general] p13: a non-static member read in a static member function
+	{
+		"PrimMemberInStaticRefused", CONFORMANCE_REFUSED,
+		"struct S { int m; static int g() { return m + 1; } };\n"
+		"int main() { return S::g(); }\n"
+	},
+	//5.3.1 [expr.unary.op] p7-p10, 13.6 [over.built]: +, - and ~ of an object no operator function takes are the built-in ones on what its conversion function gives
+	{
+		"UnaryObjectConversions", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct C { int v; operator int*() { return &v; } };\n"
+		"struct D { operator int() const { return 5; } };\n"
+		"struct E { operator bool() const { return true; } };\n"
+		"int main()\n"
+		"{\n"
+		"	auto pg = +[](int v) { return v + 1; };\n"
+		"	C c; c.v = 3;\n"
+		"	D d; E e;\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(pg), int (*)(int)>::V && pg(4) == 5) r += 1;\n"
+		"	if (*+c == 3 && Same<decltype(+c), int*>::V) r += 2;\n"
+		"	if (+d == 5 && -d == -5 && ~d == ~5 && !d == false && Same<decltype(-d), int>::V) r += 4;\n"
+		"	if (!e == false && +e == 1 && Same<decltype(+e), int>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.3.1 [expr.unary.op], 13.6 [over.built]: - of an object that converts only to a pointer
+	{
+		"UnaryMinusPointerObjectRefused", CONFORMANCE_REFUSED,
+		"struct C { int v; operator int*() { return &v; } };\n"
+		"int main() { C c; c.v = 3; return -c ? 1 : 2; }\n"
+	},
+	//5.3.1 [expr.unary.op], 13.6 [over.built]: an object that converts to two arithmetic types
+	{
+		"UnaryObjectTwoConversionsRefused", CONFORMANCE_REFUSED,
+		"struct X { operator int() const { return 1; } operator double() const { return 2.0; } };\n"
+		"int main() { X x; return (int)-x; }\n"
+	},
+	//5.3.1 [expr.unary.op], 13.6 [over.built]: ~ of an object that converts only to a floating type
+	{
+		"UnaryComplementFloatObjectRefused", CONFORMANCE_REFUSED,
+		"struct F { operator double() const { return 2.0; } };\n"
+		"int main() { F f; return (int)~f; }\n"
+	},
+	//5.3.1 [expr.unary.op], 13.6 [over.built]: + of an object with no operator and no conversion function
+	{
+		"UnaryPlusObjectNoConversionRefused", CONFORMANCE_REFUSED,
+		"struct S { int v; };\n"
+		"int main() { S s; s.v = 1; return +s ? 1 : 2; }\n"
+	},
+	//5.1.2 [expr.prim.lambda] p13: a lambda in a default argument that captures nothing, and one inside it that captures its local
+	{
+		"LambdaInDefaultArgument", 6,
+		"int g = 3;\n"
+		"int f(int v = [] { return g + 1; }()) { return v; }\n"
+		"int h(int v = [] { int z = 2; return [z] { return z; }(); }()) { return v; }\n"
+		"int main() { return f() + h(); }\n"
+	},
+	//5.1.2 [expr.prim.lambda] p13: a lambda in a default argument captures nothing, by a default capture either
+	{
+		"LambdaDefaultArgumentDefaultCaptureRefused", CONFORMANCE_REFUSED,
+		"int main() { int a = 1; struct L { static int f(int v = [=] { return a; }()) { return v; } }; return L::f(); }\n"
+	},
 };
 
 

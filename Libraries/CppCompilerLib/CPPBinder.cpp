@@ -1780,27 +1780,30 @@ void CCPPBinder::BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The type an expression is contextually implicitly converted to where an
-// integer is wanted (a switch's condition, a new array's bound) or, with
-// bPointer, a pointer to an object (delete's operand): its own, or for an
-// object the type its class's one fitting conversion function gives
-// (CCPPOverloads::FindContextualConversion).  NULL, with why, for an
-// object of a class with none or with more than one.  [conv] 5
+// The type an expression is contextually implicitly converted to where one
+// of the types of eWanted is wanted (an integer for a switch's condition or a
+// new array's bound, a pointer to an object for delete's operand, a number
+// for the built-in -): its own, or for an object the type its class's one
+// fitting conversion function gives (CCPPOverloads::FindContextualConversion).
+// NULL, with why, for an object of a class with none or with more than one.
+// [conv] 5, [over.built]
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPBinder::ContextualType(CCPPSyntax* pcExpression, bool bPointer)
+SCPP65Type* CCPPBinder::ContextualType(CCPPSyntax* pcExpression, ECPPContextualTypes eWanted)
 {
 	CCPPFunction*	pcConversion;
+	const char*		szNone;
 	bool			bAmbiguous;
 
 	if (!mpcUnit->IsObject(pcExpression))
 	{
 		return mpcUnit->ValueTypeOf(pcExpression);
 	}
-	pcConversion = mcOverloads.FindContextualConversion(mpcUnit->ObjectClass(pcExpression), bPointer, pcExpression, &bAmbiguous);
+	pcConversion = mcOverloads.FindContextualConversion(mpcUnit->ObjectClass(pcExpression), eWanted, pcExpression, &bAmbiguous);
 	if (!pcConversion)
 	{
-		mpcUnit->Error(pcExpression, bAmbiguous ? "The object converts to more than one type here" : (bPointer ? "The object doesn't convert to a pointer" : "The object doesn't convert to an integer"));
+		szNone = (eWanted == CPPXT_ObjectPointer) ? "The object doesn't convert to a pointer" : ((eWanted == CPPXT_Integer) ? "The object doesn't convert to an integer" : "The object doesn't convert to a number");
+		mpcUnit->Error(pcExpression, bAmbiguous ? "The object converts to more than one type here" : szNone);
 		return NULL;
 	}
 	return pcConversion->mpsReturn->WithoutReference()->Unqualified();

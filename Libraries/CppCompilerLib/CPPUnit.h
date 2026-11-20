@@ -577,6 +577,7 @@ public:
 	void					EndUnevaluated(void) { miUnevaluated--; }
 	bool					IsUnevaluated(void) const;
 	bool					IsInUnevaluatedOperand(CCPPSyntax* pcNode);
+	CCPPSyntaxParameter*	DefaultArgumentOf(CCPPSyntax* pcNode);
 	CArraySyntax*			ListElements(CCPPSyntax* pcList);
 	CCPPSymbol*				PackElement(SCPPBinding* psPack, size k);
 	bool					ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded);

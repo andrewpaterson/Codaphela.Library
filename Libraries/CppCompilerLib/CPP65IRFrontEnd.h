@@ -36,6 +36,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxes.h"
 #include "CPP65Type.h"
 #include "CPP65IRCleanups.h"
+#include "CPPFunction.h"
 
 
 class CSourceFile;
@@ -369,7 +370,7 @@ protected:
 	bool			Expression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue);
-	bool			ContextualValue(CCPPSyntax* pcExpression, bool bPointer, SCPP65IRValue* psValue);
+	bool			ContextualValue(CCPPSyntax* pcExpression, ECPPContextualTypes eWanted, SCPP65IRValue* psValue);
 	bool			ReadReferred(SCPP65IRValue* psValue);
 	bool			Load(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);
 	void			Store(SCPP65IRPlace* psPlace, SCPP65IRValue* psValue);

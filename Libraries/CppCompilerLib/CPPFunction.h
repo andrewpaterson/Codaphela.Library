@@ -68,6 +68,26 @@ inline bool CPPCalledVolatile(ECPPCalledObject eObject) { return (eObject & CPPC
 inline bool CPPCalledRvalue(ECPPCalledObject eObject) { return (eObject & CPPCO_Rvalue) != 0; }
 
 
+//The types a place converts an object to by its conversion function, when it wants one of them and the class has
+//one such function.  [conv] 5, [over.built]
+enum ECPPContextualTypes
+{
+	CPPXT_Integer = 1,			//An integer or an enum that isn't scoped: a switch's condition, a new array's bound, ~object.
+	CPPXT_Float = 2,
+	CPPXT_ObjectPointer = 4,	//delete's operand.
+	CPPXT_FunctionPointer = 8,
+	CPPXT_Arithmetic = CPPXT_Integer | CPPXT_Float,												//-object
+	CPPXT_ArithmeticOrPointer = CPPXT_Arithmetic | CPPXT_ObjectPointer | CPPXT_FunctionPointer,	//+object
+};
+
+
+//What the built-in +, - or ~ takes.  [expr.unary.op] 7, 8, 10
+inline ECPPContextualTypes CPPUnaryOperandTypes(ECppTokens eOperator)
+{
+	return (eOperator == CT_Add) ? CPPXT_ArithmeticOrPointer : ((eOperator == CT_Subtract) ? CPPXT_Arithmetic : CPPXT_Integer);
+}
+
+
 //The object without its const and volatile: what a function that takes the arguments but not the object would take.
 inline ECPPCalledObject CPPCalledUnqualified(ECPPCalledObject eObject)
 {

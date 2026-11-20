@@ -192,15 +192,34 @@ bool CCPPOverloads::IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, i
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The conversion function an object of pcClass is contextually implicitly
-// converted by, where an integer is wanted (a switch's condition, a new
-// array's bound) or, with bPointer, a pointer to an object (delete's
-// operand): the class's conversion function that isn't explicit and gives
-// such a type.  NULL if it has none, or (*pbAmbiguous) they give more than
-// one type.  [conv] 5
+// Whether a type is one of those a place wants an object converted to.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPOverloads::FindContextualConversion(CCPPClass* pcClass, bool bPointer, CCPPSyntax* pcNode, bool* pbAmbiguous)
+static bool IsContextualType(SCPP65Type* psType, ECPPContextualTypes eWanted)
+{
+	if (psType->IsPointer())
+	{
+		return (eWanted & (psType->psBase->IsFunction() ? CPPXT_FunctionPointer : CPPXT_ObjectPointer)) != 0;
+	}
+	if (psType->IsFloat())
+	{
+		return (eWanted & CPPXT_Float) != 0;
+	}
+	return psType->IsInteger() && !psType->IsScopedEnum() && ((eWanted & CPPXT_Integer) != 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The conversion function an object of pcClass is contextually implicitly
+// converted by, where one of the types of eWanted is wanted (an integer for
+// a switch's condition or a new array's bound, a pointer to an object for
+// delete's operand, a number for a built-in operator's): the class's
+// conversion function that isn't explicit and gives such a type.  NULL if it
+// has none, or (*pbAmbiguous) they give more than one type.  [conv] 5
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPOverloads::FindContextualConversion(CCPPClass* pcClass, ECPPContextualTypes eWanted, CCPPSyntax* pcNode, bool* pbAmbiguous)
 {
 	CCPPFunction*	pcFunction;
 	CCPPFunction*	pcFound;
@@ -219,7 +238,7 @@ CCPPFunction* CCPPOverloads::FindContextualConversion(CCPPClass* pcClass, bool b
 			continue;
 		}
 		psType = pcFunction->mpsReturn->WithoutReference()->Unqualified();
-		if (bPointer ? !(psType->IsPointer() && !psType->psBase->IsFunction()) : !(psType->IsInteger() && !psType->IsScopedEnum()))
+		if (!IsContextualType(psType, eWanted))
 		{
 			continue;
 		}
