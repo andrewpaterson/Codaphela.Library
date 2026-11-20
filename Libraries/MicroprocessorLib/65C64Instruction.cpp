@@ -63,7 +63,7 @@ uint32 C65C64Instruction::GetForm(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* C65C64Instruction::GetName(void)
+const char* C65C64Instruction::GetName(void) const
 {
 	return mszName.Text();
 }
@@ -73,7 +73,7 @@ char* C65C64Instruction::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* C65C64Instruction::GetDescription(void)
+const char* C65C64Instruction::GetDescription(void) const
 {
 	return mszDescription.Text();
 }

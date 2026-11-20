@@ -307,7 +307,7 @@ void CPort::AppendType(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 bool CPort::IsLogicPort(void) const { return false; }
 bool CPort::IsPowerIn(void) const { return false; }
-char* CPort::GetName(void) { return mszName.Text(); }
+const char* CPort::GetName(void) const { return mszName.Text(); }
 EPortType CPort::GetPortType(void) const { return meType; }
 CTrace* CPort::GetTrace(void) const { return mpcTrace; }
 CPortHolder* CPort::GetHolder(void) const { return mpcHolder; }

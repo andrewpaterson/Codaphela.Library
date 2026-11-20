@@ -488,5 +488,5 @@ int64 CFamilyVoltageConfiguration::LinearInterpolateTime(int64 iHigherTime, int6
 //////////////////////////////////////////////////////////////////////////
 size CFamilyVoltageConfiguration::NumConfigurations(void) const { return macConfigurations.NumElements(); }
 CVoltageConfiguration* CFamilyVoltageConfiguration::GetConfiguration(size uiIndex) { return macConfigurations.SafeGet(uiIndex); }
-char* CFamilyVoltageConfiguration::GetFamily(void) { return mszFamily.Text(); }
+const char* CFamilyVoltageConfiguration::GetFamily(void) const { return mszFamily.Text(); }
 

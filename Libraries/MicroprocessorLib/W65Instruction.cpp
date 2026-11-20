@@ -43,7 +43,7 @@ uint16 CW65Instruction::GetCode(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CW65Instruction::GetName(void)
+const char* CW65Instruction::GetName(void) const
 {
     return mszName.Text();
 }
@@ -53,7 +53,7 @@ char* CW65Instruction::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CW65Instruction::GetDescription(void)
+const char* CW65Instruction::GetDescription(void) const
 {
     return mszDescription.Text();
 }

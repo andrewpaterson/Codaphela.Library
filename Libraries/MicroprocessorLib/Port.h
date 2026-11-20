@@ -67,7 +67,7 @@ public:
 	virtual bool			IsPowerIn(void) const;
 	virtual float32			GetVoltageOut(int64 iTime);
 
-			char*			GetName(void);
+			const char*		GetName(void) const;
 			EPortType		GetPortType(void) const;
 			CTrace*			GetTrace(void) const;
 			int64			GetTraceID(void) const;

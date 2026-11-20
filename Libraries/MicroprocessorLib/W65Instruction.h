@@ -21,8 +21,8 @@ public:
     void                    Kill(void) override;
 
     uint16                  GetCode(void) const;
-    char*                   GetName(void);
-    char*                   GetDescription(void);
+    const char*                   GetName(void) const;
+    const char*                   GetDescription(void) const;
     CW65InstructionCycles*     GetCycles(void) const;
     CW65BusCycle*              GetBusCycle(int16 iCycle);
 };

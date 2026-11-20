@@ -42,8 +42,8 @@ public:
 	void					Kill(void) override;
 
 	uint32					GetForm(void) const;
-	char*					GetName(void);
-	char*					GetDescription(void);
+	const char*				GetName(void) const;
+	const char*				GetDescription(void) const;
 	C65C64InstructionCycles*	GetCycles(void) const;
 	C65C64BusCycle*			GetBusCycle(int16 iCycle);
 };
