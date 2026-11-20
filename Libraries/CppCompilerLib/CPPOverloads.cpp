@@ -1626,20 +1626,20 @@ bool CCPPOverloads::HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psA
 //
 // Whether an argument is an object of the class made for the call: what a call or an
 // operator returns (IsMadeObject), or one constructed where it is passed, S() and
-// S(1).  It has no name to change it by afterwards, so it binds better to a const
-// reference.
+// S(1), itself or as the right of a comma.  It has no name to change it by
+// afterwards, so it binds better to a const reference.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPOverloads::IsTemporary(CCPPSyntax* pcArgument, CCPPClass* pcClass)
 {
 	SCPP65Type*	psType;
 
+	pcArgument = mpcUnit->CommaResult(pcArgument);
 	if (mpcUnit->IsMadeObject(pcArgument, pcClass))
 	{
 		return true;
 	}
-	pcArgument = pcArgument->WithoutParentheses();
-	if (!pcArgument || (pcArgument->GetKind() != CPPS_ConstructExpression))
+	if (pcArgument->GetKind() != CPPS_ConstructExpression)
 	{
 		return false;
 	}

@@ -35,6 +35,30 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The expression whose value, and whether it is an lvalue, an expression
+// has: itself out of its brackets, and of a, b (the built-in comma) b,
+// whatever is done first.  [expr.comma] 1
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPUnit::CommaResult(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxBinaryExpression*	pcBinary;
+
+	for (;;)
+	{
+		pcExpression = SkipParentheses(pcExpression);
+		pcBinary = (pcExpression->GetKind() == CPPS_BinaryExpression) ? (CCPPSyntaxBinaryExpression*)pcExpression : NULL;
+		if (!pcBinary || (pcBinary->meOperator != CT_Comma) || IsOverloadedComma(pcBinary))
+		{
+			return pcExpression;
+		}
+		pcExpression = pcBinary->mpcRight;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if the expression is an rvalue: a value with no name (3, a + b, an
 // object a call or a constructor makes) or something said to be about to
 // go (what a function returning T&& returns, a cast to T&&, a member of
@@ -49,7 +73,7 @@ bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
 	CCPPBoundName				cBound;
 	SCPP65Type*					psType;
 
-	pcExpression = SkipParentheses(pcExpression);
+	pcExpression = CommaResult(pcExpression);
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_StringExpression:

@@ -583,6 +583,7 @@ public:
 	bool					IsUnevaluated(void) const;
 	bool					IsInUnevaluatedOperand(CCPPSyntax* pcNode);
 	CCPPSyntaxParameter*	DefaultArgumentOf(CCPPSyntax* pcNode);
+	bool					IsDecltypeOperand(CCPPSyntax* pcNode);
 	CArraySyntax*			ListElements(CCPPSyntax* pcList);
 	CCPPSymbol*				PackElement(SCPPBinding* psPack, size k);
 	bool					ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded);
@@ -727,6 +728,8 @@ public:
 	CCPPSyntaxImplicitArgument*	ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType, int iWhich = 0);
 	CCPPSyntax*				NewSize(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*				NewElementType(CCPPSyntaxNewExpression* pcNew);
+	SCPP65Type*				NewTypeIdArray(CCPPSyntaxNewExpression* pcNew);
+	bool					IsArrayNew(CCPPSyntaxNewExpression* pcNew);
 	void					NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcArguments);
 	CCPPSyntaxIdExpression*	FunctionNameOf(CCPPSyntax* pcExpression);
 	bool					IsMemberPointerOperator(CCPPSyntax* pcExpression);
@@ -796,6 +799,7 @@ public:
 	//Objects and copies.  CPPUnitObjects.cpp
 	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
+	CCPPSyntax*				CommaResult(CCPPSyntax* pcExpression);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
 	CCPPClass*				MemberObjectClass(CCPPSyntaxMemberExpression* pcMember);
 	bool					BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound);

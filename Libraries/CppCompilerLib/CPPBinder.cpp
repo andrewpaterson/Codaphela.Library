@@ -943,7 +943,7 @@ CCPPFunction* CCPPBinder::FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65T
 	size			uiErrors;
 
 	*pbFailed = false;
-	lliName = mpcUnit->GetOperatorName(CT_new, pcNew->macpArraySizes.NumElements() > 0);
+	lliName = mpcUnit->GetOperatorName(CT_new, mpcUnit->IsArrayNew(pcNew));
 	pcClass = (psType->IsClass() && !pcNew->mbGlobal) ? psType->pcClass : NULL;
 	if (pcClass && mpcUnit->HasMember(pcClass, lliName))
 	{

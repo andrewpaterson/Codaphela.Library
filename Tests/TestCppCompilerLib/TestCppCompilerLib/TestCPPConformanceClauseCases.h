@@ -5856,6 +5856,96 @@ static const SConformanceCase gasConformanceClause5[] =
 		"LambdaGenericConversionReferenceRefused", CONFORMANCE_REFUSED,
 		"int main() { int (*p)(int) = [](auto& v) { return v + 1; }; return p(1); }\n"
 	},
+	//5.2.2 [expr.call] p11, 7.1.6.2 [dcl.type.simple] p5: the call in brackets, and as the right of a comma that is decltype's operand
+	{
+		"CallIncompleteReturnDecltypeForms", 3,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct I;\n"
+		"I Make();\n"
+		"I& Ref();\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype((Make())), I>::V && Same<decltype(0, Make()), I>::V) r += 1;\n"
+		"	if (Same<decltype(Ref()), I&>::V && Same<decltype((0, (Make()))), I>::V) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.18 [expr.comma] p1: a comma expression is an lvalue or an rvalue as its right operand is
+	{
+		"CommaValueCategory", 7,
+		"struct S { int v; };\n"
+		"int Take(S&) { return 1; }\n"
+		"int Take(S&&) { return 2; }\n"
+		"S Make() { S s; s.v = 3; return s; }\n"
+		"int main()\n"
+		"{\n"
+		"	S a;\n"
+		"	a.v = 1;\n"
+		"	int r = 0;\n"
+		"	if (Take((0, a)) == 1) r += 1;\n"
+		"	if (Take((0, Make())) == 2) r += 2;\n"
+		"	S&& moved = (a.v++, Make());\n"
+		"	S& same = (a.v++, a);\n"
+		"	if (moved.v == 3 && &same == &a && a.v == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.3.4 [expr.new] p5: a type-id that is an array by itself, new (T[N]) and new A for a typedef of one, makes the array and gives a pointer to its first element
+	{
+		"NewParenthesisedArray", 31,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[1024];\n"
+		"size_t guiHeap = 0;\n"
+		"size_t guiLastSize = 0;\n"
+		"int giNews = 0;\n"
+		"int giDeletes = 0;\n"
+		"void* Allocate(size_t n) { void* p = gacHeap + guiHeap; for (size_t i = 0; i < n; i++) gacHeap[guiHeap + i] = 0x55; guiHeap += (n + 7) & ~(size_t)7; guiLastSize = n; giNews++; return p; }\n"
+		"void* operator new(size_t n) { return Allocate(n); }\n"
+		"void* operator new[](size_t n) { return Allocate(n); }\n"
+		"void operator delete(void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete(void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int gConstructed = 0;\n"
+		"int gDestroyed = 0;\n"
+		"struct C { C() : v(++gConstructed) { } ~C() { gDestroyed++; } int v; };\n"
+		"typedef int A[4];\n"
+		"typedef C Pair[2];\n"
+		"int Three() { return 3; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int* a = new (int[3]);\n"
+		"	a[2] = 5;\n"
+		"	if (a[2] == 5 && guiLastSize == 3 * sizeof(int) && Same<decltype(new (int[3])), int*>::V) r += 1;\n"
+		"	int (**pf)() = new (int (*[2])());\n"
+		"	pf[1] = Three;\n"
+		"	int (*m)[2] = new (int[3][2]);\n"
+		"	m[2][1] = 7;\n"
+		"	if (pf[1]() == 3 && m[2][1] == 7 && guiLastSize == 6 * sizeof(int) && Same<decltype(new (int[3][2])), int (*)[2]>::V) r += 2;\n"
+		"	int* t = new A;\n"
+		"	t[3] = 9;\n"
+		"	int* z = new A();\n"
+		"	if (t[3] == 9 && z[0] == 0 && z[3] == 0 && guiLastSize == 4 * sizeof(int) && Same<decltype(new A), int*>::V) r += 4;\n"
+		"	C* c = new Pair;\n"
+		"	C* d = new (C[3]);\n"
+		"	if (gConstructed == 5 && c[1].v == 2 && d[2].v == 5) r += 8;\n"
+		"	delete[] c;\n"
+		"	delete[] d;\n"
+		"	if (gDestroyed == 5 && giDeletes == 2) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.3.4 [expr.new] p1: an array of unknown bound can't be made
+	{
+		"NewParenthesisedArrayNoBoundRefused", CONFORMANCE_REFUSED,
+		"void* operator new[](decltype(sizeof(0)) n);\n"
+		"int main() { int* p = new (int[]); return p != 0; }\n"
+	},
 };
 
 

@@ -1668,7 +1668,8 @@ SCPP65Type* CCPP65TypeChecker::Call(CCPPFunction* pcFunction, CArraySyntax* papc
 // arguments, NULL for none), last first.  A reference is bound to a place, an object
 // is constructed from its argument, anything else is converted to its parameter.
 // The arguments for ... are promoted (a float to a double).  A function that
-// returns an object makes it in a temporary, so its class must be complete.
+// returns an object makes it in a temporary, so its class must be complete,
+// but where the call is decltype's operand, which makes none.  [expr.call] 11
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn)
@@ -1753,7 +1754,7 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 		}
 	}
 
-	return !(psReturn && psReturn->IsClass()) || mpcUnit->CompleteClass(psReturn->pcClass, pcNode);
+	return !(psReturn && psReturn->IsClass()) || mpcUnit->IsDecltypeOperand(pcNode) || mpcUnit->CompleteClass(psReturn->pcClass, pcNode);
 }
 
 
@@ -2761,7 +2762,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 		return NULL;
 	}
 
-	if (pcNew->macpArraySizes.NumElements() > 0)
+	if (mpcUnit->IsArrayNew(pcNew))
 	{
 		return NewArray(pcNew, psType);
 	}
@@ -2784,22 +2785,17 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 {
 	CArraySyntax*	papcElements;
 	SCPP65Type*		psElement;
-	int64			lliBound;
 	size			i;
 
-	//The bound is an integer, or an object that converts to one; a constant one isn't negative.  [expr.new] 6, 7
-	psElement = mpcUnit->GetBinder()->ContextualType(pcNew->macpArraySizes.GetPtr(0), CPPXT_Integer);
-	if (psElement && !psElement->IsInteger())
+	if (mpcUnit->NewTypeIdArray(pcNew))
 	{
-		Error(pcNew->macpArraySizes.GetPtr(0), "A new array's bound must be an integer");
-		return NULL;
+		if (mpcUnit->NewTypeIdArray(pcNew)->iCount == 0)
+		{
+			Error(pcNew, "A new array needs its bound");
+			return NULL;
+		}
 	}
-	if (psElement && psElement->bSigned && mpcUnit->Constant(pcNew->macpArraySizes.GetPtr(0), &lliBound) && (lliBound < 0))
-	{
-		Error(pcNew->macpArraySizes.GetPtr(0), "A new array's bound can't be negative");
-		return NULL;
-	}
-	if (!psElement || !Convert(ValueFor(pcNew->macpArraySizes.GetPtr(0), psElement, false), &mpcTypes->msUnsignedInt, pcNew))
+	else if (!NewArrayBound(pcNew->macpArraySizes.GetPtr(0)))
 	{
 		return NULL;
 	}
@@ -2834,6 +2830,32 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 		return NULL;
 	}
 	return mpcTypes->Pointer(psType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether new Type[bound]'s first bound is right: an integer, or an object
+// that converts to one; a constant one isn't negative.  [expr.new] 6, 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::NewArrayBound(CCPPSyntax* pcBound)
+{
+	SCPP65Type*	psBound;
+	int64		lliBound;
+
+	psBound = mpcUnit->GetBinder()->ContextualType(pcBound, CPPXT_Integer);
+	if (psBound && !psBound->IsInteger())
+	{
+		Error(pcBound, "A new array's bound must be an integer");
+		return false;
+	}
+	if (psBound && psBound->bSigned && mpcUnit->Constant(pcBound, &lliBound) && (lliBound < 0))
+	{
+		Error(pcBound, "A new array's bound can't be negative");
+		return false;
+	}
+	return psBound && Convert(ValueFor(pcBound, psBound, false), &mpcTypes->msUnsignedInt, pcBound);
 }
 
 

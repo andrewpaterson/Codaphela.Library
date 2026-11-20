@@ -160,6 +160,7 @@ protected:
 	SCPP65Type*		CheckedSizeofType(CCPPSyntax* pcSizeof);
 	SCPP65Type*		NewExpression(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*		NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType);
+	bool			NewArrayBound(CCPPSyntax* pcBound);
 	SCPP65Type*		DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete);
 
 	SCPP65Type*		FieldType(SCPPField* psField, bool bConst, bool bVolatile);

@@ -1038,7 +1038,8 @@ bool CCPPUnit::IsAmbiguousName(CCPPSyntaxName* pcName)
 //
 // What a new expression makes: its type-id's type (auto's is its
 // initialiser's), and for new Type[count][N]... arrays of the inner bounds
-// (constants).  NULL after an error.  [expr.new] 2, 5
+// (constants).  A type-id that is an array by itself (NewTypeIdArray) makes
+// the array's elements.  NULL after an error.  [expr.new] 2, 5
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::NewElementType(CCPPSyntaxNewExpression* pcNew)
@@ -1066,7 +1067,42 @@ SCPP65Type* CCPPUnit::NewElementType(CCPPSyntaxNewExpression* pcNew)
 		}
 		psType = mcTypes.Array(psType, (int)lliCount);
 	}
-	return psType;
+	return (psType && psType->IsArray() && (pcNew->macpArraySizes.NumElements() == 0)) ? psType->psBase : psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The array a new expression's type-id is by itself, with no bound after
+// it: new (int[3]), or new A where A is a typedef of an array.  It makes the
+// array's elements, as new int[3] does, and gives a pointer to the first.
+// NULL if it isn't one.  [expr.new] 5
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::NewTypeIdArray(CCPPSyntaxNewExpression* pcNew)
+{
+	SCPP65Type*	psType;
+
+	if ((pcNew->macpArraySizes.NumElements() > 0) || mcDeclarators.IsAuto(pcNew->mpcType->mpcSpecifiers))
+	{
+		return NULL;
+	}
+	BeginQuiet();
+	psType = mcDeclarators.GetTypeIdType(pcNew->mpcType);
+	EndQuiet();
+	return (psType && psType->IsArray()) ? psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a new expression makes an array: by operator new[], its elements
+// each constructed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsArrayNew(CCPPSyntaxNewExpression* pcNew)
+{
+	return (pcNew->macpArraySizes.NumElements() > 0) || (NewTypeIdArray(pcNew) != NULL);
 }
 
 
@@ -1728,6 +1764,39 @@ SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
 	}
 	EndUnevaluated();
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcNode is the operand of a decltype, or the right of a comma that
+// is (in brackets or not): what decltype asks only the type of, so a call
+// there makes no temporary.  [expr.call] 11, [dcl.type.simple] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsDecltypeOperand(CCPPSyntax* pcNode)
+{
+	CCPPSyntax*	pcParent;
+
+	for (pcParent = pcNode->mpcParent; pcParent; pcNode = pcParent, pcParent = pcParent->mpcParent)
+	{
+		switch (pcParent->GetKind())
+		{
+		case CPPS_DecltypeSpecifier:
+			return ((CCPPSyntaxDecltypeSpecifier*)pcParent)->mpcOperand == pcNode;
+		case CPPS_ParenthesisedExpression:
+			break;
+		case CPPS_BinaryExpression:
+			if ((((CCPPSyntaxBinaryExpression*)pcParent)->meOperator != CT_Comma) || (((CCPPSyntaxBinaryExpression*)pcParent)->mpcRight != pcNode))
+			{
+				return false;
+			}
+			break;
+		default:
+			return false;
+		}
+	}
+	return false;
 }
 
 

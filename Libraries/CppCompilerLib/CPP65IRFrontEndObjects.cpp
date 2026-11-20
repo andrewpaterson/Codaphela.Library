@@ -1227,11 +1227,11 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	size			uiMark;
 
 	psType = mpcUnit->NewElementType(pcNew);
-	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsReference() || (psType->IsArray() && (pcNew->macpArraySizes.NumElements() == 0)))
+	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (pcNew->macpArraySizes.NumElements() > 0)
+	if (mpcUnit->IsArrayNew(pcNew))
 	{
 		return NewArray(pcNew, psType, psValue);
 	}
@@ -1298,7 +1298,7 @@ bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	bool			bFailed;
 	bool			bResult;
 
-	bArray = pcNew->macpArraySizes.NumElements() > 0;
+	bArray = mpcUnit->IsArrayNew(pcNew);
 	apcArguments.Init();
 	mpcUnit->NewArguments(pcNew, &apcArguments);
 	pcAllocation = mpcUnit->GetBinder()->FindAllocation(pcNew, psType, &apcArguments, &bFailed);
@@ -1384,6 +1384,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	CArraySyntax*		papcElements;
 	CCPPSyntax*			pcString;
 	SCPP65Type*			psElement;
+	SCPP65Type*			psWhole;
 	SIRType				sSize;
 	SIRType				sBytesType;
 	SIRReference		sMemory;
@@ -1417,7 +1418,18 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!ContextualValue(pcNew->macpArraySizes.GetPtr(0), CPPXT_Integer, &sCount) || !Convert(&sCount, mpcTypes->Integer(mcModule.GetPointerSize(0), false)))
+	psWhole = mpcUnit->NewTypeIdArray(pcNew);
+	if (psWhole)
+	{
+		//new (Type[N]): the type-id's own bound.
+		sCount.psType = mpcTypes->Size();
+		sCount.sValue = mpcFunction->AddInteger(IRTypeOf(sCount.psType), psWhole->iCount);
+	}
+	else if (!ContextualValue(pcNew->macpArraySizes.GetPtr(0), CPPXT_Integer, &sCount))
+	{
+		return false;
+	}
+	if (!Convert(&sCount, mpcTypes->Integer(mcModule.GetPointerSize(0), false)))
 	{
 		return false;
 	}
