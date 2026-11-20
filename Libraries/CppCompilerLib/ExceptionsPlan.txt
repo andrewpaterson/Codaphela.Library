@@ -1006,3 +1006,78 @@ Progress
      - Still to come in later stages: what ExceptionsPlan.txt's stages 7 to 10 say, and the cost of exceptions on
        (stage 9, measured against these runs with --exceptions).
 
+  Master: the user had the exceptions branches merged into master on 2026-11-20 (fast-forwards); a pull that rebased
+  them was aborted and origin was merged in instead (CommonLibraries f8805043d, HCP65 67317ba); repos.py pull now
+  rebases with --rebase=merges (9fae37641).
+
+  7. Done (CommonLibraries 0fe53103a, 64fe76df4, 5704103cc).
+     - The cleanup stack has parts: entries only an exception undoes, counted with neither the locals nor the
+       temporaries, so no normal way out sees them, and taken out once what they are for is done (CPP65IRC_Part,
+       ECPP65IRPart: Destroy, Deallocate, FreeException, Elements, Guard).  What they are pushed for: a constructor's
+       bases, virtual bases and members once made, and a delegating constructor's object once the constructor it
+       delegates to returns; a destructor's members and bases from its start, each taken out as its end destroys it;
+       an array's elements until it is made; new's memory while its object is made, given back to the operator delete
+       that matches the allocation function (the placement one, given the placement arguments, which are worked out
+       once and kept; the class's, with the size if it takes one; else the runtime's); new[]'s elements made so far, by
+       a count in a slot; a thrown object being made; the parts of a compiler-written copy constructor; a lambda's
+       captures; a std::initializer_list's elements; a static local's guard, which goes back to 0.
+     - A normal way out's destructor lands below its own entry (muiLandingTop), so one that throws doesn't undo itself.
+     - In a function no exception leaves, outside any try, an exception goes straight to std::terminate: whether the
+       stack is unwound first is the implementation's ([except.terminate] 2).
+     - Function-try-blocks (FunctionTryBlock): the try begins before a constructor's member initialisers and a
+       destructor's parts and covers the body and a destructor's destruction of its parts; its parts come off the stack
+       before the handlers; a constructor's or destructor's handler that reaches its end rethrows, a constructor's can't
+       return (refused, with why), a destructor's that returns doesn't destroy the members again; the parameters are
+       destroyed after the handlers.  FunctionTryBlock (the case) moved from Stage7 to Exceptions: a try is refused
+       without exceptions.
+     - What needed nothing: an object passed by value (one that isn't trivially copyable is a registered temporary,
+       passed by its address, so it is the caller's to destroy already); the object a function returns (C++14 doesn't
+       destroy it when a local's destructor throws after it is made: CWG 2176 is later); temporaries a reference keeps,
+       the range-for's object and a global reference's temporary (they are living ones).
+     - A wrong program mended that isn't only exceptions': a std::initializer_list's array of objects with destructors
+       was never destroyed.  Its elements now live as long as the list: a declared local's to the end of its scope,
+       others to the end of the full expression (one made where it may not be, in an operand of && || ?:, is refused).
+     - New cases, each run with MSVC and g++ -std=c++14: ThrownCopyThrows, ImplicitCopyPartsDestroyed,
+       ArrayOfArraysPartlyConstructed, LambdaCapturesDestroyed, InitializerListObjectsDestroyed.  Every StageN group
+       passes in full.
+
+  8. Done (CommonLibraries f51cc452c; HCP65 7a146f3).
+     - throw(A, B) and throw() (CCPPExceptionSpec::mbDynamic tells throw() from noexcept): the way out matches the
+       exception against the list; one it doesn't allow is being handled while __Unexpected calls the handler, and what
+       that throws goes on if the list allows it, becomes std::bad_exception if the list has it (__ThrowBadException),
+       and is std::terminate otherwise.
+     - new: the call of operator new is tested; Libc65's throws std::bad_alloc when the new handler can't help (NULL
+       without exceptions); an allocation function declared noexcept that gives NULL makes nothing and the result is
+       NULL, but the reserved new (address) form, which is given its address back (CWG 1748 made a NULL one the
+       program's mistake); new T[n] with too many throws std::bad_array_new_length.
+     - A failed dynamic_cast<T&> throws std::bad_cast, typeid of a null pointer's object std::bad_typeid (both still
+       stop at R_BadCast without exceptions).
+     - Libc65: <new> has bad_alloc, bad_array_new_length, nothrow, the new handler, the nothrow, sized and placement
+       forms; the replaceable operators are __attribute__((weak)), which the compiler now honours on a definition
+       (CCPPUnit::IsWeakFunction, and the back ends' register labels), so a program's own is linked though new.cpp is
+       linked for what else is in it.  <exception> has exception_ptr (the runtime counts its holders: uiHeld),
+       current_exception, rethrow_exception (throw; with psPending), make_exception_ptr, nested_exception,
+       throw_with_nested and rethrow_if_nested.
+     - Gaps found and closed that aren't only exceptions': a template's bodies in a system header were skimmed, so every
+       instance of one was an empty function (std::make_exception_ptr returned NULL) - now parsed (CCPPParser::
+       miTemplates); a member initialiser's temporaries were refused - now destroyed at its end, with the part for what
+       it made under them; a base copied in a member initialiser from a class with no copy constructor of its own was
+       refused - now copied as Construct copies one.
+     - Gap found and worked round, for the compiler's owner: a non-template inline function defined in a Libc65 header
+       is never written (system header bodies are skimmed), so it links as missing.  exception_ptr's and
+       nested_exception's members are exception.cpp's for that, as std::exception's were made in stage 6.
+     - Limits, noted: throw_with_nested is for a class (a non-class, or a final class or one that is already a
+       nested_exception, isn't told apart: there are no type traits), and rethrow_if_nested for a polymorphic one.
+     - The Exceptions group passes all 180 cases on both targets; TestCppCompilerLib 269384, 0 failed; TestLibc65 on
+       both processors.
+     - Stages 7 and 8, measured: the three Lib65 suites pass on both processors with exceptions off and on.  Off,
+       against the third baseline (same folder, so the same __FILE__ strings; the merges of the compiler session's work
+       are in it too): TestBaseLib65 65C64 +3713 bytes (0.02%) and -23491 cycles, W65C816 -3101 bytes and +3982 cycles;
+       TestStandardLib65 +3684 / +28782 and -2104 / -2747; TestSupportLib65 +11670 / -3211341 and -1973 / -25732.  Every
+       program moves by Libc65's operator new, which calls the new handler now (most 65C64 programs +24 bytes, most
+       W65C816 ones -27); the rest is in 19 units of TestStandardLib65 (17 around Ptr and CObject, plus exception.cpp and
+       new.cpp), which a listing comparison with master as merged finds: constructors whose member initialisers make
+       temporaries, which the IR front end refused before and the unit's own writer wrote, are the IR front end's now.
+       (Master as merged was measured from D:\gameengine, whose longer path strings are 11 bytes shorter: not
+       comparable byte for byte, so the third baseline is the comparison.)
+
