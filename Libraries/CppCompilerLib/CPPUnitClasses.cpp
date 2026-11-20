@@ -891,6 +891,11 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 		{
 			bResult &= Error(pcFunction->mpcDeclarator, "The function is declared override but overrides no virtual function of a base class");
 		}
+		else if (pcFunction->mbFinal && !pcFunction->mbVirtual && !pcOverridden)
+		{
+			//[class.mem] 8: override and final are a virtual member function's.
+			bResult &= Error(pcFunction->mpcDeclarator, "The function is declared final but isn't virtual");
+		}
 		else if (pcOverridden && pcOverridden->mbFinal)
 		{
 			bResult &= Error(pcFunction->mpcDeclarator, "The function overrides one declared final");

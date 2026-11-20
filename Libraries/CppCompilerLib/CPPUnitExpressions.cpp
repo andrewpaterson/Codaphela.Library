@@ -1434,7 +1434,154 @@ bool CCPPUnit::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments)
 //////////////////////////////////////////////////////////////////////////
 CCPPSymbol* CCPPUnit::QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPClass** ppcClass)
 {
-	return QualifiedMember(pcName, CPPSK_Enumerator, pcNode, ppcClass);
+	CCPPSymbol*	pcSymbol;
+
+	pcSymbol = QualifiedMember(pcName, CPPSK_Enumerator, pcNode, ppcClass);
+	if (!pcSymbol)
+	{
+		*ppcClass = NULL;
+		pcSymbol = DecltypeEnumerator(pcName);
+	}
+	return pcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The constant a cast of a constant to an integer or a pointer type is:
+// (int)(3 > 2), static_cast<char>(300), and (int)1.5, a floating point
+// constant with the part after its point taken away ([conv.fpint] 1).
+// False if it isn't one the folder works out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CastConstant(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand, int64* plliValue)
+{
+	SCPP65Type*	psType;
+	int64		lliValue;
+	double		dOperand;
+
+	psType = mcDeclarators.GetTypeIdType(pcType);
+	if (!psType || !(psType->IsInteger() || psType->IsPointer()))
+	{
+		return false;
+	}
+	if (!Constant(pcOperand, &lliValue))
+	{
+		if (!psType->IsInteger() || !FloatConstant(pcOperand, &dOperand))
+		{
+			return false;
+		}
+		lliValue = (int64)dOperand;
+	}
+	*plliValue = ConstantOfType(psType, lliValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// decltype(e)::name where e is of an enumeration: the enumeration's
+// enumerator of the name, or NULL.  [dcl.type.simple] 4, [dcl.enum] 11
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPUnit::DecltypeEnumerator(CCPPSyntaxName* pcName)
+{
+	SCPP65Type*	psType;
+	CCPPSymbol*	pcEnum;
+	CCPPSymbol*	pcSymbol;
+	size		uiErrors;
+
+	if (!pcName->IsQualifiedByDecltype() || (pcName->macpComponents.NumElements() != 2))
+	{
+		return NULL;
+	}
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	psType = mcDeclarators.GetTypeIdType(((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0))->mpcType);
+	EndQuiet();
+	mcErrors.Truncate(uiErrors);
+	pcEnum = psType ? psType->WithoutReference()->pcEnum : NULL;
+	if (!pcEnum)
+	{
+		return NULL;
+	}
+
+	//A scoped enumeration's enumerators are its members; one that isn't scoped has them in the scope it is in too.
+	pcSymbol = pcEnum->mpcMembers ? pcEnum->mpcMembers->FindHere(GetComponentName(pcName->GetLast())) : NULL;
+	pcSymbol = pcSymbol ? pcSymbol : (pcEnum->mpcScope ? pcEnum->mpcScope->FindHere(GetComponentName(pcName->GetLast())) : NULL);
+	psType = (pcSymbol && (pcSymbol->meKind == CPPSK_Enumerator)) ? EnumeratorType(pcSymbol) : NULL;
+	return (psType && (psType->pcEnum == pcEnum)) ? pcSymbol : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type sizeof or typeid is asked of: its type-id's (pcType), or its
+// expression's, which isn't evaluated.  decltype(d)::name, which the parser
+// takes for a type where one can be written (only the type of d says which
+// it is), is the member it names when it names no type.  NULL after an
+// error.  [expr.sizeof] 1, [expr.typeid] 3, 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand)
+{
+	SCPP65Type*	psType;
+	CCPPSyntax*	pcMember;
+	size		uiErrors;
+
+	if (!pcType)
+	{
+		return UnevaluatedTypeOf(pcOperand);
+	}
+	pcMember = DecltypeMember(pcType);
+	if (!pcMember)
+	{
+		return mcDeclarators.GetTypeIdType(pcType);
+	}
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	psType = mcDeclarators.GetTypeIdType(pcType);
+	EndQuiet();
+	mcErrors.Truncate(uiErrors);
+	return psType ? psType : UnevaluatedTypeOf(pcMember);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The expression a type-id is if it is just decltype(e)::name, which may
+// name a member that is no type: the name as an expression, made once.
+// NULL for any other type-id.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPPUnit::DecltypeMember(CCPPSyntaxTypeId* pcType)
+{
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxIdExpression**	ppcMember;
+	CCPPSyntaxIdExpression*		pcMember;
+
+	pcSpecifiers = pcType->mpcSpecifiers;
+	if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_NamedTypeSpecifier) || (pcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)) ||
+		(pcType->mpcDeclarator && !pcType->mpcDeclarator->IsEmpty()))
+	{
+		return NULL;
+	}
+	pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType)->mpcName;
+	if (!pcName->IsQualifiedByDecltype())
+	{
+		return NULL;
+	}
+	ppcMember = mcDecltypeMembers.Get((int64)(size)pcType);
+	if (ppcMember)
+	{
+		return *ppcMember;
+	}
+	pcMember = mpcTree->GetMemory()->Create<CCPPSyntaxIdExpression>(pcType->mpcParent);
+	pcMember->SetTokens(pcType->miFirstToken, pcType->miLastToken);
+	pcMember->mpcName = pcName;
+	mcDecltypeMembers.Put((int64)(size)pcType, &pcMember);
+	return pcMember;
 }
 
 
@@ -1488,6 +1635,7 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 	CCPPClass*				pcClass;
 	CCPPSymbol*					pcSymbol;
 	size						uiErrors;
+	bool						bAmbiguous;
 
 	if (pcName->macpComponents.NumElements() < 2)
 	{
@@ -1520,9 +1668,68 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 	BeginQuiet();
 	pcClass = (pcQualifier->mpcSymbol && (pcName->macpComponents.NumElements() == 2)) ? GetComponentClass(pcQualifier, NULL, pcNode) : QualifiersClass(pcName, pcNode);
 	pcSymbol = (pcClass && CompleteClass(pcClass, pcNode)) ? pcClass->FindMemberSymbol(GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
+	bAmbiguous = pcSymbol && (pcClass->macBases.NumElements() > 1) && IsAmbiguousInBases(pcClass, GetComponentName(pcName->GetLast()));
 	EndQuiet();
 	mcErrors.Truncate(uiErrors);
+	if (bAmbiguous)
+	{
+		//C::T, where two of C's bases each have a T.  [class.member.lookup] 6
+		ReportOnce(pcNode, "The name is a member of more than one of the class's bases");
+	}
 	return pcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a name looked up in a class is found as different things in
+// its bases, neither hidden by one of the class's own (or of a class
+// nearer than both): struct C : A, B { } where A and B each have a T.
+// The same member reached through two bases is one thing.
+// [class.member.lookup] 3 - 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsAmbiguousInBases(CCPPClass* pcClass, int64 lliName)
+{
+	CArrayCPPSymbols	apcFound;
+	bool				bAmbiguous;
+
+	apcFound.Init();
+	FindInBases(pcClass, lliName, &apcFound);
+	bAmbiguous = apcFound.NumElements() > 1;
+	apcFound.Kill();
+	return bAmbiguous;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The different declarations of a name that lookup in a class finds: the
+// class's own, which hides its bases', or else each base's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPSymbols* papcFound)
+{
+	CCPPSymbol*	pcSymbol;
+	size		i;
+
+	pcSymbol = (pcClass->mpcSymbol && pcClass->mpcSymbol->mpcMembers) ? pcClass->mpcSymbol->mpcMembers->FindHere(lliName) : NULL;
+	if (pcSymbol)
+	{
+		if (papcFound->Find(pcSymbol) == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			papcFound->Add(pcSymbol);
+		}
+		return;
+	}
+	if (!ResolveBases(pcClass, NULL))
+	{
+		return;
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		FindInBases(pcClass->macBases.Get(i)->pcClass, lliName, papcFound);
+	}
 }
 
 
@@ -2259,6 +2466,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	CCPPSyntaxConditionalExpression*	pcConditional;
 	CCPPSyntaxSizeofExpression*		pcSizeof;
 	CCPPSyntaxCastExpression*		pcCast;
+	CCPPSyntaxNamedCastExpression*	pcNamedCast;
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	CArraySyntax*					papcElements;
 	CCPPSyntaxIdExpression*			pcId;
@@ -2270,13 +2478,13 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	SCPP65Type*						psType;
 	SCPPBinding*					psBinding;
 	SCPPLiteralCall*				psCall;
+	CCPPTemplateArguments*			pcBindings;
 	CCPPClass*					pcClass;
 	CCPPSymbol*						pcEnumerator;
 	CCPPSymbol*						pcMember;
 	bool							bResult;
 	int64							lliLeft;
 	int64							lliRight;
-	double							dOperand;
 
 	pcExpression = SkipParentheses(pcExpression);
 	if (!pcExpression)
@@ -2313,7 +2521,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 			pcEnumerator = QualifiedEnumerator(pcId->mpcName, pcExpression, &pcClass);
 			if (pcEnumerator)
 			{
-				mcContext.EnterBindings(pcClass->mpcBindings);
+				mcContext.EnterBindings(pcClass ? pcClass->mpcBindings : mcContext.GetBindings());
 				bResult = EnumeratorValue(pcEnumerator, plliValue);
 				mcContext.LeaveBindings();
 				return bResult;
@@ -2371,10 +2579,16 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 			return false;
 		}
 		pcInitialiser = pcInit->mpcInitializer;
+		pcBindings = pcClass ? pcClass->mpcBindings : NULL;
 		if (!pcInitialiser && (pcSymbol->meKind == CPPSK_Field))
 		{
 			pcVariable = pcClass ? FindStatic(pcClass, pcSymbol->mlliName) : GetVariable(pcSymbol);
 			pcInitialiser = pcVariable ? pcVariable->mpcOutsideInitialiser : NULL;
+			if (!pcInitialiser && pcClass && pcClass->mpcTemplate)
+			{
+				//template<class T> const int W<T>::k = 3; is each instance's, defined with the unit's data.
+				pcInitialiser = InstanceStaticInitialiser(pcClass, pcSymbol, &pcBindings);
+			}
 		}
 		if (!pcInitialiser)
 		{
@@ -2397,7 +2611,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		}
 		if (pcClass)
 		{
-			mcContext.EnterBindings(pcClass->mpcBindings);
+			mcContext.EnterBindings(pcBindings);
 			bResult = Constant(pcInitialiser, plliValue);
 			mcContext.LeaveBindings();
 			return bResult;
@@ -2463,22 +2677,12 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	case CPPS_CastExpression:
 		pcCast = (CCPPSyntaxCastExpression*)pcExpression;
-		psType = mcDeclarators.GetTypeIdType(pcCast->mpcType);
-		if (!psType || !(psType->IsInteger() || psType->IsPointer()))
-		{
-			return false;
-		}
-		if (!Constant(pcCast->mpcOperand, &lliLeft))
-		{
-			//(int)1.5: a floating point constant, the part after its point taken away.  [conv.fpint] 1
-			if (!psType->IsInteger() || !FloatConstant(pcCast->mpcOperand, &dOperand))
-			{
-				return false;
-			}
-			lliLeft = (int64)dOperand;
-		}
-		*plliValue = ConstantOfType(psType, lliLeft);
-		return true;
+		return CastConstant(pcCast->mpcType, pcCast->mpcOperand, plliValue);
+
+	case CPPS_NamedCastExpression:
+		//static_cast<int>(3 > 2), as (int)(3 > 2) is.  No other named cast of a number is a constant ([expr.const] 2).
+		pcNamedCast = (CCPPSyntaxNamedCastExpression*)pcExpression;
+		return (pcNamedCast->meCast == CT_static_cast) && CastConstant(pcNamedCast->mpcType, pcNamedCast->mpcOperand, plliValue);
 
 	case CPPS_ConstructExpression:
 		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
@@ -2516,14 +2720,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			return false;
 		}
-		if (pcSizeof->mpcType)
-		{
-			psType = mcDeclarators.GetTypeIdType(pcSizeof->mpcType);
-		}
-		else
-		{
-			psType = UnevaluatedTypeOf(pcSizeof->mpcOperand);
-		}
+		psType = OperandType(pcSizeof->mpcType, pcSizeof->mpcOperand);
 		if (!psType || psType->IsVoid() || psType->IsFunction() || (psType->IsArray() && (psType->iCount == 0)))
 		{
 			//Nothing that has no size: void, a function, an array of unknown bound.  [expr.sizeof] 1
@@ -3906,6 +4103,13 @@ SCPP65Type* CCPPUnit::QualifiedFieldType(CCPPSyntax* pcExpression)
 		return NULL;
 	}
 	pcName = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName;
+	if (pcName->IsQualifiedByDecltype() && !pcName->mpcSymbol)
+	{
+		//decltype(d)::m: the parser doesn't know d's class, so the field is found by its name.
+		pcClass = QualifiersClass(pcName, pcExpression);
+		psField = (pcClass && CompleteClass(pcClass, pcExpression)) ? pcClass->FindField(GetComponentName(pcName->GetLast()), &iOffset) : NULL;
+		return psField ? psField->psType : NULL;
+	}
 	if (!pcName->mpcSymbol || (pcName->mpcSymbol->meKind != CPPSK_Field) || !pcName->IsQualifiedByClass())
 	{
 		return NULL;

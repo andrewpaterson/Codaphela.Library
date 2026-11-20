@@ -10,6 +10,66 @@
 //for that compiler declares std::type_info itself for this one, as the stages' cases do.
 
 
+//Clause 3, basic concepts [basic].
+static const SConformanceCase gasConformanceClause3[] =
+{
+	//3.7.4.1 [basic.stc.dynamic.allocation] p1, 3.7.4.2 [basic.stc.dynamic.deallocation] p2: an allocation function returns void* and takes a std::size_t first, a deallocation function returns void and takes a void* first
+	{
+		"BasicAllocationFunctions", 15,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[32];\n"
+		"int giFreed = 0;\n"
+		"void* operator new(size_t n) { return gacHeap; }\n"
+		"void* operator new[](size_t n) { return gacHeap + 8; }\n"
+		"void* operator new(size_t n, int k) { return gacHeap + k; }\n"
+		"void operator delete(void* p) noexcept { giFreed += 1; }\n"
+		"void operator delete[](void* p) noexcept { giFreed += 10; }\n"
+		"void operator delete(void* p, int k) noexcept { giFreed += 100; }\n"
+		"struct S\n"
+		"{\n"
+		"	int v;\n"
+		"	static void* operator new(size_t n) { return gacHeap + 16; }\n"
+		"	static void operator delete(void* p, size_t n) { giFreed += (int)n * 1000; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int* a = new int;\n"
+		"	int* b = new int[2];\n"
+		"	int* c = new (4) int;\n"
+		"	S* s = new S;\n"
+		"	if ((char*)a == gacHeap && (char*)b == gacHeap + 8) r += 1;\n"
+		"	if ((char*)c == gacHeap + 4) r += 2;\n"
+		"	if ((char*)s == gacHeap + 16) r += 4;\n"
+		"	delete a;\n"
+		"	delete[] b;\n"
+		"	delete s;\n"
+		"	if (giFreed == 11 + (int)sizeof(S) * 1000) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.7.4.1 [basic.stc.dynamic.allocation] p1: an allocation function's first parameter has type std::size_t
+	{
+		"BasicAllocationFirstParameterRefused", CONFORMANCE_REFUSED,
+		"void* operator new(unsigned long long n);\n"
+		"int main() { return 0; }\n"
+	},
+	//3.7.4.1 [basic.stc.dynamic.allocation] p1: an allocation function returns void*
+	{
+		"BasicAllocationReturnRefused", CONFORMANCE_REFUSED,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"int operator new(size_t n) { return 0; }\n"
+		"int main() { return 0; }\n"
+	},
+	//3.7.4.2 [basic.stc.dynamic.deallocation] p2: a deallocation function's first parameter has type void*
+	{
+		"BasicDeallocationFirstParameterRefused", CONFORMANCE_REFUSED,
+		"void operator delete(int* p) noexcept { }\n"
+		"int main() { return 0; }\n"
+	},
+};
+
+
 //Clause 4, standard conversions [conv].
 static const SConformanceCase gasConformanceClause4[] =
 {
@@ -6360,6 +6420,95 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r + (generic('c') == 13 && generic('c', 1) == 11 ? 0 : 16);\n"
 		"}\n"
 	},
+	//5.1.1 [expr.prim.general] p8, 7.1.6.2 [dcl.type.simple] p4, 5.3.3 [expr.sizeof]: decltype(e)::name names a member of e's class, a type or not, or an enumerator of e's enumeration
+	{
+		"DecltypeQualifiesMemberOrEnumerator", 63,
+		"struct D { static char s; long m; typedef short T; enum { K = 3 }; };\n"
+		"char D::s = 'x';\n"
+		"enum class E { a = 1, b = 2 };\n"
+		"enum U { u0, u1 = 5 };\n"
+		"D d;\n"
+		"E e;\n"
+		"U u;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int a[(int)decltype(e)::b + decltype(d)::K];\n"
+		"	if (sizeof(decltype(d)::s) == 1) r += 1;\n"
+		"	if (sizeof(decltype(d)::m) == sizeof(long)) r += 2;\n"
+		"	if (sizeof(decltype(d)::T) == sizeof(short)) r += 4;\n"
+		"	if ((int)decltype(e)::b == 2 && decltype(e)::a != decltype(e)::b) r += 8;\n"
+		"	if (decltype(u)::u1 == 5) r += 16;\n"
+		"	if (sizeof(a) == 5 * sizeof(int) && decltype(d)::s == 'x') r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.19 [expr.const] p2, 5.2.9 [expr.static.cast]: a static_cast of a constant to an integer type is a constant expression
+	{
+		"ConstantNamedCast", 15,
+		"int gaiRow[static_cast<int>(3 > 2) + 1];\n"
+		"enum { E = static_cast<int>(7.9), F = static_cast<unsigned char>(300) };\n"
+		"template<int N> struct Count { enum { V = N }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (sizeof(gaiRow) == 2 * sizeof(int)) r += 1;\n"
+		"	if (E == 7 && F == 44) r += 2;\n"
+		"	if (Count<static_cast<int>(sizeof(char)) + static_cast<char>(4)>::V == 5) r += 4;\n"
+		"	switch (2)\n"
+		"	{\n"
+		"	case static_cast<int>(2L):\n"
+		"		r += 8;\n"
+		"		break;\n"
+		"	}\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.19 [expr.const] p2, 14.5.1.3 [temp.static]: a class template's static const member defined after the class with a constant is a constant in each instance
+	{
+		"ConstantClassTemplateStaticMember", 15,
+		"template<class T> struct W { static const int k; static const int big; enum { Twice = 2 * sizeof(T) }; };\n"
+		"template<class T> const int W<T>::k = 3;\n"
+		"template<class T> const int W<T>::big = sizeof(T) + 4;\n"
+		"template<> const int W<char>::k = 7;\n"
+		"int gaiRow[W<int>::k];\n"
+		"int gaiBig[W<long>::big];\n"
+		"int gaiChar[W<char>::k];\n"
+		"template<int N> struct Count { enum { V = N }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (sizeof(gaiRow) == 3 * sizeof(int)) r += 1;\n"
+		"	if (sizeof(gaiBig) == (sizeof(long) + 4) * sizeof(int)) r += 2;\n"
+		"	if (sizeof(gaiChar) == 7 * sizeof(int) && W<char>::k == 7 && W<long>::k == 3) r += 4;\n"
+		"	if (Count<W<short>::big>::V == sizeof(short) + 4) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.2.9 [expr.static.cast] p4, 4.12 [conv.bool]: nullptr becomes a pointer or, initialised directly, a bool; not a number
+	{
+		"StaticCastNullPointerToNumberRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	return static_cast<int>(nullptr);\n"
+		"}\n"
+	},
+	//5.2.9 [expr.static.cast] p4, 4.10 [conv.ptr], 4.12 [conv.bool]: static_cast of nullptr to a pointer, a pointer to a member, bool and std::nullptr_t
+	{
+		"StaticCastNullPointer", 7,
+		"struct S { int m; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int* p = static_cast<int*>(nullptr);\n"
+		"	int S::* q = static_cast<int S::*>(nullptr);\n"
+		"	decltype(nullptr) n = static_cast<decltype(nullptr)>(nullptr);\n"
+		"	if (p == 0 && q == 0) r += 1;\n"
+		"	if (!static_cast<bool>(nullptr)) r += 2;\n"
+		"	if (n == nullptr) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };
 
 
@@ -7767,6 +7916,81 @@ static const SConformanceCase gasConformanceClause8[] =
 		"	int (&ra)[3]{a};\n"
 		"	ra[1] = 5;\n"
 		"	if (a[1] == 5 && sizeof(ra) == 3 * sizeof(int)) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+};
+
+
+//Clause 10, derived classes [class.derived].
+static const SConformanceCase gasConformanceClause10[] =
+{
+	//10.2 [class.member.lookup] p3-p7: a member name found in one base, or as the same member through two, or hidden by a nearer class, is not ambiguous
+	{
+		"ClassMemberNameThroughBases", 15,
+		"struct A { typedef int T; enum { K = 1 }; static int s; };\n"
+		"int A::s = 2;\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"struct E : A { typedef char T; };\n"
+		"struct F : E { };\n"
+		"struct G { typedef long U; };\n"
+		"struct H : A, G { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D::T x = 3;\n"
+		"	F::T y = 4;\n"
+		"	H::U z = 5;\n"
+		"	if (x == 3 && sizeof(x) == sizeof(int)) r += 1;\n"
+		"	if (y == 4 && sizeof(F::T) == 1) r += 2;\n"
+		"	if (D::K == 1 && D::s == 2) r += 4;\n"
+		"	if (z == 5 && sizeof(H::U) == sizeof(long) && sizeof(H::T) == sizeof(int)) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.2 [class.member.lookup] p6: a name found in two base class subobjects as different members is ambiguous
+	{
+		"ClassMemberNameAmbiguousRefused", CONFORMANCE_REFUSED,
+		"struct A { typedef int T; };\n"
+		"struct B { typedef char T; };\n"
+		"struct C : A, B { };\n"
+		"int main()\n"
+		"{\n"
+		"	C::T x = 0;\n"
+		"	return x;\n"
+		"}\n"
+	},
+	//10.3 [class.virtual] p5: a function marked override that overrides no member function of a base class is ill-formed, in a class nothing uses too
+	{
+		"ClassOverrideUnusedRefused", CONFORMANCE_REFUSED,
+		"struct B { virtual void f(); };\n"
+		"struct D : B { void g() override; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.2 [class.mem] p8, 10.3 [class.virtual] p4: final appears only in the declaration of a virtual member function
+	{
+		"ClassFinalNotVirtualRefused", CONFORMANCE_REFUSED,
+		"struct B { int h(); };\n"
+		"struct D : B { int h() final; };\n"
+		"int main() { return 0; }\n"
+	},
+	//10.3 [class.virtual] p4, p5: override and final on functions that override, and a final function called through its base
+	{
+		"ClassOverrideAndFinal", 3,
+		"struct B { virtual int f() { return 1; } virtual int g() final { return 2; } int h() { return 9; } };\n"
+		"struct D : B { int f() override { return 3; } };\n"
+		"struct E final : D { int f() final { return 4; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	E e;\n"
+		"	B* p = &d;\n"
+		"	B* q = &e;\n"
+		"	if (p->f() == 3 && p->g() == 2) r += 1;\n"
+		"	if (q->f() == 4 && q->g() == 2 && e.h() == 9) r += 2;\n"
 		"	return r;\n"
 		"}\n"
 	},

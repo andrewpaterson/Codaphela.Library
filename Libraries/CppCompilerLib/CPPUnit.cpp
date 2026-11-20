@@ -318,6 +318,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcHiddenSymbols.Init();
 	mcRangeFors.Init(true);
 	mcLiteralCalls.Init(true);
+	mcDecltypeMembers.Init(true);
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
 	mapsLambdas.Init();
@@ -446,6 +447,7 @@ void CCPPUnit::Kill(void)
 	mapcHiddenSymbols.Kill();
 	mcRangeFors.Kill();
 	mcLiteralCalls.Kill();
+	mcDecltypeMembers.Kill();
 	FreeLambdas();
 	mapcMemberSpecialisations.Kill();
 	mapcStaticMemberTemplates.Kill();
@@ -2747,6 +2749,12 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			apcDefaults.Add(pcParameter->mpcDefault);
 		}
 	}
+	if (!pcTemplate && !CheckAllocationFunction(lliName, psReturn, &apsParameters, pcDeclarator))
+	{
+		apcDefaults.Kill();
+		apsParameters.Kill();
+		return NULL;
+	}
 
 	//A declaration of a function declared before.
 	uiFlags = pcSpecifiers ? pcSpecifiers->muiFlags : 0;
@@ -2863,6 +2871,78 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		pcClass->mpcDestructor = pcFunction;
 	}
 	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class with a member function declared override or final is laid out
+// where it is defined, so what those say of it is checked (CheckOverrides:
+// one that overrides nothing, one that isn't virtual) whether or not
+// anything uses the class; any other class is laid out when it is first
+// needed whole, and one nothing uses never is.  [class.virtual] 4, 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier)
+{
+	if (!pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !pcSpecifier->HasVirtSpecifiedMember())
+	{
+		return true;
+	}
+	return CompleteClass(GetClass(pcSpecifier->mpcSymbol, pcSpecifier), pcSpecifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the declarator declares an operator new, new[], delete or
+// delete[].
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsAllocationName(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxName*	pcName;
+	int64			lliName;
+
+	pcName = pcDeclarator->GetName();
+	lliName = (pcName && (pcName->GetLast()->meKind == CPPNC_Operator)) ? GetFunctionName(pcName->GetLast()) : -1;
+	return (lliName != -1) && ((lliName == GetOperatorName(CT_new, false)) || (lliName == GetOperatorName(CT_new, true)) || (lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What an operator new or delete must be to be an allocation or a
+// deallocation function: operator new returns void* and its first
+// parameter is a std::size_t; operator delete returns nothing and its first
+// parameter is a void*.  True for any other function.
+// [basic.stc.dynamic.allocation] 1, [basic.stc.dynamic.deallocation] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckAllocationFunction(int64 lliName, SCPP65Type* psReturn, CArrayCPP65Types* papsParameters, CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psVoidPointer;
+	SCPP65Type*	psFirst;
+
+	psVoidPointer = mcTypes.Pointer(&mcTypes.msVoid);
+	psFirst = (papsParameters->NumElements() > 0) ? papsParameters->GetPtr(0)->Unqualified() : NULL;
+	if ((lliName == GetOperatorName(CT_new, false)) || (lliName == GetOperatorName(CT_new, true)))
+	{
+		if (!psReturn->Equals(psVoidPointer))
+		{
+			return Error(pcNode, "operator new returns void*");
+		}
+		return (psFirst && psFirst->Equals(mcTypes.Size())) || Error(pcNode, "operator new's first parameter is a std::size_t");
+	}
+	if ((lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true)))
+	{
+		if (!psReturn->IsVoid())
+		{
+			return Error(pcNode, "operator delete returns void");
+		}
+		return (psFirst && psFirst->Equals(psVoidPointer)) || Error(pcNode, "operator delete's first parameter is a void*");
+	}
+	return true;
 }
 
 
@@ -3143,7 +3223,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		BeginQuiet();
 		mcDeclarators.GetBaseType(pcSpecifiers, pcDeclaration);
 		EndQuiet();
-		if (!ClassStaticAsserts((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType))
+		if (!ClassStaticAsserts((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType) || !CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType))
 		{
 			return false;
 		}
@@ -3158,7 +3238,13 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			BeginQuiet();
 			pcFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);
 			EndQuiet();
-			if (!pcFunction)
+			if (!pcFunction && IsAllocationName(pcInit->mpcDeclarator))
+			{
+				//What is wrong with an operator new or delete is said where it is declared: a program replaces the
+				//library's by declaring its own, and a wrong one would be called by none of its news.
+				bResult &= DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false) != NULL;
+			}
+			else if (!pcFunction)
 			{
 				mapcFailed.Add(pcInit->mpcDeclarator);
 			}

@@ -3881,7 +3881,9 @@ bool CCPP65TypeChecker::StaticCastAllowed(CCPPSyntaxNamedCastExpression* pcCast,
 
 	if (psFrom->IsNullPointer())
 	{
-		return true;
+		//nullptr becomes a pointer, a pointer to a member, itself, or a bool that is initialised directly from it
+		//([conv.bool]): a number is reinterpret_cast's to make.  [expr.static.cast] 4
+		return psTo->IsPointer() || psTo->IsMemberPointer() || psTo->IsNullPointer() || (psTo->eKind == CPP65TK_Bool) || Error(pcCast, "static_cast doesn't make a number from nullptr: reinterpret_cast does");
 	}
 	if ((psTo->IsPointer() || psTo->IsMemberPointer()) && !(psFrom->IsPointer() || psFrom->IsMemberPointer()))
 	{

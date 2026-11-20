@@ -44,6 +44,7 @@ public:
 	CPP_SYNTAX_NODE(ClassSpecifier)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
+	bool					HasVirtSpecifiedMember(void);
 };
 
 

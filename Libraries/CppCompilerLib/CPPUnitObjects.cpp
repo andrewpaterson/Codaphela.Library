@@ -889,17 +889,13 @@ SCPP65Type* CCPPUnit::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbD
 	SCPP65Type*	psType;
 
 	*pbDynamic = false;
-	if (pcTypeid->mpcType)
+	psType = OperandType(pcTypeid->mpcType, pcTypeid->mpcOperand);
+	psType = psType ? psType->WithoutReference() : NULL;
+	if (!pcTypeid->mpcType)
 	{
-		psType = mcDeclarators.GetTypeIdType(pcTypeid->mpcType);
-	}
-	else
-	{
-		psType = UnevaluatedTypeOf(pcTypeid->mpcOperand);
-		psType = psType ? psType->WithoutReference() : NULL;
 		*pbDynamic = psType && psType->IsClass() && CompleteClass(psType->pcClass, pcTypeid) && psType->pcClass->IsPolymorphic() && IsObjectLvalue(pcTypeid->mpcOperand);
 	}
-	return psType ? psType->WithoutReference()->Unqualified() : NULL;
+	return psType ? psType->Unqualified() : NULL;
 }
 
 

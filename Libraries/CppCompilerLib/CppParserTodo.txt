@@ -787,6 +787,30 @@ Part B: questions for the user (kept since 2026-11-16, at the user's word: "plea
       parameters' names (DeclaredDefaultArguments, [dcl.fct.default] 4)  (TempFunctionTemplateDefinedLater).  Not
       done: a member template called before its definition outside its class, and default arguments a later
       declaration adds to a template already defined.
+    - decltype(d)::name in sizeof and typeid, where the parser takes it for a type, is the member it names when it
+      names no type (CCPPUnit::OperandType, DecltypeMember; a field through it is found by its name,
+      QualifiedFieldType), and decltype(e)::name of an enumeration is its enumerator (DecltypeEnumerator)
+      (DecltypeQualifiesMemberOrEnumerator).  Still read as a cast: (decltype(d)::s) + 1.
+    - static_cast<int>(3 > 2) is a constant, as (int)(3 > 2) is (CCPPUnit::CastConstant; ConstantNamedCast).
+    - A class template's static const member defined after the class (template<class T> const int W<T>::k = 3;) is
+      a constant in each instance (InstanceStaticInitialiser; ConstantClassTemplateStaticMember).
+    - Refused now: a member name that two of a class's bases each have, C::T (IsAmbiguousInBases, asked where a
+      qualified member is looked up; one member through two bases, or one a nearer class hides, is no ambiguity);
+      static_cast of nullptr to a number; an operator new that doesn't return void* or take a std::size_t first,
+      and an operator delete that doesn't return void or take a void* first, where it is declared
+      (CheckAllocationFunction, IsAllocationName); and, in a class nothing uses, override on what overrides
+      nothing and final on what isn't virtual: a class with a member declared override or final is laid out
+      where it is defined (CheckVirtSpecifiers).  A new group for clause 3 and one for clause 10
+      (BasicAllocationFunctions and its three refusals; ClassMemberNameThroughBases,
+      ClassMemberNameAmbiguousRefused, ClassOverrideUnusedRefused, ClassFinalNotVirtualRefused,
+      ClassOverrideAndFinal; StaticCastNullPointer, StaticCastNullPointerToNumberRefused).  Still accepted in
+      a class nothing uses: overriding a function declared final and deriving from a class declared final,
+      which the class's own declaration doesn't show.
+    - Left of the list: a copy constructor or assignment defaulted after a class that has virtual bases (its
+      function needs both of a constructor's versions and the VTT each base version is given, which
+      CCPP65IRFrontEnd::CopyParts takes from the complete class, known where an object is copied and not in
+      the function); and the member of a union read in a constant that isn't the one last given a value, where
+      the two are as long (the interpreter keeps bytes).
 
   And by question 13's step 6, 2026-11-19:
     - The checks of a conversion no cast asks for let any number become a pointer and any pointer a number or

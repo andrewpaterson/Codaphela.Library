@@ -124,6 +124,37 @@ bool CCPPUnit::DefineInstanceStatics(bool* pbResult)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The initialiser a template declaration outside a class template gives
+// the static data member of the symbol (template<class T> const int W<T>::k
+// = 3;), for the instance pcClass, with the bindings it is worked out in
+// (*ppcBindings: the declaration's parameters as the instance's
+// arguments).  NULL if none does.  [temp.static]
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPUnit::InstanceStaticInitialiser(CCPPClass* pcClass, CCPPSymbol* pcSymbol, CCPPTemplateArguments** ppcBindings)
+{
+	CCPPSyntaxTemplateDeclaration*	pcDeclaration;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxName*					pcName;
+	size							i;
+
+	for (i = 0; i < mapcStaticMemberTemplates.NumElements(); i++)
+	{
+		pcDeclaration = (CCPPSyntaxTemplateDeclaration*)mapcStaticMemberTemplates.GetPtr(i);
+		pcInit = (CCPPSyntaxInitDeclarator*)((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcDeclaration)->macpDeclarators.GetPtr(0);
+		pcName = pcInit->mpcDeclarator->GetName();
+		if ((pcName->mpcSymbol == pcSymbol) && pcInit->mpcInitializer && (GetComponentTemplate(pcName->GetQualifier()) == pcClass->mpcTemplate))
+		{
+			*ppcBindings = RenameBindings(pcClass, pcDeclaration);
+			return pcInit->mpcInitializer;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Defines each variable template instance that isn't yet, as its own data
 // (every unit that has the instance has it, and the link keeps one), with
 // its template's parameters its arguments, or as its explicit

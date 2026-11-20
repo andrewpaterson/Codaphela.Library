@@ -105,3 +105,46 @@ void CCPPSyntaxClassSpecifier::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Integer(&miPack);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a member function of the class is declared override or final.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxClassSpecifier::HasVirtSpecifiedMember(void)
+{
+	CCPPSyntax*					pcMember;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntaxDeclarator*		pcDeclarator;
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	size						i;
+	size						j;
+
+	for (i = 0; i < macpMembers.NumElements(); i++)
+	{
+		pcMember = macpMembers.GetPtr(i);
+		if (pcMember->GetKind() == CPPS_FunctionDefinition)
+		{
+			pcDeclarator = ((CCPPSyntaxFunctionDefinition*)pcMember)->mpcDeclarator;
+			pcSuffix = pcDeclarator ? pcDeclarator->GetFunctionSuffix() : NULL;
+			if (pcSuffix && (pcSuffix->macpVirtSpecifiers.NumElements() > 0))
+			{
+				return true;
+			}
+		}
+		else if (pcMember->GetKind() == CPPS_SimpleDeclaration)
+		{
+			pcSimple = (CCPPSyntaxSimpleDeclaration*)pcMember;
+			for (j = 0; j < pcSimple->macpDeclarators.NumElements(); j++)
+			{
+				pcDeclarator = (pcSimple->macpDeclarators.GetPtr(j)->GetKind() == CPPS_InitDeclarator) ? ((CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(j))->mpcDeclarator : NULL;
+				pcSuffix = pcDeclarator ? pcDeclarator->GetFunctionSuffix() : NULL;
+				if (pcSuffix && (pcSuffix->macpVirtSpecifiers.NumElements() > 0))
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}

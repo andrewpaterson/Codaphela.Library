@@ -279,6 +279,7 @@ protected:
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
 	CMapCPPLiteralCalls		mcLiteralCalls;		//The call each user-defined literal is, by its node.
+	CMapLongTemplate<CCPPSyntaxIdExpression*>	mcDecltypeMembers;	//The expression each decltype(e)::name written as a type is (DecltypeMember).
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
@@ -447,6 +448,8 @@ public:
 	bool					CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 	bool					NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode);
 	bool					CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition);
+	bool					CheckAllocationFunction(int64 lliName, SCPP65Type* psReturn, CArrayCPP65Types* papsParameters, CCPPSyntax* pcNode);
+	bool					IsAllocationName(CCPPSyntaxDeclarator* pcDeclarator);
 	CCPPFunction*			FirstFunctionOfName(int64 lliName);
 	void					RequireFunction(CCPPFunction* pcFunction);
 	bool					Emit(CChars* pszLabel);
@@ -519,6 +522,7 @@ public:
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
+	bool					CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckEnumerators(CCPPSyntax* pcType);
 	bool					WriteExitRoutines(void);
 	bool					WriteThrownDestroyers(void);
@@ -646,6 +650,7 @@ public:
 	bool					IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple);
 	bool					DefineInstanceData(void);
 	bool					DefineInstanceStatics(bool* pbResult);
+	CCPPSyntax*				InstanceStaticInitialiser(CCPPClass* pcClass, CCPPSymbol* pcSymbol, CCPPTemplateArguments** ppcBindings);
 	bool					DefineVariableInstances(bool* pbResult);
 	CCPPSyntaxName*			VariableTemplateName(CCPPSyntaxSimpleDeclaration* pcSimple);
 	CCPPSyntaxName*			MemberVariableTemplateName(CCPPSyntaxSimpleDeclaration* pcSimple);
@@ -768,7 +773,12 @@ public:
 	bool					HasMember(CCPPClass* pcClass, int64 lliName);
 	bool					HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments);
 	CCPPSymbol*				QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPClass** ppcClass);
+	CCPPSymbol*				DecltypeEnumerator(CCPPSyntaxName* pcName);
+	SCPP65Type*				OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand);
+	CCPPSyntaxIdExpression*	DecltypeMember(CCPPSyntaxTypeId* pcType);
 	CCPPSymbol*				QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass);
+	bool					IsAmbiguousInBases(CCPPClass* pcClass, int64 lliName);
+	void					FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPSymbols* papcFound);
 	CCPPClass*				QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	CCPPClass*				QualifiedClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	CCPPClass*				MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
@@ -795,6 +805,7 @@ public:
 	bool					NamesConstexpr(CCPPSyntax* pcNode);
 	int64					ConstantOfType(SCPP65Type* psType, int64 lliValue);
 	bool					ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue);
+	bool					CastConstant(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand, int64* plliValue);
 	bool					ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* pcExpression, int64* plliValue);
 	SCPP65Type*				ConstantTypeOf(CCPPSyntax* pcExpression);
 	bool					BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue);
