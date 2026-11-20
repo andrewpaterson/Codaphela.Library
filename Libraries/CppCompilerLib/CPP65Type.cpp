@@ -228,7 +228,7 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 	}
 	if (eKind == CPP65TK_Function)
 	{
-		if ((bVariadic != psOther->bVariadic) || (papsParameters->NumElements() != psOther->papsParameters->NumElements()))
+		if ((bVariadic != psOther->bVariadic) || (bConstFunction != psOther->bConstFunction) || (papsParameters->NumElements() != psOther->papsParameters->NumElements()))
 		{
 			return false;
 		}
@@ -337,7 +337,7 @@ void SCPP65Type::Append(CChars* psz)
 		{
 			psz->Append((papsParameters->NumElements() != 0) ? ", ..." : "...");
 		}
-		psz->Append(")");
+		psz->Append(bConstFunction ? ") const" : ")");
 		break;
 	case CPP65TK_Class:
 		psz->Append("class");
@@ -521,6 +521,7 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->pcClass = NULL;
 	psType->papsParameters = NULL;
 	psType->bVariadic = false;
+	psType->bConstFunction = false;
 	psType->bLongDouble = false;
 	psType->bRvalue = false;
 	psType->pcEnum = NULL;
@@ -640,6 +641,7 @@ uint64 CCPP65Types::HashStructure(SCPP65Type* psType)
 	if (psType->eKind == CPP65TK_Function)
 	{
 		ulliHash = ulliHash * 31 + (uint64)psType->bVariadic;
+		ulliHash = ulliHash * 31 + (uint64)psType->bConstFunction;
 		ulliHash = ulliHash * 31 + (uint64)psType->papsParameters->NumElements();
 		for (i = 0; i < psType->papsParameters->NumElements(); i++)
 		{
@@ -892,10 +894,13 @@ SCPP65Type* CCPP65Types::Array(SCPP65Type* psElement, int iCount)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A function type.  The parameters are copied.
+// A function type.  The parameters are copied.  bConstFunction is a member
+// function's const, after its parameters, which makes it another type: a
+// pointer to a member function that is const isn't one to a function that
+// isn't.  [dcl.fct] 6
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic)
+SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic, bool bConstFunction)
 {
 	SCPP65Type*			psType;
 	SCPP65Type*			psOther;
@@ -906,6 +911,7 @@ SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65
 	psType = NewType(CPP65TK_Function, 0);
 	psType->psBase = psReturn;
 	psType->bVariadic = bVariadic;
+	psType->bConstFunction = bConstFunction;
 	psType->papsParameters = NewMalloc<CArrayTemplatePtr<SCPP65Type> >();
 	psType->papsParameters->Init();
 	for (i = 0; papsParameters && (i < papsParameters->NumElements()); i++)

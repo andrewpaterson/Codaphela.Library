@@ -727,7 +727,7 @@ void CCPPUnit::AppendTypeNameAround(CChars* psz, SCPP65Type* psType, CChars* psz
 		{
 			szInner.Append((i == 0) ? "..." : ", ...");
 		}
-		szInner.Append(')');
+		szInner.Append(psType->bConstFunction ? ") const" : ")");
 		AppendTypeNameAround(psz, psType->psBase, &szInner);
 		szInner.Kill();
 		return;

@@ -1906,12 +1906,13 @@ CCPPFunction* CCPPUnit::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A function's type: its return type, parameters and whether it is variadic.
+// A function's type: its return type, parameters, whether it is variadic,
+// and whether it is a member function that is const.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::FunctionType(CCPPFunction* pcFunction)
 {
-	return mcTypes.Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic);
+	return mcTypes.Function(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcFunction->mbVariadic, pcFunction->mpcClass && !pcFunction->mbStatic && pcFunction->mbConstThis);
 }
 
 

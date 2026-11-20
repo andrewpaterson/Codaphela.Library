@@ -2182,6 +2182,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCal
 {
 	SCPP65Type*	psMember;
 	SCPP65Type*	psFunctionType;
+	SCPP65Type*	psObject;
 
 	psMember = mpcUnit->TypeOf(pcBinary->mpcRight);
 	if (!psMember || !psMember->IsMemberPointer() || !psMember->psBase->IsFunction())
@@ -2191,9 +2192,15 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCal
 	}
 	psFunctionType = psMember->psBase;
 	if (!Arguments(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, papcArguments, pcCall, psFunctionType->psBase) ||
-		!MemberPointerObject(pcBinary, NULL) ||
+		!MemberPointerObject(pcBinary, &psObject) ||
 		!Value(pcBinary->mpcRight))
 	{
+		return NULL;
+	}
+	if (psObject->bConst && !psFunctionType->bConstFunction)
+	{
+		//[expr.mptr.oper] 5
+		Error(pcBinary, "A const object's member function is called through a pointer to one that is const");
 		return NULL;
 	}
 	return psFunctionType->psBase;

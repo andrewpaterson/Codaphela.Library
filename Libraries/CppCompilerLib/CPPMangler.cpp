@@ -527,7 +527,7 @@ void CCPPMangler::AppendType(CChars* psz, SCPP65Type* psType)
 		AppendType(psz, psType->psBase);
 		break;
 	case CPP65TK_Function:
-		psz->Append('F');
+		psz->Append(psType->bConstFunction ? "KF" : "F");
 		AppendType(psz, psType->psBase);
 		for (i = 0; i < psType->papsParameters->NumElements(); i++)
 		{

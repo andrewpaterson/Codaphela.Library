@@ -149,7 +149,7 @@ bool CCPPTypeWriter::Declaration(SCPP65Type* psType, CChars* pszOperators, CChar
 		{
 			pszCore->Append("void");
 		}
-		pszCore->Append(')');
+		pszCore->Append(psType->bConstFunction ? ") const" : ")");
 		return bResult && Declaration(psType->psBase, pszOperators, pszCore, pszDest);
 
 	default:
