@@ -11,6 +11,607 @@
 //for that compiler declares std::type_info itself for this one, as the stages' cases do.
 
 
+//Clause 2, lexical conventions [lex].
+static const SConformanceCase gasConformanceClause2[] =
+{
+	//2.2 [lex.phases] p1.2: a backslash and a new-line are deleted, splicing the lines, in a name, a number, a string and a // comment
+	{
+		"LexLineSplices", 15,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int va\\\n"
+		"lue = 1\\\n"
+		"2;\n"
+		"	const char* s = \"a\\\n"
+		"b\";\n"
+		"	if (value == 12) r += 1;\n"
+		"	if (s[0] == 'a' && s[1] == 'b' && s[2] == 0) r += 2;\n"
+		"	// a comment that goes on \\\n"
+		"	r += 100;\n"
+		"	r += 4;\n"
+		"	in\\\n"
+		"t x = 8;\n"
+		"	r += x;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.2 [lex.phases] p1.6: adjacent string literals are joined after escapes are replaced
+	{
+		"LexPhasesStringConcatenation", 7,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	const char* s = \"\\x41\" \"B\";\n"
+		"	const char* t = \"a\" \"\" \"b\" \"c\";\n"
+		"	if (s[0] == 'A' && s[1] == 'B' && s[2] == 0) r += 1;\n"
+		"	if (sizeof(\"ab\" \"cd\") == 5) r += 2;\n"
+		"	if (t[0] == 'a' && t[1] == 'b' && t[2] == 'c' && t[3] == 0) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.3 [lex.charset] p2: \u and \U name characters in literals; a UTF-16 literal holds one beyond 0xFFFF as two
+	{
+		"LexUniversalCharacterNames", 15,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (u'\\u00e9' == 0xE9 && U'\\U0001F600' == 0x1F600) r += 1;\n"
+		"	if (sizeof(u\"\\U0001F600\") == 3 * sizeof(char16_t) && sizeof(U\"\\U0001F600\") == 2 * sizeof(char32_t)) r += 2;\n"
+		"	if (sizeof(u8\"\\u00e9\") == 3 && (unsigned char)u8\"\\u00e9\"[0] == 0xC3 && (unsigned char)u8\"\\u00e9\"[1] == 0xA9) r += 4;\n"
+		"	if (u\"\\U0001F600\"[0] == 0xD83D && u\"\\U0001F600\"[1] == 0xDE00 && U'\\u0041' == 'A') r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.3 [lex.charset] p2: a universal-character-name is not a surrogate's code point
+	{
+		"LexUniversalCharacterNameSurrogateRefused", CONFORMANCE_REFUSED,
+		"int main() { return u'\\uD800' ? 1 : 2; }\n"
+	},
+	//2.3 [lex.charset] p2: outside a literal a universal-character-name doesn't name a basic source character
+	{
+		"LexUniversalCharacterNameBasicInNameRefused", CONFORMANCE_REFUSED,
+		"int main() { int \\u0041 = 1; return A; }\n"
+	},
+	//2.4 [lex.trigraph] p1: the nine trigraph sequences are replaced first, in strings too, and the backslash one splices a line
+	{
+		"LexTrigraphs", 63,
+		"?\?=define ONE 1\n"
+		"int main()\n"
+		"?\?<\n"
+		"	int a?\?(2?\?) = ?\?< 1, 2 ?\?>;\n"
+		"	int r = 0;\n"
+		"	if ((ONE ?\?' 3) == 2 && (4 ?\?! 1) == 5 && ?\?-0 == -1) r += 1;\n"
+		"	if (a?\?(1?\?) == 2) r += 2;\n"
+		"	const char* s = \"?\?(?\?)?\?<?\?>?\?=?\?/?\?/\";\n"
+		"	if (s[0] == '[' && s[1] == ']' && s[2] == '{' && s[3] == '}' && s[4] == '#' && s[5] == '\\\\' && s[6] == 0) r += 4;\n"
+		"	if (sizeof(\"?\?!\") == 2) r += 8;\n"
+		"	int b = 1?\?/\n"
+		"6;\n"
+		"	if (b == 16) r += 16;\n"
+		"	if (sizeof(\"?\" \"?=\") == 4 && sizeof(\"?\?\\?\") == 4) r += 32;\n"
+		"	return r;\n"
+		"?\?>\n"
+	},
+	//2.5 [lex.pptoken] p3: the longest token that can be made is made: a+++b is a++ + b; <:: before a name is < ::
+	{
+		"LexMaximalMunch", 31,
+		"template<class T> struct W { T v; };\n"
+		"struct X { int i; };\n"
+		"int a = 1;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int b = 2;\n"
+		"	int c = a+++b;\n"
+		"	if (c == 3 && a == 2) r += 1;\n"
+		"	int d = a - -b;\n"
+		"	if (d == 4) r += 2;\n"
+		"	W<::X> w;\n"
+		"	w.v.i = 5;\n"
+		"	if (w.v.i == 5) r += 4;\n"
+		"	int e = b--- -1;\n"
+		"	if (e == 3 && b == 1) r += 8;\n"
+		"	int f = 7 / 1/**/;\n"
+		"	if (f == 7) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.5 [lex.pptoken] p3: x+++++y is x ++ ++ + y, which increments what isn't an object
+	{
+		"LexMaximalMunchRefused", CONFORMANCE_REFUSED,
+		"int main() { int x = 1; int y = 2; return x+++++y; }\n"
+	},
+	//2.6 [lex.digraph]: the alternative tokens are the tokens they stand for
+	{
+		"LexAlternativeTokens", 63,
+		"%:define TWO 2\n"
+		"%:define JOIN(a, b) a %:%: b\n"
+		"int main()\n"
+		"<%\n"
+		"	int a<:2:> = <% 1, TWO %>;\n"
+		"	int r = 0;\n"
+		"	if (a<:1:> == 2 and a<:0:> == 1) r += 1;\n"
+		"	if ((not false) && (true or false)) r += 2;\n"
+		"	if ((6 bitand 3) == 2 && (4 bitor 1) == 5 && (6 xor 3) == 5 && compl 0 == -1) r += 4;\n"
+		"	int x = 1;\n"
+		"	x and_eq 3; x or_eq 4; x xor_eq 1;\n"
+		"	if (x == 4 && 1 not_eq 2) r += 8;\n"
+		"	int JOIN(v, w) = 3;\n"
+		"	if (vw == 3) r += 16;\n"
+		"	int and q = 5;\n"
+		"	int bitand p = x;\n"
+		"	if (q == 5 && &p == &x) r += 32;\n"
+		"	return r;\n"
+		"%>\n"
+	},
+	//2.8 [lex.comment]: /* */ ends at the first */ and holds //; // holds /* and */; neither is in a string
+	{
+		"LexComments", 15,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	/* a comment // with // in it */ r += 1;\n"
+		"	// a comment /* with */ in it\n"
+		"	r += 2; // */\n"
+		"	const char* s = \"/* not a comment */\";\n"
+		"	if (s[0] == '/' && s[1] == '*') r += 4;\n"
+		"	int x = 16 /* / 2 */ /2;\n"
+		"	if (x == 8) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.8 [lex.comment] p1: /* */ comments don't nest
+	{
+		"LexCommentsDontNestRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	/* outer /* inner */ still */\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//2.10 [lex.ppnumber]: 0xe+1 is one preprocessing number, and no literal
+	{
+		"LexPreprocessingNumberRefused", CONFORMANCE_REFUSED,
+		"int main() { return 0xe+1; }\n"
+	},
+	//2.10 [lex.ppnumber]: 0xe + 1 is three tokens
+	{
+		"LexPreprocessingNumberSpaced", 15,
+		"int main() { return 0xe + 1; }\n"
+	},
+	//2.11 [lex.name]: letters, digits and _, of any length and case; \u names in identifiers; override and final are names
+	{
+		"LexIdentifiers", 63,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int _ = 1, _a1 = 2, A_ = 4, a_ = 8;\n"
+		"	int an_identifier_of_more_than_sixty_three_characters_which_is_still_one_name = 16;\n"
+		"	int an_identifier_of_more_than_sixty_three_characters_which_is_still_one_nameX = 0;\n"
+		"	int \\u00e9t\\u00e9 = 32;\n"
+		"	int override = 0, final = 0;\n"
+		"	r = _ + _a1 + A_ + a_ + an_identifier_of_more_than_sixty_three_characters_which_is_still_one_name + an_identifier_of_more_than_sixty_three_characters_which_is_still_one_nameX;\n"
+		"	r += \\u00e9t\\u00e9 + override + final;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.11 [lex.name] p1: an identifier starts with a nondigit
+	{
+		"LexIdentifierStartsWithDigitRefused", CONFORMANCE_REFUSED,
+		"int main() { int 2x = 1; return 2x; }\n"
+	},
+	//2.12 [lex.key]: a keyword is not an identifier
+	{
+		"LexKeywordAsNameRefused", CONFORMANCE_REFUSED,
+		"int main() { int class = 1; return class; }\n"
+	},
+	//2.12 [lex.key]: nullptr is a keyword
+	{
+		"LexKeywordNullptrAsNameRefused", CONFORMANCE_REFUSED,
+		"int main() { int nullptr = 1; return nullptr; }\n"
+	},
+	//2.12 [lex.key]: alignof is a keyword
+	{
+		"LexKeywordAlignofAsNameRefused", CONFORMANCE_REFUSED,
+		"int main() { int alignof = 1; return alignof; }\n"
+	},
+	//2.12 [lex.key]: C++11's keywords: alignas, alignof, char16_t, char32_t, constexpr, decltype, noexcept, nullptr, static_assert, thread_local
+	{
+		"LexKeywords", 31,
+		"constexpr int Four() noexcept { return 4; }\n"
+		"static_assert(sizeof(char16_t) == 2, \"\");\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	alignas(4) char c = 1;\n"
+		"	static thread_local int t = 2;\n"
+		"	decltype(c) d = 3;\n"
+		"	char32_t e = U'a';\n"
+		"	int* p = nullptr;\n"
+		"	if (alignof(int) >= 1 && c == 1) r += 1;\n"
+		"	if (t == 2 && d == 3) r += 2;\n"
+		"	if (Four() == 4 && noexcept(Four())) r += 4;\n"
+		"	if (e == 'a' && !p) r += 8;\n"
+		"	if (sizeof(char32_t) == 4) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.2 [lex.icon] p1: decimal, octal, hexadecimal and binary literals, with ' between digits
+	{
+		"LexIntegerLiterals", 63,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (10 == 012 && 012 == 0xA && 0xA == 0Xa && 0xa == 0b1010 && 0b1010 == 0B1010) r += 1;\n"
+		"	if (0 == 00 && 0x0 == 0b0 && 07 == 7) r += 2;\n"
+		"	if (1'000 == 1000 && 0x1'0 == 16 && 0b1'0000 == 16 && 01'0 == 8) r += 4;\n"
+		"	if (0xFFFF == 65535 && 0XdeadBEEFu == 3735928559u) r += 8;\n"
+		"	if (1'2'3 == 123 && 0'7 == 7) r += 16;\n"
+		"	if (0b1111'1111 == 255u) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.2 [lex.icon] p2: a literal's type is the first of its list that holds it; u, l and ll choose the lists
+	{
+		"LexIntegerLiteralTypes", 255,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"template<bool B, class T, class F> struct Pick { typedef T Type; };\n"
+		"template<class T, class F> struct Pick<false, T, F> { typedef F Type; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(1), int>::V && Same<decltype(1u), unsigned>::V && Same<decltype(1U), unsigned>::V) r += 1;\n"
+		"	if (Same<decltype(1l), long>::V && Same<decltype(1L), long>::V && Same<decltype(1ul), unsigned long>::V && Same<decltype(1LU), unsigned long>::V) r += 2;\n"
+		"	if (Same<decltype(1ll), long long>::V && Same<decltype(1LL), long long>::V && Same<decltype(1ull), unsigned long long>::V && Same<decltype(1uLL), unsigned long long>::V) r += 4;\n"
+		"	if (Same<decltype(32767), int>::V && Same<decltype(0x7FFF), int>::V) r += 8;\n"
+		"	//A decimal literal stays signed; an octal or hexadecimal one may be unsigned.\n"
+		"	if (Same<decltype(65535), Pick<(sizeof(int) > 2), int, long>::Type>::V) r += 16;\n"
+		"	if (Same<decltype(0xFFFF), Pick<(sizeof(int) > 2), int, unsigned>::Type>::V) r += 32;\n"
+		"	if (Same<decltype(2147483647), Pick<(sizeof(int) >= 4), int, long>::Type>::V) r += 64;\n"
+		"	if (Same<decltype(0xFFFFFFFF), Pick<(sizeof(int) >= 4), unsigned, Pick<(sizeof(long) >= 4), unsigned long, long long>::Type>::Type>::V) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.2 [lex.icon] p2: long long holds what long doesn't
+	{
+		"LexIntegerLiteralLongLongTypes", 7,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"template<bool B, class T, class F> struct Pick { typedef T Type; };\n"
+		"template<class T, class F> struct Pick<false, T, F> { typedef F Type; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(4294967296), Pick<(sizeof(long) > 4), long, long long>::Type>::V) r += 1;\n"
+		"	if (Same<decltype(0x7FFFFFFFFFFFFFFF), Pick<(sizeof(long) > 4), long, long long>::Type>::V) r += 2;\n"
+		"	if (Same<decltype(0xFFFFFFFFFFFFFFFF), Pick<(sizeof(long) > 4), unsigned long, unsigned long long>::Type>::V) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.2 [lex.icon] p1: an octal literal has no 8 or 9
+	{
+		"LexOctalDigitRefused", CONFORMANCE_REFUSED,
+		"int main() { return 08; }\n"
+	},
+	//2.14.2 [lex.icon] p1: a binary literal has only 0 and 1
+	{
+		"LexBinaryDigitRefused", CONFORMANCE_REFUSED,
+		"int main() { return 0b12; }\n"
+	},
+	//2.14.2 [lex.icon] p1: a binary literal has a digit
+	{
+		"LexBinaryNoDigitsRefused", CONFORMANCE_REFUSED,
+		"int main() { return 0b; }\n"
+	},
+	//2.14.2 [lex.icon] p1: a hexadecimal literal has a digit
+	{
+		"LexHexadecimalNoDigitsRefused", CONFORMANCE_REFUSED,
+		"int main() { return 0x; }\n"
+	},
+	//2.14.2 [lex.icon] p1: ' is between digits, not after them
+	{
+		"LexDigitSeparatorAtEndRefused", CONFORMANCE_REFUSED,
+		"int main() { return 1'; }\n"
+	},
+	//2.14.2 [lex.icon] p1: ' is between digits, one at a time
+	{
+		"LexDigitSeparatorDoubledRefused", CONFORMANCE_REFUSED,
+		"int main() { return 1''0; }\n"
+	},
+	//2.14.2 [lex.icon] p1: ' is between digits, not after 0x
+	{
+		"LexDigitSeparatorAfterPrefixRefused", CONFORMANCE_REFUSED,
+		"int main() { return 0x'1; }\n"
+	},
+	//2.14.2 [lex.icon] p1: ll and LL, not lL
+	{
+		"LexIntegerSuffixMixedCaseRefused", CONFORMANCE_REFUSED,
+		"int main() { return (int)1lL; }\n"
+	},
+	//2.14.2 [lex.icon] p1: the suffixes are u, l and ll
+	{
+		"LexIntegerSuffixUnknownRefused", CONFORMANCE_REFUSED,
+		"int main() { return (int)1uu; }\n"
+	},
+	//2.14.2 [lex.icon] p2: a literal no integer type holds
+	{
+		"LexIntegerLiteralTooLargeRefused", CONFORMANCE_REFUSED,
+		"int main() { return 18446744073709551616ull == 0; }\n"
+	},
+	//2.14.3 [lex.ccon]: a character literal's type and value: char, int for more than one character, char16_t, char32_t, wchar_t
+	{
+		"LexCharacterLiterals", 255,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype('a'), char>::V && 'a' == 97) r += 1;\n"
+		"	if (Same<decltype(u'a'), char16_t>::V && Same<decltype(U'a'), char32_t>::V && Same<decltype(L'a'), wchar_t>::V) r += 2;\n"
+		"	if (Same<decltype('ab'), int>::V) r += 4;\n"
+		"	if (u'\\xFFFF' == 0xFFFF && U'\\U0010FFFF' == 0x10FFFF) r += 8;\n"
+		"	if (L'a' == 97 && u'z' == 122 && U'\\0' == 0) r += 16;\n"
+		"	if (sizeof('a') == 1) r += 32;\n"
+		"	if ('\\x7F' == 127 && '\\177' == 127 && '\\0' == 0 && '\\60' == '0') r += 64;\n"
+		"	if (u'\\u20ac' == 0x20AC) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.3 [lex.ccon] p3: the simple escapes, octal escapes of up to three digits and hexadecimal escapes of any length
+	{
+		"LexEscapeSequences", 127,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if ('\\n' == 10 && '\\t' == 9 && '\\v' == 11 && '\\b' == 8 && '\\r' == 13 && '\\f' == 12 && '\\a' == 7) r += 1;\n"
+		"	if ('\\\\' == 92 && '\\'' == 39 && '\\\"' == 34 && '\\?' == 63 && '\"' == 34) r += 2;\n"
+		"	if (sizeof(\"\\1234\") == 3 && \"\\1234\"[0] == 'S' && \"\\1234\"[1] == '4') r += 4;\n"
+		"	if (sizeof(\"\\x41g\") == 3 && \"\\x41g\"[0] == 'A') r += 8;\n"
+		"	if (sizeof(\"\\x000041\") == 2 && \"\\x000041\"[0] == 'A') r += 16;\n"
+		"	if (sizeof(\"\\0\") == 2 && sizeof(\"a\\0b\") == 4) r += 32;\n"
+		"	if (u\"\\x1234\"[0] == 0x1234 && sizeof(u\"\\x1234\") == 4) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.3 [lex.ccon] p1: a character literal has a character
+	{
+		"LexCharacterLiteralEmptyRefused", CONFORMANCE_REFUSED,
+		"int main() { return ''; }\n"
+	},
+	//2.14.3 [lex.ccon] p2: a char16_t literal has one character
+	{
+		"LexChar16LiteralTwoCharactersRefused", CONFORMANCE_REFUSED,
+		"int main() { return u'ab'; }\n"
+	},
+	//2.14.3 [lex.ccon] p2: a char16_t literal's character fits one UTF-16 code unit
+	{
+		"LexChar16LiteralBeyondRefused", CONFORMANCE_REFUSED,
+		"int main() { return u'\\U0001F600' ? 1 : 2; }\n"
+	},
+	//2.14.3 [lex.ccon] p2: a char32_t literal has one character
+	{
+		"LexChar32LiteralTwoCharactersRefused", CONFORMANCE_REFUSED,
+		"int main() { return U'ab' ? 1 : 2; }\n"
+	},
+	//2.14.4 [lex.fcon]: a fraction, an exponent or both; f and l; ' between digits
+	{
+		"LexFloatingLiterals", 127,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (1.5 == 15e-1 && .5 == 0.5 && 5. == 5.0 && 1e2 == 100.0 && 1E+2 == 100.0) r += 1;\n"
+		"	if (Same<decltype(1.0), double>::V && Same<decltype(1.0f), float>::V && Same<decltype(1.0F), float>::V) r += 2;\n"
+		"	if (Same<decltype(1.0l), long double>::V && Same<decltype(1.0L), long double>::V) r += 4;\n"
+		"	if (1'0.2'5 == 10.25 && 1e1'0 == 1e10) r += 8;\n"
+		"	if (2.5e-1f == 0.25f && 1e0 == 1.0) r += 16;\n"
+		"	if (Same<decltype(1e3), double>::V && 1e3 == 1000) r += 32;\n"
+		"	if (0.1f != 0.1 && 0.5f == 0.5) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.4 [lex.fcon] p1: an exponent has digits
+	{
+		"LexFloatingExponentNoDigitsRefused", CONFORMANCE_REFUSED,
+		"int main() { return 1.0e > 0; }\n"
+	},
+	//2.14.4 [lex.fcon] p1: the suffixes are f and l
+	{
+		"LexFloatingSuffixUnknownRefused", CONFORMANCE_REFUSED,
+		"int main() { return 1.0u > 0; }\n"
+	},
+	//2.14.4 [lex.fcon] p1: one suffix
+	{
+		"LexFloatingSuffixDoubledRefused", CONFORMANCE_REFUSED,
+		"int main() { return 1.0ff > 0; }\n"
+	},
+	//2.14.5 [lex.string]: a string literal is an array of const characters, with a zero after them; its prefix chooses its type
+	{
+		"LexStringLiterals", 255,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(\"ab\"), const char (&)[3]>::V) r += 1;\n"
+		"	if (Same<decltype(u\"ab\"), const char16_t (&)[3]>::V && Same<decltype(U\"ab\"), const char32_t (&)[3]>::V && Same<decltype(L\"ab\"), const wchar_t (&)[3]>::V) r += 2;\n"
+		"	if (Same<decltype(u8\"ab\"), const char (&)[3]>::V) r += 4;\n"
+		"	if (sizeof(\"abc\") == 4 && sizeof(u\"abc\") == 4 * sizeof(char16_t) && sizeof(U\"abc\") == 4 * sizeof(char32_t) && sizeof(L\"abc\") == 4 * sizeof(wchar_t)) r += 8;\n"
+		"	if (\"abc\"[3] == 0 && u\"abc\"[3] == 0 && U\"abc\"[2] == 'c') r += 16;\n"
+		"	const char* p = \"x\";\n"
+		"	const char16_t* q = u\"y\";\n"
+		"	if (*p == 'x' && *q == 'y') r += 32;\n"
+		"	if (sizeof(\"\") == 1 && sizeof(u\"\") == sizeof(char16_t)) r += 64;\n"
+		"	if (L\"\\x41\"[0] == 'A') r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.5 [lex.string] p4, p5: a raw string has no escapes, holds new-lines and ends at )delimiter"
+	{
+		"LexRawStrings", 127,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	const char* a = R\"(a\\nb)\";\n"
+		"	if (a[0] == 'a' && a[1] == '\\\\' && a[2] == 'n' && a[3] == 'b' && a[4] == 0) r += 1;\n"
+		"	const char* b = R\"x(a)\"b)x\";\n"
+		"	if (sizeof(R\"x(a)\"b)x\") == 5 && b[1] == ')' && b[2] == '\"') r += 2;\n"
+		"	const char* c = R\"(line\n"
+		"next)\";\n"
+		"	if (c[4] == '\\n' && c[5] == 'n') r += 4;\n"
+		"	if (sizeof(u8R\"(ab)\") == 3 && sizeof(uR\"(ab)\") == 3 * sizeof(char16_t) && sizeof(UR\"(ab)\") == 3 * sizeof(char32_t) && sizeof(LR\"(ab)\") == 3 * sizeof(wchar_t)) r += 8;\n"
+		"	if (sizeof(R\"()\") == 1) r += 16;\n"
+		"	if (sizeof(R\"a()a\" \"b\") == 2 && R\"a(?\?=)a\"[0] == '?') r += 32;\n"
+		"	const char* d = R\"(\\\n"
+		")\";\n"
+		"	if (d[0] == '\\\\' && d[1] == '\\n') r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.5 [lex.string] p2: a raw string's delimiter is at most 16 characters
+	{
+		"LexRawStringDelimiterTooLongRefused", CONFORMANCE_REFUSED,
+		"const char* s = R\"abcdefghijklmnopq(x)abcdefghijklmnopq\";\n"
+		"int main() { return s[0]; }\n"
+	},
+	//2.14.5 [lex.string] p2: a raw string's delimiter has no space, \, ( or )
+	{
+		"LexRawStringDelimiterSpaceRefused", CONFORMANCE_REFUSED,
+		"const char* s = R\"a b(x)a b\";\n"
+		"int main() { return s[0]; }\n"
+	},
+	//2.14.5 [lex.string] p13: joined strings take the prefix one has; u8 joins with none
+	{
+		"LexStringConcatenation", 63,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(u\"a\" \"b\"), const char16_t (&)[3]>::V && Same<decltype(\"a\" U\"b\"), const char32_t (&)[3]>::V) r += 1;\n"
+		"	if (Same<decltype(L\"a\" \"b\" L\"c\"), const wchar_t (&)[4]>::V) r += 2;\n"
+		"	if (Same<decltype(u8\"a\" \"b\"), const char (&)[3]>::V && sizeof(u8\"a\" \"b\") == 3) r += 4;\n"
+		"	if (u\"a\" \"b\"[1] == 'b' && sizeof(U\"a\" \"bc\") == 4 * sizeof(char32_t)) r += 8;\n"
+		"	if (sizeof(\"\\x4\" \"1\") == 3 && (\"\\x4\" \"1\")[0] == 4) r += 16;\n"
+		"	if (sizeof(R\"(a)\" \"b\") == 3) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.5 [lex.string] p13: u and U strings aren't joined
+	{
+		"LexStringConcatenationMixedRefused", CONFORMANCE_REFUSED,
+		"int main() { return sizeof(u\"a\" U\"b\"); }\n"
+	},
+	//2.14.5 [lex.string] p1: a string ends on its line
+	{
+		"LexStringUnterminatedRefused", CONFORMANCE_REFUSED,
+		"int main() { const char* s = \"abc;\n"
+		"return s[0]; }\n"
+	},
+	//2.14.6 [lex.bool]: true and false are bools, 1 and 0 as integers
+	{
+		"LexBooleanLiterals", 7,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(true), bool>::V && Same<decltype(false), bool>::V) r += 1;\n"
+		"	if (true + true == 2 && false * 5 == 0) r += 2;\n"
+		"	if (sizeof(true) == sizeof(bool)) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.7 [lex.nullptr]: nullptr is a std::nullptr_t, a null pointer to any pointer or member pointer type
+	{
+		"LexPointerLiteral", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"struct S { int m; int F() { return 1; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (!Same<nullptr_t, int>::V && Same<decltype(nullptr), nullptr_t>::V) r += 1;\n"
+		"	int* p = nullptr;\n"
+		"	int S::* pm = nullptr;\n"
+		"	int (S::* pf)() = nullptr;\n"
+		"	if (!p && !pm && !pf) r += 2;\n"
+		"	if (sizeof(nullptr) == sizeof(void*)) r += 4;\n"
+		"	nullptr_t n = nullptr;\n"
+		"	char* q = n;\n"
+		"	if (!q && n == nullptr) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.8 [lex.ext]: integer, floating, string and character literals with a suffix call their literal operator
+	{
+		"LexUserDefinedLiterals", 255,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"unsigned long long operator\"\" _i(unsigned long long v) { return v + 1; }\n"
+		"long double operator\"\" _f(long double v) { return v * 2; }\n"
+		"size_t operator\"\" _s(const char* s, size_t n) { return n * 10 + (s[0] == 'a'); }\n"
+		"size_t operator\"\" _s(const char16_t* s, size_t n) { return n * 100 + (s[0] == 'a'); }\n"
+		"int operator\"\" _c(char c) { return c + 1; }\n"
+		"int operator\"\" _c(char32_t c) { return (int)c + 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (12_i == 13 && 0x10_i == 17 && 0b11_i == 4 && 1'0_i == 11) r += 1;\n"
+		"	if (1.5_f == 3.0L && 2e1_f == 40.0L) r += 2;\n"
+		"	if (\"abc\"_s == 31) r += 4;\n"
+		"	if (u\"ab\"_s == 201) r += 8;\n"
+		"	if ('a'_c == 'b' && U'a'_c == 'a' + 2) r += 16;\n"
+		"	if (\"ab\" \"cd\"_s == 41 && \"ab\"_s \"cd\" == 41) r += 32;\n"
+		"	if (R\"(ab)\"_s == 21) r += 64;\n"
+		"	if (12_i + 1 == 14) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.8 [lex.ext] p3, p4: a raw literal operator gets the characters; a literal operator template gets them as its arguments
+	{
+		"LexUserDefinedRawAndTemplateLiterals", 31,
+		"int operator\"\" _r(const char* s) { int n = 0; while (s[n]) n++; return n * 10 + (s[0] == '0'); }\n"
+		"template<char... C> struct Count { enum { V = sizeof...(C) }; };\n"
+		"template<char... C> int operator\"\" _t() { return Count<C...>::V; }\n"
+		"template<char First, char... C> struct FirstOf { enum { V = First }; };\n"
+		"template<char... C> int operator\"\" _first() { return FirstOf<C...>::V; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (0x12_r == 41) r += 1;\n"
+		"	if (1.5e3_r == 50) r += 2;\n"
+		"	if (123_t == 3 && 0x1F_t == 4) r += 4;\n"
+		"	if (7_first == '7') r += 8;\n"
+		"	if (1'2_t == 3) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.8 [lex.ext] p8: joined strings have one suffix
+	{
+		"LexUserDefinedLiteralSuffixesDifferRefused", CONFORMANCE_REFUSED,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"size_t operator\"\" _a(const char*, size_t n) { return n; }\n"
+		"size_t operator\"\" _b(const char*, size_t n) { return n; }\n"
+		"int main() { return (int)(\"x\"_a \"y\"_b); }\n"
+	},
+	//2.14.8 [lex.ext] p3: a literal with a suffix needs its literal operator
+	{
+		"LexUserDefinedLiteralNoOperatorRefused", CONFORMANCE_REFUSED,
+		"int main() { return 12_none; }\n"
+	},
+	//13.5.8 [over.literal] p3, 2.14.8 [lex.ext]: a literal operator's parameters are of the listed kinds
+	{
+		"LexUserDefinedLiteralBadParametersRefused", CONFORMANCE_REFUSED,
+		"int operator\"\" _x(int v) { return v; }\n"
+		"int main() { return 1_x; }\n"
+	},
+};
+
+
 //Clause 3, basic concepts [basic].
 static const SConformanceCase gasConformanceClause3[] =
 {
@@ -16875,6 +17476,557 @@ static const SConformanceCase gasConformanceClause14[] =
 		"	if (Same<B, ::B>::V) r += 2;\n"
 		"	if (Same<N::C, ::N::C>::V) r += 4;\n"
 		"	if (sizeof(::B) == sizeof(B)) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+};
+
+
+//Clause 16, preprocessing directives [cpp].
+static const SConformanceCase gasConformanceClause16[] =
+{
+	//16 [cpp] p1, p4: a directive starts with # first on its line, after spaces too; # alone is a null directive; a directive ends at its new-line
+	{
+		"CppDirectiveForms", 15,
+		"  #  define ONE 1\n"
+		"	#define TWO 2\n"
+		"#\n"
+		"# /* a comment */ define FOUR /* a comment */ 4\n"
+		"#define EIGHT \\\n"
+		"	8\n"
+		"int main() { return ONE + TWO + FOUR + EIGHT; }\n"
+	},
+	//16 [cpp] p1: a # line with a name no directive has is no directive
+	{
+		"CppNonDirectiveRefused", CONFORMANCE_REFUSED,
+		"#frobnicate\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond]: #if, #elif, #else, #ifdef, #ifndef and defined, nested
+	{
+		"CppConditionalBasics", 127,
+		"#define A 2\n"
+		"#define EMPTY\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"#if A == 2\n"
+		"	r += 1;\n"
+		"#else\n"
+		"	r += 100;\n"
+		"#endif\n"
+		"#if A == 1\n"
+		"	r += 100;\n"
+		"#elif A == 2\n"
+		"	r += 2;\n"
+		"#elif A == 2\n"
+		"	r += 100;\n"
+		"#else\n"
+		"	r += 100;\n"
+		"#endif\n"
+		"#ifdef A\n"
+		"	r += 4;\n"
+		"#endif\n"
+		"#ifndef B\n"
+		"	r += 8;\n"
+		"#endif\n"
+		"#if defined A && defined(EMPTY) && !defined B\n"
+		"	r += 16;\n"
+		"#endif\n"
+		"#if 0\n"
+		"#if 1\n"
+		"	r += 100;\n"
+		"#else\n"
+		"	r += 100;\n"
+		"#endif\n"
+		"#elif 1\n"
+		"#ifdef A\n"
+		"	r += 32;\n"
+		"#endif\n"
+		"#endif\n"
+		"#ifdef EMPTY\n"
+		"	r += 64;\n"
+		"#endif\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.1 [cpp.cond] p4: #if's arithmetic is intmax_t's and uintmax_t's; a name not a macro (but true) is 0; character literals are their values
+	{
+		"CppConditionalArithmetic", 255,
+		"#define X 5\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"#if -1 > 0u\n"
+		"	r += 1;\n"
+		"#endif\n"
+		"#if 0x7FFFFFFFFFFFFFFF > 0x7FFFFFFF && 4294967296 > 0\n"
+		"	r += 2;\n"
+		"#endif\n"
+		"#if undefined_name == 0 && true == 1 && false == 0\n"
+		"	r += 4;\n"
+		"#endif\n"
+		"#if 'A' == 65 && '\\n' == 10\n"
+		"	r += 8;\n"
+		"#endif\n"
+		"#if (X * 3 + 1) % 4 == 0 && (X << 2) == 20 && (X ? 1 : 2) == 1\n"
+		"	r += 16;\n"
+		"#endif\n"
+		"#if 1 || (1 / 0)\n"
+		"	r += 32;\n"
+		"#endif\n"
+		"#if 1 and not 0 and (6 bitand 3) == 2\n"
+		"	r += 64;\n"
+		"#endif\n"
+		"#if 18446744073709551615u == -1\n"
+		"	r += 128;\n"
+		"#endif\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.1 [cpp.cond] p6: a skipped group's directives are only followed to find its end; what isn't a directive there is skipped whatever it is
+	{
+		"CppConditionalSkippedGroups", 7,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"#if 0\n"
+		"#frobnicate\n"
+		"#error not here\n"
+		"#define r 100\n"
+		"	this is not C++ ( {\n"
+		"#else\n"
+		"	r += 1;\n"
+		"#endif\n"
+		"#ifdef NOT_DEFINED\n"
+		"#include \"no_such_file.h\"\n"
+		"#else\n"
+		"	r += 2;\n"
+		"#endif\n"
+		"#if 0\n"
+		"#elif 1\n"
+		"	r += 4;\n"
+		"#endif\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.1 [cpp.cond] p4, 5 [expr] p4: #if's expression is a constant expression
+	{
+		"CppConditionalDivisionByZeroRefused", CONFORMANCE_REFUSED,
+		"#if 1 / 0\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: #if has an expression
+	{
+		"CppConditionalNoExpressionRefused", CONFORMANCE_REFUSED,
+		"#if\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: #if's expression is a constant expression, without =
+	{
+		"CppConditionalAssignmentRefused", CONFORMANCE_REFUSED,
+		"#if 1 = 1\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p4: #if's expression is integral
+	{
+		"CppConditionalFloatingRefused", CONFORMANCE_REFUSED,
+		"#if 1.5 > 1\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p4: #if's expression has no string
+	{
+		"CppConditionalStringRefused", CONFORMANCE_REFUSED,
+		"#if \"a\"\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: #if ends with #endif
+	{
+		"CppConditionalUnterminatedRefused", CONFORMANCE_REFUSED,
+		"#if 1\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: #endif ends an #if
+	{
+		"CppConditionalEndifWithoutIfRefused", CONFORMANCE_REFUSED,
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: one #else, last
+	{
+		"CppConditionalElseAfterElseRefused", CONFORMANCE_REFUSED,
+		"#if 1\n"
+		"#else\n"
+		"#else\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: #elif before #else
+	{
+		"CppConditionalElifAfterElseRefused", CONFORMANCE_REFUSED,
+		"#if 1\n"
+		"#else\n"
+		"#elif 1\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: #ifdef names a macro
+	{
+		"CppConditionalIfdefNoNameRefused", CONFORMANCE_REFUSED,
+		"#ifdef\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: #ifdef has one name
+	{
+		"CppConditionalIfdefExtraTokensRefused", CONFORMANCE_REFUSED,
+		"#ifdef A B\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.2 [cpp.include]: <header> and "header", and a header named by a macro
+	{
+		"CppInclude", 3,
+		"#include <stddef.h>\n"
+		"#include \"stddef.h\"\n"
+		"#define HEADER <stddef.h>\n"
+		"#include HEADER\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	size_t n = sizeof(int);\n"
+		"	if (n == sizeof(int)) r += 1;\n"
+		"	if (sizeof(ptrdiff_t) == sizeof((char*)0 - (char*)0)) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.2 [cpp.include] p2: a header that isn't there
+	{
+		"CppIncludeMissingRefused", CONFORMANCE_REFUSED,
+		"#include \"no_such_header_file.h\"\n"
+		"int main() { return 0; }\n"
+	},
+	//16.2 [cpp.include] p4: #include names a header
+	{
+		"CppIncludeNoHeaderRefused", CONFORMANCE_REFUSED,
+		"#include\n"
+		"int main() { return 0; }\n"
+	},
+	//16.3 [cpp.replace] p9: an object-like macro is its replacement list; an empty one is nothing; one redefined the same is allowed
+	{
+		"CppMacroObjectLike", 31,
+		"#define SIX 6\n"
+		"#define NOTHING\n"
+		"#define EXPRESSION (SIX + 1)\n"
+		"#define SIX 6\n"
+		"#define SPACED  1   +   2\n"
+		"#define SPACED 1 /* a comment */ + 2\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (SIX == 6) r += 1;\n"
+		"	NOTHING r += 2; NOTHING\n"
+		"	if (EXPRESSION * 2 == 14) r += 4;\n"
+		"	if (SPACED == 3) r += 8;\n"
+		"	int SIX_ = 1;\n"
+		"	if (SIX_ == 1) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.3 [cpp.replace] p10-p12: a function-like macro is called by its name and (; arguments split at commas outside parentheses; a name without ( isn't a call
+	{
+		"CppMacroFunctionLike", 255,
+		"#define ADD(a, b) ((a) + (b))\n"
+		"#define FIRST(a, b) a\n"
+		"#define NONE() 7\n"
+		"#define F(x) (x + 1)\n"
+		"int Pair(int a, int b) { return a * 10 + b; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (ADD(1, 2) == 3) r += 1;\n"
+		"	if (FIRST((1, 2), 3) == 2) r += 2;\n"
+		"	if (NONE() == 7 && NONE( ) == 7) r += 4;\n"
+		"	int F = 5;\n"
+		"	if (F == 5) r += 8;\n"
+		"	if (ADD\n"
+		"		(\n"
+		"		4,\n"
+		"		5) == 9) r += 16;\n"
+		"	if (FIRST(Pair(1, 2), 0) == 12) r += 32;\n"
+		"	if (F(F) == 6) r += 64;\n"
+		"	if (ADD(ADD(1, 1), ADD(2, 2)) == 6) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.3 [cpp.replace] p4, p10: an argument may be empty
+	{
+		"CppMacroEmptyArguments", 15,
+		"#define SECOND(a, b) b\n"
+		"#define WRAP(a) (a 3)\n"
+		"#define ONE(a) a 4\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (SECOND(, 1) == 1) r += 1;\n"
+		"	if (WRAP() == 3) r += 2;\n"
+		"	if (WRAP(-) == -3) r += 4;\n"
+		"	if (ONE() == 4) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.3 [cpp.replace] p12, 16.3.1 [cpp.subst] p2: ... and __VA_ARGS__
+	{
+		"CppMacroVariadic", 63,
+		"#define SUM(...) Sum(__VA_ARGS__)\n"
+		"#define FIRST_REST(a, ...) a + Sum(__VA_ARGS__)\n"
+		"#define STR(...) #__VA_ARGS__\n"
+		"int Sum() { return 0; }\n"
+		"int Sum(int a) { return a; }\n"
+		"int Sum(int a, int b) { return a + b; }\n"
+		"int Sum(int a, int b, int c) { return a + b + c; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (SUM(1, 2, 3) == 6) r += 1;\n"
+		"	if (SUM() == 0) r += 2;\n"
+		"	if (FIRST_REST(1, 2, 3) == 6) r += 4;\n"
+		"	if (FIRST_REST(4,) == 4) r += 8;\n"
+		"	if (sizeof(STR(a, b,c)) == sizeof(\"a, b,c\")) r += 16;\n"
+		"	if (SUM((1, 2), 3) == 5) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.3 [cpp.replace] p4: a call of a function-like macro has as many arguments as parameters
+	{
+		"CppMacroWrongArgumentCountRefused", CONFORMANCE_REFUSED,
+		"#define ADD(a, b) a + b\n"
+		"int main() { return ADD(1); }\n"
+	},
+	//16.3 [cpp.replace] p4: braces don't hold commas, parentheses do
+	{
+		"CppMacroTooManyArgumentsRefused", CONFORMANCE_REFUSED,
+		"#define ONE(a) a\n"
+		"int main() { int x[] = ONE({1, 2}); return x[0]; }\n"
+	},
+	//16.3 [cpp.replace] p4: a call has more arguments than the named parameters, for ...
+	{
+		"CppMacroVariadicNeedsArgumentRefused", CONFORMANCE_REFUSED,
+		"#define FR(a, ...) a\n"
+		"int main() { return FR(1); }\n"
+	},
+	//16.3 [cpp.replace] p10: a macro call ends with )
+	{
+		"CppMacroUnterminatedCallRefused", CONFORMANCE_REFUSED,
+		"#define ID(a) a\n"
+		"int main() { return ID(1; }\n"
+	},
+	//16.3 [cpp.replace] p2: a macro redefined has the same replacement list
+	{
+		"CppMacroRedefinedDifferentlyRefused", CONFORMANCE_REFUSED,
+		"#define V 1\n"
+		"#define V 2\n"
+		"int main() { return V; }\n"
+	},
+	//16.3 [cpp.replace] p8, 16.8 [cpp.predefined] p4: defined isn't a macro's name
+	{
+		"CppMacroDefinedRefused", CONFORMANCE_REFUSED,
+		"#define defined 1\n"
+		"int main() { return 0; }\n"
+	},
+	//16.3 [cpp.replace] p5: __VA_ARGS__ only in a variadic macro's replacement list
+	{
+		"CppMacroVaArgsOutsideRefused", CONFORMANCE_REFUSED,
+		"#define V __VA_ARGS__\n"
+		"int main() { return 0; }\n"
+	},
+	//16.3 [cpp.replace] p6: a macro's parameters have different names
+	{
+		"CppMacroDuplicateParameterRefused", CONFORMANCE_REFUSED,
+		"#define F(a, a) a\n"
+		"int main() { return 0; }\n"
+	},
+	//16.3.2 [cpp.stringize]: # makes its argument a string, spaces between tokens as one, \ and " of strings and characters escaped
+	{
+		"CppStringize", 63,
+		"#define STR(x) #x\n"
+		"#define XSTR(x) STR(x)\n"
+		"#define FOUR 4\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	const char* a = STR(  a   +    b  );\n"
+		"	if (a[0] == 'a' && a[1] == ' ' && a[2] == '+' && a[3] == ' ' && a[4] == 'b' && a[5] == 0) r += 1;\n"
+		"	const char* b = STR(\"x\\n\");\n"
+		"	if (sizeof(STR(\"x\\n\")) == 6 && b[0] == '\"' && b[2] == '\\\\' && b[3] == 'n' && b[4] == '\"') r += 2;\n"
+		"	if (sizeof(STR('\"')) == 4) r += 4;\n"
+		"	if (sizeof(STR(FOUR)) == 5 && sizeof(XSTR(FOUR)) == 2 && XSTR(FOUR)[0] == '4') r += 8;\n"
+		"	if (sizeof(STR()) == 1) r += 16;\n"
+		"	if (sizeof(STR(a /* comment */ b)) == 4) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.3.2 [cpp.stringize] p1: # in a function-like macro is followed by a parameter
+	{
+		"CppStringizeNotParameterRefused", CONFORMANCE_REFUSED,
+		"#define F(x) # y\n"
+		"int main() { return 0; }\n"
+	},
+	//16.3.3 [cpp.concat]: ## joins tokens; an empty argument joins as nothing; what is joined is rescanned
+	{
+		"CppTokenPasting", 63,
+		"#define CAT(a, b) a ## b\n"
+		"#define XCAT(a, b) CAT(a, b)\n"
+		"#define ONE 1\n"
+		"#define AB 40\n"
+		"#define hash_hash # ## #\n"
+		"#define mkstr(a) # a\n"
+		"#define in_between(a) mkstr(a)\n"
+		"#define join(c, d) in_between(c hash_hash d)\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int xy = 1;\n"
+		"	int ONE0 = 5;\n"
+		"	if (CAT(x, y) == 1) r += 1;\n"
+		"	if (CAT(1, 2) == 12 && CAT(0x, 1F) == 31) r += 2;\n"
+		"	if (CAT(, xy) == 1 && CAT(xy, ) == 1) r += 4;\n"
+		"	if (CAT(ONE, 0) == 5 && XCAT(ONE, 0) == 10) r += 8;\n"
+		"	if (CAT(A, B) == 40) r += 16;\n"
+		"	const char* s = join(x, y);\n"
+		"	if (s[0] == 'x' && s[1] == ' ' && s[2] == '#' && s[3] == '#' && s[4] == ' ' && s[5] == 'y' && s[6] == 0) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.3.3 [cpp.concat] p3: what ## makes is one preprocessing token
+	{
+		"CppTokenPastingInvalidRefused", CONFORMANCE_REFUSED,
+		"#define CAT(a, b) a ## b\n"
+		"int main() { int x = 1; return CAT(x, +); }\n"
+	},
+	//16.3.3 [cpp.concat] p1: ## isn't first or last in a replacement list
+	{
+		"CppTokenPastingAtEdgeRefused", CONFORMANCE_REFUSED,
+		"#define F(a) ## a\n"
+		"int main() { return 0; }\n"
+	},
+	//16.3.4 [cpp.rescan]: a macro's replacement is rescanned; its own name isn't replaced again in it
+	{
+		"CppRescan", 31,
+		"int x = 5;\n"
+		"int AGAIN = 2;\n"
+		"#define x (4 + x)\n"
+		"#define f(a) a * g\n"
+		"#define g(a) f(a)\n"
+		"#define AGAIN AGAIN + 1\n"
+		"#define OBJ ID\n"
+		"#define ID(a) a\n"
+		"#define ID2(a) a\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (AGAIN == 3) r += 1;\n"
+		"	if (x == 9) r += 2;\n"
+		"	int g = 6;\n"
+		"	if (f(2) == 12) r += 4;\n"
+		"	if (ID(ID2)(8) == 8) r += 8;\n"
+		"	if (OBJ(3) == 3) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.3.5 [cpp.scope]: #undef ends a macro; it may be defined again otherwise; #undef of no macro is nothing
+	{
+		"CppUndef", 7,
+		"#define V 1\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (V == 1) r += 1;\n"
+		"#undef V\n"
+		"#define V 2\n"
+		"	if (V == 2) r += 2;\n"
+		"#undef V\n"
+		"#undef V\n"
+		"#undef NEVER_DEFINED\n"
+		"#ifndef V\n"
+		"	r += 4;\n"
+		"#endif\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.4 [cpp.line]: #line sets the next line's number, and the file's name; it may be made by macros
+	{
+		"CppLine", 15,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"#line 100\n"
+		"	if (__LINE__ == 100) r += 1;\n"
+		"#line 200 \"other.cpp\"\n"
+		"	if (__LINE__ == 200 && __FILE__[0] == 'o' && sizeof(__FILE__) == 10) r += 2;\n"
+		"#define LINE_NUMBER 300\n"
+		"#line LINE_NUMBER\n"
+		"	if (__LINE__ == 300) r += 4;\n"
+		"	if (__LINE__ == 301\n"
+		"		&& __LINE__ == 302) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.4 [cpp.line] p3: #line's number isn't 0
+	{
+		"CppLineZeroRefused", CONFORMANCE_REFUSED,
+		"#line 0\n"
+		"int main() { return 0; }\n"
+	},
+	//16.4 [cpp.line] p3: #line takes a number
+	{
+		"CppLineNotNumberRefused", CONFORMANCE_REFUSED,
+		"#line abc\n"
+		"int main() { return 0; }\n"
+	},
+	//16.5 [cpp.error]: #error stops the program
+	{
+		"CppErrorRefused", CONFORMANCE_REFUSED,
+		"#error this program is refused\n"
+		"int main() { return 0; }\n"
+	},
+	//16.6 [cpp.pragma], 16.9 [cpp.pragma.op]: a pragma the compiler doesn't know is ignored; _Pragma("...") is #pragma ..., from a macro too
+	{
+		"CppPragmas", 7,
+		"#pragma not_a_pragma_anyone_knows\n"
+		"#define IGNORED _Pragma(\"not_a_pragma_anyone_knows\") 1\n"
+		"_Pragma(\"not_a_pragma_anyone_knows\")\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	r += 1;\n"
+		"#pragma another_unknown_pragma with words\n"
+		"	r += 2;\n"
+		"	if (IGNORED == 1) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//16.8 [cpp.predefined]: __cplusplus is 201402L; __LINE__, __FILE__, __DATE__, __TIME__ and __STDC_HOSTED__
+	{
+		"CppPredefinedMacros", 63,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"#if __cplusplus == 201402L\n"
+		"	r += 1;\n"
+		"#endif\n"
+		"	if (__LINE__ == 7) r += 2;\n"
+		"	if (sizeof(__FILE__) > 1) r += 4;\n"
+		"	if (sizeof(__DATE__) == 12 && __DATE__[3] == ' ' && __DATE__[6] == ' ') r += 8;\n"
+		"	if (sizeof(__TIME__) == 9 && __TIME__[2] == ':' && __TIME__[5] == ':') r += 16;\n"
+		"#if defined(__STDC_HOSTED__) && (__STDC_HOSTED__ == 0 || __STDC_HOSTED__ == 1)\n"
+		"	r += 32;\n"
+		"#endif\n"
 		"	return r;\n"
 		"}\n"
 	},

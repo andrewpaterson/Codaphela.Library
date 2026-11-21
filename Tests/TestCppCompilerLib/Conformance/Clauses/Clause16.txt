@@ -1,0 +1,413 @@
+### CppDirectiveForms | 15 | 16 [cpp] p1, p4: a directive starts with # first on its line, after spaces too; # alone is a null directive; a directive ends at its new-line
+  #  define ONE 1
+	#define TWO 2
+#
+# /* a comment */ define FOUR /* a comment */ 4
+#define EIGHT \
+	8
+int main() { return ONE + TWO + FOUR + EIGHT; }
+### CppNonDirectiveRefused | REFUSED | 16 [cpp] p1: a # line with a name no directive has is no directive
+#frobnicate
+int main() { return 0; }
+### CppConditionalBasics | 127 | 16.1 [cpp.cond]: #if, #elif, #else, #ifdef, #ifndef and defined, nested
+#define A 2
+#define EMPTY
+int main()
+{
+	int r = 0;
+#if A == 2
+	r += 1;
+#else
+	r += 100;
+#endif
+#if A == 1
+	r += 100;
+#elif A == 2
+	r += 2;
+#elif A == 2
+	r += 100;
+#else
+	r += 100;
+#endif
+#ifdef A
+	r += 4;
+#endif
+#ifndef B
+	r += 8;
+#endif
+#if defined A && defined(EMPTY) && !defined B
+	r += 16;
+#endif
+#if 0
+#if 1
+	r += 100;
+#else
+	r += 100;
+#endif
+#elif 1
+#ifdef A
+	r += 32;
+#endif
+#endif
+#ifdef EMPTY
+	r += 64;
+#endif
+	return r;
+}
+### CppConditionalArithmetic | 255 | 16.1 [cpp.cond] p4: #if's arithmetic is intmax_t's and uintmax_t's; a name not a macro (but true) is 0; character literals are their values
+#define X 5
+int main()
+{
+	int r = 0;
+#if -1 > 0u
+	r += 1;
+#endif
+#if 0x7FFFFFFFFFFFFFFF > 0x7FFFFFFF && 4294967296 > 0
+	r += 2;
+#endif
+#if undefined_name == 0 && true == 1 && false == 0
+	r += 4;
+#endif
+#if 'A' == 65 && '\n' == 10
+	r += 8;
+#endif
+#if (X * 3 + 1) % 4 == 0 && (X << 2) == 20 && (X ? 1 : 2) == 1
+	r += 16;
+#endif
+#if 1 || (1 / 0)
+	r += 32;
+#endif
+#if 1 and not 0 and (6 bitand 3) == 2
+	r += 64;
+#endif
+#if 18446744073709551615u == -1
+	r += 128;
+#endif
+	return r;
+}
+### CppConditionalSkippedGroups | 7 | 16.1 [cpp.cond] p6: a skipped group's directives are only followed to find its end; what isn't a directive there is skipped whatever it is
+int main()
+{
+	int r = 0;
+#if 0
+#frobnicate
+#error not here
+#define r 100
+	this is not C++ ( {
+#else
+	r += 1;
+#endif
+#ifdef NOT_DEFINED
+#include "no_such_file.h"
+#else
+	r += 2;
+#endif
+#if 0
+#elif 1
+	r += 4;
+#endif
+	return r;
+}
+### CppConditionalDivisionByZeroRefused | REFUSED | 16.1 [cpp.cond] p4, 5 [expr] p4: #if's expression is a constant expression
+#if 1 / 0
+#endif
+int main() { return 0; }
+### CppConditionalNoExpressionRefused | REFUSED | 16.1 [cpp.cond] p1: #if has an expression
+#if
+#endif
+int main() { return 0; }
+### CppConditionalAssignmentRefused | REFUSED | 16.1 [cpp.cond] p1: #if's expression is a constant expression, without =
+#if 1 = 1
+#endif
+int main() { return 0; }
+### CppConditionalFloatingRefused | REFUSED | 16.1 [cpp.cond] p4: #if's expression is integral
+#if 1.5 > 1
+#endif
+int main() { return 0; }
+### CppConditionalStringRefused | REFUSED | 16.1 [cpp.cond] p4: #if's expression has no string
+#if "a"
+#endif
+int main() { return 0; }
+### CppConditionalUnterminatedRefused | REFUSED | 16.1 [cpp.cond] p1: #if ends with #endif
+#if 1
+int main() { return 0; }
+### CppConditionalEndifWithoutIfRefused | REFUSED | 16.1 [cpp.cond] p1: #endif ends an #if
+#endif
+int main() { return 0; }
+### CppConditionalElseAfterElseRefused | REFUSED | 16.1 [cpp.cond] p1: one #else, last
+#if 1
+#else
+#else
+#endif
+int main() { return 0; }
+### CppConditionalElifAfterElseRefused | REFUSED | 16.1 [cpp.cond] p1: #elif before #else
+#if 1
+#else
+#elif 1
+#endif
+int main() { return 0; }
+### CppConditionalIfdefNoNameRefused | REFUSED | 16.1 [cpp.cond] p1: #ifdef names a macro
+#ifdef
+#endif
+int main() { return 0; }
+### CppConditionalIfdefExtraTokensRefused | REFUSED | 16.1 [cpp.cond] p1: #ifdef has one name
+#ifdef A B
+#endif
+int main() { return 0; }
+### CppInclude | 3 | 16.2 [cpp.include]: <header> and "header", and a header named by a macro
+#include <stddef.h>
+#include "stddef.h"
+#define HEADER <stddef.h>
+#include HEADER
+int main()
+{
+	int r = 0;
+	size_t n = sizeof(int);
+	if (n == sizeof(int)) r += 1;
+	if (sizeof(ptrdiff_t) == sizeof((char*)0 - (char*)0)) r += 2;
+	return r;
+}
+### CppIncludeMissingRefused | REFUSED | 16.2 [cpp.include] p2: a header that isn't there
+#include "no_such_header_file.h"
+int main() { return 0; }
+### CppIncludeNoHeaderRefused | REFUSED | 16.2 [cpp.include] p4: #include names a header
+#include
+int main() { return 0; }
+### CppMacroObjectLike | 31 | 16.3 [cpp.replace] p9: an object-like macro is its replacement list; an empty one is nothing; one redefined the same is allowed
+#define SIX 6
+#define NOTHING
+#define EXPRESSION (SIX + 1)
+#define SIX 6
+#define SPACED  1   +   2
+#define SPACED 1 /* a comment */ + 2
+int main()
+{
+	int r = 0;
+	if (SIX == 6) r += 1;
+	NOTHING r += 2; NOTHING
+	if (EXPRESSION * 2 == 14) r += 4;
+	if (SPACED == 3) r += 8;
+	int SIX_ = 1;
+	if (SIX_ == 1) r += 16;
+	return r;
+}
+### CppMacroFunctionLike | 255 | 16.3 [cpp.replace] p10-p12: a function-like macro is called by its name and (; arguments split at commas outside parentheses; a name without ( isn't a call
+#define ADD(a, b) ((a) + (b))
+#define FIRST(a, b) a
+#define NONE() 7
+#define F(x) (x + 1)
+int Pair(int a, int b) { return a * 10 + b; }
+int main()
+{
+	int r = 0;
+	if (ADD(1, 2) == 3) r += 1;
+	if (FIRST((1, 2), 3) == 2) r += 2;
+	if (NONE() == 7 && NONE( ) == 7) r += 4;
+	int F = 5;
+	if (F == 5) r += 8;
+	if (ADD
+		(
+		4,
+		5) == 9) r += 16;
+	if (FIRST(Pair(1, 2), 0) == 12) r += 32;
+	if (F(F) == 6) r += 64;
+	if (ADD(ADD(1, 1), ADD(2, 2)) == 6) r += 128;
+	return r;
+}
+### CppMacroEmptyArguments | 15 | 16.3 [cpp.replace] p4, p10: an argument may be empty
+#define SECOND(a, b) b
+#define WRAP(a) (a 3)
+#define ONE(a) a 4
+int main()
+{
+	int r = 0;
+	if (SECOND(, 1) == 1) r += 1;
+	if (WRAP() == 3) r += 2;
+	if (WRAP(-) == -3) r += 4;
+	if (ONE() == 4) r += 8;
+	return r;
+}
+### CppMacroVariadic | 63 | 16.3 [cpp.replace] p12, 16.3.1 [cpp.subst] p2: ... and __VA_ARGS__
+#define SUM(...) Sum(__VA_ARGS__)
+#define FIRST_REST(a, ...) a + Sum(__VA_ARGS__)
+#define STR(...) #__VA_ARGS__
+int Sum() { return 0; }
+int Sum(int a) { return a; }
+int Sum(int a, int b) { return a + b; }
+int Sum(int a, int b, int c) { return a + b + c; }
+int main()
+{
+	int r = 0;
+	if (SUM(1, 2, 3) == 6) r += 1;
+	if (SUM() == 0) r += 2;
+	if (FIRST_REST(1, 2, 3) == 6) r += 4;
+	if (FIRST_REST(4,) == 4) r += 8;
+	if (sizeof(STR(a, b,c)) == sizeof("a, b,c")) r += 16;
+	if (SUM((1, 2), 3) == 5) r += 32;
+	return r;
+}
+### CppMacroWrongArgumentCountRefused | REFUSED | 16.3 [cpp.replace] p4: a call of a function-like macro has as many arguments as parameters
+#define ADD(a, b) a + b
+int main() { return ADD(1); }
+### CppMacroTooManyArgumentsRefused | REFUSED | 16.3 [cpp.replace] p4: braces don't hold commas, parentheses do
+#define ONE(a) a
+int main() { int x[] = ONE({1, 2}); return x[0]; }
+### CppMacroVariadicNeedsArgumentRefused | REFUSED | 16.3 [cpp.replace] p4: a call has more arguments than the named parameters, for ...
+#define FR(a, ...) a
+int main() { return FR(1); }
+### CppMacroUnterminatedCallRefused | REFUSED | 16.3 [cpp.replace] p10: a macro call ends with )
+#define ID(a) a
+int main() { return ID(1; }
+### CppMacroRedefinedDifferentlyRefused | REFUSED | 16.3 [cpp.replace] p2: a macro redefined has the same replacement list
+#define V 1
+#define V 2
+int main() { return V; }
+### CppMacroDefinedRefused | REFUSED | 16.3 [cpp.replace] p8, 16.8 [cpp.predefined] p4: defined isn't a macro's name
+#define defined 1
+int main() { return 0; }
+### CppMacroVaArgsOutsideRefused | REFUSED | 16.3 [cpp.replace] p5: __VA_ARGS__ only in a variadic macro's replacement list
+#define V __VA_ARGS__
+int main() { return 0; }
+### CppMacroDuplicateParameterRefused | REFUSED | 16.3 [cpp.replace] p6: a macro's parameters have different names
+#define F(a, a) a
+int main() { return 0; }
+### CppStringize | 63 | 16.3.2 [cpp.stringize]: # makes its argument a string, spaces between tokens as one, \ and " of strings and characters escaped
+#define STR(x) #x
+#define XSTR(x) STR(x)
+#define FOUR 4
+int main()
+{
+	int r = 0;
+	const char* a = STR(  a   +    b  );
+	if (a[0] == 'a' && a[1] == ' ' && a[2] == '+' && a[3] == ' ' && a[4] == 'b' && a[5] == 0) r += 1;
+	const char* b = STR("x\n");
+	if (sizeof(STR("x\n")) == 6 && b[0] == '"' && b[2] == '\\' && b[3] == 'n' && b[4] == '"') r += 2;
+	if (sizeof(STR('"')) == 4) r += 4;
+	if (sizeof(STR(FOUR)) == 5 && sizeof(XSTR(FOUR)) == 2 && XSTR(FOUR)[0] == '4') r += 8;
+	if (sizeof(STR()) == 1) r += 16;
+	if (sizeof(STR(a /* comment */ b)) == 4) r += 32;
+	return r;
+}
+### CppStringizeNotParameterRefused | REFUSED | 16.3.2 [cpp.stringize] p1: # in a function-like macro is followed by a parameter
+#define F(x) # y
+int main() { return 0; }
+### CppTokenPasting | 63 | 16.3.3 [cpp.concat]: ## joins tokens; an empty argument joins as nothing; what is joined is rescanned
+#define CAT(a, b) a ## b
+#define XCAT(a, b) CAT(a, b)
+#define ONE 1
+#define AB 40
+#define hash_hash # ## #
+#define mkstr(a) # a
+#define in_between(a) mkstr(a)
+#define join(c, d) in_between(c hash_hash d)
+int main()
+{
+	int r = 0;
+	int xy = 1;
+	int ONE0 = 5;
+	if (CAT(x, y) == 1) r += 1;
+	if (CAT(1, 2) == 12 && CAT(0x, 1F) == 31) r += 2;
+	if (CAT(, xy) == 1 && CAT(xy, ) == 1) r += 4;
+	if (CAT(ONE, 0) == 5 && XCAT(ONE, 0) == 10) r += 8;
+	if (CAT(A, B) == 40) r += 16;
+	const char* s = join(x, y);
+	if (s[0] == 'x' && s[1] == ' ' && s[2] == '#' && s[3] == '#' && s[4] == ' ' && s[5] == 'y' && s[6] == 0) r += 32;
+	return r;
+}
+### CppTokenPastingInvalidRefused | REFUSED | 16.3.3 [cpp.concat] p3: what ## makes is one preprocessing token
+#define CAT(a, b) a ## b
+int main() { int x = 1; return CAT(x, +); }
+### CppTokenPastingAtEdgeRefused | REFUSED | 16.3.3 [cpp.concat] p1: ## isn't first or last in a replacement list
+#define F(a) ## a
+int main() { return 0; }
+### CppRescan | 31 | 16.3.4 [cpp.rescan]: a macro's replacement is rescanned; its own name isn't replaced again in it
+int x = 5;
+int AGAIN = 2;
+#define x (4 + x)
+#define f(a) a * g
+#define g(a) f(a)
+#define AGAIN AGAIN + 1
+#define OBJ ID
+#define ID(a) a
+#define ID2(a) a
+int main()
+{
+	int r = 0;
+	if (AGAIN == 3) r += 1;
+	if (x == 9) r += 2;
+	int g = 6;
+	if (f(2) == 12) r += 4;
+	if (ID(ID2)(8) == 8) r += 8;
+	if (OBJ(3) == 3) r += 16;
+	return r;
+}
+### CppUndef | 7 | 16.3.5 [cpp.scope]: #undef ends a macro; it may be defined again otherwise; #undef of no macro is nothing
+#define V 1
+int main()
+{
+	int r = 0;
+	if (V == 1) r += 1;
+#undef V
+#define V 2
+	if (V == 2) r += 2;
+#undef V
+#undef V
+#undef NEVER_DEFINED
+#ifndef V
+	r += 4;
+#endif
+	return r;
+}
+### CppLine | 15 | 16.4 [cpp.line]: #line sets the next line's number, and the file's name; it may be made by macros
+int main()
+{
+	int r = 0;
+#line 100
+	if (__LINE__ == 100) r += 1;
+#line 200 "other.cpp"
+	if (__LINE__ == 200 && __FILE__[0] == 'o' && sizeof(__FILE__) == 10) r += 2;
+#define LINE_NUMBER 300
+#line LINE_NUMBER
+	if (__LINE__ == 300) r += 4;
+	if (__LINE__ == 301
+		&& __LINE__ == 302) r += 8;
+	return r;
+}
+### CppLineZeroRefused | REFUSED | 16.4 [cpp.line] p3: #line's number isn't 0
+#line 0
+int main() { return 0; }
+### CppLineNotNumberRefused | REFUSED | 16.4 [cpp.line] p3: #line takes a number
+#line abc
+int main() { return 0; }
+### CppErrorRefused | REFUSED | 16.5 [cpp.error]: #error stops the program
+#error this program is refused
+int main() { return 0; }
+### CppPragmas | 7 | 16.6 [cpp.pragma], 16.9 [cpp.pragma.op]: a pragma the compiler doesn't know is ignored; _Pragma("...") is #pragma ..., from a macro too
+#pragma not_a_pragma_anyone_knows
+#define IGNORED _Pragma("not_a_pragma_anyone_knows") 1
+_Pragma("not_a_pragma_anyone_knows")
+int main()
+{
+	int r = 0;
+	r += 1;
+#pragma another_unknown_pragma with words
+	r += 2;
+	if (IGNORED == 1) r += 4;
+	return r;
+}
+### CppPredefinedMacros | 63 | 16.8 [cpp.predefined]: __cplusplus is 201402L; __LINE__, __FILE__, __DATE__, __TIME__ and __STDC_HOSTED__
+int main()
+{
+	int r = 0;
+#if __cplusplus == 201402L
+	r += 1;
+#endif
+	if (__LINE__ == 7) r += 2;
+	if (sizeof(__FILE__) > 1) r += 4;
+	if (sizeof(__DATE__) == 12 && __DATE__[3] == ' ' && __DATE__[6] == ' ') r += 8;
+	if (sizeof(__TIME__) == 9 && __TIME__[2] == ':' && __TIME__[5] == ':') r += 16;
+#if defined(__STDC_HOSTED__) && (__STDC_HOSTED__ == 0 || __STDC_HOSTED__ == 1)
+	r += 32;
+#endif
+	return r;
+}

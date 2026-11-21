@@ -409,6 +409,18 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
        - Assignment lays its class out before looking for its operator= (SupportLib's ShapeSubtraction failed
          without it: using Base::operator= wasn't seen in a class not yet laid out).
        - clauses.py writes ?? as ?\? in the header, so a case's trigraphs aren't the test's own.
+   - Clauses 2 and 16, measured 2026-11-21, waiting for the user to pick what is fixed.  The same on both targets,
+     and the semantic pass misses the same cases.
+       Clause 2, 50 of 56.  Not built: LexTrigraphs (no trigraphs at all), LexAlternativeTokens (%: and %:%: aren't
+       # and ##), LexUserDefinedLiterals (U'a'_c doesn't find operator"" _c(char32_t)).  Accepted: u'\uD800' (a
+       surrogate), int A (a basic character named by \u outside a literal), u"a" U"b" joined.
+       Clause 16, 34 of 44.  Not built: CppConditionalArithmetic (and, not, bitand in #if), CppLine (#line with a
+       macro for its number).  Accepted: #ifdef A B, a variadic macro called without an argument for ..., a macro
+       redefined differently, #define defined, __VA_ARGS__ in an object-like macro, a parameter named twice, # not
+       before a parameter, ## first in a replacement list.
+       Refused with a misleading message: 1' and 1''0 ("Unterminated" / "Empty character literal"), x ## + (no
+       error for the paste; the expression after it is wrong instead).
+     (Writing a case with the Write tool turned \u escapes into the characters: write \u through Python.)
 
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size

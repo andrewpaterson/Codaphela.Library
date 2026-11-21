@@ -83,6 +83,9 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Stage9, "", ""),
 	CONFORMANCE_GROUP(Stage10, "", ""),
 	CONFORMANCE_EXCEPTIONS_GROUP(Exceptions, "", ""),
+	CONFORMANCE_GROUP(Clause2,
+		"LexUniversalCharacterNameSurrogateRefused(A) LexUniversalCharacterNameBasicInNameRefused(A) LexTrigraphs(C) LexAlternativeTokens(C) LexStringConcatenationMixedRefused(A) LexUserDefinedLiterals(C) ",
+		"LexUniversalCharacterNameSurrogateRefused(A) LexUniversalCharacterNameBasicInNameRefused(A) LexTrigraphs(C) LexAlternativeTokens(C) LexStringConcatenationMixedRefused(A) LexUserDefinedLiterals(C) "),
 	CONFORMANCE_GROUP(Clause3, "", ""),
 	CONFORMANCE_GROUP(Clause4, "", ""),
 	CONFORMANCE_GROUP(Clause5,
@@ -97,6 +100,9 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Clause12, "", ""),
 	CONFORMANCE_GROUP(Clause13, "", ""),
 	CONFORMANCE_GROUP(Clause14, "", ""),
+	CONFORMANCE_GROUP(Clause16,
+		"CppConditionalArithmetic(C) CppConditionalIfdefExtraTokensRefused(A) CppMacroVariadicNeedsArgumentRefused(A) CppMacroRedefinedDifferentlyRefused(A) CppMacroDefinedRefused(A) CppMacroVaArgsOutsideRefused(A) CppMacroDuplicateParameterRefused(A) CppStringizeNotParameterRefused(A) CppTokenPastingAtEdgeRefused(A) CppLine(C) ",
+		"CppConditionalArithmetic(C) CppConditionalIfdefExtraTokensRefused(A) CppMacroVariadicNeedsArgumentRefused(A) CppMacroRedefinedDifferentlyRefused(A) CppMacroDefinedRefused(A) CppMacroVaArgsOutsideRefused(A) CppMacroDuplicateParameterRefused(A) CppStringizeNotParameterRefused(A) CppTokenPastingAtEdgeRefused(A) CppLine(C) "),
 };
 
 
