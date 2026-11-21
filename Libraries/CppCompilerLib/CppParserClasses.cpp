@@ -146,6 +146,11 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 		else
 		{
 			Resolve(pcComponent->miName, pcSymbol, CPPTR_Declaration);
+			if ((miTentative == 0) && pcSymbol->mpcDeclaration && (pcSymbol->mpcDeclaration->GetKind() == CPPS_ClassSpecifier) && (pcSymbol->mpcDeclaration != pcClass))
+			{
+				//[basic.def.odr] 1
+				ErrorAt(pcComponent->miName, "The class is defined twice");
+			}
 			if (miTentative == 0)
 			{
 				pcSymbol->mpcDeclaration = pcClass;
@@ -530,6 +535,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 
 		//An enumerator is declared after its definition, so its own value names the x outside in enum { x = x };, and
 		//it can be used in the values of the ones after it.  [basic.scope.pdecl] 3
+		CheckRedeclaration(lliName, CPPSK_Enumerator, false, pcEnumerator->miName, pcEnum->mbScoped ? pcEnum->mpcScope : pcDeclarationScope);
 		pcEnumeratorSymbol = Declare(lliName, pcEnumerator->miName, CPPSK_Enumerator, pcEnumerator, pcEnum->mpcScope);
 		pcEnumerator->mpcSymbol = pcEnumeratorSymbol;
 		if (pcEnumeratorSymbol && !pcEnum->mbScoped)

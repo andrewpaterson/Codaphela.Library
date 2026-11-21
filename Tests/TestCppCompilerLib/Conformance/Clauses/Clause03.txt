@@ -259,6 +259,28 @@ int main()
 	return r;
 }
 
+### BasicSwitchDeclarationCondition | 7 | 3.3.3 [basic.scope.block] p4, 6.4 [stmt.select] p4: a switch's condition may declare a variable, of an integer or enum type, which is in scope in its body
+enum E { A, B, C };
+E Pick(int i) { return (E)i; }
+int main()
+{
+	int r = 0;
+	switch (E e = Pick(1)) { case A: break; case B: if (e == B) r += 1; break; default: break; }
+	switch (char c = 'q') { case 'q': { int c2 = c + 1; if (c2 == 'r') r += 2; } break; }
+	for (int i = 0; i < 2; i++)
+	{
+		switch (int k = i * 3) { case 3: if (k == 3) r += 4; break; default: break; }
+	}
+	return r;
+}
+
+### BasicSwitchFloatConditionRefused | REFUSED | 6.4.2 [stmt.switch] p2: a switch's condition, a declared one too, is of an integer or enum type
+int main()
+{
+	switch (double d = 1.5) { case 1: return 1; }
+	return 0;
+}
+
 ### BasicForBodyRedeclaresRefused | REFUSED | 3.3.3 [basic.scope.block] p4: the outermost block of a for's body can't declare a name its init-statement does
 int main()
 {
@@ -327,6 +349,29 @@ A:
 		;
 	}
 	return 0;
+}
+
+### BasicRedeclarationsAllowed | 63 | 3.3.1 [basic.scope.declarative] p4, 3.3.3 [basic.scope.block] p2, p4, 3.3.9 [basic.scope.temp], 6.1 [stmt.label] p1: names declared again where that is allowed: in a nested block, as overloads, an extern twice, labels of one name in two functions and a lambda, a template parameter's name in another template
+int F(int a) { { int a = 2; return a; } }
+int F(int a, int b) { return a + b; }
+int G() { L: return 1; goto L; }
+int H() { auto f = []() { L: return 2; goto L; }; L: return f(); goto L; }
+template<class T> struct A { T v; };
+template<class T> struct B { T w; };
+enum E { X };
+namespace N { enum E2 { X }; }
+int gi = 4;
+int main()
+{
+	int r = 0;
+	if (F(1) == 2 && F(1, 2) == 3) r += 1;
+	for (int i = 0; i < 1; i++) { { int i = 5; if (i == 5) r += 2; } }
+	{ extern int gi; extern int gi; if (gi == 4) r += 4; }
+	if (G() == 1 && H() == 2) r += 8;
+	A<int> a; B<char> b; a.v = 1; b.w = 2;
+	if (a.v + b.w == 3) r += 16;
+	if (X == 0 && N::X == 0) r += 32;
+	return r;
 }
 
 ### BasicClassScope | 31 | 3.3.7 [basic.scope.class] p1: a member is in scope in member function bodies, default arguments and mem-initialisers, though declared after them
@@ -435,6 +480,18 @@ int main()
 	int x = 4;
 	P<int> p; p.p = &x;
 	if (*p.p == 4 && sizeof(T) == sizeof(double)) r += 4;
+	return r;
+}
+
+### BasicTemplateParameterInLaterDefault | 7 | 3.3.9 [basic.scope.temp] p1, 14.1 [temp.param] p10: a non-type parameter's default uses the parameters before it, in a class template and a function template
+template<class T, int N = sizeof(T) + 1> struct A { static const int n = N; };
+template<class T, int N = sizeof(T) * 2> int Size() { return N; }
+int main()
+{
+	int r = 0;
+	if (A<char>::n == 2) r += 1;
+	if (A<char, 7>::n == 7) r += 2;
+	if (Size<char>() == 2) r += 4;
 	return r;
 }
 
@@ -645,6 +702,16 @@ int main()
 ### BasicLookupConstructorNameRefused | REFUSED | 3.4.3.1 [class.qual] p2: A::A, where a function's name may be, names the constructor and not the class
 struct A { A() { } int v; };
 int main() { A::A a; return 0; }
+
+### BasicConstructorNameQualifierAllowed | 4 | 3.4.3.1 [class.qual] p2: A::A is the class where it is followed by ::, and after struct
+struct A { A() { } int v; static const int k = 3; };
+int main()
+{
+	A a;
+	struct A::A b;
+	b.v = 1;
+	return A::A::k + b.v;
+}
 
 ### BasicLookupInjectedClassName | 7 | 3.4.3.1 [class.qual] p2, 9 [class] p2: the injected-class-name: struct A::A and A::A:: are the class, and a template's name in it is its instance
 struct A { int v; static int k; };
@@ -920,6 +987,72 @@ Out:
 	return r;
 }
 
+### BasicGotoDestroysWhatItLeaves | 7 | 3.7.3 [basic.stc.auto] p1, 6.6 [stmt.jump] p2: a goto out of scopes destroys their objects, the last made first, forward and back
+int giLog = 0;
+struct G { int i; G(int x) : i(x) { } ~G() { giLog = giLog * 10 + i; } };
+int Forward(int n)
+{
+	G a(1);
+	{
+		G b(2);
+		if (n) goto Out;
+		G c(3);
+	}
+Out:
+	return 0;
+}
+int Back()
+{
+	int tries = 0;
+Again:
+	{
+		G d(4);
+		tries++;
+		if (tries < 3) goto Again;
+	}
+	return tries;
+}
+int main()
+{
+	int r = 0;
+	Forward(1);
+	if (giLog == 21) r += 1;
+	giLog = 0;
+	if (Back() == 3 && giLog == 444) r += 2;
+	giLog = 0;
+	{
+		G e(5);
+		goto Done;
+	}
+Done:
+	if (giLog == 5) r += 4;
+	return r;
+}
+
+### BasicGotoPastDeclarationRefused | REFUSED | 6.7 [stmt.dcl] p3: a goto may not jump past the declaration of an object with a destructor into its scope
+struct G { ~G() { } };
+int main()
+{
+	goto A;
+	G g;
+A:
+	return 0;
+}
+
+### BasicGotoIntoBlockRefused | REFUSED | 6.7 [stmt.dcl] p3: a goto may not jump into a block past the making of an object with a destructor
+struct G { ~G() { } };
+int main()
+{
+	int n = 0;
+	{
+		G a;
+	B:
+		n++;
+	}
+	if (n < 2) goto B;
+	return n;
+}
+
 ### BasicAllocationInNamespaceRefused | REFUSED | 3.7.4 [basic.stc.dynamic] p1: an allocation function declared in a namespace other than the global one
 typedef decltype(sizeof(0)) size_t;
 namespace N { void* operator new(size_t n); }
@@ -1077,6 +1210,20 @@ struct X;
 struct X* gp;
 int main() { return gp->i; }
 struct X { int i; };
+
+### BasicClassCompleteWhereDefined | 7 | 3.9 [basic.types] p5, 9.2 [class.mem] p2: a class is complete after its definition, and in the member function bodies of a class it is defined in
+struct A
+{
+	struct B;
+	int F(B* b) { return b->x + G(); }
+	static int G() { return 1; }
+	struct B { int x; };
+};
+struct X;
+int Read(X* p);
+struct X { int i; };
+int Read(X* p) { return p->i; }
+int main() { A a; A::B b; b.x = 2; X x; x.i = 4; return a.F(&b) + Read(&x); }
 
 ### BasicLiteralTypes | 7 | 3.9 [basic.types] p10: literal types: scalars, references, arrays of them, aggregates of them, and classes with a constexpr constructor and a trivial destructor
 struct L { int a; constexpr L(int x) : a(x) { } constexpr int Get() const { return a * 2; } };

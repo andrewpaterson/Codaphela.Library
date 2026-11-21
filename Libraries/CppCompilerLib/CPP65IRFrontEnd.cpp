@@ -84,6 +84,8 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	masJumps.Init();
 	masCases.Init();
 	masLabels.Init();
+	masPendingGotos.Init();
+	masGotoLocals.Init();
 	mcCleanups.Init();
 	masTries.Init();
 	mpcThrowExit = NULL;
@@ -161,6 +163,8 @@ void CCPP65IRFrontEnd::Kill(void)
 	mapcNone.Kill();
 	masTries.Kill();
 	mcCleanups.Kill();
+	masGotoLocals.Kill();
+	masPendingGotos.Kill();
 	masLabels.Kill();
 	masCases.Kill();
 	masJumps.Kill();
@@ -355,6 +359,8 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	masJumps.ReInit();
 	masCases.ReInit();
 	masLabels.ReInit();
+	masPendingGotos.ReInit();
+	masGotoLocals.ReInit();
 	mcCleanups.ReInit();
 	masTries.ReInit();
 	mpcThrowExit = NULL;

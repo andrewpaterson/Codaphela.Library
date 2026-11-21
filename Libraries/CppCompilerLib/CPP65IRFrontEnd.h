@@ -110,6 +110,21 @@ struct SCPP65IRLabel
 {
 	int64		lliName;
 	CIRBlock*	pcBlock;
+	bool		bPlaced;		//The label's statement has been written...
+	size		uiLiving;		//...with this many locals living there, masGotoLocals' from uiFirstLocal.
+	size		uiFirstLocal;
+};
+
+
+//A goto written before its label: it jumps to pcBlock, which destroys what the goto leaves the scope of once the label
+//is reached and so known (PlaceGotos).  The locals living at the goto are masGotoLocals' from uiFirst, uiLiving of them.
+struct SCPP65IRPendingGoto
+{
+	int64		lliName;
+	CIRBlock*	pcBlock;
+	size		uiFirst;
+	size		uiLiving;
+	CCPPSyntax*	pcGoto;
 };
 
 
@@ -146,6 +161,7 @@ typedef CMapLongTemplate<SCPP65IRValue>		CMapCPP65IRValues;
 typedef CArrayTemplate<SCPP65IRJump>		CArrayCPP65IRJumps;
 typedef CArrayTemplate<SCPP65IRCase>		CArrayCPP65IRCases;
 typedef CArrayTemplate<SCPP65IRLabel>		CArrayCPP65IRLabels;
+typedef CArrayTemplate<SCPP65IRPendingGoto>	CArrayCPP65IRPendingGotos;
 typedef CArrayTemplate<SCPP65IRWritten>		CArrayCPP65IRWritten;
 
 
@@ -187,6 +203,8 @@ protected:
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
 	CArrayCPP65IRLabels		masLabels;
+	CArrayCPP65IRPendingGotos	masPendingGotos;
+	CArrayCPP65IRCleanups	masGotoLocals;
 	CArrayTemplate<SCPP65IRTry>	masTries;		//The try blocks being written, the outermost first.
 	CIRBlock*				mpcThrowExit;		//The function's block that ends in throw, once something needs it (WayOut).
 	CIRBlock*				mpcUnexpected;		//Its block that checks an exception against a throw(A, B) list, once something needs it (UnexpectedBlock).
@@ -368,7 +386,9 @@ protected:
 	bool			BreakStatement(CCPPSyntax* pcStatement, bool bContinue);
 	bool			GotoStatement(CCPPSyntaxGotoStatement* pcGoto);
 	bool			LabelStatement(CCPPSyntaxLabelStatement* pcLabel);
-	CIRBlock*		GotoBlock(int iToken);
+	SCPP65IRLabel*	GotoLabel(int iToken);
+	bool			PlaceGotos(SCPP65IRLabel* psLabel);
+	bool			GotoKeeps(SCPP65IRCleanup* pasLocals, size uiLiving, CCPPSyntax* pcGoto);
 	bool			Expression(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP65IRValue* psValue);

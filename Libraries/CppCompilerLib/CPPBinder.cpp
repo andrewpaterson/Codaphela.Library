@@ -1763,6 +1763,11 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	{
 		return false;
 	}
+	if (!mpcUnit->IsDefinedBefore(pcClass, pcNode))
+	{
+		//[expr.ref] 2, [basic.types] 5
+		return mpcUnit->ReportOnce(pcNode, "The class is incomplete here: it is defined further on");
+	}
 	lliName = mpcUnit->GetComponentName(pcName->GetLast());
 	pcLookup = pcClass;
 	if (pcName->IsQualifiedByClass())

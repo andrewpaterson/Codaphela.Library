@@ -499,6 +499,9 @@ public:
 	bool					IsOuterLocal(CCPPSymbol* pcSymbol);
 	bool					IsOuterConstant(CCPPSymbol* pcSymbol);
 	CCPPVariable*			EnclosingStatic(CCPPSymbol* pcSymbol);
+	CCPPVariable*			RedeclaredVariable(CCPPSymbol* pcSymbol);
+	CCPPVariable*			NamespaceVariable(CCPPSymbol* pcSymbol);
+	bool					SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond);
 	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);
 	SCPP65Type*				EnclosingConstantObjectType(CCPPSymbol* pcSymbol);
 	bool					IsOdrUse(CCPPSyntax* pcNode);
@@ -582,6 +585,7 @@ public:
 	CCPPClass*			QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	int						AlignasAlignment(CArraySyntax* papcSpecifiers);
 	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
+	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	CCPPClass*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
 	bool					ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern);

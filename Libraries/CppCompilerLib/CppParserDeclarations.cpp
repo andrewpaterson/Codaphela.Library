@@ -845,11 +845,13 @@ bool CCPPParser::ParseFunctionBody(CCPPSyntaxFunctionDefinition* pcFunction)
 {
 	CCPPScope*	pcSaved;
 	bool		bDeclaringTemplate;
+	size		uiLabels;
 
 	pcSaved = mpcScope;
 	mpcScope = pcFunction->mpcScope;
 	bDeclaringTemplate = mbDeclaringTemplate;
 	mbDeclaringTemplate = false;
+	uiLabels = BeginLabels();
 
 	if (Is(CT_try))
 	{
@@ -864,6 +866,7 @@ bool CCPPParser::ParseFunctionBody(CCPPSyntaxFunctionDefinition* pcFunction)
 			{
 				mpcScope = pcSaved;
 				mbDeclaringTemplate = bDeclaringTemplate;
+				EndLabels(uiLabels);
 				return false;
 			}
 		}
@@ -872,6 +875,7 @@ bool CCPPParser::ParseFunctionBody(CCPPSyntaxFunctionDefinition* pcFunction)
 
 	mpcScope = pcSaved;
 	mbDeclaringTemplate = bDeclaringTemplate;
+	EndLabels(uiLabels);
 	if (!pcFunction->mpcBody)
 	{
 		return false;
@@ -1073,6 +1077,7 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 	//A template's non-type parameter is in the template's scope, not the one enclosing it.
 	lliName = GetTokenIdentifier(pcComponent->miName);
 	pcScope = (eContext == CPPDC_Parameter) ? mpcScope : mpcScope->GetDeclarationScope();
+	CheckRedeclaration(lliName, eKind, (uiFlags & CPPDS_EXTERN) != 0, pcComponent->miName, pcScope);
 	pcSymbol = Declare(lliName, pcComponent->miName, eKind, pcDeclaration, pcScope);
 	pcName->mpcSymbol = pcSymbol;
 	pcComponent->mpcSymbol = pcSymbol;
@@ -1087,6 +1092,169 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 		}
 	}
 	return pcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A declaration of a name of eKind in pcScope that another there forbids,
+// reported at iToken: a variable or a function and something else of the
+// name, two enumerators, a block's variable declared twice (not extern) or
+// declared again in the outermost block of the statement whose condition
+// declares it or of the function whose parameter it is, and a template
+// parameter's name declared in its template.  Classes and enums are hidden by
+// the others instead.  [basic.scope.declarative] 4, [basic.scope.block] 2, 4,
+// [temp.local] 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::CheckRedeclaration(int64 lliName, ECPPSymbolKind eKind, bool bExtern, int iToken, CCPPScope* pcScope)
+{
+	const char*	szClash;
+	CCPPScope*	pcTemplate;
+	CCPPSymbol*	pcParameter;
+
+	if ((miTentative > 0) || (lliName == -1) || !pcScope || (iToken < 0) || IsSkimming(iToken))
+	{
+		return true;
+	}
+	szClash = Clash(pcScope, lliName, eKind, bExtern) ? "The name is declared already in this scope, as something it can't be beside" : NULL;
+	if (!szClash && !bExtern && ((eKind == CPPSK_Variable) || (eKind == CPPSK_Function)) && (pcScope->meKind == CPPSC_Block) && pcScope->mpcParent)
+	{
+		if (pcScope->mpcParent->mbControl && OuterDeclares(pcScope->mpcParent, lliName, false))
+		{
+			szClash = "The name is declared by the statement's condition: it can't be declared again in its block";
+		}
+		else if ((pcScope->mpcParent->meKind == CPPSC_Function) && OuterDeclares(pcScope->mpcParent, lliName, true))
+		{
+			szClash = "The name is a parameter's: it can't be declared again in the function's outermost block";
+		}
+	}
+	for (pcTemplate = (pcScope->meKind == CPPSC_Template) ? pcScope->mpcParent : pcScope; !szClash && pcTemplate; pcTemplate = pcTemplate->mpcParent)
+	{
+		pcParameter = (pcTemplate->meKind == CPPSC_Template) ? pcTemplate->FindParsed(lliName) : NULL;
+		if (pcParameter && (pcParameter->mpcScope == pcTemplate))
+		{
+			szClash = "The name is a template parameter's: it can't be declared again in its template";
+		}
+	}
+	if (szClash)
+	{
+		ErrorAt(iToken, (char*)szClash);
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a declaration of a name of eKind clashes with one in pcScope
+// already (CheckRedeclaration).  An unscoped enumerator of an enum in the
+// scope is one of the scope's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::Clash(CCPPScope* pcScope, int64 lliName, ECPPSymbolKind eKind, bool bExtern)
+{
+	CCPPSymbol*		pcOther;
+	ECPPSymbolKind	eOther;
+	bool			bBlock;
+
+	bBlock = (pcScope->meKind == CPPSC_Block) || (pcScope->meKind == CPPSC_Function);
+	for (pcOther = pcScope->FindParsed(lliName); pcOther; pcOther = pcOther->mpcNext)
+	{
+		if (pcOther->mpcLazy)
+		{
+			continue;
+		}
+		if ((pcOther->mpcScope != pcScope) && !((pcOther->meKind == CPPSK_Enumerator) && pcOther->mpcScope && (pcOther->mpcScope->mpcParent == pcScope)))
+		{
+			continue;
+		}
+		eOther = pcOther->meKind;
+		switch (eKind)
+		{
+		case CPPSK_Variable:
+		case CPPSK_VariableTemplate:
+			if ((eOther == CPPSK_Function) || (eOther == CPPSK_FunctionTemplate) || (eOther == CPPSK_Enumerator) || (eOther == CPPSK_Typedef) || (eOther == CPPSK_Namespace))
+			{
+				return true;
+			}
+			if (bBlock && !bExtern && ((eOther == CPPSK_Variable) || (eOther == CPPSK_Parameter)) && !IsExternDeclaration(pcOther))
+			{
+				return true;
+			}
+			break;
+		case CPPSK_Parameter:
+			if ((pcScope->meKind == CPPSC_Function) && (eOther == CPPSK_Parameter))
+			{
+				return true;
+			}
+			break;
+		case CPPSK_Function:
+		case CPPSK_FunctionTemplate:
+			if ((eOther == CPPSK_Variable) || (eOther == CPPSK_Field) || (eOther == CPPSK_Enumerator) || (eOther == CPPSK_Typedef) || (eOther == CPPSK_Namespace) || (eOther == CPPSK_VariableTemplate))
+			{
+				return true;
+			}
+			break;
+		case CPPSK_Enumerator:
+			if ((eOther == CPPSK_Variable) || (eOther == CPPSK_Field) || (eOther == CPPSK_Function) || (eOther == CPPSK_FunctionTemplate) || (eOther == CPPSK_Enumerator) || (eOther == CPPSK_Typedef) || (eOther == CPPSK_Namespace) || (eOther == CPPSK_VariableTemplate))
+			{
+				return true;
+			}
+			break;
+		case CPPSK_Typedef:
+			if ((eOther == CPPSK_Variable) || (eOther == CPPSK_Field) || (eOther == CPPSK_Function) || (eOther == CPPSK_FunctionTemplate) || (eOther == CPPSK_Enumerator))
+			{
+				return true;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a statement's own scope declares a variable of the name, or a
+// function's parameters' scope a parameter (bParameters: a lambda's
+// captures there are no parameters) (CheckRedeclaration).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::OuterDeclares(CCPPScope* pcScope, int64 lliName, bool bParameters)
+{
+	CCPPSymbol*	pcOther;
+
+	for (pcOther = pcScope->FindParsed(lliName); pcOther; pcOther = pcOther->mpcNext)
+	{
+		if ((pcOther->mpcScope == pcScope) && (bParameters ? (pcOther->meKind == CPPSK_Parameter) : (pcOther->meKind == CPPSK_Variable)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a variable's symbol was declared extern (a block's extern int x;
+// may be declared again).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsExternDeclaration(CCPPSymbol* pcSymbol)
+{
+	CCPPSyntax*	pcDeclaration;
+
+	pcDeclaration = pcSymbol->mpcDeclaration;
+	if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_InitDeclarator) || !pcDeclaration->mpcParent || (pcDeclaration->mpcParent->GetKind() != CPPS_SimpleDeclaration) || !((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers)
+	{
+		return false;
+	}
+	return (((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers->muiFlags & CPPDS_EXTERN) != 0;
 }
 
 
@@ -1648,6 +1816,13 @@ ECPPDeclSpecifierStep CCPPParser::ParseNamedDeclSpecifier(CCPPSyntaxDeclSpecifie
 	{
 		Rewind(sPosition);
 		return CPPDSS_Stop;
+	}
+	if ((miTentative == 0) && (pcName->macpComponents.NumElements() >= 2) && IsConstructorName(pcName) && pcName->mpcSymbol && pcName->mpcSymbol->IsClass())
+	{
+		//A::A where a type can be written names A's constructor, not A.  [class.qual] 2  A tentative parse takes it as
+		//the type it was meant to be, so the declaration is parsed as one and this said.
+		ErrorAt(pcName->GetLast()->miFirstToken, (char*)"A::A names the class's constructor, not the class");
+		return CPPDSS_Failed;
 	}
 
 	pcSymbol = pcName->mpcSymbol;

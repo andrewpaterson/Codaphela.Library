@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __C_P_P_PARSER_H__
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayInt64.h"
 #include "CppTokeniser.h"
 #include "CTReservedWord.h"
 #include "CPPSyntaxes.h"
@@ -135,6 +136,8 @@ protected:
 	int						miClassDepth;
 	bool					mbDeclaringTemplate;	//The declaration directly in a template declaration declares a template.
 	int						miTemplates;			//Templates being parsed, nested: their bodies are parsed in a system header too (ParseFunctionDefinition).
+	CArrayInt64				malliLabels;			//The labels of the function bodies being parsed, from muiLabelsStart the innermost's.
+	size					muiLabelsStart;
 	CArrayDeferredBodies	macDeferred;			//The bodies of member functions to parse once their class is complete, first found first...
 	size					muiDeferredNext;		//...from this one: those before it have been.
 	int						miErrors;
@@ -274,6 +277,12 @@ protected:
 	bool							IsMemberPointerAhead(void);
 	CCPPSyntaxFunctionSuffix*		ParseFunctionSuffix(CCPPSyntax* pcParent, CCPPScope* pcQualifierScope);
 	CCPPScope*						QualifierScope(CCPPSyntaxDeclarator* pcDeclarator);
+	bool							CheckRedeclaration(int64 lliName, ECPPSymbolKind eKind, bool bExtern, int iToken, CCPPScope* pcScope);
+	bool							Clash(CCPPScope* pcScope, int64 lliName, ECPPSymbolKind eKind, bool bExtern);
+	bool							OuterDeclares(CCPPScope* pcScope, int64 lliName, bool bParameters);
+	bool							IsExternDeclaration(CCPPSymbol* pcSymbol);
+	size							BeginLabels(void);
+	void							EndLabels(size uiStart);
 	CCPPSyntaxExpression*			ParseLambdaExpression(CCPPSyntax* pcParent);
 	CCPPSyntaxLambdaCapture*		ParseLambdaCapture(CCPPSyntaxLambdaExpression* pcLambda);
 	CCPPSyntaxParameter*			ParseParameter(CCPPSyntax* pcParent);

@@ -85,6 +85,8 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 	SCPPParserPosition				sStart;
 	SCPPParserState					sState;
 	int								iErrors;
+	int64							lliLabel;
+	size							uiLabel;
 
 	//[stmt.stmt]  A statement that can't be parsed is skipped and kept as its tokens.
 	sStart = Mark();
@@ -197,6 +199,20 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 		pcLabel = mpcMemory->Create<CCPPSyntaxLabelStatement>(pcParent);
 		pcLabel->miFirstToken = CurrentToken();
 		pcLabel->miName = CurrentToken();
+		if (miTentative == 0)
+		{
+			//A label's scope is its function: it is declared once there.  [stmt.label] 1
+			lliLabel = GetIdentifier();
+			for (uiLabel = muiLabelsStart; uiLabel < malliLabels.NumElements(); uiLabel++)
+			{
+				if (malliLabels.GetValue(uiLabel) == lliLabel)
+				{
+					ErrorAt(pcLabel->miName, "The label is declared twice in the function");
+					break;
+				}
+			}
+			malliLabels.Add(lliLabel);
+		}
 		Next();
 		Next();
 		if (Is(CT_CloseCurlyBracket))
@@ -420,6 +436,7 @@ CCPPSyntaxStatement* CCPPParser::ParseIfStatement(CCPPSyntax* pcParent)
 		return NULL;
 	}
 	pcIf->mpcScope = PushScope(CPPSC_Block, NULL);
+	pcIf->mpcScope->mbControl = true;
 	pcIf->mpcCondition = ParseCondition(pcIf);
 	if (!pcIf->mpcCondition || !Expect(CT_CloseRoundBracket))
 	{
@@ -496,6 +513,7 @@ CCPPSyntaxStatement* CCPPParser::ParseForStatement(CCPPSyntax* pcParent)
 		return NULL;
 	}
 	pcScope = PushScope(CPPSC_Block, NULL);
+	pcScope->mbControl = true;
 
 	if (IsDeclarationStatement(CPPDC_ForInit))
 	{
@@ -761,5 +779,32 @@ CCPPSyntaxStatement* CCPPParser::ParseTryStatement(CCPPSyntax* pcParent, CCPPSyn
 	}
 	pcTry->miLastToken = PreviousToken();
 	return pcTry;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function body's labels start (a lambda's are its own): returns what
+// EndLabels puts back.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPParser::BeginLabels(void)
+{
+	size	uiStart;
+
+	uiStart = muiLabelsStart;
+	muiLabelsStart = malliLabels.NumElements();
+	return uiStart;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::EndLabels(size uiStart)
+{
+	malliLabels.SetUsedElements(muiLabelsStart);
+	muiLabelsStart = uiStart;
 }
 

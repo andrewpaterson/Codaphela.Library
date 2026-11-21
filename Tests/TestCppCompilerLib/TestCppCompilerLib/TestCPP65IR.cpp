@@ -493,7 +493,7 @@ void TestCPP65IRUnsupportedReason(void)
 
 	szAssembly.Init();
 	szErrors.Init();
-	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "int Pick(int a) { switch (int x = a) { default: return x; } }"));
+	AssertFalse(TestCPP65Generate(&szAssembly, &szErrors, "struct C { int v; operator int() const { return v; } }; int Pick(int a) { switch (C c = C{a}) { default: return 1; } }"));
 	AssertTrue(szErrors.Contains("doesn't support yet (CPP65IRFrontEndStatements.cpp line "));
 	szErrors.Kill();
 	szAssembly.Kill();

@@ -1245,18 +1245,38 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 	int64			lliValue;
 	bool			bResult;
 	size			uiTemporaries;
+	CCPPVariable*	pcVariable;
+	SCPP65IRPlace	sPlace;
 
-	if (!pcSwitch->mpcCondition || (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration))
+	if (!pcSwitch->mpcCondition)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
 	uiTemporaries = mcCleanups.NumTemporaries();
-	if (!ContextualValue(pcSwitch->mpcCondition, CPPXT_Integer, &sValue))
+	if (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration)
+	{
+		//switch (int x = value): the variable, in scope in the body, is what the cases are compared with.  [stmt.select] 4
+		pcVariable = NULL;
+		if (!Declaration((CCPPSyntaxSimpleDeclaration*)pcSwitch->mpcCondition, &pcVariable))
+		{
+			return false;
+		}
+		if (!pcVariable || !pcVariable->mpsType->IsScalar() || !VariablePlace(pcVariable, &sPlace) || !Load(&sPlace, &sValue))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+	}
+	else if (!ContextualValue(pcSwitch->mpcCondition, CPPXT_Integer, &sValue))
 	{
 		return false;
 	}
 	if (!sValue.psType->IsInteger())
 	{
+		if (sValue.psType->IsFloat() || sValue.psType->IsPointer())
+		{
+			//[stmt.switch] 2
+			return mpcUnit->ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum");
+		}
 		return Unsupported(__FILE__, __LINE__);
 	}
 	//The condition is a full expression: its temporaries go before the cases are compared.
@@ -1494,16 +1514,136 @@ bool CCPP65IRFrontEnd::BreakStatement(CCPPSyntax* pcStatement, bool bContinue)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::GotoStatement(CCPPSyntaxGotoStatement* pcGoto)
 {
-	CIRBlock*	pcBlock;
+	SCPP65IRLabel*			psLabel;
+	SCPP65IRPendingGoto*	psPending;
+	size					ui;
 
-	pcBlock = GotoBlock(pcGoto->miLabel);
-	if (!pcBlock || (mcCleanups.NumLocals() > 0))
+	//A goto destroys the objects whose scopes it leaves, the last made first: those living here and not at the label.
+	//[stmt.jump] 2
+	psLabel = GotoLabel(pcGoto->miLabel);
+	if (!psLabel)
 	{
-		//Which objects a goto leaves the scope of isn't worked out.
 		return Unsupported(__FILE__, __LINE__);
 	}
-	JumpTo(pcBlock);
+	if (psLabel->bPlaced)
+	{
+		if (!GotoKeeps(NULL, mcCleanups.NumLocals(), pcGoto) || !DestroyLiving(psLabel->uiLiving))
+		{
+			return false;
+		}
+		JumpTo(psLabel->pcBlock);
+		return Terminated();
+	}
+
+	//The label is further on: what is living there is known when it is reached.
+	psPending = masPendingGotos.Add();
+	psPending->lliName = psLabel->lliName;
+	psPending->pcBlock = NewBlock();
+	psPending->uiFirst = masGotoLocals.NumElements();
+	psPending->uiLiving = mcCleanups.NumLocals();
+	psPending->pcGoto = pcGoto;
+	for (ui = 0; ui < psPending->uiLiving; ui++)
+	{
+		masGotoLocals.Add(mcCleanups.GetLocal(ui));
+	}
+	JumpTo(psPending->pcBlock);
 	return Terminated();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The gotos written before a label that is reached now: each's block
+// destroys what is living at the goto and not here, and goes to the label.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::PlaceGotos(SCPP65IRLabel* psLabel)
+{
+	SCPP65IRPendingGoto	sPending;
+	SCPP65IRCleanup		sEntry;
+	CIRBlock*			pcHere;
+	size				ui;
+	size				uiLocal;
+
+	pcHere = mpcBlock;
+	for (ui = 0; ui < masPendingGotos.NumElements(); ui++)
+	{
+		sPending = *masPendingGotos.Get(ui);
+		if (sPending.lliName != psLabel->lliName)
+		{
+			continue;
+		}
+		StartBlock(sPending.pcBlock);
+		if (!GotoKeeps(masGotoLocals.Get(sPending.uiFirst), sPending.uiLiving, sPending.pcGoto))
+		{
+			return false;
+		}
+		for (uiLocal = sPending.uiLiving; uiLocal > psLabel->uiLiving; uiLocal--)
+		{
+			//What a destructor here throws undoes what is living at the label (an exception from one of these is no
+			//longer undone by the others: a destructor is noexcept unless it says otherwise).
+			sEntry = *masGotoLocals.Get(sPending.uiFirst + uiLocal - 1);
+			if (!UndoEntryBelow(&sEntry, mcCleanups.NumEntries()))
+			{
+				return false;
+			}
+		}
+		JumpTo(psLabel->pcBlock);
+	}
+	StartBlock(pcHere);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a goto whose living locals are pasLocals (uiLiving of them, the
+// cleanup stack's own for NULL) to a label whose locals are those living
+// now keeps them all: every one living at the label is living at the goto.
+// Otherwise the goto jumps into the scope of an object past its making,
+// which is an error.  [stmt.dcl] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::GotoKeeps(SCPP65IRCleanup* pasLocals, size uiLiving, CCPPSyntax* pcGoto)
+{
+	SCPP65IRLabel*	psLabel;
+	size			uiAtLabel;
+	size			ui;
+
+	psLabel = GotoLabel(((CCPPSyntaxGotoStatement*)pcGoto)->miLabel);
+	uiAtLabel = (psLabel && psLabel->bPlaced) ? psLabel->uiLiving : mcCleanups.NumLocals();
+	if (pasLocals)
+	{
+		//The label is being reached: the stack is its own.
+		for (ui = 0; (ui < uiAtLabel) && (ui < uiLiving); ui++)
+		{
+			if ((pasLocals[ui].eKind != mcCleanups.GetLocal(ui)->eKind) || !pasLocals[ui].sPlace.sAddress.Equals(mcCleanups.GetLocal(ui)->sPlace.sAddress))
+			{
+				break;
+			}
+		}
+	}
+	else
+	{
+		//The label was reached before: what was living there was the same objects as the first of those living here,
+		//or it is in a scope this isn't in.
+		ui = (uiAtLabel <= uiLiving) ? uiAtLabel : uiLiving;
+		if (psLabel && psLabel->bPlaced && (ui == uiAtLabel))
+		{
+			for (ui = 0; ui < uiAtLabel; ui++)
+			{
+				if (!masGotoLocals.Get(psLabel->uiFirstLocal + ui)->sPlace.sAddress.Equals(mcCleanups.GetLocal(ui)->sPlace.sAddress))
+				{
+					break;
+				}
+			}
+		}
+	}
+	if (ui < uiAtLabel)
+	{
+		return mpcUnit->ReportError(pcGoto, "The goto jumps into the scope of an object it hasn't made: past its declaration, or into its block");
+	}
+	return true;
 }
 
 
@@ -1513,26 +1653,35 @@ bool CCPP65IRFrontEnd::GotoStatement(CCPPSyntaxGotoStatement* pcGoto)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::LabelStatement(CCPPSyntaxLabelStatement* pcLabel)
 {
-	CIRBlock*	pcBlock;
+	SCPP65IRLabel*	psLabel;
+	size			ui;
 
-	pcBlock = GotoBlock(pcLabel->miName);
-	if (!pcBlock)
+	psLabel = GotoLabel(pcLabel->miName);
+	if (!psLabel)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	JumpTo(pcBlock);
-	StartBlock(pcBlock);
-	return Statement(pcLabel->mpcStatement);
+	JumpTo(psLabel->pcBlock);
+	StartBlock(psLabel->pcBlock);
+	psLabel->bPlaced = true;
+	psLabel->uiLiving = mcCleanups.NumLocals();
+	psLabel->uiFirstLocal = masGotoLocals.NumElements();
+	for (ui = 0; ui < psLabel->uiLiving; ui++)
+	{
+		masGotoLocals.Add(mcCleanups.GetLocal(ui));
+	}
+	return PlaceGotos(psLabel) && Statement(pcLabel->mpcStatement);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The block for the goto label named by the token, made the first time it
-// is seen.  NULL if the token is not a name.
+// The goto label named by the token, made the first time it is seen with
+// its block; NULL if the token is not a name.  Valid until the next label is
+// added.
 //
 //////////////////////////////////////////////////////////////////////////
-CIRBlock* CCPP65IRFrontEnd::GotoBlock(int iToken)
+SCPP65IRLabel* CCPP65IRFrontEnd::GotoLabel(int iToken)
 {
 	CCPPToken*		pcToken;
 	SCPP65IRLabel*	psLabel;
@@ -1549,11 +1698,14 @@ CIRBlock* CCPP65IRFrontEnd::GotoBlock(int iToken)
 	{
 		if (masLabels.Get(ui)->lliName == lliName)
 		{
-			return masLabels.Get(ui)->pcBlock;
+			return masLabels.Get(ui);
 		}
 	}
 	psLabel = masLabels.Add();
 	psLabel->lliName = lliName;
 	psLabel->pcBlock = NewBlock();
-	return psLabel->pcBlock;
+	psLabel->bPlaced = false;
+	psLabel->uiLiving = 0;
+	psLabel->uiFirstLocal = 0;
+	return psLabel;
 }

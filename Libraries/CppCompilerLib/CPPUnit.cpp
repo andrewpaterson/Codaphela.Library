@@ -2937,6 +2937,18 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		//A friend with a simple name is of the namespace its class is in, whatever the name finds.  [namespace.memdef] 3
 		bFriend = pcName->IsSimple() && (uiFlags & CPPDS_FRIEND);
 		pcNamespace = (pcName->mpcSymbol && !bFriend) ? pcName->mpcSymbol->mpcScope->GetNamespace() : mcContext.GetNamespace();
+		if (!pcTemplate && ((lliName == GetOperatorName(CT_new, false)) || (lliName == GetOperatorName(CT_new, true)) || (lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true))))
+		{
+			//An allocation or deallocation function is a class's or the global namespace's, and not static.  [basic.stc.dynamic] 1
+			if (pcNamespace && pcNamespace->mpcParent)
+			{
+				ReportOnce(pcDeclarator, "An operator new or delete is declared in the global namespace or in a class");
+			}
+			else if (uiFlags & CPPDS_STATIC)
+			{
+				ReportOnce(pcDeclarator, "An operator new or delete in the global namespace can't be static");
+			}
+		}
 	}
 	for (pcOther = FirstFunctionOfName(lliName); pcOther; pcOther = pcOther->mpcNextOfName)
 	{
@@ -2969,7 +2981,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		if (!pcTemplate && !pcFunction->IsConversion() && !pcFunction->mpsReturn->Same(psReturn) && (pcFunction->mpsReturn != &mcTypes.msUndeduced) && (psReturn != &mcTypes.msUndeduced))
 		{
 			//What a function returns doesn't tell it from another: one declared twice returns one type.  [dcl.fct] 5, [over.load] 2
-			Error(pcDeclarator, "The function is declared again with another return type");
+			ReportOnce(pcDeclarator, "The function is declared again with another return type");
 		}
 		for (j = 0; j < apcDefaults.NumElements(); j++)
 		{
@@ -3462,6 +3474,11 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		lliName = GetName(pcInit->mpcDeclarator);
 		pcName = pcInit->mpcDeclarator->GetName();
 		pcVariable = pcInit->mpcSymbol ? (mpcDefining ? mpcDefining : GetVariable(pcInit->mpcSymbol)) : NULL;
+		if (!pcVariable && pcInit->mpcSymbol && !mpcDefining)
+		{
+			//int x; after extern int x; is the same variable.
+			pcVariable = RedeclaredVariable(pcInit->mpcSymbol);
+		}
 		if ((lliName == -1) && pcName && pcName->IsQualifiedByClass())
 		{
 			//int CClass::siStatic = 0; defines a static data member, so the class is laid out.  The member is the
@@ -3486,6 +3503,11 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			BeginQuiet();
 			psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 			EndQuiet();
+			if (psType && pcVariable && !SameVariableType(pcVariable->mpsType, psType))
+			{
+				bResult &= Error(pcInit, "The variable is declared again with another type");
+				continue;
+			}
 			if (psType && !pcVariable)
 			{
 				pcVariable = AddVariable(&mapcGlobals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
@@ -3525,6 +3547,11 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			continue;
 		}
 
+		if (pcVariable && !pcVariable->mpcClass && !SameVariableType(pcVariable->mpsType, psType))
+		{
+			bResult &= Error(pcInit, "The variable is declared again with another type");
+			continue;
+		}
 		if (!pcVariable)
 		{
 			pcVariable = AddVariable(&mapcGlobals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
@@ -3834,6 +3861,58 @@ CCPPVariable* CCPPUnit::GetVariable(CCPPSymbol* pcSymbol)
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The variable an earlier declaration of a namespace scope variable's name
+// in its scope made: extern int x; int x; is one variable, which can be
+// defined once.  NULL if there is none, and in C, where int x; int x; are
+// tentative definitions of one.  [basic.def.odr] 1, [basic.link] 9
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPVariable* CCPPUnit::RedeclaredVariable(CCPPSymbol* pcSymbol)
+{
+	CCPPSymbol*		pcOther;
+	CCPPVariable*	pcVariable;
+
+	if (IsCSource() || (pcSymbol->meKind != CPPSK_Variable) || !pcSymbol->mpcScope || (pcSymbol->mpcScope->meKind != CPPSC_Namespace))
+	{
+		return NULL;
+	}
+	for (pcOther = pcSymbol->mpcScope->FindHere(pcSymbol->mlliName); pcOther; pcOther = pcOther->mpcNext)
+	{
+		if ((pcOther != pcSymbol) && (pcOther->mpcScope == pcSymbol->mpcScope) && (pcOther->meKind == CPPSK_Variable))
+		{
+			pcVariable = GetVariable(pcOther);
+			if (pcVariable && (pcVariable->meStorage == CPPVS_Global) && !pcVariable->mpcClass)
+			{
+				return pcVariable;
+			}
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether two declarations of a variable give it one type: the same, but
+// for an array's bound, which one may leave out.  [basic.link] 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond)
+{
+	if (!psFirst || !psSecond || psFirst->Same(psSecond))
+	{
+		return true;
+	}
+	if (psFirst->IsArray() && psSecond->IsArray())
+	{
+		return psFirst->psBase->Same(psSecond->psBase);
+	}
+	return false;
 }
 
 
@@ -4356,7 +4435,8 @@ bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
 {
-	SCPP65Type*	psType;
+	SCPP65Type*		psType;
+	CCPPVariable*	pcGlobal;
 
 	if (pcInit->mpcInitializer)
 	{
@@ -4367,8 +4447,46 @@ bool CCPPUnit::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	{
 		return false;
 	}
+	pcGlobal = NamespaceVariable(pcInit->mpcSymbol);
+	if (pcGlobal && !SameVariableType(pcGlobal->mpsType, psType))
+	{
+		//It names the variable of the namespace it is in, which has one type.  [basic.link] 6, 10
+		return Error(pcInit, "The variable is declared again with another type");
+	}
 	AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The variable of the innermost namespace a block's extern declaration is
+// in that it names, if that namespace declares one.  [basic.link] 6
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPVariable* CCPPUnit::NamespaceVariable(CCPPSymbol* pcSymbol)
+{
+	CCPPScope*		pcNamespace;
+	CCPPSymbol*		pcOther;
+	CCPPVariable*	pcVariable;
+
+	pcNamespace = pcSymbol->mpcScope ? pcSymbol->mpcScope->GetEnclosingNamespace() : NULL;
+	if (!pcNamespace)
+	{
+		return NULL;
+	}
+	for (pcOther = pcNamespace->FindHere(pcSymbol->mlliName); pcOther; pcOther = pcOther->mpcNext)
+	{
+		if ((pcOther->mpcScope == pcNamespace) && (pcOther->meKind == CPPSK_Variable))
+		{
+			pcVariable = GetVariable(pcOther);
+			if (pcVariable)
+			{
+				return pcVariable;
+			}
+		}
+	}
+	return NULL;
 }
 
 

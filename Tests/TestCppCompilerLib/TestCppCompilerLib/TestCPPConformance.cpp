@@ -75,9 +75,7 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Stage9, "", ""),
 	CONFORMANCE_GROUP(Stage10, "", ""),
 	CONFORMANCE_EXCEPTIONS_GROUP(Exceptions, "", ""),
-	CONFORMANCE_GROUP(Clause3,
-		"BasicExternCBlockDefinesRefused(A) BasicVariableDefinedTwiceRefused(A) BasicClassDefinedTwiceRefused(A) BasicEnumeratorRedeclaredRefused(A) BasicFunctionAndVariableSameNameRefused(A) BasicBlockScopes(C) BasicForBodyRedeclaresRefused(A) BasicConditionRedeclaredRefused(A) BasicParameterRedeclaredRefused(A) BasicLabelDeclaredTwiceRefused(A) BasicTemplateParameterScope(C) BasicTemplateParameterRedeclaredRefused(A) BasicLookupConstructorNameRefused(A) BasicLinkageConflictingTypesRefused(A) BasicLinkageConflictingReturnRefused(A) BasicAutomaticStorage(C) BasicAllocationInNamespaceRefused(A) BasicAllocationStaticRefused(A) BasicDeallocationInNamespaceRefused(A) BasicNewZeroBytes(C) BasicAllocationAligned(C) BasicIncompleteClassMemberRefused(A) BasicNonLiteralConstexprRefused(A) ",
-		"BasicExternCBlockDefinesRefused(A) BasicVariableDefinedTwiceRefused(A) BasicClassDefinedTwiceRefused(A) BasicEnumeratorRedeclaredRefused(A) BasicFunctionAndVariableSameNameRefused(A) BasicBlockScopes(C) BasicForBodyRedeclaresRefused(A) BasicConditionRedeclaredRefused(A) BasicParameterRedeclaredRefused(A) BasicLabelDeclaredTwiceRefused(A) BasicTemplateParameterScope(C) BasicTemplateParameterRedeclaredRefused(A) BasicLookupConstructorNameRefused(A) BasicLinkageConflictingTypesRefused(A) BasicLinkageConflictingReturnRefused(A) BasicAutomaticStorage(C) BasicAllocationInNamespaceRefused(A) BasicAllocationStaticRefused(A) BasicDeallocationInNamespaceRefused(A) BasicNewZeroBytes(C) BasicAllocationAligned(C) BasicIncompleteClassMemberRefused(A) BasicNonLiteralConstexprRefused(A) "),
+	CONFORMANCE_GROUP(Clause3, "", ""),
 	CONFORMANCE_GROUP(Clause4, "", ""),
 	CONFORMANCE_GROUP(Clause5,
 		"ConstantInactiveUnionMemberRefused(A) ",
@@ -119,26 +117,45 @@ static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, bool b
 //
 // Builds a case's program for a target: the start up code, the program,
 // Libc65's string routines, and its soft float (softfloat.cpp, and the
-// target's assembly of it) only for a program that calls it, as linking
-// it into every case would double the time a case takes.
+// target's assembly of it) and its operator new and delete (new.cpp, with
+// malloc) only for a program that calls them, as linking them into every
+// case would double the time a case takes.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bExceptions, bool bSoftFloat, CChars* pszErrors);
+static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bExceptions, bool bSoftFloat, bool bLibrary, CChars* pszErrors);
 
 
 static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bExceptions, CChars* pszErrors)
 {
 	CChars	szErrors;
 	bool	bBuilt;
+	bool	bSoftFloat;
+	bool	bLibrary;
+	int		iTry;
 
 	szErrors.Init();
-	bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, bExceptions, false, &szErrors);
-	if (!bBuilt && strstr(szErrors.Text(), "_Soft"))
+	bSoftFloat = false;
+	bLibrary = false;
+	bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, bExceptions, bSoftFloat, bLibrary, &szErrors);
+	for (iTry = 0; !bBuilt && (iTry < 2); iTry++)
 	{
+		//A missing label of soft float, or of the library's operator new and delete: built again with them.
+		if (!bSoftFloat && strstr(szErrors.Text(), "_Soft"))
+		{
+			bSoftFloat = true;
+		}
+		else if (!bLibrary && !bExceptions && (strstr(szErrors.Text(), "_opNew") || strstr(szErrors.Text(), "_opDelete")))
+		{
+			bLibrary = true;
+		}
+		else
+		{
+			break;
+		}
 		pcBuilder->Kill();
 		pcBuilder->Init();
 		szErrors.Clear();
-		bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, bExceptions, true, &szErrors);
+		bBuilt = ConformanceBuildWith(pcBuilder, szSource, eTarget, bExceptions, bSoftFloat, bLibrary, &szErrors);
 	}
 	pszErrors->Append(&szErrors);
 	szErrors.Kill();
@@ -148,10 +165,12 @@ static bool ConformanceBuild(CCPP65Builder* pcBuilder, const char* szSource, ECP
 
 //////////////////////////////////////////////////////////////////////////
 //
-// ConformanceBuild's build, with soft float or without.
+// ConformanceBuild's build, with soft float or without, and Libc65's units
+// that operator new and the exceptions' runtime stand on as a library
+// (bLibrary, and always with exceptions) or without.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bExceptions, bool bSoftFloat, CChars* pszErrors)
+static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource, ECPPTarget eTarget, bool bExceptions, bool bSoftFloat, bool bLibrary, CChars* pszErrors)
 {
 	static const char*	aszString65C64[] = { "Libc65/string.asm", NULL };
 	static const char*	aszStringW65C816[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
@@ -185,7 +204,7 @@ static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource,
 	{
 		TestCPP65AddUnits(pcBuilder, aszSoftFloat, eTarget != CPPT_W65C816);
 	}
-	if (bExceptions)
+	if (bExceptions || bLibrary)
 	{
 		//The exceptions' runtime and what it stands on (malloc), as a library: a unit is linked only if the program
 		//needs it, so a case that throws nothing is as it was.

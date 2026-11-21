@@ -317,6 +317,32 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//3.3.3 [basic.scope.block] p4, 6.4 [stmt.select] p4: a switch's condition may declare a variable, of an integer or enum type, which is in scope in its body
+	{
+		"BasicSwitchDeclarationCondition", 7,
+		"enum E { A, B, C };\n"
+		"E Pick(int i) { return (E)i; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	switch (E e = Pick(1)) { case A: break; case B: if (e == B) r += 1; break; default: break; }\n"
+		"	switch (char c = 'q') { case 'q': { int c2 = c + 1; if (c2 == 'r') r += 2; } break; }\n"
+		"	for (int i = 0; i < 2; i++)\n"
+		"	{\n"
+		"		switch (int k = i * 3) { case 3: if (k == 3) r += 4; break; default: break; }\n"
+		"	}\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p2: a switch's condition, a declared one too, is of an integer or enum type
+	{
+		"BasicSwitchFloatConditionRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	switch (double d = 1.5) { case 1: return 1; }\n"
+		"	return 0;\n"
+		"}\n"
+	},
 	//3.3.3 [basic.scope.block] p4: the outermost block of a for's body can't declare a name its init-statement does
 	{
 		"BasicForBodyRedeclaresRefused", CONFORMANCE_REFUSED,
@@ -397,6 +423,31 @@ static const SConformanceCase gasConformanceClause3[] =
 		"		;\n"
 		"	}\n"
 		"	return 0;\n"
+		"}\n"
+	},
+	//3.3.1 [basic.scope.declarative] p4, 3.3.3 [basic.scope.block] p2, p4, 3.3.9 [basic.scope.temp], 6.1 [stmt.label] p1: names declared again where that is allowed: in a nested block, as overloads, an extern twice, labels of one name in two functions and a lambda, a template parameter's name in another template
+	{
+		"BasicRedeclarationsAllowed", 63,
+		"int F(int a) { { int a = 2; return a; } }\n"
+		"int F(int a, int b) { return a + b; }\n"
+		"int G() { L: return 1; goto L; }\n"
+		"int H() { auto f = []() { L: return 2; goto L; }; L: return f(); goto L; }\n"
+		"template<class T> struct A { T v; };\n"
+		"template<class T> struct B { T w; };\n"
+		"enum E { X };\n"
+		"namespace N { enum E2 { X }; }\n"
+		"int gi = 4;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F(1) == 2 && F(1, 2) == 3) r += 1;\n"
+		"	for (int i = 0; i < 1; i++) { { int i = 5; if (i == 5) r += 2; } }\n"
+		"	{ extern int gi; extern int gi; if (gi == 4) r += 4; }\n"
+		"	if (G() == 1 && H() == 2) r += 8;\n"
+		"	A<int> a; B<char> b; a.v = 1; b.w = 2;\n"
+		"	if (a.v + b.w == 3) r += 16;\n"
+		"	if (X == 0 && N::X == 0) r += 32;\n"
+		"	return r;\n"
 		"}\n"
 	},
 	//3.3.7 [basic.scope.class] p1: a member is in scope in member function bodies, default arguments and mem-initialisers, though declared after them
@@ -517,6 +568,20 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	int x = 4;\n"
 		"	P<int> p; p.p = &x;\n"
 		"	if (*p.p == 4 && sizeof(T) == sizeof(double)) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.9 [basic.scope.temp] p1, 14.1 [temp.param] p10: a non-type parameter's default uses the parameters before it, in a class template and a function template
+	{
+		"BasicTemplateParameterInLaterDefault", 7,
+		"template<class T, int N = sizeof(T) + 1> struct A { static const int n = N; };\n"
+		"template<class T, int N = sizeof(T) * 2> int Size() { return N; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (A<char>::n == 2) r += 1;\n"
+		"	if (A<char, 7>::n == 7) r += 2;\n"
+		"	if (Size<char>() == 2) r += 4;\n"
 		"	return r;\n"
 		"}\n"
 	},
@@ -757,6 +822,18 @@ static const SConformanceCase gasConformanceClause3[] =
 		"BasicLookupConstructorNameRefused", CONFORMANCE_REFUSED,
 		"struct A { A() { } int v; };\n"
 		"int main() { A::A a; return 0; }\n"
+	},
+	//3.4.3.1 [class.qual] p2: A::A is the class where it is followed by ::, and after struct
+	{
+		"BasicConstructorNameQualifierAllowed", 4,
+		"struct A { A() { } int v; static const int k = 3; };\n"
+		"int main()\n"
+		"{\n"
+		"	A a;\n"
+		"	struct A::A b;\n"
+		"	b.v = 1;\n"
+		"	return A::A::k + b.v;\n"
+		"}\n"
 	},
 	//3.4.3.1 [class.qual] p2, 9 [class] p2: the injected-class-name: struct A::A and A::A:: are the class, and a template's name in it is its instance
 	{
@@ -1066,6 +1143,78 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//3.7.3 [basic.stc.auto] p1, 6.6 [stmt.jump] p2: a goto out of scopes destroys their objects, the last made first, forward and back
+	{
+		"BasicGotoDestroysWhatItLeaves", 7,
+		"int giLog = 0;\n"
+		"struct G { int i; G(int x) : i(x) { } ~G() { giLog = giLog * 10 + i; } };\n"
+		"int Forward(int n)\n"
+		"{\n"
+		"	G a(1);\n"
+		"	{\n"
+		"		G b(2);\n"
+		"		if (n) goto Out;\n"
+		"		G c(3);\n"
+		"	}\n"
+		"Out:\n"
+		"	return 0;\n"
+		"}\n"
+		"int Back()\n"
+		"{\n"
+		"	int tries = 0;\n"
+		"Again:\n"
+		"	{\n"
+		"		G d(4);\n"
+		"		tries++;\n"
+		"		if (tries < 3) goto Again;\n"
+		"	}\n"
+		"	return tries;\n"
+		"}\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Forward(1);\n"
+		"	if (giLog == 21) r += 1;\n"
+		"	giLog = 0;\n"
+		"	if (Back() == 3 && giLog == 444) r += 2;\n"
+		"	giLog = 0;\n"
+		"	{\n"
+		"		G e(5);\n"
+		"		goto Done;\n"
+		"	}\n"
+		"Done:\n"
+		"	if (giLog == 5) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.7 [stmt.dcl] p3: a goto may not jump past the declaration of an object with a destructor into its scope
+	{
+		"BasicGotoPastDeclarationRefused", CONFORMANCE_REFUSED,
+		"struct G { ~G() { } };\n"
+		"int main()\n"
+		"{\n"
+		"	goto A;\n"
+		"	G g;\n"
+		"A:\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//6.7 [stmt.dcl] p3: a goto may not jump into a block past the making of an object with a destructor
+	{
+		"BasicGotoIntoBlockRefused", CONFORMANCE_REFUSED,
+		"struct G { ~G() { } };\n"
+		"int main()\n"
+		"{\n"
+		"	int n = 0;\n"
+		"	{\n"
+		"		G a;\n"
+		"	B:\n"
+		"		n++;\n"
+		"	}\n"
+		"	if (n < 2) goto B;\n"
+		"	return n;\n"
+		"}\n"
+	},
 	//3.7.4 [basic.stc.dynamic] p1: an allocation function declared in a namespace other than the global one
 	{
 		"BasicAllocationInNamespaceRefused", CONFORMANCE_REFUSED,
@@ -1249,6 +1398,22 @@ static const SConformanceCase gasConformanceClause3[] =
 		"struct X* gp;\n"
 		"int main() { return gp->i; }\n"
 		"struct X { int i; };\n"
+	},
+	//3.9 [basic.types] p5, 9.2 [class.mem] p2: a class is complete after its definition, and in the member function bodies of a class it is defined in
+	{
+		"BasicClassCompleteWhereDefined", 7,
+		"struct A\n"
+		"{\n"
+		"	struct B;\n"
+		"	int F(B* b) { return b->x + G(); }\n"
+		"	static int G() { return 1; }\n"
+		"	struct B { int x; };\n"
+		"};\n"
+		"struct X;\n"
+		"int Read(X* p);\n"
+		"struct X { int i; };\n"
+		"int Read(X* p) { return p->i; }\n"
+		"int main() { A a; A::B b; b.x = 2; X x; x.i = 4; return a.F(&b) + Read(&x); }\n"
 	},
 	//3.9 [basic.types] p10: literal types: scalars, references, arrays of them, aggregates of them, and classes with a constexpr constructor and a trivial destructor
 	{

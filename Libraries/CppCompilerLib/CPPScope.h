@@ -102,6 +102,7 @@ public:
 	CArrayScopeUsedFunctions	masUsedFunctions;	//Functions using declarations name that the scope has functions of the name too.
 	CCPPScope*		mpcQualifier;		//A member function defined outside its class: the class is searched before the parent.
 	bool			mbDependent;		//A class whose bases or members depend on template parameters, so lookup can fail.
+	bool			mbControl;			//An if's or a for's own scope: what its condition or first part declares.
 
 	void			Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwner, CMallocator* pcMalloc = NULL);
 	void			Kill(void);
@@ -109,6 +110,7 @@ public:
 	void			Add(CCPPSymbol* pcSymbol);
 	void			AddAlias(int64 lliName, CCPPSymbol* pcSymbol, int iBefore);
 	CCPPSymbol*		FindHere(int64 lliName);
+	CCPPSymbol*		FindParsed(int64 lliName);
 	void			LoadLazy(int64 lliName);
 	CCPPSymbol*		FindMember(int64 lliName, ECPPLookup eLookup = CPPL_Ordinary);
 	CCPPSymbol*		Find(int64 lliName, ECPPLookup eLookup = CPPL_Ordinary);

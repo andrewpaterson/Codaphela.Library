@@ -949,6 +949,7 @@ CCPPSyntaxExpression* CCPPParser::ParseLambdaExpression(CCPPSyntax* pcParent)
 	bool							bDeclaringTemplate;
 	bool							bNoGreater;
 	bool							bLambdaDeclarator;
+	size							uiLabels;
 
 	pcLambda = mpcMemory->Create<CCPPSyntaxLambdaExpression>(pcParent);
 	pcLambda->miFirstToken = CurrentToken();
@@ -1025,7 +1026,9 @@ CCPPSyntaxExpression* CCPPParser::ParseLambdaExpression(CCPPSyntax* pcParent)
 	mbDeclaringTemplate = false;
 	bNoGreater = mbNoGreater;
 	mbNoGreater = false;
+	uiLabels = BeginLabels();
 	pcDefinition->mpcBody = Is(CT_OpenCurlyBracket) ? ParseCompoundStatement(pcDefinition, true) : NULL;
+	EndLabels(uiLabels);
 	mbNoGreater = bNoGreater;
 	mbDeclaringTemplate = bDeclaringTemplate;
 	mpcScope = pcSaved;

@@ -1561,9 +1561,18 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 			{
 				bResult = Error(pcNode, "The template argument must be a constant");
 			}
-			else if (!Constant(pcValue->mpcDefault, &psBinding->lliValue))
+			else
 			{
-				bResult = ConstantError(pcNode, "The template argument must be a constant");
+				//A default can use the parameters before it: int N = sizeof(T).  [basic.scope.temp] 1
+				pcBindings->mpcOuter = mcContext.GetBindings();
+				mcContext.EnterBindings(pcBindings);
+				bResult = Constant(pcValue->mpcDefault, &psBinding->lliValue);
+				mcContext.LeaveBindings();
+				pcBindings->mpcOuter = NULL;
+				if (!bResult)
+				{
+					ConstantError(pcNode, "The template argument must be a constant");
+				}
 			}
 			if (!bResult)
 			{

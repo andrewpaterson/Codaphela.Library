@@ -686,6 +686,11 @@ bool CCPPConstants::CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode)
 	{
 		return mpcUnit->ReportError(pcNode, "A constexpr variable needs an initialiser");
 	}
+	if (!IsLiteralType(pcVariable->mpsType))
+	{
+		//[dcl.constexpr] 9, [basic.types] 10
+		return mpcUnit->ReportError(pcNode, "A constexpr variable's type is a literal type: a class needs no destructor of its own and a constexpr constructor, or is an aggregate");
+	}
 	szLabel.Init();
 	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
 	NoteVariable(szLabel.Text(), pcVariable);

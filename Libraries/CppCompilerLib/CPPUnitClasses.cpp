@@ -438,6 +438,42 @@ CCPPClass* CCPPUnit::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTempla
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a class is complete where pcNode is: its definition is before
+// pcNode, or pcNode is in it, or in a class it is defined in (whose member
+// function bodies see the class complete).  A class is laid out when it is
+// first needed whole, wherever that is; this says whether the program may
+// need it there.  What a template instance or a template's code uses is
+// complete where the instance is made, so is taken to be.  [basic.types] 5,
+// [class.mem] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxClassSpecifier*	pcSpecifier;
+	CCPPSyntax*					pcIn;
+
+	pcSpecifier = pcClass->mpcSpecifier;
+	if (!pcSpecifier || !pcNode || (pcNode->miFirstToken < 0) || (pcSpecifier->miFirstToken < 0) || pcClass->mpcTemplate || pcClass->mpcBindings || mcContext.GetBindings())
+	{
+		return true;
+	}
+	if (pcSpecifier->miFirstToken < pcNode->miFirstToken)
+	{
+		return true;
+	}
+	for (pcIn = pcNode->mpcParent; pcIn; pcIn = pcIn->mpcParent)
+	{
+		if ((pcIn->GetKind() == CPPS_ClassSpecifier) && (pcIn->miFirstToken <= pcSpecifier->miFirstToken) && (pcIn->miLastToken >= pcSpecifier->miLastToken))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The class a qualified member name (object.Qualifier::f) names: pcClass or one of its bases.  A class
 // template's name without arguments is pcClass's base instance of it.  A qualifier the context doesn't
 // find is looked up in the object's class: p->Base::v, Base a member typedef.  [basic.lookup.classref] 4

@@ -49,6 +49,7 @@ void CCPPScope::Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwn
 	}
 	mpcQualifier = NULL;
 	mbDependent = false;
+	mbControl = false;
 }
 
 
@@ -172,6 +173,22 @@ CCPPSymbol* CCPPScope::FindHere(int64 lliName)
 		return *ppcSymbol;
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name's first declaration here (FindHere) without parsing a header's
+// lazy declarations of it: what a check made while a declaration is being
+// parsed may look at.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPScope::FindParsed(int64 lliName)
+{
+	CCPPSymbol**	ppcSymbol;
+
+	ppcSymbol = mcSymbols.Get(lliName);
+	return ppcSymbol ? *ppcSymbol : NULL;
 }
 
 
