@@ -261,6 +261,11 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
        of a temporary's member bound to a reference.
 
      About 425 cases in all.  Order as asked: 6, 7, 9, 10, 11, 12, one at a time, each list shown before its fixes.
+     Measured 2026-11-21 (the user: "Begin with your method for 6, 7, 9, 10, 11, 12, one clause at a time.  Commit and
+     clean-up as you go.  Then show me the list of problems."), the same on both targets: clause 6 38 of 49 (46cf1b34d),
+     7 68 of 93 (3ebcb4ec5), 9 29 of 56 (e1861201b), 10 48 of 55 (d5f3dbdbb), 11 31 of 43 (d94661b2f), 12 47 of 66
+     (edf0b304d).  Held out: DclUsingDeclarationOverloads, whose result changes from one run of the compiler to the next
+     (its text is in d5f3dbdbb's message).  The list went to the user; nothing in it is fixed yet.
 
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size
