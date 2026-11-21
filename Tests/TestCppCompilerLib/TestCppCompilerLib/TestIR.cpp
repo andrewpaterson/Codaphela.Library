@@ -582,6 +582,35 @@ void TestIRParserErrors(void)
 		"space default 4\n\nfunction ptr.far @f()\n{\nb:\n\tret\n}\n");
 	AssertIRErrors("(1, 30): Expected two hexadecimal digits after \\. [\\q\"]\n",
 		"global @s, align 1 { bytes \"a\\q\" }\n");
+
+	//Each of the parser's other errors, but two that no text raises.  "Too many instructions in the block." is what
+	//a block's array says when it can hold no more, which on a 64 bit host no text is long enough for.  "Expected a
+	//value." is for an operand of a kind the parser has no type for, and the opcode table has none outside the
+	//conversions, which are read another way.
+	AssertIRErrors("(1, 26): Expected a number. [q]\n",
+		"global @g, align 4 { f32 q }\n");
+	AssertIRErrors("(1, 32): Unterminated string.\n",
+		"global @s, align 1 { bytes \"abc\n }\n");
+	AssertIRErrors("(1, 21): Expected an attribute. [bogus]\n",
+		"function void @f(), bogus\n{\nb:\n\tret\n}\n");
+	AssertIRErrors("(7, 15): Symbol defined twice. [@f]\n",
+		"function void @f()\n{\nb:\n\tret\n}\n\nfunction void @f()\n{\nb:\n\tret\n}\n");
+	AssertIRErrors("(2, 7): Address space defined twice. [default]\n",
+		"space default 4\nspace default 4\n");
+	AssertIRErrors("(5, 1): Expected '}'.\n",
+		"function void @f()\n{\nb:\n\tret\n");
+	AssertIRErrors("(7, 1): Block defined twice. [b]\n",
+		"function void @f(i1 %c)\n{\na:\n\tbrif %c, b, a2\nb:\n\tret\nb:\n\tret\na2:\n\tret\n}\n");
+	AssertIRErrors("(4, 7): Expected an instruction. [(]\n",
+		"function void @f()\n{\nb:\n\t%x = (\n\tret\n}\n");
+	AssertIRErrors("(6, 7): Expected an opcode with a result. [store]\n",
+		"space default 4\n\nfunction void @f(ptr %p)\n{\nb:\n\t%x = store i32 1, %p\n\tret\n}\n");
+	AssertIRErrors("(4, 2): The opcode needs a result. [add]\n",
+		"function void @f()\n{\nb:\n\tadd i32 1, 2\n\tret\n}\n");
+	AssertIRErrors("(7, 2): Phi after the block's instructions. [%y]\n",
+		"function void @f()\n{\na:\n\tjmp b\nb:\n\t%x = add i32 1, 2\n\t%y = phi i32 [a, 1]\n\tret\n}\n");
+	AssertIRErrors("(4, 2): A void call has no result. [%x]\n",
+		"function void @f()\n{\nb:\n\t%x = call void @g()\n\tret\n}\n");
 }
 
 
@@ -615,6 +644,160 @@ void TestIRVerifierErrors(void)
 		"function void @f()\n{\nb:\n\tjmp b\n}\n");
 	AssertIRErrors("@f b: Condition has the wrong type. [x]\n",
 		"function void @f(i32 %x)\n{\nb:\n\tbrif %x, c, d\nc:\n\tret\nd:\n\tret\n}\n");
+	AssertIRErrors("@f: Function has no blocks.\n",
+		"function void @f()\n{\n}\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Parses szText, which is right, into pcModule, for a test to put wrong by
+// hand what no text can say.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestIRParseRight(CIRModule* pcModule, const char* szText)
+{
+	CIRParser	cParser;
+	CCPPErrors	cErrors;
+
+	pcModule->Init();
+	cErrors.Init();
+	cParser.Init(pcModule, &cErrors);
+	AssertTrue(cParser.Parse(szText));
+	AssertString("", cErrors.Text());
+	cParser.Kill();
+	cErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The verifier must refuse pcModule and say exactly szExpected of it.  The
+// module is killed.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertIRVerifierSays(const char* szExpected, CIRModule* pcModule)
+{
+	CCPPErrors	cErrors;
+	CIRVerifier	cVerifier;
+
+	cErrors.Init();
+	cVerifier.Init(pcModule, &cErrors);
+	AssertFalse(cVerifier.Verify());
+	cVerifier.Kill();
+	AssertString(szExpected, cErrors.Text());
+	cErrors.Kill();
+	pcModule->Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the verifier says of IR that no text gives, as the parser refuses
+// it first or cannot write it: a function a pass has left wrong.  Each is
+// a right function put wrong by hand in one place.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRVerifierBroken(void)
+{
+	static const char*	szNeg = "function void @f(i32 %a)\n{\nb:\n\t%x = neg i32 %a\n\tret\n}\n";
+	static const char*	szUsed = "function i32 @f(i32 %a)\n{\nb:\n\t%x = neg i32 %a\n\tret i32 %x\n}\n";
+	static const char*	szStore = "space default 4\n\nfunction void @f(ptr %p)\n{\nb:\n\tstore i32 1, %p\n\tret\n}\n";
+	static const char*	szPhi = "function void @f(i1 %c)\n{\na:\n\tbrif %c, b, c\nb:\n\tjmp c\nc:\n\t%x = phi i32 [a, 1], [b, 2]\n\tret\n}\n";
+	static const char*	szTwo = "function void @f()\n{\nb:\n\tjmp c\nc:\n\tret\n}\n\nfunction void @g()\n{\nd:\n\tret\n}\n";
+	static const char*	szCall = "space default 4\n\nfunction void @f(ptr %p)\n{\nb:\n\tcall void @g(ptr %p, ..., i32 1)\n\tret\n}\n";
+	CIRModule			cModule;
+	CIRFunction*		pcFunction;
+	SIRInstruction*		psInstruction;
+	SIRPhi*				psPhi;
+	SIRType				sPointer;
+
+	//A temporary with no type, and one that points into a space the module hasn't.
+	TestIRParseRight(&cModule, szNeg);
+	cModule.GetFunction(0)->AddTemporary(IRType(IRTK_None), "t");
+	AssertIRVerifierSays("@f: Missing type.\n@f: Temporary has no type. [t]\n", &cModule);
+
+	TestIRParseRight(&cModule, szNeg);
+	sPointer = IRType(IRTK_Pointer);
+	sPointer.uiSpace = 9;
+	cModule.GetFunction(0)->AddTemporary(sPointer, "t");
+	AssertIRVerifierSays("@f: Unknown address space.\n@f: Temporary has no type. [t]\n", &cModule);
+
+	//A jump to another function's block.
+	TestIRParseRight(&cModule, szTwo);
+	cModule.GetFunction(0)->GetBlock(0)->msJump.pcThen = cModule.GetFunction(1)->GetBlock(0);
+	AssertIRVerifierSays("@f b: Jump to a block not in the function.\n", &cModule);
+
+	//Predecessors that aren't the blocks that jump there: one too many, and one too few.
+	TestIRParseRight(&cModule, szTwo);
+	pcFunction = cModule.GetFunction(0);
+	pcFunction->GetBlock(1)->mapcPredecessors.Add(pcFunction->GetBlock(1));
+	AssertIRVerifierSays("@f c: Predecessor doesn't jump to the block once.\n", &cModule);
+
+	TestIRParseRight(&cModule, szTwo);
+	cModule.GetFunction(0)->GetBlock(1)->mapcPredecessors.ReInit();
+	AssertIRVerifierSays("@f c: A block that jumps to the block is missing from its predecessors.\n", &cModule);
+
+	//A temporary two instructions define, and one none does.
+	TestIRParseRight(&cModule, "function void @f(i32 %a)\n{\nb:\n\t%x = neg i32 %a\n\t%y = neg i32 %a\n\tret\n}\n");
+	pcFunction = cModule.GetFunction(0);
+	pcFunction->GetBlock(0)->masInstructions.Get(1)->sResult = pcFunction->GetBlock(0)->masInstructions.Get(0)->sResult;
+	AssertIRVerifierSays("@f b: Temporary defined twice. [x]\n", &cModule);
+
+	TestIRParseRight(&cModule, szUsed);
+	pcFunction = cModule.GetFunction(0);
+	pcFunction->GetBlock(0)->masInstructions.Get(0)->sResult = pcFunction->AddTemporary(IRType(IRTK_I32), "other");
+	AssertIRVerifierSays("@f b: Temporary is never defined. [x]\n", &cModule);
+
+	//A result an opcode must have, one it can't have, and one of another type than the instruction's.
+	TestIRParseRight(&cModule, szNeg);
+	cModule.GetFunction(0)->GetBlock(0)->masInstructions.Get(0)->sResult = IRNone();
+	AssertIRVerifierSays("@f b: Instruction has no result. [neg]\n", &cModule);
+
+	TestIRParseRight(&cModule, szStore);
+	pcFunction = cModule.GetFunction(0);
+	pcFunction->GetBlock(0)->masInstructions.Get(0)->sResult = pcFunction->AddTemporary(IRType(IRTK_I32), "r");
+	AssertIRVerifierSays("@f b: Instruction can't have a result. [store]\n", &cModule);
+
+	TestIRParseRight(&cModule, szNeg);
+	pcFunction = cModule.GetFunction(0);
+	pcFunction->GetBlock(0)->masInstructions.Get(0)->sResult = pcFunction->AddTemporary(IRType(IRTK_I16), "narrow");
+	AssertIRVerifierSays("@f b: Result has the wrong type. [narrow]\n", &cModule);
+
+	//Phis: one in the entry block, one whose result is of another type, one with an argument from a block that
+	//doesn't jump there, and one with two from the same block.
+	TestIRParseRight(&cModule, szNeg);
+	pcFunction = cModule.GetFunction(0);
+	pcFunction->GetBlock(0)->AddPhi(IRType(IRTK_I32), pcFunction->AddTemporary(IRType(IRTK_I32), "p"));
+	AssertIRVerifierSays("@f b: The entry block has phis.\n", &cModule);
+
+	TestIRParseRight(&cModule, szPhi);
+	pcFunction = cModule.GetFunction(0);
+	pcFunction->GetBlock(2)->masPhis.Get(0)->sResult = pcFunction->AddTemporary(IRType(IRTK_I16), "narrow");
+	AssertIRVerifierSays("@f c: Result has the wrong type. [narrow]\n", &cModule);
+
+	TestIRParseRight(&cModule, szPhi);
+	pcFunction = cModule.GetFunction(0);
+	psPhi = pcFunction->GetBlock(2)->masPhis.Get(0);
+	psPhi->asArguments.Get(1)->pcBlock = pcFunction->GetBlock(2);
+	AssertIRVerifierSays("@f c: Phi argument from a block that is not a predecessor. [x]\n", &cModule);
+
+	TestIRParseRight(&cModule, szPhi);
+	pcFunction = cModule.GetFunction(0);
+	psPhi = pcFunction->GetBlock(2)->masPhis.Get(0);
+	psPhi->asArguments.Get(1)->pcBlock = psPhi->asArguments.Get(0)->pcBlock;
+	AssertIRVerifierSays("@f c: Phi has two arguments from one block. [x]\n", &cModule);
+
+	//An opcode the module hasn't, and a variadic call with more named arguments than it has arguments.
+	TestIRParseRight(&cModule, szNeg);
+	cModule.GetFunction(0)->GetBlock(0)->masInstructions.Get(0)->uiOpcode = 60000;
+	AssertIRVerifierSays("@f b: Unknown opcode.\n", &cModule);
+
+	TestIRParseRight(&cModule, szCall);
+	pcFunction = cModule.GetFunction(0);
+	psInstruction = pcFunction->GetBlock(0)->masInstructions.Get(pcFunction->GetBlock(0)->masInstructions.NumElements() - 1);
+	psInstruction->uiNamed = 5;
+	AssertIRVerifierSays("@f b: More named arguments than arguments.\n", &cModule);
 }
 
 
@@ -5993,6 +6176,7 @@ void TestIR(void)
 	TestIRLarge();
 	TestIRParserErrors();
 	TestIRVerifierErrors();
+	TestIRVerifierBroken();
 	TestIRDominators();
 	TestIRLoops();
 	TestIRDefaultSpace();

@@ -1931,9 +1931,15 @@ The suite reaches most of the code (finding 96) and checks little of what the co
      CCPP65Builder::AddLibc65.
    - Inside the functions that are called there are only 12 runs of 8 or more lines that never ran.
 
-97. Nothing gives the IR parser or the verifier IR that is wrong
-   14 of IRParser.cpp's diagnostics and 18 of IRVerifier.cpp's are among finding 93's: the tests read and verify
-   IR that is right.  A verifier that is never shown a broken function is only known not to complain.
+97. Half of what the IR parser and the verifier can say is said to no test
+   14 of IRParser.cpp's diagnostics and 18 of IRVerifier.cpp's are among finding 93's.  TestIRParserErrors and
+   TestIRVerifierErrors give each some IR that is wrong (9 and 12 cases), so this heading first said too much:
+   "nothing gives them IR that is wrong".  What the verifier is never shown, it is only known not to complain of.
+   Since: OptimiserPlan.txt stage 0 (2026-11-21) gave 30 of the 32 a case with its text asserted: 12 in
+   TestIRParserErrors, one in TestIRVerifierErrors and 17 in TestIRVerifierBroken, which puts a right function
+   wrong by hand where no text can.  The other two no text raises: the parser's "Too many instructions in the
+   block." (a block's array is full only past what a 64 bit host can hold) and "Expected a value." (for an
+   operand of a kind the opcode table has only in the conversions, which are read another way).
 
 
 Compile time
