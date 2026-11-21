@@ -30,9 +30,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IconComponent.h"
 #include "Dialog.h"
 #include "CommandSet.h"
+#include "CodePreview.h"
+#include "GridContainer.h"
 
 
 #define GO_TO_DIALOG_ROWS		100		//The most results shown; IntelliJ shows a page and "more".
+#define GO_TO_DIALOG_PREVIEW		200		//A preview's height.
 
 
 //Finds what a tab of a Go to dialog lists: every item the matcher matches, with its match.
@@ -53,6 +56,9 @@ public:
 //A tab chosen searches for the text already typed.  Enter, or a double click, chooses the selected result and closes the dialog; escape closes it.  A pattern
 //ending in a colon and a number, "TextArea.cpp:120", finds what the rest does and chooses the line too.
 //
+//With a preview (AddPreview) the selected result's code is shown under the results: whoever hears the selected event,
+//called as another result is selected or the results are found again, fills it (GetPreview, GetSelectedItem).
+//
 //It is shown in its own window, without buttons.  A Go to dialog is an object: make it with OMalloc and keep it in the
 //root, or an object that is, while it's shown.
 class CGoToDialog : public CObject
@@ -61,6 +67,7 @@ CONSTRUCTABLE(CGoToDialog);
 DESTRUCTABLE(CGoToDialog);
 protected:
 	Ptr<CDialog>			mpDialog;
+	Ptr<CGridContainer>		mpBody;
 	Ptr<CTabbedContainer>	mpTabs;
 	Ptr<CTextField>			mpField;
 	Ptr<CScrollPane>		mpScrollPane;
@@ -73,6 +80,8 @@ protected:
 	CNameMatcher			mcMatcher;
 	int32					miChosen;  //The result chosen, -1 until one is.
 	int32					miLine;  //The line typed after the pattern (from 1), -1 if none was.
+	Ptr<CCodePreview>		mpPreview;  //Under the results, if AddPreview.
+	CComponentEvent<CGoToDialog>	mcSelected;
 
 public:
 	void			Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szTitle, CGoToSearcher* pcSearcher, Ptr<CFont> pMatchFont);
@@ -83,6 +92,7 @@ public:
 
 	size			AddTab(const char* szName, Ptr<CCommand> pOpener = NULL);
 	int32			AddIcon(Ptr<CImageCel> pIcon);
+	void			AddPreview(Ptr<CFont> pTitleFont, Ptr<CFontFamily> pCodeFamily);
 	void			Start(size uiTab, const char* szText);
 	bool			Show(void);
 
@@ -93,6 +103,9 @@ public:
 	SGoToItem*			GetResult(size uiIndex);
 	int32				GetSelected(void);
 	SGoToItem*			GetChosen(void);
+	SGoToItem*			GetSelectedItem(void);
+	Ptr<CCodePreview>	GetPreview(void) const;
+	CComponentEvent<CGoToDialog>*	GetSelectedEvent(void);
 	int32				GetLine(void) const;
 	const char*		GetPattern(void);
 	Ptr<CTextField>		GetField(void) const;
@@ -102,6 +115,7 @@ public:
 	void			Search(void);
 	bool			Approve(void);
 	void			ResultActivated(void);
+	void			ResultSelected(void);
 	void			TabSelected(void);
 	void			TabCommand(CCommand* pcCommand);
 	void			Up(void);

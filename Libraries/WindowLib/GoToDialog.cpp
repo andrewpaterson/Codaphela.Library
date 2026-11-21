@@ -48,6 +48,7 @@ void CGoToDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szT
 	mcMatcher.Init("");
 	miChosen = -1;
 	miLine = -1;
+	mcSelected.Init();
 
 	mpDialog = OMalloc<CDialog>(pOwner, psLook, szTitle);
 	mpDialog->RemoveButtons();
@@ -62,6 +63,7 @@ void CGoToDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szT
 	mpTabs->GetSelectionEvent()->Add(this, &CGoToDialog::TabSelected);
 	mpField->GetChangeEvent()->Add(this, &CGoToDialog::Search);
 	mpList->GetActivationEvent()->Add(this, &CGoToDialog::ResultActivated);
+	mpList->GetSelectionEvent()->Add(this, &CGoToDialog::ResultSelected);
 
 	//The keys that move through the results and tabs while typing.
 	mpField->AddInputAction(CIC_Up, this, &CGoToDialog::Up);
@@ -82,6 +84,7 @@ void CGoToDialog::Init(Ptr<CWindow> pOwner, SDialogLook* psLook, const char* szT
 void CGoToDialog::Class(void)
 {
 	M_Pointer(mpDialog);
+	M_Pointer(mpBody);
 	M_Pointer(mpTabs);
 	M_Pointer(mpField);
 	M_Pointer(mpScrollPane);
@@ -94,6 +97,8 @@ void CGoToDialog::Class(void)
 	U_Unknown(CNameMatcher, mcMatcher);
 	U_Int32(miChosen);
 	U_Int32(miLine);
+	M_Pointer(mpPreview);
+	U_Unknown(CComponentEvent<CGoToDialog>, mcSelected);
 }
 
 
@@ -124,7 +129,9 @@ void CGoToDialog::Free(void)
 	if (mpList.IsNotNull())
 	{
 		mpList->GetActivationEvent()->Remove(this);
+		mpList->GetSelectionEvent()->Remove(this);
 	}
+	mcSelected.Kill();
 	mcMatcher.Kill();
 	mcItems.Kill();
 }
@@ -167,6 +174,7 @@ Ptr<CComponent> CGoToDialog::CreateBody(void)
 	pWindow = mpDialog->GetWindow();
 	psLook = mpDialog->GetLook();
 	pBody = OMalloc<CGridContainer>(pWindow);
+	mpBody = pBody;
 
 	mpTabs = OMalloc<CTabbedContainer>(pWindow, psLook->pcTheme);
 	mpTabs->SetAlignment(CSH_Stretch, CSV_Top);
@@ -250,6 +258,31 @@ int32 CGoToDialog::AddIcon(Ptr<CImageCel> pIcon)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A preview of the selected result's code under the results, which
+// whoever hears the selected event fills (GetPreview).  Before the dialog
+// is started; it is that much taller when shown.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGoToDialog::AddPreview(Ptr<CFont> pTitleFont, Ptr<CFontFamily> pCodeFamily)
+{
+	Ptr<CFillContainer>	pGap;
+
+	if (mpPreview.IsNotNull())
+	{
+		return;
+	}
+	pGap = OMalloc<CFillContainer>(mpDialog->GetWindow());
+	pGap->SetDesiredSize(GetMetric(TM_GoToGap), GetMetric(TM_GoToGap));
+	mpBody->AddComponent(pGap, 0, 5);
+	mpPreview = OMalloc<CCodePreview>(mpDialog->GetWindow(), mpDialog->GetLook()->pcTheme, pTitleFont, pCodeFamily);
+	mpPreview->SetAlignment(CSH_Stretch, CSV_Stretch);
+	mpPreview->SetDesiredSize(-1, GO_TO_DIALOG_PREVIEW);
+	mpBody->AddComponent(mpPreview, 0, 6, 1, 1, 1, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The tab chosen and the text in the field, selected so typing replaces
 // it, as IntelliJ remembers what was last typed; the results are found.
 //
@@ -277,7 +310,7 @@ void CGoToDialog::Start(size uiTab, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CGoToDialog::Show(void)
 {
-	return mpDialog->Show(GetMetric(TM_GoToWidth), GetMetric(TM_GoToHeight)) && (miChosen >= 0);
+	return mpDialog->Show(GetMetric(TM_GoToWidth), GetMetric(TM_GoToHeight) + (mpPreview.IsNotNull() ? GO_TO_DIALOG_PREVIEW + GetMetric(TM_GoToGap) : 0)) && (miChosen >= 0);
 }
 
 
@@ -381,7 +414,39 @@ void CGoToDialog::FillList(void)
 	}
 	mpList->Select(uiRows > 0 ? 0 : -1);
 	mpScrollPane->SetScrollPosition(0, 0);
+
+	//The first row may be selected as it was, of other results.
+	mcSelected.Call(this);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Another result is selected: whoever previews it is told.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGoToDialog::ResultSelected(void)
+{
+	mcSelected.Call(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selected result, NULL if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+SGoToItem* CGoToDialog::GetSelectedItem(void)
+{
+	int32	iRow;
+
+	iRow = mpList->GetSelected();
+	return ((iRow < 0) || ((size)iRow >= mcItems.NumItems())) ? NULL : mcItems.Get((size)iRow);
+}
+
+
+Ptr<CCodePreview> CGoToDialog::GetPreview(void) const { return mpPreview; }
+CComponentEvent<CGoToDialog>* CGoToDialog::GetSelectedEvent(void) { return &mcSelected; }
 
 
 //////////////////////////////////////////////////////////////////////////

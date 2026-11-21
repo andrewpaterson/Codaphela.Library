@@ -12,6 +12,7 @@
 
 
 Ptr<CFont>		GenerateMenuFont(Ptr<CWindow> pWindow);
+Ptr<CFontFamily>	CreateMonoTextAreaFamily(float32 fDefaultPixelSize);
 
 
 static const char*	gaszTestGoToClasses[] = { "CTextArea", "CTextField", "CTabbedContainer", "CListContainer", "CGoToDialog" };
@@ -23,6 +24,23 @@ static const char*	gaszTestGoToFiles[] = { "/Code/WindowLib/TextArea.cpp", "/Cod
 // Classes in tab 0, files in tab 1.
 //
 //////////////////////////////////////////////////////////////////////////
+class CTestGoToSelected
+{
+public:
+	CGoToDialog*	mpcDialog;
+	int				miSelected;
+	CChars			mszName;
+
+	void Init(CGoToDialog* pcDialog) { mpcDialog = pcDialog; miSelected = 0; mszName.Init(); }
+	void Kill(void) { mszName.Kill(); }
+	void Selected(void)
+	{
+		miSelected++;
+		mszName.Set(mpcDialog->GetSelectedItem() ? mpcDialog->GetSelectedItem()->szName.Text() : "");
+	}
+};
+
+
 class CTestGoToSearcher : public CGoToSearcher
 {
 public:
@@ -103,6 +121,7 @@ void TestGoToDialogSearch(void)
 		CTestGoToSearcher			cSearcher;
 		Ptr<CCommandSet>			pCommands;
 		CChars						szResults;
+		CTestGoToSelected			cSelected;
 		size						i;
 
 		szResults.Init();
@@ -216,6 +235,25 @@ void TestGoToDialogSearch(void)
 		}
 		AssertInt((int32)pDialog->NumResults(), pDialog->GetList()->NumRows());
 
+		//The selected event is called as the results are found and as another is selected; the selected item is the
+		//list's row's.
+		cSelected.Init(&pDialog);
+		pDialog->GetSelectedEvent()->Add(&cSelected, &CTestGoToSelected::Selected);
+		pDialog->Start(0, "C");
+		AssertTrue(cSelected.miSelected >= 1);
+		AssertTrue(pDialog->GetSelectedItem() != NULL);
+		AssertString(pDialog->GetResult(0)->szName.Text(), cSelected.mszName.Text());
+		AssertTrue(pDialog->NumResults() >= 2);
+		i = (size)cSelected.miSelected;
+		pDialog->Down();
+		AssertInt((int)i + 1, cSelected.miSelected);
+		AssertString(pDialog->GetResult(1)->szName.Text(), cSelected.mszName.Text());
+		pDialog->Start(0, "NothingIsNamedThis");
+		AssertTrue(pDialog->GetSelectedItem() == NULL);
+		AssertString("", cSelected.mszName.Text());
+		pDialog->GetSelectedEvent()->Remove(&cSelected);
+		cSelected.Kill();
+
 		ORoot()->Remove(pDialog);
 		pDialog = NULL;
 		pDialogWindow = NULL;
@@ -235,6 +273,59 @@ void TestGoToDialogSearch(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A Go to dialog with a preview has it under its results, and is that
+// much taller.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestGoToDialogPreview(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		SDialogLook					sLook;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CGoToDialog>			pDialog;
+		CTestGoToSearcher			cSearcher;
+
+		cSearcher.muiSearches = 0;
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Go To Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		sLook.pcTheme = &pTheme;
+		sLook.pcDimFont = &pTheme->GetFont();
+
+		pDialog = OMalloc<CGoToDialog>(pTestWindow, &sLook, "Go to", &cSearcher, pTheme->GetFont());
+		ORoot()->Add(pDialog);
+		pDialog->AddTab("Classes");
+		AssertTrue(pDialog->GetPreview().IsNull());
+		pDialog->AddPreview(pTheme->GetFont(), CreateMonoTextAreaFamily(14.0f));
+		AssertTrue(pDialog->GetPreview().IsNotNull());
+		pDialog->AddPreview(pTheme->GetFont(), CreateMonoTextAreaFamily(14.0f));
+		pDialog->Start(0, "List");
+		AssertTrue(pDialog->NumResults() > 0);
+		AssertInt(GO_TO_DIALOG_PREVIEW, pDialog->GetPreview()->GetDesiredSize().y);
+
+		ORoot()->Remove(pDialog);
+		pDialog = NULL;
+		sLook.Kill();
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestGoToDialog(void)
@@ -243,6 +334,7 @@ void TestGoToDialog(void)
 	ObjectsInit();
 
 	TestGoToDialogSearch();
+	TestGoToDialogPreview();
 
 	ObjectsFlush();
 	ObjectsKill();
