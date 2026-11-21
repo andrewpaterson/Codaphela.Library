@@ -15738,4 +15738,1118 @@ static const SConformanceCase gasConformanceClause14[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//14 [temp] p2: a template is declared at namespace or class scope only
+	{
+		"TempDeclarationInBlockRefused", CONFORMANCE_REFUSED,
+		"int main() { template<class T> struct A {}; return 0; }\n"
+	},
+	//14 [temp] p4: a template has no C linkage
+	{
+		"TempLinkageCRefused", CONFORMANCE_REFUSED,
+		"extern \"C\" { template<class T> int F(T) { return 1; } }\n"
+		"int main() { return F(1); }\n"
+	},
+	//14 [temp] p5: a class template's name is the only thing of that name in its scope
+	{
+		"TempNameUniqueRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct A {};\n"
+		"int A = 1;\n"
+		"int main() { return A; }\n"
+	},
+	//14.1 [temp.param] p4: a non-type template parameter is an integer, an enumeration, a pointer to an object or a function, an lvalue reference, a pointer to member or std::nullptr_t
+	{
+		"TempNonTypeParameterKinds", 127,
+		"enum E { Two = 2 };\n"
+		"int g = 4;\n"
+		"int Eight() { return 8; }\n"
+		"struct S { int m; };\n"
+		"typedef decltype(nullptr) nullptr_t;\n"
+		"template<int I> int FI() { return I; }\n"
+		"template<E V> int FE() { return V; }\n"
+		"template<int* P> int FP() { return *P; }\n"
+		"template<int (*F)()> int FF() { return F(); }\n"
+		"template<int& R> int FR() { return R * 4; }\n"
+		"template<int S::*M> int FM() { S s = { 32 }; return s.*M; }\n"
+		"template<nullptr_t N> int FN() { return N == nullptr ? 64 : 0; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (FI<1>() == 1) r += 1;\n"
+		"	if (FE<Two>() == 2) r += 2;\n"
+		"	if (FP<&g>() == 4) r += 4;\n"
+		"	if (FF<Eight>() == 8) r += 8;\n"
+		"	if (FR<g>() == 16) r += 16;\n"
+		"	if (FM<&S::m>() == 32) r += 32;\n"
+		"	if (FN<nullptr>() == 64) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.1 [temp.param] p7: a non-type template parameter isn't of a floating point type
+	{
+		"TempNonTypeFloatRefused", CONFORMANCE_REFUSED,
+		"template<double D> int F() { return (int)D; }\n"
+		"int main() { return F<1.0>(); }\n"
+	},
+	//14.1 [temp.param] p7: nor of a class type
+	{
+		"TempNonTypeClassRefused", CONFORMANCE_REFUSED,
+		"struct S { int v; };\n"
+		"template<S X> int F() { return X.v; }\n"
+		"int main() { return 0; }\n"
+	},
+	//14.1 [temp.param] p6: a non-type parameter that isn't a reference is a prvalue: not assigned to
+	{
+		"TempNonTypeNotLvalueRefused", CONFORMANCE_REFUSED,
+		"template<int I> int F() { I = 2; return I; }\n"
+		"int main() { return F<1>(); }\n"
+	},
+	//14.1 [temp.param] p6: nor its address taken
+	{
+		"TempNonTypeAddressRefused", CONFORMANCE_REFUSED,
+		"template<int I> int F() { const int* p = &I; return *p; }\n"
+		"int main() { return F<1>(); }\n"
+	},
+	//14.1 [temp.param] p5, p9-p11, p14: default template arguments, naming earlier parameters; a function template's default before a parameter without one; a template template parameter's default; a default given by a later declaration; top-level const on a parameter ignored
+	{
+		"TempDefaultArguments", 63,
+		"template<class T, class U = T*> struct A { static int F() { return sizeof(U) == sizeof(T*) ? 1 : 0; } };\n"
+		"template<class T = int, class U> int G(U) { return sizeof(T) == sizeof(int) ? 2 : 0; }\n"
+		"template<class T> struct Box { T v; };\n"
+		"template<template<class> class TT = Box> struct H { TT<int> b; int F() { b.v = 4; return b.v; } };\n"
+		"template<int I, int J = I + 1> int K() { return J; }\n"
+		"template<class T, int N> struct L;\n"
+		"template<class T, int N = 16> struct L { static int F() { return N; } };\n"
+		"template<const int I> int C() { return I; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (A<char>::F() == 1) r += 1;\n"
+		"	if (G('a') == 2) r += 2;\n"
+		"	H<> h;\n"
+		"	if (h.F() == 4) r += 4;\n"
+		"	if (K<7>() == 8) r += 8;\n"
+		"	if (L<int>::F() == 16) r += 16;\n"
+		"	if (C<32>() == 32) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.1 [temp.param] p11: a class template's parameter with a default is followed only by ones with defaults
+	{
+		"TempDefaultBeforeNonDefaultClassRefused", CONFORMANCE_REFUSED,
+		"template<class T = int, class U> struct A {};\n"
+		"int main() { return 0; }\n"
+	},
+	//14.1 [temp.param] p12: a template parameter's default isn't given twice
+	{
+		"TempDefaultRedefinedRefused", CONFORMANCE_REFUSED,
+		"template<class T = int> struct A;\n"
+		"template<class T = int> struct A {};\n"
+		"int main() { return 0; }\n"
+	},
+	//14.1 [temp.param] p9: a template parameter pack has no default
+	{
+		"TempDefaultForPackRefused", CONFORMANCE_REFUSED,
+		"template<class... T = int> struct A {};\n"
+		"int main() { return 0; }\n"
+	},
+	//14.1 [temp.param] p11: a class template's parameter pack is its last parameter
+	{
+		"TempPackNotLastClassRefused", CONFORMANCE_REFUSED,
+		"template<class... T, class U> struct A {};\n"
+		"int main() { return 0; }\n"
+	},
+	//14.2 [temp.names] p3: >> ends two template argument lists; in parentheses > and >> are operators
+	{
+		"TempNamesClosingAngles", 7,
+		"template<class T> struct A { static int F() { return 1; } };\n"
+		"template<int I> struct B { static int F() { return I; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (A<A<int>>::F() == 1) r += 1;\n"
+		"	if (B<(4 > 2)>::F() == 1) r += 2;\n"
+		"	if (B<(8 >> 1)>::F() == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.2 [temp.names] p4: a member template of a dependent object or class is named after the keyword template
+	{
+		"TempNamesTemplateKeyword", 15,
+		"struct S\n"
+		"{\n"
+		"	template<int I> int F() { return I; }\n"
+		"	template<class T> struct In { static int G() { return 4; } };\n"
+		"	template<int I> static int H() { return I; }\n"
+		"};\n"
+		"template<class T> int Call(T t, T* p)\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (t.template F<1>() == 1) r += 1;\n"
+		"	if (p->template F<2>() == 2) r += 2;\n"
+		"	if (T::template In<int>::G() == 4) r += 4;\n"
+		"	if (T::template H<8>() == 8) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+		"int main() { S s; return Call(s, &s); }\n"
+	},
+	//14.2 [temp.names] p4: without it the < is less than
+	{
+		"TempNamesTemplateKeywordMissingRefused", CONFORMANCE_REFUSED,
+		"struct S { template<int I> int F() { return I; } };\n"
+		"template<class T> int Call(T t) { return t.F<1>(); }\n"
+		"int main() { S s; return Call(s); }\n"
+	},
+	//14.3 [temp.arg] p2: an argument that could be a type or an expression is a type
+	{
+		"TempArgumentTypeIdPreferred", 3,
+		"template<class T> int F() { return 1; }\n"
+		"template<int I> int F() { return 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F<int()>() == 1) r += 1;\n"
+		"	if (F<1>() == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.3.1 [temp.arg.type] p1: a local type and an unnamed type are template arguments
+	{
+		"TempArgumentLocalAndUnnamedTypes", 3,
+		"template<class T> int F(T t) { return t.v; }\n"
+		"template<class T> int G(T t) { return (int)t; }\n"
+		"enum { A = 2 };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	struct L { int v; } l = { 1 };\n"
+		"	if (F(l) == 1) r += 1;\n"
+		"	if (G(A) == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.3.2 [temp.arg.nontype] p1: an argument is a constant expression, the address of an object or function with linkage (& left off for a function or an array), a null pointer, or an object with linkage for a reference
+	{
+		"TempNonTypeArguments", 63,
+		"int ga[3] = { 1, 2, 3 };\n"
+		"int g = 5;\n"
+		"int F() { return 4; }\n"
+		"constexpr int Two() { return 2; }\n"
+		"template<int I> int A() { return I; }\n"
+		"template<int* P> int B() { return P ? P[1] : 16; }\n"
+		"template<int (*Fn)()> int C() { return Fn(); }\n"
+		"template<const int& R> int D() { return R; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (A<Two() * 2 - 3>() == 1) r += 1;\n"
+		"	if (B<ga>() == 2) r += 2;\n"
+		"	if (C<F>() == 4 && C<&F>() == 4) r += 4;\n"
+		"	if (B<nullptr>() == 16) r += 8;\n"
+		"	if (D<g>() == 5) r += 16;\n"
+		"	enum { E = 3 };\n"
+		"	if (A<E + sizeof(char)>() == 4) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.3.2 [temp.arg.nontype] p1, p2: a string literal isn't an argument
+	{
+		"TempNonTypeStringLiteralRefused", CONFORMANCE_REFUSED,
+		"template<const char* P> int F() { return P[0]; }\n"
+		"int main() { return F<\"x\">(); }\n"
+	},
+	//14.3.2 [temp.arg.nontype] p1: nor the address of an object without linkage
+	{
+		"TempNonTypeNoLinkageRefused", CONFORMANCE_REFUSED,
+		"template<int* P> int F() { return *P; }\n"
+		"int main() { static int s = 1; return F<&s>(); }\n"
+	},
+	//14.3.2 [temp.arg.nontype] p1: nor the address of an array's element
+	{
+		"TempNonTypeSubobjectRefused", CONFORMANCE_REFUSED,
+		"int ga[3] = { 1, 2, 3 };\n"
+		"template<int* P> int F() { return *P; }\n"
+		"int main() { return F<&ga[1]>(); }\n"
+	},
+	//14.3.2 [temp.arg.nontype] p1: an integer argument is a constant expression
+	{
+		"TempNonTypeNotConstantRefused", CONFORMANCE_REFUSED,
+		"template<int I> int F() { return I; }\n"
+		"int main() { int i = 1; return F<i>(); }\n"
+	},
+	//14.3.2 [temp.arg.nontype] p1, 5.19 [expr.const] p3: a converted constant expression doesn't narrow
+	{
+		"TempNonTypeNarrowingRefused", CONFORMANCE_REFUSED,
+		"template<char C> int F() { return C; }\n"
+		"int main() { return F<300>(); }\n"
+	},
+	//14.3.3 [temp.arg.template] p1, p3: a template template argument is a class template or an alias template whose parameters match; a pack matches any
+	{
+		"TempTemplateTemplateArguments", 7,
+		"template<class T> struct Box { T v; };\n"
+		"template<class T> using Ptr = T*;\n"
+		"template<class T, class U = int> struct Pair { T a; U b; };\n"
+		"template<template<class> class TT> int Size() { return sizeof(TT<char>); }\n"
+		"template<template<class...> class TT> int SizeP() { return sizeof(TT<char, char>); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Size<Box>() == 1) r += 1;\n"
+		"	if (Size<Ptr>() == sizeof(char*)) r += 2;\n"
+		"	if (SizeP<Pair>() == 2) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.3.3 [temp.arg.template] p3: in C++14 the parameter lists match exactly: a template with a second, defaulted parameter isn't a template<class> class
+	{
+		"TempTemplateTemplateDefaultMismatchRefused", CONFORMANCE_REFUSED,
+		"template<class T, class U = int> struct Pair { T a; U b; };\n"
+		"template<template<class> class TT> int Size() { return sizeof(TT<char>); }\n"
+		"int main() { return Size<Pair>(); }\n"
+	},
+	//14.4 [temp.type]: template-ids with the same arguments are one type: constant expressions by their values, a typedef, an alias template
+	{
+		"TempTypeEquivalence", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"template<class T, int N> struct A {};\n"
+		"typedef int Int;\n"
+		"template<class T> using Al = A<T, 2>;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<A<int, 1 + 1>, A<int, 2>>::V) r += 1;\n"
+		"	if (Same<A<Int, 2>, A<int, 2>>::V) r += 2;\n"
+		"	if (Same<Al<int>, A<int, 2>>::V) r += 4;\n"
+		"	if (!Same<A<int, 2>, A<int, 3>>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.1.1 [temp.mem.func], 14.5.1.2 [temp.mem.class], 14.5.1.3 [temp.static], 14.5.1.4 [temp.mem.enum]: a class template's member function, static data member and member class defined outside the class, with the template's parameters, and its enumeration (g++ refuses one defined outside)
+	{
+		"TempClassMembersOutside", 63,
+		"template<class T> struct A\n"
+		"{\n"
+		"	T v;\n"
+		"	int F();\n"
+		"	static int s;\n"
+		"	struct In;\n"
+		"	enum E : int { Eight = 8 };\n"
+		"	int G() const;\n"
+		"};\n"
+		"template<class T> int A<T>::F() { return v + 1; }\n"
+		"template<class T> int A<T>::s = 2;\n"
+		"template<class T> struct A<T>::In { int H() { return 4; } };\n"
+		"template<class T> int A<T>::G() const { return sizeof(T) == 1 ? 16 : 32; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<int> a = { 0 };\n"
+		"	if (a.F() == 1) r += 1;\n"
+		"	if (A<int>::s == 2) r += 2;\n"
+		"	A<int>::In in;\n"
+		"	if (in.H() == 4) r += 4;\n"
+		"	if (A<char>::Eight == 8) r += 8;\n"
+		"	A<char> c = { 0 };\n"
+		"	if (c.G() == 16) r += 16;\n"
+		"	if (a.G() == 32) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.2 [temp.mem] p1, p5, p6: a member function template, one defined outside the class and its template, and a conversion function template
+	{
+		"TempMemberTemplates", 31,
+		"template<class T> struct A\n"
+		"{\n"
+		"	T v;\n"
+		"	template<class U> int F(U u) { return v + u; }\n"
+		"	template<class U> int G(U);\n"
+		"	template<class U> operator U() const { return (U)(v * 2); }\n"
+		"};\n"
+		"template<class T> template<class U> int A<T>::G(U) { return sizeof(U) == 1 ? 4 : 0; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<int> a = { 0 };\n"
+		"	if (a.F(1) == 1) r += 1;\n"
+		"	a.v = 1;\n"
+		"	if (a.F<char>(1) == 2) r += 2;\n"
+		"	if (a.G('x') == 4) r += 4;\n"
+		"	int i = a;\n"
+		"	if (i == 2) r += 8;\n"
+		"	long l = a;\n"
+		"	if (l == 2) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.2 [temp.mem] p3: a member function template isn't virtual
+	{
+		"TempMemberTemplateVirtualRefused", CONFORMANCE_REFUSED,
+		"struct S { template<class T> virtual int F(T) { return 1; } };\n"
+		"int main() { S s; return s.F(1); }\n"
+	},
+	//14.5.2 [temp.mem] p4: a member function template's specialisation doesn't override a virtual function
+	{
+		"TempMemberTemplateDoesNotOverride", 1,
+		"struct B { virtual int F(int) { return 1; } };\n"
+		"struct D : B { template<class T> int F(T) { return 2; } };\n"
+		"int main() { D d; B& b = d; return b.F(1); }\n"
+	},
+	//14.5.3 [temp.variadic] p4, p5, p7: sizeof...; a pack expanded in a call's arguments, in a braced list, in a template argument list, with a pattern applied to each element, and empty
+	{
+		"TempVariadicSizeofAndExpansions", 63,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"template<class... T> struct Tup {};\n"
+		"int Sum() { return 0; }\n"
+		"template<class T, class... R> int Sum(T t, R... r) { return t + Sum(r...); }\n"
+		"int Twice(int a) { return a * 2; }\n"
+		"template<class... T> int Count(T...) { return sizeof...(T); }\n"
+		"template<class... T> int Doubled(T... t) { return Sum(Twice(t)...); }\n"
+		"template<class... T> int Arr(T... t) { int a[] = { 0, t... }; return sizeof(a) / sizeof(a[0]); }\n"
+		"template<class... T> int Types(T...) { return Same<Tup<T...>, Tup<int, char>>::V; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Count() == 0 && Count(1, 'a', 2L) == 3) r += 1;\n"
+		"	if (Sum(1, 2, 4) == 7) r += 2;\n"
+		"	if (Doubled(1, 2) == 6) r += 4;\n"
+		"	if (Arr(5, 6) == 3) r += 8;\n"
+		"	if (Types(1, 'c')) r += 16;\n"
+		"	if (Sum() == 0 && Doubled() == 0) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.3 [temp.variadic] p4-p6: packs in one pattern expand together element by element; a mem-initializer list and a lambda's captures expand a pack
+	{
+		"TempVariadicLockstep", 7,
+		"template<class... T> struct Types {};\n"
+		"template<int... I> struct Ints {};\n"
+		"int Sum() { return 0; }\n"
+		"template<class T, class... R> int Sum(T t, R... r) { return t + Sum(r...); }\n"
+		"template<class... T, int... I> int Pairs(Types<T...>, Ints<I...>) { return Sum((int)sizeof(T) * I...); }\n"
+		"template<int N> struct Base { int v; Base() : v(N) {} };\n"
+		"template<int... N> struct Derived : Base<N>... { Derived() : Base<N>()... {} int Total() { return Sum(Base<N>::v...); } };\n"
+		"template<class... T> int Captured(T... t) { auto f = [t...] { return Sum(t...); }; return f(); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Pairs(Types<char, char>(), Ints<1, 2>()) == 3) r += 1;\n"
+		"	Derived<1, 2> d;\n"
+		"	if (d.Total() == 3) r += 2;\n"
+		"	if (Captured(1, 3) == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.3 [temp.variadic] p6: packs expanded together have one length
+	{
+		"TempVariadicLengthMismatchRefused", CONFORMANCE_REFUSED,
+		"template<class... T> struct Types {};\n"
+		"template<int... I> struct Ints {};\n"
+		"int Sum() { return 0; }\n"
+		"template<class T, class... R> int Sum(T t, R... r) { return t + Sum(r...); }\n"
+		"template<class... T, int... I> int Pairs(Types<T...>, Ints<I...>) { return Sum((int)sizeof(T) * I...); }\n"
+		"int main() { return Pairs(Types<char, char>(), Ints<1>()); }\n"
+	},
+	//14.5.3 [temp.variadic] p5: a pack is named only in an expansion
+	{
+		"TempVariadicUnexpandedRefused", CONFORMANCE_REFUSED,
+		"template<class... T> int F(T...) { return sizeof(T); }\n"
+		"int main() { return F(1); }\n"
+	},
+	//14.5.4 [temp.friend] p1, p4: a friend function template, a friend class template, one specialisation as a friend, a friend defined in a class template for each of its specialisations
+	{
+		"TempFriends", 15,
+		"template<class T> class A;\n"
+		"template<class T> int Peek(const A<T>& a) { return a.v; }\n"
+		"template<class T> class A\n"
+		"{\n"
+		"	int v;\n"
+		"public:\n"
+		"	A(int x) : v(x) {}\n"
+		"	template<class U> friend int Peek(const A<U>&);\n"
+		"	template<class U> friend struct Reader;\n"
+		"	friend int Get(const A& a) { return a.v * 2; }\n"
+		"};\n"
+		"template<class U> struct Reader { int Read(const A<U>& a) { return a.v; } };\n"
+		"template<class T> int Only(T);\n"
+		"class C { int w = 8; friend int Only<int>(int); };\n"
+		"template<class T> int Only(T) { C c; return c.w; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<int> a(1);\n"
+		"	if (Peek(a) == 1) r += 1;\n"
+		"	Reader<int> rd;\n"
+		"	if (rd.Read(A<int>(2)) == 2) r += 2;\n"
+		"	if (Get(A<char>(2)) == 4) r += 4;\n"
+		"	if (Only(1) == 8) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.4 [temp.friend] p1: a specialisation that is a friend makes no other one a friend
+	{
+		"TempFriendSpecialisationOnlyRefused", CONFORMANCE_REFUSED,
+		"template<class T> int Only(T);\n"
+		"class C { int w = 8; friend int Only<int>(int); };\n"
+		"template<class T> int Only(T) { C c; return c.w; }\n"
+		"int main() { return Only('a'); }\n"
+	},
+	//14.6.5 [temp.inject] p2: a friend function defined in a class template is found only by argument dependent lookup
+	{
+		"TempFriendInjectedNotFoundRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct A { friend int F() { return 1; } };\n"
+		"int main() { A<int> a; return F(); }\n"
+	},
+	//14.5.5 [temp.class.spec], 14.5.5.1 [temp.class.spec.match], 14.5.5.2 [temp.class.order]: a partial specialisation matching the arguments is used rather than the primary template, the most specialised of those that match
+	{
+		"TempPartialSpecialisations", 63,
+		"template<class T, class U> struct A { enum { V = 1 }; };\n"
+		"template<class T> struct A<T, T> { enum { V = 2 }; };\n"
+		"template<class T> struct A<T, int> { enum { V = 4 }; };\n"
+		"template<class T, class U> struct A<T*, U> { enum { V = 8 }; };\n"
+		"template<class T> struct A<T*, T*> { enum { V = 16 }; };\n"
+		"template<int I, int J> struct B { enum { V = 0 }; };\n"
+		"template<int I> struct B<I, 0> { enum { V = 32 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (A<char, long>::V == 1) r += 1;\n"
+		"	if (A<char, char>::V == 2) r += 2;\n"
+		"	if (A<char, int>::V == 4) r += 4;\n"
+		"	if (A<char*, long>::V == 8) r += 8;\n"
+		"	if (A<char*, char*>::V == 16) r += 16;\n"
+		"	if (B<3, 0>::V == 32) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.5.1 [temp.class.spec.match] p1: two partial specialisations match and neither is more specialised
+	{
+		"TempPartialSpecialisationAmbiguousRefused", CONFORMANCE_REFUSED,
+		"template<class T, class U> struct A { enum { V = 1 }; };\n"
+		"template<class T> struct A<T, T> { enum { V = 2 }; };\n"
+		"template<class T> struct A<T, int> { enum { V = 4 }; };\n"
+		"int main() { return A<int, int>::V; }\n"
+	},
+	//14.5.5 [temp.class.spec] p8: a specialised non-type argument's parameter has no type that depends on the partial specialisation's parameters
+	{
+		"TempPartialSpecialisationDependentTypeRefused", CONFORMANCE_REFUSED,
+		"template<class T, T V> struct C {};\n"
+		"template<class T> struct C<T, 1> {};\n"
+		"int main() { return 0; }\n"
+	},
+	//14.5.5 [temp.class.spec] p8: a partial specialisation's arguments aren't the primary template's
+	{
+		"TempPartialSpecialisationSameAsPrimaryRefused", CONFORMANCE_REFUSED,
+		"template<class T, class U> struct A {};\n"
+		"template<class T, class U> struct A<T, U> {};\n"
+		"int main() { return 0; }\n"
+	},
+	//14.5.5 [temp.class.spec] p8: a partial specialisation's parameters have no defaults
+	{
+		"TempPartialSpecialisationDefaultRefused", CONFORMANCE_REFUSED,
+		"template<class T, class U> struct A {};\n"
+		"template<class T = int> struct A<T, char> {};\n"
+		"int main() { return 0; }\n"
+	},
+	//14.5.5.3 [temp.class.spec.mfunc] p1: a partial specialisation's members are its own, defined outside with its parameter list
+	{
+		"TempPartialSpecialisationMembers", 7,
+		"template<class T> struct A { int F() { return 1; } };\n"
+		"template<class T> struct A<T*> { int G(); int H() { return 4; } };\n"
+		"template<class T> int A<T*>::G() { return 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<int> a;\n"
+		"	if (a.F() == 1) r += 1;\n"
+		"	A<int*> b;\n"
+		"	if (b.G() == 2) r += 2;\n"
+		"	if (b.H() == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.5.3 [temp.class.spec.mfunc] p1: the primary template's members aren't a partial specialisation's
+	{
+		"TempPartialSpecialisationNoPrimaryMemberRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct A { int F() { return 1; } };\n"
+		"template<class T> struct A<T*> { int G() { return 2; } };\n"
+		"int main() { A<int*> b; return b.F(); }\n"
+	},
+	//14.5.6.2 [temp.func.order], 14.8.2.4 [temp.deduct.partial]: of function templates that fit a call as well, the more specialised is chosen: T* before T, const T* before T*, const T& before T& for a const object, (T, T) before (T, U)
+	{
+		"TempFunctionPartialOrdering", 127,
+		"template<class T> int F(T) { return 1; }\n"
+		"template<class T> int F(T*) { return 2; }\n"
+		"template<class T> int F(const T*) { return 4; }\n"
+		"template<class T> int G(T&) { return 8; }\n"
+		"template<class T> int G(const T&) { return 16; }\n"
+		"template<class T, class U> int H(T, U) { return 32; }\n"
+		"template<class T> int H(T, T) { return 64; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int i = 0;\n"
+		"	const int ci = 0;\n"
+		"	if (F(i) == 1) r += 1;\n"
+		"	if (F(&i) == 2) r += 2;\n"
+		"	if (F(&ci) == 4) r += 4;\n"
+		"	if (G(i) == 8) r += 8;\n"
+		"	if (G(ci) == 16) r += 16;\n"
+		"	if (H(1, 'a') == 32) r += 32;\n"
+		"	if (H(1, 2) == 64) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.8.2.4 [temp.deduct.partial] p8, p11: a template without a pack is more specialised than one with
+	{
+		"TempFunctionPartialOrderingVariadic", 7,
+		"template<class... T> int K(T...) { return 1; }\n"
+		"template<class T> int K(T) { return 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (K(1) == 2) r += 1;\n"
+		"	if (K(1, 2) == 1) r += 2;\n"
+		"	if (K() == 1) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.6.2 [temp.func.order] p5: neither template more specialised: the call is ambiguous
+	{
+		"TempFunctionOrderingAmbiguousRefused", CONFORMANCE_REFUSED,
+		"template<class T> int F(T, int) { return 1; }\n"
+		"template<class T> int F(int, T) { return 2; }\n"
+		"int main() { return F(1, 1); }\n"
+	},
+	//14.5.6.1 [temp.over.link] p5, p6: function templates whose signatures are equivalent are one template defined twice
+	{
+		"TempFunctionRedefinitionRefused", CONFORMANCE_REFUSED,
+		"template<class T> int F(T) { return 1; }\n"
+		"template<class U> int F(U) { return 2; }\n"
+		"int main() { return F(1); }\n"
+	},
+	//14.5.6.1 [temp.over.link] p2, 1.3.19 [defns.signature.templ]: a function template's return type is part of its signature: two that differ only there are two templates, told apart by a target type
+	{
+		"TempFunctionReturnTypeInSignature", 3,
+		"template<class T> int F(T) { return 1; }\n"
+		"template<class T> long F(T) { return 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int (*p)(int) = F;\n"
+		"	if (p(0) == 1) r += 1;\n"
+		"	long (*q)(char) = F;\n"
+		"	if (q(0) == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.7 [temp.alias] p1-p3: an alias template's specialisation is the type it names, deduced through, and it may have a pack
+	{
+		"TempAliasTemplates", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"template<class T> struct Box { T v; };\n"
+		"template<class T> using B = Box<T>;\n"
+		"template<class T> using Ptr = T*;\n"
+		"template<class... T> struct Tup {};\n"
+		"template<class... T> using Tp = Tup<T..., int>;\n"
+		"template<class T> int F(Ptr<T> p) { return *p; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<B<int>, Box<int>>::V) r += 1;\n"
+		"	int i = 2;\n"
+		"	if (F(&i) == 2) r += 2;\n"
+		"	if (Same<Tp<char>, Tup<char, int>>::V) r += 4;\n"
+		"	B<char> b = { 'x' };\n"
+		"	if (b.v == 'x') r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.7 [temp.alias] p4: an alias template's type doesn't name the alias template
+	{
+		"TempAliasSelfReferenceRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct S {};\n"
+		"template<class T> using A = S<A<T>>;\n"
+		"int main() { return 0; }\n"
+	},
+	//14.7.1 [temp.inst], 14.7.3 [temp.expl.spec]: a class template's specialisation instantiates others, ended by an explicit specialisation
+	{
+		"TempRecursiveSpecialisation", 1,
+		"template<int N> struct Fact { enum { V = N * Fact<N - 1>::V }; };\n"
+		"template<> struct Fact<0> { enum { V = 1 }; };\n"
+		"int main() { return Fact<5>::V == 120 ? 1 : 0; }\n"
+	},
+	//14.6 [temp.res] p2, p3: a dependent qualified name is a type only when typename says so
+	{
+		"TempResTypenameRequiredRefused", CONFORMANCE_REFUSED,
+		"struct S { typedef int I; };\n"
+		"template<class T> int F() { T::I x = 1; return x; }\n"
+		"int main() { return F<S>(); }\n"
+	},
+	//14.6 [temp.res] p3, p5, 14.6.2.1 [temp.dep.type] p1: typename before a dependent qualified type; a member of the current instantiation needs none; typename outside a template
+	{
+		"TempResTypename", 15,
+		"struct S { typedef int I; struct In { int v; }; };\n"
+		"template<class T> struct A\n"
+		"{\n"
+		"	typedef T Type;\n"
+		"	typename T::I F() { typename T::In in = { 2 }; return in.v; }\n"
+		"	int G() { typename A::Type* p = 0; A::Type* q = 0; return p == q ? 4 : 0; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<S> a;\n"
+		"	if (a.F() == 2) r += 1;\n"
+		"	if (a.G() == 4) r += 2;\n"
+		"	typename S::I i = 8;\n"
+		"	if (i == 8) r += 4;\n"
+		"	if (sizeof(typename A<S>::Type) == sizeof(S)) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.6.2 [temp.dep] p3: an unqualified name isn't looked for in a dependent base class
+	{
+		"TempResDependentBaseNotFoundRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct B { int v = 1; };\n"
+		"template<class T> struct D : B<T> { int F() { return v; } };\n"
+		"int main() { D<int> d; return d.F(); }\n"
+	},
+	//14.6.2 [temp.dep] p3: a dependent base's member is named through this-> or qualified; an unqualified name finds what is outside the class at the definition, not the base's
+	{
+		"TempResDependentBase", 7,
+		"int v = 4;\n"
+		"template<class T> struct B { int v = 1; int w = 2; };\n"
+		"template<class T> struct D : B<T>\n"
+		"{\n"
+		"	int F() { return this->v; }\n"
+		"	int G() { return B<T>::w; }\n"
+		"	int H() { return v; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D<int> d;\n"
+		"	if (d.F() == 1) r += 1;\n"
+		"	if (d.G() == 2) r += 2;\n"
+		"	if (d.H() == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.6.3 [temp.nondep] p1, 14.6.4.2 [temp.dep.candidate] p1: a non-dependent name is bound where the template is defined; a dependent call also finds later functions by argument dependent lookup
+	{
+		"TempResNonDependentBoundAtDefinition", 3,
+		"int F(double) { return 1; }\n"
+		"template<class T> int Call(T) { return F(1); }\n"
+		"int F(int) { return 2; }\n"
+		"namespace N { struct X {}; }\n"
+		"template<class T> int Dep(T t) { return G(t); }\n"
+		"namespace N { int G(X) { return 2; } }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Call(0) == 1) r += 1;\n"
+		"	if (Dep(N::X()) == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.6.4.2 [temp.dep.candidate] p1: a function declared after the template isn't found by ordinary lookup at the instantiation
+	{
+		"TempResDependentOrdinaryLookupRefused", CONFORMANCE_REFUSED,
+		"template<class T> int Dep(T t) { return G(t); }\n"
+		"int G(int a) { return a; }\n"
+		"int main() { return Dep(1); }\n"
+	},
+	//14.6 [temp.res] p8: an error no template argument could mend is an error though the template is never instantiated
+	{
+		"TempResNonDependentErrorRefused", CONFORMANCE_REFUSED,
+		"template<class T> int F(T) { return Undeclared(); }\n"
+		"int main() { return 0; }\n"
+	},
+	//14.6 [temp.res] p8, 14.7.1 [temp.inst] p1: an error that depends on the template's arguments is one only in a specialisation that is instantiated
+	{
+		"TempResDependentErrorNotInstantiated", 1,
+		"template<class T> int F(T t) { return t.Missing(); }\n"
+		"template<class T> struct A { int G() { T t; return t.Missing(); } int H() { return 1; } };\n"
+		"int main() { A<int> a; return a.H(); }\n"
+	},
+	//14.6.1 [temp.local] p1-p3: in a class template its name alone is the current specialisation, with arguments a specialisation of the template, and as a template template argument the template
+	{
+		"TempLocalInjectedClassName", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"template<template<class> class TT> struct Use { static int V() { return Same<TT<int>, TT<int>>::V; } };\n"
+		"template<class T> struct A\n"
+		"{\n"
+		"	A* self;\n"
+		"	static int F() { return Same<A, A<T>>::V; }\n"
+		"	static int G() { return Same<A<char>, ::A<char>>::V; }\n"
+		"	static int H() { return Use<A>::V(); }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (A<int>::F()) r += 1;\n"
+		"	if (A<int>::G()) r += 2;\n"
+		"	if (A<long>::H()) r += 4;\n"
+		"	if (Use<A>::V()) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.6.1 [temp.local] p7: in a member defined outside its class template, a member's name hides the template parameter of that name
+	{
+		"TempLocalMemberHidesParameter", 3,
+		"template<class T> struct A { struct B { int v = 1; }; typedef long C; int F(); int G(); };\n"
+		"template<class B> int A<B>::F() { B b; return b.v; }\n"
+		"template<class C> int A<C>::G() { return sizeof(C) == sizeof(long) ? 2 : 0; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<int> a;\n"
+		"	if (a.F() == 1) r += 1;\n"
+		"	A<char> c;\n"
+		"	if (c.G() == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.7.1 [temp.inst] p1-p3, p11: a class template specialisation's member functions, static members' initialisers and default arguments are instantiated only when used; the class only when it must be complete
+	{
+		"TempInstMembersOnDemand", 15,
+		"template<class T> struct A\n"
+		"{\n"
+		"	int F() { return T::Missing; }\n"
+		"	int G() { return 1; }\n"
+		"	static int s;\n"
+		"	int H(int a = T::Missing) { return a; }\n"
+		"};\n"
+		"template<class T> int A<T>::s = T::Missing;\n"
+		"template<class T> struct Bad { typename T::Missing m; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<int> a;\n"
+		"	if (a.G() == 1) r += 1;\n"
+		"	if (a.H(2) == 2) r += 2;\n"
+		"	Bad<int>* p = 0;\n"
+		"	if (p == 0) r += 4;\n"
+		"	if (sizeof(A<int>) > 0) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.7.1 [temp.inst] p2: a member function that is used is instantiated, and its error is one
+	{
+		"TempInstMemberUsedRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct A { int F() { return T::Missing; } };\n"
+		"int main() { A<int> a; return a.F(); }\n"
+	},
+	//14.7.1 [temp.inst] p1: a specialisation that must be complete is instantiated
+	{
+		"TempInstCompleteRequiredRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct Bad { typename T::Missing m; };\n"
+		"int main() { Bad<int> b; return 0; }\n"
+	},
+	//14.7.2 [temp.explicit] p1-p4, p10: explicit instantiations of a class template, a function template (its arguments given or deduced) and a member function, and an explicit instantiation declaration
+	{
+		"TempExplicitInstantiation", 15,
+		"template<class T> struct A { int F() { return 1; } int G() { return 2; } };\n"
+		"template struct A<int>;\n"
+		"template<class T> int H(T) { return 4; }\n"
+		"template int H<char>(char);\n"
+		"template int H(long);\n"
+		"template<class T> struct B { int K() { return 8; } };\n"
+		"template int B<int>::K();\n"
+		"extern template struct A<char>;\n"
+		"template struct A<char>;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<int> a;\n"
+		"	if (a.F() + a.G() == 3) r += 1;\n"
+		"	if (H('a') == 4 && H(1L) == 4) r += 2;\n"
+		"	B<int> b;\n"
+		"	if (b.K() == 8) r += 4;\n"
+		"	A<char> c;\n"
+		"	if (c.G() == 2) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.7.2 [temp.explicit] p8: a class's explicit instantiation instantiates every member, so an error in one that is never called is one
+	{
+		"TempExplicitInstantiationAllMembersRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct A { int F() { return T::Missing; } int G() { return 2; } };\n"
+		"template struct A<int>;\n"
+		"int main() { A<int> a; return a.G(); }\n"
+	},
+	//14.7 [temp.spec] p5: a specialisation is explicitly instantiated once only
+	{
+		"TempExplicitInstantiationTwiceRefused", CONFORMANCE_REFUSED,
+		"template<class T> int H(T) { return 4; }\n"
+		"template int H<int>(int);\n"
+		"template int H<int>(int);\n"
+		"int main() { return H(1); }\n"
+	},
+	//14.7.3 [temp.expl.spec] p1, p16, p18: explicit specialisations of a class template, of a function template (its arguments given or deduced), of a class template's member function and of a member template
+	{
+		"TempExplicitSpecialisations", 63,
+		"template<class T> struct A { int F() { return 1; } };\n"
+		"template<> struct A<int> { int G() { return 2; } };\n"
+		"template<class T> int H(T) { return 0; }\n"
+		"template<> int H<char>(char) { return 4; }\n"
+		"template<> int H(long) { return 8; }\n"
+		"template<class T> struct B { int K() { return 0; } template<class U> int M(U) { return 0; } };\n"
+		"template<> int B<int>::K() { return 16; }\n"
+		"template<> template<> int B<int>::M<char>(char) { return 32; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<char> a;\n"
+		"	if (a.F() == 1) r += 1;\n"
+		"	A<int> ai;\n"
+		"	if (ai.G() == 2) r += 2;\n"
+		"	if (H('a') == 4) r += 4;\n"
+		"	if (H(1L) == 8) r += 8;\n"
+		"	B<int> b;\n"
+		"	if (b.K() == 16) r += 16;\n"
+		"	if (b.M('c') == 32 && b.M(1) == 0) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.7.3 [temp.expl.spec] p5: an explicit specialisation of a class template has only its own members
+	{
+		"TempExplicitSpecialisationNoPrimaryMemberRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct A { int F() { return 1; } };\n"
+		"template<> struct A<int> { int G() { return 2; } };\n"
+		"int main() { A<int> a; return a.F(); }\n"
+	},
+	//14.7.3 [temp.expl.spec] p6: an explicit specialisation is declared before a use that would instantiate the template for it
+	{
+		"TempExplicitSpecialisationAfterUseRefused", CONFORMANCE_REFUSED,
+		"template<class T> int H(T) { return 0; }\n"
+		"int Use() { return H('a'); }\n"
+		"template<> int H<char>(char) { return 4; }\n"
+		"int main() { return Use(); }\n"
+	},
+	//14.7.3 [temp.expl.spec] p2: an explicit specialisation is declared in a namespace enclosing the template
+	{
+		"TempExplicitSpecialisationOtherNamespaceRefused", CONFORMANCE_REFUSED,
+		"namespace N { template<class T> struct A { enum { V = 0 }; }; }\n"
+		"namespace M { template<> struct N::A<int> { enum { V = 1 }; }; }\n"
+		"int main() { return N::A<int>::V; }\n"
+	},
+	//14.8.1 [temp.arg.explicit] p2-p4, p6: template arguments given explicitly, the trailing ones deduced, <> deducing all; an argument whose parameter's type is given explicitly is converted
+	{
+		"TempExplicitArguments", 31,
+		"template<class T, class U> int F(U u) { return sizeof(T) == 1 && u == 2 ? 1 : 0; }\n"
+		"template<class T> int G(T t) { return (int)t; }\n"
+		"template<class T> T Make() { return T(4); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F<char>(2)) r += 1;\n"
+		"	if (F<char, long>(2)) r += 2;\n"
+		"	if (G<int>(2.7) == 2) r += 4;\n"
+		"	if (Make<int>() == 4) r += 8;\n"
+		"	if (G<>(16) == 16) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.8.1 [temp.arg.explicit] p8, 14.8.2 [temp.deduct] p2: more explicit template arguments than parameters
+	{
+		"TempExplicitArgumentsTooManyRefused", CONFORMANCE_REFUSED,
+		"template<class T> int F(T) { return 1; }\n"
+		"int main() { return F<int, int>(1); }\n"
+	},
+	//14.8.2.1 [temp.deduct.call] p2-p4: a parameter that isn't a reference takes an array's or function's pointer and drops top-level const; a reference keeps const; T&& from an lvalue makes T an lvalue reference; a derived class gives its base's template arguments
+	{
+		"TempDeductionFromCall", 127,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"template<class T> struct B {};\n"
+		"struct D : B<long> {};\n"
+		"template<class T> int Val(T) { return Same<T, int*>::V; }\n"
+		"template<class T> int Fn(T) { return Same<T, int (*)(int)>::V; }\n"
+		"template<class T> int NoConst(T) { return Same<T, int>::V; }\n"
+		"template<class T> int Ref(T&) { return Same<T, const int>::V; }\n"
+		"template<class T> int Fwd(T&&) { return Same<T, int&>::V; }\n"
+		"template<class T> int FwdR(T&&) { return Same<T, int>::V; }\n"
+		"template<class T> int Base(B<T>&) { return Same<T, long>::V; }\n"
+		"int Id(int a) { return a; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int a[2] = { 0, 0 };\n"
+		"	const int c = 1;\n"
+		"	int i = 0;\n"
+		"	D d;\n"
+		"	if (Val(a)) r += 1;\n"
+		"	if (Fn(Id)) r += 2;\n"
+		"	if (NoConst(c)) r += 4;\n"
+		"	if (Ref(c)) r += 8;\n"
+		"	if (Fwd(i)) r += 16;\n"
+		"	if (FwdR(1)) r += 32;\n"
+		"	if (Base(d)) r += 64;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.8.2.5 [temp.deduct.type] p2, 14.8.2.1 [temp.deduct.call]: one parameter deduced as two types
+	{
+		"TempDeductionConflictRefused", CONFORMANCE_REFUSED,
+		"template<class T> int F(T, T) { return 1; }\n"
+		"int main() { return F(1, 2L); }\n"
+	},
+	//14.8.2.1 [temp.deduct.call] p1, 14.8.2.5 [temp.deduct.type] p5: a braced list deduces nothing for a parameter T
+	{
+		"TempDeductionBracedListRefused", CONFORMANCE_REFUSED,
+		"template<class T> int F(T) { return 1; }\n"
+		"int main() { return F({ 1, 2 }); }\n"
+	},
+	//14.8.2.1 [temp.deduct.call] p1: a braced list deduces T for a parameter initializer_list<T>
+	{
+		"TempDeductionInitializerList", 3,
+		"#ifdef CONFORMANCE_HOST\n"
+		"#include <initializer_list>\n"
+		"#else\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr size_t size() const noexcept { return muiSize; } constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
+		"#endif\n"
+		"template<class T> int F(std::initializer_list<T> l) { return (int)l.size() * (int)sizeof(T); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F({ 'a', 'b' }) == 2) r += 1;\n"
+		"	if (F({ 1 }) == (int)sizeof(int)) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.8.2.5 [temp.deduct.type] p4, p5: T in a nested name specifier is deduced elsewhere or given; the argument then converts
+	{
+		"TempDeductionNonDeducedContext", 7,
+		"template<class T> struct Id { typedef T Type; };\n"
+		"template<class T> int F(T a, typename Id<T>::Type b) { return (int)(a + b); }\n"
+		"template<class T> int G(typename Id<T>::Type v) { return (int)v; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F(1L, 'b' - 'a') == 2) r += 1;\n"
+		"	if (G<int>(2.5) == 2) r += 2;\n"
+		"	if (F(2, 2.9) == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.8.2.5 [temp.deduct.type] p5: a T only in a nested name specifier isn't deduced
+	{
+		"TempDeductionNonDeducedRefused", CONFORMANCE_REFUSED,
+		"template<class T> struct Id { typedef T Type; };\n"
+		"template<class T> int G(typename Id<T>::Type v) { return v; }\n"
+		"int main() { return G(1); }\n"
+	},
+	//14.8.2.5 [temp.deduct.type] p8, p17: deduced from the forms of a type: a function pointer's result and parameter, a template's type and non-type arguments, a pointer to member's class and type, an array reference's bound
+	{
+		"TempDeductionFromTypes", 63,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"template<size_t N> int Len(const char (&)[N]) { return (int)N; }\n"
+		"template<class R, class A> int Sig(R (*)(A)) { return Same<R, long>::V && Same<A, char>::V; }\n"
+		"template<class T, int N> struct Arr { T a[N]; };\n"
+		"template<class T, int N> int ArrN(const Arr<T, N>&) { return N; }\n"
+		"struct S { int m; };\n"
+		"template<class C, class M> int Mem(M C::*) { return Same<C, S>::V && Same<M, int>::V; }\n"
+		"template<class T, int N> int Raw(T (&)[N]) { return N; }\n"
+		"long Fn(char) { return 0; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Len(\"abc\") == 4) r += 1;\n"
+		"	if (Sig(Fn)) r += 2;\n"
+		"	Arr<int, 3> a3 = { { 0, 0, 0 } };\n"
+		"	if (ArrN(a3) == 3) r += 4;\n"
+		"	if (Mem(&S::m)) r += 8;\n"
+		"	int x[5] = { 0 };\n"
+		"	if (Raw(x) == 5) r += 16;\n"
+		"	double y[2][3] = { { 0 } };\n"
+		"	if (Raw(y) == 2) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.8.2 [temp.deduct] p8: a type or expression that is invalid with the deduced arguments takes the template out of the overloads, with no error
+	{
+		"TempSfinae", 15,
+		"struct S { typedef int Type; int m; };\n"
+		"template<class T> int F(typename T::Type) { return 1; }\n"
+		"template<class T> int F(T) { return 2; }\n"
+		"template<bool B, class T = void> struct EnableIf {};\n"
+		"template<class T> struct EnableIf<true, T> { typedef T Type; };\n"
+		"template<class T> typename EnableIf<sizeof(T) == 1, int>::Type G(T) { return 4; }\n"
+		"template<class T> typename EnableIf<sizeof(T) != 1, int>::Type G(T) { return 0; }\n"
+		"template<class T> auto H(T t) -> decltype(t.m, 8) { return 8; }\n"
+		"int H(...) { return 0; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F<S>(0) == 1) r += 1;\n"
+		"	if (F(1) == 2) r += 2;\n"
+		"	if (G('a') == 4 && G(1L) == 0) r += 4;\n"
+		"	S s = { 0 };\n"
+		"	if (H(s) == 8 && H(1) == 0) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.8.2 [temp.deduct] p8: an error in the function's body is no substitution failure
+	{
+		"TempSfinaeBodyErrorRefused", CONFORMANCE_REFUSED,
+		"template<class T> int F(T t) { return t.m; }\n"
+		"int F(...) { return 0; }\n"
+		"int main() { return F(1); }\n"
+	},
+	//14.8.2.3 [temp.deduct.conv]: a conversion function template's argument is deduced from the type converted to
+	{
+		"TempConversionFunctionTemplateDeduction", 7,
+		"struct S { template<class T> operator T() const { return T(sizeof(T)); } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	char c = s;\n"
+		"	if (c == 1) r += 1;\n"
+		"	long l = s;\n"
+		"	if (l == (long)sizeof(long)) r += 2;\n"
+		"	double d = s;\n"
+		"	if (d == sizeof(double)) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.8.3 [temp.over] p1: a template's specialisation, its arguments deduced, competes with the other functions; one whose deduction fails isn't a candidate
+	{
+		"TempOverloadResolution", 15,
+		"template<class T> int Max(T, T) { return 1; }\n"
+		"int Max(int, int) { return 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Max('a', 'b') == 1) r += 1;\n"
+		"	if (Max(1, 'b') == 2) r += 2;\n"
+		"	if (Max(1, 2) == 2) r += 4;\n"
+		"	if (Max<>(1, 2) == 1) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.3.1 [temp.arg.type], 14.4 [temp.type], 3.4.3 [basic.lookup.qual] p4: a type named from the global namespace, ::B, is the type B, as a template argument and in sizeof
+	{
+		"TempArgumentGlobalQualifiedType", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct B { int v; };\n"
+		"namespace N { struct C {}; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same< ::B, B>::V) r += 1;\n"
+		"	if (Same<B, ::B>::V) r += 2;\n"
+		"	if (Same<N::C, ::N::C>::V) r += 4;\n"
+		"	if (sizeof(::B) == sizeof(B)) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };
