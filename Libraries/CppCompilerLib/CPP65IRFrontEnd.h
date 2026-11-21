@@ -93,7 +93,8 @@ struct SCPP65IRJump
 {
 	CIRBlock*	pcBreak;
 	CIRBlock*	pcContinue;
-	size		uiLiving;
+	size		uiLiving;			//The locals a break leaves living...
+	size		uiContinueLiving;	//...and a continue: a for's condition variable lives through its step.
 };
 
 
@@ -312,7 +313,7 @@ protected:
 	bool			Statement(CCPPSyntax* pcStatement);
 	bool			StatementOf(CCPPSyntax* pcStatement);
 	bool			CompoundStatement(CCPPSyntaxCompoundStatement* pcCompound);
-	bool			JumpStatement(CCPPSyntax* pcStatement, CIRBlock* pcBreak, CIRBlock* pcContinue);
+	bool			JumpStatement(CCPPSyntax* pcStatement, CIRBlock* pcBreak, CIRBlock* pcContinue, size uiBreakLiving = (size)-1, size uiContinueLiving = (size)-1);
 	bool			ScopedStatement(CCPPSyntax* pcStatement);
 	void			AddLiving(SCPP65IRPlace* psPlace);
 	void			ExtendTemporary(SIRReference sReferred);
@@ -385,6 +386,7 @@ protected:
 	bool			ReturnStatement(CCPPSyntaxReturnStatement* pcReturn);
 	bool			BreakStatement(CCPPSyntax* pcStatement, bool bContinue);
 	bool			GotoStatement(CCPPSyntaxGotoStatement* pcGoto);
+	bool			AsmStatement(CCPPSyntax* pcStatement);
 	bool			LabelStatement(CCPPSyntaxLabelStatement* pcLabel);
 	SCPP65IRLabel*	GotoLabel(int iToken);
 	bool			PlaceGotos(SCPP65IRLabel* psLabel);

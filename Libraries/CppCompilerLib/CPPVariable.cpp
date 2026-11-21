@@ -48,6 +48,7 @@ void CCPPVariable::Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eS
 	mbExitNode = false;
 	mpcSharedIn = NULL;
 	mpcAnonymous = NULL;
+	mpcAnonymousObject = NULL;
 	mpcTemplate = NULL;
 	mpcBindings = NULL;
 	mszArguments.Init();

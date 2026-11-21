@@ -425,8 +425,10 @@ bool CCPPAccess::IsInClass(CCPPSyntaxClassSpecifier* pcClass, CCPPSyntax* pcNode
 //////////////////////////////////////////////////////////////////////////
 bool CCPPAccess::IsInMemberOf(CCPPSymbol* pcClass, CCPPSyntax* pcNode)
 {
-	CCPPSyntax*		pcParent;
-	CCPPFunction*	pcFunction;
+	CCPPSyntax*					pcParent;
+	CCPPFunction*				pcFunction;
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcQualifier;
 
 	if (!pcClass)
 	{
@@ -437,6 +439,16 @@ bool CCPPAccess::IsInMemberOf(CCPPSymbol* pcClass, CCPPSyntax* pcNode)
 		if ((pcParent->GetKind() == CPPS_ClassSpecifier) && (((CCPPSyntaxClassSpecifier*)pcParent)->mpcSymbol == pcClass))
 		{
 			return true;
+		}
+		if (pcParent->GetKind() == CPPS_InitDeclarator)
+		{
+			//int C::s = Seed(); a static member's definition is in its class's scope, its initialiser too.  [class.access] 7
+			pcName = ((CCPPSyntaxInitDeclarator*)pcParent)->mpcDeclarator ? ((CCPPSyntaxInitDeclarator*)pcParent)->mpcDeclarator->GetName() : NULL;
+			pcQualifier = (pcName && pcName->IsQualifiedByClass()) ? pcName->GetQualifier() : NULL;
+			if (pcQualifier && pcQualifier->mpcSymbol && (pcQualifier->mpcSymbol == pcClass))
+			{
+				return true;
+			}
 		}
 	}
 	pcFunction = mpcUnit->OuterFunction();

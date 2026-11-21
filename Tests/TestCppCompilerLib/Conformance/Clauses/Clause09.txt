@@ -429,6 +429,15 @@ int main()
 	return r;
 }
 
+### ClassNestedCallsEnclosingStatic | 7 | 9.7 [class.nest] p1: a nested class, defined in its class or outside it, calls the enclosing class's static member function
+struct Outer { static int Get() { return 3; } struct In { int F() { return Get(); } }; struct Out; };
+struct Outer::Out { int F() { return Get() + 1; } };
+int main() { Outer::In i; Outer::Out o; return i.F() + o.F(); }
+
+### ClassNestedCallsEnclosingMemberRefused | REFUSED | 9.7 [class.nest] p1: but not one that needs an object of the enclosing class
+struct Outer { int F() { return 1; } struct In { int G() { return F(); } }; };
+int main() { Outer::In i; return i.G(); }
+
 ### ClassNestedPrivateAccess | 3 | 9.7 [class.nest], 11.7 [class.access.nest] p1: a nested class is a member, and reaches the enclosing class's private members
 class Outer
 {

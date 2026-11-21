@@ -85,6 +85,7 @@ public:
 	void				AppendExitLists(CChars* pszDest);		//The start up's exit lists, empty.
 	virtual void		AppendRuntime(CCPPRuntimeWriter* pcWriter);	//The runtime routines the unit's code calls that the unit writes itself.
 	virtual void		AppendAdjustThunk(CChars* pszDest, int iAdjust, const char* szFunction);	//After a thunk's label: this moved by iAdjust, then a jump to szFunction.
+	virtual void		AppendAsmRoutine(CChars* pszDest, const char* szText);	//After its label: an asm statement's text as lines, then a return to its caller.
 	virtual void		AppendVirtualCallThunk(CChars* pszDest, int iVtableOffset, int iEntryOffset);	//After its label: a jump to the function at iEntryOffset in the vtable whose pointer is at iVtableOffset in the object.
 	virtual bool		HasZeroedBss(void);				//Globals with no initialiser go in bss, which the start up clears.
 	virtual bool		NarrowsSubscripts(void);		//An index into an array of less than 64KB is scaled as 16 bits.

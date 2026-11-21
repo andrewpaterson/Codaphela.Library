@@ -1071,6 +1071,16 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 			//x = {1, 2} is x = X{1, 2}: a temporary made from the list.  [expr.ass] 9
 			return TemporaryObject(psPlace->Unqualified(), pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
 		}
+		if (!mpcUnit->IsObject(pcBinary->mpcRight) && mpcUnit->GetBinder()->ConvertsByConstructor(psPlace->pcClass, pcBinary->mpcRight))
+		{
+			//x = 6 is x = X(6): a temporary made by a constructor that isn't explicit.  [over.match.oper] 3, [class.conv.ctor] 1
+			return TemporaryObject(psPlace->Unqualified(), pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
+		}
+		if (!mpcUnit->IsObject(pcBinary->mpcRight) && Value(pcBinary->mpcRight))
+		{
+			Error(pcBinary->mpcRight, "No constructor of the class that isn't explicit makes an object of it from the value assigned");
+			return NULL;
+		}
 		return CopyObject(psPlace->pcClass, pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
 	}
 	if (!psPlace->IsScalar())

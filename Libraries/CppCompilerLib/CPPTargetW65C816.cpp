@@ -586,6 +586,20 @@ void CCPPTargetW65C816::AppendAdjustThunk(CChars* pszDest, int iAdjust, const ch
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An asm statement's routine: A and X 16 bits wide as a call leaves them,
+// its text, then rtl.  [dcl.asm]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTargetW65C816::AppendAsmRoutine(CChars* pszDest, const char* szText)
+{
+	pszDest->Append("\t\t.width (A, X), 16\n");
+	CCPPTarget::AppendAsmRoutine(pszDest, szText);
+	pszDest->Append("\t\trtl\n\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // On the frame CPP65_816_VCALL_ names.
 // The function's address - 1 is put where the caller's D was, D restored,
 // the bytes below it dropped and rtl jumps to the function with the stack as

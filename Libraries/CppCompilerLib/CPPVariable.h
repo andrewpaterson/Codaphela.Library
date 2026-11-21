@@ -66,6 +66,7 @@ public:
 	CCPPFunction*	mpcSharedIn;			//A static local of a function every unit may write: labelled for it, its data COMDAT (one object).
 	bool			mbExitNode;				//A guarded static local destroyed when the program ends: its node (Label__ExitNode) is pushed when it is made.
 	CCPPClass*		mpcAnonymous;			//The anonymous union or struct declared in a function that this local is a member of.
+	CCPPVariable*	mpcAnonymousObject;		//A member of a namespace scope anonymous union: the first member's variable, whose label is the union's object.
 	CCPPTemplate*	mpcTemplate;			//A variable template's instance: the template (or explicit specialisation) it is of...
 	CCPPTemplateArguments*	mpcBindings;	//...its arguments bound (NULL for a specialisation's)...
 	CChars			mszArguments;			//...and mangled, for its label.

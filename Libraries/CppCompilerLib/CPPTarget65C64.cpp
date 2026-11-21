@@ -321,6 +321,18 @@ void CCPPTarget65C64::AppendAdjustThunk(CChars* pszDest, int iAdjust, const char
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An asm statement's routine: its text, then ret.  [dcl.asm]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget65C64::AppendAsmRoutine(CChars* pszDest, const char* szText)
+{
+	CCPPTarget::AppendAsmRoutine(pszDest, szText);
+	pszDest->Append("\t\tret\n\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // With the object in X:
 //
 // 		cpy A, [8 + X]

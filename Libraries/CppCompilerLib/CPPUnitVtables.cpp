@@ -578,6 +578,22 @@ void CCPPUnit::AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bSha
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The routine an asm statement is: its text in a routine of the unit's own
+// (local to its object), which the statement calls.  Its label is in
+// *pszLabel.  [dcl.asm]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AsmRoutine(const char* szText, CChars* pszLabel)
+{
+	pszLabel->Append("__asm");
+	pszLabel->Append(miLabels++);
+	mszThunks.Append(pszLabel)->Append(":\n");
+	mpcTarget->AppendAsmRoutine(&mszThunks, szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A vtable entry: the function, or a thunk that adds iAdjust to this and jumps to
 // it.  Each thunk is written once.  Pure virtual functions are R_Pure.
 //

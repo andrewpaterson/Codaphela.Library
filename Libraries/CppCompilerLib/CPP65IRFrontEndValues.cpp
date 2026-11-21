@@ -1467,8 +1467,17 @@ bool CCPP65IRFrontEnd::VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* ps
 	else
 	{
 		szLabel.Init();
-		mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
+		mpcUnit->AppendVariableLabel(&szLabel, pcVariable->mpcAnonymousObject ? pcVariable->mpcAnonymousObject : pcVariable);
 		psPlace->sAddress = mcModule.Symbol(szLabel.Text());
+		if (pcVariable->mpcAnonymousObject)
+		{
+			//A member of a namespace scope anonymous union, in its object (CCPPUnit::AnonymousGlobal).
+			mcModule.SetLocal(psPlace->sAddress.Index());
+			psPlace->sAddress = AddressAt(psPlace->sAddress, pcVariable->miOffset);
+			szLabel.Kill();
+			psPlace->psType = pcVariable->mpsType;
+			return true;
+		}
 		if (mbConstants && (pcVariable->meStorage == CPPVS_Global))
 		{
 			//The interpreter may ask what its data is.  Only a global's can be a constant's (IsConstantVariable): a

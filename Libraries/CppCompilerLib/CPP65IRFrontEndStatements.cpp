@@ -19,6 +19,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CTIdentifier.h"
+#include "CTString.h"
+#include "CTReservedWord.h"
 #include "CPPUnit.h"
 #include "CPP65IRFrontEnd.h"
 
@@ -104,6 +106,8 @@ bool CCPP65IRFrontEnd::StatementOf(CCPPSyntax* pcStatement)
 		return GotoStatement((CCPPSyntaxGotoStatement*)pcStatement);
 	case CPPS_LabelStatement:
 		return LabelStatement((CCPPSyntaxLabelStatement*)pcStatement);
+	case CPPS_SkippedStatement:
+		return AsmStatement(pcStatement);
 	case CPPS_AttributedStatement:
 		//[[fallthrough]], [[likely]] and the like change nothing.
 		return StatementOf(((CCPPSyntaxAttributedStatement*)pcStatement)->mpcStatement);
@@ -149,13 +153,16 @@ bool CCPP65IRFrontEnd::CompoundStatement(CCPPSyntaxCompoundStatement* pcCompound
 // way the objects declared since.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::JumpStatement(CCPPSyntax* pcStatement, CIRBlock* pcBreak, CIRBlock* pcContinue)
+bool CCPP65IRFrontEnd::JumpStatement(CCPPSyntax* pcStatement, CIRBlock* pcBreak, CIRBlock* pcContinue, size uiBreakLiving, size uiContinueLiving)
 {
 	SCPP65IRJump*	psJump;
 	bool			bResult;
 
+	//A break and a continue destroy what is living since the statement began, or since what a loop's condition
+	//declares (uiBreakLiving, uiContinueLiving).
 	psJump = masJumps.Add();
-	psJump->uiLiving = mcCleanups.NumLocals();
+	psJump->uiLiving = (uiBreakLiving == (size)-1) ? mcCleanups.NumLocals() : uiBreakLiving;
+	psJump->uiContinueLiving = (uiContinueLiving == (size)-1) ? mcCleanups.NumLocals() : uiContinueLiving;
 	psJump->pcBreak = pcBreak;
 	psJump->pcContinue = pcContinue;
 	bResult = ScopedStatement(pcStatement);
@@ -876,7 +883,10 @@ bool CCPP65IRFrontEnd::IfStatement(CCPPSyntaxIfStatement* pcIf)
 	CIRBlock*	pcThen;
 	CIRBlock*	pcElse;
 	CIRBlock*	pcEnd;
+	size		uiLiving;
 
+	//What the condition declares lives to the end of the if.  [stmt.select] 3
+	uiLiving = mcCleanups.NumLocals();
 	pcThen = NewBlock();
 	pcEnd = NewBlock();
 	pcElse = pcIf->mpcElse ? NewBlock() : pcEnd;
@@ -900,33 +910,44 @@ bool CCPP65IRFrontEnd::IfStatement(CCPPSyntaxIfStatement* pcIf)
 		JumpTo(pcEnd);
 	}
 	StartBlock(pcEnd);
-	return true;
+	return LeaveScope(uiLiving);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the condition declares is made each time round and destroyed at the
+// end of the body, by a break and a continue too, and when the condition
+// is false.  [stmt.while] 2
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::WhileStatement(CCPPSyntaxWhileStatement* pcWhile)
 {
 	CIRBlock*		pcTest;
 	CIRBlock*		pcBody;
+	CIRBlock*		pcFalse;
 	CIRBlock*		pcEnd;
 	bool			bResult;
+	size			uiLiving;
 
 	pcTest = NewBlock();
 	pcBody = NewBlock();
+	pcFalse = NewBlock();
 	pcEnd = NewBlock();
 	JumpTo(pcTest);
 	StartBlock(pcTest);
-	if (!FullCondition(pcWhile->mpcCondition, pcBody, pcEnd))
+	uiLiving = mcCleanups.NumLocals();
+	if (!FullCondition(pcWhile->mpcCondition, pcBody, pcFalse))
 	{
 		return false;
 	}
 	StartBlock(pcBody);
-	bResult = JumpStatement(pcWhile->mpcBody, pcEnd, pcTest);
+	bResult = JumpStatement(pcWhile->mpcBody, pcEnd, pcTest, uiLiving, uiLiving) && DestroyLiving(uiLiving);
 	JumpTo(pcTest);
+	StartBlock(pcFalse);
+	bResult = bResult && DestroyLiving(uiLiving);
+	mcCleanups.CutLocals(uiLiving);
+	JumpTo(pcEnd);
 	StartBlock(pcEnd);
 	return bResult;
 }
@@ -973,10 +994,12 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 	CIRBlock*		pcTest;
 	CIRBlock*		pcBody;
 	CIRBlock*		pcNext;
+	CIRBlock*		pcFalse;
 	CIRBlock*		pcEnd;
 	SCPP65IRValue	sValue;
 	bool			bResult;
 	size			uiLiving;
+	size			uiCondition;
 
 	uiLiving = mcCleanups.NumLocals();
 	if (!Statement(pcFor->mpcInitialiser))
@@ -987,12 +1010,17 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 	pcTest = NewBlock();
 	pcBody = NewBlock();
 	pcNext = NewBlock();
+	pcFalse = NewBlock();
 	pcEnd = NewBlock();
 	JumpTo(pcTest);
 	StartBlock(pcTest);
+
+	//What the condition declares is made each time round and destroyed at the end of the body, by a break and a
+	//continue too, before the step (as g++ does), and when the condition is false.  [stmt.for] 1
+	uiCondition = mcCleanups.NumLocals();
 	if (pcFor->mpcCondition)
 	{
-		if (!FullCondition(pcFor->mpcCondition, pcBody, pcEnd))
+		if (!FullCondition(pcFor->mpcCondition, pcBody, pcFalse))
 		{
 			return false;
 		}
@@ -1002,7 +1030,7 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 		JumpTo(pcBody);
 	}
 	StartBlock(pcBody);
-	bResult = JumpStatement(pcFor->mpcBody, pcEnd, pcNext);
+	bResult = JumpStatement(pcFor->mpcBody, pcEnd, pcNext, uiCondition, uiCondition) && DestroyLiving(uiCondition);
 	if (!bResult)
 	{
 		return false;
@@ -1014,6 +1042,13 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 		return false;
 	}
 	JumpTo(pcTest);
+	StartBlock(pcFalse);
+	if (!DestroyLiving(uiCondition))
+	{
+		return false;
+	}
+	mcCleanups.CutLocals(uiCondition);
+	JumpTo(pcEnd);
 	StartBlock(pcEnd);
 	return LeaveScope(uiLiving);
 }
@@ -1076,6 +1111,7 @@ bool CCPP65IRFrontEnd::RangeForStatement(CCPPSyntaxRangeForStatement* pcFor)
 	uiEach = mcCleanups.NumLocals();
 	psJump = masJumps.Add();
 	psJump->uiLiving = uiEach;
+	psJump->uiContinueLiving = uiEach;
 	psJump->pcBreak = pcAfter;
 	psJump->pcContinue = pcNext;
 	bResult = RangeForVariable(pcFor, psRangeFor->pcElement) && ScopedStatement(pcFor->mpcBody);
@@ -1247,6 +1283,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 	size			uiTemporaries;
 	CCPPVariable*	pcVariable;
 	SCPP65IRPlace	sPlace;
+	CCPPFunction*	pcConversion;
 
 	if (!pcSwitch->mpcCondition)
 	{
@@ -1261,7 +1298,26 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		{
 			return false;
 		}
-		if (!pcVariable || !pcVariable->mpsType->IsScalar() || !VariablePlace(pcVariable, &sPlace) || !Load(&sPlace, &sValue))
+		if (!pcVariable || !VariablePlace(pcVariable, &sPlace))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		if (pcVariable->mpsType->IsClass())
+		{
+			//An object, converted by its one conversion function to an integer or an enum.  [stmt.switch] 2
+			pcConversion = mpcUnit->GetBinder()->FindIntegerConversion(pcVariable->mpsType->pcClass, pcSwitch->mpcCondition);
+			if (!pcConversion)
+			{
+				return mpcUnit->ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum, or an object with one conversion function to one");
+			}
+			sValue.psType = pcVariable->mpsType;
+			sValue.sValue = sPlace.sAddress;
+			if (!ConvertObject(&sValue, pcConversion->mpsReturn->WithoutReference()->Unqualified(), false))
+			{
+				return false;
+			}
+		}
+		else if (!pcVariable->mpsType->IsScalar() || !Load(&sPlace, &sValue))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -1495,7 +1551,7 @@ bool CCPP65IRFrontEnd::BreakStatement(CCPPSyntax* pcStatement, bool bContinue)
 		pcTarget = bContinue ? masJumps.Get(ui - 1)->pcContinue : masJumps.Get(ui - 1)->pcBreak;
 		if (pcTarget)
 		{
-			if (!DestroyLiving(masJumps.Get(ui - 1)->uiLiving))
+			if (!DestroyLiving(bContinue ? masJumps.Get(ui - 1)->uiContinueLiving : masJumps.Get(ui - 1)->uiLiving))
 			{
 				return false;
 			}
@@ -1505,6 +1561,70 @@ bool CCPP65IRFrontEnd::BreakStatement(CCPPSyntax* pcStatement, bool bContinue)
 	}
 	mpcUnit->ReportError(pcStatement, bContinue ? "continue outside a loop" : "break outside a loop or switch");
 	return Unsupported(__FILE__, __LINE__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// asm("text"); in a function: a call of a routine that is the text
+// (CCPPUnit::AsmRoutine), which leaves what a call leaves.  Only the text:
+// GNU's operands after a colon aren't taken.  A statement skipped for
+// another reason is one the front end doesn't write.  [dcl.asm]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::AsmStatement(CCPPSyntax* pcStatement)
+{
+	CCPPTokeniser*	pcTokeniser;
+	CCPPToken*		pcToken;
+	CArrayUint8		auiBytes;
+	CChars			szLabel;
+	int				iToken;
+	ECppTokens		eToken;
+
+	pcTokeniser = mpcUnit->GetTokeniser();
+	iToken = pcStatement->miFirstToken;
+	pcToken = pcTokeniser->Get(iToken);
+	if (!pcToken || !pcToken->IsReservedWord() || ((((CCTReservedWord*)pcToken)->GetToken() != CT_asm) && (((CCTReservedWord*)pcToken)->GetToken() != CT___asm__)))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	for (iToken++; (pcToken = pcTokeniser->Get(iToken)) && pcToken->IsReservedWord(); iToken++)
+	{
+		eToken = ((CCTReservedWord*)pcToken)->GetToken();
+		if ((eToken != CT_volatile) && (eToken != CT___volatile__))
+		{
+			break;
+		}
+	}
+	if (!pcToken || !pcToken->IsReservedWord() || (((CCTReservedWord*)pcToken)->GetToken() != CT_OpenRoundBracket))
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	auiBytes.Init();
+	for (iToken++; (pcToken = pcTokeniser->Get(iToken)) && pcToken->IsString(); iToken++)
+	{
+		if (((CCTString*)pcToken)->meEncoding != CTE_Narrow)
+		{
+			break;
+		}
+		if (!mpcUnit->DecodeStringToken(pcStatement, (CCTString*)pcToken, 1, &auiBytes))
+		{
+			auiBytes.Kill();
+			return false;
+		}
+	}
+	if ((auiBytes.NumElements() == 0) || !pcToken || !pcToken->IsReservedWord() || (((CCTReservedWord*)pcToken)->GetToken() != CT_CloseRoundBracket))
+	{
+		auiBytes.Kill();
+		return Unsupported(__FILE__, __LINE__);
+	}
+	auiBytes.GrowToAtLeastNumElements(auiBytes.NumElements() + 1, true, 0);
+	szLabel.Init();
+	mpcUnit->AsmRoutine((char*)auiBytes.GetData(), &szLabel);
+	auiBytes.Kill();
+	CallNoThrow(szLabel.Text(), IRType(IRTK_None), NULL, NULL, 0);
+	szLabel.Kill();
+	return true;
 }
 
 

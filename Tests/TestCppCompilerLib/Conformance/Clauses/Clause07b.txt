@@ -270,6 +270,17 @@ int main()
 	return 1;
 }
 
+### DclAsmStatements | 3 | 7.4 [dcl.asm]: asm statements of adjacent strings, and asm volatile, in two functions
+int g = 0;
+void Two() { asm("nop\n" "nop"); asm volatile ("nop"); g = 2; }
+int main()
+{
+	int r = 1;
+	asm("nop");
+	Two();
+	return r + g;
+}
+
 ### DclLinkageC | 3 | 7.5 [dcl.link] p1, p2: extern "C" on one declaration and on a block of them
 extern "C" int CAdd(int a, int b) { return a + b; }
 extern "C" { int gc = 3; int CGet() { return gc; } }

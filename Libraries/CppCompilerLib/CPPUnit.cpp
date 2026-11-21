@@ -2711,7 +2711,8 @@ bool CCPPUnit::IsFunctionByType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSynt
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDeclarator* pcDeclarator)
 {
-	size	i;
+	size		i;
+	CCPPClass*	pcClass;
 
 	if (psReturn && pcDeclarator->mpcNested)
 	{
@@ -2728,8 +2729,17 @@ SCPP65Type* CCPPUnit::ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDecla
 		case CPPP_RValueReference:
 			psReturn = mcTypes.Reference(psReturn, pcDeclarator->GetPointer(i)->meKind == CPPP_RValueReference);
 			break;
+		case CPPP_MemberPointer:
+			//int B::* Get() returns a pointer to an int member of B.
+			pcClass = pcDeclarator->GetPointer(i)->mpcClass ? GetNameClass(pcDeclarator->GetPointer(i)->mpcClass, pcDeclarator) : NULL;
+			psReturn = pcClass ? mcTypes.MemberPointer(pcClass, psReturn) : NULL;
+			if (!pcClass)
+			{
+				Error(pcDeclarator, "The class of a pointer to a member is not supported by the compiler yet");
+			}
+			break;
 		default:
-			Error(pcDeclarator, "Pointers to members are not supported by the compiler yet");
+			Error(pcDeclarator, "This declarator is not supported by the compiler yet");
 			psReturn = NULL;
 			break;
 		}
@@ -3446,6 +3456,10 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		if (!ClassStaticAsserts((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType) || !CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType))
 		{
 			return false;
+		}
+		if ((pcDeclaration->macpDeclarators.NumElements() == 0) && !((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType)->mpcName)
+		{
+			return AnonymousGlobal((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
 		}
 	}
 
@@ -4436,6 +4450,64 @@ bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 		pcVariable = AddVariable(&mapcLocals, psField->pcSymbol, psField->psType, CPPVS_Local, psField->iOffset);
 		pcVariable->mpcAnonymous = pcClass;
 	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An anonymous union at namespace scope: one object, zero, whose label is
+// its first member's, and a global variable for each member at its offset
+// in it, internal as the union is (static or in an unnamed namespace).
+// [class.union] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier)
+{
+	CCPPClass*		pcClass;
+	SCPPField*		psField;
+	CCPPVariable*	pcVariable;
+	CCPPVariable*	pcObject;
+	CChars			szLabel;
+	size			i;
+
+	pcClass = GetUnnamedClass(pcSpecifier);
+	if (!pcClass || !CompleteClass(pcClass, pcSpecifier) || !pcClass->mbUnion)
+	{
+		return Error(pcSpecifier, "This anonymous class is not supported by the compiler yet");
+	}
+	pcObject = NULL;
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		if (!psField->pcSymbol || psField->IsBitField())
+		{
+			return Error(pcSpecifier, "This anonymous union's member is not supported by the compiler yet");
+		}
+		pcVariable = AddVariable(&mapcGlobals, psField->pcSymbol, psField->psType, CPPVS_Global, psField->iOffset);
+		pcVariable->mpcAnonymous = pcClass;
+		pcVariable->mbInternal = true;
+		pcVariable->mbDefined = true;
+		pcObject = pcObject ? pcObject : pcVariable;
+		pcVariable->mpcAnonymousObject = pcObject;
+	}
+	if (!pcObject)
+	{
+		return true;
+	}
+	szLabel.Init();
+	AppendVariableLabel(&szLabel, pcObject);
+	mcData.BeginData(&szLabel, DataAlignment(pcClass->mpsType, true), false, NULL, IsBss(NULL, pcClass->mpsType));
+	if (IsBss(NULL, pcClass->mpsType))
+	{
+		mcData.AppendSpace(pcClass->mpsType->iBytes);
+	}
+	else
+	{
+		mcData.AppendZeros(pcClass->mpsType->iBytes);
+	}
+	mcData.NextStartUp();
+	szLabel.Kill();
 	return true;
 }
 

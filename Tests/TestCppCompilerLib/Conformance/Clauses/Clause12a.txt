@@ -115,6 +115,10 @@ int main()
 	return r;
 }
 
+### SpecialAssignThroughExplicitRefused | REFUSED | 12.3.1 [class.conv.ctor] p2, 13.5.3 [over.ass]: an assignment doesn't make its temporary with an explicit constructor
+struct N { explicit N(int x) : v(x) { } int v; };
+int main() { N a(1); a = 6; return a.v; }
+
 ### SpecialExplicitCopyInitialisationRefused | REFUSED | 12.3.1 [class.conv.ctor] p2: an explicit constructor isn't used for copy initialisation
 struct N { explicit N(int x) : v(x) { } int v; };
 int main() { N a = 4; return a.v; }

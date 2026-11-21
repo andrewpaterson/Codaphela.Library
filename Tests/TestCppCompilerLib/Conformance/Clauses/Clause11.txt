@@ -238,6 +238,19 @@ struct B { protected: int v = 1; };
 struct D : B { static int D::* Ptr() { return &D::v; } };
 int main() { D d; return d.*D::Ptr(); }
 
+### AccessMemberPointerResults | 7 | 8.3.3 [dcl.mptr] p1, 8.3.5 [dcl.fct]: functions that return a pointer to a member, written without a typedef: a free function, a member function and a static one
+struct B { int v = 1; int w = 2; int B::* Mine() { return &B::w; } static int B::* Static() { return &B::v; } };
+int B::* Free() { return &B::v; }
+int main()
+{
+	int r = 0;
+	B b;
+	if (b.*Free() == 1) r += 1;
+	if (b.*b.Mine() == 2) r += 2;
+	if (b.*B::Static() == 1) r += 4;
+	return r;
+}
+
 ### AccessProtectedMemberPointerBaseRefused | REFUSED | 11.4 [class.protected] p1: not through the base class
 struct B { protected: int v = 1; };
 struct D : B { static int B::* Ptr() { return &B::v; } };

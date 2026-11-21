@@ -428,6 +428,21 @@ struct S { int v; };
 class S* p;
 int main() { S s; s.v = 1; p = &s; return p->v; }
 
+### DclGlobalQualifiedTypeName | 7 | 7.1.6.2 [dcl.type.simple] p1, 3.4.3 [basic.lookup.qual] p4: a type named with :: in a declaration at namespace scope, in a block, and after const
+struct A { int v = 1; };
+::A ga;
+int main()
+{
+	int r = 0;
+	::A a;
+	if (a.v == 1) r += 1;
+	const ::A* p = &ga;
+	if (p->v == 1) r += 2;
+	::A* q = &a;
+	if (q->v == 1) r += 4;
+	return r;
+}
+
 ### DclElaboratedEnumAsClassRefused | REFUSED | 7.1.6.3 [dcl.type.elab] p3: an enum isn't named with a class key
 enum E { X };
 struct E* p;

@@ -166,6 +166,12 @@ bool CCPPUnit::RangeForLocals(CCPPSyntaxRangeForStatement* pcFor)
 	{
 		bRvalue = IsRvalue(pcFor->mpcRange);
 		psRanged = bRvalue ? NULL : PlaceOf(pcFor->mpcRange);
+		if (!psRanged)
+		{
+			//A temporary's member array, Make().a, is an array, not the pointer its value would be.  [stmt.ranged] 1
+			psRanged = bRvalue ? PlaceOf(pcFor->mpcRange) : NULL;
+			psRanged = (psRanged && psRanged->IsArray()) ? psRanged : NULL;
+		}
 		psRanged = psRanged ? psRanged : ValueTypeOf(pcFor->mpcRange);
 	}
 	if (!psRanged)

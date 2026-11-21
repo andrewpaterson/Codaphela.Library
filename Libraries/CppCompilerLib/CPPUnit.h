@@ -500,6 +500,7 @@ public:
 	bool					IsOuterConstant(CCPPSymbol* pcSymbol);
 	CCPPVariable*			EnclosingStatic(CCPPSymbol* pcSymbol);
 	CCPPVariable*			RedeclaredVariable(CCPPSymbol* pcSymbol);
+	bool					AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	CCPPVariable*			NamespaceVariable(CCPPSymbol* pcSymbol);
 	bool					SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond);
 	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);
@@ -720,6 +721,7 @@ public:
 	void					AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer);
 	void					AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction);
 	void					AppendThunkLabel(CChars* pszLabel, bool bComdat);
+	void					AsmRoutine(const char* szText, CChars* pszLabel);
 	void					AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
 	bool					IsConstantMember(CCPPVariable* pcVariable);

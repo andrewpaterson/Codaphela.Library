@@ -8647,6 +8647,33 @@ static const SConformanceCase gasConformanceClause6[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//6.4 [stmt.select] p3, 6.5.1 [stmt.while] p2, 6.5.3 [stmt.for] p1: a condition's object lives to the end of an if; a while's is destroyed each time round, by continue and break too; a for's is destroyed before its step (as g++ does)
+	{
+		"StmtConditionObjectLifetimes", 7,
+		"int giMade = 0;\n"
+		"int giGone = 0;\n"
+		"struct C { int v; C(int x) : v(x) { giMade++; } ~C() { giGone++; } explicit operator bool() const { return v > 0; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		if (C c{1}) { }\n"
+		"		if (giGone == 1) r += 1;\n"
+		"	}\n"
+		"	giMade = 0;\n"
+		"	giGone = 0;\n"
+		"	int n = 5;\n"
+		"	while (C c{n--}) { if (n == 3) continue; if (n == 1) break; }\n"
+		"	if (giMade == 4 && giGone == 4) r += 2;\n"
+		"	giMade = 0;\n"
+		"	giGone = 0;\n"
+		"	int k = 2;\n"
+		"	int seen = 0;\n"
+		"	for (; C c{k}; seen += giMade - giGone, k--) { if (k == 2) continue; }\n"
+		"	if (seen == 0 && giMade == 3 && giGone == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//6.6.2 [stmt.cont]: continue goes to the loop's end: a for's step runs, a do's condition and a while's are tested
 	{
 		"StmtContinue", 7,
@@ -9549,6 +9576,23 @@ static const SConformanceCase gasConformanceClause7[] =
 		"class S* p;\n"
 		"int main() { S s; s.v = 1; p = &s; return p->v; }\n"
 	},
+	//7.1.6.2 [dcl.type.simple] p1, 3.4.3 [basic.lookup.qual] p4: a type named with :: in a declaration at namespace scope, in a block, and after const
+	{
+		"DclGlobalQualifiedTypeName", 7,
+		"struct A { int v = 1; };\n"
+		"::A ga;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	::A a;\n"
+		"	if (a.v == 1) r += 1;\n"
+		"	const ::A* p = &ga;\n"
+		"	if (p->v == 1) r += 2;\n"
+		"	::A* q = &a;\n"
+		"	if (q->v == 1) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//7.1.6.3 [dcl.type.elab] p3: an enum isn't named with a class key
 	{
 		"DclElaboratedEnumAsClassRefused", CONFORMANCE_REFUSED,
@@ -9894,6 +9938,19 @@ static const SConformanceCase gasConformanceClause7[] =
 		"{\n"
 		"	asm(\"nop\");\n"
 		"	return 1;\n"
+		"}\n"
+	},
+	//7.4 [dcl.asm]: asm statements of adjacent strings, and asm volatile, in two functions
+	{
+		"DclAsmStatements", 3,
+		"int g = 0;\n"
+		"void Two() { asm(\"nop\\n\" \"nop\"); asm volatile (\"nop\"); g = 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 1;\n"
+		"	asm(\"nop\");\n"
+		"	Two();\n"
+		"	return r + g;\n"
 		"}\n"
 	},
 	//7.5 [dcl.link] p1, p2: extern "C" on one declaration and on a block of them
@@ -11982,6 +12039,19 @@ static const SConformanceCase gasConformanceClause9[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//9.7 [class.nest] p1: a nested class, defined in its class or outside it, calls the enclosing class's static member function
+	{
+		"ClassNestedCallsEnclosingStatic", 7,
+		"struct Outer { static int Get() { return 3; } struct In { int F() { return Get(); } }; struct Out; };\n"
+		"struct Outer::Out { int F() { return Get() + 1; } };\n"
+		"int main() { Outer::In i; Outer::Out o; return i.F() + o.F(); }\n"
+	},
+	//9.7 [class.nest] p1: but not one that needs an object of the enclosing class
+	{
+		"ClassNestedCallsEnclosingMemberRefused", CONFORMANCE_REFUSED,
+		"struct Outer { int F() { return 1; } struct In { int G() { return F(); } }; };\n"
+		"int main() { Outer::In i; return i.G(); }\n"
+	},
 	//9.7 [class.nest], 11.7 [class.access.nest] p1: a nested class is a member, and reaches the enclosing class's private members
 	{
 		"ClassNestedPrivateAccess", 3,
@@ -13095,6 +13165,21 @@ static const SConformanceCase gasConformanceClause11[] =
 		"struct D : B { static int D::* Ptr() { return &D::v; } };\n"
 		"int main() { D d; return d.*D::Ptr(); }\n"
 	},
+	//8.3.3 [dcl.mptr] p1, 8.3.5 [dcl.fct]: functions that return a pointer to a member, written without a typedef: a free function, a member function and a static one
+	{
+		"AccessMemberPointerResults", 7,
+		"struct B { int v = 1; int w = 2; int B::* Mine() { return &B::w; } static int B::* Static() { return &B::v; } };\n"
+		"int B::* Free() { return &B::v; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	B b;\n"
+		"	if (b.*Free() == 1) r += 1;\n"
+		"	if (b.*b.Mine() == 2) r += 2;\n"
+		"	if (b.*B::Static() == 1) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//11.4 [class.protected] p1: not through the base class
 	{
 		"AccessProtectedMemberPointerBaseRefused", CONFORMANCE_REFUSED,
@@ -13326,6 +13411,12 @@ static const SConformanceCase gasConformanceClause12[] =
 		"	if (a.v == 6) r += 4;\n"
 		"	return r;\n"
 		"}\n"
+	},
+	//12.3.1 [class.conv.ctor] p2, 13.5.3 [over.ass]: an assignment doesn't make its temporary with an explicit constructor
+	{
+		"SpecialAssignThroughExplicitRefused", CONFORMANCE_REFUSED,
+		"struct N { explicit N(int x) : v(x) { } int v; };\n"
+		"int main() { N a(1); a = 6; return a.v; }\n"
 	},
 	//12.3.1 [class.conv.ctor] p2: an explicit constructor isn't used for copy initialisation
 	{

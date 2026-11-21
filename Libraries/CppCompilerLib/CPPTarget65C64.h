@@ -39,6 +39,7 @@ public:
 	void		AppendStartUp(CChars* pszDest, bool bExceptions = false) override;
 	void		AppendRuntime(CCPPRuntimeWriter* pcWriter) override;
 	void		AppendAdjustThunk(CChars* pszDest, int iAdjust, const char* szFunction) override;
+	void		AppendAsmRoutine(CChars* pszDest, const char* szText) override;
 	void		AppendVirtualCallThunk(CChars* pszDest, int iVtableOffset, int iEntryOffset) override;
 
 	void		GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOptions* pcOptions) override;

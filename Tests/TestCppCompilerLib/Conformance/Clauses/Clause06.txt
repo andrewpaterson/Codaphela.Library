@@ -312,6 +312,31 @@ int main()
 	return r;
 }
 
+### StmtConditionObjectLifetimes | 7 | 6.4 [stmt.select] p3, 6.5.1 [stmt.while] p2, 6.5.3 [stmt.for] p1: a condition's object lives to the end of an if; a while's is destroyed each time round, by continue and break too; a for's is destroyed before its step (as g++ does)
+int giMade = 0;
+int giGone = 0;
+struct C { int v; C(int x) : v(x) { giMade++; } ~C() { giGone++; } explicit operator bool() const { return v > 0; } };
+int main()
+{
+	int r = 0;
+	{
+		if (C c{1}) { }
+		if (giGone == 1) r += 1;
+	}
+	giMade = 0;
+	giGone = 0;
+	int n = 5;
+	while (C c{n--}) { if (n == 3) continue; if (n == 1) break; }
+	if (giMade == 4 && giGone == 4) r += 2;
+	giMade = 0;
+	giGone = 0;
+	int k = 2;
+	int seen = 0;
+	for (; C c{k}; seen += giMade - giGone, k--) { if (k == 2) continue; }
+	if (seen == 0 && giMade == 3 && giGone == 3) r += 4;
+	return r;
+}
+
 ### StmtContinue | 7 | 6.6.2 [stmt.cont]: continue goes to the loop's end: a for's step runs, a do's condition and a while's are tested
 int main()
 {

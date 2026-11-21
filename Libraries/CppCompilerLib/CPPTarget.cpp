@@ -304,6 +304,31 @@ void CCPPTarget::AppendAdjustThunk(CChars* pszDest, int iAdjust, const char* szF
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each line of an asm statement's text (lines end at a newline or a ;).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTarget::AppendAsmRoutine(CChars* pszDest, const char* szText)
+{
+	const char*	sz;
+
+	pszDest->Append("\t\t");
+	for (sz = szText; *sz; sz++)
+	{
+		if ((*sz == '\n') || (*sz == ';'))
+		{
+			pszDest->Append("\n\t\t");
+		}
+		else if (*sz != '\r')
+		{
+			pszDest->Append(*sz);
+		}
+	}
+	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTarget::AppendVirtualCallThunk(CChars* pszDest, int iVtableOffset, int iEntryOffset)

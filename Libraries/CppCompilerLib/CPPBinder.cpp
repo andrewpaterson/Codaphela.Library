@@ -266,6 +266,13 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		ResolveMember(pcCall, pcBound);
 		return;
 	}
+	if (pcName && !pcName->mbGlobal && pcSymbol && (pcSymbol->meKind == CPPSK_Function) && mpcUnit->MemberScopeClass(pcSymbol))
+	{
+		//A member function of a class the function's class is nested in (or the function is a friend in): one of its
+		//static members, with no object.  [class.nest] 1
+		ResolveMember(pcCall, pcBound);
+		return;
+	}
 
 	if (!pcSymbol && mpcUnit->IsInlineMemcpy(lliName, pcBound->mpapcArguments))
 	{
@@ -561,6 +568,12 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		else
 		{
 			pcClass = (pcIn && pcIn->mpcClass) ? pcIn->mpcClass : mpcUnit->MemberScopeClass(pcName->mpcSymbol);
+			if (pcClass && mpcUnit->MemberScopeClass(pcName->mpcSymbol) && !mpcUnit->HasMember(pcClass, mpcUnit->GetFunctionName(pcName->GetLast())))
+			{
+				//The enclosing class's member, which the function's own class doesn't have.
+				pcClass = mpcUnit->MemberScopeClass(pcName->mpcSymbol);
+				bVirtual = false;
+			}
 		}
 	}
 	pcBound->mpcName = pcName;
@@ -732,6 +745,23 @@ CCPPFunction* CCPPBinder::FindConversion(CCPPClass* pcClass, CCPPSyntaxNameCompo
 		return NULL;
 	}
 	return FindConversionTo(pcClass, psTarget);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a value that isn't an object (pcSource) converts to pcClass by a
+// constructor that isn't explicit: x = 6 assigns a temporary made so.
+// [class.conv.ctor] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ConvertsByConstructor(CCPPClass* pcClass, CCPPSyntax* pcSource)
+{
+	SCPP65Type*	psSource;
+
+	psSource = mpcUnit->TypeOf(pcSource);
+	psSource = psSource ? psSource->WithoutReference() : NULL;
+	return psSource && !psSource->IsClass() && mcOverloads.HasConvertingConstructor(pcClass, psSource, pcSource);
 }
 
 

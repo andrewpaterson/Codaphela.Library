@@ -431,7 +431,7 @@ bool CCPP65IRFrontEnd::AssignedObject(CCPPSyntax* pcRight, SCPP65Type* psClass, 
 	SCPP65IRPlace	sTemporary;
 	SCPP65IRMade	sMade;
 
-	if (mpcUnit->SkipParentheses(pcRight)->GetKind() != CPPS_InitializerList)
+	if ((mpcUnit->SkipParentheses(pcRight)->GetKind() != CPPS_InitializerList) && (mpcUnit->IsObject(pcRight) || !psClass->IsClass() || !mpcUnit->GetBinder()->ConvertsByConstructor(psClass->pcClass, pcRight)))
 	{
 		return Value(pcRight, psValue);
 	}
@@ -1001,13 +1001,31 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 	}
 	else if (pcExpression->GetKind() == CPPS_SimpleDeclaration)
 	{
-		//if (T x = value): the variable (a scalar) is the condition.
+		//if (T x = value): the variable is the condition, an object converted to bool, by an explicit conversion
+		//function too.  [stmt.select] 4
 		pcVariable = NULL;
 		if (!Declaration((CCPPSyntaxSimpleDeclaration*)pcExpression, &pcVariable))
 		{
 			return false;
 		}
-		if (!pcVariable || !pcVariable->mpsType->IsScalar() || !VariablePlace(pcVariable, &sPlace) || !Load(&sPlace, &sValue) || !Truth(&sValue, &sCondition))
+		if (!pcVariable || !VariablePlace(pcVariable, &sPlace))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		if (pcVariable->mpsType->IsClass())
+		{
+			sValue.psType = pcVariable->mpsType;
+			sValue.sValue = sPlace.sAddress;
+			if (!ConvertObject(&sValue, &mpcTypes->msBool, true))
+			{
+				return false;
+			}
+		}
+		else if (!pcVariable->mpsType->IsScalar() || !Load(&sPlace, &sValue))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
+		if (!Truth(&sValue, &sCondition))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}

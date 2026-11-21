@@ -1591,7 +1591,7 @@ CCPPSyntaxDeclSpecifiers* CCPPParser::ParseDeclSpecifiers(CCPPSyntax* pcParent, 
 		{
 			break;
 		}
-		if (pcToken->IsReservedWord())
+		if (pcToken->IsReservedWord() && !(pcToken->Is(CT_ScopeResolution) && !bType))
 		{
 			eStep = ParseKeywordDeclSpecifier(pcSpecifiers, eContext, ((CCTReservedWord*)pcToken)->GetToken(), &bType);
 		}
