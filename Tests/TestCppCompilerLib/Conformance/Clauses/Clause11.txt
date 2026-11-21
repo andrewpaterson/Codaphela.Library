@@ -222,6 +222,42 @@ int main()
 	return r;
 }
 
+### AccessProtectedRulesKept | 63 | 11.4 [class.protected] p1, 7.3.3 [namespace.udecl] p17: what those refusals leave allowed
+struct B
+{
+protected:
+	int v = 1;
+	static int s;
+	B() { }
+	int Get() const { return v; }
+public:
+	virtual ~B() { }
+};
+int B::s = 2;
+struct D : B
+{
+	using B::Get;
+	D() : B() { v = 4; }
+	int Own(D& o) { return o.v + o.Get(); }
+	int Further(struct E& e);
+	int Static() { return B::s; }
+	int Pointer() { int D::* p = &D::v; return this->*p; }
+};
+struct E : D { E() { v = 16; } };
+int D::Further(E& e) { return e.v; }
+int main()
+{
+	D d;
+	E e;
+	return d.Own(d) + d.Further(e) + d.Static() + d.Pointer() + d.Get() + 29;
+}
+
+### AccessProtectedQualifiedAndFriend | 5 | 11.4 [class.protected] p1, 11.2 [class.access.base] p5: B::F() through this, and a friend of D through a D
+struct B { protected: int v = 4; int F() { return 1; } };
+struct D : B { friend struct Fixer; int G() { return B::F() + B::v - 2; } };
+struct Fixer { static int Read(D* p) { return p->v; } };
+int main() { D d; return d.G() + Fixer::Read(&d) - 2; }
+
 ### AccessProtectedThroughBaseRefused | REFUSED | 11.4 [class.protected] p1: not through an object of the base class
 struct B { protected: int v = 1; };
 struct D : B { int Get(B& o) { return o.v; } };

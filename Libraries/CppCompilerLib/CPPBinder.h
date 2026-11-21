@@ -205,6 +205,11 @@ public:
 	CCPPFunction*	BindRangeFunction(int64 lliName, CCPPClass* pcClass, CCPPSyntax* pcRange, CCPPSyntax* pcNode);
 	bool	BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode, CCPPBoundConstruction* pcBound, bool bReport);
 	bool	ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	bool	HasMemberMadeByCode(CCPPClass* pcClass);
+	bool	IsCopyDeleted(CCPPClass* pcClass);
+	bool	IsMoveDeleted(CCPPClass* pcClass);
+	bool	ReachesMember(CCPPSymbol* pcSymbol, CCPPClass* pcNaming, CCPPSyntax* pcNode);
+	bool	UsingReaches(CCPPSymbol* pcSymbol, CCPPSyntax* pcUsing);
 	bool	CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* pcInit);
 	void	BindConversion(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit, CCPPBoundConversion* pcBound);
 	void	BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode, CCPPBoundConversion* pcBound);

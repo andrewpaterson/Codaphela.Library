@@ -226,6 +226,35 @@ int main() { U t = Make(); return (t.v == 5) ? 1 : 0; }
 struct S { S() { } S(const S&) = delete; };
 int main() { S a; S b = a; return 0; }
 
+### SpecialMemberRulesKept | 127 | 12.1 [class.ctor], 12.3.2 [class.conv.fct], 12.4 [class.dtor], 12.6.2 [class.base.init], 12.8 [class.copy]: what those refusals leave allowed
+struct B { int b; B(int x) : b(x) { } };
+struct S : B
+{
+	int& r;
+	const int k;
+	const int d = 4;
+	S(int& x) : B(1), r(x), k(2) { }
+	S(int& x, int) : S(x) { }
+	explicit operator bool() const { return k == 2; }
+	~S(void) { }
+};
+struct A { const int k; int& r; };
+struct M { int v; M() : v(8) { } M(const M&) = delete; M(M&& o) : v(o.v) { } };
+struct H { M m; };
+struct C { M m; C() { } C(const C&) { } };
+int main()
+{
+	int x = 16;
+	S s(x, 0);
+	A a = { 32, x };
+	H h1;
+	H h2(static_cast<H&&>(h1));
+	C c1;
+	C c2(c1);
+	int r = s.b + s.k + s.d + h2.m.v + s.r + a.k + c2.m.v - 8 + 64;
+	return (s && a.r == 16) ? r : 0;
+}
+
 ### SpecialCopyDeletedByMemberRefused | REFUSED | 12.8 [class.copy] p11: a member that can't be copied deletes the implicit copy constructor
 struct M { M() { } M(const M&) = delete; };
 struct S { M m; };

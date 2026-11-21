@@ -243,25 +243,46 @@ bool CCPPUnit::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type*
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::ConstexprFloat(CCPPSyntaxIdExpression* pcId, double* pdValue, SCPP65Type** ppsType)
 {
-	CCPPSymbol*						pcSymbol;
+	CCPPSymbol*		pcSymbol;
+	CCPPVariable*	pcVariable;
+	CCPPSyntax*		pcInitialiser;
+	SCPP65Type*		psValue;
+	CCPPBoundName	cBound;
 	CCPPSyntaxInitDeclarator*		pcInit;
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
-	CCPPVariable*					pcVariable;
-	SCPP65Type*						psValue;
 
+	//S::d, a static member of a class (a field's name in it), is the variable its name is bound to.
 	pcSymbol = pcId->mpcName->mpcSymbol;
-	pcInit = pcSymbol ? (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration : NULL;
-	if (!pcInit || (pcSymbol->meKind != CPPSK_Variable) || (pcInit->GetKind() != CPPS_InitDeclarator) || !pcInit->mpcInitializer)
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_Variable))
+	{
+		pcVariable = GetVariable(pcSymbol);
+	}
+	else
+	{
+		mcBinder.BindName(pcId, &cBound);
+		pcVariable = (cBound.meWhat == CPPBN_Variable) ? cBound.mpcVariable : NULL;
+	}
+	if (!pcVariable || !pcVariable->mpsType->IsFloat())
 	{
 		return false;
 	}
-	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+	//Its declaration says constexpr; the initialiser is there or, for a static member, in its class.
+	pcInit = VariableDeclarator(pcVariable);
+	pcDeclaration = pcInit ? (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent : NULL;
 	if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR))
 	{
 		return false;
 	}
-	pcVariable = GetVariable(pcSymbol);
-	if (!pcVariable || !pcVariable->mpsType->IsFloat() || !FloatValue(pcInit->mpcInitializer, pdValue, &psValue))
+	pcInitialiser = pcInit->mpcInitializer ? pcInit->mpcInitializer : pcVariable->mpcInClassInitialiser;
+	if (!pcInitialiser)
+	{
+		return false;
+	}
+	if ((pcInitialiser->GetKind() == CPPS_InitializerList) && (ListElements(pcInitialiser)->NumElements() == 1))
+	{
+		pcInitialiser = ListElements(pcInitialiser)->GetPtr(0);
+	}
+	if (!FloatValue(pcInitialiser, pdValue, &psValue))
 	{
 		return false;
 	}

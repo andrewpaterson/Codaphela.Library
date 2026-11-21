@@ -55,6 +55,33 @@ int main() { return 0; }
 struct S { int F(); int F(); };
 int main() { return 0; }
 
+### ClassMemberRulesKept | 127 | 9.2 [class.mem], 9.4 [class.static], 9.5 [class.union], 9.8 [class.local], 13.1 [over.load] p2: what those refusals leave allowed
+struct S
+{
+	int F();
+	int F() const { return 2; }
+	int G() & { return 4; }
+	int G() && { return 8; }
+	static const int k = 16;
+	static constexpr double d = 0.5;
+	static int H() { return 32; }
+};
+int S::F() { return 1; }
+namespace { static union { int ui; char uc; }; }
+union V { int i; float f; int Get() const { return i; } };
+int main()
+{
+	struct L { int v; int Get() const { return v; } };
+	L l = { 0 };
+	S s;
+	const S& c = s;
+	V v;
+	v.i = 64;
+	ui = 0;
+	int r = s.F() + c.F() + s.G() + S().G() + S::k + S::H() + v.Get() + l.Get() + ui;
+	return (S::d == 0.5) ? r : 0;
+}
+
 ### ClassMemberNamedAsClassRefused | REFUSED | 9.2 [class.mem] p13: a static member doesn't have the class's name
 struct S { static int S; };
 int main() { return 0; }
@@ -232,6 +259,12 @@ int main()
 	return r;
 }
 
+### ClassStaticConstexprFloat | 5 | 9.4.2 [class.static.data] p3: a constexpr float static member is a constant; one bound to a reference is defined
+struct S { static constexpr double d = 0.25; static constexpr float f = 1.5f; };
+constexpr double S::d;
+double Twice(const double& r) { return r * 2; }
+int main() { return (int)(Twice(S::d) * 4 + S::f * 2); }
+
 ### ClassStaticInClassInitialiserRefused | REFUSED | 9.4.2 [class.static.data] p3: only a const integer or a constexpr static member is initialised in its class
 struct S { static int n = 1; };
 int main() { return S::n; }
@@ -304,6 +337,11 @@ int main()
 struct M { M() { } };
 union U { M m; int i; };
 int main() { U u; return 0; }
+
+### ClassAnonymousUnionMemberWithConstructor | 3 | 9.5 [class.union] p2, p8, 12.6.2 [class.base.init] p8: an anonymous union's member with a constructor is its class's variant member, which the class's constructor makes or not
+struct M { int v; M() : v(5) { } };
+struct S { int tag; union { M m; int i; }; S() : tag(0) { i = 3; } };
+int main() { S s; return s.i + s.tag; }
 
 ### ClassUnionBaseRefused | REFUSED | 9.5 [class.union] p2: a union has no base class
 struct B { };

@@ -2818,6 +2818,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	bool						bVolatileThis;
 	bool						bUndeduced;
 	bool						bSameParameters;
+	SCPP65Type*					psAbstract;
 	ECPPRefQualifier			eRefQualifier;
 	bool						bFriend;
 	CCPPScope*					pcNamespace;
@@ -2962,6 +2963,16 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			}
 		}
 	}
+	for (i = 0; !pcTemplate && (i <= apsParameters.NumElements()); i++)
+	{
+		psAbstract = (i < apsParameters.NumElements()) ? apsParameters.GetPtr(i) : psReturn;
+		if (psAbstract && psAbstract->IsClass() && psAbstract->pcClass->IsComplete() && psAbstract->pcClass->IsAbstract())
+		{
+			//[class.abstract] 3
+			ReportOnce(pcDeclarator, "An abstract class is no function's parameter or result: no object of it can be made");
+			break;
+		}
+	}
 	for (pcOther = FirstFunctionOfName(lliName); pcOther; pcOther = pcOther->mpcNextOfName)
 	{
 		if ((pcOther->mpcClass != pcClass) || (pcOther->mpcNamespace != pcNamespace) || (pcOther->meKind != eKind) || (pcOther->mapsParameters.NumElements() != apsParameters.NumElements()) || (pcOther->mpcTemplate != pcTemplate) ||
@@ -3044,6 +3055,25 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		}
 	}
 
+	for (pcOther = pcClass ? FirstFunctionOfName(lliName) : NULL; pcOther; pcOther = pcOther->mpcNextOfName)
+	{
+		if ((pcOther->mpcClass != pcClass) || (pcOther->meKind != eKind) || pcOther->mpcTemplate || pcTemplate || ((pcOther->meRefQualifier == CPPRQ_None) == (eRefQualifier == CPPRQ_None)))
+		{
+			continue;
+		}
+		bSameParameters = (pcOther->mapsParameters.NumElements() == apsParameters.NumElements()) && (pcOther->mbVariadic == pcSuffix->mbVariadic);
+		for (j = 0; bSameParameters && (j < apsParameters.NumElements()); j++)
+		{
+			bSameParameters = pcOther->mapsParameters.GetPtr(j)->Same(apsParameters.GetPtr(j));
+		}
+		if (bSameParameters)
+		{
+			//Overloads that take the same parameters are all declared & or && or none is.  [over.load] 2
+			ReportOnce(pcDeclarator, "Where one overload taking these parameters is declared & or &&, each is");
+			break;
+		}
+	}
+
 	pcFunction = AddFunction(pcClass, lliName, eKind, psReturn);
 	pcFunction->mpcNamespace = pcNamespace;
 	pcFunction->mpcDeclarator = pcDeclarator;
@@ -3096,6 +3126,31 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function defined or called takes no parameter of an abstract class
+// and returns no object of one (its declaration said so where the class
+// was complete then; DeclareSignature).  An error at pcNode if it does.
+// [class.abstract] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckAbstractSignature(CCPPFunction* pcFunction, CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psType;
+	size		i;
+
+	for (i = 0; i <= pcFunction->mapsParameters.NumElements(); i++)
+	{
+		psType = (i < pcFunction->mapsParameters.NumElements()) ? pcFunction->mapsParameters.GetPtr(i) : pcFunction->mpsReturn;
+		if (psType && psType->IsClass() && psType->pcClass->IsComplete() && psType->pcClass->IsAbstract())
+		{
+			return ReportOnce(pcNode, "An abstract class is no function's parameter or result: no object of it can be made");
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What a variable's declaration must be, wherever it is (a local, a static
 // local, a global; the semantic pass's check too): initialised where its
 // type needs it to be (NeedsNoInitialiser), not copy-initialised through an
@@ -3107,7 +3162,10 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcInit, CCPPSyntax* pcInitialiser)
 {
-	bool	bResult;
+	SCPP65Type*						psElement;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	bool							bExtern;
+	bool							bResult;
 
 	if (!pcInitialiser && !NeedsNoInitialiser(psType, pcInit))
 	{
@@ -3115,6 +3173,18 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 	}
 	if (psType->IsClass() && !mcBinder.CopyInitialises(psType->pcClass, pcInit))
 	{
+		return false;
+	}
+	psElement = psType;
+	while (psElement->IsArray())
+	{
+		psElement = psElement->psBase;
+	}
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+	bExtern = pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_EXTERN);
+	if (psElement->IsClass() && !bExtern && CompleteClass(psElement->pcClass, pcInit) && !mcBinder.ReachesDestructor(psElement->pcClass, pcInit))
+	{
+		//The object is destroyed where it ends.  [class.dtor] 11
 		return false;
 	}
 	BeginLoud();
@@ -3263,6 +3333,11 @@ bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
 	{
 		psElement = psElement->psBase;
 	}
+	if (psElement->IsClass() && !psElement->pcClass->mbConstructors && HasFieldNeedingInitialiser(psElement->pcClass))
+	{
+		//[class.ctor] 4
+		return ReportError(pcNode, "The class's default constructor is deleted: a reference or const member of it has no initialiser");
+	}
 	if (!psElement->bConst)
 	{
 		return true;
@@ -3275,6 +3350,143 @@ bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
 	if (!pcClass->mbConstructors && !pcClass->NeedsConstructor() && (pcClass->macFields.NumElements() > 0))
 	{
 		return ReportError(pcNode, "A const object of a class with no constructor must be initialised");
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a field of the class has no default member initialiser and can't
+// be made by default: a reference, or a const object of a type with no
+// constructor of its own (a number, say).  [class.ctor] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::HasFieldNeedingInitialiser(CCPPClass* pcClass)
+{
+	SCPPField*	psField;
+	SCPP65Type*	psType;
+	size		i;
+
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		if (!psField->pcSymbol || psField->pcInitialiser)
+		{
+			continue;
+		}
+		psType = psField->psType;
+		while (psType->IsArray())
+		{
+			psType = psType->psBase;
+		}
+		if (psType->IsReference() || (psType->bConst && !(psType->IsClass() && psType->pcClass->mbConstructors)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A constructor's member initialisers: each names a member or a base of
+// its class, once; a delegating one (naming the class) is the only one;
+// and a reference member, or a const one of a type with no constructor of
+// its own, that no default member initialiser gives a value is named.
+// [class.base.init] 2, 4, 6, 8
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckMemberInitialisers(CCPPFunction* pcFunction)
+{
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CArraySyntax*					papcInitialisers;
+	CCPPSyntaxMemberInitializer*	pcMember;
+	CCPPSyntaxMemberInitializer*	pcOther;
+	CCPPClass*						pcClass;
+	CCPPClass*						pcNamed;
+	CCPPClass*						pcOtherNamed;
+	SCPPField*						psField;
+	SCPP65Type*						psType;
+	int64							lliName;
+	size							i;
+	size							j;
+	int								iOffset;
+	bool							bDelegating;
+	bool							bNamed;
+
+	pcDefinition = pcFunction->mpcDefinition;
+	pcClass = pcFunction->mpcClass;
+	if ((pcFunction->meKind != CPPFK_Constructor) || !pcDefinition || !pcClass || (pcDefinition->meBody != CPPFB_Body) || !CompleteClass(pcClass, pcDefinition))
+	{
+		return true;
+	}
+	papcInitialisers = ExpandArguments(&pcDefinition->macpMemberInitializers);
+	if (!papcInitialisers)
+	{
+		return true;
+	}
+
+	bDelegating = false;
+	for (i = 0; i < papcInitialisers->NumElements(); i++)
+	{
+		pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(i);
+		if (pcMember->GetKind() != CPPS_MemberInitializer)
+		{
+			return true;
+		}
+		lliName = GetComponentName(pcMember->mpcName->GetLast());
+		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : GetNameClass(pcMember->mpcName, pcMember);
+		if (pcNamed == pcClass)
+		{
+			bDelegating = true;
+			if (papcInitialisers->NumElements() != 1)
+			{
+				return Error(pcMember, "A constructor that names its own class in its member initialisers has no other");
+			}
+		}
+		else if (!(pcNamed && IsDerived(pcClass, pcNamed, NULL)) && !pcClass->FindField(lliName, &iOffset))
+		{
+			return Error(pcMember, "The member initialiser names no member or base of the class");
+		}
+		for (j = 0; j < i; j++)
+		{
+			pcOther = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(j);
+			pcOtherNamed = (pcOther->mpcName->mpcSymbol && (pcOther->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : GetNameClass(pcOther->mpcName, pcOther);
+			if (pcNamed ? (pcOtherNamed == pcNamed) : (!pcOtherNamed && (GetComponentName(pcOther->mpcName->GetLast()) == lliName)))
+			{
+				return Error(pcMember, "The member or base is named twice in the member initialisers");
+			}
+		}
+	}
+	if (bDelegating || pcClass->mbUnion)
+	{
+		return true;
+	}
+
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		if (!psField->pcSymbol || psField->pcInitialiser)
+		{
+			continue;
+		}
+		psType = psField->psType;
+		if (!(psType->IsReference() || (psType->bConst && !(psType->IsClass() && psType->pcClass->mbConstructors))))
+		{
+			continue;
+		}
+		bNamed = false;
+		for (j = 0; !bNamed && (j < papcInitialisers->NumElements()); j++)
+		{
+			pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(j);
+			bNamed = (pcMember->mpcName->mpcSymbol == psField->pcSymbol) || (GetComponentName(pcMember->mpcName->GetLast()) == psField->lliName);
+		}
+		if (!bNamed)
+		{
+			return Error(pcDefinition->mpcDeclarator, "The constructor leaves a reference or const member without a value: name it in the member initialisers");
+		}
 	}
 	return true;
 }
@@ -4216,7 +4428,7 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 
 	BeginFunction(pcFunction);
 	AddParameters(pcFunction);
-	if (!AllocateLocals(pcDefinition->mpcBody) || !CheckTryJumps(pcDefinition->mpcBody))
+	if (!CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator) || !CheckMemberInitialisers(pcFunction) || !AllocateLocals(pcDefinition->mpcBody) || !CheckTryJumps(pcDefinition->mpcBody))
 	{
 		EndFunction(pcFunction);
 		return false;

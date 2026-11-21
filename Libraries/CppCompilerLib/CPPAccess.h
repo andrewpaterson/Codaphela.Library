@@ -61,7 +61,10 @@ public:
 	bool	CheckFunction(CCPPFunction* pcFunction, CCPPClass* pcNaming, CCPPSyntax* pcNode);
 	bool	CheckSymbol(CCPPSymbol* pcSymbol, CCPPClass* pcNaming, CCPPSyntax* pcNode);
 	bool	Check(CCPPSyntax* pcDeclaration, CCPPClass* pcNaming, CCPPSyntax* pcNode);
+	bool	IsThroughDerived(CCPPSyntax* pcDeclaration, CCPPSyntaxClassSpecifier* pcDeclaring, CCPPClass* pcNaming, CCPPSyntax* pcNode);
 	bool	CheckBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
+	bool	CheckUsing(CCPPSymbol* pcSymbol, CCPPSyntax* pcUsing);
+	bool	CheckProtectedObject(CCPPSymbol* pcSymbol, CCPPClass* pcObjectClass, CCPPSyntax* pcNode);
 	bool	HasOnlyPublicFields(CCPPClass* pcClass);
 	bool	Refuse(CCPPSyntax* pcNode, const char* szMessage);
 

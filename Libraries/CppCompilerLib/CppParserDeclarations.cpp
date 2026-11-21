@@ -553,6 +553,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseSimpleDeclaration(CCPPSyntax* pcParent, 
 			//const int; and static;  [dcl.dcl] 5
 			ErrorAt(iFirstToken, "The declaration does not declare anything.");
 		}
+		CheckAnonymousUnion(pcSpecifiers, eContext);
 		Next();
 		pcSimple = NewSimpleDeclaration(pcParent, pcSpecifiers);
 		pcSimple->SetTokens(iFirstToken, PreviousToken());

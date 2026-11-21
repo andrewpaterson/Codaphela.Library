@@ -895,6 +895,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	CCPPFunction*					pcFunction;
 	CCPPClassLayout					cLayout;
 	size							i;
+	size							j;
 	int								iClassAlign;
 	bool							bResult;
 
@@ -915,6 +916,20 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	{
 		pcBaseSpecifier = (CCPPSyntaxBaseSpecifier*)pcSpecifier->macpBases.GetPtr(i);
 		bResult &= CompleteClass(pcClass->macBases.Get(i)->pcClass, pcBaseSpecifier);
+		if (pcClass->macBases.Get(i)->pcClass->mbUnion)
+		{
+			//[class.union] 2
+			bResult &= ClassError(pcBaseSpecifier->miFirstToken, "A union is no base class");
+		}
+		for (j = 0; j < i; j++)
+		{
+			if (pcClass->macBases.Get(j)->pcClass == pcClass->macBases.Get(i)->pcClass)
+			{
+				//[class.mi] 3
+				bResult &= ClassError(pcBaseSpecifier->miFirstToken, "A class is a direct base of another once");
+				break;
+			}
+		}
 	}
 
 	//Its friends are of its namespace, whatever is being generated when it is completed.
@@ -974,6 +989,11 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	cLayout.Kill();
 	pcClass->meState = CPPCS_Complete;
 	bResult &= CheckOverrides(pcClass);
+	if (pcClass->mcVtable.mpcAmbiguous)
+	{
+		//[class.virtual] 2
+		bResult &= ClassError(pcSpecifier->miFirstToken, "A virtual function of a virtual base has two final overriders in the class, neither overriding the other");
+	}
 
 	if (pcClass->mpcInheritedBase)
 	{
@@ -1031,6 +1051,11 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 		{
 			bResult &= Error(pcFunction->mpcDeclarator, "The function overrides one declared final");
 		}
+		else if (pcOverridden && !ReturnsCovariant(pcFunction, pcOverridden))
+		{
+			//[class.virtual] 7
+			bResult &= ClassError(pcFunction->mpcDeclarator->miFirstToken, "The function returns another type than the virtual function it overrides, and not a pointer or reference to a class derived from that one's");
+		}
 		else if (pcOverridden && !AllowsOnlyWhat(ExceptionsOf(pcFunction), ExceptionsOf(pcOverridden)))
 		{
 			bResult &= Error(pcFunction->mpcDeclarator, "The function allows exceptions that the virtual function it overrides doesn't");
@@ -1049,6 +1074,39 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 		bResult &= Error(pcClass->mpcSpecifier, "The class's destructor allows exceptions that the virtual destructor it overrides doesn't");
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an overrider's result may be the overridden function's: the same
+// type, or a pointer (or a reference of the same kind) to a class derived
+// from the class the overridden's points to, no more const or volatile.
+// [class.virtual] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ReturnsCovariant(CCPPFunction* pcOverrider, CCPPFunction* pcOverridden)
+{
+	SCPP65Type*	psFrom;
+	SCPP65Type*	psTo;
+
+	psFrom = pcOverrider->mpsReturn;
+	psTo = pcOverridden->mpsReturn;
+	if (!psFrom || !psTo || psFrom->Same(psTo) || (psFrom == &mcTypes.msUndeduced) || (psTo == &mcTypes.msUndeduced) || pcOverrider->mpcTemplate || pcOverridden->mpcTemplate)
+	{
+		return true;
+	}
+	if (!((psFrom->IsPointer() && psTo->IsPointer()) || (psFrom->IsReference() && psTo->IsReference() && (psFrom->bRvalue == psTo->bRvalue))))
+	{
+		return false;
+	}
+	psFrom = psFrom->psBase;
+	psTo = psTo->psBase;
+	if (!psFrom->IsClass() || !psTo->IsClass() || (psFrom->bConst && !psTo->bConst) || (psFrom->bVolatile && !psTo->bVolatile))
+	{
+		return false;
+	}
+	return (psFrom->pcClass == psTo->pcClass) || IsDerived(psFrom->pcClass, psTo->pcClass, NULL);
 }
 
 
@@ -1087,6 +1145,10 @@ void CCPPUnit::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsin
 	CCPPClass*	pcBase;
 	SCPPUsing*	psUsing;
 	int64			lliName;
+	CCPPSymbol*		pcSymbol;
+	CCPPClass*		pcDeclaring;
+	size			uiErrors;
+	bool			bReached;
 
 	pcName = pcUsing->mpcName;
 	if (pcUsing->mbTypename || !pcName || !pcName->IsQualifiedByClass())
@@ -1109,6 +1171,26 @@ void CCPPUnit::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsin
 	{
 		pcClass->mpcInheritedBase = pcBase;
 		return;
+	}
+
+	//What it names is a member the class may name: a base's private member isn't.  [namespace.udecl] 17
+	pcSymbol = pcBase->FindMemberSymbol(lliName, CPPSK_Field, &pcDeclaring);
+	if (!pcSymbol)
+	{
+		pcSymbol = pcBase->FindMemberSymbol(lliName, CPPSK_Function, &pcDeclaring);
+	}
+	if (pcSymbol)
+	{
+		uiErrors = mcErrors.NumErrors();
+		BeginQuiet();
+		bReached = mcBinder.UsingReaches(pcSymbol, pcUsing);
+		EndQuiet();
+		mcErrors.Truncate(uiErrors);
+		if (!bReached)
+		{
+			ClassError(pcUsing->miFirstToken, "The using-declaration names a base's private member, which the class can't reach");
+			return;
+		}
 	}
 	psUsing = pcClass->macUsings.Add();
 	psUsing->pcBase = pcBase;
@@ -1219,6 +1301,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 	SCPP65Type*						psType;
 	SCPP65Type*						psElement;
 	size							i;
+	size							uiMembers;
 	bool							bPure;
 	bool							bResult;
 	bool							bFriend;
@@ -1253,6 +1336,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		}
 		BeginQuiet();
 		bFriend = pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_FRIEND);
+		uiMembers = pcClass->mapcMembers.NumElements();
 		pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, bFriend ? NULL : pcClass, false);
 		EndQuiet();
 		if (!pcFunction && pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_VIRTUAL))
@@ -1264,6 +1348,10 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		{
 			mapcFailed.Add(pcDefinition->mpcDeclarator);
 			return true;
+		}
+		if (IsDeclaredAgainInClass(pcClass, pcFunction, uiMembers))
+		{
+			return ClassError(pcDefinition->mpcDeclarator->miFirstToken, "The member function is declared twice in its class");
 		}
 		if (!CheckDefaultedOrDeleted(pcFunction, pcDefinition))
 		{
@@ -1347,6 +1435,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				//virtual int f() = 0;
 				bPure = pcInit->mpcInitializer && Constant(pcInit->mpcInitializer, &lliZero) && (lliZero == 0);
 				BeginQuiet();
+				uiMembers = pcClass->mapcMembers.NumElements();
 				pcFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, pcClass, bPure);
 				EndQuiet();
 				if (!pcFunction && (pcSpecifiers->muiFlags & CPPDS_VIRTUAL))
@@ -1357,6 +1446,10 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				else if (!pcFunction)
 				{
 					mapcFailed.Add(pcInit->mpcDeclarator);
+				}
+				else if (IsDeclaredAgainInClass(pcClass, pcFunction, uiMembers))
+				{
+					bResult &= ClassError(pcInit->mpcDeclarator->miFirstToken, "The member function is declared twice in its class");
 				}
 				else if ((pcInit->meInitializer == CPPI_Default) && (pcFunction->meKind != CPPFK_Function))
 				{
@@ -1387,14 +1480,30 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				bResult &= Error(pcInit, "A member function declared by a type that depends on a template parameter is not supported by the compiler yet");
 				continue;
 			}
+			if (!InjectedNameReached(pcClass, pcSpecifiers, psType, pcInit))
+			{
+				bResult = false;
+				continue;
+			}
 			if (pcSpecifiers->muiFlags & CPPDS_STATIC)
 			{
+				if (pcInit->mpcInitializer && !(pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !(psType->bConst && psType->IsInteger()))
+				{
+					//[class.static.data] 3
+					bResult &= ClassError(pcInit->miFirstToken, "Only a static data member that is a const integer or enum, or constexpr, is initialised in its class");
+				}
 				pcVariable = AddVariable(&mapcGlobals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
 				pcVariable->mpcClass = pcClass;
 				pcVariable->mpcInClassInitialiser = pcInit->mpcInitializer;
 				continue;
 			}
 
+			if (pcClass->mbUnion && psType->IsReference())
+			{
+				//[class.union] 2
+				bResult &= ClassError(pcInit->miFirstToken, "A union has no reference member");
+				continue;
+			}
 			psElement = psType->IsArray() ? psType->psBase : psType;
 			if (psElement->IsClass() && !CompleteClass(psElement->pcClass, pcInit))
 			{
@@ -1421,6 +1530,84 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 	default:
 		return Error(pcMember, "This member is not supported by the compiler yet");
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member's type named by a base's name alone (A in class C : B { A* p; })
+// is that base's injected class name, found in the class as a member of
+// the base: it must be reachable from the class, which a private base of a
+// base isn't.  False (a class error) if it isn't.  [class.access.spec] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, SCPP65Type* psType, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxName*	pcName;
+	CCPPClass*		pcNamed;
+	size			uiErrors;
+	bool			bReached;
+
+	if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_NamedTypeSpecifier))
+	{
+		return true;
+	}
+	pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType)->mpcName;
+	while (psType && (psType->IsPointer() || psType->IsReference() || psType->IsArray()))
+	{
+		psType = psType->psBase;
+	}
+	if (!pcName || !pcName->IsSimple() || !psType || !psType->IsClass())
+	{
+		return true;
+	}
+	pcNamed = psType->pcClass;
+	if ((pcNamed == pcClass) || (GetComponentName(pcName->GetLast()) != pcNamed->mlliName) || !IsDerived(pcClass, pcNamed, NULL))
+	{
+		return true;
+	}
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	bReached = mcBinder.ReachesBase(pcClass, pcNamed, pcNode);
+	EndQuiet();
+	mcErrors.Truncate(uiErrors);
+	return bReached || ClassError(pcNode->miFirstToken, "The class's name here is its injected name, found through a base that can't be reached from here: write ::Name");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcFunction, which a member of pcClass's definition declares, was
+// declared by another of its members before: it was a member of the class
+// (one of its first uiMembers) declared in the class, not outside it.  A
+// member is declared once in its class (a function declared there may be
+// defined outside it).  [class.mem] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsDeclaredAgainInClass(CCPPClass* pcClass, CCPPFunction* pcFunction, size uiMembers)
+{
+	CCPPSyntax*	pcNode;
+	size		i;
+
+	if (!pcFunction->mpcDeclarator || (pcFunction->mpcClass != pcClass) || pcFunction->mbImplicit)
+	{
+		return false;
+	}
+	for (i = 0; (i < uiMembers) && (pcClass->mapcMembers.GetPtr(i) != pcFunction); i++)
+	{
+	}
+	if (i == uiMembers)
+	{
+		return false;
+	}
+	for (pcNode = pcFunction->mpcDeclarator->mpcParent; pcNode; pcNode = pcNode->mpcParent)
+	{
+		if (pcNode->GetKind() == CPPS_ClassSpecifier)
+		{
+			return pcNode == pcClass->mpcSpecifier;
+		}
+	}
+	return false;
 }
 
 
@@ -1525,8 +1712,9 @@ bool CCPPUnit::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpe
 //////////////////////////////////////////////////////////////////////////
 //
 // A const integer static data member initialised in its class (static const int
-// Max = 100;): where its value is used it is a constant, and needs no definition.
-// Its address, or a reference to it, needs one.  [class.static.data] 4
+// Max = 100;), or a constexpr float one: where its value is used it is a
+// constant, and needs no definition.  Its address, or a reference to it, needs
+// one.  [class.static.data] 3, 4
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsConstantMember(CCPPVariable* pcVariable)
@@ -1538,7 +1726,7 @@ bool CCPPUnit::IsConstantMember(CCPPVariable* pcVariable)
 		return false;
 	}
 	psType = pcVariable->mpsType;
-	return psType && psType->bConst && psType->IsInteger();
+	return psType && psType->bConst && (psType->IsInteger() || psType->IsFloat());
 }
 
 

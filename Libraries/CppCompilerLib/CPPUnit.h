@@ -696,6 +696,17 @@ public:
 	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);
 	bool					ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit);
 	bool					ClassError(int iToken, const char* szMessage);
+	bool					IsDeclaredAgainInClass(CCPPClass* pcClass, CCPPFunction* pcFunction, size uiMembers);
+	bool					ReturnsCovariant(CCPPFunction* pcOverrider, CCPPFunction* pcOverridden);
+	bool					InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, SCPP65Type* psType, CCPPSyntax* pcNode);
+	bool					CheckAbstractSignature(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
+	SCPP65Type*				SwitchType(CCPPSyntaxSwitchStatement* pcSwitch);
+	bool					CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psType);
+	void					SwitchCases(CCPPSyntax* pcNode, CArraySyntax* papcCases);
+	bool					SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope);
+	bool					CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* pcReturn);
+	bool					HasFieldNeedingInitialiser(CCPPClass* pcClass);
+	bool					CheckMemberInitialisers(CCPPFunction* pcFunction);
 	void					ReportClassErrors(void);
 	void					ReportUndeclaredTypes(void);
 	void					UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed);

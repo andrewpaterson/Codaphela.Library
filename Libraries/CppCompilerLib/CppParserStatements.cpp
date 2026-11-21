@@ -217,6 +217,11 @@ CCPPSyntaxStatement* CCPPParser::ParseStatement(CCPPSyntax* pcParent)
 		Next();
 		if (Is(CT_CloseCurlyBracket))
 		{
+			//(C++23 allows it; C++14 doesn't.)  [stmt.label] 1
+			if ((miTentative == 0) && !IsSkimming(pcLabel->miFirstToken))
+			{
+				ErrorAt(pcLabel->miName, "A label is followed by a statement");
+			}
 			pcLabel->miLastToken = PreviousToken();
 			pcStatement = pcLabel;
 		}

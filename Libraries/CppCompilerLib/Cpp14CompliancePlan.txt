@@ -325,6 +325,29 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
           parameter; destructors deleted or with a parameter; mem-initialiser rules; a copy deleted by a member.
        g  Statements: a label at a block's end; duplicate cases; a case jumping past an initialisation; return with
           an explicit constructor; a value returned from a void function; access to a private destructor.
+     Done 2026-11-21: every case of clauses 6 to 12 passes on both targets (6 51, 7 96, 9 62, 10 57, 11 45, 12 68).
+     Batches 1 and 2 in 305507201, batch 3 in 2f356533b, batch 4 a to c in 0a3fe25c0, d to g and the access rules
+     after it.  Each refusal has a valid case beside it; the "...RulesKept" cases hold what the new checks must let
+     through.  Where things went, and choices made:
+       - Bodies nothing calls (CCPPUnit::CheckUncalledFunctions, at the end of the unit's first turn): the classes
+         defined in the unit's own .cpp are laid out and the uncalled definitions there checked (CheckFunction); a
+         closure's functions are left to their lambda.  Headers aren't, so a library's unused inline functions cost
+         nothing.
+       - Syntax-only class rules are the parser's (CCPPParser::CheckClassMembers, CheckSpecialMember,
+         CheckAnonymousUnion, CheckDeclSpecifiers), so a class nothing uses is checked too; rules needing types are
+         the class layout's (ClassError, kept through quiet layouts).
+       - g++ is followed where it is stricter than C++14's text: an anonymous union at namespace scope is static in
+         an unnamed namespace too; a for's condition object is destroyed before the step.
+       - The abstract-class rule is checked where the class is complete: at the declaration if it is then, else at
+         the definition and at each call.  Laying a class out early from a declaration broke BaseLib's vector
+         classes (a template base laid out in the wrong context), so it isn't.
+       - The protected rule ([class.protected]) is CCPPAccess::IsThroughDerived: constructors, destructors, static
+         members, types and enumerators are exempt.  A using-declaration is refused only for a base's private member.
+       - A private base's injected name is checked in data members' types only (InjectedNameReached).
+       - A constexpr float static member is now a constant (ConstexprFloat binds S::d), found by ClassMemberRulesKept:
+         it was read through an undefined symbol.
+       - = object of a class without a copy constructor of its own no longer looks for a constructor to copy it
+         (CopyInitialises), found by the uncalled-body check on a constexpr function.
 
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size

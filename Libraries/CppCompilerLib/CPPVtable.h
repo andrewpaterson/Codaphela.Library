@@ -142,6 +142,7 @@ public:
 	CArrayInt					maiVirtualOffsets;	//From the object to each of the class's virtual bases, before the class's own part.
 	bool						mbWritten;			//The unit being generated has written it.
 	CArrayCPPFunctions			mapcThunks;			//The covariant thunks its entries are (EntryFor), its to free.
+	CCPPFunction*				mpcAmbiguous;		//A virtual base's function with two final overriders, neither overriding the other (AddVirtualPart).
 	CCPPClass*					mpcComplete;		//A construction vtable: the complete object's class...
 	int							miCompleteOffset;	//...and where the subobject is in it.
 

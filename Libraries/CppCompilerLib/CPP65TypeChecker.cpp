@@ -657,7 +657,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 		return Value(cBound.mpcArgument);
 	case CPPBN_Variable:
 		//SIZE::Max's value is the constant its class gives it: it needs no definition.  [class.static.data] 4
-		if (mpcUnit->IsConstantMember(cBound.mpcVariable) && mpcUnit->Constant(pcId, &lliValue))
+		if (mpcUnit->IsConstantMember(cBound.mpcVariable) && (cBound.mpcVariable->mpsType->IsFloat() || mpcUnit->Constant(pcId, &lliValue)))
 		{
 			return Load(cBound.mpcVariable->mpsType, pcId);
 		}
@@ -776,6 +776,11 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* 
 	if (!psField)
 	{
 		return false;
+	}
+	if (psField->pcSymbol && !mpcUnit->GetBinder()->ReachesMember(psField->pcSymbol, pcClass, pcId))
+	{
+		//&B::m is named as a member of B.  [expr.unary.op] 3, [class.protected] 1
+		return true;
 	}
 	*ppsType = mpcTypes->MemberPointer(pcClass, psField->psType);
 	return true;
@@ -1731,6 +1736,10 @@ SCPP65Type* CCPP65TypeChecker::Call(CCPPFunction* pcFunction, CArraySyntax* papc
 		return NULL;
 	}
 	if (!Arguments(&pcFunction->mapsParameters, &pcFunction->mapcDefaults, pcFunction->mbVariadic, papcArguments, pcNode, pcFunction->mpsReturn, pcFunction->mpcBindings))
+	{
+		return NULL;
+	}
+	if (!mpcUnit->CheckAbstractSignature(pcFunction, pcNode))
 	{
 		return NULL;
 	}
@@ -3426,6 +3435,10 @@ bool CCPP65TypeChecker::CopyConstruct(CCPPClass* pcClass, CCPPSyntax* pcSource, 
 		bResult = ConstructClass(pcClass, &apcArguments, pcNode);
 		apcArguments.Kill();
 		return bResult;
+	}
+	if (mpcUnit->IsRvalue(pcSource) ? mpcUnit->GetBinder()->IsMoveDeleted(pcClass) : mpcUnit->GetBinder()->IsCopyDeleted(pcClass))
+	{
+		return Error(pcNode, "The class's copy constructor is deleted: a member or base of it can't be copied");
 	}
 	if (!pcClass->IsTriviallyCopyable())
 	{

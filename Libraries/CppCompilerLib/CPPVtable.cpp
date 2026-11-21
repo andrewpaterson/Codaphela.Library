@@ -30,6 +30,7 @@ void CCPPVtable::Init(void)
 {
 	mapcFunctions.Init();
 	mapcThunks.Init();
+	mpcAmbiguous = NULL;
 	miPointerOffset = -1;
 	macSecondaries.Init();
 	maiVirtualOffsets.Init();
@@ -387,9 +388,11 @@ void CCPPVtable::AddVirtualPart(CCPPClass* pcClass, CCPPClass* pcVirtualBase, in
 	CArrayInt					aiOffsets;
 	CCPPClass*					pcOverrider;
 	CCPPFunction*				pcFunction;
+	CArrayTemplatePtr<CCPPClass>*	papcFinal;
 	size						i;
 	size						j;
 	size						k;
+	size						l;
 
 	psVtable = macSecondaries.Add();
 	psVtable->iOffset = iOffset;
@@ -413,6 +416,13 @@ void CCPPVtable::AddVirtualPart(CCPPClass* pcClass, CCPPClass* pcVirtualBase, in
 		AddOverriders(pcClass->macVirtualBases.Get(i)->pcClass, VirtualBaseOffset(pcClass, pcClass->macVirtualBases.Get(i)->pcClass), &apcClasses, &aiOffsets);
 	}
 	AddOverriders(pcClass, 0, &apcClasses, &aiOffsets);
+
+	//Each entry's final overriders: those no later overrider's class derives from.  [class.virtual] 2
+	papcFinal = (CArrayTemplatePtr<CCPPClass>*)malloc(sizeof(CArrayTemplatePtr<CCPPClass>) * (psVtable->mapcFunctions.NumElements() + 1));
+	for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
+	{
+		papcFinal[j].Init();
+	}
 	for (k = 0; k < apcClasses.NumElements(); k++)
 	{
 		pcOverrider = apcClasses.GetPtr(k);
@@ -433,10 +443,30 @@ void CCPPVtable::AddVirtualPart(CCPPClass* pcClass, CCPPClass* pcVirtualBase, in
 				{
 					psVtable->mapcFunctions.SetPtr(j, EntryFor(pcClass, pcFunction, psVtable->mapcFunctions.GetPtr(j)));
 					psVtable->maiAdjust.SetValue(j, aiOffsets.GetValue(k) - iOffset);
+					for (l = papcFinal[j].NumElements(); l > 0; l--)
+					{
+						if (pcOverrider->HasBase(papcFinal[j].GetPtr(l - 1)))
+						{
+							papcFinal[j].RemoveAt(l - 1);
+						}
+					}
+					if (!papcFinal[j].Contains(&pcOverrider))
+					{
+						papcFinal[j].Add(pcOverrider);
+					}
 				}
 			}
 		}
 	}
+	for (j = 0; j < psVtable->mapcFunctions.NumElements(); j++)
+	{
+		if ((papcFinal[j].NumElements() > 1) && !mpcAmbiguous)
+		{
+			mpcAmbiguous = psVtable->mapcFunctions.GetPtr(j);
+		}
+		papcFinal[j].Kill();
+	}
+	free(papcFinal);
 	aiOffsets.Kill();
 	apcClasses.Kill();
 }

@@ -295,6 +295,10 @@ protected:
 	void							CheckDeclSpecifiers(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext);
 	void							CheckEnumRedeclaration(CCPPSymbol* pcSymbol, CCPPSyntaxEnumSpecifier* pcEnum);
 	bool							SameTokens(int iFirst, int iLast, int iOtherFirst, int iOtherLast);
+	void							CheckClassMembers(CCPPSyntaxClassSpecifier* pcClass);
+	void							CheckSpecialMember(CCPPSyntaxClassSpecifier* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
+	void							CheckAnonymousUnion(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext);
+	bool							IsLocalClass(CCPPSyntaxClassSpecifier* pcClass);
 	bool							Clash(CCPPScope* pcScope, int64 lliName, ECPPSymbolKind eKind, bool bExtern);
 	bool							OuterDeclares(CCPPScope* pcScope, int64 lliName, bool bParameters);
 	bool							IsExternDeclaration(CCPPSymbol* pcSymbol);

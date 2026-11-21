@@ -8308,6 +8308,34 @@ static const SConformanceCase gasConformanceClause6[] =
 		"	default: return 0;\n"
 		"}\n"
 	},
+	//6.1 [stmt.label], 6.4.2 [stmt.switch] p2, 6.6.3 [stmt.return] p2, 6.7 [stmt.dcl] p3: what those refusals leave allowed
+	{
+		"StmtJumpRulesKept", 63,
+		"struct P { P(int x) : v(x) { } int v; };\n"
+		"struct Q { explicit Q(int x) : v(x) { } int v; };\n"
+		"P MakeP() { return 2; }\n"
+		"P MakePList() { return { 4 }; }\n"
+		"Q MakeQ() { return Q(8); }\n"
+		"void Nothing() { return Nothing(); }\n"
+		"int Pick(long x)\n"
+		"{\n"
+		"	switch (x)\n"
+		"	{\n"
+		"	case 1: { int y = 16; return y; }\n"
+		"	case -1: return 32;\n"
+		"	case 0xFFFFL: return 0;\n"
+		"	default: break;\n"
+		"	}\n"
+		"	return 0;\n"
+		"}\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{ goto L; r = 100; L: ; }\n"
+		"	r += 1 + MakeP().v + MakePList().v + MakeQ().v + Pick(1) + Pick(-1);\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//6.1 [stmt.label] p1: a label is followed by a statement
 	{
 		"StmtLabelAtBlockEndRefused", CONFORMANCE_REFUSED,
@@ -11578,6 +11606,35 @@ static const SConformanceCase gasConformanceClause9[] =
 		"struct S { int F(); int F(); };\n"
 		"int main() { return 0; }\n"
 	},
+	//9.2 [class.mem], 9.4 [class.static], 9.5 [class.union], 9.8 [class.local], 13.1 [over.load] p2: what those refusals leave allowed
+	{
+		"ClassMemberRulesKept", 127,
+		"struct S\n"
+		"{\n"
+		"	int F();\n"
+		"	int F() const { return 2; }\n"
+		"	int G() & { return 4; }\n"
+		"	int G() && { return 8; }\n"
+		"	static const int k = 16;\n"
+		"	static constexpr double d = 0.5;\n"
+		"	static int H() { return 32; }\n"
+		"};\n"
+		"int S::F() { return 1; }\n"
+		"namespace { static union { int ui; char uc; }; }\n"
+		"union V { int i; float f; int Get() const { return i; } };\n"
+		"int main()\n"
+		"{\n"
+		"	struct L { int v; int Get() const { return v; } };\n"
+		"	L l = { 0 };\n"
+		"	S s;\n"
+		"	const S& c = s;\n"
+		"	V v;\n"
+		"	v.i = 64;\n"
+		"	ui = 0;\n"
+		"	int r = s.F() + c.F() + s.G() + S().G() + S::k + S::H() + v.Get() + l.Get() + ui;\n"
+		"	return (S::d == 0.5) ? r : 0;\n"
+		"}\n"
+	},
 	//9.2 [class.mem] p13: a static member doesn't have the class's name
 	{
 		"ClassMemberNamedAsClassRefused", CONFORMANCE_REFUSED,
@@ -11794,6 +11851,14 @@ static const SConformanceCase gasConformanceClause9[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//9.4.2 [class.static.data] p3: a constexpr float static member is a constant; one bound to a reference is defined
+	{
+		"ClassStaticConstexprFloat", 5,
+		"struct S { static constexpr double d = 0.25; static constexpr float f = 1.5f; };\n"
+		"constexpr double S::d;\n"
+		"double Twice(const double& r) { return r * 2; }\n"
+		"int main() { return (int)(Twice(S::d) * 4 + S::f * 2); }\n"
+	},
 	//9.4.2 [class.static.data] p3: only a const integer or a constexpr static member is initialised in its class
 	{
 		"ClassStaticInClassInitialiserRefused", CONFORMANCE_REFUSED,
@@ -11882,6 +11947,13 @@ static const SConformanceCase gasConformanceClause9[] =
 		"struct M { M() { } };\n"
 		"union U { M m; int i; };\n"
 		"int main() { U u; return 0; }\n"
+	},
+	//9.5 [class.union] p2, p8, 12.6.2 [class.base.init] p8: an anonymous union's member with a constructor is its class's variant member, which the class's constructor makes or not
+	{
+		"ClassAnonymousUnionMemberWithConstructor", 3,
+		"struct M { int v; M() : v(5) { } };\n"
+		"struct S { int tag; union { M m; int i; }; S() : tag(0) { i = 3; } };\n"
+		"int main() { S s; return s.i + s.tag; }\n"
 	},
 	//9.5 [class.union] p2: a union has no base class
 	{
@@ -12722,6 +12794,25 @@ static const SConformanceCase gasConformanceClause10[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//10.3 [class.virtual] p2, p7, 10.4 [class.abstract] p3: what those refusals leave allowed
+	{
+		"DerivedOverriderRulesKept", 44,
+		"struct A { virtual int F() { return 1; } virtual const A* Self() const { return this; } virtual int Id() const { return 0; } };\n"
+		"struct B : virtual A { int F() { return 2; } };\n"
+		"struct C : virtual A { int F() { return 3; } };\n"
+		"struct D : B, C { int F() { return 4; } D* Self() const { return const_cast<D*>(this); } int Id() const { return 8; } };\n"
+		"struct P { virtual int G() = 0; };\n"
+		"struct Q : P { int G() { return 16; } };\n"
+		"int Call(P& p) { return p.G(); }\n"
+		"int CallPointer(P* p) { return p->G(); }\n"
+		"int main()\n"
+		"{\n"
+		"	D d;\n"
+		"	A& a = d;\n"
+		"	Q q;\n"
+		"	return a.F() + a.Self()->Id() + Call(q) + CallPointer(&q);\n"
+		"}\n"
+	},
 	//10.3 [class.virtual] p7: an overrider returning another type that isn't covariant
 	{
 		"DerivedReturnNotCovariantRefused", CONFORMANCE_REFUSED,
@@ -13142,6 +13233,46 @@ static const SConformanceCase gasConformanceClause11[] =
 		"	if (d.Static() == 2) r += 2;\n"
 		"	return r;\n"
 		"}\n"
+	},
+	//11.4 [class.protected] p1, 7.3.3 [namespace.udecl] p17: what those refusals leave allowed
+	{
+		"AccessProtectedRulesKept", 63,
+		"struct B\n"
+		"{\n"
+		"protected:\n"
+		"	int v = 1;\n"
+		"	static int s;\n"
+		"	B() { }\n"
+		"	int Get() const { return v; }\n"
+		"public:\n"
+		"	virtual ~B() { }\n"
+		"};\n"
+		"int B::s = 2;\n"
+		"struct D : B\n"
+		"{\n"
+		"	using B::Get;\n"
+		"	D() : B() { v = 4; }\n"
+		"	int Own(D& o) { return o.v + o.Get(); }\n"
+		"	int Further(struct E& e);\n"
+		"	int Static() { return B::s; }\n"
+		"	int Pointer() { int D::* p = &D::v; return this->*p; }\n"
+		"};\n"
+		"struct E : D { E() { v = 16; } };\n"
+		"int D::Further(E& e) { return e.v; }\n"
+		"int main()\n"
+		"{\n"
+		"	D d;\n"
+		"	E e;\n"
+		"	return d.Own(d) + d.Further(e) + d.Static() + d.Pointer() + d.Get() + 29;\n"
+		"}\n"
+	},
+	//11.4 [class.protected] p1, 11.2 [class.access.base] p5: B::F() through this, and a friend of D through a D
+	{
+		"AccessProtectedQualifiedAndFriend", 5,
+		"struct B { protected: int v = 4; int F() { return 1; } };\n"
+		"struct D : B { friend struct Fixer; int G() { return B::F() + B::v - 2; } };\n"
+		"struct Fixer { static int Read(D* p) { return p->v; } };\n"
+		"int main() { D d; return d.G() + Fixer::Read(&d) - 2; }\n"
 	},
 	//11.4 [class.protected] p1: not through an object of the base class
 	{
@@ -13964,6 +14095,37 @@ static const SConformanceCase gasConformanceClause12[] =
 		"SpecialDeletedCopyRefused", CONFORMANCE_REFUSED,
 		"struct S { S() { } S(const S&) = delete; };\n"
 		"int main() { S a; S b = a; return 0; }\n"
+	},
+	//12.1 [class.ctor], 12.3.2 [class.conv.fct], 12.4 [class.dtor], 12.6.2 [class.base.init], 12.8 [class.copy]: what those refusals leave allowed
+	{
+		"SpecialMemberRulesKept", 127,
+		"struct B { int b; B(int x) : b(x) { } };\n"
+		"struct S : B\n"
+		"{\n"
+		"	int& r;\n"
+		"	const int k;\n"
+		"	const int d = 4;\n"
+		"	S(int& x) : B(1), r(x), k(2) { }\n"
+		"	S(int& x, int) : S(x) { }\n"
+		"	explicit operator bool() const { return k == 2; }\n"
+		"	~S(void) { }\n"
+		"};\n"
+		"struct A { const int k; int& r; };\n"
+		"struct M { int v; M() : v(8) { } M(const M&) = delete; M(M&& o) : v(o.v) { } };\n"
+		"struct H { M m; };\n"
+		"struct C { M m; C() { } C(const C&) { } };\n"
+		"int main()\n"
+		"{\n"
+		"	int x = 16;\n"
+		"	S s(x, 0);\n"
+		"	A a = { 32, x };\n"
+		"	H h1;\n"
+		"	H h2(static_cast<H&&>(h1));\n"
+		"	C c1;\n"
+		"	C c2(c1);\n"
+		"	int r = s.b + s.k + s.d + h2.m.v + s.r + a.k + c2.m.v - 8 + 64;\n"
+		"	return (s && a.r == 16) ? r : 0;\n"
+		"}\n"
 	},
 	//12.8 [class.copy] p11: a member that can't be copied deletes the implicit copy constructor
 	{

@@ -501,6 +501,23 @@ int main()
 	return r;
 }
 
+### DerivedOverriderRulesKept | 44 | 10.3 [class.virtual] p2, p7, 10.4 [class.abstract] p3: what those refusals leave allowed
+struct A { virtual int F() { return 1; } virtual const A* Self() const { return this; } virtual int Id() const { return 0; } };
+struct B : virtual A { int F() { return 2; } };
+struct C : virtual A { int F() { return 3; } };
+struct D : B, C { int F() { return 4; } D* Self() const { return const_cast<D*>(this); } int Id() const { return 8; } };
+struct P { virtual int G() = 0; };
+struct Q : P { int G() { return 16; } };
+int Call(P& p) { return p.G(); }
+int CallPointer(P* p) { return p->G(); }
+int main()
+{
+	D d;
+	A& a = d;
+	Q q;
+	return a.F() + a.Self()->Id() + Call(q) + CallPointer(&q);
+}
+
 ### DerivedReturnNotCovariantRefused | REFUSED | 10.3 [class.virtual] p7: an overrider returning another type that isn't covariant
 struct B { virtual int F() { return 1; } };
 struct D : B { long F() { return 2; } };

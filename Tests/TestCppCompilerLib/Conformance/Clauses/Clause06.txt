@@ -23,6 +23,32 @@ int main()
 	default: return 0;
 }
 
+### StmtJumpRulesKept | 63 | 6.1 [stmt.label], 6.4.2 [stmt.switch] p2, 6.6.3 [stmt.return] p2, 6.7 [stmt.dcl] p3: what those refusals leave allowed
+struct P { P(int x) : v(x) { } int v; };
+struct Q { explicit Q(int x) : v(x) { } int v; };
+P MakeP() { return 2; }
+P MakePList() { return { 4 }; }
+Q MakeQ() { return Q(8); }
+void Nothing() { return Nothing(); }
+int Pick(long x)
+{
+	switch (x)
+	{
+	case 1: { int y = 16; return y; }
+	case -1: return 32;
+	case 0xFFFFL: return 0;
+	default: break;
+	}
+	return 0;
+}
+int main()
+{
+	int r = 0;
+	{ goto L; r = 100; L: ; }
+	r += 1 + MakeP().v + MakePList().v + MakeQ().v + Pick(1) + Pick(-1);
+	return r;
+}
+
 ### StmtLabelAtBlockEndRefused | REFUSED | 6.1 [stmt.label] p1: a label is followed by a statement
 int main()
 {

@@ -1835,7 +1835,10 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	}
 
 	//It is the member whether or not it may be named here: that it may not is an error of its own.
-	mcAccess.CheckSymbol(pcBound->mpcSymbol, pcClass, pcNode);
+	if (mcAccess.CheckSymbol(pcBound->mpcSymbol, pcClass, pcNode))
+	{
+		mcAccess.CheckProtectedObject(pcBound->mpcSymbol, pcClass, pcNode);
+	}
 	return true;
 }
 
@@ -1921,6 +1924,159 @@ bool CCPPBinder::ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcA
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the class's copy constructor is deleted: the one it declares is,
+// or it declares none but declares a move (which deletes the one the
+// compiler would declare), or a base or a field can't be copied (an rvalue
+// reference, or an object whose copy constructor is deleted).
+// [class.copy] 7, 11
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsCopyDeleted(CCPPClass* pcClass)
+{
+	CCPPFunction*	pcCopy;
+	SCPPField*		psField;
+	SCPP65Type*		psType;
+	size			i;
+
+	pcCopy = pcClass->GetCopier(false, false);
+	if (pcCopy)
+	{
+		return pcCopy->mbDeleted;
+	}
+	if (pcClass->GetCopier(false, true) || pcClass->GetCopier(true, true))
+	{
+		return true;
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		if (IsCopyDeleted(pcClass->macBases.Get(i)->pcClass))
+		{
+			return true;
+		}
+	}
+	for (i = 0; !pcClass->mbUnion && (i < pcClass->macFields.NumElements()); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		psType = psField->psType;
+		while (psType->IsArray())
+		{
+			psType = psType->psBase;
+		}
+		if ((psType->IsReference() && psType->bRvalue) || (psType->IsClass() && IsCopyDeleted(psType->pcClass)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an object of the class can't be made from an rvalue of it: the
+// move constructor it declares is deleted, or with none the copy
+// constructor it declares; the compiler declares no move where the class
+// declares a copy assignment, a move assignment or a destructor, and then
+// the copy constructor makes it (IsCopyDeleted); else a base or a field
+// can't be moved.  [class.copy] 9, 11
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsMoveDeleted(CCPPClass* pcClass)
+{
+	CCPPFunction*	pcCopier;
+	SCPPField*		psField;
+	SCPP65Type*		psType;
+	size			i;
+
+	pcCopier = pcClass->GetCopier(false, true);
+	if (!pcCopier)
+	{
+		pcCopier = pcClass->GetCopier(false, false);
+	}
+	if (pcCopier)
+	{
+		return pcCopier->mbDeleted;
+	}
+	if (pcClass->GetCopier(true, false) || pcClass->GetCopier(true, true) || (pcClass->mpcDestructor && !pcClass->mpcDestructor->mbImplicit))
+	{
+		return IsCopyDeleted(pcClass);
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		if (IsMoveDeleted(pcClass->macBases.Get(i)->pcClass))
+		{
+			return true;
+		}
+	}
+	for (i = 0; !pcClass->mbUnion && (i < pcClass->macFields.NumElements()); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		psType = psField->psType;
+		while (psType->IsArray())
+		{
+			psType = psType->psBase;
+		}
+		if (psType->IsClass() && IsMoveDeleted(psType->pcClass))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a member's name (a field, a function, a type) may be named at
+// pcNode as a member of pcNaming, for a pointer to member (&C::m: the
+// protected rule's object is pcNaming).  An error (and false) if not.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ReachesMember(CCPPSymbol* pcSymbol, CCPPClass* pcNaming, CCPPSyntax* pcNode)
+{
+	return mcAccess.CheckSymbol(pcSymbol, pcNaming, pcNode) && mcAccess.CheckProtectedObject(pcSymbol, pcNaming, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a class's using-declaration may name a base's member (it isn't
+// private there; CCPPAccess::CheckUsing).  An error (and false) if not.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::UsingReaches(CCPPSymbol* pcSymbol, CCPPSyntax* pcUsing)
+{
+	return mcAccess.CheckUsing(pcSymbol, pcUsing);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a field of the class (a union's, say) is an object that making
+// it runs code: a constructor of its class, or what NeedsConstructor says.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::HasMemberMadeByCode(CCPPClass* pcClass)
+{
+	SCPPField*		psField;
+	SCPP65Type*		psType;
+	size			i;
+
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		psType = psField->psType->IsArray() ? psField->psType->psBase : psField->psType;
+		if (psType->IsClass() && psType->pcClass->NeedsConstructor())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether pcInit's = value, or = { values }, may make an object of pcClass
 // by the constructor that takes it: copy initialisation uses no explicit
 // constructor, and the constructor is the one conversion of the program's
@@ -1978,12 +2134,16 @@ bool CCPPBinder::CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* p
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether an object of pcClass may be destroyed at pcNode: the destructor
-// the class declares, if it does, may be named there.  An error (and false)
-// if not.  [class.dtor] 11
+// the class declares, if it does, isn't deleted and may be named there.  An
+// error (and false) if not.  [class.dtor] 11
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPBinder::ReachesDestructor(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
+	if (pcClass->mpcDestructor && pcClass->mpcDestructor->mbDeleted)
+	{
+		return mcAccess.Refuse(pcNode, "The class's destructor is deleted: no object of it is made where it would be destroyed");
+	}
 	return !pcClass->mpcDestructor || mcAccess.CheckFunction(pcClass->mpcDestructor, pcClass, pcNode);
 }
 
@@ -2102,6 +2262,11 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 	{
 		//decltype(lambda) object;  [expr.prim.lambda] 20
 		return mcAccess.Refuse(pcNode, "A lambda's closure has no default constructor: it is made by its lambda, or copied");
+	}
+	if (pcClass->mbUnion && pcClass->mpcSpecifier && pcClass->mpcSpecifier->mpcName && !pcClass->mbConstructors && (papcArguments->NumElements() == 0) && HasMemberMadeByCode(pcClass))
+	{
+		//(An anonymous union's members are its class's, which its constructor makes or not.)  [class.union] 2, [class.ctor] 4
+		return mcAccess.Refuse(pcNode, "The union's default constructor is deleted: a member of it is made by a constructor, which the union can't choose to call");
 	}
 	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
 	{

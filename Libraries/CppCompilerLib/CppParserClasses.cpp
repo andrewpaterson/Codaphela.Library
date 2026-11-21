@@ -347,6 +347,7 @@ bool CCPPParser::ParseClassBody(CCPPSyntaxClassSpecifier* pcClass)
 	{
 		return false;
 	}
+	CheckClassMembers(pcClass);
 
 	if (!pcClass->mpcName && (miTentative == 0))
 	{
@@ -841,6 +842,246 @@ void CCPPParser::CheckEnumRedeclaration(CCPPSymbol* pcSymbol, CCPPSyntaxEnumSpec
 	{
 		ErrorAt(pcEnum->miFirstToken, (char*)"An enum declared again is scoped as it was, with the same underlying type");
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a class's members may not be, seen in its definition alone: a
+// union has no base and no virtual function; a local class has no static
+// data member and no member template; a static member function isn't
+// const, volatile or ref-qualified; a static data member doesn't have the
+// class's name; and a data member is declared once.  [class.union] 2,
+// [class.local] 4, [temp.mem] 2, [class.static.mfct] 2, [class.mem] 1, 13
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckClassMembers(CCPPSyntaxClassSpecifier* pcClass)
+{
+	CCPPSyntax*						pcMember;
+	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
+	CCPPSyntaxDeclarator*			pcDeclarator;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxFunctionSuffix*		pcSuffix;
+	CArrayInt64						alliNames;
+	size							i;
+	size							j;
+	bool							bLocal;
+	bool							bUnion;
+	int64							lliName;
+
+	if ((miTentative > 0) || IsSkimming(pcClass->miFirstToken))
+	{
+		return;
+	}
+	bUnion = pcClass->meKey == CT_union;
+	if (bUnion && (pcClass->macpBases.NumElements() > 0))
+	{
+		ErrorAt(pcClass->miFirstToken, (char*)"A union has no base class");
+	}
+	bLocal = IsLocalClass(pcClass);
+	alliNames.Init();
+	for (i = 0; i < pcClass->macpMembers.NumElements(); i++)
+	{
+		pcMember = pcClass->macpMembers.GetPtr(i);
+		if (pcMember->GetKind() == CPPS_TemplateDeclaration)
+		{
+			if (bLocal)
+			{
+				ErrorAt(pcMember->miFirstToken, (char*)"A local class has no member template");
+			}
+			continue;
+		}
+		if (pcMember->GetKind() == CPPS_FunctionDefinition)
+		{
+			pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcMember)->mpcSpecifiers;
+			pcDeclarator = ((CCPPSyntaxFunctionDefinition*)pcMember)->mpcDeclarator;
+		}
+		else if (pcMember->GetKind() == CPPS_SimpleDeclaration)
+		{
+			pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcMember)->mpcSpecifiers;
+			pcDeclarator = NULL;
+		}
+		else
+		{
+			continue;
+		}
+		if (!pcSpecifiers || (pcSpecifiers->muiFlags & (CPPDS_FRIEND | CPPDS_TYPEDEF)))
+		{
+			continue;
+		}
+		if (bUnion && (pcSpecifiers->muiFlags & CPPDS_VIRTUAL))
+		{
+			ErrorAt(pcMember->miFirstToken, (char*)"A union has no virtual function");
+		}
+		for (j = 0; pcDeclarator || (j < ((pcMember->GetKind() == CPPS_SimpleDeclaration) ? ((CCPPSyntaxSimpleDeclaration*)pcMember)->macpDeclarators.NumElements() : 0)); j++)
+		{
+			pcInit = pcDeclarator ? NULL : (CCPPSyntaxInitDeclarator*)((CCPPSyntaxSimpleDeclaration*)pcMember)->macpDeclarators.GetPtr(j);
+			if (pcInit)
+			{
+				pcDeclarator = pcInit->mpcDeclarator;
+			}
+			if (pcDeclarator->IsFunction())
+			{
+				pcSuffix = pcDeclarator->GetFunctionSuffix();
+				if ((pcSpecifiers->muiFlags & CPPDS_STATIC) && pcSuffix && (pcSuffix->macpQualifiers.NumElements() > 0))
+				{
+					ErrorAt(pcDeclarator->miFirstToken, (char*)"A static member function isn't const, volatile, & or &&: it has no object");
+				}
+				CheckSpecialMember(pcClass, pcSpecifiers, pcDeclarator);
+			}
+			else if (pcInit && pcInit->mpcSymbol && !pcInit->mpcBitField)
+			{
+				lliName = pcInit->mpcSymbol->mlliName;
+				if (pcSpecifiers->muiFlags & CPPDS_STATIC)
+				{
+					if (bLocal)
+					{
+						ErrorAt(pcDeclarator->miFirstToken, (char*)"A local class has no static data member");
+					}
+					if (pcClass->mpcSymbol && (lliName == pcClass->mpcSymbol->mlliName))
+					{
+						ErrorAt(pcDeclarator->miFirstToken, (char*)"A static data member doesn't have its class's name");
+					}
+				}
+				if (alliNames.Contains(&lliName))
+				{
+					ErrorAt(pcDeclarator->miFirstToken, (char*)"The class's member is declared twice");
+				}
+				alliNames.Add(lliName);
+			}
+			pcDeclarator = NULL;
+		}
+	}
+	alliNames.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a constructor, conversion function or destructor's declaration
+// isn't: a constructor virtual or static, a constructor or conversion
+// function with a return type written, a conversion function or destructor
+// with a parameter.  [class.ctor] 4, 6, [class.conv.fct] 1, [class.dtor] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckSpecialMember(CCPPSyntaxClassSpecifier* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	bool						bType;
+	bool						bConstructor;
+
+	pcName = pcDeclarator->GetName();
+	pcComponent = pcName ? pcName->GetLast() : NULL;
+	pcSuffix = pcDeclarator->GetFunctionSuffix();
+	if (!pcComponent || !pcSuffix || (pcName->macpComponents.NumElements() != 1))
+	{
+		return;
+	}
+	bType = pcSpecifiers->mpcType || (pcSpecifiers->muiTypeKeywords != 0) || (pcSpecifiers->miLongs > 0);
+	bConstructor = (pcComponent->meKind == CPPNC_Identifier) && (pcComponent->miName != -1) && pcClass->mpcSymbol && (GetTokenIdentifier(pcComponent->miName) == pcClass->mpcSymbol->mlliName);
+	if (bConstructor && (pcSpecifiers->muiFlags & (CPPDS_VIRTUAL | CPPDS_STATIC)))
+	{
+		ErrorAt(pcDeclarator->miFirstToken, (char*)"A constructor is neither virtual nor static");
+	}
+	else if (bConstructor && bType)
+	{
+		ErrorAt(pcDeclarator->miFirstToken, (char*)"A constructor has no return type");
+	}
+	else if ((pcComponent->meKind == CPPNC_Conversion) && bType)
+	{
+		ErrorAt(pcDeclarator->miFirstToken, (char*)"A conversion function has no return type written: its name says it");
+	}
+	else if (((pcComponent->meKind == CPPNC_Conversion) || (pcComponent->meKind == CPPNC_Destructor)) && (pcSuffix->NumParameters() > 0))
+	{
+		ErrorAt(pcDeclarator->miFirstToken, (char*)"A conversion function or destructor takes no parameter");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// union { ... }; is an anonymous union: it has only public data members
+// that aren't static, and at namespace scope it is static (in an unnamed
+// namespace too, as g++ has it).  [class.union] 5
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckAnonymousUnion(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext)
+{
+	CCPPSyntaxClassSpecifier*	pcUnion;
+	CCPPSyntax*					pcMember;
+	CCPPSyntaxDeclSpecifiers*	pcMemberSpecifiers;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	size						i;
+	size						j;
+	bool						bData;
+
+	if (!pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_ClassSpecifier) || (miTentative > 0) || IsSkimming(pcSpecifiers->miFirstToken))
+	{
+		return;
+	}
+	pcUnion = (CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType;
+	if ((pcUnion->meKey != CT_union) || pcUnion->mpcName)
+	{
+		return;
+	}
+	if ((eContext == CPPDC_Namespace) && !(pcSpecifiers->muiFlags & CPPDS_STATIC))
+	{
+		ErrorAt(pcSpecifiers->miFirstToken, (char*)"An anonymous union at namespace scope is static");
+	}
+	for (i = 0; i < pcUnion->macpMembers.NumElements(); i++)
+	{
+		pcMember = pcUnion->macpMembers.GetPtr(i);
+		if (pcMember->GetKind() == CPPS_AccessSpecifier)
+		{
+			bData = ((CCPPSyntaxAccessSpecifier*)pcMember)->meAccess == CPPA_Public;
+		}
+		else if (pcMember->GetKind() == CPPS_SimpleDeclaration)
+		{
+			pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcMember;
+			pcMemberSpecifiers = pcDeclaration->mpcSpecifiers;
+			bData = pcMemberSpecifiers && !(pcMemberSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_TYPEDEF | CPPDS_FRIEND)) && (pcDeclaration->macpDeclarators.NumElements() > 0) &&
+					!(pcMemberSpecifiers->mpcType && (pcMemberSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier) && ((CCPPSyntaxClassSpecifier*)pcMemberSpecifiers->mpcType)->mpcName);
+			for (j = 0; bData && (j < pcDeclaration->macpDeclarators.NumElements()); j++)
+			{
+				bData = !((CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(j))->mpcDeclarator->IsFunction();
+			}
+		}
+		else
+		{
+			bData = (pcMember->GetKind() == CPPS_EmptyDeclaration) || (pcMember->GetKind() == CPPS_StaticAssert);
+		}
+		if (!bData)
+		{
+			ErrorAt(pcMember->miFirstToken, (char*)"An anonymous union has only public data members that aren't static");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a class is defined in a function (or is a member of one that
+// is).  [class.local]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsLocalClass(CCPPSyntaxClassSpecifier* pcClass)
+{
+	CCPPScope*	pcScope;
+
+	for (pcScope = pcClass->mpcScope ? pcClass->mpcScope->mpcParent : NULL; pcScope; pcScope = pcScope->mpcParent)
+	{
+		if ((pcScope->meKind == CPPSC_Function) || (pcScope->meKind == CPPSC_Block))
+		{
+			return true;
+		}
+		if (pcScope->meKind == CPPSC_Namespace)
+		{
+			return false;
+		}
+	}
+	return false;
 }
 
 

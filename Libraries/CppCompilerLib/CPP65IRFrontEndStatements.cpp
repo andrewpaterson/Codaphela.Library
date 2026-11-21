@@ -1341,6 +1341,10 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		return false;
 	}
 
+	if (!mpcUnit->CheckSwitch(pcSwitch, sValue.psType))
+	{
+		return false;
+	}
 	pcEnd = NewBlock();
 	pcDefault = NULL;
 	uiFirst = masCases.NumElements();
@@ -1463,6 +1467,10 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	{
 		mpcUnit->ReportError(pcReturn, "A handler of a constructor's function-try-block can't return: it ends by rethrowing");
 		return Unsupported(__FILE__, __LINE__);
+	}
+	if (!mpcUnit->CheckReturn(mpcCPPFunction, pcReturn))
+	{
+		return false;
 	}
 	psReturn = mpcCPPFunction->mpsReturn;
 	sType = mpcFunction->msReturnType;

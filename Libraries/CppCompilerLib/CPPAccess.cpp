@@ -557,6 +557,115 @@ bool CCPPAccess::IsFriendFunction(CCPPSyntaxDeclarator* pcDeclarator)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A using-declaration in a class (pcUsing) naming a member of a base
+// (pcSymbol): the member isn't private there, but where the class is that
+// base's friend.  An error (and false) if it is.  [namespace.udecl] 17
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPAccess::CheckUsing(CCPPSymbol* pcSymbol, CCPPSyntax* pcUsing)
+{
+	CCPPSyntaxClassSpecifier*	pcDeclaring;
+
+	if (!pcSymbol || (DeclaredAccess(pcSymbol->mpcDeclaration, &pcDeclaring) != CPPA_Private) || IsInClass(pcDeclaring, pcUsing))
+	{
+		return true;
+	}
+	return Refuse(pcUsing, "The using-declaration names a base's private member, which the class can't reach");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member reached through an object of pcObjectClass (o.m, p->m), or
+// named for a pointer to member (&C::m, C being pcObjectClass), which
+// CheckSymbol allowed: if it is a base's protected member that isn't
+// static, the object is of the class whose member or friend pcNode is in,
+// or of one derived from it (IsThroughDerived).  An error (and false) if
+// not.  [class.protected] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPAccess::CheckProtectedObject(CCPPSymbol* pcSymbol, CCPPClass* pcObjectClass, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxClassSpecifier*	pcDeclaring;
+	CCPPSyntax*					pcUsing;
+
+	if (!pcSymbol || !pcObjectClass || (DeclaredAccess(pcSymbol->mpcDeclaration, &pcDeclaring) != CPPA_Protected))
+	{
+		return true;
+	}
+	pcUsing = FindUsingDeclaration(pcObjectClass, pcSymbol->mpcDeclaration, pcDeclaring);
+	if ((pcUsing && (DeclaredAccess(pcUsing, &pcDeclaring) == CPPA_Public)) || IsThroughDerived(pcSymbol->mpcDeclaration, pcDeclaring, pcObjectClass, pcNode))
+	{
+		return true;
+	}
+	return Refuse(pcNode, "The member is protected: a class derived from its class reaches it only through an object of its own class (or one derived from it)");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a protected member that isn't static, of pcDeclaring, may be
+// reached through an object of pcNaming at pcNode: in pcDeclaring's own
+// members and friends it may, and in pcNaming's (the object is of their
+// class); in a member of another class derived from pcDeclaring, only
+// through that class or one derived from it.  A constructor or destructor,
+// a static member, a type and an enumerator may be reached through any.
+// [class.protected] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPAccess::IsThroughDerived(CCPPSyntax* pcDeclaration, CCPPSyntaxClassSpecifier* pcDeclaring, CCPPClass* pcNaming, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxDeclarator*		pcDeclarator;
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPSyntax*					pcParent;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPFunction*				pcFunction;
+
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator))
+	{
+		pcDeclaration = ((CCPPSyntaxInitDeclarator*)pcDeclaration)->mpcDeclarator;
+	}
+	if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_Declarator) || IsInClass(pcDeclaring, pcNode) || (pcNaming->mpcSpecifier && IsInClass(pcNaming->mpcSpecifier, pcNode)))
+	{
+		return true;
+	}
+	pcDeclarator = (CCPPSyntaxDeclarator*)pcDeclaration;
+	pcName = pcDeclarator->GetName();
+	pcComponent = pcName ? pcName->GetLast() : NULL;
+	if (!pcComponent || (pcComponent->meKind == CPPNC_Destructor) || (pcDeclaring->mpcSymbol && (pcComponent->meKind == CPPNC_Identifier) && (mpcUnit->GetComponentName(pcComponent) == pcDeclaring->mpcSymbol->mlliName)))
+	{
+		return true;
+	}
+	pcParent = pcDeclarator->mpcParent;
+	if (pcParent && (pcParent->GetKind() == CPPS_InitDeclarator))
+	{
+		pcParent = pcParent->mpcParent;
+	}
+	pcSpecifiers = NULL;
+	if (pcParent && (pcParent->GetKind() == CPPS_SimpleDeclaration))
+	{
+		pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcParent)->mpcSpecifiers;
+	}
+	else if (pcParent && (pcParent->GetKind() == CPPS_FunctionDefinition))
+	{
+		pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcParent)->mpcSpecifiers;
+	}
+	if (pcSpecifiers && (pcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_TYPEDEF | CPPDS_FRIEND)))
+	{
+		return true;
+	}
+	pcFunction = mpcUnit->OuterFunction();
+	if (!pcFunction || !pcFunction->mpcClass || !pcFunction->mpcClass->mpcSpecifier)
+	{
+		return true;
+	}
+	return (pcNaming == pcFunction->mpcClass) || HasBase(pcNaming, pcFunction->mpcClass->mpcSpecifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the function being written is a member of a class derived from
 // the class: its members may name the class's protected ones.
 //

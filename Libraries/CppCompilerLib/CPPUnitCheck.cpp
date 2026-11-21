@@ -268,6 +268,8 @@ void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 
 	BeginFunction(pcFunction);
 	AddParameters(pcFunction);
+	CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator);
+	CheckMemberInitialisers(pcFunction);
 	AllocateLocals(pcDefinition->mpcBody);
 	for (i = 0; i < pcDefinition->macpMemberInitializers.NumElements(); i++)
 	{
@@ -388,9 +390,17 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 			return;
 		}
 		break;
+	case CPPS_SwitchStatement:
+		CheckChildren(pcNode);
+		CheckSwitch((CCPPSyntaxSwitchStatement*)pcNode, SwitchType((CCPPSyntaxSwitchStatement*)pcNode));
+		return;
 	case CPPS_ReturnStatement:
 		//What is returned is the function's type's: an enum class's value isn't another's without a cast.
 		CheckChildren(pcNode);
+		if (mcContext.GetFunction())
+		{
+			CheckReturn(mcContext.GetFunction(), (CCPPSyntaxReturnStatement*)pcNode);
+		}
 		pcValue = ((CCPPSyntaxReturnStatement*)pcNode)->mpcValue;
 		psValue = (pcValue && mcContext.GetFunction() && mcContext.GetFunction()->mpsReturn) ? TypeOf(pcValue) : NULL;
 		if (psValue && !psValue->IsClass() && !mcContext.GetFunction()->mpsReturn->IsClass() && !mcContext.GetFunction()->mpsReturn->IsVoid())
@@ -430,6 +440,274 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		break;
 	}
 	CheckChildren(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type a switch's cases are compared as, for CheckSwitch where the IR
+// front end doesn't work it out: the condition's, promoted.  NULL where it
+// isn't an integer's (what is wrong with it is said where it is used).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
+{
+	SCPP65Type*	psType;
+
+	if (!pcSwitch->mpcCondition || (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration))
+	{
+		return NULL;
+	}
+	BeginQuiet();
+	psType = TypeOf(pcSwitch->mpcCondition);
+	EndQuiet();
+	psType = psType ? psType->WithoutReference() : NULL;
+	return (psType && psType->IsInteger()) ? mcTypes.Promote(psType) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A switch's labels: one default; case values that differ as the type the
+// condition is compared as (psType: NULL to not compare them); and none
+// that jumps past an initialised local into its scope.  An error if not.
+// [stmt.switch] 2, [stmt.dcl] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psType)
+{
+	CArraySyntax	apcCases;
+	CArrayInt64		alliValues;
+	CCPPSyntaxCaseStatement*	pcCase;
+	size			i;
+	size			uiDefaults;
+	int64			lliValue;
+	int				iBits;
+	bool			bInScope;
+	bool			bResult;
+
+	apcCases.Init();
+	alliValues.Init();
+	SwitchCases(pcSwitch->mpcBody, &apcCases);
+	bResult = true;
+	uiDefaults = 0;
+	for (i = 0; i < apcCases.NumElements(); i++)
+	{
+		pcCase = (CCPPSyntaxCaseStatement*)apcCases.GetPtr(i);
+		if (!pcCase->mpcValue)
+		{
+			uiDefaults++;
+			if (uiDefaults == 2)
+			{
+				bResult = ReportOnce(pcCase, "A switch has one default label");
+			}
+			continue;
+		}
+		if (!psType)
+		{
+			continue;
+		}
+		BeginQuiet();
+		if (!Constant(pcCase->mpcValue, &lliValue))
+		{
+			EndQuiet();
+			continue;
+		}
+		EndQuiet();
+		iBits = psType->iBytes * 8;
+		if (iBits < 64)
+		{
+			lliValue &= ((int64)1 << iBits) - 1;
+			if (psType->bSigned && (lliValue & ((int64)1 << (iBits - 1))))
+			{
+				lliValue -= (int64)1 << iBits;
+			}
+		}
+		if (alliValues.Contains(&lliValue))
+		{
+			bResult = ReportOnce(pcCase, "Two cases of the switch have one value");
+		}
+		alliValues.Add(lliValue);
+	}
+	alliValues.Kill();
+	apcCases.Kill();
+
+	bInScope = false;
+	return SwitchJumps(pcSwitch->mpcBody, &bInScope) && bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The case and default labels of a switch, in order (not those of
+// switches inside it).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SwitchCases(CCPPSyntax* pcNode, CArraySyntax* papcCases)
+{
+	size	i;
+
+	if (!pcNode || (pcNode->GetKind() == CPPS_SwitchStatement) || (pcNode->GetKind() == CPPS_LambdaExpression) || (pcNode->GetKind() == CPPS_ClassSpecifier))
+	{
+		return;
+	}
+	if (pcNode->GetKind() == CPPS_CaseStatement)
+	{
+		papcCases->Add(pcNode);
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		SwitchCases(pcNode->GetChild(i), papcCases);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether no case label of a switch (in pcNode and what follows) jumps into
+// the scope of a local that is initialised, or whose class makes or
+// destroys it by code: *pbInScope says one has been passed in the scope the
+// walk is in.  A scope's declarations stop at its end; a label's statement
+// is in the scope the label is in.  [stmt.dcl] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope)
+{
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPVariable*					pcVariable;
+	SCPP65Type*						psType;
+	size							i;
+	bool							bOuter;
+	bool							bResult;
+
+	if (!pcNode || (pcNode->GetKind() == CPPS_SwitchStatement) || (pcNode->GetKind() == CPPS_LambdaExpression) || (pcNode->GetKind() == CPPS_ClassSpecifier))
+	{
+		return true;
+	}
+	switch (pcNode->GetKind())
+	{
+	case CPPS_CaseStatement:
+		if (*pbInScope)
+		{
+			return ReportOnce(pcNode, "The case label jumps past an initialised local into its scope: put the local in a block of its own");
+		}
+		return SwitchJumps(((CCPPSyntaxCaseStatement*)pcNode)->mpcStatement, pbInScope);
+
+	case CPPS_LabelStatement:
+		return SwitchJumps(((CCPPSyntaxLabelStatement*)pcNode)->mpcStatement, pbInScope);
+
+	case CPPS_DeclarationStatement:
+		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)((CCPPSyntaxDeclarationStatement*)pcNode)->mpcDeclaration;
+		if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_TYPEDEF | CPPDS_THREAD_LOCAL))))
+		{
+			return true;
+		}
+		for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
+		{
+			pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
+			if (pcInit->mpcDeclarator->IsFunction())
+			{
+				continue;
+			}
+			pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+			psType = pcVariable ? pcVariable->mpsType : NULL;
+			while (psType && psType->IsArray())
+			{
+				psType = psType->psBase;
+			}
+			if (pcInit->mpcInitializer || (psType && psType->IsClass() && (psType->pcClass->NeedsConstructor() || psType->pcClass->mpcDestructor)))
+			{
+				*pbInScope = true;
+			}
+		}
+		return true;
+
+	default:
+		bOuter = *pbInScope;
+		bResult = true;
+		for (i = 0; i < pcNode->NumChildren(); i++)
+		{
+			bResult &= SwitchJumps(pcNode->GetChild(i), pbInScope);
+		}
+		*pbInScope = bOuter;
+		return bResult;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a return statement gives its function: no value (but a void one)
+// to a void function, and to an object of a class one its constructor
+// that isn't explicit makes (return copy initialises).  An error if not.
+// [stmt.return] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* pcReturn)
+{
+	SCPP65Type*				psReturn;
+	SCPP65Type*				psValue;
+	CArraySyntax			apcValue;
+	CArraySyntax*			papcArguments;
+	CCPPBoundConstruction	cBound;
+	bool					bResult;
+
+	psReturn = pcFunction->mpsReturn;
+	if (!pcReturn->mpcValue || !psReturn || (psReturn == &mcTypes.msUndeduced) || (pcFunction->meKind != CPPFK_Function))
+	{
+		return true;
+	}
+	if (psReturn->IsVoid())
+	{
+		if (pcReturn->mpcValue->GetKind() == CPPS_InitializerList)
+		{
+			return ReportOnce(pcReturn, "A void function returns no value");
+		}
+		BeginQuiet();
+		psValue = TypeOf(pcReturn->mpcValue);
+		EndQuiet();
+		return !psValue || psValue->IsVoid() || ReportOnce(pcReturn, "A void function returns no value");
+	}
+	if (!psReturn->IsClass() || !CompleteClass(psReturn->pcClass, pcReturn))
+	{
+		return true;
+	}
+	apcValue.Init();
+	apcValue.Add(pcReturn->mpcValue);
+	papcArguments = &apcValue;
+	if (pcReturn->mpcValue->GetKind() == CPPS_InitializerList)
+	{
+		papcArguments = ListElements(pcReturn->mpcValue);
+	}
+	else
+	{
+		BeginQuiet();
+		psValue = TypeOf(pcReturn->mpcValue);
+		EndQuiet();
+		psValue = psValue ? psValue->WithoutReference() : NULL;
+		if (!psValue || (psValue->IsClass() && IsDerived(psValue->pcClass, psReturn->pcClass, NULL)))
+		{
+			apcValue.Kill();
+			return true;
+		}
+	}
+	bResult = true;
+	BeginQuiet();
+	if ((papcArguments->NumElements() > 0) && psReturn->pcClass->mbConstructors && mcBinder.BindConstruction(psReturn->pcClass, papcArguments, pcReturn, &cBound, false) && (cBound.meHow == CPPBO_Constructor))
+	{
+		EndQuiet();
+		if (cBound.mpcConstructor->mbExplicit)
+		{
+			bResult = ReportOnce(pcReturn, "An explicit constructor isn't used by return: write the class's name before the value");
+		}
+	}
+	else
+	{
+		EndQuiet();
+	}
+	apcValue.Kill();
+	return bResult;
 }
 
 
