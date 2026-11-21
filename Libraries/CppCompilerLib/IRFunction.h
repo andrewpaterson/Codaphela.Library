@@ -146,4 +146,15 @@ protected:
 };
 
 
+//x / c or x % c with c a constant (Init): which it is, and c as the division reads it.
+struct SIRConstantDivision
+{
+	bool	bSigned;
+	bool	bRemainder;
+	int64	lliDivisor;		//With its sign for a signed division, else the type's unsigned value.
+
+	bool	Init(CIRFunction* pcFunction, SIRInstruction* psInstruction);
+};
+
+
 #endif // __I_R_FUNCTION_H__

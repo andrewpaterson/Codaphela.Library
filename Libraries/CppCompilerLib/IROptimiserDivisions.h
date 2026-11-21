@@ -23,6 +23,38 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRPasses.h"
 
 
+//x / c as (x * ulliMultiplier) >> iShift, for every x of a range (CIRDivisionPasses::FindReciprocal).
+struct SIRReciprocal
+{
+	uint64	ulliMultiplier;
+	int		iShift;
+	int		iBits;			//What the product is worked out in: the division's type's bits, or 32.
+	int		iPreShift;		//For c = 2^k * m: x is shifted right k first and the reciprocal is m's; 0 for none.
+};
+
+
+//How ConstantDivisions does a divide or remainder by a constant.
+enum EIRConstantDivision
+{
+	IRCD_Table,			//A hot one of a byte's range: made an i8 one for the target's table.
+	IRCD_Reciprocal,	//A multiply and a shift (sReciprocal).
+	IRCD_Split,			//A wide divisor 2^k * m: divided by 2^k, then by m.
+	IRCD_None
+};
+
+
+//A divide or remainder by a constant ConstantDivisions found a cheaper way of.
+struct SIRFoundDivision
+{
+	CIRBlock*		pcBlock;
+	size			uiInstruction;
+	uint8			uiKind;			//EIRConstantDivision.
+	int64			lliMin;			//The dividend's range.
+	int64			lliMax;
+	SIRReciprocal	sReciprocal;	//IRCD_Reciprocal.
+};
+
+
 //The passes over divisions: by a constant as a multiply, bounded, by a power of two, shared with their
 //remainders, and tests of divisibility.
 class CIRDivisionPasses : public CIRPasses
@@ -35,8 +67,8 @@ public:
 	bool			SignedPowerDivisions(void);
 
 protected:
-	bool			SplitDivisor(SIRInstruction* psInstruction, int64 lliMin, int64 lliMax);
-	bool			FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, uint64* pulliMultiplier, int* piShift, int* piBits, int* piPreShift);
+	bool			SplitDivisor(SIRType sType, int64 lliDivisor, int64 lliMin, int64 lliMax);
+	bool			FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, SIRReciprocal* psReciprocal);
 	bool			LeavesRemainder(SIRInstruction* psRemainder);
 	bool			HasDivision(CIRBlock* pcBlock, uint16 uiOpcode, SIRReference sValue, SIRReference sDivisor);
 	bool			IsByteTableDivision(int64 lliMin, int64 lliMax, int64 lliDivisor);

@@ -37,18 +37,15 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 bool IROptimiserHoistable(CIRFunction* pcFunction, SIRInstruction* psInstruction)
 {
-	uint64	ulliDivisor;
-	bool	bSigned;
+	SIRConstantDivision	sDivision;
 
 	if (IsIRMayTrap(psInstruction->uiOpcode))
 	{
-		if (!psInstruction->asArguments[1].IsConstant() || !psInstruction->sResult.IsTemporary())
+		if (!sDivision.Init(pcFunction, psInstruction) || !psInstruction->sResult.IsTemporary())
 		{
 			return false;
 		}
-		bSigned = IsIRSignedDivision(psInstruction->uiOpcode);
-		ulliDivisor = IRTruncate(psInstruction->sType, pcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
-		return (ulliDivisor != 0) && (!bSigned || (ulliDivisor != IRTruncate(psInstruction->sType, (uint64)-1)));
+		return (sDivision.lliDivisor != 0) && (!sDivision.bSigned || (sDivision.lliDivisor != -1));
 	}
 	switch (psInstruction->uiOpcode)
 	{

@@ -912,3 +912,25 @@ void CIRFunction::CountUses(CArrayTemplate<uint32>* pauiUses)
 		}
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// False unless psInstruction (of pcFunction) is a divide or a remainder of
+// integers by a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SIRConstantDivision::Init(CIRFunction* pcFunction, SIRInstruction* psInstruction)
+{
+	uint64	ulliBits;
+
+	if (!IsIRDivision(psInstruction->uiOpcode) || !psInstruction->asArguments[1].IsConstant() || !psInstruction->sType.IsInteger())
+	{
+		return false;
+	}
+	bSigned = IsIRSignedDivision(psInstruction->uiOpcode);
+	bRemainder = IsIRRemainder(psInstruction->uiOpcode);
+	ulliBits = pcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits;
+	lliDivisor = bSigned ? IRSignExtend(psInstruction->sType, ulliBits) : (int64)IRTruncate(psInstruction->sType, ulliBits);
+	return true;
+}

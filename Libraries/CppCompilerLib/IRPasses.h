@@ -141,10 +141,6 @@ struct SIRBoundDivision
 	CIRBlock*		pcBlock;
 	size			uiInstruction;
 	bool			bOnce;
-	bool			bTable;		//ConstantDivisions: a hot one of a byte's range, made an i8 one for the target's table.
-	bool			bSplit;		//ConstantDivisions: a wide divisor 2^k * m, divided by 2^k then m.
-	int64			lliMin;		//ConstantDivisions: the dividend's range.
-	int64			lliMax;
 };
 
 
@@ -340,6 +336,7 @@ public:
 	bool			LoopWays(size uiLoop, CIRBlock* pcBlock, CIRBlock** ppcInside, CIRBlock** ppcOutside);
 	bool			MatchCounter(size uiLoop, SIRPhi* psPhi, uint8 uiFlags, SIRLoopCounter* psCounter);
 	bool			SimpleLoop(size uiLoop, CIRBlock** ppcHead, CIRBlock** ppcEntering, CIRBlock** ppcLatch);
+	SIRReference	InsertDivisorMask(CIRBlock* pcBlock, size uiIndex, SIRType sType, SIRReference sTest, SIRReference sDivisor);
 	void			AddCounterPhi(CIRBlock* pcHead, SIRType sType, SIRReference sPhi, CIRBlock* pcEntering, SIRReference sStart, CIRBlock* pcLatch, SIRReference sStepped);
 };
 

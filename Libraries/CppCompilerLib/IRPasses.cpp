@@ -765,3 +765,20 @@ void CIRPasses::AddCounterPhi(CIRBlock* pcHead, SIRType sType, SIRReference sPhi
 	pcHead->AddPhiArgument(psPhi, pcEntering, sStart);
 	pcHead->AddPhiArgument(psPhi, pcLatch, sStepped);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sDivisor & -(sTest widened to sType), worked out from uiIndex in pcBlock:
+// the divisor when the test (x >= c) holds, else 0, which taken from x
+// leaves x % c for an x below twice c.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIRPasses::InsertDivisorMask(CIRBlock* pcBlock, size uiIndex, SIRType sType, SIRReference sTest, SIRReference sDivisor)
+{
+	SIRReference	sMask;
+
+	sMask = InsertInstruction(pcBlock, uiIndex, IRO_ZExt, sType, sTest, IRNone());
+	sMask = InsertInstruction(pcBlock, uiIndex + 1, IRO_Neg, sType, sMask, IRNone());
+	return InsertInstruction(pcBlock, uiIndex + 2, IRO_And, sType, sMask, sDivisor);
+}

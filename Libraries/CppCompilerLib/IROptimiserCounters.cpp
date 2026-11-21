@@ -979,6 +979,7 @@ struct SIRCounterDivisor
 //////////////////////////////////////////////////////////////////////////
 bool CIRCounterPasses::ReduceDivisions(void)
 {
+	SIRConstantDivision	sDivision;
 	SIRCounterDivisor	asDivisors[IR_COUNTER_DIVISORS];
 	SIRCounterDivisor*	psDivisor;
 	SIRLoopCounter		sCounter;
@@ -1048,13 +1049,13 @@ bool CIRCounterPasses::ReduceDivisions(void)
 					for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 					{
 						psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-						if (!IsIRUnsignedDivision(psInstruction->uiOpcode) || !psInstruction->asArguments[0].Equals(psPhi->sResult) ||
-							!psInstruction->asArguments[1].IsConstant() || !psInstruction->sResult.IsTemporary() || !psInstruction->sType.Equals(sType) ||
+						if (!sDivision.Init(mpcFunction, psInstruction) || sDivision.bSigned || !psInstruction->asArguments[0].Equals(psPhi->sResult) ||
+							!psInstruction->sResult.IsTemporary() || !psInstruction->sType.Equals(sType) ||
 							!Replacement(psInstruction->sResult).Equals(psInstruction->sResult))
 						{
 							continue;
 						}
-						ulliDivisor = (uint64)mpcFunction->GetSigned(psInstruction->asArguments[1]) & ulliMask;
+						ulliDivisor = (uint64)sDivision.lliDivisor;
 						if ((ulliDivisor < 3) || ((ulliDivisor & (ulliDivisor - 1)) == 0) || ((uint64)sCounter.lliStep > ulliDivisor) || (ulliDivisor > (ulliMask >> 1)))
 						{
 							continue;
@@ -1124,9 +1125,7 @@ bool CIRCounterPasses::ReduceDivisions(void)
 					//r + s, less c when it reaches c: less c & -(r + s >= c).
 					sStepped = mpcFunction->Add(pcLatch, IRO_Add, sNarrow, psDivisor->sRemainder, mpcFunction->AddInteger(sNarrow, sCounter.lliStep));
 					sTest = mpcFunction->Add(pcLatch, IRO_UGe, sNarrow, sStepped, mpcFunction->AddInteger(sNarrow, (int64)ulliDivisor));
-					sTaken = mpcFunction->Add(pcLatch, IRO_ZExt, sNarrow, sTest);
-					sTaken = mpcFunction->Add(pcLatch, IRO_Neg, sNarrow, sTaken);
-					sTaken = mpcFunction->Add(pcLatch, IRO_And, sNarrow, sTaken, mpcFunction->AddInteger(sNarrow, (int64)ulliDivisor));
+					sTaken = InsertDivisorMask(pcLatch, pcLatch->masInstructions.NumElements(), sNarrow, sTest, mpcFunction->AddInteger(sNarrow, (int64)ulliDivisor));
 					sStepped = mpcFunction->Add(pcLatch, IRO_Sub, sNarrow, sStepped, sTaken);
 					AddCounterPhi(pcHead, sNarrow, psDivisor->sRemainder, pcEntering, sStart, pcLatch, sStepped);
 					psDivisor->sWideRemainder = sNarrow.Equals(sType) ? psDivisor->sRemainder : InsertInstruction(pcHead, 0, IRO_ZExt, sType, psDivisor->sRemainder, IRNone());

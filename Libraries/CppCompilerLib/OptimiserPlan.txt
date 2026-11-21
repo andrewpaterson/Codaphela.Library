@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 to 9 are done (2026-11-22).  Stage 10 is next; "The record", at the end, has what each stage
+Where it is: stages 0 to 10 are done (2026-11-22).  Stage 11 is next; "The record", at the end, has what each stage
 found.
 
 
@@ -416,3 +416,32 @@ the baseline's.  TestCppCompilerLib passes.
 	Not as the stage was written: the matcher gives the head, the latch and the two exits, not the loads
 	and the compare as taken.  Which loads an idiom wants (one, two, a byte or any integer) and what its
 	branch must say differ in each, and OnlyLoads and the edge condition already say them in a line.
+
+Stage 10 (2026-11-22): a division by a constant is read in one place.  Same code: the 4,201 listings are the
+baseline's.  TestCppCompilerLib passes.
+
+	SIRConstantDivision::Init (IRFunction.h) says whether an instruction is x / c or x % c with c a
+	constant, whether it is signed and a remainder, and gives c as the division reads it (with its sign for
+	a signed one).  Eight places wrote that out: SignedPowerDivisions, BoundDivisions, DivisibilityTests,
+	ConstantDivisions (twice), SplitDivisor, the range of a division, ReduceDivisions, and what may be moved
+	out of a loop (IROptimiserHoistable, which now says "not by 0, and not by -1 when signed" in those
+	words).
+
+	ConstantDivisions has a record of its own (SIRFoundDivision) with a kind (the table, the reciprocal,
+	the split) where it shared BoundDivisions' with two flags, filled in one place where three blocks of
+	eight lines did it.  The reciprocal is a record (SIRReciprocal: the multiplier, the shift, the bits it
+	is worked out in, the shift before) that FindReciprocal fills (six parameters, from nine) and the found
+	record keeps: it was worked out when the division was found, thrown away, and worked out again when
+	the division was rewritten.
+
+	"c & -(x >= c)", which taken from x leaves x % c for an x below twice c, is CIRPasses::Insert
+	DivisorMask: BoundDivisions and ReduceDivisions each built it.
+
+	The reciprocal found once, TestSupportLib65's project compiled a unit at a time (milliseconds, 65C64
+	and W65C816), "optimise": 3,356 and 3,738 before, 3,365 and 3,709 after.  The second search does not show: two
+	runs differ by more.
+
+	Not done: the quotient is still "add q, 0" and not a copy.  That was to be measured; reading settled
+	it.  A copy (IRO_Copy) is a value put in a place of its own, which the W65C816's back end makes for a
+	parameter whose address is taken, and no pass takes one away; an add of 0 is what the folding gives
+	every use the operand of.  A comment at the add says so.

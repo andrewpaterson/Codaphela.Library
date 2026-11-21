@@ -659,25 +659,22 @@ bool CIRRangePasses::ArithmeticRange(SIRInstruction* psInstruction, int64* plliM
 //////////////////////////////////////////////////////////////////////////
 bool CIRRangePasses::DivisionRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
 {
+	SIRConstantDivision	sDivision;
 	SIRType	sType;
-	uint16	uiOpcode;
 	int64	lliDivisor;
 	int64	lliMin;
 	int64	lliMax;
 	int		iBits;
 	bool	bSigned;
 
-	uiOpcode = psInstruction->uiOpcode;
 	sType = psInstruction->sType;
-	if (!IsIRDivision(uiOpcode) ||
-		!psInstruction->asArguments[1].IsConstant() || !sType.IsInteger() || (sType.IntegerBits() > 32))
+	if (!sDivision.Init(mpcFunction, psInstruction) || (sType.IntegerBits() > 32))
 	{
 		return false;
 	}
 	iBits = sType.IntegerBits();
-	bSigned = IsIRSignedDivision(uiOpcode);
-	lliDivisor = bSigned ? IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) :
-						   (int64)IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+	bSigned = sDivision.bSigned;
+	lliDivisor = sDivision.lliDivisor;
 	if (lliDivisor < 2)
 	{
 		return false;
@@ -692,7 +689,7 @@ bool CIRRangePasses::DivisionRange(SIRInstruction* psInstruction, int64* plliMin
 		lliMin = 0;
 		lliMax = IRUnsignedMax(iBits);
 	}
-	if (IsIRQuotient(uiOpcode))
+	if (!sDivision.bRemainder)
 	{
 		//Rounding towards 0 keeps the order.
 		*plliMin = lliMin / lliDivisor;
