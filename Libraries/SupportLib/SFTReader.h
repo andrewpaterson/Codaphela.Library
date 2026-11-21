@@ -24,12 +24,18 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __SFT_READER_H__
 #define __SFT_READER_H__
 #include "Image.h"
+#include "SFTCommon.h"
 
 
+//An image, or a container's images combined (SFTCommon.h).  NULL if it isn't an SFT image or container of this layout
+//(SFT_VERSION), or is cut short.  A pixel is its palette's colour (the container's palette before the image), or with
+//none SFTColour32's.
 Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug = false);
 
-Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug = false);
-Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug = false);
+//The record at the file's position.  psColours is the palette the image's pixels are in (NULL for none); a pixel that
+//isn't in it fails.
+Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug = false, const SSFTColours* psColours = NULL);
+Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug = false, const SSFTColours* psColours = NULL);
 Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug = false);
 
 

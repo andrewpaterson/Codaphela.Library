@@ -529,3 +529,22 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pImageCels, CFileBasic* pcDiskBasic)
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SaveSFTPalette(CFileBasic* pcFile, uint16 uiFirst, uint16 uiCount, const uint8* puiRed, const uint8* puiGreen, const uint8* puiBlue)
+{
+	SSFTPalette	sPalette;
+
+	sPalette.Init(uiFirst, uiCount, SFTPaletteHash(uiFirst, uiCount, puiRed, puiGreen, puiBlue));
+	if (!pcFile->IsOpen() || !sPalette.IsValid())
+	{
+		return false;
+	}
+	return	sPalette.Write(pcFile) &&
+			pcFile->WriteData(puiRed, uiCount) &&
+			pcFile->WriteData(puiGreen, uiCount) &&
+			pcFile->WriteData(puiBlue, uiCount);
+}

@@ -40,8 +40,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug)
 {
 	CFileBasic		cFile;
-	uint16			uiType;
-	bool			bResult;
+	SSFTHeader		sHeader;
 	Ptr<CImage>		pImage;
 
 	cFile.Init(DiskFile(szFilename));
@@ -51,76 +50,46 @@ Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug)
 		return NULL;
 	}
 
-	bResult = cFile.ReadLittleEndianInt16(&uiType);
-	if (!bResult)
+	if (PeekSFTHeader(&cFile, &sHeader) && sHeader.IsValid())
 	{
-		cFile.Close();
-		cFile.Kill();
-		return NULL;
+		if (sHeader.uiType == SFT_TYPE_OPAQUE)
+		{
+			pImage = LoadSFTOpaque(&cFile, bAddDebug);
+		}
+		else if (sHeader.uiType == SFT_TYPE_TRANSPARENT)
+		{
+			pImage = LoadSFTTransparent(&cFile, bAddDebug);
+		}
+		else if (sHeader.uiType == SFT_TYPE_CONTAINER)
+		{
+			pImage = LoadSFTContainer(&cFile, bAddDebug);
+		}
 	}
-
-	if (uiType == SFT_TYPE_OPAQUE)
-	{
-		cFile.Seek(0);
-		pImage = LoadSFTOpaque(&cFile, bAddDebug);
-		cFile.Close();
-		cFile.Kill();
-
-		return pImage;
-	}
-	else if (uiType == SFT_TYPE_TRANSPARENT)
-	{
-		cFile.Seek(0);
-		pImage = LoadSFTTransparent(&cFile, bAddDebug);
-		cFile.Close();
-		cFile.Kill();
-
-		return pImage;
-	}
-	else if (uiType == SFT_TYPE_CONTAINER)
-	{
-		cFile.Seek(0);
-		pImage = LoadSFTContainer(&cFile, bAddDebug);
-		cFile.Close();
-		cFile.Kill();
-
-		return pImage;
-	}
-	else
-	{
-		cFile.Close();
-		cFile.Kill();
-		return NULL;
-	}
+	cFile.Close();
+	cFile.Kill();
+	return pImage;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pixel's colour in the palette, or with none its own.  False if the
+// palette hasn't it.
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 Convert8BitColourTo32BitColour(uint8 uiColour8)
+static bool SFTPixelColour(const SSFTColours* psColours, uint8 uiPixel, uint32* puiColour)
 {
-	uint8				r;
-	uint8				g;
-	uint8				b;
-	uint8				a;
-	uint32				uiColour32;
-
-	//b = (uiColour8 >> 0) & 0x3;
-	//g = (uiColour8 >> 2) & 0x7;
-	//r = (uiColour8 >> 5) & 0x7;
-	b = (uiColour8 >> 6) & 0x3;
-	g = (uiColour8 >> 3) & 0x7;
-	r = (uiColour8 >> 0) & 0x7;
-
-	b = (b << 6) + (b << 4) + (b << 2) + b;
-	g = (g << 5) + (g << 2) + (g >> 1);
-	r = (r << 5) + (r << 2) + (r >> 1);
-	a = 0xff;
-
-	uiColour32 = (uint32)r | ((uint32)g << 8) | ((uint32)b << 16) | ((uint32)a << 24);
-	return uiColour32;
+	if (psColours == NULL)
+	{
+		*puiColour = SFTColour32(uiPixel);
+		return true;
+	}
+	if (!psColours->Has(uiPixel))
+	{
+		return false;
+	}
+	*puiColour = psColours->Colour32(uiPixel);
+	return true;
 }
 
 
@@ -128,24 +97,18 @@ uint32 Convert8BitColourTo32BitColour(uint8 uiColour8)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
+Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug, const SSFTColours* psColours)
 {
 	SSFTImage	sStruct;
 	lsize		iResult;
 	lsize		i;
-	uint8		uiColour8;
 	uint32		uiColour32;
 	uint8*		puiImage;
 	lsize		uiSize;
 	uint8*		puiData;
 	lsize		iPos;
 
-	if (!sStruct.Read(pcFile))
-	{
-		return NULL;
-	}
-
-	if (sStruct.uiType != SFT_TYPE_OPAQUE)
+	if (!sStruct.Read(pcFile) || !sStruct.Is(SFT_TYPE_OPAQUE))
 	{
 		return NULL;
 	}
@@ -169,14 +132,17 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 	iResult = pcFile->Read(puiData, 1, uiSize);
 	if (iResult != uiSize)
 	{
+		free(puiData);
 		return NULL;
 	}
 
 	for (i = 0, iPos = 0; i < uiSize; i++)
 	{
-		uiColour8 = puiData[i];
-		uiColour32 = Convert8BitColourTo32BitColour(uiColour8);
-
+		if (!SFTPixelColour(psColours, puiData[i], &uiColour32))
+		{
+			free(puiData);
+			return NULL;
+		}
 		puiImage[iPos] = (uiColour32 >> 0) & 0xff;  iPos++;
 		puiImage[iPos] = (uiColour32 >> 8) & 0xff;  iPos++;
 		puiImage[iPos] = (uiColour32 >> 16) & 0xff;  iPos++;
@@ -191,7 +157,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
+Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug, const SSFTColours* psColours)
 {
 	SSFTImage			sStruct;
 	lsize				x;
@@ -203,12 +169,7 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 	lsize				uiWidth;
 	lsize				uiHeight;
 
-	if (!sStruct.Read(pcFile))
-	{
-		return NULL;
-	}
-
-	if (sStruct.uiType != SFT_TYPE_TRANSPARENT)
+	if (!sStruct.Read(pcFile) || !sStruct.Is(SFT_TYPE_TRANSPARENT))
 	{
 		return NULL;
 	}
@@ -254,9 +215,9 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 			}
 			for (i = 0; i < uiCode; i++, x++)
 			{
-				if (auiRun[i] != SFT_PIXEL_TRANSPARENT)
+				if ((auiRun[i] != SFT_PIXEL_TRANSPARENT) && !SFTPixelColour(psColours, auiRun[i], &puiImage[x + y * uiWidth]))
 				{
-					puiImage[x + y * uiWidth] = Convert8BitColourTo32BitColour(auiRun[i]);
+					return NULL;
 				}
 			}
 		}
@@ -278,7 +239,10 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 			}
 			for (i = 0; i < uiCode; i++, x++)
 			{
-				puiImage[x + y * uiWidth] = Convert8BitColourTo32BitColour(auiRun[i]);
+				if (!SFTPixelColour(psColours, auiRun[i], &puiImage[x + y * uiWidth]))
+				{
+					return NULL;
+				}
 			}
 		}
 	}
@@ -288,14 +252,19 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The container's images, each in the colours of the palette before it
+// (or its own with none), combined into one.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 {
 	SSFTContainer			sContainer;
 	SSFTContained			sContained;
+	SSFTHeader				sHeader;
+	SSFTColours*			psColours;
 	bool					bResult;
-	uint16					uiType;
+	bool					bPalette;
+	lsize					uiImages;
 	filePos					uiFilePos;
 	Ptr<CImage>				pImage;
 	lsize					i;
@@ -304,84 +273,83 @@ Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 	CImageCelSourceSingle	cSingle;
 	Ptr<CImage>				pDestImage;
 
+	if (!sContainer.Read(pcFile) || !sContainer.IsValid())
+	{
+		return NULL;
+	}
+
+	psColours = (SSFTColours*)malloc(sizeof(SSFTColours));
+	psColours->Init();
+	bPalette = false;
+	uiImages = 0;
 	cSingle.Init(0, 0, 0, 0, NULL, false, false);
 	cSource.Init();
-
-	if (!sContainer.Read(pcFile))
-	{
-		return NULL;
-	}
-
-	if (sContainer.uiType != SFT_TYPE_CONTAINER)
-	{
-		return NULL;
-	}
-
-	for (i = 0;; i++)
+	bResult = true;
+	for (i = 0; i < sContainer.uiCount; i++)
 	{
 		if (!sContained.Read(pcFile))
 		{
-			return NULL;
+			bResult = false;
+			break;
 		}
 
 		uiFilePos = pcFile->Tell();
-		bResult = pcFile->ReadLittleEndianInt16(&uiType);
-		bResult &= pcFile->Seek(uiFilePos);
-		if (!bResult)
+		if (!PeekSFTHeader(pcFile, &sHeader) || !sHeader.IsValid())
 		{
-			return NULL;
+			bResult = false;
+			break;
 		}
 
 		pImage = NULL;
-		if (uiType == SFT_TYPE_OPAQUE)
+		if (sHeader.uiType == SFT_TYPE_PALETTE)
 		{
-			pImage = LoadSFTOpaque(pcFile, bAddDebug);
-			if (pImage.IsNull())
+			if (!psColours->Read(pcFile))
 			{
-				return NULL;
+				bResult = false;
+				break;
 			}
-		}
-		else if (uiType == SFT_TYPE_TRANSPARENT)
-		{
-			pImage = LoadSFTTransparent(pcFile, bAddDebug);
-			if (pImage.IsNull())
-			{
-				return NULL;
-			}
+			bPalette = true;
 		}
 		else
 		{
-			return NULL;
-		}
-
-		cSource.AddMemorySource(pImage, &cSingle);
-
-		if (sContained.uiSkipToNext != 0)
-		{
-			bResult = pcFile->Seek(uiFilePos - sizeof(SSFTContained));
-			bResult &= pcFile->Seek(sContained.uiSkipToNext, EFSO_CURRENT);
-			if (!bResult)
+			if (sHeader.uiType == SFT_TYPE_OPAQUE)
 			{
-				return NULL;
+				pImage = LoadSFTOpaque(pcFile, bAddDebug, bPalette ? psColours : NULL);
 			}
+			else if (sHeader.uiType == SFT_TYPE_TRANSPARENT)
+			{
+				pImage = LoadSFTTransparent(pcFile, bAddDebug, bPalette ? psColours : NULL);
+			}
+			if (pImage.IsNull())
+			{
+				bResult = false;
+				break;
+			}
+			cSource.AddMemorySource(pImage, &cSingle);
+			uiImages++;
 		}
-		else
+
+		if (sContained.uiSkipToNext == 0)
 		{
 			break;
 		}
+		if (!pcFile->Seek(uiFilePos - sizeof(SSFTContained)) || !pcFile->Seek(sContained.uiSkipToNext, EFSO_CURRENT))
+		{
+			bResult = false;
+			break;
+		}
 	}
+	free(psColours);
 
-	cSource.Load();
-
-	cCombiner.Init(ICL_Best, ICS_PowerOf2, ICC_FromCels);
-	cCombiner.AddCels(cSource.GetImageCels());
-	pDestImage = cCombiner.Combine();
-
-	cCombiner.Kill();
+	if (bResult && (uiImages > 0))
+	{
+		cSource.Load();
+		cCombiner.Init(ICL_Best, ICS_PowerOf2, ICC_FromCels);
+		cCombiner.AddCels(cSource.GetImageCels());
+		pDestImage = cCombiner.Combine();
+		cCombiner.Kill();
+	}
 	cSingle.Kill();
 	cSource.Kill();
-
-
 	return pDestImage;
 }
-

@@ -35,6 +35,10 @@ bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffs
 bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight, lsize uiMergeGap = 0);
 bool SaveSFTContainer(Ptr<CArrayImageCel> pacImageCels, CFileBasic* pcFile);
 
+//A palette record (SFTCommon.h): uiCount colours (1 to 256) from index uiFirst, the reds, greens and blues each
+//uiCount long, and their hash.
+bool SaveSFTPalette(CFileBasic* pcFile, uint16 uiFirst, uint16 uiCount, const uint8* puiRed, const uint8* puiGreen, const uint8* puiBlue);
+
 
 #endif // __SFT_WRITER_H__
 
