@@ -244,10 +244,11 @@ int CCPPUnit::VariableAlignment(CCPPVariable* pcVariable, int* piAlignas)
 //
 // The strictest alignment the alignas(n) and alignas(type) specifiers in
 // papcSpecifiers ask for: 0 for none (alignas(0) asks for nothing), -1 after
-// an error.  It is kept whatever #pragma pack says, as MSVC does.  [dcl.align]
+// an error.  It is kept whatever #pragma pack says, as MSVC does.  A class's
+// (bClass) errors are ClassErrors, as it is laid out once.  [dcl.align]
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers)
+int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass)
 {
 	CCPPSyntax*		pcSpecifier;
 	CCPPSyntax*		pcAlignment;
@@ -281,7 +282,15 @@ int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers)
 		}
 		if ((lliAlign < 0) || (lliAlign > 0x10000) || ((lliAlign & (lliAlign - 1)) != 0))
 		{
-			Error(pcAlignment, "The alignment must be a power of two");
+			if (bClass)
+			{
+				ClassError(pcAlignment->miFirstToken, "The alignment must be a power of two");
+			}
+			else
+			{
+				//(A variable's alignment is asked for quietly too, and more than once.)
+				ReportOnce(pcAlignment, "The alignment must be a power of two");
+			}
 			return -1;
 		}
 		if (lliAlign > iAlign)
@@ -587,7 +596,8 @@ bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecif
 	pcBaseClass = GetNameClass(pcName, pcBaseSpecifier);
 	if (!pcBaseClass)
 	{
-		return Error(pcBaseSpecifier, "This base class is not supported by the compiler yet");
+		//[class.derived] 2
+		return Error(pcBaseSpecifier, (pcName->mpcSymbol && !pcName->mpcSymbol->IsClass()) ? "A base class is a class: the name is another kind of type" : "This base class is not supported by the compiler yet");
 	}
 	bResult = ResolveBases(pcBaseClass, pcBaseSpecifier);
 	if (pcBaseClass->mpcSpecifier && pcBaseClass->mpcSpecifier->mbFinal)
@@ -990,7 +1000,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	pcClass->mcVtable.LayoutOwn(pcClass);
 
 	//The bases, the vtable pointer, then the fields.
-	iClassAlign = AlignasAlignment(&pcSpecifier->macpAttributes);
+	iClassAlign = AlignasAlignment(&pcSpecifier->macpAttributes, true);
 	if (iClassAlign < 0)
 	{
 		bResult = false;

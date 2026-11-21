@@ -25,6 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTReservedWord.h"
 #include "CPPTokenMarks.h"
 #include "CPPUnit.h"
+#include "CPPConstants.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -457,11 +458,21 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 	case CPPS_EnumSpecifier:
 		CheckEnumerators(pcNode);
 		return;
+	case CPPS_StaticAssert:
+		StaticAssert((CCPPSyntaxStaticAssert*)pcNode);
+		return;
+	case CPPS_CaseStatement:
+		//A case or default label is in a switch's statement.  [stmt.label] 2
+		CheckCaseInSwitch(pcNode);
+		break;
+	case CPPS_Namespace:
+	case CPPS_FunctionDefinition:
+		CheckBlockDeclaration(pcNode);
+		return;
 	case CPPS_ClassSpecifier:
 	case CPPS_LazyDeclaration:
 	case CPPS_SkippedStatement:
 	case CPPS_SkippedDeclaration:
-	case CPPS_StaticAssert:
 		return;
 	default:
 		break;
@@ -489,6 +500,11 @@ SCPP65Type* CCPPUnit::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
 	psType = TypeOf(pcSwitch->mpcCondition);
 	EndQuiet();
 	psType = psType ? psType->WithoutReference() : NULL;
+	if (psType && psType->IsClass())
+	{
+		//An object is an integer by its class's one conversion function to one that isn't explicit.  [stmt.switch] 2, [conv] 5
+		psType = mcBinder.ContextualType(pcSwitch->mpcCondition, CPPXT_Integer);
+	}
 	return (psType && psType->IsInteger()) ? mcTypes.Promote(psType) : NULL;
 }
 
@@ -530,17 +546,22 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 			}
 			continue;
 		}
-		if (!psType)
-		{
-			continue;
-		}
+		mpcConstants->ClearReason();
 		BeginQuiet();
 		if (!Constant(pcCase->mpcValue, &lliValue))
 		{
 			EndQuiet();
+			//A case's value is a constant.  [stmt.switch] 2
+			BeginLoud();
+			bResult = ConstantError(pcCase->mpcValue, "A case's value is a constant");
+			EndLoud();
 			continue;
 		}
 		EndQuiet();
+		if (!psType)
+		{
+			continue;
+		}
 		iBits = psType->iBytes * 8;
 		if (iBits < 64)
 		{
@@ -561,6 +582,77 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 
 	bInScope = false;
 	return SwitchJumps(pcSwitch->mpcBody, &bInScope) && bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A case or default label: an error if no switch's statement holds it (in
+// the function, lambda or class it is in).  [stmt.label] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckCaseInSwitch(CCPPSyntax* pcCase)
+{
+	CCPPSyntax*	pcNode;
+
+	for (pcNode = pcCase->mpcParent; pcNode; pcNode = pcNode->mpcParent)
+	{
+		switch (pcNode->GetKind())
+		{
+		case CPPS_SwitchStatement:
+			return true;
+		case CPPS_LambdaExpression:
+		case CPPS_ClassSpecifier:
+		case CPPS_FunctionDefinition:
+			pcNode = NULL;
+			break;
+		default:
+			continue;
+		}
+		break;
+	}
+	return ReportError(pcCase, ((CCPPSyntaxCaseStatement*)pcCase)->mpcValue ? "A case label is only in a switch" : "A default label is only in a switch");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A declaration in a block: an error for one that is only at namespace
+// scope (a namespace's, a function's definition).  True for any other.
+// [basic.namespace] 1, [dcl.fct.def.general] 2, [class.local] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckBlockDeclaration(CCPPSyntax* pcDeclaration)
+{
+	if (!pcDeclaration)
+	{
+		return true;
+	}
+	switch (pcDeclaration->GetKind())
+	{
+	case CPPS_Namespace:
+		return ReportError(pcDeclaration, "A namespace is declared outside any function");
+	case CPPS_FunctionDefinition:
+		return ReportError(pcDeclaration, "A function is defined outside any function: a local class's member functions are defined in the class");
+	default:
+		return true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Why a string literal doesn't initialise an array of psElement: the
+// array's elements are its kind of character.  [dcl.init.string] 1
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CCPPUnit::StringArrayError(CCPPSyntax* pcString, SCPP65Type* psElement)
+{
+	if (!psElement->IsInteger() || (psElement->eKind == CPP65TK_Bool))
+	{
+		return "A string initialises an array of characters only";
+	}
+	return (StringElementBytes(pcString) == 1) ? "A string without a prefix (or u8) initialises an array of char only" : "A wide string initialises an array of its own kind of character only: wchar_t for L, char16_t for u, char32_t for U";
 }
 
 
@@ -681,6 +773,10 @@ bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* 
 	bool					bResult;
 
 	psReturn = pcFunction->mpsReturn;
+	if (!pcReturn->mpcValue && psReturn && (psReturn != &mcTypes.msUndeduced) && (pcFunction->meKind == CPPFK_Function) && !psReturn->IsVoid())
+	{
+		return ReportOnce(pcReturn, "The function returns a value: return; is for a void function");
+	}
 	if (!pcReturn->mpcValue || !psReturn || (psReturn == &mcTypes.msUndeduced) || (pcFunction->meKind != CPPFK_Function))
 	{
 		return true;

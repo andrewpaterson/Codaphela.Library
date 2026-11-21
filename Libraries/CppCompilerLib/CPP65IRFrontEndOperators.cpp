@@ -1018,6 +1018,11 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
+		if (pcVariable->mpsType->IsArray())
+		{
+			//[stmt.select] 2
+			return mpcUnit->ReportError(pcExpression, "A condition's variable isn't an array");
+		}
 		if (pcVariable->mpsType->IsClass())
 		{
 			sValue.psType = pcVariable->mpsType;

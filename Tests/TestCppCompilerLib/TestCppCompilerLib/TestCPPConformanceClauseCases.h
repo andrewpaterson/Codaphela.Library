@@ -1668,6 +1668,11 @@ static const SConformanceCase gasConformanceClause3[] =
 		"struct alignas(3) S { char c; };\n"
 		"int main() { return sizeof(S); }\n"
 	},
+	//3.11 [basic.align] p4, 7.6.2 [dcl.align] p2: a local's alignment is a power of two
+	{
+		"BasicAlignmentLocalNotPowerOfTwoRefused", CONFORMANCE_REFUSED,
+		"int main() { alignas(3) char c = 1; return c; }\n"
+	},
 };
 
 
@@ -10604,6 +10609,17 @@ static const SConformanceCase gasConformanceClause8[] =
 		"int f() { return 2; }\n"
 		"int main() { return f(); }\n"
 	},
+	//8.4.1 [dcl.fct.def.general] p2: a function is defined in namespace or class scope only
+	{
+		"DclFunctionDefinedInBlockRefused", CONFORMANCE_REFUSED,
+		"int main() { int f() { return 1; } return f(); }\n"
+	},
+	//8.4.1 [dcl.fct.def.general] p2, 9.8 [class.local] p2: a function declared in a block, and a local class's member defined in it
+	{
+		"DclFunctionDeclaredInBlock", 3,
+		"int main() { int f(); struct L { int g() { return 2; } }; L l; return f() + l.g(); }\n"
+		"int f() { return 1; }\n"
+	},
 	//8.5 [dcl.init] p6-p8: zero, default and value initialisation
 	{
 		"DclZeroAndDefaultInitialisation", 63,
@@ -11059,6 +11075,16 @@ static const SConformanceCase gasConformanceClause8[] =
 	{
 		"DclListTooManyForScalarRefused", CONFORMANCE_REFUSED,
 		"int main() { int x{ 1, 2 }; return x; }\n"
+	},
+	//8.5 [dcl.init] p17.8: a scalar from one expression in parentheses
+	{
+		"DclParenthesesTooManyForScalarRefused", CONFORMANCE_REFUSED,
+		"int main() { int x(1, 2); return x; }\n"
+	},
+	//8.5 [dcl.init] p17.8: a comma expression in its own parentheses is one value
+	{
+		"DclParenthesesCommaForScalar", 2,
+		"int main() { int x((1, 2)); return x; }\n"
 	},
 	//8.5.4 [dcl.init.list] p3, 13.3.1.7: copy list initialisation does not use an explicit constructor
 	{

@@ -389,6 +389,26 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
        - g++ followed: an unqualified call with no arguments in a template must find a declaration where it is
          written (g++'s permissive error); G(long long) and G(int) const on a non-const object is ambiguous
          (TestCPPOverloads had it choosing G(int) const).
+   The refusals that only said "not supported yet" (the lists' (U), 70 of them), 2026-11-21: the user, "Give the
+     not-supported refusals real messages, then clauses 2 and 16".  Each now says what is wrong.  Where they went:
+       - The type checker: Place says a value has no place; SizeofError (sizeof/alignof of a function, void, an
+         incomplete type, a lambda); Convert, casts to arrays and functions, member pointers cast to addresses,
+         assignment of arrays and functions, calls of what isn't callable or an undeclared name, a braced index,
+         too many array initialisers, a string for an array of another character (CCPPUnit::StringArrayError),
+         void* and function pointer arithmetic (CompletePointee), T& bound to an rvalue (KeepsQualifiers), new void,
+         dynamic_cast to an incomplete class, a lambda capturing in a default argument.
+       - The IR front end says what is wrong where the checks above aren't asked (it is quiet: its errors go through
+         ReportError or BeginLoud): static_assert in a function, case and default outside a switch
+         (CCPPUnit::CheckCaseInSwitch), a non-constant case and a switch over an object with no one conversion to
+         an integer (CheckSwitch, ContextualValue), return; in a function with a value (CheckReturn), a namespace
+         or a function defined in a block (CheckBlockDeclaration), a condition declaring an array, a scalar from
+         two values, an array's string or list wrong.
+       - A class's alignas that isn't a power of two is a ClassError, reported when a function using the class
+         fails with no error of its own (GenerateDefinition); a variable's is ReportOnce.  This found a bug:
+         alignas(3) on a local was accepted (BasicAlignmentLocalNotPowerOfTwoRefused).
+       - Assignment lays its class out before looking for its operator= (SupportLib's ShapeSubtraction failed
+         without it: using Base::operator= wasn't seen in a class not yet laid out).
+       - clauses.py writes ?? as ?\? in the header, so a case's trigraphs aren't the test's own.
 
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size

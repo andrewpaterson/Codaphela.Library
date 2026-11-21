@@ -327,7 +327,39 @@ void CCPP65TypeChecker::VisitLambdaExpression(CCPPSyntaxLambdaExpression* pcNode
 		mpsResult = NULL;
 		return;
 	}
+	if (((pcNode->meDefault != CPPLC_None) || (pcNode->macpCaptures.NumElements() > 0)) && IsInDefaultArgument(pcNode))
+	{
+		//[expr.prim.lambda] 13
+		Error(pcNode, "A lambda in a default argument captures nothing");
+		mpsResult = NULL;
+		return;
+	}
 	mpsResult = mpcUnit->LambdaType(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a node is in a parameter's default argument.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsInDefaultArgument(CCPPSyntax* pcNode)
+{
+	CCPPSyntax*	pcChild;
+	CCPPSyntax*	pcParent;
+
+	for (pcChild = pcNode, pcParent = pcNode->mpcParent; pcParent; pcChild = pcParent, pcParent = pcParent->mpcParent)
+	{
+		if ((pcParent->GetKind() == CPPS_Parameter) && (((CCPPSyntaxParameter*)pcParent)->mpcDefault == pcChild))
+		{
+			return true;
+		}
+		if ((pcParent->GetKind() == CPPS_FunctionDefinition) || (pcParent->GetKind() == CPPS_CompoundStatement))
+		{
+			return false;
+		}
+	}
+	return false;
 }
 
 
@@ -1067,6 +1099,11 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	CArraySyntax	apcRight;
 
 	psResult = mpcUnit->TypeOf(pcBinary->mpcLeft);
+	if (psResult && psResult->IsClass() && !mpcUnit->CompleteClass(psResult->pcClass, pcBinary))
+	{
+		//Its operator= (or its using Base::operator=) is known once it is laid out.
+		return NULL;
+	}
 	if (psResult && psResult->IsClass() && mpcUnit->HasOperator(psResult->pcClass, mpcUnit->GetOperatorName(pcBinary->meOperator, false), 1))
 	{
 		apcRight.Init();
@@ -1099,6 +1136,12 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 			return NULL;
 		}
 		return CopyObject(psPlace->pcClass, pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
+	}
+	if (psPlace->IsArray() || psPlace->IsFunction())
+	{
+		//An array or a function is no modifiable lvalue.  [basic.lval] 6, [expr.ass] 1
+		Error(pcBinary, psPlace->IsArray() ? "An array can't be assigned: its elements can" : "A function can't be assigned");
+		return NULL;
 	}
 	if (!psPlace->IsScalar())
 	{
@@ -1271,8 +1314,8 @@ SCPP65Type* CCPP65TypeChecker::Operate(ECppTokens eOperator, SCPP65Type* psLeft,
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether what a pointer points to can be stepped over: pointer arithmetic and ++
-// and -- step by its size, so a class (or an array of them) must be laid out.
-// [expr.add] 1
+// and -- step by its size, so a class (or an array of them) must be laid out,
+// and void and a function have no size.  [expr.add] 1, [expr.pre.incr] 1
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNode)
@@ -1283,6 +1326,14 @@ bool CCPP65TypeChecker::CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNod
 	while (psPointee->IsArray())
 	{
 		psPointee = psPointee->psBase;
+	}
+	if (psPointee->IsVoid())
+	{
+		return Error(pcNode, "A pointer to void doesn't step: void has no size");
+	}
+	if (psPointee->IsFunction())
+	{
+		return Error(pcNode, "A pointer to a function doesn't step: a function has no size");
 	}
 	return !psPointee->IsClass() || mpcUnit->CompleteClass(psPointee->pcClass, pcNode);
 }
@@ -1653,6 +1704,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 {
 	CCPPBoundCall	cBound;
 	SCPP65Type*		psType;
+	size			uiErrors;
 
 	if (mpcUnit->ImplicitAssignment(pcCall))
 	{
@@ -1693,6 +1745,19 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		if (psType)
 		{
 			return CallThroughPointer(pcCall, cBound.mpapcArguments, psType->psBase);
+		}
+		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		psType = (cBound.mpcCallee->GetKind() == CPPS_IdExpression) && !((CCPPSyntaxIdExpression*)cBound.mpcCallee)->mpcName->mpcSymbol ? NULL : Value(cBound.mpcCallee);
+		if (mpcUnit->GetErrors()->NumErrors() > uiErrors)
+		{
+			//What is wrong with the callee itself.
+			return NULL;
+		}
+		if (psType)
+		{
+			//[expr.call] 1
+			Error(cBound.mpcCallee, "What is called is no function, pointer to a function or object with an operator()");
+			return NULL;
 		}
 		if ((cBound.mpcCallee->GetKind() == CPPS_IdExpression) && !((CCPPSyntaxIdExpression*)cBound.mpcCallee)->mpcName->mpcSymbol)
 		{
@@ -1817,6 +1882,11 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 		psParameter = mpcUnit->VariadicArgumentType(psType);
 		if (!psParameter)
 		{
+			if (psType->IsClass() && !psType->pcClass->IsComplete())
+			{
+				//The argument's value is read: its class must be complete.  [conv.lval] 1, [expr.call] 7
+				return Error(pcArgument, "An object of a class that isn't defined yet can't be passed");
+			}
 			return Error(pcArgument, psType->IsClass() ? "Objects cannot be passed by value by the compiler yet; pass a pointer or a reference" : "This variable argument is not supported by the compiler yet");
 		}
 		if (!Convert(psType, psParameter, pcArgument))
@@ -2564,7 +2634,13 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		//An expression that makes an object: its temporary.
 		return ResultPlace(Result(pcExpression), pcExpression);
 	}
-	Error(pcExpression, "This lvalue is not supported by the compiler yet");
+
+	//What is wrong with the expression itself is said first; else it is a value, which has no place: 5 = i, &5,
+	//i++ = 5, this = p, int& r = 5.  [basic.lval] 1, [expr.ass] 1, [expr.unary.op] 3, [dcl.init.ref] 5
+	if (Value(pcExpression))
+	{
+		Error(pcExpression, "The expression is a value, not an object or a function: it has no place to assign to, take the address of or refer to");
+	}
 	return NULL;
 }
 
@@ -2591,6 +2667,12 @@ SCPP65Type* CCPP65TypeChecker::SubscriptPlace(CCPPSyntaxSubscriptExpression* pcS
 		psType = OperatorCall(pcSubscript->mpcArray, CT_OpenSquareBracket, &apcIndex, pcSubscript);
 		apcIndex.Kill();
 		return ResultPlace(psType, pcSubscript);
+	}
+	if (pcSubscript->mpcIndex->GetKind() == CPPS_InitializerList)
+	{
+		//[expr.sub] 1
+		Error(pcSubscript->mpcIndex, "A list in braces is an index only for a class's operator[]");
+		return NULL;
 	}
 
 	if (!Operands(pcSubscript->mpcArray, pcSubscript->mpcIndex, &psArray, &psIndex))
@@ -2717,9 +2799,26 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 	{
 		return psTo;
 	}
+	if (psTo->IsArray() || psTo->IsFunction())
+	{
+		//[expr.cast] 4, [expr.static.cast] 4
+		Error(pcNode, psTo->IsArray() ? "A cast can't make an array" : "A cast can't make a function");
+		return NULL;
+	}
 	if (!psTo->IsScalar())
 	{
 		Error(pcNode, "Only casts to integers and pointers are supported by the compiler yet");
+		return NULL;
+	}
+	if (psFrom->IsMemberPointer() && !psTo->IsMemberPointer() && (psTo->eKind != CPP65TK_Bool))
+	{
+		//No cast makes a pointer to a member an address or a number.  [expr.cast] 4, [expr.reinterpret.cast] 10
+		Error(pcNode, "A pointer to a member isn't an address: no cast makes it a pointer or a number");
+		return NULL;
+	}
+	if (psTo->IsMemberPointer() && !psFrom->IsMemberPointer() && !psFrom->IsNullPointer() && !mpcUnit->IsNullPointerConstant(pcOperand))
+	{
+		Error(pcNode, "A pointer to a member is made from another, 0 or nullptr: no cast makes one from an address or a number");
 		return NULL;
 	}
 	return (Convert(psFrom, psTo, pcNode) && CastReachesBase(psFrom, psTo, pcNode)) ? psTo : NULL;
@@ -2838,10 +2937,64 @@ SCPP65Type* CCPP65TypeChecker::SizeofExpression(CCPPSyntax* pcSizeof)
 	}
 	if (!mpcUnit->Constant(pcSizeof, &lliBytes))
 	{
-		Error(pcSizeof, "This sizeof or type trait is not supported by the compiler yet");
+		SizeofError(pcSizeof);
 		return NULL;
 	}
 	return (pcSizeof->GetKind() == CPPS_SizeofExpression) ? mpcTypes->Size() : &mpcTypes->msBool;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Why sizeof or alignof has no value: its operand is a lambda (never worked
+// out, so it may not be there), a function, void or an incomplete type, or
+// an expression that is wrong.  [expr.sizeof] 1, [expr.alignof] 1,
+// [expr.prim.lambda] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::SizeofError(CCPPSyntax* pcSizeof)
+{
+	CCPPSyntaxSizeofExpression*	pcExpression;
+	SCPP65Type*					psType;
+	size						uiErrors;
+
+	pcExpression = (pcSizeof->GetKind() == CPPS_SizeofExpression) ? (CCPPSyntaxSizeofExpression*)pcSizeof : NULL;
+	if (!pcExpression || pcExpression->mbPack || ((pcExpression->meKeyword != CT_sizeof) && (pcExpression->meKeyword != CT_alignof)))
+	{
+		Error(pcSizeof, "This sizeof or type trait is not supported by the compiler yet");
+		return;
+	}
+	if (pcExpression->mpcOperand && (mpcUnit->SkipParentheses(pcExpression->mpcOperand)->GetKind() == CPPS_LambdaExpression))
+	{
+		Error(pcSizeof, "A lambda can't be the operand of sizeof or alignof, which isn't worked out");
+		return;
+	}
+	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	psType = mpcUnit->OperandType(pcExpression->mpcType, pcExpression->mpcOperand);
+	if (!psType && pcExpression->mpcOperand)
+	{
+		Value(pcExpression->mpcOperand);
+	}
+	if (mpcUnit->GetErrors()->NumErrors() > uiErrors)
+	{
+		return;
+	}
+	if (psType && psType->IsFunction())
+	{
+		Error(pcSizeof, (pcExpression->meKeyword == CT_sizeof) ? "sizeof can't be applied to a function" : "alignof can't be applied to a function");
+	}
+	else if (psType && psType->IsVoid())
+	{
+		Error(pcSizeof, (pcExpression->meKeyword == CT_sizeof) ? "sizeof can't be applied to void" : "alignof can't be applied to void");
+	}
+	else if (psType && ((psType->IsArray() && (psType->iCount == 0)) || (psType->IsClass() && !psType->pcClass->IsComplete())))
+	{
+		Error(pcSizeof, (pcExpression->meKeyword == CT_sizeof) ? "sizeof can't be applied to an incomplete type: an array without its bound, or a class not yet defined" : "alignof can't be applied to an incomplete type");
+	}
+	else
+	{
+		Error(pcSizeof, "This sizeof or type trait is not supported by the compiler yet");
+	}
 }
 
 
@@ -2902,6 +3055,12 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 	psType = mpcUnit->NewElementType(pcNew);
 	if (!psType || (psType->IsClass() && !mpcUnit->CompleteObjectClass(psType->pcClass, pcNew)))
 	{
+		return NULL;
+	}
+	if (psType->IsVoid() || psType->IsReference() || psType->IsFunction())
+	{
+		//new makes an object.  [expr.new] 1
+		Error(pcNew, psType->IsVoid() ? "new makes an object: void is no object's type" : (psType->IsReference() ? "new makes an object: a reference is none" : "new makes an object: a function is none"));
 		return NULL;
 	}
 
@@ -3262,6 +3421,19 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		{
 			apcArguments.Kill();
 			return true;
+		}
+		if (!pcInitialiser && (psType->iCount > 0) && (papcArguments->NumElements() > (size)psType->iCount))
+		{
+			//More values than the array's elements take, with their braces left out (BracedFor gives them back).
+			//[dcl.init.aggr] 7, 11
+			apcArguments.Kill();
+			return Error(pcNode, "More initialisers than the array's elements take");
+		}
+		if (pcString && mpcUnit->IsStringLiteral(pcString))
+		{
+			//[dcl.init.string] 1
+			apcArguments.Kill();
+			return Error(pcString, mpcUnit->StringArrayError(pcString, psType->psBase));
 		}
 		if (pcInitialiser || (papcArguments->NumElements() > (size)psType->iCount))
 		{
@@ -3659,6 +3831,16 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 	{
 		return Error(pcNode, "A void value cannot be used");
 	}
+	if (psFrom->IsClass() && !psTo->IsClass())
+	{
+		//An object converts only by its class's conversion function: one that is explicit only by a cast or as a
+		//condition; a lambda that captures has none to a pointer to a function.  [class.conv.fct] 2, [expr.prim.lambda] 6
+		if (psFrom->pcClass->mpsLambda)
+		{
+			return Error(pcNode, "The lambda doesn't convert to the type: only one that captures nothing converts to a pointer to a function, and a generic one only where its call can be made for the function's parameters");
+		}
+		return Error(pcNode, "The object doesn't convert to the type: its class has no conversion function to it that isn't explicit");
+	}
 	if (psFrom->IsClass() || psTo->IsClass())
 	{
 		return Error(pcNode, "Objects can only be copied or used through pointers by the compiler yet");
@@ -3932,6 +4114,11 @@ bool CCPP65TypeChecker::NamedCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, 
 	switch (pcCast->meCast)
 	{
 	case CT_const_cast:
+		if ((psTo->IsPointer() && psTo->psBase->IsFunction()) || (psFrom->IsPointer() && psFrom->psBase->IsFunction()))
+		{
+			//[expr.const.cast] 3
+			return Error(pcCast, "const_cast doesn't convert a pointer to a function: a function has no const to take away");
+		}
 		return ConstCastAllowed(pcCast, psFrom, psTo);
 	case CT_reinterpret_cast:
 		return ReinterpretCastAllowed(pcCast, psFrom, psTo);
@@ -3967,6 +4154,11 @@ bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast
 		return true;
 	}
 	psTo = psTo->psBase;
+	if ((psTo->IsClass() && !mpcUnit->CompleteClass(psTo->pcClass, pcCast)) || (psFrom->IsClass() && !mpcUnit->CompleteClass(psFrom->pcClass, pcCast)))
+	{
+		//[expr.dynamic.cast] 1, 2
+		return false;
+	}
 	if (!psTo->HasQualifiersOf(psFrom))
 	{
 		return Error(pcCast, "dynamic_cast doesn't take const away: const_cast does");
@@ -4214,6 +4406,11 @@ bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
 	}
 	if (psTo->IsReference())
 	{
+		if (!psTo->bRvalue && !psTo->psBase->bConst && !psValue->IsClass() && !psTo->psBase->IsFunction() && mpcUnit->IsRvalue(pcValue))
+		{
+			//T& binds to an lvalue (or what a conversion function returns as one).  [dcl.init.ref] 5
+			return Error(pcValue, "A reference that isn't const binds to an object: the value has no place to refer to");
+		}
 		return BindsCategory(psTo, pcValue, pcValue) && (mpcUnit->BindsToTemporary(psTo, pcValue) || CanBind(psTo, psValue, pcValue));
 	}
 	psValue = psValue->IsArray() ? mpcTypes->Pointer(psValue->psBase) : psValue;

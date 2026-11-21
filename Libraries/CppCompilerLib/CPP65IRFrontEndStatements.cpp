@@ -383,10 +383,15 @@ bool CCPP65IRFrontEnd::DestroyTemporary(SCPP65IRCleanup* psTemporary)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement)
 {
+	bool	bResult;
+
 	if (pcStatement->mpcDeclaration && (pcStatement->mpcDeclaration->GetKind() == CPPS_StaticAssert))
 	{
 		//Checked when it is compiled; nothing is written.
-		return mpcUnit->StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration) || Unsupported(__FILE__, __LINE__);
+		mpcUnit->BeginLoud();
+		bResult = mpcUnit->StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration);
+		mpcUnit->EndLoud();
+		return bResult;
 	}
 	if (pcStatement->mpcDeclaration && mpcUnit->IsScopeDeclaration(pcStatement->mpcDeclaration))
 	{
@@ -394,7 +399,7 @@ bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSt
 	}
 	if (!pcStatement->mpcDeclaration || (pcStatement->mpcDeclaration->GetKind() != CPPS_SimpleDeclaration))
 	{
-		return Unsupported(__FILE__, __LINE__);
+		return !mpcUnit->CheckBlockDeclaration(pcStatement->mpcDeclaration) && Unsupported(__FILE__, __LINE__);
 	}
 	return Declaration((CCPPSyntaxSimpleDeclaration*)pcStatement->mpcDeclaration, NULL);
 }
@@ -621,7 +626,8 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		}
 		if (papcElements->NumElements() != 1)
 		{
-			return Unsupported(__FILE__, __LINE__);
+			//[dcl.init] 17.8
+			return mpcUnit->ReportError(pcInitialiser, "A number or a pointer is initialised by one value");
 		}
 		pcInitialiser = papcElements->GetPtr(0);
 	}
@@ -652,7 +658,8 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		}
 		if (papcElements->NumElements() != 1)
 		{
-			return Unsupported(__FILE__, __LINE__);
+			//[dcl.init.list] 3
+			return mpcUnit->ReportError(pcInitialiser, "A number or a pointer is initialised by one value");
 		}
 		pcInitialiser = papcElements->GetPtr(0);
 		if (!mpcUnit->CheckBracedValue(pcInitialiser, psPlace->psType))
@@ -732,10 +739,16 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	if (mpcUnit->IsStringLiteral(pcInitialiser) && psElement->IsScalar() && (psElement->iBytes == mpcUnit->StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
-		if (!mpcUnit->DecodeString(pcInitialiser, &auiBytes) || (auiBytes.NumElements() / psElement->iBytes > (size)psPlace->psType->iCount))
+		if (!mpcUnit->DecodeString(pcInitialiser, &auiBytes))
 		{
 			auiBytes.Kill();
 			return Unsupported(__FILE__, __LINE__);
+		}
+		if (auiBytes.NumElements() / psElement->iBytes > (size)psPlace->psType->iCount)
+		{
+			//[dcl.init.string] 2
+			auiBytes.Kill();
+			return mpcUnit->ReportError(pcInitialiser, "The string has more characters, with its end, than the array has elements");
 		}
 		for (ui = 0; ui < auiBytes.NumElements() / psElement->iBytes; ui++)
 		{
@@ -751,6 +764,11 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	}
 	if (pcInitialiser->GetKind() != CPPS_InitializerList)
 	{
+		if (mpcUnit->IsStringLiteral(pcInitialiser))
+		{
+			//[dcl.init.string] 1
+			return mpcUnit->ReportError(pcInitialiser, mpcUnit->StringArrayError(pcInitialiser, psElement));
+		}
 		return Unsupported(__FILE__, __LINE__);
 	}
 	papcElements = mpcUnit->ListElements(pcInitialiser);
@@ -759,7 +777,8 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	{
 		return false;
 	}
-	return (uiNext >= papcElements->NumElements()) || Unsupported(__FILE__, __LINE__);
+	//[dcl.init.aggr] 7
+	return (uiNext >= papcElements->NumElements()) || mpcUnit->ReportError(pcInitialiser, "More initialisers than the array's elements take");
 }
 
 
@@ -1444,7 +1463,7 @@ bool CCPP65IRFrontEnd::CaseStatement(CCPPSyntaxCaseStatement* pcCase)
 			return Statement(pcCase->mpcStatement);
 		}
 	}
-	return Unsupported(__FILE__, __LINE__);
+	return !mpcUnit->CheckCaseInSwitch(pcCase) && Unsupported(__FILE__, __LINE__);
 }
 
 

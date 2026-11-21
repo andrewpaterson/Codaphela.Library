@@ -1442,3 +1442,5 @@ int main()
 ### BasicAlignmentNotPowerOfTwoRefused | REFUSED | 3.11 [basic.align] p4: an alignment is a power of two
 struct alignas(3) S { char c; };
 int main() { return sizeof(S); }
+### BasicAlignmentLocalNotPowerOfTwoRefused | REFUSED | 3.11 [basic.align] p4, 7.6.2 [dcl.align] p2: a local's alignment is a power of two
+int main() { alignas(3) char c = 1; return c; }

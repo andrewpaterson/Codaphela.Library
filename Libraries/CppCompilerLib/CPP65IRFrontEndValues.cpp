@@ -679,7 +679,9 @@ bool CCPP65IRFrontEnd::ContextualValue(CCPPSyntax* pcExpression, ECPPContextualT
 	{
 		return Operand(pcExpression, psValue);
 	}
+	mpcUnit->BeginLoud();
 	psTo = mpcUnit->GetBinder()->ContextualType(pcExpression, eWanted);
+	mpcUnit->EndLoud();
 	return psTo ? ValueFor(pcExpression, psTo, psValue) : Unsupported(__FILE__, __LINE__);
 }
 

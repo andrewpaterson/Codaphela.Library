@@ -4571,6 +4571,12 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 	{
 		mpcIRFrontEnd->ClearUnsupported();
 	}
+	else if (masClassErrors.NumElements() > 0)
+	{
+		//A class the function uses was wrong (laid out quietly, so not reported yet): that is why.
+		mpcIRFrontEnd->ClearUnsupported();
+		ReportClassErrors();
+	}
 	else
 	{
 		szMessage.Init("This function uses C++ the ");
@@ -4747,6 +4753,11 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 			if (!psType)
 			{
 				return false;
+			}
+			if (psType->IsVoid())
+			{
+				//[basic.fundamental] 9
+				return Error(pcNode, "A variable can't be void");
 			}
 			if (!psType->IsScalar() && !psType->IsArray() && !psType->IsClass() && !psType->IsReference())
 			{

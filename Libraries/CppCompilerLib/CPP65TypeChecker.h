@@ -159,6 +159,8 @@ protected:
 	SCPP65Type*		ReferenceCast(SCPP65Type* psTo, CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*		ConstructExpression(CCPPSyntaxConstructExpression* pcConstruct);
 	SCPP65Type*		SizeofExpression(CCPPSyntax* pcSizeof);
+	void			SizeofError(CCPPSyntax* pcSizeof);
+	bool			IsInDefaultArgument(CCPPSyntax* pcNode);
 	SCPP65Type*		CheckedSizeofType(CCPPSyntax* pcSizeof);
 	SCPP65Type*		NewExpression(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*		NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType);

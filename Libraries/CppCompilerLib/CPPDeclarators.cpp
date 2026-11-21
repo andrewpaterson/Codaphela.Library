@@ -773,6 +773,12 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			{
 				pcSymbol = pcSymbol->mpcNext;
 			}
+			if (!pcSymbol && pcElaborated->mpcName->mpcSymbol && (pcElaborated->mpcName->mpcSymbol->meKind == CPPSK_Enum))
+			{
+				//struct E of an enum E.  [dcl.type.elab] 3
+				mpcUnit->Error(pcNode, "The name is an enum's: struct, class and union name a class");
+				return NULL;
+			}
 			pcClass = mpcUnit->GetComponentClass(pcElaborated->mpcName->GetLast(), pcSymbol ? pcSymbol : pcElaborated->mpcName->mpcSymbol, pcNode);
 			if (pcClass)
 			{
@@ -846,6 +852,12 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			{
 				//typename T::Missing with T int: no class with a member type of the name.  [temp.res] 3, [temp.inst] 1
 				mpcUnit->Error(pcNode, "What qualifies the name is no class with a member type of that name");
+				return NULL;
+			}
+			if (!pcName->mpcSymbol)
+			{
+				//A class's member type is named through the class outside it (S::I).  [basic.lookup.unqual] 1
+				mpcUnit->Error(pcNode, "The type's name isn't declared where it is used");
 				return NULL;
 			}
 		}

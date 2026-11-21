@@ -543,6 +543,9 @@ public:
 	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
+	bool					CheckCaseInSwitch(CCPPSyntax* pcCase);
+	bool					CheckBlockDeclaration(CCPPSyntax* pcDeclaration);
+	const char*				StringArrayError(CCPPSyntax* pcString, SCPP65Type* psElement);
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckEnumerators(CCPPSyntax* pcType);
@@ -594,7 +597,7 @@ public:
 	CCPPClass*			GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcContext = NULL);
 	CCPPClass*			FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate);
 	CCPPClass*			QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
-	int						AlignasAlignment(CArraySyntax* papcSpecifiers);
+	int						AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass = false);
 	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
 	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	CCPPClass*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);

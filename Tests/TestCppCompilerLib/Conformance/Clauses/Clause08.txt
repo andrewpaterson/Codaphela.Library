@@ -409,6 +409,11 @@ int main() { return 1; }
 int f() { return 1; }
 int f() { return 2; }
 int main() { return f(); }
+### DclFunctionDefinedInBlockRefused | REFUSED | 8.4.1 [dcl.fct.def.general] p2: a function is defined in namespace or class scope only
+int main() { int f() { return 1; } return f(); }
+### DclFunctionDeclaredInBlock | 3 | 8.4.1 [dcl.fct.def.general] p2, 9.8 [class.local] p2: a function declared in a block, and a local class's member defined in it
+int main() { int f(); struct L { int g() { return 2; } }; L l; return f() + l.g(); }
+int f() { return 1; }
 ### DclZeroAndDefaultInitialisation | 63 | 8.5 [dcl.init] p6-p8: zero, default and value initialisation
 struct P { int a; int* p; double d; char c[3]; };
 struct C { C() : v(5) { } int v; };
@@ -745,6 +750,10 @@ int Take(int v) { return v; }
 int main() { return Take({ 2.5 }); }
 ### DclListTooManyForScalarRefused | REFUSED | 8.5.4 [dcl.init.list] p3: a scalar from a list of one
 int main() { int x{ 1, 2 }; return x; }
+### DclParenthesesTooManyForScalarRefused | REFUSED | 8.5 [dcl.init] p17.8: a scalar from one expression in parentheses
+int main() { int x(1, 2); return x; }
+### DclParenthesesCommaForScalar | 2 | 8.5 [dcl.init] p17.8: a comma expression in its own parentheses is one value
+int main() { int x((1, 2)); return x; }
 ### DclListExplicitCopyRefused | REFUSED | 8.5.4 [dcl.init.list] p3, 13.3.1.7: copy list initialisation does not use an explicit constructor
 struct E { explicit E(int a, int b) : v(a + b) { } int v; };
 int main() { E e = { 1, 2 }; return e.v; }

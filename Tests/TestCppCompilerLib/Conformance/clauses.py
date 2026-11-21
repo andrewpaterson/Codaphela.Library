@@ -93,7 +93,8 @@ def table(cases, group):
         lines.append('\t{')
         lines.append('\t\t"%s", %s,' % (c['name'], 'CONFORMANCE_REFUSED' if c['expect'] == 'REFUSED' else c['expect']))
         for l in c['source'].rstrip('\n').split('\n'):
-            lines.append('\t\t"%s\\n"' % l.replace('\\', '\\\\').replace('"', '\\"'))
+            #(?\? where the source has ??, so the C++ the test is built from has no trigraph of its own.)
+            lines.append('\t\t"%s\\n"' % re.sub(r'\?(?=\?)', r'?\\', l.replace('\\', '\\\\').replace('"', '\\"')))
         lines.append('\t},')
     lines.append('};')
     return '\n'.join(lines) + '\n'
