@@ -1,0 +1,2604 @@
+CppCompilerLib: what the check of 2026-11-21 found
+==================================================
+
+Every finding of the code smell check of the library, numbered once from 1, and after them what was found the same
+day by running, testing and measuring.  Written 2026-11-21 for whoever takes any of it on.  Nothing here is a plan:
+ConsolidationPlan.txt is the plan for the shape of the code, and most of the largest findings are what its stages 6
+to 10 are for.
+
+How it was made, and how far to trust it
+
+  - Findings 1 to 88 are six reviews, one for each area of the library, each made by reading the code and nothing
+    else.  A reviewer built nothing and ran nothing, so where a finding says what goes wrong, that is "by reading"
+    unless it says otherwise.  The text of each finding is the reviewer's, as it was reported; only the numbers are
+    new (a reviewer's "finding 3" is the number it has here).
+  - About forty of the reviews' particular claims (a file and line, a count, "no caller") were checked against the
+    source afterwards, and all held.  The rest were not checked one by one.
+  - The reviews read the library as it was in the early hours of 2026-11-21, at about commit 95556e055: 574 files,
+    173,000 lines, 4,540 functions (half of them 10 lines or fewer, a tenth over 51, a hundredth over 152, the
+    longest 276; 327 over 60 lines and 130 over 100).  Line numbers are that day's and have moved since: the
+    clauses 3 to 14 fixes and DeclarationsSpeedPlan.txt's stages went in after.  Look for the name, not the line.
+  - "Plan:" in a finding says whether ConsolidationPlan.txt already has it; "Confidence:" is the reviewer's own.
+  - Where something has been run or changed since, a line "Since:" at the end of the finding says so.
+  - Findings 89 to 106 were found by running programs, by the suite's coverage (g++, --coverage, commit b87a252bc)
+    and by profiling and counting compiles; each says how.
+
+What is in it
+
+  Findings by reading
+     1 to  14   The preprocessor, the tokeniser, the parser and the syntax tree
+    15 to  29   The semantic layer: CCPPUnit and the classes round it
+    30 to  44   Names and calls, types and the type checker
+    45 to  59   The IR front end, the builder and what the IDE uses
+    60 to  74   The IR and the optimiser
+    75 to  88   The two back ends
+  Findings by running, testing and measuring
+    89 to  92   Programs the compiler gets wrong
+    93 to  97   What the tests don't check
+    98 to 103   Compile time
+   104 to 106   Small things seen on the way
+  Appendix A    The diagnostics no test raises
+  Appendix B    The suite's coverage, and the functions no test calls
+
+Where the wrong results are
+
+  Most findings are about the shape of the code.  These are the ones that say, or showed, that the compiler does
+  something wrong:
+
+    Shown by running      89, 90 (overload ranking against the checker: 30), 91 (a return's conversion: 31)
+    Fixed since           1 (a lambda's pack capture; 51a96c492), 102 (the declarations phase's time)
+    Said by reading,      41 (CCPPScope::IsAmbiguous stops where Find goes on), 47 (the builder's maths-table option
+    not run               and its line-table time), 76 (IR816IsDirect takes "[D + 12 + X]"), 87 (mcRuntime is never
+                          initialised), and the bound tested twice at IRW65C816Shifts.cpp:818 (in the IR's reviewer's
+                          last list)
+    Looked at and right   18's float constants: the program tried gives the right answer (92)
+
+
+The preprocessor, the tokeniser, the parser and the syntax tree
+---------------------------------------------------------------
+
+All files are in D:\gameengine\CommonLibraries\Libraries\CppCompilerLib. Read-only; nothing was built or run, so
+every "consequence" below is from reading the code.
+
+The syntax tree is the clean part: one X-macro (CPP_SYNTAX_KINDS, CPPSyntaxKind.h:26) makes the enum, names,
+CreateKind and the visitor, and each node's VisitFields drives children, copying and the disk form, so visiting and
+reading/writing are table-driven; only Init, Kill and PrettyPrint are hand-written per node. The parser is readable
+but carries its context in members saved and put back by hand, and makes every node's bookkeeping by hand. The
+preprocessor is the weakest part: three token forms, the same lexing redone five or six times, and a layer of
+classes left from an older design that nothing uses. What a token is (spelling, operator class, precedence, literal
+type) is spread over many switches.
+
+1. A node's fields are listed three times by hand, and one list is already wrong
+   Kind: one fact in several places (with a defect).
+   Where: every CPPSyntax*.cpp has Init (76 nodes), Kill (27) and VisitFields (75). CPPSyntaxLambdaCapture.h:49,
+   CPPSyntaxLambdaCapture.cpp:75-82.
+   Evidence: I compared each node's members with its Init and VisitFields by script. One mismatch: `mbPack` of
+   CCPPSyntaxLambdaCapture is set in Init, set by the parser (CppParserExpressions.cpp:1098) and read by
+   CPPUnitLambdas.cpp:202, but VisitFields gives only meKind, mpcName, miName, mpcInitializer, mpcSymbol.
+   Why it matters: VisitFields is what CPPSyntaxBlock writes and reads, and what CCPPSyntaxCopier copies
+   (CPPUnitPacks.cpp:248, CPPUnitTemplates.cpp:815, CPPUnitLambdas.cpp:311). A `[args...]` capture read from a lazy
+   header block or copied comes back with mbPack false. Nothing checks a new field against the list.
+   Clean form: Init and Kill run through VisitFields (one CCPPSyntaxFields that nulls and Inits, one that Kills),
+   so a field is listed once. Add mbPack now; the block magic must change with it.
+   Plan: new (the plan leaves the node classes alone). Confidence: high on the omission, medium on the effect.
+   Since: shown by running, and fixed in 51a96c492: VisitFields lists mbPack, and TestCPPSyntaxBlockEveryKind
+   round-trips a source that has every kind of node and says which kind it lacks.  Init and Kill are still written
+   by hand for each node.  The block's magic was changed later for another reason (CSB3, 18f0f7962); blocks are
+   only kept in memory, so no old one is read.
+
+2. Three token forms, with the lexing redone at each join
+   Kind: duplicated work between the two token systems.
+   Where: CPPToken family (PPToken.h, PPText.h), SPreprocessedToken (PreprocessedTokens.h:28-70), CCPPToken family
+   (CppToken.h, CT*.h); CPPPreprocessor.cpp:626-827, 1736-1792, 2562-2610, 2805-2813; CppTokeniser.cpp:380-395.
+   Evidence:
+   - The line tokeniser makes punctuation one-character "decorators". ConvertDecorators (CPPPreprocessor.cpp:746)
+     glues them into punctuators with PunctuatorLength every time a line is read (NextFileToken:563), for every
+     unit.
+   - The result is only PTK_Punctuator plus text, so the preprocessor compares strings (`IsPunctuator("(")`, 19
+     times in CPPPreprocessor.cpp), and CCPPTokeniser::Punctuator looks the text up a third time for its
+     ECppTokens.
+   - Two more hand lexers sit in the same file: EmitPragmaPack (1757-1790) and LexSingleToken for pasting (2562).
+   - A macro body is kept twice in CDefine (Define.h:42 mcReplacement, :54 macBody), converted lazily by the
+     preprocessor through IsBodyConverted/SetBodyConverted (GetBody:2805).
+   - Directive handlers use two forms: #define, #undef, #line, #pragma and #ifdef walk CPPTokens through
+     CPreprocessorTokenParser; #if, #elif and #include convert to SPreprocessedToken first (3309, 3645).
+   - CPreprocessorLineTokeniser keeps its state as seven "start" pointers of which one is set
+     (PreprocessorLineTokeniser.h:36-42); `AddRelevantToken(); NullAll(); mszXStart = ...; MarkStart();` is
+     repeated 12 times (15 NullAll calls).
+   Why it matters: a lexical rule change has to be made in several lexers.
+   Clean form: the file tokeniser makes SPreprocessedToken-shaped tokens directly (kind, text, flags, punctuator id
+   from the one table). Directives, macro bodies, pasting and the C++ tokeniser all read that form. The line
+   tokeniser's state is one start pointer and a kind.
+   Plan: stage 10 says the four scanners "need reading first". This is that reading: CPreprocessorParser is a
+   character cursor, CPreprocessorTokeniser splits lines and directives, CPreprocessorLineTokeniser lexes a line,
+   CPreprocessorTokenParser is a cursor over CPPTokens. The plan does not name the second token form or the
+   re-lexing: new. Confidence: high.
+
+3. #if prints its tokens back to text and lexes them again
+   Kind: same idea written twice; twin inconsistency.
+   Where: CPPPreprocessor.cpp:3333-3344 (EvaluateCondition); PreprocessorExpression.cpp:27-51, 435-548, 578-616.
+   Evidence: after expansion the tokens are appended to a CChars with spaces and given to
+   CPreprocessorExpression::Evaluate(char*). That class has its own operator enum (PPO_*), its own precedence table
+   (`giPPOperatorPrecedence`, line 51) and its own character-pair operator lexer (592-613). The parser has another
+   precedence table (CCPPParser::GetBinaryPrecedence, CppParserExpressions.cpp:181). The pp-number rule is written
+   three times and not alike: PPNumberLength (CPPPreprocessor.cpp:1712) and IsPPNumberContinuation
+   (PreprocessorLineTokeniser.cpp:363) take a sign after e, E, p or P; Number()
+   (PreprocessorExpression.cpp:510-527) allows e only when not hex.
+   Why it matters: the evaluator knows nothing the token table knows. The alternative tokens (`and`, `or`, `not`,
+   CppTokeniser.cpp:163-173) are plain identifiers to it, so `#if defined(A) and defined(B)` should end in
+   "Unexpected text" (Evaluate:148).
+   Clean form: evaluate over the SPreprocessedToken array with punctuator ids, with precedence taken from the one
+   operator table.
+   Plan: new. Confidence: high on structure, medium on the `and` consequence.
+
+4. What an operator token is, is a switch wherever it is asked
+   Kind: one fact listed in many places.
+   Where and evidence:
+   - Assignment operators: CppParserExpressions.cpp:101 and again :359-369 (IsDecltypeMemberCast), besides the four
+     outside my area you named, and three more in the IDE (IDEConvertEnum.cpp:585, IDEEncapsulateField.cpp:235,
+     IDEInlineVariable.cpp:228, IDERefactorUnit.h:169).
+   - Binary precedence: CppParserExpressions.cpp:192-229.
+   - IsOverloadableOperator (CppParserNames.cpp:269) is a list of exceptions plus `eToken < CT_Hash`, so it depends
+     on enum order.
+   - Type keywords: DeclSpecifierFlag, IsSimpleTypeKeyword, IsTypeStartKeyword
+     (CppParserDeclarations.cpp:1062-1155).
+   - The token set itself is in three places kept alike by position: enum ECppTokens (CppTokens.h:28),
+     CPP_PUNCTUATORS (CPPPunctuatorList.h:28, "in ECppTokens order"), and the keyword rows typed out in
+     CppTokeniser.cpp:55-159. A run-time check in every CCPPTokeniser::Init (CppTokeniser.cpp:226-237) reports "C++
+     reserved words are out of order."
+   Clean form: one X-macro table for all tokens (punctuators already have one) with columns for spelling, binary
+   precedence, assignment's base operator and overloadable. The enum is generated from it. IsAssignment, Precedence
+   and the rest are lookups that the parser, CCPPUnit, the index and the IDE share.
+   Plan: new. Confidence: high.
+
+5. The parser's context is members saved and put back by hand, in three overlapping lists
+   Kind: state saved and restored around calls; hidden arguments.
+   Where: CppParser*.cpp; CppParser.h:38-71; CppParserLazy.cpp:511-554.
+   Evidence:
+   - `bNoGreater = mbNoGreater; mbNoGreater = false; ... mbNoGreater = bNoGreater;` has 20 saves and 33 restores.
+     ParseNewExpression restores at nine exits (CppParserExpressions.cpp:1409-1516). mbDeclaringTemplate gets the
+     same treatment (CppParserClasses.cpp:568-602, CppParserDeclarators.cpp:481-521,
+     CppParserExpressions.cpp:1024-1030).
+   - mbMemberName and mbLambdaDeclarator are arguments passed through members: set before the call
+     (CppParserExpressions.cpp:640-642, 993-996), read and cleared inside (CppParserNames.cpp:106-107,
+     CppParserDeclarators.cpp:314).
+   - "The state" exists three times: SCPPParserState (4 members), SCPPTentative (6), and LoadDeclaration's own 11
+     saved members. LoadDeclaration does not save or reset miTemplates, mbLambdaDeclarator or miTemplateArguments,
+     so a lazy declaration loaded inside a template or a lambda's parameters parses with the outer values. For
+     example ParseFunctionDefinition's `IsSkimming() && (miTemplates == 0)` test (CppParserDeclarations.cpp:719)
+     would see the outer miTemplates.
+   Clean form: one context struct with a scoped setter that restores on every exit; LoadDeclaration swaps the whole
+   struct; member-name and lambda-declarator become parameters.
+   Plan: stage 10 covers the reshaping (token cursor, tentative parse as an object, one shared context). It does
+   not name mbNoGreater's 53 sites, the hidden arguments or LoadDeclaration's omissions. Confidence: high on the
+   evidence, medium on the omissions' effect.
+
+6. An integer literal's type is decided twice, first by the host's sizes
+   Kind: one fact derived twice; token classes that need kind plus cast.
+   Where: CppTokeniser.cpp:467-500; CPPUnitExpressions.cpp:44-121, 775-800; CTNumber.h, CTInt.h, CTShort.h,
+   CTLongLong.h.
+   Evidence: CCPPTokeniser::Integer sorts literals "with 32 bit int and long and 64 bit long long, as on Windows"
+   into CCTInt or CCTLongLong, with mbSigned, mbLong and mbDecimal. CCPPUnit::IntegerLiteralType then decides again
+   from those flags and the target's int size (`mcTypes.msInt.iBytes < 4 ? 0x7FFF : 0x7FFFFFFF`). The classes are
+   named for host storage: CCTShort is really "an L'x' or u'x' character", and CCTInt with mbChar32 a U'x'.
+   Consumers switch on meType and cast (Literal, TokenConstant, CPPUnitFloat.cpp:92). CTNT_Byte is used nowhere.
+   Clean form: one integer and one floating literal token holding what LiteralHelper parsed (value, base, suffixes,
+   character encoding); the target decides the type once.
+   Plan: new. Confidence: high.
+
+7. CPPSyntaxBlock: scope and symbol records laid out twice, and Read does everything
+   Kind: parallel lists; long function and parameter list; magic numbers; a rule copied from the parser.
+   Where: CPPSyntaxBlock.cpp:955-999 against 1673-1711; Read 1516-1769; 1242-1248 and 1551-1553; 1663 against
+   CppParserClasses.cpp:141.
+   Evidence:
+   - Nodes go through VisitFields, but a scope's and a symbol's fields are written out by hand in WriteAll and
+     again, in the same order, in Read, and a third time in the header comment (CPPSyntaxBlock.h:66-69).
+   - Read is 251 lines with 8 parameters and 30 locals. A CCPPSyntaxBlockReading object exists beside it but holds
+     7 of the 10 working arrays; the other three are Read's locals, killed by hand at two exits. pcGlobal is
+     derivable from pcTree.
+   - The arrays' allocators are `GetBlockReadingMallocator(0)` to `(9)`, bare numbers against
+     CPP_SYNTAX_BLOCK_READING_ARRAYS 10 (CPPSyntaxTree.h:53).
+   - The reuse rule `pcSymbol->IsClass() && ... !(pcSymbol->mpcMembers && (pcSymbol->mpcMembers->mpcOwner !=
+     pcSymbol))` is ParseClassSpecifier's, restated "as parsing does".
+   Clean form: CCPPScope and CCPPSymbol give their fields to the same kind of field visitor; Read becomes steps of
+   CCPPSyntaxBlockReading (header, externals, declared, scopes, symbols, nodes, tokens); an enum for the arrays;
+   one "class already in this scope" function that the parser and the reader both call.
+   Plan: new. The plan leaves the block's format alone; this changes no bytes. Confidence: high.
+
+8. A layer of preprocessor classes and members nothing uses
+   Kind: dead code. Each was grepped across CommonLibraries, HCP65-IDE and HCP65.
+   Evidence:
+   - CDefineArguments (DefineArguments.cpp/.h, 119 lines): named nowhere outside its own two files.
+   - CPPTokenReplacementsHolder: never created. IsTokenReplacementsHolder is never overridden to true, so its Copy
+     does nothing and the branch at TokenHelper.cpp:93 can't be reached.
+   - CPPBlock: never created. CPPBlockSet::AddBlock has no callers and mapcBlocks is always empty.
+     `GetUnprocssedTokens` (misspelt) is named against "processed" blocks that no longer exist.
+   - CPPConditional's mpcNext and msIndex, GetNext, GetTokenBlock: written by the tokeniser (NextConditional,
+     mpcPrev, and the iBlock/iIndex parameters of TokeniseDirective and TokeniseHashConditional) and read by
+     nobody.
+   - CPPToken::IsUnknown and IsFile: no override, no caller.
+   - CPPInclude: a subclass that adds only an Init.
+   - EConditionalType: only CT_Else is ever tested (ConditionalStack.cpp:215). CT_EndIf is "Should never appear",
+     and PushIf, PushIfDefined and PushIfNotDefined differ only in a value nobody reads.
+   - ConvertDecorators returns a CPPToken* that its one caller ignores (CPPPreprocessor.cpp:697).
+   - CPPReplacement::mbVariadic is only printed, and computed from the wrong number: `iReplacementNum ==
+     iNumArguments - 1` counts uses, not the argument index (CPPPreprocessor.cpp:1123).
+   - CCPPPreprocessor::EvaluateEquation is a one-line forwarder.
+   Clean form: delete them.
+   Plan: new. Confidence: high.
+   Since: the suite's coverage agrees: no test calls a function of these classes (finding 96).
+
+9. Every node's bookkeeping is done by the parse function
+   Kind: the same few lines everywhere.
+   Where: CppParser*.cpp.
+   Evidence: `miFirstToken = CurrentToken()` 70 times, `miLastToken = PreviousToken()` 80 times, re-parenting by
+   hand (`pcLeft->mpcParent = pcBinary`) 23 times, `((CCTReservedWord*)Peek(0))->GetToken()` after an
+   IsReservedWord test 21 times. ParseClassSpecifier makes a CCPPSyntaxClassSpecifier, then on finding an
+   elaborated specifier makes a second node, moves the name and attributes across and abandons the first
+   (CppParserClasses.cpp:69, 107-112).
+   Clean form: Begin<Node>(parent) and Finish(node) on the cursor set the tokens; an Adopt(parent, child); a
+   PeekToken() that returns the ECppTokens or none.
+   Plan: stage 10 gives the cursor Peek/Is/Expect but not node begin/finish: mostly new. Confidence: high.
+
+10. The preprocessor's sources and its three-way returns
+   Kind: tagged struct; flags that are really an enum; state saved by hand; if-chains on kind.
+   Where: CPPPreprocessor.h:60-84; CPPPreprocessor.cpp:414-477, 484-572, 2443-2476, 3052-3113, 3166-3282;
+   PreprocessorTokeniser.cpp:34-55.
+   Evidence:
+   - SPPSource is one struct for file, macro and argument, with "//PPST_File." fields the other two don't use.
+   - NextRaw's false means "end of unit, end of an argument, or error", told apart afterwards by mbError.
+     NextFileToken adds `*pbChanged`, with "psSource ... is not valid after the call".
+   - ExpandTokens saves macPushedBack with memcpy of the array object, plus two flags, and puts them back.
+   - ProcessDirective is nine `Is(PPD_x)` tests; ProcessConditional asks twelve more.
+   - The directive name table is rebuilt, as a CNameMap of 14 objects, in every CPreprocessorTokeniser::Init: once
+     per file, and once per AddDefine (CPPPreprocessor.cpp:1045) just to tokenise "201402L".
+   - FindBestInclude returns its answer in two out-parameters that always travel together (file plus include
+     directory) and switches on two bools.
+   Clean form: as stage 10 says (sources, expander, directives by table, includes as classes); a static directive
+   table; a result enum for "token / end / changed / error".
+   Plan: stage 10. Confidence: high.
+
+11. Names left from renames, and two enums sharing a prefix
+   Kind: stale and misleading names.
+   Evidence:
+   - Class CHeaderFiles (HeaderFiles.h, guard `__HEADER_NAME_MAP_H__`) is still called "HeaderNameMap" 86 times:
+     pcHeaderNameMap, CHeaderNameMapStack, CHeaderNameMapDirectory, CArrayHeaderNameMap,
+     SPPCachedHeader::pcHeaderNameMap. There is also a different CHeaderFileMap.
+   - EConditionalType uses CT_If, CT_Else, CT_ElseIf (ConditionalStack.h:28-34) beside ECppTokens' CT_if, CT_else,
+     differing only by case.
+   - CASCIITree is neither a tree of its own nor ASCII-specific (it wraps CIndexStringBlock).
+   - CCPPSyntaxBlockWriter and Reader are stateless shells beside the real CCPPSyntaxBlockWriting and Reading.
+   - CPPPreprocessor.h's guard is `__PREPROCESSOR_H__`.
+   - CPPDSS_Stop, CPPDS_ flags and CPPDC_ contexts are three near-identical prefixes in one file.
+   Plan: new. Confidence: high.
+
+12. "Where the output is" is four counters passed one by one
+   Kind: parameter cluster that is one struct.
+   Where: CPPPreprocessor.h:98-105; PPHeaderCache.h (SPPHeaderSegment); PreprocessorHeaderCache.cpp:156-170,
+   321-322, 350, 392-393, 409, 515.
+   Evidence: tokens, expansions, inactive regions and directive lines appear as
+   uiStartToken/Expansion/Inactive/Directive, uiSegment... the same four, uiFirst*/uiNum* times four, and as four
+   parameters of EndSegment and AddChildSegment. Each call site reads `mpcOutput->NumTokens(), NumExpansions(),
+   NumInactiveRegions(), NumDirectiveLines()`.
+   Clean form: an SPPOutputMark with CPreprocessedTokens::Mark().
+   Plan: new. Confidence: high.
+
+13. Three hand-written open-addressed hash tables in one area
+   Kind: same idea written three times.
+   Where: CASCIIIndex (ASCIIIndex.cpp, Find/Grow/Hash), CNameSet (NameSet.cpp), CCPPSyntaxBlockIndex
+   (CPPSyntaxBlock.cpp:228-340).
+   Evidence: each has its own probe loop and Grow. The third uses raw calloc/malloc/free where the rest of the
+   library uses its allocators. A fourth name store, CNameMap over CASCIITree, serves defines, directives and
+   special operators.
+   Clean form: one small open-addressed table template (key, value, hash) for the three.
+   Plan: new. Confidence: medium (they may have been written for speed; that is no longer the goal).
+
+14. Small inconsistencies in errors
+   Kind: inconsistent error handling.
+   Evidence:
+   - `#undef` with no name returns true and says nothing (CPPPreprocessor.cpp:1288-1299), where #ifdef says
+     "Expected an identifier." (3207).
+   - The same message is spelt three ways: "Expected identifier" (1152), "Expected identifier." (1195), "Expected
+     an identifier." (3207).
+   - Errors are added by three routes: Error(token), Error(position) and a bare `mcErrors.Add(GetFileName(), -1,
+     -1, -1, ...)` (259, 2930).
+   - The parser looks up "push" and "pop" by name on every pragma (CppParser.cpp:639-640) while "pack" is cached in
+     mlliPack.
+   Plan: new, minor. Confidence: high.
+
+What this area's reviewer found clean, or looked at and did not count:
+- The 90 node classes' visiting, copying and disk form are table-driven and good; PrettyPrint per node is
+  necessarily by hand.
+- LiteralHelper is shared properly by the tokeniser and #if for number and character values.
+- ParseStatement and ParsePrimaryExpression are long but flat, and the plan (stage 10) already has them choosing by
+  a table.
+- CVisualStudioProject looks like a duplicate of the IDE's VisualStudioLib, but that library sits above this one,
+  so it can't be used here.
+- The comment "Binary Add;" at CppParserDeclarations.cpp:1017 is a C++ example, not a stray.
+
+
+The semantic layer: CCPPUnit and the classes round it
+-----------------------------------------------------
+
+The entity classes are in good shape: CCPPClass, CCPPFunction, CCPPVtable, CCPPClassLayout, CCPPExceptionSpec,
+CCPPErrors, CCPPUnitData and CCPPContext are small, single-purpose and nearly free of GetKind. CCPPUnit is not. It
+is still about 550 member functions in 13 files (my count of definitions; the brief's figure is 527), and stages 3
+and 4 took out only the jobs that needed nothing from it. What remains is a dozen separate jobs sharing one set of
+members, with three recurring habits: state passed through members rather than arguments, errors suppressed and
+then recovered by running the work a second time, and small questions about syntax and types re-derived at each
+call site. Textual duplication is indeed absent, but I found the same idea written two to nine times in different
+words in most of the files. All findings below were read in the code; nothing was built or run.
+
+15. CCPPUnit is still a dozen jobs in one class
+   Kind: class doing several jobs; feature envy.
+   Where: CPPUnit.h:349-942. Definitions per file: CPPUnit.cpp 172, Expressions 116, Templates 64, Objects 50,
+   Classes 37, Lambdas 35, Check 25, Vtables 17, Packs 16, Overloads 11, Float 6, RangeFor 5, Labels 2.
+   Evidence: grouping the header's members by job gives these, each of which would be a class.
+   a. Diagnostics, about 20: Error, ErrorAt, ReportError, ReportErrorAt, ReportOnce, ClassError, ReportClassErrors,
+   LambdaError, ConstantError, ConstantMessage, Warning, HasWarning, WarnDeprecated(Symbol), AppendMacroUse,
+   Begin/End Quiet/Trial/Loud, ReportTypeOf, ReportFailedDeclaration.
+   b. Constant evaluation, about 30: Constant, FoldConstant, RunConstant, BinaryConstant, CastConstant,
+   ConstantOfType, ConstantTypeOf, ConstexprCall/Result, NamesConstexpr, ObjectConstantType, TokenConstant,
+   EnumeratorValue, TypeTrait(Value), all of CPPUnitFloat.cpp.
+   c. Warnings, 12 functions at CPPUnitExpressions.cpp:3041-3715: ConstantOverflow, ConversionOverflow,
+   WideningArithmetic, NarrowMultiply, ShiftCount, ComparisonRange, ComparisonAtLimit, LoopCounter*. The plan's
+   layer list names a CCPPWarnings; no stage makes it.
+   d. Exception specifications, about 30: Written/Declared/Implicit/Parts/ClassExceptions, AllowsOnlyWhat,
+   ExceptionsOf, IsNoexcept, the six *MayThrow, Pointer/Assigned exception checks, CheckThrown, CheckTryJumps,
+   ThrownDestroyer.
+   e. Templates and packs, 80: CPPUnitTemplates.cpp and CPPUnitPacks.cpp.
+   f. Lambdas, 35.
+   g. Class data writer, about 25: vtables, VTT, type info, typeid labels and type names (CPPUnitVtables.cpp,
+   CPPUnitObjects.cpp:895-1232).
+   h. Name-to-class lookup, about 15 (finding 22).
+   i. Class hierarchy questions, 9 (finding 21).
+   j. Static data and start-up/exit routines: GlobalInitialiser, GlobalStartUpRoutines, BoundTemporary,
+   StaticLocal, WriteExitRoutines, WriteDynamicCast, and the eight string-decoding functions.
+   k. Builtin registry, 7: gasCPP65Builtins, FindBuiltin, IsBuiltin, BuiltinName, BuiltinOperandType, IsIntrinsic,
+   IsInlineMemcpy, FloatBuiltin.
+   l. Desugaring with a memo table each: range-for (mcRangeFors), user literals (mcLiteralCalls), brace regrouping
+   (masBracedLists), decltype members, implicit arguments.
+   m. Expression classification, about 50, which is binder or type-checker work: IsRvalue, IsObject, MakesObject,
+   IsObjectLvalue, PlaceOf, BindsToTemporary, the Conditional*Type family, CompositePointerType, the TypeOf family.
+   What properly stays is the declaration walk and function queue, about 60 functions.
+   Why it matters: every function can read and write every member, so no job can be read or tested alone.
+   Clean form: take out the jobs that need only types, tokeniser and context first (b, c, d, g, k), as stage 4 did
+   for CCPPUnitData.
+   Plan: stage 4's end ("what is left is CCPPUnit: it owns these, walks the declarations and queues the functions")
+   is unmet. Jobs b, c, m were stage 6, which was dropped. The rest is new. Progress records "the unit 219
+   [functions] and 5592 [lines]" at the checkpoint, which does not match today's size; I did not find out why
+   (unconfirmed).
+   Confidence: high.
+
+16. "Where the compiler is" still lives in unit members handled by hand
+   Kind: state saved and put back by hand; hidden arguments and results.
+   Evidence, all read:
+   - The function scope. CCPPContext::BeginFunction overwrites and EndFunction sets NULL (CPPContext.cpp:191-206);
+     the function is the one part of the context that is not entered and left. So CCPPUnit::EnterFunctionScope /
+     LeaveFunctionScope (CPPUnit.cpp:2728-2755) memcpy mapcLocals and mcFunctionPacks into an SCPPFunctionScope and
+     back, and restore the function with mcContext.BeginFunction(psScope->pcFunction), which recomputes mbThis
+     rather than restoring it. CPPContext.h:58-59 says "nothing is saved and put back by hand".
+   - BeginFunction is the unit's, but on success the IR front end ends the function.
+     CCPPUnit::EndFunction(pcFunction) ignores its parameter and runs only on failure paths (CPPUnit.cpp:4177-4181:
+     "Only a function the IR front end couldn't write ends here").
+   - mpcDefining is a hidden argument of GlobalDeclaration: set and cleared around the call at
+     CPPUnitTemplates.cpp:114-116 and 179-181, read at CPPUnit.cpp:3441, 3446, 3450, 3534.
+   - mbValueArgumentRefused is a hidden result: set in ValueArgumentFits (CPPUnitTemplates.cpp:1616), cleared and
+     read in FoldConstant (CPPUnitExpressions.cpp:2567, 2576).
+   - miWarningChecks is incremented and decremented by hand at five places (CPPUnitExpressions.cpp:3053, 3110,
+     3260, 3407, 3497).
+   - Recursion guards pushed and popped by hand: mapcObjectConstants (2440-2450), mapcConstantTypes (2820-2826),
+     and CCPPConstants::mapcWorking.
+   - The pack element being expanded is written into the binding itself and cleared afterwards: psPack->psType at
+     CPPUnit.cpp:2883/2888 and CPPUnitPacks.cpp:426-451. CCPPContext has no pack entry (the enum at
+     CPPContext.h:30-39 is Bindings, Namespace, Linkage, StaticLocal, Object, Trial, Loud), although Progress for
+     stage 4 says the pack is entered and left.
+   - "Unevaluated operand" is answered two ways: the counter miUnevaluated (BeginUnevaluated/EndUnevaluated,
+     CPPUnit.h:627-629, five readers in the type checker) and a walk up the tree, IsInUnevaluatedOperand
+     (CPPUnitExpressions.cpp:2090, one reader). The TypeOf memo key is node, bindings and function
+     (CPPUnitExpressions.cpp:1972) and omits the counter, though the type checker's answer depends on it
+     (CPP65TypeChecker.cpp:2394-2411). Whether that can return a wrong remembered type is unconfirmed.
+   - mcContext.NoThis() (CPPUnit.cpp:3546) is a set with no leave. BeginQuiet/EndQuiet are a bare counter outside
+     the Enter/Leave stack, so an unbalanced quiet is not caught by CheckContext.
+   Why it matters: a function's answer depends on members its arguments do not show, which is the plan's own item
+   3.
+   Clean form: the function, with its locals and packs, becomes a context entry; mpcDefining and the refused flag
+   become a parameter and a return value; one guard object replaces the counters and stacks.
+   Plan: stage 4 step 8, recorded as done; these are what it left or what was added since.
+   Confidence: high.
+
+17. Errors are suppressed three ways and recovered by doing the work twice
+   Kind: inconsistent error handling; same mechanism in several forms.
+   Evidence:
+   - Quiet mode does not stop errors being added, because ReportError/BeginLoud inside quiet code adds them. So
+     callers also snapshot and truncate: "uiErrors = mcErrors.NumErrors(); BeginQuiet(); ...; EndQuiet();
+     mcErrors.Truncate(uiErrors);" at CPPUnitExpressions.cpp:399-404, 437, 705-758, 1498-1502, 1541-1545,
+     1667-1673, 2844-2848; CPPUnitClasses.cpp:445-449; CPPUnitObjects.cpp:1574-1578;
+     CPPUnitTemplates.cpp:1604-1610. That is 11 in my files and 21 in the library. MayThrow's early return at
+     CPPUnitExpressions.cpp:716 skips the truncate.
+   - Errors thrown away are got back by running again loudly: ReportTypeOf re-runs the type checker (2178-2185);
+     ReportFailedDeclaration re-runs DeclareFunction (1911-1937); GlobalDeclaration calls DeclareFunction a second
+     time for operator new/delete (CPPUnit.cpp:3424-3430).
+   - Five side stores exist so that errors survive the truncation: masClassErrors with
+     ClassError/ReportClassErrors; SCPPLambda::szError and pcErrorNode (CPPLambda.h:66-68 says "an expression's
+     errors are taken away when only its type was wanted"); mapcFailed; CCPPConstants::mszReason; and ReportOnce,
+     which de-duplicates by strstr over every error (CPPUnit.cpp:1719-1731).
+   - Eight entry points with different rules: Error, ErrorAt, ReportError, ReportErrorAt, ReportOnce, ClassError,
+     LambdaError, ConstantError. Warning repeats ErrorAt's body (CPPUnit.cpp:1527-1535 against 1642-1649).
+   - Some errors carry no position although a node is at hand: ErrorAt(-1, ...) at CPPUnit.cpp:719, 1027, 1066.
+   Why it matters: whether a mistake is reported, once, at the right place, depends on which of five mechanisms the
+   path happened to pass through.
+   Clean form: a trial owns its error list, kept or dropped by the caller; a remembered result keeps its errors
+   with it, so nothing is re-run and the side stores go.
+   Plan: stage 4 step 9 fell short, and the stage 5 checkpoint notes that TypeOf re-runs to report; no remaining
+   stage covers it. The truncate doubling and the five side stores are new.
+   Confidence: high.
+
+18. A constant's value is worked out by three evaluators with different coverage
+   Kind: one fact derived in several places; kind ladders.
+   Where: CPPUnitExpressions.cpp:2307-3006, CPPUnitFloat.cpp:116-233, CPPConstants.cpp:163.
+   Evidence: this answers the brief's question. CPPConstants.cpp does not fold trees; it writes the expression as
+   IR and runs CIRInterpreter. The folding is in the unit, twice:
+   - FoldConstant/BinaryConstant/CastConstant switch over node kinds for integers.
+   - FloatValue is a second switch over the same kinds for floating point. It handles CPPS_CastExpression but not
+     CPPS_NamedCastExpression or CPPS_ConditionalExpression, both of which the integer switch handles (2717-2732).
+   - RunConstant (2362-2425) has a third kind-and-operator ladder that decides when to hand over to the
+     interpreter. Its own comment begins "What the tree folder can't give".
+   Each has its own value channel: int64 plus ConstantTypeOf, double plus a type pointer, SIRValue. "Is this name a
+   constexpr or const variable with an initialiser" is derived separately at CPPUnitExpressions.cpp:2477-2490,
+   2623-2666 and CPPUnitFloat.cpp:252-262. Signed overflow maps tokens to IR opcodes at 3016-3028, a second such
+   map beside CPP65IRFrontEndOperators.cpp:553.
+   Why it matters: a new constant form needs up to three additions, and the integer and float folders already
+   differ.
+   Clean form: one evaluator with one value type (integer, float or object, with its type), the tree fold being a
+   fast path inside it.
+   Plan: stage 6 ("a constant is folded once, in the binder"), which was dropped, so it is open.
+   Confidence: high.
+   Since: a program with a named cast and a ?: in float constants gives the right answer (finding 92); no wrong
+   result was found.
+
+19. A type is printed as C++ source by two separate printers
+   Kind: same idea written twice in different words.
+   Where: CCPPUnit::AppendTypeName, AppendTypeNameAround, AppendClassName, AppendScopeName, AppendIdentifier
+   (CPPUnitObjects.cpp:974-1232) against CCPPTypeWriter (CPPTypeWriter.cpp:40-360).
+   Evidence: both switch on eKind in the same groups (pointer, reference, member pointer; array; function; then
+   void, bool, std::nullptr_t, IntegerKindName, float, class). Both build a declarator inside-out with parentheses
+   for pointer-to-array or function. Both write a template instance's arguments with the same bFirst loop over
+   macBindings and its packs (CPPUnitObjects.cpp:1150-1191, CPPTypeWriter.cpp:277-322). The literal "long
+   double"/"float"/"double" line is at CPPUnitObjects.cpp:1090 and CPPTypeWriter.cpp:235. They differ only in
+   policy: the writer can fail, writes "(void)" and handles placeholders; the unit's writes "<lambda>" and
+   "(anonymous namespace)::". The unit already uses CCPPTypeWriter itself at CPPUnitExpressions.cpp:4038.
+   Why it matters: type_info::name and the IDE's text can drift apart, and a new type kind needs both.
+   Clean form: one writer with two or three policy switches.
+   Plan: new.
+   Confidence: high.
+
+20. A parameter pack is expanded by three mechanisms
+   Kind: same job done several ways; temporary state kept in a data structure.
+   Where: CPPUnitPacks.cpp:243-353, 366-456; CPPUnit.cpp:2873-2903.
+   Evidence:
+   - ExpandPattern copies the pattern's syntax once per element, with a new symbol and a new binding per element
+     (PackElement, memoised in masPackElements).
+   - ExpandTemplateArguments instead writes element k into the pack's own binding (psPack->psType / lliValue, lines
+     421-432), evaluates the pattern, then zeroes them (448-452).
+   - DeclareSignature does the in-place trick again (2881-2889).
+   The messages "The pack expansion names no parameter pack" and "The packs the pack expansion expands have
+   different lengths" are each issued in both of the first two (267-275 and 407-415). SCPPExpandedArgument is
+   filled field by field twice (395-399, 433-437).
+   Why it matters: the three must agree on what a pattern may contain, and the in-place form leaves a binding wrong
+   if anything returns between set and clear.
+   Clean form: one "for each element of these packs" iteration, entered and left through the context, used by all
+   three.
+   Plan: stage 5 step 7 did this for call arguments only; this is new.
+   Confidence: high.
+
+21. Nine recursive walks of the base list, in four classes
+   Kind: two functions answering the same question; long output-parameter lists.
+   Where: CCPPUnit::IsDerived, CountBases, CollectVirtualBases, CountFixedBases, VirtualBaseOf, CompleteOffset
+   (CPPUnitOverloads.cpp:88-258); IsPublicBase, IsOnePublicBase, CountBasePaths (CPPUnitVtables.cpp:445-522);
+   FindInBases/IsAmbiguousInBases (CPPUnitExpressions.cpp:1694-1763); HasMember (1391); FindBaseInstance
+   (CPPUnitClasses.cpp:381); CCPPClass::HasBase (CPPClass.cpp:141); CCPPAccess::HasBase (CPPAccess.cpp:566);
+   CCPPClassLayout::CollectVirtualBases (CPPClassLayout.cpp:194).
+   Evidence: "is B a base of C" has four answers that differ in whether C counts as its own base, whether the bases
+   are resolved first, and whether the test is by class or by specifier. CountBasePaths takes nine parameters, four
+   of them outputs, and is used only by IsOnePublicBase. There are two CollectVirtualBases, with different orders,
+   beside macVirtualBases. CCPPClass::mpcBase caches macBases.Get(0)->pcClass and is always used next to it
+   (CPPClassLayout.cpp:271, CPPVtable.cpp:175, 246; set at CPPUnitClasses.cpp:488). AllowsOnlyWhat
+   (CPPUnit.cpp:2457) works wholly on CCPPExceptionSpec's types and sits on the unit only because it needs
+   IsDerived.
+   Why it matters: access, conversion, dynamic_cast data and exception matching each trust a different walk.
+   Clean form: CCPPClass enumerates its base paths once (offset, public, through-virtual) and the questions are
+   read from that; only ResolveBases needs the unit.
+   Plan: stage 3 step 2 said IsDerived moves "with stage 4's context"; it did not. The duplication is new.
+   Confidence: high.
+
+22. "Which class does this name mean" has about fifteen entry points, and callers pick by the name's shape
+   Kind: family of near-identical functions; symbol-kind ladders.
+   Where: GetClass, EnclosingInstance, MemberScopeClass, FindClass, GetComponentClass, FindBaseInstance,
+   QualifierClass, GetNameClass (CPPUnitClasses.cpp:54-456); QualifiedMember, QualifiedEnumerator,
+   DecltypeEnumerator, QualifiedClass, MemberClass, QualifiersClass, NameQualifierClass
+   (CPPUnitExpressions.cpp:1435-1890).
+   Evidence: the choice between GetComponentClass and QualifiersClass is written three times with three different
+   tests: QualifiedMember (CPPUnitExpressions.cpp:1669), NameQualifierClass (1883-1887), GetNameClass
+   (CPPUnitClasses.cpp:438-455). GetComponentClass is a ladder on symbol kind (Class, Typedef, TypeParameter,
+   TemplateTemplateParameter, ClassTemplate; lines 308-371). CCPPDeclarators' named-type code, the other
+   reviewer's, has a parallel ladder on the same kinds (CPPDeclarators.cpp:790-812) that calls back into these.
+   Why it matters: each new form of qualified name has been a new function plus a new test at the callers.
+   Clean form: one resolver from a CCPPSyntaxName to a class, type or member with its declaring class's bindings,
+   owned by the binder.
+   Plan: stage 5 step 8 bound names in expressions only; type names and qualifiers are new.
+   Confidence: high for the family, medium for the overlap with CCPPDeclarators.
+
+23. Declaring a function: seven parameters, and its small steps re-written at each caller
+   Kind: long parameter list with flags; special cases piled up; one rule in several places.
+   Where: CPPUnit.cpp:2050, 2766-3027 and callers.
+   Evidence:
+   - DeclareFunction and DeclareSignature take (specifiers, declarator, bDefinition, pcClass, bPure, pcTemplate,
+     pszArguments). bDefinition is read once (2806). bPure is known to one caller (CPPUnitClasses.cpp:1269). Seven
+     of the fourteen calls pass "false, NULL, false".
+   - "Same parameter types" is looped by hand six times, although CCPPFunction::SameParameters exists and has one
+     caller (CPPFunction.cpp:155): CPPUnit.cpp:2936-2943, CPPUnitClasses.cpp:1081-1093, CPPUnitLambdas.cpp:897-901,
+     CPPOverloads.cpp:175-183 and 933-937. Four use Same and two use Equals, which ignores const at deeper levels
+     (CPP65Type.cpp:390-394).
+   - "Declare quietly; if it fails, remember the declarator" appears five times: CPPUnit.cpp:3247-3252, 3423-3435;
+     CPPUnitClasses.cpp:1173-1186, 1206-1212, 1268-1279.
+   - "AddFunction, then mbImplicit = true (and mbDefined)" appears eight times: CPPUnitClasses.cpp:868, 876, 906,
+     1099, 1114; CPPUnitLambdas.cpp:687, 762.
+   - Parameter types from a function suffix, each with its own "(void)" rule: CPPUnit.cpp:2873-2903 (IsWholeVoid),
+     CPPUnitLambdas.cpp:716-732 (IsVoid and one parameter), 855-870.
+   - In DeclareSignature the specifier flags are copied in both the redeclaration and the new-function paths
+     (2971-2975 against 2998-3005), "apcDefaults.Kill(); apsParameters.Kill();" is repeated five times, and one
+     "not supported" message is issued twice (2826, 2832).
+   - SCPPField is filled field by field three times and by memset once (CPPUnitClasses.cpp:1241-1250, 1327-1336,
+     1430-1439; CPPUnitLambdas.cpp:662-666).
+   Why it matters: the Same/Equals split is the kind of difference that becomes a wrong overload decision.
+   Clean form: a signature object (kind, name, parameters, defaults, qualifiers, flags) built once from a
+   declarator, which CCPPFunction can match and adopt; DeclareQuietly and AddImplicitFunction helpers;
+   SCPPField::Init.
+   Plan: new.
+   Confidence: high.
+
+24. Out-of-class template definitions are classified by a 200-line ladder and kept as four untyped lists
+   Kind: special cases piled up; GetKind and cast; the same derivation repeated.
+   Where: CCPPUnit::TemplateDeclaration (CPPUnitTemplates.cpp:486-693); mapcMemberSpecialisations,
+   mapcMemberClassTemplates, mapcMemberVariableTemplates, mapcStaticMemberTemplates (CPPUnit.h:285-288).
+   Evidence: fourteen arms test the declaration's shape, with comments giving the C++ each arm stands for.
+   MemberVariableTemplateName is called three times in one arm (529-534) and VariableTemplateName twice (607-610).
+   Each pending list holds raw CCPPSyntax, and every reader re-derives the name through the same cast chain:
+   "((CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0))->mpcDeclarator->GetName()" then
+   GetComponentTemplate(pcName->GetQualifier()), at CPPUnitTemplates.cpp:41-47, 102-105, 143-146.
+   IsOutsideMemberTemplate (CPPUnit.cpp:1901-1923) is a fifteenth classification done before the ladder, and
+   Declarations walks the list twice for it (1941-1955).
+   Why it matters: the same out-of-class forms are recognised in three places that have to agree.
+   Clean form: classify once into a record (what it is, owner template, name, declaration) and keep one typed list
+   of those.
+   Plan: the plan's item 5 (kinds told apart with GetKind and a cast) in general; the lists are new.
+   Confidence: high.
+
+25. Class data, labels and exit bookkeeping are still written by the unit
+   Kind: job in the wrong class; label conventions repeated as strings; parallel arrays; loop used as a branch.
+   Where: CPPUnitVtables.cpp (17 functions); CPPUnitObjects.cpp:895-961; CPPUnit.cpp:630-730, 1047-1097, 4344-4495.
+   Evidence:
+   - The unit reaches into mcData.GetText() 89 times, 70 of them in CPPUnitVtables.cpp, writing ".long", ".align"
+     and labels itself. CCPPUnitData already has AppendData, AppendAddress and AppendSection.
+   - Labels made outside CCPPMangler: 'S' and 'G' static labels (CPPUnit.cpp:4449-4491), "__vcall_"
+     (CPPUnitVtables.cpp:632), "_3" plus type (CPPUnitObjects.cpp:910), "__Name", "__Bound". "R_Finalise" plus
+     label and label plus "__ExitNode" are concatenated at CPPUnit.cpp:696-699, 707, 1057, 4429 and again in
+     CPP65IRFrontEndStatements.cpp:576-578. The exit node's size "2 * mcTypes.Pointer(&mcTypes.msVoid)->iBytes" is
+     at 725 and 4431, with a bare alignment 4 at 4430.
+   - AppendVariableLabel also sets pcVariable->mbUsed = true (4493): an Append with a side effect.
+   - maszExitFinalisers, mapsExitFinalisers and maiExitShared are three arrays in step, an int array holding a bool
+     (CPPUnit.h:315-317); maszThrownDestroyers and mapsThrownDestroyers likewise.
+   - GlobalStartUpRoutines is "for (i = 0; i < 2; i++)" with (i == 0) tested six times (CPPUnit.cpp:701-722),
+     behind three bool parameters.
+   - BoundTemporary has eight parameters and two result channels: its return value and *pbResult.
+   Why it matters: the label of one thing is agreed between the unit and the IR front end only by both typing the
+   same string.
+   Clean form: a class-data writer beside CCPPUnitData; these labels in CCPPMangler; one record per exit finaliser.
+   Plan: stage 3 step 5 ("CCPPMangler makes every label") and stage 4 step 13 (the layer list puts vtables in
+   CCPPUnitData) are both recorded as done and are both partial. The rest is new.
+   Confidence: high.
+
+26. More operator, range and name ladders like the assignment-operator list
+   Kind: one list in several places; magic numbers.
+   Evidence:
+   - The six comparison operators are listed five times in CPPUnitExpressions.cpp (2393-2398, 2930-2935, 2972-2977,
+     3384, 3565/3601-3603), three times in CPP65IRFrontEndOperators.cpp (301, 647, 978) and twice in
+     CPP65TypeChecker.cpp (1020, 1569). No IsComparison exists.
+   - "Does a value fit an N-bit signed or unsigned type" is computed afresh at CPPUnitExpressions.cpp:3060-3075,
+     3137-3138, 3535-3551, 4007-4028, beside ConstantFits (CPPUnitTemplates.cpp:1627), ConstantOfType (2885) and
+     IntegerLiteralType's 0x7FFF/0x7FFFFFFF (103).
+   - Identifiers are compared by hand-counted length and memcmp, although IsNamed exists (CPPUnitObjects.cpp:798):
+     "(iLength == 19) && memcmp(szName, "__PRETTY_FUNCTION__", 19)" and three more at
+     CPPUnitExpressions.cpp:146-147; 1378 ("memcpy", 6 and "__builtin_memcpy", 16); 4263; CPPUnitFloat.cpp:314-318.
+     The float builtins huge_val, inf and nan are a second builtin list outside gasCPP65Builtins.
+   - "The specifiers a symbol was declared with" (InitDeclarator, parent SimpleDeclaration, mpcSpecifiers) is
+     walked by hand at CPPUnitExpressions.cpp:1927, 2482, 2644; CPPUnitFloat.cpp:258; CPPUnitLambdas.cpp:397, 537;
+     CPPUnit.cpp:4219; also CPPDeclarators.cpp:926 and CPPSyntaxDeclSpecifiers.cpp:174.
+   - A reference is stripped by hand twelve times in my files although WithoutReference() exists (for example
+     CPPUnitExpressions.cpp:501, 669, 751). "IsArray() ? psBase : psType" for an element type appears 15 times in
+     the library, sometimes one level and sometimes a while loop.
+   Clean form: IsComparison and IsAssignment on the token; a range (min, max) from a type; IsNamed everywhere or
+   interned ids like mlliOverride; CCPPSymbol::DeclSpecifiers(); SCPP65Type::ElementType().
+   Plan: the plan's item 5 and stage 5's "small questions onto the nodes" cover the last two in spirit; the rest is
+   new.
+   Confidence: high.
+
+27. Lambdas repeat the pattern stage 3 removed
+   Kind: struct whose behaviour is all in the unit; duplicate of class layout.
+   Where: CPPLambda.h:55-73; CPPUnitLambdas.cpp.
+   Evidence: 21 CCPPUnit functions take SCPPLambda* as their first parameter. LayoutClosure
+   (CPPUnitLambdas.cpp:677-698) is LayoutClass's second half again: implicit destructor, mcVtable.LayoutOwn,
+   cLayout Init/Layout/SetClassBytes/Kill, the state changes (compare CPPUnitClasses.cpp:866-895).
+   GenericLambdaInstance (883-908) finds an instance by its parameter types, as finding 23.
+   Clean form: CCPPLambda with its own methods, and one "finish laying out a class" used by both.
+   Plan: stage 3's rule, applied to code written since; new.
+   Confidence: high.
+
+28. An IDE refactoring is wired into EnumType
+   Kind: special case in a core function; feature envy.
+   Where: CPPUnitExpressions.cpp:4034-4045; RecordEnumCast and IsRecordedEnum at CPPUnit.cpp:1466-1478.
+   Evidence: after making an enum's type, EnumType prints its name with CCPPTypeWriter, compares it with
+   mpcSemanticPass->GetRecordedEnum() and sets psType->bScopedEnum = true. The compiler's type is changed because
+   an IDE refactoring asked. Elsewhere check-only mode is a null test of mpcSemanticPass in about ten places
+   (CPPUnit.cpp:3972, CPPUnitTemplates.cpp:1315, CPPDeclarators.cpp:812, CPPBinder.cpp:283,
+   CPP65TypeChecker.cpp:1879, 2781).
+   Clean form: the pass marks the enum before the check, or receives a "type made" notification; EnumType knows
+   nothing of it.
+   Plan: new.
+   Confidence: high.
+
+29. Dead code, stale names and comments that contradict the code
+   Kind: dead code; stale comments.
+   Evidence. Dead, searched as whole words in CommonLibraries, HCP65-IDE and HCP65:
+   - CCPPUnit::IsNullPointerLiteral (CPPUnit.h:849, CPPUnitExpressions.cpp:4175): no caller.
+   - CCPPVtable::IsOverriddenBy (CPPVtable.h:154, CPPVtable.cpp:118): no caller.
+   - CCPPContext::IsStaticLocal and mbStaticLocal (CPPContext.h:74, 110): written at CPPContext.cpp:258 and 272,
+     never read. EnterStaticLocal's only live effect is clearing mbThis.
+   - CCPPUnit::EndFunction's parameter is unused (CPPUnit.cpp:4177).
+   Stale:
+   - CPPUnitOverloads.cpp:24 says "The generator's overload resolution: finding the functions a call may mean,
+     argument dependent lookup and ranking conversions". The file holds IsConstObject, ThisFunction, ThisType and
+     the base walks.
+   - CPPUnitLabels.cpp:27 says "The generator's labels: mangled names..."; it holds GetFunctionName and
+     GetOperatorName, and line 33 points to GetOperatorLabel, which is CCPPMangler's. CPPUnit.h:566-567 lists both
+     files under their old jobs.
+   - CPPUnit.cpp:3261, above AddFunction: "Its overload number counts the functions with its name before it"; no
+     number is made.
+   - CPPUnit.cpp:4083 refers to ExpandPackCall, which the plan records as deleted.
+   - CPPContext.h:58-59, as in finding 16.
+   - "The generator" is still the class's name in 16 comments across the CPPUnit files, and helper classes keep the
+     old prefix (CCPP65CheckChildren and CCPP65CheckLambdas in CPPUnitCheck.cpp:357, 400; gasCPP65Builtins).
+   Plan: new, apart from the CPP65 names, which the plan says go "as its classes are reworked".
+   Confidence: high.
+
+What this area's reviewer found clean, or looked at and did not count:
+- CPPConstants.cpp is not a second tree folder. It is the IR-interpreter path for constexpr and is self-contained;
+  the duplication is between the unit's two tree folders and it (finding 18).
+- CCPPClassLayout, CCPPVtable, CCPPExceptionSpec, CCPPErrors and CCPPUnitData are clean. AllowsOnlyWhat and
+  CCPPExceptionSpec::IsCompatible look alike but are two different rules ([except.spec] 5 and 3).
+- SkipParentheses is only a null-safe forwarder to the node's WithoutParentheses, and the 26 one-line accessors are
+  stage 4's deliberate replacement for friends.
+- Apart from the four items in finding 29, every member declared in the area's headers has a caller.
+
+
+Names and calls, types and the type checker: CCPPBinder, CCPPOverloads, CCPP65TypeChecker
+-----------------------------------------------------------------------------------------
+
+All files are in D:\gameengine\CommonLibraries\Libraries\CppCompilerLib\ (file:line below is relative to it).
+Nothing was edited, built or run. Where I say "by reading", the consequence follows from the code but was not
+executed.
+
+The pieces stage 4 and 5 made are sound as pieces: CCPPBinder is the one place a call, a name, a member, a
+conversion function and a constructor are chosen; CCPP65Types is the one place for promotion and the usual
+arithmetic conversions; CCPPContext, CCPPCandidates and CCPPMangler stand alone. What is not clean is that rules
+are still stated more than once. "What converts to what" exists as the type checker's five checks, as
+CCPPOverloads::ConversionRank, and as fragments the IR front end re-runs, and they disagree in at least four
+places. The type checker and the front end still each write out the cascades for making an object, `&`, conditions,
+places and assignment. Inside the binder and overloads, "function or template instance" is decided four times, a
+call site travels as five to nine loose parameters, and errors are managed by counting and truncating the error
+list. Comments are mostly accurate; a handful are stale after the distinct-integer-types work.
+
+30. What converts implicitly is stated twice, and the two statements disagree
+   Kind: one rule written in two classes; inconsistent twins.
+   Where: CPPOverloads.cpp:1458-1614 (ConversionRank) against CPP65TypeChecker.cpp:3572-3784 and 4026-4051
+   (Convert, ImplicitConvert, KeepsNullPointer, KeepsEnum, ConvertsPointer, KeepsPointerQualifiers).
+   Evidence, each read in both places:
+   - Null pointer constant. ConversionRank:1576 takes any integer argument with `mpcUnit->Constant(pcArgument,
+     &lliValue) && (lliValue == 0)`. ConvertsPointer:3756 takes only `IsNullPointerConstant(pcValue)` (a literal 0
+     or nullptr, CPPUnitExpressions.cpp:4188). ConversionRank itself uses IsNullPointerConstant twenty lines
+     earlier (1554) for a nullptr_t parameter, so one function has two definitions.
+   - Pointer to function to void*. ConversionRank:1558-1561 ranks it a Conversion (`psParameter->psBase->IsVoid()`,
+     no function test). ConvertsPointer:3764 refuses it (`IsVoid() && !psFrom->psBase->IsFunction()`).
+   - C sources. The checker has IsCSource rules at 3723 (a number is an enum's value) and 3772 (void* to T*).
+     ConversionRank has none: 1524 returns None for any enum parameter and 1556-1563 None for void* to T*. By
+     reading, a C call passing an int for an enum parameter gets "No function matches" where the same
+     initialisation is accepted.
+   - CCPPBinder::IsConvertible (CPPBinder.cpp:1269), the type traits' answer, is ConversionRank, so a trait can say
+     yes where the assignment is an error.
+   Why it matters: this is the class of bug the caller mentioned; a rule added to one is silently missing from the
+   other.
+   Clean form: one table of standard conversions that returns the rank and the reason it is refused; ranking keeps
+   the rank, checking reports the reason.
+   Plan: new. Stage 5 step 11 bound only which conversion function or constructor is used. Confidence: high (the
+   four differences); medium on the C consequence.
+   Since: both disagreements were shown by running (findings 89 and 90).
+
+31. The five implicit-conversion checks are applied in different subsets at different sites
+   Kind: one fact derived in several places; errors found in the wrong layer.
+   Where and evidence:
+   - CPP65TypeChecker.cpp:3635: ImplicitConvert is all five, used at 1085, 1096, 1847, 3235, 3542, 3560.
+   - CPP65TypeChecker.cpp:1842-1846: an integer argument to an integer parameter with `iBytes < 4` skips all five
+     ("keeps its low bytes"). The literal 4 means int parameters are skipped on the W65C816 (int is 2 bytes) and
+     not on the 65C64.
+   - CPPUnitCheck.cpp:311-320: a return statement gets KeepsEnum only.
+   - CPPUnitExpressions.cpp:2195 (CheckInitialiser, called from CPP65IRFrontEndStatements.cpp:631 and 1435): the
+     front end asks for KeepsQualifiers, which is ConvertsPointer plus KeepsPointerQualifiers plus reference
+     binding (CPP65TypeChecker.cpp:4132).
+   - CPP65IRFrontEndConversions.cpp:549-579 (ConvertImplicit, 11 call sites): the front end re-runs KeepsEnum and
+     KeepsNullPointer inside BeginLoud/EndLoud.
+   By reading, `int* f() { return 5; }` is refused only when the front end runs; the IDE's check, which is the type
+   checker alone, sees only KeepsEnum for a return.
+   Clean form: every site that converts a value with no cast calls one function, in the checker; the front end
+   converts and checks nothing.
+   Plan: new (it is what is left of stage 6's "every error is found in the binder"). Confidence: high on the sites,
+   medium on the IDE consequence.
+   Since: the return statement was shown by running (finding 91).
+
+32. The type checker and the IR front end still each decide the same cascades
+   Kind: inconsistent twins; the plan's item 1.
+   Worst cases, each read in both files:
+   - Making an object: CPP65TypeChecker.cpp:3154-3309 against CPP65IRFrontEndObjects.cpp:809-1004. The same eight
+     steps in the same order, with the same four binder questions (InitializerListConstructor, CopiesByConstructor,
+     ConversionToClass, ConstructsWithoutBraces) and the same comment "= Class(arguments) constructs in place" over
+     an identical test (3275-3283 and 949-955). They differ on "made in place": the checker asks
+     `IsMadeObject(pcInitialiser, pcClass)` (3290), the front end `IsObjectCall(...) &&
+     !(DeclaredTypeOf(...)->IsReference() && HasCopyConstructor())` (963), and the front end has a `= c ? x : y`
+     case (958) the checker lacks.
+   - Unary `&`: CPP65TypeChecker.cpp:832-869 against CPP65IRFrontEndOperators.cpp:72-117. Same tests, different
+     order: the checker tries the object's operator& before a pointer to a member and a function template before a
+     function; the front end the reverse of both.
+   - Whether a unary operator calls an operator function has three rules, copied into both: `HasMember(ObjectClass,
+     operator)` for `!` and `&` (checker 1549 and 835; front end 945 and 83), BindOperator for `+ - ~` (881; 121),
+     unconditional for `* ++ --` (826, 932; 52, 209). So a non-member operator! is never considered, by reading.
+   - Conditions: CPP65TypeChecker.cpp:1532-1590 against CPP65IRFrontEndOperators.cpp:922-1033, the same GetKind
+     ladder; the "enum class's value is not a condition" error is worded in both (1611; 1025).
+   - Places: CPP65TypeChecker.cpp:2335-2516 against CPP65IRFrontEndValues.cpp:1169 onward, the same switch on kind
+     and the same ladder over cBound.meWhat.
+   - Converting: the derived-to-base pointer test is at CPP65TypeChecker.cpp:3602 and
+     CPP65IRFrontEndConversions.cpp:615-617; the virtual-base member-pointer error is worded identically at 3613
+     and 859.
+   - Assignment: CPP65TypeChecker.cpp:1044-1097 against CPP65IRFrontEndOperators.cpp:329-419; both ask
+     `mpcUnit->HasOperator(...)` (1053; 344), not the binder.
+   Clean form: as steps 11 and 12 did for conversions and constructors, bind "how this object is initialised" and
+   "which operator function, if any" once; both walkers then switch on the answer.
+   Plan: stage 6, dropped at the 2026-11-14 checkpoint with two steps taken. The Construct cascade and the
+   unary-operator rules are the two I would add as steps of that size. Confidence: high.
+
+33. The type checker has two answers to "can a T be initialised from this"
+   Kind: two functions for one question, with different rules.
+   Where: CPP65TypeChecker.cpp:3154 (Construct) and 3468 (Initialise).
+   Evidence: Initialise is called only for a local (CPPUnit.cpp:3054); aggregate fields (3380, 3384), new (2878),
+   list elements (3339) and ValueFor (100) use Construct. For a reference, Initialise checks BindsCategory,
+   BindsToTemporary and CanBind (3529-3551); Construct checks only `Place(pcInitialiser) != NULL` (3189). For a
+   scalar, Initialise allows a nullptr_t to directly initialise a bool (3554); Construct does not (3235). By
+   reading, a reference field of an aggregate bound to a const object passes where `int& r = c;` is refused.
+   Clean form: one initialiser that takes the type and the kind of initialisation (copy, direct, list); Construct's
+   scalar and reference branches call it.
+   Plan: new. Confidence: high on the two rule sets, medium on the consequence.
+
+34. "A function or a template's instance" is chosen in four places, and functions and templates are ranked by two
+    algorithms
+   Kind: same idea written several times in different words.
+   Where: CPPBinder.cpp:201-259, 329-366 (Resolve) and 628-660 (ResolveMember); CPPOverloads.cpp:627-648
+   (FindFreeOperator); CPPOverloads.cpp:727 (ChooseFunction) against 2029 (ChooseTemplate); 1304 (IsBetterFunction)
+   against 82 (CCPPCandidates::Compare).
+   Evidence: the three binder sites each combine FindNamedFunction or FindFunction, TakesAsTheyAre, a trial
+   InstantiateFunction and IsBetterFunction in a different order. FindFreeOperator uses neither: any declared
+   function wins, else the first template found by scanning every template of the unit. ChooseFunction reports
+   ambiguity; ChooseTemplate filters, calls MostSpecialised, then takes "the first whose const matches, or else the
+   first" and is never ambiguous. SCPPCandidate (CPPOverloads.h:37) holds a function or a template, and
+   FindFunction takes the one pre-deduced instance as its ninth parameter. IsBetterFunction's comment says "as
+   CCPPCandidates::Compare has it" and re-implements it on local arrays. The InlineMemcpy special case is in
+   Resolve three times (270, 340-361, 383) and the five-line "bound to a function" ending six times.
+   Why it matters: the three wrong choices stage 5 fixed (step 6) each had to be fixed per site, and operators
+   still follow a different rule.
+   Clean form: a template's deduced instance is an ordinary candidate in the one set; ChooseFunction's tie-break
+   already prefers a function that is no template's (CPPOverloads.cpp:1787).
+   Plan: Progress records "one way in" as short of stage 4 and handed to stage 5; the four copies and the operator
+   difference are new. Confidence: high.
+
+35. A call site is five to nine loose parameters, and its argument types are worked out again at each stop
+   Kind: long parameter lists that are one struct; feature envy.
+   Where: CPPOverloads.h:102 FindFunction (9), :103 FindFunctionOrInstance (7), :92 ChooseMemberTemplate (6), :96
+   ChooseTemplate (5), :94 GetCallTemplate (5), :97 TemplateTakes (5); CPPBinder.cpp:724 BindAnOperator (7);
+   CPP65TypeChecker.cpp:1741 Arguments (7).
+   Evidence: arguments, explicit template arguments, the node and the called object travel together through all of
+   them. The arguments' types are taken with TypeOf at CPPOverloads.cpp:815, again at 1320, 2269 and
+   CPPBinder.cpp:1253. ConversionRank takes a type and an optional expression and tests `pcArgument &&` eight times
+   (1471-1576) to ask the unit whether it is an rvalue, a temporary, a string literal or a null constant. Because
+   the overloads take expressions, the types-only questions re-implement constructor and operator= matching with
+   their own loops (CPPBinder.cpp:1283-1322 IsConstructible, 1332-1377 IsAssignable; no templates, no lists).
+   Arguments' seven parameters are five fields of a function, or of a function type, spelled out (callers at 219,
+   1692, 1723).
+   Clean form: an argument record (type, value category, the few literal facts) made once per call, and a signature
+   both CCPPFunction and a function type give.
+   Plan: stage 4 did this for CCPPDeduction only; new for overloads and the checker. Confidence: high.
+
+36. Trials and errors are managed by counting the error list
+   Kind: state saved and put back by hand; inconsistent error handling.
+   Where and evidence:
+   - "uiErrors = NumErrors(); BeginTrial or BeginQuiet; ...; End; GetErrors()->Truncate(uiErrors)" is written out
+     at CPPBinder.cpp:216-220, 337-351, 651-655, 785-789, 982-986, 1397-1401; CPPOverloads.cpp:489-493, 612-651;
+     CPP65TypeChecker.cpp:3136-3140. That is 9 in these files, 22 in the library. Quiet mode and truncation are two
+     mechanisms for one silence; truncation is needed because ReportError and ReportOnce speak in quiet mode.
+   - "Did the callee already say something" is `NumErrors() == uiErrors` at CPPBinder.cpp:301, 372, 428, 663, 850.
+     BindConstruction has no such guard (1984-1990), so by reading a constructor mismatch gets FindFunction's "No
+     function matches the arguments" and then "No constructor matches the arguments" at the same node.
+   - CCPPAccess::Refuse (CPPAccess.cpp:174-188) is CCPPUnit::ReportOnce (CPPUnit.cpp:1719-1731) written again, loop
+     for loop. The binder uses it six times for errors that have nothing to do with access (CPPBinder.cpp:1730,
+     1759, 1795, 1832, 1836, 1970).
+   - bReport parameters (Bind, BindOperator, BindConstruction) make a failed binding run again to say its errors.
+   - CPPBinder.cpp:1495-1497 says ResolveName "reports nothing", but 1641-1642 call HasOneMember and HasOneMeaning,
+     which report.
+   Clean form: a trial is one scoped object that owns its errors, and a finder returns "none, and I said why" as a
+   value instead of leaving the caller to count.
+   Plan: Progress records the trials as short of stage 4 step 9 ("they have names now"); Refuse, the missing guard
+   and the comment are new. Confidence: high; medium on the double error.
+
+37. Two matchers of a declarator against a type
+   Kind: same algorithm twice ([temp.deduct.type]).
+   Where: CPPDeduction.cpp:66-700 (CCPPDeduction) and 702-1317 (CCPPPatternMatch).
+   Evidence: StripDeclarator (359) and MatchDeclarator (1158) both take a declarator off a type "outside in";
+   DeduceBound (406) and MatchBound (1038); DeduceFromInstance (537) and MatchType's X<T> branch (1111-1122);
+   DeduceMemberPointer (492) and MatchPointer/MatchClass/MatchFunction (1208-1283); WithoutQualifiersOf (316) and
+   the const block at 1092-1101. They differ in rules: the pattern matcher checks that every place a parameter is
+   written agrees (Deduce, 1138); call deduction keeps the first (`!mapsDeduced.GetPtr(j)` at 125, 268, 277, 301).
+   Call deduction handles a fixed list of shapes (T, T*, T&, T(&)[N], Name<...>, (M::*f)(...)), the matcher the
+   general form. Their results are different containers (two parallel arrays against CCPPTemplateArguments), and
+   DeduceValue marks a value as deduced by storing the int type in the types array (149).
+   Clean form: call deduction adjusts the parameter and argument as [temp.deduct.call] says and then runs the
+   pattern matcher.
+   Plan: new (stage 4 step 11 put the two side by side). Confidence: high that they overlap, medium that one can
+   serve both without changing listings.
+
+38. A type is written as C++ text by three walkers, and the integer kinds are tabled five times
+   Kind: parallel switch ladders.
+   Where: CPP65Type.cpp:311 (SCPP65Type::Append), CPPUnitObjects.cpp:991 (AppendTypeNameAround),
+   CPPTypeWriter.cpp:83 and 214 (Declaration, Named); CPPMangler.cpp:470 is a fourth walk, for labels.
+   Evidence: the first three each do pointer/reference/member pointer with " const"/" volatile", array, function
+   with ", ..." and FunctionEnd(), then void, bool, std::nullptr_t, enum, integer, float, class. `bLongDouble ?
+   "long double" : ((iBytes == 4) ? "float" : "double")` is at CPP65Type.cpp:341, CPPUnitObjects.cpp:1090 and
+   CPPTypeWriter.cpp:235. Append prints "class" and "enum" for any class or enum, and is what "No function matches
+   the arguments (...)" uses (CPPOverloads.cpp:692, 709), while TypesError uses AppendTypeName, which names them
+   (CPP65TypeChecker.cpp:3808). The fourteen integer kinds are switched on at CPP65Type.cpp:282 (name), 766 (type),
+   1123 (promotion), 1234 (rank) and CPPMangler.cpp:510 (code). The comment at CPPUnitObjects.cpp:969-971 ("long is
+   int where they are as wide and wchar_t is unsigned short") contradicts line 1087, which names by kind.
+   Clean form: one declarator writer with a naming policy (unnamed, qualified, as source), and one table row per
+   integer kind.
+   Plan: new. Confidence: high.
+
+39. More operator-token ladders than the five already known
+   Kind: same list in several places.
+   Where: assignment tokens also at CPP65TypeChecker.cpp:988-1004, CPP65IRFrontEndOperators.cpp:278-288,
+   CppParserExpressions.cpp:367 and CPPMangler.cpp:610-620. The six comparison tokens at
+   CPP65TypeChecker.cpp:1017-1022 and 1566-1571, CPP65IRFrontEndOperators.cpp:296-303, 644-649 and 975-980,
+   CppParserExpressions.cpp:209, CPPUnitExpressions.cpp:2396, 2933, 2975. "The four float operators" at
+   CPP65Type.cpp:1303 and CPP65TypeChecker.cpp:1223. CPPMangler.cpp:585-636 is a per-token table of its own.
+   Clean form: CPPPunctuatorList.h is already an X-macro of (text, token); give it columns for class (assignment,
+   comparison, arithmetic), the compound's operation and the label, and derive the predicates.
+   Plan: new. Confidence: high.
+
+40. The visitor exists, but the checker still switches on GetKind beside it
+   Kind: GetKind plus cast; the plan's item 5.
+   Where: CPP65TypeChecker.cpp:2345 (PlaceType, a 160-line switch with casts), 1546-1558 (Condition), 97,
+   3175-3177, 3499-3504; counts by grep: CPP65TypeChecker.cpp 28 GetKind and 27 casts, CPPDeclarators.cpp 27 and
+   30, CPPDeduction.cpp 22 and 25.
+   Evidence: Result dispatches through Accept (129-141), with twenty one-line Visit functions that store into the
+   member mpsResult because Visit returns nothing; Place and Condition in the same class do not.
+   CPPDeclarators.cpp:732-831 (GetBaseType) is an if-chain over four specifier kinds, then a switch over symbol
+   kinds, then eighteen keyword tests in one function.
+   Clean form: a place visitor beside the value visitor; the specifier node gives its own base type.
+   Plan: stage 5 made the visitor with Result as "its first user"; no later stage takes the rest. Confidence: high.
+
+41. Scope lookup is written twice, once to find and once to ask whether it was ambiguous
+   Kind: two functions that must walk alike.
+   Where: CPPScope.cpp:240-266 (Find) and 354-382 (IsAmbiguous); 192-227 (FindMember) and 392-415
+   (IsAmbiguousMember).
+   Evidence: IsAmbiguous repeats Find's loop collecting instead of returning, and already differs: Find follows
+   mpcQualifier (256-263), IsAmbiguous stops there (374). mapcUsings holds both using-directive namespaces and
+   anonymous unions, told apart by `meKind != CPPSC_Namespace` at 294 and 324.
+   Clean form: one lookup returning what it found and whether more than one thing was found; two lists for the two
+   kinds of "using".
+   Plan: new. Confidence: medium (I did not read the parser's callers).
+
+42. CCPPBoundName is filled in by hand three ways
+   Kind: missing Init; twins that should be alike.
+   Where: CPPBinder.h:106-119; CPPBinder.cpp:1511-1521 (ResolveName sets ten fields), 1666-1673 (BindMember sets
+   eight, leaving mpsCapture and mpcArgument unset), CPPDeclarators.cpp:632 (sets meWhat only).
+   Evidence: CCPPBoundCall has Init (CPPBinder.cpp:29); CCPPBoundName, CCPPBoundConversion and
+   CCPPBoundConstruction do not. No reader uses the unset fields today (IsNamedObject reads mpsCapture only under
+   CPPBN_Capture).
+   Clean form: Init on each bound record, called by whoever fills it.
+   Plan: new. Confidence: high.
+
+43. Stale names, comments, dead code and magic numbers
+   - Dead: SCPP65Type::IsWide (CPP65Type.h:119, CPP65Type.cpp:228). No caller in CommonLibraries, HCP65-IDE, HCP65
+     or LogiCim; the other IsWide hits are CCTString's and CIR65Backend's. Its banner text sits above
+     HasQualifiersOf (CPP65Type.cpp:211-227).
+   - CPPOverloads.cpp:393: FindMemberFunction counts CPPCC_FindStaticFunction, the name before a rename.
+   - CPPOverloads.cpp:791-800: mcResolved, a map written on every FindFunction call, exists only to count
+     CPPCC_FindFunctionAgain, a stage 5 measurement.
+   - ECPPConversionRank is declared in CPPUnit.h:70, not CPPOverloads.h, and every rank is passed as int.
+   - Parameter order: the overloads and binder take (to, from) (ConversionRank, QualificationRank, IsConvertible,
+     CCPPBinder::KeepsQualifiers); the checker takes (from, to) (Convert, ImplicitConvert, KeepsEnum,
+     ConvertsPointer). The call at CPP65TypeChecker.cpp:3829 has to swap them.
+   - KeepsQualifiers is two functions: CCPPBinder's (CPPBinder.cpp:1230) is about qualifiers; the checker's
+     (CPP65TypeChecker.cpp:4132) also checks reference binding and pointer conversion.
+   - CPP65Type.cpp:752: "long: 4 bytes (int itself when int is 4 bytes)" over code that always returns msLong.
+     CPPDeclarators.cpp:836: "long double is double" over a line that returns LongDouble().
+   - 32 arguments: a literal with an error at CPPOverloads.cpp:780 and 806, and CPP_BETTER_FUNCTION_ARGUMENTS at
+     1314, where going over it silently answers "better".
+   - double is recognised as `iBytes == 8 && !bLongDouble` (CPPOverloads.cpp:1535, CPP65Type.cpp:1269) where
+     integers have eInteger.
+   - CPPSymbolKey.cpp:248: `miFirstToken - 2` to step back over '='.
+   Plan: new. Confidence: high.
+
+44. The classes that left the unit still ask it nearly everything
+   Kind: feature envy.
+   Evidence: `mpcUnit->` appears 273 times in CPP65TypeChecker.cpp, 170 in CPPBinder.cpp, 124 in CPPOverloads.cpp,
+   105 in CPPDeclarators.cpp. Most are questions about an expression (IsObject, ObjectClass, IsRvalue,
+   BindsToTemporary, IsStringLiteral, IsMadeObject, CommaResult, IsNullPointerConstant, ListElements,
+   FunctionNameOf), which live in CPPUnitExpressions.cpp, not on the node or in the binder.
+   Plan: Progress records this as short of stage 4 ("its jobs in files of their own more than things that stand
+   alone"); stage 6 would have moved it. Confidence: high.
+
+What this area's reviewer found clean, or looked at and did not count:
+- Operator result types are in one place: both walkers call CCPP65Types::Operation, Arithmetic, FloatArithmetic and
+  CCPPUnit::CompositePointerType (CPP65IRFrontEndOperators.cpp:474, 542, 618, 623, 631). Only the
+  pointer-arithmetic branch is re-derived in the front end (495-540).
+- Call binding is what the plan says: both walkers switch on CCPPBoundCall::meHow and decide nothing about which
+  function (CPP65TypeChecker.cpp:1624-1662).
+- Apart from IsWide, a by-name check of the 421 methods defined in these files found a caller for each. I did not
+  check name-sharing methods one by one.
+- CCPPSymbolKey building a function's identity from token text, separately from the mangler, looks deliberate (the
+  index runs without types); I did not count it.
+
+
+The IR front end, the builder and what the IDE uses
+---------------------------------------------------
+
+The target layer is in good shape: nothing in my area asks which processor it is any more (no CPPT_/Is816 tests
+outside CPPTarget*.cpp and GetCPPTarget; every CCPPTarget virtual has a caller), and only a few leftovers remain
+(finding 51). The IR front end is the weak part. It is one 305-function class holding both the unit's state and the
+state of the function being written, it passes arguments to its own Call through members, and it writes the same
+small idioms out by hand many times. The builder still has two separate compile pipelines that have drifted apart.
+The IDE-side classes (CCPPIndex, CCPPHighlighter, CCPPSemanticPass) each do two jobs and repeat lists the compiler
+already has.
+
+Paths are relative to D:\gameengine\CommonLibraries\Libraries\CppCompilerLib unless they start with HCP65-IDE.
+
+45. Call takes 11 parameters and three more through members
+   - Kind: hidden arguments; state set and cleared by hand around a call; long parameter list.
+   - Where: CPP65IRFrontEnd.h:176, 180, 182, 196 (mpcBaseObject, msElide, msVTTArgument, mbListLocal; three are
+     commented as "the next call's"). Call at CPP65IRFrontEndCalls.cpp:495 takes them at 527-530.
+   - Evidence, set then cleared around a call:
+     - msElide: CPP65IRFrontEndObjects.cpp:966/971, 1021/1023, 2030-2034; CPP65IRFrontEndStatements.cpp:1165/1168;
+       saved and restored at CPP65IRFrontEndCalls.cpp:381-392.
+     - mpcBaseObject: CPP65IRFrontEndObjects.cpp:508/523, 554/556, 623/625; CPP65IRFrontEndExceptions.cpp:248/250;
+       consumed in CallObject at CPP65IRFrontEndCalls.cpp:1023-1036, which sets msVTTArgument for Call.
+     - mbListLocal: CPP65IRFrontEndStatements.cpp:465/467, read and cleared at
+       CPP65IRFrontEndObjects.cpp:1069-1070.
+     - CPP65IRFrontEndObjects.cpp:967-970 returns false with msElide still set.
+   - Evidence, parameter clusters:
+     - "What is called" (papsParameters, papcDefaults, pcDefaultBindings, bVariadic, psReturn) goes as five
+       separate parameters through Call, ArgumentPieces (:656), GatherArguments (:730) and ParameterArguments
+       (:796).
+     - "Which object" (pcObject, bArrow, pcObjectClass, bVirtual, sGivenObject) is five more, and is decided three
+       times: ThisObject :450-473, DestructorCall :932-946, MemberCall :424-429.
+     - MemberCall (:421, :435) unpacks a CCPPBoundCall into those positional arguments.
+   - Why: a call's result depends on members its arguments don't show; a new caller has to know to clear them.
+   - Clean form: one struct for the call (callee signature, object, where the result is made, VTT, base version),
+     filled from CCPPBoundCall and passed down.
+   - Plan: new. Stage 4 did this for CCPPUnit's context only; stage 6 would replace Call but doesn't name these.
+   - Confidence: high.
+
+46. The front end is two objects in one class, and a function's context is begun by one class and ended by another
+   - Kind: class doing two jobs; twin lists.
+   - Where: CPP65IRFrontEnd.cpp:57-110 (Init) and 348-390 (BeginWriting); :530; CPPUnit.cpp:4163-4181 and
+     4040-4072.
+   - Evidence:
+     - About 30 per-function members are reset in BeginWriting, and the same list is written again in Init.
+     - Unit-lifetime members (mcModule, mcPipeline, mpcBackend, masWritten, maszUnitWeak) sit beside them.
+     - CCPPUnit::BeginFunction begins the context; on success FinishWriting ends it
+       (`mpcUnit->GetContext()->EndFunction()`, :530); on failure CCPPUnit::EndFunction does. CPPUnit.cpp:4179 says
+       so: "Only a function the IR front end couldn't write ends here".
+     - mbVersionFollows (:201-210) exists only so the first of two versions doesn't end it.
+   - Clean form: a per-function writer object made for each body (its constructor is the reset list); the unit ends
+     what it began.
+   - Plan: stage 6 shrinks the class to CCPPLowering but doesn't name the unit/function split; the begin/end
+     asymmetry is new.
+   - Confidence: high.
+
+47. The builder has two compile pipelines that have drifted
+   - Kind: same job written twice; long parameter list.
+   - Where: static CCPP65Builder::Generate (CPP65Builder.cpp:1472-1565, 17 parameters; the plan says 14) and
+     CompileUnit/InitGenerator/FinishCompile (:2209-2440).
+   - Evidence, the CCPPUnit set-up is written in both (:1531-1541 and :2281-2291) and differs:
+     - Generate stamps the line table with `time(NULL)` (:1539); units use mlliCompileTime (:2290). An AddSource
+       unit and the project's units get different times.
+     - Generate always calls SetFrameProfile (:1537); InitGenerator only inside `if (InlinesAcrossUnits())`
+       (:2285-2288).
+     - Generate takes both pcOptions and bMathTables and overwrites the option (`cOptions.mbMathTables =
+       bMathTables`, :1506). The parameter defaults to true, so a caller passing options with tables off and no
+       bMathTables silently gets them on.
+     - GenerateSource (:1114) converts mpcTarget to an enum so Generate and CCPPUnit::Init can look it up again.
+   - Clean form: one unit compiler used by both paths, taking the builder's options struct.
+   - Plan: stage 9 covers the shape; the three divergences are new.
+   - Confidence: high.
+
+48. A class's parts are walked by hand five times
+   - Kind: one fact (construction order) in five places.
+   - Where: ConstructorStart CPP65IRFrontEndObjects.cpp:396-433; DestructorEnd :578-602 (reversed); CopyParts
+     :2437-2482; AssignParts :2655-2688; DestructorStart CPP65IRFrontEndExceptions.cpp:474-492.
+   - Evidence: each has the same three loops: macVirtualBases unless a base version, macBases skipping bVirtual,
+     macFields with arrays unrolled.
+   - Clean form: CCPPClass gives its parts in order (class, offset, kind) as one list or visitor; each operation is
+     one loop.
+   - Plan: new.
+   - Confidence: high.
+
+49. Small idioms written out many times in the front end
+   - Kind: same idea in different words.
+   - Evidence:
+     a. Callers choose Construct or LocalInitialiser by "is it a class" at CPP65IRFrontEndObjects.cpp:1084, 1564,
+     1578 and CPP65IRFrontEndStatements.cpp:460-477, 556-565, 1208-1219, though Construct starts with that test
+     itself (:836-849).
+     b. Temporary + Construct + TemporaryMade + "value is its address": CPP65IRFrontEndObjects.cpp:2106-2117,
+     2142-2157, 2186-2195; CPP65IRFrontEndOperators.cpp:438-445; CPP65IRFrontEndCalls.cpp:821-828.
+     c. `psPlace->sAddress = s.sValue; psPlace->psType = ...` eleven times in Place
+     (CPP65IRFrontEndValues.cpp:1205-1415), again at :236-238 and :306-308.
+     d. "The object a value is, as its base" (WithoutReference + IsDerived + ReferenceAddress):
+     CPP65IRFrontEndCalls.cpp:856-858; CPP65IRFrontEndObjects.cpp:2626-2628, 2759-2760 with 2781-2782.
+     e. The null-allocation wrap of new: CPP65IRFrontEndObjects.cpp:1268-1296 and 1505-1515 with 1590-1596.
+     f. "Throw bad cast, or UseBadCast and call R_BadCast": CPP65IRFrontEndValues.cpp:1083-1091 and 1136-1144.
+     g. One-element argument array init/add/call/kill: nine places.
+   - Clean form: InitialisePlace, ConstructTemporary, PlaceOfValue, a Begin/End pair for the null check, BadCast().
+   - Plan: new (stage 6 would rewrite the surroundings).
+   - Confidence: high.
+
+50. Runtime code lives in four forms, and the two targets' start-ups repeat themselves
+   - Kind: inconsistency between twins; one thing in several places.
+   - Evidence, answering the brief's question:
+     - DynamicCastRoutine is not assembly text. It is IR built call by call
+       (CPP65IRFrontEndConversions.cpp:338-537), target-independent, with its "public flag" test written twice
+       (:459-461, :493-495). R_RunExitLists (CPP65IRFrontEnd.cpp:745) and the clz/ctz/popcount loops
+       (CPP65IRFrontEndCalls.cpp:302-363) are the same kind.
+     - Assembly as C++ strings: both AppendStartUp functions (CPPTarget65C64.cpp:164-232,
+       CPPTargetW65C816.cpp:319-488), the 65C64's AppendDivideSigned (:266), both thunks, and
+       R_Pure/R_BadCast/R_RecursiveInit in CPPUnit.cpp:4610-4647 (a literal "stp" in shared code).
+     - The W65C816's other routines are Libc65 .asm units or come from CIRW65C816Runtime::GenerateRuntime
+       (CPPTargetW65C816.cpp:501-525), so the twins put the same kind of thing in different places.
+     - Each start-up writes out its own AppendCallTerminate by hand: CPPTarget65C64.cpp:188-192 against :131-137;
+       CPPTargetW65C816.cpp:409-413 against :296-304.
+     - The two Assemble functions (CPPTarget65C64.cpp:427, CPPTargetW65C816.cpp:682) differ only in the assembler
+       class; the two GetInlineLimits only in constants.
+   - Clean form: start-up and stop routines as Libc65 .asm units per target (the stack top and exceptions flag as
+     symbols), like the W65C816 runtime; the routines hand-built as IR as C++ in Libc65, where ___ThrowBadCast
+     already is.
+   - Plan: new.
+   - Confidence: high on the evidence, medium on the clean form.
+
+51. Stage 1 leftovers
+   - Kind: target knowledge outside the target.
+   - Evidence:
+     - CPP65IRFrontEndCalls.cpp:1106 hard-codes "R816_BcdSubtract"/"R816_BcdAdd" in the shared front end; the
+       clz/ctz names come from CCPPTarget::GetCountRoutine.
+     - CPPUnit.cpp:1451 tests `strncmp(..., "R816_", 5)` though GetRuntimePrefix() exists (outside my area).
+     - CPP65Builder.cpp:997 lists the float units, including "softfloatW65C816.asm", beside the target's own
+       GetLibc65Units list.
+     - CPP65Builder.cpp:2285-2288 asks InlinesAcrossUnits() to decide the frame profile, where UsesProfile() is the
+       question (the front end asks that one, CPP65IRFrontEndUnit.cpp:416). They gave the same answer only while
+       the 65C64 didn't inline across units.
+     - The 65C64 says "no constant divisions" twice: Remove(IRP_ConstantDivisions) at CPPTarget65C64.cpp:390 and
+       SetConstantDivisions(false) at :408.
+   - Clean form: GetBcdRoutine and GetFloatUnits on the target; the flag derived from the pipeline.
+   - Plan: stage 1, which says it is done.
+   - Confidence: high.
+
+52. The assignment-operator list is in eleven places
+   - Kind: same list in several places.
+   - Where:
+     - Compiler: CppParserExpressions.cpp:101; CPPUnitExpressions.cpp:2230 (IsAssignmentOperator);
+       CPPSemanticPass.cpp:291-311 (IsCPPAssignment); CPPIndex.cpp:738-740; CPPFunction.h:114
+       (CPPCompoundOperation); CPP65IRFrontEndOperators.cpp:278-288; CPP65TypeChecker.cpp:993-1003.
+     - IDE: IDEConvertEnum.cpp:584; IDEEncapsulateField.cpp:234; IDEInlineVariable.cpp:228; IDERefactorUnit.h:169.
+   - Others of the kind:
+     - "The name an expression is" (IdExpression or MemberExpression to mpcName): CPPIndex.cpp:805-812 and
+       1358-1365.
+     - CPPIndex.cpp:798 loops over parentheses by hand though CCPPSyntax::WithoutParentheses exists.
+     - Label rules outside CCPPMangler: "R_Finalise" + label and "__ExitNode" at
+       CPP65IRFrontEndStatements.cpp:576-578 and CPPUnit.cpp:696-699, 1057, 4429.
+   - Clean form: inline IsCPPAssignment(ECppTokens) beside CPPCompoundOperation in CPPFunction.h, used everywhere
+     including the IDE.
+   - Plan: new.
+   - Confidence: high.
+
+53. SCPPEnumCast records don't mean what the header says
+   - Kind: comment against code; dead field.
+   - Where: CPPSemanticPass.h:58-74; CPP65TypeChecker.cpp:914, 942, 1202, 1298, 1609, 3542, 3635, 3689.
+   - Evidence:
+     - psFrom is written (CPPSemanticPass.cpp:220) and never read. The only readers of the records are
+       IDEConvertEnum.cpp:625-660 and TestCppIndex.cpp:516.
+     - Its meaning changes by kind: for CPPEC_ARITHMETIC and CPPEC_COMPARE, psFrom/psTo are the left and right
+       operand types (RecordsEnumOperands, :3689); for CONDITION and INCREMENT the same type twice. The header says
+       none of this.
+     - Another node mismatch like the known one: ImplicitConvert (:3635) gives KeepsEnum pcNode, the node errors
+       are reported at, not pcValue (KeepsPointerQualifiers on the same line gets `pcValue ? pcValue : pcNode`). At
+       :3542 (`const int& r = e;` bound to a temporary) pcNode is Initialise's pcNode (CPPUnit.cpp:3054 passes
+       pcInit), not the initialiser, so CPPEC_TO_OTHER/TO_ENUM are recorded against the wrong node. I did not trace
+       every caller.
+     - The CPPEC_ kinds are #defines of a uint8 where the project uses enums.
+   - CPPPC_ flags: comments match the code. CPPPC_ADDRESS is recorded for every `&x`, before it is known whether an
+     operator& is called (:834), as the comment says.
+   - Clean form: an enum; drop psFrom or name the fields per kind; KeepsEnum given the value.
+   - Plan: new.
+   - Confidence: high on the dead field; medium on :3542.
+
+54. Errors said in both the checker and the front end (specific instances)
+   - Kind: decided twice; inconsistent error handling.
+   - Evidence:
+     - "An enum class's value is not a condition..." is at CPP65TypeChecker.cpp:1611 and
+       CPP65IRFrontEndOperators.cpp:1025 and 1056. The last is ReportError(NULL, ...), an error with no place
+       ("Where the expression isn't to hand").
+     - "A pointer to a member of a virtual base can't be converted..." is at CPP65TypeChecker.cpp:3613 and
+       CPP65IRFrontEndConversions.cpp:859.
+     - "The operand of dynamic_cast is not polymorphic" is in the front end twice:
+       CPP65IRFrontEndConversions.cpp:191 and CPP65IRFrontEndValues.cpp:1073.
+     - Three conventions for failing: Unsupported(__FILE__, __LINE__) (214 exits); ReportError then Unsupported
+       (CopyDeleted, CPP65IRFrontEndObjects.cpp:2337); `return ReportError(...)` alone
+       (CPP65IRFrontEndOperators.cpp:1025).
+     - Unsupported is often called again on the way out of a failed callee (CPP65IRFrontEndValues.cpp:1235, 1379),
+       so CPPCC_UnsupportedExits counts one failure several times.
+   - Plan: stage 6.
+   - Confidence: high.
+
+55. CCPPIndex is the index and its gatherer, and keeps records as bare ints
+   - Kind: class doing two jobs; primitive records; two answers to one question.
+   - Evidence:
+     - 17 static functions pass the same (pcTokeniser, pcKeys, pcTree, pasTokens, pcDest) to each other, with four
+       near-identical child-visitor classes as friends (CPPIndex.h:234-237; CPPIndex.cpp:562-650). The tree is
+       walked four times (FindNames, FindContainers, FindUsageTypes, FindHierarchy), each with its own GetKind
+       switch. FindNames re-tests pcNode->GetKind() eight more times after its switch (CPPIndex.cpp:1385-1410).
+     - CCPPIndexUnit keeps base links as int triples and virtuals as int pairs (CPPIndex.cpp:298-300, 312-313; read
+       with `i += 3` and `i += 2` at :545-553), though SCPPIndexBaseLink and SCPPIndexVirtual with exactly those
+       fields are in the same header.
+     - FindNames stores a call's argument count plus one so 0 can mean "not a call" (:1363).
+     - "Is this name written here" is answered twice from the syntax with different rules: CPPIndex's CPPUT_Write
+       (:714-745 with SetNameUsageType :793, only x, (x), o.x, p->x) and CCPPSemanticPass::FindChanges
+       (CPPSemanticPass.cpp:331-380, also v[i], not p->m). For `a[i] = 1` the index says `a` is read and
+       FindChanges says assigned.
+   - Clean form: a CCPPIndexGatherer object with those five as fields and one walk; typed arrays; one "what is
+     written" function.
+   - Plan: new.
+   - Confidence: high.
+
+56. CCPPHighlighter has two jobs and a "Get" that changes its state
+   - Kind: class doing two jobs; parameter passed through a member.
+   - Where: CPPHighlighter.cpp:501-600.
+   - Evidence: FindSyntaxRanges, GetSyntaxRange and GetTokensRange (where a node is in a file, used by the
+     refactorings) live in the highlighter because they share IsWrittenInFile and SourceLength. Those read mpcFile,
+     so each takes pcFile and assigns `mpcFile = pcFile` (:507, :576) before working.
+   - Clean form: a small source-range class holding the file and tokeniser, which the highlighter uses.
+   - Plan: new.
+   - Confidence: high.
+
+57. Stale comments and names
+   - Kind: comments that contradict the code.
+   - Evidence:
+     - "The generator writes the function itself" is no longer true: a body the front end can't write is an error
+       (CPPUnit.cpp:4056-4072). It is still said at CPP65IRFrontEnd.cpp:176-177, 237-238, 676;
+       CPP65IRFrontEnd.h:216; CPP65IRFrontEndStatements.cpp:624; CPP65IRFrontEndCalls.cpp:864.
+     - "The generator" is CCPPUnit now, but the builder still has cGenerator, InitGenerator and StartGenerating,
+       and 40 mentions.
+     - Inlining across units is called the W65C816's at CPP65Builder.h:85, 172; CPP65Builder.cpp:2205;
+       CPP65ListingIndex.h:73. The 65C64 does it too (CPPTarget65C64::InlinesAcrossUnits returns true).
+   - Plan: the plan renames CPP65 classes; these comments are new.
+   - Confidence: high.
+
+58. The compiler's own routines are set up by copy
+   - Kind: family of near-identical functions; flag parameter.
+   - Evidence:
+     - `memset(&cFunction, 0, sizeof(CCPPFunction)); meKind = ...; mpsReturn = ...; BeginWriting(...); mbRoutine =
+       true;` appears six times: CPP65IRFrontEnd.cpp:616, 645, 686, 756; CPP65IRFrontEndConversions.cpp:388;
+       CPP65IRFrontEndExceptions.cpp:1017. It memsets a class with arrays in it.
+     - GlobalRoutine (CPP65IRFrontEnd.cpp:680) has 9 parameters. bFinalise switches it between two functions, and
+       four of the parameters only matter when it is false. Its caller loops `for (i = 0; i < 2; i++)` with `(i ==
+       0) ? :` on every line (CPPUnit.cpp:701-715).
+   - Clean form: BeginRoutine(szLabel, sReturn, uiAttributes); InitialiseRoutine and FinaliseRoutine.
+   - Plan: new.
+   - Confidence: high.
+
+59. Smaller ones
+   - SCPP65IRPlace has a constructor, yet `psBitField = NULL` is set by hand at 18 sites, and only one of them
+     (CPP65IRFrontEndOperators.cpp:803) resets bEither. Unconfirmed whether a reused place can carry bEither over.
+   - The assembly marker is defined twice, as '\x01' in CPP65Assembly.h:30 and "\x01" in CPP65IRFrontEnd.h:137,
+     tied only by a comment.
+   - A name-to-index table (array + map + "add if missing") is hand-made six times, with two different map classes:
+     CPPIndex.cpp:263-275, 1604-1641; CPP65ListingIndex.cpp:529-579.
+   - gcCPPDefaultCompileOptions (CPPCompileOptions.cpp:25-48) is a 21-value positional initialiser that must match
+     the class's field order, returned by a non-const pointer though "never changed". mbAssemblyUnits and
+     mbSoftFloatInFrame are one decision in two public fields.
+   - WriteBody (CPP65IRFrontEnd.cpp:244-283) has two ladders over the same body kinds, the second starting with an
+     empty `if (pcTry) { }`.
+   - Plan: new.
+   - Confidence: high, except where marked.
+
+What this area's reviewer found clean, or looked at and did not count:
+- No target tests are left in my area, and every CPPCC_/CPPCP_ statistics value and every CCPPTarget virtual is
+  used.
+- All CCPP65IRFrontEnd protected functions have callers; I found no dead functions.
+- Value, Place and ObjectValue as three mutually recursive GetKind ladders (233 lines of switch) is real, but it is
+  exactly what stage 6 replaces, so I did not list it separately.
+
+
+The IR and the optimiser
+------------------------
+
+The IR itself is in good shape. One opcode table (IROpcode.cpp:43 gasIROpcodes) drives the parser, printer and
+verifier. Integer constant evaluation is one function (IRFoldInteger) shared by the optimiser's Fold and the
+interpreter. Liveness, dominators, loops and the SSA updater are separate small classes. The optimiser is where the
+smells are: stage 2 put the passes in ten classes, but each pass still recognises loop counters, loop tests, guards
+and "what this branch says" for itself. The opcode table has no columns for the comparison and class facts the
+passes need, so they keep private copies. Three analyses answer "how big can this value be", and the pass list is
+written out in four code places plus two stale documents.
+
+Answers to the four questions
+(a) One table says name, shape, operand kinds, result kind, flags, pure, commutative, may-trap, and each
+comparison's inverse, swap and holds. IRParser, IRPrinter and IRVerifier have no ladder over opcodes (the verifier
+has one small switch, IRVerifier.cpp:692, for conversion widths). The area has 20 switches over opcodes: IROpcode
+2, IRInterpreter 2, IRInterprocedural 2, IRKnownBits 3, Folding 3, Loops 1, Promotion 1, Ranges 5, Verifier 1. I
+read 16 of them; IRInterprocedural.cpp:686, IROptimiserPromotion.cpp:540, IROptimiserRanges.cpp:1107 and
+IROpcode.cpp:456 I only counted. The ones that restate or disagree with the table are findings 62 and 63.
+(b) Integer: one evaluator, used by IROptimiserFolding.cpp:63 and IRInterpreter.cpp:627/657. Float: only the
+interpreter evaluates (host float/double, IRInterpreter.cpp:718); the optimiser folds none
+(IROptimiserFolding.cpp:56), so nothing can disagree. IRKnownBits does not evaluate; it is one of three bound
+calculators (finding 63).
+(c) Shared walkers exist (CIRPasses::FirstUse/NextUse/ApplyReplacements, CIRLoops Contains/IsInvariant/GetExits)
+but are little used: FirstUse/FirstTemporaryUse have 6 call sites in the IROptimiser*.cpp files, against 35
+hand-written block loops and 41 instruction loops. There is no shared walker for counters, loop tests or guards
+(findings 60, 61, 65).
+(d) A function per idiom. They share pieces (MatchIdiomCounter, MatchIdiomAddress, OnlyLoads, LibraryCall) but each
+repeats the shape test and the rewiring (finding 64).
+
+60. A loop counter is recognised about ten times, into three different structs
+   Kind: same idea written many times; clusters of output parameters.
+   Where:
+   - IROptimiserCounters.cpp:54 MatchCounter (SIRLoopCounter) and :34 StepsByOne
+   - IROptimiserCounters.cpp:1365-1391 ReduceStrength, by hand
+   - IROptimiserCounters.cpp:636-650 ReplaceLoopCounters' second counter
+   - IROptimiserIdioms.cpp:115 MatchIdiomStep (SIRIdiomCounter), :852 MatchLinear (three out-parameters), :206-233
+     the pointer phi in MatchIdiomAddress, :1485 and :1512-1521 ReplaceStrchr
+   - IROptimiserLoops.cpp:638-650 ReplaceExitValues
+   Evidence: each one tests "a phi of the head with two arguments, one from outside, the other phi + constant from
+   inside". ReduceStrength hand-writes what MatchCounter(IR_COUNTER_SUB | IR_COUNTER_INSIDE) returns, 200 lines
+   after ReduceDivisions calls it (:1149). "The value after k times round is start + k * step" is then rebuilt
+   three times: Loops.cpp:652-673, Idioms.cpp:817-833, and FoundAt (Idioms.cpp:1133).
+   Why it matters: each copy accepts slightly different steps (add only; add or sub; ptradd), so a new counter form
+   has to be taught to each.
+   Clean form: the loops analysis finds each loop's induction variables once (phi, init, step, next, the block it
+   comes round from). Passes ask it, and one helper gives the value after n times round.
+   plan: stage 2's leftover ("one matcher for the four idioms") covers only the idiom part; the rest is new.
+   Confidence: high.
+
+61. "What does this branch say on this edge" is decoded in every pass that needs it
+   Kind: one question, many answers.
+   Where:
+   - IROptimiserRanges.cpp:370 EdgeComparison, the good general form, used only inside CIRRangePasses
+   - IRKnownBits.cpp:395 EdgeBound
+   - IROptimiserCounters.cpp:950 UnsignedMaximum (7 parameters, 3 outputs) and :518-529 LoopGuarded
+   - IROptimiserIdioms.cpp:93-101 GuardedBy
+   - IROptimiserFolding.cpp:706 EntryRelations
+   - loop tests: IROptimiserLoops.cpp:153-168 LessLoopTests and :1120-1133 CanRotate;
+     IROptimiserCounters.cpp:312-316, :599, :1049-1059; IROptimiserIdioms.cpp:48, :741, :984, :1314, :1504
+   Evidence: the same three steps each time: the jump is IRJ_Branch with pcThen != pcElse; fetch the compare;
+   invert it if the edge is the else side and swap it if the value is on the right. The expression "? ps->uiOpcode
+   : IRInvertedComparison(...)" occurs 8 times; "uiKind ==/!= IRJ_Branch" 37 times in the area.
+   Why it matters: LoopGuarded and GuardedBy answer the same question with different reach (16 dominators up
+   against the nearest branch; Idioms.cpp:69-71 explains why), and only by reading both do you learn that.
+   Clean form: one edge-condition helper on the block or function (compare, opcode as it holds on the edge, value
+   on the left), and one "loop test" record (block, compare as it holds going round, inside and outside targets).
+   plan: new. Confidence: high.
+
+62. Facts about opcodes kept outside the opcode table
+   Kind: one fact listed in more than one place; magic enum arithmetic.
+   Where and evidence:
+   - IROptimiserFolding.cpp:676-685: gaiIRRelations (IR_REL_LESS/EQUAL/GREATER = 1/2/4) and gaiIRSignedness,
+     indexed by uiOpcode - IRO_Eq. This is a second copy of the table's uiHolds column (IRCH_Less/Equal/Greater =
+     1/2/4, IROpcode.h:154) and IROP_Signed. Nothing outside IROpcode.cpp reads uiHolds, because it has no
+     accessor.
+   - IROptimiserCounters.cpp:356 and :360: two nested ternaries re-implement IRInvertedComparison and
+     IRSwappedComparison; line 462 of the same function calls the real one.
+   - IROptimiserRanges.cpp:103: "psInstruction->uiOpcode += IRO_ULt - IRO_SLt" relies on the enum's order.
+   - IRKnownBits.cpp:442-467: a switch turning each comparison into less/more/strict, which is uiSwapped plus
+     uiHolds.
+   - IRKnownBits.cpp:581-588: the eight float comparisons listed to mean "the result is i1", which is the table's
+     IRRS_I1.
+   - Opcode classes as hand lists, each a different subset of "plain integer arithmetic": IROptimiserHoistable
+     (Loops.cpp:53), IRSpecialiseFollows (Interprocedural.cpp:70), IROptimiserNarrows (Ranges.cpp:173),
+     IsIRSignedWrapping and IsIRIntegerConversion (IROpcode.cpp:419, :278).
+   - The quartet sdiv/udiv/srem/urem is spelled out on 24 lines, with "bSigned ? IRO_SDiv : IRO_UDiv" pairing by
+     hand (Divisions.cpp:558, 570, 580, 599-603).
+   Why it matters: a new comparison or a reordered enum breaks Folding and Ranges silently.
+   Clean form: an accessor for uiHolds; table columns for the unsigned twin and the divide/remainder twin; a class
+   bit set (integer arithmetic, divide, extension) the lists become tests of.
+   plan: new. Confidence: high.
+
+63. Three analyses of how big a value can be, each with its own opcode list
+   Kind: two (three) functions answering one question; out-parameter pairs that are one struct.
+   Where:
+   - IRKnownBits.cpp:563 InstructionMost with its own EdgeBound/MostAt and its own per-temporary definition table
+     (IRKnownBits.h:44-45)
+   - IROptimiserRanges.cpp:264 UpperBound with :416 EdgeBound
+   - IROptimiserRanges.cpp:455 SignedRange with :596 ArithmeticRange, :694 DivisionRange, :965 BranchRange
+   Evidence: the two unsigned ones disagree on coverage. UpperBound knows zext, and, lshr, urem, udiv, add.
+   InstructionMost also knows or, xor, mul, shl, copy, trunc, sext, load, but gives x / c only x's bound where
+   UpperBound divides it. SignedRange falls back to UpperBound (Ranges.cpp:529) and says so in a comment (:483-484,
+   "UpperBound knows nothing of a sub"). A range travels as int64* plliMin, int64* plliMax through ten functions.
+   Also: CIRKnownBits is misnamed (it holds maxima, not known bits). Only FitsType is called from outside
+   (IR65Operands.cpp:550, 567); Bits() has no caller in CommonLibraries, HCP65-IDE or HCP65.
+   Clean form: one range analysis (an SIRRange with unsigned and signed bounds, one transfer function per opcode,
+   one edge refinement) that the 65C64 back end and the passes both ask.
+   plan: stage 2's leftover names "ranges as a kept analysis" but not that there are three; mostly new. Confidence:
+   high.
+
+64. The four library idioms each repeat the shape test and the rewiring
+   Kind: family of near-identical functions.
+   Where: IROptimiserIdioms.cpp ReplaceLoopIdioms :460, ReplaceStrlen :691, ReplaceMemcmp :911, ReplaceMemchr
+   :1248, ReplaceStrchr :1397.
+   Evidence:
+   - The two-block shape test is the same code with other names: :939-966 (pcDiffer/pcSame) against :1274-1302
+     (pcFound/pcMissing), and again at :1429-1441.
+   - "An eq/ne of the load, either way round, taken the way the branch goes": :742-743, :980-990, :1310-1330,
+     :1491-1505.
+   - "The exit's phis take from the new block what they took from the loop" is written 6 times: :641-648,
+     :1018-1025, :1026-1033, :1369-1376, :1577-1587, :1588-1605.
+   - The byte widened to the library's int: :612-618, :1352-1358, :1571.
+   - The IR_IDIOM_MIN_BYTES test: :595-602, :1001-1008.
+   - The library names are string literals at each call, plus a strcmp ladder of seven at :495-496 to skip the
+     library's own functions.
+   Clean form: one matcher returning the loop's shape (head, latch, the two exits, the loads, the compare as taken)
+   and a table of idioms (name, 32-bit name, argument kinds); the ladder at :495 reads the table.
+   plan: stage 2 leftover, already known and not done. Confidence: high.
+
+65. ReduceDivisions, ReduceStrength and ReduceMultiplies are one skeleton, and loop set-up comes in three dialects
+   Kind: same skeleton written three times; inconsistent twins.
+   Where: IROptimiserCounters.cpp:737, :1099, :1311.
+   Evidence:
+   - :1130-1142 and :1345-1357 are the same opening (NeedLoops, ClearReplacements, for each loop, "one way in and
+     one way round", the latch).
+   - Both then scan every block of the function and skip those outside the loop (:1164-1168, :1397-1400; also
+     Loops.cpp:138-143), where :224, :587 and :773 walk the loop's own blocks.
+   - A new stepped phi is built by the same five calls three times (:1249-1260, :1273-1278, :1465-1469).
+   - "Get the preheader" has three forms: "if pcPreheader == NULL, AddPreheader" (Counters.cpp:839-843;
+     Loops.cpp:621-625, :1278-1282, :1470-1474); "if the entering block's jump isn't IRJ_Jump, AddPreheader"
+     (Counters.cpp:1225, :1439); and unconditional AddPreheader in all five idioms (Idioms.cpp:606, 802, 1011,
+     1350, 1568).
+   - CounterUnwrapped (:1034, 7 parameters) takes sCounter, sInit, sNext and lliStep, which are an SIRLoopCounter
+     unpacked.
+   Clean form: one "for each simple loop and each of its counters" walk; Preheader(uiLoop) that makes one when
+   needed; AddCounterPhi(head, entering, start, latch, stepped).
+   plan: "longest passes split into finding, checking and rewriting" is a stage 2 leftover; the shared skeleton and
+   the three preheader forms are new. Confidence: high.
+
+66. Blocks are copied with a value map in three places
+   Kind: same idea written three times.
+   Where: IRInliner.cpp:1128 CopyBlock; IROptimiserLoops.cpp:1477-1549 inside UnswitchLoops (and :1168 CopyHead);
+   IRFunction.cpp:98 CopyBody.
+   Evidence: each walks phis, then instructions, then the jump, mapping values and blocks. The inliner and
+   UnswitchLoops each have their own switch over IRJ_Jump/Branch/Return/Throw to rebuild the jump
+   (Inliner.cpp:1177, Loops.cpp:1525) and their own map function (CIRInliner::Map, IROptimiserMapped with
+   IROptimiserCopyOf's linear search).
+   Why it matters: a new jump kind or instruction field has to be remembered in all three; IRJ_Throw was the
+   latest.
+   Clean form: one block copier taking a value map and a block map, with a hook for what a return becomes.
+   UnswitchLoops then shrinks by about 70 lines.
+   plan: new. Confidence: high.
+
+67. The list of passes is written in four code places and two stale documents; one target setting is said twice
+   Kind: one fact in several places; dead code; comments that contradict the code.
+   Where and evidence:
+   - EIRPass (IRPipeline.h:27), gaszIRPasses (IRPipeline.cpp:25, must match the enum's order by position,
+     unchecked), CIROptimiser::InitPasses (IROptimiser.cpp:66-100, 35 lines each naming the pass three times with a
+     C cast of a derived member pointer to FIRPass), and SetStandard (IRPipeline.cpp:123).
+   - The enum's comment "in the order the standard pipeline runs them" is false: IRP_ReduceDivisions is last in the
+     enum and runs eleventh.
+   - "IROptimiser.h says what each does" (IRPipeline.h:26): that comment describes about 21 of the 35 passes.
+     Unswitching, divisibility tests, exit values, dead loops, biased indices and ReduceDivisions are absent, and
+     IR.txt has none of them either. IR.txt:283 still opens "The first passes, roughly in the order they will be
+     written", promising "constant folding: floats bit exact with softfloat.cpp", which the optimiser does not do.
+   - Whether ConstantDivisions runs is said twice for each target: Remove(IRP_ConstantDivisions) at
+     CPPTarget65C64.cpp:390 and SetConstantDivisions(false) at :408 (true at CPPTargetW65C816.cpp:652).
+     ShareDivisions reads the flag (Divisions.cpp:737, :775). The plan's Progress note for stage 2 says "the mb
+     flags that chose them are gone"; this one is not.
+   - CIRPipeline::Has (IRPipeline.cpp:260), which would answer that, has no caller in CommonLibraries, HCP65-IDE or
+     HCP65.
+   Clean form: one table row per pass (enum, name, group, function, one line of description) that the enum's names,
+   InitPasses and the documentation come from; ShareDivisions asks the pipeline.
+   plan: new (stage 2 thought it finished this). Confidence: high.
+
+68. Modes switched on and off by hand around a call
+   Kind: state saved and put back by hand; a function whose answer depends on members its arguments don't show.
+   Where and evidence:
+   - mpcContext->mbBranchRanges and mbDominatorRanges are set true before and false after range queries at
+     Divisions.cpp:130/163 and :465/534, Addresses.cpp:337/343, Ranges.cpp:1193-1194/1245-1246 and
+     :1313-1314/1374-1375. SignedRange, RangeAt, ArithmeticRange and RangeStep read them (Ranges.cpp:556, :640,
+     :915). The same SignedRange call at Counters.cpp:409 runs with them off.
+   - IROptimiserIdioms.cpp:785-793 and :1541-1561 decrement entries of the shared mauiUses, call OnlyUsedInLoop,
+     then increment them back.
+   Why it matters: this is the plan's item 3 (members saved and put back by hand) reappearing in the IR layer.
+   Clean form: the mode is a parameter or a small query object (what to narrow by); OnlyUsedInLoop takes the uses
+   to leave out.
+   plan: new. Confidence: high.
+
+69. The pass groups are not self-contained, and two analyses are kept twice
+   Kind: feature envy; a class doing several jobs; one fact derived twice.
+   Where and evidence:
+   - 47 calls go from one group to another through mpcContext->mpcXxxPasses. The top ones are AddPreheader 8,
+     RemovePhiArguments 7, SplitAddress 4, RangeAt 3, SignedRange 3, RedirectJump 3. These are tools and analyses,
+     not passes.
+   - CIRRangePasses is about two thirds analysis (SignedRange, UpperBound, RangeAt, NonNullAt, DominatingRange and
+     others) and four passes.
+   - CIRPassContext (IRPasses.h:249) is all public fields, so it is a bag every group reaches into.
+   - A temporary's use count exists twice: CIRDefinitions::NumUses (IRDefinitions.cpp:169, counted in Compute) and
+     mpcContext->mauiUses from CIRFunction::CountUses (IRFunction.cpp:852). ReplaceStrlen reads both in adjacent
+     lines (Idioms.cpp:732 and :736). FoldConstants adjusts mauiUses by hand as it replaces (Folding.cpp:120-140).
+   - "Is this address in my own frame" is IsOwnFrame (IRPasses.cpp:445, a bare 64 steps) and also SplitAddress plus
+     IsFrameRoot (Memory.cpp:114/151, a bare 16 steps).
+   Clean form: CFG edits (preheader, redirect, phi arguments) go on CIRFunction/CIRLoops; ranges and addresses
+   become analysis classes in the context; one use count.
+   plan: stage 2 leftover in part ("use counts, ranges as kept analyses"); the cross-calls and the double count are
+   new. Confidence: high.
+
+70. A symbol's attributes are five separate bools, each handled one at a time everywhere
+   Kind: parallel lists; near-identical functions; inconsistent twins.
+   Where and evidence:
+   - IRModule.cpp:452-582: Set/Is pairs for restrict, local, regcall, nowrites, nothrow.
+   - IRParser.cpp:733-797: ParseRestrict, ParseRegisterCall, ParseNoWrites and ParseNoThrow differ in one line
+     each.
+   - IRPrinter.cpp:88-123: four identical loops over every symbol. The banner at :68 still says only "the restrict
+     symbols".
+   - They are carried to another module attribute by attribute in two places, IRImports.cpp:487-503 and
+     IRInliner.cpp:840-851. Both carry restrict, regcall and nothrow; neither carries nowrites or local.
+   Clean form: one attribute bit set per symbol with a {bit, keyword} table, as gasIRFlagNames already does for
+   instruction flags; one parse, one print loop, one CopySymbolAttributes.
+   plan: new. Confidence: high.
+
+71. Division by a constant: the same preamble about seven times, and one record doing two passes' work
+   Kind: repeated rule; a struct with flag fields; long output-parameter lists.
+   Where and evidence:
+   - "A div or rem by a constant; signed or not; the divisor sign-extended or truncated; not a power of two" at
+     Divisions.cpp:139-148, :363-381, :474-486, again at :548-549, Ranges.cpp:704-718, Counters.cpp:1175-1185,
+     Loops.cpp:49-51.
+   - SIRBoundDivision (IRPasses.h:139) serves BoundDivisions and ConstantDivisions, with fields commented
+     "ConstantDivisions:". bTable and bSplit are really a three-way kind, and it is filled by three identical
+     8-line blocks (Divisions.cpp:500-507, :512-519, :523-530).
+   - FindReciprocal (9 parameters, 4 outputs) is run in the finding loop (:510), its results thrown away, then run
+     again in the rewriting loop (:614).
+   - The quotient is written as "add q, 0" (:643-645) though IRO_Copy exists.
+   - "x - (c & -(x >= c))" is built twice (Divisions.cpp:193-198, Counters.cpp:1253-1257).
+   Clean form: a matcher returning an SIRConstantDivision (signed, remainder, divisor); an SIRReciprocal struct
+   kept in the found record; a kind enum.
+   plan: stage 2 leftover in spirit (split the longest passes); the details are new. Confidence: high.
+
+72. Instructions built field by field where a builder exists
+   Kind: reuse missed; inconsistent initialisation.
+   Where and evidence:
+   - IROptimiserCounters.cpp:661-684: three instructions built as "Add(); memset; seven assignments".
+   - IROptimiserCounters.cpp:889-897 and IROptimiserRanges.cpp:235-250: the same by hand.
+   - IROptimiserLoops.cpp:204-221: two more, with no memset, setting the fields one by one.
+   - CIRFunction::Add (IRFunction.h:132) and CIRPasses::InsertInstruction (IRPasses.cpp:545) do this and are used
+     everywhere else. The only reason for the hand versions is to set uiSource.
+   - Likewise CIRDefinitions::IsDefinedBy (IRDefinitions.cpp:203) is called only by a test, while "ps =
+     Instruction(x); ps && ps->uiOpcode == ..." is written out dozens of times.
+   Clean form: Add/InsertInstruction take the source line; passes use IsDefinedBy.
+   plan: new. Confidence: high.
+
+73. MarkNoWrites and MarkNoThrow are one fixpoint written twice, and CIRModule::MayThrow is an analysis living in
+    the module
+   Kind: same skeleton twice; a class doing several jobs.
+   Where and evidence:
+   - IRInterprocedural.cpp:398-451 and :468-522: mark every function, retract until nothing changes, then a
+     block/instruction scan for "calls or tests a marked one".
+   - IRModule.cpp:614-705: MayThrow is a 90-line reachability walk, nested seven deep, with its own folding of
+     branches on constants and on phis of constants. It sits in the class that also holds spaces, symbols, globals,
+     statistics and target opcodes.
+   - IRInterprocedural.cpp:102 IRReplaceUses is another hand-written walk of every use, beside CIRPasses::NextUse,
+     CIRFunction::CountUses and CIRDefinitions::Compute.
+   Clean form: one "optimistic summary" helper taking the test as a callback; MayThrow moves beside the
+   interprocedural code and uses a shared reachable-blocks walk.
+   plan: new. Confidence: medium.
+
+74. Small: stale comment, and the IR parser's own scanner
+   - IROptimiserInternal.h:29-30 says IR_SIGNED_RANGE_DEPTH "is in IROptimiser.h"; it is in IRPasses.h:227.
+   - IRParser.cpp:214-575 is about 360 lines of hand scanning (SkipSpace, Peek, GetChar, GetName, GetKeyword,
+     GetNumber, ParseInteger, GetString), and its top level is an if/else ladder of keywords (:98-131). The owner's
+     rule is that parsers sit on BaseLib's CTextParser; no file in CppCompilerLib uses it, so this is a
+     library-wide choice rather than this file's.
+   plan: new. Confidence: medium.
+
+What this area's reviewer found clean, or looked at and did not count:
+- IRParser, IRPrinter and IRVerifier are properly table-driven; IRFoldInteger really is the single integer
+  evaluator; CIRLiveness and CIRLiveSets are cleanly split and shared with the W65C816 back end.
+- IRHasEffect/IsIRPure centralise "has an effect". The optimiser's limits are all named in IROptimiserInternal.h,
+  apart from the bare 16 and 64 in finding 69.
+- Seen in passing, outside my area: IRW65C816Shifts.cpp:818 tests "(ui < ...NumElements()) && (ui <
+  ...NumElements())" twice in one condition.
+
+
+The two back ends
+-----------------
+
+All files are in D:\gameengine\CommonLibraries\Libraries\CppCompilerLib\ (names below are relative to it).
+Read-only: nothing edited, built or run.
+
+Stage 7's split exists in name: both back ends have Places / Folds / Fusion / Calls / Selector classes (the 816
+also Runtime). They are shells: each holds only mpcBackend, and all state is still on the back end behind five or
+six friend declarations. The IR-level halves (selector, calls, places) are readable and the opcode dispatches are
+clean switches; frame offsets and scratch slots are named constants. The text-pass halves are the weak part. Each
+back end has one good mnemonic table, but the passes also keep their own lists of the same facts and re-parse
+operands from the text. The 816's passes are 20 static members of CIRW65C816Backend plus about 110 free IR816
+functions, where the 65's are classes. The two back ends share ParallelCopy, AssignRegisters and the branch passes,
+and little else: liveness, known bits, edge copies, argument placing and data-flow solving are each written per
+back end.
+
+75. Instruction-set facts are kept in 9 places (816) and 5 places (65), not one table each
+   Kind: one fact in several places (your check a).
+   Where, 816:
+   - The table: gasIR816Mnemonics, IRW65C816Lines.cpp:42 (92 rows, 31 IR816MF_ bits), with IR816UnknownFlags :149
+     as a fallback.
+   - IR816UpdateHeld, Lines.cpp:535: a 60-case switch restating which register each mnemonic writes, although
+     WRITES_X / WRITES_Y / LOADS_A / STORE bits exist.
+   - IRW65C816Peephole.cpp: 35 IR816M_ tests, e.g. IR816KeepsAWord :765, IR816ChangesYConstant :787, and the
+     bZNFromX/Y lists :984-985 ("Tax || Ldx || Inx || Dex").
+   - IRW65C816Flow.cpp: 20 tests (IR816InstructionWidths :422, IR816StoreBytes :460, IR816FlowHeld :1115).
+   - IRW65C816Branches.cpp (9) and IRW65C816DeadStores.cpp (7).
+   - IRW65C816Frames.cpp:284 IR816ExitKeepsCarry: its own string list { "pld\n", "tya\n", ... "ldy " } of what
+     keeps the carry, the complement of IR816MF_SETS_CARRY; plus the strncmp chain at :359-369.
+   - CIRW65C816Selector::Operand, IRW65C816Instructions.cpp:89-121: strcmp on "lda"/"ldy"/"pei"/"ldx" to pick
+     txa/txy/phx.
+   - aszLoads { "lda","ldx","ldy" } at IRW65C816Backend.cpp:1143 and IRW65C816Calls.cpp:468; the (i == 2) ? "phy" :
+     (i == 1) ? "phx" : "pha" ternary at IRW65C816Frames.cpp:63 and :675.
+   Where, 65:
+   - The table: gasIR65CodeMnemonics, IR65Code.cpp:54, with DecodeLine :657 and Effect :850.
+   - IR65LineUsesB, IR65Places.cpp:1055: a second line decoder with memcmp on
+     jsr/div/mul/ret/stp/bra/psh/pul/wth/cmp/cpy/cpyx.
+   - IR65CopyOperands and IR65UpdateWidths, IR65BackendPeephole.cpp:79 and :121 (StartsWith "\t\tcpy ", "\t\twtth
+     (").
+   - IR65WidthsImmediate / IR65WidthsCopy, IR65Widths.cpp:32 and :72 (strncmp "cpy ").
+   - IR65Code.cpp:765 StringCompare(szMnemonic, "cpyx"), because uiKind cannot tell cpy from cpyx.
+   Why: a new instruction, or a changed flag rule, has to be taught to each list. The table's own comment
+   (IRW65C816BackendInternal.h:138) admits the bits hold only "those its rules were taught".
+   Clean form: one row per mnemonic (reads, writes, flags set and read, flow), with the Held update, widths and
+   carry rules driven from it. The 65's decoded line should keep its mnemonic id.
+   Plan: stage 8 covers "nothing is decoded"; the parallel fact lists are new. Confidence: high.
+
+76. A decoded line does not keep what was decoded, so operand shape is parsed again in 8 places (816) and 5 (65)
+   Kind: one question answered by several functions.
+   Where, 816 (SIRW65C816Line has only bDirect and iOffset):
+   - IR816IsDirect, IRW65C816Lines.cpp:242.
+   - IR816PlainDirect, IRW65C816Flow.cpp:193, and IR816IndexedDirect :335.
+   - IR816MentionsNear, IRW65C816DeadStores.cpp:40.
+   - IR816IndexedBy, IRW65C816Peephole.cpp:289, and IR816OperandMentions :657.
+   - IR816ExitNumberLine, IRW65C816Frames.cpp:117.
+   - strstr("D + ") scans at IRW65C816Frames.cpp:444 and :487, and IRW65C816Backend.cpp:649 (IR816CountDirectPage).
+   Where, 65 (DecodeLine splits the operands, then drops them):
+   - IR65CodeOperands in IR65Code.cpp.
+   - IR65PeepholeOperands, IR65Peephole.cpp:85.
+   - IR65CopyOperands, IR65BackendPeephole.cpp:79.
+   - IR65LineUsesB, IR65Places.cpp:1088-1112.
+   - IR65WidthsImmediate, IR65Widths.cpp:32.
+   Evidence of drift: IR816IsDirect tests only "[D + ", a digit at [5] and a final ']', so "[D + 12 + X]" counts as
+   direct, though its comment says such forms "aren't". IRW65C816Flow.cpp:543 re-checks bDirect with
+   IR816PlainDirect.
+   Clean form: an operand struct (mode, base, offset, index) filled once per line.
+   Plan: stage 8, the specifics are new. Confidence: high. Whether any pass is actually misled by the loose bDirect
+   is unconfirmed.
+
+77. One peephole job done by three passes with three trackers (816); the same pattern in the 65
+   Kind: same idea written several times; special cases piled up (your check c).
+   - "A load of what the register already holds" is removed by:
+     - Peephole (IRW65C816Peephole.cpp:827), with its own szA/szY strings and rules;
+     - PeepholeRegisters (:577), with SIRW65C816Held and IR816UpdateHeld;
+     - PeepholeFlowRegisters (IRW65C816Flow.cpp:1223), the same Held across labels.
+     The removal test "iRegister = Lda ? 0 : Ldx ? 1 : Ldy ? 2 : -1; Holds && !ZNReadAfter" is at
+     Peephole.cpp:592-593 and again at Flow.cpp:1388-1389.
+   - Dead stores have three passes too: RemoveDeadStores (straight line), RemoveFlowDeadStores, RemoveUnreadStores.
+     GenerateBody (IRW65C816Backend.cpp:745-763) runs Dead, Flow, Dead again, and Peephole itself ends with
+     RemoveDeadStores (Peephole.cpp:1015).
+   - 65: CIR65Backend::PeepholeCode (IR65BackendPeephole.cpp:204) removes a store then load-back with its own width
+     tracking. CIR65Peephole::RemoveCopies does the general version over CIR65Code.
+   - There is no common matcher. Each pass is one loop of if-chains mixing three styles: decoded mnemonic,
+     whole-text equality such as psz->Equals("\t\ttax") (IRW65C816Branches.cpp:827-836), and raw strncmp on the
+     operand (:814). IR816LineIs (Peephole.cpp:272) is used 4 times; there are 29 raw "\t\tmnemonic" text matches
+     across the two back ends. Peephole() resets its seven state variables in two places (:870-876, :919-925).
+   Clean form: keep the flow version of each analysis (a straight-line run is a one-block case), with a list of
+   small pattern objects over one line matcher.
+   Plan: new (stage 8 only says passes become classes). Confidence: high on the duplication; medium on whether the
+   straight-line passes can simply be dropped.
+
+78. Data-flow solving and the flow graph are hand-written per pass
+   Kind: same algorithm written many times; a missing class; a flag parameter (your check b).
+   - Eight "do { bChanged ... } while (bChanged)" fixed points: IR65Code.cpp:1187 and :1275, IR65Flags.cpp:173,
+     IR65Peephole.cpp:411, IR65Widths.cpp:151 and :201, IRW65C816Flow.cpp:1021 and :1316.
+   - The successor code "auiTo[0] = FallsThrough ? ui + 1 : uiNum; auiTo[1] = iTarget" is repeated in
+     IR65Code.cpp:1200, IR65Flags.cpp:186 and IR65Peephole.cpp:425.
+   - IRW65C816Flow.cpp has 28 free functions passing the same four arrays (pasLines, pasBlocks, paiBlockOf,
+     pasLabels); IR816LinkFlowBlock :801 and IR816BuildFlowLabelled :903 take six parameters each. Both users Init
+     and Kill the arrays by hand, and PeepholeFlowRegisters builds the predecessor lists inline (:1277-1310).
+   - A bStores flag is threaded through five functions (IR816FlowCall :475, IR816FlowOperand :507,
+     IR816ReadFlowLines :581, BuildFlowLabelled, BuildFlow) to switch the builder between two strictnesses.
+   - Label-to-line lookup is written twice in the 816: IRW65C816Branches.cpp:94-168 by number, and Flow.cpp:231-258
+     as a sorted name table. Line kinds are defined twice (IR816CL_ in IRW65C816Code.h:28, IR816FL_ in
+     Flow.cpp:38). The 65's CIR65Code keeps mmLabels and iTarget once.
+   - The 65's three passes each own a CIR65Code, each have an identical SetExceptions forwarder (IR65Flags.cpp:63,
+     IR65Widths.cpp:104, IR65Peephole.cpp:117), and each keep their own mauiDemand.
+   Clean form: one code object per function that knows labels, successors and blocks (a CIR816Flow class; the 65's
+   CIR65Code nearly is one), and one forward/backward solver over CIRBranchCode with the transfer and meet supplied
+   by the pass.
+   Plan: stage 8 mentions "classes over the instructions, run from a list"; the shared solver and graph class are
+   new. Confidence: high.
+
+79. A call's argument placing is built by hand in six places, and the parallel register load is solved four ways
+   Kind: same rule written several times; twin inconsistency.
+   - The list "hidden result first: iUnits = 2, iRegister = -1; each argument; AssignRegisters" is at:
+     - IRW65C816Backend.cpp:319 (FunctionArguments);
+     - IRW65C816Backend.cpp:1247-1284 (Forwarder, "as Call places them");
+     - IRW65C816Calls.cpp:126-143 (Call);
+     - IRW65C816Floats.cpp:134-190 (SoftFloatCall, 8 parameters, which also redoes the push-last-first and
+       PushFrameAddress + 4 of PushArguments);
+     - IR65Calls.cpp:67-76;
+     - IR65Places.cpp:316.
+   - The variadic guard disagrees. The 65 tests it on the caller and the callee (IR65Calls.cpp:76,
+     IR65Places.cpp:331). The 816 tests it on the callee only (Backend.cpp:339, not Calls.cpp:143). SoftFloatCall
+     tests mpcOptions->mbRegisterArguments directly instead of IsRegisterCall.
+   - "Which args belong to this call" has three mechanisms: the 65 walks back from the call (CallArguments,
+     IR65Calls.cpp:126); the 816 collects them in mauiPendingArguments as it meets them
+     (IRW65C816Instructions.cpp:503); Forwarder takes every arg in the block.
+   - "Load several registers whose sources may read each other" is solved in:
+     - CIR65Calls::LoadRegisterArguments, IR65Calls.cpp:237 (dependency order, push/pull on a cycle);
+     - CIR65Backend::StoreRegisterParameters, IR65Backend.cpp:538 (order, then a three-cpy swap);
+     - CIRW65C816Calls::LoadRegisters, IRW65C816Calls.cpp:377 (all direct, or push all);
+     - CIRBackend::ParallelCopy, used only for phis.
+   - IR816RegisterSource (IRW65C816Calls.cpp:308) takes 9 parameters, three of them outputs.
+   Clean form: a calling-convention object per target (types in, placed arguments out) used by caller, callee, soft
+   float and forwarder, with ParallelCopy for the register loads.
+   Plan: new. Confidence: high.
+
+80. IR analyses the back ends could share today are written per back end
+   Kind: twin duplication, the same idea in different words.
+   - Known zero bits. The 65 uses the shared CIRKnownBits (IR65Backend.cpp:174, FitsType at IR65Operands.cpp:550).
+     The 816 has its own CIRW65C816Backend::FindZeroWords (IRW65C816Backend.cpp:784: zext, and, lshr) plus a text
+     peephole PeepholeMasks for the masks it could not avoid.
+   - Values whose uses need only low bits. CIR65Places::FindNarrowOnly (IR65Places.cpp:1802) and
+     CIRW65C816Backend::FindLowByteUses (IRW65C816Backend.cpp:865) are the same optimistic mark-then-clear walk
+     over phi arguments, instruction arguments and the jump. Only the per-opcode predicate differs. The same walk
+     is CIRFunction::CountUses (IRFunction.cpp:854) and FindSingleUses (Backend.cpp:1064).
+   - Live ranges. The 65 uses CIRLiveness. The 816 builds its own CIRW65C816LiveRanges
+     (IRW65C816Places.cpp:253-680: Add, Interferes, LiveAcross, 13 parallel arrays) from CIRLiveSets.
+   - Classes of temporaries sharing a home. CIR65Places::Find/Join/Interferes (IR65Places.cpp:817-866, arrays on
+     the back end) and CIRW65C816Groups (IRW65C816Places.cpp:1345-1420).
+   - Pointer plus constant folded into an address. CIR65Backend::CopyAddresses (IR65Passes.cpp:164) with
+     CIR65Folds::MarkFolded (IR65Places.cpp:75, next instruction only), against CIRW65C816Folds::FoldPointers
+     (chains). The same name FoldedBase means a bool question in the 65 (IR65Places.cpp:264) and "return the base"
+     in the 816 (IRW65C816Folds.cpp:356).
+   Clean form: CIRKnownBits for both; one demanded-bits walk taking a per-target predicate; one live-range and
+   grouping class; one fold analysis giving base and offset, with each back end saying what it can address.
+   Plan: stage 7 says "the same parts with the same names" and moves code only; sharing these is new. Confidence:
+   high for known bits and low-bit uses, medium for liveness (the 816's pairs and regions are extra features).
+
+81. What an IR opcode's lowering clobbers is stated three different ways
+   Kind: one fact kept apart from the code that makes it true; twin inconsistency.
+   - 65, X and Y: IR65OpcodeFlags (IR65Instructions.cpp:36), a hand switch (IR65F_CALLS, CHANGES_XY, CHANGES_Y)
+     read by FindChanges (IR65Places.cpp:731), whose comment says "behind the lowering's back".
+   - 65, B: found by scanning the text just written (CheckHomeB, IR65Places.cpp:1232, with IR65LineUsesB and
+     masChunks) and writing the body again up to IR65_HOME_B_TRIES times (IR65Backend.cpp:191-228).
+   - 816, X: gasIR816XOpcodes (IRW65C816Places.cpp:1790), a positional table "in the order of EIROpcode", with
+     IR816ClobbersX / IR816XResult. Beside it, IR816CanShareArgument (:712) is a 50-case switch, and
+     CIRW65C816Fusion::CanFuse (IRW65C816Fusion.cpp:159) has its own opcode switches.
+   - IR65F_COMMUTES re-lists the commutative opcodes beside IsIRCommutative (IR65Instructions.cpp:40-51).
+   Why: a change to the selector must be mirrored in a table elsewhere. The positional table breaks silently if
+   EIROpcode is reordered.
+   Clean form: one per-opcode row per target (takes A/B, commutes, clobbers, can share an argument), or the
+   selector reports clobbers as it writes each chunk.
+   Plan: new (stage 8 would enable the second form). Confidence: high.
+
+82. The parts are shells; the state never moved
+   Kind: feature envy; a class with no data.
+   - Every part class has one member, mpcBackend (IRW65C816Places.h:39, IR65Selector.h:38 and the rest). There are
+     698 "mpcBackend->" in the 816 parts and 567 in the 65's, including 194 mpcBackend->Line, 85 ->mpcFunction and
+     80 ->masTemporaries.
+   - CIR65Backend still has about 45 members (IR65Backend.h:226-273), seven of them per-temporary arrays:
+     masPlaces, masLaidOut, maiClasses, maiLeaders, mauiUses, mauiNarrowOnly, mauiAddressed. The 816 already has
+     one record (SIRW65C816Temporary).
+   - Members sit in the wrong class or file. CIR65Places (61 methods) has FusedComparison, MarkInA, IsDeferred,
+     IsInA (fusion's) and the text scanner CheckHomeB. CIR65Folds' and SIR65Frame's functions live in
+     IR65Places.cpp (:53-264). CIRW65C816Selector::ZeroWords is in IRW65C816Backend.cpp:970.
+     CIRW65C816Calls::mbThrownInCarry is public state read by BranchWhen (Backend.cpp:1973).
+   Clean form: each part owns what it decides (Places the places and frame, Fusion the fused list and what A holds,
+   Calls the pending arguments) and takes a small emitter (Line, Branch, Label), not the whole back end.
+   Plan: stage 7; say there that the split exists but only as shells. Confidence: high.
+
+83. Hidden arguments in members set and put back around a call (the plan's item 3, in the back ends)
+   Kind: state saved and restored by hand.
+   - mbCopyAddress: set true, MemoryOperand called, set false (IR65Instructions.cpp:719-721, :810-812).
+   - mszAddress: set to a free register, then back to "B" (IR65Operands.cpp:255-257).
+   - mbRightImmediate: an output of LoadOperands left in a member (IR65Instructions.cpp:912-922).
+   - RegisterStub copies msFrame, edits cRegister and iArguments so LoadPlace addresses from S, then restores it
+     (IR65Backend.cpp:638-691).
+   - mbUnmasked: set and cleared round Instruction (IRW65C816Backend.cpp:718-720).
+   - mpcDominators: a pointer to the back end's own mcDominators, used as a "body being written" flag (:691, :738).
+   - "msAvailable = IRNone()" appears at 22 sites in six IR65 files; every function that writes A must remember it.
+   Clean form: parameters, or a small operand-context struct; A's content cleared in the one place a line with
+   destination A is written.
+   Plan: new for the back ends. Confidence: high.
+
+84. Registers are strings in the 65 selector, numbered four ways, and bare 0/1/2 in the 816
+   Kind: magic values; primitive obsession (your check d).
+   - 65: the selector takes const char* szRegister and asks with StringCompare(szWork, "A") about 18 times
+     (IR65Instructions.cpp:232, :490, :496, :551, :723; IR65Operands.cpp:210, :371, :422, :453, :543, :610, :701;
+     IR65Compares.cpp:86; IR65Backend.cpp:519, :588).
+   - 65 numberings: EIR65Register (X, Y, V, W, B); EIR65CodeRegister (A, B, X, Y); argument order "aby" plus X;
+     ad-hoc bits "1 A, 2 X, 4 Y, 8 B" (IR65Calls.cpp:194-217, auiWrites { 1, 8, 4, 2 } at :240); IR65PeepholeName
+     bits (IR65Peephole.cpp:39). aszRegisters { "A","B","Y" } is declared three times (IR65Backend.cpp:540, :635;
+     IR65Calls.cpp:239).
+   - 816: A/X/Y are 0/1/2 with no enum (asHeld[3], "uj * 3", IR816Hold(asHeld, 0, ...), "for (i = 0; i < 3" at
+     IRW65C816Lines.cpp:437).
+   - Forwarder's aiSource uses -1, -2, -3 as kinds (IRW65C816Backend.cpp:1149, :1264-1284).
+   - Buffer sizes are guarded by scattered literals: szA[32] with "< 30", szSwapped[64] with "> 40",
+     IR816_HELD_LENGTH 32 (Peephole.cpp:832-838, :731; Lines.cpp:244).
+   - Runtime table names carry data that is read back with atoi at hand-kept prefix lengths (IR816_TABLE_LENGTH 11,
+     IR816_BITS_TABLE_LENGTH 9; IRW65C816Runtime.cpp:218, :258).
+   - Scratch slots are aliased by number (IR816_SCRATCH_RESULT = _REMAINDER = 5, _VALUE = _ARGUMENT_A = 15) and by
+     reuse: IR816_SCRATCH_COUNT holds the X stash (Instructions.cpp:113) and the thrown flag (Calls.cpp:225).
+   Clean form: one register enum per target with name, bit and letter tables; an enum for the Forwarder source.
+   Plan: new. Confidence: high.
+
+85. Twins that disagree by accident
+   Kind: inconsistency between twins.
+   - Line(): the 65 returns the CChars and the caller must AppendNewLine (IR65Backend.cpp:777); the 816 ends the
+     line itself (IRW65C816Backend.cpp:107).
+   - Branch(): the 65 takes "bra " or "bras z, " with the trailing text (:789); the 816 takes "bra".
+   - EdgeCopies: in the 816 it writes the copies (Backend.cpp:1771) and HasEdgeCopies asks. In the 65, Edge writes
+     and EdgeCopies is the bool question (IR65Backend.cpp:1160). HasMoves (:856) is the same question again,
+     differing only in "!psArgument ||".
+   - A phi with no argument for a predecessor: the 65 reports Error (IR65Backend.cpp:1200); the 816 skips it
+     silently (Backend.cpp:1783).
+   - A block with no jump: the 65 has Error("Block has no jump.") (:1424); the 816's default writes "stp"
+     (Backend.cpp:2047).
+   - 65 selector functions return bool that is always true (FloatOperation, FloatConversion, FloatCompare in
+     IR65Floats.cpp; CIR65Calls::Call); the 816's are void; errors go through mbResult either way.
+   - Passes: the 65 has classes (CIR65Flags, CIR65Widths, CIR65Peephole); the 816 has 20 static members of the back
+     end, 9 of them CChars overloads only the tests call.
+   - CIR65Code is a CIRBranchCode; the 816 needs an adapter, CIR816BranchCode (IRW65C816Branches.cpp:455), built
+     and killed twice per pass.
+   - Working memory: the 816 uses the arena (GetScratch); CIR65Backend::Init ignores pcArena (IR65Backend.cpp:33-40
+     passes NULL).
+   Clean form: one emitter interface in CIRBackend (Line, Branch, Label, the edge-copy collection, and the six
+   set-up lines that open both GenerateFunctions, IR65Backend.cpp:147-152 = IRW65C816Backend.cpp:409-414).
+   Plan: stage 7 in spirit; the items are new. Confidence: high.
+
+86. The frame's entry and exit are known as text in five places; AlignFrame does four jobs
+   Kind: one fact in several places; long function.
+   - The exit sequence "tay / tdc / clc / adc n / tcs / tya / pld" is written by IR816AppendFrameExit
+     (IRW65C816Frames.cpp:86), parsed by IR816TidyExits (:157-255), parsed differently by IR816ClearExitCarries
+     (:359-369), rebuilt as szAlignedEpilogue (:749), and matched by strstr in DropFrame and AlignFrame.
+   - The same character-by-character replace loop is at :476-501 and :756-771.
+   - AlignFrame (:528, 253 lines, 5 parameters) detects recursion by strstr for "jsl label", decides the cost,
+     builds the aligned prologue, and rewrites. It overwrites its own bRecursive parameter (:606, :611).
+   - IR816CountDirectPage (IRW65C816Backend.cpp:649) counts "D + " in the text to weigh what the selector just
+     wrote.
+   - Prologue and GenerateForwarder repeat 11 lines of label, .width, .relax, stub and .global body label
+     (Backend.cpp:1414-1433 = :1448-1473).
+   Clean form: prologue and epilogue as marked instruction groups with a frame-size operand; the direct-page weight
+   counted in Frame().
+   Plan: stage 8 names AlignFrame; the other four sites and the Prologue/Forwarder repeat are new. Confidence:
+   high.
+
+87. Dead and vestigial pieces
+   Kind: dead code; fragile contract.
+   - CIRW65C816Backend::GetFrame (IRW65C816Backend.cpp:518): no caller in CommonLibraries, HCP65-IDE or HCP65
+     (TakeWritten replaced it; only a comment at Frames.cpp:513 names it).
+   - mcRuntime (IRW65C816Backend.h): mcRuntime.Init(this) is never called, so its mpcBackend is never set. It works
+     only because RuntimeName uses no state. The class is all static in effect.
+   - CIRW65C816Backend::SetMathTables: its only caller is a test (TestIRW65C816Backend.cpp:258); SetOptions already
+     sets the flag.
+   - FinishFunction runs on a back end that was killed after each function (CPP65IRFrontEnd.cpp:1352; IRBackend.cpp
+     says "called on a back end that isn't initialised"), yet reads mpcOptions->mbExceptions
+     (IRW65C816Backend.cpp:565), a pointer left from the last SetOptions.
+   - The "not folded" question is spelled FoldedBase(x).Equals(x) twelve times across five 816 files.
+   Plan: new. Confidence: high for GetFrame and mcRuntime; medium that the FinishFunction read can go wrong today
+   (the options outlive the unit).
+
+88. Small repeats inside each back end
+   Kind: near-identical functions.
+   - CIR65Places::Crosses and LiveAt (IR65Places.cpp:877, :929) differ by one "+ 1". The same lower-bound binary
+     search is written four times in that file (:897, :947, :1191, :1405).
+   - "Only A and B shift by an amount in memory" is fixed up twice in CIR65Selector::Integer
+     (IR65Instructions.cpp:447, :521). Integer also special-cases Neg, Not and Copy at three stages each.
+   - "Make an i1 from flags: iTrue / iFalse / iEnd, lda 1, bra, lda 0, Store" is in IRW65C816Compares.cpp:438 and
+     IRW65C816Floats.cpp:310. The same idea is in the 65 at IR65Instructions.cpp:225-240.
+   - Branch lines are hand-built with sz.Append("beq L") 12 times (Compares.cpp:407-442, Floats.cpp) although
+     Branch() exists and is used 39 times.
+   - The SIRCopy fill is at IR65Backend.cpp:1206-1210 and IRW65C816Backend.cpp:1849-1853.
+   Plan: new. Confidence: high.
+
+What this area's reviewer found clean, or looked at and did not count:
+- The opcode dispatches (CIR65Selector::Instruction, CIRW65C816Selector::Instruction) are plain switches delegating
+  by family, and CIRBackend's shared helpers (ParallelCopy, AssignRegisters, AppendRegisterSuffix,
+  FloatCompareValues, ExpandMultiplies, the IRBranchPasses over CIRBranchCode) are the right model for what the
+  findings above ask to extend.
+- Raw frame or direct-page numbers in emitted text are nearly absent (only "[S + 1]" for the rtl-call trick); the
+  IR816_SCRATCH_ / IR65_PSEUDO_ constants and the SIRW65C816Frame accessors (Link, Arguments, RegisterWord) are
+  used consistently.
+- IsolateThrowns being 65-only and OrderBlocks(true/false) look like deliberate target differences, not accidents.
+
+
+Programs the compiler gets wrong
+--------------------------------
+
+Each was compiled as one file by TestCPPConformance's way in (TEST_CPP_CONFORMANCE_TRY) at commit b87a252bc, and by
+g++ 15 beside it.  The clause 13 and 14 fixes (18f0f7962, 4f3988433) went in afterwards and touch overloading: none
+of these was run again after them.
+
+89. A constant that is 0 but isn't the literal 0 is taken for a null pointer when a call is ranked
+   Program:
+       int f(char*) { return 1; }
+       int f(long long) { return 2; }
+       int main() { return f(1 - 1); }
+   The compiler, on both processors: "Test.cpp (3, 21): The call is ambiguous [f]".  g++ calls f(long long).
+   Cause, by reading: finding 30.  CCPPOverloads::ConversionRank takes any integer constant whose value is 0 for
+   a null pointer constant, so f(char*) is a candidate as good as f(long long); the type checker, asked the same
+   thing, takes only a literal 0 or nullptr.
+
+90. A function's name ranks as a conversion to void*, which the checker then refuses
+   Program:
+       void g() {}
+       int f(void*) { return 1; }
+       int f(...) { return 2; }
+       int main() { return f(g); }
+   The compiler: "Test.cpp (4, 23): void (*)() becomes void* only by a cast [g]".  g++ calls f(...).
+   Cause, by reading: finding 30.  ConversionRank ranks a pointer to a function becoming void* as a conversion,
+   so f(void*) wins over the ellipsis; ConvertsPointer then refuses the argument.
+
+91. A return's value is converted by the build and not by the IDE's check
+   Program:
+       int* f() { return 5; }
+       int main() { return 0; }
+   A build refuses it on both processors: "Test.cpp (1, 19): Only 0 or nullptr becomes a pointer without a cast
+   [5]".  CCPPSemanticPass::Check, which is what the IDE runs, finds nothing wrong with it.
+   Cause, by reading: finding 31.  The checker gives a return statement's value only KeepsEnum; the rest of the
+   implicit conversion's rules are applied where the IR front end writes the return.
+
+92. Float constants: looked at, and right
+   Finding 18 says the float folder has no case for a named cast or ?: where the integer folder has.  This
+   program gives the right answer, 8, on the W65C816:
+       const float kf = true ? 1.5f : 2.5f;
+       float ga[2] = { static_cast<float>(3), kf };
+       int main() { static const float s = static_cast<float>(2); return (int)(ga[0] + ga[1] * 2 + s); }
+   So those forms are not folded by the float folder and are still initialised rightly (at run time, or by
+   another folder; which was not looked into).  Finding 18's point about three evaluators stands; no wrong
+   result was found.
+
+
+What the tests don't check
+--------------------------
+
+The suite reaches most of the code (finding 96) and checks little of what the compiler refuses.
+
+93. 188 of the 527 places that raise an error or a warning are raised by no test
+   How: a script listed every place in the library's sources that gives a diagnostic with a text, and the suite's
+   line coverage said which of those lines ran.  527 places; 322 ran; 188 never ran; 17 have no line data.  Of
+   those that ran, the text of 129 is named in some test, so for the others a test may pass whatever is said.
+   Most by file: IRVerifier.cpp 18, CPP65TypeChecker.cpp 18, IRInterpreter.cpp 16, IRParser.cpp 14,
+   CPPPreprocessor.cpp 12.  All 188 are in appendix A.  Counted at b87a252bc; the cases of clauses 6 to 14 have
+   raised some of them since.
+
+94. A program that must be refused passed its test whatever the compiler said of it
+   TestCPPConformance asked only that a "refused" case did not compile.  Since 51a96c492 a case the compiler
+   refuses only because it doesn't support the C++ yet ("... by the compiler yet", "Internal error", or
+   Unsupported's exit with no reason) is on its group's list with (U): 73 cases on each processor that day.
+   Each is a place where the right refusal is still owed; the lists in TestCPPConformance.cpp name them.
+
+95. The IDE's check and the compiler disagree on 88 of 1,613 conformance cases
+   The semantic pass (CCPPSemanticPass) is now run on every conformance case that includes nothing, against
+   lists of its own (TestCPPConformanceChecked.h, since 51a96c492): on 84 cases it misses what is wrong with a
+   program that must be refused (M), on 4 it finds something wrong with a program that is right (F).  Before,
+   nothing compared the two.  Findings 31, 32 and 91 are why some of the 84 are missed: what the checker leaves
+   to the IR front end, the check never sees.
+   Since: 971f0cb80 (another session) took two of the false errors away; clauses 13 and 14 added cases.
+
+96. What no test runs
+   How: the suite built by g++ with --coverage at b87a252bc, on Linux.  94.4% of the library's lines that hold
+   code ran (48,603 of 51,488) and 92.9% of its functions were called (4,571 of 4,919).  The preprocessor is
+   the least covered area (84.7%), the back ends the most (97.5%); appendix B has the table.
+   - 348 functions are never called.  Most are visitors' empty overrides, Dump and Print functions, and the old
+     preprocessor classes of finding 8, which the coverage confirms nothing reaches.
+   - CIRW65C816Selector::ShiftInMemory (IRW65C816Shifts.cpp:534, 81 lines) has a caller and is never reached.
+     By reading, ShiftCall takes every 32 and 64 bit shift by a variable before it; a program of long and long
+     long shifts, traced, did not reach it either.
+   - Also never called: CCPPUnit::UndefinedInstance, SkipPragmaOperator, CCPP65Builder::AddDefine and
+     CCPP65Builder::AddLibc65.
+   - Inside the functions that are called there are only 12 runs of 8 or more lines that never ran.
+
+97. Nothing gives the IR parser or the verifier IR that is wrong
+   14 of IRParser.cpp's diagnostics and 18 of IRVerifier.cpp's are among finding 93's: the tests read and verify
+   IR that is right.  A verifier that is never shown a broken function is only known not to complain.
+
+
+Compile time
+------------
+
+Measured compiling TestSupportLib65's project for the W65C816 a unit at a time, Release x64
+(Tests/CompilerMeasure.py), and by VTune on that compile.  DeclarationsSpeedPlan.txt has the tables.
+
+98. A sixth of a compile is assembling the compiler's own text
+   CCPP65Builder::Assemble is 15.9% of the compile in the profile of b87a252bc, and the assemble phase 21 s of
+   the phases' 120 s after DeclarationsSpeedPlan's stages.  The back ends write assembly as text and the
+   assembler parses it; findings 76 and 77 are the same thing seen from the back ends, which read their own text
+   back to work on it.
+
+99. A unit compiled a second time is preprocessed, tokenised and parsed again
+   CCPP65Builder::CompileUnit does everything again for a unit compiled again to inline what was exported after
+   its turn: 646 of the project's 922 units.  The text is the same and the first compile's tree was thrown
+   away.  Parsing is 24.5 s of the phases' 120 s, both compiles together.  DeclarationsSpeedPlan stage 1 stopped
+   the second compile diagnosing; it still reads everything again.
+
+100. Every function of a name in the unit is walked to declare one member
+   CCPPUnit::DeclareSignature has three loops over FirstFunctionOfName (every Init and every Kill of every class
+   the unit knows) to find the member's own earlier declaration.  Its own time was 2.49% of a compile before
+   DeclarationsSpeedPlan stage 3 and 0.57% after, as fewer classes are laid out.  CPPOverloads.cpp has seven
+   loops of the same shape.  The functions of a name kept for each class would end the walk; it is worth at
+   most 0.6% of a compile now.
+
+101. Two counts have grown and nobody knows why
+   FindMemberTemplate is asked 93,730 times where it was 64,822 on 14 Nov (24,831 on 18 Nov, 73,189 on 20 Nov).
+   Quiet trials that fail were 20 on 20 Nov and are 576.  Neither was looked into; the counts are exact, so the
+   commit that moved each can be found by measuring.
+
+102. The declarations phase was five times what it had been: fixed
+   28.2 s of a 141 s compile, where 5 to 7 s was expected: CCPPUnit::ReportNamedInstances walked every unit's
+   whole tree, and CCPPUnit::CheckVirtSpecifiers laid out nearly every class a unit's headers mention.
+   Since: DeclarationsSpeedPlan.txt's stages 0 to 3 (2026-11-21); 6.4 s.  TestCPP65Declarations asserts the
+   counts, so the same thing coming back fails a test.
+
+103. The IDE's check walks a unit's whole tree to find the types nothing declares
+   CCPPUndeclaredTypeFinder (CCPPUnit::ReportUndeclaredTypes) visits every node of the tree, headers and all, in
+   each check; it is not in a build.  It was not measured in a check: by the named-instance finder's old
+   figures, about 3 ms a unit.  The marked tokens that cured that finder do not fit this one, as any identifier
+   can start what it looks for.
+
+
+Small things seen on the way
+----------------------------
+
+104. An unnamed class's labels carry the number of classes the unit had met
+   A function of an unnamed class is labelled _Unnamed81__0, where 81 is how many classes the unit knew when it
+   met that one.  DeclarationsSpeedPlan stage 3 changed it from 101 in one test unit and nothing else in 4,201
+   listings.  So a change to a header a unit includes renames the labels of that unit's unnamed classes, which
+   shows as a difference wherever listings or maps are compared.
+
+105. The named-instance finder finds each class twice
+   In TestCPP65Declarations' project one class is the name of a template's instance, and in each unit that parses
+   it the finder (CCPPNamedInstanceFinder, the old whole walk and the marked one alike) puts it on its list twice.
+   Not traced: by reading, a class's specifier is probably reached through two fields of its declaration.  It
+   costs a second IsNameClass and a longer list; the warning is given once, as NamedInstance stops at the first
+   match.
+
+106. The Convert Enum refactoring's doubled cast comes from a change in the type checker
+   CommonLibraries 4c8a5aab6 changed the end of CCPP65TypeChecker::Assignment from Convert to ImplicitConvert.
+   "eFlags |= EF_Read" then gets a CPPEC_TO_ENUM record on the same node as its CPPEC_ARITHMETIC one, and the
+   IDE's CIDEConvertEnum::FindFileCasts writes the compound out with its cast and then wraps the whole node in a
+   second.  Another session has the bug; it is here because finding 53 says what those records are meant to be.
+
+
+Appendix A: the diagnostics no test raises
+------------------------------------------
+
+Finding 93's 188 places, each with the start of its text, as the suite's coverage had them at b87a252bc.  The
+cases of clauses 6 to 14, added since, raise some of them.
+
+  CPP65Builder.cpp:225  Could not read
+  CPP65Builder.cpp:243  Could not read
+  CPP65Builder.cpp:382  Could not read
+  CPP65Builder.cpp:925  Can't make the spill directory
+  CPP65Builder.cpp:985  CCPP65Builder::SetMathTables must be called before AddMathTables and AddLibc65.\n
+  CPP65Builder.cpp:1691  Can't write the listing
+  CPP65Builder.cpp:1719  Can't write the listing
+  CPP65IRFrontEndConversions.cpp:859  A pointer to a member of a virtual base can't be converted to a pointer to a 
+  CPP65IRFrontEndObjects.cpp:2337  The object cannot be copied: its class declares a move and no copy
+  CPP65IRFrontEndOperators.cpp:1056  An enum class's value is not a condition: compare it with one of its values
+  CPP65TypeChecker.cpp:529  This type of value is not supported by the compiler yet
+  CPP65TypeChecker.cpp:717  The address of a function template needs its template arguments in the compiler yet
+  CPP65TypeChecker.cpp:876  This operator is not supported by the compiler yet
+  CPP65TypeChecker.cpp:1238  This operator is not supported by the compiler yet
+  CPP65TypeChecker.cpp:1320  Only numbers can be used with floating point
+  CPP65TypeChecker.cpp:1339  These operands cannot be compared
+  CPP65TypeChecker.cpp:1756  The number of arguments does not match the function
+  CPP65TypeChecker.cpp:2190  The right of .* and ->* must be a pointer to a member
+  CPP65TypeChecker.cpp:2202  The left of ->* must be a pointer to an object
+  CPP65TypeChecker.cpp:2293  Only a pointer to a member function can be called
+  CPP65TypeChecker.cpp:2352  The name is ambiguous: it finds more than one thing
+  CPP65TypeChecker.cpp:2389  This is not an lvalue
+  CPP65TypeChecker.cpp:2620  This cast can't make a reference to another type: reinterpret_cast does
+  CPP65TypeChecker.cpp:2759  This construction is not supported by the compiler yet
+  CPP65TypeChecker.cpp:2919  A new array of arrays with a list of initialisers is not supported by the compiler yet
+  CPP65TypeChecker.cpp:3334  This std::initializer_list isn't laid out as the compiler fills one: a pointer to its 
+  CPP65TypeChecker.cpp:3441  The object cannot be copied to that class
+  CPP65TypeChecker.cpp:3591  A void value cannot be used
+  CPPBinder.cpp:312  No operator function of the name takes these arguments
+  CPPBinder.cpp:430  The class has no operator() for these arguments
+  CPPBinder.cpp:464  A destructor takes no arguments
+  CPPBinder.cpp:540  Member functions need an object of a class
+  CPPBinder.cpp:576  This destructor call is not supported by the compiler yet
+  CPPBinder.cpp:593  This call is not supported by the compiler yet
+  CPPBinder.cpp:910  An operator call needs an object
+  CPPConstants.cpp:174  It needs its own value
+  CPPConstants.cpp:180  Too many constants need each other
+  CPPConstants.cpp:651  Its initialiser uses what the compiler can't work out yet
+  CPPConstants.cpp:747  A constexpr variable's initialiser must be a constant: It is the address of a variable of t
+  CPPConstants.cpp:847  A destructor can't be constexpr
+  CPPConstants.cpp:851  A constexpr function must return a literal type
+  CPPDeclarators.cpp:181  This declarator is not supported by the compiler yet
+  CPPDeclarators.cpp:513  The initialiser is not what the declarator makes of auto
+  CPPDeclarators.cpp:687  This type is not supported by the compiler yet
+  CPPDeclarators.cpp:899  This type is not supported by the compiler yet
+  CPPOverloads.cpp:808  Too many arguments
+  CPPPreprocessor.cpp:1140  Cannot duplicate token
+  CPPPreprocessor.cpp:1244  Expected a line number after #line.
+  CPPPreprocessor.cpp:2111  Unterminated argument list invoking macro
+  CPPPreprocessor.cpp:3207  Expected an identifier.
+  CPPPreprocessor.cpp:3493  Expected an identifier after defined.
+  CPPPreprocessor.cpp:3502  Expected ')' after defined.
+  CPPPreprocessor.cpp:3511  Expected '(' after __has_ operator.
+  CPPPreprocessor.cpp:3521  Expected a header name after __has_include.
+  CPPPreprocessor.cpp:3531  Expected ')' after __has_include.
+  CPPPreprocessor.cpp:3549  Expected ')'.
+  CPPPreprocessor.cpp:3561  Expected ')'.
+  CPPPreprocessor.cpp:3666  Expected \"file\" or <file> after #include.
+  CPPUnit.cpp:2859  A function whose return type is written after it is declared auto, and nothing more
+  CPPUnitClasses.cpp:279  The alignment must be a constant
+  CPPUnitClasses.cpp:362  A template template parameter used outside an instantiation
+  CPPUnitClasses.cpp:376  The class template has not been defined
+  CPPUnitClasses.cpp:403  A class template needs template arguments
+  CPPUnitClasses.cpp:497  The qualifier is not the object's class or one of its bases
+  CPPUnitClasses.cpp:1260  This virtual function's declaration is not supported by the compiler yet
+  CPPUnitClasses.cpp:1354  This virtual function's declaration is not supported by the compiler yet
+  CPPUnitClasses.cpp:1386  A member function declared by a type that depends on a template parameter is not support
+  CPPUnitClasses.cpp:1421  This member is not supported by the compiler yet
+  CPPUnitClasses.cpp:1480  A bit-field can't be static
+  CPPUnitClasses.cpp:1489  A bit-field must be an integer, bool or enum
+  CPPUnitExpressions.cpp:51  No literal operator takes the literal
+  CPPUnitExpressions.cpp:72  This literal is not supported by the compiler yet
+  CPPUnitExpressions.cpp:2260  Integers wider than 64 bits are not supported by the compiler
+  CPPUnitExpressions.cpp:2282  A constexpr variable needs an initialiser
+  CPPUnitExpressions.cpp:3754  The type trait needs more types
+  CPPUnitExpressions.cpp:4259  The function's name can't be part of a wide string literal
+  CPPUnitExpressions.cpp:4273  This part of a string literal is not supported by the compiler yet
+  CPPUnitExpressions.cpp:4514  Invalid escape sequence in a string literal
+  CPPUnitLambdas.cpp:207  Only the parameter pack of the function the lambda is in can be captured as a pack
+  CPPUnitLambdas.cpp:269  The lambda doesn't capture the parameter pack
+  CPPUnitLambdas.cpp:319  The variable is captured twice
+  CPPUnitLambdas.cpp:361  The lambda doesn't capture this
+  CPPUnitLambdas.cpp:677  What the lambda captures can't be worked out
+  CPPUnitObjects.cpp:1296  A list in braces is a std::initializer_list, which needs <initializer_list>
+  CPPUnitObjects.cpp:1343  The values in braces aren't all of the same type, which auto needs
+  CPPUnitPacks.cpp:407  The pack expansion names no parameter pack
+  CPPUnitPacks.cpp:415  The packs the pack expansion expands have different lengths
+  CPPUnitRangeFor.cpp:189  This declaration is not supported by the compiler yet
+  CPPUnitRangeFor.cpp:226  An array that is a range must have a length
+  CPPUnitTemplates.cpp:393  A variable template is named with its template arguments
+  CPPUnitTemplates.cpp:1163  Only explicit instantiations of class templates and function templates are supported b
+  CPPUnitTemplates.cpp:1254  Only explicit instantiations of class templates and function templates are supported b
+  CPPUnitTemplates.cpp:1265  The explicit instantiation names no function template
+  CPPUnitTemplates.cpp:1562  The template argument must be a constant
+  CPPUnitTemplates.cpp:1574  The template argument must be a constant
+  CPPUnitTemplates.cpp:1586  This template parameter is not supported by the compiler yet
+  CPPUnitTemplates.cpp:1680  The template argument must name a global or a function
+  CPPUnitTemplates.cpp:1731  The template argument must be a class template
+  CppParserClasses.cpp:395  The function body did not end where it was expected to.
+  CppParserClasses.cpp:660  Expected class after a template template parameter's parameters.
+  CppParserDeclarations.cpp:542  Expected a declaration.
+  CppParserDeclarations.cpp:764  Expected a function body.
+  CppParserDeclarations.cpp:911  Expected '(' or '{' after the member initializer name.
+  CppParserExpressions.cpp:769  Expected an expression.
+  CppParserExpressions.cpp:870  Expected '(' or '{' after the type.
+  CppParserExpressions.cpp:926  Expected an expression.
+  CppParserExpressions.cpp:1037  Expected the lambda's body.
+  CppParserExpressions.cpp:1069  Expected a name to capture.
+  CppParserExpressions.cpp:1088  Expected a name to capture.
+  CppParserExpressions.cpp:1098  A capture with an initialiser can't be a pack expansion.
+  CppParserStatements.cpp:280  Could not parse the statement.
+  CppTokeniser.cpp:328  Unexpected character.
+  CppTokeniser.cpp:388  Unknown punctuator.
+  CppTokeniser.cpp:518  Invalid floating literal.
+  IR65Backend.cpp:1200  Phi has no argument for a predecessor.
+  IR65Backend.cpp:1424  Block has no jump.
+  IR65Instructions.cpp:277  Opcode not supported by the 65C64 back end.
+  IR65Operands.cpp:499  Operand can't be loaded.
+  IR65Operands.cpp:518  Temporary isn't where it was left.
+  IR65Operands.cpp:564  Result has no home.
+  IR65Places.cpp:1459  Home given twice.
+  IRBackend.cpp:185  Phi copies have no cycle to break.
+  IRBackend.cpp:209  Phi copies overlap.
+  IRInterpreter.cpp:573  It is not IR that can be run
+  IRInterpreter.cpp:616  It compares a pointer with a number
+  IRInterpreter.cpp:629  It is not IR that can be run
+  IRInterpreter.cpp:667  It is not IR that can be run
+  IRInterpreter.cpp:731  It uses a pointer as a number
+  IRInterpreter.cpp:743  It divides by zero
+  IRInterpreter.cpp:778  It is not IR that can be run
+  IRInterpreter.cpp:828  It calls what isn't a function whose value can be worked out
+  IRInterpreter.cpp:867  It is not IR that can be run
+  IRInterpreter.cpp:897  It takes the address of an argument it wasn't given
+  IRInterpreter.cpp:905  It uses a pointer as a number
+  IRInterpreter.cpp:914  It uses a pointer as a number
+  IRInterpreter.cpp:1071  It is called with too few arguments
+  IRInterpreter.cpp:1220  It reaches where the program can't go on
+  IRInterpreter.cpp:1280  It is not IR that can be run
+  IRInterpreter.cpp:1333  It is called with the wrong number of arguments
+  IRParser.cpp:502  Expected a number.
+  IRParser.cpp:545  Unterminated string.
+  IRParser.cpp:668  Expected an attribute.
+  IRParser.cpp:693  Symbol defined twice.
+  IRParser.cpp:717  Address space defined twice.
+  IRParser.cpp:1015  Expected '}'.
+  IRParser.cpp:1025  Block defined twice.
+  IRParser.cpp:1080  Expected an instruction.
+  IRParser.cpp:1104  Expected an opcode with a result.
+  IRParser.cpp:1108  The opcode needs a result.
+  IRParser.cpp:1229  Too many instructions in the block.
+  IRParser.cpp:1251  Phi after the block's instructions.
+  IRParser.cpp:1329  A void call has no result.
+  IRParser.cpp:1438  Expected a value.
+  IRVerifier.cpp:91  Function has no blocks.
+  IRVerifier.cpp:172  Missing type.
+  IRVerifier.cpp:177  Unknown address space.
+  IRVerifier.cpp:278  Jump to a block not in the function.
+  IRVerifier.cpp:314  Predecessor doesn't jump to the block once.
+  IRVerifier.cpp:322  A block that jumps to the block is missing from its predecessors.
+  IRVerifier.cpp:375  Temporary has no type.
+  IRVerifier.cpp:398  Temporary defined twice.
+  IRVerifier.cpp:425  Temporary is never defined.
+  IRVerifier.cpp:508  Instruction has no result.
+  IRVerifier.cpp:514  Instruction can't have a result.
+  IRVerifier.cpp:524  Result has the wrong type.
+  IRVerifier.cpp:546  The entry block has phis.
+  IRVerifier.cpp:558  Result has the wrong type.
+  IRVerifier.cpp:578  Phi argument from a block that is not a predecessor.
+  IRVerifier.cpp:583  Phi has two arguments from one block.
+  IRVerifier.cpp:610  Unknown opcode.
+  IRVerifier.cpp:670  More named arguments than arguments.
+  IRW65C816Backend.cpp:151  Only 4 byte pointers are done yet
+  IRW65C816Backend.cpp:453  The frame is too big for the W65C816's stack (bytes)
+  IRW65C816Instructions.cpp:536  The W65C816 back end doesn't do this instruction yet
+  IRW65C816Multiplies.cpp:68  Multiply and divide are for i8 to i64
+  IRW65C816Runtime.cpp:307  No such W65C816 runtime routine
+  PPTextWithSource.cpp:51  Decorators must be exactly one character long.
+  PPToken.cpp:75  Usage went negative.
+  PPToken.cpp:88  Usage started negative.
+  PreprocessorExpression.cpp:138  Expected an expression
+  PreprocessorExpression.cpp:151  Unexpected text
+  PreprocessorExpression.cpp:189  Expected ':'
+  PreprocessorExpression.cpp:296  Division by zero
+  PreprocessorExpression.cpp:390  Unknown operator
+  PreprocessorExpression.cpp:451  Expected ')'
+  PreprocessorExpression.cpp:493  Expected a value
+  PreprocessorExpression.cpp:537  Floating point in a preprocessor expression
+  TokenHelper.cpp:99  Cannot Duplicate Token
+
+
+Appendix B: the suite's coverage, and the functions no test calls
+-----------------------------------------------------------------
+
+Finding 96's figures: TestCppCompilerLib built by g++ with --coverage at b87a252bc and run whole on Linux.  Lines
+are those that hold code.
+
+AREA                               lines   covered      %   functions  called      %
+1 preprocessor and the rest         5623      4764   84.7         753     625   83.0
+2 tokeniser, parser, tree           6175      5862   94.9         815     659   80.9
+3 semantic layer                   13360     12742   95.4        1281    1271   99.2
+4 front end, builder, targets       6924      6446   93.1         574     542   94.4
+5 IR and optimiser                  9691      9351   96.5         746     738   98.9
+6 back ends                         8509      8298   97.5         624     619   99.2
+7 IDE-facing                        1206      1140   94.5         126     117   92.9
+all                                51488     48603   94.4        4919    4571   92.9
+
+FILES, least covered first (those with 40 or more uncovered lines)
+file                                      lines   missed      %  funcs  never
+CPPPreprocessor.cpp                        1416      113   92.0     91      5
+CPPUnit.cpp                                1800       93   94.8    177      3
+CPP65IRFrontEndObjects.cpp                 1015       78   92.3     54      1
+CPP65Builder.cpp                            908       71   92.2    104     10
+CPPUnitExpressions.cpp                     1433       64   95.5    123      1
+IRW65C816Shifts.cpp                         358       64   82.1     12      1
+PPDirective.cpp                              73       60   17.8      9      4
+IROptimiserIdioms.cpp                       606       59   90.3     19      0
+CPP65TypeChecker.cpp                       1401       57   95.9    123      0
+CppParserExpressions.cpp                    717       54   92.5     29      0
+CPPUnitTemplates.cpp                        909       53   94.2     64      1
+IRInterpreter.cpp                           539       53   90.2     38      3
+CppParserDeclarations.cpp                   655       50   92.4     43      1
+CPPCompileStatistics.cpp                    103       49   52.4     17      5
+PreprocessorTokenParser.cpp                 222       49   77.9     30      5
+PPTokenMemory.cpp                            53       47   11.3      9      7
+CPP65IRFrontEndValues.cpp                   678       45   93.4     42      0
+PreprocessorParser.cpp                      150       41   72.7     20      3
+
+FUNCTIONS NEVER CALLED (by file; start line, lines, name)
+  ASCIITree.cpp:110  4  CASCIITree::NumElements
+  ASCIITree.cpp:120  15  CASCIITree::StartIteration
+  ASCIITree.cpp:141  15  CASCIITree::Iterate
+  ASCIITree.cpp:162  4  CASCIITree::IsEmpty
+  ASCIITree.cpp:172  4  CASCIITree::Contains
+  CPP65Builder.cpp:318  16  CCPP65Builder::AddLibc65
+  CPP65Builder.cpp:472  29  CCPP65Builder::AddDefine
+  CPP65Builder.cpp:693  4  CCPP65Builder::SetTimes
+  CPP65Builder.cpp:705  4  CCPP65Builder::GetStatistics
+  CPP65Builder.cpp:823  4  CCPP65Builder::NumLazyRead
+  CPP65Builder.cpp:886  4  CCPP65Builder::NumImportsStale
+  CPP65Builder.cpp:1048  4  CCPP65Builder::SetTextAddress
+  CPP65Builder.cpp:1345  4  CCPP65Builder::GetLinker
+  CPP65Builder.cpp:1396  4  CCPP65Builder::GetMissing
+  CPP65Builder.cpp:2187  9  CCPP65Builder::NumUnitsFinished
+  CPP65IRFrontEnd.cpp:1675  10  CCPP65IRFrontEnd::PrintIR
+  CPP65IRFrontEndObjects.cpp:2335  5  CCPP65IRFrontEnd::CopyDeleted
+  CPP65Type.cpp:228  4  SCPP65Type::IsWide
+  CPPCompileStatistics.cpp:239  4  CCPPCompileStatistics::GetPass
+  CPPCompileStatistics.cpp:281  4  CCPPCompileStatistics::GetMicroseconds
+  CPPCompileStatistics.cpp:304  40  CCPPCompileStatistics::Print
+  CPPCompileStatistics.cpp:350  4  CCPPCompileStatistics::GetPhaseName
+  CPPCompileStatistics.cpp:360  4  CCPPCompileStatistics::GetCountName
+  CPPContext.cpp:387  1  CCPPContext::IsStaticLocal
+  CPPExceptionSpec.cpp:95  12  CCPPExceptionSpec::Set
+  CPPHeaderIndex.cpp:166  9  CCPPHeaderIndex::NumDeclarations
+  CPPHighlighter.cpp:559  4  CCPPHighlighter::GetSyntaxRange
+  CPPHighlighter.cpp:774  4  CCPPHighlighter::Get
+  CPPHighlighter.cpp:784  4  CCPPHighlighter::NumHighlights
+  CPPIndex.cpp:226  4  CCPPIndexUnit::Add
+  CPPIndex.cpp:2038  1  CCPPIndex::NumFiles
+  CPPPreprocessor.cpp:952  4  CCPPPreprocessor::GetDefine
+  CPPPreprocessor.cpp:995  11  CCPPPreprocessor::AddNumberDefine
+  CPPPreprocessor.cpp:2770  29  CCPPPreprocessor::SkipPragmaOperator
+  CPPPreprocessor.cpp:2910  27  CCPPPreprocessor::Error
+  CPPPreprocessor.cpp:3023  10  CCPPPreprocessor::AddString
+  CPPSemanticPass.cpp:119  4  CCPPSemanticPass::SetOptions
+  CPPSemanticPass.cpp:125  1  CCPPSemanticPass::GetOptions
+  CPPSemanticPass.cpp:425  12  CCPPSemanticPass::AppendFunctionLabel
+  CPPSyntax.cpp:232  8  CCPPSyntax::Dump
+  CPPSyntaxBlock.cpp:216  1  CCPPSyntaxBlockFieldWriter::LinkField
+  CPPSyntaxBlock.cpp:1221  1  CCPPSyntaxBlockFieldReader::LinkField
+  CPPSyntaxCopier.cpp:66  1  CCPPSyntaxFieldReader::LinkField
+  CPPSyntaxCopier.cpp:111  1  CCPPSyntaxFieldWriter::LinkField
+  CPPSyntaxEmptyDeclaration.cpp:28  5  CCPPSyntaxEmptyDeclaration::PrettyPrint
+  CPPSyntaxExtensionDeclaration.cpp:28  5  CCPPSyntaxExtensionDeclaration::Init
+  CPPSyntaxExtensionDeclaration.cpp:39  7  CCPPSyntaxExtensionDeclaration::PrettyPrint
+  CPPSyntaxExtensionDeclaration.cpp:52  4  CCPPSyntaxExtensionDeclaration::VisitFields
+  CPPSyntaxImplicitArgument.cpp:46  11  CCPPSyntaxImplicitArgument::PrettyPrint
+  CPPSyntaxLazyDeclaration.cpp:46  7  CCPPSyntaxLazyDeclaration::PrettyPrint
+  CPPSyntaxTryStatement.cpp:84  4  CCPPSyntaxTryStatement::IsFunctionBody
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitReturnStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitUnaryExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitParenthesisedExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitThisExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitIdExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitStringExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitLiteralExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitSkippedStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitCatchHandler
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitTryStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitGotoStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitBinaryExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitContinueStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitBreakStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitRangeForStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitForStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitDoStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitWhileStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitAttributedStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitLabelStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitCaseStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitNewExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitLambdaCapture
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitLambdaExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitLazyDeclaration
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitNoexceptExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitPackExpansionExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitTypeTraitExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitParenthesisedInitializer
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitThrowExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitDeleteExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitSwitchStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitTypeidExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitSizeofExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitNamedCastExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitConstructExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitCastExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitMemberExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitSubscriptExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitCallExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitConditionalExpression
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitUsingDirective
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitMemberInitializer
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitBaseSpecifier
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitEnumerator
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitSkippedDeclaration
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitAccessSpecifier
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitEmptyDeclaration
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitExtensionDeclaration
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitStaticAssert
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitAliasDeclaration
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitUsingDeclaration
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitAttribute
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitParameter
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitTypeParameter
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitTemplateDeclaration
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitInitDeclarator
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitFunctionDefinition
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitSimpleDeclaration
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitLinkageSpecification
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitNamespace
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitTranslationUnit
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitPointerOperator
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitIfStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitExpressionStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitDeclarationStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitCompoundStatement
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitNameComponent
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitName
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitTypeId
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitExceptionSpecification
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitArraySuffix
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitFunctionSuffix
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitImplicitArgument
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitDeclarator
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitDecltypeSpecifier
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitElaboratedTypeSpecifier
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitEnumSpecifier
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitClassSpecifier
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitNamedTypeSpecifier
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitAlignasSpecifier
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitKeywordSpecifier
+  CPPSyntaxVisitor.cpp:27  1  CCPPSyntaxVisitor::VisitDeclSpecifiers
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxReturnStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxSkippedStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxCatchHandler::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxTryStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxGotoStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxContinueStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxBreakStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxRangeForStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxForStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxDoStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxWhileStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxAttributedStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxLabelStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxCaseStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxLambdaCapture::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxLazyDeclaration::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxPackExpansionExpression::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxParenthesisedInitializer::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxSwitchStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxUsingDirective::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxMemberInitializer::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxBaseSpecifier::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxEnumerator::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxSkippedDeclaration::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxAccessSpecifier::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxEmptyDeclaration::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxExtensionDeclaration::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxStaticAssert::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxAliasDeclaration::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxUsingDeclaration::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxAttribute::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxParameter::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxTypeParameter::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxTemplateDeclaration::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxInitDeclarator::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxFunctionDefinition::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxSimpleDeclaration::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxLinkageSpecification::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxNamespace::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxTranslationUnit::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxPointerOperator::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxIfStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxExpressionStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxDeclarationStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxCompoundStatement::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxNameComponent::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxName::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxTypeId::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxExceptionSpecification::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxArraySuffix::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxFunctionSuffix::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxDeclarator::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxDecltypeSpecifier::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxElaboratedTypeSpecifier::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxEnumSpecifier::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxClassSpecifier::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxNamedTypeSpecifier::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxAlignasSpecifier::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxKeywordSpecifier::Accept
+  CPPSyntaxVisitor.cpp:32  1  CCPPSyntaxDeclSpecifiers::Accept
+  CPPTarget.cpp:80  4  CCPPTarget::GetStackTop
+  CPPTarget.cpp:169  4  CCPPTarget::InlinesAcrossUnits
+  CPPTarget.cpp:199  4  CCPPTarget::GetLibc65Units
+  CPPTarget.cpp:209  4  CCPPTarget::GetRuntimeUnits
+  CPPTarget.cpp:219  4  CCPPTarget::GetMathTableUnits
+  CPPTarget.cpp:249  3  CCPPTarget::AppendCallTerminate
+  CPPTarget.cpp:259  4  CCPPTarget::AppendStartUp
+  CPPTarget.cpp:289  4  CCPPTarget::AppendRuntime
+  CPPTarget.cpp:299  4  CCPPTarget::AppendAdjustThunk
+  CPPTarget.cpp:309  4  CCPPTarget::AppendVirtualCallThunk
+  CPPTarget.cpp:320  8  CCPPTarget::GetInlineLimits
+  CPPTarget.cpp:365  5  CCPPTarget::Assemble
+  CPPTargetHost.cpp:28  4  CCPPTargetHost::GetTarget
+  CPPTargetHost.cpp:38  4  CCPPTargetHost::GetConfigurationName
+  CPPTargetW65C816.cpp:241  6  CCPPTargetW65C816::GetLibc65Units
+  CPPUnit.cpp:1437  4  CCPPUnit::NumErrors
+  CPPUnit.cpp:1886  9  CCPPUnit::AppendName
+  CPPUnit.cpp:4895  4  CCPPUnit::RuntimeError
+  CPPUnitCheck.cpp:686  19  CCPPUnit::FindDeclaredFunction
+  CPPUnitExpressions.cpp:4175  5  CCPPUnit::IsNullPointerLiteral
+  CPPUnitTemplates.cpp:2078  37  CCPPUnit::UndefinedInstance
+  CPPVtable.cpp:118  4  CCPPVtable::IsOverriddenBy
+  CTBoolean.cpp:29  4  CCTBoolean::Init
+  CTChar.cpp:30  4  CCTChar::Init
+  CTDouble.cpp:29  5  CCTDouble::Init
+  CTFloat.cpp:29  5  CCTFloat::Init
+  CTIdentifier.cpp:29  4  CCTIdentifier::Init
+  CTInt.cpp:29  9  CCTInt::Init
+  CTLongDouble.cpp:29  5  CCTLongDouble::Init
+  CTLongLong.cpp:29  6  CCTLongLong::Init
+  CTNumber.cpp:38  4  CCTNumber::IsSigned
+  CTReservedWord.cpp:29  4  CCTReservedWord::Init
+  CTShort.cpp:29  7  CCTShort::Init
+  CTShort.cpp:64  4  CCTShort::IsSigned
+  CTString.cpp:30  6  CCTString::Init
+  CTUserLiteral.cpp:28  5  CCTUserLiteral::Init
+  CppParserDeclarations.cpp:1248  11  CCPPParser::IsExternDeclaration
+  Define.cpp:278  4  CDefine::IsInMap
+  Define.cpp:328  51  CDefine::Dump
+  DefineMap.cpp:302  30  CDefineMap::Dump
+  HeaderFileMap.cpp:124  15  CHeaderFileMap::StartIteration
+  HeaderFileMap.cpp:145  15  CHeaderFileMap::Iterate
+  HeaderFiles.cpp:314  4  CHeaderFiles::HasSubDirectories
+  HeaderFiles.cpp:344  19  CHeaderFiles::Dump
+  IRBackend.cpp:350  16  CIRBackend::Error
+  IRImports.cpp:538  4  CIRImports::NumFunctions
+  IRInterpreter.cpp:137  4  CIRInterpreter::GetErrorSource
+  IRInterpreter.cpp:224  4  CIRInterpreter::NewObject
+  IRInterpreter.cpp:286  15  CIRInterpreter::IsWritten
+  IRKnownBits.cpp:319  4  CIRKnownBits::Bits
+  IRLiveness.cpp:108  4  CIRLiveness::LiveIn
+  IRPipeline.cpp:260  13  CIRPipeline::Has
+  IRW65C816Backend.cpp:518  4  CIRW65C816Backend::GetFrame
+  IRW65C816Code.cpp:327  8  CIRW65C816Code::Insert
+  IRW65C816Runtime.cpp:169  4  CIRW65C816Runtime::Init
+  IRW65C816Runtime.cpp:179  4  CIRW65C816Runtime::Kill
+  IRW65C816Shifts.cpp:534  81  CIRW65C816Selector::ShiftInMemory
+  NameSet.cpp:173  4  CNameSet::NumNames
+  PPBlock.cpp:30  5  CPPBlock::Init
+  PPBlock.cpp:41  4  CPPBlock::Kill
+  PPBlock.cpp:51  4  CPPBlock::IsBlock
+  PPBlock.cpp:61  11  CPPBlock::Copy
+  PPBlock.cpp:78  4  CPPBlock::SetNext
+  PPBlock.cpp:88  16  CPPBlock::DumpPointersAsChars
+  PPBlock.cpp:110  4  CPPBlock::GetNextTokenBlock
+  PPBlockSet.cpp:67  5  CPPBlockSet::AddBlock
+  PPBlockSet.cpp:78  16  CPPBlockSet::Print
+  PPBlockSet.cpp:100  8  CPPBlockSet::Dump
+  PPBlockSet.cpp:114  21  CPPBlockSet::DumpBlockSet
+  PPBlockSet.cpp:141  4  CPPBlockSet::IsDirective
+  PPBlockSet.cpp:161  4  CPPBlockSet::Line
+  PPBlockSet.cpp:171  4  CPPBlockSet::Column
+  PPBlockSetArray.cpp:94  11  CPPBlockSetArray::Print
+  PPBlockSetArray.cpp:111  8  CPPBlockSetArray::Dump
+  PPBlockSetArray.cpp:125  11  CPPBlockSetArray::DumpBlockSets
+  PPConditional.cpp:51  4  CPPConditional::GetNext
+  PPConditional.cpp:61  4  CPPConditional::GetTokenBlock
+  PPDirective.cpp:29  4  CPPDirective::Init
+  PPDirective.cpp:70  64  CPPDirective::Print
+  PPDirective.cpp:140  11  CPPDirective::Copy
+  PPDirective.cpp:177  4  CPPDirective::NeedsNewLine
+  PPHashes.cpp:28  4  CPPHashes::Init
+  PPHashes.cpp:69  5  CPPHashes::Print
+  PPHashes.cpp:97  4  CPPHashes::IsEmpty
+  PPHeaderCache.cpp:513  4  CPPHeaderCache::NumMisses
+  PPLine.cpp:59  11  CPPLine::Copy
+  PPLine.cpp:76  4  CPPLine::NeedsNewLine
+  PPReplacement.cpp:29  4  CPPReplacement::Init
+  PPReplacement.cpp:61  11  CPPReplacement::Print
+  PPReplacement.cpp:88  10  CPPReplacement::Copy
+  PPReplacement.cpp:104  4  CPPReplacement::IsEmpty
+  PPReplacement.cpp:114  4  CPPReplacement::IsVariadic
+  PPText.cpp:29  4  CPPText::Init
+  PPText.cpp:155  4  CPPText::TextEndInclusive
+  PPTextWithSource.cpp:30  4  CPPTextWithSource::Init
+  PPTextWithSource.cpp:60  4  CPPTextWithSource::Init
+  PPTextWithSource.cpp:117  7  CPPTextWithSource::TextEndInclusive
+  PPToken.cpp:33  4  PPSetBreakOnTokenInit
+  PPToken.cpp:133  4  CPPToken::IsUnknown
+  PPToken.cpp:184  4  CPPToken::IsTokenReplacementsHolder
+  PPToken.cpp:196  4  CPPToken::IsLine
+  PPToken.cpp:206  4  CPPToken::IsFile
+  PPToken.cpp:216  4  CPPToken::IsBlock
+  PPToken.cpp:256  8  CPPToken::Dump
+  PPTokenBlockIndex.cpp:29  5  SPPTokenBlockIndex::Init
+  PPTokenBlockIndex.cpp:40  6  SPPTokenBlockIndex::Print
+  PPTokenBlockIndex.cpp:52  9  SPPTokenBlockIndex::Dump
+  PPTokenList.cpp:123  24  CPPTokenList::SavageAppend
+  PPTokenList.cpp:153  9  CPPTokenList::Dump
+  PPTokenListHolder.cpp:51  4  CPPTokenListHolder::IsTokenListHolder
+  PPTokenListHolder.cpp:75  5  CPPTokenListHolder::Copy
+  PPTokenListHolder.cpp:88  16  CPPTokenListHolder::CopyTokens
+  PPTokenListHolder.cpp:168  5  CPPTokenListHolder::Fake
+  PPTokenMemory.cpp:50  4  CPPTokenMemory::Mark
+  PPTokenMemory.cpp:60  4  CPPTokenMemory::Rollback
+  PPTokenMemory.cpp:70  28  CPPTokenMemory::StartIteration
+  PPTokenMemory.cpp:104  30  CPPTokenMemory::Iterate
+  PPTokenMemory.cpp:140  4  CPPTokenMemory::Size
+  PPTokenMemory.cpp:150  13  CPPTokenMemory::Print
+  PPTokenMemory.cpp:169  8  CPPTokenMemory::Dump
+  PPTokenReplacementsHolder.cpp:28  4  CPPTokenReplacementsHolder::Init
+  PPTokenReplacementsHolder.cpp:38  4  CPPTokenReplacementsHolder::Kill
+  PPTokenReplacementsHolder.cpp:48  7  CPPTokenReplacementsHolder::Copy
+  PPWhiteSpace.cpp:83  4  CPPWhitespace::IsEmpty
+  PreprocessedTokens.cpp:431  8  CPreprocessedTokens::Dump
+  PreprocessorDirective.cpp:52  4  CPreprocessorDirective::GetName
+  PreprocessorDirective.cpp:82  11  CPreprocessorDirective::Dump
+  PreprocessorExpression.cpp:119  6  CPreprocessorExpression::Kill
+  PreprocessorLineTokeniser.cpp:64  3  CPreprocessorLineTokeniser::Kill
+  PreprocessorParser.cpp:369  22  CPreprocessorParser::CalculateColumn
+  PreprocessorParser.cpp:397  23  CPreprocessorParser::BackupNewLine
+  PreprocessorParser.cpp:460  17  CPreprocessorParser::Dump
+  PreprocessorPosition.cpp:62  11  SPreprocessorPosition::Message
+  PreprocessorTokenParser.cpp:42  3  SPPHolderMark::Kill
+  PreprocessorTokenParser.cpp:71  6  CPreprocessorTokenParser::Init
+  PreprocessorTokenParser.cpp:477  9  CPreprocessorTokenParser::NextToken
+  PreprocessorTokenParser.cpp:650  10  CPreprocessorTokenParser::Dump
+  PreprocessorTokenParser.cpp:666  12  CPreprocessorTokenParser::DumpAll
+  Project.cpp:53  4  CProject::SetSkipFailedDirectives
+  SourceFile.cpp:163  4  CSourceFile::IsLoaded
+  SourceFile.cpp:173  4  CSourceFile::IsNamed
+  SourceFile.cpp:185  9  CSourceFile::ClearContents
+  SourceFile.cpp:250  4  CSourceFile::DumpBlockSets
+  SourceFile.cpp:295  4  CSourceFile::GetTokenMemoryUsed
+  SpecialOperator.cpp:50  11  CSpecialOperator::Equals
+  SpecialOperator.cpp:67  4  CSpecialOperator::GetName
+  SpecialOperator.cpp:87  31  CSpecialOperator::Dump
+  TokenHelper.cpp:40  8  CPPToken* DuplicateTypedPPToken<CPPTokenReplacementsHolder>
+  TokenHelper.cpp:40  8  CPPToken* DuplicateTypedPPToken<CPPBlock>
+  TokenHelper.cpp:40  8  CPPToken* DuplicateTypedPPToken<CPPLine>
+  TokenHelper.cpp:40  8  CPPToken* DuplicateTypedPPToken<CPPReplacement>
+  TokenHelper.cpp:40  8  CPPToken* DuplicateTypedPPToken<CPPDirective>
+  TranslationUnit.cpp:174  8  CTranslationUnit::Dump
+  TranslationUnits.cpp:61  43  CTranslationUnits::AddAllFiles
+
+348 functions never called, 1927 lines in them
+
+LONGEST UNCOVERED RUNS inside called functions (file:first-last, length)
+  CPPUnit.cpp:2507-2522  11
+  IRSourceMarkers.cpp:389-404  10
+  IRBackend.cpp:320-335  10
+  CPPPreprocessor.cpp:2171-2180  10
+  IRW65C816Shifts.cpp:342-350  9
+  IROptimiserMemory.cpp:87-104  9
+  IRInliner.cpp:1084-1097  9
+  CPPUnitExpressions.cpp:1920-1936  9
+  TokenHelper.cpp:85-100  8
+  PreprocessorLineTokeniser.cpp:446-453  8
+  PPTokenList.cpp:94-104  8
+  IROptimiserLoops.cpp:1533-1547  8
+
+12 uncovered runs of 8 or more instrumented lines inside called functions
