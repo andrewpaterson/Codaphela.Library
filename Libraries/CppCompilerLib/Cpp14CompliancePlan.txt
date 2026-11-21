@@ -403,8 +403,10 @@ B. Gaps that are known.  Each was probed against g++; none is common.
    4. (decltype(f())::k) + 1: read as a cast.  The parser has no types; it decides by the member's name only where
       decltype's operand is the name of a variable or parameter declared with a class's name
       (CCPPParser::DecltypeMemberIsType).
-   5. final where nothing uses the class: checked for a class at namespace scope (CCPPUnit::CheckVirtSpecifiers), not
-      for one nested in a class or declared in a function.
+   5. final where nothing uses the class: checked for a class at namespace scope in a source file
+      (CCPPUnit::CheckVirtSpecifiers), not for one nested in a class or declared in a function, nor for a header's
+      class, which is checked by the unit that first needs it whole (DeclarationsSpeedPlan.txt stage 3, 2026-11-21:
+      laying out every class the headers mention was half the declarations' time).
    6. A name two bases each have, named alone in a member function, where it is a type, a static member or an
       enumerator: not reported (a field and a call are: CCPPBinder::HasOneMeaning).
    7. On the W65C816 a frame is D + offset with D wherever S was, so a local is aligned as alignas asks (clause 3

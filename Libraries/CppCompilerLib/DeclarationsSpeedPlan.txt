@@ -2,8 +2,12 @@ CppCompilerLib: the declarations phase's time
 =============================================
 
 A plan to take back the compile time the "declarations" phase has gained since the middle of November.  Written
-2026-11-21 from measurements of that day; nothing of it is built.  The measuring kit is ConsolidationPlan.txt's
+2026-11-21 from measurements of that day.  The measuring kit is ConsolidationPlan.txt's
 (Tests/CompilerMeasure.py --compile --serial --only TestSupportLib65, Release x64).
+
+Where it is: stages 0 to 3 are built and stage 4 measured, all on 2026-11-21 ("The record", at the end).  The
+phase is 6.4 s where it was 28.2 s, and a compile of TestSupportLib65's project 127 s where it was 149 s.
+Question 3 is open: whether anything of what stage 4 found left is wanted.
 
 The rule: every diagnostic the compiler gives today it still gives, but for the one case in question 1; the code
 it writes is the same (the three *65 suites' cycles and bytes are as recorded); and each stage is proved by a
@@ -230,6 +234,10 @@ the instances (MarkNameClassBases; every token, if a base starts with anything e
 	code.  What stays is TestCPPSyntaxBlock's check of what the marks rely on: in the source that has every
 	kind of node, as parsed and as read from its block, no node has a token outside its parent's.
 
+	CCPPUndeclaredTypeFinder, the IDE's check's other walk of the whole tree, was looked at and left: any
+	identifier can start what it looks for (a type's name that nothing declares), so there is nothing to
+	mark before the walk.  It is not in a build.
+
 Stage 3 (2026-11-21): CheckVirtSpecifiers lays a class out where it is defined only if it is written in a source
 file (CCPPUnit::IsInSourceFile, which CheckUncalledFunctions' two tests of the same thing now are).  A header's
 class is laid out, and its override and final checked, by the unit that first needs it whole.
@@ -255,6 +263,52 @@ TestCppCompilerLib passes (270,155).
 	unit that includes it, where the header's class is checked if that unit needs it whole.  So nothing in
 	the IDE needed a rule of its own.
 
-	CCPPUndeclaredTypeFinder, the IDE's check's other walk of the whole tree, was looked at and left: any
-	identifier can start what it looks for (a type's name that nothing declares), so there is nothing to
-	mark before the walk.  It is not in a build; it is stage 4's to measure in a check.
+Stage 4 (2026-11-21): measured again (stage 3's table) and profiled, the W65C816 compile a unit at a time.
+
+	Share of the whole compile     before stage 0   after stage 3
+	ReportNamedInstances                    7.80%           0.85%
+	CheckVirtSpecifiers                     8.60%           0.05%
+	LayoutClass                             9.41%           4.55%
+	DeclareSignature                        7.94%           3.94%
+	  its walk of a name's functions        2.49%           0.57%
+
+	The phase is where it was on 14 Nov counted the same way: 1,728,988 quiet trials against 1,682,335, and
+	6.4 s where 5 to 7 s was expected.  No one cause is left in it.  What could still be taken, each small:
+	DeclareSignature's walk if the functions of a name were kept for each class (0.6% of a compile at most);
+	the finder's two passes over the tokens (part of its 0.85%); and, in the IDE's check only,
+	CCPPUndeclaredTypeFinder's walk, which was not measured in a check (by the old finder's figures, about
+	3 ms a unit).  Not explained and not looked into: FindMemberTemplate is asked 93,730 times where it was
+	64,822 on 14 Nov, and 576 quiet trials fail where 20 did on 20 Nov.  Question 3 is whether any of that
+	is wanted; the recommendation is to stop here.
+
+What the stages passed (stage 5).
+
+	- TestCppCompilerLib after each stage: 270,081, 270,149 and 270,155 run, none failed (the number moves
+	  with how RunParallel.py splits the tests); and 270,212 with clauses 13 and 14's cases, which went onto
+	  master while the stages were built and which the stages were moved onto.
+	- The code is the same.  Each of the three *65 suites' projects was compiled for each processor by the
+	  compiler as it was before stage 0 and as it is after stage 3, a unit at a time, with every unit's
+	  listing kept (TEST_PROJECT65_LISTINGS), and the listings compared: 4,201 of them, all the same, but for
+	  two things that are not the compiler's doing.  The two compilers stood in two folders, and a program
+	  spells out its sources' paths (__FILE__): the folder's name was taken out of both before comparing.
+	  And in one unit, TestBaseLib65's TestArrayTemplateEmbedded, an unnamed class's labels have another
+	  number (_Unnamed81__0 for _Unnamed101__0): classes are numbered as the unit meets them, and it now
+	  meets fewer.
+	- The three suites pass on both processors after stage 3, and every program has the cycles and the bytes
+	  it had: 644 programs in the six runs, none different, with the same asserts.  Both compilers were run
+	  from the one folder for that (a longer folder name makes every program larger, by its paths).
+
+	                                       cycles        bytes
+	  TestBaseLib65      65C64      7,294,537,435   19,756,588
+	  TestBaseLib65      W65C816   29,044,427,424   77,865,352
+	  TestStandardLib65  65C64     14,116,970,046   29,016,926
+	  TestStandardLib65  W65C816   22,329,963,831   67,615,461
+	  TestSupportLib65   65C64     34,316,828,945   35,198,292
+	  TestSupportLib65   W65C816   96,800,916,050   75,825,698
+
+	  (From D:\gameengine-declarations.  From D:\gameengine the same programs are 34,976,668 and 75,614,669
+	  bytes for TestSupportLib65.)
+	- What the compiler says: in the six compiles, the same warnings and no errors, before and after, taken
+	  as a set.  A header's class's warning (a function that overrides and isn't declared override) is now
+	  given by the units that lay the class out and not by every unit that names it, so a few are said in
+	  fewer units (70 lines to 67 in TestBaseLib65 on the 65C64); none is no longer said at all.
