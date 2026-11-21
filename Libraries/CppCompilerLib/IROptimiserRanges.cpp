@@ -360,40 +360,15 @@ uint64 CIRRangePasses::UpperBound(SIRReference sValue, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 SIRInstruction* CIRRangePasses::EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, uint16* puiOpcode, SIRReference* psOther)
 {
-	SIRInstruction*	psCompare;
+	SIREdgeCondition	sCondition;
 
-	if ((pcFrom->msJump.uiKind != IRJ_Branch) || (pcFrom->msJump.pcThen == pcFrom->msJump.pcElse))
+	if (!EdgeCondition(pcFrom, pcTo, &sCondition) || !sCondition.PutLeft(sValue))
 	{
 		return NULL;
 	}
-	psCompare = mpcContext->mcDefinitions.Instruction(pcFrom->msJump.sArgument);
-	if (!psCompare || !IsIRIntegerComparison(psCompare->uiOpcode))
-	{
-		return NULL;
-	}
-	*puiOpcode = psCompare->uiOpcode;
-	if (psCompare->asArguments[0].Equals(sValue))
-	{
-		*psOther = psCompare->asArguments[1];
-	}
-	else if (psCompare->asArguments[1].Equals(sValue))
-	{
-		*psOther = psCompare->asArguments[0];
-		*puiOpcode = IRSwappedComparison(*puiOpcode);
-	}
-	else
-	{
-		return NULL;
-	}
-	if (pcFrom->msJump.pcElse == pcTo)
-	{
-		*puiOpcode = IRInvertedComparison(*puiOpcode);
-	}
-	else if (pcFrom->msJump.pcThen != pcTo)
-	{
-		return NULL;
-	}
-	return psCompare;
+	*puiOpcode = sCondition.uiOpcode;
+	*psOther = sCondition.sRight;
+	return sCondition.psCompare;
 }
 
 

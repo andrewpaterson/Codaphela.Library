@@ -136,23 +136,12 @@ bool CIRLoopPasses::LessLoopTests(void)
 				continue;
 			}
 
-			//The way round the loop and the way out.
-			if (mpcContext->mcLoops.Contains(uiLoop, pcBlock->msJump.pcThen) && !mpcContext->mcLoops.Contains(uiLoop, pcBlock->msJump.pcElse))
-			{
-				pcInside = pcBlock->msJump.pcThen;
-				pcOutside = pcBlock->msJump.pcElse;
-				uiOpcode = psCompare->uiOpcode;
-			}
-			else if (mpcContext->mcLoops.Contains(uiLoop, pcBlock->msJump.pcElse) && !mpcContext->mcLoops.Contains(uiLoop, pcBlock->msJump.pcThen))
-			{
-				pcInside = pcBlock->msJump.pcElse;
-				pcOutside = pcBlock->msJump.pcThen;
-				uiOpcode = IRInvertedComparison(psCompare->uiOpcode);
-			}
-			else
+			//The way round the loop and the way out, and the comparison as it holds going round.
+			if (!LoopWays(uiLoop, pcBlock, &pcInside, &pcOutside))
 			{
 				continue;
 			}
+			uiOpcode = (pcInside == pcBlock->msJump.pcThen) ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
 
 			//Round when a <= b.
 			if (uiOpcode == IRO_SLe)
@@ -1085,17 +1074,7 @@ bool CIRLoopPasses::CanRotate(size uiLoop, CIRBlock** ppcBody, CIRBlock** ppcExi
 		return false;
 	}
 
-	if (mpcContext->mcLoops.Contains(uiLoop, pcHead->msJump.pcThen) && !mpcContext->mcLoops.Contains(uiLoop, pcHead->msJump.pcElse))
-	{
-		*ppcBody = pcHead->msJump.pcThen;
-		*ppcExit = pcHead->msJump.pcElse;
-	}
-	else if (mpcContext->mcLoops.Contains(uiLoop, pcHead->msJump.pcElse) && !mpcContext->mcLoops.Contains(uiLoop, pcHead->msJump.pcThen))
-	{
-		*ppcBody = pcHead->msJump.pcElse;
-		*ppcExit = pcHead->msJump.pcThen;
-	}
-	else
+	if (!LoopWays(uiLoop, pcHead, ppcBody, ppcExit))
 	{
 		return false;
 	}

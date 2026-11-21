@@ -682,38 +682,27 @@ bool CIRFoldingPasses::Extended(SIRReference sValue, int iBits, bool bSigned, in
 //////////////////////////////////////////////////////////////////////////
 int CIRFoldingPasses::EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRInstruction* psInstruction)
 {
-	SIRJump*			psJump;
-	SIRInstruction*		psKnown;
-	int					iKnown;
+	SIREdgeCondition	sKnown;
 	int					iSigned;
 	int					iKnownSigned;
 
-	psJump = &pcPredecessor->msJump;
-	psKnown = ((psJump->uiKind == IRJ_Branch) && (psJump->pcThen != psJump->pcElse)) ? mpcContext->mcDefinitions.Instruction(psJump->sArgument) : NULL;
-	if (!psKnown || !IsIRIntegerComparison(psKnown->uiOpcode) || !psKnown->sType.Equals(psInstruction->sType))
+	if (!EdgeCondition(pcPredecessor, pcBlock, &sKnown) || !sKnown.psCompare->sType.Equals(psInstruction->sType))
 	{
 		return -1;
 	}
 	iSigned = IRSignedness(psInstruction->uiOpcode);
-	iKnownSigned = IRSignedness(psKnown->uiOpcode);
+	iKnownSigned = IRSignedness(sKnown.uiOpcode);
 	if ((iSigned != 0) && (iKnownSigned != 0) && (iSigned != iKnownSigned))
 	{
 		return -1;
 	}
 
-	if (psKnown->asArguments[0].Equals(psInstruction->asArguments[0]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[1]))
-	{
-		iKnown = IRComparisonHolds(psKnown->uiOpcode);
-	}
-	else if (psKnown->asArguments[0].Equals(psInstruction->asArguments[1]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[0]))
-	{
-		iKnown = IRComparisonHolds(IRSwappedComparison(psKnown->uiOpcode));
-	}
-	else
+	//As it is said of the instruction's operands, in their order.
+	if (!sKnown.PutLeft(psInstruction->asArguments[0]) || !sKnown.sRight.Equals(psInstruction->asArguments[1]))
 	{
 		return -1;
 	}
-	return (psJump->pcElse == pcBlock) ? (IRCH_All & ~iKnown) : iKnown;
+	return IRComparisonHolds(sKnown.uiOpcode);
 }
 
 

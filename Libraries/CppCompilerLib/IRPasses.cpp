@@ -640,3 +640,44 @@ bool CIRPasses::WritesMemory(void)
 	return bWrites;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What pcFrom's branch says going to pcTo (SIREdgeCondition).  False if it
+// doesn't branch two ways, one of them to pcTo, on an integer comparison.
+// mpcContext->mcDefinitions must be found.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRPasses::EdgeCondition(CIRBlock* pcFrom, CIRBlock* pcTo, SIREdgeCondition* psCondition)
+{
+	return psCondition->Init(&pcFrom->msJump, pcTo, mpcContext->mcDefinitions.Instruction(pcFrom->msJump.sArgument));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The two ways of pcBlock's branch when one stays in loop uiLoop and the
+// other leaves it: *ppcInside and *ppcOutside.  False if it doesn't
+// branch, or both ways stay or both leave.  mpcContext->mcLoops must be
+// found.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRPasses::LoopWays(size uiLoop, CIRBlock* pcBlock, CIRBlock** ppcInside, CIRBlock** ppcOutside)
+{
+	bool	bThen;
+	bool	bElse;
+
+	if (pcBlock->msJump.uiKind != IRJ_Branch)
+	{
+		return false;
+	}
+	bThen = mpcContext->mcLoops.Contains(uiLoop, pcBlock->msJump.pcThen);
+	bElse = mpcContext->mcLoops.Contains(uiLoop, pcBlock->msJump.pcElse);
+	if (bThen == bElse)
+	{
+		return false;
+	}
+	*ppcInside = bThen ? pcBlock->msJump.pcThen : pcBlock->msJump.pcElse;
+	*ppcOutside = bThen ? pcBlock->msJump.pcElse : pcBlock->msJump.pcThen;
+	return true;
+}

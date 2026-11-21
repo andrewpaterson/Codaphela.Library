@@ -357,3 +357,78 @@ bool IRHasEffect(SIRInstruction* psInstruction)
 	}
 	return !IsIRPure(psInstruction->uiOpcode);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What psJump says going to pcTo, psBranchedOn being the instruction that
+// defines what it branches on (NULL if none does).  False unless it is a
+// branch two ways, one of them to pcTo, on an integer comparison.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SIREdgeCondition::Init(SIRJump* psJump, CIRBlock* pcTo, SIRInstruction* psBranchedOn)
+{
+	if ((psJump->uiKind != IRJ_Branch) || (psJump->pcThen == psJump->pcElse) || ((psJump->pcThen != pcTo) && (psJump->pcElse != pcTo)) ||
+		!psBranchedOn || !IsIRIntegerComparison(psBranchedOn->uiOpcode))
+	{
+		return false;
+	}
+	psCompare = psBranchedOn;
+	uiOpcode = (psJump->pcThen == pcTo) ? psBranchedOn->uiOpcode : IRInvertedComparison(psBranchedOn->uiOpcode);
+	sLeft = psBranchedOn->asArguments[0];
+	sRight = psBranchedOn->asArguments[1];
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The same condition written the other way round: a < b is b > a.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIREdgeCondition::Swap(void)
+{
+	SIRReference	sWasLeft;
+
+	sWasLeft = sLeft;
+	sLeft = sRight;
+	sRight = sWasLeft;
+	uiOpcode = IRSwappedComparison(uiOpcode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes the condition with sValue on the left.  False if it compares
+// sValue with nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SIREdgeCondition::PutLeft(SIRReference sValue)
+{
+	if (sLeft.Equals(sValue))
+	{
+		return true;
+	}
+	if (!sRight.Equals(sValue))
+	{
+		return false;
+	}
+	Swap();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes a greater than or a less or equal the other way round (they are
+// the comparisons IsIRSwappedComparison names), so that two conditions
+// that say the same thing are written the same.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIREdgeCondition::Unswap(void)
+{
+	if (IsIRSwappedComparison(uiOpcode))
+	{
+		Swap();
+	}
+}

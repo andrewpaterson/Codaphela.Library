@@ -490,14 +490,11 @@ bool CIRCounterPasses::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 bool CIRCounterPasses::LoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound)
 {
 	CIRBlock*		pcBlock;
-	CIRBlock*		pcFrom;
-	CIRBlock*		pcPredecessor;
-	SIRInstruction*	psCompare;
-	uint16			uiCompare;
-	SIRReference	sA;
-	SIRReference	sB;
-	size			ui;
-	int				iDepth;
+	CIRBlock*			pcFrom;
+	CIRBlock*			pcPredecessor;
+	SIREdgeCondition	sGuard;
+	size				ui;
+	int					iDepth;
 
 	pcBlock = mpcContext->mcLoops.GetBlock(uiLoop, 0);
 	for (iDepth = 0; pcBlock && (iDepth < IR_GUARD_DEPTH); iDepth++)
@@ -515,19 +512,10 @@ bool CIRCounterPasses::LoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sI
 				}
 			}
 		}
-		psCompare = (pcFrom && (pcFrom->msJump.uiKind == IRJ_Branch) && (pcFrom->msJump.pcThen != pcFrom->msJump.pcElse)) ? mpcContext->mcDefinitions.Instruction(pcFrom->msJump.sArgument) : NULL;
-		if (psCompare && IsIRIntegerComparison(psCompare->uiOpcode))
+		if (pcFrom && EdgeCondition(pcFrom, pcBlock, &sGuard))
 		{
-			uiCompare = (pcFrom->msJump.pcThen == pcBlock) ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
-			sA = psCompare->asArguments[0];
-			sB = psCompare->asArguments[1];
-			if (IsIRSwappedComparison(uiCompare))
-			{
-				uiCompare = IRSwappedComparison(uiCompare);
-				sA = psCompare->asArguments[1];
-				sB = psCompare->asArguments[0];
-			}
-			if ((uiCompare == uiOpcode) && sA.Equals(sInitial) && sB.Equals(sBound))
+			sGuard.Unswap();
+			if ((sGuard.uiOpcode == uiOpcode) && sGuard.sLeft.Equals(sInitial) && sGuard.sRight.Equals(sBound))
 			{
 				return true;
 			}
@@ -916,45 +904,18 @@ SIRReference CIRCounterPasses::ExtendedCounter(SIRReference sValue, SIRReference
 //////////////////////////////////////////////////////////////////////////
 bool CIRCounterPasses::UnsignedMaximum(CIRBlock* pcBlock, CIRBlock* pcStay, SIRReference sValue, uint64 ulliMask, uint64* pulliMax, SIRReference* psBound, uint16* puiCompare)
 {
-	SIRInstruction*	psCompare;
-	uint16			uiCompare;
-	SIRReference	sA;
-	SIRReference	sB;
-	uint64			ulliBound;
+	SIREdgeCondition	sCondition;
+	uint16				uiCompare;
+	SIRReference		sB;
+	uint64				ulliBound;
 
-	if ((pcBlock->msJump.uiKind != IRJ_Branch) || (pcBlock->msJump.pcThen == pcBlock->msJump.pcElse) || !pcBlock->msJump.sArgument.IsTemporary())
+	//As the branch says it of sValue: b ugt sValue is sValue ult b and b uge sValue is sValue ule b.
+	if (!EdgeCondition(pcBlock, pcStay, &sCondition) || !sCondition.PutLeft(sValue))
 	{
 		return false;
 	}
-	psCompare = mpcContext->mcDefinitions.Instruction(pcBlock->msJump.sArgument);
-	if ((psCompare == NULL) || !IsIRIntegerComparison(psCompare->uiOpcode))
-	{
-		return false;
-	}
-	if (pcBlock->msJump.pcThen == pcStay)
-	{
-		uiCompare = psCompare->uiOpcode;
-	}
-	else if (pcBlock->msJump.pcElse == pcStay)
-	{
-		uiCompare = IRInvertedComparison(psCompare->uiOpcode);
-	}
-	else
-	{
-		return false;
-	}
-	sA = psCompare->asArguments[0];
-	sB = psCompare->asArguments[1];
-	if (!sA.Equals(sValue))
-	{
-		//b ugt sValue is sValue ult b and b uge sValue is sValue ule b.
-		if (!sB.Equals(sValue))
-		{
-			return false;
-		}
-		uiCompare = IRSwappedComparison(uiCompare);
-		sB = sA;
-	}
+	uiCompare = sCondition.uiOpcode;
+	sB = sCondition.sRight;
 
 	ulliBound = sB.IsConstant() ? ((uint64)mpcFunction->GetSigned(sB) & ulliMask) : 0;
 	if (uiCompare == IRO_ULt)

@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 to 4 are done (2026-11-21).  Stage 5 is next; "The record", at the end, has what each stage
+Where it is: stages 0 to 5 are done (2026-11-21).  Stage 6 is next; "The record", at the end, has what each stage
 found.
 
 
@@ -282,3 +282,31 @@ Stage 4: instructions are built by the builder.
 	which only a test called, is now it).  The 13 places that fetched the instruction and left at once unless
 	it had that opcode ask it.  The places that go on to try another opcode on the same instruction were left:
 	there the instruction is wanted whatever it is.
+
+Stage 5 (2026-11-21): what a branch says on an edge, and the ways of a loop's branch.  Same code: the 4,201
+listings are the baseline's.  TestCppCompilerLib passes (271,441).
+
+	SIREdgeCondition (IRBlock.h) is what a block's branch says on one of its two ways out: the integer comparison
+	it is on, as it holds going that way, with its operands.  It is written with a given value on the left
+	(PutLeft, swapping if it must) and with a greater than or a less or equal turned round (Unswap), so two
+	that say one thing read the same.  CIRPasses::EdgeCondition makes one for an edge.  TestIREdgeCondition has
+	each of those.
+
+	What asked a branch the same thing for itself and now asks it: CIRRangePasses::EdgeComparison (which the
+	range passes go on calling), CIRKnownBits::EdgeBound, CIRCounterPasses::LoopGuarded and UnsignedMaximum,
+	CIRIdiomPasses::GuardedBy and CIRFoldingPasses::EntryRelations; and of the idiom matchers'
+	loops, MatchIdiomCounter's latch, ReplaceStrlen's "round while the byte is not 0", ReplaceMemcmp's "on while
+	the two are the same" and ReplaceMemchr's "out when the byte is the one".  CIRPasses::LoopWays gives the way
+	round a loop and the way out of a block that branches one way each: LessLoopTests and CanRotate had the
+	same twelve lines for it.
+
+	Not as the stage was written:
+	- LoopGuarded and GuardedBy are still two functions.  The plan had one with its reach a parameter; they
+	  differ in more than reach.  LoopGuarded looks up the dominators for any branch that guards the loop;
+	  GuardedBy looks only at the branch the loop is entered from, past its preheaders, and takes two constants
+	  where there is none, so that an idiom's own check in front of a loop is not matched again.  They share
+	  the edge now, which was what each had written out.
+	- There is no "loop test" record.  What the sites share is the edge (with the block the loop goes round
+	  to as its end) and LoopWays; a record of both would have had two users.
+	- Left as they were: NarrowCounter and ReplaceLoopCounters, which want only "round on true" of a branch
+	  they go on to read in their own way, and ReplaceStrchr, whose two tests are read together.

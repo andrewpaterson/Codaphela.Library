@@ -37,15 +37,17 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 bool CIRIdiomPasses::MatchIdiomCounter(size uiLoop, CIRBlock* pcHead, CIRBlock* pcLatch, SIRIdiomCounter* psCounter)
 {
-	SIRInstruction*	psCompare;
-	uint16			uiOpcode;
+	SIREdgeCondition	sRound;
+	SIRInstruction*		psCompare;
+	uint16				uiOpcode;
 
-	psCompare = mpcContext->mcDefinitions.Instruction(pcLatch->msJump.sArgument);
-	if ((pcLatch->msJump.uiKind != IRJ_Branch) || (psCompare == NULL) || !IsIRIntegerComparison(psCompare->uiOpcode) || !mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering)
+	//The latch's comparison as it holds going round.
+	if (!EdgeCondition(pcLatch, pcHead, &sRound) || !mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering)
 	{
 		return false;
 	}
-	uiOpcode = (pcLatch->msJump.pcThen == pcHead) ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
+	psCompare = sRound.psCompare;
+	uiOpcode = sRound.uiOpcode;
 	if (((uiOpcode != IRO_SLt) && (uiOpcode != IRO_ULt) && (uiOpcode != IRO_Ne)) || !mpcContext->mcLoops.IsInvariant(uiLoop, psCompare->asArguments[1], &mpcContext->mcDefinitions))
 	{
 		return false;
@@ -73,10 +75,10 @@ bool CIRIdiomPasses::MatchIdiomCounter(size uiLoop, CIRBlock* pcHead, CIRBlock* 
 //////////////////////////////////////////////////////////////////////////
 bool CIRIdiomPasses::GuardedBy(size uiLoop, uint16 uiOpcode, SIRReference sLeft, SIRReference sRight)
 {
-	SIRInstruction*	psGuard;
-	CIRBlock*		pcEntering;
-	CIRBlock*		pcTarget;
-	int				iSteps;
+	SIREdgeCondition	sGuard;
+	CIRBlock*			pcEntering;
+	CIRBlock*			pcTarget;
+	int					iSteps;
 
 	pcEntering = mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering;
 	if (!pcEntering)
@@ -92,13 +94,7 @@ bool CIRIdiomPasses::GuardedBy(size uiLoop, uint16 uiOpcode, SIRReference sLeft,
 	}
 	if ((pcEntering->msJump.uiKind == IRJ_Branch) && (pcEntering->msJump.pcThen != pcEntering->msJump.pcElse))
 	{
-		psGuard = mpcContext->mcDefinitions.Instruction(pcEntering->msJump.sArgument);
-		if ((psGuard == NULL) || !IsIRIntegerComparison(psGuard->uiOpcode) || ((pcEntering->msJump.pcThen != pcTarget) && (pcEntering->msJump.pcElse != pcTarget)))
-		{
-			return false;
-		}
-		return (((pcEntering->msJump.pcThen == pcTarget) ? psGuard->uiOpcode : IRInvertedComparison(psGuard->uiOpcode)) == uiOpcode) &&
-			   psGuard->asArguments[0].Equals(sLeft) && psGuard->asArguments[1].Equals(sRight);
+		return EdgeCondition(pcEntering, pcTarget, &sGuard) && (sGuard.uiOpcode == uiOpcode) && sGuard.sLeft.Equals(sLeft) && sGuard.sRight.Equals(sRight);
 	}
 	return sLeft.IsConstant() && sRight.IsConstant() &&
 		   IRCompareIntegers(uiOpcode, mpcFunction->TypeOf(sLeft), mpcFunction->GetConstant(sLeft)->ulliBits, mpcFunction->GetConstant(sRight)->ulliBits);
@@ -697,7 +693,7 @@ bool CIRIdiomPasses::ReplaceStrlen(size uiLoop)
 	CIRBlock*		pcExit;
 	CIRBlock*		pcPreheader;
 	SIRInstruction*	psLoad;
-	SIRInstruction*	psCompare;
+	SIREdgeCondition	sRound;
 	SIRPhi*			psExitPhi;
 	SIRPhiArgument*	psArgument;
 	SIRReference	sLength;
@@ -709,7 +705,6 @@ bool CIRIdiomPasses::ReplaceStrlen(size uiLoop)
 	CArrayIRReferences	asValues;
 	size			ui;
 	size			uj;
-	uint16			uiOpcode;
 	int64			lliStep;
 	const char*		szLibrary;
 	bool			bNext;
@@ -733,14 +728,9 @@ bool CIRIdiomPasses::ReplaceStrlen(size uiLoop)
 	{
 		return false;
 	}
-	psCompare = mpcContext->mcDefinitions.Instruction(pcLoop->msJump.sArgument);
-	if ((psCompare == NULL) || ((psCompare->uiOpcode != IRO_Ne) && (psCompare->uiOpcode != IRO_Eq)))
-	{
-		return false;
-	}
-	uiOpcode = (pcLoop->msJump.pcThen == pcLoop) ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
-	if ((uiOpcode != IRO_Ne) || !((psCompare->asArguments[0].Equals(psLoad->sResult) && psCompare->asArguments[1].IsConstant() && (mpcFunction->GetConstant(psCompare->asArguments[1])->ulliBits == 0)) ||
-								   (psCompare->asArguments[1].Equals(psLoad->sResult) && psCompare->asArguments[0].IsConstant() && (mpcFunction->GetConstant(psCompare->asArguments[0])->ulliBits == 0))))
+	//Round while the byte is not 0 (written either way round).
+	if (!EdgeCondition(pcLoop, pcLoop, &sRound) || (sRound.uiOpcode != IRO_Ne) || !sRound.PutLeft(psLoad->sResult) || !sRound.sRight.IsConstant() ||
+		(mpcFunction->GetConstant(sRound.sRight)->ulliBits != 0))
 	{
 		return false;
 	}
@@ -919,7 +909,7 @@ bool CIRIdiomPasses::ReplaceMemcmp(size uiLoop)
 	CIRBlock*		pcDiffer;
 	CIRBlock*		pcSame;
 	CIRBlock*		pcPreheader;
-	SIRInstruction*	psCompare;
+	SIREdgeCondition	sSame;
 	SIRInstruction*	apsLoads[2];
 	SIRInstruction*	psFirst;
 	SIRInstruction*	psSecond;
@@ -933,7 +923,6 @@ bool CIRIdiomPasses::ReplaceMemcmp(size uiLoop)
 	int64			lliBytes;
 	int64			lliTimes;
 	size			ui;
-	uint16			uiOpcode;
 	const char*		szLibrary;
 
 	psLoop = mpcContext->mcLoops.GetLoop(uiLoop);
@@ -976,15 +965,8 @@ bool CIRIdiomPasses::ReplaceMemcmp(size uiLoop)
 	{
 		return false;
 	}
-	psCompare = mpcContext->mcDefinitions.Instruction(pcHead->msJump.sArgument);
-	if ((psCompare == NULL) || ((psCompare->uiOpcode != IRO_Eq) && (psCompare->uiOpcode != IRO_Ne)))
-	{
-		return false;
-	}
-	uiOpcode = (pcHead->msJump.pcThen == pcLatch) ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
-	if ((uiOpcode != IRO_Eq) ||
-		!((psCompare->asArguments[0].Equals(psFirst->sResult) && psCompare->asArguments[1].Equals(psSecond->sResult)) ||
-		  (psCompare->asArguments[0].Equals(psSecond->sResult) && psCompare->asArguments[1].Equals(psFirst->sResult))))
+	//On to the latch while the two are the same (written either way round).
+	if (!EdgeCondition(pcHead, pcLatch, &sSame) || (sSame.uiOpcode != IRO_Eq) || !sSame.PutLeft(psFirst->sResult) || !sSame.sRight.Equals(psSecond->sResult))
 	{
 		return false;
 	}
@@ -1258,7 +1240,7 @@ bool CIRIdiomPasses::ReplaceMemchr(size uiLoop)
 	CIRBlock*			pcPreheader;
 	CIRBlock*			pcAt;
 	SIRInstruction*		psLoad;
-	SIRInstruction*		psCompare;
+	SIREdgeCondition	sFound;
 	SIRPhiArgument*		psArgument;
 	SIRReference		sValue;
 	SIRReference		sStart;
@@ -1267,7 +1249,6 @@ bool CIRIdiomPasses::ReplaceMemchr(size uiLoop)
 	SIRReference		sTest;
 	SIRType				sSize;
 	size				ui;
-	uint16				uiOpcode;
 	bool				bResult;
 	const char*			szLibrary;
 
@@ -1306,28 +1287,12 @@ bool CIRIdiomPasses::ReplaceMemchr(size uiLoop)
 	{
 		return false;
 	}
-	psCompare = mpcContext->mcDefinitions.Instruction(pcHead->msJump.sArgument);
-	if ((psCompare == NULL) || ((psCompare->uiOpcode != IRO_Eq) && (psCompare->uiOpcode != IRO_Ne)))
+	//Out to pcFound when the byte is the one looked for (written either way round).
+	if (!EdgeCondition(pcHead, pcFound, &sFound) || (sFound.uiOpcode != IRO_Eq) || !sFound.PutLeft(psLoad->sResult))
 	{
 		return false;
 	}
-	uiOpcode = (pcHead->msJump.pcThen == pcFound) ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
-	if (uiOpcode != IRO_Eq)
-	{
-		return false;
-	}
-	if (psCompare->asArguments[0].Equals(psLoad->sResult))
-	{
-		sValue = psCompare->asArguments[1];
-	}
-	else if (psCompare->asArguments[1].Equals(psLoad->sResult))
-	{
-		sValue = psCompare->asArguments[0];
-	}
-	else
-	{
-		return false;
-	}
+	sValue = sFound.sRight;
 	if (!mpcContext->mcLoops.IsInvariant(uiLoop, sValue, &mpcContext->mcDefinitions) || !MatchIdiomCounter(uiLoop, pcHead, pcLatch, &sCounter) ||
 		!MatchIdiomAddress(uiLoop, pcHead, pcLatch, psLoad->asArguments[0], &sCounter, 1, &sAddress))
 	{

@@ -98,6 +98,23 @@ typedef CArrayTemplate<SIRPhi>			CArrayIRPhis;
 typedef CArrayTemplatePtr<CIRBlock>		CArrayIRBlocks;
 
 
+//What a block's branch says on one of its two ways out: the integer comparison it branches on as it holds going that
+//way (the comparison inverted, on the way taken when it is false), which is sLeft uiOpcode sRight.  A pass that asks
+//what is known where a block is entered, or what a loop goes round on, starts from this (CIRPasses::EdgeCondition).
+struct SIREdgeCondition
+{
+	SIRInstruction*	psCompare;		//The comparison the branch is on.
+	uint16			uiOpcode;		//As it holds on the edge.
+	SIRReference	sLeft;
+	SIRReference	sRight;
+
+	bool	Init(SIRJump* psJump, CIRBlock* pcTo, SIRInstruction* psBranchedOn);
+	void	Swap(void);
+	bool	PutLeft(SIRReference sValue);
+	void	Unswap(void);
+};
+
+
 SIRReference	IRAddressOf(SIRInstruction* psInstruction);
 bool			IRHasEffect(SIRInstruction* psInstruction);
 

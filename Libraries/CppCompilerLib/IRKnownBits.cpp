@@ -401,36 +401,20 @@ uint64 CIRKnownBits::EdgeBound(SIRReference sValue, CIRBlock* pcFrom, CIRBlock* 
 	SIRReference	sTemp;
 	uint16			uiOpcode;
 	uint8			uiHolds;
-	bool			bTrue;
+	SIREdgeCondition	sCondition;
 	bool			bLeftLess;
 	bool			bStrict;
 	uint64			ulliSign;
 	uint64			ulliOther;
 
 	psJump = &pcFrom->msJump;
-	if ((psJump->uiKind != IRJ_Branch) || (psJump->pcThen == psJump->pcElse) || !psJump->sArgument.IsTemporary() || (psJump->sArgument.Index() >= mapsDefinitions.NumElements()))
-	{
-		return ulliMost;
-	}
-	if (psJump->pcThen == pcTo)
-	{
-		bTrue = true;
-	}
-	else if (psJump->pcElse == pcTo)
-	{
-		bTrue = false;
-	}
-	else
-	{
-		return ulliMost;
-	}
-	psCompare = *mapsDefinitions.Get(psJump->sArgument.Index());
-	if ((psCompare == NULL) || !IsIRIntegerComparison(psCompare->uiOpcode))
+	psCompare = (psJump->sArgument.IsTemporary() && (psJump->sArgument.Index() < mapsDefinitions.NumElements())) ? *mapsDefinitions.Get(psJump->sArgument.Index()) : NULL;
+	if (!sCondition.Init(psJump, pcTo, psCompare))
 	{
 		return ulliMost;
 	}
 
-	uiOpcode = bTrue ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
+	uiOpcode = sCondition.uiOpcode;
 	if (IsIRSignedComparison(uiOpcode))
 	{
 		ulliSign = ((uint64)1) << (psCompare->sType.IntegerBits() - 1);

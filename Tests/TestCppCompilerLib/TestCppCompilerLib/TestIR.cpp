@@ -1347,6 +1347,77 @@ void TestIRPassTable(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a branch says on each of its ways out (SIREdgeCondition): the
+// comparison as written on the way taken when it is true and inverted on
+// the other; written with a given value on the left, swapped if it has to
+// be; and unswapped, so that a > b and b < a are the same.  Nothing is
+// said by a jump that is no branch, on a way the branch doesn't go, or by
+// a branch on what is no integer comparison.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIREdgeCondition(void)
+{
+	CIRModule			cModule;
+	CIRFunction*		pcFunction;
+	CIRBlock*			pcEntry;
+	CIRBlock*			pcThen;
+	CIRBlock*			pcElse;
+	SIRInstruction*		psCompare;
+	SIRInstruction*		psAdd;
+	SIREdgeCondition	sCondition;
+	SIRReference		sA;
+	SIRReference		sB;
+
+	TestIRParseRight(&cModule, "function i32 @f(i32 %a, i32 %b)\n{\ne:\n\t%s = add i32 %a, %b\n\t%c = sgt i32 %a, %b\n\tbrif %c, t, u\nt:\n\tret i32 %s\nu:\n\tret i32 %a\n}\n");
+	pcFunction = cModule.GetFunction(0);
+	pcEntry = pcFunction->GetBlock(0);
+	pcThen = pcFunction->GetBlock(1);
+	pcElse = pcFunction->GetBlock(2);
+	psAdd = pcEntry->masInstructions.Get(0);
+	psCompare = pcEntry->masInstructions.Get(1);
+	sA = psCompare->asArguments[0];
+	sB = psCompare->asArguments[1];
+
+	//Going to t, a > b; going to u, a <= b.
+	AssertTrue(sCondition.Init(&pcEntry->msJump, pcThen, psCompare));
+	AssertInt(IRO_SGt, sCondition.uiOpcode);
+	AssertTrue(sCondition.sLeft.Equals(sA));
+	AssertTrue(sCondition.sRight.Equals(sB));
+	AssertTrue(sCondition.psCompare == psCompare);
+	AssertTrue(sCondition.Init(&pcEntry->msJump, pcElse, psCompare));
+	AssertInt(IRO_SLe, sCondition.uiOpcode);
+	AssertTrue(sCondition.sLeft.Equals(sA));
+
+	//Of b it says b >= a there, and of what it doesn't compare, nothing.
+	AssertTrue(sCondition.PutLeft(sA));
+	AssertInt(IRO_SLe, sCondition.uiOpcode);
+	AssertTrue(sCondition.PutLeft(sB));
+	AssertInt(IRO_SGe, sCondition.uiOpcode);
+	AssertTrue(sCondition.sLeft.Equals(sB));
+	AssertTrue(sCondition.sRight.Equals(sA));
+	AssertFalse(sCondition.PutLeft(psAdd->sResult));
+
+	//a > b is written b < a; b >= a is left as it is.
+	sCondition.Unswap();
+	AssertInt(IRO_SGe, sCondition.uiOpcode);
+	AssertTrue(sCondition.sLeft.Equals(sB));
+	AssertTrue(sCondition.Init(&pcEntry->msJump, pcThen, psCompare));
+	sCondition.Unswap();
+	AssertInt(IRO_SLt, sCondition.uiOpcode);
+	AssertTrue(sCondition.sLeft.Equals(sB));
+	AssertTrue(sCondition.sRight.Equals(sA));
+
+	//Not a way the branch goes; not a branch; no instruction; not a comparison.
+	AssertFalse(sCondition.Init(&pcEntry->msJump, pcEntry, psCompare));
+	AssertFalse(sCondition.Init(&pcThen->msJump, pcElse, psCompare));
+	AssertFalse(sCondition.Init(&pcEntry->msJump, pcThen, NULL));
+	AssertFalse(sCondition.Init(&pcEntry->msJump, pcThen, psAdd));
+	cModule.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A symbol's attributes are one set (IRSA_): each is given, asked and taken
 // away on its own, the restrict symbols are counted for HasRestrict, the
 // written ones are printed a line each with all of one attribute before
@@ -6417,6 +6488,7 @@ void TestIR(void)
 	TestIROpcodeClasses();
 	TestIRPassTable();
 	TestIRSymbolAttributes();
+	TestIREdgeCondition();
 	TestIROptimiserPointerConstantWidth();
 	TestIROptimiserHoistableDivisions();
 	TestIROptimiser();
