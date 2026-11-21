@@ -230,6 +230,31 @@ the instances (MarkNameClassBases; every token, if a base starts with anything e
 	code.  What stays is TestCPPSyntaxBlock's check of what the marks rely on: in the source that has every
 	kind of node, as parsed and as read from its block, no node has a token outside its parent's.
 
+Stage 3 (2026-11-21): CheckVirtSpecifiers lays a class out where it is defined only if it is written in a source
+file (CCPPUnit::IsInSourceFile, which CheckUncalledFunctions' two tests of the same thing now are).  A header's
+class is laid out, and its override and final checked, by the unit that first needs it whole.
+TestCPP65DeclarationsHeaderClass has the three cases: a header's class with a wrong override only named (builds),
+needed whole (refused, at the header's line), and written in the unit's own file and not used (refused).
+TestCppCompilerLib passes (270,155).
+
+	                                  65C64       W65C816
+	declarations (ms)                 6,491         6,437
+	types (ms)                        6,060         6,113     (4,375 and 4,383 before: a class is now laid
+	quiet trials                  1,747,163     1,728,988      out while the expression that needs it is typed)
+	class layouts                    91,655        90,472
+	class layouts where defined           9            10
+	named instance nodes          1,830,601     1,842,970
+	all phases (ms)                  92,930       119,936     (stage 0: 140,674 for the W65C816)
+	the IDE's phases (ms)            49,847        49,505     (preprocess to front end; 70,248 at stage 0)
+	whole compile (s)                   100           127     (140 and 149 at stage 0)
+
+	The DeclarationsProject: 24 layouts, none where defined, 283 nodes, 171 quiet trials.
+
+	What the plan said to check first: the IDE's editor doesn't show the check's errors at all.  Only its
+	refactorings count them (CIDERefactorUnit, before and after a change), and they parse a header through a
+	unit that includes it, where the header's class is checked if that unit needs it whole.  So nothing in
+	the IDE needed a rule of its own.
+
 	CCPPUndeclaredTypeFinder, the IDE's check's other walk of the whole tree, was looked at and left: any
 	identifier can start what it looks for (a type's name that nothing declares), so there is nothing to
 	mark before the walk.  It is not in a build; it is stage 4's to measure in a check.

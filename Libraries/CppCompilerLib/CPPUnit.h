@@ -510,6 +510,7 @@ public:
 	bool					CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration);
 	void					CheckUncalledFunctions(void);
 	bool					IsSourceFileName(const char* szName);
+	bool					IsInSourceFile(CCPPSyntax* pcNode);
 	CCPPVariable*			NamespaceVariable(CCPPSymbol* pcSymbol);
 	bool					SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond);
 	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);

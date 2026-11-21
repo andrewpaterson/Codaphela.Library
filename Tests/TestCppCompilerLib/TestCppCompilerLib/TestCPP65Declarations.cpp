@@ -82,10 +82,10 @@ void TestCPP65DeclarationsCounts(void)
 			//The counts as they are, to put here when a change has moved them.
 			fprintf(stderr, "COUNTS %s: %d layouts, %d where defined, %d nodes, %d quiet trials\n", (i == 0) ? "65C64" : "W65C816", (int)pcStatistics->GetCount(CPPCC_ClassLayouts), (int)pcStatistics->GetCount(CPPCC_ClassLayoutsWhereDefined), (int)pcStatistics->GetCount(CPPCC_NamedInstanceNodes), (int)pcStatistics->GetCount(CPPCC_QuietTrials));
 		}
-		AssertSize(56, (size)pcStatistics->GetCount(CPPCC_ClassLayouts));
-		AssertSize(41, (size)pcStatistics->GetCount(CPPCC_ClassLayoutsWhereDefined));
+		AssertSize(24, (size)pcStatistics->GetCount(CPPCC_ClassLayouts));
+		AssertSize(0, (size)pcStatistics->GetCount(CPPCC_ClassLayoutsWhereDefined));
 		AssertSize(283, (size)pcStatistics->GetCount(CPPCC_NamedInstanceNodes));
-		AssertSize(210, (size)pcStatistics->GetCount(CPPCC_QuietTrials));
+		AssertSize(171, (size)pcStatistics->GetCount(CPPCC_QuietTrials));
 
 		if (bBuilt && (eTarget == CPPT_65C64))
 		{
@@ -101,6 +101,63 @@ void TestCPP65DeclarationsCounts(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Builds szSource as the one unit of a program and gives what the compiler
+// said of it.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestCPP65DeclarationsSource(const char* szSource, CChars* pszErrors)
+{
+	CCPP65Builder	cBuilder;
+	bool			bBuilt;
+
+	cBuilder.Init();
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	bBuilt = cBuilder.AddStartUp();
+	bBuilt &= cBuilder.AddSource("Unit.cpp", szSource);
+	bBuilt &= cBuilder.Link();
+	pszErrors->Init(cBuilder.GetErrors());
+	cBuilder.Kill();
+	return bBuilt;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a class's override that overrides nothing is reported.  A class
+// written in the unit's own file is laid out where it is defined, used or
+// not, and is refused there.  A header's class (WrongOverride.h) is laid
+// out by the unit that first needs it whole and refused there; a unit that
+// only names it doesn't lay it out, as every unit would otherwise lay out
+// every class its headers mention (CCPPUnit::CheckVirtSpecifiers).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65DeclarationsHeaderClass(void)
+{
+	CChars	szErrors;
+	bool	bBuilt;
+
+	//Only named.
+	bBuilt = TestCPP65DeclarationsSource("#include \"DeclarationsProject/WrongOverride.h\"\nint Named(CWrong* pcWrong) { return pcWrong ? 1 : 0; }\nint main() { return Named(0); }\n", &szErrors);
+	AssertString("", szErrors.Text());
+	AssertTrue(bBuilt);
+	szErrors.Kill();
+
+	//Needed whole.
+	bBuilt = TestCPP65DeclarationsSource("#include \"DeclarationsProject/WrongOverride.h\"\nint main() { CWrong cWrong; return cWrong.Value(); }\n", &szErrors);
+	AssertString("WrongOverride.h (16, 6): The function is declared override but overrides no virtual function of a base class [Other]\n", szErrors.Text());
+	AssertFalse(bBuilt);
+	szErrors.Kill();
+
+	//Written in the unit's own file, and not used.
+	bBuilt = TestCPP65DeclarationsSource("class CRight { public: virtual int Value(void) { return 1; } };\nclass CWrong : public CRight { public: int Other(void) override { return 2; } };\nint main() { return 0; }\n", &szErrors);
+	AssertString("Unit.cpp (2, 44): The function is declared override but overrides no virtual function of a base class [Other]\n", szErrors.Text());
+	AssertFalse(bBuilt);
+	szErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Declarations(void)
@@ -108,6 +165,7 @@ void TestCPP65Declarations(void)
 	BeginTests();
 
 	TestCPP65DeclarationsCounts();
+	TestCPP65DeclarationsHeaderClass();
 
 	TestStatistics();
 }

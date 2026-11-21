@@ -294,11 +294,9 @@ void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::CheckUncalledFunctions(void)
 {
-	CCPPFunction*		pcFunction;
-	CCPPClass*			pcClass;
-	CCPPToken*			pcToken;
-	SPreprocessedToken*	psSource;
-	size				i;
+	CCPPFunction*	pcFunction;
+	CCPPClass*		pcClass;
+	size			i;
 
 	if (mpcSemanticPass)
 	{
@@ -313,9 +311,7 @@ void CCPPUnit::CheckUncalledFunctions(void)
 		{
 			continue;
 		}
-		pcToken = mpcTokeniser->Get(pcClass->mpcSpecifier->miFirstToken);
-		psSource = pcToken ? mpcTokeniser->GetSource(pcToken) : NULL;
-		if (psSource && psSource->pcFile && IsSourceFileName(psSource->pcFile->FullName()))
+		if (IsInSourceFile(pcClass->mpcSpecifier))
 		{
 			CompleteClass(pcClass, pcClass->mpcSpecifier);
 		}
@@ -335,9 +331,7 @@ void CCPPUnit::CheckUncalledFunctions(void)
 			//(A closure's functions are its lambda's: written where the lambda is.)
 			continue;
 		}
-		pcToken = mpcTokeniser->Get(pcFunction->mpcDefinition->miFirstToken);
-		psSource = pcToken ? mpcTokeniser->GetSource(pcToken) : NULL;
-		if (!psSource || !psSource->pcFile || !IsSourceFileName(psSource->pcFile->FullName()))
+		if (!IsInSourceFile(pcFunction->mpcDefinition))
 		{
 			continue;
 		}
@@ -346,6 +340,25 @@ void CCPPUnit::CheckUncalledFunctions(void)
 		CheckFunction(pcFunction);
 		mcContext.LeaveBindings();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcNode is written in a source file (the unit's own, as a rule)
+// and not in a header.  What a source file declares is checked there
+// whether or not it is used; what a header declares is checked in the
+// units that use it, as every unit that includes it has it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsInSourceFile(CCPPSyntax* pcNode)
+{
+	CCPPToken*			pcToken;
+	SPreprocessedToken*	psSource;
+
+	pcToken = (pcNode->miFirstToken >= 0) ? mpcTokeniser->Get((size)pcNode->miFirstToken) : NULL;
+	psSource = pcToken ? mpcTokeniser->GetSource(pcToken) : NULL;
+	return psSource && psSource->pcFile && IsSourceFileName(psSource->pcFile->FullName());
 }
 
 

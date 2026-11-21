@@ -3222,13 +3222,19 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A class with a member function declared override or final, or with a
-// base, is laid out where it is defined, so what final and override say is
-// checked whether or not anything uses the class (CheckOverrides: one that
-// overrides nothing, one that isn't virtual, one that overrides a final
-// function; ResolveBases: a base that is final); any other class is laid
-// out when it is first needed whole, and one nothing uses never is.  Not
-// when the unit was compiled before, which found what there is to find
+// A class written in a source file (IsInSourceFile) with a member function
+// declared override or final, or with a base, is laid out where it is
+// defined, so what final and override say is checked whether or not
+// anything uses the class (CheckOverrides: one that overrides nothing, one
+// that isn't virtual, one that overrides a final function; ResolveBases: a
+// base that is final); any other class is laid out when it is first needed
+// whole, and one nothing uses never is.
+//
+// A header's class is not: it is checked in the unit that first needs it
+// whole.  Every unit parses each class its headers so much as name, and
+// laying all of those out in every unit was half the time of the
+// declarations (DeclarationsSpeedPlan.txt).  Nor is any class when the unit
+// was compiled before, which found what there is to find
 // (SetCompiledBefore).
 // [class.virtual] 4, 5, [class] 3
 //
@@ -3237,7 +3243,8 @@ bool CCPPUnit::CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
 	CCPPClass*	pcClass;
 
-	if (mbCompiledBefore || !pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !(pcSpecifier->HasVirtSpecifiedMember() || (pcSpecifier->macpBases.NumElements() > 0)))
+	if (mbCompiledBefore || !pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !(pcSpecifier->HasVirtSpecifiedMember() || (pcSpecifier->macpBases.NumElements() > 0)) ||
+		!IsInSourceFile(pcSpecifier))
 	{
 		return true;
 	}
