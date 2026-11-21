@@ -11445,6 +11445,590 @@ static const SConformanceCase gasConformanceClause8[] =
 };
 
 
+//Clause 9, classes [class].
+static const SConformanceCase gasConformanceClause9[] =
+{
+	//9 [class] p2, 9.2 [class.mem] p2: a class is complete in its member function bodies, though not before its }
+	{
+		"ClassCompleteInMemberBodies", 3,
+		"struct S { int F() { return sizeof(S); } int a; int b; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	if (s.F() == (int)sizeof(S)) r += 1;\n"
+		"	if (sizeof(S) >= 2 * sizeof(int)) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9 [class] p4, 1.8 [intro.object] p5: an empty class's object has a size above zero, and two have different addresses
+	{
+		"ClassEmptyClassSize", 3,
+		"struct E { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (sizeof(E) >= 1) r += 1;\n"
+		"	E a;\n"
+		"	E b;\n"
+		"	if (&a != &b) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9 [class] p6, 3.9 [basic.types] p3: a trivially copyable object's bytes copied keep its value
+	{
+		"ClassTriviallyCopyable", 1,
+		"struct T { int a; char b; };\n"
+		"int main()\n"
+		"{\n"
+		"	T s = { 5, 'x' };\n"
+		"	T t;\n"
+		"	unsigned char* src = (unsigned char*)&s;\n"
+		"	unsigned char* dst = (unsigned char*)&t;\n"
+		"	for (unsigned i = 0; i < sizeof(T); i++) dst[i] = src[i];\n"
+		"	return (t.a == 5 && t.b == 'x') ? 1 : 0;\n"
+		"}\n"
+	},
+	//9.2 [class.mem] p10: a member isn't of the class being defined
+	{
+		"ClassMemberOfOwnTypeRefused", CONFORMANCE_REFUSED,
+		"struct S { S s; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.2 [class.mem] p10: nor of an incomplete class
+	{
+		"ClassMemberIncompleteRefused", CONFORMANCE_REFUSED,
+		"struct T;\n"
+		"struct S { T t; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.4.2 [class.static.data] p2: a static member may be of the class's own type
+	{
+		"ClassStaticMemberOfOwnType", 1,
+		"struct S { static S zero; int v; };\n"
+		"S S::zero = { 1 };\n"
+		"int main() { return S::zero.v; }\n"
+	},
+	//9.2 [class.mem] p1: a member is declared once in its class
+	{
+		"ClassMemberDeclaredTwiceRefused", CONFORMANCE_REFUSED,
+		"struct S { int a; int a; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.2 [class.mem] p1: a member function too
+	{
+		"ClassMemberFunctionDeclaredTwiceRefused", CONFORMANCE_REFUSED,
+		"struct S { int F(); int F(); };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.2 [class.mem] p13: a static member doesn't have the class's name
+	{
+		"ClassMemberNamedAsClassRefused", CONFORMANCE_REFUSED,
+		"struct S { static int S; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.2 [class.mem] p4, 12.6.2 [class.base.init] p9: default member initialisers, one using another, a mem-initialiser taking over
+	{
+		"ClassDefaultMemberInitialisers", 15,
+		"struct S { int a = 1; int b = a + 1; int c{3}; S() { } S(int x) : a(x) { } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	if (s.a == 1 && s.b == 2) r += 1;\n"
+		"	if (s.c == 3) r += 2;\n"
+		"	S t(10);\n"
+		"	if (t.a == 10 && t.b == 11) r += 4;\n"
+		"	if (t.c == 3) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.2 [class.mem] p15: members of one access are at increasing addresses
+	{
+		"ClassMemberAddressOrder", 1,
+		"struct S { char a; int b; char c; };\n"
+		"int main()\n"
+		"{\n"
+		"	S s;\n"
+		"	return ((char*)&s.a < (char*)&s.b && (char*)&s.b < (char*)&s.c) ? 1 : 0;\n"
+		"}\n"
+	},
+	//9.2 [class.mem] p19: a standard layout object's address is its first member's
+	{
+		"ClassStandardLayoutFirstMember", 3,
+		"struct S { int a; int b; };\n"
+		"struct D : S { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s = { 5, 6 };\n"
+		"	if (*reinterpret_cast<int*>(&s) == 5) r += 1;\n"
+		"	D d;\n"
+		"	d.a = 7;\n"
+		"	if (reinterpret_cast<S*>(&d)->a == 7 && (void*)&d == (void*)&d.a) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.2 [class.mem] p18: the common initial sequence of two structs in a union read through the other
+	{
+		"ClassUnionCommonInitialSequence", 1,
+		"struct A { int tag; int x; };\n"
+		"struct B { int tag; char c; };\n"
+		"union U { A a; B b; };\n"
+		"int main()\n"
+		"{\n"
+		"	U u;\n"
+		"	u.a.tag = 3;\n"
+		"	u.a.x = 4;\n"
+		"	return (u.b.tag == 3) ? 1 : 0;\n"
+		"}\n"
+	},
+	//9.3 [class.mfct] p4, p5: a member function defined outside its class, its names looked up in the class
+	{
+		"ClassMemberFunctionDefinedOutside", 3,
+		"struct S { typedef int I; I F(I); static const I k = 3; };\n"
+		"S::I S::F(I x) { return x + k; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	if (s.F(1) == 4) r += 1;\n"
+		"	r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.3 [class.mfct] p5: a member function is defined once
+	{
+		"ClassMemberFunctionDefinedTwiceRefused", CONFORMANCE_REFUSED,
+		"struct S { int F() { return 1; } };\n"
+		"int S::F() { return 2; }\n"
+		"int main() { return 0; }\n"
+	},
+	//9.3 [class.mfct] p5: one defined outside its class is declared in it
+	{
+		"ClassMemberFunctionUndeclaredRefused", CONFORMANCE_REFUSED,
+		"struct S { };\n"
+		"int S::F() { return 1; }\n"
+		"int main() { return 0; }\n"
+	},
+	//9.3.1 [class.mfct.non-static] p3, 9.3.2 [class.this] p1: const and volatile member functions, this's type, overloads on const
+	{
+		"ClassConstMemberFunctions", 7,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct S\n"
+		"{\n"
+		"	int v;\n"
+		"	int Get() { return 1; }\n"
+		"	int Get() const { return 2; }\n"
+		"	bool ThisConst() const { return Same<decltype(this), const S*>::V; }\n"
+		"	int Vol() volatile { return 4; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	const S c = { 0 };\n"
+		"	if (s.Get() == 1 && c.Get() == 2) r += 1;\n"
+		"	if (c.ThisConst()) r += 2;\n"
+		"	volatile S v;\n"
+		"	if (v.Vol() == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.3.2 [class.this] p3: a member function that isn't const isn't called on a const object
+	{
+		"ClassNonConstOnConstRefused", CONFORMANCE_REFUSED,
+		"struct S { int v; int Set() { return v = 1; } };\n"
+		"int main() { const S c = { 0 }; return c.Set(); }\n"
+	},
+	//9.3.2 [class.this] p1: a const member function doesn't change the object's members
+	{
+		"ClassConstFunctionChangesMemberRefused", CONFORMANCE_REFUSED,
+		"struct S { int v; void Set() const { v = 1; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.3.1 [class.mfct.non-static] p5, 13.3.1 [over.match.funcs] p4: & and && member functions, chosen by what the object is
+	{
+		"ClassRefQualifiers", 7,
+		"struct S { int Which() & { return 1; } int Which() && { return 2; } int Which() const & { return 3; } };\n"
+		"S Make() { return S(); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	if (s.Which() == 1) r += 1;\n"
+		"	if (Make().Which() == 2) r += 2;\n"
+		"	const S c = S();\n"
+		"	if (c.Which() == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//13.1 [over.load] p2: where one overload has a ref-qualifier, all do
+	{
+		"ClassRefQualifierMixedRefused", CONFORMANCE_REFUSED,
+		"struct S { int F() & { return 1; } int F() { return 2; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//13.3.1 [over.match.funcs] p4: a && member function isn't called on an lvalue
+	{
+		"ClassRvalueOnLvalueRefused", CONFORMANCE_REFUSED,
+		"struct S { int F() && { return 1; } };\n"
+		"int main() { S s; return s.F(); }\n"
+	},
+	//9.3.2 [class.this] p1: this points to the object the function is called on
+	{
+		"ClassThis", 3,
+		"struct S { int v; S* Self() { return this; } int Get() { return this->v + v; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	s.v = 2;\n"
+		"	if (s.Self() == &s) r += 1;\n"
+		"	if (s.Get() == 4) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.4.1 [class.static.mfct]: a static member function, called through its class or an object, and its address a plain function pointer
+	{
+		"ClassStaticMemberFunction", 7,
+		"struct S { static int Count; int v; static int Get() { return Count; } static int Twice(int x) { return 2 * x; } };\n"
+		"int S::Count = 3;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (S::Get() == 3) r += 1;\n"
+		"	S s;\n"
+		"	if (s.Get() == 3) r += 2;\n"
+		"	int (*p)(int) = &S::Twice;\n"
+		"	if (p(2) == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.4.1 [class.static.mfct] p2: a static member function has no this
+	{
+		"ClassStaticFunctionUsesMemberRefused", CONFORMANCE_REFUSED,
+		"struct S { int v; static int Get() { return v; } };\n"
+		"int main() { return S::Get(); }\n"
+	},
+	//9.4.1 [class.static.mfct] p2: a static member function isn't const
+	{
+		"ClassStaticFunctionConstRefused", CONFORMANCE_REFUSED,
+		"struct S { static int Get() const { return 1; } };\n"
+		"int main() { return S::Get(); }\n"
+	},
+	//9.4.2 [class.static.data]: one object for the class, defined outside it; a const integer one's value in the class; none in the objects
+	{
+		"ClassStaticDataMember", 15,
+		"struct S { static int n; static const int k = 4; int v; };\n"
+		"int S::n = 1;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S a;\n"
+		"	S b;\n"
+		"	a.n = 5;\n"
+		"	if (b.n == 5 && S::n == 5) r += 1;\n"
+		"	if (S::k == 4) r += 2;\n"
+		"	int arr[S::k];\n"
+		"	if (sizeof(arr) == 4 * sizeof(int)) r += 4;\n"
+		"	if (sizeof(S) == sizeof(int)) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.4.2 [class.static.data] p3: only a const integer or a constexpr static member is initialised in its class
+	{
+		"ClassStaticInClassInitialiserRefused", CONFORMANCE_REFUSED,
+		"struct S { static int n = 1; };\n"
+		"int main() { return S::n; }\n"
+	},
+	//9.4.2 [class.static.data] p6: a local class has no static data member
+	{
+		"ClassLocalStaticMemberRefused", CONFORMANCE_REFUSED,
+		"int main() { struct L { static int n; }; return 0; }\n"
+	},
+	//9.5 [class.union] p1: a union's members share its object, one living at a time; it holds the largest
+	{
+		"ClassUnion", 3,
+		"union U { char c; int i; double d; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	U u;\n"
+		"	u.i = 5;\n"
+		"	if (u.i == 5) r += 1;\n"
+		"	u.c = 'x';\n"
+		"	if (u.c == 'x' && sizeof(U) >= sizeof(double)) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.5.1 [dcl.init.aggr] p16, 9.5 [class.union]: a union's braced initialiser initialises its first member
+	{
+		"ClassUnionInitialiser", 1,
+		"union U { int i; char c; };\n"
+		"int main() { U u = { 3 }; return (u.i == 3) ? 1 : 0; }\n"
+	},
+	//9.5 [class.union] p2: a union may have member functions and a constructor
+	{
+		"ClassUnionMemberFunctions", 3,
+		"union U { int i; float f; U(int x) : i(x) { } int Get() const { return i; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	U u(4);\n"
+		"	if (u.Get() == 4) r += 1;\n"
+		"	u.f = 1.5f;\n"
+		"	if (u.f == 1.5f) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.5 [class.union] p2, p4: a union with a member that has a constructor: the union's own constructor and destructor make and destroy it
+	{
+		"ClassUnionClassMember", 3,
+		"int giMade = 0;\n"
+		"int giGone = 0;\n"
+		"struct M { int v; M(int x) : v(x) { giMade++; } ~M() { giGone++; } };\n"
+		"union U { M m; int i; U() : m(3) { } ~U() { m.~M(); } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		U u;\n"
+		"		if (u.m.v == 3 && giMade == 1) r += 1;\n"
+		"	}\n"
+		"	if (giGone == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.5 [class.union] p2, 12.1 [class.ctor] p4: a union's default constructor is deleted where a member's isn't trivial
+	{
+		"ClassUnionClassMemberDeletedRefused", CONFORMANCE_REFUSED,
+		"struct M { M() { } };\n"
+		"union U { M m; int i; };\n"
+		"int main() { U u; return 0; }\n"
+	},
+	//9.5 [class.union] p2: a union has no base class
+	{
+		"ClassUnionBaseRefused", CONFORMANCE_REFUSED,
+		"struct B { };\n"
+		"union U : B { int i; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.5 [class.union] p2: and is no base class
+	{
+		"ClassUnionAsBaseRefused", CONFORMANCE_REFUSED,
+		"union U { int i; };\n"
+		"struct D : U { };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.5 [class.union] p2: a union has no virtual function
+	{
+		"ClassUnionVirtualRefused", CONFORMANCE_REFUSED,
+		"union U { int i; virtual int F() { return 1; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.5 [class.union] p2: nor a reference member
+	{
+		"ClassUnionReferenceMemberRefused", CONFORMANCE_REFUSED,
+		"union U { int& r; int i; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.5 [class.union] p5: an anonymous union's members in a block, a class and a namespace, sharing one place
+	{
+		"ClassAnonymousUnion", 7,
+		"struct S { int tag; union { int i; float f; }; };\n"
+		"static union { int gi; char gc; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	union { int a; char b; };\n"
+		"	a = 0x41;\n"
+		"	if (b == 0x41) r += 1;\n"
+		"	S s;\n"
+		"	s.i = 3;\n"
+		"	if (s.i == 3) r += 2;\n"
+		"	gi = 2;\n"
+		"	if (gi == 2) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.5 [class.union] p5: an anonymous union at namespace scope is static
+	{
+		"ClassAnonymousUnionNotStaticRefused", CONFORMANCE_REFUSED,
+		"union { int gi; char gc; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.5 [class.union] p5: an anonymous union has only data members
+	{
+		"ClassAnonymousUnionFunctionRefused", CONFORMANCE_REFUSED,
+		"int main() { union { int a; int F() { return 1; } }; return 0; }\n"
+	},
+	//9.6 [class.bit] p1, p2: a bit-field keeps its value to its width, an unsigned one wrapping; unnamed and zero width ones
+	{
+		"ClassBitFields", 15,
+		"struct S { unsigned a : 3; unsigned b : 5; int : 0; unsigned c : 4; unsigned : 2; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	s.a = 9;\n"
+		"	if (s.a == 1) r += 1;\n"
+		"	s.b = 31;\n"
+		"	if (s.b == 31) r += 2;\n"
+		"	s.c = 15;\n"
+		"	s.c++;\n"
+		"	if (s.c == 0) r += 4;\n"
+		"	s.a = 7;\n"
+		"	s.b = 0;\n"
+		"	if (s.a == 7) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.6 [class.bit] p3, p4: a bool bit-field, and one wide enough for all of an enum's values holding them
+	{
+		"ClassBitFieldBoolAndEnum", 7,
+		"enum E { E0, E1, E2, E3 };\n"
+		"struct S { bool f : 1; E e : 2; unsigned u : 1; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	s.f = true;\n"
+		"	if (s.f) r += 1;\n"
+		"	s.e = E3;\n"
+		"	if (s.e == E3) r += 2;\n"
+		"	s.u = 1;\n"
+		"	s.f = false;\n"
+		"	if (!s.f && s.u == 1) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.6 [class.bit] p3: & isn't applied to a bit-field
+	{
+		"ClassBitFieldAddressRefused", CONFORMANCE_REFUSED,
+		"struct S { int b : 3; };\n"
+		"int main() { S s; int* p = &s.b; return *p; }\n"
+	},
+	//9.6 [class.bit] p3: a non-const reference doesn't bind to a bit-field
+	{
+		"ClassBitFieldReferenceRefused", CONFORMANCE_REFUSED,
+		"struct S { int b : 3; };\n"
+		"int main() { S s; s.b = 1; int& r = s.b; return r; }\n"
+	},
+	//9.6 [class.bit] p3: a const reference binds to a temporary of its value
+	{
+		"ClassBitFieldConstReference", 1,
+		"struct S { int b : 3; };\n"
+		"int main()\n"
+		"{\n"
+		"	S s;\n"
+		"	s.b = 1;\n"
+		"	const int& r = s.b;\n"
+		"	s.b = 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.6 [class.bit] p3: a bit-field isn't static
+	{
+		"ClassBitFieldStaticRefused", CONFORMANCE_REFUSED,
+		"struct S { static int b : 3; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.6 [class.bit] p1: a bit-field's width isn't negative
+	{
+		"ClassBitFieldNegativeRefused", CONFORMANCE_REFUSED,
+		"struct S { int b : -1; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.6 [class.bit] p2: a zero width bit-field has no name
+	{
+		"ClassBitFieldZeroNamedRefused", CONFORMANCE_REFUSED,
+		"struct S { int b : 0; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.7 [class.nest] p1, p3: a nested class names the enclosing class's types and statics unqualified, and is defined outside it
+	{
+		"ClassNestedClass", 7,
+		"struct Outer { typedef int Int; static const int k = 2; static int Get() { return 3; } struct In; struct Other { Int v = k; }; };\n"
+		"struct Outer::In { Int Sum() { return k + Get(); } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Outer::In i;\n"
+		"	if (i.Sum() == 5) r += 1;\n"
+		"	Outer::Other o;\n"
+		"	if (o.v == 2) r += 2;\n"
+		"	Outer::Int n = 4;\n"
+		"	if (n == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.7 [class.nest], 11.7 [class.access.nest] p1: a nested class is a member, and reaches the enclosing class's private members
+	{
+		"ClassNestedPrivateAccess", 3,
+		"class Outer\n"
+		"{\n"
+		"	int secret = 5;\n"
+		"	static int hidden;\n"
+		"public:\n"
+		"	struct In { int Peek(const Outer& o) { return o.secret + hidden; } };\n"
+		"};\n"
+		"int Outer::hidden = 2;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Outer o;\n"
+		"	Outer::In i;\n"
+		"	if (i.Peek(o) == 7) r += 1;\n"
+		"	r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.7 [class.nest] p1: a nested class's member function has no object of the enclosing class
+	{
+		"ClassNestedNoOuterThisRefused", CONFORMANCE_REFUSED,
+		"struct Outer { int v; struct In { int Get() { return v; } }; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9.9 [class.nested.type]: a nested type named with its class outside it, alone inside
+	{
+		"ClassNestedTypeNames", 3,
+		"struct S { typedef int I; enum E { A = 1 }; I Get() { return A; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S::I i = S::A;\n"
+		"	if (i == 1) r += 1;\n"
+		"	S s;\n"
+		"	if (s.Get() == S::A) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//9.9 [class.nested.type]: outside its class a nested type needs its class's name
+	{
+		"ClassNestedTypeUnqualifiedRefused", CONFORMANCE_REFUSED,
+		"struct S { typedef int I; };\n"
+		"int main() { I i = 1; return i; }\n"
+	},
+	//9.8 [class.local], 14.5.2 [temp.mem] p2: a local class has no member template
+	{
+		"ClassLocalMemberTemplateRefused", CONFORMANCE_REFUSED,
+		"int main() { struct L { template<class T> int F(T) { return 1; } }; return 0; }\n"
+	},
+	//9.8 [class.local] p2: a local class's member functions are defined in it
+	{
+		"ClassLocalMemberDefinedOutsideRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	struct L { int F(); };\n"
+		"	int L::F() { return 1; }\n"
+		"	return 0;\n"
+		"}\n"
+	},
+};
+
+
 //Clause 10, derived classes [class.derived].
 static const SConformanceCase gasConformanceClause10[] =
 {
