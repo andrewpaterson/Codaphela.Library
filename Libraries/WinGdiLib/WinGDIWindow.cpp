@@ -889,6 +889,9 @@ bool CWinGDIWindow::ShowCursor(void)
     case NC_Text:
         szCursor = IDC_IBEAM;
         break;
+    case NC_Hand:
+        szCursor = IDC_HAND;
+        break;
     default:
         szCursor = IDC_ARROW;
         break;

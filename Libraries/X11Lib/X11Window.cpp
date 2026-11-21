@@ -1244,7 +1244,7 @@ bool CX11Window::GetScreenArea(CInt32Rect* pcDest)
 //////////////////////////////////////////////////////////////////////////
 void CX11Window::SetCursor(ENativeCursor eCursor)
 {
-    static unsigned int auiShapes[NC_NumCursors] = { XC_left_ptr, XC_sb_h_double_arrow, XC_sb_v_double_arrow, XC_bottom_right_corner, XC_bottom_left_corner, XC_fleur, XC_xterm };
+    static unsigned int auiShapes[NC_NumCursors] = { XC_left_ptr, XC_sb_h_double_arrow, XC_sb_v_double_arrow, XC_bottom_right_corner, XC_bottom_left_corner, XC_fleur, XC_xterm, XC_hand2 };
     CX11WindowFactory*  pcFactory;
     Display*            psDisplay;
 

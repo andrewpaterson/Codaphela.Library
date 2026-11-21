@@ -2880,6 +2880,14 @@ void TestTextAreaEditPointerShape(void)
 		pTestWindow->PointerMoved(sPosition.x + sSize.x / 2, sPosition.y + sSize.y / 2);
 		AssertInt(NC_Text, pTestWindow->GetNativeWindow()->GetCursor());
 
+		//A shape given to a component over its own is the one shown, a hand over a link say, until its own is put back.
+		sPosition = pTextArea->GetPosition();
+		pTestWindow->PointerMoved(sPosition.x + 4, sPosition.y + 4);
+		pTextArea->SetCursor(NC_Hand);
+		AssertInt(NC_Hand, pTestWindow->GetNativeWindow()->GetCursor());
+		pTextArea->SetCursor(NC_Text);
+		AssertInt(NC_Text, pTestWindow->GetNativeWindow()->GetCursor());
+
 		//Made selectable, or not, while the pointer is over it: the shape follows.
 		sPosition = pNote->GetPosition();
 		pTestWindow->PointerMoved(sPosition.x + 4, sPosition.y + 4);
