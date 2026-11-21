@@ -1,0 +1,298 @@
+### SpecialArrayOfObjects | 7 | 12.6 [class.init] p2, 8.5.1 [dcl.init.aggr] p7: an array's objects made in order, by the constructors their initialisers choose and the default one for the rest
+int giLog = 0;
+struct E { int v; E() : v(0) { giLog = giLog * 10 + 1; } E(int x) : v(x) { giLog = giLog * 10 + 2; } };
+int main()
+{
+	int r = 0;
+	E a[3] = { 5, 6 };
+	if (a[0].v == 5 && a[1].v == 6 && a[2].v == 0) r += 1;
+	if (giLog == 221) r += 2;
+	E b[2];
+	if (b[1].v == 0) r += 4;
+	return r;
+}
+
+### SpecialMemInitialiserOrder | 1 | 12.6.2 [class.base.init] p11: bases first, then members in the order they are declared, whatever the list's order
+int giLog = 0;
+struct L { L(int i) { giLog = giLog * 10 + i; } };
+struct B { B() { giLog = giLog * 10 + 9; } };
+struct S : B { L a; L b; S() : b(2), a(1) { } };
+int main() { S s; return (giLog == 912) ? 1 : 0; }
+
+### SpecialMemInitialiserUsesEarlier | 1 | 12.6.2 [class.base.init] p11: a member's initialiser uses one made before it
+struct S { int a; int b; S(int x) : a(x), b(a * 2) { } };
+int main() { S s(3); return (s.b == 6) ? 1 : 0; }
+
+### SpecialDelegatingConstructor | 7 | 12.6.2 [class.base.init] p6: a constructor that delegates runs the other first; the object is made once that one returns
+int giLog = 0;
+struct S
+{
+	int a;
+	int b;
+	S(int x, int y) : a(x), b(y) { giLog = giLog * 10 + 1; }
+	S(int x) : S(x, x * 2) { giLog = giLog * 10 + 2; }
+	S() : S(5) { giLog = giLog * 10 + 3; }
+	~S() { giLog = giLog * 10 + 4; }
+};
+int main()
+{
+	int r = 0;
+	{
+		S s;
+		if (s.a == 5 && s.b == 10) r += 1;
+		if (giLog == 123) r += 2;
+	}
+	if (giLog == 1234) r += 4;
+	return r;
+}
+
+### SpecialDelegatingWithOthersRefused | REFUSED | 12.6.2 [class.base.init] p6: a delegating constructor's mem-initialiser is its only one
+struct S { int a; S(int x) : a(x) { } S() : S(1), a(2) { } };
+int main() { return 0; }
+
+### SpecialMemInitialiserOverDefault | 3 | 12.6.2 [class.base.init] p9: a mem-initialiser takes the place of the member's default initialiser, which isn't run
+int giRuns = 0;
+int Count() { return ++giRuns; }
+struct S { int a = Count(); S() { } S(int x) : a(x) { } };
+int main()
+{
+	int r = 0;
+	S t(7);
+	if (t.a == 7 && giRuns == 0) r += 1;
+	S s;
+	if (s.a == 1 && giRuns == 1) r += 2;
+	return r;
+}
+
+### SpecialVirtualBaseMostDerived | 3 | 12.6.2 [class.base.init] p7, p10: a virtual base is made by the most derived class; the classes between's mem-initialisers for it aren't used
+struct V { int v; V(int x = 0) : v(x) { } };
+struct A : virtual V { A() : V(1) { } };
+struct B : virtual V { B() : V(2) { } };
+struct D : A, B { D() : V(3) { } };
+struct E : A, B { };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.v == 3) r += 1;
+	E e;
+	if (e.v == 0) r += 2;
+	return r;
+}
+
+### SpecialVirtualBasesFirst | 1 | 12.6.2 [class.base.init] p11: the virtual bases are made first, then the direct bases in order, then the class
+int giLog = 0;
+struct V { V() { giLog = giLog * 10 + 1; } };
+struct A { A() { giLog = giLog * 10 + 2; } };
+struct B : virtual V { B() { giLog = giLog * 10 + 3; } };
+struct D : A, B { D() { giLog = giLog * 10 + 4; } };
+int main() { D d; return (giLog == 1234) ? 1 : 0; }
+
+### SpecialReferenceMemberUninitialisedRefused | REFUSED | 12.6.2 [class.base.init] p8: a constructor initialises a reference member
+struct S { int& r; S() { } };
+int main() { S s; return 0; }
+
+### SpecialConstMemberUninitialisedRefused | REFUSED | 12.6.2 [class.base.init] p8: and a const member of a type with no default constructor of its own
+struct S { const int k; S() { } };
+int main() { S s; return 0; }
+
+### SpecialMemInitialiserNotMemberRefused | REFUSED | 12.6.2 [class.base.init] p2: a mem-initialiser names a member or a base
+struct S { int a; S() : b(1) { } };
+int main() { return 0; }
+
+### SpecialMemInitialiserTwiceRefused | REFUSED | 12.6.2 [class.base.init] p4: a member is named once in the list
+struct S { int a; S() : a(1), a(2) { } };
+int main() { return 0; }
+
+### SpecialVirtualCallInConstructor | 7 | 12.7 [class.cdtor] p4: a virtual call in a constructor or destructor is the function of the class being made or destroyed
+int giLog = 0;
+struct B { B() { giLog = giLog * 10 + Id(); } virtual ~B() { giLog = giLog * 10 + Id(); } virtual int Id() { return 1; } };
+struct D : B { D() { giLog = giLog * 10 + Id(); } ~D() { giLog = giLog * 10 + Id(); } int Id() { return 2; } };
+int main()
+{
+	int r = 0;
+	{
+		D d;
+		if (giLog == 12) r += 1;
+		B* p = &d;
+		if (p->Id() == 2) r += 2;
+	}
+	if (giLog == 1221) r += 4;
+	return r;
+}
+
+### SpecialDynamicCastInConstructor | 3 | 12.7 [class.cdtor] p6: dynamic_cast in a constructor sees the class being made, not the one derived from it
+struct B { int seen; B(); virtual ~B() { } };
+struct D : B { D() { } };
+B::B() { seen = dynamic_cast<D*>(this) ? 1 : 2; }
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.seen == 2) r += 1;
+	B* p = &d;
+	if (dynamic_cast<D*>(p) == &d) r += 2;
+	return r;
+}
+
+### SpecialImplicitCopy | 15 | 12.8 [class.copy] p7, p15, p18, p28: the implicit copy constructor and assignment copy each base and member, an array element by element
+struct B { int b; };
+struct S : B { int a[3]; char c; };
+int main()
+{
+	int r = 0;
+	S s;
+	s.b = 1;
+	s.a[0] = 2;
+	s.a[2] = 3;
+	s.c = 'x';
+	S t(s);
+	if (t.b == 1 && t.a[2] == 3) r += 1;
+	S u;
+	u = s;
+	if (u.a[0] == 2 && u.c == 'x') r += 2;
+	t.a[2] = 9;
+	if (s.a[2] == 3) r += 4;
+	S v = s;
+	if (v.b == 1) r += 8;
+	return r;
+}
+
+### SpecialImplicitCopyCallsMembers | 3 | 12.8 [class.copy] p15, p28: the implicit copies call the members' copy constructor and assignment
+int giCopies = 0;
+int giAssigns = 0;
+struct M { int v; M() : v(0) { } M(const M& o) : v(o.v) { giCopies++; } M& operator=(const M& o) { v = o.v; giAssigns++; return *this; } };
+struct S { M m; int i; };
+int main()
+{
+	int r = 0;
+	S s;
+	s.m.v = 4;
+	S t(s);
+	if (t.m.v == 4 && giCopies == 1) r += 1;
+	S u;
+	u = s;
+	if (u.m.v == 4 && giAssigns == 1) r += 2;
+	return r;
+}
+
+### SpecialMoveDeletesCopyRefused | REFUSED | 12.8 [class.copy] p7: a class that declares a move constructor has its copy constructor deleted
+struct S { S() { } S(S&&) { } };
+int main() { S a; S b(a); return 0; }
+
+### SpecialMoveAssignDeletesCopyAssignRefused | REFUSED | 12.8 [class.copy] p18: and one that declares a move assignment its copy assignment
+struct S { S() { } S& operator=(S&&) { return *this; } };
+int main() { S a; S b; a = b; return 0; }
+
+### SpecialCopyDeclaredNoImplicitMove | 1 | 12.8 [class.copy] p9: a class that declares a copy constructor has no implicit move one: an rvalue is copied
+int giCopies = 0;
+struct S { int v; S(int x) : v(x) { } S(const S& o) : v(o.v) { giCopies++; } };
+int main()
+{
+	S a(2);
+	S b(static_cast<S&&>(a));
+	return (b.v == 2 && giCopies == 1) ? 1 : 0;
+}
+
+### SpecialImplicitMove | 3 | 12.8 [class.copy] p9, p15: the implicit move constructor moves each member, by the member's own move constructor
+int giMoves = 0;
+int giCopies = 0;
+struct M { M() { } M(const M&) { giCopies++; } M(M&&) { giMoves++; } };
+struct S { M m; int i; };
+int main()
+{
+	int r = 0;
+	S a;
+	a.i = 3;
+	S b(static_cast<S&&>(a));
+	if (b.i == 3 && giMoves == 1 && giCopies == 0) r += 1;
+	S c(b);
+	if (giCopies == 1) r += 2;
+	return r;
+}
+
+### SpecialReturnLocalMoved | 1 | 12.8 [class.copy] p32: a returned local is taken as an rvalue first: moved, or the copy left out, never copied
+int giCopies = 0;
+struct S { int v; S(int x) : v(x) { } S(const S& o) : v(o.v) { giCopies++; } S(S&& o) : v(o.v) { } };
+S Make() { S s(4); return s; }
+int main() { S t = Make(); return (t.v == 4 && giCopies == 0) ? 1 : 0; }
+
+### SpecialMoveOnlyReturned | 1 | 12.8 [class.copy] p32: a local of a class that can only be moved is returned
+struct U { int v; U(int x) : v(x) { } U(U&& o) : v(o.v) { } U(const U&) = delete; };
+U Make() { U u(5); return u; }
+int main() { U t = Make(); return (t.v == 5) ? 1 : 0; }
+
+### SpecialDeletedCopyRefused | REFUSED | 8.4.3 [dcl.fct.def.delete] p2: a deleted copy constructor isn't used
+struct S { S() { } S(const S&) = delete; };
+int main() { S a; S b = a; return 0; }
+
+### SpecialCopyDeletedByMemberRefused | REFUSED | 12.8 [class.copy] p11: a member that can't be copied deletes the implicit copy constructor
+struct M { M() { } M(const M&) = delete; };
+struct S { M m; };
+int main() { S a; S b(a); return 0; }
+
+### SpecialAssignDeletedByReferenceRefused | REFUSED | 12.8 [class.copy] p23: a reference member deletes the implicit copy assignment
+struct S { int& r; };
+int main() { int x = 1; int y = 2; S a = { x }; S b = { y }; a = b; return 0; }
+
+### SpecialSelfAssignment | 1 | 12.8 [class.copy] p28: an object assigned to itself keeps its value
+struct S { int a[2]; };
+int main() { S s = { { 3, 4 } }; s = s; return (s.a[0] == 3 && s.a[1] == 4) ? 1 : 0; }
+
+### SpecialCopyAssignmentResult | 1 | 12.8 [class.copy] p22, p28: the implicit copy assignment returns the object assigned to
+struct S { int v; };
+int main()
+{
+	S a = { 1 };
+	S b = { 2 };
+	S c = { 3 };
+	a = b = c;
+	return (a.v == 3 && &(a = b) == &a) ? 1 : 0;
+}
+
+### SpecialInheritingConstructors | 7 | 12.9 [class.inhctor] p1, p3: using Base::Base inherits its constructors, one for each default argument left off
+struct B { int a; int b; B(int x, int y = 7) : a(x), b(y) { } };
+struct D : B { using B::B; int c = 9; };
+int main()
+{
+	int r = 0;
+	D d(1);
+	if (d.a == 1 && d.b == 7) r += 1;
+	D e(2, 3);
+	if (e.b == 3) r += 2;
+	if (d.c == 9) r += 4;
+	return r;
+}
+
+### SpecialInheritingDefault | 3 | 12.9 [class.inhctor] p3: the derived class keeps its implicit default constructor
+struct B { int v; B() : v(4) { } B(int x) : v(x) { } };
+struct D : B { using B::B; };
+int main()
+{
+	int r = 0;
+	D a;
+	if (a.v == 4) r += 1;
+	D b(6);
+	if (b.v == 6) r += 2;
+	return r;
+}
+
+### SpecialInheritingCopyNotInheritedRefused | REFUSED | 12.9 [class.inhctor] p3: a copy constructor isn't inherited
+struct B { B() { } B(const B&) { } };
+struct D : B { using B::B; };
+int main() { B b; D d(b); return 0; }
+
+### SpecialInheritingExplicitRefused | REFUSED | 12.9 [class.inhctor] p4: an inherited constructor is explicit if the base's is
+struct B { explicit B(int) { } };
+struct D : B { using B::B; };
+int main() { D d = 1; return 0; }
+
+### SpecialInheritingConstexpr | 1 | 12.9 [class.inhctor] p4: an inherited constructor is constexpr if the base's is
+struct B { int v; constexpr B(int x) : v(x) { } };
+struct D : B { using B::B; };
+constexpr D d(3);
+int main()
+{
+	static_assert(d.v == 3, "");
+	return 1;
+}

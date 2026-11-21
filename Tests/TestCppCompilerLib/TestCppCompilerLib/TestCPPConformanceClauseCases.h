@@ -13121,6 +13121,793 @@ static const SConformanceCase gasConformanceClause11[] =
 };
 
 
+//Clause 12, special member functions [special].
+static const SConformanceCase gasConformanceClause12[] =
+{
+	//12.1 [class.ctor] p4, p7, 8.5 [dcl.init] p8: the implicit default constructor makes members with their own constructors; value-initialisation zeroes the rest
+	{
+		"SpecialImplicitDefaultConstructor", 7,
+		"struct M { int v; M() : v(5) { } };\n"
+		"struct S { M m; int i; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	if (s.m.v == 5) r += 1;\n"
+		"	S z = S();\n"
+		"	if (z.i == 0 && z.m.v == 5) r += 2;\n"
+		"	S w{};\n"
+		"	if (w.i == 0) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.1 [class.ctor] p4: the implicit default constructor is deleted where a reference member has no initialiser
+	{
+		"SpecialDefaultConstructorReferenceRefused", CONFORMANCE_REFUSED,
+		"struct S { int& r; };\n"
+		"int main() { S s; return 0; }\n"
+	},
+	//12.1 [class.ctor] p4: or a const member of a type with no default constructor of its own
+	{
+		"SpecialDefaultConstructorConstRefused", CONFORMANCE_REFUSED,
+		"struct S { const int k; };\n"
+		"int main() { S s; return 0; }\n"
+	},
+	//12.1 [class.ctor] p4: or a member has no default constructor
+	{
+		"SpecialDefaultConstructorMemberRefused", CONFORMANCE_REFUSED,
+		"struct M { M(int) { } };\n"
+		"struct S { M m; };\n"
+		"int main() { S s; return 0; }\n"
+	},
+	//12.1 [class.ctor] p4: a class that declares a constructor has no implicit default constructor
+	{
+		"SpecialNoImplicitDefaultRefused", CONFORMANCE_REFUSED,
+		"struct S { S(int) { } };\n"
+		"int main() { S s; return 0; }\n"
+	},
+	//12.1 [class.ctor] p4, 8.4.2 [dcl.fct.def.default]: = default brings the default constructor back
+	{
+		"SpecialDefaultedConstructor", 3,
+		"struct S { int v = 3; S() = default; S(int x) : v(x) { } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	if (s.v == 3) r += 1;\n"
+		"	S t(4);\n"
+		"	if (t.v == 4) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//8.4.3 [dcl.fct.def.delete] p2: a deleted constructor isn't used
+	{
+		"SpecialDeletedConstructorRefused", CONFORMANCE_REFUSED,
+		"struct S { S() = delete; };\n"
+		"int main() { S s; return 0; }\n"
+	},
+	//12.1 [class.ctor] p4: a constructor isn't virtual
+	{
+		"SpecialConstructorVirtualRefused", CONFORMANCE_REFUSED,
+		"struct S { virtual S() { } };\n"
+		"int main() { return 0; }\n"
+	},
+	//12.1 [class.ctor] p4: nor static
+	{
+		"SpecialConstructorStaticRefused", CONFORMANCE_REFUSED,
+		"struct S { static S() { } };\n"
+		"int main() { return 0; }\n"
+	},
+	//12.1 [class.ctor] p6: nor has a return type
+	{
+		"SpecialConstructorReturnTypeRefused", CONFORMANCE_REFUSED,
+		"struct S { int S() { return 0; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//12.1 [class.ctor] p5: a literal class's implicit default constructor is constexpr
+	{
+		"SpecialConstexprImplicitConstructor", 1,
+		"struct P { int a = 1; int b = 2; };\n"
+		"constexpr P p = P();\n"
+		"int main()\n"
+		"{\n"
+		"	static_assert(p.a + p.b == 3, \"\");\n"
+		"	return 1;\n"
+		"}\n"
+	},
+	//12.2 [class.temporary] p3, p5: a temporary is destroyed at the end of its full expression, the last made first
+	{
+		"SpecialTemporaryLifetime", 7,
+		"int giLog = 0;\n"
+		"struct T { int i; T(int x) : i(x) { } ~T() { giLog = giLog * 10 + i; } int Get() const { return i; } };\n"
+		"int Sum(const T& a, const T& b) { return a.Get() + b.Get(); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int s = Sum(T(1), T(2));\n"
+		"	if (s == 3) r += 1;\n"
+		"	if (giLog == 21 || giLog == 12) r += 2;\n"
+		"	giLog = 0;\n"
+		"	int t = T(3).Get() + ((giLog == 0) ? 1 : 0);\n"
+		"	if (t == 4 && giLog == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.2 [class.temporary] p5: a temporary bound to a reference, or the temporary a member of which is bound, lives as long as the reference
+	{
+		"SpecialTemporaryBoundToReference", 7,
+		"int giGone = 0;\n"
+		"struct T { int i; T(int x) : i(x) { } ~T() { giGone++; } };\n"
+		"struct H { T t; H(int x) : t(x) { } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		const T& a = T(1);\n"
+		"		if (giGone == 0 && a.i == 1) r += 1;\n"
+		"		T&& b = T(2);\n"
+		"		if (giGone == 0 && b.i == 2) r += 2;\n"
+		"		const T& c = H(3).t;\n"
+		"		if (giGone == 0 && c.i == 3) r += 4;\n"
+		"	}\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.3.1 [class.conv.ctor] p1: a constructor taking one argument converts it: in initialisation, for an argument, in an assignment
+	{
+		"SpecialConvertingConstructor", 7,
+		"struct N { int v; N(int x) : v(x) { } };\n"
+		"int Get(N n) { return n.v; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	N a = 4;\n"
+		"	if (a.v == 4) r += 1;\n"
+		"	if (Get(5) == 5) r += 2;\n"
+		"	a = 6;\n"
+		"	if (a.v == 6) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.3.1 [class.conv.ctor] p2: an explicit constructor isn't used for copy initialisation
+	{
+		"SpecialExplicitCopyInitialisationRefused", CONFORMANCE_REFUSED,
+		"struct N { explicit N(int x) : v(x) { } int v; };\n"
+		"int main() { N a = 4; return a.v; }\n"
+	},
+	//12.3.1 [class.conv.ctor] p2: nor for an argument
+	{
+		"SpecialExplicitArgumentRefused", CONFORMANCE_REFUSED,
+		"struct N { explicit N(int x) : v(x) { } int v; };\n"
+		"int Get(N n) { return n.v; }\n"
+		"int main() { return Get(5); }\n"
+	},
+	//12.3.1 [class.conv.ctor] p2: an explicit constructor in direct initialisation and a cast
+	{
+		"SpecialExplicitDirect", 3,
+		"struct N { explicit N(int x) : v(x) { } int v; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	N a(4);\n"
+		"	if (a.v == 4) r += 1;\n"
+		"	N b = static_cast<N>(5);\n"
+		"	if (b.v == 5) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.3.2 [class.conv.fct] p1: a conversion function for an initialisation, arithmetic and an argument
+	{
+		"SpecialConversionFunction", 7,
+		"struct M { int v; operator int() const { return v; } };\n"
+		"int Twice(int x) { return 2 * x; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	M m = { 3 };\n"
+		"	int i = m;\n"
+		"	if (i == 3) r += 1;\n"
+		"	if (m + 1 == 4) r += 2;\n"
+		"	if (Twice(m) == 6) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.3.2 [class.conv.fct] p2: an explicit conversion function in a condition and a cast
+	{
+		"SpecialExplicitConversionFunction", 3,
+		"struct B { int v; explicit operator bool() const { return v != 0; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	B b = { 1 };\n"
+		"	if (b) r += 1;\n"
+		"	bool x = static_cast<bool>(b);\n"
+		"	if (x && !B{0}) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.3.2 [class.conv.fct] p2: but not copy initialisation
+	{
+		"SpecialExplicitConversionCopyInitialisationRefused", CONFORMANCE_REFUSED,
+		"struct B { int v; explicit operator bool() const { return v != 0; } };\n"
+		"int main() { B b = { 1 }; bool x = b; return x; }\n"
+	},
+	//12.3 [class.conv] p4: at most one user-defined conversion in a sequence
+	{
+		"SpecialTwoUserConversionsRefused", CONFORMANCE_REFUSED,
+		"struct A { A(int) { } };\n"
+		"struct B { B(A) { } };\n"
+		"int Take(B) { return 1; }\n"
+		"int main() { return Take(1); }\n"
+	},
+	//12.3 [class.conv] p4, 13.3.3.1.2 [over.ics.user]: a user-defined conversion followed by a standard one
+	{
+		"SpecialUserThenStandardConversion", 1,
+		"struct M { operator short() const { return 2; } };\n"
+		"long Get(long x) { return x; }\n"
+		"int main() { M m; return (Get(m) == 2) ? 1 : 0; }\n"
+	},
+	//12.3.2 [class.conv.fct] p1: a conversion function has no return type written
+	{
+		"SpecialConversionFunctionReturnTypeRefused", CONFORMANCE_REFUSED,
+		"struct M { int operator int() { return 1; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//12.3.2 [class.conv.fct] p1: and no parameter
+	{
+		"SpecialConversionFunctionParameterRefused", CONFORMANCE_REFUSED,
+		"struct M { operator int(int) { return 1; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//12.4 [class.dtor] p8: the destructor's body, then the members last declared first, then the bases last first
+	{
+		"SpecialDestructionOrder", 1,
+		"char gacLog[8];\n"
+		"int giLog = 0;\n"
+		"void Log(char c) { gacLog[giLog++] = c; }\n"
+		"struct L { char c; L(char x) : c(x) { } ~L() { Log(c); } };\n"
+		"struct B1 { ~B1() { Log('7'); } };\n"
+		"struct B2 { ~B2() { Log('8'); } };\n"
+		"struct S : B1, B2 { L a; L b; S() : a('1'), b('2') { } ~S() { Log('9'); } };\n"
+		"int main()\n"
+		"{\n"
+		"	{ S s; }\n"
+		"	return (giLog == 5 && gacLog[0] == '9' && gacLog[1] == '2' && gacLog[2] == '1' && gacLog[3] == '8' && gacLog[4] == '7') ? 1 : 0;\n"
+		"}\n"
+	},
+	//12.4 [class.dtor] p10, 12.6 [class.init]: an array's elements are destroyed the last first
+	{
+		"SpecialArrayDestroyedLastFirst", 1,
+		"int giLog = 0;\n"
+		"struct L { int i; ~L() { giLog = giLog * 10 + i; } };\n"
+		"int main()\n"
+		"{\n"
+		"	{ L a[3] = { { 1 }, { 2 }, { 3 } }; }\n"
+		"	return (giLog == 321) ? 1 : 0;\n"
+		"}\n"
+	},
+	//12.4 [class.dtor] p13: a destructor called explicitly, on a union's member
+	{
+		"SpecialExplicitDestructorCall", 3,
+		"int giGone = 0;\n"
+		"struct D { int v; D(int x) : v(x) { } ~D() { giGone++; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		union U { D d; U() : d(4) { } ~U() { } } u;\n"
+		"		if (u.d.v == 4) r += 1;\n"
+		"		u.d.~D();\n"
+		"	}\n"
+		"	if (giGone == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.4 [class.dtor] p11: no object of a class whose destructor is deleted is made where it would be destroyed
+	{
+		"SpecialDeletedDestructorRefused", CONFORMANCE_REFUSED,
+		"struct S { ~S() = delete; };\n"
+		"int main() { S s; return 0; }\n"
+	},
+	//12.4 [class.dtor] p2: a destructor takes no parameter
+	{
+		"SpecialDestructorParameterRefused", CONFORMANCE_REFUSED,
+		"struct S { ~S(int) { } };\n"
+		"int main() { return 0; }\n"
+	},
+	//12.4 [class.dtor] p9: a pure virtual destructor is defined, and the derived class's calls it
+	{
+		"SpecialPureVirtualDestructor", 1,
+		"int giLog = 0;\n"
+		"struct A { virtual ~A() = 0; };\n"
+		"A::~A() { giLog += 1; }\n"
+		"struct B : A { ~B() { giLog += 10; } };\n"
+		"int main()\n"
+		"{\n"
+		"	{ B b; }\n"
+		"	return (giLog == 11) ? 1 : 0;\n"
+		"}\n"
+	},
+	//12.5 [class.free] p1, p4: a class's operator new and delete make and free its objects, static whether said or not; ::new uses the global one
+	{
+		"SpecialClassOperatorNew", 15,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[1024];\n"
+		"size_t guiHeap = 0;\n"
+		"size_t guiLastSize = 0;\n"
+		"int giNews = 0;\n"
+		"int giDeletes = 0;\n"
+		"void* Allocate(size_t n) { void* p = gacHeap + guiHeap; for (size_t i = 0; i < n; i++) gacHeap[guiHeap + i] = 0x55; guiHeap += (n + 7) & ~(size_t)7; guiLastSize = n; giNews++; return p; }\n"
+		"void* operator new(size_t n) { return Allocate(n); }\n"
+		"void* operator new[](size_t n) { return Allocate(n); }\n"
+		"void operator delete(void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete(void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"int giClassNews = 0;\n"
+		"int giClassDeletes = 0;\n"
+		"struct S { int v; void* operator new(size_t n) { giClassNews++; return Allocate(n); } void operator delete(void* p) { if (p) giClassDeletes++; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S* p = new S;\n"
+		"	if (giClassNews == 1 && giNews == 1) r += 1;\n"
+		"	delete p;\n"
+		"	if (giClassDeletes == 1 && giDeletes == 0) r += 2;\n"
+		"	int* q = new int;\n"
+		"	if (giClassNews == 1 && giNews == 2) r += 4;\n"
+		"	S* g = ::new S;\n"
+		"	if (giClassNews == 1 && giNews == 3) r += 8;\n"
+		"	::delete g;\n"
+		"	delete q;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.5 [class.free] p2: a class's operator new[] and delete[] for its arrays
+	{
+		"SpecialClassOperatorNewArray", 3,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[1024];\n"
+		"size_t guiHeap = 0;\n"
+		"size_t guiLastSize = 0;\n"
+		"int giNews = 0;\n"
+		"int giDeletes = 0;\n"
+		"void* Allocate(size_t n) { void* p = gacHeap + guiHeap; for (size_t i = 0; i < n; i++) gacHeap[guiHeap + i] = 0x55; guiHeap += (n + 7) & ~(size_t)7; guiLastSize = n; giNews++; return p; }\n"
+		"void* operator new(size_t n) { return Allocate(n); }\n"
+		"void* operator new[](size_t n) { return Allocate(n); }\n"
+		"void operator delete(void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete(void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"int giArrays = 0;\n"
+		"struct S { int v; void* operator new[](size_t n) { giArrays++; return Allocate(n); } void operator delete[](void* p) { giArrays += 10; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S* p = new S[3];\n"
+		"	if (giArrays == 1) r += 1;\n"
+		"	delete[] p;\n"
+		"	if (giArrays == 11) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.5 [class.free] p4: deleting through a base with a virtual destructor uses the derived class's operator delete
+	{
+		"SpecialVirtualDestructorDeleteOperator", 1,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[1024];\n"
+		"size_t guiHeap = 0;\n"
+		"size_t guiLastSize = 0;\n"
+		"int giNews = 0;\n"
+		"int giDeletes = 0;\n"
+		"void* Allocate(size_t n) { void* p = gacHeap + guiHeap; for (size_t i = 0; i < n; i++) gacHeap[guiHeap + i] = 0x55; guiHeap += (n + 7) & ~(size_t)7; guiLastSize = n; giNews++; return p; }\n"
+		"void* operator new(size_t n) { return Allocate(n); }\n"
+		"void* operator new[](size_t n) { return Allocate(n); }\n"
+		"void operator delete(void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete(void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"int giWhich = 0;\n"
+		"struct B { virtual ~B() { } void operator delete(void* p) { giWhich = 1; } };\n"
+		"struct D : B { void operator delete(void* p) { giWhich = 2; } };\n"
+		"int main()\n"
+		"{\n"
+		"	B* p = new D;\n"
+		"	delete p;\n"
+		"	return (giWhich == 2) ? 1 : 0;\n"
+		"}\n"
+	},
+	//12.5 [class.free] p5: a class's operator delete with a size is given the object's size
+	{
+		"SpecialSizedClassDelete", 1,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[1024];\n"
+		"size_t guiHeap = 0;\n"
+		"size_t guiLastSize = 0;\n"
+		"int giNews = 0;\n"
+		"int giDeletes = 0;\n"
+		"void* Allocate(size_t n) { void* p = gacHeap + guiHeap; for (size_t i = 0; i < n; i++) gacHeap[guiHeap + i] = 0x55; guiHeap += (n + 7) & ~(size_t)7; guiLastSize = n; giNews++; return p; }\n"
+		"void* operator new(size_t n) { return Allocate(n); }\n"
+		"void* operator new[](size_t n) { return Allocate(n); }\n"
+		"void operator delete(void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete(void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"size_t guiFreed = 0;\n"
+		"struct S { int a; int b; void operator delete(void* p, size_t n) { guiFreed = n; } };\n"
+		"int main()\n"
+		"{\n"
+		"	S* p = new S;\n"
+		"	delete p;\n"
+		"	return (guiFreed == sizeof(S)) ? 1 : 0;\n"
+		"}\n"
+	},
+	//12.6 [class.init] p2, 8.5.1 [dcl.init.aggr] p7: an array's objects made in order, by the constructors their initialisers choose and the default one for the rest
+	{
+		"SpecialArrayOfObjects", 7,
+		"int giLog = 0;\n"
+		"struct E { int v; E() : v(0) { giLog = giLog * 10 + 1; } E(int x) : v(x) { giLog = giLog * 10 + 2; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	E a[3] = { 5, 6 };\n"
+		"	if (a[0].v == 5 && a[1].v == 6 && a[2].v == 0) r += 1;\n"
+		"	if (giLog == 221) r += 2;\n"
+		"	E b[2];\n"
+		"	if (b[1].v == 0) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.6.2 [class.base.init] p11: bases first, then members in the order they are declared, whatever the list's order
+	{
+		"SpecialMemInitialiserOrder", 1,
+		"int giLog = 0;\n"
+		"struct L { L(int i) { giLog = giLog * 10 + i; } };\n"
+		"struct B { B() { giLog = giLog * 10 + 9; } };\n"
+		"struct S : B { L a; L b; S() : b(2), a(1) { } };\n"
+		"int main() { S s; return (giLog == 912) ? 1 : 0; }\n"
+	},
+	//12.6.2 [class.base.init] p11: a member's initialiser uses one made before it
+	{
+		"SpecialMemInitialiserUsesEarlier", 1,
+		"struct S { int a; int b; S(int x) : a(x), b(a * 2) { } };\n"
+		"int main() { S s(3); return (s.b == 6) ? 1 : 0; }\n"
+	},
+	//12.6.2 [class.base.init] p6: a constructor that delegates runs the other first; the object is made once that one returns
+	{
+		"SpecialDelegatingConstructor", 7,
+		"int giLog = 0;\n"
+		"struct S\n"
+		"{\n"
+		"	int a;\n"
+		"	int b;\n"
+		"	S(int x, int y) : a(x), b(y) { giLog = giLog * 10 + 1; }\n"
+		"	S(int x) : S(x, x * 2) { giLog = giLog * 10 + 2; }\n"
+		"	S() : S(5) { giLog = giLog * 10 + 3; }\n"
+		"	~S() { giLog = giLog * 10 + 4; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		S s;\n"
+		"		if (s.a == 5 && s.b == 10) r += 1;\n"
+		"		if (giLog == 123) r += 2;\n"
+		"	}\n"
+		"	if (giLog == 1234) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.6.2 [class.base.init] p6: a delegating constructor's mem-initialiser is its only one
+	{
+		"SpecialDelegatingWithOthersRefused", CONFORMANCE_REFUSED,
+		"struct S { int a; S(int x) : a(x) { } S() : S(1), a(2) { } };\n"
+		"int main() { return 0; }\n"
+	},
+	//12.6.2 [class.base.init] p9: a mem-initialiser takes the place of the member's default initialiser, which isn't run
+	{
+		"SpecialMemInitialiserOverDefault", 3,
+		"int giRuns = 0;\n"
+		"int Count() { return ++giRuns; }\n"
+		"struct S { int a = Count(); S() { } S(int x) : a(x) { } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S t(7);\n"
+		"	if (t.a == 7 && giRuns == 0) r += 1;\n"
+		"	S s;\n"
+		"	if (s.a == 1 && giRuns == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.6.2 [class.base.init] p7, p10: a virtual base is made by the most derived class; the classes between's mem-initialisers for it aren't used
+	{
+		"SpecialVirtualBaseMostDerived", 3,
+		"struct V { int v; V(int x = 0) : v(x) { } };\n"
+		"struct A : virtual V { A() : V(1) { } };\n"
+		"struct B : virtual V { B() : V(2) { } };\n"
+		"struct D : A, B { D() : V(3) { } };\n"
+		"struct E : A, B { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	if (d.v == 3) r += 1;\n"
+		"	E e;\n"
+		"	if (e.v == 0) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.6.2 [class.base.init] p11: the virtual bases are made first, then the direct bases in order, then the class
+	{
+		"SpecialVirtualBasesFirst", 1,
+		"int giLog = 0;\n"
+		"struct V { V() { giLog = giLog * 10 + 1; } };\n"
+		"struct A { A() { giLog = giLog * 10 + 2; } };\n"
+		"struct B : virtual V { B() { giLog = giLog * 10 + 3; } };\n"
+		"struct D : A, B { D() { giLog = giLog * 10 + 4; } };\n"
+		"int main() { D d; return (giLog == 1234) ? 1 : 0; }\n"
+	},
+	//12.6.2 [class.base.init] p8: a constructor initialises a reference member
+	{
+		"SpecialReferenceMemberUninitialisedRefused", CONFORMANCE_REFUSED,
+		"struct S { int& r; S() { } };\n"
+		"int main() { S s; return 0; }\n"
+	},
+	//12.6.2 [class.base.init] p8: and a const member of a type with no default constructor of its own
+	{
+		"SpecialConstMemberUninitialisedRefused", CONFORMANCE_REFUSED,
+		"struct S { const int k; S() { } };\n"
+		"int main() { S s; return 0; }\n"
+	},
+	//12.6.2 [class.base.init] p2: a mem-initialiser names a member or a base
+	{
+		"SpecialMemInitialiserNotMemberRefused", CONFORMANCE_REFUSED,
+		"struct S { int a; S() : b(1) { } };\n"
+		"int main() { return 0; }\n"
+	},
+	//12.6.2 [class.base.init] p4: a member is named once in the list
+	{
+		"SpecialMemInitialiserTwiceRefused", CONFORMANCE_REFUSED,
+		"struct S { int a; S() : a(1), a(2) { } };\n"
+		"int main() { return 0; }\n"
+	},
+	//12.7 [class.cdtor] p4: a virtual call in a constructor or destructor is the function of the class being made or destroyed
+	{
+		"SpecialVirtualCallInConstructor", 7,
+		"int giLog = 0;\n"
+		"struct B { B() { giLog = giLog * 10 + Id(); } virtual ~B() { giLog = giLog * 10 + Id(); } virtual int Id() { return 1; } };\n"
+		"struct D : B { D() { giLog = giLog * 10 + Id(); } ~D() { giLog = giLog * 10 + Id(); } int Id() { return 2; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		D d;\n"
+		"		if (giLog == 12) r += 1;\n"
+		"		B* p = &d;\n"
+		"		if (p->Id() == 2) r += 2;\n"
+		"	}\n"
+		"	if (giLog == 1221) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.7 [class.cdtor] p6: dynamic_cast in a constructor sees the class being made, not the one derived from it
+	{
+		"SpecialDynamicCastInConstructor", 3,
+		"struct B { int seen; B(); virtual ~B() { } };\n"
+		"struct D : B { D() { } };\n"
+		"B::B() { seen = dynamic_cast<D*>(this) ? 1 : 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	if (d.seen == 2) r += 1;\n"
+		"	B* p = &d;\n"
+		"	if (dynamic_cast<D*>(p) == &d) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.8 [class.copy] p7, p15, p18, p28: the implicit copy constructor and assignment copy each base and member, an array element by element
+	{
+		"SpecialImplicitCopy", 15,
+		"struct B { int b; };\n"
+		"struct S : B { int a[3]; char c; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	s.b = 1;\n"
+		"	s.a[0] = 2;\n"
+		"	s.a[2] = 3;\n"
+		"	s.c = 'x';\n"
+		"	S t(s);\n"
+		"	if (t.b == 1 && t.a[2] == 3) r += 1;\n"
+		"	S u;\n"
+		"	u = s;\n"
+		"	if (u.a[0] == 2 && u.c == 'x') r += 2;\n"
+		"	t.a[2] = 9;\n"
+		"	if (s.a[2] == 3) r += 4;\n"
+		"	S v = s;\n"
+		"	if (v.b == 1) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.8 [class.copy] p15, p28: the implicit copies call the members' copy constructor and assignment
+	{
+		"SpecialImplicitCopyCallsMembers", 3,
+		"int giCopies = 0;\n"
+		"int giAssigns = 0;\n"
+		"struct M { int v; M() : v(0) { } M(const M& o) : v(o.v) { giCopies++; } M& operator=(const M& o) { v = o.v; giAssigns++; return *this; } };\n"
+		"struct S { M m; int i; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	s.m.v = 4;\n"
+		"	S t(s);\n"
+		"	if (t.m.v == 4 && giCopies == 1) r += 1;\n"
+		"	S u;\n"
+		"	u = s;\n"
+		"	if (u.m.v == 4 && giAssigns == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.8 [class.copy] p7: a class that declares a move constructor has its copy constructor deleted
+	{
+		"SpecialMoveDeletesCopyRefused", CONFORMANCE_REFUSED,
+		"struct S { S() { } S(S&&) { } };\n"
+		"int main() { S a; S b(a); return 0; }\n"
+	},
+	//12.8 [class.copy] p18: and one that declares a move assignment its copy assignment
+	{
+		"SpecialMoveAssignDeletesCopyAssignRefused", CONFORMANCE_REFUSED,
+		"struct S { S() { } S& operator=(S&&) { return *this; } };\n"
+		"int main() { S a; S b; a = b; return 0; }\n"
+	},
+	//12.8 [class.copy] p9: a class that declares a copy constructor has no implicit move one: an rvalue is copied
+	{
+		"SpecialCopyDeclaredNoImplicitMove", 1,
+		"int giCopies = 0;\n"
+		"struct S { int v; S(int x) : v(x) { } S(const S& o) : v(o.v) { giCopies++; } };\n"
+		"int main()\n"
+		"{\n"
+		"	S a(2);\n"
+		"	S b(static_cast<S&&>(a));\n"
+		"	return (b.v == 2 && giCopies == 1) ? 1 : 0;\n"
+		"}\n"
+	},
+	//12.8 [class.copy] p9, p15: the implicit move constructor moves each member, by the member's own move constructor
+	{
+		"SpecialImplicitMove", 3,
+		"int giMoves = 0;\n"
+		"int giCopies = 0;\n"
+		"struct M { M() { } M(const M&) { giCopies++; } M(M&&) { giMoves++; } };\n"
+		"struct S { M m; int i; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	S a;\n"
+		"	a.i = 3;\n"
+		"	S b(static_cast<S&&>(a));\n"
+		"	if (b.i == 3 && giMoves == 1 && giCopies == 0) r += 1;\n"
+		"	S c(b);\n"
+		"	if (giCopies == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.8 [class.copy] p32: a returned local is taken as an rvalue first: moved, or the copy left out, never copied
+	{
+		"SpecialReturnLocalMoved", 1,
+		"int giCopies = 0;\n"
+		"struct S { int v; S(int x) : v(x) { } S(const S& o) : v(o.v) { giCopies++; } S(S&& o) : v(o.v) { } };\n"
+		"S Make() { S s(4); return s; }\n"
+		"int main() { S t = Make(); return (t.v == 4 && giCopies == 0) ? 1 : 0; }\n"
+	},
+	//12.8 [class.copy] p32: a local of a class that can only be moved is returned
+	{
+		"SpecialMoveOnlyReturned", 1,
+		"struct U { int v; U(int x) : v(x) { } U(U&& o) : v(o.v) { } U(const U&) = delete; };\n"
+		"U Make() { U u(5); return u; }\n"
+		"int main() { U t = Make(); return (t.v == 5) ? 1 : 0; }\n"
+	},
+	//8.4.3 [dcl.fct.def.delete] p2: a deleted copy constructor isn't used
+	{
+		"SpecialDeletedCopyRefused", CONFORMANCE_REFUSED,
+		"struct S { S() { } S(const S&) = delete; };\n"
+		"int main() { S a; S b = a; return 0; }\n"
+	},
+	//12.8 [class.copy] p11: a member that can't be copied deletes the implicit copy constructor
+	{
+		"SpecialCopyDeletedByMemberRefused", CONFORMANCE_REFUSED,
+		"struct M { M() { } M(const M&) = delete; };\n"
+		"struct S { M m; };\n"
+		"int main() { S a; S b(a); return 0; }\n"
+	},
+	//12.8 [class.copy] p23: a reference member deletes the implicit copy assignment
+	{
+		"SpecialAssignDeletedByReferenceRefused", CONFORMANCE_REFUSED,
+		"struct S { int& r; };\n"
+		"int main() { int x = 1; int y = 2; S a = { x }; S b = { y }; a = b; return 0; }\n"
+	},
+	//12.8 [class.copy] p28: an object assigned to itself keeps its value
+	{
+		"SpecialSelfAssignment", 1,
+		"struct S { int a[2]; };\n"
+		"int main() { S s = { { 3, 4 } }; s = s; return (s.a[0] == 3 && s.a[1] == 4) ? 1 : 0; }\n"
+	},
+	//12.8 [class.copy] p22, p28: the implicit copy assignment returns the object assigned to
+	{
+		"SpecialCopyAssignmentResult", 1,
+		"struct S { int v; };\n"
+		"int main()\n"
+		"{\n"
+		"	S a = { 1 };\n"
+		"	S b = { 2 };\n"
+		"	S c = { 3 };\n"
+		"	a = b = c;\n"
+		"	return (a.v == 3 && &(a = b) == &a) ? 1 : 0;\n"
+		"}\n"
+	},
+	//12.9 [class.inhctor] p1, p3: using Base::Base inherits its constructors, one for each default argument left off
+	{
+		"SpecialInheritingConstructors", 7,
+		"struct B { int a; int b; B(int x, int y = 7) : a(x), b(y) { } };\n"
+		"struct D : B { using B::B; int c = 9; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d(1);\n"
+		"	if (d.a == 1 && d.b == 7) r += 1;\n"
+		"	D e(2, 3);\n"
+		"	if (e.b == 3) r += 2;\n"
+		"	if (d.c == 9) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.9 [class.inhctor] p3: the derived class keeps its implicit default constructor
+	{
+		"SpecialInheritingDefault", 3,
+		"struct B { int v; B() : v(4) { } B(int x) : v(x) { } };\n"
+		"struct D : B { using B::B; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D a;\n"
+		"	if (a.v == 4) r += 1;\n"
+		"	D b(6);\n"
+		"	if (b.v == 6) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.9 [class.inhctor] p3: a copy constructor isn't inherited
+	{
+		"SpecialInheritingCopyNotInheritedRefused", CONFORMANCE_REFUSED,
+		"struct B { B() { } B(const B&) { } };\n"
+		"struct D : B { using B::B; };\n"
+		"int main() { B b; D d(b); return 0; }\n"
+	},
+	//12.9 [class.inhctor] p4: an inherited constructor is explicit if the base's is
+	{
+		"SpecialInheritingExplicitRefused", CONFORMANCE_REFUSED,
+		"struct B { explicit B(int) { } };\n"
+		"struct D : B { using B::B; };\n"
+		"int main() { D d = 1; return 0; }\n"
+	},
+	//12.9 [class.inhctor] p4: an inherited constructor is constexpr if the base's is
+	{
+		"SpecialInheritingConstexpr", 1,
+		"struct B { int v; constexpr B(int x) : v(x) { } };\n"
+		"struct D : B { using B::B; };\n"
+		"constexpr D d(3);\n"
+		"int main()\n"
+		"{\n"
+		"	static_assert(d.v == 3, \"\");\n"
+		"	return 1;\n"
+		"}\n"
+	},
+};
+
+
 //Clause 14, templates [temp].
 static const SConformanceCase gasConformanceClause14[] =
 {

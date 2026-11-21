@@ -1,0 +1,301 @@
+### SpecialImplicitDefaultConstructor | 7 | 12.1 [class.ctor] p4, p7, 8.5 [dcl.init] p8: the implicit default constructor makes members with their own constructors; value-initialisation zeroes the rest
+struct M { int v; M() : v(5) { } };
+struct S { M m; int i; };
+int main()
+{
+	int r = 0;
+	S s;
+	if (s.m.v == 5) r += 1;
+	S z = S();
+	if (z.i == 0 && z.m.v == 5) r += 2;
+	S w{};
+	if (w.i == 0) r += 4;
+	return r;
+}
+
+### SpecialDefaultConstructorReferenceRefused | REFUSED | 12.1 [class.ctor] p4: the implicit default constructor is deleted where a reference member has no initialiser
+struct S { int& r; };
+int main() { S s; return 0; }
+
+### SpecialDefaultConstructorConstRefused | REFUSED | 12.1 [class.ctor] p4: or a const member of a type with no default constructor of its own
+struct S { const int k; };
+int main() { S s; return 0; }
+
+### SpecialDefaultConstructorMemberRefused | REFUSED | 12.1 [class.ctor] p4: or a member has no default constructor
+struct M { M(int) { } };
+struct S { M m; };
+int main() { S s; return 0; }
+
+### SpecialNoImplicitDefaultRefused | REFUSED | 12.1 [class.ctor] p4: a class that declares a constructor has no implicit default constructor
+struct S { S(int) { } };
+int main() { S s; return 0; }
+
+### SpecialDefaultedConstructor | 3 | 12.1 [class.ctor] p4, 8.4.2 [dcl.fct.def.default]: = default brings the default constructor back
+struct S { int v = 3; S() = default; S(int x) : v(x) { } };
+int main()
+{
+	int r = 0;
+	S s;
+	if (s.v == 3) r += 1;
+	S t(4);
+	if (t.v == 4) r += 2;
+	return r;
+}
+
+### SpecialDeletedConstructorRefused | REFUSED | 8.4.3 [dcl.fct.def.delete] p2: a deleted constructor isn't used
+struct S { S() = delete; };
+int main() { S s; return 0; }
+
+### SpecialConstructorVirtualRefused | REFUSED | 12.1 [class.ctor] p4: a constructor isn't virtual
+struct S { virtual S() { } };
+int main() { return 0; }
+
+### SpecialConstructorStaticRefused | REFUSED | 12.1 [class.ctor] p4: nor static
+struct S { static S() { } };
+int main() { return 0; }
+
+### SpecialConstructorReturnTypeRefused | REFUSED | 12.1 [class.ctor] p6: nor has a return type
+struct S { int S() { return 0; } };
+int main() { return 0; }
+
+### SpecialConstexprImplicitConstructor | 1 | 12.1 [class.ctor] p5: a literal class's implicit default constructor is constexpr
+struct P { int a = 1; int b = 2; };
+constexpr P p = P();
+int main()
+{
+	static_assert(p.a + p.b == 3, "");
+	return 1;
+}
+
+### SpecialTemporaryLifetime | 7 | 12.2 [class.temporary] p3, p5: a temporary is destroyed at the end of its full expression, the last made first
+int giLog = 0;
+struct T { int i; T(int x) : i(x) { } ~T() { giLog = giLog * 10 + i; } int Get() const { return i; } };
+int Sum(const T& a, const T& b) { return a.Get() + b.Get(); }
+int main()
+{
+	int r = 0;
+	int s = Sum(T(1), T(2));
+	if (s == 3) r += 1;
+	if (giLog == 21 || giLog == 12) r += 2;
+	giLog = 0;
+	int t = T(3).Get() + ((giLog == 0) ? 1 : 0);
+	if (t == 4 && giLog == 3) r += 4;
+	return r;
+}
+
+### SpecialTemporaryBoundToReference | 7 | 12.2 [class.temporary] p5: a temporary bound to a reference, or the temporary a member of which is bound, lives as long as the reference
+int giGone = 0;
+struct T { int i; T(int x) : i(x) { } ~T() { giGone++; } };
+struct H { T t; H(int x) : t(x) { } };
+int main()
+{
+	int r = 0;
+	{
+		const T& a = T(1);
+		if (giGone == 0 && a.i == 1) r += 1;
+		T&& b = T(2);
+		if (giGone == 0 && b.i == 2) r += 2;
+		const T& c = H(3).t;
+		if (giGone == 0 && c.i == 3) r += 4;
+	}
+	return r;
+}
+
+### SpecialConvertingConstructor | 7 | 12.3.1 [class.conv.ctor] p1: a constructor taking one argument converts it: in initialisation, for an argument, in an assignment
+struct N { int v; N(int x) : v(x) { } };
+int Get(N n) { return n.v; }
+int main()
+{
+	int r = 0;
+	N a = 4;
+	if (a.v == 4) r += 1;
+	if (Get(5) == 5) r += 2;
+	a = 6;
+	if (a.v == 6) r += 4;
+	return r;
+}
+
+### SpecialExplicitCopyInitialisationRefused | REFUSED | 12.3.1 [class.conv.ctor] p2: an explicit constructor isn't used for copy initialisation
+struct N { explicit N(int x) : v(x) { } int v; };
+int main() { N a = 4; return a.v; }
+
+### SpecialExplicitArgumentRefused | REFUSED | 12.3.1 [class.conv.ctor] p2: nor for an argument
+struct N { explicit N(int x) : v(x) { } int v; };
+int Get(N n) { return n.v; }
+int main() { return Get(5); }
+
+### SpecialExplicitDirect | 3 | 12.3.1 [class.conv.ctor] p2: an explicit constructor in direct initialisation and a cast
+struct N { explicit N(int x) : v(x) { } int v; };
+int main()
+{
+	int r = 0;
+	N a(4);
+	if (a.v == 4) r += 1;
+	N b = static_cast<N>(5);
+	if (b.v == 5) r += 2;
+	return r;
+}
+
+### SpecialConversionFunction | 7 | 12.3.2 [class.conv.fct] p1: a conversion function for an initialisation, arithmetic and an argument
+struct M { int v; operator int() const { return v; } };
+int Twice(int x) { return 2 * x; }
+int main()
+{
+	int r = 0;
+	M m = { 3 };
+	int i = m;
+	if (i == 3) r += 1;
+	if (m + 1 == 4) r += 2;
+	if (Twice(m) == 6) r += 4;
+	return r;
+}
+
+### SpecialExplicitConversionFunction | 3 | 12.3.2 [class.conv.fct] p2: an explicit conversion function in a condition and a cast
+struct B { int v; explicit operator bool() const { return v != 0; } };
+int main()
+{
+	int r = 0;
+	B b = { 1 };
+	if (b) r += 1;
+	bool x = static_cast<bool>(b);
+	if (x && !B{0}) r += 2;
+	return r;
+}
+
+### SpecialExplicitConversionCopyInitialisationRefused | REFUSED | 12.3.2 [class.conv.fct] p2: but not copy initialisation
+struct B { int v; explicit operator bool() const { return v != 0; } };
+int main() { B b = { 1 }; bool x = b; return x; }
+
+### SpecialTwoUserConversionsRefused | REFUSED | 12.3 [class.conv] p4: at most one user-defined conversion in a sequence
+struct A { A(int) { } };
+struct B { B(A) { } };
+int Take(B) { return 1; }
+int main() { return Take(1); }
+
+### SpecialUserThenStandardConversion | 1 | 12.3 [class.conv] p4, 13.3.3.1.2 [over.ics.user]: a user-defined conversion followed by a standard one
+struct M { operator short() const { return 2; } };
+long Get(long x) { return x; }
+int main() { M m; return (Get(m) == 2) ? 1 : 0; }
+
+### SpecialConversionFunctionReturnTypeRefused | REFUSED | 12.3.2 [class.conv.fct] p1: a conversion function has no return type written
+struct M { int operator int() { return 1; } };
+int main() { return 0; }
+
+### SpecialConversionFunctionParameterRefused | REFUSED | 12.3.2 [class.conv.fct] p1: and no parameter
+struct M { operator int(int) { return 1; } };
+int main() { return 0; }
+
+### SpecialDestructionOrder | 1 | 12.4 [class.dtor] p8: the destructor's body, then the members last declared first, then the bases last first
+char gacLog[8];
+int giLog = 0;
+void Log(char c) { gacLog[giLog++] = c; }
+struct L { char c; L(char x) : c(x) { } ~L() { Log(c); } };
+struct B1 { ~B1() { Log('7'); } };
+struct B2 { ~B2() { Log('8'); } };
+struct S : B1, B2 { L a; L b; S() : a('1'), b('2') { } ~S() { Log('9'); } };
+int main()
+{
+	{ S s; }
+	return (giLog == 5 && gacLog[0] == '9' && gacLog[1] == '2' && gacLog[2] == '1' && gacLog[3] == '8' && gacLog[4] == '7') ? 1 : 0;
+}
+
+### SpecialArrayDestroyedLastFirst | 1 | 12.4 [class.dtor] p10, 12.6 [class.init]: an array's elements are destroyed the last first
+int giLog = 0;
+struct L { int i; ~L() { giLog = giLog * 10 + i; } };
+int main()
+{
+	{ L a[3] = { { 1 }, { 2 }, { 3 } }; }
+	return (giLog == 321) ? 1 : 0;
+}
+
+### SpecialExplicitDestructorCall | 3 | 12.4 [class.dtor] p13: a destructor called explicitly, on a union's member
+int giGone = 0;
+struct D { int v; D(int x) : v(x) { } ~D() { giGone++; } };
+int main()
+{
+	int r = 0;
+	{
+		union U { D d; U() : d(4) { } ~U() { } } u;
+		if (u.d.v == 4) r += 1;
+		u.d.~D();
+	}
+	if (giGone == 1) r += 2;
+	return r;
+}
+
+### SpecialDeletedDestructorRefused | REFUSED | 12.4 [class.dtor] p11: no object of a class whose destructor is deleted is made where it would be destroyed
+struct S { ~S() = delete; };
+int main() { S s; return 0; }
+
+### SpecialDestructorParameterRefused | REFUSED | 12.4 [class.dtor] p2: a destructor takes no parameter
+struct S { ~S(int) { } };
+int main() { return 0; }
+
+### SpecialPureVirtualDestructor | 1 | 12.4 [class.dtor] p9: a pure virtual destructor is defined, and the derived class's calls it
+int giLog = 0;
+struct A { virtual ~A() = 0; };
+A::~A() { giLog += 1; }
+struct B : A { ~B() { giLog += 10; } };
+int main()
+{
+	{ B b; }
+	return (giLog == 11) ? 1 : 0;
+}
+
+### SpecialClassOperatorNew | 15 | 12.5 [class.free] p1, p4: a class's operator new and delete make and free its objects, static whether said or not; ::new uses the global one
+@NEW@
+int giClassNews = 0;
+int giClassDeletes = 0;
+struct S { int v; void* operator new(size_t n) { giClassNews++; return Allocate(n); } void operator delete(void* p) { if (p) giClassDeletes++; } };
+int main()
+{
+	int r = 0;
+	S* p = new S;
+	if (giClassNews == 1 && giNews == 1) r += 1;
+	delete p;
+	if (giClassDeletes == 1 && giDeletes == 0) r += 2;
+	int* q = new int;
+	if (giClassNews == 1 && giNews == 2) r += 4;
+	S* g = ::new S;
+	if (giClassNews == 1 && giNews == 3) r += 8;
+	::delete g;
+	delete q;
+	return r;
+}
+
+### SpecialClassOperatorNewArray | 3 | 12.5 [class.free] p2: a class's operator new[] and delete[] for its arrays
+@NEW@
+int giArrays = 0;
+struct S { int v; void* operator new[](size_t n) { giArrays++; return Allocate(n); } void operator delete[](void* p) { giArrays += 10; } };
+int main()
+{
+	int r = 0;
+	S* p = new S[3];
+	if (giArrays == 1) r += 1;
+	delete[] p;
+	if (giArrays == 11) r += 2;
+	return r;
+}
+
+### SpecialVirtualDestructorDeleteOperator | 1 | 12.5 [class.free] p4: deleting through a base with a virtual destructor uses the derived class's operator delete
+@NEW@
+int giWhich = 0;
+struct B { virtual ~B() { } void operator delete(void* p) { giWhich = 1; } };
+struct D : B { void operator delete(void* p) { giWhich = 2; } };
+int main()
+{
+	B* p = new D;
+	delete p;
+	return (giWhich == 2) ? 1 : 0;
+}
+
+### SpecialSizedClassDelete | 1 | 12.5 [class.free] p5: a class's operator delete with a size is given the object's size
+@NEW@
+size_t guiFreed = 0;
+struct S { int a; int b; void operator delete(void* p, size_t n) { guiFreed = n; } };
+int main()
+{
+	S* p = new S;
+	delete p;
+	return (guiFreed == sizeof(S)) ? 1 : 0;
+}
