@@ -81,10 +81,7 @@ protected:
 
 	bool	ParseSpace(void);
 	bool	ParseGlobal(void);
-	bool	ParseRestrict(void);
-	bool	ParseRegisterCall(void);
-	bool	ParseNoWrites(void);
-	bool	ParseNoThrow(void);
+	bool	ParseSymbolAttribute(uint8 uiAttribute);
 	bool	ParseGlobalItem(CIRGlobal* pcGlobal);
 	bool	ParseFunction(void);
 	bool	ParseBody(void);

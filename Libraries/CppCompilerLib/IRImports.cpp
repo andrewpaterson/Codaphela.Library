@@ -481,25 +481,14 @@ bool CIRImports::Export(CIRModule* pcModule, CIRFunction* pcFunction)
 	cErrors.Kill();
 	szText.Kill();
 
-	//The function's restrict symbols stay restrict, the functions it calls in registers are called in them, and those
-	//that never throw (itself too) still don't.
+	//What goes with the function's symbols into this module (IRSA_Carried): its restrict symbols stay restrict, the
+	//functions it calls in registers are called in them, and those that never throw (itself too) still don't.
 	for (ui = 0; ui < pcModule->maszSymbols.NumElements(); ui++)
 	{
-		if (pcModule->IsRestrict((uint32)ui) || pcModule->IsRegisterCall((uint32)ui) || pcModule->IsNoThrow((uint32)ui))
+		iSymbol = (pcModule->GetSymbolAttributes((uint32)ui) & IRSA_Carried) ? mcModule.FindSymbol(pcModule->GetSymbolName((uint32)ui)) : -1;
+		if (iSymbol >= 0)
 		{
-			iSymbol = mcModule.FindSymbol(pcModule->GetSymbolName((uint32)ui));
-			if ((iSymbol >= 0) && pcModule->IsRestrict((uint32)ui))
-			{
-				mcModule.SetRestrict((uint32)iSymbol);
-			}
-			if ((iSymbol >= 0) && pcModule->IsRegisterCall((uint32)ui))
-			{
-				mcModule.SetRegisterCall((uint32)iSymbol);
-			}
-			if ((iSymbol >= 0) && pcModule->IsNoThrow((uint32)ui))
-			{
-				mcModule.SetNoThrow((uint32)iSymbol, true);
-			}
+			mcModule.CopySymbolAttributes((uint32)iSymbol, pcModule, (uint32)ui, IRSA_Carried);
 		}
 	}
 	mcModuleLock.Unlock();

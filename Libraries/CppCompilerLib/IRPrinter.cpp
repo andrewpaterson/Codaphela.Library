@@ -67,14 +67,16 @@ void CIRPrinter::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The spaces, then the restrict symbols, then the globals, then the
-// functions, with a blank line before each global and function that
-// follows something.
+// The spaces, then the symbols' attributes (a line for each symbol that has
+// one, all the restricts first: gasIRSymbolAttributeNames), then the
+// globals, then the functions, with a blank line before each global and
+// function that follows something.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRPrinter::PrintModule(void)
 {
 	size	ui;
+	size	uiAttribute;
 	size	uiStart;
 
 	uiStart = mpszDest->Length();
@@ -86,40 +88,17 @@ void CIRPrinter::PrintModule(void)
 		mpszDest->Append(mpcModule->GetPointerSize((uint8)ui));
 		mpszDest->AppendNewLine();
 	}
-	for (ui = 0; ui < mpcModule->maszSymbols.NumElements(); ui++)
+	for (uiAttribute = 0; uiAttribute < IRSA_NumWritten; uiAttribute++)
 	{
-		if (mpcModule->IsRestrict((uint32)ui))
+		for (ui = 0; ui < mpcModule->maszSymbols.NumElements(); ui++)
 		{
-			mpszDest->Append("restrict @");
-			mpszDest->Append(mpcModule->GetSymbolName((uint32)ui));
-			mpszDest->AppendNewLine();
-		}
-	}
-	for (ui = 0; ui < mpcModule->maszSymbols.NumElements(); ui++)
-	{
-		if (mpcModule->IsRegisterCall((uint32)ui))
-		{
-			mpszDest->Append("regcall @");
-			mpszDest->Append(mpcModule->GetSymbolName((uint32)ui));
-			mpszDest->AppendNewLine();
-		}
-	}
-	for (ui = 0; ui < mpcModule->maszSymbols.NumElements(); ui++)
-	{
-		if (mpcModule->IsNoWrites((uint32)ui))
-		{
-			mpszDest->Append("nowrites @");
-			mpszDest->Append(mpcModule->GetSymbolName((uint32)ui));
-			mpszDest->AppendNewLine();
-		}
-	}
-	for (ui = 0; ui < mpcModule->maszSymbols.NumElements(); ui++)
-	{
-		if (mpcModule->IsNoThrow((uint32)ui))
-		{
-			mpszDest->Append("nothrow @");
-			mpszDest->Append(mpcModule->GetSymbolName((uint32)ui));
-			mpszDest->AppendNewLine();
+			if (mpcModule->GetSymbolAttributes((uint32)ui) & gasIRSymbolAttributeNames[uiAttribute].uiAttribute)
+			{
+				mpszDest->Append(gasIRSymbolAttributeNames[uiAttribute].szName);
+				mpszDest->Append(" @");
+				mpszDest->Append(mpcModule->GetSymbolName((uint32)ui));
+				mpszDest->AppendNewLine();
+			}
 		}
 	}
 	for (ui = 0; ui < mpcModule->NumGlobals(); ui++)

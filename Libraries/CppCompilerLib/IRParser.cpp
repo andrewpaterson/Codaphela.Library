@@ -82,6 +82,7 @@ void CIRParser::Kill(void)
 bool CIRParser::Parse(const char* szText)
 {
 	size	uiStart;
+	size	ui;
 	bool	bResult;
 
 	mszText = szText;
@@ -109,25 +110,19 @@ bool CIRParser::Parse(const char* szText)
 		{
 			bResult = ParseFunction();
 		}
-		else if (GetKeyword("restrict"))
-		{
-			bResult = ParseRestrict();
-		}
-		else if (GetKeyword("regcall"))
-		{
-			bResult = ParseRegisterCall();
-		}
-		else if (GetKeyword("nowrites"))
-		{
-			bResult = ParseNoWrites();
-		}
-		else if (GetKeyword("nothrow"))
-		{
-			bResult = ParseNoThrow();
-		}
 		else
 		{
-			bResult = ErrorAt(uiStart, "Expected space, global, function, restrict, regcall, nowrites or nothrow.");
+			for (ui = 0; (ui < IRSA_NumWritten) && !GetKeyword(gasIRSymbolAttributeNames[ui].szName); ui++)
+			{
+			}
+			if (ui < IRSA_NumWritten)
+			{
+				bResult = ParseSymbolAttribute(gasIRSymbolAttributeNames[ui].uiAttribute);
+			}
+			else
+			{
+				bResult = ErrorAt(uiStart, "Expected space, global, function, restrict, regcall, nowrites or nothrow.");
+			}
 		}
 		if (!bResult)
 		{
@@ -727,71 +722,19 @@ bool CIRParser::ParseSpace(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// restrict @name: the symbol is a restrict pointer variable.
+// restrict @name, regcall @name, nowrites @name or nothrow @name, after its
+// word: the symbol has the attribute (gasIRSymbolAttributeNames; CIRModule's
+// setter for each says what it means).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRParser::ParseRestrict(void)
+bool CIRParser::ParseSymbolAttribute(uint8 uiAttribute)
 {
 	SkipSpace();
 	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
 	{
 		return false;
 	}
-	mpcModule->SetRestrict(mpcModule->AddSymbol(mszName.Text()));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// regcall @name: the symbol is a function a back end may pass arguments to
-// in registers (CIRModule::SetRegisterCall).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIRParser::ParseRegisterCall(void)
-{
-	SkipSpace();
-	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
-	{
-		return false;
-	}
-	mpcModule->SetRegisterCall(mpcModule->AddSymbol(mszName.Text()));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// nowrites @name: the symbol is a function that writes no memory its
-// callers can see (CIRModule::SetNoWrites).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIRParser::ParseNoWrites(void)
-{
-	SkipSpace();
-	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
-	{
-		return false;
-	}
-	mpcModule->SetNoWrites(mpcModule->AddSymbol(mszName.Text()), true);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// nothrow @name: the symbol is a function that is never left with an
-// exception (CIRModule::SetNoThrow).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIRParser::ParseNoThrow(void)
-{
-	SkipSpace();
-	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
-	{
-		return false;
-	}
-	mpcModule->SetNoThrow(mpcModule->AddSymbol(mszName.Text()), true);
+	mpcModule->SetSymbolAttributes(mpcModule->AddSymbol(mszName.Text()), uiAttribute);
 	return true;
 }
 

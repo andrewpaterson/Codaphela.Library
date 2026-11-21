@@ -1344,6 +1344,83 @@ void TestIRPassTable(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A symbol's attributes are one set (IRSA_): each is given, asked and taken
+// away on its own, the restrict symbols are counted for HasRestrict, the
+// written ones are printed a line each with all of one attribute before
+// the next, and what goes with a symbol into another module is
+// IRSA_Carried and no more (not local, and not nowrites).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRSymbolAttributes(void)
+{
+	CIRModule	cModule;
+	CIRModule	cOther;
+	CIRPrinter	cPrinter;
+	CChars		szPrinted;
+	uint32		uiA;
+	uint32		uiB;
+	uint32		uiC;
+	uint32		uiOther;
+
+	cModule.Init();
+	uiA = cModule.AddSymbol("a");
+	uiB = cModule.AddSymbol("b");
+	uiC = cModule.AddSymbol("c");
+	AssertInt(0, cModule.GetSymbolAttributes(uiA));
+	AssertInt(0, cModule.GetSymbolAttributes(uiC + 9));
+	AssertFalse(cModule.HasRestrict());
+
+	//Given twice and taken away once it is gone: HasRestrict counts symbols, not calls.
+	cModule.SetRestrict(uiA);
+	cModule.SetRestrict(uiA);
+	AssertTrue(cModule.IsRestrict(uiA));
+	AssertTrue(cModule.HasRestrict());
+	cModule.SetSymbolAttributes(uiA, IRSA_Restrict, false);
+	AssertFalse(cModule.IsRestrict(uiA));
+	AssertFalse(cModule.HasRestrict());
+
+	cModule.SetRestrict(uiA);
+	cModule.SetLocal(uiA);
+	cModule.SetRegisterCall(uiA);
+	cModule.SetNoWrites(uiA, true);
+	cModule.SetNoThrow(uiA, true);
+	AssertInt(IRSA_Restrict | IRSA_Local | IRSA_RegisterCall | IRSA_NoWrites | IRSA_NoThrow, cModule.GetSymbolAttributes(uiA));
+	AssertTrue(cModule.IsLocal(uiA));
+	AssertTrue(cModule.IsRegisterCall(uiA));
+	AssertTrue(cModule.IsNoWrites(uiA));
+	AssertTrue(cModule.IsNoThrow(uiA));
+	AssertFalse(cModule.IsNoThrow(uiB));
+	cModule.SetNoWrites(uiA, false);
+	AssertFalse(cModule.IsNoWrites(uiA));
+	AssertTrue(cModule.IsNoThrow(uiA));
+	cModule.SetNoWrites(uiA, true);
+
+	//Into another module go the three that are true of the symbol wherever it is named.
+	cOther.Init();
+	uiOther = cOther.AddSymbol("a");
+	cOther.CopySymbolAttributes(uiOther, &cModule, uiA, IRSA_Carried);
+	AssertInt(IRSA_Restrict | IRSA_RegisterCall | IRSA_NoThrow, cOther.GetSymbolAttributes(uiOther));
+	AssertTrue(cOther.HasRestrict());
+	cOther.CopySymbolAttributes(uiOther, &cModule, uiB, IRSA_Carried);
+	AssertInt(IRSA_Restrict | IRSA_RegisterCall | IRSA_NoThrow, cOther.GetSymbolAttributes(uiOther));
+	cOther.Kill();
+
+	//Printed in the table's order (restrict, regcall, nowrites, nothrow), every symbol that has one before the next.
+	cModule.SetNoThrow(uiB, true);
+	cModule.SetRegisterCall(uiB);
+	cModule.SetRestrict(uiC);
+	szPrinted.Init();
+	cPrinter.Init(&cModule, &szPrinted);
+	cPrinter.PrintModule();
+	cPrinter.Kill();
+	AssertString("restrict @a\nrestrict @c\nregcall @a\nregcall @b\nnowrites @a\nnothrow @a\nnothrow @b\n", szPrinted.Text());
+	szPrinted.Kill();
+	cModule.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The opcode table's classes and twins, which the passes ask where each
 // kept a list of its own: every class is the opcodes written out here and
 // no other, and a target's opcodes (from IRO_NumGeneric) are in none.
@@ -6336,6 +6413,7 @@ void TestIR(void)
 	TestIRComparisonColumns();
 	TestIROpcodeClasses();
 	TestIRPassTable();
+	TestIRSymbolAttributes();
 	TestIROptimiserPointerConstantWidth();
 	TestIROptimiserHoistableDivisions();
 	TestIROptimiser();

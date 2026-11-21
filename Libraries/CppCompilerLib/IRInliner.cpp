@@ -837,18 +837,7 @@ SIRReference CIRInliner::Map(SIRReference sValue, CIRFunction* pcCallee)
 	{
 		//Another unit's function: its symbols are the same names here.
 		sSymbol = mpcModule->Symbol(mpcCalleeModule->GetSymbolName(sValue.Index()));
-		if (mpcCalleeModule->IsRestrict(sValue.Index()))
-		{
-			mpcModule->SetRestrict(sSymbol.Index());
-		}
-		if (mpcCalleeModule->IsRegisterCall(sValue.Index()))
-		{
-			mpcModule->SetRegisterCall(sSymbol.Index());
-		}
-		if (mpcCalleeModule->IsNoThrow(sValue.Index()))
-		{
-			mpcModule->SetNoThrow(sSymbol.Index(), true);
-		}
+		mpcModule->CopySymbolAttributes(sSymbol.Index(), mpcCalleeModule, sValue.Index(), IRSA_Carried);
 		return sSymbol;
 	}
 	return sValue;

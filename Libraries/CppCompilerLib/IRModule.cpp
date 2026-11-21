@@ -442,6 +442,68 @@ SIRReference CIRModule::Symbol(const char* szName)
 }
 
 
+SIRSymbolAttributeName	gasIRSymbolAttributeNames[IRSA_NumWritten] =
+{
+	{ IRSA_Restrict, "restrict" },
+	{ IRSA_RegisterCall, "regcall" },
+	{ IRSA_NoWrites, "nowrites" },
+	{ IRSA_NoThrow, "nothrow" },
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives the symbol each of uiAttributes (IRSA_), or takes them from it.
+// The setters named for one attribute say what each means.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRModule::SetSymbolAttributes(uint32 uiSymbol, uint8 uiAttributes, bool bSet)
+{
+	SIRSymbolDefinition*	psDefinition;
+	uint8					uiBefore;
+
+	psDefinition = masDefinitions.Get(uiSymbol);
+	uiBefore = psDefinition->uiAttributes;
+	psDefinition->uiAttributes = bSet ? (uint8)(uiBefore | uiAttributes) : (uint8)(uiBefore & ~uiAttributes);
+	if ((uiBefore ^ psDefinition->uiAttributes) & IRSA_Restrict)
+	{
+		//HasRestrict counts them.
+		if (bSet)
+		{
+			muiNumRestrict++;
+		}
+		else
+		{
+			muiNumRestrict--;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The symbol's attributes: none for a symbol the module hasn't.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CIRModule::GetSymbolAttributes(uint32 uiSymbol)
+{
+	return (uiSymbol < masDefinitions.NumElements()) ? masDefinitions.Get(uiSymbol)->uiAttributes : (uint8)0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What pcFrom knows of its symbol uiFromSymbol, of the attributes in
+// uiAttributes, is known of uiSymbol here: the same symbol named in
+// another unit's module (IRSA_Carried says which go with it).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRModule::CopySymbolAttributes(uint32 uiSymbol, CIRModule* pcFrom, uint32 uiFromSymbol, uint8 uiAttributes)
+{
+	SetSymbolAttributes(uiSymbol, pcFrom->GetSymbolAttributes(uiFromSymbol) & uiAttributes);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Marks the symbol as a pointer variable declared restrict (C's restrict on
@@ -451,14 +513,7 @@ SIRReference CIRModule::Symbol(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CIRModule::SetRestrict(uint32 uiSymbol)
 {
-	SIRSymbolDefinition*	psDefinition;
-
-	psDefinition = masDefinitions.Get(uiSymbol);
-	if (!psDefinition->bRestrict)
-	{
-		psDefinition->bRestrict = true;
-		muiNumRestrict++;
-	}
+	SetSymbolAttributes(uiSymbol, IRSA_Restrict);
 }
 
 
@@ -468,7 +523,7 @@ void CIRModule::SetRestrict(uint32 uiSymbol)
 //////////////////////////////////////////////////////////////////////////
 bool CIRModule::IsRestrict(uint32 uiSymbol)
 {
-	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bRestrict;
+	return (GetSymbolAttributes(uiSymbol) & IRSA_Restrict) != 0;
 }
 
 
@@ -492,7 +547,7 @@ bool CIRModule::HasRestrict(void) const
 //////////////////////////////////////////////////////////////////////////
 void CIRModule::SetLocal(uint32 uiSymbol)
 {
-	masDefinitions.Get(uiSymbol)->bLocal = true;
+	SetSymbolAttributes(uiSymbol, IRSA_Local);
 }
 
 
@@ -502,7 +557,7 @@ void CIRModule::SetLocal(uint32 uiSymbol)
 //////////////////////////////////////////////////////////////////////////
 bool CIRModule::IsLocal(uint32 uiSymbol)
 {
-	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bLocal;
+	return (GetSymbolAttributes(uiSymbol) & IRSA_Local) != 0;
 }
 
 
@@ -518,7 +573,7 @@ bool CIRModule::IsLocal(uint32 uiSymbol)
 //////////////////////////////////////////////////////////////////////////
 void CIRModule::SetRegisterCall(uint32 uiSymbol)
 {
-	masDefinitions.Get(uiSymbol)->bRegisterCall = true;
+	SetSymbolAttributes(uiSymbol, IRSA_RegisterCall);
 }
 
 
@@ -528,7 +583,7 @@ void CIRModule::SetRegisterCall(uint32 uiSymbol)
 //////////////////////////////////////////////////////////////////////////
 bool CIRModule::IsRegisterCall(uint32 uiSymbol)
 {
-	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bRegisterCall;
+	return (GetSymbolAttributes(uiSymbol) & IRSA_RegisterCall) != 0;
 }
 
 
@@ -543,7 +598,7 @@ bool CIRModule::IsRegisterCall(uint32 uiSymbol)
 //////////////////////////////////////////////////////////////////////////
 void CIRModule::SetNoWrites(uint32 uiSymbol, bool bNoWrites)
 {
-	masDefinitions.Get(uiSymbol)->bNoWrites = bNoWrites;
+	SetSymbolAttributes(uiSymbol, IRSA_NoWrites, bNoWrites);
 }
 
 
@@ -553,7 +608,7 @@ void CIRModule::SetNoWrites(uint32 uiSymbol, bool bNoWrites)
 //////////////////////////////////////////////////////////////////////////
 bool CIRModule::IsNoWrites(uint32 uiSymbol)
 {
-	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bNoWrites;
+	return (GetSymbolAttributes(uiSymbol) & IRSA_NoWrites) != 0;
 }
 
 
@@ -568,7 +623,7 @@ bool CIRModule::IsNoWrites(uint32 uiSymbol)
 //////////////////////////////////////////////////////////////////////////
 void CIRModule::SetNoThrow(uint32 uiSymbol, bool bNoThrow)
 {
-	masDefinitions.Get(uiSymbol)->bNoThrow = bNoThrow;
+	SetSymbolAttributes(uiSymbol, IRSA_NoThrow, bNoThrow);
 }
 
 
@@ -578,7 +633,7 @@ void CIRModule::SetNoThrow(uint32 uiSymbol, bool bNoThrow)
 //////////////////////////////////////////////////////////////////////////
 bool CIRModule::IsNoThrow(uint32 uiSymbol)
 {
-	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bNoThrow;
+	return (GetSymbolAttributes(uiSymbol) & IRSA_NoThrow) != 0;
 }
 
 
