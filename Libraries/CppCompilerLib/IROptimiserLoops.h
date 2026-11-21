@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __I_R_OPTIMISER_LOOPS_H__
 #define __I_R_OPTIMISER_LOOPS_H__
 #include "IRPasses.h"
+#include "IRBlockCopier.h"
 
 
 //The loop passes: rotation, invariants hoisted, loads sunk, exit values, dead loops, unswitching and fewer
@@ -49,8 +50,8 @@ protected:
 	bool			CanStep(SIRReference sValue, int iStep);
 	CIRBlock*		AddMergedPreheader(size uiLoop);
 	bool			CanRotate(size uiLoop, CIRBlock** ppcBody, CIRBlock** ppcExit);
-	void			CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CArrayIRReferences* pasMap);
-	void			SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBlock* pcPreheader, CArrayIRReferences* pasPreheader, CIRBlock* pcLatch, CArrayIRReferences* pasLatch);
+	void			CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CIRMappedCopier* pcCopier);
+	void			SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBlock* pcPreheader, CIRMappedCopier* pcPreheaderCopy, CIRBlock* pcLatch, CIRMappedCopier* pcLatchCopy);
 	void			RewriteUses(SIRReference sValue, CIRSSAUpdater* pcUpdater);
 };
 

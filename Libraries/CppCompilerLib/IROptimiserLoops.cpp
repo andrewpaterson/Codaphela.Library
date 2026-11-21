@@ -190,8 +190,9 @@ bool CIRLoopPasses::LessLoopTests(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The loop's preheader: the block that enters it and goes nowhere else,
-// where what is worked out once before the loop is put.  It is made
-// (AddPreheader) if the loop has none: its entering block branches.
+// where what is worked out once before the loop is put.  It is made if the
+// loop has none: its entering block branches (AddPreheader), or several
+// blocks enter it (AddMergedPreheader).
 //
 //////////////////////////////////////////////////////////////////////////
 CIRBlock* CIRLoopPasses::Preheader(size uiLoop)
@@ -199,7 +200,11 @@ CIRBlock* CIRLoopPasses::Preheader(size uiLoop)
 	CIRBlock*	pcPreheader;
 
 	pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcPreheader;
-	return pcPreheader ? pcPreheader : AddPreheader(uiLoop);
+	if (pcPreheader == NULL)
+	{
+		pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering ? AddPreheader(uiLoop) : AddMergedPreheader(uiLoop);
+	}
+	return pcPreheader;
 }
 
 
@@ -1035,25 +1040,6 @@ bool CIRLoopPasses::HoistInvariants(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// sValue as a copy of a loop's head sees it: what pasMap gives for a
-// temporary of the head, else itself.
-//
-//////////////////////////////////////////////////////////////////////////
-static SIRReference IROptimiserMapped(CArrayIRReferences* pasMap, SIRReference sValue)
-{
-	SIRReference	sMapped;
-
-	if (!sValue.IsTemporary() || (sValue.Index() >= pasMap->NumElements()))
-	{
-		return sValue;
-	}
-	sMapped = *pasMap->Get(sValue.Index());
-	return sMapped.IsNone() ? sValue : sMapped;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // True if loop uiLoop can be rotated (RotateLoops): one latch that jumps
 // to the head (any number of blocks outside may), and a head of at most IR_ROTATE_LIMIT
 // instructions without effects ending in a brif to *ppcBody, in the loop
@@ -1116,25 +1102,22 @@ bool CIRLoopPasses::CanRotate(size uiLoop, CIRBlock** ppcBody, CIRBlock** ppcExi
 //////////////////////////////////////////////////////////////////////////
 //
 // The head's instructions copied to the end of pcBlock, each temporary of
-// the head read as pasMap gives it (and the copies' results added to it),
-// with pcBlock's jump the head's brif.
+// the head read as pcCopier gives it (and the copies' results, new
+// temporaries, given to it), with pcBlock's jump the head's brif.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRLoopPasses::CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CArrayIRReferences* pasMap)
+void CIRLoopPasses::CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CIRMappedCopier* pcCopier)
 {
-	SIRInstruction	sCopy;
+	SIRReference	sResult;
 	size			ui;
 
 	for (ui = 0; ui < pcHead->masInstructions.NumElements(); ui++)
 	{
-		sCopy = *pcHead->masInstructions.Get(ui);
-		sCopy.asArguments[0] = IROptimiserMapped(pasMap, sCopy.asArguments[0]);
-		sCopy.asArguments[1] = IROptimiserMapped(pasMap, sCopy.asArguments[1]);
-		sCopy.sResult = mpcFunction->AddTemporary(mpcFunction->GetTemporaryType(sCopy.sResult));
-		*pasMap->Get(pcHead->masInstructions.Get(ui)->sResult.Index()) = sCopy.sResult;
-		pcBlock->masInstructions.Add(&sCopy);
+		sResult = pcHead->masInstructions.Get(ui)->sResult;
+		pcCopier->SetValue(sResult, mpcFunction->AddTemporary(mpcFunction->GetTemporaryType(sResult)));
 	}
-	pcBlock->Branch(IROptimiserMapped(pasMap, pcHead->msJump.sArgument), pcHead->msJump.pcThen, pcHead->msJump.pcElse);
+	pcCopier->CopyInstructions(pcHead, pcBlock);
+	pcCopier->CopyJump(pcHead, pcBlock);
 }
 
 
@@ -1144,7 +1127,7 @@ void CIRLoopPasses::CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CArrayIRRefere
 // preheader and the latch instead, as each sees it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRLoopPasses::SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBlock* pcPreheader, CArrayIRReferences* pasPreheader, CIRBlock* pcLatch, CArrayIRReferences* pasLatch)
+void CIRLoopPasses::SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBlock* pcPreheader, CIRMappedCopier* pcPreheaderCopy, CIRBlock* pcLatch, CIRMappedCopier* pcLatchCopy)
 {
 	size			ui;
 	SIRPhi*			psPhi;
@@ -1159,8 +1142,8 @@ void CIRLoopPasses::SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBl
 		{
 			sValue = psArgument->sValue;
 			psArgument->pcBlock = pcPreheader;
-			psArgument->sValue = IROptimiserMapped(pasPreheader, sValue);
-			pcBlock->AddPhiArgument(psPhi, pcLatch, IROptimiserMapped(pasLatch, sValue));
+			psArgument->sValue = pcPreheaderCopy->Value(sValue);
+			pcBlock->AddPhiArgument(psPhi, pcLatch, pcLatchCopy->Value(sValue));
 		}
 	}
 }
@@ -1199,13 +1182,12 @@ void CIRLoopPasses::RewriteUses(SIRReference sValue, CIRSSAUpdater* pcUpdater)
 //////////////////////////////////////////////////////////////////////////
 bool CIRLoopPasses::RotateLoops(void)
 {
-	CArrayIRReferences	asPreheader;		//Per temporary of the head: what the preheader's copy reads for it.
-	CArrayIRReferences	asLatch;
+	CIRMappedCopier		cPreheader;		//What the preheader's copy of the head reads for each temporary of the head...
+	CIRMappedCopier		cLatch;			//...and the latch's.
 	CArrayIRReferences	asValues;		//The head's phis and results.
 	CIRSSAUpdater		cUpdater;
 	size				uiLoop;
 	size				ui;
-	size				uiTemporaries;
 	CIRBlock*			pcHead;
 	CIRBlock*			pcPreheader;
 	CIRBlock*			pcLatch;
@@ -1216,8 +1198,8 @@ bool CIRLoopPasses::RotateLoops(void)
 	SIRType				sType;
 	bool				bChanged;
 
-	asPreheader.Init();
-	asLatch.Init();
+	cPreheader.Init();
+	cLatch.Init();
 	asValues.Init();
 	cUpdater.Init(mpcFunction);
 	bChanged = false;
@@ -1230,24 +1212,17 @@ bool CIRLoopPasses::RotateLoops(void)
 		}
 		pcHead = mpcContext->mcLoops.GetLoop(uiLoop)->pcHead;
 		pcLatch = mpcContext->mcLoops.GetLatch(uiLoop, 0);
-		pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcPreheader;
-		if (!pcPreheader)
-		{
-			pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering ? AddPreheader(uiLoop) : AddMergedPreheader(uiLoop);
-		}
+		pcPreheader = Preheader(uiLoop);
 
 		//The head's phis are the values each way in brings.
-		uiTemporaries = mpcFunction->NumTemporaries();
-		asPreheader.FakeSetUsedElements(0);
-		asPreheader.GrowToAtLeastNumElements(uiTemporaries, true, 0);
-		asLatch.FakeSetUsedElements(0);
-		asLatch.GrowToAtLeastNumElements(uiTemporaries, true, 0);
+		cPreheader.Begin(mpcFunction);
+		cLatch.Begin(mpcFunction);
 		asValues.FakeSetUsedElements(0);
 		for (ui = 0; ui < pcHead->masPhis.NumElements(); ui++)
 		{
 			psPhi = pcHead->masPhis.Get(ui);
-			*asPreheader.Get(psPhi->sResult.Index()) = pcHead->FindPhiArgument(psPhi, pcPreheader)->sValue;
-			*asLatch.Get(psPhi->sResult.Index()) = pcHead->FindPhiArgument(psPhi, pcLatch)->sValue;
+			cPreheader.SetValue(psPhi->sResult, pcHead->FindPhiArgument(psPhi, pcPreheader)->sValue);
+			cLatch.SetValue(psPhi->sResult, pcHead->FindPhiArgument(psPhi, pcLatch)->sValue);
 			asValues.Add(&psPhi->sResult);
 		}
 		for (ui = 0; ui < pcHead->masInstructions.NumElements(); ui++)
@@ -1256,10 +1231,10 @@ bool CIRLoopPasses::RotateLoops(void)
 		}
 
 		//The copies, the body and the exit taking from the preheader and the latch, and the head gone.
-		CopyHead(pcHead, pcPreheader, &asPreheader);
-		CopyHead(pcHead, pcLatch, &asLatch);
-		SplitPhiArguments(pcBody, pcHead, pcPreheader, &asPreheader, pcLatch, &asLatch);
-		SplitPhiArguments(pcExit, pcHead, pcPreheader, &asPreheader, pcLatch, &asLatch);
+		CopyHead(pcHead, pcPreheader, &cPreheader);
+		CopyHead(pcHead, pcLatch, &cLatch);
+		SplitPhiArguments(pcBody, pcHead, pcPreheader, &cPreheader, pcLatch, &cLatch);
+		SplitPhiArguments(pcExit, pcHead, pcPreheader, &cPreheader, pcLatch, &cLatch);
 		mpcFunction->RemoveBlock(pcHead);
 		mpcFunction->ComputePredecessors();
 
@@ -1269,8 +1244,8 @@ bool CIRLoopPasses::RotateLoops(void)
 			sValue = *asValues.Get(ui);
 			sType = mpcFunction->GetTemporaryType(sValue);
 			cUpdater.Begin(sType);
-			cUpdater.Define(pcPreheader, IROptimiserMapped(&asPreheader, sValue));
-			cUpdater.Define(pcLatch, IROptimiserMapped(&asLatch, sValue));
+			cUpdater.Define(pcPreheader, cPreheader.Value(sValue));
+			cUpdater.Define(pcLatch, cLatch.Value(sValue));
 			RewriteUses(sValue, &cUpdater);
 		}
 		bChanged = true;
@@ -1279,30 +1254,9 @@ bool CIRLoopPasses::RotateLoops(void)
 	}
 	cUpdater.Kill();
 	asValues.Kill();
-	asLatch.Kill();
-	asPreheader.Kill();
+	cLatch.Kill();
+	cPreheader.Kill();
 	return bChanged;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pcBlock's copy when it is one of the loop's blocks (apcBlocks, copied to
-// apcCopies), else pcBlock.
-//
-//////////////////////////////////////////////////////////////////////////
-static CIRBlock* IROptimiserCopyOf(CArrayIRBlocks* papcBlocks, CArrayIRBlocks* papcCopies, CIRBlock* pcBlock)
-{
-	size	ui;
-
-	for (ui = 0; ui < papcBlocks->NumElements(); ui++)
-	{
-		if (papcBlocks->GetPtr(ui) == pcBlock)
-		{
-			return papcCopies->GetPtr(ui);
-		}
-	}
-	return pcBlock;
 }
 
 
@@ -1369,13 +1323,10 @@ void CIRLoopPasses::RewriteOutsideUses(SIRReference sValue, CArrayIRBlocks* papc
 //////////////////////////////////////////////////////////////////////////
 bool CIRLoopPasses::UnswitchLoops(void)
 {
-	CArrayIRReferences	asMap;
-	CArrayIRBlocks		apcBlocks;
-	CArrayIRBlocks		apcCopies;
+	CIRMappedCopier		cCopy;			//The loop's blocks, their copies, and what each value the loop defines is in the copy.
 	CArrayTemplate<SIRUnswitchedValue>	asValues;
 	SIRUnswitchedValue*	psValue;
 	CIRSSAUpdater		cUpdater;
-	SIRInstruction		sCopy;
 	SIRLoop*			psLoop;
 	CIRBlock*			pcBlock;
 	CIRBlock*			pcCopy;
@@ -1386,14 +1337,12 @@ bool CIRLoopPasses::UnswitchLoops(void)
 	CIRBlock*			pcThen;
 	CIRBlock*			pcElse;
 	SIRPhi*				psPhi;
-	SIRPhi*				psCopyPhi;
 	SIRPhiArgument*		psArgument;
 	SIRReference		sCondition;
 	SIRReference		sValue;
 	size				uiLoop;
 	size				ui;
 	size				uiIndex;
-	size				uiArgument;
 	size				uiSize;
 	size				uiSuccessor;
 
@@ -1422,86 +1371,37 @@ bool CIRLoopPasses::UnswitchLoops(void)
 			continue;
 		}
 
-		pcPreheader = psLoop->pcPreheader;
-		if (!pcPreheader)
-		{
-			pcPreheader = psLoop->pcEntering ? AddPreheader(uiLoop - 1) : AddMergedPreheader(uiLoop - 1);
-			psLoop = mpcContext->mcLoops.GetLoop(uiLoop - 1);
-		}
+		pcPreheader = Preheader(uiLoop - 1);
+		psLoop = mpcContext->mcLoops.GetLoop(uiLoop - 1);
 
 		//The copy's blocks and a temporary for each value the loop defines.
-		apcBlocks.Init();
-		apcCopies.Init();
-		asMap.Init();
-		asMap.GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0);
+		cCopy.Init();
+		cCopy.Begin(mpcFunction);
 		for (ui = 0; ui < mpcContext->mcLoops.NumBlocks(uiLoop - 1); ui++)
 		{
 			pcBlock = mpcContext->mcLoops.GetBlock(uiLoop - 1, ui);
-			apcBlocks.Add(pcBlock);
-			apcCopies.Add(mpcFunction->AddBlock());
+			cCopy.AddBlock(pcBlock, mpcFunction->AddBlock());
 			for (uiIndex = 0; uiIndex < pcBlock->masPhis.NumElements(); uiIndex++)
 			{
 				sValue = pcBlock->masPhis.Get(uiIndex)->sResult;
-				*asMap.Get(sValue.Index()) = mpcFunction->AddTemporary(mpcFunction->GetTemporaryType(sValue));
+				cCopy.SetValue(sValue, mpcFunction->AddTemporary(mpcFunction->GetTemporaryType(sValue)));
 			}
 			for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
 			{
 				sValue = pcBlock->masInstructions.Get(uiIndex)->sResult;
 				if (sValue.IsTemporary())
 				{
-					*asMap.Get(sValue.Index()) = mpcFunction->AddTemporary(mpcFunction->GetTemporaryType(sValue));
+					cCopy.SetValue(sValue, mpcFunction->AddTemporary(mpcFunction->GetTemporaryType(sValue)));
 				}
 			}
 		}
 
 		//The copies: their phis, instructions and jumps taking the copies' values and blocks.
-		for (ui = 0; ui < apcBlocks.NumElements(); ui++)
+		for (ui = 0; ui < cCopy.mapcBlocks.NumElements(); ui++)
 		{
-			pcBlock = apcBlocks.GetPtr(ui);
-			pcCopy = apcCopies.GetPtr(ui);
-			for (uiIndex = 0; uiIndex < pcBlock->masPhis.NumElements(); uiIndex++)
-			{
-				psPhi = pcBlock->masPhis.Get(uiIndex);
-				psCopyPhi = pcCopy->AddPhi(psPhi->sType, IROptimiserMapped(&asMap, psPhi->sResult));
-				for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
-				{
-					psArgument = psPhi->asArguments.Get(uiArgument);
-					pcCopy->AddPhiArgument(psCopyPhi, IROptimiserCopyOf(&apcBlocks, &apcCopies, psArgument->pcBlock), IROptimiserMapped(&asMap, psArgument->sValue));
-				}
-			}
-			for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
-			{
-				sCopy = *pcBlock->masInstructions.Get(uiIndex);
-				sCopy.asArguments[0] = IROptimiserMapped(&asMap, sCopy.asArguments[0]);
-				sCopy.asArguments[1] = IROptimiserMapped(&asMap, sCopy.asArguments[1]);
-				sCopy.sResult = IROptimiserMapped(&asMap, sCopy.sResult);
-				pcCopy->masInstructions.Add(&sCopy);
-			}
-			switch (pcBlock->msJump.uiKind)
-			{
-			case IRJ_Jump:
-				pcCopy->Jump(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcBlock->msJump.pcThen));
-				break;
-			case IRJ_Branch:
-				pcCopy->Branch(IROptimiserMapped(&asMap, pcBlock->msJump.sArgument), IROptimiserCopyOf(&apcBlocks, &apcCopies, pcBlock->msJump.pcThen), IROptimiserCopyOf(&apcBlocks, &apcCopies, pcBlock->msJump.pcElse));
-				break;
-			case IRJ_Return:
-				if (pcBlock->msJump.sType.IsNone())
-				{
-					pcCopy->Return();
-				}
-				else
-				{
-					pcCopy->Return(pcBlock->msJump.sType, IROptimiserMapped(&asMap, pcBlock->msJump.sArgument));
-				}
-				break;
-			case IRJ_Throw:
-				pcCopy->Throw();
-				break;
-			default:
-				pcCopy->Unreachable();
-				break;
-			}
+			pcBlock = cCopy.mapcBlocks.GetPtr(ui);
+			pcCopy = cCopy.mapcCopies.GetPtr(ui);
+			cCopy.CopyBlock(pcBlock, pcCopy);
 
 			//The blocks the loop leaves to take the copy's values from the copy.
 			for (uiSuccessor = 0; uiSuccessor < pcBlock->NumSuccessors(); uiSuccessor++)
@@ -1517,7 +1417,7 @@ bool CIRLoopPasses::UnswitchLoops(void)
 					psArgument = pcSuccessor->FindPhiArgument(psPhi, pcBlock);
 					if (psArgument)
 					{
-						sValue = IROptimiserMapped(&asMap, psArgument->sValue);
+						sValue = cCopy.Value(psArgument->sValue);
 						pcSuccessor->AddPhiArgument(psPhi, pcCopy, sValue);
 					}
 				}
@@ -1525,15 +1425,15 @@ bool CIRLoopPasses::UnswitchLoops(void)
 		}
 
 		//The branch goes one way in the loop and the other in the copy; the preheader chooses.
-		pcSwitchCopy = IROptimiserCopyOf(&apcBlocks, &apcCopies, pcSwitch);
+		pcSwitchCopy = cCopy.Block(pcSwitch);
 		sCondition = pcSwitch->msJump.sArgument;
 		pcThen = pcSwitch->msJump.pcThen;
 		pcElse = pcSwitch->msJump.pcElse;
 		pcSwitch->Jump(pcThen);
 		mpcContext->mpcBlockPasses->RemovePhiArguments(pcElse, pcSwitch);
-		pcSwitchCopy->Jump(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcElse));
-		mpcContext->mpcBlockPasses->RemovePhiArguments(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcThen), pcSwitchCopy);
-		pcPreheader->Branch(sCondition, psLoop->pcHead, IROptimiserCopyOf(&apcBlocks, &apcCopies, psLoop->pcHead));
+		pcSwitchCopy->Jump(cCopy.Block(pcElse));
+		mpcContext->mpcBlockPasses->RemovePhiArguments(cCopy.Block(pcThen), pcSwitchCopy);
+		pcPreheader->Branch(sCondition, psLoop->pcHead, cCopy.Block(psLoop->pcHead));
 		Renumber();
 		mpcFunction->ComputePredecessors();
 
@@ -1541,9 +1441,9 @@ bool CIRLoopPasses::UnswitchLoops(void)
 		//before the blocks the branch no longer reaches go: an unreachable cycle would send the updater round it.
 		ComputeDominators();
 		asValues.Init();
-		for (ui = 0; ui < apcBlocks.NumElements(); ui++)
+		for (ui = 0; ui < cCopy.mapcBlocks.NumElements(); ui++)
 		{
-			pcBlock = apcBlocks.GetPtr(ui);
+			pcBlock = cCopy.mapcBlocks.GetPtr(ui);
 			for (uiIndex = 0; uiIndex < pcBlock->masPhis.NumElements() + pcBlock->masInstructions.NumElements(); uiIndex++)
 			{
 				sValue = (uiIndex < pcBlock->masPhis.NumElements()) ? pcBlock->masPhis.Get(uiIndex)->sResult : pcBlock->masInstructions.Get(uiIndex - pcBlock->masPhis.NumElements())->sResult;
@@ -1553,7 +1453,7 @@ bool CIRLoopPasses::UnswitchLoops(void)
 					psValue->sValue = sValue;
 					psValue->uiBlock = ui;
 					psValue->bReached = mpcContext->mcDominators.IsReachable(pcBlock);
-					psValue->bCopyReached = mpcContext->mcDominators.IsReachable(apcCopies.GetPtr(ui));
+					psValue->bCopyReached = mpcContext->mcDominators.IsReachable(cCopy.mapcCopies.GetPtr(ui));
 				}
 			}
 		}
@@ -1571,20 +1471,18 @@ bool CIRLoopPasses::UnswitchLoops(void)
 				cUpdater.Begin(mpcFunction->GetTemporaryType(psValue->sValue));
 				if (psValue->bReached)
 				{
-					cUpdater.Define(apcBlocks.GetPtr(psValue->uiBlock), psValue->sValue);
+					cUpdater.Define(cCopy.mapcBlocks.GetPtr(psValue->uiBlock), psValue->sValue);
 				}
 				if (psValue->bCopyReached)
 				{
-					cUpdater.Define(apcCopies.GetPtr(psValue->uiBlock), IROptimiserMapped(&asMap, psValue->sValue));
+					cUpdater.Define(cCopy.mapcCopies.GetPtr(psValue->uiBlock), cCopy.Value(psValue->sValue));
 				}
-				RewriteOutsideUses(psValue->sValue, &apcBlocks, &apcCopies, &cUpdater);
+				RewriteOutsideUses(psValue->sValue, &cCopy.mapcBlocks, &cCopy.mapcCopies, &cUpdater);
 			}
 		}
 		cUpdater.Kill();
 		asValues.Kill();
-		asMap.Kill();
-		apcCopies.Kill();
-		apcBlocks.Kill();
+		cCopy.Kill();
 		mpcContext->miUnswitched++;
 		return true;
 	}

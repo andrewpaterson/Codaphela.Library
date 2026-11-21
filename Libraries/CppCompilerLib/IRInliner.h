@@ -23,6 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayChars.h"
 #include "IRModule.h"
 #include "IRImports.h"
+#include "IRBlockCopier.h"
 
 
 //A return of the function being inlined: the copy of its block and the value it returns.
@@ -83,11 +84,13 @@ struct SIRInlineLimits
 };
 
 
-class CIRInliner
+class CIRInliner : public CIRBlockCopier
 {
 protected:
 	CIRModule*				mpcModule;
 	CIRFunction*			mpcCaller;
+	CIRFunction*			mpcCallee;					//The function being copied into the caller (InlineCall)...
+	CIRBlock*				mpcRest;					//...and the block its returns go on to: the rest of the call's.
 	size					muiMaxInstructions;
 	size					muiMaxLoopInstructions;		//For a call in a loop.
 	size					muiMaxInlines;
@@ -141,10 +144,13 @@ protected:
 	CIRFunction*	DirectCallee(SIRInstruction* psInstruction);
 	bool			InlineAt(size uiBlock, size uiInstruction, CIRFunction* pcCallee);
 	size			HotLimit(uint64 ulliCount);
-	SIRReference	Map(SIRReference sValue, CIRFunction* pcCallee);
+	SIRReference	CopyValue(SIRReference sValue) override;
+	CIRBlock*		CopyOf(CIRBlock* pcBlock) override;
+	void			CopyOperands(SIRInstruction* psFrom, SIRInstruction* psCopy) override;
+	void			CopyReturn(CIRBlock* pcFrom, CIRBlock* pcCopy) override;
+	void			CopyThrow(CIRBlock* pcFrom, CIRBlock* pcCopy) override;
 	bool			InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee);
 	bool			CalleeNeverThrows(CIRFunction* pcCallee);
-	void			CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pcRest);
 	bool			TakesArgumentAddress(CIRFunction* pcCallee);
 	void			StoreArguments(CIRBlock* pcBlock, CIRFunction* pcCallee);
 	int32			TypeBytes(SIRType sType);

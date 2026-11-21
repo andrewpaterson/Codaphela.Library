@@ -809,11 +809,11 @@ bool CIRInliner::HasLoopCandidate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What a callee's operand is in the caller: a parameter the argument, a
+// What the callee's operand is in the caller: a parameter the argument, a
 // temporary its copy, a constant the caller's constant.
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIRInliner::Map(SIRReference sValue, CIRFunction* pcCallee)
+SIRReference CIRInliner::CopyValue(SIRReference sValue)
 {
 	SIRReference*	psMapped;
 	SIRConstant*	psConstant;
@@ -824,13 +824,13 @@ SIRReference CIRInliner::Map(SIRReference sValue, CIRFunction* pcCallee)
 		psMapped = masMap.Get(sValue.Index());
 		if (psMapped->IsNone())
 		{
-			*psMapped = mpcCaller->AddTemporary(pcCallee->GetTemporaryType(sValue));
+			*psMapped = mpcCaller->AddTemporary(mpcCallee->GetTemporaryType(sValue));
 		}
 		return *psMapped;
 	}
 	if (sValue.IsConstant())
 	{
-		psConstant = pcCallee->GetConstant(sValue);
+		psConstant = mpcCallee->GetConstant(sValue);
 		return mpcCaller->AddConstant(psConstant->sType, psConstant->ulliBits);
 	}
 	if (sValue.IsSymbol() && mpcCalleeModule)
@@ -955,6 +955,7 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 	size					uiSuccessor;
 	size					uiPhi;
 	CIRBlock*				pcRest;
+	CIRBlock*				pcCopy;
 	CIRBlock*				pcSuccessor;
 	SIRPhiArgument*			psArgument;
 	SIRInstruction			sCall;
@@ -1043,9 +1044,16 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 	masThrows.FakeSetUsedElements(0);
 	pcLanding = bDirect ? pcRest->msJump.pcThen : NULL;
 	mpcThrowsTo = bDirect ? pcLanding : pcRest;
+	mpcCallee = pcCallee;
+	mpcRest = pcRest;
 	for (ui = 0; ui < pcCallee->NumBlocks(); ui++)
 	{
-		CopyBlock(pcCallee->GetBlock(ui), pcCallee, pcRest);
+		pcCopy = mapcCopies.GetPtr(ui);
+		CopyBlock(pcCallee->GetBlock(ui), pcCopy);
+		if (mpcCalleeModule)
+		{
+			pcCopy->msJump.uiSource = muiImportSource;
+		}
 	}
 	pcBlock->Jump(mapcCopies.GetPtr(0));
 
@@ -1110,93 +1118,79 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A copy of one of the callee's blocks: its phis, instructions and jump,
-// with a return jumping to pcRest.
+// The copy of one of the callee's blocks (each has one before any is
+// filled).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRInliner::CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pcRest)
+CIRBlock* CIRInliner::CopyOf(CIRBlock* pcBlock)
 {
-	CIRBlock*			pcCopy;
-	size				ui;
-	size				uiArgument;
-	SIRPhi*				psFrom;
-	SIRPhi*				psPhi;
-	SIRPhiArgument*		psArgument;
-	SIRInstruction*		psInstruction;
-	SIRInstruction		sCopy;
-	SIRJump*			psJump;
-	SIRInlineReturn*	psReturn;
+	return mapcCopies.GetPtr(pcBlock->muiIndex);
+}
 
-	pcCopy = mapcCopies.GetPtr(pcFrom->muiIndex);
-	for (ui = 0; ui < pcFrom->masPhis.NumElements(); ui++)
-	{
-		psFrom = pcFrom->masPhis.Get(ui);
-		psPhi = pcCopy->AddPhi(psFrom->sType, Map(psFrom->sResult, pcCallee));
-		for (uiArgument = 0; uiArgument < psFrom->asArguments.NumElements(); uiArgument++)
-		{
-			psArgument = psFrom->asArguments.Get(uiArgument);
-			pcCopy->AddPhiArgument(psPhi, mapcCopies.GetPtr(psArgument->pcBlock->muiIndex), Map(psArgument->sValue, pcCallee));
-		}
-	}
-	for (ui = 0; ui < pcFrom->masInstructions.NumElements(); ui++)
-	{
-		psInstruction = pcFrom->masInstructions.Get(ui);
-		sCopy = *psInstruction;
-		if (mpcCalleeModule)
-		{
-			sCopy.uiSource = muiImportSource;
-		}
-		if ((psInstruction->uiOpcode == IRO_ArgAddress) && !msArguments.IsNone())
-		{
-			//A parameter's address is its place in the arguments' slot.
-			sCopy.uiOpcode = IRO_PtrAdd;
-			sCopy.asArguments[0] = msArguments;
-			sCopy.asArguments[1] = mpcCaller->AddInteger(IRIntegerType(mpcModule->GetPointerSize(0)), *maiArgumentOffsets.Get((size)pcCallee->GetConstant(psInstruction->asArguments[0])->ulliBits));
-			sCopy.sResult = Map(psInstruction->sResult, pcCallee);
-			pcCopy->masInstructions.Add(&sCopy);
-			continue;
-		}
-		sCopy.asArguments[0] = Map(psInstruction->asArguments[0], pcCallee);
-		sCopy.asArguments[1] = Map(psInstruction->asArguments[1], pcCallee);
-		sCopy.sResult = Map(psInstruction->sResult, pcCallee);
-		pcCopy->masInstructions.Add(&sCopy);
-	}
 
-	psJump = &pcFrom->msJump;
-	switch (psJump->uiKind)
-	{
-	case IRJ_Jump:
-		pcCopy->Jump(mapcCopies.GetPtr(psJump->pcThen->muiIndex));
-		break;
-	case IRJ_Branch:
-		pcCopy->Branch(Map(psJump->sArgument, pcCallee), mapcCopies.GetPtr(psJump->pcThen->muiIndex), mapcCopies.GetPtr(psJump->pcElse->muiIndex));
-		break;
-	case IRJ_Return:
-		psReturn = masReturns.Add();
-		psReturn->pcBlock = pcCopy;
-		psReturn->sValue = psJump->sType.IsNone() ? IRNone() : Map(psJump->sArgument, pcCallee);
-		pcCopy->Jump(pcRest);
-		break;
-	case IRJ_Throw:
-		if (mbJoinThrows)
-		{
-			psReturn = masThrows.Add();
-			psReturn->pcBlock = pcCopy;
-			psReturn->sValue = IRNone();
-			pcCopy->Jump(mpcThrowsTo);
-		}
-		else
-		{
-			//Not reached: the callee never throws (CanInline, CalleeNeverThrows).
-			pcCopy->Unreachable();
-		}
-		break;
-	default:
-		pcCopy->Unreachable();
-		break;
-	}
+//////////////////////////////////////////////////////////////////////////
+//
+// The operands of a callee's instruction in the caller.  Another unit's
+// instruction has the call's source: its own are that unit's tokens.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInliner::CopyOperands(SIRInstruction* psFrom, SIRInstruction* psCopy)
+{
 	if (mpcCalleeModule)
 	{
-		pcCopy->msJump.uiSource = muiImportSource;
+		psCopy->uiSource = muiImportSource;
+	}
+	if ((psFrom->uiOpcode == IRO_ArgAddress) && !msArguments.IsNone())
+	{
+		//A parameter's address is its place in the arguments' slot.
+		psCopy->uiOpcode = IRO_PtrAdd;
+		psCopy->asArguments[0] = msArguments;
+		psCopy->asArguments[1] = mpcCaller->AddInteger(IRIntegerType(mpcModule->GetPointerSize(0)), *maiArgumentOffsets.Get((size)mpcCallee->GetConstant(psFrom->asArguments[0])->ulliBits));
+	}
+	else
+	{
+		CIRBlockCopier::CopyOperands(psFrom, psCopy);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The callee returns: its copy goes on to the rest of the call's block,
+// which takes the value returned from masReturns.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInliner::CopyReturn(CIRBlock* pcFrom, CIRBlock* pcCopy)
+{
+	SIRInlineReturn*	psReturn;
+
+	psReturn = masReturns.Add();
+	psReturn->pcBlock = pcCopy;
+	psReturn->sValue = pcFrom->msJump.sType.IsNone() ? IRNone() : CopyValue(pcFrom->msJump.sArgument);
+	pcCopy->Jump(mpcRest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The callee throws: its copy goes to where the call's exception is seen
+// to, when the call is tested.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInliner::CopyThrow(CIRBlock* pcFrom, CIRBlock* pcCopy)
+{
+	SIRInlineReturn*	psReturn;
+
+	if (mbJoinThrows)
+	{
+		psReturn = masThrows.Add();
+		psReturn->pcBlock = pcCopy;
+		psReturn->sValue = IRNone();
+		pcCopy->Jump(mpcThrowsTo);
+	}
+	else
+	{
+		//Not reached: the callee never throws (CanInline, CalleeNeverThrows).
+		pcCopy->Unreachable();
 	}
 }

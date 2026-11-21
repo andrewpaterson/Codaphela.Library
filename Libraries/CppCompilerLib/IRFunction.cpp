@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
 #include "IRFunction.h"
+#include "IRBlockCopier.h"
 
 
 SIRAttributeName	gasIRAttributeNames[IRA_NumWordAttributes] =
@@ -88,6 +89,39 @@ void CIRFunction::Kill(void)
 }
 
 
+//CopyBody's copier: every temporary and constant keeps its index, so a value is itself, and a block is the one
+//with its index.
+class CIRBodyCopier : public CIRBlockCopier
+{
+public:
+	CIRFunction*	mpcTo;
+
+protected:
+	SIRReference	CopyValue(SIRReference sValue) override;
+	CIRBlock*		CopyOf(CIRBlock* pcBlock) override;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIRBodyCopier::CopyValue(SIRReference sValue)
+{
+	return sValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CIRBodyCopier::CopyOf(CIRBlock* pcBlock)
+{
+	return mpcTo->GetBlock(pcBlock->muiIndex);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // This function (just made, in pcSource's module) gets pcSource's parameters,
@@ -97,15 +131,12 @@ void CIRFunction::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRFunction::CopyBody(CIRFunction* pcSource)
 {
+	CIRBodyCopier	cCopier;
 	CIRBlock*		pcFrom;
 	CIRBlock*		pcTo;
 	SIRConstant*	psConstant;
-	SIRPhi*			psFromPhi;
-	SIRPhi*			psToPhi;
-	SIRPhiArgument*	psArgument;
 	SIRReference	sTemporary;
 	size			ui;
-	size			uj;
 	size			uiBlock;
 
 	for (ui = 0; ui < pcSource->masTemporaries.NumElements(); ui++)
@@ -130,27 +161,13 @@ void CIRFunction::CopyBody(CIRFunction* pcSource)
 	{
 		AddBlock(pcSource->GetBlock(uiBlock)->GetName());
 	}
+	cCopier.mpcTo = this;
 	for (uiBlock = 0; uiBlock < pcSource->NumBlocks(); uiBlock++)
 	{
 		pcFrom = pcSource->GetBlock(uiBlock);
 		pcTo = GetBlock(uiBlock);
-		for (ui = 0; ui < pcFrom->masPhis.NumElements(); ui++)
-		{
-			psFromPhi = pcFrom->masPhis.Get(ui);
-			psToPhi = pcTo->AddPhi(psFromPhi->sType, psFromPhi->sResult);
-			for (uj = 0; uj < psFromPhi->asArguments.NumElements(); uj++)
-			{
-				psArgument = psFromPhi->asArguments.Get(uj);
-				pcTo->AddPhiArgument(psToPhi, GetBlock(psArgument->pcBlock->muiIndex), psArgument->sValue);
-			}
-		}
-		for (ui = 0; ui < pcFrom->masInstructions.NumElements(); ui++)
-		{
-			*pcTo->masInstructions.Add() = *pcFrom->masInstructions.Get(ui);
-		}
-		pcTo->msJump = pcFrom->msJump;
-		pcTo->msJump.pcThen = pcFrom->msJump.pcThen ? GetBlock(pcFrom->msJump.pcThen->muiIndex) : NULL;
-		pcTo->msJump.pcElse = pcFrom->msJump.pcElse ? GetBlock(pcFrom->msJump.pcElse->muiIndex) : NULL;
+		cCopier.CopyBlock(pcFrom, pcTo);
+		pcTo->msJump.uiSource = pcFrom->msJump.uiSource;
 	}
 	ComputePredecessors();
 }

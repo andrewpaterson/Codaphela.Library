@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 to 7 are done (2026-11-22).  Stage 8 is next; "The record", at the end, has what each stage
+Where it is: stages 0 to 8 are done (2026-11-22).  Stage 9 is next; "The record", at the end, has what each stage
 found.
 
 
@@ -363,3 +363,32 @@ TestCppCompilerLib passes.
 	The check count is not a constant: RunParallel.py splits a test file into as many processes as its last
 	run's time says, and a file run in two parts counts its 12 set-up checks twice (271,429 to 271,447 over
 	this stage's runs, none failing).
+
+Stage 8 (2026-11-22): blocks are copied by one copier.  Same code: the 4,201 listings are the baseline's.
+TestCppCompilerLib passes.
+
+	CIRBlockCopier (IRBlockCopier.h) copies a block's phis, instructions and jump, each value and block they
+	name taken through what its owner says it is in the copy (CopyValue, CopyOf).  One switch rebuilds a
+	jump.  What the owner may say more is what an instruction's operands, a return and a throw become.
+
+	- The inliner is a copier.  Its Map is CopyValue; a parameter's address and another unit's source are
+	  its CopyOperands; its returns and throws, which go on to the code after the call, are its CopyReturn
+	  and CopyThrow.  Its CopyBlock (70 lines) is gone.
+	- CIRMappedCopier copies some of a function's blocks into the same function: a map of temporaries and
+	  the blocks with their copies.  UnswitchLoops copies its loop with one (its own 45 lines of phis,
+	  instructions and a switch are a call), and RotateLoops copies the head with two (CopyHead gives the
+	  results their temporaries, then asks for the instructions and the jump).  The two functions the loop
+	  passes kept for the same maps (IROptimiserMapped, IROptimiserCopyOf) are the copier's Value and Block.
+	- CIRFunction::CopyBody copies with every value itself and a block the one of its index.
+
+	Preheader (stage 7) also makes the merged preheader of a loop several blocks enter, which RotateLoops
+	and UnswitchLoops each asked for in a fourth form.
+
+	The inliner asks through virtual functions now.  Its time, TestSupportLib65's project compiled a unit
+	at a time (milliseconds, 65C64 and W65C816): 7,090 and 12,614 before, 7,214 and 12,709 after; phases
+	this stage did not touch moved as much between the two runs (parse 24,360 to 24,463; code passes 26,067
+	to 25,809), and the whole compile was 98 and 126 seconds before, 99 and 126 after.
+
+	Not the same as before, where nothing reaches: a block with no jump was copied as unreachable by the
+	inliner and the unswitcher and is copied with no jump now (the verifier takes neither); CopyBody copied
+	a jump's fields as they stood and now sets them as the jump's kind says.
