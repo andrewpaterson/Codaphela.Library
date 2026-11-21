@@ -85,6 +85,7 @@ static const char* TestProject65ProfileFile(void)
 
 static const char* gaszTestProject65Libc65[] = { "string.cpp", "string.asm", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "softfloat.asm", "new.cpp", "exception.cpp", "signal.cpp", "stdio.cpp", "host.cpp", NULL };
 static const char* gaszTestProjectW65C816Suffixes[] = { "W65C816.asm", "W65C816_16.asm", NULL };
+static const char* gaszTestProjectW65C816Libc65[] = { "stdlibW65C816.asm", NULL };		//W65C816 assembly no 65C64 unit has: the heap's kernal call.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -449,6 +450,10 @@ static void TestProject65AddProjects(STestProject65* psProject, CCPP65Builder* p
 				szUnit.Kill();
 			}
 		}
+	}
+	for (i = 0; (geTestProject65Target == CPPT_W65C816) && gaszTestProjectW65C816Libc65[i]; i++)
+	{
+		pcBuilder->AddUnit("Libc65", szPath.Text(), gaszTestProjectW65C816Libc65[i], true);
 	}
 	pcBuilder->AddMathTables(szPath.Text());
 	szPath.Kill();

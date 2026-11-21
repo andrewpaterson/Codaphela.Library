@@ -181,6 +181,7 @@ static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource,
 	static const char*	aszStringW65C816[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
 	static const char*	aszSoftFloat[] = { "Libc65/softfloat.cpp", "Libc65/softfloat.asm", "Libc65/softfloatW65C816.asm", NULL };
 	static const char*	aszExceptions[] = { "Libc65", "exception.cpp", "Libc65", "stdlib.cpp", "Libc65", "string.cpp", "Libc65", "ctype.cpp", "Libc65", "new.cpp", "BaseLib", "TrueMallocator.cpp", NULL };
+	static const char*	aszExceptionsW65C816[] = { "BaseLib", "BankMallocator.cpp", "Libc65", "stdlibW65C816.asm", NULL };	//malloc's heap by banks.
 	CFileUtil			cFileUtil;
 	CChars				szLibc65;
 	bool				bBuilt;
@@ -219,6 +220,14 @@ static bool ConformanceBuildWith(CCPP65Builder* pcBuilder, const char* szSource,
 			szLibc65.Append(aszExceptions[i]);
 			cFileUtil.FullPath(&szLibc65);
 			pcBuilder->AddUnit(aszExceptions[i], szLibc65.Text(), aszExceptions[i + 1], true);
+			szLibc65.Kill();
+		}
+		for (i = 0; (eTarget == CPPT_W65C816) && aszExceptionsW65C816[i]; i += 2)
+		{
+			TestCPP65LibrariesDirectory(&szLibc65, aszExceptionsW65C816[i]);
+			szLibc65.Append(aszExceptionsW65C816[i]);
+			cFileUtil.FullPath(&szLibc65);
+			pcBuilder->AddUnit(aszExceptionsW65C816[i], szLibc65.Text(), aszExceptionsW65C816[i + 1], true);
 			szLibc65.Kill();
 		}
 	}

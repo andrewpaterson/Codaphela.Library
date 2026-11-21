@@ -235,12 +235,13 @@ const char* CCPPTargetW65C816::GetAssemblyUnitSuffix(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Libc65's runtime (with its own assembly for string and soft float).
+// Libc65's runtime (with its own assembly for string and soft float, and
+// the HCP65 kernal's system call for the heap).
 //
 //////////////////////////////////////////////////////////////////////////
 const char** CCPPTargetW65C816::GetLibc65Units(void)
 {
-	static const char*	aszUnits[] = { "string.cpp", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "new.cpp", "exception.cpp", "signal.cpp", "stdio.cpp", "host.cpp", "stringW65C816.asm", "stringW65C816_16.asm", "softfloatW65C816.asm", NULL };
+	static const char*	aszUnits[] = { "string.cpp", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "new.cpp", "exception.cpp", "signal.cpp", "stdio.cpp", "host.cpp", "stringW65C816.asm", "stringW65C816_16.asm", "softfloatW65C816.asm", "stdlibW65C816.asm", NULL };
 
 	return aszUnits;
 }
