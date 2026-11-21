@@ -280,20 +280,9 @@ debug builds:
 Passes
 ------
 
-The first passes, roughly in the order they will be written:
-
-	simplify cfg				join straight line blocks, remove empty and unreachable
-								ones, fold brif on a constant
-	constant folding			floats bit exact with softfloat.cpp
-	dead code elimination
-	copy elimination			copies and phis that are always one value
-	inlining					small functions, functions called once, the front end's
-								inline queue; most of C++'s benefit
-	slot promotion				slots whose address stops escaping after inlining become
-								temporaries (inlined this pointers go here)
-	value numbering (GVN)		the same computation once
-	loop invariant code motion
-	strength reduction			i * 4 in a loop becomes a pointer stepping by 4
+The passes are listed once, in IRPipeline.h (IR_PASSES): a row for each, with the group that has it and a line of
+what it does, from which the code's lists of them are made.  CIRPipeline::SetStandard has the order they run in.
+What follows is how they came to be, as it was written at the time.
 
 Each pass can be switched off on its own, so a wrong answer can be narrowed down by
 switching passes off one at a time.

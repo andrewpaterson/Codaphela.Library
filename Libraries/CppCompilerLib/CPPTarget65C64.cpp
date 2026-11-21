@@ -417,7 +417,6 @@ void CCPPTarget65C64::BuildPipeline(CIRPipeline* pcPipeline)
 void CCPPTarget65C64::ConfigureOptimiser(CIROptimiser* pcOptimiser)
 {
 	pcOptimiser->SetIndexedAddresses(true);
-	pcOptimiser->SetConstantDivisions(false);
 	pcOptimiser->SetDivideRemainders(IR_DIVIDE_REMAINDERS_8 | IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32);
 }
 

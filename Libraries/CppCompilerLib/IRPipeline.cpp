@@ -24,41 +24,17 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 static const char*	gaszIRPasses[IRP_NumPasses] =
 {
-	"SimplifyCFG",
-	"UnifySlotTypes",
-	"SplitSlots",
-	"PromoteSlots",
-	"RemoveTrivialPhis",
-	"FoldConstants",
-	"FoldNullTests",
-	"NarrowTruncations",
-	"BoundDivisions",
-	"SignedPowerDivisions",
-	"DivisibilityTests",
-	"ConstantDivisions",
-	"ShareDivisions",
-	"RemoveCommonSubexpressions",
-	"RemoveRedundantLoads",
-	"MergeAddressPhis",
-	"RotateLoops",
-	"LessLoopTests",
-	"ReplaceLoopCounters",
-	"NarrowCounters",
-	"ReduceMultiplies",
-	"ReplaceExitValues",
-	"DeleteDeadLoops",
-	"ReduceStrength",
-	"SplitLoopAddresses",
-	"HoistInvariants",
-	"SinkLoads",
-	"HoistCommon",
-	"UnswitchLoops",
-	"ReplaceLoopIdioms",
-	"RemoveDeadCode",
-	"SinkComparisons",
-	"NarrowMultiplies",
-	"BiasSignedIndices",
-	"ReduceDivisions",
+#define IR_PASS_NAME(NAME, GROUP, GROUPCLASS, DOES)	#NAME,
+	IR_PASSES(IR_PASS_NAME)
+#undef IR_PASS_NAME
+};
+
+
+static const char*	gaszIRPassDescriptions[IRP_NumPasses] =
+{
+#define IR_PASS_DOES(NAME, GROUP, GROUPCLASS, DOES)	DOES,
+	IR_PASSES(IR_PASS_DOES)
+#undef IR_PASS_DOES
 };
 
 
@@ -299,5 +275,16 @@ SIRPipelineStep* CIRPipeline::GetStep(int iStep)
 const char* CIRPipeline::GetPassName(EIRPass ePass)
 {
 	return gaszIRPasses[ePass];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the pass does, in a line (its row of IR_PASSES).
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CIRPipeline::GetPassDescription(EIRPass ePass)
+{
+	return gaszIRPassDescriptions[ePass];
 }
 

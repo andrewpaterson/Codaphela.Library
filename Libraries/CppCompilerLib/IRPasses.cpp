@@ -32,7 +32,7 @@ void CIRPassContext::Init(CIRModule* pcModule)
 	mpcModule = pcModule;
 	mpcFunction = NULL;
 	mbIndexedAddresses = true;
-	mbConstantDivisions = false;
+	mpcPipeline = NULL;
 	muiDivideRemainders = 0;
 	mbBranchRanges = false;
 	mbDominatorRanges = false;

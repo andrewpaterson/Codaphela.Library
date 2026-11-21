@@ -246,6 +246,7 @@ class CIRRangePasses;
 //What the optimiser's passes share while a function is optimised: the function, the target's settings, the
 //analyses (the dominators, each temporary's definition, the loops), the replacements a pass is making, the uses
 //counted, and the groups of passes themselves, for the few functions one group has that another calls.
+class CIRPipeline;
 class CIRPassContext
 {
 public:
@@ -253,7 +254,7 @@ public:
 	CIRFunction*			mpcFunction;
 	bool					mbIndexedAddresses;	//Loads and stores add a pointer and an index for nothing (the 65C64's [R1 + R2]).
 	bool					mbRestrict;			//The module has restrict symbols or the function restrict parameters (see PointerBase).
-	bool					mbConstantDivisions;	//Divides by constants are multiplies (SetConstantDivisions).
+	CIRPipeline*			mpcPipeline;		//The passes the optimiser runs: a pass asks it whether another is one of them (Has).
 	uint32					muiDivideRemainders;	//The IR_DIVIDE_REMAINDERS_ divides that leave their remainder for a urem or srem right after them.
 	bool					mbBranchRanges;		//SignedRange narrows by the branches to a value's block (predecessors found).
 	bool					mbDominatorRanges;	//...and by those above a block with several predecessors, from its dominators (worked out).

@@ -691,16 +691,17 @@ bool CIRDivisionPasses::SplitDivisor(SIRInstruction* psInstruction, int64 lliMin
 
 //////////////////////////////////////////////////////////////////////////
 //
-// x % d next to x / d in one block (d not a constant with
-// SetConstantDivisions: ConstantDivisions has those; the same signedness and
-// type) is x - (x / d) * d: one divide
+// x % d next to x / d in one block (d not a constant where ConstantDivisions
+// is a pass of the pipeline, which has those; the same signedness and type)
+// is x - (x / d) * d: one divide
 // instead of two, for a target whose divides are runtime calls (a multiply
 // is much cheaper).  When the remainder comes first a divide is put before
 // it, which common subexpressions make the later one.  C's division rounds
 // towards 0, so it holds signed too.  A urem or srem whose divide leaves the
 // remainder (LeavesRemainder) is instead moved to right after its udiv or
-// sdiv, or the divide is put right before it.  Without SetConstantDivisions
-// only that is done.
+// sdiv, or the divide is put right before it.  Only that is done where
+// ConstantDivisions is no pass of the pipeline: it is one for a target whose
+// divides are runtime calls, and is how this pass knows of such a target.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRDivisionPasses::ShareDivisions(void)
@@ -718,8 +719,11 @@ bool CIRDivisionPasses::ShareDivisions(void)
 	size			uiDivide;
 	size			uiAt;
 	uint16			uiDivideOpcode;
+	bool			bCalls;
 	bool			bChanged;
 
+	//The target's divides are calls where divisions by constants are made multiplies.
+	bCalls = mpcContext->mpcPipeline->Has(IRP_ConstantDivisions);
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -727,7 +731,7 @@ bool CIRDivisionPasses::ShareDivisions(void)
 		for (uiRemainder = 0; uiRemainder < pcBlock->masInstructions.NumElements(); uiRemainder++)
 		{
 			psRemainder = pcBlock->masInstructions.Get(uiRemainder);
-			if (!IsIRRemainder(psRemainder->uiOpcode) || (mpcContext->mbConstantDivisions && psRemainder->asArguments[1].IsConstant()) || !psRemainder->sType.IsInteger())
+			if (!IsIRRemainder(psRemainder->uiOpcode) || (bCalls && psRemainder->asArguments[1].IsConstant()) || !psRemainder->sType.IsInteger())
 			{
 				continue;
 			}
@@ -765,7 +769,7 @@ bool CIRDivisionPasses::ShareDivisions(void)
 				bChanged = true;
 				continue;
 			}
-			if (!mpcContext->mbConstantDivisions)
+			if (!bCalls)
 			{
 				continue;
 			}

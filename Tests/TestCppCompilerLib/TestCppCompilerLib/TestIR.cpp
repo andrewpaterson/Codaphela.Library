@@ -1032,7 +1032,7 @@ void TestIRLoops(void)
 #define IR_TEST_NARROW_MULTIPLIES	0x04	//NarrowMultiplies is in the pipeline (the W65C816's).
 #define IR_TEST_NARROW_COUNTERS		0x08	//NarrowCounters is (the W65C816's).
 #define IR_TEST_BIASED_INDICES		0x10	//MergeAddressPhis and BiasSignedIndices are (the W65C816's [p],Y).
-#define IR_TEST_CONSTANT_DIVISIONS	0x20	//SetConstantDivisions (the W65C816's).
+#define IR_TEST_CONSTANT_DIVISIONS	0x20	//ConstantDivisions is (the W65C816's, whose divides are calls).
 #define IR_TEST_DIVIDE_REMAINDERS	0x40	//SetDivideRemainders of the 65C64's divides (unsigned, 8 to 32 bits).
 #define IR_TEST_COUNTER_DIVISIONS	0x80	//ReduceDivisions is (the W65C816's).
 
@@ -1068,7 +1068,6 @@ void AssertIROptimisedOptions(const char* szExpected, const char* szText, uint32
 	cParser.Kill();
 	cOptimiser.Init(&cModule);
 	cOptimiser.SetIndexedAddresses((uiOptions & IR_TEST_INDEXED_ADDRESSES) != 0);
-	cOptimiser.SetConstantDivisions((uiOptions & IR_TEST_CONSTANT_DIVISIONS) != 0);
 
 	//The standard pipeline, without the passes a target chooses that the test doesn't ask for.
 	if (!(uiOptions & IR_TEST_NARROW_MULTIPLIES))
@@ -1082,6 +1081,10 @@ void AssertIROptimisedOptions(const char* szExpected, const char* szText, uint32
 	if (!(uiOptions & IR_TEST_COUNTER_DIVISIONS))
 	{
 		cOptimiser.GetPipeline()->Remove(IRP_ReduceDivisions);
+	}
+	if (!(uiOptions & IR_TEST_CONSTANT_DIVISIONS))
+	{
+		cOptimiser.GetPipeline()->Remove(IRP_ConstantDivisions);
 	}
 	if (!(uiOptions & IR_TEST_BIASED_INDICES))
 	{
@@ -1287,6 +1290,55 @@ static bool TestIROpcodeIn(uint16 uiOpcode, const uint16* pauiOpcodes)
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The passes' one table (IR_PASSES): each pass's name is its enumerator's,
+// each says what it does, and the optimiser has a pass of that name for
+// each.  A pipeline says which of them are run: the standard one runs
+// ConstantDivisions, which is how ShareDivisions knows the target's divides
+// are calls, until a target takes it out; and a pass that only follows
+// another is not one the pipeline has.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRPassTable(void)
+{
+	CIRPipeline	cPipeline;
+	int			iPass;
+	size		uiLength;
+
+	AssertString("SimplifyCFG", CIRPipeline::GetPassName(IRP_SimplifyCFG));
+	AssertString("ConstantDivisions", CIRPipeline::GetPassName(IRP_ConstantDivisions));
+	AssertString("ReduceDivisions", CIRPipeline::GetPassName(IRP_ReduceDivisions));
+	AssertInt(IRP_NumPasses - 1, IRP_ReduceDivisions);
+	for (iPass = 0; iPass < IRP_NumPasses; iPass++)
+	{
+		AssertTrue(CIRPipeline::GetPassName((EIRPass)iPass)[0] != '\0');
+		uiLength = strlen(CIRPipeline::GetPassDescription((EIRPass)iPass));
+		AssertTrue(uiLength > 20);
+		AssertTrue(CIRPipeline::GetPassDescription((EIRPass)iPass)[uiLength - 1] == '.');
+	}
+
+	cPipeline.Init();
+	cPipeline.SetStandard();
+	for (iPass = 0; iPass < IRP_NumPasses; iPass++)
+	{
+		AssertTrue(cPipeline.Has((EIRPass)iPass));
+	}
+	cPipeline.Remove(IRP_ConstantDivisions);
+	AssertFalse(cPipeline.Has(IRP_ConstantDivisions));
+	AssertTrue(cPipeline.Has(IRP_ShareDivisions));
+
+	//NarrowMultiplies runs after the rounds, and FoldConstants follows it: without the rounds' FoldConstants the
+	//pipeline no longer has that pass, though it is still a step.
+	cPipeline.Init();
+	cPipeline.AddAfter(IRP_NarrowMultiplies);
+	cPipeline.AddFollowing(IRP_FoldConstants);
+	AssertTrue(cPipeline.Has(IRP_NarrowMultiplies));
+	AssertFalse(cPipeline.Has(IRP_FoldConstants));
+	AssertInt(2, cPipeline.NumSteps());
 }
 
 
@@ -6283,6 +6335,7 @@ void TestIR(void)
 	TestIRComparisonOpcodes();
 	TestIRComparisonColumns();
 	TestIROpcodeClasses();
+	TestIRPassTable();
 	TestIROptimiserPointerConstantWidth();
 	TestIROptimiserHoistableDivisions();
 	TestIROptimiser();

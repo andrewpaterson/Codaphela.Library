@@ -53,51 +53,21 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	InitPasses();
 	mcOwnPipeline.SetStandard();
 	mpcPipeline = &mcOwnPipeline;
+	mcContext.mpcPipeline = mpcPipeline;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each pass: its name and the function of its group that runs it.
+// Each pass: its name and the function of its group that runs it, from
+// its row of IR_PASSES.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::InitPasses(void)
 {
-	macPasses[IRP_SimplifyCFG].Init(CIRPipeline::GetPassName(IRP_SimplifyCFG), &mcBlockPasses, (FIRPass)&CIRBlockPasses::SimplifyCFG);
-	macPasses[IRP_UnifySlotTypes].Init(CIRPipeline::GetPassName(IRP_UnifySlotTypes), &mcMemoryPasses, (FIRPass)&CIRMemoryPasses::UnifySlotTypes);
-	macPasses[IRP_SplitSlots].Init(CIRPipeline::GetPassName(IRP_SplitSlots), &mcMemoryPasses, (FIRPass)&CIRMemoryPasses::SplitSlots);
-	macPasses[IRP_PromoteSlots].Init(CIRPipeline::GetPassName(IRP_PromoteSlots), &mcPromotionPasses, (FIRPass)&CIRPromotionPasses::PromoteSlots);
-	macPasses[IRP_RemoveTrivialPhis].Init(CIRPipeline::GetPassName(IRP_RemoveTrivialPhis), &mcBlockPasses, (FIRPass)&CIRBlockPasses::RemoveTrivialPhis);
-	macPasses[IRP_FoldConstants].Init(CIRPipeline::GetPassName(IRP_FoldConstants), &mcFoldingPasses, (FIRPass)&CIRFoldingPasses::FoldConstants);
-	macPasses[IRP_FoldNullTests].Init(CIRPipeline::GetPassName(IRP_FoldNullTests), &mcRangePasses, (FIRPass)&CIRRangePasses::FoldNullTests);
-	macPasses[IRP_NarrowTruncations].Init(CIRPipeline::GetPassName(IRP_NarrowTruncations), &mcRangePasses, (FIRPass)&CIRRangePasses::NarrowTruncations);
-	macPasses[IRP_BoundDivisions].Init(CIRPipeline::GetPassName(IRP_BoundDivisions), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::BoundDivisions);
-	macPasses[IRP_SignedPowerDivisions].Init(CIRPipeline::GetPassName(IRP_SignedPowerDivisions), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::SignedPowerDivisions);
-	macPasses[IRP_DivisibilityTests].Init(CIRPipeline::GetPassName(IRP_DivisibilityTests), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::DivisibilityTests);
-	macPasses[IRP_ConstantDivisions].Init(CIRPipeline::GetPassName(IRP_ConstantDivisions), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::ConstantDivisions);
-	macPasses[IRP_ShareDivisions].Init(CIRPipeline::GetPassName(IRP_ShareDivisions), &mcDivisionPasses, (FIRPass)&CIRDivisionPasses::ShareDivisions);
-	macPasses[IRP_RemoveCommonSubexpressions].Init(CIRPipeline::GetPassName(IRP_RemoveCommonSubexpressions), &mcFoldingPasses, (FIRPass)&CIRFoldingPasses::RemoveCommonSubexpressions);
-	macPasses[IRP_RemoveRedundantLoads].Init(CIRPipeline::GetPassName(IRP_RemoveRedundantLoads), &mcMemoryPasses, (FIRPass)&CIRMemoryPasses::RemoveRedundantLoads);
-	macPasses[IRP_MergeAddressPhis].Init(CIRPipeline::GetPassName(IRP_MergeAddressPhis), &mcAddressPasses, (FIRPass)&CIRAddressPasses::MergeAddressPhis);
-	macPasses[IRP_RotateLoops].Init(CIRPipeline::GetPassName(IRP_RotateLoops), &mcLoopPasses, (FIRPass)&CIRLoopPasses::RotateLoops);
-	macPasses[IRP_LessLoopTests].Init(CIRPipeline::GetPassName(IRP_LessLoopTests), &mcLoopPasses, (FIRPass)&CIRLoopPasses::LessLoopTests);
-	macPasses[IRP_ReplaceLoopCounters].Init(CIRPipeline::GetPassName(IRP_ReplaceLoopCounters), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReplaceLoopCounters);
-	macPasses[IRP_NarrowCounters].Init(CIRPipeline::GetPassName(IRP_NarrowCounters), &mcCounterPasses, (FIRPass)&CIRCounterPasses::NarrowCounters);
-	macPasses[IRP_ReduceDivisions].Init(CIRPipeline::GetPassName(IRP_ReduceDivisions), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReduceDivisions);
-	macPasses[IRP_ReduceMultiplies].Init(CIRPipeline::GetPassName(IRP_ReduceMultiplies), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReduceMultiplies);
-	macPasses[IRP_ReplaceExitValues].Init(CIRPipeline::GetPassName(IRP_ReplaceExitValues), &mcLoopPasses, (FIRPass)&CIRLoopPasses::ReplaceExitValues);
-	macPasses[IRP_DeleteDeadLoops].Init(CIRPipeline::GetPassName(IRP_DeleteDeadLoops), &mcLoopPasses, (FIRPass)&CIRLoopPasses::DeleteDeadLoops);
-	macPasses[IRP_ReduceStrength].Init(CIRPipeline::GetPassName(IRP_ReduceStrength), &mcCounterPasses, (FIRPass)&CIRCounterPasses::ReduceStrength);
-	macPasses[IRP_SplitLoopAddresses].Init(CIRPipeline::GetPassName(IRP_SplitLoopAddresses), &mcAddressPasses, (FIRPass)&CIRAddressPasses::SplitLoopAddresses);
-	macPasses[IRP_HoistInvariants].Init(CIRPipeline::GetPassName(IRP_HoistInvariants), &mcLoopPasses, (FIRPass)&CIRLoopPasses::HoistInvariants);
-	macPasses[IRP_SinkLoads].Init(CIRPipeline::GetPassName(IRP_SinkLoads), &mcLoopPasses, (FIRPass)&CIRLoopPasses::SinkLoads);
-	macPasses[IRP_HoistCommon].Init(CIRPipeline::GetPassName(IRP_HoistCommon), &mcLoopPasses, (FIRPass)&CIRLoopPasses::HoistCommon);
-	macPasses[IRP_UnswitchLoops].Init(CIRPipeline::GetPassName(IRP_UnswitchLoops), &mcLoopPasses, (FIRPass)&CIRLoopPasses::UnswitchLoops);
-	macPasses[IRP_ReplaceLoopIdioms].Init(CIRPipeline::GetPassName(IRP_ReplaceLoopIdioms), &mcIdiomPasses, (FIRPass)&CIRIdiomPasses::ReplaceLoopIdioms);
-	macPasses[IRP_RemoveDeadCode].Init(CIRPipeline::GetPassName(IRP_RemoveDeadCode), &mcBlockPasses, (FIRPass)&CIRBlockPasses::RemoveDeadCode);
-	macPasses[IRP_SinkComparisons].Init(CIRPipeline::GetPassName(IRP_SinkComparisons), &mcBlockPasses, (FIRPass)&CIRBlockPasses::SinkComparisons);
-	macPasses[IRP_NarrowMultiplies].Init(CIRPipeline::GetPassName(IRP_NarrowMultiplies), &mcRangePasses, (FIRPass)&CIRRangePasses::NarrowMultiplies);
-	macPasses[IRP_BiasSignedIndices].Init(CIRPipeline::GetPassName(IRP_BiasSignedIndices), &mcAddressPasses, (FIRPass)&CIRAddressPasses::BiasSignedIndices);
+#define IR_PASS_INIT(NAME, GROUP, GROUPCLASS, DOES)	macPasses[IRP_##NAME].Init(CIRPipeline::GetPassName(IRP_##NAME), &GROUP, (FIRPass)&GROUPCLASS::NAME);
+	IR_PASSES(IR_PASS_INIT)
+#undef IR_PASS_INIT
 }
 
 
@@ -111,6 +81,7 @@ void CIROptimiser::InitPasses(void)
 void CIROptimiser::SetPipeline(CIRPipeline* pcPipeline)
 {
 	mpcPipeline = pcPipeline ? pcPipeline : &mcOwnPipeline;
+	mcContext.mpcPipeline = mpcPipeline;
 }
 
 
@@ -219,18 +190,6 @@ void CIROptimiser::SetIndexedAddresses(bool bIndexedAddresses)
 void CIROptimiser::SetWarnings(CChars* pszWarnings)
 {
 	mcContext.mpszWarnings = pszWarnings;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether ConstantDivisions runs (for a target whose divides are calls:
-// the W65C816's).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIROptimiser::SetConstantDivisions(bool bConstantDivisions)
-{
-	mcContext.mbConstantDivisions = bConstantDivisions;
 }
 
 

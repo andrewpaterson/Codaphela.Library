@@ -675,7 +675,6 @@ void CCPPTargetW65C816::GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOp
 void CCPPTargetW65C816::ConfigureOptimiser(CIROptimiser* pcOptimiser)
 {
 	pcOptimiser->SetIndexedAddresses(false);
-	pcOptimiser->SetConstantDivisions(true);
 	pcOptimiser->SetDivideRemainders(IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32 | IR_DIVIDE_REMAINDERS_64 | IR_DIVIDE_REMAINDERS_SIGNED);
 }
 

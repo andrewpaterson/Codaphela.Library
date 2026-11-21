@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 and 1 are done (2026-11-21).  Stage 2 is next; "The record", at the end, has what each stage
+Where it is: stages 0 to 2 are done (2026-11-21).  Stage 3 is next; "The record", at the end, has what each stage
 found.
 
 
@@ -223,9 +223,29 @@ every one.  TestCppCompilerLib passes (271,231).
 	which were IRInvertedComparison and IRSwappedComparison; NarrowComparison's "uiOpcode += IRO_ULt -
 	IRO_SLt"; CIRKnownBits::EdgeBound's switch over the eight orderings and InstructionMost's list of the float
 	comparisons; IROptimiserHoistable, IRSpecialiseFollows and IROptimiserNarrows; IsIRSignedWrapping and
-	IsIRIntegerConversion; and the four divisions wherever two or four of them were written out (26 places in
+	IsIRIntegerConversion; and the four divisions wherever two or four of them were written out (29 places in
 	the Divisions, Folding, Counters, Ranges and Loops passes).
 
 	Looked at and found to agree: every hand list was the class it is now a test of, so no pass takes an
 	opcode it didn't.  Left as they are: a test of one opcode (IRO_UDiv alone), and the back ends, which are
 	findings 75 to 88's.
+
+Stage 2 (2026-11-21): one row for each pass.  Same code: the 4,201 listings are the baseline's.  TestCppCompilerLib
+passes (271,380).
+
+	IRPipeline.h's IR_PASSES has a row for each of the 35 passes: its name, the optimiser's group that has it
+	and what it does in a line.  The enum, the names (gaszIRPasses), the new CIRPipeline::GetPassDescription and
+	CIROptimiser::InitPasses are made from the rows, where the last was 35 lines each naming its pass three
+	times.  The order they run in is still CIRPipeline::SetStandard's, which is the one place that is said.  The
+	enum's comment no longer says its order is that one.  IROptimiser.h's list of 21 of the passes is gone (the
+	rows say what each does; the comment above a pass's function says the rest), and IR.txt's "first passes,
+	roughly in the order they will be written" points at the rows.  TestIRPassTable holds the names and
+	descriptions and what a pipeline has.
+
+	Whether divisions by constants are made multiplies is said once.  A target took ConstantDivisions out of
+	its pipeline or left it in, and then told the optimiser the same thing again (SetConstantDivisions), which
+	ShareDivisions read.  The setter and CIRPassContext::mbConstantDivisions are gone: ShareDivisions asks the
+	pipeline (CIRPipeline::Has, which had no caller), through the context's new mpcPipeline.  The two targets
+	said the same thing both ways, so nothing changes for them.  TestIR's optimiser said it only the one way
+	(the flag off, the pass in): its IR_TEST_CONSTANT_DIVISIONS now takes the pass out when it is not asked for,
+	and every case passed as it was.
