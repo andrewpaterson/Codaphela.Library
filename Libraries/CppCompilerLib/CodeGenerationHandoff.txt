@@ -302,7 +302,7 @@ Part 1, the 65C64:
 	    threshold, and then as an analysis both back ends read (stage 7's one record for each temporary is
 	    stage 7's).
 
-	    Done 2026-11-14 for the 65C64.  CIRKnownBits (IRKnownBits.cpp, shared, machine independent) bounds how
+	    Done 2026-11-14 for the 65C64.  CIRMost (IRMost.cpp, CIRKnownBits until 2026-11-22; shared, machine independent) bounds how
 	    many low bits of each temporary may be set, phis worked to a fixed point, and what the defining
 	    instruction works out in a 32 bit register before truncating (and: the fewer; or, xor: the more; add:
 	    one more; mul: the sum; lshr by a constant: fewer; shl by one: more; zext, trunc, copy, udiv, urem;
@@ -313,7 +313,7 @@ Part 1, the 65C64:
 	    estimate, which counted only facts local to a block; what the rest is wasn't looked into.  Not yet: ranges from loop tests (add X, 1 / and X, 65535 of a
 	    counter below a 16 bit bound: done later the same day, below) and the W65C816 reading it in place of
 	    FindZeroWords (Part 2).
-	    Ranges: CIRKnownBits keeps each value's largest, not its bits; a use below a branch on a comparison
+	    Ranges: CIRMost keeps each value's largest, not its bits; a use below a branch on a comparison
 	    (through single predecessor blocks) and a phi's value on a branch's edge are bounded by it (i < n, so
 	    i + 1 <= n); a phi that keeps rising is widened to its type's largest, then four narrowing rounds.
 	    Against da1304e66: -0.08%, -0.04%, -0.20%, no program slower.
@@ -378,7 +378,7 @@ copies before a jump, but much has changed since, so nothing is chosen before th
 	the three suites, 79% in compiled code).  Compiled code: frame loads and stores ([D + n]) about 23%, loads
 	through pointers about 11% (the 816 has only A, X and Y, so it lives in the frame); copies frame to frame
 	2.5% (at a block's end 0.7%, the rest spread out); bra before a label 0.74% spread thin; byte loads masked
-	with and 0xFF 0.5% (masks after arithmetic under 0.1%, so CIRKnownBits in place of FindZeroWords would
+	with and 0xFF 0.5% (masks after arithmetic under 0.1%, so CIRMost in place of FindZeroWords would
 	give little); a store then a load of the same slot 0.08%.  Runtime: soft float 8.4%, MemMove 3.3%,
 	R816_Mul32 1.95% (about 144 cycles a call; its hot callers multiply a size read from memory, nothing to
 	narrow), R816_UDiv16 1.4%, R816_LShr32 1.1%, R816_UDiv32 0.9%.  The call site records give a caller's line

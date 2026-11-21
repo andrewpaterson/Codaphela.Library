@@ -19,6 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
+#include "IRMost.h"
 #include "IROptimiserInternal.h"
 
 
@@ -243,17 +244,55 @@ SIRReference CIRRangePasses::Narrowed(SIRReference sValue, SIRType sType, CArray
 }
 
 
+//UpperBound's operands, for the rules of the largest a value can be: each is as large as UpperBound says of it,
+//looking one definition fewer back.
+class CIRBoundOperands : public CIRMostRules
+{
+public:
+	CIRRangePasses*	mpcPasses;
+	CIRDefinitions*	mpcDefinitions;
+	int				miDepth;
+
+protected:
+	uint64			Most(SIRReference sValue) override;
+	SIRInstruction*	Definition(SIRReference sValue) override;
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
-// The most sValue can be, unsigned: a constant; the narrow type's most for a
-// zext; the smaller of an and's; x >> c, x % c and x / c of x's; the sum of
-// an add's that can't wrap; the most of a phi's arguments, each as the
-// branch to the phi bounds it (EdgeBound) or as it is.  Else all ones of its
-// type.  mpcContext->mcDefinitions must be found.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CIRBoundOperands::Most(SIRReference sValue)
+{
+	return mpcPasses->UpperBound(sValue, miDepth);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInstruction* CIRBoundOperands::Definition(SIRReference sValue)
+{
+	return sValue.IsTemporary() ? mpcDefinitions->Instruction(sValue) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The most sValue can be as an unsigned integer of its type: a constant;
+// what its instruction works out from the most its operands can be, when
+// its type holds that (the rules are CIRMostRules', the back end's too:
+// an and, an add that can't wrap, a multiply, a shift, x / c ...), up to
+// iDepth definitions back; the most of a phi's arguments, each as the
+// branch to the phi bounds it.  Else all ones of its type.
+// mpcContext->mcDefinitions must be found.
 //
 //////////////////////////////////////////////////////////////////////////
 uint64 CIRRangePasses::UpperBound(SIRReference sValue, int iDepth)
 {
+	CIRBoundOperands	cOperands;
 	SIRInstruction*	psInstruction;
 	SIRPhi*			psPhi;
 	SIRPhiArgument*	psArgument;
@@ -262,7 +301,6 @@ uint64 CIRRangePasses::UpperBound(SIRReference sValue, int iDepth)
 	uint64			ulliMost;
 	uint64			ulliFirst;
 	uint64			ulliSecond;
-	uint64			ulliConstant;
 	size			ui;
 
 	sType = mpcFunction->TypeOf(sValue);
@@ -280,48 +318,15 @@ uint64 CIRRangePasses::UpperBound(SIRReference sValue, int iDepth)
 		return ulliMost;
 	}
 
+	cOperands.mpcPasses = this;
+	cOperands.mpcDefinitions = &mpcContext->mcDefinitions;
+	cOperands.miDepth = iDepth - 1;
 	psInstruction = mpcContext->mcDefinitions.Instruction(sValue);
 	if (psInstruction)
 	{
-		ulliConstant = psInstruction->asArguments[1].IsConstant() ? IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) : 0;
-		switch (psInstruction->uiOpcode)
-		{
-		case IRO_ZExt:
-			return IRTruncate(mpcFunction->TypeOf(psInstruction->asArguments[0]), UpperBound(psInstruction->asArguments[0], iDepth - 1));
-		case IRO_And:
-			ulliFirst = UpperBound(psInstruction->asArguments[0], iDepth - 1);
-			ulliSecond = UpperBound(psInstruction->asArguments[1], iDepth - 1);
-			return (ulliFirst < ulliSecond) ? ulliFirst : ulliSecond;
-		case IRO_LShr:
-			if (psInstruction->asArguments[1].IsConstant() && (ulliConstant < 64))
-			{
-				return UpperBound(psInstruction->asArguments[0], iDepth - 1) >> ulliConstant;
-			}
-			return ulliMost;
-		case IRO_URem:
-			if (psInstruction->asArguments[1].IsConstant() && (ulliConstant != 0))
-			{
-				ulliFirst = UpperBound(psInstruction->asArguments[0], iDepth - 1);
-				return (ulliFirst < ulliConstant - 1) ? ulliFirst : ulliConstant - 1;
-			}
-			return ulliMost;
-		case IRO_UDiv:
-			if (psInstruction->asArguments[1].IsConstant() && (ulliConstant != 0))
-			{
-				return UpperBound(psInstruction->asArguments[0], iDepth - 1) / ulliConstant;
-			}
-			return ulliMost;
-		case IRO_Add:
-			ulliFirst = UpperBound(psInstruction->asArguments[0], iDepth - 1);
-			ulliSecond = UpperBound(psInstruction->asArguments[1], iDepth - 1);
-			if ((ulliFirst <= ulliMost - ulliSecond) && (ulliSecond <= ulliMost))
-			{
-				return ulliFirst + ulliSecond;
-			}
-			return ulliMost;
-		default:
-			return ulliMost;
-		}
+		//What the instruction works out, which its type holds or cuts short.
+		ulliFirst = cOperands.InstructionMost(mpcFunction, psInstruction, NULL);
+		return (ulliFirst < ulliMost) ? ulliFirst : ulliMost;
 	}
 
 	psPhi = mpcContext->mcDefinitions.Phi(sValue);
@@ -332,11 +337,7 @@ uint64 CIRRangePasses::UpperBound(SIRReference sValue, int iDepth)
 		for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
 		{
 			psArgument = psPhi->asArguments.Get(ui);
-			ulliSecond = EdgeBound(psArgument->pcBlock, pcBlock, psArgument->sValue);
-			if (ulliSecond == (uint64)-1)
-			{
-				ulliSecond = UpperBound(psArgument->sValue, iDepth - 1);
-			}
+			ulliSecond = cOperands.EdgeMost(psArgument->sValue, psArgument->pcBlock, pcBlock, UpperBound(psArgument->sValue, iDepth - 1));
 			if (ulliSecond > ulliFirst)
 			{
 				ulliFirst = ulliSecond;
@@ -369,38 +370,6 @@ SIRInstruction* CIRRangePasses::EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo,
 	*puiOpcode = sCondition.uiOpcode;
 	*psOther = sCondition.sRight;
 	return sCondition.psCompare;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The most sValue can be going from pcFrom to pcTo when pcFrom branches
-// there only if an unsigned comparison of sValue with a constant says so
-// (v < n, v <= n, or not v >= n and the like), else all ones.
-//
-//////////////////////////////////////////////////////////////////////////
-uint64 CIRRangePasses::EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue)
-{
-	SIRInstruction*	psCompare;
-	SIRReference	sConstant;
-	uint16			uiOpcode;
-	uint64			ulliConstant;
-
-	psCompare = EdgeComparison(pcFrom, pcTo, sValue, &uiOpcode, &sConstant);
-	if (!psCompare || !sConstant.IsConstant())
-	{
-		return (uint64)-1;
-	}
-	ulliConstant = IRTruncate(psCompare->sType, mpcFunction->GetConstant(sConstant)->ulliBits);
-	if ((uiOpcode == IRO_ULt) && (ulliConstant != 0))
-	{
-		return ulliConstant - 1;
-	}
-	if (uiOpcode == IRO_ULe)
-	{
-		return ulliConstant;
-	}
-	return (uint64)-1;
 }
 
 

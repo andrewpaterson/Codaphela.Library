@@ -72,7 +72,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mcPeephole.Init();
 	mcBackendPasses.Init();
 	mauiNarrowOnly.Init();
-	mcKnownBits.Init();
+	mcMost.Init();
 	maiChangesB.Init();
 	maiLosesB.Init();
 	masChunks.Init();
@@ -96,7 +96,7 @@ void CIR65Backend::Kill(void)
 	masChunks.Kill();
 	maiLosesB.Kill();
 	maiChangesB.Kill();
-	mcKnownBits.Kill();
+	mcMost.Kill();
 	mauiNarrowOnly.Kill();
 	mcPeephole.Kill();
 	mcBackendPasses.Kill();
@@ -171,7 +171,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mcLiveness.Compute(pcFunction, &mcDominators);
 	mcPlaces.FunctionArguments();
 	mcPlaces.Layout();
-	mcKnownBits.Compute(pcFunction);
+	mcMost.Compute(pcFunction);
 	sLaidOut = msFrame;
 	masLaidOut.FakeSetUsedElements(0);
 	for (ui = 0; ui < masPlaces.NumElements(); ui++)

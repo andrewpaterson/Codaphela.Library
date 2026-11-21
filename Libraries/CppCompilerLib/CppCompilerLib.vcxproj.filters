@@ -402,7 +402,7 @@
     <ClCompile Include="IRDefinitions.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
-    <ClCompile Include="IRKnownBits.cpp">
+    <ClCompile Include="IRMost.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="IRLoops.cpp">
@@ -1220,7 +1220,7 @@
     <ClInclude Include="IRDefinitions.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
-    <ClInclude Include="IRKnownBits.h">
+    <ClInclude Include="IRMost.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRLoops.h">
