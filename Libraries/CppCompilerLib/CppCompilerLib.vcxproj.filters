@@ -126,6 +126,9 @@
     <ClCompile Include="CPPCompileStatistics.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPTokenMarks.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="VisualStudioProject.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -1032,6 +1035,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPCompileStatistics.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPTokenMarks.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="VisualStudioProject.h">

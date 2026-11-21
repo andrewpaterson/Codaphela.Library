@@ -240,6 +240,7 @@
     <ClCompile Include="CPPTargetW65C816.cpp" />
     <ClCompile Include="CPPTarget65C64.cpp" />
     <ClCompile Include="CPPCompileStatistics.cpp" />
+    <ClCompile Include="CPPTokenMarks.cpp" />
     <ClCompile Include="IR65Code.cpp" />
     <ClCompile Include="IR65Flags.cpp" />
     <ClCompile Include="IR65Peephole.cpp" />
@@ -522,6 +523,7 @@
     <ClInclude Include="CPPTargetW65C816.h" />
     <ClInclude Include="CPPTarget65C64.h" />
     <ClInclude Include="CPPCompileStatistics.h" />
+    <ClInclude Include="CPPTokenMarks.h" />
     <ClInclude Include="IR65Code.h" />
     <ClInclude Include="IR65Flags.h" />
     <ClInclude Include="IR65Peephole.h" />

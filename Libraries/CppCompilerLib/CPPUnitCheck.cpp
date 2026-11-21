@@ -21,6 +21,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "SourceFile.h"
 #include "CPPSyntaxTree.h"
 #include "CPPSemanticPass.h"
+#include "CTIdentifier.h"
+#include "CTReservedWord.h"
+#include "CPPTokenMarks.h"
 #include "CPPUnit.h"
 
 
@@ -1063,12 +1066,14 @@ CCPPFunction* CCPPUnit::FindDeclaredFunction(CCPPSyntaxDeclarator* pcDeclarator)
 
 
 //Finds the classes that are names for a template's instance, and then each place such an instance is written out
-//(CCPPUnit::ReportNamedInstances).
+//(CCPPUnit::ReportNamedInstances).  Each starts with a marked token, and a node that has none of them among its
+//tokens is not entered: nothing under it can be one.
 class CCPPNamedInstanceFinder : public CCPPSyntaxChildVisitor
 {
 public:
 	CCPPUnit*				mpcUnit;
 	CArrayCPPNameClasses*	mpapcClasses;
+	CCPPTokenMarks*			mpcMarks;		//The tokens that start what is being found.
 	bool					mbClasses;		//Finding the classes, not the instances.
 	int						miTemplates;	//How many template declarations the node is in,
 	int						miInitializers;	//and how many constructors' initialisers.
@@ -1079,6 +1084,10 @@ public:
 		bool	bTemplate;
 		bool	bInitializer;
 
+		if (!mpcMarks->Any(pcChild->miFirstToken, pcChild->miLastToken))
+		{
+			return;
+		}
 		muiVisited++;
 		bTemplate = (pcChild->GetKind() == CPPS_TemplateDeclaration);
 		bInitializer = (pcChild->GetKind() == CPPS_MemberInitializer);
@@ -1118,11 +1127,17 @@ public:
 // header whose declarations nothing has named yet isn't parsed, and so
 // isn't found.
 //
+// The tree is not walked whole, which cost a tenth of a compile: a class
+// starts with its class key and an instance with the identifier the
+// class's base starts with, those tokens are marked, and only the nodes
+// that have one are entered (CCPPTokenMarks).
+//
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::ReportNamedInstances(void)
 {
 	CCPPNamedInstanceFinder	cFinder;
 	CArrayCPPNameClasses	apcClasses;
+	CCPPTokenMarks			cMarks;
 
 	if (!mpcTree->GetRoot())
 	{
@@ -1131,18 +1146,114 @@ void CCPPUnit::ReportNamedInstances(void)
 	apcClasses.Init();
 	cFinder.mpcUnit = this;
 	cFinder.mpapcClasses = &apcClasses;
+	cFinder.mpcMarks = &cMarks;
 	cFinder.miTemplates = 0;
 	cFinder.miInitializers = 0;
 	cFinder.muiVisited = 0;
 	cFinder.mbClasses = true;
+	MarkClassKeys(&cMarks);
 	mpcTree->GetRoot()->VisitFields(&cFinder);
+	cMarks.Kill();
 	if (apcClasses.NumElements() > 0)
 	{
 		cFinder.mbClasses = false;
+		MarkNameClassBases(&cMarks, &apcClasses);
 		mpcTree->GetRoot()->VisitFields(&cFinder);
+		cMarks.Kill();
 	}
 	mpcStatistics->Count(CPPCC_NamedInstanceNodes, cFinder.muiVisited);
 	apcClasses.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Marks the unit's class keys (class, struct, union): a class's definition
+// has one among its tokens.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::MarkClassKeys(CCPPTokenMarks* pcMarks)
+{
+	CCPPToken*			pcToken;
+	CCTReservedWord*	pcWord;
+	size				uiTokens;
+	size				i;
+
+	uiTokens = mpcTokeniser->NumTokens();
+	pcMarks->Init(uiTokens);
+	for (i = 0; i < uiTokens; i++)
+	{
+		pcToken = mpcTokeniser->Get(i);
+		pcWord = (pcToken && pcToken->IsReservedWord()) ? (CCTReservedWord*)pcToken : NULL;
+		pcMarks->Next(pcWord && ((pcWord->GetToken() == CT_class) || (pcWord->GetToken() == CT_struct) || (pcWord->GetToken() == CT_union)));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Marks the tokens that an instance one of the classes is the name of can
+// start with: the identifier the class's base starts with (CTankTemplate,
+// or the namespace it is qualified by), as NamedInstance takes an instance
+// to be written as the base is from its first token.  Every token is
+// marked if a base starts with anything but an identifier.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses* papcClasses)
+{
+	CArrayInt32		aiStarts;
+	CCPPSyntaxName*	pcBase;
+	CCPPToken*		pcToken;
+	int32*			paiStarts;
+	int32			iIdentifier;
+	size			uiTokens;
+	size			uiLow;
+	size			uiHigh;
+	size			uiMiddle;
+	size			i;
+	bool			bAll;
+
+	uiTokens = mpcTokeniser->NumTokens();
+	aiStarts.Init();
+	bAll = false;
+	for (i = 0; i < papcClasses->NumElements(); i++)
+	{
+		pcBase = ((CCPPSyntaxBaseSpecifier*)papcClasses->GetPtr(i)->macpBases.GetPtr(0))->mpcName;
+		pcToken = ((pcBase->miFirstToken >= 0) && ((size)pcBase->miFirstToken < uiTokens)) ? mpcTokeniser->Get((size)pcBase->miFirstToken) : NULL;
+		if (pcToken && pcToken->IsIdentifier())
+		{
+			aiStarts.AddIfUnique(((CCTIdentifier*)pcToken)->miIdentifier);
+		}
+		else
+		{
+			bAll = true;
+		}
+	}
+	aiStarts.QuickSort();
+	paiStarts = aiStarts.GetData();
+
+	pcMarks->Init(uiTokens);
+	for (i = 0; i < uiTokens; i++)
+	{
+		pcToken = mpcTokeniser->Get(i);
+		uiLow = 0;
+		uiHigh = (!bAll && pcToken && pcToken->IsIdentifier()) ? aiStarts.NumElements() : 0;
+		iIdentifier = (uiHigh > 0) ? ((CCTIdentifier*)pcToken)->miIdentifier : 0;
+		while (uiLow < uiHigh)
+		{
+			uiMiddle = (uiLow + uiHigh) / 2;
+			if (paiStarts[uiMiddle] < iIdentifier)
+			{
+				uiLow = uiMiddle + 1;
+			}
+			else
+			{
+				uiHigh = uiMiddle;
+			}
+		}
+		pcMarks->Next(bAll || ((uiLow < aiStarts.NumElements()) && pcToken && pcToken->IsIdentifier() && (paiStarts[uiLow] == ((CCTIdentifier*)pcToken)->miIdentifier)));
+	}
+	aiStarts.Kill();
 }
 
 

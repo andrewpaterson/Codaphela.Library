@@ -247,6 +247,7 @@ class CCPPSemanticPass;
 //Check only works out the types of the unit's expressions, for CCPPSemanticPass: no code is generated and it keeps
 //going past what it can't type (CPPUnitCheck.cpp).
 typedef CArrayTemplatePtr<CCPPSyntaxClassSpecifier>	CArrayCPPNameClasses;
+class CCPPTokenMarks;
 
 
 class CCPPUnit : public CCPPRuntimeWriter
@@ -731,6 +732,8 @@ public:
 	void					UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed);
 	void					ReportNamedInstances(void);
 	bool					IsNameClass(CCPPSyntaxClassSpecifier* pcClass);
+	void					MarkClassKeys(CCPPTokenMarks* pcMarks);
+	void					MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses* papcClasses);
 	void					NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPNameClasses* papcClasses);
 	void					AppendTokensText(int iFirstToken, int iLastToken, CChars* pszDest);
 	void					EnsureVtable(CCPPClass* pcClass);

@@ -207,3 +207,29 @@ are the ones kept.  TestCppCompilerLib passes (270,081).
 
 	The DeclarationsProject: 56 layouts, 41 where defined, 7,154 nodes, 210 quiet trials.  The instance
 	Named.cpp writes out is still warned of once.
+
+Stage 2 (2026-11-21): CCPPTokenMarks, and CCPPNamedInstanceFinder enters only a node that has a marked token:
+the class keys to find the classes (MarkClassKeys), then the identifiers the classes' bases start with to find
+the instances (MarkNameClassBases; every token, if a base starts with anything else).  TestCppCompilerLib passes
+(270,149).
+
+	                                  65C64       W65C816
+	declarations (ms)                12,621        12,558
+	quiet trials                  4,140,373     4,131,629
+	class layouts                   174,836       173,463
+	class layouts where defined      45,125        45,123
+	named instance nodes          1,830,601     1,842,970
+
+	The DeclarationsProject: 283 nodes for 7,154; the rest as they were.
+
+	How it was proved to find what the whole walk finds: for one run the old walk was made beside the
+	marked one in every compile and the two compared (the same classes in the same order, the same number
+	of instances).  No difference in the 14,482 units TestCppCompilerLib compiles (4,274 of them with such
+	classes, 30,744 found, 37 instances written out) nor in the 922 units of TestSupportLib65's project on
+	either processor (763 with such classes, 6,362 found, none written out).  That comparison is not in the
+	code.  What stays is TestCPPSyntaxBlock's check of what the marks rely on: in the source that has every
+	kind of node, as parsed and as read from its block, no node has a token outside its parent's.
+
+	CCPPUndeclaredTypeFinder, the IDE's check's other walk of the whole tree, was looked at and left: any
+	identifier can start what it looks for (a type's name that nothing declares), so there is nothing to
+	mark before the walk.  It is not in a build; it is stage 4's to measure in a check.

@@ -84,7 +84,7 @@ void TestCPP65DeclarationsCounts(void)
 		}
 		AssertSize(56, (size)pcStatistics->GetCount(CPPCC_ClassLayouts));
 		AssertSize(41, (size)pcStatistics->GetCount(CPPCC_ClassLayoutsWhereDefined));
-		AssertSize(7154, (size)pcStatistics->GetCount(CPPCC_NamedInstanceNodes));
+		AssertSize(283, (size)pcStatistics->GetCount(CPPCC_NamedInstanceNodes));
 		AssertSize(210, (size)pcStatistics->GetCount(CPPCC_QuietTrials));
 
 		if (bBuilt && (eTarget == CPPT_65C64))

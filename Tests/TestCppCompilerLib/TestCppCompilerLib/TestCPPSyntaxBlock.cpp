@@ -114,9 +114,43 @@ static void TestSyntaxBlockKinds(CCPPSyntax* pcNode, bool* pabKinds)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many of the nodes under pcNode have a token that isn't one of their
+// parent's (miFirstToken to miLastToken): none should.  A walk that looks
+// for what a token starts relies on it to leave out the nodes whose tokens
+// have none (CCPPTokenMarks, CCPPUnit::ReportNamedInstances), so a node
+// whose tokens went beyond its parent's would be missed.  A node with no
+// tokens of its own (-1) is not counted: such a node is always entered.
+//
+//////////////////////////////////////////////////////////////////////////
+static size TestSyntaxBlockOutside(CCPPSyntax* pcNode)
+{
+	size		i;
+	size		uiOutside;
+	CCPPSyntax*	pcChild;
+
+	uiOutside = 0;
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		pcChild = pcNode->GetChild(i);
+		if (pcChild)
+		{
+			if ((pcNode->miFirstToken >= 0) && (pcChild->miFirstToken >= 0) && ((pcChild->miFirstToken < pcNode->miFirstToken) || (pcChild->miLastToken > pcNode->miLastToken)))
+			{
+				uiOutside++;
+			}
+			uiOutside += TestSyntaxBlockOutside(pcChild);
+		}
+	}
+	return uiOutside;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Each declaration of the source written as a block, read into another tree
 // and written again is the same block, and prints the same.  The kinds of
-// node the declarations have are set in pabKinds, if it is given.
+// node the declarations have are set in pabKinds, if it is given.  As it
+// was parsed and as it was read, every node's tokens are among its parent's.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestSyntaxBlockRoundTrips(char* szSource, bool* pabKinds)
@@ -149,6 +183,7 @@ static void TestSyntaxBlockRoundTrips(char* szSource, bool* pabKinds)
 		{
 			TestSyntaxBlockKinds(pcDeclaration, pabKinds);
 		}
+		AssertSize(0, TestSyntaxBlockOutside(pcDeclaration));
 		auiWritten.Init();
 		auiAgain.Init();
 		AssertInt(CPPSB_Written, CCPPSyntaxBlockWriter::Write(&sBlock.cTree, pcDeclaration, pcGlobal, &auiWritten));
@@ -157,6 +192,7 @@ static void TestSyntaxBlockRoundTrips(char* szSource, bool* pabKinds)
 		AssertNotNull(pcRead);
 		if (pcRead)
 		{
+			AssertSize(0, TestSyntaxBlockOutside(pcRead));
 			AssertInt(CPPSB_Written, CCPPSyntaxBlockWriter::Write(&sBlock.cRead, pcRead, pcGlobal, &auiAgain, &asDeclared));
 			AssertSize(auiWritten.NumElements(), auiAgain.NumElements());
 			if ((auiWritten.NumElements() == auiAgain.NumElements()) && (memcmp(auiWritten.GetData(), auiAgain.GetData(), auiWritten.NumElements()) == 0))
