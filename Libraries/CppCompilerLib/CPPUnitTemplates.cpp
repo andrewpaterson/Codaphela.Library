@@ -2533,6 +2533,7 @@ bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration*
 		//template<class U> struct Pair; in a class template, defined outside it (template<class T> template<class U>
 		//struct Outer<T>::Pair { ... };): the definition's, which names the class's template parameters its own way.
 		pcSymbol = ((CCPPSyntaxElaboratedTypeSpecifier*)pcSimple->mpcSpecifiers->mpcType)->mpcName->mpcSymbol;
+		pcOutside = NULL;
 		pcSpecifier = pcSymbol ? MemberClassDefinition(pcSymbol, &pcOutside) : NULL;
 		if (pcSpecifier)
 		{

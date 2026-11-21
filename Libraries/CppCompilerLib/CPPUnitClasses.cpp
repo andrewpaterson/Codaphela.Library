@@ -671,6 +671,7 @@ bool CCPPUnit::FindSpecifier(CCPPClass* pcClass)
 		pcClass->mpcSpecifier = (CCPPSyntaxClassSpecifier*)pcClass->mpcSymbol->mpcDeclaration;
 		return true;
 	}
+	pcDeclaration = NULL;
 	pcSpecifier = (pcClass->mpcEnclosing && pcClass->mpcSymbol) ? MemberClassDefinition(pcClass->mpcSymbol, &pcDeclaration) : NULL;
 	if (!pcSpecifier)
 	{
