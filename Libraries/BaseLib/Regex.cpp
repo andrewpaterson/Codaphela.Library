@@ -35,6 +35,28 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The most elements of uiElementSize bytes one of a pattern's arrays is
+// let hold: uiWanted, or fewer where a size can't count as many bytes.
+// An array's bytes are counted in a size, and it grows past what it
+// holds: with a 16 bit size (the W65C816's) that is under 64K bytes, so
+// it is kept to a quarter of what a size can count.
+//
+//////////////////////////////////////////////////////////////////////////
+static size RegexMostElements(size uiElementSize, uint32 uiWanted)
+{
+	size	uiMost;
+
+	uiMost = (size)((MAX_SIZE / 4) / uiElementSize);
+	if (uiMost > uiWanted)
+	{
+		uiMost = (size)uiWanted;
+	}
+	return uiMost;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IsRegexWord(char c)
@@ -239,7 +261,7 @@ bool CRegex::Emit(CTextParser* pcParser, uint8 uiOp, int16 iX, int16 iY)
 {
 	SRegexInstruction*	psInstruction;
 
-	if (masProgram.NumElements() >= REGEX_MAX_PROGRAM)
+	if (masProgram.NumElements() >= RegexMostElements(sizeof(SRegexInstruction), REGEX_MAX_PROGRAM))
 	{
 		return Error(pcParser, "The pattern is too big: its repeats multiply out to too much.");
 	}
@@ -319,7 +341,7 @@ bool CRegex::EmitBlock(CTextParser* pcParser, CArrayRegexInstructions* pasBlock)
 {
 	size	i;
 
-	if (masProgram.NumElements() + pasBlock->NumElements() > REGEX_MAX_PROGRAM)
+	if (masProgram.NumElements() + pasBlock->NumElements() > RegexMostElements(sizeof(SRegexInstruction), REGEX_MAX_PROGRAM))
 	{
 		return Error(pcParser, "The pattern is too big: its repeats multiply out to too much.");
 	}
@@ -1039,16 +1061,24 @@ bool CRegex::ParseClass(CTextParser* pcParser)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A way not yet tried, or a value to put back, on the stack.  False if
+// the stack is as deep as it is let get (REGEX_MAX_STACK, or fewer where
+// a size can't count as many): the match is given up.
 //
 //////////////////////////////////////////////////////////////////////////
-void CRegex::PushFrame(uint16 uiType, uint16 uiIndex, size uiValue)
+bool CRegex::PushFrame(uint16 uiType, uint16 uiIndex, size uiValue)
 {
 	SRegexFrame*	psFrame;
 
+	if (masStack.NumElements() >= RegexMostElements(sizeof(SRegexFrame), REGEX_MAX_STACK))
+	{
+		return false;
+	}
 	psFrame = masStack.Add();
 	psFrame->uiType = uiType;
 	psFrame->uiIndex = uiIndex;
 	psFrame->uiValue = uiValue;
+	return true;
 }
 
 
@@ -1058,8 +1088,9 @@ void CRegex::PushFrame(uint16 uiType, uint16 uiIndex, size uiValue)
 // match ends, if it can.  Where it can go on two ways the second is put on
 // the stack, and so is what a capture or a mark was before it is changed;
 // when a way fails the stack is taken back down to the last second way,
-// undoing those on the way, and that is tried.  After too many steps it
-// gives up: false, and GaveUp says so.
+// undoing those on the way, and that is tried.  After too many steps, or
+// with more ways kept than the stack is let hold, it gives up: false, and
+// GaveUp says so.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CRegex::Run(const char* szText, size uiLength, size uiStart, size* puiEnd)
@@ -1075,6 +1106,7 @@ bool CRegex::Run(const char* szText, size uiLength, size uiStart, size* puiEnd)
 	bool				bOK;
 	bool				bBefore;
 	bool				bAfter;
+	bool				bDeep;
 
 	for (i = 0; i < REGEX_MAX_GROUPS * 2; i++)
 	{
@@ -1082,6 +1114,7 @@ bool CRegex::Run(const char* szText, size uiLength, size uiStart, size* puiEnd)
 	}
 	masStack.ReInit();
 	muiSteps = 0;
+	bDeep = false;
 	PushFrame(RF_Thread, 0, uiStart);
 
 	while (masStack.Pop(&sFrame))
@@ -1102,7 +1135,7 @@ bool CRegex::Run(const char* szText, size uiLength, size uiStart, size* puiEnd)
 		for (;;)
 		{
 			muiSteps++;
-			if (muiSteps > muiStepLimit)
+			if ((muiSteps > muiStepLimit) || bDeep)
 			{
 				mbGaveUp = true;
 				masStack.ReInit();
@@ -1134,19 +1167,19 @@ bool CRegex::Run(const char* szText, size uiLength, size uiStart, size* puiEnd)
 				uiPC++;
 				break;
 			case RO_Split:
-				PushFrame(RF_Thread, (uint16)(uiPC + psInstruction->iY), uiPosition);
+				bDeep = !PushFrame(RF_Thread, (uint16)(uiPC + psInstruction->iY), uiPosition);
 				uiPC = (uint16)(uiPC + psInstruction->iX);
 				break;
 			case RO_Jump:
 				uiPC = (uint16)(uiPC + psInstruction->iX);
 				break;
 			case RO_Save:
-				PushFrame(RF_Capture, (uint16)psInstruction->iX, mauiSaves[psInstruction->iX]);
+				bDeep = !PushFrame(RF_Capture, (uint16)psInstruction->iX, mauiSaves[psInstruction->iX]);
 				mauiSaves[psInstruction->iX] = uiPosition;
 				uiPC++;
 				break;
 			case RO_Mark:
-				PushFrame(RF_Mark, (uint16)psInstruction->iX, *mauiMarks.Get((size)psInstruction->iX));
+				bDeep = !PushFrame(RF_Mark, (uint16)psInstruction->iX, *mauiMarks.Get((size)psInstruction->iX));
 				*mauiMarks.Get((size)psInstruction->iX) = uiPosition;
 				uiPC++;
 				break;

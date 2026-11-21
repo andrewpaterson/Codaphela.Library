@@ -30,7 +30,8 @@ class CTextParser;
 
 
 #define REGEX_MAX_GROUPS	10			//All of the match, group 0, and the groups \1 to \9 and $1 to $9 name.
-#define REGEX_MAX_PROGRAM	16000		//The most instructions a pattern compiles to.
+#define REGEX_MAX_PROGRAM	16000		//The most instructions a pattern compiles to, and
+#define REGEX_MAX_STACK	1000000		//the most ways not yet tried a match keeps: fewer of each where a size is 16 bits.
 #define REGEX_MAX_REPEAT	1000		//The most a {n,m} counts to.
 #define REGEX_UNBOUNDED		MAX_UINT16	//A {n,}'s, a *'s and a +'s most.
 #define REGEX_NO_POSITION	MAX_SIZE	//Where a group that took no part in a match starts and ends.
@@ -134,8 +135,9 @@ typedef CArrayTemplate<size>				CArrayRegexMarks;
 //The matcher backtracks: where the pattern can go on two ways (x*, x|y) it takes the first and remembers the second
 //on a stack of its own, not the machine's, so a long text doesn't overflow one (the W65C816's is small).  A loop
 //whose turn matches nothing ends rather than turn for ever ((a*)*).  A pattern that backtracks without end on a text
-//((a+)+b on a run of a) is given up on after a number of steps in proportion to the text: Find and MatchAt return
-//false and GaveUp says so.
+//((a+)+b on a run of a) is given up on after a number of steps in proportion to the text, as is one that has more
+//ways kept than its stack is let hold (REGEX_MAX_STACK; with a 16 bit size, as the W65C816's, a few thousand, so a
+//.* over a line longer than that): Find and MatchAt return false and GaveUp says so.
 //
 //A replacement (AppendReplacement) is text with $0 to $9 for the groups; \$ and \\ are those characters, \n a line
 //feed and \t a tab.
@@ -197,7 +199,7 @@ protected:
 	bool		Error(CTextParser* pcParser, const char* szError);
 
 	bool		Run(const char* szText, size uiLength, size uiStart, size* puiEnd);
-	void		PushFrame(uint16 uiType, uint16 uiIndex, size uiValue);
+	bool		PushFrame(uint16 uiType, uint16 uiIndex, size uiValue);
 	void		FillMatch(size uiStart, size uiEnd, SRegexMatch* psMatch);
 	void		SetStepLimit(size uiLength);
 };

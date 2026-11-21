@@ -426,6 +426,7 @@ void TestRegexFinding(void)
 	CRegex		cRegex;
 	SRegexMatch	sMatch;
 	CChars		szLong;
+	size		uiLong;
 	CChars		sz;
 	size		uiFrom;
 	int			iCount;
@@ -466,25 +467,45 @@ void TestRegexFinding(void)
 	AssertSize(3, sMatch.uiEnd);
 
 	//A long text doesn't overflow anything: the matcher's stack is its own, on the heap.  (The suite's debug limit on
-	//one allocation keeps the text to ten thousand characters: a turn of a loop takes up to four frames.)
+	//one allocation keeps the text to ten thousand characters: a turn of a loop takes up to four frames.  With a 16
+	//bit size, the W65C816's, the stack is kept to what a size can count, a few thousand frames, so the text is
+	//five hundred.)
+	uiLong = (sizeof(size) > 2) ? 10000 : 500;
 	szLong.Init();
-	szLong.Append('a', 10000);
+	szLong.Append('a', uiLong);
 	szLong.Append("b\n");
 	AssertTrue(cRegex.Compile(".*"));
 	AssertTrue(cRegex.Find(szLong.Text(), szLong.Length(), 0, &sMatch));
-	AssertSize(10001, sMatch.uiEnd);
+	AssertSize(uiLong + 1, sMatch.uiEnd);
 	AssertTrue(cRegex.Compile("(a|b)*$"));
 	AssertTrue(cRegex.Find(szLong.Text(), szLong.Length(), 0, &sMatch));
 	AssertSize(0, sMatch.uiStart);
-	AssertSize(10001, sMatch.uiEnd);
+	AssertSize(uiLong + 1, sMatch.uiEnd);
 	AssertTrue(cRegex.Compile("a*?b"));
 	AssertTrue(cRegex.Find(szLong.Text(), szLong.Length(), 0, &sMatch));
-	AssertSize(10001, sMatch.uiEnd);
+	AssertSize(uiLong + 1, sMatch.uiEnd);
 	AssertFalse(cRegex.GaveUp());
 	AssertTrue(cRegex.Compile("b\\n"));
 	AssertTrue(cRegex.Find(szLong.Text(), szLong.Length(), 0, &sMatch));
-	AssertSize(10000, sMatch.uiStart);
+	AssertSize(uiLong, sMatch.uiStart);
 	szLong.Kill();
+
+	//With a 16 bit size, a run with more ways to go back to than the stack is let hold is given up on, not run past
+	//what a size can count.
+	if (sizeof(size) == 2)
+	{
+		szLong.Init();
+		szLong.Append('a', 10000);
+		szLong.Append("b\n");
+		AssertTrue(cRegex.Compile(".*"));
+		AssertFalse(cRegex.MatchAt(szLong.Text(), szLong.Length(), 0, &sMatch));
+		AssertTrue(cRegex.GaveUp());
+		AssertTrue(cRegex.Compile("b\\n"));
+		AssertTrue(cRegex.Find(szLong.Text(), szLong.Length(), 0, &sMatch));
+		AssertFalse(cRegex.GaveUp());
+		AssertSize(10000, sMatch.uiStart);
+		szLong.Kill();
+	}
 
 	//A pattern that backtracks without end is given up on.
 	AssertTrue(cRegex.Compile("(a+)+b"));
