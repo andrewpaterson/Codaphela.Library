@@ -1649,7 +1649,6 @@ CCPPFunction* CCPPOverloads::FindSurrogate(CCPPClass* pcClass, CCPPFunction* pcM
 {
 	CCPPFunction*	pcConversion;
 	CCPPFunction*	pcBest;
-	CArraySyntax	apcNone;
 	SCPP65Type*		apsArguments[CPP_BETTER_FUNCTION_ARGUMENTS];
 	int				aiRanks[CPP_BETTER_FUNCTION_ARGUMENTS];
 	int				aiBest[CPP_BETTER_FUNCTION_ARGUMENTS];
