@@ -1074,3 +1074,27 @@ bool CIRBlockPasses::RemoveDeadCode(void)
 	abLive.Kill();
 	return bChanged;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcBlock's phis take from pcNew (which comes to it now too) what they take
+// from pcFrom.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlockPasses::CopyPhiArguments(CIRBlock* pcBlock, CIRBlock* pcFrom, CIRBlock* pcNew)
+{
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	size			ui;
+
+	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+	{
+		psPhi = pcBlock->masPhis.Get(ui);
+		psArgument = pcBlock->FindPhiArgument(psPhi, pcFrom);
+		if (psArgument)
+		{
+			pcBlock->AddPhiArgument(psPhi, pcNew, psArgument->sValue);
+		}
+	}
+}

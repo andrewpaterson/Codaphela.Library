@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 to 8 are done (2026-11-22).  Stage 9 is next; "The record", at the end, has what each stage
+Where it is: stages 0 to 9 are done (2026-11-22).  Stage 10 is next; "The record", at the end, has what each stage
 found.
 
 
@@ -392,3 +392,27 @@ TestCppCompilerLib passes.
 	Not the same as before, where nothing reaches: a block with no jump was copied as unreachable by the
 	inliner and the unswitcher and is copied with no jump now (the verifier takes neither); CopyBody copied
 	a jump's fields as they stood and now sets them as the jump's kind says.
+
+Stage 9 (2026-11-22): the library idioms share their shape and their table.  Same code: the 4,201 listings are
+the baseline's.  TestCppCompilerLib passes.
+
+	MatchIdiomLoop gives the shape of the loop an idiom looks at (SIRIdiomLoop): one block that goes round to
+	itself, or a head and a latch that each leave for a block of their own.  The fill and copy loops and
+	strlen ask for the first; memcmp, memchr and strchr for the second, where each had the same twenty lines
+	with other names for the two exits.
+
+	The library's functions are a table (gasIRIdiomLibrary, by EIRIdiom): the name, the name of the form that
+	takes a 32 bit count, and what the result and each argument is (a pointer, the library's int, a count).
+	LibraryCall takes the idiom and the values: it chooses the form (LibrarySize, as before) and reads the
+	types from the table, where each call wrote both names and up to four types.  The seven names
+	ReplaceLoopIdioms compared its own function's with are the table's (memcpy is in it for that alone).
+
+	Written once now: the byte widened to the library's int (LibraryByte, three places); "too few bytes to
+	be worth a call" (FewBytes, two); "the exit's phis take from the new block what they took from the loop"
+	(CIRBlockPasses::CopyPhiArguments, five of the six: strlen's exit takes values it works out, and
+	strchr's found takes the pointer strchr gave).  strchr's two tests are read with stage 5's edge
+	condition, which stage 5 left.
+
+	Not as the stage was written: the matcher gives the head, the latch and the two exits, not the loads
+	and the compare as taken.  Which loads an idiom wants (one, two, a byte or any integer) and what its
+	branch must say differ in each, and OnlyLoads and the edge condition already say them in a line.
