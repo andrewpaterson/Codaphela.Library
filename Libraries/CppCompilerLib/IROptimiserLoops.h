@@ -37,6 +37,7 @@ public:
 	bool			RotateLoops(void);
 	bool			UnswitchLoops(void);
 	CIRBlock*		AddPreheader(size uiLoop);
+	CIRBlock*		Preheader(size uiLoop);
 
 protected:
 	bool			SingleExit(size uiLoop, CIRBlock** ppcFrom, CIRBlock** ppcTo);

@@ -38,7 +38,7 @@ public:
 protected:
 	bool			StepsByOne(SIRReference sStepped, SIRReference sValue);
 	SIRReference	ExtendedCounter(SIRReference sValue, SIRReference sCounter, bool bExtended, bool bZeroExtends, uint16* puiExtend);
-	bool			CounterUnwrapped(size uiLoop, CIRBlock* pcLatch, SIRReference sCounter, SIRReference sInit, SIRReference sNext, int64 lliStep, uint64 ulliMask);
+	bool			CounterUnwrapped(size uiLoop, CIRBlock* pcLatch, SIRLoopCounter* psCounter, uint64 ulliMask);
 	bool			UnsignedMaximum(CIRBlock* pcBlock, CIRBlock* pcStay, SIRReference sValue, uint64 ulliMask, uint64* pulliMax, SIRReference* psBound, uint16* puiCompare);
 	bool			NarrowCounter(size uiLoop, CIRBlock* pcBlock);
 	bool			NarrowLoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound);

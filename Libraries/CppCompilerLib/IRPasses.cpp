@@ -712,6 +712,7 @@ bool CIRPasses::MatchCounter(size uiLoop, SIRPhi* psPhi, uint8 uiFlags, SIRLoopC
 	{
 		return false;
 	}
+	psCounter->sPhi = psPhi->sResult;
 	psCounter->sInit = psOutside->sValue;
 	psCounter->sNext = psInside->sValue;
 	psStep = mpcContext->mcDefinitions.Instruction(psCounter->sNext);
@@ -726,4 +727,41 @@ bool CIRPasses::MatchCounter(size uiLoop, SIRPhi* psPhi, uint8 uiFlags, SIRLoopC
 		psCounter->lliStep = -psCounter->lliStep;
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether loop uiLoop has one way in and one way round: one block outside
+// it enters its head (*ppcEntering) and one block inside goes round to it
+// (*ppcLatch), so each phi of the head (*ppcHead) has a value from each.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRPasses::SimpleLoop(size uiLoop, CIRBlock** ppcHead, CIRBlock** ppcEntering, CIRBlock** ppcLatch)
+{
+	*ppcHead = mpcContext->mcLoops.GetLoop(uiLoop)->pcHead;
+	*ppcEntering = mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering;
+	if (!*ppcEntering || ((*ppcHead)->mapcPredecessors.NumElements() != 2))
+	{
+		return false;
+	}
+	*ppcLatch = mpcContext->mcLoops.GetLatch(uiLoop, 0);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A phi of pcHead for a value the loop steps: sPhi (a temporary of sType,
+// not yet defined) is sStart coming in from pcEntering and sStepped coming
+// round from pcLatch.  The head's phis may move.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPasses::AddCounterPhi(CIRBlock* pcHead, SIRType sType, SIRReference sPhi, CIRBlock* pcEntering, SIRReference sStart, CIRBlock* pcLatch, SIRReference sStepped)
+{
+	SIRPhi*	psPhi;
+
+	psPhi = pcHead->AddPhi(sType, sPhi);
+	pcHead->AddPhiArgument(psPhi, pcEntering, sStart);
+	pcHead->AddPhiArgument(psPhi, pcLatch, sStepped);
 }

@@ -189,6 +189,22 @@ bool CIRLoopPasses::LessLoopTests(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The loop's preheader: the block that enters it and goes nowhere else,
+// where what is worked out once before the loop is put.  It is made
+// (AddPreheader) if the loop has none: its entering block branches.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CIRLoopPasses::Preheader(size uiLoop)
+{
+	CIRBlock*	pcPreheader;
+
+	pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcPreheader;
+	return pcPreheader ? pcPreheader : AddPreheader(uiLoop);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A block between a loop's entering block and its head, which the entering
 // block's jump now goes to and which jumps to the head: the loop's
 // preheader.
@@ -575,11 +591,7 @@ bool CIRLoopPasses::ReplaceExitValues(void)
 			}
 		}
 
-		pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcPreheader;
-		if (pcPreheader == NULL)
-		{
-			pcPreheader = AddPreheader(uiLoop);
-		}
+		pcPreheader = Preheader(uiLoop);
 		if (UsedOutside(uiLoop, sStepped))
 		{
 			ReplaceOutside(uiLoop, sStepped, sBound);
@@ -697,11 +709,7 @@ bool CIRLoopPasses::DeleteDeadLoops(void)
 			continue;
 		}
 
-		pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcPreheader;
-		if (pcPreheader == NULL)
-		{
-			pcPreheader = AddPreheader(uiLoop);
-		}
+		pcPreheader = Preheader(uiLoop);
 		mpcContext->mpcBlockPasses->RedirectJump(pcPreheader, mpcContext->mcLoops.GetLoop(uiLoop)->pcHead, pcTo);
 		mpcContext->mpcBlockPasses->RenamePhiArguments(pcTo, pcFrom, pcPreheader);
 

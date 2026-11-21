@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 to 6 are done (2026-11-21).  Stage 7 is next; "The record", at the end, has what each stage
+Where it is: stages 0 to 7 are done (2026-11-22).  Stage 8 is next; "The record", at the end, has what each stage
 found.
 
 
@@ -333,3 +333,33 @@ baseline's.  TestCppCompilerLib passes (271,441).
 	  Values, the idioms' count, FoundAt) each build different instructions from it.
 	- Left as they were: ReplaceLoopCounters' second counter, which is found beside the first by rules of its
 	  own (the same entering block, stepped in the testing block), and ReplaceStrchr's.
+
+Stage 7 (2026-11-22): a loop's set-up is written once.  Same code: the 4,201 listings are the baseline's.
+TestCppCompilerLib passes.
+
+	CIRLoopPasses::Preheader(uiLoop) gives the loop's preheader and makes one if it has none.  The three
+	forms of asking are it now: "if it is NULL, AddPreheader" (ReduceMultiplies, ReplaceExitValues,
+	DeleteDeadLoops), "if the entering block's jump isn't a jump, AddPreheader" (ReduceDivisions,
+	ReduceStrength), and the five idioms, which added one whether the loop had one or not.  The idioms now
+	put their call in the block that was there: the listings say the block the merge passes left was the
+	same.
+
+	CIRPasses::SimpleLoop is "one way in and one way round" (the head, the entering block, the latch), which
+	ReduceDivisions and ReduceStrength each opened with.  CIRPasses::AddCounterPhi adds a stepped phi (its
+	start from the entering block, its step from the latch), which was three calls in three places.  The
+	counter's record knows its phi (SIRLoopCounter::sPhi), so CounterUnwrapped takes the record (four
+	parameters, from seven), and reads the head's two ways with stage 5's LoopWays.
+
+	Not as the stage was written:
+	- There is no one walk "for each simple loop and each of its counters" that the three Reduce passes
+	  share.  ReduceMultiplies does not go by counters at all (it follows a web of phis and adds of any
+	  loop with a preheader), and the other two want different things of the counter before they look at
+	  the loop's blocks (a step that is positive and never wraps; any step, 16 bit or 32).  What they did
+	  share is the opening and the phi, which are the two helpers.
+	- Both still look through every block of the function for those in the loop, as finding 65 says.  The
+	  loop's own list of blocks is in another order, and the order is the order the new instructions are
+	  made in: changing it is not "same code", and nothing measured says it would be worth a stage.
+
+	The check count is not a constant: RunParallel.py splits a test file into as many processes as its last
+	run's time says, and a file run in two parts counts its 12 set-up checks twice (271,429 to 271,447 over
+	this stage's runs, none failing).

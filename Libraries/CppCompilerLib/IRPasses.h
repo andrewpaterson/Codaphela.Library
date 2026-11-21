@@ -178,10 +178,11 @@ struct SIRUse
 };
 
 
-//A loop's counter (CIRPasses::MatchCounter): a phi of its head with two arguments, sInit from a block outside
-//the loop (argument uiOutside) and sNext = phi + lliStep from the other.
+//A loop's counter (CIRPasses::MatchCounter): a phi of its head (sPhi) with two arguments, sInit from a block
+//outside the loop (argument uiOutside) and sNext = sPhi + lliStep from the other.
 struct SIRLoopCounter
 {
+	SIRReference	sPhi;
 	size			uiOutside;
 	SIRReference	sInit;
 	SIRReference	sNext;
@@ -338,6 +339,8 @@ public:
 	bool			EdgeCondition(CIRBlock* pcFrom, CIRBlock* pcTo, SIREdgeCondition* psCondition);
 	bool			LoopWays(size uiLoop, CIRBlock* pcBlock, CIRBlock** ppcInside, CIRBlock** ppcOutside);
 	bool			MatchCounter(size uiLoop, SIRPhi* psPhi, uint8 uiFlags, SIRLoopCounter* psCounter);
+	bool			SimpleLoop(size uiLoop, CIRBlock** ppcHead, CIRBlock** ppcEntering, CIRBlock** ppcLatch);
+	void			AddCounterPhi(CIRBlock* pcHead, SIRType sType, SIRReference sPhi, CIRBlock* pcEntering, SIRReference sStart, CIRBlock* pcLatch, SIRReference sStepped);
 };
 
 

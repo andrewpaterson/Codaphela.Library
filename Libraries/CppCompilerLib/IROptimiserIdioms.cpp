@@ -569,7 +569,7 @@ bool CIRIdiomPasses::ReplaceLoopIdioms(void)
 
 		//The call on the way in.
 		sStore = *psStore;
-		pcPreheader = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
+		pcPreheader = mpcContext->mpcLoopPasses->Preheader(uiLoop);
 		sDestinationStart = IdiomStart(pcPreheader, &sDestination, &sCounter);
 		sBytes = IdiomBytes(pcPreheader, &sCounter, lliBytes);
 		if (!psLoad)
@@ -759,7 +759,7 @@ bool CIRIdiomPasses::ReplaceStrlen(size uiLoop)
 	}
 
 	//The length on the way in, and the values that leave from it.
-	pcPreheader = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
+	pcPreheader = mpcContext->mpcLoopPasses->Preheader(uiLoop);
 	sStart = IdiomStart(pcPreheader, &sAddress, &sCounter);
 	szLibrary = LibrarySize(pcPreheader, "_strlen", "_strlen32", NULL, 1, NULL, &sSize);  //The length is 32 bits.
 	sLength = LibraryCall(pcPreheader, szLibrary, sSize, sStart, IRType(IRTK_Pointer));
@@ -946,7 +946,7 @@ bool CIRIdiomPasses::ReplaceMemcmp(size uiLoop)
 	}
 
 	//memcmp on the way in, to the exits.
-	pcPreheader = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
+	pcPreheader = mpcContext->mpcLoopPasses->Preheader(uiLoop);
 	sFirstStart = IdiomStart(pcPreheader, &sFirst, &sCounter);
 	sSecondStart = IdiomStart(pcPreheader, &sSecond, &sCounter);
 	sBytes = IdiomBytes(pcPreheader, &sCounter, lliBytes);
@@ -1268,7 +1268,7 @@ bool CIRIdiomPasses::ReplaceMemchr(size uiLoop)
 	}
 
 	//memchr on the way in; found works out its values from the offset.
-	pcPreheader = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
+	pcPreheader = mpcContext->mpcLoopPasses->Preheader(uiLoop);
 	sStart = IdiomStart(pcPreheader, &sAddress, &sCounter);
 	if (sValue.IsConstant())
 	{
@@ -1486,7 +1486,7 @@ bool CIRIdiomPasses::ReplaceStrchr(size uiLoop)
 	}
 
 	//On the way in.
-	pcPreheader = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
+	pcPreheader = mpcContext->mpcLoopPasses->Preheader(uiLoop);
 	pcCall = mpcFunction->AddBlock();
 	sZero = mpcFunction->Add(pcPreheader, IRO_Eq, IRType(IRTK_I8), sFirst, mpcFunction->AddInteger(IRType(IRTK_I8), 0));
 	sValue = sValue.IsConstant() ? mpcFunction->AddConstant(mpcContext->msLibraryInt, mpcFunction->GetConstant(sValue)->ulliBits & 0xFF) :

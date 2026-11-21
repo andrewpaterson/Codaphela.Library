@@ -905,51 +905,48 @@ bool CIRCounterPasses::UnsignedMaximum(CIRBlock* pcBlock, CIRBlock* pcStay, SIRR
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if counter sCounter of loop uiLoop (a phi of its head: sInit coming
-// in, sNext = sCounter + lliStep going round from pcLatch) never wraps
+// True if counter *psCounter of loop uiLoop (MatchCounter's: sInit coming
+// in, sNext = sPhi + lliStep going round from pcLatch) never wraps
 // while the loop goes round, so its zero extension steps with it.  Either
-// the head only goes on into the loop while sCounter is at most a maximum
+// the head only goes on into the loop while the counter is at most a maximum
 // (UnsignedMaximum), or the latch only goes round while sNext is and the
 // loop is only entered when sInit is too (a constant, or LoopGuarded); so
 // each value stepped from is at most the maximum, and the maximum +
 // lliStep must still fit.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRCounterPasses::CounterUnwrapped(size uiLoop, CIRBlock* pcLatch, SIRReference sCounter, SIRReference sInit, SIRReference sNext, int64 lliStep, uint64 ulliMask)
+bool CIRCounterPasses::CounterUnwrapped(size uiLoop, CIRBlock* pcLatch, SIRLoopCounter* psCounter, uint64 ulliMask)
 {
 	CIRBlock*		pcHead;
 	CIRBlock*		pcInside;
+	CIRBlock*		pcOutside;
 	SIRReference	sBound;
 	uint64			ulliMax;
 	uint16			uiCompare;
 
-	if (lliStep <= 0)
+	if (psCounter->lliStep <= 0)
 	{
 		return false;
 	}
 
 	//The head's test on the counter, going on in when it holds.
 	pcHead = mpcContext->mcLoops.GetLoop(uiLoop)->pcHead;
-	if ((pcHead->msJump.uiKind == IRJ_Branch) && (mpcContext->mcLoops.Contains(uiLoop, pcHead->msJump.pcThen) != mpcContext->mcLoops.Contains(uiLoop, pcHead->msJump.pcElse)))
+	if (LoopWays(uiLoop, pcHead, &pcInside, &pcOutside) && UnsignedMaximum(pcHead, pcInside, psCounter->sPhi, ulliMask, &ulliMax, &sBound, &uiCompare))
 	{
-		pcInside = mpcContext->mcLoops.Contains(uiLoop, pcHead->msJump.pcThen) ? pcHead->msJump.pcThen : pcHead->msJump.pcElse;
-		if (UnsignedMaximum(pcHead, pcInside, sCounter, ulliMask, &ulliMax, &sBound, &uiCompare))
-		{
-			return ulliMax + (uint64)lliStep <= ulliMask;
-		}
+		return ulliMax + (uint64)psCounter->lliStep <= ulliMask;
 	}
 
 	//The latch's test on the stepped counter, going round when it holds.
 	if ((pcLatch->msJump.uiKind != IRJ_Branch) || mpcContext->mcLoops.Contains(uiLoop, (pcLatch->msJump.pcThen == pcHead) ? pcLatch->msJump.pcElse : pcLatch->msJump.pcThen) ||
-		!UnsignedMaximum(pcLatch, pcHead, sNext, ulliMask, &ulliMax, &sBound, &uiCompare) || (ulliMax + (uint64)lliStep > ulliMask))
+		!UnsignedMaximum(pcLatch, pcHead, psCounter->sNext, ulliMask, &ulliMax, &sBound, &uiCompare) || (ulliMax + (uint64)psCounter->lliStep > ulliMask))
 	{
 		return false;
 	}
-	if (sInit.IsConstant())
+	if (psCounter->sInit.IsConstant())
 	{
-		return ((uint64)mpcFunction->GetSigned(sInit) & ulliMask) <= ulliMax;
+		return ((uint64)mpcFunction->GetSigned(psCounter->sInit) & ulliMask) <= ulliMax;
 	}
-	return LoopGuarded(uiLoop, uiCompare, sInit, sBound);
+	return LoopGuarded(uiLoop, uiCompare, psCounter->sInit, sBound);
 }
 
 
@@ -996,7 +993,6 @@ bool CIRCounterPasses::ReduceDivisions(void)
 	CIRBlock*			pcEntering;
 	CIRBlock*			pcLatch;
 	SIRPhi*				psPhi;
-	SIRPhi*				psNewPhi;
 	SIRInstruction*		psInstruction;
 	SIRReference		sValue;
 	SIRReference		sStart;
@@ -1016,14 +1012,10 @@ bool CIRCounterPasses::ReduceDivisions(void)
 	bChanged = false;
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
 	{
-		//One way in and one way round.
-		pcHead = mpcContext->mcLoops.GetLoop(uiLoop)->pcHead;
-		pcEntering = mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering;
-		if (!pcEntering || (pcHead->mapcPredecessors.NumElements() != 2))
+		if (!SimpleLoop(uiLoop, &pcHead, &pcEntering, &pcLatch))
 		{
 			continue;
 		}
-		pcLatch = mpcContext->mcLoops.GetLatch(uiLoop, 0);
 
 		for (uiPhi = 0; uiPhi < pcHead->masPhis.NumElements(); uiPhi++)
 		{
@@ -1036,7 +1028,7 @@ bool CIRCounterPasses::ReduceDivisions(void)
 				continue;
 			}
 			ulliMask = (uint64)IRUnsignedMax(sType.Bits());
-			if (!CounterUnwrapped(uiLoop, pcLatch, psPhi->sResult, sCounter.sInit, sCounter.sNext, sCounter.lliStep, ulliMask))
+			if (!CounterUnwrapped(uiLoop, pcLatch, &sCounter, ulliMask))
 			{
 				continue;
 			}
@@ -1106,10 +1098,7 @@ bool CIRCounterPasses::ReduceDivisions(void)
 				}
 
 				//The counters: init % c (and init / c) before the loop, stepped in the latch.
-				if (pcEntering->msJump.uiKind != IRJ_Jump)
-				{
-					pcEntering = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
-				}
+				pcEntering = mpcContext->mpcLoopPasses->Preheader(uiLoop);
 				for (ui = 0; ui < uiDivisors; ui++)
 				{
 					psDivisor = &asDivisors[ui];
@@ -1139,9 +1128,7 @@ bool CIRCounterPasses::ReduceDivisions(void)
 					sTaken = mpcFunction->Add(pcLatch, IRO_Neg, sNarrow, sTaken);
 					sTaken = mpcFunction->Add(pcLatch, IRO_And, sNarrow, sTaken, mpcFunction->AddInteger(sNarrow, (int64)ulliDivisor));
 					sStepped = mpcFunction->Add(pcLatch, IRO_Sub, sNarrow, sStepped, sTaken);
-					psNewPhi = pcHead->AddPhi(sNarrow, psDivisor->sRemainder);
-					pcHead->AddPhiArgument(psNewPhi, pcEntering, sStart);
-					pcHead->AddPhiArgument(psNewPhi, pcLatch, sStepped);
+					AddCounterPhi(pcHead, sNarrow, psDivisor->sRemainder, pcEntering, sStart, pcLatch, sStepped);
 					psDivisor->sWideRemainder = sNarrow.Equals(sType) ? psDivisor->sRemainder : InsertInstruction(pcHead, 0, IRO_ZExt, sType, psDivisor->sRemainder, IRNone());
 
 					if (psDivisor->bDivide)
@@ -1157,9 +1144,7 @@ bool CIRCounterPasses::ReduceDivisions(void)
 						psDivisor->sQuotient = mpcFunction->AddTemporary(sType);
 						sValue = mpcFunction->Add(pcLatch, IRO_ZExt, sType, sTest);
 						sStepped = mpcFunction->Add(pcLatch, IRO_Add, sType, psDivisor->sQuotient, sValue);
-						psNewPhi = pcHead->AddPhi(sType, psDivisor->sQuotient);
-						pcHead->AddPhiArgument(psNewPhi, pcEntering, sStart);
-						pcHead->AddPhiArgument(psNewPhi, pcLatch, sStepped);
+						AddCounterPhi(pcHead, sType, psDivisor->sQuotient, pcEntering, sStart, pcLatch, sStepped);
 					}
 				}
 
@@ -1203,21 +1188,17 @@ bool CIRCounterPasses::ReduceStrength(void)
 	CIRBlock*				pcEntering;
 	CIRBlock*				pcLatch;
 	SIRPhi*					psPhi;
-	SIRPhi*					psNewPhi;
 	SIRLoopCounter			sLoopCounter;
 	SIRInstruction*			psScaled;
 	SIRInstruction*			psAddress;
 	SIRReference			sCounter;
 	SIRReference			sBase;
 	SIRReference			sAddress;
-	SIRReference			sInit;
-	SIRReference			sNext;
 	SIRReference			sStart;
 	SIRReference			sPointer;
 	SIRReference			sStepped;
 	SIRReference			sIndex;
 	SIRType					sType;
-	int64					lliStep;
 	int64					lliScale;
 	uint64					ulliMask;
 	uint16					uiExtend;
@@ -1230,14 +1211,10 @@ bool CIRCounterPasses::ReduceStrength(void)
 	bChanged = false;
 	for (uiLoop = 0; uiLoop < mpcContext->mcLoops.NumLoops(); uiLoop++)
 	{
-		//One way in and one way round.
-		pcHead = mpcContext->mcLoops.GetLoop(uiLoop)->pcHead;
-		pcEntering = mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering;
-		if (!pcEntering || (pcHead->mapcPredecessors.NumElements() != 2))
+		if (!SimpleLoop(uiLoop, &pcHead, &pcEntering, &pcLatch))
 		{
 			continue;
 		}
-		pcLatch = mpcContext->mcLoops.GetLatch(uiLoop, 0);
 
 		for (uiPhi = 0; uiPhi < pcHead->masPhis.NumElements(); uiPhi++)
 		{
@@ -1249,12 +1226,9 @@ bool CIRCounterPasses::ReduceStrength(void)
 			{
 				continue;
 			}
-			sInit = sLoopCounter.sInit;
-			sNext = sLoopCounter.sNext;
-			lliStep = sLoopCounter.lliStep;
 			sType = IRType(IRTK_I32);
 			ulliMask = bExtended ? (uint64)IRUnsignedMax(psPhi->sType.Bits()) : 0;
-			bZeroExtends = bExtended && CounterUnwrapped(uiLoop, pcLatch, sCounter, sInit, sNext, lliStep, ulliMask);
+			bZeroExtends = bExtended && CounterUnwrapped(uiLoop, pcLatch, &sLoopCounter, ulliMask);
 
 			//Addresses p + (i << s) or p + i * k in the loop (i sign or zero extended when narrower).
 			for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
@@ -1299,22 +1273,19 @@ bool CIRCounterPasses::ReduceStrength(void)
 						continue;
 					}
 
-					if (pcEntering->msJump.uiKind != IRJ_Jump)
-					{
-						pcEntering = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
-					}
+					pcEntering = mpcContext->mpcLoopPasses->Preheader(uiLoop);
 
 					//p + init * k before the loop; the pointer steps by c * k going round.  (Adding to the latch may
 					//move this block's instructions.)
 					sBase = psAddress->asArguments[0];
 					sAddress = psAddress->sResult;
-					if (sInit.IsConstant())
+					if (sLoopCounter.sInit.IsConstant())
 					{
-						sStart = mpcFunction->AddInteger(sType, ((uiExtend == IRO_ZExt) ? (int64)((uint64)mpcFunction->GetSigned(sInit) & ulliMask) : mpcFunction->GetSigned(sInit)) * lliScale);
+						sStart = mpcFunction->AddInteger(sType, ((uiExtend == IRO_ZExt) ? (int64)((uint64)mpcFunction->GetSigned(sLoopCounter.sInit) & ulliMask) : mpcFunction->GetSigned(sLoopCounter.sInit)) * lliScale);
 					}
 					else
 					{
-						sStart = bExtended ? mpcFunction->Add(pcEntering, uiExtend, sType, sInit) : sInit;
+						sStart = bExtended ? mpcFunction->Add(pcEntering, uiExtend, sType, sLoopCounter.sInit) : sLoopCounter.sInit;
 						sStart = (lliScale == 1) ? sStart : mpcFunction->Add(pcEntering, IRO_Mul, sType, sStart, mpcFunction->AddInteger(sType, lliScale));
 					}
 					if (!sStart.IsConstant() || (mpcFunction->GetSigned(sStart) != 0))
@@ -1326,10 +1297,8 @@ bool CIRCounterPasses::ReduceStrength(void)
 						sStart = sBase;
 					}
 					sPointer = mpcFunction->AddTemporary(IRType(IRTK_Pointer));
-					sStepped = mpcFunction->Add(pcLatch, IRO_PtrAdd, IRType(IRTK_Pointer), sPointer, mpcFunction->AddInteger(sType, lliStep * lliScale));
-					psNewPhi = pcHead->AddPhi(IRType(IRTK_Pointer), sPointer);
-					pcHead->AddPhiArgument(psNewPhi, pcEntering, sStart);
-					pcHead->AddPhiArgument(psNewPhi, pcLatch, sStepped);
+					sStepped = mpcFunction->Add(pcLatch, IRO_PtrAdd, IRType(IRTK_Pointer), sPointer, mpcFunction->AddInteger(sType, sLoopCounter.lliStep * lliScale));
+					AddCounterPhi(pcHead, IRType(IRTK_Pointer), sPointer, pcEntering, sStart, pcLatch, sStepped);
 					Replace(sAddress, sPointer);
 					bChanged = true;
 
