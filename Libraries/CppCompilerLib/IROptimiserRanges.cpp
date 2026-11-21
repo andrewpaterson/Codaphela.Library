@@ -412,13 +412,13 @@ uint64 CIRRangePasses::EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference 
 // (DivisionRange); x + y's, x - y's, x * c's and shifts' by a constant
 // (ArithmeticRange); a phi's of all its values (up to iDepth definitions
 // back); else from 0 to UpperBound when that is below the type's sign bit
-// (a zext, an and).  With mpcContext->mbBranchRanges an operand's range is narrowed by
+// (a zext, an and).  With IR_RANGE_BRANCHES in uiNarrowBy an operand's range is narrowed by
 // the branches to the instruction's block (RangeAt) and a phi's values by
 // the branches to the phi on their way.  False if nothing narrower than the
 // type is known.  mpcContext->mcDefinitions must be found.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRRangePasses::SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth)
+bool CIRRangePasses::SignedRange(SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth)
 {
 	SIRInstruction*	psInstruction;
 	SIRType			sType;
@@ -426,8 +426,7 @@ bool CIRRangePasses::SignedRange(SIRReference sValue, int64* plliMin, int64* pll
 	int				iBits;
 	uint64			ulliBound;
 	int64			lliConstant;
-	int64			lliArgumentMin;
-	int64			lliArgumentMax;
+	SIRValueRange		sArgument;
 	SIRPhi*			psPhi;
 	size			ui;
 
@@ -439,8 +438,8 @@ bool CIRRangePasses::SignedRange(SIRReference sValue, int64* plliMin, int64* pll
 	iBits = sType.IntegerBits();
 	if (sValue.IsConstant())
 	{
-		*plliMin = IRSignExtend(sType, mpcFunction->GetConstant(sValue)->ulliBits);
-		*plliMax = *plliMin;
+		psRange->lliMin = IRSignExtend(sType, mpcFunction->GetConstant(sValue)->ulliBits);
+		psRange->lliMax = psRange->lliMin;
 		return true;
 	}
 	psInstruction = sValue.IsTemporary() ? mpcContext->mcDefinitions.Instruction(sValue) : NULL;
@@ -449,18 +448,18 @@ bool CIRRangePasses::SignedRange(SIRReference sValue, int64* plliMin, int64* pll
 		//x + c: x's range moved, when it can't wrap.  ArithmeticRange's would be the same, but one that may wrap isn't
 		//then the UpperBound below (x - c and c - x are ArithmeticRange's: UpperBound knows nothing of a sub).
 		lliConstant = IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
-		if ((iDepth > 0) && RangeAt(mpcContext->mcDefinitions.Block(sValue), psInstruction->asArguments[0], plliMin, plliMax, iDepth - 1))
+		if ((iDepth > 0) && RangeAt(mpcContext->mcDefinitions.Block(sValue), psInstruction->asArguments[0], psRange, uiNarrowBy, iDepth - 1))
 		{
-			*plliMin += lliConstant;
-			*plliMax += lliConstant;
-			return (*plliMin >= IRSignedMin(iBits)) && (*plliMax <= IRSignedMax(iBits));
+			psRange->lliMin += lliConstant;
+			psRange->lliMax += lliConstant;
+			return (psRange->lliMin >= IRSignedMin(iBits)) && (psRange->lliMax <= IRSignedMax(iBits));
 		}
 	}
-	if (psInstruction && (iDepth > 0) && DivisionRange(psInstruction, plliMin, plliMax, iDepth - 1))
+	if (psInstruction && (iDepth > 0) && DivisionRange(psInstruction, psRange, uiNarrowBy, iDepth - 1))
 	{
 		return true;
 	}
-	if (psInstruction && (iDepth > 0) && ArithmeticRange(psInstruction, plliMin, plliMax, iDepth - 1))
+	if (psInstruction && (iDepth > 0) && ArithmeticRange(psInstruction, psRange, uiNarrowBy, iDepth - 1))
 	{
 		return true;
 	}
@@ -470,12 +469,12 @@ bool CIRRangePasses::SignedRange(SIRReference sValue, int64* plliMin, int64* pll
 		//A phi: the range of all its values (each narrowed by the branches on its way).
 		for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
 		{
-			if (!RangeAt(psPhi->asArguments.Get(ui)->pcBlock, psPhi->asArguments.Get(ui)->sValue, &lliArgumentMin, &lliArgumentMax, iDepth - 1, mpcContext->mcDefinitions.Block(sValue)))
+			if (!RangeAt(psPhi->asArguments.Get(ui)->pcBlock, psPhi->asArguments.Get(ui)->sValue, &sArgument, uiNarrowBy, iDepth - 1, mpcContext->mcDefinitions.Block(sValue)))
 			{
 				return false;
 			}
-			*plliMin = ((ui == 0) || (lliArgumentMin < *plliMin)) ? lliArgumentMin : *plliMin;
-			*plliMax = ((ui == 0) || (lliArgumentMax > *plliMax)) ? lliArgumentMax : *plliMax;
+			psRange->lliMin = ((ui == 0) || (sArgument.lliMin < psRange->lliMin)) ? sArgument.lliMin : psRange->lliMin;
+			psRange->lliMax = ((ui == 0) || (sArgument.lliMax > psRange->lliMax)) ? sArgument.lliMax : psRange->lliMax;
 		}
 		return psPhi->asArguments.NumElements() > 0;
 	}
@@ -484,10 +483,10 @@ bool CIRRangePasses::SignedRange(SIRReference sValue, int64* plliMin, int64* pll
 		sNarrow = mpcFunction->TypeOf(psInstruction->asArguments[0]);
 		if (sNarrow.IsInteger() && (sNarrow.IntegerBits() < iBits))
 		{
-			if ((iDepth == 0) || !SignedRange(psInstruction->asArguments[0], plliMin, plliMax, iDepth - 1))
+			if ((iDepth == 0) || !SignedRange(psInstruction->asArguments[0], psRange, uiNarrowBy, iDepth - 1))
 			{
-				*plliMin = IRSignedMin(sNarrow.IntegerBits());
-				*plliMax = IRSignedMax(sNarrow.IntegerBits());
+				psRange->lliMin = IRSignedMin(sNarrow.IntegerBits());
+				psRange->lliMax = IRSignedMax(sNarrow.IntegerBits());
 			}
 			return true;
 		}
@@ -495,8 +494,8 @@ bool CIRRangePasses::SignedRange(SIRReference sValue, int64* plliMin, int64* pll
 	ulliBound = UpperBound(sValue, IR_BOUND_DEPTH);
 	if (ulliBound <= (uint64)IRSignedMax(iBits))
 	{
-		*plliMin = 0;
-		*plliMax = (int64)ulliBound;
+		psRange->lliMin = 0;
+		psRange->lliMax = (int64)ulliBound;
 		return true;
 	}
 	return false;
@@ -508,18 +507,18 @@ bool CIRRangePasses::SignedRange(SIRReference sValue, int64* plliMin, int64* pll
 // The signed range of sValue where pcBlock runs (on its way to pcTo when
 // pcTo isn't NULL): SignedRange's, or the type's when that isn't known,
 // narrowed by the branches there (BranchRange, DominatingRange) when
-// mpcContext->mbBranchRanges.  False if nothing narrower than the type is known.
+// uiNarrowBy has IR_RANGE_BRANCHES.  False if nothing narrower than the type is known.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRRangePasses::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth, CIRBlock* pcTo)
+bool CIRRangePasses::RangeAt(CIRBlock* pcBlock, SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth, CIRBlock* pcTo)
 {
 	SIRType	sType;
 	int64	lliLeast;
 	int64	lliMost;
 	bool	bKnown;
 
-	bKnown = SignedRange(sValue, plliMin, plliMax, iDepth);
-	if (!mpcContext->mbBranchRanges || !pcBlock)
+	bKnown = SignedRange(sValue, psRange, uiNarrowBy, iDepth);
+	if (!(uiNarrowBy & IR_RANGE_BRANCHES) || !pcBlock)
 	{
 		return bKnown;
 	}
@@ -532,20 +531,20 @@ bool CIRRangePasses::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plli
 	lliMost = IRSignedMax(sType.IntegerBits());
 	if (!bKnown)
 	{
-		*plliMin = lliLeast;
-		*plliMax = lliMost;
+		psRange->lliMin = lliLeast;
+		psRange->lliMax = lliMost;
 	}
 	if (pcTo)
 	{
-		BranchRange(pcBlock, pcTo, sValue, plliMin, plliMax);
+		BranchRange(pcBlock, pcTo, sValue, psRange);
 	}
-	DominatingRange(pcBlock, sValue, plliMin, plliMax);
-	if (*plliMin > *plliMax)
+	DominatingRange(pcBlock, sValue, psRange, uiNarrowBy);
+	if (psRange->lliMin > psRange->lliMax)
 	{
 		//No value gets here (the branches contradict): any range will do.
-		*plliMax = *plliMin;
+		psRange->lliMax = psRange->lliMin;
 	}
-	return bKnown || (*plliMin > lliLeast) || (*plliMax < lliMost);
+	return bKnown || (psRange->lliMin > lliLeast) || (psRange->lliMax < lliMost);
 }
 
 
@@ -559,15 +558,13 @@ bool CIRRangePasses::RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plli
 // can't wrap.  False for anything else.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRRangePasses::ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
+bool CIRRangePasses::ArithmeticRange(SIRInstruction* psInstruction, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth)
 {
 	CIRBlock*	pcBlock;
 	SIRType		sType;
 	uint16		uiOpcode;
-	int64		lliMin;
-	int64		lliMax;
-	int64		lliOtherMin;
-	int64		lliOtherMax;
+	SIRValueRange	sFirst;
+	SIRValueRange	sSecond;
 	int64		lliConstant;
 	int			iBits;
 
@@ -580,34 +577,34 @@ bool CIRRangePasses::ArithmeticRange(SIRInstruction* psInstruction, int64* plliM
 	}
 	iBits = sType.IntegerBits();
 	pcBlock = mpcContext->mcDefinitions.Block(psInstruction->sResult);
-	if (!RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax, iDepth))
+	if (!RangeAt(pcBlock, psInstruction->asArguments[0], &sFirst, uiNarrowBy, iDepth))
 	{
 		//A shift right narrows any value: x is any of its type's (as signed for ashr, unsigned for lshr).
 		if (((uiOpcode != IRO_AShr) && (uiOpcode != IRO_LShr)) || !psInstruction->asArguments[1].IsConstant())
 		{
 			return false;
 		}
-		lliMin = (uiOpcode == IRO_AShr) ? IRSignedMin(iBits) : 0;
-		lliMax = (uiOpcode == IRO_AShr) ? IRSignedMax(iBits) : IRUnsignedMax(iBits);
+		sFirst.lliMin = (uiOpcode == IRO_AShr) ? IRSignedMin(iBits) : 0;
+		sFirst.lliMax = (uiOpcode == IRO_AShr) ? IRSignedMax(iBits) : IRUnsignedMax(iBits);
 	}
 	if (uiOpcode == IRO_Trunc)
 	{
-		*plliMin = lliMin;
-		*plliMax = lliMax;
+		psRange->lliMin = sFirst.lliMin;
+		psRange->lliMax = sFirst.lliMax;
 	}
 	else if ((uiOpcode == IRO_Add) || (uiOpcode == IRO_Sub))
 	{
-		if (!RangeAt(pcBlock, psInstruction->asArguments[1], &lliOtherMin, &lliOtherMax, iDepth))
+		if (!RangeAt(pcBlock, psInstruction->asArguments[1], &sSecond, uiNarrowBy, iDepth))
 		{
 			return false;
 		}
-		*plliMin = (uiOpcode == IRO_Add) ? lliMin + lliOtherMin : lliMin - lliOtherMax;
-		*plliMax = (uiOpcode == IRO_Add) ? lliMax + lliOtherMax : lliMax - lliOtherMin;
-		if ((uiOpcode == IRO_Sub) && (*plliMin < 0) && (lliMin >= 0) && (lliOtherMin >= 0) && mpcContext->mbBranchRanges &&
-			DominatingNotLess(pcBlock, psInstruction->asArguments[0], psInstruction->asArguments[1]))
+		psRange->lliMin = (uiOpcode == IRO_Add) ? sFirst.lliMin + sSecond.lliMin : sFirst.lliMin - sSecond.lliMax;
+		psRange->lliMax = (uiOpcode == IRO_Add) ? sFirst.lliMax + sSecond.lliMax : sFirst.lliMax - sSecond.lliMin;
+		if ((uiOpcode == IRO_Sub) && (psRange->lliMin < 0) && (sFirst.lliMin >= 0) && (sSecond.lliMin >= 0) && (uiNarrowBy & IR_RANGE_BRANCHES) &&
+			DominatingNotLess(pcBlock, psInstruction->asArguments[0], psInstruction->asArguments[1], uiNarrowBy))
 		{
 			//x - y where a branch on the way says x >= y (index - first, after index >= first): never negative.
-			*plliMin = 0;
+			psRange->lliMin = 0;
 		}
 	}
 	else
@@ -631,20 +628,20 @@ bool CIRRangePasses::ArithmeticRange(SIRInstruction* psInstruction, int64* plliM
 			{
 				return false;
 			}
-			*plliMin = (lliConstant >= 0) ? lliMin * lliConstant : lliMax * lliConstant;
-			*plliMax = (lliConstant >= 0) ? lliMax * lliConstant : lliMin * lliConstant;
+			psRange->lliMin = (lliConstant >= 0) ? sFirst.lliMin * lliConstant : sFirst.lliMax * lliConstant;
+			psRange->lliMax = (lliConstant >= 0) ? sFirst.lliMax * lliConstant : sFirst.lliMin * lliConstant;
 		}
-		else if ((uiOpcode == IRO_AShr) || (lliMin >= 0))
+		else if ((uiOpcode == IRO_AShr) || (sFirst.lliMin >= 0))
 		{
-			*plliMin = lliMin >> lliConstant;
-			*plliMax = lliMax >> lliConstant;
+			psRange->lliMin = sFirst.lliMin >> lliConstant;
+			psRange->lliMax = sFirst.lliMax >> lliConstant;
 		}
 		else
 		{
 			return false;
 		}
 	}
-	return (*plliMin >= IRSignedMin(iBits)) && (*plliMax <= IRSignedMax(iBits));
+	return (psRange->lliMin >= IRSignedMin(iBits)) && (psRange->lliMax <= IRSignedMax(iBits));
 }
 
 
@@ -657,13 +654,12 @@ bool CIRRangePasses::ArithmeticRange(SIRInstruction* psInstruction, int64* plliM
 // unsigned values.  False for anything else.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRRangePasses::DivisionRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth)
+bool CIRRangePasses::DivisionRange(SIRInstruction* psInstruction, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth)
 {
 	SIRConstantDivision	sDivision;
 	SIRType	sType;
 	int64	lliDivisor;
-	int64	lliMin;
-	int64	lliMax;
+	SIRValueRange	sDividend;
 	int		iBits;
 	bool	bSigned;
 
@@ -679,36 +675,36 @@ bool CIRRangePasses::DivisionRange(SIRInstruction* psInstruction, int64* plliMin
 	{
 		return false;
 	}
-	if (!RangeAt(mpcContext->mcDefinitions.Block(psInstruction->sResult), psInstruction->asArguments[0], &lliMin, &lliMax, iDepth))
+	if (!RangeAt(mpcContext->mcDefinitions.Block(psInstruction->sResult), psInstruction->asArguments[0], &sDividend, uiNarrowBy, iDepth))
 	{
-		lliMin = IRSignedMin(iBits);
-		lliMax = IRSignedMax(iBits);
+		sDividend.lliMin = IRSignedMin(iBits);
+		sDividend.lliMax = IRSignedMax(iBits);
 	}
-	if (!bSigned && (lliMin < 0))
+	if (!bSigned && (sDividend.lliMin < 0))
 	{
-		lliMin = 0;
-		lliMax = IRUnsignedMax(iBits);
+		sDividend.lliMin = 0;
+		sDividend.lliMax = IRUnsignedMax(iBits);
 	}
 	if (!sDivision.bRemainder)
 	{
 		//Rounding towards 0 keeps the order.
-		*plliMin = lliMin / lliDivisor;
-		*plliMax = lliMax / lliDivisor;
+		psRange->lliMin = sDividend.lliMin / lliDivisor;
+		psRange->lliMax = sDividend.lliMax / lliDivisor;
 	}
 	else
 	{
-		*plliMin = (lliMin < 0) ? ((lliMin > -lliDivisor) ? lliMin : -(lliDivisor - 1)) : 0;
-		*plliMax = (lliMax > 0) ? ((lliMax < lliDivisor) ? lliMax : lliDivisor - 1) : 0;
-		if ((lliMin >= 0) && (lliMax < lliDivisor))
+		psRange->lliMin = (sDividend.lliMin < 0) ? ((sDividend.lliMin > -lliDivisor) ? sDividend.lliMin : -(lliDivisor - 1)) : 0;
+		psRange->lliMax = (sDividend.lliMax > 0) ? ((sDividend.lliMax < lliDivisor) ? sDividend.lliMax : lliDivisor - 1) : 0;
+		if ((sDividend.lliMin >= 0) && (sDividend.lliMax < lliDivisor))
 		{
-			*plliMin = lliMin;
+			psRange->lliMin = sDividend.lliMin;
 		}
-		if ((lliMax <= 0) && (lliMin > -lliDivisor))
+		if ((sDividend.lliMax <= 0) && (sDividend.lliMin > -lliDivisor))
 		{
-			*plliMax = lliMax;
+			psRange->lliMax = sDividend.lliMax;
 		}
 	}
-	return *plliMax <= IRSignedMax(iBits);
+	return psRange->lliMax <= IRSignedMax(iBits);
 }
 
 
@@ -862,20 +858,20 @@ bool CIRRangePasses::FoldNullTests(void)
 //
 // The block above pcTo on the way every run takes to it: its one
 // predecessor (*pbBranch true: that block's branch to pcTo holds in pcTo and
-// everything pcTo dominates), or with mpcContext->mbDominatorRanges and
+// everything pcTo dominates), or with IR_RANGE_DOMINATORS in uiNarrowBy and
 // several predecessors (an if and else joined, a loop's head) its immediate
 // dominator (*pbBranch false: nothing is known of how it got from there).
 // NULL when there is none.
 //
 //////////////////////////////////////////////////////////////////////////
-CIRBlock* CIRRangePasses::RangeStep(CIRBlock* pcTo, bool* pbBranch)
+CIRBlock* CIRRangePasses::RangeStep(CIRBlock* pcTo, uint8 uiNarrowBy, bool* pbBranch)
 {
 	*pbBranch = pcTo->mapcPredecessors.NumElements() == 1;
 	if (*pbBranch)
 	{
 		return pcTo->mapcPredecessors.GetPtr(0);
 	}
-	if (!mpcContext->mbDominatorRanges || (pcTo->mapcPredecessors.NumElements() == 0))
+	if (!(uiNarrowBy & IR_RANGE_DOMINATORS) || (pcTo->mapcPredecessors.NumElements() == 0))
 	{
 		return NULL;
 	}
@@ -885,14 +881,14 @@ CIRBlock* CIRRangePasses::RangeStep(CIRBlock* pcTo, bool* pbBranch)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Narrows the signed range [*plliMin, *plliMax] of sValue in pcBlock by the
+// Narrows the signed range [psRange->lliMin, psRange->lliMax] of sValue in pcBlock by the
 // branches pcBlock is reached through: while a block has one predecessor,
 // that predecessor's branch on a compare of sValue with a constant holds
 // (the way to the block), up to IR_RANGE_DEPTH blocks up (RangeStep: with
-// mpcContext->mbDominatorRanges on up past blocks with several).
+// IR_RANGE_DOMINATORS on up past blocks with several).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRRangePasses::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax)
+void CIRRangePasses::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy)
 {
 	CIRBlock*		pcTo;
 	CIRBlock*		pcFrom;
@@ -902,14 +898,14 @@ void CIRRangePasses::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int
 	pcTo = pcBlock;
 	for (iDepth = 0; iDepth < IR_RANGE_DEPTH; iDepth++)
 	{
-		pcFrom = RangeStep(pcTo, &bBranch);
+		pcFrom = RangeStep(pcTo, uiNarrowBy, &bBranch);
 		if (!pcFrom)
 		{
 			break;
 		}
 		if (bBranch)
 		{
-			BranchRange(pcFrom, pcTo, sValue, plliMin, plliMax);
+			BranchRange(pcFrom, pcTo, sValue, psRange);
 		}
 		pcTo = pcFrom;
 	}
@@ -918,14 +914,14 @@ void CIRRangePasses::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Narrows the signed range [*plliMin, *plliMax] of sValue by pcFrom's
+// Narrows the signed range [psRange->lliMin, psRange->lliMax] of sValue by pcFrom's
 // branch to pcTo, when it is on a compare of sValue with a constant
 // (EdgeComparison), or below (or not above) a value that is never more than
 // a bound positive as signed (UpperBound: a zext, an and; index <= last
 // with last a byte): then sValue is no more than the bound either.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRRangePasses::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, int64* plliMin, int64* plliMax)
+void CIRRangePasses::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, SIRValueRange* psRange)
 {
 	SIRReference	sConstant;
 	SIRType			sType;
@@ -953,26 +949,26 @@ void CIRRangePasses::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference 
 		lliConstant = (int64)ulliBound - ((((uiOpcode == IRO_ULt) || (uiOpcode == IRO_SLt)) && (ulliBound > 0)) ? 1 : 0);
 		if ((uiOpcode == IRO_ULt) || (uiOpcode == IRO_ULe))
 		{
-			*plliMin = (*plliMin < 0) ? 0 : *plliMin;
+			psRange->lliMin = (psRange->lliMin < 0) ? 0 : psRange->lliMin;
 		}
-		*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;
+		psRange->lliMax = (lliConstant < psRange->lliMax) ? lliConstant : psRange->lliMax;
 		return;
 	}
 	lliConstant = mpcFunction->GetSigned(sConstant);
 	switch (uiOpcode)
 	{
-	case IRO_SLt:	*plliMax = (lliConstant - 1 < *plliMax) ? lliConstant - 1 : *plliMax;	break;
-	case IRO_SLe:	*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;			break;
-	case IRO_SGt:	*plliMin = (lliConstant + 1 > *plliMin) ? lliConstant + 1 : *plliMin;	break;
-	case IRO_SGe:	*plliMin = (lliConstant > *plliMin) ? lliConstant : *plliMin;			break;
+	case IRO_SLt:	psRange->lliMax = (lliConstant - 1 < psRange->lliMax) ? lliConstant - 1 : psRange->lliMax;	break;
+	case IRO_SLe:	psRange->lliMax = (lliConstant < psRange->lliMax) ? lliConstant : psRange->lliMax;			break;
+	case IRO_SGt:	psRange->lliMin = (lliConstant + 1 > psRange->lliMin) ? lliConstant + 1 : psRange->lliMin;	break;
+	case IRO_SGe:	psRange->lliMin = (lliConstant > psRange->lliMin) ? lliConstant : psRange->lliMin;			break;
 	case IRO_ULt:
 	case IRO_ULe:
 		//Below a constant that is positive as signed: 0 up to it.
 		if (lliConstant > 0)
 		{
-			*plliMin = (*plliMin < 0) ? 0 : *plliMin;
+			psRange->lliMin = (psRange->lliMin < 0) ? 0 : psRange->lliMin;
 			lliConstant -= (uiOpcode == IRO_ULt) ? 1 : 0;
-			*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;
+			psRange->lliMax = (lliConstant < psRange->lliMax) ? lliConstant : psRange->lliMax;
 		}
 		break;
 	default:
@@ -988,7 +984,7 @@ void CIRRangePasses::BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference 
 // unsigned.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRRangePasses::DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SIRReference sRight)
+bool CIRRangePasses::DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SIRReference sRight, uint8 uiNarrowBy)
 {
 	CIRBlock*		pcTo;
 	CIRBlock*		pcFrom;
@@ -1004,7 +1000,7 @@ bool CIRRangePasses::DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SI
 	pcTo = pcBlock;
 	for (iDepth = 0; iDepth < IR_RANGE_DEPTH; iDepth++)
 	{
-		pcFrom = RangeStep(pcTo, &bBranch);
+		pcFrom = RangeStep(pcTo, uiNarrowBy, &bBranch);
 		if (!pcFrom)
 		{
 			break;
@@ -1029,18 +1025,17 @@ bool CIRRangePasses::DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SI
 bool CIRRangePasses::NotNegative(CIRBlock* pcBlock, SIRReference sValue)
 {
 	int		iBits;
-	int64	lliMin;
-	int64	lliMax;
+	SIRValueRange	sRange;
 
 	iBits = mpcFunction->TypeOf(sValue).IntegerBits();
 	if ((iBits < 2) || (iBits > 32) || sValue.IsConstant())
 	{
 		return false;
 	}
-	lliMin = IRSignedMin(iBits);
-	lliMax = IRSignedMax(iBits);
-	DominatingRange(pcBlock, sValue, &lliMin, &lliMax);
-	return lliMin >= 0;
+	sRange.lliMin = IRSignedMin(iBits);
+	sRange.lliMax = IRSignedMax(iBits);
+	DominatingRange(pcBlock, sValue, &sRange, IR_RANGE_AS_DEFINED);
+	return sRange.lliMin >= 0;
 }
 
 
@@ -1140,8 +1135,7 @@ bool CIRRangePasses::NarrowMultiplies(void)
 	SIRType								sType;
 	SIRType								sShort;
 	uint64								ulliConstant;
-	int64								lliMin;
-	int64								lliMax;
+	SIRValueRange							sRange;
 	int64								lliMultiple;
 	int									iBits;
 	size								ui;
@@ -1153,8 +1147,6 @@ bool CIRRangePasses::NarrowMultiplies(void)
 	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
 	ComputeDominators();
-	mpcContext->mbBranchRanges = true;
-	mpcContext->mbDominatorRanges = true;
 	sShort = IRType(IRTK_I16);
 	asFound.Init();
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -1183,17 +1175,17 @@ bool CIRRangePasses::NarrowMultiplies(void)
 			}
 			//The compares are of the narrow value as it is (a signed compare sees it signed); a zext of one that may be
 			//negative is up to all its bits.
-			if (!RangeAt(pcBlock, sNarrow, &lliMin, &lliMax))
+			if (!RangeAt(pcBlock, sNarrow, &sRange, IR_RANGE_BRANCHES | IR_RANGE_DOMINATORS))
 			{
-				lliMin = IRSignedMin(iBits);
-				lliMax = IRSignedMax(iBits);
+				sRange.lliMin = IRSignedMin(iBits);
+				sRange.lliMax = IRSignedMax(iBits);
 			}
-			if ((lliMin < 0) && (psExtension->uiOpcode == IRO_ZExt))
+			if ((sRange.lliMin < 0) && (psExtension->uiOpcode == IRO_ZExt))
 			{
-				lliMin = 0;
-				lliMax = IRUnsignedMax(iBits);
+				sRange.lliMin = 0;
+				sRange.lliMax = IRUnsignedMax(iBits);
 			}
-			if ((lliMin < 0) || ((uint64)lliMax * ulliConstant > 0xFFFF))
+			if ((sRange.lliMin < 0) || ((uint64)sRange.lliMax * ulliConstant > 0xFFFF))
 			{
 				continue;
 			}
@@ -1205,8 +1197,6 @@ bool CIRRangePasses::NarrowMultiplies(void)
 		}
 	}
 
-	mpcContext->mbBranchRanges = false;
-	mpcContext->mbDominatorRanges = false;
 
 	//Last first, so each instruction's index is still where it was found.  (The inserts leave the blocks, and so their
 	//dominators, as they are.)
@@ -1263,8 +1253,7 @@ bool CIRRangePasses::BoundIndices(void)
 	SIRReference	sNarrow;
 	SIRType			sWide;
 	SIRType			sShort;
-	int64			lliMin;
-	int64			lliMax;
+	SIRValueRange		sRange;
 	int64			lliConstant;
 	uint16			uiBaseFlags;
 	size			ui;
@@ -1273,8 +1262,6 @@ bool CIRRangePasses::BoundIndices(void)
 
 	bChanged = false;
 	sShort = IRType(IRTK_I16);
-	mpcContext->mbBranchRanges = true;
-	mpcContext->mbDominatorRanges = true;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
@@ -1291,7 +1278,7 @@ bool CIRRangePasses::BoundIndices(void)
 				continue;
 			}
 			sNarrow = psExtension->asArguments[0];
-			if (!RangeAt(pcBlock, sNarrow, &lliMin, &lliMax) || (lliMin < 0) || (lliMax > IR_IN_ARRAY_MOST))
+			if (!RangeAt(pcBlock, sNarrow, &sRange, IR_RANGE_BRANCHES | IR_RANGE_DOMINATORS) || (sRange.lliMin < 0) || (sRange.lliMax > IR_IN_ARRAY_MOST))
 			{
 				continue;
 			}
@@ -1310,7 +1297,7 @@ bool CIRRangePasses::BoundIndices(void)
 				continue;
 			}
 			lliConstant = mpcFunction->GetSigned(psBase->asArguments[1]);
-			if ((lliConstant <= 0) || (lliMax + lliConstant > IR_IN_ARRAY_MOST))
+			if ((lliConstant <= 0) || (sRange.lliMax + lliConstant > IR_IN_ARRAY_MOST))
 			{
 				continue;
 			}
@@ -1334,8 +1321,6 @@ bool CIRRangePasses::BoundIndices(void)
 			FindDefinitions();
 		}
 	}
-	mpcContext->mbBranchRanges = false;
-	mpcContext->mbDominatorRanges = false;
 	return bChanged;
 }
 

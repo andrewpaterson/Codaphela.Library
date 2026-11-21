@@ -235,10 +235,8 @@ bool CIRCounterPasses::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 	size			uiOutside;
 	size			uiStep;
 	int64			lliStep;
-	int64			lliMin;
-	int64			lliMax;
-	int64			lliBoundMin;
-	int64			lliBoundMax;
+	SIRValueRange		sInitialRange;
+	SIRValueRange		sBoundRange;
 	bool			bRoundOnTrue;
 	bool			bUp;
 	bool			bBoundFirst;
@@ -362,16 +360,16 @@ bool CIRCounterPasses::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 	//and >= (< and > stop at N), and past c0 (when it starts past N) in the way it goes, when the stepped value is seen
 	//past the test (tested, or used after it) and the loop isn't only entered towards N.
 	sInitial = psCounter->asArguments.Get(uiOutside)->sValue;
-	if (!mpcContext->mpcRangePasses->SignedRange(sInitial, &lliMin, &lliMax) || !mpcContext->mpcRangePasses->SignedRange(sBound, &lliBoundMin, &lliBoundMax))
+	if (!mpcContext->mpcRangePasses->SignedRange(sInitial, &sInitialRange, IR_RANGE_AS_DEFINED) || !mpcContext->mpcRangePasses->SignedRange(sBound, &sBoundRange, IR_RANGE_AS_DEFINED))
 	{
 		asExits.Kill();
 		return false;
 	}
 	bInclusive =(uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGe);
 	bStartSpare = (!sCompared.Equals(sCounter) || (mpcContext->mcDefinitions.NumUses(sStepped) > (bRewritten ? 2u + asExits.NumElements() : 1u))) && !NarrowLoopGuarded(uiLoop, uiOpcode, sInitial, sBound);
-	if ((lliMin < -32768) || (lliMax > 32767) || (lliBoundMin < -32768) || (lliBoundMax > 32767) ||
-		(bUp && ((bStartSpare && (lliMax > 32766)) || (bInclusive && (lliBoundMax > 32766)))) ||
-		(!bUp && ((bStartSpare && (lliMin < -32767)) || (bInclusive && (lliBoundMin < -32767)))))
+	if ((sInitialRange.lliMin < -32768) || (sInitialRange.lliMax > 32767) || (sBoundRange.lliMin < -32768) || (sBoundRange.lliMax > 32767) ||
+		(bUp && ((bStartSpare && (sInitialRange.lliMax > 32766)) || (bInclusive && (sBoundRange.lliMax > 32766)))) ||
+		(!bUp && ((bStartSpare && (sInitialRange.lliMin < -32767)) || (bInclusive && (sBoundRange.lliMin < -32767)))))
 	{
 		asExits.Kill();
 		return false;

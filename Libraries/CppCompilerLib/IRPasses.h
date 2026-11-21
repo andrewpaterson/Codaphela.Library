@@ -134,6 +134,20 @@ struct SIRNarrowMultiply
 };
 
 
+//The signed range of an integer value: from lliMin to lliMax.
+struct SIRValueRange
+{
+	int64	lliMin;
+	int64	lliMax;
+};
+
+
+//What a value's range is narrowed by, beyond what its definition says (CIRRangePasses::RangeAt).
+#define IR_RANGE_AS_DEFINED		0x00
+#define IR_RANGE_BRANCHES		0x01	//The branches to the block it is asked in (the predecessors must be found).
+#define IR_RANGE_DOMINATORS		0x02	//...and those above a block with several predecessors, from its dominators (worked out).
+
+
 //An unsigned divide or remainder by a constant that BoundDivisions makes cheaper: the dividend is below the divisor
 //(bOnce false) or below twice it.
 struct SIRBoundDivision
@@ -254,8 +268,6 @@ public:
 	bool					mbRestrict;			//The module has restrict symbols or the function restrict parameters (see PointerBase).
 	CIRPipeline*			mpcPipeline;		//The passes the optimiser runs: a pass asks it whether another is one of them (Has).
 	uint32					muiDivideRemainders;	//The IR_DIVIDE_REMAINDERS_ divides that leave their remainder for a urem or srem right after them.
-	bool					mbBranchRanges;		//SignedRange narrows by the branches to a value's block (predecessors found).
-	bool					mbDominatorRanges;	//...and by those above a block with several predecessors, from its dominators (worked out).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
 	SIRType					msLibrarySize;		//memset's size_t (16 or 32 bits): a 16 bit one has 32 suffixed functions for longer counts.

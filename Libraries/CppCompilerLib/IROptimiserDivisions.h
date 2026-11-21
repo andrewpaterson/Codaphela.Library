@@ -49,8 +49,7 @@ struct SIRFoundDivision
 	CIRBlock*		pcBlock;
 	size			uiInstruction;
 	uint8			uiKind;			//EIRConstantDivision.
-	int64			lliMin;			//The dividend's range.
-	int64			lliMax;
+	SIRValueRange		sRange;			//The dividend's.
 	SIRReciprocal	sReciprocal;	//IRCD_Reciprocal.
 };
 

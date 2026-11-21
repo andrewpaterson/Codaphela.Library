@@ -118,8 +118,7 @@ bool CIRDivisionPasses::BoundDivisions(void)
 	SIRType								sType;
 	uint64								ulliDivisor;
 	uint64								ulliBound;
-	int64								lliMin;
-	int64								lliMax;
+	SIRValueRange							sRange;
 	size								ui;
 	size								uiInstruction;
 	bool								bChanged;
@@ -127,7 +126,6 @@ bool CIRDivisionPasses::BoundDivisions(void)
 	//Found first: the inserts move the definitions UpperBound reads.
 	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
-	mpcContext->mbBranchRanges = true;
 	asFound.Init();
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -146,9 +144,9 @@ bool CIRDivisionPasses::BoundDivisions(void)
 				continue;
 			}
 			ulliBound = !sDivision.bSigned ? mpcContext->mpcRangePasses->UpperBound(psInstruction->asArguments[0], IR_BOUND_DEPTH) : (uint64)-1;
-			if ((ulliBound >= ulliDivisor * 2) && mpcContext->mpcRangePasses->RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax) && (lliMin >= 0))
+			if ((ulliBound >= ulliDivisor * 2) && mpcContext->mpcRangePasses->RangeAt(pcBlock, psInstruction->asArguments[0], &sRange, IR_RANGE_BRANCHES) && (sRange.lliMin >= 0))
 			{
-				ulliBound = (uint64)lliMax;
+				ulliBound = (uint64)sRange.lliMax;
 			}
 			if (ulliBound < ulliDivisor * 2)
 			{
@@ -159,7 +157,6 @@ bool CIRDivisionPasses::BoundDivisions(void)
 			}
 		}
 	}
-	mpcContext->mbBranchRanges = false;
 
 	//Last first, so each instruction's index is still where it was found.
 	ClearReplacements();
@@ -334,8 +331,7 @@ bool CIRDivisionPasses::DivisibilityTests(void)
 	uint64			ulliOdd;
 	uint64			ulliInverse;
 	uint64			ulliMask;
-	int64			lliMin;
-	int64			lliMax;
+	SIRValueRange		sRange;
 	size			ui;
 	size			uj;
 	int				iBits;
@@ -390,7 +386,7 @@ bool CIRDivisionPasses::DivisibilityTests(void)
 			}
 
 			sValue = psRemainder->asArguments[0];
-			if (bSigned && (!mpcContext->mpcRangePasses->SignedRange(sValue, &lliMin, &lliMax) || (lliMin < 0)))
+			if (bSigned && (!mpcContext->mpcRangePasses->SignedRange(sValue, &sRange, IR_RANGE_AS_DEFINED) || (sRange.lliMin < 0)))
 			{
 				//|x|: (x ^ s) - s with s the sign (-2^(n-1) stays itself, which is its size unsigned).
 				sSign = InsertInstruction(pcBlock, uj++, IRO_AShr, sType, sValue, mpcFunction->AddInteger(sType, iBits - 1));
@@ -427,7 +423,7 @@ bool CIRDivisionPasses::DivisibilityTests(void)
 // x get the same q, which common subexpressions make one.  An i8 one the
 // profile finds hot (IsHot) is marked IRF_Hot and left for the target to
 // look up in a table.  x's range is narrowed by the branches to the divide
-// (mpcContext->mbBranchRanges).  A 32 bit divide by a wide c = 2^k * m (m under 65536)
+// (IR_RANGE_BRANCHES).  A 32 bit divide by a wide c = 2^k * m (m under 65536)
 // that isn't made a multiply is split (SplitDivisor).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -449,8 +445,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 	SIRType								sType;
 	SIRType								sWork;
 	int64								lliDivisor;
-	int64								lliMin;
-	int64								lliMax;
+	SIRValueRange							sRange;
 	int									iShift;
 	size								ui;
 	size								uiInstruction;
@@ -460,7 +455,6 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 
 	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
-	mpcContext->mbBranchRanges = true;
 	asFound.Init();
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -485,22 +479,22 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 				psInstruction->uiFlags |= IRF_Hot;
 				continue;
 			}
-			if (!mpcContext->mpcRangePasses->RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax) || (!bSigned && (lliMin < 0)))
+			if (!mpcContext->mpcRangePasses->RangeAt(pcBlock, psInstruction->asArguments[0], &sRange, IR_RANGE_BRANCHES) || (!bSigned && (sRange.lliMin < 0)))
 			{
-				lliMin = 1;
-				lliMax = 0;
+				sRange.lliMin = 1;
+				sRange.lliMax = 0;
 			}
 			//The table for a hot one of a byte, else the multiply, else the split.
 			sFound.uiKind = IRCD_None;
-			if ((lliMin <= lliMax) && IsByteTableDivision(lliMin, lliMax, lliDivisor) && IsHot(psInstruction, IR_DIVISION_TABLE_SAVING))
+			if ((sRange.lliMin <= sRange.lliMax) && IsByteTableDivision(sRange.lliMin, sRange.lliMax, lliDivisor) && IsHot(psInstruction, IR_DIVISION_TABLE_SAVING))
 			{
 				sFound.uiKind = IRCD_Table;
 			}
-			else if ((lliMin <= lliMax) && FindReciprocal(lliMin, lliMax, lliDivisor, psInstruction->sType.IntegerBits(), bSigned, &sFound.sReciprocal))
+			else if ((sRange.lliMin <= sRange.lliMax) && FindReciprocal(sRange.lliMin, sRange.lliMax, lliDivisor, psInstruction->sType.IntegerBits(), bSigned, &sFound.sReciprocal))
 			{
 				sFound.uiKind = IRCD_Reciprocal;
 			}
-			else if (SplitDivisor(psInstruction->sType, lliDivisor, lliMin, lliMax))
+			else if (SplitDivisor(psInstruction->sType, lliDivisor, sRange.lliMin, sRange.lliMax))
 			{
 				sFound.uiKind = IRCD_Split;
 			}
@@ -508,13 +502,11 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 			{
 				sFound.pcBlock = pcBlock;
 				sFound.uiInstruction = uiInstruction;
-				sFound.lliMin = lliMin;
-				sFound.lliMax = lliMax;
+				sFound.sRange = sRange;
 				asFound.Add(&sFound);
 			}
 		}
 	}
-	mpcContext->mbBranchRanges = false;
 
 	//Last first, so each instruction's index is still where it was found.
 	for (ui = asFound.NumElements(); ui > 0; ui--)
@@ -531,8 +523,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 		sDivision.Init(mpcFunction, psInstruction);
 		bSigned = sDivision.bSigned;
 		lliDivisor = sDivision.lliDivisor;
-		lliMin = psFound->lliMin;
-		lliMax = psFound->lliMax;
+		sRange = psFound->sRange;
 		if (psFound->uiKind == IRCD_Split)
 		{
 			for (iShift = 0; ((lliDivisor >> iShift) & 1) == 0; iShift++)
@@ -575,7 +566,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 		{
 			//The byte's i8 divide (signed only when the byte may be negative), extended back.
 			sWork = IRType(IRTK_I8);
-			bSigned = lliMin < 0;
+			bSigned = sRange.lliMin < 0;
 			uiAt = uiInstruction;
 			sWide = InsertInstruction(pcBlock, uiAt++, IRO_Trunc, sWork, sValue, IRNone());
 			uiOpcode = IRDivisionOpcode(bSigned, IsIRRemainder(uiOpcode));
@@ -605,7 +596,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 		}
 		sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Mul, sWork, sWide, mpcFunction->AddInteger(sWork, (int64)psReciprocal->ulliMultiplier));
 		sQuotient = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_AShr : IRO_LShr, sWork, sQuotient, mpcFunction->AddInteger(sWork, psReciprocal->iShift));
-		if (bSigned && (lliMin < 0))
+		if (bSigned && (sRange.lliMin < 0))
 		{
 			sSign = InsertInstruction(pcBlock, uiAt++, IRO_AShr, sWork, sWide, mpcFunction->AddInteger(sWork, sWork.IntegerBits() - 1));
 			sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Sub, sWork, sQuotient, sSign);

@@ -30,24 +30,24 @@ class CIRRangePasses : public CIRPasses
 public:
 	bool			NarrowTruncations(void);
 	bool			NarrowMultiplies(void);
-	bool			RangeAt(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth = IR_SIGNED_RANGE_DEPTH, CIRBlock* pcTo = NULL);
+	bool			RangeAt(CIRBlock* pcBlock, SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth = IR_SIGNED_RANGE_DEPTH, CIRBlock* pcTo = NULL);
 	bool			NotNegative(CIRBlock* pcBlock, SIRReference sValue);
 	bool			BranchNonNull(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue);
 	bool			NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth);
 	bool			FoldNullTests(void);
-	bool			SignedRange(SIRReference sValue, int64* plliMin, int64* plliMax, int iDepth = IR_SIGNED_RANGE_DEPTH);
+	bool			SignedRange(SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth = IR_SIGNED_RANGE_DEPTH);
 	bool			NarrowComparison(SIRInstruction* psInstruction);
 	uint64			UpperBound(SIRReference sValue, int iDepth);
 
 protected:
-	void			DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax);
-	void			BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, int64* plliMin, int64* plliMax);
-	bool			DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SIRReference sRight);
+	void			DominatingRange(CIRBlock* pcBlock, SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy);
+	void			BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, SIRValueRange* psRange);
+	bool			DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SIRReference sRight, uint8 uiNarrowBy);
 	SIRInstruction*	ExtendedMultiple(SIRReference sValue, int64* plliMultiple, int iDepth);
 	bool			BoundIndices(void);
-	CIRBlock*		RangeStep(CIRBlock* pcTo, bool* pbBranch);
-	bool			DivisionRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth);
-	bool			ArithmeticRange(SIRInstruction* psInstruction, int64* plliMin, int64* plliMax, int iDepth);
+	CIRBlock*		RangeStep(CIRBlock* pcTo, uint8 uiNarrowBy, bool* pbBranch);
+	bool			DivisionRange(SIRInstruction* psInstruction, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth);
+	bool			ArithmeticRange(SIRInstruction* psInstruction, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth);
 	SIRReference	Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType);
 	void			ComparisonRange(SIRInstruction* psInstruction);
 	SIRReference	FreeNarrow(SIRReference sValue, SIRType sType);

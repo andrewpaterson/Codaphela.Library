@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 to 10 are done (2026-11-22).  Stage 11 is next; "The record", at the end, has what each stage
+Where it is: stages 0 to 10 and stage 11's first part are done (2026-11-22).  Stage 11's second part is next; "The record", at the end, has what each stage
 found.
 
 
@@ -445,3 +445,21 @@ baseline's.  TestCppCompilerLib passes.
 	it.  A copy (IRO_Copy) is a value put in a place of its own, which the W65C816's back end makes for a
 	parameter whose address is taken, and no pass takes one away; an add of 0 is what the folding gives
 	every use the operand of.  A comment at the add says so.
+
+Stage 11, first part (2026-11-22): a range is a record, and what narrows it a parameter.  Same code: the 4,201
+listings are the baseline's.  TestCppCompilerLib passes.
+
+	SIRValueRange (IRPasses.h; SIRRange is the liveness's) is a signed range, lliMin to lliMax.  RangeAt,
+	SignedRange, DominatingRange, BranchRange, DivisionRange and ArithmeticRange take one where each took two
+	int64 pointers, and the passes that ask keep one where they kept two locals (four in NarrowCounter and
+	ArithmeticRange, which have two ranges each).  ConstantDivisions' found record holds the dividend's.
+
+	What a range is narrowed by is the question's uiNarrowBy: IR_RANGE_BRANCHES (the branches to the block it
+	is asked in) and IR_RANGE_DOMINATORS (those above a block with several predecessors).  The context's
+	mbBranchRanges and mbDominatorRanges are gone: BoundDivisions, ConstantDivisions, BiasSignedIndices,
+	NarrowMultiplies and BoundIndices each set them before their questions and cleared them after, and
+	SignedRange, RangeAt, ArithmeticRange and RangeStep read them.  Every question now says what it had
+	set: the three that were asked with neither set (NarrowCounter's two, DivisibilityTests', NotNegative's)
+	say IR_RANGE_AS_DEFINED.
+
+	(The other half of finding 68, OnlyUsedInLoop's uses taken away and put back, is stage 12's.)

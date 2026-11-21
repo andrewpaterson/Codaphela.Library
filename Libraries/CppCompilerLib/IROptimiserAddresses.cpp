@@ -255,8 +255,7 @@ bool CIRAddressPasses::BiasSignedIndices(void)
 	int64					lliScaleBy;
 	int64					lliExtra;
 	int64					lliBias;
-	int64					lliMin;
-	int64					lliMax;
+	SIRValueRange				sRange;
 	size					ui;
 	size					uj;
 	uint16					uiScaleOpcode;
@@ -334,22 +333,20 @@ bool CIRAddressPasses::BiasSignedIndices(void)
 			}
 			else
 			{
-				mpcContext->mbBranchRanges = true;
-				if (!mpcContext->mpcRangePasses->RangeAt(pcBlock, sIndex, &lliMin, &lliMax))
+				if (!mpcContext->mpcRangePasses->RangeAt(pcBlock, sIndex, &sRange, IR_RANGE_BRANCHES))
 				{
-					lliMin = -0x8000;
-					lliMax = 0x7FFF;
+					sRange.lliMin = -0x8000;
+					sRange.lliMax = 0x7FFF;
 				}
-				mpcContext->mbBranchRanges = false;
-				if ((lliMax - lliMin) * lliScale > 0xFFFF)
+				if ((sRange.lliMax - sRange.lliMin) * lliScale > 0xFFFF)
 				{
 					continue;
 				}
 
 				//A constant after the index goes in it while it fits (so p + sext(x) * s and p + sext(x) * s + 1 share
 				//a base), else in the base; so does a constant p is from another pointer.
-				lliBias = -lliMin * lliScale;
-				if ((lliExtra >= 0) && ((lliMax - lliMin) * lliScale + lliExtra <= 0xFFFF))
+				lliBias = -sRange.lliMin * lliScale;
+				if ((lliExtra >= 0) && ((sRange.lliMax - sRange.lliMin) * lliScale + lliExtra <= 0xFFFF))
 				{
 					lliBias += lliExtra;
 					lliExtra = 0;
@@ -361,9 +358,9 @@ bool CIRAddressPasses::BiasSignedIndices(void)
 					sBase = psInner->asArguments[0];
 				}
 				sBiased = sBase;
-				if (lliExtra + lliMin * lliScale != 0)
+				if (lliExtra + sRange.lliMin * lliScale != 0)
 				{
-					sBiased = InsertInstruction(pcBlock, uj++, IRO_PtrAdd, IRType(IRTK_Pointer), sBase, mpcFunction->AddInteger(sOffsetType, lliExtra + lliMin * lliScale));
+					sBiased = InsertInstruction(pcBlock, uj++, IRO_PtrAdd, IRType(IRTK_Pointer), sBase, mpcFunction->AddInteger(sOffsetType, lliExtra + sRange.lliMin * lliScale));
 				}
 				if (lliScale != 1)
 				{
