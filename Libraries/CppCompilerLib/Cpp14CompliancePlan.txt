@@ -112,6 +112,156 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
        22 A member reached through a class that is still incomplete there.
        23 A constexpr variable whose type isn't a literal type.
 
+   - Clauses 6, 7, 9, 10, 11 and 12, planned 2026-11-21.  The user: "Please plan out clauses 6, 7, 9, 10, 11 and 12.
+     Using the method you mention for each chapter."  This is the plan only: each clause is measured and its list
+     shown before anything in it is fixed, and the user picks what is fixed.
+     The method, for each clause in turn:
+       1. Read the clause paragraph by paragraph; write a small program for each rule that can be tested: a valid one
+          that returns a number made of single bits (if (...) r += N;) and an invalid one that must be REFUSED.
+       2. clauses.py check: every case through g++ -std=c++14 -pedantic-errors, -m32 and -m64.  A case g++ doesn't
+          agree with is mended or dropped before the compiler is asked.  A result can't depend on the target (sizeof
+          of int or long, 16 bit arithmetic on the W65C816).
+       3. Measure on both targets (TEST_CPP_CONFORMANCE_TRY, one process per case; a crash is held out of the test
+          and listed first); a case with several checks is split to find which fail.
+       4. Write the cases into ClauseNN.txt, the header (clauses.py header), the clause's CONFORMANCE_GROUP line with
+          its not-done lists, and commit: the test passes, the lists saying what isn't done.
+       5. Show the user the list, worst first: crashes, wrong code, valid code refused, invalid code accepted, each
+          with its paragraph and a suggested order.
+       6. Fix what the user picks, as clause 3's were: each fix with its cases (a refusal with a valid case beside
+          it), checked by verify.sh and hcpcheck.sh, committed.
+     What another clause or group covers isn't tested again: expressions (5), declarators and initialisers (8),
+     exceptions (the Exceptions group: a constructor that throws is there, not in 12), the clause 3 cases (a switch's
+     declared condition, goto past objects, names that clash, local classes).  The counts below are estimates.
+
+     Clause 6, statements [stmt.stmt], about 45 cases (Clause06.txt, new group Clause6).
+       6.1 labels: their own names (a label and a variable of one name), a case or default label outside a switch
+           refused.
+       6.3, 6.4 a compound statement's and a selection's scopes: a substatement is a block even without braces; an
+           if's or while's condition variable is in scope in the else and is made again each time round a while.
+       6.4.2 switch: the condition promoted and the case values converted to it; two cases of one value, or two
+           defaults, refused; a case inside a nested block or a loop (Duff's device); a scoped enum condition; a
+           class converted to an integer (known gap B 8); a case that jumps past an initialised declaration refused.
+       6.5 loops: while, do and for, a for with no condition, a for's first part's scope; an object declared in a
+           condition destroyed and made each time round (counted by its constructor and destructor).
+       6.5.4 range-based for: over an array, a class with begin and end members, a class with begin and end found
+           by argument dependent lookup, an initializer list, auto& changing the elements, auto&& over a temporary
+           (its lifetime kept to the loop's end).
+       6.6 jumps: break and continue in nested loops and switches; return converting its value, returning a braced
+           list, return of a void expression in a void function; falling off main's end returns 0; every way out of
+           a block destroys its objects, the last made first, with a return's value made before they are destroyed.
+       6.7 declaration statements: an automatic object made each time its declaration is reached; a static local
+           zero first, made once on the first pass, destroyed at exit after main's objects in the reverse order.
+       6.8 ambiguity: T(a); and T(a)[3]; are declarations, T(a)->m = 7; and T(a)++; expressions.
+       Likely trouble: the range-for through argument dependent lookup, a condition object remade each time round.
+
+     Clause 7, declarations [dcl.dcl], about 110 cases (Clause07a.txt, Clause07b.txt, new group Clause7).
+       7 p1-p5: static_assert (its message, a false one refused, in a class and a block); int; and an empty
+           declaration refused, a lone ; allowed.
+       7.1.1 storage classes: static, extern, thread_local, mutable; extern after static keeps internal linkage;
+           mutable members changed through a const object; static on a member's definition outside its class, and
+           two storage classes together, refused.
+       7.1.2 function specifiers: inline; virtual only in a class, explicit only on a constructor or conversion
+           function in its class (refused elsewhere).
+       7.1.3 typedef: redeclaring one to the same type allowed, to another refused; a typedef naming an unnamed class
+           gives it a name for linkage; a typedef of a function type declaring a function.
+       7.1.5 constexpr: implies const for an object and inline for a function; C++14's relaxed functions (loops,
+           local variables, assignment); a constexpr constructor's rules; a constexpr static member's initialiser;
+           what isn't a constant refused (clause 5 measured constant expressions themselves).
+       7.1.6 type specifiers: const objects need an initialiser and can't be changed; the simple specifiers'
+           combinations (unsigned char, long long, short int ...) and bad ones refused; decltype(x) and decltype((x));
+           auto from an initialiser, auto x{1} and auto x = {1} (an initializer_list), auto& and const auto*, several
+           declarators deducing one type (refused when not); C++14's auto and decltype(auto) return types, a recursive
+           call after the first return.
+       7.2 enumerations: an enum's underlying type and its range; scoped enums not converting; an opaque declaration
+           then its definition; enumerator values that don't fit refused; a scoped enum's enumerators only qualified.
+       7.3 namespaces: reopened; inline namespaces (their names found in the parent, a specialisation through
+           them); unnamed namespaces' internal linkage; a member defined outside with a qualified name, one defined in
+           a namespace not enclosing it refused; aliases; using-declarations (a namespace's overloads added to a
+           scope's, one that conflicts with a declaration refused, a class's using-declaration bringing a base's
+           overloads and changing access); using-directives (transitive, ambiguous names refused only where used).
+       7.4 asm: what the compiler takes, as its documentation says.
+       7.5 linkage specifications: extern "C" functions and variables, nested specifications, two extern "C"
+           functions of one name in different namespaces being one function, overloading one refused.
+       7.6 attributes: [[noreturn]], [[deprecated]] (a warning, not an error), alignas on what may not have it
+           refused, an attribute in a place it can't appertain to refused, unknown attributes ignored.
+       Likely trouble: auto return types, inline namespaces, using-declarations in classes, extern "C" overloads.
+
+     Clause 9, classes [class], about 70 cases (Clause09.txt, new group Clause9).
+       9 p1-p10: a class is incomplete until its }; trivially copyable and standard layout classes (memcpy of one,
+           the first member's address being the object's).
+       9.2 members: a member declared twice refused; default member initialisers; a member of an incomplete type or
+           of the class itself refused (a static one allowed); members with one access in declaration order at
+           increasing addresses; a union's common initial sequence read through another member.
+       9.3 member functions: implicitly inline in the class; const, volatile, & and && member functions and
+           overloads on them; this's type; a non-const member function on a const object refused.
+       9.4 static members: no this; their definitions; const ones initialised in the class; a static data member
+           in a local class or an unnamed class refused.
+       9.5 unions: one member at a time; a member with a constructor making the union's own special members
+           deleted until it declares them; anonymous unions (at namespace scope static, no member functions); a union
+           with a base, a virtual function or a reference member refused.
+       9.6 bit-fields: values kept to their width, unnamed and zero width ones, a bool and an enum bit-field holding
+           all their values; &bit-field and a non-const reference to one refused; a width larger than the type.
+       9.7, 9.9 nested classes: names of the enclosing class used without qualification, a nested class defined
+           outside its class, its access to the enclosing class's private members (C++11 on).
+       9.8 local classes: what clause 3 didn't (no member templates, member functions defined in the class).
+       Likely trouble: unions with members that have constructors, & and && overloads, a member declared twice.
+
+     Clause 10, derived classes [class.derived], about 45 cases added to the 20 in Clause10.txt (group Clause10).
+       10 p1-p3: a base class that is incomplete, or the same direct base twice, refused; base classes' layout.
+       10.1 multiple and virtual bases: one shared virtual base; a conversion to an ambiguous base refused, to one
+           named through a path allowed.
+       10.2 member lookup: what the 20 cases do, and dominance through virtual bases (a name found in a virtual base
+           and in a class derived from it is the derived one's, not ambiguous).
+       10.3 virtual functions: overriding through several paths, a unique final overrider (two in a diamond
+           refused), covariant return types (through a virtual base too, which needs the pointer adjusted), a
+           virtual call through a base reference, a pure virtual function with a body called qualified, default
+           arguments taken from the static type, a virtual function's access by the static type.
+       10.4 abstract classes: no objects, parameters, results or arrays of one; a class abstract until all its pure
+           functions are overridden.
+       Likely trouble: dominance, covariant returns through virtual bases, the unique final overrider.
+
+     Clause 11, member access control [class.access], about 55 cases (Clause11.txt, new group Clause11).
+       11 p1-p8: private, protected and public; a class's default private and a struct's public; access checked on
+           the name however it is reached (a typedef, a using-declaration); access in default arguments and template
+           arguments, checked where they are written.
+       11.1 access specifiers anywhere and repeated.
+       11.2 base classes' access: public, protected and private inheritance; a conversion to an inaccessible base
+           refused; a struct's bases public by default, a class's private.
+       11.3 friends: a friend function defined in a class found only by argument dependent lookup; friend classes;
+           friendship not transitive nor inherited; a friend member function of another class; friend templates.
+       11.4 protected members: reached through an object of the class naming them or derived from it, not through a
+           base object (refused); a pointer to a protected member taken through the derived class.
+       11.5, 11.6 a virtual function's access by the static type; the most accessible path through several.
+       11.7 nested classes: their access to the enclosing class, and none the other way.
+       Access control is enforced (the user's ruling): this measures where.  Likely trouble: the protected rule of
+       11.4, friends found only by argument dependent lookup, access in default and template arguments.
+
+     Clause 12, special member functions [special], about 100 cases (Clause12a.txt, Clause12b.txt, new group
+     Clause12).
+       12.1 constructors: the implicit default constructor, deleted where a member has none or is a reference or a
+           const without an initialiser; trivial and constexpr ones; a virtual or static constructor refused.
+       12.2 temporaries: destroyed at the end of their full expression, the last made first; a reference bound to
+           one (or to a member of one) keeping it alive, but not a return's or a mem-initialiser's reference.
+       12.3 conversions: converting constructors; explicit ones not used for copy initialisation; explicit
+           conversion functions in a condition; at most one user-defined conversion in a sequence.
+       12.4 destructors: implicit and virtual ones; members and bases destroyed in the reverse of their making;
+           an explicit destructor call; an array's elements destroyed last first; a deleted destructor refused.
+       12.5 a class's operator new and delete: static whether said or not, the sized delete chosen, the array forms,
+           a virtual destructor choosing the derived class's operator delete.
+       12.6 initialisation: arrays of objects; mem-initialisers run in declaration order whatever the list's order;
+           delegating constructors; a mem-initialiser over a default member initialiser; a virtual base made by the
+           most derived class; a reference member left uninitialised refused.
+       12.7 a virtual call, typeid and dynamic_cast during construction and destruction take the class being made.
+       12.8 copying and moving: which of the four are declared implicitly and which deleted (a move declared deletes
+           the implicit copy; a copy or destructor declared stops the implicit move); a return of a local moving it;
+           arrays copied element by element; copy elision allowed but not required, so no case may count on it.
+       12.9 inheriting constructors: using Base::Base; one for each default argument left off; copy and move ones
+           not inherited; explicit and constexpr kept.
+       Likely trouble: the implicit copy and move rules, inheriting constructors with default arguments, lifetime
+       of a temporary's member bound to a reference.
+
+     About 425 cases in all.  Order as asked: 6, 7, 9, 10, 11, 12, one at a time, each list shown before its fixes.
+
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size
       (the constant interpreter keeps bytes, not which member was last given a value).  It is the one case in the
