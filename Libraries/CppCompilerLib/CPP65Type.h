@@ -94,6 +94,7 @@ struct SCPP65Type
 	bool			bRvalue;		//A reference: T&&, which binds to what has no name or is about to go; else T&.
 	CCPPSymbol*		pcEnum;			//An enum: an integer (int unless its values need more), but a type of its own.
 	bool			bScopedEnum;	//...an enum class: no value of it becomes another type, or another type's it, without a cast.
+	bool			bNonNegativeEnum;	//...an enum with no fixed type and no negative value: a bit-field of it is unsigned.  [class.bit] 4
 	bool			bConst;			//const T: a copy of psUnqualified that can't be written through.
 	bool			bVolatile;		//volatile T: a copy of psUnqualified that loads and stores can't remove or move.
 	SCPP65Type*		psUnqualified;	//The type without const and volatile (itself when it is neither).

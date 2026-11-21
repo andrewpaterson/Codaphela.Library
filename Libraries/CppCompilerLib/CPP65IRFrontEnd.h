@@ -438,6 +438,7 @@ protected:
 	bool			IsObjectCall(CCPPSyntax* pcExpression);
 	bool			IsObjectOf(CCPPSyntax* pcExpression, CCPPClass* pcClass);
 	bool			InheritedConstructorCall(SCPP65IRPlace* psBase);
+	bool			CovariantThunk(CCPPFunction* pcFunction);
 	bool			ConditionValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue);
 	bool			Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIRBlock* pcFalse);
 	bool			FullCondition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIRBlock* pcFalse);

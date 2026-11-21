@@ -141,6 +141,7 @@ public:
 	CArrayCPPSecondaryVtables	macSecondaries;		//The secondary vtables, written after the class's own.
 	CArrayInt					maiVirtualOffsets;	//From the object to each of the class's virtual bases, before the class's own part.
 	bool						mbWritten;			//The unit being generated has written it.
+	CArrayCPPFunctions			mapcThunks;			//The covariant thunks its entries are (EntryFor), its to free.
 	CCPPClass*					mpcComplete;		//A construction vtable: the complete object's class...
 	int							miCompleteOffset;	//...and where the subobject is in it.
 
@@ -166,6 +167,9 @@ protected:
 	int		VirtualBaseOffset(CCPPClass* pcClass, CCPPClass* pcVirtualBase);
 	void	SetVirtualOffsets(CCPPClass* pcClass, int iOffset, CCPPClass* pcOwner, CArrayInt* paiOffsets);
 	static void	AddOverriders(CCPPClass* pcClass, int iOffset, CArrayTemplatePtr<CCPPClass>* papcClasses, CArrayInt* paiOffsets);
+	CCPPFunction*	EntryFor(CCPPClass* pcClass, CCPPFunction* pcOverrider, CCPPFunction* pcOverridden);
+	static bool	ResultAdjust(SCPP65Type* psFrom, SCPP65Type* psTo, int* piAdjust);
+	static bool	BaseOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 };
 
 

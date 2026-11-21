@@ -61,6 +61,8 @@ void CCPPFunction::Init(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKin
 	mbDeleting = false;
 	mbDeleted = false;
 	mpcInherited = NULL;
+	mpcCovariantOf = NULL;
+	miCovariantAdjust = 0;
 	mapcDefaults.Init();
 	mbVariadic = false;
 	mpcDefinition = NULL;

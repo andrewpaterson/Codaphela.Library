@@ -403,7 +403,7 @@ SIRReference CCPP65IRFrontEnd::BitFieldValue(SCPP65Type* psType, int iOffset, in
 
 	sType = IRTypeOf(psType);
 	iBits = psType->iBytes * 8;
-	if (psType->bSigned && (psType->eKind != CPP65TK_Bool))
+	if (psType->bSigned && (psType->eKind != CPP65TK_Bool) && !psType->bNonNegativeEnum)
 	{
 		iAbove = iBits - iOffset - iWidth;
 		if (iAbove > 0)

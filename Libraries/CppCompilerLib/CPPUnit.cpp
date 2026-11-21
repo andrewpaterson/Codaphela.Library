@@ -3370,7 +3370,7 @@ bool CCPPUnit::GenerateQueued(void)
 void CCPPUnit::RequireFunction(CCPPFunction* pcFunction)
 {
 	pcFunction->mbCalled = true;
-	if (!pcFunction->mbGenerated && !pcFunction->mbQueued && (pcFunction->mpcDefinition || pcFunction->mbImplicit) && !IsInstantiatedElsewhere(pcFunction))
+	if (!pcFunction->mbGenerated && !pcFunction->mbQueued && (pcFunction->mpcDefinition || pcFunction->mbImplicit || pcFunction->mpcCovariantOf) && !IsInstantiatedElsewhere(pcFunction))
 	{
 		pcFunction->mbQueued = true;
 		mapcQueue.Add(pcFunction);
@@ -4118,7 +4118,21 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 	szLabel.Kill();
 	mcContext.EnterBindings(pcFunction->mpcBindings);
 
-	if (pcFunction->mbImplicit)
+	if (pcFunction->mpcCovariantOf)
+	{
+		//A covariant thunk (CCPPVtable::EntryFor).
+		BeginFunction(pcFunction);
+		if (!WriteBody(pcFunction))
+		{
+			szLabel.Init("A covariant result the IR front end can't write a thunk for is not supported on this target yet: ");
+			mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
+			AppendUnsupported(&szLabel);
+			ErrorAt(-1, szLabel.Text());
+			szLabel.Kill();
+			EndFunction(pcFunction);
+		}
+	}
+	else if (pcFunction->mbImplicit)
 	{
 		//An implicit default constructor, an inherited one or a destructor, or a copy defaulted after its class.
 		BeginFunction(pcFunction);

@@ -284,6 +284,22 @@ int main()
 	return r;
 }
 
+### ClassUnionConstructorMakesNamedMember | 3 | 12.6.2 [class.base.init] p8, 9.5 [class.union] p4: a union's constructor makes only the member it names, and none if it names none
+int giMade = 0;
+struct M { int v; M(int x) : v(x) { giMade += 1; } ~M() { } };
+struct N { int w; N() : w(9) { giMade += 10; } ~N() { } };
+union U { M m; N n; U() : m(3) { } ~U() { } };
+union V { N n; M m; V() { } ~V() { } };
+int main()
+{
+	int r = 0;
+	U u;
+	if (u.m.v == 3 && giMade == 1) r += 1;
+	V v;
+	if (giMade == 1) r += 2;
+	return r;
+}
+
 ### ClassUnionClassMemberDeletedRefused | REFUSED | 9.5 [class.union] p2, 12.1 [class.ctor] p4: a union's default constructor is deleted where a member's isn't trivial
 struct M { M() { } };
 union U { M m; int i; };

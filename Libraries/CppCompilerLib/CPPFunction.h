@@ -205,6 +205,8 @@ public:
 	bool							mbDeleting;		//Its class's deleting destructor (CCPPClass::mpcDeleting): the compiler writes its body.
 	bool							mbDeleted;		//= delete: it is an overload like any other, and an error if it is the one chosen.
 	CCPPFunction*					mpcInherited;	//The base's constructor an inherited constructor calls (using Base::Base).
+	CCPPFunction*					mpcCovariantOf;	//A covariant thunk (CCPPVtable::EntryFor): the overrider it calls, whose result it moves...
+	int								miCovariantAdjust;	//...by this, to the overridden function's result.
 	CCPPSyntaxFunctionDefinition*	mpcDefinition;
 	CCPPSyntaxDeclarator*			mpcDeclarator;	//The first declaration's declarator (a template's, for an instance).
 	CCPPTemplateArguments*			mpcBindings;	//The template arguments the definition is generated with.

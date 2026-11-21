@@ -245,7 +245,11 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	bCopy = pcFunction->mbImplicit && pcFunction->IsCopy();
 	bResult = Parameters() && Locals();
 	pcTry = (pcFunction->mpcDefinition && pcFunction->mpcDefinition->mpcBody && (pcFunction->mpcDefinition->mpcBody->GetKind() == CPPS_TryStatement)) ? (CCPPSyntaxTryStatement*)pcFunction->mpcDefinition->mpcBody : NULL;
-	if (pcTry)
+	if (pcFunction->mpcCovariantOf)
+	{
+		bResult = bResult && CovariantThunk(pcFunction);
+	}
+	else if (pcTry)
 	{
 		bResult = bResult && FunctionTryBlock(pcFunction, pcTry);
 	}
@@ -261,7 +265,7 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 		bResult = StoreVtables(msThis, pcFunction->mpcClass, mbBaseVersion);
 		DestructorStart();
 	}
-	if (pcTry)
+	if (pcTry || pcFunction->mpcCovariantOf)
 	{
 	}
 	else if (pcFunction->mpcAddressOf)
@@ -292,6 +296,76 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	bResult = FinishWriting(bResult, szLabel.Text());
 	szLabel.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A covariant thunk's body: its overrider called with its arguments (this
+// and scalars), and the pointer it returns moved to the overridden
+// function's result type's class; a null pointer stays null.
+// [class.virtual] 7, 8
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::CovariantThunk(CCPPFunction* pcFunction)
+{
+	CArrayTemplate<SIRReference>	asValues;
+	CCPPFunction*					pcOverrider;
+	SCPP65Type*						psType;
+	SIRReference					sAddress;
+	SIRReference					sValue;
+	SIRReference					sResult;
+	SIRReference					sMoved;
+	SIRType							sOffsetType;
+	SIRType							sReturn;
+	size							ui;
+	int32							iIndex;
+
+	pcOverrider = pcFunction->mpcCovariantOf;
+	if (msThis.IsNone() || !msResult.IsNone() || pcFunction->mbVariadic)
+	{
+		return Unsupported(__FILE__, __LINE__);
+	}
+	iIndex = 1;
+	asValues.Init();
+	for (ui = 0; ui < pcFunction->mapsParameters.NumElements(); ui++)
+	{
+		psType = pcFunction->mapsParameters.GetPtr(ui);
+		if (psType->IsClass() || !IsSupportedType(psType) || psType->IsVoid() || psType->IsArray())
+		{
+			asValues.Kill();
+			return Unsupported(__FILE__, __LINE__);
+		}
+		sAddress = mpcFunction->Add(mpcBlock, IRO_ArgAddress, IRType(IRTK_Pointer), mpcFunction->AddInteger(IRType(IRTK_I32), iIndex));
+		sValue = mpcFunction->Load(mpcBlock, IRTypeOf(psType), sAddress);
+		asValues.Add(&sValue);
+		iIndex++;
+	}
+	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), msThis);
+	for (ui = 0; ui < asValues.NumElements(); ui++)
+	{
+		mpcFunction->Argument(mpcBlock, IRTypeOf(pcFunction->mapsParameters.GetPtr(ui)), *asValues.Get(ui));
+	}
+	asValues.Kill();
+	sReturn = ReturnIRType(pcFunction->mpsReturn);
+	sResult = mpcFunction->Call(mpcBlock, sReturn, FunctionSymbol(pcOverrider), -1, true);
+	TestThrown(pcOverrider, FunctionSymbol(pcOverrider));
+
+	//p + (p != 0) * adjust: a reference is never null, a pointer may be.
+	sOffsetType = IRIntegerType(mcModule.GetPointerSize(0));
+	if (pcFunction->mpsReturn->IsPointer())
+	{
+		sMoved = mpcFunction->Add(mpcBlock, IRO_Ne, IRType(IRTK_Pointer), sResult, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
+		sMoved = mpcFunction->Add(mpcBlock, IRO_ZExt, sOffsetType, sMoved);
+		sMoved = mpcFunction->Add(mpcBlock, IRO_Mul, sOffsetType, sMoved, mpcFunction->AddInteger(sOffsetType, pcFunction->miCovariantAdjust));
+	}
+	else
+	{
+		sMoved = mpcFunction->AddInteger(sOffsetType, pcFunction->miCovariantAdjust);
+	}
+	sResult = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sResult, sMoved);
+	mpcBlock->Return(sReturn, sResult);
+	return true;
 }
 
 

@@ -86,9 +86,15 @@ void CCPPScope::Add(CCPPSymbol* pcSymbol)
 	if (ppcExisting && *ppcExisting && ((*ppcExisting)->mpcScope != this) && (*ppcExisting)->IsFunction() && pcSymbol->IsFunction() && ((*ppcExisting)->mpcScope->meKind == CPPSC_Namespace))
 	{
 		//A function declared after using N::F; of its name.  The symbol found so far is N's, whose chain isn't this scope's.
-		psUsed = masUsedFunctions.Add();
-		psUsed->lliName = pcSymbol->mlliName;
-		psUsed->pcNamespace = (*ppcExisting)->mpcScope;
+		//The using-declaration's own entry (AddAlias) says which of N's functions are overloads here; one is made only
+		//where there is none, for all of them.
+		if (!FindUsedFunctions(pcSymbol->mlliName, (*ppcExisting)->mpcScope))
+		{
+			psUsed = masUsedFunctions.Add();
+			psUsed->lliName = pcSymbol->mlliName;
+			psUsed->pcNamespace = (*ppcExisting)->mpcScope;
+			psUsed->iBefore = -1;
+		}
 		mcSymbols.Put(pcSymbol->mlliName, &pcSymbol);
 	}
 	else if (ppcExisting && *ppcExisting)
@@ -100,6 +106,27 @@ void CCPPScope::Add(CCPPSymbol* pcSymbol)
 	{
 		mcSymbols.Put(pcSymbol->mlliName, &pcSymbol);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The entry that makes the namespace's functions of the name overloads of
+// this scope's (a using-declaration's), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPScopeUsedFunction* CCPPScope::FindUsedFunctions(int64 lliName, CCPPScope* pcNamespace)
+{
+	size	i;
+
+	for (i = 0; i < masUsedFunctions.NumElements(); i++)
+	{
+		if ((masUsedFunctions.Get(i)->lliName == lliName) && (masUsedFunctions.Get(i)->pcNamespace == pcNamespace))
+		{
+			return masUsedFunctions.Get(i);
+		}
+	}
+	return NULL;
 }
 
 

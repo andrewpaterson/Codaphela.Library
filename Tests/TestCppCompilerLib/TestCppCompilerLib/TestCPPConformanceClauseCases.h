@@ -9772,6 +9772,22 @@ static const SConformanceCase gasConformanceClause7[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//7.3.3 [namespace.udecl] p1, p11: a using-declaration brings the functions declared before it, not those after
+	{
+		"DclUsingDeclarationOverloads", 7,
+		"namespace N { int F(int) { return 1; } }\n"
+		"using N::F;\n"
+		"namespace N { int F(char) { return 2; } }\n"
+		"int F(double) { return 3; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F(1) == 1) r += 1;\n"
+		"	if (F('c') == 1) r += 2;\n"
+		"	if (F(1.0) == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//7.3.3 [namespace.udecl] p14: a function of the same signature as one a using-declaration brings conflicts with it
 	{
 		"DclUsingDeclarationConflictRefused", CONFORMANCE_REFUSED,
@@ -11785,6 +11801,24 @@ static const SConformanceCase gasConformanceClause9[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//12.6.2 [class.base.init] p8, 9.5 [class.union] p4: a union's constructor makes only the member it names, and none if it names none
+	{
+		"ClassUnionConstructorMakesNamedMember", 3,
+		"int giMade = 0;\n"
+		"struct M { int v; M(int x) : v(x) { giMade += 1; } ~M() { } };\n"
+		"struct N { int w; N() : w(9) { giMade += 10; } ~N() { } };\n"
+		"union U { M m; N n; U() : m(3) { } ~U() { } };\n"
+		"union V { N n; M m; V() { } ~V() { } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	U u;\n"
+		"	if (u.m.v == 3 && giMade == 1) r += 1;\n"
+		"	V v;\n"
+		"	if (giMade == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//9.5 [class.union] p2, 12.1 [class.ctor] p4: a union's default constructor is deleted where a member's isn't trivial
 	{
 		"ClassUnionClassMemberDeletedRefused", CONFORMANCE_REFUSED,
@@ -12591,6 +12625,30 @@ static const SConformanceCase gasConformanceClause10[] =
 		"	R* q = p->Get();\n"
 		"	if (q->r == 1) r += 1;\n"
 		"	if (q == static_cast<R*>(&d.ms)) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.3 [class.virtual] p7, p8: a moved covariant result: a null pointer stays null, a reference, a call through the derived class, a class derived again
+	{
+		"DerivedCovariantAdjustedPaths", 15,
+		"struct X { int x = 9; virtual ~X() { } };\n"
+		"struct R { int r = 1; virtual ~R() { } };\n"
+		"struct S : X, R { int s = 2; };\n"
+		"struct B { virtual R* Get(bool b) { return 0; } virtual R& Ref() { static R r0; return r0; } virtual ~B() { } };\n"
+		"struct D : B { S ms; S* Get(bool b) { return b ? &ms : 0; } S& Ref() { return ms; } };\n"
+		"struct E : D { S other; S* Get(bool b) { return b ? &other : 0; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	B* p = &d;\n"
+		"	if (p->Get(false) == 0) r += 1;\n"
+		"	if (&p->Ref() == static_cast<R*>(&d.ms)) r += 2;\n"
+		"	if (d.Get(true)->s == 2) r += 4;\n"
+		"	E e;\n"
+		"	B* q = &e;\n"
+		"	D* qd = &e;\n"
+		"	if (q->Get(true) == static_cast<R*>(&e.other) && qd->Get(true) == &e.other) r += 8;\n"
 		"	return r;\n"
 		"}\n"
 	},

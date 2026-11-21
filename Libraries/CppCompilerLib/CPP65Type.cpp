@@ -557,6 +557,7 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->bRvalue = false;
 	psType->pcEnum = NULL;
 	psType->bScopedEnum = false;
+	psType->bNonNegativeEnum = false;
 	psType->bConst = false;
 	psType->bVolatile = false;
 	psType->psUnqualified = psType;

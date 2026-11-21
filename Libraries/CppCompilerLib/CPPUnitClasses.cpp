@@ -1183,6 +1183,7 @@ void CCPPUnit::InheritConstructors(CCPPClass* pcClass)
 			pcFunction->mapcDefaults.Add(pcInherited->mapcDefaults.GetPtr(k));
 		}
 		pcFunction->mbExplicit = pcInherited->mbExplicit;
+		pcFunction->mbConstexpr = pcInherited->mbConstexpr;
 		pcFunction->mbImplicit = true;
 		pcFunction->mbDefined = true;
 		pcFunction->mpcInherited = pcInherited;

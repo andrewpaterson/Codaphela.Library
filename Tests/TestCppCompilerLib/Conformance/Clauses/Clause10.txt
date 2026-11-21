@@ -479,6 +479,28 @@ int main()
 	return r;
 }
 
+### DerivedCovariantAdjustedPaths | 15 | 10.3 [class.virtual] p7, p8: a moved covariant result: a null pointer stays null, a reference, a call through the derived class, a class derived again
+struct X { int x = 9; virtual ~X() { } };
+struct R { int r = 1; virtual ~R() { } };
+struct S : X, R { int s = 2; };
+struct B { virtual R* Get(bool b) { return 0; } virtual R& Ref() { static R r0; return r0; } virtual ~B() { } };
+struct D : B { S ms; S* Get(bool b) { return b ? &ms : 0; } S& Ref() { return ms; } };
+struct E : D { S other; S* Get(bool b) { return b ? &other : 0; } };
+int main()
+{
+	int r = 0;
+	D d;
+	B* p = &d;
+	if (p->Get(false) == 0) r += 1;
+	if (&p->Ref() == static_cast<R*>(&d.ms)) r += 2;
+	if (d.Get(true)->s == 2) r += 4;
+	E e;
+	B* q = &e;
+	D* qd = &e;
+	if (q->Get(true) == static_cast<R*>(&e.other) && qd->Get(true) == &e.other) r += 8;
+	return r;
+}
+
 ### DerivedReturnNotCovariantRefused | REFUSED | 10.3 [class.virtual] p7: an overrider returning another type that isn't covariant
 struct B { virtual int F() { return 1; } };
 struct D : B { long F() { return 2; } };

@@ -109,6 +109,7 @@ public:
 
 	void			Add(CCPPSymbol* pcSymbol);
 	void			AddAlias(int64 lliName, CCPPSymbol* pcSymbol, int iBefore);
+	SCPPScopeUsedFunction*	FindUsedFunctions(int64 lliName, CCPPScope* pcNamespace);
 	CCPPSymbol*		FindHere(int64 lliName);
 	CCPPSymbol*		FindParsed(int64 lliName);
 	void			LoadLazy(int64 lliName);

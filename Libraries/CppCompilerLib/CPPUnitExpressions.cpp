@@ -3939,8 +3939,10 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 	int						iBits;
 	int						iBytes;
 	bool					bSigned;
+	bool					bNonNegative;
 	size					i;
 
+	bNonNegative = false;
 	if (pcEnum)
 	{
 		psType = mcTypes.FindEnum(pcEnum);
@@ -3992,6 +3994,7 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 		lliValue = 0;
 		lliMin = 0;
 		lliMax = 0;
+		bNonNegative = true;
 		for (i = 0; i < pcSpecifier->macpEnumerators.NumElements(); i++)
 		{
 			pcEnumerator = (CCPPSyntaxEnumerator*)pcSpecifier->macpEnumerators.GetPtr(i);
@@ -4003,6 +4006,7 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 			lliMax = (lliValue > lliMax) ? lliValue : lliMax;
 			lliValue++;
 		}
+		bNonNegative = (i == pcSpecifier->macpEnumerators.NumElements()) && (lliMin >= 0);
 
 		iBits = mcTypes.msInt.iBytes * 8;
 		if ((lliMin >= -((int64)1 << (iBits - 1))) && (lliMax < ((int64)1 << (iBits - 1))))
@@ -4031,6 +4035,7 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 	if (pcEnum)
 	{
 		psType = mcTypes.Enum(pcEnum, psBase ? psBase : mcTypes.Integer(iBytes, bSigned), pcSpecifier && pcSpecifier->mbScoped);
+		psType->bNonNegativeEnum = bNonNegative;
 		if (mpcSemanticPass && (mpcSemanticPass->GetRecordedEnum()[0] != '\0') && !mpcSemanticPass->GetRecordedEnumType())
 		{
 			//The enum a refactoring is asking about: checked as an enum class, what that refuses recorded.

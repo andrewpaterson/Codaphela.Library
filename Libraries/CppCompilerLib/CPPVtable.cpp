@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPPVtable::Init(void)
 {
 	mapcFunctions.Init();
+	mapcThunks.Init();
 	miPointerOffset = -1;
 	macSecondaries.Init();
 	maiVirtualOffsets.Init();
@@ -55,6 +56,12 @@ void CCPPVtable::Kill(void)
 	macSecondaries.Kill();
 	maiVirtualOffsets.Kill();
 	mapcFunctions.Kill();
+	for (i = 0; i < mapcThunks.NumElements(); i++)
+	{
+		mapcThunks.GetPtr(i)->Kill();
+		free(mapcThunks.GetPtr(i));
+	}
+	mapcThunks.Kill();
 }
 
 
@@ -168,9 +175,11 @@ void CCPPVtable::LayoutOwn(CCPPClass* pcClass)
 	CArrayCPPFunctions*	papcBase;
 	CCPPFunction*		pcFunction;
 	CCPPFunction*		pcVirtual;
+	CCPPFunction*		pcEntry;
 	size				i;
 	size				j;
 	bool				bOverride;
+	bool				bOwn;
 
 	if (pcClass->mpcBase && !pcClass->macBases.Get(0)->bVirtual)
 	{
@@ -189,18 +198,31 @@ void CCPPVtable::LayoutOwn(CCPPClass* pcClass)
 			continue;
 		}
 
+		//Each entry it overrides is it, or where its result isn't the overridden function's but a pointer or reference
+		//to a class derived from that one's that isn't at its start, a thunk that calls it and moves the result
+		//(EntryFor).  Then it has an entry of its own as well, for the calls that want its own result.  [class.virtual] 7
 		bOverride = false;
+		bOwn = false;
 		for (j = 0; j < mapcFunctions.NumElements(); j++)
 		{
 			pcVirtual = mapcFunctions.GetPtr(j);
 			if (pcFunction->Overrides(pcVirtual))
 			{
-				mapcFunctions.SetPtr(j, pcFunction);
+				pcEntry = EntryFor(pcClass, pcFunction, pcVirtual);
+				mapcFunctions.SetPtr(j, pcEntry);
 				pcFunction->mbVirtual = true;
-				pcFunction->miSlot = (int)j;
+				if (pcEntry == pcFunction)
+				{
+					pcFunction->miSlot = (int)j;
+					bOwn = true;
+				}
 				bOverride = true;
-				break;
 			}
+		}
+		if (bOverride && !bOwn)
+		{
+			pcFunction->miSlot = (int)mapcFunctions.NumElements();
+			mapcFunctions.Add(pcFunction);
 		}
 		//A function that overrides one in a secondary vtable also gets a place in the class's own.
 		if (!bOverride && (pcFunction->mbVirtual || pcClass->OverridesBase(pcFunction)))
@@ -340,7 +362,7 @@ SCPPSecondaryVtable* CCPPVtable::AddSecondary(CCPPClass* pcClass, int iOffset, C
 		{
 			if (pcFunction->Overrides(psVtable->mapcFunctions.GetPtr(j)))
 			{
-				psVtable->mapcFunctions.SetPtr(j, pcFunction);
+				psVtable->mapcFunctions.SetPtr(j, EntryFor(pcClass, pcFunction, psVtable->mapcFunctions.GetPtr(j)));
 				psVtable->maiAdjust.SetValue(j, -iOffset);
 			}
 		}
@@ -409,7 +431,7 @@ void CCPPVtable::AddVirtualPart(CCPPClass* pcClass, CCPPClass* pcVirtualBase, in
 			{
 				if (pcFunction->Overrides(psVtable->mapcFunctions.GetPtr(j)))
 				{
-					psVtable->mapcFunctions.SetPtr(j, pcFunction);
+					psVtable->mapcFunctions.SetPtr(j, EntryFor(pcClass, pcFunction, psVtable->mapcFunctions.GetPtr(j)));
 					psVtable->maiAdjust.SetValue(j, aiOffsets.GetValue(k) - iOffset);
 				}
 			}
@@ -553,3 +575,102 @@ void CCPPVtable::AddEntries(CArrayCPPVtableEntries* pasEntries, CArrayInt* paiVi
 
 bool CCPPVtable::HasPointer(void) const { return miPointerOffset != -1; }
 bool CCPPVtable::IsPolymorphic(void) const { return (miPointerOffset != -1) || (macSecondaries.NumElements() > 0); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a vtable's entry for pcOverridden is when pcOverrider overrides it:
+// pcOverrider, or where its result must be moved to be the overridden's (a
+// pointer or reference to a base of its class that isn't at its start), a
+// covariant thunk that calls it and moves the result, made once for the
+// overrider and the distance.  [class.virtual] 7, 8
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPVtable::EntryFor(CCPPClass* pcClass, CCPPFunction* pcOverrider, CCPPFunction* pcOverridden)
+{
+	CCPPFunction*	pcThunk;
+	int				iAdjust;
+	size			i;
+
+	if (!ResultAdjust(pcOverrider->mpsReturn, pcOverridden->mpsReturn, &iAdjust) || (iAdjust == 0))
+	{
+		return pcOverrider;
+	}
+	for (i = 0; i < mapcThunks.NumElements(); i++)
+	{
+		pcThunk = mapcThunks.GetPtr(i);
+		if ((pcThunk->mpcCovariantOf == pcOverrider) && (pcThunk->miCovariantAdjust == iAdjust))
+		{
+			return pcThunk;
+		}
+	}
+	pcThunk = NewMalloc<CCPPFunction>();
+	pcThunk->Init(pcOverrider->mpcClass, pcOverrider->mlliName, pcOverrider->meKind, pcOverridden->mpsReturn);
+	for (i = 0; i < pcOverrider->mapsParameters.NumElements(); i++)
+	{
+		pcThunk->mapsParameters.Add(pcOverrider->mapsParameters.GetPtr(i));
+	}
+	pcThunk->mbConstThis = pcOverrider->mbConstThis;
+	pcThunk->mbVolatileThis = pcOverrider->mbVolatileThis;
+	pcThunk->meRefQualifier = pcOverrider->meRefQualifier;
+	pcThunk->mbVariadic = pcOverrider->mbVariadic;
+	pcThunk->mbInline = true;
+	pcThunk->mbDefined = true;
+	pcThunk->mpcCovariantOf = pcOverrider;
+	pcThunk->miCovariantAdjust = iAdjust;
+	mapcThunks.Add(pcThunk);
+	return pcThunk;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How far a result of psFrom (a pointer or reference to a class) moves to
+// be a psTo (one to a base of that class): true with the distance, 0 for
+// the same class or one that isn't a class's.  False where the base is
+// reached through a virtual base, which no fixed distance moves to.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPVtable::ResultAdjust(SCPP65Type* psFrom, SCPP65Type* psTo, int* piAdjust)
+{
+	*piAdjust = 0;
+	if (!psFrom || !psTo || !(psFrom->IsPointer() || psFrom->IsReference()) || !(psTo->IsPointer() || psTo->IsReference()))
+	{
+		return true;
+	}
+	if (!psFrom->psBase->IsClass() || !psTo->psBase->IsClass() || (psFrom->psBase->pcClass == psTo->psBase->pcClass))
+	{
+		return true;
+	}
+	return BaseOffset(psFrom->psBase->pcClass, psTo->psBase->pcClass, piAdjust);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where pcBase is in pcClass, through bases that aren't virtual.  False if
+// it isn't one so.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPVtable::BaseOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
+{
+	SCPPBase*	psBase;
+	int			iOffset;
+	size		i;
+
+	if (pcClass == pcBase)
+	{
+		*piOffset = 0;
+		return true;
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if (!psBase->bVirtual && BaseOffset(psBase->pcClass, pcBase, &iOffset))
+		{
+			*piOffset = psBase->iOffset + iOffset;
+			return true;
+		}
+	}
+	return false;
+}

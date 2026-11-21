@@ -401,6 +401,12 @@ SCPPConstantFunction* CCPPConstants::FindFunction(const char* szLabel)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPConstants::IsConstexpr(CCPPFunction* pcFunction)
 {
+	if (pcFunction->mbImplicit && (pcFunction->meKind == CPPFK_Constructor) && !pcFunction->mpcDefinition)
+	{
+		//An implicit constructor is constexpr where what it does is: a literal class's default constructor, an
+		//inherited constexpr constructor.  The interpreter finds out by running it.  [class.ctor] 5, [class.inhctor] 4
+		return true;
+	}
 	return pcFunction->mpcDefinition && pcFunction->mpcDefinition->mpcSpecifiers && (pcFunction->mpcDefinition->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR);
 }
 
@@ -438,9 +444,13 @@ CIRFunction* CCPPConstants::ConstantFunction(const char* szName, CIRModule** ppc
 		{
 			mpcUnit->EnterFunctionScope(&sScope, pcFunction);
 			mpcUnit->GetContext()->EnterBindings(pcFunction->mpcBindings);
-			mpcUnit->AddParameters(pcFunction);
+			if (pcFunction->mpcDefinition)
+			{
+				//An implicit function's parameters have no names: the front end takes them as they come (Parameters).
+				mpcUnit->AddParameters(pcFunction);
+			}
 			mpcUnit->BeginQuiet();
-			bLocals = mpcUnit->AllocateLocals(pcFunction->mpcDefinition->mpcBody);
+			bLocals = !pcFunction->mpcDefinition || mpcUnit->AllocateLocals(pcFunction->mpcDefinition->mpcBody);
 			mpcUnit->EndQuiet();
 			pcIR = bLocals ? pcFrontEnd->ConstantFunction(pcFunction) : NULL;
 			mpcUnit->GetContext()->LeaveBindings();

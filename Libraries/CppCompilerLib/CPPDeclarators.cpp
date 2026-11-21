@@ -73,7 +73,14 @@ SCPP65Type* CCPPDeclarators::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCP
 		return psType;
 	}
 	psType = GetDeclaratorType(psType, pcDeclarator, pcNode, pcInitialiser);
-	return psType ? CompletedArray(psType, pcInitialiser) : NULL;
+	psType = psType ? CompletedArray(psType, pcInitialiser) : NULL;
+	if (psType && pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR))
+	{
+		//A constexpr object is const: constexpr int* p is int* const.  A function and a reference are as they are.
+		//[dcl.constexpr] 9
+		psType = mpcUnit->GetTypes()->Qualified(psType, true, psType->bVolatile);
+	}
+	return psType;
 }
 
 

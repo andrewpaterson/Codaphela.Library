@@ -267,6 +267,65 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
      (edf0b304d).  Held out: DclUsingDeclarationOverloads, whose result changes from one run of the compiler to the next
      (its text is in d5f3dbdbb's message).  The list went to the user; nothing in it is fixed yet.
 
+   - Fixing clauses 6 to 12's list, planned 2026-11-21.  The user: "Plan fixes for all of them, then implement in your
+     order".  Item numbers are those of the list as shown; each fix has its cases (the clause's, a refusal with a valid
+     case beside it), and each batch is checked by verify.sh and hcpcheck.sh and committed.
+     Batch 1, the compiler's own fault:
+       1  The result that changed from run to run: CCPPScope::Add records a namespace's functions for a function
+          declared after using N::F; without setting iBefore.  The using-declaration's own entry already says which
+          of N's functions count: no second entry, or -1 where there is none.  DclUsingDeclarationOverloads goes back.
+     Batch 2, wrong code:
+       2  A union's destructor that destroys its member, and 4, an explicit destructor call on a union's member: the
+          IR front end's destructor call on a union member (likely the same place: a union member's destructor isn't
+          looked for).
+       3  An enum bit-field holding all its values: a bit-field of an enum whose values aren't negative is read as
+          unsigned ([class.bit] 4), in the layout and the IR front end.
+       5  A covariant result through a base that isn't first: the overrider's vtable entry in the base's table gets a
+          thunk that adjusts the result (CPPVtable and the IR front end's thunks).
+       6  A constexpr variable is const: the declarators add const for constexpr ([dcl.constexpr] 9).
+       18 An inherited constexpr constructor (a regression of clause 3's item 23): IsLiteralType counts inherited
+          constructors.
+     Batch 3, valid code refused:
+       7  A class object declared in a condition: the IR front end's Condition declares it and converts it to bool,
+          and it is destroyed with the statement's scope (made again each time round a loop).
+       8  A switch over a class object (and one declared in the condition): converted by its one conversion to an
+          integer (CCPPBinder::FindIntegerConversion), in the IR front end.
+       9  A range-based for over a class temporary: the range is bound to a reference that keeps the temporary.
+       10 An asm statement: the IR front end passes its text to the back end as a line of assembly.
+       11 A namespace scope anonymous union: its members are global variables sharing one object.
+       12 A nested class defined outside its class calling the enclosing class's static function: its scope's
+          qualifier lookup reaches the enclosing class's functions (the binder).
+       13 A private static member's initialiser calling a private function: access is checked as in the class.
+       14 ::A in a member function: the parser takes ::A as a type where a declaration starts.
+       15 &D::v of a protected member of a base: the member pointer through the derived class.
+       16 A literal class's implicit default constructor in a constant: the interpreter writes the implicit
+          constructor.
+       17 a = 6 through a converting constructor: the assignment constructs a temporary and calls operator=.
+     Batch 4 on, invalid code accepted, grouped by where the check goes:
+       a  Member function bodies nothing calls are checked (CCPPSemanticPass), which takes the refusals that are in
+          such bodies: friendship passed on, the protected rule, a nested class using the enclosing class's members, a
+          const member function changing a member, a private base's injected name, a nested class's private member
+          from the enclosing class.
+       b  Declaration specifiers (the parser and CCPPUnit's declaration checks): two storage classes; static on a
+          member defined outside; mutable with const or static; virtual, explicit and friend out of place; constexpr
+          virtual; unsigned double, long long long, short char; a static_assert that isn't a constant.
+       c  Typedefs, enums and namespaces: a typedef redeclared to another type or clashing with a class; an opaque
+          enum without its type, a redeclaration with another, an enumerator that doesn't fit; a union named struct; a
+          qualified definition of an undeclared member; a using-declaration in a class naming no base's member;
+          overloading an extern "C" function.
+       d  Class members (CCPPUnit's class layout): a member of the class's own or an incomplete type; a member or
+          member function declared twice; a static member of the class's name; a member function defined outside
+          but not declared; mixed ref-qualifiers; a const static member function; a non-const static initialised in
+          the class; a local class's static member or member template; union rules (a base, as a base, virtual,
+          reference members, a member whose constructor isn't trivial); anonymous unions' rules; bit-field rules.
+       e  Derived classes: a direct base twice; two final overriders; results that aren't covariant; an abstract
+          class as a parameter or a result.
+       f  Special members: deleted implicit default constructors (reference or const members, no initialiser);
+          constructors virtual, static or with a return type; conversion functions with a return type or a
+          parameter; destructors deleted or with a parameter; mem-initialiser rules; a copy deleted by a member.
+       g  Statements: a label at a block's end; duplicate cases; a case jumping past an initialisation; return with
+          an explicit constructor; a value returned from a void function; access to a private destructor.
+
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size
       (the constant interpreter keeps bytes, not which member was last given a value).  It is the one case in the

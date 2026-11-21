@@ -80,6 +80,14 @@ void CCPPMangler::AppendFunctionLabel(CChars* psz, CCPPFunction* pcFunction, boo
 	size	i;
 	bool	bPlainName;
 
+	if (pcFunction->mpcCovariantOf)
+	{
+		//A covariant thunk: its overrider's label and how far it moves the result.
+		AppendFunctionLabel(psz, pcFunction->mpcCovariantOf, bBaseVersion);
+		psz->Append("__CV");
+		psz->Append(pcFunction->miCovariantAdjust);
+		return;
+	}
 	szName.Init();
 	if (pcFunction->meKind == CPPFK_Constructor)
 	{

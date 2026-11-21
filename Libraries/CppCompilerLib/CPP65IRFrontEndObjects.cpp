@@ -441,8 +441,10 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 			}
 		}
 		pcInitialiser = pcFound ? pcFound->mpcInitializer : psField->pcInitialiser;
-		if (pcInitialiser || psField->psType->IsClass() || psField->psType->IsArray())
+		if (pcInitialiser || ((psField->psType->IsClass() || psField->psType->IsArray()) && !pcClass->mbUnion))
 		{
+			//A union's constructor makes only the member it names, or the one with a default initialiser.
+			//[class.base.init] 8
 			sPlace.sAddress = AddressAt(msThis, psField->iOffset);
 			sPlace.psType = psField->psType;
 			sPlace.psBitField = psField->IsBitField() ? psField : NULL;
@@ -575,7 +577,9 @@ bool CCPP65IRFrontEnd::DestructorEnd(void)
 	size				ui;
 
 	pcClass = mpcCPPFunction->mpcClass;
-	for (ui = pcClass->macFields.NumElements(); ui > 0; ui--)
+
+	//A union's destructor destroys none of its members: which one lives is the program's to know.  [class.union] 4
+	for (ui = pcClass->mbUnion ? 0 : pcClass->macFields.NumElements(); ui > 0; ui--)
 	{
 		psField = pcClass->macFields.Get(ui - 1);
 		TakeDestroyPart(psField->psType);
@@ -2512,6 +2516,7 @@ SIRReference CCPP65IRFrontEnd::BaseVTT(CCPPClass* pcClass, SIRReference sVTT, CC
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::InheritedConstructorCall(SCPP65IRPlace* psBase)
 {
+	CArrayTemplate<SIRReference>	asValues;
 	SCPP65Type*		psType;
 	SIRReference	sValue;
 	SIRReference	sAddress;
@@ -2522,21 +2527,29 @@ bool CCPP65IRFrontEnd::InheritedConstructorCall(SCPP65IRPlace* psBase)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	//The IR parameters after this and the result's address.
+	//The IR parameters after this and the result's address, loaded before the arguments are passed: a call's arguments
+	//come straight before it.
 	iIndex = (msThis.IsNone() ? 0 : 1) + (msResult.IsNone() ? 0 : 1);
-	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), psBase->sAddress);
+	asValues.Init();
 	for (ui = 0; ui < mpcCPPFunction->mapsParameters.NumElements(); ui++)
 	{
 		psType = mpcCPPFunction->mapsParameters.GetPtr(ui);
 		if (psType->IsClass() || !IsSupportedType(psType) || psType->IsVoid() || psType->IsArray())
 		{
+			asValues.Kill();
 			return Unsupported(__FILE__, __LINE__);
 		}
 		sAddress = mpcFunction->Add(mpcBlock, IRO_ArgAddress, IRType(IRTK_Pointer), mpcFunction->AddInteger(IRType(IRTK_I32), iIndex));
 		sValue = mpcFunction->Load(mpcBlock, IRTypeOf(psType), sAddress);
-		mpcFunction->Argument(mpcBlock, IRTypeOf(psType), sValue);
+		asValues.Add(&sValue);
 		iIndex++;
 	}
+	mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), psBase->sAddress);
+	for (ui = 0; ui < asValues.NumElements(); ui++)
+	{
+		mpcFunction->Argument(mpcBlock, IRTypeOf(mpcCPPFunction->mapsParameters.GetPtr(ui)), *asValues.Get(ui));
+	}
+	asValues.Kill();
 	mpcFunction->Call(mpcBlock, IRType(IRTK_None), FunctionSymbol(mpcCPPFunction->mpcInherited), -1, true);
 	TestThrown(mpcCPPFunction->mpcInherited, FunctionSymbol(mpcCPPFunction->mpcInherited));
 	return true;
