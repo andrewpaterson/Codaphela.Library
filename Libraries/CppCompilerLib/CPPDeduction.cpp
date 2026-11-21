@@ -36,6 +36,7 @@ void CCPPDeduction::Init(CCPPUnit* pcUnit, CCPPTemplate* pcTemplate)
 	mapsDeduced.Init();
 	malliDeduced.Init();
 	masPacks.Init();
+	mbConflict = false;
 	for (i = 0; i < pcTemplate->mpcDeclaration->macpParameters.NumElements(); i++)
 	{
 		mapsDeduced.Add(NULL);
@@ -124,9 +125,17 @@ void CCPPDeduction::DeduceType(CCPPSymbol* pcSymbol, SCPP65Type* psType)
 	for (j = 0; j < mpcTemplate->mpcDeclaration->macpParameters.NumElements(); j++)
 	{
 		pcParameter = mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
-		if ((pcParameter->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol == pcSymbol) && !mapsDeduced.GetPtr(j))
+		if ((pcParameter->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol == pcSymbol))
 		{
-			mapsDeduced.SetPtr(j, psType);
+			if (!mapsDeduced.GetPtr(j))
+			{
+				mapsDeduced.SetPtr(j, psType);
+			}
+			else if (psType && IsPlainType(psType) && IsPlainType(mapsDeduced.GetPtr(j)) && !psType->Unqualified()->Same(mapsDeduced.GetPtr(j)->Unqualified()))
+			{
+				//One parameter deduced as two types: no deduction.  [temp.deduct.type] 2
+				mbConflict = true;
+			}
 		}
 	}
 }
@@ -315,8 +324,25 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 		{
 			mapsDeduced.SetPtr(j, psArgument);
 		}
+		else if (psArgument && IsPlainType(psArgument) && IsPlainType(mapsDeduced.GetPtr(j)) && !psArgument->Unqualified()->Same(mapsDeduced.GetPtr(j)->Unqualified()))
+		{
+			//F(T, T) of 1 and 2L: T can't be both.  [temp.deduct.type] 2
+			mbConflict = true;
+		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A number or an object: a type two arguments deduce one parameter as only
+// if they are both it (an array or a function might be a pointer instead).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeduction::IsPlainType(SCPP65Type* psType)
+{
+	return psType->IsInteger() || psType->IsFloat() || psType->IsClass();
 }
 
 
@@ -1538,5 +1564,6 @@ bool CCPPPatternMatch::MatchDeferred(void)
 CArrayCPP65Types* CCPPDeduction::GetTypes(void) { return &mapsDeduced; }
 CArrayInt64* CCPPDeduction::GetValues(void) { return &malliDeduced; }
 CArrayCPPDeducedPacks* CCPPDeduction::GetPacks(void) { return &masPacks; }
+bool CCPPDeduction::HasConflict(void) const { return mbConflict; }
 CCPPTemplateArguments* CCPPPatternMatch::GetDeduced(void) const { return mpcDeduced; }
 int CCPPPatternMatch::GetScore(void) const { return miScore; }

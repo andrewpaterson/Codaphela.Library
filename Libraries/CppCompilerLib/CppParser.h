@@ -141,6 +141,7 @@ protected:
 	size					muiTentativeParses;		//How many tentative parses there have been (for tests).
 	int						miTemplateArguments;	//Template arguments being parsed, nested; while above 0 each one's
 	CMapLongTemplate<bool>	mcTypeIdArguments;		//decision (type-id or not) is kept by its first token.
+	CMapLongTemplate<CCPPSyntaxTemplateDeclaration*>	mcFirstClassTemplates;	//Each class template's first declaration, by its symbol (CheckDefaultsOnce).
 	bool					mbNoGreater;			//In a template argument list, where '>' ends the argument.
 	bool					mbLambdaDeclarator;		//A lambda's parameters are being read: mutable is one of their qualifiers.
 	bool					mbMemberName;			//The name after . or ->, which is a member of a type the parser doesn't know.
@@ -171,6 +172,8 @@ protected:
 	size					muiLazyRead;			//...or read as parsed before (CPPSyntaxBlock).
 
 public:
+	int64							TokenIdentifier(int iToken);
+	bool							IsReservedName(int64 lliName);
 	void							Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
 	void							Kill(void);
 	bool							Parse(void);
@@ -277,6 +280,11 @@ protected:
 	CCPPSyntaxTypeSpecifier*		ParseClassSpecifier(CCPPSyntax* pcParent, ECPPDeclarationContext eContext, bool bFriend);
 	bool							ParseBaseSpecifiers(CCPPSyntaxClassSpecifier* pcClass);
 	bool							NamesTemplateParameter(CCPPSyntax* pcNode);
+	void							CheckTemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplate);
+	void							CheckDependentMemberTemplate(CCPPSyntaxMemberExpression* pcMember);
+	void							CheckDefaultsOnce(CCPPSyntaxTemplateDeclaration* pcTemplate, CCPPSymbol* pcSymbol);
+	void							CheckPartialSpecialisation(CCPPSyntaxTemplateDeclaration* pcTemplate, CCPPSyntaxName* pcName);
+	CCPPSymbol*						ArgumentSymbol(CCPPSyntax* pcArgument);
 	bool							ParseClassBody(CCPPSyntaxClassSpecifier* pcClass);
 	void							ParseDeferredBodies(void);
 	CCPPSyntaxTypeSpecifier*		ParseEnumSpecifier(CCPPSyntax* pcParent, ECPPDeclarationContext eContext);

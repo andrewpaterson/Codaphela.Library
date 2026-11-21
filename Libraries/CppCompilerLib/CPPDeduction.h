@@ -45,6 +45,7 @@ protected:
 	CArrayCPP65Types	mapsDeduced;
 	CArrayInt64			malliDeduced;
 	CArrayCPPDeducedPacks	masPacks;
+	bool				mbConflict;	//A parameter was deduced as two types (DeduceType).
 
 public:
 	void				Init(CCPPUnit* pcUnit, CCPPTemplate* pcTemplate);
@@ -55,6 +56,7 @@ public:
 	CArrayCPP65Types*	GetTypes(void);
 	CArrayInt64*		GetValues(void);
 	CArrayCPPDeducedPacks*	GetPacks(void);
+	bool				HasConflict(void) const;
 
 protected:
 	void				DeduceParameters(CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments);
@@ -75,6 +77,7 @@ protected:
 	CCPPSymbol*			GetArgumentSymbol(CCPPSyntax* pcArgument);
 	bool				DeducePack(CCPPSyntax* pcArgument, CCPPTemplateArguments* pcArguments, size uiFirst);
 	void				DeduceFromList(CCPPSyntaxName* pcName, CCPPSyntax* pcList);
+	bool				IsPlainType(SCPP65Type* psType);
 	bool				NeedsPattern(CCPPSyntaxDeclarator* pcDeclarator);
 	void				DeduceByPattern(CCPPSyntaxParameter* pcParameter, SCPP65Type* psArgument);
 };

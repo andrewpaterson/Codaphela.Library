@@ -226,10 +226,16 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 				return;
 			}
 		}
+		mcOverloads.mbAmbiguousTemplate = false;
 		pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, pcBound->mpapcArguments, papcExplicit);
 		if (!pcTemplate)
 		{
 			mpcUnit->Error(pcCallee, "The function template has not been defined");
+			return;
+		}
+		if (mcOverloads.mbAmbiguousTemplate && (!pcFunction || !mcOverloads.TemplateTakes(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall, NULL) || !mcOverloads.IsBetterFunction(pcFunction, mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall), pcBound->mpapcArguments)))
+		{
+			mpcUnit->Error(pcCallee, "The call is ambiguous: function templates that take the arguments as well as each other, neither more specialised");
 			return;
 		}
 		if (pcFunction && !mcOverloads.TemplateTakes(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall, NULL))
@@ -720,6 +726,12 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		mpcUnit->Error(pcCallee, "A member function needs an object");
 		return;
 	}
+	if (!pcObject && !pcFunction->mbStatic && pcIn && pcIn->mbStatic && !mpcUnit->WritingLambda())
+	{
+		//A static member function has no this to call it on.  [over.call.func] 3, [class.static.mfct] 2
+		mpcUnit->Error(pcCallee, "A member function that isn't static is called with no object: a static member function has none");
+		return;
+	}
 	pcThis = pcObject ? pcClass : mpcUnit->ThisClass();
 	if (pcThis && !pcFunction->mbStatic && !HasOneMember(pcThis, pcLookup, pcFunction->mpcClass, pcCallee))
 	{
@@ -1075,7 +1087,7 @@ CCPPFunction* CCPPBinder::InitializerListConstructor(CCPPClass* pcClass, CCPPSyn
 		{
 			continue;
 		}
-		if (mpcUnit->InitializerListElement(psParameter) && mpcUnit->GetTypeChecker()->CanInitialise(psParameter->WithoutReference(), pcList))
+		if (mpcUnit->InitializerListElement(psParameter) && ListConverts(mpcUnit->InitializerListElement(psParameter), pcList))
 		{
 			return pcFunction;
 		}
@@ -1093,6 +1105,35 @@ CCPPFunction* CCPPBinder::InitializerListConstructor(CCPPClass* pcClass, CCPPSyn
 bool CCPPBinder::HasFreeOperator(int64 lliName)
 {
 	return mcOverloads.HasFreeOperator(lliName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether each of a braced list's elements converts to psElement, as an
+// initializer_list<psElement>'s: an implicit conversion, though it may
+// narrow, which is an error once the constructor is chosen.
+// [over.match.list] 1, [over.ics.list] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::ListConverts(SCPP65Type* psElement, CCPPSyntax* pcList)
+{
+	CArraySyntax*	papcElements;
+	CCPPSyntax*		pcValue;
+	SCPP65Type*		psValue;
+	size			i;
+
+	papcElements = mpcUnit->ListElements(pcList);
+	for (i = 0; i < papcElements->NumElements(); i++)
+	{
+		pcValue = papcElements->GetPtr(i);
+		psValue = (pcValue->GetKind() == CPPS_InitializerList) ? NULL : mpcUnit->TypeOf(pcValue);
+		if (psValue ? (mcOverloads.ConversionRank(psElement, psValue, pcValue) == CPPCR_None) : !mpcUnit->GetTypeChecker()->CanInitialise(psElement, pcValue))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
@@ -1849,6 +1890,12 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	else if (!pcSymbol && pcClass && (pcId->mpcName->macpComponents.NumElements() == 1))
 	{
 		pcBound->mpsField = pcClass->FindField(mpcUnit->GetComponentName(pcId->mpcName->GetLast()), &pcBound->miOffset, &pcBound->mpcVirtualBase);
+		if (pcBound->mpsField && InDependentBase(pcClass, pcClass->FindFieldClass(pcBound->mpsField)))
+		{
+			//A name that isn't qualified isn't looked for in a base that depends on a template parameter.  [temp.dep] 3
+			mpcUnit->ReportOnce(pcId, "The name is declared only in a base class that depends on a template parameter: it is named this->name there");
+			pcBound->mpsField = NULL;
+		}
 	}
 	if (pcBound->mpsField)
 	{
@@ -1858,6 +1905,46 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		HasOneMember(pcClass, pcLookup, pcLookup->FindFieldClass(pcBound->mpsField), pcId);
 		HasOneMeaning(pcLookup, pcBound->mpsField->pcSymbol->mlliName, pcId);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcDeclaring, a base of the class template instance pcClass, is
+// reached through one of its bases that its template names with its
+// parameters (CCPPScope::IsDependentBase).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::InDependentBase(CCPPClass* pcClass, CCPPClass* pcDeclaring)
+{
+	CCPPScope*	pcScope;
+	CCPPScope*	pcBaseScope;
+	CCPPClass*	pcBase;
+	size		i;
+	size		j;
+
+	pcScope = (pcClass->mpcTemplate && pcClass->mpcSymbol) ? pcClass->mpcSymbol->mpcMembers : NULL;
+	if (!pcScope || !pcDeclaring || (pcDeclaring == pcClass) || (pcScope->muiDependentBases == 0))
+	{
+		return false;
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		pcBase = pcClass->macBases.Get(i)->pcClass;
+		if ((pcBase != pcDeclaring) && !mpcUnit->IsDerived(pcBase, pcDeclaring, NULL))
+		{
+			continue;
+		}
+		pcBaseScope = pcBase->mpcSymbol ? pcBase->mpcSymbol->mpcMembers : NULL;
+		for (j = 0; j < pcScope->mapcBases.NumElements(); j++)
+		{
+			if (pcScope->mapcBases.GetPtr(j) == pcBaseScope)
+			{
+				return pcScope->IsDependentBase(j);
+			}
+		}
+	}
+	return false;
 }
 
 
@@ -2277,6 +2364,10 @@ void CCPPBinder::BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool
 	pcBound->mpcClass = pcClass;
 	pcBound->mpcFunction = mcOverloads.FindConversion(pcClass, psTo, bExplicit, pcNode);
 	pcBound->meHow = pcBound->mpcFunction ? CPPBV_Function : CPPBV_AsItIs;
+	if (pcBound->mpcFunction && mcOverloads.mbAmbiguousConversion && pcNode)
+	{
+		mpcUnit->ReportOnce(pcNode, "The conversion is ambiguous: two conversion functions' results convert to the type as well as each other");
+	}
 }
 
 

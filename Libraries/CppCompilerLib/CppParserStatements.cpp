@@ -397,6 +397,12 @@ CCPPSyntaxStatement* CCPPParser::ParseDeclarationStatement(CCPPSyntax* pcParent,
 	CCPPSyntaxDeclarationStatement*	pcStatement;
 
 	//[stmt.dcl]
+	if (Is(CT_template))
+	{
+		//[temp] 2
+		Error((char*)"A template is declared only at namespace or class scope, not in a block");
+		return NULL;
+	}
 	pcStatement = mpcMemory->Create<CCPPSyntaxDeclarationStatement>(pcParent);
 	pcStatement->miFirstToken = CurrentToken();
 	pcStatement->mpcDeclaration = ParseDeclaration(pcStatement, eContext);

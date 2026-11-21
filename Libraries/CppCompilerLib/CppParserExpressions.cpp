@@ -628,6 +628,15 @@ CCPPSyntaxExpression* CCPPParser::ParsePostfixExpression(CCPPSyntax* pcParent)
 			}
 			pcCall->miLastToken = PreviousToken();
 			pcExpression = pcCall;
+			if ((miTemplates > 0) && (miTentative == 0) && (pcCall->macpArguments.NumElements() == 0) && (pcCall->mpcCallee->GetKind() == CPPS_IdExpression) &&
+				((CCPPSyntaxIdExpression*)pcCall->mpcCallee)->mpcName->IsSimple() && !((CCPPSyntaxIdExpression*)pcCall->mpcCallee)->mpcName->mpcSymbol &&
+				!IsReservedName(TokenIdentifier(((CCPPSyntaxIdExpression*)pcCall->mpcCallee)->mpcName->GetLast()->miName)))
+			{
+				//(Not a name reserved for the compiler, __builtin_trap(), which nothing declares.)
+				//f() with no arguments can't depend on a template parameter: f is found where the template is written.
+				//[temp.res] 10, [temp.dep] 1
+				ErrorAt(pcCall->miFirstToken, (char*)"The function isn't declared, and no argument depends on a template parameter for it to be found later");
+			}
 		}
 		else if (Is(CT_Member) || Is(CT_MemberByPointer))
 		{
@@ -646,6 +655,7 @@ CCPPSyntaxExpression* CCPPParser::ParsePostfixExpression(CCPPSyntax* pcParent)
 			}
 			pcMember->miLastToken = PreviousToken();
 			pcExpression = pcMember;
+			CheckDependentMemberTemplate(pcMember);
 		}
 		else if (Is(CT_Increment) || Is(CT_Decrement))
 		{
@@ -1658,3 +1668,46 @@ bool CCPPParser::ParseExpressionList(CArraySyntax* papcExpressions, CCPPSyntax* 
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In a template, t.F<1>() where t's type is a template parameter's (or made
+// of one): F is a member template only after the keyword template, so
+// without it the < is less than, which the parser doesn't take it as.
+// [temp.names] 4
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckDependentMemberTemplate(CCPPSyntaxMemberExpression* pcMember)
+{
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPSyntax*					pcObject;
+	CCPPSymbol*					pcSymbol;
+	CCPPSyntax*					pcDeclaration;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+
+	if ((miTemplates == 0) || (miTentative > 0) || (pcMember->mpcName->macpComponents.NumElements() != 1))
+	{
+		return;
+	}
+	pcComponent = pcMember->mpcName->GetLast();
+	pcObject = pcMember->mpcObject ? pcMember->mpcObject->WithoutParentheses() : NULL;
+	if (!pcComponent->mbTemplateArguments || pcComponent->mbTemplateKeyword || pcComponent->mpcSymbol || !pcObject || (pcObject->GetKind() != CPPS_IdExpression))
+	{
+		return;
+	}
+	pcSymbol = ((CCPPSyntaxIdExpression*)pcObject)->mpcName->mpcSymbol;
+	pcDeclaration = pcSymbol ? pcSymbol->mpcDeclaration : NULL;
+	pcSpecifiers = NULL;
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_Parameter))
+	{
+		pcSpecifiers = ((CCPPSyntaxParameter*)pcDeclaration)->mpcSpecifiers;
+	}
+	else if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+	{
+		pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers;
+	}
+	if (pcSpecifiers && NamesTemplateParameter(pcSpecifiers))
+	{
+		ErrorAt(pcComponent->miFirstToken, (char*)"A member template of an object whose type depends on a template parameter is named after the keyword template");
+	}
+}

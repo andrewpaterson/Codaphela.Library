@@ -280,6 +280,7 @@ protected:
 	CMapCPPLiteralCalls		mcLiteralCalls;		//The call each user-defined literal is, by its node.
 	CMapLongTemplate<CCPPSyntaxIdExpression*>	mcDecltypeMembers;	//The expression each decltype(e)::name written as a type is (DecltypeMember).
 	CMapLongTemplate<CCPPSyntaxBinaryExpression*>	mcImplicitAssignments;	//object = value for each object.operator=(value) of the operator= the compiler declares (ImplicitAssignment).
+	CMapLongTemplate<char>	mcExplicitInstances;	//The classes and functions explicitly instantiated (ExplicitlyInstantiatedOnce).
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
@@ -611,6 +612,9 @@ public:
 	CCPPTemplate*			GetComponentTemplate(CCPPSyntaxNameComponent* pcComponent);
 	CCPPTemplateArguments*			BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced = NULL, CArrayCPPDeducedPacks* pasPacks = NULL);
 	bool							BindDeducedPack(SCPPBinding* psBinding, CArrayCPPDeducedPacks* pasPacks, size uiParameter, CChars* pszArguments);
+	bool							IsPackParameter(CCPPSyntaxTemplateDeclaration* pcTemplate, size uiIndex);
+	bool							TemplateParametersMatch(CCPPSyntaxTemplateDeclaration* pcParameter, CCPPSyntaxTemplateDeclaration* pcArgument);
+	bool							SameReturnWritten(CCPPSyntaxDeclSpecifiers* pcFirst, CCPPSyntaxDeclSpecifiers* pcSecond);
 	SCPPBinding*			FindBinding(CCPPSymbol* pcParameter);
 	CCPPClass*			InstantiateClass(CCPPTemplate* pcTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	CCPPClass*			InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, CChars* pszArguments, CCPPSyntax* pcNode);
@@ -626,6 +630,7 @@ public:
 	CCPPFunction*			InstantiateFunctionFor(CCPPTemplate* pcTemplate, SCPP65Type* psFunction, CCPPSyntax* pcNode);
 	SCPP65Type*				ValueParameterType(CCPPSymbol* pcParameter, SCPP65Type* psOtherwise);
 	bool					ExplicitMemberInstantiation(CCPPSyntaxInitDeclarator* pcInit, bool bExtern);
+	bool					ExplicitlyInstantiatedOnce(void* pvInstance, CCPPSyntax* pcNode);
 	bool					SameParameters(SCPP65Type* psFirst, SCPP65Type* psSecond);
 	CCPPTemplate*			NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember);
 	bool					IsClassTemplateDefinition(CCPPSyntax* pcDeclaration);
@@ -702,6 +707,7 @@ public:
 	bool					CheckOperatorSignature(CCPPSyntaxNameComponent* pcComponent, int64 lliName, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					OperatorError(CCPPClass* pcClass, CCPPSyntax* pcNode, const char* szMessage);
 	void					AddMemberTemplateSpecialisations(CCPPTemplate* pcPrimary);
+	bool					SpecialisationAtLeastAs(CCPPTemplate* pcFirst, CCPPTemplate* pcSecond, CCPPTemplate* pcPrimary, CCPPSyntax* pcNode, bool* pbKnown);
 	void					DefineOutsideMembers(CCPPTemplate* pcMember);
 	bool					IsOutsideMemberOf(CCPPTemplate* pcMember, CCPPClass* pcClass);
 	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);

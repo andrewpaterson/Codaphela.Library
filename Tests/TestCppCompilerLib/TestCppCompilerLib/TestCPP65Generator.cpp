@@ -3704,7 +3704,7 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 41): __builtin_alloca is not supported [__builtin_alloca]\n", "int g(void* p); int f(int n) { return g(__builtin_alloca(n)); }");
 	//A static local object that is destroyed is, when the program ends (CppParserTodo.txt question 11; TestCPP816ExitOrder).
 	AssertCPP65Generates("struct D { ~D() {} }; int f() { static D d; return 0; }");
-	AssertCPP65Error("Generated.cpp (1, 149): More than one specialisation of the template matches equally [s]\n", "template<class A, class B> struct S {}; template<class A, class B> struct S<A*, B> {}; template<class A, class B> struct S<A, B*> {}; S<int*, int*> s; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 149): More than one specialisation of the template matches, and none is more specialised than the others [s]\n", "template<class A, class B> struct S {}; template<class A, class B> struct S<A*, B> {}; template<class A, class B> struct S<A, B*> {}; S<int*, int*> s; int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 70): The member template has not been defined [c]\n", "struct C { template<class T> int F(T t); }; int main() { C c; return c.F(1); }");
 	AssertCPP65Error("Generated.cpp (1, 76): The address of an overloaded function needs the type of the function it is for [F]\n", "int F(short a) { return a; } int F(long a) { return 1; } int (*gp)(char) = F; int main() { return gp(1); }");
 	AssertCPP65Error("Generated.cpp (1, 84): The address of an overloaded function needs the type of the function it is for [F]\n", "int F(short a) { return a; } int F(long a) { return 1; } void* G() { return (void*)F; } int main() { return G() != 0; }");

@@ -704,7 +704,307 @@ CCPPSyntaxDeclaration* CCPPParser::ParseTemplateDeclaration(CCPPSyntax* pcParent
 		return NULL;
 	}
 	pcTemplate->miLastToken = PreviousToken();
+	if (pcTemplate->macpParameters.NumElements() > 0)
+	{
+		CheckTemplateDeclaration(pcTemplate);
+	}
 	return pcTemplate;
+}
+
+
+//Walks a node's descendants for a name, written alone, of the identifier.
+class CCPPNameFinder : public CCPPSyntaxFields
+{
+public:
+	int64			mlliName;
+	CCPPParser*		mpcParser;
+	bool			mbFound;
+
+	void	NodeField(CCPPSyntax** ppcNode) override
+	{
+		CCPPSyntaxName*	pcName;
+
+		if (!*ppcNode || mbFound)
+		{
+			return;
+		}
+		if ((*ppcNode)->GetKind() == CPPS_Name)
+		{
+			pcName = (CCPPSyntaxName*)*ppcNode;
+			if (!pcName->mbGlobal && (pcName->macpComponents.NumElements() >= 1) && (((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0))->meKind == CPPNC_Identifier) && (mpcParser->TokenIdentifier(((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0))->miName) == mlliName))
+			{
+				mbFound = true;
+				return;
+			}
+		}
+		(*ppcNode)->VisitFields(this);
+	}
+	void	NodesField(CArraySyntax* papcNodes) override
+	{
+		size	i;
+
+		for (i = 0; !mbFound && (i < papcNodes->NumElements()); i++)
+		{
+			NodeField(papcNodes->Get(i));
+		}
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class template declared again (template<class T = int> struct A;
+// then its definition) gives none of its parameters a default the first
+// declaration gave.  [temp.param] 12
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckDefaultsOnce(CCPPSyntaxTemplateDeclaration* pcTemplate, CCPPSymbol* pcSymbol)
+{
+	CCPPSyntaxTemplateDeclaration**	ppcFirst;
+	CCPPSyntaxTemplateDeclaration*	pcFirstTemplate;
+	CCPPSyntax*						pcParameter;
+	CCPPSyntax*						pcFirstParameter;
+	size							i;
+	bool							bDefault;
+	bool							bFirstDefault;
+
+	if (!pcSymbol || (pcSymbol->meKind != CPPSK_ClassTemplate) || (miTentative > 0))
+	{
+		return;
+	}
+	ppcFirst = mcFirstClassTemplates.Get((int64)(size)pcSymbol);
+	if (!ppcFirst)
+	{
+		mcFirstClassTemplates.Put((int64)(size)pcSymbol, &pcTemplate);
+		return;
+	}
+	pcFirstTemplate = *ppcFirst;
+	if ((pcFirstTemplate == pcTemplate) || (pcFirstTemplate->miFirstToken == pcTemplate->miFirstToken) || (pcFirstTemplate->mpcTree != pcTemplate->mpcTree) || (pcFirstTemplate->macpParameters.NumElements() != pcTemplate->macpParameters.NumElements()))
+	{
+		return;
+	}
+	for (i = 0; i < pcTemplate->macpParameters.NumElements(); i++)
+	{
+		pcParameter = pcTemplate->macpParameters.GetPtr(i);
+		pcFirstParameter = pcFirstTemplate->macpParameters.GetPtr(i);
+		bDefault = ((pcParameter->GetKind() == CPPS_TypeParameter) && ((CCPPSyntaxTypeParameter*)pcParameter)->mpcDefault) || ((pcParameter->GetKind() == CPPS_Parameter) && ((CCPPSyntaxParameter*)pcParameter)->mpcDefault);
+		bFirstDefault = ((pcFirstParameter->GetKind() == CPPS_TypeParameter) && ((CCPPSyntaxTypeParameter*)pcFirstParameter)->mpcDefault) || ((pcFirstParameter->GetKind() == CPPS_Parameter) && ((CCPPSyntaxParameter*)pcFirstParameter)->mpcDefault);
+		if (bDefault && bFirstDefault)
+		{
+			ErrorAt(pcParameter->miFirstToken, (char*)"A template parameter's default is given once, where the template is first declared to have it");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A partial specialisation's arguments aren't the primary template's
+// parameters as they are (A<T, U> of template<class T, class U> struct A),
+// and a non-type argument it specialises isn't for a parameter whose type
+// is the primary template's type parameter (template<class T, T V> struct
+// C; then C<T, 1>).  [temp.class.spec] 8
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckPartialSpecialisation(CCPPSyntaxTemplateDeclaration* pcTemplate, CCPPSyntaxName* pcName)
+{
+	CCPPSyntaxTemplateDeclaration**	ppcPrimary;
+	CCPPSyntaxNameComponent*		pcComponent;
+	CCPPSyntax*						pcArgument;
+	CCPPSyntax*						pcParameter;
+	CCPPSyntax*						pcPrimaryParameter;
+	CCPPSymbol*						pcArgumentSymbol;
+	CCPPSymbol*						pcParameterSymbol;
+	size							i;
+	bool							bSame;
+
+	pcComponent = pcName->GetLast();
+	if ((miTentative > 0) || !pcName->mpcSymbol)
+	{
+		return;
+	}
+	bSame = pcComponent->macpTemplateArguments.NumElements() == pcTemplate->macpParameters.NumElements();
+	for (i = 0; bSame && (i < pcComponent->macpTemplateArguments.NumElements()); i++)
+	{
+		pcArgument = pcComponent->macpTemplateArguments.GetPtr(i);
+		pcParameter = pcTemplate->macpParameters.GetPtr(i);
+		pcArgumentSymbol = ArgumentSymbol(pcArgument);
+		pcParameterSymbol = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((pcParameter->GetKind() == CPPS_Parameter) ? ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol : NULL);
+		bSame = pcArgumentSymbol && (pcArgumentSymbol == pcParameterSymbol);
+	}
+	if (bSame)
+	{
+		ErrorAt(pcComponent->miFirstToken, (char*)"A partial specialisation's arguments are not the primary template's parameters as they are");
+		return;
+	}
+
+	ppcPrimary = mcFirstClassTemplates.Get((int64)(size)pcName->mpcSymbol);
+	for (i = 0; ppcPrimary && (i < pcComponent->macpTemplateArguments.NumElements()) && (i < (*ppcPrimary)->macpParameters.NumElements()); i++)
+	{
+		pcArgument = pcComponent->macpTemplateArguments.GetPtr(i);
+		pcPrimaryParameter = (*ppcPrimary)->macpParameters.GetPtr(i);
+		if ((pcPrimaryParameter->GetKind() == CPPS_Parameter) && !ArgumentSymbol(pcArgument) && ((CCPPSyntaxParameter*)pcPrimaryParameter)->mpcSpecifiers &&
+			NamesTemplateParameter(((CCPPSyntaxParameter*)pcPrimaryParameter)->mpcSpecifiers))
+		{
+			ErrorAt(pcArgument->miFirstToken, (char*)"A specialised non-type argument's parameter has no type that depends on the specialisation's parameters");
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The symbol a template argument is just the name of (T, N), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPParser::ArgumentSymbol(CCPPSyntax* pcArgument)
+{
+	CCPPSyntaxTypeId*			pcTypeId;
+	CCPPSyntaxTypeSpecifier*	pcType;
+
+	if (pcArgument->GetKind() == CPPS_IdExpression)
+	{
+		return ((CCPPSyntaxIdExpression*)pcArgument)->mpcName->mpcSymbol;
+	}
+	if (pcArgument->GetKind() != CPPS_TypeId)
+	{
+		return NULL;
+	}
+	pcTypeId = (CCPPSyntaxTypeId*)pcArgument;
+	if (pcTypeId->mbPack || (pcTypeId->mpcDeclarator && !pcTypeId->mpcDeclarator->IsEmpty()) || !pcTypeId->mpcSpecifiers || (pcTypeId->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
+	{
+		return NULL;
+	}
+	pcType = pcTypeId->mpcSpecifiers->mpcType;
+	return (pcType && (pcType->GetKind() == CPPS_NamedTypeSpecifier)) ? ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a template's parameters and declaration may not be.  A parameter
+// pack has no default; in a class, alias or variable template a default is
+// followed only by defaults (or a pack), and a pack is the last parameter;
+// a partial specialisation's have no defaults.  A non-type parameter isn't
+// of a class type.  A member function template isn't virtual.  An alias
+// template's type doesn't name the alias template.  [temp.param] 7, 9, 11,
+// [temp.class.spec] 8, [temp.mem] 3, [temp.alias] 4
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckTemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplate)
+{
+	CCPPSyntax*						pcDeclaration;
+	CCPPSyntax*						pcParameter;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
+	CCPPSyntaxParameter*			pcValue;
+	CCPPSyntaxTypeParameter*		pcType;
+	CCPPSyntaxClassSpecifier*		pcClass;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSymbol*						pcTypeSymbol;
+	CCPPNameFinder					cFinder;
+	size							i;
+	bool							bDefault;
+	bool							bPack;
+	bool							bDefaulted;
+	bool							bClassLike;
+	bool							bPartial;
+
+	pcDeclaration = pcTemplate->mpcDeclaration;
+	pcSpecifiers = NULL;
+	bClassLike = false;
+	bPartial = false;
+	if (pcDeclaration->GetKind() == CPPS_AliasDeclaration)
+	{
+		bClassLike = true;
+		cFinder.mlliName = TokenIdentifier(((CCPPSyntaxAliasDeclaration*)pcDeclaration)->miName);
+		cFinder.mpcParser = this;
+		cFinder.mbFound = false;
+		cFinder.NodeField((CCPPSyntax**)&((CCPPSyntaxAliasDeclaration*)pcDeclaration)->mpcType);
+		if (cFinder.mbFound)
+		{
+			ErrorAt(pcDeclaration->miFirstToken, (char*)"An alias template's type can't name the alias template");
+		}
+	}
+	else if (pcDeclaration->GetKind() == CPPS_SimpleDeclaration)
+	{
+		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration;
+		pcSpecifiers = pcSimple->mpcSpecifiers;
+		pcInit = (pcSimple->macpDeclarators.NumElements() > 0) ? (CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0) : NULL;
+		if (!pcInit && pcSpecifiers && pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
+		{
+			bClassLike = true;
+			pcClass = (CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType;
+			bPartial = pcClass->mpcName && pcClass->mpcName->GetLast() && pcClass->mpcName->GetLast()->mbTemplateArguments;
+			if (pcClass->mpcName && !bPartial)
+			{
+				CheckDefaultsOnce(pcTemplate, pcClass->mpcSymbol);
+			}
+			else if (bPartial)
+			{
+				CheckPartialSpecialisation(pcTemplate, pcClass->mpcName);
+			}
+		}
+		else if (!pcInit && pcSpecifiers && pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_ElaboratedTypeSpecifier) && ((CCPPSyntaxElaboratedTypeSpecifier*)pcSpecifiers->mpcType)->mpcName)
+		{
+			CheckDefaultsOnce(pcTemplate, ((CCPPSyntaxElaboratedTypeSpecifier*)pcSpecifiers->mpcType)->mpcName->mpcSymbol);
+		}
+		else if (pcInit && pcInit->mpcDeclarator && !pcInit->mpcDeclarator->IsFunction())
+		{
+			bClassLike = true;
+		}
+	}
+	else if (pcDeclaration->GetKind() == CPPS_FunctionDefinition)
+	{
+		pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;
+	}
+	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_VIRTUAL))
+	{
+		ErrorAt(pcDeclaration->miFirstToken, (char*)"A member function template can't be virtual");
+	}
+
+	bDefaulted = false;
+	for (i = 0; i < pcTemplate->macpParameters.NumElements(); i++)
+	{
+		pcParameter = pcTemplate->macpParameters.GetPtr(i);
+		bDefault = false;
+		bPack = false;
+		if (pcParameter->GetKind() == CPPS_TypeParameter)
+		{
+			pcType = (CCPPSyntaxTypeParameter*)pcParameter;
+			bDefault = pcType->mpcDefault != NULL;
+			bPack = pcType->mbPack;
+		}
+		else if (pcParameter->GetKind() == CPPS_Parameter)
+		{
+			pcValue = (CCPPSyntaxParameter*)pcParameter;
+			bDefault = pcValue->mpcDefault != NULL;
+			bPack = pcValue->mpcDeclarator && pcValue->mpcDeclarator->mbPack;
+			pcTypeSymbol = (pcValue->mpcSpecifiers && pcValue->mpcSpecifiers->mpcType && (pcValue->mpcSpecifiers->mpcType->GetKind() == CPPS_NamedTypeSpecifier)) ? ((CCPPSyntaxNamedTypeSpecifier*)pcValue->mpcSpecifiers->mpcType)->mpcName->mpcSymbol : NULL;
+			if (pcTypeSymbol && ((pcTypeSymbol->meKind == CPPSK_Class) || (pcTypeSymbol->meKind == CPPSK_ClassTemplate)) && !(pcValue->mpcDeclarator && ((pcValue->mpcDeclarator->NumPointers() > 0) || pcValue->mpcDeclarator->mpcNested)))
+			{
+				ErrorAt(pcParameter->miFirstToken, (char*)"A non-type template parameter isn't of a class type");
+			}
+		}
+		if (bPack && bDefault)
+		{
+			ErrorAt(pcParameter->miFirstToken, (char*)"A template parameter pack has no default");
+		}
+		else if (bPartial && bDefault)
+		{
+			ErrorAt(pcParameter->miFirstToken, (char*)"A partial specialisation's template parameters have no defaults");
+		}
+		else if (bClassLike && !bPartial && bDefaulted && !bDefault && !bPack)
+		{
+			ErrorAt(pcParameter->miFirstToken, (char*)"A template parameter after one with a default has a default too");
+		}
+		else if (bClassLike && !bPartial && bPack && (i + 1 < pcTemplate->macpParameters.NumElements()))
+		{
+			ErrorAt(pcParameter->miFirstToken, (char*)"A class template's parameter pack is its last parameter");
+		}
+		bDefaulted |= bDefault;
+	}
 }
 
 

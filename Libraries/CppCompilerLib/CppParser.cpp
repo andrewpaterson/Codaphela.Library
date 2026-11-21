@@ -48,6 +48,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	muiTentativeParses = 0;
 	miTemplateArguments = 0;
 	mcTypeIdArguments.Init(true);
+	mcFirstClassTemplates.Init(true);
 	mbNoGreater = false;
 	mbLambdaDeclarator = false;
 	mbMemberName = false;
@@ -86,6 +87,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 void CCPPParser::Kill(void)
 {
 	mcTypeIdArguments.Kill();
+	mcFirstClassTemplates.Kill();
 	maiPacks.Kill();
 	macDeferred.Kill();
 	malliLabels.Kill();
@@ -229,6 +231,34 @@ bool CCPPParser::IsIdentifierAhead(int iAhead)
 
 	pcToken = Peek(iAhead);
 	return pcToken && pcToken->IsIdentifier();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::IsReservedName(int64 lliName)
+{
+	char*	szName;
+	int		iLength;
+
+	szName = (lliName >= 0) ? mpcTokeniser->GetIdentifier(lliName, &iLength) : NULL;
+	return szName && (iLength >= 2) && (szName[0] == '_') && (szName[1] == '_');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The identifier the token iToken is, or -1 if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPPParser::TokenIdentifier(int iToken)
+{
+	CCPPToken*	pcToken;
+
+	pcToken = ((iToken >= 0) && (iToken < miNumTokens)) ? mpcTokeniser->Get(iToken) : NULL;
+	return (pcToken && pcToken->IsIdentifier()) ? ((CCTIdentifier*)pcToken)->miIdentifier : -1;
 }
 
 

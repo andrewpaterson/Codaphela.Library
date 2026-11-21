@@ -88,6 +88,12 @@ protected:
 	CArrayCPP65Types*	mpapsOnly;		//The next FindFunction takes only functions of these types: a block's declarations of the name (FindNamedFunction).
 
 public:
+	bool				mbAmbiguousConversion;	//FindConversion found two as good.
+	bool				mbAmbiguousTemplate;	//ChooseTemplate found two function templates as good and as specialised.
+
+protected:
+
+public:
 	void					Init(CCPPUnit* pcUnit);
 	void					Kill(void);
 

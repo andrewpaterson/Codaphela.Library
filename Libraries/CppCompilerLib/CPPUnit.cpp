@@ -321,6 +321,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcLiteralCalls.Init(true);
 	mcDecltypeMembers.Init(true);
 	mcImplicitAssignments.Init(true);
+	mcExplicitInstances.Init(true);
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
 	mapsLambdas.Init();
@@ -458,6 +459,7 @@ void CCPPUnit::Kill(void)
 	mcLiteralCalls.Kill();
 	mcDecltypeMembers.Kill();
 	mcImplicitAssignments.Kill();
+	mcExplicitInstances.Kill();
 	FreeLambdas();
 	mapcMemberSpecialisations.Kill();
 	mapcMemberTemplateSpecialisations.Kill();

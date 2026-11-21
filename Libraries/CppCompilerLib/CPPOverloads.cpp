@@ -119,6 +119,8 @@ void CCPPOverloads::Init(CCPPUnit* pcUnit)
 	mcResolved.Init(true);
 	mbConverting = false;
 	mpapsOnly = NULL;
+	mbAmbiguousConversion = false;
+	mbAmbiguousTemplate = false;
 }
 
 
@@ -285,6 +287,7 @@ CCPPFunction* CCPPOverloads::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo
 	}
 	pcBest = NULL;
 	iBest = CPPCR_None;
+	mbAmbiguousConversion = false;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(CPP_CONVERSION_NAME); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
 		if (pcFunction->mpcTemplate || (pcFunction->mbExplicit && !bExplicit) || !mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL))
@@ -296,6 +299,13 @@ CCPPFunction* CCPPOverloads::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo
 		{
 			pcBest = pcFunction;
 			iBest = iRank;
+			mbAmbiguousConversion = false;
+		}
+		else if ((iRank == iBest) && (iRank != CPPCR_None) && !pcFunction->mpsReturn->Same(pcBest->mpsReturn))
+		{
+			//Two functions to other types whose results convert as well: ambiguous (one overriding the other has
+			//the same type).  [over.match.conv] 1, [over.match.best] 2
+			mbAmbiguousConversion = true;
 		}
 	}
 
@@ -2564,6 +2574,8 @@ CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, 
 	{
 		MostSpecialised(&apcChosen, uiArguments, pcCall);
 	}
+	//Two left that take the arguments as well, neither more specialised: the call is ambiguous.  [temp.func.order] 5
+	mbAmbiguousTemplate = (uiArguments > 0) && (eObject == CPPCO_None) && (apcChosen.NumElements() > 1);
 	papcChosen = (apcChosen.NumElements() > 0) ? &apcChosen : papcCandidates;
 
 	pcTemplate = (papcChosen->NumElements() > 0) ? papcChosen->GetPtr(0) : NULL;
@@ -2826,11 +2838,12 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		}
 		cDeduction.Init(mpcUnit, pcTemplate);
 		cDeduction.Deduce(&apsArguments, papcArguments);
+		bTakes = !cDeduction.HasConflict() || papcExplicit;
 		szArguments.Init();
 		pcBindings = mpcUnit->BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());
 		szArguments.Kill();
 		cDeduction.Kill();
-		bTakes = pcBindings != NULL;
+		bTakes = bTakes && (pcBindings != NULL);
 	}
 
 	if (bTakes)

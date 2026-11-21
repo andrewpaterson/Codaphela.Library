@@ -514,6 +514,11 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 	{
 		return ExplicitInstantiation(pcDeclaration, pcTemplateDeclaration->mbExtern);
 	}
+	if (mcContext.IsCLinkage() && (pcTemplateDeclaration->macpParameters.NumElements() > 0))
+	{
+		//[temp] 4
+		return Error(pcTemplateDeclaration, "A template has no C linkage: it is declared outside extern \"C\"");
+	}
 	bExplicit = pcTemplateDeclaration->macpParameters.NumElements() == 0;
 	if (bExplicit && (pcDeclaration->GetKind() == CPPS_TemplateDeclaration) && (((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->macpParameters.NumElements() == 0) &&
 		((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->mpcDeclaration && (((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->mpcDeclaration->GetKind() == CPPS_FunctionDefinition))
@@ -688,12 +693,29 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 		{
 			//template<> int Size<char>(char c) { ... } and template<> int Size(short s) { ... }
 			NoDefaultArguments(pcFunction->mpcDeclarator, "An explicit specialisation is given no default argument");
-			Specialisation(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction, pcName->GetLast());
+			pcTemplate = Specialisation(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction, pcName->GetLast());
+			for (i = 0; pcTemplate && (i < pcTemplate->mpcPrimary->mapcInstances.NumElements()); i++)
+			{
+				if (FindFunctionSpecialisation(pcTemplate->mpcPrimary, &pcTemplate->mpcPrimary->mapcInstances.GetPtr(i)->mszArguments, pcFunction) == pcTemplate)
+				{
+					//The template's own instance for its arguments was made by a use before it.  [temp.expl.spec] 6
+					Error(pcFunction->mpcDeclarator, "The explicit specialisation is declared after a use of it that made the template's instance");
+					break;
+				}
+			}
+			pcTemplate = NULL;
 		}
 		else if (pcName && !pcClassTemplate && !bExplicit && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator) || (pcName->GetLast()->meKind == CPPNC_Literal)))
 		{
 			//An operator template (and a literal operator template) has no symbol; it is found by its operator (FindFreeOperator).
 			pcTemplate = FindFunctionTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction->mpcDeclarator);
+			if (pcTemplate && pcTemplate->mpcDefinition && (pcTemplate->mpcDefinition != pcFunction) && (pcTemplate->mpcDefinition->GetKind() == CPPS_FunctionDefinition) &&
+				SameReturnWritten(((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcSpecifiers, pcFunction->mpcSpecifiers) && pcTemplate->mpcDeclaration &&
+				(pcTemplate->mpcDeclaration->macpParameters.NumElements() == pcTemplateDeclaration->macpParameters.NumElements()) && TemplateParametersMatch(pcTemplate->mpcDeclaration, pcTemplateDeclaration))
+			{
+				//[temp.over.link] 6, [basic.def.odr] 1
+				return Error(pcFunction->mpcDeclarator, "The function template is defined twice: one with an equivalent signature is defined already");
+			}
 			if (pcTemplate && !pcTemplate->mpcDefinition)
 			{
 				NoDefaultArguments(pcFunction->mpcDeclarator, "A function template is given its default arguments where it is first declared");
@@ -1043,6 +1065,12 @@ CCPPTemplate* CCPPUnit::Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateD
 	{
 		return NULL;
 	}
+	if (mcContext.GetNamespace() && !mcContext.GetNamespace()->Encloses(pcPrimary->mpcNamespace))
+	{
+		//[temp.expl.spec] 2, [temp.class.spec] 6
+		Error(pcDefinition, "A specialisation is declared in a namespace that encloses its template");
+		return NULL;
+	}
 	pcTemplate = NewTemplate(pcPrimary->mpcSymbol, pcDeclaration, pcDefinition, false);
 	pcTemplate->mpcPrimary = pcPrimary;
 	pcTemplate->mpcPattern = pcPattern;
@@ -1191,7 +1219,7 @@ bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern)
 		return true;
 	}
 	pcClass->mbExternInstance = false;
-	if (!CompleteClass(pcClass, pcDeclaration))
+	if (!ExplicitlyInstantiatedOnce(pcClass, pcDeclaration) || !CompleteClass(pcClass, pcDeclaration))
 	{
 		return false;
 	}
@@ -1236,6 +1264,27 @@ bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern)
 		RequireFunction(pcFunction);
 	}
 	apcDefined.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A specialisation (pvInstance, a class or a function) is explicitly
+// instantiated once in a unit, not extern; an error (and false) the
+// second time.  [temp.spec] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ExplicitlyInstantiatedOnce(void* pvInstance, CCPPSyntax* pcNode)
+{
+	char	c;
+
+	if (mcExplicitInstances.Get((int64)(size)pvInstance))
+	{
+		return Error(pcNode, "The specialisation is explicitly instantiated twice");
+	}
+	c = 1;
+	mcExplicitInstances.Put((int64)(size)pvInstance, &c);
 	return true;
 }
 
@@ -1384,6 +1433,10 @@ bool CCPPUnit::ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* pcInit, b
 	pcFunction = pcBindings ? InstanceOfFunction(pcTemplate, pcBindings, &szArguments, pcInit) : NULL;
 	szArguments.Kill();
 	if (!pcFunction)
+	{
+		return false;
+	}
+	if (!bExtern && !ExplicitlyInstantiatedOnce(pcFunction, pcInit))
 	{
 		return false;
 	}
@@ -1568,6 +1621,11 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 
 	asArguments.Init();
 	bResult = !papcArguments || ExpandTemplateArguments(papcArguments, &asArguments);
+	if (bResult && (asArguments.NumElements() > pcTemplate->macpParameters.NumElements()) && !IsPackParameter(pcTemplate, pcTemplate->macpParameters.NumElements() - 1))
+	{
+		//[temp.arg] 1, [temp.deduct] 2
+		bResult = Error(pcNode, "More template arguments than the template has parameters");
+	}
 	pcBindings = NewBindings();
 	for (i = 0; bResult && (i < pcTemplate->macpParameters.NumElements()); i++)
 	{
@@ -1604,6 +1662,12 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 				//Deduced, it is the class template of the instance deduced for it (CCPPDeduction).
 				pcDeduced = (!psArgument && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i)) ? papsDeduced->GetPtr(i)->pcClass->mpcTemplate->mpcPrimary : NULL;
 				bResult = BindTemplate(psBinding, psArgument ? psArgument->pcArgument : pcType->mpcDefault, pcDeduced, pcNode, pszArguments);
+				if (bResult && psBinding->pcTemplate && psBinding->pcTemplate->mpcDeclaration && !TemplateParametersMatch(pcType->mpcTemplate, psBinding->pcTemplate->mpcDeclaration))
+				{
+					//In C++14 a template template argument's parameters are the parameter's, kind for kind: one with a
+					//defaulted parameter more isn't a template<class> class.  [temp.arg.template] 3
+					bResult = Error(psArgument ? psArgument->pcArgument : pcNode, "The template argument's parameters aren't the template template parameter's");
+				}
 				if (!bResult)
 				{
 					break;
@@ -1936,6 +2000,92 @@ bool CCPPUnit::BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* 
 	}
 	pszArguments->Append('E');
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether two function declarations' return types are written the same
+// (template<class T> int F(T) and long F(T) are two templates).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::SameReturnWritten(CCPPSyntaxDeclSpecifiers* pcFirst, CCPPSyntaxDeclSpecifiers* pcSecond)
+{
+	CChars	szFirst;
+	CChars	szSecond;
+	bool	bSame;
+
+	if (!pcFirst || !pcSecond)
+	{
+		return pcFirst == pcSecond;
+	}
+	szFirst.Init();
+	szSecond.Init();
+	pcFirst->PrettyPrint(&szFirst, 0);
+	pcSecond->PrettyPrint(&szSecond, 0);
+	bSame = szFirst.Equals(&szSecond);
+	szSecond.Kill();
+	szFirst.Kill();
+	return bSame;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a template template parameter's parameters (pcParameter) take
+// the template argument's (pcArgument) as they are: as many, each of the
+// same kind, unless the parameter's last is a pack, which takes the rest.
+// [temp.arg.template] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::TemplateParametersMatch(CCPPSyntaxTemplateDeclaration* pcParameter, CCPPSyntaxTemplateDeclaration* pcArgument)
+{
+	size	i;
+	size	uiParameters;
+
+	if (!pcParameter)
+	{
+		return true;
+	}
+	uiParameters = pcParameter->macpParameters.NumElements();
+	if ((uiParameters > 0) && IsPackParameter(pcParameter, uiParameters - 1))
+	{
+		return true;
+	}
+	if (uiParameters != pcArgument->macpParameters.NumElements())
+	{
+		return IsPackParameter(pcArgument, pcArgument->macpParameters.NumElements() - 1) && (pcArgument->macpParameters.NumElements() <= uiParameters + 1);
+	}
+	for (i = 0; i < uiParameters; i++)
+	{
+		if (pcParameter->macpParameters.GetPtr(i)->GetKind() != pcArgument->macpParameters.GetPtr(i)->GetKind())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a template's parameter uiIndex (-1 for none) is a pack.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsPackParameter(CCPPSyntaxTemplateDeclaration* pcTemplate, size uiIndex)
+{
+	CCPPSyntax*	pcParameter;
+
+	if (uiIndex >= pcTemplate->macpParameters.NumElements())
+	{
+		return false;
+	}
+	pcParameter = pcTemplate->macpParameters.GetPtr(uiIndex);
+	if (pcParameter->GetKind() == CPPS_TypeParameter)
+	{
+		return ((CCPPSyntaxTypeParameter*)pcParameter)->mbPack;
+	}
+	return (pcParameter->GetKind() == CPPS_Parameter) && ((CCPPSyntaxParameter*)pcParameter)->mpcDeclarator && ((CCPPSyntaxParameter*)pcParameter)->mpcDeclarator->mbPack;
 }
 
 
@@ -2339,16 +2489,28 @@ CCPPTemplate* CCPPUnit::FindSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplate
 	CCPPTemplate*			pcBest;
 	CCPPTemplateArguments*	pcDeduced;
 	CCPPTemplateArguments*	pcBestDeduced;
+	CArrayCPPTemplates		apcMatched;
+	CArrayTemplatePtr<CCPPTemplateArguments>	apcDeduced;
+	CArrayInt				aiScores;
 	size					i;
+	size					j;
 	int						iScore;
 	int						iBest;
 	bool					bMatches;
 	bool					bAmbiguous;
+	bool					bLess;
+	bool					bFirst;
+	bool					bSecond;
+	bool					bKnownFirst;
+	bool					bKnownSecond;
 
 	pcBest = NULL;
 	pcBestDeduced = NULL;
 	iBest = -1;
 	bAmbiguous = false;
+	apcMatched.Init();
+	apcDeduced.Init();
+	aiScores.Init();
 	for (i = 0; i < mapcTemplates.NumElements(); i++)
 	{
 		pcTemplate = mapcTemplates.GetPtr(i);
@@ -2362,29 +2524,98 @@ CCPPTemplate* CCPPUnit::FindSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplate
 		pcDeduced = cMatch.GetDeduced();
 		iScore = cMatch.GetScore();
 		cMatch.Kill();
-		if (!bMatches)
+		if (bMatches)
+		{
+			apcMatched.Add(pcTemplate);
+			apcDeduced.Add(pcDeduced);
+			aiScores.Add(iScore);
+		}
+	}
+
+	//The one no other is more specialised than: one whose arguments, its parameters standing for themselves, the
+	//other's pattern matches, and not the other way round (by the matches' scores where that can't be worked out).
+	//[temp.class.order] 1
+	for (i = 0; i < apcMatched.NumElements(); i++)
+	{
+		bLess = false;
+		for (j = 0; !bLess && (j < apcMatched.NumElements()); j++)
+		{
+			if (j == i)
+			{
+				continue;
+			}
+			bFirst = SpecialisationAtLeastAs(apcMatched.GetPtr(j), apcMatched.GetPtr(i), pcPrimary, pcNode, &bKnownFirst);
+			bSecond = SpecialisationAtLeastAs(apcMatched.GetPtr(i), apcMatched.GetPtr(j), pcPrimary, pcNode, &bKnownSecond);
+			bLess = (bKnownFirst && bKnownSecond) ? (bFirst && !bSecond) : (aiScores.GetValue(j) > aiScores.GetValue(i));
+		}
+		if (bLess)
 		{
 			continue;
 		}
-		if (iScore > iBest)
-		{
-			pcBest = pcTemplate;
-			pcBestDeduced = pcDeduced;
-			iBest = iScore;
-			bAmbiguous = false;
-		}
-		else if (iScore == iBest)
+		if (pcBest)
 		{
 			bAmbiguous = true;
+			if (aiScores.GetValue(i) <= iBest)
+			{
+				continue;
+			}
 		}
+		pcBest = apcMatched.GetPtr(i);
+		pcBestDeduced = apcDeduced.GetPtr(i);
+		iBest = aiScores.GetValue(i);
 	}
+	apcMatched.Kill();
+	apcDeduced.Kill();
+	aiScores.Kill();
 	if (bAmbiguous)
 	{
 		//Kept (ClassError): an instance is made once, and often where errors are dropped.
-		ClassError(pcNode ? pcNode->miFirstToken : -1, "More than one specialisation of the template matches equally");
+		ClassError(pcNode ? pcNode->miFirstToken : -1, "More than one specialisation of the template matches, and none is more specialised than the others");
 	}
 	*ppcBindings = pcBestDeduced;
 	return pcBest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the partial specialisation pcFirst is at least as specialised as
+// pcSecond: pcSecond's pattern matches pcFirst's arguments with pcFirst's
+// parameters standing for types and values of their own.  *pbKnown false
+// if that couldn't be worked out.  [temp.class.order] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::SpecialisationAtLeastAs(CCPPTemplate* pcFirst, CCPPTemplate* pcSecond, CCPPTemplate* pcPrimary, CCPPSyntax* pcNode, bool* pbKnown)
+{
+	CCPPPatternMatch		cMatch;
+	CCPPTemplateArguments*	pcSelf;
+	CCPPTemplateArguments*	pcArguments;
+	CChars					szArguments;
+	bool					bMatches;
+
+	bMatches = false;
+	pcArguments = NULL;
+	szArguments.Init();
+	BeginTrial();
+	pcSelf = BindAsItself(pcFirst->mpcDeclaration, &szArguments, pcNode);
+	szArguments.Clear();
+	if (pcSelf)
+	{
+		pcSelf->mpcOuter = mcContext.GetBindings();
+		mcContext.EnterBindings(pcSelf);
+		pcArguments = BindArguments(pcPrimary->mpcDeclaration, &pcFirst->mpcPattern->macpTemplateArguments, NULL, &szArguments, pcNode);
+		mcContext.LeaveBindings();
+		pcSelf->mpcOuter = NULL;
+	}
+	if (pcArguments)
+	{
+		cMatch.Init(this, pcSecond->mpcDeclaration);
+		bMatches = cMatch.Match(&pcSecond->mpcPattern->macpTemplateArguments, pcArguments);
+		cMatch.Kill();
+	}
+	*pbKnown = EndTrial() && (pcArguments != NULL);
+	szArguments.Kill();
+	return bMatches;
 }
 
 
@@ -2434,6 +2665,12 @@ CCPPFunction* CCPPUnit::InstantiateFunction(CCPPTemplate* pcTemplate, CArraySynt
 	cDeduction.Init(this, pcTemplate);
 	cDeduction.Deduce(&apsArguments, papcArguments);
 	apsArguments.Kill();
+	if (cDeduction.HasConflict() && !papcExplicit)
+	{
+		cDeduction.Kill();
+		Error(pcNode, "The arguments deduce one template parameter as two types");
+		return NULL;
+	}
 
 	szArguments.Init();
 	pcBindings = BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());

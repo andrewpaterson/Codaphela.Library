@@ -926,7 +926,7 @@ bool CCPP65IRFrontEnd::FullCondition(CCPPSyntax* pcExpression, CIRBlock* pcTrue,
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIRBlock* pcFalse)
 {
-	CCPPBoundCall			cOperatorCall;
+	CCPPBoundCall				cOperatorCall;
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	CIRBlock*					pcRight;

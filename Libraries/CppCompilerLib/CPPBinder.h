@@ -221,6 +221,8 @@ public:
 	CCPPFunction*	FindMemberFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, CCPPClass** ppcClass, bool* pbOverloaded);
 	CCPPFunction*	FindLiteralOperator(int64 lliName, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	bool			HasFreeOperator(int64 lliName);
+	bool			ListConverts(SCPP65Type* psElement, CCPPSyntax* pcList);
+	bool			InDependentBase(CCPPClass* pcClass, CCPPClass* pcDeclaring);
 	CCPPFunction*	InitializerListConstructor(CCPPClass* pcClass, CCPPSyntax* pcList);
 	CCPPFunction*	FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	CCPPFunction*	ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode);

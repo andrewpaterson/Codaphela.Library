@@ -1558,7 +1558,7 @@ SCPP65Type* CCPP65TypeChecker::ConditionValue(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 {
-	CCPPBoundCall			cOperatorCall;
+	CCPPBoundCall				cOperatorCall;
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psLeft;
@@ -1693,6 +1693,12 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		if (psType)
 		{
 			return CallThroughPointer(pcCall, cBound.mpapcArguments, psType->psBase);
+		}
+		if ((cBound.mpcCallee->GetKind() == CPPS_IdExpression) && !((CCPPSyntaxIdExpression*)cBound.mpcCallee)->mpcName->mpcSymbol)
+		{
+			//No function of the name is declared where the call is, nor in its arguments' namespaces.
+			Error(cBound.mpcCallee, "The function has not been declared, where the call is or in its arguments' namespaces");
+			return NULL;
 		}
 		Error(cBound.mpcCallee, "Only calls to functions and pointers to functions are supported by the compiler yet");
 		return NULL;

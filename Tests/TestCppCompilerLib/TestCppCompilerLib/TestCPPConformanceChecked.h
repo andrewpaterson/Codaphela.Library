@@ -57,7 +57,7 @@ static const SConformanceChecked gasConformanceChecked[] =
 	{ "Clause12",
 		"SpecialDefaultConstructorMemberRefused(M) SpecialAssignDeletedByReferenceRefused(M) " },
 	{ "Clause13",
-		"OverFuncsStaticContextRefused(M) OverConvFunctionAmbiguousRefused(M) OverRankUserDefinedAmbiguousRefused(M) OverAddressByTarget(F) " },
+		"OverAddressByTarget(F) " },
 	{ "Clause14",
-		"TempMemberClassThroughInstance(F) TempDeclarationInBlockRefused(M) TempLinkageCRefused(M) TempNonTypeClassRefused(M) TempNonTypeNotLvalueRefused(M) TempDefaultBeforeNonDefaultClassRefused(M) TempDefaultRedefinedRefused(M) TempDefaultForPackRefused(M) TempPackNotLastClassRefused(M) TempNamesTemplateKeywordMissingRefused(M) TempTemplateTemplateDefaultMismatchRefused(M) TempMemberTemplateVirtualRefused(M) TempVariadicLengthMismatchRefused(M) TempVariadicUnexpandedRefused(M) TempFriendSpecialisationOnlyRefused(M) TempPartialSpecialisationAmbiguousRefused(M) TempPartialSpecialisationDependentTypeRefused(M) TempPartialSpecialisationSameAsPrimaryRefused(M) TempPartialSpecialisationDefaultRefused(M) TempFunctionOrderingAmbiguousRefused(M) TempFunctionRedefinitionRefused(M) TempAliasSelfReferenceRefused(M) TempResDependentBaseNotFoundRefused(M) TempResDependentOrdinaryLookupRefused(M) TempResNonDependentErrorRefused(M) TempInstMemberUsedRefused(M) TempExplicitInstantiationTwiceRefused(M) TempExplicitSpecialisationAfterUseRefused(M) TempExplicitSpecialisationOtherNamespaceRefused(M) TempExplicitArgumentsTooManyRefused(M) TempDeductionConflictRefused(M) TempSfinaeBodyErrorRefused(M) " },
+		"TempMemberClassThroughInstance(F) TempNonTypeNotLvalueRefused(M) TempVariadicLengthMismatchRefused(M) TempVariadicUnexpandedRefused(M) TempResDependentOrdinaryLookupRefused(M) TempInstMemberUsedRefused(M) TempSfinaeBodyErrorRefused(M) " },
 };

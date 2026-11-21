@@ -537,21 +537,40 @@ bool CCPPAccess::IsInFriendOf(CCPPSyntaxClassSpecifier* pcClass, CCPPSyntax* pcN
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether the function being written has the name a friend declaration's
-// declarator declares.
+// declarator declares.  friend int Only<int>(int) is one specialisation of
+// the template: the function must be the instance for those arguments.
+// [temp.friend] 1
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPAccess::IsFriendFunction(CCPPSyntaxDeclarator* pcDeclarator)
 {
-	CCPPFunction*	pcFunction;
-	int64			lliName;
+	CCPPFunction*				pcFunction;
+	CCPPSyntaxNameComponent*	pcComponent;
+	CChars						szArguments;
+	int64						lliName;
+	bool						bSame;
 
 	pcFunction = mpcUnit->OuterFunction();
 	if (!pcFunction || !pcDeclarator || !pcDeclarator->GetName())
 	{
 		return false;
 	}
-	lliName = mpcUnit->GetFunctionName(pcDeclarator->GetName()->GetLast());
-	return (lliName != -1) && (lliName == pcFunction->mlliName);
+	pcComponent = pcDeclarator->GetName()->GetLast();
+	lliName = mpcUnit->GetFunctionName(pcComponent);
+	if ((lliName == -1) || (lliName != pcFunction->mlliName))
+	{
+		return false;
+	}
+	if (!pcComponent->mbTemplateArguments || (pcComponent->macpTemplateArguments.NumElements() == 0) || !pcFunction->mpcTemplate || !pcFunction->mpcTemplate->mpcDeclaration)
+	{
+		return true;
+	}
+	szArguments.Init();
+	mpcUnit->BeginQuiet();
+	bSame = mpcUnit->BindArguments(pcFunction->mpcTemplate->mpcDeclaration, &pcComponent->macpTemplateArguments, NULL, &szArguments, pcDeclarator, NULL) && szArguments.Equals(&pcFunction->mszArguments);
+	mpcUnit->EndQuiet();
+	szArguments.Kill();
+	return bSame;
 }
 
 

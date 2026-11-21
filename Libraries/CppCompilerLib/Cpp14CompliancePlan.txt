@@ -356,6 +356,40 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
      defined outside the class (14.5.1.4's own example) and accepts a partial specialisation's argument that is an
      expression of its parameter (14.5.5 p8), so neither is a case.  The list went to the user; nothing in it is fixed.
 
+   - Fixing clauses 13 and 14's list, 2026-11-21.  The user: "Do everything in your suggested order.  Clean up and
+     commit as you go.  Keep a list of questions for me as necessary."  No question came up.  Done: every case of
+     clauses 13 and 14 passes on both targets (13 69, 14 108).  A to C and the first refusals in 18f0f7962, the rest
+     after it.  Where things went:
+       - Operators: a class's own operator function and one that is no class's compete (CCPPOverloads::
+         CompareOperators), operator= the class's own only (a base's is hidden; using Base::operator= brings it);
+         an enum operand finds operator functions where one of the name is declared (CCPPUnit::IsOperatorOperand);
+         !object and the built-in-less operators find them too; operator-> chains through returned references.
+       - Ranking: candidates compared argument by argument (CompareCandidates): rank, then [over.ics.rank] 3 and 4's
+         tie-breaks (CompareArgument), the object as an argument (CompareObjects).  Copy initialisation offers only
+         converting constructors (FindConstructor's bConverting) and compares them with the source's conversion
+         function (CCPPBinder::ConversionToClass); two conversion functions as good are ambiguous
+         (mbAmbiguousConversion).  A braced list prefers the initializer_list constructor though it narrows
+         (CCPPBinder::ListConverts).  A function declared in a block hides the outer overloads (mpapsOnly).
+       - Calls: surrogate call functions (CPPBC_Surrogate); object.operator=(v) of the implicit copy assignment is
+         object = v (CCPPUnit::ImplicitAssignment); a function reference bound to an overloaded name.
+       - Templates: two-phase lookup in instances (CCPPOverloadScopes::LimitTo; a name declared in a block isn't
+         limited); dependent bases marked in the scope (CCPPScope::muiDependentBases, syntax blocks CSB3) and an
+         unqualified name found only in one refused (CCPPBinder::InDependentBase); partial ordering of function
+         templates by referred types, packs and const references, an ambiguous ordering refused
+         (mbAmbiguousTemplate); of class partial specialisations by matching each other's patterns
+         (CCPPUnit::SpecialisationAtLeastAs), an ambiguous match refused; deduced packs (SCPPDeducedPack, bound
+         anywhere in the parameter list); deduction from initializer_list<T>, function and member pointer types
+         (CCPPPatternMatch::MatchParameter); a template's address deduced from the target (AddressedInstance);
+         SFINAE of trailing return types (the instance is declared on trial); template<> template<> member
+         template specialisations; a class template's static members defined only when used.
+       - Refusals in the parser (CCPPParser::CheckTemplateDeclaration and its helpers): parameter defaults and
+         packs, a default given twice (mcFirstClassTemplates), partial specialisations' arguments, virtual member
+         templates, class-typed non-type parameters, an alias naming itself, a template in a block, a dependent
+         member template without template, a call of an undeclared name with no arguments in a template.
+       - g++ followed: an unqualified call with no arguments in a template must find a declaration where it is
+         written (g++'s permissive error); G(long long) and G(int) const on a non-const object is ambiguous
+         (TestCPPOverloads had it choosing G(int) const).
+
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size
       (the constant interpreter keeps bytes, not which member was last given a value).  It is the one case in the

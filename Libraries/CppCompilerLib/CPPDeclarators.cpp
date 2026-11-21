@@ -842,6 +842,12 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 					return pcClass->mpsType;
 				}
 			}
+			if (pcName->GetQualifier())
+			{
+				//typename T::Missing with T int: no class with a member type of the name.  [temp.res] 3, [temp.inst] 1
+				mpcUnit->Error(pcNode, "What qualifies the name is no class with a member type of that name");
+				return NULL;
+			}
 		}
 		mpcUnit->Error(pcNode, "This type is not supported by the compiler yet");
 		return NULL;
