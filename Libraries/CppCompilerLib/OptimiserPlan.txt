@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: nothing is built.  Stage 0 is next.
+Where it is: stage 0 is done (2026-11-21).  Stage 1 is next; "The record", at the end, has what each stage found.
 
 
 The rules (the user, 2026-11-21)
@@ -161,4 +161,47 @@ None open.  Answered 2026-11-21: the four of "The rules" above.
 
 The record
 
-(Each stage's proof and tables go here as it is done.)
+Stage 0 (2026-11-21): the baseline, and the parser's and verifier's tests.
+
+	Before the baseline could be taken, two things that stopped it, neither the optimiser's:
+	- The library did not build with the Microsoft compiler: CCPPOverloads::FindSurrogate (4f3988433) had a local
+	  it never used, which is an error there.  Taken out (678f9f46e).
+	- TestSupportLib65's project did not compile on either processor: "ShapeSubtraction.cpp (75, 1): This function
+	  uses C++ the compiler doesn't support yet".  CCPPUnit::HasOperator's rule for operator= (18f0f7962) read a
+	  class's members and using-declarations without laying the class out, which DeclarationsSpeedPlan's stage 3
+	  had stopped doing for a header's class where it is defined: each passed alone, the two together refused
+	  "*psDest = -*psDest" of an SFloat32Vec3.  HasOperator lays the class out first, as HasMember does
+	  (b93ae4b9f, with TestCPP65DeclarationsHeaderAssignment).  Other code written while every header class was
+	  laid out early may ask a class about its members the same way; the three suites pass, which is all that
+	  is known.
+
+	The tests: 30 of the 32 diagnostics of IRParser.cpp and IRVerifier.cpp that no test raised have a case with
+	the text asserted (49a3a046b): 12 in TestIRParserErrors, one in TestIRVerifierErrors, 17 in the new
+	TestIRVerifierBroken, which puts a right function wrong by hand where no text can.  Two no text raises:
+	"Too many instructions in the block." (a block's array is full only past what a 64 bit host holds) and
+	"Expected a value." (for an operand kind the opcode table has only in the conversions, which are read
+	another way).
+
+	The baseline, from D:\gameengine-optimiser at b93ae4b9f, Release x64.  TestCppCompilerLib: 270,323 run, none
+	failed.  The three suites, every program passing:
+
+	                                     programs          cycles        bytes
+	  TestBaseLib65      65C64                182   7,293,652,050   19,709,878
+	  TestBaseLib65      W65C816              180  29,040,757,811   77,819,086
+	  TestStandardLib65  65C64                 68  14,116,098,716   28,953,794
+	  TestStandardLib65  W65C816               66  22,326,128,349   67,553,433
+	  TestSupportLib65   65C64                 76  34,304,610,143   35,164,794
+	  TestSupportLib65   W65C816               72  96,782,349,423   75,775,328
+
+	Compiling TestSupportLib65's project a unit at a time (milliseconds; the counts are exact):
+
+	                               65C64     W65C816
+	  optimise                     3,356       3,738
+	  inline                       7,090      12,614
+	  back end                     5,351       6,724
+	  code passes                 13,066      26,067
+	  whole compile (s)               98         126
+	  optimised functions        106,659     101,610
+	  optimiser rounds           221,889     212,049
+
+	The listings of the six projects (4,201) are kept beside these for the stages that must leave them alone.
