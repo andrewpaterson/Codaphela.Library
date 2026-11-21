@@ -2290,6 +2290,7 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	psCompile->cGenerator.SetListing(!mszListings.Empty());
 	psCompile->cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
 	psCompile->cGenerator.SetNoFloats(mbNoFloats && (GetLinkLibrary(psUnit->pcFile->GetLibrary()) == NULL));
+	psCompile->cGenerator.SetCompiledBefore(!psCompile->bFirst);
 }
 
 

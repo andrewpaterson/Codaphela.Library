@@ -217,6 +217,22 @@ void CCPPUnit::SetNoFloats(bool bNoFloats)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The unit's text was compiled before, as it is now, and nothing was wrong
+// with it: a build's second compile of a unit (CCPP65Builder::
+// CompileUnitAgain), whose warnings go nowhere.  What a compile does only
+// to report is left out: the classes laid out where they are defined
+// (CheckVirtSpecifiers) and the named instances (ReportNamedInstances).
+// The code written is the same.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SetCompiledBefore(bool bCompiledBefore)
+{
+	mbCompiledBefore = bCompiledBefore;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The functions the unit calls that were neither its own nor in the
 // imports when it was finished (a later unit may export them).
 //
@@ -275,6 +291,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbListing = false;
 	mbLineTable = false;
 	mbNoFloats = false;
+	mbCompiledBefore = false;
 	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
@@ -574,7 +591,10 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	}
 	CheckUncalledFunctions();
 	ReportClassErrors();
-	ReportNamedInstances();
+	if (!mbCompiledBefore)
+	{
+		ReportNamedInstances();
+	}
 	CheckContext();
 	mpcStatistics->End(CPPCP_Declarations);
 
@@ -3207,7 +3227,9 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 // checked whether or not anything uses the class (CheckOverrides: one that
 // overrides nothing, one that isn't virtual, one that overrides a final
 // function; ResolveBases: a base that is final); any other class is laid
-// out when it is first needed whole, and one nothing uses never is.
+// out when it is first needed whole, and one nothing uses never is.  Not
+// when the unit was compiled before, which found what there is to find
+// (SetCompiledBefore).
 // [class.virtual] 4, 5, [class] 3
 //
 //////////////////////////////////////////////////////////////////////////
@@ -3215,7 +3237,7 @@ bool CCPPUnit::CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
 	CCPPClass*	pcClass;
 
-	if (!pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !(pcSpecifier->HasVirtSpecifiedMember() || (pcSpecifier->macpBases.NumElements() > 0)))
+	if (mbCompiledBefore || !pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !(pcSpecifier->HasVirtSpecifiedMember() || (pcSpecifier->macpBases.NumElements() > 0)))
 	{
 		return true;
 	}

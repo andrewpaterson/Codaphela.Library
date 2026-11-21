@@ -192,3 +192,18 @@ asserts them and the quiet trials.  The compiler does what it did.
 	units compiled twice                698           646
 
 	The DeclarationsProject (either processor): 65 layouts, 52 where defined, 9,580 nodes, 222 quiet trials.
+
+Stage 1 (2026-11-21): a unit a build compiles a second time is told so (CCPPUnit::SetCompiledBefore, from
+CCPP65Builder::InitGenerator) and leaves out ReportNamedInstances and CheckVirtSpecifiers' layouts.  A unit
+generated again within its first compile (a stale or missed import) still does both, as its generator's warnings
+are the ones kept.  TestCppCompilerLib passes (270,081).
+
+	                                  65C64       W65C816
+	declarations (ms)                17,358        18,061
+	quiet trials                  4,140,373     4,131,629
+	class layouts                   174,836       173,463
+	class layouts where defined      45,125        45,123
+	named instance nodes        255,631,227   257,296,156
+
+	The DeclarationsProject: 56 layouts, 41 where defined, 7,154 nodes, 210 quiet trials.  The instance
+	Named.cpp writes out is still warned of once.
