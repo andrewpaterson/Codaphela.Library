@@ -31,7 +31,6 @@ public:
 	bool			ReplaceLoopCounters(void);
 	bool			ReduceMultiplies(void);
 	bool			ReduceDivisions(void);
-	bool			MatchCounter(size uiLoop, SIRPhi* psPhi, uint8 uiFlags, SIRLoopCounter* psCounter);
 	bool			LoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound);
 	bool			ReduceStrength(void);
 	bool			NarrowCounters(void);

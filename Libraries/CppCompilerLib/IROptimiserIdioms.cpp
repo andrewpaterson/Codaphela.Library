@@ -112,8 +112,7 @@ bool CIRIdiomPasses::MatchIdiomStep(size uiLoop, CIRBlock* pcHead, CIRBlock* pcL
 {
 	SIRInstruction*	psNext;
 	SIRPhi*			psPhi;
-	SIRPhiArgument*	psArgument;
-	size			ui;
+	SIRLoopCounter	sLoopCounter;
 
 	psNext = mpcContext->mcDefinitions.Instruction(sValue);
 	if (psNext && (psNext->uiOpcode == IRO_Add) && psNext->asArguments[1].IsConstant() && (mpcFunction->GetSigned(psNext->asArguments[1]) == 1))
@@ -131,30 +130,15 @@ bool CIRIdiomPasses::MatchIdiomStep(size uiLoop, CIRBlock* pcHead, CIRBlock* pcL
 	{
 		return false;
 	}
-	psCounter->sInit = IRNone();
-	for (ui = 0; ui < 2; ui++)
+	//The phi is a counter that comes round from the latch one more.
+	if (!MatchCounter(uiLoop, psPhi, IR_COUNTER_INSIDE, &sLoopCounter) || (sLoopCounter.lliStep != 1) ||
+		(psPhi->asArguments.Get(1 - sLoopCounter.uiOutside)->pcBlock != pcLatch) || (!psCounter->sNext.IsNone() && !psCounter->sNext.Equals(sLoopCounter.sNext)))
 	{
-		psArgument = psPhi->asArguments.Get(ui);
-		if (psArgument->pcBlock == pcLatch)
-		{
-			psNext = mpcContext->mcDefinitions.DefinedBy(psArgument->sValue, IRO_Add);
-			if (!psNext || !psNext->asArguments[0].Equals(psCounter->sCounter) || !psNext->asArguments[1].IsConstant() ||
-				(mpcFunction->GetSigned(psNext->asArguments[1]) != 1) || (psCounter->sNext.IsNone() ? false : !psCounter->sNext.Equals(psArgument->sValue)))
-			{
-				return false;
-			}
-			psCounter->sNext = psArgument->sValue;
-		}
-		else if (mpcContext->mcLoops.Contains(uiLoop, psArgument->pcBlock))
-		{
-			return false;
-		}
-		else
-		{
-			psCounter->sInit = psArgument->sValue;
-		}
+		return false;
 	}
-	return !psCounter->sInit.IsNone();
+	psCounter->sNext = sLoopCounter.sNext;
+	psCounter->sInit = sLoopCounter.sInit;
+	return true;
 }
 
 
@@ -172,13 +156,11 @@ bool CIRIdiomPasses::MatchIdiomStep(size uiLoop, CIRBlock* pcHead, CIRBlock* pcL
 bool CIRIdiomPasses::MatchIdiomAddress(size uiLoop, CIRBlock* pcHead, CIRBlock* pcLatch, SIRReference sAddress, SIRIdiomCounter* psCounter, int64 lliBytes, SIRIdiomAddress* psAddress)
 {
 	SIRPhi*			psPhi;
-	SIRPhiArgument*	psArgument;
 	SIRInstruction*	psAdd;
 	SIRInstruction*	psIndex;
 	SIRReference	sIndex;
 	SIRIdiomCounter	sIndexCounter;
-	bool			bEntering;
-	size			ui;
+	SIRLoopCounter	sLoopCounter;
 
 	psAddress->sPhiStart = IRNone();
 	psAddress->sBase = IRNone();
@@ -206,26 +188,14 @@ bool CIRIdiomPasses::MatchIdiomAddress(size uiLoop, CIRBlock* pcHead, CIRBlock* 
 		{
 			return false;
 		}
-		bEntering = false;
-		for (ui = 0; ui < 2; ui++)
+		//Stepped lliBytes by a ptradd, coming round from the latch.
+		if (!MatchCounter(uiLoop, psPhi, IR_COUNTER_INSIDE | IR_COUNTER_POINTER, &sLoopCounter) || (sLoopCounter.lliStep != lliBytes) ||
+			(psPhi->asArguments.Get(1 - sLoopCounter.uiOutside)->pcBlock != pcLatch) || !mpcContext->mcDefinitions.DefinedBy(sLoopCounter.sNext, IRO_PtrAdd))
 		{
-			psArgument = psPhi->asArguments.Get(ui);
-			if (psArgument->pcBlock == pcLatch)
-			{
-				psAdd = mpcContext->mcDefinitions.DefinedBy(psArgument->sValue, IRO_PtrAdd);
-				if (!psAdd || !psAdd->asArguments[0].Equals(sAddress) || !psAdd->asArguments[1].IsConstant() ||
-					(mpcFunction->GetSigned(psAdd->asArguments[1]) != lliBytes))
-				{
-					return false;
-				}
-			}
-			else if (!mpcContext->mcLoops.Contains(uiLoop, psArgument->pcBlock))
-			{
-				bEntering = true;
-				psAddress->sPhiStart = psArgument->sValue;
-			}
+			return false;
 		}
-		return bEntering;
+		psAddress->sPhiStart = sLoopCounter.sInit;
+		return true;
 	}
 
 	//base + index.
@@ -843,9 +813,8 @@ bool CIRIdiomPasses::MatchLinear(size uiLoop, SIRReference sValue, SIRReference*
 {
 	SIRInstruction*	psStep;
 	SIRPhi*			psPhi;
-	SIRPhiArgument*	psArgument;
+	SIRLoopCounter	sLoopCounter;
 	SIRReference	sPhi;
-	size			ui;
 
 	*pbNext = false;
 	sPhi = sValue;
@@ -864,27 +833,14 @@ bool CIRIdiomPasses::MatchLinear(size uiLoop, SIRReference sValue, SIRReference*
 	{
 		return false;
 	}
-	*psStart = IRNone();
-	*plliStep = 0;
-	for (ui = 0; ui < 2; ui++)
+	//The phi is stepped by a constant going round, by an add or a ptradd.
+	if (!MatchCounter(uiLoop, psPhi, IR_COUNTER_INSIDE | IR_COUNTER_POINTER, &sLoopCounter) || (*pbNext && !sLoopCounter.sNext.Equals(sValue)))
 	{
-		psArgument = psPhi->asArguments.Get(ui);
-		if (mpcContext->mcLoops.Contains(uiLoop, psArgument->pcBlock))
-		{
-			psStep = mpcContext->mcDefinitions.Instruction(psArgument->sValue);
-			if ((psStep == NULL) || ((psStep->uiOpcode != IRO_Add) && (psStep->uiOpcode != IRO_PtrAdd)) || !psStep->asArguments[0].Equals(sPhi) ||
-				!psStep->asArguments[1].IsConstant() || (*pbNext && !psArgument->sValue.Equals(sValue)))
-			{
-				return false;
-			}
-			*plliStep = mpcFunction->GetSigned(psStep->asArguments[1]);
-		}
-		else
-		{
-			*psStart = psArgument->sValue;
-		}
+		return false;
 	}
-	return !psStart->IsNone();
+	*psStart = sLoopCounter.sInit;
+	*plliStep = sLoopCounter.lliStep;
+	return true;
 }
 
 

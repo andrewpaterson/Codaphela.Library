@@ -681,3 +681,49 @@ bool CIRPasses::LoopWays(size uiLoop, CIRBlock* pcBlock, CIRBlock** ppcInside, C
 	*ppcOutside = bThen ? pcBlock->msJump.pcElse : pcBlock->msJump.pcThen;
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psPhi (of loop uiLoop's head) is a counter: two arguments, one
+// (*psCounter's uiOutside, the first unless the first's block is in the
+// loop) from a block outside the loop, the other phi + c, c a constant.
+// The step is an add; a sub too with IR_COUNTER_SUB (lliStep is then -c),
+// and a ptradd too with IR_COUNTER_POINTER.  With IR_COUNTER_INSIDE the
+// other must come from a block in the loop.  *psCounter gets the arguments
+// and the step.  What more a pass wants of its counter (that it steps by 1,
+// or comes round from the latch) it asks of what it is given.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRPasses::MatchCounter(size uiLoop, SIRPhi* psPhi, uint8 uiFlags, SIRLoopCounter* psCounter)
+{
+	SIRInstruction*	psStep;
+	SIRPhiArgument*	psOutside;
+	SIRPhiArgument*	psInside;
+
+	if (psPhi->asArguments.NumElements() != 2)
+	{
+		return false;
+	}
+	psCounter->uiOutside = mpcContext->mcLoops.Contains(uiLoop, psPhi->asArguments.Get(0)->pcBlock) ? 1 : 0;
+	psOutside = psPhi->asArguments.Get(psCounter->uiOutside);
+	psInside = psPhi->asArguments.Get(1 - psCounter->uiOutside);
+	if (mpcContext->mcLoops.Contains(uiLoop, psOutside->pcBlock) || ((uiFlags & IR_COUNTER_INSIDE) && !mpcContext->mcLoops.Contains(uiLoop, psInside->pcBlock)))
+	{
+		return false;
+	}
+	psCounter->sInit = psOutside->sValue;
+	psCounter->sNext = psInside->sValue;
+	psStep = mpcContext->mcDefinitions.Instruction(psCounter->sNext);
+	if ((psStep == NULL) || !psStep->asArguments[0].Equals(psPhi->sResult) || !psStep->asArguments[1].IsConstant() ||
+		!((psStep->uiOpcode == IRO_Add) || ((psStep->uiOpcode == IRO_Sub) && (uiFlags & IR_COUNTER_SUB)) || ((psStep->uiOpcode == IRO_PtrAdd) && (uiFlags & IR_COUNTER_POINTER))))
+	{
+		return false;
+	}
+	psCounter->lliStep = mpcFunction->GetSigned(psStep->asArguments[1]);
+	if (psStep->uiOpcode == IRO_Sub)
+	{
+		psCounter->lliStep = -psCounter->lliStep;
+	}
+	return true;
+}

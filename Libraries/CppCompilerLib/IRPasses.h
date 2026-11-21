@@ -178,7 +178,7 @@ struct SIRUse
 };
 
 
-//A loop's counter (CIRCounterPasses::MatchCounter): a phi of its head with two arguments, sInit from a block outside
+//A loop's counter (CIRPasses::MatchCounter): a phi of its head with two arguments, sInit from a block outside
 //the loop (argument uiOutside) and sNext = phi + lliStep from the other.
 struct SIRLoopCounter
 {
@@ -199,6 +199,7 @@ struct SIRLoopCounter
 
 #define IR_COUNTER_SUB		0x01	//MatchCounter: the step may be a sub of a constant (lliStep its negative).
 #define IR_COUNTER_INSIDE	0x02	//MatchCounter: sNext's argument must come from a block in the loop.
+#define IR_COUNTER_POINTER	0x04	//MatchCounter: the step may be a ptradd of a constant (a pointer stepped through memory).
 
 
 //A loop's counter for ReplaceLoopIdioms: i = phi [init, i + 1], round while i + 1 < n (signed, unsigned or not equal).
@@ -336,6 +337,7 @@ public:
 	SIRReference	AddInstruction(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond, uint32 uiSource);
 	bool			EdgeCondition(CIRBlock* pcFrom, CIRBlock* pcTo, SIREdgeCondition* psCondition);
 	bool			LoopWays(size uiLoop, CIRBlock* pcBlock, CIRBlock** ppcInside, CIRBlock** ppcOutside);
+	bool			MatchCounter(size uiLoop, SIRPhi* psPhi, uint8 uiFlags, SIRLoopCounter* psCounter);
 };
 
 

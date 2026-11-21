@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 to 5 are done (2026-11-21).  Stage 6 is next; "The record", at the end, has what each stage
+Where it is: stages 0 to 6 are done (2026-11-21).  Stage 7 is next; "The record", at the end, has what each stage
 found.
 
 
@@ -310,3 +310,26 @@ listings are the baseline's.  TestCppCompilerLib passes (271,441).
 	  to as its end) and LoopWays; a record of both would have had two users.
 	- Left as they were: NarrowCounter and ReplaceLoopCounters, which want only "round on true" of a branch
 	  they go on to read in their own way, and ReplaceStrchr, whose two tests are read together.
+
+Stage 6 (2026-11-21): a loop's counter is matched in one place.  Same code: the 4,201 listings are the
+baseline's.  TestCppCompilerLib passes (271,441).
+
+	MatchCounter was the counter passes' and is CIRPasses', so every group has it (the loop passes reached
+	through the context for it).  It takes a ptradd for a step when asked to (IR_COUNTER_POINTER), as it took a
+	sub when asked.  What a pass wants beyond "a phi of the head, a start from outside, itself plus a constant
+	from inside" it asks of what it is given: that the step is 1, or that it comes round from the latch.
+
+	What read the phi for itself and now asks: ReduceStrength (25 lines: the same phi, found by its entering
+	block); MatchIdiomStep (stepped by 1 from the latch, agreeing with the next value it was handed);
+	MatchIdiomAddress's pointer phi (a ptradd of lliBytes from the latch); MatchLinear (an add or a ptradd).
+	With NarrowCounter, ReplaceLoopCounters, ReduceDivisions and ReplaceExitValues, which asked already, that
+	is eight.
+
+	Not as the stage was written:
+	- It is the matcher that is shared, not an analysis the loops keep.  A kept list of each loop's counters
+	  would have to be found again whenever a pass changes a loop, and no pass asks twice of the same loop
+	  between changes; a matcher asked of a phi costs what the reading by hand cost.
+	- There is no helper for "the value after n times round": the three places that work it out (ReplaceExit
+	  Values, the idioms' count, FoundAt) each build different instructions from it.
+	- Left as they were: ReplaceLoopCounters' second counter, which is found beside the first by rules of its
+	  own (the same entering block, stepped in the testing block), and ReplaceStrchr's.

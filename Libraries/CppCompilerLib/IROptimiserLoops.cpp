@@ -535,7 +535,7 @@ bool CIRLoopPasses::ReplaceExitValues(void)
 		for (uiPhi = 0; uiPhi < pcHead->masPhis.NumElements(); uiPhi++)
 		{
 			psCounter = pcHead->masPhis.Get(uiPhi);
-			if (mpcContext->mpcCounterPasses->MatchCounter(uiLoop, psCounter, 0, &sLoopCounter) && (sLoopCounter.lliStep == 1) && sLoopCounter.sNext.Equals(sStepped))
+			if (MatchCounter(uiLoop, psCounter, 0, &sLoopCounter) && (sLoopCounter.lliStep == 1) && sLoopCounter.sNext.Equals(sStepped))
 			{
 				break;
 			}
