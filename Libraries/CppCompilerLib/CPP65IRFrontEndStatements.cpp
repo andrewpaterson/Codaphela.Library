@@ -678,7 +678,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 			}
 			sValue.sValue = sReferred.sAddress;
 		}
-		else if (!Place(pcInitialiser, &sReferred) || !ReferenceAddress(&sReferred, psPlace->psType, &sValue.sValue))
+		else if (!ReferredPlace(pcInitialiser, psPlace->psType, &sReferred) || !ReferenceAddress(&sReferred, psPlace->psType, &sValue.sValue))
 		{
 			return false;
 		}
@@ -1522,7 +1522,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	}
 	if (psReturn->IsReference())
 	{
-		if (!Place(pcReturn->mpcValue, &sPlace) || !ReferenceAddress(&sPlace, psReturn, &sValue.sValue))
+		if (!ReferredPlace(pcReturn->mpcValue, psReturn, &sPlace) || !ReferenceAddress(&sPlace, psReturn, &sValue.sValue))
 		{
 			return false;
 		}

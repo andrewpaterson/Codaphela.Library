@@ -47,6 +47,11 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_Decrement:
 		return IncrementExpression(pcUnary, psValue);
 	case CT_LogicalNot:
+		if (mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cCall, false))
+		{
+			//!object: its operator!, whatever it returns.
+			return OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, psValue);
+		}
 		return ConditionValue(pcUnary, psValue);
 	case CT_Multiply:
 		if (mpcUnit->IsObject(pcUnary->mpcOperand))
@@ -118,7 +123,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_Add:
 	case CT_Subtract:
 	case CT_BitwiseNot:
-		if (mpcUnit->IsObject(pcUnary->mpcOperand) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cCall, false))
+		if (mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cCall, false))
 		{
 			//+object, -object, ~object: the object's operator, whatever it returns.
 			return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, psValue);
@@ -760,7 +765,7 @@ bool CCPP65IRFrontEnd::HasOperatorFunction(CCPPSyntaxBinaryExpression* pcBinary)
 {
 	CCPPBoundCall	cBound;
 
-	return (mpcUnit->IsObject(pcBinary->mpcLeft) || mpcUnit->IsObject(pcBinary->mpcRight)) &&
+	return (mpcUnit->IsOperatorOperand(pcBinary->mpcLeft, pcBinary->meOperator) || mpcUnit->IsOperatorOperand(pcBinary->mpcRight, pcBinary->meOperator)) &&
 		   mpcUnit->GetBinder()->BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
 }
 
@@ -921,6 +926,7 @@ bool CCPP65IRFrontEnd::FullCondition(CCPPSyntax* pcExpression, CIRBlock* pcTrue,
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIRBlock* pcFalse)
 {
+	CCPPBoundCall			cOperatorCall;
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	CIRBlock*					pcRight;
@@ -942,7 +948,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
 		if (pcUnary->meOperator == CT_LogicalNot)
 		{
-			if (mpcUnit->IsObject(pcUnary->mpcOperand) && mpcUnit->HasMember(mpcUnit->ObjectClass(pcUnary->mpcOperand), mpcUnit->GetOperatorName(CT_LogicalNot, false)))
+			if (mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cOperatorCall, false))
 			{
 				//!object with the object's operator!.
 				if (!OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, &sValue) || !Truth(&sValue, &sCondition))

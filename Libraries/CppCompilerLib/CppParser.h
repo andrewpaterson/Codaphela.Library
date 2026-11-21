@@ -276,6 +276,7 @@ protected:
 	//Classes, enums and templates.  CppParserClasses.cpp
 	CCPPSyntaxTypeSpecifier*		ParseClassSpecifier(CCPPSyntax* pcParent, ECPPDeclarationContext eContext, bool bFriend);
 	bool							ParseBaseSpecifiers(CCPPSyntaxClassSpecifier* pcClass);
+	bool							NamesTemplateParameter(CCPPSyntax* pcNode);
 	bool							ParseClassBody(CCPPSyntaxClassSpecifier* pcClass);
 	void							ParseDeferredBodies(void);
 	CCPPSyntaxTypeSpecifier*		ParseEnumSpecifier(CCPPSyntax* pcParent, ECPPDeclarationContext eContext);

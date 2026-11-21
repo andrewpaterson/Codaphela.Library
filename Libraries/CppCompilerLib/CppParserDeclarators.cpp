@@ -819,12 +819,13 @@ bool CCPPParser::IsTypeIdStart(void)
 		return false;
 	}
 
-	if (pcToken->IsReservedWord())
+	if (pcToken->IsReservedWord() && !pcToken->Is(CT_ScopeResolution))
 	{
 		eToken = ((CCTReservedWord*)pcToken)->GetToken();
 		return IsTypeStartKeyword(eToken) || (eToken == CT_const) || (eToken == CT_volatile) || (eToken == CT___const__) || (eToken == CT___volatile__);
 	}
 
+	//::B is a type named from the global namespace.
 	if (pcToken->IsIdentifier() || pcToken->Is(CT_ScopeResolution))
 	{
 		return IsTypeNameAhead();

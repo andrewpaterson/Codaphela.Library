@@ -64,7 +64,7 @@ typedef CArrayTemplate<SCPPSyntaxBlockDeclared>	CArraySyntaxBlockDeclared;
 //  declared    u16 count + (u8 alias 1 | reuse << 1, u16 scope, u16 name, u16 symbol): what it put in scopes outside
 //              it, in order: its own symbols declared there (added when read; a class reuses the class there), and
 //              names there finding its symbols (aliases).  Before the scopes and symbols that may be a reused class.
-//  scopes      u8 kind, u16 parent, u16 owner, u8 dependent, u16 qualifier, u16 count + bases, u16 count + usings,
+//  scopes      u8 kind, u16 parent, u16 owner, u8 dependent, u32 dependent bases, u16 qualifier, u16 count + bases, u16 count + usings,
 //              u16 count + names (u16 name, u16 symbol)
 //  symbols     u16 name, u8 kind, u16 declaration, u16 scope, u16 members, u16 next, u16 lazy declaration
 //  nodes       u16 parent, u16 first token, u16 last token, then its fields
@@ -73,7 +73,7 @@ typedef CArrayTemplate<SCPPSyntaxBlockDeclared>	CArraySyntaxBlockDeclared;
 //A symbol or scope reference is an index in the block's own, or with CPP_SYNTAX_BLOCK_EXTERNAL its external's.  The
 //block's own scopes are those its nodes have and the members of its own symbols; its own symbols those its nodes
 //declare and those in its own scopes.  So an external is found only from externals before it.
-#define CPP_SYNTAX_BLOCK_MAGIC		0x32425343		//"CSB2": base specifiers, enums and enumerators keep their attributes.
+#define CPP_SYNTAX_BLOCK_MAGIC		0x33425343		//"CSB3": scopes keep which bases depend on template parameters.
 #define CPP_SYNTAX_BLOCK_NULL		0xFFFF
 #define CPP_SYNTAX_BLOCK_OUTSIDE	0xFFFE			//A node outside the block (a link to one, or the declaration's parent).
 #define CPP_SYNTAX_BLOCK_EXTERNAL	0x8000

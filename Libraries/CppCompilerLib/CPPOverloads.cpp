@@ -117,6 +117,8 @@ void CCPPOverloads::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
 	mcResolved.Init(true);
+	mbConverting = false;
+	mpapsOnly = NULL;
 }
 
 
@@ -445,12 +447,17 @@ CCPPFunction* CCPPOverloads::FindOperator(CCPPClass* pcClass, int64 lliName, CAr
 // declares and the instance the arguments deduce of a constructor template
 // (ConstructorInstance), template<class T> S(T&& t), which an object of
 // the class is given to as well when it takes it better than the copy
-// constructor does.  [temp.mem] 5, [over.match.best] 1
+// constructor does.  Only those that aren't explicit when bConverting (copy
+// initialisation).  [temp.mem] 5, [over.match.best] 1, [over.match.ctor] 1
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPOverloads::FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+CCPPFunction* CCPPOverloads::FindConstructor(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode, bool bConverting)
 {
-	return FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode, CPPCO_None, NULL, ConstructorInstance(pcClass, papcArguments, pcNode));
+	CCPPFunction*	pcInstance;
+
+	pcInstance = ConstructorInstance(pcClass, papcArguments, pcNode);
+	mbConverting = bConverting;
+	return FindFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, papcArguments, false, pcNode, CPPCO_None, NULL, pcInstance);
 }
 
 
@@ -576,6 +583,43 @@ CCPPScope* CCPPOverloads::CurrentLookupScope(void)
 		return pcFunction->mpcClass->mpcSymbol->mpcScope;
 	}
 	return pcFunction->mpcNamespace;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an operator function of the name that is no class's is declared,
+// or a function template of the name that isn't a member.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::HasFreeOperator(int64 lliName)
+{
+	CCPPFunction*		pcFunction;
+	CCPPTemplate*		pcTemplate;
+	CCPPSyntaxName*		pcName;
+	size				i;
+
+	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
+	{
+		if (!pcFunction->mpcClass)
+		{
+			return true;
+		}
+	}
+	for (i = 0; i < mpcUnit->GetTemplates()->NumElements(); i++)
+	{
+		pcTemplate = mpcUnit->GetTemplates()->GetPtr(i);
+		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->IsFunction())
+		{
+			continue;
+		}
+		pcName = pcTemplate->FunctionDeclarator() ? pcTemplate->FunctionDeclarator()->GetName() : NULL;
+		if (pcName && (mpcUnit->GetFunctionName(pcName->GetLast()) == lliName))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
@@ -718,8 +762,7 @@ void CCPPOverloads::NoFunctionMatches(CCPPClass* pcClass, int64 lliName, ECPPFun
 //////////////////////////////////////////////////////////////////////////
 //
 // The best of the candidates: the one whose every argument converts at least as well as
-// for any other, and one better, or between two that convert equally well the one that
-// qualifies them less (CompareQualifiers).  It is found by comparing each with the best
+// for any other, and one better (CompareCandidates).  It is found by comparing each with the best
 // so far, then checked to be better than every other: *pbAmbiguous if it is not.  NULL
 // if there are no candidates.  [over.match.best]
 //
@@ -728,7 +771,6 @@ CCPPFunction* CCPPOverloads::ChooseFunction(CCPPCandidates* pcCandidates, CArray
 {
 	size	uiBest;
 	size	i;
-	int		iRanks;
 
 	*pbAmbiguous = false;
 	if (pcCandidates->NumElements() == 0)
@@ -738,8 +780,7 @@ CCPPFunction* CCPPOverloads::ChooseFunction(CCPPCandidates* pcCandidates, CArray
 	uiBest = 0;
 	for (i = 1; i < pcCandidates->NumElements(); i++)
 	{
-		iRanks = pcCandidates->Compare(i, uiBest);
-		if ((iRanks > 0) || ((iRanks == 0) && (CompareTied(pcCandidates->GetFunction(i), pcCandidates->GetFunction(uiBest), papcArguments, eObject) > 0)))
+		if (CompareCandidates(pcCandidates, i, uiBest, papcArguments, eObject) > 0)
 		{
 			uiBest = i;
 		}
@@ -750,8 +791,7 @@ CCPPFunction* CCPPOverloads::ChooseFunction(CCPPCandidates* pcCandidates, CArray
 		{
 			continue;
 		}
-		iRanks = pcCandidates->Compare(uiBest, i);
-		if ((iRanks < 0) || ((iRanks == 0) && (CompareTied(pcCandidates->GetFunction(uiBest), pcCandidates->GetFunction(i), papcArguments, eObject) <= 0)))
+		if (CompareCandidates(pcCandidates, uiBest, i, papcArguments, eObject) <= 0)
 		{
 			*pbAmbiguous = true;
 		}
@@ -786,7 +826,15 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	bool				bAmbiguous;
 	bool				bFound;
 	bool				bQualifiedObject;
+	bool				bConverting;
+	CArrayCPP65Types*	papsOnly;
+	size				j;
 
+	//Asked of this search only (FindConstructor, FindNamedFunction), not of those made to rank its candidates.
+	bConverting = mbConverting && (eKind == CPPFK_Constructor);
+	mbConverting = false;
+	papsOnly = mpapsOnly;
+	mpapsOnly = NULL;
 	mpcUnit->GetStatistics()->Count(CPPCC_FindFunction);
 	lliResolved = (int64)(size)pcNode + lliName * 31;
 	if (mcResolved.Get(lliResolved))
@@ -831,9 +879,19 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 		{
 			continue;
 		}
-		if (pcFunction->mbCLinkage && IsCandidate(&cCandidates, pcFunction))
+		if ((pcFunction->mbCLinkage && IsCandidate(&cCandidates, pcFunction)) || (bConverting && pcFunction->mbExplicit))
 		{
 			continue;
+		}
+		if (papsOnly)
+		{
+			for (j = 0; (j < papsOnly->NumElements()) && !papsOnly->GetPtr(j)->Equals(mpcUnit->FunctionType(pcFunction)); j++)
+			{
+			}
+			if (j == papsOnly->NumElements())
+			{
+				continue;
+			}
 		}
 		uiLooked++;
 		if (pcFunction->TakesObject(eObject))
@@ -849,7 +907,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 			bQualifiedObject = true;
 		}
 	}
-	if (pcInstance && (pcInstance->mpcClass == pcClass))
+	if (pcInstance && (pcInstance->mpcClass == pcClass) && !(bConverting && pcInstance->mbExplicit))
 	{
 		uiLooked++;
 		if (pcInstance->TakesObject(eObject) && RankArguments(pcInstance, apsArguments, papcArguments, cCandidates.NextRanks()))
@@ -1150,12 +1208,21 @@ void CCPPOverloads::AddOverloadSetNamespaces(CCPPSyntaxName* pcName, CCPPOverloa
 //
 // The namespaces a call's function can be in: what the name finds, and for
 // a name that isn't qualified the namespaces its arguments are associated with.
-// [basic.lookup.argdep] 3
+// In a template's instance, what the name finds is what it found where the
+// template is written: the functions declared before the call; those the
+// arguments' namespaces have are any declared.  A function declared in a
+// block (T Back(T);) is the namespace's function of the name, defined
+// wherever.  [basic.lookup.argdep] 3, [temp.nondep] 1, [temp.dep.candidate] 1
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPOverloads::GetCallNamespaces(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPOverloadScopes* papcNamespaces)
 {
 	GetOverloadNamespaces(pcName, lliName, papcNamespaces);
+	if (mpcUnit->GetContext()->GetBindings() && (pcName->mpcTree == mpcUnit->GetTree()) && (pcName->miFirstToken >= 0) &&
+		!(pcName->mpcSymbol && pcName->mpcSymbol->mpcScope && ((pcName->mpcSymbol->mpcScope->meKind == CPPSC_Block) || (pcName->mpcSymbol->mpcScope->meKind == CPPSC_Function))))
+	{
+		papcNamespaces->LimitTo(pcName->miFirstToken);
+	}
 	if (UsesArgumentLookup(pcName))
 	{
 		AddArgumentNamespaces(papcArguments, papcNamespaces);
@@ -1187,14 +1254,41 @@ bool CCPPOverloads::UsesArgumentLookup(CCPPSyntaxName* pcName)
 CCPPFunction* CCPPOverloads::FindNamedFunction(CCPPSyntaxName* pcName, int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
 	CCPPOverloadScopes	apcNamespaces;
-	CCPPFunction*	pcFunction;
+	CCPPFunction*		pcFunction;
+	CArrayCPP65Types	apsBlock;
+	CCPPSymbol*			pcDeclaration;
+	SCPP65Type*			psType;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindNamedFunction);
+	apsBlock.Init();
+	if (pcName->mpcSymbol && pcName->mpcSymbol->mpcScope && ((pcName->mpcSymbol->mpcScope->meKind == CPPSC_Block) || (pcName->mpcSymbol->mpcScope->meKind == CPPSC_Function)))
+	{
+		//A function declared in a block hides the others of its name: only its declarations there are candidates (a
+		//call doesn't look in the arguments' namespaces either).  [over.dcl] 2, [basic.lookup.argdep] 3
+		for (pcDeclaration = pcName->mpcSymbol; pcDeclaration; pcDeclaration = pcDeclaration->mpcNext)
+		{
+			psType = (pcDeclaration->meKind == CPPSK_Function) ? mpcUnit->GetDeclarators()->GetSymbolType(pcDeclaration, pcNode) : NULL;
+			if (psType && psType->IsFunction())
+			{
+				apsBlock.Add(psType);
+			}
+		}
+	}
 	apcNamespaces.Init();
-	GetCallNamespaces(pcName, lliName, papcArguments, &apcNamespaces);
+	if (apsBlock.NumElements() > 0)
+	{
+		GetOverloadNamespaces(pcName, lliName, &apcNamespaces);
+		mpapsOnly = &apsBlock;
+	}
+	else
+	{
+		GetCallNamespaces(pcName, lliName, papcArguments, &apcNamespaces);
+	}
 	NormaliseNamespaces(&apcNamespaces);
 	pcFunction = FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNode, CPPCO_None, &apcNamespaces);
+	mpapsOnly = NULL;
 	apcNamespaces.Kill();
+	apsBlock.Kill();
 	return pcFunction;
 }
 
@@ -1243,6 +1337,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	CCPPClass*	pcClass;
 	CCPPOverloadScopes	apcNamespaces;
 	bool			bQualified;
+	bool			bAmbiguous;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindAddressedFunction);
 	pcFound = NULL;
@@ -1288,8 +1383,71 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 			pcFound = pcFunction;
 		}
 	}
+	if (psTarget && psTarget->IsFunction() && !(pcFound && !*pbOverloaded && psTarget->Equals(mpcUnit->FunctionType(pcFound))))
+	{
+		//No function of the type that isn't a template's: an instance of a function template of the name may be.
+		pcFunction = AddressedInstance(pcName, lliName, psTarget, pcName ? &apcNamespaces : NULL, pcNode, &bAmbiguous);
+		if (pcFunction || bAmbiguous)
+		{
+			pcFound = pcFunction;
+			*pbOverloaded = bAmbiguous;
+		}
+	}
 	apcNamespaces.Kill();
 	return pcFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instance of a function template of the name (in papcNamespaces, if
+// given) whose arguments psTarget's function type deduces, the most
+// specialised template's of those that make one; *pbAmbiguous if two are
+// as specialised.  NULL if none does.  [over.over] 2, 4
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPOverloads::AddressedInstance(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPOverloadScopes* papcNamespaces, CCPPSyntax* pcNode, bool* pbAmbiguous)
+{
+	CArrayCPPTemplates		apcTemplates;
+	CCPPTemplate*			pcTemplate;
+	CCPPSyntaxName*			pcTemplateName;
+	CCPPFunction*			pcInstance;
+	size					i;
+
+	*pbAmbiguous = false;
+	apcTemplates.Init();
+	for (i = 0; i < mpcUnit->GetTemplates()->NumElements(); i++)
+	{
+		pcTemplate = mpcUnit->GetTemplates()->GetPtr(i);
+		if (pcTemplate->mbMember || pcTemplate->mpcClass || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->IsFunction())
+		{
+			continue;
+		}
+		pcTemplateName = pcTemplate->FunctionDeclarator() ? pcTemplate->FunctionDeclarator()->GetName() : NULL;
+		if (!pcTemplateName || (mpcUnit->GetFunctionName(pcTemplateName->GetLast()) != lliName) || (papcNamespaces && !papcNamespaces->Takes(pcTemplate->mpcNamespace, -1)))
+		{
+			continue;
+		}
+		if (mpcUnit->InstantiateFunctionFor(pcTemplate, psTarget, pcNode))
+		{
+			apcTemplates.Add(pcTemplate);
+		}
+	}
+	if (apcTemplates.NumElements() > 1)
+	{
+		MostSpecialised(&apcTemplates, psTarget->papsParameters ? psTarget->papsParameters->NumElements() : 0, pcNode);
+	}
+	pcInstance = NULL;
+	if (apcTemplates.NumElements() == 1)
+	{
+		pcInstance = mpcUnit->InstantiateFunctionFor(apcTemplates.GetPtr(0), psTarget, pcNode);
+	}
+	else if (apcTemplates.NumElements() > 1)
+	{
+		*pbAmbiguous = true;
+	}
+	apcTemplates.Kill();
+	return pcInstance;
 }
 
 
@@ -1337,6 +1495,224 @@ bool CCPPOverloads::IsBetterFunction(CCPPFunction* pcFirst, CCPPFunction* pcSeco
 		bBetter |= aiFirst[i] > aiSecond[i];
 	}
 	return bBetter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Of the left operand's own operator function (pcMember, of pcClass or a
+// base) and an operator function that is no class's (pcFree), the one an
+// operator expression means: the one whose operands convert better, none
+// worse; with them as good, the one that isn't a template's instance.  The
+// left operand is the member function's object, bound to its this as T&
+// (const T& adding const, a base's member a conversion).  1 for the member,
+// -1 for the other, 0 if neither is better: the expression is ambiguous.
+// [over.match.oper] 3, [over.match.funcs] 4, [over.match.best] 1
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPOverloads::CompareOperators(CCPPFunction* pcMember, CCPPClass* pcClass, CCPPFunction* pcFree, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, ECPPCalledObject eObject)
+{
+	CArraySyntax	apcFree;
+	CArraySyntax	apcMember;
+	SCPP65Type*		apsArguments[2];
+	int				aiMember[2];
+	int				aiFree[2];
+	size			uiOperands;
+	size			i;
+	bool			bMember;
+	bool			bFree;
+	bool			bRanked;
+
+	uiOperands = pcRight ? 2 : 1;
+	apcFree.Init();
+	apcFree.Add(pcLeft);
+	apcMember.Init();
+	if (pcRight)
+	{
+		apcFree.Add(pcRight);
+		apcMember.Add(pcRight);
+	}
+	apsArguments[0] = mpcUnit->TypeOf(pcLeft);
+	apsArguments[1] = pcRight ? mpcUnit->TypeOf(pcRight) : NULL;
+	bRanked = RankArguments(pcFree, apsArguments, &apcFree, aiFree) && RankArguments(pcMember, &apsArguments[1], &apcMember, &aiMember[1]);
+	apcMember.Kill();
+	apcFree.Kill();
+	if (!bRanked)
+	{
+		return 0;
+	}
+	if (pcMember->mpcClass != pcClass)
+	{
+		aiMember[0] = CPPCR_Conversion;
+	}
+	else
+	{
+		aiMember[0] = (pcMember->QualifiersAdded(eObject) > 0) ? CPPCR_Qualification : CPPCR_Exact;
+	}
+	bMember = false;
+	bFree = false;
+	for (i = 0; i < uiOperands; i++)
+	{
+		bMember |= aiMember[i] > aiFree[i];
+		bFree |= aiFree[i] > aiMember[i];
+	}
+	if (bMember != bFree)
+	{
+		return bMember ? 1 : -1;
+	}
+	if (bMember)
+	{
+		return 0;
+	}
+	return (pcFree->mpcTemplate ? 1 : 0) - (pcMember->mpcTemplate ? 1 : 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function type a conversion function's result calls: operator F*()
+// and operator F&() for a function type F.  NULL for any other.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPOverloads::SurrogateType(CCPPFunction* pcConversion)
+{
+	SCPP65Type*	psType;
+
+	psType = pcConversion->mpsReturn ? pcConversion->mpsReturn->WithoutReference() : NULL;
+	if (psType && psType->IsPointer())
+	{
+		psType = psType->psBase;
+	}
+	return (psType && psType->IsFunction()) ? psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rank of each argument's conversion to a function type's parameter,
+// in aiRanks (an ellipsis's for those past its parameters).  False if it
+// can't take them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::RankFunctionType(SCPP65Type* psFunction, CArraySyntax* papcArguments, int* aiRanks)
+{
+	size		uiParameters;
+	size		i;
+	SCPP65Type*	psArgument;
+
+	uiParameters = psFunction->papsParameters ? psFunction->papsParameters->NumElements() : 0;
+	if ((papcArguments->NumElements() != uiParameters) && !(psFunction->bVariadic && (papcArguments->NumElements() > uiParameters)))
+	{
+		return false;
+	}
+	for (i = 0; i < papcArguments->NumElements(); i++)
+	{
+		if (i >= uiParameters)
+		{
+			aiRanks[i] = CPPCR_Ellipsis;
+			continue;
+		}
+		psArgument = mpcUnit->TypeOf(papcArguments->GetPtr(i));
+		aiRanks[i] = psArgument ? ConversionRank(psFunction->papsParameters->GetPtr(i), psArgument, papcArguments->GetPtr(i)) : CPPCR_None;
+		if (aiRanks[i] == CPPCR_None)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The conversion function of pcClass (or a base) to a pointer or reference
+// to a function whose call is an object's call with papcArguments (a
+// surrogate call function), if it is better than the class's operator()
+// for them (pcMember, or NULL).  The surrogate's first parameter takes the
+// object by the conversion, a user-defined one, so operator() takes the
+// object better; the surrogate wins only where it takes the arguments
+// better and operator() takes none better.  *pbAmbiguous if neither is
+// better, or two surrogates are as good.  [over.call.object] 2, 3
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPOverloads::FindSurrogate(CCPPClass* pcClass, CCPPFunction* pcMember, CArraySyntax* papcArguments, bool* pbAmbiguous)
+{
+	CCPPFunction*	pcConversion;
+	CCPPFunction*	pcBest;
+	CArraySyntax	apcNone;
+	SCPP65Type*		apsArguments[CPP_BETTER_FUNCTION_ARGUMENTS];
+	int				aiRanks[CPP_BETTER_FUNCTION_ARGUMENTS];
+	int				aiBest[CPP_BETTER_FUNCTION_ARGUMENTS];
+	int				aiMember[CPP_BETTER_FUNCTION_ARGUMENTS];
+	size			uiArguments;
+	size			i;
+	bool			bBetter;
+	bool			bWorse;
+
+	*pbAmbiguous = false;
+	uiArguments = papcArguments->NumElements();
+	if (uiArguments > CPP_BETTER_FUNCTION_ARGUMENTS)
+	{
+		return NULL;
+	}
+	pcBest = NULL;
+	for (pcConversion = mpcUnit->FirstFunctionOfName(CPP_CONVERSION_NAME); pcConversion; pcConversion = pcConversion->mpcNextOfName)
+	{
+		if (pcConversion->mpcTemplate || pcConversion->mbExplicit || !pcConversion->mpcClass || !mpcUnit->IsDerived(pcClass, pcConversion->mpcClass, NULL) ||
+			!SurrogateType(pcConversion) || !RankFunctionType(SurrogateType(pcConversion), papcArguments, aiRanks))
+		{
+			continue;
+		}
+		if (!pcBest)
+		{
+			pcBest = pcConversion;
+			memcpy(aiBest, aiRanks, sizeof(int) * uiArguments);
+			continue;
+		}
+		bBetter = false;
+		bWorse = false;
+		for (i = 0; i < uiArguments; i++)
+		{
+			bBetter |= aiRanks[i] > aiBest[i];
+			bWorse |= aiRanks[i] < aiBest[i];
+		}
+		if (bBetter && !bWorse)
+		{
+			pcBest = pcConversion;
+			memcpy(aiBest, aiRanks, sizeof(int) * uiArguments);
+			*pbAmbiguous = false;
+		}
+		else if (bBetter == bWorse)
+		{
+			*pbAmbiguous = true;
+		}
+	}
+	if (!pcBest || *pbAmbiguous || !pcMember)
+	{
+		return pcBest;
+	}
+	for (i = 0; i < uiArguments; i++)
+	{
+		apsArguments[i] = mpcUnit->TypeOf(papcArguments->GetPtr(i));
+	}
+	if (!RankArguments(pcMember, apsArguments, papcArguments, aiMember))
+	{
+		return pcBest;
+	}
+	bBetter = false;
+	bWorse = false;
+	for (i = 0; i < uiArguments; i++)
+	{
+		bBetter |= aiBest[i] > aiMember[i];
+		bWorse |= aiBest[i] < aiMember[i];
+	}
+	if (!bBetter)
+	{
+		//operator() takes the object better, and the arguments no worse.
+		return NULL;
+	}
+	*pbAmbiguous = true;
+	return NULL;
 }
 
 
@@ -1688,31 +2064,50 @@ int CCPPOverloads::QualificationRank(SCPP65Type* psTo, SCPP65Type* psFrom, bool 
 //////////////////////////////////////////////////////////////////////////
 bool CCPPOverloads::HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument)
 {
+	return ConvertingConstructorRank(pcClass, psArgument, pcArgument) != CPPCR_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How well the best of pcClass's converting constructors (see
+// HasConvertingConstructor) takes an argument of psArgument's type: the
+// rank of the argument's conversion to its parameter, CPPCR_None if none
+// takes it.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPOverloads::ConvertingConstructorRank(CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument)
+{
 	CArraySyntax	apcArguments;
 	CCPPFunction*	pcFunction;
 	size			i;
+	int				iBest;
+	int				iRank;
 
 	if (!mpcUnit->CompleteClass(pcClass, pcArgument) || !pcClass->mbConstructors)
 	{
-		return false;
+		return CPPCR_None;
 	}
+	iBest = CPPCR_None;
 	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
 	{
 		pcFunction = pcClass->mapcMembers.GetPtr(i);
-		if ((pcFunction->meKind == CPPFK_Constructor) && !pcFunction->mpcTemplate && Converts(pcFunction, pcClass, psArgument, pcArgument))
+		if ((pcFunction->meKind == CPPFK_Constructor) && !pcFunction->mpcTemplate)
 		{
-			return true;
+			iRank = ConvertRank(pcFunction, pcClass, psArgument, pcArgument);
+			iBest = (iRank > iBest) ? iRank : iBest;
 		}
 	}
-	if (!pcArgument)
+	if (!pcArgument || (iBest == CPPCR_Exact))
 	{
-		return false;
+		return iBest;
 	}
 	apcArguments.Init();
 	apcArguments.Add(pcArgument);
 	pcFunction = ConstructorInstance(pcClass, &apcArguments, pcArgument);
 	apcArguments.Kill();
-	return pcFunction && Converts(pcFunction, pcClass, psArgument, pcArgument);
+	iRank = pcFunction ? ConvertRank(pcFunction, pcClass, psArgument, pcArgument) : CPPCR_None;
+	return (iRank > iBest) ? iRank : iBest;
 }
 
 
@@ -1726,18 +2121,30 @@ bool CCPPOverloads::HasConvertingConstructor(CCPPClass* pcClass, SCPP65Type* psA
 //////////////////////////////////////////////////////////////////////////
 bool CCPPOverloads::Converts(CCPPFunction* pcConstructor, CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument)
 {
+	return ConvertRank(pcConstructor, pcClass, psArgument, pcArgument) != CPPCR_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The same, as the rank of the argument's conversion to the constructor's
+// parameter: CPPCR_None if it doesn't convert it.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPOverloads::ConvertRank(CCPPFunction* pcConstructor, CCPPClass* pcClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument)
+{
 	SCPP65Type*	psParameter;
 
 	if (pcConstructor->mbExplicit || (pcConstructor->mapsParameters.NumElements() == 0) || (pcConstructor->RequiredParameters() > 1))
 	{
-		return false;
+		return CPPCR_None;
 	}
 	psParameter = pcConstructor->mapsParameters.GetPtr(0)->WithoutReference();
 	if (psParameter->IsClass() && (psParameter->pcClass == pcClass))
 	{
-		return false;
+		return CPPCR_None;
 	}
-	return ConversionRank(pcConstructor->mapsParameters.GetPtr(0), psArgument, pcArgument, false) != CPPCR_None;
+	return ConversionRank(pcConstructor->mapsParameters.GetPtr(0), psArgument, pcArgument, false);
 }
 
 
@@ -1769,20 +2176,45 @@ bool CCPPOverloads::IsTemporary(CCPPSyntax* pcArgument, CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Between two functions whose arguments convert equally well, which is the
-// better: the one that qualifies them less (CompareQualifiers), or else the
-// one that isn't a template's instance.  1 if the first is, -1 if the
-// second is, 0 if neither.  [over.match.best] 1
+// Which of two candidates is the better: each argument converts no worse
+// for it and one better ([over.match.best] 1), where conversions of one
+// rank are told apart as [over.ics.rank] 3 and 4 do (CompareArgument), and
+// the object a member function is called on (eObject) is an argument too
+// (CompareObjects); with all as good, the one that isn't a template's
+// instance.  1 if the first is, -1 if the second is, 0 if neither.
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPOverloads::CompareTied(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, ECPPCalledObject eObject)
+int CCPPOverloads::CompareCandidates(CCPPCandidates* pcCandidates, size uiFirst, size uiSecond, CArraySyntax* papcArguments, ECPPCalledObject eObject)
 {
-	int	iQualifiers;
+	CCPPFunction*	pcFirst;
+	CCPPFunction*	pcSecond;
+	size			i;
+	int				iFirst;
+	int				iSecond;
+	int				iCompared;
+	bool			bFirst;
+	bool			bSecond;
 
-	iQualifiers = CompareQualifiers(pcFirst, pcSecond, papcArguments, eObject);
-	if (iQualifiers != 0)
+	pcFirst = pcCandidates->GetFunction(uiFirst);
+	pcSecond = pcCandidates->GetFunction(uiSecond);
+	iCompared = CompareObjects(pcFirst, pcSecond, eObject);
+	bFirst = iCompared > 0;
+	bSecond = iCompared < 0;
+	for (i = 0; papcArguments && (i < papcArguments->NumElements()); i++)
 	{
-		return iQualifiers;
+		iFirst = pcCandidates->Rank(uiFirst, i);
+		iSecond = pcCandidates->Rank(uiSecond, i);
+		iCompared = (iFirst == iSecond) ? CompareArgument(pcFirst, pcSecond, i, papcArguments->GetPtr(i)) : ((iFirst > iSecond) ? 1 : -1);
+		bFirst |= iCompared > 0;
+		bSecond |= iCompared < 0;
+	}
+	if (bFirst != bSecond)
+	{
+		return bFirst ? 1 : -1;
+	}
+	if (bFirst)
+	{
+		return 0;
 	}
 	return (pcSecond->mpcTemplate ? 1 : 0) - (pcFirst->mpcTemplate ? 1 : 0);
 }
@@ -1790,70 +2222,126 @@ int CCPPOverloads::CompareTied(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CA
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Between two functions whose arguments convert equally well, which qualifies them
-// less: of T* and const T*, or T& and const T&, the one without const, but an object
-// made by the argument (a temporary) or a const object binds better to a const
-// reference.  The object a member function is called on (eObject) is bound to this
-// the same way.  1 if the first does, -1 if the second does, 0 if neither.
-// [over.ics.rank] 3.2.6
+// How two member functions take the object they are called on (eObject):
+// an object that is going is taken by f() && before f() const &, as T&&
+// before const T&; else f() before f() const for one that isn't const, as
+// T& before const T&.  1 if the first takes it better, -1 if the second
+// does, 0 if neither.  [over.match.funcs] 4, [over.ics.rank] 3.2.3, 3.2.6
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPOverloads::CompareQualifiers(CCPPFunction* pcFirst, CCPPFunction* pcSecond, CArraySyntax* papcArguments, ECPPCalledObject eObject)
+int CCPPOverloads::CompareObjects(CCPPFunction* pcFirst, CCPPFunction* pcSecond, ECPPCalledObject eObject)
 {
-	size		i;
-	bool		bFirst;
-	bool		bSecond;
-	bool		bConstBetter;
-	SCPP65Type*	psParameter;
-	SCPP65Type*	psOther;
-
-	bFirst = false;
-	bSecond = false;
 	if (CPPCalledRvalue(eObject) && (pcFirst->meRefQualifier != pcSecond->meRefQualifier))
 	{
-		//An object that is going is taken by f() && before f() const &, as T&& before const T&.
 		if (pcFirst->meRefQualifier == CPPRQ_Rvalue)
 		{
-			bFirst = true;
+			return 1;
 		}
-		else if (pcSecond->meRefQualifier == CPPRQ_Rvalue)
-		{
-			bSecond = true;
-		}
+		return (pcSecond->meRefQualifier == CPPRQ_Rvalue) ? -1 : 0;
 	}
-	else if (eObject != CPPCO_None)
+	if (eObject == CPPCO_None)
 	{
-		//Both take the object: f() before f() const for one that isn't const, as T& before const T&.
-		bFirst = pcFirst->QualifiersAdded(eObject) < pcSecond->QualifiersAdded(eObject);
-		bSecond = pcSecond->QualifiersAdded(eObject) < pcFirst->QualifiersAdded(eObject);
+		return 0;
 	}
-	for (i = 0; papcArguments && (i < papcArguments->NumElements()) && (i < pcFirst->mapsParameters.NumElements()) && (i < pcSecond->mapsParameters.NumElements()); i++)
+	return pcSecond->QualifiersAdded(eObject) - pcFirst->QualifiersAdded(eObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Of two conversions of an argument of one rank, to the first function's
+// parameter and to the second's, the better: [over.ics.rank]
+//   - a braced list to a std::initializer_list (3.1);
+//   - of T* and const T*, or T& and const T&, the one without const (and
+//     of const and const volatile, the one without volatile), but an object
+//     made by the argument (a temporary) or a const object binds better to a
+//     const reference (3.2.6);
+//   - a pointer, reference or object of a derived class to its nearer base,
+//     or to a class's rather than void*; a pointer to a base's member to the
+//     nearer derived class's (4.2, 4.4).
+// 1 if the first is better, -1 if the second is, 0 if neither.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPOverloads::CompareArgument(CCPPFunction* pcFirst, CCPPFunction* pcSecond, size uiArgument, CCPPSyntax* pcArgument)
+{
+	SCPP65Type*	psFirst;
+	SCPP65Type*	psSecond;
+	SCPP65Type*	psFirstBase;
+	SCPP65Type*	psSecondBase;
+	bool		bConstBetter;
+	bool		bFirstList;
+	bool		bSecondList;
+
+	if ((uiArgument >= pcFirst->mapsParameters.NumElements()) || (uiArgument >= pcSecond->mapsParameters.NumElements()))
 	{
-		psParameter = pcFirst->mapsParameters.GetPtr(i);
-		psOther = pcSecond->mapsParameters.GetPtr(i);
-		if (!((psParameter->IsPointer() && psOther->IsPointer()) || (psParameter->IsReference() && psOther->IsReference())) || (psParameter->psBase->bConst == psOther->psBase->bConst) || !psParameter->psBase->Equals(psOther->psBase))
+		return 0;
+	}
+	psFirst = pcFirst->mapsParameters.GetPtr(uiArgument);
+	psSecond = pcSecond->mapsParameters.GetPtr(uiArgument);
+	if (pcArgument->GetKind() == CPPS_InitializerList)
+	{
+		bFirstList = mpcUnit->InitializerListElement(psFirst->WithoutReference()) != NULL;
+		bSecondList = mpcUnit->InitializerListElement(psSecond->WithoutReference()) != NULL;
+		if (bFirstList != bSecondList)
 		{
-			continue;
-		}
-		bConstBetter = psParameter->IsReference() && ((psParameter->psBase->IsClass() && IsTemporary(papcArguments->GetPtr(i), psParameter->psBase->pcClass)) || mpcUnit->IsConstObject(papcArguments->GetPtr(i)));
-		if (psParameter->psBase->bConst == bConstBetter)
-		{
-			bFirst = true;
-		}
-		else
-		{
-			bSecond = true;
+			return bFirstList ? 1 : -1;
 		}
 	}
-	if (bFirst && !bSecond)
+
+	if ((psFirst->IsPointer() && psSecond->IsPointer()) || (psFirst->IsReference() && psSecond->IsReference()))
+	{
+		if (psFirst->psBase->Equals(psSecond->psBase))
+		{
+			if (psFirst->psBase->bConst != psSecond->psBase->bConst)
+			{
+				bConstBetter = psFirst->IsReference() && ((psFirst->psBase->IsClass() && IsTemporary(pcArgument, psFirst->psBase->pcClass)) || mpcUnit->IsConstObject(pcArgument));
+				return (psFirst->psBase->bConst == bConstBetter) ? 1 : -1;
+			}
+			if (psFirst->psBase->bVolatile != psSecond->psBase->bVolatile)
+			{
+				return psFirst->psBase->bVolatile ? -1 : 1;
+			}
+			return 0;
+		}
+		psFirstBase = psFirst->psBase;
+		psSecondBase = psSecond->psBase;
+	}
+	else if (psFirst->IsClass() && psSecond->IsClass())
+	{
+		psFirstBase = psFirst;
+		psSecondBase = psSecond;
+	}
+	else if (psFirst->IsMemberPointer() && psSecond->IsMemberPointer() && psFirst->pcClass && psSecond->pcClass && (psFirst->pcClass != psSecond->pcClass))
+	{
+		//int A::* to int B::* is better than to int C::* where C is derived from B.
+		if (mpcUnit->IsDerived(psSecond->pcClass, psFirst->pcClass, NULL))
+		{
+			return 1;
+		}
+		return mpcUnit->IsDerived(psFirst->pcClass, psSecond->pcClass, NULL) ? -1 : 0;
+	}
+	else
+	{
+		return 0;
+	}
+
+	if (psFirst->IsPointer() && psFirstBase->IsClass() && psSecondBase->IsVoid())
 	{
 		return 1;
 	}
-	if (bSecond && !bFirst)
+	if (psSecond->IsPointer() && psSecondBase->IsClass() && psFirstBase->IsVoid())
 	{
 		return -1;
 	}
-	return 0;
+	if (!psFirstBase->IsClass() || !psSecondBase->IsClass() || (psFirstBase->pcClass == psSecondBase->pcClass))
+	{
+		return 0;
+	}
+	if (mpcUnit->IsDerived(psFirstBase->pcClass, psSecondBase->pcClass, NULL))
+	{
+		return 1;
+	}
+	return mpcUnit->IsDerived(psSecondBase->pcClass, psFirstBase->pcClass, NULL) ? -1 : 0;
 }
 
 
@@ -2143,18 +2631,28 @@ void CCPPOverloads::MostSpecialised(CArrayCPPTemplates* papcTemplates, size uiAr
 // first uiArguments parameters: pcSecond's template parameters can be
 // deduced from pcFirst's parameter types, with pcFirst's own template
 // parameters standing for types of their own (BindAsItself), so that
-// pcSecond's parameters are then those types.  [temp.deduct.partial]
+// pcSecond's parameters are then those types.  A pack of pcFirst's
+// parameters deduces no parameter of pcSecond's that isn't one (f(T)
+// before f(T...)).  Of two references deduced from each other, an lvalue
+// reference is the more specialised, then the more const or volatile one
+// (f(const T&) before f(T&)).  [temp.deduct.partial] 8, 9
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPOverloads::AtLeastAsSpecialised(CCPPTemplate* pcFirst, CCPPTemplate* pcSecond, size uiArguments, CCPPSyntax* pcNode)
 {
 	CArrayCPP65Types		apsFirst;
 	CArrayCPP65Types		apsSecond;
+	CArrayCPP65Types		apsDeduce;
 	CCPPTemplateArguments*	pcBindings;
 	CCPPDeduction			cDeduction;
 	CChars					szArguments;
+	SCPP65Type*				psFirst;
+	SCPP65Type*				psSecond;
 	size					i;
+	size					uiCompared;
 	bool					bResult;
+	bool					bFirstPack;
+	bool					bSecondPack;
 
 	mpcUnit->BeginTrial();
 	apsFirst.Init();
@@ -2165,21 +2663,78 @@ bool CCPPOverloads::AtLeastAsSpecialised(CCPPTemplate* pcFirst, CCPPTemplate* pc
 	szArguments.Clear();
 	if (bResult)
 	{
+		//Deduced from the types referred to, without their own const and volatile.  [temp.deduct.partial] 5, 7
+		apsDeduce.Init();
+		for (i = 0; i < apsFirst.NumElements(); i++)
+		{
+			apsDeduce.Add(apsFirst.GetPtr(i)->WithoutReference()->Unqualified());
+		}
 		cDeduction.Init(mpcUnit, pcSecond);
-		cDeduction.Deduce(&apsFirst, NULL);
-		pcBindings = mpcUnit->BindArguments(pcSecond->mpcDeclaration, NULL, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues());
+		cDeduction.Deduce(&apsDeduce, NULL);
+		apsDeduce.Kill();
+		pcBindings = mpcUnit->BindArguments(pcSecond->mpcDeclaration, NULL, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());
 		cDeduction.Kill();
-		bResult = pcBindings && TemplateParameterTypes(pcSecond, pcBindings, uiArguments, &apsSecond) && (apsSecond.NumElements() == apsFirst.NumElements());
+		bResult = pcBindings && TemplateParameterTypes(pcSecond, pcBindings, uiArguments, &apsSecond);
 	}
-	for (i = 0; bResult && (i < apsFirst.NumElements()); i++)
+	uiCompared = 0;
+	if (bResult)
+	{
+		//TemplateParameterTypes stops at a pack.
+		bFirstPack = HasPackAt(pcFirst, apsFirst.NumElements(), uiArguments);
+		bSecondPack = HasPackAt(pcSecond, apsSecond.NumElements(), uiArguments);
+		if (bFirstPack && (!bSecondPack || (apsSecond.NumElements() > apsFirst.NumElements())))
+		{
+			bResult = false;
+		}
+		else if (!bSecondPack && (apsSecond.NumElements() != apsFirst.NumElements()))
+		{
+			bResult = false;
+		}
+		uiCompared = (apsFirst.NumElements() < apsSecond.NumElements()) ? apsFirst.NumElements() : apsSecond.NumElements();
+	}
+	for (i = 0; bResult && (i < uiCompared); i++)
 	{
 		//A parameter taken by value takes its argument's type without its own const.  [temp.deduct.partial] 7
-		bResult = apsSecond.GetPtr(i)->WithoutReference()->Unqualified()->Same(apsFirst.GetPtr(i)->WithoutReference()->Unqualified());
+		psFirst = apsFirst.GetPtr(i);
+		psSecond = apsSecond.GetPtr(i);
+		bResult = psSecond->WithoutReference()->Unqualified()->Same(psFirst->WithoutReference()->Unqualified());
+		if (bResult && psFirst->IsReference() && psSecond->IsReference())
+		{
+			if (psFirst->IsRvalueReference() && psSecond->IsLvalueReference())
+			{
+				bResult = false;
+			}
+			else if (psFirst->IsRvalueReference() == psSecond->IsRvalueReference())
+			{
+				bResult = psFirst->psBase->HasQualifiersOf(psSecond->psBase);
+			}
+		}
 	}
 	szArguments.Kill();
 	apsSecond.Kill();
 	apsFirst.Kill();
 	return mpcUnit->EndTrial() && bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function template's parameter at uiIndex is a pack, the index
+// being one of a call's uiArguments.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPOverloads::HasPackAt(CCPPTemplate* pcTemplate, size uiIndex, size uiArguments)
+{
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+
+	pcSuffix = pcTemplate->FunctionDeclarator() ? pcTemplate->FunctionDeclarator()->GetFunctionSuffix() : NULL;
+	if (!pcSuffix || (uiIndex >= uiArguments) || (uiIndex >= pcSuffix->macpParameters.NumElements()))
+	{
+		return false;
+	}
+	pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(uiIndex);
+	return (pcParameter->GetKind() == CPPS_Parameter) && pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack;
 }
 
 
@@ -2247,6 +2802,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 	CCPPSyntaxParameter*		pcParameter;
 	SCPP65Type*					psArgument;
 	SCPP65Type*					psParameter;
+	CCPPFunction*				pcInstance;
 	bool						bTakes;
 	bool						bPack;
 	int							iRank;
@@ -2271,7 +2827,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		cDeduction.Init(mpcUnit, pcTemplate);
 		cDeduction.Deduce(&apsArguments, papcArguments);
 		szArguments.Init();
-		pcBindings = mpcUnit->BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues());
+		pcBindings = mpcUnit->BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());
 		szArguments.Kill();
 		cDeduction.Kill();
 		bTakes = pcBindings != NULL;
@@ -2324,9 +2880,10 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		}
 
 		//The function's type, what it returns too, must be one with these arguments, or it is passed over (SFINAE:
-		//typename EnableIf<B, int>::Type f(T) where B is false).  [temp.deduct] 8
+		//typename EnableIf<B, int>::Type f(T) where B is false, or auto f(T t) -> decltype(t.m) for a T without
+		//m).  [temp.deduct] 8
 		pcSpecifiers = pcTemplate->FunctionSpecifiers();
-		if (bTakes && pcSpecifiers && pcSpecifiers->mpcType)
+		if (bTakes && pcSpecifiers && pcSpecifiers->mpcType && !(pcSuffix && pcSuffix->mpcTrailingReturn))
 		{
 			bTakes = mpcUnit->GetDeclarators()->GetType(pcSpecifiers, pcTemplate->FunctionDeclarator(), pcNode) != NULL;
 		}
@@ -2334,6 +2891,12 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		if (!pcTemplate->mpcClass)
 		{
 			pcBindings->mpcOuter = NULL;
+		}
+		if (bTakes && pcSuffix && pcSuffix->mpcTrailingReturn)
+		{
+			//A trailing return type names the parameters (decltype(t.m)): the instance is declared to work it out.
+			pcInstance = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, papcArguments, pcNode);
+			bTakes = pcInstance && pcInstance->mpsReturn;
 		}
 	}
 	apsArguments.Kill();

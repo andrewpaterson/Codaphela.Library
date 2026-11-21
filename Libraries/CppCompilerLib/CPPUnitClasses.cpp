@@ -748,6 +748,32 @@ void CCPPUnit::SpecialiseMembers(CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a name's qualifier, S<char>, names the class template instance
+// pcClass: its class template, with arguments that make the same instance.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::QualifierIsInstance(CCPPSyntaxNameComponent* pcQualifier, CCPPClass* pcClass, CCPPSyntax* pcNode)
+{
+	CCPPTemplate*	pcOwner;
+	CChars			szArguments;
+	bool			bSame;
+
+	pcOwner = pcQualifier ? GetComponentTemplate(pcQualifier) : NULL;
+	if (!pcOwner || !pcClass->mpcTemplate || (pcOwner != pcClass->mpcTemplate->mpcPrimary) || !pcQualifier->mbTemplateArguments)
+	{
+		return false;
+	}
+	szArguments.Init();
+	BeginQuiet();
+	bSame = BindArguments(pcOwner->mpcDeclaration, &pcQualifier->macpTemplateArguments, NULL, &szArguments, pcNode, NULL) && szArguments.Equals(&pcClass->mszArguments);
+	EndQuiet();
+	szArguments.Kill();
+	return bSame;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // If the explicit specialisation is of a member of the instance (its
 // class template, and arguments that make the same instance), the member
 // is defined by it.
@@ -755,24 +781,9 @@ void CCPPUnit::SpecialiseMembers(CCPPClass* pcClass)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::SpecialiseMember(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition* pcDefinition)
 {
-	CCPPSyntaxNameComponent*	pcQualifier;
-	CCPPTemplate*				pcOwner;
-	CCPPFunction*				pcFunction;
-	CChars						szArguments;
-	bool						bSame;
+	CCPPFunction*	pcFunction;
 
-	pcQualifier = pcDefinition->mpcDeclarator->GetName()->GetQualifier();
-	pcOwner = pcQualifier ? GetComponentTemplate(pcQualifier) : NULL;
-	if (!pcOwner || (pcOwner != pcClass->mpcTemplate->mpcPrimary) || !pcQualifier->mbTemplateArguments)
-	{
-		return;
-	}
-	szArguments.Init();
-	BeginQuiet();
-	bSame = BindArguments(pcOwner->mpcDeclaration, &pcQualifier->macpTemplateArguments, NULL, &szArguments, pcDefinition, NULL) && szArguments.Equals(&pcClass->mszArguments);
-	EndQuiet();
-	szArguments.Kill();
-	if (!bSame)
+	if (!QualifierIsInstance(pcDefinition->mpcDeclarator->GetName()->GetQualifier(), pcClass, pcDefinition))
 	{
 		return;
 	}
@@ -1783,11 +1794,13 @@ SCPP65Type* CCPPUnit::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 	}
 	pcFunction = mcBinder.FindArrowOperator(psType->pcClass, pcObject, pcNode);
 	psType = pcFunction ? pcFunction->mpsReturn : NULL;
+	psType = (psType && psType->IsReference() && psType->psBase->IsClass()) ? psType->psBase : psType;
 	for (i = 0; psType && psType->IsClass() && (i < CPP_MAX_ARROWS); i++)
 	{
-		//An operator-> that returns an object: its operator->'s.  [over.ref] 1
+		//An operator-> that returns an object, or a reference to one: its operator->'s.  [over.ref] 1
 		pcFunction = CompleteClass(psType->pcClass, pcNode) ? mcBinder.FindArrowOperator(psType->pcClass, NULL, pcNode) : NULL;
 		psType = pcFunction ? pcFunction->mpsReturn : NULL;
+		psType = (psType && psType->IsReference() && psType->psBase->IsClass()) ? psType->psBase : psType;
 	}
 	return psType;
 }

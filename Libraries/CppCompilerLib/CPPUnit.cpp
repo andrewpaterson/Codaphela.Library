@@ -320,10 +320,12 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcRangeFors.Init(true);
 	mcLiteralCalls.Init(true);
 	mcDecltypeMembers.Init(true);
+	mcImplicitAssignments.Init(true);
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
 	mapsLambdas.Init();
 	mapcMemberSpecialisations.Init();
+	mapcMemberTemplateSpecialisations.Init();
 	mapcMemberClassTemplates.Init();
 	mapcMemberVariableTemplates.Init();
 	mapcStaticMemberTemplates.Init();
@@ -455,8 +457,10 @@ void CCPPUnit::Kill(void)
 	mcRangeFors.Kill();
 	mcLiteralCalls.Kill();
 	mcDecltypeMembers.Kill();
+	mcImplicitAssignments.Kill();
 	FreeLambdas();
 	mapcMemberSpecialisations.Kill();
+	mapcMemberTemplateSpecialisations.Kill();
 	mapcStaticMemberTemplates.Kill();
 	mapcMemberVariableTemplates.Kill();
 	mapcMemberClassTemplates.Kill();
@@ -2935,7 +2939,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			apcDefaults.Add(pcParameter->mpcDefault);
 		}
 	}
-	if (!pcTemplate && !CheckAllocationFunction(lliName, psReturn, &apsParameters, pcDeclarator))
+	if (!pcTemplate && (!CheckAllocationFunction(lliName, psReturn, &apsParameters, pcDeclarator) || !CheckOperatorSignature(pcName->GetLast(), lliName, &apsParameters, &apcDefaults, pcClass, pcDeclarator)))
 	{
 		apcDefaults.Kill();
 		apsParameters.Kill();
@@ -3229,6 +3233,90 @@ bool CCPPUnit::IsAllocationName(CCPPSyntaxDeclarator* pcDeclarator)
 	pcName = pcDeclarator->GetName();
 	lliName = (pcName && (pcName->GetLast()->meKind == CPPNC_Operator)) ? GetFunctionName(pcName->GetLast()) : -1;
 	return (lliName != -1) && ((lliName == GetOperatorName(CT_new, false)) || (lliName == GetOperatorName(CT_new, true)) || (lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An error in a function's declaration: a member's is a class error, kept
+// though the class is laid out quietly (ClassError).  False.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::OperatorError(CCPPClass* pcClass, CCPPSyntax* pcNode, const char* szMessage)
+{
+	return pcClass ? ClassError(pcNode->miFirstToken, szMessage) : Error(pcNode, szMessage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An operator function's parameters: none has a default, but operator()'s;
+// one that is no class's member has a class or an enum among them (a
+// reference to one too); postfix ++'s and --'s extra one is an int.  A
+// literal operator's are one of the lists [over.literal] 3 gives.  An error
+// (and false) if not.  [over.oper] 6, 8, [over.inc] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckOperatorSignature(CCPPSyntaxNameComponent* pcComponent, int64 lliName, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPClass* pcClass, CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psType;
+	SCPP65Type*	psFirst;
+	size		i;
+	bool		bClass;
+
+	if (pcComponent->meKind == CPPNC_Literal)
+	{
+		psFirst = (papsParameters->NumElements() > 0) ? papsParameters->GetPtr(0)->Unqualified() : NULL;
+		if (papsParameters->NumElements() == 1)
+		{
+			bClass = psFirst->Equals(mcTypes.Pointer(mcTypes.Const(&mcTypes.msChar))) || psFirst->Equals(&mcTypes.msUnsignedLongLong) || psFirst->Equals(&mcTypes.msLongDouble) ||
+					 psFirst->Equals(&mcTypes.msChar) || psFirst->Equals(&mcTypes.msWChar) || psFirst->Equals(&mcTypes.msChar16) || psFirst->Equals(&mcTypes.msChar32);
+		}
+		else if (papsParameters->NumElements() == 2)
+		{
+			bClass = psFirst->IsPointer() && psFirst->psBase->bConst && (psFirst->psBase->Unqualified()->Equals(&mcTypes.msChar) || psFirst->psBase->Unqualified()->Equals(&mcTypes.msWChar) ||
+					 psFirst->psBase->Unqualified()->Equals(&mcTypes.msChar16) || psFirst->psBase->Unqualified()->Equals(&mcTypes.msChar32)) && papsParameters->GetPtr(1)->Unqualified()->Equals(mcTypes.Size());
+		}
+		else
+		{
+			bClass = false;
+		}
+		return bClass || Error(pcNode, "A literal operator's parameters are one of: const char*; unsigned long long; long double; a character type; a pointer to const characters and a size_t");
+	}
+	if ((pcComponent->meKind != CPPNC_Operator) || (lliName == GetOperatorName(CT_new, false)) || (lliName == GetOperatorName(CT_new, true)) ||
+		(lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true)))
+	{
+		return true;
+	}
+	if (lliName != GetOperatorName(CT_OpenRoundBracket, false))
+	{
+		for (i = 0; i < papcDefaults->NumElements(); i++)
+		{
+			if (papcDefaults->GetPtr(i))
+			{
+				return OperatorError(pcClass, pcNode, "An operator function has no default arguments (but operator())");
+			}
+		}
+	}
+	if (!pcClass)
+	{
+		bClass = false;
+		for (i = 0; !bClass && (i < papsParameters->NumElements()); i++)
+		{
+			psType = papsParameters->GetPtr(i)->WithoutReference();
+			bClass = psType->IsClass() || (psType->pcEnum != NULL);
+		}
+		if (!bClass)
+		{
+			return Error(pcNode, "An operator function that is no class's member has a parameter of a class or an enum");
+		}
+	}
+	if (((lliName == GetOperatorName(CT_Increment, false)) || (lliName == GetOperatorName(CT_Decrement, false))) && (papsParameters->NumElements() == (pcClass ? 1 : 2)) &&
+		!papsParameters->GetPtr(papsParameters->NumElements() - 1)->Unqualified()->Equals(&mcTypes.msInt))
+	{
+		return OperatorError(pcClass, pcNode, "A postfix ++ or --'s second parameter is an int");
+	}
+	return true;
 }
 
 

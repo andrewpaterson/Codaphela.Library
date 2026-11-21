@@ -681,14 +681,14 @@ SCPP65Type* CCPPDeclarators::EntityType(CCPPSyntax* pcOperand)
 // instances of its own: it is the type each time.  [temp.alias] 2
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPDeclarators::AliasTemplateType(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
+SCPP65Type* CCPPDeclarators::AliasTemplateType(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPSymbol* pcAliasSymbol)
 {
 	CCPPSyntaxAliasDeclaration*	pcAlias;
 	CCPPTemplateArguments*		pcBindings;
 	SCPP65Type*					psType;
 	CChars						szArguments;
 
-	pcAlias = (CCPPSyntaxAliasDeclaration*)pcName->mpcSymbol->mpcDeclaration;
+	pcAlias = (CCPPSyntaxAliasDeclaration*)(pcAliasSymbol ? pcAliasSymbol : pcName->mpcSymbol)->mpcDeclaration;
 	if (!pcAlias || (pcAlias->GetKind() != CPPS_AliasDeclaration) || !pcAlias->mpcParent || (pcAlias->mpcParent->GetKind() != CPPS_TemplateDeclaration))
 	{
 		mpcUnit->Error(pcNode, "This type is not supported by the compiler yet");
@@ -810,9 +810,16 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 						return NULL;
 					}
 					return psBinding->psType;
+				case CPPSK_TemplateTemplateParameter:
+					psBinding = mpcUnit->FindBinding(pcName->mpcSymbol);
+					if (psBinding && psBinding->pcAlias)
+					{
+						return AliasTemplateType(pcName, pcNode, psBinding->pcAlias);
+					}
+					pcClass = mpcUnit->GetNameClass(pcName, pcNode);
+					return pcClass ? pcClass->mpsType : NULL;
 				case CPPSK_Class:
 				case CPPSK_ClassTemplate:
-				case CPPSK_TemplateTemplateParameter:
 					pcClass = mpcUnit->GetNameClass(pcName, pcNode);
 					return pcClass ? pcClass->mpsType : NULL;
 				case CPPSK_BuiltinType:

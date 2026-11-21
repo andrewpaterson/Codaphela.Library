@@ -215,8 +215,59 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 }
 
 
+//Walks a node's descendants for a name that is a template parameter.
+class CCPPTemplateParameterFinder : public CCPPSyntaxFields
+{
+public:
+	bool	mbFound;
+
+	CCPPTemplateParameterFinder(void) { mbFound = false; }
+	void	NodeField(CCPPSyntax** ppcNode) override
+	{
+		if (*ppcNode && !mbFound)
+		{
+			(*ppcNode)->VisitFields(this);
+		}
+	}
+	void	NodesField(CArraySyntax* papcNodes) override
+	{
+		size	i;
+
+		for (i = 0; !mbFound && (i < papcNodes->NumElements()); i++)
+		{
+			NodeField(papcNodes->Get(i));
+		}
+	}
+	void	SymbolField(CCPPSymbol** ppcSymbol) override
+	{
+		if (*ppcSymbol && (((*ppcSymbol)->meKind == CPPSK_TypeParameter) || ((*ppcSymbol)->meKind == CPPSK_ValueParameter) || ((*ppcSymbol)->meKind == CPPSK_TemplateTemplateParameter)))
+		{
+			mbFound = true;
+		}
+	}
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a node names a template parameter anywhere in it: a base class
+// named so is a dependent base.  [temp.dep.type]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::NamesTemplateParameter(CCPPSyntax* pcNode)
+{
+	CCPPTemplateParameterFinder	cFinder;
+
+	cFinder.NodeField(&pcNode);
+	return cFinder.mbFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class's bases.  One that depends on a template parameter is marked in
+// the class's scope (CCPPScope::IsDependentBase): a name that isn't
+// qualified isn't looked for in it.  [temp.dep] 3
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPParser::ParseBaseSpecifiers(CCPPSyntaxClassSpecifier* pcClass)
@@ -267,6 +318,10 @@ bool CCPPParser::ParseBaseSpecifiers(CCPPSyntaxClassSpecifier* pcClass)
 		pcSymbol = pcBase->mpcName->mpcSymbol;
 		if (pcSymbol && pcSymbol->mpcMembers && (pcSymbol->mpcMembers != pcClass->mpcScope))
 		{
+			if (NamesTemplateParameter(pcBase->mpcName))
+			{
+				pcClass->mpcScope->SetDependentBase(pcClass->mpcScope->mapcBases.NumElements());
+			}
 			pcClass->mpcScope->mapcBases.Add(pcSymbol->mpcMembers);
 		}
 		else

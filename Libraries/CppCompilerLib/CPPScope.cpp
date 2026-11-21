@@ -50,6 +50,7 @@ void CCPPScope::Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwn
 	mpcQualifier = NULL;
 	mbDependent = false;
 	mbControl = false;
+	muiDependentBases = 0;
 }
 
 
@@ -303,6 +304,10 @@ CCPPSymbol* CCPPScope::FindMember(int64 lliName, int iDepth, ECPPLookup eLookup)
 
 	for (i = 0; i < mapcBases.NumElements(); i++)
 	{
+		if (IsDependentBase(i))
+		{
+			continue;
+		}
 		pcSymbol = mapcBases.GetPtr(i)->FindMember(lliName, iDepth + 1, eLookup);
 		if (pcSymbol)
 		{
@@ -381,7 +386,10 @@ CCPPSymbol* CCPPScope::FindDeclared(int64 lliName, int iDepth, ECPPLookup eLooku
 	pcSymbol = Pick(FindHere(lliName), eLookup);
 	for (i = 0; !pcSymbol && (i < mapcBases.NumElements()); i++)
 	{
-		pcSymbol = mapcBases.GetPtr(i)->FindMember(lliName, iDepth + 1, eLookup);
+		if (!IsDependentBase(i))
+		{
+			pcSymbol = mapcBases.GetPtr(i)->FindMember(lliName, iDepth + 1, eLookup);
+		}
 	}
 	for (i = 0; !pcSymbol && (i < mapcUsings.NumElements()); i++)
 	{
@@ -888,6 +896,30 @@ void CCPPScope::GatherEnclosingNamespaces(CCPPOverloadScopes* pcNamespaces)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The base mapcBases has at uiBase depends on a template parameter.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPScope::SetDependentBase(size uiBase)
+{
+	if (uiBase < 32)
+	{
+		muiDependentBases |= (uint32)1 << uiBase;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPScope::IsDependentBase(size uiBase) const
+{
+	return (uiBase < 32) && ((muiDependentBases >> uiBase) & 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPScope::IsDependent(void)
@@ -995,6 +1027,28 @@ void CCPPOverloadScopes::AddBefore(CCPPScope* pcScope, int iBefore)
 	}
 	mapcScopes.Add(pcScope);
 	maiBefore.Add(iBefore);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each scope's functions of the name only as far as those declared before
+// the token iBefore.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPOverloadScopes::LimitTo(int iBefore)
+{
+	size	i;
+	int		iHas;
+
+	for (i = 0; i < mapcScopes.NumElements(); i++)
+	{
+		iHas = maiBefore.GetValue(i);
+		if ((iHas == -1) || (iHas > iBefore))
+		{
+			maiBefore.SetValue(i, iBefore);
+		}
+	}
 }
 
 

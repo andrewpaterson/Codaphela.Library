@@ -720,11 +720,11 @@ bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
 		break;
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
-		bThrows = IsObject(pcUnary->mpcOperand) && mcBinder.BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false) && cBound.mpcFunction && !IsNoexcept(cBound.mpcFunction);
+		bThrows = IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mcBinder.BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false) && cBound.mpcFunction && !IsNoexcept(cBound.mpcFunction);
 		break;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		bThrows = (IsObject(pcBinary->mpcLeft) || IsObject(pcBinary->mpcRight)) && mcBinder.BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false) && cBound.mpcFunction && !IsNoexcept(cBound.mpcFunction);
+		bThrows = (IsOperatorOperand(pcBinary->mpcLeft, pcBinary->meOperator) || IsOperatorOperand(pcBinary->mpcRight, pcBinary->meOperator)) && mcBinder.BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false) && cBound.mpcFunction && !IsNoexcept(cBound.mpcFunction);
 		break;
 	case CPPS_NewExpression:
 		bThrows = NewMayThrow((CCPPSyntaxNewExpression*)pcExpression);
@@ -1205,6 +1205,12 @@ CCPPSyntaxIdExpression* CCPPUnit::FunctionNameOf(CCPPSyntax* pcExpression)
 	}
 	pcId = (CCPPSyntaxIdExpression*)pcFunction;
 	pcSymbol = pcId->mpcName->mpcSymbol;
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate) && !pcId->mpcName->GetLast()->mbTemplateArguments)
+	{
+		//A function template's name without template arguments is an overload set too, its instances' arguments
+		//deduced from the type wanted.  [over.over] 2
+		return pcId;
+	}
 	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
 	{
 		return NULL;
@@ -1423,6 +1429,28 @@ bool CCPPUnit::HasMember(CCPPClass* pcClass, int64 lliName)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments)
 {
+	size	i;
+
+	if (lliName == GetOperatorName(CT_Assignment, false))
+	{
+		//A base's operator= is hidden by the copy assignment operator every class declares: only the class's own
+		//are, and those a using-declaration in it names (using Base::operator=;).  [over.ass] 1, [namespace.udecl] 4
+		for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+		{
+			if (pcClass->mapcMembers.GetPtr(i)->mlliName == lliName)
+			{
+				return true;
+			}
+		}
+		for (i = 0; i < pcClass->macUsings.NumElements(); i++)
+		{
+			if (pcClass->macUsings.Get(i)->lliName == lliName)
+			{
+				return true;
+			}
+		}
+		return mcBinder.HasOwnMemberTemplate(pcClass, lliName, uiArguments);
+	}
 	return HasMember(pcClass, lliName) || mcBinder.HasMemberTemplate(pcClass, lliName, uiArguments);
 }
 
@@ -1582,6 +1610,57 @@ CCPPSyntaxIdExpression* CCPPUnit::DecltypeMember(CCPPSyntaxTypeId* pcType)
 	pcMember->mpcName = pcName;
 	mcDecltypeMembers.Put((int64)(size)pcType, &pcMember);
 	return pcMember;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// object.operator=(value) where the object's class declares no operator=:
+// a call of the copy assignment operator the compiler declares, which is
+// object = value (made once, and kept).  NULL for any other call.
+// [over.oper] 4, [class.copy] 18
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxBinaryExpression* CCPPUnit::ImplicitAssignment(CCPPSyntaxCallExpression* pcCall)
+{
+	CCPPSyntaxMemberExpression*		pcMember;
+	CCPPSyntaxBinaryExpression**	ppcAssignment;
+	CCPPSyntaxBinaryExpression*		pcAssignment;
+	SCPP65Type*						psType;
+	int64							lliName;
+	size							i;
+
+	pcMember = (pcCall->mpcCallee && (pcCall->mpcCallee->GetKind() == CPPS_MemberExpression)) ? (CCPPSyntaxMemberExpression*)pcCall->mpcCallee : NULL;
+	lliName = GetOperatorName(CT_Assignment, false);
+	if (!pcMember || pcMember->mbArrow || (pcCall->macpArguments.NumElements() != 1) || !pcMember->mpcName || (pcMember->mpcName->macpComponents.NumElements() != 1) ||
+		(GetFunctionName(pcMember->mpcName->GetLast()) != lliName))
+	{
+		return NULL;
+	}
+	ppcAssignment = mcImplicitAssignments.Get((int64)(size)pcCall);
+	if (ppcAssignment)
+	{
+		return *ppcAssignment;
+	}
+	psType = ValueTypeOf(pcMember->mpcObject);
+	if (!psType || !psType->IsClass() || !CompleteClass(psType->pcClass, pcCall))
+	{
+		return NULL;
+	}
+	for (i = 0; i < psType->pcClass->mapcMembers.NumElements(); i++)
+	{
+		if (psType->pcClass->mapcMembers.GetPtr(i)->mlliName == lliName)
+		{
+			return NULL;
+		}
+	}
+	pcAssignment = mpcTree->GetMemory()->Create<CCPPSyntaxBinaryExpression>(pcCall);
+	pcAssignment->SetTokens(pcCall->miFirstToken, pcCall->miLastToken);
+	pcAssignment->meOperator = CT_Assignment;
+	pcAssignment->mpcLeft = pcMember->mpcObject;
+	pcAssignment->mpcRight = pcCall->macpArguments.GetPtr(0);
+	mcImplicitAssignments.Put((int64)(size)pcCall, &pcAssignment);
+	return pcAssignment;
 }
 
 

@@ -35,6 +35,7 @@ void CCPPDeduction::Init(CCPPUnit* pcUnit, CCPPTemplate* pcTemplate)
 	mpcTemplate = pcTemplate;
 	mapsDeduced.Init();
 	malliDeduced.Init();
+	masPacks.Init();
 	for (i = 0; i < pcTemplate->mpcDeclaration->macpParameters.NumElements(); i++)
 	{
 		mapsDeduced.Add(NULL);
@@ -49,6 +50,7 @@ void CCPPDeduction::Init(CCPPUnit* pcUnit, CCPPTemplate* pcTemplate)
 //////////////////////////////////////////////////////////////////////////
 void CCPPDeduction::Kill(void)
 {
+	masPacks.Kill();
 	malliDeduced.Kill();
 	mapsDeduced.Kill();
 	mpcTemplate = NULL;
@@ -202,6 +204,12 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 	size						uiPointers;
 	bool						bForwarding;
 
+	if (pcParameter->mpcDeclarator && !pcParameter->mpcDeclarator->mbPack && !HasArray(pcParameter->mpcDeclarator) && NeedsPattern(pcParameter->mpcDeclarator) && papsArguments->GetPtr(i))
+	{
+		//R (*)(A) and M C::* are matched as the forms of a type, where they can be; what that doesn't deduce, the
+		//rest below may.  [temp.deduct.type] 8
+		DeduceByPattern(pcParameter, papsArguments->GetPtr(i));
+	}
 	DeduceMemberPointer(pcParameter->mpcDeclarator, papsArguments->GetPtr(i));
 	pcType = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->mpcType : NULL;
 	psArray = NULL;
@@ -221,6 +229,11 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 		return true;
 	}
 	pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
+	if (pcName->GetLast() && pcName->GetLast()->mbTemplateArguments && !papsArguments->GetPtr(i) && papcArguments && (papcArguments->GetPtr(i)->GetKind() == CPPS_InitializerList))
+	{
+		DeduceFromList(pcName, papcArguments->GetPtr(i));
+		return true;
+	}
 	if (pcName->GetLast() && pcName->GetLast()->mbTemplateArguments)
 	{
 		psArgument = papsArguments->GetPtr(i);
@@ -544,6 +557,11 @@ void CCPPDeduction::DeduceFromInstance(CCPPSyntaxNameComponent* pcComponent, SCP
 	pcArguments = (psArgument && pcComponent->mpcSymbol) ? ArgumentsFor(pcComponent->mpcSymbol, psArgument) : NULL;
 	for (i = 0; pcArguments && (i < pcComponent->macpTemplateArguments.NumElements()) && (i < pcArguments->macBindings.NumElements()); i++)
 	{
+		if (DeducePack(pcComponent->macpTemplateArguments.GetPtr(i), pcArguments, i))
+		{
+			//The pack expansion takes the rest of the arguments.
+			break;
+		}
 		pcSymbol = GetArgumentSymbol(pcComponent->macpTemplateArguments.GetPtr(i));
 		psBinding = pcArguments->macBindings.Get(i);
 		if (pcSymbol && psBinding->psType)
@@ -662,6 +680,194 @@ CCPPClass* CCPPDeduction::FindInstanceBase(CCPPClass* pcClass, CCPPSymbol* pcTem
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a parameter's declarator has a form DeduceParameter doesn't take
+// apart itself: parentheses around one (a pointer to a function or to an
+// array, R (*)(A)) or a pointer to a member (M C::*).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeduction::NeedsPattern(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	size	i;
+
+	if (pcDeclarator->mpcNested && ((pcDeclarator->mpcNested->NumPointers() > 0) || pcDeclarator->mpcNested->mpcNested))
+	{
+		return true;
+	}
+	for (i = 0; i < pcDeclarator->NumPointers(); i++)
+	{
+		if (pcDeclarator->GetPointer(i)->meKind == CPPP_MemberPointer)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Deduces the template parameters a parameter's type is made of from its
+// argument's type (CCPPPatternMatch), the argument a function's pointer if
+// it is a function and the parameter isn't a reference.  [temp.deduct.call]
+// 2, [temp.deduct.type] 8
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDeduction::DeduceByPattern(CCPPSyntaxParameter* pcParameter, SCPP65Type* psArgument)
+{
+	CCPPPatternMatch		cMatch;
+	CCPPTemplateArguments*	pcDeduced;
+	SCPPBinding*			psBinding;
+	size					i;
+
+	psArgument = psArgument->WithoutReference();
+	if (psArgument->IsFunction())
+	{
+		psArgument = mpcUnit->GetTypes()->Pointer(psArgument);
+	}
+	cMatch.Init(mpcUnit, mpcTemplate->mpcDeclaration);
+	if (cMatch.MatchParameter(pcParameter, psArgument))
+	{
+		pcDeduced = cMatch.GetDeduced();
+		for (i = 0; i < pcDeduced->macBindings.NumElements(); i++)
+		{
+			psBinding = pcDeduced->macBindings.Get(i);
+			if (psBinding->psType && psBinding->pcParameter)
+			{
+				DeduceType(psBinding->pcParameter, psBinding->psType);
+			}
+		}
+	}
+	cMatch.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A parameter std::initializer_list<T> (or a reference to one) and a
+// braced list for it: T is its elements' type.  [temp.deduct.call] 1
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDeduction::DeduceFromList(CCPPSyntaxName* pcName, CCPPSyntax* pcList)
+{
+	CCPPTemplate*	pcInitializerList;
+	CArraySyntax*	papcElements;
+	CCPPSymbol*		pcSymbol;
+	SCPP65Type*		psElement;
+	size			i;
+
+	pcInitializerList = mpcUnit->InitializerListTemplate();
+	if (!pcInitializerList || (pcName->mpcSymbol != pcInitializerList->mpcSymbol) || (pcName->GetLast()->macpTemplateArguments.NumElements() != 1))
+	{
+		return;
+	}
+	pcSymbol = GetArgumentSymbol(pcName->GetLast()->macpTemplateArguments.GetPtr(0));
+	papcElements = mpcUnit->ListElements(pcList);
+	for (i = 0; pcSymbol && (i < papcElements->NumElements()); i++)
+	{
+		psElement = mpcUnit->TypeOf(papcElements->GetPtr(i));
+		if (psElement)
+		{
+			DeduceType(pcSymbol, psElement->WithoutReference()->Unqualified());
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A template argument that is a pack expansion of one of the template's
+// parameter packs alone (T... or I...) deduces the pack from the instance's
+// arguments from uiFirst on: each one's type or value, and a pack's
+// elements.  True if the argument is one.  [temp.deduct.type] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeduction::DeducePack(CCPPSyntax* pcArgument, CCPPTemplateArguments* pcArguments, size uiFirst)
+{
+	CCPPSyntax*			pcPattern;
+	CCPPSymbol*			pcSymbol;
+	CCPPSyntax*			pcParameter;
+	SCPPDeducedPack*	psPack;
+	SCPPBinding*		psBinding;
+	size				j;
+	size				k;
+	size				uiParameter;
+	bool				bType;
+
+	if ((pcArgument->GetKind() == CPPS_TypeId) && ((CCPPSyntaxTypeId*)pcArgument)->mbPack)
+	{
+		pcPattern = pcArgument;
+	}
+	else if (pcArgument->GetKind() == CPPS_PackExpansionExpression)
+	{
+		pcPattern = ((CCPPSyntaxPackExpansionExpression*)pcArgument)->mpcPattern;
+	}
+	else
+	{
+		return false;
+	}
+	pcSymbol = GetArgumentSymbol(pcPattern);
+	uiParameter = mpcTemplate->mpcDeclaration->macpParameters.NumElements();
+	bType = false;
+	for (j = 0; pcSymbol && (j < mpcTemplate->mpcDeclaration->macpParameters.NumElements()); j++)
+	{
+		pcParameter = mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j);
+		if ((pcParameter->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol == pcSymbol) && ((CCPPSyntaxTypeParameter*)pcParameter)->mbPack)
+		{
+			uiParameter = j;
+			bType = true;
+		}
+		else if ((pcParameter->GetKind() == CPPS_Parameter) && (((CCPPSyntaxParameter*)pcParameter)->mpcSymbol == pcSymbol) && ((CCPPSyntaxParameter*)pcParameter)->mpcDeclarator && ((CCPPSyntaxParameter*)pcParameter)->mpcDeclarator->mbPack)
+		{
+			uiParameter = j;
+		}
+	}
+	if (uiParameter == mpcTemplate->mpcDeclaration->macpParameters.NumElements())
+	{
+		return true;
+	}
+	for (j = 0; j < masPacks.NumElements(); j++)
+	{
+		if (masPacks.Get(j)->uiParameter == uiParameter)
+		{
+			return true;
+		}
+	}
+	psPack = masPacks.Add();
+	psPack->uiParameter = uiParameter;
+	psPack->papsTypes = bType ? mpcUnit->NewPack() : NULL;
+	psPack->palliValues = bType ? NULL : mpcUnit->NewValuePack();
+	for (j = uiFirst; j < pcArguments->macBindings.NumElements(); j++)
+	{
+		psBinding = pcArguments->macBindings.Get(j);
+		if (psBinding->papsPack || psBinding->palliPack)
+		{
+			for (k = 0; k < psBinding->PackSize(); k++)
+			{
+				if (bType && psBinding->papsPack)
+				{
+					psPack->papsTypes->Add(psBinding->papsPack->GetPtr(k));
+				}
+				else if (!bType && psBinding->palliPack)
+				{
+					psPack->palliValues->Add(psBinding->palliPack->GetValue(k));
+				}
+			}
+		}
+		else if (bType && psBinding->psType)
+		{
+			psPack->papsTypes->Add(psBinding->psType);
+		}
+		else if (!bType)
+		{
+			psPack->palliValues->Add(psBinding->lliValue);
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The symbol a template argument is just the name of (J or T), or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -753,6 +959,18 @@ bool CCPPPatternMatch::Match(CArraySyntax* papcPattern, CCPPTemplateArguments* p
 bool CCPPPatternMatch::MatchTypeId(CCPPSyntaxTypeId* pcPattern, SCPP65Type* psType)
 {
 	return MatchType(pcPattern, psType) && MatchDeferred();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The same for a function template's parameter (its specifiers and
+// declarator) and its argument's type.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPPatternMatch::MatchParameter(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType)
+{
+	return MatchType(pcParameter, psType) && MatchDeferred();
 }
 
 
@@ -1319,5 +1537,6 @@ bool CCPPPatternMatch::MatchDeferred(void)
 
 CArrayCPP65Types* CCPPDeduction::GetTypes(void) { return &mapsDeduced; }
 CArrayInt64* CCPPDeduction::GetValues(void) { return &malliDeduced; }
+CArrayCPPDeducedPacks* CCPPDeduction::GetPacks(void) { return &masPacks; }
 CCPPTemplateArguments* CCPPPatternMatch::GetDeduced(void) const { return mpcDeduced; }
 int CCPPPatternMatch::GetScore(void) const { return miScore; }

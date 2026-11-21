@@ -959,6 +959,7 @@ void CCPPSyntaxBlockWriting::WriteAll(void)
 		U16(Scope(pcScope->mpcParent));
 		U16(Symbol(pcScope->mpcOwner));
 		U8(pcScope->mbDependent ? 1 : 0);
+		U32(pcScope->muiDependentBases);
 		U16(Scope(pcScope->mpcQualifier));
 		U16(Add((uint16)pcScope->mapcBases.NumElements()));
 		for (j = 0; j < pcScope->mapcBases.NumElements(); j++)
@@ -1677,6 +1678,7 @@ CCPPSyntax* CCPPSyntaxBlockReader::Read(uint8* puiBlock, size uiLength, CCPPSynt
 		pcScope->mpcParent = cReading.Scope(cReading.U16());
 		pcScope->mpcOwner = cReading.Symbol(cReading.U16());
 		pcScope->mbDependent = cReading.U8() != 0;
+		pcScope->muiDependentBases = cReading.U32();
 		pcScope->mpcQualifier = cReading.Scope(cReading.U16());
 		uiCount = cReading.U16();
 		for (j = 0; (j < uiCount) && !cReading.mbError; j++)

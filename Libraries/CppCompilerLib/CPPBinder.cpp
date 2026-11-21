@@ -408,7 +408,9 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 {
 	SCPP65Type*		psType;
 	CCPPFunction*	pcFunction;
+	CCPPFunction*	pcSurrogate;
 	size			uiErrors;
+	bool			bAmbiguous;
 
 	mpcUnit->BeginQuiet();
 	psType = mpcUnit->ValueTypeOf(pcBound->mpcCallee);
@@ -429,7 +431,35 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 
 	pcBound->mlliName = mpcUnit->GetOperatorName(CT_OpenRoundBracket, false);
 	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, pcBound->mpapcArguments, pcCall, CalledObject(pcBound->mpcCallee, false));
+	pcFunction = NULL;
+	if (mpcUnit->HasMember(psType->pcClass, pcBound->mlliName))
+	{
+		mpcUnit->BeginQuiet();
+		pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, pcBound->mpapcArguments, pcCall, CalledObject(pcBound->mpcCallee, false));
+		mpcUnit->EndQuiet();
+	}
+
+	//Or a surrogate call function: through the pointer to a function the object converts to.  [over.call.object] 2
+	pcSurrogate = mcOverloads.FindSurrogate(psType->pcClass, pcFunction, pcBound->mpapcArguments, &bAmbiguous);
+	if (bAmbiguous)
+	{
+		mpcUnit->Error(pcCall, "The call is ambiguous: the class's operator() and a function its conversion function points to take the arguments as well as each other");
+		return true;
+	}
+	if (pcSurrogate)
+	{
+		pcBound->meHow = CPPBC_Surrogate;
+		pcBound->mpcFunction = pcSurrogate;
+		pcBound->mpcObject = pcBound->mpcCallee;
+		pcBound->mpcClass = psType->pcClass;
+		mcAccess.CheckFunction(pcSurrogate, psType->pcClass, pcCall);
+		return true;
+	}
+	if (!pcFunction && mpcUnit->HasMember(psType->pcClass, pcBound->mlliName))
+	{
+		//Said again with its errors.
+		pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, pcBound->mpapcArguments, pcCall, CalledObject(pcBound->mpcCallee, false));
+	}
 	if (!pcFunction)
 	{
 		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
@@ -679,7 +709,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	}
 	if (!pcFunction)
 	{
-		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		if ((mpcUnit->GetErrors()->NumErrors() == uiErrors) && !mpcUnit->ImplicitAssignment(pcCall))
 		{
 			mpcUnit->Error(pcCallee, "The class has no member function of that name");
 		}
@@ -875,12 +905,15 @@ bool CCPPBinder::BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSy
 void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 {
 	SCPP65Type*		psType;
+	CCPPFunction*	pcMember;
 	CCPPFunction*	pcFunction;
 	CArraySyntax	apcArguments;
 	size			uiErrors;
+	int				iBetter;
 
 	psType = mpcUnit->ValueTypeOf(pcBound->mpcLeft);
 	apcArguments.Init();
+	pcMember = NULL;
 	if (psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, pcNode) && mpcUnit->HasOperator(psType->pcClass, pcBound->mlliName, pcBound->mpcRight ? 1 : 0))
 	{
 		if (pcBound->mpcRight)
@@ -891,30 +924,41 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 		//That none of its own fits is no error: one that is no class's may.
 		uiErrors = mpcUnit->GetErrors()->NumErrors();
 		mpcUnit->BeginQuiet();
-		pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CalledObject(pcBound->mpcLeft, false));
+		pcMember = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CalledObject(pcBound->mpcLeft, false));
 		mpcUnit->EndQuiet();
 		mpcUnit->GetErrors()->Truncate(uiErrors);
-		if (pcFunction)
-		{
-			apcArguments.Kill();
-			pcBound->meHow = CPPBC_Member;
-			pcBound->mpcFunction = pcFunction;
-			pcBound->mpcObject = pcBound->mpcLeft;
-			pcBound->mpcClass = psType->pcClass;
-			pcBound->mbVirtual = !IsNamedObject(pcBound->mpcLeft);
-			return;
-		}
 		apcArguments.ReInit();
 	}
 
-	//operator op(left, right), declared or from a function template.
-	apcArguments.Add(pcBound->mpcLeft);
-	if (pcBound->mpcRight)
+	//operator op(left, right), declared or from a function template; never operator=, a member only.  [over.ass] 1
+	pcFunction = NULL;
+	if (!pcMember || (pcBound->mlliName != mpcUnit->GetOperatorName(CT_Assignment, false)))
 	{
-		apcArguments.Add(pcBound->mpcRight);
+		apcArguments.Add(pcBound->mpcLeft);
+		if (pcBound->mpcRight)
+		{
+			apcArguments.Add(pcBound->mpcRight);
+		}
+		pcFunction = mcOverloads.FindFreeOperator(pcBound->mlliName, NULL, &apcArguments, pcNode);
 	}
-	pcFunction = mcOverloads.FindFreeOperator(pcBound->mlliName, NULL, &apcArguments, pcNode);
 	apcArguments.Kill();
+
+	//Both are candidates, and the better is chosen.  [over.match.oper] 3
+	iBetter = (pcMember && pcFunction) ? mcOverloads.CompareOperators(pcMember, psType->pcClass, pcFunction, pcBound->mpcLeft, pcBound->mpcRight, CalledObject(pcBound->mpcLeft, false)) : (pcMember ? 1 : -1);
+	if (pcMember && pcFunction && (iBetter == 0))
+	{
+		mpcUnit->Error(pcNode, "The operator is ambiguous: the class's own operator function and one that is no class's take the operands as well as each other");
+		return;
+	}
+	if (iBetter > 0)
+	{
+		pcBound->meHow = CPPBC_Member;
+		pcBound->mpcFunction = pcMember;
+		pcBound->mpcObject = pcBound->mpcLeft;
+		pcBound->mpcClass = psType->pcClass;
+		pcBound->mbVirtual = !IsNamedObject(pcBound->mpcLeft);
+		return;
+	}
 	if (pcFunction)
 	{
 		pcBound->meHow = CPPBC_Function;
@@ -1037,6 +1081,18 @@ CCPPFunction* CCPPBinder::InitializerListConstructor(CCPPClass* pcClass, CCPPSyn
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an operator function of the name that is no class's is declared,
+// or a function template of it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::HasFreeOperator(int64 lliName)
+{
+	return mcOverloads.HasFreeOperator(lliName);
 }
 
 
@@ -1275,9 +1331,12 @@ bool CCPPBinder::IsNearerDeallocation(CCPPFunction* pcFunction, CCPPFunction* pc
 //
 // The conversion function an object of pcClass is copy initialised from
 // pcSource by: when pcSource is an object of another class (not derived
-// from pcClass) that none of pcClass's constructors takes, its operator T
-// whose T is pcClass (or derived from it, or a reference to one), or NULL.
-// [over.match.copy] 1
+// from pcClass), its operator T whose T is pcClass (or derived from it, or
+// a reference to one), unless one of pcClass's converting constructors
+// takes the object as well or better.  The object is the function's this,
+// bound as T& (or const T& for a const function: worse for an object that
+// isn't const, which T& takes).  NULL with an error if the two are as good.
+// [over.match.copy] 1, [over.ics.rank] 3
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPBinder::ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode)
@@ -1285,16 +1344,41 @@ CCPPFunction* CCPPBinder::ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSo
 	SCPP65Type*		psSource;
 	SCPP65Type*		psResult;
 	CCPPFunction*	pcFunction;
+	int				iConstructor;
+	int				iConversion;
 
 	psSource = mpcUnit->TypeOf(pcSource);
 	psSource = psSource ? psSource->WithoutReference() : NULL;
-	if (!psSource || !psSource->IsClass() || mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL) || mcOverloads.HasConvertingConstructor(pcClass, psSource, pcSource))
+	if (!psSource || !psSource->IsClass() || mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
+	{
+		return NULL;
+	}
+	iConstructor = mcOverloads.ConvertingConstructorRank(pcClass, psSource, pcSource);
+	if (iConstructor == CPPCR_Exact)
 	{
 		return NULL;
 	}
 	pcFunction = mcOverloads.FindConversion(psSource->pcClass, pcClass->mpsType, false, pcNode);
 	psResult = pcFunction ? pcFunction->mpsReturn->WithoutReference() : NULL;
-	return (psResult && psResult->IsClass() && mpcUnit->IsDerived(psResult->pcClass, pcClass, NULL)) ? pcFunction : NULL;
+	if (!psResult || !psResult->IsClass() || !mpcUnit->IsDerived(psResult->pcClass, pcClass, NULL))
+	{
+		return NULL;
+	}
+	if (iConstructor == CPPCR_None)
+	{
+		return pcFunction;
+	}
+	if (!pcFunction->mbConstThis && psSource->bConst)
+	{
+		return NULL;
+	}
+	iConversion = (pcFunction->mbConstThis && !psSource->bConst) ? CPPCR_Qualification : CPPCR_Exact;
+	if (iConversion == iConstructor)
+	{
+		mpcUnit->Error(pcNode, "The conversion is ambiguous: a constructor of the class and a conversion function of the value's take it as well as each other");
+		return NULL;
+	}
+	return (iConversion > iConstructor) ? pcFunction : NULL;
 }
 
 
@@ -1325,6 +1409,21 @@ CCPPFunction* CCPPBinder::FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcOb
 bool CCPPBinder::HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments)
 {
 	return mcOverloads.FindMemberTemplate(pcClass, lliName, uiArguments) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the class itself (not a base) has a member template of the name
+// that takes uiArguments arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::HasOwnMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments)
+{
+	CCPPTemplate*	pcTemplate;
+
+	pcTemplate = mcOverloads.FindMemberTemplate(pcClass, lliName, uiArguments);
+	return pcTemplate && (pcTemplate->mpcClass == pcClass);
 }
 
 
@@ -2242,6 +2341,25 @@ void CCPPBinder::CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether an expression is the value of a declaration's = value: what it
+// is made with is copy initialised.  [dcl.init] 15
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsCopyInitialiser(CCPPSyntax* pcValue)
+{
+	CCPPSyntaxInitDeclarator*	pcInit;
+
+	if (!pcValue->mpcParent || (pcValue->mpcParent->GetKind() != CPPS_InitDeclarator))
+	{
+		return false;
+	}
+	pcInit = (CCPPSyntaxInitDeclarator*)pcValue->mpcParent;
+	return (pcInit->meInitializer == CPPI_Equals) && (pcInit->mpcInitializer == pcValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // How an object of pcClass is made from papcArguments: by the constructor that
 // matches them; by nothing, when it has no constructor and there are none; or else as
 // an aggregate, its fields in order, which a class with bases or virtual functions
@@ -2270,7 +2388,8 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 	}
 	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
 	{
-		pcBound->mpcConstructor = mcOverloads.FindConstructor(pcClass, papcArguments, pcNode);
+		//T x = value; has only the converting constructors as candidates.  [over.match.ctor] 1
+		pcBound->mpcConstructor = mcOverloads.FindConstructor(pcClass, papcArguments, pcNode, (papcArguments->NumElements() == 1) && IsCopyInitialiser(papcArguments->GetPtr(0)));
 		if (pcBound->mpcConstructor)
 		{
 			if (!mcAccess.CheckFunction(pcBound->mpcConstructor, pcClass, pcNode))

@@ -1075,6 +1075,33 @@ bool CCPP65IRFrontEnd::ReferenceAddress(SCPP65IRPlace* psPlace, SCPP65Type* psRe
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The place a reference of type psReference is bound to: the expression's,
+// or for a reference to a function the overload of the name of the
+// function's type.  [over.over] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ReferredPlace(CCPPSyntax* pcExpression, SCPP65Type* psReference, SCPP65IRPlace* psPlace)
+{
+	CCPPSyntaxIdExpression*	pcName;
+	SCPP65IRValue			sAddress;
+
+	pcName = psReference->psBase->IsFunction() ? mpcUnit->FunctionNameOf(pcExpression) : NULL;
+	if (!pcName || !pcName->mpcName->mpcSymbol)
+	{
+		return Place(pcExpression, psPlace);
+	}
+	if (!FunctionAddress(pcName, psReference->psBase, &sAddress))
+	{
+		return false;
+	}
+	psPlace->sAddress = sAddress.sValue;
+	psPlace->psType = sAddress.psType->psBase;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The address a reference of type psReference holds, bound to an object
 // (psPlace) of a class that isn't what it refers to: the place the class's
 // conversion function to such a reference returns (operator T&).

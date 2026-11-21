@@ -81,8 +81,9 @@ bool CCPPUnit::DefineInstanceData(void)
 // Defines each class template instance's static data members that a
 // template declaration outside the class defines and that aren't yet, as
 // the instance's data (every unit that has the instance has it, and the
-// link keeps one), with the template's parameters its arguments.  True if
-// it defined one; *pbResult false after an error.  [temp.static]
+// link keeps one), with the template's parameters its arguments: those the
+// unit's code uses (their labels asked for).  True if it defined one;
+// *pbResult false after an error.  [temp.static], [temp.inst] 2
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::DefineInstanceStatics(bool* pbResult)
@@ -92,6 +93,7 @@ bool CCPPUnit::DefineInstanceStatics(bool* pbResult)
 	CCPPSyntaxName*					pcName;
 	CCPPTemplate*					pcOwner;
 	CCPPClass*						pcClass;
+	CCPPVariable*					pcVariable;
 	size							i;
 	size							j;
 	bool							bDefined;
@@ -110,8 +112,14 @@ bool CCPPUnit::DefineInstanceStatics(bool* pbResult)
 			{
 				continue;
 			}
+			pcVariable = OwnStatic(pcClass, pcName->mpcSymbol);
+			if (pcVariable && !pcVariable->mbUsed)
+			{
+				//Only a member that is used is instantiated, its initialiser with it.  [temp.inst] 1, 2
+				continue;
+			}
 			mcContext.EnterBindings(RenameBindings(pcClass, pcDeclaration));
-			mpcDefining = OwnStatic(pcClass, pcName->mpcSymbol);
+			mpcDefining = pcVariable;
 			*pbResult &= GlobalDeclaration(pcSimple);
 			mpcDefining = NULL;
 			mcContext.LeaveBindings();
@@ -507,6 +515,14 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 		return ExplicitInstantiation(pcDeclaration, pcTemplateDeclaration->mbExtern);
 	}
 	bExplicit = pcTemplateDeclaration->macpParameters.NumElements() == 0;
+	if (bExplicit && (pcDeclaration->GetKind() == CPPS_TemplateDeclaration) && (((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->macpParameters.NumElements() == 0) &&
+		((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->mpcDeclaration && (((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->mpcDeclaration->GetKind() == CPPS_FunctionDefinition))
+	{
+		//template<> template<> int S<int>::f<char>(char) { ... }: a member template's explicit specialisation for one
+		//instance of its class template, found when that instance's member template is instantiated.  [temp.expl.spec] 16
+		mapcMemberTemplateSpecialisations.Add(pcDeclaration);
+		return true;
+	}
 
 	//template<class M> template<class N> N SBox<M>::Mul(N n) { ... }
 	pcClassTemplate = NULL;
@@ -1226,6 +1242,85 @@ bool CCPPUnit::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// template int B<int>::K(); names a member function of a class template's
+// instance, of the declarator's type where it has several of the name: it
+// is generated unless bExtern.  [temp.explicit] 1, 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ExplicitMemberInstantiation(CCPPSyntaxInitDeclarator* pcInit, bool bExtern)
+{
+	CCPPSyntaxName*		pcName;
+	CCPPClass*			pcClass;
+	CCPPFunction*		pcFunction;
+	CCPPFunction*		pcFound;
+	SCPP65Type*			psType;
+	int64				lliName;
+	size				i;
+
+	pcName = pcInit->mpcDeclarator->GetName();
+	pcClass = GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
+	if (!pcClass || !pcClass->mpcTemplate || !CompleteClass(pcClass, pcInit))
+	{
+		return Error(pcInit, "The explicit instantiation names no member of a class template's instance");
+	}
+	lliName = GetFunctionName(pcName->GetLast());
+	mcContext.EnterBindings(pcClass->mpcBindings);
+	BeginQuiet();
+	psType = mcDeclarators.GetType(NULL, pcInit->mpcDeclarator, pcInit);
+	EndQuiet();
+	mcContext.LeaveBindings();
+	pcFound = NULL;
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+	{
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if ((pcFunction->mlliName != lliName) || pcFunction->mpcTemplate)
+		{
+			continue;
+		}
+		if (!pcFound || (psType && psType->IsFunction() && psType->papsParameters && (psType->papsParameters->NumElements() == pcFunction->mapsParameters.NumElements()) && FunctionType(pcFunction)->papsParameters && SameParameters(psType, FunctionType(pcFunction))))
+		{
+			pcFound = pcFunction;
+		}
+	}
+	if (!pcFound)
+	{
+		return Error(pcInit, "The explicit instantiation names no member function of the instance");
+	}
+	pcFound->mbExternInstance = bExtern;
+	if (!bExtern && pcFound->mpcDefinition)
+	{
+		RequireFunction(pcFound);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether two function types have the same parameter types.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::SameParameters(SCPP65Type* psFirst, SCPP65Type* psSecond)
+{
+	size	i;
+
+	if (!psFirst->papsParameters || !psSecond->papsParameters || (psFirst->papsParameters->NumElements() != psSecond->papsParameters->NumElements()))
+	{
+		return false;
+	}
+	for (i = 0; i < psFirst->papsParameters->NumElements(); i++)
+	{
+		if (!psFirst->papsParameters->GetPtr(i)->Same(psSecond->papsParameters->GetPtr(i)))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // template int Max<int>(int a, int b); and template int Max(int, int); name the
 // instance of the function template Max whose arguments are the explicit ones
 // and those deduced from the parameters' types.  Generated unless bExtern.
@@ -1249,9 +1344,13 @@ bool CCPPUnit::ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* pcInit, b
 
 	pcName = pcInit->mpcDeclarator ? pcInit->mpcDeclarator->GetName() : NULL;
 	pcSuffix = pcInit->mpcDeclarator ? pcInit->mpcDeclarator->GetFunctionSuffix() : NULL;
+	if (pcName && pcSuffix && pcName->IsQualifiedByClass() && !pcName->GetLast()->mbTemplateArguments)
+	{
+		return ExplicitMemberInstantiation(pcInit, bExtern);
+	}
 	if (!pcName || !pcSuffix || pcName->IsQualifiedByClass())
 	{
-		return Error(pcInit, "Only explicit instantiations of class templates and function templates are supported by the compiler yet");
+		return Error(pcInit, "Only explicit instantiations of class templates, their member functions and function templates are supported by the compiler yet");
 	}
 	pcComponent = pcName->GetLast();
 	pcTemplate = pcName->mpcSymbol ? GetTemplate(pcName->mpcSymbol) : NULL;
@@ -1454,7 +1553,7 @@ CCPPTemplate* CCPPUnit::GetComponentTemplate(CCPPSyntaxNameComponent* pcComponen
 // pszArguments.  Returns NULL after an error.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced)
+CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced, CArrayCPPDeducedPacks* pasPacks)
 {
 	CArrayCPPExpandedArguments	asArguments;
 	CCPPTemplateArguments*		pcBindings;
@@ -1483,11 +1582,17 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 		psBinding->bSelf = false;
 		psBinding->pcArgument = NULL;
 		psBinding->pcTemplate = NULL;
+		psBinding->pcAlias = NULL;
 
 		if (pcParameter->GetKind() == CPPS_TypeParameter)
 		{
 			pcType = (CCPPSyntaxTypeParameter*)pcParameter;
 			psBinding->pcParameter = pcType->mpcSymbol;
+			if (pcType->mbPack && (i >= asArguments.NumElements()) && BindDeducedPack(psBinding, pasPacks, i, pszArguments))
+			{
+				//A pack deduced whole (from Types<T...>), which needn't be the last parameter.
+				continue;
+			}
 			if (pcType->mbPack)
 			{
 				//A pack (the last parameter) takes the rest of the explicit arguments, or else the deduced types.
@@ -1535,6 +1640,10 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 		{
 			pcValue = (CCPPSyntaxParameter*)pcParameter;
 			psBinding->pcParameter = pcValue->mpcSymbol;
+			if (pcValue->mpcDeclarator && pcValue->mpcDeclarator->mbPack && (i >= asArguments.NumElements()) && BindDeducedPack(psBinding, pasPacks, i, pszArguments))
+			{
+				continue;
+			}
 			if (pcValue->mpcDeclarator && pcValue->mpcDeclarator->mbPack)
 			{
 				bResult = BindValuePack(psBinding, &asArguments, i, pszArguments);
@@ -1641,6 +1750,27 @@ bool CCPPUnit::ConstantFits(SCPP65Type* psType, int64 lliValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type a non-type template parameter (its symbol) is declared with,
+// with the bindings there are; psOtherwise if it can't be worked out.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ValueParameterType(CCPPSymbol* pcParameter, SCPP65Type* psOtherwise)
+{
+	CCPPSyntaxParameter*	pcDeclaration;
+	SCPP65Type*				psType;
+
+	pcDeclaration = pcParameter ? (CCPPSyntaxParameter*)pcParameter->mpcDeclaration : NULL;
+	if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_Parameter))
+	{
+		return psOtherwise;
+	}
+	psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcDeclaration->mpcDeclarator, pcDeclaration);
+	return psType ? psType : psOtherwise;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if a non-type template parameter is a pointer or a reference
 // (template<int* P>, template<int (*F)(int)>, template<int& R>): its
 // argument names an object or a function, not a value.
@@ -1665,6 +1795,7 @@ bool CCPPUnit::BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgume
 	CCPPSyntax*		pcEntity;
 	CCPPSymbol*		pcSymbol;
 	CCPPVariable*	pcVariable;
+	CCPPClass*		pcClass;
 	bool			bAddress;
 
 	pcEntity = psArgument->bExpanded ? NULL : SkipParentheses(psArgument->pcArgument);
@@ -1674,6 +1805,28 @@ bool CCPPUnit::BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgume
 		pcEntity = SkipParentheses(((CCPPSyntaxUnaryExpression*)pcEntity)->mpcOperand);
 	}
 	pcSymbol = (pcEntity && (pcEntity->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcEntity)->mpcName->mpcSymbol : NULL;
+	if (bAddress && pcSymbol && (pcSymbol->meKind == CPPSK_Field) && ((CCPPSyntaxIdExpression*)pcEntity)->mpcName->IsQualifiedByClass())
+	{
+		//&S::m for a pointer to a member: mangled as _XM, the class, the member's name, E.  [temp.arg.nontype] 1
+		pcClass = GetComponentClass(((CCPPSyntaxIdExpression*)pcEntity)->mpcName->GetQualifier(), NULL, pcEntity);
+		if (!pcClass)
+		{
+			return Error(psArgument->pcArgument, "The template argument must name a member of a class");
+		}
+		psBinding->pcArgument = psArgument->pcArgument;
+		pszArguments->Append("_XM");
+		mcMangler.AppendType(pszArguments, pcClass->mpsType);
+		mcMangler.AppendFunctionName(pszArguments, GetComponentName(((CCPPSyntaxIdExpression*)pcEntity)->mpcName->GetLast()));
+		pszArguments->Append('E');
+		return true;
+	}
+	if (!bAddress && pcEntity && TypeOf(pcEntity) && TypeOf(pcEntity)->IsNullPointer())
+	{
+		//nullptr for a pointer: a null pointer of the parameter's type, mangled as _XN.  [temp.arg.nontype] 1
+		psBinding->pcArgument = psArgument->pcArgument;
+		pszArguments->Append("_XNE");
+		return true;
+	}
 	pcVariable = pcSymbol ? GetVariable(pcSymbol) : NULL;
 	if (!(pcVariable && (pcVariable->meStorage == CPPVS_Global)) && !(pcSymbol && (pcSymbol->meKind == CPPSK_Function)))
 	{
@@ -1707,6 +1860,7 @@ bool CCPPUnit::BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPP
 	CCPPSyntaxTypeId*			pcTypeId;
 	CCPPSyntaxTypeSpecifier*	pcType;
 	CCPPSyntaxName*				pcName;
+	CCPPSymbol*					pcSymbol;
 	char*						szName;
 	int							iLength;
 
@@ -1721,18 +1875,25 @@ bool CCPPUnit::BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPP
 	{
 		//A template template parameter passed on: what it is bound to.
 		psBinding->pcTemplate = FindBinding(pcName->mpcSymbol) ? FindBinding(pcName->mpcSymbol)->pcTemplate : NULL;
+		psBinding->pcAlias = FindBinding(pcName->mpcSymbol) ? FindBinding(pcName->mpcSymbol)->pcAlias : NULL;
 	}
 	else if (pcName && pcName->mpcSymbol && (pcName->mpcSymbol->meKind == CPPSK_ClassTemplate) && !pcName->GetLast()->mbTemplateArguments)
 	{
 		psBinding->pcTemplate = GetTemplate(pcName->mpcSymbol);
 	}
-	if (!psBinding->pcTemplate)
+	else if (pcName && pcName->mpcSymbol && (pcName->mpcSymbol->meKind == CPPSK_AliasTemplate) && !pcName->GetLast()->mbTemplateArguments)
 	{
-		return Error(pcArgument ? pcArgument : pcNode, "The template argument must be a class template");
+		//template<class T> using Ptr = T*; is an argument too: TT<char> is then Ptr<char>.  [temp.arg.template] 1
+		psBinding->pcAlias = pcName->mpcSymbol;
+	}
+	if (!psBinding->pcTemplate && !psBinding->pcAlias)
+	{
+		return Error(pcArgument ? pcArgument : pcNode, "The template argument must be a class template or an alias template");
 	}
 	pszArguments->Append("_Y");
-	mcMangler.AppendScopeNames(pszArguments, psBinding->pcTemplate->mpcSymbol->mpcScope);
-	szName = mpcTokeniser->GetIdentifier(psBinding->pcTemplate->mpcSymbol->mlliName, &iLength);
+	pcSymbol = psBinding->pcTemplate ? psBinding->pcTemplate->mpcSymbol : psBinding->pcAlias;
+	mcMangler.AppendScopeNames(pszArguments, pcSymbol->mpcScope);
+	szName = mpcTokeniser->GetIdentifier(pcSymbol->mlliName, &iLength);
 	pszArguments->Append(szName, iLength);
 	pszArguments->Append('E');
 	return true;
@@ -1775,6 +1936,54 @@ bool CCPPUnit::BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* 
 	}
 	pszArguments->Append('E');
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A parameter pack deduced whole (CCPPDeduction::DeducePack) for the
+// parameter uiParameter, if there is one: its types or values, mangled as
+// an explicit pack's are.  False if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::BindDeducedPack(SCPPBinding* psBinding, CArrayCPPDeducedPacks* pasPacks, size uiParameter, CChars* pszArguments)
+{
+	SCPPDeducedPack*	psPack;
+	size				i;
+	size				j;
+
+	for (i = 0; pasPacks && (i < pasPacks->NumElements()); i++)
+	{
+		psPack = pasPacks->Get(i);
+		if (psPack->uiParameter != uiParameter)
+		{
+			continue;
+		}
+		pszArguments->Append("_J");
+		if (psPack->papsTypes)
+		{
+			psBinding->papsPack = NewPack();
+			for (j = 0; j < psPack->papsTypes->NumElements(); j++)
+			{
+				psBinding->papsPack->Add(psPack->papsTypes->GetPtr(j));
+				mcMangler.AppendType(pszArguments, psPack->papsTypes->GetPtr(j));
+			}
+		}
+		else
+		{
+			psBinding->palliPack = NewValuePack();
+			for (j = 0; j < psPack->palliValues->NumElements(); j++)
+			{
+				psBinding->palliPack->Add(psPack->palliValues->GetValue(j));
+				pszArguments->Append('L');
+				AppendMangledValue(pszArguments, psPack->palliValues->GetValue(j));
+				pszArguments->Append('E');
+			}
+		}
+		pszArguments->Append('E');
+		return true;
+	}
+	return false;
 }
 
 
@@ -2227,10 +2436,57 @@ CCPPFunction* CCPPUnit::InstantiateFunction(CCPPTemplate* pcTemplate, CArraySynt
 	apsArguments.Kill();
 
 	szArguments.Init();
-	pcBindings = BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues());
+	pcBindings = BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());
 	cDeduction.Kill();
 	pcFunction = pcBindings ? InstanceOfFunction(pcTemplate, pcBindings, &szArguments, pcNode) : NULL;
 	szArguments.Kill();
+	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instance of a function template whose template arguments are
+// deduced from psFunction, the type of the function wanted (a pointer to
+// one is being initialised), or NULL, quietly, if they can't be or the
+// instance isn't of that type.  [temp.deduct.funcaddr], [over.over] 2
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPUnit::InstantiateFunctionFor(CCPPTemplate* pcTemplate, SCPP65Type* psFunction, CCPPSyntax* pcNode)
+{
+	CCPPTemplateArguments*	pcBindings;
+	CCPPFunction*			pcFunction;
+	CArrayCPP65Types		apsArguments;
+	CCPPDeduction			cDeduction;
+	CChars					szArguments;
+	size					uiErrors;
+	size					i;
+
+	if (!psFunction->IsFunction() || (pcTemplate->mpcClass && !DefineMemberTemplate(pcTemplate, pcNode)))
+	{
+		return NULL;
+	}
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	apsArguments.Init();
+	for (i = 0; psFunction->papsParameters && (i < psFunction->papsParameters->NumElements()); i++)
+	{
+		apsArguments.Add(psFunction->papsParameters->GetPtr(i)->WithoutReference());
+	}
+	cDeduction.Init(this, pcTemplate);
+	cDeduction.Deduce(&apsArguments, NULL);
+	apsArguments.Kill();
+	szArguments.Init();
+	pcBindings = BindArguments(pcTemplate->mpcDeclaration, NULL, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());
+	cDeduction.Kill();
+	pcFunction = pcBindings ? InstanceOfFunction(pcTemplate, pcBindings, &szArguments, pcNode) : NULL;
+	szArguments.Kill();
+	EndQuiet();
+	mcErrors.Truncate(uiErrors);
+	if (pcFunction && !psFunction->Equals(FunctionType(pcFunction)))
+	{
+		return NULL;
+	}
 	return pcFunction;
 }
 
@@ -2318,6 +2574,49 @@ CCPPFunction* CCPPUnit::InstanceOfFunction(CCPPTemplate* pcTemplate, CCPPTemplat
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The explicit specialisations template<> template<> R S<A>::f<T>(...)
+// written for a class template instance's member template (pcPrimary, of
+// the instance), made its specialisations once.  [temp.expl.spec] 16
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AddMemberTemplateSpecialisations(CCPPTemplate* pcPrimary)
+{
+	CCPPSyntaxTemplateDeclaration*	pcInner;
+	CCPPSyntaxFunctionDefinition*	pcDefinition;
+	CCPPSyntaxName*					pcName;
+	CCPPTemplate*					pcTemplate;
+	size							i;
+	size							j;
+	bool							bMade;
+
+	for (i = 0; i < mapcMemberTemplateSpecialisations.NumElements(); i++)
+	{
+		pcInner = (CCPPSyntaxTemplateDeclaration*)mapcMemberTemplateSpecialisations.GetPtr(i);
+		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcInner->mpcDeclaration;
+		pcName = pcDefinition->mpcDeclarator->GetName();
+		if (!pcName || (GetFunctionName(pcName->GetLast()) != pcPrimary->mlliName))
+		{
+			continue;
+		}
+		bMade = false;
+		for (j = 0; !bMade && (j < mapcTemplates.NumElements()); j++)
+		{
+			pcTemplate = mapcTemplates.GetPtr(j);
+			bMade = (pcTemplate->mpcPrimary == pcPrimary) && (pcTemplate->mpcDefinition == pcDefinition);
+		}
+		if (bMade || !QualifierIsInstance(pcName->GetQualifier(), pcPrimary->mpcClass, pcDefinition))
+		{
+			continue;
+		}
+		pcTemplate = NewTemplate(pcPrimary->mpcSymbol, pcInner, pcDefinition, false);
+		pcTemplate->mpcPrimary = pcPrimary;
+		pcTemplate->mpcPattern = pcName->GetLast();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The explicit specialisation of a function template for the mangled arguments,
 // or NULL.  A specialisation's arguments are its explicit ones (Size<char>) and
 // those deduced from its parameters' types (Size(short)), worked out once.
@@ -2334,6 +2633,10 @@ CCPPTemplate* CCPPUnit::FindFunctionSpecialisation(CCPPTemplate* pcPrimary, CCha
 	size						i;
 	size						j;
 
+	if (pcPrimary->mbMemberTemplate && pcPrimary->mpcClass && pcPrimary->mpcClass->mpcTemplate)
+	{
+		AddMemberTemplateSpecialisations(pcPrimary);
+	}
 	for (i = 0; i < mapcTemplates.NumElements(); i++)
 	{
 		pcTemplate = mapcTemplates.GetPtr(i);

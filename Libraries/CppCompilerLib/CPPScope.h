@@ -82,6 +82,7 @@ public:
 
 	void		Add(CCPPScope* pcScope);
 	void		AddBefore(CCPPScope* pcScope, int iBefore);
+	void		LimitTo(int iBefore);
 	size		NumElements(void) const;
 	CCPPScope*	GetPtr(size i);
 	void		SetPtr(size i, CCPPScope* pcScope);
@@ -103,6 +104,7 @@ public:
 	CCPPScope*		mpcQualifier;		//A member function defined outside its class: the class is searched before the parent.
 	bool			mbDependent;		//A class whose bases or members depend on template parameters, so lookup can fail.
 	bool			mbControl;			//An if's or a for's own scope: what its condition or first part declares.
+	uint32			muiDependentBases;	//Which of the first 32 of mapcBases depend on template parameters: a name that isn't qualified isn't looked for in them.  [temp.dep] 3
 
 	void			Init(ECPPScopeKind eKind, CCPPScope* pcParent, CCPPSymbol* pcOwner, CMallocator* pcMalloc = NULL);
 	void			Kill(void);
@@ -131,6 +133,8 @@ public:
 	CCPPScope*		FindUnnamedNamespace(void);
 	bool			IsInUnnamedNamespace(void);
 	bool			IsDependent(void);
+	void			SetDependentBase(size uiBase);
+	bool			IsDependentBase(size uiBase) const;
 	bool			Encloses(CCPPScope* pcScope);
 	void			GatherOverloadScopes(int64 lliName, bool bQualified, CCPPOverloadScopes* pcNamespaces);
 	void			GatherEnclosingNamespaces(CCPPOverloadScopes* pcNamespaces);

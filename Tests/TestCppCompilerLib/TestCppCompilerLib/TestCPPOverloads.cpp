@@ -86,7 +86,8 @@ void TestCPPOverloadsCalledObject(void)
 	AssertInt(12, TestCPP65Main("struct S { int i; int G() const { return 2; } int G() { return 1; } };\nint main() { S s; s.i = 0; const S* p = &s; S* q = &s; return q->G() * 10 + p->G(); }"));
 	AssertInt(12, TestCPP65Main("struct S { int i; int operator[](int a) { return 1; } int operator[](int a) const { return 2; } };\nint main() { S s; s.i = 0; const S& c = s; return s[0] * 10 + c[0]; }"));
 	AssertInt(21, TestCPP65Main("struct S { int i; int G() { return 1; } int G() const { return 2; } int H() const { return G(); } int I() { return G(); } };\nint main() { S s; s.i = 0; return s.H() * 10 + s.I(); }"));
-	AssertInt(2, TestCPP65Main("struct S { int i; int G(long long a) { return 1; } int G(int a) const { return 2; } };\nint main() { S s; s.i = 0; return s.G(1); }"));
+	//The object binds better to G(long long)'s this, the argument to G(int) const's: neither is better.  [over.match.best] 1
+	AssertOverloadError("The call is ambiguous", "struct S { int i; int G(long long a) { return 1; } int G(int a) const { return 2; } };\nint main() { S s; s.i = 0; return s.G(1); }");
 
 	AssertOverloadError("The object is const and the function that takes these arguments isn't a const member function", "struct S { int i; int G() { return 1; } };\nint main() { S s; s.i = 0; const S& c = s; return c.G(); }");
 }

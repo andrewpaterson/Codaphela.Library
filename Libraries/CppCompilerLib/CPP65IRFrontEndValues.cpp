@@ -200,7 +200,16 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		case CPPBN_EnclosingConstant:
 			return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 		case CPPBN_TemplateArgument:
-			return Value(cBound.mpcArgument, psValue);
+			if (!Value(cBound.mpcArgument, psValue))
+			{
+				return false;
+			}
+			if (psValue->psType->IsNullPointer())
+			{
+				//nullptr for a pointer parameter is a null pointer of its type.
+				psValue->psType = mpcUnit->ValueParameterType(cBound.mpcSymbol, psValue->psType);
+			}
+			return true;
 		case CPPBN_Variable:
 			//A static const member initialised in its class is its value (CCPP65TypeChecker::IdExpression).
 			if (mpcUnit->IsConstantMember(cBound.mpcVariable) && ConstantValue(pcExpression, psValue))
@@ -1227,6 +1236,17 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		{
 			//++x and --x are x, once it is stepped.  [expr.pre.incr] 1
 			return IncrementExpression(pcUnary, &sAddress, psPlace);
+		}
+		if ((pcUnary->meOperator != CT_Multiply) && !pcUnary->mbPostfix && mpcUnit->IsObject(pcUnary->mpcOperand) && mpcUnit->DeclaredTypeOf(pcExpression) && mpcUnit->DeclaredTypeOf(pcExpression)->IsReference())
+		{
+			//++object, -object ... whose operator returns a reference (S& operator++()): what it refers to.
+			if (!OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, &sAddress))
+			{
+				return false;
+			}
+			psPlace->sAddress = sAddress.sValue;
+			psPlace->psType = sAddress.psType->WithoutReference();
+			return sAddress.psType->IsReference() || Unsupported(__FILE__, __LINE__);
 		}
 		if (pcUnary->meOperator != CT_Multiply)
 		{

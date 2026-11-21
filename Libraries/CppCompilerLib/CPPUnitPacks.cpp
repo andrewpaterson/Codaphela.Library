@@ -342,6 +342,7 @@ CCPPSymbol* CCPPUnit::PackElement(SCPPBinding* psPack, size k)
 	psBinding->bSelf = false;
 	psBinding->pcArgument = NULL;
 	psBinding->pcTemplate = NULL;
+	psBinding->pcAlias = NULL;
 
 	psElement = masPackElements.Add();
 	psElement->pcBindings = pcBindings;
@@ -574,9 +575,10 @@ CArraySyntax* CCPPUnit::ExpandArguments(CArraySyntax* papcArguments)
 	}
 	if (!bResult)
 	{
+		//Not kept: asked again where errors are said, it says why.
 		papcExpanded->Kill();
 		free(papcExpanded);
-		papcExpanded = NULL;
+		return NULL;
 	}
 	psExpanded = masExpandedArguments.Add();
 	psExpanded->papcArguments = papcArguments;

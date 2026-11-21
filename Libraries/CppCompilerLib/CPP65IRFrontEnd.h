@@ -292,6 +292,8 @@ protected:
 	bool			IsPlaceType(SCPP65Type* psType);
 	bool			IsLocalType(SCPP65Type* psType);
 	bool			ReferenceAddress(SCPP65IRPlace* psPlace, SCPP65Type* psReference, SIRReference* psAddress);
+	bool			ReferredPlace(CCPPSyntax* pcExpression, SCPP65Type* psReference, SCPP65IRPlace* psPlace);
+	void			ArrowResult(SCPP65IRValue* psResult);
 	bool			ConvertedAddress(SCPP65IRPlace* psPlace, SCPP65Type* psReference, SIRReference* psAddress);
 	CIRBlock*		NewBlock(void);
 	void			StartBlock(CIRBlock* pcBlock);

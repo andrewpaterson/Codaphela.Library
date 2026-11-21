@@ -1504,8 +1504,9 @@ CCPPSyntax* CCPPUnit::BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pcIn
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 {
-	SCPP65Type*	psPlace;
-	SCPP65Type*	psValue;
+	SCPP65Type*			psPlace;
+	SCPP65Type*			psValue;
+	CCPPBoundConversion	cConversion;
 
 	if (!(psReference->psBase->bConst || psReference->bRvalue))
 	{
@@ -1520,6 +1521,15 @@ bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 	{
 		psValue = ValueTypeOf(pcArgument);
 		return psValue && !(psValue->IsClass() && ((psValue->pcClass == psReference->psBase->pcClass) || IsDerived(psValue->pcClass, psReference->psBase->pcClass, NULL)));
+	}
+	psValue = ValueTypeOf(pcArgument);
+	if (psValue && psValue->IsClass() && !psReference->bRvalue)
+	{
+		//const T& binds to what the object's operator T& returns, itself; a temporary only holds what another
+		//conversion function's result converts to.  [dcl.init.ref] 5.1.2, [over.match.ref]
+		mcBinder.BindObjectConversion(psValue->pcClass, psReference, false, NULL, &cConversion);
+		return !cConversion.mpcFunction || !cConversion.mpcFunction->mpsReturn->IsLvalueReference() ||
+			   !psReference->psBase->Unqualified()->Equals(cConversion.mpcFunction->mpsReturn->psBase->Unqualified()) || !psReference->psBase->HasQualifiersOf(cConversion.mpcFunction->mpsReturn->psBase);
 	}
 	if (IsUncapturedConstant(pcArgument))
 	{
@@ -1591,6 +1601,31 @@ bool CCPPUnit::IsObject(CCPPSyntax* pcExpression)
 
 	psType = ValueTypeOf(pcExpression);
 	return psType && psType->IsClass();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an operator's operand may make it an operator function's call: an
+// object, or an enumerator or enum value where an operator function of the
+// operator's name that is no class's is declared (else it is only ever the
+// built-in operator, and isn't looked for).  [over.match.oper] 1, 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsOperatorOperand(CCPPSyntax* pcExpression, ECppTokens eOperator)
+{
+	SCPP65Type*	psType;
+
+	psType = ValueTypeOf(pcExpression);
+	if (!psType)
+	{
+		return false;
+	}
+	if (psType->IsClass())
+	{
+		return true;
+	}
+	return psType->pcEnum && mcBinder.HasFreeOperator(GetOperatorName(eOperator, false));
 }
 
 

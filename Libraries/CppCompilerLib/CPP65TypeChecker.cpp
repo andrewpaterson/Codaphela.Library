@@ -648,13 +648,15 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 		}
 		pcParameter = (CCPPSyntaxParameter*)cBound.mpcSymbol->mpcDeclaration;
 		psType = (pcParameter && (pcParameter->GetKind() == CPPS_Parameter)) ? mpcUnit->GetDeclarators()->GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter) : NULL;
-		return (psType && psType->IsInteger()) ? psType : &mpcTypes->msInt;
+		return (psType && (psType->IsInteger() || psType->IsNullPointer())) ? psType : &mpcTypes->msInt;
 	case CPPBN_Function:
 		return FunctionAddress(pcId, cBound.mpcSymbol->mlliName, NULL);
 	case CPPBN_FunctionTemplate:
 		return FunctionTemplateAddress(pcId);
 	case CPPBN_TemplateArgument:
-		return Value(cBound.mpcArgument);
+		//nullptr for a pointer parameter is a null pointer of its type.
+		psType = Value(cBound.mpcArgument);
+		return (psType && psType->IsNullPointer()) ? mpcUnit->ValueParameterType(cBound.mpcSymbol, psType) : psType;
 	case CPPBN_Variable:
 		//SIZE::Max's value is the constant its class gives it: it needs no definition.  [class.static.data] 4
 		if (mpcUnit->IsConstantMember(cBound.mpcVariable) && (cBound.mpcVariable->mpsType->IsFloat() || mpcUnit->Constant(pcId, &lliValue)))
@@ -826,6 +828,11 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	case CT_Decrement:
 		return IncrementExpression(pcUnary);
 	case CT_LogicalNot:
+		if (mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
+		{
+			//!object: its operator! (the object's or one that is no class's), whatever it returns.  [over.match.oper] 2
+			return OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary);
+		}
 		return ConditionValue(pcUnary);
 	case CT_Multiply:
 		if (mpcUnit->IsObject(pcUnary->mpcOperand))
@@ -880,6 +887,11 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	{
 		Error(pcUnary, "This operator is not supported by the compiler yet");
 		return NULL;
+	}
+	if (!mpcUnit->IsObject(pcUnary->mpcOperand) && mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
+	{
+		//An enum's operand with an operator function that takes it.
+		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary);
 	}
 	if (mpcUnit->IsObject(pcUnary->mpcOperand))
 	{
@@ -1141,7 +1153,7 @@ bool CCPP65TypeChecker::HasOperatorFunction(CCPPSyntaxBinaryExpression* pcBinary
 {
 	CCPPBoundCall	cBound;
 
-	return (mpcUnit->IsObject(pcBinary->mpcLeft) || mpcUnit->IsObject(pcBinary->mpcRight)) &&
+	return (mpcUnit->IsOperatorOperand(pcBinary->mpcLeft, pcBinary->meOperator) || mpcUnit->IsOperatorOperand(pcBinary->mpcRight, pcBinary->meOperator)) &&
 		   mpcUnit->GetBinder()->BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
 }
 
@@ -1546,6 +1558,7 @@ SCPP65Type* CCPP65TypeChecker::ConditionValue(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 {
+	CCPPBoundCall			cOperatorCall;
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psLeft;
@@ -1561,7 +1574,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 	if (pcExpression->GetKind() == CPPS_UnaryExpression)
 	{
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
-		if ((pcUnary->meOperator == CT_LogicalNot) && mpcUnit->IsObject(pcUnary->mpcOperand) && mpcUnit->HasMember(mpcUnit->ObjectClass(pcUnary->mpcOperand), mpcUnit->GetOperatorName(CT_LogicalNot, false)))
+		if ((pcUnary->meOperator == CT_LogicalNot) && mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cOperatorCall, false))
 		{
 			return Truth(OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary), pcUnary);
 		}
@@ -1641,6 +1654,10 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	CCPPBoundCall	cBound;
 	SCPP65Type*		psType;
 
+	if (mpcUnit->ImplicitAssignment(pcCall))
+	{
+		return Assignment(mpcUnit->ImplicitAssignment(pcCall));
+	}
 	if (!mpcUnit->GetBinder()->Bind(pcCall, &cBound, true))
 	{
 		return NULL;
@@ -1663,6 +1680,14 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		return Builtin(pcCall, cBound.mpapcArguments, cBound.mlliName);
 	case CPPBC_Unchecked:
 		return UncheckedCall(cBound.mpapcArguments);
+	case CPPBC_Surrogate:
+		//object(): its conversion function's pointer called.  [over.call.object] 2
+		psType = CCPPOverloads::SurrogateType(cBound.mpcFunction);
+		if (!ObjectCall(cBound.mpcObject, cBound.mpcFunction, NULL, pcCall) || !Arguments(psType->papsParameters, NULL, psType->bVariadic, cBound.mpapcArguments, pcCall, psType->psBase))
+		{
+			return NULL;
+		}
+		return psType->psBase;
 	case CPPBC_Pointer:
 		psType = mpcUnit->CalleePointerType(cBound.mpcCallee);
 		if (psType)
@@ -2096,11 +2121,14 @@ SCPP65Type* CCPP65TypeChecker::ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pc
 		return Value(pcObject);
 	}
 	psType = OperatorCall(pcObject, CT_MemberByPointer, &mapcNone, pcNode);
+	psType = (psType && psType->IsReference() && psType->psBase->IsClass()) ? psType->psBase : psType;
 	for (i = 0; psType && psType->IsClass() && (i < CPP_MAX_ARROWS); i++)
 	{
-		//An operator-> that returns an object: its operator-> is applied, until one returns a pointer.  [over.ref] 1
+		//An operator-> that returns an object (or a reference to one): its operator-> is applied, until one returns a
+		//pointer.  [over.ref] 1
 		pcFunction = mpcUnit->CompleteClass(psType->pcClass, pcNode) ? mpcUnit->GetBinder()->FindArrowOperator(psType->pcClass, NULL, pcNode) : NULL;
 		psType = pcFunction ? Call(pcFunction, NULL, pcNode) : NULL;
+		psType = (psType && psType->IsReference() && psType->psBase->IsClass()) ? psType->psBase : psType;
 	}
 	if (psType && !psType->IsPointer())
 	{
@@ -3500,9 +3528,10 @@ SCPP65Type* CCPP65TypeChecker::ObjectType(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool bBraced)
 {
-	CArraySyntax*	papcElements;
-	SCPP65Type*		psElement;
-	SCPP65Type*		psValue;
+	CArraySyntax*				papcElements;
+	CCPPSyntaxIdExpression*		pcFunctionName;
+	SCPP65Type*					psElement;
+	SCPP65Type*					psValue;
 	size			i;
 	bool			bResult;
 	bool			bDirect;
@@ -3561,6 +3590,12 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 
 	if (psType->IsReference())
 	{
+		pcFunctionName = psType->psBase->IsFunction() ? mpcUnit->FunctionNameOf(pcInitialiser) : NULL;
+		if (pcFunctionName && pcFunctionName->mpcName->mpcSymbol)
+		{
+			//int (&f)(int) = F; binds to the overload of F of the type.  [over.over] 1
+			return FunctionAddress(pcFunctionName, pcFunctionName->mpcName->mpcSymbol->mlliName, psType->psBase) != NULL;
+		}
 		if (!BindsCategory(psType, pcInitialiser, pcNode))
 		{
 			return false;

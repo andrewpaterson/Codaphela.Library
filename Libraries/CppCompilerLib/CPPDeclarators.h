@@ -53,7 +53,7 @@ public:
 	bool					IsDecltypeAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	SCPP65Type*				AutoType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser);
 	SCPP65Type*				DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
-	SCPP65Type*				AliasTemplateType(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
+	SCPP65Type*				AliasTemplateType(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPSymbol* pcAliasSymbol = NULL);
 	SCPP65Type*				UnderlyingType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				DecltypeType(CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				OperandType(CCPPSyntax* pcOperand);

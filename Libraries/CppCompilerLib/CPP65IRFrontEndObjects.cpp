@@ -257,15 +257,17 @@ bool CCPP65IRFrontEnd::ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRRefer
 			{
 				return false;
 			}
+			ArrowResult(&sPointer);
 			for (i = 0; sPointer.psType->IsClass() && (i < CPP_MAX_ARROWS); i++)
 			{
-				//An operator-> that returns an object (its address): its operator->, on it.  [over.ref] 1
+				//An operator-> that returns an object (its address) or a reference to one: its operator->, on it.  [over.ref] 1
 				pcClass = sPointer.psType->pcClass;
 				pcFunction = mpcUnit->GetBinder()->FindArrowOperator(pcClass, NULL, pcObject);
 				if (!pcFunction || !Call(pcFunction, FunctionSymbol(pcFunction), NULL, &mapcNone, &sPointer, NULL, false, pcClass, false, sPointer.sValue))
 				{
 					return Unsupported(__FILE__, __LINE__);
 				}
+				ArrowResult(&sPointer);
 			}
 		}
 		else if (!Value(pcObject, &sPointer))
@@ -289,6 +291,21 @@ bool CCPP65IRFrontEnd::ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRRefer
 	}
 	*psAddress = sPlace.sAddress;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What an operator-> returned: a reference to an object (its address) is
+// that object, whose operator-> is applied next.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::ArrowResult(SCPP65IRValue* psResult)
+{
+	if (psResult->psType->IsReference() && psResult->psType->psBase->IsClass())
+	{
+		psResult->psType = psResult->psType->psBase;
+	}
 }
 
 

@@ -44,6 +44,7 @@ protected:
 	CCPPTemplate*		mpcTemplate;
 	CArrayCPP65Types	mapsDeduced;
 	CArrayInt64			malliDeduced;
+	CArrayCPPDeducedPacks	masPacks;
 
 public:
 	void				Init(CCPPUnit* pcUnit, CCPPTemplate* pcTemplate);
@@ -53,6 +54,7 @@ public:
 	void				DeduceConversion(CCPPSyntaxTypeId* pcType, SCPP65Type* psTo);
 	CArrayCPP65Types*	GetTypes(void);
 	CArrayInt64*		GetValues(void);
+	CArrayCPPDeducedPacks*	GetPacks(void);
 
 protected:
 	void				DeduceParameters(CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments);
@@ -71,6 +73,10 @@ protected:
 	void				DeduceValue(CCPPSymbol* pcSymbol, int64 lliValue);
 	CCPPClass*			FindInstanceBase(CCPPClass* pcClass, CCPPSymbol* pcTemplate);
 	CCPPSymbol*			GetArgumentSymbol(CCPPSyntax* pcArgument);
+	bool				DeducePack(CCPPSyntax* pcArgument, CCPPTemplateArguments* pcArguments, size uiFirst);
+	void				DeduceFromList(CCPPSyntaxName* pcName, CCPPSyntax* pcList);
+	bool				NeedsPattern(CCPPSyntaxDeclarator* pcDeclarator);
+	void				DeduceByPattern(CCPPSyntaxParameter* pcParameter, SCPP65Type* psArgument);
 };
 
 
@@ -105,6 +111,7 @@ public:
 
 	bool					Match(CArraySyntax* papcPattern, CCPPTemplateArguments* pcArguments);
 	bool					MatchTypeId(CCPPSyntaxTypeId* pcPattern, SCPP65Type* psType);
+	bool					MatchParameter(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType);
 	CCPPTemplateArguments*	GetDeduced(void) const;
 	int						GetScore(void) const;
 

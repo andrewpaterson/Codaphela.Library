@@ -43,6 +43,10 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psOperandType;
 
+	if (mpcUnit->ImplicitAssignment(pcCall))
+	{
+		return Assignment(mpcUnit->ImplicitAssignment(pcCall), psValue, NULL);
+	}
 	if (!mpcUnit->GetBinder()->Bind(pcCall, &cBound, false))
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -69,6 +73,13 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 		return InlineMemcpy(cBound.mpapcArguments, mpcUnit->TypeOf(pcCall), psValue);
 	case CPPBC_Builtin:
 		return Builtin(pcCall, cBound.mpapcArguments, cBound.mlliName, psValue);
+	case CPPBC_Surrogate:
+		//object(): the pointer its conversion function gives, called.  [over.call.object] 2
+		if (!Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, &mapcNone, &sObject, cBound.mpcObject, false, cBound.mpcFunction->mpcClass))
+		{
+			return false;
+		}
+		return Call(NULL, sObject.sValue, CCPPOverloads::SurrogateType(cBound.mpcFunction), cBound.mpapcArguments, psValue);
 	case CPPBC_Pointer:
 		//(*pf)() is pf(); (*ppf)() calls the function pointer ppf points to, so it keeps its *.
 		pcCallee = cBound.mpcCallee;
@@ -891,7 +902,7 @@ bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP
 				}
 				sArgument.sValue = sPlace.sAddress;
 			}
-			else if (!Place(pcArgument, &sPlace) || !ReferenceAddress(&sPlace, psParameter, &sArgument.sValue))
+			else if (!ReferredPlace(pcArgument, psParameter, &sPlace) || !ReferenceAddress(&sPlace, psParameter, &sArgument.sValue))
 			{
 				return false;
 			}

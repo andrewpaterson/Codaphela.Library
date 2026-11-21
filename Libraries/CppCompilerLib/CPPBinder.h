@@ -50,6 +50,7 @@ enum ECPPBoundCall
 	CPPBC_Builtin,			//A __builtin_ function, written where it is called.
 	CPPBC_InlineMemcpy,		//memcpy of a few bytes, copied where it is called.
 	CPPBC_Unchecked,		//An intrinsic of the host's compiler that no header declares (only when checking).
+	CPPBC_Surrogate,		//object() through the pointer to a function its conversion function (mpcFunction) gives.  [over.call.object] 2
 };
 
 
@@ -204,6 +205,7 @@ public:
 	bool			IsAssignable(SCPP65Type* psTo, SCPP65Type* psFrom);
 	CCPPFunction*	BindRangeFunction(int64 lliName, CCPPClass* pcClass, CCPPSyntax* pcRange, CCPPSyntax* pcNode);
 	bool	BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode, CCPPBoundConstruction* pcBound, bool bReport);
+	bool	IsCopyInitialiser(CCPPSyntax* pcValue);
 	bool	ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	bool	HasMemberMadeByCode(CCPPClass* pcClass);
 	bool	IsCopyDeleted(CCPPClass* pcClass);
@@ -218,6 +220,7 @@ public:
 	CCPPFunction*	FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded);
 	CCPPFunction*	FindMemberFunction(CCPPClass* pcClass, int64 lliName, SCPP65Type* psTarget, CCPPClass** ppcClass, bool* pbOverloaded);
 	CCPPFunction*	FindLiteralOperator(int64 lliName, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	bool			HasFreeOperator(int64 lliName);
 	CCPPFunction*	InitializerListConstructor(CCPPClass* pcClass, CCPPSyntax* pcList);
 	CCPPFunction*	FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	CCPPFunction*	ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
@@ -232,6 +235,7 @@ public:
 	bool			IsGlobalSizedDeallocation(CCPPFunction* pcFunction);
 	bool			IsNearerDeallocation(CCPPFunction* pcFunction, CCPPFunction* pcFound);
 	bool			HasMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments);
+	bool			HasOwnMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments);
 	bool			KeepsQualifiers(SCPP65Type* psTo, SCPP65Type* psFrom);
 	SCPP65Type*		ContextualType(CCPPSyntax* pcExpression, ECPPContextualTypes eWanted);
 	CCPPFunction*	FindIntegerConversion(CCPPClass* pcClass, CCPPSyntax* pcNode);
