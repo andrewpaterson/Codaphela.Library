@@ -109,6 +109,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	CCanvas::Init(pWindow, pDraw);
 	SetTransparent(true);
 	SetCanGetFocus(true);
+	SetCursor(NC_Text);
 
 	Relayout();
 
@@ -756,13 +757,16 @@ void CTextArea::SetEditable(bool bEditable)
 //
 // A text area that isn't selectable passes the pointer's presses and
 // drags to its parent, which can act on them; give it focus not either
-// (SetCanGetFocus) and it is only something to read.
+// (SetCanGetFocus) and it is only something to read.  The pointer is an
+// I-beam over one that is selectable, and its parent's shape over one
+// that isn't.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::SetSelectable(bool bSelectable)
 {
 	mbSelectable = bSelectable;
 	mcInput.SetPointerEnabled(bSelectable);
+	SetCursor(bSelectable ? NC_Text : NC_Arrow);
 }
 
 

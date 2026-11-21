@@ -31,6 +31,7 @@ enum ENativeCursor
 	NC_SizeNorthWestSouthEast,
 	NC_SizeNorthEastSouthWest,
 	NC_Move,
+	NC_Text,				//An I-beam: over text that can be selected.
 	NC_NumCursors,
 };
 

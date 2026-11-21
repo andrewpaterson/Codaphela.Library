@@ -7,6 +7,9 @@
 #include "WindowLib/JewelTheme.h"
 #include "InputLib/Input.h"
 #include "WindowLib/TextArea.h"
+#include "WindowLib/TextField.h"
+#include "WindowLib/GridContainer.h"
+#include "WindowLib/Label.h"
 #include "WindowLib/ComponentInput.h"
 #include "WindowLib/ClearCanvasDraw.h"
 #include "WinRefLib/WinRefWindowFactory.h"
@@ -2005,9 +2008,9 @@ void TestTextAreaEditDragText(void)
 		pTestWindow->Layout();
 		AssertInt(iScrolled + 96, pScroll->GetScrollPosition().y);
 
-		//Escape ends the drag: the pointer is the text area's own again and nothing repeats.
+		//Escape ends the drag: the pointer is the text area's own again, an I-beam, and nothing repeats.
 		pTestWindow->InputCommand(CIC_ClearSelection, true);
-		AssertInt(NC_Arrow, pTextArea->GetCursor());
+		AssertInt(NC_Text, pTextArea->GetCursor());
 		AssertTrue(pTestWindow->GetFocus()->GetDragRepeatWait(GetDebugTickCount() + 1000) == -1);
 		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
 
@@ -2809,6 +2812,98 @@ void TestTextAreaEditKeysScroll(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The pointer is an I-beam over text that can be selected (a text area,
+// a text field) and the arrow over anything else, a text area that isn't
+// selectable among them: the window gives its native window the shape of
+// what the pointer is over.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditPointerShape(void)
+{
+	STestWindow		cWindow;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CGridContainer>		pGrid;
+		Ptr<CTextArea>			pTextArea;
+		Ptr<CTextArea>			pReadOnly;
+		Ptr<CTextArea>			pNote;
+		Ptr<CTextField>			pField;
+		Ptr<CLabel>				pLabel;
+		SInt32Vec2				sPosition;
+		SInt32Vec2				sSize;
+
+		cWindow.Init("Pointer Shape Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, ReadLabelFont());
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+
+		pTextArea = OMalloc<CTextArea>(pTestWindow, pTheme, ReadLabelFont(), "int foo;");
+		pReadOnly = OMalloc<CTextArea>(pTestWindow, pTheme, ReadLabelFont(), "read only");
+		pReadOnly->SetEditable(false);
+		pNote = OMalloc<CTextArea>(pTestWindow, pTheme, ReadLabelFont(), "a note");
+		pNote->SetSelectable(false);
+		pField = OMalloc<CTextField>(pTestWindow, pTheme, "field");
+		pLabel = OMalloc<CLabel>(pTestWindow, ReadLabelFont(), "label");
+		pGrid->AddComponent(pTextArea, 0, 0);
+		pGrid->AddComponent(pReadOnly, 0, 1);
+		pGrid->AddComponent(pNote, 0, 2);
+		pGrid->AddComponent(pField, 0, 3);
+		pGrid->AddComponent(pLabel, 0, 4);
+		pTestWindow->Layout();
+
+		//Each component's own shape: a text area that can't be edited can still be selected in.
+		AssertInt(NC_Text, pTextArea->GetCursor());
+		AssertInt(NC_Text, pReadOnly->GetCursor());
+		AssertInt(NC_Arrow, pNote->GetCursor());
+		AssertInt(NC_Text, pField->GetCursor());
+		AssertInt(NC_Arrow, pLabel->GetCursor());
+
+		//The native window's, as the pointer goes over each.
+		AssertInt(NC_Arrow, pTestWindow->GetNativeWindow()->GetCursor());
+		sPosition = pTextArea->GetPosition();
+		pTestWindow->PointerMoved(sPosition.x + 4, sPosition.y + 4);
+		AssertInt(NC_Text, pTestWindow->GetNativeWindow()->GetCursor());
+		sPosition = pLabel->GetPosition();
+		pTestWindow->PointerMoved(sPosition.x + 4, sPosition.y + 4);
+		AssertInt(NC_Arrow, pTestWindow->GetNativeWindow()->GetCursor());
+		sPosition = pReadOnly->GetPosition();
+		pTestWindow->PointerMoved(sPosition.x + 4, sPosition.y + 4);
+		AssertInt(NC_Text, pTestWindow->GetNativeWindow()->GetCursor());
+		sPosition = pNote->GetPosition();
+		pTestWindow->PointerMoved(sPosition.x + 4, sPosition.y + 4);
+		AssertInt(NC_Arrow, pTestWindow->GetNativeWindow()->GetCursor());
+		sPosition = pField->GetPosition();
+		sSize = pField->GetActualSize();
+		pTestWindow->PointerMoved(sPosition.x + sSize.x / 2, sPosition.y + sSize.y / 2);
+		AssertInt(NC_Text, pTestWindow->GetNativeWindow()->GetCursor());
+
+		//Made selectable, or not, while the pointer is over it: the shape follows.
+		sPosition = pNote->GetPosition();
+		pTestWindow->PointerMoved(sPosition.x + 4, sPosition.y + 4);
+		pNote->SetSelectable(true);
+		AssertInt(NC_Text, pTestWindow->GetNativeWindow()->GetCursor());
+		pNote->SetSelectable(false);
+		AssertInt(NC_Arrow, pTestWindow->GetNativeWindow()->GetCursor());
+
+		pLabel = NULL;
+		pField = NULL;
+		pNote = NULL;
+		pReadOnly = NULL;
+		pTextArea = NULL;
+		pGrid = NULL;
+		pTheme = NULL;
+		pTestWindow = NULL;
+	}
+
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextAreaEdit(void)
@@ -2826,6 +2921,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditLinkEvent();
 	TestTextAreaEditReplaceRanges();
 	TestTextAreaEditDragText();
+	TestTextAreaEditPointerShape();
 	TestTextAreaEditKeysScroll();
 	TestTextAreaEditRevealingUndo();
 	TestTextAreaEditOccurrences();

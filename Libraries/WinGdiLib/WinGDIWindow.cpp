@@ -886,6 +886,9 @@ bool CWinGDIWindow::ShowCursor(void)
     case NC_Move:
         szCursor = IDC_SIZEALL;
         break;
+    case NC_Text:
+        szCursor = IDC_IBEAM;
+        break;
     default:
         szCursor = IDC_ARROW;
         break;

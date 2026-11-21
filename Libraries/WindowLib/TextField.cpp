@@ -63,6 +63,7 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 	mpPadded->AddComponent(mpText);
 
 	UpdateFaceSize();
+	SetCursor(NC_Text);  //An I-beam over the field, its border too.
 	mcInput.Init(this, &mcEditing, false);
 	mcEditing.SetCaretPosition(mcDocument.Length());
 	mcEditing.ClearUndo();
