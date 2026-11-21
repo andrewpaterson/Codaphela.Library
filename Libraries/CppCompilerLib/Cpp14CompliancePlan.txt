@@ -349,6 +349,13 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
        - = object of a class without a copy constructor of its own no longer looks for a constructor to copy it
          (CopyInitialises), found by the uncalled-body check on a constexpr function.
 
+   - Clauses 13 and 14, measured 2026-11-21 by the same method.  The user: "Continue with your method for 13, 14.
+     Commit and clean-up as you go.  Then show me the list of problems."  Clause 13 42 of 69 (Clause13.txt,
+     ee973b438); clause 14 63 of 108 (Clause14b.txt and Clause14c.txt beside the 21 of Clause14.txt, 9664e7e5d), the
+     same on both targets.  g++ was followed over the standard's text twice: it refuses a class template's enumeration
+     defined outside the class (14.5.1.4's own example) and accepts a partial specialisation's argument that is an
+     expression of its parameter (14.5.5 p8), so neither is a case.  The list went to the user; nothing in it is fixed.
+
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size
       (the constant interpreter keeps bytes, not which member was last given a value).  It is the one case in the
