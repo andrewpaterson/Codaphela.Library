@@ -564,6 +564,46 @@ SIRReference CIRPasses::InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint1
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A new instruction at uiIndex in pcBlock's instructions whose result is
+// sResult, a temporary made for it before (one of several that are worked
+// out from each other, so each must exist before the instructions do),
+// with the source line uiSource.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPasses::InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint16 uiOpcode, SIRType sType, SIRReference sResult, SIRReference sFirst, SIRReference sSecond, uint32 uiSource)
+{
+	SIRInstruction	sNew;
+
+	memset(&sNew, 0, sizeof(SIRInstruction));
+	sNew.uiOpcode = uiOpcode;
+	sNew.uiSource = uiSource;
+	sNew.sType = sType;
+	sNew.sResult = sResult;
+	sNew.asArguments[0] = sFirst;
+	sNew.asArguments[1] = sSecond;
+	pcBlock->masInstructions.InsertAt(&sNew, uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new instruction at the end of pcBlock's, with the source line uiSource:
+// that of the instruction or jump it is part of the work of.  sType is as
+// CIRFunction::Add takes it, and its result is a new temporary.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIRPasses::AddInstruction(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond, uint32 uiSource)
+{
+	SIRReference	sResult;
+
+	sResult = mpcFunction->Add(pcBlock, uiOpcode, sType, sFirst, sSecond);
+	pcBlock->masInstructions.Get(pcBlock->masInstructions.NumElements() - 1)->uiSource = uiSource;
+	return sResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the function may write memory its callers can see: a store not to
 // its own frame, a volatile load or store, a call to a function not known
 // to write nothing (CIRModule::IsNoWrites), an indirect call, or anything

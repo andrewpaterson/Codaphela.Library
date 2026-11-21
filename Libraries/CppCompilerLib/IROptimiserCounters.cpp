@@ -559,7 +559,6 @@ bool CIRCounterPasses::ReplaceLoopCounters(void)
 	CIRBlock*		pcBlock;
 	CIRBlock*		pcHead;
 	SIRInstruction*	psCompare;
-	SIRInstruction*	psNew;
 	SIRPhi*			psCounter;
 	SIRPhi*			psOther;
 	SIRLoopCounter	sLoopCounter;
@@ -655,33 +654,9 @@ bool CIRCounterPasses::ReplaceLoopCounters(void)
 			sOtherInitial = psOther->asArguments.Get(uiOutside)->sValue;
 
 			//v + 1 != v0 + (N - c0).
-			sDifference = mpcFunction->AddTemporary(psCounter->sType);
-			sNewBound = mpcFunction->AddTemporary(psCounter->sType);
-			sTest = mpcFunction->AddTemporary(IRType(IRTK_I1));
-			psNew = pcBlock->masInstructions.Add();
-			memset(psNew, 0, sizeof(SIRInstruction));
-			psNew->uiOpcode = IRO_Sub;
-			psNew->uiSource = pcBlock->msJump.uiSource;
-			psNew->sType = psCounter->sType;
-			psNew->sResult = sDifference;
-			psNew->asArguments[0] = sBound;
-			psNew->asArguments[1] = sCounterInitial;
-			psNew = pcBlock->masInstructions.Add();
-			memset(psNew, 0, sizeof(SIRInstruction));
-			psNew->uiOpcode = IRO_Add;
-			psNew->uiSource = pcBlock->msJump.uiSource;
-			psNew->sType = psCounter->sType;
-			psNew->sResult = sNewBound;
-			psNew->asArguments[0] = sOtherInitial;
-			psNew->asArguments[1] = sDifference;
-			psNew = pcBlock->masInstructions.Add();
-			memset(psNew, 0, sizeof(SIRInstruction));
-			psNew->uiOpcode = IRO_Ne;
-			psNew->uiSource = pcBlock->msJump.uiSource;
-			psNew->sType = psCounter->sType;
-			psNew->sResult = sTest;
-			psNew->asArguments[0] = sOtherStepped;
-			psNew->asArguments[1] = sNewBound;
+			sDifference = AddInstruction(pcBlock, IRO_Sub, psCounter->sType, sBound, sCounterInitial, pcBlock->msJump.uiSource);
+			sNewBound = AddInstruction(pcBlock, IRO_Add, psCounter->sType, sOtherInitial, sDifference, pcBlock->msJump.uiSource);
+			sTest = AddInstruction(pcBlock, IRO_Ne, psCounter->sType, sOtherStepped, sNewBound, pcBlock->msJump.uiSource);
 			pcBlock->msJump.sArgument = sTest;
 			bChanged = true;
 			FindDefinitions();
@@ -748,7 +723,6 @@ bool CIRCounterPasses::ReduceMultiplies(void)
 	CIRBlock*		pcValue;
 	SIRInstruction*	psMul;
 	SIRInstruction*	psAdd;
-	SIRInstruction	sNew;
 	SIRPhi*			psPhi;
 	SIRPhi*			psProductPhi;
 	SIRReference	asValues[IR_REDUCE_VALUES];
@@ -886,15 +860,8 @@ bool CIRCounterPasses::ReduceMultiplies(void)
 						}
 						sProduct = (mpcFunction->GetSigned(psAdd->asArguments[1]) == 1) ? sFactor :
 							mpcFunction->Add(pcPreheader, IRO_Mul, sType, sFactor, psAdd->asArguments[1]);
-						memset(&sNew, 0, sizeof(SIRInstruction));
-						sNew.uiOpcode = IRO_Add;
-						sNew.uiSource = psAdd->uiSource;
-						sNew.sType = sType;
-						sNew.sResult = asProducts[ui];
-						sNew.asArguments[0] = asProducts[uj];
-						sNew.asArguments[1] = sProduct;
 						iIndex = mpcContext->mcDefinitions.Index(asValues[ui]);
-						pcValue->masInstructions.InsertAt(&sNew, (size)iIndex + 1);
+						InsertInstruction(pcValue, (size)iIndex + 1, IRO_Add, sType, asProducts[ui], asProducts[uj], sProduct, psAdd->uiSource);
 						FindDefinitions();
 					}
 				}

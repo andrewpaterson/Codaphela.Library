@@ -141,8 +141,8 @@ bool CIRIdiomPasses::MatchIdiomStep(size uiLoop, CIRBlock* pcHead, CIRBlock* pcL
 		psArgument = psPhi->asArguments.Get(ui);
 		if (psArgument->pcBlock == pcLatch)
 		{
-			psNext = mpcContext->mcDefinitions.Instruction(psArgument->sValue);
-			if ((psNext == NULL) || (psNext->uiOpcode != IRO_Add) || !psNext->asArguments[0].Equals(psCounter->sCounter) || !psNext->asArguments[1].IsConstant() ||
+			psNext = mpcContext->mcDefinitions.DefinedBy(psArgument->sValue, IRO_Add);
+			if (!psNext || !psNext->asArguments[0].Equals(psCounter->sCounter) || !psNext->asArguments[1].IsConstant() ||
 				(mpcFunction->GetSigned(psNext->asArguments[1]) != 1) || (psCounter->sNext.IsNone() ? false : !psCounter->sNext.Equals(psArgument->sValue)))
 			{
 				return false;
@@ -216,8 +216,8 @@ bool CIRIdiomPasses::MatchIdiomAddress(size uiLoop, CIRBlock* pcHead, CIRBlock* 
 			psArgument = psPhi->asArguments.Get(ui);
 			if (psArgument->pcBlock == pcLatch)
 			{
-				psAdd = mpcContext->mcDefinitions.Instruction(psArgument->sValue);
-				if ((psAdd == NULL) || (psAdd->uiOpcode != IRO_PtrAdd) || !psAdd->asArguments[0].Equals(sAddress) || !psAdd->asArguments[1].IsConstant() ||
+				psAdd = mpcContext->mcDefinitions.DefinedBy(psArgument->sValue, IRO_PtrAdd);
+				if (!psAdd || !psAdd->asArguments[0].Equals(sAddress) || !psAdd->asArguments[1].IsConstant() ||
 					(mpcFunction->GetSigned(psAdd->asArguments[1]) != lliBytes))
 				{
 					return false;
@@ -233,8 +233,8 @@ bool CIRIdiomPasses::MatchIdiomAddress(size uiLoop, CIRBlock* pcHead, CIRBlock* 
 	}
 
 	//base + index.
-	psAdd = mpcContext->mcDefinitions.Instruction(sAddress);
-	if ((psAdd == NULL) || (psAdd->uiOpcode != IRO_PtrAdd) || !mpcContext->mcLoops.Contains(uiLoop, mpcContext->mcDefinitions.Block(sAddress)) ||
+	psAdd = mpcContext->mcDefinitions.DefinedBy(sAddress, IRO_PtrAdd);
+	if (!psAdd || !mpcContext->mcLoops.Contains(uiLoop, mpcContext->mcDefinitions.Block(sAddress)) ||
 		!mpcContext->mcLoops.IsInvariant(uiLoop, psAdd->asArguments[0], &mpcContext->mcDefinitions))
 	{
 		return false;
@@ -1531,8 +1531,8 @@ bool CIRIdiomPasses::ReplaceStrchr(size uiLoop)
 		return false;
 	}
 	sFirst = psArgument->sValue;
-	psFirstLoad = mpcContext->mcDefinitions.Instruction(sFirst);
-	if (!psFirstLoad || (psFirstLoad->uiOpcode != IRO_Load) || !psFirstLoad->asArguments[0].Equals(sStart) || (psFirstLoad->uiFlags & IRF_Volatile))
+	psFirstLoad = mpcContext->mcDefinitions.DefinedBy(sFirst, IRO_Load);
+	if (!psFirstLoad || !psFirstLoad->asArguments[0].Equals(sStart) || (psFirstLoad->uiFlags & IRF_Volatile))
 	{
 		return false;
 	}

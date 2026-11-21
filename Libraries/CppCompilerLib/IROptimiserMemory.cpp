@@ -121,8 +121,8 @@ void CIRMemoryPasses::SplitAddress(SIRReference sAddress, SIRReference* psRoot, 
 	*plliOffset = 0;
 	for (iSteps = 0; iSteps < 16; iSteps++)
 	{
-		psDefinition = mpcContext->mcDefinitions.Instruction(*psRoot);
-		if ((psDefinition == NULL) || (psDefinition->uiOpcode != IRO_PtrAdd) || !psDefinition->asArguments[1].IsConstant())
+		psDefinition = mpcContext->mcDefinitions.DefinedBy(*psRoot, IRO_PtrAdd);
+		if (!psDefinition || !psDefinition->asArguments[1].IsConstant())
 		{
 			break;
 		}
@@ -194,8 +194,8 @@ void CIRMemoryPasses::PointerBase(SIRReference sRoot, SIRPointerBase* psBase)
 		sValue = asWork[--uiWork];
 		for (iSteps = 0; iSteps < 16; iSteps++)
 		{
-			psDefinition = mpcContext->mcDefinitions.Instruction(sValue);
-			if ((psDefinition == NULL) || (psDefinition->uiOpcode != IRO_PtrAdd))
+			psDefinition = mpcContext->mcDefinitions.DefinedBy(sValue, IRO_PtrAdd);
+			if (!psDefinition)
 			{
 				break;
 			}

@@ -217,8 +217,8 @@ bool CIRFoldingPasses::PointerOffset(SIRInstruction* psInstruction)
 		return false;
 	}
 	sType = mpcFunction->GetTemporaryType(psInstruction->sResult);
-	psAdd = mpcContext->mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
-	if (!psAdd || (psAdd->uiOpcode != IRO_Add) || !psAdd->sType.Equals(IRIntegerType(mpcModule->GetPointerSize(sType.uiSpace))))
+	psAdd = mpcContext->mcDefinitions.DefinedBy(Replacement(psInstruction->asArguments[0]), IRO_Add);
+	if (!psAdd || !psAdd->sType.Equals(IRIntegerType(mpcModule->GetPointerSize(sType.uiSpace))))
 	{
 		return false;
 	}
@@ -259,8 +259,8 @@ bool CIRFoldingPasses::PointerOffsets(SIRInstruction* psInstruction)
 	{
 		return false;
 	}
-	psInner = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[0]);
-	if (!psInner || (psInner->uiOpcode != IRO_PtrAdd) || !psInner->asArguments[1].IsConstant())
+	psInner = mpcContext->mcDefinitions.DefinedBy(psInstruction->asArguments[0], IRO_PtrAdd);
+	if (!psInner || !psInner->asArguments[1].IsConstant())
 	{
 		return false;
 	}
@@ -517,8 +517,8 @@ bool CIRFoldingPasses::Cancels(SIRInstruction* psInstruction, SIRReference* psVa
 
 	case IRO_IToPtr:
 		//A pointer turned into an integer and back.
-		psDefinition = mpcContext->mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
-		if (!psDefinition || (psDefinition->uiOpcode != IRO_PtrToI))
+		psDefinition = mpcContext->mcDefinitions.DefinedBy(Replacement(psInstruction->asArguments[0]), IRO_PtrToI);
+		if (!psDefinition)
 		{
 			return false;
 		}
@@ -532,8 +532,8 @@ bool CIRFoldingPasses::Cancels(SIRInstruction* psInstruction, SIRReference* psVa
 
 	case IRO_PtrAdd:
 		//p + (q - p).
-		psDefinition = mpcContext->mcDefinitions.Instruction(Replacement(psInstruction->asArguments[1]));
-		if (!psDefinition || (psDefinition->uiOpcode != IRO_Sub))
+		psDefinition = mpcContext->mcDefinitions.DefinedBy(Replacement(psInstruction->asArguments[1]), IRO_Sub);
+		if (!psDefinition)
 		{
 			return false;
 		}

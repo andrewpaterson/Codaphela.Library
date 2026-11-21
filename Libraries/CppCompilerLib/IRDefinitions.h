@@ -56,6 +56,7 @@ public:
 	CIRBlock*		Block(SIRReference sValue);
 	int32			Index(SIRReference sValue);
 	uint32			NumUses(SIRReference sValue);
+	SIRInstruction*	DefinedBy(SIRReference sValue, uint16 uiOpcode);
 	bool			IsDefinedBy(SIRReference sValue, uint16 uiOpcode);
 
 protected:

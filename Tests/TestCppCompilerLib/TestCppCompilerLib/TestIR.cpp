@@ -1016,6 +1016,9 @@ void TestIRLoops(void)
 	AssertTrue(cLoops.IsInvariant(1, *pcFunction->masParameters.Get(1), &cDefinitions));
 	AssertPointer(pcB, cDefinitions.Block(sY));
 	AssertTrue(cDefinitions.IsDefinedBy(sY, IRO_Add));
+	AssertNotNull(cDefinitions.DefinedBy(sY, IRO_Add));
+	AssertNull(cDefinitions.DefinedBy(sY, IRO_Sub));
+	AssertFalse(cDefinitions.IsDefinedBy(sY, IRO_Sub));
 	AssertInt(2, cDefinitions.NumUses(sX));
 	AssertInt(1, cDefinitions.NumUses(sY));
 

@@ -431,8 +431,8 @@ bool CIRAddressPasses::SplitLoopAddresses(void)
 			{
 				continue;
 			}
-			psAdd = mpcContext->mcDefinitions.Instruction(psAddress->asArguments[1]);
-			if (!psAdd || (psAdd->uiOpcode != IRO_Add))
+			psAdd = mpcContext->mcDefinitions.DefinedBy(psAddress->asArguments[1], IRO_Add);
+			if (!psAdd)
 			{
 				continue;
 			}

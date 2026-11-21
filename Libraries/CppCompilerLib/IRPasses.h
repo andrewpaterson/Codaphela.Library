@@ -332,6 +332,8 @@ public:
 	void			ComputeLoops(void);
 	void			MoveInstruction(CIRBlock* pcBlock, size uiFrom, size uiTo);
 	SIRReference	InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
+	void			InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint16 uiOpcode, SIRType sType, SIRReference sResult, SIRReference sFirst, SIRReference sSecond, uint32 uiSource);
+	SIRReference	AddInstruction(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond, uint32 uiSource);
 };
 
 

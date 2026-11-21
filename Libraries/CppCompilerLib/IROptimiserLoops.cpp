@@ -109,7 +109,6 @@ bool CIRLoopPasses::LessLoopTests(void)
 	CIRBlock*				pcInside;
 	CIRBlock*				pcOutside;
 	SIRInstruction*			psCompare;
-	SIRInstruction*			psNew;
 	SIRReference			sA;
 	SIRReference			sB;
 	SIRReference			sStepped;
@@ -186,26 +185,8 @@ bool CIRLoopPasses::LessLoopTests(void)
 			//Adding to the block may move its instructions (psCompare too).
 			sType = psCompare->sType;
 			uiSource = psCompare->uiSource;
-			sStepped = mpcFunction->AddTemporary(sType);
-			sTest = mpcFunction->AddTemporary(IRType(IRTK_I1));
-			psNew = pcBlock->masInstructions.Add();
-			psNew->uiOpcode = bStepB ? IRO_Add : IRO_Sub;
-			psNew->uiFlags = 0;
-			psNew->uiNamed = 0;
-			psNew->uiSource = uiSource;
-			psNew->sType = sType;
-			psNew->sResult = sStepped;
-			psNew->asArguments[0] = bStepB ? sB : sA;
-			psNew->asArguments[1] = mpcFunction->AddInteger(sType, 1);
-			psNew = pcBlock->masInstructions.Add();
-			psNew->uiOpcode = IRO_SLt;
-			psNew->uiFlags = 0;
-			psNew->uiNamed = 0;
-			psNew->uiSource = uiSource;
-			psNew->sType = sType;
-			psNew->sResult = sTest;
-			psNew->asArguments[0] = bStepB ? sA : sStepped;
-			psNew->asArguments[1] = bStepB ? sStepped : sB;
+			sStepped = AddInstruction(pcBlock, bStepB ? IRO_Add : IRO_Sub, sType, bStepB ? sB : sA, mpcFunction->AddInteger(sType, 1), uiSource);
+			sTest = AddInstruction(pcBlock, IRO_SLt, sType, bStepB ? sA : sStepped, bStepB ? sStepped : sB, uiSource);
 			pcBlock->msJump.sArgument = sTest;
 			pcBlock->msJump.pcThen = pcInside;
 			pcBlock->msJump.pcElse = pcOutside;
@@ -576,8 +557,8 @@ bool CIRLoopPasses::ReplaceExitValues(void)
 			continue;
 		}
 		sInitial = sLoopCounter.sInit;
-		psBound = mpcContext->mcDefinitions.Instruction(sBound);
-		if ((psBound == NULL) || (psBound->uiOpcode != IRO_Add) || !(psBound->asArguments[0].Equals(sInitial) || psBound->asArguments[1].Equals(sInitial)))
+		psBound = mpcContext->mcDefinitions.DefinedBy(sBound, IRO_Add);
+		if (!psBound || !(psBound->asArguments[0].Equals(sInitial) || psBound->asArguments[1].Equals(sInitial)))
 		{
 			continue;
 		}

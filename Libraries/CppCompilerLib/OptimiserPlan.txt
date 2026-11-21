@@ -6,7 +6,7 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 to 2 are done (2026-11-21).  Stage 3 is next; "The record", at the end, has what each stage
+Where it is: stages 0 to 4 are done (2026-11-21).  Stage 5 is next; "The record", at the end, has what each stage
 found.
 
 
@@ -249,3 +249,36 @@ passes (271,380).
 	said the same thing both ways, so nothing changes for them.  TestIR's optimiser said it only the one way
 	(the flag off, the pass in): its IR_TEST_CONSTANT_DIVISIONS now takes the pass out when it is not asked for,
 	and every case passed as it was.
+
+Stages 3 and 4 (2026-11-21) were proved together, by one set of listings: the 4,201 are the baseline's, so neither
+changed the code.  TestCppCompilerLib passes with both (271,402).
+
+Stage 3: a symbol's attributes are one set.
+
+	SIRSymbolDefinition has uiAttributes (IRSA_Restrict, Local, RegisterCall, NoWrites, NoThrow) where it had
+	five bools; CIRModule has SetSymbolAttributes, GetSymbolAttributes and CopySymbolAttributes, and the ten
+	setters and askers named for one attribute are each a line over them.  The restricts are counted in the
+	one setter.  gasIRSymbolAttributeNames is the four that are written ("restrict @name"), in the order they
+	are printed: the parser's four functions are ParseSymbolAttribute and its ladder of keywords a loop over
+	the table, and the printer's four loops are one.  IRImports and IRInliner each carried restrict, regcall and
+	nothrow to another module by hand: both call CopySymbolAttributes with IRSA_Carried, which is those three.
+	TestIRSymbolAttributes has the set, the count, the copy and the printed order.
+
+	Not carried, as before: local, which must not be (another unit's symbol of the name is another thing), and
+	nowrites.  Carrying nowrites would be sound (it is a proof about the function's definition, and a function
+	has one), and would let a unit that inlines another's function keep what it knows of memory across the
+	calls that function makes; it changes the code, so it is not in a "same code" stage.  It is one line
+	(IRSA_Carried) and three suites to measure, and is left for the user to ask for.
+
+Stage 4: instructions are built by the builder.
+
+	CIRPasses::AddInstruction (at a block's end, with a source line) and a second InsertInstruction (at a
+	place, with a result made before and a source line) build what ReplaceLoopCounters, LessLoopTests and
+	ReduceMultiplies built field by field: six instructions, two of them without the memset.  The temporaries
+	are made in the order they were.  Left as it is: CIRRangePasses::Narrowed, which copies an instruction it is
+	narrowing into a list to put in later, and is not building one.
+
+	CIRDefinitions::DefinedBy gives the instruction that defines a value if it has one opcode (IsDefinedBy,
+	which only a test called, is now it).  The 13 places that fetched the instruction and left at once unless
+	it had that opcode ask it.  The places that go on to try another opcode on the same instruction were left:
+	there the instruction is wanted whatever it is.

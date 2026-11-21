@@ -197,15 +197,29 @@ uint32 CIRDefinitions::NumUses(SIRReference sValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The instruction that defines sValue, if its opcode is uiOpcode: NULL if
+// another kind of instruction defines it, or none does (a phi, a
+// parameter, a constant).  For a pass that looks for one shape: "the add
+// this value is".
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInstruction* CIRDefinitions::DefinedBy(SIRReference sValue, uint16 uiOpcode)
+{
+	SIRInstruction*	psInstruction;
+
+	psInstruction = Instruction(sValue);
+	return (psInstruction && (psInstruction->uiOpcode == uiOpcode)) ? psInstruction : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // True if an instruction with uiOpcode defines sValue.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRDefinitions::IsDefinedBy(SIRReference sValue, uint16 uiOpcode)
 {
-	SIRInstruction*	psInstruction;
-
-	psInstruction = Instruction(sValue);
-	return psInstruction && (psInstruction->uiOpcode == uiOpcode);
+	return DefinedBy(sValue, uiOpcode) != NULL;
 }
 
 

@@ -1313,8 +1313,8 @@ bool CIRRangePasses::BoundIndices(void)
 			{
 				continue;
 			}
-			psExtension = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[1]);
-			if (!psExtension || (psExtension->uiOpcode != IRO_ZExt) || !mpcFunction->TypeOf(psExtension->asArguments[0]).Is(IRTK_I16))
+			psExtension = mpcContext->mcDefinitions.DefinedBy(psInstruction->asArguments[1], IRO_ZExt);
+			if (!psExtension || !mpcFunction->TypeOf(psExtension->asArguments[0]).Is(IRTK_I16))
 			{
 				continue;
 			}
