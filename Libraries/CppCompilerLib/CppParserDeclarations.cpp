@@ -522,6 +522,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseSimpleDeclaration(CCPPSyntax* pcParent, 
 	CCPPSyntaxInitDeclarator*		pcInit;
 	int								iFirstToken;
 	ECPPDeclaratorKind				eDeclaratorKind;
+	CCPPScope*						pcQualifierScope;
 
 	//[dcl.dcl] simple-declaration, [dcl.fct.def] function-definition and [class.mem] member-declaration.
 	iFirstToken = CurrentToken();
@@ -585,7 +586,18 @@ CCPPSyntaxDeclaration* CCPPParser::ParseSimpleDeclaration(CCPPSyntax* pcParent, 
 
 		if (Is(CT_Assignment) || Is(CT_OpenRoundBracket) || Is(CT_OpenCurlyBracket))
 		{
+			pcQualifierScope = QualifierScope(pcDeclarator);
+			if (pcQualifierScope)
+			{
+				//int S::a = k; looks k up in S before the scopes around the definition, as a member function's body
+				//does, and int N::x = y; in N.  [basic.lookup.unqual] 13, 14
+				PushScope(CPPSC_Block, NULL)->mpcQualifier = pcQualifierScope;
+			}
 			pcInit->mpcInitializer = ParseInitializer(pcInit, &pcInit->meInitializer);
+			if (pcQualifierScope)
+			{
+				PopScope(mpcScope);
+			}
 			if (!pcInit->mpcInitializer && (pcInit->meInitializer != CPPI_Default) && (pcInit->meInitializer != CPPI_Delete))
 			{
 				return NULL;
@@ -616,6 +628,29 @@ CCPPSyntaxDeclaration* CCPPParser::ParseSimpleDeclaration(CCPPSyntax* pcParent, 
 	}
 	pcSimple->SetTokens(iFirstToken, PreviousToken());
 	return pcSimple;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class or namespace a declarator's qualified name is a member of (the
+// S of int S::a), or NULL for a simple name or one the parser can't look in.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPScope* CCPPParser::QualifierScope(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxName*	pcName;
+
+	pcName = pcDeclarator->GetName();
+	if (!pcName || pcName->IsSimple() || !pcName->mpcLookup || (pcName->mpcLookup == mpcScope))
+	{
+		return NULL;
+	}
+	if ((pcName->mpcLookup->meKind != CPPSC_Class) && (pcName->mpcLookup->meKind != CPPSC_Namespace))
+	{
+		return NULL;
+	}
+	return pcName->mpcLookup;
 }
 
 

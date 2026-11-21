@@ -269,6 +269,7 @@ protected:
 	bool							IsPointerOperatorStart(void);
 	bool							IsMemberPointerAhead(void);
 	CCPPSyntaxFunctionSuffix*		ParseFunctionSuffix(CCPPSyntax* pcParent, CCPPScope* pcQualifierScope);
+	CCPPScope*						QualifierScope(CCPPSyntaxDeclarator* pcDeclarator);
 	CCPPSyntaxExpression*			ParseLambdaExpression(CCPPSyntax* pcParent);
 	CCPPSyntaxLambdaCapture*		ParseLambdaCapture(CCPPSyntaxLambdaExpression* pcLambda);
 	CCPPSyntaxParameter*			ParseParameter(CCPPSyntax* pcParent);

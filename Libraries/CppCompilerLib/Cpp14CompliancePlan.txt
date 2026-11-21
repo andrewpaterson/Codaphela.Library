@@ -67,6 +67,48 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
      three clauses, expect more from this than from everything in B.
    - A clause's cases go in Tests/TestCppCompilerLib/Conformance/Clauses/ClauseNN.txt ("How the cases are kept").
 
+   - Clause 3, measured 2026-11-20 (a5c2a7c15): 50 of 85 on the 65C64, 49 on the W65C816, and one case held out
+     because it crashed the compiler.  The user, 2026-11-21: "Plan fixes for 1 to 23 then implement that plan in the
+     best order.  Clean up and commit with no co author as you go.  Ensure there are tests."  The plan, in the order
+     done (item numbers are the list's; each fix's commit names its items; its tests are the clause 3 cases, and a
+     new refusal has a valid case beside it):
+       1  enum { x = x }; recursed until the stack overflowed: the enumerator is declared after its value is parsed
+          (the parser).  The held case goes back into Clause03.txt.
+       2  int S::a = k; found ::k: the initialiser of a declarator qualified by a class or namespace is parsed in a
+          block whose qualifier is that scope, as a member function's body is (the parser).
+       3  Constant initialisation of an object made by a constexpr constructor, a reference to a static object and a
+          pointer to one: emitted as data, not run by the start-up code (the unit, with CPPConstants).
+       4  alignas(8) on a local on the W65C816: the frame gives the alignment asked (its back end).
+       6, 10  Lookup by kind (CCPPScope): in a scope where a class or enum and a variable, function or enumerator
+          share a name, ordinary lookup finds the second (the constructors in a class's own scope aren't that); an
+          elaborated type specifier finds the first; a name before :: and a namespace alias's or using-directive's
+          name consider only namespaces, types and templates, going outward past what isn't one.
+       5  A local class using its function's static locals and constants: the binder and the IR front end find the
+          enclosing function's variable (its label, or its constant value).
+       9  A default argument in a class naming a later member: its tokens are kept and parsed when the class is
+          complete, as member function bodies are (the parser).
+       11 p->Base::v with Base a member typedef of p's class: the qualifier is looked up in the object's class when
+          the context doesn't find a class (the binder).
+       12 s.operator double() chooses the conversion function of that type; s.operator I() with I a member typedef
+          parses, I being looked up in the object's class (the parser and the binder).
+       13 A template's non-type parameter whose default depends on an earlier parameter (CPPUnitTemplates).
+       7  switch (int x = f()): the condition's variable is declared and the switch is on it (the IR front end).
+       8  goto while a destructible local is alive: the goto destroys what it leaves, what is alive at the label
+          staying; a jump past an initialised declaration into its scope stays refused (the IR front end's cleanups).
+       14 The harness: a clause case that uses the library's operator new links Libc65's new.cpp, as the Exceptions
+          group does.
+       15, 16, 17, 18  Declarations that clash in one scope ([basic.scope.declarative] 4): a variable defined twice
+          (a redeclaration is the first's variable; extern "C" { int x; } defines), a class defined twice, two
+          enumerators or a variable and a function of one name, a block's redeclarations (a for's or a condition's
+          variable in the statement's outermost block, a parameter in the function's), a label twice in a function,
+          a template parameter's name declared in its template.  C sources keep tentative definitions.
+       19 A::A as a type names the constructor: refused.
+       20 A block scope extern of another type than the variable it redeclares, and a function declared again with
+          another return type, though neither is used.
+       21 An allocation or deallocation function declared in a namespace, or static.
+       22 A member reached through a class that is still incomplete there.
+       23 A constexpr variable whose type isn't a literal type.
+
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size
       (the constant interpreter keeps bytes, not which member was last given a value).  It is the one case in the

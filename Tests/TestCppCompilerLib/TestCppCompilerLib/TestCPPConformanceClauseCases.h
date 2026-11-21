@@ -234,6 +234,20 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//3.3.2 [basic.scope.pdecl] p3: an enumerator is declared after its definition, so its initialiser names the constant outside
+	{
+		"BasicEnumeratorPointOfDeclaration", 1,
+		"const int x = 12;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		enum { x = x };\n"
+		"		if (x == 12) r += 1;\n"
+		"	}\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//3.3.2 [basic.scope.pdecl] p2, p7: a class is declared after its name in its head; an elaborated type specifier in a function's declaration declares the class in the namespace
 	{
 		"BasicPointOfDeclarationClass", 7,
@@ -610,6 +624,20 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	if (S::a == 4) r += 1;\n"
 		"	if (S::b == 6) r += 2;\n"
 		"	if (c == 100) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.1 [basic.lookup.unqual] p14: a namespace member's initialiser outside its namespace is looked up in the namespace first
+	{
+		"BasicLookupNamespaceMemberDefinition", 3,
+		"int y = 100;\n"
+		"namespace N { extern int x; int y = 3; }\n"
+		"int N::x = y;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (N::x == 3) r += 1;\n"
+		"	if (y == 100) r += 2;\n"
 		"	return r;\n"
 		"}\n"
 	},

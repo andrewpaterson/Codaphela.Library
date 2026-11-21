@@ -503,18 +503,6 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 		lliName = GetIdentifier();
 		Next();
 
-		//An enumerator can be used in the values of the ones after it.
-		pcEnumeratorSymbol = Declare(lliName, pcEnumerator->miName, CPPSK_Enumerator, pcEnumerator, pcEnum->mpcScope);
-		pcEnumerator->mpcSymbol = pcEnumeratorSymbol;
-		if (pcEnumeratorSymbol && !pcEnum->mbScoped)
-		{
-			pcDeclarationScope->AddAlias(lliName, pcEnumeratorSymbol, -1);
-			if (mpapcRecorded && (pcDeclarationScope == mpcRecordScope))
-			{
-				mpapcRecorded->Add(&pcEnumeratorSymbol);
-			}
-		}
-
 		ParseAttributes(&pcEnumerator->macpAttributes, pcEnumerator);
 		if (Accept(CT_Assignment))
 		{
@@ -523,6 +511,19 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 			{
 				RestoreState(&sOutside);
 				return NULL;
+			}
+		}
+
+		//An enumerator is declared after its definition, so its own value names the x outside in enum { x = x };, and
+		//it can be used in the values of the ones after it.  [basic.scope.pdecl] 3
+		pcEnumeratorSymbol = Declare(lliName, pcEnumerator->miName, CPPSK_Enumerator, pcEnumerator, pcEnum->mpcScope);
+		pcEnumerator->mpcSymbol = pcEnumeratorSymbol;
+		if (pcEnumeratorSymbol && !pcEnum->mbScoped)
+		{
+			pcDeclarationScope->AddAlias(lliName, pcEnumeratorSymbol, -1);
+			if (mpapcRecorded && (pcDeclarationScope == mpcRecordScope))
+			{
+				mpapcRecorded->Add(&pcEnumeratorSymbol);
 			}
 		}
 		pcEnumerator->miLastToken = PreviousToken();
