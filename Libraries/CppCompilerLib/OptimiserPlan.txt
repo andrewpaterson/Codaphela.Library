@@ -6,7 +6,8 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stage 0 is done (2026-11-21).  Stage 1 is next; "The record", at the end, has what each stage found.
+Where it is: stages 0 and 1 are done (2026-11-21).  Stage 2 is next; "The record", at the end, has what each stage
+found.
 
 
 The rules (the user, 2026-11-21)
@@ -205,3 +206,26 @@ Stage 0 (2026-11-21): the baseline, and the parser's and verifier's tests.
 	  optimiser rounds           221,889     212,049
 
 	The listings of the six projects (4,201) are kept beside these for the stages that must leave them alone.
+
+Stage 1 (2026-11-21): an opcode's facts are in the opcode table.  Same code: the 4,201 listings are the baseline's,
+every one.  TestCppCompilerLib passes (271,231).
+
+	The table (IROpcode.h, SIROpcode) has more class bits: IROP_Unsigned beside IROP_Signed (now a division's as
+	well as a comparison's), IROP_IntegerArithmetic, IROP_LowBits, IROP_Division, IROP_Remainder,
+	IROP_IntegerConversion and IROP_SignedWrapping; and two columns, the opcode that does the same to unsigned
+	operands (uiUnsigned) and a division's partner (uiPartner: sdiv's is srem).  The accessors:
+	IRComparisonHolds, IRSignedness, IRUnsignedOpcode, IsIRIntegerArithmetic, IsIRLowBits, IsIRDivision,
+	IsIRSignedDivision, IsIRUnsignedDivision, IsIRRemainder, IsIRQuotient, IRDivisionOpcode, IRDivisionPartner
+	and IRResultIsI1.  TestIROpcodeClasses holds each class to the opcodes it was when a pass listed them.
+
+	What asks it now: the folding pass's two tables of what a comparison holds for and whether it is signed
+	(gaiIRRelations, gaiIRSignedness, IR_REL_) and its function that swapped them; NarrowCounter's two ladders,
+	which were IRInvertedComparison and IRSwappedComparison; NarrowComparison's "uiOpcode += IRO_ULt -
+	IRO_SLt"; CIRKnownBits::EdgeBound's switch over the eight orderings and InstructionMost's list of the float
+	comparisons; IROptimiserHoistable, IRSpecialiseFollows and IROptimiserNarrows; IsIRSignedWrapping and
+	IsIRIntegerConversion; and the four divisions wherever two or four of them were written out (26 places in
+	the Divisions, Folding, Counters, Ranges and Loops passes).
+
+	Looked at and found to agree: every hand list was the class it is now a test of, so no pass takes an
+	opcode it didn't.  Left as they are: a test of one opcode (IRO_UDiv alone), and the back ends, which are
+	findings 75 to 88's.

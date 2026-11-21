@@ -353,11 +353,11 @@ bool CIRCounterPasses::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 	//Going round while it moves towards the bound: up while c < N or c <= N, down while c > N or c >= N.
 	if (!bRoundOnTrue)
 	{
-		uiOpcode = (uiOpcode == IRO_SLt) ? IRO_SGe : ((uiOpcode == IRO_SLe) ? IRO_SGt : ((uiOpcode == IRO_SGt) ? IRO_SLe : IRO_SLt));
+		uiOpcode = IRInvertedComparison(uiOpcode);
 	}
 	if (bBoundFirst)
 	{
-		uiOpcode = (uiOpcode == IRO_SLt) ? IRO_SGt : ((uiOpcode == IRO_SLe) ? IRO_SGe : ((uiOpcode == IRO_SGt) ? IRO_SLt : IRO_SLe));
+		uiOpcode = IRSwappedComparison(uiOpcode);
 	}
 	bUp = (uiOpcode == IRO_SLt) || (uiOpcode == IRO_SLe);
 	if (bUp != (lliStep == 1))
@@ -1172,7 +1172,7 @@ bool CIRCounterPasses::ReduceDivisions(void)
 					for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 					{
 						psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-						if (((psInstruction->uiOpcode != IRO_UDiv) && (psInstruction->uiOpcode != IRO_URem)) || !psInstruction->asArguments[0].Equals(psPhi->sResult) ||
+						if (!IsIRUnsignedDivision(psInstruction->uiOpcode) || !psInstruction->asArguments[0].Equals(psPhi->sResult) ||
 							!psInstruction->asArguments[1].IsConstant() || !psInstruction->sResult.IsTemporary() || !psInstruction->sType.Equals(sType) ||
 							!Replacement(psInstruction->sResult).Equals(psInstruction->sResult))
 						{

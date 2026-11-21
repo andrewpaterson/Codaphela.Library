@@ -1272,6 +1272,106 @@ void TestIRComparisonColumns(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether uiOpcode is one of pauiOpcodes, which IRO_None ends.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestIROpcodeIn(uint16 uiOpcode, const uint16* pauiOpcodes)
+{
+	size	ui;
+
+	for (ui = 0; pauiOpcodes[ui] != IRO_None; ui++)
+	{
+		if (pauiOpcodes[ui] == uiOpcode)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The opcode table's classes and twins, which the passes ask where each
+// kept a list of its own: every class is the opcodes written out here and
+// no other, and a target's opcodes (from IRO_NumGeneric) are in none.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROpcodeClasses(void)
+{
+	static const uint16	auiArithmetic[] = { IRO_Add, IRO_Sub, IRO_Mul, IRO_And, IRO_Or, IRO_Xor, IRO_Shl, IRO_LShr, IRO_AShr, IRO_Neg, IRO_Not, IRO_None };
+	static const uint16	auiLowBits[] = { IRO_Add, IRO_Sub, IRO_Mul, IRO_And, IRO_Or, IRO_Xor, IRO_None };
+	static const uint16	auiWrapping[] = { IRO_Add, IRO_Sub, IRO_Mul, IRO_Neg, IRO_Shl, IRO_None };
+	static const uint16	auiConversions[] = { IRO_SExt, IRO_ZExt, IRO_Trunc, IRO_None };
+	static const uint16	auiSigned[] = { IRO_SLt, IRO_SLe, IRO_SGt, IRO_SGe, IRO_SDiv, IRO_SRem, IRO_None };
+	static const uint16	auiUnsigned[] = { IRO_ULt, IRO_ULe, IRO_UGt, IRO_UGe, IRO_UDiv, IRO_URem, IRO_None };
+	uint16				uiOpcode;
+	uint8				uiHolds;
+	SIRType				sType;
+
+	for (uiOpcode = IRO_None; uiOpcode <= IRO_NumGeneric; uiOpcode++)
+	{
+		AssertBool(TestIROpcodeIn(uiOpcode, auiArithmetic), IsIRIntegerArithmetic(uiOpcode));
+		AssertBool(TestIROpcodeIn(uiOpcode, auiLowBits), IsIRLowBits(uiOpcode));
+		AssertBool(TestIROpcodeIn(uiOpcode, auiWrapping), IsIRSignedWrapping(uiOpcode));
+		AssertBool(TestIROpcodeIn(uiOpcode, auiConversions), IsIRIntegerConversion(uiOpcode));
+		AssertBool((uiOpcode >= IRO_SDiv) && (uiOpcode <= IRO_URem), IsIRDivision(uiOpcode));
+		AssertBool((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem), IsIRSignedDivision(uiOpcode));
+		AssertBool((uiOpcode == IRO_UDiv) || (uiOpcode == IRO_URem), IsIRUnsignedDivision(uiOpcode));
+		AssertBool((uiOpcode == IRO_SRem) || (uiOpcode == IRO_URem), IsIRRemainder(uiOpcode));
+		AssertBool((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv), IsIRQuotient(uiOpcode));
+		AssertBool(((uiOpcode >= IRO_Eq) && (uiOpcode <= IRO_UGe)) || ((uiOpcode >= IRO_FEq) && (uiOpcode <= IRO_FUnordered)), IRResultIsI1(uiOpcode));
+		AssertInt(TestIROpcodeIn(uiOpcode, auiSigned) ? IROP_Signed : (TestIROpcodeIn(uiOpcode, auiUnsigned) ? IROP_Unsigned : 0), IRSignedness(uiOpcode));
+
+		//Only a signed comparison and a signed division have an unsigned twin, and only a division a partner.
+		if (!TestIROpcodeIn(uiOpcode, auiSigned))
+		{
+			AssertInt(uiOpcode, IRUnsignedOpcode(uiOpcode));
+		}
+		if (!IsIRDivision(uiOpcode))
+		{
+			AssertInt(IRO_None, IRDivisionPartner(uiOpcode));
+		}
+		if (!IsIRIntegerComparison(uiOpcode))
+		{
+			AssertInt(0, IRComparisonHolds(uiOpcode));
+		}
+	}
+
+	AssertInt(IRO_ULt, IRUnsignedOpcode(IRO_SLt));
+	AssertInt(IRO_ULe, IRUnsignedOpcode(IRO_SLe));
+	AssertInt(IRO_UGt, IRUnsignedOpcode(IRO_SGt));
+	AssertInt(IRO_UGe, IRUnsignedOpcode(IRO_SGe));
+	AssertInt(IRO_UDiv, IRUnsignedOpcode(IRO_SDiv));
+	AssertInt(IRO_URem, IRUnsignedOpcode(IRO_SRem));
+
+	AssertInt(IRO_SRem, IRDivisionPartner(IRO_SDiv));
+	AssertInt(IRO_SDiv, IRDivisionPartner(IRO_SRem));
+	AssertInt(IRO_URem, IRDivisionPartner(IRO_UDiv));
+	AssertInt(IRO_UDiv, IRDivisionPartner(IRO_URem));
+	AssertInt(IRO_SDiv, IRDivisionOpcode(true, false));
+	AssertInt(IRO_SRem, IRDivisionOpcode(true, true));
+	AssertInt(IRO_UDiv, IRDivisionOpcode(false, false));
+	AssertInt(IRO_URem, IRDivisionOpcode(false, true));
+
+	//What a comparison holds for is what it says of 1 against 2, 1 against 1 and 2 against 1, and swapping its
+	//operands swaps less and greater.
+	sType = IRType(IRTK_I8);
+	for (uiOpcode = IRO_Eq; uiOpcode <= IRO_UGe; uiOpcode++)
+	{
+		uiHolds = IRComparisonHolds(uiOpcode);
+		AssertBool(IRCompareIntegers(uiOpcode, sType, 1, 2), (uiHolds & IRCH_Less) != 0);
+		AssertBool(IRCompareIntegers(uiOpcode, sType, 1, 1), (uiHolds & IRCH_Equal) != 0);
+		AssertBool(IRCompareIntegers(uiOpcode, sType, 2, 1), (uiHolds & IRCH_Greater) != 0);
+		AssertBool((uiHolds & IRCH_Less) != 0, (IRComparisonHolds(IRSwappedComparison(uiOpcode)) & IRCH_Greater) != 0);
+		AssertBool((uiHolds & IRCH_Equal) != 0, (IRComparisonHolds(IRSwappedComparison(uiOpcode)) & IRCH_Equal) != 0);
+		AssertInt(IRCH_All & ~uiHolds, IRComparisonHolds(IRInvertedComparison(uiOpcode)));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A division is hoisted out of a loop only by a constant that can't trap:
 // not 0, and not -1 when it is signed (an unsigned divide by all ones is
 // fine).  The divides are the opcodes that may trap (IsIRMayTrap).
@@ -6182,6 +6282,7 @@ void TestIR(void)
 	TestIRDefaultSpace();
 	TestIRComparisonOpcodes();
 	TestIRComparisonColumns();
+	TestIROpcodeClasses();
 	TestIROptimiserPointerConstantWidth();
 	TestIROptimiserHoistableDivisions();
 	TestIROptimiser();

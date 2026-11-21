@@ -400,7 +400,9 @@ uint64 CIRKnownBits::EdgeBound(SIRReference sValue, CIRBlock* pcFrom, CIRBlock* 
 	SIRReference	sMore;
 	SIRReference	sTemp;
 	uint16			uiOpcode;
+	uint8			uiHolds;
 	bool			bTrue;
+	bool			bLeftLess;
 	bool			bStrict;
 	uint64			ulliSign;
 	uint64			ulliOther;
@@ -438,34 +440,9 @@ uint64 CIRKnownBits::EdgeBound(SIRReference sValue, CIRBlock* pcFrom, CIRBlock* 
 		}
 	}
 
-	//As sLess < sMore (bStrict) or sLess <= sMore.
-	switch (uiOpcode)
+	uiHolds = IRComparisonHolds(uiOpcode);
+	if (uiHolds == IRCH_Equal)
 	{
-	case IRO_ULt:
-	case IRO_SLt:
-		sLess = psCompare->asArguments[0];
-		sMore = psCompare->asArguments[1];
-		bStrict = true;
-		break;
-	case IRO_ULe:
-	case IRO_SLe:
-		sLess = psCompare->asArguments[0];
-		sMore = psCompare->asArguments[1];
-		bStrict = false;
-		break;
-	case IRO_UGt:
-	case IRO_SGt:
-		sLess = psCompare->asArguments[1];
-		sMore = psCompare->asArguments[0];
-		bStrict = true;
-		break;
-	case IRO_UGe:
-	case IRO_SGe:
-		sLess = psCompare->asArguments[1];
-		sMore = psCompare->asArguments[0];
-		bStrict = false;
-		break;
-	case IRO_Eq:
 		if (Names(psCompare->asArguments[1], sValue))
 		{
 			sTemp = psCompare->asArguments[0];
@@ -479,9 +456,17 @@ uint64 CIRKnownBits::EdgeBound(SIRReference sValue, CIRBlock* pcFrom, CIRBlock* 
 			return ulliMost;
 		}
 		return IRLeast(ulliMost, Most(sTemp));
-	default:
+	}
+	if (uiHolds == (IRCH_Less | IRCH_Greater))
+	{
 		return ulliMost;
 	}
+
+	//As sLess < sMore (bStrict) or sLess <= sMore: the left operand is the lesser if the comparison holds for it less.
+	bLeftLess = (uiHolds & IRCH_Less) != 0;
+	sLess = psCompare->asArguments[bLeftLess ? 0 : 1];
+	sMore = psCompare->asArguments[bLeftLess ? 1 : 0];
+	bStrict = (uiHolds & IRCH_Equal) == 0;
 	if (!Names(sLess, sValue))
 	{
 		return ulliMost;
@@ -576,20 +561,8 @@ uint64 CIRKnownBits::InstructionMost(SIRInstruction* psInstruction, CIRBlock* pc
 	}
 	if (!psInstruction->sType.IsInteger())
 	{
-		switch (psInstruction->uiOpcode)
-		{
-		case IRO_FEq:
-		case IRO_FNe:
-		case IRO_FLt:
-		case IRO_FLe:
-		case IRO_FGt:
-		case IRO_FGe:
-		case IRO_FOrdered:
-		case IRO_FUnordered:
-			return 1;
-		default:
-			return (uint64)-1;
-		}
+		//A float comparison's result is an i1.
+		return IRResultIsI1(psInstruction->uiOpcode) ? 1 : (uint64)-1;
 	}
 	iRegister = (psInstruction->sType.IntegerBits() > 32) ? 64 : 32;
 	ulliRegister = IRAllOnes(iRegister);

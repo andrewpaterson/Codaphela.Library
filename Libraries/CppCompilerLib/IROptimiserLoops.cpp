@@ -46,34 +46,21 @@ bool IROptimiserHoistable(CIRFunction* pcFunction, SIRInstruction* psInstruction
 		{
 			return false;
 		}
-		bSigned = (psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem);
+		bSigned = IsIRSignedDivision(psInstruction->uiOpcode);
 		ulliDivisor = IRTruncate(psInstruction->sType, pcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
 		return (ulliDivisor != 0) && (!bSigned || (ulliDivisor != IRTruncate(psInstruction->sType, (uint64)-1)));
 	}
 	switch (psInstruction->uiOpcode)
 	{
-	case IRO_Add:
-	case IRO_Sub:
-	case IRO_Mul:
-	case IRO_And:
-	case IRO_Or:
-	case IRO_Xor:
-	case IRO_Shl:
-	case IRO_LShr:
-	case IRO_AShr:
-	case IRO_Neg:
-	case IRO_Not:
 	case IRO_PtrAdd:
-	case IRO_SExt:
-	case IRO_ZExt:
-	case IRO_Trunc:
 	case IRO_PtrToI:
 	case IRO_IToPtr:
 		return psInstruction->sResult.IsTemporary();
 	case IRO_Load:
 		return psInstruction->sResult.IsTemporary() && !(psInstruction->uiFlags & IRF_Volatile);
 	default:
-		return IsIRIntegerComparison(psInstruction->uiOpcode) && psInstruction->sResult.IsTemporary();
+		return (IsIRIntegerArithmetic(psInstruction->uiOpcode) || IsIRIntegerConversion(psInstruction->uiOpcode) || IsIRIntegerComparison(psInstruction->uiOpcode)) &&
+			   psInstruction->sResult.IsTemporary();
 	}
 }
 

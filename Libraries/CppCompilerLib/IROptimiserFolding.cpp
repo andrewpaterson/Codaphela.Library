@@ -153,15 +153,15 @@ bool CIRFoldingPasses::FoldConstants(void)
 				psInstruction->uiOpcode = IRO_ZExt;
 				bChanged = true;
 			}
-			else if (((psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem)) && psInstruction->asArguments[1].IsConstant() &&
+			else if (IsIRSignedDivision(psInstruction->uiOpcode) && psInstruction->asArguments[1].IsConstant() &&
 					 (IRSignExtend(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) > 0) &&
 					 mpcContext->mpcRangePasses->NotNegative(pcBlock, psInstruction->asArguments[0]))
 			{
 				//A signed x / c or x % c is unsigned when x is never negative (and c is more than 0).
-				psInstruction->uiOpcode = (psInstruction->uiOpcode == IRO_SDiv) ? IRO_UDiv : IRO_URem;
+				psInstruction->uiOpcode = IRUnsignedOpcode(psInstruction->uiOpcode);
 				bChanged = true;
 			}
-			else if (((psInstruction->uiOpcode == IRO_Mul) || (psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_URem)) && psInstruction->asArguments[1].IsConstant())
+			else if (((psInstruction->uiOpcode == IRO_Mul) || IsIRUnsignedDivision(psInstruction->uiOpcode)) && psInstruction->asArguments[1].IsConstant())
 			{
 				//x * 2^n is x << n; unsigned x / 2^n is x >> n and x % 2^n is x & (2^n - 1); x * -1 is -x.
 				ulliResult = IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
@@ -673,33 +673,10 @@ bool CIRFoldingPasses::Extended(SIRReference sValue, int iBits, bool bSigned, in
 }
 
 
-//What each integer comparison (from IRO_Eq) says of its left operand against its right: IR_REL_LESS, _EQUAL and
-//_GREATER; and whether it is signed (1), unsigned (2) or either (0).
-#define IR_REL_LESS		1
-#define IR_REL_EQUAL	2
-#define IR_REL_GREATER	4
-#define IR_REL_ALL		(IR_REL_LESS | IR_REL_EQUAL | IR_REL_GREATER)
-static int	gaiIRRelations[] =		{ IR_REL_EQUAL, IR_REL_LESS | IR_REL_GREATER,
-									  IR_REL_LESS, IR_REL_LESS | IR_REL_EQUAL, IR_REL_GREATER, IR_REL_GREATER | IR_REL_EQUAL,
-									  IR_REL_LESS, IR_REL_LESS | IR_REL_EQUAL, IR_REL_GREATER, IR_REL_GREATER | IR_REL_EQUAL };
-static int	gaiIRSignedness[] =		{ 0, 0, 1, 1, 1, 1, 2, 2, 2, 2 };
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The relations of a comparison with its operands swapped.
-//
-//////////////////////////////////////////////////////////////////////////
-static int IROptimiserSwapRelations(int iRelations)
-{
-	return (iRelations & IR_REL_EQUAL) | ((iRelations & IR_REL_LESS) ? IR_REL_GREATER : 0) | ((iRelations & IR_REL_GREATER) ? IR_REL_LESS : 0);
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // What pcPredecessor's branch into pcBlock says of psInstruction's operands
-// (IR_REL_ bits), if it branches on a comparison of them of the same type
+// (IRCH_ bits), if it branches on a comparison of them of the same type
 // and signedness; -1 if it doesn't.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -717,8 +694,8 @@ int CIRFoldingPasses::EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock,
 	{
 		return -1;
 	}
-	iSigned = gaiIRSignedness[psInstruction->uiOpcode - IRO_Eq];
-	iKnownSigned = gaiIRSignedness[psKnown->uiOpcode - IRO_Eq];
+	iSigned = IRSignedness(psInstruction->uiOpcode);
+	iKnownSigned = IRSignedness(psKnown->uiOpcode);
 	if ((iSigned != 0) && (iKnownSigned != 0) && (iSigned != iKnownSigned))
 	{
 		return -1;
@@ -726,17 +703,17 @@ int CIRFoldingPasses::EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock,
 
 	if (psKnown->asArguments[0].Equals(psInstruction->asArguments[0]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[1]))
 	{
-		iKnown = gaiIRRelations[psKnown->uiOpcode - IRO_Eq];
+		iKnown = IRComparisonHolds(psKnown->uiOpcode);
 	}
 	else if (psKnown->asArguments[0].Equals(psInstruction->asArguments[1]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[0]))
 	{
-		iKnown = IROptimiserSwapRelations(gaiIRRelations[psKnown->uiOpcode - IRO_Eq]);
+		iKnown = IRComparisonHolds(IRSwappedComparison(psKnown->uiOpcode));
 	}
 	else
 	{
 		return -1;
 	}
-	return (psJump->pcElse == pcBlock) ? (IR_REL_ALL & ~iKnown) : iKnown;
+	return (psJump->pcElse == pcBlock) ? (IRCH_All & ~iKnown) : iKnown;
 }
 
 
@@ -760,7 +737,7 @@ bool CIRFoldingPasses::ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psIn
 	{
 		return false;
 	}
-	iWanted = gaiIRRelations[psInstruction->uiOpcode - IRO_Eq];
+	iWanted = IRComparisonHolds(psInstruction->uiOpcode);
 	for (ui = 0; ui < IR_KNOWN_DEPTH; ui++)
 	{
 		if ((pcBlock == mpcFunction->GetEntry()) || (pcBlock->mapcPredecessors.NumElements() != 1))
@@ -786,11 +763,11 @@ bool CIRFoldingPasses::ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psIn
 			return true;
 		}
 		uiOpcode = psInstruction->uiOpcode;
-		if ((iKnown & iWanted) == (iKnown & IR_REL_EQUAL))
+		if ((iKnown & iWanted) == (iKnown & IRCH_Equal))
 		{
 			uiOpcode = IRO_Eq;
 		}
-		else if ((iKnown & iWanted) == (iKnown & (IR_REL_LESS | IR_REL_GREATER)))
+		else if ((iKnown & iWanted) == (iKnown & (IRCH_Less | IRCH_Greater)))
 		{
 			uiOpcode = IRO_Ne;
 		}

@@ -100,7 +100,7 @@ bool CIRRangePasses::NarrowComparison(SIRInstruction* psInstruction)
 	psInstruction->sType = sNarrow;
 	if ((uiExtension == IRO_ZExt) && IsIRSignedComparison(psInstruction->uiOpcode))
 	{
-		psInstruction->uiOpcode += IRO_ULt - IRO_SLt;
+		psInstruction->uiOpcode = IRUnsignedOpcode(psInstruction->uiOpcode);
 	}
 	return true;
 }
@@ -172,20 +172,11 @@ void CIRRangePasses::ComparisonRange(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 static bool IROptimiserNarrows(CIRFunction* pcFunction, SIRInstruction* psInstruction, int iBits)
 {
-	switch (psInstruction->uiOpcode)
+	if (psInstruction->uiOpcode == IRO_Shl)
 	{
-	case IRO_Add:
-	case IRO_Sub:
-	case IRO_Mul:
-	case IRO_And:
-	case IRO_Or:
-	case IRO_Xor:
-		return true;
-	case IRO_Shl:
 		return psInstruction->asArguments[1].IsConstant() && (pcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits < (uint64)iBits);
-	default:
-		return false;
 	}
+	return IsIRLowBits(psInstruction->uiOpcode);
 }
 
 
@@ -703,13 +694,13 @@ bool CIRRangePasses::DivisionRange(SIRInstruction* psInstruction, int64* plliMin
 
 	uiOpcode = psInstruction->uiOpcode;
 	sType = psInstruction->sType;
-	if (((uiOpcode != IRO_SDiv) && (uiOpcode != IRO_SRem) && (uiOpcode != IRO_UDiv) && (uiOpcode != IRO_URem)) ||
+	if (!IsIRDivision(uiOpcode) ||
 		!psInstruction->asArguments[1].IsConstant() || !sType.IsInteger() || (sType.IntegerBits() > 32))
 	{
 		return false;
 	}
 	iBits = sType.IntegerBits();
-	bSigned = (uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem);
+	bSigned = IsIRSignedDivision(uiOpcode);
 	lliDivisor = bSigned ? IRSignExtend(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) :
 						   (int64)IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
 	if (lliDivisor < 2)
@@ -726,7 +717,7 @@ bool CIRRangePasses::DivisionRange(SIRInstruction* psInstruction, int64* plliMin
 		lliMin = 0;
 		lliMax = IRUnsignedMax(iBits);
 	}
-	if ((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv))
+	if (IsIRQuotient(uiOpcode))
 	{
 		//Rounding towards 0 keeps the order.
 		*plliMin = lliMin / lliDivisor;

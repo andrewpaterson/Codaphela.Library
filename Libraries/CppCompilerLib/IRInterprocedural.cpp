@@ -69,27 +69,7 @@ static SIRReference IRCallArgument(SIRCallSite* psSite, size uiParameter)
 //////////////////////////////////////////////////////////////////////////
 static bool IRSpecialiseFollows(uint16 uiOpcode)
 {
-	switch (uiOpcode)
-	{
-	case IRO_Add:
-	case IRO_Sub:
-	case IRO_Mul:
-	case IRO_And:
-	case IRO_Or:
-	case IRO_Xor:
-	case IRO_Not:
-	case IRO_Neg:
-	case IRO_Shl:
-	case IRO_LShr:
-	case IRO_AShr:
-	case IRO_ZExt:
-	case IRO_SExt:
-	case IRO_Trunc:
-	case IRO_Copy:
-		return true;
-	default:
-		return false;
-	}
+	return IsIRIntegerArithmetic(uiOpcode) || IsIRIntegerConversion(uiOpcode) || (uiOpcode == IRO_Copy);
 }
 
 

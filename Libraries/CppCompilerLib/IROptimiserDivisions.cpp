@@ -56,7 +56,7 @@ bool CIRDivisionPasses::SignedPowerDivisions(void)
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if (((psInstruction->uiOpcode != IRO_SDiv) && (psInstruction->uiOpcode != IRO_SRem)) || !psInstruction->asArguments[1].IsConstant() ||
+			if (!IsIRSignedDivision(psInstruction->uiOpcode) || !psInstruction->asArguments[1].IsConstant() ||
 				!psInstruction->sType.IsInteger() || psInstruction->sType.Is(IRTK_I1))
 			{
 				continue;
@@ -136,7 +136,7 @@ bool CIRDivisionPasses::BoundDivisions(void)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			uiOpcode = psInstruction->uiOpcode;
-			if (((uiOpcode != IRO_UDiv) && (uiOpcode != IRO_URem) && (uiOpcode != IRO_SDiv) && (uiOpcode != IRO_SRem)) || !psInstruction->asArguments[1].IsConstant() ||
+			if (!IsIRDivision(uiOpcode) || !psInstruction->asArguments[1].IsConstant() ||
 				!psInstruction->sResult.IsTemporary() || !psInstruction->sType.IsInteger())
 			{
 				continue;
@@ -146,7 +146,7 @@ bool CIRDivisionPasses::BoundDivisions(void)
 			{
 				continue;
 			}
-			ulliBound = ((uiOpcode == IRO_UDiv) || (uiOpcode == IRO_URem)) ? mpcContext->mpcRangePasses->UpperBound(psInstruction->asArguments[0], IR_BOUND_DEPTH) : (uint64)-1;
+			ulliBound = IsIRUnsignedDivision(uiOpcode) ? mpcContext->mpcRangePasses->UpperBound(psInstruction->asArguments[0], IR_BOUND_DEPTH) : (uint64)-1;
 			if ((ulliBound >= ulliDivisor * 2) && mpcContext->mpcRangePasses->RangeAt(pcBlock, psInstruction->asArguments[0], &lliMin, &lliMax) && (lliMin >= 0))
 			{
 				ulliBound = (uint64)lliMax;
@@ -176,12 +176,12 @@ bool CIRDivisionPasses::BoundDivisions(void)
 		sDivisor = psInstruction->asArguments[1];
 		if (!psFound->bOnce)
 		{
-			Replace(psInstruction->sResult, ((psInstruction->uiOpcode == IRO_URem) || (psInstruction->uiOpcode == IRO_SRem)) ? sValue : mpcFunction->AddInteger(sType, 0));
+			Replace(psInstruction->sResult, IsIRRemainder(psInstruction->uiOpcode) ? sValue : mpcFunction->AddInteger(sType, 0));
 			continue;
 		}
 		sTest = InsertInstruction(pcBlock, uiInstruction, IRO_UGe, sType, sValue, sDivisor);
 		uiInstruction++;
-		if ((pcBlock->masInstructions.Get(uiInstruction)->uiOpcode == IRO_UDiv) || (pcBlock->masInstructions.Get(uiInstruction)->uiOpcode == IRO_SDiv))
+		if (IsIRQuotient(pcBlock->masInstructions.Get(uiInstruction)->uiOpcode))
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			psInstruction->uiOpcode = IRO_ZExt;
@@ -360,7 +360,7 @@ bool CIRDivisionPasses::DivisibilityTests(void)
 				continue;
 			}
 			psRemainder = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[0]);
-			if (!psRemainder || ((psRemainder->uiOpcode != IRO_SRem) && (psRemainder->uiOpcode != IRO_URem)) || !psRemainder->asArguments[1].IsConstant() ||
+			if (!psRemainder || !IsIRRemainder(psRemainder->uiOpcode) || !psRemainder->asArguments[1].IsConstant() ||
 				!(psRemainder->sType.Is(IRTK_I16) || psRemainder->sType.Is(IRTK_I32)))
 			{
 				continue;
@@ -368,7 +368,7 @@ bool CIRDivisionPasses::DivisibilityTests(void)
 			sType = psRemainder->sType;
 			iBits = sType.IntegerBits();
 			ulliMask = IRTruncate(sType, (uint64)-1);
-			bSigned = psRemainder->uiOpcode == IRO_SRem;
+			bSigned = IsIRSignedDivision(psRemainder->uiOpcode);
 			ulliDivisor = bSigned ? (uint64)IRSignExtend(sType, mpcFunction->GetConstant(psRemainder->asArguments[1])->ulliBits) :
 									IRTruncate(sType, mpcFunction->GetConstant(psRemainder->asArguments[1])->ulliBits);
 			if (bSigned && ((int64)ulliDivisor < 0))
@@ -471,13 +471,13 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			uiOpcode = psInstruction->uiOpcode;
-			if (((uiOpcode != IRO_SDiv) && (uiOpcode != IRO_SRem) && (uiOpcode != IRO_UDiv) && (uiOpcode != IRO_URem)) ||
+			if (!IsIRDivision(uiOpcode) ||
 				!psInstruction->asArguments[1].IsConstant() || !psInstruction->sResult.IsTemporary() || !psInstruction->sType.IsInteger() ||
 				(psInstruction->sType.IntegerBits() < 8) || (psInstruction->sType.IntegerBits() > 32))
 			{
 				continue;
 			}
-			bSigned = (uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem);
+			bSigned = IsIRSignedDivision(uiOpcode);
 			lliDivisor = bSigned ? IRSignExtend(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) :
 								   (int64)IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
 			if ((lliDivisor < 3) || ((lliDivisor & (lliDivisor - 1)) == 0))
@@ -545,7 +545,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 		//Kept by value, as the split's inserts move the block's instructions.
 		sValue = psInstruction->asArguments[0];
 		sConstant = psInstruction->asArguments[1];
-		bSigned = (uiOpcode == IRO_SDiv) || (uiOpcode == IRO_SRem);
+		bSigned = IsIRSignedDivision(uiOpcode);
 		lliDivisor = bSigned ? IRSignExtend(sType, mpcFunction->GetConstant(sConstant)->ulliBits) : (int64)IRTruncate(sType, mpcFunction->GetConstant(sConstant)->ulliBits);
 		lliMin = psFound->lliMin;
 		lliMax = psFound->lliMax;
@@ -555,19 +555,19 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 			{
 			}
 			uiAt = uiInstruction;
-			sWide = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SDiv : IRO_UDiv, sType, sValue, mpcFunction->AddInteger(sType, (int64)1 << iShift));
+			sWide = InsertInstruction(pcBlock, uiAt++, IRDivisionOpcode(bSigned, false), sType, sValue, mpcFunction->AddInteger(sType, (int64)1 << iShift));
 			sDivisor = mpcFunction->AddInteger(sType, lliDivisor >> iShift);
-			if ((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv))
+			if (IsIRQuotient(uiOpcode))
 			{
 				//(x / 2^k) / m.
 				psInstruction = pcBlock->masInstructions.Get(uiAt);
 				psInstruction->asArguments[0] = sWide;
 				psInstruction->asArguments[1] = sDivisor;
 			}
-			else if (HasDivision(pcBlock, uiOpcode == IRO_SRem ? IRO_SDiv : IRO_UDiv, sValue, sConstant))
+			else if (HasDivision(pcBlock, IRDivisionPartner(uiOpcode), sValue, sConstant))
 			{
 				//x - ((x / 2^k) / m) * c: the same q as the divide's.
-				sQuotient = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SDiv : IRO_UDiv, sType, sWide, sDivisor);
+				sQuotient = InsertInstruction(pcBlock, uiAt++, IRDivisionOpcode(bSigned, false), sType, sWide, sDivisor);
 				sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Mul, sType, sQuotient, mpcFunction->AddInteger(sType, lliDivisor));
 				psInstruction = pcBlock->masInstructions.Get(uiAt);
 				psInstruction->uiOpcode = IRO_Sub;
@@ -577,9 +577,9 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 			else
 			{
 				//((x / 2^k) % m) << k + x % 2^k (both with x's sign).
-				sQuotient = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SRem : IRO_URem, sType, sWide, sDivisor);
+				sQuotient = InsertInstruction(pcBlock, uiAt++, IRDivisionOpcode(bSigned, true), sType, sWide, sDivisor);
 				sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Shl, sType, sQuotient, mpcFunction->AddInteger(sType, iShift));
-				sSign = InsertInstruction(pcBlock, uiAt++, bSigned ? IRO_SRem : IRO_URem, sType, sValue, mpcFunction->AddInteger(sType, (int64)1 << iShift));
+				sSign = InsertInstruction(pcBlock, uiAt++, IRDivisionOpcode(bSigned, true), sType, sValue, mpcFunction->AddInteger(sType, (int64)1 << iShift));
 				psInstruction = pcBlock->masInstructions.Get(uiAt);
 				psInstruction->uiOpcode = IRO_Add;
 				psInstruction->asArguments[0] = sQuotient;
@@ -594,14 +594,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 			bSigned = lliMin < 0;
 			uiAt = uiInstruction;
 			sWide = InsertInstruction(pcBlock, uiAt++, IRO_Trunc, sWork, sValue, IRNone());
-			if ((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv))
-			{
-				uiOpcode = bSigned ? IRO_SDiv : IRO_UDiv;
-			}
-			else
-			{
-				uiOpcode = bSigned ? IRO_SRem : IRO_URem;
-			}
+			uiOpcode = IRDivisionOpcode(bSigned, IsIRRemainder(uiOpcode));
 			sQuotient = InsertInstruction(pcBlock, uiAt++, uiOpcode, sWork, sWide, mpcFunction->AddInteger(sWork, lliDivisor));
 			pcBlock->masInstructions.Get(uiAt - 1)->uiFlags |= IRF_Hot;
 			psInstruction = pcBlock->masInstructions.Get(uiAt);
@@ -637,7 +630,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 			sQuotient = InsertInstruction(pcBlock, uiAt++, IRO_Trunc, sType, sQuotient, IRNone());
 		}
 		psInstruction = pcBlock->masInstructions.Get(uiAt);
-		if ((uiOpcode == IRO_SDiv) || (uiOpcode == IRO_UDiv))
+		if (IsIRQuotient(uiOpcode))
 		{
 			//q.
 			psInstruction->uiOpcode = IRO_Add;
@@ -677,7 +670,7 @@ bool CIRDivisionPasses::SplitDivisor(SIRInstruction* psInstruction, int64 lliMin
 	{
 		return false;
 	}
-	bSigned = (psInstruction->uiOpcode == IRO_SDiv) || (psInstruction->uiOpcode == IRO_SRem);
+	bSigned = IsIRSignedDivision(psInstruction->uiOpcode);
 	lliDivisor = bSigned ? IRSignExtend(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) :
 						   (int64)IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
 	if ((lliDivisor < 0x10000) || ((lliDivisor & 1) != 0))
@@ -734,11 +727,11 @@ bool CIRDivisionPasses::ShareDivisions(void)
 		for (uiRemainder = 0; uiRemainder < pcBlock->masInstructions.NumElements(); uiRemainder++)
 		{
 			psRemainder = pcBlock->masInstructions.Get(uiRemainder);
-			if (((psRemainder->uiOpcode != IRO_URem) && (psRemainder->uiOpcode != IRO_SRem)) || (mpcContext->mbConstantDivisions && psRemainder->asArguments[1].IsConstant()) || !psRemainder->sType.IsInteger())
+			if (!IsIRRemainder(psRemainder->uiOpcode) || (mpcContext->mbConstantDivisions && psRemainder->asArguments[1].IsConstant()) || !psRemainder->sType.IsInteger())
 			{
 				continue;
 			}
-			uiDivideOpcode = (psRemainder->uiOpcode == IRO_SRem) ? IRO_SDiv : IRO_UDiv;
+			uiDivideOpcode = IRDivisionPartner(psRemainder->uiOpcode);
 			sType = psRemainder->sType;
 			sValue = psRemainder->asArguments[0];
 			sDivisor = psRemainder->asArguments[1];

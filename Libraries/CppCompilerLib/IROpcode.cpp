@@ -26,55 +26,62 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IR_SWAPS	(IROP_Pure | IROP_Commutative)
 #define IR_TRAPS	(IROP_Pure | IROP_MayTrap)
 #define IR_SIGNED	(IROP_Pure | IROP_Signed)
+#define IR_UNSIGNED	(IROP_Pure | IROP_Unsigned)
 #define IR_SWAP_LT	IROP_SwappedLess
+#define IR_ARITH	IROP_IntegerArithmetic
+#define IR_LOW		IROP_LowBits
+#define IR_WRAPS	IROP_SignedWrapping
+#define IR_REM		IROP_Remainder
 
 
-//Every column but an integer comparison's, which are 0: IR_INTEGER_COMPARE has them.
-#define IR_OPCODE(name, shape, types, sourcetypes, first, second, result, flags, properties)	{ name, shape, types, sourcetypes, { first, second }, result, flags, properties, 0, 0, 0 }
+//Every column but an integer comparison's and a division's, which are 0: IR_INTEGER_COMPARE and IR_DIVIDE_OP have them.
+#define IR_OPCODE(name, shape, types, sourcetypes, first, second, result, flags, properties)	{ name, shape, types, sourcetypes, { first, second }, result, flags, properties, 0, 0, 0, 0, 0 }
 #define IR_INTEGER_OP(name, properties)		IR_OPCODE(name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, IROK_Same, IROK_Same, IRRS_Same, 0, properties)
-#define IR_INTEGER_UNARY(name)				IR_OPCODE(name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, IROK_Same, IROK_None, IRRS_Same, 0, IR_PURE)
-#define IR_INTEGER_COMPARE(name, properties, inverted, swapped, holds)	{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer | IRTM_Pointer, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0, (properties) | IROP_IntegerComparison, inverted, swapped, holds }
+#define IR_INTEGER_UNARY(name, properties)	IR_OPCODE(name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, IROK_Same, IROK_None, IRRS_Same, 0, properties)
+#define IR_INTEGER_COMPARE(name, properties, inverted, swapped, holds, unsignedtwin)	{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer | IRTM_Pointer, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0, (properties) | IROP_IntegerComparison, inverted, swapped, holds, unsignedtwin, 0 }
 #define IR_FLOAT_OP(name, properties)		IR_OPCODE(name, IRSH_Operands, IRTM_Float, 0, IROK_Same, IROK_Same, IRRS_Same, 0, properties)
 #define IR_FLOAT_COMPARE(name, properties)	IR_OPCODE(name, IRSH_Operands, IRTM_Float, 0, IROK_Same, IROK_Same, IRRS_I1, 0, properties)
-#define IR_DIVIDE_OP(name)					IR_OPCODE(name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, IROK_Same, IROK_Same, IRRS_Same, IRF_Hot, IR_TRAPS)
+#define IR_DIVIDE_OP(name, properties, unsignedtwin, partner)	{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_Same }, IRRS_Same, IRF_Hot, IR_TRAPS | IROP_Division | (properties), 0, 0, 0, unsignedtwin, partner }
 #define IR_CONVERSION(name, to, from)		IR_OPCODE(name, IRSH_Conversion, to, from, IROK_Source, IROK_None, IRRS_Same, 0, IR_PURE)
+#define IR_INTEGER_CONVERSION(name, to, from)	IR_OPCODE(name, IRSH_Conversion, to, from, IROK_Source, IROK_None, IRRS_Same, 0, IR_PURE | IROP_IntegerConversion)
 
 
 SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 {
 	IR_OPCODE("", IRSH_Operands, 0, 0, IROK_None, IROK_None, IRRS_None, 0, 0),
 
-	IR_INTEGER_OP("add", IR_SWAPS),
-	IR_INTEGER_OP("sub", IR_PURE),
-	IR_INTEGER_OP("mul", IR_SWAPS),
-	IR_DIVIDE_OP("sdiv"),
-	IR_DIVIDE_OP("udiv"),
-	IR_DIVIDE_OP("srem"),
-	IR_DIVIDE_OP("urem"),
-	IR_INTEGER_OP("and", IR_SWAPS),
-	IR_INTEGER_OP("or", IR_SWAPS),
-	IR_INTEGER_OP("xor", IR_SWAPS),
-	IR_INTEGER_OP("shl", IR_PURE),
-	IR_INTEGER_OP("lshr", IR_PURE),
-	IR_INTEGER_OP("ashr", IR_PURE),
-	IR_INTEGER_UNARY("neg"),
-	IR_INTEGER_UNARY("not"),
+	//             name    properties                               the unsigned twin  the partner
+	IR_INTEGER_OP("add",  IR_SWAPS | IR_ARITH | IR_LOW | IR_WRAPS),
+	IR_INTEGER_OP("sub",  IR_PURE | IR_ARITH | IR_LOW | IR_WRAPS),
+	IR_INTEGER_OP("mul",  IR_SWAPS | IR_ARITH | IR_LOW | IR_WRAPS),
+	IR_DIVIDE_OP("sdiv",  IROP_Signed,                              IRO_UDiv,          IRO_SRem),
+	IR_DIVIDE_OP("udiv",  IROP_Unsigned,                            IRO_None,          IRO_URem),
+	IR_DIVIDE_OP("srem",  IROP_Signed | IR_REM,                     IRO_URem,          IRO_SDiv),
+	IR_DIVIDE_OP("urem",  IROP_Unsigned | IR_REM,                   IRO_None,          IRO_UDiv),
+	IR_INTEGER_OP("and",  IR_SWAPS | IR_ARITH | IR_LOW),
+	IR_INTEGER_OP("or",   IR_SWAPS | IR_ARITH | IR_LOW),
+	IR_INTEGER_OP("xor",  IR_SWAPS | IR_ARITH | IR_LOW),
+	IR_INTEGER_OP("shl",  IR_PURE | IR_ARITH | IR_WRAPS),
+	IR_INTEGER_OP("lshr", IR_PURE | IR_ARITH),
+	IR_INTEGER_OP("ashr", IR_PURE | IR_ARITH),
+	IR_INTEGER_UNARY("neg", IR_PURE | IR_ARITH | IR_WRAPS),
+	IR_INTEGER_UNARY("not", IR_PURE | IR_ARITH),
 	IR_OPCODE("copy", IRSH_Operands, IRTM_I1 | IRTM_Memory, 0, IROK_Same, IROK_None, IRRS_Same, 0, IR_PURE),
-	IR_CONVERSION("sext", IRTM_Integer, IRTM_I1 | IRTM_Integer),
-	IR_CONVERSION("zext", IRTM_Integer, IRTM_I1 | IRTM_Integer),
-	IR_CONVERSION("trunc", IRTM_I1 | IRTM_Integer, IRTM_Integer),
+	IR_INTEGER_CONVERSION("sext", IRTM_Integer, IRTM_I1 | IRTM_Integer),
+	IR_INTEGER_CONVERSION("zext", IRTM_Integer, IRTM_I1 | IRTM_Integer),
+	IR_INTEGER_CONVERSION("trunc", IRTM_I1 | IRTM_Integer, IRTM_Integer),
 
-	//                 name    properties               inverted  swapped   holds when the left operand is
-	IR_INTEGER_COMPARE("eq",   IR_SWAPS,                IRO_Ne,   IRO_Eq,   IRCH_Equal),
-	IR_INTEGER_COMPARE("ne",   IR_SWAPS,                IRO_Eq,   IRO_Ne,   IRCH_Less | IRCH_Greater),
-	IR_INTEGER_COMPARE("slt",  IR_SIGNED,               IRO_SGe,  IRO_SGt,  IRCH_Less),
-	IR_INTEGER_COMPARE("sle",  IR_SIGNED | IR_SWAP_LT,  IRO_SGt,  IRO_SGe,  IRCH_Less | IRCH_Equal),
-	IR_INTEGER_COMPARE("sgt",  IR_SIGNED | IR_SWAP_LT,  IRO_SLe,  IRO_SLt,  IRCH_Greater),
-	IR_INTEGER_COMPARE("sge",  IR_SIGNED,               IRO_SLt,  IRO_SLe,  IRCH_Greater | IRCH_Equal),
-	IR_INTEGER_COMPARE("ult",  IR_PURE,                 IRO_UGe,  IRO_UGt,  IRCH_Less),
-	IR_INTEGER_COMPARE("ule",  IR_PURE | IR_SWAP_LT,    IRO_UGt,  IRO_UGe,  IRCH_Less | IRCH_Equal),
-	IR_INTEGER_COMPARE("ugt",  IR_PURE | IR_SWAP_LT,    IRO_ULe,  IRO_ULt,  IRCH_Greater),
-	IR_INTEGER_COMPARE("uge",  IR_PURE,                 IRO_ULt,  IRO_ULe,  IRCH_Greater | IRCH_Equal),
+	//                 name    properties                 inverted  swapped   holds when the left operand is  the unsigned twin
+	IR_INTEGER_COMPARE("eq",   IR_SWAPS,                  IRO_Ne,   IRO_Eq,   IRCH_Equal,                     IRO_None),
+	IR_INTEGER_COMPARE("ne",   IR_SWAPS,                  IRO_Eq,   IRO_Ne,   IRCH_Less | IRCH_Greater,       IRO_None),
+	IR_INTEGER_COMPARE("slt",  IR_SIGNED,                 IRO_SGe,  IRO_SGt,  IRCH_Less,                      IRO_ULt),
+	IR_INTEGER_COMPARE("sle",  IR_SIGNED | IR_SWAP_LT,    IRO_SGt,  IRO_SGe,  IRCH_Less | IRCH_Equal,         IRO_ULe),
+	IR_INTEGER_COMPARE("sgt",  IR_SIGNED | IR_SWAP_LT,    IRO_SLe,  IRO_SLt,  IRCH_Greater,                   IRO_UGt),
+	IR_INTEGER_COMPARE("sge",  IR_SIGNED,                 IRO_SLt,  IRO_SLe,  IRCH_Greater | IRCH_Equal,      IRO_UGe),
+	IR_INTEGER_COMPARE("ult",  IR_UNSIGNED,               IRO_UGe,  IRO_UGt,  IRCH_Less,                      IRO_None),
+	IR_INTEGER_COMPARE("ule",  IR_UNSIGNED | IR_SWAP_LT,  IRO_UGt,  IRO_UGe,  IRCH_Less | IRCH_Equal,         IRO_None),
+	IR_INTEGER_COMPARE("ugt",  IR_UNSIGNED | IR_SWAP_LT,  IRO_ULe,  IRO_ULt,  IRCH_Greater,                   IRO_None),
+	IR_INTEGER_COMPARE("uge",  IR_UNSIGNED,               IRO_ULt,  IRO_ULe,  IRCH_Greater | IRCH_Equal,      IRO_None),
 
 	IR_FLOAT_OP("fadd", IR_SWAPS),
 	IR_FLOAT_OP("fsub", IR_PURE),
@@ -180,7 +187,7 @@ uint16 FindIROpcode(SIROpcode* pasOpcodes, uint16 uiNumOpcodes, uint16 uiFirst, 
 // The opcode's IROP_ properties: a target's opcodes have none.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint8 IRProperties(uint16 uiOpcode)
+static uint16 IRProperties(uint16 uiOpcode)
 {
 	return (uiOpcode < IRO_NumGeneric) ? gasIROpcodes[uiOpcode].uiProperties : 0;
 }
@@ -205,7 +212,7 @@ bool IsIRIntegerComparison(uint16 uiOpcode)
 //////////////////////////////////////////////////////////////////////////
 bool IsIRSignedComparison(uint16 uiOpcode)
 {
-	return (IRProperties(uiOpcode) & IROP_Signed) != 0;
+	return (IRProperties(uiOpcode) & (IROP_IntegerComparison | IROP_Signed)) == (IROP_IntegerComparison | IROP_Signed);
 }
 
 
@@ -277,7 +284,7 @@ bool IRCompareIntegers(uint16 uiOpcode, SIRType sType, uint64 ulliLeft, uint64 u
 //////////////////////////////////////////////////////////////////////////
 bool IsIRIntegerConversion(uint16 uiOpcode)
 {
-	return (uiOpcode == IRO_Trunc) || (uiOpcode == IRO_SExt) || (uiOpcode == IRO_ZExt);
+	return (IRProperties(uiOpcode) & IROP_IntegerConversion) != 0;
 }
 
 
@@ -418,7 +425,163 @@ bool IRFoldInteger(uint16 uiOpcode, SIRType sType, SIRType sFrom, int iBits, uin
 //////////////////////////////////////////////////////////////////////////
 bool IsIRSignedWrapping(uint16 uiOpcode)
 {
-	return (uiOpcode == IRO_Add) || (uiOpcode == IRO_Sub) || (uiOpcode == IRO_Mul) || (uiOpcode == IRO_Neg) || (uiOpcode == IRO_Shl);
+	return (IRProperties(uiOpcode) & IROP_SignedWrapping) != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The orders of its operands an integer comparison holds for (IRCH_Less,
+// _Equal, _Greater: of the left against the right); 0 for any other
+// opcode.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 IRComparisonHolds(uint16 uiOpcode)
+{
+	return IsIRIntegerComparison(uiOpcode) ? gasIROpcodes[uiOpcode].uiHolds : (uint8)0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// IROP_Signed for an opcode that takes its operands as signed (slt, sdiv),
+// IROP_Unsigned for one that takes them as unsigned (ult, udiv), and 0 for
+// one that is the same for both (eq, add).
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 IRSignedness(uint16 uiOpcode)
+{
+	return IRProperties(uiOpcode) & (IROP_Signed | IROP_Unsigned);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The opcode that does to unsigned operands what a signed comparison or a
+// signed division does to signed ones: slt's is ult, srem's is urem.  Any
+// other opcode is returned as it is.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 IRUnsignedOpcode(uint16 uiOpcode)
+{
+	return ((uiOpcode < IRO_NumGeneric) && (gasIROpcodes[uiOpcode].uiUnsigned != IRO_None)) ? gasIROpcodes[uiOpcode].uiUnsigned : uiOpcode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// add, sub, mul, and, or, xor, shl, lshr, ashr, neg and not.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRIntegerArithmetic(uint16 uiOpcode)
+{
+	return (IRProperties(uiOpcode) & IROP_IntegerArithmetic) != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the low bits of the opcode's result depend only on the low bits
+// of its operands: add, sub, mul, and, or and xor.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRLowBits(uint16 uiOpcode)
+{
+	return (IRProperties(uiOpcode) & IROP_LowBits) != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sdiv, udiv, srem and urem; those of them that take signed operands, and
+// unsigned; the two that give the remainder, and the two that give the
+// quotient.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRDivision(uint16 uiOpcode)
+{
+	return (IRProperties(uiOpcode) & IROP_Division) != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRSignedDivision(uint16 uiOpcode)
+{
+	return (IRProperties(uiOpcode) & (IROP_Division | IROP_Signed)) == (IROP_Division | IROP_Signed);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRUnsignedDivision(uint16 uiOpcode)
+{
+	return (IRProperties(uiOpcode) & (IROP_Division | IROP_Unsigned)) == (IROP_Division | IROP_Unsigned);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRRemainder(uint16 uiOpcode)
+{
+	return (IRProperties(uiOpcode) & IROP_Remainder) != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRQuotient(uint16 uiOpcode)
+{
+	return (IRProperties(uiOpcode) & (IROP_Division | IROP_Remainder)) == IROP_Division;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The division of signed or of unsigned operands that gives the quotient,
+// or the remainder.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 IRDivisionOpcode(bool bSigned, bool bRemainder)
+{
+	if (bRemainder)
+	{
+		return bSigned ? IRO_SRem : IRO_URem;
+	}
+	return bSigned ? IRO_SDiv : IRO_UDiv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The remainder of the division a quotient is of, and the quotient of the
+// one a remainder is of: sdiv's is srem, urem's is udiv.  IRO_None for an
+// opcode that is no division.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 IRDivisionPartner(uint16 uiOpcode)
+{
+	return IsIRDivision(uiOpcode) ? gasIROpcodes[uiOpcode].uiPartner : (uint16)IRO_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the opcode's result is an i1 whatever its instruction's type:
+// the comparisons, of integers and of floats.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IRResultIsI1(uint16 uiOpcode)
+{
+	return (uiOpcode < IRO_NumGeneric) && (gasIROpcodes[uiOpcode].uiResult == IRRS_I1);
 }
 
 

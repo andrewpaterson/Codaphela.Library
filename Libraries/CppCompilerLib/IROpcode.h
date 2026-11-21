@@ -146,14 +146,22 @@ enum EIRShape
 #define IROP_Commutative	0x02		//a op b is b op a.
 #define IROP_MayTrap		0x04		//Fails on some operands (division by 0): only moved where it would be done anyway.
 #define IROP_IntegerComparison	0x08	//eq, ne and the signed and unsigned orderings: they have the comparison columns.
-#define IROP_Signed			0x10		//An integer comparison of signed operands.
+#define IROP_Signed			0x10		//An integer comparison or a division of signed operands...
 #define IROP_SwappedLess	0x20		//sgt, sle, ugt and ule: a less than comparison with the operands swapped.
+#define IROP_Unsigned		0x40		//...and one of unsigned operands.  eq and ne are neither: they are the same for both.
+#define IROP_IntegerArithmetic	0x80	//add, sub, mul, and, or, xor, the shifts, neg and not: integers in, an integer out, no trap.
+#define IROP_LowBits		0x100		//add, sub, mul, and, or and xor: the result's low bits come of the operands' low bits alone.
+#define IROP_Division		0x200		//sdiv, udiv, srem and urem...
+#define IROP_Remainder		0x400		//...and of them srem and urem.
+#define IROP_IntegerConversion	0x800	//trunc, sext and zext: an integer to an integer of another width.
+#define IROP_SignedWrapping	0x1000		//add, sub, mul, neg and shl: a signed overflow of one is undefined behaviour (IRF_NoSignedWrap).
 
 
 //The orders of an integer comparison's operands it holds for (SIROpcode::uiHolds).
 #define IRCH_Less			0x01
 #define IRCH_Equal			0x02
 #define IRCH_Greater		0x04
+#define IRCH_All			(IRCH_Less | IRCH_Equal | IRCH_Greater)
 
 
 struct SIROpcode
@@ -165,12 +173,18 @@ struct SIROpcode
 	uint8		auiOperands[2];		//EIROperandKind.
 	uint8		uiResult;			//EIRResultKind.
 	uint8		uiFlags;			//The IRF_ flags allowed.
-	uint8		uiProperties;		//IROP_.
+	uint16		uiProperties;		//IROP_.
 
 	//An integer comparison's columns.
 	uint8		uiInverted;			//The comparison that is true when this one is false.
 	uint8		uiSwapped;			//The comparison of the operands the other way round.
 	uint8		uiHolds;			//IRCH_ set of the orders it holds for.
+
+	//A signed comparison's and a signed division's.
+	uint8		uiUnsigned;			//The opcode that does the same with unsigned operands: slt's is ult, sdiv's udiv.
+
+	//A division's.
+	uint8		uiPartner;			//The remainder of the same division, and a remainder's quotient: sdiv's is srem.
 
 	int			NumOperands(void) const;
 };
@@ -193,6 +207,9 @@ bool		IsIRSignedComparison(uint16 uiOpcode);
 bool		IsIRSwappedComparison(uint16 uiOpcode);
 uint16		IRInvertedComparison(uint16 uiOpcode);
 uint16		IRSwappedComparison(uint16 uiOpcode);
+uint8		IRComparisonHolds(uint16 uiOpcode);
+uint16		IRSignedness(uint16 uiOpcode);
+uint16		IRUnsignedOpcode(uint16 uiOpcode);
 bool		IRCompareIntegers(uint16 uiOpcode, SIRType sType, uint64 ulliLeft, uint64 ulliRight);
 bool		IsIRIntegerConversion(uint16 uiOpcode);
 bool		IsIRPure(uint16 uiOpcode);
@@ -201,6 +218,16 @@ bool		IsIRCommutative(uint16 uiOpcode);
 bool		IRFoldInteger(uint16 uiOpcode, SIRType sType, SIRType sFrom, int iBits, uint64 a, uint64 b, uint64* pulliResult);
 bool		IRSignedOverflows(uint16 uiOpcode, int iBits, uint64 a, uint64 b, uint64 ulliResult);
 bool		IsIRSignedWrapping(uint16 uiOpcode);
+bool		IsIRIntegerArithmetic(uint16 uiOpcode);
+bool		IsIRLowBits(uint16 uiOpcode);
+bool		IsIRDivision(uint16 uiOpcode);
+bool		IsIRSignedDivision(uint16 uiOpcode);
+bool		IsIRUnsignedDivision(uint16 uiOpcode);
+bool		IsIRRemainder(uint16 uiOpcode);
+bool		IsIRQuotient(uint16 uiOpcode);
+uint16		IRDivisionOpcode(bool bSigned, bool bRemainder);
+uint16		IRDivisionPartner(uint16 uiOpcode);
+bool		IRResultIsI1(uint16 uiOpcode);
 
 
 #endif // __I_R_OPCODE_H__
