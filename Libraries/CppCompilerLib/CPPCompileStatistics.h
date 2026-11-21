@@ -77,6 +77,9 @@ enum ECPPCompileCount
 	CPPCC_Dominators,				//CIRDominators::Compute calls by the optimiser, the inliner and the back ends.
 	CPPCC_OptimisedFunctions,		//CIROptimiser::Optimise calls...
 	CPPCC_OptimiserRounds,			//...and the rounds of passes they ran.
+	CPPCC_ClassLayouts,				//Classes laid out (CCPPUnit::LayoutClass)...
+	CPPCC_ClassLayoutsWhereDefined,	//...and those of them laid out where they are defined, to check override and final.
+	CPPCC_NamedInstanceNodes,		//Syntax nodes CCPPUnit::ReportNamedInstances looked at.
 	CPPCC_NumCounts
 };
 

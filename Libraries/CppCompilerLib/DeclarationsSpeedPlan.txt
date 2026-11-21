@@ -176,4 +176,19 @@ Questions for the user
 The record
 ----------
 
-(Each stage's table goes here as it is done.)
+Compiling TestSupportLib65's project a unit at a time (CompilerMeasure.py --compile --serial), Release x64.  The
+times are milliseconds and move by a tenth between runs; the counts are exact.
+
+Stage 0 (2026-11-21): the three counts (CCPPCompileStatistics: class layouts, class layouts where defined, named
+instance nodes) and TestCPP65Declarations, which compiles Input/CPP65/DeclarationsProject on both processors and
+asserts them and the quiet trials.  The compiler does what it did.
+
+	                                  65C64       W65C816
+	declarations (ms)                29,335        28,224
+	quiet trials                  6,348,044     6,265,360
+	class layouts                   250,735       246,098
+	class layouts where defined      86,964        85,437
+	named instance nodes        490,396,649   484,627,079
+	units compiled twice                698           646
+
+	The DeclarationsProject (either processor): 65 layouts, 52 where defined, 9,580 nodes, 222 quiet trials.

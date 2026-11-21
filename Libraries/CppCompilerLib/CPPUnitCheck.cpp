@@ -1072,12 +1072,14 @@ public:
 	bool					mbClasses;		//Finding the classes, not the instances.
 	int						miTemplates;	//How many template declarations the node is in,
 	int						miInitializers;	//and how many constructors' initialisers.
+	uint64					muiVisited;		//The nodes looked at.
 
 	void	Visit(CCPPSyntax* pcChild) override
 	{
 		bool	bTemplate;
 		bool	bInitializer;
 
+		muiVisited++;
 		bTemplate = (pcChild->GetKind() == CPPS_TemplateDeclaration);
 		bInitializer = (pcChild->GetKind() == CPPS_MemberInitializer);
 		miTemplates += bTemplate ? 1 : 0;
@@ -1131,6 +1133,7 @@ void CCPPUnit::ReportNamedInstances(void)
 	cFinder.mpapcClasses = &apcClasses;
 	cFinder.miTemplates = 0;
 	cFinder.miInitializers = 0;
+	cFinder.muiVisited = 0;
 	cFinder.mbClasses = true;
 	mpcTree->GetRoot()->VisitFields(&cFinder);
 	if (apcClasses.NumElements() > 0)
@@ -1138,6 +1141,7 @@ void CCPPUnit::ReportNamedInstances(void)
 		cFinder.mbClasses = false;
 		mpcTree->GetRoot()->VisitFields(&cFinder);
 	}
+	mpcStatistics->Count(CPPCC_NamedInstanceNodes, cFinder.muiVisited);
 	apcClasses.Kill();
 }
 

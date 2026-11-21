@@ -72,6 +72,9 @@ static const char*	gaszCPPCompileCounts[CPPCC_NumCounts] =
 	"dominators",
 	"optimised functions",
 	"optimiser rounds",
+	"class layouts",
+	"class layouts where defined",
+	"named instance nodes",
 };
 
 

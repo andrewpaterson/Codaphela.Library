@@ -3213,11 +3213,18 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
+	CCPPClass*	pcClass;
+
 	if (!pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !(pcSpecifier->HasVirtSpecifiedMember() || (pcSpecifier->macpBases.NumElements() > 0)))
 	{
 		return true;
 	}
-	return CompleteClass(GetClass(pcSpecifier->mpcSymbol, pcSpecifier), pcSpecifier);
+	pcClass = GetClass(pcSpecifier->mpcSymbol, pcSpecifier);
+	if (!pcClass->IsComplete() && !pcClass->IsBeingMade())
+	{
+		mpcStatistics->Count(CPPCC_ClassLayoutsWhereDefined);
+	}
+	return CompleteClass(pcClass, pcSpecifier);
 }
 
 

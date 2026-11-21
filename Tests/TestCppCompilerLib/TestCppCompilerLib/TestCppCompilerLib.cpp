@@ -29,6 +29,7 @@ void TestCPP65ForwardingReferences(void);
 void TestCPPConformance(void);
 void TestCPP65IR(void);
 void TestCPP65Generator(void);
+void TestCPP65Declarations(void);
 void TestCPP65LazyHeaders(void);
 void TestCPP65Spill(void);
 void TestCPP65Jobs(void);
@@ -79,6 +80,7 @@ static const STestCppCompilerLibFile gasTestFiles[] =
 	{ TestCPP65ForwardingReferences, "TestCPP65ForwardingReferences", false },
 	{ TestCPP65Generator, "TestCPP65Generator", true },
 	{ TestCPP65IR, "TestCPP65IR", false },
+	{ TestCPP65Declarations, "TestCPP65Declarations", false },
 	{ TestCPP65LazyHeaders, "TestCPP65LazyHeaders", false },
 	{ TestCPP65Spill, "TestCPP65Spill", false },
 	{ TestCPP65Jobs, "TestCPP65Jobs", false },

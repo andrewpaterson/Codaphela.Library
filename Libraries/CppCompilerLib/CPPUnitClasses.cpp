@@ -910,6 +910,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	int								iClassAlign;
 	bool							bResult;
 
+	mpcStatistics->Count(CPPCC_ClassLayouts);
 	pcSpecifier = pcClass->mpcSpecifier;
 	mcContext.EnterBindings(pcClass->mpcBindings);
 	bResult = true;

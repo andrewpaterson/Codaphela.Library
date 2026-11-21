@@ -247,6 +247,7 @@
     <ClCompile Include="TestCPPConformance.cpp" />
     <ClCompile Include="TestCPPW65C816Volatile.cpp" />
     <ClCompile Include="TestCPP65IR.cpp" />
+    <ClCompile Include="TestCPP65Declarations.cpp" />
     <ClCompile Include="TestCPP65LazyHeaders.cpp" />
     <ClCompile Include="TestCPP65HeaderCache.cpp" />
     <ClCompile Include="TestIRImportsTurns.cpp" />
