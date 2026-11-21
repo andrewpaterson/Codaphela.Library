@@ -8274,6 +8274,727 @@ static const SConformanceCase gasConformanceClause5[] =
 };
 
 
+//Clause 6, statements [stmt.stmt].
+static const SConformanceCase gasConformanceClause6[] =
+{
+	//6.1 [stmt.label] p1: labels have their own names: a label and a variable of one name
+	{
+		"StmtLabelOwnNames", 3,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int L = 1;\n"
+		"	goto L;\n"
+		"	r += 8;\n"
+		"L:\n"
+		"	if (L == 1) r += 1;\n"
+		"	{ int x = 2; if (x == 2) r += 2; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.1 [stmt.label] p2: a case label only in a switch
+	{
+		"StmtCaseOutsideSwitchRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	case 1: return 0;\n"
+		"}\n"
+	},
+	//6.1 [stmt.label] p2: a default label only in a switch
+	{
+		"StmtDefaultOutsideSwitchRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	default: return 0;\n"
+		"}\n"
+	},
+	//6.1 [stmt.label] p1: a label is followed by a statement
+	{
+		"StmtLabelAtBlockEndRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	int x = 0;\n"
+		"	{ goto L; x = 1; L: }\n"
+		"	return x;\n"
+		"}\n"
+	},
+	//6.2 [stmt.expr]: an expression statement's value is thrown away; a null statement does nothing
+	{
+		"StmtExpressionStatement", 7,
+		"int g = 0;\n"
+		"int Inc() { return ++g; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Inc();\n"
+		"	;\n"
+		"	(void)Inc();\n"
+		"	if (g == 2) r += 1;\n"
+		"	for (;;) { break; }\n"
+		"	if (true) ; else r += 8;\n"
+		"	r += 2;\n"
+		"	int a = 5;\n"
+		"	if (a == 5) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.3 [stmt.block]: a compound statement is a block whose names end with it
+	{
+		"StmtCompoundScope", 7,
+		"int x = 1;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		int x = 2;\n"
+		"		if (x == 2) r += 1;\n"
+		"		{ int x = 3; if (x == 3) r += 2; }\n"
+		"		if (x == 2) r += 4;\n"
+		"	}\n"
+		"	return r + ((x == 1) ? 0 : 64);\n"
+		"}\n"
+	},
+	//6.4 [stmt.select] p1, 6.5 [stmt.iter] p2: a substatement is a block even without braces
+	{
+		"StmtSubstatementIsBlock", 3,
+		"int x = 7;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (x) int x = 2;\n"
+		"	if (x == 7) r += 1;\n"
+		"	for (int i = 0; i < 1; i++) int x = 3;\n"
+		"	while (x == 7) { r += 2; break; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.4 [stmt.select] p1: what a substatement declares ends with it
+	{
+		"StmtSubstatementNameEndsRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	if (1) int y = 2;\n"
+		"	return y;\n"
+		"}\n"
+	},
+	//6.4 [stmt.select] p3: an if's condition variable is in scope in both its branches
+	{
+		"StmtIfConditionScope", 7,
+		"int F(int a) { if (int x = a) return x; else return x + 10; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F(3) == 3) r += 1;\n"
+		"	if (F(0) == 10) r += 2;\n"
+		"	if (int* p = 0) r += 8; else if (!p) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.4 [stmt.select] p4: a condition's object is converted to bool, by an explicit conversion function too
+	{
+		"StmtConditionContextual", 3,
+		"struct B { int v; explicit operator bool() const { return v != 0; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (B b = B{1}) r += 1;\n"
+		"	B z{0};\n"
+		"	if (!z) r += 2;\n"
+		"	while (B w = B{0}) { r += 8; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.4 [stmt.select] p2: a condition's declarator declares neither an array nor a function
+	{
+		"StmtConditionArrayRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	if (int a[2] = { 1, 2 }) return 1;\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//6.4 [stmt.select] p3, 6.5.1 [stmt.while] p2: a while's condition variable ends with the while
+	{
+		"StmtWhileConditionNameEndsRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	while (int x = 0) { }\n"
+		"	return x;\n"
+		"}\n"
+	},
+	//6.5.1 [stmt.while] p2: a while's condition variable is made and destroyed each time round
+	{
+		"StmtWhileConditionRemade", 3,
+		"int giMade = 0;\n"
+		"int giGone = 0;\n"
+		"struct C { int v; C(int x) : v(x) { giMade++; } ~C() { giGone++; } explicit operator bool() const { return v > 0; } };\n"
+		"int n = 3;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	while (C c{n--}) { if (giMade - giGone != 1) r += 8; }\n"
+		"	if (giMade == 4) r += 1;\n"
+		"	if (giGone == 4) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p2: the condition is promoted and the case values converted to its type
+	{
+		"StmtSwitchPromotion", 7,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	char c = 'b';\n"
+		"	switch (c) { case 'a': break; case 98: r += 1; break; }\n"
+		"	unsigned char u = 200;\n"
+		"	switch (u) { case 200: r += 2; break; default: break; }\n"
+		"	bool b = true;\n"
+		"	switch (b) { case 1: r += 4; break; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p2: two case values in one switch are different
+	{
+		"StmtSwitchDuplicateCaseRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	int x = 1;\n"
+		"	switch (x) { case 1: break; case 1: break; }\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p2: different after conversion to the condition's type
+	{
+		"StmtSwitchDuplicateConvertedRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	long x = 1;\n"
+		"	switch (x) { case 1: break; case 1u: break; }\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p3: one default label in a switch
+	{
+		"StmtSwitchTwoDefaultsRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	int x = 1;\n"
+		"	switch (x) { default: break; default: break; }\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p2: a case's value is a constant expression
+	{
+		"StmtSwitchNonConstantCaseRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	int x = 1;\n"
+		"	int y = 1;\n"
+		"	switch (x) { case y: break; }\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p5, p6: case labels anywhere in the switch's statement, falling through to the next (Duff's device)
+	{
+		"StmtSwitchNestedCases", 15,
+		"void Copy(char* to, const char* from, int count)\n"
+		"{\n"
+		"	int n = (count + 3) / 4;\n"
+		"	switch (count % 4)\n"
+		"	{\n"
+		"	case 0: do { *to++ = *from++;\n"
+		"	case 3: *to++ = *from++;\n"
+		"	case 2: *to++ = *from++;\n"
+		"	case 1: *to++ = *from++;\n"
+		"		} while (--n > 0);\n"
+		"	}\n"
+		"}\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	char a[8] = \"abcdefg\";\n"
+		"	char b[8] = { 0 };\n"
+		"	Copy(b, a, 7);\n"
+		"	if (b[0] == 'a' && b[6] == 'g' && b[7] == 0) r += 1;\n"
+		"	int x = 2;\n"
+		"	int t = 0;\n"
+		"	switch (x) { case 1: t += 1; case 2: t += 2; case 3: t += 4; break; case 4: t += 8; }\n"
+		"	if (t == 6) r += 2;\n"
+		"	switch (x) { { case 2: r += 4; } }\n"
+		"	switch (x) { case 9: r += 64; }\n"
+		"	r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p5: the condition is worked out once; no matching case and no default skips the statement
+	{
+		"StmtSwitchConditionOnce", 3,
+		"int g = 0;\n"
+		"int Next() { return ++g; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	switch (Next()) { case 1: case 2: r += 1; }\n"
+		"	switch (Next()) { case 7: r += 8; }\n"
+		"	if (g == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p2: a scoped enum's value, and an enum with a value an int holds
+	{
+		"StmtSwitchScopedEnum", 3,
+		"enum class Colour : char { Red, Green, Blue };\n"
+		"enum E { A = 300, B };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Colour c = Colour::Blue;\n"
+		"	switch (c) { case Colour::Red: break; case Colour::Blue: r += 1; break; default: break; }\n"
+		"	E e = B;\n"
+		"	switch (e) { case B: r += 2; break; default: break; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.4.2 [stmt.switch] p2: a class converted to an integer by its conversion function, declared in the condition too
+	{
+		"StmtSwitchClassCondition", 3,
+		"struct N { int v; operator int() const { return v; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	N n{2};\n"
+		"	switch (n) { case 2: r += 1; break; }\n"
+		"	switch (N m = N{3}) { case 3: r += 2; break; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.7 [stmt.dcl] p3, 6.4.2 [stmt.switch]: a case may not jump past an initialised declaration into its scope
+	{
+		"StmtSwitchJumpPastInitRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	int x = 2;\n"
+		"	switch (x) { case 1: int y = 5; (void)y; break; case 2: break; }\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//6.7 [stmt.dcl] p3: past a scalar declared without an initialiser is allowed
+	{
+		"StmtSwitchJumpPastScalar", 2,
+		"int main()\n"
+		"{\n"
+		"	int x = 2;\n"
+		"	int r = 0;\n"
+		"	switch (x) { case 1: int y; y = 5; r += y; break; case 2: y = 2; r += y; break; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.5.1 [stmt.while], 6.5.2 [stmt.do], 6.5.3 [stmt.for]: while tests first, do after, a for's parts in their order
+	{
+		"StmtWhileDoFor", 15,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int n = 0;\n"
+		"	while (n < 0) n++;\n"
+		"	if (n == 0) r += 1;\n"
+		"	do n++; while (n < 0);\n"
+		"	if (n == 1) r += 2;\n"
+		"	int s = 0;\n"
+		"	for (int i = 0; i < 4; i += 1) s += i;\n"
+		"	if (s == 6) r += 4;\n"
+		"	int k = 0;\n"
+		"	for (;;) { if (++k == 3) break; }\n"
+		"	if (k == 3) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.5.3 [stmt.for] p1: a for's first part's names are the for's, and hide those outside
+	{
+		"StmtForInitScope", 7,
+		"int i = 100;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	for (int i = 0; i < 2; i++) { if (i < 2) r |= 1; }\n"
+		"	if (i == 100) r += 2;\n"
+		"	for (int i = 0, j = 10; i < j; i++, j--) { if (i == 4) r += 4; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.5.3 [stmt.for] p1: a for's first part's names end with it
+	{
+		"StmtForInitNameEndsRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	for (int i = 0; i < 2; i++) { }\n"
+		"	return i;\n"
+		"}\n"
+	},
+	//6.5.3 [stmt.for] p1, 6.5.1 [stmt.while] p2: a for's condition declaration is made and destroyed each time round
+	{
+		"StmtForConditionObject", 3,
+		"int giMade = 0;\n"
+		"int giGone = 0;\n"
+		"struct C { int v; C(int x) : v(x) { giMade++; } ~C() { giGone++; } explicit operator bool() const { return v > 0; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int n = 2;\n"
+		"	for (; C c{n}; n--) { if (giMade - giGone != 1) r += 8; }\n"
+		"	if (giMade == 3) r += 1;\n"
+		"	if (giGone == 3) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.6.2 [stmt.cont]: continue goes to the loop's end: a for's step runs, a do's condition and a while's are tested
+	{
+		"StmtContinue", 7,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int s = 0;\n"
+		"	for (int i = 0; i < 5; i++) { if (i % 2) continue; s += i; }\n"
+		"	if (s == 6) r += 1;\n"
+		"	int n = 0;\n"
+		"	int t = 0;\n"
+		"	do { n++; if (n < 3) continue; t++; } while (n < 5);\n"
+		"	if (t == 3) r += 2;\n"
+		"	int w = 0;\n"
+		"	int u = 0;\n"
+		"	while (w < 4) { w++; if (w == 2) continue; u++; }\n"
+		"	if (u == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.6.1 [stmt.break]: break leaves the innermost loop or switch
+	{
+		"StmtBreakInnermost", 7,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int c = 0;\n"
+		"	for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++) { if (j == 1) break; c++; }\n"
+		"	if (c == 3) r += 1;\n"
+		"	int x = 1;\n"
+		"	int t = 0;\n"
+		"	for (int k = 0; k < 2; k++) { switch (x) { case 1: t++; break; } t += 10; }\n"
+		"	if (t == 22) r += 2;\n"
+		"	while (true) { switch (x) { default: break; } break; }\n"
+		"	r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.6.1 [stmt.break] p1: break only in a loop or a switch
+	{
+		"StmtBreakOutsideRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	break;\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//6.6.2 [stmt.cont] p1: continue only in a loop
+	{
+		"StmtContinueInSwitchRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	int x = 1;\n"
+		"	switch (x) { case 1: continue; }\n"
+		"	return 0;\n"
+		"}\n"
+	},
+	//6.6.3 [stmt.return] p2: a return's value is converted to the function's type by copy initialisation; a braced list too
+	{
+		"StmtReturnConversion", 15,
+		"struct P { int a; int b; };\n"
+		"struct Q { int v; Q(int x) : v(x * 2) { } };\n"
+		"double Half() { return 1; }\n"
+		"char Letter() { return 65; }\n"
+		"P Pair() { return { 3, 4 }; }\n"
+		"Q Make() { return 5; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Half() == 1.0) r += 1;\n"
+		"	if (Letter() == 'A') r += 2;\n"
+		"	P p = Pair();\n"
+		"	if (p.a + p.b == 7) r += 4;\n"
+		"	if (Make().v == 10) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.6.3 [stmt.return] p2: copy initialisation uses no explicit constructor
+	{
+		"StmtReturnExplicitRefused", CONFORMANCE_REFUSED,
+		"struct Q { explicit Q(int x) : v(x) { } int v; };\n"
+		"Q Make() { return 5; }\n"
+		"int main() { return Make().v; }\n"
+	},
+	//6.6.3 [stmt.return] p2, p3: a void function may return a void expression, or return early with none
+	{
+		"StmtReturnVoidExpression", 3,
+		"int g = 0;\n"
+		"void Set() { g = 2; }\n"
+		"void Call() { return Set(); }\n"
+		"void Early(int x) { if (x) return; g += 1; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Call();\n"
+		"	if (g == 2) r += 1;\n"
+		"	Early(1);\n"
+		"	Early(0);\n"
+		"	if (g == 3) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.6.3 [stmt.return] p2: a void function returns no value
+	{
+		"StmtReturnValueInVoidRefused", CONFORMANCE_REFUSED,
+		"void F() { return 1; }\n"
+		"int main() { F(); return 0; }\n"
+	},
+	//6.6.3 [stmt.return] p2: a function that returns a value returns one
+	{
+		"StmtReturnNoValueRefused", CONFORMANCE_REFUSED,
+		"int F() { return; }\n"
+		"int main() { return F(); }\n"
+	},
+	//6.6 [stmt.jump] p2, 6.6.3 [stmt.return]: a return's value is made before the block's objects are destroyed, the last made first
+	{
+		"StmtReturnBeforeDestruction", 7,
+		"int giLog = 0;\n"
+		"struct L { int i; L(int x) : i(x) { } ~L() { giLog = giLog * 10 + i; } };\n"
+		"int Get()\n"
+		"{\n"
+		"	L a(1);\n"
+		"	L b(2);\n"
+		"	{\n"
+		"		L c(3);\n"
+		"		return giLog + c.i;\n"
+		"	}\n"
+		"}\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int v = Get();\n"
+		"	if (v == 3) r += 1;\n"
+		"	if (giLog == 321) r += 2;\n"
+		"	giLog = 0;\n"
+		"	for (int i = 0; i < 2; i++) { L d(4); if (i == 1) break; }\n"
+		"	if (giLog == 44) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.7 [stmt.dcl] p2: an automatic variable is initialised each time its declaration is reached
+	{
+		"StmtDeclarationEachTime", 3,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int s = 0;\n"
+		"	for (int i = 0; i < 3; i++) { int k = 1; s += k; k = 10; }\n"
+		"	if (s == 3) r += 1;\n"
+		"	int n = 0;\n"
+		"again:\n"
+		"	int m = 5;\n"
+		"	n += m;\n"
+		"	m = 0;\n"
+		"	if (n < 10) goto again;\n"
+		"	if (n == 10) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.7 [stmt.dcl] p4: a static local is zero first, and initialised once, the first time its declaration is passed
+	{
+		"StmtStaticLocalOnce", 15,
+		"int giCalls = 0;\n"
+		"int Init() { giCalls++; return 7; }\n"
+		"int Count() { static int n = Init(); return ++n; }\n"
+		"int Zero() { static int z; return z++; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Count();\n"
+		"	int c = Count();\n"
+		"	if (c == 9) r += 1;\n"
+		"	if (giCalls == 1) r += 2;\n"
+		"	Zero();\n"
+		"	if (Zero() == 1) r += 4;\n"
+		"	static int s;\n"
+		"	if (s == 0) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.7 [stmt.dcl] p4: a static local object is made the first time control passes its declaration, and only then
+	{
+		"StmtStaticLocalObjectOnce", 3,
+		"int giMade = 0;\n"
+		"struct M { M() { giMade++; } };\n"
+		"void F(bool b) { if (b) { static M m; } }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	F(false);\n"
+		"	if (giMade == 0) r += 1;\n"
+		"	F(true);\n"
+		"	F(true);\n"
+		"	if (giMade == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.8 [stmt.ambig] p1: a statement that could be either is a declaration: T(a); T(b)[3]; T(c) = 9;
+	{
+		"StmtAmbiguityDeclaration", 7,
+		"struct T { int v; T() : v(1) { } T(int x) : v(x) { } };\n"
+		"int a = 5;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	T(a);\n"
+		"	if (a.v == 1) r += 1;\n"
+		"	T(b)[3];\n"
+		"	if (b[2].v == 1) r += 2;\n"
+		"	T(c) = 9;\n"
+		"	if (c.v == 9) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.8 [stmt.ambig] p1: one that can't be a declaration is an expression: T(a)->v = 7; T(a)++;
+	{
+		"StmtAmbiguityExpression", 3,
+		"int g = 0;\n"
+		"struct T { int v; T(int x) : v(x) { } T* operator->() { g += 1; return this; } T operator++(int) { g += 2; return *this; } };\n"
+		"int a = 5;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	T(a)->v = 7;\n"
+		"	T(a)++;\n"
+		"	if (g == 3) r += 1;\n"
+		"	if (a == 5) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.5.4 [stmt.ranged] p1: over an array; auto& changes the elements, a copy doesn't
+	{
+		"StmtRangeForArray", 7,
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int a[4] = { 1, 2, 3, 4 };\n"
+		"	int s = 0;\n"
+		"	for (int x : a) s += x;\n"
+		"	if (s == 10) r += 1;\n"
+		"	for (auto& x : a) x *= 2;\n"
+		"	if (a[3] == 8) r += 2;\n"
+		"	int t = 0;\n"
+		"	for (const auto& x : a) t += x;\n"
+		"	for (auto x : a) x = 0;\n"
+		"	if (t == 20 && a[0] == 2) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.5.4 [stmt.ranged] p1: a class with begin and end members, const ones for a const object
+	{
+		"StmtRangeForMembers", 3,
+		"struct Bag\n"
+		"{\n"
+		"	int a[3];\n"
+		"	int* begin() { return a; }\n"
+		"	int* end() { return a + 3; }\n"
+		"	const int* begin() const { return a; }\n"
+		"	const int* end() const { return a + 3; }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Bag b = { { 1, 2, 3 } };\n"
+		"	int s = 0;\n"
+		"	for (int x : b) s += x;\n"
+		"	if (s == 6) r += 1;\n"
+		"	const Bag& c = b;\n"
+		"	int t = 0;\n"
+		"	for (int x : c) t += x * 2;\n"
+		"	if (t == 12) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.5.4 [stmt.ranged] p1: begin and end found by argument dependent lookup
+	{
+		"StmtRangeForFreeFunctions", 3,
+		"namespace N\n"
+		"{\n"
+		"	struct Bag { int a[3]; };\n"
+		"	int* begin(Bag& b) { return b.a; }\n"
+		"	int* end(Bag& b) { return b.a + 3; }\n"
+		"}\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	N::Bag b = { { 4, 5, 6 } };\n"
+		"	int s = 0;\n"
+		"	for (int x : b) s += x;\n"
+		"	if (s == 15) r += 1;\n"
+		"	for (int& x : b) x = 1;\n"
+		"	if (b.a[2] == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.5.4 [stmt.ranged] p1: over a braced list, which is an initializer_list
+	{
+		"StmtRangeForInitializerList", 3,
+		"#ifdef CONFORMANCE_HOST\n"
+		"#include <initializer_list>\n"
+		"#else\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr size_t size() const noexcept { return muiSize; } constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
+		"#endif\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int s = 0;\n"
+		"	for (int x : { 1, 2, 3 }) s += x;\n"
+		"	if (s == 6) r += 1;\n"
+		"	std::initializer_list<int> l = { 4, 5 };\n"
+		"	for (auto x : l) s += x;\n"
+		"	if (s == 15) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.5.4 [stmt.ranged] p1, 12.2 [class.temporary] p5: the range's temporary, or the temporary a member of which is the range, lives to the loop's end
+	{
+		"StmtRangeForTemporary", 3,
+		"struct Bag { int a[2]; ~Bag() { a[0] = 0; a[1] = 0; } int* begin() { return a; } int* end() { return a + 2; } };\n"
+		"Bag Make() { return Bag{ { 3, 4 } }; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int s = 0;\n"
+		"	for (int x : Make()) s += x;\n"
+		"	if (s == 7) r += 1;\n"
+		"	int t = 0;\n"
+		"	for (int x : Make().a) t += x;\n"
+		"	if (t == 7) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//6.5.4 [stmt.ranged] p1: a class needs begin and end, members or found by argument dependent lookup
+	{
+		"StmtRangeForNoBeginRefused", CONFORMANCE_REFUSED,
+		"struct Bag { int a[2]; };\n"
+		"int main()\n"
+		"{\n"
+		"	Bag b = { { 1, 2 } };\n"
+		"	int s = 0;\n"
+		"	for (int x : b) s += x;\n"
+		"	return s;\n"
+		"}\n"
+	},
+};
+
+
 //Clause 8, declarators [dcl.decl].
 static const SConformanceCase gasConformanceClause8[] =
 {
