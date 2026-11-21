@@ -1,0 +1,164 @@
+CppCompilerLib: the IR and the optimiser, put right
+===================================================
+
+A plan for findings 60 to 74 and 97 of SmellCheckFindings.txt: the IR layer and the optimiser, where each pass works
+out for itself what the others also work out.  Written 2026-11-21.  ConsolidationPlan.txt left the IR layer "to the
+sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
+the clean form would be, and are not repeated here.
+
+Where it is: nothing is built.  Stage 0 is next.
+
+
+The rules (the user, 2026-11-21)
+
+  1. The code the compiler writes may change (ConsolidationPlan's rule: it must work, and ideally is faster).  The
+     bar for a stage that changes it: every program of the three *65 suites still passes on both processors, and no
+     suite's total of cycles or of bytes is worse on either.  A stage that only moves code about (marked "same
+     code" below) must leave every unit's listing as it was.
+  2. The IR layer is this plan's to change.
+  3. All of the findings, with the IR parser's move onto BaseLib's CTextParser (74) last.
+  4. A stage is merged to master when it has passed.  The work is done in D:\gameengine-optimiser (branch
+     ir-optimiser).
+  5. Plan first; measure before and after.
+
+
+How a stage is proved
+
+  - TestCppCompilerLib whole (RunParallel.py).  TestIR.cpp is the optimiser's own: a stage that makes one helper of
+    several gives the helper its own cases there.
+  - "Same code": each of the three *65 suites' projects compiled for each processor a unit at a time with the
+    listings kept (TEST_PROJECT65_LISTINGS, TEST_PROJECT65_ONLY=NoSuchTest, TEST_PROJECT65_SERIAL=1), and the 4,201
+    listings compared with the stage before's.
+  - Otherwise: the three suites run on both processors (Tests/CompilerMeasure.py --raw), every program's cycles and
+    bytes set beside the stage before's, from the same folder (a program's size depends on its sources' paths).
+    What moved, and why, goes in the record.
+  - The compiler's own time and counts for TestSupportLib65's project (CompilerMeasure.py --compile --serial):
+    the optimise phase, optimised functions and optimiser rounds, and each pass's runs and time.  A stage that
+    makes one analysis of three must not make the optimiser slower without saying so.
+  - The machine has 7.9 GB: a *65 suite and TestCppCompilerLib are never run at the same time.
+
+
+The stages
+
+Each names its findings.  The order is: the tests that are missing, then what only moves code about, then the
+helpers the passes share, then the analyses, then the parser.
+
+0. The baseline, and the tests the IR's parser and verifier lack (97).
+
+   - The measures above, taken at the plan's commit and kept (the record).
+   - TestIRParserErrors and TestIRVerifierErrors exist and give each some wrong IR; 14 of the parser's diagnostics
+     and 18 of the verifier's are raised by no test (appendix A of SmellCheckFindings.txt).  Each gets a case, with
+     its text asserted.  One that cannot be raised from any text is said to be so here, and why.
+   - Finding 97 said there were no such tests; that was too much, and is put right in the findings file.
+
+1. An opcode's facts are in the opcode table (62).  Same code.
+
+   The table gets what the passes keep for themselves: an accessor for a comparison's uiHolds; columns for an
+   opcode's unsigned twin and its divide/remainder twin; and class bits (integer arithmetic, divide, extension,
+   signed wrapping) that the hand lists become tests of (IROptimiserHoistable, IRSpecialiseFollows,
+   IROptimiserNarrows, IsIRSignedWrapping, IsIRIntegerConversion).  Gone: gaiIRRelations and gaiIRSignedness, the
+   two ternaries that are IRInvertedComparison and IRSwappedComparison again, "uiOpcode += IRO_ULt - IRO_SLt",
+   IRKnownBits' two switches.  Where two lists differ, each difference is looked at: kept as a named class if it
+   is meant, and noted in the record if it was an accident (then the stage is not "same code" for that pass).
+   TestIRComparisonColumns grows to the new columns.
+
+2. One row for each pass (67).  Same code.
+
+   A table: the pass's enum, name, group, function and one line of what it does.  gaszIRPasses, InitPasses and the
+   documentation come from it; the enum's comment says what is true.  ConstantDivisions is said once for each
+   target (ShareDivisions asks the pipeline, by CIRPipeline::Has, which then has a caller).  IR.txt's list of
+   passes is made the table's.
+
+3. A symbol's attributes are one set (70).
+
+   One bit set for restrict, local, regcall, nowrites and nothrow with a {bit, keyword} table: one parse, one print
+   loop, one CopySymbolAttributes for IRImports and IRInliner.  Same code, but for this: the two copies carry
+   neither nowrites nor local today.  Whether carrying them is right is looked at first (a test of what an
+   imported function's caller may assume); if it is, they are carried and the code may get better.
+
+4. Instructions are built by the builder (72).  Same code.
+
+   CIRFunction::Add and CIRPasses::InsertInstruction take the source line, and the five places that build an
+   instruction field by field use them (two of them skip the memset today).  The passes use
+   CIRDefinitions::IsDefinedBy where they write it out.
+
+5. What a branch says on an edge, and a loop's test (61).
+
+   One edge-condition helper (the compare, the opcode as it holds on the edge, the value on the left) and one
+   loop-test record (the block, the compare as it holds going round, the targets inside and outside).
+   EdgeComparison is the form to start from.  EdgeBound, UnsignedMaximum, LoopGuarded, GuardedBy, EntryRelations
+   and the loop tests of Loops, Counters and Idioms ask it.  LoopGuarded and GuardedBy differ in how far up they
+   look (16 dominators against the nearest branch): the reach becomes a parameter, and each caller keeps its own.
+
+6. A loop's counters are found once (60).
+
+   The loops analysis finds each loop's induction variables (the phi, where it starts, its step, the value that
+   comes round, the block it comes round from), and one helper gives the value after n times round.
+   MatchCounter, ReduceStrength's own, ReplaceLoopCounters' second counter, MatchIdiomStep, MatchLinear, the
+   pointer phi of MatchIdiomAddress, ReplaceStrchr's and ReplaceExitValues' ask it.  Each copy accepts its own
+   steps today (add only; add or sub; ptradd): each caller says which it takes, so a stage that makes them one
+   does not by itself make a pass take more.  Taking more is then a line in a caller, measured on its own.
+
+7. Loop set-up and the three Reduce passes (65).
+
+   One walk "for each simple loop and each of its counters" for ReduceDivisions, ReduceStrength and
+   ReduceMultiplies; Preheader(uiLoop), which makes one when it is needed, for the three forms of "get the
+   preheader"; AddCounterPhi for the stepped phi built three times.  CounterUnwrapped takes the counter, not its
+   four parts.
+
+8. One copier of blocks (66).
+
+   A block copier that takes a value map and a block map, with a hook for what a return becomes: the inliner's
+   CopyBlock, UnswitchLoops' own (and CopyHead) and CIRFunction::CopyBody.  One switch rebuilds a jump.
+
+9. The library idioms (64).
+
+   One matcher that gives the loop's shape (head, latch, the two exits, the loads, the compare as taken) and a
+   table of idioms (name, 32 bit name, kinds of argument).  ReplaceLoopIdioms' ladder of names reads the table.
+   The phis of the exit, the widened byte and the IR_IDIOM_MIN_BYTES test are each written once.
+
+10. Division by a constant (71).
+
+   A matcher that gives an SIRConstantDivision (signed, remainder, divisor); the reciprocal a struct kept in the
+   found record, so FindReciprocal runs once; SIRBoundDivision's two flags a kind.  The quotient is a copy, not
+   "add q, 0", if every back end takes it as well (measured).
+
+11. One analysis of how big a value can be (63), asked without modes (68).
+
+   An SIRRange (unsigned and signed bounds), one transfer function for each opcode, one refinement on an edge
+   (stage 5's helper), kept in the pass context and asked by the passes and by the 65C64's back end
+   (CIRKnownBits::FitsType's two callers).  InstructionMost, UpperBound and SignedRange become it; a range is a
+   struct, not two int64 pointers through ten functions.  What to narrow by (branches, dominators) is a parameter
+   of the question, not two members set before it and cleared after.  The three know different opcodes today, so
+   this stage changes the code: it is the one most likely to, and is measured pass by pass.
+
+12. The pass groups (69).
+
+   What edits the flow graph (AddPreheader, RedirectJump, RemovePhiArguments) goes on CIRFunction or CIRLoops;
+   addresses (SplitAddress, IsOwnFrame, IsFrameRoot, with their two bare limits named) become an analysis class
+   in the context beside the ranges; a temporary's uses are counted once (CIRDefinitions::NumUses or mauiUses,
+   whichever the passes can keep right as they replace).  OnlyUsedInLoop takes the uses to leave out, where
+   Idioms decrements mauiUses and puts it back.  CIRPassContext's fields the groups no longer need are private.
+
+13. The summaries between functions (73).
+
+   One "optimistic summary" helper (mark every function, take back until nothing changes) with the test as a
+   callback, for MarkNoWrites and MarkNoThrow.  CIRModule::MayThrow moves beside the interprocedural code and
+   walks reachable blocks by a shared walker; IRReplaceUses uses CIRPasses' walk of uses.
+
+14. The IR's parser on CTextParser (74), and what is left.
+
+   IRParser.cpp's scanning (about 360 lines) is BaseLib's CTextParser, with a configuration for the IR's comments
+   and names; the top level's ladder of keywords is a table.  Stage 0's parser tests are what say it reads the
+   same.  The stale comment in IROptimiserInternal.h.  Then the findings file gets a "Since:" for each of 60 to
+   74 and 97, and this plan its last table.
+
+
+Questions for the user
+
+None open.  Answered 2026-11-21: the four of "The rules" above.
+
+
+The record
+
+(Each stage's proof and tables go here as it is done.)
