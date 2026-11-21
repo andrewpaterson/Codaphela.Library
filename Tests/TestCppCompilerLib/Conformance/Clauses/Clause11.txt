@@ -1,0 +1,296 @@
+### AccessDefaults | 3 | 11 [class.access] p2: a class's members are private unless said, a struct's public
+class C { int v = 1; public: int Get() { return v; } };
+struct S { int v = 2; };
+int main()
+{
+	int r = 0;
+	C c;
+	if (c.Get() == 1) r += 1;
+	S s;
+	if (s.v == 2) r += 2;
+	return r;
+}
+
+### AccessPrivateMemberRefused | REFUSED | 11 [class.access] p1: a private member is named only by the class's members and friends
+class C { int v = 1; };
+int main() { C c; return c.v; }
+
+### AccessPrivateFunctionRefused | REFUSED | 11 [class.access] p1: a private member function too
+class C { int F() { return 1; } };
+int main() { C c; return c.F(); }
+
+### AccessPrivateTypeRefused | REFUSED | 11 [class.access] p4: and a private member type
+class C { typedef int I; };
+int main() { C::I i = 0; return i; }
+
+### AccessPrivateStaticRefused | REFUSED | 11 [class.access] p1: and a private static member
+class C { static int s; };
+int C::s = 1;
+int main() { return C::s; }
+
+### AccessPrivateStaticDefinition | 1 | 11 [class.access] p7: a private static member's definition and its initialiser are in its class's scope
+class C { static int s; static int Seed() { return 1; } public: static int Get() { return s; } };
+int C::s = Seed();
+int main() { return C::Get(); }
+
+### AccessPublicTypedefOfPrivate | 1 | 11 [class.access] p4: access is to names: a public typedef of a private type is named
+class C { struct P { int v = 1; }; public: typedef P Pub; };
+int main() { C::Pub p; return p.v; }
+
+### AccessSpecifiersRepeated | 7 | 11.1 [class.access.spec] p1, p2: access specifiers in any order and repeated, each until the next
+class C
+{
+public:
+	int a = 1;
+private:
+	int b = 2;
+public:
+	int c = 4;
+	int B() { return b; }
+protected:
+	int d = 8;
+public:
+	int D() { return d; }
+};
+int main()
+{
+	int r = 0;
+	C c;
+	if (c.a == 1) r += 1;
+	if (c.B() == 2) r += 2;
+	if (c.c == 4 && c.D() == 8) r += 4;
+	return r;
+}
+
+### AccessOtherObjectOfClass | 3 | 11 [class.access] p1: a member reaches the private members of other objects of its class
+class C { int v; public: C(int x) : v(x) { } int Sum(const C& o) const { return v + o.v; } };
+int main()
+{
+	int r = 0;
+	C a(1);
+	C b(2);
+	if (a.Sum(b) == 3) r += 1;
+	r += 2;
+	return r;
+}
+
+### AccessPublicBase | 3 | 11.2 [class.access.base] p1: a public base's public members are public in the derived class, its protected ones protected
+struct B { int pub = 1; protected: int pro = 2; };
+struct D : public B { int Pro() { return pro; } };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.pub == 1) r += 1;
+	if (d.Pro() == 2) r += 2;
+	return r;
+}
+
+### AccessProtectedBaseRefused | REFUSED | 11.2 [class.access.base] p1: a protected base's public members are protected
+struct B { int pub = 1; };
+struct D : protected B { };
+int main() { D d; return d.pub; }
+
+### AccessPrivateBaseRefused | REFUSED | 11.2 [class.access.base] p1: a private base's public members are private
+struct B { int pub = 1; };
+struct D : private B { };
+int main() { D d; return d.pub; }
+
+### AccessPrivateBaseInside | 3 | 11.2 [class.access.base] p1: a private base's members are used inside the derived class
+struct B { int pub = 1; int F() { return 2; } };
+class D : private B { public: int Get() { return pub + F(); } };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.Get() == 3) r += 1;
+	r += 2;
+	return r;
+}
+
+### AccessStructBasePublic | 1 | 11.2 [class.access.base] p2: a struct's bases are public unless said
+struct B { int v = 1; };
+struct D : B { };
+int main() { D d; return d.v; }
+
+### AccessClassBasePrivateRefused | REFUSED | 11.2 [class.access.base] p2: a class's bases are private unless said
+struct B { int v = 1; };
+class D : B { };
+int main() { D d; return d.v; }
+
+### AccessInaccessibleBaseConversionRefused | REFUSED | 11.2 [class.access.base] p5, 4.10 [conv.ptr] p3: no conversion to an inaccessible base
+struct B { int v; };
+class D : private B { };
+int main() { D d; B* p = &d; return 0; }
+
+### AccessBaseConversionInside | 1 | 11.2 [class.access.base] p5: inside the class its private base is accessible
+struct B { int v = 1; };
+class D : private B { public: B* Base() { return this; } };
+int main() { D d; return d.Base()->v; }
+
+### AccessPrivateBaseFromGrandchildRefused | REFUSED | 11.2 [class.access.base] p1: a private base's members aren't reached from a class derived from the derived one
+struct B { int v = 1; };
+struct D : private B { };
+struct E : D { int Get() { return v; } };
+int main() { E e; return e.Get(); }
+
+### AccessInjectedNameThroughPrivateBaseRefused | REFUSED | 11.1 [class.access.spec] p5: a base's name found through a private base's injected name is inaccessible
+class A { };
+class B : private A { };
+class C : public B { A* p; };
+int main() { return 0; }
+
+### AccessGlobalNameOfPrivateBase | 1 | 11.1 [class.access.spec] p5: the same class named from the global scope is accessible
+class A { public: int v = 1; };
+class B : private A { };
+class C : public B { public: int Get() { ::A a; return a.v; } };
+int main() { C c; return c.Get(); }
+
+### AccessFriendFunction | 7 | 11.3 [class.friend] p1, p6: a friend function reaches private members; one defined in its class
+class C { int v = 3; friend int Peek(const C& c); friend int Twice(const C& c) { return c.v * 2; } };
+int Peek(const C& c) { return c.v; }
+int main()
+{
+	int r = 0;
+	C c;
+	if (Peek(c) == 3) r += 1;
+	if (Twice(c) == 6) r += 2;
+	r += 4;
+	return r;
+}
+
+### AccessFriendDefinedInClassNotFoundRefused | REFUSED | 11.3 [class.friend] p7, 7.3.1.2 [namespace.memdef] p3: a friend defined in its class isn't found by ordinary lookup
+class C { friend int Get() { return 1; } };
+int main() { return Get(); }
+
+### AccessFriendClass | 3 | 11.3 [class.friend] p2: a friend class's members reach the private members
+class C { int v = 4; friend class F; friend struct G; };
+class F { public: int Get(const C& c) { return c.v; } };
+struct G { static int Twice(const C& c) { return c.v * 2; } };
+int main()
+{
+	int r = 0;
+	C c;
+	F f;
+	if (f.Get(c) == 4) r += 1;
+	if (G::Twice(c) == 8) r += 2;
+	return r;
+}
+
+### AccessFriendNotTransitiveRefused | REFUSED | 11.3 [class.friend] p10: friendship isn't transitive
+class A { int v = 1; friend class B; };
+class B { friend class C; };
+class C { public: int Get(const A& a) { return a.v; } };
+int main() { return 0; }
+
+### AccessFriendNotInheritedRefused | REFUSED | 11.3 [class.friend] p10: nor inherited
+class A { int v = 1; friend class B; };
+class B { };
+class D : public B { public: int Get(const A& a) { return a.v; } };
+int main() { return 0; }
+
+### AccessFriendMemberFunction | 1 | 11.3 [class.friend] p4: a member function of another class made a friend
+class C;
+struct M { int Get(const C& c); };
+class C { int v = 5; friend int M::Get(const C&); };
+int M::Get(const C& c) { return c.v; }
+int main() { C c; M m; return (m.Get(c) == 5) ? 1 : 0; }
+
+### AccessFriendTemplates | 3 | 11.3 [class.friend], 14.5.4 [temp.friend] p1: a function template and a class template made friends
+class C { int v = 2; template<class T> friend int Peek(const T& t); template<class T> friend struct Box; };
+template<class T> int Peek(const T& t) { return t.v; }
+template<class T> struct Box { static int Get(const T& t) { return t.v * 2; } };
+int main()
+{
+	int r = 0;
+	C c;
+	if (Peek(c) == 2) r += 1;
+	if (Box<C>::Get(c) == 4) r += 2;
+	return r;
+}
+
+### AccessProtectedThroughDerived | 3 | 11.4 [class.protected] p1: a protected member reached through an object of the derived class; a protected static one through the base
+struct B { protected: int v = 1; static int s; };
+int B::s = 2;
+struct D : B { int Get(D& o) { return o.v; } int Static() { return B::s; } };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.Get(d) == 1) r += 1;
+	if (d.Static() == 2) r += 2;
+	return r;
+}
+
+### AccessProtectedThroughBaseRefused | REFUSED | 11.4 [class.protected] p1: not through an object of the base class
+struct B { protected: int v = 1; };
+struct D : B { int Get(B& o) { return o.v; } };
+int main() { return 0; }
+
+### AccessProtectedThroughSiblingRefused | REFUSED | 11.4 [class.protected] p1: nor of another class derived from the base
+struct B { protected: int v = 1; };
+struct D1 : B { };
+struct D2 : B { int Get(D1& o) { return o.v; } };
+int main() { return 0; }
+
+### AccessProtectedMemberPointer | 1 | 11.4 [class.protected] p1: a pointer to a protected member formed through the derived class
+struct B { protected: int v = 1; };
+struct D : B { static int D::* Ptr() { return &D::v; } };
+int main() { D d; return d.*D::Ptr(); }
+
+### AccessProtectedMemberPointerBaseRefused | REFUSED | 11.4 [class.protected] p1: not through the base class
+struct B { protected: int v = 1; };
+struct D : B { static int B::* Ptr() { return &B::v; } };
+int main() { return 0; }
+
+### AccessVirtualByStaticType | 1 | 11.5 [class.access.virt] p1: a virtual function's access is the static type's: a private overrider called through a public base's
+struct B { virtual int F() { return 1; } virtual ~B() { } };
+class D : public B { int F() { return 2; } };
+int main() { D d; B* p = &d; return (p->F() == 2) ? 1 : 0; }
+
+### AccessPrivateOverriderRefused | REFUSED | 11.5 [class.access.virt] p1: through the derived class its private overrider isn't accessible
+struct B { virtual int F() { return 1; } };
+class D : public B { int F() { return 2; } };
+int main() { D d; return d.F(); }
+
+### AccessMostAccessiblePath | 1 | 11.6 [class.paths] p1: a name reached by several paths has the access of the most accessible
+struct V { int v = 1; };
+struct A : virtual V { };
+struct B : private virtual V { };
+struct C : A, B { };
+int main() { C c; return c.v; }
+
+### AccessEnclosingToNestedPrivateRefused | REFUSED | 11.7 [class.access.nest] p1: the enclosing class has no special access to a nested class's private members
+class Outer { class In { int v = 1; }; public: int Get() { In i; return i.v; } };
+int main() { return 0; }
+
+### AccessPrivateNestedClassRefused | REFUSED | 11.7 [class.access.nest], 11 [class.access] p4: a private nested class isn't named outside
+class Outer { struct In { int v; }; };
+int main() { Outer::In i; return 0; }
+
+### AccessDefaultArgument | 1 | 11 [class.access] p8: names in a default argument are checked where it is written
+class C { static int Def() { return 1; } public: static int F(int x = Def()) { return x; } };
+int main() { return C::F(); }
+
+### AccessPrivateTemplateArgumentRefused | REFUSED | 11 [class.access] p4: a private type named as a template argument outside its class
+class C { struct P { }; };
+template<class T> struct W { };
+W<C::P> w;
+int main() { return 0; }
+
+### AccessUsingDeclarationOfPrivateRefused | REFUSED | 7.3.3 [namespace.udecl] p17, 11 [class.access]: a using-declaration doesn't make a base's private member accessible
+struct B { private: int v = 1; };
+struct D : B { using B::v; };
+int main() { return 0; }
+
+### AccessPrivateConstructorRefused | REFUSED | 11 [class.access]: a private constructor isn't used outside the class
+class C { C() { } public: static C Make() { return C(); } };
+int main() { C c; return 0; }
+
+### AccessPrivateConstructorFactory | 1 | 11 [class.access] p1: a private constructor used by the class's own static member function
+class C { int v; C(int x) : v(x) { } public: static C Make(int x) { return C(x); } int Get() const { return v; } };
+int main() { return C::Make(1).Get(); }
+
+### AccessPrivateDestructorRefused | REFUSED | 11 [class.access], 12.4 [class.dtor] p11: an object whose destructor is private isn't made outside the class
+class C { ~C() { } };
+int main() { C c; return 0; }

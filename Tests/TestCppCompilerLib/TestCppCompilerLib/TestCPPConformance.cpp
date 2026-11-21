@@ -93,6 +93,9 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Clause10,
 		"DerivedDirectBaseTwiceRefused(A) DerivedFinalOverriderAmbiguousRefused(A) DerivedCovariantAdjusted(W) DerivedReturnNotCovariantRefused(A) DerivedCovariantUnrelatedRefused(A) DerivedAbstractParameterRefused(A) DerivedAbstractResultRefused(A) ",
 		"DerivedDirectBaseTwiceRefused(A) DerivedFinalOverriderAmbiguousRefused(A) DerivedCovariantAdjusted(W) DerivedReturnNotCovariantRefused(A) DerivedCovariantUnrelatedRefused(A) DerivedAbstractParameterRefused(A) DerivedAbstractResultRefused(A) "),
+	CONFORMANCE_GROUP(Clause11,
+		"AccessPrivateStaticDefinition(C) AccessInjectedNameThroughPrivateBaseRefused(A) AccessGlobalNameOfPrivateBase(C) AccessFriendNotTransitiveRefused(A) AccessFriendNotInheritedRefused(A) AccessProtectedThroughBaseRefused(A) AccessProtectedThroughSiblingRefused(A) AccessProtectedMemberPointer(C) AccessProtectedMemberPointerBaseRefused(A) AccessEnclosingToNestedPrivateRefused(A) AccessUsingDeclarationOfPrivateRefused(A) AccessPrivateDestructorRefused(A) ",
+		"AccessPrivateStaticDefinition(C) AccessInjectedNameThroughPrivateBaseRefused(A) AccessGlobalNameOfPrivateBase(C) AccessFriendNotTransitiveRefused(A) AccessFriendNotInheritedRefused(A) AccessProtectedThroughBaseRefused(A) AccessProtectedThroughSiblingRefused(A) AccessProtectedMemberPointer(C) AccessProtectedMemberPointerBaseRefused(A) AccessEnclosingToNestedPrivateRefused(A) AccessUsingDeclarationOfPrivateRefused(A) AccessPrivateDestructorRefused(A) "),
 	CONFORMANCE_GROUP(Clause14, "", ""),
 };
 
