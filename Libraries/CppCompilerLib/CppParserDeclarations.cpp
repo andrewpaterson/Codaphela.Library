@@ -199,6 +199,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseNamespace(CCPPSyntax* pcParent)
 	if ((lliName != -1) && Accept(CT_Assignment))
 	{
 		//namespace X = Y;  [namespace.alias]
+		meNameLookup = CPPL_Namespace;
 		pcAlias = ParseName(pcNamespace, false, NULL);
 		if (!pcAlias || !Expect(CT_SemiColon))
 		{
@@ -344,6 +345,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseUsing(CCPPSyntax* pcParent)
 	{
 		//using namespace X;  [namespace.udir]
 		pcDirective = mpcMemory->Create<CCPPSyntaxUsingDirective>(pcParent);
+		meNameLookup = CPPL_Namespace;
 		pcDirective->mpcName = ParseName(pcDirective, false, NULL);
 		if (!pcDirective->mpcName || !Expect(CT_SemiColon))
 		{

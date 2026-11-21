@@ -354,6 +354,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	maiExitShared.Init();
 
 	mapcLocals.Init();
+	mapcStaticLocals.Init();
 	miStatics = 0;
 	miLabels = 0;
 }
@@ -378,6 +379,8 @@ void CCPPUnit::Kill(void)
 	SafeKill(mpcIRFrontEnd);
 	FreeVariables(&mapcLocals);
 	mapcLocals.Kill();
+	FreeVariables(&mapcStaticLocals);
+	mapcStaticLocals.Kill();
 	mcBackendScratch.Kill();
 
 	for (i = 0; i < mapcClasses.NumElements(); i++)
@@ -1162,6 +1165,24 @@ int CCPPUnit::DataAlignment(SCPP65Type* psType, bool bClass)
 		return 2;
 	}
 	return 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A variable's data's alignment: DataAlignment, or more where its type or
+// alignas asks it (VariableAlignment).
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPUnit::VariableDataAlignment(CCPPVariable* pcVariable, bool bClass)
+{
+	int		iAlign;
+	int		iAlignas;
+	int		iVariable;
+
+	iAlign = DataAlignment(pcVariable->mpsType, bClass);
+	iVariable = VariableAlignment(pcVariable, &iAlignas);
+	return (iVariable > iAlign) ? iVariable : iAlign;
 }
 
 
@@ -3388,6 +3409,8 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 	bool						bResult;
 	bool						bBss;
 	bool						bInitialise;
+	CChars						szWritten;
+	CChars::Count				iDataLength;
 	bool						bConstantData;
 	const char*					szOptions;
 	CChars						szBound;
@@ -3539,7 +3562,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			szLabel.Kill();
 			continue;
 		}
-		mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !pcVariable->mbInternal, szOptions, bBss);
+		mcData.BeginData(&szLabel, VariableDataAlignment(pcVariable, psElement->IsClass()), !pcVariable->mbInternal, szOptions, bBss);
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
 		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
@@ -3561,8 +3584,28 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		else if (!psElement->IsClass() && !psType->IsReference())
 		{
 			bInitialise = false;
+			iDataLength = mcData.GetText()->Length();
 			bResult &= GlobalInitialiser(psType, pcInitialiser, pcInit, &bInitialise);
+			if (bInitialise && bResult && !(pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) && psElement->IsPointer())
+			{
+				//A pointer to an object of static storage, or a table of them, is a constant the interpreter works out.
+				szWritten.Init();
+				szWritten.AppendSubString(mcData.GetText(), iDataLength, mcData.GetText()->Length());
+				mcData.GetText()->SetLength(iDataLength);
+				bInitialise = !mpcConstants->AppendConstantInitialisation(pcVariable, &mcData);
+				if (bInitialise)
+				{
+					mcData.GetText()->Append(&szWritten);
+				}
+				szWritten.Kill();
+			}
 			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, bInitialise, false, false);
+		}
+		else if (!(pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) && mpcConstants->AppendConstantInitialisation(pcVariable, &mcData))
+		{
+			//An object made by a constexpr constructor from constants, or a reference bound to an object of static
+			//storage: initialised before anything runs, as data, though not constexpr.  [basic.start.init] 2
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, false, psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), false);
 		}
 		else
 		{
@@ -4344,6 +4387,7 @@ bool CCPPUnit::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
 {
 	CCPPVariable*		pcVariable;
+	CCPPVariable*		pcKept;
 	SCPP65Type*			psType;
 	SCPP65Type*			psElement;
 	CChars				szLabel;
@@ -4386,12 +4430,22 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	pcVariable->mbDefined = true;
 	pcVariable->mbThreadLocal = (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0;
 	pcVariable->mpcSharedIn = pcShared;
+	pcKept = EnclosingStatic(pcInit->mpcSymbol);
+	if (!pcKept)
+	{
+		pcKept = AddVariable(&mapcStaticLocals, pcInit->mpcSymbol, psType, CPPVS_Static, iNumber);
+	}
+	pcKept->miOffset = iNumber;
+	pcKept->mpsType = psType;
+	pcKept->mbDefined = true;
+	pcKept->mbThreadLocal = pcVariable->mbThreadLocal;
+	pcKept->mpcSharedIn = pcShared;
 	szLabel.Init();
 	AppendVariableLabel(&szLabel, pcVariable);
 	//A function written again in the unit has its static locals again: a shared one's data is the unit's once.
 	bFirst = !pcShared || Emit(&szLabel);
 	uiData = mcData.GetText()->Length();
-	mcData.BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), pcShared != NULL, szOptions, bObject || IsBss(pcInit->mpcInitializer, psType));
+	mcData.BeginData(&szLabel, VariableDataAlignment(pcVariable, psElement->IsClass()), pcShared != NULL, szOptions, bObject || IsBss(pcInit->mpcInitializer, psType));
 	szLabel.Kill();
 	bResult = true;
 	bInitialise = false;

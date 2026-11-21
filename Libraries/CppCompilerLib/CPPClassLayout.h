@@ -51,6 +51,7 @@ public:
 	int			GetBytes(void) const;
 
 	static int	TypeAlignment(SCPP65Type* psType);
+	static int	TypeAlignas(SCPP65Type* psType);
 	static int	PackAlignment(int iAlign, int iPack);
 
 protected:
@@ -62,6 +63,7 @@ protected:
 	void		PlaceVtablePointer(void);
 	void		PlaceField(SCPPField* psField);
 	void		PlaceBitField(SCPPField* psField);
+	int			AlignasOf(int iClassAlign);
 };
 
 

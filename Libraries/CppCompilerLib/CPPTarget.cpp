@@ -85,6 +85,18 @@ uint32 CCPPTarget::GetStackTop(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The 65C64's frame is [1 + offset + V], V kept so the frame's places are
+// multiples of 4 (every push is 4 bytes, and so is every part of a frame).
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPTarget::GetFrameAlignment(void)
+{
+	return 4;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The macros the target predefines, for the configuration code is
 // preprocessed with.  Those every target has are the options' own:
 // __cpp_exceptions when exceptions are compiled (mbExceptions).  A target

@@ -2397,7 +2397,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 					return mpcUnit->EnclosingConstantObjectType(cBound.mpcSymbol);
 				}
 				//Its object is wanted (its address, or a reference to it): that odr-uses it.  [basic.def.odr] 3
-				Error(pcExpression, "The lambda doesn't capture the variable");
+				Error(pcExpression, mpcUnit->WritingLambda() ? "The lambda doesn't capture the variable" : "A local class can't use an automatic variable of the function it is in, other than a constant's value");
 				return NULL;
 			}
 			//S::m with no object, in an operand that isn't evaluated: nothing is read.  [expr.prim.general] 13
@@ -3117,6 +3117,11 @@ const char* CCPP65TypeChecker::NotAPlace(CCPPSyntaxName* pcName)
 	if (pcName->IsQualifiedByClass() && (pcName->mpcSymbol->meKind == CPPSK_Field))
 	{
 		return "A member that isn't static is used without an object";
+	}
+	if (mpcUnit->IsOuterLocal(pcName->mpcSymbol))
+	{
+		//[class.local] 1
+		return "A local class can't use an automatic variable of the function it is in, other than a constant's value";
 	}
 	return "Only variables are supported by the compiler here yet";
 }

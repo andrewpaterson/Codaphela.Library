@@ -179,9 +179,60 @@ CCPPSymbol* CCPPScope::FindHere(int64 lliName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPScope::FindMember(int64 lliName)
+CCPPSymbol* CCPPScope::FindMember(int64 lliName, ECPPLookup eLookup)
 {
-	return FindMember(lliName, 0);
+	return FindMember(lliName, 0, eLookup);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a lookup of eLookup's kind sees of the declarations of a name in
+// this scope, the first of them pcFirst: NULL if none is of the kind.  A
+// class or enum is hidden by a variable, function or enumerator of the name
+// declared in the scope too, before or after it.  pcFirst may be what the
+// name finds here though declared elsewhere (a using-declaration's, a class's
+// injected name, an unscoped enumerator in the scope its enum is in): the
+// declarations after it are its scope's, which aren't this one's.
+// [basic.scope.hiding] 2
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPScope::Pick(CCPPSymbol* pcFirst, ECPPLookup eLookup)
+{
+	CCPPSymbol*	pcSymbol;
+
+	if (!pcFirst)
+	{
+		return NULL;
+	}
+	if (eLookup == CPPL_Ordinary)
+	{
+		if ((pcFirst->mpcScope != this) || ((pcFirst->meKind != CPPSK_Class) && (pcFirst->meKind != CPPSK_Enum)))
+		{
+			return pcFirst;
+		}
+		for (pcSymbol = pcFirst->mpcNext; pcSymbol; pcSymbol = pcSymbol->mpcNext)
+		{
+			if ((pcSymbol->mpcScope == this) && (pcSymbol->IsFunction() || (pcSymbol->meKind == CPPSK_Variable) || (pcSymbol->meKind == CPPSK_Field) || (pcSymbol->meKind == CPPSK_Enumerator) || (pcSymbol->meKind == CPPSK_VariableTemplate)))
+			{
+				return pcSymbol;
+			}
+		}
+		return pcFirst;
+	}
+
+	for (pcSymbol = pcFirst; pcSymbol; pcSymbol = pcSymbol->mpcNext)
+	{
+		if ((pcSymbol != pcFirst) && (pcSymbol->mpcScope != this))
+		{
+			continue;
+		}
+		if ((eLookup == CPPL_Namespace) ? pcSymbol->IsNamespace() : (pcSymbol->IsType() || pcSymbol->IsNamespace()))
+		{
+			return pcSymbol;
+		}
+	}
+	return NULL;
 }
 
 
@@ -189,7 +240,7 @@ CCPPSymbol* CCPPScope::FindMember(int64 lliName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPScope::FindMember(int64 lliName, int iDepth)
+CCPPSymbol* CCPPScope::FindMember(int64 lliName, int iDepth, ECPPLookup eLookup)
 {
 	CCPPSymbol*	pcSymbol;
 	size		i;
@@ -200,7 +251,7 @@ CCPPSymbol* CCPPScope::FindMember(int64 lliName, int iDepth)
 		return NULL;
 	}
 
-	pcSymbol = FindHere(lliName);
+	pcSymbol = Pick(FindHere(lliName), eLookup);
 	if (pcSymbol)
 	{
 		return pcSymbol;
@@ -208,7 +259,7 @@ CCPPSymbol* CCPPScope::FindMember(int64 lliName, int iDepth)
 
 	for (i = 0; i < mapcBases.NumElements(); i++)
 	{
-		pcSymbol = mapcBases.GetPtr(i)->FindMember(lliName, iDepth + 1);
+		pcSymbol = mapcBases.GetPtr(i)->FindMember(lliName, iDepth + 1, eLookup);
 		if (pcSymbol)
 		{
 			return pcSymbol;
@@ -217,7 +268,7 @@ CCPPSymbol* CCPPScope::FindMember(int64 lliName, int iDepth)
 
 	for (i = 0; i < mapcUsings.NumElements(); i++)
 	{
-		pcSymbol = mapcUsings.GetPtr(i)->FindMember(lliName, iDepth + 1);
+		pcSymbol = mapcUsings.GetPtr(i)->FindMember(lliName, iDepth + 1, eLookup);
 		if (pcSymbol)
 		{
 			return pcSymbol;
@@ -237,17 +288,17 @@ CCPPSymbol* CCPPScope::FindMember(int64 lliName, int iDepth)
 // B's names hide A's.  [basic.lookup.unqual] [namespace.udir] 2
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPScope::Find(int64 lliName)
+CCPPSymbol* CCPPScope::Find(int64 lliName, ECPPLookup eLookup)
 {
 	CCPPScope*	pcScope;
 	CCPPSymbol*	pcSymbol;
 
 	for (pcScope = this; pcScope; pcScope = pcScope->mpcParent)
 	{
-		pcSymbol = pcScope->FindDeclared(lliName, 0);
+		pcSymbol = pcScope->FindDeclared(lliName, 0, eLookup);
 		if (!pcSymbol && (pcScope->meKind == CPPSC_Namespace))
 		{
-			pcSymbol = FindNominated(lliName, pcScope, NULL);
+			pcSymbol = FindNominated(lliName, pcScope, NULL, eLookup);
 		}
 		if (pcSymbol)
 		{
@@ -255,7 +306,7 @@ CCPPSymbol* CCPPScope::Find(int64 lliName)
 		}
 		if (pcScope->mpcQualifier)
 		{
-			pcSymbol = pcScope->mpcQualifier->Find(lliName);
+			pcSymbol = pcScope->mpcQualifier->Find(lliName, eLookup);
 			if (pcSymbol)
 			{
 				return pcSymbol;
@@ -273,7 +324,7 @@ CCPPSymbol* CCPPScope::Find(int64 lliName)
 // using-directives nominate.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPScope::FindDeclared(int64 lliName, int iDepth)
+CCPPSymbol* CCPPScope::FindDeclared(int64 lliName, int iDepth, ECPPLookup eLookup)
 {
 	CCPPSymbol*	pcSymbol;
 	CCPPScope*	pcUsing;
@@ -283,17 +334,17 @@ CCPPSymbol* CCPPScope::FindDeclared(int64 lliName, int iDepth)
 	{
 		return NULL;
 	}
-	pcSymbol = FindHere(lliName);
+	pcSymbol = Pick(FindHere(lliName), eLookup);
 	for (i = 0; !pcSymbol && (i < mapcBases.NumElements()); i++)
 	{
-		pcSymbol = mapcBases.GetPtr(i)->FindMember(lliName, iDepth + 1);
+		pcSymbol = mapcBases.GetPtr(i)->FindMember(lliName, iDepth + 1, eLookup);
 	}
 	for (i = 0; !pcSymbol && (i < mapcUsings.NumElements()); i++)
 	{
 		pcUsing = mapcUsings.GetPtr(i);
 		if (pcUsing->meKind != CPPSC_Namespace)
 		{
-			pcSymbol = pcUsing->FindDeclared(lliName, iDepth + 1);
+			pcSymbol = pcUsing->FindDeclared(lliName, iDepth + 1, eLookup);
 		}
 	}
 	return pcSymbol;
@@ -309,7 +360,7 @@ CCPPSymbol* CCPPScope::FindDeclared(int64 lliName, int iDepth)
 // there.  [namespace.udir] 2
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPScope::FindNominated(int64 lliName, CCPPScope* pcLevel, CArrayCPPSymbols* papcFound)
+CCPPSymbol* CCPPScope::FindNominated(int64 lliName, CCPPScope* pcLevel, CArrayCPPSymbols* papcFound, ECPPLookup eLookup)
 {
 	CCPPScope*	pcScope;
 	CCPPScope*	pcUsing;
@@ -323,7 +374,7 @@ CCPPSymbol* CCPPScope::FindNominated(int64 lliName, CCPPScope* pcLevel, CArrayCP
 			pcUsing = pcScope->mapcUsings.GetPtr(i);
 			if ((pcUsing->meKind == CPPSC_Namespace) && (pcScope->NominationLevel(pcUsing) == pcLevel))
 			{
-				pcSymbol = pcUsing->FindMember(lliName);
+				pcSymbol = pcUsing->FindMember(lliName, eLookup);
 				if (pcSymbol && !papcFound)
 				{
 					return pcSymbol;

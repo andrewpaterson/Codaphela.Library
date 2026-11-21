@@ -208,6 +208,40 @@ CCPPScope* CCPPUnit::ComponentLookup(CCPPSyntaxNameComponent* pcComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A variable's alignment: its type's, or more where alignas asks it on the
+// declaration or of the type's class.  *piAlignas is what alignas asks (0
+// for nothing), which a place in a frame may not give.  [basic.align]
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPUnit::VariableAlignment(CCPPVariable* pcVariable, int* piAlignas)
+{
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	int								iAlign;
+	int								iAlignas;
+	int								iDeclared;
+
+	iAlign = CCPPClassLayout::TypeAlignment(pcVariable->mpsType);
+	iAlignas = CCPPClassLayout::TypeAlignas(pcVariable->mpsType);
+	pcInit = VariableDeclarator(pcVariable);
+	if (pcInit)
+	{
+		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+		if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers)
+		{
+			iDeclared = AlignasAlignment(&pcDeclaration->mpcSpecifiers->macpSpecifiers);
+			iAlignas = (iDeclared > iAlignas) ? iDeclared : iAlignas;
+		}
+		iDeclared = AlignasAlignment(&pcInit->mpcDeclarator->macpAttributes);
+		iAlignas = (iDeclared > iAlignas) ? iDeclared : iAlignas;
+	}
+	*piAlignas = iAlignas;
+	return (iAlignas > iAlign) ? iAlignas : iAlign;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The strictest alignment the alignas(n) and alignas(type) specifiers in
 // papcSpecifiers ask for: 0 for none (alignas(0) asks for nothing), -1 after
 // an error.  It is kept whatever #pragma pack says, as MSVC does.  [dcl.align]

@@ -142,6 +142,48 @@ void CCPPClassLayout::Layout(int iClassAlign)
 		mpcClass->mbEmpty &= mpcClass->macBases.Get(i)->pcClass->mbEmpty;
 	}
 	mpcClass->miAlign = miAlign;
+	mpcClass->miAlignas = AlignasOf(iClassAlign);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The most that alignas asks of the class: its own, its fields', or that
+// of the classes it has as bases or members.  0 for none.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPClassLayout::AlignasOf(int iClassAlign)
+{
+	int		iAlignas;
+	size	i;
+
+	iAlignas = iClassAlign;
+	for (i = 0; i < mpcClass->macBases.NumElements(); i++)
+	{
+		iAlignas = (mpcClass->macBases.Get(i)->pcClass->miAlignas > iAlignas) ? mpcClass->macBases.Get(i)->pcClass->miAlignas : iAlignas;
+	}
+	for (i = 0; i < mpcClass->macFields.NumElements(); i++)
+	{
+		iAlignas = (mpcClass->macFields.Get(i)->iAlign > iAlignas) ? mpcClass->macFields.Get(i)->iAlign : iAlignas;
+		iAlignas = (TypeAlignas(mpcClass->macFields.Get(i)->psType) > iAlignas) ? TypeAlignas(mpcClass->macFields.Get(i)->psType) : iAlignas;
+	}
+	return iAlignas;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The alignment alignas gives a type: a class's (CCPPClass::miAlignas), an
+// array's element's.  0 for none.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPClassLayout::TypeAlignas(SCPP65Type* psType)
+{
+	while (psType && psType->IsArray())
+	{
+		psType = psType->psBase;
+	}
+	return (psType && psType->IsClass()) ? psType->pcClass->miAlignas : 0;
 }
 
 

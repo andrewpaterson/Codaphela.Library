@@ -101,10 +101,14 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 	SCPPTentative				sTentative;
 	bool						bArguments;
 	bool						bMember;
+	ECPPLookup					eLast;
+	ECPPLookup					eLookup;
 
 	//id-expression: [::] nested-name-specifier unqualified-id, looked up as it is read.  [basic.lookup.qual]
 	bMember = mbMemberName;
 	mbMemberName = false;
+	eLast = meNameLookup;
+	meNameLookup = CPPL_Ordinary;
 	pcName = mpcMemory->Create<CCPPSyntaxName>(pcParent);
 	pcName->miFirstToken = CurrentToken();
 	pcScope = NULL;
@@ -144,6 +148,8 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 			pcComponent->miName = CurrentToken();
 			lliName = GetIdentifier();
 
+			//A name before :: is a namespace's or a type's: a variable of the name doesn't hide it.  [basic.lookup.qual] 1
+			eLookup = IsAhead(1, CT_ScopeResolution) ? CPPL_Type : eLast;
 			if (bDependent || (bMember && !bQualified && !IsAhead(1, CT_ScopeResolution)))
 			{
 				//A member name after . or -> is a member of a type the parser doesn't know, unless it qualifies a name,
@@ -152,11 +158,11 @@ CCPPSyntaxName* CCPPParser::ParseName(CCPPSyntax* pcParent, bool bDeclaration, C
 			}
 			else if (pcScope)
 			{
-				pcSymbol = pcScope->FindMember(lliName);
+				pcSymbol = pcScope->FindMember(lliName, eLookup);
 			}
 			else
 			{
-				pcSymbol = mpcScope->Find(lliName);
+				pcSymbol = mpcScope->Find(lliName, eLookup);
 			}
 			pcComponent->mpcSymbol = pcSymbol;
 			Resolve(CurrentToken(), pcSymbol, pcSymbol ? CPPTR_Reference : CPPTR_Unresolved);

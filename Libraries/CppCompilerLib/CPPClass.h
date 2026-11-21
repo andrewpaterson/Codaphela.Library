@@ -135,6 +135,7 @@ public:
 	ECPPClassState				meState;
 	bool						mbEmpty;			//No fields, no vtable pointer and empty bases.
 	int							miAlign;
+	int							miAlignas;			//The alignment alignas gives it, its bases or its members (0 for none): more than the frame may give.
 	bool						mbUnion;
 	bool						mbTypeInfo;			//The type info (for dynamic_cast) has been written.
 	bool						mbConstructors;		//The class declares a constructor.

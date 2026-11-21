@@ -364,13 +364,14 @@ void TestCPP65IRConstructors(void)
 		"return a() + m.Use() + Apply(b, 50) + c(1); }", 7));
 
 	//Calls through a table of function pointers, *pf and a function a call returns; a field that is an array of objects.
+	//The table is constant data: nothing is run to make it.
 	AssertInt(2 + 30 + 4 + 50, TestCPP65IRMain(
 		"int Two(int i) { return 2; } int Times(int i) { return i * 10; }\n"
 		"typedef int (*FInt)(int);\n"
 		"FInt gaf[2] = { Two, Times };\n"
 		"FInt Pick(int i) { return gaf[i]; }\n"
 		"struct CCell { int miValue; }; struct CRow { int miCount; CCell macCells[3]; };\n"
-		"int main() { FInt pf = Times; CRow r; r.macCells[2].miValue = 50; return gaf[0](9) + (*pf)(3) + Pick(0)(1) * 2 + r.macCells[2].miValue; }", 5));
+		"int main() { FInt pf = Times; CRow r; r.macCells[2].miValue = 50; return gaf[0](9) + (*pf)(3) + Pick(0)(1) * 2 + r.macCells[2].miValue; }", 4));
 
 	//f(args...) passes the pack's elements; object.pf() and pf() in a member call through a field.
 	AssertInt(321 + 8 + 12, TestCPP65IRMain(
@@ -757,7 +758,8 @@ void TestCPP65IRDynamicCastUnits(void)
 // argument, a return and casts, whichever overload is declared first.  The
 // overload of the first declared used to be taken (a volatile global pointer
 // in TestCPP816StringRegisters called FindFirstClearBit(void*, size) for
-// FindFirstClearBit(uint32)).
+// FindFirstClearBit(uint32)).  The two plain global pointers are constant
+// data; the volatile one is set by its start up routine.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IROverloadedFunctionPointers(void)
@@ -788,7 +790,7 @@ void TestCPP65IROverloadedFunctionPointers(void)
 		"	if (((FLong)&F)(1) == 2) r |= 128;\n"
 		"	if (((FArray)F)(0, 0) == 1) r |= 256;\n"
 		"	return r;\n"
-		"}\n", 8));
+		"}\n", 6));
 }
 
 
@@ -929,7 +931,8 @@ void TestCPP65IRAnonymousLocals(void)
 //
 // const S named before S is defined (a parameter of a declaration): the
 // const type has S's size once S is laid out, so an array of it is laid
-// out by it (CCPP65Types::SetClassBytes).
+// out by it (CCPP65Types::SetClassBytes).  The array is constant data:
+// nothing is run to make it.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65IRConstClassSize(void)
@@ -940,7 +943,7 @@ void TestCPP65IRConstClassSize(void)
 		"struct S { int a; int b; };\n"
 		"const S gas[] = { { 1, 2 }, { 3, 4 } };\n"
 		"int First(const S* ps) { return ps->a; }\n"
-		"int main() { return First(&gas[1]) * 100 + gas[1].b * 10 + (int)sizeof(gas[0]); }\n", 3));
+		"int main() { return First(&gas[1]) * 100 + gas[1].b * 10 + (int)sizeof(gas[0]); }\n", 2));
 }
 
 

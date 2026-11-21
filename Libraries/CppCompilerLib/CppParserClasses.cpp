@@ -76,6 +76,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 	pcQualifier = NULL;
 	if (IsIdentifier() || Is(CT_ScopeResolution))
 	{
+		meNameLookup = CPPL_Type;
 		pcClass->mpcName = ParseName(pcClass, true, &pcQualifier);
 		if (!pcClass->mpcName)
 		{
@@ -420,6 +421,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 
 	if (IsIdentifier() || Is(CT_ScopeResolution))
 	{
+		meNameLookup = CPPL_Type;
 		pcEnum->mpcName = ParseName(pcEnum, true, NULL);
 		if (!pcEnum->mpcName)
 		{

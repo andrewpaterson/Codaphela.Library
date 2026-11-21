@@ -567,18 +567,9 @@ bool CCPPConstants::IsConstantVariable(CCPPVariable* pcVariable)
 uint32 CCPPConstants::ConstantObject(const char* szName)
 {
 	SCPPConstantVariable*	psVariable;
-	CCPP65IRFrontEnd*		pcFrontEnd;
 	CCPPVariable*			pcVariable;
-	CCPPSyntax*				pcInitialiser;
-	CIRFunction*			pcIR;
-	CChars					szInitialiser;
-	CCPPTemplateArguments*	pcBindings;
-	SIRValue				sObject;
-	SIRValue				sResult;
 	uint32					uiObject;
-	uint32					uiFlags;
 	size					uiVariable;
-	bool					bResult;
 
 	psVariable = FindVariable(szName);
 	if (!psVariable || psVariable->bAsked)
@@ -592,6 +583,34 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 		return 0;
 	}
 	uiVariable = masVariables.GetIndex(psVariable);
+	uiObject = Evaluate(pcVariable, szName);
+	if (uiObject != 0)
+	{
+		masVariables.Get(uiVariable)->uiObject = uiObject;
+	}
+	return uiObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs a variable's initialiser where its object (named szName) is, and
+// freezes the object: 0, with the object forgotten, if it can't be worked
+// out (mszReason says why).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CCPPConstants::Evaluate(CCPPVariable* pcVariable, const char* szName)
+{
+	CCPP65IRFrontEnd*		pcFrontEnd;
+	CCPPSyntax*				pcInitialiser;
+	CIRFunction*			pcIR;
+	CChars					szInitialiser;
+	CCPPTemplateArguments*	pcBindings;
+	SIRValue				sObject;
+	SIRValue				sResult;
+	uint32					uiObject;
+	uint32					uiFlags;
+	bool					bResult;
 
 	pcInitialiser = VariableInitialiser(pcVariable, &uiFlags);
 	pcFrontEnd = BeginWriting();
@@ -644,7 +663,6 @@ uint32 CCPPConstants::ConstantObject(const char* szName)
 		return 0;
 	}
 	mcInterpreter.Freeze(uiObject);
-	masVariables.Get(uiVariable)->uiObject = uiObject;
 	return uiObject;
 }
 
@@ -1082,13 +1100,7 @@ bool CCPPConstants::IsInitialisedMember(CCPPSyntaxFunctionDefinition* pcDefiniti
 bool CCPPConstants::AppendData(CCPPVariable* pcVariable, CCPPUnitData* pcData)
 {
 	SCPPConstantVariable*	psVariable;
-	SIRObject*				psObject;
 	CChars					szLabel;
-	CChars					szText;
-	size					i;
-	int						iPointerBytes;
-	bool					bResult;
-	int						iPass;
 
 	szLabel.Init();
 	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
@@ -1098,7 +1110,69 @@ bool CCPPConstants::AppendData(CCPPVariable* pcVariable, CCPPUnitData* pcData)
 	{
 		return false;
 	}
-	psObject = mcInterpreter.GetObject(psVariable->uiObject);
+	return AppendObjectData(psVariable->uiObject, pcData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A global that isn't constexpr but whose initialiser is a constant
+// expression: an object made by a constexpr constructor from constants, a
+// reference bound to an object of static storage, a pointer to one.  It is
+// initialised before anything runs, as data ([basic.start.init] 2): true
+// if its data is written.  Its value isn't a constant for anything else,
+// so the interpreter's object for it is forgotten.  False, with nothing
+// written, where the initialiser isn't such a constant: it is then made by
+// its start up routine.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::AppendConstantInitialisation(CCPPVariable* pcVariable, CCPPUnitData* pcData)
+{
+	CChars		szLabel;
+	CChars		szName;
+	uint32		uiObject;
+	uint32		uiFlags;
+	bool		bResult;
+
+	if (!VariableInitialiser(pcVariable, &uiFlags))
+	{
+		return false;
+	}
+	szLabel.Init();
+	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
+	szName.Init();
+	NewName("__static", &szName);
+	mpcUnit->BeginQuiet();
+	uiObject = Evaluate(pcVariable, szName.Text());
+	mpcUnit->EndQuiet();
+	szName.Kill();
+	szLabel.Kill();
+	mszReason.Clear();
+	if (uiObject == 0)
+	{
+		return false;
+	}
+	bResult = AppendObjectData(uiObject, pcData);
+	mcInterpreter.Forget(uiObject);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object's bytes as data (AppendData).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::AppendObjectData(uint32 uiObject, CCPPUnitData* pcData)
+{
+	SIRObject*				psObject;
+	CChars					szText;
+	size					i;
+	int						iPointerBytes;
+	bool					bResult;
+	int						iPass;
+
+	psObject = mcInterpreter.GetObject(uiObject);
 	iPointerBytes = mpcUnit->GetTarget()->GetPointerBytes();
 
 	//Checked first (with no strings added), then written.

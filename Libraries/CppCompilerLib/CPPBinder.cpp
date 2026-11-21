@@ -1538,6 +1538,12 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		pcBound->meWhat = CPPBN_EnclosingConstant;
 		return;
 	}
+	if (!psLambda && pcSymbol && (pcId->mpcName->macpComponents.NumElements() == 1) && mpcUnit->IsOuterConstant(pcSymbol))
+	{
+		//A local class's member function, and a constant of the function the class is in.  [class.local] 1
+		pcBound->meWhat = CPPBN_EnclosingConstant;
+		return;
+	}
 	if (mpcUnit->IsFunctionName(pcId))
 	{
 		pcBound->meWhat = CPPBN_FunctionName;
@@ -1583,6 +1589,11 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	if (!pcBound->mpcVariable && pcSymbol)
 	{
 		pcBound->mpcVariable = mpcUnit->GetVariable(pcSymbol);
+	}
+	if (!pcBound->mpcVariable && pcSymbol && (pcSymbol->meKind == CPPSK_Variable))
+	{
+		//A static local of the function a local class is in, named in one of the class's member functions.
+		pcBound->mpcVariable = mpcUnit->EnclosingStatic(pcSymbol);
 	}
 	if (pcBound->mpcVariable)
 	{

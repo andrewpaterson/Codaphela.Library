@@ -1556,6 +1556,10 @@ bool CCPP65IRFrontEnd::Locals(void)
 	SIRReference	sAddress;
 	SIRReference*	psAnonymousAddress;
 	int				iAlign;
+	int				iAlignas;
+	int				iFrameAlign;
+	SIRType			sOffsetType;
+	SIRReference	sPadding;
 
 	mcAnonymousAddresses.Kill();
 	mcAnonymousAddresses.Init(true);
@@ -1585,7 +1589,22 @@ bool CCPP65IRFrontEnd::Locals(void)
 			continue;
 		}
 		iAlign = ((pcVariable->mpsType->iBytes >= 4) || pcVariable->mpsType->IsArray() || pcVariable->mpsType->IsClass()) ? 4 : pcVariable->mpsType->iBytes;
-		sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)pcVariable->mpsType->iBytes, (uint32)iAlign);
+		mpcUnit->VariableAlignment(pcVariable, &iAlignas);
+		iFrameAlign = mpcUnit->GetTarget()->GetFrameAlignment();
+		if (iAlignas > iFrameAlign)
+		{
+			//alignas asks more than a place in the frame is: a bigger slot, and the first place in it that is a multiple
+			//of the alignment.  [dcl.align] 1
+			sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)(pcVariable->mpsType->iBytes + iAlignas - iFrameAlign), (uint32)iAlign);
+			sOffsetType = IRIntegerType(mcModule.GetPointerSize(0));
+			sPadding = mpcFunction->Add(mpcBlock, IRO_Neg, sOffsetType, mpcFunction->Add(mpcBlock, IRO_PtrToI, sOffsetType, sAddress));
+			sPadding = mpcFunction->Add(mpcBlock, IRO_And, sOffsetType, sPadding, mpcFunction->AddInteger(sOffsetType, iAlignas - 1));
+			sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sAddress, sPadding);
+		}
+		else
+		{
+			sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)pcVariable->mpsType->iBytes, (uint32)iAlign);
+		}
 		mcAddresses.Put((int64)(size)pcVariable, &sAddress);
 	}
 	return true;

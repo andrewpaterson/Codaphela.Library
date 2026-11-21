@@ -51,6 +51,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	mbNoGreater = false;
 	mbLambdaDeclarator = false;
 	mbMemberName = false;
+	meNameLookup = CPPL_Ordinary;
 	miClassDepth = 0;
 	mbDeclaringTemplate = false;
 	miTemplates = 0;

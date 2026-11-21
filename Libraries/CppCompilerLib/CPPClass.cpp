@@ -47,6 +47,7 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 	meState = CPPCS_Declared;
 	mbEmpty = false;
 	miAlign = 1;
+	miAlignas = 0;
 	mbUnion = false;
 	mbTypeInfo = false;
 	mbConstructors = false;

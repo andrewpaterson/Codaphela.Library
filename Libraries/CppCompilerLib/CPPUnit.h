@@ -322,6 +322,7 @@ protected:
 	CCPPDeclarators			mcDeclarators;
 	CCPPMangler				mcMangler;			//Makes the labels.
 	CArrayCPPVariables	mapcLocals;
+	CArrayCPPVariables		mapcStaticLocals;	//Each static local as last defined, which a local class's member functions name (EnclosingStatic).
 	int						miStatics;			//Static locals in the unit.
 	int						miLabels;
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//Writes every function body as IR.
@@ -495,6 +496,9 @@ public:
 	bool					IsPackCaptured(SCPPLambda* psLambda, SCPPFunctionPack* psPack);
 	bool					IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
 	bool					IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
+	bool					IsOuterLocal(CCPPSymbol* pcSymbol);
+	bool					IsOuterConstant(CCPPSymbol* pcSymbol);
+	CCPPVariable*			EnclosingStatic(CCPPSymbol* pcSymbol);
 	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);
 	SCPP65Type*				EnclosingConstantObjectType(CCPPSymbol* pcSymbol);
 	bool					IsOdrUse(CCPPSyntax* pcNode);
@@ -557,6 +561,7 @@ public:
 	SCPP65Type*				ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter);
 	bool					IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType);
 	int						DataAlignment(SCPP65Type* psType, bool bClass);
+	int						VariableDataAlignment(CCPPVariable* pcVariable, bool bClass);
 
 	void					ReportTypeOf(CCPPSyntax* pcExpression);
 	bool					ReportError(CCPPSyntax* pcNode, const char* szMessage);
@@ -576,6 +581,7 @@ public:
 	CCPPClass*			FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate);
 	CCPPClass*			QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	int						AlignasAlignment(CArraySyntax* papcSpecifiers);
+	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
 	CCPPClass*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
 	bool					ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern);

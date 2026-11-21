@@ -116,6 +116,17 @@ uint32 CCPPTargetW65C816::GetStackTop(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A frame is D + offset, and D is where S was: it is at any byte.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPTargetW65C816::GetFrameAlignment(void)
+{
+	return 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // __W65C816__ is the processor, __LIBC65__ the Libc65 headers and devices
 // (as the 65C64's), and __W65C816_ASSEMBLY__ leaves out the C++ that a
 // unit's XW65C816.asm replaces when those are built (mbAssemblyUnits).

@@ -91,6 +91,7 @@ public:
 	void			LocalLabel(CCPPVariable* pcVariable, CChars* pszLabel);
 	void			ForgetLocal(CCPPVariable* pcVariable);
 	bool			AppendData(CCPPVariable* pcVariable, CCPPUnitData* pcData);
+	bool			AppendConstantInitialisation(CCPPVariable* pcVariable, CCPPUnitData* pcData);
 	bool			CheckDefinition(CCPPFunction* pcFunction);
 	bool			IsLiteralType(SCPP65Type* psType);
 	bool			IsConstantVariable(CCPPVariable* pcVariable);
@@ -107,6 +108,8 @@ protected:
 	void					EndWriting(void);
 	SCPPConstantFunction*	FindFunction(const char* szLabel);
 	SCPPConstantVariable*	FindVariable(const char* szLabel);
+	uint32					Evaluate(CCPPVariable* pcVariable, const char* szName);
+	bool					AppendObjectData(uint32 uiObject, CCPPUnitData* pcData);
 	bool					Run(CIRModule* pcModule, CIRFunction* pcIR, SIRValue* pasArguments, size uiNumArguments, SIRValue* psResult);
 	void					AppendFunctionName(CCPPFunction* pcFunction, CChars* pszDest);
 	void					AppendRepeats(size uiRepeats);

@@ -128,6 +128,7 @@ protected:
 	bool					mbNoGreater;			//In a template argument list, where '>' ends the argument.
 	bool					mbLambdaDeclarator;		//A lambda's parameters are being read: mutable is one of their qualifiers.
 	bool					mbMemberName;			//The name after . or ->, which is a member of a type the parser doesn't know.
+	ECPPLookup				meNameLookup;			//What the next name's last part is looked up as: a type after class, a namespace after using namespace.
 	int						miClassDepth;
 	bool					mbDeclaringTemplate;	//The declaration directly in a template declaration declares a template.
 	int						miTemplates;			//Templates being parsed, nested: their bodies are parsed in a system header too (ParseFunctionDefinition).

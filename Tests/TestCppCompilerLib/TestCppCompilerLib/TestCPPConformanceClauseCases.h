@@ -179,6 +179,17 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	return l.Get();\n"
 		"}\n"
 	},
+	//3.2 [basic.def.odr] p3, 9.8 [class.local] p1: a local class may use the value of its function's constant, not its object
+	{
+		"BasicOdrLocalClassConstantAddressRefused", CONFORMANCE_REFUSED,
+		"int main()\n"
+		"{\n"
+		"	const int k = 5;\n"
+		"	struct L { const int* Get() { return &k; } };\n"
+		"	L l;\n"
+		"	return *l.Get();\n"
+		"}\n"
+	},
 	//3.3.1 [basic.scope.declarative] p4: two enumerators of one name in one scope
 	{
 		"BasicEnumeratorRedeclaredRefused", CONFORMANCE_REFUSED,
@@ -209,6 +220,27 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	if (T(5) == 10) r += 4;\n"
 		"	struct T t; t.w = 6;\n"
 		"	if (t.w == 6 && sizeof(struct S) == sizeof(int)) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.3.10 [basic.scope.hiding] p2, 3.4.3 [basic.lookup.qual] p1, 3.4.4 [basic.lookup.elab] p3: a member of a namespace or class that hides a class of its name is what a qualified name finds; an elaborated type specifier and a name before :: find the class
+	{
+		"BasicClassHiddenInQualifiedLookup", 31,
+		"namespace N { struct S { int v; static const int k = 16; }; int S(int x) { return x + 1; } }\n"
+		"struct C { struct T { int w; }; static int T; };\n"
+		"int C::T = 7;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (N::S(2) == 3) r += 1;\n"
+		"	struct N::S s;\n"
+		"	s.v = 4;\n"
+		"	if (s.v == 4) r += 2;\n"
+		"	if (C::T == 7) r += 4;\n"
+		"	struct C::T t;\n"
+		"	t.w = 5;\n"
+		"	if (t.w == 5) r += 8;\n"
+		"	if (N::S::k == 16) r += 16;\n"
 		"	return r;\n"
 		"}\n"
 	},
@@ -907,6 +939,43 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//3.6.2 [basic.start.init] p2: a table of pointers to static objects, and an object with a destructor made by a constexpr constructor, are initialised before any dynamic initialisation
+	{
+		"BasicConstantInitialisationTables", 15,
+		"struct D { constexpr D(int a) : v(a) { } ~D() { giDestroyed++; } int v; static int giDestroyed; };\n"
+		"int D::giDestroyed = 0;\n"
+		"int ReadTable();\n"
+		"int ReadD();\n"
+		"int ReadText();\n"
+		"int x = ReadTable();\n"
+		"int y = ReadD();\n"
+		"int z = ReadText();\n"
+		"int ga = 4;\n"
+		"int gb = 5;\n"
+		"int* gap[2] = { &ga, &gb };\n"
+		"D d(6);\n"
+		"const char* gsz = \"ab\";\n"
+		"int ReadTable() { return *gap[0] + *gap[1]; }\n"
+		"int ReadD() { return d.v; }\n"
+		"int ReadText() { return gsz ? gsz[1] : 0; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (x == 9) r += 1;\n"
+		"	if (y == 6) r += 2;\n"
+		"	if (z == 'b') r += 4;\n"
+		"	if (D::giDestroyed == 0) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.6.2 [basic.start.init] p2, 5.19 [expr.const] p2: an object initialised as a constant but not declared constexpr has no value a constant expression can read
+	{
+		"BasicConstantInitialisedIsNoConstantRefused", CONFORMANCE_REFUSED,
+		"struct P { constexpr P(int a) : v(a) { } int v; };\n"
+		"P p(9);\n"
+		"constexpr int k = p.v;\n"
+		"int main() { return k; }\n"
+	},
 	//3.6.2 [basic.start.init] p2: the ordered dynamic initialisations of a unit are in the order of their definitions
 	{
 		"BasicDynamicInitialisationOrder", 7,
@@ -1343,6 +1412,48 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	alignas(int) char ibuf[sizeof(int)];\n"
 		"	if ((unsigned long long)buf % 8 == 0 && (unsigned long long)ibuf % alignof(int) == 0) r += 8;\n"
 		"	return r;\n"
+		"}\n"
+	},
+	//3.11 [basic.align] p1, 7.6.2 [dcl.align] p1: an object is placed as alignas asks, of the object or of its class or of a member, as a local, a static local and a global
+	{
+		"BasicAlignasObjects", 127,
+		"struct alignas(8) A8 { char c; };\n"
+		"struct Holder { char c; A8 a; };\n"
+		"alignas(16) char gbuf[3];\n"
+		"A8 ga;\n"
+		"char gc;\n"
+		"Holder gh;\n"
+		"int F(int n)\n"
+		"{\n"
+		"	char c = (char)n;\n"
+		"	alignas(8) char buf[3];\n"
+		"	alignas(4) char b4[3];\n"
+		"	alignas(int) char ibuf[sizeof(int)];\n"
+		"	int r = 0;\n"
+		"	buf[0] = c; b4[0] = c; ibuf[0] = c;\n"
+		"	if ((unsigned long long)buf % 8 == 0) r += 1;\n"
+		"	if ((unsigned long long)b4 % 4 == 0) r += 2;\n"
+		"	if ((unsigned long long)ibuf % alignof(int) == 0) r += 4;\n"
+		"	return r + (buf[0] + b4[0] + ibuf[0]) * 0;\n"
+		"}\n"
+		"int G(int n)\n"
+		"{\n"
+		"	char c;\n"
+		"	A8 a;\n"
+		"	Holder h;\n"
+		"	static A8 s;\n"
+		"	a.c = 1; c = (char)n; h.c = 2;\n"
+		"	int r = 0;\n"
+		"	if ((unsigned long long)&a % 8 == 0) r += 8;\n"
+		"	if ((unsigned long long)&h.a % 8 == 0) r += 16;\n"
+		"	if ((unsigned long long)&s % 8 == 0) r += 32;\n"
+		"	return r + c * 0;\n"
+		"}\n"
+		"int main()\n"
+		"{\n"
+		"	int r = F(1) + G(1) + F(2) * 0;\n"
+		"	if ((unsigned long long)gbuf % 16 == 0 && (unsigned long long)&ga % 8 == 0 && (unsigned long long)&gh.a % 8 == 0) r += 64;\n"
+		"	return r + gc;\n"
 		"}\n"
 	},
 	//3.11 [basic.align] p4: an alignment is a power of two

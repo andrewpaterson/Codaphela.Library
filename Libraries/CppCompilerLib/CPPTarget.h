@@ -73,6 +73,7 @@ public:
 	virtual bool		WidensResults(void);			//Results narrower than 32 bits are returned as i32.
 	virtual uint32		GetBankSize(void);				//The linker keeps sections inside banks of this size (0 for none).
 	virtual uint32		GetStackTop(void);				//S as the start up sets it.
+	virtual int			GetFrameAlignment(void);		//What a local's place in a frame is a multiple of, whatever its type.
 
 	//The preprocessor's configuration.
 	virtual void		AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions);

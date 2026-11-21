@@ -427,6 +427,91 @@ bool CCPPUnit::IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if a variable is an automatic one of a function the one being
+// written is in: of the function a local class is defined in, when one of
+// the class's member functions is written.  [class.local] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsOuterLocal(CCPPSymbol* pcSymbol)
+{
+	CCPPFunction*	pcFunction;
+	CCPPScope*		pcScope;
+	CCPPSyntax*		pcDeclaration;
+	uint32			uiFlags;
+
+	if (!pcSymbol || ((pcSymbol->meKind != CPPSK_Variable) && (pcSymbol->meKind != CPPSK_Parameter)) || !pcSymbol->mpcScope)
+	{
+		return false;
+	}
+	if ((pcSymbol->mpcScope->meKind != CPPSC_Block) && (pcSymbol->mpcScope->meKind != CPPSC_Function))
+	{
+		return false;
+	}
+	pcFunction = OuterFunction();
+	if (!pcFunction || !pcFunction->mpcDefinition || !pcFunction->mpcDefinition->mpcScope)
+	{
+		return false;
+	}
+	for (pcScope = pcSymbol->mpcScope; pcScope; pcScope = pcScope->mpcParent)
+	{
+		if (pcScope == pcFunction->mpcDefinition->mpcScope)
+		{
+			return false;
+		}
+	}
+	pcDeclaration = pcSymbol->mpcDeclaration;
+	uiFlags = 0;
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration) && ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers)
+	{
+		uiFlags = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers->muiFlags;
+	}
+	return (uiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL)) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a variable is a constant of a function a local class is in
+// (IsOuterLocal) whose value a member function of the class may use: it
+// isn't odr-used.  [basic.def.odr] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsOuterConstant(CCPPSymbol* pcSymbol)
+{
+	int64	lliValue;
+
+	if (!IsOuterLocal(pcSymbol) || !EnclosingConstantType(pcSymbol))
+	{
+		return false;
+	}
+	return Constant(((CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration)->mpcInitializer, &lliValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A static local as its function last defined it: a local class's member
+// function names it while its function's variables aren't the ones being
+// made.  NULL for a symbol that isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPVariable* CCPPUnit::EnclosingStatic(CCPPSymbol* pcSymbol)
+{
+	size	i;
+
+	for (i = mapcStaticLocals.NumElements(); i > 0; i--)
+	{
+		if (mapcStaticLocals.GetPtr(i - 1)->mpcSymbol == pcSymbol)
+		{
+			return mapcStaticLocals.GetPtr(i - 1);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type of a local constant's value (IsEnclosingConstant): its declared
 // type without const.  NULL if it isn't const (or constexpr), is volatile,
 // has no initialiser, or isn't an integer, bool or enum.

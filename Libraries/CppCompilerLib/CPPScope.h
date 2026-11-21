@@ -38,6 +38,18 @@ enum ECPPScopeKind
 
 
 class CCPPScope;
+//What a lookup considers.  Ordinary lookup finds a variable, function or enumerator that hides a class or enum of the
+//name in its scope [basic.scope.hiding] 2; a type's (an elaborated type specifier's, and a name before ::) only
+//namespaces, types and templates [basic.lookup.elab] 2, [basic.lookup.qual] 1; a namespace's (a using-directive's and
+//a namespace alias's) only namespaces [basic.lookup.udir] 1.
+enum ECPPLookup
+{
+	CPPL_Ordinary,
+	CPPL_Type,
+	CPPL_Namespace,
+};
+
+
 typedef CArrayTemplatePtr<CCPPScope>		CArrayScopes;
 typedef CMapLongTemplate<CCPPSymbol*>		CMapSymbols;
 
@@ -98,10 +110,11 @@ public:
 	void			AddAlias(int64 lliName, CCPPSymbol* pcSymbol, int iBefore);
 	CCPPSymbol*		FindHere(int64 lliName);
 	void			LoadLazy(int64 lliName);
-	CCPPSymbol*		FindMember(int64 lliName);
-	CCPPSymbol*		Find(int64 lliName);
-	CCPPSymbol*		FindDeclared(int64 lliName, int iDepth);
-	CCPPSymbol*		FindNominated(int64 lliName, CCPPScope* pcLevel, CArrayCPPSymbols* papcFound);
+	CCPPSymbol*		FindMember(int64 lliName, ECPPLookup eLookup = CPPL_Ordinary);
+	CCPPSymbol*		Find(int64 lliName, ECPPLookup eLookup = CPPL_Ordinary);
+	CCPPSymbol*		FindDeclared(int64 lliName, int iDepth, ECPPLookup eLookup = CPPL_Ordinary);
+	CCPPSymbol*		FindNominated(int64 lliName, CCPPScope* pcLevel, CArrayCPPSymbols* papcFound, ECPPLookup eLookup = CPPL_Ordinary);
+	CCPPSymbol*		Pick(CCPPSymbol* pcFirst, ECPPLookup eLookup);
 	bool			IsAmbiguous(int64 lliName);
 	bool			IsAmbiguousMember(int64 lliName);
 	static bool		AreDifferent(CArrayCPPSymbols* papcFound);
@@ -120,7 +133,7 @@ public:
 	void			GatherEnclosingNamespaces(CCPPOverloadScopes* pcNamespaces);
 
 protected:
-	CCPPSymbol*		FindMember(int64 lliName, int iDepth);
+	CCPPSymbol*		FindMember(int64 lliName, int iDepth, ECPPLookup eLookup);
 	bool			AddOverloadScope(int64 lliName, CCPPOverloadScopes* pcNamespaces);
 	void			AddNominated(CArrayScopes* papcNominated);
 	bool			GatherUnqualified(int64 lliName, CArrayScopes* papcNominated, CCPPOverloadScopes* pcNamespaces);
