@@ -411,6 +411,17 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		CheckSwitch((CCPPSyntaxSwitchStatement*)pcNode, SwitchType((CCPPSyntaxSwitchStatement*)pcNode));
 		return;
 	case CPPS_ReturnStatement:
+		//An overloaded function's name returned as a pointer to (or a reference to) a function is the overload of
+		//that type, chosen by the function's return type.  [over.over] 1
+		pcValue = ((CCPPSyntaxReturnStatement*)pcNode)->mpcValue;
+		psValue = (pcValue && mcContext.GetFunction() && mcContext.GetFunction()->mpsReturn) ? mcContext.GetFunction()->mpsReturn : NULL;
+		psValue = (psValue && psValue->IsReference() && psValue->psBase->IsFunction()) ? mcTypes.Pointer(psValue->psBase) : psValue;
+		if (psValue && FunctionNameFor(pcValue, psValue))
+		{
+			mcTypeChecker.ValueFor(pcValue, psValue, false);
+			return;
+		}
+
 		//What is returned is the function's type's: an enum class's value isn't another's without a cast.
 		CheckChildren(pcNode);
 		if (mcContext.GetFunction())
