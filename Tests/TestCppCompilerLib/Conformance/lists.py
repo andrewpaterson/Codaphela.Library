@@ -3,7 +3,9 @@
 #
 #   python lists.py              the lists of cases not done, for each stage and target, and how many are done
 #   python lists.py -why         also why each case isn't done (the compiler's errors, or what the program returned)
-#   python lists.py -write       also writes the lists into TestCPPConformance.cpp, after a stage has moved cases
+#   python lists.py -write       also writes the lists into TestCPPConformance.cpp, after a stage has moved cases,
+#                                and the semantic pass's lists (what the IDE's check gets wrong of the cases) into
+#                                TestCPPConformanceChecked.h
 #
 # It runs the Release x64 TestCppCompilerLib.exe with TEST_CPP_CONFORMANCE_LISTS set (the lists are printed and not
 # checked) and stops it once the conformance test is done.  Look at what changed in TestCPPConformance.cpp before
@@ -14,6 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.join(HERE, "..", "TestCppCompilerLib")
 EXE = os.path.join(HERE, "..", "x64", "Release", "TestCppCompilerLib.exe")
 TEST = os.path.join(PROJECT, "TestCPPConformance.cpp")
+CHECKED = os.path.join(PROJECT, "TestCPPConformanceChecked.h")
 LOG = os.path.join(PROJECT, "Log.txt")
 
 env = dict(os.environ, TEST_CPP_CONFORMANCE_LISTS="1")
@@ -34,16 +37,24 @@ with tempfile.TemporaryFile() as errors:
     lines = errors.read().decode("utf-8", errors="replace").splitlines()
 
 lists = {}
+checked = []
 done = {}
 total = {}
 for line in lines:
+    m = re.match(r'(\w+) Checked (\d+) of (\d+): "(.*)"$', line)
+    if m:
+        checked.append((m.group(1), m.group(4)))
+        done["Checked"] = done.get("Checked", 0) + int(m.group(2))
+        total["Checked"] = total.get("Checked", 0) + int(m.group(3))
+        print(line)
+        continue
     m = re.match(r'(\w+) (65C64|W65C816) (\d+) of (\d+): "(.*)"$', line)
     if m:
         lists[(m.group(1), m.group(2))] = m.group(5)
         done[m.group(2)] = done.get(m.group(2), 0) + int(m.group(3))
         total[m.group(2)] = total.get(m.group(2), 0) + int(m.group(4))
         print(line)
-    elif "-why" in sys.argv and re.match(r"(65C64|W65C816) \w+\([CWA]\)", line):
+    elif "-why" in sys.argv and re.match(r"(65C64|W65C816) \w+\([CWAU]\)", line):
         print("    " + line)
 if not lists:
     sys.exit("The conformance test printed nothing: is TestCppCompilerLib built (Release x64)?")
@@ -62,3 +73,12 @@ if "-write" in sys.argv:
     text, count = re.subn(r'(CONFORMANCE_GROUP|CONFORMANCE_EXCEPTIONS_GROUP)\((\w+),\s*"[^"]*",\s*"[^"]*"\),', group, text)
     open(TEST, "wb").write(text.encode("utf-8"))
     print("%d lists written to TestCPPConformance.cpp" % (2 * count))
+
+    # The semantic pass's lists: the table's lines are written again, its comment and struct kept.
+    text = open(CHECKED, "rb").read().decode("utf-8")
+    start = text.index("static const SConformanceChecked gasConformanceChecked[] =")
+    body = "static const SConformanceChecked gasConformanceChecked[] =\n{\n"
+    for name, notdone in checked:
+        body += '\t{ "%s",\n\t\t"%s" },\n' % (name, notdone)
+    open(CHECKED, "wb").write((text[:start] + body + "};\n").encode("utf-8"))
+    print("%d lists written to TestCPPConformanceChecked.h" % len(checked))

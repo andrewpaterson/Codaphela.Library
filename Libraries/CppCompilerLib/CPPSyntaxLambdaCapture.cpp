@@ -81,6 +81,7 @@ void CCPPSyntaxLambdaCapture::VisitFields(CCPPSyntaxFields* pcFields)
 	pcFields->Enum(&meKind);
 	pcFields->Child(&mpcName);
 	pcFields->Token(&miName);
+	pcFields->Bool(&mbPack);
 	pcFields->Child(&mpcInitializer);
 	pcFields->Symbol(&mpcSymbol);
 }

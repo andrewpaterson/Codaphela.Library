@@ -12,6 +12,11 @@
 #include "CppCompilerLib/CPP65Builder.h"
 #include "CppCompilerLib/CPPTarget.h"
 #include "CppCompilerLib/CPPCompileOptions.h"
+#include "CppCompilerLib/CPPPreprocessor.h"
+#include "CppCompilerLib/CppTokeniser.h"
+#include "CppCompilerLib/CppParser.h"
+#include "CppCompilerLib/CPPSyntaxes.h"
+#include "CppCompilerLib/CPPSemanticPass.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -35,13 +40,16 @@ struct SConformanceCase
 #include "TestCPPConformanceCases.h"
 #include "TestCPPConformanceClauseCases.h"
 #include "TestCppCompilerLibParts.h"
+#include "TestCPPConformanceChecked.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // What the compiler can't do yet, for each stage and target: a case's name
 // and (C) it didn't build, (W) it ran and returned the wrong value or
-// didn't stop, or (A) it was accepted and must be refused.  Take a case off
+// didn't stop, (A) it was accepted and must be refused, or (U) it was
+// refused, but only as C++ the compiler doesn't support yet: it doesn't know
+// what is wrong with the program (ConformanceUnsupported).  Take a case off
 // its list as the compiler does it (Conformance/lists.py prints the lists
 // as they are now, and writes them here); the lists being empty is Part B
 // done.
@@ -64,7 +72,9 @@ struct SConformanceGroup
 static const SConformanceGroup gasConformanceGroups[] =
 {
 	CONFORMANCE_GROUP(Works, "", ""),
-	CONFORMANCE_GROUP(Stage1, "", ""),
+	CONFORMANCE_GROUP(Stage1,
+		"StaticAssertFalseInFunction(U) ",
+		"StaticAssertFalseInFunction(U) "),
 	CONFORMANCE_GROUP(Stage2, "", ""),
 	CONFORMANCE_GROUP(Stage3, "", ""),
 	CONFORMANCE_GROUP(Stage4, "", ""),
@@ -73,20 +83,40 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Stage7, "", ""),
 	CONFORMANCE_GROUP(Stage8, "", ""),
 	CONFORMANCE_GROUP(Stage9, "", ""),
-	CONFORMANCE_GROUP(Stage10, "", ""),
+	CONFORMANCE_GROUP(Stage10,
+		"NamespaceInBlockScope(U) FriendNotFoundByQualifiedLookup(U) ADLSuppressedByParentheses(U) ",
+		"NamespaceInBlockScope(U) FriendNotFoundByQualifiedLookup(U) ADLSuppressedByParentheses(U) "),
 	CONFORMANCE_EXCEPTIONS_GROUP(Exceptions, "", ""),
-	CONFORMANCE_GROUP(Clause3, "", ""),
-	CONFORMANCE_GROUP(Clause4, "", ""),
+	CONFORMANCE_GROUP(Clause3,
+		"BasicIncompleteArraySizeofRefused(U) BasicVoidObjectRefused(U) BasicSizeofVoidRefused(U) BasicAlignmentNotPowerOfTwoRefused(U) ",
+		"BasicIncompleteArraySizeofRefused(U) BasicVoidObjectRefused(U) BasicSizeofVoidRefused(U) BasicAlignmentNotPowerOfTwoRefused(U) "),
+	CONFORMANCE_GROUP(Clause4,
+		"ConvContextualBoolInitRefused(U) ConvContextualSwitchTwoRefused(U) ConvContextualSwitchExplicitRefused(U) ConvLvalueToRvalueIncompleteRefused(U) ",
+		"ConvContextualBoolInitRefused(U) ConvContextualSwitchTwoRefused(U) ConvContextualSwitchExplicitRefused(U) ConvLvalueToRvalueIncompleteRefused(U) "),
 	CONFORMANCE_GROUP(Clause5,
-		"ConstantInactiveUnionMemberRefused(A) ",
-		""),
-	CONFORMANCE_GROUP(Clause6, "", ""),
-	CONFORMANCE_GROUP(Clause7, "", ""),
-	CONFORMANCE_GROUP(Clause8, "", ""),
-	CONFORMANCE_GROUP(Clause9, "", ""),
-	CONFORMANCE_GROUP(Clause10, "", ""),
-	CONFORMANCE_GROUP(Clause11, "", ""),
-	CONFORMANCE_GROUP(Clause12, "", ""),
+		"PrimAddressOfLiteralRefused(U) PrimThisAssignRefused(U) LambdaInUnevaluatedRefused(U) LambdaDefaultArgumentCaptureRefused(U) LambdaCapturingNotFunctionPointerRefused(U) SubscriptBracedBuiltInRefused(U) CallNotAFunctionRefused(U) FunctionalCastNoConversionRefused(U) MemberAccessNestedTypeRefused(U) PostIncrementAssignedRefused(U) PostIncrementRvalueRefused(U) PostIncrementVoidPointerRefused(U) DynamicCastIncompleteRefused(U) TypeidWithoutHeaderRefused(U) StaticCastNonConstReferenceToValueRefused(U) ReinterpretCastRvalueToReferenceRefused(U) ConstCastFunctionPointerRefused(U) ConstCastRvalueToLvalueReferenceRefused(U) PreIncrementRvalueRefused(U) PreIncrementPostResultRefused(U) PreIncrementFunctionPointerTargetRefused(U) SizeofFunctionRefused(U) SizeofIncompleteArrayRefused(U) SizeofVoidRefused(U) NewVoidRefused(U) AlignofVoidRefused(U) AlignofFunctionRefused(U) CastNotationToArrayRefused(U) CastNotationClassToIntRefused(U) CastNotationMemberPointerToPointerRefused(U) AdditiveVoidPointerRefused(U) AdditiveFunctionPointerRefused(U) AssignToLiteralRefused(U) AssignToSumRefused(U) AssignArrayRefused(U) AssignFunctionRefused(U) ConstantCaseNotConstantRefused(U) ConstantInactiveUnionMemberRefused(A) LambdaDefaultArgumentDefaultCaptureRefused(U) LambdaGenericConversionReturnRefused(U) LambdaGenericConversionCaptureRefused(U) LambdaGenericConversionReferenceRefused(U) ",
+		"PrimAddressOfLiteralRefused(U) PrimThisAssignRefused(U) LambdaInUnevaluatedRefused(U) LambdaDefaultArgumentCaptureRefused(U) LambdaCapturingNotFunctionPointerRefused(U) SubscriptBracedBuiltInRefused(U) CallNotAFunctionRefused(U) FunctionalCastNoConversionRefused(U) MemberAccessNestedTypeRefused(U) PostIncrementAssignedRefused(U) PostIncrementRvalueRefused(U) PostIncrementVoidPointerRefused(U) DynamicCastIncompleteRefused(U) TypeidWithoutHeaderRefused(U) StaticCastNonConstReferenceToValueRefused(U) ReinterpretCastRvalueToReferenceRefused(U) ConstCastFunctionPointerRefused(U) ConstCastRvalueToLvalueReferenceRefused(U) PreIncrementRvalueRefused(U) PreIncrementPostResultRefused(U) PreIncrementFunctionPointerTargetRefused(U) SizeofFunctionRefused(U) SizeofIncompleteArrayRefused(U) SizeofVoidRefused(U) NewVoidRefused(U) AlignofVoidRefused(U) AlignofFunctionRefused(U) CastNotationToArrayRefused(U) CastNotationClassToIntRefused(U) CastNotationMemberPointerToPointerRefused(U) AdditiveVoidPointerRefused(U) AdditiveFunctionPointerRefused(U) AssignToLiteralRefused(U) AssignToSumRefused(U) AssignArrayRefused(U) AssignFunctionRefused(U) ConstantCaseNotConstantRefused(U) LambdaDefaultArgumentDefaultCaptureRefused(U) LambdaGenericConversionReturnRefused(U) LambdaGenericConversionCaptureRefused(U) LambdaGenericConversionReferenceRefused(U) "),
+	CONFORMANCE_GROUP(Clause6,
+		"StmtCaseOutsideSwitchRefused(U) StmtDefaultOutsideSwitchRefused(U) StmtConditionArrayRefused(U) StmtSwitchNonConstantCaseRefused(U) StmtReturnNoValueRefused(U) ",
+		"StmtCaseOutsideSwitchRefused(U) StmtDefaultOutsideSwitchRefused(U) StmtConditionArrayRefused(U) StmtSwitchNonConstantCaseRefused(U) StmtReturnNoValueRefused(U) "),
+	CONFORMANCE_GROUP(Clause7,
+		"DclElaboratedEnumAsClassRefused(U) ",
+		"DclElaboratedEnumAsClassRefused(U) "),
+	CONFORMANCE_GROUP(Clause8,
+		"DclArrayAssignedRefused(U) DclArrayTooManyRefused(U) DclCharacterArrayWideMismatchRefused(U) DclWideArrayNarrowStringRefused(U) DclIntArrayFromStringRefused(U) DclReferenceToRvalueRefused(U) DclReferenceToCallValueRefused(U) DclListTooManyForScalarRefused(U) DclAggregateTooManyElidedRefused(U) ",
+		"DclArrayAssignedRefused(U) DclArrayTooManyRefused(U) DclCharacterArrayWideMismatchRefused(U) DclWideArrayNarrowStringRefused(U) DclIntArrayFromStringRefused(U) DclReferenceToRvalueRefused(U) DclReferenceToCallValueRefused(U) DclListTooManyForScalarRefused(U) DclAggregateTooManyElidedRefused(U) "),
+	CONFORMANCE_GROUP(Clause9,
+		"ClassNestedTypeUnqualifiedRefused(U) ClassLocalMemberDefinedOutsideRefused(U) ",
+		"ClassNestedTypeUnqualifiedRefused(U) ClassLocalMemberDefinedOutsideRefused(U) "),
+	CONFORMANCE_GROUP(Clause10,
+		"DerivedBaseNotClassRefused(U) ",
+		"DerivedBaseNotClassRefused(U) "),
+	CONFORMANCE_GROUP(Clause11,
+		"AccessFriendDefinedInClassNotFoundRefused(U) ",
+		"AccessFriendDefinedInClassNotFoundRefused(U) "),
+	CONFORMANCE_GROUP(Clause12,
+		"SpecialExplicitConversionCopyInitialisationRefused(U) ",
+		"SpecialExplicitConversionCopyInitialisationRefused(U) "),
 	CONFORMANCE_GROUP(Clause14, "", ""),
 };
 
@@ -308,6 +338,9 @@ static bool ConformanceRunW65C816(CCPP65Builder* pcBuilder, int32* piResult)
 // in the environment says why on stderr.
 //
 //////////////////////////////////////////////////////////////////////////
+static bool ConformanceUnsupported(const char* szErrors);
+
+
 static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eTarget, bool bExceptions)
 {
 	CCPP65Builder	cBuilder;
@@ -324,7 +357,10 @@ static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eT
 		{
 			szNotDone = "(A)";
 		}
-		szErrors.Clear();
+		else if (ConformanceUnsupported(szErrors.Text()))
+		{
+			szNotDone = "(U)";
+		}
 	}
 	else
 	{
@@ -392,6 +428,143 @@ static void TestCPPConformanceGroup(const SConformanceGroup* psGroup, ECPPTarget
 	else
 	{
 		AssertString(psGroup->aszNotDone[(eTarget == CPPT_W65C816) ? 1 : 0], szNotDone.Text());
+	}
+	szNotDone.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the first thing the compiler says of a program it refuses is that
+// it doesn't support the program's C++ yet ("... by the compiler yet", "This
+// function uses C++ the compiler doesn't support yet (file line n)" with no
+// reason after it, or an internal error): the program is refused, but not
+// for what is wrong with it, and would be as readily if it were right.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ConformanceUnsupported(const char* szErrors)
+{
+	CChars		szFirst;
+	const char*	szEnd;
+	const char*	szSupport;
+	const char*	szReason;
+	bool		bUnsupported;
+
+	szEnd = strchr(szErrors, '\n');
+	szFirst.Init();
+	szFirst.Append(szErrors, szEnd ? (size)(szEnd - szErrors) : strlen(szErrors));
+	bUnsupported = (strstr(szFirst.Text(), "compiler yet") != NULL) || (strstr(szFirst.Text(), "Internal error") != NULL);
+	szSupport = strstr(szFirst.Text(), "support yet");
+	if (szSupport)
+	{
+		//Unsupported's exit says why when it knows: "... doesn't support yet (file line n): the reason".
+		szReason = strstr(szSupport, "): ");
+		bUnsupported = (szReason == NULL);
+	}
+	szFirst.Kill();
+	return bUnsupported;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the semantic pass, which is the IDE's check of a file as it is
+// written, finds nothing wrong with the program: parsed and checked as the
+// compiler's target, nothing generated.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ConformanceChecks(const char* szSource, bool bExceptions)
+{
+	CTranslationUnit	cFile;
+	CCPPPreprocessor	cPreprocessor;
+	CCPPTokeniser		cTokeniser;
+	CCPPSyntaxTree		cTree;
+	CCPPParser			cParser;
+	CCPPSemanticPass	cPass;
+	CCPPCompileOptions	cOptions;
+	bool				bResult;
+
+	cFile.Init("Test.cpp", NULL, false);
+	cFile.SetContents((char*)szSource);
+	cPreprocessor.Init(NULL);
+	bResult = cPreprocessor.PreprocessTranslationUnit(&cFile);
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	bResult &= cTokeniser.Tokenise(cFile.GetTokens());
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	bResult &= cParser.NumErrors() == 0;
+	cParser.Kill();
+	cPass.Init();
+	cOptions.Init();
+	cOptions.mbExceptions = bExceptions;
+	cPass.SetOptions(&cOptions);
+	bResult &= cPass.Check(&cTree, CPPT_W65C816);
+	cPass.Kill();
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the semantic pass makes of a group's cases, against what is known
+// of it (TestCPPConformanceChecked.h): a case's name and (M) it missed what
+// is wrong with a program that must be refused, so the IDE shows nothing
+// where the build will fail, or (F) it found something wrong with a program
+// that is right.  A case that includes a header is left out: the pass is
+// given the case alone.  With TEST_CPP_CONFORMANCE_LISTS in the environment
+// the list is written to stderr and not checked.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPPConformanceChecked(const SConformanceGroup* psGroup)
+{
+	const SConformanceCase*	psCase;
+	CChars					szNotDone;
+	const char*				szExpected;
+	size					i;
+	size					uiCases;
+	size					uiNotDone;
+	bool					bChecks;
+
+	szNotDone.Init();
+	uiCases = 0;
+	uiNotDone = 0;
+	for (i = 0; i < psGroup->uiNumCases; i++)
+	{
+		psCase = &psGroup->pasCases[i];
+		if (strstr(psCase->szSource, "#include"))
+		{
+			continue;
+		}
+		uiCases++;
+		bChecks = ConformanceChecks(psCase->szSource, psGroup->bExceptions);
+		if (bChecks != (psCase->iExpected != CONFORMANCE_REFUSED))
+		{
+			szNotDone.Append(psCase->szName);
+			szNotDone.Append(bChecks ? "(M) " : "(F) ");
+			uiNotDone++;
+		}
+	}
+
+	szExpected = "";
+	for (i = 0; i < sizeof(gasConformanceChecked) / sizeof(SConformanceChecked); i++)
+	{
+		if (strcmp(gasConformanceChecked[i].szGroup, psGroup->szName) == 0)
+		{
+			szExpected = gasConformanceChecked[i].szNotDone;
+		}
+	}
+	if (getenv("TEST_CPP_CONFORMANCE_LISTS"))
+	{
+		fprintf(stderr, "%s Checked %d of %d: \"%s\"\n", psGroup->szName, (int)(uiCases - uiNotDone), (int)uiCases, szNotDone.Text());
+	}
+	else
+	{
+		AssertString(szExpected, szNotDone.Text());
 	}
 	szNotDone.Kill();
 }
@@ -493,7 +666,8 @@ static void TestCPPConformanceTry(const char* szFileName)
 //////////////////////////////////////////////////////////////////////////
 //
 // How much of C++14 the compiler does, measured: every case on both
-// targets, against what is known not to be done.
+// targets, against what is known not to be done, and the semantic pass's
+// check of every case against what is known of it.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPPConformance(void)
@@ -519,6 +693,7 @@ void TestCPPConformance(void)
 	{
 		TEST_PART(TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_65C64));
 		TEST_PART(TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_W65C816));
+		TEST_PART(TestCPPConformanceChecked(&gasConformanceGroups[i]));
 	}
 
 	TypeConverterKill();

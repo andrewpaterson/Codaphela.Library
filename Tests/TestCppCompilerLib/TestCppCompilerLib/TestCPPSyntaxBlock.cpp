@@ -92,11 +92,34 @@ static void TestSyntaxBlockDeclarations(CCPPSyntax* pcNode, CArraySyntax* papcDe
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each declaration written as a block, read into another tree and written
-// again is the same block, and prints the same.
+// The kinds of a node and of the nodes under it.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPPSyntaxBlockRoundTrip(void)
+static void TestSyntaxBlockKinds(CCPPSyntax* pcNode, bool* pabKinds)
+{
+	size		i;
+	CCPPSyntax*	pcChild;
+
+	pabKinds[pcNode->GetKind()] = true;
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		pcChild = pcNode->GetChild(i);
+		if (pcChild)
+		{
+			TestSyntaxBlockKinds(pcChild, pabKinds);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each declaration of the source written as a block, read into another tree
+// and written again is the same block, and prints the same.  The kinds of
+// node the declarations have are set in pabKinds, if it is given.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestSyntaxBlockRoundTrips(char* szSource, bool* pabKinds)
 {
 	STestSyntaxBlock	sBlock;
 	CArraySyntax		apcDeclarations;
@@ -111,36 +134,7 @@ void TestCPPSyntaxBlockRoundTrip(void)
 	size				i;
 	size				uiSame;
 
-	AssertTrue(sBlock.Init("\
-typedef unsigned int uint;\n\
-enum EColour { Red, Green = 3, Blue };\n\
-enum class [[nodiscard]] EKind { One [[deprecated]] = 1, Two };\n\
-struct SPoint { int x; int y; };\n\
-struct SDerived : [[maybe_unused]] public SPoint { int z; };\n\
-class CShape\n\
-{\n\
-public:\n\
-	SPoint	msCentre;\n\
-	virtual int Area(void) { return msCentre.x * msCentre.y; }\n\
-	static const int kiSides = 4;\n\
-	struct SInner { uint uiCount; } msInner;\n\
-};\n\
-int Add(int a, int b) { return a + b; }\n\
-float Add(float a, float b) { return a + b; }\n\
-template<class M> class CHolder { public: M mValue; M Get(void) { return mValue; } };\n\
-template<class M> M Larger(M a, M b) { return (a > b) ? a : b; }\n\
-namespace Space\n\
-{\n\
-	int giCount = 0;\n\
-	void Count(int* pi, int n) { for (int i = 0; i < n; i++) { giCount += pi[i]; } }\n\
-	class CDerived : public CShape { public: int Area(void) override { return Add(1, 2); } };\n\
-}\n\
-extern \"C\" { int Plain(char c); }\n\
-using Space::giCount;\n\
-int (*gpfAdd)(int, int) = &Add;\n\
-CHolder<int> gcHolder;\n\
-int Use(void) { EColour e = Green; CHolder<SPoint> c; return Larger(1, 2) + (int)e + c.mValue.x; }\n\
-"));
+	AssertTrue(sBlock.Init(szSource));
 
 	apcDeclarations.Init();
 	TestSyntaxBlockDeclarations((CCPPSyntax*)sBlock.cTree.GetRoot(), &apcDeclarations);
@@ -151,6 +145,10 @@ int Use(void) { EColour e = Green; CHolder<SPoint> c; return Larger(1, 2) + (int
 	for (i = 0; i < apcDeclarations.NumElements(); i++)
 	{
 		pcDeclaration = apcDeclarations.GetPtr(i);
+		if (pabKinds)
+		{
+			TestSyntaxBlockKinds(pcDeclaration, pabKinds);
+		}
 		auiWritten.Init();
 		auiAgain.Init();
 		AssertInt(CPPSB_Written, CCPPSyntaxBlockWriter::Write(&sBlock.cTree, pcDeclaration, pcGlobal, &auiWritten));
@@ -192,6 +190,161 @@ int Use(void) { EColour e = Green; CHolder<SPoint> c; return Larger(1, 2) + (int
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each declaration written as a block, read into another tree and written
+// again is the same block, and prints the same.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPPSyntaxBlockRoundTrip(void)
+{
+	TestSyntaxBlockRoundTrips("\
+typedef unsigned int uint;\n\
+enum EColour { Red, Green = 3, Blue };\n\
+enum class [[nodiscard]] EKind { One [[deprecated]] = 1, Two };\n\
+struct SPoint { int x; int y; };\n\
+struct SDerived : [[maybe_unused]] public SPoint { int z; };\n\
+class CShape\n\
+{\n\
+public:\n\
+	SPoint	msCentre;\n\
+	virtual int Area(void) { return msCentre.x * msCentre.y; }\n\
+	static const int kiSides = 4;\n\
+	struct SInner { uint uiCount; } msInner;\n\
+};\n\
+int Add(int a, int b) { return a + b; }\n\
+float Add(float a, float b) { return a + b; }\n\
+template<class M> class CHolder { public: M mValue; M Get(void) { return mValue; } };\n\
+template<class M> M Larger(M a, M b) { return (a > b) ? a : b; }\n\
+namespace Space\n\
+{\n\
+	int giCount = 0;\n\
+	void Count(int* pi, int n) { for (int i = 0; i < n; i++) { giCount += pi[i]; } }\n\
+	class CDerived : public CShape { public: int Area(void) override { return Add(1, 2); } };\n\
+}\n\
+extern \"C\" { int Plain(char c); }\n\
+using Space::giCount;\n\
+int (*gpfAdd)(int, int) = &Add;\n\
+CHolder<int> gcHolder;\n\
+int Use(void) { EColour e = Green; CHolder<SPoint> c; return Larger(1, 2) + (int)e + c.mValue.x; }\n\
+", NULL);
+}
+
+
+//The kinds' names, for saying which is missing.
+#define TEST_SYNTAX_KIND_NAME(N)	#N,
+static const char*	gaszTestSyntaxKinds[] = { CPP_SYNTAX_KINDS(TEST_SYNTAX_KIND_NAME) };
+#undef TEST_SYNTAX_KIND_NAME
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every kind of node is written as part of a block and read again the
+// same: the source has each kind the parser makes of a text that is right
+// (a new kind is added to it, or the test says which it has none of).  Not
+// the tree's root, a namespace or a linkage specification, which are looked
+// into and not written; what the parser makes of a text it can't parse
+// (SkippedDeclaration, SkippedStatement); a declaration left in its header
+// (LazyDeclaration); or what the semantic layer adds to a tree
+// (ImplicitArgument).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPPSyntaxBlockEveryKind(void)
+{
+	static const ECPPSyntax	aeNotWritten[] = { CPPS_TranslationUnit, CPPS_Namespace, CPPS_LinkageSpecification, CPPS_SkippedDeclaration, CPPS_SkippedStatement, CPPS_LazyDeclaration, CPPS_ImplicitArgument };
+	bool					abKinds[CPPS_NumKinds];
+	CChars					szMissing;
+	size					i;
+
+	memset(abKinds, 0, sizeof(abKinds));
+	TestSyntaxBlockRoundTrips("\
+typedef unsigned int uint;\n\
+;\n\
+struct SBase { int miBase; SBase(int i) : miBase(i) {} virtual ~SBase() {} virtual int Get(void) { return miBase; } };\n\
+struct SForward;\n\
+enum EColour { Red, Green = 3 };\n\
+alignas(4) int giAligned = 0;\n\
+decltype(giAligned) giSame = 1;\n\
+struct SForward* gpsForward = nullptr;\n\
+int gaiValues[3] = { 1, 2, 3 };\n\
+int giParenthesised(4);\n\
+[[noreturn]] void Stop(void);\n\
+void Quiet(void) noexcept;\n\
+void Throws(void) throw();\n\
+using UInt = unsigned int;\n\
+static_assert(sizeof(int) >= 2, \"int\");\n\
+__extension__ template<class T> struct SExtended { T mValue; };\n\
+template<class T, int N = 2> struct SArray { T maValues[N]; };\n\
+template<class... A> int Count(A... a) { auto f = [a...] { return (int)sizeof...(a); }; return f(); }\n\
+template<class... A> int Forward(A&&... a) { return Count(a...); }\n\
+class CDerived : public SBase\n\
+{\n\
+public:\n\
+	int miOwn;\n\
+	CDerived(int i) : SBase(i), miOwn(i * 2) {}\n\
+	int Get(void) override { return this->miOwn; }\n\
+};\n\
+namespace Space { int giCount = 0; }\n\
+using namespace Space;\n\
+using Space::giCount;\n\
+int Statements(int a, int* pi)\n\
+{\n\
+	int i;\n\
+	int aiLocal[2] = { 0, 1 };\n\
+	i = 0;\n\
+	if (a > 0) { i = 1; } else { i = 2; }\n\
+	switch (a)\n\
+	{\n\
+		case 1:\n\
+			i++;\n\
+			[[fallthrough]];\n\
+		default:\n\
+			break;\n\
+	}\n\
+	while (i < 10) { i += 2; }\n\
+	do { i--; } while (i > 5);\n\
+	for (i = 0; i < 3; i++) { if (i == 1) { continue; } }\n\
+	for (int v : aiLocal) { i += v; }\n\
+	goto Done;\n\
+Done:\n\
+	try { throw 1; } catch (int e) { i = e; } catch (...) { }\n\
+	return i + *pi;\n\
+}\n\
+int Expressions(CDerived* pc, int a)\n\
+{\n\
+	int*	pi = new int(3);\n\
+	int*	pai = new int[4];\n\
+	int		i = (a > 1) ? -a : (a + 1);\n\
+	char	c = \"text\"[0];\n\
+	long	l = (long)a + static_cast<long>(c) + int(2) + UInt{3};\n\
+	bool	b = noexcept(Quiet()) && __is_class(SBase) && (typeid(int) == typeid(a));\n\
+	i += pc->Get() + pc->miOwn + gaiValues[1] + sizeof(SBase) + sizeof a;\n\
+	i += [](int x) { return x; }(2) + [&i, a] { return i + a; }();\n\
+	delete pi;\n\
+	delete[] pai;\n\
+	return b ? i : (int)l;\n\
+}\n\
+", abKinds);
+
+	for (i = 0; i < sizeof(aeNotWritten) / sizeof(ECPPSyntax); i++)
+	{
+		AssertFalse(abKinds[aeNotWritten[i]]);
+		abKinds[aeNotWritten[i]] = true;
+	}
+	szMissing.Init();
+	for (i = 0; i < (size)CPPS_NumKinds; i++)
+	{
+		if (!abKinds[i])
+		{
+			szMissing.Append(gaszTestSyntaxKinds[i]);
+			szMissing.Append(' ');
+		}
+	}
+	AssertString("", szMissing.Text());
+	szMissing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A block that is cut short or isn't a block isn't read.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -224,6 +377,7 @@ void TestCPPSyntaxBlock(void)
 	BeginTests();
 
 	TestCPPSyntaxBlockRoundTrip();
+	TestCPPSyntaxBlockEveryKind();
 	TestCPPSyntaxBlockWrong();
 
 	TestStatistics();

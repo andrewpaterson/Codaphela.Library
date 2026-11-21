@@ -270,6 +270,7 @@
   <ItemGroup>
     <ClInclude Include="TestCPPConformanceCases.h" />
     <ClInclude Include="TestCPPConformanceClauseCases.h" />
+    <ClInclude Include="TestCPPConformanceChecked.h" />
     <ClInclude Include="TestHeader.h" />
     <ClInclude Include="TestHeader2.h" />
     <ClInclude Include="TestCPP65Context.h" />
