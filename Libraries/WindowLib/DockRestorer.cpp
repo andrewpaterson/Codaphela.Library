@@ -261,7 +261,10 @@ void CDockRestorer::RestoreFrom(Ptr<CDockPane> pPane, Ptr<CDockPane> pFrom, int 
 		mpcManager->AddToWell(pPane);
 		return;
 	}
-	DockDefault(pPane);
+
+	//Its neighbours are too many to follow back, or remember nothing: its default place, in a group with the ID of
+	//the one it remembers, so that the others of that group shown after it join it there.
+	DockDefault(pPane, pPane->GetRestore()->iGroup);
 }
 
 
@@ -311,10 +314,11 @@ void CDockRestorer::DockBeside(Ptr<CDockPane> pPane, Ptr<CDockNode> pNear, SDock
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Shows a pane in its default place.
+// Shows a pane in its default place.  A group made for it has the ID
+// iGroup if no group has it, 0 for the next ID.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockRestorer::DockDefault(Ptr<CDockPane> pPane)
+void CDockRestorer::DockDefault(Ptr<CDockPane> pPane, int32 iGroup)
 {
 	Ptr<CDockGroup>	pGroup;
 	Ptr<CDockPane>	pWith;
@@ -331,7 +335,7 @@ void CDockRestorer::DockDefault(Ptr<CDockPane> pPane)
 		}
 		if (pWith.IsNotNull() && (pWith != pPane) && (pWith->GetState() == DPS_Hidden || pWith->GetState() == DPS_Removed) && (pWith->GetDefaultKind() == DPL_BesideWell))
 		{
-			pGroup = mpcManager->CreateGroup(false);
+			pGroup = mpcManager->CreateGroup(false, iGroup);
 			mpcManager->PlaceInGroup(pGroup, pPane);
 			iSize = pWith->GetDefaultSize();
 			mpcState->GetTree()->DockBeside(mpcState->GetWell(), pGroup, pWith->GetDefaultSide(), (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);
@@ -352,7 +356,7 @@ void CDockRestorer::DockDefault(Ptr<CDockPane> pPane)
 		mpcManager->AddToWell(pPane);
 		return;
 	}
-	pGroup = mpcManager->CreateGroup(false);
+	pGroup = mpcManager->CreateGroup(false, iGroup);
 	mpcManager->PlaceInGroup(pGroup, pPane);
 	iSize = pPane->GetDefaultSize();
 	mpcState->GetTree()->DockBeside(mpcState->GetWell(), pGroup, (pPane->GetDefaultKind() == DPL_BesideWell) ? pPane->GetDefaultSide() : DS_Left, (iSize > 0) ? iSize : DOCK_DEFAULT_SIZE);

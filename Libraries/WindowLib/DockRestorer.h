@@ -47,7 +47,7 @@ public:
 	void						Record(Ptr<CDockPane> pPane);
 	void						GiveToGroup(Ptr<CDockGroup> pGroup);
 	void						Restore(Ptr<CDockPane> pPane);
-	void						DockDefault(Ptr<CDockPane> pPane);
+	void						DockDefault(Ptr<CDockPane> pPane, int32 iGroup = 0);
 
 protected:
 	bool						GetForGroup(Ptr<CDockGroup> pGroup, SDockRestore* psDest);

@@ -695,6 +695,106 @@ void TestDockingPaneVisible(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Every pane of a group of many is hidden, its last tab first.  One far
+// along its tabs shown again has more neighbours hidden before it than
+// are followed back, so it goes to its default place; the others shown
+// after it join it there, in one group, and not in a second beside it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingHiddenGroupShownApart(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		SDockTest			sTest;
+		SDockPlace			sPlace;
+		CArray<CDockPane>	apPanes;
+		Ptr<CDockPane>		pPane;
+		Ptr<CDockGroup>		pGroup;
+		CChars				szID;
+		CInt32Rect			cBounds;
+		CInt32Rect			cWell;
+		size				i;
+
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory);
+
+		apPanes.Init();
+		apPanes.Add(sTest.pOutput);
+		apPanes.Add(sTest.pErrors);
+		sPlace.WithPane("Output");
+		for (i = 0; i < 6; i++)
+		{
+			szID.Init("Tool");
+			szID.Append((uint32)i);
+			apPanes.Add(sTest.pManager->AddPane(szID.Text(), szID.Text(), NULL, CreateTabbedPage(sTest.pWindow), DPK_Tool, &sPlace));
+			szID.Kill();
+		}
+		pGroup = sTest.pOutput->GetGroup();
+		AssertSize(8, pGroup->NumPanes());
+		AssertTrue(DOCK_RESTORE_DEPTH < 6);
+		sTest.pWindow->Layout();
+
+		for (i = apPanes.NumElements(); i > 0; i--)
+		{
+			pPane = pGroup->GetPane(i - 1);
+			sTest.pManager->Hide(pPane);
+			AssertInt(DPS_Hidden, pPane->GetState());
+		}
+		pGroup = NULL;
+		sTest.pWindow->Layout();
+
+		//The seventh tab: under the well, where its group was.
+		pPane = apPanes.Get(6);
+		sTest.pManager->Show(pPane);
+		sTest.pWindow->Layout();
+		AssertInt(DPS_Docked, pPane->GetState());
+		pGroup = pPane->GetGroup();
+		AssertSize(1, pGroup->NumPanes());
+		pGroup->GetActualBounds(&cBounds);
+		sTest.pManager->GetWell()->GetActualBounds(&cWell);
+		AssertTrue(cBounds.GetTop() >= cWell.GetTop() + cWell.GetHeight());
+
+		//The fourth, whose neighbours lead back to the group's own place, the first, and the last: all with it.
+		sTest.pManager->Show(apPanes.Get(3));
+		AssertTrue(apPanes.Get(3)->GetGroup() == pGroup);
+		sTest.pManager->Show(apPanes.Get(0));
+		AssertTrue(apPanes.Get(0)->GetGroup() == pGroup);
+		sTest.pManager->Show(apPanes.Get(7));
+		AssertTrue(apPanes.Get(7)->GetGroup() == pGroup);
+		AssertSize(4, pGroup->NumPanes());
+
+		//Hidden again and shown from the first, they are in their tabs' order.
+		for (i = pGroup->NumPanes(); i > 0; i--)
+		{
+			sTest.pManager->Hide(pGroup->GetPane(i - 1));
+		}
+		pGroup = NULL;
+		for (i = 0; i < apPanes.NumElements(); i++)
+		{
+			sTest.pManager->Show(apPanes.Get(i));
+		}
+		pGroup = sTest.pOutput->GetGroup();
+		AssertSize(8, pGroup->NumPanes());
+		for (i = 0; i < apPanes.NumElements(); i++)
+		{
+			AssertTrue(apPanes.Get(i)->GetGroup() == pGroup);
+		}
+
+		pPane = NULL;
+		pGroup = NULL;
+		apPanes.Kill();
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Dragging tabs and title bars: torn off into floating windows, dropped
 // on the guides, and put back by Escape.
 //
@@ -2372,6 +2472,7 @@ void TestDocking(void)
 	TestDockingDefaults();
 	TestDockingHideFloatAutoHide();
 	TestDockingPaneVisible();
+	TestDockingHiddenGroupShownApart();
 	TestDockingDrag();
 	TestDockingDragSmall();
 	TestDockingDragOnHeader();
