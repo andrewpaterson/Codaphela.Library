@@ -158,6 +158,45 @@ void TestCPP65DeclarationsHeaderClass(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A header's class is laid out when a unit first needs it whole, so what
+// asks a class about its members must lay it out first.  Assigning a base
+// to a class that takes the base's operator= by a using-declaration
+// (AssignBase.h) is the first thing this unit does with the class, and
+// calls that operator: CCPPUnit::HasOperator read the class's members
+// before it had any, found no operator and refused the assignment ("The
+// object cannot be copied to that class"), which stopped SupportLib's
+// ShapeSubtraction.cpp compiling.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65DeclarationsHeaderAssignment(void)
+{
+	CCPP65Builder	cBuilder;
+	STestCPP65Run	sRun;
+	bool			bBuilt;
+
+	cBuilder.Init();
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	bBuilt = cBuilder.AddStartUp();
+	bBuilt &= cBuilder.AddSource("Unit.cpp",
+		"#include \"DeclarationsProject/AssignBase.h\"\n"
+		"int Assign(CAssignDerived* pcTo, CAssignBase* pcFrom) { *pcTo = *pcFrom; return pcTo->miValue; }\n"
+		"int main() { CAssignDerived cTo; CAssignBase cFrom; cFrom.miValue = 4; return Assign(&cTo, &cFrom); }\n");
+	bBuilt &= cBuilder.Link();
+	AssertString("", cBuilder.GetErrors());
+	AssertTrue(bBuilt);
+	if (bBuilt)
+	{
+		TestCPP65BeginBuilt(&sRun, &cBuilder);
+		AssertTrue(TestCPP65Run(&sRun, 1000000) < 1000000);
+		AssertInt(5, (int32)TestCPP65MPU(&sRun)->GetA());
+		TestCPP65End(&sRun);
+	}
+	cBuilder.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Declarations(void)
@@ -166,6 +205,7 @@ void TestCPP65Declarations(void)
 
 	TestCPP65DeclarationsCounts();
 	TestCPP65DeclarationsHeaderClass();
+	TestCPP65DeclarationsHeaderAssignment();
 
 	TestStatistics();
 }

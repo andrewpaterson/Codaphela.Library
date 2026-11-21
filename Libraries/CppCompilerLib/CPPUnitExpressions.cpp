@@ -1424,7 +1424,8 @@ bool CCPPUnit::HasMember(CCPPClass* pcClass, int64 lliName)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcClass (or a base) has an operator function named lliName: a member function, or a member template taking
-// uiArguments.
+// uiArguments.  The class is laid out to find out, if it hasn't been: its members and its using-declarations are
+// known only then.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments)
@@ -1435,6 +1436,10 @@ bool CCPPUnit::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments)
 	{
 		//A base's operator= is hidden by the copy assignment operator every class declares: only the class's own
 		//are, and those a using-declaration in it names (using Base::operator=;).  [over.ass] 1, [namespace.udecl] 4
+		if (!CompleteClass(pcClass, NULL))
+		{
+			return false;
+		}
 		for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
 		{
 			if (pcClass->mapcMembers.GetPtr(i)->mlliName == lliName)
