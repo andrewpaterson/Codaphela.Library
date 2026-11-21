@@ -69,6 +69,10 @@ struct STreeNodePiece
 };
 
 
+class CTreeContainer;
+typedef CComponentValueEvent<CTreeContainer, int32>	CTreeNodeEvent;  //A node, by its index.
+
+
 typedef CArrayTemplate<STreeNode>			CArrayTreeNode;
 typedef CArrayTemplate<STreeNodeRange>	CArrayTreeNodeRange;
 
@@ -78,7 +82,10 @@ typedef CArrayTemplate<STreeNodeRange>	CArrayTreeNodeRange;
 //like a file's in its version control status's colour.  Parts of a name can each have a font of their own
 //(AddNodeRange), as a found line's has its line number dim and the text found bold.  The rows of the list are the nodes that can be seen: those at the top and those
 //in open nodes.  A double click (or enter) on a node with children opens or closes it; on one without, the listeners
-//are told it was activated.  A press on the chevron opens or closes its node.
+//are told it was activated.  A press on the chevron opens or closes its node.  Whoever wants to know that a node was
+//opened (to find its children only then, say) hears the expanded event; ExpandAll doesn't call it.  A tree whose
+//nodes with children are things to open in themselves (a class with its derived classes under it) can leave the
+//opening and closing to the chevron and the left and right keys (SetActivationToggles(false)).
 //
 //The rows are all one height, so where each is is worked out, not laid out: row i is i rows down.  The tree only has
 //components (CTreeRow) for the rows in view, as many as the scroll pane it is in shows, and as it is scrolled each is
@@ -106,6 +113,8 @@ protected:
 	bool				mbRowsDirty;	//Nodes changed since the rows were made.
 	bool				mbRowsBound;	//The rows' components show their nodes as they are now.
 	bool				mbLaidOut;
+	CTreeNodeEvent		mcExpanded;		//Called when a node is opened (SetExpanded, a chevron's press), with the node.
+	bool				mbActivationToggles;	//A double click or enter on a node with children opens or closes it.
 
 public:
 	void			Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
@@ -139,6 +148,9 @@ public:
 	void			Toggle(int32 iNode);
 	void			ExpandAll(void);
 	void			CollapseAll(void);
+	CTreeNodeEvent*	GetExpandedEvent(void);
+	void			SetActivationToggles(bool bToggles);
+	bool			IsActivationToggles(void) const;
 
 	bool			SelectNode(int32 iNode);
 	int32			GetSelectedNode(void);

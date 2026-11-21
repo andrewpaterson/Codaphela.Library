@@ -45,6 +45,19 @@ public:
 	{
 		mpszLog->Append("Activated;");
 	}
+
+	void NodeExpanded(CTreeContainer* pcTree, int32 iNode)
+	{
+		mpszLog->Append("Expanded ");
+		mpszLog->Append(iNode);
+		mpszLog->Append(';');
+
+		//A listener can give the node its children as it opens.
+		if (!pcTree->HasChildren(iNode))
+		{
+			pcTree->AddNode(iNode, "Found");
+		}
+	}
 };
 
 
@@ -661,6 +674,121 @@ void TestTreeTypeToFind(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The expanded event is called when a node is opened: by SetExpanded, by
+// Toggle, by the right key; not when it is closed, opened again while
+// open, or by ExpandAll.  A listener that adds the node's children then
+// has them shown.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTreeExpandedEvent(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTreeContainer>		pTree;
+		Ptr<CTickTestRefWindow>	pTick;
+		SDataTestRefWindow		cData;
+		CTestTreeListener		cListener;
+		CPointer				pNull;
+		CChars					szLog;
+		CChars					sz;
+		int32					iCaller;
+		int32					iLeaf;
+		Ptr<CWindowTheme>		pTheme;
+
+		szLog.Init();
+		sz.Init();
+		cListener.Init(&szLog);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 200, 200, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Tree Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+
+		pTheme = CreateTestTheme(ReadLabelFont());
+		CJewelTheme::SetImages(pTheme, pTestWindow);
+		pTree = OMalloc<CTreeContainer>(pTestWindow, pTheme);
+		pTree->GetExpandedEvent()->Add(&cListener, &CTestTreeListener::NodeExpanded);
+		pTestWindow->SetContainer(pTree);
+
+		iCaller = pTree->AddNode(TREE_NO_NODE, "Caller");
+		pTree->AddNode(iCaller, "...");
+		iLeaf = pTree->AddNode(TREE_NO_NODE, "Leaf");
+		pTestWindow->Layout();
+		AssertString("0,2", TreeRows(pTree, &sz));
+		AssertString("", szLog.Text());
+
+		//Opened: told once; closed and opened while open: not told.
+		pTree->SetExpanded(iCaller, true);
+		AssertString("Expanded 0;", szLog.Text());
+		AssertString("0,1,2", TreeRows(pTree, &sz));
+		pTree->SetExpanded(iCaller, true);
+		pTree->SetExpanded(iCaller, false);
+		AssertString("Expanded 0;", szLog.Text());
+
+		//Toggle and the right key open too.
+		pTree->Toggle(iCaller);
+		AssertString("Expanded 0;Expanded 0;", szLog.Text());
+		pTree->Toggle(iCaller);
+		pTree->SelectNode(iCaller);
+		pTestWindow->GetFocus()->SetFocus(pTree);
+		pTestWindow->InputCommand(CIC_Right, true);
+		AssertTrue(pTree->IsExpanded(iCaller));
+		AssertString("Expanded 0;Expanded 0;Expanded 0;", szLog.Text());
+
+		//A node with no children yet is given them by the listener as it is opened, and they are rows.
+		szLog.Clear();
+		AssertFalse(pTree->HasChildren(iLeaf));
+		pTree->SetExpanded(iLeaf, true);
+		AssertString("Expanded 2;", szLog.Text());
+		AssertTrue(pTree->HasChildren(iLeaf));
+		AssertString("0,1,2,3", TreeRows(pTree, &sz));
+
+		//ExpandAll opens without telling.
+		pTree->CollapseAll();
+		szLog.Clear();
+		pTree->ExpandAll();
+		AssertString("", szLog.Text());
+		AssertString("0,1,2,3", TreeRows(pTree, &sz));
+
+		//Enter on a node with children closes it, and opens it again, telling the listeners it was activated each time;
+		//once activation doesn't toggle it only tells them, and the left key still closes the node.
+		pTree->GetActivationEvent()->Add(&cListener, &CTestTreeListener::ItemActivated);
+		AssertTrue(pTree->IsActivationToggles());
+		pTree->SelectNode(iCaller);
+		szLog.Clear();
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertFalse(pTree->IsExpanded(iCaller));
+		AssertString("Activated;", szLog.Text());
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertTrue(pTree->IsExpanded(iCaller));
+		AssertString("Activated;Expanded 0;Activated;", szLog.Text());
+		pTree->SetActivationToggles(false);
+		AssertFalse(pTree->IsActivationToggles());
+		szLog.Clear();
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertTrue(pTree->IsExpanded(iCaller));
+		AssertString("Activated;", szLog.Text());
+		pTestWindow->InputCommand(CIC_Left, true);
+		AssertFalse(pTree->IsExpanded(iCaller));
+		pTree->GetActivationEvent()->Remove(&cListener);
+
+		pTree->GetExpandedEvent()->Remove(&cListener);
+		sz.Kill();
+		szLog.Kill();
+		pTheme = NULL;
+		pTree = NULL;
+		pTick = NULL;
+		pTestWindow = NULL;
+	}
+
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTree(void)
@@ -672,6 +800,7 @@ void TestTree(void)
 	TestTreeRowComponents();
 	TestTreeManyRows();
 	TestTreeTypeToFind();
+	TestTreeExpandedEvent();
 
 	ObjectsFlush();
 	ObjectsKill();

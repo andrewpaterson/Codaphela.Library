@@ -59,6 +59,8 @@ void CTreeContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	pFont = pTheme->GetFont();
 	miRowHeight = (pFont.IsNotNull() ? pFont->GetLineHeight() : 16) + pTheme->GetMetric(TM_TreeRowPadding);
 	mbRowsDirty = false;
+	mcExpanded.Init();
+	mbActivationToggles = true;
 	SetDoubleClickActivates(true);
 	AddInputAction(CIC_Left, this, &CTreeContainer::Left);
 	AddInputAction(CIC_Right, this, &CTreeContainer::Right);
@@ -91,6 +93,8 @@ void CTreeContainer::Class(void)
 	U_Bool(mbRowsDirty);
 	U_Bool(mbRowsBound);
 	U_Bool(mbLaidOut);
+	U_Unknown(CTreeNodeEvent, mcExpanded);
+	U_Bool(mbActivationToggles);
 }
 
 
@@ -100,6 +104,7 @@ void CTreeContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTreeContainer::Free(void)
 {
+	mcExpanded.Kill();
 	maiTopNodes.Kill();
 	maiRowNodes.Kill();
 	masRanges.Kill();
@@ -334,8 +339,17 @@ void CTreeContainer::SetExpanded(int32 iNode, bool bExpanded)
 			UpdateRows();
 			LayoutChanged();
 		}
+
+		//Told once the rows are as they will be: a listener may make the tree again.
+		if (bExpanded)
+		{
+			mcExpanded.Call(this, iNode);
+		}
 	}
 }
+
+
+CTreeNodeEvent* CTreeContainer::GetExpandedEvent(void) { return &mcExpanded; }  //Called when a node is opened, with the node; not by ExpandAll.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -996,7 +1010,8 @@ void CTreeContainer::ActivateComponent(int x, int y)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A node with children opens or closes; the listeners are told after.
+// A node with children opens or closes, unless activation doesn't
+// toggle; the listeners are told after.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTreeContainer::RowActivated(int32 iRow)
@@ -1004,11 +1019,15 @@ void CTreeContainer::RowActivated(int32 iRow)
 	int32	iNode;
 
 	iNode = GetRowNode(iRow);
-	if ((iNode != TREE_NO_NODE) && HasChildren(iNode))
+	if (mbActivationToggles && (iNode != TREE_NO_NODE) && HasChildren(iNode))
 	{
 		Toggle(iNode);
 	}
 }
+
+
+void CTreeContainer::SetActivationToggles(bool bToggles) { mbActivationToggles = bToggles; }  //False: enter and a double click only tell the listeners; the chevron and left and right open and close.
+bool CTreeContainer::IsActivationToggles(void) const { return mbActivationToggles; }
 
 
 //////////////////////////////////////////////////////////////////////////
