@@ -336,6 +336,70 @@ void TestBankMallocatorRefused(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A large allocation's run can take the spare a freed one left: its free
+// banks are asked for a stretch at a time and the spare stops being a
+// region.  If one is refused, those given go back and the spare stays.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestBankMallocatorSpareInRun(void)
+{
+	CBankMallocator	cMallocator;
+	CTestBankSource	cSource;
+	uint8*			puiFirst;
+	uint8*			puiA;
+	uint8*			puiB;
+	uint8*			puiC;
+	uint8*			puiD;
+
+	puiFirst = TestBankFirst();
+	cSource.Init(puiFirst);
+	cMallocator.Init(puiFirst, TEST_BANKS * TEST_BANK_SIZE, TEST_BANK_SIZE, &cSource, 1, false);
+
+	puiA = (uint8*)cMallocator.Malloc(2 * TEST_BANK_SIZE);
+	puiB = (uint8*)cMallocator.Malloc(2 * TEST_BANK_SIZE);
+	puiC = (uint8*)cMallocator.Malloc(2 * TEST_BANK_SIZE);
+	AssertPointer(&puiFirst[14 * TEST_BANK_SIZE], puiA);
+	AssertPointer(&puiFirst[12 * TEST_BANK_SIZE], puiB);
+	AssertPointer(&puiFirst[10 * TEST_BANK_SIZE], puiC);
+
+	//A's first bank is the spare, between B's free banks and 15.
+	cMallocator.Free(puiA);
+	cMallocator.Free(puiB);
+	AssertInt(BANK_MALLOCATOR_SPARE, cMallocator.GetBank(14));
+	AssertSize(3, cSource.NumHeld());
+
+	//12 to 15 with 15 refused: 12 and 13 go back, the spare stays, and it is 6 to 9.
+	cSource.mabRefused[15] = true;
+	puiD = (uint8*)cMallocator.Malloc(4 * TEST_BANK_SIZE);
+	AssertPointer(&puiFirst[6 * TEST_BANK_SIZE], puiD);
+	AssertInt(BANK_MALLOCATOR_SPARE, cMallocator.GetBank(14));
+	AssertInt(BANK_MALLOCATOR_FREE, cMallocator.GetBank(12));
+	AssertSize(7, cSource.NumHeld());
+	AssertTrue(cMallocator.IsValid());
+	cMallocator.Free(puiD);
+	AssertSize(3, cSource.NumHeld());
+
+	//12 to 15, the spare among them.
+	cSource.mabRefused[15] = false;
+	puiD = (uint8*)cMallocator.Malloc(4 * TEST_BANK_SIZE);
+	AssertPointer(&puiFirst[12 * TEST_BANK_SIZE], puiD);
+	AssertInt(BANK_MALLOCATOR_LARGE, cMallocator.GetBank(12));
+	AssertInt(BANK_MALLOCATOR_MORE, cMallocator.GetBank(14));
+	AssertSize(6, cSource.NumHeld());
+	AssertTrue(cMallocator.IsValid());
+	puiD[4 * TEST_BANK_SIZE - 1] = 1;
+
+	cMallocator.Free(puiD);
+	cMallocator.Free(puiC);
+	AssertTrue(cMallocator.IsValid());
+	cMallocator.Kill();
+	AssertSize(0, cSource.NumHeld());
+	AssertFalse(cSource.mbWrong);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Reserved banks are never the heap's, and a run doesn't cross them.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -629,6 +693,7 @@ void TestBankMallocator(void)
 	TestBankMallocatorSmall();
 	TestBankMallocatorLarge();
 	TestBankMallocatorRefused();
+	TestBankMallocatorSpareInRun();
 	TestBankMallocatorReserved();
 	TestBankMallocatorPartial();
 	TestBankMallocatorRealloc();

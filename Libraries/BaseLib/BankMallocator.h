@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //The banks are the bank sized pieces of the memory given to Init, each starting at a multiple of the bank size: the
 //first and last can be parts of a bank.  Blocks of up to MaxSmall come from the banks lowest first (or highest first);
-//larger ones from the highest run of whole free banks that holds them.  Like CTrueMallocator it uses nothing else from
+//larger ones from the highest run of whole free or spare banks that holds them.  Like CTrueMallocator it uses nothing else from
 //BaseLib, so it can be linked into programs that only use Libc65.  It isn't safe between threads.
 
 #define BANK_MALLOCATOR_MAX_BANKS		256
@@ -108,6 +108,8 @@ protected:
 	bool			IsWhole(size uiBank) const;
 	bool			Acquire(size uiBank, size uiCount);
 	void			Release(size uiBank, size uiCount);
+	bool			AcquireRun(size uiFirst, size uiCount);
+	void			ReleaseRun(size uiFirst, size uiEnd);
 	bool			TakeSmall(size uiBank);
 	void			BlockCame(void* pv);
 	void			BlockGone(size uiBank);

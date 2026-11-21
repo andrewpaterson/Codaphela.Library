@@ -24,6 +24,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BankMallocator.h"
 
 
+//A large allocation's copy can pass 64KB, past the W65C816's 16 bit size_t.
+#if defined(__W65C816__)
+#define BANK_MALLOCATOR_COPY(pvDest, pvSource, uiBytes)	memcpy32(pvDest, pvSource, uiBytes)
+#else
+#define BANK_MALLOCATOR_COPY(pvDest, pvSource, uiBytes)	memcpy(pvDest, pvSource, uiBytes)
+#endif // __W65C816__
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The heap over uiBytes from pvMemory, in banks of uiBankSize (a power
@@ -200,7 +208,7 @@ void* CBankMallocator::Realloc(void* pv, lsize uiBytes)
 	pvNew = Malloc(uiBytes);
 	if (pvNew)
 	{
-		memcpy(pvNew, pv, (uiOld < uiBytes) ? uiOld : uiBytes);
+		BANK_MALLOCATOR_COPY(pvNew, pv, (uiOld < uiBytes) ? uiOld : uiBytes);
 		Free(pv);
 	}
 	return pvNew;
@@ -492,6 +500,77 @@ void* CBankMallocator::MallocSmall(lsize uiBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The uiCount banks from uiFirst for a large allocation: each is free or
+// a spare.  The free ones are asked of the source, a stretch at a time;
+// if one is refused those already given go back and it is false.  The
+// spares stop being the CTrueMallocator's (they are empty).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBankMallocator::AcquireRun(size uiFirst, size uiCount)
+{
+	size	uiBank;
+	size	uiStretch;
+	size	uiEnd;
+
+	uiEnd = uiFirst + uiCount;
+	for (uiBank = uiFirst; uiBank < uiEnd; uiBank += uiStretch)
+	{
+		for (uiStretch = 0; (uiBank + uiStretch < uiEnd) && (mauiBanks[uiBank + uiStretch] == BANK_MALLOCATOR_FREE); uiStretch++)
+		{
+		}
+		if (uiStretch == 0)
+		{
+			uiStretch = 1;
+		}
+		else if (!Acquire(uiBank, uiStretch))
+		{
+			ReleaseRun(uiFirst, uiBank);
+			return false;
+		}
+	}
+	for (uiBank = uiFirst; uiBank < uiEnd; uiBank++)
+	{
+		if (mauiBanks[uiBank] == BANK_MALLOCATOR_SPARE)
+		{
+			mcSmall.RemoveRegion((void*)BankStart(uiBank));
+			mauiBanks[uiBank] = BANK_MALLOCATOR_FREE;
+			muiNumSpare--;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives back the free banks from uiFirst to uiEnd that AcquireRun was
+// given, a stretch at a time.
+//
+//////////////////////////////////////////////////////////////////////////
+void CBankMallocator::ReleaseRun(size uiFirst, size uiEnd)
+{
+	size	uiBank;
+	size	uiStretch;
+
+	for (uiBank = uiFirst; uiBank < uiEnd; uiBank += uiStretch)
+	{
+		for (uiStretch = 0; (uiBank + uiStretch < uiEnd) && (mauiBanks[uiBank + uiStretch] == BANK_MALLOCATOR_FREE); uiStretch++)
+		{
+		}
+		if (uiStretch == 0)
+		{
+			uiStretch = 1;
+		}
+		else
+		{
+			Release(uiBank, uiStretch);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // uiBytes in the highest run of whole free banks that holds them and the
 // source gives.
 //
@@ -515,7 +594,7 @@ void* CBankMallocator::MallocLarge(lsize uiBytes)
 	uiRun = 0;
 	for (uiBank = muiNumBanks; uiBank > 0; uiBank--)
 	{
-		if ((mauiBanks[uiBank - 1] != BANK_MALLOCATOR_FREE) || !IsWhole((size)(uiBank - 1)))
+		if (((mauiBanks[uiBank - 1] != BANK_MALLOCATOR_FREE) && (mauiBanks[uiBank - 1] != BANK_MALLOCATOR_SPARE)) || !IsWhole((size)(uiBank - 1)))
 		{
 			uiRun = 0;
 			continue;
@@ -523,7 +602,7 @@ void* CBankMallocator::MallocLarge(lsize uiBytes)
 		uiRun++;
 		if (uiRun == uiCount)
 		{
-			if (Acquire((size)(uiBank - 1), uiCount))
+			if (AcquireRun((size)(uiBank - 1), uiCount))
 			{
 				mauiBanks[uiBank - 1] = BANK_MALLOCATOR_LARGE;
 				for (i = 1; i < uiCount; i++)
