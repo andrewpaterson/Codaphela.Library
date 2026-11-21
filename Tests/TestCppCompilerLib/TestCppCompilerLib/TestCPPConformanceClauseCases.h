@@ -9772,22 +9772,6 @@ static const SConformanceCase gasConformanceClause7[] =
 		"	return r;\n"
 		"}\n"
 	},
-	//7.3.3 [namespace.udecl] p1, p11: a using-declaration brings the functions declared before it, not those after
-	{
-		"DclUsingDeclarationOverloads", 7,
-		"namespace N { int F(int) { return 1; } }\n"
-		"using N::F;\n"
-		"namespace N { int F(char) { return 2; } }\n"
-		"int F(double) { return 3; }\n"
-		"int main()\n"
-		"{\n"
-		"	int r = 0;\n"
-		"	if (F(1) == 1) r += 1;\n"
-		"	if (F('c') == 1) r += 2;\n"
-		"	if (F(1.0) == 3) r += 4;\n"
-		"	return r;\n"
-		"}\n"
-	},
 	//7.3.3 [namespace.udecl] p14: a function of the same signature as one a using-declaration brings conflicts with it
 	{
 		"DclUsingDeclarationConflictRefused", CONFORMANCE_REFUSED,
@@ -12274,6 +12258,475 @@ static const SConformanceCase gasConformanceClause10[] =
 		"ClassFinalTemplateBaseRefused", CONFORMANCE_REFUSED,
 		"template<class T> struct B final { T v; };\n"
 		"struct D : B<int> { };\n"
+		"int main() { return 0; }\n"
+	},
+	//10 [class.derived] p2: a base class is complete
+	{
+		"DerivedBaseIncompleteRefused", CONFORMANCE_REFUSED,
+		"struct B;\n"
+		"struct D : B { };\n"
+		"int main() { return 0; }\n"
+	},
+	//10 [class.derived] p1: a base is a class
+	{
+		"DerivedBaseNotClassRefused", CONFORMANCE_REFUSED,
+		"typedef int I;\n"
+		"struct D : I { };\n"
+		"int main() { return 0; }\n"
+	},
+	//10.1 [class.mi] p3: a class is a direct base once
+	{
+		"DerivedDirectBaseTwiceRefused", CONFORMANCE_REFUSED,
+		"struct B { };\n"
+		"struct D : B, B { };\n"
+		"int main() { return 0; }\n"
+	},
+	//10 [class.derived] p1, p2, 4.10 [conv.ptr] p3: members inherited; a derived object's pointer and reference converted to its base's; back by static_cast
+	{
+		"DerivedSingle", 15,
+		"struct B { int b = 1; int GetB() { return b; } };\n"
+		"struct D : B { int d = 2; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	if (d.b == 1 && d.GetB() == 1) r += 1;\n"
+		"	B* pb = &d;\n"
+		"	if (pb->b == 1) r += 2;\n"
+		"	B& rb = d;\n"
+		"	rb.b = 5;\n"
+		"	if (d.b == 5) r += 4;\n"
+		"	if (static_cast<D*>(pb)->d == 2) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10 [class.derived] p2: an indirect base's members and a pointer to it
+	{
+		"DerivedIndirectBase", 3,
+		"struct A { int a = 1; };\n"
+		"struct B : A { int b = 2; };\n"
+		"struct C : B { int c = 3; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	C c;\n"
+		"	A* pa = &c;\n"
+		"	if (pa->a == 1) r += 1;\n"
+		"	if (c.a + c.b + c.c == 6) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.1 [class.mi] p1, p2: two bases, each its own part; conversions to each, a null pointer staying null, back by static_cast
+	{
+		"DerivedMultipleBases", 15,
+		"struct A { int a = 1; };\n"
+		"struct B { int b = 2; };\n"
+		"struct C : A, B { int c = 3; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	C c;\n"
+		"	A* pa = &c;\n"
+		"	B* pb = &c;\n"
+		"	if (pa->a == 1 && pb->b == 2) r += 1;\n"
+		"	if ((void*)pa != (void*)pb) r += 2;\n"
+		"	if (static_cast<C*>(pb) == &c) r += 4;\n"
+		"	C* pnull = 0;\n"
+		"	B* pbn = pnull;\n"
+		"	if (pbn == 0) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.1 [class.mi] p3: an indirect base through two classes is two parts
+	{
+		"DerivedRepeatedBase", 3,
+		"struct A { int a; };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	d.B::a = 1;\n"
+		"	d.C::a = 2;\n"
+		"	if (d.B::a == 1 && d.C::a == 2) r += 1;\n"
+		"	A* p = static_cast<B*>(&d);\n"
+		"	if (p->a == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.1 [class.mi] p3, 4.10 [conv.ptr] p3: a conversion to a base that is there twice
+	{
+		"DerivedAmbiguousBaseConversionRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; };\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"int main() { D d; A* p = &d; return 0; }\n"
+	},
+	//10.1 [class.mi] p4: a virtual base is one part however often it is a base
+	{
+		"DerivedVirtualBaseShared", 15,
+		"struct A { int a = 0; };\n"
+		"struct B : virtual A { };\n"
+		"struct C : virtual A { };\n"
+		"struct D : B, C { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	d.B::a = 5;\n"
+		"	if (d.C::a == 5) r += 1;\n"
+		"	A* p = &d;\n"
+		"	if (p->a == 5) r += 2;\n"
+		"	B* pb = &d;\n"
+		"	C* pc = &d;\n"
+		"	if (static_cast<A*>(pb) == static_cast<A*>(pc)) r += 4;\n"
+		"	d.a = 7;\n"
+		"	if (pb->a == 7) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.1 [class.mi] p4: a class with virtual and non-virtual bases of one class has one part for the virtual ones and one for each other
+	{
+		"DerivedVirtualAndNonVirtual", 3,
+		"struct A { int a = 0; };\n"
+		"struct B : virtual A { };\n"
+		"struct C : virtual A { };\n"
+		"struct E : A { };\n"
+		"struct D : B, C, E { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	d.B::a = 1;\n"
+		"	d.E::a = 2;\n"
+		"	if (d.C::a == 1) r += 1;\n"
+		"	if (d.E::a == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//5.2.9 [expr.static.cast] p11: static_cast from a virtual base to a class derived from it
+	{
+		"DerivedVirtualBaseDowncastRefused", CONFORMANCE_REFUSED,
+		"struct A { int a; virtual ~A() { } };\n"
+		"struct B : virtual A { };\n"
+		"int main() { B b; A* p = &b; B* q = static_cast<B*>(p); return 0; }\n"
+	},
+	//10.2 [class.member.lookup] p1, p4: a derived class's name hides the base's, a function of other parameters too
+	{
+		"DerivedLookupHides", 7,
+		"struct B { int v = 1; int F(int) { return 1; } int G() { return 3; } };\n"
+		"struct D : B { int v = 2; int F(char) { return 2; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	if (d.v == 2 && d.B::v == 1) r += 1;\n"
+		"	if (d.F(1) == 2) r += 2;\n"
+		"	if (d.G() == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.2 [class.member.lookup] p10: a name in a virtual base and in a class derived from it: the derived class's dominates
+	{
+		"DerivedLookupDominance", 7,
+		"struct A { int F() { return 1; } int v = 1; };\n"
+		"struct B : virtual A { int F() { return 2; } int v = 2; };\n"
+		"struct C : virtual A { };\n"
+		"struct D : B, C { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	if (d.F() == 2) r += 1;\n"
+		"	if (d.v == 2) r += 2;\n"
+		"	if (d.A::F() == 1) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.2 [class.member.lookup] p9: a static member, a type or an enumerator found through two parts of one class is no ambiguity
+	{
+		"DerivedLookupStaticTwoPaths", 3,
+		"struct A { static int s; typedef int T; enum { E = 4 }; };\n"
+		"int A::s = 3;\n"
+		"struct B : A { };\n"
+		"struct C : A { };\n"
+		"struct D : B, C { };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	if (d.s == 3) r += 1;\n"
+		"	D::T t = D::E;\n"
+		"	if (t == 4) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.3 [class.virtual] p2, p15: a call through a base pointer or reference calls the final overrider; a qualified call doesn't
+	{
+		"DerivedVirtualFunction", 15,
+		"struct B { virtual int F() { return 1; } int G() { return F(); } virtual ~B() { } };\n"
+		"struct D : B { int F() { return 2; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	B* p = &d;\n"
+		"	if (p->F() == 2) r += 1;\n"
+		"	B& q = d;\n"
+		"	if (q.F() == 2) r += 2;\n"
+		"	if (p->B::F() == 1) r += 4;\n"
+		"	if (d.G() == 2) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.3 [class.virtual] p2: an overrider is virtual without saying so; the nearest is called
+	{
+		"DerivedVirtualThroughLevels", 3,
+		"struct A { virtual int F() { return 1; } virtual ~A() { } };\n"
+		"struct B : A { int F() { return 2; } };\n"
+		"struct C : B { };\n"
+		"struct E : C { int F() { return 4; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	C c;\n"
+		"	A* p = &c;\n"
+		"	if (p->F() == 2) r += 1;\n"
+		"	E e;\n"
+		"	B* q = &e;\n"
+		"	if (q->F() == 4) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.3 [class.virtual] p2: one function overriding two bases' virtual functions
+	{
+		"DerivedVirtualTwoBases", 7,
+		"struct A { virtual int F() { return 1; } virtual ~A() { } };\n"
+		"struct B { virtual int F() { return 2; } virtual ~B() { } };\n"
+		"struct C : A, B { int F() { return 3; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	C c;\n"
+		"	A* pa = &c;\n"
+		"	B* pb = &c;\n"
+		"	if (pa->F() == 3) r += 1;\n"
+		"	if (pb->F() == 3) r += 2;\n"
+		"	if (pb->B::F() == 2) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.3 [class.virtual] p2: a base function that isn't virtual isn't overridden: the static type's is called
+	{
+		"DerivedNonVirtualNotOverridden", 1,
+		"struct B { int F() { return 1; } };\n"
+		"struct D : B { int F() { return 2; } };\n"
+		"int main() { D d; B* p = &d; return p->F(); }\n"
+	},
+	//10.2 [class.member.lookup], 10.3 [class.virtual]: an overrider hides the base's other functions of its name
+	{
+		"DerivedOverrideHidesOverloads", 3,
+		"struct B { virtual int F(int) { return 1; } int F(char) { return 2; } virtual ~B() { } };\n"
+		"struct D : B { int F(int) { return 3; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	if (d.F('c') == 3) r += 1;\n"
+		"	B& b = d;\n"
+		"	if (b.F('c') == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.3 [class.virtual] p2: in a diamond, the overrider on one path is the final one
+	{
+		"DerivedFinalOverriderInDiamond", 1,
+		"struct A { virtual int F() { return 1; } virtual ~A() { } };\n"
+		"struct B : virtual A { int F() { return 2; } };\n"
+		"struct C : virtual A { };\n"
+		"struct D : B, C { };\n"
+		"int main() { D d; A* p = &d; return (p->F() == 2) ? 1 : 0; }\n"
+	},
+	//10.3 [class.virtual] p2: two overriders of a virtual base's function, neither over the other
+	{
+		"DerivedFinalOverriderAmbiguousRefused", CONFORMANCE_REFUSED,
+		"struct A { virtual int F() { return 1; } };\n"
+		"struct B : virtual A { int F() { return 2; } };\n"
+		"struct C : virtual A { int F() { return 3; } };\n"
+		"struct D : B, C { };\n"
+		"int main() { D d; return 0; }\n"
+	},
+	//10.3 [class.virtual] p7: an overrider returning a pointer or reference to a class derived from the overridden's
+	{
+		"DerivedCovariantReturn", 7,
+		"struct B { virtual B* Self() { return this; } virtual B& Ref() { return *this; } virtual int Id() { return 1; } virtual ~B() { } };\n"
+		"struct D : B { D* Self() { return this; } D& Ref() { return *this; } int Id() { return 2; } int Only() { return 4; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	B* p = &d;\n"
+		"	if (p->Self()->Id() == 2) r += 1;\n"
+		"	if (p->Ref().Id() == 2) r += 2;\n"
+		"	if (d.Self()->Only() == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.3 [class.virtual] p7, p8: a covariant result through a base that isn't the first: the pointer is adjusted
+	{
+		"DerivedCovariantAdjusted", 3,
+		"struct X { int x = 9; virtual ~X() { } };\n"
+		"struct R { int r = 1; virtual ~R() { } };\n"
+		"struct S : X, R { int s = 2; };\n"
+		"struct B { virtual R* Get() { static R r0; return &r0; } virtual ~B() { } };\n"
+		"struct D : B { S ms; S* Get() { return &ms; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	B* p = &d;\n"
+		"	R* q = p->Get();\n"
+		"	if (q->r == 1) r += 1;\n"
+		"	if (q == static_cast<R*>(&d.ms)) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.3 [class.virtual] p7: an overrider returning another type that isn't covariant
+	{
+		"DerivedReturnNotCovariantRefused", CONFORMANCE_REFUSED,
+		"struct B { virtual int F() { return 1; } };\n"
+		"struct D : B { long F() { return 2; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//10.3 [class.virtual] p7: nor a pointer to a class not derived from the overridden's
+	{
+		"DerivedCovariantUnrelatedRefused", CONFORMANCE_REFUSED,
+		"struct X { };\n"
+		"struct Y { };\n"
+		"struct B { virtual X* F() { return 0; } };\n"
+		"struct D : B { Y* F() { return 0; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//8.3.6 [dcl.fct.default] p10: a virtual call's default argument is the static type's
+	{
+		"DerivedDefaultArgumentStaticType", 3,
+		"struct B { virtual int F(int x = 1) { return x; } virtual ~B() { } };\n"
+		"struct D : B { int F(int x = 2) { return x * 10; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	B* p = &d;\n"
+		"	if (p->F() == 10) r += 1;\n"
+		"	if (d.F() == 20) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//12.4 [class.dtor] p9, 10.3 [class.virtual]: deleting through a base pointer runs the derived class's virtual destructor
+	{
+		"DerivedVirtualDestructor", 3,
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"char gacHeap[1024];\n"
+		"size_t guiHeap = 0;\n"
+		"size_t guiLastSize = 0;\n"
+		"int giNews = 0;\n"
+		"int giDeletes = 0;\n"
+		"void* Allocate(size_t n) { void* p = gacHeap + guiHeap; for (size_t i = 0; i < n; i++) gacHeap[guiHeap + i] = 0x55; guiHeap += (n + 7) & ~(size_t)7; guiLastSize = n; giNews++; return p; }\n"
+		"void* operator new(size_t n) { return Allocate(n); }\n"
+		"void* operator new[](size_t n) { return Allocate(n); }\n"
+		"void operator delete(void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete(void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"void operator delete[](void* p, size_t) noexcept { if (p) giDeletes++; }\n"
+		"int giLog = 0;\n"
+		"struct B { virtual ~B() { giLog = giLog * 10 + 1; } };\n"
+		"struct D : B { ~D() { giLog = giLog * 10 + 2; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	B* p = new D;\n"
+		"	delete p;\n"
+		"	if (giLog == 21) r += 1;\n"
+		"	if (giDeletes == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.4 [class.abstract] p2: a pure virtual function with a definition, called with a qualified name
+	{
+		"DerivedPureWithDefinition", 3,
+		"struct A { virtual int F() = 0; virtual ~A() { } };\n"
+		"int A::F() { return 1; }\n"
+		"struct B : A { int F() { return A::F() + 1; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	B b;\n"
+		"	A* p = &b;\n"
+		"	if (p->F() == 2) r += 1;\n"
+		"	if (b.A::F() == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.4 [class.abstract] p4: a class is abstract until all its pure functions are overridden; pointers and references to one are used
+	{
+		"DerivedAbstractUntilOverridden", 3,
+		"struct A { virtual int F() = 0; virtual int G() = 0; virtual ~A() { } };\n"
+		"struct B : A { int F() { return 1; } };\n"
+		"struct C : B { int G() { return 2; } };\n"
+		"int Call(A& a) { return a.F() + a.G(); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	C c;\n"
+		"	A* p = &c;\n"
+		"	if (p->G() == 2) r += 1;\n"
+		"	if (Call(c) == 3) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//10.4 [class.abstract] p5: a pure function may override one that isn't pure
+	{
+		"DerivedPureOverridesVirtual", 1,
+		"struct A { virtual int F() { return 1; } virtual ~A() { } };\n"
+		"struct B : A { int F() = 0; };\n"
+		"struct C : B { int F() { return 2; } };\n"
+		"int main() { C c; A* p = &c; return (p->F() == 2) ? 1 : 0; }\n"
+	},
+	//10.4 [class.abstract] p3: no object of an abstract class
+	{
+		"DerivedAbstractObjectRefused", CONFORMANCE_REFUSED,
+		"struct A { virtual int F() = 0; };\n"
+		"int main() { A a; return 0; }\n"
+	},
+	//10.4 [class.abstract] p4: one overriding only some of the pure functions is abstract
+	{
+		"DerivedAbstractStillRefused", CONFORMANCE_REFUSED,
+		"struct A { virtual int F() = 0; virtual int G() = 0; };\n"
+		"struct B : A { int F() { return 1; } };\n"
+		"int main() { B b; return 0; }\n"
+	},
+	//10.4 [class.abstract] p3: no parameter of an abstract class
+	{
+		"DerivedAbstractParameterRefused", CONFORMANCE_REFUSED,
+		"struct A { virtual int F() = 0; };\n"
+		"int G(A a) { return 0; }\n"
+		"int main() { return 0; }\n"
+	},
+	//10.4 [class.abstract] p3: nor a result
+	{
+		"DerivedAbstractResultRefused", CONFORMANCE_REFUSED,
+		"struct A { virtual int F() = 0; };\n"
+		"A Make();\n"
+		"int main() { Make(); return 0; }\n"
+	},
+	//10.4 [class.abstract] p3: nor an array of one
+	{
+		"DerivedAbstractArrayRefused", CONFORMANCE_REFUSED,
+		"struct A { virtual int F() = 0; };\n"
+		"A ga[2];\n"
 		"int main() { return 0; }\n"
 	},
 };

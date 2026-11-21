@@ -190,3 +190,390 @@ int main() { return 0; }
 template<class T> struct B final { T v; };
 struct D : B<int> { };
 int main() { return 0; }
+
+### DerivedBaseIncompleteRefused | REFUSED | 10 [class.derived] p2: a base class is complete
+struct B;
+struct D : B { };
+int main() { return 0; }
+
+### DerivedBaseNotClassRefused | REFUSED | 10 [class.derived] p1: a base is a class
+typedef int I;
+struct D : I { };
+int main() { return 0; }
+
+### DerivedDirectBaseTwiceRefused | REFUSED | 10.1 [class.mi] p3: a class is a direct base once
+struct B { };
+struct D : B, B { };
+int main() { return 0; }
+
+### DerivedSingle | 15 | 10 [class.derived] p1, p2, 4.10 [conv.ptr] p3: members inherited; a derived object's pointer and reference converted to its base's; back by static_cast
+struct B { int b = 1; int GetB() { return b; } };
+struct D : B { int d = 2; };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.b == 1 && d.GetB() == 1) r += 1;
+	B* pb = &d;
+	if (pb->b == 1) r += 2;
+	B& rb = d;
+	rb.b = 5;
+	if (d.b == 5) r += 4;
+	if (static_cast<D*>(pb)->d == 2) r += 8;
+	return r;
+}
+
+### DerivedIndirectBase | 3 | 10 [class.derived] p2: an indirect base's members and a pointer to it
+struct A { int a = 1; };
+struct B : A { int b = 2; };
+struct C : B { int c = 3; };
+int main()
+{
+	int r = 0;
+	C c;
+	A* pa = &c;
+	if (pa->a == 1) r += 1;
+	if (c.a + c.b + c.c == 6) r += 2;
+	return r;
+}
+
+### DerivedMultipleBases | 15 | 10.1 [class.mi] p1, p2: two bases, each its own part; conversions to each, a null pointer staying null, back by static_cast
+struct A { int a = 1; };
+struct B { int b = 2; };
+struct C : A, B { int c = 3; };
+int main()
+{
+	int r = 0;
+	C c;
+	A* pa = &c;
+	B* pb = &c;
+	if (pa->a == 1 && pb->b == 2) r += 1;
+	if ((void*)pa != (void*)pb) r += 2;
+	if (static_cast<C*>(pb) == &c) r += 4;
+	C* pnull = 0;
+	B* pbn = pnull;
+	if (pbn == 0) r += 8;
+	return r;
+}
+
+### DerivedRepeatedBase | 3 | 10.1 [class.mi] p3: an indirect base through two classes is two parts
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main()
+{
+	int r = 0;
+	D d;
+	d.B::a = 1;
+	d.C::a = 2;
+	if (d.B::a == 1 && d.C::a == 2) r += 1;
+	A* p = static_cast<B*>(&d);
+	if (p->a == 1) r += 2;
+	return r;
+}
+
+### DerivedAmbiguousBaseConversionRefused | REFUSED | 10.1 [class.mi] p3, 4.10 [conv.ptr] p3: a conversion to a base that is there twice
+struct A { int a; };
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main() { D d; A* p = &d; return 0; }
+
+### DerivedVirtualBaseShared | 15 | 10.1 [class.mi] p4: a virtual base is one part however often it is a base
+struct A { int a = 0; };
+struct B : virtual A { };
+struct C : virtual A { };
+struct D : B, C { };
+int main()
+{
+	int r = 0;
+	D d;
+	d.B::a = 5;
+	if (d.C::a == 5) r += 1;
+	A* p = &d;
+	if (p->a == 5) r += 2;
+	B* pb = &d;
+	C* pc = &d;
+	if (static_cast<A*>(pb) == static_cast<A*>(pc)) r += 4;
+	d.a = 7;
+	if (pb->a == 7) r += 8;
+	return r;
+}
+
+### DerivedVirtualAndNonVirtual | 3 | 10.1 [class.mi] p4: a class with virtual and non-virtual bases of one class has one part for the virtual ones and one for each other
+struct A { int a = 0; };
+struct B : virtual A { };
+struct C : virtual A { };
+struct E : A { };
+struct D : B, C, E { };
+int main()
+{
+	int r = 0;
+	D d;
+	d.B::a = 1;
+	d.E::a = 2;
+	if (d.C::a == 1) r += 1;
+	if (d.E::a == 2) r += 2;
+	return r;
+}
+
+### DerivedVirtualBaseDowncastRefused | REFUSED | 5.2.9 [expr.static.cast] p11: static_cast from a virtual base to a class derived from it
+struct A { int a; virtual ~A() { } };
+struct B : virtual A { };
+int main() { B b; A* p = &b; B* q = static_cast<B*>(p); return 0; }
+
+### DerivedLookupHides | 7 | 10.2 [class.member.lookup] p1, p4: a derived class's name hides the base's, a function of other parameters too
+struct B { int v = 1; int F(int) { return 1; } int G() { return 3; } };
+struct D : B { int v = 2; int F(char) { return 2; } };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.v == 2 && d.B::v == 1) r += 1;
+	if (d.F(1) == 2) r += 2;
+	if (d.G() == 3) r += 4;
+	return r;
+}
+
+### DerivedLookupDominance | 7 | 10.2 [class.member.lookup] p10: a name in a virtual base and in a class derived from it: the derived class's dominates
+struct A { int F() { return 1; } int v = 1; };
+struct B : virtual A { int F() { return 2; } int v = 2; };
+struct C : virtual A { };
+struct D : B, C { };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.F() == 2) r += 1;
+	if (d.v == 2) r += 2;
+	if (d.A::F() == 1) r += 4;
+	return r;
+}
+
+### DerivedLookupStaticTwoPaths | 3 | 10.2 [class.member.lookup] p9: a static member, a type or an enumerator found through two parts of one class is no ambiguity
+struct A { static int s; typedef int T; enum { E = 4 }; };
+int A::s = 3;
+struct B : A { };
+struct C : A { };
+struct D : B, C { };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.s == 3) r += 1;
+	D::T t = D::E;
+	if (t == 4) r += 2;
+	return r;
+}
+
+### DerivedVirtualFunction | 15 | 10.3 [class.virtual] p2, p15: a call through a base pointer or reference calls the final overrider; a qualified call doesn't
+struct B { virtual int F() { return 1; } int G() { return F(); } virtual ~B() { } };
+struct D : B { int F() { return 2; } };
+int main()
+{
+	int r = 0;
+	D d;
+	B* p = &d;
+	if (p->F() == 2) r += 1;
+	B& q = d;
+	if (q.F() == 2) r += 2;
+	if (p->B::F() == 1) r += 4;
+	if (d.G() == 2) r += 8;
+	return r;
+}
+
+### DerivedVirtualThroughLevels | 3 | 10.3 [class.virtual] p2: an overrider is virtual without saying so; the nearest is called
+struct A { virtual int F() { return 1; } virtual ~A() { } };
+struct B : A { int F() { return 2; } };
+struct C : B { };
+struct E : C { int F() { return 4; } };
+int main()
+{
+	int r = 0;
+	C c;
+	A* p = &c;
+	if (p->F() == 2) r += 1;
+	E e;
+	B* q = &e;
+	if (q->F() == 4) r += 2;
+	return r;
+}
+
+### DerivedVirtualTwoBases | 7 | 10.3 [class.virtual] p2: one function overriding two bases' virtual functions
+struct A { virtual int F() { return 1; } virtual ~A() { } };
+struct B { virtual int F() { return 2; } virtual ~B() { } };
+struct C : A, B { int F() { return 3; } };
+int main()
+{
+	int r = 0;
+	C c;
+	A* pa = &c;
+	B* pb = &c;
+	if (pa->F() == 3) r += 1;
+	if (pb->F() == 3) r += 2;
+	if (pb->B::F() == 2) r += 4;
+	return r;
+}
+
+### DerivedNonVirtualNotOverridden | 1 | 10.3 [class.virtual] p2: a base function that isn't virtual isn't overridden: the static type's is called
+struct B { int F() { return 1; } };
+struct D : B { int F() { return 2; } };
+int main() { D d; B* p = &d; return p->F(); }
+
+### DerivedOverrideHidesOverloads | 3 | 10.2 [class.member.lookup], 10.3 [class.virtual]: an overrider hides the base's other functions of its name
+struct B { virtual int F(int) { return 1; } int F(char) { return 2; } virtual ~B() { } };
+struct D : B { int F(int) { return 3; } };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.F('c') == 3) r += 1;
+	B& b = d;
+	if (b.F('c') == 2) r += 2;
+	return r;
+}
+
+### DerivedFinalOverriderInDiamond | 1 | 10.3 [class.virtual] p2: in a diamond, the overrider on one path is the final one
+struct A { virtual int F() { return 1; } virtual ~A() { } };
+struct B : virtual A { int F() { return 2; } };
+struct C : virtual A { };
+struct D : B, C { };
+int main() { D d; A* p = &d; return (p->F() == 2) ? 1 : 0; }
+
+### DerivedFinalOverriderAmbiguousRefused | REFUSED | 10.3 [class.virtual] p2: two overriders of a virtual base's function, neither over the other
+struct A { virtual int F() { return 1; } };
+struct B : virtual A { int F() { return 2; } };
+struct C : virtual A { int F() { return 3; } };
+struct D : B, C { };
+int main() { D d; return 0; }
+
+### DerivedCovariantReturn | 7 | 10.3 [class.virtual] p7: an overrider returning a pointer or reference to a class derived from the overridden's
+struct B { virtual B* Self() { return this; } virtual B& Ref() { return *this; } virtual int Id() { return 1; } virtual ~B() { } };
+struct D : B { D* Self() { return this; } D& Ref() { return *this; } int Id() { return 2; } int Only() { return 4; } };
+int main()
+{
+	int r = 0;
+	D d;
+	B* p = &d;
+	if (p->Self()->Id() == 2) r += 1;
+	if (p->Ref().Id() == 2) r += 2;
+	if (d.Self()->Only() == 4) r += 4;
+	return r;
+}
+
+### DerivedCovariantAdjusted | 3 | 10.3 [class.virtual] p7, p8: a covariant result through a base that isn't the first: the pointer is adjusted
+struct X { int x = 9; virtual ~X() { } };
+struct R { int r = 1; virtual ~R() { } };
+struct S : X, R { int s = 2; };
+struct B { virtual R* Get() { static R r0; return &r0; } virtual ~B() { } };
+struct D : B { S ms; S* Get() { return &ms; } };
+int main()
+{
+	int r = 0;
+	D d;
+	B* p = &d;
+	R* q = p->Get();
+	if (q->r == 1) r += 1;
+	if (q == static_cast<R*>(&d.ms)) r += 2;
+	return r;
+}
+
+### DerivedReturnNotCovariantRefused | REFUSED | 10.3 [class.virtual] p7: an overrider returning another type that isn't covariant
+struct B { virtual int F() { return 1; } };
+struct D : B { long F() { return 2; } };
+int main() { return 0; }
+
+### DerivedCovariantUnrelatedRefused | REFUSED | 10.3 [class.virtual] p7: nor a pointer to a class not derived from the overridden's
+struct X { };
+struct Y { };
+struct B { virtual X* F() { return 0; } };
+struct D : B { Y* F() { return 0; } };
+int main() { return 0; }
+
+### DerivedDefaultArgumentStaticType | 3 | 8.3.6 [dcl.fct.default] p10: a virtual call's default argument is the static type's
+struct B { virtual int F(int x = 1) { return x; } virtual ~B() { } };
+struct D : B { int F(int x = 2) { return x * 10; } };
+int main()
+{
+	int r = 0;
+	D d;
+	B* p = &d;
+	if (p->F() == 10) r += 1;
+	if (d.F() == 20) r += 2;
+	return r;
+}
+
+### DerivedVirtualDestructor | 3 | 12.4 [class.dtor] p9, 10.3 [class.virtual]: deleting through a base pointer runs the derived class's virtual destructor
+@NEW@
+int giLog = 0;
+struct B { virtual ~B() { giLog = giLog * 10 + 1; } };
+struct D : B { ~D() { giLog = giLog * 10 + 2; } };
+int main()
+{
+	int r = 0;
+	B* p = new D;
+	delete p;
+	if (giLog == 21) r += 1;
+	if (giDeletes == 1) r += 2;
+	return r;
+}
+
+### DerivedPureWithDefinition | 3 | 10.4 [class.abstract] p2: a pure virtual function with a definition, called with a qualified name
+struct A { virtual int F() = 0; virtual ~A() { } };
+int A::F() { return 1; }
+struct B : A { int F() { return A::F() + 1; } };
+int main()
+{
+	int r = 0;
+	B b;
+	A* p = &b;
+	if (p->F() == 2) r += 1;
+	if (b.A::F() == 1) r += 2;
+	return r;
+}
+
+### DerivedAbstractUntilOverridden | 3 | 10.4 [class.abstract] p4: a class is abstract until all its pure functions are overridden; pointers and references to one are used
+struct A { virtual int F() = 0; virtual int G() = 0; virtual ~A() { } };
+struct B : A { int F() { return 1; } };
+struct C : B { int G() { return 2; } };
+int Call(A& a) { return a.F() + a.G(); }
+int main()
+{
+	int r = 0;
+	C c;
+	A* p = &c;
+	if (p->G() == 2) r += 1;
+	if (Call(c) == 3) r += 2;
+	return r;
+}
+
+### DerivedPureOverridesVirtual | 1 | 10.4 [class.abstract] p5: a pure function may override one that isn't pure
+struct A { virtual int F() { return 1; } virtual ~A() { } };
+struct B : A { int F() = 0; };
+struct C : B { int F() { return 2; } };
+int main() { C c; A* p = &c; return (p->F() == 2) ? 1 : 0; }
+
+### DerivedAbstractObjectRefused | REFUSED | 10.4 [class.abstract] p3: no object of an abstract class
+struct A { virtual int F() = 0; };
+int main() { A a; return 0; }
+
+### DerivedAbstractStillRefused | REFUSED | 10.4 [class.abstract] p4: one overriding only some of the pure functions is abstract
+struct A { virtual int F() = 0; virtual int G() = 0; };
+struct B : A { int F() { return 1; } };
+int main() { B b; return 0; }
+
+### DerivedAbstractParameterRefused | REFUSED | 10.4 [class.abstract] p3: no parameter of an abstract class
+struct A { virtual int F() = 0; };
+int G(A a) { return 0; }
+int main() { return 0; }
+
+### DerivedAbstractResultRefused | REFUSED | 10.4 [class.abstract] p3: nor a result
+struct A { virtual int F() = 0; };
+A Make();
+int main() { Make(); return 0; }
+
+### DerivedAbstractArrayRefused | REFUSED | 10.4 [class.abstract] p3: nor an array of one
+struct A { virtual int F() = 0; };
+A ga[2];
+int main() { return 0; }

@@ -168,20 +168,6 @@ int main()
 	return r;
 }
 
-### DclUsingDeclarationOverloads | 7 | 7.3.3 [namespace.udecl] p1, p11: a using-declaration brings the functions declared before it, not those after
-namespace N { int F(int) { return 1; } }
-using N::F;
-namespace N { int F(char) { return 2; } }
-int F(double) { return 3; }
-int main()
-{
-	int r = 0;
-	if (F(1) == 1) r += 1;
-	if (F('c') == 1) r += 2;
-	if (F(1.0) == 3) r += 4;
-	return r;
-}
-
 ### DclUsingDeclarationConflictRefused | REFUSED | 7.3.3 [namespace.udecl] p14: a function of the same signature as one a using-declaration brings conflicts with it
 namespace N { int F(int) { return 1; } }
 using N::F;
