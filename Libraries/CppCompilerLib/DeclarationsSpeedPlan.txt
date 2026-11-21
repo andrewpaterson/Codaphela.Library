@@ -1,0 +1,179 @@
+CppCompilerLib: the declarations phase's time
+=============================================
+
+A plan to take back the compile time the "declarations" phase has gained since the middle of November.  Written
+2026-11-21 from measurements of that day; nothing of it is built.  The measuring kit is ConsolidationPlan.txt's
+(Tests/CompilerMeasure.py --compile --serial --only TestSupportLib65, Release x64).
+
+The rule: every diagnostic the compiler gives today it still gives, but for the one case in question 1; the code
+it writes is the same (the three *65 suites' cycles and bytes are as recorded); and each stage is proved by a
+count that is exact, not by a time.
+
+
+What was measured
+-----------------
+
+Compiling TestSupportLib65's project for the W65C816, one unit at a time.
+
+	                       14 Nov *    18 Nov     20 Nov     21 Nov     21 Nov
+	                                                        b87a252bc  51a96c492
+	declarations (ms)       2,653     16,050     21,256     30,803     28,201
+	quiet trials        1,256,878  1,437,364  4,130,748  6,139,624  6,265,360
+	quiet trials failed       102                    20        576        576
+	FindMemberTemplate     56,299     24,831     73,189     91,692     93,730
+	functions              56,254     66,672     67,134     67,298     67,281
+	all phases (ms)                  143,648               143,613    140,674
+
+* The 14 Nov run (ConsolidationPlan.txt) compiled each unit once.  From 18 Nov the run on one thread compiles
+about 650 of the 922 units a second time, as a build does, so that column is not like for like: the 14 Nov
+run on 16 threads, which did compile them twice, counted 1,682,335 quiet trials and 72,976 functions, and a
+phase of some 5 to 7 s is what to set beside the later columns.
+
+The 65C64 is the same: 28,797 ms of declarations and 6,348,044 quiet trials at 51a96c492.  The two columns of
+21 Nov are the same compiler but for the clauses 6 to 12 fixes; the phase moves by a tenth between runs, the
+counts do not.  The whole compile is no slower than on 18 Nov: what declarations gained, inlining, the code
+passes and assembling lost.  The IDE's check runs only the phases up to the front end, where declarations is
+now 28 s of 70.
+
+Two functions are four fifths of the phase.  Each was switched off in a private copy (Linux, g++ -O2, b87a252bc;
+67,287 functions written every time, so the code is the same):
+
+	                                              declarations (ms)   quiet trials   compile, user (s)
+	As it stands                                             35,100      6,139,624                 224
+	Without ReportNamedInstances                             23,040      6,139,624                 213
+	CheckVirtSpecifiers ignoring "has a base"                28,009      4,141,695                 216
+	Without CheckVirtSpecifiers                              19,168      1,700,878                 208
+	Without both                                              7,116      1,700,878                 197
+
+On all threads the same change takes the build from 51.5 s to 48 s of wall time.
+
+1. CCPPUnit::ReportNamedInstances (022041345, 15 Nov) is 7.8% of the whole compile, and all of it is walking:
+   CCPPNamedInstanceFinder visits every node of the unit's tree, headers and all, to find the classes that are
+   names for a template's instance, and every node again if there is one.  The work the warning itself does
+   (NamedInstance) is 0.6%.
+
+2. CCPPUnit::CheckVirtSpecifiers (e97bf06c2 and 64387662e, 20 Nov) is 8.6%.  It lays out every class that has a
+   member declared override or final, or any base, where the class is defined; before, a class was laid out
+   when it was first needed whole.  A header's class is parsed as soon as anything names it, so each unit now
+   lays out nearly every class its headers mention.  Laying out declares every member function: of the 8.6%,
+   6.7% is CCPPUnit::DeclareSignature, which is 7.9% in the whole compile.  The quiet trials count it exactly.
+   It parses no more than before (640,562 lazy declarations loaded with it and without it).
+
+3. Both run again on a unit's second compile.  646 of the project's 922 units are compiled twice (inlining
+   across units), the second time only if every unit compiled without an error the first time
+   (CCPP65Builder::CompileUnits), and the second compile's warnings are thrown away (ReportUnit).  So on the
+   second compile neither function can say anything, and both do all their work.
+
+4. What is left with both off (7.1 s on Linux, about 6 s on Windows) is about what the phase was on 14 Nov
+   once the second compile is counted: 1,700,878 quiet trials against 1,682,335.  Small things in it that are
+   not explained: FindMemberTemplate is asked 93,730 times against 64,822 in that 16 thread run, 576 quiet
+   trials fail where 20 did the day before, and DeclareSignature walks every function of the unit that has
+   the name it is declaring (every Init, every Kill) up to three times.  Not measured apart yet.
+
+
+The stages
+----------
+
+0. Counts and a guard, before anything is changed.
+
+   - Three counts in CCPPCompileStatistics, printed with the others: class layouts (LayoutClass), the layouts
+     CheckVirtSpecifiers asked for, and the nodes the named-instance finder visited.  The table above is taken
+     again with them and put here.
+   - A test in TestCppCompilerLib that compiles a small project of its own (a header of a dozen classes with
+     bases and overrides, one of them a name for an instance; two units that name them all and need one whole,
+     one unit calling the other so it is compiled twice) and asserts the three counts and the quiet trials as
+     exact numbers.  It is written to pass with today's numbers; each stage lowers the numbers in it.  From
+     then on a change that lays classes out early or walks the tree again fails a test.
+
+1. No diagnosing on a unit's second compile.
+
+   The builder tells the unit it is compiled again (CompileUnit's bReport is that already), and
+   GenerateBeforeTurn leaves out ReportNamedInstances, and GlobalDeclaration CheckVirtSpecifiers.  Exact: the
+   first compile had the same tokens and found no error, and the warnings went nowhere.  Worth about two
+   fifths of both costs in a build (646 of 1,568 compiles), nothing in the IDE's check, which compiles once.
+
+2. The named-instance warning without the walk.
+
+   The finder keeps its rules, and skips what cannot matter: a subtree whose tokens hold nothing it looks for.
+
+   - A small class, the marked tokens of a unit: for a test of a token, how many tokens before each one pass
+     it (one int32 for each token, filled in one pass over the tokeniser's), so "is there one between this
+     node's first token and its last" is two reads.
+   - A visitor over CCPPSyntaxChildVisitor that takes marks and doesn't enter a node with none in its range.
+     A node with no range (miFirstToken below 0) is always entered.
+   - Finding the classes: the marks are the class keys (class, struct).  The walk stops at any declaration,
+     member or statement that has none, which is nearly all of them.
+   - Finding the instances: the marks are the identifiers that start the base of a class found (CTankTemplate
+     of "class CTank : public CTankTemplate<CGauge> {}").  Only the paths down to those names are walked.
+   - Before the finder trusts it, a check that a node's range holds its children's, run over every tree the
+     suite parses (in the suite's own runs, behind a switch): one node kind that breaks it would hide a
+     warning.  A kind that does is given no range, or fixed.
+   - CCPPUndeclaredTypeFinder, the other whole-tree walk of the IDE's check (ReportUndeclaredTypes), takes the
+     same visitor if its nodes can be marked as simply; that is looked at here and done only if so.
+
+   The warnings are the same ones at the same places: TestCPP816Warnings' cases pass unchanged.  Upper bound of
+   the gain: the 12 s of the table (about 10.6 s on Windows).
+
+3. override and final where they can be wrong.
+
+   CheckVirtSpecifiers lays out a class where it is defined only if the class is written in the unit's own
+   file (its first token's CSourceFile is not a header, IsHeader).  A header's class is laid out when it is
+   first needed whole, as it was until 20 Nov, and its override and final are checked then.
+
+   - Every case the two commits added is one file and stays refused: ClassOverrideUnusedRefused,
+     ClassFinalNotVirtualRefused, ClassFinalBaseRefused, ClassFinalBaseUnusedRefused and the rest of clause 10.
+   - What is given up is question 1's case, and nothing else.
+   - New cases pin the rule: a header's class with a wrong override that the unit needs whole is refused; the
+     same class only named is not; the header compiled as its own unit is refused.
+   - To be checked first: what file the IDE's check gives a header that is open in the editor.  It must count
+     as the unit's own file, so the editor shows a header's wrong override while it is being written.
+
+   Upper bound of the gain: the 16 s of the table (about 14 s on Windows), and the quiet trials back to
+   1.70 million.
+
+4. Measured again, and what is left.
+
+   The table and a profile are taken again.  If the phase is not near the 6 s the switch-off run promises, the
+   difference is found before going on.  Then what is left of point 4 above is measured apart, the likely
+   first being DeclareSignature's walk: a member is only ever the same function as another member of its own
+   class, so the functions of a name are kept for each class and it walks those.  The overload set's walks
+   (CPPOverloads.cpp has seven of the same shape) are the same question and a larger change.  This stage's
+   work is decided with the user on those numbers (question 3).
+
+5. What a stage has to pass before it is committed.
+
+   - TestCppCompilerLib (RunParallel.py), with the guard's new numbers.
+   - TestBaseLib65, TestStandardLib65 and TestSupportLib65 on both processors, their cycles and bytes equal to
+     the last record's (34,282,156,104 and 96,460,890,501 cycles for TestSupportLib65 on 20 Nov).  If laying a
+     class out later changes the order something is written in and the bytes move, that is found and said
+     before the stage goes in.
+   - The warnings and errors of the whole *65 compile, as text, the same before and after.
+   - The table, in this file.
+
+
+Questions for the user
+----------------------
+
+1. A header's class that nothing ever needs whole (stage 3).  Today its wrong override or final is reported in
+   every unit that so much as names the class.  With stage 3 it is reported where the class is first needed
+   whole (made, called, derived from and used) and in the header's own check in the editor; a class that is
+   named and never used whole anywhere in the program is not checked.  That is as it was before 20 Nov, and
+   as a header's class nothing names is not even parsed today.
+   The other way keeps it and costs more to build: the builder remembers which header classes some unit has
+   checked (in the header index, with the class's record), the first unit to parse one lays it out and the
+   rest don't.  Which unit reports the error then depends on which got there first, and the IDE's check needs
+   its own rule.
+   Answered 2026-11-21: stage 3 as it is written; not the other way.
+
+2. The time aimed at.  Stages 1 to 3 should give about 6 s of declarations where there are 28: the phases
+   of a build adding up to about 118 s where they are 141, and the IDE's to about 48 s where they are 70.
+   That is where the phase was on 14 Nov.  Assumed: stages 1 to 3 are done whatever stage 4 finds, and what
+   is left is only chased if stage 4 shows one plain cause.
+
+3. Stage 4's work, after its numbers.
+
+
+The record
+----------
+
+(Each stage's table goes here as it is done.)
