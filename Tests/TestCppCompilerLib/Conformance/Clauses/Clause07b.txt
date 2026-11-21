@@ -1,0 +1,318 @@
+### DclEnumUnderlyingType | 15 | 7.2 [dcl.enum] p5, p6, 4.5 [conv.prom] p4: an enum's underlying type, fixed or big enough for its values; a fixed one's values promoted
+@SAME@
+enum A : unsigned char { A1 };
+enum class B { B1 };
+enum class C : short { C1 };
+enum D { D1 = -1, D2 = 1 };
+int main()
+{
+	int r = 0;
+	if (sizeof(A) == 1) r += 1;
+	if (sizeof(B) == sizeof(int) && sizeof(C) == sizeof(short)) r += 2;
+	if ((int)D1 == -1 && D2 > D1) r += 4;
+	A a = A1;
+	if (Same<decltype(+a), int>::V) r += 8;
+	return r;
+}
+
+### DclEnumScopedConversion | 3 | 7.2 [dcl.enum] p10, p11: a scoped enum converts only by a cast; its enumerators are named through it
+enum class E { X = 2, Y };
+int main()
+{
+	int r = 0;
+	E e = E::Y;
+	if ((int)e == 3) r += 1;
+	if (e == E::Y && static_cast<int>(E::X) == 2) r += 2;
+	return r;
+}
+
+### DclEnumScopedToIntRefused | REFUSED | 7.2 [dcl.enum] p10: a scoped enum's value doesn't convert to an int without a cast
+enum class E { X };
+int main() { int i = E::X; return i; }
+
+### DclEnumScopedUnqualifiedRefused | REFUSED | 7.2 [dcl.enum] p11: a scoped enum's enumerator isn't in the scope around it
+enum class E { X };
+int main() { E e = X; return 0; }
+
+### DclEnumUnscopedConverts | 3 | 7.2 [dcl.enum] p10, p11: an unscoped enum's value converts to an integer; its enumerators are named either way
+enum E { X = 5 };
+int main()
+{
+	int r = 0;
+	int i = X;
+	if (i == 5) r += 1;
+	if (E::X == X) r += 2;
+	return r;
+}
+
+### DclEnumFromIntRefused | REFUSED | 7.2 [dcl.enum] p10, 4 [conv]: an integer doesn't convert to an enum without a cast
+enum E { X };
+int main() { E e = 0; return e; }
+
+### DclEnumOpaque | 3 | 7.2 [dcl.enum] p3: an opaque enum declaration, used before the enum's definition
+enum class E : int;
+enum F : char;
+int Get(E e) { return (int)e; }
+enum class E : int { X = 4 };
+enum F : char { Y = 'y' };
+int main()
+{
+	int r = 0;
+	if (Get(E::X) == 4) r += 1;
+	if (Y == 'y') r += 2;
+	return r;
+}
+
+### DclEnumOpaqueNoBaseRefused | REFUSED | 7.2 [dcl.enum] p3: an unscoped enum's opaque declaration gives its underlying type
+enum F;
+int main() { return 0; }
+
+### DclEnumOtherBaseRefused | REFUSED | 7.2 [dcl.enum] p5: an enum declared again has the same underlying type
+enum class E : int;
+enum class E : short { X };
+int main() { return 0; }
+
+### DclEnumValueNotFitRefused | REFUSED | 7.2 [dcl.enum] p5: an enumerator's value fits a fixed underlying type
+enum E : unsigned char { X = 256 };
+int main() { return 0; }
+
+### DclEnumValuesIncrease | 7 | 7.2 [dcl.enum] p2: an enumerator without a value is one more than the one before
+enum E { A, B, C = 10, D, F = -3, G };
+int main()
+{
+	int r = 0;
+	if (A == 0 && B == 1) r += 1;
+	if (D == 11) r += 2;
+	if (G == -2) r += 4;
+	return r;
+}
+
+### DclNamespaceReopened | 3 | 7.3.1 [namespace.def] p2: a namespace opened again adds to the same namespace
+namespace N { int a = 1; }
+namespace N { int b = a + 1; }
+int main()
+{
+	int r = 0;
+	if (N::b == 2) r += 1;
+	if (N::a == 1) r += 2;
+	return r;
+}
+
+### DclInlineNamespace | 7 | 7.3.1 [namespace.def] p8: an inline namespace's members are found in the namespace around it
+namespace L
+{
+	inline namespace V2 { int Get() { return 2; } struct S { int v; }; }
+	namespace V1 { int Get() { return 1; } }
+}
+int main()
+{
+	int r = 0;
+	if (L::Get() == 2) r += 1;
+	if (L::V1::Get() == 1 && L::V2::Get() == 2) r += 2;
+	L::S s;
+	s.v = 4;
+	if (s.v == 4) r += 4;
+	return r;
+}
+
+### DclInlineNamespaceSpecialisation | 1 | 7.3.1 [namespace.def] p8: a template in an inline namespace specialised in the namespace around it
+namespace L
+{
+	inline namespace V { template<class T> struct W { enum { v = 0 }; }; }
+	template<> struct W<int> { enum { v = 1 }; };
+}
+int main() { return L::W<int>::v + L::W<char>::v; }
+
+### DclUnnamedNamespace | 3 | 7.3.1.1 [namespace.unnamed] p1: an unnamed namespace's members are named without qualification, and through the namespace around it
+namespace { int h = 3; int Get() { return h; } }
+int main()
+{
+	int r = 0;
+	if (Get() == 3) r += 1;
+	if (::h == 3) r += 2;
+	return r;
+}
+
+### DclNamespaceMemberDefinedOutside | 3 | 7.3.1.2 [namespace.memdef] p2: a namespace's member defined outside it with a qualified name, its body looking in the namespace
+namespace N { int F(int); extern int v; namespace M { int G(); } }
+int N::F(int x) { return x + 1; }
+int N::v = 5;
+int N::M::G() { return F(1) + v; }
+int main()
+{
+	int r = 0;
+	if (N::F(1) == 2) r += 1;
+	if (N::M::G() == 7) r += 2;
+	return r;
+}
+
+### DclNamespaceDefinitionNotEnclosingRefused | REFUSED | 7.3.1.2 [namespace.memdef] p2: a member is defined in a namespace that encloses its declaration
+namespace A { int F(); }
+namespace B { int A::F() { return 1; } }
+int main() { return A::F(); }
+
+### DclNamespaceMemberUndeclaredRefused | REFUSED | 7.3.1.2 [namespace.memdef] p2: a qualified definition is of a member declared before
+namespace N { }
+int N::F() { return 1; }
+int main() { return 0; }
+
+### DclNamespaceAlias | 3 | 7.3.2 [namespace.alias]: an alias of a nested namespace, and an alias of an alias
+namespace Long { namespace Inner { int v = 3; } }
+namespace LI = Long::Inner;
+namespace L2 = LI;
+int main()
+{
+	int r = 0;
+	if (LI::v == 3) r += 1;
+	if (L2::v == 3) r += 2;
+	return r;
+}
+
+### DclUsingDeclarationOverloads | 7 | 7.3.3 [namespace.udecl] p1, p11: a using-declaration brings the functions declared before it, not those after
+namespace N { int F(int) { return 1; } }
+using N::F;
+namespace N { int F(char) { return 2; } }
+int F(double) { return 3; }
+int main()
+{
+	int r = 0;
+	if (F(1) == 1) r += 1;
+	if (F('c') == 1) r += 2;
+	if (F(1.0) == 3) r += 4;
+	return r;
+}
+
+### DclUsingDeclarationConflictRefused | REFUSED | 7.3.3 [namespace.udecl] p14: a function of the same signature as one a using-declaration brings conflicts with it
+namespace N { int F(int) { return 1; } }
+using N::F;
+int F(int) { return 2; }
+int main() { return F(1); }
+
+### DclUsingDeclarationVariableConflictRefused | REFUSED | 7.3.3 [namespace.udecl] p10: a using-declaration of a name declared in the block already
+namespace N { int x = 1; }
+int main() { int x = 2; using N::x; return x; }
+
+### DclUsingDeclarationInClass | 7 | 7.3.3 [namespace.udecl] p3, p15, p19: a class's using-declaration brings a base's overloads, with the declaration's access
+struct B { int F(int) { return 1; } protected: int G() { return 4; } };
+struct D : B { using B::F; int F(char) { return 2; } using B::G; };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.F(1) == 1) r += 1;
+	if (d.F('c') == 2) r += 2;
+	if (d.G() == 4) r += 4;
+	return r;
+}
+
+### DclUsingDeclarationHidden | 3 | 7.3.3 [namespace.udecl] p15: a derived class's function hides a base's of the same parameters that a using-declaration brings
+struct B { int G(int) { return 1; } };
+struct D : B { using B::G; int G(int) { return 2; } };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.G(1) == 2) r += 1;
+	B& b = d;
+	if (b.G(1) == 1) r += 2;
+	return r;
+}
+
+### DclUsingDeclarationNotBaseRefused | REFUSED | 7.3.3 [namespace.udecl] p3: a class's using-declaration names a base's member
+namespace N { int F(); }
+struct S { using N::F; };
+int main() { return 0; }
+
+### DclUsingDirectiveTransitive | 3 | 7.3.4 [namespace.udir] p4: a nominated namespace's own using-directives count too
+namespace A { int a = 1; }
+namespace B { using namespace A; int b = 2; }
+using namespace B;
+int main()
+{
+	int r = 0;
+	if (a == 1) r += 1;
+	if (b == 2) r += 2;
+	return r;
+}
+
+### DclUsingDirectiveAmbiguityOnlyWhenUsed | 1 | 7.3.4 [namespace.udir] p6: two namespaces' names of one name are an error only where the name is used alone
+namespace A { int v = 1; }
+namespace B { int v = 2; }
+using namespace A;
+using namespace B;
+int main() { return A::v; }
+
+### DclUsingDirectiveAmbiguousRefused | REFUSED | 7.3.4 [namespace.udir] p6: and where it is
+namespace A { int v = 1; }
+namespace B { int v = 2; }
+using namespace A;
+using namespace B;
+int main() { return v; }
+
+### DclUsingDirectiveInBlock | 3 | 7.3.4 [namespace.udir] p2, p3: a using-directive in a block lasts to its end; a local declaration hides the namespace's
+namespace A { int v = 1; }
+int main()
+{
+	int r = 0;
+	{
+		using namespace A;
+		if (v == 1) r += 1;
+		int v = 2;
+		if (v == 2) r += 2;
+	}
+	return r;
+}
+
+### DclAsmDeclaration | 1 | 7.4 [dcl.asm]: an asm declaration
+int main()
+{
+	asm("nop");
+	return 1;
+}
+
+### DclLinkageC | 3 | 7.5 [dcl.link] p1, p2: extern "C" on one declaration and on a block of them
+extern "C" int CAdd(int a, int b) { return a + b; }
+extern "C" { int gc = 3; int CGet() { return gc; } }
+int main()
+{
+	int r = 0;
+	if (CAdd(1, 2) == 3) r += 1;
+	if (CGet() == 3) r += 2;
+	return r;
+}
+
+### DclLinkageNested | 1 | 7.5 [dcl.link] p4: linkage specifications nest, the innermost deciding
+extern "C" { extern "C++" { int Pp(int) { return 1; } int Pp(char) { return 2; } } }
+int main() { return Pp(1) + Pp('c') - 2; }
+
+### DclLinkageCOverloadRefused | REFUSED | 7.5 [dcl.link] p6: two extern "C" functions of one name are one function, which can't be overloaded
+extern "C" int F(int) { return 1; }
+extern "C" int F(char) { return 2; }
+int main() { return F(1); }
+
+### DclLinkageCInNamespaces | 1 | 7.5 [dcl.link] p6: extern "C" declarations of a function in two namespaces are one function
+namespace A { extern "C" int CF(); }
+namespace B { extern "C" int CF(); }
+extern "C" int CF() { return 1; }
+int main() { return (A::CF == B::CF) ? A::CF() : 0; }
+
+### DclAttributeNoreturn | 1 | 7.6.3 [dcl.attr.noreturn]: [[noreturn]] on a function that doesn't return
+[[noreturn]] void Forever() { for (;;) { } }
+int main()
+{
+	int x = 1;
+	if (x == 0) Forever();
+	return x;
+}
+
+### DclAttributeDeprecated | 1 | 7.6.5 [dcl.attr.deprecated]: [[deprecated]] makes a use a warning, not an error
+[[deprecated("use New")]] int Old() { return 1; }
+int main() { return Old(); }
+
+### DclAttributeUnknownIgnored | 1 | 7.6.1 [dcl.attr.grammar] p5: an attribute the implementation doesn't know is ignored
+[[vendor_thing]] int F() { return 1; }
+int main() { return F(); }
+
+### DclAttributeCarriesDependency | 1 | 7.6.4 [dcl.attr.depend]: [[carries_dependency]] on a parameter is accepted
+int F([[carries_dependency]] int* p) { return *p; }
+int main() { int x = 1; return F(&x); }

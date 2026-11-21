@@ -1,0 +1,439 @@
+### DclStaticAssert | 3 | 7 [dcl.dcl] p4: static_assert at namespace, class and block scope
+static_assert(sizeof(char) == 1, "char is a byte");
+struct S { static_assert(true, "in a class"); int v; };
+int main()
+{
+	static_assert(1 + 1 == 2, "in a block");
+	int r = 0;
+	S s;
+	s.v = 3;
+	if (s.v == 3) r += 1;
+	r += 2;
+	return r;
+}
+
+### DclStaticAssertFalseRefused | REFUSED | 7 [dcl.dcl] p4: a static_assert whose constant is false
+static_assert(sizeof(char) == 0, "never");
+int main() { return 0; }
+
+### DclStaticAssertNotConstantRefused | REFUSED | 7 [dcl.dcl] p4: a static_assert's expression is a constant
+int n = 1;
+static_assert(n == 1, "not a constant");
+int main() { return 0; }
+
+### DclDeclaresNothingRefused | REFUSED | 7 [dcl.dcl] p3: a simple declaration declares something
+int;
+int main() { return 0; }
+
+### DclEmptyDeclaration | 1 | 7 [dcl.dcl] p1: an empty declaration at namespace scope
+;
+int F() { return 1; };
+int main() { return F(); }
+
+### DclTwoStorageClassesRefused | REFUSED | 7.1.1 [dcl.stc] p1: one storage class in a declaration
+static extern int x;
+int main() { return 0; }
+
+### DclStaticMemberDefinitionRefused | REFUSED | 7.1.1 [dcl.stc] p5, 9.4.2 [class.static.data] p5: static isn't written on a static member's definition outside its class
+struct S { static int k; };
+static int S::k = 1;
+int main() { return S::k; }
+
+### DclStaticThenExtern | 3 | 7.1.1 [dcl.stc] p7: a name declared static, then extern, keeps its internal linkage
+static int g = 1;
+extern int g;
+static int F() { return 2; }
+extern int F();
+int main()
+{
+	int r = 0;
+	if (g == 1) r += 1;
+	if (F() == 2) r += 2;
+	return r;
+}
+
+### DclMutable | 3 | 7.1.1 [dcl.stc] p11: a mutable member can be changed through a const object
+struct C { mutable int n; int v; void Touch() const { n++; } };
+int main()
+{
+	int r = 0;
+	const C c = { 0, 5 };
+	c.Touch();
+	c.Touch();
+	if (c.n == 2) r += 1;
+	if (c.v == 5) r += 2;
+	return r;
+}
+
+### DclMutableConstRefused | REFUSED | 7.1.1 [dcl.stc] p11: a mutable member isn't const
+struct C { mutable const int n = 1; };
+int main() { C c; return c.n; }
+
+### DclMutableStaticRefused | REFUSED | 7.1.1 [dcl.stc] p11: a mutable member isn't static
+struct C { mutable static int n; };
+int main() { return 0; }
+
+### DclRegisterAllowed | 1 | 7.1.1 [dcl.stc] p3: register is deprecated, and allowed in C++14
+int main()
+{
+	register int x = 1;
+	return x;
+}
+
+### DclThreadLocal | 3 | 7.1.1 [dcl.stc] p4: thread_local at namespace and block scope, where it is static too
+thread_local int t = 2;
+int Count() { thread_local int n = 0; return ++n; }
+int main()
+{
+	int r = 0;
+	Count();
+	if (Count() == 2) r += 1;
+	if (t == 2) r += 2;
+	return r;
+}
+
+### DclInlineFunction | 3 | 7.1.2 [dcl.fct.spec] p2, p4: an inline function, one declared inline after it is declared; its address is one address
+inline int Twice(int x) { return x * 2; }
+int Thrice(int x);
+inline int Thrice(int x) { return x * 3; }
+int main()
+{
+	int r = 0;
+	if (Twice(2) == 4 && Thrice(2) == 6) r += 1;
+	int (*p)(int) = Twice;
+	int (*q)(int) = &Twice;
+	if (p == q) r += 2;
+	return r;
+}
+
+### DclVirtualOutsideClassRefused | REFUSED | 7.1.2 [dcl.fct.spec] p5: virtual only on a member function in its class
+virtual int F() { return 0; }
+int main() { return F(); }
+
+### DclExplicitOutsideClassRefused | REFUSED | 7.1.2 [dcl.fct.spec] p6: explicit only in the class's declaration of a constructor
+struct S { S(int); int v; };
+explicit S::S(int x) : v(x) { }
+int main() { S s(1); return s.v; }
+
+### DclExplicitNotConstructorRefused | REFUSED | 7.1.2 [dcl.fct.spec] p6: explicit only on a constructor or a conversion function
+struct S { explicit int F() { return 0; } };
+int main() { return 0; }
+
+### DclTypedefRedeclared | 3 | 7.1.3 [dcl.typedef] p3: a typedef may be declared again for the same type
+typedef int I;
+typedef int I;
+typedef I J;
+struct S { typedef int K; };
+int main()
+{
+	int r = 0;
+	I a = 1;
+	J b = 2;
+	if (a + b == 3) r += 1;
+	S::K k = 2;
+	if (k == 2) r += 2;
+	return r;
+}
+
+### DclTypedefRedeclaredOtherRefused | REFUSED | 7.1.3 [dcl.typedef] p3: not for another type
+typedef int I;
+typedef long I;
+int main() { return 0; }
+
+### DclTypedefNamesClassOtherRefused | REFUSED | 7.1.3 [dcl.typedef] p6: a typedef of a class's name in its scope is that class
+struct S { int v; };
+typedef int S;
+int main() { return 0; }
+
+### DclTypedefSameClass | 1 | 7.1.3 [dcl.typedef] p6: typedef struct S S; names S
+struct S { int v; };
+typedef struct S S;
+int main() { S s; s.v = 1; return s.v; }
+
+### DclTypedefUnnamedClass | 3 | 7.1.3 [dcl.typedef] p9: a typedef of an unnamed class names it
+typedef struct { int a; int b; } Pair;
+Pair Make(int a) { Pair p = { a, a + 1 }; return p; }
+int main()
+{
+	int r = 0;
+	Pair p = Make(1);
+	if (p.b == 2) r += 1;
+	Pair q = p;
+	if (q.a == 1) r += 2;
+	return r;
+}
+
+### DclTypedefFunctionType | 3 | 7.1.3 [dcl.typedef] p1, 8.3.5 [dcl.fct] p10: a typedef of a function type declares functions, and pointers to them
+typedef int F(int);
+F Twice;
+int Twice(int x) { return 2 * x; }
+F* gp = Twice;
+int main()
+{
+	int r = 0;
+	if (Twice(3) == 6) r += 1;
+	if (gp(4) == 8) r += 2;
+	return r;
+}
+
+### DclFriendOutsideClassRefused | REFUSED | 7.1.4 [dcl.friend] p1: friend only in a class
+friend int F();
+int main() { return 0; }
+
+### DclConstexprImplies | 3 | 7.1.5 [dcl.constexpr] p2, p9: a constexpr object is const, and a constexpr function's call a constant
+@SAME@
+constexpr int k = 5;
+constexpr int Sq(int x) { return x * x; }
+int main()
+{
+	int r = 0;
+	if (Same<decltype(k), const int>::V) r += 1;
+	int a[Sq(2)];
+	if (sizeof(a) == 4 * sizeof(int)) r += 2;
+	return r;
+}
+
+### DclConstexprChangeRefused | REFUSED | 7.1.5 [dcl.constexpr] p9: a constexpr object is const
+constexpr int k = 5;
+int main() { k = 6; return k; }
+
+### DclConstexprRelaxed | 7 | 7.1.5 [dcl.constexpr] p3: a constexpr function may have local variables, loops, if and assignments (C++14)
+constexpr int Sum(int n) { int s = 0; for (int i = 1; i <= n; i++) { if (i % 2) s += i; } return s; }
+constexpr int Fact(int n) { int f = 1; while (n > 1) f *= n--; return f; }
+int main()
+{
+	int r = 0;
+	static_assert(Sum(5) == 9, "");
+	int a[Sum(3)];
+	if (sizeof(a) == 4 * sizeof(int)) r += 1;
+	constexpr int f = Fact(5);
+	if (f == 120) r += 2;
+	switch (5) { case Fact(3) - 1: r += 4; break; }
+	return r;
+}
+
+### DclConstexprStaticLocalRefused | REFUSED | 7.1.5 [dcl.constexpr] p3: a constexpr function has no static variable
+constexpr int F() { static int n = 1; return n; }
+int main() { return F(); }
+
+### DclConstexprUninitialisedRefused | REFUSED | 7.1.5 [dcl.constexpr] p3: nor one left uninitialised
+constexpr int G() { int x; x = 1; return x; }
+int main() { return G(); }
+
+### DclConstexprVirtualRefused | REFUSED | 7.1.5 [dcl.constexpr] p3: a constexpr function isn't virtual
+struct S { constexpr virtual int F() const { return 1; } };
+int main() { return 0; }
+
+### DclConstexprConstructor | 3 | 7.1.5 [dcl.constexpr] p4, p9: a constexpr constructor makes constant objects, and their constexpr members are constants
+struct P { int x; int y; constexpr P(int a, int b) : x(a), y(b) { } constexpr int Sum() const { return x + y; } };
+constexpr P p(2, 3);
+int main()
+{
+	int r = 0;
+	static_assert(p.Sum() == 5, "");
+	int a[p.x];
+	if (sizeof(a) == 2 * sizeof(int)) r += 1;
+	constexpr P q = P(1, 1);
+	if (q.Sum() == 2) r += 2;
+	return r;
+}
+
+### DclConstexprStaticMemberNoInitRefused | REFUSED | 7.1.5 [dcl.constexpr] p9, 9.4.2 [class.static.data] p3: a constexpr static member has its initialiser in its class
+struct S { static constexpr int k; };
+constexpr int S::k = 1;
+int main() { return S::k; }
+
+### DclConstNeedsInitialiserRefused | REFUSED | 7.1.6.1 [dcl.type.cv], 8.5 [dcl.init] p7: a const object of a type with no default constructor has an initialiser
+const int k;
+int main() { return k; }
+
+### DclConstChangeRefused | REFUSED | 7.1.6.1 [dcl.type.cv] p4: a const object can't be changed
+int main() { const int k = 1; k = 2; return k; }
+
+### DclConstMemberChangeRefused | REFUSED | 7.1.6.1 [dcl.type.cv] p4: nor a member of one
+struct C { int v; };
+int main() { const C c = { 1 }; c.v = 2; return c.v; }
+
+### DclVolatile | 3 | 7.1.6.1 [dcl.type.cv] p6: a volatile object is read and written each time
+volatile int gv = 1;
+int main()
+{
+	int r = 0;
+	int a = gv;
+	gv = 2;
+	int b = gv;
+	if (a == 1 && b == 2) r += 1;
+	const volatile int cv = 3;
+	if (cv == 3) r += 2;
+	return r;
+}
+
+### DclSimpleTypeSpecifiers | 15 | 7.1.6.2 [dcl.type.simple] p2, Table 10: the type specifiers' combinations, in any order
+@SAME@
+int main()
+{
+	int r = 0;
+	if (Same<unsigned, unsigned int>::V && Same<signed, int>::V && Same<short int, short>::V) r += 1;
+	if (Same<long unsigned int, unsigned long>::V && Same<int long long, long long>::V) r += 2;
+	if (!Same<char, signed char>::V && !Same<char, unsigned char>::V) r += 4;
+	if (Same<double long, long double>::V && Same<int const, const int>::V) r += 8;
+	return r;
+}
+
+### DclUnsignedDoubleRefused | REFUSED | 7.1.6.2 [dcl.type.simple] p2: unsigned double isn't a type
+unsigned double d = 1;
+int main() { return 0; }
+
+### DclLongLongLongRefused | REFUSED | 7.1.6.2 [dcl.type.simple] p2: nor long long long
+long long long x;
+int main() { return 0; }
+
+### DclShortCharRefused | REFUSED | 7.1.6.2 [dcl.type.simple] p2: nor short char
+short char c;
+int main() { return 0; }
+
+### DclDecltype | 15 | 7.1.6.2 [dcl.type.simple] p4: decltype of a name, a member, an lvalue in brackets, a call, a prvalue
+@SAME@
+struct S { int m; };
+int f();
+int& g();
+int&& h();
+int main()
+{
+	int r = 0;
+	int i = 0;
+	const S s = { 1 };
+	if (Same<decltype(i), int>::V && Same<decltype((i)), int&>::V) r += 1;
+	if (Same<decltype(s.m), int>::V && Same<decltype((s.m)), const int&>::V) r += 2;
+	if (Same<decltype(f()), int>::V && Same<decltype(g()), int&>::V && Same<decltype(h()), int&&>::V) r += 4;
+	if (Same<decltype(i + 1), int>::V && Same<decltype(1), int>::V) r += 8;
+	return r;
+}
+
+### DclDecltypeAuto | 7 | 7.1.6.4 [dcl.spec.auto] p7: decltype(auto) keeps what decltype would give, a reference too
+@SAME@
+int gi = 1;
+int& Ref() { return gi; }
+decltype(auto) Forward() { return Ref(); }
+decltype(auto) Value() { return gi; }
+decltype(auto) Bracketed() { return (gi); }
+int main()
+{
+	int r = 0;
+	if (Same<decltype(Forward()), int&>::V) r += 1;
+	if (Same<decltype(Value()), int>::V) r += 2;
+	if (Same<decltype(Bracketed()), int&>::V) r += 4;
+	return r;
+}
+
+### DclAutoDeduction | 15 | 7.1.6.4 [dcl.spec.auto] p7: auto from an initialiser; auto&, const auto*, and a braced list's initializer_list
+@SAME@
+@INITLIST@
+int main()
+{
+	int r = 0;
+	auto a = 1;
+	auto& b = a;
+	const auto* c = &a;
+	if (Same<decltype(a), int>::V && Same<decltype(b), int&>::V && Same<decltype(c), const int*>::V) r += 1;
+	auto d = 'x';
+	auto e = 1.5;
+	if (Same<decltype(d), char>::V && Same<decltype(e), double>::V) r += 2;
+	auto l = { 1, 2 };
+	if (Same<decltype(l), std::initializer_list<int> >::V) r += 4;
+	auto x{3};
+	if (Same<decltype(x), std::initializer_list<int> >::V || Same<decltype(x), int>::V) r += 8;
+	return r;
+}
+
+### DclAutoArray | 3 | 7.1.6.4 [dcl.spec.auto] p7: auto from an array is a pointer; auto& is the array
+@SAME@
+int main()
+{
+	int r = 0;
+	int a[3] = { 1, 2, 3 };
+	auto p = a;
+	auto& q = a;
+	if (Same<decltype(p), int*>::V) r += 1;
+	if (Same<decltype(q), int(&)[3]>::V) r += 2;
+	return r;
+}
+
+### DclAutoSeveralDeclarators | 1 | 7.1.6.4 [dcl.spec.auto] p8: auto with several declarators that deduce one type
+int main()
+{
+	auto a = 1, *b = &a;
+	return *b;
+}
+
+### DclAutoDifferentTypesRefused | REFUSED | 7.1.6.4 [dcl.spec.auto] p8: they deduce one type
+int main() { auto a = 1, b = 2.0; return a; }
+
+### DclAutoNoInitialiserRefused | REFUSED | 7.1.6.4 [dcl.spec.auto] p3: auto needs an initialiser
+int main() { auto a; return 0; }
+
+### DclAutoSelfRefused | REFUSED | 7.1.6.4 [dcl.spec.auto] p3: an auto variable isn't named in its own initialiser
+int main() { auto a = a + 1; return 0; }
+
+### DclAutoReturnType | 15 | 7.1.6.4 [dcl.spec.auto] p2, p9, p11: a return type deduced from the returns; a recursive call after one; a member; a declaration then its definition
+@SAME@
+auto Twice(int x) { return x * 2; }
+auto Fact(int n) { if (n <= 1) return 1; else return n * Fact(n - 1); }
+struct S { auto Get() const { return 'c'; } };
+auto Later();
+auto Later() { return 2.5; }
+int main()
+{
+	int r = 0;
+	if (Twice(3) == 6 && Same<decltype(Twice(1)), int>::V) r += 1;
+	if (Fact(5) == 120) r += 2;
+	S s;
+	if (Same<decltype(s.Get()), char>::V) r += 4;
+	if (Same<decltype(Later()), double>::V) r += 8;
+	return r;
+}
+
+### DclAutoReturnConflictRefused | REFUSED | 7.1.6.4 [dcl.spec.auto] p9: every return deduces one type
+auto F(int x) { if (x) return 1; return 2.0; }
+int main() { return 0; }
+
+### DclAutoReturnBeforeDeducedRefused | REFUSED | 7.1.6.4 [dcl.spec.auto] p11: a function isn't used before its return type is deduced
+auto F();
+int main() { return F(); }
+auto F() { return 1; }
+
+### DclAutoReturnVoid | 1 | 7.1.6.4 [dcl.spec.auto] p9: a function with no return deduces void
+@SAME@
+int g = 0;
+auto Set() { g = 1; }
+int main()
+{
+	Set();
+	return (Same<decltype(Set()), void>::V && (g == 1)) ? 1 : 0;
+}
+
+### DclAutoTrailingReturn | 3 | 7.1.6.4 [dcl.spec.auto] p2, 8.3.5 [dcl.fct] p2: auto with a trailing return type, which can name the parameters
+auto Add(int a, int b) -> int { return a + b; }
+template<class T> auto Twice(T t) -> decltype(t * 2) { return t * 2; }
+int main()
+{
+	int r = 0;
+	if (Add(1, 2) == 3) r += 1;
+	if (Twice(3) == 6) r += 2;
+	return r;
+}
+
+### DclElaboratedClassStruct | 1 | 7.1.6.3 [dcl.type.elab] p3: class and struct name the same class in an elaborated type specifier
+struct S { int v; };
+class S* p;
+int main() { S s; s.v = 1; p = &s; return p->v; }
+
+### DclElaboratedEnumAsClassRefused | REFUSED | 7.1.6.3 [dcl.type.elab] p3: an enum isn't named with a class key
+enum E { X };
+struct E* p;
+int main() { return 0; }
+
+### DclElaboratedUnionAsStructRefused | REFUSED | 7.1.6.3 [dcl.type.elab] p3: a union is named with union
+union U { int a; };
+struct U* p;
+int main() { return 0; }

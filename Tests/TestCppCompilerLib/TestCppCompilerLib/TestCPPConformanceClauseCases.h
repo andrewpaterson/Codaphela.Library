@@ -8995,6 +8995,973 @@ static const SConformanceCase gasConformanceClause6[] =
 };
 
 
+//Clause 7, declarations [dcl.dcl].
+static const SConformanceCase gasConformanceClause7[] =
+{
+	//7 [dcl.dcl] p4: static_assert at namespace, class and block scope
+	{
+		"DclStaticAssert", 3,
+		"static_assert(sizeof(char) == 1, \"char is a byte\");\n"
+		"struct S { static_assert(true, \"in a class\"); int v; };\n"
+		"int main()\n"
+		"{\n"
+		"	static_assert(1 + 1 == 2, \"in a block\");\n"
+		"	int r = 0;\n"
+		"	S s;\n"
+		"	s.v = 3;\n"
+		"	if (s.v == 3) r += 1;\n"
+		"	r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7 [dcl.dcl] p4: a static_assert whose constant is false
+	{
+		"DclStaticAssertFalseRefused", CONFORMANCE_REFUSED,
+		"static_assert(sizeof(char) == 0, \"never\");\n"
+		"int main() { return 0; }\n"
+	},
+	//7 [dcl.dcl] p4: a static_assert's expression is a constant
+	{
+		"DclStaticAssertNotConstantRefused", CONFORMANCE_REFUSED,
+		"int n = 1;\n"
+		"static_assert(n == 1, \"not a constant\");\n"
+		"int main() { return 0; }\n"
+	},
+	//7 [dcl.dcl] p3: a simple declaration declares something
+	{
+		"DclDeclaresNothingRefused", CONFORMANCE_REFUSED,
+		"int;\n"
+		"int main() { return 0; }\n"
+	},
+	//7 [dcl.dcl] p1: an empty declaration at namespace scope
+	{
+		"DclEmptyDeclaration", 1,
+		";\n"
+		"int F() { return 1; };\n"
+		"int main() { return F(); }\n"
+	},
+	//7.1.1 [dcl.stc] p1: one storage class in a declaration
+	{
+		"DclTwoStorageClassesRefused", CONFORMANCE_REFUSED,
+		"static extern int x;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.1 [dcl.stc] p5, 9.4.2 [class.static.data] p5: static isn't written on a static member's definition outside its class
+	{
+		"DclStaticMemberDefinitionRefused", CONFORMANCE_REFUSED,
+		"struct S { static int k; };\n"
+		"static int S::k = 1;\n"
+		"int main() { return S::k; }\n"
+	},
+	//7.1.1 [dcl.stc] p7: a name declared static, then extern, keeps its internal linkage
+	{
+		"DclStaticThenExtern", 3,
+		"static int g = 1;\n"
+		"extern int g;\n"
+		"static int F() { return 2; }\n"
+		"extern int F();\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (g == 1) r += 1;\n"
+		"	if (F() == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.1 [dcl.stc] p11: a mutable member can be changed through a const object
+	{
+		"DclMutable", 3,
+		"struct C { mutable int n; int v; void Touch() const { n++; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	const C c = { 0, 5 };\n"
+		"	c.Touch();\n"
+		"	c.Touch();\n"
+		"	if (c.n == 2) r += 1;\n"
+		"	if (c.v == 5) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.1 [dcl.stc] p11: a mutable member isn't const
+	{
+		"DclMutableConstRefused", CONFORMANCE_REFUSED,
+		"struct C { mutable const int n = 1; };\n"
+		"int main() { C c; return c.n; }\n"
+	},
+	//7.1.1 [dcl.stc] p11: a mutable member isn't static
+	{
+		"DclMutableStaticRefused", CONFORMANCE_REFUSED,
+		"struct C { mutable static int n; };\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.1 [dcl.stc] p3: register is deprecated, and allowed in C++14
+	{
+		"DclRegisterAllowed", 1,
+		"int main()\n"
+		"{\n"
+		"	register int x = 1;\n"
+		"	return x;\n"
+		"}\n"
+	},
+	//7.1.1 [dcl.stc] p4: thread_local at namespace and block scope, where it is static too
+	{
+		"DclThreadLocal", 3,
+		"thread_local int t = 2;\n"
+		"int Count() { thread_local int n = 0; return ++n; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Count();\n"
+		"	if (Count() == 2) r += 1;\n"
+		"	if (t == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.2 [dcl.fct.spec] p2, p4: an inline function, one declared inline after it is declared; its address is one address
+	{
+		"DclInlineFunction", 3,
+		"inline int Twice(int x) { return x * 2; }\n"
+		"int Thrice(int x);\n"
+		"inline int Thrice(int x) { return x * 3; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Twice(2) == 4 && Thrice(2) == 6) r += 1;\n"
+		"	int (*p)(int) = Twice;\n"
+		"	int (*q)(int) = &Twice;\n"
+		"	if (p == q) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.2 [dcl.fct.spec] p5: virtual only on a member function in its class
+	{
+		"DclVirtualOutsideClassRefused", CONFORMANCE_REFUSED,
+		"virtual int F() { return 0; }\n"
+		"int main() { return F(); }\n"
+	},
+	//7.1.2 [dcl.fct.spec] p6: explicit only in the class's declaration of a constructor
+	{
+		"DclExplicitOutsideClassRefused", CONFORMANCE_REFUSED,
+		"struct S { S(int); int v; };\n"
+		"explicit S::S(int x) : v(x) { }\n"
+		"int main() { S s(1); return s.v; }\n"
+	},
+	//7.1.2 [dcl.fct.spec] p6: explicit only on a constructor or a conversion function
+	{
+		"DclExplicitNotConstructorRefused", CONFORMANCE_REFUSED,
+		"struct S { explicit int F() { return 0; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.3 [dcl.typedef] p3: a typedef may be declared again for the same type
+	{
+		"DclTypedefRedeclared", 3,
+		"typedef int I;\n"
+		"typedef int I;\n"
+		"typedef I J;\n"
+		"struct S { typedef int K; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	I a = 1;\n"
+		"	J b = 2;\n"
+		"	if (a + b == 3) r += 1;\n"
+		"	S::K k = 2;\n"
+		"	if (k == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.3 [dcl.typedef] p3: not for another type
+	{
+		"DclTypedefRedeclaredOtherRefused", CONFORMANCE_REFUSED,
+		"typedef int I;\n"
+		"typedef long I;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.3 [dcl.typedef] p6: a typedef of a class's name in its scope is that class
+	{
+		"DclTypedefNamesClassOtherRefused", CONFORMANCE_REFUSED,
+		"struct S { int v; };\n"
+		"typedef int S;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.3 [dcl.typedef] p6: typedef struct S S; names S
+	{
+		"DclTypedefSameClass", 1,
+		"struct S { int v; };\n"
+		"typedef struct S S;\n"
+		"int main() { S s; s.v = 1; return s.v; }\n"
+	},
+	//7.1.3 [dcl.typedef] p9: a typedef of an unnamed class names it
+	{
+		"DclTypedefUnnamedClass", 3,
+		"typedef struct { int a; int b; } Pair;\n"
+		"Pair Make(int a) { Pair p = { a, a + 1 }; return p; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	Pair p = Make(1);\n"
+		"	if (p.b == 2) r += 1;\n"
+		"	Pair q = p;\n"
+		"	if (q.a == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.3 [dcl.typedef] p1, 8.3.5 [dcl.fct] p10: a typedef of a function type declares functions, and pointers to them
+	{
+		"DclTypedefFunctionType", 3,
+		"typedef int F(int);\n"
+		"F Twice;\n"
+		"int Twice(int x) { return 2 * x; }\n"
+		"F* gp = Twice;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Twice(3) == 6) r += 1;\n"
+		"	if (gp(4) == 8) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.4 [dcl.friend] p1: friend only in a class
+	{
+		"DclFriendOutsideClassRefused", CONFORMANCE_REFUSED,
+		"friend int F();\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.5 [dcl.constexpr] p2, p9: a constexpr object is const, and a constexpr function's call a constant
+	{
+		"DclConstexprImplies", 3,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"constexpr int k = 5;\n"
+		"constexpr int Sq(int x) { return x * x; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(k), const int>::V) r += 1;\n"
+		"	int a[Sq(2)];\n"
+		"	if (sizeof(a) == 4 * sizeof(int)) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.5 [dcl.constexpr] p9: a constexpr object is const
+	{
+		"DclConstexprChangeRefused", CONFORMANCE_REFUSED,
+		"constexpr int k = 5;\n"
+		"int main() { k = 6; return k; }\n"
+	},
+	//7.1.5 [dcl.constexpr] p3: a constexpr function may have local variables, loops, if and assignments (C++14)
+	{
+		"DclConstexprRelaxed", 7,
+		"constexpr int Sum(int n) { int s = 0; for (int i = 1; i <= n; i++) { if (i % 2) s += i; } return s; }\n"
+		"constexpr int Fact(int n) { int f = 1; while (n > 1) f *= n--; return f; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	static_assert(Sum(5) == 9, \"\");\n"
+		"	int a[Sum(3)];\n"
+		"	if (sizeof(a) == 4 * sizeof(int)) r += 1;\n"
+		"	constexpr int f = Fact(5);\n"
+		"	if (f == 120) r += 2;\n"
+		"	switch (5) { case Fact(3) - 1: r += 4; break; }\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.5 [dcl.constexpr] p3: a constexpr function has no static variable
+	{
+		"DclConstexprStaticLocalRefused", CONFORMANCE_REFUSED,
+		"constexpr int F() { static int n = 1; return n; }\n"
+		"int main() { return F(); }\n"
+	},
+	//7.1.5 [dcl.constexpr] p3: nor one left uninitialised
+	{
+		"DclConstexprUninitialisedRefused", CONFORMANCE_REFUSED,
+		"constexpr int G() { int x; x = 1; return x; }\n"
+		"int main() { return G(); }\n"
+	},
+	//7.1.5 [dcl.constexpr] p3: a constexpr function isn't virtual
+	{
+		"DclConstexprVirtualRefused", CONFORMANCE_REFUSED,
+		"struct S { constexpr virtual int F() const { return 1; } };\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.5 [dcl.constexpr] p4, p9: a constexpr constructor makes constant objects, and their constexpr members are constants
+	{
+		"DclConstexprConstructor", 3,
+		"struct P { int x; int y; constexpr P(int a, int b) : x(a), y(b) { } constexpr int Sum() const { return x + y; } };\n"
+		"constexpr P p(2, 3);\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	static_assert(p.Sum() == 5, \"\");\n"
+		"	int a[p.x];\n"
+		"	if (sizeof(a) == 2 * sizeof(int)) r += 1;\n"
+		"	constexpr P q = P(1, 1);\n"
+		"	if (q.Sum() == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.5 [dcl.constexpr] p9, 9.4.2 [class.static.data] p3: a constexpr static member has its initialiser in its class
+	{
+		"DclConstexprStaticMemberNoInitRefused", CONFORMANCE_REFUSED,
+		"struct S { static constexpr int k; };\n"
+		"constexpr int S::k = 1;\n"
+		"int main() { return S::k; }\n"
+	},
+	//7.1.6.1 [dcl.type.cv], 8.5 [dcl.init] p7: a const object of a type with no default constructor has an initialiser
+	{
+		"DclConstNeedsInitialiserRefused", CONFORMANCE_REFUSED,
+		"const int k;\n"
+		"int main() { return k; }\n"
+	},
+	//7.1.6.1 [dcl.type.cv] p4: a const object can't be changed
+	{
+		"DclConstChangeRefused", CONFORMANCE_REFUSED,
+		"int main() { const int k = 1; k = 2; return k; }\n"
+	},
+	//7.1.6.1 [dcl.type.cv] p4: nor a member of one
+	{
+		"DclConstMemberChangeRefused", CONFORMANCE_REFUSED,
+		"struct C { int v; };\n"
+		"int main() { const C c = { 1 }; c.v = 2; return c.v; }\n"
+	},
+	//7.1.6.1 [dcl.type.cv] p6: a volatile object is read and written each time
+	{
+		"DclVolatile", 3,
+		"volatile int gv = 1;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int a = gv;\n"
+		"	gv = 2;\n"
+		"	int b = gv;\n"
+		"	if (a == 1 && b == 2) r += 1;\n"
+		"	const volatile int cv = 3;\n"
+		"	if (cv == 3) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.6.2 [dcl.type.simple] p2, Table 10: the type specifiers' combinations, in any order
+	{
+		"DclSimpleTypeSpecifiers", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<unsigned, unsigned int>::V && Same<signed, int>::V && Same<short int, short>::V) r += 1;\n"
+		"	if (Same<long unsigned int, unsigned long>::V && Same<int long long, long long>::V) r += 2;\n"
+		"	if (!Same<char, signed char>::V && !Same<char, unsigned char>::V) r += 4;\n"
+		"	if (Same<double long, long double>::V && Same<int const, const int>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.6.2 [dcl.type.simple] p2: unsigned double isn't a type
+	{
+		"DclUnsignedDoubleRefused", CONFORMANCE_REFUSED,
+		"unsigned double d = 1;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.6.2 [dcl.type.simple] p2: nor long long long
+	{
+		"DclLongLongLongRefused", CONFORMANCE_REFUSED,
+		"long long long x;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.6.2 [dcl.type.simple] p2: nor short char
+	{
+		"DclShortCharRefused", CONFORMANCE_REFUSED,
+		"short char c;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.6.2 [dcl.type.simple] p4: decltype of a name, a member, an lvalue in brackets, a call, a prvalue
+	{
+		"DclDecltype", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"struct S { int m; };\n"
+		"int f();\n"
+		"int& g();\n"
+		"int&& h();\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int i = 0;\n"
+		"	const S s = { 1 };\n"
+		"	if (Same<decltype(i), int>::V && Same<decltype((i)), int&>::V) r += 1;\n"
+		"	if (Same<decltype(s.m), int>::V && Same<decltype((s.m)), const int&>::V) r += 2;\n"
+		"	if (Same<decltype(f()), int>::V && Same<decltype(g()), int&>::V && Same<decltype(h()), int&&>::V) r += 4;\n"
+		"	if (Same<decltype(i + 1), int>::V && Same<decltype(1), int>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p7: decltype(auto) keeps what decltype would give, a reference too
+	{
+		"DclDecltypeAuto", 7,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int gi = 1;\n"
+		"int& Ref() { return gi; }\n"
+		"decltype(auto) Forward() { return Ref(); }\n"
+		"decltype(auto) Value() { return gi; }\n"
+		"decltype(auto) Bracketed() { return (gi); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Same<decltype(Forward()), int&>::V) r += 1;\n"
+		"	if (Same<decltype(Value()), int>::V) r += 2;\n"
+		"	if (Same<decltype(Bracketed()), int&>::V) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p7: auto from an initialiser; auto&, const auto*, and a braced list's initializer_list
+	{
+		"DclAutoDeduction", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"#ifdef CONFORMANCE_HOST\n"
+		"#include <initializer_list>\n"
+		"#else\n"
+		"typedef decltype(sizeof(0)) size_t;\n"
+		"namespace std { template<class T> class initializer_list { const T* mpFirst; size_t muiSize; public: constexpr initializer_list() noexcept : mpFirst(0), muiSize(0) {} constexpr size_t size() const noexcept { return muiSize; } constexpr const T* begin() const noexcept { return mpFirst; } constexpr const T* end() const noexcept { return mpFirst + muiSize; } }; }\n"
+		"#endif\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	auto a = 1;\n"
+		"	auto& b = a;\n"
+		"	const auto* c = &a;\n"
+		"	if (Same<decltype(a), int>::V && Same<decltype(b), int&>::V && Same<decltype(c), const int*>::V) r += 1;\n"
+		"	auto d = 'x';\n"
+		"	auto e = 1.5;\n"
+		"	if (Same<decltype(d), char>::V && Same<decltype(e), double>::V) r += 2;\n"
+		"	auto l = { 1, 2 };\n"
+		"	if (Same<decltype(l), std::initializer_list<int> >::V) r += 4;\n"
+		"	auto x{3};\n"
+		"	if (Same<decltype(x), std::initializer_list<int> >::V || Same<decltype(x), int>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p7: auto from an array is a pointer; auto& is the array
+	{
+		"DclAutoArray", 3,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int a[3] = { 1, 2, 3 };\n"
+		"	auto p = a;\n"
+		"	auto& q = a;\n"
+		"	if (Same<decltype(p), int*>::V) r += 1;\n"
+		"	if (Same<decltype(q), int(&)[3]>::V) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p8: auto with several declarators that deduce one type
+	{
+		"DclAutoSeveralDeclarators", 1,
+		"int main()\n"
+		"{\n"
+		"	auto a = 1, *b = &a;\n"
+		"	return *b;\n"
+		"}\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p8: they deduce one type
+	{
+		"DclAutoDifferentTypesRefused", CONFORMANCE_REFUSED,
+		"int main() { auto a = 1, b = 2.0; return a; }\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p3: auto needs an initialiser
+	{
+		"DclAutoNoInitialiserRefused", CONFORMANCE_REFUSED,
+		"int main() { auto a; return 0; }\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p3: an auto variable isn't named in its own initialiser
+	{
+		"DclAutoSelfRefused", CONFORMANCE_REFUSED,
+		"int main() { auto a = a + 1; return 0; }\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p2, p9, p11: a return type deduced from the returns; a recursive call after one; a member; a declaration then its definition
+	{
+		"DclAutoReturnType", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"auto Twice(int x) { return x * 2; }\n"
+		"auto Fact(int n) { if (n <= 1) return 1; else return n * Fact(n - 1); }\n"
+		"struct S { auto Get() const { return 'c'; } };\n"
+		"auto Later();\n"
+		"auto Later() { return 2.5; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Twice(3) == 6 && Same<decltype(Twice(1)), int>::V) r += 1;\n"
+		"	if (Fact(5) == 120) r += 2;\n"
+		"	S s;\n"
+		"	if (Same<decltype(s.Get()), char>::V) r += 4;\n"
+		"	if (Same<decltype(Later()), double>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p9: every return deduces one type
+	{
+		"DclAutoReturnConflictRefused", CONFORMANCE_REFUSED,
+		"auto F(int x) { if (x) return 1; return 2.0; }\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p11: a function isn't used before its return type is deduced
+	{
+		"DclAutoReturnBeforeDeducedRefused", CONFORMANCE_REFUSED,
+		"auto F();\n"
+		"int main() { return F(); }\n"
+		"auto F() { return 1; }\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p9: a function with no return deduces void
+	{
+		"DclAutoReturnVoid", 1,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"int g = 0;\n"
+		"auto Set() { g = 1; }\n"
+		"int main()\n"
+		"{\n"
+		"	Set();\n"
+		"	return (Same<decltype(Set()), void>::V && (g == 1)) ? 1 : 0;\n"
+		"}\n"
+	},
+	//7.1.6.4 [dcl.spec.auto] p2, 8.3.5 [dcl.fct] p2: auto with a trailing return type, which can name the parameters
+	{
+		"DclAutoTrailingReturn", 3,
+		"auto Add(int a, int b) -> int { return a + b; }\n"
+		"template<class T> auto Twice(T t) -> decltype(t * 2) { return t * 2; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Add(1, 2) == 3) r += 1;\n"
+		"	if (Twice(3) == 6) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.1.6.3 [dcl.type.elab] p3: class and struct name the same class in an elaborated type specifier
+	{
+		"DclElaboratedClassStruct", 1,
+		"struct S { int v; };\n"
+		"class S* p;\n"
+		"int main() { S s; s.v = 1; p = &s; return p->v; }\n"
+	},
+	//7.1.6.3 [dcl.type.elab] p3: an enum isn't named with a class key
+	{
+		"DclElaboratedEnumAsClassRefused", CONFORMANCE_REFUSED,
+		"enum E { X };\n"
+		"struct E* p;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.1.6.3 [dcl.type.elab] p3: a union is named with union
+	{
+		"DclElaboratedUnionAsStructRefused", CONFORMANCE_REFUSED,
+		"union U { int a; };\n"
+		"struct U* p;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.2 [dcl.enum] p5, p6, 4.5 [conv.prom] p4: an enum's underlying type, fixed or big enough for its values; a fixed one's values promoted
+	{
+		"DclEnumUnderlyingType", 15,
+		"template<class T, class U> struct Same { enum { V = 0 }; };\n"
+		"template<class T> struct Same<T, T> { enum { V = 1 }; };\n"
+		"enum A : unsigned char { A1 };\n"
+		"enum class B { B1 };\n"
+		"enum class C : short { C1 };\n"
+		"enum D { D1 = -1, D2 = 1 };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (sizeof(A) == 1) r += 1;\n"
+		"	if (sizeof(B) == sizeof(int) && sizeof(C) == sizeof(short)) r += 2;\n"
+		"	if ((int)D1 == -1 && D2 > D1) r += 4;\n"
+		"	A a = A1;\n"
+		"	if (Same<decltype(+a), int>::V) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.2 [dcl.enum] p10, p11: a scoped enum converts only by a cast; its enumerators are named through it
+	{
+		"DclEnumScopedConversion", 3,
+		"enum class E { X = 2, Y };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	E e = E::Y;\n"
+		"	if ((int)e == 3) r += 1;\n"
+		"	if (e == E::Y && static_cast<int>(E::X) == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.2 [dcl.enum] p10: a scoped enum's value doesn't convert to an int without a cast
+	{
+		"DclEnumScopedToIntRefused", CONFORMANCE_REFUSED,
+		"enum class E { X };\n"
+		"int main() { int i = E::X; return i; }\n"
+	},
+	//7.2 [dcl.enum] p11: a scoped enum's enumerator isn't in the scope around it
+	{
+		"DclEnumScopedUnqualifiedRefused", CONFORMANCE_REFUSED,
+		"enum class E { X };\n"
+		"int main() { E e = X; return 0; }\n"
+	},
+	//7.2 [dcl.enum] p10, p11: an unscoped enum's value converts to an integer; its enumerators are named either way
+	{
+		"DclEnumUnscopedConverts", 3,
+		"enum E { X = 5 };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	int i = X;\n"
+		"	if (i == 5) r += 1;\n"
+		"	if (E::X == X) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.2 [dcl.enum] p10, 4 [conv]: an integer doesn't convert to an enum without a cast
+	{
+		"DclEnumFromIntRefused", CONFORMANCE_REFUSED,
+		"enum E { X };\n"
+		"int main() { E e = 0; return e; }\n"
+	},
+	//7.2 [dcl.enum] p3: an opaque enum declaration, used before the enum's definition
+	{
+		"DclEnumOpaque", 3,
+		"enum class E : int;\n"
+		"enum F : char;\n"
+		"int Get(E e) { return (int)e; }\n"
+		"enum class E : int { X = 4 };\n"
+		"enum F : char { Y = 'y' };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Get(E::X) == 4) r += 1;\n"
+		"	if (Y == 'y') r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.2 [dcl.enum] p3: an unscoped enum's opaque declaration gives its underlying type
+	{
+		"DclEnumOpaqueNoBaseRefused", CONFORMANCE_REFUSED,
+		"enum F;\n"
+		"int main() { return 0; }\n"
+	},
+	//7.2 [dcl.enum] p5: an enum declared again has the same underlying type
+	{
+		"DclEnumOtherBaseRefused", CONFORMANCE_REFUSED,
+		"enum class E : int;\n"
+		"enum class E : short { X };\n"
+		"int main() { return 0; }\n"
+	},
+	//7.2 [dcl.enum] p5: an enumerator's value fits a fixed underlying type
+	{
+		"DclEnumValueNotFitRefused", CONFORMANCE_REFUSED,
+		"enum E : unsigned char { X = 256 };\n"
+		"int main() { return 0; }\n"
+	},
+	//7.2 [dcl.enum] p2: an enumerator without a value is one more than the one before
+	{
+		"DclEnumValuesIncrease", 7,
+		"enum E { A, B, C = 10, D, F = -3, G };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (A == 0 && B == 1) r += 1;\n"
+		"	if (D == 11) r += 2;\n"
+		"	if (G == -2) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.1 [namespace.def] p2: a namespace opened again adds to the same namespace
+	{
+		"DclNamespaceReopened", 3,
+		"namespace N { int a = 1; }\n"
+		"namespace N { int b = a + 1; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (N::b == 2) r += 1;\n"
+		"	if (N::a == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.1 [namespace.def] p8: an inline namespace's members are found in the namespace around it
+	{
+		"DclInlineNamespace", 7,
+		"namespace L\n"
+		"{\n"
+		"	inline namespace V2 { int Get() { return 2; } struct S { int v; }; }\n"
+		"	namespace V1 { int Get() { return 1; } }\n"
+		"}\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (L::Get() == 2) r += 1;\n"
+		"	if (L::V1::Get() == 1 && L::V2::Get() == 2) r += 2;\n"
+		"	L::S s;\n"
+		"	s.v = 4;\n"
+		"	if (s.v == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.1 [namespace.def] p8: a template in an inline namespace specialised in the namespace around it
+	{
+		"DclInlineNamespaceSpecialisation", 1,
+		"namespace L\n"
+		"{\n"
+		"	inline namespace V { template<class T> struct W { enum { v = 0 }; }; }\n"
+		"	template<> struct W<int> { enum { v = 1 }; };\n"
+		"}\n"
+		"int main() { return L::W<int>::v + L::W<char>::v; }\n"
+	},
+	//7.3.1.1 [namespace.unnamed] p1: an unnamed namespace's members are named without qualification, and through the namespace around it
+	{
+		"DclUnnamedNamespace", 3,
+		"namespace { int h = 3; int Get() { return h; } }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Get() == 3) r += 1;\n"
+		"	if (::h == 3) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.1.2 [namespace.memdef] p2: a namespace's member defined outside it with a qualified name, its body looking in the namespace
+	{
+		"DclNamespaceMemberDefinedOutside", 3,
+		"namespace N { int F(int); extern int v; namespace M { int G(); } }\n"
+		"int N::F(int x) { return x + 1; }\n"
+		"int N::v = 5;\n"
+		"int N::M::G() { return F(1) + v; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (N::F(1) == 2) r += 1;\n"
+		"	if (N::M::G() == 7) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.1.2 [namespace.memdef] p2: a member is defined in a namespace that encloses its declaration
+	{
+		"DclNamespaceDefinitionNotEnclosingRefused", CONFORMANCE_REFUSED,
+		"namespace A { int F(); }\n"
+		"namespace B { int A::F() { return 1; } }\n"
+		"int main() { return A::F(); }\n"
+	},
+	//7.3.1.2 [namespace.memdef] p2: a qualified definition is of a member declared before
+	{
+		"DclNamespaceMemberUndeclaredRefused", CONFORMANCE_REFUSED,
+		"namespace N { }\n"
+		"int N::F() { return 1; }\n"
+		"int main() { return 0; }\n"
+	},
+	//7.3.2 [namespace.alias]: an alias of a nested namespace, and an alias of an alias
+	{
+		"DclNamespaceAlias", 3,
+		"namespace Long { namespace Inner { int v = 3; } }\n"
+		"namespace LI = Long::Inner;\n"
+		"namespace L2 = LI;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (LI::v == 3) r += 1;\n"
+		"	if (L2::v == 3) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.3 [namespace.udecl] p1, p11: a using-declaration brings the functions declared before it, not those after
+	{
+		"DclUsingDeclarationOverloads", 7,
+		"namespace N { int F(int) { return 1; } }\n"
+		"using N::F;\n"
+		"namespace N { int F(char) { return 2; } }\n"
+		"int F(double) { return 3; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (F(1) == 1) r += 1;\n"
+		"	if (F('c') == 1) r += 2;\n"
+		"	if (F(1.0) == 3) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.3 [namespace.udecl] p14: a function of the same signature as one a using-declaration brings conflicts with it
+	{
+		"DclUsingDeclarationConflictRefused", CONFORMANCE_REFUSED,
+		"namespace N { int F(int) { return 1; } }\n"
+		"using N::F;\n"
+		"int F(int) { return 2; }\n"
+		"int main() { return F(1); }\n"
+	},
+	//7.3.3 [namespace.udecl] p10: a using-declaration of a name declared in the block already
+	{
+		"DclUsingDeclarationVariableConflictRefused", CONFORMANCE_REFUSED,
+		"namespace N { int x = 1; }\n"
+		"int main() { int x = 2; using N::x; return x; }\n"
+	},
+	//7.3.3 [namespace.udecl] p3, p15, p19: a class's using-declaration brings a base's overloads, with the declaration's access
+	{
+		"DclUsingDeclarationInClass", 7,
+		"struct B { int F(int) { return 1; } protected: int G() { return 4; } };\n"
+		"struct D : B { using B::F; int F(char) { return 2; } using B::G; };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	if (d.F(1) == 1) r += 1;\n"
+		"	if (d.F('c') == 2) r += 2;\n"
+		"	if (d.G() == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.3 [namespace.udecl] p15: a derived class's function hides a base's of the same parameters that a using-declaration brings
+	{
+		"DclUsingDeclarationHidden", 3,
+		"struct B { int G(int) { return 1; } };\n"
+		"struct D : B { using B::G; int G(int) { return 2; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	D d;\n"
+		"	if (d.G(1) == 2) r += 1;\n"
+		"	B& b = d;\n"
+		"	if (b.G(1) == 1) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.3 [namespace.udecl] p3: a class's using-declaration names a base's member
+	{
+		"DclUsingDeclarationNotBaseRefused", CONFORMANCE_REFUSED,
+		"namespace N { int F(); }\n"
+		"struct S { using N::F; };\n"
+		"int main() { return 0; }\n"
+	},
+	//7.3.4 [namespace.udir] p4: a nominated namespace's own using-directives count too
+	{
+		"DclUsingDirectiveTransitive", 3,
+		"namespace A { int a = 1; }\n"
+		"namespace B { using namespace A; int b = 2; }\n"
+		"using namespace B;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (a == 1) r += 1;\n"
+		"	if (b == 2) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.3.4 [namespace.udir] p6: two namespaces' names of one name are an error only where the name is used alone
+	{
+		"DclUsingDirectiveAmbiguityOnlyWhenUsed", 1,
+		"namespace A { int v = 1; }\n"
+		"namespace B { int v = 2; }\n"
+		"using namespace A;\n"
+		"using namespace B;\n"
+		"int main() { return A::v; }\n"
+	},
+	//7.3.4 [namespace.udir] p6: and where it is
+	{
+		"DclUsingDirectiveAmbiguousRefused", CONFORMANCE_REFUSED,
+		"namespace A { int v = 1; }\n"
+		"namespace B { int v = 2; }\n"
+		"using namespace A;\n"
+		"using namespace B;\n"
+		"int main() { return v; }\n"
+	},
+	//7.3.4 [namespace.udir] p2, p3: a using-directive in a block lasts to its end; a local declaration hides the namespace's
+	{
+		"DclUsingDirectiveInBlock", 3,
+		"namespace A { int v = 1; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	{\n"
+		"		using namespace A;\n"
+		"		if (v == 1) r += 1;\n"
+		"		int v = 2;\n"
+		"		if (v == 2) r += 2;\n"
+		"	}\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.4 [dcl.asm]: an asm declaration
+	{
+		"DclAsmDeclaration", 1,
+		"int main()\n"
+		"{\n"
+		"	asm(\"nop\");\n"
+		"	return 1;\n"
+		"}\n"
+	},
+	//7.5 [dcl.link] p1, p2: extern "C" on one declaration and on a block of them
+	{
+		"DclLinkageC", 3,
+		"extern \"C\" int CAdd(int a, int b) { return a + b; }\n"
+		"extern \"C\" { int gc = 3; int CGet() { return gc; } }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (CAdd(1, 2) == 3) r += 1;\n"
+		"	if (CGet() == 3) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//7.5 [dcl.link] p4: linkage specifications nest, the innermost deciding
+	{
+		"DclLinkageNested", 1,
+		"extern \"C\" { extern \"C++\" { int Pp(int) { return 1; } int Pp(char) { return 2; } } }\n"
+		"int main() { return Pp(1) + Pp('c') - 2; }\n"
+	},
+	//7.5 [dcl.link] p6: two extern "C" functions of one name are one function, which can't be overloaded
+	{
+		"DclLinkageCOverloadRefused", CONFORMANCE_REFUSED,
+		"extern \"C\" int F(int) { return 1; }\n"
+		"extern \"C\" int F(char) { return 2; }\n"
+		"int main() { return F(1); }\n"
+	},
+	//7.5 [dcl.link] p6: extern "C" declarations of a function in two namespaces are one function
+	{
+		"DclLinkageCInNamespaces", 1,
+		"namespace A { extern \"C\" int CF(); }\n"
+		"namespace B { extern \"C\" int CF(); }\n"
+		"extern \"C\" int CF() { return 1; }\n"
+		"int main() { return (A::CF == B::CF) ? A::CF() : 0; }\n"
+	},
+	//7.6.3 [dcl.attr.noreturn]: [[noreturn]] on a function that doesn't return
+	{
+		"DclAttributeNoreturn", 1,
+		"[[noreturn]] void Forever() { for (;;) { } }\n"
+		"int main()\n"
+		"{\n"
+		"	int x = 1;\n"
+		"	if (x == 0) Forever();\n"
+		"	return x;\n"
+		"}\n"
+	},
+	//7.6.5 [dcl.attr.deprecated]: [[deprecated]] makes a use a warning, not an error
+	{
+		"DclAttributeDeprecated", 1,
+		"[[deprecated(\"use New\")]] int Old() { return 1; }\n"
+		"int main() { return Old(); }\n"
+	},
+	//7.6.1 [dcl.attr.grammar] p5: an attribute the implementation doesn't know is ignored
+	{
+		"DclAttributeUnknownIgnored", 1,
+		"[[vendor_thing]] int F() { return 1; }\n"
+		"int main() { return F(); }\n"
+	},
+	//7.6.4 [dcl.attr.depend]: [[carries_dependency]] on a parameter is accepted
+	{
+		"DclAttributeCarriesDependency", 1,
+		"int F([[carries_dependency]] int* p) { return *p; }\n"
+		"int main() { int x = 1; return F(&x); }\n"
+	},
+};
+
+
 //Clause 8, declarators [dcl.decl].
 static const SConformanceCase gasConformanceClause8[] =
 {
