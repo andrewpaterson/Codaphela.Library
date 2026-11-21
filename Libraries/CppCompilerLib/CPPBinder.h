@@ -237,6 +237,8 @@ protected:
 	void	ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
 	void	CheckAccess(CCPPBoundCall* pcBound, CCPPSyntax* pcNode);
 	void	ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
+	CCPPFunction*	FindConversion(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
+	CCPPFunction*	FindConversionTo(CCPPClass* pcClass, SCPP65Type* psTarget);
 	void	ResolvePseudoDestructor(CCPPSyntaxMemberExpression* pcMember, SCPP65Type* psType, CCPPBoundCall* pcBound);
 	bool	ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound);
 	bool	BindAnOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport, bool bOwnOnly);

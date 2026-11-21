@@ -428,6 +428,31 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//3.3.7 [basic.scope.class] p1, 9.2 [class.mem] p2: a default argument in a class names members declared after it, in a class template and a constructor too, and for a function defined outside the class
+	{
+		"BasicClassScopeDefaultArguments", 15,
+		"template<class T> struct A { int Get(int a = n) { return a; } static const int n = sizeof(T) * 0 + 6; };\n"
+		"struct B\n"
+		"{\n"
+		"	B(int a = Seed()) : v(a) { }\n"
+		"	int Add(int a, int b = Inner::k);\n"
+		"	static int Seed() { return 7; }\n"
+		"	int v;\n"
+		"	struct Inner { static const int k = 2; };\n"
+		"};\n"
+		"int B::Add(int a, int b) { return a + b; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	A<char> x;\n"
+		"	if (x.Get() == 6) r += 1;\n"
+		"	B b;\n"
+		"	if (b.v == 7) r += 2;\n"
+		"	if (b.Add(1) == 3) r += 4;\n"
+		"	if (A<int>().Get(1) == 1) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//3.3.7 [basic.scope.class] p1, 3.4.1 [basic.lookup.unqual] p8: after a member's declarator-id outside its class, the class's names are in scope
 	{
 		"BasicClassScopeOutOfClassDefinition", 7,
@@ -811,6 +836,22 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	int r = 0;\n"
 		"	if (s.operator I() == 7) r += 1;\n"
 		"	if (s.operator D() == 2.5) r += 2;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//3.4.5 [basic.lookup.classref] p7, 12.3.2 [class.conv.fct] p1: a conversion function called by name is the one to that type, a base's too, through a pointer and with a qualifier
+	{
+		"BasicConversionFunctionCalledByName", 7,
+		"struct B { operator int() const { return 3; } };\n"
+		"struct D : B { operator char() const { return 'x'; } };\n"
+		"int main()\n"
+		"{\n"
+		"	D d;\n"
+		"	const D* p = &d;\n"
+		"	int r = 0;\n"
+		"	if (p->operator int() == 3) r += 1;\n"
+		"	if (d.operator char() == 'x') r += 2;\n"
+		"	if (d.B::operator int() == 3) r += 4;\n"
 		"	return r;\n"
 		"}\n"
 	},

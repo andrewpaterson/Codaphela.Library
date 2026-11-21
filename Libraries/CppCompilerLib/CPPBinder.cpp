@@ -627,7 +627,13 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	}
 	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcBound->mpapcArguments, papcExplicit, eObject) : NULL;
 	pcFunction = NULL;
-	if (!pcTemplate || !papcExplicit)
+	if (pcComponent->meKind == CPPNC_Conversion)
+	{
+		//s.operator double(): the conversion function to the type it names, not the class's others.
+		pcFunction = FindConversion(pcLookup, pcComponent, pcCallee);
+		pcTemplate = pcFunction ? NULL : pcTemplate;
+	}
+	if (!pcFunction && (!pcTemplate || !papcExplicit))
 	{
 		//With a member template to fall back on, that no function fits is no error.
 		if (pcTemplate)
@@ -685,6 +691,77 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	pcBound->meHow = CPPBC_Member;
 	pcBound->mpcFunction = pcFunction;
 	pcBound->mbVirtual = bVirtual;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The conversion function of pcClass, or of a base, to the type a
+// conversion-function-id names (pcComponent): its type's name is looked up
+// in the class first, then where the call is.  NULL if there is none, or
+// the type isn't known.  [basic.lookup.classref] 7, [class.conv.fct] 1
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::FindConversion(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxTypeId*			pcTypeId;
+	CCPPSyntax*					pcSpecifier;
+	CCPPSyntaxName*				pcName;
+	CCPPSymbol*					pcSymbol;
+	SCPP65Type*					psTarget;
+
+	pcTypeId = (CCPPSyntaxTypeId*)pcComponent->mpcType;
+	if (!pcTypeId || !pcTypeId->mpcSpecifiers)
+	{
+		return NULL;
+	}
+	pcSpecifier = pcTypeId->mpcSpecifiers->mpcType;
+	pcName = (pcSpecifier && (pcSpecifier->GetKind() == CPPS_NamedTypeSpecifier)) ? ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifier)->mpcName : NULL;
+	if (pcName && pcName->IsSimple() && pcClass->mpcSymbol && pcClass->mpcSymbol->mpcMembers)
+	{
+		pcSymbol = pcClass->mpcSymbol->mpcMembers->FindMember(mpcUnit->GetComponentName(pcName->GetLast()), CPPL_Type);
+		if (pcSymbol)
+		{
+			pcName->mpcSymbol = pcSymbol;
+			pcName->GetLast()->mpcSymbol = pcSymbol;
+		}
+	}
+	psTarget = mpcUnit->GetDeclarators()->GetTypeIdType(pcTypeId);
+	if (!psTarget)
+	{
+		return NULL;
+	}
+	return FindConversionTo(pcClass, psTarget);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcClass's conversion function to psTarget, or the nearest base's.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPBinder::FindConversionTo(CCPPClass* pcClass, SCPP65Type* psTarget)
+{
+	CCPPFunction*	pcFunction;
+	size			i;
+
+	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
+	{
+		pcFunction = pcClass->mapcMembers.GetPtr(i);
+		if (pcFunction->IsConversion() && pcFunction->mpsReturn && pcFunction->mpsReturn->Same(psTarget))
+		{
+			return pcFunction;
+		}
+	}
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		pcFunction = FindConversionTo(pcClass->macBases.Get(i)->pcClass, psTarget);
+		if (pcFunction)
+		{
+			return pcFunction;
+		}
+	}
+	return NULL;
 }
 
 

@@ -356,6 +356,7 @@ void CCPPParser::ParseDeferredBodies(void)
 	SCPPParserPosition	sPosition;
 	SCPPParserPosition	sBody;
 	SCPPParserState		sState;
+	CCPPSyntax*			pcDefault;
 
 	//The bodies of member functions defined in a class, now that the class is complete.  [class.mem] 6  A class in one
 	//of them comes back here when it ends, and takes the rest: this loop then has none left.
@@ -371,7 +372,18 @@ void CCPPParser::ParseDeferredBodies(void)
 		sBody.iToken = sDeferred.iStart;
 		sBody.bHalf = false;
 		Rewind(sBody);
-		if (ParseFunctionBody(sDeferred.pcFunction))
+		if (sDeferred.pcParameter)
+		{
+			//A default argument, parsed again over the same tokens in its function's scope, now finding the members
+			//declared after it.  What doesn't end where it did the first time keeps the first parse.
+			mpcScope = sDeferred.pcScope;
+			pcDefault = ParseInitializerClause(sDeferred.pcParameter);
+			if (pcDefault && (PreviousToken() == sDeferred.iEnd))
+			{
+				sDeferred.pcParameter->mpcDefault = pcDefault;
+			}
+		}
+		else if (ParseFunctionBody(sDeferred.pcFunction))
 		{
 			if (PreviousToken() != sDeferred.iEnd)
 			{

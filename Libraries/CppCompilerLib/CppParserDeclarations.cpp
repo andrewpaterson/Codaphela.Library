@@ -770,6 +770,7 @@ CCPPSyntaxDeclaration* CCPPParser::ParseFunctionDefinition(CCPPSyntax* pcParent,
 		{
 			psDeferred = macDeferred.Add();
 			psDeferred->pcFunction = pcFunction;
+			psDeferred->pcParameter = NULL;
 			psDeferred->pcScope = pcFunction->mpcScope;
 			psDeferred->iStart = pcFunction->miBodyStart;
 			psDeferred->iEnd = pcFunction->miBodyEnd;
@@ -1660,7 +1661,8 @@ ECPPDeclSpecifierStep CCPPParser::ParseNamedDeclSpecifier(CCPPSyntaxDeclSpecifie
 	}
 
 	//Where only a type can be written, decltype(d)::T is one: the parser doesn't know what d's members are.
-	if (pcSymbol ? !pcSymbol->IsType() : !(IsUnknownNameAType(eContext) || ((eContext == CPPDC_TypeId) && pcName->IsQualifiedByDecltype())))
+	//After operator only a type can be written, s.operator I() naming the object's class's I.  [basic.lookup.classref] 7
+	if (pcSymbol ? !pcSymbol->IsType() : !(IsUnknownNameAType(eContext) || ((eContext == CPPDC_TypeId) && (pcName->IsQualifiedByDecltype() || mbConversionType))))
 	{
 		Rewind(sPosition);
 		return CPPDSS_Stop;

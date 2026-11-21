@@ -439,14 +439,23 @@ CCPPClass* CCPPUnit::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTempla
 //////////////////////////////////////////////////////////////////////////
 //
 // The class a qualified member name (object.Qualifier::f) names: pcClass or one of its bases.  A class
-// template's name without arguments is pcClass's base instance of it.
+// template's name without arguments is pcClass's base instance of it.  A qualifier the context doesn't
+// find is looked up in the object's class: p->Base::v, Base a member typedef.  [basic.lookup.classref] 4
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPUnit::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
 {
 	CCPPClass*	pcQualifier;
+	CCPPSymbol*	pcSymbol;
+	int64		lliName;
 
-	pcQualifier = GetComponentClass(pcComponent, NULL, pcNode, pcClass);
+	pcSymbol = NULL;
+	if (pcComponent && !pcComponent->mpcSymbol && (pcComponent->meKind == CPPNC_Identifier) && pcClass->mpcSymbol && pcClass->mpcSymbol->mpcMembers)
+	{
+		lliName = GetComponentName(pcComponent);
+		pcSymbol = (lliName != -1) ? pcClass->mpcSymbol->mpcMembers->FindMember(lliName, CPPL_Type) : NULL;
+	}
+	pcQualifier = GetComponentClass(pcComponent, pcSymbol, pcNode, pcClass);
 	if (!pcQualifier || !IsDerived(pcClass, pcQualifier, NULL))
 	{
 		Error(pcNode, "The qualifier is not the object's class or one of its bases");

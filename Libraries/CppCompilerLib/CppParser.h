@@ -48,10 +48,12 @@ struct SCPPParserState
 };
 
 
-//A member function body, parsed when its class is complete.  [class.mem] 6
+//A member function body, parsed when its class is complete; or a member function's parameter's default argument,
+//parsed then again so it finds the members declared after it.  [class.mem] 2, [basic.scope.class] 1
 struct SCPPDeferredBody
 {
 	CCPPSyntaxFunctionDefinition*	pcFunction;
+	CCPPSyntaxParameter*			pcParameter;
 	CCPPScope*						pcScope;
 	int								iStart;
 	int								iEnd;
@@ -128,6 +130,7 @@ protected:
 	bool					mbNoGreater;			//In a template argument list, where '>' ends the argument.
 	bool					mbLambdaDeclarator;		//A lambda's parameters are being read: mutable is one of their qualifiers.
 	bool					mbMemberName;			//The name after . or ->, which is a member of a type the parser doesn't know.
+	bool					mbConversionType;		//The type after operator: an unknown name is one (of the object's class, in s.operator I()).
 	ECPPLookup				meNameLookup;			//What the next name's last part is looked up as: a type after class, a namespace after using namespace.
 	int						miClassDepth;
 	bool					mbDeclaringTemplate;	//The declaration directly in a template declaration declares a template.

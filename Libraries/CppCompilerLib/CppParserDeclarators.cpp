@@ -640,6 +640,8 @@ CCPPSyntaxExceptionSpecification* CCPPParser::ParseExceptionSpecification(CCPPSy
 CCPPSyntaxParameter* CCPPParser::ParseParameter(CCPPSyntax* pcParent)
 {
 	CCPPSyntaxParameter*	pcParameter;
+	SCPPDeferredBody*		psDeferred;
+	int						iStart;
 
 	//[dcl.fct] parameter-declaration
 	pcParameter = mpcMemory->Create<CCPPSyntaxParameter>(pcParent);
@@ -664,10 +666,21 @@ CCPPSyntaxParameter* CCPPParser::ParseParameter(CCPPSyntax* pcParent)
 
 	if (Accept(CT_Assignment))
 	{
+		iStart = CurrentToken();
 		pcParameter->mpcDefault = ParseInitializerClause(pcParameter);
 		if (!pcParameter->mpcDefault)
 		{
 			return NULL;
+		}
+		if ((miTentative == 0) && (mpcScope->meKind == CPPSC_Function) && mpcScope->mpcParent && (mpcScope->mpcParent->meKind == CPPSC_Class))
+		{
+			//A member function's: parsed again when the class is complete (ParseDeferredBodies).
+			psDeferred = macDeferred.Add();
+			psDeferred->pcFunction = NULL;
+			psDeferred->pcParameter = pcParameter;
+			psDeferred->pcScope = mpcScope;
+			psDeferred->iStart = iStart;
+			psDeferred->iEnd = PreviousToken();
 		}
 	}
 	pcParameter->miLastToken = PreviousToken();
@@ -748,11 +761,15 @@ CCPPSyntaxTypeId* CCPPParser::ParseConversionTypeId(CCPPSyntax* pcParent)
 {
 	CCPPSyntaxTypeId*			pcType;
 	CCPPSyntaxPointerOperator*	pcPointer;
+	bool						bConversionType;
 
 	//The type of operator T: type specifiers and pointer operators only, so operator int() parses.  [class.conv.fct]
 	pcType = mpcMemory->Create<CCPPSyntaxTypeId>(pcParent);
 	pcType->miFirstToken = CurrentToken();
+	bConversionType = mbConversionType;
+	mbConversionType = true;
 	pcType->mpcSpecifiers = ParseDeclSpecifiers(pcType, CPPDC_TypeId);
+	mbConversionType = bConversionType;
 	if (!pcType->mpcSpecifiers)
 	{
 		return NULL;
