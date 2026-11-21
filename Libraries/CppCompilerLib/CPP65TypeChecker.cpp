@@ -3128,6 +3128,11 @@ const char* CCPP65TypeChecker::NotAPlace(CCPPSyntaxName* pcName)
 	{
 		return "A member that isn't static is used without an object";
 	}
+	if (pcName->mpcSymbol && (pcName->mpcSymbol->meKind == CPPSK_Field))
+	{
+		//A member of a class this function's class is nested in, which has no object here.  [class.nest] 1
+		return "A member that isn't static is used without an object of its class";
+	}
 	if (mpcUnit->IsOuterLocal(pcName->mpcSymbol))
 	{
 		//[class.local] 1

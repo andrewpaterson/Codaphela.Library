@@ -501,6 +501,9 @@ public:
 	CCPPVariable*			EnclosingStatic(CCPPSymbol* pcSymbol);
 	CCPPVariable*			RedeclaredVariable(CCPPSymbol* pcSymbol);
 	bool					AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier);
+	bool					CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration);
+	void					CheckUncalledFunctions(void);
+	bool					IsSourceFileName(const char* szName);
 	CCPPVariable*			NamespaceVariable(CCPPSymbol* pcSymbol);
 	bool					SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond);
 	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);

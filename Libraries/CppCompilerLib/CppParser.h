@@ -77,6 +77,19 @@ struct SCPPTentative
 typedef CArrayTemplate<SCPPDeferredBody>	CArrayDeferredBodies;
 
 
+//An enum's first declaration: whether it is scoped, and its underlying type's tokens (-1 for none), which every later
+//declaration gives again.  [dcl.enum] 5
+struct SCPPEnumFirst
+{
+	bool	bScoped;
+	int		iBaseFirst;
+	int		iBaseLast;
+};
+
+
+typedef CMapLongTemplate<SCPPEnumFirst>	CMapEnumFirsts;
+
+
 enum ECPPDeclarationContext
 {
 	CPPDC_Namespace,
@@ -136,6 +149,7 @@ protected:
 	int						miClassDepth;
 	bool					mbDeclaringTemplate;	//The declaration directly in a template declaration declares a template.
 	int						miTemplates;			//Templates being parsed, nested: their bodies are parsed in a system header too (ParseFunctionDefinition).
+	CMapEnumFirsts			mcEnumFirsts;			//Each enum's first declaration (CheckEnumRedeclaration).
 	CArrayInt64				malliLabels;			//The labels of the function bodies being parsed, from muiLabelsStart the innermost's.
 	size					muiLabelsStart;
 	CArrayDeferredBodies	macDeferred;			//The bodies of member functions to parse once their class is complete, first found first...
@@ -278,6 +292,9 @@ protected:
 	CCPPSyntaxFunctionSuffix*		ParseFunctionSuffix(CCPPSyntax* pcParent, CCPPScope* pcQualifierScope);
 	CCPPScope*						QualifierScope(CCPPSyntaxDeclarator* pcDeclarator);
 	bool							CheckRedeclaration(int64 lliName, ECPPSymbolKind eKind, bool bExtern, int iToken, CCPPScope* pcScope);
+	void							CheckDeclSpecifiers(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext);
+	void							CheckEnumRedeclaration(CCPPSymbol* pcSymbol, CCPPSyntaxEnumSpecifier* pcEnum);
+	bool							SameTokens(int iFirst, int iLast, int iOtherFirst, int iOtherLast);
 	bool							Clash(CCPPScope* pcScope, int64 lliName, ECPPSymbolKind eKind, bool bExtern);
 	bool							OuterDeclares(CCPPScope* pcScope, int64 lliName, bool bParameters);
 	bool							IsExternDeclaration(CCPPSymbol* pcSymbol);

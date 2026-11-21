@@ -37,6 +37,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 	CCPPScope*							pcQualifier;
 	CArraySyntax						apcAttributes;
 	ECppTokens							eKey;
+	ECppTokens							eDeclared;
 	int									iFirstToken;
 	int64								lliName;
 	bool								bSimple;
@@ -113,6 +114,16 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 		pcClass->mpcName->mpcParent = pcElaborated;
 
 		pcSymbol = pcClass->mpcName->mpcSymbol;
+		if (pcSymbol && pcSymbol->IsClass() && pcSymbol->mpcDeclaration && (miTentative == 0) && !IsSkimming(iFirstToken))
+		{
+			//A union is named with union, a class with class or struct.  [dcl.type.elab] 3
+			eDeclared = (pcSymbol->mpcDeclaration->GetKind() == CPPS_ClassSpecifier) ? ((CCPPSyntaxClassSpecifier*)pcSymbol->mpcDeclaration)->meKey :
+						((pcSymbol->mpcDeclaration->GetKind() == CPPS_ElaboratedTypeSpecifier) ? ((CCPPSyntaxElaboratedTypeSpecifier*)pcSymbol->mpcDeclaration)->meKey : CT_class);
+			if ((eDeclared == CT_union) != (eKey == CT_union))
+			{
+				ErrorAt(iFirstToken, (char*)"A union is named with union, and a class with class or struct");
+			}
+		}
 		if (bSimple)
 		{
 			if (bFriend)
@@ -468,6 +479,11 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 			Error("Expected an enum name or body.");
 			return NULL;
 		}
+		if (!pcEnum->mbScoped && !pcEnum->mpcBase && Is(CT_SemiColon) && (miTentative == 0) && !IsSkimming(pcEnum->miFirstToken))
+		{
+			//An unscoped enum declared without its body gives its type: enum E : int;  [dcl.enum] 2
+			ErrorAt(pcEnum->miFirstToken, (char*)"An enum declared without its enumerators is a scoped one, or gives its underlying type");
+		}
 		pcElaborated = mpcMemory->Create<CCPPSyntaxElaboratedTypeSpecifier>(pcParent);
 		pcElaborated->miFirstToken = pcEnum->miFirstToken;
 		pcElaborated->meKey = CT_enum;
@@ -476,6 +492,10 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 		if ((lliName != -1) && !pcEnum->mpcName->mpcSymbol)
 		{
 			pcEnum->mpcName->mpcSymbol = Declare(lliName, pcComponent->miName, CPPSK_Enum, pcElaborated, pcDeclarationScope);
+		}
+		if (pcEnum->mbScoped || pcEnum->mpcBase)
+		{
+			CheckEnumRedeclaration(pcEnum->mpcName->mpcSymbol, pcEnum);
 		}
 		pcElaborated->miLastToken = PreviousToken();
 		return pcElaborated;
@@ -486,6 +506,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseEnumSpecifier(CCPPSyntax* pcParent, EC
 	{
 		pcSymbol = pcDeclarationScope->FindHere(lliName);
 		pcSymbol = ReuseOrDeclare((pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? pcSymbol : NULL, lliName, pcComponent->miName, CPPSK_Enum, pcEnum, pcDeclarationScope);
+		CheckEnumRedeclaration(pcSymbol, pcEnum);
 	}
 	else if (pcEnum->mpcName)
 	{
@@ -785,3 +806,85 @@ CCPPSyntax* CCPPParser::ParseTemplateParameter(CCPPSyntax* pcParent)
 	return pcValue;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enum declared again is scoped or not as it was first, with the same
+// underlying type (an unscoped one's definition may leave it out where the
+// first gave none).  [dcl.enum] 5
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckEnumRedeclaration(CCPPSymbol* pcSymbol, CCPPSyntaxEnumSpecifier* pcEnum)
+{
+	SCPPEnumFirst*	psFirst;
+	SCPPEnumFirst	sFirst;
+	int				iFirst;
+	int				iLast;
+
+	if (!pcSymbol || (miTentative > 0) || IsSkimming(pcEnum->miFirstToken))
+	{
+		return;
+	}
+	iFirst = pcEnum->mpcBase ? pcEnum->mpcBase->miFirstToken : -1;
+	iLast = pcEnum->mpcBase ? pcEnum->mpcBase->miLastToken : -1;
+	psFirst = mcEnumFirsts.Get((int64)(size)pcSymbol);
+	if (!psFirst)
+	{
+		sFirst.bScoped = pcEnum->mbScoped;
+		sFirst.iBaseFirst = iFirst;
+		sFirst.iBaseLast = iLast;
+		mcEnumFirsts.Put((int64)(size)pcSymbol, &sFirst);
+		return;
+	}
+	if ((psFirst->bScoped != pcEnum->mbScoped) || ((psFirst->iBaseFirst == -1) != (iFirst == -1) && (pcEnum->mbScoped || (iFirst != -1))) ||
+		((psFirst->iBaseFirst != -1) && (iFirst != -1) && !SameTokens(psFirst->iBaseFirst, psFirst->iBaseLast, iFirst, iLast)))
+	{
+		ErrorAt(pcEnum->miFirstToken, (char*)"An enum declared again is scoped as it was, with the same underlying type");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether two runs of tokens are the same words and names.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::SameTokens(int iFirst, int iLast, int iOtherFirst, int iOtherLast)
+{
+	CCPPToken*	pcToken;
+	CCPPToken*	pcOther;
+	int			i;
+
+	if ((iLast - iFirst) != (iOtherLast - iOtherFirst))
+	{
+		return false;
+	}
+	for (i = 0; i <= iLast - iFirst; i++)
+	{
+		pcToken = mpcTokeniser->Get(iFirst + i);
+		pcOther = mpcTokeniser->Get(iOtherFirst + i);
+		if (!pcToken || !pcOther)
+		{
+			return false;
+		}
+		if (pcToken->IsReservedWord() && pcOther->IsReservedWord())
+		{
+			if (((CCTReservedWord*)pcToken)->GetToken() != ((CCTReservedWord*)pcOther)->GetToken())
+			{
+				return false;
+			}
+		}
+		else if (pcToken->IsIdentifier() && pcOther->IsIdentifier())
+		{
+			if (GetTokenIdentifier(iFirst + i) != GetTokenIdentifier(iOtherFirst + i))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
+}

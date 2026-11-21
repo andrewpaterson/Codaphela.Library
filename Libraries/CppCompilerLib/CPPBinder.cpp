@@ -1945,6 +1945,17 @@ bool CCPPBinder::CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* p
 	apcValue.Init();
 	apcValue.Add(pcInit->mpcInitializer);
 	papcArguments = (pcInit->mpcInitializer->GetKind() == CPPS_InitializerList) ? mpcUnit->ListElements(pcInit->mpcInitializer) : &apcValue;
+	if ((papcArguments == &apcValue) && !CopiesByConstructor(pcClass, pcInit->mpcInitializer))
+	{
+		//= an object of the class, which no constructor of its own copies: it is copied as its parts or bytes are.
+		psValue = mpcUnit->ValueTypeOf(pcInit->mpcInitializer);
+		psValue = psValue ? psValue->WithoutReference() : NULL;
+		if (psValue && psValue->IsClass() && mpcUnit->IsDerived(psValue->pcClass, pcClass, NULL))
+		{
+			apcValue.Kill();
+			return true;
+		}
+	}
 	bResult = true;
 	if ((papcArguments->NumElements() > 0) && BindConstruction(pcClass, papcArguments, pcInit, &cBound, false) && (cBound.meHow == CPPBO_Constructor))
 	{

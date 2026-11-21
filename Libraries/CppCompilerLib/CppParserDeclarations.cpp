@@ -407,6 +407,12 @@ CCPPSyntaxDeclaration* CCPPParser::ParseUsing(CCPPSyntax* pcParent)
 			ErrorAt(iFirstToken, "The using-declaration's name is declared here already");
 			return NULL;
 		}
+		if (pcSymbol && (mpcScope->meKind == CPPSC_Class) && pcSymbol->mpcScope && (pcSymbol->mpcScope->meKind == CPPSC_Namespace) && pcUsing->mpcName->mpcLookup && (pcUsing->mpcName->mpcLookup->meKind == CPPSC_Namespace) && !IsSkimming(iFirstToken))
+		{
+			//In a class, a using-declaration names a base's member.  [namespace.udecl] 3
+			ErrorAt(iFirstToken, "A class's using-declaration names a member of one of its bases");
+			return NULL;
+		}
 		if (pcSymbol)
 		{
 			mpcScope->AddAlias(pcSymbol->mlliName, pcSymbol, iFirstToken);
@@ -1013,6 +1019,24 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 	}
 
 	pcComponent = pcName->GetLast();
+	if ((pcName->macpComponents.NumElements() > 1) && pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_STATIC) && pcName->mpcLookup && (pcName->mpcLookup->meKind == CPPSC_Class) && (miTentative == 0) && !IsSkimming(pcName->miFirstToken))
+	{
+		//[dcl.stc] 5, [class.static.data] 5
+		ErrorAt(pcName->miFirstToken, (char*)"static is written on a member's declaration in its class, not on its definition outside it");
+	}
+	if (pcName->IsSimple() && pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_EXPLICIT) && (eContext == CPPDC_Class) && (miTentative == 0) && pcComponent &&
+		(pcComponent->meKind != CPPNC_Conversion) && !(pcDeclarator->IsFunction() && IsConstructorName(pcName)))
+	{
+		//[dcl.fct.spec] 6
+		ErrorAt(pcName->miFirstToken, (char*)"explicit is for a constructor or a conversion function");
+	}
+	if (!pcName->IsSimple() && !pcName->mpcSymbol && pcComponent && (pcComponent->meKind == CPPNC_Identifier) && !pcComponent->mbTemplateArguments && (pcComponent->miName != -1) && pcName->mpcLookup &&
+		((pcName->mpcLookup->meKind == CPPSC_Namespace) || ((pcName->mpcLookup->meKind == CPPSC_Class) && !pcName->mpcLookup->IsDependent())) && (pcName->mpcLookup != mpcScope) &&
+		(miTentative == 0) && !IsSkimming(pcName->miFirstToken) && !(pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_FRIEND)))
+	{
+		//N::F or C::F defines what N or C declares.  [namespace.memdef] 2, [class.mfct] 2
+		ErrorAt(pcComponent->miName, (char*)"The qualified name is of nothing its namespace or class declares");
+	}
 	if (!pcName->IsSimple())
 	{
 		//A qualified name declares a member declared before, as in void CChars::Init(void).  Operators, destructors and
@@ -1618,7 +1642,66 @@ CCPPSyntaxDeclSpecifiers* CCPPParser::ParseDeclSpecifiers(CCPPSyntax* pcParent, 
 	}
 
 	pcSpecifiers->miLastToken = PreviousToken();
+	CheckDeclSpecifiers(pcSpecifiers, eContext);
 	return pcSpecifiers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a declaration's specifiers may not be together or where they are:
+// two storage classes; mutable on what isn't a member, or with const or
+// static; virtual, explicit and friend outside a class; constexpr with
+// virtual; type keywords that make no type (unsigned double, long long
+// long, short char).  [dcl.stc] 1, 11, [dcl.fct.spec] 5, 6, [dcl.friend] 1,
+// [dcl.constexpr] 3, [dcl.type.simple] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPParser::CheckDeclSpecifiers(CCPPSyntaxDeclSpecifiers* pcSpecifiers, ECPPDeclarationContext eContext)
+{
+	uint32		uiFlags;
+	uint32		uiKeys;
+	uint32		uiBase;
+	int			iStorage;
+	const char*	szError;
+
+	if ((miTentative > 0) || (pcSpecifiers->miFirstToken < 0) || IsSkimming(pcSpecifiers->miFirstToken))
+	{
+		return;
+	}
+	uiFlags = pcSpecifiers->muiFlags;
+	uiKeys = pcSpecifiers->muiTypeKeywords;
+	iStorage = ((uiFlags & CPPDS_STATIC) ? 1 : 0) + ((uiFlags & CPPDS_EXTERN) ? 1 : 0) + ((uiFlags & CPPDS_REGISTER) ? 1 : 0) + ((uiFlags & CPPDS_MUTABLE) ? 1 : 0);
+	uiBase = uiKeys & (CPPTK_VOID | CPPTK_BOOL | CPPTK_CHAR | CPPTK_WCHAR_T | CPPTK_CHAR16_T | CPPTK_CHAR32_T | CPPTK_INT | CPPTK_FLOAT | CPPTK_DOUBLE | CPPTK_AUTO);
+	szError = NULL;
+	if ((iStorage > 1) || ((uiFlags & CPPDS_THREAD_LOCAL) && (uiFlags & (CPPDS_REGISTER | CPPDS_MUTABLE))))
+	{
+		szError = "A declaration has one storage class: static, extern, register or mutable (and thread_local with static or extern)";
+	}
+	else if ((uiFlags & CPPDS_MUTABLE) && ((eContext != CPPDC_Class) || (uiFlags & (CPPDS_CONST | CPPDS_STATIC))))
+	{
+		szError = "mutable is for a class's member that is neither static nor const";
+	}
+	else if ((uiFlags & (CPPDS_VIRTUAL | CPPDS_EXPLICIT | CPPDS_FRIEND)) && (eContext != CPPDC_Class))
+	{
+		szError = "virtual, explicit and friend are written only in a class";
+	}
+	else if ((uiFlags & CPPDS_CONSTEXPR) && (uiFlags & CPPDS_VIRTUAL))
+	{
+		szError = "A constexpr function isn't virtual";
+	}
+	else if ((uiBase & (uiBase - 1)) || (pcSpecifiers->miLongs > 2) || ((uiKeys & CPPTK_SIGNED) && (uiKeys & CPPTK_UNSIGNED)) ||
+			 ((pcSpecifiers->miLongs > 0) && (uiKeys & (CPPTK_SHORT | CPPTK_VOID | CPPTK_BOOL | CPPTK_CHAR | CPPTK_WCHAR_T | CPPTK_CHAR16_T | CPPTK_CHAR32_T | CPPTK_FLOAT | CPPTK_AUTO))) ||
+			 ((pcSpecifiers->miLongs > 1) && (uiKeys & CPPTK_DOUBLE)) ||
+			 ((uiKeys & CPPTK_SHORT) && (uiKeys & (CPPTK_VOID | CPPTK_BOOL | CPPTK_CHAR | CPPTK_WCHAR_T | CPPTK_CHAR16_T | CPPTK_CHAR32_T | CPPTK_FLOAT | CPPTK_DOUBLE | CPPTK_AUTO))) ||
+			 ((uiKeys & (CPPTK_SIGNED | CPPTK_UNSIGNED)) && (uiKeys & (CPPTK_VOID | CPPTK_BOOL | CPPTK_WCHAR_T | CPPTK_CHAR16_T | CPPTK_CHAR32_T | CPPTK_FLOAT | CPPTK_DOUBLE | CPPTK_AUTO))))
+	{
+		szError = "These type specifiers make no type together";
+	}
+	if (szError)
+	{
+		ErrorAt(pcSpecifiers->miFirstToken, (char*)szError);
+	}
 }
 
 

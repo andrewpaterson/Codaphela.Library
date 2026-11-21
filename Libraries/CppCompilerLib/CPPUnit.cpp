@@ -566,6 +566,7 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	{
 		GenerateQueued();
 	}
+	CheckUncalledFunctions();
 	ReportClassErrors();
 	ReportNamedInstances();
 	CheckContext();
@@ -2816,6 +2817,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	bool						bConstThis;
 	bool						bVolatileThis;
 	bool						bUndeduced;
+	bool						bSameParameters;
 	ECPPRefQualifier			eRefQualifier;
 	bool						bFriend;
 	CCPPScope*					pcNamespace;
@@ -3018,6 +3020,28 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		pcFunction->mbConstexpr |= (uiFlags & CPPDS_CONSTEXPR) != 0;
 		CheckRedeclaredExceptions(pcFunction, pcDeclarator);
 		return pcFunction;
+	}
+
+	if (mcContext.IsCLinkage() && !pcClass && !pcTemplate)
+	{
+		for (pcOther = FirstFunctionOfName(lliName); pcOther; pcOther = pcOther->mpcNextOfName)
+		{
+			if (!pcOther->mbCLinkage || pcOther->mpcClass)
+			{
+				continue;
+			}
+			bSameParameters = (pcOther->mapsParameters.NumElements() == apsParameters.NumElements()) && (pcOther->mbVariadic == pcSuffix->mbVariadic);
+			for (j = 0; bSameParameters && (j < apsParameters.NumElements()); j++)
+			{
+				bSameParameters = pcOther->mapsParameters.GetPtr(j)->Same(apsParameters.GetPtr(j));
+			}
+			if (!bSameParameters)
+			{
+				//Two extern "C" functions of a name are one function, whatever namespace each is in.  [dcl.link] 6
+				ReportOnce(pcDeclarator, "Two extern \"C\" functions of one name are one function: it can't be overloaded");
+				break;
+			}
+		}
 	}
 
 	pcFunction = AddFunction(pcClass, lliName, eKind, psReturn);
@@ -3445,7 +3469,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 	}
 	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_TYPEDEF))
 	{
-		return true;
+		return CheckTypedefs(pcDeclaration);
 	}
 	if (pcSpecifiers && pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
 	{
@@ -4456,6 +4480,73 @@ bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A typedef declared again in its scope names the same type, and one with
+// a class's or an enum's name in the class's scope names that class.
+// [dcl.typedef] 3, 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration)
+{
+	CCPPSyntaxInitDeclarator*	pcInit;
+	CCPPSymbol*					pcSymbol;
+	CCPPSymbol*					pcOther;
+	SCPP65Type*					psType;
+	SCPP65Type*					psOther;
+	size						i;
+	bool						bResult;
+
+	bResult = true;
+	for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
+	{
+		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
+		pcSymbol = pcInit->mpcSymbol;
+		if (!pcSymbol || (pcSymbol->meKind != CPPSK_Typedef) || !pcSymbol->mpcScope)
+		{
+			continue;
+		}
+		psType = NULL;
+		for (pcOther = pcSymbol->mpcScope->FindHere(pcSymbol->mlliName); pcOther; pcOther = pcOther->mpcNext)
+		{
+			if ((pcOther == pcSymbol) || (pcOther->mpcScope != pcSymbol->mpcScope) || pcOther->mpcLazy || !pcOther->mpcDeclaration || (pcOther->mpcDeclaration->miFirstToken >= pcInit->miFirstToken))
+			{
+				continue;
+			}
+			if ((pcOther->meKind != CPPSK_Typedef) && (pcOther->meKind != CPPSK_Class) && (pcOther->meKind != CPPSK_Enum))
+			{
+				continue;
+			}
+			if (!psType)
+			{
+				BeginQuiet();
+				psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, NULL);
+				EndQuiet();
+				if (!psType)
+				{
+					break;
+				}
+			}
+			if (pcOther->meKind == CPPSK_Typedef)
+			{
+				BeginQuiet();
+				psOther = mcDeclarators.GetSymbolType(pcOther, pcInit);
+				EndQuiet();
+				if (psOther && !psOther->Same(psType))
+				{
+					bResult &= Error(pcInit, "The typedef is declared again for another type");
+				}
+			}
+			else if (!((psType->IsClass() && psType->pcClass->mpcSymbol == pcOther) || (psType->pcEnum == pcOther)))
+			{
+				bResult &= Error(pcInit, "A typedef of a class's or an enum's name in its scope names that class or enum");
+			}
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An anonymous union at namespace scope: one object, zero, whose label is
 // its first member's, and a global variable for each member at its offset
 // in it, internal as the union is (static or in an unnamed namespace).
@@ -4797,6 +4888,7 @@ bool CCPPUnit::CheckEnumerators(CCPPSyntax* pcType)
 	CCPPSyntaxEnumerator*		pcEnumerator;
 	const char*					szReason;
 	int64						lliValue;
+	size						uiErrors;
 	size						i;
 	bool						bConstant;
 	bool						bResult;
@@ -4823,6 +4915,14 @@ bool CCPPUnit::CheckEnumerators(CCPPSyntax* pcType)
 			bResult &= ConstantError(pcEnumerator->mpcValue, "An enumerator's value must be a constant");
 		}
 	}
+	if (bResult && pcSpecifier->mpcSymbol && pcSpecifier->mpcBase)
+	{
+		//A fixed underlying type holds each value, whether or not the enum is used (EnumType says where one doesn't).
+		//[dcl.enum] 5
+		uiErrors = mcErrors.NumErrors();
+		EnumType(pcSpecifier->mpcSymbol, pcSpecifier);
+		bResult = mcErrors.NumErrors() == uiErrors;
+	}
 	return bResult;
 }
 
@@ -4840,12 +4940,28 @@ bool CCPPUnit::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 	bool	bConstant;
 
 	uiErrors = mcErrors.NumErrors();
+	mpcConstants->ClearReason();
 	BeginQuiet();
 	bConstant = Constant(pcAssert->mpcCondition, &lliValue);
 	EndQuiet();
 	if (bConstant && (lliValue == 0))
 	{
 		return Error(pcAssert, "The static_assert failed");
+	}
+	if (!bConstant && (mcErrors.NumErrors() == uiErrors))
+	{
+		BeginQuiet();
+		bConstant = mpcConstants->Value(pcAssert->mpcCondition, &mcTypes.msBool, &lliValue);
+		EndQuiet();
+		if (bConstant && (lliValue == 0))
+		{
+			return Error(pcAssert, "The static_assert failed");
+		}
+	}
+	if (!bConstant && (mpcConstants->GetReason()[0] != '\0') && (strncmp(mpcConstants->GetReason(), "Its initialiser uses", 20) != 0))
+	{
+		//What can never be a constant (not what the compiler can't work out yet).  [dcl.dcl] 4
+		return ConstantError(pcAssert->mpcCondition, "A static_assert's expression is a constant");
 	}
 	return mcErrors.NumErrors() == uiErrors;
 }

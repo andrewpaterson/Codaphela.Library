@@ -280,6 +280,86 @@ void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The functions defined in the unit's own source file (not a header) that
+// nothing called, so weren't written: an inline member function, say.
+// Their bodies are checked as written functions' are, as what is wrong in
+// a definition is wrong whether or not it is called.  A template's member
+// isn't: it is checked as each instance is made.  [intro.compliance] 2
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CheckUncalledFunctions(void)
+{
+	CCPPFunction*		pcFunction;
+	CCPPClass*			pcClass;
+	CCPPToken*			pcToken;
+	SPreprocessedToken*	psSource;
+	size				i;
+
+	if (mpcSemanticPass)
+	{
+		return;
+	}
+
+	//The classes defined there are laid out (their members declared and checked) though nothing uses them.
+	for (i = 0; i < mapcClasses.NumElements(); i++)
+	{
+		pcClass = mapcClasses.GetPtr(i);
+		if (pcClass->IsComplete() || pcClass->IsBeingMade() || !pcClass->mpcSpecifier || pcClass->mpcTemplate || pcClass->mpcBindings)
+		{
+			continue;
+		}
+		pcToken = mpcTokeniser->Get(pcClass->mpcSpecifier->miFirstToken);
+		psSource = pcToken ? mpcTokeniser->GetSource(pcToken) : NULL;
+		if (psSource && psSource->pcFile && IsSourceFileName(psSource->pcFile->FullName()))
+		{
+			CompleteClass(pcClass, pcClass->mpcSpecifier);
+		}
+	}
+	GenerateQueued();
+
+	for (i = 0; i < mapcFunctions.NumElements(); i++)
+	{
+		pcFunction = mapcFunctions.GetPtr(i);
+		if (!pcFunction->mpcDefinition || pcFunction->mbGenerated || pcFunction->mbImplicit || pcFunction->mbDeleted || pcFunction->mpcTemplate || pcFunction->mpcBindings ||
+			(pcFunction->mpcDefinition->meBody == CPPFB_Default) || (pcFunction->mpcDefinition->meBody == CPPFB_Delete) || !pcFunction->mpcDefinition->mpcBody)
+		{
+			continue;
+		}
+		if (pcFunction->mpcClass && (pcFunction->mpcClass->mpcTemplate || pcFunction->mpcClass->mpcBindings || pcFunction->mpcClass->mpsLambda))
+		{
+			//(A closure's functions are its lambda's: written where the lambda is.)
+			continue;
+		}
+		pcToken = mpcTokeniser->Get(pcFunction->mpcDefinition->miFirstToken);
+		psSource = pcToken ? mpcTokeniser->GetSource(pcToken) : NULL;
+		if (!psSource || !psSource->pcFile || !IsSourceFileName(psSource->pcFile->FullName()))
+		{
+			continue;
+		}
+		pcFunction->mbGenerated = true;
+		mcContext.EnterBindings(pcFunction->mpcBindings);
+		CheckFunction(pcFunction);
+		mcContext.LeaveBindings();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a file's name is a source file's, not a header's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsSourceFileName(const char* szName)
+{
+	const char*	szDot;
+
+	szDot = strrchr(szName, '.');
+	return szDot && ((strcmp(szDot, ".cpp") == 0) || (strcmp(szDot, ".c") == 0) || (strcmp(szDot, ".cc") == 0) || (strcmp(szDot, ".cxx") == 0));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The expressions in a statement (or in anything else in a function):
 // each is typed, and each local is initialised.  Classes and enums
 // declared in a function aren't looked into.

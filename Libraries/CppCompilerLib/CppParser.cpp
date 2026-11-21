@@ -58,6 +58,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	miTemplates = 0;
 	macDeferred.Init();
 	malliLabels.Init();
+	mcEnumFirsts.Init(true);
 	muiLabelsStart = 0;
 	muiDeferredNext = 0;
 	miErrors = 0;
@@ -88,6 +89,7 @@ void CCPPParser::Kill(void)
 	maiPacks.Kill();
 	macDeferred.Kill();
 	malliLabels.Kill();
+	mcEnumFirsts.Kill();
 	mpcScope = NULL;
 	mpcSymbols = NULL;
 	mpcMemory = NULL;
