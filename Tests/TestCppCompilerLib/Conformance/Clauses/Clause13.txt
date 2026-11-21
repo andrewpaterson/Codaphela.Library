@@ -1,0 +1,830 @@
+### OverLoadReturnTypeOnlyRefused | REFUSED | 13.1 [over.load] p2: function declarations that differ only in their return type can't be overloaded
+int F(int a) { return a; }
+long F(int a) { return a; }
+int main() { return F(1); }
+
+### OverLoadStaticMemberRefused | REFUSED | 13.1 [over.load] p2: nor can a static and a non-static member function with the same parameter types
+struct S { static int F(int a) { return a; } int F(int a) { return a + 1; } };
+int main() { S s; return s.F(1); }
+
+### OverLoadStaticMemberOverloads | 7 | 13.1 [over.load] p2: a static and a non-static member function with other parameter types overload
+struct S
+{
+	static int F(int) { return 1; }
+	int F(long) { return 2; }
+	int G() const { return 4; }
+	static int G(int) { return 0; }
+};
+int main()
+{
+	int r = 0;
+	S s;
+	if (S::F(1) == 1) r += 1;
+	if (s.F(1L) == 2) r += 2;
+	if (s.G() == 4) r += 4;
+	return r;
+}
+
+### OverLoadEquivalentDeclarations | 63 | 13.1 [over.load] p3: parameter types that differ only by a typedef, by * or [], by an array's bound, by a function type or a pointer to one, by a top-level const, or by a default argument declare the same function
+typedef int Int;
+int A(Int a);
+int A(int a) { return a + 1; }
+int B(int a[]);
+int B(int* a) { return a[1]; }
+int C(int f(int));
+int C(int (*f)(int)) { return f(3); }
+int D(const int a);
+int D(int a) { a++; return a; }
+int E(int a, int b);
+int E(int a, int b = 4) { return a + b; }
+int G(int a[3]);
+int G(int a[5]) { return a[0]; }
+int Twice(int a) { return a * 2; }
+int main()
+{
+	int r = 0;
+	int ai[2] = { 7, 2 };
+	if (A(1) == 2) r += 1;
+	if (B(ai) == 2) r += 2;
+	if (C(Twice) == 6) r += 4;
+	if (D(4) == 5) r += 8;
+	if (E(1) == 5) r += 16;
+	if (G(ai) == 7) r += 32;
+	return r;
+}
+
+### OverLoadArrayPointerRedefinitionRefused | REFUSED | 13.1 [over.load] p3: so defining both is defining one function twice
+int B(int a[]) { return a[0]; }
+int B(int* a) { return a[1]; }
+int main() { int ai[2] = { 1, 2 }; return B(ai); }
+
+### OverLoadConstParameterRedefinitionRefused | REFUSED | 13.1 [over.load] p3: a top-level const on a parameter doesn't make another function
+int D(int a) { return a; }
+int D(const int a) { return a + 1; }
+int main() { return D(1); }
+
+### OverLoadDistinctQualifiedParameters | 15 | 13.1 [over.load] p3: const under a pointer or a reference does make another function
+int F(int*) { return 1; }
+int F(const int*) { return 2; }
+int G(int&) { return 4; }
+int G(const int&) { return 8; }
+int main()
+{
+	int r = 0;
+	int i = 0;
+	const int c = 0;
+	if (F(&i) == 1) r += 1;
+	if (F(&c) == 2) r += 2;
+	if (G(i) == 4) r += 4;
+	if (G(c) == 8) r += 8;
+	return r;
+}
+
+### OverLoadDefaultArgumentAmbiguousRefused | REFUSED | 13.1 [over.load] p3 note: functions told apart only by a defaulted parameter overload, and a call both take is ambiguous
+int F(int a) { return a; }
+int F(int a, int b = 2) { return a + b; }
+int main() { return F(1); }
+
+### OverLoadDefaultArgumentOverloads | 3 | 13.1 [over.load] p3 note: the same functions, called where only one fits
+int F(int a) { return a; }
+int F(int a, int b = 2) { return a + b; }
+int main()
+{
+	int r = 0;
+	if (F(1, 2) == 3) r += 1;
+	int (*p)(int) = F;
+	if (p(2) == 2) r += 2;
+	return r;
+}
+
+### OverDclDerivedHidesBaseRefused | REFUSED | 13.2 [over.dcl] p1: a derived class's member function hides the base's of its name rather than overloading them
+struct B { int F(int) { return 1; } };
+struct D : B { int F(const char*) { return 2; } };
+int main() { D d; return d.F(1); }
+
+### OverDclDerivedHides | 15 | 13.2 [over.dcl] p1: the base's are named qualified, or brought in by a using-declaration
+struct B { int F(int) { return 1; } int F(long) { return 8; } };
+struct D : B { int F(const char*) { return 2; } };
+struct U : B { using B::F; int F(const char*) { return 4; } };
+int main()
+{
+	int r = 0;
+	D d;
+	if (d.B::F(1) == 1) r += 1;
+	if (d.F("x") == 2) r += 2;
+	U u;
+	if (u.F("x") == 4) r += 4;
+	if (u.F(1L) == 8) r += 8;
+	return r;
+}
+
+### OverDclBlockDeclarationHidesRefused | REFUSED | 13.2 [over.dcl] p2: a function declared in a block hides the outer ones of its name
+int F(int a) { return a; }
+int F(const char*) { return 2; }
+int main() { extern int F(const char*); return F(1); }
+
+### OverDclBlockDeclaration | 3 | 13.2 [over.dcl] p2: the outer ones are found outside that block
+int F(int a) { return a; }
+int F(const char*) { return 2; }
+int main()
+{
+	int r = 0;
+	if (F(1) == 1) r += 1;
+	{
+		extern int F(const char*);
+		if (F("x") == 2) r += 2;
+	}
+	return r;
+}
+
+### OverDclAccessAfterChoiceRefused | REFUSED | 13.2 [over.dcl] p3, 11 [class.access] p4: access is checked on the function chosen, after it is chosen
+struct S { int F(int) { return 1; } private: int F(long) { return 2; } };
+int main() { S s; return s.F(1L); }
+
+### OverDclAccessAfterChoice | 3 | 13.2 [over.dcl] p3, 11 [class.access] p4: a private overload that isn't chosen is no error
+struct S { int F(int) { return 1; } int F(short) { return 2; } private: int F(long) { return 4; } };
+int main()
+{
+	int r = 0;
+	S s;
+	if (s.F(1) == 1) r += 1;
+	if (s.F((short)1) == 2) r += 2;
+	return r;
+}
+
+### OverFuncsImplicitObjectParameter | 127 | 13.3.1 [over.match.funcs] p4, p5: the implicit object parameter: & for an lvalue, && for an rvalue, const for a const object; without a ref-qualifier an rvalue binds to it too; a static member function matches any object
+struct S
+{
+	int F() & { return 1; }
+	int F() && { return 2; }
+	int G() { return 4; }
+	int G() const { return 8; }
+	int H() const { return 16; }
+	static int K(int) { return 32; }
+	int K(long) { return 0; }
+};
+int main()
+{
+	int r = 0;
+	S s;
+	const S cs = s;
+	if (s.F() == 1) r += 1;
+	if (S().F() == 2) r += 2;
+	if (s.G() == 4) r += 4;
+	if (cs.G() == 8) r += 8;
+	if (S().H() == 16) r += 16;
+	if (s.K(1) == 32) r += 32;
+	if (S().G() == 4) r += 64;
+	return r;
+}
+
+### OverFuncsConstObjectRefused | REFUSED | 13.3.1 [over.match.funcs] p4: a const object doesn't bind to a non-const member function's implicit object parameter
+struct S { int G() { return 4; } };
+int main() { S s; const S cs = s; return cs.G(); }
+
+### OverFuncsRvalueOnLvalueQualifiedRefused | REFUSED | 13.3.1 [over.match.funcs] p4: an rvalue doesn't bind to a & member function's
+struct S { int F() & { return 1; } };
+int main() { return S().F(); }
+
+### OverFuncsStaticContext | 3 | 13.3.1.1.1 [over.call.func] p3: an unqualified call in a static member function offers the non-static functions too, and only choosing one is an error
+struct S
+{
+	static int F(int) { return 1; }
+	int F(long) { return 2; }
+	static int G() { return F(1); }
+	int H() { return F(1L); }
+};
+int main()
+{
+	int r = 0;
+	if (S::G() == 1) r += 1;
+	S s;
+	if (s.H() == 2) r += 2;
+	return r;
+}
+
+### OverFuncsStaticContextRefused | REFUSED | 13.3.1.1.1 [over.call.func] p3: a non-static member function chosen where there is no object
+struct S
+{
+	static int F(int) { return 1; }
+	int F(long) { return 2; }
+	static int G() { return F(1L); }
+};
+int main() { return S::G(); }
+
+### OverCallObjectSurrogate | 15 | 13.3.1.1.2 [over.call.object] p1-p3: an object that is called offers its operator() functions and, for each conversion function to a pointer to function, a surrogate that calls through the pointer
+typedef int (*FI)(int);
+int Twice(int a) { return a * 2; }
+struct P { operator FI() const { return Twice; } };
+struct R { int operator()(int) { return 4; } operator FI() { return Twice; } };
+int main()
+{
+	int r = 0;
+	P p;
+	if (p(3) == 6) r += 1;
+	const P cp = p;
+	if (cp(4) == 8) r += 2;
+	R q;
+	if (q(1) == 4) r += 4;
+	FI f = p;
+	if (f(5) == 10) r += 8;
+	return r;
+}
+
+### OverCallObjectAmbiguousRefused | REFUSED | 13.3.1.1.2 [over.call.object], 13.3.3 [over.match.best] p2: operator()(long) is better for the object, the surrogate for the argument: ambiguous
+typedef int (*FI)(int);
+int Twice(int a) { return a * 2; }
+struct Q { int operator()(long) { return 1; } operator FI() { return Twice; } };
+int main() { Q q; return q(2); }
+
+### OverOperatorCandidates | 63 | 13.3.1.2 [over.match.oper] p3, p6, p7: an operator's candidates are the left operand's member functions, the non-member functions found, and the built-in operators
+struct S
+{
+	int operator+(int) const { return 1; }
+};
+int operator+(const S&, long) { return 2; }
+int operator-(int, const S&) { return 4; }
+enum E { A, B };
+int operator|(E, E) { return 8; }
+struct C { operator int() const { return 15; } };
+int main()
+{
+	int r = 0;
+	S s;
+	if (s + 1 == 1) r += 1;
+	if (s + 1L == 2) r += 2;
+	if (1 - s == 4) r += 4;
+	if ((A | B) == 8) r += 8;
+	C c;
+	if (c + 1 == 16) r += 16;
+	if (A + B == 1) r += 32;
+	return r;
+}
+
+### OverOperatorAmbiguousRefused | REFUSED | 13.3.1.2 [over.match.oper], 13.3.3 [over.match.best] p2: a member and a non-member operator function as good as each other are ambiguous
+struct S { int operator+(int) const { return 1; } };
+int operator+(const S&, int) { return 2; }
+int main() { S s; return s + 1; }
+
+### OverOperatorMemberLeftOperandRefused | REFUSED | 13.3.1.2 [over.match.oper] p3: member candidates come from the left operand only
+struct S { int operator+(int) const { return 1; } };
+int main() { S s; return 1 + s; }
+
+### OverOperatorNoClassOperandRefused | REFUSED | 13.5 [over.oper] p6: an operator function has a parameter of class or enumeration type
+int operator+(int a, int b) { return a - b; }
+int main() { return 1 + 2; }
+
+### OverCtorCopyInitialisationConverting | 7 | 13.3.1.3 [over.match.ctor] p1: direct initialisation offers every constructor, copy initialisation only the converting ones
+struct S { explicit S(int) : v(1) {} S(long) : v(2) {} int v; };
+int main()
+{
+	int r = 0;
+	S a(1);
+	if (a.v == 1) r += 1;
+	S b = 1;
+	if (b.v == 2) r += 2;
+	S c = S(1);
+	if (c.v == 1) r += 4;
+	return r;
+}
+
+### OverCopyInitConversionFunctionChosen | 3 | 13.3.1.4 [over.match.copy], 13.3.3.2 [over.ics.rank] p3: copying a T into an S offers S's converting constructors and T's conversion functions; a T binds better to T& than to const T&
+struct T;
+struct S { int v; S(const T&) : v(1) {} S(int a) : v(a) {} };
+struct T { operator S() { return S(2); } };
+int main()
+{
+	int r = 0;
+	T t;
+	S a = t;
+	if (a.v == 2) r += 1;
+	const T ct = t;
+	S b = ct;
+	if (b.v == 1) r += 2;
+	return r;
+}
+
+### OverCopyInitConversionAmbiguousRefused | REFUSED | 13.3.1.4 [over.match.copy], 13.3.3 [over.match.best] p2: with operator S() const the two are as good as each other
+struct T;
+struct S { int v; S(const T&) : v(1) {} S(int a) : v(a) {} };
+struct T { operator S() const { return S(2); } };
+int main() { T t; S a = t; return a.v; }
+
+### OverConvFunctionNonClass | 15 | 13.3.1.5 [over.match.conv], 13.3.3 [over.match.best] p1: a non-class object initialised from a class object takes the conversion function whose result converts best
+struct S { operator int() const { return 1; } operator double() const { return 2; } operator char() const { return 4; } };
+int main()
+{
+	int r = 0;
+	S s;
+	int i = s;
+	double d = s;
+	char c = s;
+	if (i == 1) r += 1;
+	if (d == 2) r += 2;
+	if (c == 4) r += 4;
+	if ((int)s == 1) r += 8;
+	return r;
+}
+
+### OverConvFunctionAmbiguousRefused | REFUSED | 13.3.1.5 [over.match.conv], 13.3.3 [over.match.best] p2: a long from operator int or operator double, a conversion either way, is ambiguous
+struct S { operator int() const { return 1; } operator double() const { return 2; } };
+int main() { S s; long l = s; return (int)l; }
+
+### OverConvFunctionReference | 3 | 13.3.1.6 [over.match.ref]: a reference bound to what a conversion function returns by reference
+int g = 1;
+struct S { operator int&() { return g; } };
+int main()
+{
+	int r = 0;
+	S s;
+	int& ri = s;
+	ri = 5;
+	if (g == 5) r += 1;
+	const int& cr = s;
+	g = 6;
+	if (cr == 6) r += 2;
+	return r;
+}
+
+### OverListInitInitializerListFirst | 15 | 13.3.1.7 [over.match.list] p1: list initialisation tries the initializer_list constructors first, then all of them; empty braces take the default constructor
+@INITLIST@
+struct S
+{
+	int v;
+	S() : v(1) {}
+	S(int, int) : v(2) {}
+	S(std::initializer_list<int>) : v(4) {}
+};
+int main()
+{
+	int r = 0;
+	S a{};
+	if (a.v == 1) r += 1;
+	S b{ 1, 2 };
+	if (b.v == 4) r += 2;
+	S c(1, 2);
+	if (c.v == 2) r += 4;
+	S d = { 3 };
+	if (d.v == 4) r += 8;
+	return r;
+}
+
+### OverListInitNarrowingRefused | REFUSED | 13.3.1.7 [over.match.list] p1, 8.5.4 [dcl.init.list] p3: the initializer_list constructor is chosen, and narrowing in it is an error, though another constructor would take the values
+@INITLIST@
+struct S { int v; S(double, int) : v(2) {} S(std::initializer_list<int>) : v(4) {} };
+int main() { S b{ 1.5, 2 }; return b.v; }
+
+### OverListInitExplicitRefused | REFUSED | 13.3.1.7 [over.match.list] p1: in copy list initialisation, choosing an explicit constructor is an error
+struct E { int v; explicit E(int a) : v(a) {} };
+int main() { E e = { 1 }; return e.v; }
+
+### OverListInitExplicitDirect | 3 | 13.3.1.7 [over.match.list] p1: direct list initialisation may choose an explicit constructor
+struct E { int v; explicit E(int a) : v(a) {} };
+int main()
+{
+	int r = 0;
+	E e{ 1 };
+	if (e.v == 1) r += 1;
+	E f(2);
+	if (f.v == 2) r += 2;
+	return r;
+}
+
+### OverViableArgumentCounts | 31 | 13.3.2 [over.match.viable] p2: a function is viable with as many arguments as parameters, fewer where the rest have defaults, more where it ends with an ellipsis; an ellipsis is the worst match
+int F(int) { return 1; }
+int F(int, int, ...) { return 2; }
+int G(long) { return 4; }
+int G(...) { return 8; }
+int H(int a, int b = 15) { return a + b; }
+int main()
+{
+	int r = 0;
+	if (F(1) == 1) r += 1;
+	if (F(1, 2, 3, 4) == 2) r += 2;
+	if (G(1) == 4) r += 4;
+	if (G() == 8) r += 8;
+	if (H(1) == 16) r += 16;
+	return r;
+}
+
+### OverBestTemplateAndNonTemplate | 31 | 13.3.3 [over.match.best] p1: with conversions as good, a function that isn't a template's specialisation beats one that is, and of two templates' the more specialised wins
+template<class T> int F(T) { return 1; }
+int F(int) { return 2; }
+template<class T> int G(T) { return 4; }
+template<class T> int G(T*) { return 8; }
+int main()
+{
+	int r = 0;
+	if (F(1) == 2) r += 1;
+	if (F('a') == 1) r += 2;
+	if (F<>(1) == 1) r += 4;
+	int i = 0;
+	if (G(&i) == 8) r += 8;
+	if (G(i) == 4) r += 16;
+	return r;
+}
+
+### OverBestAmbiguousRefused | REFUSED | 13.3.3 [over.match.best] p2: a call where neither function is better for every argument is ambiguous
+int F(int, long) { return 1; }
+int F(long, int) { return 2; }
+int main() { return F(1, 1); }
+
+### OverBestEachArgumentNoWorse | 3 | 13.3.3 [over.match.best] p1: a function is better when no argument converts worse for it and one converts better
+int F(int, long) { return 1; }
+int F(long, long) { return 2; }
+int main()
+{
+	int r = 0;
+	if (F(1, 1) == 1) r += 1;
+	if (F(1L, 1) == 2) r += 2;
+	return r;
+}
+
+### OverRankPromotionsAndConversions | 127 | 13.3.3.1.1 [over.ics.scs], 13.3.3.2 [over.ics.rank] p4: an exact match beats a promotion, a promotion beats a conversion
+int F(int) { return 1; }
+int F(long) { return 2; }
+int G(double) { return 4; }
+int G(int) { return 8; }
+int H(long) { return 16; }
+int H(double) { return 32; }
+enum E { A };
+int main()
+{
+	int r = 0;
+	short sh = 1;
+	if (F('a') == 1 && F(sh) == 1 && F(true) == 1) r += 1;
+	if (F(1L) == 2) r += 2;
+	if (G(1.0f) == 4) r += 4;
+	if (G(sh) == 8) r += 8;
+	if (F(A) == 1) r += 16;
+	unsigned char uc = 1;
+	if (F(uc) == 1) r += 32;
+	if (H(1.0f) == 32) r += 64;
+	return r;
+}
+
+### OverRankConversionsAmbiguousRefused | REFUSED | 13.3.3.2 [over.ics.rank] p4: two conversions of one rank are ambiguous
+int H(long) { return 1; }
+int H(double) { return 2; }
+int main() { return H(1); }
+
+### OverRankExactMatchCategory | 15 | 13.3.3.1.1 [over.ics.scs] p3, 13.3.3.2 [over.ics.rank] p3: lvalue to rvalue, array to pointer, function to pointer and qualification conversions are exact matches, and the smaller qualification the better
+int F(const char*) { return 1; }
+int F(bool) { return 0; }
+int Fn(int a) { return a; }
+int G(int (*)(int)) { return 2; }
+int G(bool) { return 0; }
+int H(const volatile int*) { return 0; }
+int H(const int*) { return 4; }
+int K(int) { return 8; }
+int K(long) { return 0; }
+int main()
+{
+	int r = 0;
+	char arr[2] = { 0, 0 };
+	if (F(arr) == 1) r += 1;
+	if (G(Fn) == 2) r += 2;
+	int i = 0;
+	if (H(&i) == 4) r += 4;
+	if (K(i) == 8) r += 8;
+	return r;
+}
+
+### OverRankPointerConversions | 63 | 13.3.3.2 [over.ics.rank] p4: a pointer to bool is worse than another conversion; to a base is better than to void*; to a nearer base better than to a farther one, by pointer or by reference; a pointer to member the other way round
+struct A { int m; };
+struct B : A {};
+struct C : B {};
+int F(bool) { return 1; }
+int F(const void*) { return 2; }
+int G(A*) { return 4; }
+int G(void*) { return 0; }
+int H(A*) { return 0; }
+int H(B*) { return 8; }
+int K(A&) { return 0; }
+int K(B&) { return 16; }
+int M(int B::*) { return 32; }
+int M(int C::*) { return 0; }
+int main()
+{
+	int r = 0;
+	C c;
+	if (F(&c) == 2) r += 1;
+	if (G(&c) == 4) r += 2;
+	if (H(&c) == 8) r += 4;
+	if (K(c) == 16) r += 8;
+	if (M(&A::m) == 32) r += 16;
+	B b;
+	if (G(&b) == 4) r += 32;
+	return r;
+}
+
+### OverRankReferenceBindings | 127 | 13.3.3.2 [over.ics.rank] p3: an rvalue binds better to && than to const&, an lvalue better to & than to const&; a less qualified pointer target is better
+int F(const int&) { return 1; }
+int F(int&&) { return 2; }
+int G(int&) { return 4; }
+int G(const int&) { return 8; }
+int H(int*) { return 16; }
+int H(const int*) { return 32; }
+int main()
+{
+	int r = 0;
+	int i = 0;
+	const int ci = 0;
+	if (F(1) == 2) r += 1;
+	if (F(i) == 1) r += 2;
+	if (G(i) == 4) r += 4;
+	if (G(ci) == 8) r += 8;
+	if (H(&i) == 16) r += 16;
+	if (H(&ci) == 32) r += 32;
+	if (G(1) == 8) r += 64;
+	return r;
+}
+
+### OverRankUserDefined | 7 | 13.3.3.2 [over.ics.rank] p2, p3: a standard conversion beats a user-defined one, which beats an ellipsis; two by one conversion function are told apart by the standard conversion after it
+struct S { operator short() const { return 1; } };
+int F(int) { return 1; }
+int F(double) { return 2; }
+struct U { U(int) {} };
+int H(U) { return 0; }
+int H(long) { return 2; }
+int K(U) { return 4; }
+int K(...) { return 0; }
+int main()
+{
+	int r = 0;
+	S s;
+	if (F(s) == 1) r += 1;
+	if (H(1) == 2) r += 2;
+	if (K(1) == 4) r += 4;
+	return r;
+}
+
+### OverRankUserDefinedAmbiguousRefused | REFUSED | 13.3.3.1 [over.best.ics] p10, 13.3.3.2 [over.ics.rank] p3: two conversion functions that each give a conversion to the parameter make an ambiguous conversion
+struct T { operator int() const { return 1; } operator long() const { return 2; } };
+int G(double d) { return (int)d; }
+int main() { T t; return G(t); }
+
+### OverRankListInitialisation | 15 | 13.3.3.1.5 [over.ics.list], 13.3.3.2 [over.ics.rank] p3: a braced list converts to initializer_list<X> better than to anything else; a list of one element converts as the element; to an aggregate it is a user-defined conversion
+@INITLIST@
+struct P { int a, b; };
+int F(std::initializer_list<int>) { return 1; }
+int F(int) { return 0; }
+int G(P) { return 2; }
+int G(int) { return 4; }
+int main()
+{
+	int r = 0;
+	if (F({ 1, 2 }) == 1) r += 1;
+	if (F({ 1 }) == 1) r += 2;
+	if (G({ 1, 2 }) == 2) r += 4;
+	if (G({ 1 }) == 4) r += 8;
+	return r;
+}
+
+### OverAddressByTarget | 255 | 13.4 [over.over] p1: an overloaded function's name chooses the one of the type the target wants: a pointer initialised or assigned, a parameter, a result, a cast, a member pointer, a reference
+int F(int) { return 1; }
+int F(long) { return 2; }
+int Call(int (*f)(int)) { return f(0); }
+int (*Get())(long) { return F; }
+struct S { int G(int) { return 4; } int G(long) { return 8; } };
+int main()
+{
+	int r = 0;
+	int (*p)(long) = F;
+	if (p(0) == 2) r += 1;
+	int (*q)(int);
+	q = &F;
+	if (q(0) == 1) r += 2;
+	if (Call(F) == 1) r += 4;
+	if (Get()(0) == 2) r += 8;
+	if (((int (*)(long))F)(0) == 2) r += 16;
+	if (static_cast<int (*)(int)>(F)(0) == 1) r += 32;
+	int (S::*m)(long) = &S::G;
+	S s;
+	if ((s.*m)(0) == 8) r += 64;
+	int (&ref)(int) = F;
+	if (ref(0) == 1) r += 128;
+	return r;
+}
+
+### OverAddressTemplates | 15 | 13.4 [over.over] p2, p4: a function template's specialisation is deduced from the target, and a function that isn't a template is preferred
+template<class T> int H(T) { return 1; }
+int H(int) { return 2; }
+template<class T> int K(T*) { return 4; }
+int main()
+{
+	int r = 0;
+	int (*a)(int) = H;
+	if (a(0) == 2) r += 1;
+	int (*b)(char) = H;
+	if (b(0) == 1) r += 2;
+	int (*c)(char) = &H<char>;
+	if (c(0) == 1) r += 4;
+	int (*d)(int*) = K;
+	if (d(0) == 4) r += 8;
+	return r;
+}
+
+### OverAddressNoMatchRefused | REFUSED | 13.4 [over.over] p1: no function of the target's type
+int F(int) { return 1; }
+int F(long) { return 2; }
+int main() { int (*p)(double) = F; return p(0); }
+
+### OverAddressNoTargetRefused | REFUSED | 13.4 [over.over] p1, 7.1.6.4 [dcl.spec.auto]: without a target type the name chooses nothing
+int F(int) { return 1; }
+int F(long) { return 2; }
+int main() { auto p = F; return p(0); }
+
+### OverOperatorUnaryAndBinary | 127 | 13.5.1 [over.unary], 13.5.2 [over.binary], 13.5 [over.oper] p4: a unary operator is a member with no parameter or a non-member with one, a binary one a member with one or a non-member with two; -, * and & are either; an operator function is called by its name too
+struct S
+{
+	int v;
+	int operator-() const { return 1; }
+	int operator-(const S&) const { return 2; }
+	int operator*() const { return 4; }
+};
+int operator!(const S&) { return 8; }
+int operator*(const S&, int) { return 16; }
+int operator&(const S&, const S&) { return 32; }
+int main()
+{
+	int r = 0;
+	S s = { 0 };
+	if (-s == 1) r += 1;
+	if (s - s == 2) r += 2;
+	if (*s == 4) r += 4;
+	if (!s == 8) r += 8;
+	if (s * 1 == 16) r += 16;
+	if ((s & s) == 32) r += 32;
+	if (s.operator-() + operator!(s) == 9) r += 64;
+	return r;
+}
+
+### OverOperatorDefaultArgumentRefused | REFUSED | 13.5 [over.oper] p8: an operator function has no default arguments
+struct S { int operator+(int a = 1) const { return a; } };
+int main() { S s; return s + 2; }
+
+### OverOperatorArityRefused | REFUSED | 13.5 [over.oper] p8, 13.5.2 [over.binary]: a binary operator that is a member has one parameter
+struct S { int operator+(int a, int b) const { return a + b; } };
+int main() { S s; return s + 1; }
+
+### OverOperatorCallDefaultArgument | 7 | 13.5.4 [over.call] p1: operator() may have any number of parameters, and default arguments
+struct S
+{
+	int operator()(int a, int b = 2) const { return a + b; }
+	int operator()() const { return 4; }
+};
+int main()
+{
+	int r = 0;
+	S s;
+	if (s(1) == 3) r += 1;
+	if (s(3, 3) == 6) r += 2;
+	if (s() == 4) r += 4;
+	return r;
+}
+
+### OverOperatorInherited | 3 | 13.5 [over.oper], 13.5.3 [over.ass] p1: a base's operator functions are the derived class's, but for operator=, reached only qualified
+struct B { int v = 0; int operator+(int a) const { return a + 1; } B& operator=(int a) { v = a; return *this; } };
+struct D : B {};
+int main()
+{
+	int r = 0;
+	D d;
+	if (d + 1 == 2) r += 1;
+	d.B::operator=(5);
+	if (d.v == 5) r += 2;
+	return r;
+}
+
+### OverOperatorAssignmentHiddenRefused | REFUSED | 13.5.3 [over.ass] p1: a base class's operator= is hidden by the derived class's copy assignment operator
+struct B { int v = 0; B& operator=(int a) { v = a; return *this; } };
+struct D : B {};
+int main() { D d; d = 5; return d.v; }
+
+### OverOperatorAssignmentNonMemberRefused | REFUSED | 13.5.3 [over.ass] p1: operator= is a non-static member function
+struct S { int v; };
+S& operator=(S& s, int a) { s.v = a; return s; }
+int main() { S s; s = 1; return s.v; }
+
+### OverOperatorCallNonMemberRefused | REFUSED | 13.5.4 [over.call] p1: operator() is a non-static member function
+struct S {};
+int operator()(S, int a) { return a; }
+int main() { S s; return s(1); }
+
+### OverOperatorSubscript | 7 | 13.5.5 [over.sub]: operator[] is a member with one parameter, overloaded on const and on its parameter's type
+struct S
+{
+	int a[3];
+	int& operator[](int i) { return a[i]; }
+	int operator[](int i) const { return a[i] + 1; }
+	int operator[](const char*) const { return 4; }
+};
+int main()
+{
+	int r = 0;
+	S s = { { 0, 0, 0 } };
+	s[1] = 1;
+	if (s.a[1] == 1) r += 1;
+	const S& cs = s;
+	if (cs[1] == 2) r += 2;
+	if (s["x"] == 4) r += 4;
+	return r;
+}
+
+### OverOperatorSubscriptNonMemberRefused | REFUSED | 13.5.5 [over.sub]: operator[] is a non-static member function
+struct S { int a[2]; };
+int operator[](const S& s, int i) { return s.a[i]; }
+int main() { S s = { { 1, 2 } }; return s[1]; }
+
+### OverOperatorArrowChain | 7 | 13.5.6 [over.ref]: x->m is (x.operator->())->m, the operator called again while what it gives is a class object
+struct A { int v; int F() { return 2; } };
+struct P { A a; A* operator->() { return &a; } };
+struct Q { P p; P& operator->() { return p; } };
+int main()
+{
+	int r = 0;
+	P p = { { 1 } };
+	if (p->v == 1) r += 1;
+	Q q = { { { 3 } } };
+	if (q->v == 3) r += 2;
+	if (q->F() == 2) r += 4;
+	return r;
+}
+
+### OverOperatorArrowNonMemberRefused | REFUSED | 13.5.6 [over.ref]: operator-> is a non-static member function
+struct A { int v; };
+struct P { A a; };
+A* operator->(P& p) { return &p.a; }
+int main() { P p = { { 1 } }; return p->v; }
+
+### OverOperatorIncrement | 63 | 13.5.7 [over.inc]: prefix ++ and -- have no parameter as members, one as non-members; postfix ones an int more, given 0 when the operator calls them
+struct S
+{
+	int v;
+	S& operator++() { v += 1; return *this; }
+	S operator++(int a) { S t = *this; v += 2 + a; return t; }
+};
+struct T { int v; };
+T& operator--(T& t) { t.v -= 1; return t; }
+T operator--(T& t, int) { T o = t; t.v -= 2; return o; }
+int main()
+{
+	int r = 0;
+	S s = { 0 };
+	++s;
+	if (s.v == 1) r += 1;
+	S o = s++;
+	if (o.v == 1 && s.v == 3) r += 2;
+	s.operator++(4);
+	if (s.v == 9) r += 4;
+	T t = { 10 };
+	--t;
+	if (t.v == 9) r += 8;
+	T u = t--;
+	if (u.v == 9 && t.v == 7) r += 16;
+	if ((++s).v == 10) r += 32;
+	return r;
+}
+
+### OverOperatorIncrementLongRefused | REFUSED | 13.5.7 [over.inc] p1: a postfix ++'s extra parameter is an int
+struct S { int v; S operator++(long) { return *this; } };
+int main() { S s = { 0 }; s++; return s.v; }
+
+### OverLiteralOperators | 63 | 13.5.8 [over.literal], 2.14.8 [lex.ext]: a user-defined literal calls operator "": an integer's with unsigned long long, a floating one's with long double, a string's with its pointer and length, a character's with char; else the raw form gets the characters, the template form gets them as template arguments
+typedef decltype(sizeof(0)) size_t;
+int operator"" _k(unsigned long long n) { return (int)n * 2; }
+int operator"" _f(long double d) { return d > 1.4 && d < 1.6 ? 4 : 0; }
+int operator"" _s(const char* s, size_t n) { return n == 3 && s[0] == 'a' ? 8 : 0; }
+int operator"" _c(char c) { return c == 'x' ? 16 : 0; }
+int operator"" _raw(const char* s) { return s[0] == '1' && s[1] == '2' && s[2] == 0 ? 32 : 0; }
+template<char... C> int operator"" _t() { return sizeof...(C) == 3 ? 64 : 0; }
+int main()
+{
+	int r = 0;
+	if (1_k == 2) r += 1;
+	if (1.5_f == 4) r += 2;
+	if ("abc"_s == 8) r += 4;
+	if ('x'_c == 16) r += 8;
+	if (12_raw == 32) r += 16;
+	if (123_t == 64) r += 32;
+	return r;
+}
+
+### OverLiteralBadParametersRefused | REFUSED | 13.5.8 [over.literal] p3: a literal operator's parameters are one of the lists given
+int operator"" _x(int n) { return n; }
+int main() { return 1_x; }
+
+### OverOperatorImplicitAssignmentByName | 3 | 13.5 [over.oper] p4, 12.8 [class.copy] p18: the copy assignment operator the compiler declares is called by its name as a declared one is
+struct S { int v; };
+int main()
+{
+	int r = 0;
+	S s = { 9 };
+	S t = { 10 };
+	s.operator=(t);
+	if (s.v == 10) r += 1;
+	s.v = 0;
+	if ((s = t).v == 10) r += 2;
+	return r;
+}

@@ -56,6 +56,8 @@ static const SConformanceChecked gasConformanceChecked[] =
 		"" },
 	{ "Clause12",
 		"SpecialDefaultConstructorMemberRefused(M) SpecialAssignDeletedByReferenceRefused(M) " },
+	{ "Clause13",
+		"OverDclBlockDeclarationHidesRefused(M) OverFuncsStaticContextRefused(M) OverCallObjectSurrogate(F) OverCallObjectAmbiguousRefused(M) OverOperatorAmbiguousRefused(M) OverOperatorNoClassOperandRefused(M) OverCtorCopyInitialisationConverting(F) OverCopyInitConversionAmbiguousRefused(M) OverConvFunctionAmbiguousRefused(M) OverRankExactMatchCategory(F) OverRankPointerConversions(F) OverRankUserDefinedAmbiguousRefused(M) OverAddressByTarget(F) OverAddressTemplates(F) OverOperatorUnaryAndBinary(F) OverOperatorDefaultArgumentRefused(M) OverOperatorAssignmentHiddenRefused(M) OverOperatorArrowChain(F) OverOperatorIncrementLongRefused(M) OverLiteralBadParametersRefused(M) OverOperatorImplicitAssignmentByName(F) " },
 	{ "Clause14",
 		"TempMemberClassThroughInstance(F) " },
 };
