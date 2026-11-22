@@ -222,6 +222,18 @@ struct SCPPLiteralCall
 typedef CMapLongTemplate<SCPPLiteralCall>	CMapCPPLiteralCalls;
 
 
+//A function declared quietly that couldn't be (DeclareQuietly): its declarator, and what was said declaring it, which
+//is said where it is called.
+struct SCPPFailedDeclaration
+{
+	CCPPSyntaxDeclarator*	pcDeclarator;
+	CCPPErrors*				pcErrors;		//The diagnostics' to free; NULL for nothing said.
+};
+
+
+typedef CArrayTemplate<SCPPFailedDeclaration>	CArrayCPPFailedDeclarations;
+
+
 //What a function has while it is entered (CCPPUnit::EnterFunction): its parameters and locals, and the function
 //parameter packs it can expand.  The unit's first is no function's: what is asked of when none is entered.
 struct SCPPFunctionScope
@@ -304,7 +316,7 @@ protected:
 	bool					mbValueArgumentRefused;	//A template argument's value wasn't one of its parameter's type (ValueArgumentFits), since it was cleared.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
-	CArraySyntax			mapcFailed;			//Declarators of functions whose declarations were not supported.
+	CArrayCPPFailedDeclarations	masFailed;	//Functions whose declarations were not supported, and why (ReportFailedDeclaration).
 	CMapCPPTypeOfs		mcTypeOfs;			//TypeOf's answers, by expression.
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	bool					mbPureVirtual;
@@ -856,6 +868,7 @@ public:
 	CCPPClass*				QualifiedClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	CCPPClass*				MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	void					ReportFailedDeclaration(int64 lliName);
+	CCPPFunction*			DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPErrors** ppcErrors = NULL);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				DeclaredTypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				UnevaluatedTypeOf(CCPPSyntax* pcExpression);

@@ -384,7 +384,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcImplicitValues.Init(true);
 	mapcQueue.Init();
 	muiQueueNext = 0;
-	mapcFailed.Init();
+	masFailed.Init();
 	mcTypeOfs.Init(true);
 	maszEmitted.Init();
 	mbPureVirtual = false;
@@ -516,7 +516,7 @@ void CCPPUnit::Kill(void)
 	mapcVariableInstances.Kill();
 	mcImplicitValues.Kill();
 	mapcQueue.Kill();
-	mapcFailed.Kill();
+	masFailed.Kill();
 	mcTypeOfs.Kill();
 	maszEmitted.Kill();
 	FreeVariables(&mapcGlobals);
@@ -3449,12 +3449,41 @@ bool CCPPUnit::CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator)
 {
+	DeclareQuietly(pcSpecifiers, pcDeclarator, false, NULL, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// DeclareFunction in quiet code: a declaration the compiler can't do is an
+// error only where the function is used.  If it fails, its declarator is
+// kept with what declaring it said quietly, which is said where it is
+// called (ReportFailedDeclaration), and that is given to *ppcErrors too;
+// what it said loudly is said now.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPUnit::DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPErrors** ppcErrors)
+{
+	CCPPFunction*			pcFunction;
+	CCPPErrors*				pcErrors;
+	SCPPFailedDeclaration*	psFailed;
+
 	mcDiagnostics.BeginQuiet();
-	if (!DeclareFunction(pcSpecifiers, pcDeclarator, false, NULL, false))
-	{
-		mapcFailed.Add(pcDeclarator);
-	}
+	mcDiagnostics.BeginKeeping(false);
+	pcFunction = DeclareFunction(pcSpecifiers, pcDeclarator, bDefinition, pcClass, bPure);
+	pcErrors = mcDiagnostics.EndKeeping();
 	mcDiagnostics.EndQuiet();
+	if (!pcFunction)
+	{
+		psFailed = masFailed.Add();
+		psFailed->pcDeclarator = pcDeclarator;
+		psFailed->pcErrors = pcErrors;
+	}
+	if (ppcErrors)
+	{
+		*ppcErrors = pcErrors;
+	}
+	return pcFunction;
 }
 
 
@@ -3593,6 +3622,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 	CCPPClass*				pcClass;
 	int64						lliName;
 	bool						bResult;
+	CCPPErrors*					pcErrors;
 	bool						bBss;
 	bool						bInitialise;
 	CChars						szWritten;
@@ -3633,18 +3663,13 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
 		if (pcInit->mpcDeclarator->IsFunction() || IsFunctionByType(pcSpecifiers, pcInit->mpcDeclarator))
 		{
-			mcDiagnostics.BeginQuiet();
-			pcFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);
-			mcDiagnostics.EndQuiet();
+			pcFunction = DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false, &pcErrors);
 			if (!pcFunction && IsAllocationName(pcInit->mpcDeclarator))
 			{
 				//What is wrong with an operator new or delete is said where it is declared: a program replaces the
 				//library's by declaring its own, and a wrong one would be called by none of its news.
-				bResult &= DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false) != NULL;
-			}
-			else if (!pcFunction)
-			{
-				mapcFailed.Add(pcInit->mpcDeclarator);
+				mcDiagnostics.Report(pcErrors);
+				bResult = false;
 			}
 			continue;
 		}

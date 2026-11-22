@@ -199,6 +199,44 @@ void CCPPErrors::Remove(size uiIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The error at uiIndex is pcDest's, after its own, and no longer this
+// list's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPErrors::MoveTo(CCPPErrors* pcDest, size uiIndex)
+{
+	pcDest->maszErrors.Add(maszErrors.Get(uiIndex));
+	pcDest->masPositions.Add(masPositions.Get(uiIndex));
+	if (masPositions.Get(uiIndex)->uiFile != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		pcDest->masPositions.Tail()->uiFile = pcDest->GetFileIndex(GetFile(uiIndex));
+	}
+	Remove(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The errors in the other order, the last first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPErrors::Reverse(void)
+{
+	CCPPErrors	cBackwards;
+	size		i;
+
+	cBackwards.Init();
+	for (i = NumErrors(); i > 0; i--)
+	{
+		MoveTailTo(&cBackwards, i - 1);
+	}
+	cBackwards.AppendTo(this);
+	cBackwards.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the list has an error that reads szError: the same place and the
 // same words.
 //

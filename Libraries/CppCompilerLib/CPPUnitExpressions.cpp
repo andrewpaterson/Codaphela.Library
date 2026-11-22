@@ -2019,27 +2019,24 @@ bool CCPPUnit::IsMemberPointerOperator(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A call to a function whose declaration could not be generated: the declaration's
-// errors are reported now.
+// A call to a function whose declaration could not be generated: what
+// declaring it said is said now (as if said here: in quiet code it only
+// fails).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::ReportFailedDeclaration(int64 lliName)
 {
-	CCPPSyntaxDeclarator*		pcDeclarator;
-	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
-	size						i;
+	CCPPSyntaxDeclarator*	pcDeclarator;
+	size					i;
 
-	for (i = 0; i < mapcFailed.NumElements(); i++)
+	for (i = 0; i < masFailed.NumElements(); i++)
 	{
-		pcDeclarator = (CCPPSyntaxDeclarator*)mapcFailed.GetPtr(i);
-		if (!pcDeclarator->GetName() || (GetFunctionName(pcDeclarator->GetName()->GetLast()) != lliName))
+		pcDeclarator = masFailed.Get(i)->pcDeclarator;
+		if (pcDeclarator->GetName() && (GetFunctionName(pcDeclarator->GetName()->GetLast()) == lliName))
 		{
-			continue;
+			mcDiagnostics.Repeat(masFailed.Get(i)->pcErrors);
+			return;
 		}
-		pcSpecifiers = CCPPSyntaxDeclSpecifiers::Of(pcDeclarator->mpcParent);
-		mpcStatistics->Count(CPPCC_ReportedAgain);
-		DeclareFunction(pcSpecifiers, pcDeclarator, false, NULL, false);
-		return;
 	}
 }
 

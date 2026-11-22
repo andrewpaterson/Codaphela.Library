@@ -1374,11 +1374,9 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			//operator = (...) = default is the implicit copy assignment, which = does when the class declares none.
 			return true;
 		}
-		mcDiagnostics.BeginQuiet();
 		bFriend = pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_FRIEND);
 		uiMembers = pcClass->mapcMembers.NumElements();
-		pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, bFriend ? NULL : pcClass, false);
-		mcDiagnostics.EndQuiet();
+		pcFunction = DeclareQuietly(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, bFriend ? NULL : pcClass, false);
 		if (!pcFunction && pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_VIRTUAL))
 		{
 			//Leaving out a virtual function would move the vtable's other entries.
@@ -1386,7 +1384,6 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		}
 		if (!pcFunction)
 		{
-			mapcFailed.Add(pcDefinition->mpcDeclarator);
 			return true;
 		}
 		if (IsDeclaredAgainInClass(pcClass, pcFunction, uiMembers))
@@ -1412,13 +1409,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
 				if (pcInit->mpcDeclarator && pcInit->mpcDeclarator->IsFunction())
 				{
-					mcDiagnostics.BeginQuiet();
-					pcFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);
-					mcDiagnostics.EndQuiet();
-					if (!pcFunction)
-					{
-						mapcFailed.Add(pcInit->mpcDeclarator);
-					}
+					DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);
 				}
 			}
 			return true;
@@ -1474,10 +1465,8 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			{
 				//virtual int f() = 0;
 				bPure = pcInit->mpcInitializer && Constant(pcInit->mpcInitializer, &lliZero) && (lliZero == 0);
-				mcDiagnostics.BeginQuiet();
 				uiMembers = pcClass->mapcMembers.NumElements();
-				pcFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, pcClass, bPure);
-				mcDiagnostics.EndQuiet();
+				pcFunction = DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, false, pcClass, bPure);
 				if (!pcFunction && (pcSpecifiers->muiFlags & CPPDS_VIRTUAL))
 				{
 					//Leaving out a virtual function would move the vtable's other entries.
@@ -1485,7 +1474,6 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				}
 				else if (!pcFunction)
 				{
-					mapcFailed.Add(pcInit->mpcDeclarator);
 				}
 				else if (IsDeclaredAgainInClass(pcClass, pcFunction, uiMembers))
 				{

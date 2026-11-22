@@ -28,6 +28,18 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 class CCPPTokeniser;
 class CCPPContext;
+
+
+//A part whose errors are kept (CCPPDiagnostics::BeginKeeping): where its errors begin in the list, and in the quiet
+//ones' list, and whether what is said loudly in it is kept too or said.
+struct SCPPKeeping
+{
+	size	uiFirst;
+	size	uiFirstQuiet;
+	bool	bLoudToo;
+};
+
+
 class CCPPSyntax;
 class CCPPCompileStatistics;
 struct SPreprocessedToken;
@@ -50,7 +62,8 @@ protected:
 	CCPPErrors				mcErrors;
 	CCPPErrors				mcWarnings;		//Each at most once (by token); they don't fail the unit.
 	CArrayTemplate<size>	mauiSilent;		//How many errors there were when each silent part began, the last begun last.
-	CArrayTemplate<size>	mauiKeeping;	//...and when each part whose errors are kept began.
+	CArrayTemplate<SCPPKeeping>	masKeeping;	//The parts whose errors are kept, the last begun last.
+	CArrayTemplate<size>	mauiQuietKept;	//The errors said quietly in them, by their place in mcErrors.
 	CArrayTemplatePtr<CCPPErrors>	mapcKept;	//The errors kept (EndKeeping), each list with what was worked out when they were made.
 
 public:
@@ -77,10 +90,11 @@ public:
 	bool		EndSilent(void);
 	void		BeginSilentTrial(void);
 	bool		EndSilentTrial(void);
-	void		BeginKeeping(void);
+	void		BeginKeeping(bool bLoudToo = true);
 	CCPPErrors*	EndKeeping(void);
 	bool		HasKept(void);
 	void		Report(CCPPErrors* pcKept);
+	void		Repeat(CCPPErrors* pcKept);
 
 	CCPPErrors*	GetErrors(void);
 	CCPPErrors*	GetWarnings(void);

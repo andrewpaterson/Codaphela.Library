@@ -73,6 +73,8 @@ public:
 	void	MoveTailTo(CCPPErrors* pcDest, size uiFirst);
 	bool	Has(const char* szError);
 	void	Remove(size uiIndex);
+	void	Reverse(void);
+	void	MoveTo(CCPPErrors* pcDest, size uiIndex);
 
 protected:
 	size	GetFileIndex(const char* szFile);

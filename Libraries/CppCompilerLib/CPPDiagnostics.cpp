@@ -38,7 +38,8 @@ void CCPPDiagnostics::Init(CCPPTokeniser* pcTokeniser, CCPPContext* pcContext, C
 	mcErrors.Init();
 	mcWarnings.Init();
 	mauiSilent.Init();
-	mauiKeeping.Init();
+	masKeeping.Init();
+	mauiQuietKept.Init();
 	mapcKept.Init();
 	SetStatistics(pcStatistics);
 }
@@ -58,7 +59,8 @@ void CCPPDiagnostics::Kill(void)
 		free(mapcKept.GetPtr(i));
 	}
 	mapcKept.Kill();
-	mauiKeeping.Kill();
+	mauiQuietKept.Kill();
+	masKeeping.Kill();
 	mauiSilent.Kill();
 	mcWarnings.Kill();
 	mcErrors.Kill();
@@ -87,6 +89,8 @@ void CCPPDiagnostics::SetStatistics(CCPPCompileStatistics* pcStatistics)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPDiagnostics::Error(CCPPSyntax* pcNode, const char* szMessage)
 {
+	size	uiError;
+
 	if (mpcContext->IsQuiet())
 	{
 		mpcContext->SetFailed();
@@ -94,6 +98,8 @@ bool CCPPDiagnostics::Error(CCPPSyntax* pcNode, const char* szMessage)
 		{
 			return false;
 		}
+		uiError = mcErrors.NumErrors();
+		mauiQuietKept.Add(&uiError);
 	}
 	return ErrorAt(pcNode ? pcNode->miFirstToken : -1, szMessage);
 }
@@ -439,15 +445,19 @@ bool CCPPDiagnostics::EndSilentTrial(void)
 //
 // What is worked out until EndKeeping is remembered by the caller, with the
 // errors made working it out: they are recorded, in quiet code too, and
-// given to the caller when it ends.
+// given to the caller when it ends.  Without bLoudToo what is said loudly
+// stays where it is, said: only what quiet code would not have said is
+// kept.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPDiagnostics::BeginKeeping(void)
+void CCPPDiagnostics::BeginKeeping(bool bLoudToo)
 {
-	size	uiErrors;
+	SCPPKeeping*	psKeeping;
 
-	uiErrors = mcErrors.NumErrors();
-	mauiKeeping.Add(&uiErrors);
+	psKeeping = masKeeping.Add();
+	psKeeping->uiFirst = mcErrors.NumErrors();
+	psKeeping->uiFirstQuiet = mauiQuietKept.NumElements();
+	psKeeping->bLoudToo = bLoudToo;
 	mpcContext->EnterKeeping();
 }
 
@@ -480,7 +490,7 @@ bool CCPPDiagnostics::HasErrorAt(CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPDiagnostics::HasKept(void)
 {
-	return mcErrors.NumErrors() > *mauiKeeping.Tail();
+	return mcErrors.NumErrors() > masKeeping.Tail()->uiFirst;
 }
 
 
@@ -493,21 +503,66 @@ bool CCPPDiagnostics::HasKept(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPErrors* CCPPDiagnostics::EndKeeping(void)
 {
-	CCPPErrors*	pcKept;
-	size		uiFirst;
+	CCPPErrors*		pcKept;
+	SCPPKeeping		sKeeping;
+	size			i;
+	size			uiError;
 
 	mpcContext->LeaveKeeping();
-	uiFirst = *mauiKeeping.Tail();
-	mauiKeeping.RemoveTail();
-	if (mcErrors.NumErrors() <= uiFirst)
+	sKeeping = *masKeeping.Tail();
+	masKeeping.RemoveTail();
+	if ((mcErrors.NumErrors() <= sKeeping.uiFirst) || (!sKeeping.bLoudToo && (mauiQuietKept.NumElements() == sKeeping.uiFirstQuiet)))
 	{
+		mauiQuietKept.SetUsedElements(sKeeping.uiFirstQuiet);
 		return NULL;
 	}
 	pcKept = (CCPPErrors*)malloc(sizeof(CCPPErrors));
 	pcKept->Init();
-	mcErrors.MoveTailTo(pcKept, uiFirst);
+	if (sKeeping.bLoudToo)
+	{
+		mcErrors.MoveTailTo(pcKept, sKeeping.uiFirst);
+	}
+	else
+	{
+		//Only the quiet ones: each is taken off the list, the last first, and they are kept in the order they were said.
+		for (i = mauiQuietKept.NumElements(); i > sKeeping.uiFirstQuiet; i--)
+		{
+			uiError = *mauiQuietKept.Get(i - 1);
+			if (uiError < mcErrors.NumErrors())
+			{
+				mcErrors.MoveTo(pcKept, uiError);
+			}
+		}
+		pcKept->Reverse();
+	}
+	mauiQuietKept.SetUsedElements(sKeeping.uiFirstQuiet);
 	mapcKept.Add(pcKept);
 	return pcKept;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Says errors that were kept as if they were said again here: in quiet
+// code they only make it fail (as Error), unless what is around is being
+// kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDiagnostics::Repeat(CCPPErrors* pcKept)
+{
+	if (!pcKept)
+	{
+		return;
+	}
+	if (mpcContext->IsQuiet())
+	{
+		mpcContext->SetFailed();
+		if (!mpcContext->IsKeeping())
+		{
+			return;
+		}
+	}
+	Report(pcKept);
 }
 
 
