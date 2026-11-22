@@ -28,6 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRInliner.h"
 #include "IROptimiser.h"
 #include "IRW65C816Backend.h"
+#include "IRW65C816Costs.h"
 #include "CPPTargetW65C816.h"
 
 
@@ -38,6 +39,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP816_INLINE_LOOP_INSTRUCTIONS	128		//...or where the call is in a loop...
 #define CPP816_INLINE_HOT_INSTRUCTIONS	192		//...or, with a profile, where the call is hot: more than in a loop, or a profile would add nothing there...
 #define CPP816_INLINE_CALLS				64		//...and the most calls inlined into one function at a time.
+
+
+static CIRW65C816DivisionCosts	gcW65C816DivisionCosts;
 #define CPP816_INLINE_SIZE_INSTRUCTIONS	4		//Preferring size: the most instructions a function inlined may have, wherever its call is.
 
 
@@ -669,13 +673,17 @@ void CCPPTargetW65C816::GetInlineLimits(SIRInlineLimits* psLimits, CCPPCompileOp
 // The W65C816 runs every pass (CCPPTarget::BuildPipeline): its multiplies and
 // counters are narrowed, divisions by constants are multiplies and signed
 // indices are biased.  It has no indexed addresses, so they are not made for
-// it, and its divide routines leave the remainder at D + 5.
+// it, and its divide routines leave the remainder at D + 5.  A divide by a
+// constant is made a multiply only where that costs fewer cycles than the
+// routine (gcW65C816DivisionCosts, which keeps nothing: every unit's
+// optimiser reads the one).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPTargetW65C816::ConfigureOptimiser(CIROptimiser* pcOptimiser)
 {
 	pcOptimiser->SetIndexedAddresses(false);
 	pcOptimiser->SetDivideRemainders(IR_DIVIDE_REMAINDERS_16 | IR_DIVIDE_REMAINDERS_32 | IR_DIVIDE_REMAINDERS_64 | IR_DIVIDE_REMAINDERS_SIGNED);
+	pcOptimiser->SetDivisionCosts(&gcW65C816DivisionCosts);
 }
 
 

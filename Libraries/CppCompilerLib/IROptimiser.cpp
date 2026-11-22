@@ -207,6 +207,20 @@ void CIROptimiser::SetDivideRemainders(uint32 uiDivideRemainders)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a divide by a constant and the multiply and shift that stand for
+// it cost the target (pcDivisionCosts is the caller's, and outlives the
+// optimiser): ConstantDivisions writes the reciprocal only where it is
+// the cheaper.  NULL, as it starts: every reciprocal found is written.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetDivisionCosts(CIRDivisionCosts* pcDivisionCosts)
+{
+	mcContext.mpcDivisionCosts = pcDivisionCosts;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // How often the profiled run ran each instruction's line, for the passes
 // that spend memory on hot code (ConstantDivisions' byte tables).  NULL for
 // no profile.

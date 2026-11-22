@@ -308,6 +308,46 @@ bool CIRDivisionPasses::FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivi
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the reciprocal found for psInstruction (x / c or x % c in
+// pcBlock, x in psRange) costs the target less than its divide does (the
+// target's CIRDivisionCosts).  x / c and x % c of one x in the block are
+// priced together, so that both get the one answer: as a reciprocal they
+// cost what the remainder does (x less the quotient times c: the quotient
+// is in it), and as a divide they are one (the routine leaves the
+// remainder, LeavesRemainder, for ShareDivisions) or two.  True for a
+// target that hasn't said what they cost.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRDivisionPasses::IsReciprocalCheaper(CIRBlock* pcBlock, SIRInstruction* psInstruction, SIRConstantDivision* psDivision, SIRValueRange* psRange, SIRReciprocal* psReciprocal)
+{
+	CIRDivisionCosts*	pcCosts;
+	SIRConstantDivision	sPriced;
+	SIRInstruction		sRemainder;
+	int					iDivide;
+
+	pcCosts = mpcContext->mpcDivisionCosts;
+	if (!pcCosts)
+	{
+		return true;
+	}
+	sPriced = *psDivision;
+	iDivide = pcCosts->DivideCost(psInstruction->sType, psDivision, psRange->lliMin, psRange->lliMax);
+	if (HasDivision(pcBlock, IRDivisionPartner(psInstruction->uiOpcode), psInstruction->asArguments[0], psInstruction->asArguments[1]))
+	{
+		sPriced.bRemainder = true;
+		sRemainder = *psInstruction;
+		sRemainder.uiOpcode = IRDivisionOpcode(psDivision->bSigned, true);
+		if (!LeavesRemainder(&sRemainder))
+		{
+			iDivide *= 2;
+		}
+	}
+	return pcCosts->ReciprocalCost(psInstruction->sType, &sPriced, psRange->lliMin, psRange->lliMax, psReciprocal) < iDivide;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // x % c == 0 and x % c != 0 (c a constant above 2, not a power of 2, x an
 // i16 or i32) without a divide: c = 2^k * d (d odd), so with i the
 // inverse of d modulo 2^n, x % c == 0 exactly when (x * i) rotated right
@@ -419,7 +459,9 @@ bool CIRDivisionPasses::DivisibilityTests(void)
 // x is negative (signed); x % c is x - q * c.  Worked out in the type when
 // x * m fits it, else in 32 bits (from 16).  For a target whose divides are
 // runtime calls (the multiply and shifts are a few instructions; the
-// multiply by a constant shifts and adds).  A divide and a remainder of one
+// multiply by a constant shifts and adds), and only where it says they
+// cost less than the divide (IsReciprocalCheaper: a multiplier of many
+// digits in 32 bits is a call itself).  A divide and a remainder of one
 // x get the same q, which common subexpressions make one.  An i8 one the
 // profile finds hot (IsHot) is marked IRF_Hot and left for the target to
 // look up in a table.  x's range is narrowed by the branches to the divide
@@ -490,7 +532,8 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 			{
 				sFound.uiKind = IRCD_Table;
 			}
-			else if ((sRange.lliMin <= sRange.lliMax) && FindReciprocal(sRange.lliMin, sRange.lliMax, lliDivisor, psInstruction->sType.IntegerBits(), bSigned, &sFound.sReciprocal))
+			else if ((sRange.lliMin <= sRange.lliMax) && FindReciprocal(sRange.lliMin, sRange.lliMax, lliDivisor, psInstruction->sType.IntegerBits(), bSigned, &sFound.sReciprocal) &&
+					 IsReciprocalCheaper(pcBlock, psInstruction, &sDivision, &sRange, &sFound.sReciprocal))
 			{
 				sFound.uiKind = IRCD_Reciprocal;
 			}

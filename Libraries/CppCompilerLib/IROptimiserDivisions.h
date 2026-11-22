@@ -21,16 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __I_R_OPTIMISER_DIVISIONS_H__
 #define __I_R_OPTIMISER_DIVISIONS_H__
 #include "IRPasses.h"
-
-
-//x / c as (x * ulliMultiplier) >> iShift, for every x of a range (CIRDivisionPasses::FindReciprocal).
-struct SIRReciprocal
-{
-	uint64	ulliMultiplier;
-	int		iShift;
-	int		iBits;			//What the product is worked out in: the division's type's bits, or 32.
-	int		iPreShift;		//For c = 2^k * m: x is shifted right k first and the reciprocal is m's; 0 for none.
-};
+#include "IRDivisionCosts.h"
 
 
 //How ConstantDivisions does a divide or remainder by a constant.
@@ -68,6 +59,7 @@ public:
 protected:
 	bool			SplitDivisor(SIRType sType, int64 lliDivisor, int64 lliMin, int64 lliMax);
 	bool			FindReciprocal(int64 lliMin, int64 lliMax, int64 lliDivisor, int iBits, bool bSigned, SIRReciprocal* psReciprocal);
+	bool			IsReciprocalCheaper(CIRBlock* pcBlock, SIRInstruction* psInstruction, SIRConstantDivision* psDivision, SIRValueRange* psRange, SIRReciprocal* psReciprocal);
 	bool			LeavesRemainder(SIRInstruction* psRemainder);
 	bool			HasDivision(CIRBlock* pcBlock, uint16 uiOpcode, SIRReference sValue, SIRReference sDivisor);
 	bool			IsByteTableDivision(int64 lliMin, int64 lliMax, int64 lliDivisor);

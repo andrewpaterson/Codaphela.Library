@@ -167,6 +167,7 @@ typedef CArrayTemplatePtr<SIRPhiArgument>	CArrayIRExitArguments;
 
 
 class CIRInlineProfile;
+class CIRDivisionCosts;
 class CIRBlockPasses;
 class CIRCounterPasses;
 class CIRFoldingPasses;
@@ -192,6 +193,7 @@ public:
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
 	SIRType					msLibrarySize;		//memset's size_t (16 or 32 bits): a 16 bit one has 32 suffixed functions for longer counts.
 	CIRInlineProfile*		mpcProfile;			//How often lines ran (SetProfile), NULL for none.
+	CIRDivisionCosts*		mpcDivisionCosts;	//What a divide by a constant and its reciprocal cost the target (SetDivisionCosts); NULL: not said.
 	CChars*					mpszWarnings;		//Comparisons found always true or false (SetWarnings); NULL: not looked for.
 	CIRDominators			mcDominators;
 	CIRDefinitions			mcDefinitions;		//Each temporary's definition (FindDefinitions).

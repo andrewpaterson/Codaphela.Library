@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <string.h>
 #include "IRW65C816BackendInternal.h"
 #include "IRW65C816Code.h"
+#include "IRW65C816Costs.h"
 
 
 //The W65C816 back end: a function's code from its IR (GenerateFunction, GenerateBody), its arguments' places
@@ -585,43 +586,15 @@ void CIRW65C816Backend::SetOptions(CCPPCompileOptions* pcOptions)
 }
 
 
-//The cycles a multiply by a constant costs as a runtime call (with its operands' stores), and roughly what a constant
-//shift (by whole bytes, then bits), an add or sub and a neg cost, for 1, 2 and 4 word values (ShiftAddCost).
-#define IR816_MULTIPLY_CALL_16	150
-#define IR816_MULTIPLY_CALL_32	230
-#define IR816_MULTIPLY_CALL_64	3000
-
-
 //////////////////////////////////////////////////////////////////////////
 //
-// Roughly the cycles of shifts and adds in a value of iWords words: a shift
-// of iShift bits, then iAdds adds (or subs).
-//
-//////////////////////////////////////////////////////////////////////////
-static int IR816ShiftCycles(int iWords, int iShift, int iAdds)
-{
-	int	iCost;
-
-	iCost = 0;
-	if (iShift > 0)
-	{
-		iCost = 5 * iWords + 12 * iWords * (iShift / 8) + 7 * iWords * (iShift % 8);
-	}
-	return iCost + 12 * iWords * iAdds;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A mul by a constant is a runtime call (ExpandMultiplies).
+// A mul by a constant is a runtime call (ExpandMultiplies); the cycles are
+// IRW65C816Costs', which the cost of a divide's reciprocal reads too.
 //
 //////////////////////////////////////////////////////////////////////////
 int CIRW65C816Backend::MultiplyCost(SIRType sType, uint64 ulliMultiplier)
 {
-	int	iWords;
-
-	iWords = Words(sType);
-	return (iWords == 1) ? IR816_MULTIPLY_CALL_16 : ((iWords == 2) ? IR816_MULTIPLY_CALL_32 : IR816_MULTIPLY_CALL_64);
+	return IR816MultiplyCallCycles(Words(sType));
 }
 
 
@@ -634,10 +607,7 @@ int CIRW65C816Backend::MultiplyCost(SIRType sType, uint64 ulliMultiplier)
 //////////////////////////////////////////////////////////////////////////
 int CIRW65C816Backend::ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, int iDigits)
 {
-	int	iWords;
-
-	iWords = Words(sType);
-	return IR816ShiftCycles(iWords, aiPlaces[iDigits - 1], iDigits - 1) + 5 * iWords * (iDigits - 1) + ((aiSigns[iDigits - 1] < 0) ? 12 * iWords : 0);
+	return IR816ShiftAddCycles(Words(sType), aiPlaces, aiSigns, iDigits);
 }
 
 

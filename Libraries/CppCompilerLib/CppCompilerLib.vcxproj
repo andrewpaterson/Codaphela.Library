@@ -229,6 +229,7 @@
     <ClCompile Include="IRW65C816Compares.cpp" />
     <ClCompile Include="IRW65C816Fusion.cpp" />
     <ClCompile Include="IRW65C816Calls.cpp" />
+    <ClCompile Include="IRW65C816Costs.cpp" />
     <ClCompile Include="IRW65C816Lines.cpp" />
     <ClCompile Include="IRW65C816Peephole.cpp" />
     <ClCompile Include="IRW65C816Places.cpp" />
@@ -517,6 +518,7 @@
     <ClInclude Include="IRW65C816Runtime.h" />
     <ClInclude Include="IRW65C816Selector.h" />
     <ClInclude Include="IRW65C816Calls.h" />
+    <ClInclude Include="IRW65C816Costs.h" />
     <ClInclude Include="IRW65C816Fusion.h" />
     <ClInclude Include="IRW65C816Folds.h" />
     <ClInclude Include="IRW65C816Code.h" />
@@ -535,6 +537,7 @@
     <ClInclude Include="IRSourceMarkers.h" />
     <ClInclude Include="CPP65ListingIndex.h" />
     <ClInclude Include="IRBlock.h" />
+    <ClInclude Include="IRDivisionCosts.h" />
     <ClInclude Include="IRDominators.h" />
     <ClInclude Include="IRAddresses.h" />
     <ClInclude Include="IRBlockCopier.h" />

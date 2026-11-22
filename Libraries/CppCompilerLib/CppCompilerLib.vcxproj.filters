@@ -357,6 +357,9 @@
     <ClCompile Include="IRW65C816Calls.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRW65C816Costs.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRW65C816Lines.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -1187,6 +1190,9 @@
     <ClInclude Include="IRW65C816Calls.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
+    <ClInclude Include="IRW65C816Costs.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
     <ClInclude Include="IRW65C816Fusion.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
@@ -1218,6 +1224,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRBlock.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRDivisionCosts.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRDominators.h">

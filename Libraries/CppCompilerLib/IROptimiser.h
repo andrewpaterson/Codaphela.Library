@@ -66,6 +66,7 @@ public:
 	void			SetIndexedAddresses(bool bIndexedAddresses);
 	void			SetWarnings(CChars* pszWarnings);
 	void			SetDivideRemainders(uint32 uiDivideRemainders);
+	void			SetDivisionCosts(CIRDivisionCosts* pcDivisionCosts);
 	void			SetProfile(CIRInlineProfile* pcProfile);
 	void			SetPipeline(CIRPipeline* pcPipeline);
 	CIRPipeline*	GetPipeline(void) const;

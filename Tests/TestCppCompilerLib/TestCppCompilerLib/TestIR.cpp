@@ -10,6 +10,7 @@
 #include "CppCompilerLib/IRSSAUpdater.h"
 #include "CppCompilerLib/IRLiveness.h"
 #include "CppCompilerLib/IRBackendPasses.h"
+#include "CppCompilerLib/IRW65C816Costs.h"
 #include "CppCompilerLib/CPPTarget.h"
 #include "TestLib/Assert.h"
 
@@ -1039,6 +1040,7 @@ void TestIRLoops(void)
 #define IR_TEST_CONSTANT_DIVISIONS	0x20	//ConstantDivisions is (the W65C816's, whose divides are calls).
 #define IR_TEST_DIVIDE_REMAINDERS	0x40	//SetDivideRemainders of the 65C64's divides (unsigned, 8 to 32 bits).
 #define IR_TEST_COUNTER_DIVISIONS	0x80	//ReduceDivisions is (the W65C816's).
+#define IR_TEST_DIVISION_COSTS		0x100	//SetDivisionCosts of the W65C816's: a reciprocal only where it costs less than the divide.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1061,6 +1063,7 @@ void AssertIROptimisedOptions(const char* szExpected, const char* szText, uint32
 	size			uk;
 	CIRBlock*		pcBlock;
 	bool			bSources;
+	CIRW65C816DivisionCosts	cDivisionCosts;
 
 	//Every instruction parsed is from line 7: the ones optimising makes must have a line too (7, or 0 for none).
 	cModule.Init();
@@ -1111,6 +1114,10 @@ void AssertIROptimisedOptions(const char* szExpected, const char* szText, uint32
 	if (uiOptions & IR_TEST_LIBRARY)
 	{
 		cOptimiser.SetLibraryInt(IRType(IRTK_I16));
+	}
+	if (uiOptions & IR_TEST_DIVISION_COSTS)
+	{
+		cOptimiser.SetDivisionCosts(&cDivisionCosts);
 	}
 	for (ui = 0; ui < cModule.NumFunctions(); ui++)
 	{
@@ -4681,6 +4688,181 @@ void TestIROptimiserConstantDivisions(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// ConstantDivisions with the W65C816's costs (SetDivisionCosts): a
+// reciprocal is written only where its multiply and shifts cost fewer
+// cycles than the divide's routine.  A byte times a byte, and 127, over 255
+// is a multiply by 32897 (three digits: shifts and adds) and a shift.  x %
+// 30000 of an x under 131072 has a reciprocal, written without the costs,
+// that needs two 32 bit multiplies by many digits (calls themselves): it
+// stays the divide.  x / 10 of an x under 1024 alone is a multiply; with x
+// % 10 beside it, where the routine leaves the remainder, the two are one
+// call and stay it, and where it leaves none (two calls) both are the
+// multiply.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserDivisionCosts(void)
+{
+	CIRW65C816DivisionCosts	cCosts;
+	SIRConstantDivision		sDivision;
+	SIRReciprocal			sReciprocal;
+
+	AssertIROptimisedOptions(
+		"function i32 @_D__Fii(i32 %a, i32 %b)\n"
+		"{\n"
+		"entry:\n"
+		"\t%x = and i32 %a, 255\n"
+		"\t%y = and i32 %b, 255\n"
+		"\t%p = mul i32 %x, %y\n"
+		"\t%s = add i32 %p, 127\n"
+		"\t%0 = mul i32 %s, 32897\n"
+		"\t%1 = lshr i32 %0, 23\n"
+		"\tret i32 %1\n"
+		"}\n",
+		"function i32 @_D__Fii(i32 %a, i32 %b)\n"
+		"{\n"
+		"entry:\n"
+		"\t%x = and i32 %a, 255\n"
+		"\t%y = and i32 %b, 255\n"
+		"\t%p = mul i32 %x, %y\n"
+		"\t%s = add i32 %p, 127\n"
+		"\t%d = udiv i32 %s, 255\n"
+		"\tret i32 %d\n"
+		"}\n", IR_TEST_INDEXED_ADDRESSES | IR_TEST_CONSTANT_DIVISIONS | IR_TEST_DIVISION_COSTS);
+
+	AssertIROptimisedOptions(
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 131071\n"
+		"\t%0 = lshr i32 %a, 4\n"
+		"\t%1 = mul i32 %0, 2237\n"
+		"\t%2 = lshr i32 %1, 22\n"
+		"\t%3 = mul i32 %2, 30000\n"
+		"\t%r = sub i32 %a, %3\n"
+		"\tret i32 %r\n"
+		"}\n",
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 131071\n"
+		"\t%r = urem i32 %a, 30000\n"
+		"\tret i32 %r\n"
+		"}\n", IR_TEST_INDEXED_ADDRESSES | IR_TEST_CONSTANT_DIVISIONS);
+	AssertIROptimisedOptions(
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 131071\n"
+		"\t%r = urem i32 %a, 30000\n"
+		"\tret i32 %r\n"
+		"}\n",
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 131071\n"
+		"\t%r = urem i32 %a, 30000\n"
+		"\tret i32 %r\n"
+		"}\n", IR_TEST_INDEXED_ADDRESSES | IR_TEST_CONSTANT_DIVISIONS | IR_TEST_DIVISION_COSTS);
+
+	AssertIROptimisedOptions(
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 1023\n"
+		"\t%0 = mul i32 %a, 205\n"
+		"\t%1 = lshr i32 %0, 11\n"
+		"\tret i32 %1\n"
+		"}\n",
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 1023\n"
+		"\t%q = udiv i32 %a, 10\n"
+		"\tret i32 %q\n"
+		"}\n", IR_TEST_INDEXED_ADDRESSES | IR_TEST_CONSTANT_DIVISIONS | IR_TEST_DIVISION_COSTS);
+	AssertIROptimisedOptions(
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 1023\n"
+		"\t%q = udiv i32 %a, 10\n"
+		"\t%r = urem i32 %a, 10\n"
+		"\t%s = add i32 %q, %r\n"
+		"\tret i32 %s\n"
+		"}\n",
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 1023\n"
+		"\t%q = udiv i32 %a, 10\n"
+		"\t%r = urem i32 %a, 10\n"
+		"\t%s = add i32 %q, %r\n"
+		"\tret i32 %s\n"
+		"}\n", IR_TEST_INDEXED_ADDRESSES | IR_TEST_CONSTANT_DIVISIONS | IR_TEST_DIVISION_COSTS | IR_TEST_DIVIDE_REMAINDERS);
+	AssertIROptimisedOptions(
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 1023\n"
+		"\t%0 = mul i32 %a, 205\n"
+		"\t%1 = lshr i32 %0, 11\n"
+		"\t%2 = mul i32 %1, 10\n"
+		"\t%r = sub i32 %a, %2\n"
+		"\t%s = add i32 %1, %r\n"
+		"\tret i32 %s\n"
+		"}\n",
+		"function i32 @_D__Fi(i32 %x)\n"
+		"{\n"
+		"entry:\n"
+		"\t%a = and i32 %x, 1023\n"
+		"\t%q = udiv i32 %a, 10\n"
+		"\t%r = urem i32 %a, 10\n"
+		"\t%s = add i32 %q, %r\n"
+		"\tret i32 %s\n"
+		"}\n", IR_TEST_INDEXED_ADDRESSES | IR_TEST_CONSTANT_DIVISIONS | IR_TEST_DIVISION_COSTS);
+
+	//The cycles themselves.  (x * 32897) >> 23 for x up to 65152: 200 for the shifts and adds of two words, 22 for the
+	//shift, 6 for x made two words; its divide is the 16 bit routine through R816_UDiv32, a byte of quotient: 140
+	//and 8 steps of 18.
+	sDivision.bSigned = false;
+	sDivision.bRemainder = false;
+	sDivision.lliDivisor = 255;
+	sReciprocal.ulliMultiplier = 32897;
+	sReciprocal.iShift = 23;
+	sReciprocal.iBits = 32;
+	sReciprocal.iPreShift = 0;
+	AssertInt(228, cCosts.ReciprocalCost(IRType(IRTK_I32), &sDivision, 127, 65152, &sReciprocal));
+	AssertInt(284, cCosts.DivideCost(IRType(IRTK_I32), &sDivision, 127, 65152));
+
+	//An x past 65535 is the 32 bit routine: 16 steps for the low word, and for a high word not below the divisor 8
+	//more (its high byte is below it) or 16.  A divisor under 128 steps a byte wide (14), one of 65536 or more two
+	//words wide (46).
+	AssertInt(140 + 16 * 18, cCosts.DivideCost(IRType(IRTK_I32), &sDivision, 0, 65536));
+	AssertInt(140 + 24 * 18, cCosts.DivideCost(IRType(IRTK_I32), &sDivision, 0, 0x00FFFFFF));
+	AssertInt(140 + 24 * 18, cCosts.DivideCost(IRType(IRTK_I32), &sDivision, 0, 0x7FFFFFFF));
+	sDivision.lliDivisor = 10;
+	AssertInt(110 + 8 * 14, cCosts.DivideCost(IRType(IRTK_I16), &sDivision, 0, 1023));
+	AssertInt(110 + 16 * 14, cCosts.DivideCost(IRType(IRTK_I16), &sDivision, 0, 32767));
+	AssertInt(140 + 32 * 14, cCosts.DivideCost(IRType(IRTK_I32), &sDivision, 0, 0x7FFFFFFF));
+	sDivision.lliDivisor = 100000;
+	AssertInt(140 + 8 * 46, cCosts.DivideCost(IRType(IRTK_I32), &sDivision, 0, 0x00FFFFFF));
+	AssertInt(140 + 16 * 46, cCosts.DivideCost(IRType(IRTK_I32), &sDivision, 0, 0x7FFFFFFF));
+
+	//A signed one takes the signs off and puts them back (80 or 100 more), and its reciprocal adds 1 to the quotient
+	//of a negative x.  x % 3 of an i16 from -32767: x made two words (16), a 32 bit multiply by 10923 that is a call
+	//(230), the shift by 15 (83), the 1 (40), and the quotient times 3 taken from x in 16 bits (36 and 12).
+	sDivision.bSigned = true;
+	sDivision.bRemainder = true;
+	sDivision.lliDivisor = 3;
+	sReciprocal.ulliMultiplier = 10923;
+	sReciprocal.iShift = 15;
+	AssertInt(417, cCosts.ReciprocalCost(IRType(IRTK_I16), &sDivision, -32767, 3, &sReciprocal));
+	AssertInt(110 + 80 + 16 * 14, cCosts.DivideCost(IRType(IRTK_I16), &sDivision, -32767, 3));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // FoldNullTests: p + 4 on the way where p was tested not null isn't null;
 // a slot's address isn't null.  A phi of p (tested) and q (not tested) may
 // be null, so its test stays.
@@ -6516,6 +6698,7 @@ void TestIR(void)
 	TestIROptimiserBiasSignedIndices();
 	TestIROptimiserMergeAddressPhis();
 	TestIROptimiserConstantDivisions();
+	TestIROptimiserDivisionCosts();
 	TestIROptimiserFoldNullTests();
 	TestIROptimiserKnownBranches();
 	TestIROptimiserGuardedMultiples();
