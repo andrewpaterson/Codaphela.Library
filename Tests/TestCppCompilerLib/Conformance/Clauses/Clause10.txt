@@ -657,3 +657,33 @@ int main()
 	if (sizeof(D::U) == sizeof(int)) r += 32;
 	return r;
 }
+### DerivedNestedFinalBaseRefused | REFUSED | 10.3 [class.virtual] p3, 9 [class] p3: a class nested in another, with nothing using it, doesn't derive from a final class
+struct O { struct B final { int x; }; struct D : B { }; };
+int main() { return 0; }
+### DerivedNestedOverrideNothingRefused | REFUSED | 10.3 [class.virtual] p5: override, in a nested class nothing uses, overrides a virtual function
+struct O { struct B { int f(); }; struct D : B { int f() override; }; };
+int main() { return 0; }
+### DerivedLocalFinalBaseRefused | REFUSED | 9 [class] p3, 9.8 [class.local]: a local class nothing uses doesn't derive from a final class
+int main() { struct B final { int x; }; struct D : B { }; return 0; }
+### DerivedLocalOverrideNothingRefused | REFUSED | 10.3 [class.virtual] p5, 9.8 [class.local]: override, in a local class, overrides a virtual function
+int main() { struct B { int f() { return 1; } }; struct D : B { int f() override { return 2; } }; return 0; }
+### DerivedNestedAndLocalVirtSpecifiers | 7 | 10.3 [class.virtual] p4, p5: final and override where they are right, in nested and local classes
+struct O
+{
+	struct B { virtual int f() { return 1; } virtual ~B() { } };
+	struct D final : B { int f() override final { return 2; } };
+};
+int main()
+{
+	struct L { virtual int f() { return 3; } virtual ~L() { } };
+	struct M : L { int f() override { return 4; } };
+	int r = 0;
+	O::D d;
+	O::B* b = &d;
+	M m;
+	L* l = &m;
+	if (b->f() == 2) r += 1;
+	if (l->f() == 4) r += 2;
+	if (d.f() + m.f() == 6) r += 4;
+	return r;
+}

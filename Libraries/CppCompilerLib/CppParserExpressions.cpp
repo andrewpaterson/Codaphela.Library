@@ -378,18 +378,19 @@ bool CCPPParser::IsDecltypeMemberCast(CCPPSyntaxName* pcName)
 //
 // Whether the member decltype(e)::name names is a type (1) or not (0),
 // where the parser can tell (-1 where it can't): e is the name of a
-// variable or a parameter declared with a class's name, in which the
-// member is found.
+// variable or a parameter declared with a class's name, or a call of a
+// function by its name whose declarations all return a class by its name,
+// in which the member is found.
 //
 //////////////////////////////////////////////////////////////////////////
 int CCPPParser::DecltypeMemberIsType(CCPPSyntaxName* pcName)
 {
 	CCPPSyntaxTypeId*			pcDecltype;
 	CCPPSyntax*					pcOperand;
-	CCPPSyntax*					pcDeclaration;
-	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
-	CCPPSyntaxDeclarator*		pcDeclarator;
 	CCPPSymbol*					pcSymbol;
+	int64						lliMember;
+	int							iType;
+	int							iFound;
 
 	if (pcName->macpComponents.NumElements() != 2)
 	{
@@ -397,11 +398,49 @@ int CCPPParser::DecltypeMemberIsType(CCPPSyntaxName* pcName)
 	}
 	pcDecltype = ((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0))->mpcType;
 	pcOperand = (pcDecltype && pcDecltype->mpcSpecifiers && pcDecltype->mpcSpecifiers->mpcType && (pcDecltype->mpcSpecifiers->mpcType->GetKind() == CPPS_DecltypeSpecifier)) ? ((CCPPSyntaxDecltypeSpecifier*)pcDecltype->mpcSpecifiers->mpcType)->mpcOperand : NULL;
-	pcSymbol = (pcOperand && (pcOperand->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol : NULL;
-	pcDeclaration = pcSymbol ? pcSymbol->mpcDeclaration : NULL;
+	lliMember = GetTokenIdentifier(((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(1))->miName);
+	if (pcOperand && (pcOperand->GetKind() == CPPS_IdExpression))
+	{
+		pcSymbol = ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol;
+		return pcSymbol ? DeclaredClassMemberIsType(pcSymbol->mpcDeclaration, false, lliMember) : -1;
+	}
+	if (pcOperand && (pcOperand->GetKind() == CPPS_CallExpression) && ((CCPPSyntaxCallExpression*)pcOperand)->mpcCallee && (((CCPPSyntaxCallExpression*)pcOperand)->mpcCallee->GetKind() == CPPS_IdExpression))
+	{
+		//decltype(f())::name: what each overload of f returns has the member, all as a type or all not.
+		pcSymbol = ((CCPPSyntaxIdExpression*)((CCPPSyntaxCallExpression*)pcOperand)->mpcCallee)->mpcName->mpcSymbol;
+		iFound = -1;
+		for (; pcSymbol; pcSymbol = pcSymbol->mpcNext)
+		{
+			iType = (pcSymbol->meKind == CPPSK_Function) ? DeclaredClassMemberIsType(pcSymbol->mpcDeclaration, true, lliMember) : -1;
+			if ((iType == -1) || ((iFound != -1) && (iFound != iType)))
+			{
+				return -1;
+			}
+			iFound = iType;
+		}
+		return iFound;
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether lliMember is a type (1) or not (0) in the class a declaration
+// declares its variable (bFunction false) or its function's return
+// (bFunction true) with by the class's name, no more; -1 if the parser
+// can't tell.  See DecltypeMemberIsType.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPParser::DeclaredClassMemberIsType(CCPPSyntax* pcDeclaration, bool bFunction, int64 lliMember)
+{
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSyntaxDeclarator*		pcDeclarator;
+	CCPPSymbol*					pcSymbol;
+
 	pcSpecifiers = NULL;
 	pcDeclarator = NULL;
-	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_Parameter))
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_Parameter) && !bFunction)
 	{
 		pcSpecifiers = ((CCPPSyntaxParameter*)pcDeclaration)->mpcSpecifiers;
 		pcDeclarator = ((CCPPSyntaxParameter*)pcDeclaration)->mpcDeclarator;
@@ -411,7 +450,13 @@ int CCPPParser::DecltypeMemberIsType(CCPPSyntaxName* pcName)
 		pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers;
 		pcDeclarator = ((CCPPSyntaxInitDeclarator*)pcDeclaration)->mpcDeclarator;
 	}
-	if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_NamedTypeSpecifier) || (pcDeclarator && ((pcDeclarator->NumPointers() != 0) || pcDeclarator->mpcNested || (pcDeclarator->macpSuffixes.NumElements() != 0))))
+	else if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_FunctionDefinition) && bFunction)
+	{
+		pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;
+		pcDeclarator = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcDeclarator;
+	}
+	if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_NamedTypeSpecifier) || !pcDeclarator || (pcDeclarator->NumPointers() != 0) || pcDeclarator->mpcNested ||
+		(pcDeclarator->macpSuffixes.NumElements() != (bFunction ? 1 : 0)) || (bFunction && !pcDeclarator->IsFunction()))
 	{
 		return -1;
 	}
@@ -420,7 +465,7 @@ int CCPPParser::DecltypeMemberIsType(CCPPSyntaxName* pcName)
 	{
 		return -1;
 	}
-	pcSymbol = pcSymbol->mpcMembers->FindMember(GetTokenIdentifier(((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(1))->miName));
+	pcSymbol = pcSymbol->mpcMembers->FindMember(lliMember);
 	if (!pcSymbol)
 	{
 		return -1;

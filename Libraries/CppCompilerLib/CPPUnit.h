@@ -289,6 +289,7 @@ protected:
 	CArraySyntax			mapcMemberTemplateSpecialisations;	//template<> template<> R Class<Arguments>::f<T>(...) { ... }: the inner template<>, given to the instance's member template (FindFunctionSpecialisation).
 	CArraySyntax			mapcMemberClassTemplates;	//template<class T> struct Class<T>::Inner { ... };, the definitions of class templates' member classes and member class templates (MemberClassDefinition).
 	CArraySyntax			mapcMemberVariableTemplates;	//template<class C> template<class T> T W<C>::value = ...;, each instance's member variable template's definition (DefineMemberVariableTemplate).
+	CArraySyntax			mapcMemberVariableSpecialisations;	//template<class C> template<class T> T W<C>::value<T*> = ...;, each instance's member variable template's partial specialisation (SpecialiseMemberVariableTemplate).
 	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
 	CCPPVariable*			mpcDefining;		//The variable of a template's instance GlobalDeclaration is defining, or NULL.
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
@@ -547,6 +548,7 @@ public:
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					CheckCaseInSwitch(CCPPSyntax* pcCase);
 	bool					CheckBlockDeclaration(CCPPSyntax* pcDeclaration);
+	bool					CheckLocalClass(CCPPSyntax* pcDeclaration);
 	bool					CheckJump(CCPPSyntax* pcJump, bool bContinue);
 	bool					IsJumpGuardedLocal(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPSyntaxInitDeclarator* pcInit);
 	void					LocalsInScope(CCPPSyntax* pcNode, CCPPSyntax* pcRoot, CArraySyntax* papcLocals);
@@ -710,6 +712,7 @@ public:
 	CCPPTemplate*			VariableTemplate(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcClass);
 	CCPPTemplate*			ClassVariableTemplate(CCPPSymbol* pcSymbol, CCPPClass* pcClass);
 	void					DefineMemberVariableTemplate(CCPPTemplate* pcTemplate);
+	void					SpecialiseMemberVariableTemplate(CCPPTemplate* pcPrimary, CCPPSyntaxTemplateDeclaration* pcOutside);
 	CCPPVariable*			VariableInstance(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	CCPPVariable*			ClassVariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNameComponent* pcComponent, CCPPClass* pcClass, CCPPSyntax* pcNode);
 	CCPPSyntaxInitDeclarator*	VariableDeclarator(CCPPVariable* pcVariable);

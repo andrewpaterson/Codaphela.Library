@@ -494,6 +494,7 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		{
 			return;
 		}
+		CheckLocalClass(((CCPPSyntaxDeclarationStatement*)pcNode)->mpcDeclaration);
 		break;
 	case CPPS_ClassSpecifier:
 	case CPPS_LazyDeclaration:
@@ -914,6 +915,30 @@ bool CCPPUnit::CheckCaseInSwitch(CCPPSyntax* pcCase)
 		break;
 	}
 	return ReportError(pcCase, ((CCPPSyntaxCaseStatement*)pcCase)->mpcValue ? "A case label is only in a switch" : "A default label is only in a switch");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class defined in a block: what final and override say of it is
+// checked where it is defined (CheckVirtSpecifiers), as a class's at
+// namespace scope is.  [class.virtual] 4, 5, [class] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckLocalClass(CCPPSyntax* pcDeclaration)
+{
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	bool								bResult;
+
+	pcSpecifiers = (pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration)) ? ((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->mpcSpecifiers : NULL;
+	if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_ClassSpecifier))
+	{
+		return true;
+	}
+	BeginLoud();
+	bResult = CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
+	EndLoud();
+	return bResult;
 }
 
 

@@ -467,19 +467,22 @@ B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size
       (the constant interpreter keeps bytes, not which member was last given a value).  It is the one case in the
       lists (ConstantInactiveUnionMemberRefused).  The user, 2026-11-20: "no I don't want item 2".  Leave it.
-   2. A member template whose parameters are its class's pack and then its own: template<class... B> static int
-      Mix(A... a, B... b) in template<class... A> struct Pair.  The call isn't matched ("The number of arguments
-      does not match the function").
-   3. A partial specialisation, outside the class, of a class template's member variable template (template<class
-      C> template<class T> constexpr bool W<C>::same<T*> = true;).  The template itself, in the class or outside
-      it, works.
-   4. (decltype(f())::k) + 1: read as a cast.  The parser has no types; it decides by the member's name only where
-      decltype's operand is the name of a variable or parameter declared with a class's name
-      (CCPPParser::DecltypeMemberIsType).
-   5. final where nothing uses the class: checked for a class at namespace scope in a source file
-      (CCPPUnit::CheckVirtSpecifiers), not for one nested in a class or declared in a function, nor for a header's
-      class, which is checked by the unit that first needs it whole (DeclarationsSpeedPlan.txt stage 3, 2026-11-21:
-      laying out every class the headers mention was half the declarations' time).
+   2. Done 2026-11-22: a member template whose parameters are its class's pack and then its own (Mix(A... a, B...
+      b) in template<class... A> struct Pair) is matched: deduction skips as many arguments as the class's pack has
+      (CCPPDeduction::KnownPackSize, in the class's bindings), and a pack anywhere lets a call have more arguments
+      than parameters (TakesArgumentCount).  TempVariadicClassPackThenOwn, TempVariadicClassPackTooFewRefused.
+   3. Done 2026-11-22: a class template's member variable template partially specialised outside the class is each
+      instance's (SpecialiseMemberVariableTemplate, mapcMemberVariableSpecialisations), naming the class's
+      parameters its own way; one in the class is refused, as g++ refuses it.
+      TempMemberVariableTemplatePartialOutside, TempMemberVariableTemplatePartialInClassRefused.
+   4. Done 2026-11-22: (decltype(f())::k) + 1 is k's value where f's declarations all return a class by its name
+      (CCPPParser::DeclaredClassMemberIsType).  Other operands (a member call, an expression) are still guessed by
+      what follows.  PrimDecltypeQualifierOfCall.
+   5. Done 2026-11-22: final and override are checked in a class nested in a source file's class and in a local
+      class, whether or not anything uses it (CheckVirtSpecifiers walks nested classes; CheckLocalClass, from the
+      semantic pass's and the IR front end's declaration statements).  A class only in a header is still checked by
+      the unit that first needs it whole, on purpose (DeclarationsSpeedPlan.txt stage 3).  DerivedNested*,
+      DerivedLocal*, DerivedNestedAndLocalVirtSpecifiers.
    6. Done 2026-11-22 (the user: "fix the 7 known gaps, commit as you go"): a name two bases each have, named alone in
       a member function, where it is a type, a static member or an enumerator, is refused (CCPPUnit::
       CheckBaseMemberName, from CCPPBinder::BindName and the declarators' named types; cases

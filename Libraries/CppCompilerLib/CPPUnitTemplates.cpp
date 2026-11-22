@@ -337,6 +337,37 @@ void CCPPUnit::DefineMemberVariableTemplate(CCPPTemplate* pcTemplate)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A class template's instance's member variable template (pcPrimary) takes
+// a partial specialisation written outside the class (pcOutside: template
+// <class C> template<class T> constexpr bool W<C>::same<T*> = true;) if it
+// is of its symbol, naming the class's parameters its own way as the
+// definition outside does (mpcClassDeclaration).  [temp.class.spec] 5
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SpecialiseMemberVariableTemplate(CCPPTemplate* pcPrimary, CCPPSyntaxTemplateDeclaration* pcOutside)
+{
+	CCPPSyntaxTemplateDeclaration*	pcDeclaration;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntaxName*					pcName;
+	CCPPTemplate*					pcTemplate;
+
+	pcDeclaration = (CCPPSyntaxTemplateDeclaration*)pcOutside->mpcDeclaration;
+	pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcDeclaration;
+	pcName = MemberVariableTemplateName(pcSimple);
+	if (!pcName || (pcName->mpcSymbol != pcPrimary->mpcSymbol))
+	{
+		return;
+	}
+	pcTemplate = NewTemplate(pcPrimary->mpcSymbol, pcDeclaration, pcSimple, false);
+	pcTemplate->mpcPrimary = pcPrimary;
+	pcTemplate->mpcPattern = pcName->GetLast();
+	pcTemplate->mpcClass = pcPrimary->mpcClass;
+	pcTemplate->mpcClassDeclaration = pcOutside;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The init-declarator a variable is declared by: its symbol's, or for a
 // variable template's instance its template's (or explicit
 // specialisation's), whose symbol all its instances share.  NULL if it
@@ -422,7 +453,8 @@ CCPPVariable* CCPPUnit::ClassVariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNa
 	pcSource = pcSource ? pcSource : pcTemplate;
 	if (pcTemplate->mpcClass && pcTemplate->mpcClass->mpcBindings && !pcBindings->mpcOuter)
 	{
-		pcBindings->mpcOuter = MemberTemplateClassBindings(pcTemplate);
+		//(A specialisation outside the class names the class's parameters its own way.)
+		pcBindings->mpcOuter = MemberTemplateClassBindings(pcSource->mpcClassDeclaration ? pcSource : pcTemplate);
 	}
 	pcSimple = (CCPPSyntaxSimpleDeclaration*)pcSource->mpcDefinition;
 	pcInit = (CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0);
@@ -545,6 +577,23 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 			//template<class T> template<class U> struct Outer<T>::Pair { ... }; defines each instance's member class template
 			//(MemberTemplate).
 			mapcMemberClassTemplates.Add(pcClassTemplate);
+			return true;
+		}
+		if ((pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration) && MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->GetLast()->mbTemplateArguments)
+		{
+			//template<class C> template<class T> constexpr bool W<C>::same<T*> = true; partially specialises each instance's
+			//member variable template: those laid out already, and the others' as they are (MemberTemplate).
+			//[temp.class.spec] 5
+			mapcMemberVariableSpecialisations.Add(pcClassTemplate);
+			pcName = MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
+			for (i = 0; i < mapcTemplates.NumElements(); i++)
+			{
+				pcTemplate = mapcTemplates.GetPtr(i);
+				if (!pcTemplate->mbMember && pcTemplate->mpcClass && (pcTemplate->mpcSymbol == pcName->mpcSymbol) && (pcTemplate->mpcPrimary == pcTemplate))
+				{
+					SpecialiseMemberVariableTemplate(pcTemplate, pcClassTemplate);
+				}
+			}
 			return true;
 		}
 		if ((pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration) && !MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->GetLast()->mbTemplateArguments)
@@ -3053,6 +3102,7 @@ bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration*
 	CCPPSyntaxClassSpecifier*		pcSpecifier;
 	CCPPSyntaxTemplateDeclaration*	pcOutside;
 	int64							lliName;
+	size							i;
 
 	pcDeclaration = pcTemplateDeclaration->mpcDeclaration;
 	if (pcTemplateDeclaration->mbInstantiation || (pcTemplateDeclaration->macpParameters.NumElements() == 0) || !pcDeclaration)
@@ -3100,10 +3150,19 @@ bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration*
 	}
 	if ((pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && VariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration))
 	{
+		if (VariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->GetLast()->mbTemplateArguments)
+		{
+			//A member variable template is specialised outside its class, as g++ has it.  [temp.class.spec] 5
+			return ClassError(pcDeclaration->miFirstToken, "A member variable template is specialised outside its class");
+		}
 		//template<class T> static const int size = sizeof(T); in a class: a variable template that is its static member.
 		pcTemplate = NewTemplate(VariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->mpcSymbol, pcTemplateDeclaration, pcDeclaration, false);
 		pcTemplate->mpcClass = pcClass;
 		DefineMemberVariableTemplate(pcTemplate);
+		for (i = 0; i < mapcMemberVariableSpecialisations.NumElements(); i++)
+		{
+			SpecialiseMemberVariableTemplate(pcTemplate, (CCPPSyntaxTemplateDeclaration*)mapcMemberVariableSpecialisations.GetPtr(i));
+		}
 		return true;
 	}
 	pcName = pcDeclarator ? pcDeclarator->GetName() : NULL;

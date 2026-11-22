@@ -59,6 +59,7 @@ public:
 	bool				HasConflict(void) const;
 
 protected:
+	bool				KnownPackSize(CCPPSyntaxParameter* pcParameter, size* puiSize);
 	void				DeduceParameters(CCPPSyntaxFunctionSuffix* pcSuffix, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments);
 	bool				DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP65Types* papsArguments, CArraySyntax* papcArguments, size i);
 	SCPP65Type*			WithoutQualifiersOf(CCPPSyntaxDeclSpecifiers* pcSpecifiers, SCPP65Type* psType);

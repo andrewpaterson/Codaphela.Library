@@ -153,14 +153,25 @@ bool CCPPSyntaxFunctionSuffix::EndsWithPack(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPSyntaxFunctionSuffix::TakesArgumentCount(size uiArguments)
 {
-	size	uiParameters;
-	size	uiRequired;
+	CCPPSyntaxParameter*	pcParameter;
+	size					uiParameters;
+	size					uiRequired;
+	size					uiPacks;
+	size					i;
 
 	uiParameters = NumParameters();
 	uiRequired = RequiredParameters();
-	if (EndsWithPack())
+	uiPacks = 0;
+	for (i = 0; i < macpParameters.NumElements(); i++)
 	{
-		return uiArguments + 1 >= uiRequired;
+		pcParameter = (CCPPSyntaxParameter*)macpParameters.GetPtr(i);
+		uiPacks += ((pcParameter->GetKind() == CPPS_Parameter) && pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack) ? 1 : 0;
+	}
+	if (uiPacks > 0)
+	{
+		//Each pack takes any number, none too (a pack not last is the class's, as in Mix(A... a, B... b), whose length
+		//the instance's parameters have).
+		return uiArguments + uiPacks >= uiRequired;
 	}
 	return (uiArguments >= uiRequired) && ((uiArguments <= uiParameters) || mbVariadic);
 }

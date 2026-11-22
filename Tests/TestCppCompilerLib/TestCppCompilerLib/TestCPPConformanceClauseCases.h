@@ -7988,6 +7988,24 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.1.1 [expr.prim.general] p8, 5.4 [expr.cast]: (decltype(f())::k) is k's value in parentheses where k is no type, and a cast where it is one
+	{
+		"PrimDecltypeQualifierOfCall", 15,
+		"struct S { static const int k = 4; typedef int T; };\n"
+		"S f();\n"
+		"S f(int);\n"
+		"S f() { return S(); }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	char c = 2;\n"
+		"	if ((decltype(f())::k) + 1 == 5) r += 1;\n"
+		"	if ((decltype(f())::T)c + 1 == 3) r += 2;\n"
+		"	if ((decltype(f(1))::k) - 1 == 3) r += 4;\n"
+		"	if ((decltype(f())::k) * 2 == 8) r += 8;\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//5.1.1 [expr.prim.general] p8: decltype(e):: needs a class or an enumeration
 	{
 		"PrimDecltypeQualifierNotClassRefused", CONFORMANCE_REFUSED,
@@ -13697,6 +13715,51 @@ static const SConformanceCase gasConformanceClause10[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//10.3 [class.virtual] p3, 9 [class] p3: a class nested in another, with nothing using it, doesn't derive from a final class
+	{
+		"DerivedNestedFinalBaseRefused", CONFORMANCE_REFUSED,
+		"struct O { struct B final { int x; }; struct D : B { }; };\n"
+		"int main() { return 0; }\n"
+	},
+	//10.3 [class.virtual] p5: override, in a nested class nothing uses, overrides a virtual function
+	{
+		"DerivedNestedOverrideNothingRefused", CONFORMANCE_REFUSED,
+		"struct O { struct B { int f(); }; struct D : B { int f() override; }; };\n"
+		"int main() { return 0; }\n"
+	},
+	//9 [class] p3, 9.8 [class.local]: a local class nothing uses doesn't derive from a final class
+	{
+		"DerivedLocalFinalBaseRefused", CONFORMANCE_REFUSED,
+		"int main() { struct B final { int x; }; struct D : B { }; return 0; }\n"
+	},
+	//10.3 [class.virtual] p5, 9.8 [class.local]: override, in a local class, overrides a virtual function
+	{
+		"DerivedLocalOverrideNothingRefused", CONFORMANCE_REFUSED,
+		"int main() { struct B { int f() { return 1; } }; struct D : B { int f() override { return 2; } }; return 0; }\n"
+	},
+	//10.3 [class.virtual] p4, p5: final and override where they are right, in nested and local classes
+	{
+		"DerivedNestedAndLocalVirtSpecifiers", 7,
+		"struct O\n"
+		"{\n"
+		"	struct B { virtual int f() { return 1; } virtual ~B() { } };\n"
+		"	struct D final : B { int f() override final { return 2; } };\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	struct L { virtual int f() { return 3; } virtual ~L() { } };\n"
+		"	struct M : L { int f() override { return 4; } };\n"
+		"	int r = 0;\n"
+		"	O::D d;\n"
+		"	O::B* b = &d;\n"
+		"	M m;\n"
+		"	L* l = &m;\n"
+		"	if (b->f() == 2) r += 1;\n"
+		"	if (l->f() == 4) r += 2;\n"
+		"	if (d.f() + m.f() == 6) r += 4;\n"
+		"	return r;\n"
+		"}\n"
+	},
 };
 
 
@@ -15961,6 +16024,37 @@ static const SConformanceCase gasConformanceClause13[] =
 //Clause 14, templates [temp].
 static const SConformanceCase gasConformanceClause14[] =
 {
+	//14.5.5 [temp.class.spec] p5, 14.5.1.3 [temp.static]: a class template's member variable template partially specialised outside the class, naming the class's parameters its own way
+	{
+		"TempMemberVariableTemplatePartialOutside", 31,
+		"template<class C> struct W\n"
+		"{\n"
+		"	template<class T> static constexpr int size = 1;\n"
+		"	template<class T> static constexpr bool same = false;\n"
+		"};\n"
+		"template<class D> template<class T> constexpr int W<D>::size<T*> = (int)sizeof(D) + 100;\n"
+		"template<class C> template<class T> constexpr bool W<C>::same<T*> = true;\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (W<int>::size<char> == 1) r += 1;\n"
+		"	if (W<char>::size<int*> == 101) r += 2;\n"
+		"	if (W<long>::size<char*> == (int)sizeof(long) + 100) r += 4;\n"
+		"	if (W<int>::same<int*> && !W<int>::same<int>) r += 8;\n"
+		"	if (W<char>::same<char**>) r += 16;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.5 [temp.class.spec] p5: a member variable template is specialised outside its class (g++)
+	{
+		"TempMemberVariableTemplatePartialInClassRefused", CONFORMANCE_REFUSED,
+		"template<class C> struct W\n"
+		"{\n"
+		"	template<class T> static constexpr bool same = false;\n"
+		"	template<class T> static constexpr bool same<T*> = true;\n"
+		"};\n"
+		"int main() { return W<int>::same<int*> ? 1 : 0; }\n"
+	},
 	//14.5.5.1 [temp.class.spec.match], 14.8.2.5 [temp.deduct.type] p8: a partial specialisation's arguments are matched as types of the forms T(T...), T(*)(T...), T T::*, T (T::*)(T...)
 	{
 		"TempSpecialisationFunctionTypes", 255,
@@ -16842,6 +16936,36 @@ static const SConformanceCase gasConformanceClause14[] =
 		"struct B { virtual int F(int) { return 1; } };\n"
 		"struct D : B { template<class T> int F(T) { return 2; } };\n"
 		"int main() { D d; B& b = d; return b.F(1); }\n"
+	},
+	//14.5.3 [temp.variadic] p5, 14.8.2.1 [temp.deduct.call] p1: a member template's parameters may be its class's pack, already known, and then its own, deduced from the rest
+	{
+		"TempVariadicClassPackThenOwn", 63,
+		"template<class... A> struct Pair\n"
+		"{\n"
+		"	template<class... B> static int Mix(A... a, B... b) { return (int)sizeof...(A) * 10 + (int)sizeof...(B); }\n"
+		"	template<class B> static int One(A... a, B b) { return (int)sizeof(B); }\n"
+		"	template<class B, class... C> static int First(B b, A... a) { return (int)sizeof...(A); }\n"
+		"};\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (Pair<int, char>::Mix(1, 'a', 2.0, 3L, 4) == 23) r += 1;\n"
+		"	if (Pair<int, char>::Mix(1, 'a') == 20) r += 2;\n"
+		"	if (Pair<>::Mix(1, 2) == 2) r += 4;\n"
+		"	if (Pair<int, char>::One(1, 'a', 2.0) == (int)sizeof(double)) r += 8;\n"
+		"	if (Pair<int, char>::First(1.0, 1, 'a') == 2) r += 16;\n"
+		"	if (Pair<long>::Mix(1L, 'x') == 11) r += 32;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//14.5.3 [temp.variadic] p5: the class's pack takes as many arguments as it has
+	{
+		"TempVariadicClassPackTooFewRefused", CONFORMANCE_REFUSED,
+		"template<class... A> struct Pair\n"
+		"{\n"
+		"	template<class... B> static int Mix(A... a, B... b) { return (int)sizeof...(B); }\n"
+		"};\n"
+		"int main() { return Pair<int, char>::Mix(1); }\n"
 	},
 	//14.5.3 [temp.variadic] p4, p5, p7: sizeof...; a pack expanded in a call's arguments, in a braced list, in a template argument list, with a pattern applied to each element, and empty
 	{

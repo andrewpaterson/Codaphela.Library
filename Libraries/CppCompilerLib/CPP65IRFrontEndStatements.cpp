@@ -401,6 +401,10 @@ bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSt
 	{
 		return !mpcUnit->CheckBlockDeclaration(pcStatement->mpcDeclaration) && Unsupported(__FILE__, __LINE__);
 	}
+	if (!mpcUnit->CheckLocalClass(pcStatement->mpcDeclaration))
+	{
+		return false;
+	}
 	return Declaration((CCPPSyntaxSimpleDeclaration*)pcStatement->mpcDeclaration, NULL);
 }
 

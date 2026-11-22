@@ -346,6 +346,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcMemberTemplateSpecialisations.Init();
 	mapcMemberClassTemplates.Init();
 	mapcMemberVariableTemplates.Init();
+	mapcMemberVariableSpecialisations.Init();
 	mapcStaticMemberTemplates.Init();
 	mpcDefining = NULL;
 	mapcVariableInstances.Init();
@@ -482,6 +483,7 @@ void CCPPUnit::Kill(void)
 	mapcMemberTemplateSpecialisations.Kill();
 	mapcStaticMemberTemplates.Kill();
 	mapcMemberVariableTemplates.Kill();
+	mapcMemberVariableSpecialisations.Kill();
 	mapcMemberClassTemplates.Kill();
 	mapcVariableInstances.Kill();
 	mcImplicitValues.Kill();
@@ -3263,12 +3265,31 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
-	CCPPClass*	pcClass;
+	CCPPClass*						pcClass;
+	CCPPSyntax*						pcMember;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	size							i;
+	bool							bResult;
 
-	if (mbCompiledBefore || !pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !(pcSpecifier->HasVirtSpecifiedMember() || (pcSpecifier->macpBases.NumElements() > 0)) ||
-		!IsInSourceFile(pcSpecifier))
+	if (mbCompiledBefore || !pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !IsInSourceFile(pcSpecifier))
 	{
 		return true;
+	}
+
+	//The classes defined in it, in their turn.
+	bResult = true;
+	for (i = 0; i < pcSpecifier->macpMembers.NumElements(); i++)
+	{
+		pcMember = pcSpecifier->macpMembers.GetPtr(i);
+		pcSpecifiers = (pcMember->GetKind() == CPPS_SimpleDeclaration) ? ((CCPPSyntaxSimpleDeclaration*)pcMember)->mpcSpecifiers : NULL;
+		if (pcSpecifiers && pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
+		{
+			bResult &= CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
+		}
+	}
+	if (!bResult || !(pcSpecifier->HasVirtSpecifiedMember() || (pcSpecifier->macpBases.NumElements() > 0)))
+	{
+		return bResult;
 	}
 	pcClass = GetClass(pcSpecifier->mpcSymbol, pcSpecifier);
 	if (!pcClass->IsComplete() && !pcClass->IsBeingMade())

@@ -174,15 +174,78 @@ void CCPPDeduction::DeduceParameters(CCPPSyntaxFunctionSuffix* pcSuffix, CArrayC
 {
 	CCPPSyntaxParameter*	pcParameter;
 	size					i;
+	size					uiArgument;
+	size					uiKnown;
 
-	for (i = 0; pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (i < papsArguments->NumElements()); i++)
+	uiArgument = 0;
+	for (i = 0; pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (uiArgument < papsArguments->NumElements()); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		if (!DeduceParameter(pcParameter, papsArguments, papcArguments, i))
+		if (KnownPackSize(pcParameter, &uiKnown))
+		{
+			//A... a of the class's pack A, known already: as many arguments as A has, none deduced from.
+			//[temp.deduct.call] 1
+			uiArgument += uiKnown;
+			continue;
+		}
+		if (!DeduceParameter(pcParameter, papsArguments, papcArguments, uiArgument))
 		{
 			return;
 		}
+		uiArgument++;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a parameter is a pack expansion of a pack that isn't the
+// template's own, but bound already (the pack of the class a member
+// template is in), and how many it expands to.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDeduction::KnownPackSize(CCPPSyntaxParameter* pcParameter, size* puiSize)
+{
+	CCPPSyntaxTypeSpecifier*	pcType;
+	CCPPSymbol*					pcSymbol;
+	SCPPBinding*				psBinding;
+	CCPPTemplateArguments*		pcOuter;
+	size						j;
+
+	if (!pcParameter->mpcDeclarator || !pcParameter->mpcDeclarator->mbPack || !pcParameter->mpcSpecifiers)
+	{
+		return false;
+	}
+	pcType = pcParameter->mpcSpecifiers->mpcType;
+	if (!pcType || (pcType->GetKind() != CPPS_NamedTypeSpecifier))
+	{
+		return false;
+	}
+	pcSymbol = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol;
+	for (j = 0; pcSymbol && (j < mpcTemplate->mpcDeclaration->macpParameters.NumElements()); j++)
+	{
+		if ((mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j)->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)mpcTemplate->mpcDeclaration->macpParameters.GetPtr(j))->mpcSymbol == pcSymbol))
+		{
+			return false;
+		}
+	}
+	//A member template's class's pack is in its class's bindings, which deduction may be made outside of.
+	pcOuter = (pcSymbol && mpcTemplate->mpcClass && mpcTemplate->mpcClass->mpcBindings) ? mpcUnit->MemberTemplateClassBindings(mpcTemplate) : NULL;
+	if (pcOuter)
+	{
+		mpcUnit->GetContext()->EnterBindings(pcOuter);
+	}
+	psBinding = pcSymbol ? mpcUnit->FindBinding(pcSymbol) : NULL;
+	if (pcOuter)
+	{
+		mpcUnit->GetContext()->LeaveBindings();
+	}
+	if (!psBinding || !psBinding->IsPack())
+	{
+		return false;
+	}
+	*puiSize = psBinding->PackSize();
+	return true;
 }
 
 

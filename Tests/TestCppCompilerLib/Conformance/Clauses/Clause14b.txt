@@ -291,6 +291,30 @@ struct B { virtual int F(int) { return 1; } };
 struct D : B { template<class T> int F(T) { return 2; } };
 int main() { D d; B& b = d; return b.F(1); }
 
+### TempVariadicClassPackThenOwn | 63 | 14.5.3 [temp.variadic] p5, 14.8.2.1 [temp.deduct.call] p1: a member template's parameters may be its class's pack, already known, and then its own, deduced from the rest
+template<class... A> struct Pair
+{
+	template<class... B> static int Mix(A... a, B... b) { return (int)sizeof...(A) * 10 + (int)sizeof...(B); }
+	template<class B> static int One(A... a, B b) { return (int)sizeof(B); }
+	template<class B, class... C> static int First(B b, A... a) { return (int)sizeof...(A); }
+};
+int main()
+{
+	int r = 0;
+	if (Pair<int, char>::Mix(1, 'a', 2.0, 3L, 4) == 23) r += 1;
+	if (Pair<int, char>::Mix(1, 'a') == 20) r += 2;
+	if (Pair<>::Mix(1, 2) == 2) r += 4;
+	if (Pair<int, char>::One(1, 'a', 2.0) == (int)sizeof(double)) r += 8;
+	if (Pair<int, char>::First(1.0, 1, 'a') == 2) r += 16;
+	if (Pair<long>::Mix(1L, 'x') == 11) r += 32;
+	return r;
+}
+### TempVariadicClassPackTooFewRefused | REFUSED | 14.5.3 [temp.variadic] p5: the class's pack takes as many arguments as it has
+template<class... A> struct Pair
+{
+	template<class... B> static int Mix(A... a, B... b) { return (int)sizeof...(B); }
+};
+int main() { return Pair<int, char>::Mix(1); }
 ### TempVariadicSizeofAndExpansions | 63 | 14.5.3 [temp.variadic] p4, p5, p7: sizeof...; a pack expanded in a call's arguments, in a braced list, in a template argument list, with a pattern applied to each element, and empty
 @SAME@
 template<class... T> struct Tup {};

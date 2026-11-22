@@ -384,6 +384,7 @@ protected:
 	bool							IsCastAhead(void);
 	bool							IsDecltypeMemberCast(CCPPSyntaxName* pcName);
 	int								DecltypeMemberIsType(CCPPSyntaxName* pcName);
+	int								DeclaredClassMemberIsType(CCPPSyntax* pcDeclaration, bool bFunction, int64 lliMember);
 	CCPPSyntaxTypeId*				CreateSimpleTypeId(CCPPSyntax* pcParent);
 	CCPPSyntaxTypeId*				WrapTypeSpecifier(CCPPSyntax* pcParent, CCPPSyntaxTypeSpecifier* pcSpecifier);
 };
