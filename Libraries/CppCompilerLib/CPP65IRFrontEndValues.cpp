@@ -679,9 +679,9 @@ bool CCPP65IRFrontEnd::ContextualValue(CCPPSyntax* pcExpression, ECPPContextualT
 	{
 		return Operand(pcExpression, psValue);
 	}
-	mpcUnit->BeginLoud();
+	mpcDiagnostics->BeginLoud();
 	psTo = mpcUnit->GetBinder()->ContextualType(pcExpression, eWanted);
-	mpcUnit->EndLoud();
+	mpcDiagnostics->EndLoud();
 	return psTo ? ValueFor(pcExpression, psTo, psValue) : Unsupported(__FILE__, __LINE__);
 }
 
@@ -1081,7 +1081,7 @@ bool CCPP65IRFrontEnd::DynamicCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefere
 	}
 	if (!pcFrom->IsPolymorphic())
 	{
-		mpcUnit->ReportOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
+		mpcDiagnostics->ReportOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
 		return Unsupported(__FILE__, __LINE__);
 	}
 

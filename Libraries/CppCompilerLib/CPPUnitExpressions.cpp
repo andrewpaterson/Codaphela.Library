@@ -48,7 +48,7 @@ SCPP65Type* CCPPUnit::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 	pcToken = mpcTokeniser->Get(pcLiteral->miLiteral);
 	if (pcToken->IsUserLiteral())
 	{
-		Error(pcLiteral, "No literal operator takes the literal");
+		mcDiagnostics.Error(pcLiteral, "No literal operator takes the literal");
 		return NULL;
 	}
 	if (pcToken->IsNumber())
@@ -69,7 +69,7 @@ SCPP65Type* CCPPUnit::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 		case CTNT_LongDouble:
 			return &mcTypes.msLongDouble;
 		default:
-			Error(pcLiteral, "This literal is not supported by the compiler yet");
+			mcDiagnostics.Error(pcLiteral, "This literal is not supported by the compiler yet");
 			return NULL;
 		}
 	}
@@ -387,16 +387,16 @@ bool CCPPUnit::CheckPointerExceptions(CCPPSyntaxInitDeclarator* pcInit)
 
 	cPointer.Init();
 	WrittenExceptions(pcSpecification, &cPointer);
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginQuiet();
 	psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 	bAllowed = !psType || ValueAllowsOnly(pcValue, psType, &cPointer);
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.EndQuiet();
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	cPointer.Kill();
 	if (!bAllowed)
 	{
-		return Error(pcInit, "The pointer is declared to allow fewer exceptions than the function it is given");
+		return mcDiagnostics.Error(pcInit, "The pointer is declared to allow fewer exceptions than the function it is given");
 	}
 	return true;
 }
@@ -417,19 +417,19 @@ bool CCPPUnit::CheckAssignedExceptions(CCPPSyntaxBinaryExpression* pcAssignment)
 
 	cPointer.Init();
 	bAllowed = true;
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginQuiet();
 	if (PointerExceptions(pcAssignment->mpcLeft, &cPointer) && !cPointer.IsAnything())
 	{
 		psType = TypeOf(pcAssignment->mpcLeft);
 		bAllowed = !psType || ValueAllowsOnly(pcAssignment->mpcRight, psType, &cPointer);
 	}
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.EndQuiet();
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	cPointer.Kill();
 	if (!bAllowed)
 	{
-		return Error(pcAssignment, "The pointer is declared to allow fewer exceptions than the function it is given");
+		return mcDiagnostics.Error(pcAssignment, "The pointer is declared to allow fewer exceptions than the function it is given");
 	}
 	return true;
 }
@@ -693,8 +693,8 @@ bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
 	bool							bThrows;
 
 	bThrows = false;
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginQuiet();
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_ThrowExpression:
@@ -704,7 +704,7 @@ bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
 	case CPPS_TypeTraitExpression:
 	case CPPS_NoexceptExpression:
 	case CPPS_LambdaExpression:
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		return false;
 	case CPPS_CallExpression:
 		bThrows = CallMayThrow((CCPPSyntaxCallExpression*)pcExpression);
@@ -745,8 +745,8 @@ bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
 	default:
 		break;
 	}
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.EndQuiet();
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	if (bThrows)
 	{
 		return true;
@@ -1103,9 +1103,9 @@ SCPP65Type* CCPPUnit::NewTypeIdArray(CCPPSyntaxNewExpression* pcNew)
 	{
 		return NULL;
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	psType = mcDeclarators.GetTypeIdType(pcNew->mpcType);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	return (psType && psType->IsArray()) ? psType : NULL;
 }
 
@@ -1285,9 +1285,9 @@ bool CCPPUnit::QuietConstant(CCPPSyntax* pcExpression, int64* plliValue)
 {
 	bool	bConstant;
 
-	BeginTrial();
+	mcDiagnostics.BeginTrial();
 	bConstant = Constant(pcExpression, plliValue);
-	EndTrial();
+	mcDiagnostics.EndTrial();
 	return bConstant;
 }
 
@@ -1537,11 +1537,11 @@ CCPPSymbol* CCPPUnit::DecltypeEnumerator(CCPPSyntaxName* pcName)
 	{
 		return NULL;
 	}
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginQuiet();
 	psType = mcDeclarators.GetTypeIdType(((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0))->mpcType);
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.EndQuiet();
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	pcEnum = psType ? psType->WithoutReference()->pcEnum : NULL;
 	if (!pcEnum)
 	{
@@ -1580,11 +1580,11 @@ SCPP65Type* CCPPUnit::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperan
 	{
 		return mcDeclarators.GetTypeIdType(pcType);
 	}
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginQuiet();
 	psType = mcDeclarators.GetTypeIdType(pcType);
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.EndQuiet();
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	return psType ? psType : UnevaluatedTypeOf(pcMember);
 }
 
@@ -1757,17 +1757,17 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 		return NULL;
 	}
 
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginQuiet();
 	pcClass = (pcQualifier->mpcSymbol && (pcName->macpComponents.NumElements() == 2)) ? GetComponentClass(pcQualifier, NULL, pcNode) : QualifiersClass(pcName, pcNode);
 	pcSymbol = (pcClass && CompleteClass(pcClass, pcNode)) ? pcClass->FindMemberSymbol(GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
 	bAmbiguous = pcSymbol && (pcClass->macBases.NumElements() > 1) && IsAmbiguousInBases(pcClass, GetComponentName(pcName->GetLast()));
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.EndQuiet();
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	if (bAmbiguous)
 	{
 		//C::T, where two of C's bases each have a T.  [class.member.lookup] 6
-		ReportOnce(pcNode, "The name is a member of more than one of the class's bases");
+		mcDiagnostics.ReportOnce(pcNode, "The name is a member of more than one of the class's bases");
 	}
 	return pcSymbol;
 }
@@ -1850,7 +1850,7 @@ bool CCPPUnit::CheckBaseMemberName(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 	{
 		return true;
 	}
-	return !IsAmbiguousInBases(pcClass, pcSymbol->mlliName) || Error(pcNode, "The name is a member of more than one of the class's bases");
+	return !IsAmbiguousInBases(pcClass, pcSymbol->mlliName) || mcDiagnostics.Error(pcNode, "The name is a member of more than one of the class's bases");
 }
 
 
@@ -2099,11 +2099,11 @@ SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 	}
 
 	mpcStatistics->Count(CPPCC_TypeOfWorkedOut);
-	uiErrors = mcErrors.NumErrors();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
 	mpcStatistics->Begin(CPPCP_Types);
 	psType = mcTypeChecker.Value(pcExpression, &sTypeOf.psDeclared);
 	mpcStatistics->End(CPPCP_Types);
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 
 	sTypeOf.pcBindings = mcContext.GetBindings();
 	sTypeOf.pcFunction = mcContext.GetFunction();
@@ -2281,11 +2281,11 @@ SCPP65Type* CCPPUnit::PlaceTypeOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	mpcStatistics->Begin(CPPCP_Types);
 	psType = mcTypeChecker.Place(pcExpression);
 	mpcStatistics->End(CPPCP_Types);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	return psType;
 }
 
@@ -2301,12 +2301,12 @@ SCPP65Type* CCPPUnit::PlaceTypeOf(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::ReportTypeOf(CCPPSyntax* pcExpression)
 {
-	BeginLoud();
+	mcDiagnostics.BeginLoud();
 	mpcStatistics->Count(CPPCC_ReportedAgain);
 	mpcStatistics->Begin(CPPCP_Types);
 	mcTypeChecker.Value(pcExpression);
 	mpcStatistics->End(CPPCP_Types);
-	EndLoud();
+	mcDiagnostics.EndLoud();
 }
 
 
@@ -2321,9 +2321,9 @@ bool CCPPUnit::CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo)
 {
 	bool	bKept;
 
-	BeginLoud();
+	mcDiagnostics.BeginLoud();
 	bKept = mcTypeChecker.KeepsQualifiers(pcValue, psTo);
-	EndLoud();
+	mcDiagnostics.EndLoud();
 	return bKept;
 }
 
@@ -2340,9 +2340,9 @@ bool CCPPUnit::CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo)
 {
 	bool	bNotNarrowed;
 
-	BeginLoud();
+	mcDiagnostics.BeginLoud();
 	bNotNarrowed = mcTypeChecker.NotNarrowed(pcValue, psTo);
-	EndLoud();
+	mcDiagnostics.EndLoud();
 	return bNotNarrowed;
 }
 
@@ -2355,7 +2355,7 @@ bool CCPPUnit::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 {
 	if (psType->IsScalar() && (psType->iBytes > 8))
 	{
-		return Error(pcNode, "Integers wider than 64 bits are not supported by the compiler");
+		return mcDiagnostics.Error(pcNode, "Integers wider than 64 bits are not supported by the compiler");
 	}
 	return true;
 }
@@ -2377,7 +2377,7 @@ bool CCPPUnit::CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDecla
 
 	if (!pcInit->mpcInitializer)
 	{
-		return ReportError(pcInit, "A constexpr variable needs an initialiser");
+		return mcDiagnostics.ReportError(pcInit, "A constexpr variable needs an initialiser");
 	}
 	if (!pcVariable->mpsType->IsInteger())
 	{
@@ -2389,7 +2389,7 @@ bool CCPPUnit::CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDecla
 	}
 	szError.Init();
 	ConstantMessage("A constexpr variable's initialiser must be a constant", &szError);
-	ReportError(pcInit, szError.Text());
+	mcDiagnostics.ReportError(pcInit, szError.Text());
 	szError.Kill();
 	return false;
 }
@@ -2434,7 +2434,7 @@ bool CCPPUnit::ConstantError(CCPPSyntax* pcNode, const char* szMessage)
 
 	szError.Init();
 	ConstantMessage(szMessage, &szError);
-	bResult = Error(pcNode, szError.Text());
+	bResult = mcDiagnostics.Error(pcNode, szError.Text());
 	szError.Kill();
 	return bResult;
 }
@@ -2549,10 +2549,10 @@ SCPP65Type* CCPPUnit::ObjectConstantType(CCPPSyntax* pcExpression)
 		//Its type is being worked out, which asked whether it is a constant: it isn't known to be an object.
 		return NULL;
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	psType = ValueTypeOf(pcExpression);
 	pcConversion = (psType && psType->IsClass()) ? mcBinder.FindIntegerConversion(psType->pcClass, pcExpression) : NULL;
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	mcContext.LeaveWorking();
 	return (pcConversion && pcConversion->mbConstexpr) ? pcConversion->mpsReturn->WithoutReference()->Unqualified() : NULL;
 }
@@ -2942,11 +2942,11 @@ bool CCPPUnit::ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue)
 	size			uiErrors;
 	bool			bBound;
 
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginQuiet();
 	bBound = mcBinder.Bind(pcCall, &cBound, false);
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.EndQuiet();
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	return bBound && ConstexprResult(cBound.mpcFunction, pcCall, plliValue);
 }
 
@@ -3168,7 +3168,7 @@ void CCPPUnit::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool b
 
 	szMessage.Init("Integer overflow: the constant expression is ");
 	szMessage.Append(lliValue)->Append(", which doesn't fit its ")->Append(psType->iBytes * 8)->Append(" bit ")->Append(psType->bSigned ? "signed" : "unsigned")->Append(" type.");
-	Warning(pcExpression, szMessage.Text());
+	mcDiagnostics.Warning(pcExpression, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -3211,7 +3211,7 @@ void CCPPUnit::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 		{
 			szMessage.Init("Integer conversion narrows: a ");
 			szMessage.Append(psFrom->iBytes * 8)->Append(" bit value is converted to the ")->Append(psTo->iBytes * 8)->Append(" bit type and may be truncated.");
-			Warning(pcExpression, szMessage.Text());
+			mcDiagnostics.Warning(pcExpression, szMessage.Text());
 			szMessage.Kill();
 		}
 		return;
@@ -3229,7 +3229,7 @@ void CCPPUnit::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 
 	szMessage.Init("Integer conversion overflow: the constant ");
 	szMessage.Append(lliValue)->Append(" doesn't fit the ")->Append(psTo->iBytes * 8)->Append(" bit type it is converted to and is truncated.");
-	Warning(pcExpression, szMessage.Text());
+	mcDiagnostics.Warning(pcExpression, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -3271,7 +3271,7 @@ void CCPPUnit::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, 
 	szMessage.Init("Integer arithmetic widened after it may have wrapped: the ");
 	szMessage.Append(psFrom->iBytes * 8)->Append(" bit result of '")->Append((pcBinary->meOperator == CT_Multiply) ? "*" : "<<");
 	szMessage.Append("' is converted to the ")->Append(psTo->iBytes * 8)->Append(" bit type.  Convert an operand first to do it in ")->Append(psTo->iBytes * 8)->Append(" bits.");
-	Warning(pcExpression, szMessage.Text());
+	mcDiagnostics.Warning(pcExpression, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -3303,7 +3303,7 @@ void CCPPUnit::ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits)
 
 	szMessage.Init("Shift count ");
 	szMessage.Append(lliCount)->Append(" is not less than the ")->Append(iBits)->Append(" bit width of the value shifted, so the result is undefined.  Convert the operand first to shift in a wider type.");
-	Warning(pcBinary, szMessage.Text());
+	mcDiagnostics.Warning(pcBinary, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -3501,7 +3501,7 @@ void CCPPUnit::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* pa
 	}
 
 	//A constant bound is ComparisonRange's, and a choice of constants (b ? 7 : 3) is two of them.
-	BeginTrial();
+	mcDiagnostics.BeginTrial();
 	pcInner = SkipParentheses(pcBound);
 	if (pcInner && (pcInner->GetKind() == CPPS_ConditionalExpression))
 	{
@@ -3512,8 +3512,8 @@ void CCPPUnit::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* pa
 	{
 		bConstant = Constant(pcBound, &lliValue);
 	}
-	EndTrial();
-	if (bConstant || HasWarning(pcBinary, "Loop counter"))
+	mcDiagnostics.EndTrial();
+	if (bConstant || mcDiagnostics.HasWarning(pcBinary, "Loop counter"))
 	{
 		return;
 	}
@@ -3521,7 +3521,7 @@ void CCPPUnit::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* pa
 	szMessage.Init("Loop counter narrower than its bound: the ");
 	szMessage.Append(psCounter->iBytes * 8)->Append(" bit counter is compared with a ")->Append(psBound->iBytes * 8);
 	szMessage.Append(" bit value and wraps before it can pass one that doesn't fit.  Widen the counter, or convert the bound if it always fits.");
-	Warning(pcBinary, szMessage.Text());
+	mcDiagnostics.Warning(pcBinary, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -3588,7 +3588,7 @@ void CCPPUnit::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 
 	//Most comparisons have no constant side; looking must not leave an error.
-	BeginTrial();
+	mcDiagnostics.BeginTrial();
 	pcConstant = pcBinary->mpcRight;
 	psVariable = psLeft;
 	bConstant = Constant(pcConstant, &lliValue);
@@ -3602,7 +3602,7 @@ void CCPPUnit::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	{
 		bConstant = false;
 	}
-	EndTrial();
+	mcDiagnostics.EndTrial();
 	if (!bConstant)
 	{
 		return;
@@ -3639,7 +3639,7 @@ void CCPPUnit::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 
 	szMessage.Init("Comparison is always ");
 	szMessage.Append(bAlways ? "true" : "false")->Append(": the constant ")->Append(lliValue)->Append(" is out of the range of the ")->Append(psVariable->iBytes * 8)->Append(" bit ")->Append(psVariable->bSigned ? "signed" : "unsigned")->Append(" value it is compared with.");
-	Warning(pcBinary, szMessage.Text());
+	mcDiagnostics.Warning(pcBinary, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -3690,7 +3690,7 @@ void CCPPUnit::ComparisonAtLimit(CCPPSyntaxBinaryExpression* pcBinary, CCPPSynta
 	szMessage.Init("Comparison is always ");
 	szMessage.Append(bAlways ? "true" : "false")->Append(": the constant ")->Append(lliValue)->Append(" is the ")->Append((lliValue == lliMax) ? "largest" : "smallest");
 	szMessage.Append(" value of the ")->Append(psVariable->iBytes * 8)->Append(" bit ")->Append(psVariable->bSigned ? "signed" : "unsigned")->Append(" value it is compared with.");
-	Warning(pcBinary, szMessage.Text());
+	mcDiagnostics.Warning(pcBinary, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -3820,7 +3820,7 @@ bool CCPPUnit::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValu
 	}
 	if (bResult && (apsTypes.NumElements() < (size)(((eTrait == CPP65TT_BaseOf) || (eTrait == CPP65TT_ConvertibleTo) || (eTrait == CPP65TT_Assignable)) ? 2 : 1)))
 	{
-		bResult = Error(pcTrait, "The type trait needs more types");
+		bResult = mcDiagnostics.Error(pcTrait, "The type trait needs more types");
 	}
 	if (bResult)
 	{
@@ -4200,7 +4200,7 @@ void CCPPUnit::CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEn
 	psBase = pcEnum->mpcBase ? mcDeclarators.GetTypeIdType(pcEnum->mpcBase) : NULL;
 	if (psBase && !ConstantFits(psBase->Unqualified(), lliValue))
 	{
-		ReportOnce(pcEnumerator->mpcValue, "The constant's value isn't one of the type it is converted to");
+		mcDiagnostics.ReportOnce(pcEnumerator->mpcValue, "The constant's value isn't one of the type it is converted to");
 	}
 }
 
@@ -4318,7 +4318,7 @@ bool CCPPUnit::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 		}
 		if (iElementBytes != 1)
 		{
-			return Error(pcString, "The function's name can't be part of a wide string literal");
+			return mcDiagnostics.Error(pcString, "The function's name can't be part of a wide string literal");
 		}
 		szIdentifier = pcToken->IsIdentifier() ? mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->miIdentifier, &iLength) : NULL;
 		szName.Init();
@@ -4332,7 +4332,7 @@ bool CCPPUnit::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 		else if (!szIdentifier || !FunctionNameText(((CCTIdentifier*)pcToken)->miIdentifier, &szName))
 		{
 			szName.Kill();
-			return Error(pcString, "This part of a string literal is not supported by the compiler yet");
+			return mcDiagnostics.Error(pcString, "This part of a string literal is not supported by the compiler yet");
 		}
 		for (i = 0; i < szName.Length(); i++)
 		{
@@ -4573,11 +4573,11 @@ bool CCPPUnit::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int i
 		cEscape = *sz;
 		if (!DecodeEscape(&sz, szEnd, &uiValue))
 		{
-			return Error(pcString, "Invalid escape sequence in a string literal");
+			return mcDiagnostics.Error(pcString, "Invalid escape sequence in a string literal");
 		}
 		if (((cEscape == 'u') || (cEscape == 'U')) && !IsCharacterCodePoint(uiValue))
 		{
-			return Error(pcString, "The universal character name names no character: a surrogate (D800 to DFFF) or a value past 10FFFF");
+			return mcDiagnostics.Error(pcString, "The universal character name names no character: a surrogate (D800 to DFFF) or a value past 10FFFF");
 		}
 		if ((cEscape == 'u') || (cEscape == 'U'))
 		{
@@ -4592,7 +4592,7 @@ bool CCPPUnit::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int i
 		}
 		else if ((iElementBytes < 4) && (uiValue >= ((uint32)1 << (8 * iElementBytes))))
 		{
-			return Error(pcString, (iElementBytes == 1) ? "The escape sequence's value is too large for a char" : "The escape sequence's value is too large for a wide character");
+			return mcDiagnostics.Error(pcString, (iElementBytes == 1) ? "The escape sequence's value is too large for a char" : "The escape sequence's value is too large for a wide character");
 		}
 		else
 		{

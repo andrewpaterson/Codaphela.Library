@@ -31,6 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPUnit;
+class CCPPDiagnostics;
 
 
 //One of the functions a call could mean, or one of the templates.
@@ -83,6 +84,7 @@ class CCPPOverloads
 {
 protected:
 	CCPPUnit*			mpcUnit;
+	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 	CMapCPPResolved		mcResolved;		//The nodes and names FindFunction has chosen for (CPPCC_FindFunctionAgain).
 	bool				mbConverting;	//The next FindFunction of constructors takes only converting ones (FindConstructor).
 	CArrayCPP65Types*	mpapsOnly;		//The next FindFunction takes only functions of these types: a block's declarations of the name (FindNamedFunction).

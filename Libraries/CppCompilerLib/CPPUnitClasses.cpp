@@ -303,7 +303,7 @@ int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass)
 			else
 			{
 				//(A variable's alignment is asked for quietly too, and more than once.)
-				ReportOnce(pcAlignment, "The alignment must be a power of two");
+				mcDiagnostics.ReportOnce(pcAlignment, "The alignment must be a power of two");
 			}
 			return -1;
 		}
@@ -382,7 +382,7 @@ CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCP
 		psBinding = FindBinding(pcSymbol);
 		if (!psBinding || !psBinding->pcTemplate || !pcComponent || !pcComponent->mbTemplateArguments)
 		{
-			Error(pcNode, "A template template parameter used outside an instantiation");
+			mcDiagnostics.Error(pcNode, "A template template parameter used outside an instantiation");
 			return NULL;
 		}
 		return InstantiateClass(psBinding->pcTemplate, &pcComponent->macpTemplateArguments, pcNode);
@@ -396,7 +396,7 @@ CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCP
 			pcClass = (pcComponent && pcComponent->mbTemplateArguments) ? UndefinedInstance(pcSymbol, &pcComponent->macpTemplateArguments, pcNode) : NULL;
 			if (!pcClass)
 			{
-				Error(pcNode, "The class template has not been defined");
+				mcDiagnostics.Error(pcNode, "The class template has not been defined");
 			}
 			return pcClass;
 		}
@@ -423,7 +423,7 @@ CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCP
 		{
 			return pcClass;
 		}
-		Error(pcNode, "A class template needs template arguments");
+		mcDiagnostics.Error(pcNode, "A class template needs template arguments");
 		return NULL;
 	}
 	return NULL;
@@ -445,9 +445,9 @@ CCPPClass* CCPPUnit::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTempla
 	{
 		return pcClass;
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	ResolveBases(pcClass, NULL);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		pcBase = FindBaseInstance(pcClass->macBases.Get(i)->pcClass, pcTemplate);
@@ -518,7 +518,7 @@ CCPPClass* CCPPUnit::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent*
 	pcQualifier = GetComponentClass(pcComponent, pcSymbol, pcNode, pcClass);
 	if (!pcQualifier || !IsDerived(pcClass, pcQualifier, NULL))
 	{
-		Error(pcNode, "The qualifier is not the object's class or one of its bases");
+		mcDiagnostics.Error(pcNode, "The qualifier is not the object's class or one of its bases");
 		return NULL;
 	}
 	return pcQualifier;
@@ -545,11 +545,11 @@ CCPPClass* CCPPUnit::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Class) && pcName->IsQualifiedByInstance())
 	{
 		//P<char>::Inner: that instance's member class.  [temp.mem.class]
-		uiErrors = mcErrors.NumErrors();
-		BeginQuiet();
+		uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+		mcDiagnostics.BeginQuiet();
 		pcClass = QualifiedClass(pcName, pcNode);
-		EndQuiet();
-		mcErrors.Truncate(uiErrors);
+		mcDiagnostics.EndQuiet();
+		mcDiagnostics.GetErrors()->Truncate(uiErrors);
 		if (pcClass)
 		{
 			return pcClass;
@@ -577,7 +577,7 @@ bool CCPPUnit::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	if (!FindSpecifier(pcClass))
 	{
-		return Error(pcNode, "The class has not been defined");
+		return mcDiagnostics.Error(pcNode, "The class has not been defined");
 	}
 
 	pcClass->meState = CPPCS_ResolvingBases;
@@ -612,12 +612,12 @@ bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecif
 	if (!pcBaseClass)
 	{
 		//[class.derived] 2
-		return Error(pcBaseSpecifier, (pcName->mpcSymbol && !pcName->mpcSymbol->IsClass()) ? "A base class is a class: the name is another kind of type" : "This base class is not supported by the compiler yet");
+		return mcDiagnostics.Error(pcBaseSpecifier, (pcName->mpcSymbol && !pcName->mpcSymbol->IsClass()) ? "A base class is a class: the name is another kind of type" : "This base class is not supported by the compiler yet");
 	}
 	bResult = ResolveBases(pcBaseClass, pcBaseSpecifier);
 	if (pcBaseClass->mpcSpecifier && pcBaseClass->mpcSpecifier->mbFinal)
 	{
-		bResult &= Error(pcBaseSpecifier, "The base class is declared final");
+		bResult &= mcDiagnostics.Error(pcBaseSpecifier, "The base class is declared final");
 	}
 	psBase = pcClass->macBases.Add();
 	psBase->pcClass = pcBaseClass;
@@ -667,7 +667,7 @@ bool CCPPUnit::CompleteObjectClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	if (pcClass->IsAbstract())
 	{
-		return Error(pcNode, "An object of an abstract class can't be made: a pure virtual function of it has no body");
+		return mcDiagnostics.Error(pcNode, "An object of an abstract class can't be made: a pure virtual function of it has no body");
 	}
 	return true;
 }
@@ -721,11 +721,11 @@ bool CCPPUnit::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	if (pcClass->IsBeingMade())
 	{
-		return Error(pcNode, "A class cannot contain itself");
+		return mcDiagnostics.Error(pcNode, "A class cannot contain itself");
 	}
 	if (!FindSpecifier(pcClass))
 	{
-		return Error(pcNode, "The class has not been defined");
+		return mcDiagnostics.Error(pcNode, "The class has not been defined");
 	}
 	return LayoutClass(pcClass, pcNode);
 }
@@ -789,9 +789,9 @@ bool CCPPUnit::QualifierIsInstance(CCPPSyntaxNameComponent* pcQualifier, CCPPCla
 		return false;
 	}
 	szArguments.Init();
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	bSame = BindArguments(pcOwner->mpcDeclaration, &pcQualifier->macpTemplateArguments, NULL, &szArguments, pcNode, NULL) && szArguments.Equals(&pcClass->mszArguments);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	szArguments.Kill();
 	return bSame;
 }
@@ -814,9 +814,9 @@ void CCPPUnit::SpecialiseMember(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition
 	}
 
 	mcContext.EnterBindings(pcClass->mpcBindings);
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	mcContext.LeaveBindings();
 	if (pcFunction && (pcDefinition->meBody == CPPFB_Body))
 	{
@@ -848,9 +848,9 @@ void CCPPUnit::DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember)
 	pcMemberBindings = RenameBindings(pcClass, pcMember->mpcDeclaration);
 	pcDefinition = (CCPPSyntaxFunctionDefinition*)pcMember->mpcDefinition;
 	mcContext.EnterBindings(pcMemberBindings);
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	mcContext.LeaveBindings();
 	if (pcFunction && (pcDefinition->meBody == CPPFB_Body) && !pcFunction->mpcDefinition)
 	{
@@ -1085,16 +1085,16 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 		pcOverridden = pcClass->FindOverridden(pcFunction);
 		if (pcFunction->mbOverride && !pcOverridden)
 		{
-			bResult &= Error(pcFunction->mpcDeclarator, "The function is declared override but overrides no virtual function of a base class");
+			bResult &= mcDiagnostics.Error(pcFunction->mpcDeclarator, "The function is declared override but overrides no virtual function of a base class");
 		}
 		else if (pcFunction->mbFinal && !pcFunction->mbVirtual && !pcOverridden)
 		{
 			//[class.mem] 8: override and final are a virtual member function's.
-			bResult &= Error(pcFunction->mpcDeclarator, "The function is declared final but isn't virtual");
+			bResult &= mcDiagnostics.Error(pcFunction->mpcDeclarator, "The function is declared final but isn't virtual");
 		}
 		else if (pcOverridden && pcOverridden->mbFinal)
 		{
-			bResult &= Error(pcFunction->mpcDeclarator, "The function overrides one declared final");
+			bResult &= mcDiagnostics.Error(pcFunction->mpcDeclarator, "The function overrides one declared final");
 		}
 		else if (pcOverridden && !ReturnsCovariant(pcFunction, pcOverridden))
 		{
@@ -1103,11 +1103,11 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 		}
 		else if (pcOverridden && !AllowsOnlyWhat(ExceptionsOf(pcFunction), ExceptionsOf(pcOverridden)))
 		{
-			bResult &= Error(pcFunction->mpcDeclarator, "The function allows exceptions that the virtual function it overrides doesn't");
+			bResult &= mcDiagnostics.Error(pcFunction->mpcDeclarator, "The function allows exceptions that the virtual function it overrides doesn't");
 		}
 		else if (pcOverridden && !pcFunction->mbOverride && !pcFunction->mbFinal && (pcFunction->meKind != CPPFK_Destructor) && mpcOptions->mbWarnMissingOverride)
 		{
-			Warning(pcFunction->mpcDeclarator, "The function overrides a virtual function of a base class but isn't declared override");
+			mcDiagnostics.Warning(pcFunction->mpcDeclarator, "The function overrides a virtual function of a base class but isn't declared override");
 		}
 	}
 
@@ -1116,7 +1116,7 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 	pcOverridden = (pcFunction && pcFunction->mbImplicit) ? pcClass->FindOverridden(pcFunction) : NULL;
 	if (pcOverridden && !AllowsOnlyWhat(ExceptionsOf(pcFunction), ExceptionsOf(pcOverridden)))
 	{
-		bResult &= Error(pcClass->mpcSpecifier, "The class's destructor allows exceptions that the virtual destructor it overrides doesn't");
+		bResult &= mcDiagnostics.Error(pcClass->mpcSpecifier, "The class's destructor allows exceptions that the virtual destructor it overrides doesn't");
 	}
 	return bResult;
 }
@@ -1205,9 +1205,9 @@ void CCPPUnit::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsin
 	{
 		return;
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	pcBase = GetComponentClass(pcName->GetQualifier(), NULL, pcUsing, pcClass);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	if (!pcBase || (pcBase == pcClass))
 	{
 		return;
@@ -1226,11 +1226,11 @@ void CCPPUnit::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsin
 	}
 	if (pcSymbol)
 	{
-		uiErrors = mcErrors.NumErrors();
-		BeginQuiet();
+		uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+		mcDiagnostics.BeginQuiet();
 		bReached = mcBinder.UsingReaches(pcSymbol, pcUsing);
-		EndQuiet();
-		mcErrors.Truncate(uiErrors);
+		mcDiagnostics.EndQuiet();
+		mcDiagnostics.GetErrors()->Truncate(uiErrors);
 		if (!bReached)
 		{
 			ClassError(pcUsing->miFirstToken, "The using-declaration names a base's private member, which the class can't reach");
@@ -1380,15 +1380,15 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			//operator = (...) = default is the implicit copy assignment, which = does when the class declares none.
 			return true;
 		}
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		bFriend = pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_FRIEND);
 		uiMembers = pcClass->mapcMembers.NumElements();
 		pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, bFriend ? NULL : pcClass, false);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		if (!pcFunction && pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_VIRTUAL))
 		{
 			//Leaving out a virtual function would move the vtable's other entries.
-			return Error(pcDefinition, "This virtual function's declaration is not supported by the compiler yet");
+			return mcDiagnostics.Error(pcDefinition, "This virtual function's declaration is not supported by the compiler yet");
 		}
 		if (!pcFunction)
 		{
@@ -1418,9 +1418,9 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
 				if (pcInit->mpcDeclarator && pcInit->mpcDeclarator->IsFunction())
 				{
-					BeginQuiet();
+					mcDiagnostics.BeginQuiet();
 					pcFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);
-					EndQuiet();
+					mcDiagnostics.EndQuiet();
 					if (!pcFunction)
 					{
 						mapcFailed.Add(pcInit->mpcDeclarator);
@@ -1480,14 +1480,14 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			{
 				//virtual int f() = 0;
 				bPure = pcInit->mpcInitializer && Constant(pcInit->mpcInitializer, &lliZero) && (lliZero == 0);
-				BeginQuiet();
+				mcDiagnostics.BeginQuiet();
 				uiMembers = pcClass->mapcMembers.NumElements();
 				pcFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, pcClass, bPure);
-				EndQuiet();
+				mcDiagnostics.EndQuiet();
 				if (!pcFunction && (pcSpecifiers->muiFlags & CPPDS_VIRTUAL))
 				{
 					//Leaving out a virtual function would move the vtable's other entries.
-					bResult &= Error(pcInit, "This virtual function's declaration is not supported by the compiler yet");
+					bResult &= mcDiagnostics.Error(pcInit, "This virtual function's declaration is not supported by the compiler yet");
 				}
 				else if (!pcFunction)
 				{
@@ -1523,7 +1523,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			{
 				//A function's type that IsFunctionByType didn't take for a member function's (one made of a template's
 				//parameter): it is no field.  [temp.arg.type] 3
-				bResult &= Error(pcInit, "A member function declared by a type that depends on a template parameter is not supported by the compiler yet");
+				bResult &= mcDiagnostics.Error(pcInit, "A member function declared by a type that depends on a template parameter is not supported by the compiler yet");
 				continue;
 			}
 			if (!InjectedNameReached(pcClass, pcSpecifiers, psType, pcInit))
@@ -1574,7 +1574,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		return bResult;
 
 	default:
-		return Error(pcMember, "This member is not supported by the compiler yet");
+		return mcDiagnostics.Error(pcMember, "This member is not supported by the compiler yet");
 	}
 }
 
@@ -1612,11 +1612,11 @@ bool CCPPUnit::InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers*
 	{
 		return true;
 	}
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginQuiet();
 	bReached = mcBinder.ReachesBase(pcClass, pcNamed, pcNode);
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.EndQuiet();
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	return bReached || ClassError(pcNode->miFirstToken, "The class's name here is its injected name, found through a base that can't be reached from here: write ::Name");
 }
 
@@ -1744,7 +1744,7 @@ void CCPPUnit::ReportClassErrors(void)
 
 	for (i = 0; i < masClassErrors.NumElements(); i++)
 	{
-		ErrorAt(masClassErrors.Get(i)->iToken, masClassErrors.Get(i)->szMessage.Text());
+		mcDiagnostics.ErrorAt(masClassErrors.Get(i)->iToken, masClassErrors.Get(i)->szMessage.Text());
 	}
 	FreeClassErrors();
 }

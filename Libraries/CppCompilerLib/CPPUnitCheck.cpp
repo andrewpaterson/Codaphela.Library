@@ -80,7 +80,7 @@ bool CCPPUnit::Check(CCPPSemanticPass* pcPass, bool bRemember)
 	CheckContext();
 	mpcSemanticPass = NULL;
 	mbRemember = false;
-	return mcErrors.NumErrors() == 0;
+	return mcDiagnostics.GetErrors()->NumErrors() == 0;
 }
 
 
@@ -154,14 +154,14 @@ void CCPPUnit::UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed)
 	{
 		return;
 	}
-	for (i = 0; i < mcErrors.NumErrors(); i++)
+	for (i = 0; i < mcDiagnostics.GetErrors()->NumErrors(); i++)
 	{
-		if (mcErrors.GetToken(i) == iToken)
+		if (mcDiagnostics.GetErrors()->GetToken(i) == iToken)
 		{
 			return;
 		}
 	}
-	ErrorAt(iToken, "This type is not declared");
+	mcDiagnostics.ErrorAt(iToken, "This type is not declared");
 }
 
 
@@ -189,9 +189,9 @@ bool CCPPUnit::CheckDefinitions(void)
 		{
 			if (pcFunction->mpcBindings)
 			{
-				BeginQuiet();
+				mcDiagnostics.BeginQuiet();
 				GenerateFunction(pcFunction);
-				EndQuiet();
+				mcDiagnostics.EndQuiet();
 			}
 			else
 			{
@@ -467,7 +467,7 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		if (psValue && psValue->IsArray())
 		{
 			//[stmt.select] 2
-			ReportError(pcValue, "A condition's variable isn't an array");
+			mcDiagnostics.ReportError(pcValue, "A condition's variable isn't an array");
 		}
 		return;
 	case CPPS_EnumSpecifier:
@@ -523,9 +523,9 @@ SCPP65Type* CCPPUnit::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
 	{
 		return NULL;
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	psType = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : TypeOf(pcSwitch->mpcCondition);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	psType = psType ? psType->WithoutReference() : NULL;
 	if (psType && psType->IsClass())
 	{
@@ -557,13 +557,13 @@ void CCPPUnit::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type
 	{
 		return;
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	psCondition = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : TypeOf(pcSwitch->mpcCondition);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	psCondition = psCondition ? psCondition->WithoutReference() : NULL;
 	if (psCondition && (psCondition->IsFloat() || psCondition->IsPointer()))
 	{
-		ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum");
+		mcDiagnostics.ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum");
 		return;
 	}
 	if (!psType)
@@ -575,9 +575,9 @@ void CCPPUnit::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type
 	for (i = 0; i < apcCases.NumElements(); i++)
 	{
 		pcCase = (CCPPSyntaxCaseStatement*)apcCases.GetPtr(i);
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		bConstant = pcCase->mpcValue && Constant(pcCase->mpcValue, &lliValue);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		if (bConstant)
 		{
 			mcTypeChecker.ConstantNotNarrowed(pcCase->mpcValue, psType);
@@ -619,22 +619,22 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 			uiDefaults++;
 			if (uiDefaults == 2)
 			{
-				bResult = ReportOnce(pcCase, "A switch has one default label");
+				bResult = mcDiagnostics.ReportOnce(pcCase, "A switch has one default label");
 			}
 			continue;
 		}
 		mpcConstants->ClearReason();
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		if (!Constant(pcCase->mpcValue, &lliValue))
 		{
-			EndQuiet();
+			mcDiagnostics.EndQuiet();
 			//A case's value is a constant.  [stmt.switch] 2
-			BeginLoud();
+			mcDiagnostics.BeginLoud();
 			bResult = ConstantError(pcCase->mpcValue, "A case's value is a constant");
-			EndLoud();
+			mcDiagnostics.EndLoud();
 			continue;
 		}
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		if (!psType)
 		{
 			continue;
@@ -642,7 +642,7 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 		lliValue = ConstantOfType(psType, lliValue);
 		if (alliValues.Contains(&lliValue))
 		{
-			bResult = ReportOnce(pcCase, "Two cases of the switch have one value");
+			bResult = mcDiagnostics.ReportOnce(pcCase, "Two cases of the switch have one value");
 		}
 		alliValues.Add(lliValue);
 	}
@@ -682,12 +682,12 @@ bool CCPPUnit::CheckJump(CCPPSyntax* pcJump, bool bContinue)
 		case CPPS_LambdaExpression:
 		case CPPS_ClassSpecifier:
 		case CPPS_FunctionDefinition:
-			return ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
+			return mcDiagnostics.ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
 		default:
 			break;
 		}
 	}
-	return ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
+	return mcDiagnostics.ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
 }
 
 
@@ -842,7 +842,7 @@ bool CCPPUnit::CheckGoto(CCPPSyntaxGotoStatement* pcGoto)
 	{
 		if (apcAtGoto.Find(apcAtLabel.GetPtr(i)) == ARRAY_ELEMENT_NOT_FOUND)
 		{
-			bResult = ReportError(pcGoto, "The goto jumps into the scope of an object it hasn't made: past its declaration, or into its block");
+			bResult = mcDiagnostics.ReportError(pcGoto, "The goto jumps into the scope of an object it hasn't made: past its declaration, or into its block");
 			break;
 		}
 	}
@@ -905,7 +905,7 @@ bool CCPPUnit::CheckCaseInSwitch(CCPPSyntax* pcCase)
 		}
 		break;
 	}
-	return ReportError(pcCase, ((CCPPSyntaxCaseStatement*)pcCase)->mpcValue ? "A case label is only in a switch" : "A default label is only in a switch");
+	return mcDiagnostics.ReportError(pcCase, ((CCPPSyntaxCaseStatement*)pcCase)->mpcValue ? "A case label is only in a switch" : "A default label is only in a switch");
 }
 
 
@@ -926,9 +926,9 @@ bool CCPPUnit::CheckLocalClass(CCPPSyntax* pcDeclaration)
 	{
 		return true;
 	}
-	BeginLoud();
+	mcDiagnostics.BeginLoud();
 	bResult = CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
-	EndLoud();
+	mcDiagnostics.EndLoud();
 	return bResult;
 }
 
@@ -949,9 +949,9 @@ bool CCPPUnit::CheckBlockDeclaration(CCPPSyntax* pcDeclaration)
 	switch (pcDeclaration->GetKind())
 	{
 	case CPPS_Namespace:
-		return ReportError(pcDeclaration, "A namespace is declared outside any function");
+		return mcDiagnostics.ReportError(pcDeclaration, "A namespace is declared outside any function");
 	case CPPS_FunctionDefinition:
-		return ReportError(pcDeclaration, "A function is defined outside any function: a local class's member functions are defined in the class");
+		return mcDiagnostics.ReportError(pcDeclaration, "A function is defined outside any function: a local class's member functions are defined in the class");
 	default:
 		return true;
 	}
@@ -1027,7 +1027,7 @@ bool CCPPUnit::SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope)
 	case CPPS_CaseStatement:
 		if (*pbInScope)
 		{
-			return ReportOnce(pcNode, "The case label jumps past an initialised local into its scope: put the local in a block of its own");
+			return mcDiagnostics.ReportOnce(pcNode, "The case label jumps past an initialised local into its scope: put the local in a block of its own");
 		}
 		return SwitchJumps(((CCPPSyntaxCaseStatement*)pcNode)->mpcStatement, pbInScope);
 
@@ -1093,7 +1093,7 @@ bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* 
 	psReturn = pcFunction->mpsReturn;
 	if (!pcReturn->mpcValue && psReturn && (psReturn != &mcTypes.msUndeduced) && (pcFunction->meKind == CPPFK_Function) && !psReturn->IsVoid())
 	{
-		return ReportOnce(pcReturn, "The function returns a value: return; is for a void function");
+		return mcDiagnostics.ReportOnce(pcReturn, "The function returns a value: return; is for a void function");
 	}
 	if (!pcReturn->mpcValue || !psReturn || (psReturn == &mcTypes.msUndeduced) || (pcFunction->meKind != CPPFK_Function))
 	{
@@ -1103,12 +1103,12 @@ bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* 
 	{
 		if (pcReturn->mpcValue->GetKind() == CPPS_InitializerList)
 		{
-			return ReportOnce(pcReturn, "A void function returns no value");
+			return mcDiagnostics.ReportOnce(pcReturn, "A void function returns no value");
 		}
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		psValue = TypeOf(pcReturn->mpcValue);
-		EndQuiet();
-		return !psValue || psValue->IsVoid() || ReportOnce(pcReturn, "A void function returns no value");
+		mcDiagnostics.EndQuiet();
+		return !psValue || psValue->IsVoid() || mcDiagnostics.ReportOnce(pcReturn, "A void function returns no value");
 	}
 	if (!psReturn->IsClass() || !CompleteClass(psReturn->pcClass, pcReturn))
 	{
@@ -1123,9 +1123,9 @@ bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* 
 	}
 	else
 	{
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		psValue = TypeOf(pcReturn->mpcValue);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		psValue = psValue ? psValue->WithoutReference() : NULL;
 		if (!psValue || (psValue->IsClass() && IsDerived(psValue->pcClass, psReturn->pcClass, NULL)))
 		{
@@ -1134,18 +1134,18 @@ bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* 
 		}
 	}
 	bResult = true;
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	if ((papcArguments->NumElements() > 0) && psReturn->pcClass->mbConstructors && mcBinder.BindConstruction(psReturn->pcClass, papcArguments, pcReturn, &cBound, false) && (cBound.meHow == CPPBO_Constructor))
 	{
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		if (cBound.mpcConstructor->mbExplicit)
 		{
-			bResult = ReportOnce(pcReturn, "An explicit constructor isn't used by return: write the class's name before the value");
+			bResult = mcDiagnostics.ReportOnce(pcReturn, "An explicit constructor isn't used by return: write the class's name before the value");
 		}
 	}
 	else
 	{
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 	}
 	apcValue.Kill();
 	return bResult;
@@ -1189,9 +1189,9 @@ void CCPPUnit::CheckExpression(CCPPSyntax* pcExpression)
 		CheckLambdas(pcExpression);
 		return;
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	CheckChildren(pcExpression);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 }
 
 
@@ -1242,9 +1242,9 @@ void CCPPUnit::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
 	SCPPLambda*			psLambda;
 	CCPPFunction*		pcCall;
 
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	psLambda = GetLambda(pcLambda);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	pcCall = psLambda ? psLambda->pcCall : NULL;
 	if (!pcCall || pcCall->mbGenerated)
 	{
@@ -1290,9 +1290,9 @@ void CCPPUnit::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 	}
 	if (pcInit->mpcInitializer)
 	{
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		CheckNode(pcInit->mpcInitializer);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 	}
 }
 
@@ -1402,21 +1402,21 @@ void CCPPUnit::CheckTemplatesAsThemselves(void)
 
 		if (pcTemplate->mpcDefinition && (pcTemplate->mpcDefinition->GetKind() == CPPS_ClassSpecifier))
 		{
-			BeginQuiet();
+			mcDiagnostics.BeginQuiet();
 			pcClass = InstantiateClassAsItself(pcTemplate);
 			if (pcClass)
 			{
 				CompleteClass(pcClass, pcTemplate->mpcDefinition);
 			}
-			EndQuiet();
+			mcDiagnostics.EndQuiet();
 		}
 		else if (!pcTemplate->mbMember || (pcTemplate->mbMemberTemplate && pcTemplate->mpcClass && (!pcTemplate->mpcClass->mpcBindings || pcTemplate->mpcClass->mpcBindings->IsSelf())))
 		{
 			//A function template, or a member template in a class that isn't another instance.  A class template's
 			//members defined outside it are declared with its instance (LayoutClass).
-			BeginQuiet();
+			mcDiagnostics.BeginQuiet();
 			InstantiateFunctionAsItself(pcTemplate);
-			EndQuiet();
+			mcDiagnostics.EndQuiet();
 		}
 	}
 }
@@ -1811,7 +1811,7 @@ void CCPPUnit::NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPName
 			szMessage.Append(" has the name ");
 			AppendTokensText(pcClass->mpcName->GetLast()->miName, pcClass->mpcName->GetLast()->miName, &szMessage);
 			szMessage.Append(": use the name, which is a type of its own");
-			Warning(pcName, szMessage.Text());
+			mcDiagnostics.Warning(pcName, szMessage.Text());
 			szMessage.Kill();
 			szBase.Kill();
 			break;

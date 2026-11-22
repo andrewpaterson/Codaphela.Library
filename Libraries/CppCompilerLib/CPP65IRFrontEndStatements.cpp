@@ -115,7 +115,7 @@ bool CCPP65IRFrontEnd::StatementOf(CCPPSyntax* pcStatement)
 		//In a program built without exceptions it is an error (ExceptionsPlan.txt).
 		if (!mpcUnit->GetOptions()->mbExceptions)
 		{
-			mpcUnit->ReportError(pcStatement, CPP_EXCEPTIONS_OFF_TRY);
+			mpcDiagnostics->ReportError(pcStatement, CPP_EXCEPTIONS_OFF_TRY);
 			return Unsupported(__FILE__, __LINE__);
 		}
 		return TryStatement((CCPPSyntaxTryStatement*)pcStatement);
@@ -388,9 +388,9 @@ bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSt
 	if (pcStatement->mpcDeclaration && (pcStatement->mpcDeclaration->GetKind() == CPPS_StaticAssert))
 	{
 		//Checked when it is compiled; nothing is written.
-		mpcUnit->BeginLoud();
+		mpcDiagnostics->BeginLoud();
 		bResult = mpcUnit->StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration);
-		mpcUnit->EndLoud();
+		mpcDiagnostics->EndLoud();
 		return bResult;
 	}
 	if (pcStatement->mpcDeclaration && mpcUnit->IsScopeDeclaration(pcStatement->mpcDeclaration))
@@ -631,7 +631,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		if (papcElements->NumElements() != 1)
 		{
 			//[dcl.init] 17.8
-			return mpcUnit->ReportOnce(pcInitialiser, "A number or a pointer is initialised by one value");
+			return mpcDiagnostics->ReportOnce(pcInitialiser, "A number or a pointer is initialised by one value");
 		}
 		pcInitialiser = papcElements->GetPtr(0);
 	}
@@ -663,7 +663,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		if (papcElements->NumElements() != 1)
 		{
 			//[dcl.init.list] 3
-			return mpcUnit->ReportOnce(pcInitialiser, "A number or a pointer is initialised by one value");
+			return mpcDiagnostics->ReportOnce(pcInitialiser, "A number or a pointer is initialised by one value");
 		}
 		pcInitialiser = papcElements->GetPtr(0);
 		if (!mpcUnit->CheckBracedValue(pcInitialiser, psPlace->psType))
@@ -752,7 +752,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		{
 			//[dcl.init.string] 2
 			auiBytes.Kill();
-			return mpcUnit->ReportError(pcInitialiser, "The string has more characters, with its end, than the array has elements");
+			return mpcDiagnostics->ReportError(pcInitialiser, "The string has more characters, with its end, than the array has elements");
 		}
 		for (ui = 0; ui < auiBytes.NumElements() / psElement->iBytes; ui++)
 		{
@@ -771,7 +771,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		if (mpcUnit->IsStringLiteral(pcInitialiser))
 		{
 			//[dcl.init.string] 1
-			return mpcUnit->ReportError(pcInitialiser, mpcUnit->StringArrayError(pcInitialiser, psElement));
+			return mpcDiagnostics->ReportError(pcInitialiser, mpcUnit->StringArrayError(pcInitialiser, psElement));
 		}
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -782,7 +782,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		return false;
 	}
 	//[dcl.init.aggr] 7
-	return (uiNext >= papcElements->NumElements()) || mpcUnit->ReportOnce(pcInitialiser, "More initialisers than the array's elements take");
+	return (uiNext >= papcElements->NumElements()) || mpcDiagnostics->ReportOnce(pcInitialiser, "More initialisers than the array's elements take");
 }
 
 
@@ -1331,7 +1331,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 			pcConversion = mpcUnit->GetBinder()->FindIntegerConversion(pcVariable->mpsType->pcClass, pcSwitch->mpcCondition);
 			if (!pcConversion)
 			{
-				return mpcUnit->ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum, or an object with one conversion function to one");
+				return mpcDiagnostics->ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum, or an object with one conversion function to one");
 			}
 			sValue.psType = pcVariable->mpsType;
 			sValue.sValue = sPlace.sAddress;
@@ -1354,7 +1354,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		if (sValue.psType->IsFloat() || sValue.psType->IsPointer())
 		{
 			//[stmt.switch] 2
-			return mpcUnit->ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum");
+			return mpcDiagnostics->ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum");
 		}
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1488,7 +1488,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 
 	if (mbConstructorHandler)
 	{
-		mpcUnit->ReportError(pcReturn, "A handler of a constructor's function-try-block can't return: it ends by rethrowing");
+		mpcDiagnostics->ReportError(pcReturn, "A handler of a constructor's function-try-block can't return: it ends by rethrowing");
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!mpcUnit->CheckReturn(mpcCPPFunction, pcReturn))
@@ -1590,7 +1590,7 @@ bool CCPP65IRFrontEnd::BreakStatement(CCPPSyntax* pcStatement, bool bContinue)
 			return Terminated();
 		}
 	}
-	mpcUnit->ReportError(pcStatement, bContinue ? "continue outside a loop" : "break outside a loop or switch");
+	mpcDiagnostics->ReportError(pcStatement, bContinue ? "continue outside a loop" : "break outside a loop or switch");
 	return Unsupported(__FILE__, __LINE__);
 }
 
@@ -1792,7 +1792,7 @@ bool CCPP65IRFrontEnd::GotoKeeps(SCPP65IRCleanup* pasLocals, size uiLiving, CCPP
 	}
 	if (ui < uiAtLabel)
 	{
-		return mpcUnit->ReportError(pcGoto, "The goto jumps into the scope of an object it hasn't made: past its declaration, or into its block");
+		return mpcDiagnostics->ReportError(pcGoto, "The goto jumps into the scope of an object it hasn't made: past its declaration, or into its block");
 	}
 	return true;
 }

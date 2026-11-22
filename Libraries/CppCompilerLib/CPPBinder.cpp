@@ -54,6 +54,7 @@ void CCPPBoundCall::Init(void)
 void CCPPBinder::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
+	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mcOverloads.Init(pcUnit);
 	mcAccess.Init(pcUnit);
 	mcBound.Init(true);
@@ -126,7 +127,7 @@ bool CCPPBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, 
 		{
 			//A deleted function template's instance was the best match (one that is no template's is refused where it
 			//is chosen, CCPPOverloads::FindFunction).  [dcl.fct.def.delete] 2
-			mpcUnit->Error(pcCall, "The function chosen is deleted");
+			mpcDiagnostics->Error(pcCall, "The function chosen is deleted");
 			pcBound->meHow = CPPBC_Failed;
 		}
 		CheckAccess(pcBound, pcCall);
@@ -213,11 +214,11 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		pcFunction = NULL;
 		if (!papcExplicit)
 		{
-			uiErrors = mpcUnit->GetErrors()->NumErrors();
-			mpcUnit->BeginTrial();
+			uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
+			mpcDiagnostics->BeginTrial();
 			pcFunction = mcOverloads.FindNamedFunction(pcName, pcSymbol->mlliName, pcBound->mpapcArguments, pcCall);
-			mpcUnit->EndTrial();
-			mpcUnit->GetErrors()->Truncate(uiErrors);
+			mpcDiagnostics->EndTrial();
+			mpcDiagnostics->GetErrors()->Truncate(uiErrors);
 			if (pcFunction && TakesAsTheyAre(pcFunction, pcBound->mpapcArguments))
 			{
 				mpcUnit->Resolved(pcName, pcFunction);
@@ -230,12 +231,12 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, pcSymbol->mlliName, pcCall, pcBound->mpapcArguments, papcExplicit);
 		if (!pcTemplate)
 		{
-			mpcUnit->Error(pcCallee, "The function template has not been defined");
+			mpcDiagnostics->Error(pcCallee, "The function template has not been defined");
 			return;
 		}
 		if (mcOverloads.mbAmbiguousTemplate && (!pcFunction || !mcOverloads.TemplateTakes(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall, NULL) || !mcOverloads.IsBetterFunction(pcFunction, mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall), pcBound->mpapcArguments)))
 		{
-			mpcUnit->Error(pcCallee, "The call is ambiguous: function templates that take the arguments as well as each other, neither more specialised");
+			mpcDiagnostics->Error(pcCallee, "The call is ambiguous: function templates that take the arguments as well as each other, neither more specialised");
 			return;
 		}
 		if (pcFunction && !mcOverloads.TemplateTakes(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall, NULL))
@@ -302,7 +303,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	if (!pcSymbol && pcName && mcOverloads.UsesArgumentLookup(pcName))
 	{
 		//Nothing declares it here: it may be in a namespace of its arguments'.
-		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 		pcFunction = mcOverloads.FindAssociatedFunction(pcName, lliName, pcCall, pcBound->mpapcArguments);
 		if (pcFunction)
 		{
@@ -311,7 +312,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 			pcBound->mpcFunction = pcFunction;
 			return;
 		}
-		if (mpcUnit->GetErrors()->NumErrors() != uiErrors)
+		if (mpcDiagnostics->GetErrors()->NumErrors() != uiErrors)
 		{
 			return;
 		}
@@ -322,7 +323,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		pcFunction = mcOverloads.FindFreeOperator(lliName, NULL, pcBound->mpapcArguments, pcCall);
 		if (!pcFunction)
 		{
-			mpcUnit->Error(pcCallee, "No operator function of the name takes these arguments");
+			mpcDiagnostics->Error(pcCallee, "No operator function of the name takes these arguments");
 			return;
 		}
 		pcBound->meHow = CPPBC_Function;
@@ -347,8 +348,8 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	}
 	if (pcDeclaration)
 	{
-		uiErrors = mpcUnit->GetErrors()->NumErrors();
-		mpcUnit->BeginTrial();
+		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
+		mpcDiagnostics->BeginTrial();
 		pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, pcBound->mpapcArguments, pcCall);
 		bInlineMemcpy = pcFunction && mpcUnit->IsInlineMemcpy(lliName, pcBound->mpapcArguments);
 		if (!bInlineMemcpy && (!pcFunction || !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments)))
@@ -360,8 +361,8 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 				pcFunction = pcInstance;
 			}
 		}
-		mpcUnit->EndTrial();
-		mpcUnit->GetErrors()->Truncate(uiErrors);
+		mpcDiagnostics->EndTrial();
+		mpcDiagnostics->GetErrors()->Truncate(uiErrors);
 		if (pcFunction)
 		{
 			mpcUnit->Resolved(pcName, pcFunction);
@@ -378,14 +379,14 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		}
 	}
 
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, pcBound->mpapcArguments, pcCall);
 	if (!pcFunction)
 	{
-		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		if (mpcDiagnostics->GetErrors()->NumErrors() == uiErrors)
 		{
 			mpcUnit->ReportFailedDeclaration(lliName);
-			mpcUnit->Error(pcCallee, "The function has not been declared");
+			mpcDiagnostics->Error(pcCallee, "The function has not been declared");
 		}
 		return;
 	}
@@ -418,9 +419,9 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	size			uiErrors;
 	bool			bAmbiguous;
 
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	psType = mpcUnit->ValueTypeOf(pcBound->mpcCallee);
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	if (!psType || !psType->IsClass())
 	{
 		return false;
@@ -436,20 +437,20 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	}
 
 	pcBound->mlliName = mpcUnit->GetOperatorName(CT_OpenRoundBracket, false);
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	pcFunction = NULL;
 	if (mpcUnit->HasMember(psType->pcClass, pcBound->mlliName))
 	{
-		mpcUnit->BeginQuiet();
+		mpcDiagnostics->BeginQuiet();
 		pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, pcBound->mpapcArguments, pcCall, CalledObject(pcBound->mpcCallee, false));
-		mpcUnit->EndQuiet();
+		mpcDiagnostics->EndQuiet();
 	}
 
 	//Or a surrogate call function: through the pointer to a function the object converts to.  [over.call.object] 2
 	pcSurrogate = mcOverloads.FindSurrogate(psType->pcClass, pcFunction, pcBound->mpapcArguments, &bAmbiguous);
 	if (bAmbiguous)
 	{
-		mpcUnit->Error(pcCall, "The call is ambiguous: the class's operator() and a function its conversion function points to take the arguments as well as each other");
+		mpcDiagnostics->Error(pcCall, "The call is ambiguous: the class's operator() and a function its conversion function points to take the arguments as well as each other");
 		return true;
 	}
 	if (pcSurrogate)
@@ -468,9 +469,9 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	}
 	if (!pcFunction)
 	{
-		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		if (mpcDiagnostics->GetErrors()->NumErrors() == uiErrors)
 		{
-			mpcUnit->Error(pcCall, "The class has no operator() for these arguments");
+			mpcDiagnostics->Error(pcCall, "The class has no operator() for these arguments");
 		}
 		return true;
 	}
@@ -499,12 +500,12 @@ void CCPPBinder::ResolvePseudoDestructor(CCPPSyntaxMemberExpression* pcMember, S
 	psNamed = pcNamed ? mpcUnit->GetDeclarators()->GetSymbolType(pcNamed, pcMember) : NULL;
 	if (psNamed && !psNamed->Unqualified()->Same(psType->Unqualified()))
 	{
-		mpcUnit->Error(pcMember, "The destructor's name is not the type of the object");
+		mpcDiagnostics->Error(pcMember, "The destructor's name is not the type of the object");
 		return;
 	}
 	if (pcBound->mpapcArguments->NumElements() != 0)
 	{
-		mpcUnit->Error(pcMember, "A destructor takes no arguments");
+		mpcDiagnostics->Error(pcMember, "A destructor takes no arguments");
 		return;
 	}
 	pcBound->meHow = CPPBC_PseudoDestructor;
@@ -580,7 +581,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		}
 		if (!psType || !psType->IsClass())
 		{
-			mpcUnit->Error(pcCallee, "Member functions need an object of a class");
+			mpcDiagnostics->Error(pcCallee, "Member functions need an object of a class");
 			return;
 		}
 		pcClass = psType->pcClass;
@@ -622,7 +623,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	{
 		if (!pcClass || (pcBound->mpapcArguments->NumElements() != 0) || !mpcUnit->CompleteClass(pcClass, pcCallee))
 		{
-			mpcUnit->Error(pcCallee, "This destructor call is not supported by the compiler yet");
+			mpcDiagnostics->Error(pcCallee, "This destructor call is not supported by the compiler yet");
 			return;
 		}
 		if (pcClass->mpcDestructor)
@@ -639,7 +640,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	pcBound->mlliName = lliName;
 	if (!pcClass || (lliName == -1))
 	{
-		mpcUnit->Error(pcCallee, "This call is not supported by the compiler yet");
+		mpcDiagnostics->Error(pcCallee, "This call is not supported by the compiler yet");
 		return;
 	}
 
@@ -666,7 +667,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		}
 	}
 
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	pcComponent = pcName->GetLast();
 	papcExplicit = pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL;
 	eObject = CalledObject(pcObject, bArrow);
@@ -687,12 +688,12 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		//With a member template to fall back on, that no function fits is no error.
 		if (pcTemplate)
 		{
-			mpcUnit->BeginQuiet();
+			mpcDiagnostics->BeginQuiet();
 		}
 		pcFunction = mcOverloads.FindFunction(pcLookup, lliName, CPPFK_Function, pcBound->mpapcArguments, true, pcCall, eObject);
 		if (pcTemplate)
 		{
-			mpcUnit->EndQuiet();
+			mpcDiagnostics->EndQuiet();
 		}
 	}
 	if (!pcFunction && pcTemplate)
@@ -703,11 +704,11 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	{
 		//The member template's instance, if it takes the arguments better than the function that converts them, as a
 		//function's is chosen (Resolve).  [over.match.best] 1
-		uiTrial = mpcUnit->GetErrors()->NumErrors();
-		mpcUnit->BeginTrial();
+		uiTrial = mpcDiagnostics->GetErrors()->NumErrors();
+		mpcDiagnostics->BeginTrial();
 		pcInstance = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
-		mpcUnit->EndTrial();
-		mpcUnit->GetErrors()->Truncate(uiTrial);
+		mpcDiagnostics->EndTrial();
+		mpcDiagnostics->GetErrors()->Truncate(uiTrial);
 		if (pcInstance && mcOverloads.IsBetterFunction(pcInstance, pcFunction, pcBound->mpapcArguments))
 		{
 			pcFunction = pcInstance;
@@ -715,21 +716,21 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	}
 	if (!pcFunction)
 	{
-		if ((mpcUnit->GetErrors()->NumErrors() == uiErrors) && !mpcUnit->ImplicitAssignment(pcCall))
+		if ((mpcDiagnostics->GetErrors()->NumErrors() == uiErrors) && !mpcUnit->ImplicitAssignment(pcCall))
 		{
-			mpcUnit->Error(pcCallee, "The class has no member function of that name");
+			mpcDiagnostics->Error(pcCallee, "The class has no member function of that name");
 		}
 		return;
 	}
 	if (!pcObject && !pcFunction->mbStatic && (!pcIn || !pcIn->mpcClass || !mpcUnit->IsDerived(pcIn->mpcClass, pcFunction->mpcClass, NULL)))
 	{
-		mpcUnit->Error(pcCallee, "A member function needs an object");
+		mpcDiagnostics->Error(pcCallee, "A member function needs an object");
 		return;
 	}
 	if (!pcObject && !pcFunction->mbStatic && pcIn && pcIn->mbStatic && !mpcUnit->WritingLambda())
 	{
 		//A static member function has no this to call it on.  [over.call.func] 3, [class.static.mfct] 2
-		mpcUnit->Error(pcCallee, "A member function that isn't static is called with no object: a static member function has none");
+		mpcDiagnostics->Error(pcCallee, "A member function that isn't static is called with no object: a static member function has none");
 		return;
 	}
 	pcThis = pcObject ? pcClass : mpcUnit->ThisClass();
@@ -934,11 +935,11 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 		}
 
 		//That none of its own fits is no error: one that is no class's may.
-		uiErrors = mpcUnit->GetErrors()->NumErrors();
-		mpcUnit->BeginQuiet();
+		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
+		mpcDiagnostics->BeginQuiet();
 		pcMember = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CalledObject(pcBound->mpcLeft, false));
-		mpcUnit->EndQuiet();
-		mpcUnit->GetErrors()->Truncate(uiErrors);
+		mpcDiagnostics->EndQuiet();
+		mpcDiagnostics->GetErrors()->Truncate(uiErrors);
 		apcArguments.ReInit();
 	}
 
@@ -959,7 +960,7 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	iBetter = (pcMember && pcFunction) ? mcOverloads.CompareOperators(pcMember, psType->pcClass, pcFunction, pcBound->mpcLeft, pcBound->mpcRight, CalledObject(pcBound->mpcLeft, false)) : (pcMember ? 1 : -1);
 	if (pcMember && pcFunction && (iBetter == 0))
 	{
-		mpcUnit->Error(pcNode, "The operator is ambiguous: the class's own operator function and one that is no class's take the operands as well as each other");
+		mpcDiagnostics->Error(pcNode, "The operator is ambiguous: the class's own operator function and one that is no class's take the operands as well as each other");
 		return;
 	}
 	if (iBetter > 0)
@@ -993,7 +994,7 @@ void CCPPBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	psType = mpcUnit->ValueTypeOf(pcBound->mpcLeft);
 	if (!psType || !psType->IsClass())
 	{
-		mpcUnit->Error(pcNode, "An operator call needs an object");
+		mpcDiagnostics->Error(pcNode, "An operator call needs an object");
 		return;
 	}
 	if (!mpcUnit->CompleteClass(psType->pcClass, pcNode))
@@ -1005,14 +1006,14 @@ void CCPPBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	{
 		apcArguments.Add(pcBound->mpcRight);
 	}
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CalledObject(pcBound->mpcLeft, false));
 	apcArguments.Kill();
 	if (!pcFunction)
 	{
-		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		if (mpcDiagnostics->GetErrors()->NumErrors() == uiErrors)
 		{
-			mpcUnit->Error(pcNode, "The class has no operator for this");
+			mpcDiagnostics->Error(pcNode, "The class has no operator for this");
 		}
 		return;
 	}
@@ -1183,11 +1184,11 @@ CCPPFunction* CCPPBinder::FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65T
 		return NULL;
 	}
 
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	mpcUnit->BeginTrial();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
+	mpcDiagnostics->BeginTrial();
 	pcFunction = mcOverloads.FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNew, CPPCO_None);
-	mpcUnit->EndTrial();
-	mpcUnit->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndTrial();
+	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
 	if (pcFunction && IsReservedPlacement(pcFunction))
 	{
 		//operator new(size_t, void*) is the library's, which returns the address, whoever declares it.
@@ -1416,7 +1417,7 @@ CCPPFunction* CCPPBinder::ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSo
 	iConversion = (pcFunction->mbConstThis && !psSource->bConst) ? CPPCR_Qualification : CPPCR_Exact;
 	if (iConversion == iConstructor)
 	{
-		mpcUnit->Error(pcNode, "The conversion is ambiguous: a constructor of the class and a conversion function of the value's take it as well as each other");
+		mpcDiagnostics->Error(pcNode, "The conversion is ambiguous: a constructor of the class and a conversion function of the value's take it as well as each other");
 		return NULL;
 	}
 	return (iConversion > iConstructor) ? pcFunction : NULL;
@@ -1641,11 +1642,11 @@ CCPPFunction* CCPPBinder::BindRangeFunction(int64 lliName, CCPPClass* pcClass, C
 	apcArguments.Init();
 	if (pcClass)
 	{
-		uiErrors = mpcUnit->GetErrors()->NumErrors();
-		mpcUnit->BeginQuiet();
+		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
+		mpcDiagnostics->BeginQuiet();
 		pcFunction = mcOverloads.FindFunction(pcClass, lliName, CPPFK_Function, &apcArguments, true, pcNode, CalledObject(pcRange, false));
-		mpcUnit->EndQuiet();
-		mpcUnit->GetErrors()->Truncate(uiErrors);
+		mpcDiagnostics->EndQuiet();
+		mpcDiagnostics->GetErrors()->Truncate(uiErrors);
 	}
 	else
 	{
@@ -1901,7 +1902,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		if (pcBound->mpsField && InDependentBase(pcClass, pcClass->FindFieldClass(pcBound->mpsField)))
 		{
 			//A name that isn't qualified isn't looked for in a base that depends on a template parameter.  [temp.dep] 3
-			mpcUnit->ReportOnce(pcId, "The name is declared only in a base class that depends on a template parameter: it is named this->name there");
+			mpcDiagnostics->ReportOnce(pcId, "The name is declared only in a base class that depends on a template parameter: it is named this->name there");
 			pcBound->mpsField = NULL;
 		}
 	}
@@ -1990,7 +1991,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	if (!mpcUnit->IsDefinedBefore(pcClass, pcNode))
 	{
 		//[expr.ref] 2, [basic.types] 5
-		return mpcUnit->ReportOnce(pcNode, "The class is incomplete here: it is defined further on");
+		return mpcDiagnostics->ReportOnce(pcNode, "The class is incomplete here: it is defined further on");
 	}
 	lliName = mpcUnit->GetComponentName(pcName->GetLast());
 	pcLookup = pcClass;
@@ -2374,7 +2375,7 @@ void CCPPBinder::BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool
 	pcBound->meHow = pcBound->mpcFunction ? CPPBV_Function : CPPBV_AsItIs;
 	if (pcBound->mpcFunction && mcOverloads.mbAmbiguousConversion && pcNode)
 	{
-		mpcUnit->ReportOnce(pcNode, "The conversion is ambiguous: two conversion functions' results convert to the type as well as each other");
+		mpcDiagnostics->ReportOnce(pcNode, "The conversion is ambiguous: two conversion functions' results convert to the type as well as each other");
 	}
 }
 
@@ -2404,7 +2405,7 @@ SCPP65Type* CCPPBinder::ContextualType(CCPPSyntax* pcExpression, ECPPContextualT
 	if (!pcConversion)
 	{
 		szNone = (eWanted == CPPXT_ObjectPointer) ? "The object doesn't convert to a pointer" : ((eWanted == CPPXT_Integer) ? "The object doesn't convert to an integer" : "The object doesn't convert to a number");
-		mpcUnit->Error(pcExpression, bAmbiguous ? "The object converts to more than one type here" : szNone);
+		mpcDiagnostics->Error(pcExpression, bAmbiguous ? "The object converts to more than one type here" : szNone);
 		return NULL;
 	}
 	return pcConversion->mpsReturn->WithoutReference()->Unqualified();
@@ -2502,7 +2503,7 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 		{
 			if (bReport)
 			{
-				mpcUnit->Error(pcNode, "No constructor matches the arguments");
+				mpcDiagnostics->Error(pcNode, "No constructor matches the arguments");
 			}
 			return false;
 		}
@@ -2515,7 +2516,7 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 	{
 		if (bReport)
 		{
-			mpcUnit->Error(pcNode, "These initialisers do not match the class");
+			mpcDiagnostics->Error(pcNode, "These initialisers do not match the class");
 		}
 		return false;
 	}

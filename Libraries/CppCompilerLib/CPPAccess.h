@@ -27,6 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPUnit;
+class CCPPDiagnostics;
 
 
 //Says whether a class's member may be named where it is named: private, protected and public, friends, and the
@@ -54,6 +55,7 @@ class CCPPAccess
 {
 protected:
 	CCPPUnit*	mpcUnit;
+	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 
 public:
 	void	Init(CCPPUnit* pcUnit);

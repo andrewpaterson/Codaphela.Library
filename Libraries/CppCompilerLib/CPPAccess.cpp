@@ -36,6 +36,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPPAccess::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
+	mpcDiagnostics = pcUnit->GetDiagnostics();
 }
 
 
@@ -176,7 +177,7 @@ bool CCPPAccess::Refuse(CCPPSyntax* pcNode, const char* szMessage)
 	CCPPErrors*	pcErrors;
 	size		i;
 
-	pcErrors = mpcUnit->GetErrors();
+	pcErrors = mpcDiagnostics->GetErrors();
 	for (i = 0; i < pcErrors->NumErrors(); i++)
 	{
 		if (pcNode && (pcErrors->GetToken(i) == pcNode->miFirstToken) && strstr(pcErrors->Get(i), szMessage))
@@ -184,7 +185,7 @@ bool CCPPAccess::Refuse(CCPPSyntax* pcNode, const char* szMessage)
 			return false;
 		}
 	}
-	return mpcUnit->ReportError(pcNode, szMessage);
+	return mpcDiagnostics->ReportError(pcNode, szMessage);
 }
 
 
@@ -566,9 +567,9 @@ bool CCPPAccess::IsFriendFunction(CCPPSyntaxDeclarator* pcDeclarator)
 		return true;
 	}
 	szArguments.Init();
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	bSame = mpcUnit->BindArguments(pcFunction->mpcTemplate->mpcDeclaration, &pcComponent->macpTemplateArguments, NULL, &szArguments, pcDeclarator, NULL) && szArguments.Equals(&pcFunction->mszArguments);
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	szArguments.Kill();
 	return bSame;
 }

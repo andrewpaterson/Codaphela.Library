@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPUnit;
+class CCPPDiagnostics;
 
 
 //Turns what a declaration says into a type: the specifiers give the type it starts from (int, a class, a
@@ -35,6 +36,7 @@ class CCPPDeclarators
 {
 protected:
 	CCPPUnit*		mpcUnit;
+	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 
 public:
 	void					Init(CCPPUnit* pcUnit);

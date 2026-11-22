@@ -116,6 +116,7 @@ int CCPPCandidates::Compare(size uiFirst, size uiSecond)
 void CCPPOverloads::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
+	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mcResolved.Init(true);
 	mbConverting = false;
 	mpapsOnly = NULL;
@@ -352,7 +353,7 @@ CCPPFunction* CCPPOverloads::ConversionInstance(CCPPTemplate* pcTemplate, SCPP65
 	CCPPFunction*			pcFunction;
 	CChars					szArguments;
 
-	mpcUnit->BeginTrial();
+	mpcDiagnostics->BeginTrial();
 	pcFunction = NULL;
 	pcDeclarator = mpcUnit->DefineMemberTemplate(pcTemplate, pcNode) ? pcTemplate->FunctionDeclarator() : NULL;
 	pcType = (pcDeclarator && pcDeclarator->GetName()) ? pcDeclarator->GetName()->GetLast()->mpcType : NULL;
@@ -366,7 +367,7 @@ CCPPFunction* CCPPOverloads::ConversionInstance(CCPPTemplate* pcTemplate, SCPP65
 		szArguments.Kill();
 		cDeduction.Kill();
 	}
-	return mpcUnit->EndTrial() ? pcFunction : NULL;
+	return mpcDiagnostics->EndTrial() ? pcFunction : NULL;
 }
 
 
@@ -508,11 +509,11 @@ CCPPFunction* CCPPOverloads::MemberInstance(CCPPClass* pcClass, int64 lliName, C
 	{
 		return NULL;
 	}
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	mpcUnit->BeginQuiet();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
+	mpcDiagnostics->BeginQuiet();
 	pcInstance = mpcUnit->InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
-	mpcUnit->EndQuiet();
-	mpcUnit->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndQuiet();
+	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
 	return pcInstance;
 }
 
@@ -668,9 +669,9 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcE
 		}
 	}
 
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	pcFunction = NULL;
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	apcNamespaces.Init();
 	pcLookup = CurrentLookupScope();
 	if (pcLookup)
@@ -706,8 +707,8 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcE
 		}
 	}
 	apcNamespaces.Kill();
-	mpcUnit->EndQuiet();
-	mpcUnit->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndQuiet();
+	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
 	return pcFunction;
 }
 
@@ -769,7 +770,7 @@ void CCPPOverloads::NoFunctionMatches(CCPPClass* pcClass, int64 lliName, ECPPFun
 		}
 		szMessage.Append(pcOnly->mbVariadic ? ", ...)" : ")");
 	}
-	mpcUnit->Error(pcNode, szMessage.Text());
+	mpcDiagnostics->Error(pcNode, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -868,7 +869,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	uiArguments = papcArguments ? papcArguments->NumElements() : 0;
 	if (uiArguments > 32)
 	{
-		mpcUnit->Error(pcNode, "Too many arguments");
+		mpcDiagnostics->Error(pcNode, "Too many arguments");
 		return NULL;
 	}
 	for (i = 0; i < uiArguments; i++)
@@ -940,25 +941,25 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	{
 		if (pcBest->mpsReturn == &mpcUnit->GetTypes()->msUndeduced)
 		{
-			mpcUnit->Error(pcNode, "The function is declared auto and what it returns isn't known until it is defined");
+			mpcDiagnostics->Error(pcNode, "The function is declared auto and what it returns isn't known until it is defined");
 			return NULL;
 		}
 		if (pcBest->mbDeleted)
 		{
 			//It was the best match, and so the call is wrong: that is what deleting it is for.  [dcl.fct.def.delete]
-			mpcUnit->Error(pcNode, "The function chosen is deleted");
+			mpcDiagnostics->Error(pcNode, "The function chosen is deleted");
 			return NULL;
 		}
 		return pcBest;
 	}
 	if (bAmbiguous)
 	{
-		mpcUnit->Error(pcNode, "The call is ambiguous");
+		mpcDiagnostics->Error(pcNode, "The call is ambiguous");
 		return NULL;
 	}
 	if (bFound && bQualifiedObject)
 	{
-		mpcUnit->Error(pcNode, CPPCalledConst(eObject) ? "The object is const and the function that takes these arguments isn't a const member function" : "The object is volatile and the function that takes these arguments isn't a volatile member function");
+		mpcDiagnostics->Error(pcNode, CPPCalledConst(eObject) ? "The object is const and the function that takes these arguments isn't a const member function" : "The object is volatile and the function that takes these arguments isn't a volatile member function");
 		return NULL;
 	}
 	if (bFound)
@@ -1326,9 +1327,9 @@ CCPPFunction* CCPPOverloads::FindAssociatedFunction(CCPPSyntaxName* pcName, int6
 	{
 		return NULL;
 	}
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	pcFunction = FindNamedFunction(pcName, lliName, papcArguments, pcCall);
-	if (pcFunction || (mpcUnit->GetErrors()->NumErrors() != uiErrors))
+	if (pcFunction || (mpcDiagnostics->GetErrors()->NumErrors() != uiErrors))
 	{
 		return pcFunction;
 	}
@@ -1361,9 +1362,9 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	bQualified = pcName && pcName->IsQualifiedByClass();
 	if (bQualified)
 	{
-		mpcUnit->BeginQuiet();
+		mpcDiagnostics->BeginQuiet();
 		pcClass = mpcUnit->NameQualifierClass(pcName, pcNode);
-		mpcUnit->EndQuiet();
+		mpcDiagnostics->EndQuiet();
 	}
 	else if (mpcUnit->OuterFunction() && mpcUnit->OuterFunction()->mpcClass)
 	{
@@ -2670,7 +2671,7 @@ bool CCPPOverloads::AtLeastAsSpecialised(CCPPTemplate* pcFirst, CCPPTemplate* pc
 	bool					bFirstPack;
 	bool					bSecondPack;
 
-	mpcUnit->BeginTrial();
+	mpcDiagnostics->BeginTrial();
 	apsFirst.Init();
 	apsSecond.Init();
 	szArguments.Init();
@@ -2729,7 +2730,7 @@ bool CCPPOverloads::AtLeastAsSpecialised(CCPPTemplate* pcFirst, CCPPTemplate* pc
 	szArguments.Kill();
 	apsSecond.Kill();
 	apsFirst.Kill();
-	return mpcUnit->EndTrial() && bResult;
+	return mpcDiagnostics->EndTrial() && bResult;
 }
 
 
@@ -2830,7 +2831,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 	}
 
 	//A failure here is not one of the quiet code around it.
-	mpcUnit->BeginTrial();
+	mpcDiagnostics->BeginTrial();
 	apsArguments.Init();
 	pcBindings = NULL;
 	bTakes = !pcTemplate->mpcClass || mpcUnit->DefineMemberTemplate(pcTemplate, pcNode);
@@ -2917,7 +2918,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		}
 	}
 	apsArguments.Kill();
-	bTakes = mpcUnit->EndTrial() && bTakes;
+	bTakes = mpcDiagnostics->EndTrial() && bTakes;
 	return bTakes;
 }
 

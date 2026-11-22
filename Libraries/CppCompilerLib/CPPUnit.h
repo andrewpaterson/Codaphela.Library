@@ -48,6 +48,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPClassLayout.h"
 #include "CPPMangler.h"
 #include "CPPContext.h"
+#include "CPPDiagnostics.h"
 #include "CPPUnitData.h"
 #include "CPPBinder.h"
 #include "CPPDeclarators.h"
@@ -265,9 +266,8 @@ protected:
 	CChars					mszCode;
 	CChars					mszThunks;			//Adjust this, then jump to a virtual function.
 	CArrayChars				maszRuntime;		//The runtime routines' labels the unit calls: linked (soft float), or written into the unit (AppendRuntime).
-	CCPPErrors				mcErrors;
+	CCPPDiagnostics			mcDiagnostics;		//The errors, the warnings, and when nothing is said.
 	CArrayCPPClassErrors	masClassErrors;		//Errors laying out classes, reported by ReportClassErrors.
-	CCPPErrors				mcWarnings;			//Each at most once (by token); they don't fail the unit.
 
 	CArrayCPPVariables	mapcGlobals;
 	CArrayCPPFunctions	mapcFunctions;
@@ -357,6 +357,7 @@ public:
 	//What the classes that work for the unit ask it for.
 	CCPP65Types*			GetTypes(void);
 	CCPPContext*			GetContext(void);
+	CCPPDiagnostics*		GetDiagnostics(void);
 	CCPPBinder*				GetBinder(void);
 	CCPPConstants*			GetConstants(void) const;
 	CCPPDeclarators*		GetDeclarators(void);
@@ -420,19 +421,9 @@ public:
 	bool					Check(CCPPSemanticPass* pcPass, bool bRemember = false);
 
 	//Declarations, functions and statements.  CPPUnit.cpp
-	bool					Error(CCPPSyntax* pcNode, const char* szMessage);
-	void					Warning(CCPPSyntax* pcNode, const char* szMessage);
 	void					WarnDeprecated(CCPPSyntax* pcNode, const char* szWhat, int32 iAttribute);
 	void					WarnDeprecatedSymbol(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 
-	bool					ErrorAt(int iToken, const char* szMessage);
-	void					AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMessage);
-	void					BeginQuiet(void);
-	bool					EndQuiet(void);
-	void					BeginTrial(void);
-	bool					EndTrial(void);
-	void					BeginLoud(void);
-	void					EndLoud(void);
 	CChars*					Line(const char* szText);
 	void					AppendName(CChars* psz, int64 lliName);
 	int64					GetName(CCPPSyntaxDeclarator* pcDeclarator);
@@ -537,7 +528,6 @@ public:
 	SCPPLambda*				WritingLambda(void);
 	SCPPLambda*				BodyLambda(CCPPFunction* pcFunction);
 	bool					LambdaError(SCPPLambda* psLambda, CCPPSyntax* pcNode, const char* szMessage);
-	bool					ReportOnce(CCPPSyntax* pcNode, const char* szMessage);
 	bool					ErrorOnce(CCPPSyntax* pcNode, const char* szMessage);
 	bool					CheckBaseMemberName(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	SCPPLambdaCapture*		FindCapture(CCPPSymbol* pcSymbol);
@@ -594,9 +584,6 @@ public:
 	int						VariableDataAlignment(CCPPVariable* pcVariable, bool bClass);
 
 	void					ReportTypeOf(CCPPSyntax* pcExpression);
-	bool					ReportError(CCPPSyntax* pcNode, const char* szMessage);
-	bool					ReportErrorAt(int iToken, const char* szMessage);
-	bool					HasWarning(CCPPSyntax* pcNode, const char* szText);
 
 	//Classes, templates, virtual functions, this and a class's bases, and the names of functions.  CPPUnitClasses.cpp,
 	//CPPUnitTemplates.cpp, CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp

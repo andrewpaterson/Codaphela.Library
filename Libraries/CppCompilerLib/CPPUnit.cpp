@@ -150,7 +150,7 @@ void CCPPUnit::SetStatistics(CCPPCompileStatistics* pcStatistics)
 {
 	mpcStatistics = pcStatistics ? pcStatistics : &mcOwnStatistics;
 	mpcIRFrontEnd->SetStatistics(mpcStatistics);
-	mcErrors.CountTakenAway(mpcStatistics);
+	mcDiagnostics.SetStatistics(mpcStatistics);
 }
 
 
@@ -342,10 +342,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcConstants = NewMalloc<CCPPConstants>();
 	mpcConstants->Init(this);
 	mcTypeChecker.Init(this);
-	mcErrors.Init();
-	mcErrors.CountTakenAway(mpcStatistics);
+	mcDiagnostics.Init(mpcTokeniser, &mcContext, mpcStatistics);
 	masClassErrors.Init();
-	mcWarnings.Init();
 
 	mapcGlobals.Init();
 	mapcFunctions.Init();
@@ -524,10 +522,9 @@ void CCPPUnit::Kill(void)
 	FreeVariables(&mapcGlobals);
 	mapcGlobals.Kill();
 
-	mcWarnings.Kill();
 	FreeClassErrors();
 	masClassErrors.Kill();
-	mcErrors.Kill();
+	mcDiagnostics.Kill();
 	maiExitShared.Kill();
 	mapsThrownDestroyers.Kill();
 	maszThrownDestroyers.Kill();
@@ -590,7 +587,7 @@ void CCPPUnit::CheckContext(void)
 {
 	if (mcContext.IsBroken())
 	{
-		ErrorAt(-1, "Internal error: the compiler's context was not left as it was entered");
+		mcDiagnostics.ErrorAt(-1, "Internal error: the compiler's context was not left as it was entered");
 	}
 }
 
@@ -635,7 +632,7 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	mpcStatistics->Begin(CPPCP_Inline);
 	mpcIRFrontEnd->InlineUnit();
 	mpcStatistics->End(CPPCP_Inline);
-	return mcErrors.NumErrors() == 0;
+	return mcDiagnostics.GetErrors()->NumErrors() == 0;
 }
 
 
@@ -675,7 +672,7 @@ bool CCPPUnit::GenerateAfterTurn(CCPP65Assembly* pcDest)
 	pszText->Append(szStrings.Text(), szStrings.Length());
 	szStrings.Kill();
 	pcDest->SetPieces(&mauiCodePieces);
-	return mcErrors.NumErrors() == 0;
+	return mcDiagnostics.GetErrors()->NumErrors() == 0;
 }
 
 
@@ -779,7 +776,7 @@ bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialis
 		}
 		else
 		{
-			bResult = ErrorAt(-1, "This global's construction or destruction uses C++ the IR front end doesn't support yet");
+			bResult = mcDiagnostics.ErrorAt(-1, "This global's construction or destruction uses C++ the IR front end doesn't support yet");
 		}
 		szLabel.Kill();
 	}
@@ -825,7 +822,7 @@ bool CCPPUnit::CheckThrown(CCPPSyntaxThrowExpression* pcThrow)
 	psType = psType->WithoutReference()->Unqualified();
 	if (psType->IsVoid())
 	{
-		return Error(pcThrow, "A throw's operand can't be void");
+		return mcDiagnostics.Error(pcThrow, "A throw's operand can't be void");
 	}
 	if (psType->IsClass())
 	{
@@ -835,7 +832,7 @@ bool CCPPUnit::CheckThrown(CCPPSyntaxThrowExpression* pcThrow)
 		}
 		if (psType->pcClass->IsAbstract())
 		{
-			return Error(pcThrow, "An object of an abstract class can't be thrown");
+			return mcDiagnostics.Error(pcThrow, "An object of an abstract class can't be thrown");
 		}
 	}
 	return true;
@@ -900,7 +897,7 @@ bool CCPPUnit::CollectTryJumps(CCPPSyntax* pcNode, CCPPSyntax* pcBody, CArraySyn
 		}
 		if (pcSwitch && (pcSwitch->GetKind() == CPPS_SwitchStatement) && TryRegionOf(pcNode, pcSwitch))
 		{
-			bResult = Error(pcNode, "A switch can't jump into a try block or a handler");
+			bResult = mcDiagnostics.Error(pcNode, "A switch can't jump into a try block or a handler");
 		}
 	}
 	for (i = 0; i < pcNode->NumChildren(); i++)
@@ -957,7 +954,7 @@ bool CCPPUnit::CheckTryJumps(CCPPSyntax* pcBody)
 			}
 			if (pcRegion && !pcParent)
 			{
-				bResult = Error(pcGoto, "A goto can't jump into a try block or a handler");
+				bResult = mcDiagnostics.Error(pcGoto, "A goto can't jump into a try block or a handler");
 			}
 		}
 	}
@@ -1003,7 +1000,7 @@ bool CCPPUnit::HandlerLocal(CCPPSyntaxCatchHandler* pcHandler)
 		pcTry = (pcHandler->mpcParent && (pcHandler->mpcParent->GetKind() == CPPS_TryStatement)) ? (CCPPSyntaxTryStatement*)pcHandler->mpcParent : NULL;
 		if (pcTry && (pcTry->macpHandlers.NumElements() > 0) && (pcTry->macpHandlers.GetPtr(pcTry->macpHandlers.NumElements() - 1) != pcHandler))
 		{
-			return Error(pcHandler, "catch (...) must be the last handler of its try");
+			return mcDiagnostics.Error(pcHandler, "catch (...) must be the last handler of its try");
 		}
 		return true;
 	}
@@ -1014,12 +1011,12 @@ bool CCPPUnit::HandlerLocal(CCPPSyntaxCatchHandler* pcHandler)
 	}
 	if (psType->IsReference() && psType->bRvalue)
 	{
-		return Error(pcHandler->mpcParameter, "A handler's parameter can't be an rvalue reference");
+		return mcDiagnostics.Error(pcHandler->mpcParameter, "A handler's parameter can't be an rvalue reference");
 	}
 	psObject = psType->WithoutReference()->Unqualified();
 	if (psObject->IsArray() || psObject->IsFunction())
 	{
-		return Error(pcHandler->mpcParameter, "A handler of an array or a function is not supported by the compiler yet");
+		return mcDiagnostics.Error(pcHandler->mpcParameter, "A handler of an array or a function is not supported by the compiler yet");
 	}
 	if (psObject->IsClass() && !CompleteObjectClass(psObject->pcClass, pcHandler->mpcParameter))
 	{
@@ -1087,7 +1084,7 @@ bool CCPPUnit::WriteThrownDestroyers(void)
 		CCPPUnitData::AppendGlobal(&mszCode, &szLabel);
 		if (!mpcIRFrontEnd->ThrownDestroyerRoutine(szLabel.Text(), mapsThrownDestroyers.GetPtr(i)))
 		{
-			ErrorAt(-1, "This thrown object's destruction uses C++ the IR front end doesn't support yet");
+			mcDiagnostics.ErrorAt(-1, "This thrown object's destruction uses C++ the IR front end doesn't support yet");
 		}
 		szLabel.Kill();
 		bWritten = true;
@@ -1126,7 +1123,7 @@ bool CCPPUnit::WriteExitRoutines(void)
 		}
 		if (!mpcIRFrontEnd->GlobalRoutine(szFinaliser.Text(), maszExitFinalisers.GetText(i), mapsExitFinalisers.GetPtr(i), NULL, true, NULL, NULL, false, maiExitShared.GetValue(i) == 0))
 		{
-			ErrorAt(-1, "This static local's destruction uses C++ the IR front end doesn't support yet");
+			mcDiagnostics.ErrorAt(-1, "This static local's destruction uses C++ the IR front end doesn't support yet");
 		}
 		szFinaliser.Kill();
 		bWritten = true;
@@ -1460,7 +1457,7 @@ bool CCPPUnit::SaysDeprecated(void)
 CCPPErrors* CCPPUnit::GetErrors(void)
 {
 	//Their tokens are C++ token indices.
-	return &mcErrors;
+	return mcDiagnostics.GetErrors();
 }
 
 
@@ -1470,7 +1467,7 @@ CCPPErrors* CCPPUnit::GetErrors(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPErrors* CCPPUnit::GetWarnings(void)
 {
-	return &mcWarnings;
+	return mcDiagnostics.GetWarnings();
 }
 
 
@@ -1480,7 +1477,7 @@ CCPPErrors* CCPPUnit::GetWarnings(void)
 //////////////////////////////////////////////////////////////////////////
 int CCPPUnit::NumErrors(void) const
 {
-	return (int)mcErrors.NumErrors();
+	return (int)mcDiagnostics.NumErrors();
 }
 
 
@@ -1558,63 +1555,6 @@ bool CCPPUnit::IsRecordedEnum(SCPP65Type* psType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Errors are "File (line, column): message [token]", like the other stages'.
-// In quiet mode (declarations, which only fail when what they declare is used) they
-// are only noted.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::Error(CCPPSyntax* pcNode, const char* szMessage)
-{
-	if (mcContext.IsQuiet())
-	{
-		mcContext.SetFailed();
-		return false;
-	}
-	return ErrorAt(pcNode ? pcNode->miFirstToken : -1, szMessage);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A warning at pcNode's first token, unless that token already has one (the
-// same expression is often looked at more than once).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::Warning(CCPPSyntax* pcNode, const char* szMessage)
-{
-	SPreprocessedToken*	psSource;
-	CChars				szMessageText;
-	CChars				szDetail;
-	int					iToken;
-	size				i;
-
-	iToken = pcNode ? pcNode->miFirstToken : -1;
-	if ((iToken < 0) || ((size)iToken >= mpcTokeniser->NumTokens()))
-	{
-		return;
-	}
-	for (i = 0; i < mcWarnings.NumErrors(); i++)
-	{
-		if (mcWarnings.GetToken(i) == iToken)
-		{
-			return;
-		}
-	}
-
-	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(iToken));
-	szMessageText.Init("Warning: ");
-	szMessageText.Append(szMessage);
-	AppendMacroUse(psSource, &szMessageText);
-	szDetail.Init();
-	psSource->Append(&szDetail);
-	mpcTokeniser->mpcSource->AddError(&mcWarnings, psSource, iToken, szMessageText.Text(), szDetail.Text());
-	szDetail.Kill();
-	szMessageText.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The warning that what pcNode names (szWhat: a function, a variable ...)
 // is deprecated, with what its attribute says of it, if it says anything:
 // [[deprecated("use G")]].  iAttribute: the attribute's token.
@@ -1637,7 +1577,7 @@ void CCPPUnit::WarnDeprecated(CCPPSyntax* pcNode, const char* szWhat, int32 iAtt
 		szText.Append(": ");
 		szText.Append(pcString->mszStart + 1, (size)(pcString->mszEnd - pcString->mszStart - 1));
 	}
-	Warning(pcNode, szText.Text());
+	mcDiagnostics.Warning(pcNode, szText.Text());
 	szText.Kill();
 }
 
@@ -1680,136 +1620,6 @@ void CCPPUnit::WarnDeprecatedSymbol(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a warning containing szText is at one of pcNode's tokens.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::HasWarning(CCPPSyntax* pcNode, const char* szText)
-{
-	size	i;
-	int		iToken;
-
-	for (i = 0; i < mcWarnings.NumErrors(); i++)
-	{
-		iToken = mcWarnings.GetToken(i);
-		if ((iToken >= pcNode->miFirstToken) && (iToken <= pcNode->miLastToken) && strstr(mcWarnings.Get(i), szText))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ErrorAt(int iToken, const char* szMessage)
-{
-	SPreprocessedToken*	psSource;
-	CChars				szDetail;
-	CChars				szMessageText;
-
-	if ((iToken < 0) || ((size)iToken >= mpcTokeniser->NumTokens()))
-	{
-		mcErrors.Add(NULL, -1, -1, -1, szMessage);
-		return false;
-	}
-
-	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(iToken));
-	szMessageText.Init(szMessage);
-	AppendMacroUse(psSource, &szMessageText);
-	szDetail.Init();
-	psSource->Append(&szDetail);
-	mpcTokeniser->mpcSource->AddError(&mcErrors, psSource, iToken, szMessageText.Text(), szDetail.Text());
-	szDetail.Kill();
-	szMessageText.Kill();
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A token made by a macro is reported where its characters are (often in a header's #define), so where the outermost
-// macro was used is added: " (in AssertInt at TestImage.cpp (12, 2))".
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMessage)
-{
-	SMacroExpansion*		psExpansion;
-	CPreprocessedTokens*	pcSource;
-	const char*				szFile;
-	int						iLine;
-
-	if (!psSource || (psSource->iExpansion < 0))
-	{
-		return;
-	}
-	pcSource = mpcTokeniser->mpcSource;
-	psExpansion = pcSource->GetExpansion((size)psSource->iExpansion);
-	while (psExpansion->iParent >= 0)
-	{
-		psExpansion = pcSource->GetExpansion((size)psExpansion->iParent);
-	}
-	if (!psExpansion->pcFile)
-	{
-		return;
-	}
-	pszMessage->Append(" (in ");
-	pszMessage->Append(psExpansion->szName, (size)psExpansion->uiNameLength);
-	pszMessage->Append(" at ");
-	szFile = psExpansion->pcFile->ShortName();
-	iLine = psExpansion->iLine;
-	pcSource->ReportedPosition(psExpansion->pcFile, &szFile, &iLine);
-	pszMessage->Append(szFile);
-	pszMessage->Append(" (");
-	pszMessage->Append(iLine + 1);
-	pszMessage->Append(", ");
-	pszMessage->Append(psExpansion->iColumn + 1);
-	pszMessage->Append("))");
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An error in the C++ the IR front end found (break outside a loop), reported
-// in quiet mode too.  Returns false.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ReportError(CCPPSyntax* pcNode, const char* szMessage)
-{
-	BeginLoud();
-	Error(pcNode, szMessage);
-	EndLoud();
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An error reported (as ReportError) unless the same one is already there
-// for the place: for what is worked out once and asked about again, whose
-// error must be there however often it is asked, and however often what
-// was asked only quietly took its errors away.  Always false.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ReportOnce(CCPPSyntax* pcNode, const char* szMessage)
-{
-	size	i;
-
-	for (i = 0; pcNode && (i < mcErrors.NumErrors()); i++)
-	{
-		if ((mcErrors.GetToken(i) == pcNode->miFirstToken) && strstr(mcErrors.Get(i), szMessage))
-		{
-			return false;
-		}
-	}
-	return ReportError(pcNode, szMessage);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // An error (as Error: quiet where it is quiet) unless the same one is
 // already there for the place: for a check of what is typed more than once
 // loudly (dynamic_cast<T&>(x).m is).  Always false.
@@ -1819,117 +1629,14 @@ bool CCPPUnit::ErrorOnce(CCPPSyntax* pcNode, const char* szMessage)
 {
 	size	i;
 
-	for (i = 0; pcNode && !mcContext.IsQuiet() && (i < mcErrors.NumErrors()); i++)
+	for (i = 0; pcNode && !mcContext.IsQuiet() && (i < mcDiagnostics.GetErrors()->NumErrors()); i++)
 	{
-		if ((mcErrors.GetToken(i) == pcNode->miFirstToken) && strstr(mcErrors.Get(i), szMessage))
+		if ((mcDiagnostics.GetErrors()->GetToken(i) == pcNode->miFirstToken) && strstr(mcDiagnostics.GetErrors()->Get(i), szMessage))
 		{
 			return false;
 		}
 	}
-	return Error(pcNode, szMessage);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// ReportError at a token.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ReportErrorAt(int iToken, const char* szMessage)
-{
-	BeginLoud();
-	ErrorAt(iToken, szMessage);
-	EndLoud();
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Declarations of things the compiler cannot do yet are only errors when they
-// are used.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::BeginQuiet(void)
-{
-	if (mcContext.BeginQuiet())
-	{
-		mpcStatistics->Count(CPPCC_QuietTrials);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Returns false if an error happened since BeginQuiet.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::EndQuiet(void)
-{
-	bool	bPassed;
-
-	bPassed = mcContext.EndQuiet();
-	if (!bPassed && !mcContext.IsQuiet())
-	{
-		mpcStatistics->Count(CPPCC_QuietTrialsFailed);
-	}
-	return bPassed;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Something is tried that may fail, and whether it does is its own: EndTrial says
-// whether it made an error, and the quiet code around it (if any) hasn't failed
-// because it did.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::BeginTrial(void)
-{
-	if (mcContext.BeginTrial())
-	{
-		mpcStatistics->Count(CPPCC_QuietTrials);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::EndTrial(void)
-{
-	bool	bPassed;
-
-	bPassed = mcContext.EndTrial();
-	if (!bPassed && !mcContext.IsQuiet())
-	{
-		mpcStatistics->Count(CPPCC_QuietTrialsFailed);
-	}
-	return bPassed;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// What is an error where it is, in quiet mode too, is reported: until EndLoud
-// nothing is quiet, and after it what was quiet is, having failed or not as it
-// had.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::BeginLoud(void)
-{
-	mcContext.BeginLoud();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::EndLoud(void)
-{
-	mcContext.EndLoud();
+	return mcDiagnostics.Error(pcNode, szMessage);
 }
 
 
@@ -2084,7 +1791,7 @@ bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
 		default:
 			if (!IsScopeDeclaration(pcDeclaration))
 			{
-				bResult &= Error(pcDeclaration, "This declaration is not supported by the compiler yet");
+				bResult &= mcDiagnostics.Error(pcDeclaration, "This declaration is not supported by the compiler yet");
 			}
 			break;
 		}
@@ -2319,9 +2026,9 @@ bool CCPPUnit::CheckRedeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDec
 	if (!bCompatible)
 	{
 		//Declarations are made quietly (one that fails is only an error if it is used); this one is wrong where it is.
-		BeginLoud();
-		Error(pcDeclarator, "The function is declared again with a different exception specification");
-		EndLoud();
+		mcDiagnostics.BeginLoud();
+		mcDiagnostics.Error(pcDeclarator, "The function is declared again with a different exception specification");
+		mcDiagnostics.EndLoud();
 	}
 	return bCompatible;
 }
@@ -2675,9 +2382,9 @@ bool CCPPUnit::ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers*
 	}
 	else
 	{
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		AllocateLocals(pcDefinition->mpcBody);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		apcReturns.Init();
 		FindReturns(pcDefinition->mpcBody, &apcReturns);
 		psReturn = &mcTypes.msVoid;
@@ -2691,7 +2398,7 @@ bool CCPPUnit::ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers*
 			}
 			else if (psReturn && !psReturn->Same(pcFunction->mpsReturn))
 			{
-				Error(apcReturns.GetPtr(i), "Each return of a function declared auto must give the same type");
+				mcDiagnostics.Error(apcReturns.GetPtr(i), "Each return of a function declared auto must give the same type");
 				psReturn = NULL;
 			}
 		}
@@ -2810,11 +2517,11 @@ SCPP65Type* CCPPUnit::ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDecla
 			psReturn = pcClass ? mcTypes.MemberPointer(pcClass, psReturn) : NULL;
 			if (!pcClass)
 			{
-				Error(pcDeclarator, "The class of a pointer to a member is not supported by the compiler yet");
+				mcDiagnostics.Error(pcDeclarator, "The class of a pointer to a member is not supported by the compiler yet");
 			}
 			break;
 		default:
-			Error(pcDeclarator, "This declarator is not supported by the compiler yet");
+			mcDiagnostics.Error(pcDeclarator, "This declarator is not supported by the compiler yet");
 			psReturn = NULL;
 			break;
 		}
@@ -2926,18 +2633,18 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcComponent = pcName ? pcName->GetLast() : NULL;
 	if (!pcComponent || ((pcComponent->meKind == CPPNC_Conversion) && !pcClass) || (!pcClass && !pcTemplate && pcName->IsQualifiedByClass()))
 	{
-		Error(pcDeclarator, "Conversion functions outside classes and names qualified by what isn't a namespace are not supported by the compiler yet");
+		mcDiagnostics.Error(pcDeclarator, "Conversion functions outside classes and names qualified by what isn't a namespace are not supported by the compiler yet");
 		return NULL;
 	}
 	lliName = GetFunctionName(pcComponent);
 	if (lliName == -1)
 	{
-		Error(pcDeclarator, "This function name is not supported by the compiler yet");
+		mcDiagnostics.Error(pcDeclarator, "This function name is not supported by the compiler yet");
 		return NULL;
 	}
 	if (!pcClass && !pcTemplate && bDefinition && !IsDefinedWhereDeclared(pcName))
 	{
-		Error(pcDeclarator, "The function is defined in a namespace that doesn't enclose it");
+		mcDiagnostics.Error(pcDeclarator, "The function is defined in a namespace that doesn't enclose it");
 		return NULL;
 	}
 	eKind = CPPFK_Function;
@@ -2955,19 +2662,19 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcTypeSpecifiers = pcSpecifiers;
 	if (!pcDeclarator->GetFunctionSuffix() && !(pcSpecifiers && pcSpecifiers->NamesFunctionType(&pcTypeSpecifiers, &pcDeclarator)))
 	{
-		Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
+		mcDiagnostics.Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
 		return NULL;
 	}
 	pcSuffix = pcDeclarator->GetFunctionSuffix();
 	if (!pcDeclarator->mpcNested && (pcDeclarator->macpSuffixes.NumElements() != 1))
 	{
-		Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
+		mcDiagnostics.Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
 		return NULL;
 	}
 	bUndeduced = mcDeclarators.IsAuto(pcTypeSpecifiers) || mcDeclarators.IsDecltypeAuto(pcTypeSpecifiers);
 	if (pcSuffix->mpcTrailingReturn && (!mcDeclarators.IsAuto(pcTypeSpecifiers) || pcDeclarator->mpcNested || (pcDeclarator->NumPointers() != 0)))
 	{
-		Error(pcDeclarator, "A function whose return type is written after it is declared auto, and nothing more");
+		mcDiagnostics.Error(pcDeclarator, "A function whose return type is written after it is declared auto, and nothing more");
 		return NULL;
 	}
 
@@ -2993,7 +2700,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	if (!pcClass && (pcSuffix->IsConst() || pcSuffix->IsVolatile()))
 	{
 		//[dcl.fct] 6
-		Error(pcDeclarator, pcSuffix->IsConst() ? "Only a member function is const" : "Only a member function is volatile");
+		mcDiagnostics.Error(pcDeclarator, pcSuffix->IsConst() ? "Only a member function is const" : "Only a member function is volatile");
 		return NULL;
 	}
 
@@ -3053,11 +2760,11 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			//An allocation or deallocation function is a class's or the global namespace's, and not static.  [basic.stc.dynamic] 1
 			if (pcNamespace && pcNamespace->mpcParent)
 			{
-				ReportOnce(pcDeclarator, "An operator new or delete is declared in the global namespace or in a class");
+				mcDiagnostics.ReportOnce(pcDeclarator, "An operator new or delete is declared in the global namespace or in a class");
 			}
 			else if (uiFlags & CPPDS_STATIC)
 			{
-				ReportOnce(pcDeclarator, "An operator new or delete in the global namespace can't be static");
+				mcDiagnostics.ReportOnce(pcDeclarator, "An operator new or delete in the global namespace can't be static");
 			}
 		}
 	}
@@ -3067,7 +2774,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		if (psAbstract && psAbstract->IsClass() && psAbstract->pcClass->IsComplete() && psAbstract->pcClass->IsAbstract())
 		{
 			//[class.abstract] 3
-			ReportOnce(pcDeclarator, "An abstract class is no function's parameter or result: no object of it can be made");
+			mcDiagnostics.ReportOnce(pcDeclarator, "An abstract class is no function's parameter or result: no object of it can be made");
 			break;
 		}
 	}
@@ -3102,14 +2809,14 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		if (!pcTemplate && !pcFunction->IsConversion() && !pcFunction->mpsReturn->Same(psReturn) && (pcFunction->mpsReturn != &mcTypes.msUndeduced) && (psReturn != &mcTypes.msUndeduced))
 		{
 			//What a function returns doesn't tell it from another: one declared twice returns one type.  [dcl.fct] 5, [over.load] 2
-			ReportOnce(pcDeclarator, "The function is declared again with another return type");
+			mcDiagnostics.ReportOnce(pcDeclarator, "The function is declared again with another return type");
 		}
 		for (j = 0; j < apcDefaults.NumElements(); j++)
 		{
 			if (apcDefaults.GetPtr(j) && pcFunction->mapcDefaults.GetPtr(j) && (apcDefaults.GetPtr(j) != pcFunction->mapcDefaults.GetPtr(j)) && !pcTemplate)
 			{
 				//[dcl.fct.default] 4
-				Error(apcDefaults.GetPtr(j), "The parameter's default argument is given once: an earlier declaration has it");
+				mcDiagnostics.Error(apcDefaults.GetPtr(j), "The parameter's default argument is given once: an earlier declaration has it");
 			}
 			if (apcDefaults.GetPtr(j))
 			{
@@ -3147,7 +2854,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			if (!bSameParameters)
 			{
 				//Two extern "C" functions of a name are one function, whatever namespace each is in.  [dcl.link] 6
-				ReportOnce(pcDeclarator, "Two extern \"C\" functions of one name are one function: it can't be overloaded");
+				mcDiagnostics.ReportOnce(pcDeclarator, "Two extern \"C\" functions of one name are one function: it can't be overloaded");
 				break;
 			}
 		}
@@ -3167,7 +2874,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		if (bSameParameters)
 		{
 			//Overloads that take the same parameters are all declared & or && or none is.  [over.load] 2
-			ReportOnce(pcDeclarator, "Where one overload taking these parameters is declared & or &&, each is");
+			mcDiagnostics.ReportOnce(pcDeclarator, "Where one overload taking these parameters is declared & or &&, each is");
 			break;
 		}
 	}
@@ -3240,7 +2947,7 @@ bool CCPPUnit::CheckAbstractSignature(CCPPFunction* pcFunction, CCPPSyntax* pcNo
 		psType = (i < pcFunction->mapsParameters.NumElements()) ? pcFunction->mapsParameters.GetPtr(i) : pcFunction->mpsReturn;
 		if (psType && psType->IsClass() && psType->pcClass->IsComplete() && psType->pcClass->IsAbstract())
 		{
-			return ReportOnce(pcNode, "An abstract class is no function's parameter or result: no object of it can be made");
+			return mcDiagnostics.ReportOnce(pcNode, "An abstract class is no function's parameter or result: no object of it can be made");
 		}
 	}
 	return true;
@@ -3285,9 +2992,9 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 		//The object is destroyed where it ends.  [class.dtor] 11
 		return false;
 	}
-	BeginLoud();
+	mcDiagnostics.BeginLoud();
 	bResult = mcTypeChecker.Initialise(psType, pcInitialiser, pcInit);
-	EndLoud();
+	mcDiagnostics.EndLoud();
 	return bResult;
 }
 
@@ -3373,7 +3080,7 @@ bool CCPPUnit::IsAllocationName(CCPPSyntaxDeclarator* pcDeclarator)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::OperatorError(CCPPClass* pcClass, CCPPSyntax* pcNode, const char* szMessage)
 {
-	return pcClass ? ClassError(pcNode->miFirstToken, szMessage) : Error(pcNode, szMessage);
+	return pcClass ? ClassError(pcNode->miFirstToken, szMessage) : mcDiagnostics.Error(pcNode, szMessage);
 }
 
 
@@ -3410,7 +3117,7 @@ bool CCPPUnit::CheckOperatorSignature(CCPPSyntaxNameComponent* pcComponent, int6
 		{
 			bClass = false;
 		}
-		return bClass || Error(pcNode, "A literal operator's parameters are one of: const char*; unsigned long long; long double; a character type; a pointer to const characters and a size_t");
+		return bClass || mcDiagnostics.Error(pcNode, "A literal operator's parameters are one of: const char*; unsigned long long; long double; a character type; a pointer to const characters and a size_t");
 	}
 	if ((pcComponent->meKind != CPPNC_Operator) || (lliName == GetOperatorName(CT_new, false)) || (lliName == GetOperatorName(CT_new, true)) ||
 		(lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true)))
@@ -3437,7 +3144,7 @@ bool CCPPUnit::CheckOperatorSignature(CCPPSyntaxNameComponent* pcComponent, int6
 		}
 		if (!bClass)
 		{
-			return Error(pcNode, "An operator function that is no class's member has a parameter of a class or an enum");
+			return mcDiagnostics.Error(pcNode, "An operator function that is no class's member has a parameter of a class or an enum");
 		}
 	}
 	if (((lliName == GetOperatorName(CT_Increment, false)) || (lliName == GetOperatorName(CT_Decrement, false))) && (papsParameters->NumElements() == (pcClass ? 1 : 2)) &&
@@ -3469,17 +3176,17 @@ bool CCPPUnit::CheckAllocationFunction(int64 lliName, SCPP65Type* psReturn, CArr
 	{
 		if (!psReturn->Equals(psVoidPointer))
 		{
-			return Error(pcNode, "operator new returns void*");
+			return mcDiagnostics.Error(pcNode, "operator new returns void*");
 		}
-		return (psFirst && psFirst->Equals(mcTypes.Size())) || Error(pcNode, "operator new's first parameter is a std::size_t");
+		return (psFirst && psFirst->Equals(mcTypes.Size())) || mcDiagnostics.Error(pcNode, "operator new's first parameter is a std::size_t");
 	}
 	if ((lliName == GetOperatorName(CT_delete, false)) || (lliName == GetOperatorName(CT_delete, true)))
 	{
 		if (!psReturn->IsVoid())
 		{
-			return Error(pcNode, "operator delete returns void");
+			return mcDiagnostics.Error(pcNode, "operator delete returns void");
 		}
-		return (psFirst && psFirst->Equals(psVoidPointer)) || Error(pcNode, "operator delete's first parameter is a void*");
+		return (psFirst && psFirst->Equals(psVoidPointer)) || mcDiagnostics.Error(pcNode, "operator delete's first parameter is a void*");
 	}
 	return true;
 }
@@ -3503,7 +3210,7 @@ bool CCPPUnit::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunct
 
 	if (pcDefinition->meBody == CPPFB_Delete)
 	{
-		return (pcFunction->mpcDeclarator == pcDefinition->mpcDeclarator) || pcFunction->mpcTemplate || ReportError(pcDefinition, "A function is deleted where it is first declared");
+		return (pcFunction->mpcDeclarator == pcDefinition->mpcDeclarator) || pcFunction->mpcTemplate || mcDiagnostics.ReportError(pcDefinition, "A function is deleted where it is first declared");
 	}
 	if (pcDefinition->meBody != CPPFB_Default)
 	{
@@ -3514,13 +3221,13 @@ bool CCPPUnit::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunct
 	if (!pcFunction->mpcClass || ((pcFunction->meKind == CPPFK_Constructor) && (pcFunction->mapsParameters.NumElements() != 0) && !bOwnClass) ||
 		((pcFunction->meKind == CPPFK_Function) && !((pcFunction->mlliName == CPP_OPERATOR_NAME(CT_Assignment)) && bOwnClass)))
 	{
-		return ReportError(pcDefinition, "Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default");
+		return mcDiagnostics.ReportError(pcDefinition, "Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default");
 	}
 	for (i = 0; i < pcFunction->mapcDefaults.NumElements(); i++)
 	{
 		if (pcFunction->mapcDefaults.GetPtr(i))
 		{
-			return ReportError(pcDefinition, "A function that is = default has no default argument");
+			return mcDiagnostics.ReportError(pcDefinition, "A function that is = default has no default argument");
 		}
 	}
 	return true;
@@ -3543,7 +3250,7 @@ bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
 
 	if (psType->IsReference())
 	{
-		return ReportError(pcNode, "A reference must be initialised");
+		return mcDiagnostics.ReportError(pcNode, "A reference must be initialised");
 	}
 	psElement = psType;
 	while (psElement->IsArray())
@@ -3553,7 +3260,7 @@ bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
 	if (psElement->IsClass() && !psElement->pcClass->mbConstructors && HasFieldNeedingInitialiser(psElement->pcClass))
 	{
 		//[class.ctor] 4
-		return ReportError(pcNode, "The class's default constructor is deleted: a reference or const member of it has no initialiser");
+		return mcDiagnostics.ReportError(pcNode, "The class's default constructor is deleted: a reference or const member of it has no initialiser");
 	}
 	if (!psElement->bConst)
 	{
@@ -3561,12 +3268,12 @@ bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
 	}
 	if (!psElement->IsClass())
 	{
-		return ReportError(pcNode, "A const object must be initialised");
+		return mcDiagnostics.ReportError(pcNode, "A const object must be initialised");
 	}
 	pcClass = psElement->pcClass;
 	if (!pcClass->mbConstructors && !pcClass->NeedsConstructor() && (pcClass->macFields.NumElements() > 0))
 	{
-		return ReportError(pcNode, "A const object of a class with no constructor must be initialised");
+		return mcDiagnostics.ReportError(pcNode, "A const object of a class with no constructor must be initialised");
 	}
 	return true;
 }
@@ -3660,12 +3367,12 @@ bool CCPPUnit::CheckMemberInitialisers(CCPPFunction* pcFunction)
 			bDelegating = true;
 			if (papcInitialisers->NumElements() != 1)
 			{
-				return Error(pcMember, "A constructor that names its own class in its member initialisers has no other");
+				return mcDiagnostics.Error(pcMember, "A constructor that names its own class in its member initialisers has no other");
 			}
 		}
 		else if (!(pcNamed && IsDerived(pcClass, pcNamed, NULL)) && !pcClass->FindField(lliName, &iOffset))
 		{
-			return Error(pcMember, "The member initialiser names no member or base of the class");
+			return mcDiagnostics.Error(pcMember, "The member initialiser names no member or base of the class");
 		}
 		for (j = 0; j < i; j++)
 		{
@@ -3673,7 +3380,7 @@ bool CCPPUnit::CheckMemberInitialisers(CCPPFunction* pcFunction)
 			pcOtherNamed = (pcOther->mpcName->mpcSymbol && (pcOther->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : GetNameClass(pcOther->mpcName, pcOther);
 			if (pcNamed ? (pcOtherNamed == pcNamed) : (!pcOtherNamed && (GetComponentName(pcOther->mpcName->GetLast()) == lliName)))
 			{
-				return Error(pcMember, "The member or base is named twice in the member initialisers");
+				return mcDiagnostics.Error(pcMember, "The member or base is named twice in the member initialisers");
 			}
 		}
 	}
@@ -3702,7 +3409,7 @@ bool CCPPUnit::CheckMemberInitialisers(CCPPFunction* pcFunction)
 		}
 		if (!bNamed)
 		{
-			return Error(pcDefinition->mpcDeclarator, "The constructor leaves a reference or const member without a value: name it in the member initialisers");
+			return mcDiagnostics.Error(pcDefinition->mpcDeclarator, "The constructor leaves a reference or const member without a value: name it in the member initialisers");
 		}
 	}
 	return true;
@@ -3726,7 +3433,7 @@ bool CCPPUnit::CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode)
 	{
 		if (bDefault && !pcFunction->mapcDefaults.GetPtr(i))
 		{
-			return Error(pcNode, "A parameter after one with a default argument needs one too");
+			return mcDiagnostics.Error(pcNode, "A parameter after one with a default argument needs one too");
 		}
 		bDefault |= pcFunction->mapcDefaults.GetPtr(i) != NULL;
 	}
@@ -3742,12 +3449,12 @@ bool CCPPUnit::CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator)
 {
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	if (!DeclareFunction(pcSpecifiers, pcDeclarator, false, NULL, false))
 	{
 		mapcFailed.Add(pcDeclarator);
 	}
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 }
 
 
@@ -3907,9 +3614,9 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 	if (pcSpecifiers && pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
 	{
 		//The class is laid out when it is first needed whole.
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		mcDeclarators.GetBaseType(pcSpecifiers, pcDeclaration);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		if (!ClassStaticAsserts((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType) || !CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType))
 		{
 			return false;
@@ -3926,9 +3633,9 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
 		if (pcInit->mpcDeclarator->IsFunction() || IsFunctionByType(pcSpecifiers, pcInit->mpcDeclarator))
 		{
-			BeginQuiet();
+			mcDiagnostics.BeginQuiet();
 			pcFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);
-			EndQuiet();
+			mcDiagnostics.EndQuiet();
 			if (!pcFunction && IsAllocationName(pcInit->mpcDeclarator))
 			{
 				//What is wrong with an operator new or delete is said where it is declared: a program replaces the
@@ -3963,7 +3670,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 		}
 		if (!pcInit->mpcSymbol || ((lliName == -1) && pcName && pcName->IsQualifiedByClass() && !(pcVariable && pcVariable->mpcClass)))
 		{
-			bResult &= Error(pcInit, "Only variables with simple names are supported by the compiler yet");
+			bResult &= mcDiagnostics.Error(pcInit, "Only variables with simple names are supported by the compiler yet");
 			continue;
 		}
 		bResult &= CheckPointerExceptions(pcInit);
@@ -3971,12 +3678,12 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 		//extern without an initialiser only declares; extern int x = 1; defines x.  [basic.def]
 		if (((pcSpecifiers->muiFlags & CPPDS_EXTERN) || mcContext.IsLinkageExtern()) && !pcInit->mpcInitializer)
 		{
-			BeginQuiet();
+			mcDiagnostics.BeginQuiet();
 			psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
-			EndQuiet();
+			mcDiagnostics.EndQuiet();
 			if (psType && pcVariable && !SameVariableType(pcVariable->mpsType, psType))
 			{
-				bResult &= Error(pcInit, "The variable is declared again with another type");
+				bResult &= mcDiagnostics.Error(pcInit, "The variable is declared again with another type");
 				continue;
 			}
 			if (psType && !pcVariable)
@@ -4020,7 +3727,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 
 		if (pcVariable && !pcVariable->mpcClass && !SameVariableType(pcVariable->mpsType, psType))
 		{
-			bResult &= Error(pcInit, "The variable is declared again with another type");
+			bResult &= mcDiagnostics.Error(pcInit, "The variable is declared again with another type");
 			continue;
 		}
 		if (!pcVariable)
@@ -4031,7 +3738,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 		pcVariable->mbRestrict |= IsRestrictPointer(pcInit->mpcDeclarator);
 		if (pcVariable->mbDefined)
 		{
-			bResult &= Error(pcInit, "The variable is defined twice");
+			bResult &= mcDiagnostics.Error(pcInit, "The variable is defined twice");
 			continue;
 		}
 		pcVariable->mbDefined = true;
@@ -4171,7 +3878,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 			auiBytes.Kill();
 			if (i > (size)psType->iCount)
 			{
-				return Error(pcInitialiser, "The string is longer than the array");
+				return mcDiagnostics.Error(pcInitialiser, "The string is longer than the array");
 			}
 		}
 		else if (pcInitialiser->GetKind() == CPPS_InitializerList)
@@ -4179,7 +3886,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 			papcElements = ListElements(pcInitialiser);
 			if (papcElements->NumElements() > (size)psType->iCount)
 			{
-				return Error(pcInitialiser, "Too many initialisers for the array");
+				return mcDiagnostics.Error(pcInitialiser, "Too many initialisers for the array");
 			}
 			for (i = 0; i < papcElements->NumElements(); i++)
 			{
@@ -4188,7 +3895,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 		}
 		else
 		{
-			return Error(pcInitialiser, "An array needs a list of initialisers");
+			return mcDiagnostics.Error(pcInitialiser, "An array needs a list of initialisers");
 		}
 
 		for (; i < (size)psType->iCount; i++)
@@ -4200,7 +3907,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 
 	if (!psType->IsScalar())
 	{
-		return Error(pcNode, "This type of global variable is not supported by the compiler yet");
+		return mcDiagnostics.Error(pcNode, "This type of global variable is not supported by the compiler yet");
 	}
 	lliValue = 0;
 	if (pcInitialiser && psType->IsFloat() && FloatConstant(pcInitialiser, &dValue))
@@ -4478,7 +4185,7 @@ bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* p
 		pcClass = GetComponentClass(pcName->GetQualifier(), NULL, pcDefinition);
 		if (!pcClass)
 		{
-			return Error(pcDefinition, "The function's class has not been defined");
+			return mcDiagnostics.Error(pcDefinition, "The function's class has not been defined");
 		}
 		if (!CompleteClass(pcClass, pcDefinition))
 		{
@@ -4489,9 +4196,9 @@ bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* p
 	if (pcDefinition->meBody == CPPFB_Skipped)
 	{
 		//A body skipped in a system header: only a declaration.
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, false, pcClass, false);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		return true;
 	}
 	pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
@@ -4501,7 +4208,7 @@ bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* p
 	}
 	if (pcFunction->mpcDefinition || pcFunction->mbGenerated)
 	{
-		return Error(pcDefinition, "The function is defined twice");
+		return mcDiagnostics.Error(pcDefinition, "The function is defined twice");
 	}
 	if (!CheckDefaultedOrDeleted(pcFunction, pcDefinition))
 	{
@@ -4523,9 +4230,9 @@ bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* p
 		return true;
 	}
 
-	uiErrors = mcErrors.NumErrors();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
 	GenerateFunction(pcFunction);
-	return mcErrors.NumErrors() == uiErrors;
+	return mcDiagnostics.GetErrors()->NumErrors() == uiErrors;
 }
 
 
@@ -4599,7 +4306,7 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 			szLabel.Init("A covariant result the IR front end can't write a thunk for is not supported on this target yet: ");
 			mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
 			AppendUnsupported(&szLabel);
-			ErrorAt(-1, szLabel.Text());
+			mcDiagnostics.ErrorAt(-1, szLabel.Text());
 			szLabel.Kill();
 		}
 		LeaveFunction();
@@ -4616,7 +4323,7 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 			{
 				AppendUnsupported(&szLabel);
 			}
-			ErrorAt(-1, szLabel.Text());
+			mcDiagnostics.ErrorAt(-1, szLabel.Text());
 			szLabel.Kill();
 		}
 		LeaveFunction();
@@ -4645,7 +4352,7 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 	pcDefinition = pcFunction->mpcDefinition;
 	if ((pcDefinition->macpMemberInitializers.NumElements() != 0) && (pcFunction->meKind != CPPFK_Constructor))
 	{
-		return Error(pcDefinition, "Only constructors have member initialisers");
+		return mcDiagnostics.Error(pcDefinition, "Only constructors have member initialisers");
 	}
 
 	EnterFunction(pcFunction);
@@ -4658,13 +4365,13 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 
 	//The IR front end writes the whole function.  An error it reported (ReportTypeOf: C++ that is wrong) is the reason
 	//when it can't; else it is C++ the front end doesn't do yet.
-	uiErrors = mcErrors.NumErrors();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
 	if (WriteBody(pcFunction))
 	{
 		LeaveFunction();
 		return true;
 	}
-	if (mcErrors.NumErrors() > uiErrors)
+	if (mcDiagnostics.GetErrors()->NumErrors() > uiErrors)
 	{
 		mpcIRFrontEnd->ClearUnsupported();
 	}
@@ -4680,7 +4387,7 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 		szMessage.Append(mpcTarget->GetConfigurationName());
 		szMessage.Append(" compiler doesn't support yet");
 		AppendUnsupported(&szMessage);
-		Error(pcDefinition, szMessage.Text());
+		mcDiagnostics.Error(pcDefinition, szMessage.Text());
 		szMessage.Kill();
 	}
 	LeaveFunction();
@@ -4828,11 +4535,11 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 			if (psType->IsVoid())
 			{
 				//[basic.fundamental] 9
-				return Error(pcNode, "A variable can't be void");
+				return mcDiagnostics.Error(pcNode, "A variable can't be void");
 			}
 			if (!psType->IsScalar() && !psType->IsArray() && !psType->IsClass() && !psType->IsReference())
 			{
-				return Error(pcNode, "This type of local variable is not supported by the compiler yet");
+				return mcDiagnostics.Error(pcNode, "This type of local variable is not supported by the compiler yet");
 			}
 			if (psType->ElementType()->IsClass() && !CompleteObjectClass(psType->ElementType()->pcClass, pcNode))
 			{
@@ -4877,7 +4584,7 @@ bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 	pcClass = GetUnnamedClass(pcSpecifier);
 	if (!pcClass || !CompleteClass(pcClass, pcSpecifier))
 	{
-		return Error(pcSpecifier, "This anonymous class is not supported by the compiler yet");
+		return mcDiagnostics.Error(pcSpecifier, "This anonymous class is not supported by the compiler yet");
 	}
 
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
@@ -4885,11 +4592,11 @@ bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 		psField = pcClass->macFields.Get(i);
 		if (!psField->pcSymbol)
 		{
-			return Error(pcSpecifier, "Anonymous classes in anonymous local classes are not supported by the compiler yet");
+			return mcDiagnostics.Error(pcSpecifier, "Anonymous classes in anonymous local classes are not supported by the compiler yet");
 		}
 		if (psField->IsBitField())
 		{
-			return Error(pcSpecifier, "Bit-fields in anonymous local classes are not supported by the compiler yet");
+			return mcDiagnostics.Error(pcSpecifier, "Bit-fields in anonymous local classes are not supported by the compiler yet");
 		}
 		pcVariable = AddVariable(GetLocals(), psField->pcSymbol, psField->psType, CPPVS_Local, psField->iOffset);
 		pcVariable->mpcAnonymous = pcClass;
@@ -4937,9 +4644,9 @@ bool CCPPUnit::CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			}
 			if (!psType)
 			{
-				BeginQuiet();
+				mcDiagnostics.BeginQuiet();
 				psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, NULL);
-				EndQuiet();
+				mcDiagnostics.EndQuiet();
 				if (!psType)
 				{
 					break;
@@ -4947,17 +4654,17 @@ bool CCPPUnit::CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			}
 			if (pcOther->meKind == CPPSK_Typedef)
 			{
-				BeginQuiet();
+				mcDiagnostics.BeginQuiet();
 				psOther = mcDeclarators.GetSymbolType(pcOther, pcInit);
-				EndQuiet();
+				mcDiagnostics.EndQuiet();
 				if (psOther && !psOther->Same(psType))
 				{
-					bResult &= Error(pcInit, "The typedef is declared again for another type");
+					bResult &= mcDiagnostics.Error(pcInit, "The typedef is declared again for another type");
 				}
 			}
 			else if (!((psType->IsClass() && psType->pcClass->mpcSymbol == pcOther) || (psType->pcEnum == pcOther)))
 			{
-				bResult &= Error(pcInit, "A typedef of a class's or an enum's name in its scope names that class or enum");
+				bResult &= mcDiagnostics.Error(pcInit, "A typedef of a class's or an enum's name in its scope names that class or enum");
 			}
 		}
 	}
@@ -4985,7 +4692,7 @@ bool CCPPUnit::AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier)
 	pcClass = GetUnnamedClass(pcSpecifier);
 	if (!pcClass || !CompleteClass(pcClass, pcSpecifier) || !pcClass->mbUnion)
 	{
-		return Error(pcSpecifier, "This anonymous class is not supported by the compiler yet");
+		return mcDiagnostics.Error(pcSpecifier, "This anonymous class is not supported by the compiler yet");
 	}
 	pcObject = NULL;
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
@@ -4993,7 +4700,7 @@ bool CCPPUnit::AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier)
 		psField = pcClass->macFields.Get(i);
 		if (!psField->pcSymbol || psField->IsBitField())
 		{
-			return Error(pcSpecifier, "This anonymous union's member is not supported by the compiler yet");
+			return mcDiagnostics.Error(pcSpecifier, "This anonymous union's member is not supported by the compiler yet");
 		}
 		pcVariable = AddVariable(&mapcGlobals, psField->pcSymbol, psField->psType, CPPVS_Global, psField->iOffset);
 		pcVariable->mpcAnonymous = pcClass;
@@ -5037,7 +4744,7 @@ bool CCPPUnit::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 
 	if (pcInit->mpcInitializer)
 	{
-		return Error(pcInit, "An extern variable declared in a block can't be initialised there");
+		return mcDiagnostics.Error(pcInit, "An extern variable declared in a block can't be initialised there");
 	}
 	psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, NULL);
 	if (!psType)
@@ -5048,7 +4755,7 @@ bool CCPPUnit::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	if (pcGlobal && !SameVariableType(pcGlobal->mpsType, psType))
 	{
 		//It names the variable of the namespace it is in, which has one type.  [basic.link] 6, 10
-		return Error(pcInit, "The variable is declared again with another type");
+		return mcDiagnostics.Error(pcInit, "The variable is declared again with another type");
 	}
 	AddVariable(GetLocals(), pcInit->mpcSymbol, psType, CPPVS_Global, 0);
 	return true;
@@ -5326,9 +5033,9 @@ bool CCPPUnit::CheckEnumerators(CCPPSyntax* pcType)
 		{
 			continue;
 		}
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		bConstant = Constant(pcEnumerator->mpcValue, &lliValue);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		szReason = mpcConstants->GetReason();
 		if (!bConstant && (szReason[0] != '\0') && (strncmp(szReason, "It uses what", 12) != 0) && (strncmp(szReason, "Its initialiser uses what", 25) != 0))
 		{
@@ -5339,9 +5046,9 @@ bool CCPPUnit::CheckEnumerators(CCPPSyntax* pcType)
 	{
 		//A fixed underlying type holds each value, whether or not the enum is used (EnumType says where one doesn't).
 		//[dcl.enum] 5
-		uiErrors = mcErrors.NumErrors();
+		uiErrors = mcDiagnostics.GetErrors()->NumErrors();
 		EnumType(pcSpecifier->mpcSymbol, pcSpecifier);
-		bResult = mcErrors.NumErrors() == uiErrors;
+		bResult = mcDiagnostics.GetErrors()->NumErrors() == uiErrors;
 	}
 	return bResult;
 }
@@ -5359,23 +5066,23 @@ bool CCPPUnit::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 	size	uiErrors;
 	bool	bConstant;
 
-	uiErrors = mcErrors.NumErrors();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
 	mpcConstants->ClearReason();
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	bConstant = Constant(pcAssert->mpcCondition, &lliValue);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	if (bConstant && (lliValue == 0))
 	{
-		return Error(pcAssert, "The static_assert failed");
+		return mcDiagnostics.Error(pcAssert, "The static_assert failed");
 	}
-	if (!bConstant && (mcErrors.NumErrors() == uiErrors))
+	if (!bConstant && (mcDiagnostics.GetErrors()->NumErrors() == uiErrors))
 	{
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		bConstant = mpcConstants->Value(pcAssert->mpcCondition, &mcTypes.msBool, &lliValue);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 		if (bConstant && (lliValue == 0))
 		{
-			return Error(pcAssert, "The static_assert failed");
+			return mcDiagnostics.Error(pcAssert, "The static_assert failed");
 		}
 	}
 	if (!bConstant && (mpcConstants->GetReason()[0] != '\0') && (strncmp(mpcConstants->GetReason(), "Its initialiser uses", 20) != 0))
@@ -5383,7 +5090,7 @@ bool CCPPUnit::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 		//What can never be a constant (not what the compiler can't work out yet).  [dcl.dcl] 4
 		return ConstantError(pcAssert->mpcCondition, "A static_assert's expression is a constant");
 	}
-	return mcErrors.NumErrors() == uiErrors;
+	return mcDiagnostics.GetErrors()->NumErrors() == uiErrors;
 }
 
 
@@ -5502,12 +5209,13 @@ CChars* CCPPUnit::GetRuntimeCode(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::RuntimeError(const char* szMessage)
 {
-	ErrorAt(-1, szMessage);
+	mcDiagnostics.ErrorAt(-1, szMessage);
 }
 
 
 CCPP65Types* CCPPUnit::GetTypes(void) { return &mcTypes; }
 CCPPContext* CCPPUnit::GetContext(void) { return &mcContext; }
+CCPPDiagnostics* CCPPUnit::GetDiagnostics(void) { return &mcDiagnostics; }
 CCPPBinder* CCPPUnit::GetBinder(void) { return &mcBinder; }
 CCPPConstants* CCPPUnit::GetConstants(void) const { return mpcConstants; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }

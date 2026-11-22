@@ -277,7 +277,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* p
 		return BuiltinBCD(pcCall, papcArguments, psBuiltin->eBuiltin == CPPB_BCDSubtract, psValue);
 	case CPPB_Alloca:
 		//Frames are fixed in size (and the W65C816's stack is small); malloc instead.
-		mpcUnit->ReportError(pcCall, "__builtin_alloca is not supported");
+		mpcDiagnostics->ReportError(pcCall, "__builtin_alloca is not supported");
 		return Unsupported(__FILE__, __LINE__);
 	default:
 		break;

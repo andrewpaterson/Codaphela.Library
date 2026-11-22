@@ -96,9 +96,9 @@ bool CCPPUnit::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 	if ((pcClass != pcBase) && !pcClass->IsComplete())
 	{
 		//The bases are enough to know; their offsets need the class laid out.
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		ResolveBases(pcClass, NULL);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 	}
 	if (pcClass == pcBase)
 	{

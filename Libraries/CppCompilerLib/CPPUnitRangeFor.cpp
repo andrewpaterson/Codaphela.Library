@@ -192,7 +192,7 @@ bool CCPPUnit::RangeForLocals(CCPPSyntaxRangeForStatement* pcFor)
 	psType = mcDeclarators.GetType(pcFor->mpcSpecifiers, pcFor->mpcDeclarator, pcFor, psRangeFor->pcElement);
 	if (!psType || !pcName || !pcName->mpcSymbol)
 	{
-		return psType ? Error(pcFor, "This declaration is not supported by the compiler yet") : false;
+		return psType ? mcDiagnostics.Error(pcFor, "This declaration is not supported by the compiler yet") : false;
 	}
 	psElement = psType->ElementType();
 	if (psElement->IsClass() && !CompleteObjectClass(psElement->pcClass, pcFor))
@@ -229,7 +229,7 @@ bool CCPPUnit::RangeIterators(CCPPSyntaxRangeForStatement* pcFor, SCPP65Type** p
 	{
 		if (psRanged->iCount <= 0)
 		{
-			return Error(pcFor->mpcRange, "An array that is a range must have a length");
+			return mcDiagnostics.Error(pcFor->mpcRange, "An array that is a range must have a length");
 		}
 		*ppsBegin = mcTypes.Pointer(psRanged->psBase);
 		*ppsEnd = *ppsBegin;
@@ -238,20 +238,20 @@ bool CCPPUnit::RangeIterators(CCPPSyntaxRangeForStatement* pcFor, SCPP65Type** p
 	{
 		if (!psRanged->IsClass() || !CompleteClass(psRanged->pcClass, pcFor->mpcRange))
 		{
-			return Error(pcFor->mpcRange, "A range must be an array or an object with begin and end");
+			return mcDiagnostics.Error(pcFor->mpcRange, "A range must be an array or an object with begin and end");
 		}
 		bMember = HasMember(psRanged->pcClass, mpcTokeniser->GetIdentifierID((char*)"begin")) || HasMember(psRanged->pcClass, mpcTokeniser->GetIdentifierID((char*)"end"));
 		pcBegin = mcBinder.BindRangeFunction(mpcTokeniser->GetIdentifierID((char*)"begin"), bMember ? psRanged->pcClass : NULL, psRangeFor->pcRangeOfBegin, pcFor);
 		pcEnd = mcBinder.BindRangeFunction(mpcTokeniser->GetIdentifierID((char*)"end"), bMember ? psRanged->pcClass : NULL, psRangeFor->pcRangeOfEnd, pcFor);
 		if (!pcBegin || !pcEnd)
 		{
-			return Error(pcFor->mpcRange, "A range must be an array or an object with begin and end");
+			return mcDiagnostics.Error(pcFor->mpcRange, "A range must be an array or an object with begin and end");
 		}
 		*ppsBegin = pcBegin->mpsReturn->WithoutReference()->Unqualified();
 		*ppsEnd = pcEnd->mpsReturn->WithoutReference()->Unqualified();
 		if (!(*ppsBegin)->IsScalar() && !(*ppsBegin)->IsClass())
 		{
-			return Error(pcFor->mpcRange, "begin of a range must give a pointer or an object");
+			return mcDiagnostics.Error(pcFor->mpcRange, "begin of a range must give a pointer or an object");
 		}
 	}
 	if (ppcBegin)

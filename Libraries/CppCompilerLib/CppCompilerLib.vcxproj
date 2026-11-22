@@ -185,6 +185,7 @@
   <ItemGroup>
     <ClCompile Include="CPP65Assembly.cpp" />
     <ClCompile Include="CPPErrors.cpp" />
+    <ClCompile Include="CPPDiagnostics.cpp" />
     <ClCompile Include="CPPHeaderIndex.cpp" />
     <ClCompile Include="CPPHighlighter.cpp" />
     <ClCompile Include="CPPSymbolKey.cpp" />
@@ -495,6 +496,7 @@
   <ItemGroup>
     <ClInclude Include="CPP65Assembly.h" />
     <ClInclude Include="CPPErrors.h" />
+    <ClInclude Include="CPPDiagnostics.h" />
     <ClInclude Include="CPPHeaderIndex.h" />
     <ClInclude Include="CPPHighlighter.h" />
     <ClInclude Include="CPPSymbolKey.h" />

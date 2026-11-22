@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPPDeclarators::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
+	mpcDiagnostics = pcUnit->GetDiagnostics();
 }
 
 
@@ -58,7 +59,7 @@ SCPP65Type* CCPPDeclarators::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCP
 		psType = pcInitialiser ? DecltypeType(pcInitialiser, pcNode) : NULL;
 		if (!pcInitialiser)
 		{
-			mpcUnit->Error(pcNode, "decltype(auto) needs an initialiser to take its type from");
+			mpcDiagnostics->Error(pcNode, "decltype(auto) needs an initialiser to take its type from");
 		}
 		return psType;
 	}
@@ -160,7 +161,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			if (psType->IsReference())
 			{
 				//[dcl.ptr] 4
-				mpcUnit->Error(pcNode, "A pointer to a reference can't be declared");
+				mpcDiagnostics->Error(pcNode, "A pointer to a reference can't be declared");
 				return NULL;
 			}
 			psType = mpcUnit->QualifiedPointer(mpcUnit->GetTypes()->Pointer(psType), pcPointer);
@@ -170,7 +171,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			if ((i > 0) && ((pcDeclarator->GetPointer(i - 1)->meKind == CPPP_Reference) || (pcDeclarator->GetPointer(i - 1)->meKind == CPPP_RValueReference)))
 			{
 				//Written out, int& & r: one a typedef or a template's parameter brings is the one reference.  [dcl.ref] 5, 6
-				mpcUnit->Error(pcNode, "A reference to a reference can't be declared");
+				mpcDiagnostics->Error(pcNode, "A reference to a reference can't be declared");
 				return NULL;
 			}
 			psType = mpcUnit->GetTypes()->Reference(psType, pcPointer->meKind == CPPP_RValueReference);
@@ -179,13 +180,13 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			pcClass = pcPointer->mpcClass ? mpcUnit->GetNameClass(pcPointer->mpcClass, pcNode) : NULL;
 			if (!pcClass)
 			{
-				mpcUnit->Error(pcNode, "The class of a pointer to a member is not supported by the compiler yet");
+				mpcDiagnostics->Error(pcNode, "The class of a pointer to a member is not supported by the compiler yet");
 				return NULL;
 			}
 			psType = mpcUnit->GetTypes()->MemberPointer(pcClass, psType);
 			break;
 		default:
-			mpcUnit->Error(pcNode, "This declarator is not supported by the compiler yet");
+			mpcDiagnostics->Error(pcNode, "This declarator is not supported by the compiler yet");
 			return NULL;
 		}
 	}
@@ -224,7 +225,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			lliCount = ((i == 1) && !pcDeclarator->mpcNested) ? GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType), psType) : 0;
 			if (lliCount <= 0)
 			{
-				mpcUnit->Error(pcNode, "An array needs a size or an initialiser");
+				mpcDiagnostics->Error(pcNode, "An array needs a size or an initialiser");
 				return NULL;
 			}
 		}
@@ -235,7 +236,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		}
 		else if (lliCount <= 0)
 		{
-			mpcUnit->Error(pcArray->mpcSize, "An array size must be a positive constant");
+			mpcDiagnostics->Error(pcArray->mpcSize, "An array size must be a positive constant");
 			return NULL;
 		}
 		if (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, pcNode))
@@ -246,13 +247,13 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			(GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType), psType) > lliCount + (mpcUnit->IsCSource() ? 1 : 0)))
 		{
 			//char a[3] = "abc" has no room for the string's end (which C lets go).  [dcl.init.string] 2
-			mpcUnit->Error(pcNode, "The string has more characters, with its end, than the array has elements");
+			mpcDiagnostics->Error(pcNode, "The string has more characters, with its end, than the array has elements");
 			return NULL;
 		}
 		if (psType->IsVoid() || psType->IsReference() || psType->IsFunction())
 		{
 			//[dcl.array] 1
-			mpcUnit->Error(pcNode, "An array's elements can't be void, references or functions");
+			mpcDiagnostics->Error(pcNode, "An array's elements can't be void, references or functions");
 			return NULL;
 		}
 		psType = mpcUnit->GetTypes()->Array(psType, (int)lliCount);
@@ -274,7 +275,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 //////////////////////////////////////////////////////////////////////////
 bool CCPPDeclarators::IsReturnable(SCPP65Type* psReturn, CCPPSyntax* pcNode)
 {
-	return !(psReturn->IsArray() || psReturn->IsFunction()) || mpcUnit->Error(pcNode, "A function can't return an array or a function: it returns a pointer or a reference to one");
+	return !(psReturn->IsArray() || psReturn->IsFunction()) || mpcDiagnostics->Error(pcNode, "A function can't return an array or a function: it returns a pointer or a reference to one");
 }
 
 
@@ -291,7 +292,7 @@ bool CCPPDeclarators::IsWholeVoid(CCPPSyntaxFunctionSuffix* pcSuffix, CCPPSyntax
 	{
 		return true;
 	}
-	return mpcUnit->Error(pcParameter, "A parameter can't be void: (void) alone, with no name, is no parameters");
+	return mpcDiagnostics->Error(pcParameter, "A parameter can't be void: (void) alone, with no name, is no parameters");
 }
 
 
@@ -418,12 +419,12 @@ SCPP65Type* CCPPDeclarators::AutoType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CC
 	pcFirst = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(0);
 	if (pcFirst != pcNode)
 	{
-		mpcUnit->BeginQuiet();
+		mpcDiagnostics->BeginQuiet();
 		psFirst = DeduceAuto(pcSpecifiers, pcFirst->mpcDeclarator, pcFirst->mpcInitializer, pcFirst);
-		mpcUnit->EndQuiet();
+		mpcDiagnostics->EndQuiet();
 		if (psFirst && !psFirst->Same(psType))
 		{
-			mpcUnit->Error(pcNode, "auto is not the same type for each variable of the declaration");
+			mpcDiagnostics->Error(pcNode, "auto is not the same type for each variable of the declaration");
 			return NULL;
 		}
 	}
@@ -455,7 +456,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	}
 	if (!pcInitialiser || (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
 	{
-		mpcUnit->Error(pcNode, "auto needs an initialiser to take its type from");
+		mpcDiagnostics->Error(pcNode, "auto needs an initialiser to take its type from");
 		return NULL;
 	}
 	if ((pcInitialiser->GetKind() == CPPS_InitializerList) && pcNode && (pcNode->GetKind() == CPPS_InitDeclarator) && (((CCPPSyntaxInitDeclarator*)pcNode)->meInitializer == CPPI_Braces))
@@ -463,7 +464,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 		//auto x{e} is auto x = e (as C++17 has it, and MSVC).
 		if (mpcUnit->ListElements(pcInitialiser)->NumElements() != 1)
 		{
-			mpcUnit->Error(pcNode, "auto x{...} needs one value");
+			mpcDiagnostics->Error(pcNode, "auto x{...} needs one value");
 			return NULL;
 		}
 		pcInitialiser = mpcUnit->ListElements(pcInitialiser)->GetPtr(0);
@@ -473,7 +474,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 		//auto l = {1, 2} is a std::initializer_list<int>.  [dcl.spec.auto] 7
 		if (pcDeclarator && (pcDeclarator->NumPointers() > 0))
 		{
-			mpcUnit->Error(pcNode, "auto with a pointer or reference from a list in braces is not supported by the compiler yet");
+			mpcDiagnostics->Error(pcNode, "auto with a pointer or reference from a list in braces is not supported by the compiler yet");
 			return NULL;
 		}
 		psType = mpcUnit->BracedListType(pcInitialiser, pcNode);
@@ -517,7 +518,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	{
 		if ((pcDeclarator->GetPointer(uiPointers - 1)->meKind != CPPP_Pointer) || !psType->IsPointer())
 		{
-			mpcUnit->Error(pcNode, "The initialiser is not what the declarator makes of auto");
+			mpcDiagnostics->Error(pcNode, "The initialiser is not what the declarator makes of auto");
 			return NULL;
 		}
 		psType = psType->psBase;
@@ -543,7 +544,7 @@ SCPP65Type* CCPPDeclarators::UnderlyingType(CCPPSyntax* pcOperand, CCPPSyntax* p
 	{
 		if (psType)
 		{
-			mpcUnit->Error(pcNode, "__underlying_type is of an enum");
+			mpcDiagnostics->Error(pcNode, "__underlying_type is of an enum");
 		}
 		return NULL;
 	}
@@ -691,7 +692,7 @@ SCPP65Type* CCPPDeclarators::AliasTemplateType(CCPPSyntaxName* pcName, CCPPSynta
 	pcAlias = (CCPPSyntaxAliasDeclaration*)(pcAliasSymbol ? pcAliasSymbol : pcName->mpcSymbol)->mpcDeclaration;
 	if (!pcAlias || (pcAlias->GetKind() != CPPS_AliasDeclaration) || !pcAlias->mpcParent || (pcAlias->mpcParent->GetKind() != CPPS_TemplateDeclaration))
 	{
-		mpcUnit->Error(pcNode, "This type is not supported by the compiler yet");
+		mpcDiagnostics->Error(pcNode, "This type is not supported by the compiler yet");
 		return NULL;
 	}
 	szArguments.Init();
@@ -776,7 +777,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			if (!pcSymbol && pcElaborated->mpcName->mpcSymbol && (pcElaborated->mpcName->mpcSymbol->meKind == CPPSK_Enum))
 			{
 				//struct E of an enum E.  [dcl.type.elab] 3
-				mpcUnit->Error(pcNode, "The name is an enum's: struct, class and union name a class");
+				mpcDiagnostics->Error(pcNode, "The name is an enum's: struct, class and union name a class");
 				return NULL;
 			}
 			pcClass = mpcUnit->GetComponentClass(pcElaborated->mpcName->GetLast(), pcSymbol ? pcSymbol : pcElaborated->mpcName->mpcSymbol, pcNode);
@@ -816,7 +817,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 					psBinding = mpcUnit->FindBinding(pcName->mpcSymbol);
 					if (!psBinding || !psBinding->psType)
 					{
-						mpcUnit->Error(pcNode, "A template parameter used outside an instantiation");
+						mpcDiagnostics->Error(pcNode, "A template parameter used outside an instantiation");
 						return NULL;
 					}
 					return psBinding->psType;
@@ -855,17 +856,17 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			if (pcName->GetQualifier())
 			{
 				//typename T::Missing with T int: no class with a member type of the name.  [temp.res] 3, [temp.inst] 1
-				mpcUnit->Error(pcNode, "What qualifies the name is no class with a member type of that name");
+				mpcDiagnostics->Error(pcNode, "What qualifies the name is no class with a member type of that name");
 				return NULL;
 			}
 			if (!pcName->mpcSymbol)
 			{
 				//A class's member type is named through the class outside it (S::I).  [basic.lookup.unqual] 1
-				mpcUnit->Error(pcNode, "The type's name isn't declared where it is used");
+				mpcDiagnostics->Error(pcNode, "The type's name isn't declared where it is used");
 				return NULL;
 			}
 		}
-		mpcUnit->Error(pcNode, "This type is not supported by the compiler yet");
+		mpcDiagnostics->Error(pcNode, "This type is not supported by the compiler yet");
 		return NULL;
 	}
 
@@ -886,7 +887,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	}
 	if (uiKeywords & CPPTK_AUTO)
 	{
-		mpcUnit->Error(pcSpecifiers, "auto can only be the type of a variable with an initialiser");
+		mpcDiagnostics->Error(pcSpecifiers, "auto can only be the type of a variable with an initialiser");
 		return NULL;
 	}
 	if (uiKeywords & CPPTK_VOID)
@@ -932,7 +933,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	{
 		return bSigned ? &mpcUnit->GetTypes()->msInt : &mpcUnit->GetTypes()->msUnsignedInt;
 	}
-	mpcUnit->Error(pcNode, "This type is not supported by the compiler yet");
+	mpcDiagnostics->Error(pcNode, "This type is not supported by the compiler yet");
 	return NULL;
 }
 
@@ -973,7 +974,7 @@ SCPP65Type* CCPPDeclarators::GetSymbolType(CCPPSymbol* pcSymbol, CCPPSyntax* pcN
 	{
 		return GetTypeIdType(((CCPPSyntaxAliasDeclaration*)pcDeclaration)->mpcType);
 	}
-	mpcUnit->Error(pcNode, "This declaration is not supported by the compiler yet");
+	mpcDiagnostics->Error(pcNode, "This declaration is not supported by the compiler yet");
 	return NULL;
 }
 

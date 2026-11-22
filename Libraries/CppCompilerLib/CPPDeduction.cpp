@@ -32,6 +32,7 @@ void CCPPDeduction::Init(CCPPUnit* pcUnit, CCPPTemplate* pcTemplate)
 	size	i;
 
 	mpcUnit = pcUnit;
+	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mpcTemplate = pcTemplate;
 	mapsDeduced.Init();
 	malliDeduced.Init();
@@ -751,9 +752,9 @@ CCPPClass* CCPPDeduction::FindInstanceBase(CCPPClass* pcClass, CCPPSymbol* pcTem
 	}
 	if (!pcClass->HasBases())
 	{
-		mpcUnit->BeginQuiet();
+		mpcDiagnostics->BeginQuiet();
 		mpcUnit->ResolveBases(pcClass, NULL);
-		mpcUnit->EndQuiet();
+		mpcDiagnostics->EndQuiet();
 	}
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
@@ -1000,6 +1001,7 @@ void CCPPPatternMatch::Init(CCPPUnit* pcUnit, CCPPSyntaxTemplateDeclaration* pcD
 	size			i;
 
 	mpcUnit = pcUnit;
+	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mpcDeduced = pcUnit->NewBindings();
 	masDeferred.Init();
 	for (i = 0; i < pcDeclaration->macpParameters.NumElements(); i++)
@@ -1548,9 +1550,9 @@ bool CCPPPatternMatch::MatchClass(CCPPSyntaxName* pcName, CCPPClass* pcClass)
 		return Deduce(psBinding, pcClass->mpsType);
 	}
 	mpcUnit->GetContext()->EnterBindings(NULL);
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	pcNamed = mpcUnit->GetNameClass(pcName, pcName);
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	mpcUnit->GetContext()->LeaveBindings();
 	miScore += 2;
 	return pcNamed == pcClass;
@@ -1610,7 +1612,7 @@ bool CCPPPatternMatch::MatchDeferred(void)
 
 	bResult = true;
 	mpcUnit->GetContext()->EnterBindings(mpcDeduced);
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	for (i = 0; bResult && (i < masDeferred.NumElements()); i++)
 	{
 		psDeferred = masDeferred.Get(i);
@@ -1618,7 +1620,7 @@ bool CCPPPatternMatch::MatchDeferred(void)
 		psType = mpcUnit->GetDeclarators()->GetType(pcSpecifiers, pcDeclarator, psDeferred->pcPattern);
 		bResult = psType && psType->Same(psDeferred->psArgument);
 	}
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	mpcUnit->GetContext()->LeaveBindings();
 	return bResult;
 }

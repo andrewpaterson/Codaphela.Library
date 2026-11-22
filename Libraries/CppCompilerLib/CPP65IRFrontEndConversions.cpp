@@ -108,7 +108,7 @@ bool CCPP65IRFrontEnd::DerivedAddress(SIRReference* psAddress, CCPPClass* pcFrom
 	}
 	if (iOffset == CPP_VIRTUAL_PATH)
 	{
-		mpcUnit->ReportOnce(pcCast, "A pointer or reference to a virtual base can't be cast to a class derived from it");
+		mpcDiagnostics->ReportOnce(pcCast, "A pointer or reference to a virtual base can't be cast to a class derived from it");
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (iOffset != 0)
@@ -155,7 +155,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	}
 	if (!psTo->IsPointer() || !(psTo->psBase->IsClass() || psTo->psBase->IsVoid()))
 	{
-		mpcUnit->ReportOnce(pcCast, "dynamic_cast needs a pointer to a class or to void");
+		mpcDiagnostics->ReportOnce(pcCast, "dynamic_cast needs a pointer to a class or to void");
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Value(pcCast->mpcOperand, psValue))
@@ -164,7 +164,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	}
 	if (!psValue->psType->IsPointer() || !psValue->psType->psBase->IsClass())
 	{
-		mpcUnit->ReportError(pcCast, "The operand of dynamic_cast must be a pointer to a class");
+		mpcDiagnostics->ReportError(pcCast, "The operand of dynamic_cast must be a pointer to a class");
 		return Unsupported(__FILE__, __LINE__);
 	}
 
@@ -188,7 +188,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	}
 	if (!pcFrom->IsPolymorphic())
 	{
-		mpcUnit->ReportOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
+		mpcDiagnostics->ReportOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
 		return Unsupported(__FILE__, __LINE__);
 	}
 
@@ -552,9 +552,9 @@ bool CCPP65IRFrontEnd::ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo,
 
 	if (psValue->psType && psTo && (psValue->psType->IsScopedEnum() || psTo->WithoutReference()->pcEnum))
 	{
-		mpcUnit->BeginLoud();
+		mpcDiagnostics->BeginLoud();
 		bKept = mpcUnit->GetTypeChecker()->KeepsEnum(psValue->psType, psTo, pcNode);
-		mpcUnit->EndLoud();
+		mpcDiagnostics->EndLoud();
 		if (!bKept)
 		{
 			return false;
@@ -563,9 +563,9 @@ bool CCPP65IRFrontEnd::ConvertImplicit(SCPP65IRValue* psValue, SCPP65Type* psTo,
 	if (psValue->psType && psTo && (psValue->psType->WithoutReference()->IsNullPointer() || psTo->WithoutReference()->IsNullPointer()))
 	{
 		//std::nullptr_t converts only as it may; pcNode is the value converted (a literal 0 becomes one).
-		mpcUnit->BeginLoud();
+		mpcDiagnostics->BeginLoud();
 		bKept = mpcUnit->GetTypeChecker()->KeepsNullPointer(psValue->psType, psTo, pcNode, pcNode);
-		mpcUnit->EndLoud();
+		mpcDiagnostics->EndLoud();
 		if (!bKept)
 		{
 			return false;
@@ -856,7 +856,7 @@ bool CCPP65IRFrontEnd::ConvertMemberPointer(SCPP65IRValue* psValue, SCPP65Type* 
 		if ((BaseOffset(psTo->pcClass, psFrom->pcClass) == CPP_VIRTUAL_PATH) || (BaseOffset(psFrom->pcClass, psTo->pcClass) == CPP_VIRTUAL_PATH))
 		{
 			//A member of a virtual base has no fixed offset from the derived class.  [conv.mem] 2
-			mpcUnit->ReportError(mpcValue, "A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it");
+			mpcDiagnostics->ReportError(mpcValue, "A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it");
 			return Unsupported(__FILE__, __LINE__);
 		}
 		iOffset = BaseOffset(psTo->pcClass, psFrom->pcClass) - BaseOffset(psFrom->pcClass, psTo->pcClass);

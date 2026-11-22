@@ -34,6 +34,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPUnit;
+class CCPPDiagnostics;
 
 
 //How a call is made.
@@ -179,6 +180,7 @@ class CCPPBinder
 {
 protected:
 	CCPPUnit*			mpcUnit;
+	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 	CCPPOverloads		mcOverloads;	//Chooses between the functions of a name; only the binder asks it.
 	CCPPAccess			mcAccess;		//Says whether what was chosen may be named where it is.
 	CMapCPPBoundCalls	mcBound;

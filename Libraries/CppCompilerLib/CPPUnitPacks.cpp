@@ -264,15 +264,15 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 	}
 	apsFound.Kill();
 
-	bResult = ((apcFunctionPacks.NumElements() > 0) || (asPacks.NumElements() > 0)) || Error(pcPattern, "The pack expansion names no parameter pack");
+	bResult = ((apcFunctionPacks.NumElements() > 0) || (asPacks.NumElements() > 0)) || mcDiagnostics.Error(pcPattern, "The pack expansion names no parameter pack");
 	uiElements = (apcFunctionPacks.NumElements() > 0) ? FindFunctionPack(apcFunctionPacks.GetPtr(0))->apcElements.NumElements() : ((asPacks.NumElements() > 0) ? asPacks.Get(0)->PackSize() : 0);
 	for (i = 0; bResult && (i < apcFunctionPacks.NumElements()); i++)
 	{
-		bResult = (FindFunctionPack(apcFunctionPacks.GetPtr(i))->apcElements.NumElements() == uiElements) || Error(pcPattern, "The packs the pack expansion expands have different lengths");
+		bResult = (FindFunctionPack(apcFunctionPacks.GetPtr(i))->apcElements.NumElements() == uiElements) || mcDiagnostics.Error(pcPattern, "The packs the pack expansion expands have different lengths");
 	}
 	for (i = 0; bResult && (i < asPacks.NumElements()); i++)
 	{
-		bResult = (asPacks.Get(i)->PackSize() == uiElements) || Error(pcPattern, "The packs the pack expansion expands have different lengths");
+		bResult = (asPacks.Get(i)->PackSize() == uiElements) || mcDiagnostics.Error(pcPattern, "The packs the pack expansion expands have different lengths");
 	}
 	for (k = 0; bResult && (k < uiElements); k++)
 	{
@@ -285,7 +285,7 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 		for (i = 0; bResult && (i < asPacks.NumElements()); i++)
 		{
 			pcElement = PackElement(asPacks.Get(i), k);
-			bResult = (pcElement != NULL) || Error(pcPattern, "The pack expansion is not where the compiler can expand it yet");
+			bResult = (pcElement != NULL) || mcDiagnostics.Error(pcPattern, "The pack expansion is not where the compiler can expand it yet");
 			cCopier.Substitute(asPacks.Get(i)->pcParameter, pcElement);
 		}
 		if (bResult)
@@ -405,7 +405,7 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 		FindPacks(pcPattern, &apsPacks, NULL);
 		if (apsPacks.NumElements() == 0)
 		{
-			bResult = Error(pcArgument, "The pack expansion names no parameter pack");
+			bResult = mcDiagnostics.Error(pcArgument, "The pack expansion names no parameter pack");
 			break;
 		}
 		uiElements = apsPacks.GetPtr(0)->PackSize();
@@ -413,7 +413,7 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 		{
 			if (apsPacks.GetPtr(j)->PackSize() != uiElements)
 			{
-				bResult = Error(pcArgument, "The packs the pack expansion expands have different lengths");
+				bResult = mcDiagnostics.Error(pcArgument, "The packs the pack expansion expands have different lengths");
 				break;
 			}
 		}
@@ -439,7 +439,7 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 			if (pcPattern->GetKind() == CPPS_TypeId)
 			{
 				psExpanded->psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcPattern);
-				bResult = (psExpanded->psType != NULL) || Error(pcArgument, "The template argument is not a type the compiler supports");
+				bResult = (psExpanded->psType != NULL) || mcDiagnostics.Error(pcArgument, "The template argument is not a type the compiler supports");
 			}
 			else
 			{
@@ -485,7 +485,7 @@ bool CCPPUnit::ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* pl
 	if (psArgument->bExpanded)
 	{
 		*plliValue = psArgument->lliValue;
-		return !psArgument->psType || Error(psArgument->pcArgument, "The template argument must be a constant");
+		return !psArgument->psType || mcDiagnostics.Error(psArgument->pcArgument, "The template argument must be a constant");
 	}
 	return Constant(psArgument->pcArgument, plliValue) || ConstantError(psArgument->pcArgument, "The template argument must be a constant");
 }

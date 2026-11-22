@@ -38,6 +38,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPPConstants::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
+	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mcInterpreter.Init(this);
 	mapcFrontEnds.Init();
 	muiWriting = 0;
@@ -446,9 +447,9 @@ CIRFunction* CCPPConstants::ConstantFunction(const char* szName, CIRModule** ppc
 				//An implicit function's parameters have no names: the front end takes them as they come (Parameters).
 				mpcUnit->AddParameters(pcFunction);
 			}
-			mpcUnit->BeginQuiet();
+			mpcDiagnostics->BeginQuiet();
 			bLocals = !pcFunction->mpcDefinition || mpcUnit->AllocateLocals(pcFunction->mpcDefinition->mpcBody);
-			mpcUnit->EndQuiet();
+			mpcDiagnostics->EndQuiet();
 			pcIR = bLocals ? pcFrontEnd->ConstantFunction(pcFunction) : NULL;
 			mpcUnit->GetContext()->LeaveBindings();
 			mpcUnit->LeaveFunction();
@@ -691,12 +692,12 @@ bool CCPPConstants::CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode)
 
 	if (!VariableInitialiser(pcVariable, &uiFlags))
 	{
-		return mpcUnit->ReportError(pcNode, "A constexpr variable needs an initialiser");
+		return mpcDiagnostics->ReportError(pcNode, "A constexpr variable needs an initialiser");
 	}
 	if (!IsLiteralType(pcVariable->mpsType))
 	{
 		//[dcl.constexpr] 9, [basic.types] 10
-		return mpcUnit->ReportError(pcNode, "A constexpr variable's type is a literal type: a class needs no destructor of its own and a constexpr constructor, or is an aggregate");
+		return mpcDiagnostics->ReportError(pcNode, "A constexpr variable's type is a literal type: a class needs no destructor of its own and a constexpr constructor, or is an aggregate");
 	}
 	szLabel.Init();
 	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
@@ -723,7 +724,7 @@ bool CCPPConstants::CheckObject(const char* szLabel, CCPPSyntax* pcNode)
 	}
 	szMessage.Init("A constexpr variable's initialiser must be a constant: ");
 	szMessage.Append(mszReason.Text());
-	mpcUnit->ReportError(pcNode, szMessage.Text());
+	mpcDiagnostics->ReportError(pcNode, szMessage.Text());
 	szMessage.Kill();
 	return false;
 }
@@ -751,7 +752,7 @@ bool CCPPConstants::CheckLocal(CCPPVariable* pcVariable, CCPPSyntax* pcNode)
 	szLabel.Kill();
 	if ((uiObject != 0) && (pcVariable->mpsType->IsPointer() || pcVariable->mpsType->IsReference()) && PointsToLocal(uiObject))
 	{
-		return mpcUnit->ReportError(pcNode, "A constexpr variable's initialiser must be a constant: It is the address of a variable of the function, which has none until the program runs");
+		return mpcDiagnostics->ReportError(pcNode, "A constexpr variable's initialiser must be a constant: It is the address of a variable of the function, which has none until the program runs");
 	}
 	return bResult;
 }
@@ -847,21 +848,21 @@ bool CCPPConstants::CheckDefinition(CCPPFunction* pcFunction)
 	}
 	if (pcFunction->mbVirtual)
 	{
-		return mpcUnit->ReportError(pcDefinition, "A constexpr function can't be virtual");
+		return mpcDiagnostics->ReportError(pcDefinition, "A constexpr function can't be virtual");
 	}
 	if (pcFunction->meKind == CPPFK_Destructor)
 	{
-		return mpcUnit->ReportError(pcDefinition, "A destructor can't be constexpr");
+		return mpcDiagnostics->ReportError(pcDefinition, "A destructor can't be constexpr");
 	}
 	if ((pcFunction->meKind == CPPFK_Function) && !IsLiteralType(pcFunction->mpsReturn))
 	{
-		return mpcUnit->ReportError(pcDefinition, "A constexpr function must return a literal type");
+		return mpcDiagnostics->ReportError(pcDefinition, "A constexpr function must return a literal type");
 	}
 	for (i = 0; i < pcFunction->mapsParameters.NumElements(); i++)
 	{
 		if (!IsLiteralType(pcFunction->mapsParameters.GetPtr(i)))
 		{
-			return mpcUnit->ReportError(pcDefinition, "A constexpr function's parameters must be of literal types");
+			return mpcDiagnostics->ReportError(pcDefinition, "A constexpr function's parameters must be of literal types");
 		}
 	}
 	if ((pcFunction->meKind == CPPFK_Constructor) && !CheckConstructor(pcFunction))
@@ -952,9 +953,9 @@ bool CCPPConstants::CheckBody(CCPPSyntax* pcNode)
 	switch (pcNode->GetKind())
 	{
 	case CPPS_GotoStatement:
-		return mpcUnit->ReportError(pcNode, "A constexpr function can't have goto");
+		return mpcDiagnostics->ReportError(pcNode, "A constexpr function can't have goto");
 	case CPPS_TryStatement:
-		return mpcUnit->ReportError(pcNode, "A constexpr function can't have try");
+		return mpcDiagnostics->ReportError(pcNode, "A constexpr function can't have try");
 	case CPPS_SimpleDeclaration:
 		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcNode;
 		if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_TYPEDEF))
@@ -963,7 +964,7 @@ bool CCPPConstants::CheckBody(CCPPSyntax* pcNode)
 		}
 		if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_THREAD_LOCAL)))
 		{
-			return mpcUnit->ReportError(pcNode, "A constexpr function can't have a static or thread_local variable");
+			return mpcDiagnostics->ReportError(pcNode, "A constexpr function can't have a static or thread_local variable");
 		}
 		for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
 		{
@@ -971,7 +972,7 @@ bool CCPPConstants::CheckBody(CCPPSyntax* pcNode)
 			if ((pcInit->GetKind() == CPPS_InitDeclarator) && !pcInit->mpcInitializer && pcInit->mpcDeclarator && !pcInit->mpcDeclarator->IsFunction() &&
 				NeedsInitialiser(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit))
 			{
-				return mpcUnit->ReportError(pcInit, "A variable in a constexpr function must be initialised");
+				return mpcDiagnostics->ReportError(pcInit, "A variable in a constexpr function must be initialised");
 			}
 		}
 		break;
@@ -1001,11 +1002,11 @@ bool CCPPConstants::NeedsInitialiser(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCP
 	SCPP65Type*	psType;
 	size		uiErrors;
 
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	mpcUnit->BeginQuiet();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
+	mpcDiagnostics->BeginQuiet();
 	psType = mpcUnit->GetDeclarators()->GetType(pcSpecifiers, pcDeclarator, pcNode);
-	mpcUnit->EndQuiet();
-	mpcUnit->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndQuiet();
+	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
 	while (psType && psType->IsArray())
 	{
 		psType = psType->psBase;
@@ -1066,7 +1067,7 @@ bool CCPPConstants::CheckConstructor(CCPPFunction* pcFunction)
 			szMessage.Init("A constexpr constructor must initialise every member [");
 			mpcUnit->AppendTokensText(pcName->GetLast()->miName, pcName->GetLast()->miName, &szMessage);
 			szMessage.Append("]");
-			mpcUnit->ReportError(pcDefinition, szMessage.Text());
+			mpcDiagnostics->ReportError(pcDefinition, szMessage.Text());
 			szMessage.Kill();
 			return false;
 		}
@@ -1154,9 +1155,9 @@ bool CCPPConstants::AppendConstantInitialisation(CCPPVariable* pcVariable, CCPPU
 	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
 	szName.Init();
 	NewName("__static", &szName);
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	uiObject = Evaluate(pcVariable, szName.Text());
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	szName.Kill();
 	szLabel.Kill();
 	mszReason.Clear();

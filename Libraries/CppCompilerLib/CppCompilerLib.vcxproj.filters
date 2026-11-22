@@ -234,6 +234,9 @@
     <ClCompile Include="CPPErrors.cpp">
       <Filter>Source\General</Filter>
     </ClCompile>
+    <ClCompile Include="CPPDiagnostics.cpp">
+      <Filter>Source\General</Filter>
+    </ClCompile>
     <ClCompile Include="CPPHighlighter.cpp">
       <Filter>Source\Highlighter</Filter>
     </ClCompile>
@@ -1125,6 +1128,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPErrors.h">
+      <Filter>Source\General</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPDiagnostics.h">
       <Filter>Source\General</Filter>
     </ClInclude>
     <ClInclude Include="CPPHighlighter.h">

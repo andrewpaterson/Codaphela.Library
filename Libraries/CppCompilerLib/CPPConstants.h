@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPUnit;
+class CCPPDiagnostics;
 class CCPPUnitData;
 class CCPP65IRFrontEnd;
 
@@ -68,6 +69,7 @@ class CCPPConstants : public CIRInterpreterHost
 {
 protected:
 	CCPPUnit*					mpcUnit;
+	CCPPDiagnostics*			mpcDiagnostics;	//Where its errors go: the unit's.
 	CIRInterpreter				mcInterpreter;
 	CArrayCPPConstantFrontEnds	mapcFrontEnds;
 	size						muiWriting;			//How many of the front ends are writing a function now.

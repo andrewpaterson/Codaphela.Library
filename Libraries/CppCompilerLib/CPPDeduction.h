@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPUnit;
+class CCPPDiagnostics;
 
 
 //One deduction of a function template's arguments from a call's.  [temp.deduct.call]  It is made for the
@@ -41,6 +42,7 @@ class CCPPDeduction
 {
 protected:
 	CCPPUnit*	mpcUnit;
+	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 	CCPPTemplate*		mpcTemplate;
 	CArrayCPP65Types	mapsDeduced;
 	CArrayInt64			malliDeduced;
@@ -105,6 +107,7 @@ class CCPPPatternMatch
 {
 protected:
 	CCPPUnit*					mpcUnit;
+	CCPPDiagnostics*			mpcDiagnostics;	//Where its errors go: the unit's.
 	CCPPTemplateArguments*		mpcDeduced;		//The parameters, deduced as the pattern is matched.  The unit's.
 	CArrayCPPDeferredPatterns	masDeferred;
 	int							miScore;

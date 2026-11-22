@@ -33,6 +33,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPP65TypeChecker::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
+	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mpcTypes = pcUnit->GetTypes();
 	mapcNone.Init();
 }
@@ -605,12 +606,12 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 	if (!mpcUnit->Constant(pcExpression, &lliValue))
 	{
 		//A class its name is qualified by that couldn't be made (Byte<300>::V) says why itself, asked for here.
-		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 		if ((pcExpression->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->IsQualifiedByClass())
 		{
 			mpcUnit->QualifiersClass(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression);
 		}
-		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		if (mpcDiagnostics->GetErrors()->NumErrors() == uiErrors)
 		{
 			mpcUnit->ConstantError(pcExpression, "The value is not a constant");
 		}
@@ -656,7 +657,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 
 	if (mpcUnit->IsAmbiguousName(pcId->mpcName))
 	{
-		mpcUnit->ReportOnce(pcId, "The name is ambiguous: it finds more than one thing");
+		mpcDiagnostics->ReportOnce(pcId, "The name is ambiguous: it finds more than one thing");
 		return NULL;
 	}
 	mpcUnit->GetBinder()->BindName(pcId, &cBound);
@@ -781,9 +782,9 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* 
 	bool				bOverloaded;
 
 	pcName = pcId->mpcName;
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	pcClass = mpcUnit->NameQualifierClass(pcName, pcId);
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	lliName = mpcUnit->GetFunctionName(pcName->GetLast());
 	*ppsType = NULL;
 	if (!pcClass || (lliName == -1))
@@ -1740,9 +1741,9 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		{
 			return CallThroughPointer(pcCall, cBound.mpapcArguments, psType->psBase);
 		}
-		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 		psType = (cBound.mpcCallee->GetKind() == CPPS_IdExpression) && !((CCPPSyntaxIdExpression*)cBound.mpcCallee)->mpcName->mpcSymbol ? NULL : Value(cBound.mpcCallee);
-		if (mpcUnit->GetErrors()->NumErrors() > uiErrors)
+		if (mpcDiagnostics->GetErrors()->NumErrors() > uiErrors)
 		{
 			//What is wrong with the callee itself.
 			return NULL;
@@ -2266,10 +2267,10 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 		}
 	}
 
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	if (!mpcUnit->GetBinder()->BindMember(psType->pcClass, pcMember->mpcName, pcMember, &cBound))
 	{
-		if (mpcUnit->GetErrors()->NumErrors() == uiErrors)
+		if (mpcDiagnostics->GetErrors()->NumErrors() == uiErrors)
 		{
 			Error(pcMember, "The class has no member of that name");
 		}
@@ -2466,7 +2467,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		pcId = (CCPPSyntaxIdExpression*)pcExpression;
 		if (mpcUnit->IsAmbiguousName(pcId->mpcName))
 		{
-			mpcUnit->ReportOnce(pcId, "The name is ambiguous: it finds more than one thing");
+			mpcDiagnostics->ReportOnce(pcId, "The name is ambiguous: it finds more than one thing");
 			return NULL;
 		}
 		mpcUnit->GetBinder()->BindName(pcId, &cBound);
@@ -2475,7 +2476,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 			if ((cBound.mpcVariable->meStorage != CPPVS_Global) && !mpcUnit->GetContext()->IsUnevaluated() && mpcUnit->DefaultArgumentOf(pcId))
 			{
 				//A default argument is worked out where the function is called.  [dcl.fct.default] 7, 9
-				mpcUnit->ReportOnce(pcId, "A default argument can't use a variable or a parameter of a function");
+				mpcDiagnostics->ReportOnce(pcId, "A default argument can't use a variable or a parameter of a function");
 				return NULL;
 			}
 			return cBound.mpcVariable->mpsType->WithoutReference();
@@ -2970,13 +2971,13 @@ void CCPP65TypeChecker::SizeofError(CCPPSyntax* pcSizeof)
 		Error(pcSizeof, "A lambda can't be the operand of sizeof or alignof, which isn't worked out");
 		return;
 	}
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	psType = mpcUnit->OperandType(pcExpression->mpcType, pcExpression->mpcOperand);
 	if (!psType && pcExpression->mpcOperand)
 	{
 		Value(pcExpression->mpcOperand);
 	}
-	if (mpcUnit->GetErrors()->NumErrors() > uiErrors)
+	if (mpcDiagnostics->GetErrors()->NumErrors() > uiErrors)
 	{
 		return;
 	}
@@ -3026,10 +3027,10 @@ SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
 			Error(pcSizeof, "A lambda can't be the operand of sizeof or alignof, which isn't worked out");
 			return NULL;
 		}
-		mpcUnit->BeginQuiet();
+		mpcDiagnostics->BeginQuiet();
 		psType = mpcUnit->OperandType(pcExpression->mpcType, pcExpression->mpcOperand);
 		bComplete = !psType || !psType->IsClass() || mpcUnit->CompleteClass(psType->pcClass, pcSizeof);
-		mpcUnit->EndQuiet();
+		mpcDiagnostics->EndQuiet();
 		if (psType && psType->IsFunction())
 		{
 			Error(pcSizeof, (pcExpression->meKeyword == CT_sizeof) ? "sizeof can't be applied to a function" : "alignof can't be applied to a function");
@@ -3283,15 +3284,15 @@ bool CCPP65TypeChecker::Narrows(CCPPSyntax* pcSource, SCPP65Type* psTo)
 		return false;
 	}
 
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	if (psFrom->IsFloat())
 	{
 		bConstant = mpcUnit->FloatConstant(pcSource, &dValue);
-		mpcUnit->EndQuiet();
+		mpcDiagnostics->EndQuiet();
 		return psTo->IsInteger() || ((psTo->iBytes < psFrom->iBytes) && !bConstant);
 	}
 	bConstant = mpcUnit->Constant(pcSource, &lliValue);
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	if (psTo->IsFloat())
 	{
 		return !bConstant;
@@ -3342,7 +3343,7 @@ bool CCPP65TypeChecker::NotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::ConstantNotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo)
 {
-	return !Narrows(pcSource, psTo) || mpcUnit->ReportError(pcSource, "The constant's value isn't one of the type it is converted to");
+	return !Narrows(pcSource, psTo) || mpcDiagnostics->ReportError(pcSource, "The constant's value isn't one of the type it is converted to");
 }
 
 
@@ -3388,11 +3389,11 @@ bool CCPP65TypeChecker::CanInitialise(SCPP65Type* psType, CCPPSyntax* pcInitiali
 	size	uiErrors;
 	bool	bResult;
 
-	uiErrors = mpcUnit->GetErrors()->NumErrors();
-	mpcUnit->BeginTrial();
+	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
+	mpcDiagnostics->BeginTrial();
 	bResult = Construct(psType->Unqualified(), NULL, pcInitialiser, pcInitialiser);
-	mpcUnit->EndTrial();
-	mpcUnit->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndTrial();
+	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
 	return bResult;
 }
 
@@ -3841,9 +3842,9 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 			}
 			return ImplicitConvert(ValueFor(pcInitialiser, psType->psBase, false), psType->psBase, pcNode, pcInitialiser);
 		}
-		mpcUnit->BeginQuiet();
+		mpcDiagnostics->BeginQuiet();
 		psValue = Place(pcInitialiser);
-		mpcUnit->EndQuiet();
+		mpcDiagnostics->EndQuiet();
 		if (psValue && !psType->psBase->bConst)
 		{
 			mpcUnit->Changed(pcInitialiser, CPPPC_REFERENCE);
@@ -4388,7 +4389,7 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 		//for (CCPPCompileOptions::mbWarnStringToPointer).  [diff.cpp03.lex]
 		if (mpcUnit->GetOptions()->mbWarnStringToPointer)
 		{
-			mpcUnit->Warning(pcNode, "A string literal is const: this conversion to a pointer its characters can be written through is not C++14's");
+			mpcDiagnostics->Warning(pcNode, "A string literal is const: this conversion to a pointer its characters can be written through is not C++14's");
 		}
 		return true;
 	}
@@ -4546,5 +4547,5 @@ bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::Error(CCPPSyntax* pcNode, const char* szMessage)
 {
-	return mpcUnit->Error(pcNode, szMessage);
+	return mpcDiagnostics->Error(pcNode, szMessage);
 }

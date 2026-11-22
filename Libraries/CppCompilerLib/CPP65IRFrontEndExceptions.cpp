@@ -946,9 +946,9 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 	}
 
 	//What can't be thrown is said aloud (the front end works quietly).
-	mpcUnit->BeginLoud();
+	mpcDiagnostics->BeginLoud();
 	bThrown = mpcUnit->CheckThrown(pcThrow);
-	mpcUnit->EndLoud();
+	mpcDiagnostics->EndLoud();
 	if (!bThrown)
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -1020,9 +1020,9 @@ bool CCPP65IRFrontEnd::ThrownDestroyerRoutine(const char* szLabel, SCPP65Type* p
 	BeginWriting(&cFunction, szLabel, IRType(IRTK_None), 0);
 	mbRoutine = true;
 	sObject = mpcFunction->AddParameter(IRType(IRTK_Pointer));
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	bResult = Destroy(sObject, psType);
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	if (bResult)
 	{
 		mpcBlock->Return();

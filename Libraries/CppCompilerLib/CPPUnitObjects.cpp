@@ -204,9 +204,9 @@ CCPPClass* CCPPUnit::MemberObjectClass(CCPPSyntaxMemberExpression* pcMember)
 {
 	SCPP65Type*	psObject;
 
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	psObject = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : ValueTypeOf(pcMember->mpcObject);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	if (psObject && pcMember->mbArrow)
 	{
 		psObject = psObject->IsPointer() ? psObject->psBase : NULL;
@@ -228,9 +228,9 @@ bool CCPPUnit::BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName*
 	bool		bBound;
 
 	pcClass = MemberObjectClass(pcMember);
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	bBound = pcClass && mcBinder.BindMember(pcClass, pcMember->mpcName, pcMember, pcBound);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	return bBound;
 }
 
@@ -275,9 +275,9 @@ SCPPField* CCPPUnit::BitFieldOf(CCPPSyntax* pcExpression)
 	}
 	if (pcExpression->GetKind() == CPPS_IdExpression)
 	{
-		BeginQuiet();
+		mcDiagnostics.BeginQuiet();
 		mcBinder.BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
-		EndQuiet();
+		mcDiagnostics.EndQuiet();
 	}
 	else if ((pcExpression->GetKind() == CPPS_MemberExpression) && !BindMemberOf((CCPPSyntaxMemberExpression*)pcExpression, &cBound))
 	{
@@ -580,9 +580,9 @@ bool CCPPUnit::IsAggregate(SCPP65Type* psType)
 		return false;
 	}
 	pcClass = psType->pcClass;
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	bComplete = CompleteClass(pcClass, NULL);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	return bComplete && !pcClass->mbConstructors && !pcClass->mpsLambda && (pcClass->macBases.NumElements() == 0) && !pcClass->IsPolymorphic();
 }
 
@@ -623,9 +623,9 @@ bool CCPPUnit::InitialisesWhole(SCPP65Type* psMember, CCPPSyntax* pcValue)
 	{
 		return psMember->psBase->IsInteger() && IsStringLiteral(SkipParentheses(pcValue));
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	psValue = ValueTypeOf(pcValue);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	return psValue && psValue->IsClass() && IsDerived(psValue->pcClass, psMember->pcClass, NULL);
 }
 
@@ -1295,7 +1295,7 @@ SCPP65Type* CCPPUnit::InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNod
 
 	if (!InitializerListTemplate())
 	{
-		Error(pcNode, "A list in braces is a std::initializer_list, which needs <initializer_list>");
+		mcDiagnostics.Error(pcNode, "A list in braces is a std::initializer_list, which needs <initializer_list>");
 		return NULL;
 	}
 	apsDeduced.Init();
@@ -1326,7 +1326,7 @@ SCPP65Type* CCPPUnit::BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode)
 	papcElements = ListElements(pcList);
 	if (papcElements->NumElements() == 0)
 	{
-		Error(pcNode, "auto can't be worked out from {}");
+		mcDiagnostics.Error(pcNode, "auto can't be worked out from {}");
 		return NULL;
 	}
 	psElement = NULL;
@@ -1342,7 +1342,7 @@ SCPP65Type* CCPPUnit::BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode)
 		psType = psType->Unqualified();
 		if (psElement && !psElement->Same(psType))
 		{
-			Error(papcElements->GetPtr(i), "The values in braces aren't all of the same type, which auto needs");
+			mcDiagnostics.Error(papcElements->GetPtr(i), "The values in braces aren't all of the same type, which auto needs");
 			return NULL;
 		}
 		psElement = psType;
@@ -1397,9 +1397,9 @@ SCPP65Type* CCPPUnit::CastClassType(CCPPSyntax* pcExpression)
 	{
 		return NULL;
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	psType = mcDeclarators.GetTypeIdType(pcType);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	return (psType && psType->IsClass()) ? psType : NULL;
 }
 
@@ -1447,11 +1447,11 @@ SCPP65Type* CCPPUnit::PlaceOf(CCPPSyntax* pcExpression)
 
 	mpcStatistics->Count(CPPCC_PlaceOf);
 	//A failure here is not one of the quiet code around it.
-	BeginTrial();
+	mcDiagnostics.BeginTrial();
 	mpcStatistics->Begin(CPPCP_Types);
 	psPlace = mcTypeChecker.Place(pcExpression);
 	mpcStatistics->End(CPPCP_Types);
-	EndTrial();
+	mcDiagnostics.EndTrial();
 	return psPlace;
 }
 
@@ -1482,10 +1482,10 @@ CCPPSyntax* CCPPUnit::BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pcIn
 	{
 		return pcInitialiser;
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	psElement = PlaceOf(pcElement);
 	psElement = psElement ? psElement : ValueTypeOf(pcElement);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	psElement = psElement ? psElement->WithoutReference()->Unqualified() : NULL;
 	psReferred = psReference->psBase->Unqualified();
 	if (psElement && (psElement->Equals(psReferred) || (psElement->IsClass() && psReferred->IsClass() && IsDerived(psElement->pcClass, psReferred->pcClass, NULL))))
@@ -1539,7 +1539,7 @@ bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 	{
 		//A constant a lambda doesn't capture has no object in it to refer to: binding a reference to it odr-uses it.
 		//[basic.def.odr] 3
-		ReportOnce(pcArgument, "The lambda doesn't capture the variable");
+		mcDiagnostics.ReportOnce(pcArgument, "The lambda doesn't capture the variable");
 		return true;
 	}
 	psPlace = PlaceOf(pcArgument);
@@ -1585,11 +1585,11 @@ bool CCPPUnit::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 	{
 		return false;
 	}
-	uiErrors = mcErrors.NumErrors();
-	BeginQuiet();
+	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginQuiet();
 	bOverloaded = mcBinder.BindOperator(CT_Comma, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
-	EndQuiet();
-	mcErrors.Truncate(uiErrors);
+	mcDiagnostics.EndQuiet();
+	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	return bOverloaded;
 }
 

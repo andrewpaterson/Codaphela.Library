@@ -48,7 +48,7 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 		{
 			if (psLambda->bFailed)
 			{
-				ReportOnce(psLambda->pcErrorNode, psLambda->szError.Text());
+				mcDiagnostics.ReportOnce(psLambda->pcErrorNode, psLambda->szError.Text());
 				return NULL;
 			}
 			return psLambda;
@@ -162,7 +162,7 @@ bool CCPPUnit::LambdaError(SCPPLambda* psLambda, CCPPSyntax* pcNode, const char*
 		psLambda->pcErrorNode = pcNode;
 		psLambda->szError.Append(szMessage);
 	}
-	return ReportOnce(pcNode, szMessage);
+	return mcDiagnostics.ReportOnce(pcNode, szMessage);
 }
 
 
@@ -1012,9 +1012,9 @@ void CCPPUnit::GenericLambdaConversion(SCPPLambda* psLambda, SCPP65Type* psFunct
 			return;
 		}
 	}
-	BeginQuiet();
+	mcDiagnostics.BeginQuiet();
 	pcCall = GenericLambdaInstance(psLambda, psFunction->papsParameters);
-	EndQuiet();
+	mcDiagnostics.EndQuiet();
 	if (pcCall && pcCall->mpsReturn->Same(psFunction->psBase))
 	{
 		AddLambdaConversion(psLambda, pcCall);

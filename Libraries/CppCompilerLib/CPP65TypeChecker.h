@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CCPPUnit;
+class CCPPDiagnostics;
 struct SCPPField;
 class CCPPClass;
 class CCPPFunction;
@@ -40,6 +41,7 @@ class CCPP65TypeChecker : public CCPPSyntaxVisitor
 {
 protected:
 	CCPPUnit*			mpcUnit;
+	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 	CCPP65Types*		mpcTypes;
 	CArraySyntax		mapcNone;		//No arguments.
 	SCPP65Type*			mpsResult;		//What the Visit function of the expression Result was asked for found.

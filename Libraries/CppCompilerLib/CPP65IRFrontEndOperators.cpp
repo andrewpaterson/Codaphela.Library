@@ -1004,7 +1004,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		if (pcVariable->mpsType->IsArray())
 		{
 			//[stmt.select] 2
-			return mpcUnit->ReportOnce(pcExpression, "A condition's variable isn't an array");
+			return mpcDiagnostics->ReportOnce(pcExpression, "A condition's variable isn't an array");
 		}
 		if (pcVariable->mpsType->IsClass())
 		{
@@ -1034,7 +1034,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 	}
 	if (sValue.psType && sValue.psType->IsScopedEnum())
 	{
-		return mpcUnit->ReportError(pcExpression, "An enum class's value is not a condition: compare it with one of its values");
+		return mpcDiagnostics->ReportError(pcExpression, "An enum class's value is not a condition: compare it with one of its values");
 	}
 	if (!Truth(&sValue, &sCondition))
 	{
@@ -1065,7 +1065,7 @@ bool CCPP65IRFrontEnd::Truth(SCPP65IRValue* psValue, SIRReference* psCondition)
 	if (psValue->psType->IsScopedEnum())
 	{
 		//Where the expression isn't to hand (!e, e && x, e ? x : y).
-		return mpcUnit->ReportError(NULL, "An enum class's value is not a condition: compare it with one of its values");
+		return mpcDiagnostics->ReportError(NULL, "An enum class's value is not a condition: compare it with one of its values");
 	}
 	sType = IRTypeOf(psValue->psType);
 	if (psValue->psType->IsFloat())

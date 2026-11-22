@@ -205,7 +205,7 @@ bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo, b
 		mpcUnit->GetBinder()->BindObjectConversion(pcClass, psTo, true, NULL, &cExplicit);
 		if (mpcValue)
 		{
-			mpcUnit->ReportError(mpcValue, (cExplicit.meHow == CPPBV_Function) ? "The object's conversion to the type it is used as is explicit: it needs a cast" : "The object has no conversion to the type it is used as");
+			mpcDiagnostics->ReportError(mpcValue, (cExplicit.meHow == CPPBV_Function) ? "The object's conversion to the type it is used as is explicit: it needs a cast" : "The object has no conversion to the type it is used as");
 		}
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1163,14 +1163,14 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 		//Why it can't be made is said where the type checker is asked: of an expression, and of a variable's
 		//declaration (CCPPUnit::CheckDeclared).  It isn't asked of a base or a member its constructor gives
 		//nothing, so that is said here.
-		uiErrors = mpcUnit->GetErrors()->NumErrors();
+		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 		if (papcArguments)
 		{
-			mpcUnit->BeginLoud();
+			mpcDiagnostics->BeginLoud();
 			mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, mpcCPPFunction->mpcDefinition, &cBound, true);
-			mpcUnit->EndLoud();
+			mpcDiagnostics->EndLoud();
 		}
-		return (mpcUnit->GetErrors()->NumErrors() > uiErrors) ? false : Unsupported(__FILE__, __LINE__);
+		return (mpcDiagnostics->GetErrors()->NumErrors() > uiErrors) ? false : Unsupported(__FILE__, __LINE__);
 	}
 	if (cBound.meHow == CPPBO_Constructor)
 	{
@@ -2355,7 +2355,7 @@ bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSourc
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyDeleted(CCPPSyntax* pcNode)
 {
-	mpcUnit->ReportError(pcNode, "The object cannot be copied: its class declares a move and no copy");
+	mpcDiagnostics->ReportError(pcNode, "The object cannot be copied: its class declares a move and no copy");
 	return Unsupported(__FILE__, __LINE__);
 }
 
@@ -2368,7 +2368,7 @@ bool CCPP65IRFrontEnd::CopyDeleted(CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::AssignmentDeleted(CCPPSyntax* pcNode)
 {
-	mpcUnit->ReportOnce(pcNode, "The object cannot be assigned: its class has a const or reference member, or declares a move and no copy");
+	mpcDiagnostics->ReportOnce(pcNode, "The object cannot be assigned: its class has a const or reference member, or declares a move and no copy");
 	return Unsupported(__FILE__, __LINE__);
 }
 

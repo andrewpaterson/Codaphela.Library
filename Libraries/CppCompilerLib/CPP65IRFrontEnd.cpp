@@ -60,6 +60,7 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	mpcConstant = NULL;
 	muiAttempts = 0;
 	mpcUnit = pcUnit;
+	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mpcTypes = pcUnit->GetTypes();
 	mpcFunction = NULL;
 	mpcBlock = NULL;
@@ -237,7 +238,7 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	//The generator's errors are not reported while the front end works (it reports them if it writes the function
 	//itself).  What it fails to work out comes back as NULL, which the front end doesn't support; quiet errors from
 	//its own probing (UsesFloat ...) are not failures.
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	bCopy = pcFunction->mbImplicit && pcFunction->IsCopy();
 	bResult = Parameters() && Locals();
 	pcTry = (pcFunction->mpcDefinition && pcFunction->mpcDefinition->mpcBody && (pcFunction->mpcDefinition->mpcBody->GetKind() == CPPS_TryStatement)) ? (CCPPSyntaxTryStatement*)pcFunction->mpcDefinition->mpcBody : NULL;
@@ -288,7 +289,7 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 		bResult = DestructorEnd();
 		mpcBlock->Return();
 	}
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	bResult = FinishWriting(bResult, szLabel.Text());
 	szLabel.Kill();
 	return bResult;
@@ -485,14 +486,14 @@ void CCPP65IRFrontEnd::OptimiserWarnings(CChars* pszWarnings)
 
 	//A comparison the generator already warned about in the function (a 16 bit variable compared with 0xFFFFFFFF) is
 	//the same one, seen before the values were followed.
-	if (mpcUnit->HasWarning(mpcCPPFunction->mpcDefinition, "Comparison is always"))
+	if (mpcDiagnostics->HasWarning(mpcCPPFunction->mpcDefinition, "Comparison is always"))
 	{
 		return;
 	}
 	pszWarnings->RemoveLastCharacter();
 	szMessage.Init("In this function, once the values are followed: ");
 	szMessage.Append(pszWarnings);
-	mpcUnit->Warning(mpcCPPFunction->mpcDefinition, szMessage.Text());
+	mpcDiagnostics->Warning(mpcCPPFunction->mpcDefinition, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -689,9 +690,9 @@ CIRFunction* CCPP65IRFrontEnd::ConstantExpression(const char* szLabel, CCPPSynta
 	cFunction.mpsReturn = psType;
 	sType = ReturnIRType(psType);
 	BeginWriting(&cFunction, szLabel, sType, IRA_Local);
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	bResult = ValueFor(pcExpression, psType, &sValue) && ConvertImplicit(&sValue, psType, pcExpression) && DestroyTemporaries(0);
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	if (bResult)
 	{
 		mpcBlock->Return(sType, ConvertIR(sValue.sValue, IRTypeOf(psType), sType, psType->bSigned && (psType->eKind == CPP65TK_Integer)));
@@ -720,9 +721,9 @@ CIRFunction* CCPP65IRFrontEnd::ConstantInitialiser(const char* szLabel, SCPP65Ty
 	mbRoutine = true;
 	sPlace.sAddress = mpcFunction->AddParameter(IRType(IRTK_Pointer));
 	sPlace.psType = psType;
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	bResult = Construct(&sPlace, NULL, pcInitialiser) && DestroyTemporaries(0);
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	if (bResult)
 	{
 		mpcBlock->Return();
@@ -759,7 +760,7 @@ bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, 
 	cFunction.mpsReturn = &mpcTypes->msVoid;
 	BeginWriting(&cFunction, szLabel, IRType(IRTK_None), bLocal ? IRA_Local : 0);
 	mbRoutine = true;
-	mpcUnit->BeginQuiet();
+	mpcDiagnostics->BeginQuiet();
 	sPlace.sAddress = mcModule.Symbol(szGlobal);
 	sPlace.psType = psType;
 	if (bFinalise)
@@ -775,7 +776,7 @@ bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, 
 			PushExitNode(szExitNode, szFinaliser, bThread);
 		}
 	}
-	mpcUnit->EndQuiet();
+	mpcDiagnostics->EndQuiet();
 	return FinishWriting(bResult, szLabel);
 }
 
@@ -932,7 +933,7 @@ void CCPP65IRFrontEnd::NoFloats(void)
 	{
 		iToken = mpcCPPFunction->mpcDefinition->miFirstToken;
 	}
-	mpcUnit->ReportErrorAt(iToken, "Floating point is used here, and this build has none (CCPP65Builder::SetNoFloats: the kernal has no floats)");
+	mpcDiagnostics->ReportErrorAt(iToken, "Floating point is used here, and this build has none (CCPP65Builder::SetNoFloats: the kernal has no floats)");
 }
 
 
