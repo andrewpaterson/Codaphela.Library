@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 4 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
+Where it is: stages 0 to 5 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -705,8 +705,45 @@ conformance case had been compared with the part before; the listings at the end
 	  A trial would see it only if the error were quiet, and it is said loudly on purpose (it may only be a try).
 	- ConstantError and CCPPConstants::mszReason (a constant's reason) are stage 11's, with the evaluator.
 
-	Proved: TestCppCompilerLib passes (271,778); the diagnostics as above; listings 4,201, none different; counts stage 0's
-	but errors taken away (14 to 0).  Time, a unit at a time, for the 65C64 and the W65C816: declarations 6,622 and
-	6,624 ms (stage 3: 6,460 and 6,458), types 6,420 and 6,469 (6,176 and 6,233), front end 3,345 and 3,408 (3,282 and
-	3,336).  The types phase is about 4% slower: every TypeOf worked out (1.1 million) begins and ends a keeping
-	part, an entry on the context's stack.
+	Proved: TestCppCompilerLib passes (271,778); the diagnostics as above; listings 4,201, none different; counts
+	stage 0's but errors taken away (14 to 0).  Time, a unit at a time, for the 65C64 and the W65C816: declarations
+	6,622 and 6,624 ms (stage 3: 6,460 and 6,458), types 6,420 and 6,469 (6,176 and 6,233), front end 3,345 and
+	3,408 (3,282 and 3,336).  The types phase is about 4% slower: every TypeOf worked out (1.1 million) begins and
+	ends a keeping part, an entry on the context's stack.
+
+Stage 5 (2026-11-22): one way through a parameter pack.
+
+	The packs a pattern names are those it names outside a pack expansion written inside it, and outside
+	sizeof...: what is named there is that expansion's, expanded as a whole ([temp.variadic] 5).  CCPPPackFinder
+	does not go into them, and no longer leaves out a pack because an expansion around has given it an element:
+	an expansion inside finds it again.  Each element is entered by CCPPPackElements (CPPTemplate.h), and when the
+	expansion is left what each pack's binding had before comes back, where it was given the element and then
+	cleared to nothing.  Together these put right stage 0's wrong code: Pair<Count<Ts...>, Ts>... gave 0 for 43,
+	because the inner Count<Ts...> could not find Ts (it had an element) and the outer Ts was nothing after it.
+	A parameter declared with any pack expansion is a parameter for each element (Pair<Count<Ts...>, Ts>... p),
+	where only Args... args was: DeclareSignature finds the packs as the template arguments do, and enters the
+	elements the same way, so g of stage 0's second program is declared.
+	"The pack expansion names no parameter pack" and "The packs the pack expansion expands have different lengths"
+	are said in one place (PackExpansionLength), for ExpandPattern and ExpandTemplateArguments; SCPPExpandedArgument
+	is filled by one function.
+
+	Cases: TempVariadicNestedSamePack and TempVariadicNestedInParameters (stage 0's) leave Clause14's lists, and
+	TempVariadicNestedAfterElement (Pair<Ts, Count<Ts...>>...) is new: Clause14 does all 111 on both targets.
+
+	Not done, as the stage was written: ExpandPattern still copies the pattern once for each element, with a new
+	symbol and binding for each (PackElement): a call's arguments are syntax the front end writes, and that is
+	stage 5 of ConsolidationPlan's.  The pack tables (masPackElements, mapapsPacks, mapalliPacks, mapcPackSymbols)
+	and CPPUnitPacks.cpp's functions are still the unit's: they ask it for bindings, types and constants at every
+	turn, and moving them now would only add asks (rule 3).  Stage 15f takes them with the templates.
+
+	Proved: the stage was committed as "Stage 5.  Pre-commit." (56520c466) and the pull
+	that followed rebased the plan's commits onto 13 that came in (alignment on the W65C816 among them, which
+	changes its code), so the proof was taken again from there.  The rebase: TestCPPConformance.cpp kept both new
+	parameters of ConformanceChecks; stage 4's first part, a renaming of calls, was made again by its script over
+	the files as they came in, so their new calls are renamed too; a ClassError that came in is deferred
+	(eacc80d35), and the unit's ErrorOnce that came in is the diagnostics' (33d1e4117).  A baseline was taken at
+	the rebased stage 4 (9b09ef0ed, with eacc80d35's line, which it needs to build), in the same folder.
+	TestCppCompilerLib passes (272,033).  Listings: 4,205, none different from that baseline.  Diagnostics:
+	5,840 entries; the 3 new are TempVariadicNestedAfterElement's, and TempVariadicNestedInParameters says
+	nothing where it said "The class has no member function of that name"; nothing else differs.  Time, a unit
+	at a time: declarations 6,470 and 6,448 ms, types 6,450 and 6,481, front end 3,360 and 3,384: stage 4's.
