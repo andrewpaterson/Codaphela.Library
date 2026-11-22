@@ -409,7 +409,16 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		break;
 	case CPPS_SwitchStatement:
 		CheckChildren(pcNode);
-		CheckSwitch((CCPPSyntaxSwitchStatement*)pcNode, SwitchType((CCPPSyntaxSwitchStatement*)pcNode));
+		psValue = SwitchType((CCPPSyntaxSwitchStatement*)pcNode);
+		CheckSwitch((CCPPSyntaxSwitchStatement*)pcNode, psValue);
+		CheckSwitchValues((CCPPSyntaxSwitchStatement*)pcNode, psValue);
+		return;
+	case CPPS_BreakStatement:
+	case CPPS_ContinueStatement:
+		CheckJump(pcNode, pcNode->GetKind() == CPPS_ContinueStatement);
+		return;
+	case CPPS_GotoStatement:
+		CheckGoto((CCPPSyntaxGotoStatement*)pcNode);
 		return;
 	case CPPS_ReturnStatement:
 		//An overloaded function's name returned as a pointer to (or a reference to) a function is the overload of
@@ -453,6 +462,12 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		if (psValue && psValue->IsScopedEnum())
 		{
 			mcTypeChecker.Truth(psValue, pcValue);
+		}
+		psValue = ConditionVariableType(pcValue);
+		if (psValue && psValue->IsArray())
+		{
+			//[stmt.select] 2
+			ReportError(pcValue, "A condition's variable isn't an array");
 		}
 		return;
 	case CPPS_EnumSpecifier:
@@ -503,12 +518,12 @@ SCPP65Type* CCPPUnit::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
 {
 	SCPP65Type*	psType;
 
-	if (!pcSwitch->mpcCondition || (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration))
+	if (!pcSwitch->mpcCondition)
 	{
 		return NULL;
 	}
 	BeginQuiet();
-	psType = TypeOf(pcSwitch->mpcCondition);
+	psType = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : TypeOf(pcSwitch->mpcCondition);
 	EndQuiet();
 	psType = psType ? psType->WithoutReference() : NULL;
 	if (psType && psType->IsClass())
@@ -517,6 +532,57 @@ SCPP65Type* CCPPUnit::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
 		psType = mcBinder.ContextualType(pcSwitch->mpcCondition, CPPXT_Integer);
 	}
 	return (psType && psType->IsInteger()) ? mcTypes.Promote(psType) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the semantic pass checks of a switch that the IR front end does
+// where it writes one: the condition isn't a float or a pointer, and a
+// case's value isn't narrowed as the type the condition is compared as
+// (psType).  [stmt.switch] 2, [expr.const] 3
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psType)
+{
+	CArraySyntax				apcCases;
+	CCPPSyntaxCaseStatement*	pcCase;
+	SCPP65Type*					psCondition;
+	int64						lliValue;
+	size						i;
+	bool						bConstant;
+
+	if (!pcSwitch->mpcCondition)
+	{
+		return;
+	}
+	BeginQuiet();
+	psCondition = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : TypeOf(pcSwitch->mpcCondition);
+	EndQuiet();
+	psCondition = psCondition ? psCondition->WithoutReference() : NULL;
+	if (psCondition && (psCondition->IsFloat() || psCondition->IsPointer()))
+	{
+		ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum");
+		return;
+	}
+	if (!psType)
+	{
+		return;
+	}
+	apcCases.Init();
+	SwitchCases(pcSwitch->mpcBody, &apcCases);
+	for (i = 0; i < apcCases.NumElements(); i++)
+	{
+		pcCase = (CCPPSyntaxCaseStatement*)apcCases.GetPtr(i);
+		BeginQuiet();
+		bConstant = pcCase->mpcValue && Constant(pcCase->mpcValue, &lliValue);
+		EndQuiet();
+		if (bConstant)
+		{
+			mcTypeChecker.ConstantNotNarrowed(pcCase->mpcValue, psType);
+		}
+	}
+	apcCases.Kill();
 }
 
 
@@ -593,6 +659,231 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 
 	bInScope = false;
 	return SwitchJumps(pcSwitch->mpcBody, &bInScope) && bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// break or continue: an error if no loop (or, for break, switch) holds it
+// in the function, lambda or class it is in.  [stmt.break] 1, [stmt.cont] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckJump(CCPPSyntax* pcJump, bool bContinue)
+{
+	CCPPSyntax*	pcNode;
+
+	for (pcNode = pcJump->mpcParent; pcNode; pcNode = pcNode->mpcParent)
+	{
+		switch (pcNode->GetKind())
+		{
+		case CPPS_WhileStatement:
+		case CPPS_DoStatement:
+		case CPPS_ForStatement:
+		case CPPS_RangeForStatement:
+			return true;
+		case CPPS_SwitchStatement:
+			if (!bContinue)
+			{
+				return true;
+			}
+			break;
+		case CPPS_LambdaExpression:
+		case CPPS_ClassSpecifier:
+		case CPPS_FunctionDefinition:
+			return ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
+		default:
+			break;
+		}
+	}
+	return ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a declaration statement's local, pcInit, is one a jump may not
+// go past into its scope: initialised, or of a class (or an array of one)
+// made or destroyed by code.  [stmt.dcl] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsJumpGuardedLocal(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPSyntaxInitDeclarator* pcInit)
+{
+	CCPPVariable*	pcVariable;
+	SCPP65Type*		psType;
+
+	if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_TYPEDEF | CPPDS_THREAD_LOCAL)))
+	{
+		return false;
+	}
+	if (pcInit->mpcDeclarator->IsFunction())
+	{
+		return false;
+	}
+	pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+	psType = pcVariable ? pcVariable->mpsType : NULL;
+	while (psType && psType->IsArray())
+	{
+		psType = psType->psBase;
+	}
+	return pcInit->mpcInitializer || (psType && psType->IsClass() && (psType->pcClass->NeedsConstructor() || psType->pcClass->mpcDestructor));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The locals (IsJumpGuardedLocal) in scope at pcNode: those declared before
+// it in each block that holds it, up to pcRoot.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::LocalsInScope(CCPPSyntax* pcNode, CCPPSyntax* pcRoot, CArraySyntax* papcLocals)
+{
+	CCPPSyntax*						pcChild;
+	CCPPSyntax*						pcParent;
+	CCPPSyntax*						pcStatement;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CArraySyntax*					papcStatements;
+	size							i;
+	size							j;
+
+	pcChild = pcNode;
+	for (pcParent = pcNode->mpcParent; pcParent && (pcChild != pcRoot); pcParent = pcParent->mpcParent)
+	{
+		if (pcParent->GetKind() == CPPS_CompoundStatement)
+		{
+			papcStatements = &((CCPPSyntaxCompoundStatement*)pcParent)->macpStatements;
+			for (i = 0; (i < papcStatements->NumElements()) && (papcStatements->GetPtr(i) != pcChild); i++)
+			{
+				pcStatement = papcStatements->GetPtr(i);
+				pcDeclaration = (pcStatement->GetKind() == CPPS_DeclarationStatement) ? (CCPPSyntaxSimpleDeclaration*)((CCPPSyntaxDeclarationStatement*)pcStatement)->mpcDeclaration : NULL;
+				if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration))
+				{
+					continue;
+				}
+				for (j = 0; j < pcDeclaration->macpDeclarators.NumElements(); j++)
+				{
+					pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(j);
+					if (IsJumpGuardedLocal(pcDeclaration, pcInit))
+					{
+						papcLocals->Add(pcInit);
+					}
+				}
+			}
+		}
+		pcChild = pcParent;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label statement named as iNameToken's identifier in pcNode (not in a
+// lambda or class in it), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPUnit::FindLabel(CCPPSyntax* pcNode, int iNameToken)
+{
+	CCPPSyntax*	pcFound;
+	CCPPToken*	pcName;
+	CCPPToken*	pcLabel;
+	size		i;
+
+	if (!pcNode || (pcNode->GetKind() == CPPS_LambdaExpression) || (pcNode->GetKind() == CPPS_ClassSpecifier))
+	{
+		return NULL;
+	}
+	if (pcNode->GetKind() == CPPS_LabelStatement)
+	{
+		pcName = mpcTokeniser->Get(iNameToken);
+		pcLabel = mpcTokeniser->Get(((CCPPSyntaxLabelStatement*)pcNode)->miName);
+		if (pcName && pcLabel && pcName->IsIdentifier() && pcLabel->IsIdentifier() && (((CCTIdentifier*)pcName)->miIdentifier == ((CCTIdentifier*)pcLabel)->miIdentifier))
+		{
+			return pcNode;
+		}
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		pcFound = FindLabel(pcNode->GetChild(i), iNameToken);
+		if (pcFound)
+		{
+			return pcFound;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A goto: an error if it jumps into the scope of a local it goes past the
+// making of (one in scope at its label that isn't at the goto).
+// [stmt.dcl] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckGoto(CCPPSyntaxGotoStatement* pcGoto)
+{
+	CCPPSyntax*		pcRoot;
+	CCPPSyntax*		pcLabel;
+	CArraySyntax	apcAtGoto;
+	CArraySyntax	apcAtLabel;
+	size			i;
+	bool			bResult;
+
+	for (pcRoot = pcGoto->mpcParent; pcRoot && pcRoot->mpcParent; pcRoot = pcRoot->mpcParent)
+	{
+		if ((pcRoot->mpcParent->GetKind() == CPPS_FunctionDefinition) || (pcRoot->mpcParent->GetKind() == CPPS_LambdaExpression))
+		{
+			break;
+		}
+	}
+	pcLabel = pcRoot ? FindLabel(pcRoot, pcGoto->miLabel) : NULL;
+	if (!pcLabel)
+	{
+		return true;
+	}
+	apcAtGoto.Init();
+	apcAtLabel.Init();
+	LocalsInScope(pcGoto, pcRoot, &apcAtGoto);
+	LocalsInScope(pcLabel, pcRoot, &apcAtLabel);
+	bResult = true;
+	for (i = 0; i < apcAtLabel.NumElements(); i++)
+	{
+		if (apcAtGoto.Find(apcAtLabel.GetPtr(i)) == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			bResult = ReportError(pcGoto, "The goto jumps into the scope of an object it hasn't made: past its declaration, or into its block");
+			break;
+		}
+	}
+	apcAtLabel.Kill();
+	apcAtGoto.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the variable a condition declares (if (T x = v)), or NULL if
+// it declares none.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::ConditionVariableType(CCPPSyntax* pcCondition)
+{
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPVariable*					pcVariable;
+
+	if (!pcCondition || (pcCondition->GetKind() != CPPS_SimpleDeclaration))
+	{
+		return NULL;
+	}
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcCondition;
+	if (pcDeclaration->macpDeclarators.NumElements() != 1)
+	{
+		return NULL;
+	}
+	pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(0);
+	pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+	return pcVariable ? pcVariable->mpsType : NULL;
 }
 
 
@@ -961,7 +1252,8 @@ void CCPPUnit::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 {
-	CCPPVariable*	pcVariable;
+	CCPPVariable*					pcVariable;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
 
 	if (pcInit->mpcDeclarator->IsFunction())
 	{
@@ -970,6 +1262,13 @@ void CCPPUnit::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 	}
 	CheckPointerExceptions(pcInit);
 	pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+	//alignas on it is a power of two (AlignasAlignment says so).  [dcl.align] 2
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers)
+	{
+		AlignasAlignment(&pcDeclaration->mpcSpecifiers->macpSpecifiers);
+	}
+	AlignasAlignment(&pcInit->mpcDeclarator->macpAttributes);
 	if (pcVariable && CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer))
 	{
 		return;

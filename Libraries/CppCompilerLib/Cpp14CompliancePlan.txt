@@ -440,6 +440,28 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
          InvalidCPPNameCharacter refuses.  Adjacent strings with different prefixes are refused.  A wide character's
          user-defined literal gives its operator its own type (CCPPUnit::CharacterTokenType).  A ' after a number
          that starts a bad character literal says the separator is misplaced (CCPPTokeniser::FollowsNumber).
+   - The semantic pass (the IDE's checker), 2026-11-22: of the 76 cases it got wrong, 40 cheap ones were picked (the
+     user: "Do the 40, commit as you go").  All 40 done; what is left in TestCPPConformanceChecked.h is the 20 that
+     need constant evaluation, 6 templates, 5 exceptions (the other session's) and 5 one-offs (&m as int S::*,
+     s.Nested, a nested class using the outer's members, returning a repeated base, a member with no default
+     constructor).  Where they went:
+       - A lambda standing alone (return's value) is checked in its own scope (CheckNode's CPPS_LambdaExpression).
+       - sizeof/alignof of void, a function, an incomplete type or a lambda (CheckedSizeofType, types only, typed
+         quietly so nothing new can be an error).
+       - break/continue outside a loop (CheckJump), goto into a local's scope (CheckGoto: LocalsInScope at the goto
+         and at its label, IsJumpGuardedLocal as SwitchJumps has it), a switch over a float or pointer and a case
+         that narrows (CheckSwitchValues), a condition declaring an array.
+       - The type checker, which the compiler shares: a bit-field's address or a reference that isn't const bound to
+         one (BitFieldError); Initialise's references (T& to a value with no place), arrays (a string of another
+         character, more elements than the array's) and scalars (one value); an aggregate's member narrowed;
+         dynamic_cast to what isn't a pointer to a class or void, or from a class that isn't polymorphic (but to a
+         base); a cast from a virtual base to a class derived from it (CastReachesBase); an object whose class's
+         operator= is deleted assigned.  A local's alignas (CheckLocal).
+       - What that costs the compiler: TestCPP65Declarations' counts are unchanged (171 quiet trials).  Asking
+         BitFieldOf of every & and reference binding had made it 185 (it binds a name in a quiet trial): the type
+         checker asks only of a field's name, a member and c ? x : y (CCPP65TypeChecker::IsBitField), and an
+         aggregate member's narrowing is the semantic pass's only (the IR front end checks it where it writes the
+         member).  Errors both now find are reported once (CCPPUnit::ErrorOnce; ReportOnce in the IR front end).
 
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size

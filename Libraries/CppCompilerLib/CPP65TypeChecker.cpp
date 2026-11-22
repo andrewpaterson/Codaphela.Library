@@ -910,6 +910,12 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 			Error(pcUnary, "The address of a temporary can't be taken");
 			return NULL;
 		}
+		if (psType && IsBitField(pcOperand))
+		{
+			//[expr.unary.op] 4, [class.bit] 3
+			BitFieldError(pcUnary);
+			return NULL;
+		}
 		return psType ? mpcTypes->Pointer(psType) : NULL;
 	default:
 		break;
@@ -1120,6 +1126,12 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 	if (psPlace->IsClass() && (pcBinary->meOperator == CT_Assignment))
 	{
+		if (psPlace->pcClass->IsAssignmentDeleted())
+		{
+			//The compiler's own operator= isn't written for it.  [class.copy] 23, [expr.prim.lambda] 20
+			Error(pcBinary, "The object cannot be assigned: its class has a const or reference member, or declares a move and no copy");
+			return NULL;
+		}
 		if (mpcUnit->SkipParentheses(pcBinary->mpcRight)->GetKind() == CPPS_InitializerList)
 		{
 			//x = {1, 2} is x = X{1, 2}: a temporary made from the list.  [expr.ass] 9
@@ -2841,6 +2853,7 @@ bool CCPP65TypeChecker::CastReachesBase(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 	CCPPClass*						pcFrom;
 	CCPPClass*						pcTo;
 	CCPPClass*						pcDerived;
+	int								iOffset;
 
 	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer())
 	{
@@ -2863,6 +2876,12 @@ bool CCPP65TypeChecker::CastReachesBase(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 		return true;
 	}
 	pcDerived = mpcUnit->IsDerived(pcFrom, pcTo, NULL) ? pcFrom : pcTo;
+	if ((pcDerived == pcTo) && !psFrom->IsMemberPointer() && !(pcNamed && (pcNamed->meCast == CT_dynamic_cast)) && mpcUnit->CompleteClass(pcTo, pcNode) && mpcUnit->IsDerived(pcTo, pcFrom, &iOffset) && (iOffset == CPP_VIRTUAL_PATH))
+	{
+		//A virtual base is nowhere fixed in the class: only dynamic_cast goes from it to the derived class.
+		//[expr.static.cast] 2, 11
+		return Error(pcNode, "A pointer or reference to a virtual base can't be cast to a class derived from it");
+	}
 	if (pcNamed)
 	{
 		return mpcUnit->GetBinder()->ReachesBase(pcDerived, (pcDerived == pcFrom) ? pcTo : pcFrom, pcNode);
@@ -3007,11 +3026,43 @@ void CCPP65TypeChecker::SizeofError(CCPPSyntax* pcSizeof)
 SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
 {
 	CCPPSyntaxTypeTraitExpression*	pcTrait;
+	CCPPSyntaxSizeofExpression*		pcExpression;
 	CChars							szTrait;
 	SCPP65Type*						psType;
+	bool							bComplete;
 
 	if (pcSizeof->GetKind() == CPPS_SizeofExpression)
 	{
+		//Only what the operand's type says is checked (SizeofError has the same): the value isn't worked out.
+		pcExpression = (CCPPSyntaxSizeofExpression*)pcSizeof;
+		if (pcExpression->mbPack || ((pcExpression->meKeyword != CT_sizeof) && (pcExpression->meKeyword != CT_alignof)))
+		{
+			return mpcTypes->Size();
+		}
+		if (pcExpression->mpcOperand && (mpcUnit->SkipParentheses(pcExpression->mpcOperand)->GetKind() == CPPS_LambdaExpression))
+		{
+			Error(pcSizeof, "A lambda can't be the operand of sizeof or alignof, which isn't worked out");
+			return NULL;
+		}
+		mpcUnit->BeginQuiet();
+		psType = mpcUnit->OperandType(pcExpression->mpcType, pcExpression->mpcOperand);
+		bComplete = !psType || !psType->IsClass() || mpcUnit->CompleteClass(psType->pcClass, pcSizeof);
+		mpcUnit->EndQuiet();
+		if (psType && psType->IsFunction())
+		{
+			Error(pcSizeof, (pcExpression->meKeyword == CT_sizeof) ? "sizeof can't be applied to a function" : "alignof can't be applied to a function");
+			return NULL;
+		}
+		if (psType && psType->IsVoid())
+		{
+			Error(pcSizeof, (pcExpression->meKeyword == CT_sizeof) ? "sizeof can't be applied to void" : "alignof can't be applied to void");
+			return NULL;
+		}
+		if (psType && ((psType->IsArray() && (psType->iCount == 0)) || !bComplete))
+		{
+			Error(pcSizeof, (pcExpression->meKeyword == CT_sizeof) ? "sizeof can't be applied to an incomplete type: an array without its bound, or a class not yet defined" : "alignof can't be applied to an incomplete type");
+			return NULL;
+		}
 		return mpcTypes->Size();
 	}
 	pcTrait = (CCPPSyntaxTypeTraitExpression*)pcSizeof;
@@ -3613,6 +3664,12 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 		if ((i < papcArguments->NumElements()) || !psField->pcInitialiser)
 		{
 			bResult &= Construct(psField->psType, NULL, (i < papcArguments->NumElements()) ? papcArguments->GetPtr(i) : NULL, pcNode);
+			if (bResult && mpcUnit->GetSemanticPass() && (i < papcArguments->NumElements()) && psField->psType->IsScalar() && (papcArguments->GetPtr(i)->GetKind() != CPPS_InitializerList))
+			{
+				//A member's value from the list isn't narrowed (the semantic pass only: the IR front end checks it where
+				//it writes the member, and asking twice costs a quiet trial each).  [dcl.init.aggr] 2, [dcl.init.list] 7
+				bResult = NotNarrowed(papcArguments->GetPtr(i), psField->psType);
+			}
 			continue;
 		}
 		mpcUnit->GetContext()->EnterObject(pcClass);
@@ -3756,7 +3813,22 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	{
 		if (!papcElements)
 		{
+			if (mpcUnit->IsStringLiteral(pcInitialiser) && !(psType->psBase->IsInteger() && (psType->psBase->eKind != CPP65TK_Bool) && (psType->psBase->iBytes == mpcUnit->StringElementBytes(pcInitialiser))))
+			{
+				//[dcl.init.string] 1
+				return Error(pcInitialiser, mpcUnit->StringArrayError(pcInitialiser, psType->psBase));
+			}
 			return Value(pcInitialiser) != NULL;
+		}
+		if (!psType->IsArray() && (papcElements->NumElements() > 1))
+		{
+			//[dcl.init] 17.8, [dcl.init.list] 3
+			return Error(pcInitialiser, "A number or a pointer is initialised by one value");
+		}
+		if (psType->IsArray() && !psType->psBase->IsArray() && (psType->iCount > 0) && (papcElements->NumElements() > (size)psType->iCount))
+		{
+			//[dcl.init.aggr] 7
+			return Error(pcInitialiser, "More initialisers than the array's elements take");
 		}
 		bResult = true;
 		for (i = 0; i < papcElements->NumElements(); i++)
@@ -3793,6 +3865,21 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		if (psValue && !psType->psBase->bConst)
 		{
 			mpcUnit->Changed(pcInitialiser, CPPPC_REFERENCE);
+		}
+		if (psValue && (!psType->psBase->bConst || psType->psBase->bVolatile) && IsBitField(pcInitialiser))
+		{
+			//Only a const reference binds to a bit-field, through a temporary.  [dcl.init.ref] 5, [class.bit] 3
+			return BitFieldError(pcInitialiser);
+		}
+		if (!psValue && !psType->bRvalue && !psType->psBase->bConst)
+		{
+			psValue = Value(pcInitialiser);
+			if (psValue && !psValue->WithoutReference()->IsClass())
+			{
+				//T& binds to an lvalue.  [dcl.init.ref] 5
+				return Error(pcInitialiser, "A reference that isn't const binds to an object: the value has no place to refer to");
+			}
+			return psValue != NULL;
 		}
 		return psValue ? CanBind(psType, psValue, pcNode) : (Value(pcInitialiser) != NULL);
 	}
@@ -4145,6 +4232,11 @@ bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast
 	{
 		return false;
 	}
+	if (!(psTo->IsPointer() && (psTo->psBase->IsClass() || psTo->psBase->IsVoid())) && !(psTo->IsReference() && psTo->psBase->IsClass()))
+	{
+		//[expr.dynamic.cast] 1
+		return mpcUnit->ErrorOnce(pcCast, "dynamic_cast needs a pointer to a class or to void");
+	}
 	if (psTo->IsPointer() && psFrom->IsPointer())
 	{
 		psFrom = psFrom->psBase;
@@ -4158,6 +4250,11 @@ bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast
 	{
 		//[expr.dynamic.cast] 1, 2
 		return false;
+	}
+	if (psFrom->IsClass() && !(psTo->IsClass() && ((psTo->pcClass == psFrom->pcClass) || mpcUnit->IsDerived(psFrom->pcClass, psTo->pcClass, NULL))) && !psFrom->pcClass->IsPolymorphic())
+	{
+		//Anything but a cast to a base looks the object up by its vtable.  [expr.dynamic.cast] 6
+		return mpcUnit->ErrorOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
 	}
 	if (!psTo->HasQualifiersOf(psFrom))
 	{
@@ -4325,6 +4422,44 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 bool CCPP65TypeChecker::CanChange(SCPP65Type* psPlace, CCPPSyntax* pcNode)
 {
 	return !psPlace->bConst || Error(pcNode, "A const object cannot be changed");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcExpression is a bit-field (CCPPUnit::BitFieldOf), asked only
+// of what can be one: a name the parser left as a field's (BitFieldOf binds
+// a name in a quiet trial, and a variable's name is never one), a member
+// after . or ->, and c ? x : y.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsBitField(CCPPSyntax* pcExpression)
+{
+	CCPPSymbol*	pcSymbol;
+
+	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	switch (pcExpression->GetKind())
+	{
+	case CPPS_IdExpression:
+		pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
+		return pcSymbol && (pcSymbol->meKind == CPPSK_Field) && (mpcUnit->BitFieldOf(pcExpression) != NULL);
+	case CPPS_MemberExpression:
+	case CPPS_ConditionalExpression:
+		return mpcUnit->BitFieldOf(pcExpression) != NULL;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bit-field's address taken, or a reference that isn't const bound to it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::BitFieldError(CCPPSyntax* pcNode)
+{
+	return Error(pcNode, "A bit-field has no address: it can't be pointed to or bound to a reference that isn't const");
 }
 
 

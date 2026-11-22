@@ -1081,7 +1081,7 @@ bool CCPP65IRFrontEnd::DynamicCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefere
 	}
 	if (!pcFrom->IsPolymorphic())
 	{
-		mpcUnit->ReportError(pcCast, "The operand of dynamic_cast is not polymorphic");
+		mpcUnit->ReportOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
 		return Unsupported(__FILE__, __LINE__);
 	}
 
@@ -1419,7 +1419,13 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		{
 			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression, psPlace);
 		}
-		if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
+		if (!psType)
+		{
+			//C++ that is wrong (a cast from a virtual base to a class derived from it): the type checker says what.
+			mpcUnit->ReportTypeOf(pcExpression);
+			return Unsupported(__FILE__, __LINE__);
+		}
+		if (!psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}

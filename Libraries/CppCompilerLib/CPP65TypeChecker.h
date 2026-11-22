@@ -121,6 +121,8 @@ protected:
 	SCPP65Type*		Operate(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Type* psRight, CCPPSyntax* pcNode);
 	bool			Compare(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type* psLeft, SCPP65Type* psRight);
 	bool			CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNode);
+	bool			BitFieldError(CCPPSyntax* pcNode);
+	bool			IsBitField(CCPPSyntax* pcExpression);
 	bool			Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65Type** ppsLeft, SCPP65Type** ppsRight);
 	SCPP65Type*		Operand(CCPPSyntax* pcExpression);
 	SCPP65Type*		ConditionalExpression(CCPPSyntaxConditionalExpression* pcConditional);

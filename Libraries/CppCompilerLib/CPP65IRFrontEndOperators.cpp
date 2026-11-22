@@ -1021,7 +1021,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		if (pcVariable->mpsType->IsArray())
 		{
 			//[stmt.select] 2
-			return mpcUnit->ReportError(pcExpression, "A condition's variable isn't an array");
+			return mpcUnit->ReportOnce(pcExpression, "A condition's variable isn't an array");
 		}
 		if (pcVariable->mpsType->IsClass())
 		{

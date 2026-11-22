@@ -627,7 +627,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		if (papcElements->NumElements() != 1)
 		{
 			//[dcl.init] 17.8
-			return mpcUnit->ReportError(pcInitialiser, "A number or a pointer is initialised by one value");
+			return mpcUnit->ReportOnce(pcInitialiser, "A number or a pointer is initialised by one value");
 		}
 		pcInitialiser = papcElements->GetPtr(0);
 	}
@@ -659,7 +659,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		if (papcElements->NumElements() != 1)
 		{
 			//[dcl.init.list] 3
-			return mpcUnit->ReportError(pcInitialiser, "A number or a pointer is initialised by one value");
+			return mpcUnit->ReportOnce(pcInitialiser, "A number or a pointer is initialised by one value");
 		}
 		pcInitialiser = papcElements->GetPtr(0);
 		if (!mpcUnit->CheckBracedValue(pcInitialiser, psPlace->psType))
@@ -778,7 +778,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		return false;
 	}
 	//[dcl.init.aggr] 7
-	return (uiNext >= papcElements->NumElements()) || mpcUnit->ReportError(pcInitialiser, "More initialisers than the array's elements take");
+	return (uiNext >= papcElements->NumElements()) || mpcUnit->ReportOnce(pcInitialiser, "More initialisers than the array's elements take");
 }
 
 

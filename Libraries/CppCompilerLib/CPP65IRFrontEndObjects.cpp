@@ -2368,7 +2368,7 @@ bool CCPP65IRFrontEnd::CopyDeleted(CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::AssignmentDeleted(CCPPSyntax* pcNode)
 {
-	mpcUnit->ReportError(pcNode, "The object cannot be assigned: its class has a const or reference member, or declares a move and no copy");
+	mpcUnit->ReportOnce(pcNode, "The object cannot be assigned: its class has a const or reference member, or declares a move and no copy");
 	return Unsupported(__FILE__, __LINE__);
 }
 

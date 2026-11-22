@@ -534,6 +534,7 @@ public:
 	SCPPLambda*				BodyLambda(CCPPFunction* pcFunction);
 	bool					LambdaError(SCPPLambda* psLambda, CCPPSyntax* pcNode, const char* szMessage);
 	bool					ReportOnce(CCPPSyntax* pcNode, const char* szMessage);
+	bool					ErrorOnce(CCPPSyntax* pcNode, const char* szMessage);
 	SCPPLambdaCapture*		FindCapture(CCPPSymbol* pcSymbol);
 	CCPPFunction*			OuterFunction(void);
 	CCPPClass*				ThisClass(void);
@@ -545,6 +546,12 @@ public:
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					CheckCaseInSwitch(CCPPSyntax* pcCase);
 	bool					CheckBlockDeclaration(CCPPSyntax* pcDeclaration);
+	bool					CheckJump(CCPPSyntax* pcJump, bool bContinue);
+	bool					IsJumpGuardedLocal(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPSyntaxInitDeclarator* pcInit);
+	void					LocalsInScope(CCPPSyntax* pcNode, CCPPSyntax* pcRoot, CArraySyntax* papcLocals);
+	CCPPSyntax*				FindLabel(CCPPSyntax* pcNode, int iNameToken);
+	bool					CheckGoto(CCPPSyntaxGotoStatement* pcGoto);
+	SCPP65Type*				ConditionVariableType(CCPPSyntax* pcCondition);
 	const char*				StringArrayError(CCPPSyntax* pcString, SCPP65Type* psElement);
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier);
@@ -726,6 +733,7 @@ public:
 	bool					CheckAbstractSignature(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 	SCPP65Type*				SwitchType(CCPPSyntaxSwitchStatement* pcSwitch);
 	bool					CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psType);
+	void					CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psType);
 	void					SwitchCases(CCPPSyntax* pcNode, CArraySyntax* papcCases);
 	bool					SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope);
 	bool					CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* pcReturn);

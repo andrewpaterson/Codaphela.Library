@@ -108,7 +108,7 @@ bool CCPP65IRFrontEnd::DerivedAddress(SIRReference* psAddress, CCPPClass* pcFrom
 	}
 	if (iOffset == CPP_VIRTUAL_PATH)
 	{
-		mpcUnit->ReportError(pcCast, "A pointer or reference to a virtual base can't be cast to a class derived from it");
+		mpcUnit->ReportOnce(pcCast, "A pointer or reference to a virtual base can't be cast to a class derived from it");
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (iOffset != 0)
@@ -155,7 +155,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	}
 	if (!psTo->IsPointer() || !(psTo->psBase->IsClass() || psTo->psBase->IsVoid()))
 	{
-		mpcUnit->ReportError(pcCast, "dynamic_cast needs a pointer to a class or to void");
+		mpcUnit->ReportOnce(pcCast, "dynamic_cast needs a pointer to a class or to void");
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!Value(pcCast->mpcOperand, psValue))
@@ -188,7 +188,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	}
 	if (!pcFrom->IsPolymorphic())
 	{
-		mpcUnit->ReportError(pcCast, "The operand of dynamic_cast is not polymorphic");
+		mpcUnit->ReportOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
 		return Unsupported(__FILE__, __LINE__);
 	}
 

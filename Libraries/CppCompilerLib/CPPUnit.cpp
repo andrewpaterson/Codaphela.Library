@@ -1781,6 +1781,28 @@ bool CCPPUnit::ReportOnce(CCPPSyntax* pcNode, const char* szMessage)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An error (as Error: quiet where it is quiet) unless the same one is
+// already there for the place: for a check of what is typed more than once
+// loudly (dynamic_cast<T&>(x).m is).  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ErrorOnce(CCPPSyntax* pcNode, const char* szMessage)
+{
+	size	i;
+
+	for (i = 0; pcNode && !mcContext.IsQuiet() && (i < mcErrors.NumErrors()); i++)
+	{
+		if ((mcErrors.GetToken(i) == pcNode->miFirstToken) && strstr(mcErrors.Get(i), szMessage))
+		{
+			return false;
+		}
+	}
+	return Error(pcNode, szMessage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // ReportError at a token.
 //
 //////////////////////////////////////////////////////////////////////////
