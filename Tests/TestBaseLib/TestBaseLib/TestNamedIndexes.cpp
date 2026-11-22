@@ -499,6 +499,9 @@ void TestNamedIndexesMoreCacheEviction(void)
 #ifdef BUILD_64
 	AssertLong(1016, cEvictionCounter.EvictionCount());
 	AssertLong(15984, cNamedIndexes.GetSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(1014, cEvictionCounter.EvictionCount());
+	AssertLong(15990, cNamedIndexes.GetSystemMemorySize());
 #else
 	AssertLong(1015, cEvictionCounter.EvictionCount());
 	AssertLong(15692, cNamedIndexes.GetSystemMemorySize());
@@ -531,6 +534,9 @@ void TestNamedIndexesMoreCacheEviction(void)
 #ifdef BUILD_64
 	AssertLong(1018, cEvictionCounter.EvictionCount());
 	AssertLong(15944, cNamedIndexes.GetSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(1017, cEvictionCounter.EvictionCount());
+	AssertLong(15520, cNamedIndexes.GetSystemMemorySize());
 #else
 	AssertLong(1017, cEvictionCounter.EvictionCount());
 	AssertLong(16284, cNamedIndexes.GetSystemMemorySize());

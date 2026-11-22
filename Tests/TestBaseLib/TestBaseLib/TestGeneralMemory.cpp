@@ -14,6 +14,8 @@ void TestGeneralMemorySizeof(void)
 {
 #ifdef BUILD_64
 	AssertSize(320, sizeof(CGeneralMemory));
+#elif defined(__W65C816__)
+	AssertSize(110, sizeof(CGeneralMemory));
 #elif defined(SIZE_16)
 	AssertSize(120, sizeof(CGeneralMemory));
 #else
@@ -52,6 +54,8 @@ void TestGeneralMemoryAdd(void)
 	AssertPointer(pcList, pcListSame);
 #ifdef BUILD_64
 	AssertLSize(65640, cMemory.ByteSize());
+#elif defined(__W65C816__)
+	AssertLSize(65584, cMemory.ByteSize());
 #elif defined(SIZE_16)
 	AssertLSize(65588, cMemory.ByteSize());
 #else
@@ -66,6 +70,8 @@ void TestGeneralMemoryAdd(void)
 	AssertPointer(pv1, pv2);
 #ifdef BUILD_64
 	AssertLSize(65640, cMemory.ByteSize());
+#elif defined(__W65C816__)
+	AssertLSize(65584, cMemory.ByteSize());
 #elif defined(SIZE_16)
 	AssertLSize(65588, cMemory.ByteSize());
 #else
@@ -110,6 +116,8 @@ void TestGeneralMemoryAdd(void)
 	AssertNull(pcList);
 #ifdef BUILD_64
 	AssertLSize(65640, cMemory.ByteSize());
+#elif defined(__W65C816__)
+	AssertLSize(65584, cMemory.ByteSize());
 #elif defined(SIZE_16)
 	AssertLSize(65588, cMemory.ByteSize());
 #else
@@ -151,6 +159,8 @@ void TestGeneralMemoryLargeAdd(void)
 	AssertNotNull(pcList);
 #ifdef BUILD_64
 	AssertLSize(65640, cMemory.ByteSize());
+#elif defined(__W65C816__)
+	AssertLSize(65584, cMemory.ByteSize());
 #elif defined(SIZE_16)
 	AssertLSize(65588, cMemory.ByteSize());
 #else
@@ -165,6 +175,8 @@ void TestGeneralMemoryLargeAdd(void)
 	AssertNull(pcList);
 #ifdef BUILD_64
 	AssertSize(2124, cMemory.ByteSize());
+#elif defined(__W65C816__)
+	AssertSize(2084, cMemory.ByteSize());
 #else
 	AssertSize(2088, cMemory.ByteSize());
 #endif // BUILD_64

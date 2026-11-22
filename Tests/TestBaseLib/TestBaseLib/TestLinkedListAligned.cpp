@@ -40,6 +40,8 @@ void TestLinkedListBlockAlignedAdd(void)
 	}
 #ifdef BUILD_64
 	AssertSize(30315, iPrevTotalSize);
+#elif defined(__W65C816__)
+	AssertSize(25145, iPrevTotalSize);
 #else
 	AssertSize(25615, iPrevTotalSize);
 #endif // BUILD_64

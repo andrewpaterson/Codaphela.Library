@@ -339,7 +339,11 @@ void TestEmbeddedObjectContainerDehollowfication(void)
 
 	uiEmbeddedTestSize = OBJECT_SIZE + sizeof(int32) + sizeof(float) + POINTER_SIZE;
 	AssertLayoutSize(sizeof(CEmbeddedTest), uiEmbeddedTestSize);
+#ifdef __W65C816__
+	uiEmbeddedContainerSize = OBJECT_SIZE + 4 + uiEmbeddedTestSize + sizeof(int32) + uiEmbeddedTestSize + sizeof(float) + POINTER_SIZE;  //Nothing is padded past 2 bytes.
+#else
 	uiEmbeddedContainerSize = OBJECT_SIZE + 4 + uiEmbeddedTestSize + sizeof(int32) + uiEmbeddedTestSize + sizeof(float) + POINTER_SIZE + 12  /* random padding I assume */;
+#endif // __W65C816__
 	AssertLayoutSize(sizeof(CEmbeddedContainer), uiEmbeddedContainerSize);
 	AssertLayoutSize(sizeof(CEmbeddedComplex), OBJECT_SIZE + uiEmbeddedTestSize + sizeof(int32) * 2 + sizeof(CArray<>) + uiEmbeddedContainerSize + POINTER_SIZE);
 

@@ -212,6 +212,8 @@ void TestIndexedDataFlushClearCache(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertLong(4136LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3098LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3100LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -225,6 +227,9 @@ void TestIndexedDataFlushClearCache(void)
 #ifdef BUILD_64
 	AssertLong(4888LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(139, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3580LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3632LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
@@ -236,6 +241,9 @@ void TestIndexedDataFlushClearCache(void)
 #ifdef BUILD_64
 	AssertLong(4888LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(139, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3580LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3632LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
@@ -262,6 +270,8 @@ void TestIndexedDataFlushClearCache(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertLong(4136 + 32, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3098 + 22, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3100 + 24, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -274,6 +284,9 @@ void TestIndexedDataFlushClearCache(void)
 #ifdef BUILD_64
 	AssertLong(4968LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(139, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3638LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3692LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
@@ -284,6 +297,8 @@ void TestIndexedDataFlushClearCache(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertLong(4968LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3638LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3692LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -309,6 +324,8 @@ void TestIndexedDataFlushClearCache(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertLong(4136 + 32, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3098 + 22, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3100 + 24, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -322,6 +339,8 @@ void TestIndexedDataFlushClearCache(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertLong(4968LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3638LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3692LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -339,6 +358,9 @@ void TestIndexedDataFlushClearCache(void)
 #ifdef BUILD_64
 	AssertLong(4968LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(139, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3638LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3692LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
@@ -374,6 +396,8 @@ void TestIndexedDataExplicitKeyEvictionOneKey(void)
 
 #ifdef BUILD_64
 	AssertSize(40, sizeof(CIndexedDataDescriptor));
+#elif defined(__W65C816__)
+	AssertSize(24, sizeof(CIndexedDataDescriptor));
 #else
 	AssertSize(32, sizeof(CIndexedDataDescriptor));
 #endif // BUILD_64
@@ -391,6 +415,8 @@ void TestIndexedDataExplicitKeyEvictionOneKey(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertSize(4136, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLSize(3098, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLSize(3100, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -408,6 +434,9 @@ void TestIndexedDataExplicitKeyEvictionOneKey(void)
 #ifdef BUILD_64
 	AssertLong(4632LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(46, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3424LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(30, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3452LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(30, cIndexedData.GetDataSystemMemorySize());
@@ -419,6 +448,8 @@ void TestIndexedDataExplicitKeyEvictionOneKey(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertLong(4136LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3098LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3100LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -458,6 +489,8 @@ void TestIndexedDataExplicitKeyEvictionAllKeys(void)
 
 #ifdef BUILD_64
 	AssertSize(40, sizeof(CIndexedDataDescriptor));
+#elif defined(__W65C816__)
+	AssertSize(24, sizeof(CIndexedDataDescriptor));
 #else
 	AssertSize(32, sizeof(CIndexedDataDescriptor));
 #endif // BUILD_64
@@ -475,6 +508,8 @@ void TestIndexedDataExplicitKeyEvictionAllKeys(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertSize(4136, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLSize(3098, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLSize(3100, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -492,6 +527,9 @@ void TestIndexedDataExplicitKeyEvictionAllKeys(void)
 #ifdef BUILD_64
 	AssertLong(4888LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(139, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3580LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3632LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
@@ -504,6 +542,9 @@ void TestIndexedDataExplicitKeyEvictionAllKeys(void)
 #ifdef BUILD_64
 	AssertLong(4784LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(93, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3520LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(61, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3560LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(61, cIndexedData.GetDataSystemMemorySize());
@@ -516,6 +557,9 @@ void TestIndexedDataExplicitKeyEvictionAllKeys(void)
 #ifdef BUILD_64
 	AssertLong(4680LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(46, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3460LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(30, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3488LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(30, cIndexedData.GetDataSystemMemorySize());
@@ -527,6 +571,8 @@ void TestIndexedDataExplicitKeyEvictionAllKeys(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertLong(4136, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3098, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3100, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -809,6 +855,8 @@ void TestIndexedDataEvictKey(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertSize(4136, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLSize(3098, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLSize(3100, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -823,6 +871,9 @@ void TestIndexedDataEvictKey(void)
 #ifdef BUILD_64
 	AssertLong(4888LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(139, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3580LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3632LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
@@ -835,6 +886,9 @@ void TestIndexedDataEvictKey(void)
 #ifdef BUILD_64
 	AssertLong(4784LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(93, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3520LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(61, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3560LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(61, cIndexedData.GetDataSystemMemorySize());
@@ -847,6 +901,9 @@ void TestIndexedDataEvictKey(void)
 #ifdef BUILD_64
 	AssertLong(4680LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(47, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3460LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(31, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3488LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(31, cIndexedData.GetDataSystemMemorySize());
@@ -858,6 +915,8 @@ void TestIndexedDataEvictKey(void)
 	AssertLSize(0, cIndexedData.NumDataCached());
 #ifdef BUILD_64
 	AssertLong(4136LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3098LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3100LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -872,6 +931,9 @@ void TestIndexedDataEvictKey(void)
 #ifdef BUILD_64
 	AssertLong(4696LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(46, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3472LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(30, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3500LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(30, cIndexedData.GetDataSystemMemorySize());
@@ -886,6 +948,9 @@ void TestIndexedDataEvictKey(void)
 #ifdef BUILD_64
 	AssertLong(4816LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(93, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3544LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(61, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3584LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(61, cIndexedData.GetDataSystemMemorySize());
@@ -900,6 +965,9 @@ void TestIndexedDataEvictKey(void)
 #ifdef BUILD_64
 	AssertLong(4936LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertSize(139, cIndexedData.GetDataSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3616LL, cIndexedData.GetIndiciesSystemMemorySize());
+	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
 #else
 	AssertLong(3668LL, cIndexedData.GetIndiciesSystemMemorySize());
 	AssertLSize(91, cIndexedData.GetDataSystemMemorySize());
@@ -977,6 +1045,8 @@ void TestIndexedDataIndexEviction(void)
 
 #ifdef BUILD_64
 	AssertSize(40, sizeof(CIndexedDataDescriptor));
+#elif defined(__W65C816__)
+	AssertSize(24, sizeof(CIndexedDataDescriptor));
 #else
 	AssertSize(32, sizeof(CIndexedDataDescriptor));
 #endif // BUILD_64
@@ -989,6 +1059,8 @@ void TestIndexedDataIndexEviction(void)
 	//A little more than two items in the index cache...
 #ifdef BUILD_64
 	uiIndexCacheSize = 4804;
+#elif defined(__W65C816__)
+	uiIndexCacheSize = 3540;
 #else
 	uiIndexCacheSize = 3580;
 #endif // BUILD_64
@@ -1004,6 +1076,8 @@ void TestIndexedDataIndexEviction(void)
 	AssertLSize(sizeof(SIndexedCacheDescriptor) + 6, cIndexedData.TestGetCachedObjectSize(4LL));
 #ifdef BUILD_64
 	AssertLong(4632LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3424LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3452LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1015,6 +1089,8 @@ void TestIndexedDataIndexEviction(void)
 	AssertLSize(sizeof(SIndexedCacheDescriptor) + 6, cIndexedData.TestGetCachedObjectSize(1LL));
 #ifdef BUILD_64
 	AssertLong(4784LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3520LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3560LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1024,6 +1100,8 @@ void TestIndexedDataIndexEviction(void)
 	AssertTrue(cIndexedData.Add(2LL, szStream, 7));  //Node 4LL evicted here.
 #ifdef BUILD_64
 	AssertLong(4784LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3520LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3560LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1526,6 +1604,8 @@ void TestIndexedDataDescriptorCaching(void)
 	//The index cache fills after a few more keys than the first three.  The nodes are bigger in a 64 bit build.
 #ifdef BUILD_64
 	uiIndexCacheSize = 4964;
+#elif defined(__W65C816__)
+	uiIndexCacheSize = 3638;
 #else
 	uiIndexCacheSize = 3690;
 #endif // BUILD_64
@@ -1552,6 +1632,8 @@ void TestIndexedDataDescriptorCaching(void)
 	AssertSize(0, cIndexedDataEvictedList.NumElements());
 #ifdef BUILD_64
 	AssertLong(4872LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3568LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3620LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1564,6 +1646,8 @@ void TestIndexedDataDescriptorCaching(void)
 	Pass();
 #ifdef BUILD_64
 	AssertLong(4872LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3568LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3620LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1578,6 +1662,8 @@ void TestIndexedDataDescriptorCaching(void)
 	Pass();
 #ifdef BUILD_64
 	AssertLong(4888LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3580LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3632LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1591,6 +1677,8 @@ void TestIndexedDataDescriptorCaching(void)
 	Pass();
 #ifdef BUILD_64
 	AssertLong(4904LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3592LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3644LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1604,6 +1692,8 @@ void TestIndexedDataDescriptorCaching(void)
 	Pass();
 #ifdef BUILD_64
 	AssertLong(4920LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3604LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3656LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1617,6 +1707,8 @@ void TestIndexedDataDescriptorCaching(void)
 	Pass();
 #ifdef BUILD_64
 	AssertLong(4936LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3616LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3668LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1630,6 +1722,8 @@ void TestIndexedDataDescriptorCaching(void)
 	Pass();
 #ifdef BUILD_64
 	AssertLong(4952LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3628LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3680LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1642,6 +1736,8 @@ void TestIndexedDataDescriptorCaching(void)
 	AssertSize(0, cIndexedDataEvictedList.NumElements());
 #ifdef BUILD_64
 	AssertLong(4952LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3628LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3680LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1654,6 +1750,8 @@ void TestIndexedDataDescriptorCaching(void)
 	AssertSize(2, cIndexTreeEvictedList.NumElements());
 #ifdef BUILD_64
 	AssertLong(4864LL, cIndexedData.GetIndiciesSystemMemorySize());
+#elif defined(__W65C816__)
+	AssertLong(3580LL, cIndexedData.GetIndiciesSystemMemorySize());
 #else
 	AssertLong(3620LL, cIndexedData.GetIndiciesSystemMemorySize());
 #endif // BUILD_64
@@ -1730,6 +1828,8 @@ void TestIndexedDataNoCaching(void)
 	//The nodes are bigger in a 64 bit build.
 #ifdef BUILD_64
 	uiIndexCacheSize = 4920;
+#elif defined(__W65C816__)
+	uiIndexCacheSize = 3618;
 #else
 	uiIndexCacheSize = 3670;
 #endif // BUILD_64

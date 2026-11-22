@@ -823,6 +823,9 @@ void TestIndexTreeMemoryRemoveResize(void)
 #ifdef BUILD_64
 	AssertSize(24, cIndex.SizeofNode());
 	AssertSize(8, cIndex.SizeofNodePtr());
+#elif defined(__W65C816__)
+	AssertSize(14, cIndex.SizeofNode());
+	AssertSize(4, cIndex.SizeofNodePtr());
 #else
 	AssertSize(16, cIndex.SizeofNode());
 	AssertSize(4, cIndex.SizeofNodePtr());
@@ -831,6 +834,9 @@ void TestIndexTreeMemoryRemoveResize(void)
 #ifdef BUILD_64
 	AssertSize(2072, iExpectedRootSize);
 	AssertSize(2072, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertSize(1038, iExpectedRootSize);
+	AssertLSize(1038, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertSize(1040, iExpectedRootSize);
 	AssertLSize(1040, cTrackingAlloc.AllocatedUserSize());
@@ -842,6 +848,9 @@ void TestIndexTreeMemoryRemoveResize(void)
 #ifdef BUILD_64
 	AssertSize(2104, iExpectedRootSize + sizeof(CIndexTreeNodeMemory) + sizeof(int64));
 	AssertSize(2128, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertSize(1060, iExpectedRootSize + sizeof(CIndexTreeNodeMemory) + sizeof(int64));
+	AssertLSize(1070, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertSize(1064, iExpectedRootSize + sizeof(CIndexTreeNodeMemory) + sizeof(int64));
 	AssertLSize(1076, cTrackingAlloc.AllocatedUserSize());
@@ -850,6 +859,8 @@ void TestIndexTreeMemoryRemoveResize(void)
 	li = 0x88LL; cAccess.PutStringLong("MA", li);
 #ifdef BUILD_64
 	AssertSize(2192, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertLSize(1106, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertLSize(1116, cTrackingAlloc.AllocatedUserSize());
 #endif // BUILD_64
@@ -858,6 +869,8 @@ void TestIndexTreeMemoryRemoveResize(void)
 	AssertSize(3, cIndex.RecurseSize());
 #ifdef BUILD_64
 	AssertSize(2264, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertLSize(1146, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertLSize(1160, cTrackingAlloc.AllocatedUserSize());
 #endif // BUILD_64
@@ -867,6 +880,8 @@ void TestIndexTreeMemoryRemoveResize(void)
 	AssertSize(4, cIndex.RecurseSize());
 #ifdef BUILD_64
 	AssertSize(2320, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertLSize(1178, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertLSize(1196, cTrackingAlloc.AllocatedUserSize());
 #endif // BUILD_64
@@ -877,6 +892,8 @@ void TestIndexTreeMemoryRemoveResize(void)
 	AssertSize(5, cIndex.NumElements());
 #ifdef BUILD_64
 	AssertSize(2384, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertLSize(1214, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertLSize(1236, cTrackingAlloc.AllocatedUserSize());
 #endif // BUILD_64
@@ -888,6 +905,8 @@ void TestIndexTreeMemoryRemoveResize(void)
 	AssertSize(4, cIndex.NumElements());
 #ifdef BUILD_64
 	AssertSize(2352, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertLSize(1196, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertLSize(1216, cTrackingAlloc.AllocatedUserSize());
 #endif // BUILD_64
@@ -900,6 +919,8 @@ void TestIndexTreeMemoryRemoveResize(void)
 	AssertSize(3, cIndex.NumElements());
 #ifdef BUILD_64
 	AssertSize(2264, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertLSize(1146, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertLSize(1160, cTrackingAlloc.AllocatedUserSize());
 #endif // BUILD_64
@@ -913,6 +934,8 @@ void TestIndexTreeMemoryRemoveResize(void)
 	AssertSize(2, cIndex.NumElements());
 #ifdef BUILD_64
 	AssertSize(2192, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertLSize(1106, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertLSize(1116, cTrackingAlloc.AllocatedUserSize());
 #endif // BUILD_64
@@ -925,6 +948,8 @@ void TestIndexTreeMemoryRemoveResize(void)
 	AssertSize(1, cIndex.NumElements());
 #ifdef BUILD_64
 	AssertSize(2128, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertLSize(1070, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertLSize(1076, cTrackingAlloc.AllocatedUserSize());
 #endif // BUILD_64
@@ -937,6 +962,8 @@ void TestIndexTreeMemoryRemoveResize(void)
 	AssertSize(0, cIndex.NumElements());
 #ifdef BUILD_64
 	AssertSize(2072, cTrackingAlloc.AllocatedUserSize());
+#elif defined(__W65C816__)
+	AssertLSize(1038, cTrackingAlloc.AllocatedUserSize());
 #else
 	AssertLSize(1040, cTrackingAlloc.AllocatedUserSize());
 #endif // BUILD_64
@@ -1707,6 +1734,10 @@ void TestIndexTreeMemorySizeOfs(void)
 	AssertSize(2072, tRootNodeSize);
 	AssertSize(24, tNodeSize);
 	AssertSize(8, tNodePointer);
+#elif defined(__W65C816__)
+	AssertSize(1038, tRootNodeSize);
+	AssertSize(14, tNodeSize);
+	AssertSize(4, tNodePointer);
 #else
 	AssertSize(1040, tRootNodeSize);
 	AssertSize(16, tNodeSize);

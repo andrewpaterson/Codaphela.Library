@@ -488,11 +488,16 @@ B. Gaps that are known.  Each was probed against g++; none is common.
       CheckBaseMemberName, from CCPPBinder::BindName and the declarators' named types; cases
       DerivedLookupAmbiguous*Refused and DerivedLookupOneMeaning).  A member of a class in its own definition
       outside a function isn't checked.
-   7. On the W65C816 a frame is D + offset with D wherever S was, so a local is aligned as alignas asks (clause 3
-      item 4) but not as its type alone does: (uintptr_t)&i % alignof(int) can be 1.  Aligning every frame would cost
-      every call; the user hasn't been asked.
+   7. Done 2026-11-22 (W65C816AlignmentPlan.txt; the user: "Plan capping the padding at 2 bytes and making the
+      alignof 1", then "Complete the entire plan"): on the W65C816 alignof is 1 for every type alignas hasn't
+      aligned, so a local at any byte is where its type allows, at no cost to a call.  BasicAlignmentLocals.
    8. Done: switch (C c = ...) with C a class converted to an integer works (it had been fixed before 2026-11-22
       without this list knowing; StmtSwitchDeclaredObjectCondition).
+   9. Found doing 7: on the 65C64 a frame's places are multiples of 4 (CCPPTarget::GetFrameAlignment), so a double
+      or long long local is at a multiple of 4 while alignof says 8 (a probe of BasicAlignmentLocals with a double
+      returns 19 of 31 there; the case as kept has no 8 byte local).  CCPPTarget's GetObjectAlignmentLimit returning 4
+      for the 65C64 would make alignof say 4 and leave its class layouts as they are; the user ruled that the 65C64
+      doesn't change with 7, and hasn't been asked about this.
 
 C. Checks that are owed.
    1. A Microsoft build of CppCompilerLib and TestCppCompilerLib.  Everything since 2026-11-19 was built with g++

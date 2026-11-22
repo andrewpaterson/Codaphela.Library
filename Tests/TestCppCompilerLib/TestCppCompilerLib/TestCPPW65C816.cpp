@@ -305,6 +305,180 @@ int32 TestCPP816Run(const char* szSource, bool bLockstep = false)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The programs both targets lay out (TestCPP65Context.h), with what main
+// returns on the W65C816 and on the 65C64.
+//
+//////////////////////////////////////////////////////////////////////////
+const STestCPP65Layout gasTestCPP65Layouts[] =
+{
+	//A member of 2 bytes or more is at an even offset on the W65C816, and its class a whole number of 2 bytes.
+	{
+		"struct A { char c; long l; };\n"
+		"int main(void) { A a; return sizeof(A) * 100 + (int)((char*)&a.l - (char*)&a) * 10 + alignof(A); }\n",
+		6 * 100 + 2 * 10 + 1, 8 * 100 + 4 * 10 + 4
+	},
+	{
+		"struct D { char c; double d; char e; long long l; };\n"
+		"int main(void) { D d; return sizeof(D) * 1000 + (int)((char*)&d.l - (char*)&d) * 10 + (int)((char*)&d.d - (char*)&d); }\n",
+		20 * 1000 + 12 * 10 + 2, 32 * 1000 + 24 * 10 + 8
+	},
+
+	//A char sized member is anywhere, and a class of them is as big as they are.
+	{
+		"struct B { char c; };\n"
+		"struct C { char a; short b; char c; };\n"
+		"struct F { char c; B b; short s; B t; };\n"
+		"int main(void) { return sizeof(B) + sizeof(C) * 10 + sizeof(F) * 100 + alignof(C) * 1000; }\n",
+		1 + 6 * 10 + 6 * 100 + 1 * 1000, 1 + 6 * 10 + 6 * 100 + 2 * 1000
+	},
+
+	//A member that is a class is placed as its strictest member is, and so is an array of them.
+	{
+		"struct A { char c; long l; };\n"
+		"struct G { char c; A a; char d; A b[2]; };\n"
+		"int main(void) { G g; return sizeof(G) * 100 + (int)((char*)&g.a - (char*)&g) * 10 + (int)((char*)&g.b - (char*)&g); }\n",
+		22 * 100 + 2 * 10 + 10, 32 * 100 + 4 * 10 + 16
+	},
+
+	//alignof is 1 on the W65C816 for every type alignas hasn't aligned.
+	{
+		"int main(void) { return alignof(short) + alignof(long) * 10 + alignof(double) * 100 + alignof(void*) * 1000 + alignof(long long[3]) * 10000; }\n",
+		1 + 1 * 10 + 1 * 100 + 1 * 1000 + 1 * 10000, 2 + 4 * 10 + 8 * 100 + 4 * 1000 + 8 * 10000
+	},
+	{
+		"enum E { X };\n"
+		"struct S { long l; };\n"
+		"int main(void) { return alignof(E) + alignof(long S::*) * 10 + alignof(long&) * 100 + alignof(S) * 1000 + alignof(S[2]) * 10000; }\n",
+		1 + 1 * 10 + 1 * 100 + 1 * 1000 + 1 * 10000, 4 + 4 * 10 + 4 * 100 + 4 * 1000 + 4 * 10000
+	},
+
+	//alignas asks for more and gets it: of a class (as a member too), a global and a local.  alignas(long) is alignof(long).
+	{
+		"struct alignas(8) A8 { char c; };\n"
+		"struct H { char c; A8 a; };\n"
+		"struct alignas(long) L { char c; };\n"
+		"alignas(8) char gc[3];\n"
+		"char gpad;\n"
+		"A8 ga;\n"
+		"int main(void)\n"
+		"{\n"
+		"	char pad = 1;\n"
+		"	alignas(8) char lc[3];\n"
+		"	A8 la;\n"
+		"	H lh;\n"
+		"	int r = alignof(A8) + sizeof(A8) * 10 + sizeof(H) * 100 + sizeof(L) * 2000;\n"
+		"	lc[0] = pad; la.c = pad; lh.c = pad; gpad = pad;\n"
+		"	if (((unsigned long)gc % 8 == 0) && ((unsigned long)&ga % 8 == 0) && ((unsigned long)lc % 8 == 0) && ((unsigned long)&la % 8 == 0) && ((unsigned long)&lh.a % 8 == 0)) r += 10000;\n"
+		"	return r + lc[0] + la.c + lh.c + gpad - 4;\n"
+		"}\n",
+		8 + 8 * 10 + 16 * 100 + 1 * 2000 + 10000, 8 + 8 * 10 + 16 * 100 + 4 * 2000 + 10000
+	},
+
+	//#pragma pack only ever lowers a member's alignment: pack(1) packs to 1, and pack(4) and pack(8) change nothing on the
+	//W65C816, whose members are at even offsets at most.
+	{
+		"#pragma pack(push, 1)\n"
+		"struct P1 { char c; long l; };\n"
+		"#pragma pack(pop)\n"
+		"#pragma pack(push, 4)\n"
+		"struct P4 { char c; double d; };\n"
+		"#pragma pack(pop)\n"
+		"#pragma pack(push, 8)\n"
+		"struct P8 { char c; long l; };\n"
+		"#pragma pack(pop)\n"
+		"int main(void) { return sizeof(P1) + sizeof(P4) * 10 + sizeof(P8) * 100 + alignof(P4) * 1000; }\n",
+		5 + 10 * 10 + 6 * 100 + 1 * 1000, 5 + 12 * 10 + 8 * 100 + 4 * 1000
+	},
+
+	//A bit-field's unit is placed as a member of its type is.
+	{
+		"struct BF { char c; long x : 3; long y : 5; char d; };\n"
+		"struct BS { char c; short x : 3; char d; };\n"
+		"int main(void)\n"
+		"{\n"
+		"	BF f;\n"
+		"	f.x = 3; f.y = 9; f.d = 1;\n"
+		"	return sizeof(BF) * 100 + (int)(&f.d - &f.c) * 10 + sizeof(BS) + ((f.x + f.y == 12) ? 1000 : 0);\n"
+		"}\n",
+		8 * 100 + 6 * 10 + 6 + 1000, 12 * 100 + 8 * 10 + 6 + 1000
+	},
+
+	//A base takes its whole size, and the vtable pointer is a member of 4 bytes.
+	{
+		"struct Base { long l; char c; };\n"
+		"struct Derived : Base { char d; };\n"
+		"struct V { virtual int F(void) { return 1; } char c; };\n"
+		"struct W : V { long l; };\n"
+		"int main(void) { W w; return sizeof(Base) + sizeof(Derived) * 10 + sizeof(V) * 100 + sizeof(W) * 1000 + w.F() - 1; }\n",
+		6 + 8 * 10 + 6 * 100 + 10 * 1000, 8 + 12 * 10 + 8 * 100 + 12 * 1000
+	},
+
+	//A union is as big as a whole number of its strictest member's alignment.
+	{
+		"union U { char c; long l; short s[3]; };\n"
+		"int main(void) { return sizeof(U) * 10 + alignof(U); }\n",
+		6 * 10 + 1, 8 * 10 + 4
+	},
+
+	//An array's elements are a class's size apart.
+	{
+		"struct A { char c; long l; };\n"
+		"A ga[4];\n"
+		"int main(void)\n"
+		"{\n"
+		"	long s = 0;\n"
+		"	for (int i = 0; i < 4; i++) { ga[i].c = (char)i; ga[i].l = 1000L * i; }\n"
+		"	for (int i = 0; i < 4; i++) { s += ga[i].l + ga[i].c; }\n"
+		"	return (int)s + (int)((char*)&ga[3] - (char*)&ga[0]);\n"
+		"}\n",
+		6006 + 18, 6006 + 24
+	},
+
+	//Globals are placed as their types are aligned: on the W65C816 one follows another with nothing between them (the
+	//linker keeps a unit's data in the order it is declared).
+	{
+		"char ga = 1;\n"
+		"long gb = 2;\n"
+		"char gc = 3;\n"
+		"long gd = 4;\n"
+		"char ge = 5;\n"
+		"long gf = 6;\n"
+		"int main(void)\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if ((char*)&gb - &ga == 1) r += 1;\n"
+		"	if (&gc - (char*)&gb == 4) r += 2;\n"
+		"	if ((char*)&gd - &gc == 1) r += 4;\n"
+		"	if (&ge - (char*)&gd == 4) r += 8;\n"
+		"	if ((char*)&gf - &ge == 1) r += 16;\n"
+		"	return r + (int)((char*)&gf - &ga) * 100;\n"
+		"}\n",
+		31 + 11 * 100, 10 + 20 * 100
+	},
+
+	{ NULL, 0, 0 }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Nothing is aligned past a byte unless alignas asks it, and a class's
+// members are padded to 2 bytes at most.  W65C816AlignmentPlan.txt
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816Alignment(void)
+{
+	size	i;
+
+	for (i = 0; gasTestCPP65Layouts[i].szSource; i++)
+	{
+		AssertInt(gasTestCPP65Layouts[i].iW65C816, TestCPP816Run(gasTestCPP65Layouts[i].szSource));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Basics(void)
@@ -1769,14 +1943,13 @@ void TestCPP816Statements(void)
 		"}\n"
 		"int main(void) { return Pick(0) + Pick(1) + Pick(5) + Pick(9); }\n"));
 
-	//alignas on a class and on members lays them out as MSVC does (BaseLib reads and writes them as raw bytes), also
-	//inside #pragma pack(1).
+	//alignas on a class and on members is kept, also inside #pragma pack(1); alignas(long) is alignof(long), which is 1.
 	AssertInt(8 + 8 * 10 + 16 * 100 + 8 * 1000, TestCPP816Run(
 		"struct alignas(8) A { char c; };\n"
 		"struct B { char c; alignas(4) char d; };\n"
 		"struct C { char c; A a; };\n"
 		"int main(void) { C c; return sizeof(A) + sizeof(B) * 10 + sizeof(C) * 100 + (int)((char*)&c.a - (char*)&c) * 1000; }\n"));
-	AssertInt(4 + 8 * 10 + 4 * 100, TestCPP816Run(
+	AssertInt(1 + 8 * 10 + 4 * 100, TestCPP816Run(
 		"struct alignas(long) D { char c; };\n"
 		"#pragma pack(push, 1)\n"
 		"struct P { char c; alignas(4) int i; };\n"
@@ -6864,6 +7037,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816DivisibilityTests());
 	TEST_PART(TestCPP816IntIndexPointers());
 	TEST_PART(TestCPP816NarrowCounters());
+	TEST_PART(TestCPP816Alignment());
 	TEST_PART(TestCPP816AlignedFrames());
 	TEST_PART(TestCPP816AlignedBigFrameArguments());
 	TEST_PART(TestCPP816AlignedFrameUnreadArguments());

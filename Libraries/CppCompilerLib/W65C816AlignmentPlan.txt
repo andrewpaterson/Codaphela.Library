@@ -1,9 +1,10 @@
 W65C816 alignment plan
 ======================
 
-Written 2026-11-22 for the session that builds it.  Read all of it before starting: the user's rulings and the house
-rules come first, then the facts, then the steps in order.  Nothing here has been built.  Start only when the user
-says to: a plan agreed is not a go-ahead.
+Written 2026-11-22 for the session that builds it, and built the same day (the user: "Complete the entire plan.
+Clean up and commit with no co-author as you go.  Keep a list of questions for me as necessary and make sure the code
+remains DRY and elegant.").  Sections 1 to 5 are the plan as it was written, for the record; section 6 is what was
+built, 7 the count and the survey, 8 step 10's measurement and 9 the questions kept for the user.
 
 
 1. What the user decided (2026-11-22)
@@ -196,3 +197,159 @@ README.txt.  Each starts with S=<a scratch folder>: point it at your own first (
 Without the scripts: build CommonLibraries/Tests/TestCppCompilerLib with CMake (Release, -DBASELIB_64=ON) and run
 RunParallel.py -exe <the test> -jobs 12 from Tests/TestCppCompilerLib; the *65 tests take the target as their
 argument (65C64 or W65C816).
+
+
+6. What was built (2026-11-22)
+------------------------------
+
+The compiler (the whole change is about 110 lines):
+  - CCPPTarget::GetObjectAlignmentLimit: the most an object is aligned to unless alignas asks more (0 for no limit).
+    1 for the W65C816.  CCPPUnit::ObjectAlignment(type) is a type's alignment under it, which alignof, alignas(type)
+    and CCPPUnit::VariableAlignment use; CCPPUnit::DataAlignment (a global's or a static's .align) is limited by it.
+  - CCPPTarget::GetMemberAlignmentLimit: the most a class's member is aligned to unless alignas asks more.  2 for
+    the W65C816.  CCPPUnit::LayoutClass gives the layout the lesser of it and #pragma pack's bytes as its pack.
+  - CCPPClassLayout::LimitedAlignment(type, limit): a type's alignment under a limit, but never less than alignas
+    asks of the type.  Both of the above are it, with a different limit; the layout places bases, virtual bases,
+    fields and bit-field units with it.
+  The plan's IsByteAligned became a limit like the member's, so one function serves both.
+
+Two things the plan didn't say, decided while building (both are in the questions):
+  - alignas on a member's or a base's class is kept in a packed class, and so under the W65C816's limit: before,
+    struct alignas(8) A; in a #pragma pack(1) class was placed at any byte, and the limit of 2 would have put every
+    such member at an even offset only.  MSVC keeps it (its "required alignment"); g++ doesn't.  A field's own
+    alignas was already kept.  TestCPPClassLayoutPackAndAlignas.
+  - The plan's switch (CPP65_ALIGN_816 in the environment) and dump (CPP65_DUMP_LAYOUTS) were committed with step 1
+    (699749946), used for the count, and are gone again: the target just answers.
+
+What depended on the layouts and was changed (step 5):
+  - BaseLib/FatW65C816.inc regenerated (39 values moved).  The FAT assembly uses only its names; its word copies
+    (ldy SIZEOF_x - 2) need even sizes, which every class with a member of 2 bytes or more still has.  The FAT tests
+    pass on the W65C816, and the kernal boots from a card with it.
+  - HCP65's TestHCP65Kernal.cpp read SKernalStatus from MPU RAM at offsets with 4 byte alignment written in
+    (uiHeapPeak at 52).  It now reads the members one after another (TestKernalRead16, TestKernalRead32), which is
+    the W65C816's layout of a struct of 2 and 4 byte members; uiMainBanks, the last, is asserted after a boot, which
+    is what notices the two sides drifting apart (it is how this was found: 52428 for 64).
+  - The tests' expected sizes: 15 files of TestBaseLib and 9 of TestStandardLib gained a W65C816 branch (about 130
+    places) beside the 32 bit and BASELIB_SIZE16 ones, and TestCPPW65C816's alignas(long) case expects 1.  Three
+    tests of TestIndexedData.cpp tune a cache to the nodes' size ("a little more than two items"): the W65C816 has
+    its own cache size there (3540, 3638 and 3618 for 3580, 3690 and 3670) so the same evictions happen.
+
+The tests (step 6):
+  - TestCPPClassLayout: alignas kept for a member, an array member and a base in a packed class.
+  - gasTestCPP65Layouts (TestCPP65Context.h, defined in TestCPPW65C816.cpp): 13 programs with what main returns on
+    each target, run by TestCPP816Alignment and TestCPP65GeneratorLayouts: members at even offsets, 8 byte members,
+    char sized members and classes, member classes and arrays of them, alignof of scalars, pointers, references,
+    member pointers, enums, classes and arrays, alignas of a class, a global and a local, #pragma pack 1, 4 and 8,
+    bit-field units, bases and the vtable pointer, unions, an array's stride, and globals placed one after another.
+  - Conformance case BasicAlignmentLocals (Clause03.txt, g++ checked -m32 and -m64): locals' addresses are multiples
+    of their types' alignment at several depths of call.  It returned 0 on the W65C816 before.
+  - The cases the plan named (BasicAlignment, BasicAlignasObjects, AlignofRules, SizeofRules) compare with alignof
+    and sizeof, never numbers: they pass unchanged.
+
+The docs (step 7): HCP65/Website/docs/compiler/language.md has "Alignment and layout"; Cpp14CompliancePlan.txt B 7 is
+done, and B 9 is new (the 65C64's 8 byte locals, question 4).
+
+
+7. The count and the survey (steps 2 and 3)
+-------------------------------------------
+
+The count: every W65C816 build compiled with the switch off and on, with the dump (the three libraries and their
+tests on both targets, TestLibc65 on both, the twenty HCP65 projects).
+  - 65C64: 2352 classes, every one the same.
+  - W65C816: 2427 classes.  413 the same; 1149 only their alignment (4 or 8 becomes 2 or 1, nothing moves); 370 only
+    their size (padding at the end); 495 with members that move.  The 865 that change size or offsets are declared
+    in 549 files: BaseLib 216, SupportLib 186, StandardLib 76, the tests' own classes 52, HCP65's kernal 7, drivers
+    8 and UserLib 3.
+
+The survey: what outside the compiler assumes a layout that changed.  Found by reading and by running everything
+with the switch on.
+  Depends on it, and fixed (section 6): FatW65C816.inc; TestHCP65Kernal's reader of SKernalStatus; the tests'
+    expected sizes.
+  Looked at and unaffected:
+  - The 29 hand written .asm files.  Kernal/Start.asm reads SKernalCall and gauiKernalIrqSave by offset and
+    KernalInterrupts.asm SKernalInterrupt and uiStrayInterrupts (at 32): none of those moved.  The drivers'
+    assembly (VideoBoardBlit, VideoBoardRender, SoundBoardAudio) and KernalSDCard, KernalCopy and KernalDebug work on
+    globals and arguments, not members.  Libc65's and UserLib's assembly knows no class.
+  - SKernalDeviceROM (the device ROM's fixed part) is 178 bytes for 180, but no field moved and what follows it is
+    found by DEVICE_ROM_REGISTERS_OFFSET, not sizeof.
+  - HCP65SFT.h's records and SChunkFileHeader: the same.
+  - HCP65User.h's SKernalMemoryInfo, SKernalBlit and SKernalDirectoryEntry changed, and CKernalDriver and the
+    drivers' classes: only W65C816 code built by this compiler uses them, so they agree as long as the kernal, the
+    drivers and the programs are built together (question 8).
+  - Host code: HCP65Lib, HCP65Emulator and the IDE's libraries name no kernal global and mirror no W65C816
+    structure (the one mirror was the test's STestKernalStatus).  TestBuildLib passes; HCP65Emulator and HCP65IDE
+    build.
+  - static_assert and offsetof in W65C816 code: none depends on a layout.
+  With the switch on and nothing fixed, the failures were: TestCPPW65C816 1 (alignas(long)); TestBaseLib65 17 (15
+  sizes, 2 the FAT assembly's stale offsets); TestStandardLib65 10 (sizes); TestSupportLib65 0; TestLibc65 0; the
+  twenty HCP65 projects built; TestHCP65Lib stopped in the kernal's boot test (the FAT offsets, then the status
+  reader).  Every one is accounted for above.
+
+
+8. Step 10: what a 16 bit store over a char and its padding would save
+----------------------------------------------------------------------
+
+Measured with a compiler instrumented in a scratch copy (nothing of it is in the tree): CCPP65IRFrontEnd::Store wrote
+down each one byte store, whether it was to a class's member, and whether that member has a byte of padding after
+it; each source line counted once.  Then the libraries' test suites were run on the W65C816 with a profile
+(TEST_PROJECT65_PROFILE), which says how often each line was entered.
+
+  Sites, in the twenty HCP65 projects' code (with the Libc65 and BaseLib units they use):
+    byte stores 7522; to a member 1763; to a member with padding after it 897
+    (the kernal alone: 4043, 1011, 374; modplay: 6320, 1346, 820).
+  Run, 6 cycles for each store to a member with padding after it:
+    TestBaseLib65       29,341,230,924 cycles run;  68,883 such stores;    413,298 cycles, 0.0014% of the run
+    TestStandardLib65   22,405,899,511 cycles run; 137,894 such stores;    827,364 cycles, 0.0037% of the run
+    TestSupportLib65    96,569,602,583 cycles run; 104,499 such stores;    626,994 cycles, 0.0006% of the run
+  (All byte stores run: 16.8, 16.1 and 92.5 million, so every sep and rep around a byte store together is 0.3% to
+  0.6% of those runs.)  The busiest lines are a flag set beside a pointer: LogFile.cpp(532), LifeCycle.h(134),
+  ArrayBlockSorted.cpp(55), MemoryFile.cpp(116), FreeList.cpp(50).
+  It is an upper bound: a store counts whenever its line is entered, and whether the value is already in a 16 bit
+  register isn't asked.
+
+So the optimisation the padding was kept for would save a few thousandths of a percent.  Nothing was built for it
+(questions 1 and 2).
+
+What the layout change itself did to the same suites' programs (the same tests, old layout and new, cycles and
+linked size, for the tests that pass with either):
+    TestBaseLib65       163 tests: cycles 24,437,658,562 to 24,430,656,029 (-0.03%); linked bytes -0.01%
+    TestStandardLib65    56 tests: cycles 21,564,425,807 to 21,550,993,145 (-0.06%); linked bytes -0.05%
+    TestSupportLib65     72 tests: cycles 96,786,208,488 to 96,569,603,087 (-0.22%); linked bytes -0.01%
+  No test moved by more than +1.1% (TestString) or -2.5% (TestIndexAccess, TestMeshEdgeCollapse).  So the change is
+  about free in time and in code; what it saves is data (a CObject is 126 bytes for 144).
+
+
+9. Questions for the user
+-------------------------
+
+Nothing below blocks anything: each has what was done meanwhile.
+
+  1. Padding.  It was kept at 2 "for speed", for the 16 bit store of a char and its padding.  Measured (section 8),
+     that saves at most 0.004% of a run.  Padding to 2 does still keep a class with a wide member a whole number of
+     words, which the FAT assembly's word copies rely on.  Keep 2, or pack to 1?  Done meanwhile: 2, as ruled.  Changing it is CCPPTargetW65C816::GetMemberAlignmentLimit's number, the
+     regenerated FAT offsets and the tests' sizes again.
+  2. The 16 bit store itself: build it?  Not built; the measurement says it isn't worth its code.
+  3. The layout dump (CPP65_DUMP_LAYOUTS=<file>: a line for each class laid out, with its size, alignment and every
+     base's and field's offset).  Removed with the switch; it is in 699749946 (CCPPUnit::DumpLayout).  Should it come
+     back as a proper option (of CCPPCompileOptions, and hcp65build's command line)?  It found the 865 classes in two
+     runs and a diff.
+  4. The 65C64 has the fault B 7 was about, for 8 byte types only: its frames' places are multiples of 4, and
+     alignof(double) and alignof(long long) say 8 (Cpp14CompliancePlan.txt B 9).  CCPPTarget65C64 answering 4 from
+     GetObjectAlignmentLimit would fix it in one line: alignof would say 4, a double global would be at a multiple of
+     4, and no class layout would change.  You ruled that the 65C64 doesn't change, so it wasn't done.
+  5. alignas on a member's or a base's class is now kept in a #pragma pack class, on both targets (section 6).  No
+     class in the libraries or HCP65 is affected (the 65C64's 2352 layouts are the same).  Say if g++'s way (the
+     pack wins) is wanted instead.
+  6. Raw bytes.  BaseLib writes classes as raw bytes, and the W65C816's now differ from a PC's wherever a PC pads
+     to 4 or 8: CIndexedDataDescriptor is 24 bytes for 32, CIndexTreeNodeFile 22 for 24, CFreeList's node 20 for 24.
+     (They already differed wherever a size is a member.)  The BASELIB_SIZE16 host build no longer has the W65C816's
+     sizes, which is why the tests have a third branch.  Is a file written on a PC and read on the HCP65 (an index,
+     a Codabase) wanted?  If so those classes need members that pad the same everywhere; nothing does that today.
+  7. SKernalStatus's last three members moved (uiHeapPeak 52 to 50, uiMainHeapPeak 56 to 54, uiMainBanks 60 to 58).
+     The emulator's test reads it as laid out now.  Anything else that reads it (a debugger script, a tool on the
+     PC) must follow.  Putting uiMainBanks beside uiDriverError would make it the same on a PC and the W65C816; not
+     done, as it moves them again.
+  8. A kernal built now doesn't run drivers or programs built before, and the other way round (HCP65User.h's
+     SKernalBlit, SKernalMemoryInfo and SKernalDirectoryEntry, and CKernalDriver, changed).  Everything in the
+     repositories is built together; an SD card image with old programs needs them rebuilt.
+  9. Not done: a Microsoft build of the change (Cpp14CompliancePlan.txt C 1 is owed anyway; no file was added).

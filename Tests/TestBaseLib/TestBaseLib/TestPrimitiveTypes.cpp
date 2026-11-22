@@ -101,7 +101,9 @@ void TestPrimitiveTypesSizes(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // 64 bit members are aligned to 8 bytes as MSVC does, including inside
-// templates where g++ ignores ALIGN_64 on the template argument.
+// templates where g++ ignores ALIGN_64 on the template argument.  Not on
+// the W65C816, where nothing is aligned past a byte and a member is padded
+// to an even offset at most.
 //
 //////////////////////////////////////////////////////////////////////////
 struct SAlignmentTestInt64
@@ -130,6 +132,22 @@ struct SAlignmentTestInt32Vec2
 
 void TestPrimitiveTypesAlignment(void)
 {
+#ifdef __W65C816__
+	AssertSize(4, offsetof(SAlignmentTestInt64, l));
+	AssertSize(12, sizeof(SAlignmentTestInt64));
+
+	AssertSize(1, alignof(SInt64Vec2));
+	AssertSize(4, offsetof(SAlignmentTestInt64Vec2, v));
+	AssertSize(20, sizeof(SAlignmentTestInt64Vec2));
+
+	AssertSize(1, alignof(SFloat64Vec3));
+	AssertSize(4, offsetof(SAlignmentTestFloat64Vec3, v));
+	AssertSize(28, sizeof(SAlignmentTestFloat64Vec3));
+
+	AssertSize(1, alignof(SInt32Vec2));
+	AssertSize(4, offsetof(SAlignmentTestInt32Vec2, v));
+	AssertSize(12, sizeof(SAlignmentTestInt32Vec2));
+#else
 	AssertSize(8, offsetof(SAlignmentTestInt64, l));
 	AssertSize(16, sizeof(SAlignmentTestInt64));
 
@@ -144,6 +162,7 @@ void TestPrimitiveTypesAlignment(void)
 	AssertSize(4, alignof(SInt32Vec2));
 	AssertSize(4, offsetof(SAlignmentTestInt32Vec2, v));
 	AssertSize(12, sizeof(SAlignmentTestInt32Vec2));
+#endif // __W65C816__
 }
 
 

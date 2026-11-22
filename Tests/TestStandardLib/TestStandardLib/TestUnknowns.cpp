@@ -39,6 +39,8 @@ void TestUnknownListAddKill(void)
 	AssertSize(1, pcMemory->NumElements());
 #ifdef BUILD_64
 	AssertLSize(65640, pcMemory->ByteSize());
+#elif defined(__W65C816__)
+	AssertLSize(65584, pcMemory->ByteSize());
 #elif defined(SIZE_16)
 	AssertLSize(65588, pcMemory->ByteSize());
 #else

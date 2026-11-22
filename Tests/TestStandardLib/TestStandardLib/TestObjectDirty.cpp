@@ -286,11 +286,17 @@ void TestObjectDirtyOnPrimitiveAssignmentWithEmbedded(void)
 	DataIOInit();
 
 	uiTestObjectSize = sizeof(CTestObjectWithFields);
+#ifdef __W65C816__
+	AssertLayoutSize(OBJECT_SIZE + POINTER_SIZE + POINTER_SIZE + 106, uiTestObjectSize);  //Nothing is padded past 2 bytes.
+#else
 	AssertLayoutSize(OBJECT_SIZE + POINTER_SIZE + POINTER_SIZE + 128, uiTestObjectSize);
+#endif // __W65C816__
 	
 	uiBoolSize = sizeof(Bool);  // 	uint16(muiClassType) + uint16(muiNegativeEmbeddingOffset) + uint8(mVal:bool) + uint8(padding)
 	AssertSize(6, uiBoolSize);
-	uiBoolSize += 2;  // + uint16(padding)
+#ifndef __W65C816__
+	uiBoolSize += 2;  // + uint16(padding), which the W65C816 doesn't add: nothing is padded past 2 bytes.
+#endif // __W65C816__
 
 	pcSequence = CSequenceFactory::Create(szDirectory, DS_No);
 	pcDatabase = CCodabaseFactory::Create(szDirectory, IWT_No, DS_No);

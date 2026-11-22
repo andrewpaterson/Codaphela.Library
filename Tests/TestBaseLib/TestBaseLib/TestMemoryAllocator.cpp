@@ -82,6 +82,8 @@ void TestMemoryAllocatorReadWrite(void)
 
 #ifdef BUILD_64
 	AssertSize(32, cAllocIn.GetMemory()->ByteSize());
+#elif defined(__W65C816__)
+	AssertSize(14, cAllocIn.GetMemory()->ByteSize());
 #else
 	AssertSize(16, cAllocIn.GetMemory()->ByteSize());
 #endif // BUILD_64

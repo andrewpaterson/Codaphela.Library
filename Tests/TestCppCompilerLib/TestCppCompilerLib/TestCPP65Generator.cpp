@@ -3952,6 +3952,24 @@ void TestCPP65GeneratorEnumClass(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The 65C64 lays classes out as MSVC does and aligns objects as their
+// types are: the programs the W65C816 lays out its own way
+// (TestCPP816Alignment) give what they always have here.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorLayouts(void)
+{
+	size	i;
+
+	for (i = 0; gasTestCPP65Layouts[i].szSource; i++)
+	{
+		AssertInt(gasTestCPP65Layouts[i].i65C64, TestCPP65Main(gasTestCPP65Layouts[i].szSource));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Classes with virtual bases are laid out as the Itanium ABI lays them out
 // (the sizes and offsets are g++ -m32's), but that a nearly empty virtual
 // base (only a vtable pointer) isn't a primary base sharing the class's
@@ -4043,6 +4061,7 @@ void TestCPP65Generator(void)
 	TEST_PART(TestCPP65GeneratorListing());
 	TEST_PART(TestCPP65GeneratorEnumClass());
 	TEST_PART(TestCPP65GeneratorVirtualBaseLayouts());
+	TEST_PART(TestCPP65GeneratorLayouts());
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	TypeConverterKill();

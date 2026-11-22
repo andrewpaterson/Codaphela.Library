@@ -18,6 +18,9 @@ void TestScratchPadAdd(void)
 #ifdef BUILD_64
 	AssertSize(26, cPad.GetMemorySize());
 	AssertSize(26, cPad.GetUsedSize());
+#elif defined(__W65C816__)
+	AssertSize(16, cPad.GetMemorySize());
+	AssertSize(16, cPad.GetUsedSize());
 #else
 	AssertSize(18, cPad.GetMemorySize());
 	AssertSize(18, cPad.GetUsedSize());
@@ -28,6 +31,9 @@ void TestScratchPadAdd(void)
 #ifdef BUILD_64
 	AssertSize(52, cPad.GetMemorySize());
 	AssertSize(51, cPad.GetUsedSize());
+#elif defined(__W65C816__)
+	AssertSize(32, cPad.GetMemorySize());
+	AssertSize(31, cPad.GetUsedSize());
 #else
 	AssertSize(36, cPad.GetMemorySize());
 	AssertSize(35, cPad.GetUsedSize());
@@ -38,6 +44,9 @@ void TestScratchPadAdd(void)
 #ifdef BUILD_64
 	AssertSize(78, cPad.GetMemorySize());
 	AssertSize(72, cPad.GetUsedSize());
+#elif defined(__W65C816__)
+	AssertSize(48, cPad.GetMemorySize());
+	AssertSize(42, cPad.GetUsedSize());
 #else
 	AssertSize(54, cPad.GetMemorySize());
 	AssertSize(48, cPad.GetUsedSize());
@@ -48,6 +57,9 @@ void TestScratchPadAdd(void)
 #ifdef BUILD_64
 	AssertSize(104, cPad.GetMemorySize());
 	AssertSize(93, cPad.GetUsedSize());
+#elif defined(__W65C816__)
+	AssertSize(64, cPad.GetMemorySize());
+	AssertSize(53, cPad.GetUsedSize());
 #else
 	AssertSize(72, cPad.GetMemorySize());
 	AssertSize(61, cPad.GetUsedSize());
@@ -58,6 +70,9 @@ void TestScratchPadAdd(void)
 #ifdef BUILD_64
 	AssertSize(131, cPad.GetMemorySize());
 	AssertSize(120, cPad.GetUsedSize());
+#elif defined(__W65C816__)
+	AssertSize(81, cPad.GetMemorySize());
+	AssertSize(70, cPad.GetUsedSize());
 #else
 	AssertSize(91, cPad.GetMemorySize());
 	AssertSize(80, cPad.GetUsedSize());

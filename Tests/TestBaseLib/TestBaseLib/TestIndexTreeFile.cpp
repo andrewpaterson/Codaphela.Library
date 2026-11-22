@@ -72,6 +72,9 @@ void TestIndexTreeFileSizeOfs(void)
 #ifdef BUILD_64
 	AssertSize(32, tNodeSize);
 	AssertSize(16, tNodePointer);
+#elif defined(__W65C816__)
+	AssertSize(22, tNodeSize);
+	AssertSize(12, tNodePointer);
 #else
 	AssertSize(24, tNodeSize);
 	AssertSize(12, tNodePointer);
@@ -2335,6 +2338,8 @@ void TestIndexTreeFileEvictNew(EIndexWriteThrough eWriteThrough)
 	AssertLSize(1, cIndexTree.NumMemoryNodes());
 #ifdef BUILD_64
 	AssertLong(4128, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3094, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3096, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2345,6 +2350,8 @@ void TestIndexTreeFileEvictNew(EIndexWriteThrough eWriteThrough)
 	cAccess.PutStringData("AAAB", szAAAB, strlen(szAAAB) + 1);
 #ifdef BUILD_64
 	AssertLong(4522LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3352LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3374LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2357,6 +2364,8 @@ void TestIndexTreeFileEvictNew(EIndexWriteThrough eWriteThrough)
 	AssertTrue(cAccess.EvictString("AAAAA"));
 #ifdef BUILD_64
 	AssertLong(4410LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3278LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3294LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2367,6 +2376,8 @@ void TestIndexTreeFileEvictNew(EIndexWriteThrough eWriteThrough)
 	AssertTrue(cAccess.EvictString("AAAB"));
 #ifdef BUILD_64
 	AssertLong(4347LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3239LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3251LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2375,6 +2386,8 @@ void TestIndexTreeFileEvictNew(EIndexWriteThrough eWriteThrough)
 	AssertTrue(cAccess.EvictString("AAA"));
 #ifdef BUILD_64
 	AssertLong(4205LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3143LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3149LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2383,6 +2396,8 @@ void TestIndexTreeFileEvictNew(EIndexWriteThrough eWriteThrough)
 	AssertTrue(cAccess.EvictString("A"));
 #ifdef BUILD_64
 	AssertLong(4128, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3094, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3096, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2507,6 +2522,8 @@ void TestIndexTreeFileEvictComplexSetup(CDurableFileController* pcDurableControl
 
 #ifdef BUILD_64
 	AssertLong(5108LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3756LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3804LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2530,6 +2547,8 @@ void TestIndexTreeFileEvictComplexSetup(CDurableFileController* pcDurableControl
 	cAccess.Init(pcIndexTree);
 #ifdef BUILD_64
 	AssertLong(4160LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3116LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3120LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2543,6 +2562,8 @@ void TestIndexTreeFileEvictComplexSetup(CDurableFileController* pcDurableControl
 	AssertLSize(18, pcIndexTree->NumMemoryNodes());
 #ifdef BUILD_64
 	AssertLong(5236LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3850LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3900LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2599,6 +2620,8 @@ void TestIndexTreeFileEvictComplexEvictCloseGet(void)
 	cAccess.Init(&cIndexTree);
 #ifdef BUILD_64
 	AssertLong(5197LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3823LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3873LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2621,6 +2644,8 @@ void TestIndexTreeFileEvictComplexEvictCloseGet(void)
 	AssertTrue(cAccess.EvictString(szAACBB));
 #ifdef BUILD_64
 	AssertLong(4272LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3196LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3204LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2698,6 +2723,8 @@ void TestIndexTreeFileEvictComplexEvictGetClose(void)
 	cAccess.Init(&cIndexTree);
 #ifdef BUILD_64
 	AssertLong(5197LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3823LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3873LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2766,6 +2793,8 @@ void TestIndexTreeFileEvictComplexEvictOdd(void)
 	cAccess.Init(&cIndexTree);
 #ifdef BUILD_64
 	AssertLong(5197LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3823LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3873LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2854,6 +2883,8 @@ void TestIndexTreeFileEvictComplexEvictEven(void)
 	cAccess.Init(&cIndexTree);
 #ifdef BUILD_64
 	AssertLong(5197LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3823LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3873LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64
@@ -2937,6 +2968,8 @@ void TestIndexTreeFileFlushNodes(void)
 	cAccess.Init(&cIndexTree);
 #ifdef BUILD_64
 	AssertLong(5197LL, pcMemory->GetTotalAllocatedMemory());
+#elif defined(__W65C816__)
+	AssertLong(3823LL, pcMemory->GetTotalAllocatedMemory());
 #else
 	AssertLong(3873LL, pcMemory->GetTotalAllocatedMemory());
 #endif // BUILD_64

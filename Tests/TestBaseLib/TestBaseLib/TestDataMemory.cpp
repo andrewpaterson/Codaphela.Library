@@ -12,6 +12,8 @@ void TestDataMemorySizeof(void)
 {
 #ifdef BUILD_64
 	AssertSize(176, sizeof(CDataMemory));
+#elif defined(__W65C816__)
+	AssertSize(68, sizeof(CDataMemory));
 #elif defined(SIZE_16)
 	AssertSize(72, sizeof(CDataMemory));
 #else
@@ -37,6 +39,8 @@ void TestDataMemoryAdd(void)
 	AssertSize(0, cMemory.NumElements());
 #ifdef BUILD_64
 	AssertSize(32, cMemory.ByteSize());
+#elif defined(__W65C816__)
+	AssertSize(14, cMemory.ByteSize());
 #else
 	AssertSize(16, cMemory.ByteSize());
 #endif // BUILD_64
@@ -60,6 +64,9 @@ void TestDataMemoryAdd(void)
 #ifdef BUILD_64
 	AssertSize(39122, cMemory.ByteSize());
 	AssertSize(9, cMemory.NumFreeLists());
+#elif defined(__W65C816__)
+	AssertSize(30199, cMemory.ByteSize());
+	AssertSize(8, cMemory.NumFreeLists());
 #elif defined(SIZE_16)
 	AssertSize(30341, cMemory.ByteSize());
 	AssertSize(8, cMemory.NumFreeLists());
@@ -79,6 +86,8 @@ void TestDataMemoryAdd(void)
 	AssertSize(216, cMemory.NumElements());
 #ifdef BUILD_64
 	AssertSize(33740, cMemory.ByteSize());
+#elif defined(__W65C816__)
+	AssertSize(30199, cMemory.ByteSize());
 #elif defined(SIZE_16)
 	AssertSize(30341, cMemory.ByteSize());
 #else
@@ -97,6 +106,8 @@ void TestDataMemoryAdd(void)
 	cMemory.Compact();
 #ifdef BUILD_64
 	AssertSize(32, cMemory.ByteSize());
+#elif defined(__W65C816__)
+	AssertSize(14, cMemory.ByteSize());
 #else
 	AssertSize(16, cMemory.ByteSize());
 #endif // BUILD_64

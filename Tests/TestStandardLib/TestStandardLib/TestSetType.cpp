@@ -78,6 +78,8 @@ void TestSetTypeInstantiation(void)
 	iSize = cSet.ClassSize();
 #ifdef BUILD_64
 	AssertSize(96, iSize);
+#elif defined(__W65C816__)
+	AssertSize(38, iSize);
 #elif defined(SIZE_16)
 	AssertSize(40, iSize);
 #else

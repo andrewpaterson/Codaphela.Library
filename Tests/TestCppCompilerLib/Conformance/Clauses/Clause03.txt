@@ -1439,6 +1439,28 @@ int main()
 	return r + gc;
 }
 
+### BasicAlignmentLocals | 7 | 3.11 [basic.align] p1: an object's address is a multiple of its type's alignment wherever its function's frame is: locals, at several depths of call and after an odd number of bytes of locals
+struct S { char c; long l; };
+int Aligned(int n)
+{
+	char c = (char)n;
+	int i = n;
+	long l = n;
+	S s;
+	s.l = n;
+	int r = 0;
+	if ((unsigned long long)&i % alignof(int) == 0) r += 1;
+	if ((unsigned long long)&l % alignof(long) == 0) r += 2;
+	if ((unsigned long long)&s % alignof(S) == 0 && (unsigned long long)&s.l % alignof(long) == 0) r += 4;
+	return (n > 0) ? (r & Aligned(n - 1)) : r + c * 0;
+}
+int Odd(char a, int n) { char b[3]; b[0] = a; return Aligned(n) + b[0] - a; }
+int main()
+{
+	char pad = 1;
+	return Aligned(3) & Odd(pad, 2);
+}
+
 ### BasicAlignmentNotPowerOfTwoRefused | REFUSED | 3.11 [basic.align] p4: an alignment is a power of two
 struct alignas(3) S { char c; };
 int main() { return sizeof(S); }

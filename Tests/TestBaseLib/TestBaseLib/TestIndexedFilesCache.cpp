@@ -376,6 +376,8 @@ void TestIndexedFilesEvictingSetDataNoCacheNoFile(void)
 
 #ifdef BUILD_64
 	AssertSize(40, sizeof(CIndexedDataDescriptor));
+#elif defined(__W65C816__)
+	AssertSize(24, sizeof(CIndexedDataDescriptor));
 #else
 	AssertSize(32, sizeof(CIndexedDataDescriptor));
 #endif // BUILD_64

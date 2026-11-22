@@ -131,19 +131,6 @@ int CCPPTargetW65C816::GetFrameAlignment(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// W65C816AlignmentPlan.txt's switch, while what the change moves is
-// counted: the limits below are the target's with CPP65_ALIGN_816 set in
-// the environment, and none without.
-//
-//////////////////////////////////////////////////////////////////////////
-static int AlignmentLimit(int iLimit)
-{
-	return getenv("CPP65_ALIGN_816") ? iLimit : 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The bus is 8 bits wide: a 16 bit access is two cycles at an odd address
 // as at an even one, so nothing needs more than a byte's alignment (and a
 // local, at D + offset, has no more).
@@ -151,20 +138,22 @@ static int AlignmentLimit(int iLimit)
 //////////////////////////////////////////////////////////////////////////
 int CCPPTargetW65C816::GetObjectAlignmentLimit(void)
 {
-	return AlignmentLimit(1);
+	return 1;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A member of two bytes or more is at an even offset, so that a char
-// before it is followed by a byte of padding: the pair can be written as
-// 16 bits, without leaving 16 bit memory mode.
+// A member of two bytes or more is at an even offset, as #pragma pack(2)
+// would put it: a char before it is followed by a byte of padding (the
+// pair could be written as 16 bits, without leaving 16 bit memory mode),
+// and a class that holds one is a whole number of words.  The user's
+// ruling, as the limit above is: W65C816AlignmentPlan.txt.
 //
 //////////////////////////////////////////////////////////////////////////
 int CCPPTargetW65C816::GetMemberAlignmentLimit(void)
 {
-	return AlignmentLimit(2);
+	return 2;
 }
 
 

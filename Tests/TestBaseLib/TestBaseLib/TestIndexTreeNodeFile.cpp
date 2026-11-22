@@ -30,6 +30,9 @@ void TestIndexTreeNodeFileSizeofs(void)
 #ifdef BUILD_64
 	AssertSize(32, sizeof(CIndexTreeNodeFile));  
 	AssertSize(24, sizeof(CIndexTreeNode));
+#elif defined(__W65C816__)
+	AssertSize(22, sizeof(CIndexTreeNodeFile));  
+	AssertSize(14, sizeof(CIndexTreeNode));
 #else
 	AssertSize(24, sizeof(CIndexTreeNodeFile));  
 	AssertSize(16, sizeof(CIndexTreeNode));

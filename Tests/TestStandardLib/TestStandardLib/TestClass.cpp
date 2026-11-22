@@ -99,14 +99,18 @@ void TestClassDefinition(void)
 	pcField = pcTestClassClass->GetField("mTiny");
 	AssertTrue(pcField->IsEmbeddedObject());
 	AssertString("mTiny", pcField->GetName());
+#ifdef __W65C816__
+	AssertLayoutSize(OBJECT_SIZE + POINTER_SIZE * 2 + 8 + sizeof(int), pcField->GetOffset());  //Nothing is padded past 2 bytes.
+#else
 	AssertLayoutSize(OBJECT_SIZE + POINTER_SIZE * 2 + 16, pcField->GetOffset());
+#endif // __W65C816__
 
 	pcField = pcTestClassClass->GetField("mDouble");
 	AssertTrue(pcField->IsPrimitive());
 #ifdef BUILD_64
 	AssertLayoutSize(OBJECT_SIZE + 352, pcField->GetOffset());
 #elif defined(__W65C816__)
-	AssertLayoutSize(OBJECT_SIZE + 184, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 158, pcField->GetOffset());
 #else
 	AssertLayoutSize(OBJECT_SIZE + 208, pcField->GetOffset());
 #endif // BUILD_64
@@ -116,7 +120,7 @@ void TestClassDefinition(void)
 #ifdef BUILD_64
 	AssertLayoutSize(OBJECT_SIZE + 368, pcField->GetOffset());
 #elif defined(__W65C816__)
-	AssertLayoutSize(OBJECT_SIZE + 200, pcField->GetOffset());
+	AssertLayoutSize(OBJECT_SIZE + 170, pcField->GetOffset());
 #else
 	AssertLayoutSize(OBJECT_SIZE + 224, pcField->GetOffset());
 #endif // BUILD_64

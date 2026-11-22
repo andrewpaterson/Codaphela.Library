@@ -225,7 +225,12 @@ void TestArrayTemplateEmbeddedSizeof(void)
 	AssertSize(36, 3 * sizeof(CTestOverridenArrayTemplateItem));
 	AssertSize(16, sizeof(CArrayTemplate<CTestOverridenArrayTemplateItem>));
 
+#ifdef __W65C816__
+	//The W65C816 pads the count to an even offset only.
+	AssertSize(sizeof(size) + 3 * sizeof(CTestOverridenArrayTemplateItem), sizeof(CTestArrayTemplateEmbedded));
+#else
 	AssertSize(sizeof(void*) + 3 * sizeof(CTestOverridenArrayTemplateItem), sizeof(CTestArrayTemplateEmbedded));
+#endif // __W65C816__
 #else
 	AssertSize(36, 3 * sizeof(CTestOverridenArrayTemplateItem));
 	AssertSize(24, sizeof(CArrayTemplate<CTestOverridenArrayTemplateItem>));
