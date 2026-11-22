@@ -161,6 +161,65 @@ void CCPPErrors::CountTakenAway(CCPPCompileStatistics* pcStatistics)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The errors from uiFirst on are pcDest's, after its own, and no longer
+// this list's.  They are kept, not taken away: nothing is counted.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPErrors::MoveTailTo(CCPPErrors* pcDest, size uiFirst)
+{
+	size	i;
+
+	for (i = uiFirst; i < maszErrors.NumElements(); i++)
+	{
+		pcDest->maszErrors.Add(maszErrors.Get(i));
+		pcDest->masPositions.Add(masPositions.Get(i));
+		if (masPositions.Get(i)->uiFile != ARRAY_ELEMENT_NOT_FOUND)
+		{
+			pcDest->masPositions.Tail()->uiFile = pcDest->GetFileIndex(GetFile(i));
+		}
+	}
+	while (maszErrors.NumElements() > uiFirst)
+	{
+		maszErrors.RemoveTail();
+		masPositions.Pop();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPErrors::Remove(size uiIndex)
+{
+	maszErrors.Remove(uiIndex);
+	masPositions.RemoveAt(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the list has an error that reads szError: the same place and the
+// same words.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPErrors::Has(const char* szError)
+{
+	size	i;
+
+	for (i = 0; i < maszErrors.NumElements(); i++)
+	{
+		if (maszErrors.Get(i)->Equals(szError))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 size CCPPErrors::NumErrors(void) const

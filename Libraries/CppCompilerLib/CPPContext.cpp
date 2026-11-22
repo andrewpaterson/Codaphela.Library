@@ -36,6 +36,8 @@ void CCPPContext::Init(void)
 	mbCLinkage = false;
 	miUnevaluated = 0;
 	miQuiet = 0;
+	miKeeping = 0;
+	miKeptQuiet = 0;
 	mbQuietFailed = false;
 	masEntered.Init();
 	mbBroken = false;
@@ -65,6 +67,7 @@ SCPPContextEntry* CCPPContext::Enter(ECPPContextEntry eKind)
 	psEntry->pvSaved = NULL;
 	psEntry->pvOtherSaved = NULL;
 	psEntry->iSaved = 0;
+	psEntry->iOtherSaved = 0;
 	psEntry->bSaved = false;
 	psEntry->bOtherSaved = false;
 	return psEntry;
@@ -334,6 +337,7 @@ bool CCPPContext::BeginQuiet(void)
 	}
 	Enter(CPPCE_Quiet);
 	miQuiet++;
+	miKeptQuiet++;
 	return bOutermost;
 }
 
@@ -351,6 +355,7 @@ bool CCPPContext::EndQuiet(void)
 	if (Leave(CPPCE_Quiet, &sEntry))
 	{
 		miQuiet--;
+		miKeptQuiet--;
 	}
 	return !mbQuietFailed;
 }
@@ -369,6 +374,7 @@ bool CCPPContext::BeginTrial(void)
 	Enter(CPPCE_Trial)->bSaved = mbQuietFailed;
 	mbQuietFailed = false;
 	miQuiet++;
+	miKeptQuiet++;
 	return bOutermost;
 }
 
@@ -389,8 +395,42 @@ bool CCPPContext::EndTrial(void)
 	{
 		mbQuietFailed = sEntry.bSaved;
 		miQuiet--;
+		miKeptQuiet--;
 	}
 	return bPassed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is worked out until LeaveKeeping has its errors kept with it: an
+// error made there is recorded (IsKeeping), in quiet code too, though it is
+// noted as quiet code's failing as it would be.  Not one made in quiet code
+// that begins inside the part: that is judged by what it returns, as ever.
+// Being quiet, and what has failed, are as they were.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPContext::EnterKeeping(void)
+{
+	Enter(CPPCE_Keeping)->iSaved = miKeptQuiet;
+	miKeptQuiet = 0;
+	miKeeping++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPContext::LeaveKeeping(void)
+{
+	SCPPContextEntry	sEntry;
+
+	if (Leave(CPPCE_Keeping, &sEntry))
+	{
+		miKeptQuiet = sEntry.iSaved;
+		miKeeping--;
+	}
 }
 
 
@@ -405,8 +445,10 @@ void CCPPContext::BeginLoud(void)
 
 	psEntry = Enter(CPPCE_Loud);
 	psEntry->iSaved = miQuiet;
+	psEntry->iOtherSaved = miKeptQuiet;
 	psEntry->bSaved = mbQuietFailed;
 	miQuiet = 0;
+	miKeptQuiet = 0;
 }
 
 
@@ -421,6 +463,7 @@ void CCPPContext::EndLoud(void)
 	if (Leave(CPPCE_Loud, &sEntry))
 	{
 		miQuiet = sEntry.iSaved;
+		miKeptQuiet = sEntry.iOtherSaved;
 		mbQuietFailed = sEntry.bSaved;
 	}
 }
@@ -493,5 +536,6 @@ bool CCPPContext::IsLinkageExtern(void) const { return mbLinkageExtern; }
 CCPPFunction* CCPPContext::GetFunction(void) const { return mpcFunction; }
 bool CCPPContext::HasThis(void) const { return mbThis; }
 bool CCPPContext::IsQuiet(void) const { return miQuiet > 0; }
+bool CCPPContext::IsKeeping(void) const { return (miKeeping > 0) && (miKeptQuiet == 0); }
 bool CCPPContext::IsUnevaluated(void) const { return miUnevaluated > 0; }
 bool CCPPContext::IsBroken(void) const { return mbBroken || (masEntered.NumElements() != 0); }

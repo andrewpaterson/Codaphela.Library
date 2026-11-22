@@ -48,7 +48,7 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 		{
 			if (psLambda->bFailed)
 			{
-				mcDiagnostics.ReportOnce(psLambda->pcErrorNode, psLambda->szError.Text());
+				mcDiagnostics.Report(psLambda->pcErrors);
 				return NULL;
 			}
 			return psLambda;
@@ -65,8 +65,7 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 	psLambda->cFunctionPacks.AddAll(GetFunctionPacks());
 	psLambda->bMutable = pcSyntax->IsMutable();
 	psLambda->bFailed = false;
-	psLambda->pcErrorNode = pcSyntax;
-	psLambda->szError.Init();
+	psLambda->pcErrors = NULL;
 	psLambda->pcCall = NULL;
 	psLambda->szName.Init();
 	psLambda->pcClass = NewClass(NULL, -1);
@@ -83,10 +82,18 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 		psLambda->bGeneric |= (pcParameter->GetKind() == CPPS_Parameter) && mcDeclarators.IsAuto(pcParameter->mpcSpecifiers);
 	}
 
-	if (!LambdaCaptures(psLambda) || !LayoutClosure(psLambda) || (!psLambda->bGeneric && !LambdaCall(psLambda)))
+	//What is said making the closure is the closure's: it is said now, and again where the closure is asked for again.
+	mcDiagnostics.BeginKeeping();
+	psLambda->bFailed = !LambdaCaptures(psLambda) || !LayoutClosure(psLambda) || (!psLambda->bGeneric && !LambdaCall(psLambda));
+	if (psLambda->bFailed && !mcDiagnostics.HasKept())
 	{
-		LambdaError(psLambda, pcSyntax, "The lambda's closure can't be made");
-		psLambda->bFailed = true;
+		//Nothing said why.
+		mcDiagnostics.ReportError(pcSyntax, "The lambda's closure can't be made");
+	}
+	psLambda->pcErrors = mcDiagnostics.EndKeeping();
+	if (psLambda->bFailed)
+	{
+		mcDiagnostics.Report(psLambda->pcErrors);
 		return NULL;
 	}
 	return psLambda;
@@ -151,23 +158,6 @@ bool CCPPUnit::LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* pcLa
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An error in making a lambda's closure: the first is the one kept, and
-// said again where the closure is asked for again.  Always false.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::LambdaError(SCPPLambda* psLambda, CCPPSyntax* pcNode, const char* szMessage)
-{
-	if (psLambda->szError.Empty())
-	{
-		psLambda->pcErrorNode = pcNode;
-		psLambda->szError.Append(szMessage);
-	}
-	return mcDiagnostics.ReportOnce(pcNode, szMessage);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // What a lambda captures: what its captures name, and with a default
 // capture what its body uses of the enclosing function's (a variable, or
 // this through a member or this itself) that it doesn't name.  Without a
@@ -204,7 +194,7 @@ bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
 			psPack = pcSymbol ? psLambda->cFunctionPacks.Find(pcSymbol) : NULL;
 			if (!psPack)
 			{
-				bResult &= LambdaError(psLambda, pcCapture, "Only the parameter pack of the function the lambda is in can be captured as a pack");
+				bResult &= mcDiagnostics.ReportOnce(pcCapture, "Only the parameter pack of the function the lambda is in can be captured as a pack");
 				continue;
 			}
 			bResult &= CapturePack(psLambda, psPack, pcCapture->mpcName, pcCapture->meKind == CPPLC_Reference, pcCapture);
@@ -212,12 +202,12 @@ bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
 		}
 		if (!IsEnclosingLocal(pcSymbol, psLambda))
 		{
-			bResult &= LambdaError(psLambda, pcCapture, "Only a variable of the function the lambda is in can be captured");
+			bResult &= mcDiagnostics.ReportOnce(pcCapture, "Only a variable of the function the lambda is in can be captured");
 			continue;
 		}
 		if (FindLambdaCapture(psLambda, pcSymbol))
 		{
-			bResult &= LambdaError(psLambda, pcCapture, "The variable is captured twice");
+			bResult &= mcDiagnostics.ReportOnce(pcCapture, "The variable is captured twice");
 			continue;
 		}
 		bResult &= AddCapture(psLambda, pcSymbol, pcCapture->mpcName, pcCapture->meKind == CPPLC_Reference, false, pcCapture);
@@ -226,7 +216,7 @@ bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
 	if (bResult && (psLambda->asCaptures.NumElements() > 0) && DefaultArgumentOf(psLambda->pcSyntax))
 	{
 		//[expr.prim.lambda] 13
-		return LambdaError(psLambda, psLambda->pcSyntax, "A lambda in a default argument can't capture anything");
+		return mcDiagnostics.ReportOnce(psLambda->pcSyntax, "A lambda in a default argument can't capture anything");
 	}
 	return bResult;
 }
@@ -266,7 +256,7 @@ bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 			}
 			if (psLambda->pcSyntax->meDefault == CPPLC_None)
 			{
-				return LambdaError(psLambda, pcNode, "The lambda doesn't capture the parameter pack");
+				return mcDiagnostics.ReportOnce(pcNode, "The lambda doesn't capture the parameter pack");
 			}
 			return CapturePack(psLambda, psPack, (CCPPSyntaxIdExpression*)pcNode, psLambda->pcSyntax->meDefault == CPPLC_Reference, pcNode);
 		}
@@ -280,7 +270,7 @@ bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 
 			if (psLambda->pcSyntax->meDefault == CPPLC_None)
 			{
-				return LambdaError(psLambda, pcNode, "The lambda doesn't capture the variable");
+				return mcDiagnostics.ReportOnce(pcNode, "The lambda doesn't capture the variable");
 			}
 			return AddCapture(psLambda, pcSymbol, pcNode, psLambda->pcSyntax->meDefault == CPPLC_Reference, false, pcNode);
 		}
@@ -316,7 +306,7 @@ bool CCPPUnit::CapturePack(SCPPLambda* psLambda, SCPPFunctionPack* psPack, CCPPS
 
 	if (IsPackCaptured(psLambda, psPack) && (psPack->apcElements.NumElements() > 0))
 	{
-		return LambdaError(psLambda, pcNode, "The variable is captured twice");
+		return mcDiagnostics.ReportOnce(pcNode, "The variable is captured twice");
 	}
 	bResult = true;
 	for (k = 0; bResult && (k < psPack->apcElements.NumElements()); k++)
@@ -358,7 +348,7 @@ bool CCPPUnit::UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 	}
 	if (psLambda->pcSyntax->meDefault == CPPLC_None)
 	{
-		return LambdaError(psLambda, pcNode, "The lambda doesn't capture this");
+		return mcDiagnostics.ReportOnce(pcNode, "The lambda doesn't capture this");
 	}
 	return AddThisCapture(psLambda, pcNode);
 }
@@ -652,7 +642,7 @@ bool CCPPUnit::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax
 		if (!psType)
 		{
 			ReportTypeOf(pcInitialiser);
-			return LambdaError(psLambda, pcNode, "What the lambda captures can't be worked out");
+			return mcDiagnostics.ReportOnce(pcNode, "What the lambda captures can't be worked out");
 		}
 		psType = bReference ? mcTypes.Reference(psType) : psType;
 	}
@@ -699,7 +689,7 @@ bool CCPPUnit::AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 	pcThisClass = mcContext.HasThis() ? ThisClass() : NULL;
 	if (!pcThisClass)
 	{
-		return LambdaError(psLambda, pcNode, "Only a lambda in a member function can capture this");
+		return mcDiagnostics.ReportOnce(pcNode, "Only a lambda in a member function can capture this");
 	}
 	psCapture = psLambda->asCaptures.Add();
 	psCapture->pcSymbol = NULL;
@@ -1183,7 +1173,6 @@ void CCPPUnit::FreeLambdas(void)
 	{
 		mapsLambdas.GetPtr(i)->asCaptures.Kill();
 		mapsLambdas.GetPtr(i)->cFunctionPacks.Kill();
-		mapsLambdas.GetPtr(i)->szError.Kill();
 		mapsLambdas.GetPtr(i)->szName.Kill();
 		free(mapsLambdas.GetPtr(i));
 	}

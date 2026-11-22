@@ -39,6 +39,7 @@ enum ECPPContextEntry
 	CPPCE_Object,
 	CPPCE_Trial,
 	CPPCE_Loud,
+	CPPCE_Keeping,
 	CPPCE_Working,
 };
 
@@ -63,6 +64,7 @@ struct SCPPContextEntry
 	void*				pvSaved;
 	void*				pvOtherSaved;
 	int					iSaved;
+	int					iOtherSaved;
 	bool				bSaved;
 	bool				bOtherSaved;
 };
@@ -94,6 +96,8 @@ protected:
 	bool					mbCLinkage;				//In extern "C": functions declared have C linkage.
 	int						miUnevaluated;			//How deep in operands that aren't evaluated (sizeof, decltype, noexcept) the compiler is.
 	int						miQuiet;				//Above 0, errors are not reported, only noted in mbQuietFailed.
+	int						miKeeping;				//Above 0, in a part whose errors are kept (EnterKeeping)...
+	int						miKeptQuiet;			//...and how deep in quiet code that began inside it: at 0 an error is its own, and is kept.
 	bool					mbQuietFailed;
 	CArrayCPPContextEntries	masEntered;
 	bool					mbBroken;
@@ -138,6 +142,10 @@ public:
 	void					BeginLoud(void);
 	void					EndLoud(void);
 	bool					IsQuiet(void) const;
+
+	void					EnterKeeping(void);
+	void					LeaveKeeping(void);
+	bool					IsKeeping(void) const;
 
 	bool					EnterWorking(ECPPWorking eWhat, void* pvOn);
 	void					LeaveWorking(void);

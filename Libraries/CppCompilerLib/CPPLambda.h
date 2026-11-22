@@ -27,6 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPFunctionPacks.h"
 
 
+class CCPPErrors;
 class CCPPClass;
 class CCPPFunction;
 class CCPPSyntax;
@@ -63,9 +64,8 @@ struct SCPPLambda
 	CCPPFunctionPacks			cFunctionPacks;	//The parameter packs of the functions the lambda is in: their elements are what it captures of one, and what its body expands it into (AddParameters).
 	bool						bGeneric;		//A parameter is auto: operator() is made for each call's arguments.
 	bool						bMutable;		//operator() isn't const: its copies can be changed.
-	bool						bFailed;		//What it captures couldn't be worked out: an error said why...
-	CCPPSyntax*					pcErrorNode;	//...where, and what (said again each time the closure is asked for, as an
-	CChars						szError;		//expression's errors are taken away when only its type was wanted).
+	bool						bFailed;		//It couldn't be made...
+	CCPPErrors*					pcErrors;		//...and what was said making it, said again each time it is asked for (the diagnostics' to free).
 	CCPPFunction*				pcCall;			//operator() when it isn't generic.
 	CChars						szName;			//In a function every unit may write: the function's label, __L and the lambda's number in its
 												//definition, so the closure is one type, with the same labels, in every unit.  Else empty: the

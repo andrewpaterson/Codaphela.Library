@@ -38,6 +38,8 @@ void CCPPDiagnostics::Init(CCPPTokeniser* pcTokeniser, CCPPContext* pcContext, C
 	mcErrors.Init();
 	mcWarnings.Init();
 	mauiSilent.Init();
+	mauiKeeping.Init();
+	mapcKept.Init();
 	SetStatistics(pcStatistics);
 }
 
@@ -48,6 +50,15 @@ void CCPPDiagnostics::Init(CCPPTokeniser* pcTokeniser, CCPPContext* pcContext, C
 //////////////////////////////////////////////////////////////////////////
 void CCPPDiagnostics::Kill(void)
 {
+	size	i;
+
+	for (i = 0; i < mapcKept.NumElements(); i++)
+	{
+		mapcKept.GetPtr(i)->Kill();
+		free(mapcKept.GetPtr(i));
+	}
+	mapcKept.Kill();
+	mauiKeeping.Kill();
 	mauiSilent.Kill();
 	mcWarnings.Kill();
 	mcErrors.Kill();
@@ -79,7 +90,10 @@ bool CCPPDiagnostics::Error(CCPPSyntax* pcNode, const char* szMessage)
 	if (mpcContext->IsQuiet())
 	{
 		mpcContext->SetFailed();
-		return false;
+		if (!mpcContext->IsKeeping())
+		{
+			return false;
+		}
 	}
 	return ErrorAt(pcNode ? pcNode->miFirstToken : -1, szMessage);
 }
@@ -418,6 +432,112 @@ bool CCPPDiagnostics::EndSilentTrial(void)
 	mcErrors.Truncate(*mauiSilent.Tail());
 	mauiSilent.RemoveTail();
 	return bPassed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is worked out until EndKeeping is remembered by the caller, with the
+// errors made working it out: they are recorded, in quiet code too, and
+// given to the caller when it ends.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDiagnostics::BeginKeeping(void)
+{
+	size	uiErrors;
+
+	uiErrors = mcErrors.NumErrors();
+	mauiKeeping.Add(&uiErrors);
+	mpcContext->EnterKeeping();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an error is on the list at pcNode's first token: what is wrong
+// there has been said, and what only follows from it need not be.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDiagnostics::HasErrorAt(CCPPSyntax* pcNode)
+{
+	size	i;
+
+	for (i = mcErrors.NumErrors(); pcNode && (i > 0); i--)
+	{
+		if (mcErrors.GetToken(i - 1) == pcNode->miFirstToken)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether anything has been said since the last BeginKeeping.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDiagnostics::HasKept(void)
+{
+	return mcErrors.NumErrors() > *mauiKeeping.Tail();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The errors made since BeginKeeping, taken off the list: NULL if there
+// were none.  They are the diagnostics' to free, and the caller's to have
+// said (Report) for as long as the unit lasts.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPErrors* CCPPDiagnostics::EndKeeping(void)
+{
+	CCPPErrors*	pcKept;
+	size		uiFirst;
+
+	mpcContext->LeaveKeeping();
+	uiFirst = *mauiKeeping.Tail();
+	mauiKeeping.RemoveTail();
+	if (mcErrors.NumErrors() <= uiFirst)
+	{
+		return NULL;
+	}
+	pcKept = (CCPPErrors*)malloc(sizeof(CCPPErrors));
+	pcKept->Init();
+	mcErrors.MoveTailTo(pcKept, uiFirst);
+	mapcKept.Add(pcKept);
+	return pcKept;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Says errors that were kept, in quiet code too (as ReportError): each
+// unless the list has it already, so what is asked about again is said
+// once.  NULL is no errors.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDiagnostics::Report(CCPPErrors* pcKept)
+{
+	CCPPErrors	cNew;
+	size		i;
+
+	if (!pcKept)
+	{
+		return;
+	}
+	cNew.Init();
+	pcKept->AppendTo(&cNew);
+	for (i = cNew.NumErrors(); i > 0; i--)
+	{
+		if (mcErrors.Has(cNew.Get(i - 1)))
+		{
+			cNew.Remove(i - 1);
+		}
+	}
+	cNew.AppendTo(&mcErrors);
+	cNew.Kill();
 }
 
 

@@ -185,6 +185,7 @@ struct SCPPTypeOf
 	CCPPFunction*		pcFunction;
 	SCPP65Type*			psType;
 	SCPP65Type*			psDeclared;		//psType, or the reference to it the expression is declared to give (f() of T& f(), a cast to T&&).
+	CCPPErrors*			pcErrors;		//What was said working it out (NULL for nothing), which ReportTypeOf says: the diagnostics' to free.
 };
 
 
@@ -527,7 +528,6 @@ public:
 	bool					ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType);
 	SCPPLambda*				WritingLambda(void);
 	SCPPLambda*				BodyLambda(CCPPFunction* pcFunction);
-	bool					LambdaError(SCPPLambda* psLambda, CCPPSyntax* pcNode, const char* szMessage);
 	bool					ErrorOnce(CCPPSyntax* pcNode, const char* szMessage);
 	bool					CheckBaseMemberName(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	SCPPLambdaCapture*		FindCapture(CCPPSymbol* pcSymbol);
@@ -733,6 +733,7 @@ public:
 	bool					HasFieldNeedingInitialiser(CCPPClass* pcClass);
 	bool					CheckMemberInitialisers(CCPPFunction* pcFunction);
 	void					ReportClassErrors(void);
+	bool					HasClassErrors(void);
 	void					FreeClassErrors(void);
 	void					ReportUndeclaredTypes(void);
 	void					UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed);

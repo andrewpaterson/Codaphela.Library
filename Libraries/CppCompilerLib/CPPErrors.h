@@ -70,6 +70,9 @@ public:
 	int		GetToken(size iIndex);
 	char*	Text(void);
 	void	AppendTo(CCPPErrors* pcDest);
+	void	MoveTailTo(CCPPErrors* pcDest, size uiFirst);
+	bool	Has(const char* szError);
+	void	Remove(size uiIndex);
 
 protected:
 	size	GetFileIndex(const char* szFile);

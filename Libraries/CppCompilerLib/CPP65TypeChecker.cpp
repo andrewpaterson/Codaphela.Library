@@ -2993,8 +2993,9 @@ void CCPP65TypeChecker::SizeofError(CCPPSyntax* pcSizeof)
 	{
 		Error(pcSizeof, (pcExpression->meKeyword == CT_sizeof) ? "sizeof can't be applied to an incomplete type: an array without its bound, or a class not yet defined" : "alignof can't be applied to an incomplete type");
 	}
-	else
+	else if (!mpcUnit->HasClassErrors())
 	{
+		//(A class that couldn't be laid out has said why itself.)
 		Error(pcSizeof, "This sizeof or type trait is not supported by the compiler yet");
 	}
 }

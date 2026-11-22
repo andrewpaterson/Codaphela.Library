@@ -21,6 +21,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_DIAGNOSTICS_H__
 #define __C_P_P_DIAGNOSTICS_H__
 #include "BaseLib/Chars.h"
+#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "CPPErrors.h"
 
 
@@ -36,7 +38,9 @@ struct SPreprocessedToken;
 //code (CCPPContext) an error is only noted: what is done there is judged by what it returns.  A trial is quiet code
 //whose failing is its own, and a loud part is said whatever is quiet around it.  A silent part is quiet code, or a
 //trial, of which nothing is kept, what was said loudly in it too: the errors made in it are its own, and go when it
-//ends.  A warning is said once for a token and doesn't fail the unit.
+//ends.  What is worked out once and remembered keeps its errors with it (BeginKeeping, EndKeeping): they are said
+//when the answer is wanted for good (Report), by appending them, not by working it out again.  A warning is said
+//once for a token and doesn't fail the unit.
 class CCPPDiagnostics
 {
 protected:
@@ -46,6 +50,8 @@ protected:
 	CCPPErrors				mcErrors;
 	CCPPErrors				mcWarnings;		//Each at most once (by token); they don't fail the unit.
 	CArrayTemplate<size>	mauiSilent;		//How many errors there were when each silent part began, the last begun last.
+	CArrayTemplate<size>	mauiKeeping;	//...and when each part whose errors are kept began.
+	CArrayTemplatePtr<CCPPErrors>	mapcKept;	//The errors kept (EndKeeping), each list with what was worked out when they were made.
 
 public:
 	void		Init(CCPPTokeniser* pcTokeniser, CCPPContext* pcContext, CCPPCompileStatistics* pcStatistics);
@@ -59,6 +65,7 @@ public:
 	bool		ReportOnce(CCPPSyntax* pcNode, const char* szMessage);
 	void		Warning(CCPPSyntax* pcNode, const char* szMessage);
 	bool		HasWarning(CCPPSyntax* pcNode, const char* szText);
+	bool		HasErrorAt(CCPPSyntax* pcNode);
 
 	void		BeginQuiet(void);
 	bool		EndQuiet(void);
@@ -70,6 +77,10 @@ public:
 	bool		EndSilent(void);
 	void		BeginSilentTrial(void);
 	bool		EndSilentTrial(void);
+	void		BeginKeeping(void);
+	CCPPErrors*	EndKeeping(void);
+	bool		HasKept(void);
+	void		Report(CCPPErrors* pcKept);
 
 	CCPPErrors*	GetErrors(void);
 	CCPPErrors*	GetWarnings(void);

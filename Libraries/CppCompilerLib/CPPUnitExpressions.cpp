@@ -2071,7 +2071,6 @@ SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 	SCPP65Type*		psType;
 	SCPPTypeOf*	psTypeOf;
 	SCPPTypeOf	sTypeOf;
-	size			uiErrors;
 
 	mpcStatistics->Count(CPPCC_TypeOf);
 	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
@@ -2081,11 +2080,11 @@ SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 	}
 
 	mpcStatistics->Count(CPPCC_TypeOfWorkedOut);
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
+	mcDiagnostics.BeginKeeping();
 	mpcStatistics->Begin(CPPCP_Types);
 	psType = mcTypeChecker.Value(pcExpression, &sTypeOf.psDeclared);
 	mpcStatistics->End(CPPCP_Types);
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	sTypeOf.pcErrors = mcDiagnostics.EndKeeping();
 
 	sTypeOf.pcBindings = mcContext.GetBindings();
 	sTypeOf.pcFunction = mcContext.GetFunction();
@@ -2278,17 +2277,17 @@ SCPP65Type* CCPPUnit::PlaceTypeOf(CCPPSyntax* pcExpression)
 // and TypeOf couldn't work out, in quiet mode too: a call that no function
 // matches, or that more than one does, is then an error where it is ("No
 // function matches the arguments": an unsigned short* passed for an unsigned
-// long*), not only "doesn't support yet".
+// long*), not only "doesn't support yet".  The errors are the ones TypeOf
+// kept when it worked the type out: nothing is worked out again.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::ReportTypeOf(CCPPSyntax* pcExpression)
 {
-	mcDiagnostics.BeginLoud();
-	mpcStatistics->Count(CPPCC_ReportedAgain);
-	mpcStatistics->Begin(CPPCP_Types);
-	mcTypeChecker.Value(pcExpression);
-	mpcStatistics->End(CPPCP_Types);
-	mcDiagnostics.EndLoud();
+	SCPPTypeOf*	psTypeOf;
+
+	TypeOf(pcExpression);
+	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
+	mcDiagnostics.Report(psTypeOf ? psTypeOf->pcErrors : NULL);
 }
 
 

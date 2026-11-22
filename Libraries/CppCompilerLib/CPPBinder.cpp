@@ -2389,7 +2389,11 @@ SCPP65Type* CCPPBinder::ContextualType(CCPPSyntax* pcExpression, ECPPContextualT
 	if (!pcConversion)
 	{
 		szNone = (eWanted == CPPXT_ObjectPointer) ? "The object doesn't convert to a pointer" : ((eWanted == CPPXT_Integer) ? "The object doesn't convert to an integer" : "The object doesn't convert to a number");
-		mpcDiagnostics->Error(pcExpression, bAmbiguous ? "The object converts to more than one type here" : szNone);
+		if (bAmbiguous || !mpcDiagnostics->HasErrorAt(pcExpression))
+		{
+			//(Where its own operator was ambiguous, that has been said, and is why.)
+			mpcDiagnostics->Error(pcExpression, bAmbiguous ? "The object converts to more than one type here" : szNone);
+		}
 		return NULL;
 	}
 	return pcConversion->mpsReturn->WithoutReference()->Unqualified();
