@@ -437,41 +437,6 @@ void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFla
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Counts the ways pcBase is a base of pcClass: the paths that pass no
-// virtual base (*piPaths; the last one's offset and whether every step of
-// it is public), and those that do (*piVirtual).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CountBasePaths(CCPPClass* pcClass, CCPPClass* pcBase, int iOffset, bool bPublic, bool bVirtual, int* piPaths, int* piVirtual, int* piOffset, bool* pbPublic)
-{
-	SCPPBase*	psBase;
-	size		i;
-
-	mpcStatistics->Count(CPPCC_BaseWalks);
-	if (pcClass == pcBase)
-	{
-		if (bVirtual)
-		{
-			(*piVirtual)++;
-		}
-		else
-		{
-			(*piPaths)++;
-			*piOffset = iOffset;
-			*pbPublic = bPublic;
-		}
-		return;
-	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		psBase = pcClass->macBases.Get(i);
-		CountBasePaths(psBase->pcClass, pcBase, iOffset + psBase->iOffset, bPublic && (psBase->eAccess == CPPA_Public), bVirtual || psBase->bVirtual, piPaths, piVirtual, piOffset, pbPublic);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // True if pcBase is a base of pcClass in one way only, which passes no
 // virtual base and is public at every step: a pcBase is then the base of at
 // most one pcClass object, *piOffset bytes into it.  (pcClass itself isn't.)
@@ -479,20 +444,36 @@ void CCPPUnit::CountBasePaths(CCPPClass* pcClass, CCPPClass* pcBase, int iOffset
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 {
-	int		iPaths;
-	int		iVirtual;
-	bool	bPublic;
+	CArrayCPPBasePaths*	pasPaths;
+	SCPPBasePath*		psPath;
+	SCPPBasePath*		psOne;
+	size				i;
 
+	*piOffset = 0;
 	if (pcClass == pcBase)
 	{
 		return false;
 	}
-	iPaths = 0;
-	iVirtual = 0;
-	bPublic = false;
-	*piOffset = 0;
-	CountBasePaths(pcClass, pcBase, 0, true, false, &iPaths, &iVirtual, piOffset, &bPublic);
-	return (iPaths == 1) && (iVirtual == 0) && bPublic;
+	mpcStatistics->Count(CPPCC_BaseWalks);
+	pasPaths = pcClass->BasePaths();
+	psOne = NULL;
+	for (i = 1; i < pasPaths->NumElements(); i++)
+	{
+		psPath = pasPaths->Get(i);
+		if (psPath->pcClass == pcBase)
+		{
+			if (psOne || psPath->pcVirtual)
+			{
+				return false;
+			}
+			psOne = psPath;
+		}
+	}
+	if (psOne)
+	{
+		*piOffset = psOne->iOffset;
+	}
+	return psOne && psOne->bPublic;
 }
 
 
@@ -504,17 +485,13 @@ bool CCPPUnit::IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOff
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase)
 {
-	SCPPBase*	psBase;
-	size		i;
+	CArrayCPPBasePaths*	pasPaths;
+	size				i;
 
-	if (pcClass == pcBase)
+	pasPaths = pcClass->BasePaths();
+	for (i = 0; i < pasPaths->NumElements(); i++)
 	{
-		return true;
-	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		psBase = pcClass->macBases.Get(i);
-		if ((psBase->eAccess == CPPA_Public) && IsPublicBase(psBase->pcClass, pcBase))
+		if ((pasPaths->Get(i)->pcClass == pcBase) && pasPaths->Get(i)->bPublic)
 		{
 			return true;
 		}

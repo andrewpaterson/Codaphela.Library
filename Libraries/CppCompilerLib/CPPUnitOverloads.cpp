@@ -88,18 +88,11 @@ SCPP65Type* CCPPUnit::ThisType(CCPPClass* pcClass)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 {
-	SCPPBase*	psDirect;
-	size		i;
-	int			iOffset;
+	CArrayCPPBasePaths*	pasPaths;
+	SCPPBasePath*		psPath;
+	size				i;
 
 	mpcStatistics->Count(CPPCC_BaseWalks);
-	if ((pcClass != pcBase) && !pcClass->IsComplete())
-	{
-		//The bases are enough to know; their offsets need the class laid out.
-		mcDiagnostics.BeginQuiet();
-		ResolveBases(pcClass, NULL);
-		mcDiagnostics.EndQuiet();
-	}
 	if (pcClass == pcBase)
 	{
 		if (piOffset)
@@ -108,20 +101,61 @@ bool CCPPUnit::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 		}
 		return true;
 	}
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	pasPaths = BasePaths(pcClass);
+	for (i = 1; i < pasPaths->NumElements(); i++)
 	{
-		psDirect = pcClass->macBases.Get(i);
-		if (IsDerived(psDirect->pcClass, pcBase, &iOffset))
+		psPath = pasPaths->Get(i);
+		if (psPath->pcClass == pcBase)
 		{
 			if (piOffset)
 			{
 				//Through a virtual base there is none that is fixed: where the base is depends on the complete object.
-				*piOffset = (psDirect->bVirtual || (iOffset == CPP_VIRTUAL_PATH)) ? CPP_VIRTUAL_PATH : (psDirect->iOffset + iOffset);
+				*piOffset = psPath->pcVirtual ? CPP_VIRTUAL_PATH : psPath->iOffset;
 			}
 			return true;
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcClass's base paths (CCPPClass::BasePaths), its bases resolved first,
+// and theirs, where the class isn't complete: knowing the bases is enough,
+// their offsets need the class laid out.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayCPPBasePaths* CCPPUnit::BasePaths(CCPPClass* pcClass)
+{
+	if (!pcClass->IsComplete())
+	{
+		mcDiagnostics.BeginQuiet();
+		ResolveAllBases(pcClass);
+		mcDiagnostics.EndQuiet();
+	}
+	return pcClass->BasePaths();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Resolves the bases of pcClass, and of each of them, that are not known.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::ResolveAllBases(CCPPClass* pcClass)
+{
+	size	i;
+
+	if (pcClass->IsComplete())
+	{
+		return;
+	}
+	ResolveBases(pcClass, NULL);
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		ResolveAllBases(pcClass->macBases.Get(i)->pcClass);
+	}
 }
 
 
@@ -165,18 +199,19 @@ size CCPPUnit::CountBases(CCPPClass* pcClass, CCPPClass* pcBase)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual)
 {
-	SCPPBase*	psBase;
-	size		i;
+	CArrayCPPBasePaths*	pasPaths;
+	SCPPBasePath*		psPath;
+	size				i;
 
 	mpcStatistics->Count(CPPCC_BaseWalks);
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	pasPaths = pcClass->BasePaths();
+	for (i = 1; i < pasPaths->NumElements(); i++)
 	{
-		psBase = pcClass->macBases.Get(i);
-		if (psBase->bVirtual && (papcVirtual->Find(psBase->pcClass) == ARRAY_ELEMENT_NOT_FOUND))
+		psPath = pasPaths->Get(i);
+		if (psPath->bVirtualEdge && (papcVirtual->Find(psPath->pcClass) == ARRAY_ELEMENT_NOT_FOUND))
 		{
-			papcVirtual->Add(psBase->pcClass);
+			papcVirtual->Add(psPath->pcClass);
 		}
-		CollectVirtualBases(psBase->pcClass, papcVirtual);
 	}
 }
 
@@ -189,23 +224,16 @@ void CCPPUnit::CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVir
 //////////////////////////////////////////////////////////////////////////
 size CCPPUnit::CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase)
 {
-	SCPPBase*	psBase;
-	size		uiCount;
-	size		i;
+	CArrayCPPBasePaths*	pasPaths;
+	size				uiCount;
+	size				i;
 
 	mpcStatistics->Count(CPPCC_BaseWalks);
-	if (pcClass == pcBase)
-	{
-		return 1;
-	}
+	pasPaths = pcClass->BasePaths();
 	uiCount = 0;
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	for (i = 0; i < pasPaths->NumElements(); i++)
 	{
-		psBase = pcClass->macBases.Get(i);
-		if (!psBase->bVirtual)
-		{
-			uiCount += CountFixedBases(psBase->pcClass, pcBase);
-		}
+		uiCount += ((pasPaths->Get(i)->pcClass == pcBase) && !pasPaths->Get(i)->pcVirtual) ? 1 : 0;
 	}
 	return uiCount;
 }

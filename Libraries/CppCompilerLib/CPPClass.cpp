@@ -39,6 +39,8 @@ void CCPPClass::Init(CCPPSymbol* pcSymbol, int64 lliName)
 	mpcBase = NULL;
 	macBases.Init();
 	macVirtualBases.Init();
+	masBasePaths.Init();
+	mbBasePathsKept = false;
 	miOwnBytes = 0;
 	macUsings.Init();
 	macFields.Init();
@@ -76,6 +78,7 @@ void CCPPClass::Kill(void)
 	mapcMembers.Kill();
 	macFields.Kill();
 	macUsings.Kill();
+	masBasePaths.Kill();
 	macVirtualBases.Kill();
 	macBases.Kill();
 }
@@ -137,16 +140,71 @@ int CCPPClass::GetVirtualBaseIndex(CCPPClass* pcBase)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class and its bases, direct or not, by every way to each, as its
+// bases are written: the class itself first, then each base followed by its
+// own (depth first, as a complete object's subobjects are made).  What a
+// question about the class's bases reads.  The bases as they are resolved:
+// the unit resolves them first (CCPPUnit::BasePaths).  Worked out again for
+// a class that isn't complete, kept once it is.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayCPPBasePaths* CCPPClass::BasePaths(void)
+{
+	if (!mbBasePathsKept)
+	{
+		masBasePaths.ReInit();
+		AddBasePaths(this, 0, NULL, false, true);
+		mbBasePathsKept = IsComplete();
+	}
+	return &masBasePaths;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPClass::AddBasePaths(CCPPClass* pcClass, int iOffset, CCPPClass* pcVirtual, bool bVirtualEdge, bool bPublic)
+{
+	SCPPBasePath*	psPath;
+	SCPPBase*		psBase;
+	size			i;
+
+	psPath = masBasePaths.Add();
+	psPath->pcClass = pcClass;
+	psPath->iOffset = iOffset;
+	psPath->pcVirtual = pcVirtual;
+	psPath->bVirtualEdge = bVirtualEdge;
+	psPath->bPublic = bPublic;
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		psBase = pcClass->macBases.Get(i);
+		if (psBase->bVirtual)
+		{
+			AddBasePaths(psBase->pcClass, 0, psBase->pcClass, true, bPublic && (psBase->eAccess == CPPA_Public));
+		}
+		else
+		{
+			AddBasePaths(psBase->pcClass, iOffset + psBase->iOffset, pcVirtual, false, bPublic && (psBase->eAccess == CPPA_Public));
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether pcBase is a base of the class, direct or not.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPClass::HasBase(CCPPClass* pcBase)
 {
-	size	i;
+	CArrayCPPBasePaths*	pasPaths;
+	size				i;
 
-	for (i = 0; i < macBases.NumElements(); i++)
+	pasPaths = BasePaths();
+	for (i = 1; i < pasPaths->NumElements(); i++)
 	{
-		if ((macBases.Get(i)->pcClass == pcBase) || macBases.Get(i)->pcClass->HasBase(pcBase))
+		if (pasPaths->Get(i)->pcClass == pcBase)
 		{
 			return true;
 		}

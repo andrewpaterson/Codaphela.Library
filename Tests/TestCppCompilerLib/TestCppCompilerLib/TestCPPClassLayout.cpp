@@ -408,6 +408,84 @@ static void TestCPPClassLayoutBasesAndVtables(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A base of a class written into it, not laid out (BasePaths reads the
+// bases as they are written).
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPPClassBase(CCPPClass* pcClass, CCPPClass* pcBase, int iOffset, bool bVirtual, ECPPAccess eAccess)
+{
+	SCPPBase*	psBase;
+
+	psBase = pcClass->macBases.Add();
+	psBase->pcClass = pcBase;
+	psBase->iOffset = iOffset;
+	psBase->bVirtual = bVirtual;
+	psBase->eAccess = eAccess;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class's base paths: itself first, then each base followed by its own,
+// once for each way to it, each with where it is (below the last virtual
+// base passed), that base, and whether every step was public.
+// struct D : B, private virtual V { };  struct B : A { };  struct V : A { };
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPPClassBasePaths(void)
+{
+	CCPP65Types			cTypes;
+	CCPPClass			cA;
+	CCPPClass			cB;
+	CCPPClass			cV;
+	CCPPClass			cD;
+	CArrayCPPBasePaths*	pasPaths;
+
+	cTypes.Init(2, 4);
+	TestCPPClassLayoutClass(&cA, &cTypes, false);
+	TestCPPClassLayoutClass(&cB, &cTypes, false);
+	TestCPPClassLayoutClass(&cV, &cTypes, false);
+	TestCPPClassLayoutClass(&cD, &cTypes, false);
+	TestCPPClassBase(&cB, &cA, 2, false, CPPA_Public);
+	TestCPPClassBase(&cV, &cA, 0, false, CPPA_Public);
+	TestCPPClassBase(&cD, &cB, 4, false, CPPA_Public);
+	TestCPPClassBase(&cD, &cV, 0, true, CPPA_Private);
+
+	pasPaths = cD.BasePaths();
+	AssertSize(5, pasPaths->NumElements());
+	AssertPointer(&cD, pasPaths->Get(0)->pcClass);
+	AssertInt(0, pasPaths->Get(0)->iOffset);
+	AssertTrue(pasPaths->Get(0)->bPublic);
+	AssertPointer(&cB, pasPaths->Get(1)->pcClass);
+	AssertInt(4, pasPaths->Get(1)->iOffset);
+	AssertNull(pasPaths->Get(1)->pcVirtual);
+	AssertPointer(&cA, pasPaths->Get(2)->pcClass);
+	AssertInt(6, pasPaths->Get(2)->iOffset);
+	AssertTrue(pasPaths->Get(2)->bPublic);
+	AssertPointer(&cV, pasPaths->Get(3)->pcClass);
+	AssertPointer(&cV, pasPaths->Get(3)->pcVirtual);
+	AssertTrue(pasPaths->Get(3)->bVirtualEdge);
+	AssertFalse(pasPaths->Get(3)->bPublic);
+	AssertPointer(&cA, pasPaths->Get(4)->pcClass);
+	AssertPointer(&cV, pasPaths->Get(4)->pcVirtual);
+	AssertFalse(pasPaths->Get(4)->bVirtualEdge);
+	AssertFalse(pasPaths->Get(4)->bPublic);
+
+	AssertTrue(cD.HasBase(&cA));
+	AssertTrue(cD.HasBase(&cV));
+	AssertFalse(cB.HasBase(&cV));
+	AssertFalse(cD.HasBase(&cD));
+
+	cD.Kill();
+	cV.Kill();
+	cB.Kill();
+	cA.Kill();
+	cTypes.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What an integer type holds, an array's element and a reference's type,
 // which the unit asks of the type (they were worked out where they were
 // wanted).  int is 2 bytes here, as the W65C816's.
@@ -467,6 +545,7 @@ void TestCPPClassLayout(void)
 	TestCPPClassLayoutBitFields();
 	TestCPPClassLayoutBasesAndVtables();
 	TestCPP65TypeQuestions();
+	TestCPPClassBasePaths();
 
 	TestStatistics();
 }

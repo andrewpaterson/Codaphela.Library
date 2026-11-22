@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 5 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
+Where it is: stages 0 to 6 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -747,3 +747,35 @@ Stage 5 (2026-11-22): one way through a parameter pack.
 	5,840 entries; the 3 new are TempVariadicNestedAfterElement's, and TempVariadicNestedInParameters says
 	nothing where it said "The class has no member function of that name"; nothing else differs.  Time, a unit
 	at a time: declarations 6,470 and 6,448 ms, types 6,450 and 6,481, front end 3,360 and 3,384: stage 4's.
+
+Stage 6 (2026-11-22): a class's bases.
+
+	CCPPClass::BasePaths lists the class and each of its bases, direct or not, once for each way to it, as the bases
+	are written (depth first, as the subobjects are made), with where it is (below the last virtual base the path
+	passes), that virtual base, whether its last step is virtual and whether every step is public.  It is worked out
+	again for a class that isn't complete and kept once it is.  The unit's BasePaths resolves a class's bases, and
+	theirs, before it is asked (ResolveAllBases), as IsDerived did on its way down.
+	The questions read it: IsDerived, CountBases (through CollectVirtualBases and CountFixedBases), IsOnePublicBase
+	(CountBasePaths and its nine parameters, four of them outputs, are gone), IsPublicBase and CCPPClass::HasBase.
+	"Is B a base of C" has one answer now: the list, C itself its first entry; the callers say whether C counts
+	(IsDerived and IsPublicBase take it, HasBase and IsOnePublicBase don't).  Today's four differed only in that and
+	in resolving the bases first, which IsDerived alone did.
+	A test: TestCPPClassBasePaths (a class with a public base and a private virtual one, each with the same base).
+
+	Not done, as the stage was written:
+	- FindInBases and IsAmbiguousInBases, HasMember and FindBaseInstance are lookups that stop where a class has
+	  the name, or is the template's instance, and resolve or lay out each class as they come to it: reading a list
+	  made first would resolve more.  They stay walks.
+	- CCPPAccess::HasBase asks by a class's specifier (a template's instance and its pattern), not by class.
+	- CCPPClassLayout::CollectVirtualBases keeps its own order: it is the order a complete object makes its virtual
+	  bases in, which the layout decides.  The unit's CollectVirtualBases reads the list, in the order the bases are
+	  written; the two are for different things, and both are said so.
+	- mpcBase (the first base's class, kept beside macBases) has 24 uses in the layout, the vtable and the front end:
+	  it goes with stage 13, which takes the class data.
+	- AllowsOnlyWhat stays on the unit: it asks IsDerived, which resolves bases.
+
+	Proved against stage 5 (the rebased baseline): TestCppCompilerLib passes (272,049); the 5,840 diagnostics
+	entries and the 4,205 listings are as they were.  Base walks compiling TestSupportLib65's project, a unit at a
+	time: 8,114,416 and 7,817,617 for the 65C64 and the W65C816 (stage 5: 12,001,964 and 11,666,255), a third fewer,
+	as a complete class's list is kept.  Time: declarations 6,440 and 6,432 ms, types 6,395 and 6,434, front end
+	3,305 and 3,373 (stage 5: 6,470 and 6,448, 6,450 and 6,481, 3,360 and 3,384).

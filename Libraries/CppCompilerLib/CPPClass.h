@@ -77,6 +77,21 @@ struct SCPPVirtualBase
 typedef CArrayTemplate<SCPPVirtualBase>	CArrayCPPVirtualBases;
 
 
+//A way from a class to itself or to one of its bases, direct or not (CCPPClass::BasePaths): each class an object of
+//the class has in it, once for each way to it, as its bases are written.
+struct SCPPBasePath
+{
+	CCPPClass*	pcClass;
+	int			iOffset;		//Where it is in the class; below pcVirtual where the path passes a virtual base.
+	CCPPClass*	pcVirtual;		//The last virtual base the path passes, NULL if it passes none.
+	bool		bVirtualEdge;	//Its last step is a virtual base specifier.
+	bool		bPublic;		//Every step is public.
+};
+
+
+typedef CArrayTemplate<SCPPBasePath>	CArrayCPPBasePaths;
+
+
 //What IsDerived gives as the offset of a base reached through a virtual base: there is none that is fixed.
 #define CPP_VIRTUAL_PATH	(-0x7FFFFFFF)
 
@@ -127,6 +142,8 @@ public:
 	CCPPClass*					mpcBase;
 	CArrayCPPBases				macBases;
 	CArrayCPPVirtualBases		macVirtualBases;	//Every virtual base, direct or not, once, in the order a complete object makes them.
+	CArrayCPPBasePaths			masBasePaths;		//BasePaths' list, kept once the class is complete...
+	bool						mbBasePathsKept;	//...which it then is.
 	int							miOwnBytes;			//Its own part's size (without its virtual bases): what it takes as a non-virtual base.
 	CArrayCPPUsings				macUsings;
 	CArrayCPPFields				macFields;
@@ -167,6 +184,12 @@ public:
 	SCPPVirtualBase*	GetVirtualBase(CCPPClass* pcBase);
 	int				GetVirtualBaseIndex(CCPPClass* pcBase);
 	bool			HasBase(CCPPClass* pcBase);
+	CArrayCPPBasePaths*	BasePaths(void);
+
+protected:
+	void			AddBasePaths(CCPPClass* pcClass, int iOffset, CCPPClass* pcVirtual, bool bVirtualEdge, bool bPublic);
+
+public:
 
 	bool			IsInstanceNamed(CCPPSymbol* pcSymbol);
 	SCPPField*		FindField(int64 lliName, int* piOffset, CCPPClass** ppcVirtual = NULL);

@@ -748,7 +748,6 @@ public:
 	int						VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase);
 	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags, uint32 uiHigh);
 	bool					IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
-	void					CountBasePaths(CCPPClass* pcClass, CCPPClass* pcBase, int iOffset, bool bPublic, bool bVirtual, int* piPaths, int* piVirtual, int* piOffset, bool* pbPublic);
 	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
 	void					AppendTypeInfoHeader(CChars* pszName, uint32 uiKind);
 	void					AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bShared, CChars* pszName);
@@ -774,6 +773,8 @@ public:
 	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	size					CountBases(CCPPClass* pcClass, CCPPClass* pcBase);
 	void					CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual);
+	CArrayCPPBasePaths*		BasePaths(CCPPClass* pcClass);
+	void					ResolveAllBases(CCPPClass* pcClass);
 	size					CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase);
 	SCPPVirtualBase*		VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, int* piBelow);
 	bool					CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
