@@ -28,6 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CTIdentifier.h"
 #include "CTUserLiteral.h"
 #include "CppTokeniser.h"
+#include "CPP65IRFrontEnd.h"
 #include "CPPSyntaxTree.h"
 #include "CPPUnit.h"
 #include "CPPConstants.h"
@@ -3326,21 +3327,20 @@ bool CCPPUnit::BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLef
 //
 // True if a signed constant's left op right (iBits wide) that gave
 // lliResult overflows (IRSignedOverflows), or is the least number divided
-// by -1.
+// by -1.  The operator's opcode is the front end's (CPPArithmeticOpcode).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsSignedOverflow(ECppTokens eOperator, int iBits, int64 lliLeft, int64 lliRight, int64 lliResult)
 {
-	switch (eOperator)
+	uint16	uiOpcode;
+
+	if ((eOperator == CT_Divide) || (eOperator == CT_Modulus))
 	{
-	case CT_Add:			return IRSignedOverflows(IRO_Add, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
-	case CT_Subtract:		return IRSignedOverflows(IRO_Sub, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
-	case CT_Multiply:		return IRSignedOverflows(IRO_Mul, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
-	case CT_LeftShift:		return IRSignedOverflows(IRO_Shl, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
-	case CT_Divide:
-	case CT_Modulus:		return (lliRight == -1) && IRSignedOverflows(IRO_Neg, iBits, (uint64)lliLeft, 0, 0);
-	default:				return false;
+		return (lliRight == -1) && IRSignedOverflows(IRO_Neg, iBits, (uint64)lliLeft, 0, 0);
 	}
+	//The sum, difference, product and left shift: the operators whose opcodes wrap.
+	uiOpcode = CPPArithmeticOpcode(eOperator, true);
+	return (uiOpcode != IRO_None) && IsIRSignedWrapping(uiOpcode) && IRSignedOverflows(uiOpcode, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
 }
 
 

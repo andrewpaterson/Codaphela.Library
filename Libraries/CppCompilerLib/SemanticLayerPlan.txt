@@ -897,3 +897,8 @@ Stage 11 (2026-11-23): one evaluator of constants, its first part.
 	6,432); base walks are 1% more (8,206,461), the floating point names' binding now being in the one walk.
 	Not yet: the folder as a class out of the unit (job b), the RunConstant ladder, "is this name a constant" in
 	one place, and floating point constants run by the interpreter.
+
+	Second part: an integer arithmetic operator's IR opcode is one table, CPPArithmeticOpcode (the front end's),
+	which the front end writes with and IsSignedOverflow checks a constant with, where each had its own switch;
+	the operators whose opcodes wrap (IsIRSignedWrapping) are the ones checked.  TestCppCompilerLib passes
+	(272,049); the diagnostics entries and the listings are as they were.

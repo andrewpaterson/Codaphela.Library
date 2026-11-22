@@ -167,6 +167,9 @@ typedef CArrayTemplate<SCPP65IRPendingGoto>	CArrayCPP65IRPendingGotos;
 typedef CArrayTemplate<SCPP65IRWritten>		CArrayCPP65IRWritten;
 
 
+uint16	CPPArithmeticOpcode(ECppTokens eOperator, bool bSigned);
+
+
 //Writes every function body as IR and generates it with the target's back end (CIR65Backend or CIRW65C816Backend).
 //The generator works out everything about the C++ (types with CCPP65TypeChecker, names, overloads, layouts) and
 //sets up the function; Body then writes the function as IR if it supports everything in it, or returns false

@@ -421,6 +421,33 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 // x = {1, 2} is x = X{1, 2}.  [expr.ass] 9
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// The IR opcode of an integer arithmetic operator (+ - * / % & | ^ << >>),
+// signed or unsigned as its operands' type is; IRO_None for any other.
+// The front end writes with it, and a constant's signed overflow is
+// checked with it (CCPPUnit::IsSignedOverflow).
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CPPArithmeticOpcode(ECppTokens eOperator, bool bSigned)
+{
+	switch (eOperator)
+	{
+	case CT_Add:			return IRO_Add;
+	case CT_Subtract:		return IRO_Sub;
+	case CT_Multiply:		return IRO_Mul;
+	case CT_Divide:			return bSigned ? IRO_SDiv : IRO_UDiv;
+	case CT_Modulus:		return bSigned ? IRO_SRem : IRO_URem;
+	case CT_BitwiseAnd:		return IRO_And;
+	case CT_BitwiseOr:		return IRO_Or;
+	case CT_BitwiseXor:		return IRO_Xor;
+	case CT_LeftShift:		return IRO_Shl;
+	case CT_RightShift:		return bSigned ? IRO_AShr : IRO_LShr;
+	default:				return IRO_None;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::AssignedObject(CCPPSyntax* pcRight, SCPP65Type* psClass, SCPP65IRValue* psValue)
 {
 	SCPP65IRPlace	sTemporary;
@@ -543,19 +570,10 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 	{
 		return false;
 	}
-	switch (eOperator)
+	uiOpcode = CPPArithmeticOpcode(eOperator, psType->bSigned);
+	if (uiOpcode == IRO_None)
 	{
-	case CT_Add:			uiOpcode = IRO_Add;									break;
-	case CT_Subtract:		uiOpcode = IRO_Sub;									break;
-	case CT_Multiply:		uiOpcode = IRO_Mul;									break;
-	case CT_Divide:			uiOpcode = psType->bSigned ? IRO_SDiv : IRO_UDiv;	break;
-	case CT_Modulus:		uiOpcode = psType->bSigned ? IRO_SRem : IRO_URem;	break;
-	case CT_BitwiseAnd:		uiOpcode = IRO_And;									break;
-	case CT_BitwiseOr:		uiOpcode = IRO_Or;									break;
-	case CT_BitwiseXor:		uiOpcode = IRO_Xor;									break;
-	case CT_LeftShift:		uiOpcode = IRO_Shl;									break;
-	case CT_RightShift:		uiOpcode = psType->bSigned ? IRO_AShr : IRO_LShr;	break;
-	default:				return Unsupported(__FILE__, __LINE__);
+		return Unsupported(__FILE__, __LINE__);
 	}
 	sType = IRTypeOf(psType);
 	psResult->sValue = mpcFunction->Add(mpcBlock, uiOpcode, sType, sLeft.sValue, sRight.sValue);
