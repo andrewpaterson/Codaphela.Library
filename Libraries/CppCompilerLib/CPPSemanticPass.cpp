@@ -503,5 +503,33 @@ CCPPErrors* CCPPSemanticPass::GetErrors(void)
 bool CCPPSemanticPass::IsKept(void) const { return mpcUnit != NULL; }
 bool CCPPSemanticPass::IsTemplatesAsThemselves(void) const { return mbTemplatesAsThemselves; }
 const char* CCPPSemanticPass::GetRecordedEnum(void) const { return mszRecordedEnum.Text(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The unit has made an enum's type.  If it is the enum a refactoring asks
+// about (SetRecordedEnum), by its name with its scopes, it is checked as an
+// enum class from here, and what that refuses is recorded (RecordEnumCast).
+// The first type of the name is the one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPSemanticPass::EnumMade(CCPPUnit* pcUnit, SCPP65Type* psType)
+{
+	CCPPTypeWriter	cWriter;
+	CChars			szName;
+
+	if (mszRecordedEnum.Empty() || mpsRecordedEnum)
+	{
+		return;
+	}
+	szName.Init();
+	cWriter.Init(pcUnit);
+	if (cWriter.AppendType(psType, &szName) && szName.Equals(mszRecordedEnum.Text()))
+	{
+		psType->bScopedEnum = true;
+		mpsRecordedEnum = psType;
+	}
+	szName.Kill();
+}
 SCPP65Type* CCPPSemanticPass::GetRecordedEnumType(void) const { return mpsRecordedEnum; }
 size CCPPSemanticPass::NumEnumCasts(void) const { return masEnumCasts.NumElements(); }

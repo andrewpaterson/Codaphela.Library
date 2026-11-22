@@ -3969,8 +3969,6 @@ SCPP65Type* CCPPUnit::EnumeratorType(CCPPSymbol* pcSymbol)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier)
 {
-	CCPPTypeWriter			cWriter;
-	CChars					szName;
 	SCPP65Type*				psType;
 	SCPP65Type*				psBase;
 	CCPPSyntaxEnumerator*	pcEnumerator;
@@ -4080,17 +4078,9 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 	{
 		psType = mcTypes.Enum(pcEnum, psBase ? psBase : mcTypes.Integer(iBytes, bSigned), pcSpecifier && pcSpecifier->mbScoped);
 		psType->bNonNegativeEnum = bNonNegative;
-		if (mpcSemanticPass && (mpcSemanticPass->GetRecordedEnum()[0] != '\0') && !mpcSemanticPass->GetRecordedEnumType())
+		if (mpcSemanticPass)
 		{
-			//The enum a refactoring is asking about: checked as an enum class, what that refuses recorded.
-			szName.Init();
-			cWriter.Init(this);
-			if (cWriter.AppendType(psType, &szName) && szName.Equals(mpcSemanticPass->GetRecordedEnum()))
-			{
-				psType->bScopedEnum = true;
-				mpcSemanticPass->SetRecordedEnumType(psType);
-			}
-			szName.Kill();
+			mpcSemanticPass->EnumMade(this, psType);
 		}
 		return psType;
 	}

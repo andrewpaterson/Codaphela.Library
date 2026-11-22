@@ -127,7 +127,7 @@ public:
 	bool				IsTemplatesAsThemselves(void) const;
 	void				SetRecordedEnum(const char* szQualifiedName);
 	const char*			GetRecordedEnum(void) const;
-	void				SetRecordedEnumType(SCPP65Type* psType) { mpsRecordedEnum = psType; }
+	void				EnumMade(CCPPUnit* pcUnit, SCPP65Type* psType);
 	SCPP65Type*			GetRecordedEnumType(void) const;
 	bool				IsRecordedEnum(SCPP65Type* psType);
 	bool				RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind);

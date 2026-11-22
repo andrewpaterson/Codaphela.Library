@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 8 are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
+Where it is: stages 0 to 8 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
 and taken back.  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
@@ -817,3 +817,17 @@ Stage 8 (2026-11-22): declaring a function, its small steps.
 
 	Proved: TestCppCompilerLib passes (272,049); the 5,840 diagnostics entries and the 4,205 listings are stage
 	6's; time a unit at a time is stage 6's (declarations 6,423 and 6,457 ms, types 6,393 and 6,465).
+
+Stage 14 (2026-11-22): the IDE's hook, its first part.
+
+	EnumType made an enum's type and then asked whether it was the enum Convert Enum to Class asks about, writing
+	its name with a CCPPTypeWriter to compare.  Now it tells the semantic pass it made one
+	(CCPPSemanticPass::EnumMade), and the pass decides; SetRecordedEnumType is gone.  The unit knows only that a
+	semantic pass may want to hear of enums.
+	Not done: the other places the unit asks the semantic pass (RecordEnumCast and the recorded uses), which are
+	one call each and say what the compiler saw, not what a refactoring wants; they stay as they are.
+
+	Proved: TestCppCompilerLib passes (272,055); the 5,840 diagnostics entries are stage 8's; the code changed runs
+	only with a semantic pass, so no listing can move.  The IDE's three Convert Enum checks: enum-to-class-no-casts
+	and enum-to-class-casts-shown pass, and enum-to-class fails, as it did on 2026-11-21, with the same output
+	before and after.
