@@ -252,3 +252,37 @@ void CIRDefinitions::Use(SIRReference sValue)
 		psDefinition->uiUses++;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sValue is used uiUses times now (what replaced its uses says so).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRDefinitions::SetUses(SIRReference sValue, uint32 uiUses)
+{
+	SIRDefinition*	psDefinition;
+
+	psDefinition = Get(sValue);
+	if (psDefinition)
+	{
+		psDefinition->uiUses = uiUses;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sValue is used uiUses more times: it has taken another value's place.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRDefinitions::AddUses(SIRReference sValue, uint32 uiUses)
+{
+	SIRDefinition*	psDefinition;
+
+	psDefinition = Get(sValue);
+	if (psDefinition)
+	{
+		psDefinition->uiUses += uiUses;
+	}
+}

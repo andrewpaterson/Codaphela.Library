@@ -37,8 +37,6 @@ public:
 	bool			HoistInvariants(void);
 	bool			RotateLoops(void);
 	bool			UnswitchLoops(void);
-	CIRBlock*		AddPreheader(size uiLoop);
-	CIRBlock*		Preheader(size uiLoop);
 
 protected:
 	bool			SingleExit(size uiLoop, CIRBlock** ppcFrom, CIRBlock** ppcTo);
@@ -48,7 +46,6 @@ protected:
 	bool			WritesBetween(CIRBlock* pcBlock, size uiStart, size uiEnd, SIRReference sRoot, int64 lliOffset, int iBytes);
 	void			RewriteOutsideUses(SIRReference sValue, CArrayIRBlocks* papcBlocks, CArrayIRBlocks* papcCopies, CIRSSAUpdater* pcUpdater);
 	bool			CanStep(SIRReference sValue, int iStep);
-	CIRBlock*		AddMergedPreheader(size uiLoop);
 	bool			CanRotate(size uiLoop, CIRBlock** ppcBody, CIRBlock** ppcExit);
 	void			CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CIRMappedCopier* pcCopier);
 	void			SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBlock* pcPreheader, CIRMappedCopier* pcPreheaderCopy, CIRBlock* pcLatch, CIRMappedCopier* pcLatchCopy);

@@ -75,80 +75,6 @@ bool CIRBlockPasses::SimplifyCFG(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Removes pcPredecessor's arguments from pcBlock's phis.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRBlockPasses::RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor)
-{
-	size			ui;
-	size			uiArgument;
-	SIRPhi*			psPhi;
-
-	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
-	{
-		psPhi = pcBlock->masPhis.Get(ui);
-		for (uiArgument = psPhi->asArguments.NumElements(); uiArgument > 0; uiArgument--)
-		{
-			if (psPhi->asArguments.Get(uiArgument - 1)->pcBlock == pcPredecessor)
-			{
-				psPhi->asArguments.RemoveAt(uiArgument - 1, true);
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRBlockPasses::RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew)
-{
-	size			ui;
-	size			uiArgument;
-	SIRPhi*			psPhi;
-	SIRPhiArgument*	psArgument;
-
-	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
-	{
-		psPhi = pcBlock->masPhis.Get(ui);
-		for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
-		{
-			psArgument = psPhi->asArguments.Get(uiArgument);
-			if (psArgument->pcBlock == pcOld)
-			{
-				psArgument->pcBlock = pcNew;
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pcBlock's jump goes to pcNew where it went to pcOld.  A brif to one block
-// twice becomes a jmp.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRBlockPasses::RedirectJump(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew)
-{
-	if (pcBlock->msJump.pcThen == pcOld)
-	{
-		pcBlock->msJump.pcThen = pcNew;
-	}
-	if ((pcBlock->msJump.uiKind == IRJ_Branch) && (pcBlock->msJump.pcElse == pcOld))
-	{
-		pcBlock->msJump.pcElse = pcNew;
-	}
-	if ((pcBlock->msJump.uiKind == IRJ_Branch) && (pcBlock->msJump.pcThen == pcBlock->msJump.pcElse))
-	{
-		pcBlock->Jump(pcBlock->msJump.pcThen);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // pcPredecessor jumps straight to pcTarget instead of through pcBlock,
 // passing pcTarget's phis what pcBlock did.
 //
@@ -174,7 +100,7 @@ void CIRBlockPasses::Bypass(CIRBlock* pcPredecessor, CIRBlock* pcBlock, CIRBlock
 		}
 		pcTarget->AddPhiArgument(pcTarget->masPhis.Get(uiPhi), pcPredecessor, sValue);
 	}
-	RedirectJump(pcPredecessor, pcBlock, pcTarget);
+	pcPredecessor->RedirectJump(pcBlock, pcTarget);
 }
 
 
@@ -242,7 +168,7 @@ bool CIRBlockPasses::RemoveUnreachable(void)
 			apcUnreachable.Add(pcBlock);
 			for (uiSuccessor = 0; uiSuccessor < pcBlock->NumSuccessors(); uiSuccessor++)
 			{
-				RemovePhiArguments(pcBlock->GetSuccessor(uiSuccessor), pcBlock);
+				pcBlock->GetSuccessor(uiSuccessor)->RemovePhiArguments(pcBlock);
 			}
 		}
 	}
@@ -302,7 +228,7 @@ bool CIRBlockPasses::FoldBranches(void)
 				pcTaken = pcBlock->msJump.pcElse;
 				pcDropped = pcBlock->msJump.pcThen;
 			}
-			RemovePhiArguments(pcDropped, pcBlock);
+			pcDropped->RemovePhiArguments(pcBlock);
 			pcBlock->Jump(pcTaken);
 			bChanged = true;
 		}
@@ -352,7 +278,7 @@ bool CIRBlockPasses::SkipEmptyBlocks(void)
 			mpcFunction->ComputePredecessors();
 			if (pcBlock->mapcPredecessors.NumElements() == 0)
 			{
-				RemovePhiArguments(pcTarget, pcBlock);
+				pcTarget->RemovePhiArguments(pcBlock);
 				mpcFunction->RemoveBlock(pcBlock);
 			}
 			return true;
@@ -483,7 +409,7 @@ void CIRBlockPasses::CountSuccessorPhiUses(CIRBlock* pcBlock, CIRBlock* pcSucces
 // instructions, jump or phis; so a predecessor can go round it without
 // them).  With bSuccessorPhis its phis may also be the values its
 // successors' phis take from it (Bypass gives those what the predecessor
-// gave).  mpcContext->mauiUses must be counted.
+// gave).  The definitions must be found (their count of uses is read).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRBlockPasses::OnlyUsedInBlock(CIRBlock* pcBlock, bool bSuccessorPhis)
@@ -502,13 +428,15 @@ bool CIRBlockPasses::OnlyUsedInBlock(CIRBlock* pcBlock, bool bSuccessorPhis)
 //////////////////////////////////////////////////////////////////////////
 //
 // True if the phis and results of papcBlocks are only used in them (by
-// their instructions, jumps or phis): every use mpcContext->mauiUses counts of each is
-// one of theirs.  With bSuccessorPhis a block's phis may also be the values
-// its successors' phis take from it (CountSuccessorPhiUses).  mpcContext->mauiUses must
-// be counted.
+// their instructions, jumps or phis): every use the definitions count of
+// each is one of theirs.  With bSuccessorPhis a block's phis may also be
+// the values its successors' phis take from it (CountSuccessorPhiUses).
+// pasAllowed has the uses elsewhere that don't count, a value for each one
+// (a value another block's phi takes, which what asks sees to).  The
+// definitions must be found.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRBlockPasses::OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis)
+bool CIRBlockPasses::OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis, CArrayIRReferences* pasAllowed)
 {
 	CArrayTemplate<uint32>	auiInside;
 	CIRBlock*				pcBlock;
@@ -524,6 +452,11 @@ bool CIRBlockPasses::OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis)
 	for (bUse = FirstTemporaryUse(&sUse, papcBlocks); bUse; bUse = NextUse(&sUse))
 	{
 		(*auiInside.Get(sUse.psSlot->Index()))++;
+	}
+	for (ui = 0; pasAllowed && (ui < pasAllowed->NumElements()); ui++)
+	{
+		//As good as a use inside.
+		(*auiInside.Get(pasAllowed->Get(ui)->Index()))++;
 	}
 	for (ui = 0; bSuccessorPhis && (ui < papcBlocks->NumElements()); ui++)
 	{
@@ -542,12 +475,12 @@ bool CIRBlockPasses::OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis)
 		for (uiIndex = 0; bOnly && (uiIndex < pcBlock->masPhis.NumElements()); uiIndex++)
 		{
 			sValue = pcBlock->masPhis.Get(uiIndex)->sResult;
-			bOnly = *mpcContext->mauiUses.Get(sValue.Index()) == *auiInside.Get(sValue.Index());
+			bOnly = mpcContext->mcDefinitions.NumUses(sValue) == *auiInside.Get(sValue.Index());
 		}
 		for (uiIndex = 0; bOnly && (uiIndex < pcBlock->masInstructions.NumElements()); uiIndex++)
 		{
 			sValue = pcBlock->masInstructions.Get(uiIndex)->sResult;
-			bOnly = !sValue.IsTemporary() || (*mpcContext->mauiUses.Get(sValue.Index()) == *auiInside.Get(sValue.Index()));
+			bOnly = !sValue.IsTemporary() || (mpcContext->mcDefinitions.NumUses(sValue) == *auiInside.Get(sValue.Index()));
 		}
 	}
 	auiInside.Kill();
@@ -593,7 +526,7 @@ CIRBlock* CIRBlockPasses::KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock
 			//A pointer phi that isn't null coming from pcPredecessor (NonNullAt): p == 0 is false, p != 0 true.
 			psPhi = mpcContext->mcDefinitions.Phi(sCopy.asArguments[0]);
 			psArgument = (psPhi && (mpcContext->mcDefinitions.Block(sCopy.asArguments[0]) == pcBlock)) ? pcBlock->FindPhiArgument(psPhi, pcPredecessor) : NULL;
-			if (psArgument && (mpcContext->mpcRangePasses->BranchNonNull(pcPredecessor, pcBlock, psArgument->sValue) || mpcContext->mpcRangePasses->NonNullAt(pcPredecessor, psArgument->sValue, IR_NON_NULL_DEPTH)))
+			if (psArgument && (mpcContext->mcRanges.BranchNonNull(pcPredecessor, pcBlock, psArgument->sValue) || mpcContext->mcRanges.NonNullAt(pcPredecessor, psArgument->sValue, IR_NON_NULL_DEPTH)))
 			{
 				*asKnown.Get(sCopy.sResult.Index()) = mpcFunction->AddConstant(mpcFunction->GetTemporaryType(sCopy.sResult), (sCopy.uiOpcode == IRO_Ne) ? 1 : 0);
 				continue;
@@ -646,7 +579,6 @@ bool CIRBlockPasses::ThreadPhis(void)
 	bool			bChanged;
 	bool			bPure;
 
-	mpcFunction->CountUses(&mpcContext->mauiUses);
 	FindDefinitions();
 	apcPredecessors.Init();
 	bChanged = false;
@@ -682,7 +614,7 @@ bool CIRBlockPasses::ThreadPhis(void)
 				continue;
 			}
 			Bypass(pcPredecessor, pcBlock, pcTarget);
-			RemovePhiArguments(pcBlock, pcPredecessor);
+			pcBlock->RemovePhiArguments(pcPredecessor);
 			mpcFunction->ComputePredecessors();
 			bChanged = true;
 		}
@@ -737,7 +669,7 @@ bool CIRBlockPasses::DuplicateReturns(void)
 				sValue = psArgument ? psArgument->sValue : IRNone();
 			}
 			pcPredecessor->Return(pcBlock->msJump.sType, sValue);
-			RemovePhiArguments(pcBlock, pcPredecessor);
+			pcBlock->RemovePhiArguments(pcPredecessor);
 			bChanged = true;
 		}
 		if (bChanged)
@@ -789,7 +721,7 @@ bool CIRBlockPasses::JoinBlocks(void)
 		pcBlock->msJump = pcNext->msJump;
 		for (uiSuccessor = 0; uiSuccessor < pcNext->NumSuccessors(); uiSuccessor++)
 		{
-			RenamePhiArguments(pcNext->GetSuccessor(uiSuccessor), pcNext, pcBlock);
+			pcNext->GetSuccessor(uiSuccessor)->RenamePhiArguments(pcNext, pcBlock);
 		}
 		pcNext->Unreachable();
 		mpcFunction->ComputePredecessors();
@@ -1073,28 +1005,4 @@ bool CIRBlockPasses::RemoveDeadCode(void)
 	asWork.Kill();
 	abLive.Kill();
 	return bChanged;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// pcBlock's phis take from pcNew (which comes to it now too) what they take
-// from pcFrom.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRBlockPasses::CopyPhiArguments(CIRBlock* pcBlock, CIRBlock* pcFrom, CIRBlock* pcNew)
-{
-	SIRPhi*			psPhi;
-	SIRPhiArgument*	psArgument;
-	size			ui;
-
-	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
-	{
-		psPhi = pcBlock->masPhis.Get(ui);
-		psArgument = pcBlock->FindPhiArgument(psPhi, pcFrom);
-		if (psArgument)
-		{
-			pcBlock->AddPhiArgument(psPhi, pcNew, psArgument->sValue);
-		}
-	}
 }

@@ -38,7 +38,8 @@ typedef CArrayTemplate<SIRDefinition>	CArrayIRDefinitions;
 
 //Each temporary's definition and number of uses, as Compute finds them.  Instructions are kept as their block and
 //index, so they stay right while instructions are only changed in place; Compute again after adding or removing
-//any.
+//any.  The uses are as Compute counted them: a pass that gives one value's uses to another as it goes says so
+//(SetUses, AddUses), and one that wants them as they were when it began keeps its own (CIRFunction::CountUses).
 class CIRDefinitions
 {
 protected:
@@ -56,6 +57,8 @@ public:
 	CIRBlock*		Block(SIRReference sValue);
 	int32			Index(SIRReference sValue);
 	uint32			NumUses(SIRReference sValue);
+	void			SetUses(SIRReference sValue, uint32 uiUses);
+	void			AddUses(SIRReference sValue, uint32 uiUses);
 	SIRInstruction*	DefinedBy(SIRReference sValue, uint16 uiOpcode);
 	bool			IsDefinedBy(SIRReference sValue, uint16 uiOpcode);
 

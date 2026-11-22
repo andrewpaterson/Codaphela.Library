@@ -360,7 +360,7 @@ bool CIRCounterPasses::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 	//and >= (< and > stop at N), and past c0 (when it starts past N) in the way it goes, when the stepped value is seen
 	//past the test (tested, or used after it) and the loop isn't only entered towards N.
 	sInitial = psCounter->asArguments.Get(uiOutside)->sValue;
-	if (!mpcContext->mpcRangePasses->SignedRange(sInitial, &sInitialRange, IR_RANGE_AS_DEFINED) || !mpcContext->mpcRangePasses->SignedRange(sBound, &sBoundRange, IR_RANGE_AS_DEFINED))
+	if (!mpcContext->mcRanges.SignedRange(sInitial, &sInitialRange, IR_RANGE_AS_DEFINED) || !mpcContext->mcRanges.SignedRange(sBound, &sBoundRange, IR_RANGE_AS_DEFINED))
 	{
 		asExits.Kill();
 		return false;
@@ -755,7 +755,7 @@ bool CIRCounterPasses::ReduceMultiplies(void)
 				pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcPreheader;
 				if (pcPreheader == NULL)
 				{
-					pcPreheader = mpcContext->mpcLoopPasses->AddPreheader(uiLoop);
+					pcPreheader = mpcContext->mcLoops.AddPreheader(uiLoop);
 					FindDefinitions();
 				}
 				for (ui = 0; ui < uiValues; ui++)
@@ -1097,7 +1097,7 @@ bool CIRCounterPasses::ReduceDivisions(void)
 				}
 
 				//The counters: init % c (and init / c) before the loop, stepped in the latch.
-				pcEntering = mpcContext->mpcLoopPasses->Preheader(uiLoop);
+				pcEntering = mpcContext->mcLoops.Preheader(uiLoop);
 				for (ui = 0; ui < uiDivisors; ui++)
 				{
 					psDivisor = &asDivisors[ui];
@@ -1270,7 +1270,7 @@ bool CIRCounterPasses::ReduceStrength(void)
 						continue;
 					}
 
-					pcEntering = mpcContext->mpcLoopPasses->Preheader(uiLoop);
+					pcEntering = mpcContext->mcLoops.Preheader(uiLoop);
 
 					//p + init * k before the loop; the pointer steps by c * k going round.  (Adding to the latch may
 					//move this block's instructions.)

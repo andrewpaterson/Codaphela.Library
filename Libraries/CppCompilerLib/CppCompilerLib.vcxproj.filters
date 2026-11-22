@@ -396,10 +396,16 @@
     <ClCompile Include="IRDominators.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRAddresses.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRBlockCopier.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="IRDefinitions.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRRanges.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="IRMost.cpp">
@@ -1214,10 +1220,19 @@
     <ClInclude Include="IRDominators.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
+    <ClInclude Include="IRAddresses.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
     <ClInclude Include="IRBlockCopier.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRDefinitions.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRPassAnalysis.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRRanges.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRMost.h">

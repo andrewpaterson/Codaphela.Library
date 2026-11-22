@@ -23,35 +23,22 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRPasses.h"
 
 
-//What range a value is in and whether a pointer is null, for the other passes; and the passes that use it
-//themselves: narrowed truncations, multiplies and comparisons, and null tests folded.
+//The passes that go by how big a value can be and whether a pointer is null (CIRRanges, which every group asks):
+//narrowed truncations, multiplies and comparisons, and null tests folded.
 class CIRRangePasses : public CIRPasses
 {
 public:
 	bool			NarrowTruncations(void);
 	bool			NarrowMultiplies(void);
-	bool			RangeAt(CIRBlock* pcBlock, SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth = IR_SIGNED_RANGE_DEPTH, CIRBlock* pcTo = NULL);
-	bool			NotNegative(CIRBlock* pcBlock, SIRReference sValue);
-	bool			BranchNonNull(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue);
-	bool			NonNullAt(CIRBlock* pcBlock, SIRReference sValue, int iDepth);
 	bool			FoldNullTests(void);
-	bool			SignedRange(SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth = IR_SIGNED_RANGE_DEPTH);
 	bool			NarrowComparison(SIRInstruction* psInstruction);
-	uint64			UpperBound(SIRReference sValue, int iDepth);
 
 protected:
-	void			DominatingRange(CIRBlock* pcBlock, SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy);
-	void			BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, SIRValueRange* psRange);
-	bool			DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SIRReference sRight, uint8 uiNarrowBy);
 	SIRInstruction*	ExtendedMultiple(SIRReference sValue, int64* plliMultiple, int iDepth);
 	bool			BoundIndices(void);
-	CIRBlock*		RangeStep(CIRBlock* pcTo, uint8 uiNarrowBy, bool* pbBranch);
-	bool			DivisionRange(SIRInstruction* psInstruction, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth);
-	bool			ArithmeticRange(SIRInstruction* psInstruction, SIRValueRange* psRange, uint8 uiNarrowBy, int iDepth);
 	SIRReference	Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType);
 	void			ComparisonRange(SIRInstruction* psInstruction);
 	SIRReference	FreeNarrow(SIRReference sValue, SIRType sType);
-	SIRInstruction*	EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, uint16* puiOpcode, SIRReference* psOther);
 	SIRReference	Narrowed(SIRReference sValue, SIRType sType, CArrayIRInstructions* pasNew, int iDepth);
 };
 

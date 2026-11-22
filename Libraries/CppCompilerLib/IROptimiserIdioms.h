@@ -59,7 +59,7 @@ protected:
 	bool			MatchIdiomCounter(size uiLoop, CIRBlock* pcHead, CIRBlock* pcLatch, SIRIdiomCounter* psCounter);
 	bool			MatchIdiomStep(size uiLoop, CIRBlock* pcHead, CIRBlock* pcLatch, SIRReference sValue, SIRIdiomCounter* psCounter);
 	bool			MatchIdiomAddress(size uiLoop, CIRBlock* pcHead, CIRBlock* pcLatch, SIRReference sAddress, SIRIdiomCounter* psCounter, int64 lliBytes, SIRIdiomAddress* psAddress);
-	bool			OnlyUsedInLoop(size uiLoop);
+	bool			OnlyUsedInLoop(size uiLoop, CArrayIRReferences* pasAllowed = NULL);
 	bool			ReplaceStrlen(size uiLoop);
 	bool			ReplaceMemcmp(size uiLoop);
 	bool			ReplaceMemchr(size uiLoop);

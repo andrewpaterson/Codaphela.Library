@@ -373,3 +373,102 @@ void CIRLoops::SetPreheader(size uiLoop, CIRBlock* pcPreheader)
 	maiInnermost.GrowToAtLeastNumElements(pcPreheader->muiIndex + 1, true, 0xFF);
 	*maiInnermost.Get(pcPreheader->muiIndex) = psLoop->iParent;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The loop's preheader: the block that enters it and goes nowhere else,
+// where what is worked out once before the loop is put.  It is made if the
+// loop has none: its entering block branches (AddPreheader), or several
+// blocks enter it (AddMergedPreheader).
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CIRLoops::Preheader(size uiLoop)
+{
+	CIRBlock*	pcPreheader;
+
+	pcPreheader = GetLoop(uiLoop)->pcPreheader;
+	if (pcPreheader == NULL)
+	{
+		pcPreheader = GetLoop(uiLoop)->pcEntering ? AddPreheader(uiLoop) : AddMergedPreheader(uiLoop);
+	}
+	return pcPreheader;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A block between a loop's entering block and its head, which the entering
+// block's jump now goes to and which jumps to the head: the loop's
+// preheader.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CIRLoops::AddPreheader(size uiLoop)
+{
+	CIRBlock*	pcPreheader;
+	CIRBlock*	pcEntering;
+	CIRBlock*	pcHead;
+
+	pcEntering = GetLoop(uiLoop)->pcEntering;
+	pcHead = GetLoop(uiLoop)->pcHead;
+	pcPreheader = mpcFunction->AddBlock();
+	pcPreheader->Jump(pcHead);
+	pcEntering->RedirectJump(pcHead, pcPreheader);
+	pcHead->RenamePhiArguments(pcEntering, pcPreheader);
+	mpcFunction->ComputePredecessors();
+	SetPreheader(uiLoop, pcPreheader);
+	return pcPreheader;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A preheader for a loop entered from several blocks (each loop before it
+// leaving straight to its head, say): the blocks outside that jumped to the
+// head jump to it, phis in it take what they passed the head's phis, and the
+// head's phis take those from it.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CIRLoops::AddMergedPreheader(size uiLoop)
+{
+	CIRBlock*		pcPreheader;
+	CIRBlock*		pcHead;
+	CIRBlock*		pcPredecessor;
+	SIRPhi*			psPhi;
+	SIRPhi*			psMerged;
+	SIRPhiArgument*	psArgument;
+	SIRType			sType;
+	size			ui;
+	size			uiArgument;
+
+	pcHead = GetLoop(uiLoop)->pcHead;
+	pcPreheader = mpcFunction->AddBlock();
+	for (ui = 0; ui < pcHead->masPhis.NumElements(); ui++)
+	{
+		psPhi = pcHead->masPhis.Get(ui);
+		sType = mpcFunction->GetTemporaryType(psPhi->sResult);
+		psMerged = pcPreheader->AddPhi(sType, mpcFunction->AddTemporary(sType));
+		for (uiArgument = psPhi->asArguments.NumElements(); uiArgument > 0; uiArgument--)
+		{
+			psArgument = psPhi->asArguments.Get(uiArgument - 1);
+			if (!Contains(uiLoop, psArgument->pcBlock))
+			{
+				pcPreheader->AddPhiArgument(psMerged, psArgument->pcBlock, psArgument->sValue);
+				psPhi->asArguments.RemoveAt(uiArgument - 1, true);
+			}
+		}
+		pcHead->AddPhiArgument(psPhi, pcPreheader, psMerged->sResult);
+	}
+	for (ui = 0; ui < pcHead->mapcPredecessors.NumElements(); ui++)
+	{
+		pcPredecessor = pcHead->mapcPredecessors.GetPtr(ui);
+		if (!Contains(uiLoop, pcPredecessor))
+		{
+			pcPredecessor->RedirectJump(pcHead, pcPreheader);
+		}
+	}
+	pcPreheader->Jump(pcHead);
+	mpcFunction->ComputePredecessors();
+	SetPreheader(uiLoop, pcPreheader);
+	return pcPreheader;
+}

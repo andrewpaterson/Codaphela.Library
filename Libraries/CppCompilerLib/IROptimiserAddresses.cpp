@@ -28,8 +28,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 //
 // Per temporary: its uses as the address of a load or store of at most 2
-// bytes (not volatile, and not the value a store writes).  mpcContext->mauiUses must be
-// counted; pauiAddressUses must be initialised.
+// bytes (not volatile, and not the value a store writes).  pauiAddressUses
+// must be initialised.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRAddressPasses::CountAddressUses(CArrayTemplate<uint32>* pauiAddressUses)
@@ -42,7 +42,7 @@ void CIRAddressPasses::CountAddressUses(CArrayTemplate<uint32>* pauiAddressUses)
 	uint32			uiZero;
 
 	uiZero = 0;
-	for (ui = 0; ui < mpcContext->mauiUses.NumElements(); ui++)
+	for (ui = 0; ui < mpcFunction->NumTemporaries() + 1; ui++)
 	{
 		pauiAddressUses->Add(&uiZero);
 	}
@@ -136,7 +136,6 @@ bool CIRAddressPasses::MergeAddressPhis(void)
 	Renumber();
 	mpcFunction->ComputePredecessors();
 	ComputeDominators();
-	mpcFunction->CountUses(&mpcContext->mauiUses);
 	FindDefinitions();
 	auiAddressUses.Init();
 	CountAddressUses(&auiAddressUses);
@@ -151,7 +150,7 @@ bool CIRAddressPasses::MergeAddressPhis(void)
 			psPhi = pcBlock->masPhis.Get(uj);
 			sResult = psPhi->sResult;
 			if (!psPhi->sType.Is(IRTK_Pointer) || (psPhi->asArguments.NumElements() < 2) || (sResult.Index() >= auiAddressUses.NumElements()) ||
-				(*mpcContext->mauiUses.Get(sResult.Index()) == 0) || (*mpcContext->mauiUses.Get(sResult.Index()) != *auiAddressUses.Get(sResult.Index())))
+				(mpcContext->mcDefinitions.NumUses(sResult) == 0) || (mpcContext->mcDefinitions.NumUses(sResult) != *auiAddressUses.Get(sResult.Index())))
 			{
 				continue;
 			}
@@ -240,7 +239,8 @@ bool CIRAddressPasses::MergeAddressPhis(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIRAddressPasses::BiasSignedIndices(void)
 {
-	CArrayTemplate<uint32>	auiAddressUses;		//Per temporary: its uses as a 2 byte load's or store's address.
+	CArrayTemplate<uint32>	auiUses;			//Per temporary: its uses when the pass began (the definitions are worked out again as it goes).
+	CArrayTemplate<uint32>	auiAddressUses;		//...and those as a 2 byte load's or store's address.
 	CIRBlock*				pcBlock;
 	SIRInstruction*			psInstruction;
 	SIRInstruction*			psInner;
@@ -261,7 +261,8 @@ bool CIRAddressPasses::BiasSignedIndices(void)
 	uint16					uiScaleOpcode;
 	bool					bChanged;
 
-	mpcFunction->CountUses(&mpcContext->mauiUses);
+	auiUses.Init();
+	mpcFunction->CountUses(&auiUses);
 	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
 	auiAddressUses.Init();
@@ -276,15 +277,15 @@ bool CIRAddressPasses::BiasSignedIndices(void)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uj);
 			if ((psInstruction->uiOpcode != IRO_PtrAdd) || !psInstruction->sResult.IsTemporary() ||
-				(psInstruction->sResult.Index() >= auiAddressUses.NumElements()) || (*mpcContext->mauiUses.Get(psInstruction->sResult.Index()) == 0) ||
-				(*mpcContext->mauiUses.Get(psInstruction->sResult.Index()) != *auiAddressUses.Get(psInstruction->sResult.Index())))
+				(psInstruction->sResult.Index() >= auiAddressUses.NumElements()) || (*auiUses.Get(psInstruction->sResult.Index()) == 0) ||
+				(*auiUses.Get(psInstruction->sResult.Index()) != *auiAddressUses.Get(psInstruction->sResult.Index())))
 			{
 				continue;
 			}
 			sBase = psInstruction->asArguments[0];
 			sOffset = psInstruction->asArguments[1];
 			lliExtra = 0;
-			if (sOffset.IsConstant() && sBase.IsTemporary() && (sBase.Index() < mpcContext->mauiUses.NumElements()) && (*mpcContext->mauiUses.Get(sBase.Index()) == 1))
+			if (sOffset.IsConstant() && sBase.IsTemporary() && (sBase.Index() < auiUses.NumElements()) && (*auiUses.Get(sBase.Index()) == 1))
 			{
 				//(p + sext(x) * s) + c.
 				psInner = mpcContext->mcDefinitions.Instruction(sBase);
@@ -333,7 +334,7 @@ bool CIRAddressPasses::BiasSignedIndices(void)
 			}
 			else
 			{
-				if (!mpcContext->mpcRangePasses->RangeAt(pcBlock, sIndex, &sRange, IR_RANGE_BRANCHES))
+				if (!mpcContext->mcRanges.RangeAt(pcBlock, sIndex, &sRange, IR_RANGE_BRANCHES))
 				{
 					sRange.lliMin = -0x8000;
 					sRange.lliMax = 0x7FFF;
@@ -383,6 +384,7 @@ bool CIRAddressPasses::BiasSignedIndices(void)
 		}
 	}
 	auiAddressUses.Kill();
+	auiUses.Kill();
 	return bChanged;
 }
 

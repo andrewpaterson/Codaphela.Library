@@ -186,105 +186,6 @@ bool CIRLoopPasses::LessLoopTests(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The loop's preheader: the block that enters it and goes nowhere else,
-// where what is worked out once before the loop is put.  It is made if the
-// loop has none: its entering block branches (AddPreheader), or several
-// blocks enter it (AddMergedPreheader).
-//
-//////////////////////////////////////////////////////////////////////////
-CIRBlock* CIRLoopPasses::Preheader(size uiLoop)
-{
-	CIRBlock*	pcPreheader;
-
-	pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcPreheader;
-	if (pcPreheader == NULL)
-	{
-		pcPreheader = mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering ? AddPreheader(uiLoop) : AddMergedPreheader(uiLoop);
-	}
-	return pcPreheader;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A block between a loop's entering block and its head, which the entering
-// block's jump now goes to and which jumps to the head: the loop's
-// preheader.
-//
-//////////////////////////////////////////////////////////////////////////
-CIRBlock* CIRLoopPasses::AddPreheader(size uiLoop)
-{
-	CIRBlock*	pcPreheader;
-	CIRBlock*	pcEntering;
-	CIRBlock*	pcHead;
-
-	pcEntering = mpcContext->mcLoops.GetLoop(uiLoop)->pcEntering;
-	pcHead = mpcContext->mcLoops.GetLoop(uiLoop)->pcHead;
-	pcPreheader = mpcFunction->AddBlock();
-	pcPreheader->Jump(pcHead);
-	mpcContext->mpcBlockPasses->RedirectJump(pcEntering, pcHead, pcPreheader);
-	mpcContext->mpcBlockPasses->RenamePhiArguments(pcHead, pcEntering, pcPreheader);
-	mpcFunction->ComputePredecessors();
-	mpcContext->mcLoops.SetPreheader(uiLoop, pcPreheader);
-	return pcPreheader;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A preheader for a loop entered from several blocks (each loop before it
-// leaving straight to its head, say): the blocks outside that jumped to the
-// head jump to it, phis in it take what they passed the head's phis, and the
-// head's phis take those from it.
-//
-//////////////////////////////////////////////////////////////////////////
-CIRBlock* CIRLoopPasses::AddMergedPreheader(size uiLoop)
-{
-	CIRBlock*		pcPreheader;
-	CIRBlock*		pcHead;
-	CIRBlock*		pcPredecessor;
-	SIRPhi*			psPhi;
-	SIRPhi*			psMerged;
-	SIRPhiArgument*	psArgument;
-	SIRType			sType;
-	size			ui;
-	size			uiArgument;
-
-	pcHead = mpcContext->mcLoops.GetLoop(uiLoop)->pcHead;
-	pcPreheader = mpcFunction->AddBlock();
-	for (ui = 0; ui < pcHead->masPhis.NumElements(); ui++)
-	{
-		psPhi = pcHead->masPhis.Get(ui);
-		sType = mpcFunction->GetTemporaryType(psPhi->sResult);
-		psMerged = pcPreheader->AddPhi(sType, mpcFunction->AddTemporary(sType));
-		for (uiArgument = psPhi->asArguments.NumElements(); uiArgument > 0; uiArgument--)
-		{
-			psArgument = psPhi->asArguments.Get(uiArgument - 1);
-			if (!mpcContext->mcLoops.Contains(uiLoop, psArgument->pcBlock))
-			{
-				pcPreheader->AddPhiArgument(psMerged, psArgument->pcBlock, psArgument->sValue);
-				psPhi->asArguments.RemoveAt(uiArgument - 1, true);
-			}
-		}
-		pcHead->AddPhiArgument(psPhi, pcPreheader, psMerged->sResult);
-	}
-	for (ui = 0; ui < pcHead->mapcPredecessors.NumElements(); ui++)
-	{
-		pcPredecessor = pcHead->mapcPredecessors.GetPtr(ui);
-		if (!mpcContext->mcLoops.Contains(uiLoop, pcPredecessor))
-		{
-			mpcContext->mpcBlockPasses->RedirectJump(pcPredecessor, pcHead, pcPreheader);
-		}
-	}
-	pcPreheader->Jump(pcHead);
-	mpcFunction->ComputePredecessors();
-	mpcContext->mcLoops.SetPreheader(uiLoop, pcPreheader);
-	return pcPreheader;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // True if an instruction of pcBlock from uiStart up to uiEnd may write the
 // iBytes at sRoot + lliOffset: a store that may alias them (MayAlias) or
 // anything else with an effect.
@@ -301,10 +202,10 @@ bool CIRLoopPasses::WritesBetween(CIRBlock* pcBlock, size uiStart, size uiEnd, S
 		psInstruction = pcBlock->masInstructions.Get(ui);
 		if (psInstruction->uiOpcode == IRO_Store)
 		{
-			mpcContext->mpcMemoryPasses->SplitAddress(psInstruction->asArguments[1], &sStore.sRoot, &sStore.lliOffset);
+			mpcContext->mcAddresses.SplitAddress(psInstruction->asArguments[1], &sStore.sRoot, &sStore.lliOffset);
 			sStore.sType = psInstruction->sType;
 			sStore.sValue = IRNone();
-			if (mpcContext->mpcMemoryPasses->MayAlias(&sStore, sRoot, lliOffset, iBytes))
+			if (mpcContext->mcAddresses.MayAlias(&sStore, sRoot, lliOffset, iBytes))
 			{
 				return true;
 			}
@@ -350,7 +251,7 @@ bool CIRLoopPasses::SinkLoad(CIRBlock* pcFrom, size uiLoad, CIRBlock* pcTo, size
 		}
 	}
 	sLoad = *pcFrom->masInstructions.Get(uiLoad);
-	mpcContext->mpcMemoryPasses->SplitAddress(sLoad.asArguments[0], &sRoot, &lliOffset);
+	mpcContext->mcAddresses.SplitAddress(sLoad.asArguments[0], &sRoot, &lliOffset);
 	iBytes = mpcModule->GetSize(sLoad.sType);
 	if (WritesBetween(pcFrom, uiLoad + 1, pcFrom->masInstructions.NumElements(), sRoot, lliOffset, iBytes) ||
 		WritesBetween(pcTo, 0, uiUse, sRoot, lliOffset, iBytes))
@@ -593,7 +494,7 @@ bool CIRLoopPasses::ReplaceExitValues(void)
 			}
 		}
 
-		pcPreheader = Preheader(uiLoop);
+		pcPreheader = mpcContext->mcLoops.Preheader(uiLoop);
 		if (UsedOutside(uiLoop, sStepped))
 		{
 			ReplaceOutside(uiLoop, sStepped, sBound);
@@ -711,9 +612,9 @@ bool CIRLoopPasses::DeleteDeadLoops(void)
 			continue;
 		}
 
-		pcPreheader = Preheader(uiLoop);
-		mpcContext->mpcBlockPasses->RedirectJump(pcPreheader, mpcContext->mcLoops.GetLoop(uiLoop)->pcHead, pcTo);
-		mpcContext->mpcBlockPasses->RenamePhiArguments(pcTo, pcFrom, pcPreheader);
+		pcPreheader = mpcContext->mcLoops.Preheader(uiLoop);
+		pcPreheader->RedirectJump(mpcContext->mcLoops.GetLoop(uiLoop)->pcHead, pcTo);
+		pcTo->RenamePhiArguments(pcFrom, pcPreheader);
 
 		//The head's phis lose the way in (it is unreachable now, and goes with SimplifyCFG).
 		for (uiPhi = 0; uiPhi < mpcContext->mcLoops.GetLoop(uiLoop)->pcHead->masPhis.NumElements(); uiPhi++)
@@ -974,7 +875,7 @@ bool CIRLoopPasses::HoistInvariants(void)
 				psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 				if (psInstruction->uiOpcode == IRO_Store)
 				{
-					mpcContext->mpcMemoryPasses->SplitAddress(psInstruction->asArguments[1], &sRoot, &lliOffset);
+					mpcContext->mcAddresses.SplitAddress(psInstruction->asArguments[1], &sRoot, &lliOffset);
 					mpcContext->mpcMemoryPasses->AddAvailable(&asStores, sRoot, lliOffset, psInstruction->sType, IRNone());
 					bCalls |= asStores.NumElements() >= IR_AVAILABLE_LIMIT;
 				}
@@ -1004,10 +905,10 @@ bool CIRLoopPasses::HoistInvariants(void)
 				if (bInvariant && (psInstruction->uiOpcode == IRO_Load))
 				{
 					bInvariant = !bCalls;
-					mpcContext->mpcMemoryPasses->SplitAddress(psInstruction->asArguments[0], &sRoot, &lliOffset);
+					mpcContext->mcAddresses.SplitAddress(psInstruction->asArguments[0], &sRoot, &lliOffset);
 					for (uiStore = 0; bInvariant && (uiStore < asStores.NumElements()); uiStore++)
 					{
-						bInvariant = !mpcContext->mpcMemoryPasses->MayAlias(asStores.Get(uiStore), sRoot, lliOffset, mpcModule->GetSize(psInstruction->sType));
+						bInvariant = !mpcContext->mcAddresses.MayAlias(asStores.Get(uiStore), sRoot, lliOffset, mpcModule->GetSize(psInstruction->sType));
 					}
 				}
 				if (!bInvariant)
@@ -1016,7 +917,7 @@ bool CIRLoopPasses::HoistInvariants(void)
 				}
 				if (bPreheader)
 				{
-					pcEntering = AddPreheader(uiLoop);
+					pcEntering = mpcContext->mcLoops.AddPreheader(uiLoop);
 					bPreheader = false;
 				}
 				sMoved = *psInstruction;
@@ -1209,7 +1110,7 @@ bool CIRLoopPasses::RotateLoops(void)
 		}
 		pcHead = mpcContext->mcLoops.GetLoop(uiLoop)->pcHead;
 		pcLatch = mpcContext->mcLoops.GetLatch(uiLoop, 0);
-		pcPreheader = Preheader(uiLoop);
+		pcPreheader = mpcContext->mcLoops.Preheader(uiLoop);
 
 		//The head's phis are the values each way in brings.
 		cPreheader.Begin(mpcFunction);
@@ -1368,7 +1269,7 @@ bool CIRLoopPasses::UnswitchLoops(void)
 			continue;
 		}
 
-		pcPreheader = Preheader(uiLoop - 1);
+		pcPreheader = mpcContext->mcLoops.Preheader(uiLoop - 1);
 		psLoop = mpcContext->mcLoops.GetLoop(uiLoop - 1);
 
 		//The copy's blocks and a temporary for each value the loop defines.
@@ -1427,9 +1328,9 @@ bool CIRLoopPasses::UnswitchLoops(void)
 		pcThen = pcSwitch->msJump.pcThen;
 		pcElse = pcSwitch->msJump.pcElse;
 		pcSwitch->Jump(pcThen);
-		mpcContext->mpcBlockPasses->RemovePhiArguments(pcElse, pcSwitch);
+		pcElse->RemovePhiArguments(pcSwitch);
 		pcSwitchCopy->Jump(cCopy.Block(pcElse));
-		mpcContext->mpcBlockPasses->RemovePhiArguments(cCopy.Block(pcThen), pcSwitchCopy);
+		cCopy.Block(pcThen)->RemovePhiArguments(pcSwitchCopy);
 		pcPreheader->Branch(sCondition, psLoop->pcHead, cCopy.Block(psLoop->pcHead));
 		Renumber();
 		mpcFunction->ComputePredecessors();

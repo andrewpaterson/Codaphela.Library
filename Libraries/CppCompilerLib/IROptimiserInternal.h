@@ -27,7 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 //The optimiser's limits: how far its searches look, and how much it does at a time, so a large function stays
-//quick to optimise.  (IR_SIGNED_RANGE_DEPTH, SignedRange's, is in IROptimiser.h for its default arguments.)
+//quick to optimise.  (IR_SIGNED_RANGE_DEPTH, SignedRange's, is in IRRanges.h for its default arguments.)
 #define IR_OPTIMISE_ROUNDS			16		//The most times Optimise runs the passes on a function.
 #define IR_ROTATE_LIMIT				8		//The most instructions a loop's head may have for RotateLoops to copy it.
 #define IR_THREAD_LIMIT				8		//The most instructions a block may have for ThreadPhis to work out.
@@ -39,6 +39,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IR_CSE_SEARCH_LIMIT			4096	//The most earlier instructions RemoveCommonSubexpressions compares one with.
 #define IR_AVAILABLE_LIMIT			64		//The most values RemoveRedundantLoads keeps known in memory (and stores HoistInvariants looks through).
 #define IR_BASE_VALUES				16		//How many phis and their arguments PointerBase looks through.
+#define IR_ADDRESS_STEPS			16		//How many ptradds SplitAddress (of constants) and PointerBase look back through for an address's root.
+#define IR_FRAME_STEPS				64		//How many ptradds IsOwnFrame looks back through for a slot or an argaddr.
 #define IR_GUARD_DEPTH				16		//How many immediate dominators up LoopGuarded looks for the branch guarding a loop.
 #define IR_REDUCE_VALUES			32		//The most values a counter's web may have (ReduceMultiplies).
 #define IR_SINK_LIMIT				32		//The most loads SinkLoads moves in a function each time.

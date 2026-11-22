@@ -39,13 +39,9 @@ public:
 	bool			RemoveTrivialPhis(void);
 	bool			RemoveDeadCode(void);
 	bool			SinkComparisons(void);
-	void			RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor);
-	void			RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);
-	void			CopyPhiArguments(CIRBlock* pcBlock, CIRBlock* pcFrom, CIRBlock* pcNew);
-	void			RedirectJump(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);
 	bool			RemoveUnreachable(void);
 	bool			OnlyUsedInBlock(CIRBlock* pcBlock, bool bSuccessorPhis = false);
-	bool			OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis);
+	bool			OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis, CArrayIRReferences* pasAllowed = NULL);
 
 protected:
 	void			Bypass(CIRBlock* pcPredecessor, CIRBlock* pcBlock, CIRBlock* pcTarget);

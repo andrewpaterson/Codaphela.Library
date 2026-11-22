@@ -143,8 +143,8 @@ bool CIRDivisionPasses::BoundDivisions(void)
 			{
 				continue;
 			}
-			ulliBound = !sDivision.bSigned ? mpcContext->mpcRangePasses->UpperBound(psInstruction->asArguments[0], IR_BOUND_DEPTH) : (uint64)-1;
-			if ((ulliBound >= ulliDivisor * 2) && mpcContext->mpcRangePasses->RangeAt(pcBlock, psInstruction->asArguments[0], &sRange, IR_RANGE_BRANCHES) && (sRange.lliMin >= 0))
+			ulliBound = !sDivision.bSigned ? mpcContext->mcRanges.UpperBound(psInstruction->asArguments[0], IR_BOUND_DEPTH) : (uint64)-1;
+			if ((ulliBound >= ulliDivisor * 2) && mpcContext->mcRanges.RangeAt(pcBlock, psInstruction->asArguments[0], &sRange, IR_RANGE_BRANCHES) && (sRange.lliMin >= 0))
 			{
 				ulliBound = (uint64)sRange.lliMax;
 			}
@@ -386,7 +386,7 @@ bool CIRDivisionPasses::DivisibilityTests(void)
 			}
 
 			sValue = psRemainder->asArguments[0];
-			if (bSigned && (!mpcContext->mpcRangePasses->SignedRange(sValue, &sRange, IR_RANGE_AS_DEFINED) || (sRange.lliMin < 0)))
+			if (bSigned && (!mpcContext->mcRanges.SignedRange(sValue, &sRange, IR_RANGE_AS_DEFINED) || (sRange.lliMin < 0)))
 			{
 				//|x|: (x ^ s) - s with s the sign (-2^(n-1) stays itself, which is its size unsigned).
 				sSign = InsertInstruction(pcBlock, uj++, IRO_AShr, sType, sValue, mpcFunction->AddInteger(sType, iBits - 1));
@@ -479,7 +479,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 				psInstruction->uiFlags |= IRF_Hot;
 				continue;
 			}
-			if (!mpcContext->mpcRangePasses->RangeAt(pcBlock, psInstruction->asArguments[0], &sRange, IR_RANGE_BRANCHES) || (!bSigned && (sRange.lliMin < 0)))
+			if (!mpcContext->mcRanges.RangeAt(pcBlock, psInstruction->asArguments[0], &sRange, IR_RANGE_BRANCHES) || (!bSigned && (sRange.lliMin < 0)))
 			{
 				sRange.lliMin = 1;
 				sRange.lliMax = 0;

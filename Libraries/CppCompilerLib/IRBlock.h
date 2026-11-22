@@ -142,6 +142,10 @@ public:
 	SIRPhi*			AddPhi(SIRType sType, SIRReference sResult);
 	void			AddPhiArgument(SIRPhi* psPhi, CIRBlock* pcBlock, SIRReference sValue);
 	SIRPhiArgument*	FindPhiArgument(SIRPhi* psPhi, CIRBlock* pcBlock);
+	void			RemovePhiArguments(CIRBlock* pcPredecessor);
+	void			RenamePhiArguments(CIRBlock* pcOld, CIRBlock* pcNew);
+	void			CopyPhiArguments(CIRBlock* pcFrom, CIRBlock* pcNew);
+	void			RedirectJump(CIRBlock* pcOld, CIRBlock* pcNew);
 	SIRPhi*			FindPhi(SIRReference sResult);
 
 	void			Jump(CIRBlock* pcTarget);

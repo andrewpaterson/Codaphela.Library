@@ -23,24 +23,20 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRPasses.h"
 
 
-//The passes over memory: slots split and their types unified, and loads of what is known to be there removed;
-//and what may alias what, for the loop passes.
+//The passes over memory: slots split and their types unified, and loads of what is known to be there removed.
+//(What may alias what is CIRAddresses'.)
 class CIRMemoryPasses : public CIRPasses
 {
 public:
 	bool			SplitSlots(void);
 	bool			UnifySlotTypes(void);
 	bool			RemoveRedundantLoads(void);
-	void			SplitAddress(SIRReference sAddress, SIRReference* psRoot, int64* plliOffset);
-	bool			MayAlias(SIRAvailable* psAvailable, SIRReference sRoot, int64 lliOffset, int iBytes);
 	void			AddAvailable(CArrayIRAvailables* pasAvailable, SIRReference sRoot, int64 lliOffset, SIRType sType, SIRReference sValue);
 
 protected:
 	SIRType			SlotOffsetType(SIRReference sSlot, int64 lliOffset);
 	SIRReference	ConstantData(SIRReference sRoot, int64 lliOffset, SIRType sType);
 	void			MergeAvailable(CIRBlock* pcBlock, CArrayIRAvailables* pasAvailable, CArrayIRAvailables* pasEnds, CArrayTemplate<SIRBlockEnd>* pasBlockEnds);
-	bool			IsFrameRoot(SIRReference sRoot);
-	void			PointerBase(SIRReference sRoot, SIRPointerBase* psBase);
 	bool			SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64* plliOffset);
 };
 

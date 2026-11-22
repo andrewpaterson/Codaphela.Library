@@ -96,6 +96,9 @@ public:
 	bool		IsInvariant(size uiLoop, SIRReference sValue, CIRDefinitions* pcDefinitions);
 
 	void		SetPreheader(size uiLoop, CIRBlock* pcPreheader);
+	CIRBlock*	Preheader(size uiLoop);
+	CIRBlock*	AddPreheader(size uiLoop);
+	CIRBlock*	AddMergedPreheader(size uiLoop);
 
 protected:
 	void		AddLoop(CIRBlock* pcHead);

@@ -43,18 +43,14 @@ void CIRPassContext::Init(CIRModule* pcModule)
 	mcDominators.Init();
 	mcDefinitions.Init();
 	mcLoops.Init();
+	mcRanges.Init(this);
+	mcAddresses.Init(this);
 	masReplacements.Init();
-	mauiUses.Init();
 	masArgAddresses.Init();
-	mpcAddressPasses = NULL;
 	mpcBlockPasses = NULL;
 	mpcCounterPasses = NULL;
-	mpcDivisionPasses = NULL;
 	mpcFoldingPasses = NULL;
-	mpcIdiomPasses = NULL;
-	mpcLoopPasses = NULL;
 	mpcMemoryPasses = NULL;
-	mpcPromotionPasses = NULL;
 	mpcRangePasses = NULL;
 	mbDominatorsFresh = false;
 	mbDefinitionsFresh = false;
@@ -69,7 +65,6 @@ void CIRPassContext::Init(CIRModule* pcModule)
 void CIRPassContext::Kill(void)
 {
 	masArgAddresses.Kill();
-	mauiUses.Kill();
 	masReplacements.Kill();
 	mcLoops.Kill();
 	mcDefinitions.Kill();
@@ -435,39 +430,6 @@ bool CIRPasses::MayWriteMemory(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether sAddress (through ptradds, any offset) is in the function's own
-// frame: a slot or a parameter's argaddr, gone when it returns.  Needs
-// FindDefinitions.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIRPasses::IsOwnFrame(SIRReference sAddress)
-{
-	SIRInstruction*	psDefinition;
-	int				iSteps;
-
-	for (iSteps = 0; iSteps < 64; iSteps++)
-	{
-		psDefinition = mpcContext->mcDefinitions.Instruction(sAddress);
-		if (psDefinition == NULL)
-		{
-			return false;
-		}
-		if ((psDefinition->uiOpcode == IRO_Slot) || (psDefinition->uiOpcode == IRO_ArgAddress))
-		{
-			return true;
-		}
-		if (psDefinition->uiOpcode != IRO_PtrAdd)
-		{
-			return false;
-		}
-		sAddress = psDefinition->asArguments[0];
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Each temporary's definition (mpcContext->mcDefinitions) and each parameter's first
 // argaddr.
 //
@@ -627,7 +589,7 @@ bool CIRPasses::WritesMemory(void)
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			if (psInstruction->uiOpcode == IRO_Store)
 			{
-				bWrites = (psInstruction->uiFlags & IRF_Volatile) || !IsOwnFrame(psInstruction->asArguments[1]);
+				bWrites = (psInstruction->uiFlags & IRF_Volatile) || !mpcContext->mcAddresses.IsOwnFrame(psInstruction->asArguments[1]);
 			}
 			else if (psInstruction->uiOpcode != IRO_Arg)
 			{
@@ -779,4 +741,28 @@ SIRReference CIRPasses::InsertDivisorMask(CIRBlock* pcBlock, size uiIndex, SIRTy
 	sMask = InsertInstruction(pcBlock, uiIndex, IRO_ZExt, sType, sTest, IRNone());
 	sMask = InsertInstruction(pcBlock, uiIndex + 1, IRO_Neg, sType, sMask, IRNone());
 	return InsertInstruction(pcBlock, uiIndex + 2, IRO_And, sType, sMask, sDivisor);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// (After the context's module is set: an analysis reads it from there.)
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPassAnalysis::Init(CIRPassContext* pcContext)
+{
+	mpcContext = pcContext;
+	mpcModule = pcContext->mpcModule;
+	mpcFunction = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function it is asked about from now (NULL for none).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPassAnalysis::Begin(CIRFunction* pcFunction)
+{
+	mpcFunction = pcFunction;
 }

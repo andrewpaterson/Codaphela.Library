@@ -432,3 +432,103 @@ void SIREdgeCondition::Unswap(void)
 		Swap();
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Removes pcPredecessor's arguments from this block's phis.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::RemovePhiArguments(CIRBlock* pcPredecessor)
+{
+	size			ui;
+	size			uiArgument;
+	SIRPhi*			psPhi;
+
+	for (ui = 0; ui < masPhis.NumElements(); ui++)
+	{
+		psPhi = masPhis.Get(ui);
+		for (uiArgument = psPhi->asArguments.NumElements(); uiArgument > 0; uiArgument--)
+		{
+			if (psPhi->asArguments.Get(uiArgument - 1)->pcBlock == pcPredecessor)
+			{
+				psPhi->asArguments.RemoveAt(uiArgument - 1, true);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// This block's phis take from pcNew what they took from pcOld: pcNew is the
+// block that comes here now in pcOld's place.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::RenamePhiArguments(CIRBlock* pcOld, CIRBlock* pcNew)
+{
+	size			ui;
+	size			uiArgument;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+
+	for (ui = 0; ui < masPhis.NumElements(); ui++)
+	{
+		psPhi = masPhis.Get(ui);
+		for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+		{
+			psArgument = psPhi->asArguments.Get(uiArgument);
+			if (psArgument->pcBlock == pcOld)
+			{
+				psArgument->pcBlock = pcNew;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// This block's phis take from pcNew (which comes to it now too) what they take
+// from pcFrom.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::CopyPhiArguments(CIRBlock* pcFrom, CIRBlock* pcNew)
+{
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	size			ui;
+
+	for (ui = 0; ui < masPhis.NumElements(); ui++)
+	{
+		psPhi = masPhis.Get(ui);
+		psArgument = FindPhiArgument(psPhi, pcFrom);
+		if (psArgument)
+		{
+			AddPhiArgument(psPhi, pcNew, psArgument->sValue);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// This block's jump goes to pcNew where it went to pcOld.  A brif to one block
+// twice becomes a jmp.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::RedirectJump(CIRBlock* pcOld, CIRBlock* pcNew)
+{
+	if (msJump.pcThen == pcOld)
+	{
+		msJump.pcThen = pcNew;
+	}
+	if ((msJump.uiKind == IRJ_Branch) && (msJump.pcElse == pcOld))
+	{
+		msJump.pcElse = pcNew;
+	}
+	if ((msJump.uiKind == IRJ_Branch) && (msJump.pcThen == msJump.pcElse))
+	{
+		Jump(msJump.pcThen);
+	}
+}

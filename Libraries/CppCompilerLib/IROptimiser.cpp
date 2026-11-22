@@ -31,23 +31,18 @@ void CIROptimiser::Init(CIRModule* pcModule)
 {
 	mcContext.Init(pcModule);
 	mcAddressPasses.Init(&mcContext);
-	mcContext.mpcAddressPasses = &mcAddressPasses;
 	mcBlockPasses.Init(&mcContext);
 	mcContext.mpcBlockPasses = &mcBlockPasses;
 	mcCounterPasses.Init(&mcContext);
 	mcContext.mpcCounterPasses = &mcCounterPasses;
 	mcDivisionPasses.Init(&mcContext);
-	mcContext.mpcDivisionPasses = &mcDivisionPasses;
 	mcFoldingPasses.Init(&mcContext);
 	mcContext.mpcFoldingPasses = &mcFoldingPasses;
 	mcIdiomPasses.Init(&mcContext);
-	mcContext.mpcIdiomPasses = &mcIdiomPasses;
 	mcLoopPasses.Init(&mcContext);
-	mcContext.mpcLoopPasses = &mcLoopPasses;
 	mcMemoryPasses.Init(&mcContext);
 	mcContext.mpcMemoryPasses = &mcMemoryPasses;
 	mcPromotionPasses.Init(&mcContext);
-	mcContext.mpcPromotionPasses = &mcPromotionPasses;
 	mcRangePasses.Init(&mcContext);
 	mcContext.mpcRangePasses = &mcRangePasses;
 	InitPasses();
@@ -126,6 +121,8 @@ void CIROptimiser::Begin(CIRFunction* pcFunction)
 {
 	mcContext.mpcFunction = pcFunction;
 	mcContext.Changed();
+	mcContext.mcRanges.Begin(pcFunction);
+	mcContext.mcAddresses.Begin(pcFunction);
 	mcAddressPasses.Begin(pcFunction);
 	mcBlockPasses.Begin(pcFunction);
 	mcCounterPasses.Begin(pcFunction);

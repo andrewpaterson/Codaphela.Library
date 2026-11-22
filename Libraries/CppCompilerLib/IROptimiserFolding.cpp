@@ -91,7 +91,6 @@ bool CIRFoldingPasses::FoldConstants(void)
 	ClearReplacements();
 	NeedDefinitions();
 	mpcFunction->ComputePredecessors();
-	mpcFunction->CountUses(&mpcContext->mauiUses);
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -117,10 +116,10 @@ bool CIRFoldingPasses::FoldConstants(void)
 			{
 				//The call before it is to a function that never throws.  The thrown itself stays, read by nothing, for the
 				//dead code pass.
-				if (*mpcContext->mauiUses.Get(psInstruction->sResult.Index()) != 0)
+				if (mpcContext->mcDefinitions.NumUses(psInstruction->sResult) != 0)
 				{
 					Replace(psInstruction->sResult, mpcFunction->AddConstant(IRType(IRTK_I1), 0));
-					*mpcContext->mauiUses.Get(psInstruction->sResult.Index()) = 0;
+					mpcContext->mcDefinitions.SetUses(psInstruction->sResult, 0);
 					bChanged = true;
 				}
 			}
@@ -136,7 +135,7 @@ bool CIRFoldingPasses::FoldConstants(void)
 				Replace(psInstruction->sResult, sValue);
 				if (sValue.IsTemporary() && psInstruction->sResult.IsTemporary())
 				{
-					*mpcContext->mauiUses.Get(sValue.Index()) += *mpcContext->mauiUses.Get(psInstruction->sResult.Index());
+					mpcContext->mcDefinitions.AddUses(sValue, mpcContext->mcDefinitions.NumUses(psInstruction->sResult));
 				}
 				bChanged = true;
 			}
@@ -146,7 +145,7 @@ bool CIRFoldingPasses::FoldConstants(void)
 			}
 			else if ((psInstruction->uiOpcode == IRO_SExt) && (mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() > 1) &&
 					 (Extended(psInstruction->asArguments[0], mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() - 1, false, 0) ||
-					  mpcContext->mpcRangePasses->NotNegative(pcBlock, psInstruction->asArguments[0])))
+					  mpcContext->mcRanges.NotNegative(pcBlock, psInstruction->asArguments[0])))
 			{
 				//A sext of a value whose top bit is 0 (or that the branches to here keep 0 or more) is a zext (cheaper
 				//where a sign must be worked out).
@@ -155,7 +154,7 @@ bool CIRFoldingPasses::FoldConstants(void)
 			}
 			else if (IsIRSignedDivision(psInstruction->uiOpcode) && psInstruction->asArguments[1].IsConstant() &&
 					 (IRSignExtend(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) > 0) &&
-					 mpcContext->mpcRangePasses->NotNegative(pcBlock, psInstruction->asArguments[0]))
+					 mpcContext->mcRanges.NotNegative(pcBlock, psInstruction->asArguments[0]))
 			{
 				//A signed x / c or x % c is unsigned when x is never negative (and c is more than 0).
 				psInstruction->uiOpcode = IRUnsignedOpcode(psInstruction->uiOpcode);
@@ -298,7 +297,7 @@ bool CIRFoldingPasses::IntegerOffsets(SIRInstruction* psInstruction)
 	}
 	psInner = mpcContext->mcDefinitions.Instruction(psInstruction->asArguments[0]);
 	if (!psInner || ((psInner->uiOpcode != IRO_Add) && (psInner->uiOpcode != IRO_Sub)) || !psInner->asArguments[1].IsConstant() || !psInner->sType.Equals(sType) ||
-		(*mpcContext->mauiUses.Get(psInstruction->asArguments[0].Index()) != 1))
+		(mpcContext->mcDefinitions.NumUses(psInstruction->asArguments[0]) != 1))
 	{
 		return false;
 	}
@@ -580,7 +579,7 @@ bool CIRFoldingPasses::ConvertPhi(SIRInstruction* psInstruction, SIRReference* p
 	}
 	psPhi = mpcContext->mcDefinitions.Phi(psInstruction->asArguments[0]);
 	sResultType = mpcFunction->GetTemporaryType(psInstruction->sResult);
-	if ((psPhi == NULL) || !psPhi->sType.IsInteger() || !sResultType.IsInteger() || (*mpcContext->mauiUses.Get(psPhi->sResult.Index()) != 1))
+	if ((psPhi == NULL) || !psPhi->sType.IsInteger() || !sResultType.IsInteger() || (mpcContext->mcDefinitions.NumUses(psPhi->sResult) != 1))
 	{
 		return false;
 	}
@@ -601,7 +600,7 @@ bool CIRFoldingPasses::ConvertPhi(SIRInstruction* psInstruction, SIRReference* p
 	}
 	psPhi->sType = sResultType;
 	mpcFunction->SetTemporaryType(psPhi->sResult, sResultType);
-	*mpcContext->mauiUses.Get(psPhi->sResult.Index()) = 0;
+	mpcContext->mcDefinitions.SetUses(psPhi->sResult, 0);
 	*psValue = psPhi->sResult;
 	return true;
 }

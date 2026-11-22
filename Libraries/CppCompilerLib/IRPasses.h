@@ -23,6 +23,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRModule.h"
 #include "IRDominators.h"
 #include "IRLoops.h"
+#include "IRRanges.h"
+#include "IRAddresses.h"
 
 
 class CIRSSAUpdater;
@@ -50,37 +52,6 @@ struct SIRRenameFrame
 
 
 typedef CArrayTemplate<SIRRenameFrame>	CArrayIRRenameFrames;
-
-
-//What the pointers at a root are based on (CIRMemoryPasses::PointerBase): a pointer loaded from a restrict symbol
-//(uiIndex the symbol), a parameter (uiIndex the parameter, bRestrict if it is restrict) or something unknown.
-enum EIRPointerBase
-{
-	IRPB_Unknown,
-	IRPB_RestrictSymbol,
-	IRPB_Parameter,
-};
-
-
-struct SIRPointerBase
-{
-	EIRPointerBase	eKind;
-	uint32			uiIndex;
-	bool			bRestrict;
-};
-
-
-//A value known to be in memory: what a load read or a store wrote at sRoot + lliOffset.
-struct SIRAvailable
-{
-	SIRReference	sRoot;
-	int64			lliOffset;
-	SIRType			sType;
-	SIRReference	sValue;
-};
-
-
-typedef CArrayTemplate<SIRAvailable>	CArrayIRAvailables;
 
 
 //Where the values a block leaves known start in RemoveRedundantLoads' list, and how many; -1 for a block not walked.
@@ -132,20 +103,6 @@ struct SIRNarrowMultiply
 	SIRReference	sNarrow;
 	uint16			uiMultiple;		//What it is multiplied by.
 };
-
-
-//The signed range of an integer value: from lliMin to lliMax.
-struct SIRValueRange
-{
-	int64	lliMin;
-	int64	lliMax;
-};
-
-
-//What a value's range is narrowed by, beyond what its definition says (CIRRangePasses::RangeAt).
-#define IR_RANGE_AS_DEFINED		0x00
-#define IR_RANGE_BRANCHES		0x01	//The branches to the block it is asked in (the predecessors must be found).
-#define IR_RANGE_DOMINATORS		0x02	//...and those above a block with several predecessors, from its dominators (worked out).
 
 
 //An unsigned divide or remainder by a constant that BoundDivisions makes cheaper: the dividend is below the divisor
@@ -236,28 +193,21 @@ struct SIRIdiomAddress
 };
 
 
-#define IR_SIGNED_RANGE_DEPTH	8	//How many definitions back SignedRange looks (through phis, adds and extensions); the other limits are in IROptimiserInternal.h.
-
-
 typedef CArrayTemplatePtr<SIRPhiArgument>	CArrayIRExitArguments;
 
 
 class CIRInlineProfile;
-class CIRAddressPasses;
 class CIRBlockPasses;
 class CIRCounterPasses;
-class CIRDivisionPasses;
 class CIRFoldingPasses;
-class CIRIdiomPasses;
-class CIRLoopPasses;
 class CIRMemoryPasses;
-class CIRPromotionPasses;
 class CIRRangePasses;
 
 
 //What the optimiser's passes share while a function is optimised: the function, the target's settings, the
-//analyses (the dominators, each temporary's definition, the loops), the replacements a pass is making, the uses
-//counted, and the groups of passes themselves, for the few functions one group has that another calls.
+//analyses (the dominators, each temporary's definition, the loops; and what is asked of them: the ranges of
+//values, what addresses are of), the replacements a pass is making, and the groups of passes that have a
+//function another group calls.
 class CIRPipeline;
 class CIRPassContext
 {
@@ -276,28 +226,28 @@ public:
 	CIRDominators			mcDominators;
 	CIRDefinitions			mcDefinitions;		//Each temporary's definition (FindDefinitions).
 	CIRLoops				mcLoops;			//The loops (ComputeLoops).
-	CArrayIRReferences		masReplacements;	//Per temporary: what to use instead, IRNone to keep it.
-	CArrayTemplate<uint32>	mauiUses;			//Per temporary.
+	CIRRanges				mcRanges;			//How big a value can be: asked, not kept (it reads the definitions and the dominators).
+	CIRAddresses			mcAddresses;		//What an address is of: asked, not kept.
 	CArrayIRReferences		masArgAddresses;	//Per parameter: its first argaddr, IRNone for none.
 
-	CIRAddressPasses*		mpcAddressPasses;
 	CIRBlockPasses*			mpcBlockPasses;
 	CIRCounterPasses*		mpcCounterPasses;
-	CIRDivisionPasses*		mpcDivisionPasses;
 	CIRFoldingPasses*		mpcFoldingPasses;
-	CIRIdiomPasses*			mpcIdiomPasses;
-	CIRLoopPasses*			mpcLoopPasses;
 	CIRMemoryPasses*		mpcMemoryPasses;
-	CIRPromotionPasses*		mpcPromotionPasses;
 	CIRRangePasses*			mpcRangePasses;
-
-	bool					mbDominatorsFresh;	//Nothing has changed the function since the dominators were worked out...
-	bool					mbDefinitionsFresh;	//...or the definitions...
-	bool					mbLoopsFresh;		//...or the loops (and the dominators and definitions with them: ComputeLoops).
 
 	void			Init(CIRModule* pcModule);
 	void			Kill(void);
 	void			Changed(void);
+
+protected:
+	friend class CIRPasses;
+
+	//What every group keeps through CIRPasses, and none reaches for.
+	CArrayIRReferences		masReplacements;	//Per temporary: what to use instead, IRNone to keep it.
+	bool					mbDominatorsFresh;	//Nothing has changed the function since the dominators were worked out...
+	bool					mbDefinitionsFresh;	//...or the definitions...
+	bool					mbLoopsFresh;		//...or the loops (and the dominators and definitions with them: ComputeLoops).
 };
 
 
@@ -337,7 +287,6 @@ public:
 	bool			NextUse(SIRUse* psUse);
 	void			SetUse(SIRUse* psUse, SIRReference sNew);
 	bool			MayWriteMemory(SIRInstruction* psInstruction);
-	bool			IsOwnFrame(SIRReference sAddress);
 	void			FindDefinitions(void);
 	void			ComputeLoops(void);
 	void			MoveInstruction(CIRBlock* pcBlock, size uiFrom, size uiTo);
