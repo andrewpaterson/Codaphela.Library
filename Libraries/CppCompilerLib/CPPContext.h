@@ -71,7 +71,6 @@ protected:
 	CCPPFunction*			mpcFunction;			//The function being written, or NULL.
 	bool					mbThis;					//It is a member function with this (not a global's or static local's initialiser).
 	CCPPClass*				mpcObject;				//An aggregate being filled, which is this for its default member initialisers; else NULL.
-	bool					mbStaticLocal;			//A static local's data is being written.
 	bool					mbLinkageExtern;		//In extern "C" without braces: declarations are extern.
 	bool					mbCLinkage;				//In extern "C": functions declared have C linkage.
 	int						miQuiet;				//Above 0, errors are not reported, only noted in mbQuietFailed.
@@ -107,7 +106,6 @@ public:
 	CCPPClass*				GetObject(void) const;
 	void					EnterStaticLocal(void);
 	void					LeaveStaticLocal(void);
-	bool					IsStaticLocal(void) const;
 
 
 	bool					BeginQuiet(void);

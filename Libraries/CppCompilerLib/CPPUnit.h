@@ -353,7 +353,7 @@ protected:
 	CCPPSemanticPass*		mpcSemanticPass;	//Check only: what names resolved to goes here.  NULL when generating.
 	bool					mbRemember;			//A kept check: the pass is told each expression's type and what changes its place too.
 	CCPPCompileStatistics*	mpcStatistics;		//What compiling the unit is counted and timed in (SetStatistics): the builder's for the unit...
-	CCPPCompileStatistics	mcOwnStatistics;	//...or the generator's own when none is set.
+	CCPPCompileStatistics	mcOwnStatistics;	//...or the unit's own when none is set.
 	CCPPCompileOptions*		mpcOptions;			//How the unit is compiled where there is a choice (SetOptions): the builder's, or the defaults.
 
 public:
@@ -488,7 +488,7 @@ public:
 	bool					WriteBody(CCPPFunction* pcFunction);
 	void					AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator = NULL);
 	void					BeginFunction(CCPPFunction* pcFunction);
-	void					EndFunction(CCPPFunction* pcFunction);
+	void					EndFunction(void);
 	void					AppendUnsupported(CChars* psz);
 	bool					AllocateLocals(CCPPSyntax* pcNode);
 	SCPPRangeFor*			GetRangeFor(CCPPSyntaxRangeForStatement* pcFor);
@@ -600,8 +600,8 @@ public:
 	bool					ReportErrorAt(int iToken, const char* szMessage);
 	bool					HasWarning(CCPPSyntax* pcNode, const char* szText);
 
-	//Classes, templates, virtual functions, overloads and labels.  CPPUnitClasses.cpp, CPPUnitTemplates.cpp,
-	//CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
+	//Classes, templates, virtual functions, this and a class's bases, and the names of functions.  CPPUnitClasses.cpp,
+	//CPPUnitTemplates.cpp, CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
 	CCPPClass*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
 	CCPPClass*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcEnclosing = NULL);
 	CCPPClass*				MemberScopeClass(CCPPSymbol* pcSymbol);
@@ -920,7 +920,6 @@ public:
 	SCPP65Type*				EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier);
 	SCPP65Type*				EnumeratorType(CCPPSymbol* pcSymbol);
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
-	bool					IsNullPointerLiteral(CCPPSyntax* pcExpression);
 	bool					IsNullPointerConstant(CCPPSyntax* pcExpression);
 	SCPP65Type*				QualifiedFieldType(CCPPSyntax* pcExpression);
 	bool					DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes);

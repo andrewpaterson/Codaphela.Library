@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stage 0 is done (2026-11-22; "The record" has what it found).  The user that day: "Finish and
+Where it is: stages 0 and 1 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -534,3 +534,20 @@ Stage 0 (2026-11-22): the baseline, the kit, and what reading suspected, run.
 	  they said nothing readable.  Nothing else differs.
 	- Listings: 4,201, none different.  So the counts cost the code nothing, and no unit of the three libraries
 	  has a constructor, a used function or a bit-field the repairs touch.
+
+Stage 1 (2026-11-22): what is dead, and what says what is not so.
+
+	Gone: CCPPUnit::IsNullPointerLiteral, CCPPVtable::IsOverriddenBy, CCPPContext::IsStaticLocal and
+	mbStaticLocal (EnterStaticLocal still takes this away, which was all it did), and EndFunction's parameter.
+	Comments made true: the headers of CPPUnitOverloads.cpp and CPPUnitLabels.cpp and the line of CPPUnit.h that
+	lists them, AddFunction's (no overload number is made), AddParameters' (ExpandPackCall is PackElement), and
+	"the generator" in sixteen places and one of CCPPVtable's.
+	Left for the stage that reworks them (rule 4): the two files' names (stage 6 takes the base walks out of
+	CPPUnitOverloads.cpp, stage 7 the names out of CPPUnitLabels.cpp), CCPP65CheckChildren and CCPP65CheckLambdas
+	(stage 14), gasCPP65Builtins (stage 15b), and CPPContext.h's "nothing is saved and put back by hand"
+	(stage 3 makes it so).
+
+	Proved: TestCppCompilerLib passes (271,636); the 5,780 diagnostics entries are stage 0's; the 4,201 listings
+	are the baseline's; the counts compiling TestSupportLib65's project are stage 0's to the unit.
+	Tests/CompilerProof.py names the W65C816's listings folders <Suite>_W65C816; the baseline's, taken by hand
+	before the tool was written, were renamed to match.

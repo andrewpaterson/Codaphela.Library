@@ -153,7 +153,6 @@ public:
 	bool	IsPolymorphic(void) const;
 	int		GetPointerOffset(void);
 	bool	HasPure(void);
-	bool	IsOverriddenBy(CCPPFunction* pcFunction);
 	CCPPFunction*	FindOverridden(CCPPFunction* pcFunction);
 
 	void	LayoutOwn(CCPPClass* pcClass);

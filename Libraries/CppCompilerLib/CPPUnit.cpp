@@ -127,7 +127,7 @@ CScratchPadAllocator* CCPPUnit::GetBackendScratch(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Where each function's code waits (in pieces) until the unit is assembled,
-// NULL for the generator's own memory, and the unit's number in its keys
+// NULL for the unit's own memory, and the unit's number in its keys
 // (units sharing a store have different numbers).  Set it before
 // generating; the unit's assembly is initialised with the same.
 //
@@ -141,7 +141,7 @@ void CCPPUnit::SetSpillStore(CSpillStore* pcStore, uint32 uiUnit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What compiling the unit is counted and timed in (the generator's own
+// What compiling the unit is counted and timed in (the unit's own
 // when pcStatistics is NULL).  The IR front end's functions are counted in
 // it too.
 //
@@ -1851,7 +1851,7 @@ bool CCPPUnit::ReportErrorAt(int iToken, const char* szMessage)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Declarations of things the generator cannot do yet are only errors when they
+// Declarations of things the compiler cannot do yet are only errors when they
 // are used.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -3737,7 +3737,8 @@ void CCPPUnit::DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPP
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A new function.  Its overload number counts the functions with its name before it.
+// A new function, a member of pcClass if there is one, and the last of the
+// functions of its name (FirstFunctionOfName).
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPUnit::AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn)
@@ -3848,7 +3849,7 @@ bool CCPPUnit::Emit(CChars* pszLabel)
 // variables are data with constant initialisers (zero without one).  Global objects
 // are zero and made by their R_Initialise before main, and destroyed (last first) by
 // their R_Finalise after it.  A qualified name defines a static data member.  Function
-// and extern declarations the generator cannot do are only errors when used.
+// and extern declarations the compiler cannot do are only errors when used.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
@@ -4580,7 +4581,7 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 			AppendUnsupported(&szLabel);
 			ErrorAt(-1, szLabel.Text());
 			szLabel.Kill();
-			EndFunction(pcFunction);
+			EndFunction();
 		}
 	}
 	else if (pcFunction->mbImplicit)
@@ -4597,7 +4598,7 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 			}
 			ErrorAt(-1, szLabel.Text());
 			szLabel.Kill();
-			EndFunction(pcFunction);
+			EndFunction();
 		}
 	}
 	else
@@ -4631,7 +4632,7 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 	AddParameters(pcFunction);
 	if (!CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator) || !CheckMemberInitialisers(pcFunction) || !AllocateLocals(pcDefinition->mpcBody) || !CheckTryJumps(pcDefinition->mpcBody))
 	{
-		EndFunction(pcFunction);
+		EndFunction();
 		return false;
 	}
 
@@ -4661,7 +4662,7 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 		Error(pcDefinition, szMessage.Text());
 		szMessage.Kill();
 	}
-	EndFunction(pcFunction);
+	EndFunction();
 	return false;
 }
 
@@ -4672,8 +4673,8 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 // locals.  Arguments take their own size on the stack, the first lowest,
 // after the hidden result address of a function that returns an object.
 // Object arguments are the function's to destroy.  A function parameter
-// pack is a parameter for each of its types, each with its own symbol (see
-// ExpandPackCall).  They are named as pcDeclarator names them, or as the
+// pack is a parameter for each of its types, each with its own symbol
+// (PackElement).  They are named as pcDeclarator names them, or as the
 // function's definition does.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4767,7 +4768,7 @@ void CCPPUnit::BeginFunction(CCPPFunction* pcFunction)
 // function it writes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::EndFunction(CCPPFunction* pcFunction)
+void CCPPUnit::EndFunction(void)
 {
 	//Only a function the IR front end couldn't write ends here (it ends the ones it writes itself): nothing is written.
 	mcContext.EndFunction();
@@ -5353,7 +5354,7 @@ bool CCPPUnit::CheckEnumerators(CCPPSyntax* pcType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A static_assert whose condition is a constant that is false is an error.  One the generator cannot work out
+// A static_assert whose condition is a constant that is false is an error.  One the compiler cannot work out
 // (sizeof a member function pointer ...) is ignored.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -24,7 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <ctype.h>
 
 
-//The generator's templates: declaring them, binding and deducing their arguments, and instantiating classes and functions.
+//The unit's templates: declaring them, binding and deducing their arguments, and instantiating classes and functions.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1202,7 +1202,7 @@ CCPPTemplate* CCPPUnit::OutsideMemberOwner(CCPPTemplate* pcPrimary, CCPPSyntaxNa
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A new template, kept until the generator is killed.
+// A new template, kept until the unit is killed.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPTemplate* CCPPUnit::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember)
@@ -2670,7 +2670,7 @@ bool CCPPUnit::SpecialisationAtLeastAs(CCPPTemplate* pcFirst, CCPPTemplate* pcSe
 
 //////////////////////////////////////////////////////////////////////////
 //
-// New empty bindings, kept until the generator is killed.
+// New empty bindings, kept until the unit is killed.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPTemplateArguments* CCPPUnit::NewBindings(void)

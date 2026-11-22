@@ -24,7 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPConstants.h"
 
 
-//The generator's classes: finding and making them, laying them out, their members and what making or destroying one needs.
+//The unit's classes: finding and making them, laying them out, their members and what making or destroying one needs.
 
 
 //////////////////////////////////////////////////////////////////////////

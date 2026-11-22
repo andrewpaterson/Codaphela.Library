@@ -280,7 +280,7 @@ void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 		CheckChildren(pcDefinition->macpMemberInitializers.GetPtr(i));
 	}
 	CheckNode(pcDefinition->mpcBody);
-	EndFunction(pcFunction);
+	EndFunction();
 }
 
 

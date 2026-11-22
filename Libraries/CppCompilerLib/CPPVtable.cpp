@@ -120,17 +120,6 @@ bool CCPPVtable::HasPure(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if pcFunction overrides a virtual function in any of the vtables.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPVtable::IsOverriddenBy(CCPPFunction* pcFunction)
-{
-	return FindOverridden(pcFunction) != NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The function in the vtables that pcFunction overrides, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -537,7 +526,7 @@ int CCPPVtable::VirtualBaseOffset(CCPPClass* pcClass, CCPPClass* pcVirtualBase)
 //
 // The vtable as it is written, in order (see CPP65_VTABLE_ENTRY_BYTES): the
 // class's own part's header (before the label) and functions, then each
-// secondary vtable's header and functions.  The generator writes it
+// secondary vtable's header and functions.  The unit writes it
 // (EnsureVtable) and the IR front end describes it and stores its parts'
 // addresses from the same list.
 //

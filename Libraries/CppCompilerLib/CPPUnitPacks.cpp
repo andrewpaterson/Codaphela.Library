@@ -60,7 +60,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A new empty list of a pack's types, kept until the generator is killed.
+// A new empty list of a pack's types, kept until the unit is killed.
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayCPP65Types* CCPPUnit::NewPack(void)
@@ -103,7 +103,7 @@ SCPPBinding* CCPPUnit::PackBinding(CCPPSyntaxParameter* pcParameter)
 //
 // The symbol for element k of a function's parameter pack, which is one of
 // the elements of the function being generated from here: a variable with
-// the pack's name, kept until the generator is killed.  It is the same one
+// the pack's name, kept until the unit is killed.  It is the same one
 // each time the function's parameters are made (for what it returns, to
 // check it, to write it), as its argument lists are expanded once
 // (ExpandArguments) and name it.
@@ -182,7 +182,7 @@ CCPPSyntax* CCPPUnit::ExpansionPattern(CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A pack of values for a non-type parameter pack, kept until the generator
+// A pack of values for a non-type parameter pack, kept until the unit
 // is killed.
 //
 //////////////////////////////////////////////////////////////////////////

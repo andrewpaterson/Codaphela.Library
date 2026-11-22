@@ -21,7 +21,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPUnit.h"
 
 
-//The generator's overload resolution: finding the functions a call may mean, argument dependent lookup and ranking conversions.
+//What this is in a member function, and a class's bases: whether one class is derived from another, how many times, at what
+//offset and through which virtual base.  (Choosing a function is CCPPOverloads'.)
 
 
 //////////////////////////////////////////////////////////////////////////

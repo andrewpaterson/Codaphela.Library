@@ -32,7 +32,6 @@ void CCPPContext::Init(void)
 	mpcFunction = NULL;
 	mbThis = false;
 	mpcObject = NULL;
-	mbStaticLocal = false;
 	mbLinkageExtern = false;
 	mbCLinkage = false;
 	miQuiet = 0;
@@ -255,7 +254,6 @@ void CCPPContext::EnterStaticLocal(void)
 {
 	Enter(CPPCE_StaticLocal)->bSaved = mbThis;
 	mbThis = false;
-	mbStaticLocal = true;
 }
 
 
@@ -269,7 +267,6 @@ void CCPPContext::LeaveStaticLocal(void)
 
 	if (Leave(CPPCE_StaticLocal, &sEntry))
 	{
-		mbStaticLocal = false;
 		mbThis = sEntry.bSaved;
 	}
 }
@@ -384,6 +381,5 @@ bool CCPPContext::IsCLinkage(void) const { return mbCLinkage; }
 bool CCPPContext::IsLinkageExtern(void) const { return mbLinkageExtern; }
 CCPPFunction* CCPPContext::GetFunction(void) const { return mpcFunction; }
 bool CCPPContext::HasThis(void) const { return mbThis; }
-bool CCPPContext::IsStaticLocal(void) const { return mbStaticLocal; }
 bool CCPPContext::IsQuiet(void) const { return miQuiet > 0; }
 bool CCPPContext::IsBroken(void) const { return mbBroken || (masEntered.NumElements() != 0); }

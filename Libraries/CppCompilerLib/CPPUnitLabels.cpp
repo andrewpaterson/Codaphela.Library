@@ -24,13 +24,13 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPUnit.h"
 
 
-//The generator's labels: mangled names of functions, classes and types.
+//The names of functions and operators, as the unit keeps functions by them.  (The labels are CCPPMangler's.)
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // A function name component's name: its identifier, or a negative number for an
-// operator (see GetOperatorLabel).  -1 if it is neither.
+// operator (GetOperatorName).  -1 if it is neither.
 //
 //////////////////////////////////////////////////////////////////////////
 int64 CCPPUnit::GetFunctionName(CCPPSyntaxNameComponent* pcComponent)

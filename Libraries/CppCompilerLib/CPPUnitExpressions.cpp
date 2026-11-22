@@ -2358,7 +2358,7 @@ bool CCPPUnit::CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo)
 //
 // Whether pcValue, the one value in braces that initialises a psTo, is not
 // narrowed by its conversion (CCPP65TypeChecker::NotNarrowed), for the
-// variables' initialisers the generators convert themselves.  An error
+// variables' initialisers the unit converts itself.  An error
 // where it is, as CheckInitialiser's.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4333,18 +4333,6 @@ SCPP65Type* CCPPUnit::QualifiedFieldType(CCPPSyntax* pcExpression)
 	pcClass = NameQualifierClass(pcName, pcExpression);
 	psField = (pcClass && CompleteClass(pcClass, pcExpression)) ? pcClass->FindFieldSymbol(pcName->mpcSymbol, &iOffset) : NULL;
 	return psField ? psField->psType : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the expression is nullptr itself.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsNullPointerLiteral(CCPPSyntax* pcExpression)
-{
-	pcExpression = SkipParentheses(pcExpression);
-	return pcExpression && (pcExpression->GetKind() == CPPS_LiteralExpression) && mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral)->Is(CT_nullptr);
 }
 
 

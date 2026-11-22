@@ -21,7 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPUnit.h"
 
 
-//The generator's virtual functions: laying them out, the vtables and type info, and the thunks.
+//The unit's virtual functions: laying them out, the vtables and type info, and the thunks.
 
 
 //////////////////////////////////////////////////////////////////////////
