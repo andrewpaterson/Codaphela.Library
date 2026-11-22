@@ -1,6 +1,7 @@
 #include "CppCompilerLib/IRParser.h"
 #include "CppCompilerLib/IRPrinter.h"
 #include "CppCompilerLib/IRVerifier.h"
+#include "CppCompilerLib/IRThrows.h"
 #include "CppCompilerLib/IROptimiserInternal.h"
 #include "CppCompilerLib/IROptimiser.h"
 #include "CppCompilerLib/IRLoops.h"
@@ -6200,7 +6201,7 @@ void TestIRNoThrow(void)
 	cParser.Kill();
 	AssertTrue(cModule.IsNoThrow(cModule.CopyFunction(cModule.GetFunction(0), "f.copy")->muiSymbol));
 	AssertFalse(cModule.IsNoThrow(cModule.CopyFunction(cModule.GetFunction(1), "g.copy")->muiSymbol));
-	AssertFalse(cModule.MayThrow(cModule.GetFunction(0)));
+	AssertFalse(IRMayThrow(&cModule, cModule.GetFunction(0)));
 	cErrors.Kill();
 	cModule.Kill();
 

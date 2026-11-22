@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/Chars.h"
 #include "IRInliner.h"
 #include "IROptimiser.h"
+#include "IRThrows.h"
 #include "IRInterprocedural.h"
 
 
@@ -70,54 +71,6 @@ static SIRReference IRCallArgument(SIRCallSite* psSite, size uiParameter)
 static bool IRSpecialiseFollows(uint16 uiOpcode)
 {
 	return IsIRIntegerArithmetic(uiOpcode) || IsIRIntegerConversion(uiOpcode) || (uiOpcode == IRO_Copy);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Every use of sOld (an operand, a phi's argument, a branch's or return's
-// value) in pcFunction is sNew.
-//
-//////////////////////////////////////////////////////////////////////////
-static void IRReplaceUses(CIRFunction* pcFunction, SIRReference sOld, SIRReference sNew)
-{
-	size			uiBlock;
-	size			ui;
-	size			uj;
-	CIRBlock*		pcBlock;
-	SIRInstruction*	psInstruction;
-	SIRPhi*			psPhi;
-
-	for (uiBlock = 0; uiBlock < pcFunction->NumBlocks(); uiBlock++)
-	{
-		pcBlock = pcFunction->GetBlock(uiBlock);
-		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
-		{
-			psPhi = pcBlock->masPhis.Get(ui);
-			for (uj = 0; uj < psPhi->asArguments.NumElements(); uj++)
-			{
-				if (psPhi->asArguments.Get(uj)->sValue.Equals(sOld))
-				{
-					psPhi->asArguments.Get(uj)->sValue = sNew;
-				}
-			}
-		}
-		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
-		{
-			psInstruction = pcBlock->masInstructions.Get(ui);
-			for (uj = 0; uj < IR_INSTRUCTION_ARGUMENTS; uj++)
-			{
-				if (psInstruction->asArguments[uj].Equals(sOld))
-				{
-					psInstruction->asArguments[uj] = sNew;
-				}
-			}
-		}
-		if (pcBlock->msJump.sArgument.Equals(sOld))
-		{
-			pcBlock->msJump.sArgument = sNew;
-		}
-	}
 }
 
 
@@ -234,6 +187,7 @@ void CIRInterprocedural::Init(CIRModule* pcModule, CIRUnitFunctions* pcUnit)
 	}
 	mabCallsNoWrites.Init();
 	mabTestsNoThrow.Init();
+	mpcWrites = NULL;
 }
 
 
@@ -365,69 +319,154 @@ bool CIRInterprocedural::IsRecursive(CIRModule* pcModule, CIRFunction* pcFunctio
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Mod/ref summaries (before inlining): which of the unit's functions write
-// no memory their callers can see (CIROptimiser::WritesMemory), marked on
-// their symbols (CIRModule::SetNoWrites) so the optimiser keeps what it
-// knows is in memory across calls to them.  Each is taken to write nothing
-// until it is seen to (a store outside its frame, a call to one that
-// writes), again until none changes, so functions that call each other and
-// store nothing are marked too.  CallsNoWrites then gives those that call
-// one of them.  Functions of other units are taken to write.
+// An optimistic summary of the unit's functions.  Each is given
+// uiAttribute (a mark on its symbol), then loses it when pfLoses says it
+// can't have it, again until none changes: a function that only fails by
+// calling one that failed fails the next time round, and functions that
+// call each other and can all have it keep it.  With bKeepMarked those
+// that had it before keep it whatever pfLoses says (a front end's mark,
+// from a declaration).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRInterprocedural::MarkNoWrites(void)
+void CIRInterprocedural::MarkOptimistically(uint8 uiAttribute, bool bKeepMarked, FIRSummaryTest pfLoses)
 {
-	CIROptimiser	cOptimiser;
-	CIRFunction*	pcFunction;
-	CIRBlock*		pcBlock;
-	SIRInstruction*	psInstruction;
-	size			ui;
-	size			uiBlock;
-	size			uiInstruction;
-	bool			bChanged;
-	bool			bCalls;
+	CArrayTemplate<bool>	abMarked;
+	CIRFunction*			pcFunction;
+	size					ui;
+	bool					bChanged;
+	bool					bMarked;
 
+	abMarked.Init();
 	for (ui = 0; ui < mpcUnit->NumUnitFunctions(); ui++)
 	{
 		pcFunction = mpcUnit->GetUnitFunction(ui);
+		bMarked = bKeepMarked && pcFunction && ((mpcModule->GetSymbolAttributes(pcFunction->muiSymbol) & uiAttribute) != 0);
+		abMarked.Add(&bMarked);
 		if (pcFunction)
 		{
-			mpcModule->SetNoWrites(pcFunction->muiSymbol, true);
+			mpcModule->SetSymbolAttributes(pcFunction->muiSymbol, uiAttribute, true);
 		}
 	}
 
-	mpcUnit->InitOptimiser(&cOptimiser);
 	do
 	{
 		bChanged = false;
 		for (ui = 0; ui < mpcUnit->NumUnitFunctions(); ui++)
 		{
 			pcFunction = mpcUnit->GetUnitFunction(ui);
-			if (pcFunction && mpcModule->IsNoWrites(pcFunction->muiSymbol) && cOptimiser.WritesMemory(pcFunction))
+			if (pcFunction && !*abMarked.Get(ui) && (mpcModule->GetSymbolAttributes(pcFunction->muiSymbol) & uiAttribute) && (this->*pfLoses)(pcFunction))
 			{
-				mpcModule->SetNoWrites(pcFunction->muiSymbol, false);
+				mpcModule->SetSymbolAttributes(pcFunction->muiSymbol, uiAttribute, false);
 				bChanged = true;
 			}
 		}
 	}
 	while (bChanged);
-	cOptimiser.Kill();
+	abMarked.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Which of the unit's functions have an instruction that pfUses says uses
+// a summary (the call of a marked function, the test of one): pabUsers
+// gets an answer for each.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterprocedural::FindUsers(FIRSummaryUse pfUses, CArrayTemplate<bool>* pabUsers)
+{
+	CIRFunction*	pcFunction;
+	CIRBlock*		pcBlock;
+	size			ui;
+	size			uiBlock;
+	size			uiInstruction;
+	bool			bUses;
 
 	for (ui = 0; ui < mpcUnit->NumUnitFunctions(); ui++)
 	{
 		pcFunction = mpcUnit->GetUnitFunction(ui);
-		bCalls = false;
-		for (uiBlock = 0; pcFunction && (uiBlock < pcFunction->NumBlocks()) && !bCalls; uiBlock++)
+		bUses = false;
+		for (uiBlock = 0; pcFunction && (uiBlock < pcFunction->NumBlocks()) && !bUses; uiBlock++)
 		{
 			pcBlock = pcFunction->GetBlock(uiBlock);
-			for (uiInstruction = 0; (uiInstruction < pcBlock->masInstructions.NumElements()) && !bCalls; uiInstruction++)
+			for (uiInstruction = 0; (uiInstruction < pcBlock->masInstructions.NumElements()) && !bUses; uiInstruction++)
 			{
-				psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-				bCalls = (psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol() && mpcModule->IsNoWrites(psInstruction->asArguments[0].Index());
+				bUses = (this->*pfUses)(pcBlock, uiInstruction);
 			}
 		}
-		mabCallsNoWrites.Add(&bCalls);
+		pabUsers->Add(&bUses);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// MarkNoWrites': the function loses the mark.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterprocedural::WritesMemory(CIRFunction* pcFunction)
+{
+	return mpcWrites->WritesMemory(pcFunction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// MarkNoThrow's: the function loses the mark.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterprocedural::MayThrow(CIRFunction* pcFunction)
+{
+	return IRMayThrow(mpcModule, pcFunction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call of a function marked as writing no memory.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterprocedural::IsCallOfNoWrites(CIRBlock* pcBlock, size uiInstruction)
+{
+	SIRInstruction*	psInstruction;
+
+	psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+	return (psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol() && mpcModule->IsNoWrites(psInstruction->asArguments[0].Index());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The test after a call of a function marked as never throwing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInterprocedural::IsTestOfNoThrow(CIRBlock* pcBlock, size uiInstruction)
+{
+	return IRNeverThrown(mpcModule, pcBlock, uiInstruction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Mod/ref summaries (before inlining): which of the unit's functions write
+// no memory their callers can see (CIROptimiser::WritesMemory), marked on
+// their symbols (CIRModule::SetNoWrites) so the optimiser keeps what it
+// knows is in memory across calls to them.  Each is taken to write nothing
+// until it is seen to (a store outside its frame, a call to one that
+// writes: MarkOptimistically).  CallsNoWrites then gives those that call
+// one of them.  Functions of other units are taken to write.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInterprocedural::MarkNoWrites(void)
+{
+	CIROptimiser	cOptimiser;
+
+	mpcUnit->InitOptimiser(&cOptimiser);
+	mpcWrites = &cOptimiser;
+	MarkOptimistically(IRSA_NoWrites, false, &CIRInterprocedural::WritesMemory);
+	mpcWrites = NULL;
+	cOptimiser.Kill();
+	FindUsers(&CIRInterprocedural::IsCallOfNoWrites, &mabCallsNoWrites);
 }
 
 
@@ -437,9 +476,8 @@ void CIRInterprocedural::MarkNoWrites(void)
 // inlining), marked on their symbols (CIRModule::SetNoThrow) so that the
 // test after a call to one folds away and the code for its exception goes.
 // Each is taken not to throw until a throw is seen to be reachable in it
-// (CIRModule::MayThrow, which doesn't follow the thrown side of a call to
-// one that doesn't throw), again until none changes, so functions that call
-// each other and never throw are marked too.  A call through a pointer and
+// (IRMayThrow, which doesn't follow the thrown side of a call to one that
+// doesn't throw: MarkOptimistically).  A call through a pointer and
 // a function of another unit that nobody marked may throw.  A mark that was
 // there already (a front end's, from a declaration) stays.  TestsNoThrow
 // then gives the functions that test a call to one of them.
@@ -447,58 +485,8 @@ void CIRInterprocedural::MarkNoWrites(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRInterprocedural::MarkNoThrow(void)
 {
-	CArrayTemplate<bool>	abMarked;
-	CIRFunction*			pcFunction;
-	CIRBlock*				pcBlock;
-	size					ui;
-	size					uiBlock;
-	size					uiInstruction;
-	bool					bChanged;
-	bool					bMarked;
-	bool					bTests;
-
-	abMarked.Init();
-	for (ui = 0; ui < mpcUnit->NumUnitFunctions(); ui++)
-	{
-		pcFunction = mpcUnit->GetUnitFunction(ui);
-		bMarked = pcFunction && mpcModule->IsNoThrow(pcFunction->muiSymbol);
-		abMarked.Add(&bMarked);
-		if (pcFunction)
-		{
-			mpcModule->SetNoThrow(pcFunction->muiSymbol, true);
-		}
-	}
-
-	do
-	{
-		bChanged = false;
-		for (ui = 0; ui < mpcUnit->NumUnitFunctions(); ui++)
-		{
-			pcFunction = mpcUnit->GetUnitFunction(ui);
-			if (pcFunction && !*abMarked.Get(ui) && mpcModule->IsNoThrow(pcFunction->muiSymbol) && mpcModule->MayThrow(pcFunction))
-			{
-				mpcModule->SetNoThrow(pcFunction->muiSymbol, false);
-				bChanged = true;
-			}
-		}
-	}
-	while (bChanged);
-	abMarked.Kill();
-
-	for (ui = 0; ui < mpcUnit->NumUnitFunctions(); ui++)
-	{
-		pcFunction = mpcUnit->GetUnitFunction(ui);
-		bTests = false;
-		for (uiBlock = 0; pcFunction && (uiBlock < pcFunction->NumBlocks()) && !bTests; uiBlock++)
-		{
-			pcBlock = pcFunction->GetBlock(uiBlock);
-			for (uiInstruction = 0; (uiInstruction < pcBlock->masInstructions.NumElements()) && !bTests; uiInstruction++)
-			{
-				bTests = mpcModule->NeverThrown(pcBlock, uiInstruction);
-			}
-		}
-		mabTestsNoThrow.Add(&bTests);
-	}
+	MarkOptimistically(IRSA_NoThrow, true, &CIRInterprocedural::MayThrow);
+	FindUsers(&CIRInterprocedural::IsTestOfNoThrow, &mabTestsNoThrow);
 }
 
 
@@ -864,7 +852,7 @@ bool CIRInterprocedural::SpecialiseCallee(size uiCallee, uint32 uiStrong)
 			{
 				//One value: the parameter is that constant (the calls still pass it).
 				sParameter = *pcCallee->masParameters.Get(uiParameter);
-				IRReplaceUses(pcCallee, sParameter, pcCallee->AddConstant(pcCallee->GetTemporaryType(sParameter), *aulliValues.Get(0)));
+				pcCallee->ReplaceUses(sParameter, pcCallee->AddConstant(pcCallee->GetTemporaryType(sParameter), *aulliValues.Get(0)));
 				Optimise(pcCallee);
 				*mabChanged.Get(uiCallee) = true;
 			}
@@ -933,7 +921,7 @@ void CIRInterprocedural::CopyForValues(size uiCallee, size uiParameter, CArrayIR
 		auiCopies.Add(&pcCopy->muiSymbol);
 		if (mpcModule->NumFunctions() != uiFunctions)
 		{
-			IRReplaceUses(pcCopy, sParameter, pcCopy->AddConstant(sType, ulliValue));
+			pcCopy->ReplaceUses(sParameter, pcCopy->AddConstant(sType, ulliValue));
 			Optimise(pcCopy);
 			mpcUnit->AddSpecialised(uiCallee, pcCopy);
 			mabChanged.Add(&bTrue);

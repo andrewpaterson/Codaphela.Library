@@ -281,6 +281,7 @@
     <ClCompile Include="IRParser.cpp" />
     <ClCompile Include="IRPrinter.cpp" />
     <ClCompile Include="IRTypes.cpp" />
+    <ClCompile Include="IRThrows.cpp" />
     <ClCompile Include="IRVerifier.cpp" />
     <ClCompile Include="CPP65Builder.cpp" />
     <ClCompile Include="CPP65UnitWorkspace.cpp" />
@@ -569,6 +570,7 @@
     <ClInclude Include="IRParser.h" />
     <ClInclude Include="IRPrinter.h" />
     <ClInclude Include="IRTypes.h" />
+    <ClInclude Include="IRThrows.h" />
     <ClInclude Include="IRVerifier.h" />
     <ClInclude Include="CPP65Builder.h" />
     <ClInclude Include="CPP65UnitWorkspace.h" />

@@ -115,36 +115,6 @@ struct SIRBoundDivision
 };
 
 
-//What a use of a value is (SIRUse): a phi's argument, an instruction's operand or a block's jump's argument.
-enum EIRUseKind
-{
-	IRUK_Phi,
-	IRUK_Instruction,
-	IRUK_Jump,
-};
-
-
-//Where a walk of a value's uses is (CIRPasses::FirstUse, FirstTemporaryUse and NextUse): block by block, each
-//block's phis' arguments, then its instructions' operands, then its jump.  Each step fetches the block, phi and
-//instruction again by their indices, so a walk may add phis and instructions (at the ends of the blocks) as it
-//goes; SetUse writes a use the same way.
-struct SIRUse
-{
-	SIRReference		sValue;			//The value whose uses are walked...
-	bool				bTemporaries;	//...or, when true, every temporary's.
-	CArrayIRBlocks*		papcBlocks;		//The blocks walked, NULL for all the function's.
-	size				uiBlock;		//The use: its block (in papcBlocks or the function)...
-	EIRUseKind			eKind;
-	size				uiIndex;		//...the phi or instruction...
-	size				uiArgument;		//...and the phi's argument or the instruction's operand.
-	CIRBlock*			pcBlock;		//Fetched by NextUse: the use's block...
-	SIRPhi*				psPhi;			//...a phi argument's phi and argument...
-	SIRPhiArgument*		psArgument;
-	SIRInstruction*		psInstruction;	//...an operand's instruction...
-	SIRReference*		psSlot;			//...and the use itself (until the blocks change).
-};
-
-
 //A loop's counter (CIRPasses::MatchCounter): a phi of its head (sPhi) with two arguments, sInit from a block
 //outside the loop (argument uiOutside) and sNext = sPhi + lliStep from the other.
 struct SIRLoopCounter
@@ -282,10 +252,6 @@ public:
 	void			Replace(SIRReference sOld, SIRReference sNew);
 	SIRReference	Replacement(SIRReference sReference);
 	void			ApplyReplacements(void);
-	bool			FirstUse(SIRUse* psUse, SIRReference sValue, CArrayIRBlocks* papcBlocks = NULL, bool bTemporaries = false);
-	bool			FirstTemporaryUse(SIRUse* psUse, CArrayIRBlocks* papcBlocks = NULL);
-	bool			NextUse(SIRUse* psUse);
-	void			SetUse(SIRUse* psUse, SIRReference sNew);
 	bool			MayWriteMemory(SIRInstruction* psInstruction);
 	void			FindDefinitions(void);
 	void			ComputeLoops(void);

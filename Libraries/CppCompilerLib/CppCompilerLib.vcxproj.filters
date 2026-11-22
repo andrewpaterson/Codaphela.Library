@@ -492,6 +492,9 @@
     <ClCompile Include="IRTypes.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRThrows.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRVerifier.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -1320,6 +1323,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRTypes.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRThrows.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRVerifier.h">

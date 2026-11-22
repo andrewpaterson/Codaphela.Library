@@ -361,7 +361,7 @@ bool CIRLoopPasses::UsedOutside(size uiLoop, SIRReference sValue)
 	SIRUse	sUse;
 	bool	bUse;
 
-	for (bUse = FirstUse(&sUse, sValue); bUse; bUse = NextUse(&sUse))
+	for (bUse = mpcFunction->FirstUse(&sUse, sValue); bUse; bUse = mpcFunction->NextUse(&sUse))
 	{
 		if (!mpcContext->mcLoops.Contains(uiLoop, sUse.pcBlock))
 		{
@@ -382,7 +382,7 @@ void CIRLoopPasses::ReplaceOutside(size uiLoop, SIRReference sValue, SIRReferenc
 	SIRUse	sUse;
 	bool	bUse;
 
-	for (bUse = FirstUse(&sUse, sValue); bUse; bUse = NextUse(&sUse))
+	for (bUse = mpcFunction->FirstUse(&sUse, sValue); bUse; bUse = mpcFunction->NextUse(&sUse))
 	{
 		if (!mpcContext->mcLoops.Contains(uiLoop, sUse.pcBlock))
 		{
@@ -1060,9 +1060,9 @@ void CIRLoopPasses::RewriteUses(SIRReference sValue, CIRSSAUpdater* pcUpdater)
 	bool	bUse;
 
 	//The updater may add phis (SetUse finds the use again).
-	for (bUse = FirstUse(&sUse, sValue); bUse; bUse = NextUse(&sUse))
+	for (bUse = mpcFunction->FirstUse(&sUse, sValue); bUse; bUse = mpcFunction->NextUse(&sUse))
 	{
-		SetUse(&sUse, (sUse.eKind == IRUK_Phi) ? pcUpdater->ValueAtEnd(sUse.psArgument->pcBlock) : pcUpdater->ValueAtStart(sUse.pcBlock));
+		mpcFunction->SetUse(&sUse, (sUse.eKind == IRUK_Phi) ? pcUpdater->ValueAtEnd(sUse.psArgument->pcBlock) : pcUpdater->ValueAtStart(sUse.pcBlock));
 	}
 }
 
@@ -1191,18 +1191,18 @@ void CIRLoopPasses::RewriteOutsideUses(SIRReference sValue, CArrayIRBlocks* papc
 
 	//A phi's argument by the block it comes from; anything else by its own block.  The updater may add phis (SetUse
 	//finds the use again).
-	for (bUse = FirstUse(&sUse, sValue); bUse; bUse = NextUse(&sUse))
+	for (bUse = mpcFunction->FirstUse(&sUse, sValue); bUse; bUse = mpcFunction->NextUse(&sUse))
 	{
 		if (sUse.eKind == IRUK_Phi)
 		{
 			if (!IROptimiserInEither(papcBlocks, papcCopies, sUse.psArgument->pcBlock))
 			{
-				SetUse(&sUse, pcUpdater->ValueAtEnd(sUse.psArgument->pcBlock));
+				mpcFunction->SetUse(&sUse, pcUpdater->ValueAtEnd(sUse.psArgument->pcBlock));
 			}
 		}
 		else if (!IROptimiserInEither(papcBlocks, papcCopies, sUse.pcBlock))
 		{
-			SetUse(&sUse, pcUpdater->ValueAtStart(sUse.pcBlock));
+			mpcFunction->SetUse(&sUse, pcUpdater->ValueAtStart(sUse.pcBlock));
 		}
 	}
 }

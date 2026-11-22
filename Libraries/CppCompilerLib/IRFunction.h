@@ -69,6 +69,36 @@ typedef CArrayTemplate<SIRReference>		CArrayIRReferences;
 typedef CMapStringTemplate<CIRBlock*>		CMapIRBlocks;
 
 
+//What a use of a value is (SIRUse): a phi's argument, an instruction's operand or a block's jump's argument.
+enum EIRUseKind
+{
+	IRUK_Phi,
+	IRUK_Instruction,
+	IRUK_Jump,
+};
+
+
+//Where a walk of a value's uses is (CIRFunction::FirstUse, FirstTemporaryUse and NextUse): block by block, each
+//block's phis' arguments, then its instructions' operands, then its jump.  Each step fetches the block, phi and
+//instruction again by their indices, so a walk may add phis and instructions (at the ends of the blocks) as it
+//goes; SetUse writes a use the same way.
+struct SIRUse
+{
+	SIRReference		sValue;			//The value whose uses are walked...
+	bool				bTemporaries;	//...or, when true, every temporary's.
+	CArrayIRBlocks*		papcBlocks;		//The blocks walked, NULL for all the function's.
+	size				uiBlock;		//The use: its block (in papcBlocks or the function)...
+	EIRUseKind			eKind;
+	size				uiIndex;		//...the phi or instruction...
+	size				uiArgument;		//...and the phi's argument or the instruction's operand.
+	CIRBlock*			pcBlock;		//Fetched by NextUse: the use's block...
+	SIRPhi*				psPhi;			//...a phi argument's phi and argument...
+	SIRPhiArgument*		psArgument;
+	SIRInstruction*		psInstruction;	//...an operand's instruction...
+	SIRReference*		psSlot;			//...and the use itself (until the blocks change).
+};
+
+
 //A function: its blocks (the first is the entry), temporaries, constants and parameters.  Temporaries and blocks
 //may have names (unique in the function; a name that is all digits is not kept); the others are numbered when
 //printed.  The name maps are only made when the first name is given.
@@ -128,6 +158,11 @@ public:
 	bool			IsNumbered(void);
 	void			ComputePredecessors(void);
 	void			CountUses(CArrayTemplate<uint32>* pauiUses);
+	bool			FirstUse(SIRUse* psUse, SIRReference sValue, CArrayIRBlocks* papcBlocks = NULL, bool bTemporaries = false);
+	bool			FirstTemporaryUse(SIRUse* psUse, CArrayIRBlocks* papcBlocks = NULL);
+	bool			NextUse(SIRUse* psUse);
+	void			SetUse(SIRUse* psUse, SIRReference sNew);
+	void			ReplaceUses(SIRReference sOld, SIRReference sNew);
 
 	SIRReference	Add(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sArgument0, SIRReference sArgument1, const char* szName = NULL);
 	SIRReference	Add(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sArgument0, const char* szName = NULL);

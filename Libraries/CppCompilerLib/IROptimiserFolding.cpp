@@ -19,6 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
+#include "IRThrows.h"
 #include "IROptimiserInternal.h"
 
 
@@ -112,7 +113,7 @@ bool CIRFoldingPasses::FoldConstants(void)
 			{
 				bChanged = true;
 			}
-			if (mpcModule->NeverThrown(pcBlock, uiInstruction))
+			if (IRNeverThrown(mpcModule, pcBlock, uiInstruction))
 			{
 				//The call before it is to a function that never throws.  The thrown itself stays, read by nothing, for the
 				//dead code pass.

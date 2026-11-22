@@ -179,8 +179,6 @@ public:
 	bool			IsNoWrites(uint32 uiSymbol);
 	void			SetNoThrow(uint32 uiSymbol, bool bNoThrow);
 	bool			IsNoThrow(uint32 uiSymbol);
-	bool			NeverThrown(CIRBlock* pcBlock, size uiInstruction);
-	bool			MayThrow(CIRFunction* pcFunction);
 
 	CIRFunction*	AddFunction(const char* szName, SIRType sReturnType, uint32 uiAttributes = 0);
 	CIRFunction*	FindFunction(uint32 uiSymbol);

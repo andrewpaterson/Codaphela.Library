@@ -63,6 +63,11 @@ public:
 //those that never throw.  They run before inlining.  What they changed is asked for afterwards, by the function's
 //index: IsChanged for code that must be written again, CallsNoWrites and TestsNoThrow for a function worth optimising
 //again.
+class CIRInterprocedural;
+typedef bool (CIRInterprocedural::*FIRSummaryTest)(CIRFunction* pcFunction);
+typedef bool (CIRInterprocedural::*FIRSummaryUse)(CIRBlock* pcBlock, size uiInstruction);
+
+
 class CIRInterprocedural
 {
 protected:
@@ -71,6 +76,7 @@ protected:
 	CArrayTemplate<bool>	mabChanged;			//Per unit function.
 	CArrayTemplate<bool>	mabCallsNoWrites;	//Per unit function, once MarkNoWrites has run.
 	CArrayTemplate<bool>	mabTestsNoThrow;	//Per unit function, once MarkNoThrow has run.
+	CIROptimiser*			mpcWrites;			//MarkNoWrites': what says whether a function writes memory.
 
 public:
 	void			Init(CIRModule* pcModule, CIRUnitFunctions* pcUnit);
@@ -90,6 +96,12 @@ public:
 	static uint32	DeadParameters(CIRFunction* pcFunction);
 
 protected:
+	void			MarkOptimistically(uint8 uiAttribute, bool bKeepMarked, FIRSummaryTest pfLoses);
+	void			FindUsers(FIRSummaryUse pfUses, CArrayTemplate<bool>* pabUsers);
+	bool			WritesMemory(CIRFunction* pcFunction);
+	bool			MayThrow(CIRFunction* pcFunction);
+	bool			IsCallOfNoWrites(CIRBlock* pcBlock, size uiInstruction);
+	bool			IsTestOfNoThrow(CIRBlock* pcBlock, size uiInstruction);
 	uint32			StrongParameters(CIRFunction* pcFunction, CArrayTemplate<uint32>* pauiStrong);
 	bool			IsStrong(CIRFunction* pcFunction, CArrayTemplate<uint8>* paucDerived, CArrayTemplate<uint32>* pauiStrong);
 	int				FunctionIndex(uint32 uiSymbol);

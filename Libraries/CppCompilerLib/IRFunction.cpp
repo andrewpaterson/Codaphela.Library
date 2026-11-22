@@ -934,3 +934,169 @@ bool SIRConstantDivision::Init(CIRFunction* pcFunction, SIRInstruction* psInstru
 	lliDivisor = bSigned ? IRSignExtend(psInstruction->sType, ulliBits) : (int64)IRTruncate(psInstruction->sType, ulliBits);
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts a walk of sValue's uses (of every temporary with bTemporaries)
+// in papcBlocks (NULL for all the function's blocks) at the first; false
+// if there is none.  NextUse goes on to the next.  One walk serves the
+// passes that look for, count or rewrite the uses of a value, each with its
+// own filter on the blocks.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRFunction::FirstUse(SIRUse* psUse, SIRReference sValue, CArrayIRBlocks* papcBlocks, bool bTemporaries)
+{
+	psUse->sValue = sValue;
+	psUse->bTemporaries = bTemporaries;
+	psUse->papcBlocks = papcBlocks;
+	psUse->uiBlock = 0;
+	psUse->eKind = IRUK_Phi;
+	psUse->uiIndex = 0;
+	psUse->uiArgument = (size)-1;
+	return NextUse(psUse);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// FirstUse of every temporary instead of one value: each operand that is a
+// temporary.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRFunction::FirstTemporaryUse(SIRUse* psUse, CArrayIRBlocks* papcBlocks)
+{
+	return FirstUse(psUse, IRNone(), papcBlocks, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The walk's next use after the one it is at (block by block: the phis'
+// arguments, the instructions' operands, then the jump); false when there
+// are no more.  The block, phi and instruction are fetched again by their
+// indices each step, and the counts read again, so the walker may add
+// phis and instructions to the ends of blocks between steps (those added
+// to the block it is in, after where it is, are walked too).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRFunction::NextUse(SIRUse* psUse)
+{
+	size			uiBlocks;
+	SIRReference*	psSlot;
+
+	psUse->uiArgument++;
+	for (;;)
+	{
+		uiBlocks = psUse->papcBlocks ? psUse->papcBlocks->NumElements() : NumBlocks();
+		if (psUse->uiBlock >= uiBlocks)
+		{
+			return false;
+		}
+		psUse->pcBlock = psUse->papcBlocks ? psUse->papcBlocks->GetPtr(psUse->uiBlock) : GetBlock(psUse->uiBlock);
+		if (psUse->eKind == IRUK_Phi)
+		{
+			if (psUse->uiIndex >= psUse->pcBlock->masPhis.NumElements())
+			{
+				psUse->eKind = IRUK_Instruction;
+				psUse->uiIndex = 0;
+				psUse->uiArgument = 0;
+				continue;
+			}
+			psUse->psPhi = psUse->pcBlock->masPhis.Get(psUse->uiIndex);
+			if (psUse->uiArgument >= psUse->psPhi->asArguments.NumElements())
+			{
+				psUse->uiIndex++;
+				psUse->uiArgument = 0;
+				continue;
+			}
+			psUse->psArgument = psUse->psPhi->asArguments.Get(psUse->uiArgument);
+			psSlot = &psUse->psArgument->sValue;
+		}
+		else if (psUse->eKind == IRUK_Instruction)
+		{
+			if (psUse->uiIndex >= psUse->pcBlock->masInstructions.NumElements())
+			{
+				psUse->eKind = IRUK_Jump;
+				psUse->uiIndex = 0;
+				psUse->uiArgument = 0;
+				continue;
+			}
+			if (psUse->uiArgument >= 2)
+			{
+				psUse->uiIndex++;
+				psUse->uiArgument = 0;
+				continue;
+			}
+			psUse->psInstruction = psUse->pcBlock->masInstructions.Get(psUse->uiIndex);
+			psSlot = &psUse->psInstruction->asArguments[psUse->uiArgument];
+		}
+		else
+		{
+			if (psUse->uiArgument >= 1)
+			{
+				psUse->uiBlock++;
+				psUse->eKind = IRUK_Phi;
+				psUse->uiIndex = 0;
+				psUse->uiArgument = 0;
+				continue;
+			}
+			psSlot = &psUse->pcBlock->msJump.sArgument;
+		}
+		if (psUse->bTemporaries ? psSlot->IsTemporary() : psSlot->Equals(psUse->sValue))
+		{
+			psUse->psSlot = psSlot;
+			return true;
+		}
+		psUse->uiArgument++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The use the walk is at reads sNew.  It is found again by its indices: a
+// walk that worked sNew out may have added phis (CIRSSAUpdater), moving the
+// block's phis.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRFunction::SetUse(SIRUse* psUse, SIRReference sNew)
+{
+	CIRBlock*	pcBlock;
+
+	pcBlock = psUse->papcBlocks ? psUse->papcBlocks->GetPtr(psUse->uiBlock) : GetBlock(psUse->uiBlock);
+	if (psUse->eKind == IRUK_Phi)
+	{
+		psUse->psPhi = pcBlock->masPhis.Get(psUse->uiIndex);
+		psUse->psArgument = psUse->psPhi->asArguments.Get(psUse->uiArgument);
+		psUse->psSlot = &psUse->psArgument->sValue;
+	}
+	else if (psUse->eKind == IRUK_Instruction)
+	{
+		psUse->psInstruction = pcBlock->masInstructions.Get(psUse->uiIndex);
+		psUse->psSlot = &psUse->psInstruction->asArguments[psUse->uiArgument];
+	}
+	else
+	{
+		psUse->psSlot = &pcBlock->msJump.sArgument;
+	}
+	*psUse->psSlot = sNew;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every use of sOld (an operand, a phi's argument, a branch's or return's
+// value) is sNew.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRFunction::ReplaceUses(SIRReference sOld, SIRReference sNew)
+{
+	SIRUse	sUse;
+	bool	bUse;
+
+	for (bUse = FirstUse(&sUse, sOld); bUse; bUse = NextUse(&sUse))
+	{
+		*sUse.psSlot = sNew;
+	}
+}

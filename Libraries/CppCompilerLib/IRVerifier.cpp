@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "IRThrows.h"
 #include "IRVerifier.h"
 
 
@@ -289,7 +290,7 @@ bool CIRVerifier::CheckBlocks(void)
 		mpcBlock = NULL;
 		return false;
 	}
-	if (mpcModule->IsNoThrow(mpcFunction->muiSymbol) && mpcModule->MayThrow(mpcFunction))
+	if (mpcModule->IsNoThrow(mpcFunction->muiSymbol) && IRMayThrow(mpcModule, mpcFunction))
 	{
 		mpcBlock = NULL;
 		Error("A nothrow function can reach a throw.");

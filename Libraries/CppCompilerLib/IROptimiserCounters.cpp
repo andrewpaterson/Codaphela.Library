@@ -68,7 +68,7 @@ bool CIRCounterPasses::SteppedExitUses(size uiLoop, CIRBlock* pcBlock, SIRPhi* p
 	SIRUse	sUse;
 	bool	bUse;
 
-	for (bUse = FirstUse(&sUse, sStepped); bUse; bUse = NextUse(&sUse))
+	for (bUse = mpcFunction->FirstUse(&sUse, sStepped); bUse; bUse = mpcFunction->NextUse(&sUse))
 	{
 		if (sUse.eKind == IRUK_Instruction)
 		{

@@ -449,7 +449,7 @@ bool CIRBlockPasses::OnlyUsedIn(CArrayIRBlocks* papcBlocks, bool bSuccessorPhis,
 
 	auiInside.Init();
 	auiInside.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
-	for (bUse = FirstTemporaryUse(&sUse, papcBlocks); bUse; bUse = NextUse(&sUse))
+	for (bUse = mpcFunction->FirstTemporaryUse(&sUse, papcBlocks); bUse; bUse = mpcFunction->NextUse(&sUse))
 	{
 		(*auiInside.Get(sUse.psSlot->Index()))++;
 	}
