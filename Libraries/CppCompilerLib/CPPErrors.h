@@ -72,6 +72,7 @@ public:
 	void	AppendTo(CCPPErrors* pcDest);
 	void	MoveTailTo(CCPPErrors* pcDest, size uiFirst);
 	bool	Has(const char* szError);
+	bool	HasAt(int iToken, const char* szMessage);
 	void	Remove(size uiIndex);
 	void	Reverse(void);
 	void	MoveTo(CCPPErrors* pcDest, size uiIndex);

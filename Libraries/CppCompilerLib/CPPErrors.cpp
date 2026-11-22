@@ -237,6 +237,27 @@ void CCPPErrors::Reverse(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the list has an error at iToken that says szMessage (with or
+// without where a macro was used, and the token, around it).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPErrors::HasAt(int iToken, const char* szMessage)
+{
+	size	i;
+
+	for (i = 0; i < maszErrors.NumElements(); i++)
+	{
+		if ((masPositions.Get(i)->iToken == iToken) && strstr(maszErrors.Get(i)->Text(), szMessage))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the list has an error that reads szError: the same place and the
 // same words.
 //

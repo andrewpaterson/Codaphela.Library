@@ -343,7 +343,6 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcConstants->Init(this);
 	mcTypeChecker.Init(this);
 	mcDiagnostics.Init(mpcTokeniser, &mcContext, mpcStatistics);
-	masClassErrors.Init();
 
 	mapcGlobals.Init();
 	mapcFunctions.Init();
@@ -522,8 +521,6 @@ void CCPPUnit::Kill(void)
 	FreeVariables(&mapcGlobals);
 	mapcGlobals.Kill();
 
-	FreeClassErrors();
-	masClassErrors.Kill();
 	mcDiagnostics.Kill();
 	maiExitShared.Kill();
 	mapsThrownDestroyers.Kill();
@@ -620,7 +617,7 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 		GenerateQueued();
 	}
 	CheckUncalledFunctions();
-	ReportClassErrors();
+	mcDiagnostics.ReportDeferred();
 	if (!mbCompiledBefore)
 	{
 		ReportNamedInstances();
@@ -776,7 +773,7 @@ bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialis
 		}
 		else
 		{
-			bResult = mcDiagnostics.ErrorAt(-1, "This global's construction or destruction uses C++ the IR front end doesn't support yet");
+			bResult = mcDiagnostics.ErrorAt(pcInitialiser ? pcInitialiser->miFirstToken : -1, "This global's construction or destruction uses C++ the IR front end doesn't support yet");
 		}
 		szLabel.Kill();
 	}
@@ -3075,12 +3072,12 @@ bool CCPPUnit::IsAllocationName(CCPPSyntaxDeclarator* pcDeclarator)
 //////////////////////////////////////////////////////////////////////////
 //
 // An error in a function's declaration: a member's is a class error, kept
-// though the class is laid out quietly (ClassError).  False.
+// though the class is laid out quietly (Defer).  False.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::OperatorError(CCPPClass* pcClass, CCPPSyntax* pcNode, const char* szMessage)
 {
-	return pcClass ? ClassError(pcNode->miFirstToken, szMessage) : mcDiagnostics.Error(pcNode, szMessage);
+	return pcClass ? mcDiagnostics.Defer(pcNode->miFirstToken, szMessage) : mcDiagnostics.Error(pcNode, szMessage);
 }
 
 
@@ -4331,7 +4328,7 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 			szLabel.Init("A covariant result the IR front end can't write a thunk for is not supported on this target yet: ");
 			mcMangler.AppendFunctionLabel(&szLabel, pcFunction);
 			AppendUnsupported(&szLabel);
-			mcDiagnostics.ErrorAt(-1, szLabel.Text());
+			mcDiagnostics.ErrorAt(pcFunction->mpcCovariantOf->mpcDeclarator ? pcFunction->mpcCovariantOf->mpcDeclarator->miFirstToken : -1, szLabel.Text());
 			szLabel.Kill();
 		}
 		LeaveFunction();
@@ -4348,7 +4345,8 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 			{
 				AppendUnsupported(&szLabel);
 			}
-			mcDiagnostics.ErrorAt(-1, szLabel.Text());
+			//Where its class is defined: an implicit function is written nowhere.
+			mcDiagnostics.ErrorAt((pcFunction->mpcClass && pcFunction->mpcClass->mpcSpecifier) ? pcFunction->mpcClass->mpcSpecifier->miFirstToken : -1, szLabel.Text());
 			szLabel.Kill();
 		}
 		LeaveFunction();
@@ -4400,11 +4398,11 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 	{
 		mpcIRFrontEnd->ClearUnsupported();
 	}
-	else if (masClassErrors.NumElements() > 0)
+	else if (mcDiagnostics.HasDeferred())
 	{
 		//A class the function uses was wrong (laid out quietly, so not reported yet): that is why.
 		mpcIRFrontEnd->ClearUnsupported();
-		ReportClassErrors();
+		mcDiagnostics.ReportDeferred();
 	}
 	else
 	{

@@ -2032,7 +2032,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 //////////////////////////////////////////////////////////////////////////
 bool CCPPBinder::HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode)
 {
-	return (mpcUnit->CountBases(pcClass, pcBase) <= 1) || mcAccess.Refuse(pcNode, "The base class is in the class more than once: say which is meant with a qualified name or a cast to a class between");
+	return (mpcUnit->CountBases(pcClass, pcBase) <= 1) || mpcDiagnostics->ReportOnce(pcNode, "The base class is in the class more than once: say which is meant with a qualified name or a cast to a class between");
 }
 
 
@@ -2061,7 +2061,7 @@ bool CCPPBinder::HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass
 //////////////////////////////////////////////////////////////////////////
 bool CCPPBinder::HasOneMeaning(CCPPClass* pcClass, int64 lliName, CCPPSyntax* pcNode)
 {
-	return !mpcUnit->IsAmbiguousInBases(pcClass, lliName) || mcAccess.Refuse(pcNode, "The name is a member of more than one of the class's bases");
+	return !mpcUnit->IsAmbiguousInBases(pcClass, lliName) || mpcDiagnostics->ReportOnce(pcNode, "The name is a member of more than one of the class's bases");
 }
 
 
@@ -2097,7 +2097,7 @@ bool CCPPBinder::ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcA
 		//(What doesn't bind is reported where it is made.)
 		return true;
 	}
-	return (cBound.meHow != CPPBO_Aggregate) || mcAccess.Refuse(pcNode, "The class has no constructor for this: its members are given values by a list in braces");
+	return (cBound.meHow != CPPBO_Aggregate) || mpcDiagnostics->ReportOnce(pcNode, "The class has no constructor for this: its members are given values by a list in braces");
 }
 
 
@@ -2298,11 +2298,11 @@ bool CCPPBinder::CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* p
 		psParameter = (cBound.mpcConstructor->mapsParameters.NumElements() > 0) ? cBound.mpcConstructor->mapsParameters.GetPtr(0)->WithoutReference() : NULL;
 		if (cBound.mpcConstructor->mbExplicit)
 		{
-			bResult = mcAccess.Refuse(pcInit, "An explicit constructor isn't used by = : write the class's name before the value");
+			bResult = mpcDiagnostics->ReportOnce(pcInit, "An explicit constructor isn't used by = : write the class's name before the value");
 		}
 		else if (psValue && psParameter && !(psParameter->IsClass() && (psParameter->pcClass == pcClass)) && (mcOverloads.ConversionRank(psParameter, psValue, pcInit->mpcInitializer, false) == CPPCR_None))
 		{
-			bResult = mcAccess.Refuse(pcInit, "= converts the value by one constructor or conversion function of the program's, not two");
+			bResult = mpcDiagnostics->ReportOnce(pcInit, "= converts the value by one constructor or conversion function of the program's, not two");
 		}
 	}
 	apcValue.Kill();
@@ -2321,7 +2321,7 @@ bool CCPPBinder::ReachesDestructor(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
 	if (pcClass->mpcDestructor && pcClass->mpcDestructor->mbDeleted)
 	{
-		return mcAccess.Refuse(pcNode, "The class's destructor is deleted: no object of it is made where it would be destroyed");
+		return mpcDiagnostics->ReportOnce(pcNode, "The class's destructor is deleted: no object of it is made where it would be destroyed");
 	}
 	return !pcClass->mpcDestructor || mcAccess.CheckFunction(pcClass->mpcDestructor, pcClass, pcNode);
 }
@@ -2467,12 +2467,12 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 	if (pcClass->mpsLambda && (papcArguments->NumElements() == 0))
 	{
 		//decltype(lambda) object;  [expr.prim.lambda] 20
-		return mcAccess.Refuse(pcNode, "A lambda's closure has no default constructor: it is made by its lambda, or copied");
+		return mpcDiagnostics->ReportOnce(pcNode, "A lambda's closure has no default constructor: it is made by its lambda, or copied");
 	}
 	if (pcClass->mbUnion && pcClass->mpcSpecifier && pcClass->mpcSpecifier->mpcName && !pcClass->mbConstructors && (papcArguments->NumElements() == 0) && HasMemberMadeByCode(pcClass))
 	{
 		//(An anonymous union's members are its class's, which its constructor makes or not.)  [class.union] 2, [class.ctor] 4
-		return mcAccess.Refuse(pcNode, "The union's default constructor is deleted: a member of it is made by a constructor, which the union can't choose to call");
+		return mpcDiagnostics->ReportOnce(pcNode, "The union's default constructor is deleted: a member of it is made by a constructor, which the union can't choose to call");
 	}
 	if (pcClass->mbConstructors || (papcArguments->NumElements() == 0))
 	{

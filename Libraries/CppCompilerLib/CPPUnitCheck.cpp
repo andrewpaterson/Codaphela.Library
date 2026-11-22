@@ -74,7 +74,7 @@ bool CCPPUnit::Check(CCPPSemanticPass* pcPass, bool bRemember)
 		}
 	}
 	while (CheckDefinitions());
-	ReportClassErrors();
+	mcDiagnostics.ReportDeferred();
 	ReportUndeclaredTypes();
 	ReportNamedInstances();
 	CheckContext();

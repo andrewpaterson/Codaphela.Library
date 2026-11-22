@@ -51,7 +51,9 @@ struct SPreprocessedToken;
 //whose failing is its own, and a loud part is said whatever is quiet around it.  A silent part is quiet code, or a
 //trial, of which nothing is kept, what was said loudly in it too: the errors made in it are its own, and go when it
 //ends.  What is worked out once and remembered keeps its errors with it (BeginKeeping, EndKeeping): they are said
-//when the answer is wanted for good (Report), by appending them, not by working it out again.  A warning is said
+//when the answer is wanted for good (Report), by appending them, not by working it out again.  What is worked out
+//once where errors are dropped (a class laid out, a template's instance made) defers its errors: they are said when
+//the unit ends, whatever is quiet when they are made (Defer, ReportDeferred).  A warning is said
 //once for a token and doesn't fail the unit.
 class CCPPDiagnostics
 {
@@ -65,6 +67,7 @@ protected:
 	CArrayTemplate<SCPPKeeping>	masKeeping;	//The parts whose errors are kept, the last begun last.
 	CArrayTemplate<size>	mauiQuietKept;	//The errors said quietly in them, by their place in mcErrors.
 	CArrayTemplatePtr<CCPPErrors>	mapcKept;	//The errors kept (EndKeeping), each list with what was worked out when they were made.
+	CCPPErrors				mcDeferred;		//What is said when the unit ends, or sooner if it is why something failed (Defer).
 
 public:
 	void		Init(CCPPTokeniser* pcTokeniser, CCPPContext* pcContext, CCPPCompileStatistics* pcStatistics);
@@ -96,12 +99,17 @@ public:
 	void		Report(CCPPErrors* pcKept);
 	void		Repeat(CCPPErrors* pcKept);
 
+	bool		Defer(int iToken, const char* szMessage);
+	void		ReportDeferred(void);
+	bool		HasDeferred(void);
+
 	CCPPErrors*	GetErrors(void);
 	CCPPErrors*	GetWarnings(void);
 	size		NumErrors(void) const;
 
 protected:
 	void		AppendMacroUse(SPreprocessedToken* psSource, CChars* pszMessage);
+	bool		AddError(CCPPErrors* pcDest, int iToken, const char* szMessage);
 };
 
 

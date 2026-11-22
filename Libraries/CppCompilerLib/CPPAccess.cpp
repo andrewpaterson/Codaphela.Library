@@ -115,9 +115,9 @@ bool CCPPAccess::Check(CCPPSyntax* pcDeclaration, CCPPClass* pcNaming, CCPPSynta
 	}
 	if (iDeclared == CPPA_Public)
 	{
-		return Refuse(pcNode, "The member is in a base class that can't be reached from here");
+		return mpcDiagnostics->ReportOnce(pcNode, "The member is in a base class that can't be reached from here");
 	}
-	return Refuse(pcNode, (iDeclared == CPPA_Private) ? "The member is private" : "The member is protected");
+	return mpcDiagnostics->ReportOnce(pcNode, (iDeclared == CPPA_Private) ? "The member is private" : "The member is protected");
 }
 
 
@@ -159,33 +159,7 @@ bool CCPPAccess::CheckBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pc
 	{
 		return true;
 	}
-	return IsAccessible(pcClass, pcBase->mpcSpecifier, CPPA_Public, pcNode) || Refuse(pcNode, "The base class is private or protected: it can't be reached from here");
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The error that a member may not be named at pcNode, or a base not used
-// there (CCPPBinder::HasOneBase): reported in quiet code too, and once for
-// the place however often it is asked about (the errors of something that
-// was only tried are taken away again, so it is the errors there are that
-// say whether it has been).  Always false.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPAccess::Refuse(CCPPSyntax* pcNode, const char* szMessage)
-{
-	CCPPErrors*	pcErrors;
-	size		i;
-
-	pcErrors = mpcDiagnostics->GetErrors();
-	for (i = 0; i < pcErrors->NumErrors(); i++)
-	{
-		if (pcNode && (pcErrors->GetToken(i) == pcNode->miFirstToken) && strstr(pcErrors->Get(i), szMessage))
-		{
-			return false;
-		}
-	}
-	return mpcDiagnostics->ReportError(pcNode, szMessage);
+	return IsAccessible(pcClass, pcBase->mpcSpecifier, CPPA_Public, pcNode) || mpcDiagnostics->ReportOnce(pcNode, "The base class is private or protected: it can't be reached from here");
 }
 
 
@@ -590,7 +564,7 @@ bool CCPPAccess::CheckUsing(CCPPSymbol* pcSymbol, CCPPSyntax* pcUsing)
 	{
 		return true;
 	}
-	return Refuse(pcUsing, "The using-declaration names a base's private member, which the class can't reach");
+	return mpcDiagnostics->ReportOnce(pcUsing, "The using-declaration names a base's private member, which the class can't reach");
 }
 
 
@@ -618,7 +592,7 @@ bool CCPPAccess::CheckProtectedObject(CCPPSymbol* pcSymbol, CCPPClass* pcObjectC
 	{
 		return true;
 	}
-	return Refuse(pcNode, "The member is protected: a class derived from its class reaches it only through an object of its own class (or one derived from it)");
+	return mpcDiagnostics->ReportOnce(pcNode, "The member is protected: a class derived from its class reaches it only through an object of its own class (or one derived from it)");
 }
 
 

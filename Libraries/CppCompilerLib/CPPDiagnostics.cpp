@@ -41,6 +41,7 @@ void CCPPDiagnostics::Init(CCPPTokeniser* pcTokeniser, CCPPContext* pcContext, C
 	masKeeping.Init();
 	mauiQuietKept.Init();
 	mapcKept.Init();
+	mcDeferred.Init();
 	SetStatistics(pcStatistics);
 }
 
@@ -59,6 +60,7 @@ void CCPPDiagnostics::Kill(void)
 		free(mapcKept.GetPtr(i));
 	}
 	mapcKept.Kill();
+	mcDeferred.Kill();
 	mauiQuietKept.Kill();
 	masKeeping.Kill();
 	mauiSilent.Kill();
@@ -172,13 +174,24 @@ bool CCPPDiagnostics::HasWarning(CCPPSyntax* pcNode, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPDiagnostics::ErrorAt(int iToken, const char* szMessage)
 {
+	return AddError(&mcErrors, iToken, szMessage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An error at a token of the unit, added to pcDest.  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDiagnostics::AddError(CCPPErrors* pcDest, int iToken, const char* szMessage)
+{
 	SPreprocessedToken*	psSource;
 	CChars				szDetail;
 	CChars				szMessageText;
 
 	if ((iToken < 0) || ((size)iToken >= mpcTokeniser->NumTokens()))
 	{
-		mcErrors.Add(NULL, -1, -1, -1, szMessage);
+		pcDest->Add(NULL, -1, -1, -1, szMessage);
 		return false;
 	}
 
@@ -187,7 +200,7 @@ bool CCPPDiagnostics::ErrorAt(int iToken, const char* szMessage)
 	AppendMacroUse(psSource, &szMessageText);
 	szDetail.Init();
 	psSource->Append(&szDetail);
-	mpcTokeniser->mpcSource->AddError(&mcErrors, psSource, iToken, szMessageText.Text(), szDetail.Text());
+	mpcTokeniser->mpcSource->AddError(pcDest, psSource, iToken, szMessageText.Text(), szDetail.Text());
 	szDetail.Kill();
 	szMessageText.Kill();
 	return false;
@@ -261,14 +274,9 @@ bool CCPPDiagnostics::ReportError(CCPPSyntax* pcNode, const char* szMessage)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPDiagnostics::ReportOnce(CCPPSyntax* pcNode, const char* szMessage)
 {
-	size	i;
-
-	for (i = 0; pcNode && (i < mcErrors.NumErrors()); i++)
+	if (pcNode && mcErrors.HasAt(pcNode->miFirstToken, szMessage))
 	{
-		if ((mcErrors.GetToken(i) == pcNode->miFirstToken) && strstr(mcErrors.Get(i), szMessage))
-		{
-			return false;
-		}
+		return false;
 	}
 	return ReportError(pcNode, szMessage);
 }
@@ -593,6 +601,44 @@ void CCPPDiagnostics::Report(CCPPErrors* pcKept)
 	}
 	cNew.AppendTo(&mcErrors);
 	cNew.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An error of what is worked out once where errors are often dropped (a
+// class laid out quietly, or first by the IR front end): kept, and said
+// when the unit ends (ReportDeferred), or sooner as the reason something
+// failed.  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDiagnostics::Defer(int iToken, const char* szMessage)
+{
+	return AddError(&mcDeferred, iToken, szMessage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The errors deferred are said, and kept no longer.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDiagnostics::ReportDeferred(void)
+{
+	mcDeferred.AppendTo(&mcErrors);
+	mcDeferred.Clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an error is deferred and not yet said: what fails for want of
+// what it is of has its reason there.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDiagnostics::HasDeferred(void)
+{
+	return mcDeferred.NumErrors() > 0;
 }
 
 

@@ -68,7 +68,6 @@ public:
 	bool	CheckUsing(CCPPSymbol* pcSymbol, CCPPSyntax* pcUsing);
 	bool	CheckProtectedObject(CCPPSymbol* pcSymbol, CCPPClass* pcObjectClass, CCPPSyntax* pcNode);
 	bool	HasOnlyPublicFields(CCPPClass* pcClass);
-	bool	Refuse(CCPPSyntax* pcNode, const char* szMessage);
 
 protected:
 	int		DeclaredAccess(CCPPSyntax* pcDeclaration, CCPPSyntaxClassSpecifier** ppcClass);

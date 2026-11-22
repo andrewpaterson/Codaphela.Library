@@ -2611,8 +2611,8 @@ CCPPTemplate* CCPPUnit::FindSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplate
 	aiScores.Kill();
 	if (bAmbiguous)
 	{
-		//Kept (ClassError): an instance is made once, and often where errors are dropped.
-		ClassError(pcNode ? pcNode->miFirstToken : -1, "More than one specialisation of the template matches, and none is more specialised than the others");
+		//Kept (Defer): an instance is made once, and often where errors are dropped.
+		mcDiagnostics.Defer(pcNode ? pcNode->miFirstToken : -1, "More than one specialisation of the template matches, and none is more specialised than the others");
 	}
 	*ppcBindings = pcBestDeduced;
 	return pcBest;

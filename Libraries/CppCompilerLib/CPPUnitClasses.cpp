@@ -259,7 +259,7 @@ int CCPPUnit::VariableAlignment(CCPPVariable* pcVariable, int* piAlignas)
 // The strictest alignment the alignas(n) and alignas(type) specifiers in
 // papcSpecifiers ask for: 0 for none (alignas(0) asks for nothing), -1 after
 // an error.  It is kept whatever #pragma pack says, as MSVC does.  A class's
-// (bClass) errors are ClassErrors, as it is laid out once.  [dcl.align]
+// (bClass) errors are deferred, as it is laid out once.  [dcl.align]
 //
 //////////////////////////////////////////////////////////////////////////
 int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass)
@@ -298,7 +298,7 @@ int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass)
 		{
 			if (bClass)
 			{
-				ClassError(pcAlignment->miFirstToken, "The alignment must be a power of two");
+				mcDiagnostics.Defer(pcAlignment->miFirstToken, "The alignment must be a power of two");
 			}
 			else
 			{
@@ -954,14 +954,14 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		if (pcClass->macBases.Get(i)->pcClass->mbUnion)
 		{
 			//[class.union] 2
-			bResult &= ClassError(pcBaseSpecifier->miFirstToken, "A union is no base class");
+			bResult &= mcDiagnostics.Defer(pcBaseSpecifier->miFirstToken, "A union is no base class");
 		}
 		for (j = 0; j < i; j++)
 		{
 			if (pcClass->macBases.Get(j)->pcClass == pcClass->macBases.Get(i)->pcClass)
 			{
 				//[class.mi] 3
-				bResult &= ClassError(pcBaseSpecifier->miFirstToken, "A class is a direct base of another once");
+				bResult &= mcDiagnostics.Defer(pcBaseSpecifier->miFirstToken, "A class is a direct base of another once");
 				break;
 			}
 		}
@@ -1034,7 +1034,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	if (pcClass->mcVtable.mpcAmbiguous)
 	{
 		//[class.virtual] 2
-		bResult &= ClassError(pcSpecifier->miFirstToken, "A virtual function of a virtual base has two final overriders in the class, neither overriding the other");
+		bResult &= mcDiagnostics.Defer(pcSpecifier->miFirstToken, "A virtual function of a virtual base has two final overriders in the class, neither overriding the other");
 	}
 
 	if (pcClass->mpcInheritedBase)
@@ -1096,7 +1096,7 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 		else if (pcOverridden && !ReturnsCovariant(pcFunction, pcOverridden))
 		{
 			//[class.virtual] 7
-			bResult &= ClassError(pcFunction->mpcDeclarator->miFirstToken, "The function returns another type than the virtual function it overrides, and not a pointer or reference to a class derived from that one's");
+			bResult &= mcDiagnostics.Defer(pcFunction->mpcDeclarator->miFirstToken, "The function returns another type than the virtual function it overrides, and not a pointer or reference to a class derived from that one's");
 		}
 		else if (pcOverridden && !AllowsOnlyWhat(ExceptionsOf(pcFunction), ExceptionsOf(pcOverridden)))
 		{
@@ -1227,7 +1227,7 @@ void CCPPUnit::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsin
 		mcDiagnostics.EndSilent();
 		if (!bReached)
 		{
-			ClassError(pcUsing->miFirstToken, "The using-declaration names a base's private member, which the class can't reach");
+			mcDiagnostics.Defer(pcUsing->miFirstToken, "The using-declaration names a base's private member, which the class can't reach");
 			return;
 		}
 	}
@@ -1388,7 +1388,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		}
 		if (IsDeclaredAgainInClass(pcClass, pcFunction, uiMembers))
 		{
-			return ClassError(pcDefinition->mpcDeclarator->miFirstToken, "The member function is declared twice in its class");
+			return mcDiagnostics.Defer(pcDefinition->mpcDeclarator->miFirstToken, "The member function is declared twice in its class");
 		}
 		if (!CheckDefaultedOrDeleted(pcFunction, pcDefinition))
 		{
@@ -1477,7 +1477,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				}
 				else if (IsDeclaredAgainInClass(pcClass, pcFunction, uiMembers))
 				{
-					bResult &= ClassError(pcInit->mpcDeclarator->miFirstToken, "The member function is declared twice in its class");
+					bResult &= mcDiagnostics.Defer(pcInit->mpcDeclarator->miFirstToken, "The member function is declared twice in its class");
 				}
 				else if ((pcInit->meInitializer == CPPI_Default) && (pcFunction->meKind != CPPFK_Function))
 				{
@@ -1518,7 +1518,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				if (pcInit->mpcInitializer && !(pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !(psType->bConst && psType->IsInteger()))
 				{
 					//[class.static.data] 3
-					bResult &= ClassError(pcInit->miFirstToken, "Only a static data member that is a const integer or enum, or constexpr, is initialised in its class");
+					bResult &= mcDiagnostics.Defer(pcInit->miFirstToken, "Only a static data member that is a const integer or enum, or constexpr, is initialised in its class");
 				}
 				pcVariable = AddVariable(&mapcGlobals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
 				pcVariable->mpcClass = pcClass;
@@ -1529,7 +1529,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			if (pcClass->mbUnion && psType->IsReference())
 			{
 				//[class.union] 2
-				bResult &= ClassError(pcInit->miFirstToken, "A union has no reference member");
+				bResult &= mcDiagnostics.Defer(pcInit->miFirstToken, "A union has no reference member");
 				continue;
 			}
 			psElement = psType->ElementType();
@@ -1596,7 +1596,7 @@ bool CCPPUnit::InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers*
 	mcDiagnostics.BeginSilent();
 	bReached = mcBinder.ReachesBase(pcClass, pcNamed, pcNode);
 	mcDiagnostics.EndSilent();
-	return bReached || ClassError(pcNode->miFirstToken, "The class's name here is its injected name, found through a base that can't be reached from here: write ::Name");
+	return bReached || mcDiagnostics.Defer(pcNode->miFirstToken, "The class's name here is its injected name, found through a base that can't be reached from here: write ::Name");
 }
 
 
@@ -1632,24 +1632,6 @@ bool CCPPUnit::IsDeclaredAgainInClass(CCPPClass* pcClass, CCPPFunction* pcFuncti
 			return pcNode == pcClass->mpcSpecifier;
 		}
 	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An error in a class's declaration at iToken, found laying it out: kept
-// to report when the unit ends (ReportClassErrors), as a class is laid out
-// once and that is often quietly.  Returns false.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ClassError(int iToken, const char* szMessage)
-{
-	SCPPClassError*	psError;
-
-	psError = masClassErrors.Add();
-	psError->iToken = iToken;
-	psError->szMessage.Init(szMessage);
 	return false;
 }
 
@@ -1714,52 +1696,6 @@ void CCPPUnit::AddLayout(CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The errors laying out classes (ClassError) added to the unit's errors.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::ReportClassErrors(void)
-{
-	size	i;
-
-	for (i = 0; i < masClassErrors.NumElements(); i++)
-	{
-		mcDiagnostics.ErrorAt(masClassErrors.Get(i)->iToken, masClassErrors.Get(i)->szMessage.Text());
-	}
-	FreeClassErrors();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a class's own error is kept and not yet said: what fails for
-// want of the class has its reason there.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::HasClassErrors(void)
-{
-	return masClassErrors.NumElements() > 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The class errors kept are let go, said or not.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::FreeClassErrors(void)
-{
-	size	i;
-
-	for (i = 0; i < masClassErrors.NumElements(); i++)
-	{
-		masClassErrors.Get(i)->szMessage.Kill();
-	}
-	masClassErrors.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A bit-field (int iFlags : 3;), or an unnamed one (int : 3;, int : 0;),
 // of an integer, bool or enum type, its width a constant no wider than its
 // type.  LayoutClass places it.
@@ -1777,7 +1713,7 @@ bool CCPPUnit::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpe
 	//kept to report when the unit ends.
 	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_STATIC))
 	{
-		return ClassError(pcInit->miFirstToken, "A bit-field can't be static");
+		return mcDiagnostics.Defer(pcInit->miFirstToken, "A bit-field can't be static");
 	}
 	psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, NULL);
 	if (!psType)
@@ -1786,25 +1722,25 @@ bool CCPPUnit::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpe
 	}
 	if (!psType->IsInteger())
 	{
-		return ClassError(pcInit->miFirstToken, "A bit-field must be an integer, bool or enum");
+		return mcDiagnostics.Defer(pcInit->miFirstToken, "A bit-field must be an integer, bool or enum");
 	}
 	bResult = true;
 	if (!Constant(pcInit->mpcBitField, &lliWidth) || (lliWidth < 0))
 	{
 		szMessage.Init();
 		ConstantMessage("A bit-field's width must be a constant of 0 or more", &szMessage);
-		bResult = ClassError(pcInit->mpcBitField->miFirstToken, szMessage.Text());
+		bResult = mcDiagnostics.Defer(pcInit->mpcBitField->miFirstToken, szMessage.Text());
 		szMessage.Kill();
 		lliWidth = 1;
 	}
 	if (lliWidth > (int64)psType->iBytes * 8)
 	{
-		bResult = ClassError(pcInit->mpcBitField->miFirstToken, "A bit-field can't be wider than its type");
+		bResult = mcDiagnostics.Defer(pcInit->mpcBitField->miFirstToken, "A bit-field can't be wider than its type");
 		lliWidth = psType->iBytes * 8;
 	}
 	if ((lliWidth == 0) && pcInit->mpcSymbol)
 	{
-		bResult = ClassError(pcInit->mpcBitField->miFirstToken, "A named bit-field can't have a width of 0");
+		bResult = mcDiagnostics.Defer(pcInit->mpcBitField->miFirstToken, "A named bit-field can't have a width of 0");
 		lliWidth = 1;
 	}
 	psField = pcClass->macFields.Add();

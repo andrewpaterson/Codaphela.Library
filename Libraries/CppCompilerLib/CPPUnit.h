@@ -83,17 +83,6 @@ enum ECPPConversionRank
 };
 
 
-//An error in a class's own declaration (a bit-field's width), found when it is laid out: kept apart from mcErrors,
-//which quiet trials and the IR front end truncate, and reported when the unit ends (ReportClassErrors).  The text is
-//the error's own: who made it may have built it (a constant's reason), and is gone by the time it is said.
-struct SCPPClassError
-{
-	int				iToken;
-	CChars			szMessage;
-};
-
-
-typedef CArrayTemplate<SCPPClassError>	CArrayCPPClassErrors;
 
 
 //GCC's builtin functions the compiler does (CCPPUnit::FindBuiltin), for the type checker and the IR front end.
@@ -280,7 +269,6 @@ protected:
 	CChars					mszThunks;			//Adjust this, then jump to a virtual function.
 	CArrayChars				maszRuntime;		//The runtime routines' labels the unit calls: linked (soft float), or written into the unit (AppendRuntime).
 	CCPPDiagnostics			mcDiagnostics;		//The errors, the warnings, and when nothing is said.
-	CArrayCPPClassErrors	masClassErrors;		//Errors laying out classes, reported by ReportClassErrors.
 
 	CArrayCPPVariables	mapcGlobals;
 	CArrayCPPFunctions	mapcFunctions;
@@ -731,7 +719,6 @@ public:
 	bool					IsOutsideMemberOf(CCPPTemplate* pcMember, CCPPClass* pcClass);
 	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);
 	bool					ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit);
-	bool					ClassError(int iToken, const char* szMessage);
 	bool					IsDeclaredAgainInClass(CCPPClass* pcClass, CCPPFunction* pcFunction, size uiMembers);
 	bool					ReturnsCovariant(CCPPFunction* pcOverrider, CCPPFunction* pcOverridden);
 	bool					InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, SCPP65Type* psType, CCPPSyntax* pcNode);
@@ -744,9 +731,6 @@ public:
 	bool					CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* pcReturn);
 	bool					HasFieldNeedingInitialiser(CCPPClass* pcClass);
 	bool					CheckMemberInitialisers(CCPPFunction* pcFunction);
-	void					ReportClassErrors(void);
-	bool					HasClassErrors(void);
-	void					FreeClassErrors(void);
 	void					ReportUndeclaredTypes(void);
 	void					UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed);
 	void					ReportNamedInstances(void);
