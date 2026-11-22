@@ -1617,28 +1617,6 @@ void CCPPUnit::WarnDeprecatedSymbol(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An error (as Error: quiet where it is quiet) unless the same one is
-// already there for the place: for a check of what is typed more than once
-// loudly (dynamic_cast<T&>(x).m is).  Always false.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ErrorOnce(CCPPSyntax* pcNode, const char* szMessage)
-{
-	size	i;
-
-	for (i = 0; pcNode && !mcContext.IsQuiet() && (i < mcDiagnostics.GetErrors()->NumErrors()); i++)
-	{
-		if ((mcDiagnostics.GetErrors()->GetToken(i) == pcNode->miFirstToken) && strstr(mcDiagnostics.GetErrors()->Get(i), szMessage))
-		{
-			return false;
-		}
-	}
-	return mcDiagnostics.Error(pcNode, szMessage);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Starts an instruction line.  The caller appends the rest and the new line.
 //
 //////////////////////////////////////////////////////////////////////////

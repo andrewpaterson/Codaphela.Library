@@ -4216,7 +4216,7 @@ bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast
 	if (!(psTo->IsPointer() && (psTo->psBase->IsClass() || psTo->psBase->IsVoid())) && !(psTo->IsReference() && psTo->psBase->IsClass()))
 	{
 		//[expr.dynamic.cast] 1
-		return mpcUnit->ErrorOnce(pcCast, "dynamic_cast needs a pointer to a class or to void");
+		return mpcDiagnostics->ErrorOnce(pcCast, "dynamic_cast needs a pointer to a class or to void");
 	}
 	if (psTo->IsPointer() && psFrom->IsPointer())
 	{
@@ -4235,7 +4235,7 @@ bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast
 	if (psFrom->IsClass() && !(psTo->IsClass() && ((psTo->pcClass == psFrom->pcClass) || mpcUnit->IsDerived(psFrom->pcClass, psTo->pcClass, NULL))) && !psFrom->pcClass->IsPolymorphic())
 	{
 		//Anything but a cast to a base looks the object up by its vtable.  [expr.dynamic.cast] 6
-		return mpcUnit->ErrorOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
+		return mpcDiagnostics->ErrorOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
 	}
 	if (!psTo->HasQualifiersOf(psFrom))
 	{

@@ -528,7 +528,6 @@ public:
 	bool					ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType);
 	SCPPLambda*				WritingLambda(void);
 	SCPPLambda*				BodyLambda(CCPPFunction* pcFunction);
-	bool					ErrorOnce(CCPPSyntax* pcNode, const char* szMessage);
 	bool					CheckBaseMemberName(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	SCPPLambdaCapture*		FindCapture(CCPPSymbol* pcSymbol);
 	CCPPFunction*			OuterFunction(void);
