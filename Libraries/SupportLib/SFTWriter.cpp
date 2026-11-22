@@ -31,6 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCel.h"
 #include "SFTCommon.h"
 #include "SFTWriter.h"
+#include "SFTQuantiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -207,46 +208,22 @@ static void AddSFTCount(CArrayChar* pauiData, uint8 uiCode, lsize uiCount, lsize
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The cel's opaque pixels as runs (SFTCommon.h): each row that has any is
-// reached by moving down from the last that had, and each of its runs by
-// skipping from the one before.  The rows after the last pixel aren't
-// written.
-//
-// Runs of a row that are no more than uiMergeGap transparent pixels apart
-// are written as one mixed run, their gaps as SFT_PIXEL_TRANSPARENT: fewer,
-// longer runs for what draws a run as one copy.  A run with a pixel of that
-// colour (black) is left by itself, as it can't be in one.  With 0 no runs
-// are mixed.
+// The cel's opaque pixels as runs (SaveSFTTransparentPixels), its
+// pixels R3G3B2 already.
 //
 //////////////////////////////////////////////////////////////////////////
 bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight, lsize uiMergeGap)
 {
-	SSFTImage					sStruct;
 	CChannelsAccessor*			pcOppacityAccessor;
 	CChannelsAccessor*			pcDiffuseAccessor;
+	CChannelsAccessorCreator	cCreator;
 	lsize						x;
 	lsize						y;
-	lsize						y2;
-	lsize						uiImageWidth;
-	lsize						uiRows;
-	lsize						uiSkip;
-	lsize						uiStart;
-	lsize						uiEnd;
-	lsize						uiNext;
-	lsize						uiAfter;
-	lsize						uiChunk;
-	lsize						uiMax;
 	lsize						i;
-	lsize						j;
-	bool						bMixed;
-	bool						bBlack;
-	bool						bNextBlack;
-	bool						bResult;
+	lsize						uiImageWidth;
 	uint8*						pauiPixels;
 	bool*						pabOpaque;
-	CArrayChar					auiData;
-	lsize						iResult;
-	CChannelsAccessorCreator	cCreator;
+	bool						bResult;
 
 	if (!pcFile->IsOpen())
 	{
@@ -254,12 +231,6 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 	}
 
 	uiImageWidth = pImage->GetWidth();
-	sStruct.Init(SFT_TYPE_TRANSPARENT, uiCelWidth, uiCelHeight);
-	if (!sStruct.Write(pcFile))
-	{
-		return false;
-	}
-
 	pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pImage->GetChannels(), IMAGE_OPACITY, PT_bit);
 	cCreator.Init(pImage->GetChannels());
 	cCreator.AddAccess(IMAGE_DIFFUSE_RED, PT_tribble);
@@ -267,26 +238,91 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 	cCreator.AddAccess(IMAGE_DIFFUSE_BLUE, PT_crumb);
 	pcDiffuseAccessor = cCreator.CreateAndKill();
 
-	pauiPixels = (uint8*)malloc(uiCelWidth + 1);
-	pabOpaque = (bool*)malloc(sizeof(bool) * (uiCelWidth + 1));
-	auiData.Init();
-	uiRows = 0;
-	y2 = uiImageTopOffset + uiCelHeight;
-	for (y = uiImageTopOffset; y < y2; y++)
+	//The cel: which pixels are drawn, and what they are.
+	pauiPixels = (uint8*)malloc((lsize)uiCelWidth * uiCelHeight + 1);
+	pabOpaque = (bool*)malloc(sizeof(bool) * ((lsize)uiCelWidth * uiCelHeight + 1));
+	for (y = 0; y < uiCelHeight; y++)
 	{
-		//The row: which pixels are drawn, and what they are.
 		for (x = 0; x < uiCelWidth; x++)
 		{
-			i = uiImageLeftOffset + x + y * uiImageWidth;
-			pabOpaque[x] = (pcOppacityAccessor == NULL) || (*((bool*)pcOppacityAccessor->Get(i)));
-			pauiPixels[x] = pabOpaque[x] ? *((uint8*)pcDiffuseAccessor->Get(i)) : (uint8)SFT_PIXEL_TRANSPARENT;
+			i = uiImageLeftOffset + x + (uiImageTopOffset + y) * uiImageWidth;
+			pabOpaque[x + y * uiCelWidth] = (pcOppacityAccessor == NULL) || (*((bool*)pcOppacityAccessor->Get(i)));
+			pauiPixels[x + y * uiCelWidth] = pabOpaque[x + y * uiCelWidth] ? *((uint8*)pcDiffuseAccessor->Get(i)) : (uint8)SFT_PIXEL_TRANSPARENT;
 		}
+	}
+	if (pcOppacityAccessor)
+	{
+		pcOppacityAccessor->Kill();
+	}
+	pcDiffuseAccessor->Kill();
 
+	bResult = SaveSFTTransparentPixels(pcFile, uiCelWidth, uiCelHeight, pauiPixels, pabOpaque, uiMergeGap);
+	free(pauiPixels);
+	free(pabOpaque);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A transparent image of uiWidth by uiHeight pixels (puiPixels, a row
+// after another), those that pabOpaque says are drawn as runs
+// (SFTCommon.h): each row that has any is reached by moving down from the
+// last that had, and each of its runs by skipping from the one before.
+// The rows after the last pixel aren't written.
+//
+// Runs of a row that are no more than uiMergeGap transparent pixels apart
+// are written as one mixed run, their gaps as SFT_PIXEL_TRANSPARENT: fewer,
+// longer runs for what draws a run as one copy.  A run with a pixel of
+// that value (black, or a palette's index 0) is left by itself, as it
+// can't be in one.  With 0 no runs are mixed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SaveSFTTransparentPixels(CFileBasic* pcFile, uint16 uiWidth, uint16 uiHeight, const uint8* puiPixels, const bool* pabOpaque, lsize uiMergeGap)
+{
+	SSFTImage		sStruct;
+	lsize			x;
+	lsize			y;
+	lsize			uiRows;
+	lsize			uiSkip;
+	lsize			uiStart;
+	lsize			uiEnd;
+	lsize			uiNext;
+	lsize			uiAfter;
+	lsize			uiChunk;
+	lsize			uiMax;
+	lsize			i;
+	lsize			j;
+	bool			bMixed;
+	bool			bBlack;
+	bool			bNextBlack;
+	bool			bResult;
+	const uint8*	pauiPixels;
+	const bool*		pabRow;
+	CArrayChar		auiData;
+	lsize			iResult;
+
+	if (!pcFile->IsOpen())
+	{
+		return false;
+	}
+	sStruct.Init(SFT_TYPE_TRANSPARENT, uiWidth, uiHeight);
+	if (!sStruct.Write(pcFile))
+	{
+		return false;
+	}
+
+	auiData.Init();
+	uiRows = 0;
+	for (y = 0; y < uiHeight; y++)
+	{
+		pauiPixels = &puiPixels[y * uiWidth];
+		pabRow = &pabOpaque[y * uiWidth];
 		uiSkip = 0;
 		x = 0;
-		while (x < uiCelWidth)
+		while (x < uiWidth)
 		{
-			if (!pabOpaque[x])
+			if (!pabRow[x])
 			{
 				uiSkip++;
 				x++;
@@ -297,21 +333,21 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 			uiStart = x;
 			bMixed = false;
 			bBlack = false;
-			for (uiEnd = uiStart; (uiEnd < uiCelWidth) && pabOpaque[uiEnd]; uiEnd++)
+			for (uiEnd = uiStart; (uiEnd < uiWidth) && pabRow[uiEnd]; uiEnd++)
 			{
 				bBlack = bBlack || (pauiPixels[uiEnd] == SFT_PIXEL_TRANSPARENT);
 			}
 			while (!bBlack && (uiMergeGap > 0))
 			{
-				for (uiNext = uiEnd; (uiNext < uiCelWidth) && !pabOpaque[uiNext]; uiNext++)
+				for (uiNext = uiEnd; (uiNext < uiWidth) && !pabRow[uiNext]; uiNext++)
 				{
 				}
-				if ((uiNext == uiCelWidth) || (uiNext - uiEnd > uiMergeGap))
+				if ((uiNext == uiWidth) || (uiNext - uiEnd > uiMergeGap))
 				{
 					break;
 				}
 				bNextBlack = false;
-				for (uiAfter = uiNext; (uiAfter < uiCelWidth) && pabOpaque[uiAfter]; uiAfter++)
+				for (uiAfter = uiNext; (uiAfter < uiWidth) && pabRow[uiAfter]; uiAfter++)
 				{
 					bNextBlack = bNextBlack || (pauiPixels[uiAfter] == SFT_PIXEL_TRANSPARENT);
 				}
@@ -333,7 +369,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 				auiData.Add(bMixed ? (char)(SFT_RUN_MIXED | (uiChunk - 1)) : (char)uiChunk);
 				for (j = 0; j < uiChunk; j++)
 				{
-					auiData.Add((char)pauiPixels[i + j]);
+					auiData.Add((char)(bMixed && !pabRow[i + j] ? SFT_PIXEL_TRANSPARENT : pauiPixels[i + j]));
 				}
 			}
 			uiRows = 0;
@@ -343,18 +379,128 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLef
 		uiRows++;
 	}
 	auiData.Add((char)SFT_RUN_END);
-	free(pauiPixels);
-	free(pabOpaque);
-
-	if (pcOppacityAccessor)
-	{
-		pcOppacityAccessor->Kill();
-	}
-	pcDiffuseAccessor->Kill();
 
 	iResult = pcFile->Write(auiData.GetData(), 1, auiData.NumElements());
 	bResult = (iResult == auiData.NumElements());
 	auiData.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A record of a container (uiSize bytes at pvRecord) after the ones
+// already written, after its SSFTContained: it starts at the next 64KB of
+// the file if it would cross one.  The record before (at *puiPrevious,
+// unless bFirst) is given the distance to it, and *puiPrevious is this
+// one's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool AppendSFTContained(CFileBasic* pcFile, const void* pvRecord, lsize uiSize, filePos* puiPrevious, bool bFirst)
+{
+	SSFTContained	sContained;
+	filePos			uiPosition;
+	bool			bResult;
+
+	uiPosition = pcFile->Tell();
+	if ((uiPosition / (64 KB)) != ((uiPosition + uiSize) / (64 KB)))
+	{
+		pcFile->Seek((uiPosition / (64 KB) + 1) * (64 KB));
+		uiPosition = pcFile->Tell();
+	}
+
+	sContained.Init();
+	bResult = sContained.Write(pcFile);
+	bResult &= (pcFile->Write(pvRecord, 1, uiSize) == uiSize);
+	if (!bFirst)
+	{
+		sContained.Init((uint16)(uiPosition - *puiPrevious));
+		bResult &= pcFile->Seek(*puiPrevious);
+		bResult &= sContained.Write(pcFile);
+	}
+	bResult &= pcFile->Seek(0, EFSO_END);
+	*puiPrevious = uiPosition;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The images' palette, then the images, as a container.  An image with a
+// transparent pixel is a transparent image (its runs merged as
+// SaveSFTTransparentPixels' uiMergeGap says), any other an opaque one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SaveSFTQuantised(CSFTQuantised* pcQuantised, char* szFilename, lsize uiMergeGap)
+{
+	CFileBasic			cFile;
+	CFileBasic			cMemoryBasic;
+	CMemoryFile			cMemoryFile;
+	SSFTContainer		sContainer;
+	SSFTImage			sImage;
+	SSFTIndexedImage*	psImage;
+	filePos				uiPrevious;
+	bool*				pabOpaque;
+	bool				bResult;
+	size				i;
+	lsize				j;
+	lsize				uiPixels;
+
+	if ((szFilename == NULL) || StrEmpty(szFilename))
+	{
+		return false;
+	}
+	cFile.Init(DiskFile(szFilename));
+	if (!cFile.Open(EFM_Write_Replace))
+	{
+		cFile.Kill();
+		return false;
+	}
+
+	sContainer.Init((uint16)(pcQuantised->muiNumImages + 1));
+	bResult = sContainer.Write(&cFile);
+	uiPrevious = 0;
+	for (i = 0; (i <= pcQuantised->muiNumImages) && bResult; i++)
+	{
+		cMemoryFile.Init();
+		cMemoryBasic.Init(&cMemoryFile);
+		cMemoryBasic.Open(EFM_ReadWrite_Create);
+		if (i == 0)
+		{
+			bResult = SaveSFTPalette(&cMemoryBasic, pcQuantised->msColours.uiFirst, pcQuantised->msColours.uiCount,
+									 &pcQuantised->msColours.auiRed[pcQuantised->msColours.uiFirst], &pcQuantised->msColours.auiGreen[pcQuantised->msColours.uiFirst],
+									 &pcQuantised->msColours.auiBlue[pcQuantised->msColours.uiFirst]);
+		}
+		else
+		{
+			psImage = &pcQuantised->masImages[i - 1];
+			uiPixels = (lsize)psImage->uiWidth * psImage->uiHeight;
+			if (psImage->bTransparent)
+			{
+				pabOpaque = (bool*)malloc(sizeof(bool) * (uiPixels + 1));
+				for (j = 0; j < uiPixels; j++)
+				{
+					pabOpaque[j] = (psImage->puiPixels[j] != SFT_PIXEL_TRANSPARENT);
+				}
+				bResult = SaveSFTTransparentPixels(&cMemoryBasic, psImage->uiWidth, psImage->uiHeight, psImage->puiPixels, pabOpaque, uiMergeGap);
+				free(pabOpaque);
+			}
+			else
+			{
+				sImage.Init(SFT_TYPE_OPAQUE, psImage->uiWidth, psImage->uiHeight);
+				bResult = sImage.Write(&cMemoryBasic) && (cMemoryBasic.Write(psImage->puiPixels, 1, uiPixels) == uiPixels);
+			}
+		}
+		if (bResult)
+		{
+			bResult = AppendSFTContained(&cFile, cMemoryFile.GetBufferPointer(), cMemoryFile.GetBufferSize(), &uiPrevious, i == 0);
+		}
+		cMemoryBasic.Close();
+		cMemoryBasic.Kill();
+		cMemoryFile.Kill();
+	}
+	cFile.Close();
+	cFile.Kill();
 	return bResult;
 }
 
@@ -411,12 +557,7 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pImageCels, CFileBasic* pcDiskBasic)
 	uint16			uiCelTop;
 	CFileBasic		cMemoryBasic;
 	CMemoryFile		cMemoryFile;
-	SSFTContained	sContained;
-	filePos			uiContainedPos;
 	filePos			uiPrevContainedPos;
-	uint64			uiCurr64KCount;
-	uint64			uiNext64KCount;
-	uint64			uiFilePos;
 	SSFTContainer	sContainer;
 	CArrayImage		aConveted;
 
@@ -462,11 +603,9 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pImageCels, CFileBasic* pcDiskBasic)
 
 	pConverted = NULL;
 	
-	uiContainedPos = pcDiskBasic->Tell();
+	uiPrevContainedPos = 0;
 	for (i = 0; i < uiNumCels; i++)
 	{
-		uiPrevContainedPos = uiContainedPos;
-
 		cMemoryFile.Init();
 		cMemoryBasic.Init(&cMemoryFile);
 		cMemoryBasic.Open(EFM_ReadWrite_Create);
@@ -490,34 +629,7 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pImageCels, CFileBasic* pcDiskBasic)
 			SaveSFTOpaque(pExisting, &cMemoryBasic, uiCelLeft, uiCelTop, uiCelWidth, uiCelHeight);
 		}
 
-		uiContainedPos = pcDiskBasic->Tell();
-		uiFilePos = uiContainedPos;
-		uiCurr64KCount = uiFilePos / (64 KB);
-			
-		uiFilePos += cMemoryBasic.Size();
-		uiNext64KCount = uiFilePos / (64 KB);
-		if (uiCurr64KCount != uiNext64KCount)
-		{
-			uiFilePos = (uiCurr64KCount + 1) * (64 KB);
-			pcDiskBasic->Seek(uiFilePos);
-			uiContainedPos = pcDiskBasic->Tell();
-		}
-
-		uiFilePos = pcDiskBasic->Tell();
-
-		sContained.Init();
-		sContained.Write(pcDiskBasic);
-		pcDiskBasic->Write(cMemoryFile.GetBufferPointer(), 1, cMemoryFile.GetBufferSize());
-
-		if (i != 0)
-		{
-			uiFilePos -= uiPrevContainedPos;
-			sContained.Init((uint16)uiFilePos);
-			pcDiskBasic->Seek(uiPrevContainedPos);
-			sContained.Write(pcDiskBasic);
-		}
-			
-		pcDiskBasic->Seek(0, EFSO_END);
+		AppendSFTContained(pcDiskBasic, cMemoryFile.GetBufferPointer(), cMemoryFile.GetBufferSize(), &uiPrevContainedPos, i == 0);
 
 		cMemoryFile.Close();
 		cMemoryFile.Kill();

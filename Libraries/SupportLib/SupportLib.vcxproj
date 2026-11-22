@@ -259,6 +259,7 @@
     <ClInclude Include="PNGCommon.h" />
     <ClInclude Include="ImageReaderCommon.h" />
     <ClInclude Include="SFTReader.h" />
+    <ClInclude Include="SFTQuantiser.h" />
     <ClInclude Include="SFTWriter.h" />
     <ClInclude Include="SpriteMap.h" />
     <ClInclude Include="Maps.h" />
@@ -526,6 +527,7 @@
     <ClCompile Include="PNGCommon.cpp" />
     <ClCompile Include="ImageReaderCommon.cpp" />
     <ClCompile Include="SFTReader.cpp" />
+    <ClCompile Include="SFTQuantiser.cpp" />
     <ClCompile Include="SFTWriter.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageChannel.cpp" />

@@ -237,6 +237,7 @@
     <ClCompile Include="TestImageOpacity.cpp" />
     <ClCompile Include="TestImageRGBAToR3G3B2A.cpp" />
     <ClCompile Include="TestImageSFTWriter.cpp" />
+    <ClCompile Include="TestImageSFTQuantise.cpp" />
     <ClCompile Include="TestImageCelsFile.cpp" />
     <ClCompile Include="TestMaps.cpp" />
     <ClCompile Include="TestColourBlend.cpp" />

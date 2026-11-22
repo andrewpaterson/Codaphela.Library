@@ -39,6 +39,7 @@ void TestRectangleLinePacker(void);
 void TestRectangleBestPackerWithRotation(void);
 void TestImageToR3G3B2A(void);
 void TestImageSFTWriter(void);
+void TestImageSFTQuantise(void);
 void TestImageCelsFile(void);
 void TestFont(void);
 void TestTrueTypeFont(void);
@@ -142,6 +143,7 @@ int __cdecl main(void)
 	TestImageCombiner();
 	TestImageToR3G3B2A();
 	TestImageSFTWriter();
+	TestImageSFTQuantise();
 	TestImageCelsFile();
 	TestMaps();
 	TestMapViewport();

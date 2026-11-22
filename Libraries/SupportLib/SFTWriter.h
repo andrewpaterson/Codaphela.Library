@@ -26,6 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "SFTCommon.h"
 #include "Image.h"
 #include "ImageCel.h"
+#include "SFTQuantiser.h"
 
 
 bool SaveSFT(Ptr<CImage> pImage, char* szPathName, bool bForceTransparent = false, lsize uiMergeGap = 0);
@@ -34,6 +35,16 @@ bool SaveSFTCelArray(Ptr<CArrayImageCel> pacImageCels, char* szFilename);
 bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight);
 bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, lsize uiImageLeftOffset, lsize uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight, lsize uiMergeGap = 0);
 bool SaveSFTContainer(Ptr<CArrayImageCel> pacImageCels, CFileBasic* pcFile);
+
+//A transparent image's record from its pixels and which of them are drawn (pabOpaque), each a row after another.
+bool SaveSFTTransparentPixels(CFileBasic* pcFile, uint16 uiWidth, uint16 uiHeight, const uint8* puiPixels, const bool* pabOpaque, lsize uiMergeGap = 0);
+
+//A container's record after its SSFTContained, at the next 64KB of the file if it would cross one; the record before
+//(at *puiPrevious, unless bFirst) is given the distance to it.
+bool AppendSFTContained(CFileBasic* pcFile, const void* pvRecord, lsize uiSize, filePos* puiPrevious, bool bFirst);
+
+//Images palettised (QuantiseSFT, SFTQuantiser.h) as a container: their palette, then each image (SFTCommon.h).
+bool SaveSFTQuantised(CSFTQuantised* pcQuantised, char* szFilename, lsize uiMergeGap = 0);
 
 //A palette record (SFTCommon.h): uiCount colours (1 to 256) from index uiFirst, the reds, greens and blues each
 //uiCount long, and their hash.

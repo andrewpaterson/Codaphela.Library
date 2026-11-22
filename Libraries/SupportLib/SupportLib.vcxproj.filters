@@ -1041,6 +1041,9 @@
     <ClInclude Include="RADWriter.h">
       <Filter>Source\Image\IO\RAD</Filter>
     </ClInclude>
+    <ClInclude Include="SFTQuantiser.h">
+      <Filter>Source\Image\IO\SFT</Filter>
+    </ClInclude>
     <ClInclude Include="SFTWriter.h">
       <Filter>Source\Image\IO\SFT</Filter>
     </ClInclude>
@@ -1864,6 +1867,9 @@
     </ClCompile>
     <ClCompile Include="RADWriter.cpp">
       <Filter>Source\Image\IO\RAD</Filter>
+    </ClCompile>
+    <ClCompile Include="SFTQuantiser.cpp">
+      <Filter>Source\Image\IO\SFT</Filter>
     </ClCompile>
     <ClCompile Include="SFTWriter.cpp">
       <Filter>Source\Image\IO\SFT</Filter>
