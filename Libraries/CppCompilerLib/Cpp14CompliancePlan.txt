@@ -480,13 +480,16 @@ B. Gaps that are known.  Each was probed against g++; none is common.
       (CCPPUnit::CheckVirtSpecifiers), not for one nested in a class or declared in a function, nor for a header's
       class, which is checked by the unit that first needs it whole (DeclarationsSpeedPlan.txt stage 3, 2026-11-21:
       laying out every class the headers mention was half the declarations' time).
-   6. A name two bases each have, named alone in a member function, where it is a type, a static member or an
-      enumerator: not reported (a field and a call are: CCPPBinder::HasOneMeaning).
+   6. Done 2026-11-22 (the user: "fix the 7 known gaps, commit as you go"): a name two bases each have, named alone in
+      a member function, where it is a type, a static member or an enumerator, is refused (CCPPUnit::
+      CheckBaseMemberName, from CCPPBinder::BindName and the declarators' named types; cases
+      DerivedLookupAmbiguous*Refused and DerivedLookupOneMeaning).  A member of a class in its own definition
+      outside a function isn't checked.
    7. On the W65C816 a frame is D + offset with D wherever S was, so a local is aligned as alignas asks (clause 3
       item 4) but not as its type alone does: (uintptr_t)&i % alignof(int) can be 1.  Aligning every frame would cost
       every call; the user hasn't been asked.
-   8. switch (C c = ...) with C a class converted to an integer: the IR front end says it doesn't support it yet
-      (a declared scalar works: clause 3 item 7).
+   8. Done: switch (C c = ...) with C a class converted to an integer works (it had been fixed before 2026-11-22
+      without this list knowing; StmtSwitchDeclaredObjectCondition).
 
 C. Checks that are owed.
    1. A Microsoft build of CppCompilerLib and TestCppCompilerLib.  Everything since 2026-11-19 was built with g++

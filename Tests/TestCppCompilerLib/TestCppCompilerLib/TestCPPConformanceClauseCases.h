@@ -9185,6 +9185,18 @@ static const SConformanceCase gasConformanceClause6[] =
 		"	return 0;\n"
 		"}\n"
 	},
+	//6.4.2 [stmt.switch] p2, 6.4 [stmt.select] p4: a switch's condition declares an object whose one conversion function gives an integer
+	{
+		"StmtSwitchDeclaredObjectCondition", 107,
+		"struct C { int v; C(int x) : v(x) {} operator int() const { return v; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	switch (C c = 2) { case 1: r = 10; break; case 2: r = c.v + 5; break; default: r = 99; }\n"
+		"	switch (C d{3}) { case 3: r += 100; break; }\n"
+		"	return r;\n"
+		"}\n"
+	},
 	//6.4.2 [stmt.switch] p5, p6: case labels anywhere in the switch's statement, falling through to the next (Duff's device)
 	{
 		"StmtSwitchNestedCases", 15,
@@ -13631,6 +13643,59 @@ static const SConformanceCase gasConformanceClause10[] =
 		"struct A { virtual int F() = 0; };\n"
 		"A ga[2];\n"
 		"int main() { return 0; }\n"
+	},
+	//10.2 [class.member.lookup] p6: a type two bases have, named alone, is ambiguous
+	{
+		"DerivedLookupAmbiguousTypeRefused", CONFORMANCE_REFUSED,
+		"struct A { typedef int T; };\n"
+		"struct B { typedef int T; };\n"
+		"struct C : A, B { int f() { T t = 1; return t; } };\n"
+		"int main() { C c; return c.f(); }\n"
+	},
+	//10.2 [class.member.lookup] p6: a static member two bases have, named alone, is ambiguous
+	{
+		"DerivedLookupAmbiguousStaticRefused", CONFORMANCE_REFUSED,
+		"struct A { static int s; };\n"
+		"struct B { static int s; };\n"
+		"int A::s = 1;\n"
+		"int B::s = 2;\n"
+		"struct C : A, B { int f() { return s; } };\n"
+		"int main() { C c; return c.f(); }\n"
+	},
+	//10.2 [class.member.lookup] p6: an enumerator two bases have, named alone, is ambiguous
+	{
+		"DerivedLookupAmbiguousEnumeratorRefused", CONFORMANCE_REFUSED,
+		"struct A { enum { E = 1 }; };\n"
+		"struct B { enum { E = 2 }; };\n"
+		"struct C : A, B { int f() { return E; } };\n"
+		"int main() { C c; return c.f(); }\n"
+	},
+	//10.2 [class.member.lookup] p6, p9: what the class declares hides its bases'; a qualified name picks one; a shared virtual base's member is one
+	{
+		"DerivedLookupOneMeaning", 63,
+		"struct A { typedef char T; static int s; enum { E = 1 }; };\n"
+		"struct B { typedef long T; static int s; enum { E = 2 }; };\n"
+		"int A::s = 4;\n"
+		"int B::s = 8;\n"
+		"struct C : A, B { typedef short T; enum { E = 3 }; int f() { T t = 2; return t + E + A::s + B::E; } };\n"
+		"struct V { static int v; enum { W = 5 }; typedef int U; };\n"
+		"int V::v = 6;\n"
+		"struct L : virtual V { };\n"
+		"struct R : virtual V { };\n"
+		"struct D : L, R { int g() { U u = v; return u + W; } };\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	C c;\n"
+		"	D d;\n"
+		"	if (c.f() == 11) r += 1;\n"
+		"	if (sizeof(C::T) == sizeof(short)) r += 2;\n"
+		"	if (d.g() == 11) r += 4;\n"
+		"	if (C::A::E == 1 && C::B::E == 2) r += 8;\n"
+		"	if (A::s + B::s == 12) r += 16;\n"
+		"	if (sizeof(D::U) == sizeof(int)) r += 32;\n"
+		"	return r;\n"
+		"}\n"
 	},
 };
 

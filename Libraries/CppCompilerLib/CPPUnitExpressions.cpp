@@ -1833,6 +1833,44 @@ bool CCPPUnit::IsAmbiguousInBases(CCPPClass* pcClass, int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A name not qualified, in a member function, that the parser found as a
+// member of a base of the function's class (a type, a static member, an
+// enumerator): an error if more than one of the class's bases has it, as
+// lookup in the class then finds more than one.  Fields and functions are
+// checked where they are bound (CCPPBinder::HasOneMeaning).
+// [class.member.lookup] 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CheckBaseMemberName(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
+{
+	CCPPSymbol*		pcSymbol;
+	CCPPScope*		pcScope;
+	CCPPFunction*	pcFunction;
+	CCPPClass*		pcClass;
+
+	pcSymbol = pcName->mpcSymbol;
+	pcFunction = mcContext.GetFunction();
+	pcClass = pcFunction ? pcFunction->mpcClass : NULL;
+	if (!pcSymbol || !pcClass || (pcName->macpComponents.NumElements() != 1) || !pcSymbol->mpcScope || (pcClass->macBases.NumElements() < 2))
+	{
+		return true;
+	}
+	pcScope = pcSymbol->mpcScope;
+	if ((pcScope->meKind == CPPSC_Enum) && pcScope->mpcParent)
+	{
+		//An unscoped enum's enumerator is its class's member.
+		pcScope = pcScope->mpcParent;
+	}
+	if ((pcScope->meKind != CPPSC_Class) || !pcScope->mpcOwner || (pcScope->mpcOwner->meKind != CPPSK_Class) || (pcClass->mpcSymbol == pcScope->mpcOwner))
+	{
+		return true;
+	}
+	return !IsAmbiguousInBases(pcClass, pcSymbol->mlliName) || Error(pcNode, "The name is a member of more than one of the class's bases");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The classes whose declaration of a name lookup in a class finds: the
 // class itself, whose own hides its bases', or else each base's.
 //

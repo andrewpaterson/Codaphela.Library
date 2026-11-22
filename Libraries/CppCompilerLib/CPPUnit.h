@@ -535,6 +535,7 @@ public:
 	bool					LambdaError(SCPPLambda* psLambda, CCPPSyntax* pcNode, const char* szMessage);
 	bool					ReportOnce(CCPPSyntax* pcNode, const char* szMessage);
 	bool					ErrorOnce(CCPPSyntax* pcNode, const char* szMessage);
+	bool					CheckBaseMemberName(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	SCPPLambdaCapture*		FindCapture(CCPPSymbol* pcSymbol);
 	CCPPFunction*			OuterFunction(void);
 	CCPPClass*				ThisClass(void);

@@ -1734,6 +1734,14 @@ void CCPPBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
 	{
 		mcAccess.CheckSymbol(pcBound->mpcSymbol, pcBound->mpcClass, pcId);
 	}
+	if ((pcBound->meWhat != CPPBN_Nothing) && (pcBound->meWhat != CPPBN_FunctionName) && (pcBound->meWhat != CPPBN_Field))
+	{
+		//A static member or an enumerator of a base, by its name alone.  (A field's is HasOneMeaning's.)
+		if (!mpcUnit->CheckBaseMemberName(pcId->mpcName, pcId))
+		{
+			pcBound->meWhat = CPPBN_Nothing;
+		}
+	}
 }
 
 

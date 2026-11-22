@@ -205,6 +205,15 @@ int main()
 	return 0;
 }
 
+### StmtSwitchDeclaredObjectCondition | 107 | 6.4.2 [stmt.switch] p2, 6.4 [stmt.select] p4: a switch's condition declares an object whose one conversion function gives an integer
+struct C { int v; C(int x) : v(x) {} operator int() const { return v; } };
+int main()
+{
+	int r = 0;
+	switch (C c = 2) { case 1: r = 10; break; case 2: r = c.v + 5; break; default: r = 99; }
+	switch (C d{3}) { case 3: r += 100; break; }
+	return r;
+}
 ### StmtSwitchNestedCases | 15 | 6.4.2 [stmt.switch] p5, p6: case labels anywhere in the switch's statement, falling through to the next (Duff's device)
 void Copy(char* to, const char* from, int count)
 {

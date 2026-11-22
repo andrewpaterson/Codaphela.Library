@@ -791,6 +791,10 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			pcMember = mpcUnit->QualifiedMember(pcName, CPPSK_Typedef, pcNode, &pcMemberClass);
 			mpcUnit->GetBinder()->CheckTypeName(pcMember ? pcMember : pcName->mpcSymbol, pcName);
 			mpcUnit->WarnDeprecatedSymbol(pcMember ? pcMember : pcName->mpcSymbol, pcName);
+			if (!pcMember && !mpcUnit->CheckBaseMemberName(pcName, pcNode))
+			{
+				return NULL;
+			}
 			if (pcMember)
 			{
 				mpcUnit->GetContext()->EnterBindings(pcMemberClass->mpcBindings);

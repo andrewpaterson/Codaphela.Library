@@ -616,3 +616,44 @@ int main() { Make(); return 0; }
 struct A { virtual int F() = 0; };
 A ga[2];
 int main() { return 0; }
+### DerivedLookupAmbiguousTypeRefused | REFUSED | 10.2 [class.member.lookup] p6: a type two bases have, named alone, is ambiguous
+struct A { typedef int T; };
+struct B { typedef int T; };
+struct C : A, B { int f() { T t = 1; return t; } };
+int main() { C c; return c.f(); }
+### DerivedLookupAmbiguousStaticRefused | REFUSED | 10.2 [class.member.lookup] p6: a static member two bases have, named alone, is ambiguous
+struct A { static int s; };
+struct B { static int s; };
+int A::s = 1;
+int B::s = 2;
+struct C : A, B { int f() { return s; } };
+int main() { C c; return c.f(); }
+### DerivedLookupAmbiguousEnumeratorRefused | REFUSED | 10.2 [class.member.lookup] p6: an enumerator two bases have, named alone, is ambiguous
+struct A { enum { E = 1 }; };
+struct B { enum { E = 2 }; };
+struct C : A, B { int f() { return E; } };
+int main() { C c; return c.f(); }
+### DerivedLookupOneMeaning | 63 | 10.2 [class.member.lookup] p6, p9: what the class declares hides its bases'; a qualified name picks one; a shared virtual base's member is one
+struct A { typedef char T; static int s; enum { E = 1 }; };
+struct B { typedef long T; static int s; enum { E = 2 }; };
+int A::s = 4;
+int B::s = 8;
+struct C : A, B { typedef short T; enum { E = 3 }; int f() { T t = 2; return t + E + A::s + B::E; } };
+struct V { static int v; enum { W = 5 }; typedef int U; };
+int V::v = 6;
+struct L : virtual V { };
+struct R : virtual V { };
+struct D : L, R { int g() { U u = v; return u + W; } };
+int main()
+{
+	int r = 0;
+	C c;
+	D d;
+	if (c.f() == 11) r += 1;
+	if (sizeof(C::T) == sizeof(short)) r += 2;
+	if (d.g() == 11) r += 4;
+	if (C::A::E == 1 && C::B::E == 2) r += 8;
+	if (A::s + B::s == 12) r += 16;
+	if (sizeof(D::U) == sizeof(int)) r += 32;
+	return r;
+}
