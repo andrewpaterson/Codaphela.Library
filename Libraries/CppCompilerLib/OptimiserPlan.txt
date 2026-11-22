@@ -6,8 +6,9 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: stages 0 to 10 and stage 11's first part are done (2026-11-22).  Stage 11's second part is next; "The record", at the end, has what each stage
-found.
+Where it is: every stage is done (2026-11-22).  One thing waits for the user: stage 11's switch of UpperBound to
+the shared rules, which changes the code written and is the last commit of the branch ir-optimiser.  "The
+record", at the end, has what each stage found, and closes with a table of them all.
 
 
 The rules (the user, 2026-11-21)
@@ -463,3 +464,191 @@ listings are the baseline's.  TestCppCompilerLib passes.
 	say IR_RANGE_AS_DEFINED.
 
 	(The other half of finding 68, OnlyUsedInLoop's uses taken away and put back, is stage 12's.)
+
+Stage 11, second part (2026-11-22): the rules for the largest a value can be are written once, and the switch
+to them waits for the user.  As it stands on master: the same code, the 4,201 listings the baseline's.
+TestCppCompilerLib passes.
+
+	The two unsigned analyses had a list of opcodes each: the optimiser's UpperBound (zext, and, lshr, urem,
+	udiv, add) and the 65C64 back end's CIRKnownBits::InstructionMost (those and or, xor, mul, shl, copy,
+	trunc, sext, load, but x / c as x's).  They also had an edge rule each: UpperBound's read an unsigned
+	compare with a constant; the back end's reads any ordering or equality with anything, a signed one
+	when both sign bits are known clear.
+
+	The rules are CIRMostRules (IRMost.h): InstructionMost and EdgeMost, which ask whatever uses them how
+	large an operand is (Most, MostAt) and what defines a value (Definition).  The back end's table is one
+	user: CIRKnownBits is CIRMost, in IRMost.h/.cpp, since what it keeps is each value's largest and not its
+	bits; Bits(), which nothing called, is gone.  UpperBound was made the other (a5f0531b2), asking of the
+	definition one further back, with x / c dividing in the rules for both.
+
+	That changes the code written, so it was measured (the three suites, from the same folder as the
+	baseline).  Thirteen listings differ.  Every program passes.
+
+	                                            cycles           bytes
+	  TestBaseLib65      65C64                same                -918
+	  TestBaseLib65      W65C816              -870                 -81
+	  TestStandardLib65  65C64                  -8                -136
+	  TestStandardLib65  W65C816              same                same
+	  TestSupportLib65   65C64             -17,756              -2,600
+	  TestSupportLib65   W65C816        -2,253,142                +419
+
+	The 65C64's gains are masks that go: the table knows (a * b + 127) / 255 fits a byte.  The W65C816's
+	are ConstantDivisions': with a multiply's largest known, the range of (a * b + 127) is known, and
+	x / 255 is written as a multiply and shifts where it was a call of R816_UDiv32.  That is 2,558,336
+	cycles fewer in TestMeshBake and 305,106 more in TestFontFamily (the runtime's divide is quick for a
+	small dividend; the 32 bit multiply by a constant is the same every time), and 114 to 187 bytes more
+	in each of four programs.  Compiling is no slower: "optimise" 3,356 and 3,738 ms before, 3,389 and
+	3,745 after.
+
+	The bar for this plan is that no suite's total cycles or bytes is worse on either processor, and one
+	total is: 419 bytes.  So it is not on master.  0bce72589 puts UpperBound's own list and edge rule back,
+	and x / c as x's in the rules: the rules stay written once, asked by the table, and the code written is
+	the baseline's.  The switch is that commit's inverse, kept as the last commit of the branch
+	ir-optimiser for the user to take or not.  Taking it is right if 419 bytes for 2.25 million cycles
+	is; what would make it right without that question is a cost for ConstantDivisions' 32 bit
+	reciprocal on the W65C816, which it has never had: it takes the multiply whenever the range lets it.
+
+	Not as the stage was written:
+	- The signed rules (SignedRange with ArithmeticRange and DivisionRange) are still a list of their own,
+	  over the unsigned one, which they fall back on.  They answer with both ends, narrow by the branches
+	  to a block, and decide case by case what may wrap; one transfer function giving both bounds for
+	  every opcode is a rewrite of about 600 lines whose every difference changes the code, and the
+	  measure above says how carefully a gain in what is known has to be weighed.  Finding 63 is closed
+	  for the two unsigned lists and not for the third.
+	- There are still two drivers: the table worked to a fixed point over a finished function for the back
+	  end, and UpperBound asked on demand while the passes change the function.  A table kept in the pass
+	  context would have to be worked out again after every pass that changes anything.
+
+Stage 12 (2026-11-22): the pass groups.  Same code: the 4,201 listings are the baseline's.
+TestCppCompilerLib passes.
+
+	Forty-seven calls went from one group of passes to another through the context, most of them for tools
+	and questions that were no pass.  They have homes of their own now:
+
+	- A block's own edits are CIRBlock's: RemovePhiArguments, RenamePhiArguments, CopyPhiArguments and
+	  RedirectJump (the block passes' before; 25 calls).  A loop's preheader is CIRLoops': Preheader,
+	  AddPreheader and AddMergedPreheader (the loop passes' before; 13 calls).
+	- How big a value can be is CIRRanges (IRRanges.h/.cpp): RangeAt, SignedRange, UpperBound,
+	  NotNegative, NonNullAt, BranchNonNull and what they are made of, which were two thirds of the range
+	  passes.  What an address is of is CIRAddresses (IRAddresses.h/.cpp): SplitAddress, MayAlias,
+	  IsFrameRoot and PointerBase, the memory passes' before, and IsOwnFrame, CIRPasses' before.  Both are a
+	  CIRPassAnalysis, which the context holds (mcRanges, mcAddresses): not groups of passes, since they
+	  change nothing.  The three bare limits are named (IR_ADDRESS_STEPS for SplitAddress's and
+	  PointerBase's 16, IR_FRAME_STEPS for IsOwnFrame's 64).
+	- A temporary's uses are counted once, by the definitions (CIRDefinitions::NumUses).  The context's
+	  second count (mauiUses), which seven places counted for themselves beside a FindDefinitions that had
+	  just counted the same, is gone.  FoldConstants, which gives one value's uses to another as it
+	  replaces, says so to the definitions (SetUses, AddUses).  BiasSignedIndices, which works the
+	  definitions out again as it rewrites and wants the uses as they were when it began, keeps its own
+	  count, as it kept its count of uses as addresses.
+	- OnlyUsedIn and the idioms' OnlyUsedInLoop take the uses elsewhere that are allowed (the values a block
+	  the loop leaves for takes), where strlen and strchr took them off the shared count, asked, and put
+	  them back (finding 68's other half).  strchr returned early between the two with the count still
+	  down; it can't now.
+	- The context lost what no group reaches for: five of the ten pointers to groups (nothing is asked
+	  through the address, division, idiom, loop or promotion passes), and the replacements and the three
+	  "fresh" flags, which are CIRPasses' to keep (protected, with CIRPasses a friend).
+
+	What still goes from one group to another through the context, ten calls of eight functions:
+	NarrowComparison (the range passes', called by FoldConstants), Extended and Fold (the folding
+	passes'), LoopGuarded (the counter passes'), AddAvailable (the memory passes'), RemoveUnreachable and
+	OnlyUsedIn/OnlyUsedInBlock (the block passes').  Each is part of its group's own pass that one other
+	pass borrows.
+
+	Not as the stage was written: IsOwnFrame and "SplitAddress then IsFrameRoot" are still two questions.
+	IsOwnFrame goes back through ptradds of anything, 64 of them; SplitAddress only through ptradds of a
+	constant, 16 of them, because what it gives is a root and an offset.  They sit together now, with a
+	comment that says which is which.
+
+Stage 13 (2026-11-22): the summaries between functions.  Same code: the 4,201 listings are the baseline's.
+TestCppCompilerLib passes.
+
+	MarkNoWrites and MarkNoThrow were one skeleton written twice: give every function of the unit the mark,
+	take it back from each that can't have it until none changes, then find the functions with an
+	instruction that uses a marked one.  CIRInterprocedural::MarkOptimistically does the first two for a
+	symbol attribute, with what loses the mark a member function it is handed (WritesMemory, MayThrow) and
+	whether the marks that were there before are kept (a front end's nothrow is); FindUsers does the third
+	(IsCallOfNoWrites, IsTestOfNoThrow).  The two passes are eight lines and two.
+
+	Whether a function may throw is no longer CIRModule's, which holds spaces, symbols, globals and the
+	target's opcodes: IRMayThrow and IRNeverThrown are functions of IRThrows.h/.cpp, asked by the
+	summaries, by the folding of the test after a call and by the verifier.  Which ways a branch can be
+	told to go (a constant, the thrown of a call that never throws, a phi of constants) is a function of
+	its own (IRBranchWays), and the walk is three deep where it was seven.
+
+	The walk of a value's uses (FirstUse, FirstTemporaryUse, NextUse, SetUse and SIRUse) is CIRFunction's:
+	it read nothing of a pass but its function.  The passes ask their function for it (17 places), and
+	IRReplaceUses, which was a walk of every use written out again for code that is no pass, is
+	CIRFunction::ReplaceUses on it.
+
+	Not as the stage was written: there is no "shared walker" of reachable blocks under IRMayThrow.  Its
+	walk goes only the ways a branch can be told to go, which no other walk of a function's blocks does;
+	a walker with one user would be the same loop with a callback.  CIRFunction::CountUses and
+	CIRDefinitions::Compute still walk the uses for themselves: the first is called by the back ends for
+	every function and is a tight loop, the second finds the definitions in the same pass over the blocks.
+
+Stage 14 (2026-11-22): the IR's parser stands on CTextParser.  Same code: the 4,201 listings are the
+baseline's.  TestCppCompilerLib passes; the parser's tests (stage 0's among them, which assert the text, line
+and column of what it says of wrong IR) passed as they stood.
+
+	CIRParser had a cursor of its own (the text and a place in it) and its own scanner.  It has a
+	CTextParser, given the IR's rules by a configuration: the white space with its ; comments
+	(IRSkipWhitespace), a name (IRParseIdentifier: letters, digits, _, . and $) and a keyword
+	(IRParseExactIdentifier).  SkipSpace, AtEnd and IsNameCharacter are gone; GetChar, GetName and
+	GetKeyword are a line or two on the text parser; an error's line and column are the ones the text
+	parser keeps, where they were counted from the start of the text each time.  The top level reads its
+	three keywords from a table.
+
+	What is still read a character at a time, through the text parser: a number (its text is taken whole,
+	exponent signs and all, and then converted, so that "12abc" is a bad number and not 12 followed by a
+	name) and a string (its \HH escapes and its two errors are the IR's own).  The places the parser
+	remembers for an error found later (a temporary named and never defined) are offsets, and it goes
+	back to one a step at a time so the line and column stay right.
+
+	A text with carriage returns is copied without them first: the text parser takes none, and the old
+	scanner skipped them.
+
+	It is not shorter: IRParser.cpp is 1,657 lines, from 1,573.  The IR's rules had to be said to the text
+	parser, and the scanner that went was small functions.  What it gains is the library's one way of
+	reading text, with the line and column it keeps.  (No other file of CppCompilerLib uses CTextParser:
+	the C++ front end reads tokens, which is another thing.)
+
+	The stale comment of finding 74 (IR_SIGNED_RANGE_DEPTH "is in IROptimiser.h") went in stage 12: it is
+	in IRRanges.h, and the comment says so.
+
+
+What was done, stage by stage (2026-11-21 and 22)
+
+	Every stage on master writes the same code as the baseline (4,201 listings of the three suites' projects
+	on both processors) and passes TestCppCompilerLib.  Compiling TestSupportLib65's project a unit at a
+	time (milliseconds, 65C64 and W65C816): "optimise" 3,356 and 3,738 at the baseline, 3,316 and 3,667 at
+	stage 14; "inline" 7,090 and 12,614, then 6,879 and 12,117.  Two runs of one compiler differ by about
+	as much.
+
+	  stage  finding   commit      what
+	  0      97        49a3a046b   the baseline; tests for 30 of the parser's and verifier's 32 untested diagnostics
+	  1      62        ecfbdfad8   an opcode's facts are in the opcode table
+	  2      67        6c7903b1d   one row a pass (IR_PASSES)
+	  3      70        cccf75023   a symbol's attributes are one set of bits
+	  4      72        70fc11987   instructions are built by the builder (AddInstruction, InsertInstruction, DefinedBy)
+	  5      61        dddc27c61   what a branch says on an edge (SIREdgeCondition), a loop's two ways (LoopWays)
+	  6      60        9136af054   a loop's counter is matched in one place (MatchCounter)
+	  7      65        9815a19a9   a loop's set-up: Preheader, SimpleLoop, AddCounterPhi
+	  8      66        73b38561f   one copier of blocks (CIRBlockCopier)
+	  9      64        f720e4247   the library idioms: one shape, one table
+	  10     71        fa05f0d48   a division by a constant: SIRConstantDivision, SIRReciprocal
+	  11     63, 68    dc5a2b87f   a range is a record; what narrows it is a parameter
+	         63        a5f0531b2   the largest a value can be: one set of rules (CIRMostRules)
+	                   0bce72589   ...which UpperBound does not ask yet: see below
+	  12     69, 68    91889ea9e   the pass groups: the block's and the loop's edits, CIRRanges, CIRAddresses, one use count
+	  13     73        6fb64ecd5   the summaries between functions; IRMayThrow; the walk of uses
+	  14     74        55b9844fe   the IR's parser on CTextParser
+
+	Not done, and why (each is in its stage's record):
+	- UpperBound asking the shared rules (stage 11).  It is written and measured: cycles fall or stay in all
+	  six totals, bytes in five, and TestSupportLib65 on the W65C816 grows by 419 bytes.  It is the last
+	  commit of the branch ir-optimiser, for the user to take or leave.
+	- The signed range rules in the same table as the unsigned ones (stage 11): finding 63's third list.
+	- The quotient of a division by a constant as a copy (stage 10): a copy is the back end's, and no
+	  pass takes one away.
+	- Carrying nowrites between modules (stage 3): sound, and it changes the code; not asked for.

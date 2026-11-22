@@ -1290,6 +1290,10 @@ repeats the shape test and the rewiring (finding 64).
    comes round from). Passes ask it, and one helper gives the value after n times round.
    plan: stage 2's leftover ("one matcher for the four idioms") covers only the idiom part; the rest is new.
    Confidence: high.
+   Since: OptimiserPlan.txt stage 6 (9136af054).  CIRPasses::MatchCounter is the one matcher (a ptradd for a step with
+   IR_COUNTER_POINTER); ReduceStrength, MatchIdiomStep, MatchIdiomAddress's pointer phi and MatchLinear ask it.
+   ReplaceLoopCounters' second counter and ReplaceStrchr's are still found by rules of their own, and the loops
+   keep no list of counters.
 
 61. "What does this branch say on this edge" is decoded in every pass that needs it
    Kind: one question, many answers.
@@ -1309,6 +1313,10 @@ repeats the shape test and the rewiring (finding 64).
    Clean form: one edge-condition helper on the block or function (compare, opcode as it holds on the edge, value
    on the left), and one "loop test" record (block, compare as it holds going round, inside and outside targets).
    plan: new. Confidence: high.
+   Since: OptimiserPlan.txt stage 5 (dddc27c61).  SIREdgeCondition is what a branch says on an edge, and CIRPasses::
+   LoopWays the way round and the way out; the range passes, the counter passes, the folding and the idioms
+   read them (strchr's two tests from stage 9, f720e4247).  The back end's table reads the same record
+   (CIRMostRules::EdgeMost).
 
 62. Facts about opcodes kept outside the opcode table
    Kind: one fact listed in more than one place; magic enum arithmetic.
@@ -1333,6 +1341,8 @@ repeats the shape test and the rewiring (finding 64).
    Clean form: an accessor for uiHolds; table columns for the unsigned twin and the divide/remainder twin; a class
    bit set (integer arithmetic, divide, extension) the lists become tests of.
    plan: new. Confidence: high.
+   Since: OptimiserPlan.txt stage 1 (ecfbdfad8).  The facts are columns and property bits of the opcode table
+   (signedness, the unsigned twin, a division's partner, what wraps), read through accessors in 29 places.
 
 63. Three analyses of how big a value can be, each with its own opcode list
    Kind: two (three) functions answering one question; out-parameter pairs that are one struct.
@@ -1351,6 +1361,12 @@ repeats the shape test and the rewiring (finding 64).
    one edge refinement) that the 65C64 back end and the passes both ask.
    plan: stage 2's leftover names "ranges as a kept analysis" but not that there are three; mostly new. Confidence:
    high.
+   Since: OptimiserPlan.txt stage 11.  A range is a record (SIRValueRange, dc5a2b87f).  The two unsigned lists' rules
+   are written once (CIRMostRules in IRMost.h, a5f0531b2); CIRKnownBits is CIRMost, and Bits() is gone.
+   UpperBound does not ask them yet: the switch changes the code written, and measured it costs one suite 419
+   bytes for 2.25 million cycles, so it waits on the branch ir-optimiser for the user (0bce72589 and the
+   plan's record).  The signed rules (SignedRange, ArithmeticRange, DivisionRange) are still a list of their
+   own, and the back end's table and the passes' question are still two drivers.
 
 64. The four library idioms each repeat the shape test and the rewiring
    Kind: family of near-identical functions.
@@ -1370,6 +1386,9 @@ repeats the shape test and the rewiring (finding 64).
    Clean form: one matcher returning the loop's shape (head, latch, the two exits, the loads, the compare as taken)
    and a table of idioms (name, 32-bit name, argument kinds); the ladder at :495 reads the table.
    plan: stage 2 leftover, already known and not done. Confidence: high.
+   Since: OptimiserPlan.txt stage 9 (f720e4247).  MatchIdiomLoop gives the shape; gasIRIdiomLibrary has each function's
+   names and what it takes, and LibraryCall takes the idiom; LibraryByte, FewBytes and CIRBlock::
+   CopyPhiArguments are the three small things.  The matcher gives the blocks, not the loads and the compare.
 
 65. ReduceDivisions, ReduceStrength and ReduceMultiplies are one skeleton, and loop set-up comes in three dialects
    Kind: same skeleton written three times; inconsistent twins.
@@ -1390,6 +1409,9 @@ repeats the shape test and the rewiring (finding 64).
    needed; AddCounterPhi(head, entering, start, latch, stepped).
    plan: "longest passes split into finding, checking and rewriting" is a stage 2 leftover; the shared skeleton and
    the three preheader forms are new. Confidence: high.
+   Since: OptimiserPlan.txt stage 7 (9815a19a9).  Preheader (CIRLoops' since stage 12) is the one way to a preheader,
+   SimpleLoop the shared opening, AddCounterPhi the stepped phi, and CounterUnwrapped takes the counter.  The
+   three Reduce passes do not share one walk: they do not go by the same things.
 
 66. Blocks are copied with a value map in three places
    Kind: same idea written three times.
@@ -1404,6 +1426,8 @@ repeats the shape test and the rewiring (finding 64).
    Clean form: one block copier taking a value map and a block map, with a hook for what a return becomes.
    UnswitchLoops then shrinks by about 70 lines.
    plan: new. Confidence: high.
+   Since: OptimiserPlan.txt stage 8 (73b38561f).  CIRBlockCopier copies a block; the inliner is one, CIRMappedCopier
+   is UnswitchLoops' and RotateLoops', and CopyBody has one in which every value is itself.
 
 67. The list of passes is written in four code places and two stale documents; one target setting is said twice
    Kind: one fact in several places; dead code; comments that contradict the code.
@@ -1426,6 +1450,8 @@ repeats the shape test and the rewiring (finding 64).
    Clean form: one table row per pass (enum, name, group, function, one line of description) that the enum's names,
    InitPasses and the documentation come from; ShareDivisions asks the pipeline.
    plan: new (stage 2 thought it finished this). Confidence: high.
+   Since: OptimiserPlan.txt stage 2 (6c7903b1d).  IR_PASSES has a row a pass, from which the enum, the names, the
+   descriptions and the optimiser's table are made; the target says ConstantDivisions once.
 
 68. Modes switched on and off by hand around a call
    Kind: state saved and put back by hand; a function whose answer depends on members its arguments don't show.
@@ -1440,6 +1466,9 @@ repeats the shape test and the rewiring (finding 64).
    Clean form: the mode is a parameter or a small query object (what to narrow by); OnlyUsedInLoop takes the uses
    to leave out.
    plan: new. Confidence: high.
+   Since: OptimiserPlan.txt stages 11 and 12.  What narrows a range is a parameter of the question (IR_RANGE_BRANCHES,
+   IR_RANGE_DOMINATORS; dc5a2b87f) and the two members are gone.  OnlyUsedIn and OnlyUsedInLoop take the uses
+   elsewhere that are allowed (91889ea9e); nothing takes a use off a shared count and puts it back.
 
 69. The pass groups are not self-contained, and two analyses are kept twice
    Kind: feature envy; a class doing several jobs; one fact derived twice.
@@ -1459,6 +1488,10 @@ repeats the shape test and the rewiring (finding 64).
    become analysis classes in the context; one use count.
    plan: stage 2 leftover in part ("use counts, ranges as kept analyses"); the cross-calls and the double count are
    new. Confidence: high.
+   Since: OptimiserPlan.txt stage 12 (91889ea9e).  A block's edits are CIRBlock's and a preheader CIRLoops'; the ranges
+   and the addresses are analyses the context holds (CIRRanges, CIRAddresses); a temporary's uses are counted
+   once (CIRDefinitions); the two frame limits are named; the context lost the fields no group reaches for.
+   Ten calls of eight functions still go from one group to another.
 
 70. A symbol's attributes are five separate bools, each handled one at a time everywhere
    Kind: parallel lists; near-identical functions; inconsistent twins.
@@ -1473,6 +1506,8 @@ repeats the shape test and the rewiring (finding 64).
    Clean form: one attribute bit set per symbol with a {bit, keyword} table, as gasIRFlagNames already does for
    instruction flags; one parse, one print loop, one CopySymbolAttributes.
    plan: new. Confidence: high.
+   Since: OptimiserPlan.txt stage 3 (cccf75023).  uiAttributes with IRSA_ bits, one table of their names, and
+   SetSymbolAttributes, GetSymbolAttributes and CopySymbolAttributes.
 
 71. Division by a constant: the same preamble about seven times, and one record doing two passes' work
    Kind: repeated rule; a struct with flag fields; long output-parameter lists.
@@ -1490,6 +1525,9 @@ repeats the shape test and the rewiring (finding 64).
    Clean form: a matcher returning an SIRConstantDivision (signed, remainder, divisor); an SIRReciprocal struct
    kept in the found record; a kind enum.
    plan: stage 2 leftover in spirit (split the longest passes); the details are new. Confidence: high.
+   Since: OptimiserPlan.txt stage 10 (fa05f0d48).  SIRConstantDivision::Init reads the division in eight places;
+   ConstantDivisions has its own record with a kind and keeps the reciprocal it found (SIRReciprocal);
+   InsertDivisorMask builds the mask.  The quotient is still an add of 0: a copy is the back end's.
 
 72. Instructions built field by field where a builder exists
    Kind: reuse missed; inconsistent initialisation.
@@ -1503,6 +1541,8 @@ repeats the shape test and the rewiring (finding 64).
      Instruction(x); ps && ps->uiOpcode == ..." is written out dozens of times.
    Clean form: Add/InsertInstruction take the source line; passes use IsDefinedBy.
    plan: new. Confidence: high.
+   Since: OptimiserPlan.txt stage 4 (70fc11987).  CIRPasses::AddInstruction and InsertInstruction (with a source line)
+   and CIRDefinitions::DefinedBy, which the places that filled an instruction's fields ask.
 
 73. MarkNoWrites and MarkNoThrow are one fixpoint written twice, and CIRModule::MayThrow is an analysis living in
     the module
@@ -1518,6 +1558,10 @@ repeats the shape test and the rewiring (finding 64).
    Clean form: one "optimistic summary" helper taking the test as a callback; MayThrow moves beside the
    interprocedural code and uses a shared reachable-blocks walk.
    plan: new. Confidence: medium.
+   Since: OptimiserPlan.txt stage 13 (6fb64ecd5).  MarkOptimistically and FindUsers, with the tests as member
+   callbacks; IRMayThrow and IRNeverThrown in IRThrows.h/.cpp, the branch's ways a function of its own; the
+   walk of uses is CIRFunction's, and IRReplaceUses is CIRFunction::ReplaceUses.  CountUses and
+   CIRDefinitions::Compute still walk the uses for themselves.
 
 74. Small: stale comment, and the IR parser's own scanner
    - IROptimiserInternal.h:29-30 says IR_SIGNED_RANGE_DEPTH "is in IROptimiser.h"; it is in IRPasses.h:227.
@@ -1526,6 +1570,10 @@ repeats the shape test and the rewiring (finding 64).
      rule is that parsers sit on BaseLib's CTextParser; no file in CppCompilerLib uses it, so this is a
      library-wide choice rather than this file's.
    plan: new. Confidence: medium.
+   Since: OptimiserPlan.txt stages 12 and 14.  The comment names IRRanges.h (91889ea9e).  CIRParser reads through a
+   CTextParser configured with the IR's white space, names and keywords, and its top level reads a table
+   (55b9844fe); numbers and strings are still read a character at a time, through it.  The file is 84 lines
+   longer.
 
 What this area's reviewer found clean, or looked at and did not count:
 - IRParser, IRPrinter and IRVerifier are properly table-driven; IRFoldInteger really is the single integer
