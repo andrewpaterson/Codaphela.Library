@@ -4,7 +4,8 @@ W65C816 alignment plan
 Written 2026-11-22 for the session that builds it, and built the same day (the user: "Complete the entire plan.
 Clean up and commit with no co-author as you go.  Keep a list of questions for me as necessary and make sure the code
 remains DRY and elegant.").  Sections 1 to 5 are the plan as it was written, for the record; section 6 is what was
-built, 7 the count and the survey, 8 step 10's measurement and 9 the questions kept for the user.
+built, 7 the count and the survey, 8 step 10's measurement, 9 the questions kept for the user and 10 the user's
+answers and what was done about each.
 
 
 1. What the user decided (2026-11-22)
@@ -353,3 +354,55 @@ Nothing below blocks anything: each has what was done meanwhile.
      SKernalBlit, SKernalMemoryInfo and SKernalDirectoryEntry, and CKernalDriver, changed).  Everything in the
      repositories is built together; an SD card image with old programs needs them rebuilt.
   9. Not done: a Microsoft build of the change (Cpp14CompliancePlan.txt C 1 is owed anyway; no file was added).
+
+
+10. The user's answers (2026-11-22) and what was done
+-----------------------------------------------------
+
+"1. Keep padding at 2.  2. No.  3. Yes.  4. make the 65C64's locals alignof at most 4.  5. I don't know.  6. No.
+7. Don't care.  8. Please rebuild and make it work.  9. Yes"
+
+  1. Padding stays at 2.  Nothing to do.
+  2. The 16 bit store isn't built.
+  3. The layouts file.  CCPP65Builder::SetLayoutsFile(file): each class the build's sources lay out is a line
+     (CCPPUnit::AddLayout: its name, where it is defined, its size, alignment and alignas, then each base's, the
+     vtable pointer's and each field's offset), the units' lines merged in order with each once, written when the
+     units are compiled and again with each source after (AddSource, LinkWith).  hcp65build -layouts <file>, for a
+     solution or a plain command line (CBuild::SetLayoutsFile, CSolutionBuild::Start's last argument), and
+     TEST_PROJECT65_LAYOUTS=<file> for the libraries' test programs.  Two builds' files compare with diff, which is
+     what the count needed a script for.  It isn't a configuration's attribute or a tick box in the IDE: say if it
+     should be.  Tests: TestCPP65GeneratorLayoutsFile (both targets), TestBuildCommandLineLayouts (plain and
+     solution).  Docs: compiler/building.md "Class layouts".
+  4. CCPPTarget65C64::GetObjectAlignmentLimit answers GetFrameAlignment (4): alignof(double) and alignof(long long)
+     are 4 on the 65C64, and alignof of a class that holds one, whose layout is as it was (a double member still at a
+     multiple of 8); a global double is at a multiple of 4.  BasicAlignmentLocals has 8 byte locals (31; the 65C64
+     returned 19 of it before).  TestBaseLib's TestPrimitiveTypesAlignment expects alignof 4 of the 64 bit vectors
+     there.  Cpp14CompliancePlan.txt B 9.
+  5. Not answered: alignas on a member's class in a #pragma pack class stays as built (kept, MSVC's way) until the
+     user says otherwise.  Asked again in plain words.
+  6. No file is meant to be written on a PC and read on the HCP65 as raw classes: nothing to do.
+  7. SKernalStatus is left as it is.
+  8. Rebuilt: see "What was rebuilt" below.
+  9. The Microsoft build is still owed (Cpp14CompliancePlan.txt C 1): it can't be made on dev7.  What can be was: the
+     compiler's and BuildLib's changed sources compile for Windows with MinGW, 32 and 64 bit, with no errors
+     (CPPClassLayout, CPPTarget, CPPTargetW65C816, CPPTarget65C64, CPPUnit, CPPUnitClasses, CPPUnitExpressions,
+     CPP65Builder; Build, BuildCommandLine, HCP65Build, SolutionBuild).  No file was added to a project.
+
+What was rebuilt (8):
+  Nothing with W65C816 code in it is kept in a repository (the emulator's Input/SDCard.img is blank, its Input/
+  Kernal.rom is from 2026-11-03 and nothing reads it), so what could be stale was built things on dev7:
+  - The shared build folders whose programs have the compiler in them, which were from 2026-11-19 to 2026-11-21 and
+    would have built programs with the old layouts for a kernal with the new: build/HCP65IDERelease (HCP65IDE,
+    HCP65IDERef, hcp65build), TestHCP65Lib64Release, TestCppCompilerLib64Release, TestBaseLib65_64Release,
+    TestStandardLib65_64Release, TestSupportLib65_64Release, TestLibc6564Release and TestBuildLib64Release, all
+    rebuilt; build/HCP65EmulatorRelease is new (there was no emulator build).
+  - HCP65/Kernal/Output and HCP65/ModPlay/Output (the IDE's builds, from 2026-11-06): OS.SYS and modplay.exe rebuilt,
+    Debug and Release, with the rebuilt hcp65build.
+  - HCP65-Emulator/TestHCP65Lib/TestHCP65Lib/Output, which the emulator's machines boot (Boot.rom, SDCard.img,
+    VideoCard.img) and the projects' configurations name as their card: it held a Kernal.rom and a card from
+    2026-11-06 and no Boot.rom.  TestHCP65Lib was run in place (2614 passed): it builds the boot ROM, the kernal, the
+    drivers and the programs, writes the cards, and boots each of them in the emulated machine, the shell on the
+    Video Board's screen among them.
+  Left where they are, from before, read by nothing: Kernal.rom in that Output and in Kernal/Output's Debug and
+  Release (the kernal project makes OS.SYS now).
+  Not done: the emulator and the IDE themselves weren't run, as either needs a window on the user's screen.
